@@ -702,10 +702,8 @@ class TokenIndex {
       final Map<String, double> weights =
           _inverseIds.putIfAbsent(token, () => <String, double>{});
       // on the first insert of an entry, we populate the similarity candidates
-      print('$token ${weights.isEmpty}');
       if (weights.isEmpty) {
         for (String reduced in deriveLookupCandidates(token)) {
-          print('r: $reduced');
           _lookupCandidates.putIfAbsent(reduced, () => <String>{}).add(token);
         }
       }
