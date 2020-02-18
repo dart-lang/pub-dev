@@ -269,9 +269,10 @@ body.experimental {
   }
 
   .packages-ff-icon {
-    display: block;
-    height: 20px;
+    display: inline-block;
+    height: 16px;
     width: auto;
+    margin-left: 16px;
   }
 
   .packages-description {
