@@ -11,6 +11,10 @@ import 'package:sanitize_html/sanitize_html.dart';
 
 final Logger _logger = Logger('pub.markdown');
 
+/// Element tags that are treated as structural headers.
+/// h4, h5 and h6 are considered formatting-only headers
+const _structuralHeaderTags = <String>{'h1', 'h2', 'h3'};
+
 const _whitelistedClassNames = <String>[
   'changelog-entry',
   'changelog-version',
@@ -27,28 +31,48 @@ String markdownToHtml(
   bool isChangelog = false,
 }) {
   if (text == null) return null;
-  final sanitizedBaseUrl = _pruneBaseUrl(baseUrl);
-
-  final document = m.Document(
-      extensionSet: m.ExtensionSet.gitHubWeb,
-      blockSyntaxes: m.ExtensionSet.gitHubWeb.blockSyntaxes);
-
-  final lines = text.replaceAll('\r\n', '\n').split('\n');
-  var nodes = document.parseLines(lines);
-
+  var nodes = _parseMarkdownSource(text);
+  nodes = _rewriteRelativeUrls(nodes, baseUrl: baseUrl, baseDir: baseDir);
   if (isChangelog) {
     nodes = _groupChangelogNodes(nodes).toList();
   }
+  return _renderSafeHtml(nodes);
+}
 
+/// Parses markdown [source].
+List<m.Node> _parseMarkdownSource(String source) {
+  if (source == null) return null;
+  final document = m.Document(
+      extensionSet: m.ExtensionSet.gitHubWeb,
+      blockSyntaxes: m.ExtensionSet.gitHubWeb.blockSyntaxes);
+  final lines = source.replaceAll('\r\n', '\n').split('\n');
+  return document.parseLines(lines);
+}
+
+/// Rewrites relative URLs, re-basing them on [baseUrl].
+List<m.Node> _rewriteRelativeUrls(
+  List<m.Node> nodes, {
+  String baseUrl,
+  String baseDir,
+}) {
+  final sanitizedBaseUrl = _pruneBaseUrl(baseUrl);
   final urlRewriter = _RelativeUrlRewriter(sanitizedBaseUrl, baseDir);
-  final hashLink = _HashLink();
-  final unsafeUrlFilter = _UnsafeUrlFilter();
-  for (final node in nodes) {
-    node.accept(urlRewriter);
-    node.accept(hashLink);
-    node.accept(unsafeUrlFilter);
-  }
+  nodes.forEach((node) => node.accept(urlRewriter));
+  return nodes;
+}
 
+/// Renders sanitized, safe HTML from markdown nodes.
+/// Adds hash link HTML to header blocks.
+String _renderSafeHtml(List<m.Node> nodes) {
+  // Filter unsafe urls on some of the elements.
+  final unsafeUrlFilter = _UnsafeUrlFilter();
+  nodes.forEach((node) => node.accept(unsafeUrlFilter));
+
+  // add hash link HTML to header blocks
+  final hashLink = _HashLink();
+  nodes.forEach((node) => node.accept(hashLink));
+
+  // Renders the sanitized HTML.
   final html = sanitizeHtml(
     m.renderToHtml(nodes),
     allowElementId: (String id) => true, // TODO: blacklist ids used by pub site
@@ -60,9 +84,7 @@ String markdownToHtml(
   return html + '\n';
 }
 
-const _headers = <String>{'h1', 'h2', 'h3', 'h4', 'h5', 'h6'};
-
-/// Adds an extra <a href="#hash">#</a> element to all h1,h2,h3..h6 elements.
+/// Adds an extra <a href="#hash">#</a> element to h1, h2 and h3 elements.
 class _HashLink implements m.NodeVisitor {
   @override
   void visitText(m.Text text) {}
@@ -72,25 +94,23 @@ class _HashLink implements m.NodeVisitor {
 
   @override
   void visitElementAfter(m.Element element) {
-    final isHeaderWithHash = _headers.contains(element.tag) &&
-        element.generatedId != null &&
-        element.children.length == 1;
-
+    final isHeaderWithHash = element.generatedId != null &&
+        _structuralHeaderTags.contains(element.tag);
     if (isHeaderWithHash) {
       _addHashLink(element, element.generatedId);
     }
   }
-}
 
-void _addHashLink(m.Element element, String id) {
-  final currentClasses = element.attributes['class'] ?? '';
-  element.attributes['class'] = '$currentClasses hash-header'.trim();
-  element.children.addAll([
-    m.Text(' '),
-    m.Element('a', [m.Text('#')])
-      ..attributes['href'] = '#$id'
-      ..attributes['class'] = 'hash-link',
-  ]);
+  void _addHashLink(m.Element element, String id) {
+    final currentClasses = element.attributes['class'] ?? '';
+    element.attributes['class'] = '$currentClasses hash-header'.trim();
+    element.children.addAll([
+      m.Text(' '),
+      m.Element('a', [m.Text('#')])
+        ..attributes['href'] = '#$id'
+        ..attributes['class'] = 'hash-link',
+    ]);
+  }
 }
 
 /// Filters unsafe URLs from the generated HTML.
@@ -235,7 +255,7 @@ String _pruneBaseUrl(String url) {
 /// Group corresponding changelog nodes together, if it matches the following
 /// pattern:
 /// - version identifiers are the only content in a single line
-/// - heading level or other style doesn't matter
+/// - only structural headers (h1, h2, h3) are accepted
 /// - optional `v` prefix is accepted
 /// - message logs between identifiers are copied to the version entry before the line
 ///
@@ -250,18 +270,15 @@ Iterable<m.Node> _groupChangelogNodes(List<m.Node> nodes) sync* {
   m.Element lastContentDiv;
   for (final node in nodes) {
     final version = (node is m.Element &&
+            _structuralHeaderTags.contains(node.tag) &&
             node.children.isNotEmpty &&
             node.children.first is m.Text)
         ? _extractVersion(node.children.first.textContent)
         : null;
     if (version != null) {
       final titleElem = m.Element('h2', [m.Text(version.toString())])
-        ..attributes['class'] = 'changelog-version';
-      final generatedId = (node as m.Element).generatedId;
-      if (generatedId != null) {
-        titleElem.attributes['id'] = generatedId;
-        _addHashLink(titleElem, generatedId);
-      }
+        ..attributes['class'] = 'changelog-version'
+        ..generatedId = (node as m.Element).generatedId;
 
       lastContentDiv = m.Element('div', [])
         ..attributes['class'] = 'changelog-content';
