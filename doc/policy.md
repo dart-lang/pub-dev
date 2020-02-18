@@ -11,7 +11,7 @@ you can mark the package as discontinued, which will make the package disappear
 from searches (but keep it available to those that already depend on it).
 
 However, because mistakes can occasionally happen, exceptions can be granted to
-this general policy at the pub.dev moderators’ discretion.
+this general policy at the pub.dev moderators’ discretion, on email request to `support@pub.dev`.
 Examples of circumstances under which exceptions may be granted include the following:
 
 * A package was published by mistake, and the publisher files an unpublish 
