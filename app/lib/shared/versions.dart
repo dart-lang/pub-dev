@@ -12,6 +12,9 @@ import 'utils.dart' show isNewer;
 ///
 /// While the format follows the semantic version pattern, we do not support
 /// extra values (e.g. build numbers or pre-release versions).
+///
+/// If there is ever a need to have multiple runtimeVersions on the same date, it is suggested that
+/// a future dates are used.
 final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 
 /// Represents a combined version of the overall toolchain and processing,
