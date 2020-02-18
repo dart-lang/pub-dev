@@ -381,7 +381,7 @@ MIT'''),
           SearchQuery.parse(query: 'haversine', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
-        'totalCount': 3,
+        'totalCount': 4,
         'packages': [
           {
             // should be the top
@@ -397,6 +397,11 @@ MIT'''),
             // should be present
             'package': 'latlong',
             'score': closeTo(0.71, 0.01),
+          },
+          {
+            // not relevant result, should have low score
+            'package': 'reversi',
+            'score': closeTo(0.39, 0.01),
           },
         ]
       });

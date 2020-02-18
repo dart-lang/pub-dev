@@ -25,9 +25,10 @@ void main() {
           .search(SearchQuery.parse(query: 'maps', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
-        'totalCount': 1,
+        'totalCount': 2,
         'packages': [
           {'package': 'maps', 'score': closeTo(0.993, 0.001)},
+          {'package': 'map', 'score': closeTo(0.745, 0.001)},
         ],
       });
     });
