@@ -16,6 +16,8 @@ void main() {
     expect(runtimeVersionPattern.hasMatch(runtimeVersion), isTrue);
     expect(runtimeVersionPattern.hasMatch('2018.09.13'), isTrue);
     expect(runtimeVersionPattern.hasMatch('2018 09 13'), isFalse);
+    expect(runtimeVersionPattern.hasMatch('2018.09.13-dev'), isFalse);
+    expect(runtimeVersionPattern.hasMatch('2018.09.13+1'), isFalse);
     expect(runtimeVersionPattern.hasMatch('2018'), isFalse);
     expect(runtimeVersionPattern.hasMatch('x.json'), isFalse);
   });

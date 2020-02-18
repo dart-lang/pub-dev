@@ -7,8 +7,12 @@ import 'package:pub_semver/pub_semver.dart';
 
 import 'utils.dart' show isNewer;
 
-/// The pattern of [runtimeVersion].
-final RegExp runtimeVersionPattern = RegExp(r'\d{4}\.\d{2}\.\d{2}');
+/// The pattern of [runtimeVersion], should be updated to reflect the current
+/// date the change happened, e.g. `2020.02.18`
+///
+/// While the format follows the semantic version pattern, we do not support
+/// extra values (e.g. build numbers or pre-release versions).
+final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 
 /// Represents a combined version of the overall toolchain and processing,
 /// allowing easy check for data compatibility, age comparison and also reflects
