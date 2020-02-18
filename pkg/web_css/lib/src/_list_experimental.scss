@@ -242,6 +242,10 @@ body.experimental {
     margin: 0px -4px 12px -4px;
     padding: 4px;
 
+    @media (min-width: $device-desktop-min-width) {
+      padding: 16px 32px;
+    }
+
     &:hover {
       background: #fafafa;
     }
