@@ -153,13 +153,13 @@ body.experimental {
       position: relative;
       top: -1px;
       opacity: 0.6;
-      transform: rotate(0deg);
+      transform: rotate(180deg);
       transition: transform 0.3s linear;
     }
 
     &.-active {
       .search-controls-more-carot {
-        transform: rotate(180deg);
+        transform: rotate(0deg);
       }
     }
   }

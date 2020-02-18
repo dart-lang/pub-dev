@@ -748,12 +748,15 @@ class TokenIndex {
         candidates.addAll(_lookupCandidates[token]);
       }
       for (String reduced in deriveLookupCandidates(token)) {
+        if (_inverseIds.containsKey(reduced)) {
+          candidates.add(reduced);
+        }
         final set = _lookupCandidates[reduced];
         if (set != null) {
           candidates.addAll(set);
         }
       }
-      final tokenNgrams = ngrams(token, _minLength, 6);
+      Set<String> tokenNgrams;
       double tokenWeightSum;
       for (String candidate in candidates) {
         double candidateWeight = 0.0;
@@ -764,6 +767,7 @@ class TokenIndex {
         } else if (candidate.startsWith(token) || candidate.endsWith(token)) {
           candidateWeight = token.length / candidate.length;
         } else {
+          tokenNgrams ??= ngrams(token, _minLength, 6);
           final candidateNgrams = ngrams(candidate, _minLength, 6);
           tokenWeightSum ??= tokenNgrams.fold<double>(0.0, _ngramWeightSum);
           candidateWeight =
