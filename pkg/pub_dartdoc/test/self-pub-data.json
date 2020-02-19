@@ -1,7 +1,7 @@
 {
   "coverage": {
-    "total": 7,
-    "documented": 4
+    "total": 5,
+    "documented": 1
   },
   "apiElements": [
     {
@@ -29,20 +29,7 @@
     {
       "name": "generate",
       "kind": "method",
-      "parent": "pub_data_generator.PubDataGenerator",
-      "documentation": "Generate the documentation for the given package in the specified\ndirectory. Completes the returned future when done."
-    },
-    {
-      "name": "onFileCreated",
-      "kind": "property",
-      "parent": "pub_data_generator.PubDataGenerator",
-      "documentation": "Fires when a file is created."
-    },
-    {
-      "name": "writtenFiles",
-      "kind": "property",
-      "parent": "pub_data_generator.PubDataGenerator",
-      "documentation": "Fetches all filenames written by this generator."
+      "parent": "pub_data_generator.PubDataGenerator"
     }
   ]
 }
