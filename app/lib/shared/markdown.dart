@@ -255,7 +255,8 @@ String _pruneBaseUrl(String url) {
 /// Group corresponding changelog nodes together, if it matches the following
 /// pattern:
 /// - version identifiers are the only content in a single line
-/// - only structural headers (h1, h2, h3) are accepted
+/// - only structural headers (h1, h2, h3) are accepted (the first occurrence
+///   determines which one we expect to match in the rest of the file)
 /// - optional `v` prefix is accepted
 /// - message logs between identifiers are copied to the version entry before the line
 ///
@@ -268,14 +269,22 @@ String _pruneBaseUrl(String url) {
 /// </div>
 Iterable<m.Node> _groupChangelogNodes(List<m.Node> nodes) sync* {
   m.Element lastContentDiv;
+  String firstHeaderTag;
   for (final node in nodes) {
+    final nodeTag = node is m.Element ? node.tag : null;
+    final isNewHeaderTag = firstHeaderTag == null &&
+        nodeTag != null &&
+        _structuralHeaderTags.contains(nodeTag);
+    final matchesFirstHeaderTag =
+        firstHeaderTag != null && nodeTag == firstHeaderTag;
     final version = (node is m.Element &&
-            _structuralHeaderTags.contains(node.tag) &&
+            (isNewHeaderTag || matchesFirstHeaderTag) &&
             node.children.isNotEmpty &&
             node.children.first is m.Text)
         ? _extractVersion(node.children.first.textContent)
         : null;
     if (version != null) {
+      firstHeaderTag ??= nodeTag;
       final titleElem = m.Element('h2', [m.Text(version.toString())])
         ..attributes['class'] = 'changelog-version'
         ..generatedId = (node as m.Element).generatedId;

@@ -261,5 +261,38 @@ void main() {
           '</div>'
           '</div>\n');
     });
+
+    test('zebras', () {
+      final output = markdownToHtml(
+        '''# 2.1.0
+ * Zebras can now encode bar-codes
+## Upgrading from
+### 1.0.0
+ * Elephants are now scared of mice. 
+### 0.9.0
+ * Take care to feed lion before releasing mice.
+
+-------
+
+# 2.0.0
+ * Zebras have been added.
+ * Elephants are now scared of mice. 
+
+-------
+
+# 1.0.0
+ * Take care to feed lion before releasing mice.''',
+        null,
+        isChangelog: true,
+      );
+      final lines = output.split('\n');
+
+      // Only 2.1.0, 2.0.0 and 1.0.0 should be recognized as versions.
+      expect(lines.where((l) => l.contains('changelog-version')), [
+        '<h2 class="changelog-version hash-header" id="210">2.1.0 <a href="#210" class="hash-link">#</a></h2><div class="changelog-content">',
+        '<h2 class="changelog-version hash-header" id="200">2.0.0 <a href="#200" class="hash-link">#</a></h2><div class="changelog-content">',
+        '<h2 class="changelog-version hash-header" id="100-2">1.0.0 <a href="#100" class="hash-link">#</a></h2><div class="changelog-content">',
+      ]);
+    });
   });
 }
