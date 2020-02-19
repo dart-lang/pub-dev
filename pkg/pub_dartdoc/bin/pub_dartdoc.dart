@@ -20,10 +20,11 @@ void main(List<String> arguments) async {
   final optionContext = DartdocProgramOptionContext(optionSet, null);
   startLogging(optionContext);
 
-  final dartdoc = await Dartdoc.withDefaultGenerators(optionContext);
-  dartdoc.generators.add(PubDataGenerator(optionContext.inputDir));
+  final dartdoc = await Dartdoc.fromContext(optionContext);
+  final results = await dartdoc.generateDocs();
 
-  await dartdoc.generateDocs();
+  final pubDataGenerator = PubDataGenerator(optionContext.inputDir);
+  await pubDataGenerator.generate(results.packageGraph, optionContext.output);
 }
 
 class DartdocProgramOptionContext extends DartdocGeneratorOptionContext

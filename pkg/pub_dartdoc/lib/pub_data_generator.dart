@@ -7,8 +7,6 @@ import 'dart:convert' as convert;
 import 'dart:io';
 
 import 'package:dartdoc/dartdoc.dart';
-// ignore: implementation_imports
-import 'package:dartdoc/src/warnings.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
@@ -17,14 +15,11 @@ const fileName = 'pub-data.json';
 
 /// Generates `pub-data.json` in the output directory, containing the extracted
 /// [PubDartdocData] instance.
-class PubDataGenerator implements Generator {
-  final _onFileCreated = StreamController<File>();
-  final _writtenFiles = <String, Warnable>{};
+class PubDataGenerator {
   final String _inputDirectory;
 
   PubDataGenerator(this._inputDirectory);
 
-  @override
   Future<void> generate(
       PackageGraph packageGraph, String outputDirectoryPath) async {
     final modelElements = packageGraph.allCanonicalModelElements
@@ -96,15 +91,7 @@ class PubDataGenerator implements Generator {
     final fileName = 'pub-data.json';
     final outputFile = File(p.join(outputDirectoryPath, fileName));
     await outputFile.writeAsString(convert.json.encode(extract.toJson()));
-    _onFileCreated.add(outputFile);
-    _writtenFiles[fileName] = null;
   }
-
-  @override
-  Stream<File> get onFileCreated => _onFileCreated.stream;
-
-  @override
-  Map<String, Warnable> get writtenFiles => _writtenFiles;
 
   // Inherited member, should not show up in pub-data.json
   @override
