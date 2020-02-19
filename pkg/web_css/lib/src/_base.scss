@@ -18,7 +18,7 @@ body {
 }
 
 body, input, button {
-  font-family: "Roboto", sans-serif;
+  font-family: $font-family-roboto;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -28,6 +28,7 @@ body.experimental {
   font-weight: 300;
 
   h1, h2, h3, h4, h5, h6 {
+    font-family: $font-family-google-sans;
     font-weight: 400;
   }
 
@@ -155,7 +156,7 @@ main {
 code {
   background: #f8f8f8;
   border: 1px solid #eee;
-  font-family: "Source Code Pro", Menlo, monospace;
+  font-family: $font-family-roboto-mono;
   font-size: 85%;
   padding: 2px;
 }
