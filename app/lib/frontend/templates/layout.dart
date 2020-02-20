@@ -40,7 +40,13 @@ String renderLayoutPage(
   @required String title,
   String pageDescription,
   String faviconUrl,
+
+  /// The canonical content link that will be put in the header.
+  /// https://support.google.com/webmasters/answer/139066?hl=en
   String canonicalUrl,
+
+  /// The page's URL that will be used in social share metadata.
+  String shareUrl,
   String sdk,
   String publisherId,
   SearchQuery searchQuery,
@@ -69,6 +75,7 @@ String renderLayoutPage(
   final values = {
     'is_experimental': requestContext.isExperimental,
     'is_landing': type == PageType.landing,
+    'pub_site_root': urls.siteRoot,
     'dart_site_root': urls.dartSiteRoot,
     'oauth_client_id': activeConfiguration.pubSiteAudience,
     'body_class': bodyClasses.join(' '),
@@ -76,6 +83,7 @@ String renderLayoutPage(
     'no_index': noIndex,
     'favicon': faviconUrl ?? staticUrls.smallDartFavicon,
     'canonicalUrl': canonicalUrl,
+    'share_url': shareUrl,
     'pageDescription': pageDescription == null
         ? _defaultPageDescriptionEscaped
         : htmlEscape.convert(pageDescription),

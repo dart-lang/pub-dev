@@ -268,6 +268,11 @@ String renderPkgShowPage(
       '$packageAndVersion | ${isFlutterPackage ? 'Flutter' : 'Dart'} Package';
   final canonicalUrl =
       isVersionPage ? urls.pkgPageUrl(package.name, includeHost: true) : null;
+  final shareUrl = urls.pkgPageUrl(
+    package.name,
+    version: isVersionPage ? selectedVersion.version : null,
+    includeHost: true,
+  );
   final noIndex = (card?.isSkipped ?? false) ||
       (card?.overallScore == 0.0) ||
       package.isDiscontinued;
@@ -278,6 +283,7 @@ String renderPkgShowPage(
     pageDescription: selectedVersion.ellipsizedDescription,
     faviconUrl: isFlutterPackage ? staticUrls.flutterLogo32x32 : null,
     canonicalUrl: canonicalUrl,
+    shareUrl: shareUrl,
     noIndex: noIndex,
     pageData: pkgPageData(package, selectedVersion),
   );
