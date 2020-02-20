@@ -5,4 +5,4 @@ travis:
     chrome: stable
 
 merge_stages:
-- smoke_test
+  - smoke_test

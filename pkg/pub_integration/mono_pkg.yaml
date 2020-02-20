@@ -7,5 +7,8 @@ stages:
     - group:
         - dartfmt
         - dartanalyzer: --fatal-infos --fatal-warnings bin/ lib/
+  - build:
+    - command: cd ../web_app && ./build.sh
+    - command: cd ../web_css && ./build.sh
   - unit_test:
     - test: --run-skipped --concurrency=1
