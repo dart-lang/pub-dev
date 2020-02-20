@@ -7,10 +7,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart' as crypto;
+import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:mime/mime.dart' as mime;
 import 'package:pana/pana.dart' show runProc;
 import 'package:path/path.dart' as path;
+
+final _logger = Logger('pub.static_files');
 
 const String _defaultStaticPath = '/static';
 const _staticRootPaths = <String>['favicon.ico', 'robots.txt'];
@@ -257,8 +260,12 @@ Future updateLocalBuiltFilesIfNeeded() async {
   final webAppDir = Directory(resolveWebAppDirPath());
   final webAppLastModified = await _detectLastModified(webAppDir);
   final scriptJs = File(path.join(staticDir.path, 'js', 'script.dart.js'));
-  if (!scriptJs.existsSync() ||
-      (scriptJs.lastModifiedSync().isBefore(webAppLastModified))) {
+  final scriptJsExists = await scriptJs.exists();
+  final scriptJsLastModified =
+      scriptJsExists ? await scriptJs.lastModified() : null;
+  if (!scriptJsExists || (scriptJsLastModified.isBefore(webAppLastModified))) {
+    _logger.info(
+        'Triggering pkg/web_app build (exists:$scriptJsExists lastModified:$scriptJsLastModified)...');
     await scriptJs.parent.create(recursive: true);
     await updateWebAppBuild();
   }
