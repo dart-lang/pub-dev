@@ -277,7 +277,7 @@ Future updateLocalBuiltFilesIfNeeded() async {
   final styleCssLastModified =
       styleCssExists ? await styleCss.lastModified() : null;
   _logger.info(
-      'pkg/web_app build status: source: $webCssLastModified, target: $styleCssLastModified');
+      'pkg/web_css build status: source: $webCssLastModified, target: $styleCssLastModified');
   if (!styleCssExists || (styleCssLastModified.isBefore(webCssLastModified))) {
     await updateWebCssBuild();
   }
