@@ -169,13 +169,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.16.1"
-  dart2_constant:
-    dependency: transitive
-    description:
-      name: dart2_constant
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.2+dart2"
   dart_style:
     dependency: transitive
     description:
@@ -441,7 +434,7 @@ packages:
       name: pana
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.13.4"
+    version: "0.13.5"
   path:
     dependency: transitive
     description:
@@ -498,13 +491,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.4.2"
-  pub_server:
-    dependency: transitive
-    description:
-      name: pub_server
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.5"
   pubspec_parse:
     dependency: transitive
     description:
