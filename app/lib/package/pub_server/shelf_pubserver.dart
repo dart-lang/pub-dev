@@ -16,7 +16,7 @@ import 'package:yaml/yaml.dart';
 
 import 'repository.dart';
 
-final Logger _logger = new Logger('pubserver.shelf_pubserver');
+final Logger _logger = Logger('pubserver.shelf_pubserver');
 
 // TODO: Error handling from [PackageRepo] class.
 // Distinguish between:
@@ -108,7 +108,7 @@ final Logger _logger = new Logger('pubserver.shelf_pubserver');
 ///           },
 ///        }
 ///
-///   * Adding a new uploader
+///   * Adding a  uploader
 ///
 ///         POST /api/packages/<package-name>/uploaders
 ///         email=<uploader-email>
@@ -128,19 +128,19 @@ final Logger _logger = new Logger('pubserver.shelf_pubserver');
 /// It will use the pub [PackageRepository] given in the constructor to provide
 /// this HTTP endpoint.
 class ShelfPubServer {
-  static final RegExp _packageRegexp = new RegExp(r'^/api/packages/([^/]+)$');
+  static final RegExp _packageRegexp = RegExp(r'^/api/packages/([^/]+)$');
 
   static final RegExp _versionRegexp =
-      new RegExp(r'^/api/packages/([^/]+)/versions/([^/]+)$');
+      RegExp(r'^/api/packages/([^/]+)/versions/([^/]+)$');
 
   static final RegExp _addUploaderRegexp =
-      new RegExp(r'^/api/packages/([^/]+)/uploaders$');
+      RegExp(r'^/api/packages/([^/]+)/uploaders$');
 
   static final RegExp _removeUploaderRegexp =
-      new RegExp(r'^/api/packages/([^/]+)/uploaders/([^/]+)$');
+      RegExp(r'^/api/packages/([^/]+)/uploaders/([^/]+)$');
 
   static final RegExp _downloadRegexp =
-      new RegExp(r'^/packages/([^/]+)/versions/([^/]+)\.tar\.gz$');
+      RegExp(r'^/packages/([^/]+)/versions/([^/]+)\.tar\.gz$');
 
   final PackageRepository repository;
   final PackageCache cache;
@@ -148,33 +148,33 @@ class ShelfPubServer {
   ShelfPubServer(this.repository, {this.cache});
 
   Future<shelf.Response> requestHandler(shelf.Request request) async {
-    String path = request.requestedUri.path;
+    final path = request.requestedUri.path;
     if (request.method == 'GET') {
-      var downloadMatch = _downloadRegexp.matchAsPrefix(path);
+      final downloadMatch = _downloadRegexp.matchAsPrefix(path);
       if (downloadMatch != null) {
-        var package = Uri.decodeComponent(downloadMatch.group(1));
-        var version = Uri.decodeComponent(downloadMatch.group(2));
+        final package = Uri.decodeComponent(downloadMatch.group(1));
+        final version = Uri.decodeComponent(downloadMatch.group(2));
         if (!isSemanticVersion(version)) return _invalidVersion(version);
         return _download(request.requestedUri, package, version);
       }
 
-      var packageMatch = _packageRegexp.matchAsPrefix(path);
+      final packageMatch = _packageRegexp.matchAsPrefix(path);
       if (packageMatch != null) {
-        var package = Uri.decodeComponent(packageMatch.group(1));
+        final package = Uri.decodeComponent(packageMatch.group(1));
         return _listVersions(request.requestedUri, package);
       }
 
-      var versionMatch = _versionRegexp.matchAsPrefix(path);
+      final versionMatch = _versionRegexp.matchAsPrefix(path);
       if (versionMatch != null) {
-        var package = Uri.decodeComponent(versionMatch.group(1));
-        var version = Uri.decodeComponent(versionMatch.group(2));
+        final package = Uri.decodeComponent(versionMatch.group(1));
+        final version = Uri.decodeComponent(versionMatch.group(2));
         if (!isSemanticVersion(version)) return _invalidVersion(version);
         return _showVersion(request.requestedUri, package, version);
       }
 
       if (path == '/api/packages/versions/new') {
         if (!repository.supportsUpload) {
-          return new shelf.Response.notFound(null);
+          return shelf.Response.notFound(null);
         }
 
         if (repository.supportsAsyncUpload) {
@@ -186,7 +186,7 @@ class ShelfPubServer {
 
       if (path == '/api/packages/versions/newUploadFinish') {
         if (!repository.supportsUpload) {
-          return new shelf.Response.notFound(null);
+          return shelf.Response.notFound(null);
         }
 
         if (repository.supportsAsyncUpload) {
@@ -198,19 +198,19 @@ class ShelfPubServer {
     } else if (request.method == 'POST') {
       if (path == '/api/packages/versions/newUpload') {
         if (!repository.supportsUpload) {
-          return new shelf.Response.notFound(null);
+          return shelf.Response.notFound(null);
         }
 
         return _uploadSimple(request.requestedUri,
             request.headers['content-type'], request.read());
       } else {
         if (!repository.supportsUploaders) {
-          return new shelf.Response.notFound(null);
+          return shelf.Response.notFound(null);
         }
 
-        var addUploaderMatch = _addUploaderRegexp.matchAsPrefix(path);
+        final addUploaderMatch = _addUploaderRegexp.matchAsPrefix(path);
         if (addUploaderMatch != null) {
-          String package = Uri.decodeComponent(addUploaderMatch.group(1));
+          final package = Uri.decodeComponent(addUploaderMatch.group(1));
           return request.readAsString().then((String body) {
             return _addUploader(package, body);
           });
@@ -218,32 +218,32 @@ class ShelfPubServer {
       }
     } else if (request.method == 'DELETE') {
       if (!repository.supportsUploaders) {
-        return new shelf.Response.notFound(null);
+        return shelf.Response.notFound(null);
       }
 
-      var removeUploaderMatch = _removeUploaderRegexp.matchAsPrefix(path);
+      final removeUploaderMatch = _removeUploaderRegexp.matchAsPrefix(path);
       if (removeUploaderMatch != null) {
-        String package = Uri.decodeComponent(removeUploaderMatch.group(1));
-        String user = Uri.decodeComponent(removeUploaderMatch.group(2));
+        final package = Uri.decodeComponent(removeUploaderMatch.group(1));
+        final user = Uri.decodeComponent(removeUploaderMatch.group(2));
         return removeUploader(package, user);
       }
     }
-    return new shelf.Response.notFound(null);
+    return shelf.Response.notFound(null);
   }
 
   // Metadata handlers.
 
   Future<shelf.Response> _listVersions(Uri uri, String package) async {
     if (cache != null) {
-      var binaryJson = await cache.getPackageData(package);
+      final binaryJson = await cache.getPackageData(package);
       if (binaryJson != null) {
         return _binaryJsonResponse(binaryJson);
       }
     }
 
-    var packageVersions = await repository.versions(package).toList();
-    if (packageVersions.length == 0) {
-      return new shelf.Response.notFound(null);
+    final packageVersions = await repository.versions(package).toList();
+    if (packageVersions.isEmpty) {
+      return shelf.Response.notFound(null);
     }
 
     packageVersions.sort((a, b) => a.version.compareTo(b.version));
@@ -268,7 +268,7 @@ class ShelfPubServer {
 
     // TODO: The 'latest' is something we should get rid of, since it's
     // duplicated in 'versions'.
-    var binaryJson = convert.json.encoder.fuse(convert.utf8.encoder).convert({
+    final binaryJson = convert.json.encoder.fuse(convert.utf8.encoder).convert({
       'name': package,
       'latest': packageVersion2Json(latestVersion),
       'versions': packageVersions.map(packageVersion2Json).toList(),
@@ -281,9 +281,9 @@ class ShelfPubServer {
 
   Future<shelf.Response> _showVersion(
       Uri uri, String package, String version) async {
-    var ver = await repository.lookupVersion(package, version);
+    final ver = await repository.lookupVersion(package, version);
     if (ver == null) {
-      return new shelf.Response.notFound(null);
+      return shelf.Response.notFound(null);
     }
 
     // TODO: Add legacy entries (if necessary), such as version_url.
@@ -299,19 +299,19 @@ class ShelfPubServer {
   Future<shelf.Response> _download(
       Uri uri, String package, String version) async {
     if (repository.supportsDownloadUrl) {
-      var url = await repository.downloadUrl(package, version);
+      final url = await repository.downloadUrl(package, version);
       // This is a redirect to [url]
-      return new shelf.Response.seeOther(url);
+      return shelf.Response.seeOther(url);
     }
 
-    var stream = await repository.download(package, version);
-    return new shelf.Response.ok(stream);
+    final stream = await repository.download(package, version);
+    return shelf.Response.ok(stream);
   }
 
   // Upload async handlers.
 
   Future<shelf.Response> _startUploadAsync(Uri uri) async {
-    var info = await repository.startAsyncUpload(_finishUploadAsyncUrl(uri));
+    final info = await repository.startAsyncUpload(_finishUploadAsyncUrl(uri));
     return _jsonResponse({
       'url': '${info.uri}',
       'fields': info.fields,
@@ -361,7 +361,7 @@ class ShelfPubServer {
       Uri uri, String contentType, Stream<List<int>> stream) async {
     _logger.info('Perform simple upload.');
 
-    var boundary = _getBoundary(contentType);
+    final boundary = _getBoundary(contentType);
 
     if (boundary == null) {
       return _badRequest(
@@ -376,7 +376,7 @@ class ShelfPubServer {
     MimeMultipart thePart;
 
     await for (MimeMultipart part
-        in stream.transform(new MimeMultipartTransformer(boundary))) {
+        in stream.transform(MimeMultipartTransformer(boundary))) {
       // If we get more than one part, we'll ignore the rest of the input.
       if (thePart != null) {
         continue;
@@ -388,23 +388,23 @@ class ShelfPubServer {
     try {
       // TODO: Ensure that `part.headers['content-disposition']` is
       // `form-data; name="file"; filename="package.tar.gz`
-      var version = await repository.upload(thePart);
+      final version = await repository.upload(thePart);
       if (cache != null) {
         _logger.info('Invalidating cache for package ${version.packageName}.');
         await cache.invalidatePackageData(version.packageName);
       }
       _logger.info('Redirecting to found url.');
-      return new shelf.Response.found(_finishUploadSimpleUrl(uri));
+      return shelf.Response.found(_finishUploadSimpleUrl(uri));
     } catch (error, stack) {
       _logger.warning('Error occured', error, stack);
       // TODO: Do error checking and return error codes?
-      return new shelf.Response.found(
+      return shelf.Response.found(
           _finishUploadSimpleUrl(uri, error: error.toString()));
     }
   }
 
   shelf.Response _finishUploadSimple(Uri uri) {
-    var error = uri.queryParameters['error'];
+    final error = uri.queryParameters['error'];
     if (error != null) {
       _logger.info('Finish simple upload (error: $error).');
       return _badRequest(error);
@@ -417,10 +417,10 @@ class ShelfPubServer {
   // Uploader handlers.
 
   Future<shelf.Response> _addUploader(String package, String body) async {
-    var parts = body.split('=');
-    if (parts.length == 2 && parts[0] == 'email' && parts[1].length > 0) {
+    final parts = body.split('=');
+    if (parts.length == 2 && parts[0] == 'email' && parts[1].isNotEmpty) {
       try {
-        var user = Uri.decodeQueryComponent(parts[1]);
+        final user = Uri.decodeQueryComponent(parts[1]);
         await repository.addUploader(package, user);
         return _successfullRequest('Successfully added uploader to package.');
       } on UploaderAlreadyExistsException {
@@ -455,39 +455,39 @@ class ShelfPubServer {
       _badRequest('Version string "$version" is not a valid semantic version.');
 
   Future<shelf.Response> _successfullRequest(String message) async {
-    return new shelf.Response(200,
+    return shelf.Response(200,
         body: convert.json.encode({
           'success': {'message': message}
         }),
         headers: {'content-type': 'application/json'});
   }
 
-  shelf.Response _unauthorizedRequest() => new shelf.Response(403,
+  shelf.Response _unauthorizedRequest() => shelf.Response(403,
       body: convert.json.encode({
         'error': {'message': 'Unauthorized request.'}
       }),
       headers: {'content-type': 'application/json'});
 
-  shelf.Response _badRequest(String message) => new shelf.Response(400,
+  shelf.Response _badRequest(String message) => shelf.Response(400,
       body: convert.json.encode({
         'error': {'message': message}
       }),
       headers: {'content-type': 'application/json'});
 
-  shelf.Response _binaryJsonResponse(List<int> d, {int status: 200}) =>
-      new shelf.Response(status,
-          body: new Stream.fromIterable([d]),
+  shelf.Response _binaryJsonResponse(List<int> d, {int status = 200}) =>
+      shelf.Response(status,
+          body: Stream.fromIterable([d]),
           headers: {'content-type': 'application/json'});
 
-  shelf.Response _jsonResponse(Map json, {int status: 200}) =>
-      new shelf.Response(status,
+  shelf.Response _jsonResponse(Map json, {int status = 200}) =>
+      shelf.Response(status,
           body: convert.json.encode(json),
           headers: {'content-type': 'application/json'});
 
   // Download urls.
 
   Uri _downloadUrl(Uri url, String package, String version) {
-    var encode = Uri.encodeComponent;
+    final encode = Uri.encodeComponent;
     return url.resolve(
         '/packages/${encode(package)}/versions/${encode(version)}.tar.gz');
   }
@@ -503,13 +503,13 @@ class ShelfPubServer {
       url.resolve('/api/packages/versions/newUpload');
 
   Uri _finishUploadSimpleUrl(Uri url, {String error}) {
-    var postfix = error == null ? '' : '?error=${Uri.encodeComponent(error)}';
+    final postfix = error == null ? '' : '?error=${Uri.encodeComponent(error)}';
     return url.resolve('/api/packages/versions/newUploadFinish$postfix');
   }
 
   bool isSemanticVersion(String version) {
     try {
-      new semver.Version.parse(version);
+      semver.Version.parse(version);
       return true;
     } catch (_) {
       return false;
@@ -527,7 +527,7 @@ abstract class PackageCache {
 }
 
 String _getBoundary(String contentType) {
-  var mediaType = new MediaType.parse(contentType);
+  final mediaType = MediaType.parse(contentType);
 
   if (mediaType.type == 'multipart' && mediaType.subtype == 'form-data') {
     return mediaType.parameters['boundary'];
