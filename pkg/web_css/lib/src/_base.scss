@@ -130,11 +130,14 @@ a {
   text-decoration: none;
   color: $color-link;
   cursor: pointer;
-  font-weight: 500;
   opacity: 1;
 
   &:hover {
     opacity: 0.8;
+  }
+
+  body.non-experimental & {
+    font-weight: 500;
   }
 }
 
