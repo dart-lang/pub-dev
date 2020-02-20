@@ -15,7 +15,6 @@ import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
 
-import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/search/handlers.dart';
 import 'package:pub_dev/search/updater.dart';
 import 'package:pub_dev/shared/configuration.dart';
@@ -34,7 +33,6 @@ class FakeSearchService {
     int port = 8082,
     @required Configuration configuration,
   }) async {
-    await updateLocalBuiltFilesIfNeeded();
     await ss.fork(() async {
       final db = DatastoreDB(_datastore);
       registerDbService(db);

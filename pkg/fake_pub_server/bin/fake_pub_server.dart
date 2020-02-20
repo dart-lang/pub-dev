@@ -12,6 +12,7 @@ import 'package:fake_gcloud/mem_storage.dart';
 import 'package:fake_pub_server/fake_pub_server.dart';
 import 'package:fake_pub_server/fake_search_service.dart';
 import 'package:fake_pub_server/fake_storage_server.dart';
+import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/shared/configuration.dart';
 
 final _argParser = ArgParser()
@@ -63,6 +64,7 @@ Future main(List<String> args) async {
     return null;
   }
 
+  await updateLocalBuiltFilesIfNeeded();
   await Future.wait(
     [
       storageServer.run(port: storagePort),
