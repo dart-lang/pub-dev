@@ -7,3 +7,5 @@ stages:
     - group:
         - dartfmt
 #        - dartanalyzer: --fatal-infos --fatal-warnings .
+  - build:
+    - command: ./build.sh

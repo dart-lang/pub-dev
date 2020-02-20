@@ -27,6 +27,18 @@ jobs:
       os: linux
       env: PKGS="pkg/web_css"
       script: ./tool/travis.sh dartfmt
+    - stage: build
+      name: "SDK: 2.7.0; PKG: pkg/web_app; TASKS: `./build.sh`"
+      dart: "2.7.0"
+      os: linux
+      env: PKGS="pkg/web_app"
+      script: ./tool/travis.sh command
+    - stage: build
+      name: "SDK: 2.7.0; PKG: pkg/web_css; TASKS: `./build.sh`"
+      dart: "2.7.0"
+      os: linux
+      env: PKGS="pkg/web_css"
+      script: ./tool/travis.sh command
     - stage: unit_test
       name: "SDK: 2.7.0; PKG: app; TASKS: `pub run test --run-skipped`"
       dart: "2.7.0"
@@ -84,6 +96,7 @@ jobs:
 
 stages:
   - smoke_test
+  - build
   - unit_test
 
 # Only building master means that we don't run two builds for each pull request.
