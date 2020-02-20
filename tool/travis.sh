@@ -54,13 +54,9 @@ for PKG in ${PKGS}; do
     echo
     echo -e "\033[1mPKG: ${PKG}; TASK: ${TASK}\033[22m"
     case ${TASK} in
-    command_0)
-      echo 'cd ../web_app && ./build.sh'
-      cd ../web_app && ./build.sh || EXIT_CODE=$?
-      ;;
-    command_1)
-      echo 'cd ../web_css && ./build.sh'
-      cd ../web_css && ./build.sh || EXIT_CODE=$?
+    command)
+      echo './build.sh'
+      ./build.sh || EXIT_CODE=$?
       ;;
     dartanalyzer_0)
       echo 'dartanalyzer --fatal-infos --fatal-warnings .'

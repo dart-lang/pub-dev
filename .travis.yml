@@ -28,17 +28,17 @@ jobs:
       env: PKGS="pkg/web_css"
       script: ./tool/travis.sh dartfmt
     - stage: build
-      name: "SDK: 2.7.0; PKG: pkg/pub_integration; TASKS: `cd ../web_app && ./build.sh`"
+      name: "SDK: 2.7.0; PKG: pkg/web_app; TASKS: `./build.sh`"
       dart: "2.7.0"
       os: linux
-      env: PKGS="pkg/pub_integration"
-      script: ./tool/travis.sh command_0
+      env: PKGS="pkg/web_app"
+      script: ./tool/travis.sh command
     - stage: build
-      name: "SDK: 2.7.0; PKG: pkg/pub_integration; TASKS: `cd ../web_css && ./build.sh`"
+      name: "SDK: 2.7.0; PKG: pkg/web_css; TASKS: `./build.sh`"
       dart: "2.7.0"
       os: linux
-      env: PKGS="pkg/pub_integration"
-      script: ./tool/travis.sh command_1
+      env: PKGS="pkg/web_css"
+      script: ./tool/travis.sh command
     - stage: unit_test
       name: "SDK: 2.7.0; PKG: app; TASKS: `pub run test --run-skipped`"
       dart: "2.7.0"
