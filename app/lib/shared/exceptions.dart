@@ -14,7 +14,8 @@
 library exceptions;
 
 import 'package:api_builder/api_builder.dart' show ApiResponseException;
-import 'package:pub_server/repository.dart'
+
+import '../package/pub_server/repository.dart'
     show GenericProcessingException, UnauthorizedAccessException;
 
 /// Base class for all exceptions that are intercepted by HTTP handler wrappers.

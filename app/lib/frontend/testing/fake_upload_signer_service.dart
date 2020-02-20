@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pub_server/repository.dart';
-
 import 'package:pub_dev/package/upload_signer_service.dart';
+
+import '../../package/pub_server/repository.dart';
 
 /// Returns an upload URL with no signed signature.
 class FakeUploadSignerService implements UploadSignerService {

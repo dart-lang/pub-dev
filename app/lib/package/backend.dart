@@ -14,9 +14,6 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
-import 'package:pub_server/repository.dart' hide UnauthorizedAccessException;
-import 'package:pub_server/shelf_pubserver.dart'
-    show PackageCache, ShelfPubServer;
 import 'package:uuid/uuid.dart';
 
 import '../account/backend.dart';
@@ -38,6 +35,8 @@ import '../shared/utils.dart';
 import 'model_properties.dart';
 import 'models.dart' as models;
 import 'name_tracker.dart';
+import 'pub_server/repository.dart' hide UnauthorizedAccessException;
+import 'pub_server/shelf_pubserver.dart' show PackageCache, ShelfPubServer;
 import 'upload_signer_service.dart';
 
 final Logger _logger = Logger('pub.cloud_repository');

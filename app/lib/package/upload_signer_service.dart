@@ -14,9 +14,9 @@ import 'package:googleapis_auth/auth_io.dart' as auth;
 // ignore: implementation_imports
 import 'package:googleapis_auth/src/crypto/rsa_sign.dart';
 import 'package:http/http.dart' as http;
-import 'package:pub_server/repository.dart';
 
 import '../shared/configuration.dart';
+import 'pub_server/repository.dart';
 
 /// The registered [UploadSignerService] object.
 UploadSignerService get uploadSigner =>
