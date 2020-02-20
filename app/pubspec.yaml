@@ -33,7 +33,6 @@ dependencies:
   pub_package_reader:
     path: ../pkg/pub_package_reader
   pub_semver: ">=1.2.2 <2.0.0"
-  pub_server: ">=0.1.0 <0.2.0"
   pubspec_parse: ^0.1.4
   shelf: '>=0.5.6 <0.8.0'
   shelf_router: ^0.7.2
