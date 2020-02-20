@@ -8,4 +8,5 @@ stages:
         - dartfmt
         - dartanalyzer: --fatal-infos --fatal-warnings .
   - unit_test:
+    - command: ../tool/restore-cache-artifacts.sh
     - test: --run-skipped

@@ -32,13 +32,31 @@ jobs:
       dart: "2.7.0"
       os: linux
       env: PKGS="pkg/web_app"
-      script: ./tool/travis.sh command
+      script: ./tool/travis.sh command_2
+    - stage: build
+      name: "SDK: 2.7.0; PKG: pkg/web_app; TASKS: `../../tool/store-cache-artifacts.sh`"
+      dart: "2.7.0"
+      os: linux
+      env: PKGS="pkg/web_app"
+      script: ./tool/travis.sh command_3
     - stage: build
       name: "SDK: 2.7.0; PKG: pkg/web_css; TASKS: `./build.sh`"
       dart: "2.7.0"
       os: linux
       env: PKGS="pkg/web_css"
-      script: ./tool/travis.sh command
+      script: ./tool/travis.sh command_2
+    - stage: build
+      name: "SDK: 2.7.0; PKG: pkg/web_css; TASKS: `../../tool/store-cache-artifacts.sh`"
+      dart: "2.7.0"
+      os: linux
+      env: PKGS="pkg/web_css"
+      script: ./tool/travis.sh command_3
+    - stage: unit_test
+      name: "SDK: 2.7.0; PKG: app; TASKS: `../tool/restore-cache-artifacts.sh`"
+      dart: "2.7.0"
+      os: linux
+      env: PKGS="app"
+      script: ./tool/travis.sh command_0
     - stage: unit_test
       name: "SDK: 2.7.0; PKG: app; TASKS: `pub run test --run-skipped`"
       dart: "2.7.0"
@@ -75,6 +93,12 @@ jobs:
       os: linux
       env: PKGS="pkg/pub_dartdoc_data"
       script: ./tool/travis.sh test_0
+    - stage: unit_test
+      name: "SDK: 2.7.0; PKG: pkg/pub_integration; TASKS: `../../tool/restore-cache-artifacts.sh`"
+      dart: "2.7.0"
+      os: linux
+      env: PKGS="pkg/pub_integration"
+      script: ./tool/travis.sh command_1
     - stage: unit_test
       name: "SDK: 2.7.0; PKG: pkg/pub_integration; TASKS: `pub run test --run-skipped --concurrency=1`"
       dart: "2.7.0"

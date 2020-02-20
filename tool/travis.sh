@@ -54,9 +54,21 @@ for PKG in ${PKGS}; do
     echo
     echo -e "\033[1mPKG: ${PKG}; TASK: ${TASK}\033[22m"
     case ${TASK} in
-    command)
+    command_0)
+      echo '../tool/restore-cache-artifacts.sh'
+      ../tool/restore-cache-artifacts.sh || EXIT_CODE=$?
+      ;;
+    command_1)
+      echo '../../tool/restore-cache-artifacts.sh'
+      ../../tool/restore-cache-artifacts.sh || EXIT_CODE=$?
+      ;;
+    command_2)
       echo './build.sh'
       ./build.sh || EXIT_CODE=$?
+      ;;
+    command_3)
+      echo '../../tool/store-cache-artifacts.sh'
+      ../../tool/store-cache-artifacts.sh || EXIT_CODE=$?
       ;;
     dartanalyzer_0)
       echo 'dartanalyzer --fatal-infos --fatal-warnings .'
