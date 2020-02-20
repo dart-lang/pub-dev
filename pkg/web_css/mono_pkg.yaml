@@ -8,5 +8,4 @@ stages:
         - dartfmt
 #        - dartanalyzer: --fatal-infos --fatal-warnings .
   - build:
-    - command: ./build.sh
-    - command: ../../tool/store-cache-artifacts.sh
+    - command: ./build.sh && ../../tool/store-cache-artifacts.sh

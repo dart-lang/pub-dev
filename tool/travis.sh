@@ -63,12 +63,8 @@ for PKG in ${PKGS}; do
       ../../tool/restore-cache-artifacts.sh || EXIT_CODE=$?
       ;;
     command_2)
-      echo './build.sh'
-      ./build.sh || EXIT_CODE=$?
-      ;;
-    command_3)
-      echo '../../tool/store-cache-artifacts.sh'
-      ../../tool/store-cache-artifacts.sh || EXIT_CODE=$?
+      echo './build.sh && ../../tool/store-cache-artifacts.sh'
+      ./build.sh && ../../tool/store-cache-artifacts.sh || EXIT_CODE=$?
       ;;
     dartanalyzer_0)
       echo 'dartanalyzer --fatal-infos --fatal-warnings .'

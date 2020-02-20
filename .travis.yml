@@ -28,29 +28,17 @@ jobs:
       env: PKGS="pkg/web_css"
       script: ./tool/travis.sh dartfmt
     - stage: build
-      name: "SDK: 2.7.0; PKG: pkg/web_app; TASKS: `./build.sh`"
+      name: "SDK: 2.7.0; PKG: pkg/web_app; TASKS: `./build.sh && ../../tool/store-cache-artifacts.sh`"
       dart: "2.7.0"
       os: linux
       env: PKGS="pkg/web_app"
       script: ./tool/travis.sh command_2
     - stage: build
-      name: "SDK: 2.7.0; PKG: pkg/web_app; TASKS: `../../tool/store-cache-artifacts.sh`"
-      dart: "2.7.0"
-      os: linux
-      env: PKGS="pkg/web_app"
-      script: ./tool/travis.sh command_3
-    - stage: build
-      name: "SDK: 2.7.0; PKG: pkg/web_css; TASKS: `./build.sh`"
+      name: "SDK: 2.7.0; PKG: pkg/web_css; TASKS: `./build.sh && ../../tool/store-cache-artifacts.sh`"
       dart: "2.7.0"
       os: linux
       env: PKGS="pkg/web_css"
       script: ./tool/travis.sh command_2
-    - stage: build
-      name: "SDK: 2.7.0; PKG: pkg/web_css; TASKS: `../../tool/store-cache-artifacts.sh`"
-      dart: "2.7.0"
-      os: linux
-      env: PKGS="pkg/web_css"
-      script: ./tool/travis.sh command_3
     - stage: unit_test
       name: "SDK: 2.7.0; PKG: app; TASKS: `../tool/restore-cache-artifacts.sh`"
       dart: "2.7.0"
