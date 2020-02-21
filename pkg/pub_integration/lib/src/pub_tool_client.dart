@@ -9,23 +9,30 @@ import 'package:path/path.dart' as p;
 
 /// Command line pub interface.
 class PubToolClient {
+  final String _dartSdkDir;
   final String _pubHostedUrl;
   final Directory _tempDir;
   final Directory _pubCacheDir;
 
-  PubToolClient._(this._pubHostedUrl, this._tempDir, this._pubCacheDir);
+  PubToolClient._(
+    this._dartSdkDir,
+    this._pubHostedUrl,
+    this._tempDir,
+    this._pubCacheDir,
+  );
 
   /// Creates a new PubToolClient context with a temporary directory.
   static Future<PubToolClient> create({
     @required String pubHostedUrl,
     @required String credentialsFileContent,
+    String dartSdkDir,
   }) async {
     final dir = await Directory.systemTemp.createTemp();
     final pubCacheDir = Directory(p.join(dir.path, 'pub-cache'));
     await pubCacheDir.create(recursive: true);
     await File(p.join(pubCacheDir.path, 'credentials.json'))
         .writeAsString(credentialsFileContent);
-    return PubToolClient._(pubHostedUrl, dir, pubCacheDir);
+    return PubToolClient._(dartSdkDir, pubHostedUrl, dir, pubCacheDir);
   }
 
   /// Delete temp resources.
@@ -41,14 +48,17 @@ class PubToolClient {
     Map<String, String> environment,
     String expectedError,
   }) async {
-    final cmd = '$executable ${arguments.join(' ')}';
+    final fullPathExecutable = _dartSdkDir == null
+        ? executable
+        : p.join(_dartSdkDir, 'bin', executable);
+    final cmd = '$fullPathExecutable ${arguments.join(' ')}';
     print('Running $cmd in $workingDirectory...');
     environment ??= <String, String>{};
     environment['PUB_CACHE'] = _pubCacheDir.path;
     environment['PUB_HOSTED_URL'] = _pubHostedUrl;
 
     final pr = await Process.run(
-      executable,
+      fullPathExecutable,
       arguments,
       workingDirectory: workingDirectory,
       environment: environment,

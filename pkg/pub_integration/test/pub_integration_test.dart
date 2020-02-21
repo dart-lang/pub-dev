@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
@@ -64,6 +65,7 @@ void main() {
         credentialsFileContent: fakeCredentialsFileContent(),
         invitedEmail: 'dev@example.org',
         inviteCompleterFn: inviteCompleterFn,
+        clientSdkDir: Platform.environment['PUB_INTEGRATION_CLIENT_SDK_DIR'],
       );
     });
   }, timeout: Timeout.factor(testTimeoutFactor));
