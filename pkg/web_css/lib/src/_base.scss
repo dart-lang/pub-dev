@@ -156,6 +156,7 @@ main {
   padding: 0 20px;
 }
 
+/* TODO: remove this block after migrating to the new UI */
 code {
   background: #f8f8f8;
   border: 1px solid #eee;
@@ -164,10 +165,43 @@ code {
   padding: 2px;
 }
 
+/* TODO: remove this block after migrating to the new UI */
 pre > code {
   display: block;
-  overflow-x: auto;
   padding: 0.5em;
+  overflow-x: auto;
+
+  body.non-experimental & {
+    overflow-x: auto;
+  }
+}
+
+/* non-indented rule to restrict the content of this block to the experimental pages */
+body.experimental {
+
+.markdown-body code,
+code {
+  background: #f5f5f7;
+  border: none;
+  border-radius: 4px;
+  font-family: $font-family-roboto-mono;
+  padding: 2px 4px;
+}
+
+.markdown-body pre,
+pre {
+  background: #f5f5f7;
+  padding: 30px;
+  overflow-x: auto;
+
+  > code {
+    padding: 0 !important;
+    border-radius: 0;
+    display: block;
+  }
+}
+
+/* non-indented rule to restrict the content of this block to the experimental pages */
 }
 
 ._banner-bg {
