@@ -1,9 +1,9 @@
 ---
-name: Package removal
+name: Package removal / moderation
 about: 'Please read https://pub.dev/policy and send deletion requests to support@pub.dev'
 
-title: 'Removing uploaded package'
+title: 'Removing / moderating uploaded package'
 labels:
 assignees:
 ---
-Please read https://pub.dev/policy and send deletion requests to support@pub.dev
+Please read https://pub.dev/policy and send requests to support@pub.dev
