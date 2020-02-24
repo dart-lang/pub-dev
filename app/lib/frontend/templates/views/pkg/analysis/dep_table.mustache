@@ -1,0 +1,43 @@
+{{! Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+{{#has_dependency}}
+<h4>Dependencies</h4>
+<div class="overflow-x">
+<table class="dependency-table">
+  <tr>
+    <th>Package</th>
+    <th>Constraint</th>
+    <th>Resolved</th>
+    <th>Available</th>
+  </tr>
+  {{#has_direct}}
+  <tr>
+    <th colspan="4" class="sub-header">Direct dependencies</th>
+  </tr>
+  {{/has_direct}}
+  {{#has_sdk}}
+  <tr>
+    <td>Dart SDK</td>
+    <td>{{sdk}}</td>
+    <td></td>
+    <td></td>
+  </tr>
+  {{/has_sdk}}
+{{#direct}}{{& row_html}}{{/direct}}
+  {{#has_transitive}}
+  <tr>
+    <th colspan="4" class="sub-header">Transitive dependencies</th>
+  </tr>
+  {{/has_transitive}}
+{{#transitive}}{{& row_html}}{{/transitive}}
+  {{#has_dev}}
+  <tr>
+    <th colspan="4" class="sub-header">Dev dependencies</th>
+  </tr>
+  {{/has_dev}}
+{{#dev}}{{& row_html}}{{/dev}}
+</table>
+</div>
+{{/has_dependency}}
