@@ -386,13 +386,22 @@ String _getAuthorsHtml(List<String> authors) {
       final escapedEmail = htmlAttrEscape.convert(author.email);
       final emailSearchUrl = htmlAttrEscape.convert(
           SearchQuery.parse(query: 'email:${author.email}').toSearchLink());
-      return '<span class="author">'
-          '<a href="mailto:$escapedEmail" title="Email $escapedEmail">'
-          '<i class="email-icon"></i></a> '
-          '<a href="$emailSearchUrl" title="Search packages with $escapedEmail" rel="nofollow">'
-          '<i class="search-icon"></i></a> '
-          '$escapedName'
-          '</span>';
+      final emailIcon = requestContext.isExperimental
+          ? ''
+          : '<a href="mailto:$escapedEmail" title="Email $escapedEmail">'
+              '<i class="email-icon"></i>'
+              '</a> ';
+      final searchIcon = requestContext.isExperimental
+          ? ''
+          : '<a href="$emailSearchUrl" title="Search packages with $escapedEmail" rel="nofollow">'
+              '<i class="search-icon"></i>'
+              '</a> ';
+      final text = requestContext.isExperimental
+          ? '<a href="$emailSearchUrl" title="Search packages from $escapedName" rel="nofollow">'
+              '$escapedEmail'
+              '</a>'
+          : escapedName;
+      return '<span class="author">$emailIcon$searchIcon$text</span>';
     } else {
       return '<span class="author">$escapedName</span>';
     }
