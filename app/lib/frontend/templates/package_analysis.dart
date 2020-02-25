@@ -16,7 +16,7 @@ import '_cache.dart';
 import '_consts.dart';
 import 'misc.dart';
 
-/// Renders the `views/pkg/analysis_tab.mustache` template.
+/// Renders the `views/pkg/analysis/tab.mustache` template.
 String renderAnalysisTab(String package, String sdkConstraint,
     ScoreCardData card, AnalysisView analysis) {
   if (card == null || analysis == null || !analysis.hasAnalysisData) {
@@ -38,20 +38,6 @@ String renderAnalysisTab(String package, String sdkConstraint,
       break;
   }
 
-  List<Map> prepareDependencies(List<PkgDependency> list) {
-    if (list == null || list.isEmpty) return const [];
-    return list.map((pd) => {'row_html': _renderAnalysisDepRow(pd)}).toList();
-  }
-
-  final hasSdkConstraint = sdkConstraint != null && sdkConstraint.isNotEmpty;
-  final directDeps = prepareDependencies(analysis.directDependencies);
-  final transitiveDeps = prepareDependencies(analysis.transitiveDependencies);
-  final devDeps = prepareDependencies(analysis.devDependencies);
-  final hasDependency = hasSdkConstraint ||
-      directDeps.isNotEmpty ||
-      transitiveDeps.isNotEmpty ||
-      devDeps.isNotEmpty;
-
   final Map<String, dynamic> data = {
     'package': package,
     'show_discontinued': card.isDiscontinued,
@@ -72,25 +58,15 @@ String renderAnalysisTab(String package, String sdkConstraint,
         _renderSuggestionBlockHtml('Health', analysis.healthSuggestions),
     'maintenance_suggestions_html': _renderSuggestionBlockHtml(
         'Maintenance', analysis.maintenanceSuggestions),
-    'has_dependency': hasDependency,
-    'dependencies': {
-      'has_sdk': hasSdkConstraint,
-      'sdk': sdkConstraint,
-      'has_direct': hasSdkConstraint || directDeps.isNotEmpty,
-      'direct': directDeps,
-      'has_transitive': transitiveDeps.isNotEmpty,
-      'transitive': transitiveDeps,
-      'has_dev': devDeps.isNotEmpty,
-      'dev': devDeps,
-    },
-    'score_bars': _renderScoreBars(card),
+    'score_table_html': _renderScoreTable(card),
+    'dep_table_html': _renderDepTable(sdkConstraint, card, analysis),
   };
 
-  return templateCache.renderTemplate('pkg/analysis_tab', data);
+  return templateCache.renderTemplate('pkg/analysis/tab', data);
 }
 
 String _renderAnalysisDepRow(PkgDependency pd) {
-  return templateCache.renderTemplate('pkg/analysis_dep_row', {
+  return templateCache.renderTemplate('pkg/analysis/dep_row', {
     'is_hosted': pd.isHosted,
     'package': pd.package,
     'package_url': urls.pkgPageUrl(pd.package),
@@ -122,7 +98,7 @@ String _renderSuggestionBlockHtml(String header, List<Suggestion> suggestions) {
     'label': label,
     'suggestions': mappedValues,
   };
-  return templateCache.renderTemplate('pkg/analysis_suggestion_block', data);
+  return templateCache.renderTemplate('pkg/analysis/suggestion_block', data);
 }
 
 String _suggestionIconClass(String level) {
@@ -155,9 +131,9 @@ String _formatSuggestionScore(double score) {
   return '-$formatted points';
 }
 
-Map<String, dynamic> _renderScoreBars(ScoreCardData card) {
+String _renderScoreTable(ScoreCardData card) {
   String renderScoreBar(double score, Brush brush) {
-    return templateCache.renderTemplate('pkg/score_bar', {
+    return templateCache.renderTemplate('pkg/analysis/score_bar', {
       'percent': formatScore(score ?? 0.0),
       'score': formatScore(score),
       'background': brush.background.toString(),
@@ -171,7 +147,7 @@ Map<String, dynamic> _renderScoreBars(ScoreCardData card) {
   final maintenanceScore = isSkipped ? null : card?.maintenanceScore;
   final popularityScore = card?.popularityScore;
   final overallScore = card?.overallScore ?? 0.0;
-  return {
+  final values = {
     'health_html': renderScoreBar(healthScore, genericScoreBrush(healthScore)),
     'maintenance_html':
         renderScoreBar(maintenanceScore, genericScoreBrush(maintenanceScore)),
@@ -180,4 +156,35 @@ Map<String, dynamic> _renderScoreBars(ScoreCardData card) {
     'overall_html':
         renderScoreBar(overallScore, overallScoreBrush(overallScore)),
   };
+  return templateCache.renderTemplate('pkg/analysis/score_table', values);
+}
+
+String _renderDepTable(
+    String sdkConstraint, ScoreCardData card, AnalysisView analysis) {
+  List<Map> prepareDependencies(List<PkgDependency> list) {
+    if (list == null || list.isEmpty) return const [];
+    return list.map((pd) => {'row_html': _renderAnalysisDepRow(pd)}).toList();
+  }
+
+  final hasSdkConstraint = sdkConstraint != null && sdkConstraint.isNotEmpty;
+  final directDeps = prepareDependencies(analysis.directDependencies);
+  final transitiveDeps = prepareDependencies(analysis.transitiveDependencies);
+  final devDeps = prepareDependencies(analysis.devDependencies);
+  final hasDependency = hasSdkConstraint ||
+      directDeps.isNotEmpty ||
+      transitiveDeps.isNotEmpty ||
+      devDeps.isNotEmpty;
+
+  final values = <String, dynamic>{
+    'has_dependency': hasDependency,
+    'has_sdk': hasSdkConstraint,
+    'sdk': sdkConstraint,
+    'has_direct': hasSdkConstraint || directDeps.isNotEmpty,
+    'direct': directDeps,
+    'has_transitive': transitiveDeps.isNotEmpty,
+    'transitive': transitiveDeps,
+    'has_dev': devDeps.isNotEmpty,
+    'dev': devDeps,
+  };
+  return templateCache.renderTemplate('pkg/analysis/dep_table', values);
 }
