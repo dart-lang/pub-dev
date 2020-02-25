@@ -13,8 +13,10 @@ Future verifyPub({
   @required String credentialsFileContent,
   @required String invitedEmail,
   @required InviteCompleterFn inviteCompleterFn,
+  String clientSdkDir,
 }) async {
   final pubToolScript = PublishingScript(
+    clientSdkDir,
     pubHostedUrl,
     credentialsFileContent,
     invitedEmail,

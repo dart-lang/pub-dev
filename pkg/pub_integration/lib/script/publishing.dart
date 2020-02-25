@@ -19,6 +19,7 @@ typedef InviteCompleterFn = Future<void> Function();
 /// A single object to execute integration script and verification tests with the
 /// `pub` tool on the pub.dev site (or on a test site).
 class PublishingScript {
+  final String clientSdkDir;
   final String pubHostedUrl;
   final String credentialsFileContent;
   final String invitedEmail;
@@ -35,6 +36,7 @@ class PublishingScript {
   Directory _retryDir;
 
   PublishingScript(
+    this.clientSdkDir,
     this.pubHostedUrl,
     this.credentialsFileContent,
     this.invitedEmail,
