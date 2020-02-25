@@ -301,3 +301,15 @@ pre > code {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+.hash-link {
+  color: #ccc;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease-in-out 0.1s;
+
+  .hash-header:hover & {
+    visibility: visible;
+    opacity: 1;
+  }
+}
