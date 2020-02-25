@@ -51,24 +51,27 @@ String renderUnauthorizedPage({String messageMarkdown}) {
   );
 }
 
-/// Renders the `views/page/help.mustache` template.
+/// Renders the `doc/help.md`.
 String renderHelpPage() {
-  final String content = templateCache.renderTemplate('page/help', {
-    'dart_site_root': urls.dartSiteRoot,
-    'pana_url': urls.panaUrl(),
-    'pana_maintenance_url': urls.panaMaintenanceUrl(),
-  });
-  return renderLayoutPage(PageType.standalone, content,
-      title: 'Help | Dart packages');
+  return renderLayoutPage(
+    PageType.standalone,
+    _helpHtml,
+    title: 'Help | Dart packages',
+  );
+}
+
+/// Loads markdown files from `/doc` and renders to HTML.
+String _renderDoc(String path) {
+  final fullPath = p.join(static_files.resolveDocDirPath(), path);
+  final content = io.File(fullPath).readAsStringSync();
+  return markdownToHtml(content, null);
 }
 
 /// Load `/doc/policy.md` and render to HTML.
-final _policyHtml = () {
-  final policyPath = p.join(static_files.resolveDocDirPath(), 'policy.md');
-  final policy = io.File(policyPath).readAsStringSync();
+final _policyHtml = _renderDoc('policy.md');
 
-  return markdownToHtml(policy, null);
-}();
+/// Load `/doc/help.md` and render to HTML.
+final _helpHtml = _renderDoc('help.md');
 
 /// Renders the `/doc/policy.md` document.
 String renderPolicyPage() {
