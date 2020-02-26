@@ -65,18 +65,18 @@ shelf.Handler wrapHandler(
   // Handlers wrap other handlers, and they are called in the revers order of
   // their wrapping. Read this list from the bottom and go up to get the real
   // execution order.
-  handler = _uriValidationRequestWrapper(handler);
+  handler = _cspHeaderWrapper(handler);
+  handler = _userAuthWrapper(handler);
+  handler =
+      _requestContextWrapper(handler); // need to run after session wrapper
+  handler = _searchPreferenceWrapper(handler);
+  handler = _userSessionWrapper(handler);
+  handler = _httpsWrapper(handler);
   if (sanitize) {
     handler = _sanitizeRequestWrapper(handler);
   }
-  handler = _httpsWrapper(handler);
+  handler = _uriValidationRequestWrapper(handler);
   handler = _logRequestWrapper(logger, handler);
-  handler =
-      _requestContextWrapper(handler); // need to run after session wrapper
-  handler = _userAuthWrapper(handler);
-  handler = _searchPreferenceWrapper(handler);
-  handler = _userSessionWrapper(handler);
-  handler = _cspHeaderWrapper(handler);
   return handler;
 }
 
