@@ -25,9 +25,6 @@ body.non-experimental {
   }
 }
 
-/* non-indented rule to restrict the content of this block to the non-experimental pages */
-}
-
 .dependency-table {
   width: 100%;
 
@@ -41,6 +38,9 @@ body.non-experimental {
     font-weight: 500;
     font-style: italic;
   }
+}
+
+/* non-indented rule to restrict the content of this block to the non-experimental pages */
 }
 
 .email-icon,

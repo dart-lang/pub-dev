@@ -86,5 +86,30 @@ body.experimental {
   }
 }
 
+.dependency-table {
+  width: 100%;
+  border-spacing: 0;
+
+  td, th {
+    width: 25%;
+    text-align: left;
+    padding-right: 2px;
+    padding-top: 2px;
+  }
+
+  .main-header {
+    border-bottom: 1px solid #c8c8ca;
+  }
+
+  .sub-header {
+    font-weight: 500;
+    padding-top: 24px;
+  }
+
+  .hosted-pkg-link {
+    font-weight: 400;
+  }
+}
+
 /* non-indented rule to restrict the content of the file to the experimental pages */
 }

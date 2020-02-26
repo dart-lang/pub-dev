@@ -11,6 +11,7 @@ import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart';
 
 import '../color.dart';
+import '../request_context.dart';
 
 import '_cache.dart';
 import '_consts.dart';
@@ -66,13 +67,14 @@ String renderAnalysisTab(String package, String sdkConstraint,
 }
 
 String _renderAnalysisDepRow(PkgDependency pd) {
+  final emptyFiller = requestContext.isExperimental ? '-' : null;
   return templateCache.renderTemplate('pkg/analysis/dep_row', {
     'is_hosted': pd.isHosted,
     'package': pd.package,
     'package_url': urls.pkgPageUrl(pd.package),
-    'constraint': pd.constraint?.toString(),
-    'resolved': pd.resolved?.toString(),
-    'available': pd.available?.toString(),
+    'constraint': pd.constraint?.toString() ?? emptyFiller,
+    'resolved': pd.resolved?.toString() ?? emptyFiller,
+    'available': pd.available?.toString() ?? emptyFiller,
   });
 }
 
