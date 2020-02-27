@@ -86,6 +86,17 @@ body.experimental {
   }
 }
 
+.learn-more-scoring {
+  border-bottom: 1px solid #c8c8ca;
+  padding-bottom: 4px;
+  margin-bottom: 16px;
+  text-align: right;
+
+  > .learn-more-scoring-link {
+    font-weight: 400;
+  }
+}
+
 .dependency-table {
   width: 100%;
   border-spacing: 0;
