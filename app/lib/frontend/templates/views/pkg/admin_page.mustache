@@ -2,7 +2,7 @@
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
 
-<h3>Package ownership</h3>
+<h2>Package ownership</h2>
 <div>
   {{^pkg_has_publisher}}
   <p>
@@ -34,11 +34,12 @@
     <label class="mdc-floating-label">Select a publisher</label>
     <div class="mdc-line-ripple"></div>
   </div>
-  <br />
-  <button
-    id="-admin-set-publisher-button"
-    class="pub-button-danger mdc-button mdc-button--raised"
-    data-mdc-auto-init="MDCRipple">Transfer to publisher</button>
+  <p>
+    <button
+      id="-admin-set-publisher-button"
+      class="pub-button-danger mdc-button mdc-button--raised"
+      data-mdc-auto-init="MDCRipple">Transfer to publisher</button>
+  </p>
   {{/user_has_publisher}}
   {{^user_has_publisher}}
   <p>
@@ -47,7 +48,7 @@
   {{/user_has_publisher}}
 </div>
 
-<h3>Discontinued</h3>
+<h2>Discontinued</h2>
 {{^is_discontinued}}
 <div>
   <p>
