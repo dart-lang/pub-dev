@@ -1,0 +1,43 @@
+{{! Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+{{& score_table_html }}
+
+<div class="learn-more-scoring">
+  Learn more about <a class="learn-more-scoring-link" href="/help#scoring">scoring</a>.
+</div>
+
+{{#show_discontinued}}
+<p>This package is not analyzed, because it is discontinued.</p>
+{{/show_discontinued}}
+{{#show_outdated}}
+<p>
+  This package version is not analyzed, because it is more than two years old.
+  Check the <a href="{{& analysis_tab_url}}">latest stable version</a> for its analysis.
+</p>
+{{/show_outdated}}
+{{#show_legacy}}
+<p>
+  The package version is not analyzed, because it does not support Dart 2.
+  Until this is resolved, the package will receive a health and maintenance score of 0.
+</p>
+{{/show_legacy}}
+{{#show_analysis}}
+<p>
+  We analyzed this package on {{date_completed}}, and provided a score, details, and suggestions below.
+  Analysis was completed with status <i>{{analysis_status}}</i> using:
+</p>
+
+<ul>
+  <li>Dart: {{dart_sdk_version}}</li>
+  <li>pana: {{pana_version}}</li>
+{{#flutter_version}}<li>Flutter: {{flutter_version}}</li>{{/flutter_version}}
+</ul>
+{{/show_analysis}}
+
+{{& analysis_suggestions_html}}
+{{& health_suggestions_html}}
+{{& maintenance_suggestions_html}}
+
+{{& dep_table_html }}

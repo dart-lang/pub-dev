@@ -1,0 +1,16 @@
+{{! Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+<h2>{{label}}</h2>
+{{#suggestions}}
+<div class="suggestion-row">
+  <div class="suggestion-title">
+    <span class="{{icon_class}}"></span>
+    {{& title_html}}
+  </div>
+  <div class="suggestion-description">
+    {{& description_html}}
+    {{& suggestion_help_html}}
+  </div>
+</div>
+{{/suggestions}}
