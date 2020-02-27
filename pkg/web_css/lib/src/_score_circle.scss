@@ -25,16 +25,23 @@
     stroke: $score-circle-stroke;
   }
 
-  .score-circle-label, {
+  .score-circle-label {
     margin: 10%;
     background: white;
 
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+  }
 
+  .score-circle-primary-label {
     color: $score-circle-label;
     font-size: 16px;
     font-weight: 500;
+  }
+
+  .score-circle-secondary-label {
+    /* Uses the defaults. */
   }
 }

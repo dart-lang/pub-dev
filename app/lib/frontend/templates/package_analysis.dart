@@ -134,29 +134,48 @@ String _formatSuggestionScore(double score) {
 }
 
 String _renderScoreTable(ScoreCardData card) {
-  String renderScoreBar(double score, Brush brush) {
+  String renderScoreBar(String categoryLabel, double score, Brush brush) {
     return templateCache.renderTemplate('pkg/analysis/score_bar', {
+      'category_label': categoryLabel,
       'percent': formatScore(score ?? 0.0),
       'score': formatScore(score),
+      // TODO: remove after we've migrated to the new UI
       'background': brush.background.toString(),
       'color': brush.color.toString(),
       'shadow': brush.shadow.toString(),
     });
   }
 
+  final formattedScore = formatScore(card?.overallScore);
   final isSkipped = card?.isSkipped ?? false;
   final healthScore = isSkipped ? null : card?.healthScore;
   final maintenanceScore = isSkipped ? null : card?.maintenanceScore;
   final popularityScore = card?.popularityScore;
   final overallScore = card?.overallScore ?? 0.0;
   final values = {
-    'health_html': renderScoreBar(healthScore, genericScoreBrush(healthScore)),
-    'maintenance_html':
-        renderScoreBar(maintenanceScore, genericScoreBrush(maintenanceScore)),
-    'popularity_html':
-        renderScoreBar(popularityScore, genericScoreBrush(popularityScore)),
-    'overall_html':
-        renderScoreBar(overallScore, overallScoreBrush(overallScore)),
+    'health_html': renderScoreBar(
+      'Health',
+      healthScore,
+      genericScoreBrush(healthScore),
+    ),
+    'maintenance_html': renderScoreBar(
+      'Maintenance',
+      maintenanceScore,
+      genericScoreBrush(maintenanceScore),
+    ),
+    'popularity_html': renderScoreBar(
+      'Popularity',
+      popularityScore,
+      genericScoreBrush(popularityScore),
+    ),
+    'overall_score_circle_html': renderScoreCircle(
+      label: formattedScore,
+      secondaryLabel: 'Overall',
+      percent: (100 * overallScore).round(),
+    ),
+    // TODO: remove after we've migrated to the new UI
+    'overall_html': renderScoreBar(
+        'Overall', overallScore, overallScoreBrush(overallScore)),
   };
   return templateCache.renderTemplate('pkg/analysis/score_table', values);
 }
