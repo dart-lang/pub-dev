@@ -4,6 +4,8 @@
 
 import 'dart:math';
 
+import 'package:meta/meta.dart';
+
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/shared/utils.dart';
 
@@ -122,16 +124,16 @@ String renderPkgIndexPage(
     'sdk_tabs_html': renderSdkTabs(searchQuery: searchQuery),
     'subsdk_label': _subSdkLabel(searchQuery),
     'subsdk_tabs_html': renderSubSdkTabsHtml(searchQuery: searchQuery),
-    'sort_control_html': renderSortControl(searchQuery),
     'is_search': isSearch,
+    'listing_info_html': renderListingInfo(
+      searchQuery: searchQuery,
+      totalCount: totalCount,
+      title: title ?? topPackages,
+    ),
     'package_list_html': renderPackageList(packages, searchQuery: searchQuery),
     'has_packages': packages.isNotEmpty,
     'pagination': renderPagination(links),
-    'total_count': totalCount,
     'legacy_search_enabled': searchQuery?.includeLegacy ?? false,
-    // TODO(3246): remove the keys below after we have migrated to the new design
-    'title': title ?? topPackages,
-    'search_query': searchQuery?.query,
   };
   final content = templateCache.renderTemplate('pkg/index', values);
 
@@ -153,6 +155,24 @@ String renderPkgIndexPage(
     searchPlaceHolder: searchPlaceholder,
     mainClasses: requestContext.isExperimental ? [] : null,
   );
+}
+
+/// Renders the `views/shared/listing_info.mustache` template.
+String renderListingInfo({
+  @required SearchQuery searchQuery,
+  @required int totalCount,
+  String title,
+}) {
+  final isSearch = searchQuery != null && searchQuery.hasQuery;
+  return templateCache.renderTemplate('shared/listing_info', {
+    'sort_control_html': renderSortControl(searchQuery),
+    'total_count': totalCount,
+    // TODO(3246): remove the keys below after we have migrated to the new design
+    'is_search': isSearch,
+    'has_title': !isSearch && title != null,
+    'title': title,
+    'search_query': searchQuery?.query,
+  });
 }
 
 String _subSdkLabel(SearchQuery sq) {
