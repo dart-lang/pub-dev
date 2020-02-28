@@ -1,0 +1,62 @@
+/* Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+   for details. All rights reserved. Use of this source code is governed by a
+   BSD-style license that can be found in the LICENSE file. */
+
+/* non-indented rule to restrict the content of this block to the experimental pages */
+body.experimental {
+
+.-pub-form-row {
+  margin: 20px 0px;
+
+  .mdc-text-field {
+    min-width: 100%;
+  }
+}
+
+.-pub-form-right-aligned {
+  text-align: right;
+}
+
+#-pub-publisher-admin-members-table {
+  width: 100%;
+  border-width: 0px;
+
+  .mdc-data-table__row {
+    border-top-color: #f5f5f7;
+
+    &:hover {
+      background: inherit;
+    }
+
+    &:nth-child(even) {
+      background: #f5f5f7;
+    }
+  }
+
+  .mdc-data-table__header-cell,
+  .mdc-data-table__cell {
+    font-weight: 300;
+  }
+
+  .mdc-data-table__cell {
+    color: rgba(0, 0, 0, 0.85);
+  }
+
+  .email-header { width: 60%; }
+  .role-header  { width: 30%; }
+
+  .-pub-remove-user-button {
+    border-radius: 3px;
+    color: #444444;
+    display: inline-block;
+    padding: 2px 8px;
+
+    &:hover {
+      background: $color-input-danger;
+      color: white;
+    }
+  }
+}
+
+/* non-indented rule to restrict the content of this block to the experimental pages */
+}

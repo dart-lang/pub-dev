@@ -161,11 +161,13 @@ String renderPublisherAdminPage({
     'description': publisher.description,
     'website_url': publisher.websiteUrl,
     'contact_email': publisher.contactEmail,
-    'member_list': members.map((m) => {
-          'user_id': m.userId,
-          'email': m.email,
-          'role': m.role,
-        }),
+    'member_list': members
+        .map((m) => {
+              'user_id': m.userId,
+              'email': m.email,
+              'role': m.role,
+            })
+        .toList(),
   });
   final tabs = <Tab>[
     _packagesLinkTab(publisher.publisherId),
@@ -173,7 +175,6 @@ String renderPublisherAdminPage({
       id: 'admin',
       title: 'Admin',
       contentHtml: adminContent,
-      isMarkdown: true,
     ),
   ];
 
