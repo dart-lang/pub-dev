@@ -119,7 +119,7 @@
 
     &.home-block-ff {
       .home-block-content {
-        max-width: 1180px;
+        max-width: 1200px;
         margin: 0 auto;
       }
 
@@ -130,8 +130,14 @@
       }
 
       .mini-list-item {
-        width: 360px;
-        margin: 8px 16px;
+        width: 48%;
+        max-width: 360px;
+        margin: 16px 1%;
+
+        // At this width the package box has a width of ~260px.
+        @media (min-width: 906px) {
+          width: 30%;
+        }
       }
     }
 
@@ -139,14 +145,16 @@
     &.home-block-tf,
     &.home-block-td, {
       display: flex;
+      max-width: 1480px;
+      margin: 0 auto;
 
       .home-block-image {
-        flex-basis: 33%;
+        flex-basis: 25%;
         margin-top: 80px;
       }
 
       .home-block-content {
-        flex-basis: 67%;
+        flex-basis: 75%;
       }
 
       .mini-list {
@@ -156,8 +164,14 @@
       }
 
       .mini-list-item {
-        width: 20vw;
-        margin: 8px;
+        width: 48%;
+        max-width: 360px;
+        margin: 0 1% 2% 1%;
+
+        // At this width the package box has a width of ~260px.
+        @media (min-width: 1196px) {
+          width: 30%;
+        }
       }
     }
   }
@@ -181,8 +195,8 @@
 
     .description {
       margin: 8px 0px;
-      max-height: 100px;
-      overflow: hidden;
+      max-height: 120px;
+      overflow: auto;
     }
 
     .publisher {
