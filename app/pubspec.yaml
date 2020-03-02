@@ -7,7 +7,7 @@ dependencies:
   _popularity:
     path: ../pkg/_popularity
   neat_cache: ^1.0.0
-  appengine: '^0.10.4'
+  appengine: '^0.10.5'
   args: '>=0.13.7 <2.0.0'
   client_data:
     path: ../pkg/client_data
