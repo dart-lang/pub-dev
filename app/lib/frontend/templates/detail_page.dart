@@ -46,6 +46,7 @@ String renderDetailPage({
     'header_html': headerHtml,
     'tabs_html': renderDetailTabs(tabs),
     'info_box_lead': requestContext.isExperimental ? infoBoxLead : null,
+    'has_info_box': infoBoxHtml != null,
     'info_box_html': infoBoxHtml,
     'footer_html': footerHtml,
   });

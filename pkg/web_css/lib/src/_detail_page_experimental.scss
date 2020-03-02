@@ -110,22 +110,24 @@ $detail-tabs-width: calc(100% - 320px);
 }
 
 @media (min-width: $device-desktop-min-width) {
-  .detail-header {
-    width: $detail-tabs-width;
-  }
-
   .detail-container {
 
     >.detail-tabs {
       vertical-align: top;
       display: inline-block;
-      width: $detail-tabs-width;
     }
 
     >.detail-info-box {
       display: inline-block;
       margin-left: $info-box-margin;
       width: $info-box-width;
+    }
+  }
+
+  .detail-wrapper.-has-info-box {
+    .detail-header,
+    .detail-container > .detail-tabs {
+      width: $detail-tabs-width;
     }
   }
 }
