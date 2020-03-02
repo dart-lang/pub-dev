@@ -101,6 +101,8 @@ String _renderInstallTab(PackageVersion selectedVersion, List<String> tags) {
   }
 
   return templateCache.renderTemplate('pkg/install_tab', {
+    'dependencies_key':
+        packageName == 'test' ? 'dev_dependencies' : 'dependencies',
     'use_as_an_executable': hasExecutables,
     'use_as_a_library': !hasExecutables || importExamples.isNotEmpty,
     'package': packageName,
