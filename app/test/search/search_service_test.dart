@@ -132,6 +132,12 @@ void main() {
       expect(query.toSearchLink(), '/flutter/packages');
     });
 
+    test('Flutter favorites', () {
+      final query = SearchQuery.parse(
+          tagsPredicate: TagsPredicate(requiredTags: ['is:flutter-favorite']));
+      expect(query.toSearchLink(page: 2), '/flutter/favorites?page=2');
+    });
+
     test('publisher: example.com', () {
       final query = SearchQuery.parse(publisherId: 'example.com');
       expect(query.toSearchLink(), '/publishers/example.com/packages');

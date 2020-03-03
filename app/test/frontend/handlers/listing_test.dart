@@ -11,6 +11,7 @@ import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/search/search_client.dart';
 import 'package:pub_dev/search/updater.dart';
+import 'package:pub_dev/shared/tags.dart';
 
 import '../../shared/handlers_test_utils.dart';
 import '../../shared/test_models.dart';
@@ -148,6 +149,27 @@ flutter:
       await expectHtmlResponse(
         await issueGet('/packages?page=2'),
         present: names.map((name) => '/packages/$name').toList(),
+      );
+    });
+
+    testWithServices('/flutter/favorites: link to 2nd page', () async {
+      for (int i = 0; i < 15; i++) {
+        final bundle = generateBundle(
+          'pkg$i',
+          ['1.0.0'],
+        );
+        bundle.package.assignedTags ??= <String>[];
+        bundle.package.assignedTags.add(PackageTags.isFlutterFavorite);
+        await dbService.commit(inserts: [
+          bundle.package,
+          ...bundle.versions.map(pvModels).expand((m) => m),
+        ]);
+      }
+      await indexUpdater.updateAllPackages();
+
+      await expectHtmlResponse(
+        await issueGet('/flutter/favorites'),
+        present: ['/flutter/favorites?page=2'],
       );
     });
   });
