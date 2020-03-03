@@ -20,6 +20,9 @@ const redirectDartdocPages = <String, String>{
 };
 
 /// Known packages that should be put in `dev_dependencies`
+///
+/// This is a temporary hack that should be removed when INSTALL.md extraction
+/// is implemented: https://github.com/dart-lang/pub-dev/issues/3403
 const devDependencyPackages = <String>{
   'build_runner',
   'build_test',
