@@ -10,7 +10,10 @@ void main() {
   group('isValidEmail', () {
     test('accepted e-mail', () {
       expect(isValidEmail('a@b.c'), true);
+      expect(isValidEmail('1@1.com'), true);
+      expect(isValidEmail('a@b.c.d.e'), true);
       expect(isValidEmail('john.doe@example.com'), true);
+      expect(isValidEmail("o'hara@example.com"), true);
     });
 
     test('rejected e-mail', () {
@@ -28,6 +31,9 @@ void main() {
       expect(isValidEmail('@example.com'), false);
       expect(isValidEmail('john.doe at example.com'), false);
       expect(isValidEmail('john.doe[at]example.com'), false);
+      expect(isValidEmail("'john.doe@example.com'"), false);
+      expect(isValidEmail('"john.doe@example.com"'), false);
+      expect(isValidEmail('john.doe@example".com'), false);
     });
   });
 
