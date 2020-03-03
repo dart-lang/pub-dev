@@ -62,6 +62,9 @@ Future<T> withTransaction<T>(
         done = true;
       }
       return retval;
+    } catch (e, st) {
+      _logger.info('Observed exception inside transaction block.', e, st);
+      rethrow;
     } finally {
       if (!done) {
         await tx.rollback();
