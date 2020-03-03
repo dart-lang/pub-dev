@@ -163,21 +163,22 @@ shelf.Response debugResponse([Map<String, dynamic> data]) {
 }
 
 bool isNotModified(shelf.Request request, DateTime lastModified, String etag) {
+  DateTime ifModifiedSince;
   try {
-    final ifModifiedSince = request.ifModifiedSince;
-    if (ifModifiedSince != null &&
-        lastModified != null &&
-        !lastModified.isAfter(ifModifiedSince)) {
-      return true;
-    }
+    ifModifiedSince = request.ifModifiedSince;
+  } on FormatException {
+    _logger.info('invalid If-Modified-Since header');
+    return false;
+  }
+  if (ifModifiedSince != null &&
+      lastModified != null &&
+      !lastModified.isAfter(ifModifiedSince)) {
+    return true;
+  }
 
-    final ifNoneMatch = request.headers[HttpHeaders.ifNoneMatchHeader];
-    if (ifNoneMatch != null && ifNoneMatch == etag) {
-      return true;
-    }
-  } catch (e, st) {
-    // TODO: remove after https://github.com/dart-lang/http_parser/issues/24 gets fixed
-    _logger.info('HTTP Header parsing issue detected.', e, st);
+  final ifNoneMatch = request.headers[HttpHeaders.ifNoneMatchHeader];
+  if (ifNoneMatch != null && ifNoneMatch == etag) {
+    return true;
   }
 
   return false;
