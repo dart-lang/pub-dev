@@ -7,7 +7,7 @@ import 'package:meta/meta.dart';
 import 'urls.dart';
 
 const pubDartlangOrgEmail = 'pub@dartlang.org';
-final _emailRegExp = RegExp(r'^\S+@\S+\.\S+$');
+final _emailRegExp = RegExp(r'^\S+@\w+(\.\w+)+$');
 final _nameEmailRegExp = RegExp(r'^(.*)<(.+@.+)>$');
 final _defaultFrom = EmailAddress(
   'Dart package site admin',
