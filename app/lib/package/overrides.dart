@@ -19,6 +19,17 @@ const redirectDartdocPages = <String, String>{
   'flutter': 'https://docs.flutter.io/',
 };
 
+/// Known packages that should be put in `dev_dependencies`
+const devDependencyPackages = <String>{
+  'build_runner',
+  'build_test',
+  'build_verify',
+  'build_web_compilers',
+  'test',
+  'test_descriptor',
+  'test_process',
+};
+
 // TODO: remove this after all of the flutter plugins have a proper issue tracker entry in their pubspec.yaml
 const _issueTrackerUrlOverrides = <String, String>{
   'https://github.com/flutter/plugins/issues':
