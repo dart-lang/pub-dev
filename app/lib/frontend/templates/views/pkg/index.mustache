@@ -2,14 +2,7 @@
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
 
-{{& sort_control_html}}
-
-{{^is_search}}
-<h2 class="listing-page-title">{{title}}</h2>
-{{/is_search}}
-{{#is_search}}
-  <p class="package-count"><span>{{total_count}}</span> results for <code>{{search_query}}</code></p>
-{{/is_search}}
+{{& listing_info_html }}
 
 {{& package_list_html}}
 
