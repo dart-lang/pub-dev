@@ -14,6 +14,8 @@ import '../../search/search_service.dart' show SearchQuery;
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart' show shortDateFormat;
 
+import '../request_context.dart';
+
 import '_cache.dart';
 import 'detail_page.dart';
 import 'layout.dart';
@@ -97,15 +99,15 @@ String renderPublisherPackagesPage({
     title += ' | Page ${pageLinks.currentPage}';
   }
 
-  String resultCountHtml;
-  if (isSearch) {
-    resultCountHtml =
-        '$totalCount package(s) owned by <code>${publisher.publisherId}</code> for search query '
-        '<code>${htmlEscape.convert(searchQuery.query)}</code>';
-  } else {
-    resultCountHtml = totalCount > 0
-        ? '$totalCount package(s) owned by <code>${publisher.publisherId}</code>.'
-        : '<code>${publisher.publisherId}</code> has no packages.';
+  String resultCountHtml() {
+    if (isSearch) {
+      return '$totalCount package(s) owned by <code>${publisher.publisherId}</code> for search query '
+          '<code>${htmlEscape.convert(searchQuery.query)}</code>';
+    } else {
+      return totalCount > 0
+          ? '$totalCount package(s) owned by <code>${publisher.publisherId}</code>.'
+          : '<code>${publisher.publisherId}</code> has no packages.';
+    }
   }
 
   final packageListHtml = packages.isEmpty
@@ -114,8 +116,14 @@ String renderPublisherPackagesPage({
   final paginationHtml = renderPagination(pageLinks);
 
   final tabContent = [
-    renderSortControl(searchQuery),
-    resultCountHtml,
+    if (!requestContext.isExperimental) renderSortControl(searchQuery),
+    if (!requestContext.isExperimental) resultCountHtml(),
+    if (requestContext.isExperimental)
+      renderListingInfo(
+        searchQuery: searchQuery,
+        totalCount: totalCount,
+        ownedBy: publisher.publisherId,
+      ),
     packageListHtml,
     paginationHtml,
   ].join('\n');

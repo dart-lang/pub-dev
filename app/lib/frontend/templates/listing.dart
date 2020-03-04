@@ -162,16 +162,21 @@ String renderListingInfo({
   @required SearchQuery searchQuery,
   @required int totalCount,
   String title,
+  String ownedBy,
 }) {
   final isSearch = searchQuery != null && searchQuery.hasQuery;
   return templateCache.renderTemplate('shared/listing_info', {
     'sort_control_html': renderSortControl(searchQuery),
     'total_count': totalCount,
+    'package_or_packages': totalCount == 1 ? 'package' : 'packages',
+    'has_search_query': isSearch,
+    'search_query': searchQuery?.query,
+    'has_owned_by': ownedBy != null,
+    'owned_by': ownedBy,
     // TODO(3246): remove the keys below after we have migrated to the new design
     'is_search': isSearch,
     'has_title': !isSearch && title != null,
     'title': title,
-    'search_query': searchQuery?.query,
   });
 }
 
