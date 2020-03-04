@@ -14,6 +14,8 @@ import '../../search/search_service.dart' show SearchQuery;
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart' show shortDateFormat;
 
+import '../request_context.dart';
+
 import '_cache.dart';
 import 'detail_page.dart';
 import 'layout.dart';
@@ -60,16 +62,16 @@ String renderAccountPackagesPage({
     title += ' | Page ${pageLinks.currentPage}';
   }
 
-  String resultCountHtml;
-  if (isSearch) {
-    resultCountHtml =
-        '$totalCount owned ${totalCount == 1 ? 'package' : 'packages'} for '
-        '<code>${htmlEscape.convert(searchQuery.query)}</code>';
-  } else {
-    resultCountHtml = totalCount > 0
-        ? 'You own $totalCount ${totalCount == 1 ? 'package' : 'packages'}.'
-        : 'You have not published any packages yet. Learn more about '
-            '<a href="https://dart.dev/tools/pub/publishing">publishing packages</a>.';
+  String resultCountHtml() {
+    if (isSearch) {
+      return '$totalCount owned ${totalCount == 1 ? 'package' : 'packages'} for '
+          '<code>${htmlEscape.convert(searchQuery.query)}</code>';
+    } else {
+      return totalCount > 0
+          ? 'You own $totalCount ${totalCount == 1 ? 'package' : 'packages'}.'
+          : 'You have not published any packages yet. Learn more about '
+              '<a href="https://dart.dev/tools/pub/publishing">publishing packages</a>.';
+    }
   }
 
   final packageListHtml = packages.isEmpty
@@ -81,8 +83,14 @@ String renderAccountPackagesPage({
   final paginationHtml = renderPagination(pageLinks);
 
   final tabContent = [
-    renderSortControl(searchQuery),
-    resultCountHtml,
+    if (!requestContext.isExperimental) renderSortControl(searchQuery),
+    if (!requestContext.isExperimental) resultCountHtml(),
+    if (requestContext.isExperimental)
+      renderListingInfo(
+        searchQuery: searchQuery,
+        totalCount: totalCount,
+        ownedBy: 'you',
+      ),
     packageListHtml,
     paginationHtml,
   ].join('\n');
