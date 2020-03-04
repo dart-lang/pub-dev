@@ -3,6 +3,9 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20200304t104107-all`
+ * Fix flutter favorite listing.
+
 ## `20200302t133833-all`
  * Bumped dependencies.
 
