@@ -122,5 +122,74 @@ body.experimental {
   }
 }
 
+.score-table {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  margin: 16px 0;
+
+  .score-items {
+    flex-grow: 1;
+    margin-right: 32px;
+
+    @media (min-width: $device-desktop-min-width) {
+      margin-right: 64px;
+    }
+  }
+
+  .score-percent-row {
+    display: flex;
+  }
+
+  .score-category-label {
+    flex-grow: 1;
+  }
+
+  .score-percent {
+    color: $color-link;
+    font-weight: 400;
+  }
+
+  .score-progress-row {
+    margin: 2px 0;
+  }
+
+  /* The gap between the categories. */
+  .score-progress-row + .score-percent-row {
+    margin-top: 32px;
+  }
+
+  .score-progress-frame {
+    background: $score-circle-outline;
+    height: 6px;
+  }
+
+  .score-progress {
+    background: $score-circle-stroke;
+    height: 6px;
+  }
+
+  .overall-score {
+    .score-circle {
+      width: 128px;
+      height: 128px;
+
+      @media (min-width: $device-desktop-min-width) {
+        width: 150px;
+        height: 150px;
+      }
+
+      .score-circle-label {
+        margin: 5%;
+      }
+
+      .score-circle-primary-label {
+        font-size: 48px;
+        font-weight: 300;
+      }
+    }
+  }
+}
+
 /* non-indented rule to restrict the content of the file to the experimental pages */
 }

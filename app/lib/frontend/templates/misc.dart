@@ -295,6 +295,7 @@ String renderScoreCircle({
   @required int percent,
   String link,
   String title,
+  String secondaryLabel,
 }) {
   if (percent < 0) percent = 0;
   if (percent > 100) percent = 100;
@@ -308,7 +309,9 @@ String renderScoreCircle({
     'diameter': radius * 2,
     'active': (percent * radius * 2 * pi) ~/ 100,
     'inactive': radius * 7, // longer than the circumference (r * 2 * pi)
-    'label': label,
+    'primary_label': label,
+    'has_secondary_label': secondaryLabel != null,
+    'secondary_label': secondaryLabel,
     'percent': percent,
     'link': link,
     'title': title,

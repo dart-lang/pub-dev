@@ -64,6 +64,10 @@ body.non-experimental {
 /******************************************************
   Analysis tab
 ******************************************************/
+
+/* non-indented rule to restrict the content of this block to the non-experimental pages */
+body.non-experimental {
+
 .score-percent-row {
   margin: 0px 24px;
   height: 28px;
@@ -123,6 +127,9 @@ body.non-experimental {
   .score-value {
     width: 100%;
   }
+}
+
+/* non-indented rule to restrict the content of this block to the non-experimental pages */
 }
 
 .tooltip-base {

@@ -12,6 +12,11 @@
             stroke-dasharray="{{active}}, {{inactive}}"
             fill="transparent"></circle>
   </svg>
-  <span class="score-circle-label">{{label}}</span>
+  <span class="score-circle-label">
+    <div class="score-circle-primary-label">{{primary_label}}</div>
+    {{#has_secondary_label}}
+    <div class="score-circle-secondary-label">{{secondary_label}}</div>
+    {{/has_secondary_label}}
+  </span>
   {{#link}}</a>{{/link}}
 </div>
