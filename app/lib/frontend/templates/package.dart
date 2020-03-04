@@ -10,6 +10,7 @@ import 'package:pana/pana.dart' show getRepositoryUrl;
 
 import '../../analyzer/analyzer_client.dart';
 import '../../package/models.dart';
+import '../../package/overrides.dart' show devDependencyPackages;
 import '../../scorecard/models.dart';
 import '../../search/search_service.dart';
 import '../../shared/email.dart' show EmailAddress;
@@ -101,6 +102,9 @@ String _renderInstallTab(PackageVersion selectedVersion, List<String> tags) {
   }
 
   return templateCache.renderTemplate('pkg/install_tab', {
+    'dependencies_key': devDependencyPackages.contains(packageName)
+        ? 'dev_dependencies'
+        : 'dependencies',
     'use_as_an_executable': hasExecutables,
     'use_as_a_library': !hasExecutables || importExamples.isNotEmpty,
     'package': packageName,
