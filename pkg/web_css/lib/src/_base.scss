@@ -44,29 +44,16 @@ img {
   max-width: 100%;
 }
 
+// Material Design theme customizations
+:root {
+  --mdc-theme-primary: #0175C2;
+}
+
 button {
   cursor: pointer;
   border: none;
 
-  &.mdc-button--unelevated {
-    background-color: $color-searchbar-dark-input-fg !important;
-
-    &:hover {
-      background-color: darken($color-searchbar-dark-input-fg, 10%) !important;
-    }
-
-    &.mdc-ripple-upgraded--foreground-activation {
-      background-color: darken($color-searchbar-dark-input-fg, 50%) !important;
-    }
-  }
-
   &.mdc-button--raised {
-    background-color: $color-input-primary !important;
-
-    &:hover {
-      background-color: darken($color-input-primary, 10%) !important;
-    }
-
     &.pub-button-danger {
       background-color: $color-input-danger !important;
 
@@ -82,47 +69,6 @@ button {
         background-color: darken($color-input-cancel, 10%) !important;
       }
     }
-  }
-
-  &.mdc-dialog__button {
-    &:hover {
-      background-color: lighten($color-input-primary, 70%) !important;
-    }
-
-    &.mdc-ripple-upgraded--background-focused {
-      background-color: lighten($color-input-primary, 50%) !important;
-    }
-
-    &.mdc-ripple-upgraded--foreground-activation {
-      background-color: lighten($color-input-primary, 50%) !important;
-    }
-
-    .mdc-button__label {
-      color: $color-input-primary;
-    }
-  }
-}
-
-/* Override MDC theme colors for input outlines. */
-.mdc-text-field--focused {
-  .mdc-notched-outline__leading,
-  .mdc-notched-outline__trailing {
-    border-color: $color-input-primary !important;
-  }
-
-  .mdc-floating-label--float-above {
-    color: $color-input-primary !important;
-  }
-}
-
-/* Override MDC select colors and outlines. */
-.mdc-select--focused {
-  .mdc-floating-label--float-above {
-    color: $color-input-primary !important;
-  }
-
-  .mdc-line-ripple--active {
-    background-color: $color-input-primary !important;
   }
 }
 
