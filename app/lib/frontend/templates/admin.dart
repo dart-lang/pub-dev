@@ -120,8 +120,8 @@ String renderMyLikedPackagesPage(
   final likedPackagesListHtml = renderMyLikedPackagesList(likes);
 
   final resultCountHtml = likes.isNotEmpty
-      ? 'You like ${likes.length} ${likes.length == 1 ? 'package' : 'packages'}. '
-      : 'You have not liked any packages yet.';
+      ? '<p>You like ${likes.length} ${likes.length == 1 ? 'package' : 'packages'}. </p>'
+      : '<p>You have not liked any packages yet.</p>';
 
   final tabContent = [
     resultCountHtml,

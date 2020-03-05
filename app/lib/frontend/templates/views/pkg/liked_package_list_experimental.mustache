@@ -1,0 +1,29 @@
+{{! Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+<div class="packages -compact">
+  {{#packages}}
+    <div class="packages-item">
+      <div class="packages-header">
+        <h3 class="packages-title"><a href="{{& url }}">{{ name }}</a></h3>
+        <div class="packages-icons">
+          <button
+            class="mdc-button mdc-button--unelevated -pub-like-button"
+            data-mdc-auto-init="MDCRipple"
+            data-package="{{name}}"
+            data-thumb_up_outlined="{{{static_assets.img__thumb-up-24px_svg}}}"
+            data-thumb_up_filled="{{{static_assets.img__thumb-up-filled-24px_svg}}}">
+            <div class="mdc-button__ripple"></div>
+            <img
+              class="mdc-button__icon -pub-like-button-img"
+              src="{{{static_assets.img__thumb-up-filled-24px_svg}}}"
+              aria-hidden="true"/>
+            <span class="mdc-button__label -pub-like-button-text">Unlike</span>
+          </button>
+        </div>
+      </div>
+      <p class="packages-metadata"> Liked on: <span>{{ liked_date }}</span></p>
+    </div>
+  {{/packages}}
+</div>

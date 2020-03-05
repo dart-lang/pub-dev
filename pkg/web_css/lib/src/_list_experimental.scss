@@ -320,6 +320,14 @@ body.experimental {
   .score-box {
     float: none;
   }
+
+  &.-compact {
+    .packages-item {
+      @media (min-width: $device-desktop-min-width) {
+        padding: 4px 8px;
+      }
+    }
+  }
 }
 
 /* non-indented rule to restrict the content of this block to the experimental pages */
