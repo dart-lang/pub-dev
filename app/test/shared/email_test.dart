@@ -16,6 +16,11 @@ void main() {
       expect(isValidEmail('john.doe@a-b-c.com'), true);
       expect(isValidEmail('john.doe@a-b--c.com'), true);
       expect(isValidEmail("o'hara@example.com"), true);
+//      expect(isValidEmail('"a..b"@example.com'), true);
+//      expect(isValidEmail('"a b"@example.com'), true);
+      expect(isValidEmail('"a<>b"@example.com'), true);
+      expect(isValidEmail('"a:b"@example.com'), true);
+      expect(isValidEmail('!#\$%&\'*+-/=?^_`{|}~@example.com'), true);
     });
 
     test('rejected e-mail', () {
