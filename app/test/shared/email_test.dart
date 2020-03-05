@@ -7,33 +7,96 @@ import 'package:test/test.dart';
 import 'package:pub_dev/shared/email.dart';
 
 void main() {
+  final validUserParts = <String>[
+    'a',
+    '1',
+    'john.doe',
+    "o'hara",
+  ];
+  final invalidUserParts = <String>[
+    '..',
+  ];
+  final allUserParts = <String>[...validUserParts, ...invalidUserParts];
+
+  final validDomainParts = <String>[
+    '1.com',
+    'example.com',
+    'a-b.cd',
+    'a--b.home',
+    'a.b.c.d',
+  ];
+  final invalidDomainParts = <String>[
+    '.',
+    '..',
+    ',',
+    '-.com',
+    '-example.com',
+    'example-.com',
+    '"example.com"',
+    '"example.com',
+    'example.com"',
+    "'example.com'",
+    "'example.com",
+    "example.com'",
+    // Technically valid, but we don't want to allow IPv4 or IPv6 addresses.
+    '127.0.0.1',
+    '::1',
+    '2001:0db8:85a3:0000:0000:8a2e:0370:7334',
+  ];
+  final allDomainParts = <String>[...validDomainParts, ...invalidDomainParts];
+
+  final acceptedEmails = <String>[];
+  final rejectedEmails = <String>[];
+  for (final user in validUserParts) {
+    for (final domain in validDomainParts) {
+      acceptedEmails.add('$user@$domain');
+      rejectedEmails.add('$user@@$domain');
+      rejectedEmails.add('$user$domain');
+    }
+    for (final domain in invalidDomainParts) {
+      rejectedEmails.add('$user@$domain');
+    }
+  }
+  for (final user in invalidUserParts) {
+    for (final domain in validDomainParts) {
+      rejectedEmails.add('$user@$domain');
+    }
+    for (final domain in invalidDomainParts) {
+      rejectedEmails.add('$user@$domain');
+    }
+  }
+  for (final user in allUserParts) {
+    rejectedEmails.add('$user');
+    rejectedEmails.add('$user@');
+    rejectedEmails.add('@$user');
+  }
+  for (final domain in allDomainParts) {
+    rejectedEmails.add('$domain');
+    rejectedEmails.add('$domain@');
+    rejectedEmails.add('@$domain');
+  }
+
   group('isValidEmail', () {
     test('accepted e-mail', () {
-      expect(isValidEmail('a@b.c'), true);
-      expect(isValidEmail('1@1.com'), true);
-      expect(isValidEmail('a@b.c.d.e'), true);
-      expect(isValidEmail('john.doe@example.com'), true);
-      expect(isValidEmail("o'hara@example.com"), true);
+      for (final email in acceptedEmails) {
+        final isValid = isValidEmail(email);
+        // better test failure report with this hack
+        expect(isValid ? email : null, email);
+      }
+
+      // verify that we have accepted emails
+      expect(acceptedEmails, hasLength(20));
     });
 
     test('rejected e-mail', () {
-      expect(isValidEmail('@'), false);
-      expect(isValidEmail('@.'), false);
-      expect(isValidEmail('@..'), false);
-      expect(isValidEmail('.'), false);
-      expect(isValidEmail('..'), false);
-      expect(isValidEmail('a'), false);
-      expect(isValidEmail('a @b.com'), false);
-      expect(isValidEmail('a@ b.com'), false);
-      expect(isValidEmail('a@b .com'), false);
-      expect(isValidEmail('a@b. com'), false);
-      expect(isValidEmail('a@'), false);
-      expect(isValidEmail('@example.com'), false);
-      expect(isValidEmail('john.doe at example.com'), false);
-      expect(isValidEmail('john.doe[at]example.com'), false);
-      expect(isValidEmail("'john.doe@example.com'"), false);
-      expect(isValidEmail('"john.doe@example.com"'), false);
-      expect(isValidEmail('john.doe@example".com'), false);
+      for (final email in rejectedEmails) {
+        final isValid = isValidEmail(email);
+        // better test failure report with this hack
+        expect(isValid ? null : email, email);
+      }
+
+      // verify that we have rejected emails
+      expect(rejectedEmails, hasLength(195));
     });
   });
 

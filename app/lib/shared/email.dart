@@ -2,13 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:meta/meta.dart';
 
 import 'urls.dart';
 
 const pubDartlangOrgEmail = 'pub@dartlang.org';
-final _emailRegExp = RegExp(r'^\S+@\w+(\.\w+)+$');
+final _lenientEmailRegExp = RegExp(r'^\S+@\S+\.\S+$');
 final _nameEmailRegExp = RegExp(r'^(.*)<(.+@.+)>$');
+
+/// Strict regular expression used in <input type="email" />
+/// https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address
+final _strictEmailRegExp = RegExp(
+    r'''[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$''');
+
 final _defaultFrom = EmailAddress(
   'Dart package site admin',
   pubDartlangOrgEmail,
@@ -33,7 +41,7 @@ class EmailAddress {
     } else if (value.contains('@')) {
       final List<String> parts = value.split(' ');
       for (int i = 0; i < parts.length; i++) {
-        if (isValidEmail(parts[i])) {
+        if (looksLikeEmail(parts[i])) {
           email = parts[i];
           parts.removeAt(i);
           name = parts.join(' ').trim();
@@ -44,7 +52,7 @@ class EmailAddress {
     if (name != null && name.isEmpty) {
       name = null;
     }
-    if (!isValidEmail(email)) {
+    if (!looksLikeEmail(email)) {
       email = null;
     }
     return EmailAddress(name, email);
@@ -61,15 +69,44 @@ class EmailAddress {
   }
 }
 
-/// Minimal accepted format for an email.
+/// Checks the minimal accepted format for an email.
 ///
 /// This function only disallows the most obvious non-email strings.
 /// It still allows strings that aren't legal email  addresses.
-bool isValidEmail(String email) {
+///
+/// Known use cases:
+/// - Parsing e-mail field in `pubspec.yaml`.
+/// - Checking that the response from the OAuth provider is not garbage.
+/// - Internal integrity check for the most obvious failures.
+bool looksLikeEmail(String email) {
   if (email == null) return false;
   if (email.length < 5) return false;
   if (email.contains('..')) return false;
-  return _emailRegExp.hasMatch(email);
+  return _lenientEmailRegExp.hasMatch(email);
+}
+
+/// Checks the email with strict match patterns.
+///
+/// Known use cases:
+/// - Inviting new uploader (before sending out e-mail).
+/// - Inviting a new member for the publisher (before sending out e-mail).
+/// - Updating the publisher's contact e-mail (before sending out e-mail).
+bool isValidEmail(String email) {
+  // quick surface check
+  if (!looksLikeEmail(email)) return false;
+
+  // strict pattern check
+  if (!_strictEmailRegExp.hasMatch(email)) return false;
+
+  // checking for IPv4 or IPv6 addresses
+  var isInternetAddress = false;
+  try {
+    InternetAddress(email.split('@').last);
+    isInternetAddress = true;
+  } catch (_) {
+    // ignore
+  }
+  return !isInternetAddress;
 }
 
 /// Represents an email message the site will send.
