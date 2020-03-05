@@ -7,8 +7,9 @@ import 'package:meta/meta.dart';
 import 'urls.dart';
 
 const pubDartlangOrgEmail = 'pub@dartlang.org';
-final _emailRegExp = RegExp(r'^\S+@\w+(\.\w+)+$');
+final _emailRegExp = RegExp(r'^\S+@\S+(\.\S+)+$');
 final _nameEmailRegExp = RegExp(r'^(.*)<(.+@.+)>$');
+final _invalidDomainChars = <String>['"', "'", ','];
 final _defaultFrom = EmailAddress(
   'Dart package site admin',
   pubDartlangOrgEmail,
@@ -69,6 +70,8 @@ bool isValidEmail(String email) {
   if (email == null) return false;
   if (email.length < 5) return false;
   if (email.contains('..')) return false;
+  final domainPart = email.split('@').last;
+  if (_invalidDomainChars.any(domainPart.contains)) return false;
   return _emailRegExp.hasMatch(email);
 }
 

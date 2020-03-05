@@ -13,6 +13,8 @@ void main() {
       expect(isValidEmail('1@1.com'), true);
       expect(isValidEmail('a@b.c.d.e'), true);
       expect(isValidEmail('john.doe@example.com'), true);
+      expect(isValidEmail('john.doe@a-b-c.com'), true);
+      expect(isValidEmail('john.doe@a-b--c.com'), true);
       expect(isValidEmail("o'hara@example.com"), true);
     });
 
@@ -34,6 +36,7 @@ void main() {
       expect(isValidEmail("'john.doe@example.com'"), false);
       expect(isValidEmail('"john.doe@example.com"'), false);
       expect(isValidEmail('john.doe@example".com'), false);
+      expect(isValidEmail('john.doe@exam,ple.com'), false);
     });
   });
 
