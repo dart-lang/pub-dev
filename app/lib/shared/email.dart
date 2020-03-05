@@ -75,6 +75,7 @@ class EmailAddress {
 /// It still allows strings that aren't legal email  addresses.
 ///
 /// Known use cases:
+/// - Parsing e-mail field in `pubspec.yaml`.
 /// - Checking that the response from the OAuth provider is not garbage.
 /// - Internal integrity check for the most obvious failures.
 bool looksLikeEmail(String email) {
