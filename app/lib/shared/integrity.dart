@@ -11,7 +11,7 @@ import '../package/models.dart';
 import '../publisher/models.dart';
 import '../shared/tags.dart' show allowedTagPrefixes;
 
-import 'email.dart' show isValidEmail;
+import 'email.dart' show looksLikeEmail;
 
 final _logger = Logger('integrity.check');
 
@@ -57,7 +57,7 @@ class IntegrityChecker {
       _userToOauth[user.userId] = user.oauthUserId;
       if (user.email == null ||
           user.email.isEmpty ||
-          !isValidEmail(user.email)) {
+          !looksLikeEmail(user.email)) {
         _problems.add('User(${user.userId}) has invalid email: ${user.email}');
         _invalidUsers.add(user.userId);
       }
