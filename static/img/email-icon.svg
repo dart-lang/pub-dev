@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="15px" height="12px" viewBox="0 0 15 12" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <g id="pub.dev" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="general-ui---icons-and-components" transform="translate(-277.000000, -399.000000)" fill="#6D7278" fill-rule="nonzero">
+            <path d="M292,400.5 C292,399.675 291.325,399 290.5,399 L278.5,399 C277.675,399 277,399.675 277,400.5 L277,409.5 C277,410.325 277.675,411 278.5,411 L290.5,411 C291.325,411 292,410.325 292,409.5 L292,400.5 Z M290.5,400.5 L284.5,404.25 L278.5,400.5 L290.5,400.5 Z M290.5,409.5 L278.5,409.5 L278.5,402 L284.5,405.75 L290.5,402 L290.5,409.5 Z" id="icon---email"></path>
+        </g>
+    </g>
+</svg>

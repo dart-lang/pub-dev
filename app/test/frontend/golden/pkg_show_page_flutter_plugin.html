@@ -122,183 +122,189 @@ Published
             </div>
           </div>
         </div>
-        <div class="detail-container">
-          <ul class="detail-tabs-header">
-            <li class="tab-button -active" data-ga-click-event="tab:readme" data-name="-readme-tab-" role="button">Readme</li>
-            <li class="tab-button" data-ga-click-event="tab:changelog" data-name="-changelog-tab-" role="button">Changelog</li>
-            <li class="tab-button" data-ga-click-event="tab:installing" data-name="-installing-tab-" role="button">Installing</li>
-            <li class="tab-link" data-name="-versions-tab-" role="button">
-              <a href="/packages/foobar_pkg/versions" data-ga-click-event="tab:versions">Versions</a>
-            </li>
-            <li class="tab-button" data-ga-click-event="tab:analysis" data-name="-analysis-tab-" role="button">
-              <div class="score-box">
-                <span class="number -good" title="Analysis and more details.">65</span>
-              </div>
-            </li>
-            <li class="tab-link" data-name="-admin-tab-" role="button">
-              <a href="/packages/foobar_pkg/admin" data-ga-click-event="tab:admin">Admin</a>
-            </li>
-          </ul>
-          <div class="main detail-tabs-content">
-            <section class="tab-content -active markdown-body" data-name="-readme-tab-">
-              <h1 class="hash-header" id="test-package">Test Package 
-                <a href="#test-package" class="hash-link">#</a>
-              </h1>
-              <p>This is a readme file.</p>
-              <pre>
-                <code class="language-dart">void main() {
+        <div class="detail-body">
+          <div class="detail-tabs-wide-header">
+            <div class="detail-container">
+              <ul class="detail-tabs-header">
+                <li class="tab-button -active" data-ga-click-event="tab:readme" data-name="-readme-tab-" role="button">Readme</li>
+                <li class="tab-button" data-ga-click-event="tab:changelog" data-name="-changelog-tab-" role="button">Changelog</li>
+                <li class="tab-button" data-ga-click-event="tab:installing" data-name="-installing-tab-" role="button">Installing</li>
+                <li class="tab-link" data-name="-versions-tab-" role="button">
+                  <a href="/packages/foobar_pkg/versions" data-ga-click-event="tab:versions">Versions</a>
+                </li>
+                <li class="tab-button" data-ga-click-event="tab:analysis" data-name="-analysis-tab-" role="button">
+                  <div class="score-box">
+                    <span class="number -good" title="Analysis and more details.">65</span>
+                  </div>
+                </li>
+                <li class="tab-link" data-name="-admin-tab-" role="button">
+                  <a href="/packages/foobar_pkg/admin" data-ga-click-event="tab:admin">Admin</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="detail-container">
+            <div class="main detail-tabs-content">
+              <section class="tab-content -active markdown-body" data-name="-readme-tab-">
+                <h1 class="hash-header" id="test-package">Test Package 
+                  <a href="#test-package" class="hash-link">#</a>
+                </h1>
+                <p>This is a readme file.</p>
+                <pre>
+                  <code class="language-dart">void main() {
 }
 </code>
-              </pre>
-            </section>
-            <section class="tab-content markdown-body" data-name="-changelog-tab-">
-              <h1 class="hash-header" id="changelog">Changelog 
-                <a href="#changelog" class="hash-link">#</a>
-              </h1>
-              <p>0.1.1 - test package</p>
-            </section>
-            <section class="tab-content" data-name="-installing-tab-">
-              <h2>Use this package as a library</h2>
-              <h3>1. Depend on it</h3>
-              <p>Add this to your package's pubspec.yaml file:</p>
-              <pre>
-                <code class="language-yaml">
+                </pre>
+              </section>
+              <section class="tab-content markdown-body" data-name="-changelog-tab-">
+                <h1 class="hash-header" id="changelog">Changelog 
+                  <a href="#changelog" class="hash-link">#</a>
+                </h1>
+                <p>0.1.1 - test package</p>
+              </section>
+              <section class="tab-content" data-name="-installing-tab-">
+                <h2>Use this package as a library</h2>
+                <h3>1. Depend on it</h3>
+                <p>Add this to your package's pubspec.yaml file:</p>
+                <pre>
+                  <code class="language-yaml">
 dependencies:
   
-                  <strong>foobar_pkg: ^0.1.1+5</strong>
-                </code>
-              </pre>
-              <h3>2. Install it</h3>
-              <p>You can install packages from the command line:</p>
-              <p>with Flutter:</p>
-              <pre>
-                <code class="language-shell">
+                    <strong>foobar_pkg: ^0.1.1+5</strong>
+                  </code>
+                </pre>
+                <h3>2. Install it</h3>
+                <p>You can install packages from the command line:</p>
+                <p>with Flutter:</p>
+                <pre>
+                  <code class="language-shell">
 $ 
-                  <strong>flutter pub get</strong>
-                </code>
-              </pre>
-              <p>Alternatively, your editor might support 
-                <code>flutter pub get</code>.
+                    <strong>flutter pub get</strong>
+                  </code>
+                </pre>
+                <p>Alternatively, your editor might support 
+                  <code>flutter pub get</code>.
   Check the docs for your editor to learn more.
-              </p>
-              <h3>3. Import it</h3>
-              <p>Now in your Dart code, you can use:
+                </p>
+                <h3>3. Import it</h3>
+                <p>Now in your Dart code, you can use:
   </p>
-              <pre>
-                <code class="language-dart">
+                <pre>
+                  <code class="language-dart">
 import 'package:foobar_pkg/foolib.dart';
   </code>
-              </pre>
-            </section>
-            <section class="tab-content" data-name="-analysis-tab-">
-              <table id='scores-table'>
-                <tr>
-                  <td class="score-name">
-                    <div class="tooltip-base hoverable">
-                      <span class="tooltip-dotted">Popularity:</span>
-                      <div class="tooltip-content">
+                </pre>
+              </section>
+              <section class="tab-content" data-name="-analysis-tab-">
+                <table id='scores-table'>
+                  <tr>
+                    <td class="score-name">
+                      <div class="tooltip-base hoverable">
+                        <span class="tooltip-dotted">Popularity:</span>
+                        <div class="tooltip-content">
           Describes how popular the package is relative to other packages.
           
-                        <a href="/help#popularity">[more]</a>
+                          <a href="/help#popularity">[more]</a>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td class="score-value">
-                    <div class="score-percent-row">
-                      <div class="score-percent" style="left: 30%;">30</div>
-                    </div>
-                    <div class="score-progress-row">
-                      <div class="score-progress-frame">
-                        <div class="score-progress" style="width: 30%; background: rgb(136, 147, 158);"></div>
+                    </td>
+                    <td class="score-value">
+                      <div class="score-percent-row">
+                        <div class="score-percent" style="left: 30%;">30</div>
                       </div>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td class="score-name">
-                    <div class="tooltip-base hoverable">
-                      <span class="tooltip-dotted">Health:</span>
-                      <div class="tooltip-content">
+                      <div class="score-progress-row">
+                        <div class="score-progress-frame">
+                          <div class="score-progress" style="width: 30%; background: rgb(136, 147, 158);"></div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="score-name">
+                      <div class="tooltip-base hoverable">
+                        <span class="tooltip-dotted">Health:</span>
+                        <div class="tooltip-content">
           Code health derived from static analysis.
           
-                        <a href="/help#health">[more]</a>
+                          <a href="/help#health">[more]</a>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td class="score-value">
-                    <div class="score-percent-row">
-                      <div class="score-percent" style="left: 99%;">99</div>
-                    </div>
-                    <div class="score-progress-row">
-                      <div class="score-progress-frame">
-                        <div class="score-progress" style="width: 99%; background: rgb(191, 191, 192);"></div>
+                    </td>
+                    <td class="score-value">
+                      <div class="score-percent-row">
+                        <div class="score-percent" style="left: 99%;">99</div>
                       </div>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td class="score-name">
-                    <div class="tooltip-base hoverable">
-                      <span class="tooltip-dotted">Maintenance:</span>
-                      <div class="tooltip-content">
+                      <div class="score-progress-row">
+                        <div class="score-progress-frame">
+                          <div class="score-progress" style="width: 99%; background: rgb(191, 191, 192);"></div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="score-name">
+                      <div class="tooltip-base hoverable">
+                        <span class="tooltip-dotted">Maintenance:</span>
+                        <div class="tooltip-content">
           Reflects how tidy and up-to-date the package is.
           
-                        <a href="/help#maintenance">[more]</a>
+                          <a href="/help#maintenance">[more]</a>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td class="score-value">
-                    <div class="score-percent-row">
-                      <div class="score-percent" style="left: 99%;">99</div>
-                    </div>
-                    <div class="score-progress-row">
-                      <div class="score-progress-frame">
-                        <div class="score-progress" style="width: 99%; background: rgb(191, 191, 192);"></div>
+                    </td>
+                    <td class="score-value">
+                      <div class="score-percent-row">
+                        <div class="score-percent" style="left: 99%;">99</div>
                       </div>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td class="score-name">
-                    <div class="tooltip-base hoverable">
-                      <span class="tooltip-dotted">
-                        <b>Overall:</b>
-                      </span>
-                      <div class="tooltip-content">
+                      <div class="score-progress-row">
+                        <div class="score-progress-frame">
+                          <div class="score-progress" style="width: 99%; background: rgb(191, 191, 192);"></div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="score-name">
+                      <div class="tooltip-base hoverable">
+                        <span class="tooltip-dotted">
+                          <b>Overall:</b>
+                        </span>
+                        <div class="tooltip-content">
           Weighted score of the above.
           
-                        <a href="/help#overall-score">[more]</a>
+                          <a href="/help#overall-score">[more]</a>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="score-percent-row">
-                      <div class="score-percent" style="left: 65%;">65</div>
-                    </div>
-                    <div class="score-progress-row">
-                      <div class="score-progress-frame">
-                        <div class="score-progress" style="width: 65%; background: rgb(0, 196, 179);"></div>
+                    </td>
+                    <td>
+                      <div class="score-percent-row">
+                        <div class="score-percent" style="left: 65%;">65</div>
                       </div>
-                    </div>
-                  </td>
-                </tr>
-              </table>
-              <div style="text-align: right; font-size: 10pt;">Learn more about 
-                <a href="/help#scoring">scoring</a>.
-              </div>
-              <hr/>
-              <p>
+                      <div class="score-progress-row">
+                        <div class="score-progress-frame">
+                          <div class="score-progress" style="width: 65%; background: rgb(0, 196, 179);"></div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+                <div style="text-align: right; font-size: 10pt;">Learn more about 
+                  <a href="/help#scoring">scoring</a>.
+                </div>
+                <hr/>
+                <p>
   We analyzed this package on Feb 5, 2018, and provided a score, details, and suggestions below.
   Analysis was completed with status 
-                <i>completed</i> using:
+                  <i>completed</i> using:
 
-              </p>
-              <ul>
-                <li>Dart: 2.0.0-dev.7.0</li>
-                <li>pana: 0.6.2</li>
-                <li>Flutter: 0.0.18</li>
-              </ul>
-            </section>
+                </p>
+                <ul>
+                  <li>Dart: 2.0.0-dev.7.0</li>
+                  <li>pana: 0.6.2</li>
+                  <li>Flutter: 0.0.18</li>
+                </ul>
+              </section>
+            </div>
           </div>
           <aside class="detail-info-box">
             <h3 class="title">About</h3>

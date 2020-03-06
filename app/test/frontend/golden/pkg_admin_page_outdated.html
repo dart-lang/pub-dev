@@ -119,69 +119,75 @@ Published
             </div>
           </div>
         </div>
-        <div class="detail-container">
-          <ul class="detail-tabs-header">
-            <li class="tab-link" data-name="-readme-tab-" role="button">
-              <a href="/packages/foobar_pkg#-readme-tab-" data-ga-click-event="tab:readme">Readme</a>
-            </li>
-            <li class="tab-link" data-name="-changelog-tab-" role="button">
-              <a href="/packages/foobar_pkg#-changelog-tab-" data-ga-click-event="tab:changelog">Changelog</a>
-            </li>
-            <li class="tab-link" data-name="-example-tab-" role="button">
-              <a href="/packages/foobar_pkg#-example-tab-" data-ga-click-event="tab:example">Example</a>
-            </li>
-            <li class="tab-link" data-name="-installing-tab-" role="button">
-              <a href="/packages/foobar_pkg#-installing-tab-" data-ga-click-event="tab:installing">Installing</a>
-            </li>
-            <li class="tab-link" data-name="-versions-tab-" role="button">
-              <a href="/packages/foobar_pkg/versions" data-ga-click-event="tab:versions">Versions</a>
-            </li>
-            <li class="tab-link" data-name="-analysis-tab-" role="button">
-              <a href="/packages/foobar_pkg#-analysis-tab-" data-ga-click-event="tab:analysis">
-                <div class="score-box">
-                  <span class="number -rotten" title="Analysis and more details.">0</span>
-                </div>
-              </a>
-            </li>
-            <li class="tab-button -active" data-ga-click-event="tab:admin" data-name="-admin-tab-" role="button">Admin</li>
-          </ul>
-          <div class="main detail-tabs-content">
-            <section class="tab-content -active" data-name="-admin-tab-">
-              <h2>Package ownership</h2>
-              <div>
-                <p>
+        <div class="detail-body">
+          <div class="detail-tabs-wide-header">
+            <div class="detail-container">
+              <ul class="detail-tabs-header">
+                <li class="tab-link" data-name="-readme-tab-" role="button">
+                  <a href="/packages/foobar_pkg#-readme-tab-" data-ga-click-event="tab:readme">Readme</a>
+                </li>
+                <li class="tab-link" data-name="-changelog-tab-" role="button">
+                  <a href="/packages/foobar_pkg#-changelog-tab-" data-ga-click-event="tab:changelog">Changelog</a>
+                </li>
+                <li class="tab-link" data-name="-example-tab-" role="button">
+                  <a href="/packages/foobar_pkg#-example-tab-" data-ga-click-event="tab:example">Example</a>
+                </li>
+                <li class="tab-link" data-name="-installing-tab-" role="button">
+                  <a href="/packages/foobar_pkg#-installing-tab-" data-ga-click-event="tab:installing">Installing</a>
+                </li>
+                <li class="tab-link" data-name="-versions-tab-" role="button">
+                  <a href="/packages/foobar_pkg/versions" data-ga-click-event="tab:versions">Versions</a>
+                </li>
+                <li class="tab-link" data-name="-analysis-tab-" role="button">
+                  <a href="/packages/foobar_pkg#-analysis-tab-" data-ga-click-event="tab:analysis">
+                    <div class="score-box">
+                      <span class="number -rotten" title="Analysis and more details.">0</span>
+                    </div>
+                  </a>
+                </li>
+                <li class="tab-button -active" data-ga-click-event="tab:admin" data-name="-admin-tab-" role="button">Admin</li>
+              </ul>
+            </div>
+          </div>
+          <div class="detail-container">
+            <div class="main detail-tabs-content">
+              <section class="tab-content -active" data-name="-admin-tab-">
+                <h2>Package ownership</h2>
+                <div>
+                  <p>
     You can transfer this package to a verified publisher if you are a member of the publisher.
     Transferring the package removes the current uploaders, so that only the members of the publisher can upload new versions.
   </p>
-                <p>
-                  <strong>Upgrading to verified publishers is an irreversible operation.</strong>
+                  <p>
+                    <strong>Upgrading to verified publishers is an irreversible operation.</strong>
     Packages can be transferred between publishers, but they can't be converted back to legacy uploader ownership.
   
-                </p>
-                <div class="mdc-select" data-mdc-auto-init="MDCSelect">
-                  <i class="mdc-select__dropdown-icon"></i>
-                  <select id="-admin-set-publisher-input" class="mdc-select__native-control">
-                    <option value="" disabled="disabled" selected="selected"></option>
-                    <option value="example.com">example.com</option>
-                  </select>
-                  <label class="mdc-floating-label">Select a publisher</label>
-                  <div class="mdc-line-ripple"></div>
+                  </p>
+                  <div class="mdc-select" data-mdc-auto-init="MDCSelect">
+                    <i class="mdc-select__dropdown-icon"></i>
+                    <select id="-admin-set-publisher-input" class="mdc-select__native-control">
+                      <option value="" disabled="disabled" selected="selected"></option>
+                      <option value="example.com">example.com</option>
+                    </select>
+                    <label class="mdc-floating-label">Select a publisher</label>
+                    <div class="mdc-line-ripple"></div>
+                  </div>
+                  <p>
+                    <button id="-admin-set-publisher-button" class="pub-button-danger mdc-button mdc-button--raised" data-mdc-auto-init="MDCRipple">Transfer to publisher</button>
+                  </p>
                 </div>
-                <p>
-                  <button id="-admin-set-publisher-button" class="pub-button-danger mdc-button mdc-button--raised" data-mdc-auto-init="MDCRipple">Transfer to publisher</button>
-                </p>
-              </div>
-              <h2>Discontinued</h2>
-              <div>
-                <p>
+                <h2>Discontinued</h2>
+                <div>
+                  <p>
     If no one is maintaining this package, you can mark it as discontinued.
     Discontinued packages remain available, but pub.dev doesn’t display them in search results.
   </p>
-                <p>
-                  <button id="-admin-is-discontinued-toggle" class="mdc-button mdc-button--raised" data-mdc-auto-init="MDCRipple">Mark as "discontinued"</button>
-                </p>
-              </div>
-            </section>
+                  <p>
+                    <button id="-admin-is-discontinued-toggle" class="mdc-button mdc-button--raised" data-mdc-auto-init="MDCRipple">Mark as "discontinued"</button>
+                  </p>
+                </div>
+              </section>
+            </div>
           </div>
           <aside class="detail-info-box">
             <h3 class="title">About</h3>

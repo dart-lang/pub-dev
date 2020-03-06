@@ -111,6 +111,8 @@ String renderAccountPackagesPage({
     title: title,
     searchQuery: searchQuery,
     noIndex: true,
+    mainClasses:
+        requestContext.isExperimental ? [wideHeaderDetailPageClassName] : null,
   );
 }
 
@@ -145,6 +147,8 @@ String renderMyLikedPackagesPage(
     content,
     title: 'My liked packages',
     noIndex: true,
+    mainClasses:
+        requestContext.isExperimental ? [wideHeaderDetailPageClassName] : null,
   );
 }
 
@@ -173,6 +177,8 @@ String renderAccountPublishersPage({
     content,
     title: 'My publishers',
     noIndex: true,
+    mainClasses:
+        requestContext.isExperimental ? [wideHeaderDetailPageClassName] : null,
   );
 }
 
@@ -196,6 +202,7 @@ String _accountDetailHeader(User user) {
 }
 
 String _accountInfoBox(User user) {
+  if (requestContext.isExperimental) return null;
   final shortJoined = shortDateFormat.format(user.created);
   return templateCache.renderTemplate('account/info_box', {
     'email': user.email,

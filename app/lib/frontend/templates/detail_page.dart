@@ -9,6 +9,8 @@ import 'package:meta/meta.dart';
 import '../request_context.dart';
 import '_cache.dart';
 
+final wideHeaderDetailPageClassName = '-wide-header-detail-page';
+
 /// Renders the `shared/detail/header.mustache` template
 ///
 /// The like button in the header will not be displayed when [isLiked] is null.

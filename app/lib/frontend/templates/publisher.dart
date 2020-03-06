@@ -66,15 +66,23 @@ String renderPublisherListPage(List<Publisher> publishers) {
   );
 }
 
-/// Renders the `views/publisher/info_box.mustache` template.
-String _renderPublisherInfoBox(Publisher publisher) {
-  String description = publisher.description ?? '';
+/// Returns the formatted short description of the publisher description.
+String _shortDescriptionHtml(Publisher publisher) {
+  if (!publisher.hasDescription) '';
+  String description = publisher.description;
   if (description != null && description.length > 1010) {
     description = description.substring(0, 1000) + '[...]';
   }
+  return htmlEscape.convert(description);
+}
+
+/// Renders the `views/publisher/info_box.mustache` template.
+String _renderPublisherInfoBox(Publisher publisher) {
+  if (requestContext.isExperimental) return null;
+  final descriptionHtml = _shortDescriptionHtml(publisher);
   return templateCache.renderTemplate('publisher/info_box', {
-    'has_description': description != null && description.isNotEmpty,
-    'description_html': htmlEscape.convert(description),
+    'has_description': descriptionHtml != null && descriptionHtml.isNotEmpty,
+    'description_html': descriptionHtml,
     'publisher_id': publisher.publisherId,
     'website_url': publisher.websiteUrl,
     'website_url_displayed': urls.displayableUrl(publisher.websiteUrl),
@@ -155,6 +163,8 @@ String renderPublisherPackagesPage({
     searchQuery: searchQuery,
     // only index the first page, and if search query is not active
     noIndex: isSearch || pageLinks.currentPage > 1,
+    mainClasses:
+        requestContext.isExperimental ? [wideHeaderDetailPageClassName] : null,
   );
 }
 
@@ -201,15 +211,30 @@ String renderPublisherAdminPage({
       ),
     ),
     noIndex: true,
+    mainClasses:
+        requestContext.isExperimental ? [wideHeaderDetailPageClassName] : null,
   );
 }
 
 String _renderDetailHeader(Publisher publisher) {
-  final shortCreated = shortDateFormat.format(publisher.created);
+  final metadataHtml = templateCache.renderTemplate(
+    'publisher/header_metadata',
+    {
+      'short_created': shortDateFormat.format(publisher.created),
+      'has_description': publisher.hasDescription,
+      'description_html': _shortDescriptionHtml(publisher),
+      'has_contact_email': publisher.hasContactEmail,
+      'contact_email': publisher.contactEmail,
+      'has_website_url': publisher.hasWebsiteUrl,
+      'website_url': publisher.websiteUrl,
+      'website_url_displayed': urls.displayableUrl(publisher.websiteUrl),
+    },
+  );
   return renderDetailHeader(
     title: publisher.publisherId,
-    metadataHtml: htmlEscape.convert('Publisher registered on $shortCreated.'),
-    isPublisher: true,
+    metadataHtml: metadataHtml,
+    // do not render the shield on the new UI
+    isPublisher: !requestContext.isExperimental,
   );
 }
 

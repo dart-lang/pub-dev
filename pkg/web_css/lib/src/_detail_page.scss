@@ -14,19 +14,19 @@ body.non-experimental {
     margin-top: 8px;
   }
 
-  > .title {
+  .title {
     font-size: 32px;
     font-weight: 600;
     margin: 0;
   }
 
-  > .metadata {
+  .metadata {
     font-size: 14px;
     color: #555;
   }
 }
 
-.detail-container {
+.detail-body {
   > .main {
     display: inline-block;
     width: calc(100% - 300px);

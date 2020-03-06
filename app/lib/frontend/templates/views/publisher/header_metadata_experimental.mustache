@@ -1,0 +1,25 @@
+{{! Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+{{#has_description}}
+<p>{{& description_html }}</p>
+{{/has_description}}
+
+<p>
+  {{#has_website_url}}
+    <span class="detail-header-metadata-ref">
+      <img class="detail-header-metadata-ref-icon" src="{{& static_assets.img__link-icon_svg }}" />
+      <a class="detail-header-metadata-ref-label" href="{{ website_url }}">{{ website_url_displayed }}</a>
+    </span>
+  {{/has_website_url}}
+
+  {{#has_contact_email}}
+    <span class="detail-header-metadata-ref">
+      <img class="detail-header-metadata-ref-icon" src="{{& static_assets.img__email-icon_svg }}" />
+      <a class="detail-header-metadata-ref-label" href="mailto:{{ contact_email }}">{{ contact_email }}</a>
+    </span>
+  {{/has_contact_email}}
+</p>
+
+<p>Publisher registered on {{ short_created }}.</p>

@@ -10,6 +10,20 @@ $info-box-margin: 120px;
 $info-box-total-width: 320px; /* 190 + 120 + 10 (extra space for layout) */
 $detail-tabs-width: calc(100% - 320px);
 
+.-wide-header-detail-page {
+  .detail-header,
+  .detail-tabs-wide-header {
+    background: #f5f5f7;
+  }
+
+  .detail-header {
+    // On desktop this will make the wide header block to be centered.
+    @media (min-width: $device-desktop-min-width) {
+      display: flex;
+    }
+  }
+}
+
 .detail-wrapper {
   display: none;
 
@@ -25,13 +39,17 @@ $detail-tabs-width: calc(100% - 320px);
 }
 
 .detail-header {
-  margin: 30px 0 10px;
+  padding: 30px 0 10px;
 
-  > .title {
+  .title {
     font-family: $font-family-google-sans-display;
-    font-size: 48px;
     font-weight: 400;
     margin: 0;
+    font-size: 24px;
+
+    @media (min-width: $device-desktop-min-width) {
+      font-size: 48px;
+    }
   }
 }
 
@@ -62,6 +80,22 @@ $detail-tabs-width: calc(100% - 320px);
 .detail-header {
   .metadata {
     margin-bottom: 8px;
+  }
+
+  .detail-header-metadata-ref {
+    display: flex;
+    align-items: center;
+
+    @media (min-width: $device-desktop-min-width) {
+      display: inline-flex;
+      margin-right: 16px;
+    }
+  }
+
+  .detail-header-metadata-ref-icon {
+    width: 14px;
+    height: 14px;
+    margin-right: 8px;
   }
 
   .detail-tags-and-like {
@@ -110,11 +144,10 @@ $detail-tabs-width: calc(100% - 320px);
 }
 
 @media (min-width: $device-desktop-min-width) {
-  .detail-container {
+  .detail-body {
 
     >.detail-tabs {
       vertical-align: top;
-      display: inline-block;
     }
 
     >.detail-info-box {
@@ -126,7 +159,8 @@ $detail-tabs-width: calc(100% - 320px);
 
   .detail-wrapper.-has-info-box {
     .detail-header,
-    .detail-container > .detail-tabs {
+    .detail-body > .detail-tabs {
+      display: inline-block;
       width: $detail-tabs-width;
     }
   }
