@@ -330,5 +330,23 @@ body.experimental {
   }
 }
 
+.publishers {
+  .publishers-item {
+    padding: 4px;
+
+    &:hover {
+      background: #fafafa;
+    }
+  }
+
+  &.-global {
+    display: flex;
+
+    .publishers-item {
+      flex: 1 1 26%;
+    }
+  }
+}
+
 /* non-indented rule to restrict the content of this block to the experimental pages */
 }
