@@ -42,6 +42,15 @@ class Publisher extends db.ExpandoModel {
   /// (B) who granted the permissions that allowed said package to be uploaded.
   @db.BoolProperty(required: true)
   bool isAbandoned;
+
+  /// Whether the publisher has a displayable description.
+  bool get hasDescription => description != null && description.isNotEmpty;
+
+  /// Whether the publisher has a displayable contact email.
+  bool get hasContactEmail => contactEmail != null && contactEmail.isNotEmpty;
+
+  /// Whether the publisher has a displayable website URL.
+  bool get hasWebsiteUrl => websiteUrl != null && websiteUrl.isNotEmpty;
 }
 
 /// Derived publisher data.

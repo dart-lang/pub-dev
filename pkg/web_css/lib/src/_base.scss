@@ -96,7 +96,8 @@ main {
 }
 
 /* Useful for synchronizing the alignment of different page blocks. */
-.container {
+.container,
+.-wide-header-detail-page .detail-container {
   max-width: $site-max-width;
   margin: 0 auto;
   padding: 0 20px;
