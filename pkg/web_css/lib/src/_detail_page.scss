@@ -27,7 +27,7 @@ body.non-experimental {
 }
 
 .detail-body {
-  > .main {
+  > .detail-body-main {
     display: inline-block;
     width: calc(100% - 300px);
     vertical-align: top;
