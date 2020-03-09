@@ -1,0 +1,29 @@
+{{! Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+{{#title}}
+<h2>{{ title }}</h2>
+{{/title}}
+
+{{#has_publishers}}
+<div class="publishers{{#is_global}} -global{{/is_global}}">
+  {{#publishers}}
+  <div class="publishers-item">
+    <h3><a href="{{& url }}">{{ publisher_id }}</a></h3>
+    <p>
+      Registered on {{ short_created }}.
+    </p>
+  </div>
+  {{/publishers}}
+</div>
+{{/has_publishers}}
+
+{{^has_publishers}}
+<p>{{& no_publisher_message_html }}</p>
+{{/has_publishers}}
+
+<h3>Want to create a new publisher?</h3>
+<p>
+  Use the <a href="{{& create_publisher_url }}">create publisher</a> page.
+</p>
