@@ -67,6 +67,7 @@ void main() {
         'static-assets/readme.md',
         'static-assets/script.js',
         'static-assets/sdk_footer_text.html',
+        'static-assets/sdk_footer_text.md',
         'static-assets/styles.css',
         'static-assets/typeahead.bundle.min.js',
       ]);
