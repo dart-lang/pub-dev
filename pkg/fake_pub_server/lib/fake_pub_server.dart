@@ -19,7 +19,6 @@ import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/testing/fake_auth_provider.dart';
 import 'package:pub_dev/frontend/handlers.dart';
 import 'package:pub_dev/frontend/testing/fake_upload_signer_service.dart';
-import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/package/upload_signer_service.dart';
 import 'package:pub_dev/publisher/domain_verifier.dart';
@@ -56,9 +55,7 @@ class FakePubServer {
 
           nameTracker.startTracking();
 
-          final apiHandler = packageBackend.pubServer.requestHandler;
-
-          final appHandler = createAppHandler(apiHandler);
+          final appHandler = createAppHandler();
           final handler = wrapHandler(_logger, appHandler, sanitize: true);
 
           final server = await IOServer.bind('localhost', port);

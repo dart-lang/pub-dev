@@ -21,13 +21,10 @@ part 'routes.g.dart';
 
 /// The main routes that are processed by the pub site's frontend.
 class PubSiteService {
-  final Handler _pubServerHandler;
-  PubSiteService(this._pubServerHandler);
-
   Router get router => _$PubSiteServiceRouter(this);
 
   @Route.mount('/')
-  Router get _api => PubApi(_pubServerHandler).router;
+  Router get _api => PubApi().router;
 
   // ****
   // **** AppEngine health checks

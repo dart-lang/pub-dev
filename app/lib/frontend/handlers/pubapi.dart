@@ -21,7 +21,7 @@ part 'pubapi.g.dart';
 class PubApi {
   final Handler _pubServerHandler;
 
-  PubApi(this._pubServerHandler);
+  PubApi() : _pubServerHandler = packageBackend.pubServer.requestHandler;
 
   Router get router => _$PubApiRouter(this);
 

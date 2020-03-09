@@ -23,7 +23,6 @@ import '../../dartdoc/dartdoc_client.dart';
 import '../../frontend/handlers.dart';
 import '../../frontend/static_files.dart';
 import '../../frontend/templates/_cache.dart';
-import '../../package/backend.dart';
 import '../../package/deps_graph.dart';
 import '../../package/name_tracker.dart';
 import '../../package/upload_signer_service.dart';
@@ -76,8 +75,7 @@ Future _main(FrontendEntryMessage message) async {
       storageService,
       activeConfiguration.backupSnapshotBucketName,
     ));
-    final appHandler =
-        createAppHandler(packageBackend.pubServer.requestHandler);
+    final appHandler = createAppHandler();
 
     if (envConfig.isRunningLocally) {
       await _watchForResourceChanges();
