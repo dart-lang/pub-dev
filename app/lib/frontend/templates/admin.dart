@@ -4,7 +4,6 @@
 
 import 'dart:convert';
 
-import 'package:client_data/page_data.dart';
 import 'package:meta/meta.dart';
 
 import '../../account/models.dart' show LikeData, User;
@@ -27,25 +26,6 @@ String renderAuthorizedPage() {
   final String content = templateCache.renderTemplate('account/authorized', {});
   return renderLayoutPage(PageType.package, content,
       title: 'Pub Authorized Successfully', includeSurvey: false);
-}
-
-/// Renders the `views/account/consent.mustache` template.
-String renderConsentPage({
-  @required String consentId,
-  @required String title,
-  @required String descriptionHtml,
-}) {
-  final content = templateCache.renderTemplate('account/consent', {
-    'title': title,
-    'description_html': descriptionHtml,
-  });
-  return renderLayoutPage(
-    PageType.standalone,
-    content,
-    title: 'Consent',
-    pageData: PageData(consentId: consentId),
-    includeSurvey: false,
-  );
 }
 
 /// Renders the search results on the current user's packages page.
