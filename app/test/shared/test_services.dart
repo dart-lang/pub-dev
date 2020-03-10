@@ -125,7 +125,7 @@ http_testing.MockClient _httpClient({
   shelf.Handler handler,
   String authToken,
 }) {
-  handler ??= createAppHandler(null);
+  handler ??= createAppHandler();
   handler = wrapHandler(
     Logger.detached('test'),
     handler,
