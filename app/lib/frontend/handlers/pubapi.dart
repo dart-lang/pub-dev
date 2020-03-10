@@ -30,46 +30,13 @@ class PubApi {
   // ****
 
   /// Getting information about all versions of a package.
-  ///
-  ///     GET /api/packages/<package-name>
-  ///     [200 OK] [Content-Type: application/json]
-  ///     {
-  ///       "name" : "<package-name>",
-  ///       "latest" : { ...},
-  ///       "versions" : [
-  ///         {
-  ///           "version" : "<version>",
-  ///           "archive_url" : "<download-url tar.gz>",
-  ///           "pubspec" : {
-  ///            "author" : ...,
-  ///             "dependencies" : { ... },
-  ///             ...
-  ///           },
-  ///       },
-  ///       ...
-  ///       ],
-  ///     }
-  ///     or
-  ///     [404 Not Found]
+  /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#list-all-versions-of-a-package
   @EndPoint.get('/api/packages/<package>')
   Future<Response> listPackageVersions(Request request, String package) async =>
       _pubServerHandler(_normalizeHost(request));
 
   /// Getting information about a specific (package, version) pair.
-  ///
-  ///     GET /api/packages/<package-name>/versions/<version-name>
-  ///     [200 OK] [Content-Type: application/json]
-  ///     {
-  ///       "version" : "<version>",
-  ///       "archive_url" : "<download-url tar.gz>",
-  ///       "pubspec" : {
-  ///         "author" : ...,
-  ///         "dependencies" : { ... },
-  ///         ...
-  ///       },
-  ///     }
-  ///     or
-  ///     [404 Not Found]
+  /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#deprecated-inspect-a-specific-version-of-a-package
   @EndPoint.get('/api/packages/<package>/versions/<version>')
   Future<Response> packageVersionInfo(
     Request request,
@@ -79,14 +46,7 @@ class PubApi {
       _pubServerHandler(_normalizeHost(request));
 
   /// Downloading package.
-  ///
-  ///     GET /api/packages/<package-name>/versions/<version-name>.tar.gz
-  ///     [200 OK] [Content-Type: octet-stream ??? FIXME ???]
-  ///     or
-  ///     [302 Found / Temporary Redirect]
-  ///     Location: <new-location>
-  ///     or
-  ///     [404 Not Found]
+  /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#download-a-specific-version-of-a-package
   @EndPoint.get('/api/packages/<package>/versions/<version>.tar.gz')
   @EndPoint.get('/packages/<package>/versions/<version>.tar.gz')
   Future<Response> fetchPackage(
@@ -97,6 +57,8 @@ class PubApi {
       _pubServerHandler(_normalizeHost(request));
 
   /// Start async upload.
+  /// TODO: Link to the spec once it has the details updated:
+  /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#publishing-packages
   ///
   ///     GET /api/packages/versions/new
   ///     Headers:
@@ -127,6 +89,8 @@ class PubApi {
       _pubServerHandler(request);
 
   /// Finish async upload.
+  /// TODO: Link to the spec once it has the details updated:
+  /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#publishing-packages
   ///
   ///     GET /api/packages/versions/newUploadFinish
   ///     [200 OK]
@@ -140,6 +104,8 @@ class PubApi {
       _pubServerHandler(_normalizeHost(request));
 
   /// Adding a new uploader
+  /// TODO: Link to the spec once it has the details updated:
+  /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#publishing-packages
   ///
   ///     POST /api/packages/<package-name>/uploaders
   ///     email=<uploader-email>
@@ -152,6 +118,8 @@ class PubApi {
       _pubServerHandler(_normalizeHost(request));
 
   /// Removing an existing uploader.
+  /// TODO: Link to the spec once it has the details updated:
+  /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#publishing-packages
   ///
   ///     DELETE /api/packages/<package-name>/uploaders/<uploader-email>
   ///     [200 OK] [Content-Type: application/json]
