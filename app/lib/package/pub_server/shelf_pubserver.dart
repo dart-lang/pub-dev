@@ -14,6 +14,9 @@ import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:yaml/yaml.dart';
 
+import '../../package/backend.dart' show purgePackageCache;
+import '../../shared/redis_cache.dart' show cache;
+
 import 'repository.dart';
 
 final Logger _logger = Logger('pubserver.shelf_pubserver');
@@ -143,9 +146,8 @@ class ShelfPubServer {
       RegExp(r'^/packages/([^/]+)/versions/([^/]+)\.tar\.gz$');
 
   final PackageRepository repository;
-  final PackageCache cache;
 
-  ShelfPubServer(this.repository, {this.cache});
+  ShelfPubServer(this.repository);
 
   Future<shelf.Response> requestHandler(shelf.Request request) async {
     final path = request.requestedUri.path;
@@ -234,11 +236,9 @@ class ShelfPubServer {
   // Metadata handlers.
 
   Future<shelf.Response> _listVersions(Uri uri, String package) async {
-    if (cache != null) {
-      final binaryJson = await cache.getPackageData(package);
-      if (binaryJson != null) {
-        return _binaryJsonResponse(binaryJson);
-      }
+    final cachedBinaryJson = await cache.packageData(package).get();
+    if (cachedBinaryJson != null) {
+      return _binaryJsonResponse(cachedBinaryJson);
     }
 
     final packageVersions = await repository.versions(package).toList();
@@ -273,9 +273,7 @@ class ShelfPubServer {
       'latest': packageVersion2Json(latestVersion),
       'versions': packageVersions.map(packageVersion2Json).toList(),
     });
-    if (cache != null) {
-      await cache.setPackageData(package, binaryJson);
-    }
+    await cache.packageData(package).set(binaryJson);
     return _binaryJsonResponse(binaryJson);
   }
 
@@ -323,7 +321,7 @@ class ShelfPubServer {
       final vers = await repository.finishAsyncUpload(uri);
       if (cache != null) {
         _logger.info('Invalidating cache for package ${vers.packageName}.');
-        await cache.invalidatePackageData(vers.packageName);
+        await purgePackageCache(vers.packageName);
       }
       return _jsonResponse({
         'success': {
@@ -391,7 +389,7 @@ class ShelfPubServer {
       final version = await repository.upload(thePart);
       if (cache != null) {
         _logger.info('Invalidating cache for package ${version.packageName}.');
-        await cache.invalidatePackageData(version.packageName);
+        await purgePackageCache(version.packageName);
       }
       _logger.info('Redirecting to found url.');
       return shelf.Response.found(_finishUploadSimpleUrl(uri));
@@ -515,15 +513,6 @@ class ShelfPubServer {
       return false;
     }
   }
-}
-
-/// A cache for storing metadata for packages.
-abstract class PackageCache {
-  Future setPackageData(String package, List<int> data);
-
-  Future<List<int>> getPackageData(String package);
-
-  Future invalidatePackageData(String package);
 }
 
 String _getBoundary(String contentType) {

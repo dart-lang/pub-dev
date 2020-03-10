@@ -36,7 +36,7 @@ import 'model_properties.dart';
 import 'models.dart' as models;
 import 'name_tracker.dart';
 import 'pub_server/repository.dart' hide UnauthorizedAccessException;
-import 'pub_server/shelf_pubserver.dart' show PackageCache, ShelfPubServer;
+import 'pub_server/shelf_pubserver.dart' show ShelfPubServer;
 import 'upload_signer_service.dart';
 
 final Logger _logger = Logger('pub.cloud_repository');
@@ -67,10 +67,7 @@ class PackageBackend {
         repository = GCloudPackageRepository(db, storage);
 
   /// Get [ShelfPubServer] for handling the HTTP interface.
-  ShelfPubServer get pubServer => ShelfPubServer(
-        repository,
-        cache: _PackageCache(),
-      );
+  ShelfPubServer get pubServer => ShelfPubServer(repository);
 
   /// Retrieves packages ordered by their created date.
   Future<List<models.Package>> newestPackages({int offset, int limit}) {
@@ -361,21 +358,6 @@ Future<void> purgePackageCache(String package) async {
     cache.uiPackagePage(package, null).purge(),
     cache.uiIndexPage().purge(),
   ]);
-}
-
-/// Implementation of [PackageCache] using given cache and backend.
-class _PackageCache implements PackageCache {
-  @override
-  Future<List<int>> getPackageData(String package) =>
-      cache.packageData(package).get();
-
-  @override
-  Future<void> setPackageData(String package, List<int> data) =>
-      cache.packageData(package).set(data);
-
-  @override
-  Future<void> invalidatePackageData(String package) =>
-      purgePackageCache(package);
 }
 
 /// The status of an invite after being created or updated.
