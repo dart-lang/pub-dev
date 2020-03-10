@@ -53,22 +53,14 @@ button {
   cursor: pointer;
   border: none;
 
-  &.mdc-button--raised {
-    &.pub-button-danger {
-      background-color: $color-input-danger !important;
+  &.pub-button-danger {
+    // TODO: figure out why we can't use $color-input-danger here
+    --mdc-theme-primary: #ff4242;
+  }
 
-      &:hover {
-        background-color: darken($color-input-danger, 10%) !important;
-      }
-    }
-
-    &.pub-button-cancel {
-      background-color: $color-input-cancel !important;
-
-      &:hover {
-        background-color: darken($color-input-cancel, 10%) !important;
-      }
-    }
+  &.pub-button-cancel {
+    --mdc-theme-primary: #f0f0f0;
+    --mdc-theme-on-primary: #000000;
   }
 }
 
