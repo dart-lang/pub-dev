@@ -37,7 +37,7 @@ void main() {
         'packages': [
           {
             'package': 'stack_trace',
-            'score': closeTo(0.99, 0.01),
+            'score': 1.0,
           },
         ]
       });

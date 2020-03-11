@@ -28,7 +28,7 @@ void main() {
         'indexUpdated': isNotNull,
         'totalCount': 1,
         'packages': [
-          {'package': 'jsontool', 'score': closeTo(0.497, 0.001)},
+          {'package': 'jsontool', 'score': 1.0},
         ],
       });
     });
@@ -66,7 +66,7 @@ void main() {
         'indexUpdated': isNotNull,
         'totalCount': 3,
         'packages': [
-          {'package': 'jsontool', 'score': closeTo(0.886, 0.001)},
+          {'package': 'jsontool', 'score': 1.0},
           {'package': 'json2entity', 'score': closeTo(0.789, 0.001)},
           {'package': 'json_to_model', 'score': closeTo(0.736, 0.001)},
         ],

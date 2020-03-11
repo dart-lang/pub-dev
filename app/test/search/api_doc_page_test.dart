@@ -59,7 +59,7 @@ void main() {
         'packages': [
           {
             'package': 'foo',
-            'score': closeTo(0.993, 0.001), // finds package name
+            'score': 1.0, // finds package name
           },
           {
             'package': 'other_with_api',

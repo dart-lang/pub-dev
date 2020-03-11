@@ -57,7 +57,7 @@ void main() {
         'packages': [
           {
             'package': 'flutter_iap',
-            'score': closeTo(0.989, 0.001),
+            'score': 1.0,
           },
         ],
       });
@@ -72,7 +72,7 @@ void main() {
         'packages': [
           {
             'package': 'flutter_iap',
-            'score': closeTo(0.989, 0.001),
+            'score': 1.0,
           },
         ],
       });
