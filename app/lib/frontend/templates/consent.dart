@@ -31,12 +31,12 @@ String renderConsentPage({
 
 /// Renders the `views/consent/package_uploader_invite.mustache` template.
 String renderPackageUploaderInvite({
-  @required String invitingAccountEmail,
+  @required String invitingUserEmail,
   @required String packageName,
   @required String currentUserEmail,
 }) {
   return templateCache.renderTemplate('consent/package_uploader_invite', {
-    'initiating_account_email': invitingAccountEmail,
+    'inviting_user_email': invitingUserEmail,
     'package_name': packageName,
     'package_url': urls.pkgPageUrl(packageName),
     'current_user_email': currentUserEmail,
@@ -45,11 +45,11 @@ String renderPackageUploaderInvite({
 
 /// Renders the `views/consent/publisher_member_invite.mustache` template.
 String renderPublisherMemberInvite({
-  @required String invitingAccountEmail,
+  @required String invitingUserEmail,
   @required String publisherId,
 }) {
   return templateCache.renderTemplate('consent/publisher_member_invite', {
-    'initiating_account_email': invitingAccountEmail,
+    'inviting_user_email': invitingUserEmail,
     'publisher_id': publisherId,
     'publisher_url': urls.publisherUrl(publisherId),
   });
@@ -57,12 +57,12 @@ String renderPublisherMemberInvite({
 
 /// Renders the `views/consent/publisher_contact_invite.mustache` template.
 String renderPublisherContactInvite({
-  @required String invitingAccountEmail,
+  @required String invitingUserEmail,
   @required String publisherId,
   @required String contactEmail,
 }) {
   return templateCache.renderTemplate('consent/publisher_contact_invite', {
-    'initiating_account_email': invitingAccountEmail,
+    'inviting_user_email': invitingUserEmail,
     'publisher_id': publisherId,
     'publisher_url': urls.publisherUrl(publisherId),
     'contact_email': contactEmail,

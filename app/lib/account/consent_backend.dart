@@ -58,12 +58,12 @@ class ConsentBackend {
     InvalidInputException.checkUlid(consentId, 'consentId');
     final c = await _lookupAndCheck(consentId, user);
     final action = _actions[c.kind];
-    final invitingAccountEmail =
+    final invitingUserEmail =
         await accountBackend.getEmailOfUserId(c.fromUserId);
     return api.Consent(
-      titleText: action.renderInviteTitleText(invitingAccountEmail, c.args),
+      titleText: action.renderInviteTitleText(invitingUserEmail, c.args),
       descriptionHtml: action.renderInviteHtml(
-        invitingAccountEmail: invitingAccountEmail,
+        invitingUserEmail: invitingUserEmail,
         args: c.args,
         currentUserEmail: user.email,
       ),
@@ -289,11 +289,11 @@ abstract class ConsentAction {
       'You have a new invitation to confirm on $primaryHost';
 
   /// The body of the notification email sent.
-  String renderInviteText(String invitingAccountEmail, List<String> args);
+  String renderInviteText(String invitingUserEmail, List<String> args);
 
   /// The title of the invite for use in list of invites, and headline when
   /// viewing a specific invite.
-  String renderInviteTitleText(String invitingAccountEmail, List<String> args);
+  String renderInviteTitleText(String invitingUserEmail, List<String> args);
 
   /// The HTML-formatted invitation message.
   ///
@@ -301,7 +301,7 @@ abstract class ConsentAction {
   /// see the user, what gets shared, how will user figure in permission
   /// history, and what permissions will the user be granted.
   String renderInviteHtml({
-    @required String invitingAccountEmail,
+    @required String invitingUserEmail,
     @required List<String> args,
     @required String currentUserEmail,
   });
@@ -328,26 +328,26 @@ class _PackageUploaderAction extends ConsentAction {
   }
 
   @override
-  String renderInviteText(String invitingAccountEmail, List<String> args) {
+  String renderInviteText(String invitingUserEmail, List<String> args) {
     final packageName = args.single;
-    return '$invitingAccountEmail has invited you to be an uploader of the package $packageName.';
+    return '$invitingUserEmail has invited you to be an uploader of the package $packageName.';
   }
 
   @override
-  String renderInviteTitleText(String invitingAccountEmail, List<String> args) {
+  String renderInviteTitleText(String invitingUserEmail, List<String> args) {
     final packageName = args.single;
     return 'Invitation for package: $packageName';
   }
 
   @override
   String renderInviteHtml({
-    @required String invitingAccountEmail,
+    @required String invitingUserEmail,
     @required List<String> args,
     @required String currentUserEmail,
   }) {
     final packageName = args.single;
     return renderPackageUploaderInvite(
-      invitingAccountEmail: invitingAccountEmail,
+      invitingUserEmail: invitingUserEmail,
       packageName: packageName,
       currentUserEmail: currentUserEmail,
     );
@@ -376,29 +376,29 @@ class _PublisherContactAction extends ConsentAction {
       'You have a new request to confirm on $primaryHost';
 
   @override
-  String renderInviteText(String invitingAccountEmail, List<String> args) {
+  String renderInviteText(String invitingUserEmail, List<String> args) {
     final publisherId = args[0];
     final contactEmail = args[1];
-    return '$invitingAccountEmail has requested to use `$contactEmail` as the '
+    return '$invitingUserEmail has requested to use `$contactEmail` as the '
         'contact email of the verified publisher $publisherId.';
   }
 
   @override
-  String renderInviteTitleText(String invitingAccountEmail, List<String> args) {
+  String renderInviteTitleText(String invitingUserEmail, List<String> args) {
     final publisherId = args[0];
     return 'Request for publisher: $publisherId';
   }
 
   @override
   String renderInviteHtml({
-    @required String invitingAccountEmail,
+    @required String invitingUserEmail,
     @required List<String> args,
     @required String currentUserEmail,
   }) {
     final publisherId = args[0];
     final contactEmail = args[1];
     return renderPublisherContactInvite(
-      invitingAccountEmail: invitingAccountEmail,
+      invitingUserEmail: invitingUserEmail,
       publisherId: publisherId,
       contactEmail: contactEmail,
     );
@@ -422,26 +422,26 @@ class _PublisherMemberAction extends ConsentAction {
   }
 
   @override
-  String renderInviteText(String invitingAccountEmail, List<String> args) {
+  String renderInviteText(String invitingUserEmail, List<String> args) {
     final publisherId = args[0];
-    return '$invitingAccountEmail has invited you to be a member of the verified publisher $publisherId.';
+    return '$invitingUserEmail has invited you to be a member of the verified publisher $publisherId.';
   }
 
   @override
-  String renderInviteTitleText(String invitingAccountEmail, List<String> args) {
+  String renderInviteTitleText(String invitingUserEmail, List<String> args) {
     final publisherId = args[0];
     return 'Invitation for publisher: $publisherId';
   }
 
   @override
   String renderInviteHtml({
-    @required String invitingAccountEmail,
+    @required String invitingUserEmail,
     @required List<String> args,
     @required String currentUserEmail,
   }) {
     final publisherId = args[0];
     return renderPublisherMemberInvite(
-      invitingAccountEmail: invitingAccountEmail,
+      invitingUserEmail: invitingUserEmail,
       publisherId: publisherId,
     );
   }
