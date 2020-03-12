@@ -335,7 +335,7 @@ class _PackageUploaderAction extends ConsentAction {
   String renderInviteHtml(String activeAccountEmail, List<String> args) {
     final packageName = args.single;
     return renderPackageUploaderInvite(
-      activeAccountEmail: activeAccountEmail,
+      invitingAccountEmail: activeAccountEmail,
       packageName: packageName,
     );
   }
@@ -381,7 +381,7 @@ class _PublisherContactAction extends ConsentAction {
     final publisherId = args[0];
     final contactEmail = args[1];
     return renderPublisherContactInvite(
-      activeAccountEmail: activeAccountEmail,
+      invitingAccountEmail: activeAccountEmail,
       publisherId: publisherId,
       contactEmail: contactEmail,
     );
@@ -420,7 +420,7 @@ class _PublisherMemberAction extends ConsentAction {
   String renderInviteHtml(String activeAccountEmail, List<String> args) {
     final publisherId = args[0];
     return renderPublisherMemberInvite(
-      activeAccountEmail: activeAccountEmail,
+      invitingAccountEmail: activeAccountEmail,
       publisherId: publisherId,
     );
   }
