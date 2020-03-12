@@ -30,18 +30,13 @@ class PubApi {
   // ****
 
   /// Getting information about all versions of a package.
-  ///
-  /// GET /api/packages/<package-name>
-  /// https://github.com/dart-lang/pub_server/blob/master/lib/shelf_pubserver.dart#L28-L49
+  /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#list-all-versions-of-a-package
   @EndPoint.get('/api/packages/<package>')
   Future<Response> listPackageVersions(Request request, String package) async =>
       _pubServerHandler(_normalizeHost(request));
 
   /// Getting information about a specific (package, version) pair.
-  ///
-  /// GET /api/packages/<package-name>/versions/<version-name>
-  ///
-  /// https://github.com/dart-lang/pub_server/blob/master/lib/shelf_pubserver.dart#L51-L65
+  /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#deprecated-inspect-a-specific-version-of-a-package
   @EndPoint.get('/api/packages/<package>/versions/<version>')
   Future<Response> packageVersionInfo(
     Request request,
@@ -51,9 +46,7 @@ class PubApi {
       _pubServerHandler(_normalizeHost(request));
 
   /// Downloading package.
-  ///
-  /// GET /api/packages/<package-name>/versions/<version-name>.tar.gz
-  /// https://github.com/dart-lang/pub_server/blob/master/lib/shelf_pubserver.dart#L67-L75
+  /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#download-a-specific-version-of-a-package
   @EndPoint.get('/api/packages/<package>/versions/<version>.tar.gz')
   @EndPoint.get('/packages/<package>/versions/<version>.tar.gz')
   Future<Response> fetchPackage(
@@ -64,9 +57,30 @@ class PubApi {
       _pubServerHandler(_normalizeHost(request));
 
   /// Start async upload.
+  /// TODO: Link to the spec once it has the details updated:
+  /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#publishing-packages
   ///
-  /// GET /api/packages/versions/new
-  /// https://github.com/dart-lang/pub_server/blob/master/lib/shelf_pubserver.dart#L77-L107
+  ///     GET /api/packages/versions/new
+  ///     Headers:
+  ///       Authorization: Bearer <oauth2-token>
+  ///     [200 OK]
+  ///     {
+  ///       "fields" : {
+  ///           "a": "...",
+  ///           "b": "...",
+  ///           ...
+  ///       },
+  ///       "url" : "https://storage.googleapis.com"
+  ///     }
+  ///
+  ///     POST "https://storage.googleapis.com"
+  ///     Headers:
+  ///       a: ...
+  ///       b: ...
+  ///       ...
+  ///     <multipart> file package.tar.gz
+  ///     [302 Found / Temporary Redirect]
+  ///     Location: https://pub.dartlang.org/finishUploadUrl
   @EndPoint.get('/api/packages/versions/new')
   Future<Response> getPackageUploadUrl(Request request) async =>
       // Note: we do not _normalizeHost here as we wish to be redirected to
@@ -75,25 +89,42 @@ class PubApi {
       _pubServerHandler(request);
 
   /// Finish async upload.
+  /// TODO: Link to the spec once it has the details updated:
+  /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#publishing-packages
   ///
-  /// GET /api/packages/versions/newUploadFinish
-  /// https://github.com/dart-lang/pub_server/blob/master/lib/shelf_pubserver.dart#L77-L107
+  ///     GET /api/packages/versions/newUploadFinish
+  ///     [200 OK]
+  ///     {
+  ///       "success" : {
+  ///         "message": "Successfully uploaded package.",
+  ///       },
+  ///     }
   @EndPoint.get('/api/packages/versions/newUploadFinish')
   Future<Response> packageUploadCallback(Request request) async =>
       _pubServerHandler(_normalizeHost(request));
 
   /// Adding a new uploader
+  /// TODO: Link to the spec once it has the details updated:
+  /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#publishing-packages
   ///
-  /// POST /api/packages/<package-name>/uploaders
-  /// https://github.com/dart-lang/pub_server/blob/master/lib/shelf_pubserver.dart#L109-L116
+  ///     POST /api/packages/<package-name>/uploaders
+  ///     email=<uploader-email>
+  ///
+  ///     [200 OK] [Content-Type: application/json]
+  ///     or
+  ///     [400 Client Error]
   @EndPoint.post('/api/packages/<package>/uploaders')
   Future<Response> addUploader(Request request, String package) async =>
       _pubServerHandler(_normalizeHost(request));
 
   /// Removing an existing uploader.
+  /// TODO: Link to the spec once it has the details updated:
+  /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#publishing-packages
   ///
-  /// DELETE /api/packages/<package-name>/uploaders/<uploader-email>
-  /// https://github.com/dart-lang/pub_server/blob/master/lib/shelf_pubserver.dart#L118-L123
+  ///     DELETE /api/packages/<package-name>/uploaders/<uploader-email>
+  ///     [200 OK] [Content-Type: application/json]
+  ///     or
+  ///     [400 Client Error]
   @EndPoint.delete('/api/packages/<package>/uploaders/<email>')
   Future<Response> removeUploader(
     Request request,
