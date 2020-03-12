@@ -37,8 +37,13 @@ class SearchClient {
     final String serviceUrl = '$httpHostPort/search$serviceUrlParams';
 
     Future<PackageSearchResult> searchFn() async {
-      final response = await getUrlWithRetry(_httpClient, serviceUrl,
-          timeout: Duration(seconds: 5));
+      final response = await getUrlWithRetry(
+        _httpClient,
+        serviceUrl,
+        timeout: Duration(seconds: 5),
+        // limit to a single attempt, no need to retry after timeout
+        retryCount: 0,
+      );
       if (response.statusCode == searchIndexNotReadyCode) {
         // Search request before the service initialization completed.
         return null;
