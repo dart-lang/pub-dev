@@ -62,7 +62,11 @@ class ConsentBackend {
         await accountBackend.getEmailOfUserId(c.fromUserId);
     return api.Consent(
       titleText: action.renderInviteTitleText(invitingAccountEmail, c.args),
-      descriptionHtml: action.renderInviteHtml(invitingAccountEmail, c.args),
+      descriptionHtml: action.renderInviteHtml(
+        invitingAccountEmail: invitingAccountEmail,
+        args: c.args,
+        currentUserEmail: user.email,
+      ),
     );
   }
 
@@ -296,7 +300,11 @@ abstract class ConsentAction {
   /// This message should explain what accepting this invite implies. Who can
   /// see the user, what gets shared, how will user figure in permission
   /// history, and what permissions will the user be granted.
-  String renderInviteHtml(String invitingAccountEmail, List<String> args);
+  String renderInviteHtml({
+    @required String invitingAccountEmail,
+    @required List<String> args,
+    @required String currentUserEmail,
+  });
 }
 
 /// Callbacks for package uploader consents.
@@ -332,11 +340,16 @@ class _PackageUploaderAction extends ConsentAction {
   }
 
   @override
-  String renderInviteHtml(String invitingAccountEmail, List<String> args) {
+  String renderInviteHtml({
+    @required String invitingAccountEmail,
+    @required List<String> args,
+    @required String currentUserEmail,
+  }) {
     final packageName = args.single;
     return renderPackageUploaderInvite(
       invitingAccountEmail: invitingAccountEmail,
       packageName: packageName,
+      currentUserEmail: currentUserEmail,
     );
   }
 }
@@ -377,7 +390,11 @@ class _PublisherContactAction extends ConsentAction {
   }
 
   @override
-  String renderInviteHtml(String invitingAccountEmail, List<String> args) {
+  String renderInviteHtml({
+    @required String invitingAccountEmail,
+    @required List<String> args,
+    @required String currentUserEmail,
+  }) {
     final publisherId = args[0];
     final contactEmail = args[1];
     return renderPublisherContactInvite(
@@ -417,7 +434,11 @@ class _PublisherMemberAction extends ConsentAction {
   }
 
   @override
-  String renderInviteHtml(String invitingAccountEmail, List<String> args) {
+  String renderInviteHtml({
+    @required String invitingAccountEmail,
+    @required List<String> args,
+    @required String currentUserEmail,
+  }) {
     final publisherId = args[0];
     return renderPublisherMemberInvite(
       invitingAccountEmail: invitingAccountEmail,

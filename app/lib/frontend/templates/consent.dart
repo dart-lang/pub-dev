@@ -33,11 +33,13 @@ String renderConsentPage({
 String renderPackageUploaderInvite({
   @required String invitingAccountEmail,
   @required String packageName,
+  @required String currentUserEmail,
 }) {
   return templateCache.renderTemplate('consent/package_uploader_invite', {
     'initiating_account_email': invitingAccountEmail,
     'package_name': packageName,
     'package_url': urls.pkgPageUrl(packageName),
+    'current_user_email': currentUserEmail,
   });
 }
 
