@@ -117,7 +117,6 @@ String renderMiniList(List<PackageView> packages) {
         'tags_html': renderTags(
           package: package,
           searchQuery: null,
-          packageName: package.name,
         ),
       };
     }).toList(),
@@ -130,7 +129,6 @@ String renderTags({
   @required PackageView package,
   @required SearchQuery searchQuery,
   bool showTagBadges = false,
-  String packageName,
 }) {
   final tags = package.tags;
   final sdkTags = tags.where((s) => s.startsWith('sdk:')).toSet().toList();
@@ -172,7 +170,7 @@ String renderTags({
       'text': '[unidentified]',
       'title': 'Check the analysis tab for further details.',
       'has_href': true,
-      'href': urls.analysisTabUrl(packageName),
+      'href': urls.analysisTabUrl(package.name),
     });
   } else if (showTagBadges) {
     // We only display first-class platform/runtimes

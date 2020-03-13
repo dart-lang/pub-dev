@@ -72,7 +72,6 @@ String renderPackageList(
       'tags_html': renderTags(
         package: view,
         searchQuery: searchQuery,
-        packageName: view.name,
       ),
       'score_box_html': scoreBoxHtml,
       'has_api_pages': view.apiPages != null && view.apiPages.isNotEmpty,
