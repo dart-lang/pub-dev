@@ -19,10 +19,6 @@ import 'package.dart';
 part 'pubapi.g.dart';
 
 class PubApi {
-  final Handler _pubServerHandler;
-
-  PubApi() : _pubServerHandler = packageBackend.pubServer.requestHandler;
-
   Router get router => _$PubApiRouter(this);
 
   // ****
@@ -33,7 +29,8 @@ class PubApi {
   /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#list-all-versions-of-a-package
   @EndPoint.get('/api/packages/<package>')
   Future<Response> listPackageVersions(Request request, String package) async =>
-      _pubServerHandler(_normalizeHost(request));
+      await packageBackend.pubServer
+          .listVersions(_replaceHost(request.requestedUri), package);
 
   /// Getting information about a specific (package, version) pair.
   /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#deprecated-inspect-a-specific-version-of-a-package
@@ -43,7 +40,8 @@ class PubApi {
     String package,
     String version,
   ) async =>
-      _pubServerHandler(_normalizeHost(request));
+      await packageBackend.pubServer
+          .showVersion(_replaceHost(request.requestedUri), package, version);
 
   /// Downloading package.
   /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#download-a-specific-version-of-a-package
@@ -54,7 +52,8 @@ class PubApi {
     String package,
     String version,
   ) async =>
-      _pubServerHandler(_normalizeHost(request));
+      await packageBackend.pubServer
+          .download(_replaceHost(request.requestedUri), package, version);
 
   /// Start async upload.
   /// TODO: Link to the spec once it has the details updated:
@@ -86,7 +85,7 @@ class PubApi {
       // Note: we do not _normalizeHost here as we wish to be redirected to
       // packageUploadCallback on the same host. Otherwise, we can't do
       // integration tests before we switch traffic.
-      _pubServerHandler(request);
+      await packageBackend.pubServer.startUploadAsync(request.requestedUri);
 
   /// Finish async upload.
   /// TODO: Link to the spec once it has the details updated:
@@ -101,7 +100,8 @@ class PubApi {
   ///     }
   @EndPoint.get('/api/packages/versions/newUploadFinish')
   Future<Response> packageUploadCallback(Request request) async =>
-      _pubServerHandler(_normalizeHost(request));
+      await packageBackend.pubServer
+          .finishUploadAsync(_replaceHost(request.requestedUri));
 
   /// Adding a new uploader
   /// TODO: Link to the spec once it has the details updated:
@@ -114,8 +114,10 @@ class PubApi {
   ///     or
   ///     [400 Client Error]
   @EndPoint.post('/api/packages/<package>/uploaders')
-  Future<Response> addUploader(Request request, String package) async =>
-      _pubServerHandler(_normalizeHost(request));
+  Future<Response> addUploader(Request request, String package) async {
+    final body = await request.readAsString();
+    return await packageBackend.pubServer.addUploader(package, body);
+  }
 
   /// Removing an existing uploader.
   /// TODO: Link to the spec once it has the details updated:
@@ -131,7 +133,7 @@ class PubApi {
     String package,
     String email,
   ) async =>
-      _pubServerHandler(_normalizeHost(request));
+      await packageBackend.pubServer.removeUploader(package, email);
 
   // ****
   // **** Publisher API
@@ -394,21 +396,11 @@ class PubApi {
 /// A few API endpoint use the requested uri as a base to generate further URLs
 /// that we return in the response. Such generated URLs may end up in our cache,
 /// and it is critical that we only cache the values with the proper URLs.
-Request _normalizeHost(Request request) {
-  final requestedUri = activeConfiguration.primaryApiUri.replace(
-    path: request.requestedUri.path,
-    queryParameters: request.requestedUri.queryParameters.isEmpty
+Uri _replaceHost(Uri requestedUri) {
+  return activeConfiguration.primaryApiUri.replace(
+    path: requestedUri.path,
+    queryParameters: requestedUri.queryParameters.isEmpty
         ? null
-        : request.requestedUri.queryParametersAll,
-  );
-  return Request(
-    request.method,
-    requestedUri,
-    body: request.read(),
-    headers: request.headers,
-    context: request.context,
-    encoding: request.encoding,
-    handlerPath: request.handlerPath,
-    protocolVersion: request.protocolVersion,
+        : requestedUri.queryParametersAll,
   );
 }

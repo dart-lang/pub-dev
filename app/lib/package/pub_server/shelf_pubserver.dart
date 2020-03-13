@@ -24,111 +24,23 @@ final Logger _logger = Logger('pubserver.shelf_pubserver');
 /// It will use the pub [PackageRepository] given in the constructor to provide
 /// this HTTP endpoint.
 class ShelfPubServer {
-  static final RegExp _packageRegexp = RegExp(r'^/api/packages/([^/]+)$');
-
-  static final RegExp _versionRegexp =
-      RegExp(r'^/api/packages/([^/]+)/versions/([^/]+)$');
-
-  static final RegExp _addUploaderRegexp =
-      RegExp(r'^/api/packages/([^/]+)/uploaders$');
-
-  static final RegExp _removeUploaderRegexp =
-      RegExp(r'^/api/packages/([^/]+)/uploaders/([^/]+)$');
-
-  static final RegExp _downloadRegexp =
-      RegExp(r'^/packages/([^/]+)/versions/([^/]+)\.tar\.gz$');
-
   final PackageRepository repository;
 
   ShelfPubServer(this.repository);
 
   Future<shelf.Response> requestHandler(shelf.Request request) async {
     final path = request.requestedUri.path;
-    if (request.method == 'GET') {
-      final downloadMatch = _downloadRegexp.matchAsPrefix(path);
-      if (downloadMatch != null) {
-        final package = Uri.decodeComponent(downloadMatch.group(1));
-        final version = Uri.decodeComponent(downloadMatch.group(2));
-        if (!isSemanticVersion(version)) return _invalidVersion(version);
-        return _download(request.requestedUri, package, version);
-      }
-
-      final packageMatch = _packageRegexp.matchAsPrefix(path);
-      if (packageMatch != null) {
-        final package = Uri.decodeComponent(packageMatch.group(1));
-        return _listVersions(request.requestedUri, package);
-      }
-
-      final versionMatch = _versionRegexp.matchAsPrefix(path);
-      if (versionMatch != null) {
-        final package = Uri.decodeComponent(versionMatch.group(1));
-        final version = Uri.decodeComponent(versionMatch.group(2));
-        if (!isSemanticVersion(version)) return _invalidVersion(version);
-        return _showVersion(request.requestedUri, package, version);
-      }
-
-      if (path == '/api/packages/versions/new') {
-        if (!repository.supportsUpload) {
-          return shelf.Response.notFound(null);
-        }
-
-        if (repository.supportsAsyncUpload) {
-          return _startUploadAsync(request.requestedUri);
-        } else {
-          return _startUploadSimple(request.requestedUri);
-        }
-      }
-
-      if (path == '/api/packages/versions/newUploadFinish') {
-        if (!repository.supportsUpload) {
-          return shelf.Response.notFound(null);
-        }
-
-        if (repository.supportsAsyncUpload) {
-          return _finishUploadAsync(request.requestedUri);
-        } else {
-          return _finishUploadSimple(request.requestedUri);
-        }
-      }
-    } else if (request.method == 'POST') {
-      if (path == '/api/packages/versions/newUpload') {
-        if (!repository.supportsUpload) {
-          return shelf.Response.notFound(null);
-        }
-
-        return _uploadSimple(request.requestedUri,
-            request.headers['content-type'], request.read());
-      } else {
-        if (!repository.supportsUploaders) {
-          return shelf.Response.notFound(null);
-        }
-
-        final addUploaderMatch = _addUploaderRegexp.matchAsPrefix(path);
-        if (addUploaderMatch != null) {
-          final package = Uri.decodeComponent(addUploaderMatch.group(1));
-          return request.readAsString().then((String body) {
-            return _addUploader(package, body);
-          });
-        }
-      }
-    } else if (request.method == 'DELETE') {
-      if (!repository.supportsUploaders) {
-        return shelf.Response.notFound(null);
-      }
-
-      final removeUploaderMatch = _removeUploaderRegexp.matchAsPrefix(path);
-      if (removeUploaderMatch != null) {
-        final package = Uri.decodeComponent(removeUploaderMatch.group(1));
-        final user = Uri.decodeComponent(removeUploaderMatch.group(2));
-        return removeUploader(package, user);
-      }
+    if (request.method == 'POST' &&
+        path == '/api/packages/versions/newUpload') {
+      return _uploadSimple(request.requestedUri,
+          request.headers['content-type'], request.read());
     }
     return shelf.Response.notFound(null);
   }
 
   // Metadata handlers.
 
-  Future<shelf.Response> _listVersions(Uri uri, String package) async {
+  Future<shelf.Response> listVersions(Uri uri, String package) async {
     final cachedBinaryJson = await cache.packageData(package).get();
     if (cachedBinaryJson != null) {
       return _binaryJsonResponse(cachedBinaryJson);
@@ -170,8 +82,10 @@ class ShelfPubServer {
     return _binaryJsonResponse(binaryJson);
   }
 
-  Future<shelf.Response> _showVersion(
+  Future<shelf.Response> showVersion(
       Uri uri, String package, String version) async {
+    if (!isSemanticVersion(version)) return _invalidVersion(version);
+
     final ver = await repository.lookupVersion(package, version);
     if (ver == null) {
       return shelf.Response.notFound(null);
@@ -187,21 +101,17 @@ class ShelfPubServer {
 
   // Download handlers.
 
-  Future<shelf.Response> _download(
+  Future<shelf.Response> download(
       Uri uri, String package, String version) async {
-    if (repository.supportsDownloadUrl) {
-      final url = await repository.downloadUrl(package, version);
-      // This is a redirect to [url]
-      return shelf.Response.seeOther(url);
-    }
-
-    final stream = await repository.download(package, version);
-    return shelf.Response.ok(stream);
+    if (!isSemanticVersion(version)) return _invalidVersion(version);
+    final url = await repository.downloadUrl(package, version);
+    // This is a redirect to [url]
+    return shelf.Response.seeOther(url);
   }
 
   // Upload async handlers.
 
-  Future<shelf.Response> _startUploadAsync(Uri uri) async {
+  Future<shelf.Response> startUploadAsync(Uri uri) async {
     final info = await repository.startAsyncUpload(_finishUploadAsyncUrl(uri));
     return _jsonResponse({
       'url': '${info.uri}',
@@ -209,7 +119,7 @@ class ShelfPubServer {
     });
   }
 
-  Future<shelf.Response> _finishUploadAsync(Uri uri) async {
+  Future<shelf.Response> finishUploadAsync(Uri uri) async {
     try {
       final vers = await repository.finishAsyncUpload(uri);
       if (cache != null) {
@@ -239,14 +149,6 @@ class ShelfPubServer {
   }
 
   // Upload custom handlers.
-
-  shelf.Response _startUploadSimple(Uri url) {
-    _logger.info('Start simple upload.');
-    return _jsonResponse({
-      'url': '${_uploadSimpleUrl(url)}',
-      'fields': {},
-    });
-  }
 
   Future<shelf.Response> _uploadSimple(
       Uri uri, String contentType, Stream<List<int>> stream) async {
@@ -294,20 +196,9 @@ class ShelfPubServer {
     }
   }
 
-  shelf.Response _finishUploadSimple(Uri uri) {
-    final error = uri.queryParameters['error'];
-    if (error != null) {
-      _logger.info('Finish simple upload (error: $error).');
-      return _badRequest(error);
-    }
-    return _jsonResponse({
-      'success': {'message': 'Successfully uploaded package.'}
-    });
-  }
-
   // Uploader handlers.
 
-  Future<shelf.Response> _addUploader(String package, String body) async {
+  Future<shelf.Response> addUploader(String package, String body) async {
     final parts = body.split('=');
     if (parts.length == 2 && parts[0] == 'email' && parts[1].isNotEmpty) {
       try {
@@ -389,9 +280,6 @@ class ShelfPubServer {
       url.resolve('/api/packages/versions/newUploadFinish');
 
   // Upload custom urls.
-
-  Uri _uploadSimpleUrl(Uri url) =>
-      url.resolve('/api/packages/versions/newUpload');
 
   Uri _finishUploadSimpleUrl(Uri url, {String error}) {
     final postfix = error == null ? '' : '?error=${Uri.encodeComponent(error)}';
