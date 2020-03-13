@@ -17,8 +17,12 @@ const siteRoot = 'https://$primaryHost';
 const dartSiteRoot = 'https://dart.dev';
 const httpsApiDartDev = 'https://api.dart.dev/';
 
-String pkgPageUrl(String package,
-    {String version, bool includeHost = false, String fragment}) {
+String pkgPageUrl(
+  String package, {
+  String version,
+  bool includeHost = false,
+  String fragment,
+}) {
   String url = includeHost ? siteRoot : '';
   url += '/packages/$package';
   if (version != null) {
@@ -28,6 +32,32 @@ String pkgPageUrl(String package,
     url += '#$fragment';
   }
   return url;
+}
+
+String pkgReadmeUrl(String package, {String version}) =>
+    pkgPageUrl(package, version: version);
+
+String pkgChangelogUrl(String package, {String version}) =>
+    pkgPageUrl(package, version: version, fragment: '-changelog-tab-');
+
+String pkgExampleUrl(String package, {String version}) =>
+    pkgPageUrl(package, version: version, fragment: '-example-tab-');
+
+String pkgInstallUrl(String package, {String version}) =>
+    pkgPageUrl(package, version: version, fragment: '-installing-tab-');
+
+String pkgVersionsUrl(String package) => pkgPageUrl(package) + '/versions';
+
+String pkgScoreUrl(String package, {String version}) =>
+    pkgPageUrl(package, version: version, fragment: '-analysis-tab-');
+
+String pkgAdminUrl(String package) => pkgPageUrl(package) + '/admin';
+
+String analysisTabUrl(String package) {
+  final fragment = '-analysis-tab-';
+  return package == null
+      ? '#$fragment'
+      : pkgPageUrl(package, fragment: fragment);
 }
 
 String pkgDocUrl(
@@ -58,18 +88,6 @@ String pkgDocUrl(
     url = url.substring(0, url.length - 1);
   }
   return url;
-}
-
-String pkgAdminUrl(String package, {String version}) =>
-    pkgPageUrl(package, version: version) + '/admin';
-
-String pkgVersionsUrl(String package) => pkgPageUrl(package) + '/versions';
-
-String analysisTabUrl(String package) {
-  final String fragment = '-analysis-tab-';
-  return package == null
-      ? '#$fragment'
-      : pkgPageUrl(package, fragment: fragment);
 }
 
 String publisherUrl(String publisherId) => '/publishers/$publisherId';

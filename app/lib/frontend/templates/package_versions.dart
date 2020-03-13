@@ -71,26 +71,24 @@ String renderPkgVersionsPage(
   final tabs = <Tab>[];
   if (latestVersion.readme != null) {
     tabs.add(Tab.withLink(
-        id: 'readme',
-        title: 'Readme',
-        href: urls.pkgPageUrl(package.name, fragment: '-readme-tab-')));
+        id: 'readme', title: 'Readme', href: urls.pkgReadmeUrl(package.name)));
   }
   if (latestVersion.changelog != null) {
     tabs.add(Tab.withLink(
         id: 'changelog',
         title: 'Changelog',
-        href: urls.pkgPageUrl(package.name, fragment: '-changelog-tab-')));
+        href: urls.pkgChangelogUrl(package.name)));
   }
   if (latestVersion.example != null) {
     tabs.add(Tab.withLink(
         id: 'example',
         title: 'Example',
-        href: urls.pkgPageUrl(package.name, fragment: '-example-tab-')));
+        href: urls.pkgExampleUrl(package.name)));
   }
   tabs.add(Tab.withLink(
       id: 'installing',
       title: 'Installing',
-      href: urls.pkgPageUrl(package.name, fragment: '-installing-tab-')));
+      href: urls.pkgInstallUrl(package.name)));
   tabs.add(Tab.withContent(
     id: 'versions',
     title: 'Versions',
@@ -104,7 +102,7 @@ String renderPkgVersionsPage(
         isNewPackage: package.isNewPackage(),
         isTabHeader: true,
       ),
-      href: urls.pkgPageUrl(package.name, fragment: '-analysis-tab-')));
+      href: urls.pkgScoreUrl(package.name)));
   if (isAdmin) {
     tabs.add(Tab.withLink(
       id: 'admin',
