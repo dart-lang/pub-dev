@@ -28,7 +28,6 @@ String renderPkgVersionsPage(
     AnalysisView latestAnalysis,
     {@required bool isAdmin}) {
   assert(versions.length == versionDownloadUrls.length);
-  final card = latestAnalysis?.card;
 
   final stableVersionRows = [];
   final devVersionRows = [];
@@ -97,9 +96,10 @@ String renderPkgVersionsPage(
   tabs.add(Tab.withLink(
       id: 'analysis',
       titleHtml: renderScoreBox(
-        card?.overallScore,
-        isSkipped: card?.isSkipped ?? false,
-        isNewPackage: package.isNewPackage(),
+        PackageView.fromModel(
+            package: package,
+            version: latestVersion,
+            scoreCard: latestAnalysis?.card),
         isTabHeader: true,
       ),
       href: urls.pkgScoreUrl(package.name)));

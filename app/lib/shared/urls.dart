@@ -53,13 +53,6 @@ String pkgScoreUrl(String package, {String version}) =>
 
 String pkgAdminUrl(String package) => pkgPageUrl(package) + '/admin';
 
-String analysisTabUrl(String package) {
-  final fragment = '-analysis-tab-';
-  return package == null
-      ? '#$fragment'
-      : pkgPageUrl(package, fragment: fragment);
-}
-
 String pkgDocUrl(
   String package, {
   String version,

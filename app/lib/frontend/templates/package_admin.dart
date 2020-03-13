@@ -20,8 +20,6 @@ String renderPkgAdminPage(
   AnalysisView analysis,
   List<String> userPublishers,
 ) {
-  final card = analysis?.card;
-
   final tabs = <Tab>[];
   if (version.readme != null) {
     tabs.add(Tab.withLink(
@@ -57,9 +55,8 @@ String renderPkgAdminPage(
   tabs.add(Tab.withLink(
       id: 'analysis',
       titleHtml: renderScoreBox(
-        card?.overallScore,
-        isSkipped: card?.isSkipped ?? false,
-        isNewPackage: package.isNewPackage(),
+        PackageView.fromModel(
+            package: package, version: version, scoreCard: analysis?.card),
         isTabHeader: true,
       ),
       href: urls.pkgScoreUrl(package.name)));

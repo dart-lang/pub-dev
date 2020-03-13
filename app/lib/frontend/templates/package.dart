@@ -364,9 +364,10 @@ List<Tab> _pkgTabs(
   tabs.add(Tab.withContent(
     id: 'analysis',
     titleHtml: renderScoreBox(
-      card?.overallScore,
-      isSkipped: card?.isSkipped ?? false,
-      isNewPackage: package.isNewPackage(),
+      PackageView.fromModel(
+          package: package,
+          version: selectedVersion,
+          scoreCard: analysis?.card),
       isTabHeader: true,
     ),
     contentHtml: renderAnalysisTab(selectedVersion.package,
