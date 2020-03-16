@@ -161,7 +161,6 @@ class PackageBackend {
   /// Get a [Uri] which can be used to download a tarball of the pub package.
   Future<Uri> downloadUrl(String package, String version) async {
     version = canonicalizeVersion(version);
-    assert(repository.supportsDownloadUrl);
     return repository.downloadUrl(package, version);
   }
 
@@ -419,18 +418,12 @@ class GCloudPackageRepository extends PackageRepository {
   }
 
   @override
-  bool get supportsDownloadUrl => true;
-
-  @override
   Future<Uri> downloadUrl(String package, String version) async {
     version = canonicalizeVersion(version);
     return storage.downloadUrl(package, version);
   }
 
   // Upload support.
-
-  @override
-  bool get supportsUpload => true;
 
   @override
   Future<PackageVersion> upload(Stream<List<int>> data) async {
@@ -445,9 +438,6 @@ class GCloudPackageRepository extends PackageRepository {
     );
     return await finishAsyncUpload(finishUri);
   }
-
-  @override
-  bool get supportsAsyncUpload => true;
 
   @override
   Future<AsyncUploadInfo> startAsyncUpload(Uri redirectUrl) async {
@@ -672,9 +662,6 @@ class GCloudPackageRepository extends PackageRepository {
   }
 
   // Uploaders support.
-
-  @override
-  bool get supportsUploaders => true;
 
   @override
   Future<void> addUploader(String packageName, String uploaderEmail) async {

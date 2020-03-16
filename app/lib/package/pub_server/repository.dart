@@ -123,17 +123,11 @@ abstract class PackageRepository {
   /// Whether the [version] of [package] exists.
   Future<PackageVersion> lookupVersion(String package, String version);
 
-  /// Whether this package repository supports uploading packages.
-  bool get supportsUpload => false;
-
   /// Uploads a  pub package.
   ///
   /// [data] must be a stream of a valid .tar.gz file.
   Future<PackageVersion> upload(Stream<List<int>> data) async =>
       throw UnsupportedError('No upload support.');
-
-  /// Whether this package repository supports asynchronous uploads.
-  bool get supportsAsyncUpload => false;
 
   /// Starts a  upload.
   ///
@@ -153,15 +147,9 @@ abstract class PackageRepository {
   /// Downloads a pub package.
   Future<Stream<List<int>>> download(String package, String version);
 
-  /// Whether this package repository supports download URLs.
-  bool get supportsDownloadUrl => false;
-
   /// A permanent download URL to a package (if supported).
   Future<Uri> downloadUrl(String package, String version) async =>
       throw UnsupportedError('No download link support.');
-
-  /// Whether this package repository supports adding/removing users.
-  bool get supportsUploaders => false;
 
   /// Adds [userEmail] as an uploader to [package].
   Future addUploader(String package, String userEmail) async =>
