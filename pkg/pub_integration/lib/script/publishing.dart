@@ -82,6 +82,13 @@ class PublishingScript {
       await _verifyDummyPkg(matchInvited: true);
       await _pubToolClient.removeUploader(_dummyDir.path, invitedEmail);
       await _verifyDummyPkg(matchInvited: false);
+
+      // check other API endpoint for downloads
+      final archive = await _pubHttpClient.downloadPackageArchive(
+          '_dummy_pkg', _newDummyVersion);
+      if (archive.isEmpty) {
+        throw Exception('Expected a non-zero archive file.');
+      }
     } finally {
       await _temp.delete(recursive: true);
       _pubHttpClient.close();

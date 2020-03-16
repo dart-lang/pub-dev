@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:http/http.dart';
 import 'package:meta/meta.dart';
@@ -171,6 +172,17 @@ class PubHttpClient {
     final members = (map['members'] as List).cast<Map>();
     return Map.fromEntries(members.map((Map m) =>
         MapEntry<String, String>(m['email'] as String, m['role'] as String)));
+  }
+
+  /// Download the package archive through the /api/packages/<package>/versions/<version>.tar.gz endpoint.
+  Future<Uint8List> downloadPackageArchive(
+      String package, String version) async {
+    final rs = await _http
+        .get('$pubHostedUrl/api/packages/$package/versions/$version.tar.gz');
+    if (rs.statusCode != 200) {
+      throw Exception('Unexpected status code: ${rs.statusCode}');
+    }
+    return rs.bodyBytes;
   }
 
   /// Free resources.
