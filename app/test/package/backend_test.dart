@@ -553,8 +553,9 @@ void main() {
         });
 
         // Returns the error message as String or null if it succeeded.
-        Future<String> fn(String name) async {
-          final pubspecContent = generatePubspecYaml(name, '0.2.0');
+        Future<String> fn(String name, {String version}) async {
+          version ??= '0.2.0';
+          final pubspecContent = generatePubspecYaml(name, version);
           try {
             final tarball =
                 await packageArchiveBytes(pubspecContent: pubspecContent);
@@ -590,6 +591,14 @@ void main() {
 
           expect(await fn('mo_derate'),
               'Package name is too similar to another active or moderated package.');
+        });
+
+        testWithServices('version with filename pattern is rejected', () async {
+          await nameTracker.scanDatastore();
+          registerAuthenticatedUser(hansUser);
+
+          expect(await fn('some_new_package_name', version: '1.0.0-tar.gz'),
+              'The version string must not contain archive filename pattern: 1.0.0-tar.gz');
         });
 
         testWithServices('upload-too-big', () async {

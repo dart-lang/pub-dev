@@ -925,6 +925,10 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
     throw GenericProcessingException(
         'Unable to canonicalize the version: ${pubspec.version}');
   }
+  if (versionString.endsWith('tar.gz')) {
+    throw GenericProcessingException(
+        'The version string must not contain archive filename pattern: ${pubspec.version}');
+  }
 
   final key =
       models.QualifiedVersionKey(package: pubspec.name, version: versionString);
