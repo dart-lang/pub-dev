@@ -14,7 +14,6 @@ import '_cache.dart';
 import '_utils.dart';
 import 'detail_page.dart';
 import 'layout.dart';
-import 'misc.dart';
 import 'package.dart';
 
 /// Renders the `views/pkg/versions/index` template.
@@ -67,29 +66,17 @@ String renderPkgVersionsPage(
     }));
   }
 
-  final tabs = <Tab>[];
-  if (latestVersion.readme != null) {
-    tabs.add(readmeTabLink(package.name));
-  }
-  if (latestVersion.changelog != null) {
-    tabs.add(changelogTabLink(package.name));
-  }
-  if (latestVersion.example != null) {
-    tabs.add(exampleTabLink(package.name));
-  }
-  tabs.add(installingTabLink(package.name));
-  tabs.add(Tab.withContent(
-    id: 'versions',
-    title: 'Versions',
-    contentHtml: htmlBlocks.join(),
-  ));
-  tabs.add(scoreTabLink(PackageView.fromModel(
-      package: package,
-      version: latestVersion,
-      scoreCard: latestAnalysis?.card)));
-  if (isAdmin) {
-    tabs.add(adminTabLink(package.name));
-  }
+  final tabs = buildPackageTabs(
+    package: package,
+    version: latestVersion,
+    analysis: latestAnalysis,
+    isAdmin: isAdmin,
+    versionsTab: Tab.withContent(
+      id: 'versions',
+      title: 'Versions',
+      contentHtml: htmlBlocks.join(),
+    ),
+  );
 
   final content = renderDetailPage(
     headerHtml:

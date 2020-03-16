@@ -9,7 +9,6 @@ import '../../shared/urls.dart' as urls;
 import '_cache.dart';
 import 'detail_page.dart';
 import 'layout.dart';
-import 'misc.dart';
 import 'package.dart';
 
 /// Renders the `views/pkg/admin_page` template.
@@ -20,37 +19,29 @@ String renderPkgAdminPage(
   AnalysisView analysis,
   List<String> userPublishers,
 ) {
-  final tabs = <Tab>[];
-  if (version.readme != null) {
-    tabs.add(readmeTabLink(package.name));
-  }
-  if (version.changelog != null) {
-    tabs.add(changelogTabLink(package.name));
-  }
-  if (version.example != null) {
-    tabs.add(exampleTabLink(package.name));
-  }
-  tabs.add(installingTabLink(package.name));
-  tabs.add(versionsTabLink(package.name));
-  tabs.add(scoreTabLink(PackageView.fromModel(
-      package: package, version: version, scoreCard: analysis?.card)));
-  tabs.add(Tab.withContent(
-    id: 'admin',
-    title: 'Admin',
-    contentHtml: templateCache.renderTemplate('pkg/admin_page', {
-      'pkg_has_publisher': package.publisherId != null,
-      'publisher_id': package.publisherId,
-      'is_discontinued': package.isDiscontinued,
-      'user_has_publisher': userPublishers.isNotEmpty,
-      'user_publishers': userPublishers
-          .map((s) => {
-                'publisher_id': s,
-                'selected': s == package.publisherId,
-              })
-          .toList(),
-      'create_publisher_url': urls.createPublisherUrl(),
-    }),
-  ));
+  final tabs = buildPackageTabs(
+    package: package,
+    version: version,
+    analysis: analysis,
+    isAdmin: true,
+    adminTab: Tab.withContent(
+      id: 'admin',
+      title: 'Admin',
+      contentHtml: templateCache.renderTemplate('pkg/admin_page', {
+        'pkg_has_publisher': package.publisherId != null,
+        'publisher_id': package.publisherId,
+        'is_discontinued': package.isDiscontinued,
+        'user_has_publisher': userPublishers.isNotEmpty,
+        'user_publishers': userPublishers
+            .map((s) => {
+                  'publisher_id': s,
+                  'selected': s == package.publisherId,
+                })
+            .toList(),
+        'create_publisher_url': urls.createPublisherUrl(),
+      }),
+    ),
+  );
 
   final content = renderDetailPage(
     headerHtml: renderPkgHeader(package, version, false, analysis),
