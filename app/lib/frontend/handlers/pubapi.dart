@@ -45,7 +45,7 @@ class PubApi {
 
   /// Downloading package.
   /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#download-a-specific-version-of-a-package
-  @EndPoint.get('/api/packages/<package>/versions/<version>.tar.gz')
+  @EndPoint.get('/api/packages/<package>/versions/<version>/archive.tar.gz')
   @EndPoint.get('/packages/<package>/versions/<version>.tar.gz')
   Future<Response> fetchPackage(
     Request request,
