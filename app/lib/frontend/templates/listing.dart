@@ -38,7 +38,6 @@ String renderPackageList(
   final packagesJson = [];
   for (int i = 0; i < packages.length; i++) {
     final view = packages[i];
-    final overallScore = view.overallScore;
     String externalType;
     bool isSdk = false;
     if (view.isExternal && view.url.startsWith(urls.httpsApiDartDev)) {
@@ -49,10 +48,7 @@ String renderPackageList(
     if (isSdk) {
       scoreBoxHtml = renderSdkScoreBox();
     } else if (!view.isExternal) {
-      scoreBoxHtml = renderScoreBox(overallScore,
-          isSkipped: view.isSkipped,
-          isNewPackage: view.isNewPackage,
-          package: view.name);
+      scoreBoxHtml = renderScoreBox(view);
     }
     packagesJson.add({
       'url': view.url ?? urls.pkgPageUrl(view.name),
@@ -72,7 +68,6 @@ String renderPackageList(
       'tags_html': renderTags(
         package: view,
         searchQuery: searchQuery,
-        packageName: view.name,
       ),
       'score_box_html': scoreBoxHtml,
       'has_api_pages': view.apiPages != null && view.apiPages.isNotEmpty,

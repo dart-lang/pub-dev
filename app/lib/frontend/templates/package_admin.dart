@@ -20,34 +20,32 @@ String renderPkgAdminPage(
   AnalysisView analysis,
   List<String> userPublishers,
 ) {
-  final card = analysis?.card;
-
   final tabs = <Tab>[];
   if (version.readme != null) {
     tabs.add(Tab.withLink(
       id: 'readme',
       title: 'Readme',
-      href: urls.pkgPageUrl(package.name, fragment: '-readme-tab-'),
+      href: urls.pkgReadmeUrl(package.name),
     ));
   }
   if (version.changelog != null) {
     tabs.add(Tab.withLink(
       id: 'changelog',
       title: 'Changelog',
-      href: urls.pkgPageUrl(package.name, fragment: '-changelog-tab-'),
+      href: urls.pkgChangelogUrl(package.name),
     ));
   }
   if (version.example != null) {
     tabs.add(Tab.withLink(
       id: 'example',
       title: 'Example',
-      href: urls.pkgPageUrl(package.name, fragment: '-example-tab-'),
+      href: urls.pkgExampleUrl(package.name),
     ));
   }
   tabs.add(Tab.withLink(
     id: 'installing',
     title: 'Installing',
-    href: urls.pkgPageUrl(package.name, fragment: '-installing-tab-'),
+    href: urls.pkgInstallUrl(package.name),
   ));
   tabs.add(Tab.withLink(
     id: 'versions',
@@ -57,12 +55,11 @@ String renderPkgAdminPage(
   tabs.add(Tab.withLink(
       id: 'analysis',
       titleHtml: renderScoreBox(
-        card?.overallScore,
-        isSkipped: card?.isSkipped ?? false,
-        isNewPackage: package.isNewPackage(),
+        PackageView.fromModel(
+            package: package, version: version, scoreCard: analysis?.card),
         isTabHeader: true,
       ),
-      href: urls.pkgPageUrl(package.name, fragment: '-analysis-tab-')));
+      href: urls.pkgScoreUrl(package.name)));
   tabs.add(Tab.withContent(
     id: 'admin',
     title: 'Admin',

@@ -45,7 +45,7 @@ String renderAnalysisTab(String package, String sdkConstraint,
     'show_outdated': card.isObsolete,
     'show_legacy': card.isLegacy,
     'show_analysis': !card.isSkipped,
-    'analysis_tab_url': urls.analysisTabUrl(package),
+    'analysis_tab_url': urls.pkgScoreUrl(package),
     'date_completed': analysis.timestamp == null
         ? null
         : shortDateFormat.format(analysis.timestamp),

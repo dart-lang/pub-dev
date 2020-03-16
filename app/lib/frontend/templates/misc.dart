@@ -117,7 +117,6 @@ String renderMiniList(List<PackageView> packages) {
         'tags_html': renderTags(
           package: package,
           searchQuery: null,
-          packageName: package.name,
         ),
       };
     }).toList(),
@@ -130,7 +129,6 @@ String renderTags({
   @required PackageView package,
   @required SearchQuery searchQuery,
   bool showTagBadges = false,
-  String packageName,
 }) {
   final tags = package.tags;
   final sdkTags = tags.where((s) => s.startsWith('sdk:')).toSet().toList();
@@ -172,7 +170,7 @@ String renderTags({
       'text': '[unidentified]',
       'title': 'Check the analysis tab for further details.',
       'has_href': true,
-      'href': urls.analysisTabUrl(packageName),
+      'href': urls.pkgScoreUrl(package.name),
     });
   } else if (showTagBadges) {
     // We only display first-class platform/runtimes
@@ -330,15 +328,13 @@ String renderSdkScoreBox() {
 
 /// Renders the circle with the overall score.
 String renderScoreBox(
-  double overallScore, {
-  @required bool isSkipped,
-  bool isNewPackage,
-  String package,
+  PackageView view, {
   bool isTabHeader = false,
 }) {
+  final overallScore = view.overallScore;
   final String formattedScore = formatScore(overallScore);
   String title;
-  if (!isSkipped && overallScore == null) {
+  if (!view.isSkipped && overallScore == null) {
     title = 'Awaiting analysis to complete.';
   } else {
     title = 'Analysis and more details.';
@@ -352,22 +348,22 @@ String renderScoreBox(
       label: formattedScore,
       percent: overallScore == null ? 0 : (100 * overallScore).round(),
       title: title,
-      link: package == null ? null : urls.analysisTabUrl(package),
+      link: urls.pkgScoreUrl(view.name),
     );
   }
 
   // TODO(3246): Remove the rest of the method after migrating to the new UI.
   final String scoreClass = _classifyScore(overallScore);
   final String escapedTitle = htmlAttrEscape.convert(title);
-  final newIndicator = (isNewPackage ?? false)
+  final newIndicator = view.isNewPackage
       ? '<span class="new" title="Created in the last 30 days">new</span>'
       : '';
   final String boxHtml = '<div class="score-box">'
       '$newIndicator'
       '<span class="number -$scoreClass" title="$escapedTitle">$formattedScore</span>'
       '</div>';
-  if (package != null) {
-    return '<a href="${urls.analysisTabUrl(package)}">$boxHtml</a>';
+  if (!isTabHeader) {
+    return '<a href="${urls.pkgScoreUrl(view.name)}">$boxHtml</a>';
   } else {
     return boxHtml;
   }

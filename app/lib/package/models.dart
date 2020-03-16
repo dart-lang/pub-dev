@@ -437,7 +437,7 @@ class PackageView extends Object with FlagMixin {
     this.isAwaiting = false,
     this.overallScore,
     List<String> tags,
-    this.isNewPackage,
+    this.isNewPackage = false,
     this.apiPages,
   }) : tags = tags ?? <String>[];
 
@@ -479,7 +479,7 @@ class PackageView extends Object with FlagMixin {
         ...(version?.getTags() ?? <String>[]),
         ...(scoreCard?.derivedTags ?? <String>[]),
       ],
-      isNewPackage: package?.isNewPackage(),
+      isNewPackage: package?.isNewPackage() ?? false,
       apiPages: apiPages,
     );
   }
