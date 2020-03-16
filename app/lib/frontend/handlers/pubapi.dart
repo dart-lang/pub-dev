@@ -39,6 +39,8 @@ class PubApi {
   ///       because `package:shelf_router` will use the first matching
   ///       expression to evaluate the request, and this is the narrower one.
   ///       https://github.com/dart-lang/pub-dev/issues/3427
+  ///
+  ///       The workaround still affects versions that are suffixed as `-XXX.tar.gz`
   @EndPoint.get('/api/packages/<package>/versions/<version>.tar.gz')
   @EndPoint.get('/packages/<package>/versions/<version>.tar.gz')
   Future<Response> fetchPackage(
@@ -56,6 +58,8 @@ class PubApi {
   ///       because `package:shelf_router` will use the first matching
   ///       expression to evaluate the request, and this is the broader one.
   ///       https://github.com/dart-lang/pub-dev/issues/3427
+  ///
+  ///       The workaround still affects versions that are suffixed as `-XXX.tar.gz`
   @EndPoint.get('/api/packages/<package>/versions/<version>')
   Future<Response> packageVersionInfo(
     Request request,
