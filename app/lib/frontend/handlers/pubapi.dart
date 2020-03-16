@@ -35,9 +35,10 @@ class PubApi {
   /// Downloading package.
   /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#download-a-specific-version-of-a-package
   ///
-  /// NOTE: The endpoint definition must come before [packageVersionInfo],
+  /// HACK: The endpoint definition must come before [packageVersionInfo],
   ///       because `package:shelf_router` will use the first matching
   ///       expression to evaluate the request, and this is the narrower one.
+  ///       https://github.com/dart-lang/pub-dev/issues/3427
   @EndPoint.get('/api/packages/<package>/versions/<version>.tar.gz')
   @EndPoint.get('/packages/<package>/versions/<version>.tar.gz')
   Future<Response> fetchPackage(
@@ -51,9 +52,10 @@ class PubApi {
   /// Getting information about a specific (package, version) pair.
   /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#deprecated-inspect-a-specific-version-of-a-package
   ///
-  /// NOTE: The endpoint definition must come after [fetchPackage],
+  /// HACK: The endpoint definition must come after [fetchPackage],
   ///       because `package:shelf_router` will use the first matching
   ///       expression to evaluate the request, and this is the broader one.
+  ///       https://github.com/dart-lang/pub-dev/issues/3427
   @EndPoint.get('/api/packages/<package>/versions/<version>')
   Future<Response> packageVersionInfo(
     Request request,
