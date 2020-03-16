@@ -18,6 +18,7 @@ import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
 
 import '../templates/admin.dart';
+import '../templates/consent.dart';
 import '../templates/listing.dart';
 import '../templates/misc.dart' show renderUnauthenticatedPage;
 

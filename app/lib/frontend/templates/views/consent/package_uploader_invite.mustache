@@ -1,0 +1,17 @@
+{{! Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+<p>
+  <code>{{ inviting_user_email }}</code>
+  has invited you to be an uploader of the package
+  <a href="{{& package_url }}" target="_blank" rel="noreferrer"><code>{{ package_name }}</code></a>.
+</p>
+<p>
+  Accepting a package uploader invitation means:
+</p>
+<ul>
+  <li>your email (<code>{{ current_user_email }}</code>) will be publicly listed on the <a href="{{& package_url }}" target="_blank" rel="noreferrer">package page</a>,</li>
+  <li>you will be able to publish new versions of package <code>{{ package_name }}</code>, and,</li>
+  <li>perform administrative actions for package <code>{{ package_name }}</code>.</li>
+</ul>

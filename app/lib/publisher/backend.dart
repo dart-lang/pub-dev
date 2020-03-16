@@ -250,11 +250,9 @@ class PublisherBackend {
         }
 
         if (!contactEmailMatchedAdmin) {
-          await consentBackend.invite(
-            userId: null,
-            email: update.contactEmail,
-            kind: ConsentKind.publisherContact,
-            args: [publisherId, update.contactEmail],
+          await consentBackend.invitePublisherContact(
+            publisherId: publisherId,
+            contactEmail: update.contactEmail,
           );
         }
       }
@@ -321,11 +319,10 @@ class PublisherBackend {
       ),
     ]);
 
-    return await consentBackend.invite(
-      userId: invitedUserId,
-      email: invitedUserEmail,
-      kind: ConsentKind.publisherMember,
-      args: [p.publisherId],
+    return await consentBackend.invitePublisherMember(
+      publisherId: p.publisherId,
+      invitedUserId: invitedUserId,
+      invitedUserEmail: invitedUserEmail,
     );
   }
 

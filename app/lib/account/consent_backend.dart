@@ -10,6 +10,7 @@ import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
 import '../frontend/email_sender.dart';
+import '../frontend/templates/consent.dart';
 import '../package/backend.dart';
 import '../publisher/backend.dart';
 import '../shared/email.dart' show createInviteEmail;
@@ -57,11 +58,15 @@ class ConsentBackend {
     InvalidInputException.checkUlid(consentId, 'consentId');
     final c = await _lookupAndCheck(consentId, user);
     final action = _actions[c.kind];
-    final activeAccountEmail =
+    final invitingUserEmail =
         await accountBackend.getEmailOfUserId(c.fromUserId);
     return api.Consent(
-      titleText: action.renderInviteTitleText(activeAccountEmail, c.args),
-      descriptionHtml: action.renderInviteHtml(activeAccountEmail, c.args),
+      titleText: action.renderInviteTitleText(invitingUserEmail, c.args),
+      descriptionHtml: action.renderInviteHtml(
+        invitingUserEmail: invitingUserEmail,
+        args: c.args,
+        currentUserEmail: user.email,
+      ),
     );
   }
 
@@ -91,7 +96,7 @@ class ConsentBackend {
   /// Create a new invitation, or
   /// - if it already exists, re-send the notification, or
   /// - if it was sent recently, do nothing.
-  Future<api.InviteStatus> invite({
+  Future<api.InviteStatus> _invite({
     @required String userId,
     @required String email,
     @required String kind,
@@ -133,6 +138,47 @@ class ConsentBackend {
       await _db.commit(inserts: [consent]);
       return await _sendNotification(activeUser.email, consent);
     });
+  }
+
+  /// Invites a new uploader to the package.
+  Future<api.InviteStatus> invitePackageUploader({
+    @required String packageName,
+    @required String uploaderUserId,
+    @required String uploaderEmail,
+  }) async {
+    return await _invite(
+      userId: uploaderUserId,
+      email: uploaderEmail,
+      kind: ConsentKind.packageUploader,
+      args: [packageName],
+    );
+  }
+
+  /// Invites a new contact email for the publisher.
+  Future<api.InviteStatus> invitePublisherContact({
+    @required String publisherId,
+    @required String contactEmail,
+  }) async {
+    return await _invite(
+      userId: null,
+      email: contactEmail,
+      kind: ConsentKind.publisherContact,
+      args: [publisherId, contactEmail],
+    );
+  }
+
+  /// Invites a new member for the publisher.
+  Future<api.InviteStatus> invitePublisherMember({
+    @required String publisherId,
+    @required String invitedUserId,
+    @required String invitedUserEmail,
+  }) async {
+    return await _invite(
+      userId: invitedUserId,
+      email: invitedUserEmail,
+      kind: ConsentKind.publisherMember,
+      args: [publisherId],
+    );
   }
 
   Future<api.InviteStatus> _sendNotification(
@@ -243,18 +289,22 @@ abstract class ConsentAction {
       'You have a new invitation to confirm on $primaryHost';
 
   /// The body of the notification email sent.
-  String renderInviteText(String activeAccountEmail, List<String> args);
+  String renderInviteText(String invitingUserEmail, List<String> args);
 
   /// The title of the invite for use in list of invites, and headline when
   /// viewing a specific invite.
-  String renderInviteTitleText(String activeAccountEmail, List<String> args);
+  String renderInviteTitleText(String invitingUserEmail, List<String> args);
 
   /// The HTML-formatted invitation message.
   ///
   /// This message should explain what accepting this invite implies. Who can
   /// see the user, what gets shared, how will user figure in permission
   /// history, and what permissions will the user be granted.
-  String renderInviteHtml(String activeAccountEmail, List<String> args);
+  String renderInviteHtml({
+    @required String invitingUserEmail,
+    @required List<String> args,
+    @required String currentUserEmail,
+  });
 }
 
 /// Callbacks for package uploader consents.
@@ -278,24 +328,29 @@ class _PackageUploaderAction extends ConsentAction {
   }
 
   @override
-  String renderInviteText(String activeAccountEmail, List<String> args) {
+  String renderInviteText(String invitingUserEmail, List<String> args) {
     final packageName = args.single;
-    return '$activeAccountEmail has invited you to be an uploader of the package $packageName.';
+    return '$invitingUserEmail has invited you to be an uploader of the package $packageName.';
   }
 
   @override
-  String renderInviteTitleText(String activeAccountEmail, List<String> args) {
+  String renderInviteTitleText(String invitingUserEmail, List<String> args) {
     final packageName = args.single;
     return 'Invitation for package: $packageName';
   }
 
   @override
-  String renderInviteHtml(String activeAccountEmail, List<String> args) {
+  String renderInviteHtml({
+    @required String invitingUserEmail,
+    @required List<String> args,
+    @required String currentUserEmail,
+  }) {
     final packageName = args.single;
-    final url = pkgPageUrl(packageName);
-    return '<code>$activeAccountEmail</code> has invited you to be an uploader of '
-        'the package '
-        '<a href="$url" target="_blank" rel="noreferrer"><code>$packageName</code></a>.';
+    return renderPackageUploaderInvite(
+      invitingUserEmail: invitingUserEmail,
+      packageName: packageName,
+      currentUserEmail: currentUserEmail,
+    );
   }
 }
 
@@ -321,28 +376,32 @@ class _PublisherContactAction extends ConsentAction {
       'You have a new request to confirm on $primaryHost';
 
   @override
-  String renderInviteText(String activeAccountEmail, List<String> args) {
+  String renderInviteText(String invitingUserEmail, List<String> args) {
     final publisherId = args[0];
     final contactEmail = args[1];
-    return '$activeAccountEmail has requested to use `$contactEmail` as the '
+    return '$invitingUserEmail has requested to use `$contactEmail` as the '
         'contact email of the verified publisher $publisherId.';
   }
 
   @override
-  String renderInviteTitleText(String activeAccountEmail, List<String> args) {
+  String renderInviteTitleText(String invitingUserEmail, List<String> args) {
     final publisherId = args[0];
     return 'Request for publisher: $publisherId';
   }
 
   @override
-  String renderInviteHtml(String activeAccountEmail, List<String> args) {
+  String renderInviteHtml({
+    @required String invitingUserEmail,
+    @required List<String> args,
+    @required String currentUserEmail,
+  }) {
     final publisherId = args[0];
     final contactEmail = args[1];
-    final url = publisherUrl(publisherId);
-    return '<code>$activeAccountEmail</code> has requested to use '
-        '<code>$contactEmail</code> as the contact email of '
-        'the <a href="https://dart.dev/tools/pub/verified-publishers" target="_blank" rel="noreferrer">verified publisher</a> '
-        '<a href="$url" target="_blank" rel="noreferrer"><code>$publisherId</code></a>.';
+    return renderPublisherContactInvite(
+      invitingUserEmail: invitingUserEmail,
+      publisherId: publisherId,
+      contactEmail: contactEmail,
+    );
   }
 }
 
@@ -363,23 +422,27 @@ class _PublisherMemberAction extends ConsentAction {
   }
 
   @override
-  String renderInviteText(String activeAccountEmail, List<String> args) {
+  String renderInviteText(String invitingUserEmail, List<String> args) {
     final publisherId = args[0];
-    return '$activeAccountEmail has invited you to be a member of the verified publisher $publisherId.';
+    return '$invitingUserEmail has invited you to be a member of the verified publisher $publisherId.';
   }
 
   @override
-  String renderInviteTitleText(String activeAccountEmail, List<String> args) {
+  String renderInviteTitleText(String invitingUserEmail, List<String> args) {
     final publisherId = args[0];
     return 'Invitation for publisher: $publisherId';
   }
 
   @override
-  String renderInviteHtml(String activeAccountEmail, List<String> args) {
+  String renderInviteHtml({
+    @required String invitingUserEmail,
+    @required List<String> args,
+    @required String currentUserEmail,
+  }) {
     final publisherId = args[0];
-    final url = publisherUrl(publisherId);
-    return '<code>$activeAccountEmail</code> has invited you to be a member of '
-        'the <a href="https://dart.dev/tools/pub/verified-publishers" target="_blank" rel="noreferrer">verified publisher</a> '
-        '<a href="$url" target="_blank" rel="noreferrer"><code>$publisherId</code></a>.';
+    return renderPublisherMemberInvite(
+      invitingUserEmail: invitingUserEmail,
+      publisherId: publisherId,
+    );
   }
 }
