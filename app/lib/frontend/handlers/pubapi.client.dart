@@ -33,17 +33,17 @@ class PubApiClient {
     );
   }
 
-  Future<List<int>> packageVersionInfo(String package, String version) async {
-    return await _client.requestBytes(
-      verb: 'get',
-      path: '/api/packages/$package/versions/$version',
-    );
-  }
-
   Future<List<int>> fetchPackage(String package, String version) async {
     return await _client.requestBytes(
       verb: 'get',
       path: '/api/packages/$package/versions/$version.tar.gz',
+    );
+  }
+
+  Future<List<int>> packageVersionInfo(String package, String version) async {
+    return await _client.requestBytes(
+      verb: 'get',
+      path: '/api/packages/$package/versions/$version',
     );
   }
 
