@@ -22,44 +22,18 @@ String renderPkgAdminPage(
 ) {
   final tabs = <Tab>[];
   if (version.readme != null) {
-    tabs.add(Tab.withLink(
-      id: 'readme',
-      title: 'Readme',
-      href: urls.pkgReadmeUrl(package.name),
-    ));
+    tabs.add(readmeTabLink(package.name));
   }
   if (version.changelog != null) {
-    tabs.add(Tab.withLink(
-      id: 'changelog',
-      title: 'Changelog',
-      href: urls.pkgChangelogUrl(package.name),
-    ));
+    tabs.add(changelogTabLink(package.name));
   }
   if (version.example != null) {
-    tabs.add(Tab.withLink(
-      id: 'example',
-      title: 'Example',
-      href: urls.pkgExampleUrl(package.name),
-    ));
+    tabs.add(exampleTabLink(package.name));
   }
-  tabs.add(Tab.withLink(
-    id: 'installing',
-    title: 'Installing',
-    href: urls.pkgInstallUrl(package.name),
-  ));
-  tabs.add(Tab.withLink(
-    id: 'versions',
-    title: 'Versions',
-    href: urls.pkgVersionsUrl(package.name),
-  ));
-  tabs.add(Tab.withLink(
-      id: 'analysis',
-      titleHtml: renderScoreBox(
-        PackageView.fromModel(
-            package: package, version: version, scoreCard: analysis?.card),
-        isTabHeader: true,
-      ),
-      href: urls.pkgScoreUrl(package.name)));
+  tabs.add(installingTabLink(package.name));
+  tabs.add(versionsTabLink(package.name));
+  tabs.add(scoreTabLink(PackageView.fromModel(
+      package: package, version: version, scoreCard: analysis?.card)));
   tabs.add(Tab.withContent(
     id: 'admin',
     title: 'Admin',

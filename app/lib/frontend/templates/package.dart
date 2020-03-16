@@ -356,11 +356,7 @@ List<Tab> _pkgTabs(
       id: 'installing',
       title: 'Installing',
       contentHtml: _renderInstallTab(selectedVersion, analysis?.derivedTags)));
-  tabs.add(Tab.withLink(
-    id: 'versions',
-    title: 'Versions',
-    href: urls.pkgVersionsUrl(selectedVersion.package),
-  ));
+  tabs.add(versionsTabLink(package.name));
   tabs.add(Tab.withContent(
     id: 'analysis',
     titleHtml: renderScoreBox(
@@ -374,11 +370,7 @@ List<Tab> _pkgTabs(
         selectedVersion.pubspec.sdkConstraint, card, analysis),
   ));
   if (isAdmin) {
-    tabs.add(Tab.withLink(
-      id: 'admin',
-      title: 'Admin',
-      href: urls.pkgAdminUrl(selectedVersion.package),
-    ));
+    tabs.add(adminTabLink(package.name));
   }
   return tabs;
 }
@@ -437,3 +429,52 @@ String renderPackageSchemaOrgHtml(
   // TODO: add http://schema.org/codeRepository for github and gitlab links
   return '<script type="application/ld+json">\n${json.encode(map)}\n</script>\n';
 }
+
+/// Creates a [Tab] with link to the package's readme tab.
+Tab readmeTabLink(String package) => Tab.withLink(
+      id: 'readme',
+      title: 'Readme',
+      href: urls.pkgReadmeUrl(package),
+    );
+
+/// Creates a [Tab] with link to the package's changelog tab.
+Tab changelogTabLink(String package) => Tab.withLink(
+      id: 'changelog',
+      title: 'Changelog',
+      href: urls.pkgChangelogUrl(package),
+    );
+
+/// Creates a [Tab] with link to the package's example tab.
+Tab exampleTabLink(String package) => Tab.withLink(
+      id: 'example',
+      title: 'Example',
+      href: urls.pkgExampleUrl(package),
+    );
+
+/// Creates a [Tab] with link to the package's installing tab.
+Tab installingTabLink(String package) => Tab.withLink(
+      id: 'installing',
+      title: 'Installing',
+      href: urls.pkgInstallUrl(package),
+    );
+
+/// Creates a [Tab] with link to the package's versions tab.
+Tab versionsTabLink(String package) => Tab.withLink(
+      id: 'versions',
+      title: 'Versions',
+      href: urls.pkgVersionsUrl(package),
+    );
+
+/// Creates a [Tab] with link to the package's score tab.
+Tab scoreTabLink(PackageView view) => Tab.withLink(
+      id: 'analysis',
+      titleHtml: renderScoreBox(view, isTabHeader: true),
+      href: urls.pkgScoreUrl(view.name),
+    );
+
+/// Creates a [Tab] with link to the package's admin tab.
+Tab adminTabLink(String package) => Tab.withLink(
+      id: 'admin',
+      title: 'Admin',
+      href: urls.pkgAdminUrl(package),
+    );
