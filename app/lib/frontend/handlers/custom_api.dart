@@ -117,9 +117,9 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
       final versionString = Uri.encodeComponent(version.version);
       final packageString = Uri.encodeComponent(version.package);
 
-      final apiArchiveUrl = urls.pkgArchiveDownloadUrl(
-          version.package, version.version,
-          baseUri: uri);
+      final apiArchiveUrl = urls
+          .pkgArchiveDownloadUrl(version.package, version.version, baseUri: uri)
+          .toString();
       final apiPackageUrl =
           uri.resolve('/api/packages/$packageString').toString();
       final apiPackageVersionUrl = uri
