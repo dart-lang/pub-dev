@@ -16,6 +16,7 @@ import 'package:yaml/yaml.dart';
 
 import '../../package/backend.dart' show purgePackageCache;
 import '../../shared/redis_cache.dart' show cache;
+import '../../shared/urls.dart' as urls;
 
 import 'repository.dart';
 
@@ -269,9 +270,7 @@ class ShelfPubServer {
   // Download urls.
 
   Uri _downloadUrl(Uri url, String package, String version) {
-    final encode = Uri.encodeComponent;
-    return url.resolve(
-        '/packages/${encode(package)}/versions/${encode(version)}.tar.gz');
+    return urls.pkgArchiveDownloadUrl(package, version, baseUri: url);
   }
 
   // Upload async urls.
