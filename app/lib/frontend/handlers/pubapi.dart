@@ -45,6 +45,9 @@ class PubApi {
 
   /// Downloading package.
   /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#download-a-specific-version-of-a-package
+  ///
+  /// NOTE: `/packages/<package>/versions/<version>.tar.gz` is hardcoded into the
+  /// clients, so while this is deprecated we need to support it indefinitely.
   @EndPoint.get('/api/packages/<package>/versions/<version>/archive.tar.gz')
   @EndPoint.get('/packages/<package>/versions/<version>.tar.gz')
   Future<Response> fetchPackage(
