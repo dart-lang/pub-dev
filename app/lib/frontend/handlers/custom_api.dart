@@ -20,6 +20,7 @@ import '../../shared/configuration.dart';
 import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
+import '../../shared/urls.dart' as urls;
 
 /// Handles requests for /api/documentation/<package>
 Future<shelf.Response> apiDocumentationHandler(
@@ -116,8 +117,8 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
       final versionString = Uri.encodeComponent(version.version);
       final packageString = Uri.encodeComponent(version.package);
 
-      final apiArchiveUrl = uri
-          .resolve('/packages/$packageString/versions/$versionString.tar.gz')
+      final apiArchiveUrl = urls
+          .pkgArchiveDownloadUrl(version.package, version.version, baseUri: uri)
           .toString();
       final apiPackageUrl =
           uri.resolve('/api/packages/$packageString').toString();
