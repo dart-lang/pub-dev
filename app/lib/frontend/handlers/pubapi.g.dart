@@ -37,8 +37,9 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
-  router.add('GET', r'/api/packages/<package>/versions/<version>.tar.gz',
-      (Request request, String package, String version) async {
+  router
+      .add('GET', r'/api/packages/<package>/versions/<version>/archive.tar.gz',
+          (Request request, String package, String version) async {
     try {
       final _$result = await service.fetchPackage(
         request,

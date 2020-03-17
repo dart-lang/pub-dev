@@ -43,7 +43,7 @@ class PubApiClient {
   Future<List<int>> fetchPackage(String package, String version) async {
     return await _client.requestBytes(
       verb: 'get',
-      path: '/api/packages/$package/versions/$version.tar.gz',
+      path: '/api/packages/$package/versions/$version/archive.tar.gz',
     );
   }
 
