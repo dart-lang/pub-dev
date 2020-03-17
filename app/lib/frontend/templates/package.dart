@@ -340,46 +340,38 @@ List<Tab> _pkgTabs(
     }
   }
 
-  final tabs = <Tab>[];
-
-  void addFileTab(String id, String title, String content) {
-    if (content == null) return;
-    tabs.add(Tab.withContent(
-        id: id, title: title, contentHtml: content, isMarkdown: true));
+  Tab fileTab(String id, String title, String content) {
+    if (content == null) return null;
+    return Tab.withContent(
+        id: id, title: title, contentHtml: content, isMarkdown: true);
   }
 
-  addFileTab('readme', 'Readme', renderedReadme);
-  addFileTab('changelog', 'Changelog', renderedChangelog);
-  addFileTab('example', 'Example', renderedExample);
-
-  tabs.add(Tab.withContent(
+  final tabs = buildPackageTabs(
+    package: package,
+    version: selectedVersion,
+    analysis: analysis,
+    isAdmin: isAdmin,
+    readmeTab: fileTab('readme', 'Readme', renderedReadme),
+    changelogTab: fileTab('changelog', 'Changelog', renderedChangelog),
+    exampleTab: fileTab('example', 'Example', renderedExample),
+    installingTab: Tab.withContent(
       id: 'installing',
       title: 'Installing',
-      contentHtml: _renderInstallTab(selectedVersion, analysis?.derivedTags)));
-  tabs.add(Tab.withLink(
-    id: 'versions',
-    title: 'Versions',
-    href: urls.pkgVersionsUrl(selectedVersion.package),
-  ));
-  tabs.add(Tab.withContent(
-    id: 'analysis',
-    titleHtml: renderScoreBox(
-      PackageView.fromModel(
-          package: package,
-          version: selectedVersion,
-          scoreCard: analysis?.card),
-      isTabHeader: true,
+      contentHtml: _renderInstallTab(selectedVersion, analysis?.derivedTags),
     ),
-    contentHtml: renderAnalysisTab(selectedVersion.package,
-        selectedVersion.pubspec.sdkConstraint, card, analysis),
-  ));
-  if (isAdmin) {
-    tabs.add(Tab.withLink(
-      id: 'admin',
-      title: 'Admin',
-      href: urls.pkgAdminUrl(selectedVersion.package),
-    ));
-  }
+    scoreTab: Tab.withContent(
+      id: 'analysis',
+      titleHtml: renderScoreBox(
+        PackageView.fromModel(
+            package: package,
+            version: selectedVersion,
+            scoreCard: analysis?.card),
+        isTabHeader: true,
+      ),
+      contentHtml: renderAnalysisTab(selectedVersion.package,
+          selectedVersion.pubspec.sdkConstraint, card, analysis),
+    ),
+  );
   return tabs;
 }
 
@@ -436,4 +428,69 @@ String renderPackageSchemaOrgHtml(
   }
   // TODO: add http://schema.org/codeRepository for github and gitlab links
   return '<script type="application/ld+json">\n${json.encode(map)}\n</script>\n';
+}
+
+/// Build package tabs.
+///
+/// Unspecified tab content will be filled with links to the corresponding page.
+List<Tab> buildPackageTabs({
+  @required Package package,
+  @required PackageVersion version,
+  @required AnalysisView analysis,
+  @required bool isAdmin,
+  Tab readmeTab,
+  Tab changelogTab,
+  Tab exampleTab,
+  Tab installingTab,
+  Tab versionsTab,
+  Tab scoreTab,
+  Tab adminTab,
+}) {
+  readmeTab ??= Tab.withLink(
+    id: 'readme',
+    title: 'Readme',
+    href: urls.pkgReadmeUrl(package.name),
+  );
+  changelogTab ??= Tab.withLink(
+    id: 'changelog',
+    title: 'Changelog',
+    href: urls.pkgChangelogUrl(package.name),
+  );
+  exampleTab ??= Tab.withLink(
+    id: 'example',
+    title: 'Example',
+    href: urls.pkgExampleUrl(package.name),
+  );
+  installingTab ??= Tab.withLink(
+    id: 'installing',
+    title: 'Installing',
+    href: urls.pkgInstallUrl(package.name),
+  );
+  versionsTab ??= Tab.withLink(
+    id: 'versions',
+    title: 'Versions',
+    href: urls.pkgVersionsUrl(package.name),
+  );
+  scoreTab ??= Tab.withLink(
+    id: 'analysis',
+    titleHtml: renderScoreBox(
+        PackageView.fromModel(
+            package: package, version: version, scoreCard: analysis?.card),
+        isTabHeader: true),
+    href: urls.pkgScoreUrl(package.name),
+  );
+  adminTab ??= Tab.withLink(
+    id: 'admin',
+    title: 'Admin',
+    href: urls.pkgAdminUrl(package.name),
+  );
+  return <Tab>[
+    if (version.readme != null) readmeTab,
+    if (version.changelog != null) changelogTab,
+    if (version.example != null) exampleTab,
+    installingTab,
+    versionsTab,
+    scoreTab,
+    if (isAdmin) adminTab,
+  ];
 }
