@@ -136,12 +136,12 @@ void main() {
     });
 
     scopedTest('package show page', () {
-      final String html = renderPkgShowPage(
-        foobarPackage,
-        false,
-        foobarUploaderEmails,
-        foobarStablePV,
-        AnalysisView(
+      final String html = renderPkgShowPage(PackagePageData(
+        package: foobarPackage,
+        isLiked: false,
+        uploaderEmails: foobarUploaderEmails,
+        version: foobarStablePV,
+        analysis: AnalysisView(
           card: ScoreCardData(
             reportTypes: ['pana', 'dartdoc'],
             healthScore: 0.1,
@@ -187,18 +187,18 @@ void main() {
           ),
         ),
         isAdmin: true,
-      );
+      ));
 
       expectGoldenFile(html, 'pkg_show_page.html');
     });
 
     scopedTest('package show page - with version', () {
-      final String html = renderPkgShowPage(
-        foobarPackage,
-        false,
-        foobarUploaderEmails,
-        foobarDevPV,
-        AnalysisView(
+      final String html = renderPkgShowPage(PackagePageData(
+        package: foobarPackage,
+        isLiked: false,
+        uploaderEmails: foobarUploaderEmails,
+        version: foobarDevPV,
+        analysis: AnalysisView(
           card: ScoreCardData(reportTypes: ['pana'], healthScore: 0.1),
           panaReport: PanaReport(
               timestamp: DateTime(2018, 02, 05),
@@ -235,17 +235,17 @@ void main() {
           dartdocReport: null,
         ),
         isAdmin: true,
-      );
+      ));
       expectGoldenFile(html, 'pkg_show_version_page.html');
     });
 
     scopedTest('package show page with flutter_plugin', () {
-      final String html = renderPkgShowPage(
-        foobarPackage,
-        false,
-        foobarUploaderEmails,
-        flutterPackageVersion,
-        AnalysisView(
+      final String html = renderPkgShowPage(PackagePageData(
+        package: foobarPackage,
+        isLiked: false,
+        uploaderEmails: foobarUploaderEmails,
+        version: flutterPackageVersion,
+        analysis: AnalysisView(
           card: ScoreCardData(
             healthScore: 0.99,
             maintenanceScore: 0.99,
@@ -269,42 +269,42 @@ void main() {
               flags: null),
         ),
         isAdmin: true,
-      );
+      ));
       expectGoldenFile(html, 'pkg_show_page_flutter_plugin.html');
     });
 
     scopedTest('package show page with outdated version', () {
-      final String html = renderPkgShowPage(
-        foobarPackage,
-        false,
-        foobarUploaderEmails,
-        foobarStablePV,
-        AnalysisView(
+      final String html = renderPkgShowPage(PackagePageData(
+        package: foobarPackage,
+        isLiked: false,
+        uploaderEmails: foobarUploaderEmails,
+        version: foobarStablePV,
+        analysis: AnalysisView(
           card: ScoreCardData(
             flags: [PackageFlags.isObsolete],
             updated: DateTime(2018, 02, 05),
           ),
         ),
         isAdmin: false,
-      );
+      ));
 
       expectGoldenFile(html, 'pkg_show_page_outdated.html');
     });
 
     scopedTest('package show page with discontinued version', () {
-      final String html = renderPkgShowPage(
-        discontinuedPackage,
-        false,
-        foobarUploaderEmails,
-        foobarStablePV,
-        AnalysisView(
+      final String html = renderPkgShowPage(PackagePageData(
+        package: discontinuedPackage,
+        isLiked: false,
+        uploaderEmails: foobarUploaderEmails,
+        version: foobarStablePV,
+        analysis: AnalysisView(
           card: ScoreCardData(
             flags: [PackageFlags.isDiscontinued],
             updated: DateTime(2018, 02, 05),
           ),
         ),
         isAdmin: false,
-      );
+      ));
 
       expectGoldenFile(html, 'pkg_show_page_discontinued.html');
     });
@@ -312,15 +312,15 @@ void main() {
     scopedTest('package show page with legacy version', () {
       final summary = createPanaSummaryForLegacy(
           foobarStablePV.package, foobarStablePV.version);
-      final String html = renderPkgShowPage(
-        foobarPackage,
-        false,
-        <String>[
+      final String html = renderPkgShowPage(PackagePageData(
+        package: foobarPackage,
+        isLiked: false,
+        uploaderEmails: <String>[
           hansUser.email,
           joeUser.email,
         ],
-        foobarStablePV,
-        AnalysisView(
+        version: foobarStablePV,
+        analysis: AnalysisView(
           card: ScoreCardData(
             popularityScore: 0.5,
             flags: [PackageFlags.isLegacy],
@@ -328,24 +328,24 @@ void main() {
           panaReport: panaReportFromSummary(summary),
         ),
         isAdmin: false,
-      );
+      ));
 
       expectGoldenFile(html, 'pkg_show_page_legacy.html');
     });
 
     scopedTest('package show page with publisher', () {
-      final String html = renderPkgShowPage(
-        lithium.package,
-        false,
-        <String>[],
-        lithium.versions.last,
-        AnalysisView(
+      final String html = renderPkgShowPage(PackagePageData(
+        package: lithium.package,
+        isLiked: false,
+        uploaderEmails: <String>[],
+        version: lithium.versions.last,
+        analysis: AnalysisView(
           card: ScoreCardData(
             updated: DateTime(2018, 02, 05),
           ),
         ),
         isAdmin: false,
-      );
+      ));
 
       expectGoldenFile(html, 'pkg_show_page_publisher.html');
     });
@@ -466,14 +466,18 @@ void main() {
 
     scopedTest('package admin page with outdated version', () {
       final String html = renderPkgAdminPage(
-        foobarPackage,
-        foobarUploaderEmails,
-        foobarStablePV,
-        AnalysisView(
-          card: ScoreCardData(
-            flags: [PackageFlags.isObsolete],
-            updated: DateTime(2018, 02, 05),
+        PackagePageData(
+          package: foobarPackage,
+          uploaderEmails: foobarUploaderEmails,
+          version: foobarStablePV,
+          analysis: AnalysisView(
+            card: ScoreCardData(
+              flags: [PackageFlags.isObsolete],
+              updated: DateTime(2018, 02, 05),
+            ),
           ),
+          isLiked: false,
+          isAdmin: true,
         ),
         [
           'example.com',
@@ -533,10 +537,21 @@ void main() {
 
     scopedTest('package versions page', () {
       final String html = renderPkgVersionsPage(
-        foobarPackage,
-        false,
-        foobarUploaderEmails,
-        foobarStablePV,
+        PackagePageData(
+          package: foobarPackage,
+          isLiked: false,
+          uploaderEmails: foobarUploaderEmails,
+          version: foobarStablePV,
+          analysis: AnalysisView(
+            card: ScoreCardData(
+              derivedTags: ['sdk:dart', 'sdk:flutter'],
+              maintenanceScore: 0.9,
+              healthScore: 0.9,
+              popularityScore: 0.2,
+            ),
+          ),
+          isAdmin: false,
+        ),
         [
           foobarStablePV,
           foobarDevPV,
@@ -545,15 +560,6 @@ void main() {
           Uri.parse('https://pub.dartlang.org/mock-download-uri.tar.gz'),
           Uri.parse('https://pub.dartlang.org/mock-download-uri.tar.gz'),
         ],
-        AnalysisView(
-          card: ScoreCardData(
-            derivedTags: ['sdk:dart', 'sdk:flutter'],
-            maintenanceScore: 0.9,
-            healthScore: 0.9,
-            popularityScore: 0.2,
-          ),
-        ),
-        isAdmin: false,
       );
       expectGoldenFile(html, 'pkg_versions_page.html');
     });
