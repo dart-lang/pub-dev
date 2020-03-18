@@ -53,20 +53,19 @@ Future<T> withTransaction<T>(
   Future<T> Function(TransactionWrapper tx) fn,
 ) async {
   return db.withTransaction<T>((tx) async {
-    bool done = false;
+    bool commitAttempted = false;
     try {
       final wrapper = TransactionWrapper._(tx);
       final retval = await fn(wrapper);
       if (wrapper._mutated) {
+        commitAttempted = true;
         await tx.commit();
-        done = true;
       }
       return retval;
-    } catch (e, st) {
-      _logger.info('Observed exception inside transaction block.', e, st);
-      rethrow;
     } finally {
-      if (!done) {
+      // If a commit has been attempted trying to rollback will always throw
+      // a StateError, hence, we never try to rollback if commit was attempted
+      if (!commitAttempted) {
         await tx.rollback();
       }
     }
@@ -106,6 +105,10 @@ Future<T> withRetryTransaction<T>(
 ) =>
     _transactionRetrier.retry<T>(
       () => withTransaction<T>(db, fn),
+      // TODO(jonasfj): Over time we want reduce the number exceptions on which
+      //                we retry. The following is a list of exceptions we know
+      //                we want to retry:
+      //  - TransactionAbortedError, implies a transaction conflict.
       // Never retry a ResponseException
       retryIf: (e) => e is! ResponseException,
       onRetry: (e) => _logger.info('retrying transaction', e),
