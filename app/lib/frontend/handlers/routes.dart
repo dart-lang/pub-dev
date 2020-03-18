@@ -94,7 +94,7 @@ class PubSiteService {
       packageAdminHandler(request, package);
 
   @Route.get('/packages/<package>/versions')
-  Future<Response> packageVersionsJson(Request request, String package) =>
+  Future<Response> packageVersions(Request request, String package) =>
       packageVersionsListHandler(request, package);
 
   @Route.get('/packages/<package>')
