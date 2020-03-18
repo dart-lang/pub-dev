@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/meta.dart';
-
-import '../../analyzer/analyzer_client.dart';
 import '../../package/models.dart';
 import '../../shared/urls.dart' as urls;
 
@@ -18,14 +15,10 @@ import 'package.dart';
 
 /// Renders the `views/pkg/versions/index` template.
 String renderPkgVersionsPage(
-    Package package,
-    bool isLiked,
-    List<String> uploaderEmails,
-    PackageVersion latestVersion,
-    List<PackageVersion> versions,
-    List<Uri> versionDownloadUrls,
-    AnalysisView latestAnalysis,
-    {@required bool isAdmin}) {
+  PackagePageData data,
+  List<PackageVersion> versions,
+  List<Uri> versionDownloadUrls,
+) {
   assert(versions.length == versionDownloadUrls.length);
 
   final stableVersionRows = [];
@@ -53,7 +46,7 @@ String renderPkgVersionsPage(
     htmlBlocks.add(templateCache.renderTemplate('pkg/versions/index', {
       'id': 'stable',
       'kind': 'Stable',
-      'package': {'name': package.name},
+      'package': {'name': data.package.name},
       'version_table_rows': stableVersionRows,
     }));
   }
@@ -61,16 +54,13 @@ String renderPkgVersionsPage(
     htmlBlocks.add(templateCache.renderTemplate('pkg/versions/index', {
       'id': 'dev',
       'kind': 'Dev',
-      'package': {'name': package.name},
+      'package': {'name': data.package.name},
       'version_table_rows': devVersionRows,
     }));
   }
 
   final tabs = buildPackageTabs(
-    package: package,
-    version: latestVersion,
-    analysis: latestAnalysis,
-    isAdmin: isAdmin,
+    packagePageData: data,
     versionsTab: Tab.withContent(
       id: 'versions',
       title: 'Versions',
@@ -79,23 +69,20 @@ String renderPkgVersionsPage(
   );
 
   final content = renderDetailPage(
-    headerHtml:
-        renderPkgHeader(package, latestVersion, isLiked, latestAnalysis),
+    headerHtml: renderPkgHeader(data),
     tabs: tabs,
-    infoBoxLead: latestVersion.ellipsizedDescription,
-    infoBoxHtml: renderPkgInfoBox(
-        package, latestVersion, uploaderEmails, latestAnalysis),
-    footerHtml:
-        renderPackageSchemaOrgHtml(package, latestVersion, latestAnalysis),
+    infoBoxLead: data.version.ellipsizedDescription,
+    infoBoxHtml: renderPkgInfoBox(data),
+    footerHtml: renderPackageSchemaOrgHtml(data),
   );
 
   return renderLayoutPage(
     PageType.package,
     content,
-    title: '${package.name} package - All Versions',
-    canonicalUrl: urls.pkgPageUrl(package.name, includeHost: true),
-    pageData: pkgPageData(package, latestVersion),
-    noIndex: package.isDiscontinued,
+    title: '${data.package.name} package - All Versions',
+    canonicalUrl: urls.pkgPageUrl(data.package.name, includeHost: true),
+    pageData: pkgPageData(data.package, data.version),
+    noIndex: data.package.isDiscontinued,
   );
 }
 

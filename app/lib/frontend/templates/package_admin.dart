@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../analyzer/analyzer_client.dart';
 import '../../package/models.dart';
 import '../../shared/urls.dart' as urls;
 
@@ -13,29 +12,23 @@ import 'package.dart';
 
 /// Renders the `views/pkg/admin_page` template.
 String renderPkgAdminPage(
-  Package package,
-  List<String> uploaderEmails,
-  PackageVersion version,
-  AnalysisView analysis,
+  PackagePageData data,
   List<String> userPublishers,
 ) {
   final tabs = buildPackageTabs(
-    package: package,
-    version: version,
-    analysis: analysis,
-    isAdmin: true,
+    packagePageData: data,
     adminTab: Tab.withContent(
       id: 'admin',
       title: 'Admin',
       contentHtml: templateCache.renderTemplate('pkg/admin_page', {
-        'pkg_has_publisher': package.publisherId != null,
-        'publisher_id': package.publisherId,
-        'is_discontinued': package.isDiscontinued,
+        'pkg_has_publisher': data.package.publisherId != null,
+        'publisher_id': data.package.publisherId,
+        'is_discontinued': data.package.isDiscontinued,
         'user_has_publisher': userPublishers.isNotEmpty,
         'user_publishers': userPublishers
             .map((s) => {
                   'publisher_id': s,
-                  'selected': s == package.publisherId,
+                  'selected': s == data.package.publisherId,
                 })
             .toList(),
         'create_publisher_url': urls.createPublisherUrl(),
@@ -44,17 +37,17 @@ String renderPkgAdminPage(
   );
 
   final content = renderDetailPage(
-    headerHtml: renderPkgHeader(package, version, false, analysis),
+    headerHtml: renderPkgHeader(data),
     tabs: tabs,
-    infoBoxLead: version.ellipsizedDescription,
-    infoBoxHtml: renderPkgInfoBox(package, version, uploaderEmails, analysis),
+    infoBoxLead: data.version.ellipsizedDescription,
+    infoBoxHtml: renderPkgInfoBox(data),
   );
 
   return renderLayoutPage(
     PageType.package,
     content,
-    title: '${package.name} package - Admin',
-    pageData: pkgPageData(package, version),
+    title: '${data.package.name} package - Admin',
+    pageData: pkgPageData(data.package, data.version),
     noIndex: true,
   );
 }

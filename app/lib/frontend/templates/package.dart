@@ -122,11 +122,10 @@ String _renderInstallTab(PackageVersion selectedVersion, List<String> tags) {
 /// Renders the right-side info box (quick summary of the package, mostly coming
 /// from pubspec.yaml).
 String renderPkgInfoBox(
-  Package package,
-  PackageVersion selectedVersion,
-  List<String> uploaderEmails,
-  AnalysisView analysis,
+  PackagePageData data,
 ) {
+  final package = data.package;
+  final selectedVersion = data.version;
   final packageLinks = selectedVersion.packageLinks;
 
   String documentationUrl = packageLinks.documentationUrl;
@@ -171,7 +170,7 @@ String renderPkgInfoBox(
       detectServiceProvider: true);
   addLink(packageLinks.issueTrackerUrl, 'View/report issues');
   addLink(documentationUrl, 'Documentation', documentation: true);
-  if (analysis.hasApiDocs) {
+  if (data.analysis.hasApiDocs) {
     addLink(dartdocsUrl, 'API reference', documentation: true);
   }
 
@@ -187,11 +186,14 @@ String renderPkgInfoBox(
     'publisher_link': package.publisherId == null
         ? null
         : urls.publisherUrl(package.publisherId),
-    'uploaders_title': uploaderEmails.length > 1 ? 'Uploaders' : 'Uploader',
-    'uploaders_html':
-        uploaderEmails.isEmpty ? null : _getAuthorsHtml(uploaderEmails),
-    'license_html': _renderLicenses(packageLinks.baseUrl, analysis?.licenses),
-    'dependencies_html': _renderDependencyList(analysis),
+    'uploaders_title':
+        data.uploaderEmails.length > 1 ? 'Uploaders' : 'Uploader',
+    'uploaders_html': data.uploaderEmails.isEmpty
+        ? null
+        : _getAuthorsHtml(data.uploaderEmails),
+    'license_html':
+        _renderLicenses(packageLinks.baseUrl, data.analysis?.licenses),
+    'dependencies_html': _renderDependencyList(data.analysis),
     'search_deps_link': urls.searchUrl(q: 'dependency:${package.name}'),
     // TODO: remove the below keys after we've migrated to the new UI
     'all_links': [...metaLinks, ...docLinks],
@@ -200,8 +202,9 @@ String renderPkgInfoBox(
 
 /// Renders the `views/pkg/header.mustache` template for header metadata and
 /// wraps it with content-header.
-String renderPkgHeader(Package package, PackageVersion selectedVersion,
-    bool isLiked, AnalysisView analysis) {
+String renderPkgHeader(PackagePageData data) {
+  final package = data.package;
+  final selectedVersion = data.version;
   final bool showDevVersion = package.latestDevVersion != null &&
       package.latestSemanticVersion < package.latestDevSemanticVersion;
   final bool showUpdated =
@@ -226,12 +229,12 @@ String renderPkgHeader(Package package, PackageVersion selectedVersion,
   final pkgView = PackageView.fromModel(
     package: package,
     version: selectedVersion,
-    scoreCard: analysis?.card,
+    scoreCard: data.analysis?.card,
   );
   return renderDetailHeader(
     title: '${package.name} ${selectedVersion.version}',
     packageLikes: package.likes,
-    isLiked: isLiked,
+    isLiked: data.isLiked,
     isFlutterFavorite:
         (package.assignedTags ?? []).contains(PackageTags.isFlutterFavorite),
     metadataHtml: metadataHtml,
@@ -243,53 +246,46 @@ String renderPkgHeader(Package package, PackageVersion selectedVersion,
   );
 }
 
-/// Renders the `views/pkg/show.mustache` template.
-String renderPkgShowPage(
-  Package package,
-  bool isLiked,
-  List<String> uploaderEmails,
-  PackageVersion selectedVersion,
-  AnalysisView analysis, {
-  @required bool isAdmin,
-}) {
-  final card = analysis?.card;
+/// Renders the package detail page.
+String renderPkgShowPage(PackagePageData data) {
+  final card = data.analysis?.card;
 
   final content = renderDetailPage(
-    headerHtml: renderPkgHeader(package, selectedVersion, isLiked, analysis),
-    tabs: _pkgTabs(package, selectedVersion, analysis, isAdmin),
-    infoBoxLead: selectedVersion.ellipsizedDescription,
-    infoBoxHtml:
-        renderPkgInfoBox(package, selectedVersion, uploaderEmails, analysis),
-    footerHtml: renderPackageSchemaOrgHtml(package, selectedVersion, analysis),
+    headerHtml: renderPkgHeader(data),
+    tabs: _pkgTabs(data),
+    infoBoxLead: data.version.ellipsizedDescription,
+    infoBoxHtml: renderPkgInfoBox(data),
+    footerHtml: renderPackageSchemaOrgHtml(data),
   );
 
-  final isFlutterPackage = selectedVersion.pubspec.usesFlutter;
-  final isVersionPage = package.latestVersion != selectedVersion.version;
+  final isFlutterPackage = data.version.pubspec.usesFlutter;
+  final isVersionPage = data.package.latestVersion != data.version.version;
   final packageAndVersion = isVersionPage
-      ? '${selectedVersion.package} ${selectedVersion.version}'
-      : selectedVersion.package;
+      ? '${data.version.package} ${data.version.version}'
+      : data.version.package;
   final pageTitle =
       '$packageAndVersion | ${isFlutterPackage ? 'Flutter' : 'Dart'} Package';
-  final canonicalUrl =
-      isVersionPage ? urls.pkgPageUrl(package.name, includeHost: true) : null;
+  final canonicalUrl = isVersionPage
+      ? urls.pkgPageUrl(data.package.name, includeHost: true)
+      : null;
   final shareUrl = urls.pkgPageUrl(
-    package.name,
-    version: isVersionPage ? selectedVersion.version : null,
+    data.package.name,
+    version: isVersionPage ? data.version.version : null,
     includeHost: true,
   );
   final noIndex = (card?.isSkipped ?? false) ||
       (card?.overallScore == 0.0) ||
-      package.isDiscontinued;
+      data.package.isDiscontinued;
   return renderLayoutPage(
     PageType.package,
     content,
     title: pageTitle,
-    pageDescription: selectedVersion.ellipsizedDescription,
+    pageDescription: data.version.ellipsizedDescription,
     faviconUrl: isFlutterPackage ? staticUrls.flutterLogo32x32 : null,
     canonicalUrl: canonicalUrl,
     shareUrl: shareUrl,
     noIndex: noIndex,
-    pageData: pkgPageData(package, selectedVersion),
+    pageData: pkgPageData(data.package, data.version),
   );
 }
 
@@ -305,12 +301,10 @@ PageData pkgPageData(Package package, PackageVersion selectedVersion) {
 }
 
 List<Tab> _pkgTabs(
-  Package package,
-  PackageVersion selectedVersion,
-  AnalysisView analysis,
-  bool isAdmin,
+  PackagePageData data,
 ) {
-  final card = analysis?.card;
+  final selectedVersion = data.version;
+  final card = data.analysis?.card;
 
   String renderedReadme;
   final packageLinks = selectedVersion.packageLinks;
@@ -347,29 +341,21 @@ List<Tab> _pkgTabs(
   }
 
   final tabs = buildPackageTabs(
-    package: package,
-    version: selectedVersion,
-    analysis: analysis,
-    isAdmin: isAdmin,
+    packagePageData: data,
     readmeTab: fileTab('readme', 'Readme', renderedReadme),
     changelogTab: fileTab('changelog', 'Changelog', renderedChangelog),
     exampleTab: fileTab('example', 'Example', renderedExample),
     installingTab: Tab.withContent(
       id: 'installing',
       title: 'Installing',
-      contentHtml: _renderInstallTab(selectedVersion, analysis?.derivedTags),
+      contentHtml:
+          _renderInstallTab(selectedVersion, data.analysis?.derivedTags),
     ),
     scoreTab: Tab.withContent(
       id: 'analysis',
-      titleHtml: renderScoreBox(
-        PackageView.fromModel(
-            package: package,
-            version: selectedVersion,
-            scoreCard: analysis?.card),
-        isTabHeader: true,
-      ),
+      titleHtml: renderScoreBox(data.toPackageView(), isTabHeader: true),
       contentHtml: renderAnalysisTab(selectedVersion.package,
-          selectedVersion.pubspec.sdkConstraint, card, analysis),
+          selectedVersion.pubspec.sdkConstraint, card, data.analysis),
     ),
   );
   return tabs;
@@ -405,8 +391,9 @@ String _getAuthorsHtml(List<String> authors) {
   }).join('<br/>');
 }
 
-String renderPackageSchemaOrgHtml(
-    Package p, PackageVersion pv, AnalysisView analysis) {
+String renderPackageSchemaOrgHtml(PackagePageData data) {
+  final p = data.package;
+  final pv = data.version;
   final Map map = {
     '@context': 'http://schema.org',
     '@type': 'SoftwareSourceCode',
@@ -420,7 +407,7 @@ String renderPackageSchemaOrgHtml(
     'image':
         '${urls.siteRoot}${staticUrls.staticPath}/img/dart-logo-400x400.png'
   };
-  final licenses = analysis?.licenses;
+  final licenses = data.analysis?.licenses;
   final firstUrl =
       licenses?.firstWhere((lf) => lf.url != null, orElse: () => null)?.url;
   if (firstUrl != null) {
@@ -434,10 +421,7 @@ String renderPackageSchemaOrgHtml(
 ///
 /// Unspecified tab content will be filled with links to the corresponding page.
 List<Tab> buildPackageTabs({
-  @required Package package,
-  @required PackageVersion version,
-  @required AnalysisView analysis,
-  @required bool isAdmin,
+  @required PackagePageData packagePageData,
   Tab readmeTab,
   Tab changelogTab,
   Tab exampleTab,
@@ -446,6 +430,8 @@ List<Tab> buildPackageTabs({
   Tab scoreTab,
   Tab adminTab,
 }) {
+  final package = packagePageData.package;
+  final version = packagePageData.version;
   readmeTab ??= Tab.withLink(
     id: 'readme',
     title: 'Readme',
@@ -473,10 +459,8 @@ List<Tab> buildPackageTabs({
   );
   scoreTab ??= Tab.withLink(
     id: 'analysis',
-    titleHtml: renderScoreBox(
-        PackageView.fromModel(
-            package: package, version: version, scoreCard: analysis?.card),
-        isTabHeader: true),
+    titleHtml:
+        renderScoreBox(packagePageData.toPackageView(), isTabHeader: true),
     href: urls.pkgScoreUrl(package.name),
   );
   adminTab ??= Tab.withLink(
@@ -491,6 +475,6 @@ List<Tab> buildPackageTabs({
     installingTab,
     versionsTab,
     scoreTab,
-    if (isAdmin) adminTab,
+    if (packagePageData.isAdmin) adminTab,
   ];
 }

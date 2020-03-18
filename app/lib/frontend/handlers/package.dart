@@ -4,6 +4,8 @@
 
 import 'dart:async';
 
+import 'package:meta/meta.dart';
+import 'package:neat_cache/neat_cache.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
@@ -64,53 +66,25 @@ Future<shelf.Response> packageShowHandlerJson(
 /// Handles requests for /packages/<package>/versions
 Future<shelf.Response> packageVersionsListHandler(
     shelf.Request request, String packageName) async {
-  final package = await packageBackend.lookupPackage(packageName);
-  if (package == null) return redirectToSearch(packageName);
+  return _handlePackagePage(
+    request: request,
+    packageName: packageName,
+    versionName: null,
+    renderFn: (data) async {
+      final versions = await packageBackend.versionsOfPackage(packageName);
+      if (versions.isEmpty) {
+        return redirectToSearch(packageName);
+      }
 
-  final versions = await packageBackend.versionsOfPackage(packageName);
-  if (versions.isEmpty) {
-    return redirectToSearch(packageName);
-  }
+      sortPackageVersionsDesc(versions);
+      final versionDownloadUrls =
+          await Future.wait(versions.map((PackageVersion version) {
+        return packageBackend.downloadUrl(packageName, version.version);
+      }).toList());
 
-  sortPackageVersionsDesc(versions);
-  PackageVersion latestVersion = versions.firstWhere(
-      (v) => v.version == package.latestVersion,
-      orElse: () => null);
-  latestVersion ??= versions.firstWhere(
-      (v) => v.version == package.latestDevVersion,
-      orElse: () => null);
-  latestVersion ??= versions.first;
-
-  final versionDownloadUrls =
-      await Future.wait(versions.map((PackageVersion version) {
-    return packageBackend.downloadUrl(packageName, version.version);
-  }).toList());
-
-  final analysis = await analyzerClient.getAnalysisView(
-      latestVersion.package, latestVersion.version);
-
-  final uploaderEmails =
-      await accountBackend.getEmailsOfUserIds(package.uploaders);
-
-  final isAdmin =
-      await packageBackend.isPackageAdmin(package, userSessionData?.userId);
-
-  final bool isLiked = (userSessionData == null)
-      ? false
-      : await accountBackend.getPackageLikeStatus(
-              userSessionData.userId, package.name) !=
-          null;
-
-  return htmlResponse(renderPkgVersionsPage(
-    package,
-    isLiked,
-    uploaderEmails,
-    latestVersion,
-    versions,
-    versionDownloadUrls,
-    analysis,
-    isAdmin: isAdmin,
-  ));
+      return renderPkgVersionsPage(data, versions, versionDownloadUrls);
+    },
+  );
 }
 
 /// Handles requests for /packages/<package>
@@ -118,61 +92,54 @@ Future<shelf.Response> packageVersionsListHandler(
 Future<shelf.Response> packageVersionHandlerHtml(
     shelf.Request request, String packageName,
     {String versionName}) async {
+  return await _handlePackagePage(
+    request: request,
+    packageName: packageName,
+    versionName: versionName,
+    renderFn: (data) => renderPkgShowPage(data),
+    cacheEntry: cache.uiPackagePage(packageName, versionName),
+  );
+}
+
+Future<shelf.Response> _handlePackagePage({
+  @required shelf.Request request,
+  @required String packageName,
+  @required String versionName,
+  @required FutureOr Function(PackagePageData data) renderFn,
+  Entry<String> cacheEntry,
+}) async {
   if (redirectPackagePages.containsKey(packageName)) {
     return redirectResponse(redirectPackagePages[packageName]);
   }
   final Stopwatch sw = Stopwatch()..start();
   String cachedPage;
-  if (requestContext.uiCacheEnabled) {
-    cachedPage = await cache.uiPackagePage(packageName, versionName).get();
+  if (requestContext.uiCacheEnabled && cacheEntry != null) {
+    cachedPage = await cacheEntry.get();
   }
 
   if (cachedPage == null) {
-    final Package package = await packageBackend.lookupPackage(packageName);
-    if (package == null) {
+    final serviceSw = Stopwatch()..start();
+    final data = await _loadPackagePageData(packageName, versionName);
+    if (data == null) {
       return redirectToSearch(packageName);
     }
-
-    final bool isLiked = (userSessionData == null)
-        ? false
-        : await accountBackend.getPackageLikeStatus(
-                userSessionData.userId, package.name) !=
-            null;
-
-    final selectedVersion = await packageBackend.lookupPackageVersion(
-        packageName, versionName ?? package.latestVersion);
-    if (selectedVersion == null) {
+    if (data.version == null) {
       return redirectResponse(urls.pkgVersionsUrl(packageName));
     }
-
-    final Stopwatch serviceSw = Stopwatch()..start();
-    final AnalysisView analysisView = await analyzerClient.getAnalysisView(
-        selectedVersion.package, selectedVersion.version);
-    _packageAnalysisLatencyTracker.add(serviceSw.elapsed);
-
-    final uploaderEmails =
-        await accountBackend.getEmailsOfUserIds(package.uploaders);
-    _packagePreRenderLatencyTracker.add(serviceSw.elapsed);
-
-    final isAdmin =
-        await packageBackend.isPackageAdmin(package, userSessionData?.userId);
-
-    cachedPage = renderPkgShowPage(
-      package,
-      isLiked,
-      uploaderEmails,
-      selectedVersion,
-      analysisView,
-      isAdmin: isAdmin,
-    );
+    final renderedResult = await renderFn(data);
+    if (renderedResult is String) {
+      cachedPage = renderedResult;
+    } else if (renderedResult is shelf.Response) {
+      return renderedResult;
+    } else {
+      throw StateError('Unknown result type: ${renderedResult.runtimeType}');
+    }
     _packageDoneLatencyTracker.add(serviceSw.elapsed);
-
-    if (requestContext.uiCacheEnabled) {
-      await cache.uiPackagePage(packageName, versionName).set(cachedPage);
+    if (requestContext.uiCacheEnabled && cacheEntry != null) {
+      await cacheEntry.set(cachedPage);
     }
     _packageOverallLatencyTracker.add(sw.elapsed);
   }
-
   return htmlResponse(cachedPage);
 }
 
@@ -180,40 +147,57 @@ Future<shelf.Response> packageVersionHandlerHtml(
 /// Handles requests for /packages/<package>/versions/<version>/admin
 Future<shelf.Response> packageAdminHandler(
     shelf.Request request, String packageName) async {
-  if (redirectPackagePages.containsKey(packageName)) {
-    return redirectResponse(redirectPackagePages[packageName]);
-  }
+  return _handlePackagePage(
+    request: request,
+    packageName: packageName,
+    versionName: null,
+    renderFn: (data) async {
+      if (userSessionData == null) {
+        return htmlResponse(renderUnauthenticatedPage());
+      }
+      if (!data.isAdmin) {
+        return htmlResponse(renderUnauthorizedPage());
+      }
+      final publishers =
+          await publisherBackend.listPublishersForUser(userSessionData.userId);
+      return renderPkgAdminPage(
+          data, publishers.map((p) => p.publisherId).toList());
+    },
+  );
+}
+
+Future<PackagePageData> _loadPackagePageData(
+    String packageName, String versionName) async {
   final package = await packageBackend.lookupPackage(packageName);
-  if (package == null) return redirectToSearch(packageName);
+  if (package == null) return null;
 
-  final version = await packageBackend.lookupPackageVersion(
-      packageName, package.latestVersion);
-  if (version == null) {
-    return redirectResponse(urls.pkgVersionsUrl(packageName));
+  final bool isLiked = (userSessionData == null)
+      ? false
+      : await accountBackend.getPackageLikeStatus(
+              userSessionData.userId, package.name) !=
+          null;
+
+  final selectedVersion = await packageBackend.lookupPackageVersion(
+      packageName, versionName ?? package.latestVersion);
+  if (selectedVersion == null) {
+    return PackagePageData.missingVersion(package: package);
   }
 
-  if (userSessionData == null) {
-    return htmlResponse(renderUnauthenticatedPage());
-  }
-
-  final isAdmin =
-      await packageBackend.isPackageAdmin(package, userSessionData?.userId);
-  if (!isAdmin) {
-    return htmlResponse(renderUnauthorizedPage());
-  }
+  final analysisView = await analyzerClient.getAnalysisView(
+      selectedVersion.package, selectedVersion.version);
 
   final uploaderEmails =
       await accountBackend.getEmailsOfUserIds(package.uploaders);
-  final analysis =
-      await analyzerClient.getAnalysisView(version.package, version.version);
-  final publishers =
-      await publisherBackend.listPublishersForUser(userSessionData.userId);
 
-  return htmlResponse(renderPkgAdminPage(
-    package,
-    uploaderEmails,
-    version,
-    analysis,
-    publishers.map((p) => p.publisherId).toList(),
-  ));
+  final isAdmin =
+      await packageBackend.isPackageAdmin(package, userSessionData?.userId);
+
+  return PackagePageData(
+    package: package,
+    version: selectedVersion,
+    analysis: analysisView,
+    uploaderEmails: uploaderEmails,
+    isAdmin: isAdmin,
+    isLiked: isLiked,
+  );
 }

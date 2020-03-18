@@ -11,6 +11,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import '../analyzer/analyzer_client.dart' show AnalysisView;
 import '../package/model_properties.dart';
 import '../scorecard/models.dart';
 import '../search/search_service.dart' show ApiPageRef;
@@ -564,6 +565,40 @@ class PackageLinks {
       repositoryUrl: repositoryUrl,
       issueTrackerUrl: issueTrackerUrl,
       baseUrl: baseUrl,
+    );
+  }
+}
+
+/// Common data structure shared between package pages.
+class PackagePageData {
+  final Package package;
+  final PackageVersion version;
+  final AnalysisView analysis;
+  final List<String> uploaderEmails;
+  final bool isAdmin;
+  final bool isLiked;
+
+  PackagePageData({
+    @required this.package,
+    @required this.version,
+    @required this.analysis,
+    @required this.uploaderEmails,
+    @required this.isAdmin,
+    @required this.isLiked,
+  });
+
+  PackagePageData.missingVersion({@required this.package})
+      : version = null,
+        analysis = null,
+        uploaderEmails = null,
+        isAdmin = null,
+        isLiked = null;
+
+  PackageView toPackageView() {
+    return PackageView.fromModel(
+      package: package,
+      version: version,
+      scoreCard: analysis?.card,
     );
   }
 }
