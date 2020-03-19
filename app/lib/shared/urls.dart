@@ -53,13 +53,13 @@ String pkgScoreUrl(String package, {String version}) =>
 
 String pkgAdminUrl(String package) => pkgPageUrl(package) + '/admin';
 
-Uri pkgArchiveDownloadUrl(String package, String version, {Uri baseUri}) {
+String pkgArchiveDownloadUrl(String package, String version, {Uri baseUri}) {
   final path =
       '/packages/${Uri.encodeComponent(package)}/versions/${Uri.encodeComponent(version)}.tar.gz';
   if (baseUri == null) {
-    return Uri.parse(path);
+    return path;
   } else {
-    return baseUri.resolve(path);
+    return baseUri.resolve(path).toString();
   }
 }
 
