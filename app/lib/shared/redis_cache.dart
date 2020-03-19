@@ -77,6 +77,26 @@ class CachePatterns {
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8)['$package-$version'];
 
+  Entry<String> uiPackageChangelog(String package, String version) => _cache
+      .withPrefix('ui-package-changelog')
+      .withTTL(Duration(minutes: 10))
+      .withCodec(utf8)['$package-$version'];
+
+  Entry<String> uiPackageExample(String package, String version) => _cache
+      .withPrefix('ui-package-example')
+      .withTTL(Duration(minutes: 10))
+      .withCodec(utf8)['$package-$version'];
+
+  Entry<String> uiPackageInstall(String package, String version) => _cache
+      .withPrefix('ui-package-install')
+      .withTTL(Duration(minutes: 10))
+      .withCodec(utf8)['$package-$version'];
+
+  Entry<String> uiPackageScore(String package, String version) => _cache
+      .withPrefix('ui-package-score')
+      .withTTL(Duration(minutes: 10))
+      .withCodec(utf8)['$package-$version'];
+
   Entry<String> uiIndexPage() => _cache
       .withPrefix('ui-indexpage')
       .withTTL(Duration(minutes: 60))

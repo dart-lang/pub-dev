@@ -84,6 +84,26 @@ class PubSiteService {
   // **** Packages
   // ****
 
+  @Route.get('/packages/<package>/versions/<version>/changelog')
+  Future<Response> packageVersionChangelog(
+          Request request, String package, String version) =>
+      packageChangelogHandler(request, package, versionName: version);
+
+  @Route.get('/packages/<package>/versions/<version>/example')
+  Future<Response> packageVersionExample(
+          Request request, String package, String version) =>
+      packageExampleHandler(request, package, versionName: version);
+
+  @Route.get('/packages/<package>/versions/<version>/install')
+  Future<Response> packageVersionInstall(
+          Request request, String package, String version) =>
+      packageInstallHandler(request, package, versionName: version);
+
+  @Route.get('/packages/<package>/versions/<version>/score')
+  Future<Response> packageVersionScore(
+          Request request, String package, String version) =>
+      packageScoreHandler(request, package, versionName: version);
+
   @Route.get('/packages/<package>/versions/<version>')
   Future<Response> packageVersion(
           Request request, String package, String version) =>
@@ -92,6 +112,22 @@ class PubSiteService {
   @Route.get('/packages/<package>/admin')
   Future<Response> packageAdmin(Request request, String package) =>
       packageAdminHandler(request, package);
+
+  @Route.get('/packages/<package>/changelog')
+  Future<Response> packageChangelog(Request request, String package) =>
+      packageChangelogHandler(request, package);
+
+  @Route.get('/packages/<package>/example')
+  Future<Response> packageExample(Request request, String package) =>
+      packageExampleHandler(request, package);
+
+  @Route.get('/packages/<package>/install')
+  Future<Response> packageInstall(Request request, String package) =>
+      packageInstallHandler(request, package);
+
+  @Route.get('/packages/<package>/score')
+  Future<Response> packageScore(Request request, String package) =>
+      packageScoreHandler(request, package);
 
   @Route.get('/packages/<package>/versions')
   Future<Response> packageVersions(Request request, String package) =>
