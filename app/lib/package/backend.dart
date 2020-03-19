@@ -34,9 +34,10 @@ import '../shared/exceptions.dart';
 import '../shared/redis_cache.dart' show cache;
 import '../shared/utils.dart';
 import 'model_properties.dart';
-import 'models.dart' as models;
+import 'models.dart';
 import 'name_tracker.dart';
-import 'pub_server/repository.dart' hide UnauthorizedAccessException;
+import 'pub_server/repository.dart' as pub_server
+    hide UnauthorizedAccessException;
 import 'pub_server/shelf_pubserver.dart' show ShelfPubServer;
 import 'upload_signer_service.dart';
 
@@ -71,8 +72,8 @@ class PackageBackend {
   ShelfPubServer get pubServer => ShelfPubServer(repository);
 
   /// Retrieves packages ordered by their created date.
-  Future<List<models.Package>> newestPackages({int offset, int limit}) {
-    final query = db.query<models.Package>()
+  Future<List<Package>> newestPackages({int offset, int limit}) {
+    final query = db.query<Package>()
       ..order('-created')
       ..offset(offset)
       ..limit(limit);
@@ -80,8 +81,8 @@ class PackageBackend {
   }
 
   /// Retrieves packages ordered by their latest version date.
-  Future<List<models.Package>> latestPackages({int offset, int limit}) {
-    final query = db.query<models.Package>()
+  Future<List<Package>> latestPackages({int offset, int limit}) {
+    final query = db.query<Package>()
       ..order('-updated')
       ..offset(offset)
       ..limit(limit);
@@ -91,13 +92,13 @@ class PackageBackend {
   /// Retrieves the names of all packages, ordered by name.
   Stream<String> allPackageNames(
       {DateTime updatedSince, bool excludeDiscontinued = false}) {
-    final query = db.query<models.Package>();
+    final query = db.query<Package>();
 
     if (updatedSince != null) {
       query.filter('updated >', updatedSince);
     }
 
-    bool isExcluded(models.Package p) =>
+    bool isExcluded(Package p) =>
         // isDiscontinued may be null
         excludeDiscontinued && p.isDiscontinued;
 
@@ -105,7 +106,7 @@ class PackageBackend {
   }
 
   /// Retrieves package versions ordered by their latest version date.
-  Future<List<models.PackageVersion>> latestPackageVersions(
+  Future<List<PackageVersion>> latestPackageVersions(
       {int offset, int limit}) async {
     final packages = await latestPackages(offset: offset, limit: limit);
     return lookupLatestVersions(packages);
@@ -114,16 +115,15 @@ class PackageBackend {
   /// Looks up a package by name.
   ///
   /// Returns `null` if the package doesn't exist.½
-  Future<models.Package> lookupPackage(String packageName) async {
-    final packageKey = db.emptyKey.append(models.Package, id: packageName);
-    return await db.lookupValue<models.Package>(packageKey, orElse: () => null);
+  Future<Package> lookupPackage(String packageName) async {
+    final packageKey = db.emptyKey.append(Package, id: packageName);
+    return await db.lookupValue<Package>(packageKey, orElse: () => null);
   }
 
   /// Looks up a package by name.
-  Future<List<models.Package>> lookupPackages(
-      Iterable<String> packageNames) async {
+  Future<List<Package>> lookupPackages(Iterable<String> packageNames) async {
     return (await db.lookup(packageNames
-            .map((p) => db.emptyKey.append(models.Package, id: p))
+            .map((p) => db.emptyKey.append(Package, id: p))
             .toList()))
         .cast();
   }
@@ -132,30 +132,27 @@ class PackageBackend {
   ///
   /// Returns null if the version is not a semantic version or if the version
   /// entity does not exists in the datastore.
-  Future<models.PackageVersion> lookupPackageVersion(
+  Future<PackageVersion> lookupPackageVersion(
       String package, String version) async {
     version = canonicalizeVersion(version);
     if (version == null) return null;
     final packageVersionKey = db.emptyKey
-        .append(models.Package, id: package)
-        .append(models.PackageVersion, id: version);
-    return (await db.lookup([packageVersionKey])).first
-        as models.PackageVersion;
+        .append(Package, id: package)
+        .append(PackageVersion, id: version);
+    return (await db.lookup([packageVersionKey])).first as PackageVersion;
   }
 
   /// Looks up the latest versions of a list of packages.
-  Future<List<models.PackageVersion>> lookupLatestVersions(
-      List<models.Package> packages) async {
-    final keys =
-        packages.map((models.Package p) => p.latestVersionKey).toList();
+  Future<List<PackageVersion>> lookupLatestVersions(
+      List<Package> packages) async {
+    final keys = packages.map((Package p) => p.latestVersionKey).toList();
     return (await db.lookup(keys)).cast();
   }
 
   /// Looks up all versions of a package.
-  Future<List<models.PackageVersion>> versionsOfPackage(
-      String packageName) async {
-    final packageKey = db.emptyKey.append(models.Package, id: packageName);
-    final query = db.query<models.PackageVersion>(ancestorKey: packageKey);
+  Future<List<PackageVersion>> versionsOfPackage(String packageName) async {
+    final packageKey = db.emptyKey.append(Package, id: packageName);
+    final query = db.query<PackageVersion>(ancestorKey: packageKey);
     return await query.run().toList();
   }
 
@@ -169,10 +166,10 @@ class PackageBackend {
   Future<void> updateOptions(String package, api.PkgOptions options) async {
     final user = await requireAuthenticatedUser();
 
-    final pkgKey = db.emptyKey.append(models.Package, id: package);
+    final pkgKey = db.emptyKey.append(Package, id: package);
     String latestVersion;
     await withTransaction(db, (tx) async {
-      final p = await tx.lookupOrNull<models.Package>(pkgKey);
+      final p = await tx.lookupOrNull<Package>(pkgKey);
       if (p == null) {
         throw NotFoundException.resource(package);
       }
@@ -214,7 +211,7 @@ class PackageBackend {
   /// publisher admin).
   ///
   /// Returns false if the user is not an admin.
-  Future<bool> isPackageAdmin(models.Package p, String userId) async {
+  Future<bool> isPackageAdmin(Package p, String userId) async {
     if (userId == null) {
       return false;
     }
@@ -235,7 +232,7 @@ class PackageBackend {
   ///
   /// Throws AuthenticationException if the user is provided.
   /// Throws AuthorizationException if the user is not an admin for the package.
-  Future<void> checkPackageAdmin(models.Package package, String userId) async {
+  Future<void> checkPackageAdmin(Package package, String userId) async {
     if (userId == null) {
       throw AuthenticationException.authenticationRequired();
     }
@@ -246,8 +243,8 @@ class PackageBackend {
 
   /// Returns the publisher info of a given package.
   Future<api.PackagePublisherInfo> getPublisherInfo(String packageName) async {
-    final key = db.emptyKey.append(models.Package, id: packageName);
-    final package = (await db.lookup<models.Package>([key])).single;
+    final key = db.emptyKey.append(Package, id: packageName);
+    final package = (await db.lookup<Package>([key])).single;
     if (package == null) {
       throw NotFoundException.resource('package "$packageName"');
     }
@@ -256,9 +253,8 @@ class PackageBackend {
 
   /// Returns the number of likes of a given package.
   Future<PackageLikesCount> getPackageLikesCount(String packageName) async {
-    final key = db.emptyKey.append(models.Package, id: packageName);
-    final package =
-        await db.lookupValue<models.Package>(key, orElse: () => null);
+    final key = db.emptyKey.append(Package, id: packageName);
+    final package = await db.lookupValue<Package>(key, orElse: () => null);
     if (package == null) {
       throw NotFoundException.resource('package "$packageName"');
     }
@@ -271,11 +267,11 @@ class PackageBackend {
     InvalidInputException.checkNotNull(request.publisherId, 'publisherId');
     final user = await requireAuthenticatedUser();
 
-    final key = db.emptyKey.append(models.Package, id: packageName);
+    final key = db.emptyKey.append(Package, id: packageName);
     await requirePackageAdmin(packageName, user.userId);
     await requirePublisherAdmin(request.publisherId, user.userId);
     final rs = await db.withTransaction<api.PackagePublisherInfo>((tx) async {
-      final package = (await db.lookup<models.Package>([key])).single;
+      final package = (await db.lookup<Package>([key])).single;
       final fromPublisherId = package.publisherId;
       package.publisherId = request.publisherId;
       package.uploaders.clear();
@@ -311,9 +307,9 @@ class PackageBackend {
 //  Code commented out while we decide if this feature is something we want to
 //  support going forward.
 //
-//    final key = db.emptyKey.append(models.Package, id: packageName);
+//    final key = db.emptyKey.append(Package, id: packageName);
 //    final rs = await db.withTransaction((tx) async {
-//      final package = (await db.lookup<models.Package>([key])).single;
+//      final package = (await db.lookup<Package>([key])).single;
 //      package.publisherId = null;
 //      package.uploaders = [user.userId];
 //      package.updated = DateTime.now().toUtc();
@@ -329,13 +325,12 @@ class PackageBackend {
   }
 }
 
-/// Loads [package], returns its [models.Package] instance, and also checks if
+/// Loads [package], returns its [Package] instance, and also checks if
 /// [userId] is an admin of the package.
 ///
 /// Throws AuthenticationException if the user is provided.
 /// Throws AuthorizationException if the user is not an admin for the package.
-Future<models.Package> requirePackageAdmin(
-    String package, String userId) async {
+Future<Package> requirePackageAdmin(String package, String userId) async {
   if (userId == null) {
     throw AuthenticationException.authenticationRequired();
   }
@@ -347,7 +342,7 @@ Future<models.Package> requirePackageAdmin(
   return p;
 }
 
-api.PackagePublisherInfo _asPackagePublisherInfo(models.Package p) =>
+api.PackagePublisherInfo _asPackagePublisherInfo(Package p) =>
     api.PackagePublisherInfo(publisherId: p.publisherId);
 
 /// Purge [cache] entries for given [package] and also global page caches.
@@ -372,9 +367,9 @@ class InviteStatus {
   bool get isDelayed => nextNotification != null;
 }
 
-/// A read-only implementation of [PackageRepository] using the Cloud Datastore
-/// for metadata and Cloud Storage for tarball storage.
-class GCloudPackageRepository extends PackageRepository {
+/// A read-only implementation of [pub_server.PackageRepository] using the Cloud
+/// Datastore for metadata and Cloud Storage for tarball storage.
+class GCloudPackageRepository extends pub_server.PackageRepository {
   final Uuid uuid = Uuid();
   final DatastoreDB db;
   final TarballStorage storage;
@@ -384,28 +379,28 @@ class GCloudPackageRepository extends PackageRepository {
   // Metadata support.
 
   @override
-  Stream<PackageVersion> versions(String package) {
-    final packageKey = db.emptyKey.append(models.Package, id: package);
-    final query = db.query<models.PackageVersion>(ancestorKey: packageKey);
-    return query.run().map((model) =>
-        PackageVersion(package, model.version, model.pubspec.jsonString));
+  Stream<pub_server.PackageVersion> versions(String package) {
+    final packageKey = db.emptyKey.append(Package, id: package);
+    final query = db.query<PackageVersion>(ancestorKey: packageKey);
+    return query.run().map((model) => pub_server.PackageVersion(
+        package, model.version, model.pubspec.jsonString));
   }
 
   /// Returns null if the version is not a semantic version or if the version
   /// entity does not exists in the datastore.
   @override
-  Future<PackageVersion> lookupVersion(String package, String version) async {
+  Future<pub_server.PackageVersion> lookupVersion(
+      String package, String version) async {
     version = canonicalizeVersion(version);
     if (version == null) return null;
 
     final packageVersionKey = db.emptyKey
-        .append(models.Package, id: package)
-        .append(models.PackageVersion, id: version);
+        .append(Package, id: package)
+        .append(PackageVersion, id: version);
 
-    final pv =
-        (await db.lookup([packageVersionKey])).first as models.PackageVersion;
+    final pv = (await db.lookup([packageVersionKey])).first as PackageVersion;
     if (pv == null) return null;
-    return PackageVersion(package, version, pv.pubspec.jsonString);
+    return pub_server.PackageVersion(package, version, pv.pubspec.jsonString);
   }
 
   // Download support.
@@ -427,7 +422,7 @@ class GCloudPackageRepository extends PackageRepository {
   // Upload support.
 
   @visibleForTesting
-  Future<PackageVersion> upload(Stream<List<int>> data) async {
+  Future<pub_server.PackageVersion> upload(Stream<List<int>> data) async {
     await requireAuthenticatedUser();
     final guid = uuid.v4().toString();
     _logger.info('Starting semi-async upload (uuid: $guid)');
@@ -441,7 +436,7 @@ class GCloudPackageRepository extends PackageRepository {
   }
 
   @override
-  Future<AsyncUploadInfo> startAsyncUpload(Uri redirectUrl) async {
+  Future<pub_server.AsyncUploadInfo> startAsyncUpload(Uri redirectUrl) async {
     _logger.info('Starting async upload.');
     // NOTE: We use a authenticated user scope here to ensure the uploading
     // user is authenticated. But we're not validating anything at this point
@@ -464,7 +459,7 @@ class GCloudPackageRepository extends PackageRepository {
 
   /// Finishes the upload of a package.
   @override
-  Future<PackageVersion> finishAsyncUpload(Uri uri) async {
+  Future<pub_server.PackageVersion> finishAsyncUpload(Uri uri) async {
     final user = await requireAuthenticatedUser();
     final guid = uri.queryParameters['upload_id'];
     _logger.info('Finishing async upload (uuid: $guid)');
@@ -482,7 +477,9 @@ class GCloudPackageRepository extends PackageRepository {
     });
   }
 
-  Future<PackageVersion> _performTarballUpload(User user, String filename,
+  Future<pub_server.PackageVersion> _performTarballUpload(
+      User user,
+      String filename,
       Future<void> Function(String name, String version) tarballUpload) async {
     _logger.info('Examining tarball content.');
 
@@ -490,23 +487,25 @@ class GCloudPackageRepository extends PackageRepository {
     final validatedUpload = await _parseAndValidateUpload(db, filename, user);
     final newVersion = validatedUpload.packageVersion;
 
-    models.Package package;
+    Package package;
 
     // Add the new package to the repository by storing the tarball and
     // inserting metadata to datastore (which happens atomically).
-    final pv = await db.withTransaction<PackageVersion>((Transaction T) async {
-      _logger.info('Starting datastore transaction.') as PackageVersion;
+    final pv = await db
+        .withTransaction<pub_server.PackageVersion>((Transaction T) async {
+      _logger.info('Starting datastore transaction.')
+          as pub_server.PackageVersion;
 
       final tuple = (await T.lookup([newVersion.key, newVersion.packageKey]));
-      final version = tuple[0] as models.PackageVersion;
-      package = tuple[1] as models.Package;
+      final version = tuple[0] as PackageVersion;
+      package = tuple[1] as Package;
 
       // If the version already exists, we fail.
       if (version != null) {
         await T.rollback();
         _logger.info('Version ${version.version} of package '
             '${version.package} already exists, rolling transaction back.');
-        throw GenericProcessingException(
+        throw pub_server.GenericProcessingException(
             'Version ${version.version} of package '
             '${version.package} already exists.');
       }
@@ -516,7 +515,7 @@ class GCloudPackageRepository extends PackageRepository {
           matchesReservedPackageName(newVersion.package) &&
           !user.email.endsWith('@google.com')) {
         await T.rollback();
-        throw GenericProcessingException(
+        throw pub_server.GenericProcessingException(
             'Package name ${newVersion.package} is reserved.');
       }
 
@@ -573,7 +572,7 @@ class GCloudPackageRepository extends PackageRepository {
         // store them again.
         await _updatePackageSortIndex(package.key);
 
-        return PackageVersion(newVersion.package, newVersion.version,
+        return pub_server.PackageVersion(newVersion.package, newVersion.version,
             newVersion.pubspec.jsonString);
       } catch (error, stack) {
         _logger.warning('Error while committing: $error, $stack');
@@ -631,12 +630,12 @@ class GCloudPackageRepository extends PackageRepository {
       _logger.info('Trying to update the `sort_order` field.');
       await db.withTransaction((Transaction T) async {
         final versions =
-            await T.query<models.PackageVersion>(packageKey).run().toList();
+            await T.query<PackageVersion>(packageKey).run().toList();
         versions.sort((versionA, versionB) {
           return versionA.semanticVersion.compareTo(versionB.semanticVersion);
         });
 
-        final List<models.PackageVersion> modifiedVersions = [];
+        final List<PackageVersion> modifiedVersions = [];
 
         for (int i = 0; i < versions.length; i++) {
           final version = versions[i];
@@ -668,18 +667,19 @@ class GCloudPackageRepository extends PackageRepository {
   Future<void> addUploader(String packageName, String uploaderEmail) async {
     uploaderEmail = uploaderEmail.toLowerCase();
     final user = await requireAuthenticatedUser();
-    final packageKey = db.emptyKey.append(models.Package, id: packageName);
-    final package = (await db.lookup([packageKey])).first as models.Package;
+    final packageKey = db.emptyKey.append(Package, id: packageName);
+    final package = (await db.lookup([packageKey])).first as Package;
 
     await _validatePackageUploader(packageName, package, user.userId);
     // Don't send invites for publisher-owned packages.
     if (package.publisherId != null) {
-      throw GenericProcessingException(
+      throw pub_server.GenericProcessingException(
           'Package is owned by publisher "${package.publisherId}".');
     }
 
     if (!isValidEmail(uploaderEmail)) {
-      throw GenericProcessingException('Not a valid email: `$uploaderEmail`.');
+      throw pub_server.GenericProcessingException(
+          'Not a valid email: `$uploaderEmail`.');
     }
 
     final uploader = await accountBackend.lookupUserByEmail(uploaderEmail);
@@ -702,12 +702,12 @@ class GCloudPackageRepository extends PackageRepository {
     );
 
     if (!status.emailSent) {
-      throw GenericProcessingException(
+      throw pub_server.GenericProcessingException(
           'Previous invite is still active, next notification can be sent '
           'on ${status.nextNotification.toIso8601String()}.');
     }
 
-    throw GenericProcessingException(
+    throw pub_server.GenericProcessingException(
         'We have sent an invitation to $uploaderEmail, '
         'they will be added as uploader after they confirm it.');
   }
@@ -721,8 +721,8 @@ class GCloudPackageRepository extends PackageRepository {
     }
     assert(fromUserId != null);
     return db.withTransaction((Transaction tx) async {
-      final packageKey = db.emptyKey.append(models.Package, id: packageName);
-      final package = (await tx.lookup([packageKey])).first as models.Package;
+      final packageKey = db.emptyKey.append(Package, id: packageName);
+      final package = (await tx.lookup([packageKey])).first as Package;
 
       try {
         await _validatePackageUploader(packageName, package, fromUserId);
@@ -760,7 +760,7 @@ class GCloudPackageRepository extends PackageRepository {
   }
 
   Future<void> _validatePackageUploader(
-      String packageName, models.Package package, String userId) async {
+      String packageName, Package package, String userId) async {
     // Fail if package doesn't exist.
     if (package == null) {
       throw NotFoundException.resource(packageName);
@@ -777,8 +777,8 @@ class GCloudPackageRepository extends PackageRepository {
     uploaderEmail = uploaderEmail.toLowerCase();
     final user = await requireAuthenticatedUser();
     return db.withTransaction((Transaction T) async {
-      final packageKey = db.emptyKey.append(models.Package, id: packageName);
-      final package = (await T.lookup([packageKey])).first as models.Package;
+      final packageKey = db.emptyKey.append(Package, id: packageName);
+      final package = (await T.lookup([packageKey])).first as Package;
 
       await _validatePackageUploader(packageName, package, user.userId);
 
@@ -786,7 +786,7 @@ class GCloudPackageRepository extends PackageRepository {
       final uploader = await accountBackend.lookupUserByEmail(uploaderEmail);
       if (uploader == null || !package.containsUploader(uploader.userId)) {
         await T.rollback();
-        throw GenericProcessingException(
+        throw pub_server.GenericProcessingException(
             'The uploader to remove does not exist.');
       }
 
@@ -794,7 +794,7 @@ class GCloudPackageRepository extends PackageRepository {
       // fail with an error.
       if (package.uploaderCount <= 1) {
         await T.rollback();
-        throw LastUploaderRemoveException();
+        throw pub_server.LastUploaderRemoveException();
       }
 
       // At the moment we don't validate whether the other email addresses
@@ -802,7 +802,8 @@ class GCloudPackageRepository extends PackageRepository {
       // of a package, we don't allow self-removal.
       if (user.email == uploader.email || user.userId == uploader.userId) {
         await T.rollback();
-        throw GenericProcessingException('Self-removal is not allowed. '
+        throw pub_server.GenericProcessingException(
+            'Self-removal is not allowed. '
             'Use another account to remove this email address.');
       }
 
@@ -861,10 +862,10 @@ Future _saveTarballToFS(Stream<List<int>> data, String filename) async {
 }
 
 /// Creates a new `Package` and populates all of it's fields.
-models.Package _newPackageFromVersion(
-    DatastoreDB db, models.PackageVersion version, String userId) {
+Package _newPackageFromVersion(
+    DatastoreDB db, PackageVersion version, String userId) {
   final now = DateTime.now().toUtc();
-  return models.Package()
+  return Package()
     ..parentKey = db.emptyKey
     ..id = version.pubspec.name
     ..name = version.pubspec.name
@@ -881,9 +882,9 @@ models.Package _newPackageFromVersion(
 }
 
 class _ValidatedUpload {
-  final models.PackageVersion packageVersion;
-  final models.PackageVersionPubspec packageVersionPubspec;
-  final models.PackageVersionInfo packageVersionInfo;
+  final PackageVersion packageVersion;
+  final PackageVersionPubspec packageVersionPubspec;
+  final PackageVersionInfo packageVersionInfo;
 
   _ValidatedUpload(
     this.packageVersion,
@@ -898,39 +899,39 @@ class _ValidatedUpload {
 ///   * is a valid `tar.gz` file
 ///   * contains a valid `pubspec.yaml` file
 ///   * reads readme, changelog and pubspec files
-///   * creates a [models.PackageVersion] and populates it with all metadata
+///   * creates a [PackageVersion] and populates it with all metadata
 Future<_ValidatedUpload> _parseAndValidateUpload(
     DatastoreDB db, String filename, User user) async {
   assert(user != null);
 
   final archive = await summarizePackageArchive(filename);
   if (archive.hasIssues) {
-    throw GenericProcessingException(archive.issues.first.message);
+    throw pub_server.GenericProcessingException(archive.issues.first.message);
   }
 
   final pubspec = Pubspec.fromYaml(archive.pubspecContent);
   if (!await nameTracker.accept(pubspec.name)) {
-    throw GenericProcessingException(
+    throw pub_server.GenericProcessingException(
         'Package name is too similar to another active or moderated package.');
   }
 
   if (pubspec.hasBothAuthorAndAuthors) {
-    throw GenericProcessingException(
+    throw pub_server.GenericProcessingException(
         'Do not specify both `author` and `authors` in `pubspec.yaml`.');
   }
 
-  final packageKey = db.emptyKey.append(models.Package, id: pubspec.name);
+  final packageKey = db.emptyKey.append(Package, id: pubspec.name);
 
   final versionString = canonicalizeVersion(pubspec.version);
   if (versionString == null) {
-    throw GenericProcessingException(
+    throw pub_server.GenericProcessingException(
         'Unable to canonicalize the version: ${pubspec.version}');
   }
 
   final key =
-      models.QualifiedVersionKey(package: pubspec.name, version: versionString);
+      QualifiedVersionKey(package: pubspec.name, version: versionString);
 
-  final version = models.PackageVersion()
+  final version = PackageVersion()
     ..id = versionString
     ..parentKey = packageKey
     ..version = versionString
@@ -948,12 +949,12 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
     ..sortOrder = 1
     ..uploader = user.userId;
 
-  final versionPubspec = models.PackageVersionPubspec()
+  final versionPubspec = PackageVersionPubspec()
     ..initFromKey(key)
     ..updated = version.created
     ..pubspec = pubspec;
 
-  final versionInfo = models.PackageVersionInfo()
+  final versionInfo = PackageVersionInfo()
     ..initFromKey(key)
     ..updated = version.created
     ..libraries = archive.libraries
