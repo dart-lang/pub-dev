@@ -390,3 +390,18 @@ Map<String, String> parseCookieHeader(String cookieHeader) {
     return <String, String>{};
   }
 }
+
+/// Returns the UUID-formatted string of [bytes].
+String formatUuid(List<int> bytes) {
+  if (bytes.length != 16) {
+    throw ArgumentError('16 bytes expected, got: ${bytes.length}');
+  }
+  String formatByte(int byte) => byte.toRadixString(16).padLeft(2, '0');
+  return [
+    bytes.sublist(0, 4).map(formatByte).join(),
+    bytes.sublist(4, 6).map(formatByte).join(),
+    bytes.sublist(6, 8).map(formatByte).join(),
+    bytes.sublist(8, 10).map(formatByte).join(),
+    bytes.sublist(10).map(formatByte).join(),
+  ].join('-');
+}

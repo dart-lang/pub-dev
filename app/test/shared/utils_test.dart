@@ -98,4 +98,13 @@ void main() {
       expect(parseCookieHeader('a=b; c=dd'), {'a': 'b', 'c': 'dd'});
     });
   });
+
+  group('uuid', () {
+    test('format known UUId', () {
+      expect(
+          formatUuid(
+              [11, 111, 22, 222, 33, 3, 44, 4, 55, 5, 66, 6, 77, 7, 88, 8]),
+          '0b6f16de-2103-2c04-3705-42064d075808');
+    });
+  });
 }
