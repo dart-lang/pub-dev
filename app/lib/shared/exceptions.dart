@@ -197,6 +197,10 @@ class AuthenticationException extends ResponseException
       AuthenticationException._(
           '`accessToken` does not match current active user.');
 
+  /// Signaling that User lookup (via e-mail) failed.
+  factory AuthenticationException.userNotFound() =>
+      AuthenticationException._('User not found.');
+
   @override
   String toString() => '$code: $message'; // used by package:pub_server
 }

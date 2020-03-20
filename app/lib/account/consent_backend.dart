@@ -7,6 +7,7 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_dev/shared/datastore_helper.dart';
 import 'package:retry/retry.dart';
 
 import '../frontend/email_sender.dart';
@@ -219,9 +220,16 @@ class ConsentBackend {
 
   /// Returns the [Consent] for [consentId] and checks if it is for [user].
   Future<Consent> _lookupAndCheck(String consentId, User user) async {
-    final c = await _db.lookupValue<Consent>(
-        _db.emptyKey.append(Consent, id: consentId),
-        orElse: () => null);
+    final key = _db.emptyKey.append(Consent, id: consentId);
+    final c = await withRetryTransaction(_db, (tx) async {
+      final c = await tx.lookupValue<Consent>(key, orElse: () => null);
+      if (c == null) return null;
+      if (c.userId == null && c.email == user.email) {
+        c.userId = user.userId;
+        tx.queueMutations(inserts: [c]);
+      }
+      return c;
+    });
     if (c == null) {
       throw NotFoundException.resource('consent: $consentId');
     }
@@ -316,7 +324,10 @@ class _PackageUploaderAction extends ConsentAction {
         await accountBackend.getEmailOfUserId(consent.fromUserId);
     final uploader = consent.userId != null
         ? await accountBackend.lookupUserById(consent.userId)
-        : await accountBackend.lookupOrCreateUserByEmail(consent.email);
+        : await accountBackend.lookupUserByEmail(consent.email);
+    if (uploader == null) {
+      throw AuthenticationException.userNotFound();
+    }
 
     await packageBackend.repository.confirmUploader(
         consent.fromUserId, fromUserEmail, packageName, uploader);
@@ -411,7 +422,10 @@ class _PublisherMemberAction extends ConsentAction {
   Future<void> onAccept(Consent consent) async {
     final member = consent.userId != null
         ? await accountBackend.lookupUserById(consent.userId)
-        : await accountBackend.lookupOrCreateUserByEmail(consent.email);
+        : await accountBackend.lookupUserByEmail(consent.email);
+    if (member == null) {
+      throw AuthenticationException.userNotFound();
+    }
     final publisherId = consent.args.single;
     await publisherBackend.inviteConsentGranted(publisherId, member.userId);
   }
