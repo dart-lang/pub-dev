@@ -20,7 +20,9 @@ window.addEventListener('DOMContentLoaded', function () {
     if (elem.hasAttribute('href')) {
       data.event_callback = function() { document.location = elem.href; };
       data.transport_type = 'beacon';
-      e.preventDefault();
+
+      // Fallback location change in case the Google Tag Manager is blocked.
+      setTimeout(function() { document.location = elem.href; }, 400);
     }
 
     gtag('event', elem.dataset.gaClickEvent, data);
