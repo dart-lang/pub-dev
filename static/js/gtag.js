@@ -18,11 +18,17 @@ window.addEventListener('DOMContentLoaded', function () {
     // Events on links should be sent via beacon, see:
     // https://support.google.com/analytics/answer/7478520?hl=en
     if (elem.hasAttribute('href')) {
-      data.event_callback = function() { document.location = elem.href; };
+      var updated = false;
+      var callbackFn = function() {
+        if (updated) return;
+        updated = true;
+        document.location = elem.href;
+      };
+      data.event_callback = callbackFn;
       data.transport_type = 'beacon';
 
       // Fallback location change in case the Google Tag Manager is blocked.
-      setTimeout(function() { document.location = elem.href; }, 400);
+      setTimeout(callbackFn, 400);
     }
 
     gtag('event', elem.dataset.gaClickEvent, data);
