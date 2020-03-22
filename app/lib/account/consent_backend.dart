@@ -326,6 +326,8 @@ class _PackageUploaderAction extends ConsentAction {
         ? await accountBackend.lookupUserById(consent.userId)
         : await accountBackend.lookupUserByEmail(consent.email);
     if (uploader == null) {
+      // NOTE: This should never happen because `userId` of the consent entity
+      //       will be set when it is loaded.
       throw AuthenticationException.userNotFound();
     }
 
@@ -424,6 +426,8 @@ class _PublisherMemberAction extends ConsentAction {
         ? await accountBackend.lookupUserById(consent.userId)
         : await accountBackend.lookupUserByEmail(consent.email);
     if (member == null) {
+      // NOTE: This should never happen because `userId` of the consent entity
+      //       will be set when it is loaded.
       throw AuthenticationException.userNotFound();
     }
     final publisherId = consent.args.single;
