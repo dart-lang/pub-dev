@@ -222,17 +222,16 @@ class ConsentBackend {
   Future<Consent> _lookupAndCheck(String consentId, User user) async {
     final key = _db.emptyKey.append(Consent, id: consentId);
     final c = await withRetryTransaction(_db, (tx) async {
-      final c = await tx.lookupValue<Consent>(key, orElse: () => null);
-      if (c == null) return null;
+      final c = await tx.lookupOrNull<Consent>(key);
+      if (c == null) {
+        throw NotFoundException.resource('consent: $consentId');
+      }
       if (c.userId == null && c.email == user.email) {
         c.userId = user.userId;
         tx.queueMutations(inserts: [c]);
       }
       return c;
     });
-    if (c == null) {
-      throw NotFoundException.resource('consent: $consentId');
-    }
 
     // Checking that consent is for the current user.
     if (c.userId != null) {
