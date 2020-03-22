@@ -221,7 +221,7 @@ class ConsentBackend {
   /// Returns the [Consent] for [consentId] and checks if it is for [user].
   Future<Consent> _lookupAndCheck(String consentId, User user) async {
     final key = _db.emptyKey.append(Consent, id: consentId);
-    final c = await withRetryTransaction(_db, (tx) async {
+    return await withRetryTransaction(_db, (tx) async {
       final c = await tx.lookupOrNull<Consent>(key);
       if (c == null) {
         throw NotFoundException.resource('consent: $consentId');
@@ -230,20 +230,19 @@ class ConsentBackend {
         c.userId = user.userId;
         tx.queueMutations(inserts: [c]);
       }
+
+      // Checking that consent is for the current user.
+      if (c.userId != null) {
+        InvalidInputException.check(c.userId == user.userId,
+            'This invitation is not for the user account currently logged in.');
+      }
+      final action = _actions[c.kind];
+      if (!action.permitConfirmationWithOtherEmail && c.email != null) {
+        InvalidInputException.check(c.email == user.email,
+            'This invitation is not for the user account currently logged in.');
+      }
       return c;
     });
-
-    // Checking that consent is for the current user.
-    if (c.userId != null) {
-      InvalidInputException.check(c.userId == user.userId,
-          'This invitation is not for the user account currently logged in.');
-    }
-    final action = _actions[c.kind];
-    if (!action.permitConfirmationWithOtherEmail && c.email != null) {
-      InvalidInputException.check(c.email == user.email,
-          'This invitation is not for the user account currently logged in.');
-    }
-    return c;
   }
 
   Future<void> _accept(Consent consent) async {
