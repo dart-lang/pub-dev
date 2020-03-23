@@ -26,6 +26,7 @@ window.addEventListener('DOMContentLoaded', function () {
       };
       data.event_callback = callbackFn;
       data.transport_type = 'beacon';
+      e.preventDefault();
 
       // Fallback location change in case the Google Tag Manager is blocked.
       setTimeout(callbackFn, 100);
