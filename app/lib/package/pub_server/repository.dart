@@ -123,12 +123,6 @@ abstract class PackageRepository {
   /// Whether the [version] of [package] exists.
   Future<PackageVersion> lookupVersion(String package, String version);
 
-  /// Uploads a  pub package.
-  ///
-  /// [data] must be a stream of a valid .tar.gz file.
-  Future<PackageVersion> upload(Stream<List<int>> data) async =>
-      throw UnsupportedError('No upload support.');
-
   /// Starts a  upload.
   ///
   /// The given [redirectUrl] instructs the uploading client to make a GET

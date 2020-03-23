@@ -7,9 +7,7 @@ library pub_server.shelf_pubserver;
 import 'dart:async';
 import 'dart:convert' as convert;
 
-import 'package:http_parser/http_parser.dart';
 import 'package:logging/logging.dart';
-import 'package:mime/mime.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:yaml/yaml.dart';
@@ -28,16 +26,6 @@ class ShelfPubServer {
   final PackageRepository repository;
 
   ShelfPubServer(this.repository);
-
-  Future<shelf.Response> requestHandler(shelf.Request request) async {
-    final path = request.requestedUri.path;
-    if (request.method == 'POST' &&
-        path == '/api/packages/versions/newUpload') {
-      return _uploadSimple(request.requestedUri,
-          request.headers['content-type'], request.read());
-    }
-    return shelf.Response.notFound(null);
-  }
 
   // Metadata handlers.
 
@@ -152,54 +140,6 @@ class ShelfPubServer {
     }
   }
 
-  // Upload custom handlers.
-
-  Future<shelf.Response> _uploadSimple(
-      Uri uri, String contentType, Stream<List<int>> stream) async {
-    _logger.info('Perform simple upload.');
-
-    final boundary = _getBoundary(contentType);
-
-    if (boundary == null) {
-      return _badRequest(
-          'Upload must contain a multipart/form-data content type.');
-    }
-
-    // We have to listen to all multiparts: Just doing `parts.first` will
-    // result in the cancellation of the subscription which causes
-    // eventually a destruction of the socket, this is an odd side-effect.
-    // What we would like to have is something like this:
-    //     parts.expect(1).then((part) { upload(part); })
-    MimeMultipart thePart;
-
-    await for (MimeMultipart part
-        in stream.transform(MimeMultipartTransformer(boundary))) {
-      // If we get more than one part, we'll ignore the rest of the input.
-      if (thePart != null) {
-        continue;
-      }
-
-      thePart = part;
-    }
-
-    try {
-      // TODO: Ensure that `part.headers['content-disposition']` is
-      // `form-data; name="file"; filename="package.tar.gz`
-      final version = await repository.upload(thePart);
-      if (cache != null) {
-        _logger.info('Invalidating cache for package ${version.packageName}.');
-        await purgePackageCache(version.packageName);
-      }
-      _logger.info('Redirecting to found url.');
-      return shelf.Response.found(_finishUploadSimpleUrl(uri));
-    } catch (error, stack) {
-      _logger.warning('Error occured', error, stack);
-      // TODO: Do error checking and return error codes?
-      return shelf.Response.found(
-          _finishUploadSimpleUrl(uri, error: error.toString()));
-    }
-  }
-
   // Uploader handlers.
 
   Future<shelf.Response> addUploader(String package, String body) async {
@@ -275,13 +215,6 @@ class ShelfPubServer {
   Uri _finishUploadAsyncUrl(Uri url) =>
       url.resolve('/api/packages/versions/newUploadFinish');
 
-  // Upload custom urls.
-
-  Uri _finishUploadSimpleUrl(Uri url, {String error}) {
-    final postfix = error == null ? '' : '?error=${Uri.encodeComponent(error)}';
-    return url.resolve('/api/packages/versions/newUploadFinish$postfix');
-  }
-
   bool isSemanticVersion(String version) {
     try {
       semver.Version.parse(version);
@@ -290,13 +223,4 @@ class ShelfPubServer {
       return false;
     }
   }
-}
-
-String _getBoundary(String contentType) {
-  final mediaType = MediaType.parse(contentType);
-
-  if (mediaType.type == 'multipart' && mediaType.subtype == 'form-data') {
-    return mediaType.parameters['boundary'];
-  }
-  return null;
 }

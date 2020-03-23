@@ -13,6 +13,7 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 import 'package:uuid/uuid.dart';
 
@@ -425,7 +426,7 @@ class GCloudPackageRepository extends PackageRepository {
 
   // Upload support.
 
-  @override
+  @visibleForTesting
   Future<PackageVersion> upload(Stream<List<int>> data) async {
     await requireAuthenticatedUser();
     final guid = uuid.v4().toString();
