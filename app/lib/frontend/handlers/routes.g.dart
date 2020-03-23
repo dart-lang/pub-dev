@@ -20,11 +20,22 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add('GET', r'/flutter/packages', service.flutterPackages);
   router.add('GET', r'/flutter/favorites', service.flutterFavoritesPackages);
   router.add('GET', r'/web/packages', service.webPackages);
+  router.add('GET', r'/packages/<package>/versions/<version>/changelog',
+      service.packageVersionChangelog);
+  router.add('GET', r'/packages/<package>/versions/<version>/example',
+      service.packageVersionExample);
+  router.add('GET', r'/packages/<package>/versions/<version>/install',
+      service.packageVersionInstall);
+  router.add('GET', r'/packages/<package>/versions/<version>/score',
+      service.packageVersionScore);
   router.add(
       'GET', r'/packages/<package>/versions/<version>', service.packageVersion);
   router.add('GET', r'/packages/<package>/admin', service.packageAdmin);
-  router.add(
-      'GET', r'/packages/<package>/versions', service.packageVersionsJson);
+  router.add('GET', r'/packages/<package>/changelog', service.packageChangelog);
+  router.add('GET', r'/packages/<package>/example', service.packageExample);
+  router.add('GET', r'/packages/<package>/install', service.packageInstall);
+  router.add('GET', r'/packages/<package>/score', service.packageScore);
+  router.add('GET', r'/packages/<package>/versions', service.packageVersions);
   router.add('GET', r'/packages/<package>', service.package);
   router.add('GET', r'/documentation/<package>/<version>/<path|[^]*>',
       service.documentation);

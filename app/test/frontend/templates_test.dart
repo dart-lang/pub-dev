@@ -135,61 +135,82 @@ void main() {
       expectGoldenFile(html, 'landing_page.html');
     });
 
-    scopedTest('package show page', () {
-      final String html = renderPkgShowPage(PackagePageData(
-        package: foobarPackage,
-        isLiked: false,
-        uploaderEmails: foobarUploaderEmails,
-        version: foobarStablePV,
-        analysis: AnalysisView(
-          card: ScoreCardData(
-            reportTypes: ['pana', 'dartdoc'],
-            healthScore: 0.1,
-          ),
-          panaReport: PanaReport(
-              timestamp: DateTime(2018, 02, 05),
-              panaRuntimeInfo: _panaRuntimeInfo,
-              reportStatus: ReportStatus.success,
-              healthScore: null,
-              maintenanceScore: null,
-              derivedTags: null,
-              pkgDependencies: [
-                PkgDependency(
-                  package: 'quiver',
-                  dependencyType: 'direct',
-                  constraintType: 'normal',
-                  constraint: VersionConstraint.parse('^1.0.0'),
-                  resolved: Version.parse('1.0.0'),
-                  available: null,
-                  errors: null,
-                ),
-                PkgDependency(
-                  package: 'http',
-                  dependencyType: 'direct',
-                  constraintType: 'normal',
-                  constraint: VersionConstraint.parse('>=1.0.0 <1.2.0'),
-                  resolved: Version.parse('1.2.0'),
-                  available: Version.parse('1.3.0'),
-                  errors: null,
-                )
-              ],
-              licenses: [LicenseFile('LICENSE.txt', 'BSD')],
-              panaSuggestions: null,
-              healthSuggestions: null,
-              maintenanceSuggestions: null,
-              flags: null),
-          dartdocReport: DartdocReport(
-            reportStatus: ReportStatus.success,
-            coverage: 1.0,
-            coverageScore: 1.0,
-            healthSuggestions: [],
-            maintenanceSuggestions: [],
-          ),
+    final foobarPageData = PackagePageData(
+      package: foobarPackage,
+      isLiked: false,
+      uploaderEmails: foobarUploaderEmails,
+      version: foobarStablePV,
+      analysis: AnalysisView(
+        card: ScoreCardData(
+          reportTypes: ['pana', 'dartdoc'],
+          healthScore: 0.1,
         ),
-        isAdmin: true,
-      ));
+        panaReport: PanaReport(
+            timestamp: DateTime(2018, 02, 05),
+            panaRuntimeInfo: _panaRuntimeInfo,
+            reportStatus: ReportStatus.success,
+            healthScore: null,
+            maintenanceScore: null,
+            derivedTags: null,
+            pkgDependencies: [
+              PkgDependency(
+                package: 'quiver',
+                dependencyType: 'direct',
+                constraintType: 'normal',
+                constraint: VersionConstraint.parse('^1.0.0'),
+                resolved: Version.parse('1.0.0'),
+                available: null,
+                errors: null,
+              ),
+              PkgDependency(
+                package: 'http',
+                dependencyType: 'direct',
+                constraintType: 'normal',
+                constraint: VersionConstraint.parse('>=1.0.0 <1.2.0'),
+                resolved: Version.parse('1.2.0'),
+                available: Version.parse('1.3.0'),
+                errors: null,
+              )
+            ],
+            licenses: [LicenseFile('LICENSE.txt', 'BSD')],
+            panaSuggestions: null,
+            healthSuggestions: null,
+            maintenanceSuggestions: null,
+            flags: null),
+        dartdocReport: DartdocReport(
+          reportStatus: ReportStatus.success,
+          coverage: 1.0,
+          coverageScore: 1.0,
+          healthSuggestions: [],
+          maintenanceSuggestions: [],
+        ),
+      ),
+      isAdmin: true,
+    );
 
+    scopedTest('package show page', () {
+      final String html = renderPkgShowPage(foobarPageData);
       expectGoldenFile(html, 'pkg_show_page.html');
+    });
+
+    scopedTest('package changelog page', () {
+      final String html = renderPkgChangelogPage(foobarPageData);
+      expectGoldenFile(html, 'pkg_changelog_page.html');
+    });
+
+    scopedTest('package example page', () {
+      final String html = renderPkgExamplePage(foobarPageData);
+      expectGoldenFile(html, 'pkg_example_page.html');
+    });
+
+    scopedTest('package install page', () {
+      final String html = renderPkgInstallPage(foobarPageData);
+      expectGoldenFile(html, 'pkg_install_page.html');
+    });
+
+    scopedTest('package score page', () {
+      final String html = renderPkgScorePage(foobarPageData);
+      expectGoldenFile(html, 'pkg_score_page.html');
     });
 
     scopedTest('package show page - with version', () {

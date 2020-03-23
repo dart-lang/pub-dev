@@ -87,6 +87,74 @@ Future<shelf.Response> packageVersionsListHandler(
   );
 }
 
+/// Handles requests for /packages/<package>/changelog
+/// Handles requests for /packages/<package>/versions/<version>/changelog
+Future<shelf.Response> packageChangelogHandler(
+    shelf.Request request, String packageName,
+    {String versionName}) async {
+  return await _handlePackagePage(
+    request: request,
+    packageName: packageName,
+    versionName: versionName,
+    renderFn: (data) {
+      if (data.version.changelog == null) {
+        return redirectResponse(
+            urls.pkgPageUrl(packageName, version: versionName));
+      }
+      return renderPkgChangelogPage(data);
+    },
+    cacheEntry: cache.uiPackageChangelog(packageName, versionName),
+  );
+}
+
+/// Handles requests for /packages/<package>/example
+/// Handles requests for /packages/<package>/versions/<version>/example
+Future<shelf.Response> packageExampleHandler(
+    shelf.Request request, String packageName,
+    {String versionName}) async {
+  return await _handlePackagePage(
+    request: request,
+    packageName: packageName,
+    versionName: versionName,
+    renderFn: (data) {
+      if (data.version.example == null) {
+        return redirectResponse(
+            urls.pkgPageUrl(packageName, version: versionName));
+      }
+      return renderPkgExamplePage(data);
+    },
+    cacheEntry: cache.uiPackageExample(packageName, versionName),
+  );
+}
+
+/// Handles requests for /packages/<package>/install
+/// Handles requests for /packages/<package>/versions/<version>/install
+Future<shelf.Response> packageInstallHandler(
+    shelf.Request request, String packageName,
+    {String versionName}) async {
+  return await _handlePackagePage(
+    request: request,
+    packageName: packageName,
+    versionName: versionName,
+    renderFn: (data) => renderPkgInstallPage(data),
+    cacheEntry: cache.uiPackageInstall(packageName, versionName),
+  );
+}
+
+/// Handles requests for /packages/<package>/score
+/// Handles requests for /packages/<package>/versions/<version>/score
+Future<shelf.Response> packageScoreHandler(
+    shelf.Request request, String packageName,
+    {String versionName}) async {
+  return await _handlePackagePage(
+    request: request,
+    packageName: packageName,
+    versionName: versionName,
+    renderFn: (data) => renderPkgScorePage(data),
+    cacheEntry: cache.uiPackageScore(packageName, versionName),
+  );
+}
+
 /// Handles requests for /packages/<package>
 /// Handles requests for /packages/<package>/versions/<version>
 Future<shelf.Response> packageVersionHandlerHtml(

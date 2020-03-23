@@ -248,11 +248,82 @@ String renderPkgHeader(PackagePageData data) {
 
 /// Renders the package detail page.
 String renderPkgShowPage(PackagePageData data) {
+  if (requestContext.isExperimental) {
+    return _renderPkgPage(
+      data: data,
+      tabs: buildPackageTabs(
+        packagePageData: data,
+        readmeTab: _readmeTab(data),
+      ),
+    );
+  } else {
+    return _renderPkgPage(
+      data: data,
+      tabs: buildPackageTabs(
+        packagePageData: data,
+        readmeTab: _readmeTab(data),
+        changelogTab: _changelogTab(data),
+        exampleTab: _exampleTab(data),
+        installingTab: _installTab(data),
+        scoreTab: _scoreTab(data),
+      ),
+    );
+  }
+}
+
+/// Renders the package changelog page.
+String renderPkgChangelogPage(PackagePageData data) {
+  return _renderPkgPage(
+    data: data,
+    tabs: buildPackageTabs(
+      packagePageData: data,
+      changelogTab: _changelogTab(data),
+    ),
+  );
+}
+
+/// Renders the package example page.
+String renderPkgExamplePage(PackagePageData data) {
+  return _renderPkgPage(
+    data: data,
+    tabs: buildPackageTabs(
+      packagePageData: data,
+      exampleTab: _exampleTab(data),
+    ),
+  );
+}
+
+/// Renders the package install page.
+String renderPkgInstallPage(PackagePageData data) {
+  return _renderPkgPage(
+    data: data,
+    tabs: buildPackageTabs(
+      packagePageData: data,
+      installingTab: _installTab(data),
+    ),
+  );
+}
+
+/// Renders the package score page.
+String renderPkgScorePage(PackagePageData data) {
+  return _renderPkgPage(
+    data: data,
+    tabs: buildPackageTabs(
+      packagePageData: data,
+      scoreTab: _scoreTab(data),
+    ),
+  );
+}
+
+String _renderPkgPage({
+  @required PackagePageData data,
+  @required List<Tab> tabs,
+}) {
   final card = data.analysis?.card;
 
   final content = renderDetailPage(
     headerHtml: renderPkgHeader(data),
-    tabs: _pkgTabs(data),
+    tabs: tabs,
     infoBoxLead: data.version.ellipsizedDescription,
     infoBoxHtml: renderPkgInfoBox(data),
     footerHtml: renderPackageSchemaOrgHtml(data),
@@ -300,65 +371,82 @@ PageData pkgPageData(Package package, PackageVersion selectedVersion) {
   );
 }
 
-List<Tab> _pkgTabs(
-  PackagePageData data,
-) {
-  final selectedVersion = data.version;
-  final card = data.analysis?.card;
+Tab _readmeTab(PackagePageData data) {
+  final version = data.version;
+  final baseUrl = version.packageLinks.baseUrl;
+  final content = version.readme == null
+      ? ''
+      : renderFile(
+          version.readme,
+          baseUrl,
+          isChangelog: requestContext.isExperimental,
+        );
+  return Tab.withContent(
+    id: 'readme',
+    title: 'Readme',
+    contentHtml: content,
+    isMarkdown: true,
+  );
+}
 
-  String renderedReadme;
-  final packageLinks = selectedVersion.packageLinks;
-  final baseUrl = packageLinks.baseUrl;
-  if (selectedVersion.readme != null) {
-    renderedReadme = renderFile(selectedVersion.readme, baseUrl);
-  }
+Tab _changelogTab(PackagePageData data) {
+  final version = data.version;
+  if (version.changelog == null) return null;
+  final baseUrl = version.packageLinks.baseUrl;
+  final content = renderFile(
+    version.changelog,
+    baseUrl,
+    isChangelog: requestContext.isExperimental,
+  );
+  return Tab.withContent(
+    id: 'changelog',
+    title: 'Changelog',
+    contentHtml: content,
+    isMarkdown: true,
+  );
+}
 
-  String renderedChangelog;
-  if (selectedVersion.changelog != null) {
-    renderedChangelog = renderFile(selectedVersion.changelog, baseUrl,
-        isChangelog: requestContext.isExperimental);
-  }
+Tab _exampleTab(PackagePageData data) {
+  final version = data.version;
+  if (version.example == null) return null;
+  final baseUrl = version.packageLinks.baseUrl;
 
   String renderedExample;
-  if (selectedVersion.example != null) {
-    final exampleFilename = selectedVersion.example.filename;
-    renderedExample = renderFile(selectedVersion.example, baseUrl);
-    if (renderedExample != null) {
-      final url = getRepositoryUrl(baseUrl, exampleFilename);
-      final escapedName = htmlEscape.convert(exampleFilename);
-      final link = url == null
-          ? escapedName
-          : '<a href="$url" target="_blank" rel="noopener noreferrer nofollow">$escapedName</a>';
-      renderedExample = '<p style="font-family: monospace"><b>$link</b></p>\n'
-          '$renderedExample';
-    }
+  final exampleFilename = version.example.filename;
+  renderedExample = renderFile(version.example, baseUrl);
+  if (renderedExample != null) {
+    final url = getRepositoryUrl(baseUrl, exampleFilename);
+    final escapedName = htmlEscape.convert(exampleFilename);
+    final link = url == null
+        ? escapedName
+        : '<a href="$url" target="_blank" rel="noopener noreferrer nofollow">$escapedName</a>';
+    renderedExample = '<p style="font-family: monospace"><b>$link</b></p>\n'
+        '$renderedExample';
   }
 
-  Tab fileTab(String id, String title, String content) {
-    if (content == null) return null;
-    return Tab.withContent(
-        id: id, title: title, contentHtml: content, isMarkdown: true);
-  }
-
-  final tabs = buildPackageTabs(
-    packagePageData: data,
-    readmeTab: fileTab('readme', 'Readme', renderedReadme),
-    changelogTab: fileTab('changelog', 'Changelog', renderedChangelog),
-    exampleTab: fileTab('example', 'Example', renderedExample),
-    installingTab: Tab.withContent(
-      id: 'installing',
-      title: 'Installing',
-      contentHtml:
-          _renderInstallTab(selectedVersion, data.analysis?.derivedTags),
-    ),
-    scoreTab: Tab.withContent(
-      id: 'analysis',
-      titleHtml: renderScoreBox(data.toPackageView(), isTabHeader: true),
-      contentHtml: renderAnalysisTab(selectedVersion.package,
-          selectedVersion.pubspec.sdkConstraint, card, data.analysis),
-    ),
+  return Tab.withContent(
+    id: 'example',
+    title: 'Example',
+    contentHtml: renderedExample,
+    isMarkdown: true,
   );
-  return tabs;
+}
+
+Tab _installTab(PackagePageData data) {
+  return Tab.withContent(
+    id: 'installing',
+    title: 'Installing',
+    contentHtml: _renderInstallTab(data.version, data.analysis?.derivedTags),
+  );
+}
+
+Tab _scoreTab(PackagePageData data) {
+  return Tab.withContent(
+    id: 'analysis',
+    titleHtml: renderScoreBox(data.toPackageView(), isTabHeader: true),
+    contentHtml: renderAnalysisTab(data.version.package,
+        data.version.pubspec.sdkConstraint, data.analysis?.card, data.analysis),
+  );
 }
 
 String _getAuthorsHtml(List<String> authors) {
@@ -432,25 +520,27 @@ List<Tab> buildPackageTabs({
 }) {
   final package = packagePageData.package;
   final version = packagePageData.version;
+  final isVersioned = version.version != package.latestVersion;
+  final linkVersion = isVersioned ? version.version : null;
   readmeTab ??= Tab.withLink(
     id: 'readme',
     title: 'Readme',
-    href: urls.pkgReadmeUrl(package.name),
+    href: urls.pkgReadmeUrl(package.name, version: linkVersion),
   );
   changelogTab ??= Tab.withLink(
     id: 'changelog',
     title: 'Changelog',
-    href: urls.pkgChangelogUrl(package.name),
+    href: urls.pkgChangelogUrl(package.name, version: linkVersion),
   );
   exampleTab ??= Tab.withLink(
     id: 'example',
     title: 'Example',
-    href: urls.pkgExampleUrl(package.name),
+    href: urls.pkgExampleUrl(package.name, version: linkVersion),
   );
   installingTab ??= Tab.withLink(
     id: 'installing',
     title: 'Installing',
-    href: urls.pkgInstallUrl(package.name),
+    href: urls.pkgInstallUrl(package.name, version: linkVersion),
   );
   versionsTab ??= Tab.withLink(
     id: 'versions',
@@ -461,7 +551,7 @@ List<Tab> buildPackageTabs({
     id: 'analysis',
     titleHtml:
         renderScoreBox(packagePageData.toPackageView(), isTabHeader: true),
-    href: urls.pkgScoreUrl(package.name),
+    href: urls.pkgScoreUrl(package.name, version: linkVersion),
   );
   adminTab ??= Tab.withLink(
     id: 'admin',
