@@ -138,7 +138,7 @@ Feed feedFromPackageVersions(Uri requestedUri, List<PackageVersion> versions) {
     if (version.created.isAfter(DateTime(2020, 04, 04))) {
       final hash =
           sha512.convert(utf8.encode('${version.package}/${version.version}'));
-      id = formatUuid(hash.bytes.sublist(0, 16));
+      id = createUuid(hash.bytes.sublist(0, 16));
     } else {
       // TODO: remove the old ID after the above date passed in production use
       final seed = (requestedUri.host == 'pub.dartlang.org')

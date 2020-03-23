@@ -38,6 +38,7 @@ const fileAnIssueContent =
     'Please open an issue: https://github.com/dart-lang/pub-dev/issues/new';
 
 final Logger _logger = Logger('pub.utils');
+final _random = Random.secure();
 
 final DateFormat shortDateFormat = DateFormat.yMMMd();
 
@@ -391,12 +392,23 @@ Map<String, String> parseCookieHeader(String cookieHeader) {
   }
 }
 
-/// Returns the UUID-formatted string of [bytes].
-String formatUuid(List<int> bytes) {
+/// Returns a UUID in v4 format as a `String`.
+///
+/// If [bytes] is provided, it must be length 16 and have values between `0` and
+/// `255` inclusive.
+///
+/// If [bytes] is not provided, it is generated using `Random.secure`.
+String createUuid([List<int> bytes]) {
+  bytes ??= List<int>.generate(16, (_) => _random.nextInt(256));
   if (bytes.length != 16) {
     throw ArgumentError('16 bytes expected, got: ${bytes.length}');
   }
+  // See http://www.cryptosys.net/pki/uuid-rfc4122.html for notes
+  bytes[6] = (bytes[6] & 0x0F) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+
   String formatByte(int byte) => byte.toRadixString(16).padLeft(2, '0');
+
   return [
     bytes.sublist(0, 4).map(formatByte).join(),
     bytes.sublist(4, 6).map(formatByte).join(),
