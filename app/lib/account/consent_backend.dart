@@ -7,6 +7,7 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_dev/shared/datastore_helper.dart';
 import 'package:retry/retry.dart';
 
 import '../frontend/email_sender.dart';
@@ -219,24 +220,27 @@ class ConsentBackend {
 
   /// Returns the [Consent] for [consentId] and checks if it is for [user].
   Future<Consent> _lookupAndCheck(String consentId, User user) async {
-    final c = await _db.lookupValue<Consent>(
-        _db.emptyKey.append(Consent, id: consentId),
-        orElse: () => null);
-    if (c == null) {
-      throw NotFoundException.resource('consent: $consentId');
-    }
+    final key = _db.emptyKey.append(Consent, id: consentId);
+    return await withRetryTransaction(_db, (tx) async {
+      final c = await tx.lookupOrNull<Consent>(key);
+      if (c == null) {
+        throw NotFoundException.resource('consent: $consentId');
+      }
+      if (c.userId == null && c.email == user.email) {
+        c.userId = user.userId;
+        tx.insert(c);
+      }
 
-    // Checking that consent is for the current user.
-    if (c.userId != null) {
-      InvalidInputException.check(c.userId == user.userId,
+      // Checking that consent is for the current user.
+      InvalidInputException.check(c.userId == null || c.userId == user.userId,
           'This invitation is not for the user account currently logged in.');
-    }
-    final action = _actions[c.kind];
-    if (!action.permitConfirmationWithOtherEmail && c.email != null) {
-      InvalidInputException.check(c.email == user.email,
-          'This invitation is not for the user account currently logged in.');
-    }
-    return c;
+      final action = _actions[c.kind];
+      if (!action.permitConfirmationWithOtherEmail && c.email != null) {
+        InvalidInputException.check(c.email == user.email,
+            'This invitation is not for the user account currently logged in.');
+      }
+      return c;
+    });
   }
 
   Future<void> _accept(Consent consent) async {
@@ -316,7 +320,12 @@ class _PackageUploaderAction extends ConsentAction {
         await accountBackend.getEmailOfUserId(consent.fromUserId);
     final uploader = consent.userId != null
         ? await accountBackend.lookupUserById(consent.userId)
-        : await accountBackend.lookupOrCreateUserByEmail(consent.email);
+        : await accountBackend.lookupUserByEmail(consent.email);
+    if (uploader == null) {
+      // NOTE: This should never happen because `userId` of the consent entity
+      //       will be set when it is loaded.
+      throw AuthenticationException.userNotFound();
+    }
 
     await packageBackend.repository.confirmUploader(
         consent.fromUserId, fromUserEmail, packageName, uploader);
@@ -411,7 +420,12 @@ class _PublisherMemberAction extends ConsentAction {
   Future<void> onAccept(Consent consent) async {
     final member = consent.userId != null
         ? await accountBackend.lookupUserById(consent.userId)
-        : await accountBackend.lookupOrCreateUserByEmail(consent.email);
+        : await accountBackend.lookupUserByEmail(consent.email);
+    if (member == null) {
+      // NOTE: This should never happen because `userId` of the consent entity
+      //       will be set when it is loaded.
+      throw AuthenticationException.userNotFound();
+    }
     final publisherId = consent.args.single;
     await publisherBackend.inviteConsentGranted(publisherId, member.userId);
   }
