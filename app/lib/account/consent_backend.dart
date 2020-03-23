@@ -228,7 +228,7 @@ class ConsentBackend {
       }
       if (c.userId == null && c.email == user.email) {
         c.userId = user.userId;
-        tx.queueMutations(inserts: [c]);
+        tx.insert(c);
       }
 
       // Checking that consent is for the current user.
