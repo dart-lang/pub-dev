@@ -7,6 +7,7 @@ library pub_dartlang_org.atom_feed;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:crypto/crypto.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:uuid/uuid.dart';
@@ -15,6 +16,7 @@ import '../../package/backend.dart';
 import '../../package/models.dart';
 import '../../shared/configuration.dart';
 import '../../shared/urls.dart' as urls;
+import '../../shared/utils.dart';
 
 /// Handles requests for /feed.atom
 Future<shelf.Response> atomFeedHandler(shelf.Request request) async {
@@ -132,13 +134,20 @@ Feed feedFromPackageVersions(Uri requestedUri, List<PackageVersion> versions) {
         activeConfiguration.primarySiteUri.replace(path: pkgPage).toString();
     final alternateTitle = version.package;
 
-    // TODO: use only qualifiedVersion as seed after the domain migration
-    final seed = (requestedUri.host == 'pub.dartlang.org')
-        ? requestedUri
-            .resolve('/packages/${version.package}#${version.version}')
-            .toString()
-        : version.qualifiedVersionKey.toString();
-    final id = uuid.v5(Uuid.NAMESPACE_URL, seed);
+    String id;
+    if (version.created.isAfter(DateTime(2020, 04, 04))) {
+      final hash =
+          sha512.convert(utf8.encode('${version.package}/${version.version}'));
+      id = createUuid(hash.bytes.sublist(0, 16));
+    } else {
+      // TODO: remove the old ID after the above date passed in production use
+      final seed = (requestedUri.host == 'pub.dartlang.org')
+          ? requestedUri
+              .resolve('/packages/${version.package}#${version.version}')
+              .toString()
+          : version.qualifiedVersionKey.toString();
+      id = uuid.v5(Uuid.NAMESPACE_URL, seed);
+    }
     final title = 'v${version.version} of ${version.package}';
 
     var content = 'No README Found';

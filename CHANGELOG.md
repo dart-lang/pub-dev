@@ -2,6 +2,8 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * New atom feed ID scheduled to go live at 2020-04-04. Change this hardcoded
+   date if release does not go live before 2020-04-02.
 
 ## `20200309t104246-all`
  * Bumped runtimeVersion to `2020.03.09`.
