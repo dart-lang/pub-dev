@@ -149,9 +149,6 @@ class ShelfPubServer {
         final user = Uri.decodeQueryComponent(parts[1]);
         await repository.addUploader(package, user);
         return _successfullRequest('Successfully added uploader to package.');
-      } on UploaderAlreadyExistsException {
-        return _badRequest(
-            'Cannot add an already-existent uploader to package.');
       } on UnauthorizedAccessException {
         return _unauthorizedRequest();
       } on GenericProcessingException catch (e) {

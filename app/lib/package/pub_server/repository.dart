@@ -67,14 +67,7 @@ abstract class ClientSideProblem implements Exception {}
 ///
 /// Uploading a  package from an unauthorized user will result in an
 /// [UnauthorizedAccessException] exception.
-class UnauthorizedAccessException implements ClientSideProblem, Exception {
-  final String message;
-
-  UnauthorizedAccessException(this.message);
-
-  @override
-  String toString() => 'UnauthorizedAccess: $message';
-}
+class UnauthorizedAccessException implements ClientSideProblem, Exception {}
 
 /// Exception for removing the last uploader.
 ///
@@ -86,18 +79,6 @@ class LastUploaderRemoveException implements ClientSideProblem, Exception {
   @override
   String toString() => 'LastUploaderRemoved: Cannot remove last uploader of a '
       'package.';
-}
-
-/// Exception for adding an already-existent uploader.
-///
-/// Removing the last user-email of a package can result in a
-/// [UnauthorizedAccessException] exception.
-class UploaderAlreadyExistsException implements ClientSideProblem, Exception {
-  UploaderAlreadyExistsException();
-
-  @override
-  String toString() => 'UploaderAlreadyExists: Cannot add an already existent '
-      'uploader.';
 }
 
 /// Generic exception during processing of the clients request.
