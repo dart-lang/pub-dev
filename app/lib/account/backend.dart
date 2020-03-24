@@ -11,7 +11,7 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:pub_dev/package/models.dart';
-import 'package:uuid/uuid.dart';
+import 'package:pub_dev/shared/utils.dart';
 
 import '../shared/datastore_helper.dart';
 import '../shared/exceptions.dart';
@@ -30,7 +30,6 @@ import 'models.dart';
 /// HTTP proxy for this website.
 const pubSessionCookieName = '__Host-pub-sid';
 final _logger = Logger('account.backend');
-final _uuid = Uuid();
 
 /// Sets the auth provider service.
 void registerAuthProvider(AuthProvider authProvider) =>
@@ -168,10 +167,9 @@ class AccountBackend {
     if (user != null) {
       return user;
     }
-    final id = _uuid.v4().toString();
     user = User()
       ..parentKey = _db.emptyKey
-      ..id = id
+      ..id = createUuid()
       ..email = email
       ..created = DateTime.now().toUtc()
       ..isDeletedFlag = false;
@@ -389,7 +387,7 @@ class AccountBackend {
       // Create new user with oauth2 user_id mapping
       final user = User()
         ..parentKey = emptyKey
-        ..id = _uuid.v4().toString()
+        ..id = createUuid()
         ..oauthUserId = auth.oauthUserId
         ..email = auth.email
         ..created = DateTime.now().toUtc()
@@ -419,9 +417,8 @@ class AccountBackend {
   Future<UserSessionData> createNewSession({@required String imageUrl}) async {
     final user = await requireAuthenticatedUser();
     final now = DateTime.now().toUtc();
-    final sessionId = _uuid.v4().toString();
     final session = UserSession()
-      ..id = sessionId
+      ..id = createUuid()
       ..userIdKey = user.key
       ..email = user.email
       ..imageUrl = imageUrl

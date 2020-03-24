@@ -7,11 +7,10 @@ import 'dart:convert';
 import 'package:gcloud/db.dart' as db;
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
-import 'package:uuid/uuid.dart';
+
+import '../shared/utils.dart' show createUuid;
 
 part 'models.g.dart';
-
-final _uuid = Uuid();
 
 abstract class HistorySource {
   static const String account = 'account';
@@ -31,7 +30,7 @@ class History extends db.ExpandoModel {
     this.source,
     HistoryEvent event,
   }) {
-    id = _uuid.v4();
+    id = createUuid();
     timestamp ??= DateTime.now().toUtc();
     historyEvent = event;
   }
