@@ -15,7 +15,6 @@ import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
-import 'package:uuid/uuid.dart';
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
@@ -370,7 +369,6 @@ class InviteStatus {
 /// A read-only implementation of [pub_server.PackageRepository] using the Cloud
 /// Datastore for metadata and Cloud Storage for tarball storage.
 class GCloudPackageRepository extends pub_server.PackageRepository {
-  final Uuid uuid = Uuid();
   final DatastoreDB db;
   final TarballStorage storage;
 
@@ -424,7 +422,7 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
   @visibleForTesting
   Future<pub_server.PackageVersion> upload(Stream<List<int>> data) async {
     await requireAuthenticatedUser();
-    final guid = uuid.v4().toString();
+    final guid = createUuid();
     _logger.info('Starting semi-async upload (uuid: $guid)');
     final object = storage.tempObjectName(guid);
     await data.pipe(storage.bucket.write(object));
@@ -445,7 +443,7 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
     final user = await requireAuthenticatedUser();
     _logger.info('User: ${user.email}.');
 
-    final guid = uuid.v4().toString();
+    final guid = createUuid();
     final String object = storage.tempObjectName(guid);
     final String bucket = storage.bucket.bucketName;
     final Duration lifetime = const Duration(minutes: 10);

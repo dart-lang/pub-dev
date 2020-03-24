@@ -9,7 +9,6 @@ import 'dart:io';
 import 'package:logging/logging.dart';
 import 'package:pana/pana.dart' hide Pubspec;
 import 'package:path/path.dart' as p;
-import 'package:uuid/uuid.dart';
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 
@@ -20,6 +19,7 @@ import '../scorecard/models.dart';
 import '../shared/configuration.dart';
 import '../shared/tool_env.dart';
 import '../shared/urls.dart';
+import '../shared/utils.dart' show createUuid;
 import '../shared/versions.dart' as versions;
 
 import 'backend.dart';
@@ -27,7 +27,6 @@ import 'customization.dart';
 import 'models.dart';
 
 final Logger _logger = Logger('pub.dartdoc.runner');
-final Uuid _uuid = Uuid();
 
 const statusFilePath = 'status.json';
 const _archiveFilePath = 'package.tar.gz';
@@ -454,7 +453,7 @@ class DartdocJobProcessor extends JobProcessor {
     final isObsolete = job.isLatestStable == false &&
         job.packageVersionUpdated.difference(now).abs() > _twoYears;
     final entry = DartdocEntry(
-      uuid: _uuid.v4().toString(),
+      uuid: createUuid(),
       packageName: job.packageName,
       packageVersion: job.packageVersion,
       isLatest: job.isLatestStable,

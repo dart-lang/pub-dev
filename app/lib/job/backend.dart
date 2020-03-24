@@ -10,7 +10,6 @@ import 'package:gcloud/db.dart' as db;
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:retry/retry.dart';
-import 'package:uuid/uuid.dart';
 
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/popularity_storage.dart';
@@ -27,7 +26,6 @@ const _extendDuration = Duration(hours: 12);
 
 final _logger = Logger('pub.job.backend');
 final _random = math.Random.secure();
-final _uuid = Uuid();
 
 typedef ShouldProcess = Future<bool> Function(
     String package, String version, DateTime updated);
@@ -196,7 +194,7 @@ class JobBackend {
       final now = DateTime.now().toUtc();
       selected
         ..state = JobState.processing
-        ..processingKey = _uuid.v4().toString()
+        ..processingKey = createUuid()
         ..lockedUntil = now.add(lockDuration ?? _defaultLockDuration);
       tx.queueMutations(inserts: [selected]);
       await tx.commit();
