@@ -13,6 +13,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:yaml/yaml.dart';
 
 import '../../package/backend.dart' show purgePackageCache;
+import '../../shared/exceptions.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../../shared/urls.dart' as urls;
 
@@ -74,7 +75,8 @@ class ShelfPubServer {
 
   Future<shelf.Response> showVersion(
       Uri uri, String package, String version) async {
-    if (!isSemanticVersion(version)) return _invalidVersion(version);
+    InvalidInputException.check(isSemanticVersion(version),
+        'Version string "$version" is not a valid semantic version.');
 
     final ver = await repository.lookupVersion(package, version);
     if (ver == null) {
@@ -95,7 +97,8 @@ class ShelfPubServer {
 
   Future<shelf.Response> download(
       Uri uri, String package, String version) async {
-    if (!isSemanticVersion(version)) return _invalidVersion(version);
+    InvalidInputException.check(isSemanticVersion(version),
+        'Version string "$version" is not a valid semantic version.');
     final url = await repository.downloadUrl(package, version);
     // This is a redirect to [url]
     return shelf.Response.seeOther(url);
@@ -123,13 +126,10 @@ class ShelfPubServer {
           'message': 'Successfully uploaded package.',
         },
       });
-    } on ClientSideProblem catch (error, stack) {
+    } on ResponseException catch (error, stack) {
       _logger.info('A problem occured while finishing upload.', error, stack);
-      return _jsonResponse({
-        'error': {
-          'message': '$error.',
-        },
-      }, status: 400);
+      // [ResponseException] is pass-through, no need to do anything here.
+      rethrow;
     } catch (error, stack) {
       _logger.warning('An error occured while finishing upload.', error, stack);
       return _jsonResponse({
@@ -144,38 +144,22 @@ class ShelfPubServer {
 
   Future<shelf.Response> addUploader(String package, String body) async {
     final parts = body.split('=');
-    if (parts.length == 2 && parts[0] == 'email' && parts[1].isNotEmpty) {
-      try {
-        final user = Uri.decodeQueryComponent(parts[1]);
-        await repository.addUploader(package, user);
-        return _successfullRequest('Successfully added uploader to package.');
-      } on UnauthorizedAccessException {
-        return _unauthorizedRequest();
-      } on GenericProcessingException catch (e) {
-        return _badRequest(e.message);
-      }
-    }
-    return _badRequest('Invalid request');
+    InvalidInputException.check(
+        parts.length == 2 && parts[0] == 'email' && parts[1].isNotEmpty,
+        'Invalid request.');
+
+    final user = Uri.decodeQueryComponent(parts[1]);
+    await repository.addUploader(package, user);
+    return _successfullRequest('Successfully added uploader to package.');
   }
 
   Future<shelf.Response> removeUploader(
       String package, String userEmail) async {
-    try {
-      await repository.removeUploader(package, userEmail);
-      return _successfullRequest('Successfully removed uploader from package.');
-    } on LastUploaderRemoveException {
-      return _badRequest('Cannot remove last uploader of a package.');
-    } on UnauthorizedAccessException {
-      return _unauthorizedRequest();
-    } on GenericProcessingException catch (e) {
-      return _badRequest(e.message);
-    }
+    await repository.removeUploader(package, userEmail);
+    return _successfullRequest('Successfully removed uploader from package.');
   }
 
   // Helper functions.
-
-  shelf.Response _invalidVersion(String version) =>
-      _badRequest('Version string "$version" is not a valid semantic version.');
 
   Future<shelf.Response> _successfullRequest(String message) async {
     return shelf.Response(200,
@@ -184,18 +168,6 @@ class ShelfPubServer {
         }),
         headers: {'content-type': 'application/json'});
   }
-
-  shelf.Response _unauthorizedRequest() => shelf.Response(403,
-      body: convert.json.encode({
-        'error': {'message': 'Unauthorized request.'}
-      }),
-      headers: {'content-type': 'application/json'});
-
-  shelf.Response _badRequest(String message) => shelf.Response(400,
-      body: convert.json.encode({
-        'error': {'message': message}
-      }),
-      headers: {'content-type': 'application/json'});
 
   shelf.Response _binaryJsonResponse(List<int> d, {int status = 200}) =>
       shelf.Response(status,

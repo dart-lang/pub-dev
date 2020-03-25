@@ -60,42 +60,6 @@ class AsyncUploadInfo {
   AsyncUploadInfo(this.uri, this.fields);
 }
 
-/// A marker interface that indicates a problem with the client-provided inputs.
-abstract class ClientSideProblem implements Exception {}
-
-/// Exception for unauthorized access attempts.
-///
-/// Uploading a  package from an unauthorized user will result in an
-/// [UnauthorizedAccessException] exception.
-class UnauthorizedAccessException implements ClientSideProblem, Exception {}
-
-/// Exception for removing the last uploader.
-///
-/// Removing the last user-email of a package can result in a
-/// [UnauthorizedAccessException] exception.
-class LastUploaderRemoveException implements ClientSideProblem, Exception {
-  LastUploaderRemoveException();
-
-  @override
-  String toString() => 'LastUploaderRemoved: Cannot remove last uploader of a '
-      'package.';
-}
-
-/// Generic exception during processing of the clients request.
-///
-/// This may be an issue during validation of `pubspec.yaml`.
-class GenericProcessingException implements ClientSideProblem, Exception {
-  final String message;
-
-  GenericProcessingException(this.message);
-
-  factory GenericProcessingException.validationError(String message) =>
-      GenericProcessingException('ValidationError: $message');
-
-  @override
-  String toString() => message;
-}
-
 /// Represents a pub repository.
 abstract class PackageRepository {
   /// Returns the known versions of [package].

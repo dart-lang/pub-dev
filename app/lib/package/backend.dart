@@ -36,8 +36,7 @@ import '../shared/utils.dart';
 import 'model_properties.dart';
 import 'models.dart';
 import 'name_tracker.dart';
-import 'pub_server/repository.dart' as pub_server
-    hide UnauthorizedAccessException;
+import 'pub_server/repository.dart' as pub_server;
 import 'pub_server/shelf_pubserver.dart' show ShelfPubServer;
 import 'upload_signer_service.dart';
 
@@ -505,9 +504,8 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
         await T.rollback();
         _logger.info('Version ${version.version} of package '
             '${version.package} already exists, rolling transaction back.');
-        throw pub_server.GenericProcessingException(
-            'Version ${version.version} of package '
-            '${version.package} already exists.');
+        throw PackageRejectedException.versionExists(
+            version.package, version.version);
       }
 
       // reserved package names for the Dart team
@@ -515,8 +513,7 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
           matchesReservedPackageName(newVersion.package) &&
           !user.email.endsWith('@google.com')) {
         await T.rollback();
-        throw pub_server.GenericProcessingException(
-            'Package name ${newVersion.package} is reserved.');
+        throw PackageRejectedException.nameReserved(newVersion.package);
       }
 
       // If the package does not exist, then we create a new package.
@@ -673,14 +670,12 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
     await _validatePackageUploader(packageName, package, user.userId);
     // Don't send invites for publisher-owned packages.
     if (package.publisherId != null) {
-      throw pub_server.GenericProcessingException(
-          'Package is owned by publisher "${package.publisherId}".');
+      throw OperationForbiddenException.publisherOwnedPackageNoUploader(
+          packageName, package.publisherId);
     }
 
-    if (!isValidEmail(uploaderEmail)) {
-      throw pub_server.GenericProcessingException(
-          'Not a valid email: `$uploaderEmail`.');
-    }
+    InvalidInputException.check(
+        isValidEmail(uploaderEmail), 'Not a valid email: `$uploaderEmail`.');
 
     final uploader = await accountBackend.lookupUserByEmail(uploaderEmail);
     if (uploader != null && package.containsUploader(uploader.userId)) {
@@ -702,14 +697,10 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
     );
 
     if (!status.emailSent) {
-      throw pub_server.GenericProcessingException(
-          'Previous invite is still active, next notification can be sent '
-          'on ${status.nextNotification.toIso8601String()}.');
+      throw OperationForbiddenException.inviteActive(status.nextNotification);
     }
 
-    throw pub_server.GenericProcessingException(
-        'We have sent an invitation to $uploaderEmail, '
-        'they will be added as uploader after they confirm it.');
+    throw OperationForbiddenException.uploaderInviteSent(uploaderEmail);
   }
 
   Future<void> confirmUploader(String fromUserId, String fromUserEmail,
@@ -786,15 +777,14 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
       final uploader = await accountBackend.lookupUserByEmail(uploaderEmail);
       if (uploader == null || !package.containsUploader(uploader.userId)) {
         await T.rollback();
-        throw pub_server.GenericProcessingException(
-            'The uploader to remove does not exist.');
+        throw NotFoundException.resource('uploader: $uploaderEmail');
       }
 
       // We cannot have 0 uploaders, if we would remove the last one, we
       // fail with an error.
       if (package.uploaderCount <= 1) {
         await T.rollback();
-        throw pub_server.LastUploaderRemoveException();
+        throw OperationForbiddenException.lastUploaderRemoveError();
       }
 
       // At the moment we don't validate whether the other email addresses
@@ -802,9 +792,7 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
       // of a package, we don't allow self-removal.
       if (user.email == uploader.email || user.userId == uploader.userId) {
         await T.rollback();
-        throw pub_server.GenericProcessingException(
-            'Self-removal is not allowed. '
-            'Use another account to remove this email address.');
+        throw OperationForbiddenException.selfRemovalNotAllowed();
       }
 
       // Remove the uploader from the list.
@@ -906,26 +894,21 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
 
   final archive = await summarizePackageArchive(filename);
   if (archive.hasIssues) {
-    throw pub_server.GenericProcessingException(archive.issues.first.message);
+    throw PackageRejectedException(archive.issues.first.message);
   }
 
   final pubspec = Pubspec.fromYaml(archive.pubspecContent);
-  if (!await nameTracker.accept(pubspec.name)) {
-    throw pub_server.GenericProcessingException(
-        'Package name is too similar to another active or moderated package.');
-  }
+  PackageRejectedException.check(await nameTracker.accept(pubspec.name),
+      'Package name is too similar to another active or moderated package.');
 
-  if (pubspec.hasBothAuthorAndAuthors) {
-    throw pub_server.GenericProcessingException(
-        'Do not specify both `author` and `authors` in `pubspec.yaml`.');
-  }
+  PackageRejectedException.check(!pubspec.hasBothAuthorAndAuthors,
+      'Do not specify both `author` and `authors` in `pubspec.yaml`.');
 
   final packageKey = db.emptyKey.append(Package, id: pubspec.name);
 
   final versionString = canonicalizeVersion(pubspec.version);
   if (versionString == null) {
-    throw pub_server.GenericProcessingException(
-        'Unable to canonicalize the version: ${pubspec.version}');
+    throw InvalidInputException.canonicalizeVersionError(pubspec.version);
   }
 
   final key =

@@ -15,9 +15,6 @@ library exceptions;
 
 import 'package:api_builder/api_builder.dart' show ApiResponseException;
 
-import '../package/pub_server/repository.dart'
-    show GenericProcessingException, UnauthorizedAccessException;
-
 /// Base class for all exceptions that are intercepted by HTTP handler wrappers.
 abstract class ResponseException extends ApiResponseException {
   ResponseException._(int status, String code, String message)
@@ -28,8 +25,7 @@ abstract class ResponseException extends ApiResponseException {
 }
 
 /// Thrown when resource does not exist.
-class NotFoundException extends ResponseException
-    implements GenericProcessingException {
+class NotFoundException extends ResponseException {
   NotFoundException(String message) : super._(404, 'NotFound', message);
   NotFoundException.resource(String resource)
       : super._(404, 'NotFound', 'Could not find `$resource`.');
@@ -47,6 +43,10 @@ class InvalidInputException extends ResponseException {
   /// Thrown when the parsing and/or validating of the continuation token failed.
   InvalidInputException.continuationParseError()
       : this._('Parsing the continuation token failed.');
+
+  /// Thrown when the canonicalization of the [version] failed.
+  InvalidInputException.canonicalizeVersionError(String version)
+      : this._('Unable to canonicalize the version: $version');
 
   /// Check [condition] and throw [InvalidInputException] with [message] if
   /// [condition] is `false`.
@@ -155,17 +155,33 @@ class InvalidInputException extends ResponseException {
 }
 
 /// Throws when a package upload is rejected for a reason.
-class PackageRejectedException extends ResponseException
-    implements GenericProcessingException {
+class PackageRejectedException extends ResponseException {
+  PackageRejectedException(String message)
+      : super._(400, 'PackageRejected', message);
+
   /// The package archive tar.gz file is above [limit] bytes.
   PackageRejectedException.archiveTooLarge(int limit)
       : super._(
             400, 'PackageRejected', 'Package archive exceeded $limit bytes.');
+
+  /// The [package] name is reserved.
+  PackageRejectedException.nameReserved(String package)
+      : super._(400, 'PackageRejected', 'Package name $package is reserved.');
+
+  /// The [package] has an existing [version].
+  PackageRejectedException.versionExists(String package, String version)
+      : super._(400, 'PackageRejected',
+            'Version $version of package $package already exists.');
+
+  /// Check [condition] and throw [PackageRejectedException] with [message] if
+  /// [condition] is `false`.
+  static void check(bool condition, String message) {
+    if (!condition) throw PackageRejectedException(message);
+  }
 }
 
 /// Thrown when the operation is rejected because of the internal state of a resource.
-class OperationForbiddenException extends ResponseException
-    implements GenericProcessingException {
+class OperationForbiddenException extends ResponseException {
   /// The operation tried to update the list of uploaders, but it can't be done
   /// while the package is owned by a publisher.
   OperationForbiddenException.publisherOwnedPackageNoUploader(
@@ -175,11 +191,37 @@ class OperationForbiddenException extends ResponseException
             'OperationForbidden',
             'Package "$packageName" is owned by publisher "$publisherId". '
                 'Updating the uploaders is not permitted.');
+
+  /// The operation tried to send an invite to a user, but it can't be done
+  /// immediately, as we don't want to spam the users.
+  OperationForbiddenException.inviteActive(DateTime nextNotification)
+      : super._(
+            403,
+            'OperationForbidden',
+            'Previous invite is still active, next notification can be sent '
+                'on ${nextNotification.toIso8601String()}.');
+
+  /// The uploader has been invited, but the operation can't complete until they
+  /// accept it.
+  OperationForbiddenException.uploaderInviteSent(String email)
+      : super._(403, 'OperationForbidden',
+            'We have sent an invitation to $email, they will be added as uploader after they confirm it.');
+
+  /// The user tried to remove themselves from the list of uploaders and we
+  /// don't allow that.
+  OperationForbiddenException.selfRemovalNotAllowed()
+      : super._(403, 'OperationForbidden',
+            'Self-removal is not allowed. Use another account to remove this email address.');
+
+  /// The user tried to remove the last uploader of the package, and we don't
+  /// allow that.
+  OperationForbiddenException.lastUploaderRemoveError()
+      : super._(403, 'OperationForbidden',
+            'Cannot remove last uploader of a package.');
 }
 
 /// Thrown when authentication failed, credentials is missing or invalid.
-class AuthenticationException extends ResponseException
-    implements UnauthorizedAccessException {
+class AuthenticationException extends ResponseException {
   AuthenticationException._(String message)
       : super._(401, 'MissingAuthentication', message);
 
@@ -214,8 +256,7 @@ class AuthenticationException extends ResponseException
 /// Example:
 ///  * Modifying a package for which the user doesn't have permissions,
 ///  * Creating a publisher without domain validation.
-class AuthorizationException extends ResponseException
-    implements UnauthorizedAccessException {
+class AuthorizationException extends ResponseException {
   AuthorizationException._(String message)
       : super._(403, 'InsufficientPermissions', message);
 
