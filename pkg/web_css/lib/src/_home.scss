@@ -110,6 +110,14 @@
 
   .home-block-image {
     display: none;
+    position: relative;
+    top: 60px;
+    transform: scale(1.25);
+    z-index: 0;
+  }
+
+  .home-block-content {
+    z-index: 1;
   }
 
   @media (min-width: $device-desktop-min-width) {
