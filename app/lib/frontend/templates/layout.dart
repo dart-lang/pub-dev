@@ -178,6 +178,7 @@ String _renderSearchBanner({
   }
   final isExperimental = requestContext.isExperimental;
   return templateCache.renderTemplate('shared/search_banner', {
+    'show_autofocus': queryText == null,
     'show_search_filters_btn': isExperimental && type == PageType.listing,
     'show_details': !isExperimental &&
         (type == PageType.listing || type == PageType.landing),
