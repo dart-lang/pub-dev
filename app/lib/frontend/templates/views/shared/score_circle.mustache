@@ -3,6 +3,7 @@
     BSD-style license that can be found in the LICENSE file. }}
 
 <div class="score-circle"{{#title}} title="{{title}}"{{/title}}>
+  <span class="score-circle-tag-new" title="Created in the last 30 days">new</span>
   {{#link}}<a href="{{& link}}">{{/link}}
   <svg class="score-circle-arc" viewBox="-{{radius}} -{{radius}} {{diameter}} {{diameter}}">
     <circle cx="0" cy="0"
