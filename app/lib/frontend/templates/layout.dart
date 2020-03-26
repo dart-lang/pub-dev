@@ -89,7 +89,7 @@ String renderLayoutPage(
         : htmlEscape.convert(pageDescription),
     'title': htmlEscape.convert(title),
     'landing_blurb_html': defaultLandingBlurbHtml,
-    'site_header_html': _renderSiteHeader(),
+    'site_header_html': _renderSiteHeader(type),
     // This is not escaped as it is already escaped by the caller.
     'content_html': contentHtml,
     'include_survey': includeSurvey,
@@ -105,7 +105,7 @@ String renderLayoutPage(
   return templateCache.renderTemplate('shared/layout', values);
 }
 
-String _renderSiteHeader() {
+String _renderSiteHeader(PageType pageType) {
   final userSession = userSessionData == null
       ? null
       : {
@@ -118,6 +118,7 @@ String _renderSiteHeader() {
         };
 
   return templateCache.renderTemplate('shared/site_header', {
+    'show_site_logo': pageType != PageType.landing,
     'dart_site_root': urls.dartSiteRoot,
     'site_logo_url': staticUrls.pubDevLogo2xPng,
     'is_logged_in': userSession != null,
