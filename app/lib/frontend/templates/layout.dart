@@ -178,7 +178,10 @@ String _renderSearchBanner({
   }
   final isExperimental = requestContext.isExperimental;
   return templateCache.renderTemplate('shared/search_banner', {
-    'show_autofocus': queryText == null,
+    // When search is active (query text has a non-empty value) users may expect
+    // to scroll through the results via keyboard. We should only autofocus the
+    // search field when there is no active search.
+    'autofocus': queryText == null,
     'show_search_filters_btn': isExperimental && type == PageType.listing,
     'show_details': !isExperimental &&
         (type == PageType.listing || type == PageType.landing),
