@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:intl/intl.dart';
 import 'package:meta/meta.dart';
 
 import '../request_context.dart';
@@ -28,12 +29,18 @@ String renderDetailHeader({
     'metadata_html': metadataHtml,
     'tags_html': tagsHtml,
     'is_publisher': isPublisher,
-    'like_count': '$packageLikes ${packageLikes == 1 ? "like" : "likes"}',
+    'like_count': _formatPackageLikes(packageLikes),
     'is_liked': isLiked,
     'has_likes': isLiked != null,
     // TODO: remove values below after new UI is finalized
     'is_flutter_favorite': isFlutterFavorite,
   });
+}
+
+String _formatPackageLikes(int likesCount) {
+  if (likesCount == null) return null;
+  final formattedCount = NumberFormat.compact().format(likesCount);
+  return '$formattedCount ${likesCount == 1 ? 'like' : 'likes'}';
 }
 
 /// Renders the `shared/detail/page.mustache` template
