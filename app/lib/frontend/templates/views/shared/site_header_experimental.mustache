@@ -3,9 +3,11 @@
     BSD-style license that can be found in the LICENSE file. }}
 <div class="site-header">
   <button class="hamburger"></button>
+  {{#show_site_logo}}
   <a class="logo" href="/">
     <img class="site-logo" src="{{& site_logo_url}}" alt="pub logo" />
   </a>
+  {{/show_site_logo}}
   <div class="site-header-space"></div>
   <div class="site-header-mask"></div>
   <div class="site-header-nav">

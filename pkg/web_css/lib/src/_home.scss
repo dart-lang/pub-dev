@@ -93,6 +93,11 @@
 /* non-indented rule to restrict the content of this block to the experimental pages */
 .experimental {
 
+.home-banner {
+  padding-top: 110px;
+  padding-bottom: 110px;
+}
+
 .landing-main {
   background-image: url('/static/img/square-bg.png');
 }
@@ -229,6 +234,7 @@
   }
 
   .home-block-view-all-link {
+    font-weight: 500;
     text-transform: uppercase;
   }
 }
