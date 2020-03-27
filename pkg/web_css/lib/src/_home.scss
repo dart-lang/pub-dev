@@ -125,70 +125,6 @@
     z-index: 1;
   }
 
-  @media (min-width: $device-desktop-min-width) {
-    .home-block-image {
-      display: block;
-    }
-
-    &.home-block-ff {
-      .home-block-content {
-        max-width: 1200px;
-        margin: 0 auto;
-      }
-
-      .mini-list {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-
-      .mini-list-item {
-        width: 48%;
-        max-width: 360px;
-        margin: 16px 1%;
-
-        // At this width the package box has a width of ~260px.
-        @media (min-width: 906px) {
-          width: 30%;
-        }
-      }
-    }
-
-    &.home-block-mp,
-    &.home-block-tf,
-    &.home-block-td, {
-      display: flex;
-      max-width: 1480px;
-      margin: 0 auto;
-
-      .home-block-image {
-        flex-basis: 25%;
-        margin-top: 80px;
-      }
-
-      .home-block-content {
-        flex-basis: 75%;
-      }
-
-      .mini-list {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-
-      .mini-list-item {
-        width: 48%;
-        max-width: 360px;
-        margin: 0 1% 2% 1%;
-
-        // At this width the package box has a width of ~260px.
-        @media (min-width: 1196px) {
-          width: 30%;
-        }
-      }
-    }
-  }
-
   .mini-list-item {
     background: #ffffff;
     border-radius: 4px;
@@ -197,23 +133,25 @@
     margin-bottom: 10px;
     min-height: 100px;
 
-    .title {
+    .mini-list-item-title {
       > h3 {
         color: #1967d2;
-        font-size: 22px;
+        font-size: 20px;
         font-weight: 400;
-        margin: 0 0 8px 0;
+        margin: 0;
+        /* Trim long package names, forcing them to be displayed only on a single line. */
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
     }
 
-    .description {
-      margin: 8px 0px;
-      max-height: 120px;
-      overflow: auto;
+    .mini-list-item-description {
+      margin: 8px 0 0 0;
     }
 
-    .publisher {
-      margin: 8px 0px;
+    .mini-list-item-publisher {
+      margin: 8px 0px 0px 0px;
     }
 
     .publisher-badge {
@@ -231,11 +169,75 @@
 
   .home-block-view-all {
     text-align: right;
+    padding-right: 8px;
   }
 
   .home-block-view-all-link {
     font-weight: 500;
     text-transform: uppercase;
+  }
+
+  @media (min-width: $device-desktop-min-width) {
+    .mini-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+
+      @media (max-width: 850px) {
+        justify-content: space-around;
+      }
+    }
+
+    .mini-list-item {
+      width: 260px;
+      height: 190px;
+      margin: 16px 4px 16px 0px;
+
+      display: flex;
+      flex-direction: column;
+    }
+
+    .mini-list-item-body {
+      flex-grow: 1;
+    }
+
+    .mini-list-item-body {
+      overflow: auto;
+    }
+  }
+
+  @media (min-width: $device-desktop-min-width) {
+    &.home-block-ff {
+      .home-block-content {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+    }
+
+    &.home-block-mp,
+    &.home-block-tf,
+    &.home-block-td, {
+      display: flex;
+      max-width: 1480px;
+      margin: 0 auto;
+    }
+  }
+
+  @media (min-width: 1040px) {
+    .home-block-image {
+      display: block;
+      margin-top: 80px;
+      max-width: calc(100% - 900px);
+      min-width: calc(10% + 100px);
+    }
+
+    &.home-block-mp,
+    &.home-block-tf,
+    &.home-block-td, {
+      .home-block-content {
+         max-width: 900px;
+      }
+    }
   }
 }
 
