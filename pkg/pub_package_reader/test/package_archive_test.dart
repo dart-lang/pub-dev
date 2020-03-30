@@ -98,13 +98,26 @@ void main() {
       expect(forbidGitDependencies(pubspec).toList(), isEmpty);
     });
 
-    test('git dependencies are forbidden', () {
+    test('compact git dependency is forbidden', () {
       final pubspec = Pubspec.parse('''
       name: hack
       version: 1.0.1
       dependencies:
         kittens:
           git: git://github.com/munificent/kittens.git
+      ''');
+      expect(forbidGitDependencies(pubspec).toList(), isNotEmpty);
+    });
+
+    test('git dependency with url and path is forbidden', () {
+      final pubspec = Pubspec.parse('''
+      name: hack
+      version: 1.0.1
+      dependencies:
+        kittens:
+          git:
+            url: git://github.com/munificent/kittens.git
+            path: some/directory/inside/the/repo
       ''');
       expect(forbidGitDependencies(pubspec).toList(), isNotEmpty);
     });
