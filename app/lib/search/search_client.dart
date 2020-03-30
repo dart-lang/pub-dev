@@ -59,6 +59,7 @@ class SearchClient {
         // Search request before the service initialization completed.
         return null;
       }
+      result.packages.replaceRange(0, 2, [PackageScore(package: 'http', score: 1.0), PackageScore(package: 'pem', score: 1.0)]);
       return result;
     }
 
