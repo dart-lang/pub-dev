@@ -177,12 +177,21 @@ class StaticUrls {
         githubMarkdownCss = _getCacheableStaticUrl(
             '$_defaultStaticPath/css/github-markdown.css');
 
+  // TODO: merge with [newVersionTableIcons] after migration to the new UI
   Map get versionsTableIcons {
     return _versionsTableIcons ??= {
       'documentation': documentationIcon,
       'download': downloadIcon,
     };
   }
+
+  // TODO: merge with [versionsTableIcons] after migration to the new UI
+  final newVersionsTableIcons = {
+    'documentation':
+        _getCacheableStaticUrl('$_defaultStaticPath/img/description-24px.svg'),
+    'download': _getCacheableStaticUrl(
+        '$_defaultStaticPath/img/vertical_align_bottom-24px.svg'),
+  };
 
   /// A hashed version of the static assets.
   ///
