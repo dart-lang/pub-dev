@@ -53,8 +53,8 @@ void setupLikes() {
 
   String likesString() {
     final likesCount = pageData.pkgData.likes + likesDelta;
-    return '${NumberFormat.compact().format(likesCount)}'
-        ' ${likesCount == 1 ? 'like' : 'likes'}';
+    final formattedCount = NumberFormat.compact().format(likesCount);
+    return '$formattedCount ${likesCount == 1 ? 'like' : 'likes'}';
   }
 
   iconButtonToggle.listen(MDCIconButtonToggle.changeEvent, (Event e) {
