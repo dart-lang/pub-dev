@@ -240,7 +240,7 @@ Iterable<ArchiveIssue> forbidGitDependencies(Pubspec pubspec) sync* {
     if (entry.value is GitDependency) {
       yield ArchiveIssue(
         'Package dependency $name is a git dependency, '
-        'this not allowed in published packages',
+        'this is not allowed in published packages.',
       );
       continue;
     }

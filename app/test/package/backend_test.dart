@@ -592,6 +592,25 @@ void main() {
               'Package name is too similar to another active or moderated package.');
         });
 
+        testWithServices('has git dependency', () async {
+          registerAuthenticatedUser(joeUser);
+          final tarball = await packageArchiveBytes(
+              pubspecContent: generatePubspecYaml('xyz', '1.0.0') +
+                  '  abcd:\n'
+                      '    git:\n'
+                      '      url: git://github.com/a/b\n'
+                      '      path: x/y/z\n');
+          final rs =
+              packageBackend.repository.upload(Stream.fromIterable([tarball]));
+          await expectLater(
+              rs,
+              throwsA(isA<Exception>().having(
+                (e) => '$e',
+                'text',
+                contains('is a git dependency'),
+              )));
+        });
+
         testWithServices('upload-too-big', () async {
           registerAuthenticatedUser(hansUser);
 
