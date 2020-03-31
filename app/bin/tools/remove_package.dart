@@ -90,17 +90,17 @@ Future _deleteWithQuery<T>(Query query, {bool Function(T item) where}) async {
 }
 
 Future removePackage(String packageName) async {
-  await withRetryTransaction(dbService, (T) async {
+  await withRetryTransaction(dbService, (tx) async {
     final deletes = <Key>[];
     final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
-    final package = (await T.lookup([packageKey])).first as Package;
+    final package = (await tx.lookup([packageKey])).first as Package;
     if (package == null) {
       print('Package $packageName does not exists.');
     } else {
       deletes.add(packageKey);
     }
 
-    final versionsQuery = T.query<PackageVersion>(packageKey);
+    final versionsQuery = tx.query<PackageVersion>(packageKey);
     final versions = await versionsQuery.run().toList();
     final List<Version> versionNames =
         versions.map((v) => v.semanticVersion).toList();
@@ -113,7 +113,7 @@ Future removePackage(String packageName) async {
         .map((version) => storage.remove(packageName, version.toString())));
 
     print('Committing changes to DB ...');
-    T.queueMutations(deletes: deletes);
+    tx.queueMutations(deletes: deletes);
   });
 
   print('Removing package from dartdoc backend ...');
@@ -152,19 +152,19 @@ Future removePackage(String packageName) async {
 }
 
 Future removePackageVersion(String packageName, String version) async {
-  await withRetryTransaction(dbService, (T) async {
+  await withRetryTransaction(dbService, (tx) async {
     final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
-    final package = (await T.lookup([packageKey])).first as Package;
+    final package = (await tx.lookup([packageKey])).first as Package;
     if (package == null) {
       print('Package $packageName does not exist.');
     }
 
-    final versionsQuery = T.query<PackageVersion>(packageKey);
+    final versionsQuery = tx.query<PackageVersion>(packageKey);
     final versions = await versionsQuery.run().toList();
     final versionNames = versions.map((v) => v.version).toList();
     if (versionNames.contains(version)) {
       final deletes = [packageKey.append(PackageVersion, id: version)];
-      T.queueMutations(deletes: deletes);
+      tx.queueMutations(deletes: deletes);
     } else {
       print('Package $packageName does not have a version $version.');
     }
@@ -187,7 +187,7 @@ Future removePackageVersion(String packageName, String version) async {
       versions
           .where((v) => v.version != version)
           .forEach(package.updateVersion);
-      T.queueMutations(inserts: [package]);
+      tx.queueMutations(inserts: [package]);
     }
 
     print('Committing changes to DB ...');
