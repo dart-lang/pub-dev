@@ -1,0 +1,48 @@
+{{! Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+<h2>Create a verified publisher</h2>
+<p>
+  A <i>verified publisher</i> is one or more users who own a set of packages.
+  Each publisher is identified by a verified domain name. This domain lends
+  credibility to packages owned by the publisher. For example, the Dart team at
+  Google uses the <a href="/publishers/dart.dev" target="_blank">dart.dev</a>
+  domain as the verified publisher of the packages that the team supported.
+</p>
+<p>
+  To create a verified publisher, you must be a <i>verified domain property</i>
+  owner in
+  <a href="https://search.google.com/search-console/welcome" target="_blank" rel="noreferrer">Google Search Console</a>.
+  For help see
+  <a href="https://support.google.com/webmasters/answer/34592?hl=en" target="_blank" rel="noreferrer">Add a website property</a>.
+</p>
+<p>
+  The user account creating a publisher must be the verifier of the
+  <i>domain property</I> &ndash; not just a verifier of a <i>URL prefix property</i>
+  or a collaborator on a property that someone else has verified. 
+</p>
+<p>
+  After you create a verified publisher, you can use the <i>publisher Admin page</i>
+  to invite other users to become members of the publisher.
+  Members of the publisher can transfer existing packages to the publisher using
+  the <i>package Admin page</i>.
+</p>
+<div class="-pub-form-row">
+  <label for="-publisher-id">Domain Name</label>
+  <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+    <input type="text" id="-publisher-id" class="mdc-text-field__input" />
+    <div class="mdc-notched-outline">
+      <div class="mdc-notched-outline__leading"></div>
+      <div class="mdc-notched-outline__trailing"></div>
+    </div>
+  </div>
+  <button
+    id="-admin-create-publisher"
+    class="mdc-button mdc-button--raised"
+    data-mdc-auto-init="MDCRipple">Create publisher</button>
+</div>
+<p>
+  For more information on publishing and administering packages, see the
+  <a href="https://dart.dev/tools/pub/publishing" target="_blank" rel="noreferrer">documentation on publishing packages</a>.
+</p>

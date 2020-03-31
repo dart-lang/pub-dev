@@ -16,8 +16,15 @@ body.experimental {
 .-pub-form-row {
   margin: 20px 0px;
 
+  label {
+    display: block;
+    font-weight: 400;
+    margin-bottom: 8px;
+  }
+
   .mdc-text-field {
     min-width: 100%;
+    margin-bottom: 8px;
   }
 }
 
