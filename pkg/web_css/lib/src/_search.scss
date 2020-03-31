@@ -6,12 +6,15 @@
   searchbar
 ******************************************************/
 .search-bar {
-  border: 1px solid $color-searchbar-dark-border;
   display: flex;
   align-items: center;
   border-radius: 3px;
   max-width: 650px;
   background: transparent;
+
+  .non-experimental & {
+    border: 1px solid $color-searchbar-dark-border;
+  }
 
   .experimental & {
     max-width: 710px;
@@ -50,6 +53,13 @@
       font-size: 24px;
       padding: 20px 35px 20px 65px;
       border-radius: 35px;
+    }
+  }
+
+  &:focus {
+    .experimental & {
+      outline: none;
+      box-shadow: 0 0 6px $color-input-primary;
     }
   }
 }
