@@ -70,7 +70,7 @@ class PublishingScript {
       // upload the same version again
       await _pubToolClient.publish(_dummyDir.path,
           expectedError:
-              'Version $_newDummyVersion of package _dummy_pkg already exists..');
+              'Version $_newDummyVersion of package _dummy_pkg already exists.');
 
       // run example
       await _pubToolClient.getDependencies(_dummyExampleDir.path);

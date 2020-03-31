@@ -61,6 +61,11 @@ class ApiResponseException implements Exception {
 
   shelf.Response asApiResponse() => shelf.Response(status,
           body: json.fuse(utf8).encode({
+            'error': {
+              'code': code,
+              'message': message,
+            },
+            // TODO: remove after the above gets deployed live
             'code': code,
             'message': message,
           }),

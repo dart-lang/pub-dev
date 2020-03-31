@@ -19,6 +19,11 @@ Future expectApiException(Future future,
         (e) => e.bodyAsJson(),
         'bodyAsJson',
         {
+          'error': {
+            'code': code ?? isNotNull,
+            'message': message == null ? isNotNull : contains(message),
+          },
+          // TODO: remove after the above gets deployed live
           'code': code ?? isNotNull,
           'message': message == null ? isNotNull : contains(message),
         },

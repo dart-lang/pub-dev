@@ -87,7 +87,26 @@ Future<R> rpc<R>({
 String _requestExceptionMessage(RequestException e) {
   try {
     final map = e.bodyAsJson();
-    return (map['message'] as String) ?? (map['error'] as String);
+    String message;
+
+    if (map['error'] is Map) {
+      final errorMap = map['error'] as Map;
+      if (errorMap['message'] is String) {
+        message = errorMap['message'] as String;
+      }
+    }
+
+    // TODO: remove after the server is migrated to returns only `{'error': {'message': 'XX'}}`
+    if (message == null && map['message'] is String) {
+      message = map['message'] as String;
+    }
+
+    // TODO: check if we ever send responses like this and remove if not
+    if (message == null && map['error'] is String) {
+      message = map['error'] as String;
+    }
+
+    return message;
   } on FormatException catch (_) {
     // ignore bad body
   }

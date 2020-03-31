@@ -217,7 +217,7 @@ void main() {
             throwsA(isException.having(
                 (e) => '$e',
                 'text',
-                'We have sent an invitation to $newUploader, '
+                'OperationForbidden(403): We have sent an invitation to $newUploader, '
                     'they will be added as uploader after they confirm it.')));
 
         // uploaders do not change yet
@@ -274,7 +274,7 @@ void main() {
         await expectLater(
             rs,
             throwsA(isException.having((e) => '$e', 'toString',
-                'LastUploaderRemoved: Cannot remove last uploader of a package.')));
+                'OperationForbidden(403): Cannot remove last uploader of a package.')));
       });
 
       testWithServices('cannot remove non-existent uploader', () async {
@@ -284,7 +284,7 @@ void main() {
         await expectLater(
             rs,
             throwsA(isException.having((e) => '$e', 'toString',
-                'The uploader to remove does not exist.')));
+                'NotFound(404): Could not find `uploader: foo2@bar.com`.')));
       });
 
       testWithServices('cannot remove self', () async {
@@ -300,7 +300,7 @@ void main() {
         await expectLater(
             rs,
             throwsA(isException.having((e) => '$e', 'toString',
-                'Self-removal is not allowed. Use another account to remove this email address.')));
+                'OperationForbidden(403): Self-removal is not allowed. Use another account to remove this email address.')));
       });
 
       testWithServices('successful1', () async {
@@ -572,11 +572,11 @@ void main() {
           registerAuthenticatedUser(hansUser);
 
           expect(await fn('with'),
-              'Package name must not be a reserved word in Dart.');
+              'PackageRejected(400): Package name must not be a reserved word in Dart.');
           expect(await fn('123test'),
-              'Package name must begin with a letter or underscore.');
+              'PackageRejected(400): Package name must begin with a letter or underscore.');
           expect(await fn('With Space'),
-              'Package name may only contain letters, numbers, and underscores.');
+              'PackageRejected(400): Package name may only contain letters, numbers, and underscores.');
 
           expect(await fn('ok_name'), isNull);
         });
@@ -586,10 +586,10 @@ void main() {
           registerAuthenticatedUser(hansUser);
 
           expect(await fn('hy_drogen'),
-              'Package name is too similar to another active or moderated package.');
+              'PackageRejected(400): Package name is too similar to another active or moderated package.');
 
           expect(await fn('mo_derate'),
-              'Package name is too similar to another active or moderated package.');
+              'PackageRejected(400): Package name is too similar to another active or moderated package.');
         });
 
         testWithServices('has git dependency', () async {
