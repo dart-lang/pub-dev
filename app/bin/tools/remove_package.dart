@@ -18,6 +18,7 @@ import 'package:pub_dev/job/model.dart';
 import 'package:pub_dev/scorecard/models.dart';
 import 'package:pub_dev/service/entrypoint/tools.dart';
 import 'package:pub_dev/shared/configuration.dart';
+import 'package:pub_dev/shared/datastore_helper.dart';
 
 Future main(List<String> arguments) async {
   if (arguments.length < 2 ||
@@ -89,7 +90,7 @@ Future _deleteWithQuery<T>(Query query, {bool Function(T item) where}) async {
 }
 
 Future removePackage(String packageName) async {
-  await dbService.withTransaction((Transaction T) async {
+  await withRetryTransaction(dbService, (T) async {
     final deletes = <Key>[];
     final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
     final package = (await T.lookup([packageKey])).first as Package;
@@ -113,7 +114,6 @@ Future removePackage(String packageName) async {
 
     print('Committing changes to DB ...');
     T.queueMutations(deletes: deletes);
-    await T.commit();
   });
 
   print('Removing package from dartdoc backend ...');
@@ -152,17 +152,20 @@ Future removePackage(String packageName) async {
 }
 
 Future removePackageVersion(String packageName, String version) async {
-  await dbService.withTransaction((Transaction T) async {
+  await withRetryTransaction(dbService, (T) async {
     final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
     final package = (await T.lookup([packageKey])).first as Package;
     if (package == null) {
-      throw Exception('Package $packageName does not exist.');
+      print('Package $packageName does not exist.');
     }
 
     final versionsQuery = T.query<PackageVersion>(packageKey);
     final versions = await versionsQuery.run().toList();
     final versionNames = versions.map((v) => v.version).toList();
-    if (!versionNames.contains(version)) {
+    if (versionNames.contains(version)) {
+      final deletes = [packageKey.append(PackageVersion, id: version)];
+      T.queueMutations(deletes: deletes);
+    } else {
       print('Package $packageName does not have a version $version.');
     }
 
@@ -172,11 +175,11 @@ Future removePackageVersion(String packageName, String version) async {
     }
 
     bool updatePackage = false;
-    if (package.latestVersion == version) {
+    if (package != null && package.latestVersion == version) {
       package.latestVersionKey = null;
       updatePackage = true;
     }
-    if (package.latestDevVersion == version) {
+    if (package != null && package.latestDevVersion == version) {
       package.latestDevVersionKey = null;
       updatePackage = true;
     }
@@ -187,17 +190,13 @@ Future removePackageVersion(String packageName, String version) async {
       T.queueMutations(inserts: [package]);
     }
 
-    final deletes = [packageKey.append(PackageVersion, id: version)];
-    T.queueMutations(deletes: deletes);
-
     print('Committing changes to DB ...');
-    await T.commit();
-
-    final bucket = storageService.bucket(activeConfiguration.packageBucketName);
-    final storage = TarballStorage(storageService, bucket, '');
-    print('Removing GCS objects ...');
-    await storage.remove(packageName, version);
   });
+
+  final bucket = storageService.bucket(activeConfiguration.packageBucketName);
+  final storage = TarballStorage(storageService, bucket, '');
+  print('Removing GCS objects ...');
+  await storage.remove(packageName, version);
 
   await dartdocBackend.removeAll(packageName, version: version);
 
