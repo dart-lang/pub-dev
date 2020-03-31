@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:meta/meta.dart';
+
 class AuthResult {
   final String oauthUserId;
   final String email;
@@ -10,8 +12,13 @@ class AuthResult {
 }
 
 class AccountProfile {
+  final String name;
   final String imageUrl;
-  AccountProfile({this.imageUrl});
+
+  AccountProfile({
+    @required this.name,
+    @required this.imageUrl,
+  });
 }
 
 /// Authenticates bearer tokens from the `'authentication: bearer'` header.

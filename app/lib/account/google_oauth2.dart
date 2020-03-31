@@ -200,6 +200,7 @@ class GoogleOauth2AuthProvider extends AuthProvider {
     final info = await oauth2.userinfo.get();
     client.close();
     return AccountProfile(
+      name: info.name ?? info.givenName,
       imageUrl: info.picture,
     );
   }

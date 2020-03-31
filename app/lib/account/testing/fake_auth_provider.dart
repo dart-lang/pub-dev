@@ -30,6 +30,13 @@ class FakeAuthProvider implements AuthProvider {
   Future<AccountProfile> getAccountProfile(String accessToken) async {
     if (accessToken == null || !accessToken.contains('-at-')) return null;
     final imageUrl = '/images/user/$accessToken.jpg';
-    return AccountProfile(imageUrl: imageUrl);
+    return AccountProfile(
+      name: accessToken
+          .split('-at-')
+          .first
+          .replaceAll('-', ' ')
+          .replaceAll('.', ' '),
+      imageUrl: imageUrl,
+    );
   }
 }

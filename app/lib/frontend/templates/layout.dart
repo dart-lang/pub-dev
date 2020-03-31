@@ -110,6 +110,8 @@ String _renderSiteHeader(PageType pageType) {
       ? null
       : {
           'email': userSessionData.email,
+          'has_name': userSessionData.name != null,
+          'name': userSessionData.name,
           'image_url': userSessionData.imageUrl == null
               ? staticUrls.defaultProfilePng
               // Set image size to 30x30 pixels for faster loading, see:

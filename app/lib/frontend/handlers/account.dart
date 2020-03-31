@@ -55,8 +55,10 @@ Future<shelf.Response> updateSessionHandler(
   }
 
   final profile = await authProvider.getAccountProfile(body.accessToken);
-  final newSession =
-      await accountBackend.createNewSession(imageUrl: profile.imageUrl);
+  final newSession = await accountBackend.createNewSession(
+    name: profile.name,
+    imageUrl: profile.imageUrl,
+  );
 
   return jsonResponse(
     ClientSessionStatus(

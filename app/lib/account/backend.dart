@@ -414,13 +414,17 @@ class AccountBackend {
   /// must have `Cache-Control: private`, and may not be cached in server-side).
   /// JSON APIs whether fetching data or updating data cannot be authorized with
   /// a cookie carrying the `sessionId`.
-  Future<UserSessionData> createNewSession({@required String imageUrl}) async {
+  Future<UserSessionData> createNewSession({
+    @required String name,
+    @required String imageUrl,
+  }) async {
     final user = await requireAuthenticatedUser();
     final now = DateTime.now().toUtc();
     final session = UserSession()
       ..id = createUuid()
       ..userIdKey = user.key
       ..email = user.email
+      ..name = name
       ..imageUrl = imageUrl
       ..created = now
       ..expires = now.add(Duration(days: 14));
