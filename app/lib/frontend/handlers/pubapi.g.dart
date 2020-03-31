@@ -73,7 +73,7 @@ Router _$PubApiRouter(PubApi service) {
       final _$result = await service.getPackageUploadUrl(
         request,
       );
-      return _$result;
+      return $utilities.jsonResponse(_$result.toJson());
     } on ApiResponseException catch (e) {
       return e.asApiResponse();
     } catch (e, st) {

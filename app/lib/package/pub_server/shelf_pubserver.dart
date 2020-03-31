@@ -106,14 +106,6 @@ class ShelfPubServer {
 
   // Upload async handlers.
 
-  Future<shelf.Response> startUploadAsync(Uri uri) async {
-    final info = await repository.startAsyncUpload(_finishUploadAsyncUrl(uri));
-    return _jsonResponse({
-      'url': '${info.uri}',
-      'fields': info.fields,
-    });
-  }
-
   Future<shelf.Response> finishUploadAsync(Uri uri) async {
     try {
       final vers = await repository.finishAsyncUpload(uri);
@@ -178,11 +170,6 @@ class ShelfPubServer {
       shelf.Response(status,
           body: convert.json.encode(json),
           headers: {'content-type': 'application/json'});
-
-  // Upload async urls.
-
-  Uri _finishUploadAsyncUrl(Uri url) =>
-      url.resolve('/api/packages/versions/newUploadFinish');
 
   bool isSemanticVersion(String version) {
     try {

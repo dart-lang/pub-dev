@@ -84,11 +84,13 @@ class PubApi {
   ///     [302 Found / Temporary Redirect]
   ///     Location: https://pub.dartlang.org/finishUploadUrl
   @EndPoint.get('/api/packages/versions/new')
-  Future<Response> getPackageUploadUrl(Request request) async =>
+  Future<AsyncUploadInfo> getPackageUploadUrl(Request request) async =>
       // Note: we do not _normalizeHost here as we wish to be redirected to
       // packageUploadCallback on the same host. Otherwise, we can't do
       // integration tests before we switch traffic.
-      await packageBackend.pubServer.startUploadAsync(request.requestedUri);
+      await packageBackend.repository.startAsyncUpload(
+        request.requestedUri.resolve('/api/packages/versions/newUploadFinish'),
+      );
 
   /// Finish async upload.
   /// TODO: Link to the spec once it has the details updated:

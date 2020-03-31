@@ -8,6 +8,8 @@ import 'dart:async';
 
 import 'package:pub_semver/pub_semver.dart';
 
+import 'package:client_data/package_api.dart';
+
 /// Represents information about a specific version of a pub package.
 class PackageVersion {
   /// The name of the package.
@@ -44,20 +46,6 @@ class PackageVersion {
 
   @override
   String toString() => 'PackageVersion: $packageName/$versionString';
-}
-
-/// Information obtained when starting an asynchronous upload.
-class AsyncUploadInfo {
-  /// The endpoint where the uploaded data should be posted.
-  ///
-  /// The upload is a POST to [uri] with the headers [fields] in the HTTP
-  /// request. The body of the POST request must be a valid tar.gz file.
-  final Uri uri;
-
-  /// The fields the uploader should add to the multipart upload.
-  final Map<String, String> fields;
-
-  AsyncUploadInfo(this.uri, this.fields);
 }
 
 /// Represents a pub repository.

@@ -15,8 +15,9 @@ import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:googleapis_auth/src/crypto/rsa_sign.dart';
 import 'package:http/http.dart' as http;
 
+import 'package:client_data/package_api.dart';
+
 import '../shared/configuration.dart';
-import 'pub_server/repository.dart';
 
 /// The registered [UploadSignerService] object.
 UploadSignerService get uploadSigner =>
@@ -79,7 +80,7 @@ abstract class UploadSignerService {
       'success_action_redirect': successRedirectUrl,
     };
 
-    return AsyncUploadInfo(_uploadUrl, fields);
+    return AsyncUploadInfo(url: _uploadUrl.toString(), fields: fields);
   }
 
   Future<SigningResult> sign(List<int> bytes);

@@ -378,8 +378,8 @@ void main() {
           registerAuthenticatedUser(hansUser);
           final info =
               await packageBackend.repository.startAsyncUpload(redirectUri);
-          expect(info.uri.toString(),
-              startsWith('https://storage.url/fake-bucket-pub/tmp/'));
+          expect(
+              info.url, startsWith('https://storage.url/fake-bucket-pub/tmp/'));
           expect(info.fields, {
             'key': startsWith('fake-bucket-pub/tmp/'),
             'success_action_redirect': startsWith('$redirectUri?upload_id='),
