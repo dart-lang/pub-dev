@@ -108,6 +108,20 @@ body.experimental {
     border-radius: 50%;
   }
 
+  .nav-account-name {
+    font-weight: 400;
+    font-size: 14px;
+  }
+
+  .nav-account-email {
+    font-weight: 400;
+    font-size: 12px;
+  }
+
+  .nav-profile-img-mobile {
+    display: none;
+  }
+
   .site-header-nav {
     /* Navigation styles for mobile. */
     @media (max-width: $device-mobile-max-width) {
@@ -144,7 +158,20 @@ body.experimental {
         order: 1;
 
         .nav-profile-img {
-          margin-left: 0px;
+          margin: 0 16px 0 0;
+        }
+
+        .nav-profile-image-desktop {
+          display: none;
+        }
+
+        .nav-profile-img-mobile {
+          display: block;
+        }
+
+        .nav-account-title-mobile {
+          display: flex;
+          align-items: center;
         }
       }
 
@@ -169,6 +196,7 @@ body.experimental {
 
       .nav-link {
         line-height: 38px;
+        opacity: 0.7;
       }
     }
 
