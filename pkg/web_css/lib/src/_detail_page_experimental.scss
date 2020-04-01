@@ -51,6 +51,14 @@ $detail-tabs-width: calc(100% - 320px);
       font-size: 48px;
     }
   }
+
+  &.-is-loose {
+    padding-top: 64px;
+
+    .title {
+      padding-bottom: 10px;
+    }
+  }
 }
 
 .detail-lead {

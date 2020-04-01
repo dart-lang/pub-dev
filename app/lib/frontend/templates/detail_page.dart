@@ -22,9 +22,12 @@ String renderDetailHeader({
   bool isFlutterFavorite = false,
   String metadataHtml,
   String tagsHtml,
+  /// Set true for more whitespace in the header.
+  bool isLoose = false,
   bool isPublisher = false,
 }) {
   return templateCache.renderTemplate('shared/detail/header', {
+    'is_loose': isLoose,
     'title': title,
     'metadata_html': metadataHtml,
     'tags_html': tagsHtml,

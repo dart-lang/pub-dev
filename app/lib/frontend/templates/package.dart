@@ -243,6 +243,7 @@ String renderPkgHeader(PackagePageData data) {
       searchQuery: null,
       showTagBadges: true,
     ),
+    isLoose: true,
   );
 }
 
