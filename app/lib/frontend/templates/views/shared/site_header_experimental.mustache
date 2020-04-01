@@ -51,12 +51,15 @@
     </div>
     {{#is_logged_in}}
     <div class="nav-container nav-profile-container hoverable">
-      <img class="nav-profile-img" id="-account-profile-img" src="{{& user_session.image_url}}" />
+      <img class="nav-profile-img nav-profile-image-desktop" src="{{& user_session.image_url}}" />
       <div class="nav-hover-popup">
         <div class="nav-table-column">
-          <div class="nav-account-title">
-            {{#user_session.has_name}}<div>{{user_session.name}}</div>{{/user_session.has_name}}
-            <div class="nav-account-email" id="-account-profile-email">{{user_session.email}}</div>
+          <div class="nav-account-title-mobile">
+            <img class="nav-profile-img nav-profile-img-mobile" src="{{& user_session.image_url}}" />
+            <div class="nav-account-title">
+              {{#user_session.has_name}}<div class="nav-account-name">{{user_session.name}}</div>{{/user_session.has_name}}
+              <div class="nav-account-email" id="-account-profile-email">{{user_session.email}}</div>
+            </div>
           </div>
           <div class="nav-separator"></div>
           <a class="nav-link" id="-account-logout">Sign out</a>
