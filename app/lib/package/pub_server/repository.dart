@@ -62,9 +62,9 @@ abstract class PackageRepository {
   /// request to this location once the upload is complete. It might contain
   /// additional query parameters and must be supplied to `finishAsyncUpload`.
   ///
-  /// The returned [AsyncUploadInfo] specifies where the tar.gz file should be
+  /// The returned [UploadInfo] specifies where the tar.gz file should be
   /// posted to and what headers should be supplied.
-  Future<AsyncUploadInfo> startAsyncUpload(Uri redirectUrl) async =>
+  Future<UploadInfo> startAsyncUpload(Uri redirectUrl) async =>
       throw UnsupportedError('No async upload support.');
 
   /// Finishes the upload of a package.

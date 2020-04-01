@@ -11,7 +11,7 @@ class FakeUploadSignerService implements UploadSignerService {
   FakeUploadSignerService(this._storagePrefix);
 
   @override
-  Future<AsyncUploadInfo> buildUpload(
+  Future<UploadInfo> buildUpload(
     String bucket,
     String object,
     Duration lifetime,
@@ -19,7 +19,7 @@ class FakeUploadSignerService implements UploadSignerService {
     String predefinedAcl = 'project-private',
     int maxUploadSize = UploadSignerService.maxUploadSize,
   }) async {
-    return AsyncUploadInfo(
+    return UploadInfo(
       url: Uri.parse('$_storagePrefix/$bucket/$object').toString(),
       fields: <String, String>{
         'key': '$bucket/$object',

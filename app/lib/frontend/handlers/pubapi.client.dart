@@ -47,8 +47,8 @@ class PubApiClient {
     );
   }
 
-  Future<_i3.AsyncUploadInfo> getPackageUploadUrl() async {
-    return _i3.AsyncUploadInfo.fromJson(await _client.requestJson(
+  Future<_i3.UploadInfo> getPackageUploadUrl() async {
+    return _i3.UploadInfo.fromJson(await _client.requestJson(
       verb: 'get',
       path: '/api/packages/versions/new',
     ));

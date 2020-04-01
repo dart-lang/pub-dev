@@ -45,7 +45,7 @@ abstract class UploadSignerService {
   static const int maxUploadSize = 100 * 1024 * 1024;
   static final Uri _uploadUrl = Uri.parse('https://storage.googleapis.com');
 
-  Future<AsyncUploadInfo> buildUpload(String bucket, String object,
+  Future<UploadInfo> buildUpload(String bucket, String object,
       Duration lifetime, String successRedirectUrl,
       {String predefinedAcl = 'project-private',
       int maxUploadSize = maxUploadSize}) async {
@@ -80,7 +80,7 @@ abstract class UploadSignerService {
       'success_action_redirect': successRedirectUrl,
     };
 
-    return AsyncUploadInfo(url: _uploadUrl.toString(), fields: fields);
+    return UploadInfo(url: _uploadUrl.toString(), fields: fields);
   }
 
   Future<SigningResult> sign(List<int> bytes);
