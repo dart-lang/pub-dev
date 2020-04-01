@@ -2,7 +2,12 @@
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
 {{#tag_badges}}
-  <div class="-pub-tag-badge"><div{{#title}} title="{{title}}"{{/title}}>{{sdk}}</div>{{#sub_tags}}<div{{#title}} title="{{title}}"{{/title}}>{{text}}</div>{{/sub_tags}}</div>
+<div class="-pub-tag-badge">
+  <span class="tag-badge-main"{{#title}} title="{{title}}"{{/title}}>{{sdk}}</span>
+  {{#sub_tags}}
+  <span class="tag-badge-sub"{{#title}} title="{{title}}"{{/title}}>{{text}}</span>
+  {{/sub_tags}}
+</div>
 {{/tag_badges}}
 {{#tags}}
   {{#has_href}}

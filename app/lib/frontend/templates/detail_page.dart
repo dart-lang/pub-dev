@@ -22,6 +22,7 @@ String renderDetailHeader({
   bool isFlutterFavorite = false,
   String metadataHtml,
   String tagsHtml,
+
   /// Set true for more whitespace in the header.
   bool isLoose = false,
   bool isPublisher = false,
