@@ -129,6 +129,8 @@ class UserSession extends db.ExpandoModel {
   @db.StringProperty(required: true)
   String email;
 
+  /// The name of the user given by the authentication provider.
+  /// May be null, or could contain any arbitrary text.
   @db.StringProperty()
   String name;
 
@@ -156,7 +158,7 @@ class UserSessionData {
   /// The email address of the [User].
   final String email;
 
-  /// The name of the [User].
+  /// The name of the [User] (may be null, or any arbitrary text).
   final String name;
 
   /// The image URL of the user's profile picture (may be null).
