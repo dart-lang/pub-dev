@@ -376,8 +376,7 @@ void main() {
         testWithServices('successful', () async {
           final Uri redirectUri = Uri.parse('http://blobstore.com/upload');
           registerAuthenticatedUser(hansUser);
-          final info =
-              await packageBackend.repository.startUpload(redirectUri);
+          final info = await packageBackend.repository.startUpload(redirectUri);
           expect(
               info.url, startsWith('https://storage.url/fake-bucket-pub/tmp/'));
           expect(info.fields, {
