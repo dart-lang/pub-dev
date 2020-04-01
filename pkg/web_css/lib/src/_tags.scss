@@ -44,32 +44,61 @@
   }
 }
 
+/* non-indented rule to restrict the content of this block to the non-experimental pages */
+body.non-experimental {
+
 /* Tag style used on package detail page for Dart/Flutter extended badges. */
 .-pub-tag-badge {
   font-size: 12px;
   display: inline-block;
   margin-right: 15px;
+  background: #e7f8ff;
 
-  > * {
+  > .tag-badge-main,
+  > .tag-badge-sub {
     display: inline-block;
     text-transform: uppercase;
     font-weight: 500;
     padding: 2px 8px;
     color: #555;
-    background: #e7f8ff;
   }
 
-  > *:first-child {
+  > .tag-badge-main {
     background: #0175c2;
     color: #e7f8ff;
   }
+}
 
-  > a:hover {
-    background: #ccc;
-    opacity: 1;
+/* non-indented rule to restrict the content of this block to the non-experimental pages */
+}
+
+/* non-indented rule to restrict the content of this block to the experimental pages */
+body.experimental {
+
+/* Tag style used on package detail page for Dart/Flutter extended badges. */
+.-pub-tag-badge {
+  font-size: 12px;
+  display: inline-block;
+  margin-right: 15px;
+  background: #e7f8ff;
+  padding-top: 2px;
+
+  > .tag-badge-main,
+  > .tag-badge-sub {
+    display: inline-block;
+    text-transform: uppercase;
+    font-weight: 300;
+    padding: 2px 8px;
+    color: #555;
+    border-bottom: 2px solid #e7f8ff;
   }
 
-  > a:first-child:hover {
-    background: #888;
+  > .tag-badge-main {
+    color: #1967d2;
+    font-weight: 400;
+    border-bottom: 2px solid #1967d2;
   }
+}
+
+/* non-indented rule to restrict the content of this block to the experimental pages */
 }
