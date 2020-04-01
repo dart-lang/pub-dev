@@ -369,7 +369,7 @@ void main() {
       group('GCloudRepository.startAsyncUpload', () {
         testWithServices('no active user', () async {
           final rs = packageBackend.repository
-              .startAsyncUpload(Uri.parse('http://example.com/'));
+              .startUpload(Uri.parse('http://example.com/'));
           await expectLater(rs, throwsA(isA<AuthenticationException>()));
         });
 
@@ -377,7 +377,7 @@ void main() {
           final Uri redirectUri = Uri.parse('http://blobstore.com/upload');
           registerAuthenticatedUser(hansUser);
           final info =
-              await packageBackend.repository.startAsyncUpload(redirectUri);
+              await packageBackend.repository.startUpload(redirectUri);
           expect(
               info.url, startsWith('https://storage.url/fake-bucket-pub/tmp/'));
           expect(info.fields, {

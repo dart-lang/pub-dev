@@ -88,7 +88,7 @@ class PubApi {
       // Note: we do not _normalizeHost here as we wish to be redirected to
       // packageUploadCallback on the same host. Otherwise, we can't do
       // integration tests before we switch traffic.
-      await packageBackend.repository.startAsyncUpload(
+      await packageBackend.repository.startUpload(
         request.requestedUri.resolve('/api/packages/versions/newUploadFinish'),
       );
 
