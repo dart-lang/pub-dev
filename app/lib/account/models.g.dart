@@ -27,6 +27,7 @@ UserSessionData _$UserSessionDataFromJson(Map<String, dynamic> json) {
     sessionId: json['sessionId'] as String,
     userId: json['userId'] as String,
     email: json['email'] as String,
+    name: json['name'] as String,
     imageUrl: json['imageUrl'] as String,
     created: json['created'] == null
         ? null
@@ -42,6 +43,7 @@ Map<String, dynamic> _$UserSessionDataToJson(UserSessionData instance) =>
       'sessionId': instance.sessionId,
       'userId': instance.userId,
       'email': instance.email,
+      'name': instance.name,
       'imageUrl': instance.imageUrl,
       'created': instance.created?.toIso8601String(),
       'expires': instance.expires?.toIso8601String(),

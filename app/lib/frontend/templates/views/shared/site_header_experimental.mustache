@@ -55,6 +55,7 @@
       <div class="nav-hover-popup">
         <div class="nav-table-column">
           <div class="nav-account-title">
+            {{#user_session.has_name}}<div>{{user_session.name}}</div>{{/user_session.has_name}}
             <div class="nav-account-email" id="-account-profile-email">{{user_session.email}}</div>
           </div>
           <div class="nav-separator"></div>
