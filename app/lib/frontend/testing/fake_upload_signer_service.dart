@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:client_data/package_api.dart';
 import 'package:pub_dev/package/upload_signer_service.dart';
-
-import '../../package/pub_server/repository.dart';
 
 /// Returns an upload URL with no signed signature.
 class FakeUploadSignerService implements UploadSignerService {
@@ -12,7 +11,7 @@ class FakeUploadSignerService implements UploadSignerService {
   FakeUploadSignerService(this._storagePrefix);
 
   @override
-  Future<AsyncUploadInfo> buildUpload(
+  Future<UploadInfo> buildUpload(
     String bucket,
     String object,
     Duration lifetime,
@@ -20,10 +19,13 @@ class FakeUploadSignerService implements UploadSignerService {
     String predefinedAcl = 'project-private',
     int maxUploadSize = UploadSignerService.maxUploadSize,
   }) async {
-    return AsyncUploadInfo(Uri.parse('$_storagePrefix/$bucket/$object'), {
-      'key': '$bucket/$object',
-      'success_action_redirect': successRedirectUrl,
-    });
+    return UploadInfo(
+      url: Uri.parse('$_storagePrefix/$bucket/$object').toString(),
+      fields: <String, String>{
+        'key': '$bucket/$object',
+        'success_action_redirect': successRedirectUrl,
+      },
+    );
   }
 
   @override

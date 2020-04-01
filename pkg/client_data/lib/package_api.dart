@@ -3,8 +3,32 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:json_annotation/json_annotation.dart';
+import 'package:meta/meta.dart';
 
 part 'package_api.g.dart';
+
+/// Information for uploading a package.
+@JsonSerializable()
+class UploadInfo {
+  /// The endpoint where the uploaded data should be posted.
+  ///
+  /// The upload is a POST to [url] with the headers [fields] in the HTTP
+  /// request. The body of the POST request must be a valid tar.gz file.
+  final String url;
+
+  /// The fields the uploader should add to the multipart upload.
+  final Map<String, String> fields;
+
+  UploadInfo({
+    @required this.url,
+    @required this.fields,
+  });
+
+  factory UploadInfo.fromJson(Map<String, dynamic> json) =>
+      _$UploadInfoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UploadInfoToJson(this);
+}
 
 /// Options and flags to get/set on a package.
 @JsonSerializable()

@@ -433,7 +433,7 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
   }
 
   @override
-  Future<pub_server.AsyncUploadInfo> startAsyncUpload(Uri redirectUrl) async {
+  Future<api.UploadInfo> startUpload(Uri redirectUrl) async {
     _logger.info('Starting async upload.');
     // NOTE: We use a authenticated user scope here to ensure the uploading
     // user is authenticated. But we're not validating anything at this point
