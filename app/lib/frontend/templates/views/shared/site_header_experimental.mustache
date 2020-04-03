@@ -10,7 +10,7 @@
   {{/show_site_logo}}
   <div class="site-header-space"></div>
   <div class="site-header-mask"></div>
-  <div class="site-header-nav">
+  <div class="site-header-nav scroll-container">
     {{^is_logged_in}}
     <div class="nav-login-container">
       <button class="nav-main-button" id="-account-login" class="link">Sign in</button>
@@ -47,6 +47,23 @@
             <a class="nav-link" target="_blank" rel="noopener" href="{{& dart_site_root}}/tools/pub">Pub tool</a>
           </div>
         </div>
+      </div>
+    </div>
+    <div class="nav-container nav-help-container-mobile foldable">
+      <h3 class="foldable-button">Flutter <img class="foldable-icon" src="{{& static_assets.img__nav-mobile-foldable-icon_svg}}" /></h3>
+      <div class="foldable-content">
+        <a class="nav-link" target="_blank" rel="noopener" href="https://flutter.io/using-packages/">Using packages</a>
+        <a class="nav-link" target="_blank" rel="noopener" href="https://flutter.io/developing-packages/">Developing packages and plugins</a>
+        <a class="nav-link" target="_blank" rel="noopener" href="{{& dart_site_root}}/tools/pub/publishing">Publishing a package</a>
+        <a class="nav-link" target="_blank" rel="noopener" href="{{& dart_site_root}}/tools/pub">Pub tool</a>
+      </div>
+    </div>
+    <div class="nav-container nav-help-container-mobile foldable">
+      <h3 class="foldable-button">Web &amp; Server <img class="foldable-icon" src="{{& static_assets.img__nav-mobile-foldable-icon_svg}}" /></h3>
+      <div class="foldable-content">
+        <a class="nav-link" target="_blank" rel="noopener" href="{{& dart_site_root}}/tools/pub/get-started">Using packages</a>
+        <a class="nav-link" target="_blank" rel="noopener" href="{{& dart_site_root}}/tools/pub/publishing">Publishing a package</a>
+        <a class="nav-link" target="_blank" rel="noopener" href="{{& dart_site_root}}/tools/pub">Pub tool</a>
       </div>
     </div>
     {{#is_logged_in}}
