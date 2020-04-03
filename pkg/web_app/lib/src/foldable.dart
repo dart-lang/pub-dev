@@ -19,11 +19,10 @@ void _setEventForFoldable() {
 
     final content = foldable.querySelector('.foldable-content');
     final scrollContainer = _parentWithClass(h, 'scroll-container');
-    var isActive = false;
 
     h.onClick.listen((e) async {
       // Toggle state.
-      isActive = !isActive;
+      final isActive = foldable.classes.toggle('-active');
 
       // Closing is simple: no measurements, no scrolling.
       if (!isActive) {
