@@ -105,11 +105,14 @@ Future<shelf.Response> consentPageHandler(
   // call above will throw, and the generic error page will be shown.
   // TODO: handle missing/expired consent gracefully
 
-  return htmlResponse(renderConsentPage(
-    consentId: consentId,
-    title: consent.titleText,
-    descriptionHtml: consent.descriptionHtml,
-  ));
+  return htmlResponse(
+    renderConsentPage(
+      consentId: consentId,
+      title: consent.titleText,
+      descriptionHtml: consent.descriptionHtml,
+    ),
+    noReferrer: true,
+  );
 }
 
 /// Handles /api/account/options/packages/<package>
