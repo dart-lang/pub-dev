@@ -38,7 +38,7 @@ void main() {
         'packages': [
           {
             'package': 'angular',
-            'score': closeTo(0.993, 0.001),
+            'score': 1.0,
           },
           {
             'package': 'angular_ui',

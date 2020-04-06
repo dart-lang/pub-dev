@@ -69,6 +69,20 @@ Iterable<String> splitForIndexing(String text) {
   return text.split(_separators).where((s) => s.isNotEmpty);
 }
 
+List<String> splitForQuery(String text) {
+  final words = splitForIndexing(text).toSet().toList();
+
+  // lookup longer words first, as it may restrict the result set better
+  words.sort((a, b) => -a.length.compareTo(b.length));
+
+  // limit the number of words to lookup
+  if (words.length > 20) {
+    words.removeRange(20, words.length);
+  }
+
+  return words;
+}
+
 List<String> extractExactPhrases(String text) =>
     _exactTermRegExp.allMatches(text).map((m) => m.group(1)).toList();
 

@@ -42,7 +42,8 @@ class SimplePackageIndex implements PackageIndex {
   final String _urlPrefix;
   final Map<String, PackageDocument> _packages = <String, PackageDocument>{};
   final Map<String, String> _normalizedPackageText = <String, String>{};
-  final TokenIndex _nameIndex = TokenIndex(minLength: 2);
+  final _packageNameIndex = _PackageNameIndex();
+  final TokenIndex _nameTokenIndex = TokenIndex(minLength: 2);
   final TokenIndex _descrIndex = TokenIndex(minLength: 3);
   final TokenIndex _readmeIndex = TokenIndex(minLength: 3);
   final TokenIndex _apiSymbolIndex = TokenIndex(minLength: 2);
@@ -88,7 +89,8 @@ class SimplePackageIndex implements PackageIndex {
     // happens, we are not serving queries. With the forced async segments,
     // the waiting queries will be served earlier.
     await Future.delayed(Duration.zero);
-    _nameIndex.add(doc.package, doc.package);
+    _packageNameIndex.add(doc.package);
+    _nameTokenIndex.add(doc.package, doc.package);
 
     await Future.delayed(Duration.zero);
     _descrIndex.add(doc.package, doc.description);
@@ -128,7 +130,8 @@ class SimplePackageIndex implements PackageIndex {
   Future<void> removePackage(String package) async {
     final PackageDocument doc = _packages.remove(package);
     if (doc == null) return;
-    _nameIndex.remove(package);
+    _packageNameIndex.remove(package);
+    _nameTokenIndex.remove(package);
     _descrIndex.remove(package);
     _readmeIndex.remove(package);
     _normalizedPackageText.remove(package);
@@ -398,16 +401,7 @@ class SimplePackageIndex implements PackageIndex {
   _TextResults _searchText(Set<String> packages, String text) {
     final sw = Stopwatch()..start();
     if (text != null && text.isNotEmpty) {
-      final words = splitForIndexing(text).toSet().toList();
-
-      // lookup longer words first, as it may restrict the result set better
-      words.sort((a, b) => -a.length.compareTo(b.length));
-
-      // limit the number of words to lookup
-      if (words.length > 20) {
-        words.removeRange(20, words.length);
-      }
-
+      final words = splitForQuery(text);
       final wordCount = words.length;
       final pkgScores = <Score>[];
       final apiPagesScores = <Score>[];
@@ -422,11 +416,11 @@ class SimplePackageIndex implements PackageIndex {
           break;
         }
 
-        final nameTokens = _nameIndex.lookupTokens(word);
+        final nameTokens = _nameTokenIndex.lookupTokens(word);
         final descrTokens = _descrIndex.lookupTokens(word);
         final readmeTokens = _readmeIndex.lookupTokens(word);
 
-        final name = Score(_nameIndex.scoreDocs(nameTokens,
+        final name = Score(_nameTokenIndex.scoreDocs(nameTokens,
             weight: 1.00, wordCount: wordCount, limitToIds: packages));
         final descr = Score(_descrIndex.scoreDocs(descrTokens,
             weight: 0.90, wordCount: wordCount, limitToIds: packages));
@@ -458,8 +452,12 @@ class SimplePackageIndex implements PackageIndex {
         // packages with zero won't be part of the result anyway.
         packages = score._values.keys.where(packages.contains).toSet();
       }
-      Score score = Score.multiply(pkgScores);
-      score = score.project(packages);
+      final nameScore =
+          _packageNameIndex.searchWords(words, packages: packages);
+      final fuzzyScore = Score.multiply(pkgScores)
+          .project(packages)
+          .removeLowValues(fraction: 0.01, minValue: 0.001);
+      Score score = Score.max([nameScore, fuzzyScore]);
 
       // filter results based on exact phrases
       final phrases =
@@ -476,8 +474,6 @@ class SimplePackageIndex implements PackageIndex {
         }
         score = Score(matched);
       }
-
-      score = score.removeLowValues(fraction: 0.01, minValue: 0.001);
 
       final apiDocScore = Score.multiply(apiPagesScores);
       final apiDocKeys = apiDocScore.getKeys().toList()
@@ -662,6 +658,50 @@ class TokenMatch {
       _maxWeight ??= _tokenWeights.values.fold(0.0, math.max);
 
   Map<String, double> get tokenWeights => Map.unmodifiable(_tokenWeights);
+}
+
+/// A simple (non-inverted) index designed for package name lookup.
+class _PackageNameIndex {
+  /// Maps package name to a reduced form of the same name.
+  final _collapsedNames = <String, String>{};
+
+  /// Add a new [package] to the index.
+  void add(String package) {
+    _collapsedNames[package] = splitForQuery(package).join('');
+  }
+
+  /// Remove a [package] from the index.
+  void remove(String package) {
+    _collapsedNames.remove(package);
+  }
+
+  /// Search [text] and return the matching packages with scores.
+  Score search(String text) {
+    return searchWords(splitForQuery(text));
+  }
+
+  /// Search using the parsed [words] and return the match packages with scores.
+  Score searchWords(List<String> words, {Set<String> packages}) {
+    final pkgNamesToCheck = packages ?? _collapsedNames.keys;
+    final values = <String, double>{};
+    for (final pkg in pkgNamesToCheck) {
+      final collapsed = _collapsedNames[pkg];
+      // all words must be found inside the collapsed name
+      // returns null if any of them is missing,
+      // otherwise returns the unmatched substrings joined by `_`
+      final unmatched = words.fold<String>(collapsed, (c, word) {
+        if (c == null) return null;
+        if (collapsed.contains(word)) {
+          return c.replaceFirst(word, '_');
+        }
+        return null;
+      })?.replaceAll('_', '');
+      if (unmatched == null) continue;
+      final score = (collapsed.length - unmatched.length) / collapsed.length;
+      values[pkg] = score;
+    }
+    return Score(values);
+  }
 }
 
 /// Stores a token -> documentId inverted index with weights.

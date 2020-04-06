@@ -386,7 +386,7 @@ MIT'''),
           {
             // should be the top
             'package': 'haversine',
-            'score': closeTo(0.99, 0.01),
+            'score': 1.0,
           },
           {
             // should be present
