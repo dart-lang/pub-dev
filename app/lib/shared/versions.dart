@@ -34,10 +34,9 @@ final Version semanticRuntimeVersion = Version.parse(runtimeVersion);
 ///
 /// Make sure that at least two versions are kept here as the next candidates
 /// when the version switch happens:
+/// - 2020.03.24
 /// - 2020.03.09
-/// - 2020.02.19
-/// - 2020.02.07
-final String gcBeforeRuntimeVersion = '2020.01.24';
+final String gcBeforeRuntimeVersion = '2020.02.19';
 
 /// The versions which contain data that we should not fall back to.
 final blacklistedRuntimeVersions = ['2019.12.05', '2019.12.05+1'];
@@ -50,11 +49,11 @@ final String toolEnvSdkVersion = '2.7.1';
 final String panaVersion = pana.packageVersion;
 final Version semanticPanaVersion = Version.parse(panaVersion);
 
-final String flutterVersion = '1.12.13+hotfix.8';
+final String flutterVersion = '1.12.13+hotfix.9';
 final Version semanticFlutterVersion = Version.parse(flutterVersion);
 
 // keep in-sync with pkg/pub_dartdoc/pubspec.yaml
-final String dartdocVersion = '0.30.2';
+final String dartdocVersion = '0.30.3';
 final Version semanticDartdocVersion = Version.parse(dartdocVersion);
 
 // Version that control the dartdoc serving.
