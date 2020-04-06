@@ -15,7 +15,6 @@ import '../../package/backend.dart' show purgePackageCache;
 import '../../shared/exceptions.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../../shared/urls.dart' as urls;
-import '../../shared/utils.dart' show isSemanticVersion;
 
 import 'repository.dart';
 
@@ -75,9 +74,7 @@ class ShelfPubServer {
 
   Future<shelf.Response> showVersion(
       Uri uri, String package, String version) async {
-    InvalidInputException.check(isSemanticVersion(version),
-        'Version string "$version" is not a valid semantic version.');
-
+    InvalidInputException.checkSemanticVersion(version);
     final ver = await repository.lookupVersion(package, version);
     if (ver == null) {
       return shelf.Response.notFound(null);

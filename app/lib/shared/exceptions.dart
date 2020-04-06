@@ -14,6 +14,7 @@
 library exceptions;
 
 import 'package:api_builder/api_builder.dart' show ApiResponseException;
+import 'package:pub_semver/pub_semver.dart';
 
 /// Base class for all exceptions that are intercepted by HTTP handler wrappers.
 abstract class ResponseException extends ApiResponseException {
@@ -151,6 +152,16 @@ class InvalidInputException extends ResponseException {
   static void checkUlid(String value, String name) {
     assert(name != null, '"name" must not beq `null`');
     _check(_ulidPattern.hasMatch(value), () => '"$name" is not a valid ulid.');
+  }
+
+  static void checkSemanticVersion(String version) {
+    checkNotNull(version, 'version');
+    try {
+      Version.parse(version);
+    } on FormatException catch (_) {
+      throw InvalidInputException._(
+          'Version string "$version" is not a valid semantic version.');
+    }
   }
 }
 

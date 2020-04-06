@@ -158,8 +158,7 @@ class PackageBackend {
 
   /// Get a [Uri] which can be used to download a tarball of the pub package.
   Future<Uri> downloadUrl(String package, String version) async {
-    InvalidInputException.check(isSemanticVersion(version),
-        'Version string "$version" is not a valid semantic version.');
+    InvalidInputException.checkSemanticVersion(version);
     version = canonicalizeVersion(version);
     return _storage.downloadUrl(package, version);
   }
