@@ -55,8 +55,7 @@ class PubApi {
     String package,
     String version,
   ) async =>
-      await packageBackend.pubServer
-          .download(_replaceHost(request.requestedUri), package, version);
+      Response.seeOther(await packageBackend.downloadUrl(package, version));
 
   /// Start async upload.
   /// TODO: Link to the spec once it has the details updated:

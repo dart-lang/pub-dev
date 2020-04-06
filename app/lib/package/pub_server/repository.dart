@@ -74,10 +74,6 @@ abstract class PackageRepository {
   /// Downloads a pub package.
   Future<Stream<List<int>>> download(String package, String version);
 
-  /// A permanent download URL to a package (if supported).
-  Future<Uri> downloadUrl(String package, String version) async =>
-      throw UnsupportedError('No download link support.');
-
   /// Adds [userEmail] as an uploader to [package].
   Future addUploader(String package, String userEmail) async =>
       throw UnsupportedError('No uploader support.');

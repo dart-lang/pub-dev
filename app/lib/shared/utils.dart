@@ -417,3 +417,12 @@ String createUuid([List<int> bytes]) {
     bytes.sublist(10).map(formatByte).join(),
   ].join('-');
 }
+
+bool isSemanticVersion(String version) {
+  try {
+    semver.Version.parse(version);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
