@@ -84,7 +84,7 @@ packages:
       name: dartdoc
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.30.2"
+    version: "0.30.3"
   file:
     dependency: transitive
     description:
