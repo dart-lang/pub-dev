@@ -100,7 +100,7 @@ Router _$PubApiRouter(PubApi service) {
         request,
         package,
       );
-      return _$result;
+      return $utilities.jsonResponse(_$result.toJson());
     } on ApiResponseException catch (e) {
       return e.asApiResponse();
     } catch (e, st) {
@@ -115,7 +115,7 @@ Router _$PubApiRouter(PubApi service) {
         package,
         email,
       );
-      return _$result;
+      return $utilities.jsonResponse(_$result.toJson());
     } on ApiResponseException catch (e) {
       return e.asApiResponse();
     } catch (e, st) {

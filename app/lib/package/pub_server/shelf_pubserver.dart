@@ -118,34 +118,7 @@ class ShelfPubServer {
     }
   }
 
-  // Uploader handlers.
-
-  Future<shelf.Response> addUploader(String package, String body) async {
-    final parts = body.split('=');
-    InvalidInputException.check(
-        parts.length == 2 && parts[0] == 'email' && parts[1].isNotEmpty,
-        'Invalid request.');
-
-    final user = Uri.decodeQueryComponent(parts[1]);
-    await repository.addUploader(package, user);
-    return _successfullRequest('Successfully added uploader to package.');
-  }
-
-  Future<shelf.Response> removeUploader(
-      String package, String userEmail) async {
-    await repository.removeUploader(package, userEmail);
-    return _successfullRequest('Successfully removed uploader from package.');
-  }
-
   // Helper functions.
-
-  Future<shelf.Response> _successfullRequest(String message) async {
-    return shelf.Response(200,
-        body: convert.json.encode({
-          'success': {'message': message}
-        }),
-        headers: {'content-type': 'application/json'});
-  }
 
   shelf.Response _binaryJsonResponse(List<int> d, {int status = 200}) =>
       shelf.Response(status,

@@ -43,3 +43,26 @@ Map<String, dynamic> _$PackagePublisherInfoToJson(
     <String, dynamic>{
       'publisherId': instance.publisherId,
     };
+
+SuccessMessage _$SuccessMessageFromJson(Map<String, dynamic> json) {
+  return SuccessMessage(
+    success: json['success'] == null
+        ? null
+        : Message.fromJson(json['success'] as Map<String, dynamic>),
+  );
+}
+
+Map<String, dynamic> _$SuccessMessageToJson(SuccessMessage instance) =>
+    <String, dynamic>{
+      'success': instance.success,
+    };
+
+Message _$MessageFromJson(Map<String, dynamic> json) {
+  return Message(
+    message: json['message'] as String,
+  );
+}
+
+Map<String, dynamic> _$MessageToJson(Message instance) => <String, dynamic>{
+      'message': instance.message,
+    };

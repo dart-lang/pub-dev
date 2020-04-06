@@ -61,18 +61,19 @@ class PubApiClient {
     );
   }
 
-  Future<List<int>> addUploader(String package) async {
-    return await _client.requestBytes(
+  Future<_i3.SuccessMessage> addUploader(String package) async {
+    return _i3.SuccessMessage.fromJson(await _client.requestJson(
       verb: 'post',
       path: '/api/packages/$package/uploaders',
-    );
+    ));
   }
 
-  Future<List<int>> removeUploader(String package, String email) async {
-    return await _client.requestBytes(
+  Future<_i3.SuccessMessage> removeUploader(
+      String package, String email) async {
+    return _i3.SuccessMessage.fromJson(await _client.requestJson(
       verb: 'delete',
       path: '/api/packages/$package/uploaders/$email',
-    );
+    ));
   }
 
   Future<_i4.PublisherInfo> createPublisher(

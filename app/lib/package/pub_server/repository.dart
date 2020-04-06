@@ -73,12 +73,4 @@ abstract class PackageRepository {
 
   /// Downloads a pub package.
   Future<Stream<List<int>>> download(String package, String version);
-
-  /// Adds [userEmail] as an uploader to [package].
-  Future addUploader(String package, String userEmail) async =>
-      throw UnsupportedError('No uploader support.');
-
-  /// Removes [userEmail] as an uploader from [package].
-  Future removeUploader(String package, String userEmail) async =>
-      throw UnsupportedError('No uploader support.');
 }

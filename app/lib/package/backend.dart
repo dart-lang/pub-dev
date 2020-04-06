@@ -655,8 +655,8 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
 
   // Uploaders support.
 
-  @override
-  Future<void> addUploader(String packageName, String uploaderEmail) async {
+  Future<api.SuccessMessage> addUploader(
+      String packageName, String uploaderEmail) async {
     uploaderEmail = uploaderEmail.toLowerCase();
     final user = await requireAuthenticatedUser();
     final packageKey = db.emptyKey.append(Package, id: packageName);
@@ -675,7 +675,9 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
     final uploader = await accountBackend.lookupUserByEmail(uploaderEmail);
     if (uploader != null && package.containsUploader(uploader.userId)) {
       // The requested uploaderEmail is already part of the uploaders.
-      return;
+      return api.SuccessMessage(
+          success:
+              api.Message(message: '`$uploaderEmail` is already an uploader.'));
     }
 
     await historyBackend.storeEvent(UploaderInvited(
@@ -758,11 +760,11 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
     }
   }
 
-  @override
-  Future<void> removeUploader(String packageName, String uploaderEmail) async {
+  Future<api.SuccessMessage> removeUploader(
+      String packageName, String uploaderEmail) async {
     uploaderEmail = uploaderEmail.toLowerCase();
     final user = await requireAuthenticatedUser();
-    return db.withTransaction((Transaction T) async {
+    await db.withTransaction((Transaction T) async {
       final packageKey = db.emptyKey.append(Package, id: packageName);
       final package = (await T.lookup([packageKey])).first as Package;
 
@@ -810,6 +812,9 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
       await T.commit();
       await purgePackageCache(package.name);
     });
+    return api.SuccessMessage(
+        success: api.Message(
+            message: 'Successfully removed uploader from package.'));
   }
 }
 
