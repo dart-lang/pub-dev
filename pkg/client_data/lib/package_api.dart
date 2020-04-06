@@ -61,3 +61,29 @@ class PackagePublisherInfo {
 
   Map<String, dynamic> toJson() => _$PackagePublisherInfoToJson(this);
 }
+
+/// A simple response communicating the operation was successful.
+@JsonSerializable()
+class SuccessMessage {
+  final Message success;
+
+  SuccessMessage({@required this.success});
+
+  factory SuccessMessage.fromJson(Map<String, dynamic> json) =>
+      _$SuccessMessageFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SuccessMessageToJson(this);
+}
+
+/// A message wrapper for pub client API compatibility.
+@JsonSerializable()
+class Message {
+  final String message;
+
+  Message({@required this.message});
+
+  factory Message.fromJson(Map<String, dynamic> json) =>
+      _$MessageFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MessageToJson(this);
+}

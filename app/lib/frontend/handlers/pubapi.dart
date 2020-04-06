@@ -10,6 +10,7 @@ import '../../admin/backend.dart';
 import '../../package/backend.dart' hide InviteStatus;
 import '../../publisher/backend.dart';
 import '../../shared/configuration.dart';
+import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
 import 'account.dart';
 import 'custom_api.dart';
@@ -118,9 +119,15 @@ class PubApi {
   ///     or
   ///     [400 Client Error]
   @EndPoint.post('/api/packages/<package>/uploaders')
-  Future<Response> addUploader(Request request, String package) async {
+  Future<SuccessMessage> addUploader(Request request, String package) async {
     final body = await request.readAsString();
-    return await packageBackend.pubServer.addUploader(package, body);
+    final parts = body.split('=');
+    InvalidInputException.check(
+        parts.length == 2 && parts[0] == 'email' && parts[1].isNotEmpty,
+        'Invalid request.');
+
+    final user = Uri.decodeQueryComponent(parts[1]);
+    return await packageBackend.repository.addUploader(package, user);
   }
 
   /// Removing an existing uploader.
@@ -132,12 +139,12 @@ class PubApi {
   ///     or
   ///     [400 Client Error]
   @EndPoint.delete('/api/packages/<package>/uploaders/<email>')
-  Future<Response> removeUploader(
+  Future<SuccessMessage> removeUploader(
     Request request,
     String package,
     String email,
   ) async =>
-      await packageBackend.pubServer.removeUploader(package, email);
+      await packageBackend.repository.removeUploader(package, email);
 
   // ****
   // **** Publisher API
