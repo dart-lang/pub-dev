@@ -120,14 +120,15 @@ class PubApi {
   ///     [400 Client Error]
   @EndPoint.post('/api/packages/<package>/uploaders')
   Future<SuccessMessage> addUploader(Request request, String package) async {
-    final body = await request.readAsString();
-    final parts = body.split('=');
-    InvalidInputException.check(
-        parts.length == 2 && parts[0] == 'email' && parts[1].isNotEmpty,
-        'Invalid request.');
-
-    final user = Uri.decodeQueryComponent(parts[1]);
-    return await packageBackend.repository.addUploader(package, user);
+    String email;
+    try {
+      final body = await request.readAsString();
+      final params = Uri.splitQueryString(body);
+      email = params['email'];
+    } on FormatException catch (_) {
+    }
+    InvalidInputException.checkNotNull(email, 'email');
+    return await packageBackend.repository.addUploader(package, email);
   }
 
   /// Removing an existing uploader.
