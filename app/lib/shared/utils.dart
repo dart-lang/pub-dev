@@ -422,7 +422,7 @@ bool isSemanticVersion(String version) {
   try {
     semver.Version.parse(version);
     return true;
-  } catch (_) {
+  } on FormatException catch (_) {
     return false;
   }
 }
