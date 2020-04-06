@@ -42,7 +42,7 @@ class SimplePackageIndex implements PackageIndex {
   final String _urlPrefix;
   final Map<String, PackageDocument> _packages = <String, PackageDocument>{};
   final Map<String, String> _normalizedPackageText = <String, String>{};
-  final _packageNameIndex = PackageNameIndex();
+  final _packageNameIndex = _PackageNameIndex();
   final TokenIndex _nameTokenIndex = TokenIndex(minLength: 2);
   final TokenIndex _descrIndex = TokenIndex(minLength: 3);
   final TokenIndex _readmeIndex = TokenIndex(minLength: 3);
@@ -661,7 +661,7 @@ class TokenMatch {
 }
 
 /// A simple (non-inverted) index designed for package name lookup.
-class PackageNameIndex {
+class _PackageNameIndex {
   /// Maps package name to a reduced form of the same name.
   final _collapsedNames = <String, String>{};
 
