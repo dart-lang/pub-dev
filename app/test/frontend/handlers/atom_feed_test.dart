@@ -30,7 +30,7 @@ void main() {
       expect(
           entries[0].toXmlString(indent: '  '),
           '<entry>\n'
-          '          <id>urn:uuid:ebaa25c2-6b0c-5829-a686-dc55c2bbd8e4</id>\n'
+          '          <id>urn:uuid:12c30db4-f5d7-4757-939d-02c81b9e299e</id>\n'
           '          <title>v0.1.1+5 of foobar_pkg</title>\n'
           '          <updated>2014-01-01T00:00:00.000Z</updated>\n'
           '          \n'
@@ -46,7 +46,7 @@ void main() {
       expect(
           entries[3].toXmlString(indent: '  '),
           '<entry>\n'
-          '          <id>urn:uuid:36e685fb-45d2-56ca-8c6e-0d204290be14</id>\n'
+          '          <id>urn:uuid:41c3131f-9d96-445e-9a55-756a6dd33d79</id>\n'
           '          <title>v2.0.8 of hydrogen</title>\n'
           '          <updated>2014-02-08T17:30:00.000</updated>\n'
           '          \n'
