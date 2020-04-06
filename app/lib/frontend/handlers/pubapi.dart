@@ -125,8 +125,7 @@ class PubApi {
       final body = await request.readAsString();
       final params = Uri.splitQueryString(body);
       email = params['email'];
-    } on FormatException catch (_) {
-    }
+    } on FormatException catch (_) {}
     InvalidInputException.checkNotNull(email, 'email');
     return await packageBackend.repository.addUploader(package, email);
   }
