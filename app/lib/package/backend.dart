@@ -61,10 +61,12 @@ PackageBackend get packageBackend =>
 class PackageBackend {
   final DatastoreDB db;
   final GCloudPackageRepository repository;
+  final TarballStorage _storage;
 
   PackageBackend(DatastoreDB db, TarballStorage storage)
       : db = db,
-        repository = GCloudPackageRepository(db, storage);
+        repository = GCloudPackageRepository(db, storage),
+        _storage = storage;
 
   /// Get [ShelfPubServer] for handling the HTTP interface.
   ShelfPubServer get pubServer => ShelfPubServer(repository);
@@ -156,8 +158,9 @@ class PackageBackend {
 
   /// Get a [Uri] which can be used to download a tarball of the pub package.
   Future<Uri> downloadUrl(String package, String version) async {
+    InvalidInputException.checkSemanticVersion(version);
     version = canonicalizeVersion(version);
-    return repository.downloadUrl(package, version);
+    return _storage.downloadUrl(package, version);
   }
 
   /// Updates [options] on [package].
@@ -408,12 +411,6 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
     // Maybe with a cache?
     version = canonicalizeVersion(version);
     return storage.download(package, version);
-  }
-
-  @override
-  Future<Uri> downloadUrl(String package, String version) async {
-    version = canonicalizeVersion(version);
-    return storage.downloadUrl(package, version);
   }
 
   // Upload support.

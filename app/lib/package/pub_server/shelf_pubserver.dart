@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:convert' as convert;
 
 import 'package:logging/logging.dart';
-import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:yaml/yaml.dart';
 
@@ -75,9 +74,7 @@ class ShelfPubServer {
 
   Future<shelf.Response> showVersion(
       Uri uri, String package, String version) async {
-    InvalidInputException.check(isSemanticVersion(version),
-        'Version string "$version" is not a valid semantic version.');
-
+    InvalidInputException.checkSemanticVersion(version);
     final ver = await repository.lookupVersion(package, version);
     if (ver == null) {
       return shelf.Response.notFound(null);
@@ -91,17 +88,6 @@ class ShelfPubServer {
       'pubspec': loadYaml(ver.pubspecYaml),
       'version': ver.versionString,
     });
-  }
-
-  // Download handlers.
-
-  Future<shelf.Response> download(
-      Uri uri, String package, String version) async {
-    InvalidInputException.check(isSemanticVersion(version),
-        'Version string "$version" is not a valid semantic version.');
-    final url = await repository.downloadUrl(package, version);
-    // This is a redirect to [url]
-    return shelf.Response.seeOther(url);
   }
 
   // Upload async handlers.
@@ -170,13 +156,4 @@ class ShelfPubServer {
       shelf.Response(status,
           body: convert.json.encode(json),
           headers: {'content-type': 'application/json'});
-
-  bool isSemanticVersion(String version) {
-    try {
-      semver.Version.parse(version);
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
 }
