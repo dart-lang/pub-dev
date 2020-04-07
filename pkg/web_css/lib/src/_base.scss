@@ -293,3 +293,11 @@ pre {
     opacity: 1;
   }
 }
+
+.foldable {
+  .foldable-content {
+    display: none;
+    overflow: hidden;
+    transition: max-height 0.6s ease;
+  }
+}

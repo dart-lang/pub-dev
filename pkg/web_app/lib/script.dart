@@ -7,6 +7,7 @@ import 'package:mdc_web/mdc_web.dart' as mdc;
 import 'package:web_app/likes.dart';
 import 'src/account.dart';
 import 'src/dartdoc_status.dart';
+import 'src/foldable.dart';
 import 'src/hoverable.dart';
 import 'src/issues.dart';
 import 'src/mobile_nav.dart';
@@ -19,6 +20,7 @@ void main() {
   setupTabs();
   setupSearch();
   setupScroll();
+  setupFoldable();
   setupHoverable();
   setupMobileNav();
   setupIssues();
