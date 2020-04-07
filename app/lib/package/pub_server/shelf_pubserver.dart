@@ -72,24 +72,6 @@ class ShelfPubServer {
     return _binaryJsonResponse(binaryJson);
   }
 
-  Future<shelf.Response> showVersion(
-      Uri uri, String package, String version) async {
-    InvalidInputException.checkSemanticVersion(version);
-    final ver = await repository.lookupVersion(package, version);
-    if (ver == null) {
-      return shelf.Response.notFound(null);
-    }
-
-    // TODO: Add legacy entries (if necessary), such as version_url.
-    return _jsonResponse({
-      'archive_url': urls.pkgArchiveDownloadUrl(
-          ver.packageName, ver.versionString,
-          baseUri: uri),
-      'pubspec': loadYaml(ver.pubspecYaml),
-      'version': ver.versionString,
-    });
-  }
-
   // Upload async handlers.
 
   Future<shelf.Response> finishUploadAsync(Uri uri) async {

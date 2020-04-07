@@ -31,6 +31,7 @@ import '../shared/datastore_helper.dart';
 import '../shared/email.dart';
 import '../shared/exceptions.dart';
 import '../shared/redis_cache.dart' show cache;
+import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 import 'model_properties.dart';
 import 'models.dart';
@@ -386,21 +387,30 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
         package, model.version, model.pubspec.jsonString));
   }
 
-  /// Returns null if the version is not a semantic version or if the version
-  /// entity does not exists in the datastore.
-  @override
-  Future<pub_server.PackageVersion> lookupVersion(
-      String package, String version) async {
-    version = canonicalizeVersion(version);
-    if (version == null) return null;
+  /// Lookup and return the API's version info object.
+  ///
+  /// Throws [NotFoundException] when the version is missing.
+  Future<api.VersionInfo> lookupVersion(
+      Uri baseUri, String package, String version) async {
+    InvalidInputException.checkSemanticVersion(version);
+    final canonicalVersion = canonicalizeVersion(version);
+    InvalidInputException.checkSemanticVersion(canonicalVersion);
 
     final packageVersionKey = db.emptyKey
         .append(Package, id: package)
-        .append(PackageVersion, id: version);
+        .append(PackageVersion, id: canonicalVersion);
 
     final pv = (await db.lookup([packageVersionKey])).first as PackageVersion;
-    if (pv == null) return null;
-    return pub_server.PackageVersion(package, version, pv.pubspec.jsonString);
+    if (pv == null) {
+      throw NotFoundException.resource('version "$version"');
+    }
+
+    return api.VersionInfo(
+      version: pv.version,
+      pubspec: pv.pubspec.asJson,
+      archiveUrl:
+          urls.pkgArchiveDownloadUrl(pv.package, pv.version, baseUri: baseUri),
+    );
   }
 
   // Download support.

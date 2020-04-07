@@ -53,9 +53,6 @@ abstract class PackageRepository {
   /// Returns the known versions of [package].
   Stream<PackageVersion> versions(String package);
 
-  /// Whether the [version] of [package] exists.
-  Future<PackageVersion> lookupVersion(String package, String version);
-
   /// Starts a  upload.
   ///
   /// The given [redirectUrl] instructs the uploading client to make a GET

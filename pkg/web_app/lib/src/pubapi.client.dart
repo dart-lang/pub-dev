@@ -33,11 +33,12 @@ class PubApiClient {
     );
   }
 
-  Future<List<int>> packageVersionInfo(String package, String version) async {
-    return await _client.requestBytes(
+  Future<_i3.VersionInfo> packageVersionInfo(
+      String package, String version) async {
+    return _i3.VersionInfo.fromJson(await _client.requestJson(
       verb: 'get',
       path: '/api/packages/$package/versions/$version',
-    );
+    ));
   }
 
   Future<List<int>> fetchPackage(String package, String version) async {

@@ -87,3 +87,24 @@ class Message {
 
   Map<String, dynamic> toJson() => _$MessageToJson(this);
 }
+
+@JsonSerializable()
+class VersionInfo {
+  final String version;
+
+  final Map<String, dynamic> pubspec;
+
+  @JsonKey(name: 'archive_url')
+  final String archiveUrl;
+
+  VersionInfo({
+    @required this.version,
+    @required this.pubspec,
+    @required this.archiveUrl,
+  });
+
+  factory VersionInfo.fromJson(Map<String, dynamic> json) =>
+      _$VersionInfoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$VersionInfoToJson(this);
+}

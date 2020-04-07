@@ -66,3 +66,18 @@ Message _$MessageFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$MessageToJson(Message instance) => <String, dynamic>{
       'message': instance.message,
     };
+
+VersionInfo _$VersionInfoFromJson(Map<String, dynamic> json) {
+  return VersionInfo(
+    version: json['version'] as String,
+    pubspec: json['pubspec'] as Map<String, dynamic>,
+    archiveUrl: json['archive_url'] as String,
+  );
+}
+
+Map<String, dynamic> _$VersionInfoToJson(VersionInfo instance) =>
+    <String, dynamic>{
+      'version': instance.version,
+      'pubspec': instance.pubspec,
+      'archive_url': instance.archiveUrl,
+    };

@@ -36,13 +36,13 @@ class PubApi {
   /// Getting information about a specific (package, version) pair.
   /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#deprecated-inspect-a-specific-version-of-a-package
   @EndPoint.get('/api/packages/<package>/versions/<version>')
-  Future<Response> packageVersionInfo(
+  Future<VersionInfo> packageVersionInfo(
     Request request,
     String package,
     String version,
   ) async =>
-      await packageBackend.pubServer
-          .showVersion(_replaceHost(request.requestedUri), package, version);
+      await packageBackend.repository
+          .lookupVersion(_replaceHost(request.requestedUri), package, version);
 
   /// Downloading package.
   /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#download-a-specific-version-of-a-package
