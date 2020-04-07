@@ -25,7 +25,7 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 /// reprocessing, including: risk of data corruption in analysis, version change
 /// in pana, dartdoc, or the SDKs, or when an feature or bugfix should be picked
 /// up by the analysis ASAP.
-const String runtimeVersion = '2020.03.24';
+const String runtimeVersion = '2020.04.07';
 final Version semanticRuntimeVersion = Version.parse(runtimeVersion);
 
 /// The version which marks the earliest version of the data which we'd like to
