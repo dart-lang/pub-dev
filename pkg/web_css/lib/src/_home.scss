@@ -99,7 +99,10 @@
 }
 
 .landing-main {
-  background-image: url('/static/img/square-bg.png');
+  background-image: url('/static/img/square-bg-full-2x.png');
+  background-position: center top;
+  background-repeat: repeat-y;
+  background-size: 1440px 2279px;
 }
 
 .home-block {
