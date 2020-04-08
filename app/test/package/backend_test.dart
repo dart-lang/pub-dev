@@ -328,15 +328,15 @@ void main() {
       final baseUri = Uri.parse('https://pub.dev');
 
       testWithServices('package not found', () async {
-        final version = await packageBackend.repository
+        final rs = packageBackend.repository
             .lookupVersion(baseUri, 'not_hydrogen', '1.0.0');
-        expect(version, isNull);
+        await expectLater(rs, throwsA(isA<NotFoundException>()));
       });
 
       testWithServices('version not found', () async {
-        final version = await packageBackend.repository
+        final rs = packageBackend.repository
             .lookupVersion(baseUri, 'hydrogen', '0.3.0');
-        expect(version, isNull);
+        await expectLater(rs, throwsA(isA<NotFoundException>()));
       });
 
       testWithServices('successful', () async {
