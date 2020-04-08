@@ -23,7 +23,7 @@ Map<String, dynamic> _loadYaml(String yamlString) {
 class Pubspec {
   final pubspek.Pubspec _inner;
   final String jsonString;
-  Map _json;
+  Map<String, dynamic> _json;
 
   Pubspec._(this._inner, this.jsonString);
 
@@ -34,7 +34,7 @@ class Pubspec {
       pubspek.Pubspec.parse(yamlString, lenient: true),
       json.encode(_loadYaml(yamlString)));
 
-  Map get asJson {
+  Map<String, dynamic> get asJson {
     _load();
     return _json;
   }

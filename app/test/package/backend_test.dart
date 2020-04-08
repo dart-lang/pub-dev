@@ -325,24 +325,25 @@ void main() {
     });
 
     group('GCloudRepository.lookupVersion', () {
+      final baseUri = Uri.parse('https://pub.dev');
+
       testWithServices('package not found', () async {
-        final version = await packageBackend.repository
-            .lookupVersion('not_hydrogen', '1.0.0');
-        expect(version, isNull);
+        final rs = packageBackend.repository
+            .lookupVersion(baseUri, 'not_hydrogen', '1.0.0');
+        await expectLater(rs, throwsA(isA<NotFoundException>()));
       });
 
       testWithServices('version not found', () async {
-        final version =
-            await packageBackend.repository.lookupVersion('hydrogen', '0.3.0');
-        expect(version, isNull);
+        final rs = packageBackend.repository
+            .lookupVersion(baseUri, 'hydrogen', '0.3.0');
+        await expectLater(rs, throwsA(isA<NotFoundException>()));
       });
 
       testWithServices('successful', () async {
-        final version =
-            await packageBackend.repository.lookupVersion('hydrogen', '1.0.0');
+        final version = await packageBackend.repository
+            .lookupVersion(baseUri, 'hydrogen', '1.0.0');
         expect(version, isNotNull);
-        expect(version.packageName, 'hydrogen');
-        expect(version.versionString, '1.0.0');
+        expect(version.version, '1.0.0');
       });
     });
 
