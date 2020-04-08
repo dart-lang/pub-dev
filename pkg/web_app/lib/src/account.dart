@@ -198,8 +198,8 @@ class _PkgAdminWidget {
 
   Future<void> _toogleDiscontinued() async {
     await rpc(
-      confirmQuestion:
-          'Are you sure you want change the "discontinued" status of the package?',
+      confirmQuestion: text(
+          'Are you sure you want change the "discontinued" status of the package?'),
       fn: () async {
         await client.setPackageOptions(
             pageData.pkgData.package,
@@ -207,7 +207,8 @@ class _PkgAdminWidget {
               isDiscontinued: !pageData.pkgData.isDiscontinued,
             ));
       },
-      successMessage: '"discontinued" status changed. The page will reload.',
+      successMessage:
+          text('"discontinued" status changed. The page will reload.'),
       onSuccess: (_) => window.location.reload(),
     );
   }
@@ -217,20 +218,20 @@ class _PkgAdminWidget {
     if (publisherId.isEmpty) {
       await modalMessage(
         'Input validation',
-        'Please specify a publisher.',
+        text('Please specify a publisher.'),
       );
       return;
     }
 
     await rpc(
-      confirmQuestion:
-          'Are you sure you want to transfer the package to publisher <code>$publisherId</code>?',
+      confirmQuestion: markdown(
+          'Are you sure you want to transfer the package to publisher `$publisherId`?'),
       fn: () async {
         final payload = PackagePublisherInfo(publisherId: publisherId);
         await client.setPackagePublisher(pageData.pkgData.package, payload);
       },
-      successMessage:
-          'Transfer completed. Caches and search index will update in the next 15-20 minutes. The page will reload.',
+      successMessage: text(
+          'Transfer completed. Caches and search index will update in the next 15-20 minutes. The page will reload.'),
       onSuccess: (_) => window.location.reload(),
     );
   }
@@ -256,14 +257,14 @@ class _CreatePublisherWidget {
     if (publisherId.isEmpty || !publisherIdPattern.hasMatch(publisherId)) {
       await modalMessage(
         'Input validation',
-        'Please use a domain name as publisher identifier.',
+        text('Please use a domain name as publisher identifier.'),
       );
       return;
     }
 
     await rpc(
-      confirmQuestion:
-          'Are you sure you want to create publisher for <code>$publisherId</code>?',
+      confirmQuestion: markdown(
+          'Are you sure you want to create publisher for `$publisherId`?'),
       fn: () async {
         GoogleUser currentUser = getAuthInstance()?.currentUser?.get();
         final extraScope =
@@ -280,7 +281,7 @@ class _CreatePublisherWidget {
         );
         await client.createPublisher(publisherId, payload);
       },
-      successMessage: 'Publisher created. The page will reload.',
+      successMessage: text('Publisher created. The page will reload.'),
       onSuccess: (_) {
         window.location.pathname = '/publishers/$publisherId';
       },
@@ -330,7 +331,7 @@ class _PublisherAdminWidget {
           'addresses we will send a confirmation request.';
     }
     await rpc(
-      confirmQuestion: confirmQuestion,
+      confirmQuestion: text(confirmQuestion),
       fn: () async {
         final payload = UpdatePublisherRequest(
           description: _descriptionTextArea.value,
@@ -339,7 +340,7 @@ class _PublisherAdminWidget {
         );
         await client.updatePublisher(pageData.publisher.publisherId, payload);
       },
-      successMessage: 'Publisher was updated. The page will reload.',
+      successMessage: text('Publisher was updated. The page will reload.'),
       onSuccess: (_) => window.location.reload(),
     );
   }
@@ -347,18 +348,19 @@ class _PublisherAdminWidget {
   Future<void> _inviteMember() async {
     final email = _inviteMemberInput.value.trim();
     if (email.isEmpty || !email.contains('@') || !email.contains('.')) {
-      await modalMessage('Input validation', 'Please specify a valid e-mail.');
+      await modalMessage(
+          'Input validation', text('Please specify a valid e-mail.'));
       return;
     }
 
     await rpc(
-      confirmQuestion: 'Are you sure you want to invite <code>$email</code> '
-          'as an administrator member to this publisher?',
+      confirmQuestion: markdown('Are you sure you want to invite `$email` '
+          'as an administrator member to this publisher?'),
       fn: () async {
         await client.invitePublisherMember(
             pageData.publisher.publisherId, InviteMemberRequest(email: email));
       },
-      successMessage: '<code>$email</code> was invited.',
+      successMessage: markdown('`$email` was invited.'),
       onSuccess: (_) {
         _inviteMemberInput.value = '';
       },
@@ -367,14 +369,14 @@ class _PublisherAdminWidget {
 
   Future<void> _removeMember(String userId, String email) async {
     await rpc(
-      confirmQuestion:
-          'Are you sure you want to remove <code>$email</code> from this publisher?',
+      confirmQuestion: markdown(
+          'Are you sure you want to remove `$email` from this publisher?'),
       fn: () async {
         await client.removePublisherMember(
             pageData.publisher.publisherId, userId);
       },
-      successMessage:
-          '<code>$email</code> removed from this publisher. The page will reload.',
+      successMessage: markdown(
+          '`$email` removed from this publisher. The page will reload.'),
       onSuccess: (_) => window.location.reload(),
     );
   }
@@ -403,26 +405,26 @@ class _ConsentWidget {
 
   Future<void> _accept() async {
     await rpc(
-      confirmQuestion: 'Are you sure you want to accept?',
+      confirmQuestion: text('Are you sure you want to accept?'),
       fn: () async {
         final rs = await client.resolveConsent(
             pageData.consentId, ConsentResult(granted: true));
         return rs.granted;
       },
-      successMessage: 'Consent accepted.',
+      successMessage: text('Consent accepted.'),
       onSuccess: _updateButtons,
     );
   }
 
   Future<void> _reject() async {
     await rpc(
-      confirmQuestion: 'Are you sure you want to reject?',
+      confirmQuestion: text('Are you sure you want to reject?'),
       fn: () async {
         final rs = await client.resolveConsent(
             pageData.consentId, ConsentResult(granted: false));
         return rs.granted;
       },
-      successMessage: 'Consent rejected.',
+      successMessage: text('Consent rejected.'),
       onSuccess: _updateButtons,
     );
   }

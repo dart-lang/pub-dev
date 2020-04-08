@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:html';
 
-import 'package:markdown/markdown.dart' as markdown;
+import 'package:markdown/markdown.dart' as md;
 import 'package:mdc_web/mdc_web.dart' show MDCDialog;
 import 'package:meta/meta.dart';
 
@@ -15,14 +15,14 @@ import 'pubapi.client.dart';
 /// error- and success handling.
 Future<R> rpc<R>({
   /// The optional confirmation question to ask before initiating the RPC.
-  String confirmQuestion,
+  Element confirmQuestion,
 
   /// The async RPC call. If this throws, the error will be displayed as a modal
   /// popup, and then it will be re-thrown.
   Future<R> Function() fn,
 
   /// Message to show when the RPC returns without exceptions.
-  @required String successMessage,
+  @required Element successMessage,
 
   /// Callback that will be called with the value of the RPC call, when it was
   /// successful.
@@ -60,11 +60,10 @@ Future<R> rpc<R>({
     result = await fn();
   } on RequestException catch (e) {
     error = e;
-    errorMessage = markdown
-        .markdownToHtml(_requestExceptionMessage(e) ?? 'Unexpected error: $e');
+    errorMessage = _requestExceptionMessage(e) ?? 'Unexpected error: $e';
   } catch (e) {
     error = e;
-    errorMessage = markdown.markdownToHtml('Unexpected error: $e');
+    errorMessage = 'Unexpected error: $e';
   } finally {
     spinner.remove();
     await keyDownSubscription.cancel();
@@ -73,7 +72,7 @@ Future<R> rpc<R>({
   }
 
   if (error != null) {
-    await modalMessage('Error', errorMessage);
+    await modalMessage('Error', markdown(errorMessage));
     throw error;
   }
 
@@ -114,30 +113,44 @@ String _requestExceptionMessage(RequestException e) {
 }
 
 /// Displays a message via the modal window.
-///
-/// Note: [messageHtml] must be trusted HTML.
-Future modalMessage(String title, String messageHtml) async {
-  await _modalWindow(title, messageHtml, false);
+Future modalMessage(String title, Element content) async {
+  await _modalWindow(
+    titleText: title,
+    content: content,
+    isQuestion: false,
+  );
 }
 
-/// Ask [questionHtml] to user, return true if 'OK' was selected.
-///
-/// Note: [questionHtml] must be trusted HTML.
-Future<bool> modalConfirm(String questionHtml) async {
-  return await _modalWindow('Confirm', questionHtml, true);
+/// Display [content] to user (assumed it has a question format), and return
+/// true if 'OK' was selected.
+Future<bool> modalConfirm(Element content) async {
+  return await _modalWindow(
+    titleText: 'Confirm',
+    content: content,
+    isQuestion: true,
+  );
 }
 
 /// Displays a modal window with "OK" and "Cancel" buttons. If [isQuestion] is
 /// false, it will omit the "Cancel" button.
 ///
 /// Returns true if "OK" was pressed, false otherwise.
-Future<bool> _modalWindow(
-  String titleText,
-  String contentHtml,
-  bool isQuestion,
-) async {
+Future<bool> _modalWindow({
+  @required String titleText,
+  @required Element content,
+  @required bool isQuestion,
+  String cancelButtonText,
+  String okButtonText,
+}) async {
   final c = Completer<bool>();
-  final root = _buildDialog(titleText, contentHtml, isQuestion, c.complete);
+  final root = _buildDialog(
+    titleText: titleText,
+    content: content,
+    isQuestion: isQuestion,
+    close: c.complete,
+    cancelButtonText: cancelButtonText,
+    okButtonText: okButtonText,
+  );
   document.body.append(root);
   final dialog = MDCDialog(root);
   try {
@@ -151,12 +164,14 @@ Future<bool> _modalWindow(
   return await c.future;
 }
 
-Element _buildDialog(
-  String titleText,
-  String contentHtml,
-  bool isQuestion,
-  void Function(bool) close,
-) =>
+Element _buildDialog({
+  @required String titleText,
+  @required Element content,
+  @required bool isQuestion,
+  @required void Function(bool) close,
+  String cancelButtonText,
+  String okButtonText,
+}) =>
     Element.div()
       ..classes.add('mdc-dialog')
       ..attributes.addAll({
@@ -179,10 +194,7 @@ Element _buildDialog(
                 Element.div()
                   ..classes.add('mdc-dialog__content')
                   ..id = 'pub-dialog-content'
-                  ..setInnerHtml(
-                    contentHtml,
-                    validator: NodeValidator(uriPolicy: _UnsafeUriPolicy()),
-                  ),
+                  ..children = [content],
                 Element.footer()
                   ..classes.add('mdc-dialog__actions')
                   ..children = [
@@ -197,7 +209,7 @@ Element _buildDialog(
                         ..children = [
                           Element.span()
                             ..classes.add('mdc-button__label')
-                            ..innerText = 'Cancel',
+                            ..innerText = cancelButtonText ?? 'Cancel',
                         ],
                     Element.tag('button')
                       ..classes.addAll([
@@ -209,13 +221,23 @@ Element _buildDialog(
                       ..children = [
                         Element.span()
                           ..classes.add('mdc-button__label')
-                          ..innerText = 'Ok',
+                          ..innerText = okButtonText ?? 'Ok',
                       ],
                   ],
               ],
           ],
         Element.div()..classes.add('mdc-dialog__scrim'),
       ];
+
+/// Creates an [Element] with unformatted [text] content.
+Element text(String text) => Element.div()..text = text;
+
+/// Creates an [Element] with Markdown-formatted content.
+Element markdown(String text) => Element.div()
+  ..setInnerHtml(
+    md.markdownToHtml(text),
+    validator: NodeValidator(uriPolicy: _UnsafeUriPolicy()),
+  );
 
 /// Allows any [Uri].
 ///
