@@ -23,7 +23,7 @@ void main() {
           readme: compactReadme('''# flutter_iap
 
 Add _In-App Payments_ to your Flutter app with this plugin.''')));
-      await index.merge();
+      await index.markReady();
     });
 
     test('IAP', () async {

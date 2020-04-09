@@ -57,7 +57,7 @@ void main() {
         package: 'json_3',
         tags: ['sdk:dart', 'sdk:flutter'],
       ));
-      await index.merge();
+      await index.markReady();
     });
 
     test('text search without platform', () async {

@@ -194,7 +194,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         maintenance: 0.9,
         dependencies: {'foo': 'direct'},
       ));
-      await index.merge();
+      await index.markReady();
     });
 
     test('health scores', () {

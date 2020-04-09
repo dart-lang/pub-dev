@@ -63,21 +63,17 @@ class SimplePackageIndex implements PackageIndex {
         _urlPrefix = urlPrefix;
 
   @override
-  bool get isReady => _isReady;
+  Future<IndexInfo> indexInfo() async {
+    return IndexInfo(
+      isReady: _isReady,
+      packageCount: _packages.length,
+      lastUpdated: _lastUpdated,
+    );
+  }
 
   @override
-  Map<String, dynamic> get debugInfo {
-    final data = {
-      'packageCount': _packages.length,
-      'lastUpdated': _lastUpdated?.toIso8601String(),
-    };
-
-    if (_lastUpdated != null) {
-      data['lastUpdateDelta'] =
-          DateTime.now().difference(_lastUpdated).toString();
-    }
-
-    return data;
+  Future<void> markReady() async {
+    _isReady = true;
   }
 
   @override
@@ -117,6 +113,10 @@ class SimplePackageIndex implements PackageIndex {
 
     await Future.delayed(Duration.zero);
     _normalizedPackageText[doc.package] = normalizeBeforeIndexing(allText);
+
+    await Future.delayed(Duration.zero);
+    _internPool.checkUnboundGrowth();
+    _lastUpdated = DateTime.now().toUtc();
   }
 
   @override
@@ -140,6 +140,7 @@ class SimplePackageIndex implements PackageIndex {
       _apiSymbolIndex.remove(pageId);
       _apiDartdocIndex.remove(pageId);
     }
+    _lastUpdated = DateTime.now().toUtc();
   }
 
   @override
@@ -350,13 +351,6 @@ class SimplePackageIndex implements PackageIndex {
       indexUpdated: _lastUpdated?.toIso8601String(),
       packages: results,
     );
-  }
-
-  @override
-  Future<void> merge() async {
-    _isReady = true;
-    _lastUpdated = DateTime.now().toUtc();
-    _internPool.checkUnboundGrowth();
   }
 
   // visible for testing only

@@ -38,7 +38,7 @@ void main() {
         registerDartSdkIndex(SimplePackageIndex());
         await packageIndex
             .addPackage(await searchBackend.loadDocument('pkg_foo'));
-        await packageIndex.merge();
+        await packageIndex.markReady();
       }
 
       scopedTest('Finds package by name', () async {

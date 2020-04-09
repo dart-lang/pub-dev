@@ -40,8 +40,8 @@ void main() {
         ],
       ));
 
-      await primaryIndex.merge();
-      await dartSdkIndex.merge();
+      await primaryIndex.markReady();
+      await dartSdkIndex.markReady();
     });
 
     test('non-text ranking', () async {

@@ -47,7 +47,7 @@ void main() {
         version: '2.0.0',
         description: compactDescription('Unrelated package'),
       ));
-      await index.merge();
+      await index.markReady();
     });
 
     test('foo', () async {

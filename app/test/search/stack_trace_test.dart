@@ -24,7 +24,7 @@ void main() {
               'A package for manipulating stack traces and printing them readably.'),
         ),
       ]);
-      await index.merge();
+      await index.markReady();
     });
 
     // should find full word

@@ -29,15 +29,35 @@ final _detectedTagPrefixes = <String>{
   ...allowedTagPrefixes.expand((s) => [s, '-$s', '+$s']),
 };
 
+/// Statistics about the index content.
+class IndexInfo {
+  final bool isReady;
+  final int packageCount;
+  final DateTime lastUpdated;
+
+  IndexInfo({
+    @required this.isReady,
+    @required this.packageCount,
+    @required this.lastUpdated,
+  });
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'isReady': isReady,
+        'packageCount': packageCount,
+        'lastUpdated': lastUpdated?.toIso8601String(),
+        if (lastUpdated != null)
+          'lastUpdateDelta': DateTime.now().difference(lastUpdated).toString(),
+      };
+}
+
 /// Package search index and lookup.
 abstract class PackageIndex {
-  bool get isReady;
   Future<void> addPackage(PackageDocument doc);
   Future<void> addPackages(Iterable<PackageDocument> documents);
   Future<void> removePackage(String package);
-  Future<void> merge();
   Future<PackageSearchResult> search(SearchQuery query);
-  Map<String, dynamic> get debugInfo;
+  Future<void> markReady();
+  Future<IndexInfo> indexInfo();
 }
 
 /// A summary information about a package that goes into the search index.

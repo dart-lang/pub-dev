@@ -45,7 +45,7 @@ void main() {
             'A new flutter package to render wavefront obj files into a canvas.'),
       ));
 
-      await index.merge();
+      await index.markReady();
     });
 
     test('flutter iap', () async {

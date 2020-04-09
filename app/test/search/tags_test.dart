@@ -14,7 +14,7 @@ void main() {
     test('No tags in documents: positive tag match', () async {
       final index = SimplePackageIndex();
       await index.addPackage(PackageDocument(package: 'pkg1'));
-      await index.merge();
+      await index.markReady();
 
       final rs = await index.search(SearchQuery.parse(
         tagsPredicate: TagsPredicate(requiredTags: ['is:a']),
@@ -29,7 +29,7 @@ void main() {
     test('No tags in documents: negative tag match', () async {
       final index = SimplePackageIndex();
       await index.addPackage(PackageDocument(package: 'pkg1'));
-      await index.merge();
+      await index.markReady();
 
       final rs = await index.search(SearchQuery.parse(
         tagsPredicate: TagsPredicate(prohibitedTags: ['is:a']),
@@ -47,7 +47,7 @@ void main() {
       final index = SimplePackageIndex();
       await index.addPackage(PackageDocument(package: 'pkg1', tags: ['is:a']));
       await index.addPackage(PackageDocument(package: 'pkg2', tags: ['is:b']));
-      await index.merge();
+      await index.markReady();
 
       final rs = await index.search(SearchQuery.parse(
         tagsPredicate: TagsPredicate(prohibitedTags: ['is:a']),
@@ -65,7 +65,7 @@ void main() {
       final index = SimplePackageIndex();
       await index.addPackage(PackageDocument(package: 'pkg1', tags: ['is:a']));
       await index.addPackage(PackageDocument(package: 'pkg2', tags: ['is:b']));
-      await index.merge();
+      await index.markReady();
 
       final rs = await index.search(SearchQuery.parse(
         tagsPredicate: TagsPredicate.parseQueryValues(['is:a']),
@@ -85,7 +85,7 @@ void main() {
           PackageDocument(package: 'pkg1', tags: ['is:a', 'is:dart1']));
       await index.addPackage(
           PackageDocument(package: 'pkg2', tags: ['is:b', 'is:dart1']));
-      await index.merge();
+      await index.markReady();
 
       final rs = await index.search(SearchQuery.parse(
         tagsPredicate: TagsPredicate.parseQueryValues(['is:dart1']),
@@ -106,7 +106,7 @@ void main() {
           PackageDocument(package: 'pkg1', tags: ['is:a', 'is:dart1']));
       await index.addPackage(
           PackageDocument(package: 'pkg2', tags: ['is:b', 'is:dart1']));
-      await index.merge();
+      await index.markReady();
 
       final rs = await index.search(SearchQuery.parse(
         tagsPredicate: TagsPredicate.parseQueryValues(['is:dart1', 'is:b']),
@@ -126,7 +126,7 @@ void main() {
           PackageDocument(package: 'pkg1', tags: ['is:a', 'is:dart1']));
       await index.addPackage(
           PackageDocument(package: 'pkg2', tags: ['is:b', 'is:dart1']));
-      await index.merge();
+      await index.markReady();
 
       final rs = await index.search(SearchQuery.parse(
         tagsPredicate: TagsPredicate.parseQueryValues(['is:dart1', '-is:b']),
@@ -145,7 +145,7 @@ void main() {
       await index
           .addPackage(PackageDocument(package: 'pkg1', tags: ['is:a', 'is:b']));
       await index.addPackage(PackageDocument(package: 'pkg2', tags: ['is:b']));
-      await index.merge();
+      await index.markReady();
 
       final rs = await index.search(SearchQuery.parse(query: 'is:b -is:a'));
       expect(json.decode(json.encode(rs.toJson())), {
@@ -162,7 +162,7 @@ void main() {
       await index
           .addPackage(PackageDocument(package: 'pkg1', tags: ['is:a', 'is:b']));
       await index.addPackage(PackageDocument(package: 'pkg2', tags: ['is:a']));
-      await index.merge();
+      await index.markReady();
 
       final rs = await index.search(SearchQuery.parse(
           tagsPredicate: TagsPredicate(prohibitedTags: ['is:b']),
