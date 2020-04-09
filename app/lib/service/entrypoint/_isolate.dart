@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:isolate';
+import 'dart:math';
 
 import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
@@ -15,6 +16,8 @@ import '../../shared/scheduler_stats.dart';
 import '../../shared/utils.dart' show trackEventLoopLatency;
 
 import '../services.dart';
+
+final _random = Random.secure();
 
 class FrontendEntryMessage {
   final int frontendIndex;
@@ -113,7 +116,7 @@ Future startIsolates({
     final ReceivePort errorReceivePort = ReceivePort();
     final ReceivePort protocolReceivePort = ReceivePort();
     final ReceivePort statsReceivePort = ReceivePort();
-    await Isolate.spawn(
+    final isolate = await Isolate.spawn(
       _wrapper,
       [
         workerEntryPoint,
@@ -138,9 +141,23 @@ Future startIsolates({
     });
     logger.info('Worker isolate #$workerIndex started.');
 
+    // Automatically killing worker isolate between in the next ~48 hours.
+    //
+    // This clears us from temporary processing hangups, at most within 2 days,
+    // probably in a few hours (as we have many workers and probably a few will
+    // be triggered earlier).
+    final ttl =
+        Duration(hours: 24 + _random.nextInt(24), minutes: _random.nextInt(60));
+    logger.info('Worker isolate #$workerIndex TTL set to $ttl.');
+    final autoKillTimer = Timer(ttl, () {
+      logger.info('Killing worker isolate #$workerIndex...');
+      isolate.kill();
+    });
+
     StreamSubscription errorSubscription;
 
     Future<void> close() async {
+      autoKillTimer.cancel();
       await statsSubscription?.cancel();
       await errorSubscription?.cancel();
       errorReceivePort.close();
