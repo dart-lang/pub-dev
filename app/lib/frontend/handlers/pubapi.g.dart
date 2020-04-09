@@ -11,11 +11,11 @@ Router _$PubApiRouter(PubApi service) {
   router.add('GET', r'/api/packages/<package>',
       (Request request, String package) async {
     try {
-      final _$result = await service.listPackageVersions(
+      final _$result = await service.packageData(
         request,
         package,
       );
-      return _$result;
+      return $utilities.jsonResponse(_$result.toJson());
     } on ApiResponseException catch (e) {
       return e.asApiResponse();
     } catch (e, st) {

@@ -377,14 +377,27 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
 
   GCloudPackageRepository(this.db, this.storage);
 
-  // Metadata support.
-
-  @override
-  Stream<pub_server.PackageVersion> versions(String package) {
-    final packageKey = db.emptyKey.append(Package, id: package);
-    final query = db.query<PackageVersion>(ancestorKey: packageKey);
-    return query.run().map((model) => pub_server.PackageVersion(
-        package, model.version, model.pubspec.jsonString));
+  /// Returns the known versions of [package].
+  Future<api.PackageData> packageData(Uri baseUri, String package) async {
+    return await cache.packageData(package).get(() async {
+      final packageVersions = await packageBackend.versionsOfPackage(package);
+      if (packageVersions.isEmpty) {
+        throw NotFoundException.resource('package "$package"');
+      }
+      packageVersions
+          .sort((a, b) => a.semanticVersion.compareTo(b.semanticVersion));
+      final latest = packageVersions.lastWhere(
+        (pv) => !pv.semanticVersion.isPreRelease,
+        orElse: () => packageVersions.last,
+      );
+      return api.PackageData(
+        name: package,
+        latest: _toApiVersionInfo(baseUri, latest),
+        versions: packageVersions
+            .map((pv) => _toApiVersionInfo(baseUri, pv))
+            .toList(),
+      );
+    });
   }
 
   /// Lookup and return the API's version info object.
@@ -405,13 +418,16 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
       throw NotFoundException.resource('version "$version"');
     }
 
-    return api.VersionInfo(
-      version: pv.version,
-      pubspec: pv.pubspec.asJson,
-      archiveUrl:
-          urls.pkgArchiveDownloadUrl(pv.package, pv.version, baseUri: baseUri),
-    );
+    return _toApiVersionInfo(baseUri, pv);
   }
+
+  api.VersionInfo _toApiVersionInfo(Uri baseUri, PackageVersion pv) =>
+      api.VersionInfo(
+        version: pv.version,
+        pubspec: pv.pubspec.asJson,
+        archiveUrl: urls.pkgArchiveDownloadUrl(pv.package, pv.version,
+            baseUri: baseUri),
+      );
 
   // Download support.
 

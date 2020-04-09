@@ -347,22 +347,23 @@ void main() {
       });
     });
 
-    group('GCloudRepository.versions', () {
+    group('GCloudRepository.packageData', () {
+      final baseUri = Uri.parse('https://pub.dev');
+
       testWithServices('not found', () async {
-        final versions =
-            await packageBackend.repository.versions('non_hydrogen').toList();
-        expect(versions, isEmpty);
+        final rs =
+            packageBackend.repository.packageData(baseUri, 'non_hydrogen');
+        await expectLater(rs, throwsA(isA<NotFoundException>()));
       });
 
       testWithServices('found', () async {
-        final versions =
-            await packageBackend.repository.versions('hydrogen').toList();
-        expect(versions, isNotEmpty);
-        expect(versions, hasLength(13));
-        expect(versions.first.packageName, 'hydrogen');
-        expect(versions.first.versionString, '1.0.0');
-        expect(versions.last.packageName, 'hydrogen');
-        expect(versions.last.versionString, '2.0.8');
+        final pd =
+            await packageBackend.repository.packageData(baseUri, 'hydrogen');
+        expect(pd.versions, isNotEmpty);
+        expect(pd.versions, hasLength(13));
+        expect(pd.versions.first.version, '1.0.0');
+        expect(pd.versions.last.version, '2.0.8');
+        expect(pd.latest.version, '2.0.8');
       });
     });
 

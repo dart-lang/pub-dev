@@ -89,6 +89,24 @@ class Message {
 }
 
 @JsonSerializable()
+class PackageData {
+  final String name;
+  final VersionInfo latest;
+  final List<VersionInfo> versions;
+
+  PackageData({
+    @required this.name,
+    @required this.latest,
+    @required this.versions,
+  });
+
+  factory PackageData.fromJson(Map<String, dynamic> json) =>
+      _$PackageDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PackageDataToJson(this);
+}
+
+@JsonSerializable()
 class VersionInfo {
   final String version;
 

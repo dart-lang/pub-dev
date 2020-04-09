@@ -50,9 +50,6 @@ class PackageVersion {
 
 /// Represents a pub repository.
 abstract class PackageRepository {
-  /// Returns the known versions of [package].
-  Stream<PackageVersion> versions(String package);
-
   /// Starts a  upload.
   ///
   /// The given [redirectUrl] instructs the uploading client to make a GET

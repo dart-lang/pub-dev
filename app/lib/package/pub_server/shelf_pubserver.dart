@@ -9,12 +9,10 @@ import 'dart:convert' as convert;
 
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
-import 'package:yaml/yaml.dart';
 
 import '../../package/backend.dart' show purgePackageCache;
 import '../../shared/exceptions.dart';
 import '../../shared/redis_cache.dart' show cache;
-import '../../shared/urls.dart' as urls;
 
 import 'repository.dart';
 
@@ -26,51 +24,6 @@ class ShelfPubServer {
   final PackageRepository repository;
 
   ShelfPubServer(this.repository);
-
-  // Metadata handlers.
-
-  Future<shelf.Response> listVersions(Uri uri, String package) async {
-    final cachedBinaryJson = await cache.packageData(package).get();
-    if (cachedBinaryJson != null) {
-      return _binaryJsonResponse(cachedBinaryJson);
-    }
-
-    final packageVersions = await repository.versions(package).toList();
-    if (packageVersions.isEmpty) {
-      return shelf.Response.notFound(null);
-    }
-
-    packageVersions.sort((a, b) => a.version.compareTo(b.version));
-
-    // TODO: Add legacy entries (if necessary), such as version_url.
-    Map packageVersion2Json(PackageVersion version) {
-      return {
-        'archive_url': urls.pkgArchiveDownloadUrl(
-            version.packageName, version.versionString,
-            baseUri: uri),
-        'pubspec': loadYaml(version.pubspecYaml),
-        'version': version.versionString,
-      };
-    }
-
-    var latestVersion = packageVersions.last;
-    for (int i = packageVersions.length - 1; i >= 0; i--) {
-      if (!packageVersions[i].version.isPreRelease) {
-        latestVersion = packageVersions[i];
-        break;
-      }
-    }
-
-    // TODO: The 'latest' is something we should get rid of, since it's
-    // duplicated in 'versions'.
-    final binaryJson = convert.json.encoder.fuse(convert.utf8.encoder).convert({
-      'name': package,
-      'latest': packageVersion2Json(latestVersion),
-      'versions': packageVersions.map(packageVersion2Json).toList(),
-    });
-    await cache.packageData(package).set(binaryJson);
-    return _binaryJsonResponse(binaryJson);
-  }
 
   // Upload async handlers.
 
@@ -101,11 +54,6 @@ class ShelfPubServer {
   }
 
   // Helper functions.
-
-  shelf.Response _binaryJsonResponse(List<int> d, {int status = 200}) =>
-      shelf.Response(status,
-          body: Stream.fromIterable([d]),
-          headers: {'content-type': 'application/json'});
 
   shelf.Response _jsonResponse(Map json, {int status = 200}) =>
       shelf.Response(status,
