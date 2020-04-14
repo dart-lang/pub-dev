@@ -15,3 +15,4 @@ targets:
       - 'lib/search/backend.dart'
       - 'lib/search/search_service.dart'
       - 'lib/shared/*.dart'
+      - 'lib/tool/mirror/mirror_config.dart'
