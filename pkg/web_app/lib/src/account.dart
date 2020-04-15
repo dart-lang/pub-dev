@@ -365,6 +365,7 @@ class _PublisherAdminWidget {
     );
   }
 
+  // TODO: remove [requestConfirm] after we've migrated to the new UI.
   Future<bool> _inviteMember(bool requestConfirm) async {
     final email = _inviteMemberInput.value.trim();
     if (email.isEmpty || !email.contains('@') || !email.contains('.')) {
