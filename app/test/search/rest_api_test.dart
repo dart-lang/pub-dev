@@ -44,7 +44,7 @@ Recent versions (0.3.x and 0.4.x) of this plugin require [extensible codec funct
             'Currency Cloud Dart API A dart library for the Currency Cloud '
             'service Usage A simple usage example'),
       ));
-      await index.merge();
+      await index.markReady();
     });
 
     test('REST API', () async {

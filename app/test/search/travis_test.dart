@@ -48,7 +48,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 '''),
         ));
       }
-      await index.merge();
+      await index.markReady();
     });
 
     test('travis', () async {

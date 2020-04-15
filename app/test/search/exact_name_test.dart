@@ -33,7 +33,7 @@ void main() {
         popularity: 1.0,
         maintenance: 1.0,
       ));
-      await index.merge();
+      await index.markReady();
     });
 
     test('build_config', () async {

@@ -26,7 +26,7 @@ void main() {
         version: '0.6.5',
         description: compactDescription('Port of Angular-UI to Dart.'),
       ));
-      await index.merge();
+      await index.markReady();
     });
 
     test('angular', () async {

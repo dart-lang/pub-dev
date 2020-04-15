@@ -32,7 +32,6 @@ IndexUpdater get indexUpdater => ss.lookup(#_indexUpdater) as IndexUpdater;
 
 class IndexUpdater implements TaskRunner {
   final DatastoreDB _db;
-  int _taskCount = 0;
   SearchSnapshot _snapshot;
   DateTime _lastSnapshotWrite = DateTime.now();
   Timer _statsTimer;
@@ -42,9 +41,8 @@ class IndexUpdater implements TaskRunner {
   /// Loads the package index snapshot, or if it fails, creates a minimal
   /// package index with only package names and minimal information.
   Future<void> init() async {
-    await _initSnapshot();
-
-    if (!packageIndex.isReady) {
+    final isReady = await _initSnapshot();
+    if (!isReady) {
       _logger.info('Loading minimum package index...');
       int cnt = 0;
       await for (final pd in searchBackend.loadMinimumPackageIndex()) {
@@ -54,7 +52,7 @@ class IndexUpdater implements TaskRunner {
           _logger.info('Loaded $cnt minimum package data (${pd.package})');
         }
       }
-      await packageIndex.merge();
+      await packageIndex.markReady();
       _logger.info('Minimum package index loaded with $cnt packages.');
     }
   }
@@ -68,11 +66,11 @@ class IndexUpdater implements TaskRunner {
       final doc = await searchBackend.loadDocument(p.name);
       await packageIndex.addPackage(doc);
     }
-    await packageIndex.merge();
+    await packageIndex.markReady();
   }
 
-  Future<void> _initSnapshot() async {
-    if (_snapshot != null) return;
+  /// Returns whether the snapshot was initialized and loaded properly.
+  Future<bool> _initSnapshot() async {
     try {
       _logger.info('Loading snapshot...');
       _snapshot = await snapshotStorage.fetch();
@@ -85,8 +83,9 @@ class IndexUpdater implements TaskRunner {
         // Index merge will enable search.
         if (count > 10) {
           _logger.info('Merging index after snapshot.');
-          await packageIndex.merge();
+          await packageIndex.markReady();
           _logger.info('Snapshot load completed.');
+          return true;
         }
       }
     } catch (e, st) {
@@ -95,6 +94,7 @@ class IndexUpdater implements TaskRunner {
     // Create an empty snapshot if the above failed. This will be populated with
     // package data via a separate update process.
     _snapshot ??= SearchSnapshot();
+    return false;
   }
 
   /// Starts the scheduler to update the package index.
@@ -133,7 +133,6 @@ class IndexUpdater implements TaskRunner {
 
   @override
   Future<void> runTask(Task task) async {
-    _taskCount++;
     try {
       // The index requires the analysis results in most of the cases, except:
       // - when a new package is created, and it is not in the snapshot yet, or
@@ -159,9 +158,6 @@ class IndexUpdater implements TaskRunner {
     } on MissingAnalysisException catch (_) {
       // Nothing to do yet, keeping old version if it exists.
     }
-    _logger.info('Merging index after $_taskCount updates.');
-    await packageIndex.merge();
-    _logger.info('Merge completed.');
     await _updateSnapshotIfNeeded();
   }
 
@@ -196,7 +192,7 @@ class IndexUpdater implements TaskRunner {
               .map((lib) => createSdkDocument(lib))
               .toList();
           await dartSdkIndex.addPackages(docs);
-          await dartSdkIndex.merge();
+          await dartSdkIndex.markReady();
           _logger.info('Dart SDK index loaded successfully.');
           return;
         }

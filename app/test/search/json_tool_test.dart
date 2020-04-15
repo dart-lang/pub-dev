@@ -18,7 +18,7 @@ void main() {
       await index.addPackage(PackageDocument(package: 'jsontool'));
       await index.addPackage(PackageDocument(package: 'json2entity'));
       await index.addPackage(PackageDocument(package: 'json_to_model'));
-      await index.merge();
+      await index.markReady();
     });
 
     test('json_tool', () async {
@@ -56,7 +56,7 @@ void main() {
         readme:
             'Command line tool for generating Dart models (json_serializable) from Json file.',
       ));
-      await index.merge();
+      await index.markReady();
     });
 
     test('json_tool', () async {

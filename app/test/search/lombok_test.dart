@@ -19,7 +19,7 @@ void main() {
         package: 'lombok',
         version: '1.0.0',
       ));
-      await index.merge();
+      await index.markReady();
     });
 
     test('lombock', () async {

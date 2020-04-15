@@ -17,7 +17,7 @@ void main() {
       index = SimplePackageIndex();
       await index.addPackage(PackageDocument(package: 'maps'));
       await index.addPackage(PackageDocument(package: 'map'));
-      await index.merge();
+      await index.markReady();
     });
 
     test('maps', () async {

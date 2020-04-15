@@ -27,7 +27,7 @@ void main() {
         description: compactDescription(
             'A Dart library for smooth scroll effect on a web page.'),
       ));
-      await index.merge();
+      await index.markReady();
     });
 
     test('bluetooth', () async {

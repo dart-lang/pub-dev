@@ -373,7 +373,7 @@ class MyBot implements Bot {
 MIT'''),
         ),
       ]);
-      await index.merge();
+      await index.markReady();
     });
 
     test('haversine', () async {

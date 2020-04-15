@@ -41,7 +41,8 @@ Future<shelf.Response> _livenessCheckHandler(shelf.Request request) async {
 
 /// Handles /readiness_check requests.
 Future<shelf.Response> _readinessCheckHandler(shelf.Request request) async {
-  if (packageIndex.isReady) {
+  final info = await packageIndex.indexInfo();
+  if (info.isReady) {
     return htmlResponse('OK');
   } else {
     return htmlResponse('Service Unavailable', status: 503);
@@ -49,16 +50,15 @@ Future<shelf.Response> _readinessCheckHandler(shelf.Request request) async {
 }
 
 /// Handler /debug requests
-shelf.Response _debugHandler(shelf.Request request) {
-  return debugResponse({
-    'ready': packageIndex.isReady,
-    'info': packageIndex.debugInfo,
-  });
+Future<shelf.Response> _debugHandler(shelf.Request request) async {
+  final info = await packageIndex.indexInfo();
+  return debugResponse(info.toJson());
 }
 
 /// Handles /search requests.
 Future<shelf.Response> _searchHandler(shelf.Request request) async {
-  if (!packageIndex.isReady) {
+  final info = await packageIndex.indexInfo();
+  if (!info.isReady) {
     return htmlResponse(searchIndexNotReadyText,
         status: searchIndexNotReadyCode);
   }

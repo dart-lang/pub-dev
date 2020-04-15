@@ -90,7 +90,7 @@ void testWithServices(String name, Future<void> Function() fn) {
         registerEmailSender(FakeEmailSender());
         registerUploadSigner(FakeUploadSignerService('https://storage.url'));
 
-        await dartSdkIndex.merge();
+        await dartSdkIndex.markReady();
         await indexUpdater.updateAllPackages();
 
         registerSearchClient(
