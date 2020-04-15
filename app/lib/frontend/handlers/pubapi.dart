@@ -31,7 +31,7 @@ class PubApi {
   @EndPoint.get('/api/packages/<package>')
   Future<PackageData> packageData(Request request, String package) async =>
       await packageBackend.repository
-          .packageData(_replaceHost(request.requestedUri), package);
+          .listVersions(_replaceHost(request.requestedUri), package);
 
   /// Getting information about a specific (package, version) pair.
   /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#deprecated-inspect-a-specific-version-of-a-package

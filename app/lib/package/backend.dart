@@ -378,7 +378,9 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
   GCloudPackageRepository(this.db, this.storage);
 
   /// Returns the known versions of [package].
-  Future<api.PackageData> packageData(Uri baseUri, String package) async {
+  ///
+  /// Used in `pub` client for finding which versions exist.
+  Future<api.PackageData> listVersions(Uri baseUri, String package) async {
     return await cache.packageData(package).get(() async {
       final packageVersions = await packageBackend.versionsOfPackage(package);
       if (packageVersions.isEmpty) {

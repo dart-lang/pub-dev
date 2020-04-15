@@ -352,13 +352,13 @@ void main() {
 
       testWithServices('not found', () async {
         final rs =
-            packageBackend.repository.packageData(baseUri, 'non_hydrogen');
+            packageBackend.repository.listVersions(baseUri, 'non_hydrogen');
         await expectLater(rs, throwsA(isA<NotFoundException>()));
       });
 
       testWithServices('found', () async {
         final pd =
-            await packageBackend.repository.packageData(baseUri, 'hydrogen');
+            await packageBackend.repository.listVersions(baseUri, 'hydrogen');
         expect(pd.versions, isNotEmpty);
         expect(pd.versions, hasLength(13));
         expect(pd.versions.first.version, '1.0.0');
