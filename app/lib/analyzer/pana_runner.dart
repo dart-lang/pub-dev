@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:pana/pana.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -21,8 +22,14 @@ final Logger _logger = Logger('pub.analyzer.pana');
 class AnalyzerJobProcessor extends JobProcessor {
   final _urlChecker = UrlChecker();
 
-  AnalyzerJobProcessor({Duration lockDuration})
-      : super(service: JobService.analyzer, lockDuration: lockDuration);
+  AnalyzerJobProcessor({
+    Duration lockDuration,
+    @required AliveCallback aliveCallback,
+  }) : super(
+          service: JobService.analyzer,
+          lockDuration: lockDuration,
+          aliveCallback: aliveCallback,
+        );
 
   @override
   Future<bool> shouldProcess(String package, String version, DateTime updated) {

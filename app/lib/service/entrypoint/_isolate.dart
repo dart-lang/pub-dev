@@ -41,11 +41,13 @@ class WorkerEntryMessage {
   final int workerIndex;
   final SendPort protocolSendPort;
   final SendPort statsSendPort;
+  final SendPort aliveSendPort;
 
   WorkerEntryMessage({
     @required this.workerIndex,
     @required this.protocolSendPort,
     @required this.statsSendPort,
+    @required this.aliveSendPort,
   });
 }
 
@@ -56,6 +58,7 @@ Future startIsolates({
   Future<void> Function(FrontendEntryMessage message) frontendEntryPoint,
   Future<void> Function() workerSetup,
   Future<void> Function(WorkerEntryMessage message) workerEntryPoint,
+  Duration deadWorkerTimeout,
 }) async {
   useLoggingPackageAdaptor();
   int frontendStarted = 0;
@@ -113,9 +116,10 @@ Future startIsolates({
     workerStarted++;
     final workerIndex = workerStarted;
     logger.info('About to start worker isolate #$workerIndex...');
-    final ReceivePort errorReceivePort = ReceivePort();
-    final ReceivePort protocolReceivePort = ReceivePort();
-    final ReceivePort statsReceivePort = ReceivePort();
+    final errorReceivePort = ReceivePort();
+    final protocolReceivePort = ReceivePort();
+    final statsReceivePort = ReceivePort();
+    final aliveReceivePort = ReceivePort();
     final isolate = await Isolate.spawn(
       _wrapper,
       [
@@ -124,6 +128,7 @@ Future startIsolates({
           workerIndex: workerIndex,
           protocolSendPort: protocolReceivePort.sendPort,
           statsSendPort: statsReceivePort.sendPort,
+          aliveSendPort: aliveReceivePort.sendPort,
         ),
       ],
       onError: errorReceivePort.sendPort,
@@ -141,23 +146,32 @@ Future startIsolates({
     });
     logger.info('Worker isolate #$workerIndex started.');
 
-    // Automatically killing worker isolate between in the next ~48 hours.
-    //
-    // This clears us from temporary processing hangups, at most within 2 days,
-    // probably in a few hours (as we have many workers and probably a few will
-    // be triggered earlier).
-    final ttl =
-        Duration(hours: 24 + _random.nextInt(24), minutes: _random.nextInt(60));
-    logger.info('Worker isolate #$workerIndex TTL set to $ttl.');
-    final autoKillTimer = Timer(ttl, () {
-      logger.info('Killing worker isolate #$workerIndex...');
-      isolate.kill();
+    Timer autoKillTimer;
+    void resetAutoKillTimer() {
+      if (deadWorkerTimeout == null) return;
+      autoKillTimer?.cancel();
+
+      /// Randomize TTL so that isolate restarts do not happen at the same time.
+      final ttl = deadWorkerTimeout +
+          Duration(seconds: _random.nextInt(deadWorkerTimeout.inSeconds));
+      autoKillTimer = Timer(ttl, () {
+        logger.info('Killing worker isolate #$workerIndex...');
+        isolate.kill();
+      });
+    }
+
+    // We DO NOT initialize [autoKillTimer] at this point, allowing the worker
+    // to do arbitrary-length setup. Once the first message comes in, we can
+    // start the auto-kill timer.
+    final aliveSubscription = aliveReceivePort.listen((_) {
+      resetAutoKillTimer();
     });
 
     StreamSubscription errorSubscription;
 
     Future<void> close() async {
-      autoKillTimer.cancel();
+      await aliveSubscription?.cancel();
+      autoKillTimer?.cancel();
       await statsSubscription?.cancel();
       await errorSubscription?.cancel();
       errorReceivePort.close();

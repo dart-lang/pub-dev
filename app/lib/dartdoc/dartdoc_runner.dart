@@ -7,6 +7,7 @@ import 'dart:convert' as convert;
 import 'dart:io';
 
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' hide Pubspec;
 import 'package:path/path.dart' as p;
 
@@ -57,8 +58,14 @@ final _pkgPubDartdocDir =
     Platform.script.resolve('../../pkg/pub_dartdoc').toFilePath();
 
 class DartdocJobProcessor extends JobProcessor {
-  DartdocJobProcessor({Duration lockDuration})
-      : super(service: JobService.dartdoc, lockDuration: lockDuration);
+  DartdocJobProcessor({
+    Duration lockDuration,
+    @required AliveCallback aliveCallback,
+  }) : super(
+          service: JobService.dartdoc,
+          lockDuration: lockDuration,
+          aliveCallback: aliveCallback,
+        );
 
   /// Uses the tool environment's SDK (the one that is used for analysis too) to
   /// generate dartdoc documentation and extracted data file for SDK API indexing.
