@@ -8,46 +8,47 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart' as yaml;
 
-part 'mirror_config.g.dart';
+part 'models.g.dart';
 
 /// The configuration to use when creating a local (partial) mirror of pub.dev
+/// in order to us it in tests.
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
-class MirrorConfig {
-  List<Package> packages;
-  List<Publisher> publishers;
-  List<User> users;
+class TestProfile {
+  List<TestPackage> packages;
+  List<TestPublisher> publishers;
+  List<TestUser> users;
   String defaultUser;
 
-  MirrorConfig({
+  TestProfile({
     @required this.packages,
     @required this.publishers,
     @required this.users,
     this.defaultUser,
   });
 
-  factory MirrorConfig.fromJson(Map<String, dynamic> json,
+  factory TestProfile.fromJson(Map<String, dynamic> json,
       {bool normalize = false}) {
-    final mc = _$MirrorConfigFromJson(json);
+    final mc = _$TestProfileFromJson(json);
     if (normalize) mc.normalize();
     return mc;
   }
 
-  factory MirrorConfig.fromYaml(String source, {bool normalize = false}) {
+  factory TestProfile.fromYaml(String source, {bool normalize = false}) {
     final map = json.decode(json.encode(yaml.loadYaml(source)));
-    final mc = MirrorConfig.fromJson(map as Map<String, dynamic>);
+    final mc = TestProfile.fromJson(map as Map<String, dynamic>);
     if (normalize) mc.normalize();
     return mc;
   }
 
-  Map<String, dynamic> toJson() => _$MirrorConfigToJson(this);
+  Map<String, dynamic> toJson() => _$TestProfileToJson(this);
 
   void normalize() {
-    packages ??= <Package>[];
-    publishers ??= <Publisher>[];
-    users ??= <User>[];
+    packages ??= <TestPackage>[];
+    publishers ??= <TestPublisher>[];
+    users ??= <TestUser>[];
 
     for (final publisher in publishers) {
-      publisher.members ??= <Member>[];
+      publisher.members ??= <TestMember>[];
 
       // copy package definitions to [MirrorConfig.packages]
       if (publisher.packages != null) {
@@ -61,7 +62,7 @@ class MirrorConfig {
       // convert admins to members
       if (publisher.admins != null) {
         publisher.members.addAll(
-            publisher.admins.map((e) => Member(email: e, role: 'admin')));
+            publisher.admins.map((e) => TestMember(email: e, role: 'admin')));
         publisher.admins = null;
       }
 
@@ -78,7 +79,7 @@ class MirrorConfig {
         final publisher = publishers
             .firstWhere((p) => p.name == package.publisher, orElse: () => null);
         if (publisher == null) {
-          publishers.add(Publisher(name: package.publisher, members: []));
+          publishers.add(TestPublisher(name: package.publisher, members: []));
         }
       }
     }
@@ -88,7 +89,7 @@ class MirrorConfig {
 
     for (final publisher in publishers) {
       if (publisher.members.isEmpty) {
-        publisher.members.add(Member(email: defaultUser, role: 'admin'));
+        publisher.members.add(TestMember(email: defaultUser, role: 'admin'));
       }
     }
 
@@ -105,77 +106,81 @@ class MirrorConfig {
   void _createUserIfNeeded(String email) {
     final user = users.firstWhere((u) => u.email == email, orElse: () => null);
     if (user == null) {
-      users.add(User(email: email));
+      users.add(TestUser(email: email));
     }
   }
 }
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
-class Package {
+class TestPackage {
   final String name;
   List<String> uploaders;
   String publisher;
   List<String> versions;
 
-  Package({
+  TestPackage({
     this.name,
     this.uploaders,
     this.publisher,
     this.versions,
   });
 
-  factory Package.fromJson(Map<String, dynamic> json) =>
-      _$PackageFromJson(json);
+  factory TestPackage.fromJson(Map<String, dynamic> json) =>
+      _$TestPackageFromJson(json);
 
-  Map<String, dynamic> toJson() => _$PackageToJson(this);
+  Map<String, dynamic> toJson() => _$TestPackageToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
-class Publisher {
+class TestPublisher {
   final String name;
-  List<Member> members;
-  List<Package> packages;
+  List<TestMember> members;
+  List<TestPackage> packages;
   List<String> admins;
 
-  Publisher({
+  TestPublisher({
     @required this.name,
     @required this.members,
     this.packages,
     this.admins,
   });
 
-  factory Publisher.fromJson(Map<String, dynamic> json) =>
-      _$PublisherFromJson(json);
+  factory TestPublisher.fromJson(Map<String, dynamic> json) =>
+      _$TestPublisherFromJson(json);
 
-  Map<String, dynamic> toJson() => _$PublisherToJson(this);
+  Map<String, dynamic> toJson() => _$TestPublisherToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
-class Member {
+class TestMember {
   final String email;
   final String role;
 
-  Member({
+  TestMember({
     @required this.email,
     @required this.role,
   });
 
-  factory Member.fromJson(Map<String, dynamic> json) => _$MemberFromJson(json);
+  factory TestMember.fromJson(Map<String, dynamic> json) =>
+      _$TestMemberFromJson(json);
 
-  Map<String, dynamic> toJson() => _$MemberToJson(this);
+  Map<String, dynamic> toJson() => _$TestMemberToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
-class User {
+class TestUser {
   final String email;
+
+  /// The list of package names that the user liked.
   final List<String> likes;
 
-  User({
+  TestUser({
     @required this.email,
-    this.likes,
-  });
+    List<String> likes,
+  }) : likes = likes ?? <String>[];
 
-  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
+  factory TestUser.fromJson(Map<String, dynamic> json) =>
+      _$TestUserFromJson(json);
 
-  Map<String, dynamic> toJson() => _$UserToJson(this);
+  Map<String, dynamic> toJson() => _$TestUserToJson(this);
 }

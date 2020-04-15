@@ -4,13 +4,13 @@
 
 import 'package:test/test.dart';
 
-import 'package:pub_dev/tool/mirror/mirror_config.dart';
+import 'package:pub_dev/tool/test_profile/models.dart';
 
 void main() {
   group('normalization tests', () {
     test('only a publisher', () {
       expect(
-        MirrorConfig.fromYaml(
+        TestProfile.fromYaml(
           '''
 defaultUser: user@domain.com
 publishers:
@@ -47,7 +47,7 @@ publishers:
 
     test('only a package', () {
       expect(
-        MirrorConfig.fromYaml(
+        TestProfile.fromYaml(
           '''
 defaultUser: user@domain.com
 packages:
