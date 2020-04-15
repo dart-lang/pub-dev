@@ -68,29 +68,31 @@
   </table>
 </div>
 
-<h2>Invite new member</h2>
-<p>
-  You can invite new members to this verified publisher.
-  Once new members accept the invitation, they have full administrative rights, with the following abilities:
-</p>
-<ul>
-  <li>Transfer packages to and from this publisher</li>
-  <li>Upload new versions of packages owned by this publisher</li>
-  <li>Add and remove members of this publisher</li>
-</ul>
-<div class="-pub-form-row">
-  <label for="-admin-invite-member-input">Email address</label>
-  <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
-    <input type="text" id="-admin-invite-member-input" class="mdc-text-field__input" />
-    <div class="mdc-notched-outline">
-      <div class="mdc-notched-outline__leading"></div>
-      <div class="mdc-notched-outline__trailing"></div>
-    </div>
-  </div>
-</div>
 <div class="-pub-form-right-aligned">
   <button
-    id="-admin-invite-member-button"
-    class="mdc-button mdc-button--raised"
-    data-mdc-auto-init="MDCRipple">Invite member</button>
+      id="-admin-add-member-button"
+      class="mdc-button mdc-button--raised"
+      data-mdc-auto-init="MDCRipple">Add member</button>
+</div>
+
+<div id="-admin-add-member-content" class="modal-content-hidden">
+  <p>
+    You can invite new members to this verified publisher.
+    Once new members accept the invitation, they have full administrative rights, with the following abilities:
+  </p>
+  <ul>
+    <li>Transfer packages to and from this publisher</li>
+    <li>Upload new versions of packages owned by this publisher</li>
+    <li>Add and remove members of this publisher</li>
+  </ul>
+  <div class="-pub-form-row">
+    <label for="-admin-invite-member-input">Email address</label>
+    <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+      <input type="text" id="-admin-invite-member-input" class="mdc-text-field__input" />
+      <div class="mdc-notched-outline">
+        <div class="mdc-notched-outline__leading"></div>
+        <div class="mdc-notched-outline__trailing"></div>
+      </div>
+    </div>
+  </div>
 </div>
