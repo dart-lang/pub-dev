@@ -198,8 +198,10 @@ bool _isValidUri(shelf.Request request) {
   final uri = request.requestedUri;
   try {
     // should be able to parse path segments
-    uri.pathSegments.forEach(Uri.decodeComponent);
-  } catch (_) {
+    uri.pathSegments.forEach((_) => null);
+    // should be able to parse query parameters
+    uri.queryParameters.forEach((_, __) => null);
+  } on FormatException catch (_) {
     return false;
   }
   return true;
