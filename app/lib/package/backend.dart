@@ -472,12 +472,15 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
     return withTempDirectory((Directory dir) async {
       final filename = '${dir.absolute.path}/tarball.tar.gz';
       await _saveTarballToFS(storage.readTempObject(guid), filename);
-      return _performTarballUpload(user, filename, (package, version) {
-        return storage.uploadViaTempObject(guid, package, version);
-      }).whenComplete(() async {
-        _logger.info('Removing temporary object $guid.');
-        await storage.removeTempObject(guid);
-      });
+      final newPackageVersion = await _performTarballUpload(
+        user,
+        filename,
+        (package, version) =>
+            storage.uploadViaTempObject(guid, package, version),
+      );
+      _logger.info('Removing temporary object $guid.');
+      await storage.removeTempObject(guid);
+      return newPackageVersion;
     });
   }
 
