@@ -146,7 +146,7 @@ Future<bool> modalWindow({
   /// and the dialog window will be kept open. Returns with the success status
   /// of the operation, and if `true`, the dialog will be closed, otherwise the
   /// dialog is kept open (e.g. the user may update the form).
-  FutureOr<bool> Function() onOkButtonClicked,
+  FutureOr<bool> Function() onExecute,
 }) async {
   final c = Completer<bool>();
   final root = _buildDialog(
@@ -154,8 +154,7 @@ Future<bool> modalWindow({
     content: content,
     isQuestion: isQuestion,
     closing: (bool pushedOk) async {
-      final complete =
-          !pushedOk || onOkButtonClicked == null || await onOkButtonClicked();
+      final complete = !pushedOk || onExecute == null || await onExecute();
       if (complete && !c.isCompleted) {
         c.complete(pushedOk);
       }

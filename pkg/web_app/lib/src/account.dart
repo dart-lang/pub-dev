@@ -361,7 +361,7 @@ class _PublisherAdminWidget {
       isQuestion: true,
       okButtonText: 'Add',
       content: _addMemberContent,
-      onOkButtonClicked: () => _inviteMember(false),
+      onExecute: () => _inviteMember(false),
     );
   }
 
