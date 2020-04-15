@@ -75,11 +75,6 @@ TestPublisher _$TestPublisherFromJson(Map<String, dynamic> json) {
         ?.map((e) =>
             e == null ? null : TestMember.fromJson(e as Map<String, dynamic>))
         ?.toList(),
-    packages: (json['packages'] as List)
-        ?.map((e) =>
-            e == null ? null : TestPackage.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
-    admins: (json['admins'] as List)?.map((e) => e as String)?.toList(),
   );
 }
 
@@ -94,9 +89,6 @@ Map<String, dynamic> _$TestPublisherToJson(TestPublisher instance) {
 
   writeNotNull('name', instance.name);
   writeNotNull('members', instance.members?.map((e) => e?.toJson())?.toList());
-  writeNotNull(
-      'packages', instance.packages?.map((e) => e?.toJson())?.toList());
-  writeNotNull('admins', instance.admins);
   return val;
 }
 

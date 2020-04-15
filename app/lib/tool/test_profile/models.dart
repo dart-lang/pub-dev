@@ -14,17 +14,19 @@ part 'models.g.dart';
 /// in order to us it in tests.
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
 class TestProfile {
-  List<TestPackage> packages;
-  List<TestPublisher> publishers;
-  List<TestUser> users;
+  final List<TestPackage> packages;
+  final List<TestPublisher> publishers;
+  final List<TestUser> users;
   String defaultUser;
 
   TestProfile({
-    @required this.packages,
-    @required this.publishers,
-    @required this.users,
+    @required List<TestPackage> packages,
+    @required List<TestPublisher> publishers,
+    @required List<TestUser> users,
     this.defaultUser,
-  });
+  })  : packages = packages ?? <TestPackage>[],
+        publishers = publishers ?? <TestPublisher>[],
+        users = users ?? <TestUser>[];
 
   factory TestProfile.fromJson(Map<String, dynamic> json,
       {bool normalize = false}) {
@@ -43,53 +45,35 @@ class TestProfile {
   Map<String, dynamic> toJson() => _$TestProfileToJson(this);
 
   void normalize() {
-    packages ??= <TestPackage>[];
-    publishers ??= <TestPublisher>[];
-    users ??= <TestUser>[];
+    // add missing users from publishers
+    publishers
+        .expand((p) => p.members)
+        .forEach((m) => _createUserIfNeeded(m.email));
+    // add missing users from packages
+    packages
+        .where((p) => p.uploaders != null)
+        .expand((p) => p.uploaders)
+        .forEach(_createUserIfNeeded);
 
-    for (final publisher in publishers) {
-      publisher.members ??= <TestMember>[];
-
-      // copy package definitions to [MirrorConfig.packages]
-      if (publisher.packages != null) {
-        publisher.packages.forEach((p) {
-          p.publisher = publisher.name;
-          packages.add(p);
-        });
-        publisher.packages = null;
-      }
-
-      // convert admins to members
-      if (publisher.admins != null) {
-        publisher.members.addAll(
-            publisher.admins.map((e) => TestMember(email: e, role: 'admin')));
-        publisher.admins = null;
-      }
-
-      // add missing users
-      publisher.members?.forEach((m) => _createUserIfNeeded(m.email));
-    }
+    defaultUser ??= users.first.email;
+    _createUserIfNeeded(defaultUser);
 
     for (final package in packages) {
-      // add missing users
-      package.uploaders?.forEach(_createUserIfNeeded);
-
       // add missing publishers
       if (package.publisher != null) {
         final publisher = publishers
             .firstWhere((p) => p.name == package.publisher, orElse: () => null);
         if (publisher == null) {
-          publishers.add(TestPublisher(name: package.publisher, members: []));
+          publishers.add(TestPublisher(
+            name: package.publisher,
+            members: [
+              TestMember(
+                email: defaultUser,
+                role: 'admin',
+              ),
+            ],
+          ));
         }
-      }
-    }
-
-    defaultUser ??= users.first.email;
-    _createUserIfNeeded(defaultUser);
-
-    for (final publisher in publishers) {
-      if (publisher.members.isEmpty) {
-        publisher.members.add(TestMember(email: defaultUser, role: 'admin'));
       }
     }
 
@@ -106,7 +90,7 @@ class TestProfile {
   void _createUserIfNeeded(String email) {
     final user = users.firstWhere((u) => u.email == email, orElse: () => null);
     if (user == null) {
-      users.add(TestUser(email: email));
+      users.add(TestUser(email: email, likes: <String>[]));
     }
   }
 }
@@ -135,15 +119,11 @@ class TestPackage {
 class TestPublisher {
   final String name;
   List<TestMember> members;
-  List<TestPackage> packages;
-  List<String> admins;
 
   TestPublisher({
     @required this.name,
-    @required this.members,
-    this.packages,
-    this.admins,
-  });
+    @required List<TestMember> members,
+  }) : members = members ?? <TestMember>[];
 
   factory TestPublisher.fromJson(Map<String, dynamic> json) =>
       _$TestPublisherFromJson(json);
@@ -176,7 +156,7 @@ class TestUser {
 
   TestUser({
     @required this.email,
-    List<String> likes,
+    @required List<String> likes,
   }) : likes = likes ?? <String>[];
 
   factory TestUser.fromJson(Map<String, dynamic> json) =>
