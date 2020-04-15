@@ -56,6 +56,11 @@ abstract class PackageIndex {
   Future<void> addPackages(Iterable<PackageDocument> documents);
   Future<void> removePackage(String package);
   Future<PackageSearchResult> search(SearchQuery query);
+
+  /// A package index may be accessed while the initialization phase is still
+  /// running. Once the initialization is done (either via a snapshot or a
+  /// `Package`-scan completes), the updater should call this method to indicate
+  /// to the frontend load-balancer that the instance now accepts requests.
   Future<void> markReady();
   Future<IndexInfo> indexInfo();
 }
