@@ -88,12 +88,42 @@ class Message {
   Map<String, dynamic> toJson() => _$MessageToJson(this);
 }
 
+/// Used in `pub` client for finding which versions exist.
+/// (`listVersions` method in pubapi)
+@JsonSerializable()
+class PackageData {
+  /// Package name.
+  final String name;
+
+  /// This is merely a convenience property, because the [VersionInfo] for the
+  /// latest version also exists in the [versions] list.
+  ///
+  /// This is the latest that is NOT a pre-release, unless there only is
+  /// pre-releases in the [versions] list.
+  final VersionInfo latest;
+
+  /// The available versions, sorted by their semantic version number (ascending).
+  final List<VersionInfo> versions;
+
+  PackageData({
+    @required this.name,
+    @required this.latest,
+    @required this.versions,
+  });
+
+  factory PackageData.fromJson(Map<String, dynamic> json) =>
+      _$PackageDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PackageDataToJson(this);
+}
+
 @JsonSerializable()
 class VersionInfo {
   final String version;
 
   final Map<String, dynamic> pubspec;
 
+  /// As of Dart 2.8 `pub` client uses [archiveUrl] to find the archive.
   @JsonKey(name: 'archive_url')
   final String archiveUrl;
 

@@ -29,8 +29,8 @@ class PubApi {
   /// Getting information about all versions of a package.
   /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#list-all-versions-of-a-package
   @EndPoint.get('/api/packages/<package>')
-  Future<Response> listPackageVersions(Request request, String package) async =>
-      await packageBackend.pubServer
+  Future<PackageData> packageData(Request request, String package) async =>
+      await packageBackend.repository
           .listVersions(_replaceHost(request.requestedUri), package);
 
   /// Getting information about a specific (package, version) pair.

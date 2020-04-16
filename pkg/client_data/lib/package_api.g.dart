@@ -67,6 +67,26 @@ Map<String, dynamic> _$MessageToJson(Message instance) => <String, dynamic>{
       'message': instance.message,
     };
 
+PackageData _$PackageDataFromJson(Map<String, dynamic> json) {
+  return PackageData(
+    name: json['name'] as String,
+    latest: json['latest'] == null
+        ? null
+        : VersionInfo.fromJson(json['latest'] as Map<String, dynamic>),
+    versions: (json['versions'] as List)
+        ?.map((e) =>
+            e == null ? null : VersionInfo.fromJson(e as Map<String, dynamic>))
+        ?.toList(),
+  );
+}
+
+Map<String, dynamic> _$PackageDataToJson(PackageData instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      'latest': instance.latest,
+      'versions': instance.versions,
+    };
+
 VersionInfo _$VersionInfoFromJson(Map<String, dynamic> json) {
   return VersionInfo(
     version: json['version'] as String,
