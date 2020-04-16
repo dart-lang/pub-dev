@@ -104,9 +104,12 @@ class PubApi {
   ///       },
   ///     }
   @EndPoint.get('/api/packages/versions/newUploadFinish')
-  Future<Response> packageUploadCallback(Request request) async =>
-      await packageBackend.pubServer
-          .finishUploadAsync(_replaceHost(request.requestedUri));
+  Future<SuccessMessage> packageUploadCallback(Request request) async {
+    await packageBackend.repository
+        .finishAsyncUpload(_replaceHost(request.requestedUri));
+    return SuccessMessage(
+        success: Message(message: 'Successfully uploaded package.'));
+  }
 
   /// Adding a new uploader
   /// TODO: Link to the spec once it has the details updated:

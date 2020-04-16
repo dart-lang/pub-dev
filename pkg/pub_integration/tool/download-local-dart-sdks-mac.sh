@@ -21,6 +21,6 @@ unzip -q dartsdk.zip && rm -f dartsdk.zip
 mv dart-sdk dart-sdk-1.24.3
 
 # Current bleeding edge
-curl -sS https://storage.googleapis.com/dart-archive/channels/dev/release/2.8.0-dev.17.0/sdk/dartsdk-macos-x64-release.zip >dartsdk.zip
+curl -sS https://storage.googleapis.com/dart-archive/channels/dev/release/2.8.0-dev.20.0/sdk/dartsdk-macos-x64-release.zip >dartsdk.zip
 unzip -q dartsdk.zip && rm -f dartsdk.zip
-mv dart-sdk dart-sdk-2.8.0-dev.17.0
+mv dart-sdk dart-sdk-2.8.0-dev.20.0

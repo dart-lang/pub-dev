@@ -448,11 +448,11 @@ void main() {
 
           final version =
               await packageBackend.repository.finishAsyncUpload(redirectUri);
-          expect(version.packageName, 'new_package');
-          expect(version.versionString, '1.2.3');
+          expect(version.package, 'new_package');
+          expect(version.version, '1.2.3');
 
           final pkgKey =
-              dbService.emptyKey.append(Package, id: version.packageName);
+              dbService.emptyKey.append(Package, id: version.package);
           final package = (await dbService.lookup<Package>([pkgKey])).single;
           expect(package.name, 'new_package');
           expect(package.latestVersion, '1.2.3');
@@ -500,11 +500,11 @@ void main() {
 
           final version =
               await packageBackend.repository.finishAsyncUpload(redirectUri);
-          expect(version.packageName, 'lithium');
-          expect(version.versionString, '7.0.0');
+          expect(version.package, 'lithium');
+          expect(version.version, '7.0.0');
 
           final pkgKey =
-              dbService.emptyKey.append(Package, id: version.packageName);
+              dbService.emptyKey.append(Package, id: version.package);
           final package = (await dbService.lookup<Package>([pkgKey])).single;
           expect(package.name, 'lithium');
           expect(package.latestVersion, '7.0.0');
@@ -659,8 +659,8 @@ void main() {
               pubspecContent: generatePubspecYaml(foobarPackage.name, '1.2.3'));
           final version = await packageBackend.repository
               .upload(Stream.fromIterable([tarball]));
-          expect(version.packageName, foobarPackage.name);
-          expect(version.versionString, '1.2.3');
+          expect(version.package, foobarPackage.name);
+          expect(version.version, '1.2.3');
 
           expect(fakeEmailSender.sentMessages, hasLength(1));
           final email = fakeEmailSender.sentMessages.single;
