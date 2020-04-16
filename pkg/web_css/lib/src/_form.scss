@@ -2,6 +2,15 @@
    for details. All rights reserved. Use of this source code is governed by a
    BSD-style license that can be found in the LICENSE file. */
 
+/*
+ * Modal content is generated as part of the HTML page, and hidden initially.
+ * The web_app code will remove it from the DOM and remove this class rule
+ * before passing it to the modal window's content area.
+ */
+.modal-content-hidden {
+  display: none;
+}
+
 /* non-indented rule to restrict the content of this block to the experimental pages */
 body.experimental {
 

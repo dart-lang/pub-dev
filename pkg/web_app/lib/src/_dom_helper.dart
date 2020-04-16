@@ -114,7 +114,7 @@ String _requestExceptionMessage(RequestException e) {
 
 /// Displays a message via the modal window.
 Future modalMessage(String title, Element content) async {
-  await _modalWindow(
+  await modalWindow(
     titleText: title,
     content: content,
     isQuestion: false,
@@ -124,7 +124,7 @@ Future modalMessage(String title, Element content) async {
 /// Display [content] to user (assumed it has a question format), and return
 /// true if 'OK' was selected.
 Future<bool> modalConfirm(Element content) async {
-  return await _modalWindow(
+  return await modalWindow(
     titleText: 'Confirm',
     content: content,
     isQuestion: true,
@@ -135,19 +135,30 @@ Future<bool> modalConfirm(Element content) async {
 /// false, it will omit the "Cancel" button.
 ///
 /// Returns true if "OK" was pressed, false otherwise.
-Future<bool> _modalWindow({
+Future<bool> modalWindow({
   @required String titleText,
   @required Element content,
   @required bool isQuestion,
   String cancelButtonText,
   String okButtonText,
+
+  /// If specified, this callback function will be called on "OK" button clicks,
+  /// and the dialog window will be kept open. Returns with the success status
+  /// of the operation, and if `true`, the dialog will be closed, otherwise the
+  /// dialog is kept open (e.g. the user may update the form).
+  FutureOr<bool> Function() onExecute,
 }) async {
   final c = Completer<bool>();
   final root = _buildDialog(
     titleText: titleText,
     content: content,
     isQuestion: isQuestion,
-    close: c.complete,
+    closing: (bool pushedOk) async {
+      final complete = !pushedOk || onExecute == null || await onExecute();
+      if (complete && !c.isCompleted) {
+        c.complete(pushedOk);
+      }
+    },
     cancelButtonText: cancelButtonText,
     okButtonText: okButtonText,
   );
@@ -168,9 +179,12 @@ Element _buildDialog({
   @required String titleText,
   @required Element content,
   @required bool isQuestion,
-  @required void Function(bool) close,
   String cancelButtonText,
   String okButtonText,
+
+  /// The callback will be called with `true` when "OK" was clicked, and `false`
+  /// when "Cancel" was clicked.
+  @required Function(bool) closing,
 }) =>
     Element.div()
       ..classes.add('mdc-dialog')
@@ -205,7 +219,9 @@ Element _buildDialog({
                           'mdc-dialog__button',
                         ])
                         ..tabIndex = 2
-                        ..onClick.first.whenComplete(() => close(false))
+                        ..onClick.listen((_) {
+                          closing(false);
+                        })
                         ..children = [
                           Element.span()
                             ..classes.add('mdc-button__label')
@@ -217,7 +233,9 @@ Element _buildDialog({
                         'mdc-dialog__button',
                       ])
                       ..tabIndex = 1
-                      ..onClick.first.whenComplete(() => close(true))
+                      ..onClick.listen((_) {
+                        closing(true);
+                      })
                       ..children = [
                         Element.span()
                           ..classes.add('mdc-button__label')
