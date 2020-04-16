@@ -81,10 +81,14 @@ String getTabName(Element elem) {
 
 void changeTab(String name) {
   final tabOrContentElem = getTabElement(name);
-  if (tabOrContentElem != null &&
-      tabOrContentElem.classes.contains('tab-button')) {
+  print(tabOrContentElem);
+  if (tabOrContentElem == null) return;
+
+  if (tabOrContentElem.classes.contains('tab-button')) {
     _headerRoot.children.forEach((node) => _toggle(node, name));
     _contentRoot.children.forEach((node) => _toggle(node, name));
+  } else if (tabOrContentElem.classes.contains('tab-link')) {
+    tabOrContentElem.querySelector('a')?.click();
   }
 }
 
