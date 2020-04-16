@@ -178,8 +178,7 @@ class PackageRejectedException extends ResponseException {
   /// The package archive tar.gz file is empty, possibly an error happened
   /// during the upload or the system was unable to create an archive.
   PackageRejectedException.archiveEmpty()
-      : super._(
-            400, 'PackageRejected', 'Package archive is empty (size = 0).');
+      : super._(400, 'PackageRejected', 'Package archive is empty (size = 0).');
 
   /// The [package] name is reserved.
   PackageRejectedException.nameReserved(String package)
