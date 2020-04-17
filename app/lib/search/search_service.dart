@@ -85,6 +85,7 @@ class PackageDocument {
   final double health;
   final double popularity;
   final double maintenance;
+  final int likeCount;
 
   final Map<String, String> dependencies;
 
@@ -111,6 +112,7 @@ class PackageDocument {
     this.health = 0,
     this.popularity = 0,
     this.maintenance = 0,
+    this.likeCount = 0,
     this.dependencies = const {},
     this.publisherId,
     this.uploaderEmails = const [],
@@ -141,6 +143,7 @@ class PackageDocument {
               for (var key in dependencies.keys)
                 internFn(key): internFn(dependencies[key])
             },
+      likeCount: likeCount,
       publisherId: internFn(publisherId),
       uploaderEmails: uploaderEmails?.map(internFn)?.toList(),
       apiDocPages: apiDocPages?.map((p) => p.intern(internFn))?.toList(),
@@ -198,6 +201,9 @@ enum SearchOrder {
 
   /// Search order should be in decreasing maintenance score.
   maintenance,
+
+  /// Search order should be in decreasing like count.
+  like,
 }
 
 /// Returns null if [value] is not a recognized search order.
@@ -220,6 +226,8 @@ SearchOrder parseSearchOrder(String value) {
       return SearchOrder.health;
     case 'maintenance':
       return SearchOrder.maintenance;
+    case 'like':
+      return SearchOrder.like;
   }
   return null;
 }

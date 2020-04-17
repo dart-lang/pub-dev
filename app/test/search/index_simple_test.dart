@@ -153,6 +153,7 @@ void main() {
         popularity: 0.7,
         health: 1.0,
         maintenance: 1.0,
+        likeCount: 10,
         dependencies: {'async': 'direct', 'test': 'dev', 'foo': 'transitive'},
         uploaderEmails: ['user1@example.com'],
       ));
@@ -174,6 +175,7 @@ The delegating wrapper classes allow users to easily add functionality on top of
         popularity: 0.8,
         health: 1.0,
         maintenance: 1.0,
+        likeCount: 1,
         dependencies: {'test': 'dev'},
         publisherId: 'dart.dev',
         uploaderEmails: ['user1@example.com'],
@@ -218,6 +220,14 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'http': 1.0,
         'async': 1.0,
         'chrome_net': 0.9,
+      });
+    });
+
+    test('like scores', () {
+      expect(index.getLikeScore(['http', 'async', 'chrome_net']), {
+        'http': 10.0,
+        'async': 1.0,
+        'chrome_net': 0.0,
       });
     });
 
@@ -434,6 +444,20 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           {'package': 'http', 'score': 1.0},
           {'package': 'async', 'score': 1.0},
           {'package': 'chrome_net', 'score': 0.9},
+        ],
+      });
+    });
+
+    test('order by like count', () async {
+      final PackageSearchResult result =
+          await index.search(SearchQuery.parse(order: SearchOrder.like));
+      expect(json.decode(json.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 3,
+        'packages': [
+          {'package': 'http', 'score': 10.0},
+          {'package': 'async', 'score': 1.0},
+          {'package': 'chrome_net', 'score': 0.0},
         ],
       });
     });
