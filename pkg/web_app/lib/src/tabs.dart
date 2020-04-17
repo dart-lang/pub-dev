@@ -79,6 +79,10 @@ String getTabName(Element elem) {
   return getTabName(elem.parent);
 }
 
+/// Changes tab to [name], identified by the data-name attribute of the tab
+/// header item.
+///
+/// When no such item exists, the method keeps the current tab active.
 void changeTab(String name) {
   final tabOrContentElem = getTabElement(name);
   if (tabOrContentElem == null) return;
