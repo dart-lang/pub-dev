@@ -25,12 +25,22 @@ export 'model.dart';
 final _logger = Logger('pub.job');
 final _random = math.Random.secure();
 
+typedef AliveCallback = Function();
+
 abstract class JobProcessor {
   final JobService service;
   final Duration lockDuration;
   final String _serviceAsString;
-  JobProcessor({@required this.service, this.lockDuration})
-      : _serviceAsString = jobServiceAsString(service);
+  final AliveCallback _aliveCallback;
+  JobProcessor({
+    @required this.service,
+    this.lockDuration,
+
+    /// [JobProcessor] calls this to indicate that it is still alive and working.
+    /// It is expected to be called between jobs.
+    AliveCallback aliveCallback,
+  })  : _serviceAsString = jobServiceAsString(service),
+        _aliveCallback = aliveCallback;
 
   Future<JobStatus> process(Job job);
 
@@ -72,6 +82,7 @@ abstract class JobProcessor {
       } catch (e, st) {
         _logger.severe('$_serviceAsString job error $jobDescription', e, st);
       }
+      if (_aliveCallback != null) _aliveCallback();
       await Future.delayed(Duration(seconds: sleepSeconds));
     }
   }

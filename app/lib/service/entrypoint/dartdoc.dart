@@ -53,6 +53,7 @@ class DartdocCommand extends Command {
       frontendEntryPoint: _frontendMain,
       workerSetup: workerSetup,
       workerEntryPoint: _workerMain,
+      deadWorkerTimeout: Duration(hours: 1),
     );
   }
 }
@@ -79,8 +80,10 @@ Future _workerMain(WorkerEntryMessage message) async {
   await withServices(() async {
     await popularityStorage.init();
 
-    final jobProcessor =
-        DartdocJobProcessor(lockDuration: const Duration(minutes: 30));
+    final jobProcessor = DartdocJobProcessor(
+      lockDuration: const Duration(minutes: 30),
+      aliveCallback: () => message.aliveSendPort.send(null),
+    );
     await jobProcessor.generateDocsForSdk();
 
     final jobMaintenance = JobMaintenance(dbService, jobProcessor);

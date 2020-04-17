@@ -53,6 +53,7 @@ class AnalyzerCommand extends Command {
       frontendEntryPoint: _frontendMain,
       workerSetup: workerSetup,
       workerEntryPoint: _workerMain,
+      deadWorkerTimeout: Duration(hours: 1),
     );
   }
 }
@@ -78,7 +79,8 @@ Future _workerMain(WorkerEntryMessage message) async {
 
   await withServices(() async {
     await popularityStorage.init();
-    final jobProcessor = AnalyzerJobProcessor();
+    final jobProcessor = AnalyzerJobProcessor(
+        aliveCallback: () => message.aliveSendPort.send(null));
     final jobMaintenance = JobMaintenance(db.dbService, jobProcessor);
 
     Timer.periodic(const Duration(minutes: 15), (_) async {

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:isolate';
+import 'dart:math';
 
 import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
@@ -15,6 +16,8 @@ import '../../shared/scheduler_stats.dart';
 import '../../shared/utils.dart' show trackEventLoopLatency;
 
 import '../services.dart';
+
+final _random = Random.secure();
 
 class FrontendEntryMessage {
   final int frontendIndex;
@@ -38,11 +41,13 @@ class WorkerEntryMessage {
   final int workerIndex;
   final SendPort protocolSendPort;
   final SendPort statsSendPort;
+  final SendPort aliveSendPort;
 
   WorkerEntryMessage({
     @required this.workerIndex,
     @required this.protocolSendPort,
     @required this.statsSendPort,
+    @required this.aliveSendPort,
   });
 }
 
@@ -53,6 +58,7 @@ Future startIsolates({
   Future<void> Function(FrontendEntryMessage message) frontendEntryPoint,
   Future<void> Function() workerSetup,
   Future<void> Function(WorkerEntryMessage message) workerEntryPoint,
+  Duration deadWorkerTimeout,
 }) async {
   useLoggingPackageAdaptor();
   int frontendStarted = 0;
@@ -110,10 +116,11 @@ Future startIsolates({
     workerStarted++;
     final workerIndex = workerStarted;
     logger.info('About to start worker isolate #$workerIndex...');
-    final ReceivePort errorReceivePort = ReceivePort();
-    final ReceivePort protocolReceivePort = ReceivePort();
-    final ReceivePort statsReceivePort = ReceivePort();
-    await Isolate.spawn(
+    final errorReceivePort = ReceivePort();
+    final protocolReceivePort = ReceivePort();
+    final statsReceivePort = ReceivePort();
+    final aliveReceivePort = ReceivePort();
+    final isolate = await Isolate.spawn(
       _wrapper,
       [
         workerEntryPoint,
@@ -121,6 +128,7 @@ Future startIsolates({
           workerIndex: workerIndex,
           protocolSendPort: protocolReceivePort.sendPort,
           statsSendPort: statsReceivePort.sendPort,
+          aliveSendPort: aliveReceivePort.sendPort,
         ),
       ],
       onError: errorReceivePort.sendPort,
@@ -138,9 +146,32 @@ Future startIsolates({
     });
     logger.info('Worker isolate #$workerIndex started.');
 
+    Timer autoKillTimer;
+    void resetAutoKillTimer() {
+      if (deadWorkerTimeout == null) return;
+      autoKillTimer?.cancel();
+
+      /// Randomize TTL so that isolate restarts do not happen at the same time.
+      final ttl = deadWorkerTimeout +
+          Duration(seconds: _random.nextInt(deadWorkerTimeout.inSeconds));
+      autoKillTimer = Timer(ttl, () {
+        logger.info('Killing worker isolate #$workerIndex...');
+        isolate.kill();
+      });
+    }
+
+    // We DO NOT initialize [autoKillTimer] at this point, allowing the worker
+    // to do arbitrary-length setup. Once the first message comes in, we can
+    // start the auto-kill timer.
+    final aliveSubscription = aliveReceivePort.listen((_) {
+      resetAutoKillTimer();
+    });
+
     StreamSubscription errorSubscription;
 
     Future<void> close() async {
+      await aliveSubscription?.cancel();
+      autoKillTimer?.cancel();
       await statsSubscription?.cancel();
       await errorSubscription?.cancel();
       errorReceivePort.close();
