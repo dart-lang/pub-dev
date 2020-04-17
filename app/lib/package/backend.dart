@@ -36,8 +36,6 @@ import '../shared/utils.dart';
 import 'model_properties.dart';
 import 'models.dart';
 import 'name_tracker.dart';
-import 'pub_server/repository.dart' as pub_server;
-import 'pub_server/shelf_pubserver.dart' show ShelfPubServer;
 import 'upload_signer_service.dart';
 
 final Logger _logger = Logger('pub.cloud_repository');
@@ -68,9 +66,6 @@ class PackageBackend {
       : db = db,
         repository = GCloudPackageRepository(db, storage),
         _storage = storage;
-
-  /// Get [ShelfPubServer] for handling the HTTP interface.
-  ShelfPubServer get pubServer => ShelfPubServer(repository);
 
   /// Retrieves packages ordered by their created date.
   Future<List<Package>> newestPackages({int offset, int limit}) {
@@ -369,9 +364,8 @@ class InviteStatus {
   bool get isDelayed => nextNotification != null;
 }
 
-/// A read-only implementation of [pub_server.PackageRepository] using the Cloud
-/// Datastore for metadata and Cloud Storage for tarball storage.
-class GCloudPackageRepository extends pub_server.PackageRepository {
+/// TODO: Merge this into [PackageBackend].
+class GCloudPackageRepository {
   final DatastoreDB db;
   final TarballStorage storage;
 
@@ -433,7 +427,6 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
 
   // Download support.
 
-  @override
   Future<Stream<List<int>>> download(String package, String version) async {
     // TODO: Should we first test for existence?
     // Maybe with a cache?
@@ -444,7 +437,7 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
   // Upload support.
 
   @visibleForTesting
-  Future<pub_server.PackageVersion> upload(Stream<List<int>> data) async {
+  Future<PackageVersion> upload(Stream<List<int>> data) async {
     await requireAuthenticatedUser();
     final guid = createUuid();
     _logger.info('Starting semi-async upload (uuid: $guid)');
@@ -454,10 +447,9 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
       path: '/api/packages/versions/newUploadFinish',
       queryParameters: {'upload_id': guid},
     );
-    return await finishAsyncUpload(finishUri);
+    return await publishUploadedBlob(finishUri);
   }
 
-  @override
   Future<api.UploadInfo> startUpload(Uri redirectUrl) async {
     _logger.info('Starting async upload.');
     // NOTE: We use a authenticated user scope here to ensure the uploading
@@ -480,18 +472,17 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
   }
 
   /// Finishes the upload of a package.
-  @override
-  Future<pub_server.PackageVersion> finishAsyncUpload(Uri uri) async {
+  Future<PackageVersion> publishUploadedBlob(Uri uri) async {
     final user = await requireAuthenticatedUser();
     final guid = uri.queryParameters['upload_id'];
     _logger.info('Finishing async upload (uuid: $guid)');
     _logger.info('Reading tarball from cloud storage.');
 
-    return withTempDirectory((Directory dir) async {
+    return await withTempDirectory((Directory dir) async {
       final filename = '${dir.absolute.path}/tarball.tar.gz';
       await _saveTarballToFS(storage.readTempObject(guid), filename);
       await _verifyTarball(filename);
-      final newPackageVersion = await _performTarballUpload(
+      final version = await _performTarballUpload(
         user,
         filename,
         (package, version) =>
@@ -499,13 +490,11 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
       );
       _logger.info('Removing temporary object $guid.');
       await storage.removeTempObject(guid);
-      return newPackageVersion;
+      return version;
     });
   }
 
-  Future<pub_server.PackageVersion> _performTarballUpload(
-      User user,
-      String filename,
+  Future<PackageVersion> _performTarballUpload(User user, String filename,
       Future<void> Function(String name, String version) tarballUpload) async {
     _logger.info('Examining tarball content.');
 
@@ -517,10 +506,8 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
 
     // Add the new package to the repository by storing the tarball and
     // inserting metadata to datastore (which happens atomically).
-    final pv = await db
-        .withTransaction<pub_server.PackageVersion>((Transaction T) async {
-      _logger.info('Starting datastore transaction.')
-          as pub_server.PackageVersion;
+    final pv = await db.withTransaction<PackageVersion>((Transaction T) async {
+      _logger.info('Starting datastore transaction.');
 
       final tuple = (await T.lookup([newVersion.key, newVersion.packageKey]));
       final version = tuple[0] as PackageVersion;
@@ -596,8 +583,7 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
         // store them again.
         await _updatePackageSortIndex(package.key);
 
-        return pub_server.PackageVersion(newVersion.package, newVersion.version,
-            newVersion.pubspec.jsonString);
+        return newVersion;
       } catch (error, stack) {
         _logger.warning('Error while committing: $error, $stack');
 
@@ -612,6 +598,9 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
         rethrow;
       }
     });
+
+    _logger.info('Invalidating cache for package ${newVersion.package}.');
+    await purgePackageCache(newVersion.package);
 
     try {
       final uploaderEmails = package.publisherId == null

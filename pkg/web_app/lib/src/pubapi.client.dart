@@ -55,11 +55,11 @@ class PubApiClient {
     ));
   }
 
-  Future<List<int>> packageUploadCallback() async {
-    return await _client.requestBytes(
+  Future<_i3.SuccessMessage> packageUploadCallback() async {
+    return _i3.SuccessMessage.fromJson(await _client.requestJson(
       verb: 'get',
       path: '/api/packages/versions/newUploadFinish',
-    );
+    ));
   }
 
   Future<_i3.SuccessMessage> addUploader(String package) async {
