@@ -447,7 +447,7 @@ class GCloudPackageRepository {
       path: '/api/packages/versions/newUploadFinish',
       queryParameters: {'upload_id': guid},
     );
-    return await finishAsyncUpload(finishUri);
+    return await publishUploadedBlob(finishUri);
   }
 
   Future<api.UploadInfo> startUpload(Uri redirectUrl) async {
@@ -472,7 +472,7 @@ class GCloudPackageRepository {
   }
 
   /// Finishes the upload of a package.
-  Future<PackageVersion> finishAsyncUpload(Uri uri) async {
+  Future<PackageVersion> publishUploadedBlob(Uri uri) async {
     final user = await requireAuthenticatedUser();
     final guid = uri.queryParameters['upload_id'];
     _logger.info('Finishing async upload (uuid: $guid)');

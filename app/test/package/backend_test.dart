@@ -427,7 +427,7 @@ void main() {
           bigTarball.forEach(sink.add);
           await sink.close();
 
-          final rs = packageBackend.repository.finishAsyncUpload(redirectUri);
+          final rs = packageBackend.repository.publishUploadedBlob(redirectUri);
           await expectLater(
             rs,
             throwsA(
@@ -447,7 +447,7 @@ void main() {
               await packageArchiveBytes(pubspecContent: pubspecContent));
 
           final version =
-              await packageBackend.repository.finishAsyncUpload(redirectUri);
+              await packageBackend.repository.publishUploadedBlob(redirectUri);
           expect(version.package, 'new_package');
           expect(version.version, '1.2.3');
 
@@ -499,7 +499,7 @@ void main() {
               await packageArchiveBytes(pubspecContent: pubspecContent));
 
           final version =
-              await packageBackend.repository.finishAsyncUpload(redirectUri);
+              await packageBackend.repository.publishUploadedBlob(redirectUri);
           expect(version.package, 'lithium');
           expect(version.version, '7.0.0');
 

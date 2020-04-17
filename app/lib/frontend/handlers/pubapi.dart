@@ -106,7 +106,7 @@ class PubApi {
   @EndPoint.get('/api/packages/versions/newUploadFinish')
   Future<SuccessMessage> packageUploadCallback(Request request) async {
     await packageBackend.repository
-        .finishAsyncUpload(_replaceHost(request.requestedUri));
+        .publishUploadedBlob(_replaceHost(request.requestedUri));
     return SuccessMessage(
         success: Message(message: 'Successfully uploaded package.'));
   }
