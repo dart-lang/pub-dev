@@ -400,7 +400,7 @@ void main() {
               .write('tmp/my-uuid')
               .close();
 
-          final rs = packageBackend.repository.finishAsyncUpload(redirectUri);
+          final rs = packageBackend.repository.publishUploadedBlob(redirectUri);
           await expectLater(
             rs,
             throwsA(
