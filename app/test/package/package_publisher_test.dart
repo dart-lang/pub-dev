@@ -94,8 +94,7 @@ void main() {
       registerAuthenticatedUser(hansUser);
       final tarball = await packageArchiveBytes(
           pubspecContent: generatePubspecYaml('hydrogen', '3.0.0'));
-      final rs =
-          packageBackend.repository.upload(Stream.fromIterable([tarball]));
+      final rs = packageBackend.upload(Stream.fromIterable([tarball]));
       await expectLater(
           rs,
           throwsA(isA<AuthorizationException>()
@@ -111,8 +110,7 @@ void main() {
       registerAuthenticatedUser(hansUser);
       final tarball = await packageArchiveBytes(
           pubspecContent: generatePubspecYaml('hydrogen', '3.0.0'));
-      final pv = await packageBackend.repository
-          .upload(Stream.fromIterable([tarball]));
+      final pv = await packageBackend.upload(Stream.fromIterable([tarball]));
       expect(pv.version.toString(), '3.0.0');
     });
   });

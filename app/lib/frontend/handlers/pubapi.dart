@@ -30,8 +30,8 @@ class PubApi {
   /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#list-all-versions-of-a-package
   @EndPoint.get('/api/packages/<package>')
   Future<PackageData> packageData(Request request, String package) async =>
-      await packageBackend.repository
-          .listVersions(_replaceHost(request.requestedUri), package);
+      await packageBackend.listVersions(
+          _replaceHost(request.requestedUri), package);
 
   /// Getting information about a specific (package, version) pair.
   /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#deprecated-inspect-a-specific-version-of-a-package
@@ -41,8 +41,8 @@ class PubApi {
     String package,
     String version,
   ) async =>
-      await packageBackend.repository
-          .lookupVersion(_replaceHost(request.requestedUri), package, version);
+      await packageBackend.lookupVersion(
+          _replaceHost(request.requestedUri), package, version);
 
   /// Downloading package.
   /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#download-a-specific-version-of-a-package
@@ -88,7 +88,7 @@ class PubApi {
       // Note: we do not _normalizeHost here as we wish to be redirected to
       // packageUploadCallback on the same host. Otherwise, we can't do
       // integration tests before we switch traffic.
-      await packageBackend.repository.startUpload(
+      await packageBackend.startUpload(
         request.requestedUri.resolve('/api/packages/versions/newUploadFinish'),
       );
 
@@ -105,7 +105,7 @@ class PubApi {
   ///     }
   @EndPoint.get('/api/packages/versions/newUploadFinish')
   Future<SuccessMessage> packageUploadCallback(Request request) async {
-    await packageBackend.repository
+    await packageBackend
         .publishUploadedBlob(_replaceHost(request.requestedUri));
     return SuccessMessage(
         success: Message(message: 'Successfully uploaded package.'));
@@ -130,7 +130,7 @@ class PubApi {
       email = params['email'];
     } on FormatException catch (_) {}
     InvalidInputException.checkNotNull(email, 'email');
-    return await packageBackend.repository.addUploader(package, email);
+    return await packageBackend.addUploader(package, email);
   }
 
   /// Removing an existing uploader.
@@ -147,7 +147,7 @@ class PubApi {
     String package,
     String email,
   ) async =>
-      await packageBackend.repository.removeUploader(package, email);
+      await packageBackend.removeUploader(package, email);
 
   // ****
   // **** Publisher API

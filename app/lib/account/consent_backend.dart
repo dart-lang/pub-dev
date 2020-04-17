@@ -327,7 +327,7 @@ class _PackageUploaderAction extends ConsentAction {
       throw AuthenticationException.userNotFound();
     }
 
-    await packageBackend.repository.confirmUploader(
+    await packageBackend.confirmUploader(
         consent.fromUserId, fromUserEmail, packageName, uploader);
   }
 
