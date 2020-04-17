@@ -295,6 +295,9 @@ class SimplePackageIndex implements PackageIndex {
       case SearchOrder.maintenance:
         results = _rankWithValues(getMaintenanceScore(packages));
         break;
+      case SearchOrder.like:
+        results = _rankWithValues(getLikeScore(packages));
+        break;
     }
 
     // bound by offset and limit (or randomize items)
@@ -353,7 +356,7 @@ class SimplePackageIndex implements PackageIndex {
     );
   }
 
-  // visible for testing only
+  @visibleForTesting
   Map<String, double> getHealthScore(Iterable<String> packages) {
     return Map.fromIterable(
       packages,
@@ -361,7 +364,7 @@ class SimplePackageIndex implements PackageIndex {
     );
   }
 
-  // visible for testing only
+  @visibleForTesting
   Map<String, double> getPopularityScore(Iterable<String> packages) {
     return Map.fromIterable(
       packages,
@@ -369,11 +372,19 @@ class SimplePackageIndex implements PackageIndex {
     );
   }
 
-  // visible for testing only
+  @visibleForTesting
   Map<String, double> getMaintenanceScore(Iterable<String> packages) {
     return Map.fromIterable(
       packages,
       value: (package) => (_packages[package].maintenance ?? 0.0),
+    );
+  }
+
+  @visibleForTesting
+  Map<String, double> getLikeScore(Iterable<String> packages) {
+    return Map.fromIterable(
+      packages,
+      value: (package) => (_packages[package].likeCount?.toDouble() ?? 0.0),
     );
   }
 

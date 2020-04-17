@@ -23,6 +23,7 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) {
     health: (json['health'] as num)?.toDouble(),
     popularity: (json['popularity'] as num)?.toDouble(),
     maintenance: (json['maintenance'] as num)?.toDouble(),
+    likeCount: json['likeCount'] as int,
     dependencies: (json['dependencies'] as Map<String, dynamic>)?.map(
       (k, e) => MapEntry(k, e as String),
     ),
@@ -52,6 +53,7 @@ Map<String, dynamic> _$PackageDocumentToJson(PackageDocument instance) =>
       'health': instance.health,
       'popularity': instance.popularity,
       'maintenance': instance.maintenance,
+      'likeCount': instance.likeCount,
       'dependencies': instance.dependencies,
       'publisherId': instance.publisherId,
       'uploaderEmails': instance.uploaderEmails,
