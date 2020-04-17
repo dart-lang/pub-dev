@@ -81,7 +81,6 @@ String getTabName(Element elem) {
 
 void changeTab(String name) {
   final tabOrContentElem = getTabElement(name);
-  print(tabOrContentElem);
   if (tabOrContentElem == null) return;
 
   if (tabOrContentElem.classes.contains('tab-button')) {
