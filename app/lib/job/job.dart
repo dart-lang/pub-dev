@@ -35,6 +35,9 @@ abstract class JobProcessor {
   JobProcessor({
     @required this.service,
     this.lockDuration,
+
+    /// [JobProcessor] calls this to indicate that it is still alive and working.
+    /// It is expected to be called between jobs.
     AliveCallback aliveCallback,
   })  : _serviceAsString = jobServiceAsString(service),
         _aliveCallback = aliveCallback;
