@@ -53,7 +53,7 @@ class DartdocCommand extends Command {
       frontendEntryPoint: _frontendMain,
       workerSetup: workerSetup,
       workerEntryPoint: _workerMain,
-      deadWorkerTimeout: Duration(hours: 4),
+      deadWorkerTimeout: Duration(hours: 1),
     );
   }
 }
