@@ -490,6 +490,7 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
     return withTempDirectory((Directory dir) async {
       final filename = '${dir.absolute.path}/tarball.tar.gz';
       await _saveTarballToFS(storage.readTempObject(guid), filename);
+      await _verifyTarball(filename);
       final newPackageVersion = await _performTarballUpload(
         user,
         filename,
@@ -855,7 +856,6 @@ class GCloudPackageRepository extends pub_server.PackageRepository {
 /// exceeds [UploadSignerService.maxUploadSize].
 Future _saveTarballToFS(Stream<List<int>> data, String filename) async {
   final targetFile = File(filename);
-  int fileSize;
   try {
     int receivedBytes = 0;
     final stream = data.transform<List<int>>(
@@ -872,12 +872,21 @@ Future _saveTarballToFS(Stream<List<int>> data, String filename) async {
       ),
     );
     await stream.pipe(targetFile.openWrite());
-    fileSize = await targetFile.length();
   } catch (e, st) {
     _logger.warning('An error occured while streaming tarball to FS.', e, st);
     rethrow;
   }
-  _logger.info('Finished streaming tarball to FS (fileSize=$fileSize).');
+  _logger.info('Finished streaming tarball to FS.');
+}
+
+Future<void> _verifyTarball(String filename) async {
+  final file = File(filename);
+  // Some platforms may not be able to create an archive, only an empty file.
+  final fileSize = await file.length();
+  if (fileSize == 0) {
+    throw PackageRejectedException.archiveEmpty();
+  }
+  // TODO: check if the file is valid .tar.gz
 }
 
 /// Creates a new `Package` and populates all of it's fields.

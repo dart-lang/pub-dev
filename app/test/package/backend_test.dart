@@ -392,13 +392,32 @@ void main() {
         final Uri redirectUri =
             Uri.parse('http://blobstore.com/upload?upload_id=my-uuid');
 
+        testWithServices('uploaded zero-length file', () async {
+          registerAuthenticatedUser(hansUser);
+
+          // create empty file
+          await packageBackend.repository.storage.bucket
+              .write('tmp/my-uuid')
+              .close();
+
+          final rs = packageBackend.repository.finishAsyncUpload(redirectUri);
+          await expectLater(
+            rs,
+            throwsA(
+              isA<PackageRejectedException>().having(
+                  (e) => '$e', 'text', contains('Package archive is empty')),
+            ),
+          );
+        });
+
         testWithServices('upload-too-big', () async {
           registerAuthenticatedUser(hansUser);
 
-          final oneKB = List.filled(1024, 42);
+          final chunk = List.filled(1024 * 1024, 42);
+          final chunkCount = UploadSignerService.maxUploadSize ~/ chunk.length;
           final bigTarball = <List<int>>[];
-          for (int i = 0; i < UploadSignerService.maxUploadSize ~/ 1024; i++) {
-            bigTarball.add(oneKB);
+          for (int i = 0; i < chunkCount; i++) {
+            bigTarball.add(chunk);
           }
           // Add one more byte than allowed.
           bigTarball.add([1]);
