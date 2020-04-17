@@ -342,6 +342,7 @@ body.experimental {
 
   &.-global {
     display: flex;
+    flex-wrap: wrap;
 
     .publishers-item {
       flex: 1 1 26%;
