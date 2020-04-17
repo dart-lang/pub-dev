@@ -59,12 +59,10 @@ PackageBackend get packageBackend =>
 /// Represents the backend for the pub site.
 class PackageBackend {
   final DatastoreDB db;
-  final GCloudPackageRepository repository;
   final TarballStorage _storage;
 
   PackageBackend(DatastoreDB db, TarballStorage storage)
       : db = db,
-        repository = GCloudPackageRepository(db, storage),
         _storage = storage;
 
   /// Retrieves packages ordered by their created date.
@@ -320,56 +318,6 @@ class PackageBackend {
 //    return rs as api.PackagePublisherInfo;
     throw NotImplementedException();
   }
-}
-
-/// Loads [package], returns its [Package] instance, and also checks if
-/// [userId] is an admin of the package.
-///
-/// Throws AuthenticationException if the user is provided.
-/// Throws AuthorizationException if the user is not an admin for the package.
-Future<Package> requirePackageAdmin(String package, String userId) async {
-  if (userId == null) {
-    throw AuthenticationException.authenticationRequired();
-  }
-  final p = await packageBackend.lookupPackage(package);
-  if (p == null) {
-    throw NotFoundException.resource('package "$package"');
-  }
-  await packageBackend.checkPackageAdmin(p, userId);
-  return p;
-}
-
-api.PackagePublisherInfo _asPackagePublisherInfo(Package p) =>
-    api.PackagePublisherInfo(publisherId: p.publisherId);
-
-/// Purge [cache] entries for given [package] and also global page caches.
-Future<void> purgePackageCache(String package) async {
-  await Future.wait([
-    cache.packageData(package).purge(),
-    cache.packageView(package).purge(),
-    cache.uiPackagePage(package, null).purge(),
-    cache.uiIndexPage().purge(),
-  ]);
-}
-
-/// The status of an invite after being created or updated.
-class InviteStatus {
-  final String urlNonce;
-  final DateTime nextNotification;
-
-  InviteStatus({this.urlNonce, this.nextNotification});
-
-  bool get isActive => urlNonce != null;
-
-  bool get isDelayed => nextNotification != null;
-}
-
-/// TODO: Merge this into [PackageBackend].
-class GCloudPackageRepository {
-  final DatastoreDB db;
-  final TarballStorage storage;
-
-  GCloudPackageRepository(this.db, this.storage);
 
   /// Returns the known versions of [package].
   ///
@@ -425,24 +373,21 @@ class GCloudPackageRepository {
             baseUri: baseUri),
       );
 
-  // Download support.
-
+  @visibleForTesting
   Future<Stream<List<int>>> download(String package, String version) async {
     // TODO: Should we first test for existence?
     // Maybe with a cache?
     version = canonicalizeVersion(version);
-    return storage.download(package, version);
+    return _storage.download(package, version);
   }
-
-  // Upload support.
 
   @visibleForTesting
   Future<PackageVersion> upload(Stream<List<int>> data) async {
     await requireAuthenticatedUser();
     final guid = createUuid();
     _logger.info('Starting semi-async upload (uuid: $guid)');
-    final object = storage.tempObjectName(guid);
-    await data.pipe(storage.bucket.write(object));
+    final object = _storage.tempObjectName(guid);
+    await data.pipe(_storage.bucket.write(object));
     final finishUri = Uri(
       path: '/api/packages/versions/newUploadFinish',
       queryParameters: {'upload_id': guid},
@@ -460,8 +405,8 @@ class GCloudPackageRepository {
     _logger.info('User: ${user.email}.');
 
     final guid = createUuid();
-    final String object = storage.tempObjectName(guid);
-    final String bucket = storage.bucket.bucketName;
+    final String object = _storage.tempObjectName(guid);
+    final String bucket = _storage.bucket.bucketName;
     final Duration lifetime = const Duration(minutes: 10);
 
     final url = redirectUrl.resolve('?upload_id=$guid');
@@ -480,16 +425,16 @@ class GCloudPackageRepository {
 
     return await withTempDirectory((Directory dir) async {
       final filename = '${dir.absolute.path}/tarball.tar.gz';
-      await _saveTarballToFS(storage.readTempObject(guid), filename);
+      await _saveTarballToFS(_storage.readTempObject(guid), filename);
       await _verifyTarball(filename);
       final version = await _performTarballUpload(
         user,
         filename,
         (package, version) =>
-            storage.uploadViaTempObject(guid, package, version),
+            _storage.uploadViaTempObject(guid, package, version),
       );
       _logger.info('Removing temporary object $guid.');
-      await storage.removeTempObject(guid);
+      await _storage.removeTempObject(guid);
       return version;
     });
   }
@@ -837,6 +782,48 @@ class GCloudPackageRepository {
         success: api.Message(
             message: 'Successfully removed uploader from package.'));
   }
+}
+
+/// Loads [package], returns its [Package] instance, and also checks if
+/// [userId] is an admin of the package.
+///
+/// Throws AuthenticationException if the user is provided.
+/// Throws AuthorizationException if the user is not an admin for the package.
+Future<Package> requirePackageAdmin(String package, String userId) async {
+  if (userId == null) {
+    throw AuthenticationException.authenticationRequired();
+  }
+  final p = await packageBackend.lookupPackage(package);
+  if (p == null) {
+    throw NotFoundException.resource('package "$package"');
+  }
+  await packageBackend.checkPackageAdmin(p, userId);
+  return p;
+}
+
+api.PackagePublisherInfo _asPackagePublisherInfo(Package p) =>
+    api.PackagePublisherInfo(publisherId: p.publisherId);
+
+/// Purge [cache] entries for given [package] and also global page caches.
+Future<void> purgePackageCache(String package) async {
+  await Future.wait([
+    cache.packageData(package).purge(),
+    cache.packageView(package).purge(),
+    cache.uiPackagePage(package, null).purge(),
+    cache.uiIndexPage().purge(),
+  ]);
+}
+
+/// The status of an invite after being created or updated.
+class InviteStatus {
+  final String urlNonce;
+  final DateTime nextNotification;
+
+  InviteStatus({this.urlNonce, this.nextNotification});
+
+  bool get isActive => urlNonce != null;
+
+  bool get isDelayed => nextNotification != null;
 }
 
 /// Reads a tarball from a byte stream.
