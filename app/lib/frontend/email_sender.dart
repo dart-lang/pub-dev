@@ -49,6 +49,7 @@ class EmailSender {
             timeout: Duration(seconds: 15),
           ),
           delayFactor: Duration(seconds: 2),
+          maxAttempts: 2,
         );
       } catch (e, st) {
         _logger.severe('Sending email failed: $debugHeader.', e, st);
