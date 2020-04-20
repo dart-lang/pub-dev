@@ -85,9 +85,19 @@ final _sortDicts = const <SortDict>[
       tooltip: 'Packages are sorted by their popularity score.'),
 ];
 
-List<SortDict> getSortDicts(bool isSearch) {
+// TODO: move this as part of [_sortDicts] after finalization of the new UI.
+final _likeSortDict = SortDict(
+  id: 'like',
+  label: 'likes',
+  tooltip: 'Packages are sorted by like count.',
+);
+
+List<SortDict> getSortDicts(bool isSearch, bool includeLike) {
   final removeId = isSearch ? 'listing_relevance' : 'search_relevance';
-  return _sortDicts.where((d) => d.id != removeId).toList();
+  return <SortDict>[
+    ..._sortDicts.where((d) => d.id != removeId),
+    if (includeLike) _likeSortDict,
+  ];
 }
 
 SortDict getSortDict(String sort) {
