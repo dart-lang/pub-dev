@@ -324,6 +324,7 @@ class PackageBackend {
   /// Used in `pub` client for finding which versions exist.
   Future<api.PackageData> listVersions(Uri baseUri, String package) async {
     return await cache.packageData(package).get(() async {
+      final pkg = await packageBackend.lookupPackage(package);
       final packageVersions = await packageBackend.versionsOfPackage(package);
       if (packageVersions.isEmpty) {
         throw NotFoundException.resource('package "$package"');
@@ -336,6 +337,7 @@ class PackageBackend {
       );
       return api.PackageData(
         name: package,
+        tags: pkg.getTags(),
         latest: _toApiVersionInfo(baseUri, latest),
         versions: packageVersions
             .map((pv) => _toApiVersionInfo(baseUri, pv))
@@ -368,6 +370,7 @@ class PackageBackend {
   api.VersionInfo _toApiVersionInfo(Uri baseUri, PackageVersion pv) =>
       api.VersionInfo(
         version: pv.version,
+        tags: pv.getTags(),
         pubspec: pv.pubspec.asJson,
         archiveUrl: urls.pkgArchiveDownloadUrl(pv.package, pv.version,
             baseUri: baseUri),
