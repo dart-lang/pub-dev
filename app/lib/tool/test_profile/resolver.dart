@@ -4,7 +4,6 @@
 
 import 'dart:io';
 
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_dev/shared/utils.dart';
 
