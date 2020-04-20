@@ -188,7 +188,7 @@ String _subSdkLabel(SearchQuery sq) {
 /// Renders the `views/shared/sort_control.mustache` template.
 String renderSortControl(SearchQuery query) {
   final isSearch = query != null && query.hasQuery;
-  final options = getSortDicts(isSearch);
+  final options = getSortDicts(isSearch, requestContext.isExperimental);
   final selectedValue = serializeSearchOrder(query?.order) ??
       (isSearch ? 'search_relevance' : 'listing_relevance');
   final selectedOption = options.firstWhere(
