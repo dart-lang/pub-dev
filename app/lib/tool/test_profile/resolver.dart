@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -61,13 +62,15 @@ Future<List<String>> resolveVersions(TestProfile profile) async {
 }
 
 String _generateDummyPubspec(String package, String version) {
-  return '''
-name: ____dummy____
-
-environment:
-  sdk: ">=2.7.0 <3.0.0"
-
-dependencies:
-  $package: $version
-''';
+  return json.encode(
+    {
+      'name': '____dummy____',
+      'environment': {
+        'sdk': '>=2.7.0 <3.0.0',
+      },
+      'dependencies': {
+        package: version,
+      },
+    },
+  );
 }
