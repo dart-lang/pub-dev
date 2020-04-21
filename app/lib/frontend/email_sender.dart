@@ -3,11 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
+import 'package:retry/retry.dart';
 
 import '../service/secret/backend.dart';
 import '../shared/email.dart';
@@ -41,7 +43,16 @@ class EmailSender {
     } else {
       _logger.info('Sending email: $debugHeader...');
       try {
-        await send(_toMessage(message), _server);
+        await retry(
+          () => send(
+            _toMessage(message),
+            _server,
+            timeout: Duration(seconds: 15),
+          ),
+          retryIf: (e) => e is TimeoutException || e is IOException,
+          delayFactor: Duration(seconds: 2),
+          maxAttempts: 2,
+        );
       } catch (e, st) {
         _logger.severe('Sending email failed: $debugHeader.', e, st);
       }
