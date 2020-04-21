@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
@@ -48,6 +49,7 @@ class EmailSender {
             _server,
             timeout: Duration(seconds: 15),
           ),
+          retryIf: (e) => e is TimeoutException || e is IOException,
           delayFactor: Duration(seconds: 2),
           maxAttempts: 2,
         );
