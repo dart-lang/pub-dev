@@ -4,37 +4,46 @@
 
 <div class="detail-header{{#is_loose}} -is-loose{{/is_loose}}">
   <div class="detail-container">
-  <h1 class="title">{{#is_publisher}}<img
-      class="-pub-publisher-shield"
-      height="48" width="48"
-      title="Domain ownership verifed by pub.dev"
-      src="{{{static_assets.img__verified-publisher-blue_svg}}}" />{{/is_publisher}}{{title}}</h1>
-    <div class="metadata">{{& metadata_html}}</div>
-    <div class="detail-tags-and-like">
-      <div class="detail-tags">{{& tags_html}}</div>
-      <div class="detail-like">
-        {{#has_likes}}
-        <span id="likes-count">{{like_count}}</span>
-        <button
-          id="-pub-like-icon-button"
-          class="mdc-icon-button{{#is_liked}} mdc-icon-button--on{{/is_liked}}"
-          aria-label="{{#is_liked}}Unlike{{/is_liked}}{{^is_liked}}Like{{/is_liked}} this package"
-          data-ga-click-event="toggle-like"
-          aria-hidden="true"
-          aria-pressed="true">
-          <img
-            height="18"
-            width="18"
-            src="{{{static_assets.img__like-inactive_svg}}}"
-            class="mdc-icon-button__icon"/>
-          <img
-            height="18"
-            width="18"
-            src="{{{static_assets.img__like-active_svg}}}"
-            class="mdc-icon-button__icon mdc-icon-button__icon--on"/>
-        </button>
-      {{/has_likes}}
+    <div class="detail-header-outer-block">
+      {{#has_image_url}}
+      <div class="detail-header-image-block">
+        <img src="{{image_url}}" class="detail-header-image" />
+      </div>
+      {{/has_image_url}}
+      <div class="detail-header-content-block">
+        <h1 class="title">{{#is_publisher}}<img
+            class="-pub-publisher-shield"
+            height="48" width="48"
+            title="Domain ownership verifed by pub.dev"
+            src="{{{static_assets.img__verified-publisher-blue_svg}}}" />{{/is_publisher}}{{title}}</h1>
+        <div class="metadata">{{& metadata_html}}</div>
+        <div class="detail-tags-and-like">
+          <div class="detail-tags">{{& tags_html}}</div>
+          <div class="detail-like">
+            {{#has_likes}}
+              <span id="likes-count">{{like_count}}</span>
+              <button
+                  id="-pub-like-icon-button"
+                  class="mdc-icon-button{{#is_liked}} mdc-icon-button--on{{/is_liked}}"
+                  aria-label="{{#is_liked}}Unlike{{/is_liked}}{{^is_liked}}Like{{/is_liked}} this package"
+                  data-ga-click-event="toggle-like"
+                  aria-hidden="true"
+                  aria-pressed="true">
+                <img
+                    height="18"
+                    width="18"
+                    src="{{{static_assets.img__like-inactive_svg}}}"
+                    class="mdc-icon-button__icon"/>
+                <img
+                    height="18"
+                    width="18"
+                    src="{{{static_assets.img__like-active_svg}}}"
+                    class="mdc-icon-button__icon mdc-icon-button__icon--on"/>
+              </button>
+            {{/has_likes}}
+          </div>
+        </div>
+      </div>
       </div>
     </div>
-  </div>
 </div>

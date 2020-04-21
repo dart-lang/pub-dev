@@ -6,7 +6,7 @@ import 'dart:convert';
 
 import 'package:meta/meta.dart';
 
-import '../../account/models.dart' show LikeData, User;
+import '../../account/models.dart' show LikeData, User, UserSessionData;
 import '../../package/models.dart' show PackageView;
 import '../../publisher/models.dart' show Publisher;
 import '../../search/search_service.dart' show SearchQuery;
@@ -31,6 +31,7 @@ String renderAuthorizedPage() {
 /// Renders the search results on the current user's packages page.
 String renderAccountPackagesPage({
   @required User user,
+  @required UserSessionData userSessionData,
   @required List<PackageView> packages,
   @required PageLinks pageLinks,
   @required SearchQuery searchQuery,
@@ -75,7 +76,7 @@ String renderAccountPackagesPage({
     paginationHtml,
   ].join('\n');
   final content = renderDetailPage(
-    headerHtml: _accountDetailHeader(user),
+    headerHtml: _accountDetailHeader(user, userSessionData),
     tabs: [
       Tab.withContent(
           id: 'packages', title: 'My packages', contentHtml: tabContent),
@@ -97,8 +98,11 @@ String renderAccountPackagesPage({
 }
 
 /// Renders the current user's liked packages page.
-String renderMyLikedPackagesPage(
-    {@required User user, @required List<LikeData> likes}) {
+String renderMyLikedPackagesPage({
+  @required User user,
+  @required UserSessionData userSessionData,
+  @required List<LikeData> likes,
+}) {
   final likedPackagesListHtml = renderMyLikedPackagesList(likes);
 
   final resultCountHtml = likes.isNotEmpty
@@ -110,7 +114,7 @@ String renderMyLikedPackagesPage(
     likedPackagesListHtml,
   ].join('\n');
   final content = renderDetailPage(
-    headerHtml: _accountDetailHeader(user),
+    headerHtml: _accountDetailHeader(user, userSessionData),
     tabs: [
       _myPackagesLink(),
       Tab.withContent(
@@ -135,12 +139,13 @@ String renderMyLikedPackagesPage(
 /// Renders the current user's publishers page.
 String renderAccountPublishersPage({
   @required User user,
+  @required UserSessionData userSessionData,
   @required List<Publisher> publishers,
 }) {
   final publisherListHtml = renderPublisherList(publishers, isGlobal: false);
 
   final content = renderDetailPage(
-    headerHtml: _accountDetailHeader(user),
+    headerHtml: _accountDetailHeader(user, userSessionData),
     tabs: [
       _myPackagesLink(),
       _myLikedPackagesLink(),
@@ -173,12 +178,21 @@ Tab _myLikedPackagesLink() => Tab.withLink(
 Tab _myPublishersLink() => Tab.withLink(
     id: 'publishers', title: 'My publishers', href: urls.myPublishersUrl());
 
-String _accountDetailHeader(User user) {
+String _accountDetailHeader(User user, UserSessionData userSessionData) {
   final shortJoined = shortDateFormat.format(user.created);
-  return renderDetailHeader(
-    title: 'User ${user.email}',
-    metadataHtml: htmlEscape.convert('Joined on $shortJoined'),
-  );
+  if (requestContext.isExperimental) {
+    return renderDetailHeader(
+      title: userSessionData.name,
+      imageUrl: userSessionData.imageUrl,
+      metadataHtml: '<p>${htmlEscape.convert(user.email)}</p>'
+          '<p>${htmlEscape.convert('Joined on $shortJoined')}</p>',
+    );
+  } else {
+    return renderDetailHeader(
+      title: 'User ${user.email}',
+      metadataHtml: htmlEscape.convert('Joined on $shortJoined'),
+    );
+  }
 }
 
 String _accountInfoBox(User user) {
