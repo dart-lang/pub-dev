@@ -70,6 +70,7 @@ Map<String, dynamic> _$MessageToJson(Message instance) => <String, dynamic>{
 PackageData _$PackageDataFromJson(Map<String, dynamic> json) {
   return PackageData(
     name: json['name'] as String,
+    tags: (json['tags'] as List)?.map((e) => e as String)?.toList(),
     latest: json['latest'] == null
         ? null
         : VersionInfo.fromJson(json['latest'] as Map<String, dynamic>),
@@ -83,6 +84,7 @@ PackageData _$PackageDataFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$PackageDataToJson(PackageData instance) =>
     <String, dynamic>{
       'name': instance.name,
+      'tags': instance.tags,
       'latest': instance.latest,
       'versions': instance.versions,
     };
@@ -90,6 +92,7 @@ Map<String, dynamic> _$PackageDataToJson(PackageData instance) =>
 VersionInfo _$VersionInfoFromJson(Map<String, dynamic> json) {
   return VersionInfo(
     version: json['version'] as String,
+    tags: (json['tags'] as List)?.map((e) => e as String)?.toList(),
     pubspec: json['pubspec'] as Map<String, dynamic>,
     archiveUrl: json['archive_url'] as String,
   );
@@ -98,6 +101,7 @@ VersionInfo _$VersionInfoFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$VersionInfoToJson(VersionInfo instance) =>
     <String, dynamic>{
       'version': instance.version,
+      'tags': instance.tags,
       'pubspec': instance.pubspec,
       'archive_url': instance.archiveUrl,
     };

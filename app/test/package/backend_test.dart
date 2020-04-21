@@ -11,6 +11,8 @@ import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
+import 'package:client_data/package_api.dart';
+
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/package/backend.dart';
@@ -339,7 +341,7 @@ void main() {
       });
     });
 
-    group('GCloudRepository.packageData', () {
+    group('listVersions', () {
       final baseUri = Uri.parse('https://pub.dev');
 
       testWithServices('not found', () async {
@@ -354,6 +356,17 @@ void main() {
         expect(pd.versions.first.version, '1.0.0');
         expect(pd.versions.last.version, '2.0.8');
         expect(pd.latest.version, '2.0.8');
+        expect(pd.tags, []);
+        expect(pd.latest.tags, []);
+      });
+
+      testWithServices('tags', () async {
+        registerAuthenticatedUser(hansUser);
+        await packageBackend.updateOptions(
+            'hydrogen', PkgOptions(isDiscontinued: true));
+        final pd = await packageBackend.listVersions(baseUri, 'hydrogen');
+        expect(pd.tags, ['is:discontinued']);
+        expect(pd.latest.tags, []);
       });
     });
 

@@ -95,6 +95,9 @@ class PackageData {
   /// Package name.
   final String name;
 
+  /// Tags applicable to all versions of this package.
+  final List<String> tags;
+
   /// This is merely a convenience property, because the [VersionInfo] for the
   /// latest version also exists in the [versions] list.
   ///
@@ -107,6 +110,7 @@ class PackageData {
 
   PackageData({
     @required this.name,
+    @required this.tags,
     @required this.latest,
     @required this.versions,
   });
@@ -121,6 +125,9 @@ class PackageData {
 class VersionInfo {
   final String version;
 
+  /// Tags applicable to a specific version of a package.
+  final List<String> tags;
+
   final Map<String, dynamic> pubspec;
 
   /// As of Dart 2.8 `pub` client uses [archiveUrl] to find the archive.
@@ -129,6 +136,7 @@ class VersionInfo {
 
   VersionInfo({
     @required this.version,
+    @required this.tags,
     @required this.pubspec,
     @required this.archiveUrl,
   });
