@@ -95,7 +95,7 @@ class PackageData {
   /// Package name.
   final String name;
 
-  /// Package-level tags
+  /// Tags applicable to all versions of this package.
   final List<String> tags;
 
   /// This is merely a convenience property, because the [VersionInfo] for the
@@ -125,7 +125,7 @@ class PackageData {
 class VersionInfo {
   final String version;
 
-  /// Version-level tags.
+  /// Tags applicable to a specific version of a package.
   final List<String> tags;
 
   final Map<String, dynamic> pubspec;
