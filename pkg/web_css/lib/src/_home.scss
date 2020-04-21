@@ -202,10 +202,7 @@
 
     .mini-list-item-body {
       flex-grow: 1;
-    }
-
-    .mini-list-item-body {
-      overflow: auto;
+      overflow: hidden;
     }
   }
 
