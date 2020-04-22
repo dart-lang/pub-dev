@@ -241,6 +241,16 @@
          max-width: 900px;
       }
     }
+
+    // The image for "Top Flutter packages" is on the right side of the screen.
+    // The scale rule forces it to go outside of the content area, and a bottom
+    // scroll bar appears. Pushing it to the left a bit solves this issue.
+    // The proper (minimum) amount of left is unknown, we can increase this if needed.
+    &.home-block-tf {
+      .home-block-image {
+        left: -2%;
+      }
+    }
   }
 }
 
