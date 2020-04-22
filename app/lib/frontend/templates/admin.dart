@@ -183,7 +183,7 @@ String _accountDetailHeader(User user, UserSessionData userSessionData) {
   if (requestContext.isExperimental) {
     return renderDetailHeader(
       title: userSessionData.name,
-      imageUrl: userSessionData.imageUrl,
+      imageUrl: userSessionData.imageUrlOfSize(200),
       metadataHtml: '<p>${htmlEscape.convert(user.email)}</p>'
           '<p>${htmlEscape.convert('Joined on $shortJoined')}</p>',
     );
