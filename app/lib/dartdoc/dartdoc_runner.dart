@@ -64,7 +64,6 @@ class DartdocJobProcessor extends JobProcessor {
         '--sdk-docs',
         '--output',
         outputDir,
-        '--link-to-remote',
         '--no-validate-links',
       ];
       if (envConfig.toolEnvDartSdkDir != null) {
@@ -370,7 +369,7 @@ class DartdocJobProcessor extends JobProcessor {
         outputDir,
         '--rel-canonical-prefix',
         canonicalUrl,
-        if (!isReduced) '--link-to-remote',
+        if (isReduced) '--no-link-to-remote',
         if (isReduced) '--no-validate-links',
       ];
       if (envConfig.toolEnvDartSdkDir != null) {
