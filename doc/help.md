@@ -1,4 +1,6 @@
-# Publishing a Package
+# Help
+
+## Publishing a package
 
 [Pub][pub-tool] isn't just for using other people's packages.
 It also allows you to share your packages with the world.
@@ -7,7 +9,7 @@ use the [`pub publish`][pub-publish] command.
 
 ## Search
 
-We support the following search expressions:
+`pub.dev` supports the following search expressions:
   - `"exact phrase"`: By default, when you perform a search, the results
     include packages with similar phrases. When a phrase is inside quotes,
     you'll see only those packages that contain exactly the specified
