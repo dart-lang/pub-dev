@@ -112,11 +112,7 @@ String _renderSiteHeader(PageType pageType) {
           'email': userSessionData.email,
           'has_name': userSessionData.name != null,
           'name': userSessionData.name,
-          'image_url': userSessionData.imageUrl == null
-              ? staticUrls.defaultProfilePng
-              // Set image size to 30x30 pixels for faster loading, see:
-              // https://developers.google.com/people/image-sizing
-              : '${userSessionData.imageUrl}=s30',
+          'image_url': userSessionData.imageUrlOfSize(30),
         };
 
   return templateCache.renderTemplate('shared/site_header', {

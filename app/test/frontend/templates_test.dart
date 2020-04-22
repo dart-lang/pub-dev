@@ -648,6 +648,7 @@ void main() {
           SearchQuery.parse(uploaderOrPublishers: [hansUser.email]);
       final String html = renderAccountPackagesPage(
         user: hansUser,
+        userSessionData: hansUserSessionData,
         packages: [
           PackageView(
             name: 'super_package',
@@ -675,20 +676,25 @@ void main() {
     });
 
     scopedTest('/my-liked-packages page', () {
-      final String html = renderMyLikedPackagesPage(user: hansUser, likes: [
-        LikeData(
-            package: 'super_package',
-            created: DateTime.fromMillisecondsSinceEpoch(1574423824000)),
-        LikeData(
-            package: 'another_package',
-            created: DateTime.fromMillisecondsSinceEpoch(1574423824000))
-      ]);
+      final String html = renderMyLikedPackagesPage(
+        user: hansUser,
+        userSessionData: hansUserSessionData,
+        likes: [
+          LikeData(
+              package: 'super_package',
+              created: DateTime.fromMillisecondsSinceEpoch(1574423824000)),
+          LikeData(
+              package: 'another_package',
+              created: DateTime.fromMillisecondsSinceEpoch(1574423824000))
+        ],
+      );
       expectGoldenFile(html, 'my_liked_packages.html');
     });
 
     scopedTest('/my-publishers page', () {
       final String html = renderAccountPublishersPage(
         user: hansUser,
+        userSessionData: hansUserSessionData,
         publishers: [
           exampleComPublisher,
         ],

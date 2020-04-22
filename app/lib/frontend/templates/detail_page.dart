@@ -17,6 +17,7 @@ final wideHeaderDetailPageClassName = '-wide-header-detail-page';
 /// The like button in the header will not be displayed when [isLiked] is null.
 String renderDetailHeader({
   @required String title,
+  String imageUrl,
   int packageLikes,
   bool isLiked,
   bool isFlutterFavorite = false,
@@ -36,6 +37,8 @@ String renderDetailHeader({
     'like_count': _formatPackageLikes(packageLikes),
     'is_liked': isLiked,
     'has_likes': isLiked != null,
+    'image_url': imageUrl,
+    'has_image_url': imageUrl != null && imageUrl.isNotEmpty,
     // TODO: remove values below after new UI is finalized
     'is_flutter_favorite': isFlutterFavorite,
   });

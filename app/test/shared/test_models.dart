@@ -49,6 +49,15 @@ final hansUser = User()
   ..email = 'hans@juergen.com'
   ..created = DateTime.utc(2014)
   ..isDeletedFlag = false;
+final hansUserSessionData = UserSessionData(
+  userId: hansUser.userId,
+  sessionId: 'hans-at-juergen-dot-com--session',
+  email: hansUser.email,
+  name: 'Hans Juergen',
+  imageUrl: 'https://juergen.com/hans.jpg',
+  created: hansUser.created,
+  expires: DateTime.now().add(Duration(days: 7)),
+);
 final joeUser = User()
   ..id = 'joe-at-example-dot-com'
   ..email = 'joe@example.com'

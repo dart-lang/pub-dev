@@ -9,6 +9,7 @@ import 'package:gcloud/db.dart' as db;
 import 'package:meta/meta.dart';
 import 'package:ulid/ulid.dart';
 
+import '../frontend/static_files.dart';
 import '../search/search_service.dart' show SearchQuery;
 
 part 'models.g.dart';
@@ -196,6 +197,17 @@ class UserSessionData {
       _$UserSessionDataFromJson(json);
 
   Map<String, dynamic> toJson() => _$UserSessionDataToJson(this);
+
+  /// Set image size to NxN pixels for faster loading, see:
+  /// https://developers.google.com/people/image-sizing
+  String imageUrlOfSize(int layoutSize) {
+    if (imageUrl == null) {
+      return staticUrls.defaultProfilePng;
+    }
+    // Double the layout size, for better quality on higher dpi displays.
+    final imageSize = layoutSize * 2;
+    return '$imageUrl=s$imageSize';
+  }
 }
 
 /// Derived data for [User] for fast lookup.

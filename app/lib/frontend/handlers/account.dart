@@ -214,6 +214,7 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
 
   final html = renderAccountPackagesPage(
     user: await accountBackend.lookupUserById(userSessionData.userId),
+    userSessionData: userSessionData,
     packages: searchResult.packages,
     pageLinks: links,
     searchQuery: searchQuery,
@@ -231,7 +232,11 @@ Future<shelf.Response> accountMyLikedPackagesPageHandler(
 
   final user = await accountBackend.lookupUserById(userSessionData.userId);
   final likes = await accountBackend.listPackageLikes(user);
-  final html = renderMyLikedPackagesPage(user: user, likes: likes);
+  final html = renderMyLikedPackagesPage(
+    user: user,
+    userSessionData: userSessionData,
+    likes: likes,
+  );
   return htmlResponse(html);
 }
 
@@ -246,6 +251,7 @@ Future<shelf.Response> accountPublishersPageHandler(
       await publisherBackend.listPublishersForUser(userSessionData.userId);
   final content = renderAccountPublishersPage(
     user: await accountBackend.lookupUserById(userSessionData.userId),
+    userSessionData: userSessionData,
     publishers: publishers,
   );
   return htmlResponse(content);
