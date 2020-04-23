@@ -106,6 +106,7 @@ class PackageData {
   final List<VersionInfo> versions;
 
   /// `true` if package is discontinued.
+  /// If it is omitted, `null` or `false` the package is *not discontinued*.
   final bool isDiscontinued;
 
   PackageData({
