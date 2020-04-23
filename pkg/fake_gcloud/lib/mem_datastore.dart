@@ -48,25 +48,10 @@ class MemDatastore implements Datastore {
     }
 
     final newKeys = inserts.map((i) => i.key).toSet();
-    final newParents = newKeys.expand((k) {
-      return Iterable<Key>.generate(
-          k.elements.length - 1,
-          (i) => Key(
-                k.elements.sublist(0, i + 1),
-                partition: k.partition,
-              ));
-    }).toSet();
-
-    // check if every parent exists
-    for (final newParent in newParents) {
-      if (newKeys.contains(newParent)) continue;
-      if (_entities.containsKey(newParent)) continue;
-      throw DatastoreError('Missing parent key: $newParent');
-    }
 
     // check if updated key is deleted
     for (final deletedKey in deletes) {
-      if (newKeys.contains(deletedKey) || newParents.contains(deletedKey)) {
+      if (newKeys.contains(deletedKey)) {
         throw DatastoreError('Conflicting update and delete on $deletedKey');
       }
     }

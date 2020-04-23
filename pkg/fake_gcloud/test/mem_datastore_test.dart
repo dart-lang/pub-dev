@@ -60,15 +60,24 @@ void main() {
     expect(item.count, 2);
   });
 
-  test('insert failure when missing parent', () async {
+  test('insert can happen when missing parent', () async {
     final db = DatastoreDB(MemDatastore());
-    final rs = db.commit(inserts: [
+    await db.commit(inserts: [
       Sample()
         ..parentKey = db.emptyKey.append(Sample, id: 'missing')
         ..id = 'x'
         ..count = 1,
     ]);
-    await expectLater(rs, throwsA(isA<DatastoreError>()));
+
+    final parent = await db.lookup([db.emptyKey.append(Sample, id: 'missing')]);
+    expect(parent.single, isNull);
+
+    final list = await db.lookup([
+      db.emptyKey.append(Sample, id: 'missing').append(Sample, id: 'x'),
+    ]);
+    final item = list.single as Sample;
+    expect(item, isNotNull);
+    expect(item.count, 1);
   });
 
   test('conflicting update and delete', () async {
