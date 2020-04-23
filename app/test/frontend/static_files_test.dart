@@ -67,7 +67,8 @@ void main() {
       });
     }
 
-    test('proper hash in css content', () {
+    test('proper hash in css content', () async {
+      await updateLocalBuiltFilesIfNeeded();
       final css = cache.getFile('/static/css/style.css');
       for (Match m
           in RegExp('url\\("(.*)"\\);').allMatches(css.contentAsString)) {

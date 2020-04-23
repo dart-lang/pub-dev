@@ -3,6 +3,8 @@ travis:
     - redis-server
   addons:
     chrome: stable
+    packages:
+      - gnu-sed
 
 merge_stages:
   - smoke_test
