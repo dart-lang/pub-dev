@@ -194,18 +194,12 @@ pre {
 }
 
 .-pub-like-button {
+  --mdc-theme-primary: #f8f8f8;
+  --mdc-theme-on-primary: #000000;
+
   body.non-experimental & {
     float: right;
     width: 100px;
-
-    .-pub-like-button-text {
-      color: #000;
-    }
-  }
-
-  body.experimental & {
-    --mdc-theme-primary: #f8f8f8;
-    --mdc-theme-on-primary: #000000;
   }
 }
 
