@@ -56,6 +56,11 @@ class MemDatastore implements Datastore {
       }
     }
 
+    // TODO: check serializability.
+    // We need to track the keys that have been mutated since the Transaction
+    // was created to ensure that there are no conflicts.
+    // Alternatively: block overlapping transactions.
+
     // execute commit
     deletes.forEach((key) => _entities.remove(key));
     inserts.forEach((e) {
