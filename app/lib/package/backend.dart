@@ -337,7 +337,7 @@ class PackageBackend {
       );
       return api.PackageData(
         name: package,
-        tags: pkg.getTags(),
+        isDiscontinued: pkg.isDiscontinued ? true : null,
         latest: _toApiVersionInfo(baseUri, latest),
         versions: packageVersions
             .map((pv) => _toApiVersionInfo(baseUri, pv))
@@ -370,7 +370,6 @@ class PackageBackend {
   api.VersionInfo _toApiVersionInfo(Uri baseUri, PackageVersion pv) =>
       api.VersionInfo(
         version: pv.version,
-        tags: pv.getTags(),
         pubspec: pv.pubspec.asJson,
         archiveUrl: urls.pkgArchiveDownloadUrl(pv.package, pv.version,
             baseUri: baseUri),

@@ -356,8 +356,7 @@ void main() {
         expect(pd.versions.first.version, '1.0.0');
         expect(pd.versions.last.version, '2.0.8');
         expect(pd.latest.version, '2.0.8');
-        expect(pd.tags, []);
-        expect(pd.latest.tags, []);
+        expect(pd.isDiscontinued, isNull);
       });
 
       testWithServices('tags', () async {
@@ -365,8 +364,7 @@ void main() {
         await packageBackend.updateOptions(
             'hydrogen', PkgOptions(isDiscontinued: true));
         final pd = await packageBackend.listVersions(baseUri, 'hydrogen');
-        expect(pd.tags, ['is:discontinued']);
-        expect(pd.latest.tags, []);
+        expect(pd.isDiscontinued, isTrue);
       });
     });
 
