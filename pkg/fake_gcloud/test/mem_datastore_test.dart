@@ -1,3 +1,8 @@
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:gcloud/datastore.dart';
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
@@ -53,6 +58,42 @@ void main() {
     final item = list.single as Sample;
     expect(item, isNotNull);
     expect(item.count, 2);
+  });
+
+  test('insert can happen when missing parent', () async {
+    final db = DatastoreDB(MemDatastore());
+    await db.commit(inserts: [
+      Sample()
+        ..parentKey = db.emptyKey.append(Sample, id: 'missing')
+        ..id = 'x'
+        ..count = 1,
+    ]);
+
+    final parent = await db.lookup([db.emptyKey.append(Sample, id: 'missing')]);
+    expect(parent.single, isNull);
+
+    final list = await db.lookup([
+      db.emptyKey.append(Sample, id: 'missing').append(Sample, id: 'x'),
+    ]);
+    final item = list.single as Sample;
+    expect(item, isNotNull);
+    expect(item.count, 1);
+  });
+
+  test('conflicting update and delete', () async {
+    final db = DatastoreDB(MemDatastore());
+    final rs = db.commit(
+      inserts: [
+        Sample()
+          ..parentKey = db.emptyKey
+          ..id = 'x'
+          ..count = 1,
+      ],
+      deletes: [
+        db.emptyKey.append(Sample, id: 'x'),
+      ],
+    );
+    await expectLater(rs, throwsA(isA<DatastoreError>()));
   });
 
   group('Queries', () {

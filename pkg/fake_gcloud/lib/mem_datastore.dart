@@ -34,14 +34,39 @@ class MemDatastore implements Datastore {
       List<Entity> autoIdInserts,
       List<Key> deletes,
       Transaction transaction}) async {
-    deletes?.forEach((key) => _entities.remove(key));
-    inserts?.forEach((e) {
-      _entities[e.key] = e;
-    });
+    inserts ??= <Entity>[];
+    deletes ??= <Key>[];
+
     if (autoIdInserts != null && autoIdInserts.isNotEmpty) {
       throw UnimplementedError(
           'fake_gcloud.Datastore.autoIdInserts is not implemented.');
     }
+
+    // https://cloud.google.com/datastore/docs/concepts/transactions#what_can_be_done_in_a_transaction
+    if (inserts.length + deletes.length > 500) {
+      throw DatastoreError('Too many entities in the transaction.');
+    }
+
+    final newKeys = inserts.map((i) => i.key).toSet();
+
+    // check if updated key is deleted
+    for (final deletedKey in deletes) {
+      if (newKeys.contains(deletedKey)) {
+        throw DatastoreError('Conflicting update and delete on $deletedKey');
+      }
+    }
+
+    // TODO: check serializability.
+    // We need to track the keys that have been mutated since the Transaction
+    // was created to ensure that there are no conflicts.
+    // Alternatively: block overlapping transactions.
+
+    // execute commit
+    deletes.forEach((key) => _entities.remove(key));
+    inserts.forEach((e) {
+      _entities[e.key] = e;
+    });
+
     return CommitResult([]);
   }
 
