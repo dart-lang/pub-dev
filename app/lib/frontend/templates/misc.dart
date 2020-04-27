@@ -291,7 +291,6 @@ String renderTags({
 String renderScoreCircle({
   @required String label,
   @required int percent,
-  bool isNew = false,
   String link,
   String title,
   String secondaryLabel,
@@ -312,7 +311,6 @@ String renderScoreCircle({
     'has_secondary_label': secondaryLabel != null,
     'secondary_label': secondaryLabel,
     'percent': percent,
-    'is_new': isNew,
     'link': link,
     'title': title,
   });
@@ -349,7 +347,6 @@ String renderScoreBox(
     return renderScoreCircle(
       label: formattedScore,
       percent: overallScore == null ? 0 : (100 * overallScore).round(),
-      isNew: view.isNewPackage,
       title: title,
       link: urls.pkgScoreUrl(view.name),
     );
