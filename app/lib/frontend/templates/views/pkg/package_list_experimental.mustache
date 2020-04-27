@@ -7,14 +7,7 @@
   <div class="packages-item">
     <div class="packages-header">
       <h3 class="packages-title">
-        <a href="{{& url}}">
-          {{name}}
-          {{#is_flutter_favorite}}
-          <img src="{{static_assets.img__ff-20px_svg}}"
-               class="packages-ff-icon"
-               title="Package {{name}} have been awarded Flutter Favorite" />
-          {{/is_flutter_favorite}}
-        </a>
+        <a href="{{& url}}">{{name}}</a>
       </h3>
       <div class="packages-icons">
         <div class="packages-icon">
@@ -37,6 +30,12 @@
            title="Published by a pub.dev verified publisher" />
       <a href="/publishers/{{publisher_id}}">{{publisher_id}}</a>
       {{/publisher_id}}
+      {{#is_flutter_favorite}}
+        <span class="package-badge">
+          <img class="package-badge-icon" src="{{static_assets.img__flutter-logo-32x32_png}}" />
+          Flutter Favorite
+        </span>
+      {{/is_flutter_favorite}}
     </p>
     {{/is_external}}
     <div>{{& tags_html}}</div>
