@@ -43,6 +43,11 @@ void main() {
       expect(syntaxCheckUrl(null, 'homepage'), isEmpty);
     });
 
+    test('bad url is reported', () {
+      expect(syntaxCheckUrl('://::::/::/', 'homepage').single.message,
+          'Unable to parse homepage URL: ://::::/::/');
+    });
+
     test('example urls that are accepted', () {
       expect(
           syntaxCheckUrl('http://github.com/user/repo/', 'homepage'), isEmpty);
