@@ -24,7 +24,7 @@ Future initFlutterSdk(Logger logger) async {
       final sw = Stopwatch()..start();
       logger.info('Setting up flutter checkout. This may take some time.');
       final ProcessResult result = await runProc(
-          '/project/app/script/setup-flutter.sh', ['v$flutterVersion'],
+          '/project/app/script/setup-flutter.sh', [flutterVersion],
           timeout: const Duration(minutes: 5));
       if (result.exitCode != 0) {
         throw Exception(
