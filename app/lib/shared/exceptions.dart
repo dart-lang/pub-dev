@@ -107,7 +107,7 @@ class InvalidInputException extends ResponseException {
     _check((minimum == null || value >= minimum),
         () => '"$name" must be greater than $minimum');
     _check((maximum == null || value <= maximum),
-        () => '"$name" must be greater than $maximum');
+        () => '"$name" must be less than $maximum');
   }
 
   /// Throw [InvalidInputException] if [value] is shorter than [minimum] or
