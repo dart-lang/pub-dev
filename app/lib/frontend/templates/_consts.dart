@@ -88,7 +88,7 @@ final _sortDicts = const <SortDict>[
 // TODO: move this as part of [_sortDicts] after finalization of the new UI.
 final _likeSortDict = SortDict(
   id: 'like',
-  label: 'likes',
+  label: 'most likes',
   tooltip: 'Packages are sorted by like count.',
 );
 
