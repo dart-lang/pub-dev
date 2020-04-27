@@ -214,6 +214,7 @@ Iterable<ArchiveIssue> syntaxCheckUrl(String url, String name) sync* {
   final uri = Uri.tryParse(url);
   if (uri == null) {
     yield ArchiveIssue('Unable to parse $name URL: $url');
+    return;
   }
   final hasValidScheme = uri.scheme == 'http' || uri.scheme == 'https';
   if (!hasValidScheme) {
