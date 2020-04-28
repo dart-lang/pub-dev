@@ -323,27 +323,24 @@ class PackageBackend {
   ///
   /// Used in `pub` client for finding which versions exist.
   Future<api.PackageData> listVersions(Uri baseUri, String package) async {
-    return await cache.packageData(package).get(() async {
-      final pkg = await packageBackend.lookupPackage(package);
-      final packageVersions = await packageBackend.versionsOfPackage(package);
-      if (packageVersions.isEmpty) {
-        throw NotFoundException.resource('package "$package"');
-      }
-      packageVersions
-          .sort((a, b) => a.semanticVersion.compareTo(b.semanticVersion));
-      final latest = packageVersions.lastWhere(
-        (pv) => !pv.semanticVersion.isPreRelease,
-        orElse: () => packageVersions.last,
-      );
-      return api.PackageData(
-        name: package,
-        isDiscontinued: pkg.isDiscontinued ? true : null,
-        latest: _toApiVersionInfo(baseUri, latest),
-        versions: packageVersions
-            .map((pv) => _toApiVersionInfo(baseUri, pv))
-            .toList(),
-      );
-    });
+    final pkg = await packageBackend.lookupPackage(package);
+    final packageVersions = await packageBackend.versionsOfPackage(package);
+    if (packageVersions.isEmpty) {
+      throw NotFoundException.resource('package "$package"');
+    }
+    packageVersions
+        .sort((a, b) => a.semanticVersion.compareTo(b.semanticVersion));
+    final latest = packageVersions.lastWhere(
+      (pv) => !pv.semanticVersion.isPreRelease,
+      orElse: () => packageVersions.last,
+    );
+    return api.PackageData(
+      name: package,
+      isDiscontinued: pkg.isDiscontinued ? true : null,
+      latest: _toApiVersionInfo(baseUri, latest),
+      versions:
+          packageVersions.map((pv) => _toApiVersionInfo(baseUri, pv)).toList(),
+    );
   }
 
   /// Lookup and return the API's version info object.

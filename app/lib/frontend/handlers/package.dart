@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
@@ -268,4 +269,17 @@ Future<PackagePageData> _loadPackagePageData(
     isAdmin: isAdmin,
     isLiked: isLiked,
   );
+}
+
+/// Handles /api/packages/<package> requests.
+Future<shelf.Response> listVersionsHandler(
+    shelf.Request request, Uri baseUri, String package) async {
+  final body = await cache.packageData(package).get(() async {
+    final data = await packageBackend.listVersions(baseUri, package);
+    return utf8.encode(json.encode(data.toJson()));
+  });
+  return shelf.Response(200, body: body, headers: {
+    'content-type': 'application/json; charset="utf-8"',
+    'x-content-type-options': 'nosniff',
+  });
 }

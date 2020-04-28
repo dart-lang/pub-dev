@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
-import 'package:client_data/package_api.dart' show PackageData;
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:neat_cache/neat_cache.dart';
@@ -114,15 +113,9 @@ class CachePatterns {
       .withTTL(Duration(minutes: 60))
       .withCodec(utf8)[publisherId];
 
-  Entry<PackageData> packageData(String package) => _cache
-      .withPrefix('api-package-data')
-      .withTTL(Duration(minutes: 10))
-      .withCodec(utf8)
-      .withCodec(json)
-      .withCodec(wrapAsCodec(
-        encode: (PackageData pd) => pd.toJson(),
-        decode: (d) => PackageData.fromJson(d as Map<String, dynamic>),
-      ))['$package'];
+  Entry<List<int>> packageData(String package) => _cache
+      .withPrefix('api-package-data-by-uri')
+      .withTTL(Duration(minutes: 10))['$package'];
 
   Entry<PackageView> packageView(String package) => _cache
       .withPrefix('package-view')
