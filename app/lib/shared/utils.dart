@@ -113,6 +113,7 @@ bool isNewer(semver.Version a, semver.Version b, {bool pubSorted = true}) =>
 
 final _reservedPackageNames = <String>[
   'core',
+  'dart',
   'flutter_web',
   'flutter_web_test',
   'flutter_web_ui',
@@ -121,6 +122,7 @@ final _reservedPackageNames = <String>[
   'in_app_purchase',
   'location_background',
   'math',
+  'pub',
   'versions',
   'webview_flutter',
   // removed in https://github.com/dart-lang/pub-dev/issues/2853
