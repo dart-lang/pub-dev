@@ -1,3 +1,7 @@
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'package:api_builder/api_builder.dart';
 import 'package:client_data/account_api.dart';
 import 'package:client_data/admin_api.dart';
@@ -29,9 +33,10 @@ class PubApi {
   /// Getting information about all versions of a package.
   /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#list-all-versions-of-a-package
   @EndPoint.get('/api/packages/<package>')
-  Future<PackageData> packageData(Request request, String package) async =>
-      await packageBackend.listVersions(
-          _replaceHost(request.requestedUri), package);
+  Future<Response> listVersions(Request request, String package) async {
+    final baseUri = _replaceHost(request.requestedUri);
+    return await listVersionsHandler(request, baseUri, package);
+  }
 
   /// Getting information about a specific (package, version) pair.
   /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#deprecated-inspect-a-specific-version-of-a-package

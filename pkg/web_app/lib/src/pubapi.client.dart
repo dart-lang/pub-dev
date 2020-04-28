@@ -26,11 +26,11 @@ class PubApiClient {
 
   final _i2.Client _client;
 
-  Future<_i3.PackageData> packageData(String package) async {
-    return _i3.PackageData.fromJson(await _client.requestJson(
+  Future<List<int>> listVersions(String package) async {
+    return await _client.requestBytes(
       verb: 'get',
       path: '/api/packages/$package',
-    ));
+    );
   }
 
   Future<_i3.VersionInfo> packageVersionInfo(
