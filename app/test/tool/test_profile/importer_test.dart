@@ -38,7 +38,7 @@ void main() {
         });
 
         final users = await dbService.query<User>().run().toList();
-        expect(users.single.userId, '8157080d-dev-at-example-dot-com');
+        expect(users.single.userId, '0378792c-a778-8b8d-b689-64e531ae52bc');
         expect(users.single.oauthUserId, 'dev-at-example-dot-com');
 
         final packages = await dbService.query<Package>().run().toList();
@@ -48,13 +48,14 @@ void main() {
 
         final versions = await dbService.query<PackageVersion>().run().toList();
         expect(versions.single.version, '2.0.0');
-        expect(versions.single.uploader, '8157080d-dev-at-example-dot-com');
+        expect(
+            versions.single.uploader, '0378792c-a778-8b8d-b689-64e531ae52bc');
 
         final publishers = await dbService.query<Publisher>().run().toList();
         expect(publishers.single.publisherId, 'example.com');
 
         final members = await dbService.query<PublisherMember>().run().toList();
-        expect(members.single.userId, '8157080d-dev-at-example-dot-com');
+        expect(members.single.userId, '0378792c-a778-8b8d-b689-64e531ae52bc');
         expect(members.single.role, 'admin');
       },
       omitData: true,

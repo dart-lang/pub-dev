@@ -154,7 +154,15 @@ Future<void> importProfile({
 String _baseIdFromEmail(String email) =>
     email.replaceAll('.', '-dot-').replaceAll('@', '-at-');
 
-String _userIdFromEmail(String email) =>
-    sha1.convert(utf8.encode(email)).toString().substring(0, 8) +
-    '-' +
-    _baseIdFromEmail(email);
+String _userIdFromEmail(String email) {
+  final hash = sha1.convert(utf8.encode('email-$email')).toString();
+  return hash.substring(0, 8) +
+      '-' +
+      hash.substring(8, 12) +
+      '-' +
+      hash.substring(12, 16) +
+      '-' +
+      hash.substring(16, 20) +
+      '-' +
+      hash.substring(20, 32);
+}
