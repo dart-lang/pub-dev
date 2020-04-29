@@ -70,11 +70,9 @@ String renderPackageList(
         searchQuery: searchQuery,
       ),
       'like_score_html': _renderLabeledScore('likes', view.likes, ''),
-      'health_score_html': _renderLabeledScore('health', view.health, '%'),
-      'maintenance_score_html':
-          _renderLabeledScore('maintenance', view.maintenance, '%'),
       'popularity_score_html':
           _renderLabeledScore('popularity', view.popularity, '%'),
+      'health_score_html': _renderLabeledScore('health', view.health, '%'),
       'has_api_pages': view.apiPages != null && view.apiPages.isNotEmpty,
       'api_pages': view.apiPages
           ?.map((page) => {

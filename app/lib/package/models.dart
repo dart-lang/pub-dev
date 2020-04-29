@@ -427,10 +427,6 @@ class PackageView extends Object with FlagMixin {
   /// May be `null` if the score is not available yet.
   final int health;
 
-  /// The package's maintenance score value (on the scale of 0-100).
-  /// May be `null` if the score is not available yet.
-  final int maintenance;
-
   /// The package's popularity score value (on the scale of 0-100).
   /// May be `null` if the score is not available yet.
   final int popularity;
@@ -454,7 +450,6 @@ class PackageView extends Object with FlagMixin {
     this.isAwaiting = false,
     this.likes,
     this.health,
-    this.maintenance,
     this.popularity,
     this.overallScore,
     List<String> tags,
@@ -498,9 +493,6 @@ class PackageView extends Object with FlagMixin {
       health: scoreCard.healthScore == null
           ? null
           : (100.0 * scoreCard.healthScore).round(),
-      maintenance: scoreCard.maintenanceScore == null
-          ? null
-          : (100.0 * scoreCard.maintenanceScore).round(),
       popularity: scoreCard.popularityScore == null
           ? null
           : (100.0 * scoreCard.popularityScore).round(),
@@ -529,7 +521,6 @@ class PackageView extends Object with FlagMixin {
       isAwaiting: isAwaiting,
       likes: likes,
       health: health,
-      maintenance: maintenance,
       popularity: popularity,
       overallScore: overallScore,
       tags: tags,
