@@ -187,6 +187,11 @@ Iterable<ArchiveIssue> validatePackageName(String name) sync* {
     yield ArchiveIssue('Package name must not be a reserved word in Dart.');
   }
 
+  if (name.length > 64) {
+    yield ArchiveIssue('Package name must not exceed 64 characters. '
+        '(Please file an issue if you think you have a good reason for a longer name.)');
+  }
+
   final bool isLower = name == name.toLowerCase();
   final bool matchesMixedCase = knownMixedCasePackages.contains(name);
   if (!isLower && !matchesMixedCase) {
