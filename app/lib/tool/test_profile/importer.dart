@@ -40,9 +40,12 @@ Future<void> importProfile({
     await dbService.commit(inserts: [
       User()
         ..id = userId
+        // TODO: support via [TestProfile]
         ..oauthUserId = oauthUserId
         ..email = u.email
+        // TODO: support via [TestProfile]
         ..created = DateTime.now().toUtc()
+        // TODO: support via [TestProfile]
         ..isDeleted = false,
       OAuthUserID()
         ..id = oauthUserId
@@ -57,7 +60,9 @@ Future<void> importProfile({
         ..id = p.name
         ..contactEmail = p.members.isEmpty ? null : p.members.first.email
         ..websiteUrl = 'https://${p.name}/'
+        // TODO: support via [TestProfile]
         ..created = DateTime.now().toUtc()
+        // TODO: support via [TestProfile]
         ..updated = DateTime.now().toUtc()
         ..isAbandoned = false,
       ...p.members.map(
@@ -65,7 +70,9 @@ Future<void> importProfile({
           ..parentKey = dbService.emptyKey.append(Publisher, id: p.name)
           ..id = _userIdFromEmail(m.email)
           ..userId = _userIdFromEmail(m.email)
+          // TODO: support via [TestProfile]
           ..created = DateTime.now().toUtc()
+          // TODO: support via [TestProfile]
           ..updated = DateTime.now().toUtc()
           ..role = PublisherMemberRole.admin,
       )
@@ -133,6 +140,7 @@ Future<void> importProfile({
         (p) => Like()
           ..parentKey = dbService.emptyKey.append(User, id: userId)
           ..id = p
+          // TODO: support via [TestProfile]
           ..created = DateTime.now().toUtc()
           ..packageName = p,
       )
