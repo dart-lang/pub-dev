@@ -293,9 +293,13 @@ body.experimental {
     }
 
     .packages-score-value {
-      color: $color-input-primary;
+      color: #6d7278;
       font-weight: 400;
       text-align: center;
+
+      &.-has-value {
+        color: $color-input-primary;
+      }
     }
 
     .packages-score-value-number {

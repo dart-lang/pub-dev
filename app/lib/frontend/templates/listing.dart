@@ -98,7 +98,8 @@ String renderPackageList(
 String _renderLabeledScore(String label, int value, String sign) {
   return templateCache.renderTemplate('pkg/labeled_score', {
     'label': label,
-    'value': value,
+    'has_value': value != null,
+    'value': value ?? '--',
     'sign': sign,
   });
 }
