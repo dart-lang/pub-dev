@@ -38,58 +38,33 @@ import 'package:pub_dev/service/services.dart';
 import '../shared/utils.dart';
 import 'test_models.dart';
 
-/// Setup scoped services (including fake datastore with pre-populated base data
-/// and fake storage) for tests.
-void testWithServices(String name, Future<void> Function() fn) {
+/// Setup scoped services for tests.
+///
+/// If [omitData] is not set to `true`, a default set of user and package data
+/// will be populated and indexed in search.
+void testWithServices(
+  String name,
+  Future<void> Function() fn, {
+  bool omitData = false,
+}) {
   scopedTest(name, () async {
     _setupLogging();
     registerActiveConfiguration(Configuration.test());
 
     final db = DatastoreDB(MemDatastore());
-    await db.commit(inserts: [
-      foobarPackage,
-      foobarStablePV,
-      foobarDevPV,
-      ...pvModels(foobarStablePV),
-      ...pvModels(foobarDevPV),
-      testUserA,
-      hansUser,
-      joeUser,
-      adminUser,
-      adminOAuthUserID,
-      hydrogen.package,
-      ...hydrogen.versions.map(pvModels).expand((m) => m),
-      helium.package,
-      ...helium.versions.map(pvModels).expand((m) => m),
-      lithium.package,
-      ...lithium.versions.map(pvModels).expand((m) => m),
-      moderatedPackage,
-      exampleComPublisher,
-      exampleComHansAdmin,
-    ]);
     registerDbService(db);
     registerStorageService(MemStorage());
 
     await withPubServices(() async {
-      popularityStorage.updateValues({
-        hydrogen.package.name: 0.8,
-        helium.package.name: 1.0,
-        lithium.package.name: 0.7,
-      });
-
-      await scoreCardBackend.updateReport(
-          helium.package.name,
-          helium.package.latestVersion,
-          generatePanaReport(derivedTags: ['sdk:flutter']));
-      await scoreCardBackend.updateScoreCard(
-          helium.package.name, helium.package.latestVersion);
-
       await fork(() async {
         registerAuthProvider(FakeAuthProvider());
         registerDomainVerifier(FakeDomainVerifier());
         registerEmailSender(FakeEmailSender());
         registerUploadSigner(FakeUploadSignerService('https://storage.url'));
 
+        if (!omitData) {
+          await _populateDefaultData();
+        }
         await dartSdkIndex.markReady();
         await indexUpdater.updateAllPackages();
 
@@ -110,6 +85,43 @@ void testWithServices(String name, Future<void> Function() fn) {
       });
     });
   });
+}
+
+Future<void> _populateDefaultData() async {
+  await dbService.commit(inserts: [
+    foobarPackage,
+    foobarStablePV,
+    foobarDevPV,
+    ...pvModels(foobarStablePV),
+    ...pvModels(foobarDevPV),
+    testUserA,
+    hansUser,
+    joeUser,
+    adminUser,
+    adminOAuthUserID,
+    hydrogen.package,
+    ...hydrogen.versions.map(pvModels).expand((m) => m),
+    helium.package,
+    ...helium.versions.map(pvModels).expand((m) => m),
+    lithium.package,
+    ...lithium.versions.map(pvModels).expand((m) => m),
+    moderatedPackage,
+    exampleComPublisher,
+    exampleComHansAdmin,
+  ]);
+
+  popularityStorage.updateValues({
+    hydrogen.package.name: 0.8,
+    helium.package.name: 1.0,
+    lithium.package.name: 0.7,
+  });
+
+  await scoreCardBackend.updateReport(
+      helium.package.name,
+      helium.package.latestVersion,
+      generatePanaReport(derivedTags: ['sdk:flutter']));
+  await scoreCardBackend.updateScoreCard(
+      helium.package.name, helium.package.latestVersion);
 }
 
 /// Creates local, non-HTTP-based API client with [authToken].
