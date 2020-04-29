@@ -114,8 +114,8 @@ bool isNewer(semver.Version a, semver.Version b, {bool pubSorted = true}) =>
 final _reservedPackageNames = <String>[
   'core',
   'dart',
-  'dart2native',
   'dart2js',
+  'dart2native',
   'dartanalyzer',
   'dartaotruntime',
   'dartdevc',
