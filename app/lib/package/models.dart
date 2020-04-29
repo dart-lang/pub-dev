@@ -490,10 +490,10 @@ class PackageView extends Object with FlagMixin {
       publisherId: package.publisherId,
       isAwaiting: isAwaiting,
       likes: package.likes,
-      health: scoreCard.healthScore == null
+      health: scoreCard?.healthScore == null
           ? null
           : (100.0 * scoreCard.healthScore).round(),
-      popularity: scoreCard.popularityScore == null
+      popularity: scoreCard?.popularityScore == null
           ? null
           : (100.0 * scoreCard.popularityScore).round(),
       overallScore: scoreCard?.overallScore,
