@@ -36,6 +36,11 @@ void main() {
       expect(validatePackageName('do'), isNotEmpty);
       expect(validatePackageName('d_o'), isNotEmpty);
     });
+
+    test('check the length of the name', () {
+      expect(validatePackageName('a234567890' * 6 + '1234'), isEmpty);
+      expect(validatePackageName('a234567890' * 6 + '12345'), isNotEmpty);
+    });
   });
 
   group('homepage syntax check', () {
