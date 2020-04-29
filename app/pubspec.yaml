@@ -9,6 +9,7 @@ dependencies:
   neat_cache: ^1.0.0
   appengine: '^0.10.5'
   args: '>=0.13.7 <2.0.0'
+  basics: ^0.4.0
   client_data:
     path: ../pkg/client_data
   convert: '^2.0.0'

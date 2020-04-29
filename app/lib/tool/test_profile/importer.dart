@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:basics/basics.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:http/http.dart';
@@ -84,9 +85,9 @@ Future<void> importProfile({
   final archiveCacheDir = Directory(archiveCachePath);
   await archiveCacheDir.create(recursive: true);
   for (final rv in resolvedVersions) {
-    final parts = rv.split(':');
+    final parts = rv.partition(':');
     final packageName = parts.first;
-    final versionName = parts[1];
+    final versionName = parts.last;
 
     final fileName = rv.replaceAll(':', '-');
     final file = File(p.join(archiveCacheDir.path, fileName));
