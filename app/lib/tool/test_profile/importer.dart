@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:basics/basics.dart';
+import 'package:crypto/crypto.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:http/http.dart';
@@ -151,4 +153,8 @@ Future<void> importProfile({
 
 String _baseIdFromEmail(String email) =>
     email.replaceAll('.', '-dot-').replaceAll('@', '-at-');
-String _userIdFromEmail(String email) => '${_baseIdFromEmail(email)}-uuid';
+
+String _userIdFromEmail(String email) =>
+    sha1.convert(utf8.encode(email)).toString().substring(0, 8) +
+    '-' +
+    _baseIdFromEmail(email);
