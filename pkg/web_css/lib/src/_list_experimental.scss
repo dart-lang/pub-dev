@@ -255,14 +255,65 @@ body.experimental {
 
   .packages-header {
     display: flex;
-    align-items: center;
     min-height: 40px;
+
+    @media (min-width: $device-desktop-min-width) {
+      align-items: center;
+    }
+
+    @media (max-width: $device-mobile-max-width) {
+      flex-direction: column;
+
+      .packages-scores {
+        align-self: flex-end;
+      }
+    }
   }
 
   .packages-title {
     flex-grow: 1;
     font-size: 22px;
     margin: 0;
+  }
+
+  .packages-scores {
+    display: flex;
+    align-items: center;
+
+    font-family: $font-family-google-sans;
+
+    .packages-score {
+      min-width: 60px;
+    }
+
+    .packages-score:not(:last-child) {
+      border-right: 1px solid #e0e0e0;
+      margin-right: 8px;
+      padding-right: 8px;
+    }
+
+    .packages-score-value {
+      color: $color-input-primary;
+      font-weight: 400;
+      text-align: center;
+    }
+
+    .packages-score-value-number {
+      font-size: 22px;
+    }
+
+    .packages-score-value-sign {
+      font-size: 12px;
+      vertical-align: super;
+    }
+
+    .packages-score-label {
+      color: #6d7278;
+      font-size: 8px;
+      letter-spacing: 0.2px;
+      text-transform: uppercase;
+      text-align: center;
+    }
   }
 
   .packages-icons {

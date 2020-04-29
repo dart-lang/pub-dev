@@ -69,7 +69,12 @@ String renderPackageList(
         package: view,
         searchQuery: searchQuery,
       ),
-      'score_box_html': scoreBoxHtml,
+      'like_score_html': _renderLabeledScore('likes', view.likes, ''),
+      'health_score_html': _renderLabeledScore('health', view.health, '%'),
+      'maintenance_score_html':
+          _renderLabeledScore('maintenance', view.maintenance, '%'),
+      'popularity_score_html':
+          _renderLabeledScore('popularity', view.popularity, '%'),
       'has_api_pages': view.apiPages != null && view.apiPages.isNotEmpty,
       'api_pages': view.apiPages
           ?.map((page) => {
@@ -80,11 +85,21 @@ String renderPackageList(
               })
           ?.toList(),
       // TODO(3246): remove the keys below after we have migrated to the new design
+      'score_box_html': scoreBoxHtml,
       'show_metadata': !view.isExternal,
     });
   }
   return templateCache.renderTemplate('pkg/package_list', {
     'packages': packagesJson,
+  });
+}
+
+/// Renders the `views/pkg/labeled_score.mustache` template.
+String _renderLabeledScore(String label, int value, String sign) {
+  return templateCache.renderTemplate('pkg/labeled_score', {
+    'label': label,
+    'value': value,
+    'sign': sign,
   });
 }
 
