@@ -420,6 +420,18 @@ class PackageView extends Object with FlagMixin {
   final List<String> flags;
   final String publisherId;
   final bool isAwaiting;
+
+  final int likes;
+
+  /// The package's health score value (on the scale of 0-100).
+  /// May be `null` if the score is not available yet.
+  final int health;
+
+  /// The package's popularity score value (on the scale of 0-100).
+  /// May be `null` if the score is not available yet.
+  final int popularity;
+
+  /// TODO: remove this after the new design is finalized
   final double overallScore;
   final List<String> tags;
   final bool isNewPackage;
@@ -436,6 +448,9 @@ class PackageView extends Object with FlagMixin {
     this.flags,
     this.publisherId,
     this.isAwaiting = false,
+    this.likes,
+    this.health,
+    this.popularity,
     this.overallScore,
     List<String> tags,
     this.isNewPackage = false,
@@ -474,6 +489,13 @@ class PackageView extends Object with FlagMixin {
       flags: scoreCard?.flags,
       publisherId: package.publisherId,
       isAwaiting: isAwaiting,
+      likes: package.likes,
+      health: scoreCard?.healthScore == null
+          ? null
+          : (100.0 * scoreCard.healthScore).round(),
+      popularity: scoreCard?.popularityScore == null
+          ? null
+          : (100.0 * scoreCard.popularityScore).round(),
       overallScore: scoreCard?.overallScore,
       tags: <String>[
         ...(package?.getTags() ?? <String>[]),
@@ -497,6 +519,9 @@ class PackageView extends Object with FlagMixin {
       flags: flags,
       publisherId: publisherId,
       isAwaiting: isAwaiting,
+      likes: likes,
+      health: health,
+      popularity: popularity,
       overallScore: overallScore,
       tags: tags,
       isNewPackage: isNewPackage,
