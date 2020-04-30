@@ -415,6 +415,7 @@ class PackageView extends Object with FlagMixin {
   // Not null only if there is a difference compared to the [version].
   final String devVersion;
   final String ellipsizedDescription;
+
   /// The date when the package was first published.
   final DateTime created;
   final String shortUpdated;
