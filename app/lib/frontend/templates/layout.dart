@@ -269,7 +269,7 @@ String renderSubSdkTabsHtml({@required SearchQuery searchQuery}) {
               'Packages compatible with Dart running on a native platform (JIT/AOT)',
         ),
         _FilterOption(
-          label: 'js',
+          label: 'JS',
           tag: DartSdkTag.runtimeWeb,
           title: 'Packages compatible with Dart compiled for the web',
         ),
@@ -280,17 +280,17 @@ String renderSubSdkTabsHtml({@required SearchQuery searchQuery}) {
       searchQuery: searchQuery,
       options: [
         _FilterOption(
-          label: 'android',
+          label: 'Android',
           tag: FlutterSdkTag.platformAndroid,
           title: 'Packages compatible with Flutter on the Android platform',
         ),
         _FilterOption(
-          label: 'ios',
+          label: 'iOS',
           tag: FlutterSdkTag.platformIos,
           title: 'Packages compatible with Flutter on the iOS platform',
         ),
         _FilterOption(
-          label: 'web',
+          label: 'Web',
           tag: FlutterSdkTag.platformWeb,
           title: 'Packages compatible with Flutter on the Web platform',
         ),
