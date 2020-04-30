@@ -9,6 +9,12 @@
       <h3 class="packages-title">
         <a href="{{& url}}">{{name}}</a>
       </h3>
+      {{#is_new}}
+      <div class="packages-recent">
+        <img class="packages-recent-icon" src="{{& static_assets.img__schedule-icon_svg}}" title="new package" />
+        Added <b>{{added_x_ago}}</b>
+      </div>
+      {{/is_new}}
       <div class="packages-scores">
         <div class="packages-score packages-score-like">
           {{& like_score_html }}

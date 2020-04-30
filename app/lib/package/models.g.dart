@@ -14,6 +14,9 @@ PackageView _$PackageViewFromJson(Map<String, dynamic> json) {
     version: json['version'] as String,
     devVersion: json['devVersion'] as String,
     ellipsizedDescription: json['ellipsizedDescription'] as String,
+    created: json['created'] == null
+        ? null
+        : DateTime.parse(json['created'] as String),
     shortUpdated: json['shortUpdated'] as String,
     flags: (json['flags'] as List)?.map((e) => e as String)?.toList(),
     publisherId: json['publisherId'] as String,
@@ -46,6 +49,7 @@ Map<String, dynamic> _$PackageViewToJson(PackageView instance) {
   writeNotNull('version', instance.version);
   writeNotNull('devVersion', instance.devVersion);
   writeNotNull('ellipsizedDescription', instance.ellipsizedDescription);
+  writeNotNull('created', instance.created?.toIso8601String());
   writeNotNull('shortUpdated', instance.shortUpdated);
   writeNotNull('flags', instance.flags);
   writeNotNull('publisherId', instance.publisherId);

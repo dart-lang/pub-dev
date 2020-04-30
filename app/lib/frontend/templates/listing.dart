@@ -50,6 +50,7 @@ String renderPackageList(
     } else if (!view.isExternal) {
       scoreBoxHtml = renderScoreBox(view);
     }
+    final addedXAgo = _renderXAgo(DateTime.now().difference(view.created));
     packagesJson.add({
       'url': view.url ?? urls.pkgPageUrl(view.name),
       'name': view.name,
@@ -59,6 +60,8 @@ String renderPackageList(
       'show_dev_version': view.devVersion != null,
       'dev_version': view.devVersion,
       'dev_version_url': urls.pkgPageUrl(view.name, version: view.devVersion),
+      'is_new': addedXAgo != null,
+      'added_x_ago': addedXAgo,
       'last_uploaded': view.shortUpdated,
       'desc': view.ellipsizedDescription,
       'is_flutter_favorite': view.tags.contains(PackageTags.isFlutterFavorite),
@@ -100,6 +103,13 @@ String _renderLabeledScore(String label, int value, String sign) {
     'value': value ?? '--',
     'sign': sign,
   });
+}
+
+String _renderXAgo(Duration age) {
+  if (age.inDays > 30) return null;
+  if (age.inDays > 1) return '${age.inDays} days ago';
+  if (age.inHours > 1) return '${age.inHours} hours ago';
+  return 'in the last hour';
 }
 
 /// Renders the `views/pkg/liked_package_list.mustache` template.

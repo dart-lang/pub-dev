@@ -415,6 +415,8 @@ class PackageView extends Object with FlagMixin {
   // Not null only if there is a difference compared to the [version].
   final String devVersion;
   final String ellipsizedDescription;
+  /// The date when the package was first published.
+  final DateTime created;
   final String shortUpdated;
   @override
   final List<String> flags;
@@ -444,6 +446,7 @@ class PackageView extends Object with FlagMixin {
     this.version,
     this.devVersion,
     this.ellipsizedDescription,
+    this.created,
     this.shortUpdated,
     this.flags,
     this.publisherId,
@@ -485,6 +488,7 @@ class PackageView extends Object with FlagMixin {
       version: version?.version ?? package?.latestVersion,
       devVersion: devVersion,
       ellipsizedDescription: version?.ellipsizedDescription,
+      created: package.created,
       shortUpdated: version?.shortCreated ?? package?.shortUpdated,
       flags: scoreCard?.flags,
       publisherId: package.publisherId,
@@ -515,6 +519,7 @@ class PackageView extends Object with FlagMixin {
       version: version,
       devVersion: devVersion,
       ellipsizedDescription: ellipsizedDescription,
+      created: created,
       shortUpdated: shortUpdated,
       flags: flags,
       publisherId: publisherId,
