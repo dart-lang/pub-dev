@@ -267,6 +267,22 @@ body.experimental {
     margin: 0;
   }
 
+  .packages-recent {
+    color: #6d7278;
+    font-family: $font-family-google-sans;
+    font-size: 12px;
+    margin: 0px 8px 0px 16px;
+    white-space: nowrap;
+
+    .packages-recent-icon {
+      width: 10px;
+      height: 10px;
+      opacity: 0.6;
+      position: relative;
+      top: 1px;
+    }
+  }
+
   .packages-scores {
     display: flex;
     align-items: center;
