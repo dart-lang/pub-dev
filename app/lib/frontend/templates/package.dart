@@ -175,8 +175,6 @@ String renderPkgInfoBox(
   }
 
   return templateCache.renderTemplate('pkg/info_box', {
-    'is_flutter_favorite':
-        (package.assignedTags ?? []).contains(PackageTags.isFlutterFavorite),
     'name': package.name,
     'description': selectedVersion.pubspec.description,
     'meta_links': metaLinks,
@@ -196,6 +194,8 @@ String renderPkgInfoBox(
     'dependencies_html': _renderDependencyList(data.analysis),
     'search_deps_link': urls.searchUrl(q: 'dependency:${package.name}'),
     // TODO: remove the below keys after we've migrated to the new UI
+    'is_flutter_favorite':
+        (package.assignedTags ?? []).contains(PackageTags.isFlutterFavorite),
     'all_links': [...metaLinks, ...docLinks],
   });
 }

@@ -2,6 +2,21 @@
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
 
+{{#has_banners}}
+<div class="detail-banners">
+  {{#is_flutter_favorite}}
+  <a href='https://flutter.dev/docs/development/packages-and-plugins/favorites'>
+    <img src="{{{static_assets.img__ff-banner-desktop-2x_png}}}"
+         class="ff-banner ff-banner-desktop"
+         title="Package is a Flutter Favorite" />
+    <img src="{{{static_assets.img__ff-banner-mobile-2x_png}}}"
+         class="ff-banner ff-banner-mobile"
+         title="Package is a Flutter Favorite" />
+  </a>
+  {{/is_flutter_favorite}}
+</div>
+{{/has_banners}}
+
 <div class="detail-header{{#is_loose}} -is-loose{{/is_loose}}">
   <div class="detail-container">
     <div class="detail-header-outer-block">

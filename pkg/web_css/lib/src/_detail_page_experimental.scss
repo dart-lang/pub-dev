@@ -26,6 +26,7 @@ $detail-tabs-width: calc(100% - 320px);
 
 .detail-wrapper {
   display: none;
+  position: relative;
 
   &.-active {
     display: block;
@@ -40,6 +41,36 @@ $detail-tabs-width: calc(100% - 320px);
   &.-has-info-box {
     .detail-header-content-block {
       width: 100%;
+    }
+  }
+}
+
+.detail-banners {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+
+  @media (min-width: $device-desktop-min-width) {
+    width: $info-box-width + 10px;
+  }
+
+  .ff-banner {
+    display: none;
+  }
+
+  .ff-banner-desktop {
+    @media (min-width: $device-desktop-min-width) {
+      display: inline-block;
+      width: 75px;
+      height: 111px;
+    }
+  }
+
+  .ff-banner-mobile {
+    @media (max-width: $device-mobile-max-width) {
+      display: inline-block;
+      width: 47px;
+      height: 60px;
     }
   }
 }
