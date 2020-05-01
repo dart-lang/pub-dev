@@ -494,7 +494,7 @@ String renderPackageSchemaOrgHtml(PackagePageData data) {
     'dateModified': pv.created.toIso8601String(),
     'programmingLanguage': 'Dart',
     'image':
-        '${urls.siteRoot}${staticUrls.staticPath}/img/dart-logo-400x400.png'
+        '${urls.siteRoot}${staticUrls.staticPath}/img/pub-dev-icon-cover-image.png'
   };
   final licenses = data.analysis?.licenses;
   final firstUrl =
