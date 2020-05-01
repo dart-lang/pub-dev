@@ -36,6 +36,12 @@ $detail-tabs-width: calc(100% - 320px);
       display: none;
     }
   }
+
+  &.-has-info-box {
+    .detail-header-content-block {
+      width: 100%;
+    }
+  }
 }
 
 .detail-header {
@@ -125,6 +131,7 @@ $detail-tabs-width: calc(100% - 320px);
 
   .detail-tags-and-like {
     display: flex;
+    align-items: center;
   }
 
   .detail-tags {
@@ -132,13 +139,14 @@ $detail-tabs-width: calc(100% - 320px);
   }
 
   .detail-like {
-    font-size: 12px;
+    font-family: $font-family-roboto;
+    font-size: 14px;
     font-weight: 500;
     text-transform: uppercase;
     white-space: nowrap;
     display: flex;
 
-    #likes-count {
+    .likes-count {
       display: inline-block;
       padding-top: 6px;
     }
@@ -351,7 +359,7 @@ $detail-tabs-width: calc(100% - 320px);
   width: 18px;
   height: 18px;
   padding: 0px;
-  margin: 0 0 0 12px;
+  margin: 4px 6px 0 0;
 }
 
 /* non-indented rule to restrict the content of this block to the experimental pages */

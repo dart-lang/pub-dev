@@ -21,7 +21,6 @@
           <div class="detail-tags">{{& tags_html}}</div>
           <div class="detail-like">
             {{#has_likes}}
-              <span id="likes-count">{{like_count}}</span>
               <button
                   id="-pub-like-icon-button"
                   class="mdc-icon-button{{#is_liked}} mdc-icon-button--on{{/is_liked}}"
@@ -40,6 +39,7 @@
                     src="{{{static_assets.img__like-active_svg}}}"
                     class="mdc-icon-button__icon mdc-icon-button__icon--on"/>
               </button>
+              <span class="likes-count"><span id="likes-count">{{like_count}}</span></span>
             {{/has_likes}}
           </div>
         </div>

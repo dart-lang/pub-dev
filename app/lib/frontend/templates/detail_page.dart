@@ -44,10 +44,10 @@ String renderDetailHeader({
   });
 }
 
+// keep in-sync with pkg/web_app/lib/src/likes.dart
 String _formatPackageLikes(int likesCount) {
   if (likesCount == null) return null;
-  final formattedCount = NumberFormat.compact().format(likesCount);
-  return '$formattedCount ${likesCount == 1 ? 'like' : 'likes'}';
+  return NumberFormat.compact().format(likesCount);
 }
 
 /// Renders the `shared/detail/page.mustache` template
