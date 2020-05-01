@@ -144,3 +144,11 @@
     right: 0px;
   }
 }
+
+.non-experimental .search-bar-options {
+  @media (min-width: 600px) {
+    .list-filters {
+      margin-top: 0px;
+    }
+  }
+}
