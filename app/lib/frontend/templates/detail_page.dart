@@ -39,7 +39,7 @@ String renderDetailHeader({
     'has_likes': isLiked != null,
     'image_url': imageUrl,
     'has_image_url': imageUrl != null && imageUrl.isNotEmpty,
-    // TODO: remove values below after new UI is finalized
+    'has_banners': isFlutterFavorite,
     'is_flutter_favorite': isFlutterFavorite,
   });
 }
