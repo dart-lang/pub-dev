@@ -50,7 +50,7 @@ String renderPackageList(
     } else if (!view.isExternal) {
       scoreBoxHtml = renderScoreBox(view);
     }
-    final addedXAgo = _renderXAgo(DateTime.now().difference(view.created));
+    final addedXAgo = _renderXAgo(view.created);
     packagesJson.add({
       'url': view.url ?? urls.pkgPageUrl(view.name),
       'name': view.name,
@@ -105,7 +105,9 @@ String _renderLabeledScore(String label, int value, String sign) {
   });
 }
 
-String _renderXAgo(Duration age) {
+String _renderXAgo(DateTime value) {
+  if (value == null) return null;
+  final age = DateTime.now().difference(value);
   if (age.inDays > 30) return null;
   if (age.inDays > 1) return '${age.inDays} days ago';
   if (age.inHours > 1) return '${age.inHours} hours ago';
