@@ -33,7 +33,7 @@ void main() {
     // This test is a reminder that if pana, the SDK or any of the above
     // versions change, we should also adjust the [runtimeVersion]. Before
     // updating the hash value, double-check if it is being updated.
-    expect(hash, 228674172);
+    expect(hash, 372734110);
   });
 
   test('runtime version should be (somewhat) lexicographically ordered', () {
@@ -77,7 +77,7 @@ void main() {
 
   test('Flutter is using a version from the stable channel.', () async {
     // TODO: remove this exception after a stable Flutter SDK is released
-    if (flutterVersion == '1.17.0-3.3.pre') return;
+    if (flutterVersion == '1.17.0-3.4.pre') return;
     final flutterArchive = await fetchFlutterArchive();
     expect(
         flutterArchive.releases.any(
