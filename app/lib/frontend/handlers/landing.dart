@@ -49,7 +49,7 @@ Future<shelf.Response> indexLandingHandler(shelf.Request request) async {
   Future<String> _render() async {
     final ffPackages = await topFeaturedPackages(
       requiredTags: [PackageTags.isFlutterFavorite],
-      count: requestContext.isExperimental ? 3 : 6,
+      count: requestContext.isExperimental ? 4 : 6,
       emptyFallback: true,
     );
     final topPackages =

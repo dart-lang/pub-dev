@@ -141,7 +141,7 @@
         color: #1967d2;
         font-size: 20px;
         font-weight: 400;
-        margin: 0;
+        margin: 4px 0 0 0;
         /* Trim long package names, forcing them to be displayed only on a single line. */
         overflow: hidden;
         text-overflow: ellipsis;
@@ -150,7 +150,8 @@
     }
 
     .mini-list-item-description {
-      margin: 8px 0 0 0;
+      margin: 4px 0 0 0;
+      line-height: 16px;
     }
 
     .mini-list-item-publisher {
@@ -173,6 +174,10 @@
   .home-block-view-all {
     text-align: right;
     padding-right: 8px;
+
+    @media (min-width: $device-desktop-min-width) {
+      margin-right: 16px;
+    }
   }
 
   .home-block-view-all-link {
@@ -184,17 +189,17 @@
     .mini-list {
       display: flex;
       flex-wrap: wrap;
-      justify-content: space-between;
-
-      @media (max-width: 850px) {
-        justify-content: space-around;
-      }
+      padding: 4px;
+      // This should be the same as the padding above, but
+      // in practice (and possibly because of the drop shadow),
+      // it looks better with 1px difference.
+      margin: -3px;
     }
 
     .mini-list-item {
       width: 260px;
       height: 190px;
-      margin: 16px 4px 16px 0px;
+      margin: 0px 16px 16px 0px;
 
       display: flex;
       flex-direction: column;
@@ -209,8 +214,21 @@
   @media (min-width: $device-desktop-min-width) {
     &.home-block-ff {
       .home-block-content {
-        max-width: 800px;
         margin: 0 auto;
+        max-width: 556px;
+
+        @media (min-width: 870px) {
+          max-width: 830px;
+        }
+
+        @media (min-width: 1150px) {
+          max-width: 1110px;
+        }
+
+        .mini-list {
+          overflow: hidden;
+          height: 200px;
+        }
       }
     }
 
@@ -218,35 +236,37 @@
     &.home-block-tf,
     &.home-block-td, {
       display: flex;
-      max-width: 1480px;
+      max-width: 596px;
       margin: 0 auto;
+
+      @media (min-width: 870px) {
+        max-width: 870px;
+      }
+
+      @media (min-width: 1040px) {
+        max-width: 1480px;
+
+        .home-block-image {
+          display: block;
+          margin-top: 80px;
+          max-width: calc(100% - 830px);
+          min-width: calc(1% + 100px);
+        }
+
+        .home-block-content {
+          width: 830px;
+        }
+      }
     }
   }
 
-  @media (min-width: 1040px) {
+  // The image for "Top Flutter packages" is on the right side of the screen.
+  // The scale rule forces it to go outside of the content area, and a bottom
+  // scroll bar appears. Pushing it to the left a bit solves this issue.
+  // The proper (minimum) amount of left is unknown, we can increase this if needed.
+  &.home-block-tf {
     .home-block-image {
-      display: block;
-      margin-top: 80px;
-      max-width: calc(100% - 900px);
-      min-width: calc(10% + 100px);
-    }
-
-    &.home-block-mp,
-    &.home-block-tf,
-    &.home-block-td, {
-      .home-block-content {
-         max-width: 900px;
-      }
-    }
-
-    // The image for "Top Flutter packages" is on the right side of the screen.
-    // The scale rule forces it to go outside of the content area, and a bottom
-    // scroll bar appears. Pushing it to the left a bit solves this issue.
-    // The proper (minimum) amount of left is unknown, we can increase this if needed.
-    &.home-block-tf {
-      .home-block-image {
-        left: -2%;
-      }
+      left: -2.5%;
     }
   }
 }
