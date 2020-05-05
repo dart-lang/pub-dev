@@ -176,7 +176,7 @@ String renderTags({
     // We only display first-class platform/runtimes
     if (sdkTags.contains(SdkTag.sdkDart)) {
       tagBadges.add({
-        'sdk': 'dart',
+        'sdk': 'Dart',
         'title': 'Packages compatible with Dart SDK',
         'sub_tags': [
           if (tags.contains(DartSdkTag.runtimeNativeJit))
@@ -195,18 +195,18 @@ String renderTags({
     }
     if (sdkTags.contains(SdkTag.sdkFlutter)) {
       tagBadges.add({
-        'sdk': 'flutter',
+        'sdk': 'Flutter',
         'title': 'Packages compatible with Flutter SDK',
         'sub_tags': [
           if (tags.contains(FlutterSdkTag.platformAndroid))
             {
-              'text': 'android',
+              'text': 'Android',
               'title':
                   'Packages compatible with Flutter on the Android platform',
             },
           if (tags.contains(FlutterSdkTag.platformIos))
             {
-              'text': 'ios',
+              'text': 'iOS',
               'title': 'Packages compatible with Flutter on the iOS platform'
             },
           if (tags.contains(FlutterSdkTag.platformWeb))

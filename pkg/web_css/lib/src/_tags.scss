@@ -81,22 +81,20 @@ body.experimental {
   display: inline-block;
   margin-right: 15px;
   background: #e7f8ff;
-  padding-top: 2px;
 
   > .tag-badge-main,
   > .tag-badge-sub {
     display: inline-block;
     text-transform: uppercase;
     font-weight: 300;
-    padding: 2px 8px;
-    color: #555;
-    border-bottom: 2px solid #e7f8ff;
+    padding: 4px 8px;
+    color: #1967d2;
   }
 
   > .tag-badge-main {
     color: #1967d2;
-    font-weight: 400;
-    border-bottom: 2px solid #1967d2;
+    border-right: 1px solid rgba(25, 103, 210, 0.5); // #1967d2 + 0.5 opacity
+    font-weight: 500;
   }
 }
 
