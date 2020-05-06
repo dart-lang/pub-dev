@@ -71,6 +71,8 @@ body.experimental {
 
   .search-controls-tabs {
     .list-filters {
+      margin-left: -18px;
+
       .filter {
         color: #555555;
         font-weight: 300;
@@ -241,12 +243,8 @@ body.experimental {
 
 .packages {
   .packages-item {
-    margin: 0px -4px 12px -4px;
-    padding: 4px;
-
-    @media (min-width: $device-desktop-min-width) {
-      padding: 16px 32px;
-    }
+    margin: 0px -8px 12px -8px;
+    padding: 4px 8px;
 
     &:hover {
       background: #fafafa;
