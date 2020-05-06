@@ -55,29 +55,31 @@ String renderUnauthorizedPage({String messageMarkdown}) {
 String renderHelpPage() {
   return renderLayoutPage(
     PageType.standalone,
-    _helpHtml,
+    _renderStandalonePageContent(
+      contentMarkdown: _helpMarkdown,
+      sideImageUrl: static_files.staticUrls.packagesSideImage,
+    ),
     title: 'Help | Dart packages',
   );
 }
 
-/// Loads markdown files from `/doc` and renders to HTML.
-String _renderDoc(String path) {
+/// Loads the markdown content from `/doc`.
+String _readDocContent(String path) {
   final fullPath = p.join(static_files.resolveDocDirPath(), path);
-  final content = io.File(fullPath).readAsStringSync();
-  return markdownToHtml(content, null);
+  return io.File(fullPath).readAsStringSync();
 }
 
-/// Load `/doc/policy.md` and render to HTML.
-final _policyHtml = _renderDoc('policy.md');
+/// The content of `/doc/policy.md`
+final _policyMarkdown = _readDocContent('policy.md');
 
-/// Load `/doc/help.md` and render to HTML.
-final _helpHtml = _renderDoc('help.md');
+/// The content of `/doc/help.md`
+final _helpMarkdown = _readDocContent('help.md');
 
 /// Renders the `/doc/policy.md` document.
 String renderPolicyPage() {
   return renderLayoutPage(
     PageType.standalone,
-    _policyHtml,
+    _renderStandalonePageContent(contentMarkdown: _policyMarkdown),
     title: 'Policy | Pub site',
   );
 }
@@ -85,8 +87,31 @@ String renderPolicyPage() {
 /// Renders the `views/page/security.mustache` template.
 String renderSecurityPage() {
   final String content = templateCache.renderTemplate('page/security', {});
-  return renderLayoutPage(PageType.standalone, content,
-      title: 'Security | Pub site');
+  return renderLayoutPage(
+    PageType.standalone,
+    _renderStandalonePageContent(contentHtml: content),
+    title: 'Security | Pub site',
+  );
+}
+
+/// Renders the `views/page/standalone.mustache` template.
+String _renderStandalonePageContent({
+  String contentHtml,
+  String contentMarkdown,
+  String sideImageUrl,
+}) {
+  ArgumentError.checkNotNull(contentHtml ?? contentMarkdown);
+  if (contentHtml != null && contentMarkdown != null) {
+    throw ArgumentError(
+        'Only one of `contentHtml` and `contentMarkdown` must be specified.');
+  }
+
+  contentHtml ??= markdownToHtml(contentMarkdown, null);
+  return templateCache.renderTemplate('page/standalone', {
+    'content_html': contentHtml,
+    'has_side_image': sideImageUrl != null,
+    'side_image_url': sideImageUrl,
+  });
 }
 
 /// Renders the `views/page/error.mustache` template.

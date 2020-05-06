@@ -82,7 +82,7 @@ a {
 main {
   min-height: calc(100vh - 360px); // top nav + search banner + footer margin + footer padding
 
-   body.page-standalone & {
+  body.page-standalone.non-experimental & {
     max-width: 800px;
   }
 }
@@ -117,6 +117,28 @@ pre > code {
 
 /* non-indented rule to restrict the content of this block to the experimental pages */
 body.experimental {
+
+.standalone-side-image-block {
+  display: none;
+  float: right;
+  max-width: 400px;
+}
+
+.standalone-content {
+  max-width: 700px;
+  margin: 0px auto;
+}
+
+@media (min-width: 1000px) {
+  .standalone-side-image-block {
+    display: block;
+  }
+  .standalone-wrapper.-has-side-image {
+    .standalone-content {
+      margin: 0px;
+    }
+  }
+}
 
 .markdown-body code,
 code {
