@@ -15,6 +15,10 @@ Future createDummyPkg(String dir, String version) async {
   final pubspecFile = File(p.join(dir, 'pubspec.yaml'));
   final pubspecContent = await pubspecFile.readAsString();
   await pubspecFile.writeAsString('version: $version\n$pubspecContent');
+
+  final changelogFile = File(p.join(dir, 'CHANGELOG.md'));
+  final changelogContent = '## $version\n\n - changes\n';
+  await changelogFile.writeAsString(changelogContent);
 }
 
 Future _copy(String fromDir, String toDir) async {
