@@ -97,7 +97,7 @@ code.Code _buildAddHandlerCode({
           for (final param in handler.routeParameters) Code('$param,'),
           if (handler.hasPayload)
             Code(
-                'await \$utilities.decodeJson<${handler.payloadType.name}>(request, (o) => ${handler.payloadType.name}.fromJson(o)),'),
+                'await \$utilities.decodeJson<${handler.payloadType.element.name}>(request, (o) => ${handler.payloadType.element.name}.fromJson(o)),'),
           for (final param in handler.queryParameters)
             Code(
               '${param.name}: '
