@@ -4,11 +4,48 @@
 
 import 'dart:html';
 
+import 'package:web_app/src/page_data.dart';
+
 void setupSearch() {
+  _setBackToReferrer();
   _setEventForSearchInput();
   _setEventForFiltersToggle();
   _setEventForSortControl();
   _setEventForCheckboxChanges();
+}
+
+void _setBackToReferrer() {
+  final bannerContainerElem = document.getElementById('banner-container');
+  if (bannerContainerElem == null) return;
+
+  // abort if not on a package page
+  if (!pageData.isPackagePage) return;
+
+  // TODO: remove this after finalizing the new new design
+  // abort if on old design
+  if (document.body.classes.contains('non-experimental')) return;
+
+  // abort if there is no referrer
+  final ref = document.referrer;
+  if (ref == null || ref.isEmpty) return;
+
+  // abort if the scheme://hostname[:port]/ is different
+  // - location.protocol already contains the colon
+  // - location.host already contains the :port
+  final loc = window.location;
+  final prefix = '${loc.protocol}//${loc.host}/';
+  if (!ref.startsWith(prefix)) return;
+
+  // abort if the referrer was not search
+  if (!ref.contains('/packages')) return;
+
+  // create Element
+  bannerContainerElem.append(Element.div()
+    ..classes.add('back-to-referrer')
+    ..append(Element.a()
+      ..classes.add('back-to-referrer-link')
+      ..attributes['href'] = ref
+      ..text = 'Back to search'));
 }
 
 void _setEventForSearchInput() {
