@@ -312,7 +312,8 @@ $detail-tabs-width: calc(100% - 320px);
     display: block;
     font-weight: 300;
     color: #555555;
-    padding: 12px 9px 12px 9px;
+    padding: 12px 0px;
+    margin: 0px 9px;
     border-bottom: 2px solid;
     border-bottom-color: transparent;
     cursor: pointer;
@@ -335,6 +336,7 @@ $detail-tabs-width: calc(100% - 320px);
   > .tab-link[data-name="-admin-tab-"] > a {
     color: $detail-tab-admin-color;
     position: relative;
+    padding-right: 9px;
 
     &:hover {
       border-bottom-color: $detail-tab-admin-color;
