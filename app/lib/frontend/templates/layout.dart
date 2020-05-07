@@ -258,6 +258,7 @@ class _FilterOption {
 }
 
 String renderSubSdkTabsHtml({@required SearchQuery searchQuery}) {
+  final pred = searchQuery?.tagsPredicate;
   if (searchQuery?.sdk == SdkTagValue.dart) {
     return _renderFilterTabs(
       searchQuery: searchQuery,
@@ -294,6 +295,12 @@ String renderSubSdkTabsHtml({@required SearchQuery searchQuery}) {
           tag: FlutterSdkTag.platformWeb,
           title: 'Packages compatible with Flutter on the Web platform',
         ),
+        if (pred != null && pred.isRequiredTag(FlutterSdkTag.platformMacos))
+          _FilterOption(
+            label: 'macOS',
+            tag: FlutterSdkTag.platformMacos,
+            title: 'Packages compatible with Flutter on the macOS platform',
+          ),
       ],
     );
   }
