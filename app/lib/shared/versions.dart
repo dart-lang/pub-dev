@@ -17,6 +17,18 @@ import 'utils.dart' show isNewer;
 /// a future dates are used.
 final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 
+/// The list (and priority order) of runtimeVersions where version-specific data
+/// is accepted from.
+///
+/// Make sure that at least two versions are kept here as the next candidates
+/// when the version switch happens.
+const acceptedRuntimeVersions = <String>[
+  '2020.05.08', // The current [runtimeVersion].
+  '2020.05.03',
+  '2020.04.22',
+  '2020.04.07',
+];
+
 /// Represents a combined version of the overall toolchain and processing,
 /// allowing easy check for data compatibility, age comparison and also reflects
 /// whether an analysis needs to be re-done.
@@ -25,21 +37,17 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 /// reprocessing, including: risk of data corruption in analysis, version change
 /// in pana, dartdoc, or the SDKs, or when an feature or bugfix should be picked
 /// up by the analysis ASAP.
-const String runtimeVersion = '2020.05.08';
+final String runtimeVersion = acceptedRuntimeVersions.first;
 final Version semanticRuntimeVersion = Version.parse(runtimeVersion);
+
+/// The list of runtime versions to use when looking for past version-specific
+/// data.
+final fallbackRuntimeVersions = acceptedRuntimeVersions.skip(1).toList();
 
 /// The version which marks the earliest version of the data which we'd like to
 /// keep during various GC processes. Data prior to this version is subject to
 /// delete (unless there is another rule in place to keep it).
-///
-/// Make sure that at least two versions are kept here as the next candidates
-/// when the version switch happens:
-/// - 2020.05.03
-/// - 2020.04.22
-final String gcBeforeRuntimeVersion = '2020.04.07';
-
-/// The versions which contain data that we should not fall back to.
-final blacklistedRuntimeVersions = ['2019.12.05', '2019.12.05+1'];
+final String gcBeforeRuntimeVersion = acceptedRuntimeVersions.last;
 
 // keep in-sync with SDK version in .travis.yml, .mono_repo.yml and Dockerfile
 final String runtimeSdkVersion = '2.8.1';

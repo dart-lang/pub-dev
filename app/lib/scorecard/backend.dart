@@ -56,9 +56,7 @@ class ScoreCardBackend {
     final cached = onlyCurrent
         ? null
         : await cache.scoreCardData(packageName, packageVersion).get();
-    if (cached != null &&
-        cached.hasReports(requiredReportTypes) &&
-        !versions.blacklistedRuntimeVersions.contains(cached.runtimeVersion)) {
+    if (cached != null && cached.hasReports(requiredReportTypes)) {
       return cached;
     }
 
@@ -74,33 +72,26 @@ class ScoreCardBackend {
       }
     }
 
+    if (onlyCurrent) return null;
+
     // List cards that at minimum have a pana report.
-    final query = _db.query<ScoreCard>(ancestorKey: key.parent);
-    final cardsWithPana = await query
-        .run()
-        .where((sc) =>
-            sc.runtimeVersion == versions.runtimeVersion ||
-            isNewer(sc.semanticRuntimeVersion, versions.semanticRuntimeVersion))
-        .where((sc) =>
-            !versions.blacklistedRuntimeVersions.contains(sc.runtimeVersion))
-        .where((sc) => sc.toData().hasReports([ReportType.pana]))
+    final fallbackKeys = versions.fallbackRuntimeVersions
+        .map(
+            (v) => scoreCardKey(packageName, packageVersion, runtimeVersion: v))
         .toList();
-    final cardsWithAll = cardsWithPana
-        .where((sc) => sc.toData().hasReports(requiredReportTypes))
-        .toList();
+    final fallbackCards = await _db.lookup<ScoreCard>(fallbackKeys);
+    final fallbackCardData =
+        fallbackCards.where((c) => c != null).map((c) => c.toData()).toList();
 
-    final cards = cardsWithAll.isNotEmpty ? cardsWithAll : cardsWithPana;
-    if (cards.isEmpty) {
-      return null;
-    }
+    if (fallbackCardData.isEmpty) return null;
 
-    final latest = cards.fold<ScoreCard>(
-        cards.first,
-        (latest, current) => isNewer(
-                latest.semanticRuntimeVersion, current.semanticRuntimeVersion)
-            ? current
-            : latest);
-    return latest.toData();
+    return fallbackCardData.firstWhere(
+      (d) => d.hasReports(requiredReportTypes),
+      orElse: () => fallbackCardData.firstWhere(
+        (d) => d.hasReports([ReportType.pana]),
+        orElse: () => null,
+      ),
+    );
   }
 
   /// Creates or updates a [ScoreCardReport] entry with the report's [data].

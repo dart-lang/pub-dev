@@ -36,10 +36,13 @@ void main() {
     expect(hash, 695108292);
   });
 
-  test('runtime version should be (somewhat) lexicographically ordered', () {
-    expect(runtimeVersion.length, greaterThanOrEqualTo(10));
-    expect(RegExp(r'\d{4}\.\d{2}\.\d{2}.*').matchAsPrefix(runtimeVersion),
-        isNotNull);
+  test('accepted runtime versions should be lexicographically ordered', () {
+    for (final version in acceptedRuntimeVersions) {
+      expect(runtimeVersionPattern.hasMatch(version), isTrue);
+    }
+    final sorted = [...acceptedRuntimeVersions]
+      ..sort((a, b) => -a.compareTo(b));
+    expect(acceptedRuntimeVersions, sorted);
   });
 
   test('runtime sdk version should match travis and dockerfile', () async {

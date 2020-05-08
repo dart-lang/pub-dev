@@ -107,8 +107,8 @@ class VersionedJsonStorage {
   }
 
   /// Gets the content of the data file decoded as JSON Map.
-  Future<Map<String, dynamic>> getContentAsJsonMap(
-      [String version = versions.runtimeVersion]) async {
+  Future<Map<String, dynamic>> getContentAsJsonMap([String version]) async {
+    version ??= versions.runtimeVersion;
     final objectName = _objectName(version);
     _logger.info('Loading snapshot: $objectName');
     final map = await _bucket
@@ -183,11 +183,11 @@ class VersionedJsonStorage {
     });
   }
 
-  String getBucketUri([String version = versions.runtimeVersion]) =>
-      bucketUri(_bucket, _objectName(version));
+  String getBucketUri([String version]) =>
+      bucketUri(_bucket, _objectName(version ?? versions.runtimeVersion));
 
-  String _objectName([String version = versions.runtimeVersion]) {
-    assert(version != null);
+  String _objectName([String version]) {
+    version ??= versions.runtimeVersion;
     return '$_prefix$version$_extension';
   }
 }
