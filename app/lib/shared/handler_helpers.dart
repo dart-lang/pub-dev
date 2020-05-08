@@ -145,8 +145,7 @@ shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
       if (shouldLog) {
         logger.info('Caught response exception: $e');
       }
-      final content =
-          markdownToHtml('# Error `${e.code}`\n\n${e.message}\n', null);
+      final content = markdownToHtml('# Error `${e.code}`\n\n${e.message}\n');
       return htmlResponse(
         renderLayoutPage(PageType.package, content, title: 'Error ${e.code}'),
         status: e.status,
@@ -173,7 +172,7 @@ Request ID: ${context.traceId}
       ''';
 
       final content = renderLayoutPage(
-          PageType.package, markdownToHtml(markdownText, null),
+          PageType.package, markdownToHtml(markdownText),
           title: title);
       return htmlResponse(content, status: 500, headers: debugHeaders);
     } finally {

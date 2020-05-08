@@ -24,27 +24,35 @@ const _whitelistedClassNames = <String>[
 ];
 
 /// Renders markdown [text] to HTML.
+///
+/// Setting [inlineOnly] not only restricts the processed rules to inline syntax,
+/// but it also restricts the accepted output elements to bold and italics
+/// formatting.
 String markdownToHtml(
-  String text,
-  String baseUrl, {
+  String text, {
+  String baseUrl,
   String baseDir,
   bool isChangelog = false,
+  bool inlineOnly = false,
 }) {
   if (text == null) return null;
-  var nodes = _parseMarkdownSource(text);
+  var nodes = _parseMarkdownSource(text, inlineOnly);
   nodes = _rewriteRelativeUrls(nodes, baseUrl: baseUrl, baseDir: baseDir);
   if (isChangelog) {
     nodes = _groupChangelogNodes(nodes).toList();
   }
-  return _renderSafeHtml(nodes);
+  return _renderSafeHtml(nodes, inlineOnly);
 }
 
 /// Parses markdown [source].
-List<m.Node> _parseMarkdownSource(String source) {
+List<m.Node> _parseMarkdownSource(String source, bool inlineOnly) {
   if (source == null) return null;
   final document = m.Document(
       extensionSet: m.ExtensionSet.gitHubWeb,
       blockSyntaxes: m.ExtensionSet.gitHubWeb.blockSyntaxes);
+  if (inlineOnly) {
+    return document.parseInline(source);
+  }
   final lines = source.replaceAll('\r\n', '\n').split('\n');
   return document.parseLines(lines);
 }
@@ -63,10 +71,13 @@ List<m.Node> _rewriteRelativeUrls(
 
 /// Renders sanitized, safe HTML from markdown nodes.
 /// Adds hash link HTML to header blocks.
-String _renderSafeHtml(List<m.Node> nodes) {
+String _renderSafeHtml(List<m.Node> nodes, bool inlineOnly) {
   // Filter unsafe urls on some of the elements.
-  final unsafeUrlFilter = _UnsafeUrlFilter();
-  nodes.forEach((node) => node.accept(unsafeUrlFilter));
+  nodes.forEach((node) => node.accept(_UnsafeUrlFilter()));
+
+  if (inlineOnly) {
+    _keepOnlyInlineElements(nodes);
+  }
 
   // add hash link HTML to header blocks
   final hashLink = _HashLink();
@@ -81,7 +92,23 @@ String _renderSafeHtml(List<m.Node> nodes) {
       return _whitelistedClassNames.contains(cn);
     },
   );
-  return html + '\n';
+  return inlineOnly ? html : '$html\n';
+}
+
+final _safeInlineTags = <String>{'em', 'strong'};
+void _keepOnlyInlineElements(List<m.Node> nodes) {
+  if (nodes == null) return;
+  for (var i = nodes.length - 1; i >= 0; i--) {
+    final node = nodes[i];
+    if (node is! m.Element) continue;
+
+    final elem = node as m.Element;
+    _keepOnlyInlineElements(elem.children);
+    if (!_safeInlineTags.contains(elem.tag)) {
+      nodes.replaceRange(i, i + 1, [m.Text(elem.textContent)]);
+      continue;
+    }
+  }
 }
 
 /// Adds an extra <a href="#hash">#</a> element to h1, h2 and h3 elements.

@@ -91,7 +91,7 @@ String _renderSuggestionBlockHtml(String header, List<Suggestion> suggestions) {
     return {
       'icon_class': _suggestionIconClass(suggestion.level),
       'title_html': _renderSuggestionTitle(suggestion.title, suggestion.score),
-      'description_html': markdownToHtml(suggestion.description, null),
+      'description_html': markdownToHtml(suggestion.description),
       'suggestion_help_html': getSuggestionHelpMessage(suggestion.code),
     };
   }).toList();
@@ -120,7 +120,7 @@ String _renderSuggestionTitle(String title, double score) {
   if (formattedScore != null) {
     title = '$title ($formattedScore)';
   }
-  return markdownToHtml(title, null);
+  return markdownToHtml(title);
 }
 
 String _formatSuggestionScore(double score) {
