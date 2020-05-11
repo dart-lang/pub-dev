@@ -13,6 +13,7 @@ import 'package:retry/retry.dart';
 
 import '../service/secret/backend.dart';
 import '../shared/email.dart';
+import '../shared/exceptions.dart';
 
 final _logger = Logger('pub.email');
 
@@ -49,12 +50,18 @@ class EmailSender {
             _server,
             timeout: Duration(seconds: 15),
           ),
-          retryIf: (e) => e is TimeoutException || e is IOException,
+          retryIf: (e) =>
+              e is TimeoutException ||
+              e is IOException ||
+              e is SmtpClientCommunicationException,
           delayFactor: Duration(seconds: 2),
           maxAttempts: 2,
         );
-      } catch (e, st) {
+      } on SmtpMessageValidationException catch (e) {
+        throw EmailSenderException.invalid(e.message);
+      } on MailerException catch (e, st) {
         _logger.severe('Sending email failed: $debugHeader.', e, st);
+        throw EmailSenderException.failed(e.message);
       }
     }
   }

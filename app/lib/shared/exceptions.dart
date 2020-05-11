@@ -391,3 +391,16 @@ class NotImplementedException extends ResponseException {
       : super._(
             501, 'NotImplemented', message ?? 'API endpoint not implemented.');
 }
+
+/// Thrown when the email sender encounters a problem.
+class EmailSenderException extends ResponseException {
+  /// The email was rejected by the server, possibly beause of a formatting
+  /// issue or other validation.
+  EmailSenderException.invalid(String message)
+      : super._(400, 'InvalidEmail', message);
+
+  /// The SMTP gateway failed to accept the message, may be a transient
+  /// infrastructure issue.
+  EmailSenderException.failed(String message)
+      : super._(500, 'EmailSenderFailed', message);
+}
