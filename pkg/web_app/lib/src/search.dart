@@ -14,6 +14,13 @@ void setupSearch() {
   _setEventForCheckboxChanges();
 }
 
+final _acceptedSearchPaths = <Pattern>[
+  '/packages',
+  '/dart/packages',
+  '/flutter/packages',
+  RegExp(r'^/publishers/([a-z0-9-]{1,63}\.)+[a-z0-9-]{1,63}/packages$'),
+];
+
 void _setBackToReferrer() {
   final bannerContainerElem = document.getElementById('banner-container');
   if (bannerContainerElem == null) return;
@@ -38,8 +45,10 @@ void _setBackToReferrer() {
   final prefix = '${loc.protocol}//${loc.host}/';
   if (!ref.startsWith(prefix)) return;
 
-  // Abort if the referrer was not search (packages) page.
-  if (!refUri.path.endsWith('/packages')) return;
+  // Abort if the referrer was not a search (packages) page.
+  if (!_acceptedSearchPaths.any((p) => p.matchAsPrefix(refUri.path) != null)) {
+    return;
+  }
 
   // create Element
   bannerContainerElem.append(Element.div()
