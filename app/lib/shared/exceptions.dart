@@ -402,7 +402,7 @@ class EmailSenderException extends ResponseException {
 
   /// The SMTP gateway failed to accept the message, may be a transient
   /// infrastructure issue.
-  EmailSenderException.failed(String message)
+  EmailSenderException.failed()
       : super._(500, 'EmailSenderFailed',
             'Failed to send email, please retry later.');
 }
