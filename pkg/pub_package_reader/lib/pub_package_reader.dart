@@ -168,6 +168,7 @@ Future<PackageSummary> summarizePackageArchive(String archivePath) async {
   issues.addAll(syntaxCheckUrl(pubspec.homepage, 'homepage'));
   issues.addAll(syntaxCheckUrl(pubspec.repository?.toString(), 'repository'));
   issues.addAll(forbidGitDependencies(pubspec));
+  issues.addAll(forbidPreReleaseSdk(pubspec));
 
   return PackageSummary(
     issues: issues,
@@ -286,6 +287,20 @@ Iterable<ArchiveIssue> forbidGitDependencies(Pubspec pubspec) sync* {
       yield ArchiveIssue(
         'Package dependency $name depends on a package with a different name',
       );
+    }
+  }
+}
+
+/// Validate that the package does not have a lower dependency on a pre-release
+/// Dart SDK, which is only allowed if the package itself is a pre-release.
+Iterable<ArchiveIssue> forbidPreReleaseSdk(Pubspec pubspec) sync* {
+  if (pubspec.version.isPreRelease) return;
+  final sdkConstraint = pubspec.environment['sdk'];
+  if (sdkConstraint is VersionRange) {
+    if (sdkConstraint.min.isPreRelease) {
+      yield ArchiveIssue(
+          'Packages with an SDK constraint on a pre-release of the Dart SDK '
+          'should themselves be published as a pre-release version. ');
     }
   }
 }
