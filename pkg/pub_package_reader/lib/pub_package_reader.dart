@@ -125,6 +125,7 @@ Future<PackageSummary> summarizePackageArchive(String archivePath) async {
   }
   if (pubspec.version == null) {
     issues.add(ArchiveIssue('pubspec.yaml is missing `version`.'));
+    return PackageSummary(issues: issues);
   }
 
   final package = pubspec.name;
