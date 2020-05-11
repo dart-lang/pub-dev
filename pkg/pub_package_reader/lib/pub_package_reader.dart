@@ -92,14 +92,14 @@ Future<PackageSummary> summarizePackageArchive(String archivePath) async {
   } on YamlException catch (e) {
     issues.add(ArchiveIssue('Error parsing pubspec.yaml: $e'));
     return PackageSummary(issues: issues);
-  } catch (e) {
+  } on Exception catch (e) {
     issues.add(ArchiveIssue('Error parsing pubspec.yaml: $e'));
   }
 
   // Try again with lenient parsing.
   try {
     pubspec ??= Pubspec.parse(pubspecContent, lenient: true);
-  } catch (e) {
+  } on Exception catch (e) {
     issues.add(ArchiveIssue('Error parsing pubspec.yaml: $e'));
     return PackageSummary(issues: issues);
   }
