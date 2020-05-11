@@ -295,6 +295,9 @@ String renderSubSdkTabsHtml({@required SearchQuery searchQuery}) {
           tag: FlutterSdkTag.platformWeb,
           title: 'Packages compatible with Flutter on the Web platform',
         ),
+        // `macOS` platform is not yet stable, and we want to display it only when
+        // the user has already opted-in to get it displayed. The conditional
+        // predicate must be removed once the platform becomes stable.
         if (pred != null && pred.isRequiredTag(FlutterSdkTag.platformMacos))
           _FilterOption(
             label: 'macOS',
