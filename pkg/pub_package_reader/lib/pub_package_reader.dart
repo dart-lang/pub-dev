@@ -4,6 +4,7 @@
 
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:pub_semver/pub_semver.dart';
+import 'package:yaml/yaml.dart' show YamlException;
 
 import 'src/file_names.dart';
 import 'src/names.dart';
@@ -88,9 +89,19 @@ Future<PackageSummary> summarizePackageArchive(String archivePath) async {
   Pubspec pubspec;
   try {
     pubspec = Pubspec.parse(pubspecContent);
-  } catch (e) {
-    pubspec = Pubspec.parse(pubspecContent, lenient: true);
+  } on YamlException catch (e) {
     issues.add(ArchiveIssue('Error parsing pubspec.yaml: $e'));
+    return PackageSummary(issues: issues);
+  } on Exception catch (e) {
+    issues.add(ArchiveIssue('Error parsing pubspec.yaml: $e'));
+  }
+
+  // Try again with lenient parsing.
+  try {
+    pubspec ??= Pubspec.parse(pubspecContent, lenient: true);
+  } on Exception catch (e) {
+    issues.add(ArchiveIssue('Error parsing pubspec.yaml: $e'));
+    return PackageSummary(issues: issues);
   }
 
   // Check whether the files can be extracted on case-preserving file systems
