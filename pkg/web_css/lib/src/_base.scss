@@ -317,3 +317,29 @@ pre {
     transition: max-height 0.6s ease;
   }
 }
+
+.back-to-referrer {
+  display: flex;
+  align-items: center;
+
+  background: #f5f5f7;
+  height: 50px;
+  padding-left: 18px;
+
+  @media (min-width: $device-desktop-min-width) {
+    padding-left: 50px;
+  }
+
+  .back-to-referrer-link {
+    color: #4a4a4a;
+    font-family: $font-family-google-sans;
+    font-size: 14px;
+
+    &:before {
+      content: "←";
+      font-weight: 700;
+      font-size: 16px;
+      margin-right: 8px;
+    }
+  }
+}
