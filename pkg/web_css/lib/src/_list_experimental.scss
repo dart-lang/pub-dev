@@ -71,27 +71,27 @@ body.experimental {
 
   .search-controls-tabs {
     .list-filters {
-      margin-left: -18px;
 
       .filter {
         color: #555555;
         font-weight: 300;
         display: inline-block;
-        padding: 18px 18px 10px 18px;
+        margin-right: 18px;
+        padding: 18px 0px 10px 0px;
 
         .filter-icon {
           display: none;
         }
 
         &:hover {
-          border-bottom: 3px solid #cccccc;
+          border-bottom: 2px solid #cccccc;
           opacity: 1;
         }
 
         &.-active {
           color: $color-input-primary;
           font-weight: bold;
-          border-bottom: 3px solid $color-input-primary;
+          border-bottom: 2px solid $color-input-primary;
         }
       }
     }
