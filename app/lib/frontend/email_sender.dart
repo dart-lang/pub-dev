@@ -57,11 +57,12 @@ class EmailSender {
           delayFactor: Duration(seconds: 2),
           maxAttempts: 2,
         );
-      } on SmtpMessageValidationException catch (e) {
-        throw EmailSenderException.invalid(e.message);
+      } on SmtpMessageValidationException catch (e, st) {
+        _logger.info('Sending email failed: $debugHeader.', e, st);
+        throw EmailSenderException.invalid();
       } on MailerException catch (e, st) {
         _logger.severe('Sending email failed: $debugHeader.', e, st);
-        throw EmailSenderException.failed(e.message);
+        throw EmailSenderException.failed();
       }
     }
   }

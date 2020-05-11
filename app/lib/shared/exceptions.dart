@@ -394,13 +394,15 @@ class NotImplementedException extends ResponseException {
 
 /// Thrown when the email sender encounters a problem.
 class EmailSenderException extends ResponseException {
-  /// The email was rejected by the server, possibly beause of a formatting
+  /// The email was rejected by the server, possibly because of a formatting
   /// issue or other validation.
-  EmailSenderException.invalid(String message)
-      : super._(400, 'InvalidEmail', message);
+  EmailSenderException.invalid()
+      : super._(400, 'InvalidEmail',
+            'Failed to send email, check that the email address is valid.');
 
   /// The SMTP gateway failed to accept the message, may be a transient
   /// infrastructure issue.
   EmailSenderException.failed(String message)
-      : super._(500, 'EmailSenderFailed', message);
+      : super._(500, 'EmailSenderFailed',
+            'Failed to send email, please retry later.');
 }
