@@ -25,9 +25,11 @@ void _setBackToReferrer() {
   // abort if on old design
   if (document.body.classes.contains('non-experimental')) return;
 
-  // abort if there is no referrer
+  // Abort if there is no referrer or if it is not a valid URL.
   final ref = document.referrer;
   if (ref == null || ref.isEmpty) return;
+  final refUri = Uri.tryParse(ref);
+  if (refUri == null) return;
 
   // abort if the scheme://hostname[:port]/ is different
   // - location.protocol already contains the colon
@@ -36,8 +38,8 @@ void _setBackToReferrer() {
   final prefix = '${loc.protocol}//${loc.host}/';
   if (!ref.startsWith(prefix)) return;
 
-  // abort if the referrer was not search
-  if (!ref.contains('/packages')) return;
+  // Abort if the referrer was not search (packages) page.
+  if (!refUri.path.endsWith('/packages')) return;
 
   // create Element
   bannerContainerElem.append(Element.div()
