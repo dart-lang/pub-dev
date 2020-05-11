@@ -249,6 +249,36 @@ void main() {
             'PackageRejected(400): Package name is too similar to another active or moderated package.');
       });
 
+      testWithServices('bad yaml file: duplicate key', () async {
+        registerAuthenticatedUser(joeUser);
+        final tarball = await packageArchiveBytes(
+            pubspecContent:
+                'name: xyz\n' + generatePubspecYaml('xyz', '1.0.0'));
+        final rs = packageBackend.upload(Stream.fromIterable([tarball]));
+        await expectLater(
+            rs,
+            throwsA(isA<PackageRejectedException>().having(
+              (e) => '$e',
+              'text',
+              contains('Duplicate mapping key.'),
+            )));
+      });
+
+      testWithServices('bad pubspec content: bad version', () async {
+        registerAuthenticatedUser(joeUser);
+        final tarball = await packageArchiveBytes(
+            pubspecContent: generatePubspecYaml('xyz', 'not-a-version'));
+        final rs = packageBackend.upload(Stream.fromIterable([tarball]));
+        await expectLater(
+            rs,
+            throwsA(isA<PackageRejectedException>().having(
+              (e) => '$e',
+              'text',
+              contains(
+                  'Unsupported value for "version". Could not parse "not-a-version".'),
+            )));
+      });
+
       testWithServices('has git dependency', () async {
         registerAuthenticatedUser(joeUser);
         final tarball = await packageArchiveBytes(
@@ -260,7 +290,7 @@ void main() {
         final rs = packageBackend.upload(Stream.fromIterable([tarball]));
         await expectLater(
             rs,
-            throwsA(isA<Exception>().having(
+            throwsA(isA<PackageRejectedException>().having(
               (e) => '$e',
               'text',
               contains('is a git dependency'),
