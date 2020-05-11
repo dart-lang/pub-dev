@@ -45,6 +45,10 @@ void main() {
     expect(acceptedRuntimeVersions, sorted);
   });
 
+  test('No more than 5 accepted runtimeVersions', () {
+    expect(acceptedRuntimeVersions, hasLength(lessThan(6)));
+  });
+
   test('runtime sdk version should match travis and dockerfile', () async {
     final String docker = await File('../Dockerfile').readAsString();
     expect(
