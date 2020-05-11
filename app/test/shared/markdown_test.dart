@@ -23,6 +23,7 @@ void main() {
 
     test('empty lines', () {
       expect(inline('abcd\n\nefg'), 'abcd\n\nefg');
+      expect(inline('abcd\r\n\r\nefg'), 'abcd\n\nefg');
     });
 
     test('*text*', () {
