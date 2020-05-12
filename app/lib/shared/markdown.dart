@@ -15,6 +15,12 @@ final Logger _logger = Logger('pub.markdown');
 /// h4, h5 and h6 are considered formatting-only headers
 const _structuralHeaderTags = <String>{'h1', 'h2', 'h3'};
 
+/// Matches more than 1 line breaks.
+final _multiLineBreakRegExp = RegExp(r'\n{2,}');
+
+/// The element tags that are accepted when inline-only parsing is used.
+final _safeInlineTags = <String>{'em', 'strong'};
+
 const _whitelistedClassNames = <String>[
   'changelog-entry',
   'changelog-version',
@@ -92,10 +98,11 @@ String _renderSafeHtml(List<m.Node> nodes, bool inlineOnly) {
       return _whitelistedClassNames.contains(cn);
     },
   );
-  return inlineOnly ? html : '$html\n';
+  return inlineOnly
+      ? html.replaceAll(_multiLineBreakRegExp, '<br>\n')
+      : '$html\n';
 }
 
-final _safeInlineTags = <String>{'em', 'strong'};
 void _keepOnlyInlineElements(List<m.Node> nodes) {
   if (nodes == null) return;
   for (var i = nodes.length - 1; i >= 0; i--) {

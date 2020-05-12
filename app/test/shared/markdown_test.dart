@@ -22,8 +22,12 @@ void main() {
     String inline(String source) => markdownToHtml(source, inlineOnly: true);
 
     test('empty lines', () {
-      expect(inline('abcd\n\nefg'), 'abcd\n\nefg');
-      expect(inline('abcd\r\n\r\nefg'), 'abcd\n\nefg');
+      expect(inline('abcd\nefg'), 'abcd\nefg');
+      expect(inline('abcd\r\nefg'), 'abcd\nefg');
+      expect(inline('abcd\n\nefg'), 'abcd<br>\nefg');
+      expect(inline('abcd\n\n\n\nefg'), 'abcd<br>\nefg');
+      expect(inline('abcd\r\n\r\nefg'), 'abcd<br>\nefg');
+      expect(inline('abcd\r\n\r\n\r\n\r\nefg'), 'abcd<br>\nefg');
     });
 
     test('*text*', () {
