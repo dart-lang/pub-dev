@@ -94,6 +94,11 @@ class Package extends db.ExpandoModel {
   Version get latestDevSemanticVersion =>
       latestDevVersionKey == null ? null : Version.parse(latestDevVersion);
 
+  bool get showDevVersion {
+    if (latestDevVersion == null) return false;
+    return latestSemanticVersion < latestDevSemanticVersion;
+  }
+
   String get shortUpdated {
     return shortDateFormat.format(updated);
   }
