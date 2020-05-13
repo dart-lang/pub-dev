@@ -80,17 +80,24 @@ Future _deleteWithQuery<T>(Query query, {bool Function(T item) where}) async {
     if (shouldDelete) {
       deletes.add(m.key);
       if (deletes.length >= 500) {
-        await _confirm(action: 'Deleting $T', deletes: deletes);
+        await _commit(action: 'Deleting $T', deletes: deletes);
         deletes.clear();
       }
     }
   }
   if (deletes.isNotEmpty) {
-    await _confirm(action: 'Deleting $T', deletes: deletes);
+    await _commit(action: 'Deleting $T', deletes: deletes);
   }
 }
 
 Future removePackage(String packageName) async {
+  print('This script will delete the ALL the versions of $packageName.');
+  print('Are you sure you want to do that? Type `y` or `yes`:');
+  final confirm = stdin.readLineSync();
+  if (confirm != 'y' && confirm != 'yes') {
+    print('Aborted.');
+    return;
+  }
   await withRetryTransaction(dbService, (tx) async {
     final deletes = <Key>[];
     final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
@@ -108,7 +115,7 @@ Future removePackage(String packageName) async {
     deletes.addAll(versions.map((v) => v.key));
 
     final bucket = storageService.bucket(activeConfiguration.packageBucketName);
-    await _confirm(
+    await _commit(
         action: 'Committing changes to DB ...', tx: tx, deletes: deletes);
 
     final storage = TarballStorage(storageService, bucket, '');
@@ -153,6 +160,13 @@ Future removePackage(String packageName) async {
 }
 
 Future removePackageVersion(String packageName, String version) async {
+  print('This script will delete the single version of $packageName $version.');
+  print('Are you sure you want to do that? Type `y` or `yes`:');
+  final confirm = stdin.readLineSync();
+  if (confirm != 'y' && confirm != 'yes') {
+    print('Aborted.');
+    return;
+  }
   await withRetryTransaction(dbService, (tx) async {
     final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
     final package = (await tx.lookup([packageKey])).first as Package;
@@ -192,7 +206,7 @@ Future removePackageVersion(String packageName, String version) async {
       inserts.add(package);
     }
 
-    await _confirm(
+    await _commit(
       action: 'Committing changes to DB ...',
       tx: tx,
       inserts: inserts,
@@ -231,7 +245,7 @@ Future removePackageVersion(String packageName, String version) async {
   print('NOTICE: Redis caches referencing the package will expire given time.');
 }
 
-Future _confirm({
+Future _commit({
   @required String action,
   TransactionWrapper tx,
   List<Model> inserts,
@@ -249,16 +263,12 @@ Future _confirm({
   deletes?.forEach((k) {
     print('- delete: ${_debugKey(k)}');
   });
-  print('Type `y` OR `yes` to confirm, everything else to abort:');
-  final input = stdin.readLineSync();
-  if (input == 'y' || input == 'yes') {
-    if (tx != null) {
-      tx.queueMutations(inserts: inserts, deletes: deletes);
-    } else {
-      dbService.commit(inserts: inserts, deletes: deletes);
-    }
+  print('Use CTRL+C to abort in 5 seconds...');
+  await Future.delayed(Duration(seconds: 5));
+  if (tx != null) {
+    tx.queueMutations(inserts: inserts, deletes: deletes);
   } else {
-    throw StateError('Aborted.');
+    dbService.commit(inserts: inserts, deletes: deletes);
   }
 }
 
