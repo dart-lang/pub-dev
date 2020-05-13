@@ -7,14 +7,14 @@ dependencies:
   _popularity:
     path: ../pkg/_popularity
   neat_cache: ^1.0.0
-  appengine: '^0.10.5'
+  appengine: '^0.11.0'
   args: '>=0.13.7 <2.0.0'
   basics: ^0.4.0
   client_data:
     path: ../pkg/client_data
   convert: '^2.0.0'
   crypto: '^2.0.2'
-  gcloud: '^0.6.3'
+  gcloud: '^0.7.0'
   googleapis: '^0.54.0'
   googleapis_auth: ^0.2.4
   html: '>=0.12.0 <0.15.0'

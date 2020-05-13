@@ -6,7 +6,7 @@ environment:
   sdk: '>=2.6.0 <3.0.0'
 
 dependencies:
-  gcloud: '^0.6.0'
+  gcloud: '^0.7.0'
   logging: ^0.11.3
   meta: '^1.0.0'
 
