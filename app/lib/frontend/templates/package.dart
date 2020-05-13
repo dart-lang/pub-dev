@@ -205,8 +205,7 @@ String renderPkgInfoBox(
 String renderPkgHeader(PackagePageData data) {
   final package = data.package;
   final selectedVersion = data.version;
-  final bool showDevVersion = package.latestDevVersion != null &&
-      package.latestSemanticVersion < package.latestDevSemanticVersion;
+  final bool showDevVersion = package.showDevVersion;
   final bool showUpdated =
       selectedVersion.version != package.latestVersion || showDevVersion;
 

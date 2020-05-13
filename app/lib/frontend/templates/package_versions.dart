@@ -24,13 +24,15 @@ String renderPkgVersionsPage(
 
   final stableVersionRows = [];
   final devVersionRows = [];
-  PackageVersion latestDevVersion;
+  final latestDevVersion = versions.firstWhere(
+    (v) => v.version == data.package.latestDevVersion,
+    orElse: () => null,
+  );
   for (int i = 0; i < versions.length; i++) {
     final PackageVersion version = versions[i];
     final String url = versionDownloadUrls[i].toString();
     final rowHtml = renderVersionTableRow(version, url);
     if (version.semanticVersion.isPreRelease) {
-      latestDevVersion ??= version;
       devVersionRows.add(rowHtml);
     } else {
       stableVersionRows.add(rowHtml);
@@ -38,9 +40,11 @@ String renderPkgVersionsPage(
   }
 
   final htmlBlocks = <String>[];
-  if (stableVersionRows.isNotEmpty && devVersionRows.isNotEmpty) {
+  if (stableVersionRows.isNotEmpty &&
+      devVersionRows.isNotEmpty &&
+      data.package.showDevVersion) {
     htmlBlocks.add(
-        '<p>The latest dev release was <a href="#dev">${latestDevVersion.version}</a> '
+        '<p>The latest prerelease was <a href="#prerelease">${latestDevVersion.version}</a> '
         'on ${latestDevVersion.shortCreated}.</p>');
   }
   if (stableVersionRows.isNotEmpty) {
@@ -53,8 +57,8 @@ String renderPkgVersionsPage(
   }
   if (devVersionRows.isNotEmpty) {
     htmlBlocks.add(templateCache.renderTemplate('pkg/versions/index', {
-      'id': 'dev',
-      'kind': 'Dev',
+      'id': 'prerelease',
+      'kind': 'Prerelease',
       'package': {'name': data.package.name},
       'version_table_rows': devVersionRows,
     }));
