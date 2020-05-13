@@ -270,8 +270,6 @@ Future _commit({
   deletes?.forEach((k) {
     print('- delete: ${_debugKey(k)}');
   });
-  print('Use CTRL+C to abort in 5 seconds...');
-  await Future.delayed(Duration(seconds: 5));
   if (tx != null) {
     tx.queueMutations(inserts: inserts, deletes: deletes);
   } else {
