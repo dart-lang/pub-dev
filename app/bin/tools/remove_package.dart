@@ -91,7 +91,15 @@ Future _deleteWithQuery<T>(Query query, {bool Function(T item) where}) async {
 }
 
 Future removePackage(String packageName) async {
-  print('This script will delete the ALL the versions of $packageName.');
+  final packageKey = dbService.emptyKey.append(Package, id: packageName);
+  final versionsToConfirm = await dbService
+      .query<PackageVersion>(ancestorKey: packageKey)
+      .run()
+      .toList();
+  print(
+      'This script will delete the ALL ${versionsToConfirm.length} versions of $packageName.');
+  print('Versions:');
+  versionsToConfirm.forEach((v) => print(' - ${v.version}'));
   print('Are you sure you want to do that? Type `y` or `yes`:');
   final confirm = stdin.readLineSync();
   if (confirm != 'y' && confirm != 'yes') {
@@ -100,7 +108,6 @@ Future removePackage(String packageName) async {
   }
   await withRetryTransaction(dbService, (tx) async {
     final deletes = <Key>[];
-    final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
     final package = (await tx.lookup([packageKey])).first as Package;
     if (package == null) {
       print('Package $packageName does not exists.');
