@@ -44,7 +44,7 @@ String renderPkgVersionsPage(
       devVersionRows.isNotEmpty &&
       data.package.showDevVersion) {
     htmlBlocks.add(
-        '<p>The latest pre-release was <a href="#dev">${latestDevVersion.version}</a> '
+        '<p>The latest prerelease was <a href="#prerelease">${latestDevVersion.version}</a> '
         'on ${latestDevVersion.shortCreated}.</p>');
   }
   if (stableVersionRows.isNotEmpty) {
@@ -57,8 +57,8 @@ String renderPkgVersionsPage(
   }
   if (devVersionRows.isNotEmpty) {
     htmlBlocks.add(templateCache.renderTemplate('pkg/versions/index', {
-      'id': 'dev',
-      'kind': 'Pre-release',
+      'id': 'prerelease',
+      'kind': 'Prerelease',
       'package': {'name': data.package.name},
       'version_table_rows': devVersionRows,
     }));
