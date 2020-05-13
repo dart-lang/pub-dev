@@ -55,7 +55,7 @@ class Package extends db.ExpandoModel {
   db.Key latestVersionKey;
 
   @db.ModelKeyProperty(propertyName: 'latest_dev_version')
-  db.Key latestDevVersionKey;
+  db.Key latestPrereleaseVersionKey;
 
   /// The publisher id (null, if the package does not have a publisher).
   @db.StringProperty()
@@ -89,14 +89,17 @@ class Package extends db.ExpandoModel {
   Version get latestSemanticVersion =>
       Version.parse(latestVersionKey.id as String);
 
-  String get latestDevVersion => latestDevVersionKey?.id as String;
+  String get latestPrereleaseVersion =>
+      latestPrereleaseVersionKey?.id as String;
 
-  Version get latestDevSemanticVersion =>
-      latestDevVersionKey == null ? null : Version.parse(latestDevVersion);
+  Version get latestPrereleaseSemanticVersion =>
+      latestPrereleaseVersionKey == null
+          ? null
+          : Version.parse(latestPrereleaseVersion);
 
-  bool get showDevVersion {
-    if (latestDevVersion == null) return false;
-    return latestSemanticVersion < latestDevSemanticVersion;
+  bool get showPrereleaseVersion {
+    if (latestPrereleaseVersion == null) return false;
+    return latestSemanticVersion < latestPrereleaseSemanticVersion;
   }
 
   String get shortUpdated {
@@ -139,9 +142,10 @@ class Package extends db.ExpandoModel {
       latestVersionKey = pv.key;
     }
 
-    if (latestDevVersionKey == null ||
-        isNewer(latestDevSemanticVersion, newVersion, pubSorted: false)) {
-      latestDevVersionKey = pv.key;
+    if (latestPrereleaseVersionKey == null ||
+        isNewer(latestPrereleaseSemanticVersion, newVersion,
+            pubSorted: false)) {
+      latestPrereleaseVersionKey = pv.key;
     }
   }
 
@@ -418,7 +422,7 @@ class PackageView extends Object with FlagMixin {
   final String version;
 
   // Not null only if there is a difference compared to the [version].
-  final String devVersion;
+  final String prereleaseVersion;
   final String ellipsizedDescription;
 
   /// The date when the package was first published.
@@ -450,7 +454,7 @@ class PackageView extends Object with FlagMixin {
     this.url,
     this.name,
     this.version,
-    this.devVersion,
+    this.prereleaseVersion,
     this.ellipsizedDescription,
     this.created,
     this.shortUpdated,
@@ -475,10 +479,10 @@ class PackageView extends Object with FlagMixin {
     ScoreCardData scoreCard,
     List<ApiPageRef> apiPages,
   }) {
-    final String devVersion =
-        package != null && package.latestVersion != package.latestDevVersion
-            ? package.latestDevVersion
-            : null;
+    final prereleaseVersion = package != null &&
+            package.latestVersion != package.latestPrereleaseVersion
+        ? package.latestPrereleaseVersion
+        : null;
     final hasPanaReport = scoreCard?.reportTypes != null &&
         scoreCard.reportTypes.contains(ReportType.pana);
     final isAwaiting =
@@ -492,7 +496,7 @@ class PackageView extends Object with FlagMixin {
     return PackageView(
       name: version?.package ?? package?.name,
       version: version?.version ?? package?.latestVersion,
-      devVersion: devVersion,
+      prereleaseVersion: prereleaseVersion,
       ellipsizedDescription: version?.ellipsizedDescription,
       created: package.created,
       shortUpdated: version?.shortCreated ?? package?.shortUpdated,
@@ -523,7 +527,7 @@ class PackageView extends Object with FlagMixin {
       url: url,
       name: name,
       version: version,
-      devVersion: devVersion,
+      prereleaseVersion: prereleaseVersion,
       ellipsizedDescription: ellipsizedDescription,
       created: created,
       shortUpdated: shortUpdated,

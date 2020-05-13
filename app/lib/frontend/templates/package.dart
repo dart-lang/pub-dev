@@ -205,9 +205,9 @@ String renderPkgInfoBox(
 String renderPkgHeader(PackagePageData data) {
   final package = data.package;
   final selectedVersion = data.version;
-  final bool showDevVersion = package.showDevVersion;
+  final bool showPrereleaseVersion = package.showPrereleaseVersion;
   final bool showUpdated =
-      selectedVersion.version != package.latestVersion || showDevVersion;
+      selectedVersion.version != package.latestVersion || showPrereleaseVersion;
 
   final metadataHtml = templateCache.renderTemplate('pkg/header', {
     'publisher_id': package.publisherId,
@@ -216,12 +216,12 @@ String renderPkgHeader(PackagePageData data) {
         : urls.publisherUrl(package.publisherId),
     'latest': {
       'show_updated': showUpdated,
-      'show_dev_version': showDevVersion,
+      'show_prerelease_version': showPrereleaseVersion,
       'stable_url': urls.pkgPageUrl(package.name),
       'stable_version': package.latestVersion,
-      'dev_url':
-          urls.pkgPageUrl(package.name, version: package.latestDevVersion),
-      'dev_version': package.latestDevVersion,
+      'prerelease_url': urls.pkgPageUrl(package.name,
+          version: package.latestPrereleaseVersion),
+      'prerelease_version': package.latestPrereleaseVersion,
     },
     'short_created': selectedVersion.shortCreated,
   });

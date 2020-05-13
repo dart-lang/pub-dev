@@ -10,7 +10,6 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) {
   return PackageDocument(
     package: json['package'] as String,
     version: json['version'] as String,
-    devVersion: json['devVersion'] as String,
     description: json['description'] as String,
     created: json['created'] == null
         ? null
@@ -44,7 +43,6 @@ Map<String, dynamic> _$PackageDocumentToJson(PackageDocument instance) =>
     <String, dynamic>{
       'package': instance.package,
       'version': instance.version,
-      'devVersion': instance.devVersion,
       'description': instance.description,
       'created': instance.created?.toIso8601String(),
       'updated': instance.updated?.toIso8601String(),

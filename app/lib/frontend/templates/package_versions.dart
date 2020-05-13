@@ -23,9 +23,9 @@ String renderPkgVersionsPage(
   assert(versions.length == versionDownloadUrls.length);
 
   final stableVersionRows = [];
-  final devVersionRows = [];
-  final latestDevVersion = versions.firstWhere(
-    (v) => v.version == data.package.latestDevVersion,
+  final prereleaseVersionRows = [];
+  final latestPrereleaseVersion = versions.firstWhere(
+    (v) => v.version == data.package.latestPrereleaseVersion,
     orElse: () => null,
   );
   for (int i = 0; i < versions.length; i++) {
@@ -33,7 +33,7 @@ String renderPkgVersionsPage(
     final String url = versionDownloadUrls[i].toString();
     final rowHtml = renderVersionTableRow(version, url);
     if (version.semanticVersion.isPreRelease) {
-      devVersionRows.add(rowHtml);
+      prereleaseVersionRows.add(rowHtml);
     } else {
       stableVersionRows.add(rowHtml);
     }
@@ -41,11 +41,11 @@ String renderPkgVersionsPage(
 
   final htmlBlocks = <String>[];
   if (stableVersionRows.isNotEmpty &&
-      devVersionRows.isNotEmpty &&
-      data.package.showDevVersion) {
+      prereleaseVersionRows.isNotEmpty &&
+      data.package.showPrereleaseVersion) {
     htmlBlocks.add(
-        '<p>The latest prerelease was <a href="#prerelease">${latestDevVersion.version}</a> '
-        'on ${latestDevVersion.shortCreated}.</p>');
+        '<p>The latest prerelease was <a href="#prerelease">${latestPrereleaseVersion.version}</a> '
+        'on ${latestPrereleaseVersion.shortCreated}.</p>');
   }
   if (stableVersionRows.isNotEmpty) {
     htmlBlocks.add(templateCache.renderTemplate('pkg/versions/index', {
@@ -55,12 +55,12 @@ String renderPkgVersionsPage(
       'version_table_rows': stableVersionRows,
     }));
   }
-  if (devVersionRows.isNotEmpty) {
+  if (prereleaseVersionRows.isNotEmpty) {
     htmlBlocks.add(templateCache.renderTemplate('pkg/versions/index', {
       'id': 'prerelease',
       'kind': 'Prerelease',
       'package': {'name': data.package.name},
-      'version_table_rows': devVersionRows,
+      'version_table_rows': prereleaseVersionRows,
     }));
   }
 

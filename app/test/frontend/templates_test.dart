@@ -629,7 +629,7 @@ void main() {
           PackageView(
             name: 'another_package',
             version: '2.0.0',
-            devVersion: '3.0.0-beta2',
+            prereleaseVersion: '3.0.0-beta2',
             ellipsizedDescription: 'Camera plugin.',
             created: DateTime.utc(2019, 03, 30),
             shortUpdated: '30 Mar 2019',
@@ -664,7 +664,7 @@ void main() {
           PackageView(
             name: 'another_package',
             version: '2.0.0',
-            devVersion: '3.0.0-beta2',
+            prereleaseVersion: '3.0.0-beta2',
             ellipsizedDescription: 'Camera plugin.',
             created: DateTime.utc(2019, 03, 30),
             shortUpdated: '30 Mar 2019',

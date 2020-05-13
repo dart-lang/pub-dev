@@ -93,7 +93,7 @@ class DatastoreHeadTaskSource implements TaskSource {
   }
 
   Task _packageToTask(Package p) =>
-      Task(p.name, p.latestVersion ?? p.latestDevVersion, p.updated);
+      Task(p.name, p.latestVersion ?? p.latestPrereleaseVersion, p.updated);
 
   Task _versionToTask(PackageVersion pv) =>
       Task(pv.package, pv.version, pv.created);
@@ -130,9 +130,9 @@ abstract class DatastoreHistoryTaskSource implements TaskSource {
             yield Task(p.name, p.latestVersion, p.updated);
           }
 
-          if (p.latestVersion != p.latestDevVersion &&
-              await requiresUpdate(p.name, p.latestDevVersion)) {
-            yield Task(p.name, p.latestDevVersion, p.updated);
+          if (p.latestVersion != p.latestPrereleaseVersion &&
+              await requiresUpdate(p.name, p.latestPrereleaseVersion)) {
+            yield Task(p.name, p.latestPrereleaseVersion, p.updated);
           }
         }
 

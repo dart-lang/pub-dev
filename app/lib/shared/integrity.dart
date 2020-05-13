@@ -270,10 +270,10 @@ class IntegrityChecker {
       _problems.add(
           'Package(${p.name}) has missing latestVersionKey: ${p.latestVersionKey.id}');
     }
-    if (p.latestDevVersionKey != null &&
-        !versionKeys.contains(p.latestDevVersionKey)) {
+    if (p.latestPrereleaseVersionKey != null &&
+        !versionKeys.contains(p.latestPrereleaseVersionKey)) {
       _problems.add(
-          'Package(${p.name}) has missing latestDevVersionKey: ${p.latestDevVersionKey.id}');
+          'Package(${p.name}) has missing latestPrereleaseVersionKey: ${p.latestPrereleaseVersionKey.id}');
     }
 
     // Checking if PackageVersionPubspec is referenced by a PackageVersion entity.

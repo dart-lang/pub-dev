@@ -876,7 +876,7 @@ Package _newPackageFromVersion(
     ..updated = now
     ..downloads = 0
     ..latestVersionKey = version.key
-    ..latestDevVersionKey = version.key
+    ..latestPrereleaseVersionKey = version.key
     ..uploaders = [userId]
     ..likes = 0
     ..doNotAdvertise = false
