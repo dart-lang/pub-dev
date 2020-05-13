@@ -179,8 +179,8 @@ Future removePackageVersion(String packageName, String version) async {
       package.latestVersionKey = null;
       updatePackage = true;
     }
-    if (package != null && package.latestDevVersion == version) {
-      package.latestDevVersionKey = null;
+    if (package != null && package.latestPrereleaseVersion == version) {
+      package.latestPrereleaseVersionKey = null;
       updatePackage = true;
     }
     if (updatePackage) {

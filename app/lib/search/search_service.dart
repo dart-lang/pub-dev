@@ -74,7 +74,6 @@ abstract class PackageIndex {
 class PackageDocument {
   final String package;
   final String version;
-  final String devVersion;
   final String description;
   final DateTime created;
   final DateTime updated;
@@ -103,7 +102,6 @@ class PackageDocument {
   PackageDocument({
     this.package,
     this.version,
-    this.devVersion,
     this.description,
     this.created,
     this.updated,
@@ -128,7 +126,6 @@ class PackageDocument {
     return PackageDocument(
       package: internFn(package),
       version: version,
-      devVersion: devVersion,
       description: description,
       created: created,
       updated: updated,

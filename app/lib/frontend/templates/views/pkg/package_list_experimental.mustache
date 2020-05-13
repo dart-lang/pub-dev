@@ -34,7 +34,7 @@
     {{^is_external}}
     <p class="packages-metadata">
       v <a href="{{& url}}">{{version}}</a>
-      {{#show_dev_version}} / <a href="{{& dev_version_url}}">{{dev_version}}</a>{{/show_dev_version}}
+      {{#show_prerelease_version}} / <a href="{{& prerelease_version_url}}">{{prerelease_version}}</a>{{/show_prerelease_version}}
       • Updated: <span>{{last_uploaded}}</span>
       {{#publisher_id}}
       <img class="packages-vp-icon"

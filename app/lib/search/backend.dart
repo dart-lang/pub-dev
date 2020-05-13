@@ -104,7 +104,6 @@ class SearchBackend {
     return PackageDocument(
       package: pv.package,
       version: p.latestVersion,
-      devVersion: p.latestDevVersion,
       tags: tags,
       description: compactDescription(pv.pubspec.description),
       created: p.created,
@@ -153,7 +152,6 @@ class SearchBackend {
       yield PackageDocument(
         package: p.name,
         version: p.latestVersion,
-        devVersion: p.latestDevVersion,
         tags: p.getTags(),
         created: p.created,
         updated: p.updated,

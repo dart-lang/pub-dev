@@ -142,7 +142,6 @@ void main() {
       await index.addPackage(PackageDocument(
         package: 'http',
         version: '0.11.3+14',
-        devVersion: '0.11.3+14',
         description: 'A composable, Future-based API for making HTTP requests.',
         readme: '''http
           A composable, Future-based library for making HTTP requests.
@@ -160,7 +159,6 @@ void main() {
       await index.addPackage(PackageDocument(
         package: 'async',
         version: '1.13.3',
-        devVersion: '1.13.3',
         description:
             'Utility functions and classes related to the \'dart:async\' library.',
         readme:
@@ -183,7 +181,6 @@ The delegating wrapper classes allow users to easily add functionality on top of
       await index.addPackage(PackageDocument(
         package: 'chrome_net',
         version: '0.1.0',
-        devVersion: '0.1.0',
         description: 'A set of networking library for Chrome Apps.',
         readme: '''TCP client and server libraries for Dart based Chrome Apps.
 tcp.dart contains abstractions over chrome.sockets to aid in working with TCP client sockets and server sockets (TcpClient and TcpServer).

@@ -90,7 +90,7 @@ Package createFoobarPackage({String name, List<User> uploaders}) {
     ..updated = DateTime.utc(2015)
     ..uploaders = uploaders.map((user) => user.userId).toList()
     ..latestVersionKey = foobarStablePVKey
-    ..latestDevVersionKey = foobarDevPVKey
+    ..latestPrereleaseVersionKey = foobarDevPVKey
     ..downloads = 0
     ..likes = 0
     ..doNotAdvertise = false
@@ -256,7 +256,7 @@ class PkgBundle {
   PkgBundle._(this.package, this.versions, this.firstVersion,
       this.latestStableVersion, this.latestDevVersion) {
     assert(package.latestVersionKey != null);
-    assert(package.latestDevVersionKey != null);
+    assert(package.latestPrereleaseVersionKey != null);
   }
 
   factory PkgBundle(Package package, List<PackageVersion> versions) {
@@ -275,7 +275,7 @@ class PkgBundle {
     package.updated ??= versions.last.created;
     package.latestVersionKey ??=
         latestStableVersion?.key ?? latestDevVersion?.key;
-    package.latestDevVersionKey ??=
+    package.latestPrereleaseVersionKey ??=
         latestDevVersion?.key ?? package.latestVersionKey;
 
     return PkgBundle._(

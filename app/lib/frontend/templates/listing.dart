@@ -57,9 +57,10 @@ String renderPackageList(
       'is_external': view.isExternal,
       'external_type': externalType,
       'version': view.version,
-      'show_dev_version': view.devVersion != null,
-      'dev_version': view.devVersion,
-      'dev_version_url': urls.pkgPageUrl(view.name, version: view.devVersion),
+      'show_prerelease_version': view.prereleaseVersion != null,
+      'prerelease_version': view.prereleaseVersion,
+      'prerelease_version_url':
+          urls.pkgPageUrl(view.name, version: view.prereleaseVersion),
       'is_new': addedXAgo != null,
       'added_x_ago': addedXAgo,
       'last_uploaded': view.shortUpdated,
