@@ -24,10 +24,10 @@ void main() {
     test('empty lines', () {
       expect(inline('abcd\nefg'), 'abcd\nefg');
       expect(inline('abcd\r\nefg'), 'abcd\nefg');
-      expect(inline('abcd\n\nefg'), 'abcd<br>\nefg');
-      expect(inline('abcd\n\n\n\nefg'), 'abcd<br>\nefg');
-      expect(inline('abcd\r\n\r\nefg'), 'abcd<br>\nefg');
-      expect(inline('abcd\r\n\r\n\r\n\r\nefg'), 'abcd<br>\nefg');
+      expect(inline('abcd\n\nefg'), 'abcd<br />\nefg');
+      expect(inline('abcd\n\n\n\nefg'), 'abcd<br />\nefg');
+      expect(inline('abcd\r\n\r\nefg'), 'abcd<br />\nefg');
+      expect(inline('abcd\r\n\r\n\r\n\r\nefg'), 'abcd<br />\nefg');
     });
 
     test('*text*', () {

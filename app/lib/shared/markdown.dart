@@ -99,7 +99,7 @@ String _renderSafeHtml(List<m.Node> nodes, bool inlineOnly) {
     },
   );
   return inlineOnly
-      ? html.replaceAll(_multiLineBreakRegExp, '<br>\n')
+      ? html.replaceAll(_multiLineBreakRegExp, '<br />\n')
       : '$html\n';
 }
 
