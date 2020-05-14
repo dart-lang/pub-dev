@@ -263,14 +263,6 @@ class PackageVersion extends db.ExpandoModel {
     return shortDateFormat.format(created);
   }
 
-  String get documentation {
-    return pubspec.documentation;
-  }
-
-  String get homepage {
-    return pubspec.homepage;
-  }
-
   PackageLinks get packageLinks {
     return PackageLinks.infer(
       homepageUrl: pubspec.homepage,
@@ -329,7 +321,7 @@ class PackageVersionPubspec extends db.ExpandoModel {
   }
 }
 
-/// An derived entity that holds derived/cleaned content of [PackageVersion].
+/// A derived entity that holds derived/cleaned content of [PackageVersion].
 @db.Kind(name: 'PackageVersionInfo', idType: db.IdType.String)
 class PackageVersionInfo extends db.ExpandoModel {
   @db.StringProperty(required: true)

@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
+import 'package:logging/logging.dart';
+
 import 'package:pub_dev/package/upload_signer_service.dart';
 import '../services.dart';
 
@@ -11,9 +15,26 @@ import '../services.dart';
 ///
 /// Connection parameters are inferred from the GCLOUD_PROJECT and the GCLOUD_KEY
 /// environment variables.
-Future withProdServices(Future Function() fn) {
+Future<void> withProdServices(Future<void> Function() fn) {
   return withServices(() {
     registerUploadSigner(ServiceAccountBasedUploadSigner());
     return fn();
   });
+}
+
+/// Setup the tool's runtime environment, including Datastore access and logging.
+Future<void> withToolRuntime(Future<void> Function() fn) async {
+  final subs = Logger.root.onRecord.listen((r) {
+    print([
+      r.time.toIso8601String().replaceFirst('T', ' '),
+      r.toString(),
+      r.error,
+      r.stackTrace?.toString(),
+    ].where((e) => e != null).join(' '));
+  });
+  try {
+    await withProdServices(fn);
+  } finally {
+    await subs.cancel();
+  }
 }
