@@ -355,6 +355,10 @@ body.experimental {
     font-size: 12px;
   }
 
+  .packages-metadata-block {
+    margin: 0 8px 0 0;
+  }
+
   .package-badge {
     display: inline-block;
     background: white;
@@ -364,7 +368,7 @@ body.experimental {
 
     font-size: 12px;
     padding: 1px 6px;
-    margin: 0 12px;
+    margin: 0 8px 0 0;
 
     .package-badge-icon {
       max-width: 13px;
@@ -377,7 +381,6 @@ body.experimental {
   .packages-vp-icon {
     display: inline-block;
     height: 14px;
-    margin-left: 4px;
     position: relative;
     top: 3px;
     opacity: 0.5;

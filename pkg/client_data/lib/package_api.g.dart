@@ -102,6 +102,7 @@ VersionInfo _$VersionInfoFromJson(Map<String, dynamic> json) {
     version: json['version'] as String,
     pubspec: json['pubspec'] as Map<String, dynamic>,
     archiveUrl: json['archive_url'] as String,
+    isNullSafe: json['isNullSafe'] as bool,
   );
 }
 
@@ -110,4 +111,5 @@ Map<String, dynamic> _$VersionInfoToJson(VersionInfo instance) =>
       'version': instance.version,
       'pubspec': instance.pubspec,
       'archive_url': instance.archiveUrl,
+      'isNullSafe': instance.isNullSafe,
     };

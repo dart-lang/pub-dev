@@ -132,10 +132,15 @@ class VersionInfo {
   @JsonKey(name: 'archive_url')
   final String archiveUrl;
 
+  /// `true` if package is null-safe.
+  /// If it is omitted, `null` or `false`, the package did not opt into null-safety yet.
+  final bool isNullSafe;
+
   VersionInfo({
     @required this.version,
     @required this.pubspec,
     @required this.archiveUrl,
+    this.isNullSafe,
   });
 
   factory VersionInfo.fromJson(Map<String, dynamic> json) =>

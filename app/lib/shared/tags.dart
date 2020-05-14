@@ -33,6 +33,12 @@ abstract class PackageTags {
 abstract class PackageVersionTags {
   /// PackageVersion supports only legacy (Dart 1) SDK.
   static const String isLegacy = 'is:legacy';
+
+  /// The PackageVersion is null-safe.
+  ///
+  /// See definition at `_NullSafetyViolationFinder` in
+  /// https://github.com/dart-lang/pana/blob/master/lib/src/tag_detection.dart
+  static const String isNullSafe = 'is:null-safe';
 }
 
 /// Collection of SDK tags (with prefix and value).
