@@ -77,7 +77,7 @@ void main() {
         'packages': [
           {
             'package': 'dart:core',
-            'score': closeTo(0.79, 0.01),
+            'score': closeTo(0.69, 0.01),
             'url':
                 'https://api.dartlang.org/stable/2.0.0/dart-core/String-class.html',
             'description': 'Dart core utils',
