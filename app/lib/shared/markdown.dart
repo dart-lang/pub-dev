@@ -42,6 +42,7 @@ String markdownToHtml(
   bool inlineOnly = false,
 }) {
   if (text == null) return null;
+  text = text.replaceAll('\r\n', '\n');
   var nodes = _parseMarkdownSource(text, inlineOnly);
   nodes = _rewriteRelativeUrls(nodes, baseUrl: baseUrl, baseDir: baseDir);
   if (isChangelog) {
@@ -89,18 +90,21 @@ String _renderSafeHtml(List<m.Node> nodes, bool inlineOnly) {
   final hashLink = _HashLink();
   nodes.forEach((node) => node.accept(hashLink));
 
+  var rawHtml = m.renderToHtml(nodes);
+  if (inlineOnly) {
+    rawHtml = rawHtml.replaceAll(_multiLineBreakRegExp, '<br />\n');
+  }
+
   // Renders the sanitized HTML.
   final html = sanitizeHtml(
-    m.renderToHtml(nodes),
+    rawHtml,
     allowElementId: (String id) => true, // TODO: blacklist ids used by pub site
     allowClassName: (String cn) {
       if (cn.startsWith('language-')) return true;
       return _whitelistedClassNames.contains(cn);
     },
   );
-  return inlineOnly
-      ? html.replaceAll(_multiLineBreakRegExp, '<br />\n')
-      : '$html\n';
+  return inlineOnly ? html : '$html\n';
 }
 
 void _keepOnlyInlineElements(List<m.Node> nodes) {
