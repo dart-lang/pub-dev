@@ -26,7 +26,7 @@ import 'layout.dart';
 String renderUnauthenticatedPage({String messageMarkdown}) {
   messageMarkdown ??= 'You need to be logged in to view this page.';
   final content = templateCache.renderTemplate('account/unauthenticated', {
-    'message_html': markdownToHtml(messageMarkdown, null),
+    'message_html': markdownToHtml(messageMarkdown),
   });
   return renderLayoutPage(
     PageType.standalone,
@@ -41,7 +41,7 @@ String renderUnauthenticatedPage({String messageMarkdown}) {
 String renderUnauthorizedPage({String messageMarkdown}) {
   messageMarkdown ??= 'You have insufficient permissions to view this page.';
   final content = templateCache.renderTemplate('account/unauthorized', {
-    'message_html': markdownToHtml(messageMarkdown, null),
+    'message_html': markdownToHtml(messageMarkdown),
   });
   return renderLayoutPage(
     PageType.standalone,
@@ -106,7 +106,7 @@ String _renderStandalonePageContent({
         'Only one of `contentHtml` and `contentMarkdown` must be specified.');
   }
 
-  contentHtml ??= markdownToHtml(contentMarkdown, null);
+  contentHtml ??= markdownToHtml(contentMarkdown);
   return templateCache.renderTemplate('page/standalone', {
     'content_html': contentHtml,
     'has_side_image': sideImageUrl != null,
@@ -118,7 +118,7 @@ String _renderStandalonePageContent({
 String renderErrorPage(String title, String message) {
   final values = {
     'title': title,
-    'message_html': markdownToHtml(message, null),
+    'message_html': markdownToHtml(message),
   };
   final String content = templateCache.renderTemplate('page/error', values);
   return renderLayoutPage(

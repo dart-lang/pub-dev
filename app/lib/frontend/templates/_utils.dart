@@ -21,8 +21,10 @@ String renderFile(
   final content = file.text;
   if (content != null) {
     if (_isMarkdownFile(filename)) {
-      return markdownToHtml(content, baseUrl,
-          baseDir: p.dirname(filename), isChangelog: isChangelog);
+      return markdownToHtml(content,
+          baseUrl: baseUrl,
+          baseDir: p.dirname(filename),
+          isChangelog: isChangelog);
     } else if (_isDartFile(filename)) {
       return _renderDartCode(content);
     } else {
@@ -45,7 +47,7 @@ bool _isMarkdownFile(String filename) {
 bool _isDartFile(String filename) => filename.toLowerCase().endsWith('.dart');
 
 String _renderDartCode(String text) =>
-    markdownToHtml('````dart\n${text.trim()}\n````\n', null);
+    markdownToHtml('````dart\n${text.trim()}\n````\n');
 
 String _renderPlainText(String text) =>
     '<div class="highlight"><pre>${_escapeAngleBrackets(text)}</pre></div>';

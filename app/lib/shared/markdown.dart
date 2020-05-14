@@ -15,6 +15,12 @@ final Logger _logger = Logger('pub.markdown');
 /// h4, h5 and h6 are considered formatting-only headers
 const _structuralHeaderTags = <String>{'h1', 'h2', 'h3'};
 
+/// Matches more than 1 line breaks.
+final _multiLineBreakRegExp = RegExp(r'\n{2,}');
+
+/// The element tags that are accepted when inline-only parsing is used.
+final _safeInlineTags = <String>{'em', 'strong'};
+
 const _whitelistedClassNames = <String>[
   'changelog-entry',
   'changelog-version',
@@ -24,27 +30,36 @@ const _whitelistedClassNames = <String>[
 ];
 
 /// Renders markdown [text] to HTML.
+///
+/// Setting [inlineOnly] not only restricts the processed rules to inline syntax,
+/// but it also restricts the accepted output elements to bold and italics
+/// formatting.
 String markdownToHtml(
-  String text,
-  String baseUrl, {
+  String text, {
+  String baseUrl,
   String baseDir,
   bool isChangelog = false,
+  bool inlineOnly = false,
 }) {
   if (text == null) return null;
-  var nodes = _parseMarkdownSource(text);
+  text = text.replaceAll('\r\n', '\n');
+  var nodes = _parseMarkdownSource(text, inlineOnly);
   nodes = _rewriteRelativeUrls(nodes, baseUrl: baseUrl, baseDir: baseDir);
   if (isChangelog) {
     nodes = _groupChangelogNodes(nodes).toList();
   }
-  return _renderSafeHtml(nodes);
+  return _renderSafeHtml(nodes, inlineOnly);
 }
 
 /// Parses markdown [source].
-List<m.Node> _parseMarkdownSource(String source) {
+List<m.Node> _parseMarkdownSource(String source, bool inlineOnly) {
   if (source == null) return null;
   final document = m.Document(
       extensionSet: m.ExtensionSet.gitHubWeb,
       blockSyntaxes: m.ExtensionSet.gitHubWeb.blockSyntaxes);
+  if (inlineOnly) {
+    return document.parseInline(source);
+  }
   final lines = source.replaceAll('\r\n', '\n').split('\n');
   return document.parseLines(lines);
 }
@@ -63,25 +78,48 @@ List<m.Node> _rewriteRelativeUrls(
 
 /// Renders sanitized, safe HTML from markdown nodes.
 /// Adds hash link HTML to header blocks.
-String _renderSafeHtml(List<m.Node> nodes) {
+String _renderSafeHtml(List<m.Node> nodes, bool inlineOnly) {
   // Filter unsafe urls on some of the elements.
-  final unsafeUrlFilter = _UnsafeUrlFilter();
-  nodes.forEach((node) => node.accept(unsafeUrlFilter));
+  nodes.forEach((node) => node.accept(_UnsafeUrlFilter()));
+
+  if (inlineOnly) {
+    _keepOnlyInlineElements(nodes);
+  }
 
   // add hash link HTML to header blocks
   final hashLink = _HashLink();
   nodes.forEach((node) => node.accept(hashLink));
 
+  var rawHtml = m.renderToHtml(nodes);
+  if (inlineOnly) {
+    rawHtml = rawHtml.replaceAll(_multiLineBreakRegExp, '<br />\n');
+  }
+
   // Renders the sanitized HTML.
   final html = sanitizeHtml(
-    m.renderToHtml(nodes),
+    rawHtml,
     allowElementId: (String id) => true, // TODO: blacklist ids used by pub site
     allowClassName: (String cn) {
       if (cn.startsWith('language-')) return true;
       return _whitelistedClassNames.contains(cn);
     },
   );
-  return html + '\n';
+  return inlineOnly ? html : '$html\n';
+}
+
+void _keepOnlyInlineElements(List<m.Node> nodes) {
+  if (nodes == null) return;
+  for (var i = nodes.length - 1; i >= 0; i--) {
+    final node = nodes[i];
+    if (node is! m.Element) continue;
+
+    final elem = node as m.Element;
+    _keepOnlyInlineElements(elem.children);
+    if (!_safeInlineTags.contains(elem.tag)) {
+      nodes.replaceRange(i, i + 1, [m.Text(elem.textContent)]);
+      continue;
+    }
+  }
 }
 
 /// Adds an extra <a href="#hash">#</a> element to h1, h2 and h3 elements.

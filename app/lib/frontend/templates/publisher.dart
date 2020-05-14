@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:client_data/publisher_api.dart' as api;
 import 'package:client_data/page_data.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_dev/shared/markdown.dart';
 
 import '../../package/models.dart' show PackageView;
 import '../../publisher/models.dart' show Publisher;
@@ -74,7 +75,7 @@ String _shortDescriptionHtml(Publisher publisher) {
   if (description != null && description.length > 1010) {
     description = description.substring(0, 1000) + '[...]';
   }
-  return htmlEscape.convert(description);
+  return markdownToHtml(description, inlineOnly: true);
 }
 
 /// Renders the `views/publisher/info_box.mustache` template.
