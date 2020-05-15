@@ -4,13 +4,10 @@
 
 import 'dart:async';
 
-import 'package:appengine/appengine.dart';
 import 'package:args/args.dart';
-import 'package:gcloud/db.dart';
-import 'package:pool/pool.dart';
 
-import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/service/entrypoint/tools.dart';
+import 'package:pub_dev/tool/backfill/backfill_packageversions.dart';
 
 final _argParser = ArgParser()
   ..addOption('concurrency',
@@ -33,56 +30,11 @@ Future main(List<String> args) async {
   final concurrency = int.parse(argv['concurrency'] as String);
   final package = argv['package'] as String;
 
-  useLoggingPackageAdaptor();
-  await withProdServices(() async {
+  await withToolRuntime(() async {
     if (package != null) {
-      await _backfillPackage(package);
+      await backfillAllVersionsOfPackage(package);
     } else {
-      final pool = Pool(concurrency);
-      final futures = <Future>[];
-
-      await for (Package p in dbService.query<Package>().run()) {
-        final f = pool.withResource(() => _backfillPackage(p.name));
-        futures.add(f);
-      }
-
-      await Future.wait(futures);
-      await pool.close();
+      await backfillAllVersionsOfPackages(concurrency);
     }
   });
-}
-
-Future _backfillPackage(String package) async {
-  print('Backfill PackageVersion[Pubspec|Info] in: $package');
-
-  final packageKey = dbService.emptyKey.append(Package, id: package);
-  final query = dbService.query<PackageVersion>(ancestorKey: packageKey);
-  await for (PackageVersion pv in query.run()) {
-    final qualifiedKey =
-        QualifiedVersionKey(package: pv.package, version: pv.version);
-
-    final pvPubspecKey = dbService.emptyKey
-        .append(PackageVersionPubspec, id: qualifiedKey.qualifiedVersion);
-    final pvInfoKey = dbService.emptyKey
-        .append(PackageVersionInfo, id: qualifiedKey.qualifiedVersion);
-
-    final items = await dbService.lookup([pvPubspecKey, pvInfoKey]);
-    final inserts = <Model>[];
-    if (items[0] == null) {
-      inserts.add(PackageVersionPubspec()
-        ..initFromKey(qualifiedKey)
-        ..pubspec = pv.pubspec
-        ..updated = pv.created);
-    }
-    if (items[1] == null) {
-      inserts.add(PackageVersionInfo()
-        ..initFromKey(qualifiedKey)
-        ..libraries = pv.libraries
-        ..libraryCount = pv.libraries.length
-        ..updated = pv.created);
-    }
-    if (inserts.isNotEmpty) {
-      await dbService.commit(inserts: inserts);
-    }
-  }
 }
