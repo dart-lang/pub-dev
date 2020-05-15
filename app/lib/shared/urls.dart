@@ -7,7 +7,6 @@ import 'package:path/path.dart' as p;
 import '../frontend/request_context.dart' show requestContext;
 import '../package/overrides.dart';
 import '../search/search_service.dart' show SearchOrder, SearchQuery;
-import 'versions.dart';
 
 export '../search/search_service.dart' show SearchOrder;
 
@@ -18,21 +17,25 @@ const siteRoot = 'https://$primaryHost';
 const dartSiteRoot = 'https://dart.dev';
 const httpsApiDartDev = 'https://api.dart.dev/';
 
+final _siteRootUri = Uri.parse('$siteRoot/');
+final _pathRootUri = Uri(path: '/');
+
 String pkgPageUrl(
   String package, {
   String version,
   bool includeHost = false,
   String fragment,
 }) {
-  String url = includeHost ? siteRoot : '';
-  url += '/packages/$package';
-  if (version != null) {
-    url += '/versions/$version';
-  }
-  if (fragment != null) {
-    url += '#$fragment';
-  }
-  return url;
+  final segments = <String>[
+    'packages',
+    package,
+    if (version != null) 'versions',
+    if (version != null) version,
+  ];
+  final baseUri = includeHost ? _siteRootUri : _pathRootUri;
+  return baseUri
+      .resolveUri(Uri(pathSegments: segments, fragment: fragment))
+      .toString();
 }
 
 String pkgReadmeUrl(String package, {String version}) =>
@@ -80,14 +83,17 @@ String pkgDocUrl(
   bool omitTrailingSlash = false,
   bool isLatest = false,
 }) {
-  String url = includeHost ? siteRoot : '';
-  url += '/documentation/$package';
-  if (isLatest) {
+  if (isLatest || version == null) {
     version = 'latest';
   }
-  if (version != null) {
-    url += '/$version';
-  }
+  final segments = <String>[
+    'documentation',
+    package,
+    version,
+  ];
+  final baseUri = includeHost ? _siteRootUri : _pathRootUri;
+  String url = baseUri.resolveUri(Uri(pathSegments: segments)).toString();
+
   if (relativePath != null) {
     url = p.join(url, relativePath);
   } else if (!omitTrailingSlash) {
@@ -238,15 +244,6 @@ String inferServiceProviderName(String url) {
     return 'GitLab';
   }
   return null;
-}
-
-String panaUrl() {
-  return '$siteRoot/packages/pana';
-}
-
-/// Returns the versioned documentation URL for pana's maintenance suggestions.
-String panaMaintenanceUrl() {
-  return '$siteRoot/documentation/pana/$panaVersion/#maintenance-score';
 }
 
 /// Returns the consent URL that will be sent to the invited user.
