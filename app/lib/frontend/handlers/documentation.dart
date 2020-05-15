@@ -6,6 +6,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:http_parser/http_parser.dart';
+import 'package:path/path.dart' as p;
+// ignore: implementation_imports
+import 'package:pub_package_reader/src/names.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../dartdoc/backend.dart';
@@ -26,7 +30,7 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   if (redirectDartdocPages.containsKey(docFilePath.package)) {
     return redirectResponse(redirectDartdocPages[docFilePath.package]);
   }
-  if (docFilePath.package == null || docFilePath.version == null) {
+  if (docFilePath.package != null && docFilePath.version == null) {
     return redirectResponse(pkgDocUrl(docFilePath.package, isLatest: true));
   }
   if (docFilePath.path == null) {
@@ -108,13 +112,17 @@ DocFilePath parseRequestUri(Uri uri) {
   if (uri.pathSegments[0] != 'documentation') return null;
 
   final String package = uri.pathSegments[1];
-  if (package.isEmpty) return null;
+  // reject empty or invalid package names
+  if (package.isEmpty || !identifierExpr.hasMatch(package)) {
+    return null;
+  }
   if (segmentCount == 2) {
     return DocFilePath(package, null, null);
   }
 
   final String version = uri.pathSegments[2];
-  if (version.isEmpty) {
+  // reject empty or invalid version names
+  if (!_isValidVersion(version)) {
     return DocFilePath(package, null, null);
   }
   if (segmentCount == 3) {
@@ -123,11 +131,21 @@ DocFilePath parseRequestUri(Uri uri) {
 
   final relativeSegments =
       uri.pathSegments.skip(3).where((s) => s.isNotEmpty).toList();
-  String path = relativeSegments.join('/');
-  if (path.isEmpty) {
-    path = 'index.html';
-  } else if (path.isNotEmpty && !relativeSegments.last.contains('.')) {
-    path = '$path/index.html';
+  var pathSegments = relativeSegments;
+  if (relativeSegments.isEmpty || !relativeSegments.last.contains('.')) {
+    pathSegments = [...relativeSegments, 'index.html'];
   }
+  final path = p.normalize(p.joinAll(pathSegments));
   return DocFilePath(package, version, path);
+}
+
+bool _isValidVersion(String version) {
+  if (version.trim().isEmpty) return false;
+  if (version == 'latest') return true;
+  try {
+    Version.parse(version);
+  } on FormatException catch (_) {
+    return false;
+  }
+  return true;
 }

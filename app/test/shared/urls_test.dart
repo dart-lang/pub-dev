@@ -12,6 +12,8 @@ void main() {
       expect(pkgPageUrl('foo_bar'), '/packages/foo_bar');
       expect(pkgPageUrl('foo_bar', version: '1.0.0'),
           '/packages/foo_bar/versions/1.0.0');
+      expect(pkgPageUrl('foo_bar', version: '1.0.0', fragment: 'hash'),
+          '/packages/foo_bar/versions/1.0.0#hash');
     });
 
     test('with host', () {
@@ -24,7 +26,7 @@ void main() {
 
   group('documentation page', () {
     test('without host', () {
-      expect(pkgDocUrl('foo_bar'), '/documentation/foo_bar/');
+      expect(pkgDocUrl('foo_bar'), '/documentation/foo_bar/latest/');
       expect(pkgDocUrl('foo_bar', version: '1.0.0'),
           '/documentation/foo_bar/1.0.0/');
       expect(pkgDocUrl('foo_bar', version: '1.0.0', omitTrailingSlash: true),
@@ -33,7 +35,7 @@ void main() {
 
     test('with host', () {
       expect(pkgDocUrl('foo_bar', includeHost: true),
-          'https://pub.dev/documentation/foo_bar/');
+          'https://pub.dev/documentation/foo_bar/latest/');
       expect(pkgDocUrl('foo_bar', version: '1.0.0', includeHost: true),
           'https://pub.dev/documentation/foo_bar/1.0.0/');
       expect(
@@ -180,6 +182,12 @@ void main() {
   });
 
   group('search urls', () {
+    test('non-identifier characters', () {
+      expect(searchUrl(q: 'a b'), '/packages?q=a+b');
+      expect(searchUrl(q: '<a>'), '/packages?q=%3Ca%3E');
+      expect(searchUrl(q: 'ó'), '/packages?q=%C3%B3');
+    });
+
     test('sdk:*', () {
       expect(searchUrl(), '/packages');
       expect(searchUrl(q: 'abc'), '/packages?q=abc');
