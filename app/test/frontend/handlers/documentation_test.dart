@@ -25,34 +25,43 @@ void main() {
       }
     }
 
-    test('/documentation', () {
-      testUri('/documentation', null);
+    test('bad prefix', () {
+      testUri('/doc/pkg/latest/', null);
     });
-    test('/documentation/', () {
+
+    test('insufficient prefix', () {
+      testUri('/documentation', null);
       testUri('/documentation/', null);
     });
-    test('/documentation/angular', () {
-      testUri('/documentation/angular', 'angular');
+
+    test('bad package name', () {
+      testUri('/documentation//latest/', null);
+      testUri('/documentation/<pkg>/latest/', null);
+      testUri('/documentation/pkg with space/latest/', null);
     });
-    test('/documentation/angular/', () {
+
+    test('no version specified', () {
+      testUri('/documentation/angular', 'angular');
       testUri('/documentation/angular/', 'angular');
     });
-    test('/documentation/angular/4.0.0+2', () {
-      testUri('/documentation/angular/4.0.0+2', 'angular', '4.0.0+2');
+
+    test('bad version', () {
+      testUri('/documentation/pkg//', 'pkg');
+      testUri('/documentation/pkg/first-release/', 'pkg');
+      testUri('/documentation/pkg/1.2.3.4.5.6/', 'pkg');
     });
-    test('/documentation/angular/4.0.0+2/', () {
+
+    test('version without path', () {
+      testUri('/documentation/angular/4.0.0+2', 'angular', '4.0.0+2');
       testUri('/documentation/angular/4.0.0+2/', 'angular', '4.0.0+2',
           'index.html');
     });
-    test('/documentation/angular/4.0.0+2/subdir/', () {
+
+    test('version with a path', () {
       testUri('/documentation/angular/4.0.0+2/subdir/', 'angular', '4.0.0+2',
           'subdir/index.html');
-    });
-    test('/documentation/angular/4.0.0+2/file.html', () {
       testUri('/documentation/angular/4.0.0+2/file.html', 'angular', '4.0.0+2',
           'file.html');
-    });
-    test('/documentation/angular/4.0.0+2/file.html', () {
       testUri('/documentation/angular/4.0.0+2/file.html', 'angular', '4.0.0+2',
           'file.html');
     });
@@ -76,7 +85,7 @@ void main() {
     testWithServices('/documentation/foor/bar redirect', () async {
       await expectRedirectResponse(
         await issueGet('/documentation/foor/bar'),
-        'https://pub.dev/documentation/foor/bar/',
+        '/documentation/foor/latest/',
       );
     });
 

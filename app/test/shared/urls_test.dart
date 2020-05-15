@@ -180,6 +180,12 @@ void main() {
   });
 
   group('search urls', () {
+    test('non-identifier characters', () {
+      expect(searchUrl(q: 'a b'), '/packages?q=a+b');
+      expect(searchUrl(q: '<a>'), '/packages?q=%3Ca%3E');
+      expect(searchUrl(q: 'ó'), '/packages?q=%C3%B3');
+    });
+
     test('sdk:*', () {
       expect(searchUrl(), '/packages');
       expect(searchUrl(q: 'abc'), '/packages?q=abc');
