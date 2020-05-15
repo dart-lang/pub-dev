@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -79,20 +80,34 @@ Future _deleteWithQuery<T>(Query query, {bool Function(T item) where}) async {
     if (shouldDelete) {
       deletes.add(m.key);
       if (deletes.length >= 500) {
-        await dbService.commit(deletes: deletes);
+        await _commit(action: 'Deleting $T', deletes: deletes);
         deletes.clear();
       }
     }
   }
   if (deletes.isNotEmpty) {
-    await dbService.commit(deletes: deletes);
+    await _commit(action: 'Deleting $T', deletes: deletes);
   }
 }
 
 Future removePackage(String packageName) async {
+  final packageKey = dbService.emptyKey.append(Package, id: packageName);
+  final versionsToConfirm = await dbService
+      .query<PackageVersion>(ancestorKey: packageKey)
+      .run()
+      .toList();
+  print(
+      'This script will delete the ALL ${versionsToConfirm.length} versions of $packageName.');
+  print('Versions:');
+  versionsToConfirm.forEach((v) => print(' - ${v.version}'));
+  print('Are you sure you want to do that? Type `y` or `yes`:');
+  final confirm = stdin.readLineSync();
+  if (confirm != 'y' && confirm != 'yes') {
+    print('Aborted.');
+    return;
+  }
   await withRetryTransaction(dbService, (tx) async {
     final deletes = <Key>[];
-    final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
     final package = (await tx.lookup([packageKey])).first as Package;
     if (package == null) {
       print('Package $packageName does not exists.');
@@ -107,13 +122,13 @@ Future removePackage(String packageName) async {
     deletes.addAll(versions.map((v) => v.key));
 
     final bucket = storageService.bucket(activeConfiguration.packageBucketName);
+    await _commit(
+        action: 'Committing changes to DB ...', tx: tx, deletes: deletes);
+
     final storage = TarballStorage(storageService, bucket, '');
     print('Removing GCS objects ...');
     await Future.wait(versionNames
         .map((version) => storage.remove(packageName, version.toString())));
-
-    print('Committing changes to DB ...');
-    tx.queueMutations(deletes: deletes);
   });
 
   print('Removing package from dartdoc backend ...');
@@ -152,6 +167,13 @@ Future removePackage(String packageName) async {
 }
 
 Future removePackageVersion(String packageName, String version) async {
+  print('This script will delete the single version of $packageName $version.');
+  print('Are you sure you want to do that? Type `y` or `yes`:');
+  final confirm = stdin.readLineSync();
+  if (confirm != 'y' && confirm != 'yes') {
+    print('Aborted.');
+    return;
+  }
   await withRetryTransaction(dbService, (tx) async {
     final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
     final package = (await tx.lookup([packageKey])).first as Package;
@@ -159,12 +181,12 @@ Future removePackageVersion(String packageName, String version) async {
       print('Package $packageName does not exist.');
     }
 
+    final deletes = <Key>[];
     final versionsQuery = tx.query<PackageVersion>(packageKey);
     final versions = await versionsQuery.run().toList();
     final versionNames = versions.map((v) => v.version).toList();
     if (versionNames.contains(version)) {
-      final deletes = [packageKey.append(PackageVersion, id: version)];
-      tx.queueMutations(deletes: deletes);
+      deletes.add(packageKey.append(PackageVersion, id: version));
     } else {
       print('Package $packageName does not have a version $version.');
     }
@@ -183,14 +205,20 @@ Future removePackageVersion(String packageName, String version) async {
       package.latestPrereleaseVersionKey = null;
       updatePackage = true;
     }
+    final inserts = <Model>[];
     if (updatePackage) {
       versions
           .where((v) => v.version != version)
           .forEach(package.updateVersion);
-      tx.queueMutations(inserts: [package]);
+      inserts.add(package);
     }
 
-    print('Committing changes to DB ...');
+    await _commit(
+      action: 'Committing changes to DB ...',
+      tx: tx,
+      inserts: inserts,
+      deletes: deletes,
+    );
   });
 
   final bucket = storageService.bucket(activeConfiguration.packageBucketName);
@@ -222,4 +250,34 @@ Future removePackageVersion(String packageName, String version) async {
 
   print('Version "$version" of "$packageName" got successfully removed.');
   print('NOTICE: Redis caches referencing the package will expire given time.');
+}
+
+Future _commit({
+  @required String action,
+  TransactionWrapper tx,
+  List<Model> inserts,
+  List<Key> deletes,
+}) async {
+  if ((inserts == null || inserts.isEmpty) &&
+      (deletes == null || deletes.isEmpty)) {
+    return;
+  }
+  print('');
+  print('**** About to commit the following action: $action');
+  inserts?.forEach((m) {
+    print('- insert/update: ${_debugKey(m.key)}');
+  });
+  deletes?.forEach((k) {
+    print('- delete: ${_debugKey(k)}');
+  });
+  if (tx != null) {
+    tx.queueMutations(inserts: inserts, deletes: deletes);
+  } else {
+    dbService.commit(inserts: inserts, deletes: deletes);
+  }
+}
+
+String _debugKey(Key k) {
+  final p = k.parent == null || k.parent.isEmpty ? '' : _debugKey(k.parent);
+  return '$p/${k.type}:${k.id}';
 }

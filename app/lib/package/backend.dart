@@ -31,6 +31,7 @@ import '../shared/datastore_helper.dart';
 import '../shared/email.dart';
 import '../shared/exceptions.dart';
 import '../shared/redis_cache.dart' show cache;
+import '../shared/storage.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 import 'model_properties.dart';
@@ -1010,9 +1011,9 @@ class TarballStorage {
   }
 
   /// Deletes the tarball of a [package] in the given [version] permanently.
-  Future<void> remove(String package, String version) {
+  Future<void> remove(String package, String version) async {
     final object = namer.tarballObjectName(package, version);
-    return bucket.delete(object);
+    await deleteFromBucket(bucket, object);
   }
 
   /// Get the URL to the tarball of a [package] in the given [version].
