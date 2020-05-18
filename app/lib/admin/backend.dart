@@ -293,8 +293,9 @@ class AdminBackend {
     List<Version> versionsNames;
     await withRetryTransaction(_db, (tx) async {
       final deletes = <Key>[];
-      final Key packageKey = _db.emptyKey.append(Package, id: packageName);
-      final package = (await tx.lookup([packageKey])).first as Package;
+      final packageKey = _db.emptyKey.append(Package, id: packageName);
+      final package =
+          await tx.lookupValue<Package>(packageKey, orElse: () => null);
       if (package == null) {
         _logger
             .info('Package $packageName not found. Removing related elements.');
@@ -304,6 +305,9 @@ class AdminBackend {
 
       final versionsQuery = tx.query<PackageVersion>(packageKey);
       final versions = await versionsQuery.run().toList();
+      // The delete package operation could be aborted after the `PackageVersion`
+      // entries are deleted, but before the archives are started.
+      // TODO: when this list is empty, query other related entities to fetch the versions
       versionsNames = versions.map((v) => v.semanticVersion).toList();
       deletes.addAll(versions.map((v) => v.key));
 
@@ -380,7 +384,7 @@ class AdminBackend {
     await for (Model m in query.run()) {
       deletes.add(m.key);
       if (deletes.length >= 500) {
-        await dbService.commit(deletes: deletes);
+        await _db.commit(deletes: deletes);
         deletes.clear();
       }
     }

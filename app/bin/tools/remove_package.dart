@@ -8,15 +8,13 @@ import 'dart:io';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
 import 'package:meta/meta.dart';
-import 'package:pub_dev/account/models.dart';
-import 'package:pub_semver/pub_semver.dart';
 
+import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/dartdoc/backend.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/history/models.dart';
 import 'package:pub_dev/job/model.dart';
-import 'package:pub_dev/scorecard/models.dart';
 import 'package:pub_dev/service/entrypoint/tools.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore_helper.dart';
@@ -43,7 +41,7 @@ Future main(List<String> arguments) async {
       await listPackage(package);
     } else if (command == 'remove') {
       if (version == null) {
-        await removePackage(package);
+        await _removePackage(package);
       } else {
         await removePackageVersion(package, version);
       }
@@ -90,7 +88,7 @@ Future _deleteWithQuery<T>(Query query, {bool Function(T item) where}) async {
   }
 }
 
-Future removePackage(String packageName) async {
+Future _removePackage(String packageName) async {
   final packageKey = dbService.emptyKey.append(Package, id: packageName);
   final versionsToConfirm = await dbService
       .query<PackageVersion>(ancestorKey: packageKey)
@@ -106,64 +104,7 @@ Future removePackage(String packageName) async {
     print('Aborted.');
     return;
   }
-  await withRetryTransaction(dbService, (tx) async {
-    final deletes = <Key>[];
-    final package = (await tx.lookup([packageKey])).first as Package;
-    if (package == null) {
-      print('Package $packageName does not exists.');
-    } else {
-      deletes.add(packageKey);
-    }
-
-    final versionsQuery = tx.query<PackageVersion>(packageKey);
-    final versions = await versionsQuery.run().toList();
-    final List<Version> versionNames =
-        versions.map((v) => v.semanticVersion).toList();
-    deletes.addAll(versions.map((v) => v.key));
-
-    final bucket = storageService.bucket(activeConfiguration.packageBucketName);
-    await _commit(
-        action: 'Committing changes to DB ...', tx: tx, deletes: deletes);
-
-    final storage = TarballStorage(storageService, bucket, '');
-    print('Removing GCS objects ...');
-    await Future.wait(versionNames
-        .map((version) => storage.remove(packageName, version.toString())));
-  });
-
-  print('Removing package from dartdoc backend ...');
-  await dartdocBackend.removeAll(packageName, concurrency: 32);
-
-  print('Removing package from PackageVersionPubspec ...');
-  await _deleteWithQuery(dbService.query<PackageVersionPubspec>()
-    ..filter('package =', packageName));
-
-  print('Removing package from PackageVersionInfo ...');
-  await _deleteWithQuery(
-      dbService.query<PackageVersionInfo>()..filter('package =', packageName));
-
-  print('Removing package from Jobs ...');
-  await _deleteWithQuery(
-      dbService.query<Job>()..filter('packageName =', packageName));
-
-  print('Removing package from History ...');
-  await _deleteWithQuery(
-      dbService.query<History>()..filter('packageName =', packageName));
-
-  print('Removing package from ScoreCardReport ...');
-  await _deleteWithQuery(
-      dbService.query<ScoreCardReport>()..filter('packageName =', packageName));
-
-  print('Removing package from ScoreCard ...');
-  await _deleteWithQuery(
-      dbService.query<ScoreCard>()..filter('packageName =', packageName));
-
-  print('Removing package from Like ...');
-  await _deleteWithQuery(
-      dbService.query<Like>()..filter('package =', packageName));
-
-  print('Package "$packageName" got successfully removed.');
-  print('NOTICE: Redis caches referencing the package will expire given time.');
+  await adminBackend.removePackage(packageName);
 }
 
 Future removePackageVersion(String packageName, String version) async {
