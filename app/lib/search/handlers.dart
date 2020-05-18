@@ -9,7 +9,7 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../shared/handlers.dart';
 
-import 'index_simple.dart';
+import 'backend.dart';
 import 'result_combiner.dart';
 import 'search_service.dart';
 

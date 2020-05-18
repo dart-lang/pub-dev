@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:meta/meta.dart';
-import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pana/pana.dart' show DependencyTypes;
 import 'package:path/path.dart' as p;
@@ -20,21 +19,6 @@ import 'search_service.dart';
 import 'text_utils.dart';
 
 final _logger = Logger('search.index_simple');
-
-/// The [PackageIndex] for Dart SDK API.
-PackageIndex get dartSdkIndex => ss.lookup(#_dartSdkIndex) as PackageIndex;
-
-/// Register a new [PackageIndex] for Dart SDK API.
-void registerDartSdkIndex(PackageIndex index) =>
-    ss.register(#_dartSdkIndex, index);
-
-/// The [PackageIndex] registered in the current service scope.
-PackageIndex get packageIndex =>
-    ss.lookup(#packageIndexService) as PackageIndex;
-
-/// Register a new [PackageIndex] in the current service scope.
-void registerPackageIndex(PackageIndex index) =>
-    ss.register(#packageIndexService, index);
 
 class SimplePackageIndex implements PackageIndex {
   final math.Random _random;

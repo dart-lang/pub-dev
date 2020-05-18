@@ -20,7 +20,6 @@ import '../shared/task_scheduler.dart';
 import '../shared/task_sources.dart';
 
 import 'backend.dart';
-import 'index_simple.dart';
 
 final Logger _logger = Logger('pub.search.updater');
 
