@@ -75,10 +75,10 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
         SimplePackageIndex.sdk(urlPrefix: dartSdkMainUrl(toolEnvSdkVersion)));
     registerEmailSender(EmailSender(activeConfiguration.blockEmails));
     registerHistoryBackend(HistoryBackend(dbService));
-    registerIndexUpdater(IndexUpdater(dbService));
     registerJobBackend(JobBackend(dbService));
     registerNameTracker(NameTracker(dbService));
     registerPackageIndex(SimplePackageIndex());
+    registerIndexUpdater(IndexUpdater(dbService, packageIndex));
     registerPopularityStorage(
       PopularityStorage(await getOrCreateBucket(
           storageService, activeConfiguration.popularityDumpBucketName)),
