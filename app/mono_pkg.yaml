@@ -8,4 +8,10 @@ stages:
         - dartfmt
         - dartanalyzer: --fatal-infos --fatal-warnings .
   - unit_test:
-    - test: --run-skipped
+    - test: --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '0~7p'`
+    - test: --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '1~7p'`
+    - test: --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '2~7p'`
+    - test: --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '3~7p'`
+    - test: --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '4~7p'`
+    - test: --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '5~7p'`
+    - test: --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '6~7p'`

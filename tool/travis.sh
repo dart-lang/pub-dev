@@ -71,10 +71,38 @@ for PKG in ${PKGS}; do
       dartfmt -n --set-exit-if-changed . || EXIT_CODE=$?
       ;;
     test_0)
+      echo 'pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '0~7p'`'
+      pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '0~7p'` || EXIT_CODE=$?
+      ;;
+    test_1)
+      echo 'pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '1~7p'`'
+      pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '1~7p'` || EXIT_CODE=$?
+      ;;
+    test_2)
+      echo 'pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '2~7p'`'
+      pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '2~7p'` || EXIT_CODE=$?
+      ;;
+    test_3)
+      echo 'pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '3~7p'`'
+      pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '3~7p'` || EXIT_CODE=$?
+      ;;
+    test_4)
+      echo 'pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '4~7p'`'
+      pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '4~7p'` || EXIT_CODE=$?
+      ;;
+    test_5)
+      echo 'pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '5~7p'`'
+      pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '5~7p'` || EXIT_CODE=$?
+      ;;
+    test_6)
+      echo 'pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '6~7p'`'
+      pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '6~7p'` || EXIT_CODE=$?
+      ;;
+    test_7)
       echo 'pub run test --run-skipped'
       pub run test --run-skipped || EXIT_CODE=$?
       ;;
-    test_1)
+    test_8)
       echo 'pub run test --run-skipped --concurrency=1'
       pub run test --run-skipped --concurrency=1 || EXIT_CODE=$?
       ;;
