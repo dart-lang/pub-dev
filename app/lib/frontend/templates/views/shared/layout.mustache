@@ -59,7 +59,11 @@
 <body class="{{& body_class}}">
 {{& site_header_html}}
 
-<div id="banner-container"></div>
+<div id="banner-container">
+  {{#has_announcement_banner}}
+  <div class="announcement-banner">{{& announcement_banner_html}}</div>
+  {{/has_announcement_banner}}
+</div>
 
 {{#show_search_banner}}
 <div class="_banner-bg">
