@@ -51,7 +51,13 @@ void main() {
   });
 
   group('default content', () {
-    final cache = StaticFileCache.withDefaults();
+    StaticFileCache cache;
+
+    setUpAll(() async {
+      await updateLocalBuiltFilesIfNeeded();
+      cache = StaticFileCache.withDefaults();
+    });
+
     final files = [
       '/static/css/github-markdown.css',
       '/static/highlight/github.css',
@@ -68,7 +74,6 @@ void main() {
     }
 
     test('proper hash in css content', () async {
-      await updateLocalBuiltFilesIfNeeded();
       final css = cache.getFile('/static/css/style.css');
       for (Match m
           in RegExp('url\\("(.*)"\\);').allMatches(css.contentAsString)) {
