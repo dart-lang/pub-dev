@@ -7,7 +7,7 @@ import 'dart:math';
 
 import 'package:test/test.dart';
 
-import 'package:pub_dev/search/index_simple.dart';
+import 'package:pub_dev/search/mem_index.dart';
 import 'package:pub_dev/search/search_service.dart';
 
 void main() {
@@ -135,10 +135,10 @@ void main() {
   });
 
   group('SimplePackageIndex', () {
-    SimplePackageIndex index;
+    InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = SimplePackageIndex();
+      index = InMemoryPackageIndex();
       await index.addPackage(PackageDocument(
         package: 'http',
         version: '0.11.3+14',
@@ -642,7 +642,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
   });
 
   group('SimplePackageIndex + randomize', () {
-    final index = SimplePackageIndex(random: Random(12345));
+    final index = InMemoryPackageIndex(random: Random(12345));
 
     setUpAll(() async {
       for (int i = 0; i < 1000; i++) {

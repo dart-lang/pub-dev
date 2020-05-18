@@ -6,7 +6,7 @@ import 'dart:convert';
 
 import 'package:test/test.dart';
 
-import 'package:pub_dev/search/index_simple.dart';
+import 'package:pub_dev/search/mem_index.dart';
 import 'package:pub_dev/search/scope_specificity.dart';
 import 'package:pub_dev/search/search_service.dart';
 
@@ -38,10 +38,10 @@ void main() {
   });
 
   group('platform rank', () {
-    SimplePackageIndex index;
+    InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = SimplePackageIndex();
+      index = InMemoryPackageIndex();
       await index.addPackage(PackageDocument(
         package: 'json_0',
       ));

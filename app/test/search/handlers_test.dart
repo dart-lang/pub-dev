@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:test/test.dart';
 
 import 'package:pub_dev/search/backend.dart';
-import 'package:pub_dev/search/index_simple.dart';
+import 'package:pub_dev/search/mem_index.dart';
 import 'package:pub_dev/search/search_service.dart';
 
 import '../shared/handlers_test_utils.dart';
@@ -34,8 +34,8 @@ void main() {
     group('search', () {
       Future<void> setUpInServiceScope() async {
         registerSearchBackend(MockSearchBackend());
-        registerPackageIndex(SimplePackageIndex());
-        registerDartSdkIndex(SimplePackageIndex());
+        registerPackageIndex(InMemoryPackageIndex());
+        registerDartSdkIndex(InMemoryPackageIndex());
         await packageIndex
             .addPackage(await searchBackend.loadDocument('pkg_foo'));
         await packageIndex.markReady();

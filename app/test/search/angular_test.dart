@@ -6,16 +6,16 @@ import 'dart:convert';
 
 import 'package:test/test.dart';
 
-import 'package:pub_dev/search/index_simple.dart';
+import 'package:pub_dev/search/mem_index.dart';
 import 'package:pub_dev/search/search_service.dart';
 import 'package:pub_dev/search/text_utils.dart';
 
 void main() {
   group('angular', () {
-    SimplePackageIndex index;
+    InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = SimplePackageIndex();
+      index = InMemoryPackageIndex();
       await index.addPackage(PackageDocument(
         package: 'angular',
         version: '4.0.0',

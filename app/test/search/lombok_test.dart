@@ -6,15 +6,15 @@ import 'dart:convert';
 
 import 'package:test/test.dart';
 
-import 'package:pub_dev/search/index_simple.dart';
+import 'package:pub_dev/search/mem_index.dart';
 import 'package:pub_dev/search/search_service.dart';
 
 void main() {
   group('lombok', () {
-    SimplePackageIndex index;
+    InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = SimplePackageIndex();
+      index = InMemoryPackageIndex();
       await index.addPackage(PackageDocument(
         package: 'lombok',
         version: '1.0.0',

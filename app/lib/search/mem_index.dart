@@ -18,9 +18,9 @@ import 'scoring.dart';
 import 'search_service.dart';
 import 'text_utils.dart';
 
-final _logger = Logger('search.index_simple');
+final _logger = Logger('search.mem_index');
 
-class SimplePackageIndex implements PackageIndex {
+class InMemoryPackageIndex implements PackageIndex {
   final math.Random _random;
   final bool _isSdkIndex;
   final String _urlPrefix;
@@ -36,12 +36,12 @@ class SimplePackageIndex implements PackageIndex {
   DateTime _lastUpdated;
   bool _isReady = false;
 
-  SimplePackageIndex({math.Random random})
+  InMemoryPackageIndex({math.Random random})
       : _random = random ?? math.Random.secure(),
         _isSdkIndex = false,
         _urlPrefix = null;
 
-  SimplePackageIndex.sdk({@required String urlPrefix})
+  InMemoryPackageIndex.sdk({@required String urlPrefix})
       : _random = math.Random.secure(),
         _isSdkIndex = true,
         _urlPrefix = urlPrefix;

@@ -6,15 +6,15 @@ import 'dart:convert';
 
 import 'package:test/test.dart';
 
-import 'package:pub_dev/search/index_simple.dart';
+import 'package:pub_dev/search/mem_index.dart';
 import 'package:pub_dev/search/search_service.dart';
 
 void main() {
   group('without content', () {
-    SimplePackageIndex index;
+    InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = SimplePackageIndex();
+      index = InMemoryPackageIndex();
       await index.addPackage(PackageDocument(package: 'jsontool'));
       await index.addPackage(PackageDocument(package: 'json2entity'));
       await index.addPackage(PackageDocument(package: 'json_to_model'));
@@ -35,10 +35,10 @@ void main() {
   });
 
   group('with content', () {
-    SimplePackageIndex index;
+    InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = SimplePackageIndex();
+      index = InMemoryPackageIndex();
       await index.addPackage(PackageDocument(
         package: 'jsontool',
         description:

@@ -6,15 +6,15 @@ import 'dart:convert';
 
 import 'package:test/test.dart';
 
-import 'package:pub_dev/search/index_simple.dart';
+import 'package:pub_dev/search/mem_index.dart';
 import 'package:pub_dev/search/search_service.dart';
 
 void main() {
   group('maps vs map', () {
-    SimplePackageIndex index;
+    InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = SimplePackageIndex();
+      index = InMemoryPackageIndex();
       await index.addPackage(PackageDocument(package: 'maps'));
       await index.addPackage(PackageDocument(package: 'map'));
       await index.markReady();

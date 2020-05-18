@@ -22,7 +22,7 @@ import '../publisher/backend.dart';
 import '../publisher/domain_verifier.dart';
 import '../scorecard/backend.dart';
 import '../search/backend.dart';
-import '../search/index_simple.dart';
+import '../search/mem_index.dart';
 import '../search/search_client.dart';
 import '../search/updater.dart';
 import '../shared/configuration.dart';
@@ -72,12 +72,12 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     );
     registerDartdocClient(DartdocClient());
     registerDartSdkIndex(
-        SimplePackageIndex.sdk(urlPrefix: dartSdkMainUrl(toolEnvSdkVersion)));
+        InMemoryPackageIndex.sdk(urlPrefix: dartSdkMainUrl(toolEnvSdkVersion)));
     registerEmailSender(EmailSender(activeConfiguration.blockEmails));
     registerHistoryBackend(HistoryBackend(dbService));
     registerJobBackend(JobBackend(dbService));
     registerNameTracker(NameTracker(dbService));
-    registerPackageIndex(SimplePackageIndex());
+    registerPackageIndex(InMemoryPackageIndex());
     registerIndexUpdater(IndexUpdater(dbService, packageIndex));
     registerPopularityStorage(
       PopularityStorage(await getOrCreateBucket(
