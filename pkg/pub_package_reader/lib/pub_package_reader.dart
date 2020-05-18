@@ -298,7 +298,7 @@ Iterable<ArchiveIssue> forbidPreReleaseSdk(Pubspec pubspec) sync* {
   if (pubspec.version.isPreRelease) return;
   final sdkConstraint = pubspec.environment['sdk'];
   if (sdkConstraint is VersionRange) {
-    if (sdkConstraint.min.isPreRelease) {
+    if (sdkConstraint.min != null && sdkConstraint.min.isPreRelease) {
       yield ArchiveIssue(
           'Packages with an SDK constraint on a pre-release of the Dart SDK '
           'should themselves be published as a pre-release version. ');

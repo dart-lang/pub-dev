@@ -191,6 +191,16 @@ void main() {
       ''');
       expect(forbidPreReleaseSdk(pubspec).toList(), isNotEmpty);
     });
+
+    test('no lower bound, should not throw exception', () {
+      final pubspec = Pubspec.parse('''
+      name: test_pkg
+      version: 1.0.0-dev.1
+      environment:
+        sdk: "<2.0.0"
+      ''');
+      expect(forbidPreReleaseSdk(pubspec).toList(), isEmpty);
+    });
   });
 
   group('real-world pubspec files', () {
