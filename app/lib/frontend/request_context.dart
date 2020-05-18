@@ -20,6 +20,10 @@ class RequestContext {
   /// Whether experimental UI features are activated.
   final bool isExperimental;
 
+  /// Whether we should display null-safety related data on the UI.
+  /// TODO: remove this field after launching null-safety support.
+  final bool isNullSafetyDisplayed;
+
   /// Whether indexing of the content by robots should be blocked.
   final bool blockRobots;
 
@@ -30,6 +34,7 @@ class RequestContext {
   const RequestContext({
     this.indentJson = false,
     this.isExperimental = false,
+    this.isNullSafetyDisplayed = false,
     this.blockRobots = true,
     this.uiCacheEnabled = false,
   });
