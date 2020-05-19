@@ -213,8 +213,8 @@ void main() {
             throwsA(isException.having(
                 (e) => '$e',
                 'text',
-                'OperationForbidden(403): We have sent an invitation to $newUploader, '
-                    'they will be added as uploader after they confirm it.')));
+                "OperationForbidden(403): We've sent an invitation email to $newUploader.\n"
+                    "They'll be added as an uploader after they accept the invitation.")));
 
         // uploaders do not change yet
         final list = await dbService.lookup<Package>([hydrogen.package.key]);

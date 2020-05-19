@@ -780,7 +780,8 @@ class PackageBackend {
     });
     return api.SuccessMessage(
         success: api.Message(
-            message: 'Successfully removed uploader from package.'));
+            message:
+                '$uploaderEmail has been removed as an uploader for this package.'));
   }
 }
 
