@@ -370,8 +370,6 @@ class PackageBackend {
         pubspec: pv.pubspec.asJson,
         archiveUrl: urls.pkgArchiveDownloadUrl(pv.package, pv.version,
             baseUri: baseUri),
-        // TODO: fetch and include null-safety data
-        isNullSafe: null,
       );
 
   @visibleForTesting
