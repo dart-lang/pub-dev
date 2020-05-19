@@ -15,7 +15,8 @@ void setupSearch() {
 }
 
 final _acceptedSearchPaths = <Pattern>[
-  '/packages',
+  RegExp(r'^/packages$'),
+  RegExp(r'^/packages\?'),
   '/dart/packages',
   '/flutter/packages',
   RegExp(r'^/publishers/([a-z0-9-]{1,63}\.)+[a-z0-9-]{1,63}/packages$'),
