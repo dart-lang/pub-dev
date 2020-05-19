@@ -294,8 +294,7 @@ class AdminBackend {
     await withRetryTransaction(_db, (tx) async {
       final deletes = <Key>[];
       final packageKey = _db.emptyKey.append(Package, id: packageName);
-      final package =
-          await tx.lookupValue<Package>(packageKey, orElse: () => null);
+      final package = await tx.lookupOrNull<Package>(packageKey);
       if (package == null) {
         _logger
             .info('Package $packageName not found. Removing related elements.');
