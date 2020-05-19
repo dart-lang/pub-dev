@@ -88,8 +88,8 @@ class PubToolClient {
       'pub',
       ['uploader', 'add', email],
       workingDirectory: pkgDir,
-      expectedError:
-          'We have sent an invitation to $email, they will be added as uploader after they confirm it.',
+      expectedError: "We've sent an invitation email to $email.\n"
+          "They'll be added as an uploader after they accept the invitation.",
     );
   }
 

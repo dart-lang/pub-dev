@@ -220,8 +220,11 @@ class OperationForbiddenException extends ResponseException {
   /// The uploader has been invited, but the operation can't complete until they
   /// accept it.
   OperationForbiddenException.uploaderInviteSent(String email)
-      : super._(403, 'OperationForbidden',
-            'We have sent an invitation to $email, they will be added as uploader after they confirm it.');
+      : super._(
+            403,
+            'OperationForbidden',
+            "We've sent an invitation email to $email.\n"
+                "They'll be added as an uploader after they accept the invitation.");
 
   /// The user tried to remove themselves from the list of uploaders and we
   /// don't allow that.
