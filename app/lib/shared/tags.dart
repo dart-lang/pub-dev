@@ -58,6 +58,44 @@ abstract class DartSdkTag {
 abstract class DartSdkRuntime {
   static const String nativeJit = 'native-jit';
   static const String web = 'web';
+
+  /// human-readable identifiers mapped to runtime tags
+  static const _decodeMap = <String, List<String>>{
+    'native': [nativeJit],
+    'js': [web],
+  };
+
+  // runtime tags mapped to human-readable identifiers
+  static const _encodeMap = <String, List<String>>{
+    nativeJit: ['native'],
+    web: ['js'],
+  };
+
+  /// Decodes the human-readable [values] and returns [DartSdkRuntime] tag values.
+  ///
+  /// The decoding may change the value, omit values, or emit more values.
+  static List<String> decodeQueryValues(List<String> values) {
+    if (values == null) return null;
+    final set = values.toSet();
+    DartSdkRuntime._decodeMap.forEach((key, values) {
+      if (set.remove(key)) set.addAll(values);
+    });
+    return set.toList()..sort();
+  }
+
+  /// Encodes the [DartSdkRuntime] tag values into human-readable format that
+  /// will be used in links.
+  ///
+  /// The encoding may change the value, omit values, or emit more values.
+  static List<String> encodeRuntimeTags(List<String> values) {
+    if (values == null) return null;
+
+    final set = values.toSet();
+    DartSdkRuntime._encodeMap.forEach((key, values) {
+      if (set.remove(key)) set.addAll(values);
+    });
+    return set.toList()..sort();
+  }
 }
 
 /// Collection of Flutter SDK platform tags (with prefix and value).

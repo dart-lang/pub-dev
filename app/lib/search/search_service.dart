@@ -314,8 +314,7 @@ class SearchQuery {
     if (sdk != null && sdk != SdkTagValue.any) {
       requiredTags.add('sdk:$sdk');
     }
-    runtimes
-        ?.where((v) => v.isNotEmpty)
+    DartSdkRuntime.decodeQueryValues(runtimes)
         ?.map((v) => 'runtime:$v')
         ?.forEach(requiredTags.add);
     platforms
@@ -579,8 +578,9 @@ class TagsPredicate {
   /// Returns the tag values that can be passed query parameters of the
   /// user-facing search query.
   Map<String, String> asSearchLinkParams() {
+    final runtimeTagParts = tagPartsWithPrefix('runtime', value: true);
     final params = <String, String>{
-      'runtime': tagPartsWithPrefix('runtime', value: true).join(' '),
+      'runtime': DartSdkRuntime.encodeRuntimeTags(runtimeTagParts).join(' '),
       'platform': tagPartsWithPrefix('platform', value: true).join(' '),
     };
     params.removeWhere((k, v) => v.isEmpty);
