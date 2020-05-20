@@ -6,14 +6,14 @@ import 'dart:convert';
 
 import 'package:test/test.dart';
 
-import 'package:pub_dev/search/index_simple.dart';
+import 'package:pub_dev/search/mem_index.dart';
 import 'package:pub_dev/search/result_combiner.dart';
 import 'package:pub_dev/search/search_service.dart';
 
 void main() {
   group('ResultCombiner', () {
-    final primaryIndex = SimplePackageIndex();
-    final dartSdkIndex = SimplePackageIndex.sdk(
+    final primaryIndex = InMemoryPackageIndex();
+    final dartSdkIndex = InMemoryPackageIndex.sdk(
         urlPrefix: 'https://api.dartlang.org/stable/2.0.0');
     final combiner = SearchResultCombiner(
         primaryIndex: primaryIndex, dartSdkIndex: dartSdkIndex);

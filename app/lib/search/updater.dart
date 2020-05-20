@@ -10,6 +10,7 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_dev/search/search_service.dart';
 
 import '../dartdoc/backend.dart';
 import '../package/models.dart' show Package;
@@ -19,7 +20,6 @@ import '../shared/task_scheduler.dart';
 import '../shared/task_sources.dart';
 
 import 'backend.dart';
-import 'index_simple.dart';
 
 final Logger _logger = Logger('pub.search.updater');
 
@@ -32,11 +32,12 @@ IndexUpdater get indexUpdater => ss.lookup(#_indexUpdater) as IndexUpdater;
 
 class IndexUpdater implements TaskRunner {
   final DatastoreDB _db;
+  final PackageIndex _packageIndex;
   SearchSnapshot _snapshot;
   DateTime _lastSnapshotWrite = DateTime.now();
   Timer _statsTimer;
 
-  IndexUpdater(this._db);
+  IndexUpdater(this._db, this._packageIndex);
 
   /// Loads the package index snapshot, or if it fails, creates a minimal
   /// package index with only package names and minimal information.
@@ -46,27 +47,27 @@ class IndexUpdater implements TaskRunner {
       _logger.info('Loading minimum package index...');
       int cnt = 0;
       await for (final pd in searchBackend.loadMinimumPackageIndex()) {
-        await packageIndex.addPackage(pd);
+        await _packageIndex.addPackage(pd);
         cnt++;
         if (cnt % 500 == 0) {
           _logger.info('Loaded $cnt minimum package data (${pd.package})');
         }
       }
-      await packageIndex.markReady();
+      await _packageIndex.markReady();
       _logger.info('Minimum package index loaded with $cnt packages.');
     }
   }
 
   /// Updates all packages in the index.
-  /// It is slower than searchBackend.loadMinimumPackageIndex, but provides a
+  /// It is slower than searchBackend.loadMinimum_packageIndex, but provides a
   /// complete document for the index.
   @visibleForTesting
   Future<void> updateAllPackages() async {
     await for (final p in _db.query<Package>().run()) {
       final doc = await searchBackend.loadDocument(p.name);
-      await packageIndex.addPackage(doc);
+      await _packageIndex.addPackage(doc);
     }
-    await packageIndex.markReady();
+    await _packageIndex.markReady();
   }
 
   /// Returns whether the snapshot was initialized and loaded properly.
@@ -78,12 +79,12 @@ class IndexUpdater implements TaskRunner {
         final int count = _snapshot.documents.length;
         _logger
             .info('Got $count packages from snapshot at ${_snapshot.updated}');
-        await packageIndex.addPackages(_snapshot.documents.values);
+        await _packageIndex.addPackages(_snapshot.documents.values);
         // Arbitrary sanity check that the snapshot is not entirely bogus.
         // Index merge will enable search.
         if (count > 10) {
           _logger.info('Merging index after snapshot.');
-          await packageIndex.markReady();
+          await _packageIndex.markReady();
           _logger.info('Snapshot load completed.');
           return true;
         }
@@ -150,11 +151,11 @@ class IndexUpdater implements TaskRunner {
       final doc = await searchBackend.loadDocument(task.package,
           requireAnalysis: requireAnalysis);
       _snapshot.add(doc);
-      await packageIndex.addPackage(doc);
+      await _packageIndex.addPackage(doc);
     } on RemovedPackageException catch (_) {
       _logger.info('Removing: ${task.package}');
       _snapshot.remove(task.package);
-      await packageIndex.removePackage(task.package);
+      await _packageIndex.removePackage(task.package);
     } on MissingAnalysisException catch (_) {
       // Nothing to do yet, keeping old version if it exists.
     }

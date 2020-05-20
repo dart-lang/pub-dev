@@ -6,13 +6,13 @@ import 'dart:convert';
 
 import 'package:test/test.dart';
 
-import 'package:pub_dev/search/index_simple.dart';
+import 'package:pub_dev/search/mem_index.dart';
 import 'package:pub_dev/search/search_service.dart';
 
 void main() {
   group('SearchQuery.tags', () {
     test('No tags in documents: positive tag match', () async {
-      final index = SimplePackageIndex();
+      final index = InMemoryPackageIndex();
       await index.addPackage(PackageDocument(package: 'pkg1'));
       await index.markReady();
 
@@ -27,7 +27,7 @@ void main() {
     });
 
     test('No tags in documents: negative tag match', () async {
-      final index = SimplePackageIndex();
+      final index = InMemoryPackageIndex();
       await index.addPackage(PackageDocument(package: 'pkg1'));
       await index.markReady();
 
@@ -44,7 +44,7 @@ void main() {
     });
 
     test('One tag in documents: negative tag match', () async {
-      final index = SimplePackageIndex();
+      final index = InMemoryPackageIndex();
       await index.addPackage(PackageDocument(package: 'pkg1', tags: ['is:a']));
       await index.addPackage(PackageDocument(package: 'pkg2', tags: ['is:b']));
       await index.markReady();
@@ -62,7 +62,7 @@ void main() {
     });
 
     test('One tag in documents: positive tag match', () async {
-      final index = SimplePackageIndex();
+      final index = InMemoryPackageIndex();
       await index.addPackage(PackageDocument(package: 'pkg1', tags: ['is:a']));
       await index.addPackage(PackageDocument(package: 'pkg2', tags: ['is:b']));
       await index.markReady();
@@ -80,7 +80,7 @@ void main() {
     });
 
     test('More tags in documents: multiple results', () async {
-      final index = SimplePackageIndex();
+      final index = InMemoryPackageIndex();
       await index.addPackage(
           PackageDocument(package: 'pkg1', tags: ['is:a', 'is:dart1']));
       await index.addPackage(
@@ -101,7 +101,7 @@ void main() {
     });
 
     test('More tags in documents: multiple queried tags #1', () async {
-      final index = SimplePackageIndex();
+      final index = InMemoryPackageIndex();
       await index.addPackage(
           PackageDocument(package: 'pkg1', tags: ['is:a', 'is:dart1']));
       await index.addPackage(
@@ -121,7 +121,7 @@ void main() {
     });
 
     test('More tags in documents: multiple queried tags #2', () async {
-      final index = SimplePackageIndex();
+      final index = InMemoryPackageIndex();
       await index.addPackage(
           PackageDocument(package: 'pkg1', tags: ['is:a', 'is:dart1']));
       await index.addPackage(
@@ -141,7 +141,7 @@ void main() {
     });
 
     test('User-supplied queried tags #1', () async {
-      final index = SimplePackageIndex();
+      final index = InMemoryPackageIndex();
       await index
           .addPackage(PackageDocument(package: 'pkg1', tags: ['is:a', 'is:b']));
       await index.addPackage(PackageDocument(package: 'pkg2', tags: ['is:b']));
@@ -158,7 +158,7 @@ void main() {
     });
 
     test('User-supplied queried tags #2', () async {
-      final index = SimplePackageIndex();
+      final index = InMemoryPackageIndex();
       await index
           .addPackage(PackageDocument(package: 'pkg1', tags: ['is:a', 'is:b']));
       await index.addPackage(PackageDocument(package: 'pkg2', tags: ['is:a']));

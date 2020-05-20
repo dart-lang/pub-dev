@@ -45,6 +45,21 @@ void registerSnapshotStorage(SnapshotStorage storage) =>
 SnapshotStorage get snapshotStorage =>
     ss.lookup(#_snapshotStorage) as SnapshotStorage;
 
+/// The [PackageIndex] for Dart SDK API.
+PackageIndex get dartSdkIndex => ss.lookup(#_dartSdkIndex) as PackageIndex;
+
+/// Register a new [PackageIndex] for Dart SDK API.
+void registerDartSdkIndex(PackageIndex index) =>
+    ss.register(#_dartSdkIndex, index);
+
+/// The [PackageIndex] registered in the current service scope.
+PackageIndex get packageIndex =>
+    ss.lookup(#packageIndexService) as PackageIndex;
+
+/// Register a new [PackageIndex] in the current service scope.
+void registerPackageIndex(PackageIndex index) =>
+    ss.register(#packageIndexService, index);
+
 /// Datastore-related access methods for the search service
 class SearchBackend {
   final DatastoreDB _db;
