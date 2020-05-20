@@ -33,21 +33,28 @@
     {{/is_external}}
     {{^is_external}}
     <p class="packages-metadata">
-      v <a href="{{& url}}">{{version}}</a>
-      {{#show_prerelease_version}} / <a href="{{& prerelease_version_url}}">{{prerelease_version}}</a>{{/show_prerelease_version}}
-      • Updated: <span>{{last_uploaded}}</span>
+      <span class="packages-metadata-block">
+        v <a href="{{& url}}">{{version}}</a>
+        {{#show_prerelease_version}} / <a href="{{& prerelease_version_url}}">{{prerelease_version}}</a>{{/show_prerelease_version}}
+        • Updated: <span>{{last_uploaded}}</span>
+      </span>
       {{#publisher_id}}
-      <img class="packages-vp-icon"
+      <span class="packages-metadata-block">
+        <img class="packages-vp-icon"
            src="{{& static_assets.img__verified-publisher-icon_svg}}"
            title="Published by a pub.dev verified publisher" />
-      <a href="/publishers/{{publisher_id}}">{{publisher_id}}</a>
+        <a href="/publishers/{{publisher_id}}">{{publisher_id}}</a>
+      </span>
       {{/publisher_id}}
       {{#is_flutter_favorite}}
-        <span class="package-badge">
-          <img class="package-badge-icon" src="{{static_assets.img__flutter-logo-32x32_png}}" />
-          Flutter Favorite
-        </span>
+      <span class="package-badge">
+        <img class="package-badge-icon" src="{{static_assets.img__flutter-logo-32x32_png}}" />
+        Flutter Favorite
+      </span>
       {{/is_flutter_favorite}}
+      {{#is_null_safe}}
+      <span class="package-badge" title="Supports the null safety language feature.">Null safety</span>
+      {{/is_null_safe}}
     </p>
     {{/is_external}}
     <div>{{& tags_html}}</div>

@@ -66,6 +66,8 @@ String renderPackageList(
       'last_uploaded': view.shortUpdated,
       'desc': view.ellipsizedDescription,
       'is_flutter_favorite': view.tags.contains(PackageTags.isFlutterFavorite),
+      'is_null_safe': requestContext.isNullSafetyDisplayed &&
+          view.tags.contains(PackageVersionTags.isNullSafe),
       'publisher_id': view.publisherId,
       'publisher_url':
           view.publisherId == null ? null : urls.publisherUrl(view.publisherId),
