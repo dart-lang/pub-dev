@@ -4,6 +4,7 @@
 
 import 'package:test/test.dart';
 
+import 'package:pub_dev/search/search_service.dart' show SearchQuery;
 import 'package:pub_dev/shared/urls.dart';
 
 void main() {
@@ -199,8 +200,62 @@ void main() {
     });
 
     test('sdk:dart runtime:native', () {
-      expect(searchUrl(sdk: 'dart', runtimes: ['native']),
-          '/dart/packages?runtime=native');
+      expect(
+        searchUrl(sdk: 'dart', runtimes: ['native']),
+        '/dart/packages?runtime=native',
+      );
+      expect(
+        SearchQuery.parse(runtimes: ['native'])
+            .tagsPredicate
+            .toQueryParameters(),
+        ['runtime:native-jit'],
+      );
+    });
+
+    test('sdk:dart runtime:native-jit', () {
+      expect(
+        searchUrl(sdk: 'dart', runtimes: ['native-jit']),
+        '/dart/packages?runtime=native',
+      );
+      expect(
+        SearchQuery.parse(runtimes: ['native-jit'])
+            .tagsPredicate
+            .toQueryParameters(),
+        ['runtime:native-jit'],
+      );
+    });
+
+    test('sdk:dart runtime:web', () {
+      expect(
+        searchUrl(sdk: 'dart', runtimes: ['web']),
+        '/dart/packages?runtime=js',
+      );
+      expect(
+        SearchQuery.parse(runtimes: ['web']).tagsPredicate.toQueryParameters(),
+        ['runtime:web'],
+      );
+    });
+
+    test('sdk:dart runtime:js', () {
+      expect(
+        searchUrl(sdk: 'dart', runtimes: ['js']),
+        '/dart/packages?runtime=js',
+      );
+      expect(
+        SearchQuery.parse(runtimes: ['js']).tagsPredicate.toQueryParameters(),
+        ['runtime:web'],
+      );
+    });
+
+    test('sdk:dart runtime:xxy', () {
+      expect(
+        searchUrl(sdk: 'dart', runtimes: ['xxy']),
+        '/dart/packages?runtime=xxy',
+      );
+      expect(
+        SearchQuery.parse(runtimes: ['xxy']).tagsPredicate.toQueryParameters(),
+        ['runtime:xxy'],
+      );
     });
 
     test('sdk:flutter', () {

@@ -211,7 +211,7 @@ void main() {
           'runtime:web',
         ],
       );
-      expect(query.toSearchLink(), '/dart/packages?runtime=web');
+      expect(query.toSearchLink(), '/dart/packages?runtime=js');
     });
   });
 }
