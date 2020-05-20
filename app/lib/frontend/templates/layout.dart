@@ -10,6 +10,7 @@ import 'package:meta/meta.dart';
 import '../../account/backend.dart';
 import '../../account/models.dart' show SearchPreference;
 import '../../search/search_service.dart';
+import '../../service/announcement/backend.dart';
 import '../../shared/configuration.dart';
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
@@ -72,6 +73,7 @@ String renderLayoutPage(
     searchQuery: searchQuery,
     searchPlaceholder: searchPlaceHolder,
   );
+  final announcementBannerHtml = announcementBackend.getAnnouncementHtml();
   final values = {
     'is_experimental': requestContext.isExperimental,
     'is_landing': type == PageType.landing,
@@ -100,6 +102,9 @@ String renderLayoutPage(
     'schema_org_searchaction_json':
         isRoot ? encodeScriptSafeJson(_schemaOrgSearchAction) : null,
     'page_data_encoded': pageDataEncoded,
+    'has_announcement_banner':
+        requestContext.isExperimental && announcementBannerHtml != null,
+    'announcement_banner_html': announcementBannerHtml,
   };
 
   return templateCache.renderTemplate('shared/layout', values);

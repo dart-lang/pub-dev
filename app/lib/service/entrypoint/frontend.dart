@@ -13,6 +13,7 @@ import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_dev/service/announcement/backend.dart';
 import 'package:stream_transform/stream_transform.dart' show RateLimit;
 import 'package:watcher/watcher.dart';
 
@@ -82,6 +83,8 @@ Future _main(FrontendEntryMessage message) async {
     }
     await popularityStorage.init();
     nameTracker.startTracking();
+    await announcementBackend.update();
+    announcementBackend.scheduleRegularUpdates();
 
     await runHandler(_logger, appHandler,
         sanitize: true, cronHandler: cron.handler);

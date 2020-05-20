@@ -33,6 +33,7 @@ import '../shared/storage_retry.dart' show withStorageRetry;
 import '../shared/urls.dart';
 import '../shared/versions.dart';
 
+import 'announcement/backend.dart';
 import 'secret/backend.dart';
 
 /// Run [fn] with services;
@@ -55,6 +56,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     registerAccountBackend(AccountBackend(dbService));
     registerAdminBackend(AdminBackend(dbService));
     registerAnalyzerClient(AnalyzerClient());
+    registerAnnouncementBackend(AnnouncementBackend());
     registerAuthProvider(GoogleOauth2AuthProvider(
       <String>[
         activeConfiguration.pubClientAudience,
@@ -103,6 +105,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     // depends on previously registered services
     registerPackageBackend(PackageBackend(dbService, tarballStorage));
 
+    registerScopeExitCallback(announcementBackend.close);
     registerScopeExitCallback(() async => nameTracker.stopTracking());
     registerScopeExitCallback(indexUpdater.close);
     registerScopeExitCallback(authProvider.close);
