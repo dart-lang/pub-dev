@@ -5,6 +5,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bumped runtimeVersion to `2020.05.15`.
  * Upgraded Dart runtime SDK to `2.8.2`.
  * Upgraded Flutter to `1.17.1`.
+ * Deploy `index.yaml` to update index definition for `Like`
+   `gcloud datastore indexes create index.yaml`
 
 ## `20200513t104411-all`
  * Bumped runtimeVersion to `2020.05.08`.
