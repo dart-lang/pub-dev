@@ -15,10 +15,11 @@ void setupSearch() {
 }
 
 final _acceptedSearchPaths = <Pattern>[
-  '/packages',
-  '/dart/packages',
-  '/flutter/packages',
-  RegExp(r'^/publishers/([a-z0-9-]{1,63}\.)+[a-z0-9-]{1,63}/packages$'),
+  RegExp(r'^/packages(?:\?|$)'),
+  RegExp(r'^/dart/packages(?:\?|$)'),
+  RegExp(r'^/flutter/packages(?:\?|$)'),
+  RegExp(r'^/flutter/favorites(?:\?|$)'),
+  RegExp(r'^/publishers/([a-z0-9-]{1,63}\.)+[a-z0-9-]{1,63}/packages(?:\?|$)'),
 ];
 
 void _setBackToReferrer() {
