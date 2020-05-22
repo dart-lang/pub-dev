@@ -353,6 +353,10 @@ class AdminBackend {
     await _deleteWithQuery(
         _db.query<PackageVersionInfo>()..filter('package =', packageName));
 
+    _logger.info('Removing package from PackageVersionAsset ...');
+    await _deleteWithQuery(dbService.query<PackageVersionAsset>()
+      ..filter('package =', packageName));
+
     _logger.info('Removing package from Jobs ...');
     await _deleteWithQuery(
         _db.query<Job>()..filter('packageName =', packageName));

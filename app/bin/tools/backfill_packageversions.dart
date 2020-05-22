@@ -23,6 +23,8 @@ Future main(List<String> args) async {
         'Ensures a matching PackageVersionPubspec entity exists for each PackageVersion.');
     print(
         'Ensures a matching PackageVersionInfo entity exists for each PackageVersion.');
+    print(
+        'Ensures that PackageVersionAsset entities exists for each PackageVersion.');
     print(_argParser.usage);
     return;
   }
@@ -32,9 +34,11 @@ Future main(List<String> args) async {
 
   await withToolRuntime(() async {
     if (package != null) {
-      await backfillAllVersionsOfPackage(package);
+      final stat = await backfillAllVersionsOfPackage(package);
+      print(stat);
     } else {
-      await backfillAllVersionsOfPackages(concurrency);
+      final stat = await backfillAllVersionsOfPackages(concurrency);
+      print(stat);
     }
   });
 }

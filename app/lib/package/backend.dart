@@ -506,6 +506,7 @@ class PackageBackend {
           newVersion,
           validatedUpload.packageVersionPubspec,
           validatedUpload.packageVersionInfo,
+          ...validatedUpload.assets,
         ];
         if (historyBackend.isEnabled) {
           final history = History.entry(PackageUploaded(
@@ -850,11 +851,25 @@ class _ValidatedUpload {
   final PackageVersion packageVersion;
   final PackageVersionPubspec packageVersionPubspec;
   final PackageVersionInfo packageVersionInfo;
+  final List<PackageVersionAsset> assets;
 
   _ValidatedUpload(
     this.packageVersion,
     this.packageVersionPubspec,
     this.packageVersionInfo,
+    this.assets,
+  );
+}
+
+class DerivedPackageVersionEntities {
+  final PackageVersionPubspec packageVersionPubspec;
+  final PackageVersionInfo packageVersionInfo;
+  final List<PackageVersionAsset> assets;
+
+  DerivedPackageVersionEntities(
+    this.packageVersionPubspec,
+    this.packageVersionInfo,
+    this.assets,
   );
 }
 
@@ -888,9 +903,6 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
     throw InvalidInputException.canonicalizeVersionError(pubspec.version);
   }
 
-  final key =
-      QualifiedVersionKey(package: pubspec.name, version: versionString);
-
   final version = PackageVersion()
     ..id = versionString
     ..parentKey = packageKey
@@ -908,18 +920,77 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
     ..downloads = 0
     ..uploader = user.userId;
 
+  final derived = derivePackageVersionEntities(
+    archive: archive,
+    versionCreated: version.created,
+  );
+  return _ValidatedUpload(version, derived.packageVersionPubspec,
+      derived.packageVersionInfo, derived.assets);
+}
+
+/// Creates new Datastore entities from the actual extraction of package [archive].
+DerivedPackageVersionEntities derivePackageVersionEntities({
+  @required PackageSummary archive,
+  @required DateTime versionCreated,
+}) {
+  final pubspec = Pubspec.fromYaml(archive.pubspecContent);
+  final key =
+      QualifiedVersionKey(package: pubspec.name, version: pubspec.version);
+
   final versionPubspec = PackageVersionPubspec()
     ..initFromKey(key)
-    ..updated = version.created
+    ..versionCreated = versionCreated
+    ..updated = DateTime.now().toUtc()
     ..pubspec = pubspec;
+
+  final assets = <PackageVersionAsset>[
+    PackageVersionAsset.init(
+      package: key.package,
+      version: key.version,
+      kind: AssetKind.pubspec,
+      versionCreated: versionCreated,
+      path: 'pubspec.yaml',
+      textContent: archive.pubspecContent,
+    ),
+    if (archive.readmePath != null)
+      PackageVersionAsset.init(
+        package: key.package,
+        version: key.version,
+        kind: AssetKind.readme,
+        versionCreated: versionCreated,
+        path: archive.readmePath,
+        textContent: archive.readmeContent,
+      ),
+    if (archive.changelogPath != null)
+      PackageVersionAsset.init(
+        package: key.package,
+        version: key.version,
+        kind: AssetKind.changelog,
+        versionCreated: versionCreated,
+        path: archive.changelogPath,
+        textContent: archive.changelogContent,
+      ),
+    if (archive.examplePath != null)
+      PackageVersionAsset.init(
+        package: key.package,
+        version: key.version,
+        kind: AssetKind.example,
+        versionCreated: versionCreated,
+        path: archive.examplePath,
+        textContent: archive.exampleContent,
+      ),
+  ];
 
   final versionInfo = PackageVersionInfo()
     ..initFromKey(key)
-    ..updated = version.created
+    ..versionCreated = versionCreated
+    ..updated = DateTime.now().toUtc()
     ..libraries = archive.libraries
-    ..libraryCount = archive.libraries.length;
+    ..libraryCount = archive.libraries.length
+    ..assets = assets.map((a) => a.kind).toList()
+    ..assetCount = assets.length;
 
-  return _ValidatedUpload(version, versionPubspec, versionInfo);
+  return DerivedPackageVersionEntities(versionPubspec, versionInfo, assets);
 }
 
 /// Helper utility class for interfacing with Cloud Storage for storing
