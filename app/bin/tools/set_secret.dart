@@ -21,7 +21,7 @@ Future main(List<String> args) async {
   final String id = args[0];
   final String value = args[1];
 
-  if (!SecretKey.values.contains(id) && !id.startsWith(SecretKey.oauthPrefix)) {
+  if (!SecretKey.isValid(id)) {
     print('ID should be one of [${SecretKey.values}] or prefixed'
         ' ${SecretKey.oauthPrefix}.');
     return;

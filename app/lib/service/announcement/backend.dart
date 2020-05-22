@@ -6,6 +6,8 @@ import 'dart:async';
 
 import 'package:gcloud/service_scope.dart' as ss;
 
+import '../secret/backend.dart';
+
 /// Sets the announcement backend service.
 void registerAnnouncementBackend(AnnouncementBackend backend) =>
     ss.register(#_announcementBackend, backend);
@@ -21,7 +23,10 @@ class AnnouncementBackend {
 
   /// Loads the active announcement from Datastore.
   Future<void> update() async {
-    // TODO: implement loading announcements from Datastore.
+    final value = await secretBackend.lookup(SecretKey.announcement);
+    if (value != null && value.trim().isNotEmpty) {
+      _announcementHtml = value.trim();
+    }
   }
 
   /// Sets a timer to update announcements regularly.
