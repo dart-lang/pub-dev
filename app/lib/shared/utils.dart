@@ -264,20 +264,6 @@ Future<http.Response> getUrlWithRetry(http.Client client, String url,
   return result;
 }
 
-/// To avoid having the same String values many times in memory we intern them.
-/// https://en.wikipedia.org/wiki/String_interning
-class StringInternPool {
-  final Map<String, String> _values = <String, String>{};
-
-  String intern(String value) => _values.putIfAbsent(value, () => value);
-
-  void checkUnboundGrowth() {
-    if (_values.length > 100000) {
-      _values.clear();
-    }
-  }
-}
-
 /// Returns the MIME content type based on the name of the file.
 String contentType(String name) {
   final ext = p.extension(name).replaceAll('.', '');

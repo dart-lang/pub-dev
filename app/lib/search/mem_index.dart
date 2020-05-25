@@ -11,7 +11,7 @@ import 'package:pana/pana.dart' show DependencyTypes;
 import 'package:path/path.dart' as p;
 
 import '../shared/tags.dart';
-import '../shared/utils.dart' show boundedList, StringInternPool;
+import '../shared/utils.dart' show boundedList;
 
 import 'scope_specificity.dart';
 import 'scoring.dart';
@@ -33,7 +33,6 @@ class InMemoryPackageIndex implements PackageIndex {
   final TokenIndex _readmeIndex = TokenIndex(minLength: 3);
   final TokenIndex _apiSymbolIndex = TokenIndex(minLength: 2);
   final TokenIndex _apiDartdocIndex = TokenIndex(minLength: 3);
-  final StringInternPool _internPool = StringInternPool();
   DateTime _lastUpdated;
   bool _isReady = false;
 
@@ -62,8 +61,7 @@ class InMemoryPackageIndex implements PackageIndex {
   }
 
   @override
-  Future<void> addPackage(PackageDocument document) async {
-    final doc = document.intern(_internPool.intern);
+  Future<void> addPackage(PackageDocument doc) async {
     _packages[doc.package] = doc;
 
     // The method could be a single sync block, however, while the index update
@@ -100,7 +98,6 @@ class InMemoryPackageIndex implements PackageIndex {
     _normalizedPackageText[doc.package] = normalizeBeforeIndexing(allText);
 
     await Future.delayed(Duration.zero);
-    _internPool.checkUnboundGrowth();
     _lastUpdated = DateTime.now().toUtc();
   }
 

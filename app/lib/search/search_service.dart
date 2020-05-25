@@ -122,32 +122,6 @@ class PackageDocument {
   factory PackageDocument.fromJson(Map<String, dynamic> json) =>
       _$PackageDocumentFromJson(json);
 
-  PackageDocument intern(String Function(String value) internFn) {
-    return PackageDocument(
-      package: internFn(package),
-      version: version,
-      description: description,
-      created: created,
-      updated: updated,
-      readme: readme,
-      tags: tags.map(internFn).toList(),
-      health: health,
-      popularity: popularity,
-      maintenance: maintenance,
-      dependencies: dependencies == null
-          ? null
-          : {
-              for (var key in dependencies.keys)
-                internFn(key): internFn(dependencies[key])
-            },
-      likeCount: likeCount,
-      publisherId: internFn(publisherId),
-      uploaderEmails: uploaderEmails?.map(internFn)?.toList(),
-      apiDocPages: apiDocPages?.map((p) => p.intern(internFn))?.toList(),
-      timestamp: timestamp,
-    );
-  }
-
   Map<String, dynamic> toJson() => _$PackageDocumentToJson(this);
 }
 
@@ -162,14 +136,6 @@ class ApiDocPage {
 
   factory ApiDocPage.fromJson(Map<String, dynamic> json) =>
       _$ApiDocPageFromJson(json);
-
-  ApiDocPage intern(String Function(String value) internFn) {
-    return ApiDocPage(
-      relativePath: internFn(relativePath),
-      symbols: symbols?.map(internFn)?.toList(),
-      textBlocks: textBlocks,
-    );
-  }
 
   Map<String, dynamic> toJson() => _$ApiDocPageToJson(this);
 }

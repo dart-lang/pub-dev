@@ -9,14 +9,22 @@ import 'package:logging/logging.dart';
 
 import 'package:pub_dev/package/models.dart';
 
-import '../shared/utils.dart' show StringInternPool;
-
 final Logger _logger = Logger('pub.package_graph');
 
 // TODO(kustermann): We could incorporate the pubspec constraints to make the
 // sets smaller.
 class TransitiveDependencyGraph {
-  final Map<String, Set<String>> _deps = <String, Set<String>>{};
+  final _deps = <String, Set<String>>{};
+  final _internedKeys = <String, String>{};
+
+  void _logStats() {
+    final stats = <String, dynamic>{
+      'keys': _deps.length,
+      'values': _deps.values.fold(0, (a, b) => a + b.length),
+      'interned': _internedKeys.length,
+    };
+    _logger.info('TransitiveDependencyGraph stats: $stats');
+  }
 
   void addAll(String node, Set<String> deps) {
     final nodes = _deps.putIfAbsent(node, _newSet);
@@ -28,12 +36,15 @@ class TransitiveDependencyGraph {
   }
 
   void add(String node, String dep) {
-    if (_deps.putIfAbsent(node, _newSet).add(dep)) {
+    node = _intern(node);
+    if (_deps.putIfAbsent(node, _newSet).add(_intern(dep))) {
       _fixpointNode(node);
     }
   }
 
   Set<String> transitiveNodes(String node) => _deps.putIfAbsent(node, _newSet);
+
+  String _intern(String s) => _internedKeys.putIfAbsent(s, () => s);
 
   void _fixpointNode(String node) {
     final Set<String> directs = _deps[node];
@@ -65,14 +76,13 @@ typedef OnAffected = Future<void> Function(
     String package, String version, Set<String> affected);
 
 class PackageDependencyBuilder {
-  static const Duration pollingInterval = Duration(minutes: 1);
-  static const String devPrefix = 'dev/';
+  static const Duration _pollingInterval = Duration(minutes: 1);
+  static const String _devPrefix = 'dev/';
 
-  final DatastoreDB db;
+  final DatastoreDB _db;
   final OnAffected _onAffected;
 
-  final TransitiveDependencyGraph reverseDeps = TransitiveDependencyGraph();
-  final String Function(String) _intern = StringInternPool().intern;
+  final _reverseDeps = TransitiveDependencyGraph();
 
   DateTime _lastTs;
 
@@ -87,7 +97,7 @@ class PackageDependencyBuilder {
     return builder;
   }
 
-  PackageDependencyBuilder._(this.db, this._onAffected);
+  PackageDependencyBuilder._(this._db, this._onAffected);
 
   Future<void> scanExistingPackageGraph() async {
     final sw = Stopwatch()..start();
@@ -96,8 +106,7 @@ class PackageDependencyBuilder {
       try {
         // We scan from oldest to newest and therefore keep [_lastTs] always
         // increasing.
-        final query = dbService.query<PackageVersionPubspec>()
-          ..order('updated');
+        final query = _db.query<PackageVersionPubspec>()..order('updated');
         await for (PackageVersionPubspec pv in query.run()) {
           addPackageVersion(pv);
           _lastTs = pv.updated;
@@ -107,6 +116,7 @@ class PackageDependencyBuilder {
         continue;
       }
       _logger.info('Scanned package graph in ${sw.elapsed}');
+      _reverseDeps._logStats();
       return;
     }
   }
@@ -116,11 +126,13 @@ class PackageDependencyBuilder {
     _logger.info('Monitoring new package uploads.');
     for (;;) {
       try {
-        final query = dbService.query<PackageVersionPubspec>()
+        final query = _db.query<PackageVersionPubspec>()
           ..filter('updated >', _lastTs)
           ..order('updated');
+        var updated = false;
         await for (PackageVersionPubspec pv in query.run()) {
           addPackageVersion(pv);
+          updated = true;
 
           final affected = affectedPackages(pv.package);
           _logger.info(
@@ -139,10 +151,13 @@ class PackageDependencyBuilder {
 
           _lastTs = pv.updated;
         }
+        if (updated) {
+          _reverseDeps._logStats();
+        }
       } catch (e, s) {
         _logger.severe(e, s);
       }
-      await Future.delayed(pollingInterval);
+      await Future.delayed(_pollingInterval);
     }
   }
 
@@ -163,35 +178,31 @@ class PackageDependencyBuilder {
     //
     // So we trigger all packages that depend (directly or indirectly) on
     // [package].
-    final Set<String> transitiveUsers =
-        reverseDeps.transitiveNodes(_intern(package));
+    final Set<String> transitiveUsers = _reverseDeps.transitiveNodes(package);
 
     // We filter out all dev package usages and trigger an analysis for them
     // (the dev packages are a superset of the normal packages).
     final Set<String> all = transitiveUsers
-        .where((String p) => p.startsWith(devPrefix))
-        .map((String p) => p.substring(devPrefix.length))
+        .where((String p) => p.startsWith(_devPrefix))
+        .map((String p) => p.substring(_devPrefix.length))
         .toSet();
     return all;
   }
 
   void _add(String package, Set<String> deps, Set<String> devDeps) {
-    final internedPackage = _intern(package);
-    final internedDevPackage = _intern(_devPackage(package));
+    final devPackage = _devPackage(package);
 
     for (final String dep in deps) {
-      final internedDep = _intern(dep);
-      reverseDeps.add(internedDep, internedPackage);
-      reverseDeps.add(internedDep, internedDevPackage);
+      _reverseDeps.add(dep, package);
+      _reverseDeps.add(dep, devPackage);
     }
 
     for (final String dep in devDeps) {
-      final internedDep = _intern(dep);
-      reverseDeps.add(internedDep, internedDevPackage);
+      _reverseDeps.add(dep, devPackage);
     }
   }
 
   // We use a synthetic package to handle weak dependencies / dev
   // dependencies (no package is depending on this one).
-  String _devPackage(String package) => '$devPrefix$package';
+  String _devPackage(String package) => '$_devPrefix$package';
 }
