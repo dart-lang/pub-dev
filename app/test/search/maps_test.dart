@@ -28,7 +28,7 @@ void main() {
         'totalCount': 2,
         'packages': [
           {'package': 'maps', 'score': 1.0},
-          {'package': 'map', 'score': closeTo(0.745, 0.001)},
+          {'package': 'map', 'score': closeTo(0.938, 0.001)},
         ],
       });
     });
@@ -41,7 +41,7 @@ void main() {
         'totalCount': 2,
         'packages': [
           {'package': 'map', 'score': 1.0},
-          {'package': 'maps', 'score': 0.75},
+          {'package': 'maps', 'score': closeTo(0.938, 0.001)},
         ],
       });
     });

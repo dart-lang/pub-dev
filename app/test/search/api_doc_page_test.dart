@@ -127,7 +127,7 @@ void main() {
           },
           {
             'package': 'other_with_api',
-            'score': closeTo(0.034, 0.001), // find serveWebPages (low score)
+            'score': closeTo(0.041, 0.001), // find serveWebPages (low score)
             'apiPages': [
               {'title': null, 'path': 'serve.html'},
             ],
