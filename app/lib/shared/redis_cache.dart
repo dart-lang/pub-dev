@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
 
 import '../account/models.dart' show LikeData, UserSessionData;
@@ -207,7 +208,8 @@ Future _withRedisCache(FutureOr Function() fn) async {
   }
 
   // Create and register a cache
-  final cacheProvider = Cache.redisCacheProvider(connectionString);
+  final cacheProvider = await _UpdatingCacheProvider.connect(
+      () async => Cache.redisCacheProvider(connectionString));
   _registerCache(CachePatterns._(Cache(cacheProvider)));
 
   try {
@@ -222,4 +224,58 @@ Future _withRedisCache(FutureOr Function() fn) async {
 Future _withInmemoryCache(FutureOr Function() fn) async {
   _registerCache(CachePatterns._(Cache(Cache.inMemoryCacheProvider(4096))));
   return await fn();
+}
+
+typedef CacheProviderFn<T> = Future<CacheProvider<T>> Function();
+
+class _UpdatingCacheProvider<T> implements CacheProvider<T> {
+  final CacheProviderFn<T> _fn;
+  CacheProvider<T> _delegate;
+  Timer _timer;
+  bool _isClosed = false;
+
+  _UpdatingCacheProvider._(this._fn, this._delegate) {
+    _timer = Timer.periodic(Duration(hours: 1), (_) async {
+      _log.info('Starting to update redis connection...');
+      try {
+        final newProvider = await _fn();
+        // Warm-up redis connection
+        await newProvider.get('ping');
+
+        if (_isClosed) {
+          // discard if `close` was called during the Timer callback
+          await newProvider.close();
+        } else {
+          // otherwise update provider and close old one
+          final d = _delegate;
+          _delegate = newProvider;
+          await d.close();
+        }
+      } catch (e, st) {
+        _log.warning('Failed to update redis connection.', e, st);
+      }
+    });
+  }
+
+  static Future<_UpdatingCacheProvider<T>> connect<T>(
+      CacheProviderFn<T> fn) async {
+    return _UpdatingCacheProvider._(fn, await fn());
+  }
+
+  @override
+  Future<void> close() async {
+    _isClosed = true;
+    _timer.cancel();
+    await _delegate.close();
+  }
+
+  @override
+  Future<T> get(String key) => _delegate.get(key);
+
+  @override
+  Future<void> purge(String key) => _delegate.purge(key);
+
+  @override
+  Future<void> set(String key, T value, [Duration ttl]) =>
+      _delegate.set(key, value, ttl);
 }
