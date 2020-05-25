@@ -174,7 +174,7 @@ bool couldBeSingularAndPlural(
   String plural, {
 
   /// Set to `true` if `singular` is a known prefix of `plural`.
-  bool isKnownPrefix: false,
+  bool isKnownPrefix = false,
 }) {
   if (!isKnownPrefix && !plural.startsWith(singular)) {
     return false;
