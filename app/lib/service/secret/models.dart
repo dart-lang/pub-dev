@@ -21,11 +21,15 @@ abstract class SecretKey {
   /// OAuth audiences have separate secrets for each audience.
   static const String oauthPrefix = 'oauth.secret-';
 
+  /// Site-wide announcement.
+  static const String announcement = 'announcement';
+
   /// List of all keys.
   static const values = [
     smtpUsername,
     smtpPassword,
     redisConnectionString,
+    announcement,
   ];
 
   /// Whether the key is valid.

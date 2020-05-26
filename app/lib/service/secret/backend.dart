@@ -30,7 +30,7 @@ class SecretBackend {
       throw ArgumentError.value(id, 'id', 'invalid secret key identifier');
     }
     final key = _db.emptyKey.append(Secret, id: id);
-    final secret = (await _db.lookup<Secret>([key])).single;
+    final secret = await _db.lookupValue<Secret>(key, orElse: () => null);
     return secret?.value;
   }
 
