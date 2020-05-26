@@ -6,6 +6,12 @@ indexes:
   - name: updated
     direction: desc
 
+- kind: Like
+  ancestor: yes
+  properties:
+  - name: created
+    direction: desc
+
 - kind: Job
   properties:
   - name: runtimeVersion

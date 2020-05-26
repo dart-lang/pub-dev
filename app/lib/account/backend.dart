@@ -190,7 +190,9 @@ class AccountBackend {
   Future<List<LikeData>> listPackageLikes(User user) async {
     return await cache.userPackageLikes(user.userId).get(() async {
       // TODO(zarah): Introduce pagination and/or migrate this to search.
-      final query = _db.query<Like>(ancestorKey: user.key)..limit(1000);
+      final query = _db.query<Like>(ancestorKey: user.key)
+        ..order('-created')
+        ..limit(1000);
       final likes = await query.run().toList();
       return likes.map((Like l) => LikeData.fromModel(l)).toList();
     });
