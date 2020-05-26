@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -22,6 +23,7 @@ import 'convert.dart';
 import 'versions.dart';
 
 final Logger _log = Logger('rediscache');
+final _random = Random.secure();
 
 class CachePatterns {
   final Cache<List<int>> _cache;
@@ -208,7 +210,7 @@ Future _withRedisCache(FutureOr Function() fn) async {
   }
 
   // Create and register a cache
-  final cacheProvider = await _UpdatingCacheProvider.connect(
+  final cacheProvider = await _ConnectionRefreshingCacheProvider.connect(
       () async => Cache.redisCacheProvider(connectionString));
   _registerCache(CachePatterns._(Cache(cacheProvider)));
 
@@ -226,16 +228,21 @@ Future _withInmemoryCache(FutureOr Function() fn) async {
   return await fn();
 }
 
-typedef CacheProviderFn<T> = Future<CacheProvider<T>> Function();
+/// Creates a [CacheProvider] when called.
+typedef _CacheProviderFn<T> = Future<CacheProvider<T>> Function();
 
-class _UpdatingCacheProvider<T> implements CacheProvider<T> {
-  final CacheProviderFn<T> _fn;
+/// The redis client uses a single connection for a long period. To make sure we
+/// don't accumulate objects around a single connection accidentally, this cache
+/// provider will reconnect to redis ~every hour.
+class _ConnectionRefreshingCacheProvider<T> implements CacheProvider<T> {
+  final _CacheProviderFn<T> _fn;
   CacheProvider<T> _delegate;
   Timer _timer;
   bool _isClosed = false;
 
-  _UpdatingCacheProvider._(this._fn, this._delegate) {
-    _timer = Timer.periodic(Duration(hours: 1), (_) async {
+  _ConnectionRefreshingCacheProvider._(this._fn, this._delegate) {
+    final duration = Duration(minutes: 55 + _random.nextInt(10));
+    _timer = Timer.periodic(duration, (_) async {
       _log.info('Starting to update redis connection...');
       try {
         final newProvider = await _fn();
@@ -252,14 +259,14 @@ class _UpdatingCacheProvider<T> implements CacheProvider<T> {
           await d.close();
         }
       } catch (e, st) {
-        _log.warning('Failed to update redis connection.', e, st);
+        _log.shout('Failed to update redis connection.', e, st);
       }
     });
   }
 
-  static Future<_UpdatingCacheProvider<T>> connect<T>(
-      CacheProviderFn<T> fn) async {
-    return _UpdatingCacheProvider._(fn, await fn());
+  static Future<_ConnectionRefreshingCacheProvider<T>> connect<T>(
+      _CacheProviderFn<T> fn) async {
+    return _ConnectionRefreshingCacheProvider._(fn, await fn());
   }
 
   @override
