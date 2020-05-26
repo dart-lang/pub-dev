@@ -371,6 +371,7 @@ class PackageBackend {
         pubspec: pv.pubspec.asJson,
         archiveUrl: urls.pkgArchiveDownloadUrl(pv.package, pv.version,
             baseUri: baseUri),
+        published: pv.created,
       );
 
   @visibleForTesting
