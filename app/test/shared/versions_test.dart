@@ -90,6 +90,26 @@ void main() {
         isTrue);
   });
 
+  test(
+    'Flutter is using the latest stable',
+    () async {
+      final flutterArchive = await fetchFlutterArchive();
+      final currentStable = flutterArchive.releases.firstWhere(
+        (r) => r.hash == flutterArchive.currentRelease.stable,
+        orElse: () => null,
+      );
+      assert(currentStable != null, 'Expected current stable to exist');
+      expect(
+        flutterVersion,
+        equals(currentStable.version),
+        reason: '''Expected flutterVersion to be current stable
+Please update flutterVersion in app/lib/shared/versions.dart
+and do not format to also bump the runtimeVersion.''',
+      );
+    },
+    skip: false, // Note: this test is easily skipped.
+  );
+
   test('dartdoc version should match pkg/pub_dartdoc', () async {
     final yamlContent =
         await File('../pkg/pub_dartdoc/pubspec.yaml').readAsString();
