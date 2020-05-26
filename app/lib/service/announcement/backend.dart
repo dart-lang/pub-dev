@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:sanitize_html/sanitize_html.dart';
 
 import '../secret/backend.dart';
 
@@ -25,7 +26,7 @@ class AnnouncementBackend {
   Future<void> update() async {
     final value = await secretBackend.lookup(SecretKey.announcement);
     if (value != null && value.trim().isNotEmpty) {
-      _announcementHtml = value.trim();
+      _announcementHtml = sanitizeHtml(value.trim());
     }
   }
 
