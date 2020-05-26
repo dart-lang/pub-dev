@@ -102,9 +102,9 @@ VersionInfo _$VersionInfoFromJson(Map<String, dynamic> json) {
     version: json['version'] as String,
     pubspec: json['pubspec'] as Map<String, dynamic>,
     archiveUrl: json['archive_url'] as String,
-    created: json['created'] == null
+    published: json['published'] == null
         ? null
-        : DateTime.parse(json['created'] as String),
+        : DateTime.parse(json['published'] as String),
   );
 }
 
@@ -113,5 +113,5 @@ Map<String, dynamic> _$VersionInfoToJson(VersionInfo instance) =>
       'version': instance.version,
       'pubspec': instance.pubspec,
       'archive_url': instance.archiveUrl,
-      'created': instance.created?.toIso8601String(),
+      'published': instance.published?.toIso8601String(),
     };

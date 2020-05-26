@@ -133,13 +133,13 @@ class VersionInfo {
   final String archiveUrl;
 
   /// This is an optional field of the API response, it may be `null` or omitted.
-  final DateTime created;
+  final DateTime published;
 
   VersionInfo({
     @required this.version,
     @required this.pubspec,
     @required this.archiveUrl,
-    @required this.created,
+    @required this.published,
   });
 
   factory VersionInfo.fromJson(Map<String, dynamic> json) =>
