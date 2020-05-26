@@ -167,3 +167,17 @@ Set<String> deriveLookupCandidates(String token) {
   }
   return set;
 }
+
+/// Returns true if the provided words could be singular-plural pairs.
+bool couldBeSingularAndPlural(
+  String singular,
+  String plural, {
+
+  /// Set to `true` if `singular` is a known prefix of `plural`.
+  bool isKnownPrefix = false,
+}) {
+  if (!isKnownPrefix && !plural.startsWith(singular)) {
+    return false;
+  }
+  return (singular.length == plural.length - 1) && plural.endsWith('s');
+}

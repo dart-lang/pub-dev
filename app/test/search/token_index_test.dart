@@ -99,12 +99,24 @@ void main() {
       });
     });
 
-    test('short words: lookup for app', () {
+    test('short words: lookup for app(s)', () {
       final index = TokenIndex(minLength: 2);
       index.add('app', 'app');
       index.add('apps', 'apps');
       final match = index.lookupTokens('app');
-      expect(match.tokenWeights, {'app': 1.0, 'apps': 0.75});
+      expect(match.tokenWeights, {'app': 1.0, 'apps': closeTo(0.94, 0.005)});
+      final match2 = index.lookupTokens('apps');
+      expect(match2.tokenWeights, {'apps': 1.0, 'app': closeTo(0.94, 0.005)});
+    });
+
+    test('short words: lookup for app(z)', () {
+      final index = TokenIndex(minLength: 2);
+      index.add('app', 'app');
+      index.add('appz', 'appz');
+      final match = index.lookupTokens('app');
+      expect(match.tokenWeights, {'app': 1.0, 'appz': 0.75});
+      final match2 = index.lookupTokens('appz');
+      expect(match2.tokenWeights, {'appz': 1.0, 'app': 0.75});
     });
   });
 

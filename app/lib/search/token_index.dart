@@ -214,9 +214,19 @@ class TokenIndex {
         double candidateWeight = 0.0;
         if (token == candidate) {
           candidateWeight = 1.0;
-        } else if (token.startsWith(candidate) || token.endsWith(candidate)) {
+        } else if (token.startsWith(candidate)) {
           candidateWeight = candidate.length / token.length;
-        } else if (candidate.startsWith(token) || candidate.endsWith(token)) {
+          if (couldBeSingularAndPlural(candidate, token, isKnownPrefix: true)) {
+            candidateWeight = math.pow(candidateWeight, 0.2).toDouble();
+          }
+        } else if (token.endsWith(candidate)) {
+          candidateWeight = candidate.length / token.length;
+        } else if (candidate.startsWith(token)) {
+          candidateWeight = token.length / candidate.length;
+          if (couldBeSingularAndPlural(token, candidate, isKnownPrefix: true)) {
+            candidateWeight = math.pow(candidateWeight, 0.2).toDouble();
+          }
+        } else if (candidate.endsWith(token)) {
           candidateWeight = token.length / candidate.length;
         } else {
           tokenNgrams ??= ngrams(token, _minLength, 6);
