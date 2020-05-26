@@ -20,7 +20,8 @@ void main(List<String> arguments) async {
   final optionContext = DartdocProgramOptionContext(optionSet, null);
   startLogging(optionContext);
 
-  final dartdoc = await Dartdoc.fromContext(optionContext);
+  final dartdoc = await Dartdoc.fromContext(
+      optionContext, PubPackageBuilder(optionContext));
   final results = await dartdoc.generateDocs();
 
   final pubDataGenerator = PubDataGenerator(optionContext.inputDir);
