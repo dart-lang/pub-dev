@@ -7,6 +7,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded Flutter to `1.17.1`.
  * Deploy `index.yaml` to update index definition for `Like`
    `gcloud datastore indexes create index.yaml`
+ * Connection to `redis` is reopened every hour.
 
 ## `20200513t104411-all`
  * Bumped runtimeVersion to `2020.05.08`.
