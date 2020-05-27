@@ -23,10 +23,10 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 /// Make sure that at least two versions are kept here as the next candidates
 /// when the version switch happens.
 const acceptedRuntimeVersions = <String>[
-  '2020.05.15', // The current [runtimeVersion].
+  '2020.05.26', // The current [runtimeVersion].
+  '2020.05.15',
   '2020.05.08',
   '2020.05.03',
-  '2020.04.22',
 ];
 
 /// Represents a combined version of the overall toolchain and processing,
@@ -63,7 +63,7 @@ final String flutterVersion = '1.17.1';
 final Version semanticFlutterVersion = Version.parse(flutterVersion);
 
 // keep in-sync with pkg/pub_dartdoc/pubspec.yaml
-final String dartdocVersion = '0.31.0';
+final String dartdocVersion = '0.32.0';
 final Version semanticDartdocVersion = Version.parse(dartdocVersion);
 
 // Version that control the dartdoc serving.
