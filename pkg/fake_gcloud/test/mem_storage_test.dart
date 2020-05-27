@@ -31,4 +31,32 @@ void main() {
     expect(() => bucket.info('/file.txt'), throwsA(anything));
     expect(() => bucket.info('file.txt'), throwsA(anything));
   });
+
+  test('list', () async {
+    final storage = MemStorage(buckets: ['test']);
+    final bucket = storage.bucket('test');
+    await bucket.writeBytes('a/b/c.txt', [0]);
+    await bucket.writeBytes('a/b-local.txt', [0]);
+
+    Future<List<String>> list(String prefix) async {
+      final r = await bucket.list(prefix: prefix).map((e) => e.name).toList();
+      r.sort();
+      return r;
+    }
+
+    // no prefix
+    expect(await list(null), ['a/b-local.txt', 'a/b/c.txt']);
+
+    // prefix does not exists
+    expect(await list('x'), []);
+    expect(await list('x/'), []);
+
+    // directory prefix without local files
+    expect(await list('a'), []);
+    expect(await list('a/'), ['a/b-local.txt', 'a/b/c.txt']);
+
+    // directory prefix with local file
+    expect(await list('a/b'), ['a/b-local.txt']);
+    expect(await list('a/b/'), ['a/b/c.txt']);
+  });
 }

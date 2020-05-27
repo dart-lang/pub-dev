@@ -93,6 +93,10 @@ class PubHttpClient {
     return rs.body;
   }
 
+  Future<String> getDocumentationPage(String package,
+          [String version = 'latest']) async =>
+      getContent('/documentation/$package/$version/');
+
   /// Creates a publisher.
   Future<void> createPublisher({
     @required String authToken,
