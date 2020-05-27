@@ -55,8 +55,8 @@ class DartdocBackend {
   final _gcTasks = <_GCTask>{};
 
   DartdocBackend(this._db, this._storage)
-      : _sdkStorage = VersionedJsonStorage(
-            _storage, '${storage_path.dartSdkDartdocPrefix()}/');
+      : _sdkStorage =
+            VersionedJsonStorage(_storage, storage_path.dartSdkDartdocPrefix());
 
   /// Whether the storage bucket has a usable extracted data file.
   /// Only the existence of the file is checked.
@@ -376,6 +376,9 @@ class DartdocBackend {
   }
 
   Future<List<DartdocEntry>> _listEntries(String prefix) async {
+    if (!prefix.endsWith('/')) {
+      throw ArgumentError('Directory prefix must end with `/`.');
+    }
     return retry(
       () async {
         final List<DartdocEntry> list = [];

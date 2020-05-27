@@ -37,17 +37,23 @@ void main() {
       archiveSize: 10000,
       totalSize: 60000,
     );
-    expect(entry.inProgressPrefix, 'pkg_foo/1.2.3/in-progress');
+    expect(entry.inProgressPrefix, 'pkg_foo/1.2.3/in-progress/');
     expect(entry.inProgressObjectName,
         'pkg_foo/1.2.3/in-progress/12345678-abcdef10.json');
-    expect(entry.entryPrefix, 'pkg_foo/1.2.3/entry');
+    expect(entry.entryPrefix, 'pkg_foo/1.2.3/entry/');
     expect(entry.entryObjectName, 'pkg_foo/1.2.3/entry/12345678-abcdef10.json');
-    expect(entry.contentPrefix, 'pkg_foo/1.2.3/content/12345678-abcdef10');
+    expect(entry.contentPrefix, 'pkg_foo/1.2.3/content/12345678-abcdef10/');
     expect(entry.objectName('static-assets/css/style.css'),
         'shared-assets/dartdoc/0.16.0/static-assets/css/style.css');
     expect(entry.objectName('index.html'),
         'pkg_foo/1.2.3/content/12345678-abcdef10/index.html');
     expect(entry.objectName('library/index.html'),
         'pkg_foo/1.2.3/content/12345678-abcdef10/library/index.html');
+  });
+
+  test('SDK paths', () {
+    expect(dartSdkDartdocPrefix(), 'sdk-assets/dart/pub-dartdoc-data/');
+    expect(dartSdkDartdocDataName('2020.05.27'),
+        'sdk-assets/dart/pub-dartdoc-data/2020.05.27.json.gz');
   });
 }

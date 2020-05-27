@@ -78,7 +78,9 @@ class VersionedJsonStorage {
   VersionedJsonStorage(Bucket bucket, String prefix)
       : _bucket = bucket,
         _prefix = prefix {
-    assert(prefix.endsWith('/'));
+    if (!_prefix.endsWith('/')) {
+      throw ArgumentError('Directory prefix must end with `/`.');
+    }
   }
 
   /// Whether the storage bucket has a data file for the current runtime version.

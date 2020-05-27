@@ -195,7 +195,20 @@ class _Bucket implements Bucket {
   Stream<BucketEntry> list({String prefix}) async* {
     _validateObjectName(prefix, allowNull: true);
     for (String name in _files.keys) {
-      if (prefix == null || name.startsWith(prefix)) {
+      bool matchesPrefix() {
+        // without prefix, return everything
+        if (prefix == null) return true;
+        // exclude everything that does not match the prefix
+        if (!name.startsWith(prefix)) return false;
+        // prefix does not end with directory separator, only files are matched
+        if (!prefix.endsWith('/') &&
+            name.substring(prefix.length).contains('/')) {
+          return false;
+        }
+        return true;
+      }
+
+      if (matchesPrefix()) {
         yield _BucketEntry(name, true);
       }
     }

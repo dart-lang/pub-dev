@@ -24,6 +24,7 @@ class PublishingScript {
   final String credentialsFileContent;
   final String invitedEmail;
   final InviteCompleterFn inviteCompleterFn;
+  final bool omitDocumentationPage;
   PubHttpClient _pubHttpClient;
   PubToolClient _pubToolClient;
 
@@ -41,6 +42,7 @@ class PublishingScript {
     this.credentialsFileContent,
     this.invitedEmail,
     this.inviteCompleterFn,
+    this.omitDocumentationPage,
   );
 
   /// Verify all integration steps.
@@ -82,6 +84,10 @@ class PublishingScript {
       await _verifyDummyPkg(matchInvited: true);
       await _pubToolClient.removeUploader(_dummyDir.path, invitedEmail);
       await _verifyDummyPkg(matchInvited: false);
+
+      if (!omitDocumentationPage) {
+        await _verifyDummyDocumentation();
+      }
     } finally {
       await _temp.delete(recursive: true);
       _pubHttpClient.close();
@@ -141,6 +147,16 @@ class PublishingScript {
       if (!matchInvited && found) {
         throw Exception('Invited email is still to be found on package page.');
       }
+    }
+  }
+
+  Future<void> _verifyDummyDocumentation() async {
+    final pageHtml = await _pubHttpClient.getDocumentationPage('_dummy_pkg');
+    if (!pageHtml.contains('made with love by dartdoc')) {
+      throw Exception('Documentation page is not the output of dartdoc.');
+    }
+    if (!pageHtml.contains('<a href="_dummy_pkg/_dummy_pkg-library.html">')) {
+      throw Exception('Documentation page does not contain main library.');
     }
   }
 }

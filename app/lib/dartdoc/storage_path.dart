@@ -25,25 +25,25 @@ String sharedAssetObjectName(String dartdocVersion, String relativePath) =>
 
 /// Entry prefix for uploads in progress.
 String inProgressPrefix(String packageName, String packageVersion) =>
-    '$packageName/$packageVersion/in-progress';
+    '$packageName/$packageVersion/in-progress/';
 
 /// ObjectName of the DartdocEntry for uploads in progress.
 String inProgressObjectName(
         String packageName, String packageVersion, String uuid) =>
-    '${inProgressPrefix(packageName, packageVersion)}/$uuid.json';
+    p.join(inProgressPrefix(packageName, packageVersion), '$uuid.json');
 
 /// Entry prefix for completed uploads.
 String entryPrefix(String packageName, String packageVersion) =>
-    '$packageName/$packageVersion/entry';
+    '$packageName/$packageVersion/entry/';
 
 /// ObjectName of the DartdocEntry for completed uploads.
 String entryObjectName(
         String packageName, String packageVersion, String uuid) =>
-    '${entryPrefix(packageName, packageVersion)}/$uuid.json';
+    p.join(entryPrefix(packageName, packageVersion), '$uuid.json');
 
 /// Content path prefix.
 String contentPrefix(String packageName, String packageVersion, String uuid) =>
-    '$packageName/$packageVersion/content/$uuid';
+    '$packageName/$packageVersion/content/$uuid/';
 
 /// ObjectName of the generated content.
 String contentObjectName(String packageName, String packageVersion, String uuid,
@@ -51,14 +51,9 @@ String contentObjectName(String packageName, String packageVersion, String uuid,
   return p.join(contentPrefix(packageName, packageVersion, uuid), relativePath);
 }
 
-/// ObjectName of an SDK asset.
-String sdkObjectName(String relativePath) {
-  return p.join(_sdkAssetPrefix, relativePath);
-}
-
 /// The parent prefix for the Dart SDK's extracted dartdoc content.
 String dartSdkDartdocPrefix() {
-  return sdkObjectName('dart/pub-dartdoc-data');
+  return '$_sdkAssetPrefix/dart/pub-dartdoc-data/';
 }
 
 /// The ObjectName for the Dart SDK's extracted dartdoc content.
