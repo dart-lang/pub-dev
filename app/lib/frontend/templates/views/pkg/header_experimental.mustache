@@ -1,0 +1,20 @@
+{{! Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+Published <span>{{short_created}}</span>
+{{#publisher_id}}
+&bull; <a class="-pub-publisher" href="{{& publisher_url}}"><img
+          class="-pub-publisher-shield"
+          title="Published by a pub.dev verified publisher"
+          src="/static/img/verified-publisher-blue.svg" />{{publisher_id}}</a>
+{{/publisher_id}}
+
+{{#latest.show_updated}}
+  &bull; Updated:
+  <span><a href="{{& latest.stable_url}}">{{latest.stable_version}}</a></span>
+  {{#latest.show_prerelease_version}}
+    /
+    <span><a href="{{& latest.prerelease_url}}">{{latest.prerelease_version}}</a></span>
+  {{/latest.show_prerelease_version}}
+{{/latest.show_updated}}

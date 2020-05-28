@@ -206,9 +206,22 @@ pre {
   overflow-x: auto;
 }
 
+/* non-indented rule to restrict the content of this block to the non-experimental pages */
+.non-experimental {
 .-pub-publisher-shield {
   vertical-align: top;
   margin-right: 2px;
+}
+}
+
+/* non-indented rule to restrict the content of this block to the experimental pages */
+.experimental {
+.-pub-publisher-shield {
+  vertical-align: middle;
+  margin: -1px 2px 0 0;
+  width: 15px;
+  height: 15px;
+}
 }
 
 .-pub-publisher {
