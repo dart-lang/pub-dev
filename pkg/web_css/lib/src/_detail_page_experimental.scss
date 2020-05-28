@@ -76,7 +76,7 @@ $detail-tabs-width: calc(100% - 320px);
 }
 
 .detail-header {
-  padding: 30px 0 10px;
+  padding: 30px 0 20px;
 
   .title {
     font-family: $font-family-google-sans-display;
@@ -264,7 +264,7 @@ $detail-tabs-width: calc(100% - 320px);
 
 .detail-tabs-header {
   list-style: none;
-  margin: 0 0 24px -9px;
+  margin: 0 0 24px -12px;
   padding: 0;
 
   background: $detail-tab-bg;
@@ -313,7 +313,7 @@ $detail-tabs-width: calc(100% - 320px);
     font-weight: 300;
     color: #555555;
     padding: 12px 0px;
-    margin: 0px 9px;
+    margin: 0px 18px 0px 12px; // left 12px to compensate .detail-tabs-header's -12px; Sum must be 30px.
     border-bottom: 2px solid;
     border-bottom-color: transparent;
     cursor: pointer;
