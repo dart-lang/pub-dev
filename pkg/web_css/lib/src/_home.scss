@@ -122,6 +122,10 @@
     top: 60px;
     transform: scale(1.25);
     z-index: 0;
+
+    > img {
+      max-height: 240px; // effective max-heigh: 240 * 1.25 = 300px, 75% of two cards total height.
+    }
   }
 
   .home-block-content {
@@ -132,7 +136,7 @@
     background: #ffffff;
     border-radius: 4px;
     box-shadow: 0px 2px 7px 0px rgba(0, 0, 0, 0.3);
-    padding: 18px;
+    padding: 28px 30px 30px; // title's top gap is about 2px (30-2 => 28)
     margin-bottom: 10px;
     min-height: 100px;
 
@@ -141,7 +145,8 @@
         color: #1967d2;
         font-size: 20px;
         font-weight: 400;
-        margin: 4px 0 0 0;
+        line-height: 1; // simpler margin calculation
+        margin: 0;
         /* Trim long package names, forcing them to be displayed only on a single line. */
         overflow: hidden;
         text-overflow: ellipsis;
@@ -208,6 +213,18 @@
     .mini-list-item-body {
       flex-grow: 1;
       overflow: hidden;
+      position: relative;
+
+      // fade-out the bottom of the body content
+      &:before {
+         content: '';
+         position: absolute;
+         left: 0;
+         top: 0;
+         bottom: 0;
+         right: 0;
+         background: linear-gradient(transparent 90%, white);
+       }
     }
   }
 
@@ -238,6 +255,7 @@
       display: flex;
       max-width: 596px;
       margin: 0 auto;
+      align-items: center;
 
       @media (min-width: 870px) {
         max-width: 870px;
@@ -248,9 +266,8 @@
 
         .home-block-image {
           display: block;
-          margin-top: 80px;
           max-width: calc(100% - 830px);
-          min-width: calc(1% + 100px);
+          min-width: calc(5% + 100px);
         }
 
         .home-block-content {
