@@ -33,7 +33,7 @@ void main() {
     // This test is a reminder that if pana, the SDK or any of the above
     // versions change, we should also adjust the [runtimeVersion]. Before
     // updating the hash value, double-check if it is being updated.
-    expect(hash, 347630509);
+    expect(hash, 253807104);
   });
 
   test('accepted runtime versions should be lexicographically ordered', () {
@@ -107,8 +107,8 @@ Please update flutterVersion in app/lib/shared/versions.dart
 and do not format to also bump the runtimeVersion.''',
       );
     },
-    // TODO: re-enable once we upgrade Flutter SDK
-    skip: 'Not ready to upgrade yet.', // Note: this test is easily skipped.
+    // TODO: investigate why skip was not working on CI
+    skip: false, // Note: this test is easily skipped.
   );
 
   test('dartdoc version should match pkg/pub_dartdoc', () async {
