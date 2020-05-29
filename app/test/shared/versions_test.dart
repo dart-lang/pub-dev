@@ -107,7 +107,8 @@ Please update flutterVersion in app/lib/shared/versions.dart
 and do not format to also bump the runtimeVersion.''',
       );
     },
-    skip: false, // Note: this test is easily skipped.
+    // TODO: re-enable once we upgrade Flutter SDK
+    skip: 'Not ready to upgrade yet.', // Note: this test is easily skipped.
   );
 
   test('dartdoc version should match pkg/pub_dartdoc', () async {
