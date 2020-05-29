@@ -34,6 +34,7 @@ final Duration _oldestKeepThreshold = const Duration(days: 180);
 final Duration _obsoleteDeleteThreshold = const Duration(days: 1);
 final int _concurrentUploads = 8;
 final int _concurrentDeletes = 8;
+final _deletesSuspended = true;
 
 /// Sets the dartdoc backend.
 void registerDartdocBackend(DartdocBackend backend) =>
@@ -77,7 +78,9 @@ class DartdocBackend {
 
   /// Schedules the delete of old data files.
   void scheduleOldDataGC() {
-    _sdkStorage.scheduleOldDataGC();
+    if (!_deletesSuspended) {
+      _sdkStorage.scheduleOldDataGC();
+    }
   }
 
   /// Returns the latest stable version of a package.
@@ -309,6 +312,11 @@ class DartdocBackend {
         await _listEntries(storage_path.inProgressPrefix(package, version));
 
     for (var entry in inProgressList) {
+      if (_deletesSuspended) {
+        _logger.info(
+            'Found an in-progress entry ${entry.uuid}. Deletes are suspended.');
+        continue;
+      }
       if (completedList.any((e) => e.uuid == entry.uuid)) {
         // upload was interrupted between setting the final entry and removing
         // the in-progress indicator. Doing the later now.
@@ -403,11 +411,22 @@ class DartdocBackend {
   }
 
   Future<void> _deleteAll(DartdocEntry entry, {int concurrency}) async {
+    if (_deletesSuspended) {
+      _logger.info(
+          'Requested to delete entry ${entry.uuid}. Deletes are suspended.');
+      return;
+    }
     await _deleteAllWithPrefix(entry.contentPrefix, concurrency: concurrency);
     await deleteFromBucket(_storage, entry.entryObjectName);
   }
 
   Future<void> _deleteAllWithPrefix(String prefix, {int concurrency}) async {
+    if (_deletesSuspended) {
+      _logger.info(
+          'Requested to delete all content with prefix: $prefix. Deletes are suspended.');
+      return;
+    }
+
     final Stopwatch sw = Stopwatch()..start();
     var page = await _storage.page(prefix: prefix, pageSize: 256);
     final deletePool = Pool(concurrency ?? _concurrentDeletes);
