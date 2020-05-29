@@ -3,6 +3,9 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20200529t114421-all`
+ * Disabled dartdoc deletion until retention issue has been solved.
+
 ## `20200528t100233-all`
  * Bumped runtimeVersion to `2020.05.26`.
  * Upgraded dartdoc to `0.32.0`.
