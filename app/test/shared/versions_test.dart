@@ -108,7 +108,7 @@ and do not format to also bump the runtimeVersion.''',
       );
     },
     // TODO: re-enable once we upgrade Flutter SDK
-    skip: true, // Note: this test is easily skipped.
+    skip: 'Not ready to upgrade yet.', // Note: this test is easily skipped.
   );
 
   test('dartdoc version should match pkg/pub_dartdoc', () async {
