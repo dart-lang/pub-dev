@@ -45,17 +45,18 @@ void main() {
     }
 
     // no prefix
-    expect(await list(null), ['a/b-local.txt', 'a/b/c.txt']);
+    expect(await list(null), ['a/']);
+    expect(await list(''), ['a/']);
 
     // prefix does not exists
     expect(await list('x'), []);
     expect(await list('x/'), []);
 
-    // directory prefix without local files
+    // directory prefix with both local file and subfolder
     expect(await list('a'), []);
-    expect(await list('a/'), ['a/b-local.txt', 'a/b/c.txt']);
+    expect(await list('a/'), ['a/b-local.txt', 'a/b/']);
 
-    // directory prefix with local file
+    // directory prefix with only local files
     expect(await list('a/b'), ['a/b-local.txt']);
     expect(await list('a/b/'), ['a/b/c.txt']);
   });

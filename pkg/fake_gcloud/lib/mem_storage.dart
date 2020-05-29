@@ -194,23 +194,43 @@ class _Bucket implements Bucket {
   @override
   Stream<BucketEntry> list({String prefix}) async* {
     _validateObjectName(prefix, allowNull: true);
+    prefix ??= '';
+    final isDirPrefix = prefix.isEmpty || prefix.endsWith('/');
+    final segments = <String>{};
     for (String name in _files.keys) {
       bool matchesPrefix() {
         // without prefix, return everything
-        if (prefix == null) return true;
+        if (prefix.isEmpty) return true;
         // exclude everything that does not match the prefix
         if (!name.startsWith(prefix)) return false;
         // prefix does not end with directory separator, only files are matched
-        if (!prefix.endsWith('/') &&
-            name.substring(prefix.length).contains('/')) {
+        if (!isDirPrefix && name.substring(prefix.length).contains('/')) {
           return false;
         }
         return true;
       }
 
       if (matchesPrefix()) {
-        yield _BucketEntry(name, true);
+        final subDirSegments = name.substring(prefix.length).split('/');
+        final isSubDirMatch = subDirSegments.length > 1;
+
+        if (isDirPrefix && isSubDirMatch) {
+          // extract path
+          segments.add(subDirSegments.first);
+        } else if (isDirPrefix && !isSubDirMatch) {
+          // directory match
+          yield _BucketEntry(name, true);
+        } else if (!isDirPrefix && isSubDirMatch) {
+          // ignore prefix match
+        } else if (!isDirPrefix && !isSubDirMatch) {
+          // file prefix match
+          yield _BucketEntry(name, true);
+        }
       }
+    }
+
+    for (final e in segments.map((s) => _BucketEntry('$prefix$s/', false))) {
+      yield e;
     }
   }
 
