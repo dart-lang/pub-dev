@@ -359,10 +359,15 @@ pre {
     font-size: 14px;
 
     &:before {
-      content: "←";
-      font-weight: 700;
-      font-size: 16px;
+      content: "";
+      display: inline-block;
+      background-image: url('/static/img/arrow-back.svg?hash=1pe5vnt2cpes60qb9473hqds62vo428c');
+      background-size: cover;
+      height: 15px;
+      width: 15px;
       margin-right: 8px;
+      margin-top: -3px;
+      vertical-align: middle;
     }
   }
 }
