@@ -191,11 +191,17 @@ class DartdocBackend {
         entries.retainWhere((e) => e.hasContent);
       }
 
-      // sort by runtimeVersion decreasing, then time decreasing
-      entries.sort((a, b) => -a.timestamp.compareTo(b.timestamp));
-      entries.sort((a, b) => -a.runtimeVersion.compareTo(b.runtimeVersion));
-
-      return entries.isEmpty ? null : entries.first;
+      if (entries.isEmpty) {
+        return null;
+      }
+      // return the most recent entry of the most recent runtime
+      return entries.reduce((a, b) {
+        var x = -a.runtimeVersion.compareTo(b.runtimeVersion);
+        if (x == 0) {
+          x = -a.timestamp.compareTo(b.timestamp);
+        }
+        return x <= 0 ? a : b;
+      });
     }
 
     DartdocEntry entry;
