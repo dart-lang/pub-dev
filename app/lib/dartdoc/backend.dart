@@ -181,19 +181,20 @@ class DartdocBackend {
     }
 
     Future<DartdocEntry> loadVersion(String v) async {
-      final List<DartdocEntry> entries =
-          await _listEntries(storage_path.entryPrefix(package, v));
-      // utility to remove anything not matching pred, unless that is everything
-      void retainIfAny(bool Function(DartdocEntry entry) pred) {
-        if (entries.any(pred)) {
-          entries.retainWhere(pred);
-        }
+      final entries = await _listEntries(storage_path.entryPrefix(package, v));
+      // keep only accepted runtime versions
+      entries.retainWhere((e) =>
+          shared_versions.acceptedRuntimeVersions.contains(e.runtimeVersion));
+
+      // prefer versions that have content
+      if (entries.any((e) => e.hasContent)) {
+        entries.retainWhere((e) => e.hasContent);
       }
 
-      retainIfAny((e) => e.isServing && e.hasContent);
-      retainIfAny((e) => e.hasContent);
-      retainIfAny((e) => e.runtimeVersion == shared_versions.runtimeVersion);
+      // sort by runtimeVersion decreasing, then time decreasing
       entries.sort((a, b) => -a.timestamp.compareTo(b.timestamp));
+      entries.sort((a, b) => -a.runtimeVersion.compareTo(b.runtimeVersion));
+
       return entries.isEmpty ? null : entries.first;
     }
 
