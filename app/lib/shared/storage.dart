@@ -12,6 +12,7 @@ import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
+import 'package:pool/pool.dart';
 
 import 'utils.dart' show contentType, retryAsync;
 import 'versions.dart' as versions;
@@ -31,13 +32,70 @@ Future<Bucket> getOrCreateBucket(Storage storage, String name) async {
   return storage.bucket(name);
 }
 
-Future deleteFromBucket(Bucket bucket, String objectName) async {
+/// Deletes a single object from the [bucket].
+///
+/// Returns `true` if the object was deleted by this operation, `false` if it
+/// didn't exist at the time of the operation.
+Future<bool> deleteFromBucket(Bucket bucket, String objectName) async {
   try {
     await bucket.delete(objectName);
+    return true;
   } on DetailedApiRequestError catch (e) {
     if (e.status != 404) {
       rethrow;
     }
+    return false;
+  }
+}
+
+/// Deletes a [folder] in a [bucket], recursively listing all of its subfolders.
+///
+/// Returns the number of objects deleted.
+Future<int> deleteBucketFolderRecursively(
+  Bucket bucket,
+  String folder, {
+  int concurrency,
+}) async {
+  if (!folder.endsWith('/')) {
+    throw ArgumentError('Folder path must end with `/`: "$folder"');
+  }
+  final deleter = _ObjectDeleter(bucket, concurrency);
+  final folders = <String>[folder];
+  while (folders.isNotEmpty) {
+    final currentFolder = folders.removeLast();
+    await for (final obj in bucket.list(prefix: currentFolder)) {
+      if (obj.name.endsWith('/')) {
+        folders.add(obj.name);
+      } else {
+        deleter.scheduleDelete(obj.name);
+      }
+    }
+  }
+  return await deleter.waitAndClose();
+}
+
+class _ObjectDeleter {
+  final Bucket _bucket;
+  final Pool _pool;
+  final _futures = <Future>[];
+  int _deletedCount = 0;
+  _ObjectDeleter(this._bucket, int concurrency)
+      : _pool = Pool(concurrency ?? 1);
+
+  void scheduleDelete(String objectName) {
+    final f = _pool.withResource(() async {
+      final deleted = await deleteFromBucket(_bucket, objectName);
+      if (deleted) {
+        _deletedCount++;
+      }
+    });
+    _futures.add(f);
+  }
+
+  Future<int> waitAndClose() async {
+    await Future.wait(_futures);
+    await _pool.close();
+    return _deletedCount;
   }
 }
 

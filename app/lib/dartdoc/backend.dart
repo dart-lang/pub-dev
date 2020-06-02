@@ -428,25 +428,8 @@ class DartdocBackend {
     }
 
     final Stopwatch sw = Stopwatch()..start();
-    var page = await _storage.page(prefix: prefix, pageSize: 256);
-    final deletePool = Pool(concurrency ?? _concurrentDeletes);
-    int count = 0;
-    for (;;) {
-      final List<Future> deleteFutures = [];
-      for (var item in page.items) {
-        count++;
-        final pooledDelete = deletePool
-            .withResource(() => deleteFromBucket(_storage, item.name));
-        deleteFutures.add(pooledDelete);
-      }
-      await Future.wait(deleteFutures);
-      if (page.isLast) {
-        break;
-      } else {
-        page = await page.next();
-      }
-    }
-    await deletePool.close();
+    final count = deleteBucketFolderRecursively(_storage, prefix,
+        concurrency: concurrency ?? _concurrentDeletes);
     sw.stop();
     _logger.info('$prefix: $count files deleted in ${sw.elapsed}.');
   }
