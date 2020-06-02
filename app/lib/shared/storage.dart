@@ -219,8 +219,7 @@ class VersionedJsonStorage {
       final version = name.substring(0, name.length - _extension.length);
       final matchesPattern = version.length == 10 &&
           versions.runtimeVersionPattern.hasMatch(version);
-      if (matchesPattern &&
-          version.compareTo(versions.gcBeforeRuntimeVersion) < 0) {
+      if (matchesPattern && versions.shouldGCVersion(version)) {
         final info = await _bucket.info(entry.name);
         final age = DateTime.now().difference(info.updated);
         if (minAgeThreshold == null || age > minAgeThreshold) {

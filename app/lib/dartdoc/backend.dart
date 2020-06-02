@@ -14,7 +14,6 @@ import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
-import 'package:pub_semver/pub_semver.dart';
 import 'package:retry/retry.dart';
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
@@ -30,11 +29,8 @@ import 'storage_path.dart' as storage_path;
 
 final Logger _logger = Logger('pub.dartdoc.backend');
 
-final Duration _oldestKeepThreshold = const Duration(days: 180);
-final Duration _obsoleteDeleteThreshold = const Duration(days: 1);
 final int _concurrentUploads = 8;
 final int _concurrentDeletes = 8;
-final _deletesSuspended = true;
 
 /// Sets the dartdoc backend.
 void registerDartdocBackend(DartdocBackend backend) =>
@@ -78,9 +74,7 @@ class DartdocBackend {
 
   /// Schedules the delete of old data files.
   void scheduleOldDataGC() {
-    if (!_deletesSuspended) {
-      _sdkStorage.scheduleOldDataGC();
-    }
+    _sdkStorage.scheduleOldDataGC();
   }
 
   /// Returns the latest stable version of a package.
@@ -306,80 +300,21 @@ class DartdocBackend {
   /// Removes incomplete uploads and old outputs from the bucket.
   Future<void> _removeObsolete(String package, String version,
       {int concurrency}) async {
-    final List<DartdocEntry> completedList =
+    final completedList =
         await _listEntries(storage_path.entryPrefix(package, version));
-    final List<DartdocEntry> inProgressList =
+    final inProgressList =
         await _listEntries(storage_path.inProgressPrefix(package, version));
 
-    for (var entry in inProgressList) {
-      if (_deletesSuspended) {
-        _logger.info(
-            'Found an in-progress entry ${entry.uuid}. Deletes are suspended.');
-        continue;
-      }
-      if (completedList.any((e) => e.uuid == entry.uuid)) {
-        // upload was interrupted between setting the final entry and removing
-        // the in-progress indicator. Doing the later now.
-        await deleteFromBucket(_storage, entry.inProgressObjectName);
-      } else {
-        if (entry.age > _obsoleteDeleteThreshold) {
-          await _deleteAll(entry, concurrency: concurrency);
-          await deleteFromBucket(_storage, entry.inProgressObjectName);
-        }
-      }
-    }
-
-    // keep entries that are not serving (there is a coordinated upgrade in progress)
-    completedList.removeWhere((entry) => !entry.isServing);
-
-    // Keep the latest two (serving) runtime versions. It is assumed that the
-    // newer is for this release, while the earlier is for the previous release.
-    if (completedList.isNotEmpty) {
-      final versions = completedList
-          .map((entry) => entry.runtimeVersion)
-          .toSet()
-          .map((String version) => Version.parse(version))
-          .toList();
-      versions.sort();
-
-      completedList.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-
-      // Keep the latest one with content.
-      if (completedList.isNotEmpty) {
-        final index = completedList.lastIndexWhere(
-            (entry) => entry.hasContent && entry.age < _oldestKeepThreshold);
-        if (index >= 0) {
-          final entry = completedList.removeAt(index);
-          versions.remove(Version.parse(entry.runtimeVersion));
-        }
-      }
-
-      // Keep the latest from the current runtime version.
-      if (versions.contains(shared_versions.semanticRuntimeVersion)) {
-        final index = completedList.lastIndexWhere(
-            (entry) => entry.runtimeVersion == shared_versions.runtimeVersion);
-        if (index >= 0) {
-          completedList.removeAt(index);
-          versions.remove(shared_versions.semanticRuntimeVersion);
-        }
-      }
-
-      // Keep the otherwise latest version (may be an ongoing release).
-      if (versions.isNotEmpty) {
-        final version = versions.removeLast();
-        final index = completedList.lastIndexWhere(
-            (entry) => entry.runtimeVersion == version.toString());
-        if (index >= 0) {
-          completedList.removeAt(index);
-        }
-      }
-    }
+    final deleteEntries = [
+      ...completedList
+          .where((e) => (shared_versions.shouldGCVersion(e.runtimeVersion))),
+      ...inProgressList
+          .where((e) => (shared_versions.shouldGCVersion(e.runtimeVersion)))
+    ];
 
     // delete everything else
-    for (var entry in completedList) {
-      if (entry.age > _obsoleteDeleteThreshold) {
-        await _deleteAll(entry, concurrency: concurrency);
-      }
+    for (var entry in deleteEntries) {
+      await _deleteAll(entry, concurrency: concurrency);
     }
   }
 
@@ -411,22 +346,12 @@ class DartdocBackend {
   }
 
   Future<void> _deleteAll(DartdocEntry entry, {int concurrency}) async {
-    if (_deletesSuspended) {
-      _logger.info(
-          'Requested to delete entry ${entry.uuid}. Deletes are suspended.');
-      return;
-    }
     await _deleteAllWithPrefix(entry.contentPrefix, concurrency: concurrency);
     await deleteFromBucket(_storage, entry.entryObjectName);
+    await deleteFromBucket(_storage, entry.inProgressObjectName);
   }
 
   Future<void> _deleteAllWithPrefix(String prefix, {int concurrency}) async {
-    if (_deletesSuspended) {
-      _logger.info(
-          'Requested to delete all content with prefix: $prefix. Deletes are suspended.');
-      return;
-    }
-
     final Stopwatch sw = Stopwatch()..start();
     final count = deleteBucketFolderRecursively(_storage, prefix,
         concurrency: concurrency ?? _concurrentDeletes);
