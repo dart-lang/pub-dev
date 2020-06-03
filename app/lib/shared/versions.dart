@@ -5,8 +5,6 @@
 import 'package:pana/pana.dart' as pana;
 import 'package:pub_semver/pub_semver.dart';
 
-import 'utils.dart' show isNewer;
-
 /// The pattern of [runtimeVersion], should be updated to reflect the current
 /// date the change happened, e.g. `2020.02.18`
 ///
@@ -86,6 +84,6 @@ final dartdocRuntimeEpoch = '2018.3.8';
 /// Whether the given runtime version (stored with the dartdoc entry) should
 /// be displayed on the live site (or a coordinated upgrade is in progress).
 bool shouldServeDartdoc(String storedRuntimeVersion) {
-  final stored = Version.parse(storedRuntimeVersion ?? dartdocRuntimeEpoch);
-  return !isNewer(dartdocServingRuntime, stored);
+  if (storedRuntimeVersion == null) return false;
+  return acceptedRuntimeVersions.contains(storedRuntimeVersion);
 }

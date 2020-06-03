@@ -120,9 +120,9 @@ and do not format to also bump the runtimeVersion.''',
   });
 
   group('dartdoc serving', () {
-    test('old versions are serving', () {
-      expect(shouldServeDartdoc(null), isTrue);
-      expect(shouldServeDartdoc('2017.1.1'), isTrue);
+    test('old versions are no longer serving', () {
+      expect(shouldServeDartdoc(null), isFalse);
+      expect(shouldServeDartdoc('2017.1.1'), isFalse);
     });
 
     test('current version is serving', () {
