@@ -84,5 +84,6 @@ final dartdocRuntimeEpoch = '2018.3.8';
 /// Whether the given runtime version (stored with the dartdoc entry) should
 /// be displayed on the live site (or a coordinated upgrade is in progress).
 bool shouldServeDartdoc(String storedRuntimeVersion) {
+  if (storedRuntimeVersion == null) return false;
   return acceptedRuntimeVersions.contains(storedRuntimeVersion);
 }
