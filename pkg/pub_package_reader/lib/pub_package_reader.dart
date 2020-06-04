@@ -166,6 +166,7 @@ Future<PackageSummary> summarizePackageArchive(String archivePath) async {
       .toList();
 
   issues.addAll(validatePackageName(pubspec.name));
+  issues.addAll(validatePackageVersion(pubspec.version));
   issues.addAll(syntaxCheckUrl(pubspec.homepage, 'homepage'));
   issues.addAll(syntaxCheckUrl(pubspec.repository?.toString(), 'repository'));
   issues.addAll(forbidGitDependencies(pubspec));
@@ -217,6 +218,14 @@ Iterable<ArchiveIssue> validatePackageName(String name) sync* {
       matchesMixedCase &&
       !blockedLowerCasePackages.contains(name.toLowerCase())) {
     yield ArchiveIssue('Name collision with mixed-case package.');
+  }
+}
+
+/// Sanity checks for the package's version.
+Iterable<ArchiveIssue> validatePackageVersion(Version version) sync* {
+  if (version.toString().length > 32) {
+    yield ArchiveIssue('Package version must not exceed 32 characters. '
+        '(Please file an issue if you think you have a good reason for a longer version.)');
   }
 }
 

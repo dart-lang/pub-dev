@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:test/test.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
+import 'package:test/test.dart';
 
 import 'package:pub_package_reader/pub_package_reader.dart';
 
@@ -40,6 +41,20 @@ void main() {
     test('check the length of the name', () {
       expect(validatePackageName('a234567890' * 6 + '1234'), isEmpty);
       expect(validatePackageName('a234567890' * 6 + '12345'), isNotEmpty);
+    });
+  });
+
+  group('package version validation', () {
+    test('valid versions', () {
+      expect(validatePackageVersion(Version.parse('1.0.0')), isEmpty);
+      expect(validatePackageVersion(Version.parse('0.0.0-dev1.0')), isEmpty);
+    });
+
+    test('check the length of the version', () {
+      expect(
+          validatePackageVersion(Version.parse(
+              '1.0.0-longandboringprereleasestringthatnobodywantstoread')),
+          isNotEmpty);
     });
   });
 
