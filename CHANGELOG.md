@@ -2,9 +2,10 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bumped runtimeVersion to `2020.05.29`.
- * Upgraded Dart analysis SDK to `2.8.3`.
- * Upgraded Flutter to `1.17.2`.
+ * Bumped runtimeVersion to `2020.06.04`.
+ * Upgraded Dart analysis SDK to `2.8.4`.
+ * Upgraded Flutter to `1.17.3`.
+ * Upgraded dartdoc to `0.32.1`.
 
 ## `20200529t114421-all`
  * Disabled dartdoc deletion until retention issue has been solved.
