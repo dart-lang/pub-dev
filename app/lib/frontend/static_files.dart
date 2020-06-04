@@ -185,6 +185,7 @@ class StaticUrls {
     return _versionsTableIcons ??= {
       'documentation': documentationIcon,
       'download': downloadIcon,
+      'hasDocumentationFailed': false,
     };
   }
 
@@ -192,8 +193,11 @@ class StaticUrls {
   final newVersionsTableIcons = {
     'documentation':
         _getCacheableStaticUrl('$_defaultStaticPath/img/description-24px.svg'),
+    'documentationFailed': _getCacheableStaticUrl(
+        '$_defaultStaticPath/img/documentation-failed-icon.svg'),
     'download': _getCacheableStaticUrl(
         '$_defaultStaticPath/img/vertical_align_bottom-24px.svg'),
+    'hasDocumentationFailed': true,
   };
 
   /// A hashed version of the static assets.

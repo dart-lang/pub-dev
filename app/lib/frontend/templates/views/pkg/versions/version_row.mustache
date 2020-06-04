@@ -9,13 +9,21 @@
     <a href="{{& dartdocs_url}}"
        rel="nofollow"
        title="Go to the documentation of {{package}} {{version}}">
-        <img src="{{& icons.documentation}}" alt="Go to the documentation of {{package}} {{version}}" />
+        <img class="version-table-icon"
+             src="{{& icons.documentation}}"
+             {{#icons.hasDocumentationFailed}}
+             data-failed-icon="{{& icons.documentationFailed }}"
+             {{/icons.hasDocumentationFailed}}
+             alt="Go to the documentation of {{package}} {{version}}" />
     </a>
   </td>
   <td class="archive">
     <a href="{{& download_url}}"
+       rel="nofollow"
        title="Download {{package}} {{version}} archive">
-      <img src="{{& icons.download}}" alt="Download {{package}} {{version}} archive" />
+      <img class="version-table-icon"
+           src="{{& icons.download}}"
+           alt="Download {{package}} {{version}} archive" />
     </a>
   </td>
 </tr>

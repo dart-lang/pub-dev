@@ -54,7 +54,12 @@ void updateDartdocStatus() {
               } else {
                 docCol.dataset[_hasDocumentationAttr] = '0';
                 docLink.href += 'log.txt';
-                docLink.text = 'failed';
+                final img = docLink.querySelector('img.version-table-icon');
+                if (img != null && img.dataset.containsKey('failed-icon')) {
+                  img.setAttribute('src', img.dataset['failed-icon']);
+                } else {
+                  docLink.text = 'failed';
+                }
               }
             },
           );

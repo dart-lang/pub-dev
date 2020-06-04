@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="20px" viewBox="0 0 16 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<title>icon: generation failed</title>
+<defs>
+<polygon id="path-1" points="0 0 15.9998 0 15.9998 20 0 20"></polygon>
+<polygon id="path-3" points="0 20 16 20 16 0 0 0"></polygon>
+</defs>
+<g id="pub.dev" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+<g id="detail---versions-03" transform="translate(-865.000000, -582.000000)">
+<g id="item-copy-2" transform="translate(189.000000, 577.000000)">
+<g id="icon:-generation-failed" transform="translate(676.000000, 5.000000)">
+<polygon id="Fill-1" fill="#000000" points="4 12 12 12 12 10 4 10"></polygon>
+<g id="Group-8">
+<g id="Group-4">
+<mask id="mask-2" fill="white">
+<use xlink:href="#path-1"></use>
+</mask>
+<g id="Clip-3"></g>
+<path d="M13.9998,9 L13.9998,18 L1.9998,18 L1.9998,2 L6.9998,2 L6.9998,0 L1.9998,0 C0.8998,0 -0.0002,0.9 -0.0002,2 L-0.0002,18 C-0.0002,19.1 0.8898,20 1.9898,20 L13.9998,20 C15.0998,20 15.9998,19.1 15.9998,18 L15.9998,9 L13.9998,9 Z" id="Fill-2" fill="#000000" mask="url(#mask-2)"></path>
+</g>
+<mask id="mask-4" fill="white">
+<use xlink:href="#path-3"></use>
+</mask>
+<g id="Clip-6"></g>
+<polygon id="Fill-5" fill="#000000" mask="url(#mask-4)" points="4 16 12 16 12 14 4 14"></polygon>
+<polygon id="Fill-7" fill="#000000" mask="url(#mask-4)" points="15.9998 1.4917 14.5088 -0.0003 12.3128 2.1957 10.1178 -0.0003 8.6258 1.4917 10.8208 3.6867 8.6258 5.8827 10.1178 7.3737 12.3128 5.1787 14.5088 7.3737 15.9998 5.8827 13.8048 3.6867"></polygon>
+</g>
+</g>
+</g>
+</g>
+</g>
+</svg>
