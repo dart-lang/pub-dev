@@ -119,6 +119,17 @@ and do not format to also bump the runtimeVersion.''',
     expect(dependency.version.toString(), dartdocVersion);
   });
 
+  test('GC is not deleting currently accepted versions', () {
+    for (final version in acceptedRuntimeVersions) {
+      expect(shouldGCVersion(version), isFalse);
+    }
+  });
+
+  test('GC is returning correct values for known versions', () {
+    expect(shouldGCVersion('2000.01.01'), isTrue);
+    expect(shouldGCVersion('3000.01.01'), isFalse);
+  });
+
   group('dartdoc serving', () {
     test('old versions are no longer serving', () {
       expect(shouldServeDartdoc(null), isFalse);

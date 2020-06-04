@@ -45,7 +45,12 @@ final fallbackRuntimeVersions = acceptedRuntimeVersions.skip(1).toList();
 /// The version which marks the earliest version of the data which we'd like to
 /// keep during various GC processes. Data prior to this version is subject to
 /// delete (unless there is another rule in place to keep it).
-final String gcBeforeRuntimeVersion = acceptedRuntimeVersions.last;
+final gcBeforeRuntimeVersion = acceptedRuntimeVersions.last;
+
+/// Returns true if the given version should be considered as obsolete and can
+/// be deleted.
+bool shouldGCVersion(String version) =>
+    version.compareTo(gcBeforeRuntimeVersion) < 0;
 
 // keep in-sync with SDK version in .travis.yml, .mono_repo.yml and Dockerfile
 final String runtimeSdkVersion = '2.8.1';
