@@ -53,7 +53,8 @@ void main() {
     test('check the length of the version', () {
       expect(
           validatePackageVersion(Version.parse(
-              '1.0.0-longandboringprereleasestringthatnobodywantstoread')),
+              '1.0.0-longandboringprereleasestringthatnobodywantstoread'
+              'longandboringprereleasestringthatnobodywantstoread')),
           isNotEmpty);
     });
   });

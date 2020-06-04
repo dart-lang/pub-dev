@@ -223,8 +223,8 @@ Iterable<ArchiveIssue> validatePackageName(String name) sync* {
 
 /// Sanity checks for the package's version.
 Iterable<ArchiveIssue> validatePackageVersion(Version version) sync* {
-  if (version.toString().length > 32) {
-    yield ArchiveIssue('Package version must not exceed 32 characters. '
+  if (version.toString().length > 64) {
+    yield ArchiveIssue('Package version must not exceed 64 characters. '
         '(Please file an issue if you think you have a good reason for a longer version.)');
   }
 }
