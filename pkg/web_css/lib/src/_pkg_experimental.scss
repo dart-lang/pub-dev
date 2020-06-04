@@ -11,10 +11,12 @@ body.experimental {
 
   td, th {
     border-bottom: 1px solid #c8c8ca;
-    padding: 4px 0px;
+    padding: 8px 0px;
     text-align: left;
 
     &.version {
+      font-family: $font-family-google-sans;
+      font-size: 24px;
     }
 
     &.uploaded {
@@ -64,6 +66,10 @@ body.experimental {
         font-weight: 400;
       }
     }
+  }
+
+  .version-table-icon {
+    opacity: 0.7;
   }
 }
 
