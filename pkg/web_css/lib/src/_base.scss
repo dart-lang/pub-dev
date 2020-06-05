@@ -80,7 +80,13 @@ a {
 }
 
 main {
-  min-height: calc(100vh - 360px); // top nav + search banner + footer margin + footer padding
+  body.non-experimental & {
+    min-height: calc(100vh - 360px); // top nav + search banner + footer margin + footer padding
+  }
+
+  body.experimental & {
+    min-height: calc(100vh - 222px); // top nav (50) + footer with margin (80+92)
+  }
 
   body.page-standalone.non-experimental & {
     max-width: 800px;
@@ -230,11 +236,17 @@ pre {
 
 .-pub-like-button {
   --mdc-theme-primary: #f8f8f8;
-  --mdc-theme-on-primary: #000000;
+  --mdc-theme-on-primary: #4a4a4a;
 
   body.non-experimental & {
     float: right;
     width: 100px;
+  }
+}
+
+.-pub-like-button-img {
+  body.experimental & {
+    opacity: 0.7;
   }
 }
 
