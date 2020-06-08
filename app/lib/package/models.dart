@@ -239,9 +239,6 @@ class PackageVersion extends db.ExpandoModel {
   @db.IntProperty(required: true)
   int downloads;
 
-  @db.IntProperty(propertyName: 'sort_order')
-  int sortOrder;
-
   @db.StringProperty(required: true)
   String uploader;
 

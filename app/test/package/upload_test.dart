@@ -121,7 +121,6 @@ void main() {
         expect(pv.uploader, 'hans-at-juergen-dot-com');
         expect(pv.publisherId, isNull);
         expect(pv.downloads, 0);
-        expect(pv.sortOrder, 0);
 
         expect(fakeEmailSender.sentMessages, hasLength(1));
         final email = fakeEmailSender.sentMessages.single;
@@ -168,7 +167,6 @@ void main() {
         expect(pv.uploader, 'hans-at-juergen-dot-com');
         expect(pv.publisherId, 'example.com');
         expect(pv.downloads, 0);
-        expect(pv.sortOrder, 19);
 
         expect(fakeEmailSender.sentMessages, hasLength(1));
         final email = fakeEmailSender.sentMessages.single;

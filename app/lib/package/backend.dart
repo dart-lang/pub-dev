@@ -524,11 +524,6 @@ class PackageBackend {
         await T.commit();
 
         _logger.info('Upload successful. [package-uploaded]');
-
-        // Try to load all package versions, sort them by `sort_order` and
-        // store them again.
-        await _updatePackageSortIndex(package.key);
-
         return newVersion;
       } catch (error, stack) {
         _logger.warning('Error while committing: $error, $stack');
@@ -582,42 +577,6 @@ class PackageBackend {
       _logger.severe('Error post-processing package upload $v', e, st);
     }
     return pv;
-  }
-
-  Future<void> _updatePackageSortIndex(Key packageKey) async {
-    try {
-      _logger.info('Trying to update the `sort_order` field.');
-      await db.withTransaction((Transaction T) async {
-        final versions =
-            await T.query<PackageVersion>(packageKey).run().toList();
-        versions.sort((versionA, versionB) {
-          return versionA.semanticVersion.compareTo(versionB.semanticVersion);
-        });
-
-        final List<PackageVersion> modifiedVersions = [];
-
-        for (int i = 0; i < versions.length; i++) {
-          final version = versions[i];
-          if (version.sortOrder != i) {
-            version.sortOrder = i;
-            modifiedVersions.add(version);
-          }
-        }
-
-        T.queueMutations(inserts: modifiedVersions);
-        await T.commit();
-        _logger.info('Successfully updated `sort_order` field of '
-            '${modifiedVersions.length} versions'
-            '(out of ${versions.length} versions).');
-      });
-    } catch (error, stack) {
-      // We ignore errors, since the sorting is not that critical and
-      // the upload itself was successfull.
-      _logger.warning(
-          'Sorting by `sort_order` failed, but upload was successful.',
-          error,
-          stack);
-    }
   }
 
   // Uploaders support.
@@ -947,7 +906,6 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
     ..exampleContent = archive.exampleContent
     ..libraries = archive.libraries
     ..downloads = 0
-    ..sortOrder = 1
     ..uploader = user.userId;
 
   final versionPubspec = PackageVersionPubspec()
