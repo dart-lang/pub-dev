@@ -367,6 +367,15 @@ $detail-tabs-width: calc(100% - 320px);
     border-bottom-color: $detail-tab-admin-color;
   }
 
+  .detail-tab-analysis-title {
+    // Separate the tab title's bottom border from the score.
+    position: relative;
+    margin-right: 60px;
+    > a {
+      margin-right: 0px;
+    }
+  }
+
   .score-value {
     background: $detail-tab-active-fg;
     color: white;
@@ -374,6 +383,9 @@ $detail-tabs-width: calc(100% - 320px);
     font-weight: 400;
     padding: 0px 8px;
     border-radius: 12px;
+    // Separate the tab title's bottom border from the score.
+    position: absolute;
+    margin-left: 8px;
   }
 }
 

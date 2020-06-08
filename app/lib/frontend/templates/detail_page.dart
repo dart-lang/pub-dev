@@ -114,6 +114,7 @@ class Tab {
     final titleClasses = <String>[
       if (requestContext.isExperimental) 'detail-tab',
       contentHtml == null ? 'tab-link' : 'tab-button',
+      if (requestContext.isExperimental) 'detail-tab-$id-title',
       if (isActive) '-active',
     ];
     final contentClasses = <String>[
