@@ -6,6 +6,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded Dart analysis SDK to `2.8.4`.
  * Upgraded Flutter to `1.17.3`.
  * Upgraded dartdoc to `0.32.1`.
+ * Removed `PackageVersion.sortOrder`.
 
 ## `20200529t114421-all`
  * Disabled dartdoc deletion until retention issue has been solved.
