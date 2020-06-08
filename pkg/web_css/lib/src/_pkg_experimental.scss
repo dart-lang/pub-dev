@@ -166,12 +166,13 @@ body.experimental {
   }
 
   .score-progress-frame {
-    background: $score-circle-outline;
+    background-image: linear-gradient(to bottom right, #29B6F6, #1967D2);
     height: 6px;
+    overflow: none;
   }
 
   .score-progress {
-    background: $score-circle-stroke;
+    background: $score-circle-outline;
     height: 6px;
   }
 

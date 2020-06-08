@@ -327,10 +327,11 @@ String renderScoreCircle({
   // the circle's circumference as the arc's active part, and then a longer
   // transparent pattern.
   final radius = 20;
+  final active = (percent * radius * 2 * pi) / 100.0;
   return templateCache.renderTemplate('shared/score_circle', {
     'radius': radius,
     'diameter': radius * 2,
-    'active': (percent * radius * 2 * pi) ~/ 100,
+    'active': percent == 100 ? active.ceil() : active.floor(),
     'inactive': radius * 7, // longer than the circumference (r * 2 * pi)
     'primary_label': label,
     'has_secondary_label': secondaryLabel != null,
