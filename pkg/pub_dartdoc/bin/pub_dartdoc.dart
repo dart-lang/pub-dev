@@ -5,13 +5,15 @@
 import 'dart:io';
 
 import 'package:dartdoc/dartdoc.dart';
+import 'package:dartdoc/src/dartdoc_options.dart';
 import 'package:dartdoc/src/logging.dart';
+import 'package:dartdoc/src/package_meta.dart';
 
 import 'package:pub_dartdoc/pub_data_generator.dart';
 
 void main(List<String> arguments) async {
   final optionSet = await DartdocOptionSet.fromOptionGenerators('pub_dartdoc', [
-    createDartdocOptions,
+    () => createDartdocOptions(pubPackageMetaProvider),
     createLoggingOptions,
     createGeneratorOptions,
   ]);

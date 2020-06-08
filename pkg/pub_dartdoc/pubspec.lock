@@ -91,7 +91,7 @@ packages:
       name: dartdoc
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.32.0"
+    version: "0.32.1"
   file:
     dependency: transitive
     description:
