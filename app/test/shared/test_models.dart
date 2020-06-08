@@ -119,7 +119,6 @@ final PackageVersion foobarStablePV = PackageVersion()
   ..changelogContent = foobarChangelogContent
   ..exampleFilename = 'example/lib/main.dart'
   ..exampleContent = foobarExampleContent
-  ..sortOrder = -1
   ..downloads = 0;
 
 final PackageVersion flutterPackageVersion = clonePackageVersion(foobarStablePV)
@@ -149,7 +148,6 @@ PackageVersion clonePackageVersion(PackageVersion original) => PackageVersion()
   ..readmeContent = original.readmeContent
   ..changelogFilename = original.changelogFilename
   ..changelogContent = original.changelogContent
-  ..sortOrder = original.sortOrder
   ..downloads = original.downloads;
 
 final moderatedPackage = ModeratedPackage()
@@ -381,7 +379,6 @@ PkgBundle generateBundle(
       ..exampleContent = example
       ..libraries = ['lib/$name.dart']
       ..downloads = 0
-      ..sortOrder = 0
       ..uploader = uploader.userId
       ..publisherId = publisherId;
     versions.add(version);
