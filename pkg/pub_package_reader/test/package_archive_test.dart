@@ -91,6 +91,32 @@ void main() {
     });
   });
 
+  group('too many dependencies', () {
+    test('allow the limit', () {
+      final dependencies =
+          List.generate(100, (i) => '  dep$i: ^1.0.$i').join('\n');
+      final pubspec = Pubspec.parse('''
+name: test_pkg
+version: 1.0.0-dev.1
+dependencies:
+$dependencies
+''');
+      expect(validateDependencies(pubspec), isEmpty);
+    });
+
+    test('forbid too many dependencies', () {
+      final dependencies =
+          List.generate(101, (i) => '  dep$i: ^1.0.$i').join('\n');
+      final pubspec = Pubspec.parse('''
+name: test_pkg
+version: 1.0.0-dev.1
+dependencies:
+$dependencies
+''');
+      expect(validateDependencies(pubspec), isNotEmpty);
+    });
+  });
+
   group('forbid git dependencies', () {
     test('normal dependencies are fine', () {
       final pubspec = Pubspec.parse('''

@@ -169,6 +169,7 @@ Future<PackageSummary> summarizePackageArchive(String archivePath) async {
   issues.addAll(validatePackageVersion(pubspec.version));
   issues.addAll(syntaxCheckUrl(pubspec.homepage, 'homepage'));
   issues.addAll(syntaxCheckUrl(pubspec.repository?.toString(), 'repository'));
+  issues.addAll(validateDependencies(pubspec));
   issues.addAll(forbidGitDependencies(pubspec));
   issues.addAll(forbidPreReleaseSdk(pubspec));
 
@@ -254,6 +255,17 @@ Iterable<ArchiveIssue> syntaxCheckUrl(String url, String name) sync* {
       invalidHostNames.contains(uri.host)) {
     final titleCaseName = name[1].toUpperCase() + name.substring(1);
     yield ArchiveIssue('$titleCaseName URL has no valid host: $url');
+  }
+}
+
+/// Validate that the package does not have too many dependencies.
+///
+/// It ignores `dev_dependencies` as these are for development only.
+Iterable<ArchiveIssue> validateDependencies(Pubspec pubspec) sync* {
+  // This is not an inherently hard limit, it's merely a sanity limitation.
+  if (pubspec.dependencies.length > 100) {
+    yield ArchiveIssue('Package must not exceed 128 direct dependencies. '
+        '(Please file an issue if you think you have a good reason for more dependencies.)');
   }
 }
 
