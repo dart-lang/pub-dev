@@ -262,7 +262,8 @@ Iterable<ArchiveIssue> syntaxCheckUrl(String url, String name) sync* {
 ///
 /// It ignores `dev_dependencies` as these are for development only.
 Iterable<ArchiveIssue> validateDependencies(Pubspec pubspec) sync* {
-  if (pubspec.dependencies.length > 128) {
+  // This is not an inherently hard limit, it's merely a sanity limitation.
+  if (pubspec.dependencies.length > 100) {
     yield ArchiveIssue('Package must not exceed 128 direct dependencies. '
         '(Please file an issue if you think you have a good reason for more dependencies.)');
   }
