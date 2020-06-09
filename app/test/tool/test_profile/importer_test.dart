@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:gcloud/db.dart';
+import 'package:pub_dev/tool/test_profile/normalizer.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dev/account/models.dart';
@@ -19,7 +20,7 @@ void main() {
     testWithServices(
       'a few entities',
       () async {
-        final profile = TestProfile(
+        final profile = TestProfileNormalizer().normalize(TestProfile(
           defaultUser: 'dev@example.com',
           packages: [
             TestPackage(
@@ -30,8 +31,7 @@ void main() {
           ],
           users: [],
           publishers: [],
-        );
-        profile.normalize();
+        ));
 
         await withTempDirectory((dir) async {
           await importProfile(profile: profile, archiveCachePath: dir);
