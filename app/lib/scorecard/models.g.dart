@@ -115,6 +115,7 @@ Map<String, dynamic> _$PanaReportToJson(PanaReport instance) {
 DartdocReport _$DartdocReportFromJson(Map<String, dynamic> json) {
   return DartdocReport(
     reportStatus: json['reportStatus'] as String,
+    dartdocEntryUuid: json['dartdocEntryUuid'] as String,
     coverage: (json['coverage'] as num)?.toDouble(),
     coverageScore: (json['coverageScore'] as num)?.toDouble(),
     healthSuggestions: (json['healthSuggestions'] as List)
@@ -131,6 +132,7 @@ DartdocReport _$DartdocReportFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$DartdocReportToJson(DartdocReport instance) {
   final val = <String, dynamic>{
     'reportStatus': instance.reportStatus,
+    'dartdocEntryUuid': instance.dartdocEntryUuid,
     'coverage': instance.coverage,
     'coverageScore': instance.coverageScore,
   };

@@ -20,6 +20,7 @@ import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 
 import '../dartdoc/models.dart' show DartdocEntry;
 import '../package/models.dart' show Package, PackageVersion;
+import '../scorecard/backend.dart';
 import '../shared/redis_cache.dart' show cache;
 import '../shared/storage.dart';
 import '../shared/versions.dart' as shared_versions;
@@ -175,6 +176,9 @@ class DartdocBackend {
     }
 
     Future<DartdocEntry> loadVersion(String v) async {
+      final entry = _tryLoadLastReportedEntry(package, v);
+      if (entry != null) return entry;
+
       final entries = await _listEntries(storage_path.entryPrefix(package, v));
       // keep only accepted runtime versions
       entries.retainWhere((e) =>
@@ -335,21 +339,45 @@ class DartdocBackend {
         await for (final entry in _storage.list(prefix: prefix)) {
           if (entry.isDirectory) continue;
           if (!entry.name.endsWith('.json')) continue;
-
-          try {
-            list.add(await DartdocEntry.fromStream(_storage.read(entry.name)));
-          } catch (e, st) {
-            if (e is DetailedApiRequestError && e.status == 404) {
-              // ignore exception: entry was removed by another cleanup process during the listing
-            } else {
-              _logger.warning('Unable to read entry: ${entry.name}.', e, st);
-            }
+          final dartdocEntry = await _tryLoadEntryFromBucket(entry.name);
+          if (dartdocEntry != null) {
+            list.add(dartdocEntry);
           }
         }
         return list;
       },
       maxAttempts: 2,
     );
+  }
+
+  /// Tries to load the entry from the storage bucket.
+  /// Returns null if the entry was missing or unable to parse.
+  Future<DartdocEntry> _tryLoadEntryFromBucket(String objectName) async {
+    try {
+      return await DartdocEntry.fromStream(_storage.read(objectName));
+    } catch (e, st) {
+      if (e is DetailedApiRequestError && e.status == 404) {
+        // ignore exception: entry was removed by another cleanup process during the listing
+      } else {
+        _logger.warning('Unable to read entry: $objectName.', e, st);
+      }
+    }
+    return null;
+  }
+
+  /// Tries to load the latest successful entry from the dartdoc report.
+  /// Returns null if there was no report or the entry was missing.
+  Future<DartdocEntry> _tryLoadLastReportedEntry(
+      String package, String version) async {
+    final reports = await scoreCardBackend
+        .loadReports(package, version, reportTypes: [ReportType.dartdoc]);
+    final report = reports[ReportType.dartdoc] as DartdocReport;
+    final uuid = report?.dartdocEntryUuid;
+    if (uuid != null) {
+      final objectName = storage_path.entryObjectName(package, version, uuid);
+      return await _tryLoadEntryFromBucket(objectName);
+    }
+    return null;
   }
 
   Future<void> _deleteAll(DartdocEntry entry, {int concurrency}) async {
