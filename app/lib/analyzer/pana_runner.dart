@@ -237,6 +237,7 @@ Summary createPanaSummaryForLegacy(String packageName, String packageVersion) {
               '[${urls.dartSiteRoot}/dart-2#migration](${urls.dartSiteRoot}/dart-2#migration).',
         ),
       ],
+      report: Report(sections: <ReportSection>[]),
       stats: Stats(
         analyzeProcessElapsed: 0,
         formatProcessElapsed: 0,
