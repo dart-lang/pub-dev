@@ -34,14 +34,13 @@ final lithium = generateBundle(
   publisherId: exampleComPublisher.publisherId,
 );
 
-final Key foobarPkgKey =
+final foobarPkgKey =
     Key.emptyKey(Partition(null)).append(Package, id: 'foobar_pkg');
 
-final Key foobarStablePVKey =
-    foobarPkgKey.append(PackageVersion, id: '0.1.1+5');
-final Key foobarDevPVKey = foobarPkgKey.append(PackageVersion, id: '0.2.0-dev');
+final foobarStablePVKey = foobarPkgKey.append(PackageVersion, id: '0.1.1+5');
+final foobarDevPVKey = foobarPkgKey.append(PackageVersion, id: '0.2.0-dev');
 
-final Key moderatedPkgKey =
+final moderatedPkgKey =
     Key.emptyKey(Partition(null)).append(ModeratedPackage, id: 'mo_derated');
 
 final hansUser = User()
@@ -80,7 +79,7 @@ final adminOAuthUserID = OAuthUserID()
       Key.emptyKey(Partition(null)).append(User, id: 'admin-at-pub-dot-dev');
 
 Package createFoobarPackage({String name, List<User> uploaders}) {
-  name ??= foobarPkgKey.id as String;
+  name ??= foobarPkgKey.id;
   uploaders ??= [hansUser];
   return Package()
     ..parentKey = foobarPkgKey.parent
@@ -107,7 +106,7 @@ final Package discontinuedPackage = createFoobarPackage()
 final PackageVersion foobarStablePV = PackageVersion()
   ..parentKey = foobarStablePVKey.parent
   ..id = foobarStablePVKey.id
-  ..version = foobarStablePVKey.id as String
+  ..version = foobarStablePVKey.id
   ..packageKey = foobarPkgKey
   ..created = DateTime.utc(2014)
   ..uploader = hansUser.userId
@@ -132,7 +131,7 @@ flutter:
 
 final PackageVersion foobarDevPV = clonePackageVersion(foobarStablePV)
   ..id = foobarDevPVKey.id
-  ..version = foobarDevPVKey.id as String;
+  ..version = foobarDevPVKey.id;
 
 PackageVersion clonePackageVersion(PackageVersion original) => PackageVersion()
   ..parentKey = original.parentKey

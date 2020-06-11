@@ -59,44 +59,25 @@ Future<int> deleteBucketFolderRecursively(
   if (!folder.endsWith('/')) {
     throw ArgumentError('Folder path must end with `/`: "$folder"');
   }
-  final deleter = _ObjectDeleter(bucket, concurrency);
-  final folders = <String>[folder];
-  while (folders.isNotEmpty) {
-    final currentFolder = folders.removeLast();
-    await for (final obj in bucket.list(prefix: currentFolder)) {
-      if (obj.name.endsWith('/')) {
-        folders.add(obj.name);
-      } else {
-        deleter.scheduleDelete(obj.name);
-      }
+  var count = 0;
+  Page<BucketEntry> page;
+  while (page == null || !page.isLast) {
+    page = page == null
+        ? await bucket.page(prefix: folder, delimiter: '', pageSize: 100)
+        : await page.next(pageSize: 100);
+    final futures = <Future>[];
+    final pool = Pool(concurrency ?? 1);
+    for (final entry in page.items) {
+      final f = pool.withResource(() async {
+        final deleted = await deleteFromBucket(bucket, entry.name);
+        if (deleted) count++;
+      });
+      futures.add(f);
     }
+    await Future.wait(futures);
+    await pool.close();
   }
-  return await deleter.waitAndClose();
-}
-
-class _ObjectDeleter {
-  final Bucket _bucket;
-  final Pool _pool;
-  final _futures = <Future>[];
-  int _deletedCount = 0;
-  _ObjectDeleter(this._bucket, int concurrency)
-      : _pool = Pool(concurrency ?? 1);
-
-  void scheduleDelete(String objectName) {
-    final f = _pool.withResource(() async {
-      final deleted = await deleteFromBucket(_bucket, objectName);
-      if (deleted) {
-        _deletedCount++;
-      }
-    });
-    _futures.add(f);
-  }
-
-  Future<int> waitAndClose() async {
-    await Future.wait(_futures);
-    await _pool.close();
-    return _deletedCount;
-  }
+  return count;
 }
 
 /// Uploads content from [openStream] to the [bucket] as [objectName].

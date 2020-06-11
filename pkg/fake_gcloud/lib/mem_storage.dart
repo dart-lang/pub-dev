@@ -192,10 +192,12 @@ class _Bucket implements Bucket {
   }
 
   @override
-  Stream<BucketEntry> list({String prefix}) async* {
+  Stream<BucketEntry> list({String prefix, String delimiter}) async* {
     _validateObjectName(prefix, allowNull: true);
     prefix ??= '';
-    final isDirPrefix = prefix.isEmpty || prefix.endsWith('/');
+    delimiter ??= '/';
+    final isDirPrefix =
+        prefix.isEmpty || (delimiter.isNotEmpty && prefix.endsWith(delimiter));
     final segments = <String>{};
     for (String name in _files.keys) {
       bool matchesPrefix() {
@@ -204,14 +206,19 @@ class _Bucket implements Bucket {
         // exclude everything that does not match the prefix
         if (!name.startsWith(prefix)) return false;
         // prefix does not end with directory separator, only files are matched
-        if (!isDirPrefix && name.substring(prefix.length).contains('/')) {
+        if (!isDirPrefix &&
+            delimiter.isNotEmpty &&
+            name.substring(prefix.length).contains(delimiter)) {
           return false;
         }
         return true;
       }
 
       if (matchesPrefix()) {
-        final subDirSegments = name.substring(prefix.length).split('/');
+        final lastPartOfName = name.substring(prefix.length);
+        final subDirSegments = delimiter.isEmpty
+            ? [lastPartOfName]
+            : lastPartOfName.split(delimiter);
         final isSubDirMatch = subDirSegments.length > 1;
 
         if (isDirPrefix && isSubDirMatch) {
@@ -229,14 +236,17 @@ class _Bucket implements Bucket {
       }
     }
 
-    for (final e in segments.map((s) => _BucketEntry('$prefix$s/', false))) {
-      yield e;
+    for (final s in segments) {
+      yield _BucketEntry('$prefix$s$delimiter', false);
     }
   }
 
   @override
-  Future<Page<BucketEntry>> page({String prefix, int pageSize = 50}) async {
-    return _Page<BucketEntry>(_BucketEntry('name', true));
+  Future<Page<BucketEntry>> page(
+      {String prefix, String delimiter, int pageSize = 50}) async {
+    final entries = await list(prefix: prefix, delimiter: delimiter).toList();
+    entries.sort((a, b) => a.name.compareTo(b.name));
+    return _Page<BucketEntry>(entries, pageSize, 0);
   }
 
   @override
@@ -261,19 +271,27 @@ class _BucketEntry implements BucketEntry {
 }
 
 class _Page<T> implements Page<T> {
-  final T _item;
-  @override
-  bool get isLast => true;
+  final List<T> _allItems;
+  final List<T> _pageItems;
+  final int _pageSize;
+  final int _pageNum;
 
   @override
-  List<T> get items => <T>[_item];
+  final bool isLast;
 
   @override
-  Future<Page<T>> next({int pageSize}) {
-    return null;
+  List<T> get items => _pageItems;
+
+  @override
+  Future<Page<T>> next({int pageSize}) async {
+    if (isLast) return null;
+    return _Page(_allItems, _pageSize, _pageNum + 1);
   }
 
-  _Page(this._item);
+  _Page(this._allItems, this._pageSize, this._pageNum)
+      : _pageItems =
+            _allItems.skip(_pageNum * _pageSize).take(_pageSize).toList(),
+        isLast = _allItems.length > _pageSize * (_pageNum + 1);
 }
 
 void _validateObjectName(String objectName, {bool allowNull = false}) {

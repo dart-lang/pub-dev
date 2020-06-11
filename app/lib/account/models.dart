@@ -16,10 +16,10 @@ part 'models.g.dart';
 
 /// User data model with a random UUID id.
 @db.Kind(name: 'User', idType: db.IdType.String)
-class User extends db.ExpandoModel {
+class User extends db.ExpandoModel<String> {
   /// Same as [id].
   /// A random UUID id.
-  String get userId => id as String;
+  String get userId => id;
 
   /// The Google OAuth2 ID of the [User].
   ///
@@ -61,9 +61,9 @@ class User extends db.ExpandoModel {
 
 /// Maps Oauth user_id to User.id
 @db.Kind(name: 'OAuthUserID', idType: db.IdType.String)
-class OAuthUserID extends db.ExpandoModel {
+class OAuthUserID extends db.ExpandoModel<String> {
   /// Same as [id].
-  String get oauthUserId => id as String;
+  String get oauthUserId => id;
 
   @db.ModelKeyProperty(required: true)
   db.Key userIdKey;
@@ -80,9 +80,9 @@ class OAuthUserID extends db.ExpandoModel {
 /// A [Like] entity is created when [userId] likes [package].
 /// When a user unlikes a package the [Like] entity is deleted
 @db.Kind(name: 'Like', idType: db.IdType.String)
-class Like extends db.ExpandoModel {
+class Like extends db.ExpandoModel<String> {
   String get userId => parentKey.id as String;
-  String get package => id as String;
+  String get package => id;
 
   @db.DateTimeProperty()
   DateTime created;
@@ -117,10 +117,10 @@ class LikeData {
 
 /// Maps the session id (from cookie) to User.id and cached profile properties.
 @db.Kind(name: 'UserSession', idType: db.IdType.String)
-class UserSession extends db.ExpandoModel {
+class UserSession extends db.ExpandoModel<String> {
   /// Same as [id].
   /// This is a v4 (random) UUID String.
-  String get sessionId => id as String;
+  String get sessionId => id;
 
   @db.ModelKeyProperty(required: true)
   db.Key userIdKey;
@@ -212,8 +212,8 @@ class UserSessionData {
 
 /// Derived data for [User] for fast lookup.
 @db.Kind(name: 'UserInfo', idType: db.IdType.String)
-class UserInfo extends db.ExpandoModel {
-  String get userId => id as String;
+class UserInfo extends db.ExpandoModel<String> {
+  String get userId => id;
 
   @db.StringListProperty()
   List<String> packages = <String>[];

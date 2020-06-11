@@ -19,7 +19,7 @@ abstract class HistorySource {
 }
 
 @db.Kind(name: 'History', idType: db.IdType.String)
-class History extends db.ExpandoModel {
+class History extends db.ExpandoModel<String> {
   History();
 
   History._({
