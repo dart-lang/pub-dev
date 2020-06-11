@@ -179,6 +179,7 @@ void main() {
             flags: null),
         dartdocReport: DartdocReport(
           reportStatus: ReportStatus.success,
+          dartdocEntryUuid: '1234-5678-dartdocentry-90ab',
           coverage: 1.0,
           coverageScore: 1.0,
           healthSuggestions: [],

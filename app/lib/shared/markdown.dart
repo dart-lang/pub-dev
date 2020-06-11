@@ -98,7 +98,8 @@ String _renderSafeHtml(List<m.Node> nodes, bool inlineOnly) {
   // Renders the sanitized HTML.
   final html = sanitizeHtml(
     rawHtml,
-    allowElementId: (String id) => true, // TODO: Use a denylist for ids used by pub site
+    allowElementId: (String id) =>
+        true, // TODO: Use a denylist for ids used by pub site
     allowClassName: (String cn) {
       if (cn.startsWith('language-')) return true;
       return _whitelistedClassNames.contains(cn);

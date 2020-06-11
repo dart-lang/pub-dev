@@ -418,6 +418,9 @@ class DartdocReport implements ReportData {
   @override
   final String reportStatus;
 
+  /// The latest dartdoc entry's UUID that has valid documentation content.
+  final String dartdocEntryUuid;
+
   /// The percent of API symbols with documentation.
   final double coverage;
   final double coverageScore;
@@ -432,6 +435,7 @@ class DartdocReport implements ReportData {
 
   DartdocReport({
     @required this.reportStatus,
+    @required this.dartdocEntryUuid,
     @required this.coverage,
     @required this.coverageScore,
     @required this.healthSuggestions,
