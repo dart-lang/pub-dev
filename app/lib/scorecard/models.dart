@@ -60,7 +60,7 @@ abstract class ReportStatus {
 /// The details are pulled in from various data sources, and the entry is
 /// recalculated from scratch each time any of the sources change.
 @db.Kind(name: 'ScoreCard', idType: db.IdType.String)
-class ScoreCard extends db.ExpandoModel with FlagMixin {
+class ScoreCard extends db.ExpandoModel<String> with FlagMixin {
   @db.StringProperty(required: true)
   String packageName;
 
@@ -187,7 +187,7 @@ class ScoreCard extends db.ExpandoModel with FlagMixin {
 
 /// Detail of a specific report for a given PackageVersion.
 @db.Kind(name: 'ScoreCardReport', idType: db.IdType.String)
-class ScoreCardReport extends db.ExpandoModel {
+class ScoreCardReport extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)
   String packageName;
 

@@ -38,8 +38,11 @@ void main() {
     await bucket.writeBytes('a/b/c.txt', [0]);
     await bucket.writeBytes('a/b-local.txt', [0]);
 
-    Future<List<String>> list(String prefix) async {
-      final r = await bucket.list(prefix: prefix).map((e) => e.name).toList();
+    Future<List<String>> list(String prefix, {String delimiter}) async {
+      final r = await bucket
+          .list(prefix: prefix, delimiter: delimiter)
+          .map((e) => e.name)
+          .toList();
       r.sort();
       return r;
     }
@@ -59,5 +62,27 @@ void main() {
     // directory prefix with only local files
     expect(await list('a/b'), ['a/b-local.txt']);
     expect(await list('a/b/'), ['a/b/c.txt']);
+
+    // no delimiter (recursive)
+    expect(await list('', delimiter: ''), ['a/b-local.txt', 'a/b/c.txt']);
+    expect(await list('a/b/', delimiter: ''), ['a/b/c.txt']);
+
+    // non-standard delimiter
+    expect(await list('', delimiter: '-'), ['a/b-', 'a/b/c.txt']);
+  });
+
+  test('page', () async {
+    final storage = MemStorage(buckets: ['test']);
+    final bucket = storage.bucket('test');
+    await bucket.writeBytes('a/b/c.txt', [0]);
+    await bucket.writeBytes('a/b-local.txt', [0]);
+
+    final p1 = await bucket.page(delimiter: '', pageSize: 1);
+    expect(p1.items.single.name, 'a/b-local.txt');
+    expect(p1.isLast, false);
+
+    final p2 = await p1.next();
+    expect(p2.items.single.name, 'a/b/c.txt');
+    expect(p2.isLast, true);
   });
 }

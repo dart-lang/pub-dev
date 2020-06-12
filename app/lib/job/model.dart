@@ -50,7 +50,7 @@ enum JobStatus {
 }
 
 @Kind(name: 'Job', idType: IdType.String)
-class Job extends ExpandoModel {
+class Job extends ExpandoModel<String> {
   @StringProperty()
   String runtimeVersion;
 

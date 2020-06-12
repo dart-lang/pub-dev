@@ -44,7 +44,7 @@ class HistoryBackend {
       tx.queueMutations(inserts: [history]);
       await tx.commit();
     });
-    return history.id as String;
+    return history.id;
   }
 
   Stream<History> getAll({

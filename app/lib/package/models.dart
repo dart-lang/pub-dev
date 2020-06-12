@@ -30,7 +30,7 @@ part 'models.g.dart';
 /// The main property used is `uploaders` for determining who is allowed
 /// to upload packages.
 @db.Kind(name: 'Package', idType: db.IdType.String)
-class Package extends db.ExpandoModel {
+class Package extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)
   String name; // Same as id
 
@@ -175,7 +175,7 @@ class Package extends db.ExpandoModel {
 /// Metadata such as changelog/readme/libraries are used for rendering HTML
 /// pages.
 @db.Kind(name: 'PackageVersion', idType: db.IdType.String)
-class PackageVersion extends db.ExpandoModel {
+class PackageVersion extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)
   String version; // Same as id
 
@@ -289,7 +289,7 @@ class PackageVersion extends db.ExpandoModel {
 /// The content of `pubspec.yaml` may be updated/cleaned in case of a breaking
 /// change was introduced since the [PackageVersion] was published.
 @db.Kind(name: 'PackageVersionPubspec', idType: db.IdType.String)
-class PackageVersionPubspec extends db.ExpandoModel {
+class PackageVersionPubspec extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)
   String package;
 
@@ -320,7 +320,7 @@ class PackageVersionPubspec extends db.ExpandoModel {
 
 /// A derived entity that holds derived/cleaned content of [PackageVersion].
 @db.Kind(name: 'PackageVersionInfo', idType: db.IdType.String)
-class PackageVersionInfo extends db.ExpandoModel {
+class PackageVersionInfo extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)
   String package;
 
@@ -354,7 +354,7 @@ class PackageVersionInfo extends db.ExpandoModel {
 
 /// Entity representing a package that has been removed.
 @db.Kind(name: 'ModeratedPackage', idType: db.IdType.String)
-class ModeratedPackage extends db.ExpandoModel {
+class ModeratedPackage extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)
   String name;
 

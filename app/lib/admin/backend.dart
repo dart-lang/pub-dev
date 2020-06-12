@@ -334,8 +334,8 @@ class AdminBackend {
     final TarballStorage storage = TarballStorage(storageService,
         storageService.bucket(activeConfiguration.packageBucketName), '');
     versionsNames.forEach((final v) {
-      final future = pool.withResource(() {
-        storage.remove(packageName, v.toString());
+      final future = pool.withResource(() async {
+        await storage.remove(packageName, v.toString());
       });
       futures.add(future);
     });
@@ -346,12 +346,12 @@ class AdminBackend {
     await dartdocBackend.removeAll(packageName, concurrency: 32);
 
     _logger.info('Removing package from PackageVersionPubspec ...');
-    await _deleteWithQuery(dbService.query<PackageVersionPubspec>()
-      ..filter('package =', packageName));
+    await _deleteWithQuery(
+        _db.query<PackageVersionPubspec>()..filter('package =', packageName));
 
     _logger.info('Removing package from PackageVersionInfo ...');
-    await _deleteWithQuery(dbService.query<PackageVersionInfo>()
-      ..filter('package =', packageName));
+    await _deleteWithQuery(
+        _db.query<PackageVersionInfo>()..filter('package =', packageName));
 
     _logger.info('Removing package from Jobs ...');
     await _deleteWithQuery(
@@ -371,7 +371,7 @@ class AdminBackend {
 
     _logger.info('Removing package from Like ...');
     await _deleteWithQuery(
-        dbService.query<Like>()..filter('packageName =', packageName));
+        _db.query<Like>()..filter('packageName =', packageName));
 
     _logger.info('Package "$packageName" got successfully removed.');
     _logger.info(

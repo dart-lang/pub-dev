@@ -9,7 +9,7 @@ import '../shared/versions.dart' as versions;
 
 import 'models.dart';
 
-db.Key scoreCardKey(
+db.Key<String> scoreCardKey(
   String packageName,
   String packageVersion, {
   String runtimeVersion,
