@@ -70,4 +70,19 @@ void main() {
     // non-standard delimiter
     expect(await list('', delimiter: '-'), ['a/b-', 'a/b/c.txt']);
   });
+
+  test('page', () async {
+    final storage = MemStorage(buckets: ['test']);
+    final bucket = storage.bucket('test');
+    await bucket.writeBytes('a/b/c.txt', [0]);
+    await bucket.writeBytes('a/b-local.txt', [0]);
+
+    final p1 = await bucket.page(delimiter: '', pageSize: 1);
+    expect(p1.items.single.name, 'a/b-local.txt');
+    expect(p1.isLast, false);
+
+    final p2 = await p1.next();
+    expect(p2.items.single.name, 'a/b/c.txt');
+    expect(p2.isLast, true);
+  });
 }

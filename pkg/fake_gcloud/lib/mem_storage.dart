@@ -291,7 +291,7 @@ class _Page<T> implements Page<T> {
   _Page(this._allItems, this._pageSize, this._pageNum)
       : _pageItems =
             _allItems.skip(_pageNum * _pageSize).take(_pageSize).toList(),
-        isLast = _allItems.length > _pageSize * (_pageNum + 1);
+        isLast = _allItems.length <= _pageSize * (_pageNum + 1);
 }
 
 void _validateObjectName(String objectName, {bool allowNull = false}) {
