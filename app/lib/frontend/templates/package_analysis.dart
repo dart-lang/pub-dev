@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pana/models.dart' show SuggestionLevel;
+import 'package:pana/models.dart' show Report, ReportSection, SuggestionLevel;
 
 import '../../analyzer/analyzer_client.dart';
 import '../../scorecard/models.dart';
@@ -39,6 +39,10 @@ String renderAnalysisTab(String package, String sdkConstraint,
       break;
   }
 
+  // TODO: remove fake report once we can access it from ScoreCard
+  final report = requestContext.isExperimental ? _fakeReport(analysis) : null;
+  final hasReport = report != null;
+
   final Map<String, dynamic> data = {
     'package': package,
     'show_discontinued': card.isDiscontinued,
@@ -53,17 +57,69 @@ String renderAnalysisTab(String package, String sdkConstraint,
     'dart_sdk_version': analysis.dartSdkVersion,
     'pana_version': analysis.panaVersion,
     'flutter_version': analysis.flutterVersion,
-    'analysis_suggestions_html':
-        _renderSuggestionBlockHtml('Analysis', analysis.panaSuggestions),
-    'health_suggestions_html':
-        _renderSuggestionBlockHtml('Health', analysis.healthSuggestions),
-    'maintenance_suggestions_html': _renderSuggestionBlockHtml(
-        'Maintenance', analysis.maintenanceSuggestions),
+    'analysis_suggestions_html': hasReport
+        ? null
+        : _renderSuggestionBlockHtml('Analysis', analysis.panaSuggestions),
+    'health_suggestions_html': hasReport
+        ? null
+        : _renderSuggestionBlockHtml('Health', analysis.healthSuggestions),
+    'maintenance_suggestions_html': hasReport
+        ? null
+        : _renderSuggestionBlockHtml(
+            'Maintenance', analysis.maintenanceSuggestions),
     'score_table_html': _renderScoreTable(card),
     'dep_table_html': _renderDepTable(sdkConstraint, card, analysis),
+    'report_html': _renderReport(report),
   };
 
   return templateCache.renderTemplate('pkg/analysis/tab', data);
+}
+
+Report _fakeReport(AnalysisView analysis) {
+  if (analysis == null || !analysis.hasPanaSummary) return null;
+  final healthScore = (analysis.health * 100).round();
+  final maintenanceScore = (analysis.maintenanceScore * 100).round();
+
+  String summaryMarkdown(List<Suggestion> suggestions) {
+    return (suggestions ?? [])
+        .map((s) => '**${s.title}** (${s.score})\n\n${s.description}')
+        .join('\n\n');
+  }
+
+  return Report(sections: [
+    if (analysis.panaSuggestions != null && analysis.panaSuggestions.isNotEmpty)
+      ReportSection(
+        title: 'Analysis',
+        grantedPoints: 0,
+        maxPoints: 0,
+        summary: summaryMarkdown(analysis.panaSuggestions),
+      ),
+    ReportSection(
+      title: 'Health (old)',
+      grantedPoints: healthScore,
+      maxPoints: 100,
+      summary: summaryMarkdown(analysis.healthSuggestions),
+    ),
+    ReportSection(
+      title: 'Maintenance (old)',
+      grantedPoints: maintenanceScore,
+      maxPoints: 100,
+      summary: summaryMarkdown(analysis.maintenanceSuggestions),
+    ),
+  ]);
+}
+
+/// Renders the `views/pkg/analysis/report.mustache` template.
+String _renderReport(Report report) {
+  if (report?.sections == null) return null;
+  return templateCache.renderTemplate('pkg/analysis/report', {
+    'sections': report.sections.map((s) => {
+          'title': s.title,
+          'grantedPoints': s.grantedPoints,
+          'maxPoints': s.maxPoints,
+          'summary_html': markdownToHtml(s.summary),
+        }),
+  });
 }
 
 String _renderAnalysisDepRow(PkgDependency pd) {

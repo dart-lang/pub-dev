@@ -1,0 +1,28 @@
+{{! Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+<div class="pkg-report">
+{{#sections}}
+  <div class="pkg-report-section foldable">
+    <div class="pkg-report-header foldable-button">
+      <div class="pkg-report-header-icon"></div>
+      <div class="pkg-report-header-title">{{ title }}</div>
+      <div class="pkg-report-header-score">
+        <span class="pkg-report-header-score-granted">{{grantedPoints}}</span>
+        /
+        <span class="pkg-report-header-score-max">{{maxPoints}}</span>
+      </div>
+    </div>
+    <div class="foldable-content">
+      <div class="pkg-report-content">
+        <div class="pkg-report-content-icon"></div>
+        <div class="pkg-report-content-summary markdown-content">
+          {{& summary_html }}
+        </div>
+        <div class="pkg-report-content-score"></div>
+      </div>
+    </div>
+  </div>
+{{/sections}}
+</div>

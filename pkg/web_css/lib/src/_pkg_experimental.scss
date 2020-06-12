@@ -198,5 +198,46 @@ body.experimental {
   }
 }
 
+.pkg-report {
+  .pkg-report-section {
+    border-top: 1px solid #c8c8ca;
+    padding: 13px 0;
+  }
+
+  .pkg-report-header {
+    display: flex;
+    align-items: center;
+  }
+
+  .pkg-report-header-icon,
+  .pkg-report-content-icon {
+    width: 40px;
+  }
+
+  .pkg-report-header-title {
+    flex-grow: 1;
+  }
+
+  .pkg-report-header-title {
+    font-family: $font-family-google-sans;
+    font-size: 24px;
+    font-weight: 500;
+  }
+
+  .pkg-report-header-score {
+    font-family: $font-family-google-sans;
+    font-size: 22px;
+    font-weight: 500;
+  }
+
+  .pkg-report-content {
+    display: flex;
+  }
+
+  .pkg-report-content-summary {
+    flex-grow: 1;
+  }
+}
+
 /* non-indented rule to restrict the content of the file to the experimental pages */
 }
