@@ -211,7 +211,8 @@ body.experimental {
 
   .pkg-report-header-icon,
   .pkg-report-content-icon {
-    width: 40px;
+    min-width: 40px;
+    max-width: 40px;
   }
 
   .pkg-report-header-title {
