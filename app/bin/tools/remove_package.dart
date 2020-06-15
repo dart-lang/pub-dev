@@ -214,7 +214,7 @@ Future _commit({
   if (tx != null) {
     tx.queueMutations(inserts: inserts, deletes: deletes);
   } else {
-    dbService.commit(inserts: inserts, deletes: deletes);
+    await dbService.commit(inserts: inserts, deletes: deletes);
   }
 }
 

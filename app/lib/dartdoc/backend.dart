@@ -388,7 +388,7 @@ class DartdocBackend {
 
   Future<void> _deleteAllWithPrefix(String prefix, {int concurrency}) async {
     final Stopwatch sw = Stopwatch()..start();
-    final count = deleteBucketFolderRecursively(_storage, prefix,
+    final count = await deleteBucketFolderRecursively(_storage, prefix,
         concurrency: concurrency ?? _concurrentDeletes);
     sw.stop();
     _logger.info('$prefix: $count files deleted in ${sw.elapsed}.');

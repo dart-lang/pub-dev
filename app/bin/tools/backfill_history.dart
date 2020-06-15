@@ -47,7 +47,7 @@ Future _backfillPackage(String package) async {
     }
     if (!hasUploaded) {
       final uploaderEmail = await accountBackend.getEmailOfUserId(pv.uploader);
-      historyBackend.storeEvent(PackageUploaded(
+      await historyBackend.storeEvent(PackageUploaded(
         packageName: package,
         packageVersion: pv.version,
         uploaderId: pv.uploader,

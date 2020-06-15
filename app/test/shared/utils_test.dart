@@ -34,7 +34,7 @@ void main() {
       List.generate(8, (i) => i).forEach(controller.add);
       await Future.delayed(Duration(milliseconds: 200));
       List.generate(8, (i) => i + 10).forEach(controller.add);
-      controller.close();
+      await controller.close();
       final result = await valuesFuture;
       final input = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15, 16, 17];
       expect(input.every(result.contains), isTrue);
@@ -52,7 +52,7 @@ void main() {
       final Future<List<int>> valuesFuture = randomizedStream.toList();
       List.generate(8, (i) => i).forEach(controller.add);
       List.generate(8, (i) => i + 10).forEach(controller.add);
-      controller.close();
+      await controller.close();
       final result = await valuesFuture;
       final input = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15, 16, 17];
       expect(input.every(result.contains), isTrue);
