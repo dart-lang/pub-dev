@@ -118,6 +118,8 @@ String _renderReport(Report report) {
           'grantedPoints': s.grantedPoints,
           'maxPoints': s.maxPoints,
           'summary_html': markdownToHtml(s.summary),
+          'is_green': s.grantedPoints == s.maxPoints,
+          'is_red': s.grantedPoints != s.maxPoints,
         }),
   });
 }

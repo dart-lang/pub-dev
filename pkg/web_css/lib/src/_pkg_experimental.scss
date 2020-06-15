@@ -207,12 +207,21 @@ body.experimental {
   .pkg-report-header {
     display: flex;
     align-items: center;
+
+    cursor: pointer;
   }
 
   .pkg-report-header-icon,
   .pkg-report-content-icon {
+    display: flex;
+    align-items: center;
+
     min-width: 40px;
     max-width: 40px;
+
+    >.pkg-report-icon {
+      width: 18px;
+    }
   }
 
   .pkg-report-header-title {
@@ -222,14 +231,36 @@ body.experimental {
   .pkg-report-header-title {
     font-family: $font-family-google-sans;
     font-size: 24px;
-    font-weight: 500;
+    font-weight: 400;
   }
 
   .pkg-report-header-score {
+    display: flex;
+    align-items: center;
+
     font-family: $font-family-google-sans;
     font-size: 22px;
-    font-weight: 500;
+    font-weight: 400;
+
+    &.-is-red {
+      color: #e13701;
+    }
+
+    .foldable-icon {
+      margin-left: 18px;
+      width: 12px;
+
+      transform: rotate(180deg);
+      transition: transform .3s linear;
+    }
   }
+
+  .foldable.-active {
+    .foldable-icon {
+      transform: rotate(360deg);
+    }
+  }
+
 
   .pkg-report-content {
     display: flex;
