@@ -461,7 +461,7 @@ class AccountBackend {
     // TODO: decide about extending the expiration time (maybe asynchronously)
 
     final data = UserSessionData.fromModel(session);
-    cacheEntry.set(data);
+    await cacheEntry.set(data);
     return data;
   }
 

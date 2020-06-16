@@ -90,7 +90,7 @@ class PublishingScript {
       }
     } finally {
       await _temp.delete(recursive: true);
-      _pubHttpClient.close();
+      await _pubHttpClient.close();
       await _pubToolClient?.close();
     }
   }

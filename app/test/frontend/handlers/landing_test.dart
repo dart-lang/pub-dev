@@ -53,7 +53,7 @@ void main() {
 
     testWithServices('/flutter', () async {
       final rs = await issueGet('/flutter');
-      expectRedirectResponse(rs, '/flutter/packages');
+      await expectRedirectResponse(rs, '/flutter/packages');
     });
 
     testWithServices('/xxx - not found page', () async {

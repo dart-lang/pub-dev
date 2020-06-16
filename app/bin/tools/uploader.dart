@@ -81,7 +81,7 @@ Future addUploader(String packageName, String uploaderEmail) async {
 
     final pubUser =
         await accountBackend.lookupOrCreateUserByEmail(pubDartlangOrgEmail);
-    historyBackend.storeEvent(UploaderChanged(
+    await historyBackend.storeEvent(UploaderChanged(
       packageName: packageName,
       currentUserId: pubUser.userId,
       currentUserEmail: pubDartlangOrgEmail,
@@ -116,7 +116,7 @@ Future removeUploader(String packageName, String uploaderEmail) async {
 
     final pubUser =
         await accountBackend.lookupOrCreateUserByEmail(pubDartlangOrgEmail);
-    historyBackend.storeEvent(UploaderChanged(
+    await historyBackend.storeEvent(UploaderChanged(
       packageName: packageName,
       currentUserId: pubUser.userId,
       currentUserEmail: pubDartlangOrgEmail,

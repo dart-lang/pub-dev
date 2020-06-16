@@ -80,7 +80,11 @@ class HeadlessEnv {
     if (trackCoverage) {
       await page.coverage.startJSCoverage(resetOnNavigation: false);
       // TODO: figure out why the following future does not complete
-      page.coverage.startCSSCoverage(resetOnNavigation: false);
+      void startCSSCoverage() {
+        page.coverage.startCSSCoverage(resetOnNavigation: false);
+      }
+
+      startCSSCoverage();
     }
     page.onRequest.listen((rq) async {
       // soft-abort

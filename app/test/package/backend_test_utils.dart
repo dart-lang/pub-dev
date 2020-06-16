@@ -30,7 +30,7 @@ Future<List<int>> packageArchiveBytes({String pubspecContent}) async {
     await pubspec.writeAsString(pubspecContent ?? foobarStablePubspec);
 
     await Directory('$tmp/lib').create();
-    File('$tmp/lib/test_library.dart')
+    await File('$tmp/lib/test_library.dart')
         .writeAsString('hello() => print("hello");');
 
     final files = [
@@ -42,7 +42,7 @@ Future<List<int>> packageArchiveBytes({String pubspecContent}) async {
     final args = ['cz', ...files];
     final Process p =
         await Process.start('tar', args, workingDirectory: '$tmp');
-    p.stderr.drain();
+    await p.stderr.drain();
     final bytes = await p.stdout.fold<List<int>>([], (b, d) => b..addAll(d));
     final exitCode = await p.exitCode;
     if (exitCode != 0) {

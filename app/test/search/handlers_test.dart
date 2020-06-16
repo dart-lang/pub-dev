@@ -43,7 +43,7 @@ void main() {
 
       scopedTest('Finds package by name', () async {
         await setUpInServiceScope();
-        expectJsonResponse(await issueGet('/search?q=pkg_foo'), body: {
+        await expectJsonResponse(await issueGet('/search?q=pkg_foo'), body: {
           'indexUpdated': isNotNull,
           'totalCount': 1,
           'packages': [
@@ -57,7 +57,7 @@ void main() {
 
       scopedTest('Finds text in description or readme', () async {
         await setUpInServiceScope();
-        expectJsonResponse(await issueGet('/search?q=json'), body: {
+        await expectJsonResponse(await issueGet('/search?q=json'), body: {
           'indexUpdated': isNotNull,
           'totalCount': 1,
           'packages': [
@@ -71,7 +71,7 @@ void main() {
 
       scopedTest('pkg-prefix doesn\'t affect score', () async {
         await setUpInServiceScope();
-        expectJsonResponse(await issueGet('/search?q=json&pkg-prefix=pk'),
+        await expectJsonResponse(await issueGet('/search?q=json&pkg-prefix=pk'),
             body: {
               'indexUpdated': isNotNull,
               'totalCount': 1,
@@ -86,7 +86,7 @@ void main() {
 
       scopedTest('Finds package by package-prefix search only', () async {
         await setUpInServiceScope();
-        expectJsonResponse(await issueGet('/search?q=package:pk'), body: {
+        await expectJsonResponse(await issueGet('/search?q=package:pk'), body: {
           'indexUpdated': isNotNull,
           'totalCount': 1,
           'packages': [
@@ -100,11 +100,12 @@ void main() {
 
       scopedTest('pkg-prefix filters out results', () async {
         await setUpInServiceScope();
-        expectJsonResponse(await issueGet('/search?q=json+package:foo'), body: {
-          'indexUpdated': isNotNull,
-          'totalCount': 0,
-          'packages': [],
-        });
+        await expectJsonResponse(await issueGet('/search?q=json+package:foo'),
+            body: {
+              'indexUpdated': isNotNull,
+              'totalCount': 0,
+              'packages': [],
+            });
       });
     });
   });

@@ -101,7 +101,7 @@ class FakePubServerProcess {
       _process.kill();
     });
     await _process.exitCode;
-    _stdoutListener?.cancel();
+    await _stdoutListener?.cancel();
     timer.cancel();
   }
 }

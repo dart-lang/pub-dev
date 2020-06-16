@@ -164,7 +164,7 @@ class DevVersionScript {
       await _temp.delete(recursive: true);
       await _pubToolClient.close();
       _pubToolClient = null;
-      _pubHttpClient.close();
+      await _pubHttpClient.close();
       _pubHttpClient = null;
     }
   }

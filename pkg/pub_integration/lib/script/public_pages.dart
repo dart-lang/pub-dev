@@ -23,7 +23,7 @@ class PublicPagesScript {
       await _atomFeed();
       await _searchPage();
     } finally {
-      _pubClient.close();
+      await _pubClient.close();
       _pubClient = null;
     }
   }

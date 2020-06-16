@@ -108,12 +108,12 @@ class NameTracker {
 
   /// Updates this [NameTracker] by polling the Datastore periodically.
   /// The returned future completes after the `stopTracking` method is called.
-  Future<void> startTracking() async {
+  void startTracking() {
     if (_updater != null) {
       throw StateError('Already tracking datastore.');
     }
     _updater = _NameTrackerUpdater(_db);
-    return _updater.startNameTrackerUpdates();
+    _updater.startNameTrackerUpdates();
   }
 
   /// Stops tracking the datastore.

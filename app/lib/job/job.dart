@@ -153,23 +153,26 @@ class JobMaintenance {
     }
 
     var pool = Pool(4);
+    final futures = <Future>[];
     for (String package in packages) {
       final String version = latestVersions[package];
-      final pv = (await _db.lookup([
-        _db.emptyKey
-            .append(Package, id: package)
-            .append(PackageVersion, id: version)
-      ]))
-          .single as PackageVersion;
-      pool.withResource(() => updateJob(pv, false));
+      final pv = await _db.lookupValue<PackageVersion>(_db.emptyKey
+          .append(Package, id: package)
+          .append(PackageVersion, id: version));
+      final f = pool.withResource(() => updateJob(pv, false));
+      futures.add(f);
     }
+    await Future.wait(futures);
     await pool.close();
 
     pool = Pool(4);
+    futures.clear();
     final stream = randomizeStream(_db.query<PackageVersion>().run());
     await for (PackageVersion pv in stream) {
-      pool.withResource(() => updateJob(pv, true));
+      final f = pool.withResource(() => updateJob(pv, true));
+      futures.add(f);
     }
+    await Future.wait(futures);
     await pool.close();
   }
 
