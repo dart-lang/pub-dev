@@ -93,7 +93,7 @@ Future uploadWithRetry(Bucket bucket, String objectName, int length,
     description: 'Upload to $objectName',
     shouldRetryOnError: (e) {
       if (e is DetailedApiRequestError) {
-        return e.status == 502 || e.status == 503;
+        return e.status == 502 || e.status == 503 || e.status == 504;
       }
       return false;
     },
