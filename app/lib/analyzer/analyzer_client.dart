@@ -96,6 +96,7 @@ class AnalysisView {
     return version as String;
   }
 
+  Report get report => _pana?.report;
   List<String> get derivedTags => _card?.derivedTags ?? const <String>[];
 
   List<LicenseFile> get licenses => _pana?.licenses;

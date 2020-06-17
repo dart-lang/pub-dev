@@ -176,6 +176,7 @@ void main() {
             panaSuggestions: null,
             healthSuggestions: null,
             maintenanceSuggestions: null,
+            report: Report(sections: <ReportSection>[]),
             flags: null),
         dartdocReport: DartdocReport(
           reportStatus: ReportStatus.success,
@@ -253,6 +254,7 @@ void main() {
               panaSuggestions: null,
               healthSuggestions: null,
               maintenanceSuggestions: null,
+              report: Report(sections: <ReportSection>[]),
               flags: null),
           dartdocReport: null,
         ),
@@ -288,6 +290,7 @@ void main() {
               panaSuggestions: null,
               healthSuggestions: null,
               maintenanceSuggestions: null,
+              report: Report(sections: <ReportSection>[]),
               flags: null),
         ),
         isAdmin: true,
@@ -438,6 +441,7 @@ void main() {
                   'Running `dartfmt -n .` failed.'),
             ],
             maintenanceSuggestions: null,
+            report: Report(sections: <ReportSection>[]),
             flags: null),
       );
       final String html = renderAnalysisTab(
@@ -466,6 +470,7 @@ void main() {
               panaSuggestions: null,
               healthSuggestions: null,
               maintenanceSuggestions: null,
+              report: Report(sections: <ReportSection>[]),
               flags: null,
             ),
           ));
