@@ -114,7 +114,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'packages': [
           {
             'package': 'async',
-            'score': closeTo(0.92, 0.01),
+            'score': closeTo(0.91, 0.01),
           },
         ]
       });
@@ -129,7 +129,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'packages': [
           {
             'package': 'http',
-            'score': closeTo(0.79, 0.01),
+            'score': closeTo(0.83, 0.01),
           },
         ]
       });
@@ -144,7 +144,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'packages': [
           {
             'package': 'chrome_net',
-            'score': closeTo(0.39, 0.01),
+            'score': closeTo(0.43, 0.01),
           },
         ]
       });
@@ -157,8 +157,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'indexUpdated': isNotNull,
         'totalCount': 2,
         'packages': [
-          {'package': 'async', 'score': closeTo(0.82, 0.01)},
-          {'package': 'http', 'score': closeTo(0.65, 0.01)},
+          {'package': 'async', 'score': closeTo(0.80, 0.01)},
+          {'package': 'http', 'score': closeTo(0.68, 0.01)},
         ]
       });
     });
@@ -180,8 +180,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'indexUpdated': isNotNull,
         'totalCount': 2,
         'packages': [
-          {'package': 'async', 'score': closeTo(0.81, 0.01)},
-          {'package': 'http', 'score': closeTo(0.65, 0.01)},
+          {'package': 'async', 'score': closeTo(0.80, 0.01)},
+          {'package': 'http', 'score': closeTo(0.68, 0.01)},
         ],
       });
     });
@@ -193,7 +193,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'indexUpdated': isNotNull,
         'totalCount': 1,
         'packages': [
-          {'package': 'async', 'score': closeTo(0.38, 0.01)},
+          {'package': 'async', 'score': closeTo(0.37, 0.01)},
         ],
       });
     });
@@ -343,8 +343,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'indexUpdated': isNotNull,
         'totalCount': 2,
         'packages': [
-          {'package': 'async', 'score': closeTo(0.930, 0.001)},
-          {'package': 'http', 'score': closeTo(0.895, 0.001)},
+          {'package': 'http', 'score': closeTo(0.95, 0.01)},
+          {'package': 'async', 'score': closeTo(0.91, 0.01)},
         ],
       });
     });
@@ -356,7 +356,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'indexUpdated': isNotNull,
         'totalCount': 1,
         'packages': [
-          {'package': 'chrome_net', 'score': closeTo(0.531, 0.001)},
+          {'package': 'chrome_net', 'score': closeTo(0.59, 0.01)},
         ],
       });
     });
@@ -368,8 +368,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'indexUpdated': isNotNull,
         'totalCount': 2,
         'packages': [
-          {'package': 'http', 'score': closeTo(0.895, 0.001)},
-          {'package': 'chrome_net', 'score': closeTo(0.531, 0.001)},
+          {'package': 'http', 'score': closeTo(0.95, 0.01)},
+          {'package': 'chrome_net', 'score': closeTo(0.59, 0.01)},
         ],
       });
     });
@@ -381,7 +381,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'indexUpdated': isNotNull,
         'totalCount': 1,
         'packages': [
-          {'package': 'http', 'score': closeTo(0.79, 0.01)},
+          {'package': 'http', 'score': closeTo(0.83, 0.01)},
         ],
       });
     });
@@ -393,7 +393,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'indexUpdated': isNotNull,
         'totalCount': 1,
         'packages': [
-          {'package': 'http', 'score': closeTo(0.895, 0.001)},
+          {'package': 'http', 'score': closeTo(0.95, 0.01)},
         ],
       });
     });
@@ -415,7 +415,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'indexUpdated': isNotNull,
         'totalCount': 1,
         'packages': [
-          {'package': 'async', 'score': closeTo(0.930, 0.001)},
+          {'package': 'async', 'score': closeTo(0.91, 0.01)},
         ],
       });
     });
@@ -437,7 +437,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'indexUpdated': isNotNull,
         'totalCount': 1,
         'packages': [
-          {'package': 'async', 'score': closeTo(0.930, 0.001)},
+          {'package': 'async', 'score': closeTo(0.91, 0.01)},
         ],
       });
     });
@@ -452,8 +452,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'indexUpdated': isNotNull,
         'totalCount': 2,
         'packages': [
-          {'package': 'async', 'score': closeTo(0.930, 0.001)},
-          {'package': 'http', 'score': closeTo(0.895, 0.001)},
+          {'package': 'http', 'score': closeTo(0.95, 0.01)},
+          {'package': 'async', 'score': closeTo(0.91, 0.01)},
         ],
       });
     });
@@ -475,8 +475,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'indexUpdated': isNotNull,
         'totalCount': 2,
         'packages': [
-          {'package': 'async', 'score': closeTo(0.930, 0.001)},
-          {'package': 'http', 'score': closeTo(0.895, 0.001)},
+          {'package': 'http', 'score': closeTo(0.95, 0.01)},
+          {'package': 'async', 'score': closeTo(0.91, 0.01)},
         ],
       });
     });
