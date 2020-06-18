@@ -176,7 +176,7 @@ class DartdocBackend {
     }
 
     Future<DartdocEntry> loadVersion(String v) async {
-      final entry = _tryLoadLastReportedEntry(package, v);
+      final entry = await _tryLoadLastReportedEntry(package, v);
       if (entry != null) return entry;
 
       final entries = await _listEntries(storage_path.entryPrefix(package, v));
