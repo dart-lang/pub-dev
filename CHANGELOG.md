@@ -2,6 +2,8 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20200618t184603-all`
  * Bumped runtimeVersion to `2020.06.18`.
  * `/documentation/` serving changed: content entry lookup first checks Datastore entity.
  * Upgraded `gcloud` to `0.7.3`, using the new `delimiter` to recursively
