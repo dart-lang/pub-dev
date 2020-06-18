@@ -63,7 +63,7 @@ void main() {
         'indexUpdated': isNotNull,
         'totalCount': 1,
         'packages': [
-          {'package': 'stringutils', 'score': closeTo(0.79, 0.01)},
+          {'package': 'stringutils', 'score': closeTo(0.72, 0.01)},
         ],
       });
     });
@@ -90,7 +90,7 @@ void main() {
               },
             ],
           },
-          {'package': 'stringutils', 'score': closeTo(0.58, 0.01)},
+          {'package': 'stringutils', 'score': closeTo(0.53, 0.01)},
         ],
       });
     });
@@ -102,7 +102,7 @@ void main() {
         'indexUpdated': isNotNull,
         'totalCount': 2,
         'packages': [
-          {'package': 'stringutils', 'score': closeTo(0.78, 0.01)},
+          {'package': 'stringutils', 'score': closeTo(0.72, 0.01)},
           {
             'package': 'dart:core',
             'score': closeTo(0.89, 0.01),

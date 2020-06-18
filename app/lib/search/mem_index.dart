@@ -33,6 +33,7 @@ class InMemoryPackageIndex implements PackageIndex {
   final TokenIndex _readmeIndex = TokenIndex(minLength: 3);
   final TokenIndex _apiSymbolIndex = TokenIndex(minLength: 2);
   final TokenIndex _apiDartdocIndex = TokenIndex(minLength: 3);
+  final _likeTracker = _LikeTracker();
   DateTime _lastUpdated;
   bool _isReady = false;
 
@@ -97,6 +98,8 @@ class InMemoryPackageIndex implements PackageIndex {
     await Future.delayed(Duration.zero);
     _normalizedPackageText[doc.package] = normalizeBeforeIndexing(allText);
 
+    _likeTracker.trackLikeCount(doc.package, doc.likeCount ?? 0);
+
     await Future.delayed(Duration.zero);
     _lastUpdated = DateTime.now().toUtc();
   }
@@ -106,6 +109,7 @@ class InMemoryPackageIndex implements PackageIndex {
     for (PackageDocument doc in documents) {
       await addPackage(doc);
     }
+    _likeTracker._updateScores();
   }
 
   @override
@@ -122,6 +126,7 @@ class InMemoryPackageIndex implements PackageIndex {
       _apiSymbolIndex.remove(pageId);
       _apiDartdocIndex.remove(pageId);
     }
+    _likeTracker.removePackage(doc.package);
     _lastUpdated = DateTime.now().toUtc();
   }
 
@@ -371,11 +376,13 @@ class InMemoryPackageIndex implements PackageIndex {
   }
 
   Score _getOverallScore(Iterable<String> packages) {
-    final Map<String, double> values =
-        Map.fromIterable(packages, value: (package) {
+    final values = Map<String, double>.fromIterable(packages, value: (package) {
       final doc = _packages[package];
-      final double overall = calculateOverallScore(
-        popularity: doc.popularity ?? 0.0,
+      final downloadScore = doc.popularity ?? 0.0;
+      final likeScore = _likeTracker.getLikeScore(doc.package);
+      final popularity = (downloadScore + likeScore) / 2;
+      final overall = calculateOverallScore(
+        popularity: popularity,
         health: doc.health ?? 0.0,
         maintenance: doc.maintenance ?? 0.0,
       );
@@ -579,5 +586,52 @@ class _PackageNameIndex {
       values[pkg] = score;
     }
     return Score(values);
+  }
+}
+
+class _LikeScore {
+  final String package;
+  int likeCount = 0;
+  double score = 0.0;
+
+  _LikeScore(this.package, {this.likeCount = 0, this.score = 0.0});
+}
+
+class _LikeTracker {
+  final _values = <String, _LikeScore>{};
+  bool _changed = false;
+
+  double getLikeScore(String package) {
+    if (_changed) {
+      _updateScores();
+    }
+    return _values[package]?.score ?? 0.0;
+  }
+
+  void trackLikeCount(String package, int likeCount) {
+    final v = _values.putIfAbsent(package, () => _LikeScore(package));
+    if (v.likeCount != likeCount) {
+      _changed = true;
+      v.likeCount = likeCount;
+    }
+  }
+
+  void removePackage(String package) {
+    final removed = _values.remove(package);
+    _changed |= removed != null;
+  }
+
+  /// Updates `_LikeScore.score` values, setting them between 0.0 (no likes) to
+  /// 1.0 (most likes).
+  void _updateScores() {
+    final entries = _values.values.toList();
+    entries.sort((a, b) => a.likeCount.compareTo(b.likeCount));
+    for (int i = 0; i < entries.length; i++) {
+      if (i > 0 && entries[i].likeCount == entries[i - 1].likeCount) {
+        entries[i].score = entries[i - 1].score;
+      } else {
+        entries[i].score = (i + 1) / entries.length;
+      }
+    }
   }
 }
