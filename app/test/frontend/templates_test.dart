@@ -377,7 +377,7 @@ void main() {
 
     scopedTest('no content for analysis tab', () async {
       // no content
-      expect(renderAnalysisTab('pkg_foo', null, null, null),
+      expect(renderAnalysisTab('pkg_foo', null, null, null, likeCount: 4),
           '<i>Awaiting analysis to complete.</i>');
     });
 
@@ -392,8 +392,13 @@ void main() {
       final panaReport =
           PanaReport.fromJson(reports['pana'] as Map<String, dynamic>);
       final view = AnalysisView(card: card, panaReport: panaReport);
-      final String html =
-          renderAnalysisTab('http', '>=1.23.0-dev.0.0 <2.0.0', card, view);
+      final String html = renderAnalysisTab(
+        'http',
+        '>=1.23.0-dev.0.0 <2.0.0',
+        card,
+        view,
+        likeCount: 0,
+      );
       expectGoldenFile(html, 'analysis_tab_http.html', isFragment: true);
     });
 
@@ -445,49 +450,59 @@ void main() {
             flags: null),
       );
       final String html = renderAnalysisTab(
-          'pkg_foo', '>=1.25.0-dev.9.0 <2.0.0', card, analysisView);
+        'pkg_foo',
+        '>=1.25.0-dev.9.0 <2.0.0',
+        card,
+        analysisView,
+        likeCount: 2000,
+      );
       expectGoldenFile(html, 'analysis_tab_mock.html', isFragment: true);
     });
 
     scopedTest('aborted analysis tab', () async {
       final String html = renderAnalysisTab(
-          'pkg_foo',
-          null,
-          ScoreCardData(),
-          AnalysisView(
-            card: ScoreCardData(
-              reportTypes: ['pana'],
-            ),
-            panaReport: PanaReport(
-              timestamp: DateTime(2017, 12, 18, 14, 26, 00),
-              panaRuntimeInfo: _panaRuntimeInfo,
-              reportStatus: ReportStatus.aborted,
-              healthScore: null,
-              maintenanceScore: null,
-              derivedTags: null,
-              pkgDependencies: null,
-              licenses: null,
-              panaSuggestions: null,
-              healthSuggestions: null,
-              maintenanceSuggestions: null,
-              report: Report(sections: <ReportSection>[]),
-              flags: null,
-            ),
-          ));
+        'pkg_foo',
+        null,
+        ScoreCardData(),
+        AnalysisView(
+          card: ScoreCardData(
+            reportTypes: ['pana'],
+          ),
+          panaReport: PanaReport(
+            timestamp: DateTime(2017, 12, 18, 14, 26, 00),
+            panaRuntimeInfo: _panaRuntimeInfo,
+            reportStatus: ReportStatus.aborted,
+            healthScore: null,
+            maintenanceScore: null,
+            derivedTags: null,
+            pkgDependencies: null,
+            licenses: null,
+            panaSuggestions: null,
+            healthSuggestions: null,
+            maintenanceSuggestions: null,
+            report: Report(sections: <ReportSection>[]),
+            flags: null,
+          ),
+        ),
+        likeCount: 1000000,
+      );
+
       expectGoldenFile(html, 'analysis_tab_aborted.html', isFragment: true);
     });
 
     scopedTest('outdated analysis tab', () async {
       final String html = renderAnalysisTab(
-          'pkg_foo',
-          null,
-          ScoreCardData(flags: [PackageFlags.isObsolete]),
-          AnalysisView(
-            card: ScoreCardData(
-              flags: [PackageFlags.isObsolete],
-              updated: DateTime(2017, 12, 18, 14, 26, 00),
-            ),
-          ));
+        'pkg_foo',
+        null,
+        ScoreCardData(flags: [PackageFlags.isObsolete]),
+        AnalysisView(
+          card: ScoreCardData(
+            flags: [PackageFlags.isObsolete],
+            updated: DateTime(2017, 12, 18, 14, 26, 00),
+          ),
+        ),
+        likeCount: 1111,
+      );
       expectGoldenFile(html, 'analysis_tab_outdated.html', isFragment: true);
     });
 

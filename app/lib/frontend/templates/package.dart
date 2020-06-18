@@ -444,8 +444,13 @@ Tab _scoreTab(PackagePageData data) {
   return Tab.withContent(
     id: 'analysis',
     titleHtml: renderScoreBox(data.toPackageView(), isTabHeader: true),
-    contentHtml: renderAnalysisTab(data.version.package,
-        data.version.pubspec.sdkConstraint, data.analysis?.card, data.analysis),
+    contentHtml: renderAnalysisTab(
+      data.version.package,
+      data.version.pubspec.sdkConstraint,
+      data.analysis?.card,
+      data.analysis,
+      likeCount: data.package.likes,
+    ),
   );
 }
 

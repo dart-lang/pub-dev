@@ -97,6 +97,7 @@ body.experimental {
   padding-bottom: 4px;
   margin-bottom: 16px;
   text-align: right;
+  opacity: 0.5; /* Will be removed from the page. */
 
   > .learn-more-scoring-link {
     font-weight: 400;
@@ -133,6 +134,8 @@ body.experimental {
   width: 100%;
   align-items: center;
   margin: 16px 0;
+  opacity: 0.5; /* Will be removed from the page. */
+  padding-top: 200px; /* Will be removed from the page. */
 
   .score-items {
     flex-grow: 1;
@@ -195,6 +198,48 @@ body.experimental {
         font-weight: 300;
       }
     }
+  }
+}
+
+.score-key-figures {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  padding: 20px 0 30px 0;
+
+  @media (min-width: $device-desktop-min-width) {
+    padding: 40px 0 50px 0;
+  }
+
+  .score-key-figure-title {
+    color: #1967d2;
+    text-align: center;
+  }
+
+  .score-key-figure-value {
+    font-family: $font-family-google-sans-display;
+    font-size: 32px;
+    font-weight: 400;
+    line-height: 1;
+
+    @media (min-width: $device-desktop-min-width) {
+      font-size: 64px;
+    }
+  }
+
+  .score-key-figure-supplemental {
+    font-family: $font-family-google-sans;
+    font-size: 24px;
+    font-weight: 400;
+  }
+
+  .score-key-figure-label {
+    color: #555555;
+    font-family: $font-family-roboto;
+    font-size: 14px;
+    font-weight: 300;
+    text-align: center;
+    text-transform: uppercase;
   }
 }
 
