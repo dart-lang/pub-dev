@@ -128,6 +128,8 @@ final _reservedPackageNames = <String>[
   'in_app_purchase',
   'location_background',
   'math',
+  'mirrors',
+  'developer',
   'pub',
   'versions',
   'webview_flutter',
