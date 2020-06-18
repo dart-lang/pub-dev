@@ -2,11 +2,13 @@
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
 
-{{& score_table_html }}
-
-<div class="learn-more-scoring">
-  Learn more about <a class="learn-more-scoring-link" href="/help#scoring">scoring</a>.
+<div class="score-key-figures">
+  {{& like_key_figure_html }}
+  {{& popularity_key_figure_html }}
+  {{& pubpoints_key_figure_html }}
 </div>
+
+{{& report_html }}
 
 {{#show_discontinued}}
 <p>This package is not analyzed, because it is discontinued.</p>
@@ -36,7 +38,11 @@
 </ul>
 {{/show_analysis}}
 
-{{& report_html }}
+{{& score_table_html }}
+
+<div class="learn-more-scoring">
+  Learn more about <a class="learn-more-scoring-link" href="/help#scoring">scoring</a>.
+</div>
 
 {{& analysis_suggestions_html}}
 {{& health_suggestions_html}}

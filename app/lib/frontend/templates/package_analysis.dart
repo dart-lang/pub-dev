@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:meta/meta.dart';
 import 'package:pana/models.dart' show Report, ReportSection, SuggestionLevel;
 
 import '../../analyzer/analyzer_client.dart';
@@ -18,8 +19,13 @@ import '_consts.dart';
 import 'misc.dart';
 
 /// Renders the `views/pkg/analysis/tab.mustache` template.
-String renderAnalysisTab(String package, String sdkConstraint,
-    ScoreCardData card, AnalysisView analysis) {
+String renderAnalysisTab(
+  String package,
+  String sdkConstraint,
+  ScoreCardData card,
+  AnalysisView analysis, {
+  @required int likeCount,
+}) {
   if (card == null || analysis == null || !analysis.hasAnalysisData) {
     return '<i>Awaiting analysis to complete.</i>';
   }
@@ -71,6 +77,10 @@ String renderAnalysisTab(String package, String sdkConstraint,
     'score_table_html': _renderScoreTable(card),
     'dep_table_html': _renderDepTable(sdkConstraint, card, analysis),
     'report_html': _renderReport(report),
+    'like_key_figure_html': _renderLikeKeyFigure(likeCount),
+    'popularity_key_figure_html':
+        _renderPopularityKeyFigure(card.popularityScore),
+    'pubpoints_key_figure_html': _renderPubPointsKeyFigure(report),
   };
 
   return templateCache.renderTemplate('pkg/analysis/tab', data);
@@ -125,6 +135,50 @@ String _renderReport(Report report) {
           'is_green': s.grantedPoints == s.maxPoints,
           'is_red': s.grantedPoints != s.maxPoints,
         }),
+  });
+}
+
+String _renderLikeKeyFigure(int likeCount) {
+  // TODO: implement k/m supplemental for values larger than 1000
+  return _renderKeyFigure(
+    value: '$likeCount',
+    supplemental: '',
+    label: 'likes',
+  );
+}
+
+String _renderPopularityKeyFigure(double popularity) {
+  return _renderKeyFigure(
+    value: formatScore(popularity),
+    supplemental: '%',
+    label: 'popularity',
+  );
+}
+
+String _renderPubPointsKeyFigure(Report report) {
+  var grantedPoints = 0;
+  var maxPoints = 0;
+  report?.sections?.forEach((section) {
+    grantedPoints += section.grantedPoints;
+    maxPoints += section.maxPoints;
+  });
+  return _renderKeyFigure(
+    value: '$grantedPoints',
+    supplemental: '/ $maxPoints',
+    label: 'pub points',
+  );
+}
+
+/// Renders the `views/pkg/analysis/key_figure.mustache` template.
+String _renderKeyFigure({
+  @required String value,
+  @required String supplemental,
+  @required String label,
+}) {
+  return templateCache.renderTemplate('pkg/analysis/key_figure', {
+    'value': value,
+    'supplemental': supplemental,
+    'label': label,
   });
 }
 
