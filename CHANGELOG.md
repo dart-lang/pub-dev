@@ -7,6 +7,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded `gcloud` to `0.7.3`, using the new `delimiter` to recursively
    delete from storage buckets.
  * Search uses `Package.likes` as part of the default ranking.
+ * Upgraded pana to `0.13.10`
 
 ## `20200610t120907-all`
  * Bumped runtimeVersion to `2020.06.10`.
