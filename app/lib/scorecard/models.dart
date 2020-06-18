@@ -10,7 +10,7 @@ import 'package:gcloud/db.dart' as db;
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/models.dart'
-    show LicenseFile, PanaRuntimeInfo, PkgDependency, Suggestion;
+    show LicenseFile, PanaRuntimeInfo, PkgDependency, Report, Suggestion;
 import 'package:pub_semver/pub_semver.dart';
 
 import 'package:pub_dev/search/scoring.dart' show calculateOverallScore;
@@ -381,7 +381,10 @@ class PanaReport implements ReportData {
   @JsonKey(includeIfNull: false)
   final List<Suggestion> maintenanceSuggestions;
 
-  List<LicenseFile> licenses;
+  final List<LicenseFile> licenses;
+
+  @JsonKey(includeIfNull: false)
+  final Report report;
 
   /// The flags for the package, version or analysis.
   /// Example values: entries from [PackageFlags].
@@ -400,6 +403,7 @@ class PanaReport implements ReportData {
     @required this.panaSuggestions,
     @required this.healthSuggestions,
     @required this.maintenanceSuggestions,
+    @required this.report,
     @required this.flags,
   });
 

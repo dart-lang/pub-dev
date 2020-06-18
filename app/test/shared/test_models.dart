@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:gcloud/db.dart';
+import 'package:pana/models.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import 'package:pub_dev/account/models.dart';
@@ -388,16 +389,18 @@ PkgBundle generateBundle(
 
 PanaReport generatePanaReport({List<String> derivedTags}) {
   return PanaReport(
-      timestamp: DateTime.now(),
-      panaRuntimeInfo: PanaRuntimeInfo(),
-      reportStatus: ReportStatus.success,
-      healthScore: 1.0,
-      maintenanceScore: 0.6,
-      derivedTags: derivedTags ?? <String>[],
-      pkgDependencies: null,
-      licenses: null,
-      panaSuggestions: null,
-      healthSuggestions: null,
-      maintenanceSuggestions: null,
-      flags: null);
+    timestamp: DateTime.now(),
+    panaRuntimeInfo: PanaRuntimeInfo(),
+    reportStatus: ReportStatus.success,
+    healthScore: 1.0,
+    maintenanceScore: 0.6,
+    derivedTags: derivedTags ?? <String>[],
+    pkgDependencies: null,
+    licenses: null,
+    panaSuggestions: null,
+    healthSuggestions: null,
+    maintenanceSuggestions: null,
+    flags: null,
+    report: Report(sections: <ReportSection>[]),
+  );
 }

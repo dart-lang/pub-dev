@@ -83,6 +83,9 @@ PanaReport _$PanaReportFromJson(Map<String, dynamic> json) {
         ?.map((e) =>
             e == null ? null : Suggestion.fromJson(e as Map<String, dynamic>))
         ?.toList(),
+    report: json['report'] == null
+        ? null
+        : Report.fromJson(json['report'] as Map<String, dynamic>),
     flags: (json['flags'] as List)?.map((e) => e as String)?.toList(),
   );
 }
@@ -108,6 +111,7 @@ Map<String, dynamic> _$PanaReportToJson(PanaReport instance) {
   writeNotNull('healthSuggestions', instance.healthSuggestions);
   writeNotNull('maintenanceSuggestions', instance.maintenanceSuggestions);
   val['licenses'] = instance.licenses;
+  writeNotNull('report', instance.report);
   writeNotNull('flags', instance.flags);
   return val;
 }

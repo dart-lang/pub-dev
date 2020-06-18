@@ -211,6 +211,7 @@ PanaReport panaReportFromSummary(Summary summary, {List<String> flags}) {
     healthSuggestions: summary?.health?.suggestions,
     maintenanceSuggestions: summary?.maintenance?.suggestions,
     licenses: summary?.licenses,
+    report: summary?.report,
     flags: flags,
   );
 }

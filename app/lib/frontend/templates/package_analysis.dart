@@ -39,8 +39,9 @@ String renderAnalysisTab(String package, String sdkConstraint,
       break;
   }
 
-  // TODO: remove fake report once we can access it from ScoreCard
-  final report = requestContext.isExperimental ? _fakeReport(analysis) : null;
+  // TODO: use only `analysis.report` after we've migrated to the new UI.
+  final report =
+      requestContext.isExperimental ? _extendedReport(analysis) : null;
   final hasReport = report != null;
 
   final Map<String, dynamic> data = {
@@ -75,7 +76,7 @@ String renderAnalysisTab(String package, String sdkConstraint,
   return templateCache.renderTemplate('pkg/analysis/tab', data);
 }
 
-Report _fakeReport(AnalysisView analysis) {
+Report _extendedReport(AnalysisView analysis) {
   if (analysis == null || !analysis.hasPanaSummary) return null;
   final healthScore = (analysis.health * 100).round();
   final maintenanceScore = (analysis.maintenanceScore * 100).round();
@@ -86,10 +87,13 @@ Report _fakeReport(AnalysisView analysis) {
         .join('\n\n');
   }
 
+  final storedReport = analysis.report;
+
   return Report(sections: [
+    if (storedReport?.sections != null) ...storedReport.sections,
     if (analysis.panaSuggestions != null && analysis.panaSuggestions.isNotEmpty)
       ReportSection(
-        title: 'Analysis',
+        title: 'Analysis (pana suggestions)',
         grantedPoints: 0,
         maxPoints: 0,
         summary: summaryMarkdown(analysis.panaSuggestions),
