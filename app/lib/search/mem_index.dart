@@ -621,6 +621,8 @@ class _LikeTracker {
     _changed |= removed != null;
   }
 
+  /// Updates `_LikeScore.score` values, setting them between 0.0 (no likes) to
+  /// 1.0 (most likes).
   void _updateScores() {
     final entries = _values.values.toList();
     entries.sort((a, b) => a.likeCount.compareTo(b.likeCount));
