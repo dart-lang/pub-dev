@@ -9,6 +9,7 @@ import 'dart:isolate';
 import 'package:args/command_runner.dart';
 import 'package:logging/logging.dart';
 
+import '../../package/name_tracker.dart';
 import '../../search/backend.dart';
 import '../../search/handlers.dart';
 import '../../search/updater.dart';
@@ -56,6 +57,7 @@ Future _main(FrontendEntryMessage message) async {
 
   await withServices(() async {
     await popularityStorage.init();
+    nameTracker.startTracking();
 
     snapshotStorage.scheduleOldDataGC();
 

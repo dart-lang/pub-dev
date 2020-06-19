@@ -14,6 +14,7 @@ import '../../analyzer/handlers.dart';
 import '../../analyzer/pana_runner.dart';
 import '../../job/backend.dart';
 import '../../job/job.dart';
+import '../../package/name_tracker.dart';
 import '../../scorecard/backend.dart';
 import '../../shared/configuration.dart';
 import '../../shared/handler_helpers.dart';
@@ -79,6 +80,7 @@ Future _workerMain(WorkerEntryMessage message) async {
 
   await withServices(() async {
     await popularityStorage.init();
+    nameTracker.startTracking();
     final jobProcessor = AnalyzerJobProcessor(
         aliveCallback: () => message.aliveSendPort.send(null));
     final jobMaintenance = JobMaintenance(db.dbService, jobProcessor);

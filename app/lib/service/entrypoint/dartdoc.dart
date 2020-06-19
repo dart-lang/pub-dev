@@ -15,6 +15,7 @@ import '../../dartdoc/dartdoc_runner.dart';
 import '../../dartdoc/handlers.dart';
 import '../../job/backend.dart';
 import '../../job/job.dart';
+import '../../package/name_tracker.dart';
 import '../../shared/configuration.dart';
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
@@ -79,6 +80,7 @@ Future _workerMain(WorkerEntryMessage message) async {
 
   await withServices(() async {
     await popularityStorage.init();
+    nameTracker.startTracking();
 
     final jobProcessor = DartdocJobProcessor(
       lockDuration: const Duration(minutes: 30),
