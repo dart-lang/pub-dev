@@ -92,18 +92,6 @@ body.experimental {
   }
 }
 
-.learn-more-scoring {
-  border-bottom: 1px solid #c8c8ca;
-  padding-bottom: 4px;
-  margin-bottom: 16px;
-  text-align: right;
-  opacity: 0.5; /* Will be removed from the page. */
-
-  > .learn-more-scoring-link {
-    font-weight: 400;
-  }
-}
-
 .dependency-table {
   width: 100%;
   border-spacing: 0;
@@ -126,78 +114,6 @@ body.experimental {
 
   .hosted-pkg-link {
     font-weight: 400;
-  }
-}
-
-.score-table {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  margin: 16px 0;
-  opacity: 0.5; /* Will be removed from the page. */
-  padding-top: 200px; /* Will be removed from the page. */
-
-  .score-items {
-    flex-grow: 1;
-    margin-right: 32px;
-
-    @media (min-width: $device-desktop-min-width) {
-      margin-right: 64px;
-    }
-  }
-
-  .score-percent-row {
-    display: flex;
-  }
-
-  .score-category-label {
-    flex-grow: 1;
-  }
-
-  .score-percent {
-    color: $color-link;
-    font-weight: 400;
-  }
-
-  .score-progress-row {
-    margin: 2px 0;
-  }
-
-  /* The gap between the categories. */
-  .score-progress-row + .score-percent-row {
-    margin-top: 32px;
-  }
-
-  .score-progress-frame {
-    background-image: linear-gradient(to bottom right, #29B6F6, #1967D2);
-    height: 6px;
-    overflow: none;
-  }
-
-  .score-progress {
-    background: $score-circle-outline;
-    height: 6px;
-  }
-
-  .overall-score {
-    .score-circle {
-      width: 128px;
-      height: 128px;
-
-      @media (min-width: $device-desktop-min-width) {
-        width: 150px;
-        height: 150px;
-      }
-
-      .score-circle-label {
-        margin: 5%;
-      }
-
-      .score-circle-primary-label {
-        font-size: 48px;
-        font-weight: 300;
-      }
-    }
   }
 }
 

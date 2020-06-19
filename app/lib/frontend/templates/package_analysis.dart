@@ -74,13 +74,14 @@ String renderAnalysisTab(
         ? null
         : _renderSuggestionBlockHtml(
             'Maintenance', analysis.maintenanceSuggestions),
-    'score_table_html': _renderScoreTable(card),
     'dep_table_html': _renderDepTable(sdkConstraint, card, analysis),
     'report_html': _renderReport(report),
     'like_key_figure_html': _renderLikeKeyFigure(likeCount),
     'popularity_key_figure_html':
         _renderPopularityKeyFigure(card.popularityScore),
     'pubpoints_key_figure_html': _renderPubPointsKeyFigure(report),
+    // TODO: remove after we've migrated to the new UI
+    'score_table_html': _renderScoreTable(card),
   };
 
   return templateCache.renderTemplate('pkg/analysis/tab', data);
@@ -249,20 +250,19 @@ String _formatSuggestionScore(double score) {
   return '-$formatted points';
 }
 
+// TODO: remove after we've migrated to the new UI
 String _renderScoreTable(ScoreCardData card) {
   String renderScoreBar(String categoryLabel, double score, Brush brush) {
     return templateCache.renderTemplate('pkg/analysis/score_bar', {
       'category_label': categoryLabel,
       'percent': formatScore(score ?? 0.0),
       'score': formatScore(score),
-      // TODO: remove after we've migrated to the new UI
       'background': brush.background.toString(),
       'color': brush.color.toString(),
       'shadow': brush.shadow.toString(),
     });
   }
 
-  final formattedScore = formatScore(card?.overallScore);
   final isSkipped = card?.isSkipped ?? false;
   final healthScore = isSkipped ? null : card?.healthScore;
   final maintenanceScore = isSkipped ? null : card?.maintenanceScore;
@@ -284,12 +284,6 @@ String _renderScoreTable(ScoreCardData card) {
       popularityScore,
       genericScoreBrush(popularityScore),
     ),
-    'overall_score_circle_html': renderScoreCircle(
-      label: formattedScore,
-      secondaryLabel: 'Overall',
-      percent: (100 * overallScore).round(),
-    ),
-    // TODO: remove after we've migrated to the new UI
     'overall_html': renderScoreBar(
         'Overall', overallScore, overallScoreBrush(overallScore)),
   };
