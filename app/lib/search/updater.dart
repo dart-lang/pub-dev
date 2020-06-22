@@ -148,6 +148,14 @@ class IndexUpdater implements TaskRunner {
       final requireAnalysis =
           sd != null && now.difference(sd.timestamp).inDays < 7;
 
+      // Skip tasks that originate before the current document in the snapshot
+      // was created (e.g. the index and the snapshot was updated since the task
+      // was created).
+      // This preempts unnecessary work at startup (scanned Packages are updated
+      // only if the index was not updated since the last snapshot), and also
+      // deduplicates the periodic-updates which may not complete in 2 hours.
+      if (sd != null && sd.timestamp.isAfter(task.updated)) return;
+
       final doc = await searchBackend.loadDocument(task.package,
           requireAnalysis: requireAnalysis);
       _snapshot.add(doc);
