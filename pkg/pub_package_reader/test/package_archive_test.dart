@@ -412,4 +412,54 @@ $dependencies
       expect(forbidConflictingFlutterPluginSchemes(pubspec), isNotEmpty);
     });
   });
+
+  group('require ios/ folder or flutter 1.20.0', () {
+    test('old sdk constraint', () {
+      final pubspec = Pubspec.parse('''
+      name: simple_plugin
+      description: A simple_plugin
+      version: 1.0.0
+      homepage: https://example.com
+      
+      environment:
+        sdk: ">=2.0.0 <3.0.0"
+        flutter: ">=1.19.9 <2.0.0"
+
+      dependencies:
+        flutter:
+          sdk: flutter
+      
+      flutter:
+        plugin:
+          platforms:
+            android:
+      ''');
+      expect(requireIosFolderOrFlutter2_20(pubspec, []), isNotEmpty);
+      expect(requireIosFolderOrFlutter2_20(pubspec, ['ios/']), isEmpty);
+    });
+
+    test('new sdk constraint', () {
+      final pubspec = Pubspec.parse('''
+      name: simple_plugin
+      description: A simple_plugin
+      version: 1.0.0
+      homepage: https://example.com
+      
+      environment:
+        sdk: ">=2.0.0 <3.0.0"
+        flutter: ">=1.20.0 <2.0.0"
+
+      dependencies:
+        flutter:
+          sdk: flutter
+      
+      flutter:
+        plugin:
+          platforms:
+            android:
+      ''');
+      expect(requireIosFolderOrFlutter2_20(pubspec, []), isEmpty);
+      expect(requireIosFolderOrFlutter2_20(pubspec, ['ios/']), isEmpty);
+    });
+  });
 }
