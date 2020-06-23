@@ -34,17 +34,22 @@ class InMemoryPackageIndex implements PackageIndex {
   final TokenIndex _apiSymbolIndex = TokenIndex(minLength: 2);
   final TokenIndex _apiDartdocIndex = TokenIndex(minLength: 3);
   final _likeTracker = _LikeTracker();
+  final bool _alwaysUpdateLikeScores;
   DateTime _lastUpdated;
   bool _isReady = false;
 
-  InMemoryPackageIndex({math.Random random})
-      : _random = random ?? math.Random.secure(),
+  InMemoryPackageIndex({
+    math.Random random,
+    @visibleForTesting bool alwaysUpdateLikeScores = false,
+  })  : _random = random ?? math.Random.secure(),
+        _alwaysUpdateLikeScores = alwaysUpdateLikeScores,
         _isSdkIndex = false,
         _urlPrefix = null;
 
   InMemoryPackageIndex.sdk({@required String urlPrefix})
       : _random = math.Random.secure(),
         _isSdkIndex = true,
+        _alwaysUpdateLikeScores = false,
         _urlPrefix = urlPrefix;
 
   @override
@@ -99,6 +104,11 @@ class InMemoryPackageIndex implements PackageIndex {
     _normalizedPackageText[doc.package] = normalizeBeforeIndexing(allText);
 
     _likeTracker.trackLikeCount(doc.package, doc.likeCount ?? 0);
+    if (_alwaysUpdateLikeScores) {
+      await _likeTracker._updateScores();
+    } else {
+      await _likeTracker._updateScoresIfNeeded();
+    }
 
     await Future.delayed(Duration.zero);
     _lastUpdated = DateTime.now().toUtc();
@@ -109,7 +119,7 @@ class InMemoryPackageIndex implements PackageIndex {
     for (PackageDocument doc in documents) {
       await addPackage(doc);
     }
-    _likeTracker._updateScores();
+    await _likeTracker._updateScores();
   }
 
   @override
@@ -600,11 +610,9 @@ class _LikeScore {
 class _LikeTracker {
   final _values = <String, _LikeScore>{};
   bool _changed = false;
+  DateTime _lastUpdated;
 
   double getLikeScore(String package) {
-    if (_changed) {
-      _updateScores();
-    }
     return _values[package]?.score ?? 0.0;
   }
 
@@ -621,11 +629,33 @@ class _LikeTracker {
     _changed |= removed != null;
   }
 
+  Future<void> _updateScoresIfNeeded() async {
+    if (!_changed) {
+      // we know there is nothing to update
+      return;
+    }
+    final now = DateTime.now();
+    if (_lastUpdated != null && now.difference(_lastUpdated).inHours < 12) {
+      // we don't need to update too frequently
+      return;
+    }
+
+    await _updateScores();
+  }
+
   /// Updates `_LikeScore.score` values, setting them between 0.0 (no likes) to
   /// 1.0 (most likes).
-  void _updateScores() {
+  Future<void> _updateScores() async {
+    final sw = Stopwatch()..start();
     final entries = _values.values.toList();
+
+    // The method could be a single sync block, however, while the index update
+    // happens, we are not serving queries. With the forced async segments,
+    // the waiting queries will be served earlier.
+    await Future.delayed(Duration.zero);
     entries.sort((a, b) => a.likeCount.compareTo(b.likeCount));
+
+    await Future.delayed(Duration.zero);
     for (int i = 0; i < entries.length; i++) {
       if (i > 0 && entries[i].likeCount == entries[i - 1].likeCount) {
         entries[i].score = entries[i - 1].score;
@@ -633,5 +663,8 @@ class _LikeTracker {
         entries[i].score = (i + 1) / entries.length;
       }
     }
+    _changed = false;
+    _lastUpdated = DateTime.now();
+    _logger.info('Updated like scores in ${sw.elapsed} (${entries.length})');
   }
 }
