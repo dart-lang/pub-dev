@@ -178,6 +178,7 @@ class IndexUpdater implements TaskRunner {
   }
 
   Future<void> _updateSnapshotIfNeeded() async {
+    // TODO: make the catch-all block narrower
     try {
       if (await snapshotStorage.wasUpdatedRecently()) {
         _logger.info('Snapshot update skipped (found recent snapshot).');
