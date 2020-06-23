@@ -15,7 +15,7 @@ void main() {
     InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = InMemoryPackageIndex();
+      index = InMemoryPackageIndex(alwaysUpdateLikeScores: true);
       await index.addPackage(PackageDocument(
         package: 'http',
         version: '0.11.3+14',
