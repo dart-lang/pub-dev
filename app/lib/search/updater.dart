@@ -135,6 +135,16 @@ class IndexUpdater implements TaskRunner {
   @override
   Future<void> runTask(Task task) async {
     try {
+      final sd = _snapshot.documents[task.package];
+
+      // Skip tasks that originate before the current document in the snapshot
+      // was created (e.g. the index and the snapshot was updated since the task
+      // was created).
+      // This preempts unnecessary work at startup (scanned Packages are updated
+      // only if the index was not updated since the last snapshot), and also
+      // deduplicates the periodic-updates which may not complete in 2 hours.
+      if (sd != null && sd.timestamp.isAfter(task.updated)) return;
+
       // The index requires the analysis results in most of the cases, except:
       // - when a new package is created, and it is not in the snapshot yet, or
       // - when the last timestamp is older than 7 days in the snapshot.
@@ -144,17 +154,8 @@ class IndexUpdater implements TaskRunner {
       // analysis won't complete for some reason, we still want to update the
       // index with a potential update to the package.
       final now = DateTime.now().toUtc();
-      final sd = _snapshot.documents[task.package];
       final requireAnalysis =
           sd != null && now.difference(sd.timestamp).inDays < 7;
-
-      // Skip tasks that originate before the current document in the snapshot
-      // was created (e.g. the index and the snapshot was updated since the task
-      // was created).
-      // This preempts unnecessary work at startup (scanned Packages are updated
-      // only if the index was not updated since the last snapshot), and also
-      // deduplicates the periodic-updates which may not complete in 2 hours.
-      if (sd != null && sd.timestamp.isAfter(task.updated)) return;
 
       final doc = await searchBackend.loadDocument(task.package,
           requireAnalysis: requireAnalysis);
