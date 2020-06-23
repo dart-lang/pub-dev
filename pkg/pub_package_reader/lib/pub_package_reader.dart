@@ -172,6 +172,7 @@ Future<PackageSummary> summarizePackageArchive(String archivePath) async {
   issues.addAll(validateDependencies(pubspec));
   issues.addAll(forbidGitDependencies(pubspec));
   issues.addAll(forbidPreReleaseSdk(pubspec));
+  issues.addAll(requireIosFolderOrFlutter2_20(pubspec, files));
 
   return PackageSummary(
     issues: issues,
@@ -327,6 +328,9 @@ Iterable<ArchiveIssue> forbidPreReleaseSdk(Pubspec pubspec) sync* {
   }
 }
 
+const _pluginDocsUrl =
+    'https://flutter.dev/docs/development/packages-and-plugins/developing-packages#plugin';
+
 /// Validate that the package does not have both `flutter.plugin.platforms` and
 /// `flutter.plugin.{androidPackage,iosPrefix,pluginClass}`.
 Iterable<ArchiveIssue> forbidConflictingFlutterPluginSchemes(
@@ -349,15 +353,12 @@ Iterable<ArchiveIssue> forbidConflictingFlutterPluginSchemes(
   // `flutter.plugin.platforms` keys is defined.
   final usesNewPluginFormat = plugin['platforms'] != null;
 
-  const pluginDocsUrl =
-      'https://flutter.dev/docs/development/packages-and-plugins/developing-packages#plugin';
-
   if (usesOldPluginFormat && usesNewPluginFormat) {
     yield ArchiveIssue(
         'In pubspec.yaml the flutter.plugin.platforms key cannot be '
         'used in combination with the old '
         'flutter.plugin.{androidPackage,iosPrefix,pluginClass} keys.\n\n'
-        'See $pluginDocsUrl');
+        'See $_pluginDocsUrl');
   }
 
   if (usesNewPluginFormat &&
@@ -373,7 +374,40 @@ Iterable<ArchiveIssue> forbidConflictingFlutterPluginSchemes(
       'pubspec.yaml allows Flutter SDK version 1.9.x, which does '
       'not support the flutter.plugin.platforms key.\n'
       'Please consider increasing the Flutter SDK requirement to '
-      '^1.10.0 (environment.sdk.flutter)\n\nSee $pluginDocsUrl',
+      '^1.10.0 (environment.sdk.flutter)\n\nSee $_pluginDocsUrl',
     );
+  }
+}
+
+/// Validate that the package does not have both `flutter.plugin.platforms` and
+/// `flutter.plugin.{androidPackage,iosPrefix,pluginClass}`.
+Iterable<ArchiveIssue> requireIosFolderOrFlutter2_20(
+  Pubspec pubspec,
+  List<String> files,
+) sync* {
+  if (pubspec.flutter is! Map || pubspec.flutter['plugin'] is! Map) {
+    return;
+  }
+  final plugin = pubspec.flutter['plugin'] as Map;
+
+  // Determine if this uses the new format by check if the:
+  // `flutter.plugin.platforms` keys is defined.
+  final usesNewPluginFormat = plugin['platforms'] != null;
+
+  if (usesNewPluginFormat &&
+      (pubspec.environment == null ||
+          pubspec.environment['flutter'] == null ||
+          pubspec.environment['flutter'].allowsAny(VersionRange(
+            min: Version.parse('0.0.0'),
+            max: Version.parse('1.20.0'),
+            includeMin: true,
+            includeMax: false,
+          ))) &&
+      !files.any((f) => f.startsWith('ios/'))) {
+    yield ArchiveIssue(
+        'pubspec.yaml allows Flutter SDK version prior to 1.20.0, which does '
+        'not support having no `ios/` folder.\n'
+        'Please consider increasing the Flutter SDK requirement to '
+        '^1.20.0 or higher (environment.sdk.flutter) or create an `ios/` folder.\n\nSee $_pluginDocsUrl');
   }
 }
