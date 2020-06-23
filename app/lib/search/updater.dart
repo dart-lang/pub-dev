@@ -246,11 +246,19 @@ class _PeriodicUpdateTaskSource implements TaskSource {
       await Future.delayed(Duration(hours: 2));
       final now = DateTime.now();
       final tasks = _snapshot.documents.values
-          .where((pd) =>
-              pd.timestamp == null ||
-              now.difference(pd.timestamp).inHours >= 24)
+          .where((pd) {
+            final ageInMonths = now.difference(pd.updated ?? now).inDays ~/ 30;
+            // Packages updated in the past two years will get updated daily,
+            // each additional month adds an extra hour to the update time
+            // difference. Neglected packages (after 14 years of the last update)
+            // get refreshed in the index once in a week.
+            final updatePeriodHours = max(24, min(ageInMonths, 7 * 24));
+            return now.difference(pd.timestamp).inHours >= updatePeriodHours;
+          })
           .map((pd) => Task(pd.package, pd.version, now))
           .toList();
+      _logger
+          .info('Periodic scheduler found ${tasks.length} packages to update.');
       for (Task task in tasks) {
         yield task;
       }

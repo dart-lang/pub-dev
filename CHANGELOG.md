@@ -4,6 +4,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Search index skips updates when task timestamp predates index document.
  * Reduced frequency and concurrency of search snapshot writes to storage bucket.
+ * Spaced scheduled updates in search index: package update frequency decreases
+   after two years (from daily to weekly after 14 years).
 
 ## `20200619t091224-all`
  * Bumped runtimeVersion to `2020.06.19`.
