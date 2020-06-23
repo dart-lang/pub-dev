@@ -2,6 +2,7 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Search index skips updates when task timestamp predates index document.
 
 ## `20200619t091224-all`
  * Bumped runtimeVersion to `2020.06.19`.
