@@ -25,7 +25,7 @@ import 'publisher.dart' show renderPublisherList;
 String renderAuthorizedPage() {
   final String content = templateCache.renderTemplate('account/authorized', {});
   return renderLayoutPage(PageType.package, content,
-      title: 'Pub Authorized Successfully', includeSurvey: false);
+      title: 'Pub Authorized Successfully');
 }
 
 /// Renders the search results on the current user's packages page.

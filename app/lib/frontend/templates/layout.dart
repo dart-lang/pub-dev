@@ -51,7 +51,6 @@ String renderLayoutPage(
   String sdk,
   String publisherId,
   SearchQuery searchQuery,
-  bool includeSurvey = true,
   bool noIndex = false,
   PageData pageData,
   String searchPlaceHolder,
@@ -94,7 +93,6 @@ String renderLayoutPage(
     'site_header_html': _renderSiteHeader(type),
     // This is not escaped as it is already escaped by the caller.
     'content_html': contentHtml,
-    'include_survey': includeSurvey,
     'include_highlight': type == PageType.package,
     'show_search_banner': !requestContext.isExperimental ||
         (type != PageType.package && type != PageType.standalone),
