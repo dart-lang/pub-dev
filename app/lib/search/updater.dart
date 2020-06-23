@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:math';
 
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
     show DetailedApiRequestError;
@@ -34,8 +35,8 @@ class IndexUpdater implements TaskRunner {
   final DatastoreDB _db;
   final PackageIndex _packageIndex;
   SearchSnapshot _snapshot;
-  DateTime _lastSnapshotWrite = DateTime.now();
   Timer _statsTimer;
+  Timer _snapshotWriteTimer;
 
   IndexUpdater(this._db, this._packageIndex);
 
@@ -56,6 +57,10 @@ class IndexUpdater implements TaskRunner {
       await _packageIndex.markReady();
       _logger.info('Minimum package index loaded with $cnt packages.');
     }
+    _snapshotWriteTimer ??= Timer.periodic(
+        Duration(hours: 6, minutes: Random.secure().nextInt(120)), (_) {
+      _updateSnapshotIfNeeded();
+    });
   }
 
   /// Updates all packages in the index.
@@ -129,6 +134,8 @@ class IndexUpdater implements TaskRunner {
   Future<void> close() async {
     _statsTimer?.cancel();
     _statsTimer = null;
+    _snapshotWriteTimer?.cancel();
+    _snapshotWriteTimer = null;
     // TODO: close scheduler
   }
 
@@ -168,20 +175,20 @@ class IndexUpdater implements TaskRunner {
     } on MissingAnalysisException catch (_) {
       // Nothing to do yet, keeping old version if it exists.
     }
-    await _updateSnapshotIfNeeded();
   }
 
   Future<void> _updateSnapshotIfNeeded() async {
-    final DateTime now = DateTime.now();
-    if (now.difference(_lastSnapshotWrite).inHours > 12) {
-      _lastSnapshotWrite = now;
-      try {
+    // TODO: make the catch-all block narrower
+    try {
+      if (await snapshotStorage.wasUpdatedRecently()) {
+        _logger.info('Snapshot update skipped (found recent snapshot).');
+      } else {
         _logger.info('Updating search snapshot...');
         await snapshotStorage.store(_snapshot);
         _logger.info('Search snapshot update completed.');
-      } catch (e, st) {
-        _logger.warning('Unable to update search snapshot.', e, st);
       }
+    } catch (e, st) {
+      _logger.warning('Unable to update search snapshot.', e, st);
     }
   }
 

@@ -123,11 +123,17 @@ class VersionedJsonStorage {
   }
 
   /// Whether the storage bucket has a data file for the current runtime version.
-  /// TODO: decide whether we should re-generate the file after a certain age
-  Future<bool> hasCurrentData() async {
+  Future<bool> hasCurrentData({Duration maxAge}) async {
     try {
       final info = await _bucket.info(_objectName());
-      return info != null;
+      if (info == null) {
+        return false;
+      }
+      final now = DateTime.now();
+      if (maxAge != null && now.difference(info.updated) > maxAge) {
+        return false;
+      }
+      return true;
     } catch (e) {
       if (e is DetailedApiRequestError && e.status == 404) {
         return false;

@@ -297,6 +297,12 @@ class SnapshotStorage {
     return null;
   }
 
+  /// Returns `true` if this or another search index updated the snapshot bucket
+  /// in the past 24 hours.
+  Future<bool> wasUpdatedRecently() async {
+    return await _snapshots.hasCurrentData(maxAge: Duration(hours: 24));
+  }
+
   Future<void> store(SearchSnapshot snapshot) async {
     await _snapshots.uploadDataAsJsonMap(snapshot.toJson());
   }
