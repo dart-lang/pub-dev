@@ -125,7 +125,6 @@ String renderErrorPage(String title, String message) {
     PageType.error,
     content,
     title: title,
-    includeSurvey: false,
   );
 }
 

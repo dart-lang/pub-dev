@@ -25,7 +25,6 @@ String renderConsentPage({
     content,
     title: 'Consent',
     pageData: PageData(consentId: consentId),
-    includeSurvey: false,
   );
 }
 
