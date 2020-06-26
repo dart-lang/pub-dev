@@ -61,7 +61,7 @@ class DartdocClient {
       {Duration timeout}) async {
     try {
       final entry = await dartdocBackend
-          .getServingEntry(package, version)
+          .getServingEntry(package, version, useLastReportedEntry: true)
           .timeout(timeout);
       if (entry == null || !entry.hasContent) {
         return null;
