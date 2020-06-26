@@ -110,13 +110,18 @@ abstract class FlutterSdkTag {
       'platform:${FlutterSdkPlatform.android}';
   static const String platformIos = 'platform:${FlutterSdkPlatform.ios}';
   static const String platformMacos = 'platform:${FlutterSdkPlatform.macos}';
+  static const String platformLinux = 'platform:${FlutterSdkPlatform.linux}';
   static const String platformWeb = 'platform:${FlutterSdkPlatform.web}';
+  static const String platformWindows =
+      'platform:${FlutterSdkPlatform.windows}';
 }
 
 /// Collection of Flutter SDK platform values.
 abstract class FlutterSdkPlatform {
   static const String android = 'android';
   static const String ios = 'ios';
+  static const String linux = 'linux';
   static const String macos = 'macos';
   static const String web = 'web';
+  static const String windows = 'windows';
 }
