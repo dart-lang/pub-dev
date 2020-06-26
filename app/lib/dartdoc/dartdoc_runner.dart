@@ -261,6 +261,7 @@ class DartdocJobProcessor extends JobProcessor {
     }
 
     final coverage = dartdocData?.coverage;
+    ReportSection documentationSection;
     if (hasContent && coverage != null) {
       if (coverage.penalty > 0) {
         final level = coverage.percent < 0.2
@@ -278,6 +279,10 @@ class DartdocJobProcessor extends JobProcessor {
               score: coverage.penalty),
         );
       }
+      documentationSection = documentationCoverageSection(
+        documented: coverage.documented,
+        total: coverage.total,
+      );
     } else {
       if (abortLog == null && dartdocResult != null) {
         abortLog =
@@ -290,12 +295,14 @@ class DartdocJobProcessor extends JobProcessor {
         abortLog,
         score: 10.0,
       ));
+      documentationSection = dartdocFailedSection(dartdocResult);
     }
     await _storeScoreCard(
         job,
         DartdocReport(
           reportStatus: reportStatus,
           dartdocEntryUuid: dartdocEntryUuid,
+          documentationSection: documentationSection,
           coverage: coverage?.percent ?? 0.0,
           coverageScore: coverage?.score ?? 0.0,
           healthSuggestions:
@@ -538,6 +545,8 @@ String _mergeOutput(ProcessResult pr, {bool compressStdout = false}) {
 DartdocReport _emptyReport() => DartdocReport(
       reportStatus: ReportStatus.aborted,
       dartdocEntryUuid: null,
+      // TODO: add meaningful message for missing documentation on dartdoc
+      documentationSection: null,
       coverage: 0.0,
       coverageScore: 0.0,
       healthSuggestions: [],

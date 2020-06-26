@@ -63,6 +63,7 @@ class AnalysisView {
   final ScoreCardData _card;
   final PanaReport _pana;
   final DartdocReport _dartdoc;
+  Report _report;
 
   AnalysisView._(this._card, this._pana, this._dartdoc);
 
@@ -96,7 +97,16 @@ class AnalysisView {
     return version as String;
   }
 
-  Report get report => _pana?.report;
+  Report get report {
+    if (_report == null) {
+      _report = _pana?.report;
+      if (_dartdoc?.documentationSection != null) {
+        _report = _report.joinSection(_dartdoc.documentationSection);
+      }
+    }
+    return _report;
+  }
+
   List<String> get derivedTags => _card?.derivedTags ?? const <String>[];
 
   List<LicenseFile> get licenses => _pana?.licenses;
