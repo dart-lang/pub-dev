@@ -2,6 +2,8 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20200625t105810-all`
  * Search index skips updates when task timestamp predates index document.
  * Reduced frequency and concurrency of search snapshot writes to storage bucket.
  * Spaced scheduled updates in search index: package update frequency decreases
