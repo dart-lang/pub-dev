@@ -298,14 +298,27 @@ String renderSubSdkTabsHtml({@required SearchQuery searchQuery}) {
           tag: FlutterSdkTag.platformWeb,
           title: 'Packages compatible with Flutter on the Web platform',
         ),
-        // `macOS` platform is not yet stable, and we want to display it only when
-        // the user has already opted-in to get it displayed. The conditional
-        // predicate must be removed once the platform becomes stable.
+        // `Linux`, `macOS`, `Windows` platforms are not yet stable, and we want
+        // to display them only when the user has already opted-in to get them
+        // displayed.
+        // TODO: The conditional predicate must be removed once the platform becomes stable.
+        if (pred != null && pred.isRequiredTag(FlutterSdkTag.platformLinux))
+          _FilterOption(
+            label: 'Linux',
+            tag: FlutterSdkTag.platformLinux,
+            title: 'Packages compatible with Flutter on the Linux platform',
+          ),
         if (pred != null && pred.isRequiredTag(FlutterSdkTag.platformMacos))
           _FilterOption(
             label: 'macOS',
             tag: FlutterSdkTag.platformMacos,
             title: 'Packages compatible with Flutter on the macOS platform',
+          ),
+        if (pred != null && pred.isRequiredTag(FlutterSdkTag.platformWindows))
+          _FilterOption(
+            label: 'Windows',
+            tag: FlutterSdkTag.platformWindows,
+            title: 'Packages compatible with Flutter on the Windows platform',
           ),
       ],
     );
