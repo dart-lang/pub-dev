@@ -163,11 +163,12 @@ class DartdocJobProcessor extends JobProcessor {
     final healthSuggestions = <Suggestion>[];
     final maintenanceSuggestions = <Suggestion>[];
     try {
-      final pkgDir = await downloadPackage(job.packageName, job.packageVersion);
-      if (pkgDir == null) {
-        return JobStatus.failed;
-      }
-      await pkgDir.rename(pkgPath);
+      await Directory(pkgPath).create(recursive: true);
+      await downloadPackage(
+        job.packageName,
+        job.packageVersion,
+        destination: pkgPath,
+      );
       final usesFlutter = await toolEnvRef.toolEnv.detectFlutterUse(pkgPath);
 
       final logFileOutput = StringBuffer();
