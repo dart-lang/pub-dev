@@ -6,9 +6,12 @@
 body.experimental {
 
 $info-box-width: 190px;
-$info-box-margin: 120px;
-$info-box-total-width: 320px; /* 190 + 120 + 10 (extra space for layout) */
-$detail-tabs-width: calc(100% - 320px);
+$info-box-margin:        120px;
+$info-box-tablet-margin:  40px;
+$info-box-total-width:       320px; /* 190 + 120 + 10 (extra space for layout) */
+$info-box-table-total-width: 240px; /* 190 +  40 + 10 (extra space for layout) */
+$detail-tabs-width:        calc(100% - 320px);
+$detail-tabs-tablet-width: calc(100% - 240px);
 
 .-wide-header-detail-page {
   .detail-header,
@@ -219,6 +222,10 @@ $detail-tabs-width: calc(100% - 320px);
       display: inline-block;
       margin-left: $info-box-margin;
       width: $info-box-width;
+
+      @media (max-width: $device-tablet-max-width) {
+        margin-left: $info-box-tablet-margin;
+      }
     }
   }
 
@@ -227,6 +234,10 @@ $detail-tabs-width: calc(100% - 320px);
     .detail-body > .detail-tabs {
       display: inline-block;
       width: $detail-tabs-width;
+
+      @media (max-width: $device-tablet-max-width) {
+        width: $detail-tabs-tablet-width;
+      }
     }
   }
 }
