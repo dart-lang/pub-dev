@@ -10,7 +10,13 @@ import 'package:gcloud/db.dart' as db;
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/models.dart'
-    show LicenseFile, PanaRuntimeInfo, PkgDependency, Report, Suggestion;
+    show
+        LicenseFile,
+        PanaRuntimeInfo,
+        PkgDependency,
+        Report,
+        ReportSection,
+        Suggestion;
 import 'package:pub_semver/pub_semver.dart';
 
 import 'package:pub_dev/search/scoring.dart' show calculateOverallScore;
@@ -370,14 +376,17 @@ class PanaReport implements ReportData {
   final List<PkgDependency> pkgDependencies;
 
   /// Suggestions related to the pana processing and overall package status.
+  /// TODO: remove after we've migrated to the new scoring model
   @JsonKey(includeIfNull: false)
   final List<Suggestion> panaSuggestions;
 
   /// Suggestions related to the package health score.
+  /// TODO: remove after we've migrated to the new scoring model
   @JsonKey(includeIfNull: false)
   final List<Suggestion> healthSuggestions;
 
   /// Suggestions related to the package maintenance score.
+  /// TODO: remove after we've migrated to the new scoring model
   @JsonKey(includeIfNull: false)
   final List<Suggestion> maintenanceSuggestions;
 
@@ -425,21 +434,29 @@ class DartdocReport implements ReportData {
   /// The latest dartdoc entry's UUID that has valid documentation content.
   final String dartdocEntryUuid;
 
+  /// The dartdoc part of the documentation report section.
+  final ReportSection documentationSection;
+
   /// The percent of API symbols with documentation.
+  /// TODO: remove after we've migrated to the new scoring model
   final double coverage;
+  // TODO: remove after we've migrated to the new scoring model
   final double coverageScore;
 
   /// Suggestions related to the package health score.
+  /// TODO: remove after we've migrated to the new scoring model
   @JsonKey(includeIfNull: false)
   final List<Suggestion> healthSuggestions;
 
   /// Suggestions related to the package maintenance score.
+  /// TODO: remove after we've migrated to the new scoring model
   @JsonKey(includeIfNull: false)
   final List<Suggestion> maintenanceSuggestions;
 
   DartdocReport({
     @required this.reportStatus,
     @required this.dartdocEntryUuid,
+    @required this.documentationSection,
     @required this.coverage,
     @required this.coverageScore,
     @required this.healthSuggestions,

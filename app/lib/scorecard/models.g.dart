@@ -120,6 +120,10 @@ DartdocReport _$DartdocReportFromJson(Map<String, dynamic> json) {
   return DartdocReport(
     reportStatus: json['reportStatus'] as String,
     dartdocEntryUuid: json['dartdocEntryUuid'] as String,
+    documentationSection: json['documentationSection'] == null
+        ? null
+        : ReportSection.fromJson(
+            json['documentationSection'] as Map<String, dynamic>),
     coverage: (json['coverage'] as num)?.toDouble(),
     coverageScore: (json['coverageScore'] as num)?.toDouble(),
     healthSuggestions: (json['healthSuggestions'] as List)
@@ -137,6 +141,7 @@ Map<String, dynamic> _$DartdocReportToJson(DartdocReport instance) {
   final val = <String, dynamic>{
     'reportStatus': instance.reportStatus,
     'dartdocEntryUuid': instance.dartdocEntryUuid,
+    'documentationSection': instance.documentationSection,
     'coverage': instance.coverage,
     'coverageScore': instance.coverageScore,
   };
