@@ -169,15 +169,21 @@ class DartdocBackend {
   }
 
   /// Return the latest entry that should be used to serve the content.
-  Future<DartdocEntry> getServingEntry(String package, String version) async {
+  Future<DartdocEntry> getServingEntry(
+    String package,
+    String version, {
+    bool useLastReportedEntry = false,
+  }) async {
     final cachedEntry = await cache.dartdocEntry(package, version).get();
     if (cachedEntry != null) {
       return cachedEntry;
     }
 
     Future<DartdocEntry> loadVersion(String v) async {
-      final entry = await _tryLoadLastReportedEntry(package, v);
-      if (entry != null) return entry;
+      if (useLastReportedEntry) {
+        final entry = await _tryLoadLastReportedEntry(package, v);
+        if (entry != null) return entry;
+      }
 
       final entries = await _listEntries(storage_path.entryPrefix(package, v));
       // keep only accepted runtime versions

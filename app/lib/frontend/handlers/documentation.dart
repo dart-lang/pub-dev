@@ -38,7 +38,10 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   }
   final String requestMethod = request.method?.toUpperCase();
   final entry = await dartdocBackend.getServingEntry(
-      docFilePath.package, docFilePath.version);
+    docFilePath.package,
+    docFilePath.version,
+    useLastReportedEntry: true,
+  );
   if (entry == null) {
     return redirectResponse(pkgVersionsUrl(docFilePath.package));
   }
