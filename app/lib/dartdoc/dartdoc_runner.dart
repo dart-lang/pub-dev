@@ -298,7 +298,6 @@ class DartdocJobProcessor extends JobProcessor {
         job,
         DartdocReport(
           reportStatus: reportStatus,
-          dartdocEntryUuid: entry?.uuid,
           dartdocEntry: entry,
           documentationSection: documentationSection,
           coverage: coverage?.percent ?? 0.0,
@@ -542,7 +541,6 @@ String _mergeOutput(ProcessResult pr, {bool compressStdout = false}) {
 
 DartdocReport _emptyReport() => DartdocReport(
       reportStatus: ReportStatus.aborted,
-      dartdocEntryUuid: null,
       dartdocEntry: null,
       // TODO: add meaningful message for missing documentation on dartdoc
       documentationSection: null,

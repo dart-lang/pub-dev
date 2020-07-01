@@ -378,15 +378,7 @@ class DartdocBackend {
     final reports = await scoreCardBackend
         .loadReports(package, version, reportTypes: [ReportType.dartdoc]);
     final report = reports[ReportType.dartdoc] as DartdocReport;
-    if (report?.dartdocEntry != null) {
-      return report?.dartdocEntry;
-    }
-    final uuid = report?.dartdocEntryUuid;
-    if (uuid != null) {
-      final objectName = storage_path.entryObjectName(package, version, uuid);
-      return await _tryLoadEntryFromBucket(objectName);
-    }
-    return null;
+    return report?.dartdocEntry;
   }
 
   Future<void> _deleteAll(DartdocEntry entry, {int concurrency}) async {

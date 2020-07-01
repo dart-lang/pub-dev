@@ -182,7 +182,6 @@ void main() {
             flags: null),
         dartdocReport: DartdocReport(
           reportStatus: ReportStatus.success,
-          dartdocEntryUuid: '1234-5678-dartdocentry-90ab',
           dartdocEntry: DartdocEntry(
             uuid: '1234-5678-dartdocentry-90ab',
             packageName: foobarStablePV.package,

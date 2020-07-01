@@ -432,9 +432,6 @@ class DartdocReport implements ReportData {
   @override
   final String reportStatus;
 
-  /// The latest dartdoc entry's UUID that has valid documentation content.
-  final String dartdocEntryUuid;
-
   /// The latest dartdoc entry's UUID.
   final DartdocEntry dartdocEntry;
 
@@ -459,7 +456,6 @@ class DartdocReport implements ReportData {
 
   DartdocReport({
     @required this.reportStatus,
-    @required this.dartdocEntryUuid,
     @required this.dartdocEntry,
     @required this.documentationSection,
     @required this.coverage,
