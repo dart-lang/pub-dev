@@ -32,6 +32,16 @@
   > .text {
     margin: 1em auto;
     max-width: 500px;
+
+    .experimental & {
+      color: white;
+      font-size: 18px;
+
+      > a {
+        color: #31b0fc;
+        font-weight: 400;
+      }
+    }
   }
 
   > .link {
@@ -186,6 +196,7 @@
   }
 
   .home-block-view-all-link {
+    font-size: 16px;
     font-weight: 500;
     text-transform: uppercase;
   }
