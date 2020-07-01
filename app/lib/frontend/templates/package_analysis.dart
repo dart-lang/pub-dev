@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:meta/meta.dart';
-import 'package:pana/models.dart' show Report, ReportSection, SuggestionLevel;
+import 'package:pana/models.dart' show Report, SuggestionLevel;
 
 import '../../analyzer/analyzer_client.dart';
 import '../../scorecard/models.dart';
@@ -46,8 +46,7 @@ String renderAnalysisTab(
   }
 
   // TODO: use only `analysis.report` after we've migrated to the new UI.
-  final report =
-      requestContext.isExperimental ? _extendedReport(analysis) : null;
+  final report = requestContext.isExperimental ? analysis.report : null;
   final hasReport = report != null;
 
   final Map<String, dynamic> data = {
@@ -85,43 +84,6 @@ String renderAnalysisTab(
   };
 
   return templateCache.renderTemplate('pkg/analysis/tab', data);
-}
-
-Report _extendedReport(AnalysisView analysis) {
-  if (analysis == null || !analysis.hasPanaSummary) return null;
-  final healthScore = (analysis.health * 100).round();
-  final maintenanceScore = (analysis.maintenanceScore * 100).round();
-
-  String summaryMarkdown(List<Suggestion> suggestions) {
-    return (suggestions ?? [])
-        .map((s) => '**${s.title}** (${s.score})\n\n${s.description}')
-        .join('\n\n');
-  }
-
-  final storedReport = analysis.report;
-
-  return Report(sections: [
-    if (storedReport?.sections != null) ...storedReport.sections,
-    if (analysis.panaSuggestions != null && analysis.panaSuggestions.isNotEmpty)
-      ReportSection(
-        title: 'Analysis (pana suggestions)',
-        grantedPoints: 0,
-        maxPoints: 0,
-        summary: summaryMarkdown(analysis.panaSuggestions),
-      ),
-    ReportSection(
-      title: 'Health (old)',
-      grantedPoints: healthScore,
-      maxPoints: 100,
-      summary: summaryMarkdown(analysis.healthSuggestions),
-    ),
-    ReportSection(
-      title: 'Maintenance (old)',
-      grantedPoints: maintenanceScore,
-      maxPoints: 100,
-      summary: summaryMarkdown(analysis.maintenanceSuggestions),
-    ),
-  ]);
 }
 
 /// Renders the `views/pkg/analysis/report.mustache` template.
