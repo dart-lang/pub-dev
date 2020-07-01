@@ -27,6 +27,18 @@ body.experimental {
 
     @media (min-width: $device-desktop-min-width) {
       background: white;
+      border-bottom: 1px solid #d5d5d5;
+      text-align: right;
+
+      .search-controls-checkbox {
+        display: inline-flex;
+        align-items: center;
+
+        color: #6d7278;
+        font-size: 14px;
+        font-weight: 400;
+        text-transform: uppercase;
+      }
     }
   }
 

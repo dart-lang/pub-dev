@@ -144,7 +144,10 @@ String renderPkgIndexPage(
 }) {
   final topPackages = getSdkDict(sdk).topSdkPackages;
   final isSearch = searchQuery != null && searchQuery.hasQuery;
+  final includeLegacy = searchQuery?.includeLegacy ?? false;
+  final hasActiveAdvanced = includeLegacy;
   final values = {
+    'has_active_advanced': hasActiveAdvanced,
     'sdk_tabs_html': renderSdkTabs(searchQuery: searchQuery),
     'subsdk_label': _subSdkLabel(searchQuery),
     'subsdk_tabs_html': renderSubSdkTabsHtml(searchQuery: searchQuery),
@@ -157,7 +160,7 @@ String renderPkgIndexPage(
     'package_list_html': renderPackageList(packages, searchQuery: searchQuery),
     'has_packages': packages.isNotEmpty,
     'pagination': renderPagination(links),
-    'legacy_search_enabled': searchQuery?.includeLegacy ?? false,
+    'legacy_search_enabled': includeLegacy,
   };
   final content = templateCache.renderTemplate('pkg/index', values);
 
