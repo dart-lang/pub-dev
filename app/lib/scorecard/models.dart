@@ -17,6 +17,7 @@ import 'package:pana/models.dart'
         Report,
         ReportSection,
         Suggestion;
+import 'package:pub_dev/dartdoc/models.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import 'package:pub_dev/search/scoring.dart' show calculateOverallScore;
@@ -434,6 +435,9 @@ class DartdocReport implements ReportData {
   /// The latest dartdoc entry's UUID that has valid documentation content.
   final String dartdocEntryUuid;
 
+  /// The latest dartdoc entry's UUID.
+  final DartdocEntry dartdocEntry;
+
   /// The dartdoc part of the documentation report section.
   final ReportSection documentationSection;
 
@@ -456,6 +460,7 @@ class DartdocReport implements ReportData {
   DartdocReport({
     @required this.reportStatus,
     @required this.dartdocEntryUuid,
+    @required this.dartdocEntry,
     @required this.documentationSection,
     @required this.coverage,
     @required this.coverageScore,

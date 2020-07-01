@@ -159,7 +159,7 @@ class DartdocJobProcessor extends JobProcessor {
 
     String reportStatus = ReportStatus.failed;
     String abortLog;
-    String dartdocEntryUuid;
+    DartdocEntry entry;
     final healthSuggestions = <Suggestion>[];
     final maintenanceSuggestions = <Suggestion>[];
     try {
@@ -238,9 +238,6 @@ class DartdocJobProcessor extends JobProcessor {
       } else {
         await dartdocBackend.uploadDir(entry, outputDir);
         reportStatus = hasContent ? ReportStatus.success : ReportStatus.failed;
-        if (hasContent) {
-          dartdocEntryUuid = entry.uuid;
-        }
       }
 
       if (!hasContent && isLatestStable) {
@@ -301,7 +298,8 @@ class DartdocJobProcessor extends JobProcessor {
         job,
         DartdocReport(
           reportStatus: reportStatus,
-          dartdocEntryUuid: dartdocEntryUuid,
+          dartdocEntryUuid: entry?.uuid,
+          dartdocEntry: entry,
           documentationSection: documentationSection,
           coverage: coverage?.percent ?? 0.0,
           coverageScore: coverage?.score ?? 0.0,
@@ -545,6 +543,7 @@ String _mergeOutput(ProcessResult pr, {bool compressStdout = false}) {
 DartdocReport _emptyReport() => DartdocReport(
       reportStatus: ReportStatus.aborted,
       dartdocEntryUuid: null,
+      dartdocEntry: null,
       // TODO: add meaningful message for missing documentation on dartdoc
       documentationSection: null,
       coverage: 0.0,
