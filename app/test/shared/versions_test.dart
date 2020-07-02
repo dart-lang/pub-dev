@@ -33,7 +33,7 @@ void main() {
     // This test is a reminder that if pana, the SDK or any of the above
     // versions change, we should also adjust the [runtimeVersion]. Before
     // updating the hash value, double-check if it is being updated.
-    expect(hash, 48055325);
+    expect(hash, 111136121);
   });
 
   test('accepted runtime versions should be lexicographically ordered', () {
