@@ -8,6 +8,8 @@ import 'dart:io';
 import 'package:html/parser.dart';
 import 'package:pana/pana.dart';
 import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/dartdoc/models.dart';
+import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:xml/xml.dart' as xml;
@@ -180,7 +182,23 @@ void main() {
             flags: null),
         dartdocReport: DartdocReport(
           reportStatus: ReportStatus.success,
-          dartdocEntryUuid: '1234-5678-dartdocentry-90ab',
+          dartdocEntry: DartdocEntry(
+            uuid: '1234-5678-dartdocentry-90ab',
+            packageName: foobarStablePV.package,
+            packageVersion: foobarStablePV.version,
+            isLatest: true,
+            isObsolete: false,
+            usesFlutter: false,
+            runtimeVersion: runtimeVersion,
+            sdkVersion: _panaRuntimeInfo.sdkVersion,
+            dartdocVersion: dartdocVersion,
+            flutterVersion: null,
+            timestamp: DateTime(2018, 02, 05),
+            depsResolved: true,
+            hasContent: true,
+            archiveSize: 101023,
+            totalSize: 203045,
+          ),
           documentationSection:
               documentationCoverageSection(documented: 17, total: 17),
           coverage: 1.0,
