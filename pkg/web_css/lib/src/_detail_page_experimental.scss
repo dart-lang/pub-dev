@@ -295,7 +295,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
     be a slide instead of just appearing, but this should be good-enough for
     a while.
   */
-  @media (max-width: $device-mobile-max-width) {
+  @media (max-width: $device-tablet-max-width) {
     background-image: linear-gradient(to right, $detail-tab-bg, $detail-tab-bg), linear-gradient(to right, $detail-tab-bg, $detail-tab-bg), linear-gradient(to right, rgba(128, 128, 128, .50), $detail-tab-bg), linear-gradient(to left, rgba(128, 128, 128, .50), $detail-tab-bg);
     background-position: left center, right center, left center, right center;
     background-repeat: no-repeat;
