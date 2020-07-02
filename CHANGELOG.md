@@ -2,9 +2,9 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bumped runtimeVersion to `2020.07.01`.
- * Upgraded pana to `0.13.12`
- * Upgraded Flutter to `1.17.4`.
+ * Bumped runtimeVersion to `2020.07.02`.
+ * Upgraded pana to `0.13.13`
+ * Upgraded Flutter to `1.17.5`.
  * Upgraded `gcloud` to `0.7.3`, using the new `delimiter` to recursively
    delete from storage buckets.
  * `/documentation/` serving changed: content entry lookup first checks Datastore entity.
