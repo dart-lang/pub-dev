@@ -100,7 +100,7 @@ class AnalysisView {
   Report get report {
     if (_report == null) {
       _report = _pana?.report;
-      if (_dartdoc?.documentationSection != null) {
+      if (_report != null && _dartdoc?.documentationSection != null) {
         _report = _report.joinSection(_dartdoc.documentationSection);
       }
     }
