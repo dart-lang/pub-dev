@@ -13,6 +13,7 @@ import '../../shared/utils.dart';
 
 import '../color.dart';
 import '../request_context.dart';
+import '../static_files.dart';
 
 import '_cache.dart';
 import '_consts.dart';
@@ -89,14 +90,36 @@ String renderAnalysisTab(
 /// Renders the `views/pkg/analysis/report.mustache` template.
 String _renderReport(Report report) {
   if (report?.sections == null) return null;
+
+  String renderSummary(String summary) {
+    final updated = summary.split('\n').map((line) {
+      if (!line.startsWith('### ')) return line;
+      return line
+          .replaceFirst(
+              '[*]',
+              '<img class="report-summary-icon" '
+                  'src="${staticUrls.reportOKIconGreen}" />')
+          .replaceFirst(
+              '[x]',
+              '<img class="report-summary-icon" '
+                  'src="${staticUrls.reportMissingIconRed}" />')
+          .replaceFirst(
+              '[~]',
+              '<img class="report-summary-icon" '
+                  'src="${staticUrls.reportMissingIconYellow}" />');
+    }).join('\n');
+    return markdownToHtml(updated);
+  }
+
   return templateCache.renderTemplate('pkg/analysis/report', {
     'sections': report.sections.map((s) => {
           'title': s.title,
           'grantedPoints': s.grantedPoints,
           'maxPoints': s.maxPoints,
-          'summary_html': markdownToHtml(s.summary),
-          'is_green': s.grantedPoints == s.maxPoints,
-          'is_red': s.grantedPoints != s.maxPoints,
+          'summary_html': renderSummary(s.summary),
+          'is_green': s.grantedPoints > 0 && s.grantedPoints == s.maxPoints,
+          'is_yellow': s.grantedPoints > 0 && s.grantedPoints != s.maxPoints,
+          'is_red': s.grantedPoints == 0,
         }),
   });
 }
