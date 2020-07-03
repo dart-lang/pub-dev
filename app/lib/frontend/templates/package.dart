@@ -193,6 +193,7 @@ String renderPkgInfoBox(
         _renderLicenses(packageLinks.baseUrl, data.analysis?.licenses),
     'dependencies_html': _renderDependencyList(data.analysis),
     'search_deps_link': urls.searchUrl(q: 'dependency:${package.name}'),
+    'labeled_scores_html': renderLabeledScores(data.toPackageView()),
     // TODO: remove the below keys after we've migrated to the new UI
     'is_flutter_favorite':
         (package.assignedTags ?? []).contains(PackageTags.isFlutterFavorite),

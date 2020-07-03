@@ -1,0 +1,113 @@
+/* Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+   for details. All rights reserved. Use of this source code is governed by a
+   BSD-style license that can be found in the LICENSE file. */
+
+.score-circle {
+  width: 40px;
+  height: 40px;
+  background: white;
+  border-radius: 50%;
+  position: relative;
+
+  .score-circle-outline,
+  .score-circle-arc,
+  .score-circle-label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    border-radius: 50%;
+  }
+
+  .score-circle-arc {
+    background: $score-circle-outline;
+    stroke: $score-circle-stroke;
+  }
+
+  .score-circle-label {
+    margin: 10%;
+    background: white;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .score-circle-primary-label {
+    color: $score-circle-label;
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .score-circle-secondary-label {
+    /* Uses the defaults. */
+  }
+}
+
+.packages-scores {
+  display: flex;
+  align-items: center;
+
+  font-family: $font-family-google-sans;
+
+  .packages-score {
+    min-width: 45px;
+
+    @media (min-width: $device-desktop-min-width) {
+      min-width: 55px;
+    }
+  }
+
+  .packages-score:not(:last-child) {
+    border-right: 1px solid #e0e0e0;
+    margin-right: 4px;
+    padding-right: 4px;
+
+    @media (min-width: $device-desktop-min-width) {
+      margin-right: 8px;
+      padding-right: 8px;
+    }
+  }
+
+  .packages-score-value {
+    color: #6d7278;
+    font-weight: 400;
+    text-align: center;
+
+    &.-has-value {
+      color: $color-input-primary;
+    }
+  }
+
+  .packages-score-value-number {
+    font-size: 18px;
+
+    @media (min-width: $device-desktop-min-width) {
+      font-size: 22px;
+    }
+  }
+
+  .packages-score-value-sign {
+    font-size: 10px;
+    vertical-align: super;
+
+    @media (min-width: $device-desktop-min-width) {
+      font-size: 12px;
+    }
+  }
+
+  .packages-score-label {
+    color: #6d7278;
+    font-size: 7px;
+    letter-spacing: 0.1px;
+    text-transform: uppercase;
+    text-align: center;
+
+    @media (min-width: $device-desktop-min-width) {
+      font-size: 8px;
+      letter-spacing: 0.2px;
+    }
+  }
+}

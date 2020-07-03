@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:math' show pi;
 
@@ -351,6 +350,27 @@ String renderSdkScoreBox() {
   return '<div class="score-box"><span class="number -solid">sdk</span></div>';
 }
 
+/// Renders the `views/pkg/labeled_scores.mustache` template.
+String renderLabeledScores(PackageView view) {
+  return templateCache.renderTemplate('pkg/labeled_scores', {
+    'like_score_html': _renderLabeledScore('likes', view.likes, ''),
+    'pub_points_html':
+        _renderLabeledScore('pub points', view.grantedPubPoints, ''),
+    'popularity_score_html':
+        _renderLabeledScore('popularity', view.popularity, '%'),
+  });
+}
+
+/// Renders the `views/pkg/labeled_score.mustache` template.
+String _renderLabeledScore(String label, int value, String sign) {
+  return templateCache.renderTemplate('pkg/labeled_score', {
+    'label': label,
+    'has_value': value != null,
+    'value': value ?? '--',
+    'sign': sign,
+  });
+}
+
 /// Renders the circle with the overall score.
 String renderScoreBox(
   PackageView view, {
@@ -366,8 +386,7 @@ String renderScoreBox(
       title = 'Analysis and more details.';
     }
     if (isTabHeader) {
-      return 'Score: <span class="score-value">'
-          '${htmlEscape.convert(formattedScore)}</span>';
+      return 'Scores';
     }
     return renderScoreCircle(
       label: formattedScore,

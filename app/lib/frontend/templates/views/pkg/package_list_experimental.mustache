@@ -15,17 +15,7 @@
         Added <b>{{added_x_ago}}</b>
       </div>
       {{/is_new}}
-      <div class="packages-scores">
-        <div class="packages-score packages-score-like">
-          {{& like_score_html }}
-        </div>
-        <div class="packages-score packages-score-health">
-          {{& health_score_html }}
-        </div>
-        <div class="packages-score packages-score-popularity">
-          {{& popularity_score_html }}
-        </div>
-      </div>
+      {{& labeled_scores_html }}
     </div>
     <p class="packages-description">{{desc}}</p>
     {{#is_external}}
