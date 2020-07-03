@@ -97,15 +97,8 @@ class AnalysisView {
     return version as String;
   }
 
-  Report get report {
-    if (_report == null) {
-      _report = _pana?.report;
-      if (_report != null && _dartdoc?.documentationSection != null) {
-        _report = _report.joinSection(_dartdoc.documentationSection);
-      }
-    }
-    return _report;
-  }
+  Report get report =>
+      _report ??= joinReport(panaReport: _pana, dartdocReport: _dartdoc);
 
   List<String> get derivedTags => _card?.derivedTags ?? const <String>[];
 

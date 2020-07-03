@@ -22,6 +22,8 @@ PackageView _$PackageViewFromJson(Map<String, dynamic> json) {
     publisherId: json['publisherId'] as String,
     isAwaiting: json['isAwaiting'] as bool,
     likes: json['likes'] as int,
+    grantedPubPoints: json['grantedPubPoints'] as int,
+    maxPubPoints: json['maxPubPoints'] as int,
     health: json['health'] as int,
     popularity: json['popularity'] as int,
     overallScore: (json['overallScore'] as num)?.toDouble(),
@@ -55,6 +57,8 @@ Map<String, dynamic> _$PackageViewToJson(PackageView instance) {
   writeNotNull('publisherId', instance.publisherId);
   writeNotNull('isAwaiting', instance.isAwaiting);
   writeNotNull('likes', instance.likes);
+  writeNotNull('grantedPubPoints', instance.grantedPubPoints);
+  writeNotNull('maxPubPoints', instance.maxPubPoints);
   writeNotNull('health', instance.health);
   writeNotNull('popularity', instance.popularity);
   writeNotNull('overallScore', instance.overallScore);

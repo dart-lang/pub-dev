@@ -424,6 +424,14 @@ class PackageView extends Object with FlagMixin {
 
   final int likes;
 
+  /// The package's granted points from pana and dartdoc analysis.
+  /// May be `null` if the analysis is not available yet.
+  final int grantedPubPoints;
+
+  /// The package's max points from pana and dartdoc analysis.
+  /// May be `null` if the analysis is not available yet.
+  final int maxPubPoints;
+
   /// The package's health score value (on the scale of 0-100).
   /// May be `null` if the score is not available yet.
   final int health;
@@ -451,6 +459,8 @@ class PackageView extends Object with FlagMixin {
     this.publisherId,
     this.isAwaiting = false,
     this.likes,
+    this.grantedPubPoints,
+    this.maxPubPoints,
     this.health,
     this.popularity,
     this.overallScore,
@@ -493,6 +503,8 @@ class PackageView extends Object with FlagMixin {
       publisherId: package.publisherId,
       isAwaiting: isAwaiting,
       likes: package.likes,
+      grantedPubPoints: scoreCard?.grantedPubPoints,
+      maxPubPoints: scoreCard?.maxPubPoints,
       health: scoreCard?.healthScore == null
           ? null
           : (100.0 * scoreCard.healthScore).round(),
@@ -524,6 +536,8 @@ class PackageView extends Object with FlagMixin {
       publisherId: publisherId,
       isAwaiting: isAwaiting,
       likes: likes,
+      grantedPubPoints: grantedPubPoints,
+      maxPubPoints: maxPubPoints,
       health: health,
       popularity: popularity,
       overallScore: overallScore,

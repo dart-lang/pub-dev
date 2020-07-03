@@ -86,6 +86,16 @@ class ScoreCard extends db.ExpandoModel<String> with FlagMixin {
   @db.DateTimeProperty(required: true)
   DateTime packageVersionCreated;
 
+  /// Granted score from pana and dartdoc analysis.
+  @db.IntProperty()
+  int grantedPubPoints;
+
+  /// Max score from pana and dartdoc analysis.
+  /// `null` if report is not ready yet.
+  /// `0` if analysis was not running
+  @db.IntProperty()
+  int maxPubPoints;
+
   /// Score for code health (0.0 - 1.0).
   @db.DoubleProperty()
   double healthScore;
@@ -135,6 +145,8 @@ class ScoreCard extends db.ExpandoModel<String> with FlagMixin {
         updated: updated,
         packageCreated: packageCreated,
         packageVersionCreated: packageVersionCreated,
+        grantedPubPoints: grantedPubPoints,
+        maxPubPoints: maxPubPoints,
         healthScore: healthScore,
         maintenanceScore: maintenanceScore,
         popularityScore: popularityScore,
@@ -176,7 +188,15 @@ class ScoreCard extends db.ExpandoModel<String> with FlagMixin {
       ..removeWhere((type) => type == null)
       ..sort();
     panaReport?.flags?.forEach(addFlag);
+    final report =
+        joinReport(panaReport: panaReport, dartdocReport: dartdocReport);
+    grantedPubPoints = report?.sections
+        ?.fold<int>(0, (sum, section) => sum + section.grantedPoints);
+    maxPubPoints = report?.sections
+        ?.fold<int>(0, (sum, section) => sum + section.maxPoints);
     if (isSkipped) {
+      grantedPubPoints = 0;
+      maxPubPoints = 0;
       healthScore = 0.0;
       maintenanceScore = 0.0;
     }
@@ -286,6 +306,14 @@ class ScoreCardData extends Object with FlagMixin {
   final DateTime packageCreated;
   final DateTime packageVersionCreated;
 
+  /// Granted score from pana and dartdoc analysis.
+  final int grantedPubPoints;
+
+  /// Max score from pana and dartdoc analysis.
+  /// `null` if report is not ready yet.
+  /// `0` if analysis was not running
+  final int maxPubPoints;
+
   /// Score for code health (0.0 - 1.0).
   final double healthScore;
 
@@ -312,6 +340,8 @@ class ScoreCardData extends Object with FlagMixin {
     this.updated,
     this.packageCreated,
     this.packageVersionCreated,
+    this.grantedPubPoints,
+    this.maxPubPoints,
     this.healthScore,
     this.maintenanceScore,
     this.popularityScore,
@@ -469,4 +499,12 @@ class DartdocReport implements ReportData {
 
   @override
   Map<String, dynamic> toJson() => _$DartdocReportToJson(this);
+}
+
+Report joinReport({PanaReport panaReport, DartdocReport dartdocReport}) {
+  var report = panaReport?.report;
+  if (report != null && dartdocReport?.documentationSection != null) {
+    report = report.joinSection(dartdocReport.documentationSection);
+  }
+  return report;
 }
