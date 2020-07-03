@@ -119,9 +119,16 @@ String _renderPopularityKeyFigure(double popularity) {
 }
 
 String _renderPubPointsKeyFigure(Report report) {
+  if (report == null) {
+    return _renderKeyFigure(
+      value: '',
+      supplemental: 'awaiting',
+      label: 'pub points',
+    );
+  }
   var grantedPoints = 0;
   var maxPoints = 0;
-  report?.sections?.forEach((section) {
+  report.sections.forEach((section) {
     grantedPoints += section.grantedPoints;
     maxPoints += section.maxPoints;
   });
