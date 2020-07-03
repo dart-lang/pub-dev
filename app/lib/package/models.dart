@@ -620,6 +620,7 @@ class PackagePageData {
   final List<String> uploaderEmails;
   final bool isAdmin;
   final bool isLiked;
+  PackageView _view;
 
   PackagePageData({
     @required this.package,
@@ -638,7 +639,7 @@ class PackagePageData {
         isLiked = null;
 
   PackageView toPackageView() {
-    return PackageView.fromModel(
+    return _view ??= PackageView.fromModel(
       package: package,
       version: version,
       scoreCard: analysis?.card,
