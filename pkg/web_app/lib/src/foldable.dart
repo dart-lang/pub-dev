@@ -79,6 +79,10 @@ void _setEventForFoldable() {
           scrollContainer.scrollTo(0, nextPos);
         }
       }
+
+      // Wait one animation frame before enabling the content to resize on its own.
+      await window.animationFrame;
+      content.style.maxHeight = 'none';
     });
   }
 }
