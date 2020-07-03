@@ -78,7 +78,8 @@ String renderPackageList(
       'like_score_html': _renderLabeledScore('likes', view.likes, ''),
       'popularity_score_html':
           _renderLabeledScore('popularity', view.popularity, '%'),
-      'health_score_html': _renderLabeledScore('health', view.health, '%'),
+      'health_score_html':
+          _renderLabeledScore('health', view.grantedPubPoints, ''),
       'has_api_pages': view.apiPages != null && view.apiPages.isNotEmpty,
       'api_pages': view.apiPages
           ?.map((page) => {

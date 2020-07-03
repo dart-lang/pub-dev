@@ -20,6 +20,8 @@ ScoreCardData _$ScoreCardDataFromJson(Map<String, dynamic> json) {
     packageVersionCreated: json['packageVersionCreated'] == null
         ? null
         : DateTime.parse(json['packageVersionCreated'] as String),
+    grantedPubPoints: json['grantedPubPoints'] as int,
+    maxPubPoints: json['maxPubPoints'] as int,
     healthScore: (json['healthScore'] as num)?.toDouble(),
     maintenanceScore: (json['maintenanceScore'] as num)?.toDouble(),
     popularityScore: (json['popularityScore'] as num)?.toDouble(),
@@ -40,6 +42,8 @@ Map<String, dynamic> _$ScoreCardDataToJson(ScoreCardData instance) =>
       'packageCreated': instance.packageCreated?.toIso8601String(),
       'packageVersionCreated':
           instance.packageVersionCreated?.toIso8601String(),
+      'grantedPubPoints': instance.grantedPubPoints,
+      'maxPubPoints': instance.maxPubPoints,
       'healthScore': instance.healthScore,
       'maintenanceScore': instance.maintenanceScore,
       'popularityScore': instance.popularityScore,

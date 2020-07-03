@@ -356,6 +356,30 @@ String renderScoreBox(
   PackageView view, {
   bool isTabHeader = false,
 }) {
+  if (requestContext.isExperimental) {
+    final formattedScore =
+        view.grantedPubPoints == null ? '--' : view.grantedPubPoints.toString();
+    String title;
+    if (!view.isSkipped && view.grantedPubPoints == null) {
+      title = 'Awaiting analysis to complete.';
+    } else {
+      title = 'Analysis and more details.';
+    }
+    if (isTabHeader) {
+      return 'Score: <span class="score-value">'
+          '${htmlEscape.convert(formattedScore)}</span>';
+    }
+    return renderScoreCircle(
+      label: formattedScore,
+      percent: view.grantedPubPoints == null || view.maxPubPoints == 0
+          ? 0
+          : (100 * view.grantedPubPoints / view.maxPubPoints).round(),
+      title: title,
+      link: urls.pkgScoreUrl(view.name),
+    );
+  }
+
+  // TODO(3246): Remove the rest of the method after migrating to the new UI.
   final overallScore = view.overallScore;
   final String formattedScore = formatScore(overallScore);
   String title;
@@ -364,20 +388,6 @@ String renderScoreBox(
   } else {
     title = 'Analysis and more details.';
   }
-  if (requestContext.isExperimental) {
-    if (isTabHeader) {
-      return 'Score: <span class="score-value">'
-          '${htmlEscape.convert(formattedScore)}</span>';
-    }
-    return renderScoreCircle(
-      label: formattedScore,
-      percent: overallScore == null ? 0 : (100 * overallScore).round(),
-      title: title,
-      link: urls.pkgScoreUrl(view.name),
-    );
-  }
-
-  // TODO(3246): Remove the rest of the method after migrating to the new UI.
   final String scoreClass = _classifyScore(overallScore);
   final String escapedTitle = htmlAttrEscape.convert(title);
   final newIndicator = view.isNewPackage
