@@ -24,6 +24,13 @@
   </div>
   <div class="search-controls-advanced">
     <div class="container">
+      {{#has_subsdk_tabs_advanced_html}}
+      <div class="search-controls-subsdk-advanced search-controls-buttons"
+           title="Prerelease platforms">
+        <span class="search-controls-label">Prerelease platforms</span>
+        {{& subsdk_tabs_advanced_html }}
+      </div>
+      {{/has_subsdk_tabs_advanced_html}}
       <div class="search-controls-checkbox">
         <input id="search-legacy-checkbox" type="checkbox" name="legacy" valye="1" {{#legacy_search_enabled}} checked="checked"{{/legacy_search_enabled}} />
         <label for="search-legacy-checkbox">Include Dart 1.x results</label>

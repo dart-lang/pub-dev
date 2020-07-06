@@ -132,12 +132,19 @@ String renderPkgIndexPage(
   final topPackages = getSdkDict(sdk).topSdkPackages;
   final isSearch = searchQuery != null && searchQuery.hasQuery;
   final includeLegacy = searchQuery?.includeLegacy ?? false;
-  final hasActiveAdvanced = includeLegacy;
+  final subSdkTabsAdvanced =
+      renderSubSdkTabsHtml(searchQuery: searchQuery, onlyAdvanced: true);
+  // TODO: There should be a more efficient way to calculate this
+  final hasActiveSubSdkAdvanced =
+      subSdkTabsAdvanced != null && subSdkTabsAdvanced.contains('-active');
+  final hasActiveAdvanced = includeLegacy || hasActiveSubSdkAdvanced;
   final values = {
     'has_active_advanced': hasActiveAdvanced,
     'sdk_tabs_html': renderSdkTabs(searchQuery: searchQuery),
     'subsdk_label': _subSdkLabel(searchQuery),
     'subsdk_tabs_html': renderSubSdkTabsHtml(searchQuery: searchQuery),
+    'has_subsdk_tabs_advanced_html': subSdkTabsAdvanced != null,
+    'subsdk_tabs_advanced_html': subSdkTabsAdvanced,
     'is_search': isSearch,
     'listing_info_html': renderListingInfo(
       searchQuery: searchQuery,
