@@ -13,6 +13,7 @@ import '../scorecard/models.dart';
 import '../shared/versions.dart' show runtimeVersion;
 
 export 'package:pana/pana.dart' show LicenseFile, PkgDependency, Suggestion;
+export '../scorecard/models.dart' show ReportExt;
 
 /// Sets the analyzer client.
 void registerAnalyzerClient(AnalyzerClient client) =>

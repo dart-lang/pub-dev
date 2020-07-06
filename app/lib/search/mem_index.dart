@@ -295,6 +295,9 @@ class InMemoryPackageIndex implements PackageIndex {
       case SearchOrder.like:
         results = _rankWithValues(getLikeScore(packages));
         break;
+      case SearchOrder.points:
+        results = _rankWithValues(getPubPoints(packages));
+        break;
     }
 
     // bound by offset and limit (or randomize items)
@@ -382,6 +385,14 @@ class InMemoryPackageIndex implements PackageIndex {
     return Map.fromIterable(
       packages,
       value: (package) => (_packages[package].likeCount?.toDouble() ?? 0.0),
+    );
+  }
+
+  @visibleForTesting
+  Map<String, double> getPubPoints(Iterable<String> packages) {
+    return Map.fromIterable(
+      packages,
+      value: (package) => (_packages[package].grantedPoints?.toDouble() ?? 0.0),
     );
   }
 

@@ -190,10 +190,8 @@ class ScoreCard extends db.ExpandoModel<String> with FlagMixin {
     panaReport?.flags?.forEach(addFlag);
     final report =
         joinReport(panaReport: panaReport, dartdocReport: dartdocReport);
-    grantedPubPoints = report?.sections
-        ?.fold<int>(0, (sum, section) => sum + section.grantedPoints);
-    maxPubPoints = report?.sections
-        ?.fold<int>(0, (sum, section) => sum + section.maxPoints);
+    grantedPubPoints = report?.grantedPoints;
+    maxPubPoints = report?.maxPoints;
     if (isSkipped) {
       grantedPubPoints = 0;
       maxPubPoints = 0;
@@ -507,4 +505,12 @@ Report joinReport({PanaReport panaReport, DartdocReport dartdocReport}) {
     report = report.joinSection(dartdocReport.documentationSection);
   }
   return report;
+}
+
+extension ReportExt on Report {
+  int get grantedPoints =>
+      sections.fold<int>(0, (sum, section) => sum + section.grantedPoints);
+
+  int get maxPoints =>
+      sections.fold<int>(0, (sum, section) => sum + section.maxPoints);
 }

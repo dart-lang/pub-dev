@@ -86,6 +86,9 @@ class PackageDocument {
   final double maintenance;
   final int likeCount;
 
+  final int grantedPoints;
+  final int maxPoints;
+
   final Map<String, String> dependencies;
 
   /// The publisher id of the package
@@ -111,6 +114,8 @@ class PackageDocument {
     this.popularity = 0,
     this.maintenance = 0,
     this.likeCount = 0,
+    this.grantedPoints = 0,
+    this.maxPoints = 0,
     this.dependencies = const {},
     this.publisherId,
     this.uploaderEmails = const [],
@@ -167,6 +172,9 @@ enum SearchOrder {
 
   /// Search order should be in decreasing like count.
   like,
+
+  /// Search order should be in decreasing pub points.
+  points,
 }
 
 /// Returns null if [value] is not a recognized search order.
@@ -191,6 +199,8 @@ SearchOrder parseSearchOrder(String value) {
       return SearchOrder.maintenance;
     case 'like':
       return SearchOrder.like;
+    case 'points':
+      return SearchOrder.points;
   }
   return null;
 }
