@@ -48,7 +48,6 @@ String renderAnalysisTab(
 
   // TODO: use only `analysis.report` after we've migrated to the new UI.
   final report = requestContext.isExperimental ? analysis.report : null;
-  final hasReport = report != null;
 
   final Map<String, dynamic> data = {
     'package': package,
@@ -64,13 +63,13 @@ String renderAnalysisTab(
     'dart_sdk_version': analysis.dartSdkVersion,
     'pana_version': analysis.panaVersion,
     'flutter_version': analysis.flutterVersion,
-    'analysis_suggestions_html': hasReport
+    'analysis_suggestions_html': requestContext.isExperimental
         ? null
         : _renderSuggestionBlockHtml('Analysis', analysis.panaSuggestions),
-    'health_suggestions_html': hasReport
+    'health_suggestions_html': requestContext.isExperimental
         ? null
         : _renderSuggestionBlockHtml('Health', analysis.healthSuggestions),
-    'maintenance_suggestions_html': hasReport
+    'maintenance_suggestions_html': requestContext.isExperimental
         ? null
         : _renderSuggestionBlockHtml(
             'Maintenance', analysis.maintenanceSuggestions),

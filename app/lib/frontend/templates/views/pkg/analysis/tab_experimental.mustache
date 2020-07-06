@@ -11,7 +11,7 @@
 {{& report_html }}
 
 {{#show_discontinued}}
-<p>This package is not analyzed, because it is discontinued.</p>
+<p class="analysis-info">This package is not analyzed, because it is discontinued.</p>
 {{/show_discontinued}}
 {{#show_outdated}}
 <p>
@@ -20,13 +20,13 @@
 </p>
 {{/show_outdated}}
 {{#show_legacy}}
-<p>
+  <p class="analysis-info">
   The package version is not analyzed, because it does not support Dart 2.
   Until this is resolved, the package will receive a health and maintenance score of 0.
 </p>
 {{/show_legacy}}
 {{#show_analysis}}
-<p>
+<p class="analysis-info">
   We analyzed this package on {{date_completed}}, and provided a score, details, and suggestions below.
   Analysis was completed with status <i>{{analysis_status}}</i> using:
 </p>
@@ -37,9 +37,5 @@
 {{#flutter_version}}<li>Flutter: {{flutter_version}}</li>{{/flutter_version}}
 </ul>
 {{/show_analysis}}
-
-{{& analysis_suggestions_html}}
-{{& health_suggestions_html}}
-{{& maintenance_suggestions_html}}
 
 {{& dep_table_html }}
