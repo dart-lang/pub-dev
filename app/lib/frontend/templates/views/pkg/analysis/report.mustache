@@ -10,6 +10,9 @@
         {{#is_green}}
           <img src="{{& static_assets.img__report-ok-icon-green_svg }}" class="pkg-report-icon" />
         {{/is_green}}
+        {{#is_yellow}}
+          <img src="{{& static_assets.img__report-missing-icon-yellow_svg }}" class="pkg-report-icon" />
+        {{/is_yellow}}
         {{#is_red}}
           <img src="{{& static_assets.img__report-missing-icon-red_svg }}" class="pkg-report-icon" />
         {{/is_red}}

@@ -27,6 +27,7 @@ const _whitelistedClassNames = <String>[
   'changelog-content',
   'hash-header',
   'hash-link',
+  'report-summary-icon',
 ];
 
 /// Renders markdown [text] to HTML.

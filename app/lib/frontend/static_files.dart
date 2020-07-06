@@ -158,6 +158,9 @@ class StaticUrls {
   final String defaultProfilePng;
   final String githubMarkdownCss;
   final String packagesSideImage;
+  final String reportMissingIconRed;
+  final String reportMissingIconYellow;
+  final String reportOKIconGreen;
   Map _versionsTableIcons;
   Map<String, String> _assets;
 
@@ -178,7 +181,13 @@ class StaticUrls {
         githubMarkdownCss = _getCacheableStaticUrl(
             '$_defaultStaticPath/css/github-markdown.css'),
         packagesSideImage =
-            _getCacheableStaticUrl('$_defaultStaticPath/img/packages-side.png');
+            _getCacheableStaticUrl('$_defaultStaticPath/img/packages-side.png'),
+        reportMissingIconRed = _getCacheableStaticUrl(
+            '$_defaultStaticPath/img/report-missing-icon-red.svg'),
+        reportMissingIconYellow = _getCacheableStaticUrl(
+            '$_defaultStaticPath/img/report-missing-icon-yellow.svg'),
+        reportOKIconGreen = _getCacheableStaticUrl(
+            '$_defaultStaticPath/img/report-ok-icon-green.svg');
 
   // TODO: merge with [newVersionTableIcons] after migration to the new UI
   Map get versionsTableIcons {

@@ -229,6 +229,19 @@ body.experimental {
 
   .pkg-report-content-summary {
     flex-grow: 1;
+
+    > h3 {
+      position: relative;
+
+      .report-summary-icon {
+        position: absolute;
+        right: 100%;
+        top: 4px;
+        width: 14px;
+        height: 14px;
+        margin-right: 6px;
+      }
+    }
   }
 }
 
