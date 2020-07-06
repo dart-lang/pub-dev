@@ -58,6 +58,10 @@
     @media (min-width: $device-desktop-min-width) {
       min-width: 55px;
     }
+
+    .detail-info-box & {
+      min-width: 0px;
+    }
   }
 
   .packages-score:not(:last-child) {
@@ -78,6 +82,10 @@
 
     &.-has-value {
       color: $color-input-primary;
+    }
+
+    .detail-info-box & {
+      text-align: left;
     }
   }
 
@@ -108,6 +116,10 @@
     @media (min-width: $device-desktop-min-width) {
       font-size: 8px;
       letter-spacing: 0.2px;
+    }
+
+    .detail-info-box & {
+      text-align: left;
     }
   }
 }
