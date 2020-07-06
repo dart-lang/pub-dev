@@ -196,8 +196,9 @@ String _renderSearchBanner({
     'hidden_inputs': hiddenInputs,
     'sdk_tabs_html': isExperimental ? null : sdkTabsHtml,
     'show_legacy_checkbox': !isExperimental && sp.sdk == null,
-    'secondary_tabs_html':
-        isExperimental ? null : renderSubSdkTabsHtml(searchQuery: searchQuery),
+    'secondary_tabs_html': isExperimental
+        ? null
+        : renderSubSdkTabsHtml(searchQuery: searchQuery, detectAdvanced: true),
   });
 }
 
@@ -260,61 +261,79 @@ class _FilterOption {
   });
 }
 
-String renderSubSdkTabsHtml({@required SearchQuery searchQuery}) {
+String renderSubSdkTabsHtml({
+  @required SearchQuery searchQuery,
+  bool detectAdvanced = false,
+  bool onlyAdvanced = false,
+}) {
   final pred = searchQuery?.tagsPredicate;
   if (searchQuery?.sdk == SdkTagValue.dart) {
     return _renderFilterTabs(
       searchQuery: searchQuery,
       options: [
-        _FilterOption(
-          label: 'native',
-          tag: DartSdkTag.runtimeNativeJit,
-          title:
-              'Packages compatible with Dart running on a native platform (JIT/AOT)',
-        ),
-        _FilterOption(
-          label: 'JS',
-          tag: DartSdkTag.runtimeWeb,
-          title: 'Packages compatible with Dart compiled for the web',
-        ),
+        if (!onlyAdvanced)
+          _FilterOption(
+            label: 'native',
+            tag: DartSdkTag.runtimeNativeJit,
+            title:
+                'Packages compatible with Dart running on a native platform (JIT/AOT)',
+          ),
+        if (!onlyAdvanced)
+          _FilterOption(
+            label: 'JS',
+            tag: DartSdkTag.runtimeWeb,
+            title: 'Packages compatible with Dart compiled for the web',
+          ),
       ],
     );
   } else if (searchQuery?.sdk == SdkTagValue.flutter) {
     return _renderFilterTabs(
       searchQuery: searchQuery,
       options: [
-        _FilterOption(
-          label: 'Android',
-          tag: FlutterSdkTag.platformAndroid,
-          title: 'Packages compatible with Flutter on the Android platform',
-        ),
-        _FilterOption(
-          label: 'iOS',
-          tag: FlutterSdkTag.platformIos,
-          title: 'Packages compatible with Flutter on the iOS platform',
-        ),
-        _FilterOption(
-          label: 'Web',
-          tag: FlutterSdkTag.platformWeb,
-          title: 'Packages compatible with Flutter on the Web platform',
-        ),
+        if (!onlyAdvanced)
+          _FilterOption(
+            label: 'Android',
+            tag: FlutterSdkTag.platformAndroid,
+            title: 'Packages compatible with Flutter on the Android platform',
+          ),
+        if (!onlyAdvanced)
+          _FilterOption(
+            label: 'iOS',
+            tag: FlutterSdkTag.platformIos,
+            title: 'Packages compatible with Flutter on the iOS platform',
+          ),
+        if (!onlyAdvanced)
+          _FilterOption(
+            label: 'Web',
+            tag: FlutterSdkTag.platformWeb,
+            title: 'Packages compatible with Flutter on the Web platform',
+          ),
         // `Linux`, `macOS`, `Windows` platforms are not yet stable, and we want
         // to display them only when the user has already opted-in to get them
         // displayed.
         // TODO: The conditional predicate must be removed once the platform becomes stable.
-        if (pred != null && pred.isRequiredTag(FlutterSdkTag.platformLinux))
+        if (onlyAdvanced ||
+            (detectAdvanced &&
+                pred != null &&
+                pred.isRequiredTag(FlutterSdkTag.platformLinux)))
           _FilterOption(
             label: 'Linux',
             tag: FlutterSdkTag.platformLinux,
             title: 'Packages compatible with Flutter on the Linux platform',
           ),
-        if (pred != null && pred.isRequiredTag(FlutterSdkTag.platformMacos))
+        if (onlyAdvanced ||
+            (detectAdvanced &&
+                pred != null &&
+                pred.isRequiredTag(FlutterSdkTag.platformMacos)))
           _FilterOption(
             label: 'macOS',
             tag: FlutterSdkTag.platformMacos,
             title: 'Packages compatible with Flutter on the macOS platform',
           ),
-        if (pred != null && pred.isRequiredTag(FlutterSdkTag.platformWindows))
+        if (onlyAdvanced ||
+            (detectAdvanced &&
+                pred != null &&
+                pred.isRequiredTag(FlutterSdkTag.platformWindows)))
           _FilterOption(
             label: 'Windows',
             tag: FlutterSdkTag.platformWindows,
@@ -330,6 +349,7 @@ String _renderFilterTabs({
   @required SearchQuery searchQuery,
   @required List<_FilterOption> options,
 }) {
+  if (options.isEmpty) return null;
   final tp = searchQuery.tagsPredicate;
   String searchWithTagsLink(TagsPredicate tagsPredicate) {
     return searchQuery.change(tagsPredicate: tagsPredicate).toSearchLink();
