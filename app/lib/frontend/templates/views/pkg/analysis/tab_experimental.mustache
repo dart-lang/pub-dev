@@ -8,8 +8,6 @@
   {{& popularity_key_figure_html }}
 </div>
 
-{{& report_html }}
-
 {{#show_discontinued}}
 <p class="analysis-info">This package is not analyzed, because it is discontinued.</p>
 {{/show_discontinued}}
@@ -27,15 +25,9 @@
 {{/show_legacy}}
 {{#show_analysis}}
 <p class="analysis-info">
-  We analyzed this package on {{date_completed}}, and provided a score, details, and suggestions below.
-  Analysis was completed with status <i>{{analysis_status}}</i> using:
+  We analyzed this package on {{ date_completed }}, and awarded it {{ granted_points }}
+  pub points (of a possible {{ max_points }}):
 </p>
-
-<ul>
-  <li>Dart: {{dart_sdk_version}}</li>
-  <li>pana: {{pana_version}}</li>
-{{#flutter_version}}<li>Flutter: {{flutter_version}}</li>{{/flutter_version}}
-</ul>
 {{/show_analysis}}
 
-{{& dep_table_html }}
+{{& report_html }}
