@@ -229,6 +229,7 @@ body.experimental {
 
   .pkg-report-content-summary {
     flex-grow: 1;
+    max-width: 100%;
 
     > h3 {
       position: relative;
