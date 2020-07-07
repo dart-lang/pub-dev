@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:gcloud/db.dart' as db;
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 
 import 'package:pub_dev/package/models.dart' show Package, PackageVersion;
 import '../package/overrides.dart';
@@ -148,6 +149,21 @@ class ScoreCardBackend {
       result[report.reportType] = report.reportData;
     }
     return result;
+  }
+
+  /// Load and deserialize a specific report type for the given package's versions.
+  Future<List<ReportData>> loadReportForAllVersions(
+    String packageName,
+    Iterable<String> versions, {
+    @required String reportType,
+    String runtimeVersion,
+  }) async {
+    final keys = versions
+        .map((v) => scoreCardKey(packageName, v, runtimeVersion: runtimeVersion)
+            .append(ScoreCardReport, id: reportType))
+        .toList();
+    final items = await _db.lookup<ScoreCardReport>(keys);
+    return items.map((item) => item?.reportData).toList();
   }
 
   /// Updates the [ScoreCard] entry, reading both the package and version data,

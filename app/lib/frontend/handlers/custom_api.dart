@@ -48,13 +48,10 @@ Future<shelf.Response> apiDocumentationHandler(
     }
   }
 
-  // TODO: to use `useLastReportedEntry`, the concurrent calls here need
-  //       client-side rate-limit or batched lookups, otherwise they will get
-  //       rate-limited/rejected by Datastore.
-  final dartdocEntries = await Future.wait(versions
-      .map((pv) => dartdocBackend.getServingEntry(package, pv.version)));
-  final versionsData = [];
+  final dartdocEntries = await dartdocBackend.getEntriesForVersions(
+      package, versions.map((pv) => pv.version).toList());
 
+  final versionsData = [];
   for (int i = 0; i < versions.length; i++) {
     final entry = dartdocEntries[i];
     final hasDocumentation = entry != null && entry.hasContent;

@@ -168,44 +168,55 @@ class DartdocBackend {
     ]);
   }
 
+  /// Return the latest entries that should be used to serve the content.
+  ///
+  /// If the entry is missing for the current runtimeVersion, the method will
+  /// try to load the relevant entry for earlier runtimeVersions.
+  Future<List<DartdocEntry>> getEntriesForVersions(
+      String package, List<String> versions) async {
+    final entries = <String, DartdocEntry>{};
+
+    for (final v in versions) {
+      final cachedEntry = await cache.dartdocEntry(package, v).get();
+      if (cachedEntry != null) {
+        entries[v] = cachedEntry;
+      }
+    }
+
+    for (final rv in shared_versions.acceptedRuntimeVersions) {
+      final queryVersions =
+          versions.where((v) => !entries.containsKey(v)).toList();
+      if (queryVersions.isEmpty) break;
+
+      final reports = await scoreCardBackend.loadReportForAllVersions(
+        package,
+        queryVersions,
+        reportType: ReportType.dartdoc,
+        runtimeVersion: rv,
+      );
+      for (var i = 0; i < queryVersions.length; i++) {
+        final r = reports[i];
+        if (r != null) {
+          final version = queryVersions[i];
+          final entry = (r as DartdocReport).dartdocEntry;
+          entries[version] = entry;
+          await cache.dartdocEntry(package, version).set(entry);
+        }
+      }
+    }
+    return versions.map((v) => entries[v]).toList();
+  }
+
   /// Return the latest entry that should be used to serve the content.
-  Future<DartdocEntry> getServingEntry(
-    String package,
-    String version, {
-    bool useLastReportedEntry = false,
-  }) async {
+  Future<DartdocEntry> getEntry(String package, String version) async {
     final cachedEntry = await cache.dartdocEntry(package, version).get();
     if (cachedEntry != null) {
       return cachedEntry;
     }
 
     Future<DartdocEntry> loadVersion(String v) async {
-      if (useLastReportedEntry) {
-        final entry = await _tryLoadLastReportedEntry(package, v);
-        if (entry != null) return entry;
-      }
-
-      final entries = await _listEntries(storage_path.entryPrefix(package, v));
-      // keep only accepted runtime versions
-      entries.retainWhere((e) =>
-          shared_versions.acceptedRuntimeVersions.contains(e.runtimeVersion));
-
-      // prefer versions that have content
-      if (entries.any((e) => e.hasContent)) {
-        entries.retainWhere((e) => e.hasContent);
-      }
-
-      if (entries.isEmpty) {
-        return null;
-      }
-      // return the most recent entry of the most recent runtime
-      return entries.reduce((a, b) {
-        var x = -a.runtimeVersion.compareTo(b.runtimeVersion);
-        if (x == 0) {
-          x = -a.timestamp.compareTo(b.timestamp);
-        }
-        return x <= 0 ? a : b;
-      });
+      final entries = await getEntriesForVersions(package, [v]);
+      return entries.single;
     }
 
     DartdocEntry entry;
@@ -234,15 +245,6 @@ class DartdocBackend {
       await cache.dartdocEntry(package, version).set(entry);
     }
     return entry;
-  }
-
-  /// Return the latest entry.
-  Future<DartdocEntry> getLatestEntry(String package, String version) async {
-    final List<DartdocEntry> completedList =
-        await _listEntries(storage_path.entryPrefix(package, version));
-    if (completedList.isEmpty) return null;
-    completedList.sort((a, b) => -a.timestamp.compareTo(b.timestamp));
-    return completedList.first;
   }
 
   /// Returns the file's header from the storage bucket
@@ -369,16 +371,6 @@ class DartdocBackend {
       }
     }
     return null;
-  }
-
-  /// Tries to load the latest successful entry from the dartdoc report.
-  /// Returns null if there was no report or the entry was missing.
-  Future<DartdocEntry> _tryLoadLastReportedEntry(
-      String package, String version) async {
-    final reports = await scoreCardBackend
-        .loadReports(package, version, reportTypes: [ReportType.dartdoc]);
-    final report = reports[ReportType.dartdoc] as DartdocReport;
-    return report?.dartdocEntry;
   }
 
   Future<void> _deleteAll(DartdocEntry entry, {int concurrency}) async {
