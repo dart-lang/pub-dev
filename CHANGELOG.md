@@ -2,7 +2,8 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bumped runtimeVersion to `2020.07.03`.
+ * Bumped runtimeVersion to `2020.07.07`.
+ * Upgraded pana to `0.13.14`
  * `search` supports order by `points`.
  * Updated the session management during sign-in/sign-out flow:
    * Reduce the number of `DELETE /api/account/session` requests (mostly for non-authorized visitors).
