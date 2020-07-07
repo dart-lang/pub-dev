@@ -158,13 +158,15 @@ code {
 .markdown-body pre,
 pre {
   background: #f5f5f7;
-  padding: 30px;
+  line-height: 100%;
+  padding: 0px;
   overflow-x: auto;
 
   > code {
-    padding: 0 !important;
+    padding: 30px !important;
     border-radius: 0;
     display: block;
+    overflow-x: unset !important;
   }
 }
 
