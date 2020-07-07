@@ -59,10 +59,15 @@ String renderAnalysisTab(
     'date_completed': analysis.timestamp == null
         ? null
         : shortDateFormat.format(analysis.timestamp),
+    'granted_points': report?.grantedPoints ?? 0,
+    'max_points': report?.maxPoints ?? 0,
+    'report_html': _renderReport(report),
+    'like_key_figure_html': _renderLikeKeyFigure(likeCount),
+    'popularity_key_figure_html':
+        _renderPopularityKeyFigure(card.popularityScore),
+    'pubpoints_key_figure_html': _renderPubPointsKeyFigure(report),
+    // TODO: remove after we've migrated to the new UI
     'analysis_status': statusText,
-    'dart_sdk_version': analysis.dartSdkVersion,
-    'pana_version': analysis.panaVersion,
-    'flutter_version': analysis.flutterVersion,
     'analysis_suggestions_html': requestContext.isExperimental
         ? null
         : _renderSuggestionBlockHtml('Analysis', analysis.panaSuggestions),
@@ -74,12 +79,9 @@ String renderAnalysisTab(
         : _renderSuggestionBlockHtml(
             'Maintenance', analysis.maintenanceSuggestions),
     'dep_table_html': _renderDepTable(sdkConstraint, card, analysis),
-    'report_html': _renderReport(report),
-    'like_key_figure_html': _renderLikeKeyFigure(likeCount),
-    'popularity_key_figure_html':
-        _renderPopularityKeyFigure(card.popularityScore),
-    'pubpoints_key_figure_html': _renderPubPointsKeyFigure(report),
-    // TODO: remove after we've migrated to the new UI
+    'dart_sdk_version': analysis.dartSdkVersion,
+    'pana_version': analysis.panaVersion,
+    'flutter_version': analysis.flutterVersion,
     'score_table_html': _renderScoreTable(card),
   };
 
