@@ -23,6 +23,11 @@
   Until this is resolved, the package will receive a health and maintenance score of 0.
 </p>
 {{/show_legacy}}
+{{#show_awaiting}}
+  <p class="analysis-info">
+    The analysis of the package has not been completed yet.
+  </p>
+{{/show_awaiting}}
 {{#show_analysis}}
 <p class="analysis-info">
   We analyzed this package on {{ date_completed }}, and awarded it {{ granted_points }}

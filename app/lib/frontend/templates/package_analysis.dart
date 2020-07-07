@@ -49,12 +49,15 @@ String renderAnalysisTab(
   // TODO: use only `analysis.report` after we've migrated to the new UI.
   final report = requestContext.isExperimental ? analysis.report : null;
 
+  final showAwaiting =
+      requestContext.isExperimental && !card.isSkipped && report == null;
   final Map<String, dynamic> data = {
     'package': package,
     'show_discontinued': card.isDiscontinued,
     'show_outdated': card.isObsolete,
     'show_legacy': card.isLegacy,
-    'show_analysis': !card.isSkipped,
+    'show_awaiting': showAwaiting,
+    'show_analysis': !card.isSkipped && !showAwaiting,
     'analysis_tab_url': urls.pkgScoreUrl(package),
     'date_completed': analysis.timestamp == null
         ? null
