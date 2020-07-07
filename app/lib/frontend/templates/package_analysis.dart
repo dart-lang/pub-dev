@@ -54,7 +54,8 @@ String renderAnalysisTab(
     'show_discontinued': card.isDiscontinued,
     'show_outdated': card.isObsolete,
     'show_legacy': card.isLegacy,
-    'show_analysis': !card.isSkipped,
+    'show_awaiting': !card.isSkipped && report == null,
+    'show_analysis': !card.isSkipped && report != null,
     'analysis_tab_url': urls.pkgScoreUrl(package),
     'date_completed': analysis.timestamp == null
         ? null
