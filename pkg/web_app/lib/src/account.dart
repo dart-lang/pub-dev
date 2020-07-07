@@ -126,6 +126,12 @@ Future _updateUser(GoogleUser user) async {
   if (user?.getId() == null) {
     user = null;
   }
+
+  // no need to update session if there is no change in the user id
+  if (_currentUser?.getId() == user?.getId()) {
+    return;
+  }
+
   _currentUser = user;
 
   // update or delete session
@@ -165,16 +171,6 @@ Future _updateUser(GoogleUser user) async {
         print('Sign-in will not work without session cookies');
       }
     }
-  }
-
-  _updateUi();
-}
-
-void _updateUi() {
-  if (isSignedIn) {
-    print('user: ${currentUser.getBasicProfile().getEmail()}');
-  } else {
-    print('No active user');
   }
 }
 

@@ -4,6 +4,9 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Bumped runtimeVersion to `2020.07.03`.
  * `search` supports order by `points`.
+ * Updated the session management during sign-in/sign-out flow:
+   * Reduce the number of `DELETE /api/account/session` requests (mostly for non-authorized visitors).
+   * These should be tested upon deployment.
 
 ## `20200702t124059-all`
  * Bumped runtimeVersion to `2020.07.02`.
