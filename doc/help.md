@@ -1,70 +1,205 @@
 # Help
 
-## Publishing a package
+The following help pages are available:
+
+ - [Search on pub.dev](/help/search)
+ - [Publishing packages](/help/publishing)
+ - [Package scores & pub points](/help/scoring)
+
+# Search
+
+`pub.dev` supports the following search expressions:
+
+  - `"exact phrase"`: By default, when you perform a search, the results include
+    packages with similar phrases. When a phrase is inside quotes, you'll see
+    only those packages that contain exactly the specified phrase.
+
+  - `package:prefix`: Searches for packages that begin with `prefix`. Use this
+    feature to find packages in the same framework.
+
+  - `dependency:package_name`: Searches for packages that reference
+    `package_name` in their `pubspec.yaml`.
+
+  - `dependency*:package_name`: Searches for packages that depend on
+    `package_name` (as direct, dev, or transitive dependencies).
+
+  - `email:user@example.com`: Search for packages where either the author or the
+    uploader has the specified email address.
+
+## Search filters
+
+The search UI also supports filters:
+
+  - On the left of the search bar, select 'Dart' or 'Flutter' depending on the
+    SDK you are developing with.
+
+  - On the right of the search bar, click the platform filter buttons to filter
+    results to packages supporting the platforms you need support for.
+
+  - To use platform filters for non-stable platforms (e.g. Flutter Desktop), use
+    the Advanced option on the far right of the search bar.
+
+## Search ranking
+
+Default listings use a composite of the three scores to sort packages. The
+ranking is based on the composite score, and if applicable, the platform
+specificity and the text match score of the search team.
+
+# Publishing packages
 
 [Pub][pub-tool] isn't just for using other people's packages.
 It also allows you to share your packages with the world.
 If you have a useful project and you want others to be able to use it,
-use the [`pub publish`][pub-publish] command.
+use the [`dart pub publish`][pub-publish] command.
 
-## Search
+## Publishing high quality packages
 
-`pub.dev` supports the following search expressions:
-  - `"exact phrase"`: By default, when you perform a search, the results
-    include packages with similar phrases. When a phrase is inside quotes,
-    you'll see only those packages that contain exactly the specified
-    phrase.
-  - `package:prefix`: Searches for packages that begin with `prefix`.
-    Use this feature to find packages in the same framework.
-  - `dependency:package_name`: Searches for packages that reference
-    `package_name` in their `pubspec.yaml`.
-  - `dependency*:package_name`: Searches for packages that depend on
-    `package_name` (as direct, dev, or transitive dependencies).
-  - `email:user@example.com`: Search for packages where either the
-    author or the uploader has the specified email address.
+Prior to publishing, make sure to consult the general [Dart publishing
+documentation](https://dart.dev/tools/pub/publishing), and all the guidelines
+listed there.
 
-## Scoring
+Also take a look at the [pub.dev package scoring documentation](/help/scoring)
+to understand how your published package will be accessed.
 
-*NOTE: The Pub scoring model is under development, and is subject to change.*
+## Publishers
 
-For each package, this site displays an **overall score**, calculated
-from scores for the package's [popularity](#popularity), [health](#health),
-and [maintenance](#maintenance).
+Packages can be published with either a [verified
+publisher](https://dart.dev/tools/pub/verified-publishers) or with
+[uploaders](https://dart.dev/tools/pub/cmd/pub-uploader). 
 
-### Popularity
+If are an uploader on one or more packages, you can use the **My pub.dev > My
+packages** to view a list of those packages. 
 
-The popularity score—representing how often a package is used—is derived
-from download statistics. Although this score is based on actual download
-counts, it compensates for automated tools such as continuous builds that
-fetch the package on each change request.
+If you are a member of a publisher, you can use the **My pub.dev > My
+publishers** to view a list of those publishers, and under those the packages
+published with those.
 
-*How can you improve your popularity score?*
+## Discontinuing a package
 
-Create useful packages that others need and love to use.
+Keep in mind that publishing is forever. As soon as you publish your package,
+users can depend on it. Once they start doing that, removing the package would
+break theirs. To avoid that, the [pub.dev policy](https://pub.dev/policy)
+disallows unpublishing packages except for very few cases.
 
-### Health
+If you are no longer maintaining a package, you can [mark it
+discontinued](https://dart.dev/tools/pub/publishing#discontinue), and it will
+disappear from pub.dev search.
 
-The health score is based on static analysis of the package with `dartanalyzer`:
-  - Each *error* reduces the health score by 25% <sup>(*)</sup>.
-  - Each *warning* reduces the health score by 5% <sup>(*)</sup>.
-  - Each *hint* reduces the health score by 0.5% <sup>(*)</sup>.
-  - Each *platform conflict* reduces the health score by 25 points.
+# Package scores & pub points
 
+*NOTE: The Pub scoring model evolves over time, and is likely to be extended
+with additional checks in the future.*
 
-<sup>(*)</sup> Percents are applied with cumulative multiplication.
-For example: 2 errors and 1 warning will get a score of 53, because:
-`(0.75^2 * 0.95 = 0.534375)`.
+For each package, this site displays three scoring dimensions. These are
+displayed in search results, in the sidebar on individual package pages, and in
+full detail in the scoring report on the 'Scores' tag of an individiual package.
+The three dimensions are:
 
-*How can you improve your health score?*
+  - **Likes**: A measure of how many developers have liked a package. This
+    provides a raw measure of the overall sentiment of a package from peer
+    developers.
+  - **Pub Points**: A new measure of quality. This includes several dimensions
+    of quality such as code style, platform support, and maintainability. More
+    about this below.
+  - **Popularity**: A measure of how many developers use a package, providing
+    insight into what other developers are using.
 
-Run `dartanalyzer` (or `flutter analyze` in case of Flutter), and fix
-the items it returns (especially errors and warnings, hints barely
-decrease the health score).
+## Likes
 
-Use [`analysis_options.yaml`][analysis-options] to specify further
-linter rules, [enable default rules Google uses][analysis-pedantic],
-and make sure you fix all warnings and errors before publishing.
-Here's an example `analysis_options.yaml`:
+Likes offer a measure of how many developers have liked a package. To like a
+package, locate the **thumbs up button** located in the upper-right corner of a
+package page.
+
+To view packages you have liked, use the **My pub.dev > My liked packages** menu
+option.
+
+## Popularity
+
+Popularity measures the number of apps that depend on a package over the past 60
+days. We show this on a normalized scale from 100% (the most used package) to 0%
+(the least used package), but are investigating if we can provide absolute usage
+counts in a future version.
+
+Although this score is based on actual download counts, it compensates for
+automated tools such as continuous builds that fetch the package on each change
+request.
+
+## Pub Points
+
+Pub points is pub.dev's measure of quality. Pub points are awarded in five categories:
+
+### Follow Dart file conventions
+
+Dart packages are expected to follow certain file conventions for how to
+[organize a package](https://dart.dev/guides/libraries/create-library-packages#organizing-a-library-package.
+Most importantly make sure to:
+
+  - Provide a [`pubspec.yaml` file](https://dart.dev/tools/pub/pubspec). Ensure
+    all Urls are valid and use a secure `https:` scheme.
+
+  - Provide a [](https://dart.dev/tools/pub/package-layout#license) file using
+    an an [OSI-approved license](https://opensource.org/licenses).
+
+  - Provide a [`README.md file`](https://dart.dev/tools/pub/package-layout#readmemd)
+    describing the changes in each version of the package. 
+
+  - Provide a [`CHANGELOG.md file`](https://dart.dev/tools/pub/package-layout#changelogmd)
+    describing the changes in each version of the package. Make sure to follow
+    [the guidelines](https://dart.dev/tools/pub/package-layout#changelogmd) for
+    how to format headings and versions so that these can be rendered correctly
+    on pub.dev.
+
+### Provide documentation
+
+This category measures if a package has documentation in two areas:
+
+  - The package has an illustrative code example. See the [layout
+    documentation](https://dart.dev/tools/pub/package-layout#examples) for
+    details about where to place this example.
+
+  - At least 20% of the public API members contain [API
+    documentation](https://dart.dev/guides/libraries/create-library-packages#documenting-a-library).
+
+### Support multiple platforms
+
+Packages are encouraged to support multiple platforms, to enable app developers
+to support a wide vieratity of platforms for their apps. This includes Dart's
+[native and web](https://dart.dev/platforms) platforms, and Flutter's
+[mobile](https://flutter.dev/docs), [web](https://flutter.dev/web), and
+[desktop](https://flutter.dev/desktop) targets.
+
+Pub.dev uses two different algorithms for determining which platforms are supported:
+
+ - **Flutter packages**: For packages that depend on the Flutter SDK, platform
+   support is determined by looking at the [`platforms`
+   tag](https://flutter.dev/docs/development/packages-and-plugins/developing-packages#plugin-platforms)
+   in the `pubspec.yaml` file.
+
+ - **Dart packages**: For packages that depend on just the Dart SDK, platform
+   support is inferred by looking at the imports of [Dart core
+   libraries](https://dart.dev/guides/libraries); the majority of these are
+   multiplatform, but [as listed](https://dart.dev/guides/libraries) a few
+   support just the Dart native or Dart web platforms.
+
+If you need to import different libraries for specific platforms (e.g. on the
+web vs on devices), you can use Dart's [**conditional
+imports**](https://dart.dev/guides/libraries/create-library-packages#conditionally-importing-and-exporting-library-files).
+
+### Pass static analysis
+
+Static analysis is used to determine of the package contains any errors,
+warnings, and lints (code style issues).
+
+To validate a package prior to publishing, run `dart analyze` (Dart SDK) /
+`flutter analyze` (Flutter SDK), and fix the items it returns.
+
+For code style, make sure to familarize yourself with the [Dart style
+guide](https://dart.dev/guides/language/effective-dart/style).
+
+Use [`analysis_options.yaml`][analysis-options] to specify further linter rules,
+[enable default rules Google uses][analysis-pedantic], and make sure you fix all
+warnings and errors before publishing. Here's an example
+`analysis_options.yaml`:
 
 ````yaml
 # Defines a default set of lint rules enforced for
@@ -84,48 +219,35 @@ include: package:pedantic/analysis_options.yaml
   </code></pre>
 ````
 
-### Maintenance
+### Support up-to-date dependencies
 
-The maintenance score reflects how tidy and up-to-date a package is. A package
-starts with 100 points, which is then then subtracted deductions based on
-[a long list of detailed checks][pana-maintenance]. In summary, the main
-components that influence this score are:
-  - Last publish date: Best if the package has been published within one year.
-  - Up-to-date dependencies: Best if all of the package's dependencies are on the latest version.
-  - `README.md`, `CHANGELOG.md`, and example files: Best if all are present. For
-    information on how to provide these files, see the [pub package layout conventions][pub-layout].
-  - `analysis_options.yaml`: Best if this file is present. For more information, see
-    [Customize Static Analysis][analysis-options].
+This category measures if a package has up-to-date dependencies in three areas:
 
-*How can you improve your maintenance score?*
+  - Works with the latest stable Dart SDK.
+  - Works with the latest stable Flutter SDK (if applicable).
+  - Works with the latest versions of all pendendencies.
 
-Click your package's overall score to see the Analysis page, which has
-suggestions for improving the package's score. Fix them, and release
-at least one new version every year to keep your maintenance score up.
+To determine if your package supports the latest versions of dependencies prior
+to publishing, run the `dart pub outdated` command (Dart SDK) or `flutter pub
+outdated` command (Flutter SDK).
 
-Pub site uses [pana][pana-url] to create maintenance suggestions.
-To get suggestions before publishing, run `pana` locally
-(using `--source path`), or validate your package against the
-[list of checks][pana-maintenance] manually.
+## Calculating pub points prior to publishing
 
-### Overall score
+The pub.dev site uses the analysis tool [pana][pana-url] to calculate pub
+points. This is run automatically on the pub.dev site whenever you publish a new
+package, or a new version of an existing package.
 
-The overall score is a weighted average of the individual scores:
-  - 50% popularity,
-  - 30% code health,
-  - 20% maintenance.
+You can view your *pub points report* to get suggestions before publishing, by
+running `pana` locally:
 
-You can find the overall score either near the top of the package's page
-or to the right of your package in any listing on this site.
+  1. When run `pana` will make modifications to the package, so start by making
+     a copy of the directory holding your package: `cp ~/dev/mypkg ~/tmp/mypkg`
 
-## Ranking
+  1. Make sure you have the latest pana tool: `dart pub global activate pana` (`pana`
+     changes frequently, so run this again frequenrly to update the pana tool)
 
-Default listings use composite scoring to sort packages. The score is
-based on the overall score, and if applicable, the platform specificity
-and the text match score is also factored in.
+  1. Run pana on the copy we made earlier: `dart pub global run pana --source path ~/tmp/mypkg`
 
-Each package's overall score is visible at the side of the results,
-regardless of the sort order.
 
 [pub-tool]: https://dart.dev/tools/pub
 [pub-publish]: https://dart.dev/tools/pub/publishing
