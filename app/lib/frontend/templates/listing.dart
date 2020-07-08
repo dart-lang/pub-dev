@@ -51,6 +51,16 @@ String renderPackageList(
       scoreBoxHtml = renderScoreBox(view);
     }
     final addedXAgo = _renderXAgo(view.created);
+    final apiPages = view.apiPages
+        ?.map((page) => {
+              'title': page.title ?? page.path,
+              'href': page.url ??
+                  urls.pkgDocUrl(view.name,
+                      isLatest: true, relativePath: page.path),
+            })
+        ?.toList();
+    final hasApiPages = apiPages != null && apiPages.isNotEmpty;
+    final hasMoreThanOneApiPages = hasApiPages && apiPages.length > 1;
     packagesJson.add({
       'url': view.url ?? urls.pkgPageUrl(view.name),
       'name': view.name,
@@ -76,18 +86,14 @@ String renderPackageList(
         searchQuery: searchQuery,
       ),
       'labeled_scores_html': renderLabeledScores(view),
-      'has_api_pages': view.apiPages != null && view.apiPages.isNotEmpty,
-      'api_pages': view.apiPages
-          ?.map((page) => {
-                'title': page.title ?? page.path,
-                'href': page.url ??
-                    urls.pkgDocUrl(view.name,
-                        isLatest: true, relativePath: page.path),
-              })
-          ?.toList(),
+      'has_api_pages': hasApiPages,
+      'has_more_api_pages': hasMoreThanOneApiPages,
+      'first_api_page': hasApiPages ? apiPages.first : null,
+      'remaining_api_pages': hasApiPages ? apiPages.skip(1).toList() : null,
       // TODO(3246): remove the keys below after we have migrated to the new design
       'score_box_html': scoreBoxHtml,
       'show_metadata': !view.isExternal,
+      'api_pages': apiPages,
     });
   }
   return templateCache.renderTemplate('pkg/package_list', {

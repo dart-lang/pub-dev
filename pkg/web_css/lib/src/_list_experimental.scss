@@ -339,20 +339,14 @@ body.experimental {
     color: #3c4043;
     font-size: 12px;
     margin-top: 6px;
+    display: flex;
 
-    > ul {
-      list-style: none;
-      margin: 0;
-      padding: 0;
+    .packages-api-label {
+      padding-right: 8px;
+    }
 
-      @media (min-width: $device-desktop-min-width) {
-        display: flex;
-
-        > li {
-          display: block;
-          margin-right: 32px;
-        }
-      }
+    .-rest {
+      padding-left: 16px;
     }
   }
 
