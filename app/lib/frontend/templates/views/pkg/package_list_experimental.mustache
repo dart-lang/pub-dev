@@ -50,12 +50,23 @@
     <div>{{& tags_html}}</div>
     {{#has_api_pages}}
     <div class="packages-api">
-      API results
-      <ul>
-        {{#api_pages}}
-        <li><a href="{{& href}}">{{title}}</a></li>
-        {{/api_pages}}
-      </ul>
+      {{^has_more_api_pages}}
+        <div class="packages-api-label">API result:</div>
+        <div>
+          <a href="{{& first_api_page.href}}">{{ first_api_page.title }}</a>
+        </div>
+      {{/has_more_api_pages}}
+      {{#has_more_api_pages}}
+        <div class="packages-api-label">API results:</div>
+        <details class="packages-api-details">
+          <summary>
+            <a href="{{& first_api_page.href}}">{{ first_api_page.title }}</a>
+          </summary>
+          {{#remaining_api_pages}}
+            <div class="-rest"><a href="{{& href}}">{{title}}</a></div>
+          {{/remaining_api_pages}}
+        </details>
+      {{/has_more_api_pages}}
     </div>
     {{/has_api_pages}}
   </div>
