@@ -92,31 +92,6 @@ body.experimental {
   }
 }
 
-.dependency-table {
-  width: 100%;
-  border-spacing: 0;
-
-  td, th {
-    width: 25%;
-    text-align: left;
-    padding-right: 2px;
-    padding-top: 2px;
-  }
-
-  .main-header {
-    border-bottom: 1px solid #c8c8ca;
-  }
-
-  .sub-header {
-    font-weight: 500;
-    padding-top: 24px;
-  }
-
-  .hosted-pkg-link {
-    font-weight: 400;
-  }
-}
-
 .score-key-figures {
   display: flex;
   align-items: center;
@@ -229,6 +204,7 @@ body.experimental {
 
   .pkg-report-content-summary {
     flex-grow: 1;
+    margin: 12px 0;
     max-width: 100%;
 
     > h3 {
@@ -241,6 +217,12 @@ body.experimental {
         width: 14px;
         height: 14px;
         margin-right: 6px;
+      }
+    }
+
+    table {
+      a {
+        font-weight: 400;
       }
     }
   }
