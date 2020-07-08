@@ -371,10 +371,15 @@ $detail-tabs-tablet-width: calc(100% - 240px);
 
 #-pub-like-icon-button {
   /* Override wide material button styles*/
-  width: 18px;
-  height: 18px;
-  padding: 0px;
-  margin: 4px 6px 0 0;
+  width: 26px;
+  height: 26px;
+  padding: 4px;
+  margin: 2px 6px 0 0;
+
+  > img {
+    position: relative;
+    top: -2px;
+  }
 }
 
 /* non-indented rule to restrict the content of this block to the experimental pages */
