@@ -36,7 +36,7 @@ The search UI also supports filters:
   - On the right of the search bar, click the platform filter buttons to filter
     results to packages supporting the platforms you need support for.
 
-  - To use platform filters for non-stable platforms (e.g. Flutter Desktop), use
+  - To use platform filters for alpha platforms (e.g. Flutter Desktop), use
     the Advanced option on the far right of the search bar.
 
 ## Search ranking
@@ -50,7 +50,7 @@ specificity and the text match score of the search team.
 [Pub][pub-tool] isn't just for using other people's packages.
 It also allows you to share your packages with the world.
 If you have a useful project and you want others to be able to use it,
-use the [`dart pub publish`][pub-publish] command.
+use the [`pub publish`][pub-publish] command.
 
 ## Publishing high quality packages
 
@@ -137,8 +137,9 @@ Most importantly make sure to:
   - Provide a [`pubspec.yaml` file](https://dart.dev/tools/pub/pubspec). Ensure
     all Urls are valid and use a secure `https:` scheme.
 
-  - Provide a [](https://dart.dev/tools/pub/package-layout#license) file using
-    an an [OSI-approved license](https://opensource.org/licenses).
+  - Provide a [`LICENSE`](https://dart.dev/tools/pub/package-layout#license)
+    file, preferably using an an [OSI-approved
+    license](https://opensource.org/licenses).
 
   - Provide a [`README.md file`](https://dart.dev/tools/pub/package-layout#readmemd)
     describing the changes in each version of the package. 
@@ -228,7 +229,7 @@ This category measures if a package has up-to-date dependencies in three areas:
   - Works with the latest versions of all pendendencies.
 
 To determine if your package supports the latest versions of dependencies prior
-to publishing, run the `dart pub outdated` command (Dart SDK) or `flutter pub
+to publishing, run the `pub outdated` command (Dart SDK) or `flutter pub
 outdated` command (Flutter SDK).
 
 ## Calculating pub points prior to publishing
@@ -243,10 +244,10 @@ running `pana` locally:
   1. When run `pana` will make modifications to the package, so start by making
      a copy of the directory holding your package: `cp ~/dev/mypkg ~/tmp/mypkg`
 
-  1. Make sure you have the latest pana tool: `dart pub global activate pana` (`pana`
-     changes frequently, so run this again frequenrly to update the pana tool)
+  1. Make sure you have the latest pana tool: `pub global activate pana` (`pana`
+     changes frequently, so run this again frequently to update the pana tool)
 
-  1. Run pana on the copy we made earlier: `dart pub global run pana --source path ~/tmp/mypkg`
+  1. Run pana on the copy we made earlier: `pub global run pana ~/tmp/mypkg`
 
 
 [pub-tool]: https://dart.dev/tools/pub
