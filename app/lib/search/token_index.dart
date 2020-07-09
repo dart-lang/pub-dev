@@ -10,7 +10,7 @@ import 'text_utils.dart';
 class Score {
   final Map<String, double> _values;
 
-  Score(Map<String, double> values) : _values = Map.unmodifiable(values);
+  Score(this._values);
 
   Set<String> getKeys({bool Function(String key) where}) =>
       _values.keys.where((e) => where == null || where(e)).toSet();
@@ -113,7 +113,7 @@ class TokenMatch {
   double get maxWeight =>
       _maxWeight ??= _tokenWeights.values.fold(0.0, math.max);
 
-  Map<String, double> get tokenWeights => Map.unmodifiable(_tokenWeights);
+  Map<String, double> get tokenWeights => _tokenWeights;
 }
 
 /// Stores a token -> documentId inverted index with weights.
