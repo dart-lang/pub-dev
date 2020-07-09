@@ -29,6 +29,21 @@ Future<shelf.Response> helpPageHandler(shelf.Request request) async {
   return htmlResponse(renderHelpPage());
 }
 
+/// Handles requests for /help/scoring
+Future<shelf.Response> helpPageScoringHandler(shelf.Request request) async {
+  return htmlResponse(renderHelpScoringPage());
+}
+
+/// Handles requests for /help/search
+Future<shelf.Response> helpPageSearchHandler(shelf.Request request) async {
+  return htmlResponse(renderHelpSearchPage());
+}
+
+/// Handles requests for /help/publishing
+Future<shelf.Response> helpPagePublishingHandler(shelf.Request request) async {
+  return htmlResponse(renderHelpPublishingPage());
+}
+
 /// Handles requests for /policy
 Future<shelf.Response> policyPageHandler(shelf.Request request) async {
   return htmlResponse(renderPolicyPage());

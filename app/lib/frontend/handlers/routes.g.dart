@@ -54,6 +54,9 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
       'GET', r'/publishers/<publisherId>/admin', service.publisherAdminPage);
   router.add('GET', r'/feed.atom', service.atomFeed);
   router.add('GET', r'/help', service.helpPage);
+  router.add('GET', r'/help/scoring', service.helpPageScoring);
+  router.add('GET', r'/help/search', service.helpPageSearch);
+  router.add('GET', r'/help/publishing', service.helpPagePublishing);
   router.add('GET', r'/policy', service.policyPage);
   router.add('GET', r'/robots.txt', service.robotsTxt);
   router.add('GET', r'/security', service.securityPage);
