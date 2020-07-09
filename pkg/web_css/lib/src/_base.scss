@@ -217,6 +217,8 @@ pre {
 /* non-indented rule to restrict the content of this block to the experimental pages */
 }
 
+/* non-indented rule to restrict the content of this block to the non-experimental pages */
+.non-experimental {
 ._banner-bg {
   background: $color-searchbar-dark-bg;
   background-image: url('/static/img/background-pattern-darkblue.jpg?hash=tqigd6sddnrgq97c7crv8d2l6agjtrob');
@@ -227,6 +229,22 @@ pre {
   a {
     color: $color-searchbar-dark-link;
   }
+}
+}
+
+/* non-indented rule to restrict the content of this block to the experimental pages */
+.experimental {
+._banner-bg {
+  background: $color-searchbar-dark-bg;
+  background-image: url("/static/img/hero-bg-static.svg?hash=pvblnkq8qgr4g10hr78tnibbr2qdpuqt");
+  background-size: cover;
+  color: $color-searchbar-dark-fg;
+  padding: 10px 0px;
+
+  a {
+    color: $color-searchbar-dark-link;
+  }
+}
 }
 
 /*
