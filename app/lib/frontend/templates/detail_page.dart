@@ -105,7 +105,7 @@ class Tab {
     String titleHtml,
     @required String href,
   })  : titleHtml =
-            '<a href="$href" data-ga-click-event="tab:$id">${titleHtml ?? htmlEscape.convert(title)}</a>',
+            '<a href="$href">${titleHtml ?? htmlEscape.convert(title)}</a>',
         contentHtml = null,
         isMarkdown = false,
         hasHref = true;
