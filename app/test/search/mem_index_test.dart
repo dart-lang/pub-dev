@@ -224,8 +224,11 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           .search(SearchQuery.parse(query: 't', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
-        'totalCount': 0,
-        'packages': [],
+        'totalCount': 2,
+        'packages': [
+          {'package': 'http', 'score': 0.25},
+          {'package': 'chrome_net', 'score': closeTo(0.11, 0.01)},
+        ],
       });
     });
 
