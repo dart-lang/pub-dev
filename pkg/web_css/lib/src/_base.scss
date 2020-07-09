@@ -146,6 +146,10 @@ body.experimental {
   }
 }
 
+strong {
+  font-weight: 400;
+}
+
 .markdown-body code,
 code {
   background: #f5f5f7;
@@ -167,6 +171,46 @@ pre {
     border-radius: 0;
     display: block;
     overflow-x: unset !important;
+  }
+}
+
+.markdown-body {
+  p {
+    margin-top: 8px; /* overrides github-markdown.css */
+    margin-bottom: 12px; /* overrides github-markdown.css */
+  }
+
+  table {
+    display: table; /* overrides github-markdown.css */
+
+    td, th {
+      padding: 12px 12px 12px 0; /* overrides github-markdown.css */
+      border: none; /* overrides github-markdown.css */
+    }
+
+    tr {
+      border-top: none; /* overrides github-markdown.css */
+
+      &:nth-child(2n) {
+        background-color: inherit; /* overrides github-markdown.css */
+      }
+    }
+
+    th {
+      font-family: $font-family-google-sans;
+      font-size: 16px;
+      font-weight: 400; /* overrides github-markdown.css */
+      border-bottom: 1px solid #c8c8ca;
+      text-align: left;
+    }
+
+    td {
+      border-bottom: 1px solid #f5f5f7;
+    }
+
+    img {
+      background-color: inherit; /* overrides github-markdown.css */
+    }
   }
 }
 
