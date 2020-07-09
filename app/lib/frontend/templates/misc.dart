@@ -353,6 +353,7 @@ String renderSdkScoreBox() {
 /// Renders the `views/pkg/labeled_scores.mustache` template.
 String renderLabeledScores(PackageView view) {
   return templateCache.renderTemplate('pkg/labeled_scores', {
+    'pkg_score_url': urls.pkgScoreUrl(view.name),
     'like_score_html': _renderLabeledScore('likes', view.likes, ''),
     'pub_points_html':
         _renderLabeledScore('pub points', view.grantedPubPoints, ''),

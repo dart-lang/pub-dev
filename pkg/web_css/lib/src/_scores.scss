@@ -52,6 +52,10 @@
 
   font-family: $font-family-google-sans;
 
+  &:hover {
+    opacity: 1.0;
+  }
+
   .packages-score {
     min-width: 45px;
 
