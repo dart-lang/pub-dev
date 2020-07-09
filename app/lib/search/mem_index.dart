@@ -422,6 +422,9 @@ class InMemoryPackageIndex implements PackageIndex {
       final apiPagesScores = <Score>[];
       bool aborted = false;
 
+      final nameScore =
+          _packageNameIndex.searchWords(words, packages: packages);
+
       for (String word in words) {
         if (packages.isEmpty) break;
         if (sw.elapsedMilliseconds > 500) {
@@ -467,8 +470,6 @@ class InMemoryPackageIndex implements PackageIndex {
         // packages with zero won't be part of the result anyway.
         packages = score.getKeys(where: packages.contains).toSet();
       }
-      final nameScore =
-          _packageNameIndex.searchWords(words, packages: packages);
       final fuzzyScore = Score.multiply(pkgScores)
           .project(packages)
           .removeLowValues(fraction: 0.01, minValue: 0.001);
