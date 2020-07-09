@@ -18,7 +18,7 @@ class PublicPagesScript {
     _pubClient = PubHttpClient(pubHostedUrl);
     try {
       await _landingPage();
-      await _helpPage();
+      await _helpPages();
       await _securityPage();
       await _atomFeed();
       await _searchPage();
@@ -34,10 +34,18 @@ class PublicPagesScript {
     _contains(html, 'More packages');
   }
 
-  Future<void> _helpPage() async {
-    final html = await _pubClient.getContent('/help');
-    _contains(html,
-        'The overall score is a weighted average of the individual scores');
+  Future<void> _helpPages() async {
+    _contains(await _pubClient.getContent('/help'),
+        'following help pages are available');
+
+    _contains(await _pubClient.getContent('/help/scoring'),
+        'additional checks in the future');
+
+    _contains(await _pubClient.getContent('/help/search'),
+        'supports the following search expressions');
+
+    _contains(await _pubClient.getContent('/help/publishing'),
+        'It also allows you to share your packages with the world.');
   }
 
   Future<void> _securityPage() async {

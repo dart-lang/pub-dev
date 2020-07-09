@@ -20,6 +20,17 @@ import '_cache.dart';
 import '_utils.dart';
 import 'layout.dart';
 
+/// The content of `/doc/policy.md`
+final _policyMarkdown = _readDocContent('policy.md');
+
+/// The content of `/doc/help.md`
+final _helpMarkdown = _readDocContent('help.md');
+
+/// The content of `/doc/help-*.md`
+final _helpScoringMarkdown = _readDocContent('help-scoring.md');
+final _helpSearchMarkdown = _readDocContent('help-search.md');
+final _helpPublishingMarkdown = _readDocContent('help-publishing.md');
+
 /// Renders the `views/account/unauthenticated.mustache` template for the pages
 /// where the real content is only provided for logged-in users.
 String renderUnauthenticatedPage({String messageMarkdown}) {
@@ -62,17 +73,47 @@ String renderHelpPage() {
   );
 }
 
+/// Renders the `doc/help-scoring.md`.
+String renderHelpScoringPage() {
+  return renderLayoutPage(
+    PageType.standalone,
+    _renderStandalonePageContent(
+      contentMarkdown: _helpScoringMarkdown,
+      sideImageUrl: static_files.staticUrls.packagesSideImage,
+    ),
+    title: 'Scoring | Dart packages',
+  );
+}
+
+/// Renders the `doc/help-search.md`.
+String renderHelpSearchPage() {
+  return renderLayoutPage(
+    PageType.standalone,
+    _renderStandalonePageContent(
+      contentMarkdown: _helpSearchMarkdown,
+      sideImageUrl: static_files.staticUrls.packagesSideImage,
+    ),
+    title: 'Search | Dart packages',
+  );
+}
+
+/// Renders the `doc/help-publishing.md`.
+String renderHelpPublishingPage() {
+  return renderLayoutPage(
+    PageType.standalone,
+    _renderStandalonePageContent(
+      contentMarkdown: _helpPublishingMarkdown,
+      sideImageUrl: static_files.staticUrls.packagesSideImage,
+    ),
+    title: 'Publishing | Dart packages',
+  );
+}
+
 /// Loads the markdown content from `/doc`.
 String _readDocContent(String path) {
   final fullPath = p.join(static_files.resolveDocDirPath(), path);
   return io.File(fullPath).readAsStringSync();
 }
-
-/// The content of `/doc/policy.md`
-final _policyMarkdown = _readDocContent('policy.md');
-
-/// The content of `/doc/help.md`
-final _helpMarkdown = _readDocContent('help.md');
 
 /// Renders the `/doc/policy.md` document.
 String renderPolicyPage() {

@@ -207,6 +207,21 @@ class PubSiteService {
   @Route.get('/help')
   Future<Response> helpPage(Request request) => helpPageHandler(request);
 
+  /// Renders the help page for scoring
+  @Route.get('/help/scoring')
+  Future<Response> helpPageScoring(Request request) =>
+      helpPageScoringHandler(request);
+
+  /// Renders the help page for search
+  @Route.get('/help/search')
+  Future<Response> helpPageSearch(Request request) =>
+      helpPageSearchHandler(request);
+
+  /// Renders the help page for publishing
+  @Route.get('/help/publishing')
+  Future<Response> helpPagePublishing(Request request) =>
+      helpPagePublishingHandler(request);
+
   /// Renders the policy page
   @Route.get('/policy')
   Future<Response> policyPage(Request request) => policyPageHandler(request);
