@@ -112,7 +112,7 @@ String _renderReport(Report report) {
               '<img class="report-summary-icon" '
                   'src="${staticUrls.reportMissingIconYellow}" />');
     }).join('\n');
-    return markdownToHtml(updated);
+    return markdownToHtml(updated, disableHashIds: true);
   }
 
   return templateCache.renderTemplate('pkg/analysis/report', {

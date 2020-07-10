@@ -4,6 +4,7 @@
 
 import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as m;
+import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' show getRepositoryUrl;
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
@@ -41,6 +42,7 @@ String markdownToHtml(
   String baseDir,
   bool isChangelog = false,
   bool inlineOnly = false,
+  bool disableHashIds = false,
 }) {
   if (text == null) return null;
   text = text.replaceAll('\r\n', '\n');
@@ -49,7 +51,8 @@ String markdownToHtml(
   if (isChangelog) {
     nodes = _groupChangelogNodes(nodes).toList();
   }
-  return _renderSafeHtml(nodes, inlineOnly);
+  return _renderSafeHtml(nodes,
+      inlineOnly: inlineOnly, disableHashIds: disableHashIds);
 }
 
 /// Parses markdown [source].
@@ -79,7 +82,11 @@ List<m.Node> _rewriteRelativeUrls(
 
 /// Renders sanitized, safe HTML from markdown nodes.
 /// Adds hash link HTML to header blocks.
-String _renderSafeHtml(List<m.Node> nodes, bool inlineOnly) {
+String _renderSafeHtml(
+  List<m.Node> nodes, {
+  @required bool inlineOnly,
+  @required bool disableHashIds,
+}) {
   // Filter unsafe urls on some of the elements.
   nodes.forEach((node) => node.accept(_UnsafeUrlFilter()));
 
@@ -87,9 +94,11 @@ String _renderSafeHtml(List<m.Node> nodes, bool inlineOnly) {
     _keepOnlyInlineElements(nodes);
   }
 
-  // add hash link HTML to header blocks
-  final hashLink = _HashLink();
-  nodes.forEach((node) => node.accept(hashLink));
+  if (!disableHashIds) {
+    // add hash link HTML to header blocks
+    final hashLink = _HashLink();
+    nodes.forEach((node) => node.accept(hashLink));
+  }
 
   var rawHtml = m.renderToHtml(nodes);
   if (inlineOnly) {
@@ -100,7 +109,7 @@ String _renderSafeHtml(List<m.Node> nodes, bool inlineOnly) {
   final html = sanitizeHtml(
     rawHtml,
     allowElementId: (String id) =>
-        true, // TODO: Use a denylist for ids used by pub site
+        !disableHashIds, // TODO: Use a denylist for ids used by pub site
     allowClassName: (String cn) {
       if (cn.startsWith('language-')) return true;
       return _whitelistedClassNames.contains(cn);
