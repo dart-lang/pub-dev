@@ -89,7 +89,10 @@ Future _workerMain(WorkerEntryMessage message) async {
     final jobMaintenance = JobMaintenance(dbService, jobProcessor);
 
     Timer.periodic(const Duration(minutes: 15), (_) async {
-      message.statsSendPort.send(await jobBackend.stats(JobService.dartdoc));
+      message.statsSendPort.send({
+        'backend': await jobBackend.stats(JobService.dartdoc),
+        'processor': jobProcessor.stats(),
+      });
     });
 
     dartdocBackend.scheduleOldDataGC();
