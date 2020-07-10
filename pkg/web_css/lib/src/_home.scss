@@ -156,6 +156,19 @@
     margin-bottom: 10px;
     min-height: 100px;
 
+    &:hover {
+      background: #fafafa;
+      box-shadow: 0px 4px 9px 0px rgba(0, 0, 0, 0.4);
+
+      @media (min-width: $device-desktop-min-width) {
+        .mini-list-item-body {
+          &:before {
+            background: linear-gradient(transparent 90%, #fafafa);
+          }
+        }
+      }
+    }
+
     .mini-list-item-title {
       > h3 {
         color: #1967d2;
@@ -172,7 +185,6 @@
 
     .mini-list-item-description {
       margin: 4px 0 0 0;
-      line-height: 16px;
     }
 
     .mini-list-item-publisher {
