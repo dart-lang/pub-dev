@@ -23,7 +23,7 @@ body, input, button {
 }
 
 body.experimental {
-  color: #4a4a4a;
+  color: #212529;
   font-size: 14px;
   font-weight: 300;
 
@@ -304,7 +304,7 @@ pre {
 
 .-pub-like-button {
   --mdc-theme-primary: #f8f8f8;
-  --mdc-theme-on-primary: #4a4a4a;
+  --mdc-theme-on-primary: #212529;
 
   body.non-experimental & {
     float: right;
@@ -415,7 +415,7 @@ pre {
   padding: 10px 0;
 
   background: #e7f8ff;
-  color: #4a4a4a;
+  color: #212529;
   font-size: 16px;
 
   text-align: center;
@@ -434,7 +434,7 @@ pre {
   }
 
   .back-to-referrer-link {
-    color: #4a4a4a;
+    color: #212529;
     font-family: $font-family-google-sans;
     font-size: 14px;
 
