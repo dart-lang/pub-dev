@@ -15,7 +15,7 @@ import 'package:pool/pool.dart';
 import 'package:pub_dev/package/models.dart' show Package, PackageVersion;
 import '../shared/task_scheduler.dart';
 import '../shared/task_sources.dart';
-import '../shared/utils.dart' show randomizeStream;
+import '../shared/utils.dart' show randomizeStream, DurationTracker;
 
 import 'backend.dart';
 import 'model.dart';
@@ -32,6 +32,8 @@ abstract class JobProcessor {
   final Duration lockDuration;
   final String _serviceAsString;
   final AliveCallback _aliveCallback;
+  final _trackers = <String, DurationTracker>{};
+
   JobProcessor({
     @required this.service,
     this.lockDuration,
@@ -52,6 +54,8 @@ abstract class JobProcessor {
     for (;;) {
       sleepSeconds = math.min(sleepSeconds + 1, 60);
       String jobDescription = '[pull]';
+      final sw = Stopwatch()..start();
+      var statEvent = 'failed';
       try {
         final job =
             await jobBackend.lockAvailable(service, lockDuration: lockDuration);
@@ -64,6 +68,7 @@ abstract class JobProcessor {
           try {
             status = await process(job);
             status = JobStatus.success;
+            statEvent = 'success';
             _logger.info('$_serviceAsString job completed: $jobDescription');
           } on TransactionAbortedError catch (e, st) {
             _logger.info('$_serviceAsString job error $jobDescription', e, st);
@@ -76,12 +81,15 @@ abstract class JobProcessor {
           await jobBackend.complete(job, status);
         }
       } on TransactionAbortedError catch (e, st) {
+        statEvent = 'transaction';
         _logger.info('$_serviceAsString job error $jobDescription', e, st);
       } on TimeoutError catch (e, st) {
+        statEvent = 'timeout';
         _logger.info('$_serviceAsString job error $jobDescription', e, st);
       } catch (e, st) {
         _logger.severe('$_serviceAsString job error $jobDescription', e, st);
       }
+      _trackers.putIfAbsent(statEvent, () => DurationTracker()).add(sw.elapsed);
       if (_aliveCallback != null) _aliveCallback();
       await Future.delayed(Duration(seconds: sleepSeconds));
     }
@@ -90,6 +98,11 @@ abstract class JobProcessor {
   void reportIssueWithLatest(Job job, String message) {
     _logger.info(
         '$_serviceAsString failed for latest version of ${job.packageName} (${job.packageVersion}): $message');
+  }
+
+  Map stats() {
+    return _trackers
+        .map((key, value) => MapEntry<String, Map>(key, value.toShortStat()));
   }
 }
 

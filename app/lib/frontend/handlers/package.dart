@@ -29,17 +29,13 @@ import '../templates/package_versions.dart';
 import 'misc.dart' show formattedNotFoundHandler;
 
 // Non-revealing metrics to monitor the search service behavior from outside.
-final _packageAnalysisLatencyTracker = DurationTracker();
-final _packagePreRenderLatencyTracker = DurationTracker();
+final _packageDataLoadLatencyTracker = DurationTracker();
 final _packageDoneLatencyTracker = DurationTracker();
-final _packageOverallLatencyTracker = DurationTracker();
 
 Map packageDebugStats() {
   return {
-    'analysis_latency': _packageAnalysisLatencyTracker.toShortStat(),
-    'pre_render_latency': _packagePreRenderLatencyTracker.toShortStat(),
+    'data_load_latency': _packageDataLoadLatencyTracker.toShortStat(),
     'done_latency': _packageDoneLatencyTracker.toShortStat(),
-    'overall_latency': _packageOverallLatencyTracker.toShortStat(),
   };
 }
 
@@ -189,6 +185,7 @@ Future<shelf.Response> _handlePackagePage({
   if (cachedPage == null) {
     final serviceSw = Stopwatch()..start();
     final data = await _loadPackagePageData(packageName, versionName);
+    _packageDataLoadLatencyTracker.add(serviceSw.elapsed);
     if (data == null) {
       return redirectToSearch(packageName);
     }
@@ -203,11 +200,10 @@ Future<shelf.Response> _handlePackagePage({
     } else {
       throw StateError('Unknown result type: ${renderedResult.runtimeType}');
     }
-    _packageDoneLatencyTracker.add(serviceSw.elapsed);
     if (requestContext.uiCacheEnabled && cacheEntry != null) {
       await cacheEntry.set(cachedPage);
     }
-    _packageOverallLatencyTracker.add(sw.elapsed);
+    _packageDoneLatencyTracker.add(sw.elapsed);
   }
   return htmlResponse(cachedPage);
 }
