@@ -84,6 +84,7 @@ String renderPackageList(
       'tags_html': renderTags(
         package: view,
         searchQuery: searchQuery,
+        showTagBadges: requestContext.isExperimental,
       ),
       'labeled_scores_html': renderLabeledScores(view),
       'has_api_pages': hasApiPages,
