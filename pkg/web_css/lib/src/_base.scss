@@ -49,6 +49,10 @@ img {
   --mdc-theme-primary: #0175C2;
 }
 
+summary:focus {
+  outline: 0;
+}
+
 button {
   cursor: pointer;
   border: none;
