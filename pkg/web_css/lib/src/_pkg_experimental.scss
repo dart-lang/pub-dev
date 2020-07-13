@@ -199,13 +199,11 @@ body.experimental {
 
 
   .pkg-report-content {
-    display: flex;
+    padding-left: 40px;
   }
 
   .pkg-report-content-summary {
-    flex-grow: 1;
     margin: 12px 0;
-    max-width: 100%;
 
     > h3 {
       position: relative;
