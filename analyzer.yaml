@@ -14,7 +14,7 @@ env_variables:
 resources:
   cpu: 2
   memory_gb: 8
-  disk_size_gb: 15
+  disk_size_gb: 25
 
 #manual_scaling:
 #  instances: 1
@@ -24,7 +24,7 @@ automatic_scaling:
   max_num_instances: 8
 
 skip_files:
-- ^\.git/.*$
+  - ^\.git/.*$
 
 liveness_check:
   path: '/liveness_check'
