@@ -45,7 +45,7 @@ class DevVersionScript {
         _expectContent(
           await _pubHttpClient.getLatestVersionPage('_dummy_pkg'),
           present: [
-            '<h2 class="title">_dummy_pkg 0.9.0</h2>',
+            ' class="title">_dummy_pkg 0.9.0</',
           ],
           absent: [
             '<a href="/packages/_dummy_pkg">0.9.0</a>',
@@ -58,7 +58,7 @@ class DevVersionScript {
         _expectContent(
           await _pubHttpClient.getLatestVersionPage('_dummy_pkg'),
           present: [
-            '<h2 class="title">_dummy_pkg 1.0.0-beta</h2>',
+            ' class="title">_dummy_pkg 1.0.0-beta</',
           ],
           absent: [
             '<a href="/packages/_dummy_pkg">1.0.0-beta</a>',
@@ -73,7 +73,7 @@ class DevVersionScript {
       _expectContent(
         await _pubHttpClient.getLatestVersionPage('_dummy_pkg'),
         present: [
-          '<h2 class="title">_dummy_pkg 0.9.0</h2>',
+          ' class="title">_dummy_pkg 0.9.0</',
           '<a href="/packages/_dummy_pkg">0.9.0</a>',
           '<a href="/packages/_dummy_pkg/versions/1.0.0-beta">1.0.0-beta</a>',
         ],
@@ -89,7 +89,7 @@ class DevVersionScript {
       _expectContent(
         await _pubHttpClient.getLatestVersionPage('_dummy_pkg'),
         present: [
-          '<h2 class="title">_dummy_pkg 0.9.1</h2>',
+          ' class="title">_dummy_pkg 0.9.1</',
           '<a href="/packages/_dummy_pkg">0.9.1</a>',
           '<a href="/packages/_dummy_pkg/versions/1.0.0-beta">1.0.0-beta</a>',
         ],
@@ -106,7 +106,7 @@ class DevVersionScript {
       _expectContent(
         await _pubHttpClient.getLatestVersionPage('_dummy_pkg'),
         present: [
-          '<h2 class="title">_dummy_pkg 0.9.1</h2>',
+          ' class="title">_dummy_pkg 0.9.1</',
           '<a href="/packages/_dummy_pkg">0.9.1</a>',
           '<a href="/packages/_dummy_pkg/versions/1.0.0-gamma">1.0.0-gamma</a>',
         ],
@@ -125,7 +125,7 @@ class DevVersionScript {
       _expectContent(
         await _pubHttpClient.getLatestVersionPage('_dummy_pkg'),
         present: [
-          '<h2 class="title">_dummy_pkg 1.0.0</h2>',
+          ' class="title">_dummy_pkg 1.0.0</',
         ],
         absent: [
           '<a href="/packages/_dummy_pkg">0.9.0</a>',
@@ -145,7 +145,7 @@ class DevVersionScript {
       _expectContent(
         await _pubHttpClient.getLatestVersionPage('_dummy_pkg'),
         present: [
-          '<h2 class="title">_dummy_pkg 1.0.0</h2>',
+          ' class="title">_dummy_pkg 1.0.0</',
           '<a href="/packages/_dummy_pkg">1.0.0</a>',
           '<a href="/packages/_dummy_pkg/versions/1.1.0-dev">1.1.0-dev</a>',
         ],

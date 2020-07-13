@@ -79,7 +79,7 @@ void main() {
 
           // check package list
           final packages = <String>{};
-          for (final item in await page.$$('.list-item.-full h3')) {
+          for (final item in await page.$$('.packages .packages-title a')) {
             final text = await (await item.property('textContent')).jsonValue;
             packages.add(text as String);
           }
@@ -100,7 +100,7 @@ void main() {
               wait: Until.networkIdle);
 
           // check header with name and version
-          final headerTitle = await page.$('h2.title');
+          final headerTitle = await page.$('h1.title');
           final headerTitleText =
               await (await headerTitle.property('textContent')).jsonValue;
           expect(headerTitleText, 'retry 2.0.0');

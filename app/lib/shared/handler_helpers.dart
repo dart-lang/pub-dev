@@ -93,7 +93,8 @@ shelf.Handler _requestContextWrapper(shelf.Handler handler) {
     final cookies =
         parseCookieHeader(request.headers[HttpHeaders.cookieHeader]);
     final hasExperimentalCookie = cookies['experimental'] == '1';
-    final isExperimental = hasExperimentalCookie;
+    // TODO: reset to `hasExperimentalCookie` after the deployment & code cleanup
+    final isExperimental = true; // hasExperimentalCookie;
 
     final enableRobots = hasExperimentalCookie ||
         (!activeConfiguration.blockRobots && isProductionHost);

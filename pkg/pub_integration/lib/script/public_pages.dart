@@ -31,7 +31,7 @@ class PublicPagesScript {
   Future<void> _landingPage() async {
     final html = await _pubClient.getContent('/');
     _contains(html, 'Top packages');
-    _contains(html, 'More packages');
+    _contains(html, 'View all');
   }
 
   Future<void> _helpPages() async {
@@ -60,7 +60,7 @@ class PublicPagesScript {
 
   Future<void> _searchPage() async {
     final content = await _pubClient.getContent('/packages?q=retry');
-    _contains(content, 'results for <code>retry</code>');
+    _contains(content, 'search query <code>retry</code>');
   }
 
   void _contains(String content, String matched) {
