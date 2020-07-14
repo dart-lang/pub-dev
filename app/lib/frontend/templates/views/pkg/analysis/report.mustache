@@ -18,7 +18,7 @@
         {{/is_red}}
       </div>
       <div class="pkg-report-header-title">{{ title }}</div>
-      <div class="pkg-report-header-score{{#is_red}} -is-red{{/is_red}}">
+      <div class="pkg-report-header-score{{#is_red}} -is-red{{/is_red}}{{#is_yellow}} -is-yellow{{/is_yellow}}">
         <span class="pkg-report-header-score-granted">{{grantedPoints}}</span>
         /
         <span class="pkg-report-header-score-max">{{maxPoints}}</span>
