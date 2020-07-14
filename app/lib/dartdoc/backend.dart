@@ -176,13 +176,15 @@ class DartdocBackend {
       String package, List<String> versions) async {
     final entries = <String, DartdocEntry>{};
 
-    for (final v in versions) {
-      final cachedEntry = await cache.dartdocEntry(package, v).get();
-      if (cachedEntry != null) {
-        entries[v] = cachedEntry;
-      }
-    }
+    final pool = Pool(8);
+    await Future.wait(versions.map((v) => pool.withResource(() async {
+          final cachedEntry = await cache.dartdocEntry(package, v).get();
+          if (cachedEntry != null) {
+            entries[v] = cachedEntry;
+          }
+        })));
 
+    final cacheUpdateFutures = <Future>[];
     for (final rv in shared_versions.acceptedRuntimeVersions) {
       final queryVersions =
           versions.where((v) => !entries.containsKey(v)).toList();
@@ -200,10 +202,13 @@ class DartdocBackend {
           final version = queryVersions[i];
           final entry = (r as DartdocReport).dartdocEntry;
           entries[version] = entry;
-          await cache.dartdocEntry(package, version).set(entry);
+          cacheUpdateFutures.add(pool.withResource(
+              () => cache.dartdocEntry(package, version).set(entry)));
         }
       }
     }
+    await Future.wait(cacheUpdateFutures);
+    await pool.close();
     return versions.map((v) => entries[v]).toList();
   }
 
