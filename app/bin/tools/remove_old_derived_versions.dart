@@ -17,6 +17,8 @@ final _argParser = ArgParser()
   ..addOption('package', abbr: 'p', help: 'The package to process.')
   ..addFlag('help', abbr: 'h', defaultsTo: false, help: 'Show help.');
 
+/// Deletes PackageVersionPubspec and PackageVersionInfo using old IDs, see CHANGELOG.md
+/// For when to run this.
 Future main(List<String> args) async {
   final argv = _argParser.parse(args);
   if (argv['help'] as bool == true) {

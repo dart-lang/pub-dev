@@ -924,6 +924,7 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
     archive: archive,
     versionCreated: version.created,
   );
+  // TODO: verify if assets sizes are within the transaction limit (10 MB)
   return _ValidatedUpload(version, derived.packageVersionPubspec,
       derived.packageVersionInfo, derived.assets);
 }
