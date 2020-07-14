@@ -158,12 +158,21 @@ class ScoreCardBackend {
     @required String reportType,
     String runtimeVersion,
   }) async {
-    final keys = versions
-        .map((v) => scoreCardKey(packageName, v, runtimeVersion: runtimeVersion)
-            .append(ScoreCardReport, id: reportType))
-        .toList();
-    final items = await _db.lookup<ScoreCardReport>(keys);
-    return items.map((item) => item?.reportData).toList();
+    final results = <ReportData>[];
+    for (var start = 0; start < versions.length; start += 1000) {
+      final keys = versions
+          .skip(start)
+          .take(1000)
+          .map((v) =>
+              scoreCardKey(packageName, v, runtimeVersion: runtimeVersion)
+                  .append(ScoreCardReport, id: reportType))
+          .toList();
+      final items = await _db.lookup<ScoreCardReport>(keys);
+      results.addAll(items.map((item) => item?.reportData));
+    }
+    print(results.length);
+    print(results.where((e) => e != null).length);
+    return results;
   }
 
   /// Updates the [ScoreCard] entry, reading both the package and version data,
