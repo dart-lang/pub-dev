@@ -31,13 +31,26 @@ packages:
           'publishers': [
             {
               'name': 'example.com',
+              'created': isNotEmpty,
+              'updated': isNotEmpty,
               'members': [
-                {'email': 'user@domain.com', 'role': 'admin'}
+                {
+                  'email': 'user@domain.com',
+                  'role': 'admin',
+                  'created': isNotEmpty,
+                  'updated': isNotEmpty,
+                }
               ]
             }
           ],
           'users': [
-            {'email': 'user@domain.com', 'likes': []}
+            {
+              'email': 'user@domain.com',
+              'oauthUserId': 'user-at-domain-dot-com',
+              'created': isNotEmpty,
+              'isDeleted': false,
+              'likes': [],
+            }
           ],
           'defaultUser': 'user@domain.com',
         },
@@ -65,7 +78,13 @@ packages:
           ],
           'publishers': [],
           'users': [
-            {'email': 'user@domain.com', 'likes': []}
+            {
+              'email': 'user@domain.com',
+              'oauthUserId': 'user-at-domain-dot-com',
+              'created': isNotEmpty,
+              'isDeleted': false,
+              'likes': [],
+            }
           ],
           'defaultUser': 'user@domain.com'
         },

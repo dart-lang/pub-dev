@@ -8,6 +8,8 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart' as yaml;
 
+import 'normalizer.dart';
+
 part 'models.g.dart';
 
 /// The configuration to use when creating a local (partial) mirror of pub.dev
@@ -17,7 +19,9 @@ class TestProfile {
   final List<TestPackage> packages;
   final List<TestPublisher> publishers;
   final List<TestUser> users;
-  String defaultUser;
+
+  /// The email address of the default user.
+  final String defaultUser;
 
   TestProfile({
     @required List<TestPackage> packages,
@@ -31,76 +35,32 @@ class TestProfile {
   factory TestProfile.fromJson(Map<String, dynamic> json,
       {bool normalize = false}) {
     final mc = _$TestProfileFromJson(json);
-    if (normalize) mc.normalize();
-    return mc;
+    if (normalize) {
+      return TestProfileNormalizer().normalize(mc);
+    } else {
+      return mc;
+    }
   }
 
   factory TestProfile.fromYaml(String source, {bool normalize = false}) {
     final map = json.decode(json.encode(yaml.loadYaml(source)));
     final mc = TestProfile.fromJson(map as Map<String, dynamic>);
-    if (normalize) mc.normalize();
-    return mc;
+    if (normalize) {
+      return TestProfileNormalizer().normalize(mc);
+    } else {
+      return mc;
+    }
   }
 
   Map<String, dynamic> toJson() => _$TestProfileToJson(this);
-
-  void normalize() {
-    // add missing users from publishers
-    publishers
-        .expand((p) => p.members)
-        .forEach((m) => _createUserIfNeeded(m.email));
-    // add missing users from packages
-    packages
-        .where((p) => p.uploaders != null)
-        .expand((p) => p.uploaders)
-        .forEach(_createUserIfNeeded);
-
-    defaultUser ??= users.first.email;
-    _createUserIfNeeded(defaultUser);
-
-    for (final package in packages) {
-      // add missing publishers
-      if (package.publisher != null) {
-        final publisher = publishers
-            .firstWhere((p) => p.name == package.publisher, orElse: () => null);
-        if (publisher == null) {
-          publishers.add(TestPublisher(
-            name: package.publisher,
-            members: [
-              TestMember(
-                email: defaultUser,
-                role: 'admin',
-              ),
-            ],
-          ));
-        }
-      }
-    }
-
-    for (final package in packages) {
-      if (package.publisher == null) {
-        package.uploaders ??= <String>[];
-        if (package.uploaders.isEmpty) {
-          package.uploaders.add(defaultUser);
-        }
-      }
-    }
-  }
-
-  void _createUserIfNeeded(String email) {
-    final user = users.firstWhere((u) => u.email == email, orElse: () => null);
-    if (user == null) {
-      users.add(TestUser(email: email, likes: <String>[]));
-    }
-  }
 }
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
 class TestPackage {
   final String name;
-  List<String> uploaders;
-  String publisher;
-  List<String> versions;
+  final List<String> uploaders;
+  final String publisher;
+  final List<String> versions;
 
   TestPackage({
     this.name,
@@ -113,15 +73,28 @@ class TestPackage {
       _$TestPackageFromJson(json);
 
   Map<String, dynamic> toJson() => _$TestPackageToJson(this);
+
+  TestPackage change({List<String> uploaders}) {
+    return TestPackage(
+      name: name,
+      uploaders: uploaders ?? this.uploaders,
+      publisher: publisher,
+      versions: versions,
+    );
+  }
 }
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
 class TestPublisher {
   final String name;
-  List<TestMember> members;
+  final DateTime created;
+  final DateTime updated;
+  final List<TestMember> members;
 
   TestPublisher({
     @required this.name,
+    this.created,
+    this.updated,
     @required List<TestMember> members,
   }) : members = members ?? <TestMember>[];
 
@@ -135,10 +108,14 @@ class TestPublisher {
 class TestMember {
   final String email;
   final String role;
+  final DateTime created;
+  final DateTime updated;
 
   TestMember({
     @required this.email,
     @required this.role,
+    this.created,
+    this.updated,
   });
 
   factory TestMember.fromJson(Map<String, dynamic> json) =>
@@ -150,12 +127,18 @@ class TestMember {
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
 class TestUser {
   final String email;
+  final String oauthUserId;
+  final DateTime created;
+  final bool isDeleted;
 
   /// The list of package names that the user liked.
   final List<String> likes;
 
   TestUser({
     @required this.email,
+    this.oauthUserId,
+    this.created,
+    this.isDeleted,
     @required List<String> likes,
   }) : likes = likes ?? <String>[];
 

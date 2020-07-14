@@ -38,18 +38,15 @@ Future<void> importProfile({
 
   // create users
   for (final u in profile.users) {
-    final oauthUserId = _baseIdFromEmail(u.email);
+    final oauthUserId = u.oauthUserId ?? _baseIdFromEmail(u.email);
     final userId = _userIdFromEmail(u.email);
     await dbService.commit(inserts: [
       User()
         ..id = userId
-        // TODO: support via [TestProfile]
         ..oauthUserId = oauthUserId
         ..email = u.email
-        // TODO: support via [TestProfile]
-        ..created = DateTime.now().toUtc()
-        // TODO: support via [TestProfile]
-        ..isDeleted = false,
+        ..created = u.created ?? DateTime.now().toUtc()
+        ..isDeleted = u.isDeleted ?? false,
       OAuthUserID()
         ..id = oauthUserId
         ..userIdKey = dbService.emptyKey.append(User, id: userId),
@@ -63,20 +60,16 @@ Future<void> importProfile({
         ..id = p.name
         ..contactEmail = p.members.isEmpty ? null : p.members.first.email
         ..websiteUrl = 'https://${p.name}/'
-        // TODO: support via [TestProfile]
-        ..created = DateTime.now().toUtc()
-        // TODO: support via [TestProfile]
-        ..updated = DateTime.now().toUtc()
+        ..created = p.created ?? DateTime.now().toUtc()
+        ..updated = p.updated ?? DateTime.now().toUtc()
         ..isAbandoned = false,
       ...p.members.map(
         (m) => PublisherMember()
           ..parentKey = dbService.emptyKey.append(Publisher, id: p.name)
           ..id = _userIdFromEmail(m.email)
           ..userId = _userIdFromEmail(m.email)
-          // TODO: support via [TestProfile]
-          ..created = DateTime.now().toUtc()
-          // TODO: support via [TestProfile]
-          ..updated = DateTime.now().toUtc()
+          ..created = m.created ?? DateTime.now().toUtc()
+          ..updated = m.updated ?? DateTime.now().toUtc()
           ..role = PublisherMemberRole.admin,
       )
     ]);
