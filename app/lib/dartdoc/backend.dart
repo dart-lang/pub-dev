@@ -204,7 +204,7 @@ class DartdocBackend {
           if (entry != null) {
             entries[version] = entry;
             cacheUpdateFutures.add(pool.withResource(
-                    () => cache.dartdocEntry(package, version).set(entry)));
+                () => cache.dartdocEntry(package, version).set(entry)));
           }
         }
       }
