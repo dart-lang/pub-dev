@@ -170,8 +170,6 @@ class ScoreCardBackend {
       final items = await _db.lookup<ScoreCardReport>(keys);
       results.addAll(items.map((item) => item?.reportData));
     }
-    print(results.length);
-    print(results.where((e) => e != null).length);
     return results;
   }
 
