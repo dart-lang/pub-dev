@@ -3,6 +3,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20200714t110212-all`
+
  * Increased diskspace for analyzer and dartdoc to 25 GB
 
 ## `20200710t174722-all`
