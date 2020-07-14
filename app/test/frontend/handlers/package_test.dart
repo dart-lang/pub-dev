@@ -19,7 +19,7 @@ void main() {
       await expectHtmlResponse(
         await issueGet('/packages/foobar_pkg'),
         present: [
-          '<h2 class="title">foobar_pkg 0.1.1+5</h2>',
+          ' class="title">foobar_pkg 0.1.1+5</',
           '<a href="/packages/foobar_pkg">0.1.1+5</a>',
           '<a href="/packages/foobar_pkg/versions/0.2.0-dev">0.2.0-dev</a>',
         ],
@@ -38,7 +38,7 @@ void main() {
       await expectHtmlResponse(
         await issueGet('/packages/foobar_pkg/versions'),
         present: [
-          '<h2 class="title">foobar_pkg 0.1.1+5</h2>',
+          ' class="title">foobar_pkg 0.1.1+5</',
           '<a href="/packages/foobar_pkg">0.1.1+5</a>',
           '<a href="/packages/foobar_pkg/versions/0.2.0-dev">0.2.0-dev</a>',
         ],
@@ -58,7 +58,7 @@ void main() {
       await expectHtmlResponse(
         await issueGet('/packages/foobar_pkg/versions/0.1.1+5'),
         present: [
-          '<h2 class="title">foobar_pkg 0.1.1+5</h2>',
+          ' class="title">foobar_pkg 0.1.1+5</',
           '<a href="/packages/foobar_pkg">0.1.1+5</a>',
           '<a href="/packages/foobar_pkg/versions/0.2.0-dev">0.2.0-dev</a>',
         ],
@@ -70,7 +70,7 @@ void main() {
       await expectHtmlResponse(
         await issueGet('/packages/foobar_pkg/versions/0.1.1%2B5'),
         present: [
-          '<h2 class="title">foobar_pkg 0.1.1+5</h2>',
+          ' class="title">foobar_pkg 0.1.1+5</',
           '<a href="/packages/foobar_pkg">0.1.1+5</a>',
           '<a href="/packages/foobar_pkg/versions/0.2.0-dev">0.2.0-dev</a>',
         ],
