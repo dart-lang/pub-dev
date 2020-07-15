@@ -221,6 +221,7 @@ String renderSortControl(SearchQuery query) {
               'selected': d.id == selectedValue,
             })
         .toList(),
+    'ranking_tooltip': sortDict.tooltip,
     'selected_label': selectedOption.label,
   });
 }

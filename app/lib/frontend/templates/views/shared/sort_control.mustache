@@ -3,7 +3,7 @@
     BSD-style license that can be found in the LICENSE file. }}
 
 <div class="sort-control hoverable">
-  <div class="info-identifier">Sort by <span class="sort-control-selected">{{selected_label}}</span></div>
+  <div class="info-identifier" title="{{ ranking_tooltip }}">Sort by <span class="sort-control-selected">{{selected_label}}</span></div>
   <div class="sort-control-popup">
     {{#options}}
     <div class="sort-control-option {{#selected}}selected{{/selected}}" data-value="{{value}}">{{label}}</div>
