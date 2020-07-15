@@ -189,10 +189,6 @@ String renderListingInfo({
     'search_query': searchQuery?.query,
     'has_owned_by': ownedBy != null,
     'owned_by': ownedBy,
-    // TODO(3246): remove the keys below after we have migrated to the new design
-    'is_search': isSearch,
-    'has_title': !isSearch && title != null,
-    'title': title,
   });
 }
 
@@ -226,8 +222,6 @@ String renderSortControl(SearchQuery query) {
             })
         .toList(),
     'selected_label': selectedOption.label,
-    // TODO(3246): remove after we have migrated to the new design
-    'ranking_tooltip_html': sortDict.tooltip,
   });
 }
 
