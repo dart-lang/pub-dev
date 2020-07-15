@@ -109,7 +109,7 @@ void main() {
             reportTypes: ['pana'],
           ),
         ),
-      ], topPackages: [
+      ], mostPopularPackages: [
         PackageView.fromModel(
           package: foobarPackage,
           version: foobarStablePV,

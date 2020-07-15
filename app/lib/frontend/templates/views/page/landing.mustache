@@ -1,27 +1,70 @@
-{{! Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+{{! Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
 
-{{#has_tagged}}
-<div class="home-lists-container">
-  <div class="landing-page-title-block">
-    <h2 class="center landing-page-title">Flutter Favorites</h2>
-  </div>
-  {{& tagged_minilist_html }}
-  <div class="more">
-    <a href="{{& tagged_more_url}}">More Flutter Favorites...</a>
+{{#has_ff}}
+<div class="home-block home-block-ff">
+  <div class="home-block-content">
+    <h1 class="home-block-title">Flutter Favorites</h1>
+    <p class="home-block-context-info">
+      Packages that demonstrate the
+      <a target="_blank"
+         rel="noopener"
+         href="https://flutter.dev/docs/development/packages-and-plugins/favorites">highest levels of quality<sup><small>↗</small></sup></a>,
+      selected by the Flutter Ecosystem Committee
+    </p>
+    {{& ff_mini_list_html }}
+    <div class="home-block-view-all">
+      <a class="home-block-view-all-link" href="{{& ff_view_all_url}}">View all</a>
+    </div>
   </div>
 </div>
-{{/has_tagged}}
+{{/has_ff}}
 
-{{#has_top}}
-<div class="home-lists-container">
-    <div class="landing-page-title-block">
-        <h2 class="center landing-page-title">Top packages</h2>
+{{#has_mp}}
+<div class="home-block home-block-mp">
+  <div class="home-block-image">
+    <img src="{{& static_assets.img__landing-01_png}}" />
+  </div>
+  <div class="home-block-content">
+    <h1 class="home-block-title">Most popular packages</h1>
+    <p class="home-block-context-info">The most downloaded packages over the past 60 days</p>
+    {{& mp_mini_list_html }}
+    <div class="home-block-view-all">
+      <a class="home-block-view-all-link" href="{{& mp_view_all_url}}">View all</a>
     </div>
-    {{& top_minilist_html }}
-    <div class="more">
-        <a href="{{& top_more_url}}">More packages...</a>
-    </div>
+  </div>
 </div>
-{{/has_top}}
+{{/has_mp}}
+
+{{#has_tf}}
+<div class="home-block home-block-tf">
+  <div class="home-block-content">
+    <h1 class="home-block-title">Top Flutter packages</h1>
+    <p class="home-block-context-info">Top packages that extend Flutter with new features</p>
+    {{& tf_mini_list_html }}
+    <div class="home-block-view-all">
+      <a class="home-block-view-all-link" href="{{& tf_view_all_url}}">View all</a>
+    </div>
+  </div>
+  <div class="home-block-image">
+    <img src="{{& static_assets.img__landing-02_png}}" />
+  </div>
+</div>
+{{/has_tf}}
+
+{{#has_td}}
+<div class="home-block home-block-td">
+  <div class="home-block-image">
+    <img src="{{& static_assets.img__landing-03_png}}" />
+  </div>
+  <div class="home-block-content">
+    <h1 class="home-block-title">Top Dart packages</h1>
+    <p class="home-block-context-info">Top packages for any Dart-based app or program</p>
+    {{& td_mini_list_html }}
+    <div class="home-block-view-all">
+      <a class="home-block-view-all-link" href="{{& td_view_all_url}}">View all</a>
+    </div>
+  </div>
+</div>
+{{/has_td}}

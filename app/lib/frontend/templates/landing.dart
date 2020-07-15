@@ -6,40 +6,26 @@ import '../../package/models.dart' show PackageView;
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
-import '../request_context.dart';
-
 import '_cache.dart';
 import 'layout.dart';
 import 'misc.dart' show renderMiniList;
 
 /// Renders the `views/page/landing.mustache` template.
 String renderLandingPage({
-  List<PackageView> ffPackages, // old + new
-  List<PackageView> topPackages, // old only
-  List<PackageView> mostPopularPackages, // new only
-  List<PackageView> topFlutterPackages, // new only
-  List<PackageView> topDartPackages, // new only
+  List<PackageView> ffPackages,
+  List<PackageView> mostPopularPackages,
+  List<PackageView> topFlutterPackages,
+  List<PackageView> topDartPackages,
 }) {
   bool isNotEmptyList(List l) => l != null && l.isNotEmpty;
   String renderMiniListIf(bool cond, List<PackageView> packages) =>
       cond ? renderMiniList(packages) : null;
 
-  final isExperimental = requestContext.isExperimental;
-  final hasTagged = !isExperimental && isNotEmptyList(ffPackages);
-  final hasTop = !isExperimental && isNotEmptyList(topPackages);
-  final hasFF = isExperimental && isNotEmptyList(ffPackages);
-  final hasMostPopular = isExperimental && isNotEmptyList(mostPopularPackages);
-  final hasTopFlutter = isExperimental && isNotEmptyList(topFlutterPackages);
-  final hasTopDart = isExperimental && isNotEmptyList(topDartPackages);
+  final hasFF = isNotEmptyList(ffPackages);
+  final hasMostPopular = isNotEmptyList(mostPopularPackages);
+  final hasTopFlutter = isNotEmptyList(topFlutterPackages);
+  final hasTopDart = isNotEmptyList(topDartPackages);
   final values = {
-    // old design's variables
-    'has_tagged': hasTagged,
-    'tagged_minilist_html': renderMiniListIf(hasTagged, ffPackages),
-    'tagged_more_url': '/flutter/favorites',
-    'has_top': hasTop,
-    'top_minilist_html': renderMiniListIf(hasTop, topPackages),
-    'top_more_url': urls.searchUrl(),
-    // new design's variables
     'has_ff': hasFF,
     'ff_mini_list_html': renderMiniListIf(hasFF, ffPackages),
     'ff_view_all_url': '/flutter/favorites',
@@ -58,6 +44,6 @@ String renderLandingPage({
     PageType.landing,
     content,
     title: 'Dart packages',
-    mainClasses: requestContext.isExperimental ? ['landing-main'] : null,
+    mainClasses: ['landing-main'],
   );
 }
