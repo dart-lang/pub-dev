@@ -37,56 +37,71 @@
     <meta name="pub-page-data" content="eyJwa2dEYXRhIjp7InBhY2thZ2UiOiJmb29iYXJfcGtnIiwidmVyc2lvbiI6IjAuMi4wLWRldiIsImxpa2VzIjowLCJpc0Rpc2NvbnRpbnVlZCI6ZmFsc2V9fQ=="/>
   </head>
   <body class="non-experimental">
-    <header class="site-header-row">
-      <div class="site-header">
-        <h1 class="_visuallyhidden">Dart pub</h1>
-        <button class="hamburger"></button>
-        <div class="mask"></div>
-        <div class="nav-wrap">
-          <div class="nav-header">
-            <a class="logo" href="/">
-              <img src="/static/img/pub-dev-logo-2x.png?hash=mocked_hash_685890546" alt="dart pub logo"/>
-            </a>
-            <div class="_flex-space"></div>
-            <button class="close"></button>
+    <div class="site-header">
+      <button class="hamburger"></button>
+      <a class="logo" href="/">
+        <img class="site-logo" src="/static/img/pub-dev-logo-2x.png?hash=mocked_hash_685890546" alt="pub logo"/>
+      </a>
+      <div class="site-header-space"></div>
+      <div class="site-header-mask"></div>
+      <div class="site-header-nav scroll-container">
+        <div class="nav-login-container">
+          <button class="nav-main-button link" id="-account-login">Sign in</button>
+        </div>
+        <div class="nav-container nav-help-container hoverable">
+          <button class="nav-main-button">Help</button>
+          <div class="nav-hover-popup">
+            <div class="nav-table-columns">
+              <div class="nav-table-column">
+                <h3>Pub.dev</h3>
+                <a class="nav-link" target="_blank" rel="noopener" href="/help/search">Searching for packages</a>
+                <a class="nav-link" target="_blank" rel="noopener" href="/help/scoring">Package scoring and pub points</a>
+              </div>
+              <div class="nav-table-column">
+                <h3>Flutter</h3>
+                <a class="nav-link" target="_blank" rel="noopener" href="https://flutter.io/using-packages/">Using packages</a>
+                <a class="nav-link" target="_blank" rel="noopener" href="https://flutter.io/developing-packages/">Developing packages and plugins</a>
+                <a class="nav-link" target="_blank" rel="noopener" href="https://dart.dev/tools/pub/publishing">Publishing a package</a>
+              </div>
+              <div class="nav-table-column">
+                <h3>Dart</h3>
+                <a class="nav-link" target="_blank" rel="noopener" href="https://dart.dev/tools/pub/get-started">Using packages</a>
+                <a class="nav-link" target="_blank" rel="noopener" href="https://dart.dev/tools/pub/publishing">Publishing a package</a>
+              </div>
+            </div>
           </div>
-          <nav class="site-nav">
-            <span>Getting Started:</span>
-            <div class="sub-wrap hoverable">
-              <button class="button">Flutter</button>
-              <div class="sub-nav">
-                <a class="link" target="_blank" rel="noopener" href="https://flutter.io/using-packages/">Using packages</a>
-                <a class="link" target="_blank" rel="noopener" href="https://flutter.io/developing-packages/">Developing packages and plugins</a>
-                <a class="link" target="_blank" rel="noopener" href="https://dart.dev/tools/pub/publishing">Publishing a package</a>
-                <a class="link" target="_blank" rel="noopener" href="https://dart.dev/tools/pub">Pub tool</a>
-              </div>
-            </div>
-            <div class="sub-wrap hoverable">
-              <button class="button">Web &amp; Server</button>
-              <div class="sub-nav">
-                <a class="link" target="_blank" rel="noopener" href="https://dart.dev/tools/pub/get-started">Using packages</a>
-                <a class="link" target="_blank" rel="noopener" href="https://dart.dev/tools/pub/publishing">Publishing a package</a>
-                <a class="link" target="_blank" rel="noopener" href="https://dart.dev/tools/pub">Pub tool</a>
-              </div>
-            </div>
-          </nav>
-          <div></div>
         </div>
-        <div id="account-nav">
-          <a id="-account-login" class="link">Sign in</a>
+        <div class="nav-container nav-help-container-mobile foldable">
+          <h3 class="foldable-button">Pub.dev 
+            <img class="foldable-icon" src="/static/img/nav-mobile-foldable-icon.svg?hash=mocked_hash_806401648"/>
+          </h3>
+          <div class="foldable-content">
+            <a class="nav-link" target="_blank" rel="noopener" href="/help/search">Searching for packages</a>
+            <a class="nav-link" target="_blank" rel="noopener" href="/help/scoring">Package scoring and pub points</a>
+          </div>
         </div>
-      </div>
-    </header>
-    <div id="banner-container"></div>
-    <div class="_banner-bg">
-      <div class="container">
-        <form class="search-bar banner-item" action="/packages">
-          <input class="input" name="q" placeholder="Search packages" autocomplete="on" autofocus="autofocus"/>
-          <button class="icon"></button>
-          <input id="search-legacy-field" type="hidden" name="legacy" value="1" disabled="disabled"/>
-        </form>
+        <div class="nav-container nav-help-container-mobile foldable">
+          <h3 class="foldable-button">Flutter 
+            <img class="foldable-icon" src="/static/img/nav-mobile-foldable-icon.svg?hash=mocked_hash_806401648"/>
+          </h3>
+          <div class="foldable-content">
+            <a class="nav-link" target="_blank" rel="noopener" href="https://flutter.io/using-packages/">Using packages</a>
+            <a class="nav-link" target="_blank" rel="noopener" href="https://flutter.io/developing-packages/">Developing packages and plugins</a>
+            <a class="nav-link" target="_blank" rel="noopener" href="https://dart.dev/tools/pub/publishing">Publishing a package</a>
+          </div>
+        </div>
+        <div class="nav-container nav-help-container-mobile foldable">
+          <h3 class="foldable-button">Dart 
+            <img class="foldable-icon" src="/static/img/nav-mobile-foldable-icon.svg?hash=mocked_hash_806401648"/>
+          </h3>
+          <div class="foldable-content">
+            <a class="nav-link" target="_blank" rel="noopener" href="https://dart.dev/tools/pub/get-started">Using packages</a>
+            <a class="nav-link" target="_blank" rel="noopener" href="https://dart.dev/tools/pub/publishing">Publishing a package</a>
+          </div>
+        </div>
       </div>
     </div>
+    <div id="banner-container"></div>
     <main class="container">
       <div class="detail-wrapper -active">
         <div class="detail-header">

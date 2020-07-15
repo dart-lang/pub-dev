@@ -1,57 +1,96 @@
 {{! Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
-<header class="site-header-row">
-  <div class="site-header">
-    <h1 class="_visuallyhidden">Dart pub</h1>
-    <button class="hamburger"></button>
-    <div class="mask"></div>
-    <div class="nav-wrap">
-      <div class="nav-header"><a class="logo" href="/"><img src="{{& site_logo_url}}" alt="dart pub logo" /></a>
-        <div class="_flex-space"></div>
-        <button class="close"></button>
-      </div>
-      <nav class="site-nav">
-        <span>Getting Started:</span>
-        <div class="sub-wrap hoverable">
-          <button class="button">Flutter</button>
-          <div class="sub-nav">
-            <a class="link" target="_blank" rel="noopener" href="https://flutter.io/using-packages/">Using packages</a>
-            <a class="link" target="_blank" rel="noopener" href="https://flutter.io/developing-packages/">Developing packages and plugins</a>
-            <a class="link" target="_blank" rel="noopener" href="{{& dart_site_root}}/tools/pub/publishing">Publishing a package</a>
-            <a class="link" target="_blank" rel="noopener" href="{{& dart_site_root}}/tools/pub">Pub tool</a>
-          </div>
-        </div>
-        <div class="sub-wrap hoverable">
-          <button class="button">Web &amp; Server</button>
-          <div class="sub-nav">
-            <a class="link" target="_blank" rel="noopener" href="{{& dart_site_root}}/tools/pub/get-started">Using packages</a>
-            <a class="link" target="_blank" rel="noopener" href="{{& dart_site_root}}/tools/pub/publishing">Publishing a package</a>
-            <a class="link" target="_blank" rel="noopener" href="{{& dart_site_root}}/tools/pub">Pub tool</a>
-          </div>
-        </div>
-      </nav>
-      <div>&nbsp;</div>
+<div class="site-header">
+  <button class="hamburger"></button>
+  {{#show_site_logo}}
+  <a class="logo" href="/">
+    <img class="site-logo" src="{{& site_logo_url}}" alt="pub logo" />
+  </a>
+  {{/show_site_logo}}
+  <div class="site-header-space"></div>
+  <div class="site-header-mask"></div>
+  <div class="site-header-nav scroll-container">
+    {{^is_logged_in}}
+    <div class="nav-login-container">
+      <button class="nav-main-button link" id="-account-login">Sign in</button>
     </div>
-    <div id="account-nav">
-      {{^is_logged_in}}
-      <a id="-account-login" class="link">Sign in</a>
-      {{/is_logged_in}}
-      {{#is_logged_in}}
-      <div id="-account-profile" class="sub-wrap hoverable">
-        <img class="profile-img" id="-account-profile-img" src="{{& user_session.image_url}}" />
-        <div class="sub-nav sub-nav-right">
-          <div class="account-nav-info"><span id="-account-profile-email">{{user_session.email}}</span></div>
-          <div class="account-nav-divider"></div>
-          <div class="account-nav-link"><a href="{{& my_packages_url}}">My packages</a></div>
-          <div class="account-nav-link"><a href="{{& my_liked_packages_url}}">My liked packages</a></div>
-          <div class="account-nav-link"><a href="{{& my_publishers_url}}">My publishers</a></div>
-          <div class="account-nav-link"><a href="{{& create_publisher_url}}">Create publisher</a></div>
-          <div class="account-nav-divider"></div>
-          <div class="account-nav-link"><a id="-account-logout" class="link">Sign out</a></div>
+    {{/is_logged_in}}
+    {{#is_logged_in}}
+    <div id="-account-profile" class="nav-container nav-my-container hoverable">
+      <button class="nav-main-button">My pub.dev</button>
+      <div class="nav-hover-popup">
+        <div class="nav-table-column">
+          <a class="nav-link" href="{{& my_packages_url}}">My packages</a>
+          <a class="nav-link" href="{{& my_liked_packages_url}}">My liked packages</a>
+          <a class="nav-link" href="{{& my_publishers_url}}">My publishers</a>
+          <a class="nav-link" href="{{& create_publisher_url}}">Create publisher</a>
         </div>
       </div>
-      {{/is_logged_in}}
     </div>
+    {{/is_logged_in}}
+    <div class="nav-container nav-help-container hoverable">
+      <button class="nav-main-button">Help</button>
+      <div class="nav-hover-popup">
+        <div class="nav-table-columns">
+          <div class="nav-table-column">
+            <h3>Pub.dev</h3>
+            <a class="nav-link" target="_blank" rel="noopener" href="/help/search">Searching for packages</a>
+            <a class="nav-link" target="_blank" rel="noopener" href="/help/scoring">Package scoring and pub points</a>
+          </div>
+          <div class="nav-table-column">
+            <h3>Flutter</h3>
+            <a class="nav-link" target="_blank" rel="noopener" href="https://flutter.io/using-packages/">Using packages</a>
+            <a class="nav-link" target="_blank" rel="noopener" href="https://flutter.io/developing-packages/">Developing packages and plugins</a>
+            <a class="nav-link" target="_blank" rel="noopener" href="{{& dart_site_root}}/tools/pub/publishing">Publishing a package</a>
+          </div>
+          <div class="nav-table-column">
+            <h3>Dart</h3>
+            <a class="nav-link" target="_blank" rel="noopener" href="{{& dart_site_root}}/tools/pub/get-started">Using packages</a>
+            <a class="nav-link" target="_blank" rel="noopener" href="{{& dart_site_root}}/tools/pub/publishing">Publishing a package</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="nav-container nav-help-container-mobile foldable">
+      <h3 class="foldable-button">Pub.dev <img class="foldable-icon" src="{{& static_assets.img__nav-mobile-foldable-icon_svg}}" /></h3>
+      <div class="foldable-content">
+        <a class="nav-link" target="_blank" rel="noopener" href="/help/search">Searching for packages</a>
+        <a class="nav-link" target="_blank" rel="noopener" href="/help/scoring">Package scoring and pub points</a>
+      </div>
+    </div>
+    <div class="nav-container nav-help-container-mobile foldable">
+      <h3 class="foldable-button">Flutter <img class="foldable-icon" src="{{& static_assets.img__nav-mobile-foldable-icon_svg}}" /></h3>
+      <div class="foldable-content">
+        <a class="nav-link" target="_blank" rel="noopener" href="https://flutter.io/using-packages/">Using packages</a>
+        <a class="nav-link" target="_blank" rel="noopener" href="https://flutter.io/developing-packages/">Developing packages and plugins</a>
+        <a class="nav-link" target="_blank" rel="noopener" href="{{& dart_site_root}}/tools/pub/publishing">Publishing a package</a>
+      </div>
+    </div>
+    <div class="nav-container nav-help-container-mobile foldable">
+      <h3 class="foldable-button">Dart <img class="foldable-icon" src="{{& static_assets.img__nav-mobile-foldable-icon_svg}}" /></h3>
+      <div class="foldable-content">
+        <a class="nav-link" target="_blank" rel="noopener" href="{{& dart_site_root}}/tools/pub/get-started">Using packages</a>
+        <a class="nav-link" target="_blank" rel="noopener" href="{{& dart_site_root}}/tools/pub/publishing">Publishing a package</a>
+      </div>
+    </div>
+    {{#is_logged_in}}
+    <div class="nav-container nav-profile-container hoverable">
+      <img class="nav-profile-img nav-profile-image-desktop" src="{{& user_session.image_url}}" />
+      <div class="nav-hover-popup">
+        <div class="nav-table-column">
+          <div class="nav-account-title-mobile">
+            <img class="nav-profile-img nav-profile-img-mobile" src="{{& user_session.image_url}}" />
+            <div class="nav-account-title">
+              {{#user_session.has_name}}<div class="nav-account-name">{{user_session.name}}</div>{{/user_session.has_name}}
+              <div class="nav-account-email" id="-account-profile-email">{{user_session.email}}</div>
+            </div>
+          </div>
+          <div class="nav-separator"></div>
+          <a class="nav-link" id="-account-logout">Sign out</a>
+        </div>
+      </div>
+    </div>
+    {{/is_logged_in}}
   </div>
-</header>
+</div>
