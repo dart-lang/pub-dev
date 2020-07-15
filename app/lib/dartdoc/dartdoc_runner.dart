@@ -216,7 +216,7 @@ class DartdocJobProcessor extends JobProcessor {
         logFileOutput.write('No content found!\n\n');
       }
 
-      final entry = await _createEntry(
+      entry = await _createEntry(
           job, outputDir, usesFlutter, depsResolved, hasContent);
       logFileOutput.write('entry created: ${entry.uuid}\n\n');
 

@@ -2,9 +2,10 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Fixed: storing dartdoc entries on `DartdocReport`.
 
 ## `20200714t110212-all`
-
+ * Enabled new UI by default.
  * Increased diskspace for analyzer and dartdoc to 25 GB
 
 ## `20200710t174722-all`
