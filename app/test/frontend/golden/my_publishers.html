@@ -110,49 +110,66 @@
       </div>
     </div>
     <main class="container">
-      <div class="detail-wrapper -active">
+      <div class="detail-wrapper -active -has-info-box">
         <div class="detail-header">
-          <h2 class="title">User hans@juergen.com</h2>
-          <div class="metadata">
-    Joined on Jan 1, 2014
-    
-            <div class="tags"></div>
+          <div class="detail-container">
+            <div class="detail-header-outer-block">
+              <div class="detail-header-content-block">
+                <h1 class="title">User hans@juergen.com</h1>
+                <div class="metadata">Joined on Jan 1, 2014</div>
+                <div class="detail-tags-and-like">
+                  <div class="detail-tags"></div>
+                  <div class="detail-like"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="detail-container">
+          <div class="detail-lead">
+            <div class="detail-metadata-toggle">
+              <div class="detail-metadata-toggle-icon">→</div>
+              <h3 class="detail-lead-title">Metadata</h3>
+            </div>
+            <p class="detail-lead-text"></p>
           </div>
         </div>
         <div class="detail-body">
-          <div class="detail-tabs-wide-header">
-            <div class="detail-container">
-              <ul class="detail-tabs-header">
-                <li class="tab-link" data-name="-packages-tab-" role="button">
-                  <a href="/my-packages">My packages</a>
-                </li>
-                <li class="tab-link" data-name="-liked-packages-tab-" role="button">
-                  <a href="/my-liked-packages">My liked packages</a>
-                </li>
-                <li class="tab-button -active" data-ga-click-event="tab:publishers" data-name="-publishers-tab-" role="button">My publishers</li>
-              </ul>
+          <div class="detail-tabs">
+            <div class="detail-tabs-wide-header">
+              <div class="detail-container">
+                <ul class="detail-tabs-header">
+                  <li class="detail-tab tab-link detail-tab-packages-title" data-name="-packages-tab-" role="button">
+                    <a href="/my-packages">My packages</a>
+                  </li>
+                  <li class="detail-tab tab-link detail-tab-liked-packages-title" data-name="-liked-packages-tab-" role="button">
+                    <a href="/my-liked-packages">My liked packages</a>
+                  </li>
+                  <li class="detail-tab tab-button detail-tab-publishers-title -active" data-ga-click-event="tab:publishers" data-name="-publishers-tab-" role="button">My publishers</li>
+                </ul>
+              </div>
             </div>
-          </div>
-          <div class="detail-container detail-body-main">
-            <div class="detail-tabs-content">
-              <section class="tab-content -active" data-name="-publishers-tab-">
-                <div class="publishers">
-                  <div class="publishers-item">
-                    <h3 class="publishers-item-title">
-                      <a href="/publishers/example.com">example.com</a>
-                    </h3>
-                    <p>
+            <div class="detail-container detail-body-main">
+              <div class="detail-tabs-content">
+                <section class="tab-content -active" data-name="-publishers-tab-">
+                  <div class="publishers">
+                    <div class="publishers-item">
+                      <h3 class="publishers-item-title">
+                        <a href="/publishers/example.com">example.com</a>
+                      </h3>
+                      <p>
       Registered on Jul 15, 2019.
     </p>
+                    </div>
                   </div>
-                </div>
-                <h3>Want to create a new publisher?</h3>
-                <p>
+                  <h3>Want to create a new publisher?</h3>
+                  <p>
   Use the 
-                  <a href="/create-publisher">create publisher</a> page.
+                    <a href="/create-publisher">create publisher</a> page.
 
-                </p>
-              </section>
+                  </p>
+                </section>
+              </div>
             </div>
           </div>
           <aside class="detail-info-box">
@@ -161,6 +178,17 @@
             <h3 class="title">Joined</h3>
             <p>Jan 1, 2014</p>
           </aside>
+        </div>
+      </div>
+      <div class="detail-metadata">
+        <h3 class="detail-metadata-title">
+          <span class="detail-metadata-toggle">←</span> Metadata
+        </h3>
+        <div class="detail-info-box">
+          <h3 class="title">Email</h3>
+          <p>hans@juergen.com</p>
+          <h3 class="title">Joined</h3>
+          <p>Jan 1, 2014</p>
         </div>
       </div>
     </main>

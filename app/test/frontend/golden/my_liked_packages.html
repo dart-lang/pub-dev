@@ -110,70 +110,87 @@
       </div>
     </div>
     <main class="container">
-      <div class="detail-wrapper -active">
+      <div class="detail-wrapper -active -has-info-box">
         <div class="detail-header">
-          <h2 class="title">User hans@juergen.com</h2>
-          <div class="metadata">
-    Joined on Jan 1, 2014
-    
-            <div class="tags"></div>
+          <div class="detail-container">
+            <div class="detail-header-outer-block">
+              <div class="detail-header-content-block">
+                <h1 class="title">User hans@juergen.com</h1>
+                <div class="metadata">Joined on Jan 1, 2014</div>
+                <div class="detail-tags-and-like">
+                  <div class="detail-tags"></div>
+                  <div class="detail-like"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="detail-container">
+          <div class="detail-lead">
+            <div class="detail-metadata-toggle">
+              <div class="detail-metadata-toggle-icon">→</div>
+              <h3 class="detail-lead-title">Metadata</h3>
+            </div>
+            <p class="detail-lead-text"></p>
           </div>
         </div>
         <div class="detail-body">
-          <div class="detail-tabs-wide-header">
-            <div class="detail-container">
-              <ul class="detail-tabs-header">
-                <li class="tab-link" data-name="-packages-tab-" role="button">
-                  <a href="/my-packages">My packages</a>
-                </li>
-                <li class="tab-button -active" data-ga-click-event="tab:liked-packages" data-name="-liked-packages-tab-" role="button">My liked packages</li>
-                <li class="tab-link" data-name="-publishers-tab-" role="button">
-                  <a href="/my-publishers">My publishers</a>
-                </li>
-              </ul>
+          <div class="detail-tabs">
+            <div class="detail-tabs-wide-header">
+              <div class="detail-container">
+                <ul class="detail-tabs-header">
+                  <li class="detail-tab tab-link detail-tab-packages-title" data-name="-packages-tab-" role="button">
+                    <a href="/my-packages">My packages</a>
+                  </li>
+                  <li class="detail-tab tab-button detail-tab-liked-packages-title -active" data-ga-click-event="tab:liked-packages" data-name="-liked-packages-tab-" role="button">My liked packages</li>
+                  <li class="detail-tab tab-link detail-tab-publishers-title" data-name="-publishers-tab-" role="button">
+                    <a href="/my-publishers">My publishers</a>
+                  </li>
+                </ul>
+              </div>
             </div>
-          </div>
-          <div class="detail-container detail-body-main">
-            <div class="detail-tabs-content">
-              <section class="tab-content -active" data-name="-liked-packages-tab-">
-                <p>You like 2 packages. </p>
-                <div class="packages -compact">
-                  <div class="packages-item">
-                    <div class="packages-header">
-                      <h3 class="packages-title">
-                        <a href="/packages/super_package">super_package</a>
-                      </h3>
-                      <div class="packages-icons">
-                        <button class="mdc-button mdc-button--unelevated -pub-like-button" data-mdc-auto-init="MDCRipple" data-package="super_package" data-thumb_up_outlined="/static/img/thumb-up-24px.svg?hash=mocked_hash_808020279" data-thumb_up_filled="/static/img/thumb-up-filled-24px.svg?hash=mocked_hash_368133424">
-                          <div class="mdc-button__ripple"></div>
-                          <img class="mdc-button__icon -pub-like-button-img" src="/static/img/thumb-up-filled-24px.svg?hash=mocked_hash_368133424" aria-hidden="true"/>
-                          <span class="mdc-button__label -pub-like-button-text">Unlike</span>
-                        </button>
+            <div class="detail-container detail-body-main">
+              <div class="detail-tabs-content">
+                <section class="tab-content -active" data-name="-liked-packages-tab-">
+                  <p>You like 2 packages. </p>
+                  <div class="packages -compact">
+                    <div class="packages-item">
+                      <div class="packages-header">
+                        <h3 class="packages-title">
+                          <a href="/packages/super_package">super_package</a>
+                        </h3>
+                        <div class="packages-icons">
+                          <button class="mdc-button mdc-button--unelevated -pub-like-button" data-mdc-auto-init="MDCRipple" data-package="super_package" data-thumb_up_outlined="/static/img/thumb-up-24px.svg?hash=mocked_hash_808020279" data-thumb_up_filled="/static/img/thumb-up-filled-24px.svg?hash=mocked_hash_368133424">
+                            <div class="mdc-button__ripple"></div>
+                            <img class="mdc-button__icon -pub-like-button-img" src="/static/img/thumb-up-filled-24px.svg?hash=mocked_hash_368133424" aria-hidden="true"/>
+                            <span class="mdc-button__label -pub-like-button-text">Unlike</span>
+                          </button>
+                        </div>
                       </div>
+                      <p class="packages-metadata"> Liked on: 
+                        <span>Nov 22, 2019</span>
+                      </p>
                     </div>
-                    <p class="packages-metadata"> Liked on: 
-                      <span>Nov 22, 2019</span>
-                    </p>
-                  </div>
-                  <div class="packages-item">
-                    <div class="packages-header">
-                      <h3 class="packages-title">
-                        <a href="/packages/another_package">another_package</a>
-                      </h3>
-                      <div class="packages-icons">
-                        <button class="mdc-button mdc-button--unelevated -pub-like-button" data-mdc-auto-init="MDCRipple" data-package="another_package" data-thumb_up_outlined="/static/img/thumb-up-24px.svg?hash=mocked_hash_808020279" data-thumb_up_filled="/static/img/thumb-up-filled-24px.svg?hash=mocked_hash_368133424">
-                          <div class="mdc-button__ripple"></div>
-                          <img class="mdc-button__icon -pub-like-button-img" src="/static/img/thumb-up-filled-24px.svg?hash=mocked_hash_368133424" aria-hidden="true"/>
-                          <span class="mdc-button__label -pub-like-button-text">Unlike</span>
-                        </button>
+                    <div class="packages-item">
+                      <div class="packages-header">
+                        <h3 class="packages-title">
+                          <a href="/packages/another_package">another_package</a>
+                        </h3>
+                        <div class="packages-icons">
+                          <button class="mdc-button mdc-button--unelevated -pub-like-button" data-mdc-auto-init="MDCRipple" data-package="another_package" data-thumb_up_outlined="/static/img/thumb-up-24px.svg?hash=mocked_hash_808020279" data-thumb_up_filled="/static/img/thumb-up-filled-24px.svg?hash=mocked_hash_368133424">
+                            <div class="mdc-button__ripple"></div>
+                            <img class="mdc-button__icon -pub-like-button-img" src="/static/img/thumb-up-filled-24px.svg?hash=mocked_hash_368133424" aria-hidden="true"/>
+                            <span class="mdc-button__label -pub-like-button-text">Unlike</span>
+                          </button>
+                        </div>
                       </div>
+                      <p class="packages-metadata"> Liked on: 
+                        <span>Nov 22, 2019</span>
+                      </p>
                     </div>
-                    <p class="packages-metadata"> Liked on: 
-                      <span>Nov 22, 2019</span>
-                    </p>
                   </div>
-                </div>
-              </section>
+                </section>
+              </div>
             </div>
           </div>
           <aside class="detail-info-box">
@@ -182,6 +199,17 @@
             <h3 class="title">Joined</h3>
             <p>Jan 1, 2014</p>
           </aside>
+        </div>
+      </div>
+      <div class="detail-metadata">
+        <h3 class="detail-metadata-title">
+          <span class="detail-metadata-toggle">←</span> Metadata
+        </h3>
+        <div class="detail-info-box">
+          <h3 class="title">Email</h3>
+          <p>hans@juergen.com</p>
+          <h3 class="title">Joined</h3>
+          <p>Jan 1, 2014</p>
         </div>
       </div>
     </main>
