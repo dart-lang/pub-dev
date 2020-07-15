@@ -68,7 +68,7 @@ void main() {
         final list =
             await packageBackend.latestPackageVersions(offset: 2, limit: 1);
         expect(list.map((pv) => pv.qualifiedVersionKey.toString()),
-            ['helium-2.0.5']);
+            ['helium/2.0.5']);
       });
 
       testWithServices('empty', () async {
@@ -120,7 +120,7 @@ void main() {
         final list = await packageBackend
             .lookupLatestVersions([hydrogen.package, helium.package]);
         expect(list.map((pv) => pv.qualifiedVersionKey.toString()),
-            ['hydrogen-2.0.8', 'helium-2.0.5']);
+            ['hydrogen/2.0.8', 'helium/2.0.5']);
       });
     });
 

@@ -4,6 +4,7 @@
 
 library pub_dartlang_org.appengine_repository.models;
 
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:gcloud/db.dart' as db;
@@ -296,6 +297,12 @@ class PackageVersionPubspec extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)
   String version;
 
+  /// The created timestamp of the [PackageVersion] (the time of publishing).
+  // TODO: add required: true once we run the backfill and removed outdated entities
+  @db.DateTimeProperty()
+  DateTime versionCreated;
+
+  // TODO: add required: true once we run the backfill and removed outdated entities
   @db.DateTimeProperty()
   DateTime updated;
 
@@ -303,6 +310,24 @@ class PackageVersionPubspec extends db.ExpandoModel<String> {
   Pubspec pubspec;
 
   PackageVersionPubspec();
+
+  /// Updates the current instance with the newly [derived] data.
+  /// Returns true if the current instance changed.
+  bool updateIfChanged(PackageVersionPubspec derived) {
+    var changed = false;
+    if (versionCreated != derived.versionCreated) {
+      versionCreated = derived.versionCreated;
+      changed = true;
+    }
+    if (pubspec?.jsonString != derived.pubspec?.jsonString) {
+      pubspec = derived.pubspec;
+      changed = true;
+    }
+    if (changed) {
+      updated = DateTime.now().toUtc();
+    }
+    return changed;
+  }
 
   void initFromKey(QualifiedVersionKey key) {
     id = key.qualifiedVersion;
@@ -327,21 +352,152 @@ class PackageVersionInfo extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)
   String version;
 
+  /// The created timestamp of the [PackageVersion] (the time of publishing).
+  // TODO: add required: true once we run the backfill and removed outdated entities
+  @db.DateTimeProperty()
+  DateTime versionCreated;
+
+  // TODO: add required: true once we run the backfill and removed outdated entities
   @db.DateTimeProperty()
   DateTime updated;
 
-  @CompatibleStringListProperty()
-  List<String> libraries;
+  @db.StringListProperty()
+  List<String> libraries = <String>[];
 
+  // TODO: add required: true once we run the backfill and removed outdated entities
   @db.IntProperty()
   int libraryCount;
 
+  /// The [AssetKind] identifier of assets extracted from the archive.
+  @db.StringListProperty()
+  List<String> assets = <String>[];
+
+  @db.IntProperty()
+  int assetCount;
+
   PackageVersionInfo();
+
+  /// Updates the current instance with the newly [derived] data.
+  /// Returns true if the current instance changed.
+  bool updateIfChanged(PackageVersionInfo derived) {
+    var changed = false;
+    if (versionCreated != derived.versionCreated) {
+      versionCreated = derived.versionCreated;
+      changed = true;
+    }
+    // TODO: implement more efficient difference check
+    if (json.encode(libraries) != json.encode(derived.libraries)) {
+      libraries = derived.libraries;
+      libraryCount = libraries?.length ?? 0;
+      changed = true;
+    }
+    // TODO: implement more efficient difference check
+    if (json.encode(assets) != json.encode(derived.assets)) {
+      assets = derived.assets;
+      assetCount = assets?.length ?? 0;
+      changed = true;
+    }
+    if (changed) {
+      updated = DateTime.now().toUtc();
+    }
+    return changed;
+  }
 
   void initFromKey(QualifiedVersionKey key) {
     id = key.qualifiedVersion;
     package = key.package;
     version = key.version;
+  }
+
+  QualifiedVersionKey get qualifiedVersionKey {
+    return QualifiedVersionKey(
+      package: package,
+      version: version,
+    );
+  }
+}
+
+/// The kind classifier of the extracted [PackageVersionAsset].
+abstract class AssetKind {
+  static const pubspec = 'pubspec';
+  static const readme = 'readme';
+  static const changelog = 'changelog';
+  static const example = 'example';
+}
+
+/// A derived entity that holds extracted asset of a [PackageVersion] archive.
+@db.Kind(name: 'PackageVersionAsset', idType: db.IdType.String)
+class PackageVersionAsset extends db.ExpandoModel {
+  /// ID format: an URI path with <package>/<version>/<kind>
+  String get assetId => id as String;
+
+  @db.StringProperty(required: true)
+  String package;
+
+  @db.StringProperty(required: true)
+  String version;
+
+  @db.StringProperty(required: true)
+  String packageVersion;
+
+  /// One of the values in [AssetKind].
+  @db.StringProperty(required: true)
+  String kind;
+
+  /// The created timestamp of the [PackageVersion] (the time of publishing).
+  @db.DateTimeProperty(required: true)
+  DateTime versionCreated;
+
+  @db.DateTimeProperty(required: true)
+  DateTime updated;
+
+  @db.StringProperty(required: true)
+  String path;
+
+  @db.IntProperty(required: true)
+  int contentLength;
+
+  @db.StringProperty(required: true)
+  String textContent;
+
+  PackageVersionAsset();
+
+  PackageVersionAsset.init({
+    @required this.package,
+    @required this.version,
+    @required this.kind,
+    @required this.versionCreated,
+    DateTime updated,
+    @required this.path,
+    @required this.textContent,
+  }) {
+    id = Uri(pathSegments: [package, version, kind]).path;
+    packageVersion = Uri(pathSegments: [package, version]).path;
+    this.updated = updated ?? DateTime.now().toUtc();
+    contentLength = textContent.length;
+  }
+
+  /// Updates the current instance with the newly [derived] data.
+  /// Returns true if the current instance changed.
+  bool updateIfChanged(PackageVersionAsset derived) {
+    var changed = false;
+    if (versionCreated != derived.versionCreated) {
+      versionCreated = derived.versionCreated;
+      changed = true;
+    }
+    if (path != derived.path) {
+      path = derived.path;
+      changed = true;
+    }
+    if (textContent != derived.textContent) {
+      textContent = derived.textContent;
+      contentLength = textContent.length;
+      changed = true;
+    }
+    if (changed) {
+      updated = DateTime.now().toUtc();
+    }
+    return changed;
   }
 
   QualifiedVersionKey get qualifiedVersionKey {
@@ -384,7 +540,14 @@ class QualifiedVersionKey {
     @required this.version,
   });
 
-  String get qualifiedVersion => '$package-$version';
+  /// The qualified key in `<package>-<version>` format.
+  String get oldQualifiedVersion => '$package-$version';
+
+  /// The qualified key in `<package>/<version>` format.
+  String get qualifiedVersion => Uri(pathSegments: [package, version]).path;
+
+  String assetId(String kind) =>
+      Uri(pathSegments: [package, version, kind]).path;
 
   @override
   bool operator ==(Object other) =>

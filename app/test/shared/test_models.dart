@@ -207,6 +207,7 @@ PackageVersionPubspec _pvPubspec(PackageVersion pv) {
   return PackageVersionPubspec()
     ..parentKey = pv.parentKey.parent
     ..initFromKey(pv.qualifiedVersionKey)
+    ..versionCreated = pv.created
     ..updated = pv.created
     ..pubspec = pv.pubspec;
 }
@@ -215,6 +216,7 @@ PackageVersionInfo _pvInfo(PackageVersion pv) {
   return PackageVersionInfo()
     ..parentKey = pv.parentKey.parent
     ..initFromKey(pv.qualifiedVersionKey)
+    ..versionCreated = pv.created
     ..updated = pv.created
     ..libraries = pv.libraries
     ..libraryCount = pv.libraries.length;

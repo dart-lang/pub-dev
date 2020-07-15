@@ -180,6 +180,11 @@ Future removePackageVersion(String packageName, String version) async {
   );
 
   await _deleteWithQuery(
+    dbService.query<PackageVersionAsset>()..filter('package =', packageName),
+    where: (PackageVersionAsset asset) => asset.version == version,
+  );
+
+  await _deleteWithQuery(
     dbService.query<Job>()..filter('packageName =', packageName),
     where: (Job job) => job.packageVersion == version,
   );

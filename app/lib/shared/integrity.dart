@@ -297,16 +297,47 @@ class IntegrityChecker {
     final pviQuery = _db.query<PackageVersionInfo>()
       ..filter('package =', p.name);
     final pviKeys = <QualifiedVersionKey>{};
+    final referencedAssetIds = <String>[];
     await for (PackageVersionInfo pvi in pviQuery.run()) {
       final key = pvi.qualifiedVersionKey;
       pviKeys.add(key);
       if (!qualifiedVersionKeys.contains(key)) {
         _problems.add('PackageVersionInfo($key) has no PackageVersion.');
       }
+      if (pvi.assets != null) {
+        for (final kind in pvi.assets) {
+          referencedAssetIds.add(key.assetId(kind));
+        }
+      }
     }
     for (QualifiedVersionKey key in qualifiedVersionKeys) {
       if (!pviKeys.contains(key)) {
         _problems.add('PackageVersion($key) has no PackageVersionInfo.');
+      }
+    }
+
+    // Checking if PackageVersionAsset is referenced by a PackageVersion entity.
+    final pvaQuery = _db.query<PackageVersionAsset>()
+      ..filter('package =', p.name);
+    final foundAssetIds = <String>{};
+    await for (PackageVersionAsset pva in pvaQuery.run()) {
+      final key = pva.qualifiedVersionKey;
+      if (!qualifiedVersionKeys.contains(key)) {
+        _problems.add('PackageVersionAsset(${pva.id}) has no PackageVersion.');
+      }
+      foundAssetIds.add(pva.assetId);
+      // check if PackageVersionAsset is referenced in PackageVersionInfo
+      if (!referencedAssetIds.contains(pva.assetId)) {
+        _problems.add(
+            'PackageVersionAsset(${pva.id}) is not referenced from PackageVersionInfo.');
+      }
+    }
+
+    // check if all of PackageVersionInfo.assets exist
+    for (final id in referencedAssetIds) {
+      if (!foundAssetIds.contains(id)) {
+        _problems.add(
+            'PackageVersionAsset($id) is referenced from PackageVersionInfo but does not exist.');
       }
     }
 
