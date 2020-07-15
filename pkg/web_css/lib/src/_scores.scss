@@ -83,6 +83,7 @@
     color: #6d7278;
     font-weight: 400;
     text-align: center;
+    white-space: nowrap;
 
     &.-has-value {
       color: $color-input-primary;
@@ -116,6 +117,7 @@
     letter-spacing: 0.1px;
     text-transform: uppercase;
     text-align: center;
+    white-space: nowrap;
 
     @media (min-width: $device-desktop-min-width) {
       font-size: 12x;
