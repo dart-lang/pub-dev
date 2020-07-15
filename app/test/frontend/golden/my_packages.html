@@ -120,6 +120,8 @@
                       <option value="top">overall score</option>
                       <option value="updated">recently updated</option>
                       <option value="created">newest package</option>
+                      <option value="like">most likes</option>
+                      <option value="points">most pub points</option>
                       <option value="popularity">popularity</option>
                     </select>
                     <div class="tooltip-content tooltip-bottom-left">
@@ -133,47 +135,101 @@
 You own 2 packages.
 
 
-                <ul class="package-list">
-                  <li class="list-item -full">
-                    <a href="/packages/super_package#-analysis-tab-">
-                      <div class="score-box">
-                        <span class="number -solid" title="Analysis and more details.">97</span>
-                      </div>
-                    </a>
-                    <h3 class="title">
-                      <a href="/packages/super_package">super_package</a>
-                    </h3>
-                    <p class="description">A great web UI library.</p>
-                    <p class="metadata">
+                <div class="packages">
+                  <div class="packages-item">
+                    <div class="packages-header">
+                      <h3 class="packages-title">
+                        <a href="/packages/super_package">super_package</a>
+                      </h3>
+                      <a class="packages-scores" href="/packages/super_package#-analysis-tab-">
+                        <div class="packages-score packages-score-like">
+                          <div class="packages-score-value">
+                            <span class="packages-score-value-number">--</span>
+                            <span class="packages-score-value-sign"></span>
+                          </div>
+                          <div class="packages-score-label">likes</div>
+                        </div>
+                        <div class="packages-score packages-score-health">
+                          <div class="packages-score-value">
+                            <span class="packages-score-value-number">--</span>
+                            <span class="packages-score-value-sign"></span>
+                          </div>
+                          <div class="packages-score-label">pub points</div>
+                        </div>
+                        <div class="packages-score packages-score-popularity">
+                          <div class="packages-score-value">
+                            <span class="packages-score-value-number">--</span>
+                            <span class="packages-score-value-sign">%</span>
+                          </div>
+                          <div class="packages-score-label">popularity</div>
+                        </div>
+                      </a>
+                    </div>
+                    <p class="packages-description">A great web UI library.</p>
+                    <p class="packages-metadata">
+                      <span class="packages-metadata-block">
         v 
-                      <a href="/packages/super_package">1.0.0</a>
+                        <a href="/packages/super_package">1.0.0</a>
         
-        • updated: 
-                      <span>3 Jan 2019</span>
-                      <a class="package-tag" href="/dart/packages" title="sdk:dart">dart</a>
+        • Published: 
+                        <span>3 Jan 2019</span>
+                      </span>
                     </p>
-                  </li>
-                  <li class="list-item -full">
-                    <a href="/packages/another_package#-analysis-tab-">
-                      <div class="score-box">
-                        <span class="number -solid" title="Analysis and more details.">90</span>
+                    <div>
+                      <div class="-pub-tag-badge">
+                        <span class="tag-badge-main" title="Packages compatible with Dart SDK">Dart</span>
+                        <span class="tag-badge-sub" title="Packages compatible with Dart compiled for the web">js</span>
                       </div>
-                    </a>
-                    <h3 class="title">
-                      <a href="/packages/another_package">another_package</a>
-                    </h3>
-                    <p class="description">Camera plugin.</p>
-                    <p class="metadata">
+                    </div>
+                  </div>
+                  <div class="packages-item">
+                    <div class="packages-header">
+                      <h3 class="packages-title">
+                        <a href="/packages/another_package">another_package</a>
+                      </h3>
+                      <a class="packages-scores" href="/packages/another_package#-analysis-tab-">
+                        <div class="packages-score packages-score-like">
+                          <div class="packages-score-value">
+                            <span class="packages-score-value-number">--</span>
+                            <span class="packages-score-value-sign"></span>
+                          </div>
+                          <div class="packages-score-label">likes</div>
+                        </div>
+                        <div class="packages-score packages-score-health">
+                          <div class="packages-score-value">
+                            <span class="packages-score-value-number">--</span>
+                            <span class="packages-score-value-sign"></span>
+                          </div>
+                          <div class="packages-score-label">pub points</div>
+                        </div>
+                        <div class="packages-score packages-score-popularity">
+                          <div class="packages-score-value">
+                            <span class="packages-score-value-number">--</span>
+                            <span class="packages-score-value-sign">%</span>
+                          </div>
+                          <div class="packages-score-label">popularity</div>
+                        </div>
+                      </a>
+                    </div>
+                    <p class="packages-description">Camera plugin.</p>
+                    <p class="packages-metadata">
+                      <span class="packages-metadata-block">
         v 
-                      <a href="/packages/another_package">2.0.0</a>
+                        <a href="/packages/another_package">2.0.0</a>
          / 
-                      <a href="/packages/another_package/versions/3.0.0-beta2">3.0.0-beta2</a>
-        • updated: 
-                      <span>30 Mar 2019</span>
-                      <a class="package-tag" href="/flutter/packages" title="sdk:flutter">flutter</a>
+                        <a href="/packages/another_package/versions/3.0.0-beta2">3.0.0-beta2</a>
+        • Published: 
+                        <span>30 Mar 2019</span>
+                      </span>
                     </p>
-                  </li>
-                </ul>
+                    <div>
+                      <div class="-pub-tag-badge">
+                        <span class="tag-badge-main" title="Packages compatible with Flutter SDK">Flutter</span>
+                        <span class="tag-badge-sub" title="Packages compatible with Flutter on the Android platform">Android</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <ul class="pagination">
                   <li class="-disabled">
                     <a href="" rel="prev">

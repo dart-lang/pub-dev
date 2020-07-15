@@ -96,84 +96,176 @@
         </div>
       </div>
     </div>
-    <main class="container">
-      <div class="listing-sort-header">
-        <div class="tooltip-base hoverable">
-          <span class="tooltip-dotted">Sorted by:</span>
-          <select id="sort-control">
-            <option value="listing_relevance" selected="selected">listing relevance</option>
-            <option value="top">overall score</option>
-            <option value="updated">recently updated</option>
-            <option value="created">newest package</option>
-            <option value="popularity">popularity</option>
-          </select>
-          <div class="tooltip-content tooltip-bottom-left">
-      Packages are sorted by the combination of their overall score and their specificity to the selected platform. More information on 
-            <a href="/help#ranking">ranking</a>.
-    
+    <main class="">
+      <div class="search-controls">
+        <div class="container">
+          <div class="search-controls-primary">
+            <div class="search-controls-sdk search-controls-tabs">
+              <div class="list-filters">
+                <a class="filter " href="/dart/packages" title="Packages compatible with the Dart SDK">Dart</a>
+                <a class="filter " href="/flutter/packages" title="Packages compatible with the Flutter SDK">Flutter</a>
+                <a class="filter -active" href="/packages" title="Packages compatible with the any SDK">Any</a>
+              </div>
+            </div>
+            <div class="search-controls-sdk search-controls-buttons">
+              <span class="search-controls-label">SDK</span>
+              <div class="list-filters">
+                <a class="filter " href="/dart/packages" title="Packages compatible with the Dart SDK">Dart</a>
+                <a class="filter " href="/flutter/packages" title="Packages compatible with the Flutter SDK">Flutter</a>
+                <a class="filter -active" href="/packages" title="Packages compatible with the any SDK">Any</a>
+              </div>
+            </div>
+            <div class="search-controls-subsdk search-controls-buttons">
+              <span class="search-controls-label"></span>
+            </div>
+            <div class="search-filters-btn search-filters-btn-wrapper search-controls-more">
+        Advanced
+        
+              <img src="/static/img/carot-up.svg?hash=mocked_hash_771440143" class="search-controls-more-carot"/>
+            </div>
+          </div>
+        </div>
+        <div class="search-controls-advanced">
+          <div class="container">
+            <div class="search-controls-checkbox">
+              <input id="search-legacy-checkbox" type="checkbox" name="legacy" valye="1"/>
+              <label for="search-legacy-checkbox">Include Dart 1.x results</label>
+            </div>
           </div>
         </div>
       </div>
-      <h2 class="listing-page-title">Top packages</h2>
-      <ul class="package-list">
-        <li class="list-item -full">
-          <a href="/packages/foobar_pkg#-analysis-tab-">
-            <div class="score-box">
-              <span class="number -rotten" title="Analysis and more details.">0</span>
+      <div class="container">
+        <div class="listing-sort-header">
+          <div class="tooltip-base hoverable">
+            <span class="tooltip-dotted">Sorted by:</span>
+            <select id="sort-control">
+              <option value="listing_relevance" selected="selected">listing relevance</option>
+              <option value="top">overall score</option>
+              <option value="updated">recently updated</option>
+              <option value="created">newest package</option>
+              <option value="like">most likes</option>
+              <option value="points">most pub points</option>
+              <option value="popularity">popularity</option>
+            </select>
+            <div class="tooltip-content tooltip-bottom-left">
+      Packages are sorted by the combination of their overall score and their specificity to the selected platform. More information on 
+              <a href="/help#ranking">ranking</a>.
+    
             </div>
-          </a>
-          <h3 class="title">
-            <a href="/packages/foobar_pkg">foobar_pkg</a>
-          </h3>
-          <p class="description">my package description</p>
-          <p class="metadata">
-        v 
-            <a href="/packages/foobar_pkg">0.1.1+5</a>
-         / 
-            <a href="/packages/foobar_pkg/versions/0.2.0-dev">0.2.0-dev</a>
-        • updated: 
-            <span>Jan 1, 2014</span>
-            <span class="package-tag missing" title="Analysis should be ready soon.">[awaiting]</span>
-          </p>
-        </li>
-        <li class="list-item -full">
-          <a href="/packages/foobar_pkg#-analysis-tab-">
-            <div class="score-box">
-              <span class="number -rotten" title="Analysis and more details.">0</span>
+          </div>
+        </div>
+        <h2 class="listing-page-title">Top packages</h2>
+        <div class="packages">
+          <div class="packages-item">
+            <div class="packages-header">
+              <h3 class="packages-title">
+                <a href="/packages/foobar_pkg">foobar_pkg</a>
+              </h3>
+              <a class="packages-scores" href="/packages/foobar_pkg#-analysis-tab-">
+                <div class="packages-score packages-score-like">
+                  <div class="packages-score-value -has-value">
+                    <span class="packages-score-value-number">0</span>
+                    <span class="packages-score-value-sign"></span>
+                  </div>
+                  <div class="packages-score-label">likes</div>
+                </div>
+                <div class="packages-score packages-score-health">
+                  <div class="packages-score-value">
+                    <span class="packages-score-value-number">--</span>
+                    <span class="packages-score-value-sign"></span>
+                  </div>
+                  <div class="packages-score-label">pub points</div>
+                </div>
+                <div class="packages-score packages-score-popularity">
+                  <div class="packages-score-value">
+                    <span class="packages-score-value-number">--</span>
+                    <span class="packages-score-value-sign">%</span>
+                  </div>
+                  <div class="packages-score-label">popularity</div>
+                </div>
+              </a>
             </div>
-          </a>
-          <h3 class="title">
-            <a href="/packages/foobar_pkg">foobar_pkg</a>
-          </h3>
-          <p class="description">my package description</p>
-          <p class="metadata">
+            <p class="packages-description">my package description</p>
+            <p class="packages-metadata">
+              <span class="packages-metadata-block">
         v 
-            <a href="/packages/foobar_pkg">0.1.1+5</a>
+                <a href="/packages/foobar_pkg">0.1.1+5</a>
          / 
-            <a href="/packages/foobar_pkg/versions/0.2.0-dev">0.2.0-dev</a>
-        • updated: 
-            <span>Jan 1, 2015</span>
-            <a class="package-tag" href="/flutter/packages" title="sdk:flutter">flutter</a>
-          </p>
-        </li>
-      </ul>
-      <ul class="pagination">
-        <li class="-disabled">
-          <a href="" rel="prev">
-            <span>«</span>
-          </a>
-        </li>
-        <li class="-active">
-          <a href="">
-            <span>1</span>
-          </a>
-        </li>
-        <li class="-disabled">
-          <a href="" rel="next">
-            <span>»</span>
-          </a>
-        </li>
-      </ul>
+                <a href="/packages/foobar_pkg/versions/0.2.0-dev">0.2.0-dev</a>
+        • Published: 
+                <span>Jan 1, 2014</span>
+              </span>
+            </p>
+            <div>
+              <span class="package-tag missing" title="Analysis should be ready soon.">[awaiting]</span>
+            </div>
+          </div>
+          <div class="packages-item">
+            <div class="packages-header">
+              <h3 class="packages-title">
+                <a href="/packages/foobar_pkg">foobar_pkg</a>
+              </h3>
+              <a class="packages-scores" href="/packages/foobar_pkg#-analysis-tab-">
+                <div class="packages-score packages-score-like">
+                  <div class="packages-score-value -has-value">
+                    <span class="packages-score-value-number">0</span>
+                    <span class="packages-score-value-sign"></span>
+                  </div>
+                  <div class="packages-score-label">likes</div>
+                </div>
+                <div class="packages-score packages-score-health">
+                  <div class="packages-score-value">
+                    <span class="packages-score-value-number">--</span>
+                    <span class="packages-score-value-sign"></span>
+                  </div>
+                  <div class="packages-score-label">pub points</div>
+                </div>
+                <div class="packages-score packages-score-popularity">
+                  <div class="packages-score-value">
+                    <span class="packages-score-value-number">--</span>
+                    <span class="packages-score-value-sign">%</span>
+                  </div>
+                  <div class="packages-score-label">popularity</div>
+                </div>
+              </a>
+            </div>
+            <p class="packages-description">my package description</p>
+            <p class="packages-metadata">
+              <span class="packages-metadata-block">
+        v 
+                <a href="/packages/foobar_pkg">0.1.1+5</a>
+         / 
+                <a href="/packages/foobar_pkg/versions/0.2.0-dev">0.2.0-dev</a>
+        • Published: 
+                <span>Jan 1, 2015</span>
+              </span>
+            </p>
+            <div>
+              <div class="-pub-tag-badge">
+                <span class="tag-badge-main" title="Packages compatible with Flutter SDK">Flutter</span>
+                <span class="tag-badge-sub" title="Packages compatible with Flutter on the Android platform">Android</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <ul class="pagination">
+          <li class="-disabled">
+            <a href="" rel="prev">
+              <span>«</span>
+            </a>
+          </li>
+          <li class="-active">
+            <a href="">
+              <span>1</span>
+            </a>
+          </li>
+          <li class="-disabled">
+            <a href="" rel="next">
+              <span>»</span>
+            </a>
+          </li>
+        </ul>
+      </div>
     </main>
     <footer class="site-footer">
       <a class="link" href="https://dart.dev/">Dart language</a>

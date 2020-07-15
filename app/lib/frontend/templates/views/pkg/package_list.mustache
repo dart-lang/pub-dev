@@ -1,44 +1,74 @@
-{{! Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+{{! Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
 
-<ul class="package-list">
+<div class="packages">
   {{#packages}}
-    <li class="list-item -full">
-      {{& score_box_html }}
-      <h3 class="title"><a href="{{& url}}">{{name}}{{#is_flutter_favorite}}
-        <img
-          class="-pub-ff-img"
-          src="{{static_assets.img__ff-20px_png}}"
-          title="Package {{name}} have been awarded Flutter Favorite" />
-      {{/is_flutter_favorite}}</a></h3>
-      <p class="description">{{desc}}</p>
-      {{#is_external}}
-        <p class="metadata">v {{version}} • {{external_type}}</p>
-      {{/is_external}}
-      {{#show_metadata}}
-      <p class="metadata">
+  <div class="packages-item">
+    <div class="packages-header">
+      <h3 class="packages-title">
+        <a href="{{& url}}">{{name}}</a>
+      </h3>
+      {{#is_new}}
+      <div class="packages-recent">
+        <img class="packages-recent-icon" src="{{& static_assets.img__schedule-icon_svg}}" title="new package" />
+        Added <b>{{added_x_ago}}</b>
+      </div>
+      {{/is_new}}
+      {{& labeled_scores_html }}
+    </div>
+    <p class="packages-description">{{desc}}</p>
+    {{#is_external}}
+    <p class="packages-metadata">v {{version}} • {{external_type}}</p>
+    {{/is_external}}
+    {{^is_external}}
+    <p class="packages-metadata">
+      <span class="packages-metadata-block">
         v <a href="{{& url}}">{{version}}</a>
         {{#show_prerelease_version}} / <a href="{{& prerelease_version_url}}">{{prerelease_version}}</a>{{/show_prerelease_version}}
-        • updated: <span>{{last_uploaded}}</span>
-        {{#publisher_id}}• <a href="{{& publisher_url}}"><img
-          class="-pub-publisher-shield"
-          height="20" width="20"
-          title="Published by a pub.dev verified publisher"
-          src="{{{static_assets.img__verified-publisher-blue_svg}}}" />{{publisher_id}}</a>{{/publisher_id}}
-        {{& tags_html}}
-      </p>
-      {{/show_metadata}}
-      {{#has_api_pages}}
-      <div class="api_pages">
-        API results:
-        <ul>
-        {{#api_pages}}
-          <li><a href="{{& href}}">{{title}}</a></li>
-        {{/api_pages}}
-        </ul>
-      </div>
-      {{/has_api_pages}}
-    </li>
+        • Published: <span>{{last_uploaded}}</span>
+      </span>
+      {{#publisher_id}}
+      <span class="packages-metadata-block">
+        <img class="packages-vp-icon"
+           src="{{& static_assets.img__verified-publisher-icon_svg}}"
+           title="Published by a pub.dev verified publisher" />
+        <a href="/publishers/{{publisher_id}}">{{publisher_id}}</a>
+      </span>
+      {{/publisher_id}}
+      {{#is_flutter_favorite}}
+      <span class="package-badge">
+        <img class="package-badge-icon" src="{{static_assets.img__flutter-logo-32x32_png}}" />
+        Flutter Favorite
+      </span>
+      {{/is_flutter_favorite}}
+      {{#is_null_safe}}
+      <span class="package-badge" title="Supports the null safety language feature.">Null safety</span>
+      {{/is_null_safe}}
+    </p>
+    {{/is_external}}
+    <div>{{& tags_html}}</div>
+    {{#has_api_pages}}
+    <div class="packages-api">
+      {{^has_more_api_pages}}
+        <div class="packages-api-label">API result:</div>
+        <div>
+          <a href="{{& first_api_page.href}}">{{ first_api_page.title }}</a>
+        </div>
+      {{/has_more_api_pages}}
+      {{#has_more_api_pages}}
+        <div class="packages-api-label">API results:</div>
+        <details class="packages-api-details">
+          <summary>
+            <a href="{{& first_api_page.href}}">{{ first_api_page.title }}</a>
+          </summary>
+          {{#remaining_api_pages}}
+            <div class="-rest"><a href="{{& href}}">{{title}}</a></div>
+          {{/remaining_api_pages}}
+        </details>
+      {{/has_more_api_pages}}
+    </div>
+    {{/has_api_pages}}
+  </div>
   {{/packages}}
-</ul>
+</div>
