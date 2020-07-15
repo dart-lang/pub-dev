@@ -1,4 +1,4 @@
-{{! Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+{{! Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
 
@@ -28,14 +28,12 @@
   Members of the publisher can transfer existing packages to the publisher using
   the <i>package Admin page</i>.
 </p>
-<p>
+<div class="-pub-form-row">
+  <label for="-publisher-id">Domain Name</label>
   <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
-    <input type="text" id="-publisher-id" class="mdc-text-field__input">
+    <input type="text" id="-publisher-id" class="mdc-text-field__input" />
     <div class="mdc-notched-outline">
       <div class="mdc-notched-outline__leading"></div>
-      <div class="mdc-notched-outline__notch">
-        <label for="-publisher-id" class="mdc-floating-label">Domain Name</label>
-      </div>
       <div class="mdc-notched-outline__trailing"></div>
     </div>
   </div>
@@ -43,7 +41,7 @@
     id="-admin-create-publisher"
     class="mdc-button mdc-button--raised"
     data-mdc-auto-init="MDCRipple">Create publisher</button>
-</p>
+</div>
 <p>
   For more information on publishing and administering packages, see the
   <a href="https://dart.dev/tools/pub/publishing" target="_blank" rel="noreferrer">documentation on publishing packages</a>.

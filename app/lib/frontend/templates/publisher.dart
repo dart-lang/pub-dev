@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:client_data/publisher_api.dart' as api;
 import 'package:client_data/page_data.dart';
 import 'package:meta/meta.dart';
@@ -14,8 +12,6 @@ import '../../publisher/models.dart' show Publisher;
 import '../../search/search_service.dart' show SearchQuery;
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart' show shortDateFormat;
-
-import '../request_context.dart';
 
 import '_cache.dart';
 import 'detail_page.dart';
@@ -78,22 +74,6 @@ String _shortDescriptionHtml(Publisher publisher) {
   return markdownToHtml(description, inlineOnly: true);
 }
 
-/// Renders the `views/publisher/info_box.mustache` template.
-String _renderPublisherInfoBox(Publisher publisher) {
-  if (requestContext.isExperimental) return null;
-  final descriptionHtml = _shortDescriptionHtml(publisher);
-  return templateCache.renderTemplate('publisher/info_box', {
-    'has_description': descriptionHtml != null && descriptionHtml.isNotEmpty,
-    'description_html': descriptionHtml,
-    'publisher_id': publisher.publisherId,
-    'website_url': publisher.websiteUrl,
-    'website_url_displayed': urls.displayableUrl(publisher.websiteUrl),
-    'contact_email': publisher.contactEmail,
-    'list_packages_search_link':
-        urls.searchUrl(q: 'publisher:${publisher.publisherId}'),
-  });
-}
-
 /// Renders the search results on the publisher's packages page.
 String renderPublisherPackagesPage({
   @required Publisher publisher,
@@ -109,31 +89,17 @@ String renderPublisherPackagesPage({
     title += ' | Page ${pageLinks.currentPage}';
   }
 
-  String resultCountHtml() {
-    if (isSearch) {
-      return '$totalCount package(s) owned by <code>${publisher.publisherId}</code> for search query '
-          '<code>${htmlEscape.convert(searchQuery.query)}</code>';
-    } else {
-      return totalCount > 0
-          ? '$totalCount package(s) owned by <code>${publisher.publisherId}</code>.'
-          : '<code>${publisher.publisherId}</code> has no packages.';
-    }
-  }
-
   final packageListHtml = packages.isEmpty
       ? ''
       : renderPackageList(packages, searchQuery: searchQuery);
   final paginationHtml = renderPagination(pageLinks);
 
   final tabContent = [
-    if (!requestContext.isExperimental) renderSortControl(searchQuery),
-    if (!requestContext.isExperimental) resultCountHtml(),
-    if (requestContext.isExperimental)
-      renderListingInfo(
-        searchQuery: searchQuery,
-        totalCount: totalCount,
-        ownedBy: publisher.publisherId,
-      ),
+    renderListingInfo(
+      searchQuery: searchQuery,
+      totalCount: totalCount,
+      ownedBy: publisher.publisherId,
+    ),
     packageListHtml,
     paginationHtml,
   ].join('\n');
@@ -150,7 +116,7 @@ String renderPublisherPackagesPage({
   final mainContent = renderDetailPage(
     headerHtml: _renderDetailHeader(publisher),
     tabs: tabs,
-    infoBoxHtml: _renderPublisherInfoBox(publisher),
+    infoBoxHtml: null,
   );
 
   return renderLayoutPage(
@@ -165,8 +131,7 @@ String renderPublisherPackagesPage({
     searchQuery: searchQuery,
     // only index the first page, and if search query is not active
     noIndex: isSearch || pageLinks.currentPage > 1,
-    mainClasses:
-        requestContext.isExperimental ? [wideHeaderDetailPageClassName] : null,
+    mainClasses: [wideHeaderDetailPageClassName],
   );
 }
 
@@ -201,7 +166,7 @@ String renderPublisherAdminPage({
   final content = renderDetailPage(
     headerHtml: _renderDetailHeader(publisher),
     tabs: tabs,
-    infoBoxHtml: _renderPublisherInfoBox(publisher),
+    infoBoxHtml: null,
   );
   return renderLayoutPage(
     PageType.publisher,
@@ -213,8 +178,7 @@ String renderPublisherAdminPage({
       ),
     ),
     noIndex: true,
-    mainClasses:
-        requestContext.isExperimental ? [wideHeaderDetailPageClassName] : null,
+    mainClasses: [wideHeaderDetailPageClassName],
   );
 }
 
@@ -235,8 +199,6 @@ String _renderDetailHeader(Publisher publisher) {
   return renderDetailHeader(
     title: publisher.publisherId,
     metadataHtml: metadataHtml,
-    // do not render the shield on the new UI
-    isPublisher: !requestContext.isExperimental,
   );
 }
 
