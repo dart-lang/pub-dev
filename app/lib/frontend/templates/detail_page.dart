@@ -33,7 +33,7 @@ String renderDetailHeader({
     'title': title,
     'metadata_html': metadataHtml,
     'tags_html': tagsHtml,
-    'is_publisher': isPublisher,
+    'is_publisher': isPublisher, // TODO: remove
     'like_count': _formatPackageLikes(packageLikes),
     'is_liked': isLiked,
     'has_likes': isLiked != null,
