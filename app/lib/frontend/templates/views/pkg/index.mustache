@@ -1,14 +1,53 @@
-{{! Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+{{! Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
 
-{{& listing_info_html }}
+<div class="search-controls{{#has_active_advanced}} -active{{/has_active_advanced}}">
+  <div class="container">
+    <div class="search-controls-primary">
+      <div class="search-controls-sdk search-controls-tabs">
+        {{& sdk_tabs_html}}
+      </div>
+      <div class="search-controls-sdk search-controls-buttons">
+        <span class="search-controls-label">SDK</span>
+        {{& sdk_tabs_html}}
+      </div>
+      <div class="search-controls-subsdk search-controls-buttons">
+        <span class="search-controls-label">{{subsdk_label}}</span>
+        {{& subsdk_tabs_html}}
+      </div>
+      <div class="search-filters-btn search-filters-btn-wrapper search-controls-more">
+        Advanced
+        <img src="{{& static_assets.img__carot-up_svg}}" class="search-controls-more-carot" />
+      </div>
+    </div>
+  </div>
+  <div class="search-controls-advanced">
+    <div class="container">
+      {{#has_subsdk_tabs_advanced_html}}
+      <div class="search-controls-subsdk-advanced search-controls-buttons"
+           title="Prerelease platforms">
+        <span class="search-controls-label">Prerelease platforms</span>
+        {{& subsdk_tabs_advanced_html }}
+      </div>
+      {{/has_subsdk_tabs_advanced_html}}
+      <div class="search-controls-checkbox">
+        <input id="search-legacy-checkbox" type="checkbox" name="legacy" valye="1" {{#legacy_search_enabled}} checked="checked"{{/legacy_search_enabled}} />
+        <label for="search-legacy-checkbox">Include Dart 1.x results</label>
+      </div>
+    </div>
+  </div>
+</div>
 
-{{& package_list_html}}
+<div class="container">
+  {{& listing_info_html }}
 
-{{#has_packages}}
-  {{{pagination}}}
-{{/has_packages}}
-{{#is_search}}
-  <p>Check our help page for <a href="/help#search">advanced search expressions</a>.</p>
-{{/is_search}}
+  {{& package_list_html}}
+
+  {{#has_packages}}
+    {{{pagination}}}
+  {{/has_packages}}
+  {{#is_search}}
+    <p>Check our help page for <a href="/help#search">advanced search expressions</a>.</p>
+  {{/is_search}}
+</div>

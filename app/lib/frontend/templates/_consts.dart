@@ -79,34 +79,24 @@ final _sortDicts = const <SortDict>[
       id: 'created',
       label: 'newest package',
       tooltip: 'Packages are sorted by their created time.'),
+  SortDict(
+      id: 'like',
+      label: 'most likes',
+      tooltip: 'Packages are sorted by like count.'),
+  SortDict(
+      id: 'points',
+      label: 'most pub points',
+      tooltip: 'Packages are sorted by pub points.'),
+  SortDict(
+      id: 'popularity',
+      label: 'popularity',
+      tooltip: 'Packages are sorted by their popularity score.'),
 ];
 
-// TODO: move these as part of [_sortDicts] after finalization of the new UI.
-
-final _likeSortDict = SortDict(
-  id: 'like',
-  label: 'most likes',
-  tooltip: 'Packages are sorted by like count.',
-);
-
-final _pubPointsSortDict = SortDict(
-  id: 'points',
-  label: 'most pub points',
-  tooltip: 'Packages are sorted by pub points.',
-);
-
-final _popularitySortDict = SortDict(
-    id: 'popularity',
-    label: 'popularity',
-    tooltip: 'Packages are sorted by their popularity score.');
-
-List<SortDict> getSortDicts(bool isSearch, bool isExperimental) {
+List<SortDict> getSortDicts(bool isSearch) {
   final removeId = isSearch ? 'listing_relevance' : 'search_relevance';
   return <SortDict>[
     ..._sortDicts.where((d) => d.id != removeId),
-    if (isExperimental) _likeSortDict,
-    if (isExperimental) _pubPointsSortDict,
-    _popularitySortDict,
   ];
 }
 

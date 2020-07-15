@@ -39,16 +39,8 @@ String renderPackageList(
   for (int i = 0; i < packages.length; i++) {
     final view = packages[i];
     String externalType;
-    bool isSdk = false;
     if (view.isExternal && view.url.startsWith(urls.httpsApiDartDev)) {
       externalType = 'Dart core library';
-      isSdk = true;
-    }
-    String scoreBoxHtml;
-    if (isSdk) {
-      scoreBoxHtml = renderSdkScoreBox();
-    } else if (!view.isExternal) {
-      scoreBoxHtml = renderScoreBox(view);
     }
     final addedXAgo = _renderXAgo(view.created);
     final apiPages = view.apiPages
@@ -84,17 +76,13 @@ String renderPackageList(
       'tags_html': renderTags(
         package: view,
         searchQuery: searchQuery,
-        showTagBadges: requestContext.isExperimental,
+        showTagBadges: true,
       ),
       'labeled_scores_html': renderLabeledScores(view),
       'has_api_pages': hasApiPages,
       'has_more_api_pages': hasMoreThanOneApiPages,
       'first_api_page': hasApiPages ? apiPages.first : null,
       'remaining_api_pages': hasApiPages ? apiPages.skip(1).toList() : null,
-      // TODO(3246): remove the keys below after we have migrated to the new design
-      'score_box_html': scoreBoxHtml,
-      'show_metadata': !view.isExternal,
-      'api_pages': apiPages,
     });
   }
   return templateCache.renderTemplate('pkg/package_list', {
@@ -181,7 +169,7 @@ String renderPkgIndexPage(
     searchQuery: searchQuery,
     noIndex: true,
     searchPlaceHolder: searchPlaceholder,
-    mainClasses: requestContext.isExperimental ? [] : null,
+    mainClasses: [],
   );
 }
 
@@ -221,7 +209,7 @@ String _subSdkLabel(SearchQuery sq) {
 /// Renders the `views/shared/sort_control.mustache` template.
 String renderSortControl(SearchQuery query) {
   final isSearch = query != null && query.hasQuery;
-  final options = getSortDicts(isSearch, requestContext.isExperimental);
+  final options = getSortDicts(isSearch);
   final selectedValue = serializeSearchOrder(query?.order) ??
       (isSearch ? 'search_relevance' : 'listing_relevance');
   final selectedOption = options.firstWhere(

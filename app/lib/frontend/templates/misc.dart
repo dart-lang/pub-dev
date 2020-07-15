@@ -177,11 +177,6 @@ String renderMiniList(List<PackageView> packages) {
         'publisher_id': package.publisherId,
         'package_url': urls.pkgPageUrl(package.name),
         'ellipsized_description': package.ellipsizedDescription,
-        'has_tags': false,
-        'tags_html': renderTags(
-          package: package,
-          searchQuery: null,
-        ),
       };
     }).toList(),
   };
@@ -379,16 +374,6 @@ String renderScoreCircle({
     'link': link,
     'title': title,
   });
-}
-
-/// Renders the simplified version of the circle with 'sdk' text content instead
-/// of the score.
-String renderSdkScoreBox() {
-  if (requestContext.isExperimental) {
-    return renderScoreCircle(label: 'sdk', percent: 100);
-  }
-  // TODO(3246): Remove after migrating to the new UI.
-  return '<div class="score-box"><span class="number -solid">sdk</span></div>';
 }
 
 /// Renders the `views/pkg/labeled_scores.mustache` template.
