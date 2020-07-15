@@ -94,14 +94,13 @@ String renderLayoutPage(
     // This is not escaped as it is already escaped by the caller.
     'content_html': contentHtml,
     'include_highlight': type == PageType.package,
-    'show_search_banner': !requestContext.isExperimental ||
-        (type != PageType.package && type != PageType.standalone),
+    'show_search_banner':
+        type != PageType.package && type != PageType.standalone,
     'search_banner_html': searchBannerHtml,
     'schema_org_searchaction_json':
         isRoot ? encodeScriptSafeJson(_schemaOrgSearchAction) : null,
     'page_data_encoded': pageDataEncoded,
-    'has_announcement_banner':
-        requestContext.isExperimental && announcementBannerHtml != null,
+    'has_announcement_banner': announcementBannerHtml != null,
     'announcement_banner_html': announcementBannerHtml,
   };
 
@@ -172,33 +171,18 @@ String _renderSearchBanner({
           .map((e) => {'name': e.key, 'value': e.value})
           .toList()
       : null;
-  String sdkTabsHtml;
-  if (type == PageType.landing) {
-    sdkTabsHtml = renderSdkTabs();
-  } else if (type == PageType.listing) {
-    sdkTabsHtml = renderSdkTabs(searchQuery: searchQuery);
-  }
-  final isExperimental = requestContext.isExperimental;
   return templateCache.renderTemplate('shared/search_banner', {
     // When search is active (query text has a non-empty value) users may expect
     // to scroll through the results via keyboard. We should only autofocus the
     // search field when there is no active search.
     'autofocus': queryText == null,
-    'show_search_filters_btn': isExperimental && type == PageType.listing,
-    'show_details': !isExperimental &&
-        (type == PageType.listing || type == PageType.landing),
-    'show_options': !isExperimental && type == PageType.listing,
+    'show_search_filters_btn': type == PageType.listing,
     'search_form_url': searchFormUrl,
     'search_query_placeholder': searchPlaceholder,
     'search_query_html': escapedSearchQuery,
     'search_sort_param': searchSort,
     'legacy_search_enabled': searchQuery?.includeLegacy ?? false,
     'hidden_inputs': hiddenInputs,
-    'sdk_tabs_html': isExperimental ? null : sdkTabsHtml,
-    'show_legacy_checkbox': !isExperimental && sp.sdk == null,
-    'secondary_tabs_html': isExperimental
-        ? null
-        : renderSubSdkTabsHtml(searchQuery: searchQuery, detectAdvanced: true),
   });
 }
 
