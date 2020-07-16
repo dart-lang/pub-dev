@@ -81,9 +81,7 @@ class PackageDocument {
 
   final List<String> tags;
 
-  final double health;
   final double popularity;
-  final double maintenance;
   final int likeCount;
 
   final int grantedPoints;
@@ -110,9 +108,7 @@ class PackageDocument {
     this.updated,
     this.readme = '',
     List<String> tags,
-    this.health = 0,
     this.popularity = 0,
-    this.maintenance = 0,
     this.likeCount = 0,
     this.grantedPoints = 0,
     this.maxPoints = 0,
@@ -165,9 +161,11 @@ enum SearchOrder {
   popularity,
 
   /// Search order should be in decreasing health score.
+  /// TODO: remove
   health,
 
   /// Search order should be in decreasing maintenance score.
+  /// TODO: remove
   maintenance,
 
   /// Search order should be in decreasing like count.
