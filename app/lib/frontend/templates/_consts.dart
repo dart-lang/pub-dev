@@ -50,9 +50,7 @@ class SortDict {
   final String label;
   final String tooltip;
 
-  const SortDict({this.id, this.label, String tooltip})
-      : tooltip =
-            '$tooltip More information on <a href="/help#ranking">ranking</a>.';
+  const SortDict({this.id, this.label, this.tooltip});
 }
 
 final _sortDicts = const <SortDict>[
