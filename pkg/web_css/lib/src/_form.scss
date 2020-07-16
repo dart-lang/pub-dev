@@ -11,9 +11,6 @@
   display: none;
 }
 
-/* non-indented rule to restrict the content of this block to the experimental pages */
-body.experimental {
-
 #-admin-consent-buttons {
   margin-top: 36px;
 }
@@ -81,7 +78,4 @@ body.experimental {
       color: white;
     }
   }
-}
-
-/* non-indented rule to restrict the content of this block to the experimental pages */
 }

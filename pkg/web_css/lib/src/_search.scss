@@ -9,29 +9,22 @@
   display: flex;
   align-items: center;
   border-radius: 3px;
-  max-width: 650px;
+  max-width: 710px;
   background: transparent;
+  position: relative;
+  margin: 0 auto;
+  padding: 13px 0;
 
-  .non-experimental & {
-    border: 1px solid $color-searchbar-dark-border;
-  }
-
-  .experimental & {
-    max-width: 710px;
-    position: relative;
-    margin: 0 auto;
-    padding: 13px 0;
-  }
-
-  .experimental .home-banner & {
+  .home-banner & {
     max-width: 880px;
   }
 }
 
 .search-bar > .input {
   font-size: 16px;
-  padding: 0.8em 1em;
+  padding: 15px 24px 14px 48px;
   border: none;
+  border-radius: 24px;
   width: 150px;
   -webkit-box-flex: 1;
   -ms-flex-positive: 1;
@@ -43,13 +36,7 @@
     color: #888;
   }
 
-  .experimental & {
-    font-size: 16px;
-    padding: 15px 24px 14px 48px;
-    border-radius: 24px;
-  }
-
-  .experimental .home-banner & {
+  .home-banner & {
     @media (min-width: $device-desktop-min-width) {
       font-size: 24px;
       padding: 20px 35px 20px 65px;
@@ -58,35 +45,25 @@
   }
 
   &:focus {
-    .experimental & {
-      outline: none;
-    }
+    outline: none;
   }
 }
 
 .search-bar > .icon {
   width: 45px;
   height: 45px;
-  border-top-right-radius: 3px;
-  border-bottom-right-radius: 3px;
   background-color: $color-searchbar-dark-link;
   background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAABGdBTUEAALGPC/xhBQAAARdJREFUOBHNkz1uwkAQhTGkhCuELlQUiAtwilzHtU8BVLkHF4iokbJJkS41EiTS5nvL2FrQGMsdIz3N7ntvZn+8HgyyiDEuwBv4BifLmi8yW/sQ4xMowRl4Ib4Eo/YuKGYixT9QgSUYW9ZcvKJsbYSo42hFmVeeUbzp8vnHRNAdKCqvSc1JTy78NXeVEXWxiuWVcDORnlz4b6TLFFFfRzF2DUaiT5IrxqPnG0L+mDDzDBn3YuNDxjVDNdrZ7LVh/UGtv7sy2+3z1X7xz91GIhFLoOh6R+vWJtao62VrgW1aKsZP8rSrYf6vHSnYgw1IxyEHoAjgfrN7K6kYBKAI4DGbfbCzZ72j3lEUxRdFKxB6F3sF2okg7R/6f6gee6OuegAAAABJRU5ErkJggg==");
   background-repeat: no-repeat;
   background-position: 50% 50%;
-  -webkit-transform: scale(1.02);
-  transform: scale(1.02);
 
-  .experimental & {
-    background-color: transparent;
-    opacity: 0.4;
-    position: absolute;
-    left: 10px;
-    transform: scale(0.72);
+  background-color: transparent;
+  opacity: 0.4;
+  position: absolute;
+  left: 10px;
+  transform: scale(0.72);
 
-    /* TODO: remove border radius. */
-  }
-
-  .experimental .home-banner & {
+  .home-banner & {
     @media (min-width: $device-desktop-min-width) {
       left: 20px;
       transform: scale(1.0);
@@ -97,10 +74,8 @@
 .search-filters-btn-wrapper {
   display: none;
 
-  .experimental & {
-    @media (max-width: $device-mobile-max-width) {
-      display: block;
-    }
+  @media (max-width: $device-mobile-max-width) {
+    display: block;
   }
 
   .search-filters-btn {
@@ -145,10 +120,3 @@
   }
 }
 
-.non-experimental .search-bar-options {
-  @media (min-width: 600px) {
-    .list-filters {
-      margin-top: 0px;
-    }
-  }
-}
