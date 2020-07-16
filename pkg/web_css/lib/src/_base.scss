@@ -22,7 +22,8 @@ body, input, button {
   -webkit-font-smoothing: antialiased;
 }
 
-body.experimental {
+body,
+.markdown-body {
   color: #212529;
   font-size: 14px;
   font-weight: 300;
