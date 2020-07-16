@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:meta/meta.dart';
 
-import '../request_context.dart';
 import '_cache.dart';
 
 final wideHeaderDetailPageClassName = '-wide-header-detail-page';
@@ -26,14 +25,12 @@ String renderDetailHeader({
 
   /// Set true for more whitespace in the header.
   bool isLoose = false,
-  bool isPublisher = false,
 }) {
   return templateCache.renderTemplate('shared/detail/header', {
     'is_loose': isLoose,
     'title': title,
     'metadata_html': metadataHtml,
     'tags_html': tagsHtml,
-    'is_publisher': isPublisher, // TODO: remove
     'like_count': _formatPackageLikes(packageLikes),
     'is_liked': isLiked,
     'has_likes': isLiked != null,
@@ -61,7 +58,7 @@ String renderDetailPage({
   return templateCache.renderTemplate('shared/detail/page', {
     'header_html': headerHtml,
     'tabs_html': renderDetailTabs(tabs),
-    'info_box_lead': requestContext.isExperimental ? infoBoxLead : null,
+    'info_box_lead': infoBoxLead,
     'has_info_box': infoBoxHtml != null,
     'info_box_html': infoBoxHtml,
     'footer_html': footerHtml,
@@ -112,9 +109,9 @@ class Tab {
 
   Map _toMustacheData() {
     final titleClasses = <String>[
-      if (requestContext.isExperimental) 'detail-tab',
+      'detail-tab',
       contentHtml == null ? 'tab-link' : 'tab-button',
-      if (requestContext.isExperimental) 'detail-tab-$id-title',
+      'detail-tab-$id-title',
       if (isActive) '-active',
     ];
     final contentClasses = <String>[

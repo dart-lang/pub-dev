@@ -112,178 +112,189 @@
     <main class="-wide-header-detail-page">
       <div class="detail-wrapper -active">
         <div class="detail-header">
-          <h2 class="title">example.com</h2>
-          <div class="metadata">
-            <p>This is our little software developer shop.
-              <br/>
+          <div class="detail-container">
+            <div class="detail-header-outer-block">
+              <div class="detail-header-content-block">
+                <h1 class="title">example.com</h1>
+                <div class="metadata">
+                  <p>This is our little software developer shop.
+                    <br/>
 We develop full-stack in Dart, and happy about it.
-            </p>
-            <p>
-              <span class="detail-header-metadata-ref">
-                <img class="detail-header-metadata-ref-icon" src="/static/img/link-icon.svg?hash=mocked_hash_709199651"/>
-                <a class="detail-header-metadata-ref-label" href="https://example.com/">example.com/</a>
-              </span>
-              <span class="detail-header-metadata-ref">
-                <img class="detail-header-metadata-ref-icon" src="/static/img/email-icon.svg?hash=mocked_hash_308057918"/>
-                <a class="detail-header-metadata-ref-label" href="mailto:hello@example.com">hello@example.com</a>
-              </span>
-            </p>
-            <p>Publisher registered on Sep 13, 2019.</p>
-            <div class="tags"></div>
+                  </p>
+                  <p>
+                    <span class="detail-header-metadata-ref">
+                      <img class="detail-header-metadata-ref-icon" src="/static/img/link-icon.svg?hash=mocked_hash_709199651"/>
+                      <a class="detail-header-metadata-ref-label" href="https://example.com/">example.com/</a>
+                    </span>
+                    <span class="detail-header-metadata-ref">
+                      <img class="detail-header-metadata-ref-icon" src="/static/img/email-icon.svg?hash=mocked_hash_308057918"/>
+                      <a class="detail-header-metadata-ref-label" href="mailto:hello@example.com">hello@example.com</a>
+                    </span>
+                  </p>
+                  <p>Publisher registered on Sep 13, 2019.</p>
+                </div>
+                <div class="detail-tags-and-like">
+                  <div class="detail-tags"></div>
+                  <div class="detail-like"></div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="detail-body">
-          <div class="detail-tabs-wide-header">
-            <div class="detail-container">
-              <ul class="detail-tabs-header">
-                <li class="tab-button -active" data-ga-click-event="tab:packages" data-name="-packages-tab-" role="button">Packages</li>
-                <li class="tab-link" data-name="-admin-tab-" role="button">
-                  <a href="/publishers/example.com/admin">Admin</a>
-                </li>
-              </ul>
+          <div class="detail-tabs">
+            <div class="detail-tabs-wide-header">
+              <div class="detail-container">
+                <ul class="detail-tabs-header">
+                  <li class="detail-tab tab-button detail-tab-packages-title -active" data-ga-click-event="tab:packages" data-name="-packages-tab-" role="button">Packages</li>
+                  <li class="detail-tab tab-link detail-tab-admin-title" data-name="-admin-tab-" role="button">
+                    <a href="/publishers/example.com/admin">Admin</a>
+                  </li>
+                </ul>
+              </div>
             </div>
-          </div>
-          <div class="detail-container detail-body-main">
-            <div class="detail-tabs-content">
-              <section class="tab-content -active" data-name="-packages-tab-">
-                <div class="listing-info">
-                  <div class="listing-info-count">
-                    <span class="info-identifier">Results</span>
-                    <span class="count">2</span>
+            <div class="detail-container detail-body-main">
+              <div class="detail-tabs-content">
+                <section class="tab-content -active" data-name="-packages-tab-">
+                  <div class="listing-info">
+                    <div class="listing-info-count">
+                      <span class="info-identifier">Results</span>
+                      <span class="count">2</span>
     packages
 
 
     owned by 
-                    <code>example.com</code>
+                      <code>example.com</code>
+                    </div>
+                    <div class="sort-control hoverable">
+                      <div class="info-identifier" title="Packages are sorted by the combination of their overall score and their specificity to the selected platform.">Sort by 
+                        <span class="sort-control-selected">listing relevance</span>
+                      </div>
+                      <div class="sort-control-popup">
+                        <div class="sort-control-option selected" data-value="listing_relevance">listing relevance</div>
+                        <div class="sort-control-option " data-value="top">overall score</div>
+                        <div class="sort-control-option " data-value="updated">recently updated</div>
+                        <div class="sort-control-option " data-value="created">newest package</div>
+                        <div class="sort-control-option " data-value="like">most likes</div>
+                        <div class="sort-control-option " data-value="points">most pub points</div>
+                        <div class="sort-control-option " data-value="popularity">popularity</div>
+                      </div>
+                    </div>
                   </div>
-                  <div class="sort-control hoverable">
-                    <div class="info-identifier" title="Packages are sorted by the combination of their overall score and their specificity to the selected platform.">Sort by 
-                      <span class="sort-control-selected">listing relevance</span>
-                    </div>
-                    <div class="sort-control-popup">
-                      <div class="sort-control-option selected" data-value="listing_relevance">listing relevance</div>
-                      <div class="sort-control-option " data-value="top">overall score</div>
-                      <div class="sort-control-option " data-value="updated">recently updated</div>
-                      <div class="sort-control-option " data-value="created">newest package</div>
-                      <div class="sort-control-option " data-value="like">most likes</div>
-                      <div class="sort-control-option " data-value="points">most pub points</div>
-                      <div class="sort-control-option " data-value="popularity">popularity</div>
-                    </div>
-                  </div>
-                </div>
-                <div class="packages">
-                  <div class="packages-item">
-                    <div class="packages-header">
-                      <h3 class="packages-title">
-                        <a href="/packages/super_package">super_package</a>
-                      </h3>
-                      <a class="packages-scores" href="/packages/super_package#-analysis-tab-">
-                        <div class="packages-score packages-score-like">
-                          <div class="packages-score-value">
-                            <span class="packages-score-value-number">--</span>
-                            <span class="packages-score-value-sign"></span>
+                  <div class="packages">
+                    <div class="packages-item">
+                      <div class="packages-header">
+                        <h3 class="packages-title">
+                          <a href="/packages/super_package">super_package</a>
+                        </h3>
+                        <a class="packages-scores" href="/packages/super_package#-analysis-tab-">
+                          <div class="packages-score packages-score-like">
+                            <div class="packages-score-value">
+                              <span class="packages-score-value-number">--</span>
+                              <span class="packages-score-value-sign"></span>
+                            </div>
+                            <div class="packages-score-label">likes</div>
                           </div>
-                          <div class="packages-score-label">likes</div>
-                        </div>
-                        <div class="packages-score packages-score-health">
-                          <div class="packages-score-value">
-                            <span class="packages-score-value-number">--</span>
-                            <span class="packages-score-value-sign"></span>
+                          <div class="packages-score packages-score-health">
+                            <div class="packages-score-value">
+                              <span class="packages-score-value-number">--</span>
+                              <span class="packages-score-value-sign"></span>
+                            </div>
+                            <div class="packages-score-label">pub points</div>
                           </div>
-                          <div class="packages-score-label">pub points</div>
-                        </div>
-                        <div class="packages-score packages-score-popularity">
-                          <div class="packages-score-value">
-                            <span class="packages-score-value-number">--</span>
-                            <span class="packages-score-value-sign">%</span>
+                          <div class="packages-score packages-score-popularity">
+                            <div class="packages-score-value">
+                              <span class="packages-score-value-number">--</span>
+                              <span class="packages-score-value-sign">%</span>
+                            </div>
+                            <div class="packages-score-label">popularity</div>
                           </div>
-                          <div class="packages-score-label">popularity</div>
-                        </div>
-                      </a>
-                    </div>
-                    <p class="packages-description">A great web UI library.</p>
-                    <p class="packages-metadata">
-                      <span class="packages-metadata-block">
+                        </a>
+                      </div>
+                      <p class="packages-description">A great web UI library.</p>
+                      <p class="packages-metadata">
+                        <span class="packages-metadata-block">
         v 
-                        <a href="/packages/super_package">1.0.0</a>
+                          <a href="/packages/super_package">1.0.0</a>
         
         • Published: 
-                        <span>3 Jan 2019</span>
-                      </span>
-                    </p>
-                    <div>
-                      <div class="-pub-tag-badge">
-                        <span class="tag-badge-main" title="Packages compatible with Dart SDK">Dart</span>
-                        <span class="tag-badge-sub" title="Packages compatible with Dart compiled for the web">js</span>
+                          <span>3 Jan 2019</span>
+                        </span>
+                      </p>
+                      <div>
+                        <div class="-pub-tag-badge">
+                          <span class="tag-badge-main" title="Packages compatible with Dart SDK">Dart</span>
+                          <span class="tag-badge-sub" title="Packages compatible with Dart compiled for the web">js</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div class="packages-item">
-                    <div class="packages-header">
-                      <h3 class="packages-title">
-                        <a href="/packages/another_package">another_package</a>
-                      </h3>
-                      <a class="packages-scores" href="/packages/another_package#-analysis-tab-">
-                        <div class="packages-score packages-score-like">
-                          <div class="packages-score-value">
-                            <span class="packages-score-value-number">--</span>
-                            <span class="packages-score-value-sign"></span>
+                    <div class="packages-item">
+                      <div class="packages-header">
+                        <h3 class="packages-title">
+                          <a href="/packages/another_package">another_package</a>
+                        </h3>
+                        <a class="packages-scores" href="/packages/another_package#-analysis-tab-">
+                          <div class="packages-score packages-score-like">
+                            <div class="packages-score-value">
+                              <span class="packages-score-value-number">--</span>
+                              <span class="packages-score-value-sign"></span>
+                            </div>
+                            <div class="packages-score-label">likes</div>
                           </div>
-                          <div class="packages-score-label">likes</div>
-                        </div>
-                        <div class="packages-score packages-score-health">
-                          <div class="packages-score-value">
-                            <span class="packages-score-value-number">--</span>
-                            <span class="packages-score-value-sign"></span>
+                          <div class="packages-score packages-score-health">
+                            <div class="packages-score-value">
+                              <span class="packages-score-value-number">--</span>
+                              <span class="packages-score-value-sign"></span>
+                            </div>
+                            <div class="packages-score-label">pub points</div>
                           </div>
-                          <div class="packages-score-label">pub points</div>
-                        </div>
-                        <div class="packages-score packages-score-popularity">
-                          <div class="packages-score-value">
-                            <span class="packages-score-value-number">--</span>
-                            <span class="packages-score-value-sign">%</span>
+                          <div class="packages-score packages-score-popularity">
+                            <div class="packages-score-value">
+                              <span class="packages-score-value-number">--</span>
+                              <span class="packages-score-value-sign">%</span>
+                            </div>
+                            <div class="packages-score-label">popularity</div>
                           </div>
-                          <div class="packages-score-label">popularity</div>
-                        </div>
-                      </a>
-                    </div>
-                    <p class="packages-description">Camera plugin.</p>
-                    <p class="packages-metadata">
-                      <span class="packages-metadata-block">
+                        </a>
+                      </div>
+                      <p class="packages-description">Camera plugin.</p>
+                      <p class="packages-metadata">
+                        <span class="packages-metadata-block">
         v 
-                        <a href="/packages/another_package">2.0.0</a>
+                          <a href="/packages/another_package">2.0.0</a>
          / 
-                        <a href="/packages/another_package/versions/3.0.0-beta2">3.0.0-beta2</a>
+                          <a href="/packages/another_package/versions/3.0.0-beta2">3.0.0-beta2</a>
         • Published: 
-                        <span>30 Mar 2019</span>
-                      </span>
-                    </p>
-                    <div>
-                      <div class="-pub-tag-badge">
-                        <span class="tag-badge-main" title="Packages compatible with Flutter SDK">Flutter</span>
-                        <span class="tag-badge-sub" title="Packages compatible with Flutter on the Android platform">Android</span>
+                          <span>30 Mar 2019</span>
+                        </span>
+                      </p>
+                      <div>
+                        <div class="-pub-tag-badge">
+                          <span class="tag-badge-main" title="Packages compatible with Flutter SDK">Flutter</span>
+                          <span class="tag-badge-sub" title="Packages compatible with Flutter on the Android platform">Android</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-                <ul class="pagination">
-                  <li class="-disabled">
-                    <a href="" rel="prev">
-                      <span>«</span>
-                    </a>
-                  </li>
-                  <li class="-active">
-                    <a href="">
-                      <span>1</span>
-                    </a>
-                  </li>
-                  <li class="-disabled">
-                    <a href="" rel="next">
-                      <span>»</span>
-                    </a>
-                  </li>
-                </ul>
-              </section>
+                  <ul class="pagination">
+                    <li class="-disabled">
+                      <a href="" rel="prev">
+                        <span>«</span>
+                      </a>
+                    </li>
+                    <li class="-active">
+                      <a href="">
+                        <span>1</span>
+                      </a>
+                    </li>
+                    <li class="-disabled">
+                      <a href="" rel="next">
+                        <span>»</span>
+                      </a>
+                    </li>
+                  </ul>
+                </section>
+              </div>
             </div>
           </div>
         </div>
