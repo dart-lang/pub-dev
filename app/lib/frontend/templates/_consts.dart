@@ -42,8 +42,8 @@ SdkDict getSdkDict(String sdk) {
 }
 
 final defaultLandingBlurbHtml =
-    '<p class="text">Find and use packages to build <a target="_blank" rel="noopener" href="https://dart.dev/">Dart<sup><small>↗</small></sup></a> and '
-    '<a target="_blank" rel="noopener" href="https://flutter.dev/">Flutter<sup><small>↗</small></sup></a> apps.</p>';
+    '<p class="text">Find and use packages to build <a target="_blank" rel="noopener" href="https://dart.dev/">Dart</a> and '
+    '<a target="_blank" rel="noopener" href="https://flutter.dev/">Flutter</a> apps.</p>';
 
 class SortDict {
   final String id;
