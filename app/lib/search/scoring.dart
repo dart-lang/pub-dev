@@ -11,6 +11,7 @@ const double _healthWeight = 0.3;
 const double _maintenanceWeight = 0.2;
 
 /// Calculates the overall score for a package.
+/// TODO: remove
 double calculateOverallScore({
   @meta.required double popularity,
   @meta.required double health,

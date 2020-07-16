@@ -14,7 +14,6 @@ import '../shared/tags.dart';
 import '../shared/utils.dart' show boundedList;
 
 import 'scope_specificity.dart';
-import 'scoring.dart';
 import 'search_service.dart';
 import 'text_utils.dart';
 import 'token_index.dart';
@@ -263,8 +262,8 @@ class InMemoryPackageIndex implements PackageIndex {
             ? null
             : (_packages[queryText] ?? _packages[queryText.toLowerCase()]);
         if (matchingPackage != null &&
-            matchingPackage.maintenance != null &&
-            matchingPackage.maintenance > 0.0 &&
+            matchingPackage.grantedPoints != null &&
+            matchingPackage.grantedPoints > 0 &&
             packages.contains(matchingPackage.package)) {
           final double maxValue = overallScore.getMaxValue();
           final map = Map<String, double>.from(
@@ -286,15 +285,11 @@ class InMemoryPackageIndex implements PackageIndex {
       case SearchOrder.popularity:
         results = _rankWithValues(getPopularityScore(packages));
         break;
-      case SearchOrder.health:
-        results = _rankWithValues(getHealthScore(packages));
-        break;
-      case SearchOrder.maintenance:
-        results = _rankWithValues(getMaintenanceScore(packages));
-        break;
       case SearchOrder.like:
         results = _rankWithValues(getLikeScore(packages));
         break;
+      case SearchOrder.health:
+      case SearchOrder.maintenance:
       case SearchOrder.points:
         results = _rankWithValues(getPubPoints(packages));
         break;
@@ -357,26 +352,10 @@ class InMemoryPackageIndex implements PackageIndex {
   }
 
   @visibleForTesting
-  Map<String, double> getHealthScore(Iterable<String> packages) {
-    return Map.fromIterable(
-      packages,
-      value: (package) => (_packages[package].health ?? 0.0),
-    );
-  }
-
-  @visibleForTesting
   Map<String, double> getPopularityScore(Iterable<String> packages) {
     return Map.fromIterable(
       packages,
       value: (package) => _packages[package].popularity ?? 0.0,
-    );
-  }
-
-  @visibleForTesting
-  Map<String, double> getMaintenanceScore(Iterable<String> packages) {
-    return Map.fromIterable(
-      packages,
-      value: (package) => (_packages[package].maintenance ?? 0.0),
     );
   }
 
@@ -402,11 +381,8 @@ class InMemoryPackageIndex implements PackageIndex {
       final downloadScore = doc.popularity ?? 0.0;
       final likeScore = _likeTracker.getLikeScore(doc.package);
       final popularity = (downloadScore + likeScore) / 2;
-      final overall = calculateOverallScore(
-        popularity: popularity,
-        health: doc.health ?? 0.0,
-        maintenance: doc.maintenance ?? 0.0,
-      );
+      final points = (doc.grantedPoints ?? 0) / math.max(1, doc.maxPoints ?? 0);
+      final overall = popularity * 0.5 + points * 0.5;
       // don't multiply with zero.
       return 0.3 + 0.7 * overall;
     });

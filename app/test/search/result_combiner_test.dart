@@ -25,8 +25,8 @@ void main() {
         description: 'many utils utils',
         readme: 'Many useful string methods like substring.',
         popularity: 0.4,
-        health: 1.0,
-        maintenance: 1.0,
+        grantedPoints: 110,
+        maxPoints: 110,
         uploaderEmails: ['foo@example.com'],
       ));
       await dartSdkIndex.addPackage(PackageDocument(

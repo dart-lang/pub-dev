@@ -23,7 +23,8 @@ void main() {
             'Support for parsing `build.yaml` configuration.'),
         readme: compactReadme('blah'),
         popularity: 0.1,
-        maintenance: 0.1,
+        grantedPoints: 10,
+        maxPoints: 110,
       ));
       await index.addPackage(PackageDocument(
         package: 'build',
@@ -31,7 +32,8 @@ void main() {
         description: compactDescription('A build system for Dart.'),
         readme: compactReadme('build and configure'),
         popularity: 1.0,
-        maintenance: 1.0,
+        grantedPoints: 110,
+        maxPoints: 110,
       ));
       await index.markReady();
     });
@@ -45,11 +47,11 @@ void main() {
         'packages': [
           {
             'package': 'build_config',
-            'score': closeTo(0.457, 0.001),
+            'score': closeTo(0.612, 0.001),
           },
           {
             'package': 'build',
-            'score': closeTo(0.452, 0.001),
+            'score': closeTo(0.606, 0.001),
           },
         ],
       });
