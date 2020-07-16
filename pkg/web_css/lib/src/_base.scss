@@ -77,24 +77,10 @@ a {
   &:hover {
     opacity: 0.8;
   }
-
-  body.non-experimental & {
-    font-weight: 500;
-  }
 }
 
 main {
-  body.non-experimental & {
-    min-height: calc(100vh - 360px); // top nav + search banner + footer margin + footer padding
-  }
-
-  body.experimental & {
-    min-height: calc(100vh - 222px); // top nav (50) + footer with margin (80+92)
-  }
-
-  body.page-standalone.non-experimental & {
-    max-width: 800px;
-  }
+  min-height: calc(100vh - 222px); // top nav (50) + footer with margin (80+92)
 }
 
 /* Useful for synchronizing the alignment of different page blocks. */
@@ -119,14 +105,7 @@ pre > code {
   display: block;
   padding: 0.5em;
   overflow-x: auto;
-
-  body.non-experimental & {
-    overflow-x: auto;
-  }
 }
-
-/* non-indented rule to restrict the content of this block to the experimental pages */
-body.experimental {
 
 .standalone-side-image-block {
   display: none;
@@ -217,26 +196,6 @@ pre {
   }
 }
 
-/* non-indented rule to restrict the content of this block to the experimental pages */
-}
-
-/* non-indented rule to restrict the content of this block to the non-experimental pages */
-.non-experimental {
-._banner-bg {
-  background: $color-searchbar-dark-bg;
-  background-image: url('/static/img/background-pattern-darkblue.jpg?hash=tqigd6sddnrgq97c7crv8d2l6agjtrob');
-  background-size: cover;
-  color: $color-searchbar-dark-fg;
-  padding: 10px 0px;
-
-  a {
-    color: $color-searchbar-dark-link;
-  }
-}
-}
-
-/* non-indented rule to restrict the content of this block to the experimental pages */
-.experimental {
 ._banner-bg {
   background: $color-searchbar-dark-bg;
   background-image: url("/static/img/hero-bg-static.svg?hash=pvblnkq8qgr4g10hr78tnibbr2qdpuqt");
@@ -247,7 +206,6 @@ pre {
   a {
     color: $color-searchbar-dark-link;
   }
-}
 }
 
 /*
@@ -279,22 +237,11 @@ pre {
   overflow-x: auto;
 }
 
-/* non-indented rule to restrict the content of this block to the non-experimental pages */
-.non-experimental {
-.-pub-publisher-shield {
-  vertical-align: top;
-  margin-right: 2px;
-}
-}
-
-/* non-indented rule to restrict the content of this block to the experimental pages */
-.experimental {
 .-pub-publisher-shield {
   vertical-align: middle;
   margin: -1px 2px 0 0;
   width: 15px;
   height: 15px;
-}
 }
 
 .-pub-publisher {
@@ -304,17 +251,10 @@ pre {
 .-pub-like-button {
   --mdc-theme-primary: #f8f8f8;
   --mdc-theme-on-primary: #212529;
-
-  body.non-experimental & {
-    float: right;
-    width: 100px;
-  }
 }
 
 .-pub-like-button-img {
-  body.experimental & {
-    opacity: 0.7;
-  }
+  opacity: 0.7;
 }
 
 .center {

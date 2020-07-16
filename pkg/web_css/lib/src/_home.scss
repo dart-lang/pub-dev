@@ -33,14 +33,12 @@
     margin: 1em auto;
     max-width: 500px;
 
-    .experimental & {
-      color: white;
-      font-size: 18px;
+    color: white;
+    font-size: 18px;
 
-      > a {
-        color: #31b0fc;
-        font-weight: 400;
-      }
+    > a {
+      color: #31b0fc;
+      font-weight: 400;
     }
   }
 
@@ -60,48 +58,6 @@
     margin: 0 auto;
   }
 }
-
-/* non-indented rule to restrict the content of this block to the non-experimental pages */
-.non-experimental {
-
-.home-lists-container {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  flex-direction: column;
-  max-width: 1100px;
-
-  .more {
-    text-align: center;
-    margin-top: 10px;
-
-    > a {
-      margin: 0 1em;
-    }
-  }
-
-  .package-list {
-    display: flex;
-    flex-flow: row wrap;
-    justify-content: space-around;
-
-    .list-item {
-      width: 305px;
-      margin: 0 5px 10px 5px;
-      border: none;
-    }
-
-    &:last-child {
-      border-bottom: inherit;
-    }
-  }
-}
-
-/* non-indented rule to restrict the content of this block to the non-experimental pages */
-}
-
-/* non-indented rule to restrict the content of this block to the experimental pages */
-.experimental {
 
 .home-banner {
   padding-top: 110px;
@@ -315,7 +271,4 @@
       left: -2.5%;
     }
   }
-}
-
-/* non-indented rule to restrict the content of this block to the experimental pages */
 }
