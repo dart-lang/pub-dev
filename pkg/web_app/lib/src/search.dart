@@ -29,10 +29,6 @@ void _setBackToReferrer() {
   // abort if not on a package page
   if (!pageData.isPackagePage) return;
 
-  // TODO: remove this after finalizing the new new design
-  // abort if on old design
-  if (document.body.classes.contains('non-experimental')) return;
-
   // Abort if there is no referrer or if it is not a valid URL.
   final ref = document.referrer;
   if (ref == null || ref.isEmpty) return;
@@ -90,15 +86,6 @@ void _setEventForFiltersToggle() {
 
 void _setEventForSortControl() {
   // HTML-based dropdown
-  // TODO: remove once we have migrated to the new UI
-  final sortControl = document.getElementById('sort-control') as SelectElement;
-  sortControl?.onChange?.listen((_) {
-    final selectedValue = sortControl.selectedOptions.first.value;
-    final isFirst = selectedValue == sortControl.options.first.value;
-    _updateSortField(isFirst ? null : selectedValue);
-  });
-
-  // new UI design
   document.querySelectorAll('.sort-control-option').forEach((e) {
     final isFirst = e.previousElementSibling == null;
     final value = isFirst ? null : e.dataset['value'];

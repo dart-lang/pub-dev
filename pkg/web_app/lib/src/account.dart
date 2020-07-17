@@ -294,7 +294,6 @@ class _PublisherAdminWidget {
   InputElement _inviteMemberInput;
   Element _addMemberButton;
   Element _addMemberContent;
-  Element _inviteMemberButton;
   String _originalContactEmail;
 
   void init() {
@@ -310,8 +309,6 @@ class _PublisherAdminWidget {
         document.getElementById('-admin-invite-member-input') as InputElement;
     _addMemberButton = document.getElementById('-admin-add-member-button');
     _addMemberContent = document.getElementById('-admin-add-member-content');
-    _inviteMemberButton =
-        document.getElementById('-admin-invite-member-button');
     _originalContactEmail = _contactEmailInput?.value;
     _updateButton?.onClick?.listen((_) => _updatePublisher());
     _addMemberButton?.onClick?.listen((_) => _addMember());
@@ -319,8 +316,6 @@ class _PublisherAdminWidget {
       _addMemberContent.remove();
       _addMemberContent.classes.remove('modal-content-hidden');
     }
-    // TODO: remove _inviteMemberButton after migrating to the new UI
-    _inviteMemberButton?.onClick?.listen((_) => _inviteMember(true));
     for (final btn in document.querySelectorAll('.-pub-remove-user-button')) {
       btn.onClick.listen((_) => _removeMember(
             btn.dataset['user-id'],
@@ -357,12 +352,11 @@ class _PublisherAdminWidget {
       isQuestion: true,
       okButtonText: 'Add',
       content: _addMemberContent,
-      onExecute: () => _inviteMember(false),
+      onExecute: () => _inviteMember(),
     );
   }
 
-  // TODO: remove [requestConfirm] after we've migrated to the new UI.
-  Future<bool> _inviteMember(bool requestConfirm) async {
+  Future<bool> _inviteMember() async {
     final email = _inviteMemberInput.value.trim();
     if (email.isEmpty || !email.contains('@') || !email.contains('.')) {
       await modalMessage(
@@ -371,10 +365,6 @@ class _PublisherAdminWidget {
     }
 
     await rpc(
-      confirmQuestion: requestConfirm
-          ? markdown('Are you sure you want to invite `$email` '
-              'as an administrator member to this publisher?')
-          : null,
       fn: () async {
         await client.invitePublisherMember(
             pageData.publisher.publisherId, InviteMemberRequest(email: email));
