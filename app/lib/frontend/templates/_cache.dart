@@ -73,6 +73,7 @@ class TemplateCache {
   /// Renders [template] with given [values].
   String renderTemplate(String template, Map<String, Object> values) {
     final data = {
+      'is_experimental': requestContext.isExperimental,
       'static_assets': staticUrls.assets,
       ...values,
     };

@@ -74,7 +74,6 @@ String renderLayoutPage(
   );
   final announcementBannerHtml = announcementBackend.getAnnouncementHtml();
   final values = {
-    'is_experimental': requestContext.isExperimental,
     'is_landing': type == PageType.landing,
     'pub_site_root': urls.siteRoot,
     'dart_site_root': urls.dartSiteRoot,

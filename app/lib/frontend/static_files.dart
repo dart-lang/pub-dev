@@ -189,25 +189,17 @@ class StaticUrls {
         reportOKIconGreen = _getCacheableStaticUrl(
             '$_defaultStaticPath/img/report-ok-icon-green.svg');
 
-  // TODO: merge with [newVersionTableIcons] after migration to the new UI
   Map get versionsTableIcons {
     return _versionsTableIcons ??= {
-      'documentation': documentationIcon,
-      'download': downloadIcon,
-      'hasDocumentationFailed': false,
+      'documentation': _getCacheableStaticUrl(
+          '$_defaultStaticPath/img/description-24px.svg'),
+      'documentationFailed': _getCacheableStaticUrl(
+          '$_defaultStaticPath/img/documentation-failed-icon.svg'),
+      'download': _getCacheableStaticUrl(
+          '$_defaultStaticPath/img/vertical_align_bottom-24px.svg'),
+      'hasDocumentationFailed': true,
     };
   }
-
-  // TODO: merge with [versionsTableIcons] after migration to the new UI
-  final newVersionsTableIcons = {
-    'documentation':
-        _getCacheableStaticUrl('$_defaultStaticPath/img/description-24px.svg'),
-    'documentationFailed': _getCacheableStaticUrl(
-        '$_defaultStaticPath/img/documentation-failed-icon.svg'),
-    'download': _getCacheableStaticUrl(
-        '$_defaultStaticPath/img/vertical_align_bottom-24px.svg'),
-    'hasDocumentationFailed': true,
-  };
 
   /// A hashed version of the static assets.
   ///

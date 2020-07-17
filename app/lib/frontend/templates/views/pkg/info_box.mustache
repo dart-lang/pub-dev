@@ -1,27 +1,37 @@
-{{! Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+{{! Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
+
+{{& labeled_scores_html }}
 
 {{#publisher_id}}
 <h3 class="title">Publisher</h3>
 <p>
   <a href="{{& publisher_link}}"><img
           class="-pub-publisher-shield"
-          height="22" width="22"
           title="Published by a pub.dev verified publisher"
           src="{{{static_assets.img__verified-publisher-blue_svg}}}" />{{publisher_id}}</a>
 </p>
 {{/publisher_id}}
 
-<h3 class="title">About</h3>
+<h3 class="title pkg-infobox-metadata">Metadata</h3>
 {{#description}}
   <p>{{description}}</p>
 {{/description}}
 <p>
-  {{#all_links}}
+  {{#meta_links}}
   <a class="link" href="{{& href}}">{{label}}</a><br/>
-  {{/all_links}}
+  {{/meta_links}}
 </p>
+
+{{#has_doc_links}}
+<h3 class="title">Documentation</h3>
+<p>
+  {{#doc_links}}
+    <a class="link" href="{{& href}}">{{label}}</a><br/>
+  {{/doc_links}}
+</p>
+{{/has_doc_links}}
 
 {{#uploaders_html}}
 <h3 class="title">{{uploaders_title}}</h3>
