@@ -595,16 +595,11 @@ class PackageView extends Object with FlagMixin {
   /// May be `null` if the analysis is not available yet.
   final int maxPubPoints;
 
-  /// The package's health score value (on the scale of 0-100).
-  /// May be `null` if the score is not available yet.
-  final int health;
-
   /// The package's popularity score value (on the scale of 0-100).
   /// May be `null` if the score is not available yet.
   final int popularity;
 
   /// TODO: remove this after the new design is finalized
-  final double overallScore;
   final List<String> tags;
   final bool isNewPackage;
   final List<ApiPageRef> apiPages;
@@ -624,9 +619,7 @@ class PackageView extends Object with FlagMixin {
     this.likes,
     this.grantedPubPoints,
     this.maxPubPoints,
-    this.health,
     this.popularity,
-    this.overallScore,
     List<String> tags,
     this.isNewPackage = false,
     this.apiPages,
@@ -668,13 +661,9 @@ class PackageView extends Object with FlagMixin {
       likes: package.likes,
       grantedPubPoints: scoreCard?.grantedPubPoints,
       maxPubPoints: scoreCard?.maxPubPoints,
-      health: scoreCard?.healthScore == null
-          ? null
-          : (100.0 * scoreCard.healthScore).round(),
       popularity: scoreCard?.popularityScore == null
           ? null
           : (100.0 * scoreCard.popularityScore).round(),
-      overallScore: scoreCard?.overallScore,
       tags: <String>[
         ...(package?.getTags() ?? <String>[]),
         ...(version?.getTags() ?? <String>[]),
@@ -701,9 +690,7 @@ class PackageView extends Object with FlagMixin {
       likes: likes,
       grantedPubPoints: grantedPubPoints,
       maxPubPoints: maxPubPoints,
-      health: health,
       popularity: popularity,
-      overallScore: overallScore,
       tags: tags,
       isNewPackage: isNewPackage,
       apiPages: apiPages ?? this.apiPages,

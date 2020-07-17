@@ -125,18 +125,4 @@ class AnalysisView {
     list.sort((a, b) => a.package.compareTo(b.package));
     return list;
   }
-
-  double get health => _card?.healthScore ?? 0.0;
-
-  List<Suggestion> get panaSuggestions => _pana?.panaSuggestions;
-  List<Suggestion> get healthSuggestions =>
-      _concat([_pana?.healthSuggestions, _dartdoc?.healthSuggestions]);
-  List<Suggestion> get maintenanceSuggestions => _concat(
-      [_pana?.maintenanceSuggestions, _dartdoc?.maintenanceSuggestions]);
-
-  List<Suggestion> _concat(List<List<Suggestion>> list) =>
-      list.where((item) => item != null).expand((list) => list).toList()
-        ..sort();
-
-  double get maintenanceScore => _card?.maintenanceScore ?? 0.0;
 }

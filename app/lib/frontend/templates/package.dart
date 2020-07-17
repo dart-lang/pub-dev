@@ -327,7 +327,7 @@ String _renderPkgPage({
     includeHost: true,
   );
   final noIndex = (card?.isSkipped ?? false) ||
-      (card?.overallScore == 0.0) ||
+      (card?.grantedPubPoints == 0) ||
       data.package.isDiscontinued;
   return renderLayoutPage(
     PageType.package,
