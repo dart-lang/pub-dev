@@ -130,7 +130,6 @@ include: package:pedantic/analysis_options.yaml
 # analyzer:
 #   exclude:
 #     - path/to/excluded/files/**
-  </code></pre>
 ````
 
 ### Support up-to-date dependencies
