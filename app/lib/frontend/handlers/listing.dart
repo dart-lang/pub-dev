@@ -6,8 +6,6 @@ import 'dart:async';
 
 import 'package:shelf/shelf.dart' as shelf;
 
-import '../../account/models.dart';
-import '../../account/search_preference_cookie.dart';
 import '../../package/backend.dart';
 import '../../package/models.dart';
 import '../../package/overrides.dart';
@@ -87,7 +85,6 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
     sdk: sdk,
     tagsPredicate: tagsPredicate ?? TagsPredicate.regularSearch(),
   );
-  final searchPreferences = SearchPreference.fromSearchQuery(searchQuery);
   final sw = Stopwatch()..start();
   final searchResult = await searchAdapter.search(searchQuery);
   final int totalCount = searchResult.totalCount;
@@ -104,7 +101,6 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
       title: title,
       searchPlaceholder: searchPlaceholder,
     ),
-    headers: createSearchPreferenceCookie(searchPreferences),
   );
   _searchOverallLatencyTracker.add(sw.elapsed);
   return result;

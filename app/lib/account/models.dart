@@ -2,15 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:json_annotation/json_annotation.dart';
 import 'package:gcloud/db.dart' as db;
 import 'package:meta/meta.dart';
 import 'package:ulid/ulid.dart';
 
 import '../frontend/static_files.dart';
-import '../search/search_service.dart' show SearchQuery;
 
 part 'models.g.dart';
 
@@ -314,61 +311,3 @@ String consentDedupId({
         .where((s) => s != null)
         .map(Uri.encodeComponent)
         .join('/');
-
-@JsonSerializable(includeIfNull: false, explicitToJson: true)
-class SearchPreference {
-  final String sdk;
-  final List<String> runtimes;
-  final List<String> platforms;
-
-  SearchPreference._(this.sdk, this.runtimes, this.platforms);
-
-  factory SearchPreference({
-    String sdk,
-    List<String> runtimes,
-    List<String> platforms,
-  }) =>
-      SearchPreference._(
-        sdk,
-        runtimes ?? <String>[],
-        platforms ?? <String>[],
-      );
-
-  factory SearchPreference.fromJson(Map<String, dynamic> json) =>
-      _$SearchPreferenceFromJson(json);
-
-  factory SearchPreference.fromSearchQuery(SearchQuery query) {
-    return SearchPreference(
-      sdk: query.sdk,
-      runtimes: query.tagsPredicate.tagPartsWithPrefix('runtime'),
-      platforms: query.tagsPredicate.tagPartsWithPrefix('platform'),
-    );
-  }
-
-  /// Parses cookie [value] and returns the parsed object.
-  /// Returns `null` if value is invalid.
-  static SearchPreference tryParseCookieValue(String value) {
-    if (value == null) return null;
-    try {
-      return SearchPreference.fromJson(
-          json.decode(utf8.decode(base64Url.decode(value)))
-              as Map<String, dynamic>);
-    } catch (_) {
-      return null;
-    }
-  }
-
-  Map<String, dynamic> toJson() => _$SearchPreferenceToJson(this);
-
-  String toCookieValue() {
-    final reduced = SearchPreference._(
-      sdk,
-      runtimes.isEmpty ? null : runtimes,
-      platforms.isEmpty ? null : platforms,
-    );
-    return base64Url.encode(utf8.encode(json.encode(reduced.toJson())));
-  }
-
-  SearchQuery toSearchQuery() =>
-      SearchQuery.parse(sdk: sdk, runtimes: runtimes, platforms: platforms);
-}

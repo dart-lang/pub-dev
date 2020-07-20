@@ -13,7 +13,6 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:stack_trace/stack_trace.dart';
 
 import '../account/backend.dart';
-import '../account/search_preference_cookie.dart' as search_preference_cookie;
 import '../account/session_cookie.dart' as session_cookie;
 import '../frontend/request_context.dart';
 import '../frontend/templates/layout.dart';
@@ -69,7 +68,6 @@ shelf.Handler wrapHandler(
   handler = _userAuthWrapper(handler);
   handler =
       _requestContextWrapper(handler); // need to run after session wrapper
-  handler = _searchPreferenceWrapper(handler);
   handler = _userSessionWrapper(handler);
   handler = _httpsWrapper(handler);
   if (sanitize) {
@@ -235,22 +233,6 @@ shelf.Handler _userAuthWrapper(shelf.Handler handler) {
         if (user != null) {
           registerAuthenticatedUser(user);
         }
-      }
-    }
-    return await handler(request);
-  };
-}
-
-/// Processes the search preference cookie, and on successful decoding it will
-/// set the SearchPreference object.
-shelf.Handler _searchPreferenceWrapper(shelf.Handler handler) {
-  return (shelf.Request request) async {
-    if (request.headers.containsKey(HttpHeaders.cookieHeader)) {
-      final sp = search_preference_cookie.parseSearchPreferenceCookie(
-        request.headers[HttpHeaders.cookieHeader],
-      );
-      if (sp != null) {
-        registerSearchPreference(sp);
       }
     }
     return await handler(request);
