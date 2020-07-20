@@ -192,6 +192,18 @@
 
   .pkg-report-content {
     padding-left: 40px;
+
+    .markdown-body {
+      table {
+        @media (min-width: $device-desktop-min-width) {
+          // Normally markdown-tables do use 100% width, but for
+          // an unknown layout rule this is not doing it.
+          // Forcing table to take the maximum available width,
+          // but it won't scroll if overflown.
+          display: table;
+        }
+      }
+    }
   }
 
   .pkg-report-content-summary {
