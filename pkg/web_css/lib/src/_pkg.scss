@@ -58,10 +58,6 @@
 
     .version {
       font-size: 24px;
-
-      > a {
-        font-weight: 400;
-      }
     }
   }
 
@@ -107,7 +103,6 @@
   .score-key-figure-value {
     font-family: $font-family-google-sans-display;
     font-size: 32px;
-    font-weight: 400;
     line-height: 1;
 
     @media (min-width: $device-desktop-min-width) {
@@ -118,14 +113,12 @@
   .score-key-figure-supplemental {
     font-family: $font-family-google-sans;
     font-size: 24px;
-    font-weight: 400;
   }
 
   .score-key-figure-label {
     color: #555555;
     font-family: $font-family-roboto;
     font-size: 14px;
-    font-weight: 300;
     text-align: center;
     text-transform: uppercase;
   }
@@ -164,7 +157,6 @@
   .pkg-report-header-title {
     font-family: $font-family-google-sans;
     font-size: 24px;
-    font-weight: 400;
   }
 
   .pkg-report-header-score {
@@ -173,7 +165,6 @@
 
     font-family: $font-family-google-sans;
     font-size: 22px;
-    font-weight: 400;
 
     &.-is-red {
       color: #e13701;
@@ -216,12 +207,6 @@
         width: 14px;
         height: 14px;
         margin-right: 6px;
-      }
-    }
-
-    table {
-      a {
-        font-weight: 400;
       }
     }
   }
