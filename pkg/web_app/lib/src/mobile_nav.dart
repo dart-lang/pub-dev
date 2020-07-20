@@ -11,35 +11,20 @@ void setupMobileNav() {
 
 void _setEventForMobileNav() {
   // hamburger menu on mobile
-  final Element hamburger = document.querySelector('.hamburger');
-  final Element close = document.querySelector('.close');
-  final Element mask = document.querySelector('.mask');
-  final Element nav = document.querySelector('.nav-wrap');
-  final newMask = document.querySelector('.site-header-mask');
-  final newNav = document.querySelector('.site-header-nav');
+  final hamburger = document.querySelector('.hamburger');
+  final mask = document.querySelector('.site-header-mask');
+  final nav = document.querySelector('.site-header-nav');
 
-  final allElems =
-      [nav, mask, newNav, newMask].where((e) => e != null).toList();
+  final allElems = [nav, mask].where((e) => e != null).toList();
 
   hamburger.onClick.listen((_) {
     // This opacity hack enables smooth initialization, otherwise users would
     // see a rendering glitch with the content animating at the start.
-    newNav?.style?.opacity = '1';
+    nav?.style?.opacity = '1';
     allElems.forEach((e) => e.classes.add('-show'));
   });
 
-  // TODO: remove after new design is deployed
-  close?.onClick?.listen((_) {
-    allElems.forEach((e) => e.classes.remove('-show'));
-  });
-
-  // TODO: remove after new design is deployed
-  mask?.onClick?.listen((_) {
-    allElems.forEach((e) => e.classes.remove('-show'));
-  });
-
-  // TODO: remove `?` after new design is deployed
-  newMask?.onClick?.listen((_) {
+  mask.onClick.listen((_) {
     allElems.forEach((e) => e.classes.remove('-show'));
   });
 }
