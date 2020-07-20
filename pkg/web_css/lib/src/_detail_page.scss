@@ -80,7 +80,6 @@ $detail-tabs-tablet-width: calc(100% - 240px);
 
   .title {
     font-family: $font-family-google-sans-display;
-    font-weight: 400;
     margin: 0;
     font-size: 24px;
 
@@ -117,7 +116,6 @@ $detail-tabs-tablet-width: calc(100% - 240px);
 
   .detail-lead-title {
     font-size: 16px;
-    font-weight: 400;
     margin: 0;
   }
 }
@@ -199,7 +197,6 @@ $detail-tabs-tablet-width: calc(100% - 240px);
 
   .detail-metadata-title {
     font-size: 36px;
-    font-weight: 400;
     margin: 8px 0;
   }
 
@@ -244,7 +241,6 @@ $detail-tabs-tablet-width: calc(100% - 240px);
 
   > .title {
     font-size: 16px;
-    font-weight: 400;
     margin: 0;
 
     &:not(:first-child) {
@@ -298,8 +294,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   > .tab-button,
   > .tab-link > a {
     display: block;
-    font-weight: 300;
-    color: #555555;
+    color: #4a4a4a;
     padding: 12px 0px;
     margin: 0px 18px 0px 12px; // left 12px to compensate .detail-tabs-header's -12px; Sum must be 30px.
     border-bottom: 2px solid;
