@@ -8,7 +8,6 @@ import 'package:client_data/page_data.dart';
 import 'package:meta/meta.dart';
 
 import '../../account/backend.dart';
-import '../../account/models.dart' show SearchPreference;
 import '../../search/search_service.dart';
 import '../../service/announcement/backend.dart';
 import '../../shared/configuration.dart';
@@ -135,7 +134,7 @@ String _renderSearchBanner({
   @required SearchQuery searchQuery,
   String searchPlaceholder,
 }) {
-  final sp = _sp(searchQuery);
+  final sdk = searchQuery?.sdk ?? SdkTagValue.any;
   final queryText = searchQuery?.query;
   final escapedSearchQuery =
       queryText == null ? null : htmlAttrEscape.convert(queryText);
@@ -145,7 +144,7 @@ String _renderSearchBanner({
   } else if (type == PageType.account) {
     searchPlaceholder ??= 'Search your packages';
   } else {
-    searchPlaceholder ??= getSdkDict(sp.sdk).searchPackagesLabel;
+    searchPlaceholder ??= getSdkDict(sdk).searchPackagesLabel;
     includePreferencesAsHiddenFields = true;
   }
   String searchFormUrl;
@@ -156,14 +155,13 @@ String _renderSearchBanner({
   } else if (searchQuery != null) {
     searchFormUrl = searchQuery.toSearchFormPath();
   } else {
-    searchFormUrl = sp.toSearchQuery().toSearchFormPath();
+    searchFormUrl = SearchQuery.parse().toSearchFormPath();
   }
   final searchSort = searchQuery?.order == null
       ? null
       : serializeSearchOrder(searchQuery.order);
   final hiddenInputs = includePreferencesAsHiddenFields
-      ? sp
-          .toSearchQuery()
+      ? (searchQuery ?? SearchQuery.parse())
           .tagsPredicate
           .asSearchLinkParams()
           .entries
@@ -185,15 +183,10 @@ String _renderSearchBanner({
   });
 }
 
-SearchPreference _sp(SearchQuery searchQuery) => searchQuery != null
-    ? SearchPreference.fromSearchQuery(searchQuery)
-    : (searchPreference ?? SearchPreference());
-
 String renderSdkTabs({
   SearchQuery searchQuery,
 }) {
-  final sp = _sp(searchQuery);
-  final currentSdk = sp.sdk ?? SdkTagValue.any;
+  final currentSdk = searchQuery?.sdk ?? SdkTagValue.any;
   SearchTab sdkTabData(String label, String tabSdk, String title) {
     String url;
     if (searchQuery != null) {

@@ -48,26 +48,3 @@ Map<String, dynamic> _$UserSessionDataToJson(UserSessionData instance) =>
       'created': instance.created?.toIso8601String(),
       'expires': instance.expires?.toIso8601String(),
     };
-
-SearchPreference _$SearchPreferenceFromJson(Map<String, dynamic> json) {
-  return SearchPreference(
-    sdk: json['sdk'] as String,
-    runtimes: (json['runtimes'] as List)?.map((e) => e as String)?.toList(),
-    platforms: (json['platforms'] as List)?.map((e) => e as String)?.toList(),
-  );
-}
-
-Map<String, dynamic> _$SearchPreferenceToJson(SearchPreference instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('sdk', instance.sdk);
-  writeNotNull('runtimes', instance.runtimes);
-  writeNotNull('platforms', instance.platforms);
-  return val;
-}
