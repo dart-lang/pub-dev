@@ -102,33 +102,19 @@ class AnalyzerJobProcessor extends JobProcessor {
     }
 
     Summary summary = await analyze();
-    final bool firstRunWithErrors =
-        summary?.suggestions?.where((s) => s.isError)?.isNotEmpty ?? false;
-    if (summary == null || firstRunWithErrors) {
+    if (summary?.report == null) {
       _logger.info('Retrying $job...');
       await Future.delayed(Duration(seconds: 15));
       summary = await analyze();
     }
 
     JobStatus status = JobStatus.failed;
-    bool isLegacy = false;
-    if (summary != null) {
-      // TODO: move this to scoreCardBackend.updateScoreCard()
-      summary = await _expandSummary(summary, packageStatus.age);
-      if (summary.suggestions?.any(_isLegacy) ?? false) {
-        isLegacy = true;
-      }
-      if (summary.maintenance?.suggestions?.any(_isLegacy) ?? false) {
-        isLegacy = true;
-      }
-      final bool lastRunWithErrors =
-          summary.suggestions?.where((s) => s.isError)?.isNotEmpty ?? false;
-      if (!isLegacy && !lastRunWithErrors) {
-        status = JobStatus.success;
-      }
+    if (packageStatus.isLegacy || summary?.report != null) {
+      status = JobStatus.success;
     }
 
-    final scoreCardFlags = isLegacy ? [PackageFlags.isLegacy] : null;
+    final scoreCardFlags =
+        packageStatus.isLegacy ? [PackageFlags.isLegacy] : null;
     await _storeScoreCard(job, summary, flags: scoreCardFlags);
 
     if (packageStatus.isLatestStable && status != JobStatus.success) {
@@ -136,52 +122,6 @@ class AnalyzerJobProcessor extends JobProcessor {
     }
 
     return status;
-  }
-
-  bool _isLegacy(Suggestion s) {
-    // Dart 2 SDK treats missing SDK constraints as <2.0.0.
-    if (s.code == SuggestionCode.pubspecSdkConstraintMissing) {
-      return true;
-    }
-
-    final isVersionFailed = s.isError &&
-        s.code == SuggestionCode.pubspecDependenciesFailedToResolve &&
-        s.description != null &&
-        s.description.contains('version solving failed');
-    if (!isVersionFailed) {
-      return false;
-    }
-    // Version resolution failure does not automatically indicate that a package
-    // is not compatible with the latest Dart SDK. However, if the description has
-    // patterns like "requires SDK version 1.8.0" or "requires SDK version <0.9.0",
-    // then we can classify them as legacy packages. E.g. a typical pattern was:
-    //
-    // ERR: The current Dart SDK version is 2.0.0.
-    // Because [A] >=0.2.3 <0.4.0 depends on [B] >=0.2.1 which requires SDK version <2.0.0, [A] >=0.2.3 <0.4.0 is forbidden.
-    // So, because [C] depends on [A] ^0.2.3, version solving failed.
-    return s.description.contains('requires SDK version 0.') ||
-        s.description.contains('requires SDK version <0.') ||
-        s.description.contains('requires SDK version 1.') ||
-        s.description.contains('requires SDK version <1.') ||
-        s.description.contains('requires SDK version <2.0.0');
-  }
-
-  Future<Summary> _expandSummary(Summary summary, Duration age) async {
-    if (summary.maintenance != null) {
-      final suggestions =
-          List<Suggestion>.from(summary.maintenance.suggestions ?? []);
-
-      // age suggestion
-      final ageSuggestion = getAgeSuggestion(age);
-      if (ageSuggestion != null) {
-        suggestions.add(ageSuggestion);
-      }
-
-      suggestions.sort();
-      final maintenance = summary.maintenance.change(suggestions: suggestions);
-      summary = summary.change(maintenance: maintenance);
-    }
-    return summary;
   }
 
   Future<void> _storeScoreCard(Job job, Summary summary,
