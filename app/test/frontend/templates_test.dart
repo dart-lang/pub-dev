@@ -145,14 +145,11 @@ void main() {
       analysis: AnalysisView(
         card: ScoreCardData(
           reportTypes: ['pana', 'dartdoc'],
-          healthScore: 0.1,
         ),
         panaReport: PanaReport(
             timestamp: DateTime(2018, 02, 05),
             panaRuntimeInfo: _panaRuntimeInfo,
             reportStatus: ReportStatus.success,
-            healthScore: null,
-            maintenanceScore: null,
             derivedTags: null,
             pkgDependencies: [
               PkgDependency(
@@ -175,9 +172,6 @@ void main() {
               )
             ],
             licenses: [LicenseFile('LICENSE.txt', 'BSD')],
-            panaSuggestions: null,
-            healthSuggestions: null,
-            maintenanceSuggestions: null,
             report: Report(sections: <ReportSection>[]),
             flags: null),
         dartdocReport: DartdocReport(
@@ -201,10 +195,6 @@ void main() {
           ),
           documentationSection:
               documentationCoverageSection(documented: 17, total: 17),
-          coverage: 1.0,
-          coverageScore: 1.0,
-          healthSuggestions: [],
-          maintenanceSuggestions: [],
         ),
       ),
       isAdmin: true,
@@ -242,13 +232,11 @@ void main() {
         uploaderEmails: foobarUploaderEmails,
         version: foobarDevPV,
         analysis: AnalysisView(
-          card: ScoreCardData(reportTypes: ['pana'], healthScore: 0.1),
+          card: ScoreCardData(reportTypes: ['pana']),
           panaReport: PanaReport(
               timestamp: DateTime(2018, 02, 05),
               panaRuntimeInfo: _panaRuntimeInfo,
               reportStatus: ReportStatus.success,
-              healthScore: null,
-              maintenanceScore: null,
               derivedTags: null,
               pkgDependencies: [
                 PkgDependency(
@@ -271,9 +259,6 @@ void main() {
                 )
               ],
               licenses: [LicenseFile('LICENSE.txt', 'BSD')],
-              panaSuggestions: null,
-              healthSuggestions: null,
-              maintenanceSuggestions: null,
               report: Report(sections: <ReportSection>[]),
               flags: null),
           dartdocReport: null,
@@ -291,8 +276,6 @@ void main() {
         version: flutterPackageVersion,
         analysis: AnalysisView(
           card: ScoreCardData(
-            healthScore: 0.99,
-            maintenanceScore: 0.99,
             popularityScore: 0.3,
             derivedTags: ['sdk:flutter', 'platform:android'],
             flags: [PackageFlags.usesFlutter],
@@ -302,14 +285,9 @@ void main() {
               timestamp: DateTime(2018, 02, 05),
               panaRuntimeInfo: _panaRuntimeInfo,
               reportStatus: ReportStatus.success,
-              healthScore: 0.99,
-              maintenanceScore: 0.99,
               derivedTags: ['sdk:flutter', 'platform:android'],
               pkgDependencies: null,
               licenses: null,
-              panaSuggestions: null,
-              healthSuggestions: null,
-              maintenanceSuggestions: null,
               report: Report(sections: <ReportSection>[]),
               flags: null),
         ),
@@ -424,8 +402,6 @@ void main() {
 
     scopedTest('mock analysis tab', () async {
       final card = ScoreCardData(
-        healthScore: 0.90234,
-        maintenanceScore: 0.8932343,
         popularityScore: 0.2323232,
         derivedTags: ['sdk:dart', 'runtime:web'],
         reportTypes: ['pana'],
@@ -436,8 +412,6 @@ void main() {
             timestamp: DateTime.utc(2017, 10, 26, 14, 03, 06),
             panaRuntimeInfo: _panaRuntimeInfo,
             reportStatus: ReportStatus.failed,
-            healthScore: card.healthScore,
-            maintenanceScore: card.maintenanceScore,
             derivedTags: card.derivedTags,
             pkgDependencies: [
               PkgDependency(
@@ -460,12 +434,6 @@ void main() {
               ),
             ],
             licenses: null,
-            panaSuggestions: null,
-            healthSuggestions: [
-              Suggestion.error(SuggestionCode.dartfmtAborted, 'Fix `dartfmt`.',
-                  'Running `dartfmt -n .` failed.'),
-            ],
-            maintenanceSuggestions: null,
             report: Report(sections: <ReportSection>[]),
             flags: null),
       );
@@ -492,14 +460,9 @@ void main() {
             timestamp: DateTime(2017, 12, 18, 14, 26, 00),
             panaRuntimeInfo: _panaRuntimeInfo,
             reportStatus: ReportStatus.aborted,
-            healthScore: null,
-            maintenanceScore: null,
             derivedTags: null,
             pkgDependencies: null,
             licenses: null,
-            panaSuggestions: null,
-            healthSuggestions: null,
-            maintenanceSuggestions: null,
             report: Report(sections: <ReportSection>[]),
             flags: null,
           ),
@@ -607,8 +570,6 @@ void main() {
           analysis: AnalysisView(
             card: ScoreCardData(
               derivedTags: ['sdk:dart', 'sdk:flutter'],
-              maintenanceScore: 0.9,
-              healthScore: 0.9,
               popularityScore: 0.2,
             ),
           ),
@@ -665,7 +626,6 @@ void main() {
             created: DateTime.utc(2019, 01, 03),
             shortUpdated: '3 Jan 2019',
             tags: ['sdk:dart', 'runtime:web'],
-            overallScore: 0.97,
           ),
           PackageView(
             name: 'another_package',
@@ -675,7 +635,6 @@ void main() {
             created: DateTime.utc(2019, 03, 30),
             shortUpdated: '30 Mar 2019',
             tags: ['sdk:flutter', 'platform:android'],
-            overallScore: 0.90,
           ),
         ],
         totalCount: 2,
@@ -700,7 +659,6 @@ void main() {
             created: DateTime.utc(2019, 01, 03),
             shortUpdated: '3 Jan 2019',
             tags: ['sdk:dart', 'runtime:web'],
-            overallScore: 0.97,
           ),
           PackageView(
             name: 'another_package',
@@ -710,7 +668,6 @@ void main() {
             created: DateTime.utc(2019, 03, 30),
             shortUpdated: '30 Mar 2019',
             tags: ['sdk:flutter', 'platform:android'],
-            overallScore: 0.90,
           ),
         ],
         pageLinks: PageLinks(0, 10, searchQuery: searchQuery),

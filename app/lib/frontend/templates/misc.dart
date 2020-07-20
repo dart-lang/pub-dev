@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' as io;
-import 'dart:math' show pi;
 
 import 'package:meta/meta.dart';
 
@@ -13,11 +12,9 @@ import '../../search/search_service.dart' show SearchQuery;
 import '../../shared/markdown.dart';
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
-import '../request_context.dart';
 import '../static_files.dart' as static_files;
 
 import '_cache.dart';
-import '_utils.dart';
 import 'layout.dart';
 
 /// The content of `/doc/policy.md`
@@ -346,36 +343,6 @@ String renderTags({
   });
 }
 
-/// Renders the `views/shared/score_circle.mustache` template.
-String renderScoreCircle({
-  @required String label,
-  @required int percent,
-  String link,
-  String title,
-  String secondaryLabel,
-}) {
-  if (percent < 0) percent = 0;
-  if (percent > 100) percent = 100;
-
-  // Circle arc is rendered via SVG circle's dash-array, with the length on
-  // the circle's circumference as the arc's active part, and then a longer
-  // transparent pattern.
-  final radius = 20;
-  final active = (percent * radius * 2 * pi) / 100.0;
-  return templateCache.renderTemplate('shared/score_circle', {
-    'radius': radius,
-    'diameter': radius * 2,
-    'active': percent == 100 ? active.ceil() : active.floor(),
-    'inactive': radius * 7, // longer than the circumference (r * 2 * pi)
-    'primary_label': label,
-    'has_secondary_label': secondaryLabel != null,
-    'secondary_label': secondaryLabel,
-    'percent': percent,
-    'link': link,
-    'title': title,
-  });
-}
-
 /// Renders the `views/pkg/labeled_scores.mustache` template.
 String renderLabeledScores(PackageView view) {
   return templateCache.renderTemplate('pkg/labeled_scores', {
@@ -398,69 +365,10 @@ String _renderLabeledScore(String label, int value, String sign) {
   });
 }
 
-/// Renders the circle with the overall score.
-String renderScoreBox(
-  PackageView view, {
-  bool isTabHeader = false,
-}) {
-  if (requestContext.isExperimental) {
-    final formattedScore =
-        view.grantedPubPoints == null ? '--' : view.grantedPubPoints.toString();
-    String title;
-    if (!view.isSkipped && view.grantedPubPoints == null) {
-      title = 'Awaiting analysis to complete.';
-    } else {
-      title = 'Analysis and more details.';
-    }
-    if (isTabHeader) {
-      return 'Scores';
-    }
-    return renderScoreCircle(
-      label: formattedScore,
-      percent: view.grantedPubPoints == null || view.maxPubPoints == 0
-          ? 0
-          : (100 * view.grantedPubPoints / view.maxPubPoints).round(),
-      title: title,
-      link: urls.pkgScoreUrl(view.name),
-    );
-  }
-
-  // TODO(3246): Remove the rest of the method after migrating to the new UI.
-  final overallScore = view.overallScore;
-  final String formattedScore = formatScore(overallScore);
-  String title;
-  if (!view.isSkipped && overallScore == null) {
-    title = 'Awaiting analysis to complete.';
-  } else {
-    title = 'Analysis and more details.';
-  }
-  final String scoreClass = _classifyScore(overallScore);
-  final String escapedTitle = htmlAttrEscape.convert(title);
-  final newIndicator = view.isNewPackage
-      ? '<span class="new" title="Created in the last 30 days">new</span>'
-      : '';
-  final String boxHtml = '<div class="score-box">'
-      '$newIndicator'
-      '<span class="number -$scoreClass" title="$escapedTitle">$formattedScore</span>'
-      '</div>';
-  if (!isTabHeader) {
-    return '<a href="${urls.pkgScoreUrl(view.name)}">$boxHtml</a>';
-  } else {
-    return boxHtml;
-  }
-}
-
 /// Formats the score from [0.0 - 1.0] range to [0 - 100] or '--'.
 String formatScore(double value) {
   if (value == null) return '--';
   if (value <= 0.0) return '0';
   if (value >= 1.0) return '100';
   return (value * 100.0).round().toString();
-}
-
-String _classifyScore(double value) {
-  if (value == null) return 'missing';
-  if (value <= 0.5) return 'rotten';
-  if (value <= 0.7) return 'good';
-  return 'solid';
 }

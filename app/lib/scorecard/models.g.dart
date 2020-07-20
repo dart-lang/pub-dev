@@ -22,8 +22,6 @@ ScoreCardData _$ScoreCardDataFromJson(Map<String, dynamic> json) {
         : DateTime.parse(json['packageVersionCreated'] as String),
     grantedPubPoints: json['grantedPubPoints'] as int,
     maxPubPoints: json['maxPubPoints'] as int,
-    healthScore: (json['healthScore'] as num)?.toDouble(),
-    maintenanceScore: (json['maintenanceScore'] as num)?.toDouble(),
     popularityScore: (json['popularityScore'] as num)?.toDouble(),
     derivedTags:
         (json['derivedTags'] as List)?.map((e) => e as String)?.toList(),
@@ -44,8 +42,6 @@ Map<String, dynamic> _$ScoreCardDataToJson(ScoreCardData instance) =>
           instance.packageVersionCreated?.toIso8601String(),
       'grantedPubPoints': instance.grantedPubPoints,
       'maxPubPoints': instance.maxPubPoints,
-      'healthScore': instance.healthScore,
-      'maintenanceScore': instance.maintenanceScore,
       'popularityScore': instance.popularityScore,
       'derivedTags': instance.derivedTags,
       'flags': instance.flags,
@@ -62,8 +58,6 @@ PanaReport _$PanaReportFromJson(Map<String, dynamic> json) {
         : PanaRuntimeInfo.fromJson(
             json['panaRuntimeInfo'] as Map<String, dynamic>),
     reportStatus: json['reportStatus'] as String,
-    healthScore: (json['healthScore'] as num)?.toDouble(),
-    maintenanceScore: (json['maintenanceScore'] as num)?.toDouble(),
     derivedTags:
         (json['derivedTags'] as List)?.map((e) => e as String)?.toList(),
     pkgDependencies: (json['pkgDependencies'] as List)
@@ -74,18 +68,6 @@ PanaReport _$PanaReportFromJson(Map<String, dynamic> json) {
     licenses: (json['licenses'] as List)
         ?.map((e) =>
             e == null ? null : LicenseFile.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
-    panaSuggestions: (json['panaSuggestions'] as List)
-        ?.map((e) =>
-            e == null ? null : Suggestion.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
-    healthSuggestions: (json['healthSuggestions'] as List)
-        ?.map((e) =>
-            e == null ? null : Suggestion.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
-    maintenanceSuggestions: (json['maintenanceSuggestions'] as List)
-        ?.map((e) =>
-            e == null ? null : Suggestion.fromJson(e as Map<String, dynamic>))
         ?.toList(),
     report: json['report'] == null
         ? null
@@ -99,10 +81,9 @@ Map<String, dynamic> _$PanaReportToJson(PanaReport instance) {
     'timestamp': instance.timestamp?.toIso8601String(),
     'panaRuntimeInfo': instance.panaRuntimeInfo,
     'reportStatus': instance.reportStatus,
-    'healthScore': instance.healthScore,
-    'maintenanceScore': instance.maintenanceScore,
     'derivedTags': instance.derivedTags,
     'pkgDependencies': instance.pkgDependencies,
+    'licenses': instance.licenses,
   };
 
   void writeNotNull(String key, dynamic value) {
@@ -111,10 +92,6 @@ Map<String, dynamic> _$PanaReportToJson(PanaReport instance) {
     }
   }
 
-  writeNotNull('panaSuggestions', instance.panaSuggestions);
-  writeNotNull('healthSuggestions', instance.healthSuggestions);
-  writeNotNull('maintenanceSuggestions', instance.maintenanceSuggestions);
-  val['licenses'] = instance.licenses;
   writeNotNull('report', instance.report);
   writeNotNull('flags', instance.flags);
   return val;
@@ -130,35 +107,12 @@ DartdocReport _$DartdocReportFromJson(Map<String, dynamic> json) {
         ? null
         : ReportSection.fromJson(
             json['documentationSection'] as Map<String, dynamic>),
-    coverage: (json['coverage'] as num)?.toDouble(),
-    coverageScore: (json['coverageScore'] as num)?.toDouble(),
-    healthSuggestions: (json['healthSuggestions'] as List)
-        ?.map((e) =>
-            e == null ? null : Suggestion.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
-    maintenanceSuggestions: (json['maintenanceSuggestions'] as List)
-        ?.map((e) =>
-            e == null ? null : Suggestion.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
   );
 }
 
-Map<String, dynamic> _$DartdocReportToJson(DartdocReport instance) {
-  final val = <String, dynamic>{
-    'reportStatus': instance.reportStatus,
-    'dartdocEntry': instance.dartdocEntry,
-    'documentationSection': instance.documentationSection,
-    'coverage': instance.coverage,
-    'coverageScore': instance.coverageScore,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('healthSuggestions', instance.healthSuggestions);
-  writeNotNull('maintenanceSuggestions', instance.maintenanceSuggestions);
-  return val;
-}
+Map<String, dynamic> _$DartdocReportToJson(DartdocReport instance) =>
+    <String, dynamic>{
+      'reportStatus': instance.reportStatus,
+      'dartdocEntry': instance.dartdocEntry,
+      'documentationSection': instance.documentationSection,
+    };

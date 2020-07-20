@@ -13,8 +13,6 @@ import '../../search/search_service.dart' show SearchQuery;
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart' show shortDateFormat;
 
-import '../request_context.dart';
-
 import '_cache.dart';
 import 'detail_page.dart';
 import 'layout.dart';
@@ -43,18 +41,6 @@ String renderAccountPackagesPage({
     title += ' | Page ${pageLinks.currentPage}';
   }
 
-  String resultCountHtml() {
-    if (isSearch) {
-      return '$totalCount owned ${totalCount == 1 ? 'package' : 'packages'} for '
-          '<code>${htmlEscape.convert(searchQuery.query)}</code>';
-    } else {
-      return totalCount > 0
-          ? 'You own $totalCount ${totalCount == 1 ? 'package' : 'packages'}.'
-          : 'You have not published any packages yet. Learn more about '
-              '<a href="https://dart.dev/tools/pub/publishing">publishing packages</a>.';
-    }
-  }
-
   final packageListHtml = packages.isEmpty
       ? ''
       : renderPackageList(
@@ -64,14 +50,11 @@ String renderAccountPackagesPage({
   final paginationHtml = renderPagination(pageLinks);
 
   final tabContent = [
-    if (!requestContext.isExperimental) renderSortControl(searchQuery),
-    if (!requestContext.isExperimental) resultCountHtml(),
-    if (requestContext.isExperimental)
-      renderListingInfo(
-        searchQuery: searchQuery,
-        totalCount: totalCount,
-        ownedBy: 'you',
-      ),
+    renderListingInfo(
+      searchQuery: searchQuery,
+      totalCount: totalCount,
+      ownedBy: 'you',
+    ),
     packageListHtml,
     paginationHtml,
   ].join('\n');
@@ -83,7 +66,7 @@ String renderAccountPackagesPage({
       _myLikedPackagesLink(),
       _myPublishersLink(),
     ],
-    infoBoxHtml: _accountInfoBox(user),
+    infoBoxHtml: null,
   );
 
   return renderLayoutPage(
@@ -92,8 +75,7 @@ String renderAccountPackagesPage({
     title: title,
     searchQuery: searchQuery,
     noIndex: true,
-    mainClasses:
-        requestContext.isExperimental ? [wideHeaderDetailPageClassName] : null,
+    mainClasses: [wideHeaderDetailPageClassName],
   );
 }
 
@@ -123,7 +105,7 @@ String renderMyLikedPackagesPage({
           contentHtml: tabContent),
       _myPublishersLink(),
     ],
-    infoBoxHtml: _accountInfoBox(user),
+    infoBoxHtml: null,
   );
 
   return renderLayoutPage(
@@ -131,8 +113,7 @@ String renderMyLikedPackagesPage({
     content,
     title: 'My liked packages',
     noIndex: true,
-    mainClasses:
-        requestContext.isExperimental ? [wideHeaderDetailPageClassName] : null,
+    mainClasses: [wideHeaderDetailPageClassName],
   );
 }
 
@@ -154,7 +135,7 @@ String renderAccountPublishersPage({
           title: 'My publishers',
           contentHtml: publisherListHtml),
     ],
-    infoBoxHtml: _accountInfoBox(user),
+    infoBoxHtml: null,
   );
 
   return renderLayoutPage(
@@ -162,8 +143,7 @@ String renderAccountPublishersPage({
     content,
     title: 'My publishers',
     noIndex: true,
-    mainClasses:
-        requestContext.isExperimental ? [wideHeaderDetailPageClassName] : null,
+    mainClasses: [wideHeaderDetailPageClassName],
   );
 }
 
@@ -180,26 +160,10 @@ Tab _myPublishersLink() => Tab.withLink(
 
 String _accountDetailHeader(User user, UserSessionData userSessionData) {
   final shortJoined = shortDateFormat.format(user.created);
-  if (requestContext.isExperimental) {
-    return renderDetailHeader(
-      title: userSessionData.name,
-      imageUrl: userSessionData.imageUrlOfSize(200),
-      metadataHtml: '<p>${htmlEscape.convert(user.email)}</p>'
-          '<p>${htmlEscape.convert('Joined on $shortJoined')}</p>',
-    );
-  } else {
-    return renderDetailHeader(
-      title: 'User ${user.email}',
-      metadataHtml: htmlEscape.convert('Joined on $shortJoined'),
-    );
-  }
-}
-
-String _accountInfoBox(User user) {
-  if (requestContext.isExperimental) return null;
-  final shortJoined = shortDateFormat.format(user.created);
-  return templateCache.renderTemplate('account/info_box', {
-    'email': user.email,
-    'joined_short': shortJoined,
-  });
+  return renderDetailHeader(
+    title: userSessionData.name,
+    imageUrl: userSessionData.imageUrlOfSize(200),
+    metadataHtml: '<p>${htmlEscape.convert(user.email)}</p>'
+        '<p>${htmlEscape.convert('Joined on $shortJoined')}</p>',
+  );
 }

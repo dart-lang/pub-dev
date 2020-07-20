@@ -4,23 +4,14 @@
 
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math' as math;
 
 import 'package:gcloud/db.dart' as db;
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/models.dart'
-    show
-        LicenseFile,
-        PanaRuntimeInfo,
-        PkgDependency,
-        Report,
-        ReportSection,
-        Suggestion;
+    show LicenseFile, PanaRuntimeInfo, PkgDependency, Report, ReportSection;
 import 'package:pub_dev/dartdoc/models.dart';
 import 'package:pub_semver/pub_semver.dart';
-
-import 'package:pub_dev/search/scoring.dart' show calculateOverallScore;
 
 import '../shared/model_properties.dart';
 import '../shared/versions.dart' as versions;
@@ -28,13 +19,7 @@ import '../shared/versions.dart' as versions;
 import 'helpers.dart';
 
 export 'package:pana/models.dart'
-    show
-        LicenseFile,
-        PanaRuntimeInfo,
-        PkgDependency,
-        Suggestion,
-        SuggestionCode,
-        SuggestionLevel;
+    show LicenseFile, PanaRuntimeInfo, PkgDependency;
 
 part 'models.g.dart';
 
@@ -96,14 +81,6 @@ class ScoreCard extends db.ExpandoModel<String> with FlagMixin {
   @db.IntProperty()
   int maxPubPoints;
 
-  /// Score for code health (0.0 - 1.0).
-  @db.DoubleProperty()
-  double healthScore;
-
-  /// Score for package maintenance (0.0 - 1.0).
-  @db.DoubleProperty()
-  double maintenanceScore;
-
   /// Score for package popularity (0.0 - 1.0).
   @db.DoubleProperty()
   double popularityScore;
@@ -147,8 +124,6 @@ class ScoreCard extends db.ExpandoModel<String> with FlagMixin {
         packageVersionCreated: packageVersionCreated,
         grantedPubPoints: grantedPubPoints,
         maxPubPoints: maxPubPoints,
-        healthScore: healthScore,
-        maintenanceScore: maintenanceScore,
         popularityScore: popularityScore,
         derivedTags: derivedTags,
         flags: flags,
@@ -172,14 +147,6 @@ class ScoreCard extends db.ExpandoModel<String> with FlagMixin {
     PanaReport panaReport,
     DartdocReport dartdocReport,
   }) {
-    healthScore = _applySuggestions(
-      panaReport?.healthScore ?? 0.0,
-      dartdocReport?.healthSuggestions,
-    );
-    maintenanceScore = _applySuggestions(
-      panaReport?.maintenanceScore ?? 0.0,
-      dartdocReport?.maintenanceSuggestions,
-    );
     derivedTags = panaReport?.derivedTags ?? <String>[];
     reportTypes = [
       panaReport == null ? null : ReportType.pana,
@@ -195,18 +162,7 @@ class ScoreCard extends db.ExpandoModel<String> with FlagMixin {
     if (isSkipped) {
       grantedPubPoints = 0;
       maxPubPoints = 0;
-      healthScore = 0.0;
-      maintenanceScore = 0.0;
     }
-  }
-
-  double _applySuggestions(double score, List<Suggestion> suggestions) {
-    suggestions?.forEach((s) {
-      if (s.score != null) {
-        score -= s.score / 100.0;
-      }
-    });
-    return math.max(score, 0.0);
   }
 }
 
@@ -312,12 +268,6 @@ class ScoreCardData extends Object with FlagMixin {
   /// `0` if analysis was not running
   final int maxPubPoints;
 
-  /// Score for code health (0.0 - 1.0).
-  final double healthScore;
-
-  /// Score for package maintenance (0.0 - 1.0).
-  final double maintenanceScore;
-
   /// Score for package popularity (0.0 - 1.0).
   final double popularityScore;
 
@@ -340,8 +290,6 @@ class ScoreCardData extends Object with FlagMixin {
     this.packageVersionCreated,
     this.grantedPubPoints,
     this.maxPubPoints,
-    this.healthScore,
-    this.maintenanceScore,
     this.popularityScore,
     this.derivedTags,
     this.flags,
@@ -351,23 +299,11 @@ class ScoreCardData extends Object with FlagMixin {
   factory ScoreCardData.fromJson(Map<String, dynamic> json) =>
       _$ScoreCardDataFromJson(json);
 
-  double get overallScore {
-    return calculateOverallScore(
-      health: healthScore ?? 0.0,
-      maintenance: maintenanceScore ?? 0.0,
-      popularity: popularityScore ?? 0.0,
-    );
-  }
-
   bool get isNew => DateTime.now().difference(packageCreated).inDays <= 30;
 
   bool get isCurrent => runtimeVersion == versions.runtimeVersion;
 
-  Map<String, dynamic> toJson() {
-    final map = _$ScoreCardDataToJson(this);
-    map['overallScore'] = overallScore;
-    return map;
-  }
+  Map<String, dynamic> toJson() => _$ScoreCardDataToJson(this);
 
   /// Whether the data has all the required report types.
   bool hasReports(List<String> requiredTypes) {
@@ -395,29 +331,10 @@ class PanaReport implements ReportData {
   @override
   final String reportStatus;
 
-  final double healthScore;
-
-  final double maintenanceScore;
-
   /// List of tags computed by `pana`.
   final List<String> derivedTags;
 
   final List<PkgDependency> pkgDependencies;
-
-  /// Suggestions related to the pana processing and overall package status.
-  /// TODO: remove after we've migrated to the new scoring model
-  @JsonKey(includeIfNull: false)
-  final List<Suggestion> panaSuggestions;
-
-  /// Suggestions related to the package health score.
-  /// TODO: remove after we've migrated to the new scoring model
-  @JsonKey(includeIfNull: false)
-  final List<Suggestion> healthSuggestions;
-
-  /// Suggestions related to the package maintenance score.
-  /// TODO: remove after we've migrated to the new scoring model
-  @JsonKey(includeIfNull: false)
-  final List<Suggestion> maintenanceSuggestions;
 
   final List<LicenseFile> licenses;
 
@@ -433,14 +350,9 @@ class PanaReport implements ReportData {
     @required this.timestamp,
     @required this.panaRuntimeInfo,
     @required this.reportStatus,
-    @required this.healthScore,
-    @required this.maintenanceScore,
     @required this.derivedTags,
     @required this.pkgDependencies,
     @required this.licenses,
-    @required this.panaSuggestions,
-    @required this.healthSuggestions,
-    @required this.maintenanceSuggestions,
     @required this.report,
     @required this.flags,
   });
@@ -466,30 +378,10 @@ class DartdocReport implements ReportData {
   /// The dartdoc part of the documentation report section.
   final ReportSection documentationSection;
 
-  /// The percent of API symbols with documentation.
-  /// TODO: remove after we've migrated to the new scoring model
-  final double coverage;
-  // TODO: remove after we've migrated to the new scoring model
-  final double coverageScore;
-
-  /// Suggestions related to the package health score.
-  /// TODO: remove after we've migrated to the new scoring model
-  @JsonKey(includeIfNull: false)
-  final List<Suggestion> healthSuggestions;
-
-  /// Suggestions related to the package maintenance score.
-  /// TODO: remove after we've migrated to the new scoring model
-  @JsonKey(includeIfNull: false)
-  final List<Suggestion> maintenanceSuggestions;
-
   DartdocReport({
     @required this.reportStatus,
     @required this.dartdocEntry,
     @required this.documentationSection,
-    @required this.coverage,
-    @required this.coverageScore,
-    @required this.healthSuggestions,
-    @required this.maintenanceSuggestions,
   });
 
   factory DartdocReport.fromJson(Map<String, dynamic> json) =>

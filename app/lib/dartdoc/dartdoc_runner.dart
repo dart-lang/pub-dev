@@ -160,8 +160,6 @@ class DartdocJobProcessor extends JobProcessor {
     String reportStatus = ReportStatus.failed;
     String abortLog;
     DartdocEntry entry;
-    final healthSuggestions = <Suggestion>[];
-    final maintenanceSuggestions = <Suggestion>[];
     try {
       await Directory(pkgPath).create(recursive: true);
       await downloadPackage(
@@ -260,22 +258,6 @@ class DartdocJobProcessor extends JobProcessor {
     final coverage = dartdocData?.coverage;
     ReportSection documentationSection;
     if (hasContent && coverage != null) {
-      if (coverage.penalty > 0) {
-        final level = coverage.percent < 0.2
-            ? SuggestionLevel.warning
-            : SuggestionLevel.hint;
-        final undocumented = coverage.total - coverage.documented;
-        healthSuggestions.add(
-          Suggestion(
-              SuggestionCode.dartdocCoverage,
-              level,
-              'Document public APIs.',
-              '$undocumented out of ${coverage.total} API elements have no dartdoc comment.'
-                  'Providing good documentation for libraries, classes, functions, and other API '
-                  'elements improves code readability and helps developers find and use your API.',
-              score: coverage.penalty),
-        );
-      }
       documentationSection = documentationCoverageSection(
         documented: coverage.documented,
         total: coverage.total,
@@ -286,12 +268,6 @@ class DartdocJobProcessor extends JobProcessor {
             _mergeOutput(dartdocResult.processResult, compressStdout: true);
       }
       abortLog ??= '';
-      maintenanceSuggestions.add(Suggestion.error(
-        SuggestionCode.dartdocAborted,
-        "Make sure `dartdoc` successfully runs on your package's source files.",
-        abortLog,
-        score: 10.0,
-      ));
       documentationSection = dartdocFailedSection(dartdocResult);
     }
     await _storeScoreCard(
@@ -300,12 +276,6 @@ class DartdocJobProcessor extends JobProcessor {
           reportStatus: reportStatus,
           dartdocEntry: entry,
           documentationSection: documentationSection,
-          coverage: coverage?.percent ?? 0.0,
-          coverageScore: coverage?.score ?? 0.0,
-          healthSuggestions:
-              healthSuggestions.isEmpty ? null : healthSuggestions,
-          maintenanceSuggestions:
-              maintenanceSuggestions.isEmpty ? null : maintenanceSuggestions,
         ));
     await scoreCardBackend.updateScoreCard(job.packageName, job.packageVersion);
 
@@ -544,8 +514,4 @@ DartdocReport _emptyReport() => DartdocReport(
       dartdocEntry: null,
       // TODO: add meaningful message for missing documentation on dartdoc
       documentationSection: null,
-      coverage: 0.0,
-      coverageScore: 0.0,
-      healthSuggestions: [],
-      maintenanceSuggestions: [],
     );

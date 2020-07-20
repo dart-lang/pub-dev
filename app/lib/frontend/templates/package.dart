@@ -17,7 +17,6 @@ import '../../shared/email.dart' show EmailAddress;
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
-import '../request_context.dart';
 import '../static_files.dart';
 
 import '_cache.dart';
@@ -194,10 +193,6 @@ String renderPkgInfoBox(
     'dependencies_html': _renderDependencyList(data.analysis),
     'search_deps_link': urls.searchUrl(q: 'dependency:${package.name}'),
     'labeled_scores_html': renderLabeledScores(data.toPackageView()),
-    // TODO: remove the below keys after we've migrated to the new UI
-    'is_flutter_favorite':
-        (package.assignedTags ?? []).contains(PackageTags.isFlutterFavorite),
-    'all_links': [...metaLinks, ...docLinks],
   });
 }
 
@@ -249,27 +244,13 @@ String renderPkgHeader(PackagePageData data) {
 
 /// Renders the package detail page.
 String renderPkgShowPage(PackagePageData data) {
-  if (requestContext.isExperimental) {
-    return _renderPkgPage(
-      data: data,
-      tabs: buildPackageTabs(
-        packagePageData: data,
-        readmeTab: _readmeTab(data),
-      ),
-    );
-  } else {
-    return _renderPkgPage(
-      data: data,
-      tabs: buildPackageTabs(
-        packagePageData: data,
-        readmeTab: _readmeTab(data),
-        changelogTab: _changelogTab(data),
-        exampleTab: _exampleTab(data),
-        installingTab: _installTab(data),
-        scoreTab: _scoreTab(data),
-      ),
-    );
-  }
+  return _renderPkgPage(
+    data: data,
+    tabs: buildPackageTabs(
+      packagePageData: data,
+      readmeTab: _readmeTab(data),
+    ),
+  );
 }
 
 /// Renders the package changelog page.
@@ -346,7 +327,7 @@ String _renderPkgPage({
     includeHost: true,
   );
   final noIndex = (card?.isSkipped ?? false) ||
-      (card?.overallScore == 0.0) ||
+      (card?.grantedPubPoints == 0) ||
       data.package.isDiscontinued;
   return renderLayoutPage(
     PageType.package,
@@ -375,13 +356,8 @@ PageData pkgPageData(Package package, PackageVersion selectedVersion) {
 Tab _readmeTab(PackagePageData data) {
   final version = data.version;
   final baseUrl = version.packageLinks.baseUrl;
-  final content = version.readme == null
-      ? ''
-      : renderFile(
-          version.readme,
-          baseUrl,
-          isChangelog: requestContext.isExperimental,
-        );
+  final content =
+      version.readme == null ? '' : renderFile(version.readme, baseUrl);
   return Tab.withContent(
     id: 'readme',
     title: 'Readme',
@@ -397,7 +373,7 @@ Tab _changelogTab(PackagePageData data) {
   final content = renderFile(
     version.changelog,
     baseUrl,
-    isChangelog: requestContext.isExperimental,
+    isChangelog: true,
   );
   return Tab.withContent(
     id: 'changelog',
@@ -444,7 +420,7 @@ Tab _installTab(PackagePageData data) {
 Tab _scoreTab(PackagePageData data) {
   return Tab.withContent(
     id: 'analysis',
-    titleHtml: renderScoreBox(data.toPackageView(), isTabHeader: true),
+    title: 'Scores',
     contentHtml: renderAnalysisTab(
       data.version.package,
       data.version.pubspec.sdkConstraint,
@@ -463,22 +439,11 @@ String _getAuthorsHtml(List<String> authors) {
       final escapedEmail = htmlAttrEscape.convert(author.email);
       final emailSearchUrl = htmlAttrEscape.convert(
           SearchQuery.parse(query: 'email:${author.email}').toSearchLink());
-      final emailIcon = requestContext.isExperimental
-          ? ''
-          : '<a href="mailto:$escapedEmail" title="Email $escapedEmail">'
-              '<i class="email-icon"></i>'
-              '</a> ';
-      final searchIcon = requestContext.isExperimental
-          ? ''
-          : '<a href="$emailSearchUrl" title="Search packages with $escapedEmail" rel="nofollow">'
-              '<i class="search-icon"></i>'
-              '</a> ';
-      final text = requestContext.isExperimental
-          ? '<a href="$emailSearchUrl" title="Search packages from $escapedName" rel="nofollow">'
-              '$escapedEmail'
-              '</a>'
-          : escapedName;
-      return '<span class="author">$emailIcon$searchIcon$text</span>';
+      final text =
+          '<a href="$emailSearchUrl" title="Search packages from $escapedName" rel="nofollow">'
+          '$escapedEmail'
+          '</a>';
+      return '<span class="author">$text</span>';
     } else {
       return '<span class="author">$escapedName</span>';
     }
@@ -555,8 +520,7 @@ List<Tab> buildPackageTabs({
   );
   scoreTab ??= Tab.withLink(
     id: 'analysis',
-    titleHtml:
-        renderScoreBox(packagePageData.toPackageView(), isTabHeader: true),
+    title: 'Scores',
     href: urls.pkgScoreUrl(package.name, version: linkVersion),
   );
   adminTab ??= Tab.withLink(

@@ -5,7 +5,6 @@
 import '../../package/models.dart';
 import '../../shared/urls.dart' as urls;
 
-import '../request_context.dart';
 import '../static_files.dart';
 
 import '_cache.dart';
@@ -100,9 +99,7 @@ String renderVersionTableRow(PackageVersion version, String downloadUrl) {
     'dartdocs_url':
         _attr(urls.pkgDocUrl(version.package, version: version.version)),
     'download_url': _attr(downloadUrl),
-    'icons': requestContext.isExperimental
-        ? staticUrls.newVersionsTableIcons
-        : staticUrls.versionsTableIcons,
+    'icons': staticUrls.versionsTableIcons,
   };
   return templateCache.renderTemplate('pkg/versions/version_row', versionData);
 }
