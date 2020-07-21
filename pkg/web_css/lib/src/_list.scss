@@ -241,10 +241,17 @@
     }
   }
 
-  &:hover,
   &.hover {
     .sort-control-popup {
       display: block;
+    }
+  }
+
+  &:hover {
+    .sort-control-popup {
+      @media (min-width: $device-desktop-min-width) {
+        display: block;
+      }
     }
   }
 }
