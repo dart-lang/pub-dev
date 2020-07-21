@@ -4,8 +4,6 @@
 
 import 'dart:html';
 
-import 'tabs.dart';
-
 void setupScroll() {
   _setEventForAnchorScroll();
   window.onHashChange.listen((_) {
@@ -29,15 +27,6 @@ void _scrollToHash() {
     if (firstVisible != null) {
       _scrollTo(firstVisible);
       return;
-    }
-    // switch to the first tab that has the element
-    for (Element elem in list) {
-      final tabName = getTabName(elem);
-      if (tabName != null) {
-        changeTab(tabName);
-        _scrollTo(elem);
-        return;
-      }
     }
     // fallback, should not happen
     _scrollTo(list.first);

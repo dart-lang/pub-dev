@@ -13,11 +13,9 @@ import 'src/issues.dart';
 import 'src/mobile_nav.dart';
 import 'src/scroll.dart';
 import 'src/search.dart';
-import 'src/tabs.dart';
 
 void main() {
   window.onLoad.listen((_) => mdc.autoInit());
-  setupTabs();
   setupSearch();
   setupScroll();
   setupFoldable();

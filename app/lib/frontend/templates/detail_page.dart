@@ -120,13 +120,11 @@ class Tab {
       if (isMarkdown) 'markdown-body',
     ];
     return <String, dynamic>{
-      'id': id,
       'title_classes': titleClasses.join(' '),
       'title_html': titleHtml,
       'content_classes': contentClasses.join(' '),
       'content_html': contentHtml,
       'has_content': contentHtml != null,
-      'has_href': hasHref,
     };
   }
 }

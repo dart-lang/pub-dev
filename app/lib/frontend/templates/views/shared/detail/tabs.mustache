@@ -6,7 +6,7 @@
   <div class="detail-container">
     <ul class="detail-tabs-header">
       {{#tabs}}
-        <li class="{{title_classes}}" {{^has_href}}data-ga-click-event="tab:{{id}}" {{/has_href}}data-name="-{{id}}-tab-" role="button">{{& title_html}}</li>
+        <li class="{{title_classes}}" role="button">{{& title_html}}</li>
       {{/tabs}}
     </ul>
   </div>
@@ -16,7 +16,7 @@
   <div class="detail-tabs-content">
     {{#tabs}}
       {{#has_content}}
-      <section class="{{content_classes}}" data-name="-{{id}}-tab-">
+      <section class="{{content_classes}}">
         {{& content_html}}
       </section>
       {{/has_content}}
