@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pana/pana.dart';
 import 'package:pub_dev/dartdoc/backend.dart';
 import 'package:pub_dev/dartdoc/models.dart';
 import 'package:pub_dev/scorecard/backend.dart';
@@ -36,11 +37,8 @@ void main() {
               usesFlutter: false,
               timestamp: DateTime(2020, 07, 14, 11, 12, 13),
             ),
-            coverage: null,
-            coverageScore: null,
-            documentationSection: null,
-            healthSuggestions: null,
-            maintenanceSuggestions: null,
+            documentationSection:
+                documentationCoverageSection(documented: 10, total: 12),
           ));
 
       final reports = await scoreCardBackend.loadReportForAllVersions(
