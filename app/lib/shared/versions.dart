@@ -73,16 +73,6 @@ final Version semanticDartdocVersion = Version.parse(dartdocVersion);
 // them.
 final dartdocServingRuntime = Version.parse(runtimeVersion);
 
-// Version that marks the default runtime version for analyzer entries created
-// before the runtime version was tracked.
-// TODO: remove hardcoded runtime version after the deploy is solid
-final analyzerRuntimeEpoch = '2018.3.8';
-
-// Version that marks the default runtime version for dartdoc entries created
-// before the runtime version was tracked.
-// TODO: remove hardcoded runtime version after the deploy is solid
-final dartdocRuntimeEpoch = '2018.3.8';
-
 /// Whether the given runtime version (stored with the dartdoc entry) should
 /// be displayed on the live site (or a coordinated upgrade is in progress).
 bool shouldServeDartdoc(String storedRuntimeVersion) {
