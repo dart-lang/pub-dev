@@ -96,6 +96,54 @@ void main() {
     await expectLater(rs, throwsA(isA<DatastoreError>()));
   });
 
+  group('property lengths', () {
+    final longString = '0123456789abcdef' * 100; // 1600 bytes
+    final shortOf1M = '0123456789abcdef' * (65536 - 1);
+
+    test('indexed property over 1500 bytes fails', () async {
+      final db = DatastoreDB(MemDatastore());
+      final rs = db.commit(
+        inserts: [
+          Sample()
+            ..parentKey = db.emptyKey
+            ..id = 'x'
+            ..type = longString,
+        ],
+      );
+      await expectLater(rs, throwsA(isA<DatastoreError>()));
+    });
+
+    test('non-indexed property over 1500 bytes is OK', () async {
+      final db = DatastoreDB(MemDatastore());
+      await db.commit(
+        inserts: [
+          Sample()
+            ..parentKey = db.emptyKey
+            ..id = 'x'
+            ..content = longString,
+          Sample()
+            ..parentKey = db.emptyKey
+            ..id = 'x'
+            ..content = shortOf1M,
+        ],
+      );
+    });
+
+    test('overall property over 1M fails', () async {
+      final db = DatastoreDB(MemDatastore());
+      final rs = db.commit(
+        inserts: [
+          Sample()
+            ..parentKey = db.emptyKey
+            ..id = 'x'
+            ..type = '0123456789abcdefghijklmonop' // pushes over 1M
+            ..content = shortOf1M,
+        ],
+      );
+      await expectLater(rs, throwsA(isA<DatastoreError>()));
+    });
+  });
+
   group('Queries', () {
     final db = DatastoreDB(MemDatastore());
 
@@ -210,4 +258,7 @@ class Sample extends Model {
 
   @IntProperty()
   int count;
+
+  @StringProperty(indexed: false)
+  String content;
 }

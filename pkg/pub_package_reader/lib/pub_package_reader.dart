@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart' show YamlException;
@@ -132,10 +134,13 @@ Future<PackageSummary> summarizePackageArchive(String archivePath) async {
 
   Future<String> extractContent(String contentPath) async {
     if (contentPath == null) return null;
-    final content = await readTarballFile(archivePath, contentPath,
-        maxLength: _maxStoredLength);
+    final content = await readTarballFile(archivePath, contentPath);
     if (content != null && content.trim().isEmpty) {
       return null;
+    }
+    if (content != null && utf8.encode(content).length > _maxStoredLength) {
+      issues.add(ArchiveIssue(
+          '`$contentPath` exceeds the maximum content length ($_maxStoredLength bytes).'));
     }
     return content;
   }

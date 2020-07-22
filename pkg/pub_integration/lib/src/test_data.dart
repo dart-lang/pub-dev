@@ -10,15 +10,20 @@ Future createFakeRetryPkg(String dir) async {
   await _copy('test_data/retry', dir);
 }
 
-Future createDummyPkg(String dir, String version) async {
+Future createDummyPkg(String dir, String version,
+    {int changelogContentSizeInKB = 0}) async {
   await _copy('test_data/_dummy_pkg', dir);
   final pubspecFile = File(p.join(dir, 'pubspec.yaml'));
   final pubspecContent = await pubspecFile.readAsString();
   await pubspecFile.writeAsString('version: $version\n$pubspecContent');
 
   final changelogFile = File(p.join(dir, 'CHANGELOG.md'));
-  final changelogContent = '## $version\n\n - changes\n';
-  await changelogFile.writeAsString(changelogContent);
+  final changelogContent = StringBuffer('## $version\n\n - changes\n');
+  for (var i = 0; i < changelogContentSizeInKB; i++) {
+    changelogContent.write('\n0123456789abcde');
+    changelogContent.write('0123456789abcde\n' * 63);
+  }
+  await changelogFile.writeAsString(changelogContent.toString());
 }
 
 Future _copy(String fromDir, String toDir) async {

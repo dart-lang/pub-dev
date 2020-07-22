@@ -5,6 +5,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
@@ -62,8 +63,16 @@ class PublishingScript {
         await _pubToolClient.getDependencies(_retryDir.path);
         await _pubToolClient.publish(_retryDir.path);
       }
+
+      // too large asset files are rejected
+      await _createDummyPkg(oversized: true);
+      await _pubToolClient.publish(_dummyDir.path,
+          expectedError:
+              '`CHANGELOG.md` exceeds the maximum content length (131072 bytes).');
+      await _dummyDir.delete(recursive: true);
+
       // upload package
-      await _createDummyPkg();
+      await _createDummyPkg(oversized: false);
       await _pubToolClient.getDependencies(_dummyDir.path);
       await _pubToolClient.publish(_dummyDir.path);
       await Future.delayed(Duration(seconds: 1));
@@ -107,11 +116,12 @@ class PublishingScript {
         Version(v.major, v.minor, v.patch + 1, build: build).toString();
   }
 
-  Future<void> _createDummyPkg() async {
+  Future<void> _createDummyPkg({@required bool oversized}) async {
     _dummyDir = Directory(path.join(_temp.path, 'pkg', '_dummy_pkg'));
     _dummyExampleDir = Directory(path.join(_dummyDir.path, 'example'));
     await _dummyDir.create(recursive: true);
-    await createDummyPkg(_dummyDir.path, _newDummyVersion);
+    await createDummyPkg(_dummyDir.path, _newDummyVersion,
+        changelogContentSizeInKB: oversized ? 129 : 4);
   }
 
   Future<void> _createFakeRetryPkg() async {
