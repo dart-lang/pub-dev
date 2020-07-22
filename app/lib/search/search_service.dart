@@ -143,8 +143,8 @@ class ApiDocPage {
 
 /// How search results should be ordered.
 enum SearchOrder {
-  /// Search score should be a weighted value of [text], [popularity], [health]
-  /// and [maintenance], ordered decreasing.
+  /// Search score should be a weighted value of [text], [popularity], [points]
+  /// and [like], ordered decreasing.
   top,
 
   /// Search score should depend only on text match similarity, ordered
@@ -159,14 +159,6 @@ enum SearchOrder {
 
   /// Search order should be in decreasing popularity score.
   popularity,
-
-  /// Search order should be in decreasing health score.
-  /// TODO: remove
-  health,
-
-  /// Search order should be in decreasing maintenance score.
-  /// TODO: remove
-  maintenance,
 
   /// Search order should be in decreasing like count.
   like,
@@ -191,10 +183,6 @@ SearchOrder parseSearchOrder(String value) {
       return SearchOrder.updated;
     case 'popularity':
       return SearchOrder.popularity;
-    case 'health':
-      return SearchOrder.health;
-    case 'maintenance':
-      return SearchOrder.maintenance;
     case 'like':
       return SearchOrder.like;
     case 'points':

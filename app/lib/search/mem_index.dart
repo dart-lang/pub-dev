@@ -288,8 +288,6 @@ class InMemoryPackageIndex implements PackageIndex {
       case SearchOrder.like:
         results = _rankWithValues(getLikeScore(packages));
         break;
-      case SearchOrder.health:
-      case SearchOrder.maintenance:
       case SearchOrder.points:
         results = _rankWithValues(getPubPoints(packages));
         break;
