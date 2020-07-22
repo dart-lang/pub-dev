@@ -3,6 +3,9 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20200722t113338-all`
+ * Fix font-size regression.
+
 ## `20200721t164337-all`
  * Bumped runtimeVersion to `2020.07.21`.
  * Upgraded pana to `0.13.16`
