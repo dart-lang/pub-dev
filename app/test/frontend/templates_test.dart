@@ -15,7 +15,6 @@ import 'package:test/test.dart';
 import 'package:xml/xml.dart' as xml;
 
 import 'package:pub_dev/analyzer/analyzer_client.dart';
-import 'package:pub_dev/analyzer/pana_runner.dart';
 import 'package:pub_dev/scorecard/models.dart';
 import 'package:pub_dev/search/search_service.dart';
 import 'package:pub_dev/package/models.dart';
@@ -333,8 +332,6 @@ void main() {
     });
 
     scopedTest('package show page with legacy version', () {
-      final summary = createPanaSummaryForLegacy(
-          foobarStablePV.package, foobarStablePV.version);
       final String html = renderPkgShowPage(PackagePageData(
         package: foobarPackage,
         isLiked: false,
@@ -348,7 +345,6 @@ void main() {
             popularityScore: 0.5,
             flags: [PackageFlags.isLegacy],
           ),
-          panaReport: panaReportFromSummary(summary),
         ),
         isAdmin: false,
       ));

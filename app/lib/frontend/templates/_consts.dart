@@ -3,10 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:meta/meta.dart';
-import 'package:pana/models.dart' show SuggestionCode;
 
 import '../../shared/tags.dart' show SdkTagValue;
-import '../../shared/urls.dart' as urls;
 
 class SdkDict {
   final String topSdkPackages;
@@ -107,15 +105,4 @@ SortDict getSortDict(String sort) {
       tooltip: 'Packages are sort by $sort.',
     ),
   );
-}
-
-final _suggestionHelpMessages = <String, String>{
-  SuggestionCode.analysisOptionsRenameRequired: 'Read more about the setup of '
-      '<a href="${urls.dartSiteRoot}/guides/language/analysis-options#the-analysis-options-file">'
-      '<code>analysis-options.yaml</code></a>.',
-};
-
-String getSuggestionHelpMessage(String code) {
-  if (code == null) return null;
-  return _suggestionHelpMessages[code];
 }

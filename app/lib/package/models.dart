@@ -599,9 +599,7 @@ class PackageView extends Object with FlagMixin {
   /// May be `null` if the score is not available yet.
   final int popularity;
 
-  /// TODO: remove this after the new design is finalized
   final List<String> tags;
-  final bool isNewPackage;
   final List<ApiPageRef> apiPages;
 
   PackageView({
@@ -621,7 +619,6 @@ class PackageView extends Object with FlagMixin {
     this.maxPubPoints,
     this.popularity,
     List<String> tags,
-    this.isNewPackage = false,
     this.apiPages,
   }) : tags = tags ?? <String>[];
 
@@ -669,7 +666,6 @@ class PackageView extends Object with FlagMixin {
         ...(version?.getTags() ?? <String>[]),
         ...(scoreCard?.derivedTags ?? <String>[]),
       ],
-      isNewPackage: package?.isNewPackage() ?? false,
       apiPages: apiPages,
     );
   }
@@ -692,7 +688,6 @@ class PackageView extends Object with FlagMixin {
       maxPubPoints: maxPubPoints,
       popularity: popularity,
       tags: tags,
-      isNewPackage: isNewPackage,
       apiPages: apiPages ?? this.apiPages,
     );
   }
