@@ -451,13 +451,10 @@ class PackageVersionAsset extends db.ExpandoModel {
   @db.DateTimeProperty(required: true)
   DateTime updated;
 
-  @db.StringProperty(required: true)
+  @db.StringProperty(required: true, indexed: false)
   String path;
 
-  @db.IntProperty(required: true)
-  int contentLength;
-
-  @db.StringProperty(required: true)
+  @db.StringProperty(required: true, indexed: false)
   String textContent;
 
   PackageVersionAsset();
@@ -474,7 +471,6 @@ class PackageVersionAsset extends db.ExpandoModel {
     id = Uri(pathSegments: [package, version, kind]).path;
     packageVersion = Uri(pathSegments: [package, version]).path;
     this.updated = updated ?? DateTime.now().toUtc();
-    contentLength = textContent.length;
   }
 
   /// Updates the current instance with the newly [derived] data.
@@ -491,7 +487,6 @@ class PackageVersionAsset extends db.ExpandoModel {
     }
     if (textContent != derived.textContent) {
       textContent = derived.textContent;
-      contentLength = textContent.length;
       changed = true;
     }
     if (changed) {
