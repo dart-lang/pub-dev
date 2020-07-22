@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/pana.dart';
-import 'package:pub_semver/pub_semver.dart';
 
 import '../job/job.dart';
 import '../package/overrides.dart';
@@ -15,7 +14,6 @@ import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
 import '../shared/configuration.dart';
 import '../shared/tool_env.dart';
-import '../shared/urls.dart' as urls;
 
 final Logger _logger = Logger('pub.analyzer.pana');
 
@@ -54,9 +52,7 @@ class AnalyzerJobProcessor extends JobProcessor {
     // We know that pana will fail on this package, no reason to run it.
     if (packageStatus.isLegacy) {
       _logger.info('Package is on legacy SDK: $job.');
-      final summary =
-          createPanaSummaryForLegacy(job.packageName, job.packageVersion);
-      await _storeScoreCard(job, summary);
+      await _storeScoreCard(job, null);
       return JobStatus.skipped;
     }
 
@@ -148,35 +144,4 @@ PanaReport panaReportFromSummary(Summary summary, {List<String> flags}) {
     report: summary?.report,
     flags: flags,
   );
-}
-
-Summary createPanaSummaryForLegacy(String packageName, String packageVersion) {
-  return Summary(
-      runtimeInfo: PanaRuntimeInfo(),
-      packageName: packageName,
-      packageVersion: Version.parse(packageVersion),
-      pubspec: null,
-      pkgResolution: null,
-      dartFiles: null,
-      platform: null,
-      tags: <String>[],
-      licenses: null,
-      health: null,
-      maintenance: null,
-      suggestions: <Suggestion>[
-        Suggestion.error(
-          'pubspec.sdk.legacy',
-          'Support Dart 2 in `pubspec.yaml`.',
-          'The SDK constraint in `pubspec.yaml` doesn\'t allow the Dart 2.0.0 release. '
-              'For information about upgrading it to be Dart 2 compatible, please see '
-              '[${urls.dartSiteRoot}/dart-2#migration](${urls.dartSiteRoot}/dart-2#migration).',
-        ),
-      ],
-      report: Report(sections: <ReportSection>[]),
-      stats: Stats(
-        analyzeProcessElapsed: 0,
-        formatProcessElapsed: 0,
-        resolveProcessElapsed: 0,
-        totalElapsed: 0,
-      ));
 }
