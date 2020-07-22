@@ -152,8 +152,6 @@ class StaticUrls {
   final String smallDartFavicon;
   final String dartLogoSvg;
   final String flutterLogo32x32;
-  final String documentationIcon;
-  final String downloadIcon;
   final String pubDevLogo2xPng;
   final String defaultProfilePng;
   final String githubMarkdownCss;
@@ -170,10 +168,6 @@ class StaticUrls {
             _getCacheableStaticUrl('$_defaultStaticPath/img/dart-logo.svg'),
         flutterLogo32x32 = _getCacheableStaticUrl(
             '$_defaultStaticPath/img/flutter-logo-32x32.png'),
-        documentationIcon = _getCacheableStaticUrl(
-            '$_defaultStaticPath/img/ic_drive_document_black_24dp.svg'),
-        downloadIcon = _getCacheableStaticUrl(
-            '$_defaultStaticPath/img/ic_get_app_black_24dp.svg'),
         pubDevLogo2xPng = _getCacheableStaticUrl(
             '$_defaultStaticPath/img/pub-dev-logo-2x.png'),
         defaultProfilePng = _getCacheableStaticUrl(
