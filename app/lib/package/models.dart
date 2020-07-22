@@ -457,7 +457,7 @@ class PackageVersionAsset extends db.ExpandoModel {
   @db.IntProperty(required: true)
   int contentLength;
 
-  @db.StringProperty(required: true)
+  @db.StringProperty(required: true, indexed: false)
   String textContent;
 
   PackageVersionAsset();
