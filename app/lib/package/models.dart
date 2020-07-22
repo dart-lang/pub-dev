@@ -451,7 +451,7 @@ class PackageVersionAsset extends db.ExpandoModel {
   @db.DateTimeProperty(required: true)
   DateTime updated;
 
-  @db.StringProperty(required: true)
+  @db.StringProperty(required: true, indexed: false)
   String path;
 
   @db.StringProperty(required: true, indexed: false)
