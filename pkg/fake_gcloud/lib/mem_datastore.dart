@@ -1,5 +1,11 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:gcloud/common.dart';
 import 'package:gcloud/datastore.dart';
+
+final _maxIndexedPropertyLength = 1500;
+final _maxPropertyLength = 1024 * 1024;
 
 /// Implementation of [Datastore] interface with in-memory storage.
 ///
@@ -56,6 +62,9 @@ class MemDatastore implements Datastore {
       }
     }
 
+    inserts?.forEach(_checkProperties);
+    autoIdInserts?.forEach(_checkProperties);
+
     // TODO: check serializability.
     // We need to track the keys that have been mutated since the Transaction
     // was created to ensure that there are no conflicts.
@@ -68,6 +77,39 @@ class MemDatastore implements Datastore {
     });
 
     return CommitResult([]);
+  }
+
+  void _checkProperties(Entity entity) {
+    int overallLength = 0;
+    for (final p in entity.properties.entries) {
+      final length = _propertyLength(p.value);
+      overallLength += length;
+
+      final indexed = entity.unIndexedProperties == null ||
+          !entity.unIndexedProperties.contains(p.key);
+
+      if (length > _maxPropertyLength) {
+        throw DatastoreError(
+            'Property ${p.key} must not exceed $_maxPropertyLength bytes.');
+      }
+
+      if (indexed && length > _maxIndexedPropertyLength) {
+        throw DatastoreError(
+            'Indexed property ${p.key} must not exceed $_maxIndexedPropertyLength bytes.');
+      }
+    }
+
+    if (overallLength > _maxPropertyLength) {
+      throw DatastoreError(
+          'Overall entity length must not exceed $_maxPropertyLength bytes.');
+    }
+  }
+
+  int _propertyLength(Object value) {
+    if (value is String) return utf8.encode(value).length;
+    if (value is Uint8List) return value.length;
+    // TODO: detect more
+    return 0;
   }
 
   @override
