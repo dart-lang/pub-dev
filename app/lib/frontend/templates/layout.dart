@@ -14,7 +14,6 @@ import '../../shared/configuration.dart';
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
-import '../request_context.dart';
 import '../static_files.dart';
 
 import '_cache.dart';
@@ -63,7 +62,6 @@ String renderLayoutPage(
   final bodyClasses = [
     if (type == PageType.standalone) 'page-standalone',
     if (type == PageType.landing) 'page-landing',
-    requestContext.isExperimental ? 'experimental' : 'non-experimental',
   ];
   final searchBannerHtml = _renderSearchBanner(
     type: type,
