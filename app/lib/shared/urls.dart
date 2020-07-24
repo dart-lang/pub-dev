@@ -4,7 +4,6 @@
 
 import 'package:path/path.dart' as p;
 
-import '../frontend/request_context.dart' show requestContext;
 import '../package/overrides.dart';
 import '../search/search_service.dart' show SearchOrder, SearchQuery;
 
@@ -42,26 +41,18 @@ String pkgReadmeUrl(String package, {String version}) =>
     pkgPageUrl(package, version: version);
 
 String pkgChangelogUrl(String package, {String version}) =>
-    requestContext.isExperimental
-        ? pkgPageUrl(package, version: version) + '/changelog'
-        : pkgPageUrl(package, version: version, fragment: '-changelog-tab-');
+    pkgPageUrl(package, version: version) + '/changelog';
 
 String pkgExampleUrl(String package, {String version}) =>
-    requestContext.isExperimental
-        ? pkgPageUrl(package, version: version) + '/example'
-        : pkgPageUrl(package, version: version, fragment: '-example-tab-');
+    pkgPageUrl(package, version: version) + '/example';
 
 String pkgInstallUrl(String package, {String version}) =>
-    requestContext.isExperimental
-        ? pkgPageUrl(package, version: version) + '/install'
-        : pkgPageUrl(package, version: version, fragment: '-installing-tab-');
+    pkgPageUrl(package, version: version) + '/install';
 
 String pkgVersionsUrl(String package) => pkgPageUrl(package) + '/versions';
 
 String pkgScoreUrl(String package, {String version}) =>
-    requestContext.isExperimental
-        ? pkgPageUrl(package, version: version) + '/score'
-        : pkgPageUrl(package, version: version, fragment: '-analysis-tab-');
+    pkgPageUrl(package, version: version) + '/score';
 
 String pkgAdminUrl(String package) => pkgPageUrl(package) + '/admin';
 

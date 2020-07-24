@@ -91,8 +91,7 @@ shelf.Handler _requestContextWrapper(shelf.Handler handler) {
     final cookies =
         parseCookieHeader(request.headers[HttpHeaders.cookieHeader]);
     final hasExperimentalCookie = cookies['experimental'] == '1';
-    // TODO: reset to `hasExperimentalCookie` after the deployment & code cleanup
-    final isExperimental = true; // hasExperimentalCookie;
+    final isExperimental = hasExperimentalCookie;
 
     final enableRobots = hasExperimentalCookie ||
         (!activeConfiguration.blockRobots && isProductionHost);
@@ -104,7 +103,7 @@ shelf.Handler _requestContextWrapper(shelf.Handler handler) {
     registerRequestContext(RequestContext(
       indentJson: indentJson,
       isExperimental: isExperimental,
-      isNullSafetyDisplayed: hasExperimentalCookie,
+      isNullSafetyDisplayed: isExperimental,
       blockRobots: !enableRobots,
       uiCacheEnabled: uiCacheEnabled,
     ));

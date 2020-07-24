@@ -84,19 +84,6 @@ class AnalysisView {
       _dartdoc != null && _dartdoc.reportStatus == ReportStatus.success;
 
   DateTime get timestamp => _pana?.timestamp;
-  String get panaReportStatus => _pana?.reportStatus;
-
-  String get dartSdkVersion => _pana?.panaRuntimeInfo?.sdkVersion;
-  String get panaVersion => _pana?.panaRuntimeInfo?.panaVersion;
-  String get flutterVersion {
-    if (_card == null || _pana == null || !_card.usesFlutter) {
-      return null;
-    }
-    final map = _pana?.panaRuntimeInfo?.flutterVersions;
-    if (map == null) return null;
-    final version = map['frameworkVersion'];
-    return version as String;
-  }
 
   Report get report =>
       _report ??= joinReport(panaReport: _pana, dartdocReport: _dartdoc);
@@ -107,12 +94,6 @@ class AnalysisView {
 
   List<PkgDependency> get directDependencies =>
       _getDependencies(DependencyTypes.direct);
-
-  List<PkgDependency> get transitiveDependencies =>
-      _getDependencies(DependencyTypes.transitive);
-
-  List<PkgDependency> get devDependencies =>
-      _getDependencies(DependencyTypes.dev);
 
   List<PkgDependency> get allDependencies => _pana?.pkgDependencies;
 
