@@ -46,7 +46,8 @@ class SearchAdapter {
     if (result == null && fallbackToNames) {
       result = await _fallbackSearch(query);
     }
-    return _loadResultForPackages(query, result.totalCount, result.packages);
+    return _loadResultForPackages(
+        query, result.totalCount, result.packages, result.message);
   }
 
   /// Search over the package names as a fallback, in the absence of the
@@ -112,7 +113,7 @@ class SearchAdapter {
   }
 
   Future<SearchResultPage> _loadResultForPackages(SearchQuery query,
-      int totalCount, List<PackageScore> packageScores) async {
+      int totalCount, List<PackageScore> packageScores, String message) async {
     final packageNames = packageScores
         .where((ps) => !ps.isExternal)
         .map((ps) => ps.package)
@@ -144,7 +145,7 @@ class SearchAdapter {
         })
         .where((pv) => pv != null)
         .toList();
-    return SearchResultPage(query, totalCount, resultPackages);
+    return SearchResultPage(query, totalCount, resultPackages, message);
   }
 }
 
@@ -159,10 +160,14 @@ class SearchResultPage {
   /// The packages found by the search.
   final List<PackageView> packages;
 
-  SearchResultPage(this.query, this.totalCount, this.packages);
+  /// An optional message from the search service / client library, in case
+  /// the query was not processed entirely.
+  final String message;
 
-  factory SearchResultPage.empty(SearchQuery query) =>
-      SearchResultPage(query, 0, []);
+  SearchResultPage(this.query, this.totalCount, this.packages, this.message);
+
+  factory SearchResultPage.empty(SearchQuery query, {String message}) =>
+      SearchResultPage(query, 0, [], message);
 }
 
 final _allSdkTags = [

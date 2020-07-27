@@ -649,11 +649,16 @@ class PackageSearchResult {
   final int totalCount;
   final List<PackageScore> packages;
 
+  /// An optional message from the search service / client library, in case
+  /// the query was not processed entirely.
+  final String message;
+
   PackageSearchResult(
       {this.indexUpdated, this.totalCount, List<PackageScore> packages})
-      : packages = packages ?? [];
+      : packages = packages ?? [],
+        message = null;
 
-  PackageSearchResult.notReady()
+  PackageSearchResult.empty({this.message})
       : indexUpdated = null,
         totalCount = 0,
         packages = [];

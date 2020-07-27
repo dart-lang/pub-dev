@@ -100,6 +100,7 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
       totalCount: totalCount,
       title: title,
       searchPlaceholder: searchPlaceholder,
+      messageFromBackend: searchResult.message,
     ),
   );
   _searchOverallLatencyTracker.add(sw.elapsed);
