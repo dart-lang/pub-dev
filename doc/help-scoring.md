@@ -44,7 +44,7 @@ Pub points is pub.dev's measure of quality. Pub points are awarded in five categ
 ### Follow Dart file conventions
 
 Dart packages are expected to follow certain file conventions for how to
-[organize a package](https://dart.dev/guides/libraries/create-library-packages#organizing-a-library-package.
+[organize a package](https://dart.dev/guides/libraries/create-library-packages#organizing-a-library-package).
 Most importantly make sure to:
 
   - Provide a [`pubspec.yaml` file](https://dart.dev/tools/pub/pubspec). Ensure
