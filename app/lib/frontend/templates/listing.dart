@@ -7,6 +7,7 @@ import 'dart:math';
 import 'package:meta/meta.dart';
 
 import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/shared/markdown.dart';
 import 'package:pub_dev/shared/utils.dart';
 
 import '../../package/models.dart';
@@ -123,6 +124,7 @@ String renderPkgIndexPage(
   SearchQuery searchQuery,
   int totalCount,
   String searchPlaceholder,
+  String messageFromBackend,
 }) {
   final topPackages = getSdkDict(sdk).topSdkPackages;
   final isSearch = searchQuery != null && searchQuery.hasQuery;
@@ -145,6 +147,7 @@ String renderPkgIndexPage(
       searchQuery: searchQuery,
       totalCount: totalCount,
       title: title ?? topPackages,
+      messageFromBackend: messageFromBackend,
     ),
     'package_list_html': renderPackageList(packages, searchQuery: searchQuery),
     'has_packages': packages.isNotEmpty,
@@ -179,6 +182,7 @@ String renderListingInfo({
   @required int totalCount,
   String title,
   String ownedBy,
+  String messageFromBackend,
 }) {
   final isSearch = searchQuery != null && searchQuery.hasQuery;
   return templateCache.renderTemplate('shared/listing_info', {
@@ -189,6 +193,8 @@ String renderListingInfo({
     'search_query': searchQuery?.query,
     'has_owned_by': ownedBy != null,
     'owned_by': ownedBy,
+    'has_message_from_backend': messageFromBackend != null,
+    'message_from_backend_html': markdownToHtml(messageFromBackend),
   });
 }
 
