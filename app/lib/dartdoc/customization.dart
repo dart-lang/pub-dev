@@ -164,9 +164,11 @@ class DartdocCustomizer {
     final pubPackageText = '$packageName package';
     if (breadcrumbs.children.length == 1) {
       // we are on the index page
-      final firstLink = breadcrumbs.querySelector('a');
-      firstLink.attributes['href'] = pubPackageLink;
-      firstLink.text = pubPackageText;
+      final newItem = Element.tag('li');
+      newItem.append(Element.tag('a')
+        ..attributes['href'] = pubPackageLink
+        ..text = pubPackageText);
+      breadcrumbs.children.first.replaceWith(newItem);
 
       final docitem = Element.tag('li')
         ..className = 'self-crumb'

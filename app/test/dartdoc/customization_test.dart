@@ -47,32 +47,37 @@ void main() {
         golden.split('\n').where((s) => s.isNotEmpty));
   }
 
-  group('pana 0.10.2', () {
-    final prevCustomizer = DartdocCustomizer('pana', '0.12.2', false);
-    final latestCustomizer = DartdocCustomizer('pana', '0.12.2', true);
+  void expectMatch(String package, String version, String name) {
+    test('Match $package $version $name', () {
+      final prevCustomizer = DartdocCustomizer(package, version, false);
+      final latestCustomizer = DartdocCustomizer(package, version, true);
 
-    void expectMatch(String name) {
-      test(name, () {
-        final inputName = 'pana_0.12.2_$name.html';
-        final outputName = 'pana_0.12.2_$name.out.html';
-        final diffName = 'pana_0.12.2_$name.latest.diff';
-        final html = File('$goldenDir/$inputName').readAsStringSync();
-        final prevResult = prevCustomizer.customizeHtml(html) ?? html;
-        final latestResult = latestCustomizer.customizeHtml(html) ?? html;
-        expectGoldenFile(prevResult, outputName);
-        expectGoldenFile(_miniDiff(prevResult, latestResult), diffName);
+      final path = '${package}_${version}_$name';
+      final inputName = '$path.html';
+      final outputName = '$path.out.html';
+      final diffName = '$path.latest.diff';
+      final html = File('$goldenDir/$inputName').readAsStringSync();
+      final prevResult = prevCustomizer.customizeHtml(html) ?? html;
+      final latestResult = latestCustomizer.customizeHtml(html) ?? html;
+      expectGoldenFile(prevResult, outputName);
+      expectGoldenFile(_miniDiff(prevResult, latestResult), diffName);
 
-        if (_regenerateGoldens) {
-          fail('Set `_regenerateGoldens` to `false` to run tests.');
-        }
-      });
-    }
+      if (_regenerateGoldens) {
+        fail('Set `_regenerateGoldens` to `false` to run tests.');
+      }
+    });
+  }
 
-    expectMatch('index');
-    expectMatch('license_file_class');
-    expectMatch('license_file_constructor');
-    expectMatch('license_file_name_field');
-    expectMatch('pretty_json');
+  group('pana 0.12.2', () {
+    expectMatch('pana', '0.12.2', 'index');
+    expectMatch('pana', '0.12.2', 'license_file_class');
+    expectMatch('pana', '0.12.2', 'license_file_constructor');
+    expectMatch('pana', '0.12.2', 'license_file_name_field');
+    expectMatch('pana', '0.12.2', 'pretty_json');
+  });
+
+  group('Misc packages', () {
+    expectMatch('dygraph', '0.1.1', 'index');
   });
 }
 
