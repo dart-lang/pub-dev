@@ -24,6 +24,8 @@ import 'versions.dart';
 
 final Logger _log = Logger('rediscache');
 final _random = Random.secure();
+final _defaultCacheReadTimeout = Duration(milliseconds: 300);
+final _defaultCacheWriteTimeout = Duration(milliseconds: 1000);
 
 class CachePatterns {
   final Cache<List<int>> _cache;
@@ -277,12 +279,17 @@ class _ConnectionRefreshingCacheProvider<T> implements CacheProvider<T> {
   }
 
   @override
-  Future<T> get(String key) => _delegate.get(key);
+  Future<T> get(String key) => _delegate
+      .get(key)
+      .timeout(_defaultCacheReadTimeout, onTimeout: () => null);
 
   @override
-  Future<void> purge(String key) => _delegate.purge(key);
+  Future<void> purge(String key) => _delegate
+      .purge(key)
+      .timeout(_defaultCacheWriteTimeout, onTimeout: () => null);
 
   @override
-  Future<void> set(String key, T value, [Duration ttl]) =>
-      _delegate.set(key, value, ttl);
+  Future<void> set(String key, T value, [Duration ttl]) => _delegate
+      .set(key, value, ttl)
+      .timeout(_defaultCacheWriteTimeout, onTimeout: () => null);
 }
