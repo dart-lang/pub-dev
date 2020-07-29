@@ -52,13 +52,13 @@
     <div class="packages-api">
       {{^has_more_api_pages}}
         <div class="packages-api-label">API result:</div>
-        <div>
+        <div class="packages-api-links">
           <a href="{{& first_api_page.href}}">{{ first_api_page.title }}</a>
         </div>
       {{/has_more_api_pages}}
       {{#has_more_api_pages}}
         <div class="packages-api-label">API results:</div>
-        <details class="packages-api-details">
+        <details class="packages-api-details packages-api-links">
           <summary>
             <a href="{{& first_api_page.href}}">{{ first_api_page.title }}</a>
           </summary>
