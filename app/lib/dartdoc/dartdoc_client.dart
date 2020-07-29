@@ -60,9 +60,8 @@ class DartdocClient {
       String package, String version, String relativePath,
       {Duration timeout}) async {
     try {
-      final entry = await dartdocBackend
-          .getServingEntry(package, version, useLastReportedEntry: true)
-          .timeout(timeout);
+      final entry =
+          await dartdocBackend.getEntry(package, version).timeout(timeout);
       if (entry == null || !entry.hasContent) {
         return null;
       }
@@ -77,6 +76,6 @@ class DartdocClient {
   }
 
   Future<DartdocEntry> getEntry(String package, String version) async {
-    return await dartdocBackend.getServingEntry(package, version);
+    return await dartdocBackend.getEntry(package, version);
   }
 }

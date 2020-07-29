@@ -221,8 +221,8 @@ class DartdocJobProcessor extends JobProcessor {
       logFileOutput.write('completed: ${entry.timestamp.toIso8601String()}\n');
       await _writeLog(outputDir, logFileOutput);
 
-      final oldEntry = await dartdocBackend.getLatestEntry(
-          job.packageName, job.packageVersion);
+      final oldEntry =
+          await dartdocBackend.getEntry(job.packageName, job.packageVersion);
       if (entry.isRegression(oldEntry)) {
         logger.severe('Regression detected in $job, aborting upload.');
         // If `isLatest` or `isObsolete` have changed, we still want to update
