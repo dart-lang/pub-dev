@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bumped runtimeVersion to `2020.08.03`.
  * Upgraded Dart analysis SDK to `2.9.0`.
  * Use only Datastore-based DartdocEntry for all user-facing queries.
+ * Upgraded dependencies in `app/`.
 
 ## `20200723t081306-all`
  * Avoid indexing of `textContent`.
