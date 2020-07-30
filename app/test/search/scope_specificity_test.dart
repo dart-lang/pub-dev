@@ -69,19 +69,19 @@ void main() {
         'packages': [
           {
             'package': 'json_0',
-            'score': closeTo(0.29, 0.01),
+            'score': closeTo(0.49, 0.01),
           },
           {
             'package': 'json_1',
-            'score': closeTo(0.29, 0.01),
+            'score': closeTo(0.49, 0.01),
           },
           {
             'package': 'json_2',
-            'score': closeTo(0.29, 0.01),
+            'score': closeTo(0.49, 0.01),
           },
           {
             'package': 'json_3',
-            'score': closeTo(0.29, 0.01),
+            'score': closeTo(0.49, 0.01),
           },
         ],
       });
@@ -99,11 +99,11 @@ void main() {
         'packages': [
           {
             'package': 'json_1',
-            'score': closeTo(0.2967, 0.0001),
+            'score': closeTo(0.49, 0.01),
           },
           {
             'package': 'json_3',
-            'score': closeTo(0.2671, 0.0001),
+            'score': closeTo(0.45, 0.01),
           },
         ],
       });

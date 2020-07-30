@@ -47,11 +47,11 @@ void main() {
         'packages': [
           {
             'package': 'build_config',
-            'score': closeTo(0.612, 0.001),
+            'score': closeTo(0.535, 0.001),
           },
           {
             'package': 'build',
-            'score': closeTo(0.606, 0.001),
+            'score': closeTo(0.429, 0.001),
           },
         ],
       });

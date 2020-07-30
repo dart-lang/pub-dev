@@ -31,7 +31,7 @@ void main() {
         'packages': [
           {
             'package': 'lombok',
-            'score': closeTo(0.99, 0.01),
+            'score': closeTo(0.33, 0.01),
           },
         ],
       });

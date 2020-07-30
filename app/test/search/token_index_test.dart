@@ -39,7 +39,7 @@ void main() {
         'queue': closeTo(0.29, 0.01),
       });
       expect(index.search('unmodifiab'), {
-        'unmodifiable': closeTo(0.47, 0.01),
+        'unmodifiable': closeTo(0.39, 0.01),
       });
       expect(index.search('unmodifiable'), {
         'unmodifiable': closeTo(0.47, 0.01),
@@ -70,6 +70,13 @@ void main() {
       expect(index.tokenCount, 2);
       index.remove('url2');
       expect(index.tokenCount, 1);
+    });
+
+    test('Do not overweight partial matches', () {
+      final index = TokenIndex()..add('flutter_qr_reader', 'flutter_qr_reader');
+      final data = index.search('ByteDataReader');
+      // The partial match should not return more than 0.5 as score.
+      expect(data, {'flutter_qr_reader': lessThan(0.5)});
     });
   });
 
