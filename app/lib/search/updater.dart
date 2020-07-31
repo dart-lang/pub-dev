@@ -152,28 +152,13 @@ class IndexUpdater implements TaskRunner {
       // deduplicates the periodic-updates which may not complete in 2 hours.
       if (sd != null && sd.timestamp.isAfter(task.updated)) return;
 
-      // The index requires the analysis results in most of the cases, except:
-      // - when a new package is created, and it is not in the snapshot yet, or
-      // - when the last timestamp is older than 7 days in the snapshot.
-      //
-      // The later requirement is working on the assumption that normally the
-      // index will update the packages in the snapshot every day, but if the
-      // analysis won't complete for some reason, we still want to update the
-      // index with a potential update to the package.
-      final now = DateTime.now().toUtc();
-      final requireAnalysis =
-          sd != null && now.difference(sd.timestamp).inDays < 7;
-
-      final doc = await searchBackend.loadDocument(task.package,
-          requireAnalysis: requireAnalysis);
+      final doc = await searchBackend.loadDocument(task.package);
       _snapshot.add(doc);
       await _packageIndex.addPackage(doc);
     } on RemovedPackageException catch (_) {
       _logger.info('Removing: ${task.package}');
       _snapshot.remove(task.package);
       await _packageIndex.removePackage(task.package);
-    } on MissingAnalysisException catch (_) {
-      // Nothing to do yet, keeping old version if it exists.
     }
   }
 

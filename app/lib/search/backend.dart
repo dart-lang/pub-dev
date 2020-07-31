@@ -71,11 +71,7 @@ class SearchBackend {
   ///
   /// When a package, or its latest version is missing, the method throws
   /// [RemovedPackageException].
-  ///
-  /// When either the analysis is not completed yet, the method returns with
-  /// null.
-  Future<PackageDocument> loadDocument(String packageName,
-      {bool requireAnalysis = false}) async {
+  Future<PackageDocument> loadDocument(String packageName) async {
     final packageKey = _db.emptyKey.append(Package, id: packageName);
     final p = (await _db.lookup<Package>([packageKey])).single;
     if (p == null) {
@@ -89,9 +85,6 @@ class SearchBackend {
 
     final analysisView =
         await analyzerClient.getAnalysisView(packageName, pv.version);
-    if (requireAnalysis && !analysisView.hasPanaSummary) {
-      throw MissingAnalysisException();
-    }
 
     final tags = <String>[
       ...p.getTags(),
