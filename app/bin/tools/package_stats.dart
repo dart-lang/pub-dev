@@ -12,9 +12,10 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:gcloud/db.dart';
+import 'package:pool/pool.dart';
 
+import 'package:pub_dev/analyzer/analyzer_client.dart';
 import 'package:pub_dev/package/models.dart';
-import 'package:pub_dev/package/model_properties.dart';
 import 'package:pub_dev/service/entrypoint/tools.dart';
 
 Future main(List<String> args) async {
@@ -28,24 +29,23 @@ Future main(List<String> args) async {
   final List<String> flutterPlugins = [];
   final List<String> flutterSdks = [];
 
-  Map<String, int> homepageDomains = {};
-  void addHomepage(String key) {
-    homepageDomains[key] = (homepageDomains[key] ?? 0) + 1;
-  }
+  final homepageScheme = _Counter();
+  final licenseCounts = _Counter();
+  final licenseNames = _Counter();
+  final packagesWithMoreThanOneLicense = _Counter();
+  final grantedPoints = _Counter();
+  final tags = _Counter();
 
   await withProdServices(() async {
-    await for (Package p in dbService.query<Package>().run()) {
+    Future<void> process(Package p) async {
       totalCount++;
       if (totalCount % 25 == 0) {
         print('Reading package #$totalCount: ${p.name}');
       }
 
-      final List<PackageVersion> versions =
-          await dbService.lookup([p.latestVersionKey]);
-      if (versions.isEmpty) continue;
-
-      final PackageVersion latest = versions.first;
-      final Pubspec pubspec = latest.pubspec;
+      final latest =
+          await dbService.lookupValue<PackageVersion>(p.latestVersionKey);
+      final pubspec = latest.pubspec;
 
       if (pubspec.hasFlutterPlugin) {
         flutterPlugins.add(p.name);
@@ -57,38 +57,60 @@ Future main(List<String> args) async {
         flutterCount++;
       }
 
-      if (pubspec.homepage == null) {
-        addHomepage('empty');
+      final homepage = pubspec.homepage ?? pubspec.repository;
+      if (homepage == null) {
+        homepageScheme.increment('empty');
       } else {
         try {
-          final uri = Uri.parse(pubspec.homepage);
+          final uri = Uri.parse(homepage);
           if (uri.scheme != 'http' && uri.scheme != 'https') {
-            addHomepage('not_http');
+            homepageScheme.increment('not_http');
           } else {
-            addHomepage(uri.host);
+            homepageScheme.increment(uri.scheme);
           }
         } catch (_) {
-          addHomepage('parse_error');
+          homepageScheme.increment('parse_error');
         }
       }
+
+      final analysis =
+          await analyzerClient.getAnalysisView(p.name, p.latestVersion);
+      final licenseCount = analysis.licenses?.length ?? 0;
+      licenseCounts.increment(licenseCount);
+      analysis.licenses?.forEach((l) {
+        licenseNames.increment(l.name ?? 'none');
+      });
+      if (licenseCount > 1) {
+        packagesWithMoreThanOneLicense.increment(p.name, licenseCount);
+      }
+      grantedPoints.increment(analysis.report?.grantedPoints ?? 0);
     }
+
+    final pool = Pool(16);
+    final futures = <Future>[];
+    await for (Package p in dbService.query<Package>().run()) {
+      final f = pool.withResource(() => process(p));
+      futures.add(f);
+    }
+    await Future.wait(futures);
+    await pool.close();
   });
-  homepageDomains = _sortDomains(homepageDomains);
 
   final Map report = {
-    'counters': {
-      'total': totalCount,
-      'flutter': {
-        'total': flutterCount,
-        'plugins': flutterPlugins.length,
-        'sdk': flutterSdks.length,
-      },
-    },
+    'packages': totalCount,
     'flutter': {
-      'plugins': flutterPlugins,
-      'sdk': flutterSdks,
+      'total': flutterCount,
+      'plugins': flutterPlugins.length,
+      'sdk': flutterSdks.length,
     },
-    'homepage': homepageDomains,
+    'tags': tags.sortedByCounts(),
+    'homepage': homepageScheme.sortedByCounts(),
+    'licenses': {
+      'counts': licenseCounts.sortedByKeysAsInt(),
+      'names': licenseNames.sortedByCounts(),
+      'moreThanOne': packagesWithMoreThanOneLicense.sortedByCounts(),
+    },
+    'points': grantedPoints.sortedByKeysAsInt(),
   };
   final String json = JsonEncoder.withIndent('  ').convert(report);
   if (argv['output'] != null) {
@@ -101,12 +123,32 @@ Future main(List<String> args) async {
   }
 }
 
-Map<String, int> _sortDomains(Map<String, int> counts) {
-  final List<String> domains = counts.keys.toList();
-  domains.sort((a, b) => -counts[a].compareTo(counts[b]));
-  final result = <String, int>{};
-  for (String domain in domains) {
-    result[domain] = counts[domain];
+class _Counter {
+  final _values = <String, int>{};
+
+  void increment(key, [int amount = 1]) {
+    final strKey = key.toString();
+    _values[strKey] = (_values[strKey] ?? 0) + amount;
   }
-  return result;
+
+  Map<String, int> sortedByCounts() {
+    final keys = _values.keys.toList();
+    keys.sort((a, b) => -_values[a].compareTo(_values[b]));
+    final result = <String, int>{};
+    for (String key in keys) {
+      result[key] = _values[key];
+    }
+    return result;
+  }
+
+  Map<String, int> sortedByKeysAsInt() {
+    final keys = _values.keys.map(int.parse).toList();
+    keys.sort((a, b) => a.compareTo(b));
+    final result = <String, int>{};
+    for (int key in keys) {
+      final strKey = key.toString();
+      result[strKey] = _values[strKey];
+    }
+    return result;
+  }
 }
