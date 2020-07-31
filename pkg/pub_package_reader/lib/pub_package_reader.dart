@@ -176,7 +176,9 @@ Future<PackageSummary> summarizePackageArchive(String archivePath) async {
   issues.addAll(syntaxCheckUrl(pubspec.repository?.toString(), 'repository'));
   issues.addAll(validateDependencies(pubspec));
   issues.addAll(forbidGitDependencies(pubspec));
-  issues.addAll(forbidPreReleaseSdk(pubspec));
+  // TODO: re-enable or remove after version pinning gets resolved
+  //       https://github.com/dart-lang/pub/issues/2557
+  // issues.addAll(forbidPreReleaseSdk(pubspec));
   issues.addAll(requireIosFolderOrFlutter2_20(pubspec, files));
 
   return PackageSummary(
