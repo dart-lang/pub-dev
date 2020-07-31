@@ -92,6 +92,7 @@ class AnalysisView {
 
   List<LicenseFile> get licenses =>
       _pana?.licenseFile == null ? null : [_pana?.licenseFile];
+  LicenseFile get licenseFile => _pana?.licenseFile;
 
   List<PkgDependency> get directDependencies =>
       _getDependencies(DependencyTypes.direct);
