@@ -22,6 +22,7 @@ class Score {
 
   /// Calculates the intersection of the [scores], by multiplying the values.
   static Score multiply(List<Score> scores) {
+    if (scores.length == 1) return scores.single;
     Set<String> keys;
     for (Score score in scores) {
       if (keys == null) {

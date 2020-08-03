@@ -152,16 +152,6 @@ class InMemoryPackageIndex implements PackageIndex {
       );
     }
 
-    // rank on query scope (e.g. SDK)
-    Map<String, double> scopeSpecificity;
-    if (query.sdk != null) {
-      scopeSpecificity = <String, double>{};
-      packages.forEach((String package) {
-        final PackageDocument doc = _packages[package];
-        scopeSpecificity[package] = scoreScopeSpecificity(query.sdk, doc.tags);
-      });
-    }
-
     // filter on tags
     final combinedTagsPredicate =
         query.tagsPredicate.appendPredicate(query.parsedQuery.tagsPredicate);
@@ -246,15 +236,12 @@ class InMemoryPackageIndex implements PackageIndex {
     List<PackageScore> results;
     switch (query.order ?? SearchOrder.top) {
       case SearchOrder.top:
+        final hasSpecificScope = query.sdk != null;
         final List<Score> scores = [
           _getOverallScore(packages),
+          if (textResults != null) textResults.pkgScore,
+          if (hasSpecificScope) Score(_scopeSpecificityScore(query, packages)),
         ];
-        if (query.order == null && textResults != null) {
-          scores.add(textResults.pkgScore);
-        }
-        if (query.order == null && scopeSpecificity != null) {
-          scores.add(Score(scopeSpecificity));
-        }
         Score overallScore = Score.multiply(scores);
         // If there is an exact match for a package name, promote it to the top position.
         final queryText = query?.parsedQuery?.text;
@@ -347,6 +334,16 @@ class InMemoryPackageIndex implements PackageIndex {
       indexUpdated: _lastUpdated?.toIso8601String(),
       packages: results,
     );
+  }
+
+  Map<String, double> _scopeSpecificityScore(
+      SearchQuery query, Iterable<String> packages) {
+    final scopeSpecificity = <String, double>{};
+    packages.forEach((String package) {
+      final PackageDocument doc = _packages[package];
+      scopeSpecificity[package] = scoreScopeSpecificity(query.sdk, doc.tags);
+    });
+    return scopeSpecificity;
   }
 
   @visibleForTesting
