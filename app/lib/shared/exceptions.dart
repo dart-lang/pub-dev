@@ -376,12 +376,6 @@ class ConflictException extends ResponseException {
           'A publisher with the domain `$domain` already exists');
 }
 
-/// Thrown when the analysis for a package is not done yet.
-class MissingAnalysisException extends NotFoundException {
-  MissingAnalysisException()
-      : super('Analysis is not ready for the given package.');
-}
-
 /// Thrown when package or versions is missing or has flags indicating that it
 /// should be removed from the search index.
 class RemovedPackageException extends NotFoundException {
