@@ -21,9 +21,9 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 /// Make sure that at least two versions are kept here as the next candidates
 /// when the version switch happens.
 const acceptedRuntimeVersions = <String>[
-  '2020.07.21', // The current [runtimeVersion].
+  '2020.08.03', // The current [runtimeVersion].
+  '2020.07.21',
   '2020.07.10',
-  '2020.07.07',
 ];
 
 /// Represents a combined version of the overall toolchain and processing,
@@ -53,7 +53,7 @@ bool shouldGCVersion(String version) =>
 
 // keep in-sync with SDK version in .travis.yml, .mono_repo.yml and Dockerfile
 final String runtimeSdkVersion = '2.8.1';
-final String toolEnvSdkVersion = '2.8.4';
+final String toolEnvSdkVersion = '2.9.0';
 
 // Value comes from package:pana.
 final String panaVersion = pana.packageVersion;
