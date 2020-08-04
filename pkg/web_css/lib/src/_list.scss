@@ -280,6 +280,7 @@
     font-size: 22px;
     font-weight: 500;
     margin: 0;
+    overflow-wrap: anywhere;
   }
 
   .packages-recent {
@@ -345,6 +346,10 @@
 
     .packages-api-label {
       padding-right: 8px;
+    }
+
+    .packages-api-links {
+      overflow-wrap: anywhere;
     }
 
     .-rest {
