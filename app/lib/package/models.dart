@@ -423,6 +423,7 @@ abstract class AssetKind {
   static const readme = 'readme';
   static const changelog = 'changelog';
   static const example = 'example';
+  static const license = 'license';
 }
 
 /// A derived entity that holds extracted asset of a [PackageVersion] archive.

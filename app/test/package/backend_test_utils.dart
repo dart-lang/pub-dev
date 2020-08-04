@@ -24,10 +24,12 @@ Future<List<int>> packageArchiveBytes({String pubspecContent}) async {
     final readme = File('$tmp/README.md');
     final changelog = File('$tmp/CHANGELOG.md');
     final pubspec = File('$tmp/pubspec.yaml');
+    final license = File('$tmp/LICENSE');
 
     await readme.writeAsString(foobarReadmeContent);
     await changelog.writeAsString(foobarChangelogContent);
     await pubspec.writeAsString(pubspecContent ?? foobarStablePubspec);
+    await license.writeAsString('BSD LICENSE 2.0');
 
     await Directory('$tmp/lib').create();
     await File('$tmp/lib/test_library.dart')
@@ -36,6 +38,7 @@ Future<List<int>> packageArchiveBytes({String pubspecContent}) async {
     final files = [
       'README.md',
       'CHANGELOG.md',
+      'LICENSE',
       'pubspec.yaml',
       'lib/test_library.dart'
     ];

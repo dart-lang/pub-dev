@@ -980,6 +980,15 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
         path: archive.examplePath,
         textContent: archive.exampleContent,
       ),
+    if (archive.licensePath != null)
+      PackageVersionAsset.init(
+        package: key.package,
+        version: key.version,
+        kind: AssetKind.license,
+        versionCreated: versionCreated,
+        path: archive.licensePath,
+        textContent: archive.licenseContent,
+      ),
   ];
 
   final versionInfo = PackageVersionInfo()

@@ -462,4 +462,25 @@ $dependencies
       expect(requireIosFolderOrFlutter2_20(pubspec, ['ios/']), isEmpty);
     });
   });
+
+  group('require license content', () {
+    test('no license file', () {
+      expect(requireNonEmptyLicense(null, null), isNotEmpty);
+    });
+
+    test('empty file', () {
+      expect(requireNonEmptyLicense('LICENSE', ''), isNotEmpty);
+      expect(requireNonEmptyLicense('LICENSE', '\n  \n'), isNotEmpty);
+    });
+
+    test('generic TODO', () {
+      expect(
+          requireNonEmptyLicense('LICENSE', 'TODO: Add your license here.\n'),
+          isNotEmpty);
+    });
+
+    test('valid-looking license', () {
+      expect(requireNonEmptyLicense('LICENSE', 'BSD license'), isEmpty);
+    });
+  });
 }

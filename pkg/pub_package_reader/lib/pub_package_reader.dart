@@ -37,6 +37,8 @@ class PackageSummary {
   final String changelogContent;
   final String examplePath;
   final String exampleContent;
+  final String licensePath;
+  final String licenseContent;
   final List<String> libraries;
 
   PackageSummary({
@@ -48,6 +50,8 @@ class PackageSummary {
     this.changelogContent,
     this.examplePath,
     this.exampleContent,
+    this.licensePath,
+    this.licenseContent,
     this.libraries,
   });
 
@@ -163,6 +167,12 @@ Future<PackageSummary> summarizePackageArchive(String archivePath) async {
     examplePath = null;
   }
 
+  String licensePath = searchForFile(licenseFileNames);
+  final licenseContent = await extractContent(licensePath);
+  if (licenseContent == null) {
+    licensePath = null;
+  }
+
   final libraries = files
       .where((file) => file.startsWith('lib/'))
       .where((file) => !file.startsWith('lib/src'))
@@ -180,6 +190,7 @@ Future<PackageSummary> summarizePackageArchive(String archivePath) async {
   //       https://github.com/dart-lang/pub/issues/2557
   // issues.addAll(forbidPreReleaseSdk(pubspec));
   issues.addAll(requireIosFolderOrFlutter2_20(pubspec, files));
+  issues.addAll(requireNonEmptyLicense(licensePath, licenseContent));
 
   return PackageSummary(
     issues: issues,
@@ -190,6 +201,8 @@ Future<PackageSummary> summarizePackageArchive(String archivePath) async {
     changelogContent: changelogContent,
     examplePath: examplePath,
     exampleContent: exampleContent,
+    licensePath: licensePath,
+    licenseContent: licenseContent,
     libraries: libraries,
   );
 }
@@ -416,5 +429,21 @@ Iterable<ArchiveIssue> requireIosFolderOrFlutter2_20(
         'not support having no `ios/` folder.\n'
         'Please consider increasing the Flutter SDK requirement to '
         '^1.20.0 or higher (environment.sdk.flutter) or create an `ios/` folder.\n\nSee $_pluginDocsUrl');
+  }
+}
+
+Iterable<ArchiveIssue> requireNonEmptyLicense(
+    String path, String content) sync* {
+  if (path == null) {
+    yield ArchiveIssue('LICENSE file not found.');
+    return;
+  }
+  if (content == null || content.trim().isEmpty) {
+    yield ArchiveIssue('LICENSE file `$path` has no content.');
+    return;
+  }
+  if (content.contains('TODO: Add your license here.')) {
+    yield ArchiveIssue('LICENSE file `$path` contains generic TODO.');
+    return;
   }
 }
