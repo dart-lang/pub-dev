@@ -147,6 +147,13 @@ http_testing.MockClient _httpClient({
       _wrapShelfHandler(handler, authToken: authToken));
 }
 
+String _removeLeadingSlashes(String path) {
+  while (path.startsWith('/')) {
+    path = path.substring(1);
+  }
+  return path;
+}
+
 http_testing.MockClientHandler _wrapShelfHandler(
   shelf.Handler handler, {
   String authToken,
@@ -154,12 +161,14 @@ http_testing.MockClientHandler _wrapShelfHandler(
   return (rq) async {
     final shelfRq = shelf.Request(
       rq.method,
-      rq.url,
+      rq.url.replace(path: _removeLeadingSlashes(rq.url.path)),
       body: rq.body,
       headers: <String, String>{
         if (authToken != null) 'authorization': 'bearer $authToken',
         ...rq.headers,
       },
+      url: Uri(path: _removeLeadingSlashes(rq.url.path), query: rq.url.query),
+      handlerPath: '',
     );
     shelf.Response rs;
     // Need to fork a service scope to create a separate RequestContext in the

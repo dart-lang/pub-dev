@@ -35,7 +35,7 @@ dependencies:
     path: ../pkg/pub_package_reader
   pub_semver: ">=1.2.2 <2.0.0"
   pubspec_parse: ^0.1.4
-  shelf: '>=0.5.6 <0.8.0'
+  shelf: '0.7.5' # TODO: fix issues in shelf 0.7.6
   shelf_router: ^0.7.2
   stack_trace: ^1.9.2
   stream_transform: ^1.1.0
