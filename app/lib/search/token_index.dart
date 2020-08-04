@@ -282,7 +282,6 @@ class TokenIndex {
   Map<String, double> scoreDocs(TokenMatch tokenMatch,
       {double weight = 1.0, int wordCount = 1, Set<String> limitToIds}) {
     // Summarize the scores for the documents.
-    final queryWeight = tokenMatch.maxWeight;
     final Map<String, double> docScores = <String, double>{};
     for (String token in tokenMatch.tokens) {
       final docWeights = _inverseIds[token];
@@ -305,7 +304,7 @@ class TokenIndex {
       if (wordCount > 1) {
         docSize = math.pow(docSize, wordSizeExponent).toDouble();
       }
-      docScores[id] = weight * docScores[id] / queryWeight / docSize;
+      docScores[id] = weight * docScores[id] / docSize;
     }
     return docScores;
   }

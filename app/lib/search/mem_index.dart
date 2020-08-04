@@ -379,7 +379,7 @@ class InMemoryPackageIndex implements PackageIndex {
       final points = (doc.grantedPoints ?? 0) / math.max(1, doc.maxPoints ?? 0);
       final overall = popularity * 0.5 + points * 0.5;
       // don't multiply with zero.
-      return 0.3 + 0.7 * overall;
+      return 0.5 + 0.5 * overall;
     });
     return Score(values);
   }

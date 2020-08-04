@@ -63,7 +63,7 @@ void main() {
         'indexUpdated': isNotNull,
         'totalCount': 1,
         'packages': [
-          {'package': 'stringutils', 'score': closeTo(0.72, 0.01)},
+          {'package': 'stringutils', 'score': closeTo(0.8, 0.01)},
         ],
       });
     });
@@ -90,7 +90,7 @@ void main() {
               },
             ],
           },
-          {'package': 'stringutils', 'score': closeTo(0.53, 0.01)},
+          {'package': 'stringutils', 'score': closeTo(0.59, 0.01)},
         ],
       });
     });
@@ -102,10 +102,10 @@ void main() {
         'indexUpdated': isNotNull,
         'totalCount': 2,
         'packages': [
-          {'package': 'stringutils', 'score': closeTo(0.72, 0.01)},
+          {'package': 'stringutils', 'score': closeTo(0.80, 0.01)},
           {
             'package': 'dart:core',
-            'score': closeTo(0.89, 0.01),
+            'score': closeTo(0.69, 0.01),
             'url':
                 'https://api.dartlang.org/stable/2.0.0/dart-core/String-class.html',
             'description': 'Dart core utils',

@@ -82,7 +82,7 @@ void main() {
         'packages': [
           {
             'package': 'other_with_api',
-            'score': closeTo(0.265, 0.001), // find serveWebPages
+            'score': closeTo(0.221, 0.001), // find serveWebPages
             'apiPages': [
               {'title': null, 'path': 'serve.html'},
             ],
