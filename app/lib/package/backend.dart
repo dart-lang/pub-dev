@@ -935,8 +935,8 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
   @required DateTime versionCreated,
 }) {
   final pubspec = Pubspec.fromYaml(archive.pubspecContent);
-  final key =
-      QualifiedVersionKey(package: pubspec.name, version: pubspec.version);
+  final key = QualifiedVersionKey(
+      package: pubspec.name, version: canonicalizeVersion(pubspec.version));
 
   final versionPubspec = PackageVersionPubspec()
     ..initFromKey(key)
