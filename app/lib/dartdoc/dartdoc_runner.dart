@@ -204,10 +204,16 @@ class DartdocJobProcessor extends JobProcessor {
       }
 
       if (hasContent) {
-        await DartdocCustomizer(
-                job.packageName, job.packageVersion, job.isLatestStable)
-            .customizeDir(outputDir);
-        logFileOutput.write('Content customization completed.\n\n');
+        try {
+          await DartdocCustomizer(
+                  job.packageName, job.packageVersion, job.isLatestStable)
+              .customizeDir(outputDir);
+          logFileOutput.write('Content customization completed.\n\n');
+        } catch (e, st) {
+          // Do not block on customization failure.
+          _logger.severe('Dartdoc customization failed ($job).', e, st);
+          logFileOutput.write('Content customization failed.\n\n');
+        }
 
         await _tar(tempDirPath, tarDir, outputDir, logFileOutput);
       } else {
