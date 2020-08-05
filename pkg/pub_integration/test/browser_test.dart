@@ -100,10 +100,24 @@ void main() {
               wait: Until.networkIdle);
 
           // check header with name and version
-          final headerTitle = await page.$('h1.title');
-          final headerTitleText =
-              await (await headerTitle.property('textContent')).jsonValue;
-          expect(headerTitleText, 'retry 2.0.0');
+          Future<void> checkHeaderTitle() async {
+            final headerTitle = await page.$('h1.title');
+            final headerTitleText =
+                await (await headerTitle.property('textContent')).jsonValue;
+            expect(headerTitleText, 'retry 2.0.1');
+          }
+
+          await checkHeaderTitle();
+
+          await page.goto(
+              'http://localhost:${fakePubServerProcess.port}/packages/retry/versions/2.0.1',
+              wait: Until.networkIdle);
+          await checkHeaderTitle();
+
+          await page.goto(
+              'http://localhost:${fakePubServerProcess.port}/packages/retry/versions/2.0.01',
+              wait: Until.networkIdle);
+          await checkHeaderTitle();
 
           // check uncaught exception
           expect(headlessEnv.clientErrors.isEmpty, true);

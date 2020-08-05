@@ -898,10 +898,7 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
 
   final packageKey = db.emptyKey.append(Package, id: pubspec.name);
 
-  final versionString = canonicalizeVersion(pubspec.version);
-  if (versionString == null) {
-    throw InvalidInputException.canonicalizeVersionError(pubspec.version);
-  }
+  final versionString = pubspec.canonicalVersion;
 
   final version = PackageVersion()
     ..id = versionString
@@ -936,7 +933,7 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
 }) {
   final pubspec = Pubspec.fromYaml(archive.pubspecContent);
   final key = QualifiedVersionKey(
-      package: pubspec.name, version: canonicalizeVersion(pubspec.version));
+      package: pubspec.name, version: pubspec.canonicalVersion);
 
   final versionPubspec = PackageVersionPubspec()
     ..initFromKey(key)

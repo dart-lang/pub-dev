@@ -124,7 +124,7 @@ version: 1.0.9
       final Pubspec p = Pubspec(pubspecBase);
       expect(p.name, 'test_package');
       expect(p.description, 'Test package');
-      expect(p.version, '1.0.9');
+      expect(p.canonicalVersion, '1.0.9');
     });
 
     group('Flutter', () {

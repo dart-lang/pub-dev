@@ -11,6 +11,9 @@ import 'package:pana/pana.dart' show SdkConstraintStatus;
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspek show Pubspec;
 import 'package:yaml/yaml.dart';
 
+import '../shared/exceptions.dart' show InvalidInputException;
+import '../shared/utils.dart' show canonicalizeVersion;
+
 Map<String, dynamic> _loadYaml(String yamlString) {
   final map = loadYaml(yamlString) as Map;
   // TODO: remove this part after yaml returns a proper map
@@ -24,6 +27,7 @@ class Pubspec {
   final pubspek.Pubspec _inner;
   final String jsonString;
   Map<String, dynamic> _json;
+  String _canonicalVersion;
 
   Pubspec._(this._inner, this.jsonString);
 
@@ -41,7 +45,17 @@ class Pubspec {
 
   String get name => _inner.name;
 
-  String get version => _inner.version.toString();
+  String get nonCanonicalVersion => _inner.version.toString();
+  String get canonicalVersion {
+    if (_canonicalVersion == null) {
+      _canonicalVersion = canonicalizeVersion(nonCanonicalVersion);
+      if (_canonicalVersion == null) {
+        throw InvalidInputException.canonicalizeVersionError(
+            nonCanonicalVersion);
+      }
+    }
+    return _canonicalVersion;
+  }
 
   Iterable<String> get dependencies => _inner.dependencies.keys;
 
