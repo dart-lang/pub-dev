@@ -442,7 +442,7 @@ Iterable<ArchiveIssue> requireNonEmptyLicense(
     yield ArchiveIssue('LICENSE file `$path` has no content.');
     return;
   }
-  if (content.contains('TODO: Add your license here.')) {
+  if (content.toLowerCase().contains('todo: add your license here.')) {
     yield ArchiveIssue('LICENSE file `$path` contains generic TODO.');
     return;
   }
