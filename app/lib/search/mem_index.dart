@@ -25,7 +25,6 @@ class InMemoryPackageIndex implements PackageIndex {
   final bool _isSdkIndex;
   final String _urlPrefix;
   final Map<String, PackageDocument> _packages = <String, PackageDocument>{};
-  final Map<String, String> _normalizedPackageText = <String, String>{};
   final _packageNameIndex = _PackageNameIndex();
   final TokenIndex _nameTokenIndex = TokenIndex(minLength: 2);
   final TokenIndex _descrIndex = TokenIndex(minLength: 3);
@@ -95,13 +94,6 @@ class InMemoryPackageIndex implements PackageIndex {
     }
 
     await Future.delayed(Duration.zero);
-    final String allText = [doc.package, doc.description, doc.readme]
-        .where((s) => s != null)
-        .join(' ');
-
-    await Future.delayed(Duration.zero);
-    _normalizedPackageText[doc.package] = normalizeBeforeIndexing(allText);
-
     _likeTracker.trackLikeCount(doc.package, doc.likeCount ?? 0);
     if (_alwaysUpdateLikeScores) {
       await _likeTracker._updateScores();
@@ -129,7 +121,6 @@ class InMemoryPackageIndex implements PackageIndex {
     _nameTokenIndex.remove(package);
     _descrIndex.remove(package);
     _readmeIndex.remove(package);
-    _normalizedPackageText.remove(package);
     for (ApiDocPage page in doc.apiDocPages ?? const []) {
       final pageId = _apiDocPageId(doc.package, page);
       _apiSymbolIndex.remove(pageId);
@@ -452,9 +443,11 @@ class InMemoryPackageIndex implements PackageIndex {
       if (!aborted && phrases.isNotEmpty) {
         final Map<String, double> matched = <String, double>{};
         for (String package in score.getKeys()) {
-          final allText = _normalizedPackageText[package];
-          final bool matchedAllPhrases =
-              phrases.every((phrase) => allText.contains(phrase));
+          final doc = _packages[package];
+          final bool matchedAllPhrases = phrases.every((phrase) =>
+              doc.package.contains(phrase) ||
+              doc.description.contains(phrase) ||
+              doc.readme.contains(phrase));
           if (matchedAllPhrases) {
             matched[package] = score[package];
           }
