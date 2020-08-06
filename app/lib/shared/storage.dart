@@ -113,6 +113,7 @@ class VersionedJsonStorage {
   final Bucket _bucket;
   final String _prefix;
   final String _extension = '.json.gz';
+  Timer _oldGcTimer;
 
   VersionedJsonStorage(Bucket bucket, String prefix)
       : _bucket = bucket,
@@ -219,7 +220,7 @@ class VersionedJsonStorage {
   /// Schedules a GC of old data files to be run in the next 6 hours.
   void scheduleOldDataGC({Duration minAgeThreshold}) {
     // Run GC in the next 6 hours (randomized wait to reduce race).
-    Timer(Duration(minutes: _random.nextInt(360)), () async {
+    _oldGcTimer = Timer(Duration(minutes: _random.nextInt(360)), () async {
       try {
         await deleteOldData(
             minAgeThreshold: minAgeThreshold ?? const Duration(days: 182));
@@ -235,5 +236,10 @@ class VersionedJsonStorage {
   String _objectName([String version]) {
     version ??= versions.runtimeVersion;
     return '$_prefix$version$_extension';
+  }
+
+  void close() {
+    _oldGcTimer?.cancel();
+    _oldGcTimer = null;
   }
 }
