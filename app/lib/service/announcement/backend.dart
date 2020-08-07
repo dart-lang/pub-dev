@@ -27,6 +27,8 @@ class AnnouncementBackend {
     final value = await secretBackend.lookup(SecretKey.announcement);
     if (value != null && value.trim().isNotEmpty) {
       _announcementHtml = sanitizeHtml(value.trim());
+    } else {
+      _announcementHtml = null;
     }
   }
 
