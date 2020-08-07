@@ -73,8 +73,7 @@ Map<String, String> clearSessionCookie() {
       'Max-Age=0',
       // Keep attributes from when cookie was set.
       'SameSite=Lax',
-      if (!envConfig.isRunningLocally)
-        'Secure',
+      if (!envConfig.isRunningLocally) 'Secure',
       'HttpOnly',
     ].join('; '),
   };

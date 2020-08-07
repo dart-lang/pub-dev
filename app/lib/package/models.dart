@@ -157,14 +157,10 @@ class Package extends db.ExpandoModel<String> {
     return <String>[
       // TODO(jonasfj): Remove the if (assignedTags != null) condition, we only
       //                need this until we've done backfill_package_fields.dart
-      if (assignedTags != null)
-        ...assignedTags,
-      if (isDiscontinued)
-        PackageTags.isDiscontinued,
-      if (isNewPackage())
-        PackageTags.isRecent,
-      if (doNotAdvertise)
-        PackageTags.isNotAdvertized,
+      if (assignedTags != null) ...assignedTags,
+      if (isDiscontinued) PackageTags.isDiscontinued,
+      if (isNewPackage()) PackageTags.isRecent,
+      if (doNotAdvertise) PackageTags.isNotAdvertized,
       // TODO: publisher:<publisherId>
       // TODO: uploader:<...>
     ];
