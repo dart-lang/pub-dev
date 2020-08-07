@@ -107,6 +107,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
 
     registerScopeExitCallback(announcementBackend.close);
     registerScopeExitCallback(() async => nameTracker.stopTracking());
+    registerScopeExitCallback(snapshotStorage.close);
     registerScopeExitCallback(indexUpdater.close);
     registerScopeExitCallback(authProvider.close);
     registerScopeExitCallback(dartdocClient.close);

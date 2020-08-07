@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -266,42 +267,76 @@ PackageDocument createSdkDocument(PubDartdocData lib) {
 }
 
 class SnapshotStorage {
-  final VersionedJsonStorage _snapshots;
+  final VersionedJsonStorage _storage;
+  SearchSnapshot _snapshot;
+  Timer _snapshotWriteTimer;
 
   SnapshotStorage(Bucket bucket)
-      : _snapshots = VersionedJsonStorage(bucket, 'snapshot/');
+      : _storage = VersionedJsonStorage(bucket, 'snapshot/');
 
-  Future<SearchSnapshot> fetch() async {
-    final version = await _snapshots.detectLatestVersion();
+  Map<String, PackageDocument> get documents => _snapshot.documents;
+
+  void add(PackageDocument doc) {
+    _snapshot.add(doc);
+  }
+
+  void remove(String package) {
+    _snapshot.remove(package);
+  }
+
+  void startTimer() {
+    _snapshotWriteTimer ??= Timer.periodic(
+        Duration(hours: 6, minutes: Random.secure().nextInt(120)), (_) {
+      _updateSnapshotIfNeeded();
+    });
+  }
+
+  Future<void> fetch() async {
+    final version = await _storage.detectLatestVersion();
     if (version == null) {
       _logger.shout('Unable to detect the latest search snapshot file.');
-      return null;
     }
     try {
-      final map = await _snapshots.getContentAsJsonMap(version);
-      final snapshot = SearchSnapshot.fromJson(map);
-      snapshot.documents
+      final map = await _storage.getContentAsJsonMap(version);
+      _snapshot = SearchSnapshot.fromJson(map);
+      _snapshot.documents
           .removeWhere((packageName, doc) => isSoftRemoved(packageName));
-      return snapshot;
+      final count = _snapshot.documents.length;
+      _logger.info('Got $count packages from snapshot at ${_snapshot.updated}');
     } catch (e, st) {
-      final uri = _snapshots.getBucketUri(version);
+      final uri = _storage.getBucketUri(version);
       _logger.shout('Unable to load search snapshot: $uri', e, st);
     }
-    return null;
-  }
-
-  /// Returns `true` if this or another search index updated the snapshot bucket
-  /// in the past 24 hours.
-  Future<bool> wasUpdatedRecently() async {
-    return await _snapshots.hasCurrentData(maxAge: Duration(hours: 24));
-  }
-
-  Future<void> store(SearchSnapshot snapshot) async {
-    await _snapshots.uploadDataAsJsonMap(snapshot.toJson());
+    // Create an empty snapshot if the above failed. This will be populated with
+    // package data via a separate update process.
+    _snapshot ??= SearchSnapshot();
   }
 
   void scheduleOldDataGC() {
-    _snapshots.scheduleOldDataGC();
+    _storage.scheduleOldDataGC();
+  }
+
+  Future<void> _updateSnapshotIfNeeded() async {
+    // TODO: make the catch-all block narrower
+    try {
+      final wasUpdatedRecently =
+          await _storage.hasCurrentData(maxAge: Duration(hours: 24));
+      if (wasUpdatedRecently) {
+        _logger.info('Snapshot update skipped (found recent snapshot).');
+      } else {
+        _logger.info('Updating search snapshot...');
+        await _storage.uploadDataAsJsonMap(_snapshot.toJson());
+        _logger.info('Search snapshot update completed.');
+      }
+    } catch (e, st) {
+      _logger.warning('Unable to update search snapshot.', e, st);
+    }
+  }
+
+  Future<void> close() async {
+    _snapshotWriteTimer?.cancel();
+    _snapshotWriteTimer = null;
+    _storage.close();
   }
 }
 

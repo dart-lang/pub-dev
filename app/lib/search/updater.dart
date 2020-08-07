@@ -34,9 +34,7 @@ IndexUpdater get indexUpdater => ss.lookup(#_indexUpdater) as IndexUpdater;
 class IndexUpdater implements TaskRunner {
   final DatastoreDB _db;
   final PackageIndex _packageIndex;
-  SearchSnapshot _snapshot;
   Timer _statsTimer;
-  Timer _snapshotWriteTimer;
 
   IndexUpdater(this._db, this._packageIndex);
 
@@ -57,10 +55,7 @@ class IndexUpdater implements TaskRunner {
       await _packageIndex.markReady();
       _logger.info('Minimum package index loaded with $cnt packages.');
     }
-    _snapshotWriteTimer ??= Timer.periodic(
-        Duration(hours: 6, minutes: Random.secure().nextInt(120)), (_) {
-      _updateSnapshotIfNeeded();
-    });
+    snapshotStorage.startTimer();
   }
 
   /// Updates all packages in the index.
@@ -79,27 +74,20 @@ class IndexUpdater implements TaskRunner {
   Future<bool> _initSnapshot() async {
     try {
       _logger.info('Loading snapshot...');
-      _snapshot = await snapshotStorage.fetch();
-      if (_snapshot != null) {
-        final int count = _snapshot.documents.length;
-        _logger
-            .info('Got $count packages from snapshot at ${_snapshot.updated}');
-        await _packageIndex.addPackages(_snapshot.documents.values);
-        // Arbitrary sanity check that the snapshot is not entirely bogus.
-        // Index merge will enable search.
-        if (count > 10) {
-          _logger.info('Merging index after snapshot.');
-          await _packageIndex.markReady();
-          _logger.info('Snapshot load completed.');
-          return true;
-        }
+      await snapshotStorage.fetch();
+      final documents = snapshotStorage.documents;
+      await _packageIndex.addPackages(documents.values);
+      // Arbitrary sanity check that the snapshot is not entirely bogus.
+      // Index merge will enable search.
+      if (documents.length > 10) {
+        _logger.info('Merging index after snapshot.');
+        await _packageIndex.markReady();
+        _logger.info('Snapshot load completed.');
+        return true;
       }
     } catch (e, st) {
       _logger.warning('Error while fetching snapshot.', e, st);
     }
-    // Create an empty snapshot if the above failed. This will be populated with
-    // package data via a separate update process.
-    _snapshot ??= SearchSnapshot();
     return false;
   }
 
@@ -121,7 +109,7 @@ class IndexUpdater implements TaskRunner {
           sleep: const Duration(minutes: 10),
           skipHistory: true,
         ),
-        _PeriodicUpdateTaskSource(_snapshot),
+        _PeriodicUpdateTaskSource(),
       ],
     );
     scheduler.run();
@@ -134,15 +122,13 @@ class IndexUpdater implements TaskRunner {
   Future<void> close() async {
     _statsTimer?.cancel();
     _statsTimer = null;
-    _snapshotWriteTimer?.cancel();
-    _snapshotWriteTimer = null;
     // TODO: close scheduler
   }
 
   @override
   Future<void> runTask(Task task) async {
     try {
-      final sd = _snapshot.documents[task.package];
+      final sd = snapshotStorage.documents[task.package];
 
       // Skip tasks that originate before the current document in the snapshot
       // was created (e.g. the index and the snapshot was updated since the task
@@ -153,27 +139,12 @@ class IndexUpdater implements TaskRunner {
       if (sd != null && sd.timestamp.isAfter(task.updated)) return;
 
       final doc = await searchBackend.loadDocument(task.package);
-      _snapshot.add(doc);
+      snapshotStorage.add(doc);
       await _packageIndex.addPackage(doc);
     } on RemovedPackageException catch (_) {
       _logger.info('Removing: ${task.package}');
-      _snapshot.remove(task.package);
+      snapshotStorage.remove(task.package);
       await _packageIndex.removePackage(task.package);
-    }
-  }
-
-  Future<void> _updateSnapshotIfNeeded() async {
-    // TODO: make the catch-all block narrower
-    try {
-      if (await snapshotStorage.wasUpdatedRecently()) {
-        _logger.info('Snapshot update skipped (found recent snapshot).');
-      } else {
-        _logger.info('Updating search snapshot...');
-        await snapshotStorage.store(_snapshot);
-        _logger.info('Search snapshot update completed.');
-      }
-    } catch (e, st) {
-      _logger.warning('Unable to update search snapshot.', e, st);
     }
   }
 
@@ -220,17 +191,12 @@ class IndexUpdater implements TaskRunner {
 /// It scans the current search snapshot every two hours, and selects the
 /// packages that have not been updated in the last 24 hours.
 class _PeriodicUpdateTaskSource implements TaskSource {
-  final SearchSnapshot _snapshot;
-  _PeriodicUpdateTaskSource(this._snapshot) {
-    assert(_snapshot != null);
-  }
-
   @override
   Stream<Task> startStreaming() async* {
     for (;;) {
       await Future.delayed(Duration(hours: 2));
       final now = DateTime.now();
-      final tasks = _snapshot.documents.values
+      final tasks = snapshotStorage.documents.values
           .where((pd) {
             final ageInMonths = now.difference(pd.updated ?? now).inDays ~/ 30;
             // Packages updated in the past two years will get updated daily,
