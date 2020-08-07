@@ -196,6 +196,7 @@ class PackageOptionsChanged implements PackageHistoryEvent {
   final String userId;
   final String userEmail;
   final bool isDiscontinued;
+  final bool isUnlisted;
   @override
   final DateTime timestamp;
 
@@ -204,6 +205,7 @@ class PackageOptionsChanged implements PackageHistoryEvent {
     @required this.userId,
     @required this.userEmail,
     @required this.isDiscontinued,
+    @required this.isUnlisted,
     DateTime timestamp,
   }) : timestamp = timestamp ?? DateTime.now().toUtc();
 
@@ -220,6 +222,7 @@ class PackageOptionsChanged implements PackageHistoryEvent {
   String formatMarkdown() {
     final flags = <String>[
       if (isDiscontinued != null) '`isDiscontinued = $isDiscontinued`',
+      if (isUnlisted != null) '`isUnlisted = $isUnlisted`',
     ];
     return '`$userEmail` changed the following flag(s): ${flags.join(', ')}.';
   }

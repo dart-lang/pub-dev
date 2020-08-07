@@ -34,9 +34,11 @@ class UploadInfo {
 @JsonSerializable()
 class PkgOptions {
   final bool isDiscontinued;
+  final bool isUnlisted;
 
   PkgOptions({
     this.isDiscontinued,
+    this.isUnlisted,
   });
 
   factory PkgOptions.fromJson(Map<String, dynamic> json) =>

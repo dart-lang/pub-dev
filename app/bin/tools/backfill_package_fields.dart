@@ -21,6 +21,7 @@ Future main(List<String> args) async {
     print('Ensures Package.likes is set to an integer.');
     print('Ensures Package.doNotAdvertise is set to a bool.');
     print('Ensures Package.isDiscontinued is set to a bool.');
+    print('Ensures Package.isUnlisted is set to a bool.');
     print('Ensures Package.assignedTags is a list.');
     print(_argParser.usage);
     return;
@@ -47,6 +48,7 @@ Future<void> _backfillPackageFields(Package p) async {
   if (p.likes != null &&
       p.doNotAdvertise != null &&
       p.isDiscontinued != null &&
+      p.isUnlisted != null &&
       p.assignedTags != null) {
     return;
   }
@@ -60,6 +62,7 @@ Future<void> _backfillPackageFields(Package p) async {
       package.likes ??= 0;
       package.doNotAdvertise ??= false;
       package.isDiscontinued ??= false;
+      package.isUnlisted ??= package.isDiscontinued;
       package.assignedTags ??= [];
       tx.queueMutations(inserts: [package]);
       await tx.commit();

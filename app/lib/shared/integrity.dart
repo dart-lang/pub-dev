@@ -234,6 +234,11 @@ class IntegrityChecker {
       _problems.add(
           'Package(${p.name}) has a `isDiscontinued` property which is not a bool.');
     }
+    // TODO: add null check after it is set to required
+    if (p.isUnlisted is! bool) {
+      _problems.add(
+          'Package(${p.name}) has a `isUnlisted` property which is not a bool.');
+    }
     if (p.doNotAdvertise == null || p.doNotAdvertise is! bool) {
       _problems.add(
           'Package(${p.name}) has a `doNotAdvertise` property which is not a bool.');

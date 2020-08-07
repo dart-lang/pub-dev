@@ -70,6 +70,12 @@ class Package extends db.ExpandoModel<String> {
   @db.BoolProperty(required: true)
   bool isDiscontinued;
 
+  /// Set to `true` if package should not be advertised on the front page, not
+  /// be found through default package search; may otherwise be `false`.
+  /// TODO: set `required: true` after backfill is done.
+  @db.BoolProperty()
+  bool isUnlisted;
+
   /// Set to `true` if package should not be advertised on the front page,
   /// may otherwise be `false`.
   @db.BoolProperty(required: true)
@@ -160,6 +166,7 @@ class Package extends db.ExpandoModel<String> {
       if (assignedTags != null) ...assignedTags,
       if (isDiscontinued) PackageTags.isDiscontinued,
       if (isNewPackage()) PackageTags.isRecent,
+      if (isUnlisted) PackageTags.isUnlisted,
       if (doNotAdvertise) PackageTags.isNotAdvertized,
       // TODO: publisher:<publisherId>
       // TODO: uploader:<...>

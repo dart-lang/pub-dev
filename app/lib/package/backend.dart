@@ -190,6 +190,10 @@ class PackageBackend {
         p.isDiscontinued = options.isDiscontinued;
         hasOptionsChanged = true;
       }
+      if (options.isUnlisted != null && options.isUnlisted != p.isUnlisted) {
+        p.isUnlisted = options.isUnlisted;
+        hasOptionsChanged = true;
+      }
 
       if (!hasOptionsChanged) {
         return;
@@ -198,6 +202,7 @@ class PackageBackend {
       p.updated = DateTime.now().toUtc();
       _logger.info('Updating $package options: '
           'isDiscontinued: ${p.isDiscontinued} '
+          'isUnlisted: ${p.isUnlisted} '
           'doNotAdvertise: ${p.doNotAdvertise}');
       tx.insert(p);
       tx.insert(History.entry(
@@ -206,6 +211,7 @@ class PackageBackend {
           userId: user.userId,
           userEmail: user.email,
           isDiscontinued: options.isDiscontinued,
+          isUnlisted: options.isUnlisted,
         ),
       ));
     });
@@ -854,6 +860,7 @@ Package _newPackageFromVersion(
     ..likes = 0
     ..doNotAdvertise = false
     ..isDiscontinued = false
+    ..isUnlisted = false
     ..assignedTags = [];
 }
 
