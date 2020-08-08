@@ -9,13 +9,12 @@ Dart support for AppEngine).
 
 If you are looking only for a simple self-hosted site to publish internal package,
 see [package:pub_server](https://pub.dev/packages/pub_server), which has
-an [example](https://pub.dev/packages/pub_server#-example-tab-) for running
+an [example](https://pub.dev/packages/pub_server/example) for running
 one using the local filesystem as storage.
 
 ## Documentation
 
 - [Development](doc/development.md)
 - [Versions](doc/versions.md)
-- [Deploying](doc/deploying.md)
 - [Secrets](doc/secrets.md)
 - [Search](doc/search.md)
