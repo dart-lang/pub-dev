@@ -11,7 +11,6 @@ import 'package:pana/pana.dart' show SdkConstraintStatus;
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspek show Pubspec;
 import 'package:yaml/yaml.dart';
 
-import '../shared/exceptions.dart' show InvalidInputException;
 import '../shared/utils.dart' show canonicalizeVersion;
 
 Map<String, dynamic> _loadYaml(String yamlString) {
