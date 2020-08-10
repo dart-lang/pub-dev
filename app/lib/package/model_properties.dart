@@ -50,8 +50,8 @@ class Pubspec {
     if (_canonicalVersion == null) {
       _canonicalVersion = canonicalizeVersion(nonCanonicalVersion);
       if (_canonicalVersion == null) {
-        throw InvalidInputException.canonicalizeVersionError(
-            nonCanonicalVersion);
+        throw AssertionError(
+            'Unable to canonicalize the version: $nonCanonicalVersion');
       }
     }
     return _canonicalVersion;

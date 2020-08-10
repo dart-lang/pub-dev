@@ -45,10 +45,6 @@ class InvalidInputException extends ResponseException {
   InvalidInputException.continuationParseError()
       : this._('Parsing the continuation token failed.');
 
-  /// Thrown when the canonicalization of the [version] failed.
-  InvalidInputException.canonicalizeVersionError(String version)
-      : this._('Unable to canonicalize the version: $version');
-
   /// Check [condition] and throw [InvalidInputException] with [message] if
   /// [condition] is `false`.
   static void check(bool condition, String message) {
