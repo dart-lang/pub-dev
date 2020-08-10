@@ -42,12 +42,13 @@ Future main(List<String> arguments) async {
     if (isRead) {
       await _read(package);
     } else {
-      await _set(
+      final p = await _set(
         package,
         discontinued: discontinued,
         doNotAdvertise: doNotAdvertise,
       );
-      await purgePackageCache(package);
+      await purgePackageCache(package,
+          versions: [p.latestVersion, p.latestPrereleaseVersion]);
     }
     // TODO: figure out why the services do not exit.
     exit(0);
@@ -72,7 +73,8 @@ Future _read(String packageName) async {
   print('Package $packageName: $label');
 }
 
-Future _set(String packageName, {String discontinued, String doNotAdvertise}) {
+Future<Package> _set(String packageName,
+    {String discontinued, String doNotAdvertise}) {
   return dbService.withTransaction((Transaction tx) async {
     final p =
         (await tx.lookup([dbService.emptyKey.append(Package, id: packageName)]))
@@ -92,5 +94,6 @@ Future _set(String packageName, {String discontinued, String doNotAdvertise}) {
         'Package $packageName: isDiscontinued=${p.isDiscontinued} doNotAdverise=${p.doNotAdvertise}');
     await AnalyzerClient()
         .triggerAnalysis(packageName, p.latestVersion, <String>{});
+    return p;
   });
 }

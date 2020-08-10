@@ -74,6 +74,7 @@ abstract class PackageIndex {
 class PackageDocument {
   final String package;
   final String version;
+  final bool isLatestStable;
   final String description;
   final DateTime created;
   final DateTime updated;
@@ -103,6 +104,7 @@ class PackageDocument {
   PackageDocument({
     this.package,
     this.version,
+    this.isLatestStable,
     this.description,
     this.created,
     this.updated,
@@ -724,7 +726,7 @@ class PackageScore {
 
   PackageScore onlyPackageName() => PackageScore(package: package);
 
-  bool get isExternal => url != null && version != null && description != null;
+  bool get isExternal => url != null && description != null;
 
   Map<String, dynamic> toJson() => _$PackageScoreToJson(this);
 }

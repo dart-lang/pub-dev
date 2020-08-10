@@ -157,10 +157,14 @@ class Package extends db.ExpandoModel<String> {
     return <String>[
       // TODO(jonasfj): Remove the if (assignedTags != null) condition, we only
       //                need this until we've done backfill_package_fields.dart
-      if (assignedTags != null) ...assignedTags,
-      if (isDiscontinued) PackageTags.isDiscontinued,
-      if (isNewPackage()) PackageTags.isRecent,
-      if (doNotAdvertise) PackageTags.isNotAdvertized,
+      if (assignedTags != null)
+        ...assignedTags,
+      if (isDiscontinued)
+        PackageTags.isDiscontinued,
+      if (isNewPackage())
+        PackageTags.isRecent,
+      if (doNotAdvertise)
+        PackageTags.isNotAdvertized,
       // TODO: publisher:<publisherId>
       // TODO: uploader:<...>
     ];
@@ -564,9 +568,8 @@ class PackageView extends Object with FlagMixin {
   final String url;
   final String name;
   final String version;
-
-  // Not null only if there is a difference compared to the [version].
-  final String prereleaseVersion;
+  final String latestStableVersion;
+  final String latestPrereleaseVersion;
   final String ellipsizedDescription;
 
   /// The date when the package was first published.
@@ -599,7 +602,8 @@ class PackageView extends Object with FlagMixin {
     this.url,
     this.name,
     this.version,
-    this.prereleaseVersion,
+    this.latestStableVersion,
+    this.latestPrereleaseVersion,
     this.ellipsizedDescription,
     this.created,
     this.shortUpdated,
@@ -623,10 +627,6 @@ class PackageView extends Object with FlagMixin {
     ScoreCardData scoreCard,
     List<ApiPageRef> apiPages,
   }) {
-    final prereleaseVersion = package != null &&
-            package.latestVersion != package.latestPrereleaseVersion
-        ? package.latestPrereleaseVersion
-        : null;
     final hasPanaReport = scoreCard?.reportTypes != null &&
         scoreCard.reportTypes.contains(ReportType.pana);
     final isAwaiting =
@@ -640,7 +640,8 @@ class PackageView extends Object with FlagMixin {
     return PackageView(
       name: version?.package ?? package?.name,
       version: version?.version ?? package?.latestVersion,
-      prereleaseVersion: prereleaseVersion,
+      latestStableVersion: package?.latestVersion,
+      latestPrereleaseVersion: package?.latestPrereleaseVersion,
       ellipsizedDescription: version?.ellipsizedDescription,
       created: package.created,
       shortUpdated: version?.shortCreated ?? package?.shortUpdated,
@@ -668,7 +669,8 @@ class PackageView extends Object with FlagMixin {
       url: url,
       name: name,
       version: version,
-      prereleaseVersion: prereleaseVersion,
+      latestStableVersion: latestStableVersion,
+      latestPrereleaseVersion: latestPrereleaseVersion,
       ellipsizedDescription: ellipsizedDescription,
       created: created,
       shortUpdated: shortUpdated,

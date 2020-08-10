@@ -476,8 +476,13 @@ class InMemoryPackageIndex implements PackageIndex {
   List<PackageScore> _rankWithValues(Map<String, double> values) {
     final List<PackageScore> list = values.keys
         .map((package) {
+          final doc = _packages[package];
           final score = values[package];
-          return PackageScore(package: package, score: score);
+          return PackageScore(
+            package: package,
+            version: doc.isLatestStable == false ? doc.version : null,
+            score: score,
+          );
         })
         .where((ps) => ps != null)
         .toList();
@@ -492,9 +497,13 @@ class InMemoryPackageIndex implements PackageIndex {
 
   List<PackageScore> _rankWithComparator(Set<String> packages,
       int Function(PackageDocument a, PackageDocument b) compare) {
-    final List<PackageScore> list = packages
-        .map((package) => PackageScore(package: _packages[package].package))
-        .toList();
+    final List<PackageScore> list = packages.map((package) {
+      final doc = _packages[package];
+      return PackageScore(
+        package: package,
+        version: doc.isLatestStable == false ? doc.version : null,
+      );
+    }).toList();
     list.sort((a, b) => compare(_packages[a.package], _packages[b.package]));
     return list;
   }

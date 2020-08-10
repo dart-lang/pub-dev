@@ -60,10 +60,13 @@ String renderPackageList(
       'is_external': view.isExternal,
       'external_type': externalType,
       'version': view.version,
-      'show_prerelease_version': view.prereleaseVersion != null,
-      'prerelease_version': view.prereleaseVersion,
+      'stable_version': view.latestStableVersion ?? view.version,
+      'stable_version_url': urls.pkgPageUrl(view.name),
+      'show_prerelease_version': view.latestPrereleaseVersion != null &&
+          view.latestStableVersion != view.latestPrereleaseVersion,
+      'prerelease_version': view.latestPrereleaseVersion,
       'prerelease_version_url':
-          urls.pkgPageUrl(view.name, version: view.prereleaseVersion),
+          urls.pkgPageUrl(view.name, version: view.latestPrereleaseVersion),
       'is_new': addedXAgo != null,
       'added_x_ago': addedXAgo,
       'last_uploaded': view.shortUpdated,

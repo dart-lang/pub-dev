@@ -86,15 +86,15 @@ class SearchAdapter {
   /// Returns the [PackageView] instance for [package] on its latest stable version.
   ///
   /// Returns null if the package does not exists.
-  Future<PackageView> _getPackageView(String package) async {
-    return await cache.packageView(package).get(() async {
+  Future<PackageView> _getPackageView(String package, String version) async {
+    return await cache.packageView(package, version).get(() async {
       final p = await packageBackend.lookupPackage(package);
       if (p == null) {
         _logger.warning('Package lookup failed for "$package".');
         return null;
       }
 
-      final version = p.latestVersion;
+      version = version ?? p.latestVersion;
       final pvFuture = packageBackend.lookupPackageVersion(package, version);
       final cardFuture = scoreCardBackend.getScoreCardData(package, version);
       await Future.wait([pvFuture, cardFuture]);
@@ -109,9 +109,9 @@ class SearchAdapter {
   /// the latest stable version.
   ///
   /// If the package does not exist, it will return null in the given index.
-  Future<List<PackageView>> getPackageViews(List<String> packages) async {
+  Future<List<PackageView>> _getPackageViews(List<String> packages) async {
     // TODO: consider a cache-check first and batch-load the rest of the packages
-    return await Future.wait(packages.map((p) => _getPackageView(p)));
+    return await Future.wait(packages.map((p) => _getPackageView(p, null)));
   }
 
   Future<SearchResultPage> _loadResultForPackages(SearchQuery query,
@@ -121,7 +121,7 @@ class SearchAdapter {
         .map((ps) => ps.package)
         .toList();
     final pubPackages = <String, PackageView>{};
-    for (final view in await getPackageViews(packageNames)) {
+    for (final view in await _getPackageViews(packageNames)) {
       // The package may have been deleted, but the index still has it.
       if (view == null) continue;
       pubPackages[view.name] = view;

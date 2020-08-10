@@ -241,8 +241,9 @@ class ScoreCardBackend {
     await Future.wait([
       cache.scoreCardData(packageName, packageVersion).purge(),
       cache.uiPackagePage(packageName, packageVersion).purge(),
+      cache.packageView(packageName, packageVersion).purge(),
       if (isLatest) cache.uiPackagePage(packageName, null).purge(),
-      if (isLatest) cache.packageView(packageName).purge(),
+      if (isLatest) cache.packageView(packageName, null).purge(),
     ]);
   }
 

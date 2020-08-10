@@ -34,11 +34,13 @@ Future main(List<String> arguments) async {
     if (command == 'list') {
       await listUploaders(package);
     } else if (command == 'add') {
-      await addUploader(package, uploader);
-      await purgePackageCache(package);
+      final p = await addUploader(package, uploader);
+      await purgePackageCache(package,
+          versions: [p.latestVersion, p.latestPrereleaseVersion]);
     } else if (command == 'remove') {
-      await removeUploader(package, uploader);
-      await purgePackageCache(package);
+      final p = await removeUploader(package, uploader);
+      await purgePackageCache(package,
+          versions: [p.latestVersion, p.latestPrereleaseVersion]);
     }
   });
 
@@ -59,7 +61,7 @@ Future listUploaders(String packageName) async {
   });
 }
 
-Future addUploader(String packageName, String uploaderEmail) async {
+Future<Package> addUploader(String packageName, String uploaderEmail) async {
   return dbService.withTransaction((Transaction T) async {
     final package =
         (await T.lookup([dbService.emptyKey.append(Package, id: packageName)]))
@@ -87,10 +89,11 @@ Future addUploader(String packageName, String uploaderEmail) async {
       currentUserEmail: pubDartlangOrgEmail,
       addedUploaderEmails: [uploaderEmail],
     ));
+    return package;
   });
 }
 
-Future removeUploader(String packageName, String uploaderEmail) async {
+Future<Package> removeUploader(String packageName, String uploaderEmail) async {
   return dbService.withTransaction((Transaction T) async {
     final package =
         (await T.lookup([dbService.emptyKey.append(Package, id: packageName)]))
@@ -122,5 +125,6 @@ Future removeUploader(String packageName, String uploaderEmail) async {
       currentUserEmail: pubDartlangOrgEmail,
       removedUploaderEmails: [uploaderEmail],
     ));
+    return package;
   });
 }

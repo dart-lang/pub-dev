@@ -163,13 +163,12 @@ class PackageBackend {
     final user = await requireAuthenticatedUser();
 
     final pkgKey = db.emptyKey.append(Package, id: package);
-    String latestVersion;
+    Package p;
     await withTransaction(db, (tx) async {
-      final p = await tx.lookupOrNull<Package>(pkgKey);
+      p = await tx.lookupOrNull<Package>(pkgKey);
       if (p == null) {
         throw NotFoundException.resource(package);
       }
-      latestVersion = p.latestVersion;
 
       // Check that the user is admin for this package.
       await checkPackageAdmin(p, user.userId);
@@ -199,8 +198,14 @@ class PackageBackend {
         ),
       ));
     });
-    await purgePackageCache(package);
-    await analyzerClient.triggerAnalysis(package, latestVersion, <String>{});
+    await purgePackageCache(package,
+        versions: [p.latestVersion, p.latestPrereleaseVersion]);
+    await analyzerClient.triggerAnalysis(package, p.latestVersion, <String>{});
+    if (p.latestPrereleaseVersion != null &&
+        p.latestPrereleaseVersion != p.latestVersion) {
+      await analyzerClient
+          .triggerAnalysis(package, p.latestPrereleaseVersion, <String>{});
+    }
   }
 
   /// Whether [userId] is a package admin (through direct uploaders list or
@@ -266,8 +271,9 @@ class PackageBackend {
     final key = db.emptyKey.append(Package, id: packageName);
     await requirePackageAdmin(packageName, user.userId);
     await requirePublisherAdmin(request.publisherId, user.userId);
+    Package package;
     final rs = await db.withTransaction<api.PackagePublisherInfo>((tx) async {
-      final package = (await db.lookup<Package>([key])).single;
+      package = await db.lookupValue<Package>(key);
       final fromPublisherId = package.publisherId;
       package.publisherId = request.publisherId;
       package.uploaders.clear();
@@ -288,7 +294,8 @@ class PackageBackend {
       return _asPackagePublisherInfo(package);
     });
     await purgePublisherCache(publisherId: request.publisherId);
-    await purgePackageCache(packageName);
+    await purgePackageCache(packageName,
+        versions: [package.latestVersion, package.latestPrereleaseVersion]);
     return rs;
   }
 
@@ -542,7 +549,8 @@ class PackageBackend {
     });
 
     _logger.info('Invalidating cache for package ${newVersion.package}.');
-    await purgePackageCache(newVersion.package);
+    await purgePackageCache(newVersion.package,
+        versions: [package.latestVersion, package.latestPrereleaseVersion]);
 
     try {
       final uploaderEmails = package.publisherId == null
@@ -670,7 +678,8 @@ class PackageBackend {
 
       tx.queueMutations(inserts: inserts);
       await tx.commit();
-      await purgePackageCache(package.name);
+      await purgePackageCache(package.name,
+          versions: [package.latestVersion, package.latestPrereleaseVersion]);
     });
   }
 
@@ -737,7 +746,8 @@ class PackageBackend {
 
       T.queueMutations(inserts: inserts);
       await T.commit();
-      await purgePackageCache(package.name);
+      await purgePackageCache(package.name,
+          versions: [package.latestVersion, package.latestPrereleaseVersion]);
     });
     return api.SuccessMessage(
         success: api.Message(
@@ -767,11 +777,19 @@ api.PackagePublisherInfo _asPackagePublisherInfo(Package p) =>
     api.PackagePublisherInfo(publisherId: p.publisherId);
 
 /// Purge [cache] entries for given [package] and also global page caches.
-Future<void> purgePackageCache(String package) async {
+Future<void> purgePackageCache(
+  String package, {
+  @required List<String> versions,
+}) async {
+  final filteredVersions = versions == null
+      ? const <String>{}
+      : versions.where((v) => v != null).toSet();
   await Future.wait([
     cache.packageData(package).purge(),
-    cache.packageView(package).purge(),
+    cache.packageView(package, null).purge(),
+    ...filteredVersions.map((v) => cache.packageView(package, v).purge()),
     cache.uiPackagePage(package, null).purge(),
+    ...filteredVersions.map((v) => cache.uiPackagePage(package, v).purge()),
     cache.uiIndexPage().purge(),
   ]);
 }

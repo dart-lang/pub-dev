@@ -113,6 +113,7 @@ class SearchBackend {
     return PackageDocument(
       package: pv.package,
       version: p.latestVersion,
+      isLatestStable: p.latestVersion == pv.version,
       tags: tags,
       description: compactDescription(pv.pubspec.description),
       created: p.created,
@@ -161,6 +162,7 @@ class SearchBackend {
       yield PackageDocument(
         package: p.name,
         version: p.latestVersion,
+        isLatestStable: true,
         tags: p.getTags(),
         created: p.created,
         updated: p.updated,

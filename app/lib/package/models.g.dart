@@ -12,7 +12,8 @@ PackageView _$PackageViewFromJson(Map<String, dynamic> json) {
     url: json['url'] as String,
     name: json['name'] as String,
     version: json['version'] as String,
-    prereleaseVersion: json['prereleaseVersion'] as String,
+    latestStableVersion: json['latestStableVersion'] as String,
+    latestPrereleaseVersion: json['latestPrereleaseVersion'] as String,
     ellipsizedDescription: json['ellipsizedDescription'] as String,
     created: json['created'] == null
         ? null
@@ -46,7 +47,8 @@ Map<String, dynamic> _$PackageViewToJson(PackageView instance) {
   writeNotNull('url', instance.url);
   writeNotNull('name', instance.name);
   writeNotNull('version', instance.version);
-  writeNotNull('prereleaseVersion', instance.prereleaseVersion);
+  writeNotNull('latestStableVersion', instance.latestStableVersion);
+  writeNotNull('latestPrereleaseVersion', instance.latestPrereleaseVersion);
   writeNotNull('ellipsizedDescription', instance.ellipsizedDescription);
   writeNotNull('created', instance.created?.toIso8601String());
   writeNotNull('shortUpdated', instance.shortUpdated);

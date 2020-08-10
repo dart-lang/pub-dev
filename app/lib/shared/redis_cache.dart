@@ -122,7 +122,7 @@ class CachePatterns {
       .withPrefix('api-package-data-by-uri')
       .withTTL(Duration(minutes: 10))['$package'];
 
-  Entry<PackageView> packageView(String package) => _cache
+  Entry<PackageView> packageView(String package, String version) => _cache
       .withPrefix('package-view')
       .withTTL(Duration(minutes: 60))
       .withCodec(utf8)
@@ -130,7 +130,7 @@ class CachePatterns {
       .withCodec(wrapAsCodec(
         encode: (PackageView pv) => pv.toJson(),
         decode: (d) => PackageView.fromJson(d as Map<String, dynamic>),
-      ))[package];
+      ))['$package-$version'];
 
   Entry<Map<String, dynamic>> apiPackagesListPage(int page) => _cache
       .withPrefix('api-packages-list')
