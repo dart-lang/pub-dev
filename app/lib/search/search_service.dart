@@ -642,7 +642,7 @@ class ParsedQuery {
       refDependencies.isNotEmpty || allDependencies.isNotEmpty;
 }
 
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class PackageSearchResult {
   /// The last update of the search index.
   final String indexUpdated;
