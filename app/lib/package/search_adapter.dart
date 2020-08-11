@@ -54,11 +54,9 @@ class SearchAdapter {
   /// `search` service.
   Future<PackageSearchResult> _fallbackSearch(SearchQuery query) async {
     // Some search queries must not be served with the fallback search.
-    // TODO: consider adding tag-based filtering
-    if (query.uploaderOrPublishers != null ||
-        query.publisherId != null ||
-        query.sdk != null) {
-      throw StateError('Fallback search should not service this query.');
+    if (query.uploaderOrPublishers != null || query.publisherId != null) {
+      return PackageSearchResult.empty(
+          message: 'Search is temporarily unavailable.');
     }
 
     final names =
@@ -78,7 +76,11 @@ class SearchAdapter {
 
     final totalCount = scores.length;
     scores = scores.skip(query.offset ?? 0).take(query.limit ?? 10).toList();
-    return PackageSearchResult(packages: scores, totalCount: totalCount);
+    return PackageSearchResult(
+        packages: scores,
+        totalCount: totalCount,
+        message:
+            'Search is temporarily impaired, filtering and ranking may be incorrect.');
   }
 
   /// Returns the [PackageView] instance for [package] on its latest stable version.

@@ -78,6 +78,7 @@ String _shortDescriptionHtml(Publisher publisher) {
 String renderPublisherPackagesPage({
   @required Publisher publisher,
   @required List<PackageView> packages,
+  @required String messageFromBackend,
   @required PageLinks pageLinks,
   @required SearchQuery searchQuery,
   @required int totalCount,
@@ -99,6 +100,7 @@ String renderPublisherPackagesPage({
       searchQuery: searchQuery,
       totalCount: totalCount,
       ownedBy: publisher.publisherId,
+      messageFromBackend: messageFromBackend,
     ),
     packageListHtml,
     paginationHtml,

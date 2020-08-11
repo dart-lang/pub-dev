@@ -182,7 +182,7 @@ String renderListingInfo({
   @required int totalCount,
   String title,
   String ownedBy,
-  String messageFromBackend,
+  @required String messageFromBackend,
 }) {
   final isSearch = searchQuery != null && searchQuery.hasQuery;
   return templateCache.renderTemplate('shared/listing_info', {
