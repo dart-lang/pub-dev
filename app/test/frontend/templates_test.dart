@@ -637,6 +637,7 @@ void main() {
         searchQuery: searchQuery,
         pageLinks: PageLinks(0, 10, searchQuery: searchQuery),
         isAdmin: true,
+        messageFromBackend: null,
       );
       expectGoldenFile(html, 'publisher_packages_page.html');
     });
@@ -669,6 +670,7 @@ void main() {
         pageLinks: PageLinks(0, 10, searchQuery: searchQuery),
         searchQuery: searchQuery,
         totalCount: 2,
+        messageFromBackend: null,
       );
       expectGoldenFile(html, 'my_packages.html');
     });

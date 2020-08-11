@@ -219,6 +219,7 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
     pageLinks: links,
     searchQuery: searchQuery,
     totalCount: totalCount,
+    messageFromBackend: searchResult.message,
   );
   return htmlResponse(html);
 }

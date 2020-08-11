@@ -642,7 +642,7 @@ class ParsedQuery {
       refDependencies.isNotEmpty || allDependencies.isNotEmpty;
 }
 
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class PackageSearchResult {
   /// The last update of the search index.
   final String indexUpdated;
@@ -653,10 +653,12 @@ class PackageSearchResult {
   /// the query was not processed entirely.
   final String message;
 
-  PackageSearchResult(
-      {this.indexUpdated, this.totalCount, List<PackageScore> packages})
-      : packages = packages ?? [],
-        message = null;
+  PackageSearchResult({
+    this.indexUpdated,
+    this.totalCount,
+    List<PackageScore> packages,
+    this.message,
+  }) : packages = packages ?? [];
 
   PackageSearchResult.empty({this.message})
       : indexUpdated = null,

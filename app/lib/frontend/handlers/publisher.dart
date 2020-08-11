@@ -92,6 +92,7 @@ Future<shelf.Response> publisherPackagesPageHandler(
     totalCount: totalCount,
     isAdmin: await publisherBackend.isMemberAdmin(
         publisherId, userSessionData?.userId),
+    messageFromBackend: searchResult.message,
   );
   if (isLanding && requestContext.uiCacheEnabled) {
     await cache.uiPublisherPackagesPage(publisherId).set(html);
