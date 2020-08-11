@@ -898,7 +898,11 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
 
   final packageKey = db.emptyKey.append(Package, id: pubspec.name);
 
-  final versionString = pubspec.canonicalVersion;
+  final versionString = canonicalizeVersion(pubspec.nonCanonicalVersion);
+  if (versionString == null) {
+    throw InvalidInputException.canonicalizeVersionError(
+        pubspec.nonCanonicalVersion);
+  }
 
   final version = PackageVersion()
     ..id = versionString
