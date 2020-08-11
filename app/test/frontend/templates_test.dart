@@ -170,7 +170,7 @@ void main() {
                 errors: null,
               )
             ],
-            licenses: [LicenseFile('LICENSE.txt', 'BSD')],
+            licenseFile: LicenseFile('LICENSE.txt', 'BSD'),
             report: Report(sections: <ReportSection>[]),
             flags: null),
         dartdocReport: DartdocReport(
@@ -257,7 +257,7 @@ void main() {
                   errors: null,
                 )
               ],
-              licenses: [LicenseFile('LICENSE.txt', 'BSD')],
+              licenseFile: LicenseFile('LICENSE.txt', 'BSD'),
               report: Report(sections: <ReportSection>[]),
               flags: null),
           dartdocReport: null,
@@ -286,7 +286,7 @@ void main() {
               reportStatus: ReportStatus.success,
               derivedTags: ['sdk:flutter', 'platform:android'],
               pkgDependencies: null,
-              licenses: null,
+              licenseFile: null,
               report: Report(sections: <ReportSection>[]),
               flags: null),
         ),
@@ -429,7 +429,7 @@ void main() {
                 errors: null,
               ),
             ],
-            licenses: null,
+            licenseFile: null,
             report: Report(sections: <ReportSection>[]),
             flags: null),
       );
@@ -458,7 +458,7 @@ void main() {
             reportStatus: ReportStatus.aborted,
             derivedTags: null,
             pkgDependencies: null,
-            licenses: null,
+            licenseFile: null,
             report: Report(sections: <ReportSection>[]),
             flags: null,
           ),
