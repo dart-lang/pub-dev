@@ -134,13 +134,15 @@ class AnalyzerJobProcessor extends JobProcessor {
 PanaReport panaReportFromSummary(Summary summary, {List<String> flags}) {
   final reportStatus =
       summary == null ? ReportStatus.aborted : ReportStatus.success;
+  final licenses = summary?.licenseFile == null ? null : [summary.licenseFile];
   return PanaReport(
     timestamp: DateTime.now().toUtc(),
     panaRuntimeInfo: summary?.runtimeInfo,
     reportStatus: reportStatus,
     derivedTags: summary?.tags,
     pkgDependencies: summary?.pkgResolution?.dependencies,
-    licenses: summary?.licenses,
+    licenses: licenses,
+    licenseFile: summary?.licenseFile,
     report: summary?.report,
     flags: flags,
   );
