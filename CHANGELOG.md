@@ -2,11 +2,11 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bumped runtimeVersion to `2020.08.11`.
+ * Bumped runtimeVersion to `2020.08.12`.
  * Upgraded runtime Dart SDK to `2.9.0`.
  * Upgraded Flutter to `1.20.1`.
  * Upgraded dartdoc to `0.32.3`.
- * Upgraded pana to `0.14.0`.
+ * Upgraded pana to `0.14.1`.
  * Potential memory consumption changes:
    * the SDK seems to consume more memory
    * the `search` index no longer stores the combined text, should need less memory
