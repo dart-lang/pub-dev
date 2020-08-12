@@ -305,6 +305,17 @@ class AccountBackend {
     );
   }
 
+  Future<User> _updateUserEmail(User user, String email) async {
+    return await withRetryTransaction(_db, (tx) async {
+      final u = await tx.lookupValue<User>(user.key);
+      if (u.email != email) {
+        u.email = email;
+        tx.queueMutations(inserts: [u]);
+      }
+      return u;
+    });
+  }
+
   Future<User> _lookupOrCreateUserByOauthUserId(AuthResult auth) async {
     ArgumentError.checkNotNull(auth, 'auth');
     if (auth.oauthUserId == null) {
@@ -317,6 +328,9 @@ class AccountBackend {
     // If the user exists, it's always cheaper to lookup the user outside a
     // transaction.
     final user = await _lookupUserByOauthUserId(auth.oauthUserId);
+    if (user != null && user.email != auth.email && auth.email != null) {
+      return await _updateUserEmail(user, auth.email);
+    }
     if (user != null) {
       return user;
     }
