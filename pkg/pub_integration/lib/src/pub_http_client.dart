@@ -85,9 +85,9 @@ class PubHttpClient {
   }
 
   /// Get the content text of a requested resource;
-  Future<String> getContent(String path) async {
+  Future<String> getContent(String path, {int expectedStatusCode = 200}) async {
     final rs = await _http.get('$pubHostedUrl$path');
-    if (rs.statusCode != 200) {
+    if (rs.statusCode != expectedStatusCode) {
       throw Exception('Unexpected status code: ${rs.statusCode}');
     }
     return rs.body;

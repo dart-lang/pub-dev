@@ -22,6 +22,7 @@ class PublicPagesScript {
       await _securityPage();
       await _atomFeed();
       await _searchPage();
+      await _badRequest();
     } finally {
       await _pubClient.close();
       _pubClient = null;
@@ -61,6 +62,21 @@ class PublicPagesScript {
   Future<void> _searchPage() async {
     final content = await _pubClient.getContent('/packages?q=retry');
     _contains(content, 'search query <code>retry</code>');
+  }
+
+  Future<void> _badRequest() async {
+    _contains(
+        await _pubClient.getContent(
+          '/%D0%C2%BD%A8%CE%C4%BC%FE%BC%D0.zip',
+          expectedStatusCode: 400,
+        ),
+        'Bad Request');
+    _contains(
+        await _pubClient.getContent(
+          '/packages?q=%D0%C2%BD%A8%CE%C4%BC%FE%BC%D0',
+          expectedStatusCode: 400,
+        ),
+        'Bad Request');
   }
 
   void _contains(String content, String matched) {
