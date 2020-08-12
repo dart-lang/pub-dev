@@ -310,7 +310,7 @@ class AccountBackend {
       final u = await tx.lookupValue<User>(user.key);
       if (u.email != email) {
         u.email = email;
-        tx.queueMutations(inserts: [u]);
+        tx.insert(u);
       }
       return u;
     });
@@ -328,7 +328,10 @@ class AccountBackend {
     // If the user exists, it's always cheaper to lookup the user outside a
     // transaction.
     final user = await _lookupUserByOauthUserId(auth.oauthUserId);
-    if (user != null && user.email != auth.email && auth.email != null) {
+    if (user != null &&
+        user.email != auth.email &&
+        auth.email != null &&
+        auth.email.isNotEmpty) {
       return await _updateUserEmail(user, auth.email);
     }
     if (user != null) {
