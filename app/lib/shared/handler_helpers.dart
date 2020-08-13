@@ -73,7 +73,6 @@ shelf.Handler wrapHandler(
   if (sanitize) {
     handler = _sanitizeRequestWrapper(handler);
   }
-  handler = _uriValidationRequestWrapper(handler);
   handler = _logRequestWrapper(logger, handler);
   return handler;
 }
@@ -180,29 +179,6 @@ Request ID: ${context.traceId}
       }
     }
   };
-}
-
-shelf.Handler _uriValidationRequestWrapper(shelf.Handler handler) {
-  return (shelf.Request request) async {
-    if (_isValidUri(request)) {
-      return await handler(request);
-    } else {
-      return htmlResponse('URL is invalid', status: 400);
-    }
-  };
-}
-
-bool _isValidUri(shelf.Request request) {
-  final uri = request.requestedUri;
-  try {
-    // should be able to parse path segments
-    uri.pathSegments.forEach((_) => null);
-    // should be able to parse query parameters
-    uri.queryParameters.forEach((_, __) => null);
-  } on FormatException catch (_) {
-    return false;
-  }
-  return true;
 }
 
 shelf.Handler _sanitizeRequestWrapper(shelf.Handler handler) {
