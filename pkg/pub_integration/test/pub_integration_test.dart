@@ -66,7 +66,7 @@ void main() {
         invitedEmail: 'dev@example.org',
         inviteCompleterFn: inviteCompleterFn,
         clientSdkDir: Platform.environment['PUB_INTEGRATION_CLIENT_SDK_DIR'],
-        omitDocumentationPage: true,
+        expectLiveSite: false,
       );
     });
   }, timeout: Timeout.factor(testTimeoutFactor));

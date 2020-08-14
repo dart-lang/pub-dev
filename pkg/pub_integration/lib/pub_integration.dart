@@ -13,7 +13,7 @@ Future verifyPub({
   @required String credentialsFileContent,
   @required String invitedEmail,
   @required InviteCompleterFn inviteCompleterFn,
-  bool omitDocumentationPage = false,
+  bool expectLiveSite = true,
   String clientSdkDir,
 }) async {
   final pubToolScript = PublishingScript(
@@ -22,10 +22,13 @@ Future verifyPub({
     credentialsFileContent,
     invitedEmail,
     inviteCompleterFn,
-    omitDocumentationPage,
+    expectLiveSite,
   );
   await pubToolScript.verify();
 
-  final publicPagesScript = PublicPagesScript(pubHostedUrl);
+  final publicPagesScript = PublicPagesScript(
+    pubHostedUrl,
+    expectLiveSite: expectLiveSite,
+  );
   await publicPagesScript.verify();
 }

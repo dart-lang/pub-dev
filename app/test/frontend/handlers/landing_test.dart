@@ -39,9 +39,7 @@ void main() {
       await expectHtmlResponse(
         rs,
         present: [
-          '/packages/http',
-          '/packages/event_bus',
-          'lightweight library for parsing',
+          'Find and use packages to build',
         ],
         absent: [
           '/packages/helium',

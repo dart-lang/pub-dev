@@ -142,15 +142,19 @@ class CachePatterns {
         decode: (obj) => obj as Map<String, dynamic>,
       ))['$page'];
 
-  Entry<PackageSearchResult> packageSearchResult(String url) => _cache
-      .withPrefix('search-result')
-      .withTTL(Duration(minutes: 10))
-      .withCodec(utf8)
-      .withCodec(json)
-      .withCodec(wrapAsCodec(
-        encode: (PackageSearchResult r) => r.toJson(),
-        decode: (d) => PackageSearchResult.fromJson(d as Map<String, dynamic>),
-      ))[url];
+  Entry<PackageSearchResult> packageSearchResult(String url, {Duration ttl}) {
+    ttl ??= const Duration(minutes: 10);
+    return _cache
+        .withPrefix('search-result')
+        .withTTL(ttl)
+        .withCodec(utf8)
+        .withCodec(json)
+        .withCodec(wrapAsCodec(
+          encode: (PackageSearchResult r) => r.toJson(),
+          decode: (d) =>
+              PackageSearchResult.fromJson(d as Map<String, dynamic>),
+        ))[url];
+  }
 
   Entry<ScoreCardData> scoreCardData(String package, String version) => _cache
       .withPrefix('scorecarddata')

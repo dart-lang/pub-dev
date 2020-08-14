@@ -47,20 +47,19 @@ Future<shelf.Response> indexLandingHandler(shelf.Request request) async {
   }
 
   Future<String> _render() async {
-    final ffPackages = await topFeaturedPackages(
+    final ffPackages = await searchAdapter.topFeatured(
       requiredTags: [PackageTags.isFlutterFavorite],
       count: 4,
-      emptyFallback: true,
     );
 
     final mostPopularPackages =
-        await topFeaturedPackages(order: SearchOrder.popularity);
+        await searchAdapter.topFeatured(order: SearchOrder.popularity);
 
     final topFlutterPackages =
-        await topFeaturedPackages(requiredTags: [SdkTag.sdkFlutter]);
+        await searchAdapter.topFeatured(requiredTags: [SdkTag.sdkFlutter]);
 
     final topDartPackages =
-        await topFeaturedPackages(requiredTags: [SdkTag.sdkDart]);
+        await searchAdapter.topFeatured(requiredTags: [SdkTag.sdkDart]);
 
     return renderLandingPage(
       ffPackages: ffPackages,

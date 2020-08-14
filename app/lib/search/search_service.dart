@@ -238,11 +238,11 @@ class SearchQuery {
   /// True, if the result list should be a random sample of packages matching
   /// this [SearchQuery]. The range, method and weights of the random sampling
   /// is up to the index implementation.
+  /// TODO: remove when 2020.08.12 is no longer accepted runtimeVersion.
   final bool randomize;
 
   SearchQuery._({
     this.query,
-    String platform,
     TagsPredicate tagsPredicate,
     List<String> uploaderOrPublishers,
     String publisherId,
@@ -327,7 +327,6 @@ class SearchQuery {
 
   SearchQuery change({
     String query,
-    String platform,
     String sdk,
     TagsPredicate tagsPredicate,
     List<String> uploaderOrPublishers,

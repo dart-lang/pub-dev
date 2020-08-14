@@ -112,6 +112,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     registerScopeExitCallback(authProvider.close);
     registerScopeExitCallback(dartdocClient.close);
     registerScopeExitCallback(searchClient.close);
+    registerScopeExitCallback(searchAdapter.close);
 
     return await withCache(fn);
   });

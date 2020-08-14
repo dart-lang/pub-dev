@@ -2,15 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:meta/meta.dart';
+
 import '../src/pub_http_client.dart';
 
 /// A single object to execute integration script and verification tests querying
 /// public pages on the pub.dev site (or on a test site).
 class PublicPagesScript {
   final String pubHostedUrl;
+  final bool expectLiveSite;
   PubHttpClient _pubClient;
 
-  PublicPagesScript(this.pubHostedUrl);
+  PublicPagesScript(
+    this.pubHostedUrl, {
+    @required this.expectLiveSite,
+  });
 
   /// Verify public pages.
   Future<void> verify() async {
@@ -31,8 +37,11 @@ class PublicPagesScript {
 
   Future<void> _landingPage() async {
     final html = await _pubClient.getContent('/');
-    _contains(html, 'Top packages');
-    _contains(html, 'View all');
+    _contains(html, 'Find and use packages');
+    if (expectLiveSite) {
+      _contains(html, 'Top packages');
+      _contains(html, 'View all');
+    }
   }
 
   Future<void> _helpPages() async {
