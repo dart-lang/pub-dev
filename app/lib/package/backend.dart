@@ -14,6 +14,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:pana/pana.dart' show runProc;
 import 'package:pub_package_reader/pub_package_reader.dart';
 
 import '../account/backend.dart';
@@ -824,7 +825,30 @@ Future<void> _verifyTarball(String filename) async {
   if (fileSize == 0) {
     throw PackageRejectedException.archiveEmpty();
   }
-  // TODO: check if the file is valid .tar.gz
+  await verifyTarGzSymlinks(filename);
+}
+
+// Throws [PackageRejectedException] if the archive is not readable or if there
+// is any symlink in the archive.
+@visibleForTesting
+Future<void> verifyTarGzSymlinks(String filename) async {
+  // Check if the file has any symlink.
+  final pr = await runProc('tar', ['-tvf', filename]);
+  if (pr.exitCode != 0) {
+    _logger.info('Rejecting package: tar returned with ${pr.exitCode}\n'
+        '${pr.stdout}\n${pr.stderr}');
+    throw PackageRejectedException.invalidTarGz();
+  }
+  final lines = pr.stdout.toString().split('\n');
+  for (final line in lines) {
+    if (line.startsWith('l')) {
+      // report only the source path
+      // if output is non-standard for any reason, this reports the full line
+      final parts = line.split(' -> ');
+      final source = parts.first.split(' ').last;
+      throw PackageRejectedException.containsSymlink(source);
+    }
+  }
 }
 
 /// Creates a new `Package` and populates all of it's fields.

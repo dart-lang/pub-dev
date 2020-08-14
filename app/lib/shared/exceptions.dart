@@ -180,6 +180,16 @@ class PackageRejectedException extends ResponseException {
   PackageRejectedException.archiveEmpty()
       : super._(400, 'PackageRejected', 'Package archive is empty (size = 0).');
 
+  /// The package archive file seems to be an invalid tar.gz
+  PackageRejectedException.invalidTarGz()
+      : super._(400, 'PackageRejected',
+            'Package archive is not a valid `.tar.gz`.');
+
+  /// The package archive file contains a symlink.
+  PackageRejectedException.containsSymlink(String source)
+      : super._(400, 'PackageRejected',
+            'Package archive contains a symlink: `$source`.');
+
   /// The [package] name is reserved.
   PackageRejectedException.nameReserved(String package)
       : super._(400, 'PackageRejected', 'Package name $package is reserved.');

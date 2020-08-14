@@ -3,8 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:gcloud/db.dart';
+import 'package:pana/pana.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -342,6 +345,43 @@ void main() {
         final bytes = chunks
             .fold<List<int>>(<int>[], (buffer, chunk) => buffer..addAll(chunk));
         expect(bytes, tarball);
+      });
+    });
+  });
+
+  group('.tar.gz verification', () {
+    test('invalid file content', () async {
+      await withTempDirectory((tempDir) async {
+        final file = File(p.join(tempDir, 'bad.tar.gz'));
+        await file.writeAsBytes([0, 1, 2]);
+        final rs = verifyTarGzSymlinks(file.path);
+        await expectLater(
+            rs,
+            throwsA(isA<PackageRejectedException>().having(
+              (e) => '$e',
+              'text',
+              contains('is not a valid'),
+            )));
+      });
+    });
+
+    test('has a symlink', () async {
+      await withTempDirectory((tempDir) async {
+        final archiveFile = File(p.join(tempDir, 'with-symlink.tar.gz'));
+        final pkgDir = Directory(p.join(tempDir, 'pkg'));
+        await pkgDir.create(recursive: true);
+        await Link(p.join(tempDir, 'pkg', 'README.md')).create('../README.md');
+        final pr = await runProc('tar', ['-czvf', archiveFile.path, 'pkg'],
+            workingDirectory: tempDir);
+        expect(pr.exitCode, 0);
+        final rs = verifyTarGzSymlinks(archiveFile.path);
+        await expectLater(
+            rs,
+            throwsA(isA<PackageRejectedException>().having(
+              (e) => '$e',
+              'text',
+              contains('Package archive contains a symlink: `pkg/README.md`.'),
+            )));
       });
     });
   });
