@@ -30,9 +30,7 @@ Future main(List<String> args) async {
   final List<String> flutterSdks = [];
 
   final homepageScheme = _Counter();
-  final licenseCounts = _Counter();
   final licenseNames = _Counter();
-  final packagesWithMoreThanOneLicense = _Counter();
   final grantedPoints = _Counter();
   final tags = _Counter();
 
@@ -75,14 +73,7 @@ Future main(List<String> args) async {
 
       final analysis =
           await analyzerClient.getAnalysisView(p.name, p.latestVersion);
-      final licenseCount = analysis.licenses?.length ?? 0;
-      licenseCounts.increment(licenseCount);
-      analysis.licenses?.forEach((l) {
-        licenseNames.increment(l.name ?? 'none');
-      });
-      if (licenseCount > 1) {
-        packagesWithMoreThanOneLicense.increment(p.name, licenseCount);
-      }
+      licenseNames.increment(analysis.licenseFile ?? 'none');
       grantedPoints.increment(analysis.report?.grantedPoints ?? 0);
     }
 
@@ -105,11 +96,7 @@ Future main(List<String> args) async {
     },
     'tags': tags.sortedByCounts(),
     'homepage': homepageScheme.sortedByCounts(),
-    'licenses': {
-      'counts': licenseCounts.sortedByKeysAsInt(),
-      'names': licenseNames.sortedByCounts(),
-      'moreThanOne': packagesWithMoreThanOneLicense.sortedByCounts(),
-    },
+    'licenses': licenseNames.sortedByCounts(),
     'points': grantedPoints.sortedByKeysAsInt(),
   };
   final String json = JsonEncoder.withIndent('  ').convert(report);

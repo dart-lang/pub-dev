@@ -26,22 +26,20 @@ import 'layout.dart';
 import 'misc.dart';
 import 'package_analysis.dart';
 
-String _renderLicenses(String baseUrl, List<LicenseFile> licenses) {
-  if (licenses == null || licenses.isEmpty) return null;
-  return licenses.map((license) {
-    final String escapedName = htmlEscape.convert(license.shortFormatted);
-    String html = escapedName;
+String _renderLicense(String baseUrl, LicenseFile license) {
+  if (license == null) return null;
+  final String escapedName = htmlEscape.convert(license.shortFormatted);
+  String html = escapedName;
 
-    if (license.url != null && license.path != null) {
-      final String escapedLink = htmlAttrEscape.convert(license.url);
-      final String escapedPath = htmlEscape.convert(license.path);
-      html += ' (<a href="$escapedLink">$escapedPath</a>)';
-    } else if (license.path != null) {
-      final String escapedPath = htmlEscape.convert(license.path);
-      html += ' ($escapedPath)';
-    }
-    return html;
-  }).join('<br/>');
+  if (license.url != null && license.path != null) {
+    final String escapedLink = htmlAttrEscape.convert(license.url);
+    final String escapedPath = htmlEscape.convert(license.path);
+    html += ' (<a href="$escapedLink">$escapedPath</a>)';
+  } else if (license.path != null) {
+    final String escapedPath = htmlEscape.convert(license.path);
+    html += ' ($escapedPath)';
+  }
+  return html;
 }
 
 String _renderDependencyList(AnalysisView analysis) {
@@ -189,7 +187,7 @@ String renderPkgInfoBox(
         ? null
         : _getAuthorsHtml(data.uploaderEmails),
     'license_html':
-        _renderLicenses(packageLinks.baseUrl, data.analysis?.licenses),
+        _renderLicense(packageLinks.baseUrl, data.analysis?.licenseFile),
     'dependencies_html': _renderDependencyList(data.analysis),
     'search_deps_link': urls.searchUrl(q: 'dependency:${package.name}'),
     'labeled_scores_html': renderLabeledScores(data.toPackageView()),
@@ -466,11 +464,9 @@ String renderPackageSchemaOrgHtml(PackagePageData data) {
     'image':
         '${urls.siteRoot}${staticUrls.staticPath}/img/pub-dev-icon-cover-image.png'
   };
-  final licenses = data.analysis?.licenses;
-  final firstUrl =
-      licenses?.firstWhere((lf) => lf.url != null, orElse: () => null)?.url;
-  if (firstUrl != null) {
-    map['license'] = firstUrl;
+  final licenseFileUrl = data.analysis?.licenseFile?.url;
+  if (licenseFileUrl != null) {
+    map['license'] = licenseFileUrl;
   }
   // TODO: add http://schema.org/codeRepository for github and gitlab links
   return '<script type="application/ld+json">\n${json.encode(map)}\n</script>\n';
