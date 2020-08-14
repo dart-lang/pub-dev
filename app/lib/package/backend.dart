@@ -825,6 +825,13 @@ Future<void> _verifyTarball(String filename) async {
   if (fileSize == 0) {
     throw PackageRejectedException.archiveEmpty();
   }
+  await verifyTarGzSymlinks(filename);
+}
+
+// Throws [PackageRejectedException] if the archive is not readable or if there
+// is any symlink in the archive.
+@visibleForTesting
+Future<void> verifyTarGzSymlinks(String filename) async {
   // Check if the file has any symlink.
   final pr = await runProc('tar', ['-tvf', filename]);
   if (pr.exitCode != 0) {
