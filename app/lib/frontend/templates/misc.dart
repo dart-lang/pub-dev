@@ -184,7 +184,6 @@ String renderMiniList(List<PackageView> packages) {
 String renderTags({
   @required PackageView package,
   @required SearchQuery searchQuery,
-  bool showTagBadges = false,
 }) {
   final tags = package.tags;
   final sdkTags = tags.where((s) => s.startsWith('sdk:')).toSet().toList();
@@ -228,7 +227,7 @@ String renderTags({
       'has_href': true,
       'href': urls.pkgScoreUrl(package.name),
     });
-  } else if (showTagBadges) {
+  } else {
     // We only display first-class platform/runtimes
     if (sdkTags.contains(SdkTag.sdkDart)) {
       tagBadges.add({
@@ -273,69 +272,6 @@ String renderTags({
         ],
       });
     }
-  } else if (searchQuery?.sdk == SdkTagValue.dart) {
-    if (tags.contains(DartSdkTag.runtimeNativeJit)) {
-      tagValues.add({
-        'status': null,
-        'text': 'native',
-        // TODO: link to platform/runtime-based search
-        'title': 'Works with Dart on Native',
-        'has_href': false,
-      });
-    }
-    if (tags.contains(DartSdkTag.runtimeWeb)) {
-      tagValues.add({
-        'status': null,
-        'text': 'js',
-        // TODO: link to platform/runtime-based search
-        'title': 'Works with Dart on Web',
-        'has_href': false,
-      });
-    }
-  } else if (searchQuery?.sdk == SdkTagValue.flutter) {
-    if (tags.contains(FlutterSdkTag.platformAndroid)) {
-      tagValues.add({
-        'status': null,
-        'text': 'android',
-        // TODO: link to platform/runtime-based search
-        'title': 'Works with Flutter on Android',
-        'has_href': false,
-      });
-    }
-    if (tags.contains(FlutterSdkTag.platformIos)) {
-      tagValues.add({
-        'status': null,
-        'text': 'ios',
-        // TODO: link to platform/runtime-based search
-        'title': 'Works with Flutter on iOS',
-        'has_href': false,
-      });
-    }
-    if (tags.contains(FlutterSdkTag.platformWeb)) {
-      tagValues.add({
-        'status': null,
-        'text': 'web',
-        // TODO: link to platform/runtime-based search
-        'title': 'Works with Flutter on Web',
-        'has_href': false,
-      });
-    }
-  } else {
-    sdkTags.sort(); // Show SDK tags (in sorted order)
-    tagValues.addAll(
-      sdkTags.map(
-        (tag) {
-          final value = tag.split(':').last;
-          return {
-            'status': null,
-            'text': value,
-            'has_href': true,
-            'href': urls.searchUrl(sdk: value),
-            'title': tag,
-          };
-        },
-      ),
-    );
   }
   return templateCache.renderTemplate('pkg/tags', {
     'tags': tagValues,
