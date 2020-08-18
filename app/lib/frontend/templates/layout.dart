@@ -115,6 +115,7 @@ String _renderSiteHeader(PageType pageType) {
 
   return templateCache.renderTemplate('shared/site_header', {
     'show_site_logo': pageType != PageType.landing,
+    'show_header_search': pageType == PageType.package,
     'dart_site_root': urls.dartSiteRoot,
     'site_logo_url': staticUrls.pubDevLogo2xPng,
     'is_logged_in': userSession != null,

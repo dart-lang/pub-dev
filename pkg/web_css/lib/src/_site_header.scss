@@ -28,6 +28,16 @@
   height: 40px;
   padding: 0px 18px;
   font-size: 14px;
+  position: relative;
+
+  @media (max-width: $device-mobile-max-width) {
+    &:focus-within {
+      .hamburger,
+      .site-logo {
+        opacity: 0.3;
+      }
+    }
+  }
 
   @media (min-width: $device-desktop-min-width) {
     height: 50px;
@@ -77,6 +87,47 @@
 
     &.-show {
       display: block;
+    }
+  }
+
+  .site-header-search {
+    @media (max-width: $device-mobile-max-width) {
+      position: absolute;
+      right: 12px;
+      left: 12px;
+      text-align: right;
+    }
+
+    .site-header-search-input {
+      height: 25px;
+      width: 25px;
+      padding: 5px 20px 5px 5px;
+      color: $site-header-banner-fg;
+      background-color: $site-header-banner-bg;
+      background-image: url("/static/img/search-icon-light.svg?hash=lbddtniv14k12bosn0phhc7jlr5i4rb4");
+      background-repeat: no-repeat;
+      background-position: right;
+      background-size: 23px 23px;
+      transition: width 0.4s ease-in-out, background-color 0.4s linear;
+
+      border: none;
+      border-radius: 5px;
+      outline: none;
+
+      &:focus {
+        width: 240px;
+        background-color: lighten($site-header-banner-bg, 10%);
+        padding-left: 10px;
+        padding-right: 30px;
+
+        @media (max-width: $device-tablet-max-width) {
+          width: 120px;
+        }
+
+        @media (max-width: $device-mobile-max-width) {
+          width: 100%;
+        }
+      }
     }
   }
 
