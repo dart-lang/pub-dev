@@ -147,3 +147,21 @@ class VersionInfo {
 
   Map<String, dynamic> toJson() => _$VersionInfoToJson(this);
 }
+
+@JsonSerializable(includeIfNull: false)
+class VersionScore {
+  final int grantedPoints;
+  final int maxPoints;
+  final DateTime lastUpdated;
+
+  VersionScore({
+    @required this.grantedPoints,
+    @required this.maxPoints,
+    @required this.lastUpdated,
+  });
+
+  factory VersionScore.fromJson(Map<String, dynamic> json) =>
+      _$VersionScoreFromJson(json);
+
+  Map<String, dynamic> toJson() => _$VersionScoreToJson(this);
+}

@@ -292,6 +292,21 @@ class PubApiClient {
     ));
   }
 
+  Future<_i3.VersionScore> packageScore(String package) async {
+    return _i3.VersionScore.fromJson(await _client.requestJson(
+      verb: 'get',
+      path: '/api/packages/$package/score',
+    ));
+  }
+
+  Future<_i3.VersionScore> packageVersionScore(
+      String package, String version) async {
+    return _i3.VersionScore.fromJson(await _client.requestJson(
+      verb: 'get',
+      path: '/api/packages/$package/versions/$version/score',
+    ));
+  }
+
   Future<List<int>> search() async {
     return await _client.requestBytes(
       verb: 'get',

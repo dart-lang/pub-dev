@@ -197,6 +197,20 @@ Future<shelf.Response> apiPackageMetricsHandler(
   return jsonResponse(result);
 }
 
+/// Handles requests for
+//  - /api/packages/<package>/score
+/// - /api/packages/<package>/versions/<version>/score
+Future<VersionScore> packageVersionScoreHandler(
+    shelf.Request request, String package,
+    {String version}) async {
+  final data = await scoreCardBackend.getScoreCardData(package, version);
+  return VersionScore(
+    grantedPoints: data?.grantedPubPoints,
+    maxPoints: data?.maxPubPoints,
+    lastUpdated: data?.updated,
+  );
+}
+
 /// Handles requests for /api/history
 /// NOTE: Experimental, do not rely on it.
 Future<shelf.Response> apiHistoryHandler(shelf.Request request) async {
