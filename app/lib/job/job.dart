@@ -133,7 +133,6 @@ class JobMaintenance {
           task.package,
           version: task.version,
           updated: task.updated,
-          isHighPriority: true,
         );
       } catch (e, st) {
         _logger.info('Head sync failed for $task', e, st);
