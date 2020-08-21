@@ -13,6 +13,7 @@ import 'package:path/path.dart' as p;
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 
+import '../frontend/static_files.dart';
 import '../job/backend.dart';
 import '../job/job.dart';
 import '../scorecard/backend.dart';
@@ -36,9 +37,6 @@ const _packageTimeout = Duration(minutes: 10);
 const _pubDataFileName = 'pub-data.json';
 const _sdkTimeout = Duration(minutes: 20);
 final Duration _twoYears = const Duration(days: 2 * 365);
-
-final _pkgPubDartdocDir =
-    Platform.script.resolve('../../pkg/pub_dartdoc').toFilePath();
 
 class DartdocJobProcessor extends JobProcessor {
   DartdocJobProcessor({
@@ -70,7 +68,7 @@ class DartdocJobProcessor extends JobProcessor {
       final pr = await runProc(
         'dart',
         ['bin/pub_dartdoc.dart', ...args],
-        workingDirectory: _pkgPubDartdocDir,
+        workingDirectory: resolvePubDartdocDirPath(),
         timeout: _sdkTimeout,
       );
 
@@ -164,6 +162,7 @@ class DartdocJobProcessor extends JobProcessor {
         job.packageName,
         job.packageVersion,
         destination: pkgPath,
+        pubHostedUrl: activeConfiguration.primarySiteUri.toString(),
       );
       final usesFlutter = await toolEnvRef.toolEnv.detectFlutterUse(pkgPath);
 
@@ -368,7 +367,7 @@ class DartdocJobProcessor extends JobProcessor {
         'dart',
         ['bin/pub_dartdoc.dart', ...args],
         environment: environment,
-        workingDirectory: _pkgPubDartdocDir,
+        workingDirectory: resolvePubDartdocDirPath(),
         timeout: _packageTimeout,
       );
       final hasIndexHtml = await File(p.join(outputDir, 'index.html')).exists();

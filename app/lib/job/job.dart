@@ -25,7 +25,7 @@ export 'model.dart';
 final _logger = Logger('pub.job');
 final _random = math.Random.secure();
 
-typedef AliveCallback = Function();
+typedef AliveCallback = FutureOr Function();
 
 abstract class JobProcessor {
   final JobService service;
@@ -50,46 +50,50 @@ abstract class JobProcessor {
   Future<void> run() async {
     int sleepSeconds = 0;
     for (;;) {
-      sleepSeconds = math.min(sleepSeconds + 1, 60);
-      String jobDescription = '[pull]';
-      final sw = Stopwatch()..start();
-      var statEvent = 'failed';
-      try {
-        final job = await jobBackend.lockAvailable(service);
-        if (job != null) {
-          jobDescription = '${job.packageName} ${job.packageVersion}';
-          _logger.info('$_serviceAsString job started: $jobDescription');
-          sleepSeconds = 0;
-
-          JobStatus status = JobStatus.failed;
-          try {
-            status = await process(job);
-            status = JobStatus.success;
-            statEvent = 'success';
-            _logger.info('$_serviceAsString job completed: $jobDescription');
-          } on TransactionAbortedError catch (e, st) {
-            _logger.info('$_serviceAsString job error $jobDescription', e, st);
-          } on TimeoutError catch (e, st) {
-            _logger.info('$_serviceAsString job error $jobDescription', e, st);
-          } catch (e, st) {
-            _logger.severe(
-                '$_serviceAsString job error $jobDescription', e, st);
-          }
-          await jobBackend.complete(job, status);
-        }
-      } on TransactionAbortedError catch (e, st) {
-        statEvent = 'transaction';
-        _logger.info('$_serviceAsString job error $jobDescription', e, st);
-      } on TimeoutError catch (e, st) {
-        statEvent = 'timeout';
-        _logger.info('$_serviceAsString job error $jobDescription', e, st);
-      } catch (e, st) {
-        _logger.severe('$_serviceAsString job error $jobDescription', e, st);
-      }
-      _trackers.putIfAbsent(statEvent, () => DurationTracker()).add(sw.elapsed);
-      if (_aliveCallback != null) _aliveCallback();
+      final status = await _runOneJob();
+      if (_aliveCallback != null) await _aliveCallback();
+      sleepSeconds = (status == JobStatus.failed || status == JobStatus.aborted)
+          ? math.min(sleepSeconds + 1, 60)
+          : 0;
       await Future.delayed(Duration(seconds: sleepSeconds));
     }
+  }
+
+  Future<JobStatus> _runOneJob() async {
+    JobStatus status = JobStatus.none;
+    String jobDescription = '[pull]';
+    final sw = Stopwatch()..start();
+    var statEvent = 'failed';
+    try {
+      final job = await jobBackend.lockAvailable(service);
+      if (job != null) {
+        jobDescription = '${job.packageName} ${job.packageVersion}';
+        _logger.info('$_serviceAsString job started: $jobDescription');
+        try {
+          status = await process(job);
+          status = JobStatus.success;
+          statEvent = 'success';
+          _logger.info('$_serviceAsString job completed: $jobDescription');
+        } on TransactionAbortedError catch (e, st) {
+          _logger.info('$_serviceAsString job error $jobDescription', e, st);
+        } on TimeoutError catch (e, st) {
+          _logger.info('$_serviceAsString job error $jobDescription', e, st);
+        } catch (e, st) {
+          _logger.severe('$_serviceAsString job error $jobDescription', e, st);
+        }
+        await jobBackend.complete(job, status);
+      }
+    } on TransactionAbortedError catch (e, st) {
+      statEvent = 'transaction';
+      _logger.info('$_serviceAsString job error $jobDescription', e, st);
+    } on TimeoutError catch (e, st) {
+      statEvent = 'timeout';
+      _logger.info('$_serviceAsString job error $jobDescription', e, st);
+    } catch (e, st) {
+      _logger.severe('$_serviceAsString job error $jobDescription', e, st);
+    }
+    _trackers.putIfAbsent(statEvent, () => DurationTracker()).add(sw.elapsed);
+    return status;
   }
 
   void reportIssueWithLatest(Job job, String message) {
@@ -116,6 +120,28 @@ class JobMaintenance {
       _processor.run(),
     ];
     return Future.wait(futures);
+  }
+
+  /// Scans datastore for job updates, unlocks pending jobs and then runs the
+  /// available jobs.
+  @visibleForTesting
+  Future<void> scanUpdateAndRunOnce() async {
+    await for (final pv in _db.query<PackageVersion>().run()) {
+      await jobBackend.trigger(
+        _processor.service,
+        pv.package,
+        version: pv.version,
+        updated: pv.created,
+      );
+    }
+    await jobBackend.unlockStaleProcessing(_processor.service);
+    await jobBackend.checkIdle(_processor.service, _processor.shouldProcess);
+    for (;;) {
+      final status = await _processor._runOneJob();
+      if (status == JobStatus.none) {
+        break;
+      }
+    }
   }
 
   /// Never completes.

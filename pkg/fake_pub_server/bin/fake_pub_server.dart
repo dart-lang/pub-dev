@@ -9,6 +9,8 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:fake_gcloud/mem_storage.dart';
+import 'package:fake_pub_server/fake_analyzer_service.dart';
+import 'package:fake_pub_server/fake_dartdoc_service.dart';
 import 'package:fake_pub_server/fake_pub_server.dart';
 import 'package:fake_pub_server/fake_search_service.dart';
 import 'package:fake_pub_server/fake_storage_server.dart';
@@ -21,13 +23,19 @@ final _argParser = ArgParser()
   ..addOption('storage-port',
       defaultsTo: '8081', help: 'The HTTP port for the fake storage server.')
   ..addOption('search-port',
-      defaultsTo: '8082', help: 'The HTTP port for the fake search service.');
+      defaultsTo: '8082', help: 'The HTTP port for the fake search service.')
+  ..addOption('analyzer-port',
+      defaultsTo: '8083', help: 'The HTTP port for the fake analyzer service.')
+  ..addOption('dartdoc-port',
+      defaultsTo: '8084', help: 'The HTTP port for the fake dartdoc service.');
 
 Future main(List<String> args) async {
   final argv = _argParser.parse(args);
   final port = int.parse(argv['port'] as String);
   final storagePort = int.parse(argv['storage-port'] as String);
   final searchPort = int.parse(argv['search-port'] as String);
+  final analyzerPort = int.parse(argv['analyzer-port'] as String);
+  final dartdocPort = int.parse(argv['dartdoc-port'] as String);
 
   Logger.root.onRecord.listen((r) {
     print([
@@ -44,6 +52,8 @@ Future main(List<String> args) async {
   final storageServer = FakeStorageServer(storage);
   final pubServer = FakePubServer(datastore, storage);
   final searchService = FakeSearchService(datastore, storage);
+  final analyzerService = FakeAnalyzerService(datastore, storage);
+  final dartdocService = FakeDartdocService(datastore, storage);
 
   final configuration = Configuration.fakePubServer(
     frontendPort: port,
@@ -51,15 +61,32 @@ Future main(List<String> args) async {
     searchPort: searchPort,
   );
 
+  Future<shelf.Response> _updateUpstream(int port) async {
+    final rs = await post('http://localhost:$port/fake-update-all');
+    if (rs.statusCode == 200) {
+      return shelf.Response.ok('OK');
+    } else {
+      return shelf.Response(503,
+          body: 'Upstream service ($port) returned ${rs.statusCode}.');
+    }
+  }
+
   Future<shelf.Response> forwardUpdatesHandler(shelf.Request rq) async {
+    if (rq.requestedUri.path == '/fake-update-all') {
+      final analyzerRs = await _updateUpstream(analyzerPort);
+      if (analyzerRs.statusCode != 200) return analyzerRs;
+      final dartdocRs = await _updateUpstream(dartdocPort);
+      if (dartdocRs.statusCode != 200) return dartdocRs;
+      return await _updateUpstream(searchPort);
+    }
+    if (rq.requestedUri.path == '/fake-update-analyzer') {
+      return await _updateUpstream(analyzerPort);
+    }
+    if (rq.requestedUri.path == '/fake-update-dartdoc') {
+      return await _updateUpstream(dartdocPort);
+    }
     if (rq.requestedUri.path == '/fake-update-search') {
-      final rs = await post('http://localhost:$searchPort/fake-update-all');
-      if (rs.statusCode == 200) {
-        return shelf.Response.ok('OK');
-      } else {
-        return shelf.Response(503,
-            body: 'Upstream service returned ${rs.statusCode}.');
-      }
+      return await _updateUpstream(searchPort);
     }
     return null;
   }
@@ -75,6 +102,14 @@ Future main(List<String> args) async {
       ),
       searchService.run(
         port: searchPort,
+        configuration: configuration,
+      ),
+      analyzerService.run(
+        port: analyzerPort,
+        configuration: configuration,
+      ),
+      dartdocService.run(
+        port: dartdocPort,
         configuration: configuration,
       ),
     ],

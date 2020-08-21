@@ -15,7 +15,7 @@ import '../src/test_data.dart';
 class BaseSetupScript {
   final String pubHostedUrl;
   final String credentialsFileContent;
-  PubHttpClient _pubHttpClient;
+  final PubHttpClient _pubHttpClient;
   PubToolClient _pubToolClient;
 
   Directory _temp;
@@ -25,13 +25,15 @@ class BaseSetupScript {
   BaseSetupScript({
     this.pubHostedUrl,
     this.credentialsFileContent,
-  });
+  }) : _pubHttpClient = PubHttpClient(pubHostedUrl);
+
+  Future<void> close() async {
+    await _pubHttpClient.close();
+  }
 
   /// Do the required setup steps, e.g. publishing packages.
-  Future<void> setup() async {
-    assert(_pubHttpClient == null);
+  Future<void> publishPackages() async {
     assert(_pubToolClient == null);
-    _pubHttpClient = PubHttpClient(pubHostedUrl);
     _temp = await Directory.systemTemp.createTemp('pub-integration');
     try {
       _pubToolClient = await PubToolClient.create(
@@ -46,14 +48,19 @@ class BaseSetupScript {
       await _createDummyPkg();
       await _pubToolClient.getDependencies(_dummyDir.path);
       await _pubToolClient.publish(_dummyDir.path);
-
-      // trigger re-indexing
-      await _pubHttpClient.forceSearchUpdate();
     } finally {
       await _temp.delete(recursive: true);
-      await _pubHttpClient.close();
       await _pubToolClient?.close();
     }
+  }
+
+  Future<void> updatePubSite() async {
+    // trigger job processing
+    await _pubHttpClient.forceAnalyzerUpdate();
+    await _pubHttpClient.forceDartdocUpdate();
+
+    // trigger re-indexing
+    await _pubHttpClient.forceSearchUpdate();
   }
 
   Future<void> _createFakeRetryPkg() async {
