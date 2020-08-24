@@ -100,6 +100,7 @@ class JobBackend {
     bool shouldProcess, {
     int priority,
   }) async {
+    packageVersionUpdated ??= DateTime.now().toUtc();
     final id = _id(service, package, version);
     final state = shouldProcess ? JobState.available : JobState.idle;
     final lockedUntil =
@@ -109,16 +110,15 @@ class JobBackend {
       final current = list.single as Job;
       if (current != null) {
         final hasNotChanged = current.isLatestStable == isLatestStable &&
-            current.packageVersionUpdated == packageVersionUpdated &&
-            priority == null;
+            !current.packageVersionUpdated.isBefore(packageVersionUpdated) &&
+            (priority == null || current.priority <= priority);
         if (hasNotChanged) {
           if (!shouldProcess) {
             // no reason to re-schedule the job
             return;
           }
           if (current.state == JobState.available &&
-              current.lockedUntil == null &&
-              (priority == null || current.priority == priority)) {
+              current.lockedUntil == null) {
             // already scheduled for processing
             return;
           }
@@ -180,11 +180,6 @@ class JobBackend {
 
     list.removeWhere((job) => !isApplicable(job));
     if (list.isEmpty) return null;
-
-    // if there are high-priority items, select only from those.
-    if (list.first.priority == 0) {
-      list.removeWhere((j) => j.priority > 0);
-    }
 
     return await _retryWithTransaction((tx) async {
       final selectedId = list[_random.nextInt(list.length)].id;
@@ -296,7 +291,12 @@ class JobBackend {
     await _retryWithTransaction((tx) async {
       final items = await tx.lookup([_db.emptyKey.append(Job, id: job.id)]);
       final selected = items.single as Job;
-      if (selected != null && selected.processingKey == job.processingKey) {
+      if (selected == null) {
+        _logger.info('Unable to complete missing job: $job.');
+        return;
+      }
+      if (selected.processingKey == job.processingKey ||
+          status == JobStatus.success) {
         _logger.info('Updating $job with $status');
         final isError =
             (status == JobStatus.failed) || (status == JobStatus.aborted);
