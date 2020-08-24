@@ -10,6 +10,13 @@
   {{/show_site_logo}}
   <div class="site-header-space"></div>
   <div class="site-header-mask"></div>
+  {{#show_header_search}}
+  <div class="site-header-search">
+    <form action="/packages" method="GET">
+      <input class="site-header-search-input" name="q" placeholder="New search..." autocomplete="on" />
+    </form>
+  </div>
+  {{/show_header_search}}
   <div class="site-header-nav scroll-container">
     {{^is_logged_in}}
     <div class="nav-login-container">
