@@ -348,6 +348,15 @@ class PubApi {
           Request request, String package) =>
       packageBackend.removePublisher(package);
 
+  @EndPoint.get('/api/packages/<package>/score')
+  Future<VersionScore> packageScore(Request request, String package) =>
+      packageVersionScoreHandler(request, package);
+
+  @EndPoint.get('/api/packages/<package>/versions/<version>/score')
+  Future<VersionScore> packageVersionScore(
+          Request request, String package, String version) =>
+      packageVersionScoreHandler(request, package, version: version);
+
   @EndPoint.get('/api/search')
   Future<Response> search(Request request) => apiSearchHandler(request);
 

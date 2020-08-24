@@ -115,3 +115,28 @@ Map<String, dynamic> _$VersionInfoToJson(VersionInfo instance) =>
       'archive_url': instance.archiveUrl,
       'published': instance.published?.toIso8601String(),
     };
+
+VersionScore _$VersionScoreFromJson(Map<String, dynamic> json) {
+  return VersionScore(
+    grantedPoints: json['grantedPoints'] as int,
+    maxPoints: json['maxPoints'] as int,
+    lastUpdated: json['lastUpdated'] == null
+        ? null
+        : DateTime.parse(json['lastUpdated'] as String),
+  );
+}
+
+Map<String, dynamic> _$VersionScoreToJson(VersionScore instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('grantedPoints', instance.grantedPoints);
+  writeNotNull('maxPoints', instance.maxPoints);
+  writeNotNull('lastUpdated', instance.lastUpdated?.toIso8601String());
+  return val;
+}
