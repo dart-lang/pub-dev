@@ -33,7 +33,7 @@ class SearchClient {
 
   SearchClient([http.Client client]) : _httpClient = client ?? http.Client();
 
-  Future<PackageSearchResult> search(SearchQuery query) async {
+  Future<PackageSearchResult> search(SearchQuery query, {Duration ttl}) async {
     final String httpHostPort = activeConfiguration.searchServicePrefix;
     final String serviceUrlParams =
         Uri(queryParameters: query.toServiceQueryParameters()).toString();
@@ -75,7 +75,9 @@ class SearchClient {
     if (query.randomize) {
       return await searchFn();
     } else {
-      return await cache.packageSearchResult(serviceUrl).get(searchFn);
+      return await cache
+          .packageSearchResult(serviceUrl, ttl: ttl)
+          .get(searchFn);
     }
   }
 

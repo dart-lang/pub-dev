@@ -21,6 +21,7 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 /// Make sure that at least two versions are kept here as the next candidates
 /// when the version switch happens.
 const acceptedRuntimeVersions = <String>[
+  // TODO: when removing '2020.08.24', also remove SearchQuery.randomize
   '2020.08.24', // The current [runtimeVersion].
   '2020.08.12',
   // TODO: when removing, also remove PanaReport.licenses

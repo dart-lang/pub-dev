@@ -3,21 +3,23 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:math';
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:pool/pool.dart';
 
 import '../scorecard/backend.dart';
 import '../search/search_client.dart';
 import '../search/search_service.dart';
 import '../shared/redis_cache.dart' show cache;
-import '../shared/tags.dart';
 
 import 'backend.dart';
 import 'models.dart';
 import 'name_tracker.dart';
 
 final _logger = Logger('frontend.search_adapter');
+final _random = Random.secure();
 
 /// The `SearchAdapter` registered in the current service scope.
 SearchAdapter get searchAdapter => ss.lookup(#_search) as SearchAdapter;
@@ -29,25 +31,68 @@ void registerSearchAdapter(SearchAdapter s) => ss.register(#_search, s);
 /// processes its results, extending the search results with up-to-date package
 /// data.
 class SearchAdapter {
+  final _pool = Pool(16);
+
+  /// Lookup the top featured packages with the specific tags and sorting.
+  ///
+  /// Uses long-term caching and local randomized selection.
+  /// Returns empty list when search is not available or doesn't yield results.
+  Future<List<PackageView>> topFeatured({
+    List<String> requiredTags,
+    int count = 6,
+    SearchOrder order,
+  }) async {
+    final query = SearchQuery.parse(
+      limit: 100,
+      tagsPredicate: TagsPredicate.advertisement(requiredTags: requiredTags),
+      order: order,
+    );
+    final searchResults =
+        await _searchOrFallback(query, false, ttl: Duration(hours: 6));
+    if (searchResults?.packages == null) {
+      return <PackageView>[];
+    }
+    final availablePackages = searchResults.packages
+        .where((e) => !e.isExternal)
+        .map((ps) => ps.package)
+        .toList();
+    final packages = <String>[];
+    for (var i = 0; i < count && availablePackages.isNotEmpty; i++) {
+      // The first item should come from the top results.
+      final index = i == 0 && availablePackages.length > 20
+          ? _random.nextInt(20)
+          : _random.nextInt(availablePackages.length);
+      packages.add(availablePackages.removeAt(index));
+    }
+    return await _getPackageViews(packages);
+  }
+
   /// Performs search using the `search` service and lookup package info and
   /// score from DatastoreDB.
   ///
   /// When the `search` service fails, it falls back to use the name tracker to
-  /// provide package names and perform search in that set. Set [fallbackToNames]
-  /// to false in cases where this is not the desired result.
-  Future<SearchResultPage> search(SearchQuery query,
-      {bool fallbackToNames = true}) async {
+  /// provide package names and perform search in that set.
+  Future<SearchResultPage> search(SearchQuery query) async {
+    final result = await _searchOrFallback(query, true);
+    return SearchResultPage(query, result.totalCount,
+        await getPackageViews(result.packages), result.message);
+  }
+
+  Future<PackageSearchResult> _searchOrFallback(
+    SearchQuery query,
+    bool fallbackToNames, {
+    Duration ttl,
+  }) async {
     PackageSearchResult result;
     try {
-      result = await searchClient.search(query);
+      result = await searchClient.search(query, ttl: ttl);
     } catch (e, st) {
       _logger.severe('Unable to search packages', e, st);
     }
     if (result == null && fallbackToNames) {
       result = await _fallbackSearch(query);
     }
-    return _loadResultForPackages(
-        query, result.totalCount, result.packages, result.message);
+    return result;
   }
 
   /// Search over the package names as a fallback, in the absence of the
@@ -109,25 +154,25 @@ class SearchAdapter {
   /// the latest stable version.
   ///
   /// If the package does not exist, it will return null in the given index.
-  Future<List<PackageView>> getPackageViews(List<String> packages) async {
-    // TODO: consider a cache-check first and batch-load the rest of the packages
-    return await Future.wait(packages.map((p) => _getPackageView(p)));
+  Future<List<PackageView>> _getPackageViews(List<String> packages) async {
+    final futures = <Future<PackageView>>[];
+    for (final p in packages) {
+      futures.add(_pool.withResource(() async => _getPackageView(p)));
+    }
+    return await Future.wait(futures);
   }
 
-  Future<SearchResultPage> _loadResultForPackages(SearchQuery query,
-      int totalCount, List<PackageScore> packageScores, String message) async {
-    final packageNames = packageScores
-        .where((ps) => !ps.isExternal)
-        .map((ps) => ps.package)
-        .toList();
+  Future<List<PackageView>> getPackageViews(List<PackageScore> packages) async {
+    final packageNames =
+        packages.where((ps) => !ps.isExternal).map((ps) => ps.package).toList();
     final pubPackages = <String, PackageView>{};
-    for (final view in await getPackageViews(packageNames)) {
+    for (final view in await _getPackageViews(packageNames)) {
       // The package may have been deleted, but the index still has it.
       if (view == null) continue;
       pubPackages[view.name] = view;
     }
 
-    final resultPackages = packageScores
+    return packages
         .map((ps) {
           if (pubPackages.containsKey(ps.package)) {
             final view = pubPackages[ps.package];
@@ -147,7 +192,10 @@ class SearchAdapter {
         })
         .where((pv) => pv != null)
         .toList();
-    return SearchResultPage(query, totalCount, resultPackages, message);
+  }
+
+  Future<void> close() async {
+    await _pool.close();
   }
 }
 
@@ -170,78 +218,4 @@ class SearchResultPage {
 
   factory SearchResultPage.empty(SearchQuery query, {String message}) =>
       SearchResultPage(query, 0, [], message);
-}
-
-final _allSdkTags = [
-  SdkTag.sdkDart,
-  SdkTag.sdkFlutter,
-  DartSdkTag.runtimeNativeJit,
-  DartSdkTag.runtimeWeb,
-  FlutterSdkTag.platformAndroid,
-  FlutterSdkTag.platformIos,
-  FlutterSdkTag.platformWeb,
-];
-
-final _fallbackFeatured = <PackageView>[
-  PackageView(
-    name: 'http',
-    ellipsizedDescription:
-        'A composable, cross-platform, Future-based API for making HTTP requests.',
-    tags: _allSdkTags,
-  ),
-  PackageView(
-    name: 'image',
-    ellipsizedDescription:
-        'Provides server and web apps the ability to load, manipulate, and save images with various image file formats including PNG, JPEG, GIF, WebP, TIFF, TGA, PSD, PVR, and OpenEXR.',
-    tags: _allSdkTags,
-  ),
-  PackageView(
-    name: 'uuid',
-    ellipsizedDescription:
-        'RFC4122 (v1, v4, v5) UUID Generator and Parser for all Dart platforms (Web, VM, Flutter)',
-    tags: _allSdkTags,
-  ),
-  PackageView(
-    name: 'bloc',
-    ellipsizedDescription:
-        'A predictable state management library that helps implement the BLoC (Business Logic Component) design pattern.',
-    tags: _allSdkTags,
-  ),
-  PackageView(
-    name: 'event_bus',
-    ellipsizedDescription:
-        'A simple Event Bus using Dart Streams for decoupling applications',
-    tags: _allSdkTags,
-  ),
-  PackageView(
-    name: 'xml',
-    ellipsizedDescription:
-        'A lightweight library for parsing, traversing, querying, transforming and building XML documents.',
-    tags: _allSdkTags,
-  ),
-];
-
-/// Returns the top packages for displaying them on a landing page.
-Future<List<PackageView>> topFeaturedPackages({
-  List<String> requiredTags,
-  int count = 6,
-  bool emptyFallback = false,
-  SearchOrder order,
-}) async {
-  // TODO: store top packages in memcache
-  try {
-    final result = await searchAdapter.search(
-      SearchQuery.parse(
-        limit: count,
-        tagsPredicate: TagsPredicate.advertisement(requiredTags: requiredTags),
-        randomize: true,
-        order: order,
-      ),
-      fallbackToNames: false,
-    );
-    return result.packages.take(count).toList();
-  } catch (e, st) {
-    _logger.severe('Unable to load top packages', e, st);
-  }
-  return emptyFallback ? <PackageView>[] : _fallbackFeatured;
 }

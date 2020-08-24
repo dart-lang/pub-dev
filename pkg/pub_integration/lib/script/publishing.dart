@@ -25,7 +25,7 @@ class PublishingScript {
   final String credentialsFileContent;
   final String invitedEmail;
   final InviteCompleterFn inviteCompleterFn;
-  final bool omitDocumentationPage;
+  final bool expectLiveSite;
   PubHttpClient _pubHttpClient;
   PubToolClient _pubToolClient;
 
@@ -43,7 +43,7 @@ class PublishingScript {
     this.credentialsFileContent,
     this.invitedEmail,
     this.inviteCompleterFn,
-    this.omitDocumentationPage,
+    this.expectLiveSite,
   );
 
   /// Verify all integration steps.
@@ -94,7 +94,7 @@ class PublishingScript {
       await _pubToolClient.removeUploader(_dummyDir.path, invitedEmail);
       await _verifyDummyPkg(matchInvited: false);
 
-      if (!omitDocumentationPage) {
+      if (expectLiveSite) {
         await _verifyDummyDocumentation();
       }
     } finally {
