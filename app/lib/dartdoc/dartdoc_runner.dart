@@ -39,6 +39,8 @@ const _sdkTimeout = Duration(minutes: 20);
 final Duration _twoYears = const Duration(days: 2 * 365);
 
 class DartdocJobProcessor extends JobProcessor {
+  bool _initialized = false;
+
   DartdocJobProcessor({
     @required AliveCallback aliveCallback,
   }) : super(
@@ -46,11 +48,22 @@ class DartdocJobProcessor extends JobProcessor {
           aliveCallback: aliveCallback,
         );
 
+  Future<void> _initializeIfNeeded() async {
+    if (_initialized) return;
+    await runProc(
+      'pub',
+      ['get'],
+      workingDirectory: resolvePubDartdocDirPath(),
+    );
+    _initialized = true;
+  }
+
   /// Uses the tool environment's SDK (the one that is used for analysis too) to
   /// generate dartdoc documentation and extracted data file for SDK API indexing.
   /// Only the extracted data file will be used and uploaded.
   Future<void> generateDocsForSdk() async {
     if (await dartdocBackend.hasValidDartSdkDartdocData()) return;
+    await _initializeIfNeeded();
     final tempDir =
         await Directory.systemTemp.createTemp('pub-dartlang-dartdoc');
     try {
@@ -345,6 +358,7 @@ class DartdocJobProcessor extends JobProcessor {
     /// When [isReduced] is set, we are running dartdoc with reduced features,
     /// hopefully to complete within the time limit and fewer issues.
     Future<DartdocResult> runDartdoc({bool isReduced = false}) async {
+      await _initializeIfNeeded();
       final args = [
         '--input',
         pkgPath,
