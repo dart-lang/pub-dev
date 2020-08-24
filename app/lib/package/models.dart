@@ -384,12 +384,18 @@ class PackageVersionInfo extends db.ExpandoModel<String> {
     // TODO: implement more efficient difference check
     if (json.encode(libraries) != json.encode(derived.libraries)) {
       libraries = derived.libraries;
+      changed = true;
+    }
+    if (libraryCount != (libraries?.length ?? 0)) {
       libraryCount = libraries?.length ?? 0;
       changed = true;
     }
     // TODO: implement more efficient difference check
     if (json.encode(assets) != json.encode(derived.assets)) {
       assets = derived.assets;
+      changed = true;
+    }
+    if (assetCount != (assets?.length ?? 0)) {
       assetCount = assets?.length ?? 0;
       changed = true;
     }
