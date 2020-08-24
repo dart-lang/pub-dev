@@ -91,7 +91,7 @@ packages:
       name: dartdoc
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.32.3"
+    version: "0.32.4"
   file:
     dependency: transitive
     description:
@@ -288,13 +288,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.4.4"
-  quiver:
-    dependency: transitive
-    description:
-      name: quiver
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.1.3"
   resource:
     dependency: transitive
     description:
