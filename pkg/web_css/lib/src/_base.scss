@@ -352,34 +352,3 @@ pre {
 
   text-align: center;
 }
-
-.back-to-referrer {
-  display: flex;
-  align-items: center;
-
-  background: #f5f5f7;
-  height: 50px;
-  padding-left: 18px;
-
-  @media (min-width: $device-desktop-min-width) {
-    padding-left: 50px;
-  }
-
-  .back-to-referrer-link {
-    color: #212529;
-    font-family: $font-family-google-sans;
-    font-size: 14px;
-
-    &:before {
-      content: "";
-      display: inline-block;
-      background-image: url('/static/img/arrow-back.svg?hash=1pe5vnt2cpes60qb9473hqds62vo428c');
-      background-size: cover;
-      height: 15px;
-      width: 15px;
-      margin-right: 8px;
-      margin-top: -3px;
-      vertical-align: middle;
-    }
-  }
-}
