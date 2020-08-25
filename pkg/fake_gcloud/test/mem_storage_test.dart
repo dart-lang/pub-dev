@@ -85,4 +85,22 @@ void main() {
     expect(p2.items.single.name, 'a/b/c.txt');
     expect(p2.isLast, true);
   });
+
+  test('write and read', () async {
+    final storage = MemStorage(buckets: ['test']);
+    final bucket = storage.bucket('test');
+    await bucket.writeBytes('file.txt', [1, 2]);
+    final info = await bucket.info('file.txt');
+
+    final sb = StringBuffer();
+    storage.writeTo(sb);
+    expect(sb.length, 118);
+
+    final newStorage = MemStorage();
+    newStorage.readFrom(sb.toString().split('\n'));
+
+    final newInfo = await newStorage.bucket('test').info('file.txt');
+    expect(newInfo.length, info.length);
+    expect(newInfo.etag, info.etag);
+  });
 }
