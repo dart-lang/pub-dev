@@ -758,6 +758,7 @@ class PackageLinks {
 /// Common data structure shared between package pages.
 class PackagePageData {
   final Package package;
+  final ModeratedPackage moderatedPackage;
   final PackageVersion version;
   final AnalysisView analysis;
   final List<String> uploaderEmails;
@@ -767,6 +768,7 @@ class PackagePageData {
 
   PackagePageData({
     @required this.package,
+    this.moderatedPackage,
     @required this.version,
     @required this.analysis,
     @required this.uploaderEmails,
@@ -774,8 +776,10 @@ class PackagePageData {
     @required this.isLiked,
   });
 
-  PackagePageData.missingVersion({@required this.package})
-      : version = null,
+  PackagePageData.missing({
+    @required this.package,
+    this.moderatedPackage,
+  })  : version = null,
         analysis = null,
         uploaderEmails = null,
         isAdmin = null,

@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:client_data/page_data.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' show getRepositoryUrl;
+import 'package:pub_dev/shared/handlers.dart';
 
 import '../../analyzer/analyzer_client.dart';
 import '../../package/models.dart';
@@ -529,4 +530,10 @@ List<Tab> buildPackageTabs({
     scoreTab,
     if (packagePageData.isAdmin) adminTab,
   ];
+}
+
+/// Renders the package page when the package has been moderated.
+String renderModeratedPackagePage(String packageName) {
+  final message = 'The package `$packageName` has been removed.';
+  return renderErrorPage(default404NotFound, message);
 }
