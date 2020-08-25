@@ -113,9 +113,8 @@ String _renderSiteHeader(PageType pageType) {
           'image_url': userSessionData.imageUrlOfSize(30),
         };
 
-  final showHeaderSearch = pageType == PageType.package ||
-      pageType == PageType.standalone ||
-      pageType == PageType.error;
+  final showHeaderSearch =
+      pageType == PageType.package || pageType == PageType.standalone;
   return templateCache.renderTemplate('shared/site_header', {
     'show_site_logo': pageType != PageType.landing,
     'show_header_search': showHeaderSearch,
