@@ -110,10 +110,19 @@ class PackageBackend {
 
   /// Looks up a package by name.
   ///
-  /// Returns `null` if the package doesn't exist.½
+  /// Returns `null` if the package doesn't exist.
   Future<Package> lookupPackage(String packageName) async {
     final packageKey = db.emptyKey.append(Package, id: packageName);
     return await db.lookupValue<Package>(packageKey, orElse: () => null);
+  }
+
+  /// Looks up a moderated package by name.
+  ///
+  /// Returns `null` if the package doesn't exist.
+  Future<ModeratedPackage> lookupModeratedPackage(String packageName) async {
+    final packageKey = db.emptyKey.append(ModeratedPackage, id: packageName);
+    return await db.lookupValue<ModeratedPackage>(packageKey,
+        orElse: () => null);
   }
 
   /// Looks up a package by name.

@@ -186,7 +186,11 @@ Future<shelf.Response> _handlePackagePage({
     final serviceSw = Stopwatch()..start();
     final data = await _loadPackagePageData(packageName, versionName);
     _packageDataLoadLatencyTracker.add(serviceSw.elapsed);
-    if (data == null) {
+    if (data.package == null) {
+      if (data.moderatedPackage != null) {
+        final content = renderModeratedPackagePage(packageName);
+        return htmlResponse(content, status: 404);
+      }
       return redirectToSearch(packageName);
     }
     if (data.version == null) {
@@ -234,7 +238,10 @@ Future<shelf.Response> packageAdminHandler(
 Future<PackagePageData> _loadPackagePageData(
     String packageName, String versionName) async {
   final package = await packageBackend.lookupPackage(packageName);
-  if (package == null) return null;
+  if (package == null) {
+    final moderated = await packageBackend.lookupModeratedPackage(packageName);
+    return PackagePageData.missing(package: null, moderatedPackage: moderated);
+  }
 
   final bool isLiked = (userSessionData == null)
       ? false
@@ -245,7 +252,7 @@ Future<PackagePageData> _loadPackagePageData(
   final selectedVersion = await packageBackend.lookupPackageVersion(
       packageName, versionName ?? package.latestVersion);
   if (selectedVersion == null) {
-    return PackagePageData.missingVersion(package: package);
+    return PackagePageData.missing(package: package);
   }
 
   final analysisView = await analyzerClient.getAnalysisView(
