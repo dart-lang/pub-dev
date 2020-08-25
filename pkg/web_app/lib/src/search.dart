@@ -4,56 +4,11 @@
 
 import 'dart:html';
 
-import 'package:web_app/src/page_data.dart';
-
 void setupSearch() {
-  _setBackToReferrer();
   _setEventForSearchInput();
   _setEventForFiltersToggle();
   _setEventForSortControl();
   _setEventForCheckboxChanges();
-}
-
-final _acceptedSearchPaths = <Pattern>[
-  RegExp(r'^/packages(?:\?|$)'),
-  RegExp(r'^/dart/packages(?:\?|$)'),
-  RegExp(r'^/flutter/packages(?:\?|$)'),
-  RegExp(r'^/flutter/favorites(?:\?|$)'),
-  RegExp(r'^/publishers/([a-z0-9-]{1,63}\.)+[a-z0-9-]{1,63}/packages(?:\?|$)'),
-];
-
-void _setBackToReferrer() {
-  final bannerContainerElem = document.getElementById('banner-container');
-  if (bannerContainerElem == null) return;
-
-  // abort if not on a package page
-  if (!pageData.isPackagePage) return;
-
-  // Abort if there is no referrer or if it is not a valid URL.
-  final ref = document.referrer;
-  if (ref == null || ref.isEmpty) return;
-  final refUri = Uri.tryParse(ref);
-  if (refUri == null) return;
-
-  // abort if the scheme://hostname[:port]/ is different
-  // - location.protocol already contains the colon
-  // - location.host already contains the :port
-  final loc = window.location;
-  final prefix = '${loc.protocol}//${loc.host}/';
-  if (!ref.startsWith(prefix)) return;
-
-  // Abort if the referrer was not a search (packages) page.
-  if (!_acceptedSearchPaths.any((p) => p.matchAsPrefix(refUri.path) != null)) {
-    return;
-  }
-
-  // create Element
-  bannerContainerElem.append(Element.div()
-    ..classes.add('back-to-referrer')
-    ..append(Element.a()
-      ..classes.add('back-to-referrer-link')
-      ..attributes['href'] = ref
-      ..text = 'Back to search'));
 }
 
 void _setEventForSearchInput() {
