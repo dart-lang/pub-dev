@@ -462,16 +462,15 @@ class PackageBackend {
 
     // Add the new package to the repository by storing the tarball and
     // inserting metadata to datastore (which happens atomically).
-    final pv = await db.withTransaction<PackageVersion>((Transaction T) async {
+    final pv = await withRetryTransaction(db, (tx) async {
       _logger.info('Starting datastore transaction.');
 
-      final tuple = (await T.lookup([newVersion.key, newVersion.packageKey]));
+      final tuple = (await tx.lookup([newVersion.key, newVersion.packageKey]));
       final version = tuple[0] as PackageVersion;
       package = tuple[1] as Package;
 
       // If the version already exists, we fail.
       if (version != null) {
-        await T.rollback();
         _logger.info('Version ${version.version} of package '
             '${version.package} already exists, rolling transaction back.');
         throw PackageRejectedException.versionExists(
@@ -482,7 +481,6 @@ class PackageBackend {
       if (package == null &&
           matchesReservedPackageName(newVersion.package) &&
           !user.email.endsWith('@google.com')) {
-        await T.rollback();
         throw PackageRejectedException.nameReserved(newVersion.package);
       }
 
@@ -493,7 +491,6 @@ class PackageBackend {
       } else if (!await packageBackend.isPackageAdmin(package, user.userId)) {
         _logger.info('User ${user.userId} (${user.email}) is not an uploader '
             'for package ${package.name}, rolling transaction back.');
-        await T.rollback();
         throw AuthorizationException.userCannotUploadNewVersion(package.name);
       }
 
@@ -504,52 +501,32 @@ class PackageBackend {
       package.updateVersion(newVersion);
       package.updated = DateTime.now().toUtc();
 
-      try {
-        _logger.info(
-          'Trying to upload tarball for ${package.name} version ${newVersion.version} to cloud storage.',
-        );
-        // Apply update: Push to cloud storage
-        await tarballUpload(package.name, newVersion.version);
+      _logger.info(
+        'Trying to upload tarball for ${package.name} version ${newVersion.version} to cloud storage.',
+      );
+      // Apply update: Push to cloud storage
+      await tarballUpload(package.name, newVersion.version);
 
-        final inserts = <Model>[
-          package,
-          newVersion,
-          validatedUpload.packageVersionPubspec,
-          validatedUpload.packageVersionInfo,
-          ...validatedUpload.assets,
-        ];
-        if (historyBackend.isEnabled) {
-          final history = History.entry(PackageUploaded(
-            packageName: newVersion.package,
-            packageVersion: newVersion.version,
-            uploaderId: user.userId,
-            uploaderEmail: user.email,
-            timestamp: newVersion.created,
-          ));
-          inserts.add(history);
-        }
+      final inserts = <Model>[
+        package,
+        newVersion,
+        validatedUpload.packageVersionPubspec,
+        validatedUpload.packageVersionInfo,
+        ...validatedUpload.assets,
+        History.entry(PackageUploaded(
+          packageName: newVersion.package,
+          packageVersion: newVersion.version,
+          uploaderId: user.userId,
+          uploaderEmail: user.email,
+          timestamp: newVersion.created,
+        )),
+      ];
 
-        // Apply update: Update datastore.
-        _logger.info('Trying to commit datastore changes.');
-        T.queueMutations(inserts: inserts);
-        await T.commit();
-
-        _logger.info('Upload successful. [package-uploaded]');
-        return newVersion;
-      } catch (error, stack) {
-        _logger.warning('Error while committing: $error, $stack');
-
-        // This call might fail if the transaction has already been
-        // committed/rolled back or the transaction failed.
-        //
-        // In which case we simply ignore the rollback error and rethrow the
-        // original error.
-        try {
-          await T.rollback();
-        } catch (_) {}
-        rethrow;
-      }
+      _logger.info('Trying to commit datastore changes.');
+      tx.queueMutations(inserts: inserts);
+      return newVersion;
     });
+    _logger.info('Upload successful. [package-uploaded]');
 
     _logger.info('Invalidating cache for package ${newVersion.package}.');
     await purgePackageCache(newVersion.package);

@@ -52,24 +52,29 @@ Future<T> withTransaction<T>(
   DatastoreDB db,
   Future<T> Function(TransactionWrapper tx) fn,
 ) async {
-  return db.withTransaction<T>((tx) async {
-    bool commitAttempted = false;
-    try {
-      final wrapper = TransactionWrapper._(tx);
-      final retval = await fn(wrapper);
-      if (wrapper._mutated) {
-        commitAttempted = true;
-        await tx.commit();
+  try {
+    return await db.withTransaction<T>((tx) async {
+      bool commitAttempted = false;
+      try {
+        final wrapper = TransactionWrapper._(tx);
+        final retval = await fn(wrapper);
+        if (wrapper._mutated) {
+          commitAttempted = true;
+          await tx.commit();
+        }
+        return retval;
+      } finally {
+        // If a commit has been attempted trying to rollback will always throw
+        // a StateError, hence, we never try to rollback if commit was attempted
+        if (!commitAttempted) {
+          await tx.rollback();
+        }
       }
-      return retval;
-    } finally {
-      // If a commit has been attempted trying to rollback will always throw
-      // a StateError, hence, we never try to rollback if commit was attempted
-      if (!commitAttempted) {
-        await tx.rollback();
-      }
-    }
-  });
+    });
+  } catch (e, st) {
+    _logger.info('Transaction failed.', e, st);
+    rethrow;
+  }
 }
 
 /// Transaction retry options.
