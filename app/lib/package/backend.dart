@@ -513,17 +513,14 @@ class PackageBackend {
         validatedUpload.packageVersionPubspec,
         validatedUpload.packageVersionInfo,
         ...validatedUpload.assets,
-      ];
-      if (historyBackend.isEnabled) {
-        final history = History.entry(PackageUploaded(
+        History.entry(PackageUploaded(
           packageName: newVersion.package,
           packageVersion: newVersion.version,
           uploaderId: user.userId,
           uploaderEmail: user.email,
           timestamp: newVersion.created,
-        ));
-        inserts.add(history);
-      }
+        )),
+      ];
 
       _logger.info('Trying to commit datastore changes.');
       tx.queueMutations(inserts: inserts);
