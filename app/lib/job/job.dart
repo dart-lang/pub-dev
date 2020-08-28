@@ -29,15 +29,12 @@ typedef AliveCallback = Function();
 
 abstract class JobProcessor {
   final JobService service;
-  final Duration lockDuration;
   final String _serviceAsString;
   final AliveCallback _aliveCallback;
   final _trackers = <String, DurationTracker>{};
 
   JobProcessor({
     @required this.service,
-    this.lockDuration,
-
     /// [JobProcessor] calls this to indicate that it is still alive and working.
     /// It is expected to be called between jobs.
     AliveCallback aliveCallback,
@@ -58,7 +55,7 @@ abstract class JobProcessor {
       var statEvent = 'failed';
       try {
         final job =
-            await jobBackend.lockAvailable(service, lockDuration: lockDuration);
+            await jobBackend.lockAvailable(service);
         if (job != null) {
           jobDescription = '${job.packageName} ${job.packageVersion}';
           _logger.info('$_serviceAsString job started: $jobDescription');

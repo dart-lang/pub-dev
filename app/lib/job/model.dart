@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:math' as math;
-
 import 'package:gcloud/db.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -110,25 +108,22 @@ class Job extends ExpandoModel<String> {
     final age = now.difference(packageVersionUpdated).abs();
     priority += age.inDays;
 
-    // popular packages first
-    if (isLatestStable &&
+    // popular packages first - except fresh uploads which are not pushed back
+    // based on their popularity.
+    if (age.inHours >= 8 &&
         popularity != null &&
         popularity >= 0.0 &&
         popularity <= 1.0) {
-      priority += ((1 - popularity) * 1000).round();
-    } else {
-      priority += 2000;
+      priority += ((1 - popularity) * 2000).round();
     }
 
     // non-latest stable versions get pushed back in the queue
     if (!isLatestStable) {
       priority += 100000;
-      priority +=
-          math.max(0, age.inDays - 180) * 100; // penalty for older versions
     }
 
     // errors encountered, pushing it back in the queue
-    priority += math.min(errorCount, 100) * 1000 + errorCount;
+    priority += errorCount * 100;
   }
 }
 

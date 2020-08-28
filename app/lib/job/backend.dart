@@ -22,7 +22,8 @@ import 'model.dart';
 export 'model.dart';
 
 const _defaultLockDuration = Duration(hours: 1);
-const _extendDuration = Duration(hours: 12);
+const _shortExtendDuration = Duration(hours: 12);
+const _longExtendDuration = Duration(days: 3);
 
 final _logger = Logger('pub.job.backend');
 final _random = math.Random.secure();
@@ -104,7 +105,7 @@ class JobBackend {
     final id = _id(service, package, version);
     final state = shouldProcess ? JobState.available : JobState.idle;
     final lockedUntil =
-        shouldProcess ? null : DateTime.now().add(_extendDuration);
+        shouldProcess ? null : DateTime.now().add(_shortExtendDuration);
     await _retryWithTransaction((tx) async {
       final list = await tx.lookup([_db.emptyKey.append(Job, id: id)]);
       final current = list.single as Job;
@@ -162,7 +163,7 @@ class JobBackend {
     });
   }
 
-  Future<Job> lockAvailable(JobService service, {Duration lockDuration}) async {
+  Future<Job> lockAvailable(JobService service) async {
     final query = _db.query<Job>()
       ..filter('runtimeVersion =', versions.runtimeVersion)
       ..filter('service =', service)
@@ -182,7 +183,11 @@ class JobBackend {
     if (list.isEmpty) return null;
 
     return await _retryWithTransaction((tx) async {
-      final selectedId = list[_random.nextInt(list.length)].id;
+      // Select from the available list randomly, with a preferential bias
+      // towards the first part of the available items.
+      final r1 = _random.nextInt(list.length);
+      final r2 = r1 < 20 ? r1 : _random.nextInt(list.length);
+      final selectedId = list[r2].id;
       final items = await tx.lookup([_db.emptyKey.append(Job, id: selectedId)]);
       final selected = items.single as Job;
       if (!isApplicable(selected)) return null;
@@ -190,7 +195,7 @@ class JobBackend {
       selected
         ..state = JobState.processing
         ..processingKey = createUuid()
-        ..lockedUntil = now.add(lockDuration ?? _defaultLockDuration);
+        ..lockedUntil = now.add(_defaultLockDuration);
       tx.queueMutations(inserts: [selected]);
       await tx.commit();
       return selected;
@@ -258,7 +263,7 @@ class JobBackend {
             current.lockedUntil == job.lockedUntil) {
           current
             ..processingKey = null
-            ..lockedUntil = DateTime.now().toUtc().add(_extendDuration);
+            ..lockedUntil = DateTime.now().toUtc().add(_shortExtendDuration);
           tx.queueMutations(inserts: [current]);
           await tx.commit();
         }
@@ -286,8 +291,7 @@ class JobBackend {
     }
   }
 
-  Future<void> complete(Job job, JobStatus status,
-      {Duration extendDuration}) async {
+  Future<void> complete(Job job, JobStatus status) async {
     await _retryWithTransaction((tx) async {
       final items = await tx.lookup([_db.emptyKey.append(Job, id: job.id)]);
       final selected = items.single as Job;
@@ -306,7 +310,7 @@ class JobBackend {
           ..lastStatus = status
           ..processingKey = null
           ..errorCount = errorCount
-          ..lockedUntil = _extendLock(errorCount, duration: extendDuration)
+          ..lockedUntil = _extendLock(errorCount)
           ..updatePriority(popularityStorage.lookup(selected.packageName));
         tx.queueMutations(inserts: [selected]);
         await tx.commit();
@@ -339,10 +343,15 @@ class JobBackend {
     return stats.toMap();
   }
 
-  DateTime _extendLock(int errorCount, {Duration duration}) {
+  DateTime _extendLock(int errorCount) {
+    // If the Job completed without issues, or if the issues keep repeating more
+    // than 3 times, the Job is forced to be idle for longer period.
+    final extend = (errorCount == 0 || errorCount > 3)
+        ? _longExtendDuration
+        : _shortExtendDuration;
     return DateTime.now()
         .toUtc()
-        .add(duration ?? _extendDuration)
+        .add(extend)
         .add(Duration(hours: math.min(errorCount, 168 /* one week */)));
   }
 

@@ -21,11 +21,9 @@ class AnalyzerJobProcessor extends JobProcessor {
   final _urlChecker = UrlChecker();
 
   AnalyzerJobProcessor({
-    Duration lockDuration,
     @required AliveCallback aliveCallback,
   }) : super(
           service: JobService.analyzer,
-          lockDuration: lockDuration,
           aliveCallback: aliveCallback,
         );
 
