@@ -354,12 +354,32 @@ void main() {
         expect(pd.isDiscontinued, isNull);
       });
 
-      testWithServices('tags', () async {
+      testWithServices('isDiscontinued', () async {
         registerAuthenticatedUser(hansUser);
         await packageBackend.updateOptions(
             'hydrogen', PkgOptions(isDiscontinued: true));
         final pd = await packageBackend.listVersions(baseUri, 'hydrogen');
         expect(pd.isDiscontinued, isTrue);
+      });
+    });
+
+    group('options', () {
+      testWithServices('discontinued', () async {
+        registerAuthenticatedUser(hansUser);
+        await packageBackend.updateOptions(
+            'hydrogen', PkgOptions(isDiscontinued: true));
+        final p = await packageBackend.lookupPackage('hydrogen');
+        expect(p.isDiscontinued, isTrue);
+        expect(p.isUnlisted, isFalse);
+      });
+
+      testWithServices('unlisted', () async {
+        registerAuthenticatedUser(hansUser);
+        await packageBackend.updateOptions(
+            'hydrogen', PkgOptions(isUnlisted: true));
+        final p = await packageBackend.lookupPackage('hydrogen');
+        expect(p.isDiscontinued, isFalse);
+        expect(p.isUnlisted, isTrue);
       });
     });
   });

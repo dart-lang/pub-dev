@@ -272,6 +272,7 @@ Future<PkgOptions> getPackageOptionsHandler(
   }
   return PkgOptions(
     isDiscontinued: p.isDiscontinued,
+    isUnlisted: p.isUnlisted,
   );
 }
 

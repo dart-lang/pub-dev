@@ -78,6 +78,7 @@ PackageOptionsChanged _$PackageOptionsChangedFromJson(
     userId: json['userId'] as String,
     userEmail: json['userEmail'] as String,
     isDiscontinued: json['isDiscontinued'] as bool,
+    isUnlisted: json['isUnlisted'] as bool,
     timestamp: json['timestamp'] == null
         ? null
         : DateTime.parse(json['timestamp'] as String),
@@ -98,6 +99,7 @@ Map<String, dynamic> _$PackageOptionsChangedToJson(
   writeNotNull('userId', instance.userId);
   writeNotNull('userEmail', instance.userEmail);
   writeNotNull('isDiscontinued', instance.isDiscontinued);
+  writeNotNull('isUnlisted', instance.isUnlisted);
   writeNotNull('timestamp', instance.timestamp?.toIso8601String());
   return val;
 }

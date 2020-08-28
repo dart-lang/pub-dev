@@ -24,12 +24,14 @@ Map<String, dynamic> _$UploadInfoToJson(UploadInfo instance) =>
 PkgOptions _$PkgOptionsFromJson(Map<String, dynamic> json) {
   return PkgOptions(
     isDiscontinued: json['isDiscontinued'] as bool,
+    isUnlisted: json['isUnlisted'] as bool,
   );
 }
 
 Map<String, dynamic> _$PkgOptionsToJson(PkgOptions instance) =>
     <String, dynamic>{
       'isDiscontinued': instance.isDiscontinued,
+      'isUnlisted': instance.isUnlisted,
     };
 
 PackagePublisherInfo _$PackagePublisherInfoFromJson(Map<String, dynamic> json) {
