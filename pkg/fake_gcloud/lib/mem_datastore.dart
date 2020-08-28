@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:gcloud/common.dart';
@@ -217,6 +218,101 @@ class MemDatastore implements Datastore {
   @override
   Future<void> rollback(Transaction transaction) async {
     return null;
+  }
+
+  /// Serializes the content of the Datastore to the [sink], with a line-by-line
+  /// JSON-encoded data format.
+  void writeTo(StringSink sink) async {
+    _entities.forEach((_, entity) {
+      sink.writeln(json.encode({'entity': _encodeEntity(entity)}));
+    });
+    sink.writeln(json.encode({'_unusedId': _unusedId}));
+  }
+
+  /// Reads content as a line-by-line JSON-encoded data format.
+  void readFrom(Iterable<String> lines) {
+    for (final line in lines) {
+      if (line.isEmpty) continue;
+      final map = json.decode(line) as Map<String, dynamic>;
+      final key = map.keys.single;
+      switch (key) {
+        case '_unusedId':
+          _unusedId = math.max(_unusedId, map[key] as int);
+          break;
+        case 'entity':
+          final entity = _decodeEntity(map[key] as Map<String, dynamic>);
+          _entities[entity.key] = entity;
+          break;
+        default:
+          throw UnimplementedError('Unknown key: $key');
+      }
+    }
+  }
+
+  dynamic _encodeValue(Object value) {
+    if (value == null) return null;
+    if (value is String || value is int || value is double || value is bool) {
+      return value;
+    }
+    if (value is DateTime) {
+      return {'datetime': value.toUtc().toIso8601String()};
+    }
+    if (value is List<int>) {
+      return {'bytes': base64.encode(value)};
+    }
+    throw UnimplementedError('Unhandled type: ${value.runtimeType} ($value).');
+  }
+
+  dynamic _decodeValue(Object value) {
+    if (value == null) return null;
+    if (value is String || value is int || value is double || value is bool) {
+      return value;
+    }
+    if (value is Map<String, dynamic>) {
+      final key = value.keys.single;
+      switch (key) {
+        case 'datetime':
+          return DateTime.parse(value[key] as String);
+        case 'bytes':
+          return base64.decode(value[key] as String);
+        default:
+          throw UnimplementedError('Unknown key: $key');
+      }
+    }
+    throw UnimplementedError('Unhandled type: ${value.runtimeType} ($value).');
+  }
+
+  Map<String, dynamic> _encodeEntity(Entity entity) {
+    return <String, dynamic>{
+      'key': {
+        'partition': entity.key.partition?.namespace,
+        'elements': entity.key.elements
+            .map((e) => {
+                  'kind': e.kind,
+                  'id': e.id,
+                })
+            .toList(),
+      },
+      'props': entity.properties
+          .map((key, value) => MapEntry(key, _encodeValue(value))),
+      'unindexed': entity.unIndexedProperties?.toList(),
+    };
+  }
+
+  Entity _decodeEntity(Map<String, dynamic> json) {
+    final keyMap = json['key'] as Map<String, dynamic>;
+    final partition = keyMap['partition'] as String;
+    final elements = (keyMap['elements'] as List)
+        .cast<Map<String, dynamic>>()
+        .map((e) => KeyElement(e['kind'] as String, e['id']))
+        .toList();
+    final key = Key(elements,
+        partition: partition == null ? null : Partition(partition));
+
+    final props = (json['props'] as Map<String, dynamic>)
+        .map((k, v) => MapEntry(k, _decodeValue(v)));
+    final unindexed = (json['unindexed'] as List).cast<String>();
+    return Entity(key, props, unIndexedProperties: unindexed?.toSet());
   }
 }
 

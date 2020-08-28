@@ -204,7 +204,8 @@ void main() {
   });
 
   group('hierarchies', () {
-    final db = DatastoreDB(MemDatastore());
+    final store = MemDatastore();
+    final db = DatastoreDB(store);
 
     setUpAll(() async {
       await db.commit(inserts: [
@@ -219,7 +220,8 @@ void main() {
           ..id = 'node-1'
           ..type = 'node-type'
           ..updated = DateTime(2019, 02, 26)
-          ..count = 4,
+          ..count = 4
+          ..content = 'abc123',
       ]);
     });
 
@@ -244,6 +246,31 @@ void main() {
       final list = (await q.run().toList()).map((s) => s.id).toList();
       list.sort();
       expect(list, isEmpty);
+    });
+
+    test('write and read', () async {
+      final sb = StringBuffer();
+      store.writeTo(sb);
+      expect(sb.length, 470);
+      final newStore = MemDatastore()..readFrom(sb.toString().split('\n'));
+      final newDb = DatastoreDB(newStore);
+
+      final q = newDb.query<Sample>(
+          ancestorKey: newDb.emptyKey.append(Sample, id: 'root'));
+      final list = (await q.run().toList())
+          .map((s) => {
+                'id': s.id,
+                'updated': s.updated,
+                'count': s.count,
+                'content': s.content,
+              })
+          .toList();
+      expect(list.single, {
+        'id': 'node-1',
+        'updated': DateTime(2019, 02, 26).toUtc(),
+        'count': 4,
+        'content': 'abc123',
+      });
     });
   });
 }

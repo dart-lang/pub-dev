@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart';
 import 'package:gcloud/storage.dart';
@@ -66,6 +67,56 @@ class MemStorage implements Storage {
         .read(srcUri.path.substring(1))
         .pipe(bucket(destUri.host).write(destUri.path.substring(1)));
   }
+
+  /// Serializes the content of the Storage to the [sink], with a line-by-line
+  /// JSON-encoded data format.
+  void writeTo(StringSink sink) {
+    for (final bucket in _buckets.values) {
+      for (final file in bucket._files.values) {
+        sink.writeln(json.encode({'file': _encodeFile(file)}));
+      }
+    }
+  }
+
+  /// Reads content as a line-by-line JSON-encoded data format.
+  void readFrom(Iterable<String> lines) {
+    for (final line in lines) {
+      if (line.isEmpty) continue;
+      final map = json.decode(line) as Map<String, dynamic>;
+      final key = map.keys.single;
+      switch (key) {
+        case 'file':
+          final file = _decodeFile(map[key] as Map<String, dynamic>);
+          _buckets
+              .putIfAbsent(file.bucketName, () => _Bucket(file.bucketName))
+              ._files[file.name] = file;
+          break;
+        default:
+          throw UnimplementedError('Unknown key: $key');
+      }
+    }
+  }
+
+  Map<String, dynamic> _encodeFile(_File file) {
+    return <String, dynamic>{
+      'bucket': file.bucketName,
+      'name': file.name,
+      'content': base64.encode(file.content),
+      'updated': file.updated.toUtc().toIso8601String(),
+      'metadata': null, // TODO: add metadata support
+    };
+  }
+
+  _File _decodeFile(Map<String, dynamic> map) {
+    final content = base64.decode(map['content'] as String);
+    final updated = DateTime.parse(map['updated'] as String);
+    return _File(
+      bucketName: map['bucket'] as String,
+      name: map['name'] as String,
+      content: content,
+      updated: updated,
+    );
+  }
 }
 
 class _File implements ObjectInfo {
@@ -84,9 +135,10 @@ class _File implements ObjectInfo {
     @required this.bucketName,
     @required this.name,
     @required this.content,
+    DateTime updated,
   })  : // TODO: use a real CRC32 check
         crc32CChecksum = content.fold<int>(0, (a, b) => a + b) & 0xffffffff,
-        updated = DateTime.now().toUtc(),
+        updated = updated ?? DateTime.now().toUtc(),
         metadata = ObjectMetadata(acl: Acl([]));
 
   @override
