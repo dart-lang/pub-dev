@@ -19,6 +19,36 @@ class PubHttpClient {
     }
   }
 
+  /// Forces the analyzer jobs to update and run.
+  ///
+  /// This works only with the local fake_pub_server instance, because the
+  /// current implementation is blocking the analyzer instance, and we don't
+  /// want to expose such functionality in production.
+  Future<void> forceAnalyzerUpdate() async {
+    final url = '$pubHostedUrl/fake-update-analyzer';
+    final rs = await _http.post(url);
+    if (rs.statusCode == 200) {
+      return;
+    }
+    throw UnsupportedError(
+        'Forced analyzer update is supported only on fake pub server.');
+  }
+
+  /// Forces the dartdoc jobs to update and run.
+  ///
+  /// This works only with the local fake_pub_server instance, because the
+  /// current implementation is blocking the dartdoc instance, and we don't
+  /// want to expose such functionality in production.
+  Future<void> forceDartdocUpdate() async {
+    final url = '$pubHostedUrl/fake-update-dartdoc';
+    final rs = await _http.post(url);
+    if (rs.statusCode == 200) {
+      return;
+    }
+    throw UnsupportedError(
+        'Forced dartdoc update is supported only on fake pub server.');
+  }
+
   /// Forces the search index to update.
   ///
   /// This works only with the local fake_pub_server instance, because the

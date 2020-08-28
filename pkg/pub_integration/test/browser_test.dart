@@ -20,6 +20,7 @@ void main() {
 
   group('browser', () {
     FakePubServerProcess fakePubServerProcess;
+    BaseSetupScript script;
     HeadlessEnv headlessEnv;
     final httpClient = http.Client();
 
@@ -29,6 +30,7 @@ void main() {
     });
 
     tearDownAll(() async {
+      await script?.close();
       await headlessEnv?.close();
       await fakePubServerProcess?.kill();
       httpClient.close();
@@ -38,12 +40,16 @@ void main() {
       }
     });
 
-    test('run base setup script', () async {
-      final script = BaseSetupScript(
+    test('base setup: publish packages', () async {
+      script = BaseSetupScript(
         pubHostedUrl: 'http://localhost:${fakePubServerProcess.port}',
         credentialsFileContent: fakeCredentialsFileContent(),
       );
-      await script.setup();
+      await script.publishPackages();
+    });
+
+    test('base setup: update pub site', () async {
+      await script.updatePubSite();
     });
 
     // Starting browser separately, as it may timeout when run together with the
@@ -98,6 +104,13 @@ void main() {
           await page.goto(
               'http://localhost:${fakePubServerProcess.port}/packages/retry',
               wait: Until.networkIdle);
+
+          // check pub score
+          final pubScoreElem = await page
+              .$('.packages-score-health .packages-score-value-number');
+          final pubScore =
+              await (await (pubScoreElem).property('textContent')).jsonValue;
+          expect(pubScore, '80');
 
           // check header with name and version
           Future<void> checkHeaderTitle() async {
