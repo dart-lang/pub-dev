@@ -35,6 +35,7 @@ abstract class JobProcessor {
 
   JobProcessor({
     @required this.service,
+
     /// [JobProcessor] calls this to indicate that it is still alive and working.
     /// It is expected to be called between jobs.
     AliveCallback aliveCallback,
@@ -54,8 +55,7 @@ abstract class JobProcessor {
       final sw = Stopwatch()..start();
       var statEvent = 'failed';
       try {
-        final job =
-            await jobBackend.lockAvailable(service);
+        final job = await jobBackend.lockAvailable(service);
         if (job != null) {
           jobDescription = '${job.packageName} ${job.packageVersion}';
           _logger.info('$_serviceAsString job started: $jobDescription');
