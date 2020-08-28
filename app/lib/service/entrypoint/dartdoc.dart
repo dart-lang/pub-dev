@@ -81,7 +81,6 @@ Future _workerMain(WorkerEntryMessage message) async {
     await popularityStorage.init();
 
     final jobProcessor = DartdocJobProcessor(
-      lockDuration: const Duration(minutes: 30),
       aliveCallback: () => message.aliveSendPort.send(null),
     );
     await jobProcessor.generateDocsForSdk();

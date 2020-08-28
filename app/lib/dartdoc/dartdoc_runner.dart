@@ -42,11 +42,9 @@ final _pkgPubDartdocDir =
 
 class DartdocJobProcessor extends JobProcessor {
   DartdocJobProcessor({
-    Duration lockDuration,
     @required AliveCallback aliveCallback,
   }) : super(
           service: JobService.dartdoc,
-          lockDuration: lockDuration,
           aliveCallback: aliveCallback,
         );
 
