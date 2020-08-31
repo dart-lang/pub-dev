@@ -16,6 +16,7 @@ import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 import '../frontend/static_files.dart';
 import '../job/backend.dart';
 import '../job/job.dart';
+import '../package/backend.dart';
 import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
 import '../shared/configuration.dart';
@@ -159,7 +160,7 @@ class DartdocJobProcessor extends JobProcessor {
     final toolEnvRef = await getOrCreateToolEnvRef();
 
     final latestVersion =
-        await dartdocBackend.getLatestVersion(job.packageName);
+        await packageBackend.getLatestVersion(job.packageName);
     final bool isLatestStable = latestVersion == job.packageVersion;
     bool depsResolved = false;
     DartdocResult dartdocResult;

@@ -19,6 +19,7 @@ import 'package:retry/retry.dart';
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 
 import '../dartdoc/models.dart' show DartdocEntry;
+import '../package/backend.dart';
 import '../package/models.dart' show Package, PackageVersion;
 import '../scorecard/backend.dart';
 import '../shared/redis_cache.dart' show cache;
@@ -76,13 +77,6 @@ class DartdocBackend {
   /// Schedules the delete of old data files.
   void scheduleOldDataGC() {
     _sdkStorage.scheduleOldDataGC();
-  }
-
-  /// Returns the latest stable version of a package.
-  Future<String> getLatestVersion(String package) async {
-    final list = await _db.lookup([_db.emptyKey.append(Package, id: package)]);
-    final p = list.single as Package;
-    return p?.latestVersion;
   }
 
   Future<List<String>> getLatestVersions(String package,
@@ -230,7 +224,7 @@ class DartdocBackend {
     if (version != 'latest') {
       entry = await loadVersion(version);
     } else {
-      final latestVersion = await dartdocBackend.getLatestVersion(package);
+      final latestVersion = await packageBackend.getLatestVersion(package);
       if (latestVersion == null) {
         return null;
       }
