@@ -15,6 +15,7 @@ import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' show runProc;
+import 'package:path/path.dart' as p;
 import 'package:pub_package_reader/pub_package_reader.dart';
 
 import '../account/backend.dart';
@@ -824,21 +825,36 @@ Future<void> _verifyTarball(String filename) async {
 // is any symlink in the archive.
 @visibleForTesting
 Future<void> verifyTarGzSymlinks(String filename) async {
-  // Check if the file has any symlink.
-  final pr = await runProc('tar', ['-tvf', filename]);
-  if (pr.exitCode != 0) {
-    _logger.info('Rejecting package: tar returned with ${pr.exitCode}\n'
-        '${pr.stdout}\n${pr.stderr}');
-    throw PackageRejectedException.invalidTarGz();
+  Future<List<String>> listFiles(bool verbose) async {
+    final pr = await runProc(
+      'tar',
+      [verbose ? '-tvf' : '-tf', filename],
+    );
+    if (pr.exitCode != 0) {
+      _logger.info('Rejecting package: tar returned with ${pr.exitCode}\n'
+          '${pr.stdout}\n${pr.stderr}');
+      throw PackageRejectedException.invalidTarGz();
+    }
+    return pr.stdout.toString().split('\n');
   }
-  final lines = pr.stdout.toString().split('\n');
-  for (final line in lines) {
+
+  final fileNames = (await listFiles(false)).toSet();
+  final verboseLines = await listFiles(true);
+  // Check if the file has any symlink.
+  for (final line in verboseLines) {
     if (line.startsWith('l')) {
       // report only the source path
       // if output is non-standard for any reason, this reports the full line
       final parts = line.split(' -> ');
       final source = parts.first.split(' ').last;
-      throw PackageRejectedException.containsSymlink(source);
+      final target = parts.last;
+      if (p.isAbsolute(target)) {
+        throw PackageRejectedException.brokenSymlink(source, target);
+      }
+      final resolvedPath = p.normalize(Uri(path: source).resolve(target).path);
+      if (!fileNames.contains(resolvedPath)) {
+        throw PackageRejectedException.brokenSymlink(source, target);
+      }
     }
   }
 }
