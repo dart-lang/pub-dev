@@ -185,10 +185,11 @@ class PackageRejectedException extends ResponseException {
       : super._(400, 'PackageRejected',
             'Package archive is not a valid `.tar.gz`.');
 
-  /// The package archive file contains a symlink.
-  PackageRejectedException.containsSymlink(String source)
+  /// The package archive file contains a broken symlink (outside of the archive
+  /// or file does not exists).
+  PackageRejectedException.brokenSymlink(String source, String target)
       : super._(400, 'PackageRejected',
-            'Package archive contains a symlink: `$source`.');
+            'Package archive contains a broken symlink: `$source` -> `$target`.');
 
   /// The [package] name is reserved.
   PackageRejectedException.nameReserved(String package)
