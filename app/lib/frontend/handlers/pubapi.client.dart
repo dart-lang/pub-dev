@@ -364,6 +364,14 @@ class PubApiClient {
     );
   }
 
+  Future<List<int>> adminRemovePackageVersion(
+      String package, String version) async {
+    return await _client.requestBytes(
+      verb: 'delete',
+      path: '/api/admin/packages/$package/versions/$version',
+    );
+  }
+
   Future<_i6.AssignedTags> adminGetAssignedTags(String package) async {
     return _i6.AssignedTags.fromJson(await _client.requestJson(
       verb: 'get',

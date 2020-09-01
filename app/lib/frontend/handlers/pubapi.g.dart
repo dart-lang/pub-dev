@@ -645,6 +645,21 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
+  router.add('DELETE', r'/api/admin/packages/<package>/versions/<version>',
+      (Request request, String package, String version) async {
+    try {
+      final _$result = await service.adminRemovePackageVersion(
+        request,
+        package,
+        version,
+      );
+      return _$result;
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
   router.add('GET', r'/api/admin/packages/<package>/assigned-tags',
       (Request request, String package) async {
     try {

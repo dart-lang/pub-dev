@@ -311,8 +311,8 @@ class AdminBackend {
       deletes.addAll(versions.map((v) => v.key));
 
       final moderatedPkgKey =
-          dbService.emptyKey.append(ModeratedPackage, id: packageName);
-      ModeratedPackage moderatedPkg = await dbService
+          _db.emptyKey.append(ModeratedPackage, id: packageName);
+      ModeratedPackage moderatedPkg = await _db
           .lookupValue<ModeratedPackage>(moderatedPkgKey, orElse: () => null);
       if (moderatedPkg == null) {
         moderatedPkg = ModeratedPackage()
@@ -354,8 +354,8 @@ class AdminBackend {
         _db.query<PackageVersionInfo>()..filter('package =', packageName));
 
     _logger.info('Removing package from PackageVersionAsset ...');
-    await _deleteWithQuery(dbService.query<PackageVersionAsset>()
-      ..filter('package =', packageName));
+    await _deleteWithQuery(
+        _db.query<PackageVersionAsset>()..filter('package =', packageName));
 
     _logger.info('Removing package from Jobs ...');
     await _deleteWithQuery(
@@ -382,13 +382,96 @@ class AdminBackend {
         'NOTICE: Redis caches referencing the package will expire given time.');
   }
 
-  Future _deleteWithQuery<T>(Query query) async {
+  /// Removes the specific package version from the Datastore and updates other
+  /// related entities. It is safe to call [removePackageVersion] on an already
+  /// removed version, as the call is idempotent.
+  Future<void> removePackageVersion(String packageName, String version) async {
+    final caller = await _requireAdminPermission(AdminPermission.removePackage);
+
+    _logger.info('${caller.userId} (${caller.email}) initiated the delete '
+        'of package $packageName $version');
+
+    await withRetryTransaction(_db, (tx) async {
+      final Key packageKey = _db.emptyKey.append(Package, id: packageName);
+      final package = (await tx.lookup([packageKey])).first as Package;
+      if (package == null) {
+        print('Package $packageName does not exist.');
+      }
+
+      final versionsQuery = tx.query<PackageVersion>(packageKey);
+      final versions = await versionsQuery.run().toList();
+      final versionNames = versions.map((v) => v.version).toList();
+      if (versionNames.contains(version)) {
+        tx.delete(packageKey.append(PackageVersion, id: version));
+      } else {
+        print('Package $packageName does not have a version $version.');
+      }
+
+      if (versionNames.length == 1 && versionNames.single == version) {
+        throw Exception(
+            'Last version detected. Use full package removal without the version qualifier.');
+      }
+
+      bool updatePackage = false;
+      if (package != null && package.latestVersion == version) {
+        package.latestVersionKey = null;
+        updatePackage = true;
+      }
+      if (package != null && package.latestPrereleaseVersion == version) {
+        package.latestPrereleaseVersionKey = null;
+        updatePackage = true;
+      }
+      if (updatePackage) {
+        versions
+            .where((v) => v.version != version)
+            .forEach(package.updateVersion);
+        tx.insert(package);
+      }
+    });
+
+    final bucket = storageService.bucket(activeConfiguration.packageBucketName);
+    final storage = TarballStorage(storageService, bucket, '');
+    print('Removing GCS objects ...');
+    await storage.remove(packageName, version);
+
+    await dartdocBackend.removeAll(packageName, version: version);
+
+    await _deleteWithQuery(
+      _db.query<PackageVersionPubspec>()..filter('package =', packageName),
+      where: (PackageVersionPubspec info) => info.version == version,
+    );
+
+    await _deleteWithQuery(
+      _db.query<PackageVersionInfo>()..filter('package =', packageName),
+      where: (PackageVersionInfo info) => info.version == version,
+    );
+
+    await _deleteWithQuery(
+      _db.query<PackageVersionAsset>()..filter('package =', packageName),
+      where: (PackageVersionAsset asset) => asset.version == version,
+    );
+
+    await _deleteWithQuery(
+      _db.query<Job>()..filter('packageName =', packageName),
+      where: (Job job) => job.packageVersion == version,
+    );
+
+    await _deleteWithQuery(
+      _db.query<History>()..filter('packageName =', packageName),
+      where: (History history) => history.packageVersion == version,
+    );
+  }
+
+  Future _deleteWithQuery<T>(Query query, {bool Function(T item) where}) async {
     final deletes = <Key>[];
     await for (Model m in query.run()) {
-      deletes.add(m.key);
-      if (deletes.length >= 500) {
-        await _db.commit(deletes: deletes);
-        deletes.clear();
+      final shouldDelete = where == null || where(m as T);
+      if (shouldDelete) {
+        deletes.add(m.key);
+        if (deletes.length >= 500) {
+          await _db.commit(deletes: deletes);
+          deletes.clear();
+        }
       }
     }
     if (deletes.isNotEmpty) {
