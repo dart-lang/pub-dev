@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as p;
+import 'package:pub_dev/package/backend.dart';
 // ignore: implementation_imports
 import 'package:pub_package_reader/src/names.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -43,8 +44,11 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
     return redirectResponse(pkgVersionsUrl(docFilePath.package));
   }
   if (entry.isLatest == true && docFilePath.version != 'latest') {
-    return redirectResponse(pkgDocUrl(docFilePath.package,
-        isLatest: true, relativePath: docFilePath.path));
+    final version = await packageBackend.getLatestVersion(entry.packageName);
+    if (version == docFilePath.version) {
+      return redirectResponse(pkgDocUrl(docFilePath.package,
+          isLatest: true, relativePath: docFilePath.path));
+    }
   }
   if (requestMethod == 'HEAD') {
     if (!entry.hasContent && docFilePath.path.endsWith('.html')) {

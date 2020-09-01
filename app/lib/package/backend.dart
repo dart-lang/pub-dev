@@ -108,6 +108,17 @@ class PackageBackend {
     return lookupLatestVersions(packages);
   }
 
+  /// Returns the latest stable version of a package.
+  Future<String> getLatestVersion(String package) async {
+    return cache.packageLatestVersion(package).get(() async {
+      final p = await db.lookupValue<Package>(
+        db.emptyKey.append(Package, id: package),
+        orElse: () => null,
+      );
+      return p?.latestVersion;
+    });
+  }
+
   /// Looks up a package by name.
   ///
   /// Returns `null` if the package doesn't exist.
@@ -465,6 +476,7 @@ class PackageBackend {
     final newVersion = validatedUpload.packageVersion;
 
     Package package;
+    String prevLatestStableVersion;
 
     // Add the new package to the repository by storing the tarball and
     // inserting metadata to datastore (which happens atomically).
@@ -491,6 +503,7 @@ class PackageBackend {
       }
 
       // If the package does not exist, then we create a new package.
+      prevLatestStableVersion = package?.latestVersion;
       if (package == null) {
         _logger.info('New package uploaded. [new-package-uploaded]');
         package = _newPackageFromVersion(db, newVersion, user.userId);
@@ -553,19 +566,24 @@ class PackageBackend {
         ),
       );
 
-      // Trigger analysis and dartdoc generation. Dependent packages can be left
-      // out here, because the dependency graph's background polling will pick up
-      // the new upload, and will trigger analysis for the dependent packages.
-      final triggerAnalysis = analyzerClient
-          .triggerAnalysis(newVersion.package, newVersion.version, <String>{});
-      final triggerDartdoc = dartdocClient
-          .triggerDartdoc(newVersion.package, newVersion.version, <String>{});
-
       // Let's not block the upload response on these. In case of a timeout, the
       // underlying operations still go ahead, but the `Future.wait` call below
       // is not blocked on it.
-      await Future.wait([email, triggerAnalysis, triggerDartdoc])
-          .timeout(Duration(seconds: 10));
+      await Future.wait([
+        email,
+        // Trigger analysis and dartdoc generation. Dependent packages can be left
+        // out here, because the dependency graph's background polling will pick up
+        // the new upload, and will trigger analysis for the dependent packages.
+        analyzerClient.triggerAnalysis(
+            newVersion.package, newVersion.version, <String>{}),
+        dartdocClient
+            .triggerDartdoc(newVersion.package, newVersion.version, <String>{}),
+        // Trigger a new doc generation for the previous latest stable version
+        // in order to update the dartdoc entry and the canonical-urls.
+        if (prevLatestStableVersion != null)
+          dartdocClient.triggerDartdoc(
+              newVersion.package, prevLatestStableVersion, <String>{})
+      ]).timeout(Duration(seconds: 10));
     } catch (e, st) {
       final v = newVersion.qualifiedVersionKey;
       _logger.severe('Error post-processing package upload $v', e, st);
@@ -763,6 +781,7 @@ api.PackagePublisherInfo _asPackagePublisherInfo(Package p) =>
 Future<void> purgePackageCache(String package) async {
   await Future.wait([
     cache.packageData(package).purge(),
+    cache.packageLatestVersion(package).purge(),
     cache.packageView(package).purge(),
     cache.uiPackagePage(package, null).purge(),
     cache.uiIndexPage().purge(),

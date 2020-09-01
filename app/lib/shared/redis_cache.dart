@@ -122,6 +122,11 @@ class CachePatterns {
       .withPrefix('api-package-data-by-uri')
       .withTTL(Duration(minutes: 10))['$package'];
 
+  Entry<String> packageLatestVersion(String package) => _cache
+      .withPrefix('package-latest-version')
+      .withTTL(Duration(minutes: 60))
+      .withCodec(utf8)[package];
+
   Entry<PackageView> packageView(String package) => _cache
       .withPrefix('package-view')
       .withTTL(Duration(minutes: 60))
