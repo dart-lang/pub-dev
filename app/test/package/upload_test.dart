@@ -374,8 +374,7 @@ void main() {
         final pkgDir = Directory(p.join(tempDir, 'pkg'));
         await pkgDir.create(recursive: true);
         await setupDir(pkgDir.path);
-        final pr = await runProc(
-            'tar', ['--strip-components=1', '-czvf', archiveFile.path, 'pkg'],
+        final pr = await runProc('tar', ['-czvf', archiveFile.path, 'pkg'],
             workingDirectory: tempDir);
         expect(pr.exitCode, 0);
         final rs = verifyTarGzSymlinks(archiveFile.path);
@@ -396,10 +395,10 @@ void main() {
     test('has a relative symlink outside of archive', () async {
       await runArchiveVerification(
         setupDir: (pkgDir) async {
-          await Link(p.join(pkgDir, 'README.md')).create('../README.md');
+          await Link(p.join(pkgDir, 'README.md')).create('../../README.md');
         },
         expectedErrorMessage:
-            'Package archive contains a broken symlink: `README.md` -> `../README.md`.',
+            'Package archive contains a broken symlink: `pkg/README.md` -> `../../README.md`.',
       );
     });
 
@@ -409,7 +408,7 @@ void main() {
           await Link(p.join(pkgDir, 'README.md')).create('/README.md');
         },
         expectedErrorMessage:
-            'Package archive contains a broken symlink: `README.md` -> `/README.md`.',
+            'Package archive contains a broken symlink: `pkg/README.md` -> `/README.md`.',
       );
     });
 
