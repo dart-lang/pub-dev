@@ -76,6 +76,9 @@ class Package extends db.ExpandoModel<String> {
   @db.BoolProperty()
   bool isUnlisted;
 
+  // TODO: remove after the backfill was done.
+  bool get isUnlistedFlagSet => isUnlisted == true;
+
   /// Set to `true` if package should not be advertised on the front page,
   /// may otherwise be `false`.
   @db.BoolProperty(required: true)
@@ -166,7 +169,7 @@ class Package extends db.ExpandoModel<String> {
       if (assignedTags != null) ...assignedTags,
       if (isDiscontinued) PackageTags.isDiscontinued,
       if (isNewPackage()) PackageTags.isRecent,
-      if (isUnlisted) PackageTags.isUnlisted,
+      if (isUnlistedFlagSet) PackageTags.isUnlisted,
       if (doNotAdvertise) PackageTags.isNotAdvertized,
       // TODO: publisher:<publisherId>
       // TODO: uploader:<...>
