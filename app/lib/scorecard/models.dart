@@ -336,9 +336,6 @@ class PanaReport implements ReportData {
 
   final List<PkgDependency> pkgDependencies;
 
-  // TODO: remove after `2020.08.05` release is no longer accepted.
-  final List<LicenseFile> licenses;
-
   final LicenseFile licenseFile;
 
   @JsonKey(includeIfNull: false)
@@ -355,14 +352,10 @@ class PanaReport implements ReportData {
     @required this.reportStatus,
     @required this.derivedTags,
     @required this.pkgDependencies,
-    List<LicenseFile> licenses,
-    @required LicenseFile licenseFile,
+    @required this.licenseFile,
     @required this.report,
     @required this.flags,
-  })  : licenses = licenses,
-        // when reading older reports: populate field from the list of licenses
-        licenseFile = licenseFile ??
-            (licenses == null || licenses.isEmpty ? null : licenses.first);
+  });
 
   factory PanaReport.fromJson(Map<String, dynamic> json) =>
       _$PanaReportFromJson(json);
