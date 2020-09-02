@@ -193,12 +193,11 @@ class ConsentBackend {
       inviteText: action.renderInviteText(activeUserEmail, consent.args),
       consentUrl: consentUrl(consent.consentId),
     ));
-    return await _db.withTransaction<api.InviteStatus>((tx) async {
-      final c = (await tx.lookup<Consent>([consent.key])).single;
+    return await withRetryTransaction(_db, (tx) async {
+      final c = await tx.lookupValue<Consent>(consent.key);
       c.notificationCount++;
       c.lastNotified = DateTime.now().toUtc();
-      tx.queueMutations(inserts: [c]);
-      await tx.commit();
+      tx.insert(c);
       return api.InviteStatus(
           emailSent: true, nextNotification: c.nextNotification);
     });
@@ -248,11 +247,11 @@ class ConsentBackend {
     await retry(
       () async {
         await action?.onAccept(consent);
-        await _db.withTransaction((tx) async {
-          final c = (await tx.lookup<Consent>([consent.key])).single;
+        await withRetryTransaction(_db, (tx) async {
+          final c =
+              await tx.lookupValue<Consent>(consent.key, orElse: () => null);
           if (c == null) return;
-          tx.queueMutations(deletes: [c.key]);
-          await tx.commit();
+          tx.delete(c.key);
         });
       },
       maxAttempts: 3,
@@ -264,11 +263,11 @@ class ConsentBackend {
     await retry(
       () async {
         await action?.onDelete(consent);
-        await _db.withTransaction((tx) async {
-          final c = (await tx.lookup<Consent>([consent.key])).single;
+        await withRetryTransaction(_db, (tx) async {
+          final c =
+              await tx.lookupValue<Consent>(consent.key, orElse: () => null);
           if (c == null) return;
-          tx.queueMutations(deletes: [c.key]);
-          await tx.commit();
+          tx.delete(c.key);
         });
       },
       maxAttempts: 3,

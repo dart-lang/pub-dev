@@ -13,6 +13,7 @@ import 'package:logging/logging.dart';
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
 import '../history/models.dart';
+import '../shared/datastore_helper.dart';
 import '../shared/email.dart';
 import '../shared/exceptions.dart';
 import '../shared/redis_cache.dart' show cache;
@@ -40,7 +41,7 @@ class PublisherBackend {
   Future<Publisher> getPublisher(String publisherId) async {
     ArgumentError.checkNotNull(publisherId, 'publisherId');
     final pKey = _db.emptyKey.append(Publisher, id: publisherId);
-    return (await _db.lookup<Publisher>([pKey])).single;
+    return await _db.lookupValue<Publisher>(pKey, orElse: () => null);
   }
 
   /// List publishers (in no specific order, it will be listed by their
@@ -72,7 +73,7 @@ class PublisherBackend {
     final mKey = _db.emptyKey
         .append(Publisher, id: publisherId)
         .append(PublisherMember, id: userId);
-    return (await _db.lookup<PublisherMember>([mKey])).single;
+    return await _db.lookupValue<PublisherMember>(mKey, orElse: () => null);
   }
 
   /// Whether the User [userId] has admin permissions on the publisher.
@@ -124,9 +125,9 @@ class PublisherBackend {
 
     // Create the publisher
     final now = DateTime.now().toUtc();
-    await _db.withTransaction((tx) async {
+    await withRetryTransaction(_db, (tx) async {
       final key = _db.emptyKey.append(Publisher, id: publisherId);
-      final p = (await tx.lookup<Publisher>([key])).single;
+      final p = await tx.lookupValue<Publisher>(key, orElse: () => null);
       if (p != null) {
         // Check that publisher is the same as what we would create.
         if (p.created.isBefore(now.subtract(Duration(minutes: 10))) ||
@@ -175,12 +176,11 @@ class PublisherBackend {
           ),
         ),
       ]);
-      await tx.commit();
     });
 
     // Return publisher as it was created
     final key = _db.emptyKey.append(Publisher, id: publisherId);
-    final p = (await _db.lookup<Publisher>([key])).single;
+    final p = await _db.lookupValue<Publisher>(key);
     return _asPublisherInfo(p);
   }
 
@@ -208,9 +208,9 @@ class PublisherBackend {
     }
     final user = await requireAuthenticatedUser();
     await requirePublisherAdmin(publisherId, user.userId);
-    final p = await _db.withTransaction<Publisher>((tx) async {
+    final p = await withRetryTransaction(_db, (tx) async {
       final key = _db.emptyKey.append(Publisher, id: publisherId);
-      final p = (await tx.lookup<Publisher>([key])).single;
+      final p = await tx.lookupValue<Publisher>(key);
 
       // If websiteUrl has changed, check that it's under the [publisherId] domain.
       if (update.websiteUrl != null && p.websiteUrl != update.websiteUrl) {
@@ -261,8 +261,7 @@ class PublisherBackend {
       p.websiteUrl = update.websiteUrl ?? p.websiteUrl;
       p.updated = DateTime.now().toUtc();
 
-      tx.queueMutations(inserts: [p]);
-      await tx.commit();
+      tx.insert(p);
       return p;
     });
 
@@ -277,13 +276,12 @@ class PublisherBackend {
     InvalidInputException.check(
         isValidEmail(contactEmail), 'Invalid email: `$contactEmail`');
 
-    await _db.withTransaction((tx) async {
+    await withRetryTransaction(_db, (tx) async {
       final key = _db.emptyKey.append(Publisher, id: publisherId);
-      final p = (await tx.lookup<Publisher>([key])).single;
+      final p = await tx.lookupValue<Publisher>(key);
       p.contactEmail = contactEmail;
       p.updated = DateTime.now().toUtc();
-      tx.queueMutations(inserts: [p]);
-      await tx.commit();
+      tx.insert(p);
     });
   }
 
@@ -303,7 +301,8 @@ class PublisherBackend {
     final invitedUserEmail = invitedUser?.email ?? invite.email;
     if (invitedUserId != null) {
       final key = p.key.append(PublisherMember, id: invitedUserId);
-      final pm = (await _db.lookup<PublisherMember>([key])).single;
+      final pm =
+          await _db.lookupValue<PublisherMember>(key, orElse: () => null);
       InvalidInputException.checkNull(pm, 'User is already a member.');
     }
 
@@ -368,7 +367,7 @@ class PublisherBackend {
     final user = await requireAuthenticatedUser();
     final p = await requirePublisherAdmin(publisherId, user.userId);
     final key = p.key.append(PublisherMember, id: userId);
-    final pm = (await _db.lookup<PublisherMember>([key])).single;
+    final pm = await _db.lookupValue<PublisherMember>(key, orElse: () => null);
     if (pm == null) {
       throw NotFoundException.resource('member: $userId');
     }
@@ -384,7 +383,7 @@ class PublisherBackend {
     final user = await requireAuthenticatedUser();
     final p = await requirePublisherAdmin(publisherId, user.userId);
     final key = p.key.append(PublisherMember, id: userId);
-    final pm = (await _db.lookup<PublisherMember>([key])).single;
+    final pm = await _db.lookupValue<PublisherMember>(key, orElse: () => null);
     if (pm == null) {
       throw NotFoundException.resource('member: $userId');
     }
@@ -396,16 +395,15 @@ class PublisherBackend {
       // role needs to be from the allowed set of values
       InvalidInputException.checkAnyOf(
           update.role, 'role', PublisherMemberRole.values);
-      await _db.withTransaction((tx) async {
-        final current = (await tx.lookup<PublisherMember>([key])).single;
+      await withRetryTransaction(_db, (tx) async {
+        final current = await tx.lookupValue<PublisherMember>(key);
         // fall back to current role if role is not updated
         current.role = update.role ?? current.role;
         current.updated = DateTime.now().toUtc();
-        tx.queueMutations(inserts: [current]);
-        await tx.commit();
+        tx.insert(current);
       });
     }
-    final updated = (await _db.lookup<PublisherMember>([key])).single;
+    final updated = await _db.lookupValue<PublisherMember>(key);
     await purgePublisherCache(publisherId: publisherId);
     return await _asPublisherMember(updated);
   }
@@ -419,7 +417,7 @@ class PublisherBackend {
     }
 
     final key = p.key.append(PublisherMember, id: userId);
-    final pm = (await _db.lookup<PublisherMember>([key])).single;
+    final pm = await _db.lookupValue<PublisherMember>(key, orElse: () => null);
     if (pm != null) {
       final userEmail = await accountBackend.getEmailOfUserId(userId);
       final history = History.entry(
@@ -440,12 +438,12 @@ class PublisherBackend {
   /// Note: this will be retried when transaction fails due race conditions.
   Future<void> inviteConsentGranted(String publisherId, String userId) async {
     final userEmail = await accountBackend.getEmailOfUserId(userId);
-    await _db.withTransaction((tx) async {
+    await withRetryTransaction(_db, (tx) async {
       final key = _db.emptyKey
           .append(Publisher, id: publisherId)
           .append(PublisherMember, id: userId);
-      final list = await tx.lookup<PublisherMember>([key]);
-      final member = list.single;
+      final member =
+          await tx.lookupValue<PublisherMember>(key, orElse: () => null);
       if (member != null) return;
       final now = DateTime.now().toUtc();
       tx.queueMutations(inserts: [
@@ -465,7 +463,6 @@ class PublisherBackend {
           ),
         ),
       ]);
-      await tx.commit();
     });
     await purgePublisherCache(publisherId: publisherId);
   }
@@ -498,9 +495,10 @@ Future<Publisher> requirePublisherAdmin(
     throw NotFoundException('Publisher $publisherId does not exists.');
   }
 
-  final member = (await publisherBackend._db
-          .lookup<PublisherMember>([p.key.append(PublisherMember, id: userId)]))
-      .single;
+  final member = await publisherBackend._db.lookupValue<PublisherMember>(
+      p.key.append(PublisherMember, id: userId),
+      orElse: () => null);
+
   if (member == null || member.role != PublisherMemberRole.admin) {
     _logger.info(
         'Unauthorized access of Publisher($publisherId) from User($userId).');
