@@ -425,6 +425,7 @@ class AdminBackend {
         versions
             .where((v) => v.version != version)
             .forEach(package.updateVersion);
+        package.updated = DateTime.now().toUtc();
         tx.insert(package);
       }
     });
