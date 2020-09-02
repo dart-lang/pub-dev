@@ -403,6 +403,13 @@ class PubApi {
     return jsonResponse({'status': 'OK'});
   }
 
+  @EndPoint.delete('/api/admin/packages/<package>/versions/<version>')
+  Future<Response> adminRemovePackageVersion(
+      Request request, String package, String version) async {
+    await adminBackend.removePackageVersion(package, version);
+    return jsonResponse({'status': 'OK'});
+  }
+
   @EndPoint.get('/api/admin/packages/<package>/assigned-tags')
   Future<AssignedTags> adminGetAssignedTags(
     Request request,

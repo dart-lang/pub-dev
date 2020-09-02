@@ -42,6 +42,7 @@ Future<void> withStorageRetry(FutureOr<void> Function() fn) async {
       client,
       activeConfiguration.projectId,
     ));
+    ss.registerScopeExitCallback(() async => client.close());
 
     await fn();
   });

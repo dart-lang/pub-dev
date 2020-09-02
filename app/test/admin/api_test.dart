@@ -6,10 +6,11 @@ import 'dart:convert';
 
 import 'package:client_data/admin_api.dart';
 import 'package:gcloud/db.dart';
-import 'package:pub_dev/account/models.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dev/package/models.dart';
@@ -160,6 +161,7 @@ void main() {
         await expectLater(rs, throwsA(isA<InvalidInputException>()));
       });
     });
+
     group('Delete package', () {
       _testNotAdmin(
           (client) => client.adminRemovePackage(hydrogen.package.name));
@@ -218,6 +220,73 @@ void main() {
         expect(moderatedPkg.uploaders, package.uploaders);
         expect(moderatedPkg.publisherId, package.publisherId);
         expect(moderatedPkg.versions, expectedVersions);
+      });
+    });
+
+    group('Delete package version', () {
+      _testNotAdmin((client) => client.adminRemovePackageVersion(
+          hydrogen.package.name, hydrogen.package.latestVersion));
+
+      testWithServices('OK', () async {
+        final client = createPubApiClient(authToken: adminUser.userId);
+        final removeVersion = hydrogen.package.latestVersion;
+
+        final pkgKey =
+            dbService.emptyKey.append(Package, id: hydrogen.package.name);
+        final package = await dbService.lookupValue<Package>(pkgKey);
+        expect(package, isNotNull);
+
+        final versionsQuery =
+            dbService.query<PackageVersion>(ancestorKey: pkgKey);
+        final versions = await versionsQuery.run().toList();
+        final expectedVersions = generateVersions(13, increment: 9);
+        expect(versions.map((v) => v.version), expectedVersions);
+
+        final hansClient = createPubApiClient(authToken: hansUser.userId);
+        await hansClient.likePackage(hydrogen.package.name);
+
+        final likeKey = dbService.emptyKey
+            .append(User, id: hansUser.userId)
+            .append(Like, id: hydrogen.package.name);
+        final like =
+            await dbService.lookupValue<Like>(likeKey, orElse: () => null);
+        expect(like, isNotNull);
+
+        final moderatedPkgKey = dbService.emptyKey
+            .append(ModeratedPackage, id: hydrogen.package.name);
+        ModeratedPackage moderatedPkg = await dbService
+            .lookupValue<ModeratedPackage>(moderatedPkgKey, orElse: () => null);
+        expect(moderatedPkg, isNull);
+
+        final timeBeforeRemoval = DateTime.now().toUtc();
+        final rs = await client.adminRemovePackageVersion(
+            hydrogen.package.name, removeVersion);
+
+        expect(utf8.decode(rs), '{"status":"OK"}');
+
+        final pkgAfterRemoval =
+            await dbService.lookupValue<Package>(pkgKey, orElse: () => null);
+        expect(pkgAfterRemoval, isNotNull);
+        expect(Version.parse(pkgAfterRemoval.latestVersion),
+            lessThan(Version.parse(removeVersion)));
+        expect(pkgAfterRemoval.updated.isAfter(timeBeforeRemoval), isTrue);
+
+        final versionsAfterRemoval = await versionsQuery.run().toList();
+        final missingVersion = versions
+            .map((pv) => pv.version)
+            .where((version) =>
+                !versionsAfterRemoval.any((v) => v.version == version))
+            .single;
+        expect(versionsAfterRemoval, hasLength(versions.length - 1));
+        expect(missingVersion, removeVersion);
+
+        final likeAfterRemoval =
+            await dbService.lookupValue<Like>(likeKey, orElse: () => null);
+        expect(likeAfterRemoval, isNotNull);
+
+        moderatedPkg = await dbService
+            .lookupValue<ModeratedPackage>(moderatedPkgKey, orElse: () => null);
+        expect(moderatedPkg, isNull);
       });
     });
 
