@@ -691,7 +691,11 @@ class PackageBackend {
     final user = await requireAuthenticatedUser();
     await withRetryTransaction(db, (tx) async {
       final packageKey = db.emptyKey.append(Package, id: packageName);
-      final package = await tx.lookupValue<Package>(packageKey);
+      final package =
+          await tx.lookupValue<Package>(packageKey, orElse: () => null);
+      if (package == null) {
+        throw NotFoundException.resource('package: $packageName');
+      }
 
       await _validatePackageUploader(packageName, package, user.userId);
 
