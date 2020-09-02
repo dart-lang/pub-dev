@@ -100,7 +100,7 @@ Future main(List<String> args) async {
   }
 
   // Store the state (and then exit) on CTRL+C.
-  ProcessSignal.sigint.watch().listen((e) async {
+  final sigintSubscription = ProcessSignal.sigint.watch().listen((e) async {
     print('Storing state...');
     await state.store();
     exit(0);
@@ -132,6 +132,7 @@ Future main(List<String> args) async {
   );
 
   await state.store();
+  await sigintSubscription.cancel();
 }
 
 class _LocalServerState {
