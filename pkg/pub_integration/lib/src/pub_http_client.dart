@@ -83,6 +83,7 @@ class PubHttpClient {
   /// not exists.
   Future<String> getLatestVersionPage(String package) async {
     final rs = await _http.get('$pubHostedUrl/packages/$package');
+    // TODO: also handle the case when redirect to search happens.
     if (rs.statusCode == 404) {
       return null;
     } else if (rs.statusCode == 200) {

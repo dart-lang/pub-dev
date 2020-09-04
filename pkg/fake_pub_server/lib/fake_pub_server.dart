@@ -24,6 +24,7 @@ import 'package:pub_dev/package/upload_signer_service.dart';
 import 'package:pub_dev/publisher/domain_verifier.dart';
 import 'package:pub_dev/publisher/testing/fake_domain_verifier.dart';
 import 'package:pub_dev/service/services.dart';
+import 'package:pub_dev/service/spam/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/handler_helpers.dart';
 
@@ -54,6 +55,7 @@ class FakePubServer {
               FakeUploadSignerService(configuration.storageBaseUrl));
 
           nameTracker.startTracking();
+          spamBackend.setSpamConfig(spamWords: ['SPAM-SPAM-SPAM']);
 
           final appHandler = createAppHandler();
           final handler = wrapHandler(_logger, appHandler, sanitize: true);

@@ -200,6 +200,11 @@ class PackageRejectedException extends ResponseException {
       : super._(400, 'PackageRejected',
             'Version $version of package $package already exists.');
 
+  /// The package archive seems to be spam.
+  PackageRejectedException.classifiedAsSpam()
+      : super._(
+            400, 'PackageRejected', 'Package archive is classified as spam.');
+
   /// Check [condition] and throw [PackageRejectedException] with [message] if
   /// [condition] is `false`.
   static void check(bool condition, String message) {

@@ -35,6 +35,7 @@ import '../shared/versions.dart';
 
 import 'announcement/backend.dart';
 import 'secret/backend.dart';
+import 'spam/backend.dart';
 
 /// Run [fn] with services;
 ///
@@ -94,6 +95,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     registerSecretBackend(SecretBackend(dbService));
     registerSnapshotStorage(SnapshotStorage(await getOrCreateBucket(
         storageService, activeConfiguration.searchSnapshotBucketName)));
+    registerSpamBackend(SpamBackend());
     registerTarballStorage(
       TarballStorage(
           storageService,
@@ -113,6 +115,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     registerScopeExitCallback(dartdocClient.close);
     registerScopeExitCallback(searchClient.close);
     registerScopeExitCallback(searchAdapter.close);
+    registerScopeExitCallback(spamBackend.close);
 
     return await withCache(fn);
   });

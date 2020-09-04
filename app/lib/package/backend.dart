@@ -28,6 +28,7 @@ import '../history/backend.dart';
 import '../history/models.dart';
 import '../publisher/backend.dart';
 import '../publisher/models.dart';
+import '../service/spam/backend.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore_helper.dart';
 import '../shared/email.dart';
@@ -977,6 +978,11 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
     archive: archive,
     versionCreated: version.created,
   );
+
+  if (derived.assets.any((a) => spamBackend.isSpam(a.textContent))) {
+    throw PackageRejectedException.classifiedAsSpam();
+  }
+
   // TODO: verify if assets sizes are within the transaction limit (10 MB)
   return _ValidatedUpload(version, derived.packageVersionPubspec,
       derived.packageVersionInfo, derived.assets);
