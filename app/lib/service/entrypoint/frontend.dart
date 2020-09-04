@@ -13,7 +13,6 @@ import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
-import 'package:pub_dev/service/announcement/backend.dart';
 import 'package:stream_transform/stream_transform.dart' show RateLimit;
 import 'package:watcher/watcher.dart';
 
@@ -27,6 +26,8 @@ import '../../frontend/templates/_cache.dart';
 import '../../package/deps_graph.dart';
 import '../../package/name_tracker.dart';
 import '../../package/upload_signer_service.dart';
+import '../../service/announcement/backend.dart';
+import '../../service/spam/backend.dart';
 import '../../shared/configuration.dart';
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
@@ -85,6 +86,8 @@ Future _main(FrontendEntryMessage message) async {
     nameTracker.startTracking();
     await announcementBackend.update();
     announcementBackend.scheduleRegularUpdates();
+    await spamBackend.update();
+    spamBackend.scheduleRegularUpdates();
 
     await runHandler(_logger, appHandler,
         sanitize: true, cronHandler: cron.handler);

@@ -24,12 +24,16 @@ abstract class SecretKey {
   /// Site-wide announcement.
   static const String announcement = 'announcement';
 
+  /// JSON-encoded list of Strings that will be considered as spam.
+  static const String spamWords = 'spam-words';
+
   /// List of all keys.
   static const values = [
     smtpUsername,
     smtpPassword,
     redisConnectionString,
     announcement,
+    spamWords,
   ];
 
   /// Whether the key is valid.
