@@ -22,6 +22,7 @@ Future main(List<String> args) async {
     print('Ensures Package.doNotAdvertise is set to a bool.');
     print('Ensures Package.isDiscontinued is set to a bool.');
     print('Ensures Package.isUnlisted is set to a bool.');
+    print('Ensures Package.isWithheld is set to a bool.');
     print('Ensures Package.assignedTags is a list.');
     print(_argParser.usage);
     return;
@@ -49,6 +50,7 @@ Future<void> _backfillPackageFields(Package p) async {
       p.doNotAdvertise != null &&
       p.isDiscontinued != null &&
       p.isUnlisted != null &&
+      p.isWithheld != null &&
       p.assignedTags != null) {
     return;
   }
@@ -63,6 +65,7 @@ Future<void> _backfillPackageFields(Package p) async {
       package.doNotAdvertise ??= false;
       package.isDiscontinued ??= false;
       package.isUnlisted ??= package.isDiscontinued;
+      package.isWithheld ??= false;
       package.assignedTags ??= [];
       tx.queueMutations(inserts: [package]);
       await tx.commit();

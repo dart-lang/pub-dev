@@ -166,8 +166,12 @@ class JobMaintenance {
   /// Reads the current package versions and syncs them with job entries.
   Future<void> syncDatastoreHistory() async {
     final latestVersions = <String, String>{};
+    final packagesWithheld = <String>{};
     await for (Package p in _db.query<Package>().run()) {
       latestVersions[p.name] = p.latestVersion;
+      if (p.isWithheldFlagSet) {
+        packagesWithheld.add(p.name);
+      }
     }
 
     final packages = latestVersions.keys.toList();
@@ -175,6 +179,7 @@ class JobMaintenance {
 
     Future<void> updateJob(PackageVersion pv, bool skipLatest) async {
       try {
+        if (packagesWithheld.contains(pv.package)) return;
         final bool isLatestStable = latestVersions[pv.package] == pv.version;
         if (isLatestStable && skipLatest) return;
         final shouldProcess =

@@ -42,8 +42,10 @@ Map packageDebugStats() {
 /// Handles requests for /packages/<package> - JSON
 Future<shelf.Response> packageShowHandlerJson(
     shelf.Request request, String packageName) async {
-  final Package package = await packageBackend.lookupPackage(packageName);
-  if (package == null) return formattedNotFoundHandler(request);
+  final package = await packageBackend.lookupPackage(packageName);
+  if (package == null || package.isWithheldFlagSet) {
+    return formattedNotFoundHandler(request);
+  }
 
   final versions = await packageBackend.versionsOfPackage(packageName);
   sortPackageVersionsDesc(versions, decreasing: false);
@@ -186,12 +188,12 @@ Future<shelf.Response> _handlePackagePage({
     final serviceSw = Stopwatch()..start();
     final data = await _loadPackagePageData(packageName, versionName);
     _packageDataLoadLatencyTracker.add(serviceSw.elapsed);
-    if (data.package == null) {
+    if (data.package == null || data.package.isWithheldFlagSet) {
       if (data.moderatedPackage != null) {
         final content = renderModeratedPackagePage(packageName);
         return htmlResponse(content, status: 404);
       }
-      return redirectToSearch(packageName);
+      return formattedNotFoundHandler(request);
     }
     if (data.version == null) {
       return redirectResponse(urls.pkgVersionsUrl(packageName));
@@ -238,7 +240,7 @@ Future<shelf.Response> packageAdminHandler(
 Future<PackagePageData> _loadPackagePageData(
     String packageName, String versionName) async {
   final package = await packageBackend.lookupPackage(packageName);
-  if (package == null) {
+  if (package == null || package.isWithheldFlagSet) {
     final moderated = await packageBackend.lookupModeratedPackage(packageName);
     return PackagePageData.missing(package: null, moderatedPackage: moderated);
   }

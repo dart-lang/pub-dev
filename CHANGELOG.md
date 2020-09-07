@@ -3,6 +3,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Run `app/bin/tools/backfill_users.dart` to backfill `User.isBlocked`.
+ * Run `app/bin/tools/backfill_package_fields.dart` to backfill `Package.isWithheld`.
 
 ## `20200901t143840-all`
  * Bumped runtimeVersion to `2020.09.01`.
