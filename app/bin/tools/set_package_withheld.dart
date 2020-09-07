@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:gcloud/db.dart';
@@ -81,10 +82,19 @@ Future main(List<String> args) async {
     final orderedNames = packages.keys.toList()..sort();
     for (final name in orderedNames) {
       final p = packages[name];
-      if (withheldStatus == null) {
-        print('${p.name.padRight(40)} - ${p.isWithheld}');
+      print('${p.name.padRight(40)} - ${p.isWithheld}');
+    }
+
+    if (withheldStatus != null) {
+      print('Are you sure you want to do that? Type `y` or `yes`:');
+      final confirm = stdin.readLineSync();
+      if (confirm.toLowerCase() == 'y' || confirm.toLowerCase() == 'yes') {
+        for (final name in orderedNames) {
+          final p = packages[name];
+          await _updateStatus(p, withheldStatus, withheldReason);
+        }
       } else {
-        await _updateStatus(p, withheldStatus, withheldReason);
+        print('Aborted.');
       }
     }
   });
