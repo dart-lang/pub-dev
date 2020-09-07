@@ -295,6 +295,10 @@ class AuthorizationException extends ResponseException {
   AuthorizationException._(String message)
       : super._(403, 'InsufficientPermissions', message);
 
+  /// Signaling that the user is blocked.
+  factory AuthorizationException.blocked() =>
+      AuthorizationException._('User is blocked.');
+
   /// Signaling that the user is not an administrator for the pub site,
   /// and, thus, unable to execute administrative actions.
   factory AuthorizationException.userIsNotAdminForPubSite() =>

@@ -78,6 +78,9 @@ Future<User> requireAuthenticatedUser() async {
   if (_authenticatedUser == null) {
     throw AuthenticationException.authenticationRequired();
   }
+  if (_authenticatedUser.isBlocked) {
+    throw AuthorizationException.blocked();
+  }
   return _authenticatedUser;
 }
 
@@ -164,6 +167,7 @@ class AccountBackend {
       ..id = createUuid()
       ..email = email
       ..created = DateTime.now().toUtc()
+      ..isBlockedFlag = false
       ..isDeletedFlag = false;
 
     await _db.commit(inserts: [user]);
@@ -282,6 +286,10 @@ class AccountBackend {
       _logger
           .severe('Login on deleted account: ${user.userId} / ${user.email}');
       throw StateError('Account had been deleted, login is not allowed.');
+    }
+    if (user.isBlocked) {
+      _logger.info('User<${user.userId}> is blocked.');
+      throw AuthorizationException.blocked();
     }
     return user;
   }
@@ -402,6 +410,7 @@ class AccountBackend {
         ..oauthUserId = auth.oauthUserId
         ..email = auth.email
         ..created = DateTime.now().toUtc()
+        ..isBlockedFlag = false
         ..isDeletedFlag = false;
 
       tx.insert(user);
@@ -492,5 +501,33 @@ class AccountBackend {
     }
   }
 
-  // TODO: expire all sessions of a given user from datastore and cache
+  /// Updates the blocked status of a user.
+  Future<void> updateBlockedFlag(String userId, bool isBlocked) async {
+    var expireSessions = false;
+    await withRetryTransaction(_db, (tx) async {
+      final user =
+          await tx.lookupValue<User>(_db.emptyKey.append(User, id: userId));
+      if (user == null) throw NotFoundException.resource('User:$userId');
+
+      if (user.isBlockedFlag == isBlocked) return;
+      user.isBlockedFlag = isBlocked;
+      tx.insert(user);
+      expireSessions = isBlocked;
+    });
+
+    if (expireSessions) {
+      await _expireAllSessions(userId);
+    }
+  }
+
+  // expire all sessions of a given user from datastore and cache
+  Future<void> _expireAllSessions(String userId) async {
+    final query = _db.query<UserSession>()
+      ..filter('userIdKey = ', _db.emptyKey.append(User, id: userId));
+    final sessionsToDelete = await query.run().toList();
+    for (final session in sessionsToDelete) {
+      await _db.commit(deletes: [session.key]);
+      await cache.userSessionData(session.sessionId).purge();
+    }
+  }
 }

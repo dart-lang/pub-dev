@@ -54,6 +54,20 @@ class User extends db.ExpandoModel<String> {
   set isDeleted(bool value) {
     isDeletedFlag = value;
   }
+
+  /// Set to `true` if user is blocked, may otherwise be `null` or `false`.
+  ///
+  /// Use [isBlocked] to avoid `null` checking.
+  @db.BoolProperty(propertyName: 'isBlocked')
+  bool isBlockedFlag;
+
+  /// [isBlocked] is set when a user account is blocked (is on administrative hold).
+  /// When this happens user-data is preserved, but the user should not be able
+  /// to perform any action.
+  bool get isBlocked => isBlockedFlag == true;
+  set isBlocked(bool value) {
+    isBlockedFlag = value;
+  }
 }
 
 /// Maps Oauth user_id to User.id

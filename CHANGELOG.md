@@ -2,6 +2,7 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Run `app/bin/tools/backfill_users.dart` to backfill `User.isBlocked`.
 
 ## `20200901t143840-all`
  * Bumped runtimeVersion to `2020.09.01`.
