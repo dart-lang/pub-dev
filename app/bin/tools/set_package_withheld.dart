@@ -16,12 +16,14 @@ import 'package:pub_dev/shared/datastore_helper.dart';
 final _argParser = ArgParser()
   ..addOption('lookup', allowed: ['package', 'publisher', 'userid', 'email'])
   ..addOption('update', allowed: ['true', 'false'])
+  ..addOption('reason', help: 'The reason of withheld status.')
   ..addFlag('help', abbr: 'h', defaultsTo: false, help: 'Show help.');
 
 /// Sets the private key value.
 Future main(List<String> args) async {
   final argv = _argParser.parse(args);
   final withheldStatus = _parseValue(argv['update'] as String);
+  final withheldReason = argv['reason'] as String;
   final lookupKey = argv['lookup'] as String;
 
   if (argv['help'] as bool == true || lookupKey == null) {
@@ -82,18 +84,19 @@ Future main(List<String> args) async {
       if (withheldStatus == null) {
         print('${p.name.padRight(40)} - ${p.isWithheld}');
       } else {
-        await _updateStatus(p, withheldStatus);
+        await _updateStatus(p, withheldStatus, withheldReason);
       }
     }
   });
 }
 
-Future<void> _updateStatus(Package pkg, bool status) async {
+Future<void> _updateStatus(Package pkg, bool status, String reason) async {
   if (pkg.isWithheld == status) return;
   print('Updating ${pkg.name.padRight(40)} - ${pkg.isWithheld} -> $status');
   await withRetryTransaction(dbService, (tx) async {
     final p = await tx.lookupValue<Package>(pkg.key);
     p.isWithheld = status;
+    p.withheldReason = reason;
     p.updated = DateTime.now().toUtc();
     tx.insert(p);
   });
