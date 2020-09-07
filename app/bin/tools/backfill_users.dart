@@ -21,6 +21,7 @@ Future main(List<String> args) async {
   final argv = _argParser.parse(args);
   if (argv['help'] as bool == true) {
     print('Usage: dart backfill_users.dart');
+    print('Ensures User.isBlocked is set to false by default.');
     print('Ensures User.isDeleted is set to false by default.');
     print(_argParser.usage);
     return;
@@ -44,11 +45,15 @@ Future main(List<String> args) async {
 }
 
 Future _backfillUser(User user) async {
-  if (user.isDeletedFlag != null) return;
+  if (user.isDeletedFlag != null && user.isBlockedFlag != null) {
+    // no need to update
+    return;
+  }
   print('Backfill User: ${user.userId} / ${user.email}');
 
   await dbService.withTransaction((tx) async {
     final u = (await dbService.lookup<User>([user.key])).single;
+    u.isBlockedFlag ??= false;
     u.isDeletedFlag ??= false;
     tx.queueMutations(inserts: [u]);
     await tx.commit();
