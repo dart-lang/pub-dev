@@ -187,7 +187,7 @@ class ConsentBackend {
     final invitedEmail =
         consent.email ?? await accountBackend.getEmailOfUserId(consent.userId);
     final action = _actions[consent.kind];
-    await emailSender.sendMessage(createInviteEmail(
+    await emailSender(createInviteEmail(
       invitedEmail: invitedEmail,
       subject: action.renderEmailSubject(consent.args),
       inviteText: action.renderInviteText(activeUserEmail, consent.args),

@@ -76,7 +76,15 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     registerDartdocClient(DartdocClient());
     registerDartSdkIndex(
         InMemoryPackageIndex.sdk(urlPrefix: dartSdkMainUrl(toolEnvSdkVersion)));
-    registerEmailSender(EmailSender(activeConfiguration.blockEmails));
+    registerEmailSender(
+      activeConfiguration.gmailRelayServiceAccount != null &&
+              activeConfiguration.gmailRelayImpersonatedGSuiteUser != null
+          ? createGmailRelaySender(
+              activeConfiguration.gmailRelayServiceAccount,
+              activeConfiguration.gmailRelayImpersonatedGSuiteUser,
+            )
+          : loggingEmailSender,
+    );
     registerHistoryBackend(HistoryBackend(dbService));
     registerJobBackend(JobBackend(dbService));
     registerNameTracker(NameTracker(dbService));
