@@ -64,8 +64,12 @@ class IndexUpdater implements TaskRunner {
   @visibleForTesting
   Future<void> updateAllPackages() async {
     await for (final p in _db.query<Package>().run()) {
-      final doc = await searchBackend.loadDocument(p.name);
-      await _packageIndex.addPackage(doc);
+      try {
+        final doc = await searchBackend.loadDocument(p.name);
+        await _packageIndex.addPackage(doc);
+      } on RemovedPackageException catch (_) {
+        await _packageIndex.removePackage(p.name);
+      }
     }
     await _packageIndex.markReady();
   }

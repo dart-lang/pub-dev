@@ -79,6 +79,19 @@ class Package extends db.ExpandoModel<String> {
   // TODO: remove after the backfill was done.
   bool get isUnlistedFlagSet => isUnlisted == true;
 
+  /// Set to `true` if package should not be displayed anywhere, because of
+  /// pending review or deletion.
+  /// TODO: set `required: true` after backfill is done.
+  @db.BoolProperty()
+  bool isWithheld;
+
+  // TODO: remove after backfill is done.
+  bool get isWithheldFlagSet => isWithheld == true;
+
+  /// The reason why the package was withheld.
+  @db.StringProperty()
+  String withheldReason;
+
   /// Set to `true` if package should not be advertised on the front page,
   /// may otherwise be `false`.
   @db.BoolProperty(required: true)

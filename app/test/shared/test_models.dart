@@ -100,6 +100,7 @@ Package createFoobarPackage({String name, List<User> uploaders}) {
     ..doNotAdvertise = false
     ..isDiscontinued = false
     ..isUnlisted = false
+    ..isWithheld = false
     ..assignedTags = [];
 }
 
@@ -340,6 +341,7 @@ PkgBundle generateBundle(
     ..doNotAdvertise = false
     ..isDiscontinued = false
     ..isUnlisted = false
+    ..isWithheld = false
     ..assignedTags = []
     ..publisherId = publisherId
     ..uploaders =

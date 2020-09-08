@@ -354,6 +354,9 @@ class PackageBackend {
   /// Used in `pub` client for finding which versions exist.
   Future<api.PackageData> listVersions(Uri baseUri, String package) async {
     final pkg = await packageBackend.lookupPackage(package);
+    if (pkg == null || pkg.isWithheldFlagSet) {
+      throw NotFoundException.resource('package "$package"');
+    }
     final packageVersions = await packageBackend.versionsOfPackage(package);
     if (packageVersions.isEmpty) {
       throw NotFoundException.resource('package "$package"');
@@ -382,11 +385,16 @@ class PackageBackend {
     final canonicalVersion = canonicalizeVersion(version);
     InvalidInputException.checkSemanticVersion(canonicalVersion);
 
-    final packageVersionKey = db.emptyKey
-        .append(Package, id: package)
-        .append(PackageVersion, id: canonicalVersion);
+    final packageKey = db.emptyKey.append(Package, id: package);
+    final packageVersionKey =
+        packageKey.append(PackageVersion, id: canonicalVersion);
 
-    final pv = (await db.lookup([packageVersionKey])).first as PackageVersion;
+    final p = await db.lookupValue<Package>(packageKey, orElse: () => null);
+    if (p == null || p.isWithheldFlagSet) {
+      throw NotFoundException.resource('package "$package"');
+    }
+    final pv = await db.lookupValue<PackageVersion>(packageVersionKey,
+        orElse: () => null);
     if (pv == null) {
       throw NotFoundException.resource('version "$version"');
     }
@@ -513,6 +521,10 @@ class PackageBackend {
         _logger.info('User ${user.userId} (${user.email}) is not an uploader '
             'for package ${package.name}, rolling transaction back.');
         throw AuthorizationException.userCannotUploadNewVersion(package.name);
+      }
+
+      if (package.isWithheldFlagSet) {
+        throw PackageRejectedException.isWithheld();
       }
 
       // Store the publisher of the package at the time of the upload.
@@ -897,6 +909,7 @@ Package _newPackageFromVersion(
     ..doNotAdvertise = false
     ..isDiscontinued = false
     ..isUnlisted = false
+    ..isWithheld = false
     ..assignedTags = [];
 }
 

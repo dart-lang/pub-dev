@@ -30,8 +30,8 @@ void main() {
     });
 
     testWithServices('/packages/foobar_not_found - not found', () async {
-      await expectRedirectResponse(await issueGet('/packages/foobar_not_found'),
-          '/packages?q=foobar_not_found');
+      await expectNotFoundResponse(
+          await issueGet('/packages/foobar_not_found'));
     });
 
     testWithServices('/packages/foobar_pkg/versions - found', () async {
@@ -48,9 +48,8 @@ void main() {
     testWithServices(
       '/packages/foobar_not_found/versions - not found',
       () async {
-        await expectRedirectResponse(
-            await issueGet('/packages/foobar_not_found/versions'),
-            '/packages?q=foobar_not_found');
+        await expectNotFoundResponse(
+            await issueGet('/packages/foobar_not_found/versions'));
       },
     );
 

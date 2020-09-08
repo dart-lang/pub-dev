@@ -205,6 +205,10 @@ class PackageRejectedException extends ResponseException {
       : super._(
             400, 'PackageRejected', 'Package archive is classified as spam.');
 
+  /// The package is has an active `isWithheld` flag, no further version is allowed.
+  PackageRejectedException.isWithheld()
+      : super._(400, 'PackageRejected', 'Package has been withheld.');
+
   /// Check [condition] and throw [PackageRejectedException] with [message] if
   /// [condition] is `false`.
   static void check(bool condition, String message) {

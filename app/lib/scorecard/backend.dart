@@ -360,7 +360,7 @@ class PackageStatus {
   });
 
   factory PackageStatus.fromModels(Package p, PackageVersion pv) {
-    if (p == null || pv == null) {
+    if (p == null || pv == null || p.isWithheldFlagSet) {
       return PackageStatus(exists: false);
     }
     final publishDate = pv.created;

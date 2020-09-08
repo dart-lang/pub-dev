@@ -75,7 +75,7 @@ class SearchBackend {
   Future<PackageDocument> loadDocument(String packageName) async {
     final packageKey = _db.emptyKey.append(Package, id: packageName);
     final p = (await _db.lookup<Package>([packageKey])).single;
-    if (p == null) {
+    if (p == null || p.isWithheldFlagSet) {
       throw RemovedPackageException();
     }
 
