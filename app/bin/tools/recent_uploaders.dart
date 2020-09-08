@@ -55,7 +55,7 @@ Future main(List<String> args) async {
 
   Map<String, List<String>> sortByCountAndTrim(Map<String, List<String>> map) {
     final keys = map.keys.toList();
-    keys.sort((a, b)=> -map[a].length.compareTo(map[b].length));
+    keys.sort((a, b) => -map[a].length.compareTo(map[b].length));
     final mapped = <String, List<String>>{};
     for (final key in keys) {
       mapped[key] = map[key].take(3).toList();
