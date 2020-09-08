@@ -34,6 +34,17 @@ void main() {
         ]);
       });
 
+      testWithServices('default packages with withheld', () async {
+        final pkg = await dbService.lookupValue<Package>(foobarPackage.key);
+        await dbService.commit(inserts: [pkg..isWithheld = true]);
+        final list = await packageBackend.latestPackages();
+        expect(list.map((p) => p.name), [
+          'lithium',
+          'helium',
+          'hydrogen',
+        ]);
+      });
+
       testWithServices('default packages, extra earlier', () async {
         final h =
             (await dbService.lookup<Package>([helium.package.key])).single;

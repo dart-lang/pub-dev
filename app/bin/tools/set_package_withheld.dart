@@ -110,6 +110,7 @@ Future<void> _updateStatus(Package pkg, bool status, String reason) async {
     p.updated = DateTime.now().toUtc();
     tx.insert(p);
   });
+  await purgePackageCache(pkg.name);
 }
 
 bool _parseValue(String value) {

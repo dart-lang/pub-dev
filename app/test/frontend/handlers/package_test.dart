@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:gcloud/db.dart';
+import 'package:pub_dev/package/models.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dev/frontend/static_files.dart';
 
 import '../../shared/handlers_test_utils.dart';
+import '../../shared/test_models.dart';
 import '../../shared/test_services.dart';
 
 import '_utils.dart';
@@ -27,6 +30,20 @@ void main() {
           'data-name="-admin-tab-"',
         ],
       );
+    });
+
+    testWithServices('withheld package - not found', () async {
+      final pkg = await dbService.lookupValue<Package>(foobarPackage.key);
+      await dbService.commit(inserts: [pkg..isWithheld = true]);
+      await expectNotFoundResponse(await issueGet('/packages/foobar_pkg'));
+      await expectNotFoundResponse(
+          await issueGet('/packages/foobar_pkg/score'));
+      await expectNotFoundResponse(
+          await issueGet('/packages/foobar_pkg/versions'));
+      await expectNotFoundResponse(
+          await issueGet('/packages/foobar_pkg/versions/${pkg.latestVersion}'));
+      await expectNotFoundResponse(await issueGet(
+          '/packages/foobar_pkg/versions/${pkg.latestVersion}/score'));
     });
 
     testWithServices('/packages/foobar_not_found - not found', () async {
