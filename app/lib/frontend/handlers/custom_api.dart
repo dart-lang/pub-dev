@@ -203,11 +203,17 @@ Future<shelf.Response> apiPackageMetricsHandler(
 Future<VersionScore> packageVersionScoreHandler(
     shelf.Request request, String package,
     {String version}) async {
-  final data = await scoreCardBackend.getScoreCardData(package, version);
+  final pkg = await packageBackend.lookupPackage(package);
+  if (pkg == null) {
+    throw NotFoundException.resource('package "$package"');
+  }
+  final card = await scoreCardBackend.getScoreCardData(package, version);
   return VersionScore(
-    grantedPoints: data?.grantedPubPoints,
-    maxPoints: data?.maxPubPoints,
-    lastUpdated: data?.updated,
+    grantedPoints: card?.grantedPubPoints,
+    maxPoints: card?.maxPubPoints,
+    likeCount: pkg.likes,
+    popularityScore: card?.popularityScore,
+    lastUpdated: card?.updated,
   );
 }
 
