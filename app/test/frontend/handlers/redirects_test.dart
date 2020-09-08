@@ -53,12 +53,6 @@ void main() {
       }
     });
 
-    // making sure /doc does not catches /documentation request
-    testWithServices('/documentation', () async {
-      await expectRedirectResponse(await issueGet('/documentation/pana/'),
-          '/documentation/pana/latest/');
-    });
-
     testWithServices('/flutter/plugins', () async {
       await expectRedirectResponse(
           await issueGet('/flutter/plugins', host: 'pub.dartlang.org'),
