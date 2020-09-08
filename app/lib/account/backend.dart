@@ -287,10 +287,6 @@ class AccountBackend {
           .severe('Login on deleted account: ${user.userId} / ${user.email}');
       throw StateError('Account had been deleted, login is not allowed.');
     }
-    if (user.isBlocked) {
-      _logger.info('User<${user.userId}> is blocked.');
-      throw AuthorizationException.blocked();
-    }
     return user;
   }
 

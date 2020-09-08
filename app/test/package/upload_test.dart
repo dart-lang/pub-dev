@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:gcloud/db.dart';
 import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
+import 'package:pub_dev/account/models.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -194,6 +195,16 @@ void main() {
         registerAuthenticatedUser(joeUser);
         final tarball = await packageArchiveBytes(
             pubspecContent: generatePubspecYaml(foobarPackage.name, '0.2.0'));
+        final rs = packageBackend.upload(Stream.fromIterable([tarball]));
+        await expectLater(rs, throwsA(isA<AuthorizationException>()));
+      });
+
+      testWithServices('user is blocked', () async {
+        final user = await dbService.lookupValue<User>(hansUser.key);
+        await dbService.commit(inserts: [user..isBlocked = true]);
+        registerAuthenticatedUser(user);
+        final tarball = await packageArchiveBytes(
+            pubspecContent: generatePubspecYaml(foobarPackage.name, '1.2.3'));
         final rs = packageBackend.upload(Stream.fromIterable([tarball]));
         await expectLater(rs, throwsA(isA<AuthorizationException>()));
       });

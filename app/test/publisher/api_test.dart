@@ -679,6 +679,20 @@ void _testAdminAuthIssues(Future Function(PubApiClient client) fn) {
     final rs = fn(client);
     await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
   });
+
+  testWithServices('Active user is blocked', () async {
+    final user = await dbService.lookupValue<User>(hansUser.key);
+    await dbService.commit(inserts: [
+      publisherMember(hansUser.userId, 'admin'),
+      user..isBlocked = true,
+    ]);
+    final client = createPubApiClient(authToken: hansUser.userId);
+    final rs = fn(client);
+    await expectApiException(rs,
+        status: 403,
+        code: 'InsufficientPermissions',
+        message: 'User is blocked.');
+  });
 }
 
 void _testNoPublisher(Future Function(PubApiClient client) fn) {
