@@ -174,6 +174,14 @@ void main() {
         await expectLater(rs, throwsA(isA<AuthorizationException>()));
       });
 
+      testWithServices('blocked user', () async {
+        final user = await dbService.lookupValue<User>(hansUser.key);
+        await dbService.commit(inserts: [user..isBlocked = true]);
+        registerAuthenticatedUser(user);
+        final rs = packageBackend.addUploader(foobarPackage.name, 'a@b.com');
+        await expectLater(rs, throwsA(isA<AuthorizationException>()));
+      });
+
       testWithServices('package does not exist', () async {
         registerAuthenticatedUser(hansUser);
         final rs = packageBackend.addUploader('no_package', 'a@b.com');
