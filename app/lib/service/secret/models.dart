@@ -29,7 +29,10 @@ abstract class SecretKey {
 
   /// The restriction applied on uploads.
   ///
-  /// Valid values are `no-uploads`, `only-updates` and `no-restriction` (or ``, `-`).
+  /// Valid values for `upload-restriction` are:
+  ///  * `no-uploads`, no package publications will be accepted by the server,
+  ///  * `only-updates`, publication of new packages will not be accepted, but new versions of existing packages will be accepted, and,
+  ///  * `no-restriction`, (default) publication of new packages and new versions is allowed.
   static const String uploadRestriction = 'upload-restriction';
 
   /// List of all keys.
