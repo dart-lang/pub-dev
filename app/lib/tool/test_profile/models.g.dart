@@ -137,6 +137,7 @@ TestUser _$TestUserFromJson(Map<String, dynamic> json) {
         ? null
         : DateTime.parse(json['created'] as String),
     isDeleted: json['isDeleted'] as bool,
+    isBlocked: json['isBlocked'] as bool,
     likes: (json['likes'] as List)?.map((e) => e as String)?.toList(),
   );
 }
@@ -154,6 +155,7 @@ Map<String, dynamic> _$TestUserToJson(TestUser instance) {
   writeNotNull('oauthUserId', instance.oauthUserId);
   writeNotNull('created', instance.created?.toIso8601String());
   writeNotNull('isDeleted', instance.isDeleted);
+  writeNotNull('isBlocked', instance.isBlocked);
   writeNotNull('likes', instance.likes);
   return val;
 }

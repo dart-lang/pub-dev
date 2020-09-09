@@ -36,12 +36,6 @@ class User extends db.ExpandoModel<String> {
   @db.DateTimeProperty()
   DateTime created;
 
-  /// Set to `true` if user is deleted, may otherwise be `null` or `false`.
-  ///
-  /// Use [isDeleted] to avoid `null` checking.
-  @db.BoolProperty(propertyName: 'isDeleted')
-  bool isDeletedFlag;
-
   /// [isDeleted] is set when a user account is deleted.
   /// When this happens user-data such as preferences are purged.
   ///
@@ -50,24 +44,14 @@ class User extends db.ExpandoModel<String> {
   /// we can see:
   /// (A) who uploaded a package, and,
   /// (B) who granted the permissions that allowed said package to be uploaded.
-  bool get isDeleted => isDeletedFlag == true;
-  set isDeleted(bool value) {
-    isDeletedFlag = value;
-  }
-
-  /// Set to `true` if user is blocked, may otherwise be `null` or `false`.
-  ///
-  /// Use [isBlocked] to avoid `null` checking.
-  @db.BoolProperty(propertyName: 'isBlocked')
-  bool isBlockedFlag;
+  @db.BoolProperty(required: true)
+  bool isDeleted;
 
   /// [isBlocked] is set when a user account is blocked (is on administrative hold).
   /// When this happens user-data is preserved, but the user should not be able
   /// to perform any action.
-  bool get isBlocked => isBlockedFlag == true;
-  set isBlocked(bool value) {
-    isBlockedFlag = value;
-  }
+  @db.BoolProperty(required: true)
+  bool isBlocked;
 }
 
 /// Maps Oauth user_id to User.id
