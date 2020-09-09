@@ -803,8 +803,10 @@ class PackageBackend {
 enum UploadRestrictionStatus {
   /// Publication of new packages and new versions of existing packages is allowed.
   noRestriction,
+
   /// Publication of new packages is **not** allowed, new versions of existing packages is allowed.
   onlyUpdates,
+
   /// Publication of packages is **not** allowed.
   noUploads,
 }
