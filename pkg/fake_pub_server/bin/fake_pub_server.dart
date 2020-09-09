@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:http/http.dart';
 import 'package:logging/logging.dart';
-import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart' as shelf;
 
 import 'package:fake_gcloud/mem_datastore.dart';
@@ -32,7 +32,7 @@ final _argParser = ArgParser()
       defaultsTo: '8083', help: 'The HTTP port for the fake analyzer service.')
   ..addOption('dartdoc-port',
       defaultsTo: '8084', help: 'The HTTP port for the fake dartdoc service.')
-  ..addOption('data-dir', help: 'The directory to store the local state.');
+  ..addOption('data-file', help: 'The file to store the local state.');
 
 Future main(List<String> args) async {
   final argv = _argParser.parse(args);
@@ -51,7 +51,7 @@ Future main(List<String> args) async {
     ].where((e) => e != null).join(' '));
   });
 
-  final state = _LocalServerState(dataDir: argv['data-dir'] as String);
+  final state = _LocalServerState(path: argv['data-file'] as String);
   await state.load();
 
   final storage = state.storage;
@@ -134,29 +134,40 @@ Future main(List<String> args) async {
   await sigintSubscription.cancel();
 }
 
-/// Owns server state, optionally loading / saving state to/from [dataDir]
+/// Owns server state, optionally loading / saving state to/from the specified file.
 class _LocalServerState {
   final datastore = MemDatastore();
   final storage = MemStorage();
-  Directory _dataDir;
-  File _datastoreFile;
-  File _storageFile;
+  File _file;
   Completer _storingCompleter;
 
-  _LocalServerState({String dataDir}) {
-    if (dataDir != null) {
-      _dataDir = Directory(dataDir);
-      _datastoreFile = File(p.join(dataDir, 'datastore.jsonl'));
-      _storageFile = File(p.join(dataDir, 'storage.jsonl'));
+  _LocalServerState({String path}) {
+    if (path != null) {
+      _file = File(path);
     }
   }
 
   Future<void> load() async {
-    if (_datastoreFile != null && await _datastoreFile.exists()) {
-      datastore.readFrom(await _datastoreFile.readAsLines());
-    }
-    if (_storageFile != null && await _storageFile.exists()) {
-      storage.readFrom(await _storageFile.readAsLines());
+    if (_file != null && await _file.exists()) {
+      final lines =
+          _file.openRead().transform(utf8.decoder).transform(LineSplitter());
+      var marker = 'start';
+      await for (final line in lines) {
+        if (line.startsWith('{"marker":')) {
+          final map = json.decode(line) as Map<String, dynamic>;
+          marker = map['marker'] as String;
+          continue;
+        }
+        switch (marker) {
+          case 'datastore':
+            datastore.readFrom([line]);
+            continue;
+          case 'storage':
+            storage.readFrom([line]);
+            continue;
+        }
+        throw ArgumentError('Marker not state failed: $marker - $line');
+      }
     }
   }
 
@@ -166,20 +177,24 @@ class _LocalServerState {
     }
     _storingCompleter = Completer();
     try {
-      print('Storing state in ${_dataDir.path}...');
-      if (_dataDir != null) {
-        await _dataDir.create(recursive: true);
+      print('Storing state in ${_file.path}...');
+      if (_file != null) {
+        await _file.parent.create(recursive: true);
       }
-      if (_datastoreFile != null) {
-        final sink = _datastoreFile.openWrite();
-        datastore.writeTo(sink);
-        await sink.close();
+      final sink = _file.openWrite();
+
+      void writeMarker(String marker) {
+        sink.writeln(json.encode({'marker': marker}));
       }
-      if (_storageFile != null) {
-        final sink = _storageFile.openWrite();
-        storage.writeTo(sink);
-        await sink.close();
-      }
+
+      writeMarker('datastore');
+      datastore.writeTo(sink);
+
+      writeMarker('storage');
+      storage.writeTo(sink);
+
+      writeMarker('end');
+      await sink.close();
     } finally {
       _storingCompleter.complete();
       _storingCompleter = null;
