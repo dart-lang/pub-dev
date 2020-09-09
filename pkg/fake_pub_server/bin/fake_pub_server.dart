@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:args/args.dart';
 import 'package:http/http.dart';
 import 'package:logging/logging.dart';
@@ -27,7 +31,8 @@ final _argParser = ArgParser()
   ..addOption('analyzer-port',
       defaultsTo: '8083', help: 'The HTTP port for the fake analyzer service.')
   ..addOption('dartdoc-port',
-      defaultsTo: '8084', help: 'The HTTP port for the fake dartdoc service.');
+      defaultsTo: '8084', help: 'The HTTP port for the fake dartdoc service.')
+  ..addOption('data-file', help: 'The file to store the local state.');
 
 Future main(List<String> args) async {
   final argv = _argParser.parse(args);
@@ -46,8 +51,11 @@ Future main(List<String> args) async {
     ].where((e) => e != null).join(' '));
   });
 
-  final datastore = MemDatastore();
-  final storage = MemStorage();
+  final state = _LocalServerState(path: argv['data-file'] as String);
+  await state.load();
+
+  final storage = state.storage;
+  final datastore = state.datastore;
 
   final storageServer = FakeStorageServer(storage);
   final pubServer = FakePubServer(datastore, storage);
@@ -91,6 +99,12 @@ Future main(List<String> args) async {
     return null;
   }
 
+  // Store the state (and then exit) on CTRL+C.
+  final sigintSubscription = ProcessSignal.sigint.watch().listen((e) async {
+    await state.save();
+    exit(0);
+  });
+
   await updateLocalBuiltFilesIfNeeded();
   await Future.wait(
     [
@@ -115,4 +129,75 @@ Future main(List<String> args) async {
     ],
     eagerError: true,
   );
+
+  await state.save();
+  await sigintSubscription.cancel();
+}
+
+/// Owns server state, optionally loading / saving state to/from the specified file.
+class _LocalServerState {
+  final datastore = MemDatastore();
+  final storage = MemStorage();
+  File _file;
+  Completer _storingCompleter;
+
+  _LocalServerState({String path}) {
+    if (path != null) {
+      _file = File(path);
+    }
+  }
+
+  Future<void> load() async {
+    if (_file != null && await _file.exists()) {
+      final lines =
+          _file.openRead().transform(utf8.decoder).transform(LineSplitter());
+      var marker = 'start';
+      await for (final line in lines) {
+        if (line.startsWith('{"marker":')) {
+          final map = json.decode(line) as Map<String, dynamic>;
+          marker = map['marker'] as String;
+          continue;
+        }
+        switch (marker) {
+          case 'datastore':
+            datastore.readFrom([line]);
+            continue;
+          case 'storage':
+            storage.readFrom([line]);
+            continue;
+        }
+        throw ArgumentError('Marker not state failed: $marker - $line');
+      }
+    }
+  }
+
+  Future<void> save() async {
+    while (_storingCompleter != null) {
+      await _storingCompleter.future;
+    }
+    _storingCompleter = Completer();
+    try {
+      print('Storing state in ${_file.path}...');
+      if (_file != null) {
+        await _file.parent.create(recursive: true);
+      }
+      final sink = _file.openWrite();
+
+      void writeMarker(String marker) {
+        sink.writeln(json.encode({'marker': marker}));
+      }
+
+      writeMarker('datastore');
+      datastore.writeTo(sink);
+
+      writeMarker('storage');
+      storage.writeTo(sink);
+
+      writeMarker('end');
+      await sink.close();
+    } finally {
+      _storingCompleter.complete();
+      _storingCompleter = null;
+    }
+  }
 }
