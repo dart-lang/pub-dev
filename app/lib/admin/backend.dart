@@ -178,22 +178,21 @@ class AdminBackend {
   }
 
   Future<void> _removeUploaderFromPackage(Key pkgKey, String userId) async {
-    await _db.withTransaction((tx) async {
-      final p = (await tx.lookup<Package>([pkgKey])).single;
+    await withRetryTransaction(_db, (tx) async {
+      final p = await tx.lookupValue<Package>(pkgKey);
       p.removeUploader(userId);
       if (p.uploaders.isEmpty) {
         p.isDiscontinued = true;
       }
-      tx.queueMutations(inserts: [p]);
-      await tx.commit();
+      tx.insert(p);
     });
   }
 
   Future<void> _removeMember(User user, PublisherMember member) async {
     final seniorMember =
         await _remainingSeniorMember(member.publisherKey, member.userId);
-    await _db.withTransaction((tx) async {
-      final p = (await tx.lookup<Publisher>([member.publisherKey])).single;
+    await withRetryTransaction(_db, (tx) async {
+      final p = await tx.lookupValue<Publisher>(member.publisherKey);
       if (seniorMember == null) {
         p.isAbandoned = true;
         p.contactEmail = null;
@@ -204,7 +203,6 @@ class AdminBackend {
         p.contactEmail = seniorUser.email;
       }
       tx.queueMutations(inserts: [p], deletes: [member.key]);
-      await tx.commit();
     });
     if (seniorMember == null) {
       // mark packages under the publisher discontinued
@@ -215,11 +213,10 @@ class AdminBackend {
       await for (final package in query.run()) {
         if (package.isDiscontinued) continue;
         final f = pool.withResource(
-          () => _db.withTransaction((tx) async {
-            final p = (await tx.lookup<Package>([package.key])).single;
+          () => withRetryTransaction(_db, (tx) async {
+            final p = await tx.lookupValue<Package>(package.key);
             p.isDiscontinued = true;
-            tx.queueMutations(inserts: [p]);
-            await tx.commit();
+            tx.insert(p);
           }),
         );
         futures.add(f);
@@ -256,8 +253,8 @@ class AdminBackend {
   }
 
   Future<void> _markUserDeleted(User user) async {
-    await _db.withTransaction((tx) async {
-      final u = (await tx.lookup<User>([user.key])).single;
+    await withRetryTransaction(_db, (tx) async {
+      final u = await tx.lookupValue<User>(user.key);
       final deleteKeys = <Key>[];
       if (user.oauthUserId != null) {
         final mappingKey =
@@ -273,7 +270,6 @@ class AdminBackend {
         ..created = null
         ..isDeleted = true;
       tx.queueMutations(inserts: [u], deletes: deleteKeys);
-      await tx.commit();
     });
   }
 
@@ -520,7 +516,7 @@ class AdminBackend {
       'assignedTagsAdded cannot contain tags also removed assignedTagsRemoved',
     );
 
-    return await withTransaction(_db, (tx) async {
+    return await withRetryTransaction(_db, (tx) async {
       final package = await tx.lookupOrNull<Package>(_db.emptyKey.append(
         Package,
         id: packageName,

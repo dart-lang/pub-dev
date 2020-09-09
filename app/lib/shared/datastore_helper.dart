@@ -48,7 +48,7 @@ class TransactionWrapper {
 
 /// Call [fn] with a [TransactionWrapper] that is either committed or
 /// rolled back when [fn] returns.
-Future<T> withTransaction<T>(
+Future<T> _withTransaction<T>(
   DatastoreDB db,
   Future<T> Function(TransactionWrapper tx) fn,
 ) async {
@@ -109,7 +109,7 @@ Future<T> withRetryTransaction<T>(
   Future<T> Function(TransactionWrapper tx) fn,
 ) =>
     _transactionRetrier.retry<T>(
-      () => withTransaction<T>(db, fn),
+      () => _withTransaction<T>(db, fn),
       // TODO(jonasfj): Over time we want reduce the number exceptions on which
       //                we retry. The following is a list of exceptions we know
       //                we want to retry:

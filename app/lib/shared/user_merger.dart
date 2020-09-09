@@ -9,6 +9,7 @@ import '../account/models.dart';
 import '../history/models.dart';
 import '../package/models.dart';
 import '../publisher/models.dart';
+import 'datastore_helper.dart';
 
 /// Utility class to merge user data.
 /// Specifically for the case where a two [User] entities exists with the same [User.oauthUserId].
@@ -90,15 +91,12 @@ class UserMerger {
     await _processConcurrently(
       _db.query<Package>()..filter('uploaders =', fromUserId),
       (Package m) async {
-        await _db.withTransaction((tx) async {
+        await withRetryTransaction(_db, (tx) async {
           final p = await tx.lookupValue<Package>(m.key);
           if (p.containsUploader(fromUserId)) {
             p.removeUploader(fromUserId);
             p.addUploader(toUserId);
-            tx.queueMutations(inserts: [p]);
-            await tx.commit();
-          } else {
-            await tx.rollback();
+            tx.insert(p);
           }
         });
       },
@@ -108,14 +106,11 @@ class UserMerger {
     await _processConcurrently(
       _db.query<PackageVersion>()..filter('uploader =', fromUserId),
       (PackageVersion m) async {
-        await _db.withTransaction((tx) async {
+        await withRetryTransaction(_db, (tx) async {
           final pv = await tx.lookupValue<PackageVersion>(m.key);
           if (pv.uploader == fromUserId) {
             pv.uploader = toUserId;
-            tx.queueMutations(inserts: [pv]);
-            await tx.commit();
-          } else {
-            await tx.rollback();
+            tx.insert(pv);
           }
         });
       },
@@ -127,14 +122,11 @@ class UserMerger {
     await _processConcurrently(
       _db.query<UserSession>()..filter('userIdKey =', fromUserKey),
       (UserSession m) async {
-        await _db.withTransaction((tx) async {
+        await withRetryTransaction(_db, (tx) async {
           final session = await tx.lookupValue<UserSession>(m.key);
           if (session.userId == fromUserId) {
             session.userIdKey = toUserKey;
-            tx.queueMutations(inserts: [session]);
-            await tx.commit();
-          } else {
-            await tx.rollback();
+            tx.insert(session);
           }
         });
       },
@@ -147,14 +139,11 @@ class UserMerger {
         if (m?.parentKey?.id != null) {
           throw StateError('Old Consent entity: ${m.consentId}.');
         }
-        await _db.withTransaction((tx) async {
+        await withRetryTransaction(_db, (tx) async {
           final consent = await tx.lookupValue<Consent>(m.key);
           if (consent.userId == fromUserId) {
             consent.userId = toUserId;
-            tx.queueMutations(inserts: [consent]);
-            await tx.commit();
-          } else {
-            await tx.rollback();
+            tx.insert(consent);
           }
         });
       },
@@ -167,14 +156,11 @@ class UserMerger {
         if (m?.parentKey?.id != null) {
           throw StateError('Old Consent entity: ${m.consentId}.');
         }
-        await _db.withTransaction((tx) async {
+        await withRetryTransaction(_db, (tx) async {
           final consent = await tx.lookupValue<Consent>(m.key);
           if (consent.fromUserId == fromUserId) {
             consent.fromUserId = toUserId;
-            tx.queueMutations(inserts: [consent]);
-            await tx.commit();
-          } else {
-            await tx.rollback();
+            tx.insert(consent);
           }
         });
       },
@@ -184,10 +170,9 @@ class UserMerger {
     await _processConcurrently(
       _db.query<PublisherMember>()..filter('userId =', fromUserId),
       (PublisherMember m) async {
-        await _db.withTransaction((tx) async {
+        await withRetryTransaction(_db, (tx) async {
           tx.queueMutations(
               inserts: [m.changeParentUserId(toUserId)], deletes: [m.key]);
-          await tx.commit();
         });
       },
     );
@@ -202,12 +187,11 @@ class UserMerger {
       _db.query<History>(),
       (History m) async {
         if (!m.eventJson.contains('"$fromUserId"')) return;
-        await _db.withTransaction((tx) async {
+        await withRetryTransaction(_db, (tx) async {
           final h = await tx.lookupValue<History>(m.key);
           final fromJson = h.eventJson;
           h.eventJson = fromJson.replaceAll('"$fromUserId"', '"$toUserId"');
           tx.queueMutations(inserts: [h]);
-          await tx.commit();
           print('Updated History(${h.id})');
           print(fromJson);
           print(h.eventJson);

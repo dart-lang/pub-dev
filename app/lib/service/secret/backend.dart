@@ -5,6 +5,7 @@
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 
+import '../../shared/datastore_helper.dart';
 import 'models.dart';
 
 export 'models.dart' show SecretKey;
@@ -41,19 +42,16 @@ class SecretBackend {
       throw ArgumentError.value(id, 'id', 'invalid secret key identifier');
     }
     final key = _db.emptyKey.append(Secret, id: id);
-    await _db.withTransaction((tx) async {
-      final secret = (await tx.lookup<Secret>([key])).single;
+    await withRetryTransaction(_db, (tx) async {
+      final secret = await tx.lookupValue<Secret>(key, orElse: () => null);
       if (secret == null) {
-        tx.queueMutations(inserts: [
-          Secret()
-            ..parentKey = dbService.emptyKey
-            ..id = id
-            ..value = value,
-        ]);
+        tx.insert(Secret()
+          ..parentKey = dbService.emptyKey
+          ..id = id
+          ..value = value);
       } else {
-        tx.queueMutations(inserts: [secret..value = value]);
+        tx.insert(secret..value = value);
       }
-      await tx.commit();
     });
   }
 }

@@ -11,6 +11,7 @@ import 'package:meta/meta.dart';
 
 import 'package:pub_dev/package/models.dart' show Package, PackageVersion;
 import '../package/overrides.dart';
+import '../shared/datastore_helper.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/redis_cache.dart' show cache;
 import '../shared/utils.dart';
@@ -102,10 +103,9 @@ class ScoreCardBackend {
       String packageName, String packageVersion, ReportData data) async {
     final key = scoreCardKey(packageName, packageVersion)
         .append(ScoreCardReport, id: data.reportType);
-    await _db.withTransaction((tx) async {
-      ScoreCardReport report;
-      final reportList = await tx.lookup([key]);
-      report = reportList.first as ScoreCardReport;
+    await withRetryTransaction(_db, (tx) async {
+      var report =
+          await tx.lookupValue<ScoreCardReport>(key, orElse: () => null);
       if (report != null) {
         _logger.info(
             'Updating report: $packageName $packageVersion ${data.reportType}.');
@@ -122,8 +122,7 @@ class ScoreCardBackend {
           reportData: data,
         );
       }
-      tx.queueMutations(inserts: [report]);
-      await tx.commit();
+      tx.insert(report);
     });
   }
 
@@ -188,10 +187,8 @@ class ScoreCardBackend {
     final status = PackageStatus.fromModels(package, version);
     final reports = await loadReports(packageName, packageVersion);
 
-    await _db.withTransaction((tx) async {
-      ScoreCard scoreCard;
-      final scoreCardList = await tx.lookup([key]);
-      scoreCard = scoreCardList.first as ScoreCard;
+    await withRetryTransaction(_db, (tx) async {
+      var scoreCard = await tx.lookupValue<ScoreCard>(key, orElse: () => null);
 
       if (scoreCard == null) {
         _logger.info('Creating new ScoreCard $packageName $packageVersion.');
@@ -233,8 +230,7 @@ class ScoreCardBackend {
         dartdocReport: reports[ReportType.dartdoc] as DartdocReport,
       );
 
-      tx.queueMutations(inserts: [scoreCard]);
-      await tx.commit();
+      tx.insert(scoreCard);
     });
 
     final isLatest = package.latestVersion == version.version;

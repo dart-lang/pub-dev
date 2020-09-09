@@ -201,7 +201,7 @@ class PackageBackend {
 
     final pkgKey = db.emptyKey.append(Package, id: package);
     String latestVersion;
-    await withTransaction(db, (tx) async {
+    await withRetryTransaction(db, (tx) async {
       final p = await tx.lookupOrNull<Package>(pkgKey);
       if (p == null) {
         throw NotFoundException.resource(package);
@@ -309,14 +309,15 @@ class PackageBackend {
     final key = db.emptyKey.append(Package, id: packageName);
     await requirePackageAdmin(packageName, user.userId);
     await requirePublisherAdmin(request.publisherId, user.userId);
-    final rs = await db.withTransaction<api.PackagePublisherInfo>((tx) async {
+    final rs = await withRetryTransaction(db, (tx) async {
       final package = (await db.lookup<Package>([key])).single;
       final fromPublisherId = package.publisherId;
       package.publisherId = request.publisherId;
       package.uploaders.clear();
       package.updated = DateTime.now().toUtc();
 
-      final history = History.entry(
+      tx.insert(package);
+      tx.insert(History.entry(
         PackageTransferred(
           packageName: package.name,
           fromPublisherId: fromPublisherId,
@@ -324,10 +325,8 @@ class PackageBackend {
           userId: user.userId,
           userEmail: user.email,
         ),
-      );
+      ));
 
-      tx.queueMutations(inserts: [package, history]);
-      await tx.commit();
       return _asPackagePublisherInfo(package);
     });
     await purgePublisherCache(publisherId: request.publisherId);
@@ -673,20 +672,13 @@ class PackageBackend {
       fromUserId = user.userId;
     }
     assert(fromUserId != null);
-    return db.withTransaction((Transaction tx) async {
+    await withRetryTransaction(db, (tx) async {
       final packageKey = db.emptyKey.append(Package, id: packageName);
       final package = (await tx.lookup([packageKey])).first as Package;
 
-      try {
-        await _validatePackageUploader(packageName, package, fromUserId);
-      } catch (_) {
-        await tx.rollback();
-        rethrow;
-      }
-
+      await _validatePackageUploader(packageName, package, fromUserId);
       if (package.containsUploader(uploader.userId)) {
         // The requested uploaderEmail is already part of the uploaders.
-        await tx.rollback();
         return;
       }
 
@@ -694,22 +686,16 @@ class PackageBackend {
       package.addUploader(uploader.userId);
       package.updated = DateTime.now().toUtc();
 
-      final inserts = <Model>[package];
-      if (historyBackend.isEnabled) {
-        final history = History.entry(UploaderChanged(
-          packageName: packageName,
-          currentUserId: fromUserId,
-          currentUserEmail: fromUserEmail,
-          addedUploaderIds: [uploader.userId],
-          addedUploaderEmails: [uploader.email],
-        ));
-        inserts.add(history);
-      }
-
-      tx.queueMutations(inserts: inserts);
-      await tx.commit();
-      await purgePackageCache(package.name);
+      tx.insert(package);
+      tx.insert(History.entry(UploaderChanged(
+        packageName: packageName,
+        currentUserId: fromUserId,
+        currentUserEmail: fromUserEmail,
+        addedUploaderIds: [uploader.userId],
+        addedUploaderEmails: [uploader.email],
+      )));
     });
+    await purgePackageCache(packageName);
   }
 
   Future<void> _validatePackageUploader(
@@ -729,23 +715,25 @@ class PackageBackend {
       String packageName, String uploaderEmail) async {
     uploaderEmail = uploaderEmail.toLowerCase();
     final user = await requireAuthenticatedUser();
-    await db.withTransaction((Transaction T) async {
+    await withRetryTransaction(db, (tx) async {
       final packageKey = db.emptyKey.append(Package, id: packageName);
-      final package = (await T.lookup([packageKey])).first as Package;
+      final package =
+          await tx.lookupValue<Package>(packageKey, orElse: () => null);
+      if (package == null) {
+        throw NotFoundException.resource('package: $packageName');
+      }
 
       await _validatePackageUploader(packageName, package, user.userId);
 
       // Fail if the uploader we want to remove does not exist.
       final uploader = await accountBackend.lookupUserByEmail(uploaderEmail);
       if (uploader == null || !package.containsUploader(uploader.userId)) {
-        await T.rollback();
         throw NotFoundException.resource('uploader: $uploaderEmail');
       }
 
       // We cannot have 0 uploaders, if we would remove the last one, we
       // fail with an error.
       if (package.uploaderCount <= 1) {
-        await T.rollback();
         throw OperationForbiddenException.lastUploaderRemoveError();
       }
 
@@ -753,7 +741,6 @@ class PackageBackend {
       // are able to authenticate. To prevent accidentally losing the control
       // of a package, we don't allow self-removal.
       if (user.email == uploader.email || user.userId == uploader.userId) {
-        await T.rollback();
         throw OperationForbiddenException.selfRemovalNotAllowed();
       }
 
@@ -761,22 +748,16 @@ class PackageBackend {
       package.removeUploader(uploader.userId);
       package.updated = DateTime.now().toUtc();
 
-      final inserts = <Model>[package];
-      if (historyBackend.isEnabled) {
-        final history = History.entry(UploaderChanged(
-          packageName: packageName,
-          currentUserId: user.userId,
-          currentUserEmail: user.email,
-          removedUploaderIds: [uploader.userId],
-          removedUploaderEmails: [uploader.email],
-        ));
-        inserts.add(history);
-      }
-
-      T.queueMutations(inserts: inserts);
-      await T.commit();
-      await purgePackageCache(package.name);
+      tx.insert(package);
+      tx.insert(History.entry(UploaderChanged(
+        packageName: packageName,
+        currentUserId: user.userId,
+        currentUserEmail: user.email,
+        removedUploaderIds: [uploader.userId],
+        removedUploaderEmails: [uploader.email],
+      )));
     });
+    await purgePackageCache(packageName);
     return api.SuccessMessage(
         success: api.Message(
             message:
