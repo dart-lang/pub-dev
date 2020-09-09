@@ -9,6 +9,7 @@ import 'package:gcloud/db.dart';
 import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/service/secret/backend.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -207,6 +208,45 @@ void main() {
             pubspecContent: generatePubspecYaml(foobarPackage.name, '1.2.3'));
         final rs = packageBackend.upload(Stream.fromIterable([tarball]));
         await expectLater(rs, throwsA(isA<AuthorizationException>()));
+      });
+
+      testWithServices('upload restriction - no uploads', () async {
+        await secretBackend.update(SecretKey.uploadRestriction, 'no-uploads');
+        registerAuthenticatedUser(hansUser);
+        final tarball = await packageArchiveBytes(
+            pubspecContent: generatePubspecYaml(foobarPackage.name, '1.2.3'));
+        final rs = packageBackend.upload(Stream.fromIterable([tarball]));
+        await expectLater(
+            rs,
+            throwsA(isA<PackageRejectedException>().having(
+              (e) => '$e',
+              'text',
+              contains('Uploads are restricted. Please try again later.'),
+            )));
+      });
+
+      testWithServices('upload restriction - no new packages', () async {
+        await secretBackend.update(SecretKey.uploadRestriction, 'only-updates');
+        registerAuthenticatedUser(hansUser);
+        final tarball = await packageArchiveBytes(
+            pubspecContent: generatePubspecYaml('some_new_package', '1.2.3'));
+        final rs = packageBackend.upload(Stream.fromIterable([tarball]));
+        await expectLater(
+            rs,
+            throwsA(isA<PackageRejectedException>().having(
+              (e) => '$e',
+              'text',
+              contains('Uploads are restricted. Please try again later.'),
+            )));
+      });
+
+      testWithServices('upload restriction - update is accepted', () async {
+        await secretBackend.update(SecretKey.uploadRestriction, 'only-updates');
+        registerAuthenticatedUser(hansUser);
+        final tarball = await packageArchiveBytes(
+            pubspecContent: generatePubspecYaml(foobarPackage.name, '1.2.3'));
+        final rs = await packageBackend.upload(Stream.fromIterable([tarball]));
+        expect(rs.package, foobarPackage.name);
       });
 
       testWithServices('versions already exist', () async {
