@@ -52,7 +52,7 @@ Future main(List<String> args) async {
   });
 
   final state = _LocalServerState(dataDir: argv['data-dir'] as String);
-  await state.init();
+  await state.load();
 
   final storage = state.storage;
   final datastore = state.datastore;
@@ -101,8 +101,7 @@ Future main(List<String> args) async {
 
   // Store the state (and then exit) on CTRL+C.
   final sigintSubscription = ProcessSignal.sigint.watch().listen((e) async {
-    print('Storing state...');
-    await state.store();
+    await state.save();
     exit(0);
   });
 
@@ -131,10 +130,11 @@ Future main(List<String> args) async {
     eagerError: true,
   );
 
-  await state.store();
+  await state.save();
   await sigintSubscription.cancel();
 }
 
+/// Owns server state, optionally loading / saving state to/from [dataDir]
 class _LocalServerState {
   final datastore = MemDatastore();
   final storage = MemStorage();
@@ -151,7 +151,7 @@ class _LocalServerState {
     }
   }
 
-  Future<void> init() async {
+  Future<void> load() async {
     if (_datastoreFile != null && await _datastoreFile.exists()) {
       datastore.readFrom(await _datastoreFile.readAsLines());
     }
@@ -160,12 +160,13 @@ class _LocalServerState {
     }
   }
 
-  Future<void> store() async {
+  Future<void> save() async {
     while (_storingCompleter != null) {
       await _storingCompleter.future;
     }
     _storingCompleter = Completer();
     try {
+      print('Storing state in ${_dataDir.path}...');
       if (_dataDir != null) {
         await _dataDir.create(recursive: true);
       }
