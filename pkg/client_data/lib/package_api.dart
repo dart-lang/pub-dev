@@ -154,11 +154,15 @@ class VersionInfo {
 class VersionScore {
   final int grantedPoints;
   final int maxPoints;
+  final int likeCount;
+  final double popularityScore;
   final DateTime lastUpdated;
 
   VersionScore({
     @required this.grantedPoints,
     @required this.maxPoints,
+    @required this.likeCount,
+    @required this.popularityScore,
     @required this.lastUpdated,
   });
 
