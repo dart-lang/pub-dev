@@ -21,10 +21,10 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 /// Make sure that at least two versions are kept here as the next candidates
 /// when the version switch happens.
 const acceptedRuntimeVersions = <String>[
-  '2020.09.01', // The current [runtimeVersion].
+  '2020.09.09', // The current [runtimeVersion].
+  '2020.09.01',
   // TODO: when removing '2020.08.25', also remove SearchQuery.randomize
   '2020.08.25',
-  '2020.08.12',
 ];
 
 /// Represents a combined version of the overall toolchain and processing,
@@ -54,13 +54,13 @@ bool shouldGCVersion(String version) =>
 
 // keep in-sync with SDK version in .travis.yml, .mono_repo.yml and Dockerfile
 final String runtimeSdkVersion = '2.9.0';
-final String toolEnvSdkVersion = '2.9.0';
+final String toolEnvSdkVersion = '2.9.3';
 
 // Value comes from package:pana.
 final String panaVersion = pana.packageVersion;
 final Version semanticPanaVersion = Version.parse(panaVersion);
 
-final String flutterVersion = '1.20.2';
+final String flutterVersion = '1.20.3';
 final Version semanticFlutterVersion = Version.parse(flutterVersion);
 
 // keep in-sync with pkg/pub_dartdoc/pubspec.yaml
