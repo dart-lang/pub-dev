@@ -130,6 +130,7 @@ class TestUser {
   final String oauthUserId;
   final DateTime created;
   final bool isDeleted;
+  final bool isBlocked;
 
   /// The list of package names that the user liked.
   final List<String> likes;
@@ -139,6 +140,7 @@ class TestUser {
     this.oauthUserId,
     this.created,
     this.isDeleted,
+    this.isBlocked,
     @required List<String> likes,
   }) : likes = likes ?? <String>[];
 

@@ -46,7 +46,8 @@ Future<void> importProfile({
         ..oauthUserId = oauthUserId
         ..email = u.email
         ..created = u.created ?? DateTime.now().toUtc()
-        ..isDeleted = u.isDeleted ?? false,
+        ..isDeleted = u.isDeleted ?? false
+        ..isBlocked = u.isBlocked ?? false,
       OAuthUserID()
         ..id = oauthUserId
         ..userIdKey = dbService.emptyKey.append(User, id: userId),

@@ -180,7 +180,9 @@ void main() {
         final pkg = foobarPackage.name;
         registerAuthenticatedUser(User()
           ..id = 'uuid-foo-at-bar-dot-com'
-          ..email = 'foo@bar.com');
+          ..email = 'foo@bar.com'
+          ..isDeleted = false
+          ..isBlocked = false);
         final rs = packageBackend.addUploader(pkg, 'a@b.com');
         await expectLater(rs, throwsA(isA<AuthorizationException>()));
       });
