@@ -16,6 +16,7 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' show runProc;
 import 'package:path/path.dart' as p;
+import 'package:pub_dev/service/secret/backend.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 
 import '../account/backend.dart';
@@ -446,6 +447,10 @@ class PackageBackend {
   }
 
   Future<api.UploadInfo> startUpload(Uri redirectUrl) async {
+    final restriction = await getUploadRestrictionStatus();
+    if (restriction == UploadRestrictionStatus.noUploads) {
+      throw PackageRejectedException.uploadRestricted();
+    }
     _logger.info('Starting async upload.');
     // NOTE: We use a authenticated user scope here to ensure the uploading
     // user is authenticated. But we're not validating anything at this point
@@ -468,6 +473,10 @@ class PackageBackend {
 
   /// Finishes the upload of a package.
   Future<PackageVersion> publishUploadedBlob(Uri uri) async {
+    final restriction = await getUploadRestrictionStatus();
+    if (restriction == UploadRestrictionStatus.noUploads) {
+      throw PackageRejectedException.uploadRestricted();
+    }
     final user = await requireAuthenticatedUser();
     final guid = uri.queryParameters['upload_id'];
     _logger.info('Finishing async upload (uuid: $guid)');
@@ -482,6 +491,7 @@ class PackageBackend {
         filename,
         (package, version) =>
             _storage.uploadViaTempObject(guid, package, version),
+        restriction,
       );
       _logger.info('Removing temporary object $guid.');
       await _storage.removeTempObject(guid);
@@ -489,8 +499,12 @@ class PackageBackend {
     });
   }
 
-  Future<PackageVersion> _performTarballUpload(User user, String filename,
-      Future<void> Function(String name, String version) tarballUpload) async {
+  Future<PackageVersion> _performTarballUpload(
+    User user,
+    String filename,
+    Future<void> Function(String name, String version) tarballUpload,
+    UploadRestrictionStatus restriction,
+  ) async {
     _logger.info('Examining tarball content.');
 
     // Parse metadata from the tarball.
@@ -528,6 +542,9 @@ class PackageBackend {
       prevLatestStableVersion = package?.latestVersion;
       if (package == null) {
         _logger.info('New package uploaded. [new-package-uploaded]');
+        if (restriction == UploadRestrictionStatus.onlyUpdates) {
+          throw PackageRejectedException.uploadRestricted();
+        }
         package = _newPackageFromVersion(db, newVersion, user.userId);
       } else if (!await packageBackend.isPackageAdmin(package, user.userId)) {
         _logger.info('User ${user.userId} (${user.email}) is not an uploader '
@@ -763,6 +780,30 @@ class PackageBackend {
             message:
                 '$uploaderEmail has been removed as an uploader for this package.'));
   }
+
+  Future<UploadRestrictionStatus> getUploadRestrictionStatus() async {
+    final value =
+        await secretBackend.getCachedValue(SecretKey.uploadRestriction) ?? '';
+    switch (value) {
+      case 'no-uploads':
+        return UploadRestrictionStatus.noUploads;
+      case 'only-updates':
+        return UploadRestrictionStatus.onlyUpdates;
+      case '':
+      case '-':
+      case 'no-restriction':
+        return UploadRestrictionStatus.noRestriction;
+    }
+    // safe fallback on enabling uploads
+    _logger.warning('Unknown upload restriction status: $value');
+    return UploadRestrictionStatus.noRestriction;
+  }
+}
+
+enum UploadRestrictionStatus {
+  noRestriction,
+  onlyUpdates,
+  noUploads,
 }
 
 /// Loads [package], returns its [Package] instance, and also checks if

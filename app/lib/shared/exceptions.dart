@@ -209,6 +209,11 @@ class PackageRejectedException extends ResponseException {
   PackageRejectedException.isWithheld()
       : super._(400, 'PackageRejected', 'Package has been withheld.');
 
+  /// The site has restricted package uploads.
+  PackageRejectedException.uploadRestricted()
+      : super._(400, 'PackageRejected',
+            'Uploads are restricted. Please try again later.');
+
   /// Check [condition] and throw [PackageRejectedException] with [message] if
   /// [condition] is `false`.
   static void check(bool condition, String message) {

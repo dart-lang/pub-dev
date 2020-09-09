@@ -27,6 +27,11 @@ abstract class SecretKey {
   /// JSON-encoded list of Strings that will be considered as spam.
   static const String spamWords = 'spam-words';
 
+  /// The restriction applied on uploads.
+  ///
+  /// Valid values are `no-uploads`, `only-updates` and `no-restriction` (or ``, `-`).
+  static const String uploadRestriction = 'upload-restriction';
+
   /// List of all keys.
   static const values = [
     smtpUsername,
@@ -34,6 +39,7 @@ abstract class SecretKey {
     redisConnectionString,
     announcement,
     spamWords,
+    uploadRestriction,
   ];
 
   /// Whether the key is valid.

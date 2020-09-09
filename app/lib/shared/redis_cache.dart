@@ -192,6 +192,11 @@ class CachePatterns {
             .map((d) => LikeData.fromJson(d as Map<String, dynamic>))
             .toList(),
       ))[userId];
+
+  Entry<String> secretValue(String secretId) => _cache
+      .withPrefix('secret-value')
+      .withTTL(Duration(minutes: 60))
+      .withCodec(utf8)[secretId];
 }
 
 /// The active cache.

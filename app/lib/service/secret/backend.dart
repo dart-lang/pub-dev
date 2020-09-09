@@ -6,6 +6,7 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 
 import '../../shared/datastore_helper.dart';
+import '../../shared/redis_cache.dart';
 import 'models.dart';
 
 export 'models.dart' show SecretKey;
@@ -53,5 +54,15 @@ class SecretBackend {
         tx.insert(secret..value = value);
       }
     });
+    await cache.secretValue(id).purge();
+  }
+
+  /// Gets the cached secret value from redis cache (or when no cache entry
+  /// exists, lookup current value from the Datastore).
+  ///
+  /// WARNING: Do not use this method for sensitive data, as it will be put in
+  ///          redis too.
+  Future<String> getCachedValue(String id) async {
+    return await cache.secretValue(id).get(() => lookup(id));
   }
 }
