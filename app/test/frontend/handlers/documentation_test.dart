@@ -2,13 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dev/frontend/handlers/documentation.dart';
+import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/urls.dart';
 
 import '../../frontend/handlers/_utils.dart';
 import '../../shared/handlers_test_utils.dart';
+import '../../shared/test_models.dart';
 import '../../shared/test_services.dart';
 
 void main() {
@@ -82,22 +85,22 @@ void main() {
       );
     });
 
-    testWithServices('/documentation/foor/bar redirect', () async {
+    testWithServices('/documentation/foobar_pkg/bar redirect', () async {
       await expectRedirectResponse(
-        await issueGet('/documentation/foor/bar'),
-        '/documentation/foor/latest/',
+        await issueGet('/documentation/foobar_pkg/bar'),
+        '/documentation/foobar_pkg/latest/',
       );
     });
 
     testWithServices('trailing slash redirect', () async {
-      await expectRedirectResponse(
-          await issueGet('/documentation/foo'), '/documentation/foo/latest/');
+      await expectRedirectResponse(await issueGet('/documentation/foobar_pkg'),
+          '/documentation/foobar_pkg/latest/');
     });
 
-    testWithServices('/documentation/no_pkg redirect', () async {
+    testWithServices('/documentation/foobar_pkg - no entry redirect', () async {
       await expectRedirectResponse(
-          await issueGet('/documentation/no_pkg/latest/'),
-          '/packages/no_pkg/versions');
+          await issueGet('/documentation/foobar_pkg/latest/'),
+          '/packages/foobar_pkg/versions');
     });
 
     testWithServices('/d/foobar_pkg/latest/ redirect', () async {
@@ -110,6 +113,13 @@ void main() {
       await expectRedirectResponse(
           await issueGet('/documentation/foobar_pkg/latest/unknown.html'),
           '/packages/foobar_pkg/versions');
+    });
+
+    testWithServices('withheld package gets rejected', () async {
+      final pkg = await dbService.lookupValue<Package>(foobarPackage.key);
+      await dbService.commit(inserts: [pkg..isWithheld = true]);
+      await expectNotFoundResponse(
+          await issueGet('/documentation/foobar_pkg/latest/'));
     });
   });
 }

@@ -107,6 +107,9 @@ class Package extends db.ExpandoModel<String> {
 
   // Convenience Fields:
 
+  bool get isVisible => !isWithheldFlagSet;
+  bool get isNotVisible => !isVisible;
+
   String get latestVersion => latestVersionKey.id as String;
 
   Version get latestSemanticVersion =>

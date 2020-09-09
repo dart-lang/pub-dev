@@ -43,7 +43,7 @@ Map packageDebugStats() {
 Future<shelf.Response> packageShowHandlerJson(
     shelf.Request request, String packageName) async {
   final package = await packageBackend.lookupPackage(packageName);
-  if (package == null || package.isWithheldFlagSet) {
+  if (package == null || package.isNotVisible) {
     return formattedNotFoundHandler(request);
   }
 
@@ -188,7 +188,7 @@ Future<shelf.Response> _handlePackagePage({
     final serviceSw = Stopwatch()..start();
     final data = await _loadPackagePageData(packageName, versionName);
     _packageDataLoadLatencyTracker.add(serviceSw.elapsed);
-    if (data.package == null || data.package.isWithheldFlagSet) {
+    if (data.package == null || data.package.isNotVisible) {
       if (data.moderatedPackage != null) {
         final content = renderModeratedPackagePage(packageName);
         return htmlResponse(content, status: 404);
@@ -240,7 +240,7 @@ Future<shelf.Response> packageAdminHandler(
 Future<PackagePageData> _loadPackagePageData(
     String packageName, String versionName) async {
   final package = await packageBackend.lookupPackage(packageName);
-  if (package == null || package.isWithheldFlagSet) {
+  if (package == null || package.isNotVisible) {
     final moderated = await packageBackend.lookupModeratedPackage(packageName);
     return PackagePageData.missing(package: null, moderatedPackage: moderated);
   }

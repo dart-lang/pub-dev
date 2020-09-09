@@ -63,7 +63,7 @@ class JobBackend {
     final pKey = _db.emptyKey.append(Package, id: package);
     final pList = await _db.lookup([pKey]);
     final p = pList[0] as Package;
-    if (p == null || p.isWithheldFlagSet) {
+    if (p == null || p.isNotVisible) {
       _logger.info("Couldn't trigger $service job: $package not found.");
       return;
     }

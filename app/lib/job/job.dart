@@ -12,7 +12,8 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
 
-import 'package:pub_dev/package/models.dart' show Package, PackageVersion;
+import '../package/backend.dart';
+import '../package/models.dart' show Package, PackageVersion;
 import '../shared/task_scheduler.dart';
 import '../shared/task_sources.dart';
 import '../shared/utils.dart' show randomizeStream, DurationTracker;
@@ -166,12 +167,8 @@ class JobMaintenance {
   /// Reads the current package versions and syncs them with job entries.
   Future<void> syncDatastoreHistory() async {
     final latestVersions = <String, String>{};
-    final packagesWithheld = <String>{};
     await for (Package p in _db.query<Package>().run()) {
       latestVersions[p.name] = p.latestVersion;
-      if (p.isWithheldFlagSet) {
-        packagesWithheld.add(p.name);
-      }
     }
 
     final packages = latestVersions.keys.toList();
@@ -179,7 +176,7 @@ class JobMaintenance {
 
     Future<void> updateJob(PackageVersion pv, bool skipLatest) async {
       try {
-        if (packagesWithheld.contains(pv.package)) return;
+        if (!await packageBackend.isPackageVisible(pv.package)) return;
         final bool isLatestStable = latestVersions[pv.package] == pv.version;
         if (isLatestStable && skipLatest) return;
         final shouldProcess =

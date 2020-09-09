@@ -31,6 +31,9 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   if (redirectDartdocPages.containsKey(docFilePath.package)) {
     return redirectResponse(redirectDartdocPages[docFilePath.package]);
   }
+  if (!await packageBackend.isPackageVisible(docFilePath.package)) {
+    return notFoundHandler(request);
+  }
   if (docFilePath.package != null && docFilePath.version == null) {
     return redirectResponse(pkgDocUrl(docFilePath.package, isLatest: true));
   }

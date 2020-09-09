@@ -118,6 +118,16 @@ class CachePatterns {
       .withTTL(Duration(minutes: 60))
       .withCodec(utf8)[publisherId];
 
+  Entry<bool> packageVisible(String package) => _cache
+      .withPrefix('package-visible')
+      .withTTL(Duration(days: 7))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(wrapAsCodec(
+        encode: (bool value) => value,
+        decode: (d) => d as bool,
+      ))[package];
+
   Entry<List<int>> packageData(String package) => _cache
       .withPrefix('api-package-data-by-uri')
       .withTTL(Duration(minutes: 10))['$package'];

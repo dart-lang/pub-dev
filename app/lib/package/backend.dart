@@ -69,13 +69,23 @@ class PackageBackend {
       : db = db,
         _storage = storage;
 
+  /// Whether the package exists and is not withheld or deleted.
+  Future<bool> isPackageVisible(String package) {
+    return cache.packageVisible(package).get(() async {
+      final p = await db.lookupValue<Package>(
+          db.emptyKey.append(Package, id: package),
+          orElse: () => null);
+      return p != null && p.isVisible;
+    });
+  }
+
   /// Retrieves packages ordered by their created date.
   Future<List<Package>> newestPackages({int offset, int limit}) {
     final query = db.query<Package>()
       ..order('-created')
       ..offset(offset)
       ..limit(limit);
-    return query.run().toList();
+    return query.run().where((p) => p.isVisible).toList();
   }
 
   /// Retrieves packages ordered by their latest version date.
@@ -84,7 +94,7 @@ class PackageBackend {
       ..order('-updated')
       ..offset(offset)
       ..limit(limit);
-    return query.run().toList();
+    return query.run().where((p) => p.isVisible).toList();
   }
 
   /// Retrieves the names of all packages, ordered by name.
@@ -100,7 +110,11 @@ class PackageBackend {
         // isDiscontinued may be null
         excludeDiscontinued && p.isDiscontinued;
 
-    return query.run().where((p) => !isExcluded(p)).map((p) => p.name);
+    return query
+        .run()
+        .where((p) => p.isVisible)
+        .where((p) => !isExcluded(p))
+        .map((p) => p.name);
   }
 
   /// Retrieves package versions ordered by their latest version date.
@@ -354,7 +368,7 @@ class PackageBackend {
   /// Used in `pub` client for finding which versions exist.
   Future<api.PackageData> listVersions(Uri baseUri, String package) async {
     final pkg = await packageBackend.lookupPackage(package);
-    if (pkg == null || pkg.isWithheldFlagSet) {
+    if (pkg == null || pkg.isNotVisible) {
       throw NotFoundException.resource('package "$package"');
     }
     final packageVersions = await packageBackend.versionsOfPackage(package);
@@ -389,8 +403,7 @@ class PackageBackend {
     final packageVersionKey =
         packageKey.append(PackageVersion, id: canonicalVersion);
 
-    final p = await db.lookupValue<Package>(packageKey, orElse: () => null);
-    if (p == null || p.isWithheldFlagSet) {
+    if (!await isPackageVisible(package)) {
       throw NotFoundException.resource('package "$package"');
     }
     final pv = await db.lookupValue<PackageVersion>(packageVersionKey,
@@ -523,7 +536,7 @@ class PackageBackend {
         throw AuthorizationException.userCannotUploadNewVersion(package.name);
       }
 
-      if (package.isWithheldFlagSet) {
+      if (package.isNotVisible) {
         throw PackageRejectedException.isWithheld();
       }
 
@@ -794,6 +807,7 @@ api.PackagePublisherInfo _asPackagePublisherInfo(Package p) =>
 /// Purge [cache] entries for given [package] and also global page caches.
 Future<void> purgePackageCache(String package) async {
   await Future.wait([
+    cache.packageVisible(package).purge(),
     cache.packageData(package).purge(),
     cache.packageLatestVersion(package).purge(),
     cache.packageView(package).purge(),
