@@ -45,7 +45,7 @@ Future main(List<String> args) async {
 }
 
 Future _backfillUser(User user) async {
-  if (user.isDeletedFlag != null && user.isBlockedFlag != null) {
+  if (user.isDeleted != null && user.isBlocked != null) {
     // no need to update
     return;
   }
@@ -53,8 +53,8 @@ Future _backfillUser(User user) async {
 
   await dbService.withTransaction((tx) async {
     final u = (await dbService.lookup<User>([user.key])).single;
-    u.isBlockedFlag ??= false;
-    u.isDeletedFlag ??= false;
+    u.isBlocked ??= false;
+    u.isDeleted ??= false;
     tx.queueMutations(inserts: [u]);
     await tx.commit();
   });

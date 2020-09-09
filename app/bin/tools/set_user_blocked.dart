@@ -34,7 +34,7 @@ Future main(List<String> args) async {
     if (blockedStatus == null) {
       print('userId: ${user.userId}');
       print('email: ${user.email}');
-      print('isBlocked: ${user.isBlockedFlag}');
+      print('isBlocked: ${user.isBlocked}');
       return;
     }
     await accountBackend.updateBlockedFlag(user.userId, blockedStatus);

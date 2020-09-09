@@ -72,21 +72,13 @@ class Package extends db.ExpandoModel<String> {
 
   /// Set to `true` if package should not be advertised on the front page, not
   /// be found through default package search; may otherwise be `false`.
-  /// TODO: set `required: true` after backfill is done.
-  @db.BoolProperty()
+  @db.BoolProperty(required: true)
   bool isUnlisted;
-
-  // TODO: remove after the backfill was done.
-  bool get isUnlistedFlagSet => isUnlisted == true;
 
   /// Set to `true` if package should not be displayed anywhere, because of
   /// pending review or deletion.
-  /// TODO: set `required: true` after backfill is done.
-  @db.BoolProperty()
+  @db.BoolProperty(required: true)
   bool isWithheld;
-
-  // TODO: remove after backfill is done.
-  bool get isWithheldFlagSet => isWithheld == true;
 
   /// The reason why the package was withheld.
   @db.StringProperty()
@@ -107,7 +99,7 @@ class Package extends db.ExpandoModel<String> {
 
   // Convenience Fields:
 
-  bool get isVisible => !isWithheldFlagSet;
+  bool get isVisible => !isWithheld;
   bool get isNotVisible => !isVisible;
 
   String get latestVersion => latestVersionKey.id as String;
@@ -185,7 +177,7 @@ class Package extends db.ExpandoModel<String> {
       if (assignedTags != null) ...assignedTags,
       if (isDiscontinued) PackageTags.isDiscontinued,
       if (isNewPackage()) PackageTags.isRecent,
-      if (isUnlistedFlagSet) PackageTags.isUnlisted,
+      if (isUnlisted) PackageTags.isUnlisted,
       if (doNotAdvertise) PackageTags.isNotAdvertized,
       // TODO: publisher:<publisherId>
       // TODO: uploader:<...>

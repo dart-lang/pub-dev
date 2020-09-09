@@ -64,7 +64,14 @@ class IntegrityChecker {
       if (user.email != null && user.email.isNotEmpty) {
         _emailToUser.putIfAbsent(user.email, () => []).add(user.userId);
       }
-
+      if (user.isDeleted == null || user.isDeleted is! bool) {
+        _problems.add(
+            'User(${user.userId}) has a `isDeleted` property which is not a bool.');
+      }
+      if (user.isBlocked == null || user.isBlocked is! bool) {
+        _problems.add(
+            'User(${user.userId}) has a `isBlocked` property which is not a bool.');
+      }
       if (user.isDeleted) {
         _deletedUsers.add(user.userId);
         if (user.oauthUserId != null) {
@@ -234,10 +241,13 @@ class IntegrityChecker {
       _problems.add(
           'Package(${p.name}) has a `isDiscontinued` property which is not a bool.');
     }
-    // TODO: add null check after it is set to required
-    if (p.isUnlisted is! bool) {
+    if (p.isUnlisted == null || p.isUnlisted is! bool) {
       _problems.add(
           'Package(${p.name}) has a `isUnlisted` property which is not a bool.');
+    }
+    if (p.isWithheld == null || p.isWithheld is! bool) {
+      _problems.add(
+          'Package(${p.name}) has a `isWithheld` property which is not a bool.');
     }
     if (p.doNotAdvertise == null || p.doNotAdvertise is! bool) {
       _problems.add(

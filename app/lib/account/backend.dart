@@ -167,8 +167,8 @@ class AccountBackend {
       ..id = createUuid()
       ..email = email
       ..created = DateTime.now().toUtc()
-      ..isBlockedFlag = false
-      ..isDeletedFlag = false;
+      ..isBlocked = false
+      ..isDeleted = false;
 
     await _db.commit(inserts: [user]);
     return user;
@@ -406,8 +406,8 @@ class AccountBackend {
         ..oauthUserId = auth.oauthUserId
         ..email = auth.email
         ..created = DateTime.now().toUtc()
-        ..isBlockedFlag = false
-        ..isDeletedFlag = false;
+        ..isBlocked = false
+        ..isDeleted = false;
 
       tx.insert(user);
       tx.insert(
@@ -505,8 +505,8 @@ class AccountBackend {
           await tx.lookupValue<User>(_db.emptyKey.append(User, id: userId));
       if (user == null) throw NotFoundException.resource('User:$userId');
 
-      if (user.isBlockedFlag == isBlocked) return;
-      user.isBlockedFlag = isBlocked;
+      if (user.isBlocked == isBlocked) return;
+      user.isBlocked = isBlocked;
       tx.insert(user);
       expireSessions = isBlocked;
     });
