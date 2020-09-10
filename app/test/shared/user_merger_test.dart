@@ -82,7 +82,7 @@ void main() {
         ..expires = DateTime.now(),
       UserSession()
         ..id = 'control'
-      // ignore: deprecated_member_use_from_same_package
+        // ignore: deprecated_member_use_from_same_package
         ..userIdKey = adminUser.key
         ..userId = adminUser.userId
         ..email = 'control@domain.com'
