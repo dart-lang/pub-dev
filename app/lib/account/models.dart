@@ -117,6 +117,7 @@ class UserSession extends db.ExpandoModel<String> {
   /// This is a v4 (random) UUID String.
   String get sessionId => id;
 
+  @Deprecated('Prefer userId')
   @db.ModelKeyProperty(required: true)
   db.Key userIdKey;
 
@@ -125,6 +126,7 @@ class UserSession extends db.ExpandoModel<String> {
   String userId;
 
   // TODO: remove once only `userId` is used.
+  // ignore: deprecated_member_use_from_same_package
   String get userIdValue => userId ?? userIdKey.id as String;
 
   @db.StringProperty(required: true)

@@ -438,6 +438,7 @@ class AccountBackend {
     final now = DateTime.now().toUtc();
     final session = UserSession()
       ..id = createUuid()
+      // ignore: deprecated_member_use_from_same_package
       ..userIdKey = user.key
       ..userId = user.userId
       ..email = user.email

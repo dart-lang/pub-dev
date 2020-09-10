@@ -74,6 +74,7 @@ void main() {
     await dbService.commit(inserts: [
       UserSession()
         ..id = 'target'
+        // ignore: deprecated_member_use_from_same_package
         ..userIdKey = hansUser.key
         ..userId = hansUser.userId
         ..email = 'target@domain.com'
@@ -81,6 +82,7 @@ void main() {
         ..expires = DateTime.now(),
       UserSession()
         ..id = 'control'
+      // ignore: deprecated_member_use_from_same_package
         ..userIdKey = adminUser.key
         ..userId = adminUser.userId
         ..email = 'control@domain.com'

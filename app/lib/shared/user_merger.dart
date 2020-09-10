@@ -126,6 +126,7 @@ class UserMerger {
           final session = await tx.lookupValue<UserSession>(m.key);
           if (session.userIdValue == fromUserId) {
             session
+              // ignore: deprecated_member_use_from_same_package
               ..userIdKey = toUserKey
               ..userId = toUserId;
             tx.insert(session);
