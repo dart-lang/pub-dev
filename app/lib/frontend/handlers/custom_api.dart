@@ -203,18 +203,24 @@ Future<shelf.Response> apiPackageMetricsHandler(
 Future<VersionScore> packageVersionScoreHandler(
     shelf.Request request, String package,
     {String version}) async {
-  final pkg = await packageBackend.lookupPackage(package);
-  if (pkg == null) {
-    throw NotFoundException.resource('package "$package"');
-  }
-  final card = await scoreCardBackend.getScoreCardData(package, version);
-  return VersionScore(
-    grantedPoints: card?.grantedPubPoints,
-    maxPoints: card?.maxPubPoints,
-    likeCount: pkg.likes,
-    popularityScore: card?.popularityScore,
-    lastUpdated: card?.updated,
-  );
+  return await cache.versionScore(package, version).get(() async {
+    final pkg = await packageBackend.lookupPackage(package);
+    if (pkg == null) {
+      throw NotFoundException.resource('package "$package"');
+    }
+    var updated = pkg.updated;
+    final card = await scoreCardBackend.getScoreCardData(package, version);
+    if (card != null && card.updated.isAfter(updated)) {
+      updated = card.updated;
+    }
+    return VersionScore(
+      grantedPoints: card?.grantedPubPoints,
+      maxPoints: card?.maxPubPoints,
+      likeCount: pkg.likes,
+      popularityScore: card?.popularityScore,
+      lastUpdated: updated,
+    );
+  });
 }
 
 /// Handles requests for /api/history
