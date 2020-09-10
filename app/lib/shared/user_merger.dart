@@ -124,8 +124,10 @@ class UserMerger {
       (UserSession m) async {
         await withRetryTransaction(_db, (tx) async {
           final session = await tx.lookupValue<UserSession>(m.key);
-          if (session.userId == fromUserId) {
-            session.userIdKey = toUserKey;
+          if (session.userIdValue == fromUserId) {
+            session
+              ..userIdKey = toUserKey
+              ..userId = toUserId;
             tx.insert(session);
           }
         });

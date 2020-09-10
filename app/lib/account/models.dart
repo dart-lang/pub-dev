@@ -120,7 +120,12 @@ class UserSession extends db.ExpandoModel<String> {
   @db.ModelKeyProperty(required: true)
   db.Key userIdKey;
 
-  String get userId => userIdKey.id as String;
+  // TODO: set `required: true` once this is expected to be the only userId property.
+  @db.StringProperty()
+  String userId;
+
+  // TODO: remove once only `userId` is used.
+  String get userIdValue => userId ?? userIdKey.id as String;
 
   @db.StringProperty(required: true)
   String email;
@@ -179,7 +184,7 @@ class UserSessionData {
   factory UserSessionData.fromModel(UserSession session) {
     return UserSessionData(
       sessionId: session.sessionId,
-      userId: session.userId,
+      userId: session.userIdValue,
       email: session.email,
       name: session.name,
       imageUrl: session.imageUrl,
