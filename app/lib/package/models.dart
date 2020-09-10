@@ -113,6 +113,7 @@ class Package extends db.ExpandoModel<String> {
   bool get isIncludedInRobots {
     return isVisible &&
         !isDiscontinued &&
+        !isUnlisted &&
         DateTime.now().difference(created) > robotsVisibilityMinAge &&
         DateTime.now().difference(updated) < robotsVisibilityMaxAge;
   }
