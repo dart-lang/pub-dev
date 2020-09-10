@@ -13,6 +13,8 @@ import 'package:logging/logging.dart';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
 
+import 'package:client_data/package_api.dart' show VersionScore;
+
 import '../account/models.dart' show LikeData, UserSessionData;
 import '../dartdoc/models.dart' show DartdocEntry, FileInfo;
 import '../package/models.dart' show PackageView;
@@ -131,6 +133,16 @@ class CachePatterns {
   Entry<List<int>> packageData(String package) => _cache
       .withPrefix('api-package-data-by-uri')
       .withTTL(Duration(minutes: 10))['$package'];
+
+  Entry<VersionScore> versionScore(String package, String version) => _cache
+      .withPrefix('api-version-score')
+      .withTTL(Duration(minutes: 60))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(wrapAsCodec(
+        encode: (d) => d.toJson(),
+        decode: (d) => VersionScore.fromJson(d as Map<String, dynamic>),
+      ))['$package-$version'];
 
   Entry<String> packageLatestVersion(String package) => _cache
       .withPrefix('package-latest-version')
