@@ -2,6 +2,8 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20200910t113209-all`
  * Run `app/bin/tools/check_integrity.dart` **before deploying** the new release.
  * Bumped runtimeVersion to `2020.09.09`.
  * Upgraded Dart analysis SDK to `2.9.3`.
