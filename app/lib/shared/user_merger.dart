@@ -124,8 +124,11 @@ class UserMerger {
       (UserSession m) async {
         await withRetryTransaction(_db, (tx) async {
           final session = await tx.lookupValue<UserSession>(m.key);
-          if (session.userId == fromUserId) {
-            session.userIdKey = toUserKey;
+          if (session.userIdValue == fromUserId) {
+            session
+              // ignore: deprecated_member_use_from_same_package
+              ..userIdKey = toUserKey
+              ..userId = toUserId;
             tx.insert(session);
           }
         });

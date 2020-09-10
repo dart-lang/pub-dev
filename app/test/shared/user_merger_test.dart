@@ -74,13 +74,17 @@ void main() {
     await dbService.commit(inserts: [
       UserSession()
         ..id = 'target'
+        // ignore: deprecated_member_use_from_same_package
         ..userIdKey = hansUser.key
+        ..userId = hansUser.userId
         ..email = 'target@domain.com'
         ..created = DateTime.now()
         ..expires = DateTime.now(),
       UserSession()
         ..id = 'control'
+        // ignore: deprecated_member_use_from_same_package
         ..userIdKey = adminUser.key
+        ..userId = adminUser.userId
         ..email = 'control@domain.com'
         ..created = DateTime.now()
         ..expires = DateTime.now(),
@@ -92,8 +96,8 @@ void main() {
       dbService.emptyKey.append(UserSession, id: 'target'),
       dbService.emptyKey.append(UserSession, id: 'control'),
     ]);
-    expect(list[0].userId, joeUser.userId);
-    expect(list[1].userId, adminUser.userId);
+    expect(list[0].userIdValue, joeUser.userId);
+    expect(list[1].userIdValue, adminUser.userId);
   });
 
   testWithServices('new consent', () async {

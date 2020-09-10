@@ -438,7 +438,9 @@ class AccountBackend {
     final now = DateTime.now().toUtc();
     final session = UserSession()
       ..id = createUuid()
+      // ignore: deprecated_member_use_from_same_package
       ..userIdKey = user.key
+      ..userId = user.userId
       ..email = user.email
       ..name = name
       ..imageUrl = imageUrl
@@ -518,8 +520,7 @@ class AccountBackend {
 
   // expire all sessions of a given user from datastore and cache
   Future<void> _expireAllSessions(String userId) async {
-    final query = _db.query<UserSession>()
-      ..filter('userIdKey = ', _db.emptyKey.append(User, id: userId));
+    final query = _db.query<UserSession>()..filter('userId = ', userId);
     final sessionsToDelete = await query.run().toList();
     for (final session in sessionsToDelete) {
       await _db.commit(deletes: [session.key]);
