@@ -323,7 +323,7 @@ String _renderPkgPage({
   );
   final noIndex = (card?.isSkipped ?? false) ||
       (card?.grantedPubPoints == 0) ||
-      data.package.isDiscontinued;
+      data.package.isExcludedInRobots;
   return renderLayoutPage(
     PageType.package,
     content,

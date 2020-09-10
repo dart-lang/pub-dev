@@ -26,6 +26,14 @@ export '../package/model_properties.dart' show FileObject;
 
 part 'models.g.dart';
 
+/// The age of package (the last version published) after it is hidden in
+/// `robots.txt`.
+const robotsVisibilityMaxAge = Duration(days: 365 * 2);
+
+/// The age of package (the first version published) after it is shown in
+/// `robots.txt`.
+const robotsVisibilityMinAge = Duration(days: 7);
+
 /// Pub package metdata.
 ///
 /// The main property used is `uploaders` for determining who is allowed
@@ -101,6 +109,15 @@ class Package extends db.ExpandoModel<String> {
 
   bool get isVisible => !isWithheld;
   bool get isNotVisible => !isVisible;
+
+  bool get isIncludedInRobots {
+    return isVisible &&
+        !isDiscontinued &&
+        DateTime.now().difference(created) > robotsVisibilityMinAge &&
+        DateTime.now().difference(updated) < robotsVisibilityMaxAge;
+  }
+
+  bool get isExcludedInRobots => !isIncludedInRobots;
 
   String get latestVersion => latestVersionKey.id as String;
 

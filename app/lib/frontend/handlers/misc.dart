@@ -16,7 +16,6 @@ import '../../package/overrides.dart';
 import '../../publisher/backend.dart';
 import '../../shared/handlers.dart';
 import '../../shared/urls.dart' as urls;
-import '../../shared/utils.dart';
 
 import '../request_context.dart';
 import '../static_files.dart';
@@ -93,7 +92,6 @@ Future<shelf.Response> siteMapTxtHandler(shelf.Request request) async {
   // By restricting to packages that have been updated in the last two years,
   // the count is closer to ~1,500
 
-  final twoYearsAgo = DateTime.now().subtract(twoYears);
   final items = <String>[];
   final pages = [
     '/',
@@ -104,8 +102,7 @@ Future<shelf.Response> siteMapTxtHandler(shelf.Request request) async {
   ];
   items.addAll(pages.map((page) => uri.replace(path: page).toString()));
 
-  final stream = packageBackend.allPackageNames(
-      updatedSince: twoYearsAgo, excludeDiscontinued: true);
+  final stream = packageBackend.robotsPackageNames();
   await for (var package in stream) {
     if (isSoftRemoved(package)) continue;
 
