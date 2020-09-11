@@ -3,6 +3,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Deferred: 14 days after the release, remove the `UserSession.userIdKey` property. 
+ * Using new email sending flow, configuration should be tested before switching traffic.
 
 ## `20200910t113209-all`
  * Run `app/bin/tools/check_integrity.dart` **before deploying** the new release.

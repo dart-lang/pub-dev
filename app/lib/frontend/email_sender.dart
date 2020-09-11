@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert' show json;
 import 'dart:io';
-import 'dart:convert' show json, base64, ascii;
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/http.dart' show authClientService;
@@ -47,20 +47,6 @@ Future<void> loggingEmailSender(EmailMessage message) async {
   _logger.info('Not sending email (SMTP not configured): '
       '$debugHeader\n${message.bodyText}.');
 }
-
-/// Create token for [SASL XOAUTH2 authentication][1].
-///
-/// [1]: https://developers.google.com/gmail/imap/xoauth2-protocol#the_sasl_xoauth2_mechanism
-String _encodeSaslXoauth2Token(
-  String user,
-  String accessToken,
-) =>
-    ascii.fuse(base64).encode([
-          'user=$user',
-          'auth=Bearer $accessToken',
-          '',
-          '',
-        ].join('\u0001'));
 
 Message _toMessage(EmailMessage input) {
   return Message()
@@ -160,15 +146,7 @@ class _GmailSmtpRelay {
 
     // For documentation see:
     // https://support.google.com/a/answer/176600?hl=en
-    return SmtpServer(
-      'smtp-relay.gmail.com',
-      port: 465,
-      xoauth2Token: _encodeSaslXoauth2Token(
-        _impersonatedGSuiteUser,
-        await _accessToken,
-      ),
-      ssl: true,
-    );
+    return gmailRelaySaslXoauth2(_impersonatedGSuiteUser, await _accessToken);
   }
 
   /// Create an access_token for [_impersonatedGSuiteUser] using the
