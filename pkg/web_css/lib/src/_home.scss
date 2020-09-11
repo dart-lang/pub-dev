@@ -128,7 +128,9 @@
       > h3 {
         color: #1967d2;
         font-size: 20px;
-        line-height: 1; // simpler margin calculation
+        // Needs to be slightly more than 1.2, otherwise the bottom
+        // part of the letters (e.g. of `g`) will get trimmed.
+        line-height: 1.3;
         margin: 0;
         /* Trim long package names, forcing them to be displayed only on a single line. */
         overflow: hidden;
