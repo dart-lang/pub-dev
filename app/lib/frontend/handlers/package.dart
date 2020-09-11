@@ -83,6 +83,7 @@ Future<shelf.Response> packageVersionsListHandler(
 
       return renderPkgVersionsPage(data, versions, versionDownloadUrls);
     },
+    cacheEntry: cache.uiPackageVersions(packageName),
   );
 }
 
