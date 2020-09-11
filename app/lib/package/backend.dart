@@ -839,6 +839,11 @@ Future<void> purgePackageCache(String package) async {
     cache.packageLatestVersion(package).purge(),
     cache.packageView(package).purge(),
     cache.uiPackagePage(package, null).purge(),
+    cache.uiPackageChangelog(package, null).purge(),
+    cache.uiPackageExample(package, null).purge(),
+    cache.uiPackageInstall(package, null).purge(),
+    cache.uiPackageScore(package, null).purge(),
+    cache.uiPackageVersions(package).purge(),
     cache.uiIndexPage().purge(),
   ]);
 }
