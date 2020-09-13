@@ -31,7 +31,7 @@ part 'models.g.dart';
 const robotsVisibilityMaxAge = Duration(days: 365 * 2);
 
 /// The age of package (the first version published) after it is shown in
-/// `robots.txt`. During this time, the package is marked as `noindex`.
+/// `sitemap.txt`. During this time, the package is marked as `noindex`.
 ///
 /// This gives administrators time to detect and remove spam packages, reducing
 /// their attractiveness to spammers.
