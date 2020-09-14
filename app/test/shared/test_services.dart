@@ -204,7 +204,7 @@ void _setupLogging() {
   });
 }
 
-final FakeEmailSender fakeEmailSender = FakeEmailSender();
+FakeEmailSender get fakeEmailSender => emailSender as FakeEmailSender;
 
 class FakeEmailSender {
   final sentMessages = <EmailMessage>[];

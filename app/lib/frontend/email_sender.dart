@@ -27,7 +27,10 @@ void registerEmailSender(EmailSender value) =>
 /// The active [EmailSender].
 EmailSender get emailSender => ss.lookup(#_email_sender) as EmailSender;
 
-typedef EmailSender = Future<void> Function(EmailMessage message);
+// ignore: one_member_abstracts
+abstract class EmailSender {
+  Future<void> sendMessage(EmailMessage message);
+}
 
 EmailSender createGmailRelaySender(
   String serviceAccountEmail,
@@ -37,16 +40,21 @@ EmailSender createGmailRelaySender(
       serviceAccountEmail,
       impersonatedGSuiteUser,
       authClientService,
-    ).sendMessage;
+    );
 
-Future<void> loggingEmailSender(EmailMessage message) async {
-  final debugHeader = '(${message.subject}) '
-      'from ${message.from} '
-      'to ${message.recipients.join(', ')}';
+class _LoggingEmailSender implements EmailSender {
+  @override
+  Future<void> sendMessage(EmailMessage message) async {
+    final debugHeader = '(${message.subject}) '
+        'from ${message.from} '
+        'to ${message.recipients.join(', ')}';
 
-  _logger.info('Not sending email (SMTP not configured): '
-      '$debugHeader\n${message.bodyText}.');
+    _logger.info('Not sending email (SMTP not configured): '
+        '$debugHeader\n${message.bodyText}.');
+  }
 }
+
+final EmailSender loggingEmailSender = _LoggingEmailSender();
 
 Message _toMessage(EmailMessage input) {
   return Message()
@@ -89,7 +97,7 @@ Address _toAddress(EmailAddress input) =>
 /// [2]: https://developers.google.com/gmail/imap/xoauth2-protocol#the_sasl_xoauth2_mechanism
 /// [3]: https://developers.google.com/identity/protocols/oauth2/service-account
 /// [4]: https://cloud.google.com/iam/docs/reference/credentials/rest/v1/projects.serviceAccounts/signJwt
-class _GmailSmtpRelay {
+class _GmailSmtpRelay implements EmailSender {
   static const _googleOauth2TokenUrl = 'https://oauth2.googleapis.com/token';
   static const _scopes = ['https://mail.google.com/'];
 
@@ -106,6 +114,7 @@ class _GmailSmtpRelay {
     this._authClient,
   );
 
+  @override
   Future<void> sendMessage(EmailMessage message) async {
     final debugHeader = '(${message.subject}) '
         'from ${message.from} '

@@ -599,7 +599,7 @@ class PackageBackend {
           : await publisherBackend.getAdminMemberEmails(package.publisherId);
 
       // Notify uploaders via email that a new version has been published.
-      final email = emailSender(createPackageUploadedEmail(
+      final email = emailSender.sendMessage(createPackageUploadedEmail(
         packageName: newVersion.package,
         packageVersion: newVersion.version,
         uploaderEmail: user.email,
