@@ -98,23 +98,15 @@ class PackageBackend {
     return query.run().where((p) => p.isVisible).toList();
   }
 
-  /// Retrieves the names of all packages, ordered by name.
-  Stream<String> allPackageNames(
-      {DateTime updatedSince, bool excludeDiscontinued = false}) {
-    final query = db.query<Package>();
-
-    if (updatedSince != null) {
-      query.filter('updated >', updatedSince);
-    }
-
-    bool isExcluded(Package p) =>
-        // isDiscontinued may be null
-        excludeDiscontinued && p.isDiscontinued;
-
+  /// Retrieves the names of all packages that need to be included in robots.txt.
+  Stream<String> robotsPackageNames() {
+    final query = db.query<Package>()
+      ..filter(
+          'updated >', DateTime.now().toUtc().subtract(robotsVisibilityMaxAge));
     return query
         .run()
         .where((p) => p.isVisible)
-        .where((p) => !isExcluded(p))
+        .where((p) => p.isIncludedInRobots)
         .map((p) => p.name);
   }
 
