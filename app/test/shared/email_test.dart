@@ -210,7 +210,7 @@ void main() {
           EmailAddress(null, 'uploader@example.com')
         ],
       );
-      expect(message.from.toString(), contains('<pub@dartlang.org>'));
+      expect(message.from.toString(), contains('<noreply@pub.dev>'));
       expect(message.recipients.map((e) => e.toString()).toList(), [
         'Joe <joe@example.com>',
         'uploader@example.com',
