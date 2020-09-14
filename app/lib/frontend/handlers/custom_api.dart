@@ -182,7 +182,9 @@ Future<shelf.Response> apiPackageMetricsHandler(
   if (data == null) {
     return jsonResponse({}, status: 404);
   }
+  final score = await packageVersionScoreHandler(request, packageName);
   final result = {
+    'score': score?.toJson(),
     'scorecard': data.toJson(),
   };
   if (request.requestedUri.queryParameters.containsKey('reports')) {
