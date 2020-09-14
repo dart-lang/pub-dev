@@ -59,7 +59,7 @@ void testWithServices(
       await fork(() async {
         registerAuthProvider(FakeAuthProvider());
         registerDomainVerifier(FakeDomainVerifier());
-        registerEmailSender(fakeEmailSender.sendMessage);
+        registerEmailSender(FakeEmailSender());
         registerUploadSigner(FakeUploadSignerService('https://storage.url'));
 
         if (!omitData) {
@@ -206,9 +206,10 @@ void _setupLogging() {
 
 FakeEmailSender get fakeEmailSender => emailSender as FakeEmailSender;
 
-class FakeEmailSender {
+class FakeEmailSender implements EmailSender {
   final sentMessages = <EmailMessage>[];
 
+  @override
   Future<void> sendMessage(EmailMessage message) async {
     sentMessages.add(message);
     return;
