@@ -69,9 +69,36 @@ class Configuration {
   /// The OAuth audience (`client_id`) that admin accounts use.
   final String adminAudience;
 
-  /// Whether the email sender should send out emails even if credentials are
-  /// provided.
-  final bool blockEmails;
+  /// Email of the service account which has domain-wide delegation for the
+  /// GSuite account used to send emails.
+  ///
+  /// The [gmailRelayServiceAccount] has the following requirements:
+  ///
+  ///  1. The _service account_ running the server (typically appengine), must
+  ///     have the `roles/iam.serviceAccountTokenCreator` role on the
+  ///     [gmailRelayServiceAccount], allowing the server to create tokens
+  ///     impersonating [gmailRelayServiceAccount].
+  ///  2. The [gmailRelayServiceAccount] must be visible for
+  ///     _domain-wide delegation_ in the Google Cloud Console.
+  ///  3. The [gmailRelayServiceAccount] must be granted the scope:
+  ///     `https://mail.google.com/` on the GSuite used for sending emails.
+  ///
+  ///  For (2) and (3) see:
+  ///  https://developers.google.com/identity/protocols/oauth2/service-account
+  ///
+  /// **Optional**, if omitted email sending is disabled.
+  final String gmailRelayServiceAccount;
+
+  /// Email of the GSuite user account to impersonate when sending emails
+  /// through the gmail SMTP relay.
+  ///
+  /// This must be the email for an account within the GSuite used for sending
+  /// emails. It is important that the gmail SMTP relay is enabled for this
+  /// GSuite, for configuration see:
+  /// https://support.google.com/a/answer/176600?hl=en
+  ///
+  /// **Optional**, if omitted email sending is disabled.
+  final String gmailRelayImpersonatedGSuiteUser;
 
   /// Whether indexing of the content by robots should be blocked.
   final bool blockRobots;
@@ -110,7 +137,9 @@ class Configuration {
       pubSiteAudience:
           '818368855108-e8skaopm5ih5nbb82vhh66k7ft5o7dn3.apps.googleusercontent.com',
       adminAudience: 'https://pub.dev',
-      blockEmails: false,
+      gmailRelayServiceAccount:
+          'pub-gsuite-gmail-delegatee@dartlang-pub.iam.gserviceaccount.com',
+      gmailRelayImpersonatedGSuiteUser: 'noreply@pub.dev',
       blockRobots: false,
       productionHosts: const ['pub.dartlang.org', 'pub.dev', 'api.pub.dev'],
       primaryApiUri: Uri.parse('https://pub.dartlang.org/'),
@@ -153,7 +182,8 @@ class Configuration {
       pubSiteAudience:
           '621485135717-idb8t8nnguphtu2drfn2u4ig7r56rm6n.apps.googleusercontent.com',
       adminAudience: 'https://pub.dev',
-      blockEmails: true,
+      gmailRelayServiceAccount: null, // disable email sending
+      gmailRelayImpersonatedGSuiteUser: null, // disable email sending
       blockRobots: true,
       productionHosts: envConfig.isRunningLocally
           ? ['localhost']
@@ -194,7 +224,8 @@ class Configuration {
     @required this.pubClientAudience,
     @required this.pubSiteAudience,
     @required this.adminAudience,
-    @required this.blockEmails,
+    @required this.gmailRelayServiceAccount,
+    @required this.gmailRelayImpersonatedGSuiteUser,
     @required this.blockRobots,
     @required this.productionHosts,
     @required this.primaryApiUri,
@@ -231,7 +262,8 @@ class Configuration {
       pubClientAudience: null,
       pubSiteAudience: null,
       adminAudience: null,
-      blockEmails: true,
+      gmailRelayServiceAccount: null, // disable email sending
+      gmailRelayImpersonatedGSuiteUser: null, // disable email sending
       blockRobots: true,
       productionHosts: ['localhost'],
       primaryApiUri: Uri.parse('http://localhost:$frontendPort/'),
@@ -260,7 +292,8 @@ class Configuration {
       pubClientAudience: null,
       pubSiteAudience: null,
       adminAudience: null,
-      blockEmails: true,
+      gmailRelayServiceAccount: null, // disable email sending
+      gmailRelayImpersonatedGSuiteUser: null, // disable email sending
       blockRobots: true,
       productionHosts: ['localhost'],
       primaryApiUri: Uri.parse('https://pub.dartlang.org/'),

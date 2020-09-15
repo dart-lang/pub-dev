@@ -14,8 +14,6 @@ class Secret extends db.Model {
 
 /// Identifiers of the [Secret] keys.
 abstract class SecretKey {
-  static const String smtpUsername = 'smtp.username';
-  static const String smtpPassword = 'smtp.password';
   static const String redisConnectionString = 'redis.connectionString';
 
   /// OAuth audiences have separate secrets for each audience.
@@ -39,8 +37,6 @@ abstract class SecretKey {
 
   /// List of all keys.
   static const values = [
-    smtpUsername,
-    smtpPassword,
     redisConnectionString,
     announcement,
     spamWords,

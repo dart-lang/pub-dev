@@ -591,15 +591,13 @@ class PackageBackend {
           : await publisherBackend.getAdminMemberEmails(package.publisherId);
 
       // Notify uploaders via email that a new version has been published.
-      final email = emailSender.sendMessage(
-        createPackageUploadedEmail(
-          packageName: newVersion.package,
-          packageVersion: newVersion.version,
-          uploaderEmail: user.email,
-          authorizedUploaders:
-              uploaderEmails.map((email) => EmailAddress(null, email)).toList(),
-        ),
-      );
+      final email = emailSender.sendMessage(createPackageUploadedEmail(
+        packageName: newVersion.package,
+        packageVersion: newVersion.version,
+        uploaderEmail: user.email,
+        authorizedUploaders:
+            uploaderEmails.map((email) => EmailAddress(null, email)).toList(),
+      ));
 
       // Let's not block the upload response on these. In case of a timeout, the
       // underlying operations still go ahead, but the `Future.wait` call below
