@@ -5,7 +5,6 @@
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
-import 'package:gcloud/db.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
@@ -15,7 +14,7 @@ import 'package:pub_package_reader/pub_package_reader.dart';
 
 import '../../package/backend.dart';
 import '../../package/models.dart';
-import '../../shared/datastore_helper.dart';
+import '../../shared/datastore.dart';
 
 final _logger = Logger('backfill.packageversions');
 

@@ -5,17 +5,16 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
-import 'package:pub_dev/package/models.dart';
-import 'package:pub_dev/shared/utils.dart';
 
-import '../shared/datastore_helper.dart';
+import '../package/models.dart';
+import '../shared/datastore.dart';
 import '../shared/exceptions.dart';
 import '../shared/redis_cache.dart' show cache;
+import '../shared/utils.dart';
 
 import 'auth_provider.dart';
 import 'models.dart';

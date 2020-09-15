@@ -4,10 +4,10 @@
 
 import 'dart:convert';
 
-import 'package:gcloud/db.dart' as db;
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
+import '../shared/datastore.dart' as db;
 import '../shared/utils.dart' show createUuid;
 
 part 'models.g.dart';

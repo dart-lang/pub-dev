@@ -7,7 +7,6 @@ library pub_dartlang_org.appengine_repository.models;
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:gcloud/db.dart' as db;
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -16,6 +15,7 @@ import '../analyzer/analyzer_client.dart' show AnalysisView;
 import '../package/model_properties.dart';
 import '../scorecard/models.dart';
 import '../search/search_service.dart' show ApiPageRef;
+import '../shared/datastore.dart' as db;
 import '../shared/exceptions.dart';
 import '../shared/model_properties.dart';
 import '../shared/tags.dart';

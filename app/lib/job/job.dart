@@ -5,15 +5,13 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:gcloud/db.dart' as db;
-import 'package:gcloud/datastore.dart'
-    show TimeoutError, TransactionAbortedError;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
 
 import '../package/backend.dart';
 import '../package/models.dart' show Package, PackageVersion;
+import '../shared/datastore.dart' as db;
 import '../shared/task_scheduler.dart';
 import '../shared/task_sources.dart';
 import '../shared/utils.dart' show randomizeStream, DurationTracker;
@@ -75,19 +73,19 @@ abstract class JobProcessor {
           status = JobStatus.success;
           statEvent = 'success';
           _logger.info('$_serviceAsString job completed: $jobDescription');
-        } on TransactionAbortedError catch (e, st) {
+        } on db.TransactionAbortedError catch (e, st) {
           _logger.info('$_serviceAsString job error $jobDescription', e, st);
-        } on TimeoutError catch (e, st) {
+        } on db.TimeoutError catch (e, st) {
           _logger.info('$_serviceAsString job error $jobDescription', e, st);
         } catch (e, st) {
           _logger.severe('$_serviceAsString job error $jobDescription', e, st);
         }
         await jobBackend.complete(job, status);
       }
-    } on TransactionAbortedError catch (e, st) {
+    } on db.TransactionAbortedError catch (e, st) {
       statEvent = 'transaction';
       _logger.info('$_serviceAsString job error $jobDescription', e, st);
-    } on TimeoutError catch (e, st) {
+    } on db.TimeoutError catch (e, st) {
       statEvent = 'timeout';
       _logger.info('$_serviceAsString job error $jobDescription', e, st);
     } catch (e, st) {

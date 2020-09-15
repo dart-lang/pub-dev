@@ -1,7 +1,6 @@
 import 'dart:async' show FutureOr;
 
 import 'package:appengine/appengine.dart';
-import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 
@@ -26,6 +25,7 @@ import '../search/mem_index.dart';
 import '../search/search_client.dart';
 import '../search/updater.dart';
 import '../shared/configuration.dart';
+import '../shared/datastore.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/redis_cache.dart' show withCache;
 import '../shared/storage.dart';

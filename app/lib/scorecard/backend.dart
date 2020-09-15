@@ -4,14 +4,13 @@
 
 import 'dart:async';
 
-import 'package:gcloud/db.dart' as db;
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
 import 'package:pub_dev/package/models.dart' show Package, PackageVersion;
 import '../package/overrides.dart';
-import '../shared/datastore_helper.dart';
+import '../shared/datastore.dart' as db;
 import '../shared/popularity_storage.dart';
 import '../shared/redis_cache.dart' show cache;
 import '../shared/utils.dart';
@@ -103,7 +102,7 @@ class ScoreCardBackend {
       String packageName, String packageVersion, ReportData data) async {
     final key = scoreCardKey(packageName, packageVersion)
         .append(ScoreCardReport, id: data.reportType);
-    await withRetryTransaction(_db, (tx) async {
+    await db.withRetryTransaction(_db, (tx) async {
       var report =
           await tx.lookupValue<ScoreCardReport>(key, orElse: () => null);
       if (report != null) {
@@ -187,7 +186,7 @@ class ScoreCardBackend {
     final status = PackageStatus.fromModels(package, version);
     final reports = await loadReports(packageName, packageVersion);
 
-    await withRetryTransaction(_db, (tx) async {
+    await db.withRetryTransaction(_db, (tx) async {
       var scoreCard = await tx.lookupValue<ScoreCard>(key, orElse: () => null);
 
       if (scoreCard == null) {

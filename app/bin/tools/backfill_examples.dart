@@ -6,12 +6,11 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:archive/archive.dart';
-import 'package:gcloud/db.dart';
-import 'package:gcloud/datastore.dart' as ds;
 import 'package:http/http.dart' as http;
 
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/service/entrypoint/tools.dart';
+import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/utils.dart';
 
 http.Client _httpClient;
@@ -27,7 +26,7 @@ Future main(List<String> args) async {
   await withProdServices(() async {
     final query = dbService.query<PackageVersion>()..order('-created');
     if (pkg != null) {
-      query.filter('package =', ds.Key([ds.KeyElement('Package', pkg)]));
+      query.filter('package =', rawDatastoreKey(['Package', pkg]));
     }
     await for (PackageVersion pv in query.run()) {
       if (pv.exampleFilename == null && pv.exampleContent == null) {

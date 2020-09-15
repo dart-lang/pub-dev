@@ -3,17 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:client_data/account_api.dart' as api;
-import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-import 'package:pub_dev/shared/datastore_helper.dart';
 import 'package:retry/retry.dart';
 
 import '../frontend/email_sender.dart';
 import '../frontend/templates/consent.dart';
 import '../package/backend.dart';
 import '../publisher/backend.dart';
+import '../shared/datastore.dart';
 import '../shared/email.dart' show createInviteEmail;
 import '../shared/exceptions.dart';
 import '../shared/urls.dart';

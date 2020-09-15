@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:gcloud/db.dart';
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 
 import '../account/models.dart';
 import '../package/models.dart';
 import '../publisher/models.dart';
+import '../shared/datastore.dart';
 import '../shared/tags.dart' show allowedTagPrefixes;
 
 import 'email.dart' show looksLikeEmail;

@@ -11,13 +11,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:gcloud/db.dart';
 import 'package:pool/pool.dart';
 
+import 'package:pub_dev/dartdoc/dartdoc_client.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/service/entrypoint/tools.dart';
-import 'package:pub_dev/dartdoc/dartdoc_client.dart';
+import 'package:pub_dev/shared/datastore.dart';
 
 Future main(List<String> args) async {
   final ArgParser parser = ArgParser()

@@ -5,11 +5,10 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:gcloud/db.dart';
-
 import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/service/entrypoint/tools.dart';
+import 'package:pub_dev/shared/datastore.dart';
 
 Future main(List<String> arguments) async {
   if (arguments.length < 2 ||

@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:gcloud/db.dart';
 import 'package:pool/pool.dart';
 
 import '../account/models.dart';
 import '../history/models.dart';
 import '../package/models.dart';
 import '../publisher/models.dart';
-import 'datastore_helper.dart';
+import 'datastore.dart';
 
 /// Utility class to merge user data.
 /// Specifically for the case where a two [User] entities exists with the same [User.oauthUserId].

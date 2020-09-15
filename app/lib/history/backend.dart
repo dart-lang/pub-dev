@@ -4,10 +4,10 @@
 
 import 'dart:async';
 
-import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:meta/meta.dart';
 
+import '../shared/datastore.dart';
 import 'models.dart';
 
 /// Sets the history backend.

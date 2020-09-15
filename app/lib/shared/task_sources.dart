@@ -4,12 +4,12 @@
 
 import 'dart:async';
 
-import 'package:gcloud/db.dart';
 import 'package:logging/logging.dart';
 
-import 'package:pub_dev/package/models.dart';
+import '../package/models.dart';
 import '../scorecard/models.dart';
 
+import 'datastore.dart';
 import 'task_scheduler.dart';
 import 'utils.dart';
 import 'versions.dart';

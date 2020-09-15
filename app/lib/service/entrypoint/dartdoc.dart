@@ -7,7 +7,6 @@ import 'dart:isolate';
 import 'dart:math';
 
 import 'package:args/command_runner.dart';
-import 'package:gcloud/db.dart';
 import 'package:logging/logging.dart';
 
 import '../../dartdoc/backend.dart';
@@ -16,6 +15,7 @@ import '../../dartdoc/handlers.dart';
 import '../../job/backend.dart';
 import '../../job/job.dart';
 import '../../shared/configuration.dart';
+import '../../shared/datastore.dart';
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
 import '../../shared/scheduler_stats.dart';

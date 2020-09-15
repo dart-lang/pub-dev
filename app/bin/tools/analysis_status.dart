@@ -4,12 +4,12 @@
 
 import 'dart:async';
 
-import 'package:pub_dev/service/entrypoint/tools.dart';
-import 'package:pub_dev/analyzer/analyzer_client.dart';
-import 'package:gcloud/db.dart';
 import 'package:pool/pool.dart';
 
+import 'package:pub_dev/analyzer/analyzer_client.dart';
 import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/service/entrypoint/tools.dart';
+import 'package:pub_dev/shared/datastore.dart';
 
 void _printHelp() {
   print('Display analysis status');

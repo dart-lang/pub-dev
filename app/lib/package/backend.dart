@@ -9,14 +9,12 @@ import 'dart:io';
 
 import 'package:client_data/account_api.dart';
 import 'package:client_data/package_api.dart' as api;
-import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' show runProc;
 import 'package:path/path.dart' as p;
-import 'package:pub_dev/service/secret/backend.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 
 import '../account/backend.dart';
@@ -29,9 +27,10 @@ import '../history/backend.dart';
 import '../history/models.dart';
 import '../publisher/backend.dart';
 import '../publisher/models.dart';
+import '../service/secret/backend.dart';
 import '../service/spam/backend.dart';
 import '../shared/configuration.dart';
-import '../shared/datastore_helper.dart';
+import '../shared/datastore.dart';
 import '../shared/email.dart';
 import '../shared/exceptions.dart';
 import '../shared/redis_cache.dart' show cache;

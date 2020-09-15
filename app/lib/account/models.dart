@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:gcloud/db.dart' as db;
 import 'package:meta/meta.dart';
 import 'package:ulid/ulid.dart';
 
 import '../frontend/static_files.dart';
+import '../shared/datastore.dart' as db;
 
 part 'models.g.dart';
 

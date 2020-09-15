@@ -7,7 +7,6 @@ import 'dart:io';
 
 import 'package:basics/basics.dart';
 import 'package:crypto/crypto.dart';
-import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:http/http.dart';
 import 'package:meta/meta.dart';
@@ -19,6 +18,7 @@ import '../../account/backend.dart';
 import '../../account/models.dart';
 import '../../package/backend.dart';
 import '../../publisher/models.dart';
+import '../../shared/datastore.dart';
 import '../../shared/urls.dart' as urls;
 
 import 'models.dart';
