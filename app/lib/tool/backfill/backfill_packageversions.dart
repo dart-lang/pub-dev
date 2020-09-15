@@ -15,6 +15,7 @@ import 'package:pub_package_reader/pub_package_reader.dart';
 
 import '../../package/backend.dart';
 import '../../package/models.dart';
+import '../../shared/datastore_helper.dart';
 
 final _logger = Logger('backfill.packageversions');
 
@@ -82,7 +83,7 @@ Future<BackfillStat> backfillPackageVersion({
   final existingAssetKeys =
       await existingAssetQuery.run().map((a) => a.key).toList();
 
-  return await dbService.withTransaction((tx) async {
+  return await withRetryTransaction(dbService, (tx) async {
     final pvPubspec = await tx.lookupValue<PackageVersionPubspec>(
         dbService.emptyKey.append(PackageVersionPubspec,
             id: derived.packageVersionPubspec.id),
@@ -130,7 +131,6 @@ Future<BackfillStat> backfillPackageVersion({
     if (inserts.isNotEmpty || deletes.isNotEmpty) {
       tx.queueMutations(inserts: inserts, deletes: deletes);
     }
-    await tx.commit();
     return BackfillStat(
       versionCount: 1,
       pvPubspecCount: inserts.whereType<PackageVersionPubspec>().length,
