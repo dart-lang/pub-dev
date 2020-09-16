@@ -5,11 +5,11 @@
 import 'dart:async';
 
 import 'package:logging/logging.dart';
-import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:meta/meta.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 
+import '../shared/datastore.dart';
 import 'models.dart';
 
 final _logger = Logger('pub.name_tracker');

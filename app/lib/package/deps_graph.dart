@@ -4,10 +4,10 @@
 
 import 'dart:async';
 
-import 'package:gcloud/db.dart';
 import 'package:logging/logging.dart';
 
-import 'package:pub_dev/package/models.dart';
+import '../package/models.dart';
+import '../shared/datastore.dart';
 
 final Logger _logger = Logger('pub.package_graph');
 

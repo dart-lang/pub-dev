@@ -7,7 +7,6 @@ import 'dart:math';
 
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
     show DetailedApiRequestError;
-import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -15,6 +14,7 @@ import 'package:pub_dev/search/search_service.dart';
 
 import '../dartdoc/backend.dart';
 import '../package/models.dart' show Package;
+import '../shared/datastore.dart';
 import '../shared/exceptions.dart';
 import '../shared/scheduler_stats.dart';
 import '../shared/task_scheduler.dart';

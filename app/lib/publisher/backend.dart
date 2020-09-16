@@ -6,14 +6,13 @@ import 'dart:async';
 
 import 'package:client_data/account_api.dart' as account_api;
 import 'package:client_data/publisher_api.dart' as api;
-import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
 import '../history/models.dart';
-import '../shared/datastore_helper.dart';
+import '../shared/datastore.dart';
 import '../shared/email.dart';
 import '../shared/exceptions.dart';
 import '../shared/redis_cache.dart' show cache;

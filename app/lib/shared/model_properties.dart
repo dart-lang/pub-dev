@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:gcloud/db.dart';
+import 'datastore.dart';
 
 /// Similar to [ListProperty] but one which is fully compatible with python's
 /// 'db' implementation.

@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 
-import '../../shared/datastore_helper.dart';
+import '../../shared/datastore.dart';
 import '../../shared/redis_cache.dart';
 import 'models.dart';
 

@@ -6,11 +6,11 @@ library pub_dartlang_org.model_properties;
 
 import 'dart:convert';
 
-import 'package:gcloud/db.dart';
 import 'package:pana/pana.dart' show SdkConstraintStatus;
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspek show Pubspec;
 import 'package:yaml/yaml.dart';
 
+import '../shared/datastore.dart';
 import '../shared/utils.dart' show canonicalizeVersion;
 
 Map<String, dynamic> _loadYaml(String yamlString) {

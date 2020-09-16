@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
     show DetailedApiRequestError;
-import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
@@ -22,6 +21,7 @@ import '../dartdoc/models.dart' show DartdocEntry;
 import '../package/backend.dart';
 import '../package/models.dart' show Package, PackageVersion;
 import '../scorecard/backend.dart';
+import '../shared/datastore.dart';
 import '../shared/redis_cache.dart' show cache;
 import '../shared/storage.dart';
 import '../shared/versions.dart' as shared_versions;

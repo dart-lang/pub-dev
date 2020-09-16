@@ -4,8 +4,9 @@
 
 import 'dart:math' as math;
 
-import 'package:gcloud/db.dart';
 import 'package:pub_semver/pub_semver.dart';
+
+import '../shared/datastore.dart';
 
 /// Identifies the service which creates and processes the [Job].
 enum JobService {

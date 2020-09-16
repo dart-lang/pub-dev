@@ -5,14 +5,13 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:gcloud/db.dart';
-
 import 'package:pub_dev/account/backend.dart';
-import 'package:pub_dev/package/models.dart';
-import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/history/backend.dart';
 import 'package:pub_dev/history/models.dart';
+import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/service/entrypoint/tools.dart';
+import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/email.dart';
 
 Future main(List<String> arguments) async {

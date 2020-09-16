@@ -6,13 +6,12 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:gcloud/db.dart';
 
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/service/entrypoint/tools.dart';
-import 'package:pub_dev/shared/datastore_helper.dart';
+import 'package:pub_dev/shared/datastore.dart';
 
 final _argParser = ArgParser()
   ..addOption('lookup', allowed: ['package', 'publisher', 'userid', 'email'])

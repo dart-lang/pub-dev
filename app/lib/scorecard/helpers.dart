@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:gcloud/db.dart' as db;
-
-import 'package:pub_dev/package/models.dart' show Package, PackageVersion;
+import '../package/models.dart' show Package, PackageVersion;
+import '../shared/datastore.dart' as db;
 import '../shared/versions.dart' as versions;
 
 import 'models.dart';

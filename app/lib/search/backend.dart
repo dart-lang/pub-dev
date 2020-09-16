@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -19,6 +18,7 @@ import '../analyzer/analyzer_client.dart';
 import '../dartdoc/dartdoc_client.dart';
 import '../package/models.dart';
 import '../package/overrides.dart';
+import '../shared/datastore.dart';
 import '../shared/exceptions.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/storage.dart';

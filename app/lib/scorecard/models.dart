@@ -5,7 +5,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:gcloud/db.dart' as db;
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/models.dart'
@@ -13,6 +12,7 @@ import 'package:pana/models.dart'
 import 'package:pub_dev/dartdoc/models.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import '../shared/datastore.dart' as db;
 import '../shared/model_properties.dart';
 import '../shared/versions.dart' as versions;
 

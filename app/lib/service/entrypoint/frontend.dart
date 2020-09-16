@@ -7,7 +7,6 @@ import 'dart:math';
 
 import 'package:args/command_runner.dart';
 import 'package:http/http.dart' as http;
-import 'package:gcloud/db.dart' as db;
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
@@ -29,6 +28,7 @@ import '../../package/upload_signer_service.dart';
 import '../../service/announcement/backend.dart';
 import '../../service/spam/backend.dart';
 import '../../shared/configuration.dart';
+import '../../shared/datastore.dart' as db;
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
 import '../../shared/storage.dart';

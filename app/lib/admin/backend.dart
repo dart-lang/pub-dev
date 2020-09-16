@@ -6,25 +6,23 @@ import 'dart:convert';
 
 import 'package:client_data/admin_api.dart' as api;
 import 'package:convert/convert.dart';
-import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
-import 'package:pub_dev/dartdoc/backend.dart';
-import 'package:pub_dev/history/models.dart';
-import 'package:pub_dev/job/model.dart';
-import 'package:pub_dev/scorecard/models.dart';
-import 'package:pub_dev/shared/datastore_helper.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../account/backend.dart';
 import '../account/models.dart';
+import '../dartdoc/backend.dart';
+import '../history/models.dart';
+import '../job/model.dart';
 import '../package/backend.dart' show TarballStorage, packageBackend;
 import '../package/models.dart';
 import '../publisher/models.dart';
+import '../scorecard/models.dart';
 import '../shared/configuration.dart';
-import '../shared/datastore_helper.dart';
+import '../shared/datastore.dart';
 import '../shared/exceptions.dart';
 import '../shared/tags.dart';
 
