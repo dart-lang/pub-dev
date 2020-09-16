@@ -2,6 +2,9 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bumped runtimeVersion to `2020.09.16`.
+ * Upgraded Flutter to `1.20.4`.
+ * Upgraded dartdoc to `0.34.0`.
  * Deferred: 14 days after the release, remove the `UserSession.userIdKey` property. 
  * Using new email sending flow, configuration should be tested before switching traffic.
 

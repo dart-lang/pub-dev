@@ -21,10 +21,9 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 /// Make sure that at least two versions are kept here as the next candidates
 /// when the version switch happens.
 const acceptedRuntimeVersions = <String>[
-  '2020.09.09', // The current [runtimeVersion].
+  '2020.09.16', // The current [runtimeVersion].
+  '2020.09.09',
   '2020.09.01',
-  // TODO: when removing '2020.08.25', also remove SearchQuery.randomize
-  '2020.08.25',
 ];
 
 /// Represents a combined version of the overall toolchain and processing,
@@ -60,11 +59,11 @@ final String toolEnvSdkVersion = '2.9.3';
 final String panaVersion = pana.packageVersion;
 final Version semanticPanaVersion = Version.parse(panaVersion);
 
-final String flutterVersion = '1.20.3';
+final String flutterVersion = '1.20.4';
 final Version semanticFlutterVersion = Version.parse(flutterVersion);
 
 // keep in-sync with pkg/pub_dartdoc/pubspec.yaml
-final String dartdocVersion = '0.32.4';
+final String dartdocVersion = '0.34.0';
 final Version semanticDartdocVersion = Version.parse(dartdocVersion);
 
 // Version that control the dartdoc serving.
