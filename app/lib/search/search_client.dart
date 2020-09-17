@@ -71,14 +71,7 @@ class SearchClient {
     if (queryLength > _maxQueryLength) {
       return PackageSearchResult.empty(message: 'Query too long.');
     }
-
-    if (query.randomize) {
-      return await searchFn();
-    } else {
-      return await cache
-          .packageSearchResult(serviceUrl, ttl: ttl)
-          .get(searchFn);
-    }
+    return await cache.packageSearchResult(serviceUrl, ttl: ttl).get(searchFn);
   }
 
   /// Search service maintains a separate index in each of the running instances.

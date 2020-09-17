@@ -21,7 +21,6 @@ import 'token_index.dart';
 final _logger = Logger('search.mem_index');
 
 class InMemoryPackageIndex implements PackageIndex {
-  final math.Random _random;
   final bool _isSdkIndex;
   final String _urlPrefix;
   final Map<String, PackageDocument> _packages = <String, PackageDocument>{};
@@ -39,14 +38,12 @@ class InMemoryPackageIndex implements PackageIndex {
   InMemoryPackageIndex({
     math.Random random,
     @visibleForTesting bool alwaysUpdateLikeScores = false,
-  })  : _random = random ?? math.Random.secure(),
-        _alwaysUpdateLikeScores = alwaysUpdateLikeScores,
+  })  : _alwaysUpdateLikeScores = alwaysUpdateLikeScores,
         _isSdkIndex = false,
         _urlPrefix = null;
 
   InMemoryPackageIndex.sdk({@required String urlPrefix})
-      : _random = math.Random.secure(),
-        _isSdkIndex = true,
+      : _isSdkIndex = true,
         _alwaysUpdateLikeScores = false,
         _urlPrefix = urlPrefix;
 
@@ -272,17 +269,8 @@ class InMemoryPackageIndex implements PackageIndex {
     }
 
     // bound by offset and limit (or randomize items)
-    int totalCount;
-    if (query.randomize) {
-      final limit = math.max(10, query.limit ?? 0);
-      final sublist = boundedList(results, offset: 0, limit: limit * 10);
-      sublist.shuffle(_random);
-      results = sublist.take(limit).map((sr) => sr.onlyPackageName()).toList();
-      totalCount = results.length;
-    } else {
-      totalCount = results.length;
-      results = boundedList(results, offset: query.offset, limit: query.limit);
-    }
+    final totalCount = results.length;
+    results = boundedList(results, offset: query.offset, limit: query.limit);
 
     if (textResults != null &&
         textResults.topApiPages != null &&
