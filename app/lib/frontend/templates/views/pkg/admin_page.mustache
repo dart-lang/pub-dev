@@ -48,32 +48,52 @@
   {{/user_has_publisher}}
 </div>
 
-<h2>Discontinued</h2>
-{{^is_discontinued}}
+<h2>Package Options</h2>
+
+<h3>Discontinued</h3>
 <div>
-  <p>
-    If no one is maintaining this package, you can mark it as discontinued.
-    Discontinued packages remain available, but pub.dev doesn’t display them in search results.
-  </p>
-  <p>
-    <button
-      id="-admin-is-discontinued-toggle"
-      class="mdc-button mdc-button--raised"
-      data-mdc-auto-init="MDCRipple">Mark as "discontinued"</button>
-  </p>
+  If no one is maintaining this package, you can mark it as discontinued.
+  Discontinued packages remain available, but pub.dev doesn’t display them
+  in search results and won't analyze it for scoring.
 </div>
-{{/is_discontinued}}
-{{#is_discontinued}}
+<div class="mdc-form-field">
+  <div class="mdc-checkbox">
+    <input type="checkbox"
+           class="mdc-checkbox__native-control"
+           id="-admin-is-discontinued-checkbox"
+           {{#is_discontinued}}checked="checked"{{/is_discontinued}}
+    />
+    <div class="mdc-checkbox__background">
+      <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+        <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+      </svg>
+      <div class="mdc-checkbox__mixedmark"></div>
+    </div>
+    <div class="mdc-checkbox__ripple"></div>
+  </div>
+  <label for="-admin-is-discontinued-checkbox">Mark "discontinued"</label>
+</div>
+
+<h3>Unlisted</h3>
 <div>
-  <p>
-    If you want to continue developing this package, you can remove the discontinued status.
-    The package will be analyzed and included in search results.
-  </p>
-  <p>
-    <button
-      id="-admin-is-discontinued-toggle"
-      class="mdc-button mdc-button--raised"
-      data-mdc-auto-init="MDCRipple">Remove "discontinued"</button>
-  </p>
+  If you don't want this package to be discovered, you can mark it unlisted.
+  Unlisted packages remain available, they are getting analyzed for scoring,
+  but pub.dev doesn’t display them in search results.
 </div>
-{{/is_discontinued}}
+<div class="mdc-form-field">
+  <div class="mdc-checkbox">
+    <input type="checkbox"
+           class="mdc-checkbox__native-control"
+           id="-admin-is-unlisted-checkbox"
+           {{#is_unlisted}}checked="checked"{{/is_unlisted}}
+    />
+    <div class="mdc-checkbox__background">
+      <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+        <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+      </svg>
+      <div class="mdc-checkbox__mixedmark"></div>
+    </div>
+    <div class="mdc-checkbox__ripple"></div>
+  </div>
+  <label for="-admin-is-unlisted-checkbox">Mark "unlisted"</label>
+</div>

@@ -179,7 +179,7 @@ void main() {
       );
       expect(
         query.tagsPredicate.toQueryParameters(),
-        ['-is:discontinued', 'sdk:flutter', 'platform:android'],
+        ['-is:discontinued', '-is:unlisted', 'sdk:flutter', 'platform:android'],
       );
       expect(query.toSearchLink(), '/flutter/packages?platform=android');
     });
@@ -192,7 +192,7 @@ void main() {
       );
       expect(
         query.tagsPredicate.toQueryParameters(),
-        ['-is:discontinued', 'sdk:flutter', 'platform:android', 'platform:ios'],
+        ['-is:discontinued', '-is:unlisted', 'sdk:flutter', 'platform:android', 'platform:ios'],
       );
       expect(query.toSearchLink(), '/flutter/packages?platform=android+ios');
     });
@@ -207,6 +207,7 @@ void main() {
         query.tagsPredicate.toQueryParameters(),
         [
           '-is:discontinued',
+          '-is:unlisted',
           'sdk:dart',
           'runtime:web',
         ],

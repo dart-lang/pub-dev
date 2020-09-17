@@ -432,6 +432,7 @@ class TagsPredicate {
   factory TagsPredicate.regularSearch() => TagsPredicate(
         prohibitedTags: [
           PackageTags.isDiscontinued,
+          PackageTags.isUnlisted,
         ],
       );
 
@@ -439,6 +440,7 @@ class TagsPredicate {
       TagsPredicate(
         prohibitedTags: [
           PackageTags.isDiscontinued,
+          PackageTags.isUnlisted,
           PackageTags.isNotAdvertized,
         ],
         requiredTags: requiredTags,
