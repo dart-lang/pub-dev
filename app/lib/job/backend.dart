@@ -7,7 +7,6 @@ import 'dart:math' as math;
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
-import 'package:retry/retry.dart';
 
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/popularity_storage.dart';
@@ -105,9 +104,10 @@ class JobBackend {
     final state = shouldProcess ? JobState.available : JobState.idle;
     final lockedUntil =
         shouldProcess ? null : DateTime.now().add(_shortExtendDuration);
-    await _retryWithTransaction((tx) async {
-      final list = await tx.lookup([_db.emptyKey.append(Job, id: id)]);
-      final current = list.single as Job;
+    await db.withRetryTransaction(_db, (tx) async {
+      final current = await tx.lookupValue<Job>(
+          _db.emptyKey.append(Job, id: id),
+          orElse: () => null);
       if (current != null) {
         final hasNotChanged = current.isLatestStable == isLatestStable &&
             !current.packageVersionUpdated.isBefore(packageVersionUpdated) &&
@@ -134,8 +134,7 @@ class JobBackend {
             popularityStorage.lookup(package),
             fixPriority: priority,
           );
-        tx.queueMutations(inserts: [current]);
-        await tx.commit();
+        tx.insert(current);
         return;
       } else {
         _logger.info('Creating job: $id');
@@ -155,8 +154,7 @@ class JobBackend {
             popularityStorage.lookup(package),
             fixPriority: priority,
           );
-        tx.queueMutations(inserts: [job]);
-        await tx.commit();
+        tx.insert(job);
         return;
       }
     });
@@ -181,31 +179,30 @@ class JobBackend {
     list.removeWhere((job) => !isApplicable(job));
     if (list.isEmpty) return null;
 
-    return await _retryWithTransaction((tx) async {
+    return await db.withRetryTransaction(_db, (tx) async {
       // Select from the available list randomly, with a preferential bias
       // towards the first part of the available items.
       final r1 = _random.nextInt(list.length);
       final r2 = r1 < 20 ? r1 : _random.nextInt(list.length);
       final selectedId = list[r2].id;
-      final items = await tx.lookup([_db.emptyKey.append(Job, id: selectedId)]);
-      final selected = items.single as Job;
+      final selected = await tx.lookupValue<Job>(
+          _db.emptyKey.append(Job, id: selectedId),
+          orElse: () => null);
       if (!isApplicable(selected)) return null;
       final now = DateTime.now().toUtc();
       selected
         ..state = JobState.processing
         ..processingKey = createUuid()
         ..lockedUntil = now.add(_defaultLockDuration);
-      tx.queueMutations(inserts: [selected]);
-      await tx.commit();
+      tx.insert(selected);
       return selected;
     });
   }
 
   Future<void> unlockStaleProcessing(JobService service) async {
     Future<void> _unlock(Job job) async {
-      await _retryWithTransaction((tx) async {
-        final list = await tx.lookup([job.key]);
-        final current = list.single as Job;
+      await db.withRetryTransaction(_db, (tx) async {
+        final current = await tx.lookupValue<Job>(job.key);
         if (current.state == JobState.processing &&
             current.lockedUntil == job.lockedUntil) {
           final errorCount = current.errorCount + 1;
@@ -216,8 +213,7 @@ class JobBackend {
             ..lastStatus = JobStatus.aborted
             ..lockedUntil = _extendLock(errorCount)
             ..updatePriority(popularityStorage.lookup(job.packageName));
-          tx.queueMutations(inserts: [current]);
-          await tx.commit();
+          tx.insert(current);
         }
       });
     }
@@ -239,32 +235,28 @@ class JobBackend {
   Future<void> checkIdle(
       JobService service, ShouldProcess shouldProcess) async {
     Future<void> _schedule(Job job) async {
-      await _retryWithTransaction((tx) async {
-        final list = await tx.lookup([job.key]);
-        final current = list.single as Job;
+      await db.withRetryTransaction(_db, (tx) async {
+        final current = await tx.lookupValue<Job>(job.key);
         if (current.state == JobState.idle &&
             current.lockedUntil == job.lockedUntil) {
           current
             ..state = JobState.available
             ..processingKey = null
             ..lockedUntil = null;
-          tx.queueMutations(inserts: [current]);
-          await tx.commit();
+          tx.insert(current);
         }
       });
     }
 
     Future<void> _extend(Job job) async {
-      await _retryWithTransaction((tx) async {
-        final list = await tx.lookup([job.key]);
-        final current = list.single as Job;
+      await db.withRetryTransaction(_db, (tx) async {
+        final current = await tx.lookupValue<Job>(job.key);
         if (current.state == JobState.idle &&
             current.lockedUntil == job.lockedUntil) {
           current
             ..processingKey = null
             ..lockedUntil = DateTime.now().toUtc().add(_shortExtendDuration);
-          tx.queueMutations(inserts: [current]);
-          await tx.commit();
+          tx.insert(current);
         }
       });
     }
@@ -291,9 +283,10 @@ class JobBackend {
   }
 
   Future<void> complete(Job job, JobStatus status) async {
-    await _retryWithTransaction((tx) async {
-      final items = await tx.lookup([_db.emptyKey.append(Job, id: job.id)]);
-      final selected = items.single as Job;
+    await db.withRetryTransaction(_db, (tx) async {
+      final selected = await tx.lookupValue<Job>(
+          _db.emptyKey.append(Job, id: job.id),
+          orElse: () => null);
       if (selected == null) {
         _logger.info('Unable to complete missing job: $job.');
         return;
@@ -311,8 +304,7 @@ class JobBackend {
           ..errorCount = errorCount
           ..lockedUntil = _extendLock(errorCount)
           ..updatePriority(popularityStorage.lookup(selected.packageName));
-        tx.queueMutations(inserts: [selected]);
-        await tx.commit();
+        tx.insert(selected);
       } else {
         _logger
             .info('Job $job completion aborted. isNull: ${selected == null}');
@@ -352,18 +344,6 @@ class JobBackend {
         .toUtc()
         .add(extend)
         .add(Duration(hours: math.min(errorCount, 168 /* one week */)));
-  }
-
-  Future<R> _retryWithTransaction<R>(
-      Future<R> Function(db.Transaction tx) fn) async {
-    return await retry(
-      () async {
-        final r = await _db.withTransaction<R>(fn);
-        return r;
-      },
-      maxDelay: const Duration(seconds: 2),
-      retryIf: (ex) => ex is db.DatastoreError,
-    );
   }
 
   /// Deletes the old entries that predate [versions.gcBeforeRuntimeVersion].
