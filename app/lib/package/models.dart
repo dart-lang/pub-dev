@@ -315,6 +315,7 @@ class PackageVersion extends db.ExpandoModel<String> {
   /// List of tags from the flags on the current [PackageVersion] entity.
   List<String> getTags() {
     return <String>[
+      if (pubspec.hasFlutterPlugin) PackageVersionTags.isFlutterPlugin,
       if (pubspec.supportsOnlyLegacySdk) PackageVersionTags.isLegacy,
     ];
   }

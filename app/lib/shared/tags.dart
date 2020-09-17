@@ -34,6 +34,9 @@ abstract class PackageTags {
 
 /// Collection of version-related tags.
 abstract class PackageVersionTags {
+  /// Package is marked with Flutter plugin.
+  static const String isFlutterPlugin = 'is:flutter-plugin';
+
   /// PackageVersion supports only legacy (Dart 1) SDK.
   static const String isLegacy = 'is:legacy';
 
