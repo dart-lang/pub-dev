@@ -32,7 +32,8 @@ void main() {
 
     test('pana 0.12.19', () async {
       final path = await download('pana', '0.12.19');
-      final summary = await summarizePackageArchive(path);
+      final summary =
+          await summarizePackageArchive(path, maxContentLength: 128 * 1024);
       expect(summary.issues, isEmpty);
       expect(summary.pubspecContent, contains('pana'));
       expect(summary.readmePath, 'README.md');

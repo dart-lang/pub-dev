@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:meta/meta.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart' show YamlException;
@@ -11,10 +12,6 @@ import 'package:yaml/yaml.dart' show YamlException;
 import 'src/file_names.dart';
 import 'src/names.dart';
 import 'src/tar_utils.dart';
-
-// The maximum stored length of `README.md` and other user-provided file content
-// that is stored separately in the database.
-final _maxStoredLength = 128 * 1024;
 
 /// A validation issue in the package archive.
 class ArchiveIssue {
@@ -59,7 +56,10 @@ class PackageSummary {
 }
 
 /// Observe the .tar.gz archive on [archivePath] and return the results.
-Future<PackageSummary> summarizePackageArchive(String archivePath) async {
+Future<PackageSummary> summarizePackageArchive(
+  String archivePath, {
+  @required int maxContentLength,
+}) async {
   final issues = <ArchiveIssue>[];
   final files = await listTarball(archivePath);
 
@@ -142,9 +142,9 @@ Future<PackageSummary> summarizePackageArchive(String archivePath) async {
     if (content != null && content.trim().isEmpty) {
       return null;
     }
-    if (content != null && utf8.encode(content).length > _maxStoredLength) {
+    if (content != null && utf8.encode(content).length > maxContentLength) {
       issues.add(ArchiveIssue(
-          '`$contentPath` exceeds the maximum content length ($_maxStoredLength bytes).'));
+          '`$contentPath` exceeds the maximum content length ($maxContentLength bytes).'));
     }
     return content;
   }
