@@ -192,7 +192,13 @@ void main() {
       );
       expect(
         query.tagsPredicate.toQueryParameters(),
-        ['-is:discontinued', '-is:unlisted', 'sdk:flutter', 'platform:android', 'platform:ios'],
+        [
+          '-is:discontinued',
+          '-is:unlisted',
+          'sdk:flutter',
+          'platform:android',
+          'platform:ios',
+        ],
       );
       expect(query.toSearchLink(), '/flutter/packages?platform=android+ios');
     });
