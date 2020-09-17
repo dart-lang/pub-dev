@@ -132,5 +132,9 @@ Future<T> withRetryTransaction<T>(
       //  - TransactionAbortedError, implies a transaction conflict.
       // Never retry a ResponseException
       retryIf: (e) => e is! ResponseException,
-      onRetry: (e) => _logger.info('retrying transaction', e),
+      onRetry: (e) {
+        final message =
+            e is ds.DatastoreError ? 'DatastoreError' : 'non-DatastoreError';
+        _logger.info('retrying transaction - $message ${e.runtimeType}', e);
+      },
     );
