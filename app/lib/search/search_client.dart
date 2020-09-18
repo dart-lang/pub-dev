@@ -15,9 +15,6 @@ import '../shared/utils.dart';
 
 import 'search_service.dart';
 
-/// The maximum length of the search query's text phrase that we'll try to serve.
-final _maxQueryLength = 256;
-
 /// Sets the search client.
 void registerSearchClient(SearchClient client) =>
     ss.register(#_searchClient, client);
@@ -34,6 +31,16 @@ class SearchClient {
   SearchClient([http.Client client]) : _httpClient = client ?? http.Client();
 
   Future<PackageSearchResult> search(SearchQuery query, {Duration ttl}) async {
+    // check validity first
+    final validity = query.evaluateValidity();
+    if (validity.isRejected) {
+      return PackageSearchResult(
+        totalCount: 0,
+        packages: [],
+        message: 'Search query rejected. ${validity.rejectReason}',
+      );
+    }
+
     final String httpHostPort = activeConfiguration.searchServicePrefix;
     final String serviceUrlParams =
         Uri(queryParameters: query.toServiceQueryParameters()).toString();
@@ -65,12 +72,6 @@ class SearchClient {
       return result;
     }
 
-    // Block search on unreasonably long search queries (when the free-form
-    // text part is longer than one would enter via the search input field).
-    final queryLength = query?.parsedQuery?.text?.length ?? 0;
-    if (queryLength > _maxQueryLength) {
-      return PackageSearchResult.empty(message: 'Query too long.');
-    }
     return await cache.packageSearchResult(serviceUrl, ttl: ttl).get(searchFn);
   }
 

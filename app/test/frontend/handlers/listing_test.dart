@@ -173,4 +173,23 @@ flutter:
       );
     });
   });
+
+  group('Rejected queries', () {
+    testWithServices('too long', () async {
+      final longString = 'abcd1234+' * 30;
+      await expectHtmlResponse(
+        await issueGet('/packages?q=$longString'),
+        present: ['Search query rejected. Query too long.'],
+      );
+    });
+
+    testWithServices('invalid override', () async {
+      await expectHtmlResponse(
+        await issueGet('/flutter/packages?q=-sdk:flutter'),
+        present: [
+          'Search query rejected. Invalid override: <code>sdk:flutter</code>.'
+        ],
+      );
+    });
+  });
 }
