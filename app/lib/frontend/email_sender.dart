@@ -148,7 +148,7 @@ class _GmailSmtpRelay implements EmailSender {
 
   Future<SmtpServer> _getSmtpServer() async {
     final maxAge = DateTime.now().subtract(Duration(minutes: 15));
-    if (_accessToken == null && _accessTokenRefreshed.isBefore(maxAge)) {
+    if (_accessToken == null || _accessTokenRefreshed.isBefore(maxAge)) {
       _accessToken = _createAccessToken();
       _accessTokenRefreshed = DateTime.now();
     }
