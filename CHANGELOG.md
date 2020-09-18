@@ -3,7 +3,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
-## `20200917t152016-all`
+## `20200918t112352-all`
  * Bumped runtimeVersion to `2020.09.16`.
  * Upgraded Flutter to `1.20.4`.
  * Upgraded dartdoc to `0.34.0`.
