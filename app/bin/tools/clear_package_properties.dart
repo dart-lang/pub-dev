@@ -102,11 +102,10 @@ Future _clearAdditionalProperties<T extends ExpandoModel>(T model) async {
   }
 
   if (_isDryRun) return;
-  await dbService.withTransaction((tx) async {
-    final entry = (await tx.lookup<T>([model.key])).single;
+  await withRetryTransaction(dbService, (tx) async {
+    final entry = await tx.lookupValue<T>(model.key);
     entry.additionalProperties.clear();
-    tx.queueMutations(inserts: [entry]);
-    await tx.commit();
+    tx.insert(entry);
   });
 }
 

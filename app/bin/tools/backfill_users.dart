@@ -51,11 +51,10 @@ Future _backfillUser(User user) async {
   }
   print('Backfill User: ${user.userId} / ${user.email}');
 
-  await dbService.withTransaction((tx) async {
-    final u = (await dbService.lookup<User>([user.key])).single;
+  await withRetryTransaction(dbService, (tx) async {
+    final u = await dbService.lookupValue<User>(user.key);
     u.isBlocked ??= false;
     u.isDeleted ??= false;
-    tx.queueMutations(inserts: [u]);
-    await tx.commit();
+    tx.insert(u);
   });
 }

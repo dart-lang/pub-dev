@@ -72,11 +72,10 @@ Future _backfill(PackageVersion pv) async {
     return;
   }
 
-  await dbService.withTransaction((Transaction t) async {
-    final packageVersion = (await t.lookup([pv.key])).first as PackageVersion;
+  await withRetryTransaction(dbService, (t) async {
+    final packageVersion = await t.lookupValue<PackageVersion>(pv.key);
     packageVersion.exampleFilename = archiveFilename;
     packageVersion.exampleContent = content;
-    t.queueMutations(inserts: [packageVersion]);
-    await t.commit();
+    t.insert(packageVersion);
   });
 }

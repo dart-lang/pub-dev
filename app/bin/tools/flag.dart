@@ -73,21 +73,16 @@ Future _read(String packageName) async {
 }
 
 Future _set(String packageName, {String discontinued, String doNotAdvertise}) {
-  return dbService.withTransaction((Transaction tx) async {
-    final p =
-        (await tx.lookup([dbService.emptyKey.append(Package, id: packageName)]))
-            .single as Package;
-    if (p == null) {
-      throw Exception('Package $packageName does not exist.');
-    }
+  return withRetryTransaction(dbService, (tx) async {
+    final p = await tx.lookupValue<Package>(
+        dbService.emptyKey.append(Package, id: packageName));
     if (discontinued != null) {
       p.isDiscontinued = discontinued == 'set';
     }
     if (doNotAdvertise != null) {
       p.doNotAdvertise = doNotAdvertise == 'set';
     }
-    tx.queueMutations(inserts: [p]);
-    await tx.commit();
+    tx.insert(p);
     print(
         'Package $packageName: isDiscontinued=${p.isDiscontinued} doNotAdverise=${p.doNotAdvertise}');
     await AnalyzerClient()
