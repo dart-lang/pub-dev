@@ -187,7 +187,7 @@ flutter:
       await expectHtmlResponse(
         await issueGet('/flutter/packages?q=-sdk:flutter'),
         present: [
-          'Search query rejected. Invalid override: <code>sdk:flutter</code>.'
+          'Search query rejected. Tag conflict with search filters: <code>sdk:flutter</code>.'
         ],
       );
     });

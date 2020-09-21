@@ -386,13 +386,14 @@ class SearchQuery {
       return QueryValidity.reject(rejectReason: 'Query too long.');
     }
 
-    // Do not allow override of required tags. (E.g. search scope would require
-    // sdk:flutter, do not allow -sdk:flutter to override it).
-    final invalidOverride =
-        tagsPredicate._firstInvalidOverride(parsedQuery.tagsPredicate);
-    if (invalidOverride != null) {
+    // Do not allow override of search filter tags. (E.g. search scope would
+    // require sdk:flutter, do not allow -sdk:flutter to override it).
+    final conflictingTags =
+        tagsPredicate._getConflictingTags(parsedQuery.tagsPredicate);
+    if (conflictingTags.isNotEmpty) {
       return QueryValidity.reject(
-          rejectReason: 'Invalid override: `$invalidOverride`.');
+          rejectReason:
+              'Tag conflict with search filters: `${conflictingTags.join(', ')}`.');
     }
     return QueryValidity.accept();
   }
@@ -508,15 +509,18 @@ class TagsPredicate {
     return p;
   }
 
-  String _firstInvalidOverride(TagsPredicate other) {
-    for (final e in _values.entries) {
-      if (e.value &&
-          other._values.containsKey(e.key) &&
-          !other._values[e.key]) {
-        return e.key;
+  /// Returns the list of tags that override the current tag predicates.
+  ///
+  /// Returns an empty list when no tags overrides an existing value.
+  List<String> _getConflictingTags(TagsPredicate other) {
+    final tags = <String>[];
+    for (final e in other._values.entries) {
+      if (_values.containsKey(e.key) &&
+          _values[e.key] != other._values[e.key]) {
+        tags.add(e.key);
       }
     }
-    return null;
+    return tags;
   }
 
   /// Appends [other] predicate to the current set of tags, and returns a new
@@ -528,10 +532,10 @@ class TagsPredicate {
     // Ideally we want to throw an ArgumentError here, but to make sure we don't
     // break the site, let's just log it first.
     // TODO: throw exception instead of logging
-    final invalidOverride = _firstInvalidOverride(other);
-    if (invalidOverride != null) {
-      _logger.warning(
-          'Invalid append detected: $invalidOverride', StackTrace.current);
+    final conflictingTags = _getConflictingTags(other);
+    if (conflictingTags.isNotEmpty) {
+      _logger.warning('Invalid append detected: ${conflictingTags.join(', ')}',
+          StackTrace.current);
     }
     final p = TagsPredicate();
     p._values.addAll(_values);
