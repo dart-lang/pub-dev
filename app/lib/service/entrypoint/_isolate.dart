@@ -3,12 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
 
 import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 
 import '../../shared/configuration.dart';
@@ -60,6 +62,19 @@ Future startIsolates({
   Future<void> Function(WorkerEntryMessage message) workerEntryPoint,
   Duration deadWorkerTimeout,
 }) async {
+  if (!envConfig.isRunningLocally) {
+    // The existence of this file may indicate an issue with the service health.
+    // Checking it only in AppEngine environment.
+    final stampFile =
+        File(p.join(Directory.systemTemp.path, 'pub-dev-started.stamp'));
+    if (stampFile.existsSync()) {
+      print('[warning-service-restarted]: '
+          '${stampFile.path} already exists, indicating that this process has been restarted.');
+    } else {
+      stampFile.createSync(recursive: true);
+    }
+  }
+
   useLoggingPackageAdaptor();
   int frontendStarted = 0;
   int workerStarted = 0;
