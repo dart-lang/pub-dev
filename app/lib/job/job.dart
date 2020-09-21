@@ -73,22 +73,18 @@ abstract class JobProcessor {
           status = JobStatus.success;
           statEvent = 'success';
           _logger.info('$_serviceAsString job completed: $jobDescription');
-        } on db.TransactionAbortedError catch (e, st) {
-          _logger.info('$_serviceAsString job error $jobDescription', e, st);
-        } on db.TimeoutError catch (e, st) {
+        } on db.DatastoreError catch (e, st) {
           _logger.info('$_serviceAsString job error $jobDescription', e, st);
         } catch (e, st) {
           _logger.severe('$_serviceAsString job error $jobDescription', e, st);
         }
         await jobBackend.complete(job, status);
       }
-    } on db.TransactionAbortedError catch (e, st) {
-      statEvent = 'transaction';
-      _logger.info('$_serviceAsString job error $jobDescription', e, st);
-    } on db.TimeoutError catch (e, st) {
-      statEvent = 'timeout';
+    } on db.DatastoreError catch (e, st) {
+      statEvent = 'datastore-error';
       _logger.info('$_serviceAsString job error $jobDescription', e, st);
     } catch (e, st) {
+      statEvent = 'error';
       _logger.severe('$_serviceAsString job error $jobDescription', e, st);
     }
     _trackers.putIfAbsent(statEvent, () => DurationTracker()).add(sw.elapsed);

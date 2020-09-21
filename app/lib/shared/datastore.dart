@@ -8,8 +8,7 @@ import 'package:retry/retry.dart';
 import 'package:logging/logging.dart';
 import 'exceptions.dart';
 
-export 'package:gcloud/datastore.dart'
-    show DatastoreError, TimeoutError, TransactionAbortedError;
+export 'package:gcloud/datastore.dart' show DatastoreError;
 export 'package:gcloud/db.dart';
 
 final Logger _logger = Logger('pub.datastore_helper');
