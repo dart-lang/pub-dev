@@ -30,7 +30,7 @@ final Duration _deleteThreshold = const Duration(days: 182);
 ///
 /// The Datastore limit is 1000, but that caused resource constraint issues
 /// https://github.com/dart-lang/pub-dev/issues/4040
-const _batchLookupMaxKeyCount = 400;
+const _batchLookupMaxKeyCount = 100;
 
 /// Sets the active scorecard backend.
 void registerScoreCardBackend(ScoreCardBackend backend) =>
