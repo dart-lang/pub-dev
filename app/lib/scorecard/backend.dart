@@ -25,6 +25,13 @@ final _logger = Logger('pub.scorecard.backend');
 
 final Duration _deleteThreshold = const Duration(days: 182);
 
+/// The maximum number of keys we'll try to lookup when we need to load the
+/// scorecard or the report information for multiple versions.
+///
+/// The Datastore limit is 1000, but that caused resource constraint issues
+/// https://github.com/dart-lang/pub-dev/issues/4040
+const _batchLookupMaxKeyCount = 100;
+
 /// Sets the active scorecard backend.
 void registerScoreCardBackend(ScoreCardBackend backend) =>
     ss.register(#_scorecard_backend, backend);
@@ -157,10 +164,12 @@ class ScoreCardBackend {
     String runtimeVersion,
   }) async {
     final results = <ReportData>[];
-    for (var start = 0; start < versions.length; start += 1000) {
+    for (var start = 0;
+        start < versions.length;
+        start += _batchLookupMaxKeyCount) {
       final keys = versions
           .skip(start)
-          .take(1000)
+          .take(_batchLookupMaxKeyCount)
           .map((v) =>
               scoreCardKey(packageName, v, runtimeVersion: runtimeVersion)
                   .append(ScoreCardReport, id: reportType))
