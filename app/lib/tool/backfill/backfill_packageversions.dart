@@ -151,7 +151,8 @@ Future<PackageSummary> _parseArchive(
   final tempFile = File(p.join(Directory.systemTemp.path, fn));
   await tempFile.writeAsBytes(rs.bodyBytes);
   try {
-    return await summarizePackageArchive(tempFile.path);
+    return await summarizePackageArchive(tempFile.path,
+        maxContentLength: maxAssetContentLength);
   } finally {
     await tempFile.delete();
   }

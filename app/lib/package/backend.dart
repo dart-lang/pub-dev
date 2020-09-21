@@ -42,6 +42,10 @@ import 'models.dart';
 import 'name_tracker.dart';
 import 'upload_signer_service.dart';
 
+// The maximum stored length of `README.md` and other user-provided file content
+// that is stored separately in the database.
+final maxAssetContentLength = 128 * 1024;
+
 final Logger _logger = Logger('pub.cloud_repository');
 
 /// Sets the active tarball storage
@@ -985,7 +989,8 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
     DatastoreDB db, String filename, User user) async {
   assert(user != null);
 
-  final archive = await summarizePackageArchive(filename);
+  final archive = await summarizePackageArchive(filename,
+      maxContentLength: maxAssetContentLength);
   if (archive.hasIssues) {
     throw PackageRejectedException(archive.issues.first.message);
   }
@@ -1051,6 +1056,12 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
     ..updated = DateTime.now().toUtc()
     ..pubspec = pubspec;
 
+  String capContent(String text) {
+    if (text == null) return text;
+    if (text.length < maxAssetContentLength) return text;
+    return text.substring(0, maxAssetContentLength);
+  }
+
   final assets = <PackageVersionAsset>[
     PackageVersionAsset.init(
       package: key.package,
@@ -1058,7 +1069,7 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
       kind: AssetKind.pubspec,
       versionCreated: versionCreated,
       path: 'pubspec.yaml',
-      textContent: archive.pubspecContent,
+      textContent: capContent(archive.pubspecContent),
     ),
     if (archive.readmePath != null)
       PackageVersionAsset.init(
@@ -1067,7 +1078,7 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
         kind: AssetKind.readme,
         versionCreated: versionCreated,
         path: archive.readmePath,
-        textContent: archive.readmeContent,
+        textContent: capContent(archive.readmeContent),
       ),
     if (archive.changelogPath != null)
       PackageVersionAsset.init(
@@ -1076,7 +1087,7 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
         kind: AssetKind.changelog,
         versionCreated: versionCreated,
         path: archive.changelogPath,
-        textContent: archive.changelogContent,
+        textContent: capContent(archive.changelogContent),
       ),
     if (archive.examplePath != null)
       PackageVersionAsset.init(
@@ -1085,7 +1096,7 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
         kind: AssetKind.example,
         versionCreated: versionCreated,
         path: archive.examplePath,
-        textContent: archive.exampleContent,
+        textContent: capContent(archive.exampleContent),
       ),
     if (archive.licensePath != null)
       PackageVersionAsset.init(
@@ -1094,7 +1105,7 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
         kind: AssetKind.license,
         versionCreated: versionCreated,
         path: archive.licensePath,
-        textContent: archive.licenseContent,
+        textContent: capContent(archive.licenseContent),
       ),
   ];
 
