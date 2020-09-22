@@ -23,7 +23,8 @@
   }
 
   &.legacy,
-  &.discontinued {
+  &.discontinued,
+  &.unlisted {
     background: #c0392b;
     color: #f8f8f8;
   }
