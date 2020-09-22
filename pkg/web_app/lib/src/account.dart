@@ -176,37 +176,72 @@ Future _updateUser(GoogleUser user) async {
 
 /// Active on /packages/<package>/admin page.
 class _PkgAdminWidget {
-  Element _toggleDiscontinuedButton;
   SelectElement _setPublisherInput;
   Element _setPublisherButton;
+  InputElement _discontinuedCheckbox;
+  InputElement _unlistedCheckbox;
 
   void init() {
     if (!pageData.isPackagePage) return;
-    _toggleDiscontinuedButton =
-        document.getElementById('-admin-is-discontinued-toggle');
     _setPublisherInput =
         document.getElementById('-admin-set-publisher-input') as SelectElement;
     _setPublisherButton =
         document.getElementById('-admin-set-publisher-button');
-    _toggleDiscontinuedButton?.onClick?.listen((_) => _toogleDiscontinued());
     _setPublisherButton?.onClick?.listen((_) => _setPublisher());
+    _discontinuedCheckbox = document
+        .getElementById('-admin-is-discontinued-checkbox') as InputElement;
+    _discontinuedCheckbox?.onChange?.listen((_) => _toogleDiscontinued());
+    _unlistedCheckbox =
+        document.getElementById('-admin-is-unlisted-checkbox') as InputElement;
+    _unlistedCheckbox?.onChange?.listen((_) => _toggleUnlisted());
   }
 
   Future<void> _toogleDiscontinued() async {
-    await rpc(
+    final oldValue = _discontinuedCheckbox.defaultChecked;
+    final newValue = await rpc(
       confirmQuestion: text(
           'Are you sure you want change the "discontinued" status of the package?'),
       fn: () async {
-        await client.setPackageOptions(
+        final rs = await client.setPackageOptions(
             pageData.pkgData.package,
             PkgOptions(
-              isDiscontinued: !pageData.pkgData.isDiscontinued,
+              isDiscontinued: !oldValue,
             ));
+        return rs.isDiscontinued;
       },
-      successMessage:
-          text('"discontinued" status changed. The page will reload.'),
-      onSuccess: (_) => window.location.reload(),
+      successMessage: text('"discontinued" status changed.'),
+      onError: (err) => null,
     );
+    if (newValue == null) {
+      _discontinuedCheckbox.checked = oldValue;
+    } else {
+      _discontinuedCheckbox.defaultChecked = newValue;
+      _discontinuedCheckbox.checked = newValue;
+    }
+  }
+
+  Future<void> _toggleUnlisted() async {
+    final oldValue = _unlistedCheckbox.defaultChecked;
+    final newValue = await rpc(
+      confirmQuestion: text(
+          'Are you sure you want change the "unlisted" status of the package?'),
+      fn: () async {
+        final rs = await client.setPackageOptions(
+            pageData.pkgData.package,
+            PkgOptions(
+              isUnlisted: !oldValue,
+            ));
+        return rs.isUnlisted;
+      },
+      successMessage: text('"unlisted" status changed.'),
+      onError: (err) => null,
+    );
+    if (newValue == null) {
+      _unlistedCheckbox.checked = oldValue;
+    } else {
+      _unlistedCheckbox.defaultChecked = newValue;
+      _unlistedCheckbox.checked = newValue;
+    }
   }
 
   Future<void> _setPublisher() async {

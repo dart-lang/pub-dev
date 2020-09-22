@@ -15,10 +15,11 @@ import 'pubapi.client.dart';
 /// error- and success handling.
 Future<R> rpc<R>({
   /// The optional confirmation question to ask before initiating the RPC.
+  /// When confirmation is missing, the method returns `null`.
   Element confirmQuestion,
 
   /// The async RPC call. If this throws, the error will be displayed as a modal
-  /// popup, and then it will be re-thrown.
+  /// popup, and then it will be re-thrown (or `onError` will be called).
   Future<R> Function() fn,
 
   /// Message to show when the RPC returns without exceptions.
@@ -27,6 +28,13 @@ Future<R> rpc<R>({
   /// Callback that will be called with the value of the RPC call, when it was
   /// successful.
   FutureOr Function(R value) onSuccess,
+
+  /// Callback that will be called with the error object, when executing
+  /// `fn` was not successful. The return value of this callback will be used
+  /// to return from the method.
+  ///
+  /// If not specified, the error will be thrown instead.
+  FutureOr<R> Function(dynamic error) onError,
 }) async {
   if (confirmQuestion != null && !await modalConfirm(confirmQuestion)) {
     return null;
@@ -73,7 +81,11 @@ Future<R> rpc<R>({
 
   if (error != null) {
     await modalMessage('Error', markdown(errorMessage));
-    throw error;
+    if (onError != null) {
+      return await onError(error);
+    } else {
+      throw error;
+    }
   }
 
   await modalMessage('Success', successMessage);

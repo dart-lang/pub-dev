@@ -24,6 +24,7 @@ String renderPkgAdminPage(
         'pkg_has_publisher': data.package.publisherId != null,
         'publisher_id': data.package.publisherId,
         'is_discontinued': data.package.isDiscontinued,
+        'is_unlisted': data.package.isUnlisted,
         'user_has_publisher': userPublishers.isNotEmpty,
         'user_publishers': userPublishers
             .map((s) => {
