@@ -45,10 +45,10 @@ Future main(List<String> arguments) async {
 }
 
 Future listUploaders(String packageName) async {
-  return dbService.withTransaction((Transaction T) async {
-    final package =
-        (await T.lookup([dbService.emptyKey.append(Package, id: packageName)]))
-            .first as Package;
+  return withRetryTransaction(dbService, (tx) async {
+    final package = await tx.lookupValue<Package>(
+        dbService.emptyKey.append(Package, id: packageName),
+        orElse: () => null);
     if (package == null) {
       throw Exception('Package $packageName does not exist.');
     }
@@ -59,10 +59,10 @@ Future listUploaders(String packageName) async {
 }
 
 Future addUploader(String packageName, String uploaderEmail) async {
-  return dbService.withTransaction((Transaction T) async {
-    final package =
-        (await T.lookup([dbService.emptyKey.append(Package, id: packageName)]))
-            .first as Package;
+  return withRetryTransaction(dbService, (tx) async {
+    final package = await tx.lookupValue<Package>(
+        dbService.emptyKey.append(Package, id: packageName),
+        orElse: () => null);
     if (package == null) {
       throw Exception('Package $packageName does not exist.');
     }
@@ -74,8 +74,7 @@ Future addUploader(String packageName, String uploaderEmail) async {
       throw Exception('Uploader $uploaderEmail already exists');
     }
     package.addUploader(user.userId);
-    T.queueMutations(inserts: [package]);
-    await T.commit();
+    tx.insert(package);
     print('Uploader $uploaderEmail added to list of uploaders');
 
     final pubUser =
@@ -90,10 +89,10 @@ Future addUploader(String packageName, String uploaderEmail) async {
 }
 
 Future removeUploader(String packageName, String uploaderEmail) async {
-  return dbService.withTransaction((Transaction T) async {
-    final package =
-        (await T.lookup([dbService.emptyKey.append(Package, id: packageName)]))
-            .first as Package;
+  return withRetryTransaction(dbService, (tx) async {
+    final package = await tx.lookupValue<Package>(
+        dbService.emptyKey.append(Package, id: packageName),
+        orElse: () => null);
     if (package == null) {
       throw Exception('Package $packageName does not exist.');
     }
@@ -109,8 +108,7 @@ Future removeUploader(String packageName, String uploaderEmail) async {
       throw Exception('Would remove last uploader');
     }
     package.removeUploader(user.userId);
-    T.queueMutations(inserts: [package]);
-    await T.commit();
+    tx.insert(package);
     print('Uploader $uploaderEmail removed from list of uploaders');
 
     final pubUser =

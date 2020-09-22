@@ -57,7 +57,7 @@ Future<void> _backfillPackageFields(Package p) async {
   }
   print('Backfilling properties on package ${p.name}');
   try {
-    await dbService.withTransaction((Transaction tx) async {
+    await withRetryTransaction(dbService, (tx) async {
       final package = await tx.lookupValue<Package>(p.key, orElse: () => null);
       if (package == null) {
         return;
@@ -68,10 +68,9 @@ Future<void> _backfillPackageFields(Package p) async {
       package.isUnlisted ??= package.isDiscontinued;
       package.isWithheld ??= false;
       package.assignedTags ??= [];
-      tx.queueMutations(inserts: [package]);
-      await tx.commit();
-      print('Updated properties on package ${package.name}.');
+      tx.insert(package);
     });
+    print('Updated properties on package ${p.name}.');
   } catch (e) {
     print('Failed to update properties on package ${p.name}, error $e');
   }
