@@ -232,7 +232,7 @@ String renderPkgHeader(PackagePageData data) {
     isFlutterFavorite:
         (package.assignedTags ?? []).contains(PackageTags.isFlutterFavorite),
     metadataHtml: metadataHtml,
-    tagsHtml: renderTags(package: pkgView, searchQuery: null),
+    tagsHtml: renderTags(package: pkgView),
     isLoose: true,
   );
 }

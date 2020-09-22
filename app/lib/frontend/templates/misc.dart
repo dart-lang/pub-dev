@@ -8,7 +8,6 @@ import 'package:meta/meta.dart';
 
 import 'package:path/path.dart' as p;
 import '../../package/models.dart';
-import '../../search/search_service.dart' show SearchQuery;
 import '../../shared/markdown.dart';
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
@@ -181,45 +180,99 @@ String renderMiniList(List<PackageView> packages) {
 }
 
 /// Renders the tags using the pkg/tags template.
-String renderTags({
-  @required PackageView package,
-  @required SearchQuery searchQuery,
-}) {
+String renderTags({@required PackageView package}) {
   final tags = package.tags;
   final sdkTags = tags.where((s) => s.startsWith('sdk:')).toSet().toList();
-  final List<Map> tagValues = <Map>[];
+  final tagValues = <Map>[];
   final tagBadges = <Map>[];
-  if (package.isExternal) {
-    // no tags added
-  } else if (package.isAwaiting) {
-    tagValues.add({
-      'status': 'missing',
-      'text': '[awaiting]',
-      'has_href': false,
-      'title': 'Analysis should be ready soon.',
-    });
-  } else if (package.isDiscontinued) {
+  if (package.isDiscontinued) {
     tagValues.add({
       'status': 'discontinued',
-      'text': '[discontinued]',
+      'text': 'discontinued',
       'has_href': false,
       'title': 'Package was discontinued.',
     });
-  } else if (package.isObsolete) {
+  }
+  if (package.tags.contains(PackageTags.isUnlisted)) {
+    tagValues.add({
+      'status': 'unlisted',
+      'text': 'unlisted',
+      'has_href': false,
+      'title': 'Package is unlisted, this means that while the package is still '
+          'publicly available the author has decided that it should not appear '
+          'in search results with default search filters. This is typically '
+          'done because this package is meant to support another package, '
+          'rather than being consumed directly.',
+    });
+  }
+  if (package.isObsolete) {
     tagValues.add({
       'status': 'missing',
-      'text': '[outdated]',
+      'text': 'outdated',
       'has_href': false,
       'title': 'Package version too old, check latest stable.',
     });
-  } else if (package.isLegacy) {
+  }
+  if (package.isLegacy) {
     tagValues.add({
       'status': 'legacy',
       'text': 'Dart 2 incompatible',
       'has_href': false,
       'title': 'Package does not support Dart 2.',
     });
-  } else if (sdkTags.isEmpty) {
+  }
+  // We only display first-class platform/runtimes
+  if (sdkTags.contains(SdkTag.sdkDart)) {
+    tagBadges.add({
+      'sdk': 'Dart',
+      'title': 'Packages compatible with Dart SDK',
+      'sub_tags': [
+        if (tags.contains(DartSdkTag.runtimeNativeJit))
+          {
+            'text': 'native',
+            'title':
+                'Packages compatible with Dart running on a native platform (JIT/AOT)',
+          },
+        if (tags.contains(DartSdkTag.runtimeWeb))
+          {
+            'text': 'js',
+            'title': 'Packages compatible with Dart compiled for the web',
+          },
+      ],
+    });
+  }
+  if (sdkTags.contains(SdkTag.sdkFlutter)) {
+    tagBadges.add({
+      'sdk': 'Flutter',
+      'title': 'Packages compatible with Flutter SDK',
+      'sub_tags': [
+        if (tags.contains(FlutterSdkTag.platformAndroid))
+          {
+            'text': 'Android',
+            'title': 'Packages compatible with Flutter on the Android platform',
+          },
+        if (tags.contains(FlutterSdkTag.platformIos))
+          {
+            'text': 'iOS',
+            'title': 'Packages compatible with Flutter on the iOS platform'
+          },
+        if (tags.contains(FlutterSdkTag.platformWeb))
+          {
+            'text': 'web',
+            'title': 'Packages compatible with Flutter on the Web platform',
+          },
+      ],
+    });
+  }
+  if (tagBadges.isEmpty && package.isAwaiting) {
+    tagValues.add({
+      'status': 'missing',
+      'text': '[awaiting]',
+      'has_href': false,
+      'title': 'Analysis should be ready soon.',
+    });
+  }
+  if (!package.isExternal && tagValues.isEmpty && tagBadges.isEmpty) {
     tagValues.add({
       'status': 'unidentified',
       'text': '[unidentified]',
@@ -227,51 +280,6 @@ String renderTags({
       'has_href': true,
       'href': urls.pkgScoreUrl(package.name),
     });
-  } else {
-    // We only display first-class platform/runtimes
-    if (sdkTags.contains(SdkTag.sdkDart)) {
-      tagBadges.add({
-        'sdk': 'Dart',
-        'title': 'Packages compatible with Dart SDK',
-        'sub_tags': [
-          if (tags.contains(DartSdkTag.runtimeNativeJit))
-            {
-              'text': 'native',
-              'title':
-                  'Packages compatible with Dart running on a native platform (JIT/AOT)',
-            },
-          if (tags.contains(DartSdkTag.runtimeWeb))
-            {
-              'text': 'js',
-              'title': 'Packages compatible with Dart compiled for the web',
-            },
-        ],
-      });
-    }
-    if (sdkTags.contains(SdkTag.sdkFlutter)) {
-      tagBadges.add({
-        'sdk': 'Flutter',
-        'title': 'Packages compatible with Flutter SDK',
-        'sub_tags': [
-          if (tags.contains(FlutterSdkTag.platformAndroid))
-            {
-              'text': 'Android',
-              'title':
-                  'Packages compatible with Flutter on the Android platform',
-            },
-          if (tags.contains(FlutterSdkTag.platformIos))
-            {
-              'text': 'iOS',
-              'title': 'Packages compatible with Flutter on the iOS platform'
-            },
-          if (tags.contains(FlutterSdkTag.platformWeb))
-            {
-              'text': 'web',
-              'title': 'Packages compatible with Flutter on the Web platform',
-            },
-        ],
-      });
-    }
   }
   return templateCache.renderTemplate('pkg/tags', {
     'tags': tagValues,
