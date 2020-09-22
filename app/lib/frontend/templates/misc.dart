@@ -188,7 +188,7 @@ String renderTags({@required PackageView package}) {
   if (package.isDiscontinued) {
     tagValues.add({
       'status': 'discontinued',
-      'text': '[discontinued]',
+      'text': 'discontinued',
       'has_href': false,
       'title': 'Package was discontinued.',
     });
@@ -196,7 +196,7 @@ String renderTags({@required PackageView package}) {
   if (package.tags.contains(PackageTags.isUnlisted)) {
     tagValues.add({
       'status': 'unlisted',
-      'text': '[unlisted]',
+      'text': 'unlisted',
       'has_href': false,
       'title': 'Package was unlisted.',
     });
@@ -204,7 +204,7 @@ String renderTags({@required PackageView package}) {
   if (package.isObsolete) {
     tagValues.add({
       'status': 'missing',
-      'text': '[outdated]',
+      'text': 'outdated',
       'has_href': false,
       'title': 'Package version too old, check latest stable.',
     });
