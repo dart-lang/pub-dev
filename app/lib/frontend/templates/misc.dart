@@ -198,7 +198,11 @@ String renderTags({@required PackageView package}) {
       'status': 'unlisted',
       'text': 'unlisted',
       'has_href': false,
-      'title': 'Package was unlisted.',
+      'title': 'Package is unlisted, this means that while the package is still '
+          'publicly available the author has decided that it should not appear '
+          'in search results with default search filters. This is typically '
+          'done because this package is meant to support another package, '
+          'rather than being consumed directly.',
     });
   }
   if (package.isObsolete) {
