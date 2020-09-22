@@ -17,14 +17,14 @@
     color: #555;
   }
 
-  &.unidentified {
+  &.unidentified,
+  &.unlisted {
     background: #fff0f0;
     color: #555;
   }
 
   &.legacy,
-  &.discontinued,
-  &.unlisted {
+  &.discontinued {
     background: #c0392b;
     color: #f8f8f8;
   }
