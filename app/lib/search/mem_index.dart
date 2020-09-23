@@ -206,7 +206,7 @@ class InMemoryPackageIndex implements PackageIndex {
     }
 
     // Remove legacy packages, if not included in the query.
-    // TODO: use TagsPredicate instead of SearchQuery.includeLegacy
+    // TODO: remove after next release, as the flag should be always true with that
     if (!query.includeLegacy) {
       packages.removeWhere(
           (p) => _packages[p].tags.contains(PackageVersionTags.isLegacy));
