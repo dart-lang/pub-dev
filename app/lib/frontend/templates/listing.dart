@@ -124,13 +124,15 @@ String renderPkgIndexPage(
 }) {
   final topPackages = getSdkDict(sdk).topSdkPackages;
   final isSearch = searchQuery != null && searchQuery.hasQuery;
+  final includeUnlisted = searchQuery?.includeUnlisted ?? false;
   final includeLegacy = searchQuery?.includeLegacy ?? false;
   final subSdkTabsAdvanced =
       renderSubSdkTabsHtml(searchQuery: searchQuery, onlyAdvanced: true);
   // TODO: There should be a more efficient way to calculate this
   final hasActiveSubSdkAdvanced =
       subSdkTabsAdvanced != null && subSdkTabsAdvanced.contains('-active');
-  final hasActiveAdvanced = includeLegacy || hasActiveSubSdkAdvanced;
+  final hasActiveAdvanced =
+      includeUnlisted || includeLegacy || hasActiveSubSdkAdvanced;
   final values = {
     'has_active_advanced': hasActiveAdvanced,
     'sdk_tabs_html': renderSdkTabs(searchQuery: searchQuery),
@@ -148,6 +150,7 @@ String renderPkgIndexPage(
     'package_list_html': renderPackageList(packages, searchQuery: searchQuery),
     'has_packages': packages.isNotEmpty,
     'pagination': renderPagination(links),
+    'include_unlisted': includeUnlisted,
     'legacy_search_enabled': includeLegacy,
   };
   final content = templateCache.renderTemplate('pkg/index', values);

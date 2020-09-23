@@ -238,6 +238,10 @@ class SearchQuery {
   final int offset;
   final int limit;
 
+  /// True, if packages with is:unlisted tag should be included.
+  /// This parameter is set and used only on the frontend service, not on search.
+  final bool includeUnlisted;
+
   /// True, if packages which only support dart 1.x should be included.
   final bool includeLegacy;
 
@@ -249,6 +253,7 @@ class SearchQuery {
     this.order,
     this.offset,
     this.limit,
+    this.includeUnlisted,
     this.includeLegacy,
   })  : parsedQuery = ParsedQuery._parse(query),
         tagsPredicate = tagsPredicate ?? TagsPredicate(),
@@ -266,6 +271,7 @@ class SearchQuery {
     SearchOrder order,
     int offset = 0,
     int limit = 10,
+    bool includeUnlisted = false,
     bool includeLegacy = false,
   }) {
     final q = _stringToNull(query?.trim());
@@ -293,6 +299,7 @@ class SearchQuery {
       order: order,
       offset: offset,
       limit: limit,
+      includeUnlisted: includeUnlisted,
       includeLegacy: includeLegacy,
     );
   }
@@ -349,14 +356,20 @@ class SearchQuery {
       order: order ?? this.order,
       offset: offset ?? this.offset,
       limit: limit ?? this.limit,
+      includeUnlisted: includeUnlisted,
       includeLegacy: includeLegacy ?? this.includeLegacy,
     );
   }
 
   Map<String, dynamic> toServiceQueryParameters() {
+    var tagsPredicate = this.tagsPredicate;
+    if (includeUnlisted &&
+        tagsPredicate.isProhibitedTag(PackageTags.isUnlisted)) {
+      tagsPredicate = tagsPredicate.withoutTag(PackageTags.isUnlisted);
+    }
     final map = <String, dynamic>{
       'q': query,
-      'tags': tagsPredicate?.toQueryParameters(),
+      'tags': tagsPredicate.toQueryParameters(),
       'uploaderOrPublishers': uploaderOrPublishers,
       'publisherId': publisherId,
       'offset': offset?.toString(),
@@ -429,6 +442,9 @@ class SearchQuery {
       final String paramName = 'sort';
       params[paramName] = serializeSearchOrder(order);
     }
+    if (includeUnlisted) {
+      params['unlisted'] = '1';
+    }
     if (includeLegacy) {
       params['legacy'] = '1';
     }
@@ -490,6 +506,7 @@ class TagsPredicate {
 
   bool isRequiredTag(String tag) => _values[tag] == true;
   bool isProhibitedTag(String tag) => _values[tag] == false;
+  bool hasTag(String tag) => _values.containsKey(tag);
 
   /// Parses [values] passed via Uri.queryParameters
   factory TagsPredicate.parseQueryValues(List<String> values) {
@@ -844,6 +861,7 @@ SearchQuery parseFrontendSearchQuery(
     order: sortOrder,
     offset: offset,
     limit: resultsPerPage,
+    includeUnlisted: queryParameters['unlisted'] == '1',
     includeLegacy: includeLegacy || queryParameters['legacy'] == '1',
     tagsPredicate: tagsPredicate,
   );
