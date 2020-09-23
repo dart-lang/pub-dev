@@ -56,10 +56,12 @@ class SearchClient {
       );
       if (response.statusCode == searchIndexNotReadyCode) {
         // Search request before the service initialization completed.
+        // TODO: retry request, maybe another search instance will be able to serve it
         return null;
       }
       if (response.statusCode != 200) {
         // There has been an issue with the service
+        // TODO: retry request, maybe another search instance will be able to serve it
         throw Exception('Service returned status code ${response.statusCode}');
       }
       final result = PackageSearchResult.fromJson(
@@ -67,12 +69,17 @@ class SearchClient {
       );
       if (!result.isLegit) {
         // Search request before the service initialization completed.
+        // TODO: retry request, maybe another search instance will be able to serve it
         return null;
       }
       return result;
     }
 
-    return await cache.packageSearchResult(serviceUrl, ttl: ttl).get(searchFn);
+    return await cache
+            .packageSearchResult(serviceUrl, ttl: ttl)
+            .get(searchFn) ??
+        PackageSearchResult.empty(
+            message: 'Search is temporarily unavailable.');
   }
 
   /// Search service maintains a separate index in each of the running instances.

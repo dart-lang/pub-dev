@@ -8,6 +8,7 @@ import 'package:client_data/package_api.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../dartdoc/backend.dart';
+import '../../frontend/request_context.dart';
 import '../../history/backend.dart';
 import '../../package/backend.dart';
 import '../../package/models.dart';
@@ -262,6 +263,7 @@ Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
   final hasNextPage = sr.totalCount > searchQuery.limit + searchQuery.offset;
   final result = <String, dynamic>{
     'packages': packages,
+    if (sr.message != null) 'message': sr.message,
   };
   if (hasNextPage) {
     final newParams =
@@ -272,7 +274,7 @@ Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
         request.requestedUri.replace(queryParameters: newParams).toString();
     result['next'] = nextPageUrl;
   }
-  return jsonResponse(result);
+  return jsonResponse(result, indentJson: requestContext.indentJson);
 }
 
 /// Handles GET /api/packages/<package>/options
