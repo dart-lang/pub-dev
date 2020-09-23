@@ -74,14 +74,21 @@ void _updateSortField(String value) {
 }
 
 void _setEventForCheckboxChanges() {
-  final hiddenLegacyField =
-      document.getElementById('search-legacy-field') as InputElement;
-  final visibleLegacyCheckbox =
-      document.getElementById('search-legacy-checkbox') as CheckboxInputElement;
-  if (hiddenLegacyField != null && visibleLegacyCheckbox != null) {
-    final formElement = hiddenLegacyField.form;
-    visibleLegacyCheckbox.onChange.listen((_) {
-      hiddenLegacyField.disabled = !visibleLegacyCheckbox.checked;
+  _setEventForHiddenCheckboxField(
+      'search-legacy-field', 'search-legacy-checkbox');
+  _setEventForHiddenCheckboxField(
+      '-search-unlisted-field', '-search-unlisted-checkbox');
+}
+
+void _setEventForHiddenCheckboxField(
+    String hiddenFieldId, String visibleCheckboxId) {
+  final hiddenField = document.getElementById(hiddenFieldId) as InputElement;
+  final visibleCheckbox =
+      document.getElementById(visibleCheckboxId) as CheckboxInputElement;
+  if (hiddenField != null && visibleCheckbox != null) {
+    final formElement = hiddenField.form;
+    visibleCheckbox.onChange.listen((_) {
+      hiddenField.disabled = !visibleCheckbox.checked;
       // TODO: instead of submitting, compose the URL here (also removing the single `?`)
       formElement.submit();
     });
