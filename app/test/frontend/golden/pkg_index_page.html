@@ -110,7 +110,7 @@
             <img class="search-filters-btn search-filters-btn-active" src="/static/img/search-filters-active.svg?hash=mocked_hash_397783636"/>
           </div>
           <input id="-search-unlisted-field" type="hidden" name="unlisted" value="1" disabled="disabled"/>
-          <input id="search-legacy-field" type="hidden" name="legacy" value="1" disabled="disabled"/>
+          <input id="-search-legacy-field" type="hidden" name="legacy" value="1" disabled="disabled"/>
         </form>
       </div>
     </div>
@@ -165,16 +165,14 @@
         </div>
         <div class="search-controls-advanced">
           <div class="container">
-            <div>
+            <div class="search-controls-advanced-block">
               <div class="search-controls-checkbox">
                 <input id="-search-unlisted-checkbox" type="checkbox" name="unlisted"/>
                 <label for="-search-unlisted-checkbox">Include unlisted packages</label>
               </div>
-            </div>
-            <div>
               <div class="search-controls-checkbox">
-                <input id="search-legacy-checkbox" type="checkbox" name="legacy"/>
-                <label for="search-legacy-checkbox">Include Dart 1.x results</label>
+                <input id="-search-legacy-checkbox" type="checkbox" name="legacy"/>
+                <label for="-search-legacy-checkbox">Include Dart 1.x results</label>
               </div>
             </div>
           </div>

@@ -22,18 +22,23 @@
   .search-controls-advanced {
     display: none;
 
+    .search-controls-checkbox {
+      display: flex;
+      align-items: center;
+      color: #6d7278;
+    }
+
     @media (min-width: $device-desktop-min-width) {
       background: white;
       border-bottom: 1px solid #d5d5d5;
-      text-align: right;
 
-      .search-controls-checkbox {
-        display: inline-flex;
-        align-items: center;
+      >.container {
+        text-align: right;
+      }
 
-        color: #6d7278;
-        font-size: 14px;
-        text-transform: uppercase;
+      .search-controls-advanced-block {
+        display: inline-block;
+        text-align: left;
       }
     }
   }
