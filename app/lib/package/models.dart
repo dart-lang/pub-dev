@@ -200,7 +200,7 @@ class Package extends db.ExpandoModel<String> {
       if (isNewPackage()) PackageTags.isRecent,
       if (isUnlisted) PackageTags.isUnlisted,
       if (doNotAdvertise) PackageTags.isNotAdvertized,
-      // TODO: publisher:<publisherId>
+      if (publisherId != null) PackageTags.publisherTag(publisherId),
       // TODO: uploader:<...>
     ];
   }
