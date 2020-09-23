@@ -367,6 +367,10 @@ class SearchQuery {
         tagsPredicate.isProhibitedTag(PackageTags.isUnlisted)) {
       tagsPredicate = tagsPredicate.withoutTag(PackageTags.isUnlisted);
     }
+    if (includeLegacy &&
+        tagsPredicate.isProhibitedTag(PackageVersionTags.isLegacy)) {
+      tagsPredicate = tagsPredicate.withoutTag(PackageVersionTags.isLegacy);
+    }
     final map = <String, dynamic>{
       'q': query,
       'tags': tagsPredicate.toQueryParameters(),
@@ -375,7 +379,8 @@ class SearchQuery {
       'offset': offset?.toString(),
       'limit': limit?.toString(),
       'order': serializeSearchOrder(order),
-      'legacy': includeLegacy ? '1' : null,
+      // TODO: remove after search backend no longer depends on it
+      'legacy': '1',
     };
     map.removeWhere((k, v) => v == null);
     return map;
@@ -485,6 +490,7 @@ class TagsPredicate {
         prohibitedTags: [
           PackageTags.isDiscontinued,
           PackageTags.isUnlisted,
+          PackageVersionTags.isLegacy,
         ],
       );
 
@@ -494,6 +500,7 @@ class TagsPredicate {
           PackageTags.isDiscontinued,
           PackageTags.isUnlisted,
           PackageTags.isNotAdvertized,
+          PackageVersionTags.isLegacy,
         ],
         requiredTags: requiredTags,
       );
@@ -835,7 +842,6 @@ SearchQuery parseFrontendSearchQuery(
   String sdk,
   List<String> uploaderOrPublishers,
   String publisherId,
-  bool includeLegacy = false,
   @required TagsPredicate tagsPredicate,
 }) {
   final int page = extractPageFromUrlParameters(queryParameters);
@@ -862,7 +868,7 @@ SearchQuery parseFrontendSearchQuery(
     offset: offset,
     limit: resultsPerPage,
     includeUnlisted: queryParameters['unlisted'] == '1',
-    includeLegacy: includeLegacy || queryParameters['legacy'] == '1',
+    includeLegacy: queryParameters['legacy'] == '1',
     tagsPredicate: tagsPredicate,
   );
 }
