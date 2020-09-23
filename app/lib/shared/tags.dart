@@ -30,6 +30,9 @@ abstract class PackageTags {
 
   /// Package is marked with Flutter Favorite.
   static const String isFlutterFavorite = 'is:flutter-favorite';
+
+  /// The `publisher:<publisherId>` tag.
+  static String publisherTag(String publisherId) => 'publisher:$publisherId';
 }
 
 /// Collection of version-related tags.
