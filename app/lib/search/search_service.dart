@@ -404,10 +404,15 @@ class SearchQuery {
       return QueryValidity.reject(rejectReason: 'Query too long.');
     }
 
+    // Consolidate the query to the state that the search service backend will
+    // recieve:
+    final backendQuery = SearchQuery.fromServiceUrl(
+        Uri(queryParameters: toServiceQueryParameters()));
+
     // Do not allow override of search filter tags. (E.g. search scope would
     // require sdk:flutter, do not allow -sdk:flutter to override it).
-    final conflictingTags =
-        tagsPredicate._getConflictingTags(parsedQuery.tagsPredicate);
+    final conflictingTags = backendQuery.tagsPredicate
+        ._getConflictingTags(backendQuery.parsedQuery.tagsPredicate);
     if (conflictingTags.isNotEmpty) {
       return QueryValidity.reject(
           rejectReason:
