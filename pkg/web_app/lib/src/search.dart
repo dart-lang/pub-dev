@@ -75,7 +75,7 @@ void _updateSortField(String value) {
 
 void _setEventForCheckboxChanges() {
   _setEventForHiddenCheckboxField(
-      'search-legacy-field', 'search-legacy-checkbox');
+      '-search-legacy-field', '-search-legacy-checkbox');
   _setEventForHiddenCheckboxField(
       '-search-unlisted-field', '-search-unlisted-checkbox');
 }
