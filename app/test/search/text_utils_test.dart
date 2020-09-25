@@ -150,43 +150,4 @@ Other useful methods will be added soon...
       });
     });
   });
-
-  group('deriveLookupCandidates', () {
-    test('small tokens', () {
-      expect(deriveLookupCandidates(''), isEmpty);
-      expect(deriveLookupCandidates('a'), isEmpty);
-      expect(deriveLookupCandidates('ab'), isEmpty);
-      expect(deriveLookupCandidates('abc'), isEmpty);
-    });
-
-    test('only deleted characters', () {
-      expect(deriveLookupCandidates('abcd'), {'abc', 'abd', 'acd', 'bcd'});
-    });
-
-    test('deleted, prefix and postfix', () {
-      expect(deriveLookupCandidates('abcdef'), {
-        'abcde', // f deleted
-        'abcdf', // e deleted
-        'abcef', // d deleted
-        'abdef', // c deleted
-        'acdef', // b deleted
-        'bcdef', // a deleted
-        'abcd', // prefix of the input
-        'cdef', // postfix of the input
-      });
-    });
-
-    test('only prefix and postfix', () {
-      expect(deriveLookupCandidates('abcdefghi'), {
-        'abcde',
-        'abcdef',
-        'abcdefg',
-        'cdefghi',
-        'defghi',
-        'efghi',
-        'abcd',
-        'fghi',
-      });
-    });
-  });
 }

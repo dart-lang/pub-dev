@@ -381,7 +381,7 @@ MIT'''),
           SearchQuery.parse(query: 'haversine', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
-        'totalCount': 4,
+        'totalCount': 3,
         'packages': [
           {
             // should be the top
@@ -398,11 +398,6 @@ MIT'''),
             'package': 'latlong',
             'score': closeTo(0.71, 0.01),
           },
-          {
-            // not relevant result, should have low score
-            'package': 'reversi',
-            'score': closeTo(0.39, 0.01),
-          },
         ]
       });
     });
@@ -412,19 +407,11 @@ MIT'''),
           SearchQuery.parse(query: 'hoversine', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
-        'totalCount': 3,
+        'totalCount': 1,
         'packages': [
           {
             'package': 'haversine',
-            'score': closeTo(0.45, 0.01),
-          },
-          {
-            'package': 'great_circle_distance',
-            'score': closeTo(0.31, 0.01),
-          },
-          {
-            'package': 'latlong',
-            'score': closeTo(0.31, 0.01),
+            'score': closeTo(0.64, 0.01),
           },
         ]
       });

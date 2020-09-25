@@ -42,7 +42,7 @@ void main() {
           },
           {
             'package': 'angular_ui',
-            'score': closeTo(0.989, 0.001),
+            'score': closeTo(0.88, 0.01),
           },
         ],
       });

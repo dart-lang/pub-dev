@@ -28,7 +28,7 @@ void main() {
         'totalCount': 2,
         'packages': [
           {'package': 'maps', 'score': 1.0},
-          {'package': 'map', 'score': closeTo(0.938, 0.001)},
+          {'package': 'map', 'score': 1.0},
         ],
       });
     });
@@ -40,8 +40,8 @@ void main() {
         'indexUpdated': isNotNull,
         'totalCount': 2,
         'packages': [
+          {'package': 'maps', 'score': 1.0},
           {'package': 'map', 'score': 1.0},
-          {'package': 'maps', 'score': closeTo(0.938, 0.001)},
         ],
       });
     });

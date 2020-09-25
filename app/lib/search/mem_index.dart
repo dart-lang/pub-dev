@@ -25,11 +25,10 @@ class InMemoryPackageIndex implements PackageIndex {
   final String _urlPrefix;
   final Map<String, PackageDocument> _packages = <String, PackageDocument>{};
   final _packageNameIndex = _PackageNameIndex();
-  final TokenIndex _nameTokenIndex = TokenIndex(minLength: 2);
-  final TokenIndex _descrIndex = TokenIndex(minLength: 3);
-  final TokenIndex _readmeIndex = TokenIndex(minLength: 3);
-  final TokenIndex _apiSymbolIndex = TokenIndex(minLength: 2);
-  final TokenIndex _apiDartdocIndex = TokenIndex(minLength: 3);
+  final TokenIndex _descrIndex = TokenIndex();
+  final TokenIndex _readmeIndex = TokenIndex();
+  final TokenIndex _apiSymbolIndex = TokenIndex();
+  final TokenIndex _apiDartdocIndex = TokenIndex();
   final _likeTracker = _LikeTracker();
   final bool _alwaysUpdateLikeScores;
   DateTime _lastUpdated;
@@ -70,7 +69,6 @@ class InMemoryPackageIndex implements PackageIndex {
     // the waiting queries will be served earlier.
     await Future.delayed(Duration.zero);
     _packageNameIndex.add(doc.package);
-    _nameTokenIndex.add(doc.package, doc.package);
 
     await Future.delayed(Duration.zero);
     _descrIndex.add(doc.package, doc.description);
@@ -115,7 +113,6 @@ class InMemoryPackageIndex implements PackageIndex {
     final PackageDocument doc = _packages.remove(package);
     if (doc == null) return;
     _packageNameIndex.remove(package);
-    _nameTokenIndex.remove(package);
     _descrIndex.remove(package);
     _readmeIndex.remove(package);
     for (ApiDocPage page in doc.apiDocPages ?? const []) {
@@ -384,12 +381,9 @@ class InMemoryPackageIndex implements PackageIndex {
           break;
         }
 
-        final nameTokens = _nameTokenIndex.lookupTokens(word);
         final descrTokens = _descrIndex.lookupTokens(word);
         final readmeTokens = _readmeIndex.lookupTokens(word);
 
-        final name = Score(_nameTokenIndex.scoreDocs(nameTokens,
-            weight: 1.00, wordCount: wordCount, limitToIds: packages));
         final descr = Score(_descrIndex.scoreDocs(descrTokens,
             weight: 0.90, wordCount: wordCount, limitToIds: packages));
         final readme = Score(_readmeIndex.scoreDocs(readmeTokens,
@@ -413,7 +407,7 @@ class InMemoryPackageIndex implements PackageIndex {
         }
         final apiScore = Score(apiPackages);
 
-        final score = Score.max([name, descr, readme, apiScore]);
+        final score = Score.max([descr, readme, apiScore]);
         pkgScores.add(score);
 
         // Restrict the next round of `scoreDocs` to fewer documents, as the
@@ -521,17 +515,18 @@ class _TextResults {
 
 /// A simple (non-inverted) index designed for package name lookup.
 class _PackageNameIndex {
-  /// Maps package name to a reduced form of the same name.
-  final _collapsedNames = <String, String>{};
+  /// Maps package name to a reduced form of the name:
+  /// the same character parts, but without `-`.
+  final _namesWithoutGaps = <String, String>{};
 
   /// Add a new [package] to the index.
   void add(String package) {
-    _collapsedNames[package] = splitForQuery(package).join('');
+    _namesWithoutGaps[package] = package.replaceAll('_', '');
   }
 
   /// Remove a [package] from the index.
   void remove(String package) {
-    _collapsedNames.remove(package);
+    _namesWithoutGaps.remove(package);
   }
 
   /// Search [text] and return the matching packages with scores.
@@ -541,25 +536,67 @@ class _PackageNameIndex {
 
   /// Search using the parsed [words] and return the match packages with scores.
   Score searchWords(List<String> words, {Set<String> packages}) {
-    final pkgNamesToCheck = packages ?? _collapsedNames.keys;
+    final pkgNamesToCheck = packages ?? _namesWithoutGaps.keys;
     final values = <String, double>{};
     for (final pkg in pkgNamesToCheck) {
-      final collapsed = _collapsedNames[pkg];
+      final nameWithoutGaps = _namesWithoutGaps[pkg];
+      final matchedChars = List<bool>.filled(nameWithoutGaps.length, false);
+      var unmatchedNgrams = 0;
+
+      bool matchPattern(Pattern pattern) {
+        var matched = false;
+        pattern.allMatches(nameWithoutGaps).forEach((m) {
+          matched = true;
+          for (var i = m.start; i < m.end; i++) {
+            matchedChars[i] = true;
+          }
+        });
+        return matched;
+      }
+
       // all words must be found inside the collapsed name
-      // returns null if any of them is missing,
-      // otherwise returns the unmatched substrings joined by `_`
-      final unmatched = words.fold<String>(collapsed, (c, word) {
-        if (c == null) return null;
-        if (collapsed.contains(word)) {
-          return c.replaceFirst(word, '_');
+      var matchesPkg = true;
+      for (final word in words) {
+        // try singular/plural exact match.
+        var matchedWord = matchPattern(_pluralizePattern(word));
+
+        // try ngram matches
+        if (!matchedWord && word.length > 3) {
+          final parts = ngrams(word, 3, 3);
+          var matchedCount = 0;
+          for (final part in parts) {
+            if (matchPattern(part)) {
+              matchedCount++;
+            }
+          }
+          unmatchedNgrams += parts.length - matchedCount;
+
+          // accept word match if more than half of the n-grams are matched
+          matchedWord = matchedCount > parts.length ~/ 2;
         }
-        return null;
-      })?.replaceAll('_', '');
-      if (unmatched == null) continue;
-      final score = (collapsed.length - unmatched.length) / collapsed.length;
-      values[pkg] = score;
+
+        // failed to match word
+        if (!matchedWord) {
+          matchesPkg = false;
+          break;
+        }
+      }
+
+      if (!matchesPkg) continue;
+      final matchedCharCount = matchedChars.where((c) => c).length;
+      values[pkg] = matchedCharCount / (matchedChars.length + unmatchedNgrams);
     }
     return Score(values);
+  }
+
+  Pattern _pluralizePattern(String word) {
+    if (word.length < 3) return word;
+    if (word.endsWith('s')) {
+      final singularEscaped = RegExp.escape(word.substring(0, word.length - 1));
+      return RegExp('${singularEscaped}s?');
+    }
+    final wordEscaped = RegExp.escape(word);
+    return RegExp('${wordEscaped}s?');
   }
 }
 

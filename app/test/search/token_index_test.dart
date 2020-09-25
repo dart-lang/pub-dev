@@ -38,9 +38,7 @@ void main() {
       expect(index.search('queue'), {
         'queue': closeTo(0.29, 0.01),
       });
-      expect(index.search('unmodifiab'), {
-        'unmodifiable': closeTo(0.39, 0.01),
-      });
+      expect(index.search('unmodifiabl'), {}); // no partial matches
       expect(index.search('unmodifiable'), {
         'unmodifiable': closeTo(0.47, 0.01),
       });
@@ -78,11 +76,9 @@ void main() {
       // The partial match should not return more than 0.5 as score.
       expect(data, {'flutter_qr_reader': lessThan(0.5)});
     });
-  });
 
-  group('TokenMatch', () {
     test('longer words', () {
-      final index = TokenIndex(minLength: 2);
+      final index = TokenIndex();
       final names = [
         'location',
         'geolocator',
@@ -98,32 +94,15 @@ void main() {
       for (String name in names) {
         index.add(name, name);
       }
-      final match = index.lookupTokens('location');
+      final match = index.search('location');
       // location should be the top value, everything else should be lower
-      expect(match.tokenWeights, {
-        'location': 1.0,
-        'geolocation': closeTo(0.727, 0.001),
-      });
-    });
-
-    test('short words: lookup for app(s)', () {
-      final index = TokenIndex(minLength: 2);
-      index.add('app', 'app');
-      index.add('apps', 'apps');
-      final match = index.lookupTokens('app');
-      expect(match.tokenWeights, {'app': 1.0, 'apps': closeTo(0.94, 0.005)});
-      final match2 = index.lookupTokens('apps');
-      expect(match2.tokenWeights, {'apps': 1.0, 'app': closeTo(0.94, 0.005)});
-    });
-
-    test('short words: lookup for app(z)', () {
-      final index = TokenIndex(minLength: 2);
-      index.add('app', 'app');
-      index.add('appz', 'appz');
-      final match = index.lookupTokens('app');
-      expect(match.tokenWeights, {'app': 1.0, 'appz': 0.75});
-      final match2 = index.lookupTokens('appz');
-      expect(match2.tokenWeights, {'appz': 1.0, 'app': 0.75});
+      final locationValue = match['location'];
+      expect(
+          match.keys
+              .where((k) => k != 'location')
+              .map((k) => match[k])
+              .every((v) => v < locationValue),
+          isTrue);
     });
   });
 

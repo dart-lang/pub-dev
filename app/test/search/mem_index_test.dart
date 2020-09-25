@@ -135,32 +135,9 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'packages': [
           {
             'package': 'chrome_net',
-            'score': closeTo(0.39, 0.01),
+            'score': closeTo(0.36, 0.01),
           },
         ]
-      });
-    });
-
-    test('typo match: utilito', () async {
-      final PackageSearchResult result =
-          await index.search(SearchQuery.parse(query: 'utilito'));
-      expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
-        'totalCount': 2,
-        'packages': [
-          {'package': 'http', 'score': closeTo(0.36, 0.01)},
-          {'package': 'async', 'score': closeTo(0.32, 0.01)},
-        ]
-      });
-    });
-
-    test('exact phrase match: utilito', () async {
-      final PackageSearchResult result =
-          await index.search(SearchQuery.parse(query: '"utilito"'));
-      expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
-        'totalCount': 0,
-        'packages': [],
       });
     });
 
@@ -211,7 +188,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'indexUpdated': isNotNull,
         'totalCount': 2,
         'packages': [
-          {'package': 'http', 'score': 0.25},
+          {'package': 'http', 'score': 0.5},
           {'package': 'chrome_net', 'score': closeTo(0.11, 0.01)},
         ],
       });
@@ -495,6 +472,52 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           {'package': 'http', 'score': closeTo(0.65, 0.01)},
         ],
       });
+    });
+  });
+
+  group('special cases', () {
+    test('short words: lookup for app(s)', () async {
+      final index = InMemoryPackageIndex();
+      await index.addPackage(PackageDocument(
+        package: 'app',
+      ));
+      await index.addPackage(PackageDocument(
+        package: 'apps',
+      ));
+      final match = await index
+          .search(SearchQuery.parse(query: 'app', order: SearchOrder.text));
+      expect(match.packages.map((e) => e.toJson()), [
+        {'package': 'app', 'score': 1.0},
+        {'package': 'apps', 'score': 1.0},
+      ]);
+      final match2 = await index
+          .search(SearchQuery.parse(query: 'apps', order: SearchOrder.text));
+      expect(match2.packages.map((e) => e.toJson()), [
+        {'package': 'app', 'score': 1.0},
+        {'package': 'apps', 'score': 1.0},
+      ]);
+    });
+
+    test('short words: lookup for app(z)', () async {
+      final index = InMemoryPackageIndex();
+      await index.addPackage(PackageDocument(
+        package: 'app',
+      ));
+      await index.addPackage(PackageDocument(
+        package: 'appz',
+      ));
+      final match = await index
+          .search(SearchQuery.parse(query: 'app', order: SearchOrder.text));
+      expect(match.packages.map((e) => e.toJson()), [
+        {'package': 'app', 'score': 1.0},
+        {'package': 'appz', 'score': 0.75},
+      ]);
+      final match2 = await index
+          .search(SearchQuery.parse(query: 'appz', order: SearchOrder.text));
+      expect(match2.packages.map((e) => e.toJson()), [
+        {'package': 'appz', 'score': 1.0},
+        // would be nice if `app` would show up here
+      ]);
     });
   });
 }
