@@ -31,6 +31,7 @@ Add _In-App Payments_ to your Flutter app with this plugin.''')));
           .search(SearchQuery.parse(query: 'IAP', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
+        'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
           {
@@ -46,6 +47,7 @@ Add _In-App Payments_ to your Flutter app with this plugin.''')));
           SearchQuery.parse(query: 'in app payments', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
+        'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
           {

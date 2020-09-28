@@ -308,8 +308,9 @@ class InMemoryPackageIndex implements PackageIndex {
 
     return PackageSearchResult(
       totalCount: totalCount,
-      indexUpdated: _lastUpdated?.toIso8601String(),
+      indexUpdated: _lastUpdated,
       packages: results,
+      timestamp: DateTime.now().toUtc(),
     );
   }
 

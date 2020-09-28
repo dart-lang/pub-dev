@@ -43,6 +43,7 @@ void main() {
           SearchQuery.parse(query: 'build_config', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
+        'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
           {

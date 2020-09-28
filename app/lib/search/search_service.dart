@@ -721,7 +721,8 @@ class ParsedQuery {
 @JsonSerializable(includeIfNull: false)
 class PackageSearchResult {
   /// The last update of the search index.
-  final String indexUpdated;
+  final DateTime indexUpdated;
+  final DateTime timestamp;
   final int totalCount;
   final List<PackageScore> packages;
 
@@ -731,6 +732,7 @@ class PackageSearchResult {
 
   PackageSearchResult({
     this.indexUpdated,
+    @required this.timestamp,
     this.totalCount,
     List<PackageScore> packages,
     this.message,
@@ -738,6 +740,7 @@ class PackageSearchResult {
 
   PackageSearchResult.empty({this.message})
       : indexUpdated = null,
+        timestamp = DateTime.now().toUtc(),
         totalCount = 0,
         packages = [];
 

@@ -21,6 +21,7 @@ void main() {
       ));
       expect(rs.toJson(), {
         'indexUpdated': isNotEmpty,
+        'timestamp': isNotNull,
         'totalCount': 0,
         'packages': [],
       });
@@ -36,6 +37,7 @@ void main() {
       ));
       expect(json.decode(json.encode(rs.toJson())), {
         'indexUpdated': isNotEmpty,
+        'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
           {'package': 'pkg1', 'score': isNotNull},
@@ -54,6 +56,7 @@ void main() {
       ));
       expect(json.decode(json.encode(rs.toJson())), {
         'indexUpdated': isNotEmpty,
+        'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
           {'package': 'pkg2', 'score': isNotNull},
@@ -72,6 +75,7 @@ void main() {
       ));
       expect(json.decode(json.encode(rs.toJson())), {
         'indexUpdated': isNotEmpty,
+        'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
           {'package': 'pkg1', 'score': isNotNull},
@@ -92,6 +96,7 @@ void main() {
       ));
       expect(json.decode(json.encode(rs.toJson())), {
         'indexUpdated': isNotEmpty,
+        'timestamp': isNotNull,
         'totalCount': 2,
         'packages': [
           {'package': 'pkg1', 'score': isNotNull},
@@ -113,6 +118,7 @@ void main() {
       ));
       expect(json.decode(json.encode(rs.toJson())), {
         'indexUpdated': isNotEmpty,
+        'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
           {'package': 'pkg2', 'score': isNotNull},
@@ -133,6 +139,7 @@ void main() {
       ));
       expect(json.decode(json.encode(rs.toJson())), {
         'indexUpdated': isNotEmpty,
+        'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
           {'package': 'pkg1', 'score': isNotNull},
@@ -150,6 +157,7 @@ void main() {
       final rs = await index.search(SearchQuery.parse(query: 'is:b -is:a'));
       expect(json.decode(json.encode(rs.toJson())), {
         'indexUpdated': isNotEmpty,
+        'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
           {'package': 'pkg2', 'score': isNotNull},
@@ -169,6 +177,7 @@ void main() {
           query: 'is:a is:b'));
       expect(json.decode(json.encode(rs.toJson())), {
         'indexUpdated': isNotEmpty,
+        'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
           {'package': 'pkg1', 'score': isNotNull},
