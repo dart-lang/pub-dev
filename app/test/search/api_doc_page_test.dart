@@ -120,7 +120,7 @@ void main() {
         'packages': [
           {
             'package': 'foo',
-            'score': closeTo(0.165, 0.001), // find WebPageGenerator
+            'score': closeTo(0.025, 0.001), // find WebPageGenerator
             'apiPages': [
               {'title': null, 'path': 'generator.html'},
             ],

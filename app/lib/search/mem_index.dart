@@ -19,6 +19,7 @@ import 'text_utils.dart';
 import 'token_index.dart';
 
 final _logger = Logger('search.mem_index');
+final _textSearchTimeout = Duration(milliseconds: 500);
 
 class InMemoryPackageIndex implements PackageIndex {
   final bool _isSdkIndex;
@@ -364,60 +365,55 @@ class InMemoryPackageIndex implements PackageIndex {
     final sw = Stopwatch()..start();
     if (text != null && text.isNotEmpty) {
       final words = splitForQuery(text);
-      final wordCount = words.length;
-      final pkgScores = <Score>[];
-      final apiPagesScores = <Score>[];
+      if (words.isEmpty) return null;
+
       bool aborted = false;
+
+      bool checkAborted() {
+        if (!aborted && sw.elapsed > _textSearchTimeout) {
+          aborted = true;
+          _logger.info(
+              '[pub-aborted-search-query] Aborted text search after ${sw.elapsedMilliseconds} ms.');
+        }
+        return aborted;
+      }
 
       final nameScore =
           _packageNameIndex.searchWords(words, packages: packages);
 
-      for (String word in words) {
-        if (packages.isEmpty) break;
-        if (sw.elapsedMilliseconds > 500) {
-          aborted = true;
-          _logger.info(
-              '[pub-aborted-search-query] Aborted word lookup after ${pkgScores.length} words and ${sw.elapsedMilliseconds} ms.');
-          break;
-        }
+      final descr =
+          _descrIndex.searchWords(words, weight: 0.90, limitToIds: packages);
+      final readme =
+          _readmeIndex.searchWords(words, weight: 0.75, limitToIds: packages);
 
-        final descrTokens = _descrIndex.lookupTokens(word);
-        final readmeTokens = _readmeIndex.lookupTokens(word);
+      final core = Score.max([nameScore, descr, readme]);
 
-        final descr = Score(_descrIndex.scoreDocs(descrTokens,
-            weight: 0.90, wordCount: wordCount, limitToIds: packages));
-        final readme = Score(_readmeIndex.scoreDocs(readmeTokens,
-            weight: 0.75, wordCount: wordCount, limitToIds: packages));
-
-        final apiSymbolTokens = _apiSymbolIndex.lookupTokens(word);
-        final apiDartdocTokens = _apiDartdocIndex.lookupTokens(word);
-        final symbolPages = Score(_apiSymbolIndex.scoreDocs(apiSymbolTokens,
-            weight: 0.70, wordCount: wordCount));
-        final dartdocPages = Score(_apiDartdocIndex.scoreDocs(apiDartdocTokens,
-            weight: 0.40, wordCount: wordCount));
-        final apiPages = Score.max([symbolPages, dartdocPages]);
-        apiPagesScores.add(apiPages);
-
-        final apiPackages = <String, double>{};
-        for (String key in apiPages.getKeys()) {
-          final pkg = _apiDocPkg(key);
-          if (!packages.contains(pkg)) continue;
-          final value = apiPages[key];
-          apiPackages[pkg] = math.max(value, apiPackages[pkg] ?? 0.0);
-        }
-        final apiScore = Score(apiPackages);
-
-        final score = Score.max([descr, readme, apiScore]);
-        pkgScores.add(score);
-
-        // Restrict the next round of `scoreDocs` to fewer documents, as the
-        // packages with zero won't be part of the result anyway.
-        packages = score.getKeys(where: packages.contains).toSet();
+      var symbolPages = Score.empty();
+      if (!checkAborted()) {
+        symbolPages = _apiSymbolIndex.searchWords(words, weight: 0.70);
       }
-      final fuzzyScore = Score.multiply(pkgScores)
+
+      // Do documentation text search only when there was no reasonable core result
+      // and no reasonable API symbol result.
+      var dartdocPages = Score.empty();
+      final shouldSearchApiText =
+          core.getMaxValue() < 0.4 && symbolPages.getMaxValue() < 0.3;
+      if (!checkAborted() && shouldSearchApiText) {
+        dartdocPages = _apiDartdocIndex.searchWords(words, weight: 0.40);
+      }
+
+      final apiDocScore = Score.max([symbolPages, dartdocPages]);
+      final apiPackages = <String, double>{};
+      for (String key in apiDocScore.getKeys()) {
+        final pkg = _apiDocPkg(key);
+        if (!packages.contains(pkg)) continue;
+        final value = apiDocScore[key];
+        apiPackages[pkg] = math.max(value, apiPackages[pkg] ?? 0.0);
+      }
+      final apiPkgScore = Score(apiPackages);
+      var score = Score.max([core, apiPkgScore])
           .project(packages)
-          .removeLowValues(fraction: 0.01, minValue: 0.001);
-      Score score = Score.max([nameScore, fuzzyScore]);
+          .removeLowValues(fraction: 0.2, minValue: 0.01);
 
       // filter results based on exact phrases
       final phrases =
@@ -437,7 +433,6 @@ class InMemoryPackageIndex implements PackageIndex {
         score = Score(matched);
       }
 
-      final apiDocScore = Score.multiply(apiPagesScores);
       final apiDocKeys = apiDocScore.getKeys().toList()
         ..sort((a, b) => -apiDocScore[a].compareTo(apiDocScore[b]));
       final topApiPages = <String, List<String>>{};
