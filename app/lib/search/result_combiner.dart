@@ -60,6 +60,7 @@ class SearchResultCombiner {
 
     return PackageSearchResult(
       indexUpdated: primaryResult.indexUpdated,
+      timestamp: primaryResult.timestamp,
       totalCount: allPackages.length,
       packages: packages,
     );

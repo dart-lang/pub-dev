@@ -34,9 +34,7 @@ class SearchClient {
     // check validity first
     final validity = query.evaluateValidity();
     if (validity.isRejected) {
-      return PackageSearchResult(
-        totalCount: 0,
-        packages: [],
+      return PackageSearchResult.empty(
         message: 'Search query rejected. ${validity.rejectReason}',
       );
     }

@@ -122,6 +122,7 @@ class SearchAdapter {
     final totalCount = scores.length;
     scores = scores.skip(query.offset ?? 0).take(query.limit ?? 10).toList();
     return PackageSearchResult(
+        timestamp: DateTime.now().toUtc(),
         packages: scores,
         totalCount: totalCount,
         message:

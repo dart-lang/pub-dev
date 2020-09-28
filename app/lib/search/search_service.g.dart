@@ -76,7 +76,12 @@ Map<String, dynamic> _$ApiDocPageToJson(ApiDocPage instance) =>
 
 PackageSearchResult _$PackageSearchResultFromJson(Map<String, dynamic> json) {
   return PackageSearchResult(
-    indexUpdated: json['indexUpdated'] as String,
+    indexUpdated: json['indexUpdated'] == null
+        ? null
+        : DateTime.parse(json['indexUpdated'] as String),
+    timestamp: json['timestamp'] == null
+        ? null
+        : DateTime.parse(json['timestamp'] as String),
     totalCount: json['totalCount'] as int,
     packages: (json['packages'] as List)
         ?.map((e) =>
@@ -95,7 +100,8 @@ Map<String, dynamic> _$PackageSearchResultToJson(PackageSearchResult instance) {
     }
   }
 
-  writeNotNull('indexUpdated', instance.indexUpdated);
+  writeNotNull('indexUpdated', instance.indexUpdated?.toIso8601String());
+  writeNotNull('timestamp', instance.timestamp?.toIso8601String());
   writeNotNull('totalCount', instance.totalCount);
   writeNotNull('packages', instance.packages);
   writeNotNull('message', instance.message);
