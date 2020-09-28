@@ -4,6 +4,8 @@
 
 import 'dart:math' as math;
 
+import 'package:meta/meta.dart';
+
 import 'text_utils.dart';
 
 /// Represents an evaluated score as an {id: score} map.
@@ -11,6 +13,7 @@ class Score {
   final Map<String, double> _values;
 
   Score(this._values);
+  Score.empty() : _values = <String, double>{};
 
   Set<String> getKeys({bool Function(String key) where}) =>
       _values.keys.where((e) => where == null || where(e)).toSet();
@@ -168,7 +171,7 @@ class TokenIndex {
   }
 
   /// Match the text against the corpus and return the tokens that have match.
-  TokenMatch lookupTokens(String text) {
+  TokenMatch _lookupTokens(String text) {
     final TokenMatch tokenMatch = TokenMatch();
     final tokens = tokenize(text) ?? {};
 
@@ -192,7 +195,7 @@ class TokenIndex {
   ///
   /// When [limitToIds] is specified, the result will contain only the set of
   /// identifiers in it.
-  Map<String, double> scoreDocs(TokenMatch tokenMatch,
+  Map<String, double> _scoreDocs(TokenMatch tokenMatch,
       {double weight = 1.0, int wordCount = 1, Set<String> limitToIds}) {
     // Summarize the scores for the documents.
     final Map<String, double> docScores = <String, double>{};
@@ -223,8 +226,28 @@ class TokenIndex {
   }
 
   /// Search the index for [text], with a (term-match / document coverage percent)
-  /// scoring. Longer tokens weight more in the relevance score.
+  /// scoring.
+  @visibleForTesting
   Map<String, double> search(String text) {
-    return scoreDocs(lookupTokens(text));
+    return _scoreDocs(_lookupTokens(text));
+  }
+
+  /// Search the index for [words], with a (term-match / document coverage percent)
+  /// scoring.
+  Score searchWords(List<String> words,
+      {double weight = 1.0, Set<String> limitToIds}) {
+    if (limitToIds != null && limitToIds.isEmpty) {
+      return Score.empty();
+    }
+    return Score.multiply(words.map((w) {
+      final tokens = _lookupTokens(w);
+      final values = _scoreDocs(
+        tokens,
+        weight: weight,
+        wordCount: words.length,
+        limitToIds: limitToIds,
+      );
+      return Score(values);
+    }).toList());
   }
 }
