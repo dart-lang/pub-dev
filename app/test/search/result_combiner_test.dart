@@ -49,6 +49,7 @@ void main() {
           .search(SearchQuery.parse(order: SearchOrder.popularity));
       expect(json.decode(json.encode(results.toJson())), {
         'indexUpdated': isNotNull,
+        'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
           {'package': 'stringutils', 'score': 0.4},
@@ -61,6 +62,7 @@ void main() {
           .search(SearchQuery.parse(query: 'email:foo@example.com'));
       expect(json.decode(json.encode(results.toJson())), {
         'indexUpdated': isNotNull,
+        'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
           {'package': 'stringutils', 'score': closeTo(0.8, 0.01)},
@@ -73,6 +75,7 @@ void main() {
           await combiner.search(SearchQuery.parse(query: 'substring'));
       expect(json.decode(json.encode(results.toJson())), {
         'indexUpdated': isNotNull,
+        'timestamp': isNotNull,
         'totalCount': 2,
         'packages': [
           {
@@ -100,6 +103,7 @@ void main() {
           await combiner.search(SearchQuery.parse(query: 'stringutils'));
       expect(json.decode(json.encode(results.toJson())), {
         'indexUpdated': isNotNull,
+        'timestamp': isNotNull,
         'totalCount': 2,
         'packages': [
           {'package': 'stringutils', 'score': closeTo(0.80, 0.01)},

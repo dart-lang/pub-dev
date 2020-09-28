@@ -30,6 +30,7 @@ void main() {
           SearchQuery.parse(query: 'flutter 95', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
+        'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
           {

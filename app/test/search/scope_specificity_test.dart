@@ -65,6 +65,7 @@ void main() {
           await index.search(SearchQuery.parse(query: 'json'));
       expect(json.decode(json.encode(withoutPlatform)), {
         'indexUpdated': isNotNull,
+        'timestamp': isNotNull,
         'totalCount': 4,
         'packages': [
           {
@@ -95,6 +96,7 @@ void main() {
       ));
       expect(json.decode(json.encode(withPlatform)), {
         'indexUpdated': isNotNull,
+        'timestamp': isNotNull,
         'totalCount': 2,
         'packages': [
           {

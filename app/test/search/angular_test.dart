@@ -34,6 +34,7 @@ void main() {
           .search(SearchQuery.parse(query: 'angular', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
+        'timestamp': isNotNull,
         'totalCount': 2,
         'packages': [
           {

@@ -26,6 +26,7 @@ void main() {
           SearchQuery.parse(query: 'json_tool', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
+        'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
           {'package': 'jsontool', 'score': 1.0},
@@ -64,6 +65,7 @@ void main() {
           SearchQuery.parse(query: 'json_tool', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
+        'timestamp': isNotNull,
         'totalCount': 3,
         'packages': [
           {'package': 'jsontool', 'score': 1.0},

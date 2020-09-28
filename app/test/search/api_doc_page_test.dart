@@ -55,6 +55,7 @@ void main() {
           .search(SearchQuery.parse(query: 'foo', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
+        'timestamp': isNotNull,
         'totalCount': 2,
         'packages': [
           {
@@ -78,6 +79,7 @@ void main() {
           .search(SearchQuery.parse(query: 'serve', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
+        'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
           {
@@ -97,6 +99,7 @@ void main() {
           SearchQuery.parse(query: 'page generator', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
+        'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
           {
@@ -116,6 +119,7 @@ void main() {
           SearchQuery.parse(query: 'web page', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
+        'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
           {
@@ -136,6 +140,7 @@ void main() {
           SearchQuery.parse(query: 'goal fancy', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
+        'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
           {
