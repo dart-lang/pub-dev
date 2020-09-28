@@ -39,20 +39,17 @@ void main() {
     });
 
     test('build_config', () async {
-      final PackageSearchResult result =
-          await index.search(SearchQuery.parse(query: 'build_config'));
+      final PackageSearchResult result = await index.search(
+          SearchQuery.parse(query: 'build_config', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
-        'totalCount': 2,
+        'totalCount': 1,
         'packages': [
           {
             'package': 'build_config',
-            'score': closeTo(0.535, 0.001),
+            'score': 1.0,
           },
-          {
-            'package': 'build',
-            'score': closeTo(0.429, 0.001),
-          },
+          // would be nice if `package:build` would show up here
         ],
       });
     });

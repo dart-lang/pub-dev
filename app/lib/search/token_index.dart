@@ -125,14 +125,8 @@ class TokenIndex {
   /// Maps token Strings to a weighted map of document ids.
   final _inverseIds = <String, Map<String, double>>{};
 
-  /// Maps lookup candidates to their original token form.
-  final _lookupCandidates = <String, Set<String>>{};
-
   /// {id: size} map to store a value representative to the document length
   final _docSizes = <String, double>{};
-  final int _minLength;
-
-  TokenIndex({int minLength = 0}) : _minLength = minLength;
 
   /// The number of tokens stored in the index.
   int get tokenCount => _inverseIds.length;
@@ -154,12 +148,6 @@ class TokenIndex {
     for (String token in tokens.keys) {
       final Map<String, double> weights =
           _inverseIds.putIfAbsent(token, () => <String, double>{});
-      // on the first insert of an entry, we populate the similarity candidates
-      if (weights.isEmpty) {
-        for (String reduced in deriveLookupCandidates(token)) {
-          _lookupCandidates.putIfAbsent(reduced, () => <String>{}).add(token);
-        }
-      }
       weights[id] = math.max(weights[id] ?? 0.0, tokens[token]);
     }
     // Document size is a highly scaled-down proxy of the length.
@@ -177,15 +165,6 @@ class TokenIndex {
       if (weights.isEmpty) removeTokens.add(key);
     });
     removeTokens.forEach(_inverseIds.remove);
-    removeTokens.forEach((token) {
-      for (String reduced in deriveLookupCandidates(token)) {
-        final set = _lookupCandidates[reduced];
-        set.remove(token);
-        if (set.isEmpty) {
-          _lookupCandidates.remove(reduced);
-        }
-      }
-    });
   }
 
   /// Match the text against the corpus and return the tokens that have match.
@@ -195,83 +174,17 @@ class TokenIndex {
 
     // Check which tokens have documents, and assign their weight.
     for (String token in tokens.keys) {
-      final candidates = <String>{};
-      candidates.add(token);
-      if (_lookupCandidates.containsKey(token)) {
-        candidates.addAll(_lookupCandidates[token]);
-      }
-      for (String reduced in deriveLookupCandidates(token)) {
-        if (_inverseIds.containsKey(reduced)) {
-          candidates.add(reduced);
-        }
-        final set = _lookupCandidates[reduced];
-        if (set != null) {
-          candidates.addAll(set);
-        }
-      }
-      Set<String> tokenNgrams;
-      double tokenWeightSum;
-      for (String candidate in candidates) {
-        double candidateWeight = 0.0;
-        if (token == candidate) {
-          candidateWeight = 1.0;
-        } else if (token.startsWith(candidate)) {
-          candidateWeight = candidate.length / token.length;
-          if (couldBeSingularAndPlural(candidate, token, isKnownPrefix: true)) {
-            candidateWeight = math.pow(candidateWeight, 0.2).toDouble();
-          }
-        } else if (token.endsWith(candidate)) {
-          candidateWeight = candidate.length / token.length;
-        } else if (candidate.startsWith(token)) {
-          candidateWeight = token.length / candidate.length;
-          if (couldBeSingularAndPlural(token, candidate, isKnownPrefix: true)) {
-            candidateWeight = math.pow(candidateWeight, 0.2).toDouble();
-          }
-        } else if (candidate.endsWith(token)) {
-          candidateWeight = token.length / candidate.length;
-        } else {
-          tokenNgrams ??= ngrams(token, _minLength, 6);
-          final candidateNgrams = ngrams(candidate, _minLength, 6);
-          tokenWeightSum ??= tokenNgrams.fold<double>(0.0, _ngramWeightSum);
-          candidateWeight =
-              _ngramSimilarity(tokenNgrams, candidateNgrams, tokenWeightSum);
-        }
-        candidateWeight *= tokens[token];
-        if (candidateWeight > 0.3) {
-          final int foundCount = _inverseIds[candidate]?.length ?? 0;
-          if (foundCount <= 0) continue;
-          final double score = candidateWeight;
-          final double old = tokenMatch[candidate];
-          if (old == null || old < score) {
-            tokenMatch[candidate] = score;
-          }
+      final tokenWeight = tokens[token];
+      if (tokenWeight > 0.3) {
+        final int foundCount = _inverseIds[token]?.length ?? 0;
+        if (foundCount <= 0) continue;
+        final old = tokenMatch[token];
+        if (old == null || old < tokenWeight) {
+          tokenMatch[token] = tokenWeight;
         }
       }
     }
     return tokenMatch;
-  }
-
-  // Function to aggregate the N-gram set's weight based on the length of the tokens.
-  double _ngramWeightSum(double sum, String str) {
-    final len = str.length;
-    if (len < _ngramSimilarityWeights.length) {
-      return sum + _ngramSimilarityWeights[len];
-    } else {
-      return sum + _ngramSimilarityWeights.last;
-    }
-  }
-
-  // Weighted Jaccard-similarity metric of sets of strings.
-  double _ngramSimilarity(Set<String> a, Set<String> b, double aWeightSum) {
-    // We are not calling `Set.intersection()` here, because that will also build a
-    // new `Set`, which we don't need.
-    final intersectionWeight =
-        a.where((b.contains)).fold<double>(0, _ngramWeightSum);
-    if (intersectionWeight == 0.0) return 0.0;
-
-    final supersetWeight =
-        aWeightSum + b.fold<double>(0, _ngramWeightSum) - intersectionWeight;
-    return intersectionWeight / supersetWeight;
   }
 
   /// Returns an {id: score} map of the documents stored in the [TokenIndex].
@@ -315,7 +228,3 @@ class TokenIndex {
     return scoreDocs(lookupTokens(text));
   }
 }
-
-/// Pre-calculated weight list for ngram similarity.
-final _ngramSimilarityWeights =
-    List<double>.generate(20, (i) => math.pow(i, 1.5).toDouble());
