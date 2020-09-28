@@ -508,6 +508,7 @@ class PackageBackend {
 
     Package package;
     String prevLatestStableVersion;
+    String prevLatestPrereleaseVersion;
 
     // Add the new package to the repository by storing the tarball and
     // inserting metadata to datastore (which happens atomically).
@@ -535,6 +536,7 @@ class PackageBackend {
 
       // If the package does not exist, then we create a new package.
       prevLatestStableVersion = package?.latestVersion;
+      prevLatestPrereleaseVersion = package?.latestPrereleaseVersion;
       if (package == null) {
         _logger.info('New package uploaded. [new-package-uploaded]');
         if (restriction == UploadRestrictionStatus.onlyUpdates) {
@@ -602,6 +604,11 @@ class PackageBackend {
             uploaderEmails.map((email) => EmailAddress(null, email)).toList(),
       ));
 
+      final latestVersionChanged = prevLatestStableVersion != null &&
+          package.latestVersion != prevLatestStableVersion;
+      final latestPrereleaseVersionChanged =
+          prevLatestPrereleaseVersion != null &&
+              package.latestPrereleaseVersion != prevLatestPrereleaseVersion;
       // Let's not block the upload response on these. In case of a timeout, the
       // underlying operations still go ahead, but the `Future.wait` call below
       // is not blocked on it.
@@ -612,13 +619,18 @@ class PackageBackend {
         // the new upload, and will trigger analysis for the dependent packages.
         analyzerClient.triggerAnalysis(
             newVersion.package, newVersion.version, <String>{}),
-        dartdocClient
-            .triggerDartdoc(newVersion.package, newVersion.version, <String>{}),
+        dartdocClient.triggerDartdoc(newVersion.package, newVersion.version),
         // Trigger a new doc generation for the previous latest stable version
         // in order to update the dartdoc entry and the canonical-urls.
-        if (prevLatestStableVersion != null)
+        if (latestVersionChanged)
           dartdocClient.triggerDartdoc(
-              newVersion.package, prevLatestStableVersion, <String>{})
+              newVersion.package, prevLatestStableVersion,
+              shouldProcess: true),
+        // Reset the priority of the previous pre-release version.
+        if (latestPrereleaseVersionChanged)
+          dartdocClient.triggerDartdoc(
+              newVersion.package, prevLatestPrereleaseVersion,
+              shouldProcess: false),
       ]).timeout(Duration(seconds: 10));
     } catch (e, st) {
       final v = newVersion.qualifiedVersionKey;

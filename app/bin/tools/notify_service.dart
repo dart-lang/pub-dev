@@ -30,7 +30,7 @@ Future main(List<String> args) async {
       await analyzerClient.triggerAnalysis(args[1], args[2], <String>{},
           isHighPriority: true);
     } else if (service == 'dartdoc' && args.length == 3) {
-      await dartdocClient.triggerDartdoc(args[1], args[2], <String>{},
+      await dartdocClient.triggerDartdoc(args[1], args[2],
           isHighPriority: true);
     } else if (service == 'search' && args.length == 3) {
       await searchClient.triggerReindex(args[1], args[2]);

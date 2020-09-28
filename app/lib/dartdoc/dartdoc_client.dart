@@ -36,14 +36,16 @@ class DartdocClient {
 
   Future<void> triggerDartdoc(
     String package,
-    String version,
-    Set<String> dependentPackages, {
+    String version, {
+    Set<String> dependentPackages,
     bool isHighPriority = false,
+    bool shouldProcess,
   }) async {
     await jobBackend.trigger(
       JobService.dartdoc,
       package,
       version: version,
+      shouldProcess: shouldProcess,
       isHighPriority: isHighPriority,
     );
     // dependent packages are triggered with default priority

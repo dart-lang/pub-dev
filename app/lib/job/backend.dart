@@ -7,6 +7,7 @@ import 'dart:math' as math;
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/popularity_storage.dart';
@@ -56,6 +57,7 @@ class JobBackend {
     String package, {
     String version,
     DateTime updated,
+    bool shouldProcess,
     bool isHighPriority = false,
   }) async {
     final pKey = _db.emptyKey.append(Package, id: package);
@@ -77,26 +79,29 @@ class JobBackend {
     }
 
     final isLatestStable = p.latestVersion == version;
-    final shouldProcess =
-        isHighPriority || updated == null || updated.isAfter(pv.created);
+    final isLatestPrerelease = p.latestPrereleaseVersion == version;
+    shouldProcess ??= updated == null || updated.isAfter(pv.created);
+    shouldProcess |= isHighPriority;
     await createOrUpdate(
-      service,
-      package,
-      version,
-      isLatestStable,
-      pv.created,
-      shouldProcess,
+      service: service,
+      package: package,
+      version: version,
+      isLatestStable: isLatestStable,
+      isLatestPrerelease: isLatestPrerelease,
+      packageVersionUpdated: pv.created,
+      shouldProcess: shouldProcess,
       priority: isHighPriority ? 0 : null,
     );
   }
 
-  Future<void> createOrUpdate(
-    JobService service,
-    String package,
-    String version,
-    bool isLatestStable,
-    DateTime packageVersionUpdated,
-    bool shouldProcess, {
+  Future<void> createOrUpdate({
+    @required JobService service,
+    @required String package,
+    @required String version,
+    @required bool isLatestStable,
+    @required bool isLatestPrerelease,
+    @required DateTime packageVersionUpdated,
+    @required bool shouldProcess,
     int priority,
   }) async {
     packageVersionUpdated ??= DateTime.now().toUtc();
@@ -110,6 +115,7 @@ class JobBackend {
           orElse: () => null);
       if (current != null) {
         final hasNotChanged = current.isLatestStable == isLatestStable &&
+            current.isLatestPrerelease == isLatestPrerelease &&
             !current.packageVersionUpdated.isBefore(packageVersionUpdated) &&
             (priority == null || current.priority <= priority);
         if (hasNotChanged) {
@@ -126,6 +132,7 @@ class JobBackend {
         _logger.info('Updating job: $id ($state, $lockedUntil)');
         current
           ..isLatestStable = isLatestStable
+          ..isLatestPrerelease = isLatestPrerelease
           ..packageVersionUpdated = packageVersionUpdated
           ..state = state
           ..lockedUntil = lockedUntil
@@ -144,6 +151,7 @@ class JobBackend {
           ..packageName = package
           ..packageVersion = version
           ..isLatestStable = isLatestStable
+          ..isLatestPrerelease = isLatestPrerelease
           ..packageVersionUpdated = packageVersionUpdated
           ..state = state
           ..lockedUntil = lockedUntil

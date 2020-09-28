@@ -70,6 +70,9 @@ class Job extends ExpandoModel<String> {
   @BoolProperty()
   bool isLatestStable;
 
+  @BoolProperty()
+  bool isLatestPrerelease;
+
   @JobStateProperty()
   JobState state;
 
@@ -94,7 +97,7 @@ class Job extends ExpandoModel<String> {
   @IntProperty()
   int errorCount;
 
-  Version get semanticRuntimeVersion => Version.parse(runtimeVersion);
+  bool get isLatest => isLatestStable || isLatestPrerelease;
 
   @override
   String toString() => '$packageName $packageVersion';
@@ -119,8 +122,8 @@ class Job extends ExpandoModel<String> {
       priority += ((1 - popularity) * 2000).round();
     }
 
-    // non-latest stable versions get pushed back in the queue
-    if (!isLatestStable) {
+    // non-latest versions get pushed back in the queue
+    if (!isLatest) {
       priority += 100000;
 
       // pre-release versions get pushed back even further
