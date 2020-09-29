@@ -18,7 +18,6 @@ import 'package:watcher/watcher.dart';
 import '../../account/backend.dart';
 import '../../account/consent_backend.dart';
 import '../../analyzer/analyzer_client.dart';
-import '../../dartdoc/dartdoc_client.dart';
 import '../../frontend/handlers.dart';
 import '../../frontend/static_files.dart';
 import '../../frontend/templates/_cache.dart';
