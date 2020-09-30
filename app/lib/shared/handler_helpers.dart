@@ -220,7 +220,15 @@ shelf.Handler _userSessionWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
     // Never read or look for the session cookie on hosts other than the
     // primary site. Who knows how it got there or what it means.
-    if (request.requestedUri.host == activeConfiguration.primarySiteUri.host &&
+    final isPrimaryHost =
+        request.requestedUri.host == activeConfiguration.primarySiteUri.host;
+    // Never read or look for the session cookie on request that try to modify
+    // data (non-GET HTTP methods), except for deleting the session cookie.
+    final isAllowedForSession = request.method == 'GET' ||
+        (request.method == 'DELETE' &&
+            request.requestedUri.path == '/api/account/session');
+    if (isPrimaryHost &&
+        isAllowedForSession &&
         request.headers.containsKey(HttpHeaders.cookieHeader)) {
       final sessionId = session_cookie.parseSessionCookie(
         request.headers[HttpHeaders.cookieHeader],
