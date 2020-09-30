@@ -47,8 +47,12 @@ class SearchAdapter {
       tagsPredicate: TagsPredicate.advertisement(requiredTags: requiredTags),
       order: order,
     );
-    final searchResults =
-        await _searchOrFallback(query, false, ttl: Duration(hours: 6));
+    final searchResults = await _searchOrFallback(
+      query,
+      false,
+      ttl: Duration(hours: 6),
+      updateCacheAfter: Duration(hours: 1),
+    );
     if (searchResults?.packages == null) {
       return <PackageView>[];
     }
@@ -82,10 +86,12 @@ class SearchAdapter {
     SearchQuery query,
     bool fallbackToNames, {
     Duration ttl,
+    Duration updateCacheAfter,
   }) async {
     PackageSearchResult result;
     try {
-      result = await searchClient.search(query, ttl: ttl);
+      result = await searchClient.search(query,
+          ttl: ttl, updateCacheAfter: updateCacheAfter);
     } catch (e, st) {
       _logger.severe('Unable to search packages', e, st);
     }
