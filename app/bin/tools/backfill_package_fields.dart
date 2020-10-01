@@ -65,7 +65,7 @@ Future<void> _backfillPackageFields(Package p) async {
       package.likes ??= 0;
       package.doNotAdvertise ??= false;
       package.isDiscontinued ??= false;
-      package.isUnlisted ??= package.isDiscontinued;
+      package.isUnlisted ??= false;
       package.isWithheld ??= false;
       package.assignedTags ??= [];
       tx.insert(package);
