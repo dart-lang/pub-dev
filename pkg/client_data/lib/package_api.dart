@@ -171,3 +171,21 @@ class VersionScore {
 
   Map<String, dynamic> toJson() => _$VersionScoreToJson(this);
 }
+
+/// Request payload for inviting a new user to become uploader of a package.
+@JsonSerializable()
+class InviteUploaderRequest {
+  /// Email to which the invitation will be sent.
+  ///
+  /// This must be the primary email associated with the invited users Google
+  /// Account. The invited user will later be required to sign-in with a
+  /// Google Account that has this email in-order to accept the invitation.
+  final String email;
+
+  // json_serializable boiler-plate
+  InviteUploaderRequest({@required this.email});
+
+  factory InviteUploaderRequest.fromJson(Map<String, dynamic> json) =>
+      _$InviteUploaderRequestFromJson(json);
+  Map<String, dynamic> toJson() => _$InviteUploaderRequestToJson(this);
+}

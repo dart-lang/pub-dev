@@ -154,6 +154,15 @@ class PubApi {
   ) async =>
       await packageBackend.removeUploader(package, email);
 
+  /// Returns a uploader's invitation status in a JSON form.
+  @EndPoint.post('/api/packages/<package>/invite-uploader')
+  Future<InviteStatus> invitePackageUploader(
+    Request request,
+    String package,
+    InviteUploaderRequest invite,
+  ) async =>
+      await packageBackend.inviteUploader(package, invite);
+
   // ****
   // **** Publisher API
   // ****

@@ -7,7 +7,7 @@ library pub_dartlang_org.backend;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:client_data/account_api.dart';
+import 'package:client_data/account_api.dart' as account_api;
 import 'package:client_data/package_api.dart' as api;
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
@@ -287,13 +287,15 @@ class PackageBackend {
   }
 
   /// Returns the number of likes of a given package.
-  Future<PackageLikesCount> getPackageLikesCount(String packageName) async {
+  Future<account_api.PackageLikesCount> getPackageLikesCount(
+      String packageName) async {
     final key = db.emptyKey.append(Package, id: packageName);
     final package = await db.lookupValue<Package>(key, orElse: () => null);
     if (package == null) {
       throw NotFoundException.resource('package "$packageName"');
     }
-    return PackageLikesCount(package: packageName, likes: package.likes);
+    return account_api.PackageLikesCount(
+        package: packageName, likes: package.likes);
   }
 
   /// Sets/updates the publisher of a package.
@@ -641,12 +643,14 @@ class PackageBackend {
 
   // Uploaders support.
 
-  Future<api.SuccessMessage> addUploader(
-      String packageName, String uploaderEmail) async {
-    uploaderEmail = uploaderEmail.toLowerCase();
+  Future<account_api.InviteStatus> inviteUploader(
+      String packageName, api.InviteUploaderRequest invite) async {
+    InvalidInputException.checkNotNull(invite?.email, 'email');
+    final uploaderEmail = invite.email.toLowerCase();
     final user = await requireAuthenticatedUser();
     final packageKey = db.emptyKey.append(Package, id: packageName);
-    final package = (await db.lookup([packageKey])).first as Package;
+    final package =
+        await db.lookupValue<Package>(packageKey, orElse: () => null);
 
     await _validatePackageUploader(packageName, package, user.userId);
     // Don't send invites for publisher-owned packages.
@@ -659,12 +663,10 @@ class PackageBackend {
         isValidEmail(uploaderEmail), 'Not a valid email: `$uploaderEmail`.');
 
     final uploader = await accountBackend.lookupUserByEmail(uploaderEmail);
-    if (uploader != null && package.containsUploader(uploader.userId)) {
-      // The requested uploaderEmail is already part of the uploaders.
-      return api.SuccessMessage(
-          success:
-              api.Message(message: '`$uploaderEmail` is already an uploader.'));
-    }
+    final isNotUploaderYet =
+        uploader == null || !package.containsUploader(uploader.userId);
+    InvalidInputException.check(
+        isNotUploaderYet, '`$uploaderEmail` is already an uploader.');
 
     await historyBackend.storeEvent(UploaderInvited(
       packageName: packageName,
@@ -679,10 +681,29 @@ class PackageBackend {
       uploaderEmail: uploaderEmail,
     );
 
-    if (!status.emailSent) {
-      throw OperationForbiddenException.inviteActive(status.nextNotification);
-    }
+    return account_api.InviteStatus(
+      emailSent: status.emailSent,
+      nextNotification: status.nextNotification,
+    );
+  }
 
+  Future<api.SuccessMessage> addUploader(
+      String packageName, String uploaderEmail) async {
+    try {
+      final rs = await inviteUploader(
+          packageName, api.InviteUploaderRequest(email: uploaderEmail));
+      if (!rs.emailSent) {
+        throw OperationForbiddenException.inviteActive(rs.nextNotification);
+      }
+    } on InvalidInputException catch (ex) {
+      // pub client expects this case as a successful operation.
+      if (ex.message.endsWith('is already an uploader.')) {
+        return api.SuccessMessage(
+            success: api.Message(
+                message: '`$uploaderEmail` is already an uploader.'));
+      }
+      rethrow;
+    }
     throw OperationForbiddenException.uploaderInviteSent(uploaderEmail);
   }
 

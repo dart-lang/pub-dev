@@ -169,7 +169,7 @@ void main() {
   });
 
   group('backend.repository', () {
-    group('GCloudRepository.addUploader', () {
+    group('add uploader', () {
       testWithServices('not logged in', () async {
         final pkg = foobarPackage.name;
         final rs = packageBackend.addUploader(pkg, 'a@b.com');
@@ -236,6 +236,96 @@ void main() {
                 'text',
                 "OperationForbidden(403): We've sent an invitation email to $newUploader.\n"
                     "They'll be added as an uploader after they accept the invitation.")));
+
+        // uploaders do not change yet
+        final list = await dbService.lookup<Package>([hydrogen.package.key]);
+        final p = list.single;
+        expect(p.uploaders, [hansUser.userId]);
+
+        expect(fakeEmailSender.sentMessages, hasLength(1));
+        final email = fakeEmailSender.sentMessages.single;
+        expect(email.recipients.single.email, 'somebody@example.com');
+        expect(
+            email.subject, 'You have a new invitation to confirm on pub.dev');
+        expect(
+            email.bodyText,
+            contains(
+                'hans@juergen.com has invited you to be an uploader of the package\nhydrogen.\n'));
+
+        // TODO: check consent (after migrating to consent API)
+      });
+    });
+
+    group('invite uploader', () {
+      testWithServices('not logged in', () async {
+        final pkg = foobarPackage.name;
+        final rs = packageBackend.inviteUploader(
+            pkg, InviteUploaderRequest(email: 'a@b.com'));
+        await expectLater(rs, throwsA(isA<AuthenticationException>()));
+      });
+
+      testWithServices('not authorized', () async {
+        final pkg = foobarPackage.name;
+        registerAuthenticatedUser(User()
+          ..id = 'uuid-foo-at-bar-dot-com'
+          ..email = 'foo@bar.com'
+          ..isDeleted = false
+          ..isBlocked = false);
+        final rs = packageBackend.inviteUploader(
+            pkg, InviteUploaderRequest(email: 'a@b.com'));
+        await expectLater(rs, throwsA(isA<AuthorizationException>()));
+      });
+
+      testWithServices('blocked user', () async {
+        final user = await dbService.lookupValue<User>(hansUser.key);
+        await dbService.commit(inserts: [user..isBlocked = true]);
+        registerAuthenticatedUser(user);
+        final rs = packageBackend.inviteUploader(
+            foobarPackage.name, InviteUploaderRequest(email: 'a@b.com'));
+        await expectLater(rs, throwsA(isA<AuthorizationException>()));
+      });
+
+      testWithServices('package does not exist', () async {
+        registerAuthenticatedUser(hansUser);
+        final rs = packageBackend.inviteUploader(
+            'no_package', InviteUploaderRequest(email: 'a@b.com'));
+        await expectLater(rs, throwsA(isA<NotFoundException>()));
+      });
+
+      Future<void> testAlreadyExists(
+          String pkg, List<User> uploaders, String newUploader) async {
+        final bundle = generateBundle(pkg, ['1.0.0'], uploaders: uploaders);
+        await dbService.commit(inserts: [
+          bundle.package,
+          ...bundle.versions.map(pvModels).expand((m) => m),
+        ]);
+        final rs = packageBackend.inviteUploader(
+            pkg, InviteUploaderRequest(email: newUploader));
+        await expectLater(
+            rs,
+            throwsA(isA<InvalidInputException>().having((e) => '$e', 'text',
+                'InvalidInput(400): `hans@juergen.com` is already an uploader.')));
+        final list = await dbService.lookup<Package>([bundle.package.key]);
+        final p = list.single;
+        expect(p.uploaders, uploaders.map((u) => u.userId));
+      }
+
+      testWithServices('already exists', () async {
+        registerAuthenticatedUser(hansUser);
+        final ucEmail = 'Hans@Juergen.Com';
+        await testAlreadyExists('p1', [hansUser], hansUser.email);
+        await testAlreadyExists('p2', [hansUser], ucEmail);
+        await testAlreadyExists('p3', [hansUser, joeUser], ucEmail);
+        await testAlreadyExists('p4', [joeUser, hansUser], ucEmail);
+      });
+
+      testWithServices('successful', () async {
+        registerAuthenticatedUser(hansUser);
+
+        final newUploader = 'somebody@example.com';
+        final rs = await packageBackend.inviteUploader(
+            hydrogen.package.name, InviteUploaderRequest(email: newUploader));
+        expect(rs.emailSent, isTrue);
 
         // uploaders do not change yet
         final list = await dbService.lookup<Package>([hydrogen.package.key]);

@@ -146,3 +146,16 @@ Map<String, dynamic> _$VersionScoreToJson(VersionScore instance) {
   writeNotNull('lastUpdated', instance.lastUpdated?.toIso8601String());
   return val;
 }
+
+InviteUploaderRequest _$InviteUploaderRequestFromJson(
+    Map<String, dynamic> json) {
+  return InviteUploaderRequest(
+    email: json['email'] as String,
+  );
+}
+
+Map<String, dynamic> _$InviteUploaderRequestToJson(
+        InviteUploaderRequest instance) =>
+    <String, dynamic>{
+      'email': instance.email,
+    };
