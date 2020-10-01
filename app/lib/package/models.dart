@@ -474,12 +474,16 @@ class PackageVersionAsset extends db.ExpandoModel {
   /// ID format: an URI path with <package>/<version>/<kind>
   String get assetId => id as String;
 
+  /// The name of the package.
   @db.StringProperty(required: true)
   String package;
 
+  /// The version of the package (e.g. `1.0.0`)
   @db.StringProperty(required: true)
   String version;
 
+  /// The combined name and version of the package (e.g. `package/1.0.0`).
+  /// Can be used for version-specific listing.
   @db.StringProperty(required: true)
   String packageVersion;
 
