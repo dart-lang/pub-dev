@@ -35,7 +35,7 @@ Future main(List<String> args) async {
   await withToolRuntime(() async {
     await _deleteWithQuery<PackageVersionAsset>(
       dbService.query<PackageVersionAsset>(),
-      where: (a) => canonicalizeVersion(a.packageVersion) != a.packageVersion,
+      where: (a) => canonicalizeVersion(a.version) != a.version,
       dryRun: dryRun,
     );
 
