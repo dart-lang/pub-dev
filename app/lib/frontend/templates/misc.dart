@@ -193,7 +193,9 @@ String renderTags({@required PackageView package}) {
       'title': 'Package was discontinued.',
     });
   }
-  if (package.tags.contains(PackageTags.isUnlisted)) {
+  // Display unlisted tag only for packages that are not discontinued.
+  if (!package.isDiscontinued &&
+      package.tags.contains(PackageTags.isUnlisted)) {
     tagValues.add({
       'status': 'unlisted',
       'text': 'unlisted',
