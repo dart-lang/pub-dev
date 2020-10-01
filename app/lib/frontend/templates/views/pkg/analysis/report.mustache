@@ -5,7 +5,7 @@
 <div class="pkg-report">
 {{#sections}}
   <div class="pkg-report-section foldable">
-    <div class="pkg-report-header foldable-button">
+    <div class="pkg-report-header foldable-button" data-ga-click-event="{{ event-id }}">
       <div class="pkg-report-header-icon">
         {{#is_green}}
           <img src="{{& static_assets.img__report-ok-icon-green_svg }}" class="pkg-report-icon" />

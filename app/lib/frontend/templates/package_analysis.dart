@@ -83,6 +83,7 @@ String _renderReport(Report report) {
           'grantedPoints': s.grantedPoints,
           'maxPoints': s.maxPoints,
           'summary_html': renderSummary(s.summary),
+          'event-id': 'toggle-report-section-${s.id}',
           'is_green': s.grantedPoints > 0 && s.grantedPoints == s.maxPoints,
           'is_yellow': s.grantedPoints > 0 && s.grantedPoints != s.maxPoints,
           'is_red': s.grantedPoints == 0,
