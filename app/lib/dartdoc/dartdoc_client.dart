@@ -48,9 +48,11 @@ class DartdocClient {
       shouldProcess: shouldProcess,
       isHighPriority: isHighPriority,
     );
-    // dependent packages are triggered with default priority
-    for (final String package in dependentPackages) {
-      await jobBackend.trigger(JobService.dartdoc, package);
+    if (dependentPackages != null) {
+      // dependent packages are triggered with default priority
+      for (final package in dependentPackages) {
+        await jobBackend.trigger(JobService.dartdoc, package);
+      }
     }
   }
 
