@@ -62,78 +62,69 @@
       <div id="dartdoc-main-content" class="col-xs-12 col-sm-9 col-md-8 main-content">
         <section class="desc markdown markdown-body">
           <h1 id="dygraph-dart">Dygraph (Dart)</h1>
-          <p>Dart JS interop for 
-            <a href="https://github.com/danvk/dygraphs">Dygraph v2+</a> - fast, flexible open source JavaScript charting library.
+          <p>
+            Dart JS interop for
+            <a href="https://github.com/danvk/dygraphs">Dygraph v2+</a>
+            - fast, flexible open source JavaScript charting library.
           </p>
           <h2 id="usage">Usage</h2>
           <ol>
             <li>
-              <p>Register the Dart package in your 
-                <code>pubspec.yaml</code>:
+              <p>
+                Register the Dart package in your
+                <code>pubspec.yaml</code>
+                :
               </p>
               <pre class="language-yaml">
-                <code class="language-yaml"> dependencies:
-   dygraph: ^0.1.0
-</code>
+                <code class="language-yaml">dependencies: dygraph: ^0.1.0</code>
               </pre>
             </li>
             <li>
               <p>Load the latest Dygraph source (js and css) in your html layout:</p>
               <pre class="language-html">
-                <code class="language-html"> &lt;link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dygraph/2.1.0/dygraph.min.css">
- &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/dygraph/2.1.0/dygraph.min.js">&lt;/script>
-</code>
+                <code class="language-html">&lt;link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dygraph/2.1.0/dygraph.min.css"> &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/dygraph/2.1.0/dygraph.min.js">&lt;/script></code>
               </pre>
             </li>
             <li>
-              <p>Create a 
-                <code>Dygraph</code> instance:
+              <p>
+                Create a
+                <code>Dygraph</code>
+                instance:
               </p>
               <pre class="language-dart">
-                <code class="language-dart"> import 'dart:html';
-
- import 'package:dygraph/dygraph.dart';
-
- void main() {
-   final el = document.getElementById('chart_container');
-
-   final options = DygraphOptions(
-     labels: ['Index', 'X', 'Y'],
-     colors: ['blue', 'red'],
-   );
-
-   final data = [
-     [1, 10, 100],
-     [2, 20, 80],
-     [3, 50, 60],
-     [4, 70, 80],
-   ];
-
-   Dygraph(el, data, options);
- }
-</code>
+                <code class="language-dart">import 'dart:html'; import 'package:dygraph/dygraph.dart'; void main() { final el = document.getElementById('chart_container'); final options = DygraphOptions( labels: ['Index', 'X', 'Y'], colors: ['blue', 'red'], ); final data = [ [1, 10, 100], [2, 20, 80], [3, 50, 60], [4, 70, 80], ]; Dygraph(el, data, options); }</code>
               </pre>
             </li>
           </ol>
           <blockquote>
             <p>
-              <strong>Note 1:</strong> Dart DateTime objects need to be converted to native js dates by using 
-              <code>dart:html_common</code> and 
-              <code>convertDartToNative_DateTime()</code>.
+              <strong>Note 1:</strong>
+              Dart DateTime objects need to be converted to native js dates by using
+              <code>dart:html_common</code>
+              and
+              <code>convertDartToNative_DateTime()</code>
+              .
             </p>
           </blockquote>
           <blockquote>
             <p>
-              <strong>Note 2:</strong> When passing a Dart function as a callback, make sure to wrap it with 
-              <code>allowInterop()</code> or 
-              <code>allowInteropCaptureThis()</code>.
+              <strong>Note 2:</strong>
+              When passing a Dart function as a callback, make sure to wrap it with
+              <code>allowInterop()</code>
+              or
+              <code>allowInteropCaptureThis()</code>
+              .
             </p>
           </blockquote>
-          <p>Check the 
-            <a href="https://pub.dev/documentation/dygraph/latest/">API reference</a> for detailed documentation.
+          <p>
+            Check the
+            <a href="https://pub.dev/documentation/dygraph/latest/">API reference</a>
+            for detailed documentation.
           </p>
-          <p>To view the example, run 
-            <code>pub global run webdev serve example</code> from the root directory of this project.
+          <p>
+            To view the example, run
+            <code>pub global run webdev serve example</code>
+            from the root directory of this project.
           </p>
         </section>
         <section class="summary">
@@ -144,9 +135,7 @@
                 <a href="dygraph/dygraph-library.html">dygraph</a>
               </span>
             </dt>
-            <dd>
-              The JS interop library itself. 
-            </dd>
+            <dd>The JS interop library itself.</dd>
           </dl>
         </section>
       </div>
@@ -154,10 +143,7 @@
       <div id="dartdoc-sidebar-right" class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right"></div>
     </main>
     <footer>
-      <span class="no-break">
-    dygraph
-      0.1.1
-  </span>
+      <span class="no-break">dygraph 0.1.1</span>
     </footer>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"/>
     <script src="static-assets/typeahead.bundle.min.js"/>

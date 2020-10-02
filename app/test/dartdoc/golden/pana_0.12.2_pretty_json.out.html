@@ -295,7 +295,8 @@
       <div id="dartdoc-main-content" class="col-xs-12 col-sm-9 col-md-8 main-content">
         <div>
           <h1>
-            <span class="kind-function">prettyJson</span> function  
+            <span class="kind-function">prettyJson</span>
+            function
           </h1>
         </div>
         <section class="multi-line-signature">
@@ -303,7 +304,7 @@
             <a href="https://api.dart.dev/stable/2.9.0/dart-core/String-class.html">String</a>
           </span>
           <span class="name ">prettyJson</span>
-(
+          (
           <wbr/>
           <ol class="parameter-list">
             <li>
@@ -312,33 +313,15 @@
                 <span class="parameter-name">obj</span>
               </span>
             </li>
-          </ol>)
-    
+          </ol>
+          )
         </section>
         <section class="summary source-code" id="source">
           <h2>
             <span>Implementation</span>
           </h2>
           <pre class="language-dart">
-            <code class="language-dart">String prettyJson(obj) {
-  try {
-    return const JsonEncoder.withIndent(' ').convert(obj);
-  } on JsonUnsupportedObjectError catch (e) {
-    dynamic error = e;
-
-    while (error is JsonUnsupportedObjectError) {
-      stderr.writeln([
-        error,
-        "${error.unsupportedObject} - (${error.unsupportedObject.runtimeType})",
-        error.cause == null ? null : "Nested cause: ${error.cause}",
-        error.stackTrace
-      ].where((i) => i != null).join('\n'));
-
-      error = error.cause;
-    }
-    rethrow;
-  }
-}</code>
+            <code class="language-dart">String prettyJson(obj) { try { return const JsonEncoder.withIndent(' ').convert(obj); } on JsonUnsupportedObjectError catch (e) { dynamic error = e; while (error is JsonUnsupportedObjectError) { stderr.writeln([ error, "${error.unsupportedObject} - (${error.unsupportedObject.runtimeType})", error.cause == null ? null : "Nested cause: ${error.cause}", error.stackTrace ].where((i) => i != null).join('\n')); error = error.cause; } rethrow; } }</code>
           </pre>
         </section>
       </div>
@@ -347,10 +330,7 @@
       <!--/.sidebar-offcanvas-->
     </main>
     <footer>
-      <span class="no-break">
-    pana
-      0.12.2
-  </span>
+      <span class="no-break">pana 0.12.2</span>
     </footer>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"/>
     <script src="../static-assets/typeahead.bundle.min.js"/>
