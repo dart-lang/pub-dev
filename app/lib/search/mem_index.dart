@@ -366,7 +366,9 @@ class InMemoryPackageIndex implements PackageIndex {
     final sw = Stopwatch()..start();
     if (text != null && text.isNotEmpty) {
       final words = splitForQuery(text);
-      if (words.isEmpty) return null;
+      if (words.isEmpty) {
+        return _TextResults(Score.empty(), <String, List<String>>{});
+      }
 
       bool aborted = false;
 
