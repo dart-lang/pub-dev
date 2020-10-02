@@ -247,7 +247,8 @@ class InMemoryPackageIndex implements PackageIndex {
         results = _rankWithValues(overallScore.getValues());
         break;
       case SearchOrder.text:
-        results = _rankWithValues(textResults.pkgScore.getValues());
+        final score = textResults?.pkgScore ?? Score.empty();
+        results = _rankWithValues(score.getValues());
         break;
       case SearchOrder.created:
         results = _rankWithComparator(packages, _compareCreated);
