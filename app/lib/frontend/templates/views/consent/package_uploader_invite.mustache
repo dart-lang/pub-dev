@@ -11,7 +11,8 @@
   Accepting a package uploader invitation means:
 </p>
 <ul>
-  <li>your email (<code>{{ current_user_email }}</code>) will be publicly listed on the <a href="{{& package_url }}" target="_blank" rel="noreferrer">package page</a>,</li>
+  <li>your email {{#has_current_user_email}}(<code>{{ current_user_email }}</code>){{/has_current_user_email}}
+      will be publicly listed on the <a href="{{& package_url }}" target="_blank" rel="noreferrer">package page</a>,</li>
   <li>you will be able to publish new versions of package <code>{{ package_name }}</code>, and,</li>
   <li>perform administrative actions for package <code>{{ package_name }}</code>.</li>
 </ul>

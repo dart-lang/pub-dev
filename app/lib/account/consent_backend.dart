@@ -247,10 +247,8 @@ class ConsentBackend {
       () async {
         await action?.onAccept(consent);
         await withRetryTransaction(_db, (tx) async {
-          final c =
-              await tx.lookupValue<Consent>(consent.key, orElse: () => null);
-          if (c == null) return;
-          tx.delete(c.key);
+          final c = await tx.lookupOrNull<Consent>(consent.key);
+          if (c != null) tx.delete(c.key);
         });
       },
       maxAttempts: 3,
@@ -263,10 +261,8 @@ class ConsentBackend {
       () async {
         await action?.onDelete(consent);
         await withRetryTransaction(_db, (tx) async {
-          final c =
-              await tx.lookupValue<Consent>(consent.key, orElse: () => null);
-          if (c == null) return;
-          tx.delete(c.key);
+          final c = await tx.lookupOrNull<Consent>(consent.key);
+          if (c != null) tx.delete(c.key);
         });
       },
       maxAttempts: 3,
@@ -302,6 +298,8 @@ abstract class ConsentAction {
   /// This message should explain what accepting this invite implies. Who can
   /// see the user, what gets shared, how will user figure in permission
   /// history, and what permissions will the user be granted.
+  ///
+  /// If the current session is unauthenticated, [currentUserEmail] will be null.
   String renderInviteHtml({
     @required String invitingUserEmail,
     @required List<String> args,
@@ -313,7 +311,7 @@ abstract class ConsentAction {
 class _PackageUploaderAction extends ConsentAction {
   @override
   Future<void> onAccept(Consent consent) async {
-    final packageName = consent.args.single;
+    final packageName = consent.args[0];
     final fromUserEmail =
         await accountBackend.getEmailOfUserId(consent.fromUserId);
     final uploader = consent.userId != null
@@ -336,13 +334,13 @@ class _PackageUploaderAction extends ConsentAction {
 
   @override
   String renderInviteText(String invitingUserEmail, List<String> args) {
-    final packageName = args.single;
+    final packageName = args[0];
     return '$invitingUserEmail has invited you to be an uploader of the package $packageName.';
   }
 
   @override
   String renderInviteTitleText(String invitingUserEmail, List<String> args) {
-    final packageName = args.single;
+    final packageName = args[0];
     return 'Invitation for package: $packageName';
   }
 
@@ -352,7 +350,7 @@ class _PackageUploaderAction extends ConsentAction {
     @required List<String> args,
     @required String currentUserEmail,
   }) {
-    final packageName = args.single;
+    final packageName = args[0];
     return renderPackageUploaderInvite(
       invitingUserEmail: invitingUserEmail,
       packageName: packageName,
@@ -424,7 +422,7 @@ class _PublisherMemberAction extends ConsentAction {
       //       will be set when it is loaded.
       throw AuthenticationException.userNotFound();
     }
-    final publisherId = consent.args.single;
+    final publisherId = consent.args[0];
     await publisherBackend.inviteConsentGranted(publisherId, member.userId);
   }
 
