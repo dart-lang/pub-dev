@@ -12,134 +12,134 @@ addons:
 jobs:
   include:
     - stage: smoke_test
-      name: "SDK: 2.9.0; PKGS: app, pkg/_popularity, pkg/api_builder, pkg/client_data, pkg/fake_gcloud, pkg/fake_pub_server, pkg/pub_dartdoc, pkg/pub_dartdoc_data, pkg/pub_package_reader, pkg/web_app; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`]"
-      dart: "2.9.0"
+      name: "SDK: 2.10.0; PKGS: app, pkg/_popularity, pkg/api_builder, pkg/client_data, pkg/fake_gcloud, pkg/fake_pub_server, pkg/pub_dartdoc, pkg/pub_dartdoc_data, pkg/pub_package_reader, pkg/web_app; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`]"
+      dart: "2.10.0"
       os: linux
       env: PKGS="app pkg/_popularity pkg/api_builder pkg/client_data pkg/fake_gcloud pkg/fake_pub_server pkg/pub_dartdoc pkg/pub_dartdoc_data pkg/pub_package_reader pkg/web_app"
       script: ./tool/travis.sh dartfmt dartanalyzer_0
     - stage: smoke_test
-      name: "SDK: 2.9.0; PKG: pkg/pub_integration; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings bin/ lib/`]"
-      dart: "2.9.0"
+      name: "SDK: 2.10.0; PKG: pkg/pub_integration; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings bin/ lib/`]"
+      dart: "2.10.0"
       os: linux
       env: PKGS="pkg/pub_integration"
       script: ./tool/travis.sh dartfmt dartanalyzer_1
     - stage: smoke_test
-      name: "SDK: 2.9.0; PKG: pkg/web_css; TASKS: `dartfmt -n --set-exit-if-changed .`"
-      dart: "2.9.0"
+      name: "SDK: 2.10.0; PKG: pkg/web_css; TASKS: `dartfmt -n --set-exit-if-changed .`"
+      dart: "2.10.0"
       os: linux
       env: PKGS="pkg/web_css"
       script: ./tool/travis.sh dartfmt
     - stage: build
-      name: "SDK: 2.9.0; PKG: pkg/web_app; TASKS: `./build.sh`"
-      dart: "2.9.0"
+      name: "SDK: 2.10.0; PKG: pkg/web_app; TASKS: `./build.sh`"
+      dart: "2.10.0"
       os: linux
       env: PKGS="pkg/web_app"
       script: ./tool/travis.sh command
     - stage: build
-      name: "SDK: 2.9.0; PKG: pkg/web_css; TASKS: `./build.sh`"
-      dart: "2.9.0"
+      name: "SDK: 2.10.0; PKG: pkg/web_css; TASKS: `./build.sh`"
+      dart: "2.10.0"
       os: linux
       env: PKGS="pkg/web_css"
       script: ./tool/travis.sh command
     - stage: unit_test
-      name: "SDK: 2.9.0; PKG: app; TASKS: `pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~7p'``"
-      dart: "2.9.0"
+      name: "SDK: 2.10.0; PKG: app; TASKS: `pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~7p'``"
+      dart: "2.10.0"
       os: linux
       env: PKGS="app"
       script: ./tool/travis.sh test_00
     - stage: unit_test
-      name: "SDK: 2.9.0; PKG: app; TASKS: `pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~7p'``"
-      dart: "2.9.0"
+      name: "SDK: 2.10.0; PKG: app; TASKS: `pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~7p'``"
+      dart: "2.10.0"
       os: linux
       env: PKGS="app"
       script: ./tool/travis.sh test_01
     - stage: unit_test
-      name: "SDK: 2.9.0; PKG: app; TASKS: `pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~7p'``"
-      dart: "2.9.0"
+      name: "SDK: 2.10.0; PKG: app; TASKS: `pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~7p'``"
+      dart: "2.10.0"
       os: linux
       env: PKGS="app"
       script: ./tool/travis.sh test_02
     - stage: unit_test
-      name: "SDK: 2.9.0; PKG: app; TASKS: `pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '3~7p'``"
-      dart: "2.9.0"
+      name: "SDK: 2.10.0; PKG: app; TASKS: `pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '3~7p'``"
+      dart: "2.10.0"
       os: linux
       env: PKGS="app"
       script: ./tool/travis.sh test_03
     - stage: unit_test
-      name: "SDK: 2.9.0; PKG: app; TASKS: `pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '4~7p'``"
-      dart: "2.9.0"
+      name: "SDK: 2.10.0; PKG: app; TASKS: `pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '4~7p'``"
+      dart: "2.10.0"
       os: linux
       env: PKGS="app"
       script: ./tool/travis.sh test_04
     - stage: unit_test
-      name: "SDK: 2.9.0; PKG: app; TASKS: `pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '5~7p'``"
-      dart: "2.9.0"
+      name: "SDK: 2.10.0; PKG: app; TASKS: `pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '5~7p'``"
+      dart: "2.10.0"
       os: linux
       env: PKGS="app"
       script: ./tool/travis.sh test_05
     - stage: unit_test
-      name: "SDK: 2.9.0; PKG: app; TASKS: `pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '6~7p'``"
-      dart: "2.9.0"
+      name: "SDK: 2.10.0; PKG: app; TASKS: `pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '6~7p'``"
+      dart: "2.10.0"
       os: linux
       env: PKGS="app"
       script: ./tool/travis.sh test_06
     - stage: unit_test
-      name: "SDK: 2.9.0; PKG: pkg/_popularity; TASKS: `pub run test --run-skipped`"
-      dart: "2.9.0"
+      name: "SDK: 2.10.0; PKG: pkg/_popularity; TASKS: `pub run test --run-skipped`"
+      dart: "2.10.0"
       os: linux
       env: PKGS="pkg/_popularity"
       script: ./tool/travis.sh test_07
     - stage: unit_test
-      name: "SDK: 2.9.0; PKG: pkg/client_data; TASKS: `pub run test --run-skipped`"
-      dart: "2.9.0"
+      name: "SDK: 2.10.0; PKG: pkg/client_data; TASKS: `pub run test --run-skipped`"
+      dart: "2.10.0"
       os: linux
       env: PKGS="pkg/client_data"
       script: ./tool/travis.sh test_07
     - stage: unit_test
-      name: "SDK: 2.9.0; PKG: pkg/fake_gcloud; TASKS: `pub run test --run-skipped`"
-      dart: "2.9.0"
+      name: "SDK: 2.10.0; PKG: pkg/fake_gcloud; TASKS: `pub run test --run-skipped`"
+      dart: "2.10.0"
       os: linux
       env: PKGS="pkg/fake_gcloud"
       script: ./tool/travis.sh test_07
     - stage: unit_test
-      name: "SDK: 2.9.0; PKG: pkg/pub_dartdoc; TASKS: `pub run test --run-skipped`"
-      dart: "2.9.0"
+      name: "SDK: 2.10.0; PKG: pkg/pub_dartdoc; TASKS: `pub run test --run-skipped`"
+      dart: "2.10.0"
       os: linux
       env: PKGS="pkg/pub_dartdoc"
       script: ./tool/travis.sh test_07
     - stage: unit_test
-      name: "SDK: 2.9.0; PKG: pkg/pub_dartdoc_data; TASKS: `pub run test --run-skipped`"
-      dart: "2.9.0"
+      name: "SDK: 2.10.0; PKG: pkg/pub_dartdoc_data; TASKS: `pub run test --run-skipped`"
+      dart: "2.10.0"
       os: linux
       env: PKGS="pkg/pub_dartdoc_data"
       script: ./tool/travis.sh test_07
     - stage: unit_test
-      name: "SDK: 2.9.0; PKG: pkg/pub_integration; TASKS: `pub run test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~3p'``"
-      dart: "2.9.0"
+      name: "SDK: 2.10.0; PKG: pkg/pub_integration; TASKS: `pub run test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~3p'``"
+      dart: "2.10.0"
       os: linux
       env: PKGS="pkg/pub_integration"
       script: ./tool/travis.sh test_08
     - stage: unit_test
-      name: "SDK: 2.9.0; PKG: pkg/pub_integration; TASKS: `pub run test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~3p'``"
-      dart: "2.9.0"
+      name: "SDK: 2.10.0; PKG: pkg/pub_integration; TASKS: `pub run test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~3p'``"
+      dart: "2.10.0"
       os: linux
       env: PKGS="pkg/pub_integration"
       script: ./tool/travis.sh test_09
     - stage: unit_test
-      name: "SDK: 2.9.0; PKG: pkg/pub_integration; TASKS: `pub run test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~3p'``"
-      dart: "2.9.0"
+      name: "SDK: 2.10.0; PKG: pkg/pub_integration; TASKS: `pub run test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~3p'``"
+      dart: "2.10.0"
       os: linux
       env: PKGS="pkg/pub_integration"
       script: ./tool/travis.sh test_10
     - stage: unit_test
-      name: "SDK: 2.9.0; PKG: pkg/pub_package_reader; TASKS: `pub run test --run-skipped`"
-      dart: "2.9.0"
+      name: "SDK: 2.10.0; PKG: pkg/pub_package_reader; TASKS: `pub run test --run-skipped`"
+      dart: "2.10.0"
       os: linux
       env: PKGS="pkg/pub_package_reader"
       script: ./tool/travis.sh test_07
     - stage: unit_test
-      name: "SDK: 2.9.0; PKG: pkg/web_app; TASKS: `pub run test --run-skipped`"
-      dart: "2.9.0"
+      name: "SDK: 2.10.0; PKG: pkg/web_app; TASKS: `pub run test --run-skipped`"
+      dart: "2.10.0"
       os: linux
       env: PKGS="pkg/web_app"
       script: ./tool/travis.sh test_07
