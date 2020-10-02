@@ -247,7 +247,8 @@ class InMemoryPackageIndex implements PackageIndex {
         results = _rankWithValues(overallScore.getValues());
         break;
       case SearchOrder.text:
-        results = _rankWithValues(textResults.pkgScore.getValues());
+        final score = textResults?.pkgScore ?? Score.empty();
+        results = _rankWithValues(score.getValues());
         break;
       case SearchOrder.created:
         results = _rankWithComparator(packages, _compareCreated);
@@ -366,7 +367,9 @@ class InMemoryPackageIndex implements PackageIndex {
     final sw = Stopwatch()..start();
     if (text != null && text.isNotEmpty) {
       final words = splitForQuery(text);
-      if (words.isEmpty) return null;
+      if (words.isEmpty) {
+        return _TextResults(Score.empty(), <String, List<String>>{});
+      }
 
       bool aborted = false;
 

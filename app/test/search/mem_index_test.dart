@@ -502,6 +502,17 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         ],
       });
     });
+
+    test('non-word query with default order', () async {
+      final rs = await index.search(SearchQuery.parse(query: '='));
+      expect(rs.packages, isEmpty);
+    });
+
+    test('non-word query with text order', () async {
+      final rs = await index
+          .search(SearchQuery.parse(query: '=', order: SearchOrder.text));
+      expect(rs.packages, isEmpty);
+    });
   });
 
   group('special cases', () {
