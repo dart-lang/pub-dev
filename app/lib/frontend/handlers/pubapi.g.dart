@@ -122,6 +122,22 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
+  router.add('POST', r'/api/packages/<package>/invite-uploader',
+      (Request request, String package) async {
+    try {
+      final _$result = await service.invitePackageUploader(
+        request,
+        package,
+        await $utilities.decodeJson<InviteUploaderRequest>(
+            request, (o) => InviteUploaderRequest.fromJson(o)),
+      );
+      return $utilities.jsonResponse(_$result.toJson());
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
   router.add('POST', r'/api/publishers/<publisherId>',
       (Request request, String publisherId) async {
     try {
