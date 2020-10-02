@@ -747,6 +747,8 @@ class PackageSearchResult {
   factory PackageSearchResult.fromJson(Map<String, dynamic> json) =>
       _$PackageSearchResultFromJson(json);
 
+  Duration get age => DateTime.now().difference(timestamp);
+
   /// Whether the search service has already updated its index after a startup.
   bool get isLegit => indexUpdated != null;
 
