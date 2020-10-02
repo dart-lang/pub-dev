@@ -38,6 +38,7 @@ String renderPackageUploaderInvite({
     'inviting_user_email': invitingUserEmail,
     'package_name': packageName,
     'package_url': urls.pkgPageUrl(packageName),
+    'has_current_user_email': currentUserEmail != null,
     'current_user_email': currentUserEmail,
   });
 }
