@@ -117,17 +117,13 @@ class UserMerger {
 
     // UserSession
     final fromUserKey = _db.emptyKey.append(User, id: fromUserId);
-    final toUserKey = _db.emptyKey.append(User, id: toUserId);
     await _processConcurrently(
-      _db.query<UserSession>()..filter('userIdKey =', fromUserKey),
+      _db.query<UserSession>()..filter('userId =', fromUserId),
       (UserSession m) async {
         await withRetryTransaction(_db, (tx) async {
           final session = await tx.lookupValue<UserSession>(m.key);
-          if (session.userIdValue == fromUserId) {
-            session
-              // ignore: deprecated_member_use_from_same_package
-              ..userIdKey = toUserKey
-              ..userId = toUserId;
+          if (session.userId == fromUserId) {
+            session.userId = toUserId;
             tx.insert(session);
           }
         });
