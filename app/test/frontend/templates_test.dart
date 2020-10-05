@@ -75,7 +75,7 @@ void main() {
       }
 
       // Pretty printing output using XML parser and formatter.
-      final xmlDoc = xml.parse(
+      final xmlDoc = xml.XmlDocument.parse(
         isFragment ? '<fragment>' + content + '</fragment>' : content,
         entityMapping: xml.XmlDefaultEntityMapping.html5(),
       );

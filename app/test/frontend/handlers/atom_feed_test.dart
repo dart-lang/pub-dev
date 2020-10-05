@@ -15,7 +15,7 @@ void main() {
       final content = await expectAtomXmlResponse(await issueGet('/feed.atom'));
 
       // check if content is valid XML
-      final root = parse(content);
+      final root = XmlDocument.parse(content);
       final feed = root.rootElement;
 
       final entries = feed.findElements('entry').toList();

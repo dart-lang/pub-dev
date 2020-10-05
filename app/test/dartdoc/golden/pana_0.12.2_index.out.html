@@ -72,43 +72,29 @@
           </p>
           <p>A library for analyzing Dart packages.</p>
           <ul>
-            <li>Validates the code using 
-              <a href="https://www.dartlang.org/tools/analyzer">Dart Analyzer</a>.
+            <li>
+              Validates the code using
+              <a href="https://www.dartlang.org/tools/analyzer">Dart Analyzer</a>
+              .
             </li>
             <li>Checks code formatting.</li>
             <li>Checks for outdated dependencies.</li>
             <li>Infers supported platforms: Flutter, web, and/or server.</li>
           </ul>
-          <p>Used by the 
-            <a href="https://pub.dartlang.org/">Dart Package site</a>.
+          <p>
+            Used by the
+            <a href="https://pub.dartlang.org/">Dart Package site</a>
+            .
           </p>
           <h2 id="use-as-an-executable">Use as an executable</h2>
           <h3 id="installation">Installation</h3>
           <pre class="language-console">
-            <code class="language-console">> pub global activate pana
-</code>
+            <code class="language-console">> pub global activate pana</code>
           </pre>
           <h3 id="usage">Usage</h3>
           <p>You can specify either a package (+ version) or a local directory to analyze:</p>
           <pre class="language-dart">
-            <code>Usage: pana [&lt;options>] &lt;published package name> [&lt;version>]
-       pana [&lt;options>] --source path &lt;local directory>
-
-Options:
-      --flutter-sdk     The directory of the Flutter SDK.
-  -j, --json            Output log items as JSON.
-  -s, --source          The source where the package is located (hosted on https://pub.dartlang.org, or local directory path).
-                        [hosted (default), path]
-  
-      --hosted-url      The server that hosts &lt;package>.
-                        (defaults to "https://pub.dartlang.org")
-  
-      --verbosity       Configure the details in the output.
-                        [compact, normal (default), verbose]
-  
-      --[no-]warning    Shows the warning message before potentially destructive operation.
-                        (defaults to on)
-</code>
+            <code>Usage: pana [&lt;options>] &lt;published package name> [&lt;version>] pana [&lt;options>] --source path &lt;local directory> Options: --flutter-sdk The directory of the Flutter SDK. -j, --json Output log items as JSON. -s, --source The source where the package is located (hosted on https://pub.dartlang.org, or local directory path). [hosted (default), path] --hosted-url The server that hosts &lt;package>. (defaults to "https://pub.dartlang.org") --verbosity Configure the details in the output. [compact, normal (default), verbose] --[no-]warning Shows the warning message before potentially destructive operation. (defaults to on)</code>
           </pre>
         </section>
         <section class="summary">
@@ -133,10 +119,7 @@ Options:
       <div id="dartdoc-sidebar-right" class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right"></div>
     </main>
     <footer>
-      <span class="no-break">
-    pana
-      0.12.2
-  </span>
+      <span class="no-break">pana 0.12.2</span>
     </footer>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"/>
     <script src="static-assets/typeahead.bundle.min.js"/>
