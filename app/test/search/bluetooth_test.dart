@@ -32,7 +32,8 @@ void main() {
 
     test('bluetooth', () async {
       final PackageSearchResult result = await index.search(
-          SearchQuery.parse(query: 'bluetooth', order: SearchOrder.text));
+          ServiceSearchQuery.parse(
+              query: 'bluetooth', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'timestamp': isNotNull,

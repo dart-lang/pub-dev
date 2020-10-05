@@ -9,7 +9,7 @@ import 'package:pub_dev/shared/markdown.dart';
 
 import '../../package/models.dart' show PackageView;
 import '../../publisher/models.dart' show Publisher;
-import '../../search/search_service.dart' show SearchQuery;
+import '../../search/search_service.dart' show FrontendSearchQuery;
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart' show shortDateFormat;
 
@@ -80,7 +80,7 @@ String renderPublisherPackagesPage({
   @required List<PackageView> packages,
   @required String messageFromBackend,
   @required PageLinks pageLinks,
-  @required SearchQuery searchQuery,
+  @required FrontendSearchQuery searchQuery,
   @required int totalCount,
   @required bool isAdmin,
 }) {

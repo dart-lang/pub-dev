@@ -30,7 +30,8 @@ void main() {
     // should find full word
     test('stacktrace', () async {
       final PackageSearchResult result = await index.search(
-          SearchQuery.parse(query: 'stacktrace', order: SearchOrder.text));
+          ServiceSearchQuery.parse(
+              query: 'stacktrace', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'timestamp': isNotNull,

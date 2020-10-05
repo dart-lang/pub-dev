@@ -4,7 +4,7 @@
 
 import 'package:test/test.dart';
 
-import 'package:pub_dev/search/search_service.dart' show SearchQuery;
+import 'package:pub_dev/search/search_service.dart' show FrontendSearchQuery;
 import 'package:pub_dev/shared/urls.dart';
 
 void main() {
@@ -205,7 +205,7 @@ void main() {
         '/dart/packages?runtime=native',
       );
       expect(
-        SearchQuery.parse(runtimes: ['native'])
+        FrontendSearchQuery.parse(runtimes: ['native'])
             .tagsPredicate
             .toQueryParameters(),
         ['runtime:native-jit'],
@@ -218,7 +218,7 @@ void main() {
         '/dart/packages?runtime=native',
       );
       expect(
-        SearchQuery.parse(runtimes: ['native-jit'])
+        FrontendSearchQuery.parse(runtimes: ['native-jit'])
             .tagsPredicate
             .toQueryParameters(),
         ['runtime:native-jit'],
@@ -231,7 +231,9 @@ void main() {
         '/dart/packages?runtime=js',
       );
       expect(
-        SearchQuery.parse(runtimes: ['web']).tagsPredicate.toQueryParameters(),
+        FrontendSearchQuery.parse(runtimes: ['web'])
+            .tagsPredicate
+            .toQueryParameters(),
         ['runtime:web'],
       );
     });
@@ -242,7 +244,9 @@ void main() {
         '/dart/packages?runtime=js',
       );
       expect(
-        SearchQuery.parse(runtimes: ['js']).tagsPredicate.toQueryParameters(),
+        FrontendSearchQuery.parse(runtimes: ['js'])
+            .tagsPredicate
+            .toQueryParameters(),
         ['runtime:web'],
       );
     });
@@ -253,7 +257,9 @@ void main() {
         '/dart/packages?runtime=xxy',
       );
       expect(
-        SearchQuery.parse(runtimes: ['xxy']).tagsPredicate.toQueryParameters(),
+        FrontendSearchQuery.parse(runtimes: ['xxy'])
+            .tagsPredicate
+            .toQueryParameters(),
         ['runtime:xxy'],
       );
     });

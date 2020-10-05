@@ -27,7 +27,8 @@ void main() {
 
     test('flutter 95', () async {
       final PackageSearchResult result = await index.search(
-          SearchQuery.parse(query: 'flutter 95', order: SearchOrder.text));
+          ServiceSearchQuery.parse(
+              query: 'flutter 95', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'timestamp': isNotNull,

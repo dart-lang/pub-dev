@@ -61,7 +61,7 @@ abstract class PackageIndex {
   Future<void> addPackage(PackageDocument doc);
   Future<void> addPackages(Iterable<PackageDocument> documents);
   Future<void> removePackage(String package);
-  Future<PackageSearchResult> search(SearchQuery query);
+  Future<PackageSearchResult> search(ServiceSearchQuery query);
 
   /// A package index may be accessed while the initialization phase is still
   /// running. Once the initialization is done (either via a snapshot or a
@@ -220,7 +220,7 @@ String _stringToNull(String v) => (v == null || v.isEmpty) ? null : v;
 List<String> _listToNull(List<String> list) =>
     (list == null || list.isEmpty) ? null : list;
 
-class SearchQuery {
+class FrontendSearchQuery {
   final String query;
   final ParsedQuery parsedQuery;
 
@@ -245,7 +245,7 @@ class SearchQuery {
   /// True, if packages which only support dart 1.x should be included.
   final bool includeLegacy;
 
-  SearchQuery._({
+  FrontendSearchQuery._({
     this.query,
     TagsPredicate tagsPredicate,
     List<String> uploaderOrPublishers,
@@ -260,7 +260,7 @@ class SearchQuery {
         uploaderOrPublishers = _listToNull(uploaderOrPublishers),
         publisherId = _stringToNull(publisherId);
 
-  factory SearchQuery.parse({
+  factory FrontendSearchQuery.parse({
     String query,
     String sdk,
     List<String> runtimes,
@@ -291,7 +291,7 @@ class SearchQuery {
       tagsPredicate = tagsPredicate
           .appendPredicate(TagsPredicate(requiredTags: requiredTags));
     }
-    return SearchQuery._(
+    return FrontendSearchQuery._(
       query: q,
       tagsPredicate: tagsPredicate,
       uploaderOrPublishers: uploaderOrPublishers,
@@ -304,31 +304,7 @@ class SearchQuery {
     );
   }
 
-  factory SearchQuery.fromServiceUrl(Uri uri) {
-    final q = uri.queryParameters['q'];
-    final tagsPredicate =
-        TagsPredicate.parseQueryValues(uri.queryParametersAll['tags']);
-    final uploaderOrPublishers = uri.queryParametersAll['uploaderOrPublishers'];
-    final publisherId = uri.queryParameters['publisherId'];
-    final String orderValue = uri.queryParameters['order'];
-    final SearchOrder order = parseSearchOrder(orderValue);
-
-    final offset = int.tryParse(uri.queryParameters['offset'] ?? '0') ?? 0;
-    final limit = int.tryParse(uri.queryParameters['limit'] ?? '0') ?? 0;
-
-    return SearchQuery.parse(
-      query: q,
-      tagsPredicate: tagsPredicate,
-      uploaderOrPublishers: uploaderOrPublishers,
-      publisherId: publisherId,
-      order: order,
-      offset: max(0, offset),
-      limit: max(_minSearchLimit, limit),
-      includeLegacy: uri.queryParameters['legacy'] == '1',
-    );
-  }
-
-  SearchQuery change({
+  FrontendSearchQuery change({
     String query,
     String sdk,
     TagsPredicate tagsPredicate,
@@ -338,17 +314,16 @@ class SearchQuery {
     int offset,
     int limit,
     bool includeLegacy,
-    bool randomize,
   }) {
     if (sdk != null) {
-      tagsPredicate ??= TagsPredicate();
+      tagsPredicate ??= this.tagsPredicate ?? TagsPredicate();
       tagsPredicate = tagsPredicate.removePrefix('sdk:');
       if (sdk != SdkTagValue.any) {
         tagsPredicate = tagsPredicate
             .appendPredicate(TagsPredicate(requiredTags: ['sdk:$sdk']));
       }
     }
-    return SearchQuery._(
+    return FrontendSearchQuery._(
       query: query ?? this.query,
       tagsPredicate: tagsPredicate ?? this.tagsPredicate,
       uploaderOrPublishers: uploaderOrPublishers ?? this.uploaderOrPublishers,
@@ -361,7 +336,7 @@ class SearchQuery {
     );
   }
 
-  Map<String, dynamic> toServiceQueryParameters() {
+  ServiceSearchQuery toServiceQuery() {
     var tagsPredicate = this.tagsPredicate;
     if (includeUnlisted &&
         tagsPredicate.isProhibitedTag(PackageTags.isUnlisted)) {
@@ -371,19 +346,15 @@ class SearchQuery {
         tagsPredicate.isProhibitedTag(PackageVersionTags.isLegacy)) {
       tagsPredicate = tagsPredicate.withoutTag(PackageVersionTags.isLegacy);
     }
-    final map = <String, dynamic>{
-      'q': query,
-      'tags': tagsPredicate.toQueryParameters(),
-      'uploaderOrPublishers': uploaderOrPublishers,
-      'publisherId': publisherId,
-      'offset': offset?.toString(),
-      'limit': limit?.toString(),
-      'order': serializeSearchOrder(order),
-      // TODO: remove after search backend no longer depends on it
-      'legacy': '1',
-    };
-    map.removeWhere((k, v) => v == null);
-    return map;
+    return ServiceSearchQuery.parse(
+      query: query,
+      tagsPredicate: tagsPredicate,
+      uploaderOrPublishers: uploaderOrPublishers,
+      publisherId: publisherId,
+      offset: offset,
+      limit: limit,
+      order: order,
+    );
   }
 
   bool get hasQuery => query != null && query.isNotEmpty;
@@ -406,8 +377,7 @@ class SearchQuery {
 
     // Consolidate the query to the state that the search service backend will
     // recieve:
-    final backendQuery = SearchQuery.fromServiceUrl(
-        Uri(queryParameters: toServiceQueryParameters()));
+    final backendQuery = toServiceQuery();
 
     // Do not allow override of search filter tags. (E.g. search scope would
     // require sdk:flutter, do not allow -sdk:flutter to override it).
@@ -467,6 +437,124 @@ class SearchQuery {
     } else {
       return Uri(path: path, queryParameters: params).toString();
     }
+  }
+}
+
+class ServiceSearchQuery {
+  final String query;
+  final ParsedQuery parsedQuery;
+  final TagsPredicate tagsPredicate;
+
+  /// The query will match packages where the owners of the package have
+  /// non-empty intersection with the provided list of owners.
+  ///
+  /// Values of this list can be email addresses (usually a single on) or
+  /// publisher ids (may be multiple).
+  final List<String> uploaderOrPublishers;
+
+  final String publisherId;
+  final SearchOrder order;
+  final int offset;
+  final int limit;
+
+  ServiceSearchQuery._({
+    this.query,
+    TagsPredicate tagsPredicate,
+    List<String> uploaderOrPublishers,
+    String publisherId,
+    this.order,
+    this.offset,
+    this.limit,
+  })  : parsedQuery = ParsedQuery._parse(query),
+        tagsPredicate = tagsPredicate ?? TagsPredicate(),
+        uploaderOrPublishers = _listToNull(uploaderOrPublishers),
+        publisherId = _stringToNull(publisherId);
+
+  factory ServiceSearchQuery.parse({
+    String query,
+    TagsPredicate tagsPredicate,
+    List<String> uploaderOrPublishers,
+    String publisherId,
+    SearchOrder order,
+    int offset = 0,
+    int limit = 10,
+  }) {
+    final q = _stringToNull(query?.trim());
+    return ServiceSearchQuery._(
+      query: q,
+      tagsPredicate: tagsPredicate,
+      uploaderOrPublishers: uploaderOrPublishers,
+      publisherId: publisherId,
+      order: order,
+      offset: offset,
+      limit: limit,
+    );
+  }
+
+  factory ServiceSearchQuery.fromServiceUrl(Uri uri) {
+    final q = uri.queryParameters['q'];
+    final tagsPredicate =
+        TagsPredicate.parseQueryValues(uri.queryParametersAll['tags']);
+    final uploaderOrPublishers = uri.queryParametersAll['uploaderOrPublishers'];
+    final publisherId = uri.queryParameters['publisherId'];
+    final String orderValue = uri.queryParameters['order'];
+    final SearchOrder order = parseSearchOrder(orderValue);
+
+    final offset = int.tryParse(uri.queryParameters['offset'] ?? '0') ?? 0;
+    final limit = int.tryParse(uri.queryParameters['limit'] ?? '0') ?? 0;
+
+    return ServiceSearchQuery.parse(
+      query: q,
+      tagsPredicate: tagsPredicate,
+      uploaderOrPublishers: uploaderOrPublishers,
+      publisherId: publisherId,
+      order: order,
+      offset: max(0, offset),
+      limit: max(_minSearchLimit, limit),
+    );
+  }
+
+  ServiceSearchQuery change({
+    String query,
+    TagsPredicate tagsPredicate,
+    List<String> uploaderOrPublishers,
+    String publisherId,
+    SearchOrder order,
+    int offset,
+    int limit,
+  }) {
+    return ServiceSearchQuery._(
+      query: query ?? this.query,
+      tagsPredicate: tagsPredicate ?? this.tagsPredicate,
+      uploaderOrPublishers: uploaderOrPublishers ?? this.uploaderOrPublishers,
+      publisherId: publisherId ?? this.publisherId,
+      order: order ?? this.order,
+      offset: offset ?? this.offset,
+      limit: limit ?? this.limit,
+    );
+  }
+
+  Map<String, dynamic> toUriQueryParameters() {
+    final map = <String, dynamic>{
+      'q': query,
+      'tags': tagsPredicate.toQueryParameters(),
+      'uploaderOrPublishers': uploaderOrPublishers,
+      'publisherId': publisherId,
+      'offset': offset?.toString(),
+      'limit': limit?.toString(),
+      'order': serializeSearchOrder(order),
+    };
+    map.removeWhere((k, v) => v == null);
+    return map;
+  }
+
+  bool get hasQuery => query != null && query.isNotEmpty;
+
+  String get sdk {
+    final values = tagsPredicate._values.entries
+        .where((e) => e.key.startsWith('sdk:') && e.value == true)
+        .map((e) => e.key.split(':')[1]);
+    return values.isEmpty ? null : values.first;
   }
 }
 
@@ -846,7 +934,7 @@ int extractPageFromUrlParameters(Map<String, String> queryParameters) {
 /// Parses the search query URL queryParameters for the parameters we expose on
 /// the frontend. The parameters and the values may be different from the ones
 /// we use in the search service backend.
-SearchQuery parseFrontendSearchQuery(
+FrontendSearchQuery parseFrontendSearchQuery(
   Map<String, String> queryParameters, {
   String platform,
   String sdk,
@@ -867,7 +955,7 @@ SearchQuery parseFrontendSearchQuery(
   if (queryParameters.containsKey('platform')) {
     platforms = queryParameters['platform'].split(' ');
   }
-  return SearchQuery.parse(
+  return FrontendSearchQuery.parse(
     query: queryText,
     sdk: sdk,
     runtimes: runtimes,

@@ -433,7 +433,8 @@ String _getAuthorsHtml(List<String> authors) {
     if (author.email != null) {
       final escapedEmail = htmlAttrEscape.convert(author.email);
       final emailSearchUrl = htmlAttrEscape.convert(
-          SearchQuery.parse(query: 'email:${author.email}').toSearchLink());
+          FrontendSearchQuery.parse(query: 'email:${author.email}')
+              .toSearchLink());
       final text =
           '<a href="$emailSearchUrl" title="Search packages from $escapedName" rel="nofollow">'
           '$escapedEmail'

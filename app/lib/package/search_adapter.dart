@@ -42,7 +42,7 @@ class SearchAdapter {
     int count = 6,
     SearchOrder order,
   }) async {
-    final query = SearchQuery.parse(
+    final query = FrontendSearchQuery.parse(
       limit: 100,
       tagsPredicate: TagsPredicate.advertisement(requiredTags: requiredTags),
       order: order,
@@ -76,14 +76,14 @@ class SearchAdapter {
   ///
   /// When the `search` service fails, it falls back to use the name tracker to
   /// provide package names and perform search in that set.
-  Future<SearchResultPage> search(SearchQuery query) async {
+  Future<SearchResultPage> search(FrontendSearchQuery query) async {
     final result = await _searchOrFallback(query, true);
     return SearchResultPage(query, result.totalCount,
         await getPackageViews(result.packages), result.message);
   }
 
   Future<PackageSearchResult> _searchOrFallback(
-    SearchQuery query,
+    FrontendSearchQuery query,
     bool fallbackToNames, {
     Duration ttl,
     Duration updateCacheAfter,
@@ -103,7 +103,7 @@ class SearchAdapter {
 
   /// Search over the package names as a fallback, in the absence of the
   /// `search` service.
-  Future<PackageSearchResult> _fallbackSearch(SearchQuery query) async {
+  Future<PackageSearchResult> _fallbackSearch(FrontendSearchQuery query) async {
     // Some search queries must not be served with the fallback search.
     if (query.uploaderOrPublishers != null || query.publisherId != null) {
       return PackageSearchResult.empty(
@@ -209,7 +209,7 @@ class SearchAdapter {
 /// The results of a search via the Custom Search API.
 class SearchResultPage {
   /// The query used for the search.
-  final SearchQuery query;
+  final FrontendSearchQuery query;
 
   /// The total number of results available for the search.
   final int totalCount;
@@ -223,6 +223,6 @@ class SearchResultPage {
 
   SearchResultPage(this.query, this.totalCount, this.packages, this.message);
 
-  factory SearchResultPage.empty(SearchQuery query, {String message}) =>
+  factory SearchResultPage.empty(FrontendSearchQuery query, {String message}) =>
       SearchResultPage(query, 0, [], message);
 }

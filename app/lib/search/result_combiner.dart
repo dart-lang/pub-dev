@@ -21,7 +21,7 @@ class SearchResultCombiner {
     @required this.dartSdkIndex,
   });
 
-  Future<PackageSearchResult> search(SearchQuery query) async {
+  Future<PackageSearchResult> search(ServiceSearchQuery query) async {
     final includeSdkResults = shouldIncludeSdkResults(query);
     if (!includeSdkResults) {
       return primaryIndex.search(query);
@@ -68,7 +68,7 @@ class SearchResultCombiner {
 }
 
 /// Whether the results for the query should include SDK results.
-bool shouldIncludeSdkResults(SearchQuery query) {
+bool shouldIncludeSdkResults(ServiceSearchQuery query) {
   // No reason to display SDK packages if:
   // - there is no text query
   // - the query is about a filter (e.g. dependency or package-prefix)

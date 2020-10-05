@@ -23,7 +23,8 @@ void main() {
 
     test('json_tool', () async {
       final PackageSearchResult result = await index.search(
-          SearchQuery.parse(query: 'json_tool', order: SearchOrder.text));
+          ServiceSearchQuery.parse(
+              query: 'json_tool', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'timestamp': isNotNull,
@@ -62,7 +63,8 @@ void main() {
 
     test('json_tool', () async {
       final PackageSearchResult result = await index.search(
-          SearchQuery.parse(query: 'json_tool', order: SearchOrder.text));
+          ServiceSearchQuery.parse(
+              query: 'json_tool', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'timestamp': isNotNull,

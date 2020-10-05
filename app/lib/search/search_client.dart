@@ -39,7 +39,7 @@ class SearchClient {
   /// than the specified value, the client will do a non-cached request to the
   /// search service and update the cached value.
   Future<PackageSearchResult> search(
-    SearchQuery query, {
+    FrontendSearchQuery query, {
     Duration ttl,
     Duration updateCacheAfter,
   }) async {
@@ -52,8 +52,8 @@ class SearchClient {
     }
 
     final String httpHostPort = activeConfiguration.searchServicePrefix;
-    final String serviceUrlParams =
-        Uri(queryParameters: query.toServiceQueryParameters()).toString();
+    final serviceUrlParams =
+        Uri(queryParameters: query.toServiceQuery().toUriQueryParameters());
     final String serviceUrl = '$httpHostPort/search$serviceUrlParams';
 
     Future<PackageSearchResult> searchFn() async {

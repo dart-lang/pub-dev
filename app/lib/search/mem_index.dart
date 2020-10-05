@@ -10,7 +10,6 @@ import 'package:logging/logging.dart';
 import 'package:pana/pana.dart' show DependencyTypes;
 import 'package:path/path.dart' as p;
 
-import '../shared/tags.dart';
 import '../shared/utils.dart' show boundedList;
 
 import 'scope_specificity.dart';
@@ -126,7 +125,7 @@ class InMemoryPackageIndex implements PackageIndex {
   }
 
   @override
-  Future<PackageSearchResult> search(SearchQuery query) async {
+  Future<PackageSearchResult> search(ServiceSearchQuery query) async {
     final Set<String> packages = Set.from(_packages.keys);
 
     // filter on package prefix
@@ -201,13 +200,6 @@ class InMemoryPackageIndex implements PackageIndex {
         }
         return true;
       });
-    }
-
-    // Remove legacy packages, if not included in the query.
-    // TODO: remove after next release, as the flag should be always true with that
-    if (!query.includeLegacy) {
-      packages.removeWhere(
-          (p) => _packages[p].tags.contains(PackageVersionTags.isLegacy));
     }
 
     // do text matching
@@ -316,7 +308,7 @@ class InMemoryPackageIndex implements PackageIndex {
   }
 
   Map<String, double> _scopeSpecificityScore(
-      SearchQuery query, Iterable<String> packages) {
+      ServiceSearchQuery query, Iterable<String> packages) {
     final scopeSpecificity = <String, double>{};
     packages.forEach((String package) {
       final PackageDocument doc = _packages[package];

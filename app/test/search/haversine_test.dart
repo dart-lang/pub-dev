@@ -378,7 +378,8 @@ MIT'''),
 
     test('haversine', () async {
       final PackageSearchResult result = await index.search(
-          SearchQuery.parse(query: 'haversine', order: SearchOrder.text));
+          ServiceSearchQuery.parse(
+              query: 'haversine', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'timestamp': isNotNull,
@@ -405,7 +406,8 @@ MIT'''),
 
     test('type: hoversine', () async {
       final PackageSearchResult result = await index.search(
-          SearchQuery.parse(query: 'hoversine', order: SearchOrder.text));
+          ServiceSearchQuery.parse(
+              query: 'hoversine', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'timestamp': isNotNull,

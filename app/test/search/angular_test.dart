@@ -30,8 +30,8 @@ void main() {
     });
 
     test('angular', () async {
-      final PackageSearchResult result = await index
-          .search(SearchQuery.parse(query: 'angular', order: SearchOrder.text));
+      final PackageSearchResult result = await index.search(
+          ServiceSearchQuery.parse(query: 'angular', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'timestamp': isNotNull,
