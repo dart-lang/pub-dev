@@ -131,8 +131,8 @@ String renderPublisherPackagesPage({
     ),
     publisherId: publisher.publisherId,
     searchQuery: searchQuery,
-    // only index the first page, and if search query is not active
-    noIndex: isSearch || pageLinks.currentPage > 1,
+    // index only the first page, if it has packages displayed without search query
+    noIndex: packages.isEmpty || isSearch || pageLinks.currentPage > 1,
     mainClasses: [wideHeaderDetailPageClassName],
   );
 }
