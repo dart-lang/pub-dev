@@ -217,6 +217,7 @@ class _PkgAdminWidget {
     } else {
       _discontinuedCheckbox.defaultChecked = newValue;
       _discontinuedCheckbox.checked = newValue;
+      _unlistedCheckbox?.disabled = newValue;
     }
   }
 
