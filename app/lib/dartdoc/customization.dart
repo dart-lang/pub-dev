@@ -121,7 +121,7 @@ class DartdocCustomizer {
       if (uri == null) {
         // Unable to parse the uri, better to remove the `href` attribute.
         a.attributes.remove('href');
-      } else if (uri.host.isNotEmpty && !trustedDocHosts.contains(uri.host)) {
+      } else if (uri.host.isNotEmpty && !trustedHostsToLink.contains(uri.host)) {
         a.attributes['rel'] = 'ugc';
       }
     }

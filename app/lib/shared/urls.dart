@@ -16,8 +16,8 @@ const siteRoot = 'https://$primaryHost';
 const dartSiteRoot = 'https://dart.dev';
 const httpsApiDartDev = 'https://api.dart.dev/';
 
-/// Hostnames that are trusted in dartdoc content (and don't get rel="ugc").
-const trustedDocHosts = [
+/// Hostnames that are trusted in user-generated content (and don't get rel="ugc").
+const trustedHostsToLink = [
   'api.dart.dev',
   'api.flutter.dev',
   'pub.dev',
