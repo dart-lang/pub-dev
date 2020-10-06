@@ -10,6 +10,8 @@ import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:sanitize_html/sanitize_html.dart';
 
+import 'urls.dart' show UriExt;
+
 final Logger _logger = Logger('pub.markdown');
 
 /// Element tags that are treated as structural headers.
@@ -164,8 +166,6 @@ class _HashLink implements m.NodeVisitor {
 
 /// Filters unsafe URLs from the generated HTML.
 class _UnsafeUrlFilter implements m.NodeVisitor {
-  static const _trustedSchemes = <String>['http', 'https', 'mailto'];
-
   @override
   void visitText(m.Text text) {}
 
@@ -194,7 +194,7 @@ class _UnsafeUrlFilter implements m.NodeVisitor {
       element.attributes.remove(attr);
       return true;
     }
-    if (uri.hasScheme && !_trustedSchemes.contains(uri.scheme)) {
+    if (uri.isInvalid) {
       element.attributes.remove(attr);
       return true;
     }

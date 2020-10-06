@@ -118,7 +118,7 @@ class DartdocCustomizer {
     for (final a in body.querySelectorAll('a')) {
       final href = a.attributes['href'];
       final uri = href == null ? null : Uri.tryParse(href);
-      if (uri == null) {
+      if (uri == null || uri.isInvalid) {
         // Unable to parse the uri, better to remove the `href` attribute.
         a.attributes.remove('href');
       } else if (uri.shouldIndicateUgc) {

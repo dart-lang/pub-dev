@@ -16,6 +16,10 @@ const siteRoot = 'https://$primaryHost';
 const dartSiteRoot = 'https://dart.dev';
 const httpsApiDartDev = 'https://api.dart.dev/';
 
+/// URI schemes that are trusted and can be rendered. Other URI schemes must be
+/// rejected and the URL mustn't be displayed.
+const _trustedSchemes = <String>['http', 'https', 'mailto'];
+
 /// Hostnames that are trusted in user-generated content (and don't get rel="ugc").
 const _trustedTargetHost = [
   'api.dart.dev',
@@ -280,6 +284,12 @@ String myPublishersUrl() => '/my-publishers';
 String createPublisherUrl() => '/create-publisher';
 
 extension UriExt on Uri {
+  /// The [scheme] of the [Uri] is trusted, it may be displayed.
+  bool get isTrustedScheme => _trustedSchemes.contains(scheme);
+
+  /// Whether the [Uri] has an untrusted or incompatible structure.
+  bool get isInvalid => hasScheme && !isTrustedScheme;
+
   /// The host of the link is trusted, it is unlikely to be a spam.
   bool get isTrustedHost => _trustedTargetHost.contains(host);
 
