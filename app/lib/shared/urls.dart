@@ -17,7 +17,7 @@ const dartSiteRoot = 'https://dart.dev';
 const httpsApiDartDev = 'https://api.dart.dev/';
 
 /// Hostnames that are trusted in user-generated content (and don't get rel="ugc").
-const trustedHostsToLink = [
+const _trustedTargetHost = [
   'api.dart.dev',
   'api.flutter.dev',
   'pub.dev',
@@ -278,3 +278,11 @@ String myPackagesUrl() => '/my-packages';
 String myLikedPackagesUrl() => '/my-liked-packages';
 String myPublishersUrl() => '/my-publishers';
 String createPublisherUrl() => '/create-publisher';
+
+extension UriExt on Uri {
+  /// The host of the link is trusted, it is unlikely to be a spam.
+  bool get isTrustedHost => _trustedTargetHost.contains(host);
+
+  /// Whether on rendering we should emit rel="ugc".
+  bool get shouldIndicateUgc => host.isNotEmpty && !isTrustedHost;
+}

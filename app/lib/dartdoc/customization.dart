@@ -113,15 +113,15 @@ class DartdocCustomizer {
     head.insertBefore(meta, head.firstChild);
   }
 
+  // Check <a> elements and update their rel="ugc" attribute if needed.
   void _updateLinks(Element body) {
     for (final a in body.querySelectorAll('a')) {
       final href = a.attributes['href'];
-      if (href == null || href.isEmpty) continue;
-      final uri = Uri.tryParse(href);
+      final uri = href == null ? null : Uri.tryParse(href);
       if (uri == null) {
         // Unable to parse the uri, better to remove the `href` attribute.
         a.attributes.remove('href');
-      } else if (uri.host.isNotEmpty && !trustedHostsToLink.contains(uri.host)) {
+      } else if (uri.shouldIndicateUgc) {
         a.attributes['rel'] = 'ugc';
       }
     }
