@@ -22,18 +22,36 @@ void main() {
     expect(runtimeVersionPattern.hasMatch('x.json'), isFalse);
   });
 
-  test('do not forget to update runtimeVersion when any version changes', () {
-    final hash = [
-      runtimeVersion,
-      toolEnvSdkVersion,
-      flutterVersion,
-      panaVersion,
-      dartdocVersion,
-    ].join('//').hashCode;
-    // This test is a reminder that if pana, the SDK or any of the above
-    // versions change, we should also adjust the [runtimeVersion]. Before
-    // updating the hash value, double-check if it is being updated.
-    expect(hash, 874799229);
+  test('do not forget to update CHANGELOG.md', () async {
+    final lines = await File('../CHANGELOG.md').readAsLines();
+    final nextRelease = lines
+        .skipWhile((line) => !line.startsWith('##'))
+        .skip(1)
+        .takeWhile((line) => !line.startsWith('##'))
+        .toList();
+    var hasVersionChange = false;
+
+    void check(String version, String label, {bool isRuntimeVersion = false}) {
+      expect(lines.where((l) => l.contains(version) && l.contains(label)),
+          isNotEmpty,
+          reason: '$label should be present');
+      if (!isRuntimeVersion) {
+        hasVersionChange |=
+            nextRelease.any((l) => l.contains(version) && l.contains(label));
+      } else if (hasVersionChange) {
+        expect(
+            nextRelease.where((l) => l.contains(version) && l.contains(label)),
+            isNotEmpty,
+            reason: 'Missing runtimeVersion upgrade.');
+      }
+    }
+
+    check(toolEnvSdkVersion, 'Dart analysis SDK');
+    check(runtimeSdkVersion, 'runtime Dart SDK');
+    check(flutterVersion, 'Flutter');
+    check(panaVersion, 'pana');
+    check(dartdocVersion, 'dartdoc');
+    check(runtimeVersion, 'runtimeVersion', isRuntimeVersion: true);
   });
 
   test('accepted runtime versions should be lexicographically ordered', () {
