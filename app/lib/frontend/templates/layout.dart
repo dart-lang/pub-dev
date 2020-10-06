@@ -48,7 +48,7 @@ String renderLayoutPage(
   String shareUrl,
   String sdk,
   String publisherId,
-  SearchQuery searchQuery,
+  FrontendSearchQuery searchQuery,
   bool noIndex = false,
   PageData pageData,
   String searchPlaceHolder,
@@ -132,7 +132,7 @@ String _renderSiteHeader(PageType pageType) {
 String _renderSearchBanner({
   @required PageType type,
   @required String publisherId,
-  @required SearchQuery searchQuery,
+  @required FrontendSearchQuery searchQuery,
   String searchPlaceholder,
 }) {
   final sdk = searchQuery?.sdk ?? SdkTagValue.any;
@@ -150,19 +150,20 @@ String _renderSearchBanner({
   }
   String searchFormUrl;
   if (publisherId != null) {
-    searchFormUrl = SearchQuery.parse(publisherId: publisherId).toSearchLink();
+    searchFormUrl =
+        FrontendSearchQuery.parse(publisherId: publisherId).toSearchLink();
   } else if (type == PageType.account) {
     searchFormUrl = urls.myPackagesUrl();
   } else if (searchQuery != null) {
     searchFormUrl = searchQuery.toSearchFormPath();
   } else {
-    searchFormUrl = SearchQuery.parse().toSearchFormPath();
+    searchFormUrl = FrontendSearchQuery.parse().toSearchFormPath();
   }
   final searchSort = searchQuery?.order == null
       ? null
       : serializeSearchOrder(searchQuery.order);
   final hiddenInputs = includePreferencesAsHiddenFields
-      ? (searchQuery ?? SearchQuery.parse())
+      ? (searchQuery ?? FrontendSearchQuery.parse())
           .tagsPredicate
           .asSearchLinkParams()
           .entries
@@ -186,7 +187,7 @@ String _renderSearchBanner({
 }
 
 String renderSdkTabs({
-  SearchQuery searchQuery,
+  FrontendSearchQuery searchQuery,
 }) {
   final currentSdk = searchQuery?.sdk ?? SdkTagValue.any;
   SearchTab sdkTabData(String label, String tabSdk, String title) {
@@ -240,7 +241,7 @@ class _FilterOption {
 }
 
 String renderSubSdkTabsHtml({
-  @required SearchQuery searchQuery,
+  @required FrontendSearchQuery searchQuery,
   bool detectAdvanced = false,
   bool onlyAdvanced = false,
 }) {
@@ -324,7 +325,7 @@ String renderSubSdkTabsHtml({
 }
 
 String _renderFilterTabs({
-  @required SearchQuery searchQuery,
+  @required FrontendSearchQuery searchQuery,
   @required List<_FilterOption> options,
 }) {
   if (options.isEmpty) return null;

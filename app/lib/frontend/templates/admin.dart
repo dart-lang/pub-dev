@@ -9,7 +9,7 @@ import 'package:meta/meta.dart';
 import '../../account/models.dart' show LikeData, User, UserSessionData;
 import '../../package/models.dart' show PackageView;
 import '../../publisher/models.dart' show Publisher;
-import '../../search/search_service.dart' show SearchQuery;
+import '../../search/search_service.dart' show FrontendSearchQuery;
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart' show shortDateFormat;
 
@@ -33,7 +33,7 @@ String renderAccountPackagesPage({
   @required List<PackageView> packages,
   @required String messageFromBackend,
   @required PageLinks pageLinks,
-  @required SearchQuery searchQuery,
+  @required FrontendSearchQuery searchQuery,
   @required int totalCount,
 }) {
   final isSearch = searchQuery.hasQuery;

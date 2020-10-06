@@ -62,7 +62,7 @@ void main() {
 
     test('text search without platform', () async {
       final PackageSearchResult withoutPlatform =
-          await index.search(SearchQuery.parse(query: 'json'));
+          await index.search(ServiceSearchQuery.parse(query: 'json'));
       expect(json.decode(json.encode(withoutPlatform)), {
         'indexUpdated': isNotNull,
         'timestamp': isNotNull,
@@ -89,11 +89,12 @@ void main() {
     });
 
     test('text search with platform', () async {
-      final PackageSearchResult withPlatform =
-          await index.search(SearchQuery.parse(
-        query: 'json',
-        sdk: 'flutter',
-      ));
+      final withPlatform = await index.search(
+        FrontendSearchQuery.parse(
+          query: 'json',
+          sdk: 'flutter',
+        ).toServiceQuery(),
+      );
       expect(json.decode(json.encode(withPlatform)), {
         'indexUpdated': isNotNull,
         'timestamp': isNotNull,

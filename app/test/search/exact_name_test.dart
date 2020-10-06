@@ -40,7 +40,8 @@ void main() {
 
     test('build_config', () async {
       final PackageSearchResult result = await index.search(
-          SearchQuery.parse(query: 'build_config', order: SearchOrder.text));
+          ServiceSearchQuery.parse(
+              query: 'build_config', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'timestamp': isNotNull,

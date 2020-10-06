@@ -51,8 +51,8 @@ void main() {
     });
 
     test('foo', () async {
-      final PackageSearchResult result = await index
-          .search(SearchQuery.parse(query: 'foo', order: SearchOrder.text));
+      final PackageSearchResult result = await index.search(
+          ServiceSearchQuery.parse(query: 'foo', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'timestamp': isNotNull,
@@ -75,8 +75,8 @@ void main() {
     });
 
     test('serve', () async {
-      final PackageSearchResult result = await index
-          .search(SearchQuery.parse(query: 'serve', order: SearchOrder.text));
+      final PackageSearchResult result = await index.search(
+          ServiceSearchQuery.parse(query: 'serve', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'timestamp': isNotNull,
@@ -96,7 +96,8 @@ void main() {
 
     test('page generator', () async {
       final PackageSearchResult result = await index.search(
-          SearchQuery.parse(query: 'page generator', order: SearchOrder.text));
+          ServiceSearchQuery.parse(
+              query: 'page generator', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'timestamp': isNotNull,
@@ -116,7 +117,7 @@ void main() {
 
     test('web page', () async {
       final PackageSearchResult result = await index.search(
-          SearchQuery.parse(query: 'web page', order: SearchOrder.text));
+          ServiceSearchQuery.parse(query: 'web page', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'timestamp': isNotNull,
@@ -137,7 +138,8 @@ void main() {
 
     test('text block', () async {
       final PackageSearchResult result = await index.search(
-          SearchQuery.parse(query: 'goal fancy', order: SearchOrder.text));
+          ServiceSearchQuery.parse(
+              query: 'goal fancy', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'timestamp': isNotNull,

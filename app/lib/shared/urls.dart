@@ -5,7 +5,7 @@
 import 'package:path/path.dart' as p;
 
 import '../package/overrides.dart';
-import '../search/search_service.dart' show SearchOrder, SearchQuery;
+import '../search/search_service.dart' show SearchOrder, FrontendSearchQuery;
 
 export '../search/search_service.dart' show SearchOrder;
 
@@ -101,7 +101,7 @@ String pkgDocUrl(
 
 String publisherUrl(String publisherId) => '/publishers/$publisherId';
 String publisherPackagesUrl(String publisherId) =>
-    SearchQuery.parse(publisherId: publisherId).toSearchLink();
+    FrontendSearchQuery.parse(publisherId: publisherId).toSearchLink();
 String publisherAdminUrl(String publisherId) =>
     '/publishers/$publisherId/admin';
 
@@ -113,7 +113,7 @@ String searchUrl({
   int page,
   SearchOrder order,
 }) {
-  final query = SearchQuery.parse(
+  final query = FrontendSearchQuery.parse(
     sdk: sdk,
     runtimes: runtimes,
     platforms: platforms,

@@ -46,7 +46,7 @@ void main() {
 
     test('non-text ranking', () async {
       final results = await combiner
-          .search(SearchQuery.parse(order: SearchOrder.popularity));
+          .search(ServiceSearchQuery.parse(order: SearchOrder.popularity));
       expect(json.decode(json.encode(results.toJson())), {
         'indexUpdated': isNotNull,
         'timestamp': isNotNull,
@@ -59,7 +59,7 @@ void main() {
 
     test('no actual text query', () async {
       final results = await combiner
-          .search(SearchQuery.parse(query: 'email:foo@example.com'));
+          .search(ServiceSearchQuery.parse(query: 'email:foo@example.com'));
       expect(json.decode(json.encode(results.toJson())), {
         'indexUpdated': isNotNull,
         'timestamp': isNotNull,
@@ -72,7 +72,7 @@ void main() {
 
     test('search: substring', () async {
       final results =
-          await combiner.search(SearchQuery.parse(query: 'substring'));
+          await combiner.search(ServiceSearchQuery.parse(query: 'substring'));
       expect(json.decode(json.encode(results.toJson())), {
         'indexUpdated': isNotNull,
         'timestamp': isNotNull,
@@ -100,7 +100,7 @@ void main() {
 
     test('exact name match: stringutils', () async {
       final results =
-          await combiner.search(SearchQuery.parse(query: 'stringutils'));
+          await combiner.search(ServiceSearchQuery.parse(query: 'stringutils'));
       expect(json.decode(json.encode(results.toJson())), {
         'indexUpdated': isNotNull,
         'timestamp': isNotNull,

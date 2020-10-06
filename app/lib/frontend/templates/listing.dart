@@ -34,7 +34,7 @@ String renderPagination(PageLinks pageLinks) {
 /// Renders the `views/pkg/package_list.mustache` template.
 String renderPackageList(
   List<PackageView> packages, {
-  SearchQuery searchQuery,
+  FrontendSearchQuery searchQuery,
 }) {
   final packagesJson = [];
   for (int i = 0; i < packages.length; i++) {
@@ -117,7 +117,7 @@ String renderPkgIndexPage(
   PageLinks links, {
   String sdk,
   String title,
-  SearchQuery searchQuery,
+  FrontendSearchQuery searchQuery,
   int totalCount,
   String searchPlaceholder,
   String messageFromBackend,
@@ -177,7 +177,7 @@ String renderPkgIndexPage(
 
 /// Renders the `views/shared/listing_info.mustache` template.
 String renderListingInfo({
-  @required SearchQuery searchQuery,
+  @required FrontendSearchQuery searchQuery,
   @required int totalCount,
   String title,
   String ownedBy,
@@ -197,7 +197,7 @@ String renderListingInfo({
   });
 }
 
-String _subSdkLabel(SearchQuery sq) {
+String _subSdkLabel(FrontendSearchQuery sq) {
   if (sq?.sdk == SdkTagValue.dart) {
     return 'Runtime';
   } else if (sq?.sdk == SdkTagValue.flutter) {
@@ -208,7 +208,7 @@ String _subSdkLabel(SearchQuery sq) {
 }
 
 /// Renders the `views/shared/sort_control.mustache` template.
-String renderSortControl(SearchQuery query) {
+String renderSortControl(FrontendSearchQuery query) {
   final isSearch = query != null && query.hasQuery;
   final options = getSortDicts(isSearch);
   final selectedValue = serializeSearchOrder(query?.order) ??
@@ -234,9 +234,9 @@ String renderSortControl(SearchQuery query) {
 class PageLinks {
   final int offset;
   final int count;
-  final SearchQuery _searchQuery;
+  final FrontendSearchQuery _searchQuery;
 
-  PageLinks(this.offset, this.count, {SearchQuery searchQuery})
+  PageLinks(this.offset, this.count, {FrontendSearchQuery searchQuery})
       : _searchQuery = searchQuery;
 
   PageLinks.empty()

@@ -528,7 +528,7 @@ void main() {
 
     scopedTest('package index page with search', () {
       final searchQuery =
-          SearchQuery.parse(query: 'foobar', order: SearchOrder.top);
+          FrontendSearchQuery.parse(query: 'foobar', order: SearchOrder.top);
       final String html = renderPkgIndexPage(
         [
           PackageView.fromModel(
@@ -605,7 +605,7 @@ void main() {
     });
 
     scopedTest('publisher packages page', () {
-      final searchQuery = SearchQuery.parse(publisherId: 'example.com');
+      final searchQuery = FrontendSearchQuery.parse(publisherId: 'example.com');
       final html = renderPublisherPackagesPage(
         publisher: Publisher()
           ..id = 'example.com'
@@ -644,7 +644,7 @@ void main() {
 
     scopedTest('/my-packages page', () {
       final searchQuery =
-          SearchQuery.parse(uploaderOrPublishers: [hansUser.email]);
+          FrontendSearchQuery.parse(uploaderOrPublishers: [hansUser.email]);
       final String html = renderAccountPackagesPage(
         user: hansUser,
         userSessionData: hansUserSessionData,
@@ -739,7 +739,7 @@ void main() {
 
     scopedTest('platform tabs: search', () {
       final String html = renderSdkTabs(
-          searchQuery: SearchQuery.parse(
+          searchQuery: FrontendSearchQuery.parse(
         query: 'foo',
         sdk: 'flutter',
       ));
@@ -823,14 +823,15 @@ void main() {
 
   group('URLs', () {
     scopedTest('PageLinks defaults', () {
-      final query = SearchQuery.parse(query: 'web framework');
+      final query = FrontendSearchQuery.parse(query: 'web framework');
       final PageLinks links = PageLinks(0, 100, searchQuery: query);
       expect(links.formatHref(1), '/packages?q=web+framework');
       expect(links.formatHref(2), '/packages?q=web+framework&page=2');
     });
 
     scopedTest('PageLinks with platform', () {
-      final query = SearchQuery.parse(query: 'some framework', sdk: 'flutter');
+      final query =
+          FrontendSearchQuery.parse(query: 'some framework', sdk: 'flutter');
       final PageLinks links = PageLinks(0, 100, searchQuery: query);
       expect(links.formatHref(1), '/flutter/packages?q=some+framework');
       expect(links.formatHref(2), '/flutter/packages?q=some+framework&page=2');
