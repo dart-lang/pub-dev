@@ -69,6 +69,7 @@ class DartdocCustomizer {
     if (!isLatestStable || breadcrumbsDepth > 3) {
       _addMetaNoIndex(doc.head);
     }
+    _updateLinks(doc.body);
     return doc.outerHtml;
   }
 
@@ -110,6 +111,20 @@ class DartdocCustomizer {
     meta.attributes['content'] = 'noindex';
 
     head.insertBefore(meta, head.firstChild);
+  }
+
+  void _updateLinks(Element body) {
+    for (final a in body.querySelectorAll('a')) {
+      final href = a.attributes['href'];
+      if (href == null || href.isEmpty) continue;
+      final uri = Uri.tryParse(href);
+      if (uri == null) {
+        // Unable to parse the uri, better to remove the `href` attribute.
+        a.attributes.remove('href');
+      } else if (uri.host.isNotEmpty && !trustedDocHosts.contains(uri.host)) {
+        a.attributes['rel'] = 'ugc';
+      }
+    }
   }
 
   void _addGithubMarkdownStyle(Element head, Element body) {
