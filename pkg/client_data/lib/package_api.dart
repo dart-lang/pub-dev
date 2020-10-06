@@ -34,10 +34,12 @@ class UploadInfo {
 @JsonSerializable()
 class PkgOptions {
   final bool isDiscontinued;
+  final String replacedBy;
   final bool isUnlisted;
 
   PkgOptions({
     this.isDiscontinued,
+    this.replacedBy,
     this.isUnlisted,
   });
 
@@ -97,6 +99,14 @@ class PackageData {
   /// Package name.
   final String name;
 
+  /// `true` if package is discontinued.
+  /// If it is omitted, `null` or `false` the package is *not discontinued*.
+  final bool isDiscontinued;
+
+  /// If [isDiscontinued] is set, this points to the package that should be used
+  /// instead (set by the package admin).
+  final String replacedBy;
+
   /// This is merely a convenience property, because the [VersionInfo] for the
   /// latest version also exists in the [versions] list.
   ///
@@ -107,15 +117,12 @@ class PackageData {
   /// The available versions, sorted by their semantic version number (ascending).
   final List<VersionInfo> versions;
 
-  /// `true` if package is discontinued.
-  /// If it is omitted, `null` or `false` the package is *not discontinued*.
-  final bool isDiscontinued;
-
   PackageData({
     @required this.name,
+    this.isDiscontinued,
+    this.replacedBy,
     @required this.latest,
     @required this.versions,
-    this.isDiscontinued,
   });
 
   factory PackageData.fromJson(Map<String, dynamic> json) =>

@@ -481,7 +481,56 @@ void main() {
             'hydrogen', PkgOptions(isDiscontinued: true));
         final p = await packageBackend.lookupPackage('hydrogen');
         expect(p.isDiscontinued, isTrue);
+        expect(p.replacedBy, isNull);
         expect(p.isUnlisted, isFalse);
+      });
+
+      testWithServices('replaced by - without discontinued', () async {
+        registerAuthenticatedUser(hansUser);
+        final rs = packageBackend.updateOptions(
+            'hydrogen', PkgOptions(replacedBy: 'helium'));
+        await expectLater(
+            rs,
+            throwsA(isA<InvalidInputException>().having((e) => '$e', 'text',
+                'InvalidInput(400): "replacedBy" must be set only with "isDiscontinued": true.')));
+      });
+
+      testWithServices('replaced by - with discontinued=false', () async {
+        registerAuthenticatedUser(hansUser);
+        final rs = packageBackend.updateOptions('hydrogen',
+            PkgOptions(isDiscontinued: false, replacedBy: 'helium'));
+        await expectLater(
+            rs,
+            throwsA(isA<InvalidInputException>().having((e) => '$e', 'text',
+                'InvalidInput(400): "replacedBy" must be set only with "isDiscontinued": true.')));
+      });
+
+      testWithServices('replaced by - with invalid / non existing package',
+          () async {
+        registerAuthenticatedUser(hansUser);
+        final rs = packageBackend.updateOptions('hydrogen',
+            PkgOptions(isDiscontinued: true, replacedBy: 'no such package'));
+        await expectLater(
+            rs,
+            throwsA(isA<InvalidInputException>().having((e) => '$e', 'text',
+                'InvalidInput(400): Package specified by "replaceBy" does not exists.')));
+      });
+
+      testWithServices('replaced by - success', () async {
+        registerAuthenticatedUser(hansUser);
+        await packageBackend.updateOptions(
+            'hydrogen', PkgOptions(isDiscontinued: true, replacedBy: 'helium'));
+        final p = await packageBackend.lookupPackage('hydrogen');
+        expect(p.isDiscontinued, isTrue);
+        expect(p.replacedBy, 'helium');
+        expect(p.isUnlisted, isFalse);
+
+        await packageBackend.updateOptions(
+            'hydrogen', PkgOptions(isDiscontinued: false));
+        final p2 = await packageBackend.lookupPackage('hydrogen');
+        expect(p2.isDiscontinued, isFalse);
+        expect(p2.replacedBy, isNull);
+        expect(p2.isUnlisted, isFalse);
       });
 
       testWithServices('unlisted', () async {
@@ -490,6 +539,7 @@ void main() {
             'hydrogen', PkgOptions(isUnlisted: true));
         final p = await packageBackend.lookupPackage('hydrogen');
         expect(p.isDiscontinued, isFalse);
+        expect(p.replacedBy, isNull);
         expect(p.isUnlisted, isTrue);
       });
     });
