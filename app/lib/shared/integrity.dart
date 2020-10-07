@@ -28,6 +28,7 @@ class IntegrityChecker {
   final _invalidUsers = <String>{};
   final _userToLikes = <String, List<String>>{};
   final _packages = <String>{};
+  final _packageReplacedBys = <String, String>{};
   final _packagesWithVersion = <String>{};
   final _moderatedPackages = <String>{};
   final _publishers = <String>{};
@@ -198,10 +199,25 @@ class IntegrityChecker {
     }
     await Future.wait(futures);
     await pool.close();
+
+    for (final r in _packageReplacedBys.entries) {
+      if (!_packages.contains(r.value)) {
+        _problems.add(
+            'Package(${r.key}) has a `replacedBy` property with missing package ("${r.value}").');
+      }
+    }
   }
 
   Future<void> _checkPackage(Package p) async {
     _packages.add(p.name);
+    if (p.replacedBy != null) {
+      _packageReplacedBys[p.name] = p.replacedBy;
+
+      if (!p.isDiscontinued) {
+        _problems.add(
+            'Package(${p.name}) has a `replacedBy` property without being `isDiscontinued`.');
+      }
+    }
     // empty uploaders
     if (p.uploaders == null || p.uploaders.isEmpty) {
       // no publisher
