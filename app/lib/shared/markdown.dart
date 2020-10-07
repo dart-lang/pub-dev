@@ -190,13 +190,12 @@ class _UnsafeUrlFilter implements m.NodeVisitor {
       return false;
     }
     final uri = Uri.tryParse(url);
-    if (uri == null) {
+    if (uri == null || uri.isInvalid) {
       element.attributes.remove(attr);
       return true;
     }
-    if (uri.isInvalid) {
-      element.attributes.remove(attr);
-      return true;
+    if (uri.shouldIndicateUgc) {
+      element.attributes['rel'] = 'ugc';
     }
     return false;
   }

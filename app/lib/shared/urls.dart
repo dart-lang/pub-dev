@@ -24,6 +24,8 @@ const _trustedSchemes = <String>['http', 'https', 'mailto'];
 const _trustedTargetHost = [
   'api.dart.dev',
   'api.flutter.dev',
+  'dart.dev',
+  'flutter.dev',
   'pub.dev',
 ];
 
