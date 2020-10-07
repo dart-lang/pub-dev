@@ -25,6 +25,10 @@ abstract class SecretKey {
   /// JSON-encoded list of Strings that will be considered as spam.
   static const String spamWords = 'spam-words';
 
+  /// JSON-encoded list of URLs from which scripts is allowed in the
+  /// Content-Security-Policy header.
+  static const String cspScriptUrls = 'csp-script-urls';
+
   /// The restriction applied on uploads.
   ///
   /// This feature is intended as an emergency break.
@@ -41,6 +45,7 @@ abstract class SecretKey {
     announcement,
     spamWords,
     uploadRestriction,
+    cspScriptUrls,
   ];
 
   /// Whether the key is valid.

@@ -118,4 +118,19 @@ void main() {
       expect(createUuid(), matches(uuidRegexp));
     });
   });
+
+  group('DateTimeExt', () {
+    test('isTimeAgo', () {
+      final now = DateTime.now();
+      final fiveMinutesAgo = now.subtract(Duration(minutes: 5));
+
+      expect(fiveMinutesAgo.isTimeAgo(Duration(minutes: 3), now), isTrue);
+      expect(fiveMinutesAgo.isTimeAgo(Duration(minutes: 4), now), isTrue);
+      expect(fiveMinutesAgo.isTimeAgo(Duration(minutes: 5), now), isTrue);
+
+      expect(fiveMinutesAgo.isTimeAgo(Duration(minutes: 10), now), isFalse);
+      expect(fiveMinutesAgo.isTimeAgo(Duration(minutes: 15), now), isFalse);
+      expect(fiveMinutesAgo.isTimeAgo(Duration(minutes: 30), now), isFalse);
+    });
+  });
 }

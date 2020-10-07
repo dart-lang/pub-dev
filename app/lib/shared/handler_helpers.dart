@@ -121,7 +121,7 @@ shelf.Handler _cspHeaderWrapper(shelf.Handler handler) {
       return rs.change(headers: {
         'x-content-type-options': 'nosniff',
         'x-frame-options': 'deny',
-        'content-security-policy': contentSecurityPolicy,
+        'content-security-policy': await contentSecurityPolicy(),
       });
     } else {
       return rs;

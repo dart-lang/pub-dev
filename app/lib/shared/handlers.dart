@@ -7,13 +7,15 @@ import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
+import 'package:retry/retry.dart';
 
 import '../frontend/request_context.dart';
 
+import '../service/secret/backend.dart' show secretBackend, SecretKey;
 import 'popularity_storage.dart';
 import 'scheduler_stats.dart';
 import 'urls.dart' as urls;
-import 'utils.dart' show eventLoopLatencyTracker;
+import 'utils.dart' show eventLoopLatencyTracker, DateTimeExt;
 import 'versions.dart';
 
 const String default404NotFound = '404 Not Found';
@@ -99,11 +101,43 @@ final _contentSecurityPolicyMap = <String, List<String>>{
   'worker-src': _none,
 };
 
+Future<String> _cspCache;
+DateTime _cspCacheAge;
+
 /// The serialized string of the CSP header.
-final contentSecurityPolicy = _contentSecurityPolicyMap.keys.map<String>((key) {
-  final list = _contentSecurityPolicyMap[key];
-  return '$key ${list.join(' ')}';
-}).join(';');
+Future<String> contentSecurityPolicy() async {
+  if (_cspCache == null ||
+      _cspCacheAge == null ||
+      _cspCacheAge.isTimeAgo(Duration(minutes: 15))) {
+    _cspCacheAge = DateTime.now();
+    _cspCache = () async {
+      var cspScriptUrls = <String>[];
+      try {
+        final jsonCspUrls = await secretBackend.lookup(SecretKey.cspScriptUrls);
+        if (jsonCspUrls != null) {
+          cspScriptUrls = json.decode(jsonCspUrls) as List<String>;
+        }
+      } catch (e, st) {
+        // Log and continue without this...
+        _logger.severe('failed to load cspScriptUrls: ', e, st);
+      }
+
+      final cspMap = {
+        ..._contentSecurityPolicyMap,
+        'script-src': [
+          ..._contentSecurityPolicyMap['script-src'],
+          ...cspScriptUrls,
+        ],
+      };
+
+      return cspMap.keys.map<String>((key) {
+        final list = cspMap[key];
+        return '$key ${list.join(' ')}';
+      }).join(';');
+    }();
+  }
+  return _cspCache;
+}
 
 shelf.Response htmlResponse(
   String content, {

@@ -413,3 +413,29 @@ String createUuid([List<int> bytes]) {
     bytes.sublist(10).map(formatByte).join(),
   ].join('-');
 }
+
+extension DateTimeExt on DateTime {
+  /// `true` if `relativeTo] - this > duration`, where [relativeTo] defaults
+  /// to [DateTime.now()].
+  ///
+  /// In other words, if this [DateTime] is more than [duration] time ago, since
+  /// [relativeTo] (or now, if not given). This will return true.
+  ///
+  /// **Example**
+  /// ```
+  /// final start = DateTime.now();
+  ///
+  /// // do some work...
+  ///
+  /// if (start.isTimeAgo(Duration(minutes: 15))) {
+  ///   // Start is more than 15 minutes ago.
+  /// }
+  /// ```
+  ///
+  bool isTimeAgo(Duration duration, [DateTime relativeTo]) {
+    ArgumentError.checkNotNull(duration, 'duration');
+    relativeTo ??= DateTime.now();
+
+    return relativeTo.difference(this) >= duration;
+  }
+}

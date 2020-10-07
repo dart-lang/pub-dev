@@ -24,8 +24,9 @@ class SecretBackend {
   SecretBackend(this._db);
 
   /// Loads the Secret value from the Datastore.
-  /// Returns null if no Secret entity is found.
-  /// Throws InvalidInputException if the [id] is no valid.
+  /// Returns `null` if no Secret entity is found.
+  ///
+  /// Throws if [id] is not valid.
   Future<String> lookup(String id) async {
     if (!SecretKey.isValid(id)) {
       throw ArgumentError.value(id, 'id', 'invalid secret key identifier');
@@ -36,7 +37,8 @@ class SecretBackend {
   }
 
   /// Updates a Secret value.
-  /// Throws InvalidInputException if the [id] is no valid.
+  ///
+  /// Throws if [id] is not valid.
   Future<void> update(String id, String value) async {
     if (!SecretKey.isValid(id)) {
       throw ArgumentError.value(id, 'id', 'invalid secret key identifier');
