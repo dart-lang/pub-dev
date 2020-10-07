@@ -56,11 +56,12 @@ shelf.Response jsonResponse(
 }
 
 final _none = <String>["'none'"];
-final _self = <String>["'self'"];
-
 final _contentSecurityPolicyMap = <String, List<String>>{
   'child-src': _none,
-  'connect-src': _self,
+  'connect-src': <String>[
+    "'self'",
+    'https:',
+  ],
   'default-src': _none,
   'frame-src': [
     "'self'",
@@ -83,7 +84,9 @@ final _contentSecurityPolicyMap = <String, List<String>>{
     "'self'",
     'https://www.googletagmanager.com/',
     'https://www.google.com/',
+    // See: https://developers.google.com/tag-manager/web/csp#universal_analytics_google_analytics
     'https://www.google-analytics.com/',
+    'https://ssl.google-analytics.com',
     'https://adservice.google.com/',
     'https://ajax.googleapis.com/',
     'https://apis.google.com/',
