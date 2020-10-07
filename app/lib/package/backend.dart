@@ -194,6 +194,16 @@ class PackageBackend {
   /// Updates [options] on [package].
   Future<void> updateOptions(String package, api.PkgOptions options) async {
     final user = await requireAuthenticatedUser();
+    // Validate replacedBy parameter
+    final replacedBy = options.replacedBy?.trim() ?? '';
+    if (replacedBy.isNotEmpty) {
+      InvalidInputException.check(options.isDiscontinued == true,
+          '"replacedBy" must be set only with "isDiscontinued": true.');
+
+      final rp = await lookupPackage(replacedBy);
+      InvalidInputException.check(rp != null && rp.isVisible,
+          'Package specified by "replaceBy" does not exists.');
+    }
 
     final pkgKey = db.emptyKey.append(Package, id: package);
     String latestVersion;
@@ -211,6 +221,7 @@ class PackageBackend {
       if (options.isDiscontinued != null &&
           options.isDiscontinued != p.isDiscontinued) {
         p.isDiscontinued = options.isDiscontinued;
+        p.replacedBy = replacedBy.isEmpty ? null : replacedBy;
         hasOptionsChanged = true;
       }
       if (options.isUnlisted != null && options.isUnlisted != p.isUnlisted) {
@@ -381,6 +392,7 @@ class PackageBackend {
     return api.PackageData(
       name: package,
       isDiscontinued: pkg.isDiscontinued ? true : null,
+      replacedBy: pkg.replacedBy,
       latest: _toApiVersionInfo(baseUri, latest),
       versions:
           packageVersions.map((pv) => _toApiVersionInfo(baseUri, pv)).toList(),

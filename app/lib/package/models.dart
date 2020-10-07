@@ -81,6 +81,11 @@ class Package extends db.ExpandoModel<String> {
   @db.BoolProperty(required: true)
   bool isDiscontinued;
 
+  /// The package that should be used instead of the current package.
+  /// May have a value only if [isDiscontinued] is set.
+  @db.StringProperty()
+  String replacedBy;
+
   /// Set to `true` if package should not be advertised on the front page, not
   /// be found through default package search; may otherwise be `false`.
   @db.BoolProperty(required: true)

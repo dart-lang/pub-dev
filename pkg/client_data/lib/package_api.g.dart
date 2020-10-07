@@ -24,6 +24,7 @@ Map<String, dynamic> _$UploadInfoToJson(UploadInfo instance) =>
 PkgOptions _$PkgOptionsFromJson(Map<String, dynamic> json) {
   return PkgOptions(
     isDiscontinued: json['isDiscontinued'] as bool,
+    replacedBy: json['replacedBy'] as String,
     isUnlisted: json['isUnlisted'] as bool,
   );
 }
@@ -31,6 +32,7 @@ PkgOptions _$PkgOptionsFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$PkgOptionsToJson(PkgOptions instance) =>
     <String, dynamic>{
       'isDiscontinued': instance.isDiscontinued,
+      'replacedBy': instance.replacedBy,
       'isUnlisted': instance.isUnlisted,
     };
 
@@ -72,6 +74,8 @@ Map<String, dynamic> _$MessageToJson(Message instance) => <String, dynamic>{
 PackageData _$PackageDataFromJson(Map<String, dynamic> json) {
   return PackageData(
     name: json['name'] as String,
+    isDiscontinued: json['isDiscontinued'] as bool,
+    replacedBy: json['replacedBy'] as String,
     latest: json['latest'] == null
         ? null
         : VersionInfo.fromJson(json['latest'] as Map<String, dynamic>),
@@ -79,7 +83,6 @@ PackageData _$PackageDataFromJson(Map<String, dynamic> json) {
         ?.map((e) =>
             e == null ? null : VersionInfo.fromJson(e as Map<String, dynamic>))
         ?.toList(),
-    isDiscontinued: json['isDiscontinued'] as bool,
   );
 }
 
@@ -93,9 +96,10 @@ Map<String, dynamic> _$PackageDataToJson(PackageData instance) {
   }
 
   writeNotNull('name', instance.name);
+  writeNotNull('isDiscontinued', instance.isDiscontinued);
+  writeNotNull('replacedBy', instance.replacedBy);
   writeNotNull('latest', instance.latest);
   writeNotNull('versions', instance.versions);
-  writeNotNull('isDiscontinued', instance.isDiscontinued);
   return val;
 }
 
