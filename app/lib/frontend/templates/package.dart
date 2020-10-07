@@ -144,16 +144,20 @@ String renderPkgInfoBox(
     bool detectServiceProvider = false,
     bool documentation = false,
   }) {
-    if (href == null || href.isEmpty) {
-      return;
-    }
+    final uri = urls.parseValidUrl(href);
+    if (uri == null) return;
+
     if (detectServiceProvider) {
       final providerName = urls.inferServiceProviderName(href);
       if (providerName != null) {
         label += ' ($providerName)';
       }
     }
-    final linkData = <String, dynamic>{'href': href, 'label': label};
+    final linkData = <String, dynamic>{
+      'href': href,
+      'label': label,
+      'rel': uri.shouldIndicateUgc ? 'ugc' : null,
+    };
     if (documentation) {
       docLinks.add(linkData);
     } else {

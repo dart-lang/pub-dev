@@ -20,7 +20,7 @@
 {{/description}}
 <p>
   {{#meta_links}}
-  <a class="link" href="{{& href}}">{{label}}</a><br/>
+  <a class="link" href="{{& href}}"{{#rel}} rel="{{ rel }}"{{/rel}}>{{label}}</a><br/>
   {{/meta_links}}
 </p>
 
@@ -28,7 +28,7 @@
 <h3 class="title">Documentation</h3>
 <p>
   {{#doc_links}}
-    <a class="link" href="{{& href}}">{{label}}</a><br/>
+    <a class="link" href="{{& href}}"{{#rel}} rel="{{ rel }}"{{/rel}}>{{label}}</a><br/>
   {{/doc_links}}
 </p>
 {{/has_doc_links}}

@@ -185,6 +185,8 @@ String renderPublisherAdminPage({
 }
 
 String _renderDetailHeader(Publisher publisher) {
+  final websiteUri = urls.parseValidUrl(publisher.websiteUrl);
+  final websiteRel = (websiteUri?.shouldIndicateUgc ?? false) ? 'ugc' : null;
   final metadataHtml = templateCache.renderTemplate(
     'publisher/header_metadata',
     {
@@ -193,9 +195,10 @@ String _renderDetailHeader(Publisher publisher) {
       'description_html': _shortDescriptionHtml(publisher),
       'has_contact_email': publisher.hasContactEmail,
       'contact_email': publisher.contactEmail,
-      'has_website_url': publisher.hasWebsiteUrl,
+      'has_website_url': websiteUri != null,
       'website_url': publisher.websiteUrl,
       'website_url_displayed': urls.displayableUrl(publisher.websiteUrl),
+      'website_url_rel': websiteRel,
     },
   );
   return renderDetailHeader(

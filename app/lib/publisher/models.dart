@@ -48,9 +48,6 @@ class Publisher extends db.ExpandoModel<String> {
 
   /// Whether the publisher has a displayable contact email.
   bool get hasContactEmail => contactEmail != null && contactEmail.isNotEmpty;
-
-  /// Whether the publisher has a displayable website URL.
-  bool get hasWebsiteUrl => websiteUrl != null && websiteUrl.isNotEmpty;
 }
 
 /// Derived publisher data.

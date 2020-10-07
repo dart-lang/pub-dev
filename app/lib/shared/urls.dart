@@ -285,6 +285,15 @@ String myLikedPackagesUrl() => '/my-liked-packages';
 String myPublishersUrl() => '/my-publishers';
 String createPublisherUrl() => '/create-publisher';
 
+/// Parses [url] and returns the [Uri] object only if the result Uri is valid
+/// (e.g. is relative or has recognized scheme).
+Uri parseValidUrl(String url) {
+  if (url == null || url.isEmpty) return null;
+  final uri = Uri.tryParse(url);
+  if (uri == null || uri.isInvalid) return null;
+  return uri;
+}
+
 extension UriExt on Uri {
   /// The [scheme] of the [Uri] is trusted, it may be displayed.
   bool get isTrustedScheme => _trustedSchemes.contains(scheme);
