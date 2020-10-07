@@ -103,7 +103,7 @@ class PackageData {
   /// If it is omitted, `null` or `false` the package is *not discontinued*.
   final bool isDiscontinued;
 
-  /// If [isDiscontinued] is set, this points to the package that should be used
+  /// If [isDiscontinued] is set, this _may_ point to a package that can be used
   /// instead (set by the package admin).
   final String replacedBy;
 
