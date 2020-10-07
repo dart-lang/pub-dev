@@ -56,11 +56,12 @@ shelf.Response jsonResponse(
 }
 
 final _none = <String>["'none'"];
-final _self = <String>["'self'"];
-
 final _contentSecurityPolicyMap = <String, List<String>>{
   'child-src': _none,
-  'connect-src': _self,
+  'connect-src': <String>[
+    "'self'",
+    'https:',
+  ],
   'default-src': _none,
   'frame-src': [
     "'self'",
@@ -68,6 +69,7 @@ final _contentSecurityPolicyMap = <String, List<String>>{
   ],
   'font-src': <String>[
     "'self'",
+    'data:',
     'https://fonts.googleapis.com/',
     'https://fonts.gstatic.com/',
   ],
@@ -80,14 +82,20 @@ final _contentSecurityPolicyMap = <String, List<String>>{
   'media-src': _none,
   'object-src': _none,
   'script-src': <String>[
+    // See: https://developers.google.com/tag-manager/web/csp
     "'self'",
+    'https://tagmanager.google.com',
     'https://www.googletagmanager.com/',
     'https://www.google.com/',
     'https://www.google-analytics.com/',
+    'https://ssl.google-analytics.com',
     'https://adservice.google.com/',
     'https://ajax.googleapis.com/',
     'https://apis.google.com/',
     'https://unpkg.com/',
+    'https://www.gstatic.com/',
+    'https://apis.google.com/',
+    'https://gstatic.com',
   ],
   'style-src': <String>[
     "'self'",
@@ -95,6 +103,9 @@ final _contentSecurityPolicyMap = <String, List<String>>{
     'https://pub.dartlang.org/static/', // older dartdoc content requires it
     "'unsafe-inline'", // package page (esp. analysis tab) required is
     'https://fonts.googleapis.com/',
+    'https://gstatic.com',
+    'https://www.gstatic.com/',
+    'https://tagmanager.google.com',
   ],
   'worker-src': _none,
 };
