@@ -20,15 +20,6 @@ const httpsApiDartDev = 'https://api.dart.dev/';
 /// rejected and the URL mustn't be displayed.
 const _trustedSchemes = <String>['http', 'https', 'mailto'];
 
-/// Hostnames that are trusted in user-generated content (and don't get rel="ugc").
-const _trustedTargetHost = [
-  'api.dart.dev',
-  'api.flutter.dev',
-  'dart.dev',
-  'flutter.dev',
-  'pub.dev',
-];
-
 final _siteRootUri = Uri.parse('$siteRoot/');
 final _pathRootUri = Uri(path: '/');
 
@@ -301,9 +292,6 @@ extension UriExt on Uri {
   /// Whether the [Uri] has an untrusted or incompatible structure.
   bool get isInvalid => hasScheme && !isTrustedScheme;
 
-  /// The host of the link is trusted, it is unlikely to be a spam.
-  bool get isTrustedHost => _trustedTargetHost.contains(host);
-
   /// Whether on rendering we should emit rel="ugc".
-  bool get shouldIndicateUgc => host.isNotEmpty && !isTrustedHost;
+  bool get shouldIndicateUgc => true;
 }

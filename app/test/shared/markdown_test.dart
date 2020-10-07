@@ -77,11 +77,11 @@ void main() {
 
     test('relative link within page', () {
       expect(markdownToHtml('[text](#relative)'),
-          '<p><a href="#relative">text</a></p>\n');
+          '<p><a href="#relative" rel="ugc">text</a></p>\n');
       expect(markdownToHtml('[text](#relative)', baseUrl: baseUrl),
-          '<p><a href="#relative">text</a></p>\n');
+          '<p><a href="#relative" rel="ugc">text</a></p>\n');
       expect(markdownToHtml('[text](#relative)', baseUrl: '$baseUrl/'),
-          '<p><a href="#relative">text</a></p>\n');
+          '<p><a href="#relative" rel="ugc">text</a></p>\n');
     });
 
     test('absolute link URL', () {
@@ -109,7 +109,7 @@ void main() {
 
     test('sibling link within site', () {
       expect(markdownToHtml('[text](README.md)'),
-          '<p><a href="README.md">text</a></p>\n');
+          '<p><a href="README.md" rel="ugc">text</a></p>\n');
       expect(markdownToHtml('[text](README.md)', baseUrl: baseUrl),
           '<p><a href="https://github.com/example/project/blob/master/README.md" rel="ugc">text</a></p>\n');
       expect(markdownToHtml('[text](README.md)', baseUrl: '$baseUrl/'),
@@ -118,7 +118,7 @@ void main() {
 
     test('sibling image within site', () {
       expect(markdownToHtml('![text](image.png)'),
-          '<p><img src="image.png" alt="text" /></p>\n');
+          '<p><img src="image.png" alt="text" rel="ugc" /></p>\n');
       expect(markdownToHtml('![text](image.png)', baseUrl: baseUrl),
           '<p><img src="https://github.com/example/project/raw/master/image.png" alt="text" rel="ugc" /></p>\n');
       expect(markdownToHtml('![text](image.png)', baseUrl: '$baseUrl/'),
@@ -127,7 +127,7 @@ void main() {
 
     test('sibling image inside a relative directory', () {
       expect(markdownToHtml('![text](image.png)', baseDir: 'example'),
-          '<p><img src="image.png" alt="text" /></p>\n');
+          '<p><img src="image.png" alt="text" rel="ugc" /></p>\n');
       expect(
           markdownToHtml('![text](image.png)',
               baseUrl: baseUrl, baseDir: 'example'),
@@ -140,7 +140,7 @@ void main() {
 
     test('sibling link plus relative link', () {
       expect(markdownToHtml('[text](README.md#section)'),
-          '<p><a href="README.md#section">text</a></p>\n');
+          '<p><a href="README.md#section" rel="ugc">text</a></p>\n');
       expect(markdownToHtml('[text](README.md#section)', baseUrl: baseUrl),
           '<p><a href="https://github.com/example/project/blob/master/README.md#section" rel="ugc">text</a></p>\n');
       expect(markdownToHtml('[text](README.md#section)', baseUrl: '$baseUrl/'),
@@ -149,7 +149,7 @@ void main() {
 
     test('child link within site', () {
       expect(markdownToHtml('[text](example/README.md)'),
-          '<p><a href="example/README.md">text</a></p>\n');
+          '<p><a href="example/README.md" rel="ugc">text</a></p>\n');
       expect(markdownToHtml('[text](example/README.md)', baseUrl: baseUrl),
           '<p><a href="https://github.com/example/project/blob/master/example/README.md" rel="ugc">text</a></p>\n');
       expect(markdownToHtml('[text](example/README.md)', baseUrl: '$baseUrl/'),
@@ -158,7 +158,7 @@ void main() {
 
     test('child image within site', () {
       expect(markdownToHtml('![text](example/image.png)'),
-          '<p><img src="example/image.png" alt="text" /></p>\n');
+          '<p><img src="example/image.png" alt="text" rel="ugc" /></p>\n');
       expect(markdownToHtml('![text](example/image.png)', baseUrl: baseUrl),
           '<p><img src="https://github.com/example/project/raw/master/example/image.png" alt="text" rel="ugc" /></p>\n');
       expect(markdownToHtml('![text](example/image.png)', baseUrl: '$baseUrl/'),
@@ -167,7 +167,7 @@ void main() {
 
     test('root link within site', () {
       expect(markdownToHtml('[text](/README.md)'),
-          '<p><a href="/README.md">text</a></p>\n');
+          '<p><a href="/README.md" rel="ugc">text</a></p>\n');
       expect(markdownToHtml('[text](/example/README.md)', baseUrl: baseUrl),
           '<p><a href="https://github.com/example/README.md" rel="ugc">text</a></p>\n');
       expect(markdownToHtml('[text](/example/README.md)', baseUrl: '$baseUrl/'),
@@ -176,7 +176,7 @@ void main() {
 
     test('root image within site', () {
       expect(markdownToHtml('![text](/image.png)'),
-          '<p><img src="/image.png" alt="text" /></p>\n');
+          '<p><img src="/image.png" alt="text" rel="ugc" /></p>\n');
       expect(markdownToHtml('![text](/example/image.png)', baseUrl: baseUrl),
           '<p><img src="https://github.com/example/image.png" alt="text" rel="ugc" /></p>\n');
       expect(
@@ -186,9 +186,9 @@ void main() {
 
     test('email', () {
       expect(markdownToHtml('[me](mailto:email@example.com)'),
-          '<p><a href="mailto:email@example.com">me</a></p>\n');
+          '<p><a href="mailto:email@example.com" rel="ugc">me</a></p>\n');
       expect(markdownToHtml('[me](mailto:email@example.com)', baseUrl: baseUrl),
-          '<p><a href="mailto:email@example.com">me</a></p>\n');
+          '<p><a href="mailto:email@example.com" rel="ugc">me</a></p>\n');
     });
   });
 
@@ -197,12 +197,12 @@ void main() {
       expect(
           markdownToHtml('[text](README.md)',
               baseUrl: 'ftp://example.com/blah'),
-          '<p><a href="README.md">text</a></p>\n');
+          '<p><a href="README.md" rel="ugc">text</a></p>\n');
     });
 
     test('not valid host', () {
       expect(markdownToHtml('[text](README.md)', baseUrl: 'http://com/blah'),
-          '<p><a href="README.md">text</a></p>\n');
+          '<p><a href="README.md" rel="ugc">text</a></p>\n');
     });
   });
 
