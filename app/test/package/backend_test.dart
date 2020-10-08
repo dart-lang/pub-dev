@@ -25,8 +25,8 @@ void main() {
   group('backend', () {
     group('Backend.latestPackages', () {
       testWithServices('default packages', () async {
-        final list = await packageBackend.latestPackages();
-        expect(list.map((p) => p.name), [
+        final page = await packageBackend.latestPackages();
+        expect(page.packages.map((p) => p.name), [
           'foobar_pkg',
           'lithium',
           'helium',
@@ -37,8 +37,8 @@ void main() {
       testWithServices('default packages with withheld', () async {
         final pkg = await dbService.lookupValue<Package>(foobarPackage.key);
         await dbService.commit(inserts: [pkg..isWithheld = true]);
-        final list = await packageBackend.latestPackages();
-        expect(list.map((p) => p.name), [
+        final page = await packageBackend.latestPackages();
+        expect(page.packages.map((p) => p.name), [
           'lithium',
           'helium',
           'hydrogen',
@@ -50,8 +50,8 @@ void main() {
             (await dbService.lookup<Package>([helium.package.key])).single;
         h.updated = DateTime(2010);
         await dbService.commit(inserts: [h]);
-        final list = await packageBackend.latestPackages();
-        expect(list.last.name, 'helium');
+        final page = await packageBackend.latestPackages();
+        expect(page.packages.last.name, 'helium');
       });
 
       testWithServices('default packages, extra later', () async {
@@ -59,18 +59,18 @@ void main() {
             (await dbService.lookup<Package>([helium.package.key])).single;
         h.updated = DateTime(2030);
         await dbService.commit(inserts: [h]);
-        final list = await packageBackend.latestPackages();
-        expect(list.first.name, 'helium');
+        final page = await packageBackend.latestPackages();
+        expect(page.packages.first.name, 'helium');
       });
 
       testWithServices('default packages, offset: 2', () async {
-        final list = await packageBackend.latestPackages(offset: 2);
-        expect(list.map((p) => p.name), ['helium', 'hydrogen']);
+        final page = await packageBackend.latestPackages(offset: 2);
+        expect(page.packages.map((p) => p.name), ['helium', 'hydrogen']);
       });
 
       testWithServices('default packages, offset: 1, limit: 1', () async {
-        final list = await packageBackend.latestPackages(offset: 1, limit: 1);
-        expect(list.map((p) => p.name), ['lithium']);
+        final page = await packageBackend.latestPackages(offset: 1, limit: 1);
+        expect(page.packages.map((p) => p.name), ['lithium']);
       });
     });
 

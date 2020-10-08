@@ -386,9 +386,9 @@ void main() {
         expect(email.bodyText,
             contains('https://pub.dev/packages/foobar_pkg/versions/1.2.3\n'));
 
-        final packages = await packageBackend.latestPackages();
-        expect(packages.first.name, foobarPackage.name);
-        expect(packages.first.latestVersion, '1.2.3');
+        final pkgPage = await packageBackend.latestPackages();
+        expect(pkgPage.packages.first.name, foobarPackage.name);
+        expect(pkgPage.packages.first.latestVersion, '1.2.3');
 
         final stream =
             await packageBackend.download(foobarPackage.name, '1.2.3');

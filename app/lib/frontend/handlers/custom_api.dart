@@ -11,7 +11,6 @@ import '../../dartdoc/backend.dart';
 import '../../frontend/request_context.dart';
 import '../../history/backend.dart';
 import '../../package/backend.dart';
-import '../../package/models.dart';
 import '../../package/name_tracker.dart';
 import '../../package/overrides.dart';
 import '../../scorecard/backend.dart';
@@ -98,18 +97,10 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
   }
 
   final data = await cache.apiPackagesListPage(page).get(() async {
-    final packages = await packageBackend.latestPackages(
-        offset: pageSize * (page - 1), limit: pageSize + 1);
-
-    // NOTE: We queried for `PageSize+1` packages, if we get less than that, we
-    // know it was the last page.
-    // But we only use `PageSize` packages to display in the result.
-    final List<Package> pagePackages = packages.take(pageSize).toList();
-    pagePackages.removeWhere((p) => isSoftRemoved(p.name));
-    final List<PackageVersion> pageVersions =
-        await packageBackend.lookupLatestVersions(pagePackages);
-
-    final lastPage = packages.length == pagePackages.length;
+    final pkgPage = await packageBackend.latestPackages(
+        offset: pageSize * (page - 1), limit: pageSize);
+    final pageVersions =
+        await packageBackend.lookupLatestVersions(pkgPage.packages);
 
     final packagesJson = [];
 
@@ -153,7 +144,7 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
       //     - 'prev_url'
     };
 
-    if (!lastPage) {
+    if (!pkgPage.isLast) {
       json['next_url'] = '${uri.resolve('/api/packages?page=${page + 1}')}';
     }
     return json;
