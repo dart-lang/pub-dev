@@ -61,6 +61,9 @@ abstract class SdkTagValue {
   static const String dart = 'dart';
   static const String flutter = 'flutter';
   static const String any = 'any';
+
+  static bool isAny(String value) => value == null || value == any;
+  static bool isNotAny(String value) => !isAny(value);
 }
 
 /// Collection of Dart SDK runtime tags (with prefix and value).

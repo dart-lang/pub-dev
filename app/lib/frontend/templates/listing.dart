@@ -151,7 +151,8 @@ String renderPkgIndexPage(
     'has_packages': packages.isNotEmpty,
     'pagination': renderPagination(links),
     'include_unlisted': includeUnlisted,
-    'legacy_search_enabled': includeLegacy,
+    'show_legacy_checkbox': SdkTagValue.isAny(sdk),
+    'include_legacy': includeLegacy,
   };
   final content = templateCache.renderTemplate('pkg/index', values);
 
