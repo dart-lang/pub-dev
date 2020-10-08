@@ -68,7 +68,7 @@ shelf.Handler wrapHandler(
   handler = _userAuthWrapper(handler);
   handler =
       _requestContextWrapper(handler); // need to run after session wrapper
-  handler = _userSessionWrapper(handler);
+  handler = _userSessionWrapper(logger, handler);
   handler = _httpsWrapper(handler);
   if (sanitize) {
     handler = _sanitizeRequestWrapper(handler);
@@ -216,7 +216,7 @@ shelf.Handler _userAuthWrapper(shelf.Handler handler) {
 
 /// Processes the session cookie, and on successful verification it will set the
 /// user session data.
-shelf.Handler _userSessionWrapper(shelf.Handler handler) {
+shelf.Handler _userSessionWrapper(Logger logger, shelf.Handler handler) {
   return (shelf.Request request) async {
     // Never read or look for the session cookie on hosts other than the
     // primary site. Who knows how it got there or what it means.
@@ -230,14 +230,18 @@ shelf.Handler _userSessionWrapper(shelf.Handler handler) {
     if (isPrimaryHost &&
         isAllowedForSession &&
         request.headers.containsKey(HttpHeaders.cookieHeader)) {
-      final sessionId = session_cookie.parseSessionCookie(
-        request.headers[HttpHeaders.cookieHeader],
-      );
-      if (sessionId != null && sessionId.isNotEmpty) {
-        final sessionData = await accountBackend.lookupSession(sessionId);
-        if (sessionData != null) {
-          registerUserSessionData(sessionData);
+      try {
+        final sessionId = session_cookie.parseSessionCookie(
+          request.headers[HttpHeaders.cookieHeader],
+        );
+        if (sessionId != null && sessionId.isNotEmpty) {
+          final sessionData = await accountBackend.lookupSession(sessionId);
+          if (sessionData != null) {
+            registerUserSessionData(sessionData);
+          }
         }
+      } catch (e, st) {
+        logger.warning('Unable to process session cookie.', e, st);
       }
     }
     shelf.Response rs = await handler(request);
