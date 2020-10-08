@@ -278,7 +278,7 @@ String renderTags({@required PackageView package}) {
     tagValues.add({
       'status': 'unidentified',
       'text': '[unidentified]',
-      'title': 'Check the analysis tab for further details.',
+      'title': 'Check the scores tab for further details.',
       'has_href': true,
       'href': urls.pkgScoreUrl(package.name),
     });
