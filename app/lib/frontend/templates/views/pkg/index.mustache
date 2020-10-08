@@ -36,10 +36,12 @@
           <input id="-search-unlisted-checkbox" type="checkbox" name="unlisted" {{#include_unlisted}} checked="checked"{{/include_unlisted}} />
           <label for="-search-unlisted-checkbox">Include unlisted packages</label>
         </div>
+        {{#show_legacy_checkbox}}
         <div class="search-controls-checkbox">
-          <input id="-search-legacy-checkbox" type="checkbox" name="legacy" {{#legacy_search_enabled}} checked="checked"{{/legacy_search_enabled}} />
+          <input id="-search-legacy-checkbox" type="checkbox" name="legacy" {{#include_legacy}} checked="checked"{{/include_legacy}} />
           <label for="-search-legacy-checkbox">Include Dart 1.x results</label>
         </div>
+        {{/show_legacy_checkbox}}
       </div>
     </div>
   </div>

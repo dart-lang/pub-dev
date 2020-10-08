@@ -277,7 +277,7 @@ class FrontendSearchQuery {
     final q = _stringToNull(query?.trim());
     tagsPredicate ??= TagsPredicate();
     final requiredTags = <String>[];
-    if (sdk != null && sdk != SdkTagValue.any) {
+    if (SdkTagValue.isNotAny(sdk)) {
       requiredTags.add('sdk:$sdk');
     }
     DartSdkRuntime.decodeQueryValues(runtimes)
@@ -318,7 +318,7 @@ class FrontendSearchQuery {
     if (sdk != null) {
       tagsPredicate ??= this.tagsPredicate ?? TagsPredicate();
       tagsPredicate = tagsPredicate.removePrefix('sdk:');
-      if (sdk != SdkTagValue.any) {
+      if (SdkTagValue.isNotAny(sdk)) {
         tagsPredicate = tagsPredicate
             .appendPredicate(TagsPredicate(requiredTags: ['sdk:$sdk']));
       }
@@ -425,7 +425,7 @@ class FrontendSearchQuery {
     if (includeUnlisted) {
       params['unlisted'] = '1';
     }
-    if (includeLegacy) {
+    if (includeLegacy && SdkTagValue.isAny(sdk)) {
       params['legacy'] = '1';
     }
     if (page != null && page > 1) {
@@ -966,7 +966,7 @@ FrontendSearchQuery parseFrontendSearchQuery(
     offset: offset,
     limit: resultsPerPage,
     includeUnlisted: queryParameters['unlisted'] == '1',
-    includeLegacy: queryParameters['legacy'] == '1',
+    includeLegacy: queryParameters['legacy'] == '1' && SdkTagValue.isAny(sdk),
     tagsPredicate: tagsPredicate,
   );
 }
