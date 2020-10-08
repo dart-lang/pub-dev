@@ -241,7 +241,7 @@ shelf.Handler _userSessionWrapper(Logger logger, shelf.Handler handler) {
           }
         }
       } catch (e, st) {
-        logger.warning('Unable to process session cookie.', e, st);
+        logger.severe('Unable to process session cookie.', e, st);
       }
     }
     shelf.Response rs = await handler(request);
