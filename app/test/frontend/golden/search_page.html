@@ -113,6 +113,7 @@
             <img class="search-filters-btn search-filters-btn-active" src="/static/img/search-filters-active.svg?hash=mocked_hash_397783636"/>
           </div>
           <input type="hidden" name="sort" value="top"/>
+          <input id="-search-discontinued-field" type="hidden" name="discontinued" value="1" disabled="disabled"/>
           <input id="-search-unlisted-field" type="hidden" name="unlisted" value="1" disabled="disabled"/>
           <input id="-search-legacy-field" type="hidden" name="legacy" value="1" disabled="disabled"/>
         </form>
@@ -158,6 +159,10 @@
               <div class="search-controls-checkbox">
                 <input id="-search-unlisted-checkbox" type="checkbox" name="unlisted"/>
                 <label for="-search-unlisted-checkbox">Include unlisted packages</label>
+              </div>
+              <div class="search-controls-checkbox">
+                <input id="-search-discontinued-checkbox" type="checkbox" name="discontinued"/>
+                <label for="-search-discontinued-checkbox">Include discontinued packages</label>
               </div>
               <div class="search-controls-checkbox">
                 <input id="-search-legacy-checkbox" type="checkbox" name="legacy"/>
