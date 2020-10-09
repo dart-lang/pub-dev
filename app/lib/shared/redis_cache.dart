@@ -214,6 +214,11 @@ class CachePatterns {
       .withPrefix('secret-value')
       .withTTL(Duration(minutes: 60))
       .withCodec(utf8)[secretId];
+
+  Entry<String> sitemap(String requestedUri) => _cache
+      .withPrefix('sitemap')
+      .withTTL(Duration(hours: 12))
+      .withCodec(utf8)[requestedUri];
 }
 
 /// The active cache.

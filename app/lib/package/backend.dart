@@ -104,8 +104,8 @@ class PackageBackend {
     );
   }
 
-  /// Retrieves the names of all packages that need to be included in robots.txt.
-  Stream<String> robotsPackageNames() {
+  /// Retrieves the names of all packages that need to be included in sitemap.txt.
+  Stream<String> sitemapPackageNames() {
     final query = db.query<Package>()
       ..filter(
           'updated >', DateTime.now().toUtc().subtract(robotsVisibilityMaxAge));
@@ -113,6 +113,7 @@ class PackageBackend {
         .run()
         .where((p) => p.isVisible)
         .where((p) => p.isIncludedInRobots)
+        .where((p) => !isSoftRemoved(p.name))
         .map((p) => p.name);
   }
 
