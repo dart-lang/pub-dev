@@ -238,8 +238,10 @@ class FrontendSearchQuery {
   final int offset;
   final int limit;
 
+  /// True, if packages with is:discontinued tag should be included.
+  final bool includeDiscontinued;
+
   /// True, if packages with is:unlisted tag should be included.
-  /// This parameter is set and used only on the frontend service, not on search.
   final bool includeUnlisted;
 
   /// True, if packages which only support dart 1.x should be included.
@@ -253,6 +255,7 @@ class FrontendSearchQuery {
     this.order,
     this.offset,
     this.limit,
+    this.includeDiscontinued,
     this.includeUnlisted,
     this.includeLegacy,
   })  : parsedQuery = ParsedQuery._parse(query),
@@ -271,6 +274,7 @@ class FrontendSearchQuery {
     SearchOrder order,
     int offset = 0,
     int limit = 10,
+    bool includeDiscontinued = false,
     bool includeUnlisted = false,
     bool includeLegacy = false,
   }) {
@@ -299,6 +303,7 @@ class FrontendSearchQuery {
       order: order,
       offset: offset,
       limit: limit,
+      includeDiscontinued: includeDiscontinued,
       includeUnlisted: includeUnlisted,
       includeLegacy: includeLegacy,
     );
@@ -313,7 +318,6 @@ class FrontendSearchQuery {
     SearchOrder order,
     int offset,
     int limit,
-    bool includeLegacy,
   }) {
     if (sdk != null) {
       tagsPredicate ??= this.tagsPredicate ?? TagsPredicate();
@@ -331,13 +335,18 @@ class FrontendSearchQuery {
       order: order ?? this.order,
       offset: offset ?? this.offset,
       limit: limit ?? this.limit,
+      includeDiscontinued: includeDiscontinued,
       includeUnlisted: includeUnlisted,
-      includeLegacy: includeLegacy ?? this.includeLegacy,
+      includeLegacy: includeLegacy,
     );
   }
 
   ServiceSearchQuery toServiceQuery() {
     var tagsPredicate = this.tagsPredicate;
+    if (includeDiscontinued &&
+        tagsPredicate.isProhibitedTag(PackageTags.isDiscontinued)) {
+      tagsPredicate = tagsPredicate.withoutTag(PackageTags.isDiscontinued);
+    }
     if (includeUnlisted &&
         tagsPredicate.isProhibitedTag(PackageTags.isUnlisted)) {
       tagsPredicate = tagsPredicate.withoutTag(PackageTags.isUnlisted);
@@ -421,6 +430,9 @@ class FrontendSearchQuery {
     if (order != null) {
       final String paramName = 'sort';
       params[paramName] = serializeSearchOrder(order);
+    }
+    if (includeDiscontinued) {
+      params['discontinued'] = '1';
     }
     if (includeUnlisted) {
       params['unlisted'] = '1';
@@ -965,6 +977,7 @@ FrontendSearchQuery parseFrontendSearchQuery(
     order: sortOrder,
     offset: offset,
     limit: resultsPerPage,
+    includeDiscontinued: queryParameters['discontinued'] == '1',
     includeUnlisted: queryParameters['unlisted'] == '1',
     includeLegacy: queryParameters['legacy'] == '1' && SdkTagValue.isAny(sdk),
     tagsPredicate: tagsPredicate,

@@ -36,6 +36,10 @@
           <input id="-search-unlisted-checkbox" type="checkbox" name="unlisted" {{#include_unlisted}} checked="checked"{{/include_unlisted}} />
           <label for="-search-unlisted-checkbox">Include unlisted packages</label>
         </div>
+        <div class="search-controls-checkbox">
+          <input id="-search-discontinued-checkbox" type="checkbox" name="discontinued" {{#include_discontinued}} checked="checked"{{/include_discontinued}} />
+          <label for="-search-discontinued-checkbox">Include discontinued packages</label>
+        </div>
         {{#show_legacy_checkbox}}
         <div class="search-controls-checkbox">
           <input id="-search-legacy-checkbox" type="checkbox" name="legacy" {{#include_legacy}} checked="checked"{{/include_legacy}} />

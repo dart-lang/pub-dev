@@ -180,6 +180,7 @@ String _renderSearchBanner({
     'search_query_placeholder': searchPlaceholder,
     'search_query_html': escapedSearchQuery,
     'search_sort_param': searchSort,
+    'include_discontinued': searchQuery?.includeDiscontinued ?? false,
     'include_unlisted': searchQuery?.includeUnlisted ?? false,
     'legacy_search_enabled': searchQuery?.includeLegacy ?? false,
     'hidden_inputs': hiddenInputs,

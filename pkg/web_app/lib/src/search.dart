@@ -78,6 +78,8 @@ void _setEventForCheckboxChanges() {
       '-search-legacy-field', '-search-legacy-checkbox');
   _setEventForHiddenCheckboxField(
       '-search-unlisted-field', '-search-unlisted-checkbox');
+  _setEventForHiddenCheckboxField(
+      '-search-discontinued-field', '-search-discontinued-checkbox');
 }
 
 void _setEventForHiddenCheckboxField(
