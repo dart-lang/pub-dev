@@ -11,6 +11,7 @@ import 'package:pool/pool.dart';
 
 import '../scorecard/backend.dart';
 import '../search/search_client.dart';
+import '../search/search_form.dart';
 import '../search/search_service.dart';
 import '../shared/redis_cache.dart' show cache;
 
@@ -42,13 +43,13 @@ class SearchAdapter {
     int count = 6,
     SearchOrder order,
   }) async {
-    final query = FrontendSearchQuery.parse(
+    final form = SearchForm.parse(
       limit: 100,
       tagsPredicate: TagsPredicate.advertisement(requiredTags: requiredTags),
       order: order,
     );
     final searchResults = await _searchOrFallback(
-      query,
+      form,
       false,
       ttl: Duration(hours: 6),
       updateCacheAfter: Duration(hours: 1),
@@ -76,43 +77,43 @@ class SearchAdapter {
   ///
   /// When the `search` service fails, it falls back to use the name tracker to
   /// provide package names and perform search in that set.
-  Future<SearchResultPage> search(FrontendSearchQuery query) async {
-    final result = await _searchOrFallback(query, true);
-    return SearchResultPage(query, result.totalCount,
+  Future<SearchResultPage> search(SearchForm form) async {
+    final result = await _searchOrFallback(form, true);
+    return SearchResultPage(form, result.totalCount,
         await getPackageViews(result.packages), result.message);
   }
 
   Future<PackageSearchResult> _searchOrFallback(
-    FrontendSearchQuery query,
+    SearchForm searchForm,
     bool fallbackToNames, {
     Duration ttl,
     Duration updateCacheAfter,
   }) async {
     PackageSearchResult result;
     try {
-      result = await searchClient.search(query,
+      result = await searchClient.search(searchForm.toServiceQuery(),
           ttl: ttl, updateCacheAfter: updateCacheAfter);
     } catch (e, st) {
       _logger.severe('Unable to search packages', e, st);
     }
     if (result == null && fallbackToNames) {
-      result = await _fallbackSearch(query);
+      result = await _fallbackSearch(searchForm);
     }
     return result;
   }
 
   /// Search over the package names as a fallback, in the absence of the
   /// `search` service.
-  Future<PackageSearchResult> _fallbackSearch(FrontendSearchQuery query) async {
+  Future<PackageSearchResult> _fallbackSearch(SearchForm form) async {
     // Some search queries must not be served with the fallback search.
-    if (query.uploaderOrPublishers != null || query.publisherId != null) {
+    if (form.uploaderOrPublishers != null || form.publisherId != null) {
       return PackageSearchResult.empty(
           message: 'Search is temporarily unavailable.');
     }
 
     final names =
         await nameTracker.getPackageNames().timeout(Duration(seconds: 5));
-    final text = (query.query ?? '').trim().toLowerCase();
+    final text = (form.query ?? '').trim().toLowerCase();
     List<PackageScore> scores =
         names.where((s) => s.contains(text)).map((pkgName) {
       if (pkgName == text) {
@@ -126,7 +127,7 @@ class SearchAdapter {
     scores.sort((a, b) => -a.score.compareTo(b.score));
 
     final totalCount = scores.length;
-    scores = scores.skip(query.offset ?? 0).take(query.limit ?? 10).toList();
+    scores = scores.skip(form.offset ?? 0).take(form.limit ?? 10).toList();
     return PackageSearchResult(
         timestamp: DateTime.now().toUtc(),
         packages: scores,
@@ -208,8 +209,8 @@ class SearchAdapter {
 
 /// The results of a search via the Custom Search API.
 class SearchResultPage {
-  /// The query used for the search.
-  final FrontendSearchQuery query;
+  /// The form used for the search.
+  final SearchForm form;
 
   /// The total number of results available for the search.
   final int totalCount;
@@ -221,8 +222,8 @@ class SearchResultPage {
   /// the query was not processed entirely.
   final String message;
 
-  SearchResultPage(this.query, this.totalCount, this.packages, this.message);
+  SearchResultPage(this.form, this.totalCount, this.packages, this.message);
 
-  factory SearchResultPage.empty(FrontendSearchQuery query, {String message}) =>
-      SearchResultPage(query, 0, [], message);
+  factory SearchResultPage.empty(SearchForm form, {String message}) =>
+      SearchResultPage(form, 0, [], message);
 }

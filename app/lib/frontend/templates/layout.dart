@@ -8,6 +8,7 @@ import 'package:client_data/page_data.dart';
 import 'package:meta/meta.dart';
 
 import '../../account/backend.dart';
+import '../../search/search_form.dart';
 import '../../search/search_service.dart';
 import '../../service/announcement/backend.dart';
 import '../../shared/configuration.dart';
@@ -48,7 +49,7 @@ String renderLayoutPage(
   String shareUrl,
   String sdk,
   String publisherId,
-  FrontendSearchQuery searchQuery,
+  SearchForm searchForm,
   bool noIndex = false,
   PageData pageData,
   String searchPlaceHolder,
@@ -66,7 +67,7 @@ String renderLayoutPage(
   final searchBannerHtml = _renderSearchBanner(
     type: type,
     publisherId: publisherId,
-    searchQuery: searchQuery,
+    searchForm: searchForm,
     searchPlaceholder: searchPlaceHolder,
   );
   final announcementBannerHtml = announcementBackend.getAnnouncementHtml();
@@ -132,11 +133,11 @@ String _renderSiteHeader(PageType pageType) {
 String _renderSearchBanner({
   @required PageType type,
   @required String publisherId,
-  @required FrontendSearchQuery searchQuery,
+  @required SearchForm searchForm,
   String searchPlaceholder,
 }) {
-  final sdk = searchQuery?.sdk ?? SdkTagValue.any;
-  final queryText = searchQuery?.query;
+  final sdk = searchForm?.sdk ?? SdkTagValue.any;
+  final queryText = searchForm?.query;
   final escapedSearchQuery =
       queryText == null ? null : htmlAttrEscape.convert(queryText);
   bool includePreferencesAsHiddenFields = false;
@@ -150,20 +151,18 @@ String _renderSearchBanner({
   }
   String searchFormUrl;
   if (publisherId != null) {
-    searchFormUrl =
-        FrontendSearchQuery.parse(publisherId: publisherId).toSearchLink();
+    searchFormUrl = SearchForm.parse(publisherId: publisherId).toSearchLink();
   } else if (type == PageType.account) {
     searchFormUrl = urls.myPackagesUrl();
-  } else if (searchQuery != null) {
-    searchFormUrl = searchQuery.toSearchFormPath();
+  } else if (searchForm != null) {
+    searchFormUrl = searchForm.toSearchFormPath();
   } else {
-    searchFormUrl = FrontendSearchQuery.parse().toSearchFormPath();
+    searchFormUrl = SearchForm.parse().toSearchFormPath();
   }
-  final searchSort = searchQuery?.order == null
-      ? null
-      : serializeSearchOrder(searchQuery.order);
+  final searchSort =
+      searchForm?.order == null ? null : serializeSearchOrder(searchForm.order);
   final hiddenInputs = includePreferencesAsHiddenFields
-      ? (searchQuery ?? FrontendSearchQuery.parse())
+      ? (searchForm ?? SearchForm.parse())
           .tagsPredicate
           .asSearchLinkParams()
           .entries
@@ -180,21 +179,21 @@ String _renderSearchBanner({
     'search_query_placeholder': searchPlaceholder,
     'search_query_html': escapedSearchQuery,
     'search_sort_param': searchSort,
-    'include_discontinued': searchQuery?.includeDiscontinued ?? false,
-    'include_unlisted': searchQuery?.includeUnlisted ?? false,
-    'legacy_search_enabled': searchQuery?.includeLegacy ?? false,
+    'include_discontinued': searchForm?.includeDiscontinued ?? false,
+    'include_unlisted': searchForm?.includeUnlisted ?? false,
+    'legacy_search_enabled': searchForm?.includeLegacy ?? false,
     'hidden_inputs': hiddenInputs,
   });
 }
 
 String renderSdkTabs({
-  FrontendSearchQuery searchQuery,
+  SearchForm searchForm,
 }) {
-  final currentSdk = searchQuery?.sdk ?? SdkTagValue.any;
+  final currentSdk = searchForm?.sdk ?? SdkTagValue.any;
   SearchTab sdkTabData(String label, String tabSdk, String title) {
     String url;
-    if (searchQuery != null) {
-      url = searchQuery.change(sdk: tabSdk).toSearchLink();
+    if (searchForm != null) {
+      url = searchForm.change(sdk: tabSdk).toSearchLink();
     } else {
       url = urls.searchUrl(sdk: tabSdk);
     }
@@ -242,14 +241,14 @@ class _FilterOption {
 }
 
 String renderSubSdkTabsHtml({
-  @required FrontendSearchQuery searchQuery,
+  @required SearchForm searchForm,
   bool detectAdvanced = false,
   bool onlyAdvanced = false,
 }) {
-  final pred = searchQuery?.tagsPredicate;
-  if (searchQuery?.sdk == SdkTagValue.dart) {
+  final pred = searchForm?.tagsPredicate;
+  if (searchForm?.sdk == SdkTagValue.dart) {
     return _renderFilterTabs(
-      searchQuery: searchQuery,
+      searchForm: searchForm,
       options: [
         if (!onlyAdvanced)
           _FilterOption(
@@ -266,9 +265,9 @@ String renderSubSdkTabsHtml({
           ),
       ],
     );
-  } else if (searchQuery?.sdk == SdkTagValue.flutter) {
+  } else if (searchForm?.sdk == SdkTagValue.flutter) {
     return _renderFilterTabs(
-      searchQuery: searchQuery,
+      searchForm: searchForm,
       options: [
         if (!onlyAdvanced)
           _FilterOption(
@@ -326,13 +325,13 @@ String renderSubSdkTabsHtml({
 }
 
 String _renderFilterTabs({
-  @required FrontendSearchQuery searchQuery,
+  @required SearchForm searchForm,
   @required List<_FilterOption> options,
 }) {
   if (options.isEmpty) return null;
-  final tp = searchQuery.tagsPredicate;
+  final tp = searchForm.tagsPredicate;
   String searchWithTagsLink(TagsPredicate tagsPredicate) {
-    return searchQuery.change(tagsPredicate: tagsPredicate).toSearchLink();
+    return searchForm.change(tagsPredicate: tagsPredicate).toSearchLink();
   }
 
   final searchTabs = SearchTabs(

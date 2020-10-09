@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:test/test.dart';
 
 import 'package:pub_dev/search/mem_index.dart';
+import 'package:pub_dev/search/search_form.dart';
 import 'package:pub_dev/search/search_service.dart';
 
 void main() {
@@ -247,7 +248,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('order by updated: runtime filter', () async {
       final result = await index.search(
-        FrontendSearchQuery.parse(
+        SearchForm.parse(
           sdk: 'dart',
           order: SearchOrder.updated,
           runtimes: ['native'],
