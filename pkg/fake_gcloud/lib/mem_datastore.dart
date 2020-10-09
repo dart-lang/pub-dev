@@ -260,6 +260,12 @@ class MemDatastore implements Datastore {
     if (value is List<int>) {
       return {'bytes': base64.encode(value)};
     }
+    if (value is Key) {
+      return {'key': _encodeKey(value)};
+    }
+    if (value is List) {
+      return {'list': value};
+    }
     throw UnimplementedError('Unhandled type: ${value.runtimeType} ($value).');
   }
 
@@ -275,6 +281,10 @@ class MemDatastore implements Datastore {
           return DateTime.parse(value[key] as String);
         case 'bytes':
           return base64.decode(value[key] as String);
+        case 'key':
+          return _decodeKey(value[key] as Map<String, dynamic>);
+        case 'list':
+          return value['key'];
         default:
           throw UnimplementedError('Unknown key: $key');
       }
@@ -282,17 +292,31 @@ class MemDatastore implements Datastore {
     throw UnimplementedError('Unhandled type: ${value.runtimeType} ($value).');
   }
 
+  Map<String, dynamic> _encodeKey(Key key) {
+    return {
+      'partition': key.partition?.namespace,
+      'elements': key.elements
+          .map((e) => {
+                'kind': e.kind,
+                'id': e.id,
+              })
+          .toList(),
+    };
+  }
+
+  Key _decodeKey(Map<String, dynamic> map) {
+    final partition = map['partition'] as String;
+    final elements = (map['elements'] as List)
+        .cast<Map<String, dynamic>>()
+        .map((e) => KeyElement(e['kind'] as String, e['id']))
+        .toList();
+    return Key(elements,
+        partition: partition == null ? null : Partition(partition));
+  }
+
   Map<String, dynamic> _encodeEntity(Entity entity) {
     return <String, dynamic>{
-      'key': {
-        'partition': entity.key.partition?.namespace,
-        'elements': entity.key.elements
-            .map((e) => {
-                  'kind': e.kind,
-                  'id': e.id,
-                })
-            .toList(),
-      },
+      'key': _encodeKey(entity.key),
       'props': entity.properties
           .map((key, value) => MapEntry(key, _encodeValue(value))),
       'unindexed': entity.unIndexedProperties?.toList(),
@@ -301,14 +325,7 @@ class MemDatastore implements Datastore {
 
   Entity _decodeEntity(Map<String, dynamic> json) {
     final keyMap = json['key'] as Map<String, dynamic>;
-    final partition = keyMap['partition'] as String;
-    final elements = (keyMap['elements'] as List)
-        .cast<Map<String, dynamic>>()
-        .map((e) => KeyElement(e['kind'] as String, e['id']))
-        .toList();
-    final key = Key(elements,
-        partition: partition == null ? null : Partition(partition));
-
+    final key = _decodeKey(keyMap);
     final props = (json['props'] as Map<String, dynamic>)
         .map((k, v) => MapEntry(k, _decodeValue(v)));
     final unindexed = (json['unindexed'] as List).cast<String>();
