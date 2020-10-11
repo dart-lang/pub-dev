@@ -12,6 +12,7 @@ import '../../package/backend.dart';
 import '../../package/search_adapter.dart';
 import '../../publisher/backend.dart';
 import '../../publisher/models.dart';
+import '../../search/search_form.dart';
 import '../../search/search_service.dart';
 import '../../shared/configuration.dart' show activeConfiguration;
 import '../../shared/exceptions.dart';
@@ -197,7 +198,7 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
 
   final publishers =
       await publisherBackend.listPublishersForUser(userSessionData.userId);
-  final searchQuery = parseFrontendSearchQuery(
+  final searchForm = parseFrontendSearchForm(
     request.requestedUri.queryParameters,
     uploaderOrPublishers: [
       userSessionData.email,
@@ -206,17 +207,17 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
     tagsPredicate: TagsPredicate.allPackages(),
   );
 
-  final searchResult = await searchAdapter.search(searchQuery);
+  final searchResult = await searchAdapter.search(searchForm);
   final int totalCount = searchResult.totalCount;
   final links =
-      PageLinks(searchQuery.offset, totalCount, searchQuery: searchQuery);
+      PageLinks(searchForm.offset, totalCount, searchForm: searchForm);
 
   final html = renderAccountPackagesPage(
     user: await accountBackend.lookupUserById(userSessionData.userId),
     userSessionData: userSessionData,
     packages: searchResult.packages,
     pageLinks: links,
-    searchQuery: searchQuery,
+    searchForm: searchForm,
     totalCount: totalCount,
     messageFromBackend: searchResult.message,
   );

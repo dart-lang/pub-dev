@@ -9,7 +9,7 @@ import 'package:meta/meta.dart';
 import '../../account/models.dart' show LikeData, User, UserSessionData;
 import '../../package/models.dart' show PackageView;
 import '../../publisher/models.dart' show Publisher;
-import '../../search/search_service.dart' show FrontendSearchQuery;
+import '../../search/search_form.dart' show SearchForm;
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart' show shortDateFormat;
 
@@ -33,10 +33,10 @@ String renderAccountPackagesPage({
   @required List<PackageView> packages,
   @required String messageFromBackend,
   @required PageLinks pageLinks,
-  @required FrontendSearchQuery searchQuery,
+  @required SearchForm searchForm,
   @required int totalCount,
 }) {
-  final isSearch = searchQuery.hasQuery;
+  final isSearch = searchForm.hasQuery;
   String title = 'My packages';
   if (isSearch && pageLinks.currentPage > 1) {
     title += ' | Page ${pageLinks.currentPage}';
@@ -46,13 +46,13 @@ String renderAccountPackagesPage({
       ? ''
       : renderPackageList(
           packages,
-          searchQuery: searchQuery,
+          searchForm: searchForm,
         );
   final paginationHtml = renderPagination(pageLinks);
 
   final tabContent = [
     renderListingInfo(
-      searchQuery: searchQuery,
+      searchForm: searchForm,
       totalCount: totalCount,
       ownedBy: 'you',
       messageFromBackend: messageFromBackend,
@@ -75,7 +75,7 @@ String renderAccountPackagesPage({
     PageType.account,
     content,
     title: title,
-    searchQuery: searchQuery,
+    searchForm: searchForm,
     noIndex: true,
     mainClasses: [wideHeaderDetailPageClassName],
   );
