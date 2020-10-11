@@ -85,7 +85,7 @@ Future<void> importProfile({
     final packageName = parts.first;
     final versionName = parts.last;
 
-    final fileName = rv.replaceAll(':', '-');
+    final fileName = rv.replaceAll(':', '-') + '.tar.gz';
     final file = File(p.join(archiveCacheDir.path, fileName));
     // download package archive if not already in the cache
     if (!await file.exists()) {
@@ -96,15 +96,7 @@ Future<void> importProfile({
     }
 
     // figure out the active user
-    final testPackage =
-        profile.packages.firstWhere((p) => p.name == packageName);
-    final uploaderEmails = testPackage.publisher == null
-        ? testPackage.uploaders
-        : profile.publishers
-            .firstWhere((p) => p.name == testPackage.publisher)
-            .members
-            .map((m) => m.email)
-            .toList();
+    final uploaderEmails = _potentialActiveEmails(profile, packageName);
     final uploaderEmail =
         uploaderEmails[rv.hashCode.abs() % uploaderEmails.length];
     final activeUser =
@@ -116,12 +108,11 @@ Future<void> importProfile({
       // ignore: invalid_use_of_visible_for_testing_member
       await packageBackend.upload(file.openRead());
 
-      if (testPackage.publisher != null) {
+      final publisherId = _publisherOf(profile, packageName);
+      if (publisherId != null) {
         await packageBackend.setPublisher(
           packageName,
-          PackagePublisherInfo(
-            publisherId: testPackage.publisher,
-          ),
+          PackagePublisherInfo(publisherId: publisherId),
         );
       }
     });
@@ -143,6 +134,30 @@ Future<void> importProfile({
       )
     ]);
   }
+}
+
+List<String> _potentialActiveEmails(TestProfile profile, String packageName) {
+  final testPackage = profile.packages
+      .firstWhere((p) => p.name == packageName, orElse: () => null);
+
+  // no test package specification
+  if (testPackage == null) return [profile.defaultUser];
+
+  // uploaders
+  if (testPackage.publisher == null) return testPackage.uploaders;
+
+  // publisher
+  print([testPackage.publisher, profile.publishers.map((p) => p.name)]);
+  final members = profile.publishers
+      .firstWhere((p) => p.name == testPackage.publisher)
+      .members;
+  return members.map((m) => m.email).toList();
+}
+
+String _publisherOf(TestProfile profile, String packageName) {
+  final testPackage = profile.packages
+      .firstWhere((p) => p.name == packageName, orElse: () => null);
+  return testPackage?.publisher;
 }
 
 String _baseIdFromEmail(String email) =>

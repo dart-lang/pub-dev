@@ -212,7 +212,7 @@ packages:
     source: hosted
     version: "0.10.11"
   gcloud:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: gcloud
       url: "https://pub.dartlang.org"
