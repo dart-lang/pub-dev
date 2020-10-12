@@ -24,9 +24,14 @@ body, input, button {
   -webkit-font-smoothing: antialiased;
 }
 
+p {
+  font-size: 16px;
+}
+
 body,
 .markdown-body {
   font-weight: 400;
+  font-size: 16px;
 
   h1, h2, h3, h4, h5, h6 {
     font-family: $font-family-google-sans;
@@ -35,10 +40,10 @@ body,
 
   h1 { font-size: 36px; }
   h2 { font-size: 24px; }
-  h3 { font-size: 16px; }
-  h4 { font-size: 16px; }
-  h5 { font-size: 14px; }
-  h6 { font-size: 14px; }
+  h3 { font-size: 18px; }
+  h4 { font-size: 18px; }
+  h5 { font-size: 16px; }
+  h6 { font-size: 16px; }
 }
 
 img {
