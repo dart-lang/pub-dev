@@ -225,8 +225,7 @@ shelf.Handler _userSessionWrapper(Logger logger, shelf.Handler handler) {
     // Never read or look for the session cookie on request that try to modify
     // data (non-GET HTTP methods), except for deleting the session cookie.
     final isAllowedForSession = request.method == 'GET' ||
-        (request.method == 'DELETE' &&
-            request.requestedUri.path == '/api/account/session');
+        request.requestedUri.path == '/api/account/session';
     if (isPrimaryHost &&
         isAllowedForSession &&
         request.headers.containsKey(HttpHeaders.cookieHeader)) {
