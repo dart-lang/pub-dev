@@ -12,10 +12,10 @@ addons:
 jobs:
   include:
     - stage: smoke_test
-      name: "SDK: 2.10.0; PKGS: app, pkg/_popularity, pkg/api_builder, pkg/client_data, pkg/fake_gcloud, pkg/fake_pub_server, pkg/pub_dartdoc, pkg/pub_dartdoc_data, pkg/pub_package_reader, pkg/web_app; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`]"
+      name: "SDK: 2.10.0; PKGS: app, pkg/_popularity, pkg/api_builder, pkg/client_data, pkg/fake_gcloud, pkg/fake_pub_server, pkg/pub_dartdoc, pkg/pub_dartdoc_data, pkg/pub_package_reader, pkg/web_app, pkg/web_css; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`]"
       dart: "2.10.0"
       os: linux
-      env: PKGS="app pkg/_popularity pkg/api_builder pkg/client_data pkg/fake_gcloud pkg/fake_pub_server pkg/pub_dartdoc pkg/pub_dartdoc_data pkg/pub_package_reader pkg/web_app"
+      env: PKGS="app pkg/_popularity pkg/api_builder pkg/client_data pkg/fake_gcloud pkg/fake_pub_server pkg/pub_dartdoc pkg/pub_dartdoc_data pkg/pub_package_reader pkg/web_app pkg/web_css"
       script: ./tool/travis.sh dartfmt dartanalyzer_0
     - stage: smoke_test
       name: "SDK: 2.10.0; PKG: pkg/pub_integration; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings bin/ lib/`]"
@@ -23,12 +23,6 @@ jobs:
       os: linux
       env: PKGS="pkg/pub_integration"
       script: ./tool/travis.sh dartfmt dartanalyzer_1
-    - stage: smoke_test
-      name: "SDK: 2.10.0; PKG: pkg/web_css; TASKS: `dartfmt -n --set-exit-if-changed .`"
-      dart: "2.10.0"
-      os: linux
-      env: PKGS="pkg/web_css"
-      script: ./tool/travis.sh dartfmt
     - stage: build
       name: "SDK: 2.10.0; PKG: pkg/web_app; TASKS: `./build.sh`"
       dart: "2.10.0"
@@ -142,6 +136,12 @@ jobs:
       dart: "2.10.0"
       os: linux
       env: PKGS="pkg/web_app"
+      script: ./tool/travis.sh test_07
+    - stage: unit_test
+      name: "SDK: 2.10.0; PKG: pkg/web_css; TASKS: `pub run test --run-skipped`"
+      dart: "2.10.0"
+      os: linux
+      env: PKGS="pkg/web_css"
       script: ./tool/travis.sh test_07
 
 stages:
