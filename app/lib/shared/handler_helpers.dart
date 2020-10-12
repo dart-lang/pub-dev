@@ -13,7 +13,6 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:stack_trace/stack_trace.dart';
 
 import '../account/backend.dart';
-import '../account/session_cookie.dart' as session_cookie;
 import '../frontend/request_context.dart';
 import '../frontend/templates/layout.dart';
 
@@ -223,25 +222,15 @@ shelf.Handler _userSessionWrapper(Logger logger, shelf.Handler handler) {
     final isPrimaryHost =
         request.requestedUri.host == activeConfiguration.primarySiteUri.host;
     // Never read or look for the session cookie on request that try to modify
-    // data (non-GET HTTP methods), except for deleting the session cookie.
-    final isAllowedForSession = request.method == 'GET' ||
-        request.requestedUri.path == '/api/account/session';
+    // data (non-GET HTTP methods).
+    final isAllowedForSession = request.method == 'GET';
     if (isPrimaryHost &&
         isAllowedForSession &&
         request.headers.containsKey(HttpHeaders.cookieHeader)) {
-      try {
-        final sessionId = session_cookie.parseSessionCookie(
-          request.headers[HttpHeaders.cookieHeader],
-        );
-        if (sessionId != null && sessionId.isNotEmpty) {
-          final sessionData = await accountBackend.lookupSession(sessionId);
-          if (sessionData != null) {
-            registerUserSessionData(sessionData);
-          }
-        }
-      } catch (e, st) {
-        logger.severe('Unable to process session cookie.', e, st);
-      }
+      final cookieString = request.headers[HttpHeaders.cookieHeader];
+      final sessionData =
+          await accountBackend.parseAndLookupSessionCookie(cookieString);
+      registerUserSessionData(sessionData);
     }
     shelf.Response rs = await handler(request);
     if (userSessionData != null) {

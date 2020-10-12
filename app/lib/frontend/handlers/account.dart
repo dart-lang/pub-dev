@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:client_data/account_api.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
@@ -44,13 +46,16 @@ Future<shelf.Response> updateSessionHandler(
     throw NotFoundException.resource('no such url');
   }
 
+  final cookieString = request.headers[HttpHeaders.cookieHeader];
+  final sessionData =
+      await accountBackend.parseAndLookupSessionCookie(cookieString);
   // check if the session data is the same
-  if (userSessionData != null &&
-      userSessionData.userId == user.userId &&
-      userSessionData.email == user.email) {
+  if (sessionData != null &&
+      sessionData.userId == user.userId &&
+      sessionData.email == user.email) {
     final status = ClientSessionStatus(
       changed: false,
-      expires: userSessionData.expires,
+      expires: sessionData.expires,
     );
     return jsonResponse(status.toJson());
   }
@@ -72,11 +77,14 @@ Future<shelf.Response> updateSessionHandler(
 
 /// Handles DELETE /api/account/session
 Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
-  final hasUserSession = userSessionData != null;
+  final cookieString = request.headers[HttpHeaders.cookieHeader];
+  final sessionData =
+      await accountBackend.parseAndLookupSessionCookie(cookieString);
+  final hasUserSession = sessionData != null;
   // Invalidate the server-side sessionId, in case the user signed out because
   // the local cookie store was compromised.
   if (hasUserSession) {
-    await accountBackend.invalidateSession(userSessionData.sessionId);
+    await accountBackend.invalidateSession(sessionData.sessionId);
   }
   return jsonResponse(
     ClientSessionStatus(
