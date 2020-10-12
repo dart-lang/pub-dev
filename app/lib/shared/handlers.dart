@@ -57,15 +57,9 @@ shelf.Response jsonResponse(
 
 final _none = <String>["'none'"];
 final _contentSecurityPolicyMap = <String, List<String>>{
-  'child-src': _none,
-  'connect-src': <String>[
+  'default-src': <String>[
     "'self'",
     'https:',
-  ],
-  'default-src': _none,
-  'frame-src': [
-    "'self'",
-    'https://accounts.google.com/',
   ],
   'font-src': <String>[
     "'self'",
@@ -79,7 +73,6 @@ final _contentSecurityPolicyMap = <String, List<String>>{
     'data:',
   ],
   'manifest-src': _none,
-  'media-src': _none,
   'object-src': _none,
   'script-src': <String>[
     // See: https://developers.google.com/tag-manager/web/csp
@@ -107,7 +100,6 @@ final _contentSecurityPolicyMap = <String, List<String>>{
     'https://www.gstatic.com/',
     'https://tagmanager.google.com',
   ],
-  'worker-src': _none,
 };
 
 /// The serialized string of the CSP header.
