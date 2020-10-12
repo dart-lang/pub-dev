@@ -18,6 +18,7 @@ import '../shared/utils.dart';
 
 import 'auth_provider.dart';
 import 'models.dart';
+import 'session_cookie.dart' as session_cookie;
 
 /// The name of the session cookie.
 ///
@@ -447,9 +448,25 @@ class AccountBackend {
     return UserSessionData.fromModel(session);
   }
 
+  /// Parse [cookieString] and lookup session if cookie value is available.
+  ///
+  /// Returns `null` if the session does not exists or any issue is present
+  Future<UserSessionData> parseAndLookupSessionCookie(
+      String cookieString) async {
+    try {
+      final sessionId = session_cookie.parseSessionCookie(cookieString);
+      if (sessionId != null && sessionId.isNotEmpty) {
+        return await _lookupSession(sessionId);
+      }
+    } catch (e, st) {
+      _logger.severe('Unable to process session cookie.', e, st);
+    }
+    return null;
+  }
+
   /// Returns the user session associated with the [sessionId] or null if it
   /// does not exists.
-  Future<UserSessionData> lookupSession(String sessionId) async {
+  Future<UserSessionData> _lookupSession(String sessionId) async {
     ArgumentError.checkNotNull(sessionId, 'sessionId');
 
     final cacheEntry = cache.userSessionData(sessionId);
