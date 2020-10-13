@@ -264,7 +264,7 @@ class Configuration {
       adminAudience: null,
       gmailRelayServiceAccount: null, // disable email sending
       gmailRelayImpersonatedGSuiteUser: null, // disable email sending
-      blockRobots: true,
+      blockRobots: false,
       productionHosts: ['localhost'],
       primaryApiUri: Uri.parse('http://localhost:$frontendPort/'),
       primarySiteUri: Uri.parse('http://localhost:$frontendPort/'),
