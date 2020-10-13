@@ -28,6 +28,7 @@ class PublicPagesScript {
       await _securityPage();
       await _atomFeed();
       await _searchPage();
+      await _sitemaps();
       await _badRequest();
     } finally {
       await _pubClient.close();
@@ -71,6 +72,11 @@ class PublicPagesScript {
   Future<void> _searchPage() async {
     final content = await _pubClient.getContent('/packages?q=retry');
     _contains(content, 'search query <code>retry</code>');
+  }
+
+  Future<void> _sitemaps() async {
+    await _pubClient.getContent('/sitemap.txt');
+    await _pubClient.getContent('/sitemap-2.txt');
   }
 
   Future<void> _badRequest() async {

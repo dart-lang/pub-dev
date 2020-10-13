@@ -85,7 +85,7 @@ Future<shelf.Response> sitemapTxtHandler(shelf.Request request) async {
   }
 
   final uri = request.requestedUri;
-  final content = cache.sitemap(uri.toString()).get(() async {
+  final content = await cache.sitemap(uri.toString()).get(() async {
     // Google wants the return page to have < 50,000 entries and be less than
     // 50MB -  https://support.google.com/webmasters/answer/183668?hl=en
     // As of 2018-01-01, the return page is ~3,000 entries and ~140KB
@@ -126,7 +126,7 @@ Future<shelf.Response> sitemapPublishersTxtHandler(
   }
 
   final uri = request.requestedUri;
-  final content = cache.sitemap(uri.toString()).get(() async {
+  final content = await cache.sitemap(uri.toString()).get(() async {
     final list = await publisherBackend.listPublishers(limit: 1000);
     if (list.length == 1000) {
       _logger.shout(
