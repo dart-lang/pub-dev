@@ -53,6 +53,11 @@ class TestProfile {
   }
 
   Map<String, dynamic> toJson() => _$TestProfileToJson(this);
+
+  /// Returns the [TestPackage] object or null if none was specified.
+  TestPackage getTestPackage(String name) {
+    return packages.firstWhere((p) => p.name == name, orElse: () => null);
+  }
 }
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
@@ -61,12 +66,18 @@ class TestPackage {
   final List<String> uploaders;
   final String publisher;
   final List<String> versions;
+  final bool isDiscontinued;
+  final String replacedBy;
+  final bool isUnlisted;
 
   TestPackage({
     this.name,
     this.uploaders,
     this.publisher,
     this.versions,
+    this.isDiscontinued,
+    this.replacedBy,
+    this.isUnlisted,
   });
 
   factory TestPackage.fromJson(Map<String, dynamic> json) =>
