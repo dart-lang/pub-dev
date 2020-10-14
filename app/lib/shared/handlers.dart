@@ -16,6 +16,7 @@ import 'urls.dart' as urls;
 import 'utils.dart' show eventLoopLatencyTracker;
 import 'versions.dart';
 
+const String default400BadRequest = '400 Bad Request';
 const String default404NotFound = '404 Not Found';
 
 /// The default age a browser would take hold of the static files before
@@ -121,9 +122,8 @@ shelf.Response htmlResponse(
   return shelf.Response(status, body: content, headers: headers);
 }
 
-// TODO: create a customized handler for invalid requests
-shelf.Response invalidRequestHandler(shelf.Request request) =>
-    notFoundHandler(request);
+shelf.Response badRequestHandler(shelf.Request request) =>
+    htmlResponse(default400BadRequest, status: 400);
 
 shelf.Response notFoundHandler(shelf.Request request,
         {String body = default404NotFound}) =>

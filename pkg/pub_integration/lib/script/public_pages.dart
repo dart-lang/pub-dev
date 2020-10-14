@@ -92,6 +92,12 @@ class PublicPagesScript {
           expectedStatusCode: 400,
         ),
         'Bad Request');
+    _contains(
+        await _pubClient.getContent(
+          '/documentation/dart_amqp/latest//..%25c0%25af..%25c0%25af..%25c0%25af..%25c0%25af..%25c0%25af..%25c0%25af..%25c0%25af..%25c0%25af/etc/passwd',
+          expectedStatusCode: 400,
+        ),
+        'Bad Request');
   }
 
   void _contains(String content, String matched) {
