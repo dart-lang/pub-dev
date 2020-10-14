@@ -200,6 +200,8 @@ class PackageBackend {
     final user = await requireAuthenticatedUser();
     // Validate replacedBy parameter
     final replacedBy = options.replacedBy?.trim() ?? '';
+    InvalidInputException.check(package != replacedBy,
+        '"replacedBy" must point to a different package.');
     if (replacedBy.isNotEmpty) {
       InvalidInputException.check(options.isDiscontinued == true,
           '"replacedBy" must be set only with "isDiscontinued": true.');
@@ -207,6 +209,8 @@ class PackageBackend {
       final rp = await lookupPackage(replacedBy);
       InvalidInputException.check(rp != null && rp.isVisible,
           'Package specified by "replaceBy" does not exists.');
+      InvalidInputException.check(rp != null && !rp.isDiscontinued,
+          'Package specified by "replaceBy" must not be discontinued.');
     }
 
     final pkgKey = db.emptyKey.append(Package, id: package);
@@ -225,6 +229,13 @@ class PackageBackend {
       if (options.isDiscontinued != null &&
           options.isDiscontinued != p.isDiscontinued) {
         p.isDiscontinued = options.isDiscontinued;
+        if (!p.isDiscontinued) {
+          p.replacedBy = null;
+        }
+        hasOptionsChanged = true;
+      }
+      if (options.isDiscontinued == true &&
+          (p.replacedBy ?? '') != replacedBy) {
         p.replacedBy = replacedBy.isEmpty ? null : replacedBy;
         hasOptionsChanged = true;
       }

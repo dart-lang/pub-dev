@@ -182,6 +182,9 @@ String renderPkgInfoBox(
     'meta_links': metaLinks,
     'has_doc_links': docLinks.isNotEmpty,
     'doc_links': docLinks,
+    'replaced_by': package.replacedBy,
+    'replaced_by_link':
+        package.replacedBy == null ? null : urls.pkgPageUrl(package.replacedBy),
     'publisher_id': package.publisherId,
     'publisher_link': package.publisherId == null
         ? null

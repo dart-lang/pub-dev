@@ -505,6 +505,16 @@ void main() {
                 'InvalidInput(400): "replacedBy" must be set only with "isDiscontinued": true.')));
       });
 
+      testWithServices('replaced by - same package', () async {
+        registerAuthenticatedUser(hansUser);
+        final rs = packageBackend.updateOptions('hydrogen',
+            PkgOptions(isDiscontinued: true, replacedBy: 'hydrogen'));
+        await expectLater(
+            rs,
+            throwsA(isA<InvalidInputException>().having((e) => '$e', 'text',
+                'InvalidInput(400): "replacedBy" must point to a different package.')));
+      });
+
       testWithServices('replaced by - with invalid / non existing package',
           () async {
         registerAuthenticatedUser(hansUser);
@@ -516,6 +526,19 @@ void main() {
                 'InvalidInput(400): Package specified by "replaceBy" does not exists.')));
       });
 
+      testWithServices('replaced by - other package is discontinued too',
+          () async {
+        registerAuthenticatedUser(hansUser);
+        await packageBackend.updateOptions(
+            'hydrogen', PkgOptions(isDiscontinued: true, replacedBy: 'helium'));
+        final rs = packageBackend.updateOptions(
+            'helium', PkgOptions(isDiscontinued: true, replacedBy: 'hydrogen'));
+        await expectLater(
+            rs,
+            throwsA(isA<InvalidInputException>().having((e) => '$e', 'text',
+                'InvalidInput(400): Package specified by "replaceBy" must not be discontinued.')));
+      });
+
       testWithServices('replaced by - success', () async {
         registerAuthenticatedUser(hansUser);
         await packageBackend.updateOptions(
@@ -524,6 +547,13 @@ void main() {
         expect(p.isDiscontinued, isTrue);
         expect(p.replacedBy, 'helium');
         expect(p.isUnlisted, isFalse);
+
+        await packageBackend.updateOptions(
+            'hydrogen', PkgOptions(isDiscontinued: true));
+        final p1 = await packageBackend.lookupPackage('hydrogen');
+        expect(p1.isDiscontinued, isTrue);
+        expect(p1.replacedBy, isNull);
+        expect(p1.isUnlisted, isFalse);
 
         await packageBackend.updateOptions(
             'hydrogen', PkgOptions(isDiscontinued: false));

@@ -179,6 +179,8 @@ class _PkgAdminWidget {
   SelectElement _setPublisherInput;
   Element _setPublisherButton;
   InputElement _discontinuedCheckbox;
+  InputElement _replacedByInput;
+  Element _replacedByButton;
   InputElement _unlistedCheckbox;
 
   void init() {
@@ -191,6 +193,10 @@ class _PkgAdminWidget {
     _discontinuedCheckbox = document
         .getElementById('-admin-is-discontinued-checkbox') as InputElement;
     _discontinuedCheckbox?.onChange?.listen((_) => _toogleDiscontinued());
+    _replacedByInput =
+        document.getElementById('-package-replaced-by') as InputElement;
+    _replacedByButton = document.getElementById('-package-replaced-by-button');
+    _replacedByButton?.onClick?.listen((_) => _updateReplacedBy());
     _unlistedCheckbox =
         document.getElementById('-admin-is-unlisted-checkbox') as InputElement;
     _unlistedCheckbox?.onChange?.listen((_) => _toggleUnlisted());
@@ -209,16 +215,33 @@ class _PkgAdminWidget {
             ));
         return rs.isDiscontinued;
       },
-      successMessage: text('"discontinued" status changed.'),
+      successMessage:
+          text('"discontinued" status changed. The page will reload.'),
+      onSuccess: (_) => window.location.reload(),
       onError: (err) => null,
     );
-    if (newValue == null) {
+    if (newValue == null || newValue == oldValue) {
       _discontinuedCheckbox.checked = oldValue;
-    } else {
-      _discontinuedCheckbox.defaultChecked = newValue;
-      _discontinuedCheckbox.checked = newValue;
-      _unlistedCheckbox?.disabled = newValue;
     }
+  }
+
+  Future<void> _updateReplacedBy() async {
+    await rpc(
+      confirmQuestion: text(
+          'Are you sure you want change the "replaced by" field of the package?'),
+      fn: () async {
+        final rs = await client.setPackageOptions(
+            pageData.pkgData.package,
+            PkgOptions(
+              isDiscontinued: true,
+              replacedBy: _replacedByInput?.value,
+            ));
+        return rs.isDiscontinued;
+      },
+      successMessage:
+          text('"replaced by" status changed. The page will reload.'),
+      onSuccess: (_) => window.location.reload(),
+    );
   }
 
   Future<void> _toggleUnlisted() async {
