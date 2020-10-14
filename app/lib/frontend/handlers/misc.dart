@@ -80,10 +80,6 @@ Future<shelf.Response> robotsTxtHandler(shelf.Request request) async {
 
 /// Handles requests for /sitemap.txt
 Future<shelf.Response> sitemapTxtHandler(shelf.Request request) async {
-  if (requestContext.blockRobots) {
-    return notFoundHandler(request);
-  }
-
   final uri = request.requestedUri;
   final content = await cache.sitemap(uri.toString()).get(() async {
     // Google wants the return page to have < 50,000 entries and be less than
@@ -121,10 +117,6 @@ Future<shelf.Response> sitemapTxtHandler(shelf.Request request) async {
 /// Handles requests for /sitemap-2.txt
 Future<shelf.Response> sitemapPublishersTxtHandler(
     shelf.Request request) async {
-  if (requestContext.blockRobots) {
-    return notFoundHandler(request);
-  }
-
   final uri = request.requestedUri;
   final content = await cache.sitemap(uri.toString()).get(() async {
     final list = await publisherBackend.listPublishers(limit: 1000);
