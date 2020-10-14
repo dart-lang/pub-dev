@@ -508,6 +508,9 @@ bool _isKnownFailurePattern(String output) {
       output.contains('Dartdoc.logAnalysisErrors')) {
     return true;
   }
+  if (output.contains('fatal error: unable to locate the input directory at')) {
+    return true;
+  }
   return false;
 }
 
