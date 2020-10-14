@@ -21,6 +21,7 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 /// Make sure that at least two versions are kept here as the next candidates
 /// when the version switch happens.
 const acceptedRuntimeVersions = <String>[
+  // TODO: Once this version is obsolete, remove Package.doNotAdvertise
   '2020.10.09', // The current [runtimeVersion].
   '2020.10.06',
   '2020.10.01',
