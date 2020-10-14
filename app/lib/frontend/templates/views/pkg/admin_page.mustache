@@ -76,7 +76,16 @@
 </div>
 
 {{#show_replaced_by}}
-<h3>Replaced by</h3>
+<h3>Suggested replacement</h3>
+<p>
+  When a package is <i>discontinued</i> the author may designate a
+  <i>suggested replacement package</i>. Package users will be suggested
+  to consider using the designated replacement package.
+</p>
+<p>
+  Designating a replacement package is optional, and only serves to
+  guide existing package users.
+</p>
 <div class="-pub-form-row">
   <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
     <input type="text" id="-package-replaced-by" class="mdc-text-field__input" value="{{ replaced_by }}" />
@@ -88,7 +97,7 @@
   <button
       id="-package-replaced-by-button"
       class="mdc-button mdc-button--raised"
-      data-mdc-auto-init="MDCRipple">Update "replaced by"</button>
+      data-mdc-auto-init="MDCRipple">Update "suggested replacement"</button>
 </div>
 {{/show_replaced_by}}
 

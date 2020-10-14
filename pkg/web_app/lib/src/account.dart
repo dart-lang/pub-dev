@@ -228,7 +228,7 @@ class _PkgAdminWidget {
   Future<void> _updateReplacedBy() async {
     await rpc(
       confirmQuestion: text(
-          'Are you sure you want change the "replaced by" field of the package?'),
+          'Are you sure you want change the "suggested replacement" field of the package?'),
       fn: () async {
         final rs = await client.setPackageOptions(
             pageData.pkgData.package,
@@ -239,7 +239,7 @@ class _PkgAdminWidget {
         return rs.isDiscontinued;
       },
       successMessage:
-          text('"replaced by" status changed. The page will reload.'),
+          text('"suggested replacement" field changed. The page will reload.'),
       onSuccess: (_) => window.location.reload(),
     );
   }
