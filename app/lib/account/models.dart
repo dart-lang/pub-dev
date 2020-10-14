@@ -199,7 +199,13 @@ class UserSessionData {
     }
     // Double the layout size, for better quality on higher dpi displays.
     final imageSize = layoutSize * 2;
-    return '$imageUrl=s$imageSize';
+
+    // Strip existing options from the imageUrl if there is any
+    var u = imageUrl;
+    if (RegExp(r'=(?:[swh]\d+)|[cp](?:-(?:[swh]\d+)|[cp])*$').hasMatch(u)) {
+      u = u.substring(0, u.lastIndexOf('='));
+    }
+    return '$u=s$imageSize';
   }
 }
 
