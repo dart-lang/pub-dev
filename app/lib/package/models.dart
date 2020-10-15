@@ -102,7 +102,9 @@ class Package extends db.ExpandoModel<String> {
 
   /// Set to `true` if package should not be advertised on the front page,
   /// may otherwise be `false`.
-  @db.BoolProperty(required: true)
+  ///
+  /// TODO: remove after `20201013t135054` is no longer an active release.
+  @db.BoolProperty()
   bool doNotAdvertise;
 
   /// Tags that are assigned to this package.
