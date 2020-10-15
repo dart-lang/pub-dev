@@ -249,6 +249,7 @@ String renderPkgShowPage(PackagePageData data) {
       packagePageData: data,
       readmeTab: _readmeTab(data),
     ),
+    pkgSubPage: urls.PkgSubPage.readme,
   );
 }
 
@@ -260,6 +261,7 @@ String renderPkgChangelogPage(PackagePageData data) {
       packagePageData: data,
       changelogTab: _changelogTab(data),
     ),
+    pkgSubPage: urls.PkgSubPage.changelog,
   );
 }
 
@@ -271,6 +273,7 @@ String renderPkgExamplePage(PackagePageData data) {
       packagePageData: data,
       exampleTab: _exampleTab(data),
     ),
+    pkgSubPage: urls.PkgSubPage.example,
   );
 }
 
@@ -282,6 +285,7 @@ String renderPkgInstallPage(PackagePageData data) {
       packagePageData: data,
       installingTab: _installTab(data),
     ),
+    pkgSubPage: urls.PkgSubPage.install,
   );
 }
 
@@ -293,12 +297,14 @@ String renderPkgScorePage(PackagePageData data) {
       packagePageData: data,
       scoreTab: _scoreTab(data),
     ),
+    pkgSubPage: urls.PkgSubPage.score,
   );
 }
 
 String _renderPkgPage({
   @required PackagePageData data,
   @required List<Tab> tabs,
+  @required urls.PkgSubPage pkgSubPage,
 }) {
   final card = data.analysis?.card;
 
@@ -311,19 +317,17 @@ String _renderPkgPage({
   );
 
   final isFlutterPackage = data.version.pubspec.usesFlutter;
-  final isVersionPage = data.package.latestVersion != data.version.version;
-  final packageAndVersion = isVersionPage
-      ? '${data.version.package} ${data.version.version}'
-      : data.version.package;
+  final isLatestStable = data.package.latestVersion == data.version.version;
+  final packageAndVersion = isLatestStable
+      ? data.version.package
+      : '${data.version.package} ${data.version.version}';
   final pageTitle =
       '$packageAndVersion | ${isFlutterPackage ? 'Flutter' : 'Dart'} Package';
-  final canonicalUrl = isVersionPage
-      ? urls.pkgPageUrl(data.package.name, includeHost: true)
-      : null;
-  final shareUrl = urls.pkgPageUrl(
+  final canonicalUrl = urls.pkgPageUrl(
     data.package.name,
-    version: isVersionPage ? data.version.version : null,
+    version: isLatestStable ? null : data.version.version,
     includeHost: true,
+    pkgSubPage: pkgSubPage,
   );
   final noIndex = (card?.isSkipped ?? false) ||
       (card?.grantedPubPoints == 0) ||
@@ -335,7 +339,7 @@ String _renderPkgPage({
     pageDescription: data.version.ellipsizedDescription,
     faviconUrl: isFlutterPackage ? staticUrls.flutterLogo32x32 : null,
     canonicalUrl: canonicalUrl,
-    shareUrl: shareUrl,
+    shareUrl: canonicalUrl,
     noIndex: noIndex,
     pageData: pkgPageData(data.package, data.version),
   );

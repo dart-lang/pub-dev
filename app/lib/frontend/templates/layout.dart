@@ -80,7 +80,7 @@ String renderLayoutPage(
     'main_class': mainClasses.join(' '),
     'no_index': noIndex,
     'favicon': faviconUrl ?? staticUrls.smallDartFavicon,
-    'canonicalUrl': canonicalUrl,
+    'canonical_url': canonicalUrl,
     'share_url': shareUrl,
     'pageDescription': pageDescription == null
         ? _defaultPageDescriptionEscaped
