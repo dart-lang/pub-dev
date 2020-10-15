@@ -97,11 +97,14 @@ Future main(List<String> args) async {
     return null;
   }
 
-  // Store the state (and then exit) on CTRL+C.
-  final sigintSubscription = ProcessSignal.sigint.watch().listen((e) async {
-    await state.save();
-    exit(0);
-  });
+  StreamSubscription sigintSubscription;
+  if (state.hasValidFile) {
+    // Store the state (and then exit) on CTRL+C.
+    sigintSubscription = ProcessSignal.sigint.watch().listen((e) async {
+      await state.save();
+      exit(0);
+    });
+  }
 
   await updateLocalBuiltFilesIfNeeded();
   await Future.wait(
@@ -129,5 +132,6 @@ Future main(List<String> args) async {
   );
 
   await state.save();
-  await sigintSubscription.cancel();
+  await sigintSubscription?.cancel();
+  print('Server processes completed.');
 }

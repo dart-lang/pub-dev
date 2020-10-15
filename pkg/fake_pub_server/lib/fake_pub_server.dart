@@ -73,7 +73,7 @@ class FakePubServer {
           });
           _logger.info('running on port $port');
 
-          await ProcessSignal.sigterm.watch().first;
+          await ProcessSignal.sigint.watch().first;
 
           _logger.info('shutting down');
           await server.close();

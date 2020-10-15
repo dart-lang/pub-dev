@@ -151,17 +151,16 @@ class _NameTrackerUpdater {
     _logger.info(
         'Scanned initial package names (${nameTracker._length}) in ${sw.elapsed}.');
 
-    await _sleep();
-    _logger.info('Monitoring new package creation.');
+    _logger.info('Monitoring new package creation....');
 
-    for (;;) {
+    for (; !_stopped;) {
+      await _sleep();
       if (_stopped) break;
       try {
         await _scan();
       } catch (e, st) {
         _logger.severe(e, st);
       }
-      await _sleep();
     }
 
     _logger.info('Monitoring ended.');
@@ -210,5 +209,6 @@ class _NameTrackerUpdater {
     if (_sleepCompleter != null && !_sleepCompleter.isCompleted) {
       _sleepCompleter.complete();
     }
+    _sleepTimer?.cancel();
   }
 }

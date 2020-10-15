@@ -50,8 +50,10 @@ class FakeAnalyzerService {
           serveRequests(server.server, (request) async {
             return await ss.fork(() async {
               if (request.requestedUri.path == '/fake-update-all') {
+                _logger.info('Triggered update all...');
                 // ignore: invalid_use_of_visible_for_testing_member
                 await jobMaintenance.scanUpdateAndRunOnce();
+                _logger.info('Completed update all...');
                 return shelf.Response.ok('');
               }
               return await handler(request);
@@ -59,7 +61,7 @@ class FakeAnalyzerService {
           });
           _logger.info('running on port $port');
 
-          await ProcessSignal.sigterm.watch().first;
+          await ProcessSignal.sigint.watch().first;
 
           _logger.info('shutting down');
           await server.close();

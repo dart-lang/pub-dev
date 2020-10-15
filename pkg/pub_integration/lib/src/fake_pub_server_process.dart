@@ -20,6 +20,8 @@ class FakePubServerProcess {
   final Process _process;
   final _startedCompleter = Completer();
   StreamSubscription _stdoutListener;
+  StreamSubscription _stderrListener;
+  Timer _startupTimeoutTimer;
   final _linePatterns = <_LinePattern>[];
 
   FakePubServerProcess._(this.port, this._process);
@@ -69,6 +71,7 @@ class FakePubServerProcess {
         print(line);
         if (line.contains('running on port $port')) {
           _startedCompleter.complete();
+          _startupTimeoutTimer?.cancel();
         }
         for (int i = _linePatterns.length - 1; i >= 0; i--) {
           final p = _linePatterns[i];
@@ -79,7 +82,13 @@ class FakePubServerProcess {
         }
       },
     );
-    Timer(Duration(seconds: 60), () {
+    _stderrListener = _process.stderr
+        .transform(utf8.decoder)
+        .transform(LineSplitter())
+        .listen((line) {
+      print('[ERR] $line');
+    });
+    _startupTimeoutTimer = Timer(Duration(seconds: 60), () {
       if (!_startedCompleter.isCompleted) {
         _startedCompleter.completeError('Timout starting fake_pub_server');
       }
@@ -95,14 +104,19 @@ class FakePubServerProcess {
   }
 
   Future<void> kill() async {
-    // First try SIGTERM, and after 10 minutes do SIGKILL.
-    _process.kill(ProcessSignal.sigterm);
+    // First try SIGINT, and after 10 minutes do SIGTERM.
+    print('Sending INT signal to ${_process.pid}...');
+    _process.kill(ProcessSignal.sigint);
     final timer = Timer(Duration(minutes: 10), () {
+      print('Sending TERM signal to ${_process.pid}...');
       _process.kill();
     });
-    await _process.exitCode;
-    await _stdoutListener?.cancel();
+    final exitCode = await _process.exitCode;
+    print('Exit code: $exitCode');
     timer.cancel();
+    await _stdoutListener?.cancel();
+    await _stderrListener?.cancel();
+    _startupTimeoutTimer?.cancel();
   }
 }
 
