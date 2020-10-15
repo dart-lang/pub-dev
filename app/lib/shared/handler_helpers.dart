@@ -186,7 +186,7 @@ shelf.Handler _sanitizeRequestWrapper(shelf.Handler handler) {
     try {
       sanitizedRequest = _sanitizeRequestedUri(request);
     } on FormatException catch (_) {
-      return invalidRequestHandler(request);
+      return badRequestHandler(request);
     }
     return await handler(sanitizedRequest);
   };
@@ -266,7 +266,14 @@ shelf.Handler _httpsWrapper(shelf.Handler handler) {
 }
 
 shelf.Request _sanitizeRequestedUri(shelf.Request request) {
+  // These methods may throw FormatException.
+  void triggerUriParsingMethods(Uri uri) {
+    uri.pathSegments;
+    uri.queryParametersAll;
+  }
+
   final uri = request.requestedUri;
+  triggerUriParsingMethods(uri);
   final resource = Uri.decodeFull(uri.path);
   final normalizedResource = path.normalize(resource);
 
@@ -282,6 +289,7 @@ shelf.Request _sanitizeRequestedUri(shelf.Request request) {
     // (The pub client will not remove it and instead directly try to request
     //  "GET //api/..." :-/ )
     final changedUri = uri.replace(path: normalizedResource);
+    triggerUriParsingMethods(changedUri);
     final sanitized = shelf.Request(
       request.method,
       changedUri,
