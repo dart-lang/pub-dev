@@ -502,12 +502,15 @@ class DartdocJobProcessor extends JobProcessor {
 }
 
 bool _isKnownFailurePattern(String output) {
+  // dartdoc throws a generic exception with unexpected analysis errors e.g.
+  // it could have encountered a file parsing issue, or an invalid reference.
   if (output.contains('Unhandled exception:') &&
       output.contains('encountered ') &&
       output.contains(' analysis errors') &&
       output.contains('Dartdoc.logAnalysisErrors')) {
     return true;
   }
+  // dartdoc throws this exception when the imported library doesn't exists.
   if (output.contains('fatal error: unable to locate the input directory at')) {
     return true;
   }
