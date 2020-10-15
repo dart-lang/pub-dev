@@ -143,7 +143,9 @@ class UserSession extends db.ExpandoModel<String> {
 /// Pattern for detecting profile image parameters as specified in [1].
 ///
 /// [1]: https://developers.google.com/people/image-sizing
-final _imgParamPattern = RegExp(r'=(?:[swh]\d+)|[cp](?:-(?:[swh]\d+)|[cp])*$');
+final _imgParamPattern = RegExp(
+  r'=(?:(?:[swh]\d+)|[cp])(?:-(?:[swh]\d+)|[cp])*$',
+);
 
 /// The cacheable version of [UserSession].
 @JsonSerializable()
@@ -207,7 +209,7 @@ class UserSessionData {
 
     // Strip existing options from the imageUrl if there is any
     var u = imageUrl;
-    if (_imgParamPattern.hasMatch(u)) {
+    if (u.contains('=') && _imgParamPattern.hasMatch(u)) {
       u = u.substring(0, u.lastIndexOf('='));
     }
     return '$u=s$imageSize';
