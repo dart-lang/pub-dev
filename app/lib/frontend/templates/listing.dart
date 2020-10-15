@@ -11,6 +11,7 @@ import 'package:pub_dev/shared/markdown.dart';
 import 'package:pub_dev/shared/utils.dart';
 
 import '../../package/models.dart';
+import '../../search/search_form.dart';
 import '../../search/search_service.dart';
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
@@ -34,7 +35,7 @@ String renderPagination(PageLinks pageLinks) {
 /// Renders the `views/pkg/package_list.mustache` template.
 String renderPackageList(
   List<PackageView> packages, {
-  FrontendSearchQuery searchQuery,
+  SearchForm searchForm,
 }) {
   final packagesJson = [];
   for (int i = 0; i < packages.length; i++) {
@@ -117,47 +118,52 @@ String renderPkgIndexPage(
   PageLinks links, {
   String sdk,
   String title,
-  FrontendSearchQuery searchQuery,
+  SearchForm searchForm,
   int totalCount,
   String searchPlaceholder,
   String messageFromBackend,
 }) {
   final topPackages = getSdkDict(sdk).topSdkPackages;
-  final isSearch = searchQuery != null && searchQuery.hasQuery;
-  final includeUnlisted = searchQuery?.includeUnlisted ?? false;
-  final includeLegacy = searchQuery?.includeLegacy ?? false;
+  final isSearch = searchForm != null && searchForm.hasQuery;
+  final includeDiscontinued = searchForm?.includeDiscontinued ?? false;
+  final includeUnlisted = searchForm?.includeUnlisted ?? false;
+  final includeLegacy = searchForm?.includeLegacy ?? false;
   final subSdkTabsAdvanced =
-      renderSubSdkTabsHtml(searchQuery: searchQuery, onlyAdvanced: true);
+      renderSubSdkTabsHtml(searchForm: searchForm, onlyAdvanced: true);
   // TODO: There should be a more efficient way to calculate this
   final hasActiveSubSdkAdvanced =
       subSdkTabsAdvanced != null && subSdkTabsAdvanced.contains('-active');
-  final hasActiveAdvanced =
-      includeUnlisted || includeLegacy || hasActiveSubSdkAdvanced;
+  final hasActiveAdvanced = includeDiscontinued ||
+      includeUnlisted ||
+      includeLegacy ||
+      hasActiveSubSdkAdvanced;
   final values = {
     'has_active_advanced': hasActiveAdvanced,
-    'sdk_tabs_html': renderSdkTabs(searchQuery: searchQuery),
-    'subsdk_label': _subSdkLabel(searchQuery),
-    'subsdk_tabs_html': renderSubSdkTabsHtml(searchQuery: searchQuery),
+    'sdk_tabs_html': renderSdkTabs(searchForm: searchForm),
+    'subsdk_label': _subSdkLabel(searchForm),
+    'subsdk_tabs_html': renderSubSdkTabsHtml(searchForm: searchForm),
     'has_subsdk_tabs_advanced_html': subSdkTabsAdvanced != null,
     'subsdk_tabs_advanced_html': subSdkTabsAdvanced,
     'is_search': isSearch,
     'listing_info_html': renderListingInfo(
-      searchQuery: searchQuery,
+      searchForm: searchForm,
       totalCount: totalCount,
       title: title ?? topPackages,
       messageFromBackend: messageFromBackend,
     ),
-    'package_list_html': renderPackageList(packages, searchQuery: searchQuery),
+    'package_list_html': renderPackageList(packages, searchForm: searchForm),
     'has_packages': packages.isNotEmpty,
     'pagination': renderPagination(links),
+    'include_discontinued': includeDiscontinued,
     'include_unlisted': includeUnlisted,
-    'legacy_search_enabled': includeLegacy,
+    'show_legacy_checkbox': SdkTagValue.isAny(sdk),
+    'include_legacy': includeLegacy,
   };
   final content = templateCache.renderTemplate('pkg/index', values);
 
   String pageTitle = title ?? topPackages;
   if (isSearch) {
-    pageTitle = 'Search results for ${searchQuery.query}.';
+    pageTitle = 'Search results for ${searchForm.query}.';
   } else {
     if (links.rightmostPage > 1) {
       pageTitle = 'Page ${links.currentPage} | $pageTitle';
@@ -168,7 +174,7 @@ String renderPkgIndexPage(
     content,
     title: pageTitle,
     sdk: sdk,
-    searchQuery: searchQuery,
+    searchForm: searchForm,
     noIndex: true,
     searchPlaceHolder: searchPlaceholder,
     mainClasses: [],
@@ -177,19 +183,19 @@ String renderPkgIndexPage(
 
 /// Renders the `views/shared/listing_info.mustache` template.
 String renderListingInfo({
-  @required FrontendSearchQuery searchQuery,
+  @required SearchForm searchForm,
   @required int totalCount,
   String title,
   String ownedBy,
   @required String messageFromBackend,
 }) {
-  final isSearch = searchQuery != null && searchQuery.hasQuery;
+  final isSearch = searchForm != null && searchForm.hasQuery;
   return templateCache.renderTemplate('shared/listing_info', {
-    'sort_control_html': renderSortControl(searchQuery),
+    'sort_control_html': renderSortControl(searchForm),
     'total_count': totalCount,
     'package_or_packages': totalCount == 1 ? 'package' : 'packages',
     'has_search_query': isSearch,
-    'search_query': searchQuery?.query,
+    'search_query': searchForm?.query,
     'has_owned_by': ownedBy != null,
     'owned_by': ownedBy,
     'has_message_from_backend': messageFromBackend != null,
@@ -197,7 +203,7 @@ String renderListingInfo({
   });
 }
 
-String _subSdkLabel(FrontendSearchQuery sq) {
+String _subSdkLabel(SearchForm sq) {
   if (sq?.sdk == SdkTagValue.dart) {
     return 'Runtime';
   } else if (sq?.sdk == SdkTagValue.flutter) {
@@ -208,10 +214,10 @@ String _subSdkLabel(FrontendSearchQuery sq) {
 }
 
 /// Renders the `views/shared/sort_control.mustache` template.
-String renderSortControl(FrontendSearchQuery query) {
-  final isSearch = query != null && query.hasQuery;
+String renderSortControl(SearchForm form) {
+  final isSearch = form != null && form.hasQuery;
   final options = getSortDicts(isSearch);
-  final selectedValue = serializeSearchOrder(query?.order) ??
+  final selectedValue = serializeSearchOrder(form?.order) ??
       (isSearch ? 'search_relevance' : 'listing_relevance');
   final selectedOption = options.firstWhere(
     (o) => o.id == selectedValue,
@@ -234,15 +240,15 @@ String renderSortControl(FrontendSearchQuery query) {
 class PageLinks {
   final int offset;
   final int count;
-  final FrontendSearchQuery _searchQuery;
+  final SearchForm _searchForm;
 
-  PageLinks(this.offset, this.count, {FrontendSearchQuery searchQuery})
-      : _searchQuery = searchQuery;
+  PageLinks(this.offset, this.count, {SearchForm searchForm})
+      : _searchForm = searchForm;
 
   PageLinks.empty()
       : offset = 1,
         count = 1,
-        _searchQuery = null;
+        _searchForm = null;
 
   int get leftmostPage => max(currentPage - maxPages ~/ 2, 1);
 
@@ -299,10 +305,10 @@ class PageLinks {
   }
 
   String formatHref(int page) {
-    if (_searchQuery == null) {
+    if (_searchForm == null) {
       return urls.searchUrl(page: page);
     } else {
-      return _searchQuery.toSearchLink(page: page);
+      return _searchForm.toSearchLink(page: page);
     }
   }
 }

@@ -12,6 +12,7 @@
   </div>
   {{/show_search_filters_btn}}
   {{#search_sort_param}}<input type="hidden" name="sort" value="{{search_sort_param}}"/>{{/search_sort_param}}
+  <input id="-search-discontinued-field" type="hidden" name="discontinued" value="1"{{^include_discontinued}} disabled="disabled"{{/include_discontinued}} />
   <input id="-search-unlisted-field" type="hidden" name="unlisted" value="1"{{^include_unlisted}} disabled="disabled"{{/include_unlisted}} />
   <input id="-search-legacy-field" type="hidden" name="legacy" value="1"{{^legacy_search_enabled}} disabled="disabled"{{/legacy_search_enabled}} />
   {{#hidden_inputs}}

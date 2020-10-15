@@ -9,7 +9,7 @@ import 'package:pub_dev/shared/markdown.dart';
 
 import '../../package/models.dart' show PackageView;
 import '../../publisher/models.dart' show Publisher;
-import '../../search/search_service.dart' show FrontendSearchQuery;
+import '../../search/search_form.dart' show SearchForm;
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart' show shortDateFormat;
 
@@ -80,11 +80,11 @@ String renderPublisherPackagesPage({
   @required List<PackageView> packages,
   @required String messageFromBackend,
   @required PageLinks pageLinks,
-  @required FrontendSearchQuery searchQuery,
+  @required SearchForm searchForm,
   @required int totalCount,
   @required bool isAdmin,
 }) {
-  final isSearch = searchQuery.hasQuery;
+  final isSearch = searchForm.hasQuery;
   String title = 'Packages of publisher ${publisher.publisherId}';
   if (isSearch && pageLinks.currentPage > 1) {
     title += ' | Page ${pageLinks.currentPage}';
@@ -92,12 +92,12 @@ String renderPublisherPackagesPage({
 
   final packageListHtml = packages.isEmpty
       ? ''
-      : renderPackageList(packages, searchQuery: searchQuery);
+      : renderPackageList(packages, searchForm: searchForm);
   final paginationHtml = renderPagination(pageLinks);
 
   final tabContent = [
     renderListingInfo(
-      searchQuery: searchQuery,
+      searchForm: searchForm,
       totalCount: totalCount,
       ownedBy: publisher.publisherId,
       messageFromBackend: messageFromBackend,
@@ -130,7 +130,7 @@ String renderPublisherPackagesPage({
       ),
     ),
     publisherId: publisher.publisherId,
-    searchQuery: searchQuery,
+    searchForm: searchForm,
     // index only the first page, if it has packages displayed without search query
     noIndex: packages.isEmpty || isSearch || pageLinks.currentPage > 1,
     mainClasses: [wideHeaderDetailPageClassName],
@@ -185,6 +185,8 @@ String renderPublisherAdminPage({
 }
 
 String _renderDetailHeader(Publisher publisher) {
+  final websiteUri = urls.parseValidUrl(publisher.websiteUrl);
+  final websiteRel = (websiteUri?.shouldIndicateUgc ?? false) ? 'ugc' : null;
   final metadataHtml = templateCache.renderTemplate(
     'publisher/header_metadata',
     {
@@ -193,9 +195,10 @@ String _renderDetailHeader(Publisher publisher) {
       'description_html': _shortDescriptionHtml(publisher),
       'has_contact_email': publisher.hasContactEmail,
       'contact_email': publisher.contactEmail,
-      'has_website_url': publisher.hasWebsiteUrl,
+      'has_website_url': websiteUri != null,
       'website_url': publisher.websiteUrl,
       'website_url_displayed': urls.displayableUrl(publisher.websiteUrl),
+      'website_url_rel': websiteRel,
     },
   );
   return renderDetailHeader(

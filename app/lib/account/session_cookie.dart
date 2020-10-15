@@ -44,8 +44,6 @@ Map<String, String> createSessionCookie(UserSessionData session) {
 ///
 /// The [cookieString] is the value of the `cookie:` request header.
 String parseSessionCookie(String cookieString) {
-  ArgumentError.checkNotNull(cookieString, 'cookieString');
-
   final sessionId = parseCookieHeader(cookieString)['$_pubSessionCookieName'];
   // An empty sessionId cookie is the result of reseting the cookie.
   // Browser usually won't send this, but let's make sure we handle the case.

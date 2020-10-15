@@ -8,6 +8,7 @@ import 'package:test/test.dart';
 
 import 'package:pub_dev/search/mem_index.dart';
 import 'package:pub_dev/search/scope_specificity.dart';
+import 'package:pub_dev/search/search_form.dart';
 import 'package:pub_dev/search/search_service.dart';
 
 void main() {
@@ -90,7 +91,7 @@ void main() {
 
     test('text search with platform', () async {
       final withPlatform = await index.search(
-        FrontendSearchQuery.parse(
+        SearchForm.parse(
           query: 'json',
           sdk: 'flutter',
         ).toServiceQuery(),

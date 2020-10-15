@@ -13,7 +13,7 @@ import '../../analyzer/analyzer_client.dart';
 import '../../package/models.dart';
 import '../../package/overrides.dart' show devDependencyPackages;
 import '../../scorecard/models.dart';
-import '../../search/search_service.dart';
+import '../../search/search_form.dart';
 import '../../shared/email.dart' show EmailAddress;
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
@@ -144,16 +144,20 @@ String renderPkgInfoBox(
     bool detectServiceProvider = false,
     bool documentation = false,
   }) {
-    if (href == null || href.isEmpty) {
-      return;
-    }
+    final uri = urls.parseValidUrl(href);
+    if (uri == null) return;
+
     if (detectServiceProvider) {
       final providerName = urls.inferServiceProviderName(href);
       if (providerName != null) {
         label += ' ($providerName)';
       }
     }
-    final linkData = <String, dynamic>{'href': href, 'label': label};
+    final linkData = <String, dynamic>{
+      'href': href,
+      'label': label,
+      'rel': uri.shouldIndicateUgc ? 'ugc' : null,
+    };
     if (documentation) {
       docLinks.add(linkData);
     } else {
@@ -433,8 +437,7 @@ String _getAuthorsHtml(List<String> authors) {
     if (author.email != null) {
       final escapedEmail = htmlAttrEscape.convert(author.email);
       final emailSearchUrl = htmlAttrEscape.convert(
-          FrontendSearchQuery.parse(query: 'email:${author.email}')
-              .toSearchLink());
+          SearchForm.parse(query: 'email:${author.email}').toSearchLink());
       final text =
           '<a href="$emailSearchUrl" title="Search packages from $escapedName" rel="nofollow">'
           '$escapedEmail'

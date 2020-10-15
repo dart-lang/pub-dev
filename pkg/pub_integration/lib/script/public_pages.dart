@@ -28,6 +28,7 @@ class PublicPagesScript {
       await _securityPage();
       await _atomFeed();
       await _searchPage();
+      await _sitemaps();
       await _badRequest();
     } finally {
       await _pubClient.close();
@@ -73,6 +74,11 @@ class PublicPagesScript {
     _contains(content, 'search query <code>retry</code>');
   }
 
+  Future<void> _sitemaps() async {
+    await _pubClient.getContent('/sitemap.txt');
+    await _pubClient.getContent('/sitemap-2.txt');
+  }
+
   Future<void> _badRequest() async {
     _contains(
         await _pubClient.getContent(
@@ -83,6 +89,12 @@ class PublicPagesScript {
     _contains(
         await _pubClient.getContent(
           '/packages?q=%D0%C2%BD%A8%CE%C4%BC%FE%BC%D0',
+          expectedStatusCode: 400,
+        ),
+        'Bad Request');
+    _contains(
+        await _pubClient.getContent(
+          '/documentation/dart_amqp/latest//..%25c0%25af..%25c0%25af..%25c0%25af..%25c0%25af..%25c0%25af..%25c0%25af..%25c0%25af..%25c0%25af/etc/passwd',
           expectedStatusCode: 400,
         ),
         'Bad Request');

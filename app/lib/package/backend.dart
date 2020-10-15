@@ -15,6 +15,7 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' show runProc;
 import 'package:path/path.dart' as p;
+import 'package:pub_dev/package/overrides.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 
 import '../account/backend.dart';
@@ -83,26 +84,28 @@ class PackageBackend {
     });
   }
 
-  /// Retrieves packages ordered by their created date.
-  Future<List<Package>> newestPackages({int offset, int limit}) {
-    final query = db.query<Package>()
-      ..order('-created')
-      ..offset(offset)
-      ..limit(limit);
-    return query.run().where((p) => p.isVisible).toList();
-  }
-
   /// Retrieves packages ordered by their latest version date.
-  Future<List<Package>> latestPackages({int offset, int limit}) {
+  Future<PackagePage> latestPackages({int offset, int limit}) async {
+    offset ??= 0;
+    limit ??= 10;
     final query = db.query<Package>()
       ..order('-updated')
       ..offset(offset)
-      ..limit(limit);
-    return query.run().where((p) => p.isVisible).toList();
+      ..limit(limit + 1);
+    final result = await query.run().toList();
+    final packages = result
+        .take(limit)
+        .where((p) => p.isVisible)
+        .where((p) => !isSoftRemoved(p.name))
+        .toList();
+    return PackagePage(
+      packages: packages,
+      isLast: result.length <= limit,
+    );
   }
 
-  /// Retrieves the names of all packages that need to be included in robots.txt.
-  Stream<String> robotsPackageNames() {
+  /// Retrieves the names of all packages that need to be included in sitemap.txt.
+  Stream<String> sitemapPackageNames() {
     final query = db.query<Package>()
       ..filter(
           'updated >', DateTime.now().toUtc().subtract(robotsVisibilityMaxAge));
@@ -110,14 +113,15 @@ class PackageBackend {
         .run()
         .where((p) => p.isVisible)
         .where((p) => p.isIncludedInRobots)
+        .where((p) => !isSoftRemoved(p.name))
         .map((p) => p.name);
   }
 
   /// Retrieves package versions ordered by their latest version date.
   Future<List<PackageVersion>> latestPackageVersions(
       {int offset, int limit}) async {
-    final packages = await latestPackages(offset: offset, limit: limit);
-    return lookupLatestVersions(packages);
+    final pkgPage = await latestPackages(offset: offset, limit: limit);
+    return lookupLatestVersions(pkgPage.packages);
   }
 
   /// Returns the latest stable version of a package.
@@ -194,6 +198,16 @@ class PackageBackend {
   /// Updates [options] on [package].
   Future<void> updateOptions(String package, api.PkgOptions options) async {
     final user = await requireAuthenticatedUser();
+    // Validate replacedBy parameter
+    final replacedBy = options.replacedBy?.trim() ?? '';
+    if (replacedBy.isNotEmpty) {
+      InvalidInputException.check(options.isDiscontinued == true,
+          '"replacedBy" must be set only with "isDiscontinued": true.');
+
+      final rp = await lookupPackage(replacedBy);
+      InvalidInputException.check(rp != null && rp.isVisible,
+          'Package specified by "replaceBy" does not exists.');
+    }
 
     final pkgKey = db.emptyKey.append(Package, id: package);
     String latestVersion;
@@ -211,6 +225,7 @@ class PackageBackend {
       if (options.isDiscontinued != null &&
           options.isDiscontinued != p.isDiscontinued) {
         p.isDiscontinued = options.isDiscontinued;
+        p.replacedBy = replacedBy.isEmpty ? null : replacedBy;
         hasOptionsChanged = true;
       }
       if (options.isUnlisted != null && options.isUnlisted != p.isUnlisted) {
@@ -381,6 +396,7 @@ class PackageBackend {
     return api.PackageData(
       name: package,
       isDiscontinued: pkg.isDiscontinued ? true : null,
+      replacedBy: pkg.replacedBy,
       latest: _toApiVersionInfo(baseUri, latest),
       versions:
           packageVersions.map((pv) => _toApiVersionInfo(baseUri, pv)).toList(),
@@ -824,6 +840,13 @@ class PackageBackend {
     _logger.warning('Unknown upload restriction status: $value');
     return UploadRestrictionStatus.noRestriction;
   }
+}
+
+class PackagePage {
+  final List<Package> packages;
+  final bool isLast;
+
+  PackagePage({@required this.packages, @required this.isLast});
 }
 
 enum UploadRestrictionStatus {

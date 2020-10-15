@@ -76,7 +76,10 @@ Future<void> importProfile({
     ]);
   }
 
-  // create packages
+  // set of packages that have their publisher and options set.
+  final updatedPackages = <String>{};
+
+  // create versions
   Client client;
   final archiveCacheDir = Directory(archiveCachePath);
   await archiveCacheDir.create(recursive: true);
@@ -85,7 +88,7 @@ Future<void> importProfile({
     final packageName = parts.first;
     final versionName = parts.last;
 
-    final fileName = rv.replaceAll(':', '-');
+    final fileName = rv.replaceAll(':', '-') + '.tar.gz';
     final file = File(p.join(archiveCacheDir.path, fileName));
     // download package archive if not already in the cache
     if (!await file.exists()) {
@@ -96,15 +99,7 @@ Future<void> importProfile({
     }
 
     // figure out the active user
-    final testPackage =
-        profile.packages.firstWhere((p) => p.name == packageName);
-    final uploaderEmails = testPackage.publisher == null
-        ? testPackage.uploaders
-        : profile.publishers
-            .firstWhere((p) => p.name == testPackage.publisher)
-            .members
-            .map((m) => m.email)
-            .toList();
+    final uploaderEmails = _potentialActiveEmails(profile, packageName);
     final uploaderEmail =
         uploaderEmails[rv.hashCode.abs() % uploaderEmails.length];
     final activeUser =
@@ -116,13 +111,28 @@ Future<void> importProfile({
       // ignore: invalid_use_of_visible_for_testing_member
       await packageBackend.upload(file.openRead());
 
-      if (testPackage.publisher != null) {
-        await packageBackend.setPublisher(
-          packageName,
-          PackagePublisherInfo(
-            publisherId: testPackage.publisher,
-          ),
-        );
+      final testPackage = profile.getTestPackage(packageName);
+      if (testPackage != null && !updatedPackages.contains(packageName)) {
+        // update publisher
+        final publisherId = testPackage?.publisher;
+        if (publisherId != null) {
+          await packageBackend.setPublisher(
+            packageName,
+            PackagePublisherInfo(publisherId: publisherId),
+          );
+        }
+
+        // update options - sending null is a no-op
+        await packageBackend.updateOptions(
+            packageName,
+            PkgOptions(
+              isDiscontinued: testPackage.isDiscontinued,
+              replacedBy: testPackage.replacedBy,
+              isUnlisted: testPackage.isUnlisted,
+            ));
+
+        // don't repeat the same updates for another version
+        updatedPackages.add(packageName);
       }
     });
   }
@@ -143,6 +153,24 @@ Future<void> importProfile({
       )
     ]);
   }
+}
+
+List<String> _potentialActiveEmails(TestProfile profile, String packageName) {
+  final testPackage = profile.packages
+      .firstWhere((p) => p.name == packageName, orElse: () => null);
+
+  // no test package specification
+  if (testPackage == null) return [profile.defaultUser];
+
+  // uploaders
+  if (testPackage.publisher == null) return testPackage.uploaders;
+
+  // publisher
+  print([testPackage.publisher, profile.publishers.map((p) => p.name)]);
+  final members = profile.publishers
+      .firstWhere((p) => p.name == testPackage.publisher)
+      .members;
+  return members.map((m) => m.email).toList();
 }
 
 String _baseIdFromEmail(String email) =>

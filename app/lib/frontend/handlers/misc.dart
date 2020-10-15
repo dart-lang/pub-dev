@@ -12,9 +12,9 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../../package/backend.dart';
 import '../../package/name_tracker.dart';
-import '../../package/overrides.dart';
 import '../../publisher/backend.dart';
 import '../../shared/handlers.dart';
+import '../../shared/redis_cache.dart';
 import '../../shared/urls.dart' as urls;
 
 import '../request_context.dart';
@@ -79,64 +79,57 @@ Future<shelf.Response> robotsTxtHandler(shelf.Request request) async {
 }
 
 /// Handles requests for /sitemap.txt
-Future<shelf.Response> siteMapTxtHandler(shelf.Request request) async {
-  if (requestContext.blockRobots) {
-    return notFoundHandler(request);
-  }
-
+Future<shelf.Response> sitemapTxtHandler(shelf.Request request) async {
   final uri = request.requestedUri;
+  final content = await cache.sitemap(uri.toString()).get(() async {
+    // Google wants the return page to have < 50,000 entries and be less than
+    // 50MB -  https://support.google.com/webmasters/answer/183668?hl=en
+    // As of 2018-01-01, the return page is ~3,000 entries and ~140KB
+    // By restricting to packages that have been updated in the last two years,
+    // the count is closer to ~1,500
 
-  // Google wants the return page to have < 50,000 entries and be less than
-  // 50MB -  https://support.google.com/webmasters/answer/183668?hl=en
-  // As of 2018-01-01, the return page is ~3,000 entries and ~140KB
-  // By restricting to packages that have been updated in the last two years,
-  // the count is closer to ~1,500
+    final items = <String>[];
+    final pages = [
+      '/',
+      '/help',
+      '/web',
+      '/flutter',
+      '/publishers',
+    ];
+    items.addAll(pages.map((page) => uri.replace(path: page).toString()));
 
-  final items = <String>[];
-  final pages = [
-    '/',
-    '/help',
-    '/web',
-    '/flutter',
-    '/publishers',
-  ];
-  items.addAll(pages.map((page) => uri.replace(path: page).toString()));
+    final stream = packageBackend.sitemapPackageNames();
+    await for (var package in stream) {
+      final pkgPath = urls.pkgPageUrl(package);
+      items.add(uri.replace(path: pkgPath).toString());
 
-  final stream = packageBackend.robotsPackageNames();
-  await for (var package in stream) {
-    if (isSoftRemoved(package)) continue;
+      final docPath = urls.pkgDocUrl(package, isLatest: true);
+      items.add(uri.replace(path: docPath).toString());
+    }
 
-    final pkgPath = urls.pkgPageUrl(package);
-    items.add(uri.replace(path: pkgPath).toString());
+    items.sort();
+    return items.join('\n');
+  });
 
-    final docPath = urls.pkgDocUrl(package, isLatest: true);
-    items.add(uri.replace(path: docPath).toString());
-  }
-
-  items.sort();
-
-  return shelf.Response.ok(items.join('\n'));
+  return shelf.Response.ok(content);
 }
 
 /// Handles requests for /sitemap-2.txt
 Future<shelf.Response> sitemapPublishersTxtHandler(
     shelf.Request request) async {
-  if (requestContext.blockRobots) {
-    return notFoundHandler(request);
-  }
-
   final uri = request.requestedUri;
+  final content = await cache.sitemap(uri.toString()).get(() async {
+    final list = await publisherBackend.listPublishers(limit: 1000);
+    if (list.length == 1000) {
+      _logger.shout(
+          'Number of publishers reached backend query limit, do implement paging.');
+    }
 
-  final list = await publisherBackend.listPublishers(limit: 1000);
-  if (list.length == 1000) {
-    _logger.shout(
-        'Number of publishers reached backend query limit, do implement paging.');
-  }
-
-  final content = list
-      .map((p) => urls.publisherUrl(p.publisherId))
-      .map((s) => uri.replace(path: s).toString())
-      .join('\n');
+    return list
+        .map((p) => urls.publisherUrl(p.publisherId))
+        .map((s) => uri.replace(path: s).toString())
+        .join('\n');
+  });
 
   return shelf.Response.ok(content);
 }

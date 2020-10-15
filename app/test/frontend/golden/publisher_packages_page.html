@@ -108,6 +108,7 @@
         <form class="search-bar banner-item" action="/publishers/example.com/packages">
           <input class="input" name="q" placeholder="Search example.com packages" autocomplete="on" autofocus="autofocus"/>
           <button class="icon"></button>
+          <input id="-search-discontinued-field" type="hidden" name="discontinued" value="1" disabled="disabled"/>
           <input id="-search-unlisted-field" type="hidden" name="unlisted" value="1" disabled="disabled"/>
           <input id="-search-legacy-field" type="hidden" name="legacy" value="1" disabled="disabled"/>
         </form>
@@ -129,7 +130,7 @@
                   <p>
                     <span class="detail-header-metadata-ref">
                       <img class="detail-header-metadata-ref-icon" src="/static/img/link-icon.svg?hash=mocked_hash_709199651"/>
-                      <a class="detail-header-metadata-ref-label" href="https://example.com/">example.com/</a>
+                      <a class="detail-header-metadata-ref-label" href="https://example.com/" rel="ugc">example.com/</a>
                     </span>
                     <span class="detail-header-metadata-ref">
                       <img class="detail-header-metadata-ref-icon" src="/static/img/email-icon.svg?hash=mocked_hash_308057918"/>

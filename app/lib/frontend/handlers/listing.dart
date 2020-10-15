@@ -8,8 +8,8 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../../package/backend.dart';
 import '../../package/models.dart';
-import '../../package/overrides.dart';
 import '../../package/search_adapter.dart';
+import '../../search/search_form.dart';
 import '../../search/search_service.dart';
 import '../../shared/handlers.dart';
 import '../../shared/tags.dart';
@@ -79,24 +79,23 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
   TagsPredicate tagsPredicate,
   String searchPlaceholder,
 }) async {
-  // TODO: use search memcache for all results here or remove search memcache
-  final searchQuery = parseFrontendSearchQuery(
+  final searchForm = parseFrontendSearchForm(
     request.requestedUri.queryParameters,
     sdk: sdk,
     tagsPredicate: tagsPredicate ?? TagsPredicate.regularSearch(),
   );
   final sw = Stopwatch()..start();
-  final searchResult = await searchAdapter.search(searchQuery);
+  final searchResult = await searchAdapter.search(searchForm);
   final int totalCount = searchResult.totalCount;
 
   final links =
-      PageLinks(searchQuery.offset, totalCount, searchQuery: searchQuery);
+      PageLinks(searchForm.offset, totalCount, searchForm: searchForm);
   final result = htmlResponse(
     renderPkgIndexPage(
       searchResult.packages,
       links,
       sdk: sdk,
-      searchQuery: searchQuery,
+      searchForm: searchForm,
       totalCount: totalCount,
       title: title,
       searchPlaceholder: searchPlaceholder,
@@ -127,15 +126,12 @@ Future<shelf.Response> _packagesHandlerJson(
   final pageSize = 50;
 
   final offset = pageSize * (page - 1);
-  final limit = pageSize + 1;
 
-  final packages =
-      await packageBackend.latestPackages(offset: offset, limit: limit);
-  packages.removeWhere((p) => isSoftRemoved(p.name));
-  final bool lastPage = packages.length < limit;
+  final pkgPage =
+      await packageBackend.latestPackages(offset: offset, limit: pageSize);
 
   Uri nextPageUrl;
-  if (!lastPage) {
+  if (!pkgPage.isLast) {
     nextPageUrl =
         request.requestedUri.resolve('/packages.json?page=${page + 1}');
   }
@@ -148,7 +144,7 @@ Future<shelf.Response> _packagesHandlerJson(
   }
 
   final json = {
-    'packages': packages.take(pageSize).map(toUrl).toList(),
+    'packages': pkgPage.packages.map(toUrl).toList(),
     'next': nextPageUrl != null ? '$nextPageUrl' : null,
 
     // NOTE: We're not returning the following entry:

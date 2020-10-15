@@ -25,8 +25,8 @@ void main() {
   group('backend', () {
     group('Backend.latestPackages', () {
       testWithServices('default packages', () async {
-        final list = await packageBackend.latestPackages();
-        expect(list.map((p) => p.name), [
+        final page = await packageBackend.latestPackages();
+        expect(page.packages.map((p) => p.name), [
           'foobar_pkg',
           'lithium',
           'helium',
@@ -37,8 +37,8 @@ void main() {
       testWithServices('default packages with withheld', () async {
         final pkg = await dbService.lookupValue<Package>(foobarPackage.key);
         await dbService.commit(inserts: [pkg..isWithheld = true]);
-        final list = await packageBackend.latestPackages();
-        expect(list.map((p) => p.name), [
+        final page = await packageBackend.latestPackages();
+        expect(page.packages.map((p) => p.name), [
           'lithium',
           'helium',
           'hydrogen',
@@ -50,8 +50,8 @@ void main() {
             (await dbService.lookup<Package>([helium.package.key])).single;
         h.updated = DateTime(2010);
         await dbService.commit(inserts: [h]);
-        final list = await packageBackend.latestPackages();
-        expect(list.last.name, 'helium');
+        final page = await packageBackend.latestPackages();
+        expect(page.packages.last.name, 'helium');
       });
 
       testWithServices('default packages, extra later', () async {
@@ -59,18 +59,18 @@ void main() {
             (await dbService.lookup<Package>([helium.package.key])).single;
         h.updated = DateTime(2030);
         await dbService.commit(inserts: [h]);
-        final list = await packageBackend.latestPackages();
-        expect(list.first.name, 'helium');
+        final page = await packageBackend.latestPackages();
+        expect(page.packages.first.name, 'helium');
       });
 
       testWithServices('default packages, offset: 2', () async {
-        final list = await packageBackend.latestPackages(offset: 2);
-        expect(list.map((p) => p.name), ['helium', 'hydrogen']);
+        final page = await packageBackend.latestPackages(offset: 2);
+        expect(page.packages.map((p) => p.name), ['helium', 'hydrogen']);
       });
 
       testWithServices('default packages, offset: 1, limit: 1', () async {
-        final list = await packageBackend.latestPackages(offset: 1, limit: 1);
-        expect(list.map((p) => p.name), ['lithium']);
+        final page = await packageBackend.latestPackages(offset: 1, limit: 1);
+        expect(page.packages.map((p) => p.name), ['lithium']);
       });
     });
 
@@ -481,7 +481,56 @@ void main() {
             'hydrogen', PkgOptions(isDiscontinued: true));
         final p = await packageBackend.lookupPackage('hydrogen');
         expect(p.isDiscontinued, isTrue);
+        expect(p.replacedBy, isNull);
         expect(p.isUnlisted, isFalse);
+      });
+
+      testWithServices('replaced by - without discontinued', () async {
+        registerAuthenticatedUser(hansUser);
+        final rs = packageBackend.updateOptions(
+            'hydrogen', PkgOptions(replacedBy: 'helium'));
+        await expectLater(
+            rs,
+            throwsA(isA<InvalidInputException>().having((e) => '$e', 'text',
+                'InvalidInput(400): "replacedBy" must be set only with "isDiscontinued": true.')));
+      });
+
+      testWithServices('replaced by - with discontinued=false', () async {
+        registerAuthenticatedUser(hansUser);
+        final rs = packageBackend.updateOptions('hydrogen',
+            PkgOptions(isDiscontinued: false, replacedBy: 'helium'));
+        await expectLater(
+            rs,
+            throwsA(isA<InvalidInputException>().having((e) => '$e', 'text',
+                'InvalidInput(400): "replacedBy" must be set only with "isDiscontinued": true.')));
+      });
+
+      testWithServices('replaced by - with invalid / non existing package',
+          () async {
+        registerAuthenticatedUser(hansUser);
+        final rs = packageBackend.updateOptions('hydrogen',
+            PkgOptions(isDiscontinued: true, replacedBy: 'no such package'));
+        await expectLater(
+            rs,
+            throwsA(isA<InvalidInputException>().having((e) => '$e', 'text',
+                'InvalidInput(400): Package specified by "replaceBy" does not exists.')));
+      });
+
+      testWithServices('replaced by - success', () async {
+        registerAuthenticatedUser(hansUser);
+        await packageBackend.updateOptions(
+            'hydrogen', PkgOptions(isDiscontinued: true, replacedBy: 'helium'));
+        final p = await packageBackend.lookupPackage('hydrogen');
+        expect(p.isDiscontinued, isTrue);
+        expect(p.replacedBy, 'helium');
+        expect(p.isUnlisted, isFalse);
+
+        await packageBackend.updateOptions(
+            'hydrogen', PkgOptions(isDiscontinued: false));
+        final p2 = await packageBackend.lookupPackage('hydrogen');
+        expect(p2.isDiscontinued, isFalse);
+        expect(p2.replacedBy, isNull);
+        expect(p2.isUnlisted, isFalse);
       });
 
       testWithServices('unlisted', () async {
@@ -490,6 +539,7 @@ void main() {
             'hydrogen', PkgOptions(isUnlisted: true));
         final p = await packageBackend.lookupPackage('hydrogen');
         expect(p.isDiscontinued, isFalse);
+        expect(p.replacedBy, isNull);
         expect(p.isUnlisted, isTrue);
       });
     });

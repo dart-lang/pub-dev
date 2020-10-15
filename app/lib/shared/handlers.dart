@@ -16,6 +16,7 @@ import 'urls.dart' as urls;
 import 'utils.dart' show eventLoopLatencyTracker;
 import 'versions.dart';
 
+const String default400BadRequest = '400 Bad Request';
 const String default404NotFound = '404 Not Found';
 
 /// The default age a browser would take hold of the static files before
@@ -56,18 +57,14 @@ shelf.Response jsonResponse(
 }
 
 final _none = <String>["'none'"];
-final _self = <String>["'self'"];
-
 final _contentSecurityPolicyMap = <String, List<String>>{
-  'child-src': _none,
-  'connect-src': _self,
-  'default-src': _none,
-  'frame-src': [
+  'default-src': <String>[
     "'self'",
-    'https://accounts.google.com/',
+    'https:',
   ],
   'font-src': <String>[
     "'self'",
+    'data:',
     'https://fonts.googleapis.com/',
     'https://fonts.gstatic.com/',
   ],
@@ -77,17 +74,22 @@ final _contentSecurityPolicyMap = <String, List<String>>{
     'data:',
   ],
   'manifest-src': _none,
-  'media-src': _none,
   'object-src': _none,
   'script-src': <String>[
+    // See: https://developers.google.com/tag-manager/web/csp
     "'self'",
+    'https://tagmanager.google.com',
     'https://www.googletagmanager.com/',
     'https://www.google.com/',
     'https://www.google-analytics.com/',
+    'https://ssl.google-analytics.com',
     'https://adservice.google.com/',
     'https://ajax.googleapis.com/',
     'https://apis.google.com/',
     'https://unpkg.com/',
+    'https://www.gstatic.com/',
+    'https://apis.google.com/',
+    'https://gstatic.com',
   ],
   'style-src': <String>[
     "'self'",
@@ -95,8 +97,10 @@ final _contentSecurityPolicyMap = <String, List<String>>{
     'https://pub.dartlang.org/static/', // older dartdoc content requires it
     "'unsafe-inline'", // package page (esp. analysis tab) required is
     'https://fonts.googleapis.com/',
+    'https://gstatic.com',
+    'https://www.gstatic.com/',
+    'https://tagmanager.google.com',
   ],
-  'worker-src': _none,
 };
 
 /// The serialized string of the CSP header.
@@ -118,9 +122,8 @@ shelf.Response htmlResponse(
   return shelf.Response(status, body: content, headers: headers);
 }
 
-// TODO: create a customized handler for invalid requests
-shelf.Response invalidRequestHandler(shelf.Request request) =>
-    notFoundHandler(request);
+shelf.Response badRequestHandler(shelf.Request request) =>
+    htmlResponse(default400BadRequest, status: 400);
 
 shelf.Response notFoundHandler(shelf.Request request,
         {String body = default404NotFound}) =>

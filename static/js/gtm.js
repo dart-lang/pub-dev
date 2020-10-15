@@ -3,9 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 window.dataLayer = window.dataLayer || [];
+window.dataLayer.push({
+  'gtm.start': new Date().getTime(),
+  event: 'gtm.js'
+});
+
 function gtag() { dataLayer.push(arguments); }
-gtag('js', new Date());
-gtag('config', 'UA-26406144-13');
 
 // Setup listening to send Google Analytics events when any element
 // with a 'data-ga-click-event' attribute is clicked.

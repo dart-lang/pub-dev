@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -11,13 +10,12 @@ import 'package:http/http.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
-import 'package:fake_gcloud/mem_datastore.dart';
-import 'package:fake_gcloud/mem_storage.dart';
 import 'package:fake_pub_server/fake_analyzer_service.dart';
 import 'package:fake_pub_server/fake_dartdoc_service.dart';
 import 'package:fake_pub_server/fake_pub_server.dart';
 import 'package:fake_pub_server/fake_search_service.dart';
 import 'package:fake_pub_server/fake_storage_server.dart';
+import 'package:fake_pub_server/local_server_state.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/shared/configuration.dart';
 
@@ -51,7 +49,7 @@ Future main(List<String> args) async {
     ].where((e) => e != null).join(' '));
   });
 
-  final state = _LocalServerState(path: argv['data-file'] as String);
+  final state = LocalServerState(path: argv['data-file'] as String);
   await state.load();
 
   final storage = state.storage;
@@ -132,72 +130,4 @@ Future main(List<String> args) async {
 
   await state.save();
   await sigintSubscription.cancel();
-}
-
-/// Owns server state, optionally loading / saving state to/from the specified file.
-class _LocalServerState {
-  final datastore = MemDatastore();
-  final storage = MemStorage();
-  File _file;
-  Completer _storingCompleter;
-
-  _LocalServerState({String path}) {
-    if (path != null) {
-      _file = File(path);
-    }
-  }
-
-  Future<void> load() async {
-    if (_file != null && await _file.exists()) {
-      final lines =
-          _file.openRead().transform(utf8.decoder).transform(LineSplitter());
-      var marker = 'start';
-      await for (final line in lines) {
-        if (line.startsWith('{"marker":')) {
-          final map = json.decode(line) as Map<String, dynamic>;
-          marker = map['marker'] as String;
-          continue;
-        }
-        switch (marker) {
-          case 'datastore':
-            datastore.readFrom([line]);
-            continue;
-          case 'storage':
-            storage.readFrom([line]);
-            continue;
-        }
-        throw ArgumentError('Marker not state failed: $marker - $line');
-      }
-    }
-  }
-
-  Future<void> save() async {
-    while (_storingCompleter != null) {
-      await _storingCompleter.future;
-    }
-    _storingCompleter = Completer();
-    try {
-      print('Storing state in ${_file.path}...');
-      if (_file != null) {
-        await _file.parent.create(recursive: true);
-      }
-      final sink = _file.openWrite();
-
-      void writeMarker(String marker) {
-        sink.writeln(json.encode({'marker': marker}));
-      }
-
-      writeMarker('datastore');
-      datastore.writeTo(sink);
-
-      writeMarker('storage');
-      storage.writeTo(sink);
-
-      writeMarker('end');
-      await sink.close();
-    } finally {
-      _storingCompleter.complete();
-      _storingCompleter = null;
-    }
-  }
 }

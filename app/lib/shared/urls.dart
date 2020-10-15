@@ -5,7 +5,7 @@
 import 'package:path/path.dart' as p;
 
 import '../package/overrides.dart';
-import '../search/search_service.dart' show SearchOrder, FrontendSearchQuery;
+import '../search/search_form.dart' show SearchForm, SearchOrder;
 
 export '../search/search_service.dart' show SearchOrder;
 
@@ -24,6 +24,8 @@ const _trustedSchemes = <String>['http', 'https', 'mailto'];
 const _trustedTargetHost = [
   'api.dart.dev',
   'api.flutter.dev',
+  'dart.dev',
+  'flutter.dev',
   'pub.dev',
 ];
 
@@ -112,7 +114,7 @@ String pkgDocUrl(
 
 String publisherUrl(String publisherId) => '/publishers/$publisherId';
 String publisherPackagesUrl(String publisherId) =>
-    FrontendSearchQuery.parse(publisherId: publisherId).toSearchLink();
+    SearchForm.parse(publisherId: publisherId).toSearchLink();
 String publisherAdminUrl(String publisherId) =>
     '/publishers/$publisherId/admin';
 
@@ -124,7 +126,7 @@ String searchUrl({
   int page,
   SearchOrder order,
 }) {
-  final query = FrontendSearchQuery.parse(
+  final query = SearchForm.parse(
     sdk: sdk,
     runtimes: runtimes,
     platforms: platforms,
@@ -282,6 +284,15 @@ String myPackagesUrl() => '/my-packages';
 String myLikedPackagesUrl() => '/my-liked-packages';
 String myPublishersUrl() => '/my-publishers';
 String createPublisherUrl() => '/create-publisher';
+
+/// Parses [url] and returns the [Uri] object only if the result Uri is valid
+/// (e.g. is relative or has recognized scheme).
+Uri parseValidUrl(String url) {
+  if (url == null || url.isEmpty) return null;
+  final uri = Uri.tryParse(url);
+  if (uri == null || uri.isInvalid) return null;
+  return uri;
+}
 
 extension UriExt on Uri {
   /// The [scheme] of the [Uri] is trusted, it may be displayed.

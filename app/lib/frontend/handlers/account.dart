@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:client_data/account_api.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
@@ -12,6 +14,7 @@ import '../../package/backend.dart';
 import '../../package/search_adapter.dart';
 import '../../publisher/backend.dart';
 import '../../publisher/models.dart';
+import '../../search/search_form.dart';
 import '../../search/search_service.dart';
 import '../../shared/configuration.dart' show activeConfiguration;
 import '../../shared/exceptions.dart';
@@ -43,13 +46,16 @@ Future<shelf.Response> updateSessionHandler(
     throw NotFoundException.resource('no such url');
   }
 
+  final cookieString = request.headers[HttpHeaders.cookieHeader];
+  final sessionData =
+      await accountBackend.parseAndLookupSessionCookie(cookieString);
   // check if the session data is the same
-  if (userSessionData != null &&
-      userSessionData.userId == user.userId &&
-      userSessionData.email == user.email) {
+  if (sessionData != null &&
+      sessionData.userId == user.userId &&
+      sessionData.email == user.email) {
     final status = ClientSessionStatus(
       changed: false,
-      expires: userSessionData.expires,
+      expires: sessionData.expires,
     );
     return jsonResponse(status.toJson());
   }
@@ -71,11 +77,14 @@ Future<shelf.Response> updateSessionHandler(
 
 /// Handles DELETE /api/account/session
 Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
-  final hasUserSession = userSessionData != null;
+  final cookieString = request.headers[HttpHeaders.cookieHeader];
+  final sessionData =
+      await accountBackend.parseAndLookupSessionCookie(cookieString);
+  final hasUserSession = sessionData != null;
   // Invalidate the server-side sessionId, in case the user signed out because
   // the local cookie store was compromised.
   if (hasUserSession) {
-    await accountBackend.invalidateSession(userSessionData.sessionId);
+    await accountBackend.invalidateSession(sessionData.sessionId);
   }
   return jsonResponse(
     ClientSessionStatus(
@@ -197,7 +206,7 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
 
   final publishers =
       await publisherBackend.listPublishersForUser(userSessionData.userId);
-  final searchQuery = parseFrontendSearchQuery(
+  final searchForm = parseFrontendSearchForm(
     request.requestedUri.queryParameters,
     uploaderOrPublishers: [
       userSessionData.email,
@@ -206,17 +215,17 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
     tagsPredicate: TagsPredicate.allPackages(),
   );
 
-  final searchResult = await searchAdapter.search(searchQuery);
+  final searchResult = await searchAdapter.search(searchForm);
   final int totalCount = searchResult.totalCount;
   final links =
-      PageLinks(searchQuery.offset, totalCount, searchQuery: searchQuery);
+      PageLinks(searchForm.offset, totalCount, searchForm: searchForm);
 
   final html = renderAccountPackagesPage(
     user: await accountBackend.lookupUserById(userSessionData.userId),
     userSessionData: userSessionData,
     packages: searchResult.packages,
     pageLinks: links,
-    searchQuery: searchQuery,
+    searchForm: searchForm,
     totalCount: totalCount,
     messageFromBackend: searchResult.message,
   );

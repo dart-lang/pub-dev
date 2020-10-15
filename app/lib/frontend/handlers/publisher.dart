@@ -9,7 +9,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../../account/backend.dart';
 import '../../package/search_adapter.dart';
 import '../../publisher/backend.dart';
-import '../../search/search_service.dart';
+import '../../search/search_form.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../../shared/urls.dart' as urls;
@@ -53,7 +53,7 @@ Future<shelf.Response> publisherPageHandler(
 /// Handles requests for GET /publishers/<publisherId>/packages [?q=...]
 Future<shelf.Response> publisherPackagesPageHandler(
     shelf.Request request, String publisherId) async {
-  final searchQuery = parseFrontendSearchQuery(
+  final searchForm = parseFrontendSearchForm(
     request.requestedUri.queryParameters,
     publisherId: publisherId,
     tagsPredicate: TagsPredicate.allPackages(),
@@ -78,16 +78,16 @@ Future<shelf.Response> publisherPackagesPageHandler(
     return formattedNotFoundHandler(request);
   }
 
-  final searchResult = await searchAdapter.search(searchQuery);
+  final searchResult = await searchAdapter.search(searchForm);
   final int totalCount = searchResult.totalCount;
   final links =
-      PageLinks(searchQuery.offset, totalCount, searchQuery: searchQuery);
+      PageLinks(searchForm.offset, totalCount, searchForm: searchForm);
 
   final html = renderPublisherPackagesPage(
     publisher: publisher,
     packages: searchResult.packages,
     pageLinks: links,
-    searchQuery: searchQuery,
+    searchForm: searchForm,
     totalCount: totalCount,
     isAdmin: await publisherBackend.isMemberAdmin(
         publisherId, userSessionData?.userId),

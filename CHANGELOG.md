@@ -2,6 +2,19 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20201015t154235-all`
+ * Bumped runtimeVersion to `2020.10.15`.
+ * Upgraded Dart analysis SDK to `2.10.2`.
+ * `Package.doNotAdvertise` is no longer a required property.
+   Deferred: we should remove it after this is the only release in prod.
+
+## `20201014t110621-all`
+ * Bumped runtimeVersion to `2020.10.09`.
+ * Upgraded Flutter to `1.22.1`.
+ * Upgraded dartdoc to `0.35.0`.
+
+## `20201007t150845-all`
  * Bumped runtimeVersion to `2020.10.06`.
  * Upgraded runtime Dart SDK to `2.10.0`.
  * Upgraded Dart analysis SDK to `2.10.1`.

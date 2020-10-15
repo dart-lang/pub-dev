@@ -13,7 +13,6 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:stack_trace/stack_trace.dart';
 
 import '../account/backend.dart';
-import '../account/session_cookie.dart' as session_cookie;
 import '../frontend/request_context.dart';
 import '../frontend/templates/layout.dart';
 
@@ -68,7 +67,7 @@ shelf.Handler wrapHandler(
   handler = _userAuthWrapper(handler);
   handler =
       _requestContextWrapper(handler); // need to run after session wrapper
-  handler = _userSessionWrapper(handler);
+  handler = _userSessionWrapper(logger, handler);
   handler = _httpsWrapper(handler);
   if (sanitize) {
     handler = _sanitizeRequestWrapper(handler);
@@ -187,7 +186,7 @@ shelf.Handler _sanitizeRequestWrapper(shelf.Handler handler) {
     try {
       sanitizedRequest = _sanitizeRequestedUri(request);
     } on FormatException catch (_) {
-      return invalidRequestHandler(request);
+      return badRequestHandler(request);
     }
     return await handler(sanitizedRequest);
   };
@@ -216,29 +215,22 @@ shelf.Handler _userAuthWrapper(shelf.Handler handler) {
 
 /// Processes the session cookie, and on successful verification it will set the
 /// user session data.
-shelf.Handler _userSessionWrapper(shelf.Handler handler) {
+shelf.Handler _userSessionWrapper(Logger logger, shelf.Handler handler) {
   return (shelf.Request request) async {
     // Never read or look for the session cookie on hosts other than the
     // primary site. Who knows how it got there or what it means.
     final isPrimaryHost =
         request.requestedUri.host == activeConfiguration.primarySiteUri.host;
     // Never read or look for the session cookie on request that try to modify
-    // data (non-GET HTTP methods), except for deleting the session cookie.
-    final isAllowedForSession = request.method == 'GET' ||
-        (request.method == 'DELETE' &&
-            request.requestedUri.path == '/api/account/session');
+    // data (non-GET HTTP methods).
+    final isAllowedForSession = request.method == 'GET';
     if (isPrimaryHost &&
         isAllowedForSession &&
         request.headers.containsKey(HttpHeaders.cookieHeader)) {
-      final sessionId = session_cookie.parseSessionCookie(
-        request.headers[HttpHeaders.cookieHeader],
-      );
-      if (sessionId != null && sessionId.isNotEmpty) {
-        final sessionData = await accountBackend.lookupSession(sessionId);
-        if (sessionData != null) {
-          registerUserSessionData(sessionData);
-        }
-      }
+      final cookieString = request.headers[HttpHeaders.cookieHeader];
+      final sessionData =
+          await accountBackend.parseAndLookupSessionCookie(cookieString);
+      registerUserSessionData(sessionData);
     }
     shelf.Response rs = await handler(request);
     if (userSessionData != null) {
@@ -274,7 +266,14 @@ shelf.Handler _httpsWrapper(shelf.Handler handler) {
 }
 
 shelf.Request _sanitizeRequestedUri(shelf.Request request) {
+  // These methods may throw FormatException.
+  void triggerUriParsingMethods(Uri uri) {
+    uri.pathSegments;
+    uri.queryParametersAll;
+  }
+
   final uri = request.requestedUri;
+  triggerUriParsingMethods(uri);
   final resource = Uri.decodeFull(uri.path);
   final normalizedResource = path.normalize(resource);
 
@@ -290,6 +289,7 @@ shelf.Request _sanitizeRequestedUri(shelf.Request request) {
     // (The pub client will not remove it and instead directly try to request
     //  "GET //api/..." :-/ )
     final changedUri = uri.replace(path: normalizedResource);
+    triggerUriParsingMethods(changedUri);
     final sanitized = shelf.Request(
       request.method,
       changedUri,

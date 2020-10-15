@@ -8,6 +8,7 @@ environment:
 dependencies:
   args: ^1.0.0
   buffer: ^1.0.0
+  gcloud: '^0.7.3'
   logging: ^0.11.3
   fake_gcloud:
     path: ../fake_gcloud

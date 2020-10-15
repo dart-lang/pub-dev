@@ -7,18 +7,13 @@ import 'dart:io';
 
 import 'package:html/parser.dart';
 import 'package:pana/pana.dart';
-import 'package:pub_dev/account/models.dart';
-import 'package:pub_dev/dartdoc/models.dart';
-import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:xml/xml.dart' as xml;
 
+import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/analyzer/analyzer_client.dart';
-import 'package:pub_dev/scorecard/models.dart';
-import 'package:pub_dev/search/search_service.dart';
-import 'package:pub_dev/package/models.dart';
-import 'package:pub_dev/publisher/models.dart';
+import 'package:pub_dev/dartdoc/models.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/frontend/templates/admin.dart';
 import 'package:pub_dev/frontend/templates/landing.dart';
@@ -30,6 +25,12 @@ import 'package:pub_dev/frontend/templates/package_admin.dart';
 import 'package:pub_dev/frontend/templates/package_analysis.dart';
 import 'package:pub_dev/frontend/templates/package_versions.dart';
 import 'package:pub_dev/frontend/templates/publisher.dart';
+import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/publisher/models.dart';
+import 'package:pub_dev/scorecard/models.dart';
+import 'package:pub_dev/search/search_form.dart';
+import 'package:pub_dev/search/search_service.dart';
+import 'package:pub_dev/shared/versions.dart';
 
 import '../shared/html_validation.dart';
 import '../shared/test_models.dart';
@@ -528,7 +529,7 @@ void main() {
 
     scopedTest('package index page with search', () {
       final searchQuery =
-          FrontendSearchQuery.parse(query: 'foobar', order: SearchOrder.top);
+          SearchForm.parse(query: 'foobar', order: SearchOrder.top);
       final String html = renderPkgIndexPage(
         [
           PackageView.fromModel(
@@ -549,8 +550,8 @@ void main() {
             ),
           ),
         ],
-        PageLinks(0, 50, searchQuery: searchQuery),
-        searchQuery: searchQuery,
+        PageLinks(0, 50, searchForm: searchQuery),
+        searchForm: searchQuery,
         totalCount: 2,
       );
       expectGoldenFile(html, 'search_page.html');
@@ -605,7 +606,7 @@ void main() {
     });
 
     scopedTest('publisher packages page', () {
-      final searchQuery = FrontendSearchQuery.parse(publisherId: 'example.com');
+      final searchQuery = SearchForm.parse(publisherId: 'example.com');
       final html = renderPublisherPackagesPage(
         publisher: Publisher()
           ..id = 'example.com'
@@ -634,8 +635,8 @@ void main() {
           ),
         ],
         totalCount: 2,
-        searchQuery: searchQuery,
-        pageLinks: PageLinks(0, 10, searchQuery: searchQuery),
+        searchForm: searchQuery,
+        pageLinks: PageLinks(0, 10, searchForm: searchQuery),
         isAdmin: true,
         messageFromBackend: null,
       );
@@ -644,7 +645,7 @@ void main() {
 
     scopedTest('/my-packages page', () {
       final searchQuery =
-          FrontendSearchQuery.parse(uploaderOrPublishers: [hansUser.email]);
+          SearchForm.parse(uploaderOrPublishers: [hansUser.email]);
       final String html = renderAccountPackagesPage(
         user: hansUser,
         userSessionData: hansUserSessionData,
@@ -667,8 +668,8 @@ void main() {
             tags: ['sdk:flutter', 'platform:android'],
           ),
         ],
-        pageLinks: PageLinks(0, 10, searchQuery: searchQuery),
-        searchQuery: searchQuery,
+        pageLinks: PageLinks(0, 10, searchForm: searchQuery),
+        searchForm: searchQuery,
         totalCount: 2,
         messageFromBackend: null,
       );
@@ -739,7 +740,7 @@ void main() {
 
     scopedTest('platform tabs: search', () {
       final String html = renderSdkTabs(
-          searchQuery: FrontendSearchQuery.parse(
+          searchForm: SearchForm.parse(
         query: 'foo',
         sdk: 'flutter',
       ));
@@ -823,16 +824,15 @@ void main() {
 
   group('URLs', () {
     scopedTest('PageLinks defaults', () {
-      final query = FrontendSearchQuery.parse(query: 'web framework');
-      final PageLinks links = PageLinks(0, 100, searchQuery: query);
+      final query = SearchForm.parse(query: 'web framework');
+      final PageLinks links = PageLinks(0, 100, searchForm: query);
       expect(links.formatHref(1), '/packages?q=web+framework');
       expect(links.formatHref(2), '/packages?q=web+framework&page=2');
     });
 
     scopedTest('PageLinks with platform', () {
-      final query =
-          FrontendSearchQuery.parse(query: 'some framework', sdk: 'flutter');
-      final PageLinks links = PageLinks(0, 100, searchQuery: query);
+      final query = SearchForm.parse(query: 'some framework', sdk: 'flutter');
+      final PageLinks links = PageLinks(0, 100, searchForm: query);
       expect(links.formatHref(1), '/flutter/packages?q=some+framework');
       expect(links.formatHref(2), '/flutter/packages?q=some+framework&page=2');
     });

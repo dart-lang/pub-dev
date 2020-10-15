@@ -86,43 +86,43 @@ void main() {
 
     test('absolute link URL', () {
       expect(markdownToHtml('[text](http://dartlang.org/)'),
-          '<p><a href="http://dartlang.org/">text</a></p>\n');
+          '<p><a href="http://dartlang.org/" rel="ugc">text</a></p>\n');
       expect(markdownToHtml('[text](http://dartlang.org/)', baseUrl: baseUrl),
-          '<p><a href="http://dartlang.org/">text</a></p>\n');
+          '<p><a href="http://dartlang.org/" rel="ugc">text</a></p>\n');
       expect(
           markdownToHtml('[text](http://dartlang.org/)', baseUrl: '$baseUrl/'),
-          '<p><a href="http://dartlang.org/">text</a></p>\n');
+          '<p><a href="http://dartlang.org/" rel="ugc">text</a></p>\n');
     });
 
     test('absolute image URL', () {
       expect(markdownToHtml('![text](http://dartlang.org/image.png)'),
-          '<p><img src="http://dartlang.org/image.png" alt="text" /></p>\n');
+          '<p><img src="http://dartlang.org/image.png" alt="text" rel="ugc" /></p>\n');
       expect(
           markdownToHtml('![text](http://dartlang.org/image.png)',
               baseUrl: baseUrl),
-          '<p><img src="http://dartlang.org/image.png" alt="text" /></p>\n');
+          '<p><img src="http://dartlang.org/image.png" alt="text" rel="ugc" /></p>\n');
       expect(
           markdownToHtml('![text](http://dartlang.org/image.png)',
               baseUrl: '$baseUrl/'),
-          '<p><img src="http://dartlang.org/image.png" alt="text" /></p>\n');
+          '<p><img src="http://dartlang.org/image.png" alt="text" rel="ugc" /></p>\n');
     });
 
     test('sibling link within site', () {
       expect(markdownToHtml('[text](README.md)'),
           '<p><a href="README.md">text</a></p>\n');
       expect(markdownToHtml('[text](README.md)', baseUrl: baseUrl),
-          '<p><a href="https://github.com/example/project/blob/master/README.md">text</a></p>\n');
+          '<p><a href="https://github.com/example/project/blob/master/README.md" rel="ugc">text</a></p>\n');
       expect(markdownToHtml('[text](README.md)', baseUrl: '$baseUrl/'),
-          '<p><a href="https://github.com/example/project/blob/master/README.md">text</a></p>\n');
+          '<p><a href="https://github.com/example/project/blob/master/README.md" rel="ugc">text</a></p>\n');
     });
 
     test('sibling image within site', () {
       expect(markdownToHtml('![text](image.png)'),
           '<p><img src="image.png" alt="text" /></p>\n');
       expect(markdownToHtml('![text](image.png)', baseUrl: baseUrl),
-          '<p><img src="https://github.com/example/project/raw/master/image.png" alt="text" /></p>\n');
+          '<p><img src="https://github.com/example/project/raw/master/image.png" alt="text" rel="ugc" /></p>\n');
       expect(markdownToHtml('![text](image.png)', baseUrl: '$baseUrl/'),
-          '<p><img src="https://github.com/example/project/raw/master/image.png" alt="text" /></p>\n');
+          '<p><img src="https://github.com/example/project/raw/master/image.png" alt="text" rel="ugc" /></p>\n');
     });
 
     test('sibling image inside a relative directory', () {
@@ -131,57 +131,57 @@ void main() {
       expect(
           markdownToHtml('![text](image.png)',
               baseUrl: baseUrl, baseDir: 'example'),
-          '<p><img src="https://github.com/example/project/raw/master/example/image.png" alt="text" /></p>\n');
+          '<p><img src="https://github.com/example/project/raw/master/example/image.png" alt="text" rel="ugc" /></p>\n');
       expect(
           markdownToHtml('![text](img/image.png)',
               baseUrl: '$baseUrl/', baseDir: 'example'),
-          '<p><img src="https://github.com/example/project/raw/master/example/img/image.png" alt="text" /></p>\n');
+          '<p><img src="https://github.com/example/project/raw/master/example/img/image.png" alt="text" rel="ugc" /></p>\n');
     });
 
     test('sibling link plus relative link', () {
       expect(markdownToHtml('[text](README.md#section)'),
           '<p><a href="README.md#section">text</a></p>\n');
       expect(markdownToHtml('[text](README.md#section)', baseUrl: baseUrl),
-          '<p><a href="https://github.com/example/project/blob/master/README.md#section">text</a></p>\n');
+          '<p><a href="https://github.com/example/project/blob/master/README.md#section" rel="ugc">text</a></p>\n');
       expect(markdownToHtml('[text](README.md#section)', baseUrl: '$baseUrl/'),
-          '<p><a href="https://github.com/example/project/blob/master/README.md#section">text</a></p>\n');
+          '<p><a href="https://github.com/example/project/blob/master/README.md#section" rel="ugc">text</a></p>\n');
     });
 
     test('child link within site', () {
       expect(markdownToHtml('[text](example/README.md)'),
           '<p><a href="example/README.md">text</a></p>\n');
       expect(markdownToHtml('[text](example/README.md)', baseUrl: baseUrl),
-          '<p><a href="https://github.com/example/project/blob/master/example/README.md">text</a></p>\n');
+          '<p><a href="https://github.com/example/project/blob/master/example/README.md" rel="ugc">text</a></p>\n');
       expect(markdownToHtml('[text](example/README.md)', baseUrl: '$baseUrl/'),
-          '<p><a href="https://github.com/example/project/blob/master/example/README.md">text</a></p>\n');
+          '<p><a href="https://github.com/example/project/blob/master/example/README.md" rel="ugc">text</a></p>\n');
     });
 
     test('child image within site', () {
       expect(markdownToHtml('![text](example/image.png)'),
           '<p><img src="example/image.png" alt="text" /></p>\n');
       expect(markdownToHtml('![text](example/image.png)', baseUrl: baseUrl),
-          '<p><img src="https://github.com/example/project/raw/master/example/image.png" alt="text" /></p>\n');
+          '<p><img src="https://github.com/example/project/raw/master/example/image.png" alt="text" rel="ugc" /></p>\n');
       expect(markdownToHtml('![text](example/image.png)', baseUrl: '$baseUrl/'),
-          '<p><img src="https://github.com/example/project/raw/master/example/image.png" alt="text" /></p>\n');
+          '<p><img src="https://github.com/example/project/raw/master/example/image.png" alt="text" rel="ugc" /></p>\n');
     });
 
     test('root link within site', () {
       expect(markdownToHtml('[text](/README.md)'),
           '<p><a href="/README.md">text</a></p>\n');
       expect(markdownToHtml('[text](/example/README.md)', baseUrl: baseUrl),
-          '<p><a href="https://github.com/example/README.md">text</a></p>\n');
+          '<p><a href="https://github.com/example/README.md" rel="ugc">text</a></p>\n');
       expect(markdownToHtml('[text](/example/README.md)', baseUrl: '$baseUrl/'),
-          '<p><a href="https://github.com/example/README.md">text</a></p>\n');
+          '<p><a href="https://github.com/example/README.md" rel="ugc">text</a></p>\n');
     });
 
     test('root image within site', () {
       expect(markdownToHtml('![text](/image.png)'),
           '<p><img src="/image.png" alt="text" /></p>\n');
       expect(markdownToHtml('![text](/example/image.png)', baseUrl: baseUrl),
-          '<p><img src="https://github.com/example/image.png" alt="text" /></p>\n');
+          '<p><img src="https://github.com/example/image.png" alt="text" rel="ugc" /></p>\n');
       expect(
           markdownToHtml('![text](/example/image.png)', baseUrl: '$baseUrl/'),
-          '<p><img src="https://github.com/example/image.png" alt="text" /></p>\n');
+          '<p><img src="https://github.com/example/image.png" alt="text" rel="ugc" /></p>\n');
     });
 
     test('email', () {
@@ -244,7 +244,7 @@ void main() {
       expect(
           markdownToHtml(
               '![text](https://github.com/rcpassos/progress_hud/blob/master/progress_hud.gif)'),
-          '<p><img src="https://github.com/rcpassos/progress_hud/raw/master/progress_hud.gif" alt="text" /></p>\n');
+          '<p><img src="https://github.com/rcpassos/progress_hud/raw/master/progress_hud.gif" alt="text" rel="ugc" /></p>\n');
     });
 
     test('root path: /[..]/blob/master/[path].gif', () {
@@ -252,14 +252,14 @@ void main() {
           markdownToHtml(
               '![text](/rcpassos/progress_hud/blob/master/progress_hud.gif)',
               baseUrl: 'https://github.com/rcpassos/progress_hud'),
-          '<p><img src="https://github.com/rcpassos/progress_hud/raw/master/progress_hud.gif" alt="text" /></p>\n');
+          '<p><img src="https://github.com/rcpassos/progress_hud/raw/master/progress_hud.gif" alt="text" rel="ugc" /></p>\n');
     });
 
     test('relative path: [path].gif', () {
       expect(
           markdownToHtml('![text](progress_hud.gif)',
               baseUrl: 'https://github.com/rcpassos/progress_hud'),
-          '<p><img src="https://github.com/rcpassos/progress_hud/raw/master/progress_hud.gif" alt="text" /></p>\n');
+          '<p><img src="https://github.com/rcpassos/progress_hud/raw/master/progress_hud.gif" alt="text" rel="ugc" /></p>\n');
     });
   });
 
@@ -300,7 +300,7 @@ void main() {
           markdownToHtml(
               '# Changelog\n\n'
               '## 1.0.0\n\n- change1\n\n- change2\n\n'
-              '## 0.9.0\n\nMostly refatoring',
+              '## 0.9.0\n\nMostly refactoring',
               isChangelog: true),
           '<h1 class="hash-header" id="changelog">Changelog <a href="#changelog" class="hash-link">#</a></h1>\n'
           '<div class="changelog-entry">\n'
@@ -315,7 +315,7 @@ void main() {
           '<div class="changelog-entry">\n'
           '<h2 class="changelog-version hash-header" id="090">0.9.0 <a href="#090" class="hash-link">#</a></h2>\n'
           '<div class="changelog-content">\n'
-          '<p>Mostly refatoring</p>\n'
+          '<p>Mostly refactoring</p>\n'
           '</div>\n'
           '</div>\n');
     });

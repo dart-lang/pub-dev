@@ -6,3 +6,6 @@ environment:
 
 dependencies:
   sass: ^1.19.0
+
+dev_dependencies:
+  test: ^1.15.0

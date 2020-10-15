@@ -11,6 +11,7 @@
 
 body {
   background-color: #fff;
+  color: $site-font-color;
   font-size: 14px;
   line-height: 1.6;
   margin: 0;
@@ -23,10 +24,14 @@ body, input, button {
   -webkit-font-smoothing: antialiased;
 }
 
+p {
+  font-size: 16px;
+}
+
 body,
 .markdown-body {
-  color: #212529;
   font-weight: 400;
+  font-size: 16px;
 
   h1, h2, h3, h4, h5, h6 {
     font-family: $font-family-google-sans;
@@ -35,10 +40,10 @@ body,
 
   h1 { font-size: 36px; }
   h2 { font-size: 24px; }
-  h3 { font-size: 16px; }
-  h4 { font-size: 16px; }
-  h5 { font-size: 14px; }
-  h6 { font-size: 14px; }
+  h3 { font-size: 18px; }
+  h4 { font-size: 18px; }
+  h5 { font-size: 16px; }
+  h6 { font-size: 16px; }
 }
 
 img {
@@ -243,7 +248,7 @@ pre {
 
 .-pub-like-button {
   --mdc-theme-primary: #f8f8f8;
-  --mdc-theme-on-primary: #212529;
+  --mdc-theme-on-primary: $site-font-color;
 }
 
 .-pub-like-button-img {
@@ -347,7 +352,6 @@ pre {
   padding: 10px 0;
 
   background: #e7f8ff;
-  color: #212529;
   font-size: 16px;
 
   text-align: center;

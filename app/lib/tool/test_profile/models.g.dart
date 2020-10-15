@@ -49,6 +49,9 @@ TestPackage _$TestPackageFromJson(Map<String, dynamic> json) {
     uploaders: (json['uploaders'] as List)?.map((e) => e as String)?.toList(),
     publisher: json['publisher'] as String,
     versions: (json['versions'] as List)?.map((e) => e as String)?.toList(),
+    isDiscontinued: json['isDiscontinued'] as bool,
+    replacedBy: json['replacedBy'] as String,
+    isUnlisted: json['isUnlisted'] as bool,
   );
 }
 
@@ -65,6 +68,9 @@ Map<String, dynamic> _$TestPackageToJson(TestPackage instance) {
   writeNotNull('uploaders', instance.uploaders);
   writeNotNull('publisher', instance.publisher);
   writeNotNull('versions', instance.versions);
+  writeNotNull('isDiscontinued', instance.isDiscontinued);
+  writeNotNull('replacedBy', instance.replacedBy);
+  writeNotNull('isUnlisted', instance.isUnlisted);
   return val;
 }
 

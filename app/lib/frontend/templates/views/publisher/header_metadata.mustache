@@ -10,7 +10,7 @@
   {{#has_website_url}}
     <span class="detail-header-metadata-ref">
       <img class="detail-header-metadata-ref-icon" src="{{& static_assets.img__link-icon_svg }}" />
-      <a class="detail-header-metadata-ref-label" href="{{ website_url }}">{{ website_url_displayed }}</a>
+      <a class="detail-header-metadata-ref-label" href="{{ website_url }}"{{#website_url_rel}} rel="{{ website_url_rel }}"{{/website_url_rel}}>{{ website_url_displayed }}</a>
     </span>
   {{/has_website_url}}
 

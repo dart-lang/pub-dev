@@ -11,11 +11,11 @@ import '../../dartdoc/backend.dart';
 import '../../frontend/request_context.dart';
 import '../../history/backend.dart';
 import '../../package/backend.dart';
-import '../../package/models.dart';
 import '../../package/name_tracker.dart';
 import '../../package/overrides.dart';
 import '../../scorecard/backend.dart';
 import '../../search/search_client.dart';
+import '../../search/search_form.dart';
 import '../../search/search_service.dart';
 import '../../shared/configuration.dart';
 import '../../shared/exceptions.dart';
@@ -98,18 +98,10 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
   }
 
   final data = await cache.apiPackagesListPage(page).get(() async {
-    final packages = await packageBackend.latestPackages(
-        offset: pageSize * (page - 1), limit: pageSize + 1);
-
-    // NOTE: We queried for `PageSize+1` packages, if we get less than that, we
-    // know it was the last page.
-    // But we only use `PageSize` packages to display in the result.
-    final List<Package> pagePackages = packages.take(pageSize).toList();
-    pagePackages.removeWhere((p) => isSoftRemoved(p.name));
-    final List<PackageVersion> pageVersions =
-        await packageBackend.lookupLatestVersions(pagePackages);
-
-    final lastPage = packages.length == pagePackages.length;
+    final pkgPage = await packageBackend.latestPackages(
+        offset: pageSize * (page - 1), limit: pageSize);
+    final pageVersions =
+        await packageBackend.lookupLatestVersions(pkgPage.packages);
 
     final packagesJson = [];
 
@@ -153,7 +145,7 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
       //     - 'prev_url'
     };
 
-    if (!lastPage) {
+    if (!pkgPage.isLast) {
       json['next_url'] = '${uri.resolve('/api/packages?page=${page + 1}')}';
     }
     return json;
@@ -254,13 +246,13 @@ Future<shelf.Response> apiHistoryHandler(shelf.Request request) async {
 
 /// Handles requests for /api/search
 Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
-  final searchQuery = parseFrontendSearchQuery(
+  final searchForm = parseFrontendSearchForm(
     request.requestedUri.queryParameters,
     tagsPredicate: TagsPredicate.regularSearch(),
   );
-  final sr = await searchClient.search(searchQuery);
+  final sr = await searchClient.search(searchForm.toServiceQuery());
   final packages = sr.packages.map((ps) => {'package': ps.package}).toList();
-  final hasNextPage = sr.totalCount > searchQuery.limit + searchQuery.offset;
+  final hasNextPage = sr.totalCount > searchForm.limit + searchForm.offset;
   final result = <String, dynamic>{
     'packages': packages,
     if (sr.message != null) 'message': sr.message,
@@ -268,7 +260,7 @@ Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
   if (hasNextPage) {
     final newParams =
         Map<String, dynamic>.from(request.requestedUri.queryParameters);
-    final nextPageIndex = (searchQuery.offset ~/ searchQuery.limit) + 2;
+    final nextPageIndex = (searchForm.offset ~/ searchForm.limit) + 2;
     newParams['page'] = nextPageIndex.toString();
     final nextPageUrl =
         request.requestedUri.replace(queryParameters: newParams).toString();
