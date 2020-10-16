@@ -144,7 +144,7 @@ class UserSession extends db.ExpandoModel<String> {
 ///
 /// [1]: https://developers.google.com/people/image-sizing
 final _imgParamPattern = RegExp(
-  r'=(?:(?:[swh]\d+)|[cp])(?:-(?:[swh]\d+)|[cp])*$',
+  r'=(?:(?:[swh]\d+)|[cp])(?:-(?:(?:[swh]\d+)|[cp]))*$',
 );
 
 /// The cacheable version of [UserSession].
