@@ -186,7 +186,7 @@ class SearchForm {
 
   /// Converts the query to a user-facing link that (after frontend parsing) will
   /// re-create an identical search query object.
-  String toSearchLink({int page}) {
+  String toSearchLink({int page, bool includeHost = false}) {
     final params = <String, dynamic>{};
     if (query != null && query.isNotEmpty) {
       params['q'] = query;
@@ -208,12 +208,10 @@ class SearchForm {
     if (page != null && page > 1) {
       params['page'] = page.toString();
     }
-    final path = toSearchFormPath();
-    if (params.isEmpty) {
-      return path;
-    } else {
-      return Uri(path: path, queryParameters: params).toString();
-    }
+    final uri = Uri(
+        path: toSearchFormPath(),
+        queryParameters: params.isEmpty ? null : params);
+    return includeHost ? '$siteRoot$uri' : uri.toString();
   }
 }
 

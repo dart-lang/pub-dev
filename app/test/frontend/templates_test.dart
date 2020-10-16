@@ -509,26 +509,30 @@ void main() {
     });
 
     scopedTest('package index page', () {
-      final String html = renderPkgIndexPage([
-        PackageView.fromModel(
-          package: foobarPackage,
-          version: foobarStablePV,
-          scoreCard: ScoreCardData(),
-        ),
-        PackageView.fromModel(
-          package: foobarPackage,
-          version: flutterPackageVersion,
-          scoreCard: ScoreCardData(
-            derivedTags: ['sdk:flutter', 'platform:android'],
-            reportTypes: ['pana'],
+      final String html = renderPkgIndexPage(
+        [
+          PackageView.fromModel(
+            package: foobarPackage,
+            version: foobarStablePV,
+            scoreCard: ScoreCardData(),
           ),
-        ),
-      ], PageLinks.empty());
+          PackageView.fromModel(
+            package: foobarPackage,
+            version: flutterPackageVersion,
+            scoreCard: ScoreCardData(
+              derivedTags: ['sdk:flutter', 'platform:android'],
+              reportTypes: ['pana'],
+            ),
+          ),
+        ],
+        PageLinks.empty(),
+        searchForm: SearchForm.parse(),
+      );
       expectGoldenFile(html, 'pkg_index_page.html');
     });
 
     scopedTest('package index page with search', () {
-      final searchQuery =
+      final searchForm =
           SearchForm.parse(query: 'foobar', order: SearchOrder.top);
       final String html = renderPkgIndexPage(
         [
@@ -550,8 +554,8 @@ void main() {
             ),
           ),
         ],
-        PageLinks(0, 50, searchForm: searchQuery),
-        searchForm: searchQuery,
+        PageLinks(0, 50, searchForm: searchForm),
+        searchForm: searchForm,
         totalCount: 2,
       );
       expectGoldenFile(html, 'search_page.html');
@@ -606,7 +610,7 @@ void main() {
     });
 
     scopedTest('publisher packages page', () {
-      final searchQuery = SearchForm.parse(publisherId: 'example.com');
+      final searchForm = SearchForm.parse(publisherId: 'example.com');
       final html = renderPublisherPackagesPage(
         publisher: Publisher()
           ..id = 'example.com'
@@ -635,8 +639,8 @@ void main() {
           ),
         ],
         totalCount: 2,
-        searchForm: searchQuery,
-        pageLinks: PageLinks(0, 10, searchForm: searchQuery),
+        searchForm: searchForm,
+        pageLinks: PageLinks(0, 10, searchForm: searchForm),
         isAdmin: true,
         messageFromBackend: null,
       );
@@ -644,7 +648,7 @@ void main() {
     });
 
     scopedTest('/my-packages page', () {
-      final searchQuery =
+      final searchForm =
           SearchForm.parse(uploaderOrPublishers: [hansUser.email]);
       final String html = renderAccountPackagesPage(
         user: hansUser,
@@ -668,8 +672,8 @@ void main() {
             tags: ['sdk:flutter', 'platform:android'],
           ),
         ],
-        pageLinks: PageLinks(0, 10, searchForm: searchQuery),
-        searchForm: searchQuery,
+        pageLinks: PageLinks(0, 10, searchForm: searchForm),
+        searchForm: searchForm,
         totalCount: 2,
         messageFromBackend: null,
       );
