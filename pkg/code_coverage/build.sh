@@ -25,6 +25,17 @@ dart lib/generate_all_tests.dart \
   --dir "${APP_DIR}/test" \
   --name ${ALL_TEST_NAME}
 
+cd "${APP_DIR}"
+dart \
+  --pause-isolates-on-exit \
+  --enable-vm-service=20202 \
+  --disable-service-auth-codes \
+  ${APP_ALL_TEST_PATH} &
+APP_TEST_PID=$!
+
+sleep 15;
+
+cd "${CODE_COVERAGE_DIR}"
 pub run coverage:collect_coverage \
   --uri=http://localhost:20202 \
   -o "${OUTPUT_DIR}/raw/app_unit.json" \
@@ -32,18 +43,15 @@ pub run coverage:collect_coverage \
   --resume-isolates &
 COVERAGE_PID=$!
 
-cd "${APP_DIR}"
-dart \
-  --pause-isolates-on-exit \
-  --enable-vm-service=20202 \
-  --disable-service-auth-codes \
-  ${APP_ALL_TEST_PATH}
-
-echo "Delete ${APP_ALL_TEST_PATH}..."
-rm ${APP_ALL_TEST_PATH}
+echo "Waiting for app_unit test to complete..."
+wait ${APP_TEST_PID}
 
 echo "Waiting for app_unit code coverage to complete..."
 wait ${COVERAGE_PID}
+
+cd "${APP_DIR}"
+echo "Delete ${APP_ALL_TEST_PATH}..."
+rm ${APP_ALL_TEST_PATH}
 
 echo "Exporting to LCOV"
 cd "${CODE_COVERAGE_DIR}"
