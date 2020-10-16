@@ -249,7 +249,7 @@ String renderPkgShowPage(PackagePageData data) {
       packagePageData: data,
       readmeTab: _readmeTab(data),
     ),
-    pkgSubPage: urls.PkgSubPage.readme,
+    pkgPageTab: urls.PkgPageTab.readme,
   );
 }
 
@@ -261,7 +261,7 @@ String renderPkgChangelogPage(PackagePageData data) {
       packagePageData: data,
       changelogTab: _changelogTab(data),
     ),
-    pkgSubPage: urls.PkgSubPage.changelog,
+    pkgPageTab: urls.PkgPageTab.changelog,
   );
 }
 
@@ -273,7 +273,7 @@ String renderPkgExamplePage(PackagePageData data) {
       packagePageData: data,
       exampleTab: _exampleTab(data),
     ),
-    pkgSubPage: urls.PkgSubPage.example,
+    pkgPageTab: urls.PkgPageTab.example,
   );
 }
 
@@ -285,7 +285,7 @@ String renderPkgInstallPage(PackagePageData data) {
       packagePageData: data,
       installingTab: _installTab(data),
     ),
-    pkgSubPage: urls.PkgSubPage.install,
+    pkgPageTab: urls.PkgPageTab.install,
   );
 }
 
@@ -297,14 +297,14 @@ String renderPkgScorePage(PackagePageData data) {
       packagePageData: data,
       scoreTab: _scoreTab(data),
     ),
-    pkgSubPage: urls.PkgSubPage.score,
+    pkgPageTab: urls.PkgPageTab.score,
   );
 }
 
 String _renderPkgPage({
   @required PackagePageData data,
   @required List<Tab> tabs,
-  @required urls.PkgSubPage pkgSubPage,
+  @required urls.PkgPageTab pkgPageTab,
 }) {
   final card = data.analysis?.card;
 
@@ -327,7 +327,7 @@ String _renderPkgPage({
     data.package.name,
     version: isLatestStable ? null : data.version.version,
     includeHost: true,
-    pkgSubPage: pkgSubPage,
+    pkgPageTab: pkgPageTab,
   );
   final noIndex = (card?.isSkipped ?? false) ||
       (card?.grantedPubPoints == 0) ||

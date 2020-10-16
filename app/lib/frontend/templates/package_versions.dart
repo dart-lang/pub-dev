@@ -81,7 +81,7 @@ String renderPkgVersionsPage(
   );
 
   final canonicalUrl = urls.pkgPageUrl(data.package.name,
-      includeHost: true, pkgSubPage: urls.PkgSubPage.versions);
+      includeHost: true, pkgPageTab: urls.PkgPageTab.versions);
   return renderLayoutPage(
     PageType.package,
     content,
