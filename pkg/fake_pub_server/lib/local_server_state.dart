@@ -18,6 +18,8 @@ class LocalServerState {
 
   LocalServerState({String path}) : _file = path == null ? null : File(path);
 
+  bool get hasValidFile => _file != null;
+
   Future<void> load() async {
     if (_file != null && await _file.exists()) {
       final lines =
@@ -43,15 +45,14 @@ class LocalServerState {
   }
 
   Future<void> save() async {
+    if (_file == null) return;
     while (_storingCompleter != null) {
       await _storingCompleter.future;
     }
     _storingCompleter = Completer();
     try {
       print('Storing state in ${_file.path}...');
-      if (_file != null) {
-        await _file.parent.create(recursive: true);
-      }
+      await _file.parent.create(recursive: true);
       final sink = _file.openWrite();
 
       void writeMarker(String marker) {

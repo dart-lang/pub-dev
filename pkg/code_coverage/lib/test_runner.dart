@@ -34,14 +34,6 @@ Future<void> main(List<String> args) async {
 
   final testVmPort = _random.nextInt(990) + 19000;
   final fakePubServerVmPort = testVmPort + 1;
-  final testCollectProcess =
-      await _startCollect(testVmPort, '$buildDir/raw/$outputPrefix-test.json');
-  Process fakePubServerCollectProcess;
-  if (usesFakePubServer) {
-    fakePubServerCollectProcess = await _startCollect(fakePubServerVmPort,
-        '$buildDir/raw/$outputPrefix-fake-pub-server.json');
-  }
-
   print('Running $testPath ...');
   final testProcess = await Process.start(
     'dart',
@@ -62,22 +54,18 @@ Future<void> main(List<String> args) async {
     },
   );
 
-  void writeLogs(Stream<List<int>> stream, String prefix) {
-    stream.transform(utf8.decoder).transform(LineSplitter()).listen(
-      (s) {
-        s = s.trim();
-        if (s.isNotEmpty) {
-          print('  $prefix ${s.trim()}');
-        }
-      },
-      onDone: () {
-        print('  $prefix[DONE]');
-      },
-    );
+  _writeLogs(testProcess.stdout, '[$testPath][OUT]');
+  _writeLogs(testProcess.stderr, '[$testPath][ERR]');
+
+  await Future.delayed(Duration(seconds: 15));
+  final testCollectProcess =
+      await _startCollect(testVmPort, '$buildDir/raw/$outputPrefix-test.json');
+  Process fakePubServerCollectProcess;
+  if (usesFakePubServer) {
+    fakePubServerCollectProcess = await _startCollect(fakePubServerVmPort,
+        '$buildDir/raw/$outputPrefix-fake-pub-server.json');
   }
 
-  writeLogs(testProcess.stdout, '[$testPath][OUT]');
-  writeLogs(testProcess.stderr, '[$testPath][ERR]');
   final testOutput = await testProcess.exitCode;
   print('$testPath exited with code $testOutput');
 
@@ -102,9 +90,24 @@ Future<void> main(List<String> args) async {
   }
 }
 
+void _writeLogs(Stream<List<int>> stream, String prefix) {
+  stream.transform(utf8.decoder).transform(LineSplitter()).listen(
+    (s) {
+      s = s.trim();
+      if (s.isNotEmpty) {
+        print('  $prefix ${s.trim()}');
+      }
+    },
+    onDone: () {
+      print('  $prefix[DONE]');
+    },
+  );
+}
+
 Future<Process> _startCollect(int port, String outputFile) async {
   await File(outputFile).parent.create(recursive: true);
-  return Process.start(
+  print('[collect-$port-$outputFile] starting...');
+  final p = await Process.start(
     'pub',
     [
       'run',
@@ -116,6 +119,9 @@ Future<Process> _startCollect(int port, String outputFile) async {
       '--resume-isolates',
     ],
   );
+  _writeLogs(p.stdout, '[collect-$port-$outputFile-out]');
+  _writeLogs(p.stderr, '[collect-$port-$outputFile-err]');
+  return p;
 }
 
 Future<void> _convertToLcov(

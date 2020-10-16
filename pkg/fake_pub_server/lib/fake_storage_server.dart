@@ -24,7 +24,7 @@ class FakeStorageServer {
     final server = await IOServer.bind('localhost', port);
     serveRequests(server.server, _handler);
     _logger.info('Storage server running on port $port');
-    await ProcessSignal.sigterm.watch().first;
+    await ProcessSignal.sigint.watch().first;
     await server.close();
   }
 
