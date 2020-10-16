@@ -29,8 +29,6 @@ class FakePubServerProcess {
   static Future<FakePubServerProcess> start({
     String pkgDir,
     int port,
-    int storagePort,
-    int searchPort,
   }) async {
     final vmArgs = (Platform.environment['FAKE_PUB_SERVER_VM_ARGS'] ?? '')
         .split(' ')
@@ -39,8 +37,10 @@ class FakePubServerProcess {
     pkgDir ??= p.join(Directory.current.path, '../fake_pub_server');
     // TODO: check for free port
     port ??= 20000 + _random.nextInt(990);
-    storagePort ??= port + 1;
-    searchPort ??= port + 2;
+    final storagePort = port + 1;
+    final searchPort = port + 2;
+    final analyzerPort = port + 3;
+    final dartdocPort = port + 4;
 
     final pr1 = await Process.run('pub', ['get'], workingDirectory: pkgDir);
     if (pr1.exitCode != 0) {
@@ -54,6 +54,8 @@ class FakePubServerProcess {
         '--port=$port',
         '--storage-port=$storagePort',
         '--search-port=$searchPort',
+        '--analyzer-port=$analyzerPort',
+        '--dartdoc-port=$dartdocPort',
       ],
       workingDirectory: pkgDir,
     );
