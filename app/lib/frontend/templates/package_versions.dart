@@ -80,11 +80,14 @@ String renderPkgVersionsPage(
     footerHtml: renderPackageSchemaOrgHtml(data),
   );
 
+  final canonicalUrl = urls.pkgPageUrl(data.package.name,
+      includeHost: true, pkgPageTab: urls.PkgPageTab.versions);
   return renderLayoutPage(
     PageType.package,
     content,
     title: '${data.package.name} package - All Versions',
-    canonicalUrl: urls.pkgPageUrl(data.package.name, includeHost: true),
+    canonicalUrl: canonicalUrl,
+    shareUrl: canonicalUrl,
     pageData: pkgPageData(data.package, data.version),
     noIndex: data.package.isDiscontinued,
   );

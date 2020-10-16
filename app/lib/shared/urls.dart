@@ -32,42 +32,64 @@ const _trustedTargetHost = [
 final _siteRootUri = Uri.parse('$siteRoot/');
 final _pathRootUri = Uri(path: '/');
 
+/// The list of available tabs on the package page.
+enum PkgPageTab {
+  readme,
+  changelog,
+  example,
+  install,
+  versions,
+  score,
+  admin,
+}
+
+const _pkgPageTabSegments = <PkgPageTab, String>{
+  PkgPageTab.readme: '',
+  PkgPageTab.changelog: 'changelog',
+  PkgPageTab.example: 'example',
+  PkgPageTab.install: 'install',
+  PkgPageTab.versions: 'versions',
+  PkgPageTab.score: 'score',
+  PkgPageTab.admin: 'admin',
+};
+
 String pkgPageUrl(
   String package, {
   String version,
   bool includeHost = false,
-  String fragment,
+  PkgPageTab pkgPageTab,
 }) {
+  final subPageSegment = _pkgPageTabSegments[pkgPageTab ?? PkgPageTab.readme];
   final segments = <String>[
     'packages',
     package,
-    if (version != null) 'versions',
-    if (version != null) version,
+    if (version != null) ...['versions', version],
+    if (subPageSegment != null && subPageSegment.isNotEmpty) subPageSegment,
   ];
   final baseUri = includeHost ? _siteRootUri : _pathRootUri;
-  return baseUri
-      .resolveUri(Uri(pathSegments: segments, fragment: fragment))
-      .toString();
+  return baseUri.resolveUri(Uri(pathSegments: segments)).toString();
 }
 
 String pkgReadmeUrl(String package, {String version}) =>
     pkgPageUrl(package, version: version);
 
 String pkgChangelogUrl(String package, {String version}) =>
-    pkgPageUrl(package, version: version) + '/changelog';
+    pkgPageUrl(package, version: version, pkgPageTab: PkgPageTab.changelog);
 
 String pkgExampleUrl(String package, {String version}) =>
-    pkgPageUrl(package, version: version) + '/example';
+    pkgPageUrl(package, version: version, pkgPageTab: PkgPageTab.example);
 
 String pkgInstallUrl(String package, {String version}) =>
-    pkgPageUrl(package, version: version) + '/install';
+    pkgPageUrl(package, version: version, pkgPageTab: PkgPageTab.install);
 
-String pkgVersionsUrl(String package) => pkgPageUrl(package) + '/versions';
+String pkgVersionsUrl(String package) =>
+    pkgPageUrl(package, pkgPageTab: PkgPageTab.versions);
 
 String pkgScoreUrl(String package, {String version}) =>
-    pkgPageUrl(package, version: version) + '/score';
+    pkgPageUrl(package, version: version, pkgPageTab: PkgPageTab.score);
 
-String pkgAdminUrl(String package) => pkgPageUrl(package) + '/admin';
+String pkgAdminUrl(String package) =>
+    pkgPageUrl(package, pkgPageTab: PkgPageTab.admin);
 
 String pkgArchiveDownloadUrl(String package, String version, {Uri baseUri}) {
   final path =

@@ -13,8 +13,6 @@ void main() {
       expect(pkgPageUrl('foo_bar'), '/packages/foo_bar');
       expect(pkgPageUrl('foo_bar', version: '1.0.0'),
           '/packages/foo_bar/versions/1.0.0');
-      expect(pkgPageUrl('foo_bar', version: '1.0.0', fragment: 'hash'),
-          '/packages/foo_bar/versions/1.0.0#hash');
     });
 
     test('with host', () {
