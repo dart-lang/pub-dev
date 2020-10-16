@@ -3,7 +3,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
-## `20201015t154235-all`
+## `20201016t121934-all`
  * Bumped runtimeVersion to `2020.10.15`.
  * Upgraded Dart analysis SDK to `2.10.2`.
  * `Package.doNotAdvertise` is no longer a required property.
