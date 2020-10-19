@@ -201,12 +201,6 @@ class _UnsafeUrlFilter implements m.NodeVisitor {
       element.attributes.remove(attr);
       return true;
     }
-
-    /// <img src=""> elements are not covered by package:sanitize_html.
-    /// TODO: decide to remove from here or add it to sanitize_html.
-    if (tag == 'img' && uri.shouldIndicateUgc) {
-      element.attributes['rel'] = 'ugc';
-    }
     return false;
   }
 }
