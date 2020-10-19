@@ -116,6 +116,13 @@ String _renderSafeHtml(
       if (cn.startsWith('language-')) return true;
       return _whitelistedClassNames.contains(cn);
     },
+    addLinkRel: (String url) {
+      final uri = Uri.tryParse(url);
+      if (uri == null || uri.isInvalid) return ['nofollow'];
+      return <String>[
+        if (uri.shouldIndicateUgc) 'ugc',
+      ];
+    },
   );
   return inlineOnly ? html : '$html\n';
 }
@@ -194,7 +201,10 @@ class _UnsafeUrlFilter implements m.NodeVisitor {
       element.attributes.remove(attr);
       return true;
     }
-    if (uri.shouldIndicateUgc) {
+
+    /// <img src=""> elements are not covered by package:sanitize_html.
+    /// TODO: decide to remove from here or add it to sanitize_html.
+    if (tag == 'img' && uri.shouldIndicateUgc) {
       element.attributes['rel'] = 'ugc';
     }
     return false;

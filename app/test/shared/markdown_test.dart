@@ -229,7 +229,7 @@ void main() {
     test('a', () {
       expect(
         markdownToHtml('<a href="https://google.com">link</a>'),
-        '<p><a href="https://google.com">link</a></p>\n',
+        '<p><a href="https://google.com" rel="ugc">link</a></p>\n',
       );
     });
 
