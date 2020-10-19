@@ -94,10 +94,28 @@ void setupAccount() {
         .attributes['content'];
     if (clientId == null) return;
     load('auth2', allowInterop(() {
-      init(JsObject.jsify({'client_id': clientId}))
-          .then(allowInterop((_) => _init()));
+      init(JsObject.jsify({'client_id': clientId})).then(
+        allowInterop((_) => _init()), // success
+        allowInterop((_) => _initFailed()), // failure
+      );
     }));
   };
+}
+
+void _initFailed() {
+  // Unblocking the initialization of PubApiClient.
+  _initialized.complete();
+
+  // Login at this point is unlikely to work.
+  document.getElementById('-account-login')?.onClick?.listen((_) async {
+    await modalMessage(
+        'Sign in is not available',
+        markdown(
+            '`pub.dev` uses third-party cookies and access to Google domains for accounts and sign in. '
+            'Please enable third-party cookies and don\'t block content on `pub.dev`.'));
+  });
+
+  // TODO: consider blocking admin form elements and buttons (but no search controls).
 }
 
 void _init() {
