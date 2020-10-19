@@ -96,15 +96,15 @@ void main() {
 
     test('absolute image URL', () {
       expect(markdownToHtml('![text](http://dartlang.org/image.png)'),
-          '<p><img src="http://dartlang.org/image.png" alt="text" rel="ugc" /></p>\n');
+          '<p><img src="http://dartlang.org/image.png" alt="text" /></p>\n');
       expect(
           markdownToHtml('![text](http://dartlang.org/image.png)',
               baseUrl: baseUrl),
-          '<p><img src="http://dartlang.org/image.png" alt="text" rel="ugc" /></p>\n');
+          '<p><img src="http://dartlang.org/image.png" alt="text" /></p>\n');
       expect(
           markdownToHtml('![text](http://dartlang.org/image.png)',
               baseUrl: '$baseUrl/'),
-          '<p><img src="http://dartlang.org/image.png" alt="text" rel="ugc" /></p>\n');
+          '<p><img src="http://dartlang.org/image.png" alt="text" /></p>\n');
     });
 
     test('sibling link within site', () {
@@ -120,9 +120,9 @@ void main() {
       expect(markdownToHtml('![text](image.png)'),
           '<p><img src="image.png" alt="text" /></p>\n');
       expect(markdownToHtml('![text](image.png)', baseUrl: baseUrl),
-          '<p><img src="https://github.com/example/project/raw/master/image.png" alt="text" rel="ugc" /></p>\n');
+          '<p><img src="https://github.com/example/project/raw/master/image.png" alt="text" /></p>\n');
       expect(markdownToHtml('![text](image.png)', baseUrl: '$baseUrl/'),
-          '<p><img src="https://github.com/example/project/raw/master/image.png" alt="text" rel="ugc" /></p>\n');
+          '<p><img src="https://github.com/example/project/raw/master/image.png" alt="text" /></p>\n');
     });
 
     test('sibling image inside a relative directory', () {
@@ -131,11 +131,11 @@ void main() {
       expect(
           markdownToHtml('![text](image.png)',
               baseUrl: baseUrl, baseDir: 'example'),
-          '<p><img src="https://github.com/example/project/raw/master/example/image.png" alt="text" rel="ugc" /></p>\n');
+          '<p><img src="https://github.com/example/project/raw/master/example/image.png" alt="text" /></p>\n');
       expect(
           markdownToHtml('![text](img/image.png)',
               baseUrl: '$baseUrl/', baseDir: 'example'),
-          '<p><img src="https://github.com/example/project/raw/master/example/img/image.png" alt="text" rel="ugc" /></p>\n');
+          '<p><img src="https://github.com/example/project/raw/master/example/img/image.png" alt="text" /></p>\n');
     });
 
     test('sibling link plus relative link', () {
@@ -160,9 +160,9 @@ void main() {
       expect(markdownToHtml('![text](example/image.png)'),
           '<p><img src="example/image.png" alt="text" /></p>\n');
       expect(markdownToHtml('![text](example/image.png)', baseUrl: baseUrl),
-          '<p><img src="https://github.com/example/project/raw/master/example/image.png" alt="text" rel="ugc" /></p>\n');
+          '<p><img src="https://github.com/example/project/raw/master/example/image.png" alt="text" /></p>\n');
       expect(markdownToHtml('![text](example/image.png)', baseUrl: '$baseUrl/'),
-          '<p><img src="https://github.com/example/project/raw/master/example/image.png" alt="text" rel="ugc" /></p>\n');
+          '<p><img src="https://github.com/example/project/raw/master/example/image.png" alt="text" /></p>\n');
     });
 
     test('root link within site', () {
@@ -178,10 +178,10 @@ void main() {
       expect(markdownToHtml('![text](/image.png)'),
           '<p><img src="/image.png" alt="text" /></p>\n');
       expect(markdownToHtml('![text](/example/image.png)', baseUrl: baseUrl),
-          '<p><img src="https://github.com/example/image.png" alt="text" rel="ugc" /></p>\n');
+          '<p><img src="https://github.com/example/image.png" alt="text" /></p>\n');
       expect(
           markdownToHtml('![text](/example/image.png)', baseUrl: '$baseUrl/'),
-          '<p><img src="https://github.com/example/image.png" alt="text" rel="ugc" /></p>\n');
+          '<p><img src="https://github.com/example/image.png" alt="text" /></p>\n');
     });
 
     test('email', () {
@@ -229,7 +229,7 @@ void main() {
     test('a', () {
       expect(
         markdownToHtml('<a href="https://google.com">link</a>'),
-        '<p><a href="https://google.com">link</a></p>\n',
+        '<p><a href="https://google.com" rel="ugc">link</a></p>\n',
       );
     });
 
@@ -244,7 +244,7 @@ void main() {
       expect(
           markdownToHtml(
               '![text](https://github.com/rcpassos/progress_hud/blob/master/progress_hud.gif)'),
-          '<p><img src="https://github.com/rcpassos/progress_hud/raw/master/progress_hud.gif" alt="text" rel="ugc" /></p>\n');
+          '<p><img src="https://github.com/rcpassos/progress_hud/raw/master/progress_hud.gif" alt="text" /></p>\n');
     });
 
     test('root path: /[..]/blob/master/[path].gif', () {
@@ -252,14 +252,14 @@ void main() {
           markdownToHtml(
               '![text](/rcpassos/progress_hud/blob/master/progress_hud.gif)',
               baseUrl: 'https://github.com/rcpassos/progress_hud'),
-          '<p><img src="https://github.com/rcpassos/progress_hud/raw/master/progress_hud.gif" alt="text" rel="ugc" /></p>\n');
+          '<p><img src="https://github.com/rcpassos/progress_hud/raw/master/progress_hud.gif" alt="text" /></p>\n');
     });
 
     test('relative path: [path].gif', () {
       expect(
           markdownToHtml('![text](progress_hud.gif)',
               baseUrl: 'https://github.com/rcpassos/progress_hud'),
-          '<p><img src="https://github.com/rcpassos/progress_hud/raw/master/progress_hud.gif" alt="text" rel="ugc" /></p>\n');
+          '<p><img src="https://github.com/rcpassos/progress_hud/raw/master/progress_hud.gif" alt="text" /></p>\n');
     });
   });
 

@@ -116,6 +116,13 @@ String _renderSafeHtml(
       if (cn.startsWith('language-')) return true;
       return _whitelistedClassNames.contains(cn);
     },
+    addLinkRel: (String url) {
+      final uri = Uri.tryParse(url);
+      if (uri == null || uri.isInvalid) return ['nofollow'];
+      return <String>[
+        if (uri.shouldIndicateUgc) 'ugc',
+      ];
+    },
   );
   return inlineOnly ? html : '$html\n';
 }
@@ -193,9 +200,6 @@ class _UnsafeUrlFilter implements m.NodeVisitor {
     if (uri == null || uri.isInvalid) {
       element.attributes.remove(attr);
       return true;
-    }
-    if (uri.shouldIndicateUgc) {
-      element.attributes['rel'] = 'ugc';
     }
     return false;
   }
