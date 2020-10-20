@@ -11,6 +11,7 @@ import 'package:logging/logging.dart';
 import 'package:retry/retry.dart' show retry;
 
 import '../shared/email.dart' show looksLikeEmail;
+import '../shared/utils.dart' show httpRetryClient;
 import 'auth_provider.dart';
 
 final _logger = Logger('pub.account.google_auth2');
@@ -183,7 +184,7 @@ class GoogleOauth2AuthProvider extends AuthProvider {
 
   @override
   Future<AccountProfile> getAccountProfile(String accessToken) async {
-    final client = http.Client();
+    final client = httpRetryClient(innerClient: http.Client());
     final authClient = auth.authenticatedClient(
         client,
         auth.AccessCredentials(

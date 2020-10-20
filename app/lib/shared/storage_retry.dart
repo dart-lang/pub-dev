@@ -5,14 +5,9 @@ import 'package:gcloud/storage.dart'
     show registerStorageService, Storage, storageService;
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/http.dart' show authClientService;
-import 'configuration.dart' show activeConfiguration;
 
-final _transientStatusCodes = {
-  // See: https://cloud.google.com/storage/docs/xml-api/reference-status
-  429,
-  500,
-  503,
-};
+import '../shared/utils.dart' show httpRetryClient;
+import 'configuration.dart' show activeConfiguration;
 
 /// Wrap the [storageService] exposed from `package:gcloud` and
 /// `package:appengine` with [RetryClient]. And retry 500, 503, and 429 errors.
@@ -28,14 +23,7 @@ Future<void> withStorageRetry(FutureOr<void> Function() fn) async {
     }
 
     // Create a that retries on transient errors
-    final client = RetryClient(
-      authClientService,
-      when: (r) => _transientStatusCodes.contains(r.statusCode),
-      // TOOD: Consider implementing whenError and handle DNS + handshake errors.
-      //       These are safe, retrying after partially sending data is more
-      //       sketchy, but probably safe in our application.
-      retries: 5,
-    );
+    final client = httpRetryClient(innerClient: authClientService);
 
     // Register a new storage service.
     registerStorageService(Storage(
