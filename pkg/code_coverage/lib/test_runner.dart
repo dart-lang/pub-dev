@@ -16,8 +16,7 @@ final _argParser = ArgParser()
   ..addOption('package', help: 'The package directory.')
   ..addOption('test', help: 'The relative path inside the package directory.')
   ..addOption('prefix', help: 'The file name prefix to use.')
-  ..addFlag('fake-pub-server',
-      defaultsTo: false, help: 'Indicates the use of fake_pub_server.');
+  ..addOption('fake-pub-server', help: 'The directory of pkg/fake_pub_server.');
 
 Future<void> main(List<String> args) async {
   final buildDir = '${Directory.current.path}/build';
@@ -26,14 +25,13 @@ Future<void> main(List<String> args) async {
   final packageDir = argv['package'] as String;
   final testPath = argv['test'] as String;
   final outputPrefix = argv['prefix'] as String;
-  final usesFakePubServer = argv['fake-pub-server'] as bool;
+  final fakePubServerDir = argv['fake-pub-server'] as String;
 
   ArgumentError.checkNotNull(packageDir);
   ArgumentError.checkNotNull(testPath);
   ArgumentError.checkNotNull(outputPrefix);
 
   final testVmPort = _random.nextInt(990) + 19000;
-  final fakePubServerVmPort = testVmPort + 1;
   print('Running $testPath ...');
   final testProcess = await Process.start(
     'dart',
@@ -45,12 +43,8 @@ Future<void> main(List<String> args) async {
     ],
     workingDirectory: packageDir,
     environment: {
-      'COVERAGE_DIR': '$buildDir/puppeteer',
-      'FAKE_PUB_SERVER_VM_ARGS': [
-        '--pause-isolates-on-exit',
-        '--enable-vm-service=$fakePubServerVmPort',
-        '--disable-service-auth-codes',
-      ].join(' '),
+      'COVERAGE_DIR': buildDir,
+      'COVERAGE_SESSION': outputPrefix,
     },
   );
 
@@ -60,11 +54,6 @@ Future<void> main(List<String> args) async {
   await Future.delayed(Duration(seconds: 15));
   final testCollectProcess =
       await _startCollect(testVmPort, '$buildDir/raw/$outputPrefix-test.json');
-  Process fakePubServerCollectProcess;
-  if (usesFakePubServer) {
-    fakePubServerCollectProcess = await _startCollect(fakePubServerVmPort,
-        '$buildDir/raw/$outputPrefix-fake-pub-server.json');
-  }
 
   final testOutput = await testProcess.exitCode;
   print('$testPath exited with code $testOutput');
@@ -72,20 +61,17 @@ Future<void> main(List<String> args) async {
   print('Waiting for test coverage...');
   await testCollectProcess.exitCode;
 
-  print('Waiting for proper exit of fake_pub_server...');
-  await fakePubServerCollectProcess?.exitCode;
-
-  await _convertToLcov(
-    packageDir,
-    '$buildDir/raw/$outputPrefix-test.json',
-    '$buildDir/lcov/$outputPrefix-test.json.info',
-  );
-
-  if (usesFakePubServer) {
+  final dir = Directory('$buildDir/raw');
+  final files = dir
+      .listSync()
+      .whereType<File>()
+      .where((f) => f.path.split('/').last.startsWith('$outputPrefix-'));
+  for (final file in files) {
+    final name = file.path.split('/').last;
     await _convertToLcov(
-      '../fake_pub_server',
-      '$buildDir/raw/$outputPrefix-fake-pub-server.json',
-      '$buildDir/lcov/$outputPrefix-fake-pub-server.json.info',
+      name.contains('fake-pub-server') ? fakePubServerDir : packageDir,
+      '$buildDir/raw/$name',
+      '$buildDir/lcov/$name.info',
     );
   }
 }
@@ -126,7 +112,9 @@ Future<Process> _startCollect(int port, String outputFile) async {
 
 Future<void> _convertToLcov(
     String packageDir, String inputFile, String outputFile) async {
-  await File(outputFile).create(recursive: true);
+  final out = File(outputFile);
+  if (await out.exists()) return;
+  await out.parent.create(recursive: true);
   await Process.run(
     'pub',
     [

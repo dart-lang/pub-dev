@@ -18,22 +18,19 @@ final testTimeoutFactor = 4;
 class FakePubServerProcess {
   final int port;
   final Process _process;
+  final _CoverageConfig _coverageConfig;
   final _startedCompleter = Completer();
   StreamSubscription _stdoutListener;
   StreamSubscription _stderrListener;
   Timer _startupTimeoutTimer;
   final _linePatterns = <_LinePattern>[];
 
-  FakePubServerProcess._(this.port, this._process);
+  FakePubServerProcess._(this.port, this._process, this._coverageConfig);
 
   static Future<FakePubServerProcess> start({
     String pkgDir,
     int port,
   }) async {
-    final vmArgs = (Platform.environment['FAKE_PUB_SERVER_VM_ARGS'] ?? '')
-        .split(' ')
-        .where((s) => s.isNotEmpty)
-        .toList();
     pkgDir ??= p.join(Directory.current.path, '../fake_pub_server');
     // TODO: check for free port
     port ??= 20000 + _random.nextInt(990);
@@ -41,6 +38,8 @@ class FakePubServerProcess {
     final searchPort = port + 2;
     final analyzerPort = port + 3;
     final dartdocPort = port + 4;
+    final vmPort = port + 5;
+    final coverageConfig = await _CoverageConfig.detect(vmPort);
 
     final pr1 = await Process.run('pub', ['get'], workingDirectory: pkgDir);
     if (pr1.exitCode != 0) {
@@ -49,7 +48,11 @@ class FakePubServerProcess {
     final process = await Process.start(
       'dart',
       [
-        ...vmArgs,
+        if (coverageConfig != null) ...[
+          '--pause-isolates-on-exit',
+          '--enable-vm-service=${coverageConfig.vmPort}',
+          '--disable-service-auth-codes',
+        ],
         'bin/fake_pub_server.dart',
         '--port=$port',
         '--storage-port=$storagePort',
@@ -59,7 +62,7 @@ class FakePubServerProcess {
       ],
       workingDirectory: pkgDir,
     );
-    final instance = FakePubServerProcess._(port, process);
+    final instance = FakePubServerProcess._(port, process, coverageConfig);
     instance._bindListeners();
     return instance;
   }
@@ -74,6 +77,7 @@ class FakePubServerProcess {
         if (line.contains('running on port $port')) {
           _startedCompleter.complete();
           _startupTimeoutTimer?.cancel();
+          _coverageConfig?.startCollect();
         }
         for (int i = _linePatterns.length - 1; i >= 0; i--) {
           final p = _linePatterns[i];
@@ -109,6 +113,7 @@ class FakePubServerProcess {
     // First try SIGINT, and after 10 minutes do SIGTERM.
     print('Sending INT signal to ${_process.pid}...');
     _process.kill(ProcessSignal.sigint);
+    await _coverageConfig?.waitForCollect();
     final timer = Timer(Duration(minutes: 10), () {
       print('Sending TERM signal to ${_process.pid}...');
       _process.kill();
@@ -129,4 +134,68 @@ class _LinePattern {
   final LineMatcher matcher;
   final completer = Completer<String>();
   _LinePattern(this.matcher);
+}
+
+class _CoverageConfig {
+  final int vmPort;
+  final String outputPath;
+  Process _process;
+
+  _CoverageConfig(this.vmPort, this.outputPath);
+
+  static Future<_CoverageConfig> detect(int vmPort) async {
+    final coverageDir = Platform.environment['COVERAGE_DIR'];
+    if (coverageDir == null || coverageDir.isEmpty) return null;
+
+    var sessionName = Platform.environment['COVERAGE_SESSION'];
+    if (sessionName == null || sessionName.isEmpty) {
+      sessionName = 'pid-$pid';
+    }
+
+    final outputPath =
+        p.join(coverageDir, 'raw', '$sessionName-fake-pub-server-$vmPort.json');
+    return _CoverageConfig(vmPort, outputPath);
+  }
+
+  Future<void> startCollect() async {
+    await File(outputPath).parent.create(recursive: true);
+    print('[collect-$outputPath] starting...');
+    _process = await Process.start(
+      'pub',
+      [
+        'run',
+        'coverage:collect_coverage',
+        '--uri=http://localhost:$vmPort',
+        '-o',
+        outputPath,
+        '--wait-paused',
+        '--resume-isolates',
+      ],
+    );
+    _writeLogs(_process.stdout, '[collect-$outputPath][OUT]');
+    _writeLogs(_process.stderr, '[collect-$outputPath][ERR]');
+    final x = _process.exitCode.then((code) {
+      print('[collect-$outputPath] exited with status code $code.');
+    });
+    x.toString();
+  }
+
+  Future<void> waitForCollect() async {
+    print('[collect-$outputPath] waiting for completion...');
+    await _process?.exitCode;
+  }
+}
+
+void _writeLogs(Stream<List<int>> stream, String prefix) {
+  stream.transform(utf8.decoder).transform(LineSplitter()).listen(
+    (s) {
+      s = s.trim();
+      if (s.isNotEmpty) {
+        print('  $prefix ${s.trim()}');
+      }
+    },
+    onDone: () {
+      print('  $prefix[DONE]');
+    },
+  );
 }
