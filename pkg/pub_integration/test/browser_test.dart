@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as p;
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
 
@@ -36,7 +37,8 @@ void main() {
       httpClient.close();
       headlessEnv?.printCoverage();
       if (coverageDir != null) {
-        await headlessEnv?.saveCoverage(coverageDir, 'browser');
+        await headlessEnv?.saveCoverage(
+            p.join(coverageDir, 'puppeteer'), 'browser');
       }
     });
 
