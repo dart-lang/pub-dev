@@ -14,7 +14,7 @@ import '../../shared/utils.dart';
 import '../static_files.dart';
 
 import '_cache.dart';
-import 'misc.dart';
+import 'package_misc.dart';
 
 /// Renders the `views/pkg/analysis/tab.mustache` template.
 String renderAnalysisTab(

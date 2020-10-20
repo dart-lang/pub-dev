@@ -316,33 +316,6 @@
     margin: 0 8px 0 0;
   }
 
-  .package-badge {
-    display: inline-block;
-    background: white;
-    border: 1px solid $color-input-primary;
-    border-radius: 20px;
-    color: $color-input-primary;
-
-    font-size: 12px;
-    padding: 1px 6px;
-    margin: 0 8px 0 0;
-
-    .package-badge-icon {
-      max-width: 13px;
-      max-height: 13px;
-      position: relative;
-      top: 2px;
-    }
-  }
-
-  .packages-vp-icon {
-    display: inline-block;
-    height: 14px;
-    position: relative;
-    top: 3px;
-    opacity: 0.5;
-  }
-
   .packages-api {
     color: #3c4043;
     font-size: 12px;
@@ -360,10 +333,6 @@
     .-rest {
       padding-left: 16px;
     }
-  }
-
-  .score-box {
-    float: none;
   }
 
   &.-compact {

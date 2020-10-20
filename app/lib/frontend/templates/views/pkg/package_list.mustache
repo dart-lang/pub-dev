@@ -30,21 +30,14 @@
       </span>
       {{#publisher_id}}
       <span class="packages-metadata-block">
-        <img class="packages-vp-icon"
+        <img class="package-vp-icon"
            src="{{& static_assets.img__verified-publisher-icon_svg}}"
            title="Published by a pub.dev verified publisher" />
         <a href="/publishers/{{publisher_id}}">{{publisher_id}}</a>
       </span>
       {{/publisher_id}}
-      {{#is_flutter_favorite}}
-      <span class="package-badge">
-        <img class="package-badge-icon" src="{{static_assets.img__flutter-logo-32x32_png}}" />
-        Flutter Favorite
-      </span>
-      {{/is_flutter_favorite}}
-      {{#is_null_safe}}
-      <span class="package-badge" title="Supports the null safety language feature.">Null safety</span>
-      {{/is_null_safe}}
+      {{& flutter_favorite_badge_html }}
+      {{& null_safe_badge_html }}
     </p>
     {{/is_external}}
     <div>{{& tags_html}}</div>

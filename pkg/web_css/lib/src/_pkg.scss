@@ -2,6 +2,33 @@
    for details. All rights reserved. Use of this source code is governed by a
    BSD-style license that can be found in the LICENSE file. */
 
+.package-badge {
+  display: inline-block;
+  background: white;
+  border: 1px solid $color-input-primary;
+  border-radius: 20px;
+  color: $color-input-primary;
+
+  font-size: 12px;
+  padding: 1px 6px;
+  margin: 0 8px 0 0;
+
+  .package-badge-icon {
+    max-width: 13px;
+    max-height: 13px;
+    position: relative;
+    top: 2px;
+  }
+}
+
+.package-vp-icon {
+  display: inline-block;
+  height: 14px;
+  position: relative;
+  top: 3px;
+  opacity: 0.5;
+}
+
 .version-table {
   width: 100%;
   border-spacing: 0;
