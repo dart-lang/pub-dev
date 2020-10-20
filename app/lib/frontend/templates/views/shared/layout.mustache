@@ -33,7 +33,7 @@
   <meta property="og:description" content="{{& pageDescription}}" />
   <meta property="og:image" content="{{& pub_site_root}}{{& static_assets.img__pub-dev-icon-cover-image_png}}" />
   {{#share_url}}
-  <meta property="og:url" content="{{& share_url}}" />
+  <meta property="og:url" content="{{& share_url }}" />
   {{/share_url}}
 
   <title>{{& title}}</title>
@@ -44,7 +44,7 @@
   {{/favicon}}
   <link rel="search" type="application/opensearchdescription+xml" title="Dart packages" href="{{{static_assets.osd_xml}}}" />
   {{#canonical_url}}
-  <link rel="canonical" href="{{{canonical_url}}}"/>
+  <link rel="canonical" href="{{& canonical_url }}"/>
   {{/canonical_url}}
   <meta name="description" content="{{& pageDescription}}" />
   <link rel="alternate" type="application/atom+xml" title="Updated Packages Feed for Pub" href="/feed.atom" />

@@ -137,8 +137,11 @@ String pkgDocUrl(
 String publisherUrl(String publisherId) => '/publishers/$publisherId';
 String publisherPackagesUrl(String publisherId) =>
     SearchForm.parse(publisherId: publisherId).toSearchLink();
-String publisherAdminUrl(String publisherId) =>
-    '/publishers/$publisherId/admin';
+
+String publisherAdminUrl(String publisherId, {bool includeHost = false}) {
+  final baseUri = includeHost ? _siteRootUri : _pathRootUri;
+  return baseUri.resolve('/publishers/$publisherId/admin').toString();
+}
 
 String searchUrl({
   String sdk,
