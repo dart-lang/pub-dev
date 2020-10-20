@@ -63,10 +63,10 @@ abstract class GoogleAuth {
   /// (Useful when debugging oauth2 scope grant flow).
   external void disconnect();
 
-  /// Calls the onInit function when the GoogleAuth object is fully initialized.
-  /// If an error is raised while initializing, the onError function will be
+  /// Calls the [onSuccess] function when the GoogleAuth object is fully initialized.
+  /// If an error is raised while initializing, the [onError] function will be
   /// called instead.
-  external dynamic then(Function onInit);
+  external dynamic then(Function onSuccess, Function onError);
 }
 
 @anonymous
