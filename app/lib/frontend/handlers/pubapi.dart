@@ -304,8 +304,8 @@ class PubApi {
   /// Exposes History entities.
   ///
   /// NOTE: experimental, do not rely on it
-  @EndPoint.get('/api/history')
-  Future<Response> history(Request request) => apiHistoryHandler(request);
+  //@EndPoint.get('/api/history')
+  //Future<Response> history(Request request) => apiHistoryHandler(request);
 
   @EndPoint.get('/api/packages')
   Future<Response> listPackages(Request request) async {
