@@ -18,6 +18,7 @@ import '../../shared/email.dart' show EmailAddress;
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
+import '../request_context.dart';
 import '../static_files.dart';
 
 import '_cache.dart';
@@ -26,6 +27,7 @@ import 'detail_page.dart';
 import 'layout.dart';
 import 'misc.dart';
 import 'package_analysis.dart';
+import 'package_misc.dart';
 
 String _renderLicense(String baseUrl, LicenseFile license) {
   if (license == null) return null;
@@ -208,11 +210,16 @@ String renderPkgHeader(PackagePageData data) {
   final bool showUpdated =
       selectedVersion.version != package.latestVersion || showPrereleaseVersion;
 
+  final isNullSafe = requestContext.isNullSafetyDisplayed &&
+      data.toPackageView().tags.contains(PackageVersionTags.isNullSafe);
+  final nullSafeBadgeHtml = isNullSafe ? renderNullSafeBadge() : null;
+
   final metadataHtml = templateCache.renderTemplate('pkg/header', {
     'publisher_id': package.publisherId,
     'publisher_url': package.publisherId == null
         ? null
         : urls.publisherUrl(package.publisherId),
+    'null_safe_badge_html': nullSafeBadgeHtml,
     'latest': {
       'show_updated': showUpdated,
       'show_prerelease_version': showPrereleaseVersion,

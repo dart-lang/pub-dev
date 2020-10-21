@@ -10,6 +10,8 @@ Published <span>{{short_created}}</span>
           src="/static/img/verified-publisher-blue.svg" />{{publisher_id}}</a>
 {{/publisher_id}}
 
+{{& null_safe_badge_html }}
+
 {{#latest.show_updated}}
   &bull; Latest:
   <span><a href="{{& latest.stable_url}}">{{latest.stable_version}}</a></span>

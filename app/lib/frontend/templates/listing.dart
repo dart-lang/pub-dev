@@ -22,7 +22,7 @@ import '_cache.dart';
 import '_consts.dart';
 import '_utils.dart';
 import 'layout.dart';
-import 'misc.dart';
+import 'package_misc.dart';
 
 /// Renders the `views/shared/pagination.mustache` template.
 String renderPagination(PageLinks pageLinks) {
@@ -55,6 +55,13 @@ String renderPackageList(
         ?.toList();
     final hasApiPages = apiPages != null && apiPages.isNotEmpty;
     final hasMoreThanOneApiPages = hasApiPages && apiPages.length > 1;
+    final flutterFavoriteBadgeHtml =
+        view.tags.contains(PackageTags.isFlutterFavorite)
+            ? renderFlutterFavoriteBadge()
+            : null;
+    final isNullSafe = requestContext.isNullSafetyDisplayed &&
+        view.tags.contains(PackageVersionTags.isNullSafe);
+    final nullSafeBadgeHtml = isNullSafe ? renderNullSafeBadge() : null;
     packagesJson.add({
       'url': view.url ?? urls.pkgPageUrl(view.name),
       'name': view.name,
@@ -69,9 +76,8 @@ String renderPackageList(
       'added_x_ago': addedXAgo,
       'last_uploaded': view.shortUpdated,
       'desc': view.ellipsizedDescription,
-      'is_flutter_favorite': view.tags.contains(PackageTags.isFlutterFavorite),
-      'is_null_safe': requestContext.isNullSafetyDisplayed &&
-          view.tags.contains(PackageVersionTags.isNullSafe),
+      'flutter_favorite_badge_html': flutterFavoriteBadgeHtml,
+      'null_safe_badge_html': nullSafeBadgeHtml,
       'publisher_id': view.publisherId,
       'publisher_url':
           view.publisherId == null ? null : urls.publisherUrl(view.publisherId),
