@@ -301,12 +301,6 @@ class PubApi {
   Future<Response> documentation(Request request, String package) =>
       apiDocumentationHandler(request, package);
 
-  /// Exposes History entities.
-  ///
-  /// NOTE: experimental, do not rely on it
-  @EndPoint.get('/api/history')
-  Future<Response> history(Request request) => apiHistoryHandler(request);
-
   @EndPoint.get('/api/packages')
   Future<Response> listPackages(Request request) async {
     if (request.requestedUri.queryParameters['compact'] == '1') {

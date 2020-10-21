@@ -233,13 +233,6 @@ class PubApiClient {
     );
   }
 
-  Future<List<int>> history() async {
-    return await _client.requestBytes(
-      verb: 'get',
-      path: '/api/history',
-    );
-  }
-
   Future<List<int>> listPackages() async {
     return await _client.requestBytes(
       verb: 'get',

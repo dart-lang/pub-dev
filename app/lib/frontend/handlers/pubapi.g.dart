@@ -413,18 +413,6 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
-  router.add('GET', r'/api/history', (Request request) async {
-    try {
-      final _$result = await service.history(
-        request,
-      );
-      return _$result;
-    } on ApiResponseException catch (e) {
-      return e.asApiResponse();
-    } catch (e, st) {
-      return $utilities.unhandledError(e, st);
-    }
-  });
   router.add('GET', r'/api/packages', (Request request) async {
     try {
       final _$result = await service.listPackages(
