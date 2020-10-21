@@ -5,7 +5,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:basics/basics.dart';
 import 'package:crypto/crypto.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:http/http.dart';
@@ -28,7 +27,7 @@ import 'resolver.dart';
 @visibleForTesting
 Future<void> importProfile({
   @required TestProfile profile,
-  List<String> resolvedVersions,
+  List<ResolvedVersion> resolvedVersions,
   @required String archiveCachePath,
 }) async {
   // resolve versions if they are not yet resolved
@@ -84,12 +83,9 @@ Future<void> importProfile({
   final archiveCacheDir = Directory(archiveCachePath);
   await archiveCacheDir.create(recursive: true);
   for (final rv in resolvedVersions) {
-    final parts = rv.partition(':');
-    final packageName = parts.first;
-    final versionName = parts.last;
-
-    final fileName = rv.replaceAll(':', '-') + '.tar.gz';
-    final file = File(p.join(archiveCacheDir.path, fileName));
+    final packageName = rv.package;
+    final versionName = rv.version;
+    final file = File(p.join(archiveCacheDir.path, rv.archiveName));
     // download package archive if not already in the cache
     if (!await file.exists()) {
       client ??= Client();
