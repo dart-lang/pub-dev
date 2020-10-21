@@ -161,3 +161,4 @@ branches:
 cache:
   directories:
     - "$HOME/.pub-cache"
+    - "pkg/fake_pub_server/.test-profile"

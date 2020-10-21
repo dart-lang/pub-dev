@@ -9,3 +9,7 @@ stages:
         - dartanalyzer: --fatal-infos --fatal-warnings .
 #  - unit_test:
 #    - test: --run-skipped
+
+cache:
+  directories:
+    - ".test-profile"
