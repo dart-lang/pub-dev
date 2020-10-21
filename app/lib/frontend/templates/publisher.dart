@@ -131,8 +131,7 @@ String renderPublisherPackagesPage({
     ),
     publisherId: publisher.publisherId,
     searchForm: searchForm,
-    canonicalUrl:
-        searchForm.toSearchLink(page: pageLinks.currentPage, includeHost: true),
+    canonicalUrl: searchForm.toSearchLink(page: pageLinks.currentPage),
     // index only the first page, if it has packages displayed without search query
     noIndex: packages.isEmpty || isSearch || pageLinks.currentPage > 1,
     mainClasses: [wideHeaderDetailPageClassName],
@@ -181,8 +180,7 @@ String renderPublisherAdminPage({
         publisherId: publisher.publisherId,
       ),
     ),
-    canonicalUrl:
-        urls.publisherAdminUrl(publisher.publisherId, includeHost: true),
+    canonicalUrl: urls.publisherAdminUrl(publisher.publisherId),
     noIndex: true,
     mainClasses: [wideHeaderDetailPageClassName],
   );

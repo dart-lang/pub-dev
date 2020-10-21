@@ -5,9 +5,14 @@
 import 'dart:convert';
 
 import 'package:html/dom.dart';
+import 'package:html/parser.dart' as parser;
 import 'package:test/test.dart';
 
-void validateHtml(root) {
+void parseAndValidateHtml(String html) {
+  validateHtml(parser.parse(html));
+}
+
+void validateHtml(Node root) {
   List<Element> elements;
   List<Element> links;
   List<Element> scripts;

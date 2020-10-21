@@ -55,6 +55,10 @@ String renderLayoutPage(
   String searchPlaceHolder,
   List<String> mainClasses,
 }) {
+  // normalize canonical URL
+  if (canonicalUrl != null && canonicalUrl.startsWith('/')) {
+    canonicalUrl = '${urls.siteRoot}$canonicalUrl';
+  }
   mainClasses ??= ['container'];
   final isRoot = type == PageType.landing && sdk == null;
   final pageDataEncoded = pageData == null

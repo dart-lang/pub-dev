@@ -181,8 +181,7 @@ String renderPkgIndexPage(
     title: pageTitle,
     sdk: sdk,
     searchForm: searchForm,
-    canonicalUrl:
-        searchForm.toSearchLink(page: links.currentPage, includeHost: true),
+    canonicalUrl: searchForm.toSearchLink(page: links.currentPage),
     noIndex: true,
     searchPlaceHolder: searchPlaceholder,
     mainClasses: [],

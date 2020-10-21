@@ -15,6 +15,7 @@ import 'package:pub_dev/frontend/handlers.dart';
 import 'package:pub_dev/shared/handler_helpers.dart';
 import 'package:pub_dev/shared/urls.dart';
 
+import '../../shared/html_validation.dart';
 import '../../shared/utils.dart';
 
 const pageSize = 10;
@@ -45,6 +46,7 @@ Future<String> expectHtmlResponse(
   expect(response.statusCode, status);
   expect(response.headers['content-type'], 'text/html; charset="utf-8"');
   final content = await response.readAsString();
+  parseAndValidateHtml(content);
   expect(content, contains('<!DOCTYPE html>'));
   expect(content, contains('</html>'));
   for (Pattern p in present) {
