@@ -13,8 +13,9 @@ FAKE_PUB_SERVER_DIR="${PROJECT_DIR}/pkg/fake_pub_server"
 OUTPUT_DIR="${CODE_COVERAGE_DIR}/build"
 
 rm -rf ${OUTPUT_DIR}
-mkdir -p "${OUTPUT_DIR}/raw"
+mkdir -p "${OUTPUT_DIR}/lcov"
 mkdir -p "${OUTPUT_DIR}/puppeteer"
+mkdir -p "${OUTPUT_DIR}/raw"
 
 cd "${CODE_COVERAGE_DIR}"
 pub get
@@ -56,8 +57,7 @@ echo "Delete ${APP_ALL_TEST_PATH}..."
 rm ${APP_ALL_TEST_PATH}
 
 echo "Exporting to LCOV"
-cd "${CODE_COVERAGE_DIR}"
-mkdir -p "${OUTPUT_DIR}/lcov"
+cd "${APP_DIR}"
 pub run coverage:format_coverage \
   --packages "${APP_DIR}/.packages" \
   -i "${OUTPUT_DIR}/raw/app_unit.json" \
@@ -67,6 +67,7 @@ pub run coverage:format_coverage \
 
 ## Collect coverage for integration tests.
 
+cd "${CODE_COVERAGE_DIR}"
 ls -1 "${PUB_INTEGRATION_DIR}/test" | grep .dart$ | xargs -n 1 -I ZZZ dart \
   lib/test_runner.dart \
   --package "${PUB_INTEGRATION_DIR}" \
