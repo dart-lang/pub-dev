@@ -5,11 +5,11 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:appengine/appengine.dart';
 import 'package:args/command_runner.dart';
 import 'package:http/http.dart' as http;
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
-import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:stream_transform/stream_transform.dart' show RateLimit;
@@ -94,16 +94,9 @@ Future _main(FrontendEntryMessage message) async {
 }
 
 Future<void> _setupUploadSigner() async {
-  UploadSignerService uploadSigner;
-  if (envConfig.isRunningLocally) {
-    uploadSigner = ServiceAccountBasedUploadSigner();
-  } else {
-    final authClient = await auth.clientViaMetadataServer();
-    registerScopeExitCallback(() async => authClient.close());
-    final email = await obtainServiceAccountEmail();
-    uploadSigner =
-        IamBasedUploadSigner(activeConfiguration.projectId, email, authClient);
-  }
+  final email = await obtainServiceAccountEmail();
+  final uploadSigner = IamBasedUploadSigner(
+      activeConfiguration.projectId, email, authClientService);
   registerUploadSigner(uploadSigner);
 }
 

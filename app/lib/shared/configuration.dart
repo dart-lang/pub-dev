@@ -117,6 +117,9 @@ class Configuration {
   /// The identifier of admins.
   final List<AdminId> admins;
 
+  /// Whether to use metadata server to initialize auth client.
+  final bool useMetadataServer;
+
   /// Create a configuration for production deployment.
   ///
   /// This will use the Datastore from the cloud project and the Cloud Storage
@@ -161,6 +164,7 @@ class Configuration {
           permissions: {AdminPermission.removePackage},
         )
       ],
+      useMetadataServer: true,
     );
   }
 
@@ -209,6 +213,7 @@ class Configuration {
           permissions: {AdminPermission.manageAssignedTags},
         )
       ],
+      useMetadataServer: true,
     );
   }
 
@@ -231,6 +236,7 @@ class Configuration {
     @required this.primaryApiUri,
     @required this.primarySiteUri,
     @required this.admins,
+    @required this.useMetadataServer,
   });
 
   /// Create a configuration based on the environment variables.
@@ -275,6 +281,7 @@ class Configuration {
           permissions: AdminPermission.values,
         ),
       ],
+      useMetadataServer: false,
     );
   }
 
@@ -305,6 +312,7 @@ class Configuration {
           permissions: AdminPermission.values,
         ),
       ],
+      useMetadataServer: false,
     );
   }
 }
@@ -319,7 +327,6 @@ class EnvConfig {
   ///
   /// Can be used to construct URLs for the given service.
   final String gaeVersion;
-  final String gcloudKey;
   final String gcloudProject;
   final String toolEnvDartSdkDir;
   final String flutterSdkDir;
@@ -330,7 +337,6 @@ class EnvConfig {
     this.gaeService,
     this.gaeVersion,
     this.gcloudProject,
-    this.gcloudKey,
     this.toolEnvDartSdkDir,
     this.flutterSdkDir,
     this.frontendCount,
@@ -345,8 +351,7 @@ class EnvConfig {
     return EnvConfig._(
       Platform.environment['GAE_SERVICE'],
       Platform.environment['GAE_VERSION'],
-      Platform.environment['GCLOUD_PROJECT'],
-      Platform.environment['GCLOUD_KEY'],
+      Platform.environment['GOOGLE_CLOUD_PROJECT'],
       Platform.environment['TOOL_ENV_DART_SDK'],
       Platform.environment['FLUTTER_SDK'],
       frontendCount,

@@ -6,18 +6,12 @@ import 'dart:async';
 
 import 'package:logging/logging.dart';
 
-import 'package:pub_dev/package/upload_signer_service.dart';
 import '../services.dart';
 
 /// Helper for utilities in bin/tools to setup a minimal AppEngine environment,
-/// calling [fn] to run inside it. It registers only the most frequently used
-/// services (at the moment only `frontend/backend.dart`).
-///
-/// Connection parameters are inferred from the GCLOUD_PROJECT and the GCLOUD_KEY
-/// environment variables.
+/// calling [fn] to run inside it.
 Future<void> withProdServices(Future<void> Function() fn) {
   return withServices(() {
-    registerUploadSigner(ServiceAccountBasedUploadSigner());
     return fn();
   });
 }

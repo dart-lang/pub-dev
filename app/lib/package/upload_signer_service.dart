@@ -6,18 +6,12 @@ library pub_dartlang_org.upload_signer_service;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/iam/v1.dart' as iam;
-import 'package:googleapis_auth/auth_io.dart' as auth;
-// ignore: implementation_imports
-import 'package:googleapis_auth/src/crypto/rsa_sign.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:client_data/package_api.dart';
-
-import '../shared/configuration.dart';
 
 /// The registered [UploadSignerService] object.
 UploadSignerService get uploadSigner =>
@@ -84,34 +78,6 @@ abstract class UploadSignerService {
   }
 
   Future<SigningResult> sign(List<int> bytes);
-}
-
-/// Uses [auth.ServiceAccountCredentials] to sign Google Cloud Storage upload
-/// URLs. Connection parameters are inferred from the GCLOUD_PROJECT and the
-/// GCLOUD_KEY environment variables.
-///
-/// See [UploadSignerService] for more information.
-class ServiceAccountBasedUploadSigner extends UploadSignerService {
-  final String googleAccessId;
-  final RS256Signer signer;
-
-  ServiceAccountBasedUploadSigner._(this.googleAccessId, this.signer);
-
-  factory ServiceAccountBasedUploadSigner() {
-    if (envConfig.gcloudKey == null) {
-      throw Exception('Missing GCLOUD_* environments for package:appengine');
-    }
-    final path = envConfig.gcloudKey;
-    final content = File(path).readAsStringSync();
-    final account = auth.ServiceAccountCredentials.fromJson(content);
-    return ServiceAccountBasedUploadSigner._(
-        account.email, RS256Signer(account.privateRSAKey));
-  }
-
-  @override
-  Future<SigningResult> sign(List<int> bytes) async {
-    return SigningResult(googleAccessId, signer.sign(bytes));
-  }
 }
 
 /// Uses the [iam.IamApi] to sign Google Cloud Storage upload URLs.

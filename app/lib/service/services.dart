@@ -3,6 +3,8 @@ import 'dart:async' show FutureOr;
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
+import 'package:googleapis_auth/auth_io.dart' as auth;
+import 'package:http/http.dart' as http;
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
@@ -29,8 +31,8 @@ import '../shared/datastore.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/redis_cache.dart' show withCache;
 import '../shared/storage.dart';
-import '../shared/storage_retry.dart' show withStorageRetry;
 import '../shared/urls.dart';
+import '../shared/utils.dart' show httpRetryClient;
 import '../shared/versions.dart';
 
 import 'announcement/backend.dart';
@@ -44,9 +46,7 @@ import 'spam/backend.dart';
 ///  * storage wrapped with retry.
 Future<void> withServices(FutureOr<void> Function() fn) async {
   return withAppEngineServices(() async {
-    return await withStorageRetry(() async {
-      return await withPubServices(fn);
-    });
+    return await withPubServices(fn);
   });
 }
 
@@ -58,6 +58,12 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     registerAdminBackend(AdminBackend(dbService));
     registerAnalyzerClient(AnalyzerClient());
     registerAnnouncementBackend(AnnouncementBackend());
+    if (activeConfiguration.useMetadataServer) {
+      final authClient = await auth.clientViaMetadataServer();
+      registerAuthClientService(authClient, close: true);
+    } else {
+      registerAuthClientService(http.Client(), close: true);
+    }
     registerAuthProvider(GoogleOauth2AuthProvider(
       <String>[
         activeConfiguration.pubClientAudience,
@@ -114,6 +120,10 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
 
     // depends on previously registered services
     registerPackageBackend(PackageBackend(dbService, tarballStorage));
+    registerStorageService(Storage(
+      httpRetryClient(innerClient: authClientService),
+      activeConfiguration.projectId,
+    ));
 
     registerScopeExitCallback(announcementBackend.close);
     registerScopeExitCallback(() async => nameTracker.stopTracking());
