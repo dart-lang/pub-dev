@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:basics/basics.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_dev/shared/utils.dart';
 
@@ -14,8 +15,9 @@ import 'models.dart';
 /// - latest versions of the packages that are without specific versions
 /// - direct or transitive dependencies of the packages
 ///
-/// The resulting list contains <package>:<version> pairs.
-Future<List<String>> resolveVersions(TestProfile profile) async {
+/// The resulting list contains all the resolved versions (may be more packages
+/// than the profile originally specified).
+Future<List<ResolvedVersion>> resolveVersions(TestProfile profile) async {
   return await withTempDirectory((temp) async {
     final pubCacheDir = Directory(p.join(temp.path, 'pub-cache'));
     await pubCacheDir.create();
@@ -55,8 +57,10 @@ Future<List<String>> resolveVersions(TestProfile profile) async {
         .whereType<Directory>()
         .map((d) => p.basename(d.path))
         .where((v) => v.contains('-'))
-        .map((v) => v.replaceFirst('-', ':'))
-        .toList()
+        .map((v) {
+      final parts = v.partition('-');
+      return ResolvedVersion(package: parts.first, version: parts.last);
+    }).toList()
           ..sort();
   });
 }

@@ -9,7 +9,7 @@ import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:pub_dev/tool/test_profile/resolver.dart';
 
 void main() {
-  Future<List<String>> _resolve(List<TestPackage> packages) async {
+  Future<List<ResolvedVersion>> _resolve(List<TestPackage> packages) async {
     final profile = TestProfileNormalizer().normalize(TestProfile(
       publishers: [],
       packages: packages,
@@ -23,7 +23,7 @@ void main() {
     test('latest version', () async {
       final pvs = await _resolve([TestPackage(name: 'retry')]);
       expect(pvs, hasLength(1));
-      expect(pvs.first, startsWith('retry:'));
+      expect(pvs.first.package, 'retry');
     });
 
     test('dependencies', () async {
@@ -34,8 +34,9 @@ void main() {
         )
       ]);
       expect(pvs, hasLength(2));
-      expect(pvs[0], startsWith('retry:'));
-      expect(pvs[1], 'safe_url_check:1.0.0');
+      expect(pvs[0].package, 'retry');
+      expect(pvs[1].package, 'safe_url_check');
+      expect(pvs[1].version, '1.0.0');
     });
   });
 }

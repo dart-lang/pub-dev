@@ -165,3 +165,24 @@ Map<String, dynamic> _$TestUserToJson(TestUser instance) {
   writeNotNull('likes', instance.likes);
   return val;
 }
+
+ResolvedVersion _$ResolvedVersionFromJson(Map<String, dynamic> json) {
+  return ResolvedVersion(
+    package: json['package'] as String,
+    version: json['version'] as String,
+  );
+}
+
+Map<String, dynamic> _$ResolvedVersionToJson(ResolvedVersion instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('package', instance.package);
+  writeNotNull('version', instance.version);
+  return val;
+}

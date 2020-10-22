@@ -160,3 +160,31 @@ class TestUser {
 
   Map<String, dynamic> toJson() => _$TestUserToJson(this);
 }
+
+@JsonSerializable(explicitToJson: true, includeIfNull: false)
+class ResolvedVersion implements Comparable<ResolvedVersion> {
+  final String package;
+  final String version;
+
+  ResolvedVersion({
+    @required this.package,
+    @required this.version,
+  });
+
+  factory ResolvedVersion.fromJson(Map<String, dynamic> json) =>
+      _$ResolvedVersionFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ResolvedVersionToJson(this);
+
+  String get archiveName => '$package-$version.tar.gz';
+
+  @override
+  int compareTo(ResolvedVersion other) {
+    final p = package.compareTo(other.package);
+    if (p != 0) return p;
+    // We could sort by semantic version, but it is only needed for consistent,
+    // but not necessarily semantically consistent ordering. A simple string
+    // comparison will do it.
+    return version.compareTo(other.version);
+  }
+}
