@@ -108,7 +108,8 @@ final Package foobarPackage = createFoobarPackage();
 final foobarUploaderEmails = [hansUser.email];
 
 final Package discontinuedPackage = createFoobarPackage()
-  ..isDiscontinued = true;
+  ..isDiscontinued = true
+  ..replacedBy = 'helium';
 
 final PackageVersion foobarStablePV = PackageVersion()
   ..parentKey = foobarStablePVKey.parent

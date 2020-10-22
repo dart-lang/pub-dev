@@ -4,6 +4,13 @@
 
 {{& labeled_scores_html }}
 
+{{#replaced_by}}
+<h3 class="title">Suggested replacement</h3>
+<p>
+  <a href="{{& replaced_by_link }}" title="This package is discontinued, but author has suggested package:{{ replaced_by }} as a replacement">{{ replaced_by }}</a>
+</p>
+{{/replaced_by}}
+
 {{#publisher_id}}
 <h3 class="title">Publisher</h3>
 <p>
