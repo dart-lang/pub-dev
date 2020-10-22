@@ -10,7 +10,7 @@ Map<String, Map<int, int>> _lineExecCounts = <String, Map<int, int>>{};
 
 Future main() async {
   final files = await Directory('build/lcov')
-      .list()
+      .list(recursive: true)
       .where((f) => f is File)
       .cast<File>()
       .toList();
@@ -40,16 +40,19 @@ Future main() async {
 
   final output = StringBuffer();
 
+  output.writeln(_tree['app/lib']?.formatted);
+  output.writeln(_tree['pkg/web_app'].formatted);
+  output.writeln(_tree['pkg/web_css'].formatted);
+
   final keys = _tree.keys.toList()..sort();
   for (String key in keys) {
     final entry = _tree[key];
-    final pct = entry.total == 0 ? 0.0 : entry.covered * 100.0 / entry.total;
-    final pctStr = pct.toStringAsFixed(1);
+    final pctStr = entry.percentAsString;
     final sb = StringBuffer();
     sb.write('   ' * entry.depth);
     sb.write('${entry.leaf} - $pctStr% - ${entry.covered}/${entry.total}');
     // mark some lines with markers
-    if (pct < 50.0 || entry.total - entry.covered > 100) {
+    if (entry.percent < 50.0 || entry.total - entry.covered > 100) {
       sb.write(' [low]');
     }
     output.writeln(sb);
@@ -64,7 +67,7 @@ void _add(String path, int total, int covered) {
   final segments = path.split('/');
   for (int i = 0; i < segments.length; i++) {
     final key = segments.take(i + 1).join('/');
-    final entry = _tree.putIfAbsent(key, () => Entry());
+    final entry = _tree.putIfAbsent(key, () => Entry(key));
     entry.depth = i;
     entry.leaf = segments[i];
     entry.total += total;
@@ -73,8 +76,18 @@ void _add(String path, int total, int covered) {
 }
 
 class Entry {
+  final String key;
   int depth = 0;
   String leaf;
   int total = 0;
   int covered = 0;
+
+  Entry(this.key);
+
+  double get percent => total == 0 ? 0.0 : covered * 100.0 / total;
+  String get percentAsString => percent.toStringAsFixed(1);
+
+  String get formatted {
+    return '$percentAsString% in $key ($covered/$total)';
+  }
 }

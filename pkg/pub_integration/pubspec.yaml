@@ -14,5 +14,5 @@ dependencies:
   puppeteer: ^1.13.0
 
 dev_dependencies:
-  coverage: ^0.14.1
+  coverage: any # test already depends on it
   test: ^1.6.3
