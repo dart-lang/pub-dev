@@ -59,7 +59,8 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     registerAnalyzerClient(AnalyzerClient());
     registerAnnouncementBackend(AnnouncementBackend());
     if (activeConfiguration.useMetadataServer) {
-      final authClient = await auth.clientViaMetadataServer();
+      final authClient = await auth.clientViaApplicationDefaultCredentials(
+          scopes: Storage.SCOPES);
       registerAuthClientService(authClient, close: true);
     } else {
       registerAuthClientService(http.Client(), close: true);
