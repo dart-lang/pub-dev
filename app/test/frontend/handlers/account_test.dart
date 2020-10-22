@@ -4,6 +4,8 @@
 
 import 'package:test/test.dart';
 
+import 'package:pub_dev/frontend/static_files.dart';
+
 import '../../shared/test_services.dart';
 
 import '_utils.dart';
@@ -16,6 +18,8 @@ void main() {
   });
 
   group('pub client authorization landing page', () {
+    setUpAll(() => updateLocalBuiltFilesIfNeeded());
+
     testWithServices('/authorized', () async {
       await expectHtmlResponse(await issueGet('/authorized'));
     });
