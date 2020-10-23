@@ -247,6 +247,7 @@ PackageVersionAsset pvToAsset(PackageVersion pv, String assetKind) {
       versionCreated: pv.created,
       path: file.filename,
       textContent: file.text,
+      updated: pv.created,
     );
   }
 
