@@ -97,7 +97,7 @@ Future<shelf.Response> packageChangelogHandler(
     packageName: packageName,
     versionName: versionName,
     renderFn: (data) {
-      if (data.version.changelog == null) {
+      if (!data.hasChangelog) {
         return redirectResponse(
             urls.pkgPageUrl(packageName, version: versionName));
       }
@@ -117,7 +117,7 @@ Future<shelf.Response> packageExampleHandler(
     packageName: packageName,
     versionName: versionName,
     renderFn: (data) {
-      if (data.version.example == null) {
+      if (!data.hasExample) {
         return redirectResponse(
             urls.pkgPageUrl(packageName, version: versionName));
       }

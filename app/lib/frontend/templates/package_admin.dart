@@ -16,7 +16,7 @@ String renderPkgAdminPage(
   List<String> userPublishers,
 ) {
   final tabs = buildPackageTabs(
-    packagePageData: data,
+    data: data,
     adminTab: Tab.withContent(
       id: 'admin',
       title: 'Admin',

@@ -121,12 +121,9 @@ String _renderInstallTab(PackageVersion selectedVersion, List<String> tags) {
 
 /// Renders the right-side info box (quick summary of the package, mostly coming
 /// from pubspec.yaml).
-String renderPkgInfoBox(
-  PackagePageData data,
-) {
+String renderPkgInfoBox(PackagePageData data) {
   final package = data.package;
-  final selectedVersion = data.version;
-  final packageLinks = selectedVersion.packageLinks;
+  final packageLinks = data.version.packageLinks;
 
   String documentationUrl = packageLinks.documentationUrl;
   if (urls.hideUserProvidedDocUrl(documentationUrl)) {
@@ -134,8 +131,8 @@ String renderPkgInfoBox(
   }
   final dartdocsUrl = urls.pkgDocUrl(
     package.name,
-    version: selectedVersion.version,
-    isLatest: selectedVersion.version == package.latestVersion,
+    version: data.version.version,
+    isLatest: data.isLatestStable,
   );
 
   final metaLinks = <Map<String, dynamic>>[];
@@ -180,7 +177,7 @@ String renderPkgInfoBox(
 
   return templateCache.renderTemplate('pkg/info_box', {
     'name': package.name,
-    'description': selectedVersion.pubspec.description,
+    'description': data.version.pubspec.description,
     'meta_links': metaLinks,
     'has_doc_links': docLinks.isNotEmpty,
     'doc_links': docLinks,
@@ -208,10 +205,8 @@ String renderPkgInfoBox(
 /// wraps it with content-header.
 String renderPkgHeader(PackagePageData data) {
   final package = data.package;
-  final selectedVersion = data.version;
   final bool showPrereleaseVersion = package.showPrereleaseVersion;
-  final bool showUpdated =
-      selectedVersion.version != package.latestVersion || showPrereleaseVersion;
+  final bool showUpdated = !data.isLatestStable || showPrereleaseVersion;
 
   final isNullSafe = requestContext.isNullSafetyDisplayed &&
       data.toPackageView().tags.contains(PackageVersionTags.isNullSafe);
@@ -232,15 +227,11 @@ String renderPkgHeader(PackagePageData data) {
           version: package.latestPrereleaseVersion),
       'prerelease_version': package.latestPrereleaseVersion,
     },
-    'short_created': selectedVersion.shortCreated,
+    'short_created': data.version.shortCreated,
   });
-  final pkgView = PackageView.fromModel(
-    package: package,
-    version: selectedVersion,
-    scoreCard: data.analysis?.card,
-  );
+  final pkgView = data.toPackageView();
   return renderDetailHeader(
-    title: '${package.name} ${selectedVersion.version}',
+    title: '${package.name} ${data.version.version}',
     packageLikes: package.likes,
     isLiked: data.isLiked,
     isFlutterFavorite:
@@ -256,7 +247,7 @@ String renderPkgShowPage(PackagePageData data) {
   return _renderPkgPage(
     data: data,
     tabs: buildPackageTabs(
-      packagePageData: data,
+      data: data,
       readmeTab: _readmeTab(data),
     ),
     pkgPageTab: urls.PkgPageTab.readme,
@@ -268,7 +259,7 @@ String renderPkgChangelogPage(PackagePageData data) {
   return _renderPkgPage(
     data: data,
     tabs: buildPackageTabs(
-      packagePageData: data,
+      data: data,
       changelogTab: _changelogTab(data),
     ),
     pkgPageTab: urls.PkgPageTab.changelog,
@@ -280,7 +271,7 @@ String renderPkgExamplePage(PackagePageData data) {
   return _renderPkgPage(
     data: data,
     tabs: buildPackageTabs(
-      packagePageData: data,
+      data: data,
       exampleTab: _exampleTab(data),
     ),
     pkgPageTab: urls.PkgPageTab.example,
@@ -292,7 +283,7 @@ String renderPkgInstallPage(PackagePageData data) {
   return _renderPkgPage(
     data: data,
     tabs: buildPackageTabs(
-      packagePageData: data,
+      data: data,
       installingTab: _installTab(data),
     ),
     pkgPageTab: urls.PkgPageTab.install,
@@ -304,7 +295,7 @@ String renderPkgScorePage(PackagePageData data) {
   return _renderPkgPage(
     data: data,
     tabs: buildPackageTabs(
-      packagePageData: data,
+      data: data,
       scoreTab: _scoreTab(data),
     ),
     pkgPageTab: urls.PkgPageTab.score,
@@ -327,15 +318,14 @@ String _renderPkgPage({
   );
 
   final isFlutterPackage = data.version.pubspec.usesFlutter;
-  final isLatestStable = data.package.latestVersion == data.version.version;
-  final packageAndVersion = isLatestStable
-      ? data.version.package
-      : '${data.version.package} ${data.version.version}';
+  final packageAndVersion = data.isLatestStable
+      ? data.package.name
+      : '${data.package.name} ${data.version.version}';
   final pageTitle =
       '$packageAndVersion | ${isFlutterPackage ? 'Flutter' : 'Dart'} Package';
   final canonicalUrl = urls.pkgPageUrl(
     data.package.name,
-    version: isLatestStable ? null : data.version.version,
+    version: data.isLatestStable ? null : data.version.version,
     includeHost: true,
     pkgPageTab: pkgPageTab,
   );
@@ -367,10 +357,9 @@ PageData pkgPageData(Package package, PackageVersion selectedVersion) {
 }
 
 Tab _readmeTab(PackagePageData data) {
-  final version = data.version;
-  final baseUrl = version.packageLinks.baseUrl;
+  final baseUrl = data.version.packageLinks.baseUrl;
   final content =
-      version.readme == null ? '' : renderFile(version.readme, baseUrl);
+      data.hasReadme ? renderFile(data.version.readme, baseUrl) : '';
   return Tab.withContent(
     id: 'readme',
     title: 'Readme',
@@ -380,11 +369,10 @@ Tab _readmeTab(PackagePageData data) {
 }
 
 Tab _changelogTab(PackagePageData data) {
-  final version = data.version;
-  if (version.changelog == null) return null;
-  final baseUrl = version.packageLinks.baseUrl;
+  if (!data.hasChangelog) return null;
+  final baseUrl = data.version.packageLinks.baseUrl;
   final content = renderFile(
-    version.changelog,
+    data.version.changelog,
     baseUrl,
     isChangelog: true,
   );
@@ -397,13 +385,12 @@ Tab _changelogTab(PackagePageData data) {
 }
 
 Tab _exampleTab(PackagePageData data) {
-  final version = data.version;
-  if (version.example == null) return null;
-  final baseUrl = version.packageLinks.baseUrl;
+  if (!data.hasExample) return null;
+  final baseUrl = data.version.packageLinks.baseUrl;
 
   String renderedExample;
-  final exampleFilename = version.example.filename;
-  renderedExample = renderFile(version.example, baseUrl);
+  final exampleFilename = data.version.example.filename;
+  renderedExample = renderFile(data.version.example, baseUrl);
   if (renderedExample != null) {
     final url = getRepositoryUrl(baseUrl, exampleFilename);
     final escapedName = htmlEscape.convert(exampleFilename);
@@ -435,7 +422,7 @@ Tab _scoreTab(PackagePageData data) {
     id: 'analysis',
     title: 'Scores',
     contentHtml: renderAnalysisTab(
-      data.version.package,
+      data.package.name,
       data.version.pubspec.sdkConstraint,
       data.analysis?.card,
       data.analysis,
@@ -469,10 +456,10 @@ String renderPackageSchemaOrgHtml(PackagePageData data) {
   final Map map = {
     '@context': 'http://schema.org',
     '@type': 'SoftwareSourceCode',
-    'name': pv.package,
+    'name': p.name,
     'version': pv.version,
-    'description': '${pv.package} - ${pv.pubspec.description}',
-    'url': urls.pkgPageUrl(pv.package, includeHost: true),
+    'description': '${p.name} - ${pv.pubspec.description}',
+    'url': urls.pkgPageUrl(p.name, includeHost: true),
     'dateCreated': p.created.toIso8601String(),
     'dateModified': pv.created.toIso8601String(),
     'programmingLanguage': 'Dart',
@@ -491,7 +478,7 @@ String renderPackageSchemaOrgHtml(PackagePageData data) {
 ///
 /// Unspecified tab content will be filled with links to the corresponding page.
 List<Tab> buildPackageTabs({
-  @required PackagePageData packagePageData,
+  @required PackagePageData data,
   Tab readmeTab,
   Tab changelogTab,
   Tab exampleTab,
@@ -500,10 +487,8 @@ List<Tab> buildPackageTabs({
   Tab scoreTab,
   Tab adminTab,
 }) {
-  final package = packagePageData.package;
-  final version = packagePageData.version;
-  final isVersioned = version.version != package.latestVersion;
-  final linkVersion = isVersioned ? version.version : null;
+  final package = data.package;
+  final linkVersion = data.isLatestStable ? null : data.version.version;
   readmeTab ??= Tab.withLink(
     id: 'readme',
     title: 'Readme',
@@ -540,13 +525,13 @@ List<Tab> buildPackageTabs({
     href: urls.pkgAdminUrl(package.name),
   );
   return <Tab>[
-    if (version.readme != null) readmeTab,
-    if (version.changelog != null) changelogTab,
-    if (version.example != null) exampleTab,
+    readmeTab,
+    if (data.hasChangelog) changelogTab,
+    if (data.hasExample) exampleTab,
     installingTab,
     versionsTab,
     scoreTab,
-    if (packagePageData.isAdmin) adminTab,
+    if (data.isAdmin) adminTab,
   ];
 }
 
