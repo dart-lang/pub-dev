@@ -101,7 +101,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final PackageSearchResult result =
           await index.search(ServiceSearchQuery.parse(query: 'async'));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
@@ -117,7 +116,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final PackageSearchResult result =
           await index.search(ServiceSearchQuery.parse(query: 'composable'));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
@@ -133,7 +131,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final PackageSearchResult result =
           await index.search(ServiceSearchQuery.parse(query: 'chrome.sockets'));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
@@ -149,7 +146,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final PackageSearchResult result =
           await index.search(ServiceSearchQuery.parse(query: '"utility"'));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 2,
         'packages': [
@@ -163,7 +159,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final result = await index
           .search(ServiceSearchQuery.parse(query: '"once on demand."'));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
@@ -176,7 +171,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final PackageSearchResult result =
           await index.search(ServiceSearchQuery.parse(query: 'package:chrome'));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
@@ -192,7 +186,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final PackageSearchResult result = await index.search(
           ServiceSearchQuery.parse(query: 't', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 2,
         'packages': [
@@ -206,7 +199,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final PackageSearchResult result = await index
           .search(ServiceSearchQuery.parse(order: SearchOrder.created));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 3,
         'packages': [
@@ -221,7 +213,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final PackageSearchResult result = await index.search(
           ServiceSearchQuery.parse(query: '', order: SearchOrder.updated));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 3,
         'packages': [
@@ -236,7 +227,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final PackageSearchResult result = await index.search(
           ServiceSearchQuery.parse(query: 'http', order: SearchOrder.updated));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 2,
         'packages': [
@@ -255,7 +245,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         ).toServiceQuery(),
       );
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 2,
         'packages': [
@@ -269,7 +258,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final PackageSearchResult result = await index
           .search(ServiceSearchQuery.parse(order: SearchOrder.popularity));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 3,
         'packages': [
@@ -284,7 +272,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final PackageSearchResult result =
           await index.search(ServiceSearchQuery.parse(order: SearchOrder.like));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 3,
         'packages': [
@@ -299,7 +286,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final PackageSearchResult result = await index
           .search(ServiceSearchQuery.parse(order: SearchOrder.points));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 3,
         'packages': [
@@ -314,7 +300,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final PackageSearchResult result = await index
           .search(ServiceSearchQuery.parse(query: 'dependency:test'));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 2,
         'packages': [
@@ -328,7 +313,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final PackageSearchResult result =
           await index.search(ServiceSearchQuery.parse(query: 'dependency:foo'));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
@@ -341,7 +325,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final PackageSearchResult result = await index
           .search(ServiceSearchQuery.parse(query: 'dependency*:foo'));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 2,
         'packages': [
@@ -355,7 +338,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final PackageSearchResult result = await index.search(
           ServiceSearchQuery.parse(query: 'composable dependency:test'));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
@@ -368,7 +350,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final PackageSearchResult result = await index.search(
           ServiceSearchQuery.parse(query: 'dependency:async dependency:test'));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
@@ -381,7 +362,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final PackageSearchResult result = await index.search(
           ServiceSearchQuery.parse(query: 'publisher:other-domain.com'));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 0,
         'packages': [],
@@ -392,7 +372,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final PackageSearchResult result = await index
           .search(ServiceSearchQuery.parse(query: 'publisher:dart.dev'));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
@@ -405,7 +384,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final PackageSearchResult result = await index.search(
           ServiceSearchQuery.parse(uploaderOrPublishers: ['other-domain.com']));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 0,
         'packages': [],
@@ -416,7 +394,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final PackageSearchResult result = await index
           .search(ServiceSearchQuery.parse(uploaderOrPublishers: ['dart.dev']));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
@@ -432,7 +409,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'user1@example.com',
       ]));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 2,
         'packages': [
@@ -446,7 +422,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final PackageSearchResult result = await index
           .search(ServiceSearchQuery.parse(query: 'email:some@other.com'));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 0,
         'packages': [],
@@ -457,7 +432,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final PackageSearchResult result = await index
           .search(ServiceSearchQuery.parse(query: 'email:user1@example.com'));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 2,
         'packages': [
@@ -472,7 +446,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           ServiceSearchQuery.parse(
               query: 'composable', order: SearchOrder.text));
       expect(json.decode(json.encode(composable)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
@@ -483,7 +456,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final PackageSearchResult library = await index.search(
           ServiceSearchQuery.parse(query: 'library', order: SearchOrder.text));
       expect(json.decode(json.encode(library)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 3,
         'packages': [
@@ -499,7 +471,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           ServiceSearchQuery.parse(
               query: 'composable library', order: SearchOrder.text));
       expect(json.decode(json.encode(both)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [

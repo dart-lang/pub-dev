@@ -53,7 +53,6 @@ void main() {
           ServiceSearchQuery.parse(
               query: 'flutter iap', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
@@ -70,7 +69,6 @@ void main() {
           ServiceSearchQuery.parse(
               query: 'flutter_iap', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [

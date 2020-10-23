@@ -26,7 +26,6 @@ void main() {
       final PackageSearchResult result = await index.search(
           ServiceSearchQuery.parse(query: 'lombock', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [

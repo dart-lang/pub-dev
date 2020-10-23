@@ -44,7 +44,6 @@ void main() {
       scopedTest('Finds package by name', () async {
         await setUpInServiceScope();
         await expectJsonResponse(await issueGet('/search?q=pkg_foo'), body: {
-          'indexUpdated': isNotNull,
           'timestamp': isNotNull,
           'totalCount': 1,
           'packages': [
@@ -59,7 +58,6 @@ void main() {
       scopedTest('Finds text in description or readme', () async {
         await setUpInServiceScope();
         await expectJsonResponse(await issueGet('/search?q=json'), body: {
-          'indexUpdated': isNotNull,
           'timestamp': isNotNull,
           'totalCount': 1,
           'packages': [
@@ -75,7 +73,6 @@ void main() {
         await setUpInServiceScope();
         await expectJsonResponse(await issueGet('/search?q=json&pkg-prefix=pk'),
             body: {
-              'indexUpdated': isNotNull,
               'timestamp': isNotNull,
               'totalCount': 1,
               'packages': [
@@ -90,7 +87,6 @@ void main() {
       scopedTest('Finds package by package-prefix search only', () async {
         await setUpInServiceScope();
         await expectJsonResponse(await issueGet('/search?q=package:pk'), body: {
-          'indexUpdated': isNotNull,
           'timestamp': isNotNull,
           'totalCount': 1,
           'packages': [
@@ -106,7 +102,6 @@ void main() {
         await setUpInServiceScope();
         await expectJsonResponse(await issueGet('/search?q=json+package:foo'),
             body: {
-              'indexUpdated': isNotNull,
               'timestamp': isNotNull,
               'totalCount': 0,
               'packages': [],

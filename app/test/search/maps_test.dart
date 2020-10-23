@@ -24,7 +24,6 @@ void main() {
       final PackageSearchResult result = await index.search(
           ServiceSearchQuery.parse(query: 'maps', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 2,
         'packages': [
@@ -38,7 +37,6 @@ void main() {
       final PackageSearchResult result = await index.search(
           ServiceSearchQuery.parse(query: 'map', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 2,
         'packages': [

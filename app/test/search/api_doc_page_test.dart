@@ -54,7 +54,6 @@ void main() {
       final PackageSearchResult result = await index.search(
           ServiceSearchQuery.parse(query: 'foo', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 2,
         'packages': [
@@ -78,7 +77,6 @@ void main() {
       final PackageSearchResult result = await index.search(
           ServiceSearchQuery.parse(query: 'serve', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
@@ -99,7 +97,6 @@ void main() {
           ServiceSearchQuery.parse(
               query: 'page generator', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
@@ -119,7 +116,6 @@ void main() {
       final PackageSearchResult result = await index.search(
           ServiceSearchQuery.parse(query: 'web page', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
@@ -141,7 +137,6 @@ void main() {
           ServiceSearchQuery.parse(
               query: 'goal fancy', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
