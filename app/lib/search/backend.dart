@@ -89,7 +89,9 @@ class SearchBackend {
     final analysisView =
         await analyzerClient.getAnalysisView(packageName, pv.version);
 
-    // Extend tags with `-in-prerelease` for prerelease version.
+    // Find tags from latest prerelease (if there one)
+    // This allows searching for tags with `<tag>-in-prerelease`.
+    // Example: `is:null-safe-in-prerelease`, or `platform:android-in-prerelease`
     final prereleaseTags = <String>[];
     if (p.showPrereleaseVersion) {
       final prv = await _db.lookupValue<PackageVersion>(
