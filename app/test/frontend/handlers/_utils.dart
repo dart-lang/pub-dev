@@ -14,8 +14,8 @@ import 'package:test/test.dart';
 import 'package:pub_dev/frontend/handlers.dart';
 import 'package:pub_dev/shared/handler_helpers.dart';
 import 'package:pub_dev/shared/urls.dart';
+import 'package:pub_dev/tool/html/html_validation.dart';
 
-import '../../shared/html_validation.dart';
 import '../../shared/utils.dart';
 
 const pageSize = 10;
