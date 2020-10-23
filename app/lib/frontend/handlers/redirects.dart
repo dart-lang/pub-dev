@@ -12,6 +12,15 @@ import '../../shared/urls.dart';
 
 part 'redirects.g.dart';
 
+/// Routes that are processed by api.pub.dev.
+class ApiPubDevService {
+  Router get router => _$ApiPubDevServiceRouter(this);
+
+  @Route.get('/robots.txt')
+  Future<Response> robotsTxt(Request request) async =>
+      rejectRobotsHandler(request);
+}
+
 /// Routes that are only processed by the old pub domain.
 class PubDartlangOrgService {
   Router get router => _$PubDartlangOrgServiceRouter(this);
@@ -44,6 +53,10 @@ class PubDartlangOrgService {
       redirectResponse(request.requestedUri
           .replace(host: primaryHost, path: '/packages')
           .toString());
+
+  @Route.get('/robots.txt')
+  Future<Response> robotsTxt(Request request) async =>
+      rejectRobotsHandler(request);
 }
 
 /// Routes that are only processed by the legacy dartdocs.org domain.
@@ -62,6 +75,10 @@ class LegacyDartdocService {
       redirectResponse(Uri.parse(fullSiteUrl)
           .replace(path: request.requestedUri.path)
           .toString());
+
+  @Route.get('/robots.txt')
+  Future<Response> robotsTxt(Request request) async =>
+      rejectRobotsHandler(request);
 
   @Route.all('/<_|.*>')
   Response catchAll(Request request) => Response.notFound('Not Found.');

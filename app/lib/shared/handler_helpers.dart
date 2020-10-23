@@ -84,7 +84,6 @@ shelf.Handler _requestContextWrapper(shelf.Handler handler) {
 
     final host = request.requestedUri.host;
     final isPrimaryHost = host == urls.primaryHost;
-    final isProductionHost = activeConfiguration.productionHosts.contains(host);
 
     final cookies =
         parseCookieHeader(request.headers[HttpHeaders.cookieHeader]);
@@ -92,7 +91,7 @@ shelf.Handler _requestContextWrapper(shelf.Handler handler) {
     final isExperimental = hasExperimentalCookie;
 
     final enableRobots = hasExperimentalCookie ||
-        (!activeConfiguration.blockRobots && isProductionHost);
+        (!activeConfiguration.blockRobots && isPrimaryHost);
     final uiCacheEnabled = //
         isPrimaryHost && // don't cache on non-primary domains
             !hasExperimentalCookie && // don't cache if experimental cookie is enabled

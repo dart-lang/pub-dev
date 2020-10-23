@@ -29,6 +29,7 @@ void _logPubHeaders(shelf.Request request) {
 shelf.Handler createAppHandler() {
   final legacyDartdocHandler = LegacyDartdocService().router.handler;
   final pubDartlangOrgHandler = PubDartlangOrgService().router.handler;
+  final apiPubDevHandler = ApiPubDevService().router.handler;
   final pubSiteHandler = PubSiteService().router.handler;
   return (shelf.Request request) async {
     _logPubHeaders(request);
@@ -37,6 +38,12 @@ shelf.Handler createAppHandler() {
     final host = request.requestedUri.host;
     if (host == 'www.dartdocs.org' || host == 'dartdocs.org') {
       return legacyDartdocHandler(request);
+    }
+
+    // keeping for future use
+    if (host == 'api.pub.dev') {
+      final rs = await apiPubDevHandler(request);
+      return rs ?? notFoundHandler(request);
     }
 
     // do pub.dartlang.org-only routes
