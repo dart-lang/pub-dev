@@ -20,7 +20,6 @@ void main() {
         tagsPredicate: TagsPredicate(requiredTags: ['is:a']),
       ));
       expect(rs.toJson(), {
-        'indexUpdated': isNotEmpty,
         'timestamp': isNotNull,
         'totalCount': 0,
         'packages': [],
@@ -36,7 +35,6 @@ void main() {
         tagsPredicate: TagsPredicate(prohibitedTags: ['is:a']),
       ));
       expect(json.decode(json.encode(rs.toJson())), {
-        'indexUpdated': isNotEmpty,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
@@ -55,7 +53,6 @@ void main() {
         tagsPredicate: TagsPredicate(prohibitedTags: ['is:a']),
       ));
       expect(json.decode(json.encode(rs.toJson())), {
-        'indexUpdated': isNotEmpty,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
@@ -74,7 +71,6 @@ void main() {
         tagsPredicate: TagsPredicate.parseQueryValues(['is:a']),
       ));
       expect(json.decode(json.encode(rs.toJson())), {
-        'indexUpdated': isNotEmpty,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
@@ -95,7 +91,6 @@ void main() {
         tagsPredicate: TagsPredicate.parseQueryValues(['is:dart1']),
       ));
       expect(json.decode(json.encode(rs.toJson())), {
-        'indexUpdated': isNotEmpty,
         'timestamp': isNotNull,
         'totalCount': 2,
         'packages': [
@@ -117,7 +112,6 @@ void main() {
         tagsPredicate: TagsPredicate.parseQueryValues(['is:dart1', 'is:b']),
       ));
       expect(json.decode(json.encode(rs.toJson())), {
-        'indexUpdated': isNotEmpty,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
@@ -138,7 +132,6 @@ void main() {
         tagsPredicate: TagsPredicate.parseQueryValues(['is:dart1', '-is:b']),
       ));
       expect(json.decode(json.encode(rs.toJson())), {
-        'indexUpdated': isNotEmpty,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
@@ -157,7 +150,6 @@ void main() {
       final rs =
           await index.search(ServiceSearchQuery.parse(query: 'is:b -is:a'));
       expect(json.decode(json.encode(rs.toJson())), {
-        'indexUpdated': isNotEmpty,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
@@ -177,7 +169,6 @@ void main() {
           tagsPredicate: TagsPredicate(prohibitedTags: ['is:b']),
           query: 'is:a is:b'));
       expect(json.decode(json.encode(rs.toJson())), {
-        'indexUpdated': isNotEmpty,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [

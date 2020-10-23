@@ -48,7 +48,6 @@ void main() {
       final results = await combiner
           .search(ServiceSearchQuery.parse(order: SearchOrder.popularity));
       expect(json.decode(json.encode(results.toJson())), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
@@ -61,7 +60,6 @@ void main() {
       final results = await combiner
           .search(ServiceSearchQuery.parse(query: 'email:foo@example.com'));
       expect(json.decode(json.encode(results.toJson())), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
@@ -74,7 +72,6 @@ void main() {
       final results =
           await combiner.search(ServiceSearchQuery.parse(query: 'substring'));
       expect(json.decode(json.encode(results.toJson())), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 2,
         'packages': [
@@ -102,7 +99,6 @@ void main() {
       final results =
           await combiner.search(ServiceSearchQuery.parse(query: 'stringutils'));
       expect(json.decode(json.encode(results.toJson())), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 2,
         'packages': [

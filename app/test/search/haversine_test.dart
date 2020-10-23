@@ -381,7 +381,6 @@ MIT'''),
           ServiceSearchQuery.parse(
               query: 'haversine', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 3,
         'packages': [
@@ -409,7 +408,6 @@ MIT'''),
           ServiceSearchQuery.parse(
               query: 'hoversine', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
