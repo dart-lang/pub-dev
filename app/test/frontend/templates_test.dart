@@ -554,7 +554,7 @@ void main() {
             ),
           ),
         ],
-        PageLinks(0, 50, searchForm: searchForm),
+        PageLinks(searchForm, 50),
         searchForm: searchForm,
         totalCount: 2,
       );
@@ -640,7 +640,7 @@ void main() {
         ],
         totalCount: 2,
         searchForm: searchForm,
-        pageLinks: PageLinks(0, 10, searchForm: searchForm),
+        pageLinks: PageLinks(searchForm, 10),
         isAdmin: true,
         messageFromBackend: null,
       );
@@ -672,7 +672,7 @@ void main() {
             tags: ['sdk:flutter', 'platform:android'],
           ),
         ],
-        pageLinks: PageLinks(0, 10, searchForm: searchForm),
+        pageLinks: PageLinks(searchForm, 10),
         searchForm: searchForm,
         totalCount: 2,
         messageFromBackend: null,
@@ -723,17 +723,19 @@ void main() {
     });
 
     scopedTest('pagination: in the middle', () {
-      final String html = renderPagination(PageLinks(90, 299));
+      final String html =
+          renderPagination(PageLinks(SearchForm.parse(currentPage: 10), 299));
       expectGoldenFile(html, 'pagination_middle.html', isFragment: true);
     });
 
     scopedTest('pagination: at first page', () {
-      final String html = renderPagination(PageLinks(0, 600));
+      final String html = renderPagination(PageLinks(SearchForm.parse(), 600));
       expectGoldenFile(html, 'pagination_first.html', isFragment: true);
     });
 
     scopedTest('pagination: at last page', () {
-      final String html = renderPagination(PageLinks(90, 91));
+      final String html =
+          renderPagination(PageLinks(SearchForm.parse(currentPage: 10), 91));
       expectGoldenFile(html, 'pagination_last.html', isFragment: true);
     });
 
@@ -761,28 +763,28 @@ void main() {
     });
 
     scopedTest('one', () {
-      final links = PageLinks(0, 1);
+      final links = PageLinks(SearchForm.parse(), 1);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 1);
     });
 
     scopedTest('PageLinks.RESULTS_PER_PAGE - 1', () {
-      final links = PageLinks(0, resultsPerPage - 1);
+      final links = PageLinks(SearchForm.parse(), resultsPerPage - 1);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 1);
     });
 
     scopedTest('PageLinks.RESULTS_PER_PAGE', () {
-      final links = PageLinks(0, resultsPerPage);
+      final links = PageLinks(SearchForm.parse(), resultsPerPage);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 1);
     });
 
     scopedTest('PageLinks.RESULTS_PER_PAGE + 1', () {
-      final links = PageLinks(0, resultsPerPage + 1);
+      final links = PageLinks(SearchForm.parse(), resultsPerPage + 1);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 2);
@@ -791,54 +793,42 @@ void main() {
     final int page2Offset = resultsPerPage;
 
     scopedTest('page=2 + one item', () {
-      final links = PageLinks(page2Offset, page2Offset + 1);
+      final links =
+          PageLinks(SearchForm.parse(currentPage: 2), page2Offset + 1);
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 2);
     });
 
     scopedTest('page=2 + PageLinks.RESULTS_PER_PAGE - 1', () {
-      final links = PageLinks(page2Offset, page2Offset + resultsPerPage - 1);
+      final links = PageLinks(
+          SearchForm.parse(currentPage: 2), page2Offset + resultsPerPage - 1);
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 2);
     });
 
     scopedTest('page=2 + PageLinks.RESULTS_PER_PAGE', () {
-      final links = PageLinks(page2Offset, page2Offset + resultsPerPage);
+      final links = PageLinks(
+          SearchForm.parse(currentPage: 2), page2Offset + resultsPerPage);
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 2);
     });
 
     scopedTest('page=2 + PageLinks.RESULTS_PER_PAGE + 1', () {
-      final links = PageLinks(page2Offset, page2Offset + resultsPerPage + 1);
+      final links = PageLinks(
+          SearchForm.parse(currentPage: 2), page2Offset + resultsPerPage + 1);
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 3);
     });
 
     scopedTest('deep in the middle', () {
-      final links = PageLinks(200, 600);
+      final links = PageLinks(SearchForm.parse(currentPage: 21), 600);
       expect(links.currentPage, 21);
       expect(links.leftmostPage, 16);
       expect(links.rightmostPage, 26);
-    });
-  });
-
-  group('URLs', () {
-    scopedTest('PageLinks defaults', () {
-      final query = SearchForm.parse(query: 'web framework');
-      final PageLinks links = PageLinks(0, 100, searchForm: query);
-      expect(links.formatHref(1), '/packages?q=web+framework');
-      expect(links.formatHref(2), '/packages?q=web+framework&page=2');
-    });
-
-    scopedTest('PageLinks with platform', () {
-      final query = SearchForm.parse(query: 'some framework', sdk: 'flutter');
-      final PageLinks links = PageLinks(0, 100, searchForm: query);
-      expect(links.formatHref(1), '/flutter/packages?q=some+framework');
-      expect(links.formatHref(2), '/flutter/packages?q=some+framework&page=2');
     });
   });
 }

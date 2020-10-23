@@ -217,8 +217,7 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
 
   final searchResult = await searchAdapter.search(searchForm);
   final int totalCount = searchResult.totalCount;
-  final links =
-      PageLinks(searchForm.offset, totalCount, searchForm: searchForm);
+  final links = PageLinks(searchForm, totalCount);
 
   final html = renderAccountPackagesPage(
     user: await accountBackend.lookupUserById(userSessionData.userId),

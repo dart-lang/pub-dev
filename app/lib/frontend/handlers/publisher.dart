@@ -80,8 +80,7 @@ Future<shelf.Response> publisherPackagesPageHandler(
 
   final searchResult = await searchAdapter.search(searchForm);
   final int totalCount = searchResult.totalCount;
-  final links =
-      PageLinks(searchForm.offset, totalCount, searchForm: searchForm);
+  final links = PageLinks(searchForm, totalCount);
 
   final html = renderPublisherPackagesPage(
     publisher: publisher,

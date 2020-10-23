@@ -131,7 +131,7 @@ String renderPublisherPackagesPage({
     ),
     publisherId: publisher.publisherId,
     searchForm: searchForm,
-    canonicalUrl: searchForm.toSearchLink(page: pageLinks.currentPage),
+    canonicalUrl: searchForm.toSearchLink(),
     // index only the first page, if it has packages displayed without search query
     noIndex: packages.isEmpty || isSearch || pageLinks.currentPage > 1,
     mainClasses: [wideHeaderDetailPageClassName],

@@ -22,7 +22,7 @@ const int resultsPerPage = 10;
 
 /// The number of page links we display, e.g. on page 10, we display direct
 /// links from page 5 to page 15.
-const int maxPages = 10;
+const int maxPageLinks = 10;
 
 /// The maximum length of the search query's text phrase that we'll try to serve.
 const _maxQueryLength = 256;
