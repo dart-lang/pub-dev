@@ -19,6 +19,9 @@ class ApiPubDevService {
   @Route.get('/robots.txt')
   Future<Response> robotsTxt(Request request) async =>
       rejectRobotsHandler(request);
+
+  @Route.all('/<_|.*>')
+  Response catchAll(Request request) => Response.notFound('Not Found.');
 }
 
 /// Routes that are only processed by the old pub domain.

@@ -9,6 +9,7 @@ part of pub_dartlang_org.handlers_redirects;
 Router _$ApiPubDevServiceRouter(ApiPubDevService service) {
   final router = Router();
   router.add('GET', r'/robots.txt', service.robotsTxt);
+  router.all(r'/<_|.*>', service.catchAll);
   return router;
 }
 
