@@ -12,6 +12,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:logging/logging.dart';
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
+import 'package:pub_dev/shared/tags.dart';
 
 import '../account/backend.dart';
 import '../analyzer/analyzer_client.dart';
@@ -79,7 +80,8 @@ class SearchBackend {
       throw RemovedPackageException();
     }
 
-    final pv = (await _db.lookup<PackageVersion>([p.latestVersionKey])).single;
+    final pv = await _db.lookupValue<PackageVersion>(p.latestVersionKey,
+        orElse: () => null);
     if (pv == null) {
       throw RemovedPackageException();
     }
@@ -87,10 +89,24 @@ class SearchBackend {
     final analysisView =
         await analyzerClient.getAnalysisView(packageName, pv.version);
 
+    // Extend tags with `-in-prerelease` for prerelease version.
+    final prereleaseTags = <String>[];
+    if (p.showPrereleaseVersion) {
+      final prv = await _db.lookupValue<PackageVersion>(
+          p.latestPrereleaseVersionKey,
+          orElse: () => null);
+      prv?.getTags()?.forEach(prereleaseTags.add);
+
+      final pra = await analyzerClient.getAnalysisView(
+          packageName, p.latestPrereleaseVersion);
+      pra?.derivedTags?.forEach(prereleaseTags.add);
+    }
+
     final tags = <String>[
       ...p.getTags(),
       ...pv.getTags(),
       ...analysisView.derivedTags,
+      ...prereleaseTags.map(PackageTags.convertToPrereleaseTag),
     ];
 
     final pubDataContent = await dartdocClient.getTextContent(
