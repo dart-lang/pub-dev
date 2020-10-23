@@ -358,8 +358,11 @@ PageData pkgPageData(Package package, PackageVersion selectedVersion) {
 
 Tab _readmeTab(PackagePageData data) {
   final baseUrl = data.version.packageLinks.baseUrl;
-  final content =
-      data.hasReadme ? renderFile(data.version.readme, baseUrl) : '';
+  final content = data.hasReadme &&
+          data.asset != null &&
+          data.asset.kind == AssetKind.readme
+      ? renderFile(data.asset.toFileObject(), baseUrl)
+      : '';
   return Tab.withContent(
     id: 'readme',
     title: 'Readme',
@@ -370,9 +373,10 @@ Tab _readmeTab(PackagePageData data) {
 
 Tab _changelogTab(PackagePageData data) {
   if (!data.hasChangelog) return null;
+  if (data.asset?.kind != AssetKind.changelog) return null;
   final baseUrl = data.version.packageLinks.baseUrl;
   final content = renderFile(
-    data.version.changelog,
+    data.asset.toFileObject(),
     baseUrl,
     isChangelog: true,
   );
@@ -386,11 +390,12 @@ Tab _changelogTab(PackagePageData data) {
 
 Tab _exampleTab(PackagePageData data) {
   if (!data.hasExample) return null;
+  if (data.asset?.kind != AssetKind.example) return null;
   final baseUrl = data.version.packageLinks.baseUrl;
 
   String renderedExample;
-  final exampleFilename = data.version.example.filename;
-  renderedExample = renderFile(data.version.example, baseUrl);
+  final exampleFilename = data.asset.path;
+  renderedExample = renderFile(data.asset.toFileObject(), baseUrl);
   if (renderedExample != null) {
     final url = getRepositoryUrl(baseUrl, exampleFilename);
     final escapedName = htmlEscape.convert(exampleFilename);

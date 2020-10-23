@@ -555,6 +555,8 @@ class PackageVersionAsset extends db.ExpandoModel {
       version: version,
     );
   }
+
+  FileObject toFileObject() => FileObject(path, textContent);
 }
 
 /// Entity representing a package that has been removed.
@@ -811,6 +813,8 @@ class PackagePageData {
   final Package package;
   final ModeratedPackage moderatedPackage;
   final PackageVersion version;
+  final PackageVersionInfo versionInfo;
+  final PackageVersionAsset asset;
   final AnalysisView analysis;
   final List<String> uploaderEmails;
   final bool isAdmin;
@@ -820,6 +824,8 @@ class PackagePageData {
   PackagePageData({
     @required this.package,
     @required this.version,
+    @required this.versionInfo,
+    @required this.asset,
     @required this.analysis,
     @required this.uploaderEmails,
     @required this.isAdmin,
@@ -830,14 +836,16 @@ class PackagePageData {
     @required this.package,
     this.moderatedPackage,
   })  : version = null,
+        versionInfo = null,
+        asset = null,
         analysis = null,
         uploaderEmails = null,
         isAdmin = null,
         isLiked = null;
 
-  bool get hasReadme => version.readme != null;
-  bool get hasChangelog => version.changelog != null;
-  bool get hasExample => version.example != null;
+  bool get hasReadme => versionInfo.assets.contains(AssetKind.readme);
+  bool get hasChangelog => versionInfo.assets.contains(AssetKind.changelog);
+  bool get hasExample => versionInfo.assets.contains(AssetKind.example);
 
   bool get isLatestStable => version.version == package.latestVersion;
 
