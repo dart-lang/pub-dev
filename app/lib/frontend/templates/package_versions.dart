@@ -64,7 +64,7 @@ String renderPkgVersionsPage(
   }
 
   final tabs = buildPackageTabs(
-    packagePageData: data,
+    data: data,
     versionsTab: Tab.withContent(
       id: 'versions',
       title: 'Versions',

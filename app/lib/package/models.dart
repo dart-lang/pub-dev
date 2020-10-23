@@ -819,13 +819,12 @@ class PackagePageData {
 
   PackagePageData({
     @required this.package,
-    this.moderatedPackage,
     @required this.version,
     @required this.analysis,
     @required this.uploaderEmails,
     @required this.isAdmin,
     @required this.isLiked,
-  });
+  }) : moderatedPackage = null;
 
   PackagePageData.missing({
     @required this.package,
@@ -835,6 +834,12 @@ class PackagePageData {
         uploaderEmails = null,
         isAdmin = null,
         isLiked = null;
+
+  bool get hasReadme => version.readme != null;
+  bool get hasChangelog => version.changelog != null;
+  bool get hasExample => version.example != null;
+
+  bool get isLatestStable => version.version == package.latestVersion;
 
   PackageView toPackageView() {
     return _view ??= PackageView.fromModel(
