@@ -609,8 +609,6 @@ class ParsedQueryText {
 
 @JsonSerializable(includeIfNull: false)
 class PackageSearchResult {
-  /// The last update of the search index.
-  final DateTime indexUpdated;
   final DateTime timestamp;
   final int totalCount;
   final List<PackageScore> packages;
@@ -620,7 +618,6 @@ class PackageSearchResult {
   final String message;
 
   PackageSearchResult({
-    this.indexUpdated,
     @required this.timestamp,
     this.totalCount,
     List<PackageScore> packages,
@@ -628,8 +625,7 @@ class PackageSearchResult {
   }) : packages = packages ?? [];
 
   PackageSearchResult.empty({this.message})
-      : indexUpdated = null,
-        timestamp = DateTime.now().toUtc(),
+      : timestamp = DateTime.now().toUtc(),
         totalCount = 0,
         packages = [];
 
@@ -637,9 +633,6 @@ class PackageSearchResult {
       _$PackageSearchResultFromJson(json);
 
   Duration get age => DateTime.now().difference(timestamp);
-
-  /// Whether the search service has already updated its index after a startup.
-  bool get isLegit => indexUpdated != null;
 
   Map<String, dynamic> toJson() => _$PackageSearchResultToJson(this);
 }

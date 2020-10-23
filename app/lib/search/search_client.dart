@@ -76,11 +76,6 @@ class SearchClient {
       final result = PackageSearchResult.fromJson(
         json.decode(response.body) as Map<String, dynamic>,
       );
-      if (!result.isLegit) {
-        // Search request before the service initialization completed.
-        // TODO: retry request, maybe another search instance will be able to serve it
-        return null;
-      }
       return result;
     }
 
