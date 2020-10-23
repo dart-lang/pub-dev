@@ -226,7 +226,12 @@ PackageVersionInfo pvToInfo(PackageVersion pv) {
     ..versionCreated = pv.created
     ..updated = pv.created
     ..libraries = pv.libraries
-    ..libraryCount = pv.libraries.length;
+    ..libraryCount = pv.libraries.length
+    ..assets = [
+      if (pv.readme != null) AssetKind.readme,
+      if (pv.changelog != null) AssetKind.changelog,
+      if (pv.example != null) AssetKind.example,
+    ];
 }
 
 PackageVersionAsset pvToAsset(PackageVersion pv, String assetKind) {
