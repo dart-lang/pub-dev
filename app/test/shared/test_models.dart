@@ -208,6 +208,9 @@ Iterable<Model> pvModels(PackageVersion pv) sync* {
   yield pv;
   yield _pvPubspec(pv);
   yield pvToInfo(pv);
+  if (pv.readme != null) yield pvToAsset(pv, AssetKind.readme);
+  if (pv.changelog != null) yield pvToAsset(pv, AssetKind.changelog);
+  if (pv.example != null) yield pvToAsset(pv, AssetKind.example);
 }
 
 PackageVersionPubspec _pvPubspec(PackageVersion pv) {
