@@ -181,7 +181,7 @@ String renderPkgIndexPage(
     title: pageTitle,
     sdk: sdk,
     searchForm: searchForm,
-    canonicalUrl: searchForm.toSearchLink(page: links.currentPage),
+    canonicalUrl: searchForm.toSearchLink(),
     noIndex: true,
     searchPlaceHolder: searchPlaceholder,
     mainClasses: [],
@@ -245,25 +245,22 @@ String renderSortControl(SearchForm form) {
 }
 
 class PageLinks {
-  final int offset;
+  final SearchForm searchForm;
   final int count;
-  final SearchForm _searchForm;
 
-  PageLinks(this.offset, this.count, {SearchForm searchForm})
-      : _searchForm = searchForm;
+  PageLinks(this.searchForm, this.count);
 
   PageLinks.empty()
-      : offset = 1,
-        count = 1,
-        _searchForm = null;
+      : searchForm = SearchForm.parse(),
+        count = 1;
 
-  int get leftmostPage => max(currentPage - maxPages ~/ 2, 1);
+  int get leftmostPage => max(currentPage - maxPageLinks ~/ 2, 1);
 
-  int get currentPage => 1 + offset ~/ resultsPerPage;
+  int get currentPage => searchForm.currentPage;
 
   int get rightmostPage {
-    final int fromSymmetry = currentPage + maxPages ~/ 2;
-    final int fromCount = 1 + ((count - 1) ~/ resultsPerPage);
+    final int fromSymmetry = currentPage + maxPageLinks ~/ 2;
+    final int fromCount = 1 + ((count - 1) ~/ searchForm.pageSize);
     return min(fromSymmetry, max(currentPage, fromCount));
   }
 
@@ -275,7 +272,8 @@ class PageLinks {
       'active': false,
       'disabled': !hasPrevious,
       'render_link': hasPrevious,
-      'href': htmlAttrEscape.convert(formatHref(currentPage - 1)),
+      'href': htmlAttrEscape
+          .convert(searchForm.toSearchLink(page: currentPage - 1)),
       'text': '&laquo;',
       'rel_prev': true,
       'rel_next': false,
@@ -287,7 +285,7 @@ class PageLinks {
         'active': isCurrent,
         'disabled': false,
         'render_link': !isCurrent,
-        'href': htmlAttrEscape.convert(formatHref(page)),
+        'href': htmlAttrEscape.convert(searchForm.toSearchLink(page: page)),
         'text': '$page',
         'rel_prev': currentPage == page + 1,
         'rel_next': currentPage == page - 1,
@@ -299,7 +297,8 @@ class PageLinks {
       'active': false,
       'disabled': !hasNext,
       'render_link': hasNext,
-      'href': htmlAttrEscape.convert(formatHref(currentPage + 1)),
+      'href': htmlAttrEscape
+          .convert(searchForm.toSearchLink(page: currentPage + 1)),
       'text': '&raquo;',
       'rel_prev': false,
       'rel_next': true,
@@ -309,13 +308,5 @@ class PageLinks {
     assert(!results
         .any((map) => map['disabled'] == true && map['active'] == true));
     return results;
-  }
-
-  String formatHref(int page) {
-    if (_searchForm == null) {
-      return urls.searchUrl(page: page);
-    } else {
-      return _searchForm.toSearchLink(page: page);
-    }
   }
 }

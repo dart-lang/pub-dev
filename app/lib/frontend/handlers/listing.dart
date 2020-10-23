@@ -88,8 +88,7 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
   final searchResult = await searchAdapter.search(searchForm);
   final int totalCount = searchResult.totalCount;
 
-  final links =
-      PageLinks(searchForm.offset, totalCount, searchForm: searchForm);
+  final links = PageLinks(searchForm, totalCount);
   final result = htmlResponse(
     renderPkgIndexPage(
       searchResult.packages,

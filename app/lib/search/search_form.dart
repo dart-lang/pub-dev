@@ -27,8 +27,13 @@ class SearchForm {
 
   final String publisherId;
   final SearchOrder order;
-  final int offset;
-  final int limit;
+
+  /// The visible index of the current page (and offset position).
+  /// Starts with 1.
+  final int currentPage;
+
+  /// The number of search results per page.
+  final int pageSize;
 
   /// True, if packages with is:discontinued tag should be included.
   final bool includeDiscontinued;
@@ -45,8 +50,8 @@ class SearchForm {
     List<String> uploaderOrPublishers,
     String publisherId,
     this.order,
-    this.offset,
-    this.limit,
+    this.currentPage,
+    this.pageSize,
     this.includeDiscontinued,
     this.includeUnlisted,
     this.includeLegacy,
@@ -64,12 +69,14 @@ class SearchForm {
     List<String> uploaderOrPublishers,
     String publisherId,
     SearchOrder order,
-    int offset = 0,
-    int limit = 10,
+    int currentPage,
+    int pageSize,
     bool includeDiscontinued = false,
     bool includeUnlisted = false,
     bool includeLegacy = false,
   }) {
+    currentPage ??= 1;
+    pageSize ??= resultsPerPage;
     final q = _stringToNull(query?.trim());
     tagsPredicate ??= TagsPredicate();
     final requiredTags = <String>[];
@@ -93,8 +100,8 @@ class SearchForm {
       uploaderOrPublishers: uploaderOrPublishers,
       publisherId: publisherId,
       order: order,
-      offset: offset,
-      limit: limit,
+      currentPage: currentPage,
+      pageSize: pageSize,
       includeDiscontinued: includeDiscontinued,
       includeUnlisted: includeUnlisted,
       includeLegacy: includeLegacy,
@@ -108,8 +115,8 @@ class SearchForm {
     List<String> uploaderOrPublishers,
     String publisherId,
     SearchOrder order,
-    int offset,
-    int limit,
+    int currentPage,
+    int pageSize,
   }) {
     if (sdk != null) {
       tagsPredicate ??= this.tagsPredicate ?? TagsPredicate();
@@ -125,8 +132,8 @@ class SearchForm {
       uploaderOrPublishers: uploaderOrPublishers ?? this.uploaderOrPublishers,
       publisherId: publisherId ?? this.publisherId,
       order: order ?? this.order,
-      offset: offset ?? this.offset,
-      limit: limit ?? this.limit,
+      currentPage: currentPage ?? this.currentPage,
+      pageSize: pageSize ?? this.pageSize,
       includeDiscontinued: includeDiscontinued,
       includeUnlisted: includeUnlisted,
       includeLegacy: includeLegacy,
@@ -153,12 +160,15 @@ class SearchForm {
       uploaderOrPublishers: uploaderOrPublishers,
       publisherId: publisherId,
       offset: offset,
-      limit: limit,
+      limit: pageSize,
       order: order,
     );
   }
 
   bool get hasQuery => query != null && query.isNotEmpty;
+
+  /// The zero-indexed offset for the search results.
+  int get offset => (currentPage - 1) * pageSize;
 
   String get sdk {
     final values = tagsPredicate.tagPartsWithPrefix('sdk', value: true);
@@ -187,6 +197,7 @@ class SearchForm {
   /// Converts the query to a user-facing link that (after frontend parsing) will
   /// re-create an identical search query object.
   String toSearchLink({int page}) {
+    page ??= currentPage;
     final params = <String, dynamic>{};
     if (query != null && query.isNotEmpty) {
       params['q'] = query;
@@ -226,8 +237,7 @@ SearchForm parseFrontendSearchForm(
   String publisherId,
   @required TagsPredicate tagsPredicate,
 }) {
-  final int page = extractPageFromUrlParameters(queryParameters);
-  final int offset = resultsPerPage * (page - 1);
+  final currentPage = extractPageFromUrlParameters(queryParameters);
   final String queryText = queryParameters['q'] ?? '';
   final String sortParam = queryParameters['sort'];
   final SearchOrder sortOrder = parseSearchOrder(sortParam);
@@ -247,8 +257,7 @@ SearchForm parseFrontendSearchForm(
     uploaderOrPublishers: uploaderOrPublishers,
     publisherId: publisherId,
     order: sortOrder,
-    offset: offset,
-    limit: resultsPerPage,
+    currentPage: currentPage,
     includeDiscontinued: queryParameters['discontinued'] == '1',
     includeUnlisted: queryParameters['unlisted'] == '1',
     includeLegacy: queryParameters['legacy'] == '1' && SdkTagValue.isAny(sdk),

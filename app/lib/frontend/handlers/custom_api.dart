@@ -252,7 +252,7 @@ Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
   );
   final sr = await searchClient.search(searchForm.toServiceQuery());
   final packages = sr.packages.map((ps) => {'package': ps.package}).toList();
-  final hasNextPage = sr.totalCount > searchForm.limit + searchForm.offset;
+  final hasNextPage = sr.totalCount > searchForm.pageSize + searchForm.offset;
   final result = <String, dynamic>{
     'packages': packages,
     if (sr.message != null) 'message': sr.message,
@@ -260,8 +260,7 @@ Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
   if (hasNextPage) {
     final newParams =
         Map<String, dynamic>.from(request.requestedUri.queryParameters);
-    final nextPageIndex = (searchForm.offset ~/ searchForm.limit) + 2;
-    newParams['page'] = nextPageIndex.toString();
+    newParams['page'] = (searchForm.currentPage + 1).toString();
     final nextPageUrl =
         request.requestedUri.replace(queryParameters: newParams).toString();
     result['next'] = nextPageUrl;

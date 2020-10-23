@@ -44,7 +44,7 @@ class SearchAdapter {
     SearchOrder order,
   }) async {
     final form = SearchForm.parse(
-      limit: 100,
+      pageSize: 100,
       tagsPredicate: TagsPredicate.advertisement(requiredTags: requiredTags),
       order: order,
     );
@@ -127,7 +127,7 @@ class SearchAdapter {
     scores.sort((a, b) => -a.score.compareTo(b.score));
 
     final totalCount = scores.length;
-    scores = scores.skip(form.offset ?? 0).take(form.limit ?? 10).toList();
+    scores = scores.skip(form.offset).take(form.pageSize).toList();
     return PackageSearchResult(
         timestamp: DateTime.now().toUtc(),
         packages: scores,
