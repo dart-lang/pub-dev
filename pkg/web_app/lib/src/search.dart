@@ -80,6 +80,8 @@ void _setEventForCheckboxChanges() {
       '-search-unlisted-field', '-search-unlisted-checkbox');
   _setEventForHiddenCheckboxField(
       '-search-discontinued-field', '-search-discontinued-checkbox');
+  _setEventForHiddenCheckboxField('-search-prerelease-null-safe-field',
+      '-search-prerelease-null-safe-checkbox');
 }
 
 void _setEventForHiddenCheckboxField(
