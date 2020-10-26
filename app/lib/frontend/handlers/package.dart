@@ -69,6 +69,7 @@ Future<shelf.Response> packageVersionsListHandler(
     request: request,
     packageName: packageName,
     versionName: null,
+    assetKind: null,
     renderFn: (data) async {
       final versions = await packageBackend.versionsOfPackage(packageName);
       if (versions.isEmpty) {
@@ -96,6 +97,7 @@ Future<shelf.Response> packageChangelogHandler(
     request: request,
     packageName: packageName,
     versionName: versionName,
+    assetKind: AssetKind.changelog,
     renderFn: (data) {
       if (!data.hasChangelog) {
         return redirectResponse(
@@ -116,6 +118,7 @@ Future<shelf.Response> packageExampleHandler(
     request: request,
     packageName: packageName,
     versionName: versionName,
+    assetKind: AssetKind.example,
     renderFn: (data) {
       if (!data.hasExample) {
         return redirectResponse(
@@ -136,6 +139,7 @@ Future<shelf.Response> packageInstallHandler(
     request: request,
     packageName: packageName,
     versionName: versionName,
+    assetKind: null,
     renderFn: (data) => renderPkgInstallPage(data),
     cacheEntry: cache.uiPackageInstall(packageName, versionName),
   );
@@ -150,6 +154,7 @@ Future<shelf.Response> packageScoreHandler(
     request: request,
     packageName: packageName,
     versionName: versionName,
+    assetKind: null,
     renderFn: (data) => renderPkgScorePage(data),
     cacheEntry: cache.uiPackageScore(packageName, versionName),
   );
@@ -164,6 +169,7 @@ Future<shelf.Response> packageVersionHandlerHtml(
     request: request,
     packageName: packageName,
     versionName: versionName,
+    assetKind: AssetKind.readme,
     renderFn: (data) => renderPkgShowPage(data),
     cacheEntry: cache.uiPackagePage(packageName, versionName),
   );
@@ -173,6 +179,7 @@ Future<shelf.Response> _handlePackagePage({
   @required shelf.Request request,
   @required String packageName,
   @required String versionName,
+  @required String assetKind,
   @required FutureOr Function(PackagePageData data) renderFn,
   Entry<String> cacheEntry,
 }) async {
@@ -187,7 +194,8 @@ Future<shelf.Response> _handlePackagePage({
 
   if (cachedPage == null) {
     final serviceSw = Stopwatch()..start();
-    final data = await _loadPackagePageData(packageName, versionName);
+    final data =
+        await _loadPackagePageData(packageName, versionName, assetKind);
     _packageDataLoadLatencyTracker.add(serviceSw.elapsed);
     if (data.package == null || data.package.isNotVisible) {
       if (data.moderatedPackage != null) {
@@ -223,6 +231,7 @@ Future<shelf.Response> packageAdminHandler(
     request: request,
     packageName: packageName,
     versionName: null,
+    assetKind: null,
     renderFn: (data) async {
       if (userSessionData == null) {
         return htmlResponse(renderUnauthenticatedPage());
@@ -239,7 +248,10 @@ Future<shelf.Response> packageAdminHandler(
 }
 
 Future<PackagePageData> _loadPackagePageData(
-    String packageName, String versionName) async {
+  String packageName,
+  String versionName,
+  String assetKind,
+) async {
   final package = await packageBackend.lookupPackage(packageName);
   if (package == null || package.isNotVisible) {
     final moderated = await packageBackend.lookupModeratedPackage(packageName);
@@ -252,11 +264,23 @@ Future<PackagePageData> _loadPackagePageData(
               userSessionData.userId, package.name) !=
           null;
 
-  final selectedVersion = await packageBackend.lookupPackageVersion(
-      packageName, versionName ?? package.latestVersion);
+  versionName ??= package.latestVersion;
+  final selectedVersion =
+      await packageBackend.lookupPackageVersion(packageName, versionName);
   if (selectedVersion == null) {
     return PackagePageData.missing(package: package);
   }
+
+  final versionInfo =
+      await packageBackend.lookupPackageVersionInfo(packageName, versionName);
+  if (versionInfo == null) {
+    return PackagePageData.missing(package: package);
+  }
+
+  final asset = assetKind == null
+      ? null
+      : await packageBackend.lookupPackageVersionAsset(
+          packageName, versionName, assetKind);
 
   final analysisView = await analyzerClient.getAnalysisView(
       selectedVersion.package, selectedVersion.version);
@@ -270,6 +294,8 @@ Future<PackagePageData> _loadPackagePageData(
   return PackagePageData(
     package: package,
     version: selectedVersion,
+    versionInfo: versionInfo,
+    asset: asset,
     analysis: analysisView,
     uploaderEmails: uploaderEmails,
     isAdmin: isAdmin,

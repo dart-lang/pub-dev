@@ -207,7 +207,10 @@ dependencies:
 Iterable<Model> pvModels(PackageVersion pv) sync* {
   yield pv;
   yield _pvPubspec(pv);
-  yield _pvInfo(pv);
+  yield pvToInfo(pv);
+  if (pv.readme != null) yield pvToAsset(pv, AssetKind.readme);
+  if (pv.changelog != null) yield pvToAsset(pv, AssetKind.changelog);
+  if (pv.example != null) yield pvToAsset(pv, AssetKind.example);
 }
 
 PackageVersionPubspec _pvPubspec(PackageVersion pv) {
@@ -219,14 +222,44 @@ PackageVersionPubspec _pvPubspec(PackageVersion pv) {
     ..pubspec = pv.pubspec;
 }
 
-PackageVersionInfo _pvInfo(PackageVersion pv) {
+PackageVersionInfo pvToInfo(PackageVersion pv) {
   return PackageVersionInfo()
     ..parentKey = pv.parentKey.parent
     ..initFromKey(pv.qualifiedVersionKey)
     ..versionCreated = pv.created
     ..updated = pv.created
     ..libraries = pv.libraries
-    ..libraryCount = pv.libraries.length;
+    ..libraryCount = pv.libraries.length
+    ..assets = [
+      if (pv.readme != null) AssetKind.readme,
+      if (pv.changelog != null) AssetKind.changelog,
+      if (pv.example != null) AssetKind.example,
+    ];
+}
+
+PackageVersionAsset pvToAsset(PackageVersion pv, String assetKind) {
+  PackageVersionAsset convert(FileObject file) {
+    if (file == null) return null;
+    return PackageVersionAsset.init(
+      package: pv.package,
+      version: pv.version,
+      kind: assetKind,
+      versionCreated: pv.created,
+      path: file.filename,
+      textContent: file.text,
+      updated: pv.created,
+    );
+  }
+
+  if (assetKind == AssetKind.readme) {
+    return convert(pv.readme);
+  } else if (assetKind == AssetKind.changelog) {
+    return convert(pv.changelog);
+  } else if (assetKind == AssetKind.example) {
+    return convert(pv.example);
+  } else {
+    throw ArgumentError('Unhandled asset kind: $assetKind');
+  }
 }
 
 final exampleComPublisher = publisher('example.com');

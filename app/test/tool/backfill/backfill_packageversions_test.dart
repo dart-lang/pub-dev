@@ -37,7 +37,8 @@ void main() {
           'pvPubspecCount': 13,
           'pvInfoCount': 13,
           'pvAssetUpdatedCount': 26,
-          'pvAssetDeletedCount': 0,
+          // TODO: fix test models and don't delete here
+          'pvAssetDeletedCount': 22,
         },
       );
     }

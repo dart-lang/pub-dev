@@ -137,91 +137,97 @@ void main() {
       expectGoldenFile(html, 'landing_page.html');
     });
 
-    final foobarPageData = PackagePageData(
-      package: foobarPackage,
-      isLiked: false,
-      uploaderEmails: foobarUploaderEmails,
-      version: foobarStablePV,
-      analysis: AnalysisView(
-        card: ScoreCardData(
-          reportTypes: ['pana', 'dartdoc'],
-        ),
-        panaReport: PanaReport(
-            timestamp: DateTime(2018, 02, 05),
-            panaRuntimeInfo: _panaRuntimeInfo,
-            reportStatus: ReportStatus.success,
-            derivedTags: null,
-            pkgDependencies: [
-              PkgDependency(
-                package: 'quiver',
-                dependencyType: 'direct',
-                constraintType: 'normal',
-                constraint: VersionConstraint.parse('^1.0.0'),
-                resolved: Version.parse('1.0.0'),
-                available: null,
-                errors: null,
+    PackagePageData foobarPageDataFn({String assetKind}) => PackagePageData(
+          package: foobarPackage,
+          isLiked: false,
+          uploaderEmails: foobarUploaderEmails,
+          version: foobarStablePV,
+          versionInfo: pvToInfo(foobarStablePV),
+          asset:
+              assetKind == null ? null : pvToAsset(foobarStablePV, assetKind),
+          analysis: AnalysisView(
+            card: ScoreCardData(
+              reportTypes: ['pana', 'dartdoc'],
+            ),
+            panaReport: PanaReport(
+                timestamp: DateTime(2018, 02, 05),
+                panaRuntimeInfo: _panaRuntimeInfo,
+                reportStatus: ReportStatus.success,
+                derivedTags: null,
+                pkgDependencies: [
+                  PkgDependency(
+                    package: 'quiver',
+                    dependencyType: 'direct',
+                    constraintType: 'normal',
+                    constraint: VersionConstraint.parse('^1.0.0'),
+                    resolved: Version.parse('1.0.0'),
+                    available: null,
+                    errors: null,
+                  ),
+                  PkgDependency(
+                    package: 'http',
+                    dependencyType: 'direct',
+                    constraintType: 'normal',
+                    constraint: VersionConstraint.parse('>=1.0.0 <1.2.0'),
+                    resolved: Version.parse('1.2.0'),
+                    available: Version.parse('1.3.0'),
+                    errors: null,
+                  )
+                ],
+                licenseFile: LicenseFile('LICENSE.txt', 'BSD'),
+                report: Report(sections: <ReportSection>[]),
+                flags: null),
+            dartdocReport: DartdocReport(
+              reportStatus: ReportStatus.success,
+              dartdocEntry: DartdocEntry(
+                uuid: '1234-5678-dartdocentry-90ab',
+                packageName: foobarStablePV.package,
+                packageVersion: foobarStablePV.version,
+                isLatest: true,
+                isObsolete: false,
+                usesFlutter: false,
+                runtimeVersion: runtimeVersion,
+                sdkVersion: _panaRuntimeInfo.sdkVersion,
+                dartdocVersion: dartdocVersion,
+                flutterVersion: null,
+                timestamp: DateTime(2018, 02, 05),
+                depsResolved: true,
+                hasContent: true,
+                archiveSize: 101023,
+                totalSize: 203045,
               ),
-              PkgDependency(
-                package: 'http',
-                dependencyType: 'direct',
-                constraintType: 'normal',
-                constraint: VersionConstraint.parse('>=1.0.0 <1.2.0'),
-                resolved: Version.parse('1.2.0'),
-                available: Version.parse('1.3.0'),
-                errors: null,
-              )
-            ],
-            licenseFile: LicenseFile('LICENSE.txt', 'BSD'),
-            report: Report(sections: <ReportSection>[]),
-            flags: null),
-        dartdocReport: DartdocReport(
-          reportStatus: ReportStatus.success,
-          dartdocEntry: DartdocEntry(
-            uuid: '1234-5678-dartdocentry-90ab',
-            packageName: foobarStablePV.package,
-            packageVersion: foobarStablePV.version,
-            isLatest: true,
-            isObsolete: false,
-            usesFlutter: false,
-            runtimeVersion: runtimeVersion,
-            sdkVersion: _panaRuntimeInfo.sdkVersion,
-            dartdocVersion: dartdocVersion,
-            flutterVersion: null,
-            timestamp: DateTime(2018, 02, 05),
-            depsResolved: true,
-            hasContent: true,
-            archiveSize: 101023,
-            totalSize: 203045,
+              documentationSection:
+                  documentationCoverageSection(documented: 17, total: 17),
+            ),
           ),
-          documentationSection:
-              documentationCoverageSection(documented: 17, total: 17),
-        ),
-      ),
-      isAdmin: true,
-    );
+          isAdmin: true,
+        );
 
     scopedTest('package show page', () {
-      final String html = renderPkgShowPage(foobarPageData);
+      final String html =
+          renderPkgShowPage(foobarPageDataFn(assetKind: AssetKind.readme));
       expectGoldenFile(html, 'pkg_show_page.html');
     });
 
     scopedTest('package changelog page', () {
-      final String html = renderPkgChangelogPage(foobarPageData);
+      final String html = renderPkgChangelogPage(
+          foobarPageDataFn(assetKind: AssetKind.changelog));
       expectGoldenFile(html, 'pkg_changelog_page.html');
     });
 
     scopedTest('package example page', () {
-      final String html = renderPkgExamplePage(foobarPageData);
+      final String html =
+          renderPkgExamplePage(foobarPageDataFn(assetKind: AssetKind.example));
       expectGoldenFile(html, 'pkg_example_page.html');
     });
 
     scopedTest('package install page', () {
-      final String html = renderPkgInstallPage(foobarPageData);
+      final String html = renderPkgInstallPage(foobarPageDataFn());
       expectGoldenFile(html, 'pkg_install_page.html');
     });
 
     scopedTest('package score page', () {
-      final String html = renderPkgScorePage(foobarPageData);
+      final String html = renderPkgScorePage(foobarPageDataFn());
       expectGoldenFile(html, 'pkg_score_page.html');
     });
 
@@ -231,6 +237,8 @@ void main() {
         isLiked: false,
         uploaderEmails: foobarUploaderEmails,
         version: foobarDevPV,
+        versionInfo: pvToInfo(foobarDevPV),
+        asset: pvToAsset(foobarDevPV, AssetKind.readme),
         analysis: AnalysisView(
           card: ScoreCardData(reportTypes: ['pana']),
           panaReport: PanaReport(
@@ -274,6 +282,8 @@ void main() {
         isLiked: false,
         uploaderEmails: foobarUploaderEmails,
         version: flutterPackageVersion,
+        versionInfo: pvToInfo(flutterPackageVersion),
+        asset: pvToAsset(flutterPackageVersion, AssetKind.readme),
         analysis: AnalysisView(
           card: ScoreCardData(
             popularityScore: 0.3,
@@ -302,6 +312,8 @@ void main() {
         isLiked: false,
         uploaderEmails: foobarUploaderEmails,
         version: foobarStablePV,
+        versionInfo: pvToInfo(foobarStablePV),
+        asset: pvToAsset(foobarStablePV, AssetKind.readme),
         analysis: AnalysisView(
           card: ScoreCardData(
             flags: [PackageFlags.isObsolete],
@@ -320,6 +332,8 @@ void main() {
         isLiked: false,
         uploaderEmails: foobarUploaderEmails,
         version: foobarStablePV,
+        versionInfo: pvToInfo(foobarStablePV),
+        asset: pvToAsset(foobarStablePV, AssetKind.readme),
         analysis: AnalysisView(
           card: ScoreCardData(
             flags: [PackageFlags.isDiscontinued],
@@ -341,6 +355,8 @@ void main() {
           joeUser.email,
         ],
         version: foobarStablePV,
+        versionInfo: pvToInfo(foobarStablePV),
+        asset: pvToAsset(foobarStablePV, AssetKind.readme),
         analysis: AnalysisView(
           card: ScoreCardData(
             popularityScore: 0.5,
@@ -359,6 +375,8 @@ void main() {
         isLiked: false,
         uploaderEmails: <String>[],
         version: lithium.versions.last,
+        versionInfo: pvToInfo(lithium.versions.last),
+        asset: pvToAsset(lithium.versions.last, AssetKind.readme),
         analysis: AnalysisView(
           card: ScoreCardData(
             updated: DateTime(2018, 02, 05),
@@ -492,6 +510,8 @@ void main() {
           package: foobarPackage,
           uploaderEmails: foobarUploaderEmails,
           version: foobarStablePV,
+          versionInfo: pvToInfo(foobarStablePV),
+          asset: null,
           analysis: AnalysisView(
             card: ScoreCardData(
               flags: [PackageFlags.isObsolete],
@@ -568,6 +588,8 @@ void main() {
           isLiked: false,
           uploaderEmails: foobarUploaderEmails,
           version: foobarStablePV,
+          versionInfo: pvToInfo(foobarStablePV),
+          asset: null,
           analysis: AnalysisView(
             card: ScoreCardData(
               derivedTags: ['sdk:dart', 'sdk:flutter'],
