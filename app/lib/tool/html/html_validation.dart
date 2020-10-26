@@ -10,7 +10,7 @@ import 'package:html/parser.dart' as parser;
 /// Validates the HTML content and throws ArgumentError if any of the
 /// following issues are present:
 /// - Inline JavaScript actions are present (e.g. `onclick`).
-/// - Links with `<a target="_blank">` do not have `rel="repooner"`.
+/// - Links with `<a target="_blank">` do not have `rel="noopener"`.
 /// - `<script> tags have no `src` attribute or have content (except `ld+json`
 ///   meta content).
 void parseAndValidateHtml(String html) {
