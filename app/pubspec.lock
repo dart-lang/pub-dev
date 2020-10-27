@@ -14,7 +14,7 @@ packages:
       name: _fe_analyzer_shared
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.0.0"
+    version: "11.0.0"
   _popularity:
     dependency: "direct main"
     description:
@@ -23,12 +23,12 @@ packages:
     source: path
     version: "0.0.0"
   analyzer:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: analyzer
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.39.14"
+    version: "0.40.4"
   api_builder:
     dependency: "direct main"
     description:
@@ -161,7 +161,7 @@ packages:
       name: cli_util
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.1.4"
+    version: "0.2.0"
   client_data:
     dependency: "direct main"
     description:
@@ -392,7 +392,7 @@ packages:
       name: markdown
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.1.8"
+    version: "3.0.0"
   matcher:
     dependency: transitive
     description:
@@ -462,7 +462,7 @@ packages:
       name: pana
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.14.4"
+    version: "0.14.5"
   path:
     dependency: "direct main"
     description:

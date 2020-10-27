@@ -2,6 +2,8 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bumped runtimeVersion to `2020.10.26`.
+ * Upgraded pana to `0.14.5`.
  * Package page is rendered using `PackageVersionInfo` and `PackageVersionAsset`.
 
 ## `20201020t163909-all`
