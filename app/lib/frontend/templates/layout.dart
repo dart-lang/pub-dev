@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:client_data/page_data.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_dev/frontend/request_context.dart';
 
 import '../../account/backend.dart';
 import '../../search/search_form.dart';
@@ -187,6 +188,8 @@ String _renderSearchBanner({
     'include_discontinued': searchForm?.includeDiscontinued ?? false,
     'include_unlisted': searchForm?.includeUnlisted ?? false,
     'legacy_search_enabled': searchForm?.includeLegacy ?? false,
+    'prerelease_null_safe': requestContext.isNullSafetyDisplayed &&
+        (searchForm?.prereleaseNullSafe ?? false),
     'hidden_inputs': hiddenInputs,
   });
 }

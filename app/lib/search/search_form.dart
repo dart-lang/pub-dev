@@ -44,6 +44,9 @@ class SearchForm {
   /// True, if packages which only support dart 1.x should be included.
   final bool includeLegacy;
 
+  /// True, if null safe prerelease package should be listed.
+  final bool prereleaseNullSafe;
+
   SearchForm._({
     this.query,
     TagsPredicate tagsPredicate,
@@ -55,6 +58,7 @@ class SearchForm {
     this.includeDiscontinued,
     this.includeUnlisted,
     this.includeLegacy,
+    this.prereleaseNullSafe,
   })  : parsedQuery = ParsedQueryText.parse(query),
         tagsPredicate = tagsPredicate ?? TagsPredicate(),
         uploaderOrPublishers = _listToNull(uploaderOrPublishers),
@@ -74,6 +78,7 @@ class SearchForm {
     bool includeDiscontinued = false,
     bool includeUnlisted = false,
     bool includeLegacy = false,
+    bool prereleaseNullSafe = false,
   }) {
     currentPage ??= 1;
     pageSize ??= resultsPerPage;
@@ -105,6 +110,7 @@ class SearchForm {
       includeDiscontinued: includeDiscontinued,
       includeUnlisted: includeUnlisted,
       includeLegacy: includeLegacy,
+      prereleaseNullSafe: prereleaseNullSafe,
     );
   }
 
@@ -137,6 +143,7 @@ class SearchForm {
       includeDiscontinued: includeDiscontinued,
       includeUnlisted: includeUnlisted,
       includeLegacy: includeLegacy,
+      prereleaseNullSafe: prereleaseNullSafe,
     );
   }
 
@@ -153,6 +160,12 @@ class SearchForm {
     if (includeLegacy &&
         tagsPredicate.isProhibitedTag(PackageVersionTags.isLegacy)) {
       tagsPredicate = tagsPredicate.withoutTag(PackageVersionTags.isLegacy);
+    }
+    if (prereleaseNullSafe) {
+      tagsPredicate =
+          tagsPredicate.appendPredicate(TagsPredicate(requiredTags: [
+        PackageTags.convertToPrereleaseTag(PackageVersionTags.isNullSafe),
+      ]));
     }
     return ServiceSearchQuery.parse(
       query: query,
@@ -216,6 +229,9 @@ class SearchForm {
     if (includeLegacy && SdkTagValue.isAny(sdk)) {
       params['legacy'] = '1';
     }
+    if (prereleaseNullSafe) {
+      params['prerelease-null-safe'] = '1';
+    }
     if (page != null && page > 1) {
       params['page'] = page.toString();
     }
@@ -261,6 +277,7 @@ SearchForm parseFrontendSearchForm(
     includeDiscontinued: queryParameters['discontinued'] == '1',
     includeUnlisted: queryParameters['unlisted'] == '1',
     includeLegacy: queryParameters['legacy'] == '1' && SdkTagValue.isAny(sdk),
+    prereleaseNullSafe: queryParameters['prerelease-null-safe'] == '1',
     tagsPredicate: tagsPredicate,
   );
 }

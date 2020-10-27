@@ -134,6 +134,8 @@ String renderPkgIndexPage(
   final includeDiscontinued = searchForm?.includeDiscontinued ?? false;
   final includeUnlisted = searchForm?.includeUnlisted ?? false;
   final includeLegacy = searchForm?.includeLegacy ?? false;
+  final prereleaseNullSafe = requestContext.isNullSafetyDisplayed &&
+      (searchForm?.prereleaseNullSafe ?? false);
   final subSdkTabsAdvanced =
       renderSubSdkTabsHtml(searchForm: searchForm, onlyAdvanced: true);
   // TODO: There should be a more efficient way to calculate this
@@ -142,7 +144,8 @@ String renderPkgIndexPage(
   final hasActiveAdvanced = includeDiscontinued ||
       includeUnlisted ||
       includeLegacy ||
-      hasActiveSubSdkAdvanced;
+      hasActiveSubSdkAdvanced ||
+      prereleaseNullSafe;
   final values = {
     'has_active_advanced': hasActiveAdvanced,
     'sdk_tabs_html': renderSdkTabs(searchForm: searchForm),
@@ -163,6 +166,8 @@ String renderPkgIndexPage(
     'include_discontinued': includeDiscontinued,
     'include_unlisted': includeUnlisted,
     'show_legacy_checkbox': SdkTagValue.isAny(sdk),
+    'show_prerelease_null_safe_checkbox': requestContext.isNullSafetyDisplayed,
+    'prerelease_null_safe': prereleaseNullSafe,
     'include_legacy': includeLegacy,
   };
   final content = templateCache.renderTemplate('pkg/index', values);

@@ -46,6 +46,12 @@
           <label for="-search-legacy-checkbox">Include Dart 1.x results</label>
         </div>
         {{/show_legacy_checkbox}}
+        {{#show_prerelease_null_safe_checkbox}}
+        <div class="search-controls-checkbox">
+          <input id="-search-prerelease-null-safe-checkbox" type="checkbox" name="prerelease-null-safe" {{#prerelease_null_safe}} checked="checked"{{/prerelease_null_safe}} />
+          <label for="-search-prerelease-null-safe-checkbox">Prerelease version is null-safe</label>
+        </div>
+        {{/show_prerelease_null_safe_checkbox}}
       </div>
     </div>
   </div>
