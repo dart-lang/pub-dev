@@ -147,19 +147,15 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
 
     if (!pkgPage.isLast) {
       json['next_url'] = '${uri.resolve('/api/packages?page=${page + 1}')}';
+    } else {
+      // Set the last page in cache, if not already there with a lower number.
+      final lastPage = await lastPageCacheEntry.get();
+      if (lastPage == null || lastPage['page'] as int > page) {
+        await lastPageCacheEntry.set({'page': page});
+      }
     }
     return json;
   });
-
-  // Return 400, if there is no packages on this page.
-  if (data['packages'].length == 0) {
-    // Set the last page in cache, if not already there with a lower number.
-    final lastPage = await lastPageCacheEntry.get();
-    if (lastPage == null || lastPage['page'] as int > page) {
-      await lastPageCacheEntry.set({'page': page});
-    }
-    return jsonResponse({'message': 'no content'}, status: 400);
-  }
 
   return jsonResponse(data);
 }
