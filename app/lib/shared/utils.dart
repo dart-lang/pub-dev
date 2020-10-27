@@ -235,38 +235,6 @@ String formatDuration(Duration d) {
   return parts.join(' ');
 }
 
-Future<http.Response> getUrlWithRetry(http.Client client, String url,
-    {int retryCount = 1, Duration timeout}) async {
-  http.Response result;
-  Map<String, String> headers;
-  if (context?.traceId != null) {
-    headers = {_cloudTraceContextHeader: context.traceId};
-  }
-  for (int i = 0; i <= retryCount; i++) {
-    try {
-      _logger.info('HTTP GET $url');
-      Future<http.Response> future = client.get(url, headers: headers);
-      if (timeout != null) {
-        future = future.timeout(timeout);
-      }
-      result = await future;
-      if (i == retryCount ||
-          result.statusCode == 200 ||
-          result.statusCode == 404) {
-        return result;
-      }
-    } catch (e, st) {
-      _logger.warning(
-          'HTTP GET failed on $url (${retryCount - i} retry left)', e, st);
-      if (i == retryCount) rethrow;
-    }
-    if (i < retryCount) {
-      await Future.delayed(const Duration(seconds: 1));
-    }
-  }
-  return result;
-}
-
 /// Returns the MIME content type based on the name of the file.
 String contentType(String name) {
   final ext = p.extension(name).replaceAll('.', '');
@@ -423,13 +391,24 @@ final _transientStatusCodes = {
 };
 
 /// Creates a HTTP client that retries transient status codes.
-http.Client httpRetryClient({http.Client innerClient}) {
+http.Client httpRetryClient({
+  http.Client innerClient,
+  int retries,
+}) {
   return RetryClient(
     innerClient ?? http.Client(),
     when: (r) => _transientStatusCodes.contains(r.statusCode),
     // TOOD: Consider implementing whenError and handle DNS + handshake errors.
     //       These are safe, retrying after partially sending data is more
     //       sketchy, but probably safe in our application.
-    retries: 5,
+    retries: retries ?? 5,
   );
+}
+
+/// Returns a header map when appengine context's is active and traceId is set.
+///
+/// Returns `null` otherwise.
+Map<String, String> cloudTraceHeaders() {
+  if (context?.traceId == null) return null;
+  return {_cloudTraceContextHeader: context.traceId};
 }

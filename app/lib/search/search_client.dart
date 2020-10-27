@@ -31,7 +31,8 @@ class SearchClient {
   /// The HTTP client used for making calls to our search service.
   final http.Client _httpClient;
 
-  SearchClient([http.Client client]) : _httpClient = client ?? http.Client();
+  SearchClient([http.Client client])
+      : _httpClient = client ?? httpRetryClient(retries: 3);
 
   /// Calls the search service (or uses cache) to serve the [query].
   ///
@@ -56,13 +57,9 @@ class SearchClient {
     final String serviceUrl = '$httpHostPort/search$serviceUrlParams';
 
     Future<PackageSearchResult> searchFn() async {
-      final response = await getUrlWithRetry(
-        _httpClient,
-        serviceUrl,
-        timeout: Duration(seconds: 5),
-        // limit to a single attempt, no need to retry after timeout
-        retryCount: 0,
-      );
+      final response = await _httpClient
+          .get(serviceUrl, headers: cloudTraceHeaders())
+          .timeout(Duration(seconds: 5));
       if (response.statusCode == searchIndexNotReadyCode) {
         // Search request before the service initialization completed.
         // TODO: retry request, maybe another search instance will be able to serve it
