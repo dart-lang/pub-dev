@@ -65,17 +65,18 @@
 
   .email-header { width: 60%; }
   .role-header  { width: 30%; }
+}
 
-  .-pub-remove-user-button {
-    border-radius: 3px;
-    color: $site-font-color;
-    display: inline-block;
-    padding: 2px 8px;
+.-pub-remove-uploader-button,
+.-pub-remove-user-button, {
+  border-radius: 3px;
+  color: $site-font-color;
+  display: inline-block;
+  padding: 2px 8px;
 
-    &:hover {
-      background: $color-input-danger;
-      color: white;
-    }
+  &:hover {
+    background: $color-input-danger;
+    color: white;
   }
 }
 

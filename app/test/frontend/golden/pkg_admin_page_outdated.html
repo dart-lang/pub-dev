@@ -204,6 +204,46 @@
                     <p>
                       <button id="-admin-set-publisher-button" class="pub-button-danger mdc-button mdc-button--raised" data-mdc-auto-init="MDCRipple">Transfer to publisher</button>
                     </p>
+                    <h3>Uploaders</h3>
+                    <div class="mdc-data-table">
+                      <table class="mdc-data-table__table" aria-label="Uploaders of package">
+                        <thead>
+                          <tr class="mdc-data-table__header-row">
+                            <th class="mdc-data-table__header-cell email-header" role="columnheader" scope="col">Email</th>
+                            <th class="mdc-data-table__header-cell icons-header" role="columnheader" scope="col"></th>
+                          </tr>
+                        </thead>
+                        <tbody class="mdc-data-table__content">
+                          <tr class="mdc-data-table__row">
+                            <td class="mdc-data-table__cell">hans@juergen.com</td>
+                            <td class="mdc-data-table__cell">
+                              <a class="-pub-remove-uploader-button" data-email="hans@juergen.com" title="Remove uploader">×</a>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <p>
+                      <button id="-pkg-admin-invite-uploader-button" class="mdc-button mdc-button--raised" data-mdc-auto-init="MDCRipple">Invite uploader</button>
+                    </p>
+                    <div id="-pkg-admin-invite-uploader-content" class="modal-content-hidden">
+                      <p>You can invite new uploader to this package. Once new uploaders accept the invitation, they have full administrative rights, with the following abilities:</p>
+                      <ul>
+                        <li>Transfer this package to a publisher</li>
+                        <li>Upload new versions of this package</li>
+                        <li>Invite and remove uploaders of this package</li>
+                      </ul>
+                      <div class="-pub-form-row">
+                        <label for="-pkg-admin-invite-uploader-input">Email address</label>
+                        <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+                          <input type="text" id="-pkg-admin-invite-uploader-input" class="mdc-text-field__input"/>
+                          <div class="mdc-notched-outline">
+                            <div class="mdc-notched-outline__leading"></div>
+                            <div class="mdc-notched-outline__trailing"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   <h2>Package Options</h2>
                   <h3>Discontinued</h3>

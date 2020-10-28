@@ -15,6 +15,7 @@ String renderPkgAdminPage(
   PackagePageData data,
   List<String> userPublishers,
 ) {
+  final showUploaderAdmin = data.package.publisherId == null;
   final tabs = buildPackageTabs(
     data: data,
     adminTab: Tab.withContent(
@@ -36,6 +37,9 @@ String renderPkgAdminPage(
                 })
             .toList(),
         'create_publisher_url': urls.createPublisherUrl(),
+        'show_uploader_admin': showUploaderAdmin,
+        'uploader_emails':
+            data.uploaderEmails?.map((e) => {'email': e})?.toList(),
       }),
     ),
   );
