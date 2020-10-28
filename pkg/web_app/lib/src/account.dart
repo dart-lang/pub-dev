@@ -200,6 +200,9 @@ class _PkgAdminWidget {
   InputElement _replacedByInput;
   Element _replacedByButton;
   InputElement _unlistedCheckbox;
+  Element _inviteUploaderButton;
+  Element _inviteUploaderContent;
+  InputElement _inviteUploaderInput;
 
   void init() {
     if (!pageData.isPackagePage) return;
@@ -218,6 +221,65 @@ class _PkgAdminWidget {
     _unlistedCheckbox =
         document.getElementById('-admin-is-unlisted-checkbox') as InputElement;
     _unlistedCheckbox?.onChange?.listen((_) => _toggleUnlisted());
+    _inviteUploaderButton =
+        document.getElementById('-pkg-admin-invite-uploader-button');
+    _inviteUploaderContent =
+        document.getElementById('-pkg-admin-invite-uploader-content');
+    _inviteUploaderButton?.onClick?.listen((_) => _inviteUploader());
+    _inviteUploaderInput = document
+        .getElementById('-pkg-admin-invite-uploader-input') as InputElement;
+    if (_inviteUploaderContent != null) {
+      _inviteUploaderContent.remove();
+      _inviteUploaderContent.classes.remove('modal-content-hidden');
+    }
+    for (final btn
+        in document.querySelectorAll('.-pub-remove-uploader-button')) {
+      btn.onClick.listen((_) => _removeUploader(btn.dataset['email']));
+    }
+  }
+
+  Future<void> _inviteUploader() async {
+    await modalWindow(
+      titleText: 'Invite new uploader',
+      isQuestion: true,
+      okButtonText: 'Invite',
+      content: _inviteUploaderContent,
+      onExecute: () => _doInviteUploader(),
+    );
+  }
+
+  Future<bool> _doInviteUploader() async {
+    final email = _inviteUploaderInput.value.trim();
+    if (email.isEmpty || !email.contains('@') || !email.contains('.')) {
+      await modalMessage(
+          'Input validation', text('Please specify a valid e-mail.'));
+      return false;
+    }
+
+    await rpc(
+      fn: () async {
+        await client.invitePackageUploader(
+            pageData.pkgData.package, InviteUploaderRequest(email: email));
+      },
+      successMessage: markdown('`$email` was invited.'),
+      onSuccess: (_) {
+        _inviteUploaderInput.value = '';
+      },
+    );
+    return true;
+  }
+
+  Future<void> _removeUploader(String email) async {
+    await rpc(
+      confirmQuestion: markdown(
+          'Are you sure you want to remove uploader `$email` from this package?'),
+      fn: () async {
+        await client.removeUploader(pageData.pkgData.package, email);
+      },
+      successMessage: markdown(
+          'Uploader `$email` removed from this package. The page will reload.'),
+      onSuccess: (_) => window.location.reload(),
+    );
   }
 
   Future<void> _toogleDiscontinued() async {
