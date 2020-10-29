@@ -250,3 +250,17 @@
     }
   }
 }
+
+h1.title {
+  .pkg-page-title-colon {
+    letter-spacing: -3.0px;
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+
+  &:hover {
+    .pkg-page-title-colon {
+      opacity: 0.15;
+    }
+  }
+}

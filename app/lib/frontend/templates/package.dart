@@ -231,7 +231,9 @@ String renderPkgHeader(PackagePageData data) {
   });
   final pkgView = data.toPackageView();
   return renderDetailHeader(
-    title: '${package.name} ${data.version.version}',
+    titleHtml: '${htmlEscape.convert(package.name)}'
+        '<span class="pkg-page-title-colon">: ^</span>'
+        '${htmlEscape.convert(data.version.version)}',
     packageLikes: package.likes,
     isLiked: data.isLiked,
     isFlutterFavorite:
