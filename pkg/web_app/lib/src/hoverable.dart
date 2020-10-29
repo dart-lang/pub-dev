@@ -6,6 +6,7 @@ import 'dart:html';
 
 void setupHoverable() {
   _setEventForHoverable();
+  _setEventForPackageTitleCopyToClipboard();
 }
 
 Element _activeHover;
@@ -48,4 +49,33 @@ void registerHoverable(Element h) {
       deactivateHover(e);
     }
   });
+}
+
+void _setEventForPackageTitleCopyToClipboard() {
+  final root = document.querySelector('.pkg-page-title-copy-hoverable');
+  root?.querySelectorAll('.pkg-page-title-copy-item')?.forEach((elem) {
+    elem.onClick.listen((e) async {
+      _copyToClipboard(elem.text.trim());
+
+      // remove hover style on parent
+      deactivateHover(null);
+
+      // prevent re-adding hover style on parent
+      e.stopPropagation();
+
+      // force unhover in case :hover was the trigger
+      root.classes.add('unhover');
+      await window.animationFrame;
+      root.classes.remove('unhover');
+    });
+  });
+}
+
+void _copyToClipboard(String text) {
+  final ta = TextAreaElement();
+  ta.value = text;
+  document.body.append(ta);
+  ta.select();
+  document.execCommand('copy');
+  ta.remove();
 }
