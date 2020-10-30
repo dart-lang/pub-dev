@@ -119,7 +119,7 @@ void main() {
             final headerTitle = await page.$('h1.title');
             final headerTitleText =
                 await (await headerTitle.property('textContent')).jsonValue;
-            expect(headerTitleText, 'retry 2.0.1');
+            expect(headerTitleText, contains('retry 2.0.1'));
           }
 
           await checkHeaderTitle();
