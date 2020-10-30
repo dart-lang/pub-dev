@@ -161,4 +161,4 @@ branches:
 cache:
   directories:
     - "$HOME/.pub-cache"
-    - "pkg/fake_pub_server/.test-profile"
+    - "pkg/fake_pub_server/.dart_tool/pub-test-profile"

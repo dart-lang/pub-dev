@@ -12,4 +12,4 @@ stages:
 
 cache:
   directories:
-    - ".test-profile"
+    - ".dart_tool/pub-test-profile"

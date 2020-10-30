@@ -29,8 +29,12 @@ Future<void> main(List<String> args) async {
     normalize: true,
   );
 
-  final archiveCachePath =
-      p.join(resolveFakePubServerDirPath(), '.test-profile', 'archives');
+  final archiveCachePath = p.join(
+    resolveFakePubServerDirPath(),
+    '.dart_tool',
+    'pub-test-profile',
+    'archives',
+  );
 
   final state = LocalServerState(path: argv['data-file'] as String);
 
