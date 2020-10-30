@@ -27,7 +27,8 @@ String renderDetailHeader({
   /// Set true for more whitespace in the header.
   bool isLoose = false,
 }) {
-  if ((title == null && titleHtml == null) || (title != null && titleHtml != null)) {
+  if ((title == null && titleHtml == null) ||
+      (title != null && titleHtml != null)) {
     throw ArgumentError(
         'Exactly one of `title` and `titleHtml` must be specified.');
   }
