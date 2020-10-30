@@ -26,7 +26,6 @@ part 'models.g.dart';
 final _gzipCodec = GZipCodec();
 
 abstract class PackageFlags {
-  static const String doNotAdvertise = 'do-not-adverise';
   static const String isDiscontinued = 'discontinued';
   static const String isLatestStable = 'latest-stable';
   static const String isLegacy = 'legacy';
@@ -241,9 +240,6 @@ abstract class FlagMixin {
 
   bool get isObsolete =>
       flags != null && flags.contains(PackageFlags.isObsolete);
-
-  bool get doNotAdvertise =>
-      flags != null && flags.contains(PackageFlags.doNotAdvertise);
 
   bool get isSkipped => isDiscontinued || isLegacy || isObsolete;
 

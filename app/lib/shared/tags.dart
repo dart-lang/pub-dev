@@ -22,9 +22,6 @@ abstract class PackageTags {
   /// Package is marked unlisted.
   static const String isUnlisted = 'is:unlisted';
 
-  /// Package is marked notAdvertized - won't be displayed on the landing page.
-  static const String isNotAdvertized = 'is:not-advertized';
-
   /// The first version of the package was published less than 30 days ago.
   static const String isRecent = 'is:recent';
 

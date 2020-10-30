@@ -215,9 +215,6 @@ class ScoreCardBackend {
       if (package.isDiscontinued) {
         scoreCard.addFlag(PackageFlags.isDiscontinued);
       }
-      if (package.doNotAdvertise ?? false) {
-        scoreCard.addFlag(PackageFlags.doNotAdvertise);
-      }
       if (status.isLatestStable) {
         scoreCard.addFlag(PackageFlags.isLatestStable);
       }

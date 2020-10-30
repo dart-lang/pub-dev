@@ -279,8 +279,7 @@ class PackageBackend {
       p.updated = DateTime.now().toUtc();
       _logger.info('Updating $package options: '
           'isDiscontinued: ${p.isDiscontinued} '
-          'isUnlisted: ${p.isUnlisted} '
-          'doNotAdvertise: ${p.doNotAdvertise}');
+          'isUnlisted: ${p.isUnlisted}');
       tx.insert(p);
       tx.insert(History.entry(
         PackageOptionsChanged(
@@ -1040,7 +1039,6 @@ Package _newPackageFromVersion(
     ..latestPrereleaseVersionKey = version.key
     ..uploaders = [userId]
     ..likes = 0
-    ..doNotAdvertise = false
     ..isDiscontinued = false
     ..isUnlisted = false
     ..isWithheld = false

@@ -393,7 +393,6 @@ class TagsPredicate {
         prohibitedTags: [
           PackageTags.isDiscontinued,
           PackageTags.isUnlisted,
-          PackageTags.isNotAdvertized,
           PackageVersionTags.isLegacy,
         ],
         requiredTags: requiredTags,

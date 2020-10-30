@@ -100,13 +100,6 @@ class Package extends db.ExpandoModel<String> {
   @db.StringProperty()
   String withheldReason;
 
-  /// Set to `true` if package should not be advertised on the front page,
-  /// may otherwise be `false`.
-  ///
-  /// TODO: remove after `20201013t135054` is no longer an active release.
-  @db.BoolProperty()
-  bool doNotAdvertise;
-
   /// Tags that are assigned to this package.
   ///
   /// The permissions required to assign a tag typically depends on the tag.
@@ -206,7 +199,6 @@ class Package extends db.ExpandoModel<String> {
       if (isDiscontinued) PackageTags.isDiscontinued,
       if (isNewPackage()) PackageTags.isRecent,
       if (isUnlisted) PackageTags.isUnlisted,
-      if (doNotAdvertise) PackageTags.isNotAdvertized,
       if (publisherId != null) PackageTags.publisherTag(publisherId),
       // TODO: uploader:<...>
     ];
