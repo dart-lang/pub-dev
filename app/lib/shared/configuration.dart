@@ -117,6 +117,9 @@ class Configuration {
   /// The identifier of admins.
   final List<AdminId> admins;
 
+  /// Whether the current environment uses the real AppEngine.
+  final bool usesRealAppEngine;
+
   /// Create a configuration for production deployment.
   ///
   /// This will use the Datastore from the cloud project and the Cloud Storage
@@ -161,6 +164,7 @@ class Configuration {
           permissions: {AdminPermission.removePackage},
         )
       ],
+      usesRealAppEngine: true,
     );
   }
 
@@ -209,6 +213,7 @@ class Configuration {
           permissions: {AdminPermission.manageAssignedTags},
         )
       ],
+      usesRealAppEngine: true,
     );
   }
 
@@ -231,6 +236,7 @@ class Configuration {
     @required this.primaryApiUri,
     @required this.primarySiteUri,
     @required this.admins,
+    @required this.usesRealAppEngine,
   });
 
   /// Create a configuration based on the environment variables.
@@ -275,6 +281,7 @@ class Configuration {
           permissions: AdminPermission.values,
         ),
       ],
+      usesRealAppEngine: false,
     );
   }
 
@@ -305,6 +312,7 @@ class Configuration {
           permissions: AdminPermission.values,
         ),
       ],
+      usesRealAppEngine: false,
     );
   }
 }

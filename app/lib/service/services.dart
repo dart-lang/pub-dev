@@ -3,6 +3,7 @@ import 'dart:async' show FutureOr;
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
+import 'package:googleapis_auth/auth_io.dart' as auth;
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
@@ -29,8 +30,8 @@ import '../shared/datastore.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/redis_cache.dart' show withCache;
 import '../shared/storage.dart';
-import '../shared/storage_retry.dart' show withStorageRetry;
 import '../shared/urls.dart';
+import '../shared/utils.dart' show httpRetryClient;
 import '../shared/versions.dart';
 
 import 'announcement/backend.dart';
@@ -44,9 +45,7 @@ import 'spam/backend.dart';
 ///  * storage wrapped with retry.
 Future<void> withServices(FutureOr<void> Function() fn) async {
   return withAppEngineServices(() async {
-    return await withStorageRetry(() async {
-      return await withPubServices(fn);
-    });
+    return await withPubServices(fn);
   });
 }
 
@@ -54,6 +53,15 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
 /// tools and integration tests.
 Future<void> withPubServices(FutureOr<void> Function() fn) async {
   return fork(() async {
+    if (activeConfiguration.usesRealAppEngine) {
+      final authClient = await auth
+          .clientViaApplicationDefaultCredentials(scopes: [...Storage.SCOPES]);
+      final storageClient = httpRetryClient(innerClient: authClient);
+      registerStorageService(
+          Storage(storageClient, activeConfiguration.projectId));
+      registerScopeExitCallback(() async => storageClient.close());
+    }
+
     registerAccountBackend(AccountBackend(dbService));
     registerAdminBackend(AdminBackend(dbService));
     registerAnalyzerClient(AnalyzerClient());
