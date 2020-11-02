@@ -45,23 +45,54 @@ class PublisherBackend {
 
   /// List publishers (in no specific order, it will be listed by their
   /// `publisherId` alphabetically).
-  /// TODO: support paging (+ allow only paged requests)
-  Future<List<Publisher>> listPublishers({int limit = 100}) async {
-    final query = _db.query<Publisher>()..limit(limit);
-    return await query.run().toList();
+  Future<PublisherPage> listPublishers() async {
+    return cache.allPublishersPage().get(() async {
+      final sw = Stopwatch()..start();
+      final query = _db.query<Publisher>();
+      final publishers = await query
+          .run()
+          .map((p) => PublisherSummary(
+                publisherId: p.publisherId,
+                created: p.created,
+              ))
+          .toList();
+      sw.stop();
+      if (sw.elapsed.inSeconds > 10) {
+        // When this is triggered, we should split the single list of publishers
+        // to pages and adjust the uses of this method:
+        // - sitemap-2.txt
+        // - /publishers page
+        _logger.shout('Querying all publishers takes more than 10 seconds.');
+      }
+      return PublisherPage(publishers: publishers);
+    });
   }
 
   /// List all publishers where the [userId] is a member.
-  Future<List<Publisher>> listPublishersForUser(String userId,
-      {int limit = 100}) async {
-    final query = _db.query<PublisherMember>()
-      ..filter('userId =', userId)
-      ..limit(limit);
-    final members = await query.run().toList();
-    final publisherKeys = members.map((pm) => pm.publisherKey).toList();
-    final publishers = await _db.lookup<Publisher>(publisherKeys);
-    publishers.sort((a, b) => a.publisherId.compareTo(b.publisherId));
-    return publishers;
+  Future<PublisherPage> listPublishersForUser(String userId) async {
+    return cache.publisherPage(userId).get(() async {
+      final query = _db.query<PublisherMember>()..filter('userId =', userId);
+      final members = await query.run().toList();
+      final publisherKeys = members.map((pm) => pm.publisherKey).toList();
+      if (publisherKeys.length > 100) {
+        // When this is triggered, we should split the single list of publishers
+        // to pages and adjust the uses of this method:
+        // - list of publishers on package admin page
+        // - /my-publishers page
+        // - search using this for query parameters
+        _logger.shout('A user has more than 100 publishers.');
+      }
+      final publishers = await _db.lookup<Publisher>(publisherKeys);
+      publishers.sort((a, b) => a.publisherId.compareTo(b.publisherId));
+      return PublisherPage(
+        publishers: publishers
+            .map((p) => PublisherSummary(
+                  publisherId: p.publisherId,
+                  created: p.created,
+                ))
+            .toList(),
+      );
+    });
   }
 
   /// Loads the [PublisherMember] instance for [userId] (or returns null if it does not exists).
@@ -176,6 +207,7 @@ class PublisherBackend {
         ),
       ]);
     });
+    await purgeAccountCache(userId: user.userId);
 
     // Return publisher as it was created
     final key = _db.emptyKey.append(Publisher, id: publisherId);
@@ -404,6 +436,7 @@ class PublisherBackend {
     }
     final updated = await _db.lookupValue<PublisherMember>(key);
     await purgePublisherCache(publisherId: publisherId);
+    await purgeAccountCache(userId: userId);
     return await _asPublisherMember(updated);
   }
 
@@ -431,6 +464,7 @@ class PublisherBackend {
       await _db.commit(inserts: [history], deletes: [pm.key]);
     }
     await purgePublisherCache(publisherId: publisherId);
+    await purgeAccountCache(userId: userId);
   }
 
   /// A callback from consent backend, when a consent is granted.

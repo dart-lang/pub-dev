@@ -32,15 +32,15 @@ Future<shelf.Response> createPublisherPageHandler(shelf.Request request) async {
 Future<shelf.Response> publisherListHandler(shelf.Request request) async {
   if (requestContext.uiCacheEnabled) {
     final content = await cache.uiPublisherListPage().get(() async {
-      final publishers = await publisherBackend.listPublishers(limit: 1000);
-      return renderPublisherListPage(publishers);
+      final page = await publisherBackend.listPublishers();
+      return renderPublisherListPage(page.publishers);
     });
     return htmlResponse(content);
   }
 
   // no caching for logged-in user
-  final publishers = await publisherBackend.listPublishers(limit: 1000);
-  final content = renderPublisherListPage(publishers);
+  final page = await publisherBackend.listPublishers();
+  final content = renderPublisherListPage(page.publishers);
   return htmlResponse(content);
 }
 

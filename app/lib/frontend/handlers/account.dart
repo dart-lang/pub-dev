@@ -204,13 +204,13 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
     return redirectResponse(request.requestedUri.path);
   }
 
-  final publishers =
+  final page =
       await publisherBackend.listPublishersForUser(userSessionData.userId);
   final searchForm = parseFrontendSearchForm(
     request.requestedUri.queryParameters,
     uploaderOrPublishers: [
       userSessionData.email,
-      ...publishers.map((p) => p.publisherId),
+      ...page.publishers.map((p) => p.publisherId),
     ],
     tagsPredicate: TagsPredicate.allPackages(),
   );
@@ -255,12 +255,12 @@ Future<shelf.Response> accountPublishersPageHandler(
     return htmlResponse(renderUnauthenticatedPage());
   }
 
-  final publishers =
+  final page =
       await publisherBackend.listPublishersForUser(userSessionData.userId);
   final content = renderAccountPublishersPage(
     user: await accountBackend.lookupUserById(userSessionData.userId),
     userSessionData: userSessionData,
-    publishers: publishers,
+    publishers: page.publishers,
   );
   return htmlResponse(content);
 }

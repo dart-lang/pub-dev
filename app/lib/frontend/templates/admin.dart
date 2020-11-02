@@ -8,7 +8,7 @@ import 'package:meta/meta.dart';
 
 import '../../account/models.dart' show LikeData, User, UserSessionData;
 import '../../package/models.dart' show PackageView;
-import '../../publisher/models.dart' show Publisher;
+import '../../publisher/models.dart' show PublisherSummary;
 import '../../search/search_form.dart' show SearchForm;
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart' show shortDateFormat;
@@ -123,7 +123,7 @@ String renderMyLikedPackagesPage({
 String renderAccountPublishersPage({
   @required User user,
   @required UserSessionData userSessionData,
-  @required List<Publisher> publishers,
+  @required List<PublisherSummary> publishers,
 }) {
   final publisherListHtml = renderPublisherList(publishers, isGlobal: false);
 
