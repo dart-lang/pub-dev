@@ -9,6 +9,7 @@ import 'package:html/parser.dart' as parser;
 
 /// Validates the HTML content and throws ArgumentError if any of the
 /// following issues are present:
+/// - Canonical URL has invalid format or value.
 /// - Inline JavaScript actions are present (e.g. `onclick`).
 /// - Links with `<a target="_blank">` do not have `rel="noopener"`.
 /// - `<script> tags have no `src` attribute or have content (except `ld+json`
@@ -33,6 +34,7 @@ void validateHtml(Node root) {
     links = root.querySelectorAll('a');
     scripts = root.querySelectorAll('script');
   } else if (root is Document) {
+    _validateHead(root.querySelector('head'));
     elements = root.querySelectorAll('*');
     links = root.querySelectorAll('a');
     scripts = root.querySelectorAll('script');
@@ -84,6 +86,29 @@ void validateHtml(Node root) {
         throw ArgumentError(
             'script tag must text content must be empty, found: ${elem.outerHtml}');
       }
+    }
+  }
+}
+
+void _validateHead(Element head) {
+  final canonicalLinks = head
+      .querySelectorAll('link')
+      .where((e) => e.attributes['rel'] == 'canonical')
+      .toList();
+  if (canonicalLinks.length > 2) {
+    throw ArgumentError('More than one canonical link was specified.');
+  }
+  if (canonicalLinks.length == 1) {
+    final link = canonicalLinks.single;
+    final href = link.attributes['href'];
+    if (!href.startsWith('https://pub.dev/')) {
+      throw ArgumentError(
+          'Canonical URL must start with https://pub.dev/, found: $href.');
+    }
+    final uri = Uri.parse(href);
+    if (uri.pathSegments.contains('.') || uri.pathSegments.contains('..')) {
+      throw ArgumentError(
+          'Canonical URL must not contain /./ or /../, found: $href.');
     }
   }
 }
