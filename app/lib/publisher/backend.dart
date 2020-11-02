@@ -208,6 +208,7 @@ class PublisherBackend {
       ]);
     });
     await purgeAccountCache(userId: user.userId);
+    await cache.allPublishersPage().purge();
 
     // Return publisher as it was created
     final key = _db.emptyKey.append(Publisher, id: publisherId);
