@@ -79,15 +79,6 @@ class DartdocCustomizer {
     if (href != null && href.endsWith('/index.html')) {
       href = href.substring(0, href.length - 'index.html'.length);
     }
-    if (href != null) {
-      // Since the <base /> tag removal, dartdoc calculates the canonical URL
-      // with extra `../../` segments. Removing them as a temporary fix.
-      // https://github.com/dart-lang/dartdoc/issues/2122
-      // TODO: Remove this after the dartdoc issue is fixed
-      href = href.replaceAll('../', '');
-
-      elem.attributes['href'] = href;
-    }
   }
 
   void _addAlternateUrl(Element head, Element canonical) {
