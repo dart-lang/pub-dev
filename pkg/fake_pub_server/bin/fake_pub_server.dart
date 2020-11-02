@@ -102,7 +102,6 @@ Future main(List<String> args) async {
     // Store the state (and then exit) on CTRL+C.
     sigintSubscription = ProcessSignal.sigint.watch().listen((e) async {
       await state.save();
-      exit(0);
     });
   }
 

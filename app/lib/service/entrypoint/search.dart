@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:isolate';
 
 import 'package:args/command_runner.dart';
@@ -70,7 +69,7 @@ Future _main(FrontendEntryMessage message) async {
         await indexUpdater.init();
       } catch (e, st) {
         _logger.shout('Error initializing search service.', e, st);
-        exit(1);
+        rethrow;
       }
 
       indexUpdater.runScheduler(
