@@ -87,19 +87,14 @@ shelf.Handler _redirectLoopDetectorWrapper(
 
       // sanity check for the header being present
       if (location == null) {
-        logger.shout('Redirect response without location header.',
-            Exception('Redirect response without location header.'));
-        return rs;
+        throw ArgumentError('Redirect response without location header.');
       }
 
       // sanity check for the header being valid
       final uri = Uri.tryParse(location);
       if (uri == null) {
-        logger.shout(
-            'Redirect response with invalid location header: "$location".',
-            Exception(
-                'Redirect response with invalid location header: "$location".'));
-        return rs;
+        throw FormatException(
+            'Redirect response with invalid location header: "$location".');
       }
 
       // exact match
