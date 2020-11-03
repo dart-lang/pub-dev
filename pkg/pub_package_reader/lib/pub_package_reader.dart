@@ -61,31 +61,16 @@ Future<PackageSummary> summarizePackageArchive(
   @required int maxContentLength,
 }) async {
   final issues = <ArchiveIssue>[];
-  final files = await listTarball(archivePath);
-
-  // Searches in [files] for a file name [name] and compare in a
-  // case-insensitive manner.
-  //
-  // Returns `null` if not found otherwise the correct filename.
-  String searchForFile(Iterable<String> names) {
-    for (String name in names) {
-      final String nameLowercase = name.toLowerCase();
-      for (String filename in files) {
-        if (filename.toLowerCase() == nameLowercase) {
-          return filename;
-        }
-      }
-    }
-    return null;
-  }
+  final tar = await TarArchive.scan(archivePath);
 
   // processing pubspec.yaml
-  if (!files.contains('pubspec.yaml')) {
+  final pubspecPath = tar.searchForFile(['pubspec.yaml']);
+  if (pubspecPath == null) {
     issues.add(ArchiveIssue('pubspec.yaml is missing.'));
     return PackageSummary(issues: issues);
   }
 
-  final pubspecContent = await readTarballFile(archivePath, 'pubspec.yaml');
+  final pubspecContent = await tar.readTarballFile(pubspecPath);
   // Large pubspec content should be rejected, as either a storage limit will be
   // limiting it, or it will slow down queries and processing for very little
   // reason.
@@ -114,7 +99,7 @@ Future<PackageSummary> summarizePackageArchive(
   // (e.g. on Windows). We can't allow two files with the same case-insensitive
   // name.
   final lowerCaseFiles = <String, List<String>>{};
-  for (String file in files) {
+  for (final file in tar.fileNames) {
     final lower = file.toLowerCase();
     lowerCaseFiles.putIfAbsent(lower, () => <String>[]).add(file);
   }
@@ -138,7 +123,7 @@ Future<PackageSummary> summarizePackageArchive(
 
   Future<String> extractContent(String contentPath) async {
     if (contentPath == null) return null;
-    final content = await readTarballFile(archivePath, contentPath);
+    final content = await tar.readTarballFile(contentPath);
     if (content != null && content.trim().isEmpty) {
       return null;
     }
@@ -149,31 +134,31 @@ Future<PackageSummary> summarizePackageArchive(
     return content;
   }
 
-  String readmePath = searchForFile(readmeFileNames);
+  String readmePath = tar.searchForFile(readmeFileNames);
   final readmeContent = await extractContent(readmePath);
   if (readmeContent == null) {
     readmePath = null;
   }
 
-  String changelogPath = searchForFile(changelogFileNames);
+  String changelogPath = tar.searchForFile(changelogFileNames);
   final changelogContent = await extractContent(changelogPath);
   if (changelogContent == null) {
     changelogPath = null;
   }
 
-  String examplePath = searchForFile(exampleFileCandidates(package));
+  String examplePath = tar.searchForFile(exampleFileCandidates(package));
   final exampleContent = await extractContent(examplePath);
   if (exampleContent == null) {
     examplePath = null;
   }
 
-  String licensePath = searchForFile(licenseFileNames);
+  String licensePath = tar.searchForFile(licenseFileNames);
   final licenseContent = await extractContent(licensePath);
   if (licenseContent == null) {
     licensePath = null;
   }
 
-  final libraries = files
+  final libraries = tar.fileNames
       .where((file) => file.startsWith('lib/'))
       .where((file) => !file.startsWith('lib/src'))
       .where((file) => file.endsWith('.dart'))
@@ -189,7 +174,7 @@ Future<PackageSummary> summarizePackageArchive(
   // TODO: re-enable or remove after version pinning gets resolved
   //       https://github.com/dart-lang/pub/issues/2557
   // issues.addAll(forbidPreReleaseSdk(pubspec));
-  issues.addAll(requireIosFolderOrFlutter2_20(pubspec, files));
+  issues.addAll(requireIosFolderOrFlutter2_20(pubspec, tar.fileNames));
   issues.addAll(requireNonEmptyLicense(licensePath, licenseContent));
 
   return PackageSummary(
