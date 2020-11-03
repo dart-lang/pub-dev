@@ -361,7 +361,8 @@ class IntegrityChecker {
     final foundAssetIds = <String>{};
     await for (PackageVersionAsset pva in pvaQuery.run()) {
       final key = pva.qualifiedVersionKey;
-      if (pva.id != Uri(pathSegments: [pva.path, pva.version, pva.kind]).path) {
+      if (pva.id !=
+          Uri(pathSegments: [pva.package, pva.version, pva.kind]).path) {
         _problems.add('PackageVersionAsset(${pva.id}) uses old id format.');
         continue;
       }
