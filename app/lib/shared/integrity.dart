@@ -313,6 +313,10 @@ class IntegrityChecker {
     final pvpKeys = <QualifiedVersionKey>{};
     await for (PackageVersionPubspec pvp in pvpQuery.run()) {
       final key = pvp.qualifiedVersionKey;
+      if (pvp.id == key.oldQualifiedVersion) {
+        _problems.add('PackageVersionPubspec($key) uses old id format.');
+        continue;
+      }
       pvpKeys.add(key);
       if (!qualifiedVersionKeys.contains(key)) {
         _problems.add('PackageVersionPubspec($key) has no PackageVersion.');
@@ -331,6 +335,10 @@ class IntegrityChecker {
     final referencedAssetIds = <String>[];
     await for (PackageVersionInfo pvi in pviQuery.run()) {
       final key = pvi.qualifiedVersionKey;
+      if (pvi.id == key.oldQualifiedVersion) {
+        _problems.add('PackageVersionInfo($key) uses old id format.');
+        continue;
+      }
       pviKeys.add(key);
       if (!qualifiedVersionKeys.contains(key)) {
         _problems.add('PackageVersionInfo($key) has no PackageVersion.');
@@ -353,6 +361,10 @@ class IntegrityChecker {
     final foundAssetIds = <String>{};
     await for (PackageVersionAsset pva in pvaQuery.run()) {
       final key = pva.qualifiedVersionKey;
+      if (pva.id != Uri(pathSegments: [pva.path, pva.version, pva.kind]).path) {
+        _problems.add('PackageVersionAsset(${pva.id}) uses old id format.');
+        continue;
+      }
       if (!qualifiedVersionKeys.contains(key)) {
         _problems.add('PackageVersionAsset(${pva.id}) has no PackageVersion.');
       }

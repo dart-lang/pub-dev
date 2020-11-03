@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as p;
 
 final _logger = Logger('package_archive.tar_utils');
 
@@ -22,7 +23,9 @@ Future<List<String>> listTarball(String path) async {
 
   return (result.stdout as String)
       .split('\n')
-      .where((part) => part != '')
+      .map(p.normalize)
+      .map((n) => n.trim())
+      .where((part) => part.isNotEmpty)
       .toList();
 }
 
