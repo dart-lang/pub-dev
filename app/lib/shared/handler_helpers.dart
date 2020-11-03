@@ -63,6 +63,7 @@ shelf.Handler wrapHandler(
   // Handlers wrap other handlers, and they are called in the revers order of
   // their wrapping. Read this list from the bottom and go up to get the real
   // execution order.
+  handler = _redirectLoopDetectorWrapper(logger, handler);
   handler = _cspHeaderWrapper(handler);
   handler = _userAuthWrapper(handler);
   handler =
@@ -74,6 +75,45 @@ shelf.Handler wrapHandler(
   }
   handler = _logRequestWrapper(logger, handler);
   return handler;
+}
+
+/// Detects simple redirect loop and emits a log message on it.
+shelf.Handler _redirectLoopDetectorWrapper(
+    Logger logger, shelf.Handler handler) {
+  return (shelf.Request request) async {
+    final rs = await handler(request);
+    if (rs.statusCode >= 300 && rs.statusCode < 400) {
+      final location = rs.headers[HttpHeaders.locationHeader];
+
+      // sanity check for the header being present
+      if (location == null) {
+        throw ArgumentError('Redirect response without location header.');
+      }
+
+      // sanity check for the header being valid
+      final uri = Uri.tryParse(location);
+      if (uri == null) {
+        throw FormatException(
+            'Redirect response with invalid location header: "$location".');
+      }
+
+      // exact match
+      if (request.requestedUri == uri) {
+        logger.shout(
+            'Redirect loop detected.', Exception('Redirect loop detected.'));
+        return rs;
+      }
+
+      // path + querystring match
+      if (uri.toString().startsWith(uri.path) &&
+          request.requestedUri.toString().endsWith(uri.toString())) {
+        logger.shout(
+            'Redirect loop detected.', Exception('Redirect loop detected.'));
+        return rs;
+      }
+    }
+    return rs;
+  };
 }
 
 /// Populates [requestContext] with the extracted request attributes.
