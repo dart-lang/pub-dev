@@ -20,7 +20,7 @@ void main() {
     testWithServices(
       'a few entities',
       () async {
-        final profile = TestProfileNormalizer().normalize(TestProfile(
+        final profile = normalize(TestProfile(
           defaultUser: 'dev@example.com',
           packages: [
             TestPackage(

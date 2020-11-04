@@ -8,8 +8,6 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart' as yaml;
 
-import 'normalizer.dart';
-
 part 'models.g.dart';
 
 /// The configuration to use when creating a local (partial) mirror of pub.dev
@@ -32,24 +30,12 @@ class TestProfile {
         publishers = publishers ?? <TestPublisher>[],
         users = users ?? <TestUser>[];
 
-  factory TestProfile.fromJson(Map<String, dynamic> json,
-      {bool normalize = false}) {
-    final mc = _$TestProfileFromJson(json);
-    if (normalize) {
-      return TestProfileNormalizer().normalize(mc);
-    } else {
-      return mc;
-    }
-  }
+  factory TestProfile.fromJson(Map<String, dynamic> json) =>
+      _$TestProfileFromJson(json);
 
-  factory TestProfile.fromYaml(String source, {bool normalize = false}) {
+  factory TestProfile.fromYaml(String source) {
     final map = json.decode(json.encode(yaml.loadYaml(source)));
-    final mc = TestProfile.fromJson(map as Map<String, dynamic>);
-    if (normalize) {
-      return TestProfileNormalizer().normalize(mc);
-    } else {
-      return mc;
-    }
+    return TestProfile.fromJson(map as Map<String, dynamic>);
   }
 
   Map<String, dynamic> toJson() => _$TestProfileToJson(this);

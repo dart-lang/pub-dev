@@ -15,6 +15,7 @@ import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/tool/test_profile/importer.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
+import 'package:pub_dev/tool/test_profile/normalizer.dart';
 
 import 'package:fake_pub_server/local_server_state.dart';
 
@@ -24,10 +25,9 @@ final _argParser = ArgParser()
 
 Future<void> main(List<String> args) async {
   final argv = _argParser.parse(args);
-  final profile = TestProfile.fromYaml(
+  final profile = normalize(TestProfile.fromYaml(
     await File(argv['test-profile'] as String).readAsString(),
-    normalize: true,
-  );
+  ));
 
   final archiveCachePath = p.join(
     resolveFakePubServerDirPath(),
