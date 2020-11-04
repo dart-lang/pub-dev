@@ -55,8 +55,18 @@ img {
   --mdc-theme-primary: #0175C2;
 }
 
-summary:focus {
-  outline: 0;
+summary {
+  cursor: pointer;
+  background: transparent;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background: lighten($color-link, 55%);
+  }
+
+  &:focus {
+    outline: 0;
+  }
 }
 
 button {
