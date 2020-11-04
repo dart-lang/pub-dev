@@ -5,12 +5,13 @@
 import 'package:test/test.dart';
 
 import 'package:pub_dev/tool/test_profile/models.dart';
+import 'package:pub_dev/tool/test_profile/normalizer.dart';
 
 void main() {
   group('normalization tests', () {
     test('a package with a publisher', () {
       expect(
-        TestProfile.fromYaml(
+        normalize(TestProfile.fromYaml(
           '''
 defaultUser: user@domain.com
 packages:
@@ -18,8 +19,7 @@ packages:
     publisher: example.com
     versions: ['1.0.0', '2.0.0']
 ''',
-          normalize: true,
-        ).toJson(),
+        )).toJson(),
         {
           'packages': [
             {
@@ -46,7 +46,6 @@ packages:
           'users': [
             {
               'email': 'user@domain.com',
-              'oauthUserId': 'user-at-domain-dot-com',
               'created': isNotEmpty,
               'isDeleted': false,
               'likes': [],
@@ -59,15 +58,14 @@ packages:
 
     test('a package without publisher', () {
       expect(
-        TestProfile.fromYaml(
+        normalize(TestProfile.fromYaml(
           '''
 defaultUser: user@domain.com
 packages:
   - name: foo
     versions: ['1.0.0', '2.0.0']
 ''',
-          normalize: true,
-        ).toJson(),
+        )).toJson(),
         {
           'packages': [
             {
@@ -80,7 +78,6 @@ packages:
           'users': [
             {
               'email': 'user@domain.com',
-              'oauthUserId': 'user-at-domain-dot-com',
               'created': isNotEmpty,
               'isDeleted': false,
               'likes': [],

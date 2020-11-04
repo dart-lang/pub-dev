@@ -10,7 +10,7 @@ import 'package:pub_dev/tool/test_profile/resolver.dart';
 
 void main() {
   Future<List<ResolvedVersion>> _resolve(List<TestPackage> packages) async {
-    final profile = TestProfileNormalizer().normalize(TestProfile(
+    final profile = normalize(TestProfile(
       publishers: [],
       packages: packages,
       users: [],

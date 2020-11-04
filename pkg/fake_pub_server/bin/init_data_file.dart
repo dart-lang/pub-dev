@@ -15,6 +15,7 @@ import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/tool/test_profile/importer.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
+import 'package:pub_dev/tool/test_profile/normalizer.dart';
 
 final _argParser = ArgParser()
   ..addOption('test-profile', help: 'The file to read the test profile from.')
@@ -23,10 +24,9 @@ final _argParser = ArgParser()
 
 Future<void> main(List<String> args) async {
   final argv = _argParser.parse(args);
-  final profile = TestProfile.fromYaml(
+  final profile = normalize(TestProfile.fromYaml(
     await File(argv['test-profile'] as String).readAsString(),
-    normalize: true,
-  );
+  ));
 
   final cacheDirArg = argv['cache-dir'] as String;
   final cacheDir = cacheDirArg ?? Directory.systemTemp.createTempSync().path;
