@@ -257,6 +257,9 @@ class MemDatastore implements Datastore {
     if (value is DateTime) {
       return {'datetime': value.toUtc().toIso8601String()};
     }
+    if (value is BlobValue) {
+      return {'blob': base64.encode(value.bytes)};
+    }
     if (value is List<int>) {
       return {'bytes': base64.encode(value)};
     }
@@ -279,6 +282,8 @@ class MemDatastore implements Datastore {
       switch (key) {
         case 'datetime':
           return DateTime.parse(value[key] as String);
+        case 'blob':
+          return BlobValue(base64.decode(value[key] as String));
         case 'bytes':
           return base64.decode(value[key] as String);
         case 'key':
