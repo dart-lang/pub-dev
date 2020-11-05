@@ -265,10 +265,6 @@ class IntegrityChecker {
       _problems.add(
           'Package(${p.name}) has a `isWithheld` property which is not a bool.');
     }
-    if (p.doNotAdvertise == null || p.doNotAdvertise is! bool) {
-      _problems.add(
-          'Package(${p.name}) has a `doNotAdvertise` property which is not a bool.');
-    }
     for (String userId in p.uploaders) {
       if (!_userToOauth.containsKey(userId)) {
         _problems.add('Package(${p.name}) has uploader without User: $userId');

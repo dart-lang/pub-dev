@@ -48,7 +48,6 @@ Future main(List<String> args) async {
 
 Future<void> _backfillPackageFields(Package p) async {
   if (p.likes != null &&
-      p.doNotAdvertise != null &&
       p.isDiscontinued != null &&
       p.isUnlisted != null &&
       p.isWithheld != null &&
@@ -63,7 +62,6 @@ Future<void> _backfillPackageFields(Package p) async {
         return;
       }
       package.likes ??= 0;
-      package.doNotAdvertise ??= false;
       package.isDiscontinued ??= false;
       package.isUnlisted ??= false;
       package.isWithheld ??= false;

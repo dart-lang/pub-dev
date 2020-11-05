@@ -4,6 +4,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Bumped runtimeVersion to `2020.11.02`.
  * Upgraded Flutter to `1.22.3`.
+ * Removed `Package.doNotAdvertise`.
 
 ## `20201029t121523-all`
  * Bumped runtimeVersion to `2020.10.28`.

@@ -97,7 +97,6 @@ Package createFoobarPackage({String name, List<User> uploaders}) {
     ..latestPrereleaseVersionKey = foobarDevPVKey
     ..downloads = 0
     ..likes = 0
-    ..doNotAdvertise = false
     ..isDiscontinued = false
     ..isUnlisted = false
     ..isWithheld = false
@@ -372,7 +371,6 @@ PkgBundle generateBundle(
     ..name = name
     ..downloads = 0
     ..likes = 0
-    ..doNotAdvertise = false
     ..isDiscontinued = false
     ..isUnlisted = false
     ..isWithheld = false
