@@ -8,7 +8,10 @@ import 'models.dart';
 
 /// Creates a new TestProfile with the missing entities (e.g. users or publishers)
 /// created.
-TestProfile normalize(TestProfile profile) {
+TestProfile normalize(
+  TestProfile profile, {
+  List<ResolvedVersion> resolvedVersions,
+}) {
   final users = <String, TestUser>{};
   final publishers = <String, TestPublisher>{};
   final packages = <String, TestPackage>{};
@@ -36,7 +39,29 @@ TestProfile normalize(TestProfile profile) {
 
   final defaultUser = profile.defaultUser ?? users.keys.first;
 
-  profile.packages?.forEach((package) {
+  // add missing packages from resolved versions
+  if (resolvedVersions != null) {
+    resolvedVersions.forEach((rv) {
+      packages.putIfAbsent(
+          rv.package,
+          () => TestPackage(
+                name: rv.package,
+                versions: [rv.version],
+                uploaders: [defaultUser],
+              ));
+    });
+    // update versions from resolved versions
+    packages.values.toList().forEach((p) {
+      final versions = resolvedVersions
+          .where((rv) => rv.package == p.name)
+          .map((rv) => rv.version)
+          .toSet()
+          .toList();
+      packages[p.name] = p.change(versions: versions);
+    });
+  }
+
+  packages.values.toList().forEach((package) {
     if (package.publisher != null) {
       _createPublisherIfNeeded(
         publishers,

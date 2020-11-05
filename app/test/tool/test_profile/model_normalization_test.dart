@@ -87,5 +87,39 @@ packages:
         },
       );
     });
+
+    test('resolved versions', () {
+      expect(
+        normalize(
+          TestProfile.fromYaml('''
+defaultUser: user@domain.com
+packages:
+  - name: foo
+'''),
+          resolvedVersions: [
+            ResolvedVersion(package: 'foo', version: '1.1.0'),
+          ],
+        ).toJson(),
+        {
+          'packages': [
+            {
+              'name': 'foo',
+              'uploaders': ['user@domain.com'],
+              'versions': ['1.1.0']
+            }
+          ],
+          'publishers': [],
+          'users': [
+            {
+              'email': 'user@domain.com',
+              'created': isNotEmpty,
+              'isDeleted': false,
+              'likes': [],
+            }
+          ],
+          'defaultUser': 'user@domain.com',
+        },
+      );
+    });
   });
 }
