@@ -2,8 +2,9 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bumped runtimeVersion to `2020.11.02`.
+ * Bumped runtimeVersion to `2020.11.05`.
  * Upgraded Flutter to `1.22.3`.
+ * Upgraded dartdoc to `0.36.2`.
  * Removed `Package.doNotAdvertise`.
 
 ## `20201029t121523-all`
