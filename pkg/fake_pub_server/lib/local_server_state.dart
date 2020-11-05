@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -14,7 +13,6 @@ class LocalServerState {
   final datastore = MemDatastore();
   final storage = MemStorage();
   final File _file;
-  Completer _storingCompleter;
 
   LocalServerState({String path}) : _file = path == null ? null : File(path);
 
@@ -46,30 +44,21 @@ class LocalServerState {
 
   Future<void> save() async {
     if (_file == null) return;
-    while (_storingCompleter != null) {
-      await _storingCompleter.future;
+    print('Storing state in ${_file.path}...');
+    await _file.parent.create(recursive: true);
+    final sink = _file.openWrite();
+
+    void writeMarker(String marker) {
+      sink.writeln(json.encode({'marker': marker}));
     }
-    _storingCompleter = Completer();
-    try {
-      print('Storing state in ${_file.path}...');
-      await _file.parent.create(recursive: true);
-      final sink = _file.openWrite();
 
-      void writeMarker(String marker) {
-        sink.writeln(json.encode({'marker': marker}));
-      }
+    writeMarker('datastore');
+    datastore.writeTo(sink);
 
-      writeMarker('datastore');
-      datastore.writeTo(sink);
+    writeMarker('storage');
+    storage.writeTo(sink);
 
-      writeMarker('storage');
-      storage.writeTo(sink);
-
-      writeMarker('end');
-      await sink.close();
-    } finally {
-      _storingCompleter.complete();
-      _storingCompleter = null;
-    }
+    writeMarker('end');
+    await sink.close();
   }
 }
