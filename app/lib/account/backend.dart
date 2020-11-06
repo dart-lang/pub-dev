@@ -222,7 +222,7 @@ class AccountBackend {
       tx.queueMutations(inserts: [p, newLike]);
       return newLike;
     });
-    await cache.userPackageLikes(user.userId).purge();
+    await purgeAccountCache(userId: user.userId);
     return res;
   }
 
@@ -541,4 +541,14 @@ class AccountBackend {
       await cache.userSessionData(session.sessionId).purge();
     }
   }
+}
+
+/// Purge [cache] entries for given [userId].
+Future<void> purgeAccountCache({
+  @required String userId,
+}) async {
+  await Future.wait([
+    cache.userPackageLikes(userId).purge(),
+    cache.publisherPage(userId).purge(),
+  ]);
 }

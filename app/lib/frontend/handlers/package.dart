@@ -239,10 +239,10 @@ Future<shelf.Response> packageAdminHandler(
       if (!data.isAdmin) {
         return htmlResponse(renderUnauthorizedPage());
       }
-      final publishers =
+      final page =
           await publisherBackend.listPublishersForUser(userSessionData.userId);
       return renderPkgAdminPage(
-          data, publishers.map((p) => p.publisherId).toList());
+          data, page.publishers.map((p) => p.publisherId).toList());
     },
   );
 }

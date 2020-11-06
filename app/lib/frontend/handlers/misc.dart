@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:http_parser/http_parser.dart';
-import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
 
@@ -20,8 +19,6 @@ import '../../shared/urls.dart' as urls;
 import '../request_context.dart';
 import '../static_files.dart';
 import '../templates/misc.dart';
-
-final _logger = Logger('handlers.misc');
 
 /// Handles requests for /help
 Future<shelf.Response> helpPageHandler(shelf.Request request) async {
@@ -119,13 +116,9 @@ Future<shelf.Response> sitemapPublishersTxtHandler(
     shelf.Request request) async {
   final uri = request.requestedUri;
   final content = await cache.sitemap(uri.toString()).get(() async {
-    final list = await publisherBackend.listPublishers(limit: 1000);
-    if (list.length == 1000) {
-      _logger.shout(
-          'Number of publishers reached backend query limit, do implement paging.');
-    }
+    final page = await publisherBackend.listPublishers();
 
-    return list
+    return page.publishers
         .map((p) => urls.publisherUrl(p.publisherId))
         .map((s) => uri.replace(path: s).toString())
         .join('\n');

@@ -8,7 +8,7 @@ import 'package:meta/meta.dart';
 import 'package:pub_dev/shared/markdown.dart';
 
 import '../../package/models.dart' show PackageView;
-import '../../publisher/models.dart' show Publisher;
+import '../../publisher/models.dart' show Publisher, PublisherSummary;
 import '../../search/search_form.dart' show SearchForm;
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart' show shortDateFormat;
@@ -30,7 +30,7 @@ String renderCreatePublisherPage() {
 }
 
 /// Renders the `views/publisher/publisher_list.mustache` template
-String renderPublisherList(List<Publisher> publishers,
+String renderPublisherList(List<PublisherSummary> publishers,
     {@required bool isGlobal}) {
   final noPublisherHtml = isGlobal
       ? 'No publisher has been registered.'
@@ -55,7 +55,7 @@ String renderPublisherList(List<Publisher> publishers,
 
 /// Renders the `views/publisher/publisher_list.mustache` template on a standard
 /// layout.
-String renderPublisherListPage(List<Publisher> publishers) {
+String renderPublisherListPage(List<PublisherSummary> publishers) {
   final content = renderPublisherList(publishers, isGlobal: true);
   return renderLayoutPage(
     PageType.listing,

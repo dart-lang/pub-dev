@@ -2,7 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:json_annotation/json_annotation.dart';
+import 'package:meta/meta.dart';
+
 import '../shared/datastore.dart' as db;
+
+part 'models.g.dart';
 
 /// Canonical publisher data.
 @db.Kind(name: 'Publisher', idType: db.IdType.String)
@@ -117,4 +122,32 @@ class PublisherMember extends db.ExpandoModel<String> {
       ..updated = updated
       ..role = role;
   }
+}
+
+@JsonSerializable()
+class PublisherPage {
+  final List<PublisherSummary> publishers;
+
+  PublisherPage({
+    @required this.publishers,
+  });
+
+  factory PublisherPage.fromJson(Map<String, dynamic> json) =>
+      _$PublisherPageFromJson(json);
+  Map<String, dynamic> toJson() => _$PublisherPageToJson(this);
+}
+
+@JsonSerializable()
+class PublisherSummary {
+  final String publisherId;
+  final DateTime created;
+
+  PublisherSummary({
+    @required this.publisherId,
+    @required this.created,
+  });
+
+  factory PublisherSummary.fromJson(Map<String, dynamic> json) =>
+      _$PublisherSummaryFromJson(json);
+  Map<String, dynamic> toJson() => _$PublisherSummaryToJson(this);
 }

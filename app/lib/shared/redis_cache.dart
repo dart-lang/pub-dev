@@ -18,6 +18,7 @@ import 'package:client_data/package_api.dart' show VersionScore;
 import '../account/models.dart' show LikeData, UserSessionData;
 import '../dartdoc/models.dart' show DartdocEntry, FileInfo;
 import '../package/models.dart' show PackageView;
+import '../publisher/models.dart' show PublisherPage;
 import '../scorecard/models.dart' show ScoreCardData;
 import '../search/search_service.dart' show PackageSearchResult;
 import '../service/secret/backend.dart';
@@ -219,6 +220,18 @@ class CachePatterns {
       .withPrefix('sitemap')
       .withTTL(Duration(hours: 12))
       .withCodec(utf8)[requestedUri];
+
+  Entry<PublisherPage> allPublishersPage() => publisherPage('-');
+
+  Entry<PublisherPage> publisherPage(String userId) => _cache
+      .withPrefix('publisher-page')
+      .withTTL(Duration(hours: 4))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(wrapAsCodec(
+        encode: (PublisherPage list) => list.toJson(),
+        decode: (data) => PublisherPage.fromJson(data as Map<String, dynamic>),
+      ))['$userId'];
 }
 
 /// The active cache.
