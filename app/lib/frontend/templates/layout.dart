@@ -45,9 +45,6 @@ String renderLayoutPage(
   /// The canonical content link that will be put in the header.
   /// https://support.google.com/webmasters/answer/139066?hl=en
   String canonicalUrl,
-
-  /// The page's URL that will be used in social share metadata.
-  String shareUrl,
   String sdk,
   String publisherId,
   SearchForm searchForm,
@@ -87,7 +84,10 @@ String renderLayoutPage(
     'favicon': faviconUrl ?? staticUrls.smallDartFavicon,
     'canonical_url':
         canonicalUrl == null ? null : htmlAttrEscape.convert(canonicalUrl),
-    'share_url': shareUrl == null ? null : htmlAttrEscape.convert(shareUrl),
+    // emit if the page is indexed and has canonical URL
+    'share_url': noIndex || canonicalUrl == null
+        ? null
+        : htmlAttrEscape.convert(canonicalUrl),
     'pageDescription': pageDescription == null
         ? _defaultPageDescriptionEscaped
         : htmlEscape.convert(pageDescription),

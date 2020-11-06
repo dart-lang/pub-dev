@@ -61,6 +61,7 @@ String renderPublisherListPage(List<Publisher> publishers) {
     PageType.listing,
     content,
     title: 'Publishers',
+    canonicalUrl: '/publishers',
   );
 }
 

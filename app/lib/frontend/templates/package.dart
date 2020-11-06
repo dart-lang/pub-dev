@@ -339,7 +339,6 @@ String _renderPkgPage({
     pageDescription: data.version.ellipsizedDescription,
     faviconUrl: isFlutterPackage ? staticUrls.flutterLogo32x32 : null,
     canonicalUrl: canonicalUrl,
-    shareUrl: canonicalUrl,
     noIndex: noIndex,
     pageData: pkgPageData(data.package, data.version),
   );

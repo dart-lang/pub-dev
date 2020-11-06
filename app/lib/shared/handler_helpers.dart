@@ -183,7 +183,12 @@ shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
       }
       final content = markdownToHtml('# Error `${e.code}`\n\n${e.message}\n');
       return htmlResponse(
-        renderLayoutPage(PageType.package, content, title: 'Error ${e.code}'),
+        renderLayoutPage(
+          PageType.package,
+          content,
+          title: 'Error ${e.code}',
+          noIndex: true,
+        ),
         status: e.status,
       );
     } catch (error, st) {
@@ -208,8 +213,11 @@ Request ID: ${context.traceId}
       ''';
 
       final content = renderLayoutPage(
-          PageType.package, markdownToHtml(markdownText),
-          title: title);
+        PageType.package,
+        markdownToHtml(markdownText),
+        title: title,
+        noIndex: true,
+      );
       return htmlResponse(content, status: 500, headers: debugHeaders);
     } finally {
       if (shouldLog) {
