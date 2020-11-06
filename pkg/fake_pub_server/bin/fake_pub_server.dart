@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-import 'dart:io';
-
 import 'package:args/args.dart';
 import 'package:http/http.dart';
 import 'package:logging/logging.dart';
@@ -30,7 +27,10 @@ final _argParser = ArgParser()
       defaultsTo: '8083', help: 'The HTTP port for the fake analyzer service.')
   ..addOption('dartdoc-port',
       defaultsTo: '8084', help: 'The HTTP port for the fake dartdoc service.')
-  ..addOption('data-file', help: 'The file to store the local state.');
+  ..addOption('data-file',
+      help: 'The file to read and also to store the local state.')
+  ..addFlag('read-only',
+      help: 'Only read the data from the data-file, do not store it.');
 
 Future main(List<String> args) async {
   final argv = _argParser.parse(args);
@@ -39,6 +39,7 @@ Future main(List<String> args) async {
   final searchPort = int.parse(argv['search-port'] as String);
   final analyzerPort = int.parse(argv['analyzer-port'] as String);
   final dartdocPort = int.parse(argv['dartdoc-port'] as String);
+  final readOnly = argv['read-only'] == true;
 
   Logger.root.onRecord.listen((r) {
     print([
@@ -97,14 +98,6 @@ Future main(List<String> args) async {
     return null;
   }
 
-  StreamSubscription sigintSubscription;
-  if (state.hasValidFile) {
-    // Store the state (and then exit) on CTRL+C.
-    sigintSubscription = ProcessSignal.sigint.watch().listen((e) async {
-      await state.save();
-    });
-  }
-
   await updateLocalBuiltFilesIfNeeded();
   await Future.wait(
     [
@@ -130,7 +123,8 @@ Future main(List<String> args) async {
     eagerError: true,
   );
 
-  await state.save();
-  await sigintSubscription?.cancel();
+  if (!readOnly) {
+    await state.save();
+  }
   print('Server processes completed.');
 }
