@@ -53,7 +53,7 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
 /// tools and integration tests.
 Future<void> withPubServices(FutureOr<void> Function() fn) async {
   return fork(() async {
-    if (activeConfiguration.usesRealAppEngine) {
+    if (!activeConfiguration.usesFakeGcloud) {
       final authClient = await auth
           .clientViaApplicationDefaultCredentials(scopes: [...Storage.SCOPES]);
       final storageClient = httpRetryClient(innerClient: authClient);
