@@ -15,7 +15,8 @@ final wideHeaderDetailPageClassName = '-wide-header-detail-page';
 ///
 /// The like button in the header will not be displayed when [isLiked] is null.
 String renderDetailHeader({
-  @required String title,
+  String title,
+  String titleHtml,
   String imageUrl,
   int packageLikes,
   bool isLiked,
@@ -26,9 +27,14 @@ String renderDetailHeader({
   /// Set true for more whitespace in the header.
   bool isLoose = false,
 }) {
+  if ((title == null && titleHtml == null) ||
+      (title != null && titleHtml != null)) {
+    throw ArgumentError(
+        'Exactly one of `title` and `titleHtml` must be specified.');
+  }
   return templateCache.renderTemplate('shared/detail/header', {
     'is_loose': isLoose,
-    'title': title,
+    'title_html': titleHtml ?? htmlEscape.convert(title),
     'metadata_html': metadataHtml,
     'tags_html': tagsHtml,
     'like_count': _formatPackageLikes(packageLikes),

@@ -231,7 +231,7 @@ String renderPkgHeader(PackagePageData data) {
   });
   final pkgView = data.toPackageView();
   return renderDetailHeader(
-    title: '${package.name} ${data.version.version}',
+    titleHtml: _renderPkgTitleContent(data),
     packageLikes: package.likes,
     isLiked: data.isLiked,
     isFlutterFavorite:
@@ -240,6 +240,13 @@ String renderPkgHeader(PackagePageData data) {
     tagsHtml: renderTags(package: pkgView),
     isLoose: true,
   );
+}
+
+String _renderPkgTitleContent(PackagePageData data) {
+  return templateCache.renderTemplate('pkg/title_content', {
+    'package': data.package.name,
+    'version': data.version.version,
+  });
 }
 
 /// Renders the package detail page.
