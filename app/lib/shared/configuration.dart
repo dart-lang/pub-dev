@@ -117,6 +117,10 @@ class Configuration {
   /// The identifier of admins.
   final List<AdminId> admins;
 
+  /// Whether the current environment uses the pkg/fake_gcloud package instead
+  /// of the real AppEngine environment.
+  final bool usesFakeGcloud;
+
   /// Create a configuration for production deployment.
   ///
   /// This will use the Datastore from the cloud project and the Cloud Storage
@@ -161,6 +165,7 @@ class Configuration {
           permissions: {AdminPermission.removePackage},
         )
       ],
+      usesFakeGcloud: false,
     );
   }
 
@@ -209,6 +214,7 @@ class Configuration {
           permissions: {AdminPermission.manageAssignedTags},
         )
       ],
+      usesFakeGcloud: false,
     );
   }
 
@@ -231,6 +237,7 @@ class Configuration {
     @required this.primaryApiUri,
     @required this.primarySiteUri,
     @required this.admins,
+    @required this.usesFakeGcloud,
   });
 
   /// Create a configuration based on the environment variables.
@@ -275,6 +282,7 @@ class Configuration {
           permissions: AdminPermission.values,
         ),
       ],
+      usesFakeGcloud: true,
     );
   }
 
@@ -305,6 +313,7 @@ class Configuration {
           permissions: AdminPermission.values,
         ),
       ],
+      usesFakeGcloud: true,
     );
   }
 }
