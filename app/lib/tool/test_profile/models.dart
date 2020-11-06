@@ -23,8 +23,8 @@ class TestProfile {
 
   TestProfile({
     @required List<TestPackage> packages,
-    @required List<TestPublisher> publishers,
-    @required List<TestUser> users,
+    List<TestPublisher> publishers,
+    List<TestUser> users,
     this.defaultUser,
   })  : packages = packages ?? <TestPackage>[],
         publishers = publishers ?? <TestPublisher>[],
@@ -39,11 +39,6 @@ class TestProfile {
   }
 
   Map<String, dynamic> toJson() => _$TestProfileToJson(this);
-
-  /// Returns the [TestPackage] object or null if none was specified.
-  TestPackage getTestPackage(String name) {
-    return packages.firstWhere((p) => p.name == name, orElse: () => null);
-  }
 }
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
@@ -71,12 +66,15 @@ class TestPackage {
 
   Map<String, dynamic> toJson() => _$TestPackageToJson(this);
 
-  TestPackage change({List<String> uploaders}) {
+  TestPackage change({
+    List<String> uploaders,
+    List<String> versions,
+  }) {
     return TestPackage(
       name: name,
       uploaders: uploaders ?? this.uploaders,
       publisher: publisher,
-      versions: versions,
+      versions: versions ?? this.versions,
     );
   }
 }
@@ -161,8 +159,6 @@ class ResolvedVersion implements Comparable<ResolvedVersion> {
       _$ResolvedVersionFromJson(json);
 
   Map<String, dynamic> toJson() => _$ResolvedVersionToJson(this);
-
-  String get archiveName => '$package-$version.tar.gz';
 
   @override
   int compareTo(ResolvedVersion other) {

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:gcloud/db.dart';
-import 'package:pub_dev/tool/test_profile/normalizer.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dev/account/models.dart';
@@ -18,9 +17,9 @@ import '../../shared/test_services.dart';
 void main() {
   group('importer tests', () {
     testWithServices(
-      'a few entities',
+      'retry',
       () async {
-        final profile = normalize(TestProfile(
+        final profile = TestProfile(
           defaultUser: 'dev@example.com',
           packages: [
             TestPackage(
@@ -29,9 +28,7 @@ void main() {
               publisher: 'example.com',
             )
           ],
-          users: [],
-          publishers: [],
-        ));
+        );
 
         await withTempDirectory((dir) async {
           await importProfile(profile: profile, archiveCachePath: dir);
@@ -57,6 +54,38 @@ void main() {
         final members = await dbService.query<PublisherMember>().run().toList();
         expect(members.single.userId, '0378792c-a778-8b8d-b689-64e531ae52bc');
         expect(members.single.role, 'admin');
+      },
+      omitData: true,
+    );
+
+    testWithServices(
+      'http',
+      () async {
+        final profile = TestProfile(
+          packages: [
+            TestPackage(name: 'http', uploaders: ['dev@example.com']),
+          ],
+        );
+
+        await withTempDirectory((dir) async {
+          await importProfile(profile: profile, archiveCachePath: dir);
+        });
+
+        final users = await dbService.query<User>().run().toList();
+        expect(users.single.userId, '0378792c-a778-8b8d-b689-64e531ae52bc');
+        expect(users.single.oauthUserId, 'dev-at-example-dot-com');
+
+        final packages = await dbService.query<Package>().run().toList();
+        final packageNames = packages.map((p) => p.name).toSet();
+        expect(packageNames, contains('http'));
+        expect(packageNames, contains('http_parser'));
+        expect(packageNames, contains('path'));
+
+        final publishers = await dbService.query<Publisher>().run().toList();
+        expect(publishers, isEmpty);
+
+        final members = await dbService.query<PublisherMember>().run().toList();
+        expect(members, isEmpty);
       },
       omitData: true,
     );

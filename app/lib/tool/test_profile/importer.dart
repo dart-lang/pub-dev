@@ -21,6 +21,7 @@ import '../../shared/datastore.dart';
 import '../../shared/urls.dart' as urls;
 
 import 'models.dart';
+import 'normalizer.dart';
 import 'resolver.dart';
 
 /// Imports [profile] data into the Datastore.
@@ -34,6 +35,9 @@ Future<void> importProfile({
   if (resolvedVersions == null || resolvedVersions.isEmpty) {
     resolvedVersions = await resolveVersions(profile);
   }
+
+  // expand profile with resolved version information
+  profile = normalize(profile, resolvedVersions: resolvedVersions);
 
   // create users
   for (final u in profile.users) {
@@ -75,61 +79,59 @@ Future<void> importProfile({
     ]);
   }
 
-  // set of packages that have their publisher and options set.
-  final updatedPackages = <String>{};
-
   // create versions
   Client client;
   final archiveCacheDir = Directory(archiveCachePath);
   await archiveCacheDir.create(recursive: true);
-  for (final rv in resolvedVersions) {
-    final packageName = rv.package;
-    final versionName = rv.version;
-    final file = File(p.join(archiveCacheDir.path, rv.archiveName));
-    // download package archive if not already in the cache
-    if (!await file.exists()) {
-      client ??= Client();
-      final rs = await client.get(
-          '${urls.siteRoot}${urls.pkgArchiveDownloadUrl(packageName, versionName)}');
-      await file.writeAsBytes(rs.bodyBytes);
+  for (final testPackage in profile.packages) {
+    final packageName = testPackage.name;
+    User lastActiveUser;
+    for (final versionName in testPackage.versions) {
+      final archiveName = '$packageName-$versionName.tar.gz';
+      final file = File(p.join(archiveCacheDir.path, archiveName));
+      // download package archive if not already in the cache
+      if (!await file.exists()) {
+        client ??= Client();
+        final rs = await client.get(
+            '${urls.siteRoot}${urls.pkgArchiveDownloadUrl(packageName, versionName)}');
+        await file.writeAsBytes(rs.bodyBytes);
+      }
+
+      // figure out the active user
+      final uploaderEmails = _potentialActiveEmails(profile, packageName);
+      final uploaderEmail =
+          uploaderEmails[archiveName.hashCode.abs() % uploaderEmails.length];
+      final activeUser =
+          await accountBackend.lookupUserById(_userIdFromEmail(uploaderEmail));
+      lastActiveUser = activeUser;
+
+      // upload package in the name of the active user
+      await fork(() async {
+        registerAuthenticatedUser(activeUser);
+        // ignore: invalid_use_of_visible_for_testing_member
+        await packageBackend.upload(file.openRead());
+      });
     }
 
-    // figure out the active user
-    final uploaderEmails = _potentialActiveEmails(profile, packageName);
-    final uploaderEmail =
-        uploaderEmails[rv.hashCode.abs() % uploaderEmails.length];
-    final activeUser =
-        await accountBackend.lookupUserById(_userIdFromEmail(uploaderEmail));
-
-    // upload package in the name of the active user
+    // update package info
     await fork(() async {
-      registerAuthenticatedUser(activeUser);
-      // ignore: invalid_use_of_visible_for_testing_member
-      await packageBackend.upload(file.openRead());
-
-      final testPackage = profile.getTestPackage(packageName);
-      if (testPackage != null && !updatedPackages.contains(packageName)) {
-        // update publisher
-        final publisherId = testPackage?.publisher;
-        if (publisherId != null) {
-          await packageBackend.setPublisher(
-            packageName,
-            PackagePublisherInfo(publisherId: publisherId),
-          );
-        }
-
-        // update options - sending null is a no-op
-        await packageBackend.updateOptions(
-            packageName,
-            PkgOptions(
-              isDiscontinued: testPackage.isDiscontinued,
-              replacedBy: testPackage.replacedBy,
-              isUnlisted: testPackage.isUnlisted,
-            ));
-
-        // don't repeat the same updates for another version
-        updatedPackages.add(packageName);
+      registerAuthenticatedUser(lastActiveUser);
+      // update publisher
+      if (testPackage.publisher != null) {
+        await packageBackend.setPublisher(
+          packageName,
+          PackagePublisherInfo(publisherId: testPackage.publisher),
+        );
       }
+
+      // update options - sending null is a no-op
+      await packageBackend.updateOptions(
+          packageName,
+          PkgOptions(
+            isDiscontinued: testPackage.isDiscontinued,
+            replacedBy: testPackage.replacedBy,
+            isUnlisted: testPackage.isUnlisted,
+          ));
     });
   }
   client?.close();
@@ -152,17 +154,12 @@ Future<void> importProfile({
 }
 
 List<String> _potentialActiveEmails(TestProfile profile, String packageName) {
-  final testPackage = profile.packages
-      .firstWhere((p) => p.name == packageName, orElse: () => null);
-
-  // no test package specification
-  if (testPackage == null) return [profile.defaultUser];
+  final testPackage = profile.packages.firstWhere((p) => p.name == packageName);
 
   // uploaders
   if (testPackage.publisher == null) return testPackage.uploaders;
 
   // publisher
-  print([testPackage.publisher, profile.publishers.map((p) => p.name)]);
   final members = profile.publishers
       .firstWhere((p) => p.name == testPackage.publisher)
       .members;
