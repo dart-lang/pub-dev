@@ -19,7 +19,7 @@ void main() {
       final status = await consentBackend.invitePackageUploader(
         uploaderUserId: joeUser.userId,
         uploaderEmail: joeUser.email,
-        packageName: hydrogen.package.name,
+        packageName: hydrogen.packageName,
       );
       expect(status.emailSent, isTrue);
 

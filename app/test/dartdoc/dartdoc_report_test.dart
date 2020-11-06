@@ -16,14 +16,14 @@ void main() {
   group('ScoreCard dartdoc report', () {
     testWithServices('write and read dartdoc reports', () async {
       await scoreCardBackend.updateReport(
-          hydrogen.package.name,
-          hydrogen.latestStableVersion.version,
+          hydrogen.packageName,
+          hydrogen.latestVersion,
           DartdocReport(
             reportStatus: ReportStatus.success,
             dartdocEntry: DartdocEntry(
               uuid: 'report-uuid-1',
-              packageName: hydrogen.package.name,
-              packageVersion: hydrogen.latestStableVersion.version,
+              packageName: hydrogen.packageName,
+              packageVersion: hydrogen.latestVersion,
               runtimeVersion: runtimeVersion,
               flutterVersion: flutterVersion,
               dartdocVersion: dartdocVersion,
@@ -42,8 +42,8 @@ void main() {
           ));
 
       final reports = await scoreCardBackend.loadReportForAllVersions(
-        hydrogen.package.name,
-        [hydrogen.latestStableVersion.version, '0.1.2'],
+        hydrogen.packageName,
+        [hydrogen.latestVersion, '0.1.2'],
         reportType: ReportType.dartdoc,
       );
 
@@ -54,8 +54,8 @@ void main() {
       expect(report.dartdocEntry.totalSize, 121212);
 
       final entries = await dartdocBackend.getEntriesForVersions(
-        hydrogen.package.name,
-        [hydrogen.latestStableVersion.version, '0.1.2'],
+        hydrogen.packageName,
+        [hydrogen.latestVersion, '0.1.2'],
       );
 
       expect(entries.first, isNotNull);

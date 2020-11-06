@@ -164,13 +164,13 @@ void main() {
 
     group('Delete package', () {
       _testNotAdmin(
-          (client) => client.adminRemovePackage(hydrogen.package.name));
+          (client) => client.adminRemovePackage(hydrogen.packageName));
 
       testWithServices('OK', () async {
         final client = createPubApiClient(authToken: adminUser.userId);
 
         final pkgKey =
-            dbService.emptyKey.append(Package, id: hydrogen.package.name);
+            dbService.emptyKey.append(Package, id: hydrogen.packageName);
         final package = await dbService.lookupValue<Package>(pkgKey);
         expect(package, isNotNull);
 
@@ -181,23 +181,23 @@ void main() {
         expect(versions.map((v) => v.version), expectedVersions);
 
         final hansClient = createPubApiClient(authToken: hansUser.userId);
-        await hansClient.likePackage(hydrogen.package.name);
+        await hansClient.likePackage(hydrogen.packageName);
 
         final likeKey = dbService.emptyKey
             .append(User, id: hansUser.userId)
-            .append(Like, id: hydrogen.package.name);
+            .append(Like, id: hydrogen.packageName);
         final like =
             await dbService.lookupValue<Like>(likeKey, orElse: () => null);
         expect(like, isNotNull);
 
         final moderatedPkgKey = dbService.emptyKey
-            .append(ModeratedPackage, id: hydrogen.package.name);
+            .append(ModeratedPackage, id: hydrogen.packageName);
         ModeratedPackage moderatedPkg = await dbService
             .lookupValue<ModeratedPackage>(moderatedPkgKey, orElse: () => null);
         expect(moderatedPkg, isNull);
 
         final timeBeforeRemoval = DateTime.now().toUtc();
-        final rs = await client.adminRemovePackage(hydrogen.package.name);
+        final rs = await client.adminRemovePackage(hydrogen.packageName);
 
         expect(utf8.decode(rs), '{"status":"OK"}');
 
@@ -225,14 +225,14 @@ void main() {
 
     group('Delete package version', () {
       _testNotAdmin((client) => client.adminRemovePackageVersion(
-          hydrogen.package.name, hydrogen.package.latestVersion));
+          hydrogen.packageName, hydrogen.latestVersion));
 
       testWithServices('OK', () async {
         final client = createPubApiClient(authToken: adminUser.userId);
-        final removeVersion = hydrogen.package.latestVersion;
+        final removeVersion = hydrogen.latestVersion;
 
         final pkgKey =
-            dbService.emptyKey.append(Package, id: hydrogen.package.name);
+            dbService.emptyKey.append(Package, id: hydrogen.packageName);
         final package = await dbService.lookupValue<Package>(pkgKey);
         expect(package, isNotNull);
 
@@ -243,24 +243,24 @@ void main() {
         expect(versions.map((v) => v.version), expectedVersions);
 
         final hansClient = createPubApiClient(authToken: hansUser.userId);
-        await hansClient.likePackage(hydrogen.package.name);
+        await hansClient.likePackage(hydrogen.packageName);
 
         final likeKey = dbService.emptyKey
             .append(User, id: hansUser.userId)
-            .append(Like, id: hydrogen.package.name);
+            .append(Like, id: hydrogen.packageName);
         final like =
             await dbService.lookupValue<Like>(likeKey, orElse: () => null);
         expect(like, isNotNull);
 
         final moderatedPkgKey = dbService.emptyKey
-            .append(ModeratedPackage, id: hydrogen.package.name);
+            .append(ModeratedPackage, id: hydrogen.packageName);
         ModeratedPackage moderatedPkg = await dbService
             .lookupValue<ModeratedPackage>(moderatedPkgKey, orElse: () => null);
         expect(moderatedPkg, isNull);
 
         final timeBeforeRemoval = DateTime.now().toUtc();
         final rs = await client.adminRemovePackageVersion(
-            hydrogen.package.name, removeVersion);
+            hydrogen.packageName, removeVersion);
 
         expect(utf8.decode(rs), '{"status":"OK"}');
 
@@ -321,14 +321,14 @@ void main() {
         final client = createPubApiClient(authToken: adminUser.userId);
         final hansClient = createPubApiClient(authToken: hansUser.userId);
 
-        await hansClient.likePackage(helium.package.name);
+        await hansClient.likePackage(helium.packageName);
 
-        final r2 = await client.getPackageLikes(helium.package.name);
+        final r2 = await client.getPackageLikes(helium.packageName);
         expect(r2.likes, 1);
 
         final likeKey = dbService.emptyKey
             .append(User, id: hansUser.userId)
-            .append(Like, id: helium.package.name);
+            .append(Like, id: helium.packageName);
 
         Like like =
             await dbService.lookupValue<Like>(likeKey, orElse: () => null);
@@ -336,7 +336,7 @@ void main() {
 
         await client.adminRemoveUser(hansUser.userId);
 
-        final r3 = await client.getPackageLikes(helium.package.name);
+        final r3 = await client.getPackageLikes(helium.packageName);
         expect(r3.likes, 0);
 
         like = await dbService.lookupValue<Like>(likeKey, orElse: () => null);

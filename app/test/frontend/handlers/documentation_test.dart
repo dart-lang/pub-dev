@@ -116,7 +116,7 @@ void main() {
     });
 
     testWithServices('withheld package gets rejected', () async {
-      final pkg = await dbService.lookupValue<Package>(foobarPackage.key);
+      final pkg = await dbService.lookupValue<Package>(foobarPkgKey);
       await dbService.commit(inserts: [pkg..isWithheld = true]);
       await expectNotFoundResponse(
           await issueGet('/documentation/foobar_pkg/latest/'));

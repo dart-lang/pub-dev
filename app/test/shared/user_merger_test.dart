@@ -56,14 +56,14 @@ void main() {
     await _corruptAndFix();
 
     final pkgList = await dbService.lookup<Package>([
-      foobarPackage.key,
-      control.package.key,
+      foobarPkgKey,
+      control.packageKey,
     ]);
     expect(pkgList[0].uploaders, [joeUser.userId]);
     expect(pkgList[1].uploaders, [adminUser.userId]);
 
     final pvList = await dbService.lookup<PackageVersion>([
-      foobarStablePV.key,
+      foobarStablePVKey,
       control.versions.single.key,
     ]);
     expect(pvList[0].uploader, joeUser.userId);

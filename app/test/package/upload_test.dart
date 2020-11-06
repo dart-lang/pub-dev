@@ -195,7 +195,7 @@ void main() {
       testWithServices('not authorized', () async {
         registerAuthenticatedUser(joeUser);
         final tarball = await packageArchiveBytes(
-            pubspecContent: generatePubspecYaml(foobarPackage.name, '0.2.0'));
+            pubspecContent: generatePubspecYaml(foobarPkgName, '0.2.0'));
         final rs = packageBackend.upload(Stream.fromIterable([tarball]));
         await expectLater(rs, throwsA(isA<AuthorizationException>()));
       });
@@ -205,7 +205,7 @@ void main() {
         await dbService.commit(inserts: [user..isBlocked = true]);
         registerAuthenticatedUser(user);
         final tarball = await packageArchiveBytes(
-            pubspecContent: generatePubspecYaml(foobarPackage.name, '1.2.3'));
+            pubspecContent: generatePubspecYaml(foobarPkgName, '1.2.3'));
         final rs = packageBackend.upload(Stream.fromIterable([tarball]));
         await expectLater(rs, throwsA(isA<AuthorizationException>()));
       });
@@ -214,7 +214,7 @@ void main() {
         await secretBackend.update(SecretKey.uploadRestriction, 'no-uploads');
         registerAuthenticatedUser(hansUser);
         final tarball = await packageArchiveBytes(
-            pubspecContent: generatePubspecYaml(foobarPackage.name, '1.2.3'));
+            pubspecContent: generatePubspecYaml(foobarPkgName, '1.2.3'));
         final rs = packageBackend.upload(Stream.fromIterable([tarball]));
         await expectLater(
             rs,
@@ -244,9 +244,9 @@ void main() {
         await secretBackend.update(SecretKey.uploadRestriction, 'only-updates');
         registerAuthenticatedUser(hansUser);
         final tarball = await packageArchiveBytes(
-            pubspecContent: generatePubspecYaml(foobarPackage.name, '1.2.3'));
+            pubspecContent: generatePubspecYaml(foobarPkgName, '1.2.3'));
         final rs = await packageBackend.upload(Stream.fromIterable([tarball]));
-        expect(rs.package, foobarPackage.name);
+        expect(rs.package, foobarPkgName);
       });
 
       testWithServices('versions already exist', () async {
@@ -373,10 +373,10 @@ void main() {
       testWithServices('successful upload + download', () async {
         registerAuthenticatedUser(hansUser);
         final tarball = await packageArchiveBytes(
-            pubspecContent: generatePubspecYaml(foobarPackage.name, '1.2.3'));
+            pubspecContent: generatePubspecYaml(foobarPkgName, '1.2.3'));
         final version =
             await packageBackend.upload(Stream.fromIterable([tarball]));
-        expect(version.package, foobarPackage.name);
+        expect(version.package, foobarPkgName);
         expect(version.version, '1.2.3');
 
         expect(fakeEmailSender.sentMessages, hasLength(1));
@@ -387,11 +387,10 @@ void main() {
             contains('https://pub.dev/packages/foobar_pkg/versions/1.2.3\n'));
 
         final pkgPage = await packageBackend.latestPackages();
-        expect(pkgPage.packages.first.name, foobarPackage.name);
+        expect(pkgPage.packages.first.name, foobarPkgName);
         expect(pkgPage.packages.first.latestVersion, '1.2.3');
 
-        final stream =
-            await packageBackend.download(foobarPackage.name, '1.2.3');
+        final stream = await packageBackend.download(foobarPkgName, '1.2.3');
         final chunks = await stream.toList();
         final bytes = chunks
             .fold<List<int>>(<int>[], (buffer, chunk) => buffer..addAll(chunk));
