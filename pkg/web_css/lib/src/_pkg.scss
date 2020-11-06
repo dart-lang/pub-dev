@@ -262,7 +262,12 @@
     display: block;
     width: 20px;
     height: 20px;
-    opacity: 0.5;
+    opacity: 0.1;
+    transition: opacity 0.3s;
+
+    h1.title:hover & {
+      opacity: 0.5;
+    }
   }
 
   .pkg-page-title-copy-dropdown {
