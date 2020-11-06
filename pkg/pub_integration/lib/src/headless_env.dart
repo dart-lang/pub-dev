@@ -46,9 +46,9 @@ class HeadlessEnv {
       throw StateError('Could not detect chrome binary while running in CI.');
     }
 
-    // Otherwise let puppeteer download a chrome in the local .local-chromium
-    // directory:
-    return null;
+    // Otherwise let puppeteer download a chrome in the local .dart_tool directory:
+    final r = await downloadChrome(cachePath: '.dart_tool/puppeteer/chromium');
+    return r.executablePath;
   }
 
   Future<void> startBrowser() async {
