@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:meta/meta.dart';
-import 'package:pana/models.dart' show Report;
+import 'package:pana/models.dart' show Report, ReportSection;
 
 import '../../analyzer/analyzer_client.dart';
 import '../../scorecard/models.dart';
@@ -78,17 +78,32 @@ String _renderReport(Report report) {
   }
 
   return templateCache.renderTemplate('pkg/analysis/report', {
-    'sections': report.sections.map((s) => {
-          'title': s.title,
-          'grantedPoints': s.grantedPoints,
-          'maxPoints': s.maxPoints,
-          'summary_html': renderSummary(s.summary),
-          'event-id': 'toggle-report-section-${s.id}',
-          'is_green': s.grantedPoints > 0 && s.grantedPoints == s.maxPoints,
-          'is_yellow': s.grantedPoints > 0 && s.grantedPoints != s.maxPoints,
-          'is_red': s.grantedPoints == 0,
-        }),
+    'sections': report.sections.map((s) {
+      final color = _classify(s);
+      return {
+        'title': s.title,
+        'grantedPoints': s.grantedPoints,
+        'maxPoints': s.maxPoints,
+        'summary_html': renderSummary(s.summary),
+        'event-id': 'toggle-report-section-${s.id}',
+        'is_green': color == _SectionColor.green,
+        'is_yellow': color == _SectionColor.yellow,
+        'is_red': color == _SectionColor.red,
+      };
+    }),
   });
+}
+
+enum _SectionColor { green, yellow, red }
+
+_SectionColor _classify(ReportSection s) {
+  if (s.grantedPoints == s.maxPoints) {
+    return _SectionColor.green;
+  } else if (s.grantedPoints > 0) {
+    return _SectionColor.yellow;
+  } else {
+    return _SectionColor.red;
+  }
 }
 
 String _renderLikeKeyFigure(int likeCount) {
