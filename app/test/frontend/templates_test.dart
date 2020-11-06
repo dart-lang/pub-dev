@@ -181,8 +181,8 @@ void main() {
               reportStatus: ReportStatus.success,
               dartdocEntry: DartdocEntry(
                 uuid: '1234-5678-dartdocentry-90ab',
-                packageName: foobarStablePV.package,
-                packageVersion: foobarStablePV.version,
+                packageName: foobarPkgName,
+                packageVersion: foobarStableVersion,
                 isLatest: true,
                 isObsolete: false,
                 usesFlutter: false,

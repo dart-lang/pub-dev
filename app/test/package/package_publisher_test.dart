@@ -38,14 +38,14 @@ void main() {
         ));
 
     _testNoPublisher((client) => client.setPackagePublisher(
-          hydrogen.package.name,
+          hydrogen.packageName,
           PackagePublisherInfo(publisherId: 'no-domain.net'),
         ));
 
     _testPublisherAdminAuthIssues(
       exampleComPublisher.key,
       (client) => client.setPackagePublisher(
-        hydrogen.package.name,
+        hydrogen.packageName,
         PackagePublisherInfo(publisherId: 'example.com'),
       ),
     );
@@ -57,7 +57,7 @@ void main() {
 
       final client = createPubApiClient(authToken: hansUser.userId);
       final rs = client.setPackagePublisher(
-        hydrogen.package.name,
+        hydrogen.packageName,
         PackagePublisherInfo(publisherId: 'example.com'),
       );
       await expectApiException(rs,
@@ -67,7 +67,7 @@ void main() {
     testWithServices('successful', () async {
       final client = createPubApiClient(authToken: hansUser.userId);
       final rs = await client.setPackagePublisher(
-        hydrogen.package.name,
+        hydrogen.packageName,
         PackagePublisherInfo(publisherId: 'example.com'),
       );
       expect(_json(rs.toJson()), {'publisherId': 'example.com'});
@@ -85,7 +85,7 @@ void main() {
     testWithServices('not an admin', () async {
       final client = createPubApiClient(authToken: hansUser.userId);
       await client.setPackagePublisher(
-        hydrogen.package.name,
+        hydrogen.packageName,
         PackagePublisherInfo(publisherId: 'example.com'),
       );
       await dbService.commit(inserts: [
@@ -104,7 +104,7 @@ void main() {
     testWithServices('successful', () async {
       final client = createPubApiClient(authToken: hansUser.userId);
       await client.setPackagePublisher(
-        hydrogen.package.name,
+        hydrogen.packageName,
         PackagePublisherInfo(publisherId: 'example.com'),
       );
       registerAuthenticatedUser(hansUser);
@@ -118,7 +118,7 @@ void main() {
   group('Move between publishers', () {
     final otherComPublisher = publisher('other.com');
     Future<void> _setup({bool addHans = true}) async {
-      final p = await packageBackend.lookupPackage(hydrogen.package.name);
+      final p = await packageBackend.lookupPackage(hydrogen.packageName);
       p.publisherId = otherComPublisher.publisherId;
       p.uploaders = [];
       final hansMember = publisherMember(hansUser.userId, 'admin',
@@ -144,7 +144,7 @@ void main() {
     _testNoPublisher((client) async {
       await _setup();
       return client.setPackagePublisher(
-        hydrogen.package.name,
+        hydrogen.packageName,
         PackagePublisherInfo(publisherId: 'no-domain.net'),
       );
     });
@@ -152,7 +152,7 @@ void main() {
     _testPublisherAdminAuthIssues(exampleComPublisher.key, (client) async {
       await _setup();
       return client.setPackagePublisher(
-        hydrogen.package.name,
+        hydrogen.packageName,
         PackagePublisherInfo(publisherId: 'example.com'),
       );
     });
@@ -160,7 +160,7 @@ void main() {
     _testPublisherAdminAuthIssues(otherComPublisher.key, (client) async {
       await _setup(addHans: false);
       return client.setPackagePublisher(
-        hydrogen.package.name,
+        hydrogen.packageName,
         PackagePublisherInfo(publisherId: 'example.com'),
       );
     });
@@ -169,7 +169,7 @@ void main() {
       await _setup();
       final client = createPubApiClient(authToken: hansUser.userId);
       final rs = await client.setPackagePublisher(
-        hydrogen.package.name,
+        hydrogen.packageName,
         PackagePublisherInfo(publisherId: 'example.com'),
       );
       expect(_json(rs.toJson()), {'publisherId': 'example.com'});
@@ -185,7 +185,7 @@ void main() {
 
   group('Delete publisher', () {
     Future<void> _setupPackage() async {
-      final p = await packageBackend.lookupPackage(hydrogen.package.name);
+      final p = await packageBackend.lookupPackage(hydrogen.packageName);
       p.publisherId = 'example.com';
       p.uploaders = [];
       await dbService.commit(inserts: [p]);
@@ -198,18 +198,18 @@ void main() {
 
     _testPublisherAdminAuthIssues(exampleComPublisher.key, (client) async {
       await _setupPackage();
-      return client.removePackagePublisher(hydrogen.package.name);
+      return client.removePackagePublisher(hydrogen.packageName);
     });
 
     testWithServices('successful', () async {
       await _setupPackage();
       final client = createPubApiClient(authToken: hansUser.userId);
-      final rs = client.removePackagePublisher(hydrogen.package.name);
+      final rs = client.removePackagePublisher(hydrogen.packageName);
       await expectApiException(rs, status: 501);
 //  Code commented out while we decide if this feature is something we want to
 //  support going forward.
 //
-//      final rs = await client.removePackagePublisher(hydrogen.package.name);
+//      final rs = await client.removePackagePublisher(hydrogen.packageName);
 //      expect(_json(rs.toJson()), {'publisherId': null});
 //
 //      final p = await packageBackend.lookupPackage('hydrogen');

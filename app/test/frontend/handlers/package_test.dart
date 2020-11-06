@@ -33,7 +33,7 @@ void main() {
     });
 
     testWithServices('withheld package - not found', () async {
-      final pkg = await dbService.lookupValue<Package>(foobarPackage.key);
+      final pkg = await dbService.lookupValue<Package>(foobarPkgKey);
       await dbService.commit(inserts: [pkg..isWithheld = true]);
       await expectNotFoundResponse(await issueGet('/packages/foobar_pkg'));
       await expectNotFoundResponse(

@@ -35,7 +35,7 @@ void main() {
       });
 
       testWithServices('default packages with withheld', () async {
-        final pkg = await dbService.lookupValue<Package>(foobarPackage.key);
+        final pkg = await dbService.lookupValue<Package>(foobarPkgKey);
         await dbService.commit(inserts: [pkg..isWithheld = true]);
         final page = await packageBackend.latestPackages();
         expect(page.packages.map((p) => p.name), [
@@ -46,8 +46,7 @@ void main() {
       });
 
       testWithServices('default packages, extra earlier', () async {
-        final h =
-            (await dbService.lookup<Package>([helium.package.key])).single;
+        final h = (await dbService.lookup<Package>([helium.packageKey])).single;
         h.updated = DateTime(2010);
         await dbService.commit(inserts: [h]);
         final page = await packageBackend.latestPackages();
@@ -55,8 +54,7 @@ void main() {
       });
 
       testWithServices('default packages, extra later', () async {
-        final h =
-            (await dbService.lookup<Package>([helium.package.key])).single;
+        final h = (await dbService.lookup<Package>([helium.packageKey])).single;
         h.updated = DateTime(2030);
         await dbService.commit(inserts: [h]);
         final page = await packageBackend.latestPackages();
@@ -171,13 +169,13 @@ void main() {
   group('backend.repository', () {
     group('add uploader', () {
       testWithServices('not logged in', () async {
-        final pkg = foobarPackage.name;
+        final pkg = foobarPkgName;
         final rs = packageBackend.addUploader(pkg, 'a@b.com');
         await expectLater(rs, throwsA(isA<AuthenticationException>()));
       });
 
       testWithServices('not authorized', () async {
-        final pkg = foobarPackage.name;
+        final pkg = foobarPkgName;
         registerAuthenticatedUser(User()
           ..id = 'uuid-foo-at-bar-dot-com'
           ..email = 'foo@bar.com'
@@ -191,7 +189,7 @@ void main() {
         final user = await dbService.lookupValue<User>(hansUser.key);
         await dbService.commit(inserts: [user..isBlocked = true]);
         registerAuthenticatedUser(user);
-        final rs = packageBackend.addUploader(foobarPackage.name, 'a@b.com');
+        final rs = packageBackend.addUploader(foobarPkgName, 'a@b.com');
         await expectLater(rs, throwsA(isA<AuthorizationException>()));
       });
 
@@ -209,7 +207,7 @@ void main() {
           ...bundle.versions.map(pvModels).expand((m) => m),
         ]);
         await packageBackend.addUploader(pkg, newUploader);
-        final list = await dbService.lookup<Package>([bundle.package.key]);
+        final list = await dbService.lookup<Package>([bundle.packageKey]);
         final p = list.single;
         expect(p.uploaders, uploaders.map((u) => u.userId));
       }
@@ -228,7 +226,7 @@ void main() {
 
         final newUploader = 'somebody@example.com';
         final rs =
-            packageBackend.addUploader(hydrogen.package.name, newUploader);
+            packageBackend.addUploader(hydrogen.packageName, newUploader);
         await expectLater(
             rs,
             throwsA(isException.having(
@@ -238,7 +236,7 @@ void main() {
                     "They'll be added as an uploader after they accept the invitation.")));
 
         // uploaders do not change yet
-        final list = await dbService.lookup<Package>([hydrogen.package.key]);
+        final list = await dbService.lookup<Package>([hydrogen.packageKey]);
         final p = list.single;
         expect(p.uploaders, [hansUser.userId]);
 
@@ -258,14 +256,14 @@ void main() {
 
     group('invite uploader', () {
       testWithServices('not logged in', () async {
-        final pkg = foobarPackage.name;
+        final pkg = foobarPkgName;
         final rs = packageBackend.inviteUploader(
             pkg, InviteUploaderRequest(email: 'a@b.com'));
         await expectLater(rs, throwsA(isA<AuthenticationException>()));
       });
 
       testWithServices('not authorized', () async {
-        final pkg = foobarPackage.name;
+        final pkg = foobarPkgName;
         registerAuthenticatedUser(User()
           ..id = 'uuid-foo-at-bar-dot-com'
           ..email = 'foo@bar.com'
@@ -281,7 +279,7 @@ void main() {
         await dbService.commit(inserts: [user..isBlocked = true]);
         registerAuthenticatedUser(user);
         final rs = packageBackend.inviteUploader(
-            foobarPackage.name, InviteUploaderRequest(email: 'a@b.com'));
+            foobarPkgName, InviteUploaderRequest(email: 'a@b.com'));
         await expectLater(rs, throwsA(isA<AuthorizationException>()));
       });
 
@@ -324,11 +322,11 @@ void main() {
 
         final newUploader = 'somebody@example.com';
         final rs = await packageBackend.inviteUploader(
-            hydrogen.package.name, InviteUploaderRequest(email: newUploader));
+            hydrogen.packageName, InviteUploaderRequest(email: newUploader));
         expect(rs.emailSent, isTrue);
 
         // uploaders do not change yet
-        final list = await dbService.lookup<Package>([hydrogen.package.key]);
+        final list = await dbService.lookup<Package>([hydrogen.packageKey]);
         final p = list.single;
         expect(p.uploaders, [hansUser.userId]);
 
@@ -355,7 +353,7 @@ void main() {
       testWithServices('not authorized', () async {
         // replace uploader for the scope of this test
         final pkg =
-            (await dbService.lookup<Package>([hydrogen.package.key])).single;
+            (await dbService.lookup<Package>([hydrogen.packageKey])).single;
         pkg.addUploader(testUserA.userId);
         pkg.removeUploader(hansUser.userId);
         await dbService.commit(inserts: [pkg]);
@@ -393,7 +391,7 @@ void main() {
       testWithServices('cannot remove self', () async {
         // adding extra uploader for the scope of this test
         final pkg =
-            (await dbService.lookup<Package>([hydrogen.package.key])).single;
+            (await dbService.lookup<Package>([hydrogen.packageKey])).single;
         pkg.addUploader(testUserA.userId);
         await dbService.commit(inserts: [pkg]);
 
@@ -407,7 +405,7 @@ void main() {
 
       testWithServices('successful1', () async {
         // adding extra uploader for the scope of this test
-        final key = hydrogen.package.key;
+        final key = hydrogen.packageKey;
         final pkg1 = (await dbService.lookup<Package>([key])).single;
         pkg1.addUploader(testUserA.userId);
         await dbService.commit(inserts: [pkg1]);

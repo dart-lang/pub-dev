@@ -35,10 +35,13 @@ final lithium = generateBundle(
   publisherId: exampleComPublisher.publisherId,
 );
 
+final foobarPkgName = 'foobar_pkg';
 final foobarPkgKey =
-    Key.emptyKey(Partition(null)).append(Package, id: 'foobar_pkg');
+    Key.emptyKey(Partition(null)).append(Package, id: foobarPkgName);
 
-final foobarStablePVKey = foobarPkgKey.append(PackageVersion, id: '0.1.1+5');
+final foobarStableVersion = '0.1.1+5';
+final foobarStablePVKey =
+    foobarPkgKey.append(PackageVersion, id: foobarStableVersion);
 final foobarDevPVKey = foobarPkgKey.append(PackageVersion, id: '0.2.0-dev');
 
 final moderatedPkgKey =
@@ -83,16 +86,14 @@ final adminOAuthUserID = OAuthUserID()
   ..userIdKey =
       Key.emptyKey(Partition(null)).append(User, id: 'admin-at-pub-dot-dev');
 
-Package createFoobarPackage({String name, List<User> uploaders}) {
-  name ??= foobarPkgKey.id;
-  uploaders ??= [hansUser];
+Package _createFoobarPackage() {
   return Package()
     ..parentKey = foobarPkgKey.parent
-    ..id = name
-    ..name = name
+    ..id = foobarPkgName
+    ..name = foobarPkgName
     ..created = DateTime.utc(2014)
     ..updated = DateTime.utc(2015)
-    ..uploaders = uploaders.map((user) => user.userId).toList()
+    ..uploaders = [hansUser.userId]
     ..latestVersionKey = foobarStablePVKey
     ..latestPrereleaseVersionKey = foobarDevPVKey
     ..downloads = 0
@@ -103,17 +104,17 @@ Package createFoobarPackage({String name, List<User> uploaders}) {
     ..assignedTags = [];
 }
 
-final Package foobarPackage = createFoobarPackage();
+final foobarPackage = _createFoobarPackage();
 final foobarUploaderEmails = [hansUser.email];
 
-final Package discontinuedPackage = createFoobarPackage()
+final Package discontinuedPackage = _createFoobarPackage()
   ..isDiscontinued = true
   ..replacedBy = 'helium';
 
-final PackageVersion foobarStablePV = PackageVersion()
+final foobarStablePV = PackageVersion()
   ..parentKey = foobarStablePVKey.parent
-  ..id = foobarStablePVKey.id
-  ..version = foobarStablePVKey.id
+  ..id = foobarStableVersion
+  ..version = foobarStableVersion
   ..packageKey = foobarPkgKey
   ..created = DateTime.utc(2014)
   ..uploader = hansUser.userId
@@ -127,20 +128,21 @@ final PackageVersion foobarStablePV = PackageVersion()
   ..exampleContent = foobarExampleContent
   ..downloads = 0;
 
-final PackageVersion flutterPackageVersion = clonePackageVersion(foobarStablePV)
-  ..created = DateTime.utc(2015)
-  ..pubspec = Pubspec.fromYaml(foobarStablePubspec +
-      '''
+final PackageVersion flutterPackageVersion =
+    _clonePackageVersion(foobarStablePV)
+      ..created = DateTime.utc(2015)
+      ..pubspec = Pubspec.fromYaml(foobarStablePubspec +
+          '''
 flutter:
   plugin:
     class: SomeClass
   ''');
 
-final PackageVersion foobarDevPV = clonePackageVersion(foobarStablePV)
+final PackageVersion foobarDevPV = _clonePackageVersion(foobarStablePV)
   ..id = foobarDevPVKey.id
   ..version = foobarDevPVKey.id;
 
-PackageVersion clonePackageVersion(PackageVersion original) => PackageVersion()
+PackageVersion _clonePackageVersion(PackageVersion original) => PackageVersion()
   ..parentKey = original.parentKey
   ..id = original.id
   ..version = original.version
@@ -288,19 +290,15 @@ PublisherMember publisherMember(String userId, String role, {Key parentKey}) =>
 class PkgBundle {
   final Package package;
   final List<PackageVersion> versions;
-  final PackageVersion firstVersion;
   final PackageVersion latestStableVersion;
-  final PackageVersion latestDevVersion;
 
-  PkgBundle._(this.package, this.versions, this.firstVersion,
-      this.latestStableVersion, this.latestDevVersion) {
+  PkgBundle._(this.package, this.versions, this.latestStableVersion) {
     assert(package.latestVersionKey != null);
     assert(package.latestPrereleaseVersionKey != null);
   }
 
   factory PkgBundle(Package package, List<PackageVersion> versions) {
     versions.sort((a, b) => a.created.compareTo(b.created));
-    final firstVersion = versions.first;
     final latestStableVersion = versions.lastWhere(
       (pv) => !pv.semanticVersion.isPreRelease,
       orElse: () => null,
@@ -317,9 +315,12 @@ class PkgBundle {
     package.latestPrereleaseVersionKey ??=
         latestDevVersion?.key ?? package.latestVersionKey;
 
-    return PkgBundle._(
-        package, versions, firstVersion, latestStableVersion, latestDevVersion);
+    return PkgBundle._(package, versions, latestStableVersion);
   }
+
+  String get packageName => package.name;
+  Key get packageKey => package.key;
+  String get latestVersion => package.latestVersion;
 }
 
 Iterable<String> generateVersions(
