@@ -7,9 +7,7 @@ import 'dart:io';
 
 import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:fake_gcloud/mem_storage.dart';
-import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -42,14 +40,11 @@ class FakePubServer {
     @required Configuration configuration,
     shelf.Handler extraHandler,
   }) async {
-    await ss.fork(() async {
-      final db = DatastoreDB(_datastore);
-      registerDbService(db);
-      registerStorageService(_storage);
-      registerActiveConfiguration(configuration);
-
-      await withPubServices(() async {
-        await ss.fork(() async {
+    await withFakeServices(
+        configuration: configuration,
+        datastore: _datastore,
+        storage: _storage,
+        fn: () async {
           registerAuthProvider(FakeAuthProvider(port));
           registerDomainVerifier(FakeDomainVerifier());
           registerUploadSigner(
@@ -81,8 +76,6 @@ class FakePubServer {
           await server.close();
           _logger.info('closing');
         });
-      });
-    });
     _logger.info('closed');
   }
 }

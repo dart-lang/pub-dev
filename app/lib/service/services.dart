@@ -1,9 +1,12 @@
 import 'dart:async' show FutureOr;
 
 import 'package:appengine/appengine.dart';
+import 'package:fake_gcloud/mem_datastore.dart';
+import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
+import 'package:meta/meta.dart';
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
@@ -45,23 +48,46 @@ import 'spam/backend.dart';
 ///  * storage wrapped with retry.
 Future<void> withServices(FutureOr<void> Function() fn) async {
   return withAppEngineServices(() async {
-    return await withPubServices(fn);
+    return await fork(() async {
+      // acquire auth client for storage service
+      // TODO: reuse it for upload signer service
+      final authClient = await auth
+          .clientViaApplicationDefaultCredentials(scopes: [...Storage.SCOPES]);
+
+      // override storageService with retrying http client
+      final storageClient = httpRetryClient(innerClient: authClient);
+      registerStorageService(
+          Storage(storageClient, activeConfiguration.projectId));
+      registerScopeExitCallback(() async => storageClient.close());
+
+      return await _withPubServices(fn);
+    });
+  });
+}
+
+/// Run [fn] with services.
+Future<void> withFakeServices({
+  @required Configuration configuration,
+  @required FutureOr<void> Function() fn,
+  MemDatastore datastore,
+  MemStorage storage,
+}) async {
+  if (!envConfig.isRunningLocally) {
+    throw StateError("Mustn't use fake services inside AppEngine.");
+  }
+  return await fork(() async {
+    registerActiveConfiguration(configuration);
+    registerDbService(DatastoreDB(datastore ?? MemDatastore()));
+    registerStorageService(storage ?? MemStorage());
+
+    return await _withPubServices(fn);
   });
 }
 
 /// Run [fn] with pub services that are shared between server instances, CLI
 /// tools and integration tests.
-Future<void> withPubServices(FutureOr<void> Function() fn) async {
+Future<void> _withPubServices(FutureOr<void> Function() fn) async {
   return fork(() async {
-    if (!activeConfiguration.usesFakeGcloud) {
-      final authClient = await auth
-          .clientViaApplicationDefaultCredentials(scopes: [...Storage.SCOPES]);
-      final storageClient = httpRetryClient(innerClient: authClient);
-      registerStorageService(
-          Storage(storageClient, activeConfiguration.projectId));
-      registerScopeExitCallback(() async => storageClient.close());
-    }
-
     registerAccountBackend(AccountBackend(dbService));
     registerAdminBackend(AdminBackend(dbService));
     registerAnalyzerClient(AnalyzerClient());
@@ -133,6 +159,6 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     registerScopeExitCallback(searchAdapter.close);
     registerScopeExitCallback(spamBackend.close);
 
-    return await withCache(fn);
+    return await fork(() async => await withCache(fn));
   });
 }

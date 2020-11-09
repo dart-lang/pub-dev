@@ -9,7 +9,6 @@ import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -34,14 +33,11 @@ class FakeAnalyzerService {
     int port = 8083,
     @required Configuration configuration,
   }) async {
-    await ss.fork(() async {
-      final db = DatastoreDB(_datastore);
-      registerDbService(db);
-      registerStorageService(_storage);
-      registerActiveConfiguration(configuration);
-
-      await withPubServices(() async {
-        await ss.fork(() async {
+    await withFakeServices(
+        configuration: configuration,
+        datastore: _datastore,
+        storage: _storage,
+        fn: () async {
           final jobProcessor = AnalyzerJobProcessor(aliveCallback: null);
           final jobMaintenance = JobMaintenance(dbService, jobProcessor);
 
@@ -67,8 +63,6 @@ class FakeAnalyzerService {
           await server.close();
           _logger.info('closing');
         });
-      });
-    });
     _logger.info('closed');
   }
 }

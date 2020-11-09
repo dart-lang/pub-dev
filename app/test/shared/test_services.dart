@@ -4,10 +4,7 @@
 
 import 'dart:io';
 
-import 'package:fake_gcloud/mem_datastore.dart';
-import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/db.dart';
-import 'package:gcloud/storage.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart' as http_testing;
@@ -49,41 +46,35 @@ void testWithServices(
 }) {
   scopedTest(name, () async {
     _setupLogging();
-    registerActiveConfiguration(Configuration.test());
+    await withFakeServices(
+        configuration: Configuration.test(),
+        fn: () async {
+          registerAuthProvider(FakeAuthProvider());
+          registerDomainVerifier(FakeDomainVerifier());
+          registerEmailSender(FakeEmailSender());
+          registerUploadSigner(FakeUploadSignerService('https://storage.url'));
 
-    final db = DatastoreDB(MemDatastore());
-    registerDbService(db);
-    registerStorageService(MemStorage());
-
-    await withPubServices(() async {
-      await fork(() async {
-        registerAuthProvider(FakeAuthProvider());
-        registerDomainVerifier(FakeDomainVerifier());
-        registerEmailSender(FakeEmailSender());
-        registerUploadSigner(FakeUploadSignerService('https://storage.url'));
-
-        if (!omitData) {
-          await _populateDefaultData();
-        }
-        await dartSdkIndex.markReady();
-        await indexUpdater.updateAllPackages();
-
-        registerSearchClient(
-            SearchClient(_httpClient(handler: searchServiceHandler)));
-
-        registerScopeExitCallback(searchClient.close);
-
-        await fork(() async {
-          await fn();
-          // post-test integrity check
-          final problems = await IntegrityChecker(dbService).check();
-          if (problems.isNotEmpty) {
-            throw Exception(
-                '${problems.length} integrity problems detected. First: ${problems.first}');
+          if (!omitData) {
+            await _populateDefaultData();
           }
+          await dartSdkIndex.markReady();
+          await indexUpdater.updateAllPackages();
+
+          registerSearchClient(
+              SearchClient(_httpClient(handler: searchServiceHandler)));
+
+          registerScopeExitCallback(searchClient.close);
+
+          await fork(() async {
+            await fn();
+            // post-test integrity check
+            final problems = await IntegrityChecker(dbService).check();
+            if (problems.isNotEmpty) {
+              throw Exception(
+                  '${problems.length} integrity problems detected. First: ${problems.first}');
+            }
+          });
         });
-      });
-    });
   });
 }
 
