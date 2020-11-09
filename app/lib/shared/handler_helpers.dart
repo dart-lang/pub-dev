@@ -82,33 +82,35 @@ shelf.Handler _redirectLoopDetectorWrapper(
     Logger logger, shelf.Handler handler) {
   return (shelf.Request request) async {
     final rs = await handler(request);
-    if (rs.statusCode >= 300 && rs.statusCode < 400) {
+    // 304 Not Modified - doesn't need to have a location header and there is no redirect
+    if (rs.statusCode >= 300 && rs.statusCode < 400 && rs.statusCode != 304) {
       final location = rs.headers[HttpHeaders.locationHeader];
 
       // sanity check for the header being present
       if (location == null) {
-        throw ArgumentError('Redirect response without location header.');
+        throw ArgumentError(
+            'Redirect response without location header (rq: ${request.requestedUri}).');
       }
 
       // sanity check for the header being valid
       final uri = Uri.tryParse(location);
       if (uri == null) {
         throw FormatException(
-            'Redirect response with invalid location header: "$location".');
+            'Redirect response with invalid location header: "$location" (rq: ${request.requestedUri}).');
       }
 
       // exact match
       if (request.requestedUri == uri) {
-        logger.shout(
-            'Redirect loop detected.', Exception('Redirect loop detected.'));
+        logger.shout('Redirect loop detected.',
+            Exception('Redirect loop detected (rq: ${request.requestedUri}).'));
         return rs;
       }
 
       // path + querystring match
       if (uri.toString().startsWith(uri.path) &&
           request.requestedUri.toString().endsWith(uri.toString())) {
-        logger.shout(
-            'Redirect loop detected.', Exception('Redirect loop detected.'));
+        logger.shout('Redirect loop detected.',
+            Exception('Redirect loop detected (rq: ${request.requestedUri}).'));
         return rs;
       }
     }
