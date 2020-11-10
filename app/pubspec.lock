@@ -226,7 +226,7 @@ packages:
     source: hosted
     version: "0.3.0"
   fake_gcloud:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       path: "../pkg/fake_gcloud"
       relative: true

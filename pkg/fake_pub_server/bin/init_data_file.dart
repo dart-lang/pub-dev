@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
-import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
@@ -52,19 +51,19 @@ Future<void> main(List<String> args) async {
 
   final state = LocalServerState(path: argv['data-file'] as String);
 
-  await fork(() async {
-    registerDbService(DatastoreDB(state.datastore));
-    registerStorageService(state.storage);
-    registerActiveConfiguration(Configuration.test());
-    await withPubServices(() async {
-      // ignore: invalid_use_of_visible_for_testing_member
-      await importProfile(profile: profile, archiveCachePath: archiveCachePath);
+  await withFakeServices(
+      configuration: Configuration.test(),
+      datastore: state.datastore,
+      storage: state.storage,
+      fn: () async {
+        // ignore: invalid_use_of_visible_for_testing_member
+        await importProfile(
+            profile: profile, archiveCachePath: archiveCachePath);
 
-      if (analyze) {
-        await _analyze();
-      }
-    });
-  });
+        if (analyze) {
+          await _analyze();
+        }
+      });
   await state.save();
 }
 
