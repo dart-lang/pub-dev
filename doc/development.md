@@ -1,5 +1,36 @@
 # Developing `pub.dev`
 
+## Local Development without external services
+
+The `pkg/fake_pub_server` project is able to run `pub-dev` with a local,
+in-memory Datastore and Storage service (being implemented in `pkg/fake_gcloud`).
+
+To initialize it with some minimal data, create the following file:
+
+```
+defaultUser: 'your-email@example.com'
+packages:
+  - name: retry
+  - name: http
+```
+
+Import the latest versions and their dependencies into a data file:
+
+```shell script
+cd pkg/fake_pub_server
+dart bin/init_data_file.dart \
+  --test-profile=[the file you have created] \
+  --analyze \
+  --data-file=dev-data-file.jsonl
+```
+
+After the data file has been created, you can start using it locally:
+
+```shell script
+cd pkg/fake_pub_server
+dart bin/fake_pub_server --data-file=dev-data-file.jsonl
+```
+
 ## Updating generated code
 The application and various packages uses
 [builders](https://pub.dev/packages/build) to generate code based on source
@@ -41,10 +72,8 @@ pub global run mono_repo pub get
 
 2. Run `pub global run mono_repo travis` from the root.
 
-3. Revert change in `tool/travis.sh`: always use `pub get` instead of `pub upgrade`.
 
-
-## Local Development
+## Local Development with Google AppEngine
 
 To run the default application (web frontend) locally, do the following steps:
 ```

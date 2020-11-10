@@ -39,9 +39,9 @@ Core dependency changes should have involve a change of the `versions.dart` file
 - customization changes (e.g. dartdoc template updates).
 
 On each change, the `runtimeVersion` should be updated. There is a test in
-`versions_test.dart` that calculates the hash of all the version, and it
-will fail if any one of them changes. The test is a reminder that we should
-also change the `runtimeVersion`.
+`versions_test.dart` that checks the `CHANGELOG.md`'s latest section whether
+such update happened, and also checks whether the current versions are
+mentioned in it.
 
 Some version upgrades doesn't need to modify other files (e.g. Flutter version
 or dartdoc customization), while others need to be updated at different places

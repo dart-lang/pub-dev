@@ -57,6 +57,9 @@ class FakeSearchService {
           });
           _logger.info('running on port $port');
 
+          // ignore: invalid_use_of_visible_for_testing_member
+          await indexUpdater.updateAllPackages();
+
           await ProcessSignal.sigint.watch().first;
 
           _logger.info('shutting down');
