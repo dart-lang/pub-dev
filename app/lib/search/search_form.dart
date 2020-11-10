@@ -126,7 +126,9 @@ class SearchForm {
   }) {
     if (sdk != null) {
       tagsPredicate ??= this.tagsPredicate ?? TagsPredicate();
-      tagsPredicate = tagsPredicate.removePrefix('sdk:');
+      tagsPredicate = tagsPredicate
+          .removePrefix('sdk:')
+          .withoutTag(PackageTags.isFlutterFavorite);
       if (SdkTagValue.isNotAny(sdk)) {
         tagsPredicate = tagsPredicate
             .appendPredicate(TagsPredicate(requiredTags: ['sdk:$sdk']));
@@ -188,6 +190,10 @@ class SearchForm {
     return values.isEmpty ? null : values.first;
   }
 
+  /// Returns whether the search is on Flutter Favorites.
+  bool get isFlutterFavorite =>
+      tagsPredicate.isRequiredTag(PackageTags.isFlutterFavorite);
+
   /// Converts the query to a user-facing link that the search form can use as
   /// the base path of its `action` parameter.
   String toSearchFormPath() {
@@ -195,7 +201,7 @@ class SearchForm {
     if (sdk != null) {
       path = '/$sdk/packages';
     }
-    if (tagsPredicate.isRequiredTag('is:flutter-favorite')) {
+    if (isFlutterFavorite) {
       path = '/flutter/favorites';
     }
     if (publisherId != null && publisherId.isNotEmpty) {
