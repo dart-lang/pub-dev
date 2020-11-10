@@ -70,9 +70,6 @@ void main() {
 
           // checking if there is a login button
           await page.hover('#-account-login');
-
-          // check uncaught exception
-          expect(headlessEnv.clientErrors.isEmpty, true);
         },
       );
     });
@@ -92,9 +89,6 @@ void main() {
             packages.add(text as String);
           }
           expect(packages, {'_dummy_pkg', 'retry'});
-
-          // check uncaught exception
-          expect(headlessEnv.clientErrors.isEmpty, true);
         },
       );
     });
@@ -133,9 +127,6 @@ void main() {
               'http://localhost:${fakePubServerProcess.port}/packages/retry/versions/2.0.01',
               wait: Until.networkIdle);
           await checkHeaderTitle();
-
-          // check uncaught exception
-          expect(headlessEnv.clientErrors.isEmpty, true);
         },
       );
     });

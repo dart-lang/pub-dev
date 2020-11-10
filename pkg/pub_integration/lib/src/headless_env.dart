@@ -16,6 +16,7 @@ class HeadlessEnv {
   final bool debug;
   Browser _browser;
   final clientErrors = <ClientError>[];
+  final serverErrors = <String>[];
   final bool trackCoverage;
   final _trackedPages = <Page>[];
 
@@ -86,6 +87,7 @@ class HeadlessEnv {
 
       startCSSCoverage();
     }
+
     page.onRequest.listen((rq) async {
       // soft-abort
       if (rq.url.startsWith('https://www.google-analytics.com/') ||
@@ -118,6 +120,13 @@ class HeadlessEnv {
       await rq.continueRequest();
     });
 
+    page.onResponse.listen((rs) {
+      if (rs.status >= 500) {
+        serverErrors
+            .add('${rs.status} ${rs.statusText} received on ${rs.request.url}');
+      }
+    });
+
     // print console messages
     page.onConsole.listen(print);
 
@@ -133,6 +142,7 @@ class HeadlessEnv {
       return await fn(page);
     } finally {
       await _closePage(page);
+      _verifyErrors();
     }
   }
 
@@ -158,6 +168,15 @@ class HeadlessEnv {
 
     await page.close();
     _trackedPages.remove(page);
+  }
+
+  void _verifyErrors() {
+    if (clientErrors.isNotEmpty) {
+      throw Exception('Client errors detected: ${clientErrors.first}');
+    }
+    if (serverErrors.isNotEmpty) {
+      throw Exception('Server errors detected: ${serverErrors.first}');
+    }
   }
 
   Future<void> close() async {
