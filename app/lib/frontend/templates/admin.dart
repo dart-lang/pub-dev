@@ -22,8 +22,12 @@ import 'publisher.dart' show renderPublisherList;
 /// Renders the `views/account/authorized.mustache` template.
 String renderAuthorizedPage() {
   final String content = templateCache.renderTemplate('account/authorized', {});
-  return renderLayoutPage(PageType.package, content,
-      title: 'Pub Authorized Successfully');
+  return renderLayoutPage(
+    PageType.package,
+    content,
+    title: 'Pub Authorized Successfully',
+    noIndex: true,
+  );
 }
 
 /// Renders the search results on the current user's packages page.

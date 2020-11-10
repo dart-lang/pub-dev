@@ -87,7 +87,6 @@ String renderPkgVersionsPage(
     content,
     title: '${data.package.name} package - All Versions',
     canonicalUrl: canonicalUrl,
-    shareUrl: canonicalUrl,
     pageData: pkgPageData(data.package, data.version),
     noIndex: data.package.isDiscontinued,
   );

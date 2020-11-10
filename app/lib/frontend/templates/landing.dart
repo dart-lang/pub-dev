@@ -44,6 +44,7 @@ String renderLandingPage({
     PageType.landing,
     content,
     title: 'Dart packages',
+    canonicalUrl: '/',
     mainClasses: ['landing-main'],
   );
 }

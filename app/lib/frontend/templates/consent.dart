@@ -24,6 +24,7 @@ String renderConsentPage({
     PageType.standalone,
     content,
     title: 'Consent',
+    noIndex: true,
     pageData: PageData(consentId: consentId),
   );
 }

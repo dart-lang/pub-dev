@@ -17,6 +17,9 @@ import 'layout.dart';
 /// The content of `/doc/policy.md`
 final _policyMarkdown = _readDocContent('policy.md');
 
+/// The content of `/doc/security.md`
+final _securityMarkdown = _readDocContent('security.md');
+
 /// The content of `/doc/help.md`
 final _helpMarkdown = _readDocContent('help.md');
 
@@ -64,6 +67,7 @@ String renderHelpPage() {
       sideImageUrl: static_files.staticUrls.packagesSideImage,
     ),
     title: 'Help | Dart packages',
+    canonicalUrl: '/help',
   );
 }
 
@@ -76,6 +80,7 @@ String renderHelpScoringPage() {
       sideImageUrl: static_files.staticUrls.packagesSideImage,
     ),
     title: 'Scoring | Dart packages',
+    canonicalUrl: '/help/scoring',
   );
 }
 
@@ -88,6 +93,7 @@ String renderHelpSearchPage() {
       sideImageUrl: static_files.staticUrls.packagesSideImage,
     ),
     title: 'Search | Dart packages',
+    canonicalUrl: '/help/search',
   );
 }
 
@@ -100,6 +106,7 @@ String renderHelpPublishingPage() {
       sideImageUrl: static_files.staticUrls.packagesSideImage,
     ),
     title: 'Publishing | Dart packages',
+    canonicalUrl: '/help/publishing',
   );
 }
 
@@ -115,16 +122,17 @@ String renderPolicyPage() {
     PageType.standalone,
     _renderStandalonePageContent(contentMarkdown: _policyMarkdown),
     title: 'Policy | Pub site',
+    canonicalUrl: '/policy',
   );
 }
 
 /// Renders the `views/page/security.mustache` template.
 String renderSecurityPage() {
-  final String content = templateCache.renderTemplate('page/security', {});
   return renderLayoutPage(
     PageType.standalone,
-    _renderStandalonePageContent(contentHtml: content),
+    _renderStandalonePageContent(contentMarkdown: _securityMarkdown),
     title: 'Security | Pub site',
+    canonicalUrl: '/security',
   );
 }
 
@@ -159,6 +167,7 @@ String renderErrorPage(String title, String message) {
     PageType.error,
     content,
     title: title,
+    noIndex: true,
   );
 }
 
