@@ -289,7 +289,7 @@ class MemDatastore implements Datastore {
         case 'key':
           return _decodeKey(value[key] as Map<String, dynamic>);
         case 'list':
-          return value['key'];
+          return value[key];
         default:
           throw UnimplementedError('Unknown key: $key');
       }
@@ -316,7 +316,8 @@ class MemDatastore implements Datastore {
         .map((e) => KeyElement(e['kind'] as String, e['id']))
         .toList();
     return Key(elements,
-        partition: partition == null ? null : Partition(partition));
+        partition:
+            partition == null ? Partition.DEFAULT : Partition(partition));
   }
 
   Map<String, dynamic> _encodeEntity(Entity entity) {
