@@ -246,7 +246,8 @@ String _renderPkgTitleContent(PackagePageData data) {
   return templateCache.renderTemplate('pkg/title_content', {
     'package': data.package.name,
     'version': data.version.version,
-    'show_prerelease': data.package.showPrereleaseVersion,
+    'show_prerelease':
+        data.isLatestStable && data.package.showPrereleaseVersion,
     'prerelease_version': data.package.latestPrereleaseVersion,
   });
 }
