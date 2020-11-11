@@ -191,7 +191,7 @@ class PackageBackend {
   /// Looks up a specific package version's asset object.
   ///
   /// Returns null if the [version] is not a semantic version or if the asset
-  /// entity does not exists in the datastore.
+  /// entity does not exists in the Datastore.
   Future<PackageVersionAsset> lookupPackageVersionAsset(
       String package, String version, String assetKind) async {
     version = canonicalizeVersion(version);
@@ -200,6 +200,18 @@ class PackageBackend {
     return await db.lookupValue<PackageVersionAsset>(
         db.emptyKey.append(PackageVersionAsset, id: qvk.assetId(assetKind)),
         orElse: () => null);
+  }
+
+  /// Looks up asset objects for the provided list of [keys].
+  ///
+  /// Returns `null` in the same index position if the asset entity does not
+  /// exists in the Datastore.
+  Future<List<PackageVersionAsset>> lookupPackageVersionAssets(
+      Iterable<QualifiedVersionKey> keys, String assetKind) async {
+    return await db.lookup<PackageVersionAsset>(keys
+        .map((k) =>
+            db.emptyKey.append(PackageVersionAsset, id: k.assetId(assetKind)))
+        .toList());
   }
 
   /// Looks up the latest versions of a list of packages.

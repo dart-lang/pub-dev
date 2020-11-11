@@ -14,15 +14,22 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../../package/backend.dart';
 import '../../package/models.dart';
 import '../../shared/configuration.dart';
+import '../../shared/redis_cache.dart';
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart';
 
 /// Handles requests for /feed.atom
 Future<shelf.Response> atomFeedHandler(shelf.Request request) async {
-  final versions = await packageBackend.latestPackageVersions(limit: 10);
-  final feed = feedFromPackageVersions(request.requestedUri, versions);
+  final feedContent = cache.atomFeedXml().get(() async {
+    final versions = await packageBackend.latestPackageVersions(limit: 10);
+    final assets = await packageBackend.lookupPackageVersionAssets(
+        versions.map((v) => v.qualifiedVersionKey), AssetKind.readme);
+    final feed =
+        _feedFromPackageVersions(request.requestedUri, versions, assets);
+    return feed.toXmlDocument();
+  });
   return shelf.Response.ok(
-    feed.toXmlDocument(),
+    feedContent,
     headers: {
       'content-type': 'application/atom+xml; charset="utf-8"',
       'x-content-type-options': 'nosniff',
@@ -124,8 +131,16 @@ class Feed {
   }
 }
 
-Feed feedFromPackageVersions(Uri requestedUri, List<PackageVersion> versions) {
-  final entries = versions.map((PackageVersion version) {
+Feed _feedFromPackageVersions(
+  Uri requestedUri,
+  List<PackageVersion> versions,
+  List<PackageVersionAsset> assets,
+) {
+  final entries = <FeedEntry>[];
+  for (var i = 0; i < versions.length; i++) {
+    final version = versions[i];
+    final asset = assets[i];
+
     final pkgPage = urls.pkgPageUrl(version.package);
     final alternateUrl =
         activeConfiguration.primarySiteUri.replace(path: pkgPage).toString();
@@ -137,17 +152,16 @@ Feed feedFromPackageVersions(Uri requestedUri, List<PackageVersion> versions) {
     final title = 'v${version.version} of ${version.package}';
 
     var content = 'No README Found';
-    if (version.readme != null) {
-      final filename = version.readme.filename;
-      content = version.readme.text;
-      if (filename.endsWith('.md')) {
+    if (asset != null) {
+      content = asset.textContent;
+      if (asset.path.endsWith('.md')) {
         content = md.markdownToHtml(content);
       }
     }
 
-    return FeedEntry(id, title, version.created, version.publisherId, content,
-        alternateUrl, alternateTitle);
-  }).toList();
+    entries.add(FeedEntry(id, title, version.created, version.publisherId,
+        content, alternateUrl, alternateTitle));
+  }
 
   final id =
       activeConfiguration.primarySiteUri.resolve('/feed.atom').toString();
