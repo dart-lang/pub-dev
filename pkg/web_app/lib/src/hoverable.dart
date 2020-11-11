@@ -66,7 +66,14 @@ void _setEventForPackageTitleCopyToClipboard() {
       // force unhover in case :hover was the trigger
       root.classes.add('unhover');
       await window.animationFrame;
+      // NOTE: keep in sync with _pkg.scss 0.3s animation
+      await Future.delayed(Duration(milliseconds: 300));
+      await window.animationFrame;
       root.classes.remove('unhover');
+      await window.animationFrame;
+      root.querySelector('.pkg-page-title-copy-dropdown').style.display = 'none';
+      await window.animationFrame;
+      root.querySelector('.pkg-page-title-copy-dropdown').style.display = 'block';
     });
   });
 }
