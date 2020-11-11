@@ -8,5 +8,8 @@
   <img class="pkg-page-title-copy-icon" src="{{& static_assets.img__content-copy-icon_svg }}" />
   <div class="pkg-page-title-copy-dropdown">
     <div class="pkg-page-title-copy-item">{{ package }}: ^{{ version }}</div>
+    {{#show_prerelease}}
+    <div class="pkg-page-title-copy-item">{{ package }}: ^{{ prerelease_version }}</div>
+    {{/show_prerelease}}
   </div>
 </span>

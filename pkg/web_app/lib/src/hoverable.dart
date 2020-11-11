@@ -53,6 +53,7 @@ void registerHoverable(Element h) {
 
 void _setEventForPackageTitleCopyToClipboard() {
   final root = document.querySelector('.pkg-page-title-copy-hoverable');
+  final dropdown = root?.querySelector('.pkg-page-title-copy-dropdown');
   root?.querySelectorAll('.pkg-page-title-copy-item')?.forEach((elem) {
     elem.onClick.listen((e) async {
       _copyToClipboard(elem.text.trim());
@@ -66,7 +67,14 @@ void _setEventForPackageTitleCopyToClipboard() {
       // force unhover in case :hover was the trigger
       root.classes.add('unhover');
       await window.animationFrame;
+      // NOTE: keep in sync with _pkg.scss 0.3s animation
+      await Future.delayed(Duration(milliseconds: 300));
+      await window.animationFrame;
       root.classes.remove('unhover');
+      await window.animationFrame;
+      dropdown.style.display = 'none';
+      await window.animationFrame;
+      dropdown.style.display = 'block';
     });
   });
 }
