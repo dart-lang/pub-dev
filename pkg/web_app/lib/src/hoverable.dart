@@ -53,6 +53,7 @@ void registerHoverable(Element h) {
 
 void _setEventForPackageTitleCopyToClipboard() {
   final root = document.querySelector('.pkg-page-title-copy-hoverable');
+  final dropdown = root?.querySelector('.pkg-page-title-copy-dropdown');
   root?.querySelectorAll('.pkg-page-title-copy-item')?.forEach((elem) {
     elem.onClick.listen((e) async {
       _copyToClipboard(elem.text.trim());
@@ -71,9 +72,9 @@ void _setEventForPackageTitleCopyToClipboard() {
       await window.animationFrame;
       root.classes.remove('unhover');
       await window.animationFrame;
-      root.querySelector('.pkg-page-title-copy-dropdown').style.display = 'none';
+      dropdown.style.display = 'none';
       await window.animationFrame;
-      root.querySelector('.pkg-page-title-copy-dropdown').style.display = 'block';
+      dropdown.style.display = 'block';
     });
   });
 }
