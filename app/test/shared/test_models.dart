@@ -5,7 +5,7 @@
 import 'dart:convert';
 
 import 'package:gcloud/db.dart';
-import 'package:pana/models.dart';
+import 'package:pana/models.dart' hide ReportStatus;
 import 'package:pub_semver/pub_semver.dart';
 
 import 'package:pub_dev/account/models.dart';

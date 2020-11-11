@@ -8,7 +8,7 @@ import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-import 'package:pana/pana.dart' hide Pubspec;
+import 'package:pana/pana.dart' hide Pubspec, ReportStatus;
 import 'package:path/path.dart' as p;
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
