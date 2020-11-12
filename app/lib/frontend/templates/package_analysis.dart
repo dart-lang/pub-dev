@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:meta/meta.dart';
-import 'package:pana/models.dart' show Report, ReportSection;
+import 'package:pana/models.dart' show Report, ReportSection, ReportStatus;
 
 import '../../analyzer/analyzer_client.dart';
-import '../../scorecard/models.dart';
+import '../../scorecard/models.dart' hide ReportStatus;
 import '../../shared/markdown.dart';
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart';
@@ -79,30 +79,28 @@ String _renderReport(Report report) {
 
   return templateCache.renderTemplate('pkg/analysis/report', {
     'sections': report.sections.map((s) {
-      final color = _classify(s);
+      final color = s.status ?? _classify(s);
       return {
         'title': s.title,
         'grantedPoints': s.grantedPoints,
         'maxPoints': s.maxPoints,
         'summary_html': renderSummary(s.summary),
         'event-id': 'toggle-report-section-${s.id}',
-        'is_green': color == _SectionColor.green,
-        'is_yellow': color == _SectionColor.yellow,
-        'is_red': color == _SectionColor.red,
+        'is_green': color == ReportStatus.passed,
+        'is_yellow': color == ReportStatus.partial,
+        'is_red': color == ReportStatus.failed,
       };
     }),
   });
 }
 
-enum _SectionColor { green, yellow, red }
-
-_SectionColor _classify(ReportSection s) {
+ReportStatus _classify(ReportSection s) {
   if (s.grantedPoints == s.maxPoints) {
-    return _SectionColor.green;
+    return ReportStatus.passed;
   } else if (s.grantedPoints > 0) {
-    return _SectionColor.yellow;
+    return ReportStatus.partial;
   } else {
-    return _SectionColor.red;
+    return ReportStatus.failed;
   }
 }
 

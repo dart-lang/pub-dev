@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-import 'package:pana/pana.dart';
+import 'package:pana/pana.dart' hide ReportStatus;
 
 import '../job/job.dart';
 import '../package/overrides.dart';

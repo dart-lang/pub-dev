@@ -5,7 +5,7 @@
 import 'dart:async';
 
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:pana/pana.dart';
+import 'package:pana/pana.dart' hide ReportStatus;
 
 import '../job/backend.dart';
 import '../scorecard/backend.dart';
