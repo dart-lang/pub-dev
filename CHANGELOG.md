@@ -2,9 +2,9 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bumped runtimeVersion to `2020.11.11`.
+ * Bumped runtimeVersion to `2020.11.12`.
  * Upgraded Dart analysis SDK to `2.12.0-29.0.dev`.
- * Upgraded pana to `0.14.6+1`.
+ * Upgraded pana to `0.14.7`.
 
 ## `20201110t141717-all`
  * Bumped runtimeVersion to `2020.11.05`.
