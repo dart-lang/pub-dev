@@ -12,17 +12,18 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:logging/logging.dart';
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
-import 'package:pub_dev/shared/tags.dart';
 
 import '../account/backend.dart';
 import '../analyzer/analyzer_client.dart';
 import '../dartdoc/dartdoc_client.dart';
+import '../package/backend.dart';
 import '../package/models.dart';
 import '../package/overrides.dart';
 import '../shared/datastore.dart';
 import '../shared/exceptions.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/storage.dart';
+import '../shared/tags.dart';
 import '../shared/versions.dart' as versions;
 
 import 'search_service.dart';
@@ -85,6 +86,8 @@ class SearchBackend {
     if (pv == null) {
       throw RemovedPackageException();
     }
+    final readmeAsset = await packageBackend.lookupPackageVersionAsset(
+        packageName, pv.version, AssetKind.readme);
 
     final analysisView =
         await analyzerClient.getAnalysisView(packageName, pv.version);
@@ -135,7 +138,7 @@ class SearchBackend {
       description: compactDescription(pv.pubspec.description),
       created: p.created,
       updated: pv.created,
-      readme: compactReadme(pv.readmeContent),
+      readme: compactReadme(readmeAsset?.textContent),
       popularity: popularity,
       likeCount: p.likes,
       grantedPoints: analysisView.report?.grantedPoints ?? 0,
