@@ -20,7 +20,7 @@ import '../../shared/utils.dart';
 
 /// Handles requests for /feed.atom
 Future<shelf.Response> atomFeedHandler(shelf.Request request) async {
-  final feedContent = cache.atomFeedXml().get(() async {
+  final feedContent = await cache.atomFeedXml().get(() async {
     final versions = await packageBackend.latestPackageVersions(limit: 10);
     final assets = await packageBackend.lookupPackageVersionAssets(
         versions.map((v) => v.qualifiedVersionKey), AssetKind.readme);
