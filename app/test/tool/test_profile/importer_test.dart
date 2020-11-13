@@ -8,14 +8,15 @@ import 'package:test/test.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/publisher/models.dart';
-import 'package:pub_dev/tool/test_profile/models.dart';
+import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/importer.dart';
+import 'package:pub_dev/tool/test_profile/models.dart';
 
 import '../../package/backend_test_utils.dart';
 import '../../shared/test_services.dart';
 
 void main() {
-  group('importer tests', () {
+  group('pub.dev importer tests', () {
     testWithServices(
       'retry',
       () async {
@@ -31,7 +32,10 @@ void main() {
         );
 
         await withTempDirectory((dir) async {
-          await importProfile(profile: profile, archiveCachePath: dir);
+          await importProfile(
+            profile: profile,
+            source: PubDevImportSource(archiveCachePath: dir),
+          );
         });
 
         final users = await dbService.query<User>().run().toList();
@@ -68,7 +72,10 @@ void main() {
         );
 
         await withTempDirectory((dir) async {
-          await importProfile(profile: profile, archiveCachePath: dir);
+          await importProfile(
+            profile: profile,
+            source: PubDevImportSource(archiveCachePath: dir),
+          );
         });
 
         final users = await dbService.query<User>().run().toList();
@@ -80,6 +87,44 @@ void main() {
         expect(packageNames, contains('http'));
         expect(packageNames, contains('http_parser'));
         expect(packageNames, contains('path'));
+
+        final publishers = await dbService.query<Publisher>().run().toList();
+        expect(publishers, isEmpty);
+
+        final members = await dbService.query<PublisherMember>().run().toList();
+        expect(members, isEmpty);
+      },
+      omitData: true,
+    );
+  });
+
+  group('semi-random importer tests', () {
+    testWithServices(
+      'sample',
+      () async {
+        final profile = TestProfile(
+          defaultUser: 'dev@example.com',
+          packages: [TestPackage(name: 'sample')],
+        );
+
+        await importProfile(
+          profile: profile,
+          source: SemiRandomImportSource(),
+        );
+
+        final users = await dbService.query<User>().run().toList();
+        expect(users.single.userId, '0378792c-a778-8b8d-b689-64e531ae52bc');
+        expect(users.single.oauthUserId, 'dev-at-example-dot-com');
+
+        final packages = await dbService.query<Package>().run().toList();
+        expect(packages.single.name, 'sample');
+        expect(packages.single.publisherId, isNull);
+        expect(packages.single.latestVersion, '1.2.7');
+
+        final versions = await dbService.query<PackageVersion>().run().toList();
+        expect(versions.single.version, '1.2.7');
+        expect(
+            versions.single.uploader, '0378792c-a778-8b8d-b689-64e531ae52bc');
 
         final publishers = await dbService.query<Publisher>().run().toList();
         expect(publishers, isEmpty);

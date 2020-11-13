@@ -16,6 +16,7 @@ import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/job/job.dart';
 import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/shared/configuration.dart';
+import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/importer.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 
@@ -58,7 +59,9 @@ Future<void> main(List<String> args) async {
       fn: () async {
         // ignore: invalid_use_of_visible_for_testing_member
         await importProfile(
-            profile: profile, archiveCachePath: archiveCachePath);
+          profile: profile,
+          source: PubDevImportSource(archiveCachePath: archiveCachePath),
+        );
 
         if (analyze) {
           await _analyze();

@@ -3,13 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:gcloud/service_scope.dart';
-import 'package:http/http.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as p;
 
 import 'package:client_data/package_api.dart';
 
@@ -18,23 +15,18 @@ import '../../account/models.dart';
 import '../../package/backend.dart';
 import '../../publisher/models.dart';
 import '../../shared/datastore.dart';
-import '../../shared/urls.dart' as urls;
 
+import 'import_source.dart';
 import 'models.dart';
 import 'normalizer.dart';
-import 'resolver.dart';
 
 /// Imports [profile] data into the Datastore.
 @visibleForTesting
 Future<void> importProfile({
   @required TestProfile profile,
-  List<ResolvedVersion> resolvedVersions,
-  @required String archiveCachePath,
+  @required ImportSource source,
 }) async {
-  // resolve versions if they are not yet resolved
-  if (resolvedVersions == null || resolvedVersions.isEmpty) {
-    resolvedVersions = await resolveVersions(profile);
-  }
+  final resolvedVersions = await source.resolveVersions(profile);
 
   // expand profile with resolved version information
   profile = normalize(profile, resolvedVersions: resolvedVersions);
@@ -80,27 +72,14 @@ Future<void> importProfile({
   }
 
   // create versions
-  Client client;
-  final archiveCacheDir = Directory(archiveCachePath);
-  await archiveCacheDir.create(recursive: true);
   for (final testPackage in profile.packages) {
     final packageName = testPackage.name;
     User lastActiveUser;
     for (final versionName in testPackage.versions) {
-      final archiveName = '$packageName-$versionName.tar.gz';
-      final file = File(p.join(archiveCacheDir.path, archiveName));
-      // download package archive if not already in the cache
-      if (!await file.exists()) {
-        client ??= Client();
-        final rs = await client.get(
-            '${urls.siteRoot}${urls.pkgArchiveDownloadUrl(packageName, versionName)}');
-        await file.writeAsBytes(rs.bodyBytes);
-      }
-
       // figure out the active user
       final uploaderEmails = _potentialActiveEmails(profile, packageName);
       final uploaderEmail =
-          uploaderEmails[archiveName.hashCode.abs() % uploaderEmails.length];
+          uploaderEmails[versionName.hashCode.abs() % uploaderEmails.length];
       final activeUser =
           await accountBackend.lookupUserById(_userIdFromEmail(uploaderEmail));
       lastActiveUser = activeUser;
@@ -109,7 +88,8 @@ Future<void> importProfile({
       await fork(() async {
         registerAuthenticatedUser(activeUser);
         // ignore: invalid_use_of_visible_for_testing_member
-        await packageBackend.upload(file.openRead());
+        await packageBackend.upload(Stream<List<int>>.fromFuture(
+            source.getArchiveBytes(packageName, versionName)));
       });
     }
 
@@ -134,7 +114,6 @@ Future<void> importProfile({
           ));
     });
   }
-  client?.close();
 
   // create likes
   for (final u in profile.users) {
@@ -151,6 +130,8 @@ Future<void> importProfile({
       )
     ]);
   }
+
+  await source.close();
 }
 
 List<String> _potentialActiveEmails(TestProfile profile, String packageName) {
