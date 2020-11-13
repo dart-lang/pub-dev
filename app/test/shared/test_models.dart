@@ -128,6 +128,55 @@ final foobarStablePV = PackageVersion()
   ..exampleContent = foobarExampleContent
   ..downloads = 0;
 
+final foobarStablePvInfo = PackageVersionInfo()
+  ..parentKey = foobarStablePV.parentKey.parent
+  ..initFromKey(foobarStablePV.qualifiedVersionKey)
+  ..versionCreated = foobarStablePV.created
+  ..updated = foobarStablePV.created
+  ..libraries = foobarStablePV.libraries
+  ..libraryCount = foobarStablePV.libraries.length
+  ..assets = [
+    AssetKind.readme,
+    AssetKind.changelog,
+    AssetKind.example,
+  ];
+
+final foobarDevPvInfo = PackageVersionInfo()
+  ..parentKey = foobarDevPV.parentKey.parent
+  ..initFromKey(foobarDevPV.qualifiedVersionKey)
+  ..versionCreated = foobarDevPV.created
+  ..updated = foobarDevPV.created
+  ..libraries = foobarDevPV.libraries
+  ..libraryCount = foobarDevPV.libraries.length
+  ..assets = [];
+
+final foobarAssets = {
+  AssetKind.readme: PackageVersionAsset.init(
+    package: foobarPkgName,
+    version: foobarStableVersion,
+    kind: AssetKind.readme,
+    versionCreated: foobarStablePV.created,
+    path: 'README.md',
+    textContent: foobarReadmeContent,
+  ),
+  AssetKind.changelog: PackageVersionAsset.init(
+    package: foobarPkgName,
+    version: foobarStableVersion,
+    kind: AssetKind.changelog,
+    versionCreated: foobarStablePV.created,
+    path: 'CHANGELOG.md',
+    textContent: foobarChangelogContent,
+  ),
+  AssetKind.example: PackageVersionAsset.init(
+    package: foobarPkgName,
+    version: foobarStableVersion,
+    kind: AssetKind.example,
+    versionCreated: foobarStablePV.created,
+    path: 'example/lib/main.dart',
+    textContent: foobarExampleContent,
+  ),
+};
+
 final PackageVersion flutterPackageVersion =
     _clonePackageVersion(foobarStablePV)
       ..created = DateTime.utc(2015)
@@ -208,10 +257,6 @@ dependencies:
 Iterable<Model> pvModels(PackageVersion pv) sync* {
   yield pv;
   yield _pvPubspec(pv);
-  yield pvToInfo(pv);
-  if (pv.readme != null) yield pvToAsset(pv, AssetKind.readme);
-  if (pv.changelog != null) yield pvToAsset(pv, AssetKind.changelog);
-  if (pv.example != null) yield pvToAsset(pv, AssetKind.example);
 }
 
 PackageVersionPubspec _pvPubspec(PackageVersion pv) {
@@ -236,31 +281,6 @@ PackageVersionInfo pvToInfo(PackageVersion pv) {
       if (pv.changelog != null) AssetKind.changelog,
       if (pv.example != null) AssetKind.example,
     ];
-}
-
-PackageVersionAsset pvToAsset(PackageVersion pv, String assetKind) {
-  PackageVersionAsset convert(FileObject file) {
-    if (file == null) return null;
-    return PackageVersionAsset.init(
-      package: pv.package,
-      version: pv.version,
-      kind: assetKind,
-      versionCreated: pv.created,
-      path: file.filename,
-      textContent: file.text,
-      updated: pv.created,
-    );
-  }
-
-  if (assetKind == AssetKind.readme) {
-    return convert(pv.readme);
-  } else if (assetKind == AssetKind.changelog) {
-    return convert(pv.changelog);
-  } else if (assetKind == AssetKind.example) {
-    return convert(pv.example);
-  } else {
-    throw ArgumentError('Unhandled asset kind: $assetKind');
-  }
 }
 
 final exampleComPublisher = publisher('example.com');
@@ -291,13 +311,25 @@ class PkgBundle {
   final Package package;
   final List<PackageVersion> versions;
   final PackageVersion latestStableVersion;
+  final List<PackageVersionInfo> infos;
+  final List<PackageVersionAsset> assets;
 
-  PkgBundle._(this.package, this.versions, this.latestStableVersion) {
+  PkgBundle._(
+    this.package,
+    this.versions,
+    this.latestStableVersion,
+    this.infos,
+    this.assets,
+  ) {
     assert(package.latestVersionKey != null);
     assert(package.latestPrereleaseVersionKey != null);
   }
 
-  factory PkgBundle(Package package, List<PackageVersion> versions) {
+  factory PkgBundle(
+    Package package,
+    List<PackageVersion> versions,
+    List<PackageVersionAsset> assets,
+  ) {
     versions.sort((a, b) => a.created.compareTo(b.created));
     final latestStableVersion = versions.lastWhere(
       (pv) => !pv.semanticVersion.isPreRelease,
@@ -315,7 +347,13 @@ class PkgBundle {
     package.latestPrereleaseVersionKey ??=
         latestDevVersion?.key ?? package.latestVersionKey;
 
-    return PkgBundle._(package, versions, latestStableVersion);
+    return PkgBundle._(
+      package,
+      versions,
+      latestStableVersion,
+      versions.map(pvToInfo).toList(),
+      assets,
+    );
   }
 
   String get packageName => package.name;
@@ -382,6 +420,7 @@ PkgBundle generateBundle(
 
   DateTime ts = DateTime(2014);
   final versions = <PackageVersion>[];
+  final assets = <PackageVersionAsset>[];
   for (String versionValue in versionValues) {
     final hash = (name.hashCode + versionValue.hashCode).abs();
     ts = ts.add(Duration(hours: hash % 177, minutes: hash % 60));
@@ -425,9 +464,39 @@ PkgBundle generateBundle(
       ..uploader = uploader.userId
       ..publisherId = publisherId;
     versions.add(version);
+    if (readme != null) {
+      assets.add(PackageVersionAsset.init(
+        package: name,
+        version: versionValue,
+        kind: AssetKind.readme,
+        versionCreated: ts,
+        path: 'README.md',
+        textContent: readme,
+      ));
+    }
+    if (changelog != null) {
+      assets.add(PackageVersionAsset.init(
+        package: name,
+        version: versionValue,
+        kind: AssetKind.changelog,
+        versionCreated: ts,
+        path: 'CHANGELOG.md',
+        textContent: changelog,
+      ));
+    }
+    if (example != null) {
+      assets.add(PackageVersionAsset.init(
+        package: name,
+        version: versionValue,
+        kind: AssetKind.example,
+        versionCreated: ts,
+        path: 'example/example.dart',
+        textContent: example,
+      ));
+    }
   }
 
-  return PkgBundle(package, versions);
+  return PkgBundle(package, versions, assets);
 }
 
 PanaReport generatePanaReport({List<String> derivedTags}) {

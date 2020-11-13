@@ -50,6 +50,8 @@ void main() {
     await dbService.commit(inserts: [
       control.package,
       ...control.versions,
+      ...control.infos,
+      ...control.assets,
       ...pvModels(control.versions.single),
     ]);
 
