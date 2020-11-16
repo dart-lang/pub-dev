@@ -232,6 +232,11 @@ class CachePatterns {
         encode: (PublisherPage list) => list.toJson(),
         decode: (data) => PublisherPage.fromJson(data as Map<String, dynamic>),
       ))['$userId'];
+
+  Entry<String> atomFeedXml() => _cache
+      .withPrefix('atom-feed-xml')
+      .withTTL(Duration(minutes: 3))
+      .withCodec(utf8)['/'];
 }
 
 /// The active cache.
