@@ -142,9 +142,8 @@ void main() {
           isLiked: false,
           uploaderEmails: foobarUploaderEmails,
           version: foobarStablePV,
-          versionInfo: pvToInfo(foobarStablePV),
-          asset:
-              assetKind == null ? null : pvToAsset(foobarStablePV, assetKind),
+          versionInfo: foobarStablePvInfo,
+          asset: assetKind == null ? null : foobarAssets[assetKind],
           analysis: AnalysisView(
             card: ScoreCardData(
               reportTypes: ['pana', 'dartdoc'],
@@ -237,8 +236,8 @@ void main() {
         isLiked: false,
         uploaderEmails: foobarUploaderEmails,
         version: foobarDevPV,
-        versionInfo: pvToInfo(foobarDevPV),
-        asset: pvToAsset(foobarDevPV, AssetKind.readme),
+        versionInfo: foobarDevPvInfo,
+        asset: null,
         analysis: AnalysisView(
           card: ScoreCardData(reportTypes: ['pana']),
           panaReport: PanaReport(
@@ -282,8 +281,8 @@ void main() {
         isLiked: false,
         uploaderEmails: foobarUploaderEmails,
         version: flutterPackageVersion,
-        versionInfo: pvToInfo(flutterPackageVersion),
-        asset: pvToAsset(flutterPackageVersion, AssetKind.readme),
+        versionInfo: foobarStablePvInfo,
+        asset: foobarAssets[AssetKind.readme],
         analysis: AnalysisView(
           card: ScoreCardData(
             popularityScore: 0.3,
@@ -312,8 +311,8 @@ void main() {
         isLiked: false,
         uploaderEmails: foobarUploaderEmails,
         version: foobarStablePV,
-        versionInfo: pvToInfo(foobarStablePV),
-        asset: pvToAsset(foobarStablePV, AssetKind.readme),
+        versionInfo: foobarStablePvInfo,
+        asset: foobarAssets[AssetKind.readme],
         analysis: AnalysisView(
           card: ScoreCardData(
             flags: [PackageFlags.isObsolete],
@@ -332,8 +331,8 @@ void main() {
         isLiked: false,
         uploaderEmails: foobarUploaderEmails,
         version: foobarStablePV,
-        versionInfo: pvToInfo(foobarStablePV),
-        asset: pvToAsset(foobarStablePV, AssetKind.readme),
+        versionInfo: foobarStablePvInfo,
+        asset: foobarAssets[AssetKind.readme],
         analysis: AnalysisView(
           card: ScoreCardData(
             flags: [PackageFlags.isDiscontinued],
@@ -355,8 +354,8 @@ void main() {
           joeUser.email,
         ],
         version: foobarStablePV,
-        versionInfo: pvToInfo(foobarStablePV),
-        asset: pvToAsset(foobarStablePV, AssetKind.readme),
+        versionInfo: foobarStablePvInfo,
+        asset: foobarAssets[AssetKind.readme],
         analysis: AnalysisView(
           card: ScoreCardData(
             popularityScore: 0.5,
@@ -376,7 +375,7 @@ void main() {
         uploaderEmails: <String>[],
         version: lithium.versions.last,
         versionInfo: pvToInfo(lithium.versions.last),
-        asset: pvToAsset(lithium.versions.last, AssetKind.readme),
+        asset: lithium.assets.lastWhere((a) => a.kind == AssetKind.readme),
         analysis: AnalysisView(
           card: ScoreCardData(
             updated: DateTime(2018, 02, 05),
@@ -510,7 +509,7 @@ void main() {
           package: foobarPackage,
           uploaderEmails: foobarUploaderEmails,
           version: foobarStablePV,
-          versionInfo: pvToInfo(foobarStablePV),
+          versionInfo: foobarStablePvInfo,
           asset: null,
           analysis: AnalysisView(
             card: ScoreCardData(
@@ -588,7 +587,7 @@ void main() {
           isLiked: false,
           uploaderEmails: foobarUploaderEmails,
           version: foobarStablePV,
-          versionInfo: pvToInfo(foobarStablePV),
+          versionInfo: foobarStablePvInfo,
           asset: null,
           analysis: AnalysisView(
             card: ScoreCardData(

@@ -205,6 +205,8 @@ void main() {
         await dbService.commit(inserts: [
           bundle.package,
           ...bundle.versions.map(pvModels).expand((m) => m),
+          ...bundle.infos,
+          ...bundle.assets,
         ]);
         await packageBackend.addUploader(pkg, newUploader);
         final list = await dbService.lookup<Package>([bundle.packageKey]);
@@ -296,6 +298,8 @@ void main() {
         await dbService.commit(inserts: [
           bundle.package,
           ...bundle.versions.map(pvModels).expand((m) => m),
+          ...bundle.infos,
+          ...bundle.assets,
         ]);
         final rs = packageBackend.inviteUploader(
             pkg, InviteUploaderRequest(email: newUploader));

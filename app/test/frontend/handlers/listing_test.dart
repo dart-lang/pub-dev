@@ -93,6 +93,8 @@ void main() {
         await dbService.commit(inserts: [
           bundle.package,
           ...bundle.versions.map(pvModels).expand((m) => m),
+          ...bundle.infos,
+          ...bundle.assets,
         ]);
       }
       await indexUpdater.updateAllPackages();
@@ -138,6 +140,8 @@ flutter:
         await dbService.commit(inserts: [
           bundle.package,
           ...bundle.versions.map(pvModels).expand((m) => m),
+          ...bundle.infos,
+          ...bundle.assets,
         ]);
       }
       await indexUpdater.updateAllPackages();
@@ -163,6 +167,8 @@ flutter:
         await dbService.commit(inserts: [
           bundle.package,
           ...bundle.versions.map(pvModels).expand((m) => m),
+          ...bundle.infos,
+          ...bundle.assets,
         ]);
       }
       await indexUpdater.updateAllPackages();
