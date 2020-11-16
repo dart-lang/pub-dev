@@ -197,11 +197,12 @@ String _renderSearchBanner({
 String renderSdkTabs({
   SearchForm searchForm,
 }) {
-  final currentSdk = searchForm?.sdk ?? SdkTagValue.any;
+  final isff = searchForm?.isFlutterFavorite ?? false;
+  final currentSdk = isff ? null : searchForm?.sdk ?? SdkTagValue.any;
   SearchTab sdkTabData(String label, String tabSdk, String title) {
     String url;
     if (searchForm != null) {
-      url = searchForm.change(sdk: tabSdk).toSearchLink();
+      url = searchForm.change(sdk: tabSdk, currentPage: 1).toSearchLink();
     } else {
       url = urls.searchUrl(sdk: tabSdk);
     }
