@@ -26,14 +26,27 @@ abstract class ImportSource {
 
   /// Close resources that were opened during the sourcing of data.
   Future<void> close();
+
+  /// Creates a source that resolves and downloads data from pub.dev.
+  static ImportSource fromPubDev({
+    @required String archiveCachePath,
+  }) {
+    return _PubDevImportSource(archiveCachePath: archiveCachePath);
+  }
+
+  /// Creates a source that generates data based on random seed, without any
+  /// network (or file) access.
+  static ImportSource semiRandom() {
+    return _SemiRandomImportSource();
+  }
 }
 
 /// Resolves and downloads data from pub.dev.
-class PubDevImportSource implements ImportSource {
+class _PubDevImportSource implements ImportSource {
   final String archiveCachePath;
   Client _client;
 
-  PubDevImportSource({
+  _PubDevImportSource({
     @required this.archiveCachePath,
   });
 
@@ -63,7 +76,7 @@ class PubDevImportSource implements ImportSource {
 }
 
 /// Generates data based on random seed, without any network (or file) access.
-class SemiRandomImportSource implements ImportSource {
+class _SemiRandomImportSource implements ImportSource {
   @override
   Future<List<ResolvedVersion>> resolveVersions(TestProfile profile) async {
     final versions = <ResolvedVersion>[];

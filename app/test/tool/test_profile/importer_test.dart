@@ -34,7 +34,7 @@ void main() {
         await withTempDirectory((dir) async {
           await importProfile(
             profile: profile,
-            source: PubDevImportSource(archiveCachePath: dir),
+            source: ImportSource.fromPubDev(archiveCachePath: dir),
           );
         });
 
@@ -74,7 +74,7 @@ void main() {
         await withTempDirectory((dir) async {
           await importProfile(
             profile: profile,
-            source: PubDevImportSource(archiveCachePath: dir),
+            source: ImportSource.fromPubDev(archiveCachePath: dir),
           );
         });
 
@@ -109,7 +109,7 @@ void main() {
 
         await importProfile(
           profile: profile,
-          source: SemiRandomImportSource(),
+          source: ImportSource.semiRandom(),
         );
 
         final users = await dbService.query<User>().run().toList();

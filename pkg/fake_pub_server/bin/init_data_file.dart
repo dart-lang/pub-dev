@@ -60,7 +60,7 @@ Future<void> main(List<String> args) async {
         // ignore: invalid_use_of_visible_for_testing_member
         await importProfile(
           profile: profile,
-          source: PubDevImportSource(archiveCachePath: archiveCachePath),
+          source: ImportSource.fromPubDev(archiveCachePath: archiveCachePath),
         );
 
         if (analyze) {
