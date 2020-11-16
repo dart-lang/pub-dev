@@ -6,7 +6,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:basics/basics.dart';
+import 'package:pana/pana.dart' show ToolEnvironment;
 import 'package:path/path.dart' as p;
+import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/utils.dart';
 
 import 'models.dart';
@@ -22,6 +24,12 @@ Future<List<ResolvedVersion>> resolveVersions(TestProfile profile) async {
     final pubCacheDir = Directory(p.join(temp.path, 'pub-cache'));
     await pubCacheDir.create();
 
+    final toolEnv = await ToolEnvironment.create(
+      dartSdkDir: envConfig.toolEnvDartSdkDir,
+      flutterSdkDir: envConfig.flutterSdkDir,
+      pubCacheDir: pubCacheDir.path,
+    );
+
     for (final package in profile.packages) {
       final versions = package.versions == null || package.versions.isEmpty
           ? <String>['any']
@@ -31,17 +39,13 @@ Future<List<ResolvedVersion>> resolveVersions(TestProfile profile) async {
         await dummyDir.create();
 
         final pubspecFile = File(p.join(dummyDir.path, 'pubspec.yaml'));
-        await pubspecFile
-            .writeAsString(_generateDummyPubspec(package.name, version));
+        await pubspecFile.writeAsString(_generateDummyPubspec(
+          package.name,
+          version,
+          minSdkVersion: toolEnv.runtimeInfo.sdkVersion,
+        ));
 
-        final pr = await Process.run(
-          'pub',
-          ['get'],
-          environment: {
-            'PUB_CACHE': pubCacheDir.path,
-          },
-          workingDirectory: dummyDir.path,
-        );
+        final pr = await toolEnv.runUpgrade(dummyDir.path, false);
         if (pr.exitCode != 0) {
           throw Exception(
               'pub get on `${package.name} $version` exited with ${pr.exitCode}.\n${pr.stderr}');
@@ -65,12 +69,17 @@ Future<List<ResolvedVersion>> resolveVersions(TestProfile profile) async {
   });
 }
 
-String _generateDummyPubspec(String package, String version) {
+String _generateDummyPubspec(
+  String package,
+  String version, {
+  String minSdkVersion,
+}) {
+  minSdkVersion ??= Platform.version.split(' ').first;
   return json.encode(
     {
       'name': '____dummy____',
       'environment': {
-        'sdk': '>=2.7.0 <3.0.0',
+        'sdk': '>=$minSdkVersion <3.0.0',
       },
       'dependencies': {
         package: version,
