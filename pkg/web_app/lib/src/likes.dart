@@ -8,8 +8,8 @@ import 'dart:html';
 import 'package:intl/intl.dart';
 import 'package:mdc_web/mdc_web.dart';
 
-import 'src/account.dart';
-import 'src/page_data.dart';
+import 'account.dart';
+import 'page_data.dart';
 
 Future<void> _done = Future.value();
 
