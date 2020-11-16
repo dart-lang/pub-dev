@@ -2,6 +2,9 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * NOTE: `PackageVersion`'s `readme`, `changelog` and `example` fields
+         are no longer used (and not updated on uploading a version).
+         TODO(deferred): run cleanup after the on or after release.
 
 ## `20201118t154758-all`
  * Enable experimental features related to null-safety.

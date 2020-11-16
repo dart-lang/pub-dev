@@ -374,7 +374,7 @@ void main() {
         isLiked: false,
         uploaderEmails: <String>[],
         version: lithium.versions.last,
-        versionInfo: pvToInfo(lithium.versions.last),
+        versionInfo: lithium.infos.last,
         asset: lithium.assets.lastWhere((a) => a.kind == AssetKind.readme),
         analysis: AnalysisView(
           card: ScoreCardData(

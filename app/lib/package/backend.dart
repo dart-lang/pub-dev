@@ -1122,12 +1122,6 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
     ..packageKey = packageKey
     ..created = DateTime.now().toUtc()
     ..pubspec = pubspec
-    ..readmeFilename = archive.readmePath
-    ..readmeContent = archive.readmeContent
-    ..changelogFilename = archive.changelogPath
-    ..changelogContent = archive.changelogContent
-    ..exampleFilename = archive.examplePath
-    ..exampleContent = archive.exampleContent
     ..libraries = archive.libraries
     ..downloads = 0
     ..uploader = user.userId;
