@@ -142,7 +142,7 @@ shelf.Handler _requestContextWrapper(shelf.Handler handler) {
     registerRequestContext(RequestContext(
       indentJson: indentJson,
       isExperimental: isExperimental,
-      isNullSafetyDisplayed: isExperimental,
+      isNullSafetyDisplayed: true,
       blockRobots: !enableRobots,
       uiCacheEnabled: uiCacheEnabled,
     ));
