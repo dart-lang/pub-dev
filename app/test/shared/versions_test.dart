@@ -100,17 +100,17 @@ void main() {
             'https://github.com/flutter/flutter.git \$FLUTTER_SDK'));
   });
 
-  test('Flutter is using a version from the stable channel.', () async {
+  test('Flutter is using a released version from any channel.', () async {
     final flutterArchive = await fetchFlutterArchive();
-    expect(
-        flutterArchive.releases.any(
-            (fr) => fr.version == flutterVersion && fr.channel == 'stable'),
+    expect(flutterArchive.releases.any((fr) => fr.version == flutterVersion),
         isTrue);
   });
 
   test(
     'Flutter is using the latest stable',
     () async {
+      // TODO: remove this check after we are using stable Flutter again
+      if (flutterVersion == '1.24.0-10.1.pre') return;
       final flutterArchive = await fetchFlutterArchive();
       final currentStable = flutterArchive.releases.firstWhere(
         (r) => r.hash == flutterArchive.currentRelease.stable,
