@@ -176,7 +176,7 @@ class CachePatterns {
       ))['$page'];
 
   Entry<PackageSearchResult> packageSearchResult(String url, {Duration ttl}) {
-    ttl ??= const Duration(minutes: 10);
+    ttl ??= const Duration(minutes: 1);
     return _cache
         .withPrefix('search-result')
         .withTTL(ttl)
