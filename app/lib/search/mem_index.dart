@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:meta/meta.dart';
@@ -30,6 +31,7 @@ class InMemoryPackageIndex implements PackageIndex {
   final TokenIndex _apiSymbolIndex = TokenIndex();
   final TokenIndex _apiDartdocIndex = TokenIndex();
   final _likeTracker = _LikeTracker();
+  final _updatedPackages = ListQueue<String>();
   final bool _alwaysUpdateLikeScores;
   DateTime _lastUpdated;
   bool _isReady = false;
@@ -52,7 +54,15 @@ class InMemoryPackageIndex implements PackageIndex {
       isReady: _isReady,
       packageCount: _packages.length,
       lastUpdated: _lastUpdated,
+      updatedPackages: _updatedPackages.toList(),
     );
+  }
+
+  void _trackUpdated(String package) {
+    while (_updatedPackages.length >= 20) {
+      _updatedPackages.removeFirst();
+    }
+    _updatedPackages.addLast(package);
   }
 
   @override
@@ -98,6 +108,7 @@ class InMemoryPackageIndex implements PackageIndex {
 
     await Future.delayed(Duration.zero);
     _lastUpdated = DateTime.now().toUtc();
+    _trackUpdated(doc.package);
   }
 
   @override
@@ -122,6 +133,7 @@ class InMemoryPackageIndex implements PackageIndex {
     }
     _likeTracker.removePackage(doc.package);
     _lastUpdated = DateTime.now().toUtc();
+    _trackUpdated('-$package');
   }
 
   @override

@@ -39,11 +39,13 @@ class IndexInfo {
   final bool isReady;
   final int packageCount;
   final DateTime lastUpdated;
+  final List<String> updatedPackages;
 
   IndexInfo({
     @required this.isReady,
     @required this.packageCount,
     @required this.lastUpdated,
+    @required this.updatedPackages,
   });
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -52,6 +54,7 @@ class IndexInfo {
         'lastUpdated': lastUpdated?.toIso8601String(),
         if (lastUpdated != null)
           'lastUpdateDelta': DateTime.now().difference(lastUpdated).toString(),
+        'updatedPackages': updatedPackages,
       };
 }
 
