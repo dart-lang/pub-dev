@@ -2,7 +2,7 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Enable experimental features relates to null-safety.
+ * Enable experimental features related to null-safety.
  * Decreased search page cache timeout to 1 minute.
 
 ## `20201117t150026-all`
