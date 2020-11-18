@@ -82,7 +82,7 @@ Future<shelf.Response> _searchHandler(shelf.Request request) async {
     final instance = envConfig.gaeInstance ?? '-';
     return jsonResponse({
       'gae': {
-        'version': envConfig.gaeInstance ?? '-',
+        'version': envConfig.gaeVersion ?? '-',
         'instanceHash': sha256.convert(utf8.encode(instance)).toString(),
       },
       'index': info.toJson(),
