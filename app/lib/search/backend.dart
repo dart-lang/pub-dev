@@ -114,6 +114,17 @@ class SearchBackend {
       ...prereleaseTags.map(PackageTags.convertToPrereleaseTag),
     ];
 
+    // This is a temporary workaround to expose latest stable versions with
+    // null-safety support.
+    // TODO: Cleanup after we've implemented better search support for this.
+    if (tags.contains(PackageVersionTags.isNullSafe)) {
+      final prereleaseTag =
+          PackageTags.convertToPrereleaseTag(PackageVersionTags.isNullSafe);
+      if (!tags.contains(prereleaseTag)) {
+        tags.add(prereleaseTag);
+      }
+    }
+
     final pubDataContent = await dartdocClient.getTextContent(
         packageName, 'latest', 'pub-data.json',
         timeout: const Duration(minutes: 1));
