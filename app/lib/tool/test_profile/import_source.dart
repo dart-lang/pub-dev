@@ -29,8 +29,9 @@ abstract class ImportSource {
 
   /// Creates a source that resolves and downloads data from pub.dev.
   static ImportSource fromPubDev({
-    @required String archiveCachePath,
+    String archiveCachePath,
   }) {
+    archiveCachePath ??= p.join('.dart_tool', 'pub-test-profile', 'archives');
     return _PubDevImportSource(archiveCachePath: archiveCachePath);
   }
 
