@@ -3,10 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
+import '../shared/configuration.dart';
 import '../shared/handlers.dart';
 
 import 'backend.dart';
@@ -72,6 +75,19 @@ Future<shelf.Response> _searchHandler(shelf.Request request) async {
     _logger.info(
         '[pub-slow-search-query] Slow search: handler exceeded ${_slowSearchThreshold.inMilliseconds} ms: '
         '${query.toUriQueryParameters()}');
+  }
+
+  if (request.requestedUri.queryParameters['debug-drift'] == '1') {
+    final info = await packageIndex.indexInfo();
+    final instance = envConfig.gaeInstance ?? '-';
+    return jsonResponse({
+      'gae': {
+        'version': envConfig.gaeInstance ?? '-',
+        'instanceHash': sha256.convert(utf8.encode(instance)).toString(),
+      },
+      'index': info.toJson(),
+      ...result.toJson(),
+    });
   }
 
   return jsonResponse(result.toJson());
