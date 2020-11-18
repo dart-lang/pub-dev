@@ -31,7 +31,7 @@ void main() {
       fn: () async {
         final users = await dbService.query<User>().run().toList();
         expect(users.single.userId, '0378792c-a778-8b8d-b689-64e531ae52bc');
-        expect(users.single.oauthUserId, 'dev-at-example-dot-com');
+        expect(users.single.oauthUserId, 'dev-example-com');
 
         final packages = await dbService.query<Package>().run().toList();
         expect(packages.single.name, 'retry');
@@ -63,7 +63,7 @@ void main() {
       fn: () async {
         final users = await dbService.query<User>().run().toList();
         expect(users.single.userId, '0378792c-a778-8b8d-b689-64e531ae52bc');
-        expect(users.single.oauthUserId, 'dev-at-example-dot-com');
+        expect(users.single.oauthUserId, 'dev-example-com');
 
         final packages = await dbService.query<Package>().run().toList();
         final packageNames = packages.map((p) => p.name).toSet();
@@ -90,7 +90,7 @@ void main() {
       fn: () async {
         final users = await dbService.query<User>().run().toList();
         expect(users.single.userId, '0378792c-a778-8b8d-b689-64e531ae52bc');
-        expect(users.single.oauthUserId, 'dev-at-example-dot-com');
+        expect(users.single.oauthUserId, 'dev-example-com');
 
         final packages = await dbService.query<Package>().run().toList();
         expect(packages.single.name, 'sample');
