@@ -319,6 +319,11 @@ class EnvConfig {
   ///
   /// Can be used to construct URLs for the given service.
   final String gaeVersion;
+
+  /// Instance of this service in AppEngine, `null` if running locally.
+  ///
+  /// NOTE: use only for narrow debug flows.
+  final String gaeInstance;
   final String gcloudKey;
   final String gcloudProject;
   final String toolEnvDartSdkDir;
@@ -329,6 +334,7 @@ class EnvConfig {
   EnvConfig._(
     this.gaeService,
     this.gaeVersion,
+    this.gaeInstance,
     this.gcloudProject,
     this.gcloudKey,
     this.toolEnvDartSdkDir,
@@ -345,6 +351,7 @@ class EnvConfig {
     return EnvConfig._(
       Platform.environment['GAE_SERVICE'],
       Platform.environment['GAE_VERSION'],
+      Platform.environment['GAE_INSTANCE'],
       Platform.environment['GCLOUD_PROJECT'],
       Platform.environment['GCLOUD_KEY'],
       Platform.environment['TOOL_ENV_DART_SDK'],
