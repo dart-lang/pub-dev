@@ -8,9 +8,11 @@ import 'dart:io';
 import 'package:http/http.dart';
 import 'package:meta/meta.dart';
 
+import 'package:pub_validations/html/html_validation.dart';
+
 /// Simple pub client library.
 class PubHttpClient {
-  final _http = Client();
+  final _http = _HtmlVerifierHttpClient(Client());
   final String pubHostedUrl;
 
   PubHttpClient(this.pubHostedUrl) {
@@ -211,5 +213,41 @@ class PubHttpClient {
   /// Free resources.
   Future<void> close() async {
     _http.close();
+  }
+}
+
+/// Verifies each HTML response.
+class _HtmlVerifierHttpClient extends BaseClient {
+  final Client _delegate;
+
+  _HtmlVerifierHttpClient(this._delegate);
+
+  @override
+  Future<StreamedResponse> send(BaseRequest request) async {
+    final rs = await _delegate.send(request);
+    final contentType = rs.headers[HttpHeaders.contentTypeHeader];
+    if (rs.statusCode == 200 &&
+        contentType != null &&
+        contentType.contains('text/html')) {
+      final body = await rs.stream.bytesToString();
+      parseAndValidateHtml(body);
+      return StreamedResponse(
+        ByteStream.fromBytes(utf8.encode(body)),
+        rs.statusCode,
+        contentLength: rs.contentLength,
+        headers: rs.headers,
+        isRedirect: rs.isRedirect,
+        persistentConnection: rs.persistentConnection,
+        reasonPhrase: rs.reasonPhrase,
+        request: rs.request,
+      );
+    }
+    return rs;
+  }
+
+  @override
+  void close() {
+    super.close();
+    _delegate.close();
   }
 }

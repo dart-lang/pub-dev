@@ -1,0 +1,13 @@
+name: pub_validations
+description: Shared validation for pub.dev
+publish_to: none
+
+environment:
+  sdk: '>=2.10.0 <3.0.0'
+
+dependencies:
+  html: ^0.14.0
+  meta: ^1.0.0
+
+dev_dependencies:
+  test: ^1.5.1

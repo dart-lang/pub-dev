@@ -31,7 +31,7 @@ import 'package:pub_dev/scorecard/models.dart';
 import 'package:pub_dev/search/search_form.dart';
 import 'package:pub_dev/search/search_service.dart';
 import 'package:pub_dev/shared/versions.dart';
-import 'package:pub_dev/tool/html/html_validation.dart';
+import 'package:pub_validations/html/html_validation.dart';
 
 import '../shared/test_models.dart';
 import '../shared/utils.dart';

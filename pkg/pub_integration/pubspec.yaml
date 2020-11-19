@@ -11,6 +11,8 @@ dependencies:
   meta: ^1.0.0
   path: ^1.0.0
   pub_semver: ^1.4.2
+  pub_validations:
+    path: ../pub_validations
   puppeteer: ^1.13.0
 
 dev_dependencies:
