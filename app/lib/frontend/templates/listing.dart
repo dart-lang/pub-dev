@@ -16,8 +16,6 @@ import '../../search/search_service.dart';
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
-import '../request_context.dart';
-
 import '_cache.dart';
 import '_consts.dart';
 import '_utils.dart';
@@ -59,8 +57,7 @@ String renderPackageList(
         view.tags.contains(PackageTags.isFlutterFavorite)
             ? renderFlutterFavoriteBadge()
             : null;
-    final isNullSafe = requestContext.isNullSafetyDisplayed &&
-        view.tags.contains(PackageVersionTags.isNullSafe);
+    final isNullSafe = view.tags.contains(PackageVersionTags.isNullSafe);
     final nullSafeBadgeHtml = isNullSafe ? renderNullSafeBadge() : null;
     packagesJson.add({
       'url': view.url ?? urls.pkgPageUrl(view.name),
@@ -134,8 +131,7 @@ String renderPkgIndexPage(
   final includeDiscontinued = searchForm?.includeDiscontinued ?? false;
   final includeUnlisted = searchForm?.includeUnlisted ?? false;
   final includeLegacy = searchForm?.includeLegacy ?? false;
-  final prereleaseNullSafe = requestContext.isNullSafetyDisplayed &&
-      (searchForm?.prereleaseNullSafe ?? false);
+  final prereleaseNullSafe = searchForm?.prereleaseNullSafe ?? false;
   final subSdkTabsAdvanced =
       renderSubSdkTabsHtml(searchForm: searchForm, onlyAdvanced: true);
   // TODO: There should be a more efficient way to calculate this
@@ -166,7 +162,6 @@ String renderPkgIndexPage(
     'include_discontinued': includeDiscontinued,
     'include_unlisted': includeUnlisted,
     'show_legacy_checkbox': SdkTagValue.isAny(sdk),
-    'show_prerelease_null_safe_checkbox': requestContext.isNullSafetyDisplayed,
     'prerelease_null_safe': prereleaseNullSafe,
     'include_legacy': includeLegacy,
   };

@@ -18,7 +18,6 @@ import '../../shared/email.dart' show EmailAddress;
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
-import '../request_context.dart';
 import '../static_files.dart';
 
 import '_cache.dart';
@@ -208,7 +207,7 @@ String renderPkgHeader(PackagePageData data) {
   final bool showPrereleaseVersion = package.showPrereleaseVersion;
   final bool showUpdated = !data.isLatestStable || showPrereleaseVersion;
 
-  final isNullSafe = requestContext.isNullSafetyDisplayed &&
+  final isNullSafe =
       data.toPackageView().tags.contains(PackageVersionTags.isNullSafe);
   final nullSafeBadgeHtml = isNullSafe ? renderNullSafeBadge() : null;
 
