@@ -272,7 +272,7 @@ class AuthenticationException extends ResponseException {
   /// Signaling that `authorization` header was missing.
   factory AuthenticationException.authenticationRequired() =>
       AuthenticationException._(
-          'Authenication is required, please add `authorization` header.');
+          'Authentication is required, please add `authorization` header.');
 
   /// Signaling that `accessToken` payload was missing or could not be authenticated.
   factory AuthenticationException.accessTokenInvalid() =>
