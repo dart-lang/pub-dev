@@ -117,10 +117,6 @@ void main() {
         final pv = (await dbService.lookup<PackageVersion>([pvKey])).single;
         expect(pv.packageKey, package.key);
         expect(pv.created.compareTo(dateBeforeTest) >= 0, isTrue);
-        expect(pv.readmeFilename, 'README.md');
-        expect(pv.readmeContent, foobarReadmeContent);
-        expect(pv.changelogFilename, 'CHANGELOG.md');
-        expect(pv.changelogContent, foobarChangelogContent);
         expect(pv.pubspec.asJson, loadYaml(pubspecContent));
         expect(pv.libraries, ['test_library.dart']);
         expect(pv.uploader, 'hans-at-juergen-dot-com');
@@ -135,7 +131,19 @@ void main() {
             contains('https://pub.dev/packages/new_package/versions/1.2.3\n'));
 
         // TODO: check history
-        // TODO: check assets
+
+        final assets = await dbService
+            .query<PackageVersionAsset>()
+            .run()
+            .where((pva) => pva.qualifiedVersionKey == pv.qualifiedVersionKey)
+            .toList();
+        final readme = assets.firstWhere((pva) => pva.kind == AssetKind.readme);
+        expect(readme.path, 'README.md');
+        expect(readme.textContent, foobarReadmeContent);
+        final changelog =
+            assets.firstWhere((pva) => pva.kind == AssetKind.changelog);
+        expect(changelog.path, 'CHANGELOG.md');
+        expect(changelog.textContent, foobarChangelogContent);
       });
 
       testWithServices('package under publisher', () async {
@@ -163,10 +171,6 @@ void main() {
         final pv = (await dbService.lookup<PackageVersion>([pvKey])).single;
         expect(pv.packageKey, package.key);
         expect(pv.created.compareTo(dateBeforeTest) >= 0, isTrue);
-        expect(pv.readmeFilename, 'README.md');
-        expect(pv.readmeContent, foobarReadmeContent);
-        expect(pv.changelogFilename, 'CHANGELOG.md');
-        expect(pv.changelogContent, foobarChangelogContent);
         expect(pv.pubspec.asJson, loadYaml(pubspecContent));
         expect(pv.libraries, ['test_library.dart']);
         expect(pv.uploader, 'hans-at-juergen-dot-com');
@@ -181,7 +185,19 @@ void main() {
             contains('https://pub.dev/packages/lithium/versions/7.0.0\n'));
 
         // TODO: check history
-        // TODO: check assets
+
+        final assets = await dbService
+            .query<PackageVersionAsset>()
+            .run()
+            .where((pva) => pva.qualifiedVersionKey == pv.qualifiedVersionKey)
+            .toList();
+        final readme = assets.firstWhere((pva) => pva.kind == AssetKind.readme);
+        expect(readme.path, 'README.md');
+        expect(readme.textContent, foobarReadmeContent);
+        final changelog =
+            assets.firstWhere((pva) => pva.kind == AssetKind.changelog);
+        expect(changelog.path, 'CHANGELOG.md');
+        expect(changelog.textContent, foobarChangelogContent);
       });
     });
 

@@ -120,12 +120,6 @@ final foobarStablePV = PackageVersion()
   ..uploader = hansUser.userId
   ..libraries = ['foolib.dart']
   ..pubspec = Pubspec.fromYaml(foobarStablePubspec)
-  ..readmeFilename = 'README.md'
-  ..readmeContent = foobarReadmeContent
-  ..changelogFilename = 'CHANGELOG.md'
-  ..changelogContent = foobarChangelogContent
-  ..exampleFilename = 'example/lib/main.dart'
-  ..exampleContent = foobarExampleContent
   ..downloads = 0;
 
 final foobarStablePvInfo = PackageVersionInfo()
@@ -201,10 +195,6 @@ PackageVersion _clonePackageVersion(PackageVersion original) => PackageVersion()
   ..uploader = original.uploader
   ..libraries = original.libraries
   ..pubspec = original.pubspec
-  ..readmeFilename = original.readmeFilename
-  ..readmeContent = original.readmeContent
-  ..changelogFilename = original.changelogFilename
-  ..changelogContent = original.changelogContent
   ..downloads = original.downloads;
 
 final moderatedPackage = ModeratedPackage()
@@ -268,7 +258,7 @@ PackageVersionPubspec _pvPubspec(PackageVersion pv) {
     ..pubspec = pv.pubspec;
 }
 
-PackageVersionInfo pvToInfo(PackageVersion pv) {
+PackageVersionInfo _pvToInfo(PackageVersion pv, {List<String> assets}) {
   return PackageVersionInfo()
     ..parentKey = pv.parentKey.parent
     ..initFromKey(pv.qualifiedVersionKey)
@@ -276,11 +266,12 @@ PackageVersionInfo pvToInfo(PackageVersion pv) {
     ..updated = pv.created
     ..libraries = pv.libraries
     ..libraryCount = pv.libraries.length
-    ..assets = [
-      if (pv.readme != null) AssetKind.readme,
-      if (pv.changelog != null) AssetKind.changelog,
-      if (pv.example != null) AssetKind.example,
-    ];
+    ..assets = assets ??
+        <String>[
+          AssetKind.readme,
+          AssetKind.changelog,
+          AssetKind.example,
+        ];
 }
 
 final exampleComPublisher = publisher('example.com');
@@ -328,6 +319,7 @@ class PkgBundle {
   factory PkgBundle(
     Package package,
     List<PackageVersion> versions,
+    List<PackageVersionInfo> infos,
     List<PackageVersionAsset> assets,
   ) {
     versions.sort((a, b) => a.created.compareTo(b.created));
@@ -351,7 +343,7 @@ class PkgBundle {
       package,
       versions,
       latestStableVersion,
-      versions.map(pvToInfo).toList(),
+      infos,
       assets,
     );
   }
@@ -420,6 +412,7 @@ PkgBundle generateBundle(
 
   DateTime ts = DateTime(2014);
   final versions = <PackageVersion>[];
+  final infos = <PackageVersionInfo>[];
   final assets = <PackageVersionAsset>[];
   for (String versionValue in versionValues) {
     final hash = (name.hashCode + versionValue.hashCode).abs();
@@ -453,17 +446,16 @@ PkgBundle generateBundle(
       ..version = versionValue
       ..created = ts
       ..pubspec = Pubspec.fromYaml(pubspec)
-      ..readmeFilename = readme == null ? null : 'README.md'
-      ..readmeContent = readme
-      ..changelogFilename = changelog == null ? null : 'CHANGELOG.md'
-      ..changelogContent = changelog
-      ..exampleFilename = example == null ? null : 'example/example.dart'
-      ..exampleContent = example
       ..libraries = ['lib/$name.dart']
       ..downloads = 0
       ..uploader = uploader.userId
       ..publisherId = publisherId;
     versions.add(version);
+    infos.add(_pvToInfo(version, assets: [
+      if (readme != null) AssetKind.readme,
+      if (changelog != null) AssetKind.changelog,
+      if (example != null) AssetKind.example,
+    ]));
     if (readme != null) {
       assets.add(PackageVersionAsset.init(
         package: name,
@@ -496,7 +488,7 @@ PkgBundle generateBundle(
     }
   }
 
-  return PkgBundle(package, versions, assets);
+  return PkgBundle(package, versions, infos, assets);
 }
 
 PanaReport generatePanaReport({List<String> derivedTags}) {

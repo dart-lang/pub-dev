@@ -30,7 +30,8 @@ Future main(List<String> args) async {
   if (argv['help'] as bool == true) {
     print('Usage: dart clear_package_properties.dart');
     print('Deletes unmapped properties from the following entry types: '
-        'Package, PackageVersion.');
+        'Package, PackageVersion, '
+        'PackageVersionPubspec, PackageVersionInfo, PackageVersionAsset.');
     print(_argParser.usage);
     return;
   }
@@ -82,6 +83,10 @@ Future _processPackage(Package package) async {
   final infoQuery = dbService.query<PackageVersionInfo>()
     ..filter('package =', package.name);
   await _processWithQuery(infoQuery);
+
+  final assetQuery = dbService.query<PackageVersionAsset>()
+    ..filter('package =', package.name);
+  await _processWithQuery(assetQuery);
 
   await _clearAdditionalProperties(package);
 }
