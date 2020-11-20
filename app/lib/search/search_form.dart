@@ -282,7 +282,11 @@ SearchForm parseFrontendSearchForm(
     currentPage: currentPage,
     includeDiscontinued: queryParameters['discontinued'] == '1',
     includeUnlisted: queryParameters['unlisted'] == '1',
-    includeLegacy: queryParameters['legacy'] == '1' && SdkTagValue.isAny(sdk),
+    // legacy URL parameter should be enabled only on the default /packages page
+    includeLegacy: publisherId == null &&
+        uploaderOrPublishers == null &&
+        queryParameters['legacy'] == '1' &&
+        SdkTagValue.isAny(sdk),
     prereleaseNullSafe: queryParameters['prerelease-null-safe'] == '1',
     tagsPredicate: tagsPredicate,
   );
