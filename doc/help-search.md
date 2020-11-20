@@ -40,12 +40,7 @@ specificity and the text match score of the search team.
 ## Legacy packages
 
 `pub.dev` does not expose packages that support only Dart SDK 1.x in search results
-or in listing pages. One can access these packages through their package page
-(`/packages/<pkg>`) and `pub` client can download them.
+or in listing pages. However, one can access these packages through their package
+page (`/packages/<pkg>`) and `pub` client can download them.
 
-You can use the following options to search for these packages:
-- Add `legacy=1` query parameter to the URL ([example](https://pub.dev/packages?legacy=1)).
-  This will include legacy packages in your search listing.
-- Add `legacy=1` query parameter and also add `is:legacy` to your search query
-  ([example](https://pub.dev/packages?q=is%3Alegacy&legacy=1)). This will list
-  only the packages that are marked as legacy.
+To search for such packages, include `is:legacy` in the search query.
