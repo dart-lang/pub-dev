@@ -9,6 +9,8 @@ import 'package:puppeteer/puppeteer.dart';
 // ignore: implementation_imports
 import 'package:puppeteer/src/page/page.dart' show ClientError;
 
+import 'package:pub_validations/html/html_validation.dart';
+
 /// Creates and tracks the headless Chrome environment, its temp directories and
 /// and uncaught exceptions.
 class HeadlessEnv {
@@ -120,10 +122,21 @@ class HeadlessEnv {
       await rq.continueRequest();
     });
 
-    page.onResponse.listen((rs) {
+    page.onResponse.listen((rs) async {
       if (rs.status >= 500) {
         serverErrors
             .add('${rs.status} ${rs.statusText} received on ${rs.request.url}');
+      }
+
+      final contentType = rs.headers[HttpHeaders.contentTypeHeader];
+      if (rs.status == 200 &&
+          contentType != null &&
+          contentType.contains('text/html')) {
+        try {
+          parseAndValidateHtml(await rs.text);
+        } catch (e) {
+          serverErrors.add('${rs.request.url} returned bad HTML: $e');
+        }
       }
     });
 

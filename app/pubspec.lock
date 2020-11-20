@@ -519,6 +519,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.4.4"
+  pub_validations:
+    dependency: "direct dev"
+    description:
+      path: "../pkg/pub_validations"
+      relative: true
+    source: path
+    version: "0.0.0"
   pubspec_parse:
     dependency: "direct main"
     description:
@@ -758,4 +765,4 @@ packages:
     source: hosted
     version: "2.2.1"
 sdks:
-  dart: ">=2.10.0-93.0.dev <3.0.0"
+  dart: ">=2.10.0 <3.0.0"

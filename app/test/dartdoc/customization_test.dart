@@ -11,7 +11,7 @@ import 'package:xml/xml.dart';
 
 import 'package:pub_dev/dartdoc/customization.dart';
 import 'package:pub_dev/frontend/static_files.dart';
-import 'package:pub_dev/tool/html/html_validation.dart';
+import 'package:pub_validations/html/html_validation.dart';
 
 const String goldenDir = 'test/dartdoc/golden';
 

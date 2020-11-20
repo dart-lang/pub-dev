@@ -15,7 +15,10 @@ import 'package:html/parser.dart' as parser;
 /// - `<script> tags have no `src` attribute or have content (except `ld+json`
 ///   meta content).
 void parseAndValidateHtml(String html) {
-  validateHtml(parser.parse(html));
+  if (html.startsWith('<html>')) {
+    html = '<!DOCTYPE html>\n$html';
+  }
+  validateHtml(parser.HtmlParser(html, strict: true).parse());
 }
 
 /// Validates the parsed HTML content and throws ArgumentError if any of the
@@ -95,7 +98,7 @@ void _validateHead(Element head) {
       .querySelectorAll('link')
       .where((e) => e.attributes['rel'] == 'canonical')
       .toList();
-  if (canonicalLinks.length > 2) {
+  if (canonicalLinks.length > 1) {
     throw ArgumentError('More than one canonical link was specified.');
   }
   if (canonicalLinks.length == 1) {

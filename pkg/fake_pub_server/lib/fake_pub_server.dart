@@ -25,7 +25,6 @@ import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/service/spam/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/handler_helpers.dart';
-import 'package:pub_dev/tool/html/html_validation.dart';
 
 final _logger = Logger('fake_server');
 
@@ -90,10 +89,6 @@ Future<shelf.Response> _validateAndWrapResponse(
   if (ct == null || ct.isEmpty) {
     // TODO: force headers everywhere and throw exception instead of logging
     _logger.warning('Content type header is missing for ${rq.requestedUri}.');
-  } else if (ct.contains('text/html')) {
-    final body = await rs.readAsString();
-    parseAndValidateHtml(body);
-    return rs.change(body: body);
   }
   return null;
 }
