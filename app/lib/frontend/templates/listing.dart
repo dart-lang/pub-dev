@@ -130,7 +130,6 @@ String renderPkgIndexPage(
   final isSearch = searchForm != null && searchForm.hasQuery;
   final includeDiscontinued = searchForm?.includeDiscontinued ?? false;
   final includeUnlisted = searchForm?.includeUnlisted ?? false;
-  final includeLegacy = searchForm?.includeLegacy ?? false;
   final prereleaseNullSafe = searchForm?.prereleaseNullSafe ?? false;
   final subSdkTabsAdvanced =
       renderSubSdkTabsHtml(searchForm: searchForm, onlyAdvanced: true);
@@ -139,7 +138,6 @@ String renderPkgIndexPage(
       subSdkTabsAdvanced != null && subSdkTabsAdvanced.contains('-active');
   final hasActiveAdvanced = includeDiscontinued ||
       includeUnlisted ||
-      includeLegacy ||
       hasActiveSubSdkAdvanced ||
       prereleaseNullSafe;
   final values = {
@@ -161,9 +159,7 @@ String renderPkgIndexPage(
     'pagination': renderPagination(links),
     'include_discontinued': includeDiscontinued,
     'include_unlisted': includeUnlisted,
-    'show_legacy_checkbox': SdkTagValue.isAny(sdk),
     'prerelease_null_safe': prereleaseNullSafe,
-    'include_legacy': includeLegacy,
   };
   final content = templateCache.renderTemplate('pkg/index', values);
 

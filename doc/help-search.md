@@ -36,3 +36,11 @@ The search UI also supports filters:
 Default listings use a composite of the three scores to sort packages. The
 ranking is based on the composite score, and if applicable, the platform
 specificity and the text match score of the search team.
+
+## Legacy packages
+
+`pub.dev` does not expose packages that support only Dart SDK 1.x in search results
+or in listing pages. However, one can access these packages through their package
+page (`/packages/<pkg>`) and `pub` client can download them.
+
+To search for such packages, include `is:legacy` in the search query.
