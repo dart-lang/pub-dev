@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:gcloud/db.dart';
 import 'package:pana/models.dart' hide ReportStatus;
+import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import 'package:pub_dev/account/models.dart';
@@ -13,6 +14,38 @@ import 'package:pub_dev/package/model_properties.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/scorecard/models.dart';
+
+final defaultTestProfile = TestProfile(
+  defaultUser: 'admin@pub.dev',
+  packages: [
+    TestPackage(
+      name: 'oxygen',
+      versions: [
+        '1.0.0',
+        '1.2.0',
+        '2.0.0-dev',
+      ],
+    ),
+    TestPackage(
+      name: 'neon',
+      versions: ['1.0.0'],
+      publisher: 'example.com',
+    ),
+  ],
+  users: [
+    TestUser(
+      email: 'admin@pub.dev',
+      likes: [],
+    ),
+    TestUser(
+      email: 'user@pub.dev',
+      likes: [],
+    ),
+  ],
+);
+
+final adminAtPubDevAuthToken = 'admin-at-pub-dot-dev';
+final userAtPubDevAuthToken = 'user-at-pub-dot-dev';
 
 // regular package
 final hydrogen = generateBundle('hydrogen', generateVersions(13, increment: 9));

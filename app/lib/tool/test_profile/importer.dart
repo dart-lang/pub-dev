@@ -33,7 +33,10 @@ Future<void> importProfile({
 
   // create users
   for (final u in profile.users) {
-    final oauthUserId = u.oauthUserId ?? _baseIdFromEmail(u.email);
+    // The default oauthUserId is following the same pattern as we have in
+    // `fake_auth_provider.dart`.
+    final oauthUserId =
+        u.oauthUserId ?? u.email.replaceAll('.', '-').replaceAll('@', '-');
     final userId = _userIdFromEmail(u.email);
     await dbService.commit(inserts: [
       User()
@@ -146,9 +149,6 @@ List<String> _potentialActiveEmails(TestProfile profile, String packageName) {
       .members;
   return members.map((m) => m.email).toList();
 }
-
-String _baseIdFromEmail(String email) =>
-    email.replaceAll('.', '-dot-').replaceAll('@', '-at-');
 
 String _userIdFromEmail(String email) {
   final hash = sha1.convert(utf8.encode('email-$email')).toString();

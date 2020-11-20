@@ -10,50 +10,50 @@ import '../shared/test_services.dart';
 
 void main() {
   group('/api/account/options', () {
-    testWithServices('package - no user', () async {
+    testWithProfile('package - no user', fn: () async {
       final client = createPubApiClient();
-      final rs = client.accountPackageOptions('hydrogen');
+      final rs = client.accountPackageOptions('oxygen');
       await expectApiException(rs, status: 401);
     });
 
-    testWithServices('package - no package', () async {
-      final client = createPubApiClient(authToken: joeUser.userId);
+    testWithProfile('package - no package', fn: () async {
+      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
       final rs = client.accountPackageOptions('no_package');
       await expectApiException(rs, status: 404);
     });
 
-    testWithServices('package - not admin', () async {
-      final client = createPubApiClient(authToken: joeUser.userId);
-      final rs = await client.accountPackageOptions('hydrogen');
+    testWithProfile('package - not admin', fn: () async {
+      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+      final rs = await client.accountPackageOptions('oxygen');
       expect(rs.isAdmin, isFalse);
     });
 
-    testWithServices('package - admin', () async {
-      final client = createPubApiClient(authToken: hansUser.userId);
-      final rs = await client.accountPackageOptions('hydrogen');
+    testWithProfile('package - admin', fn: () async {
+      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final rs = await client.accountPackageOptions('oxygen');
       expect(rs.isAdmin, isTrue);
     });
 
-    testWithServices('publisher - no user', () async {
+    testWithProfile('publisher - no user', fn: () async {
       final client = createPubApiClient();
-      final rs = client.accountPublisherOptions('hydrogen');
+      final rs = client.accountPublisherOptions('example.com');
       await expectApiException(rs, status: 401);
     });
 
-    testWithServices('publisher - no publisher', () async {
-      final client = createPubApiClient(authToken: joeUser.userId);
+    testWithProfile('publisher - no publisher', fn: () async {
+      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
       final rs = await client.accountPublisherOptions('no-domain.com');
       expect(rs.isAdmin, isFalse);
     });
 
-    testWithServices('publisher - not admin', () async {
-      final client = createPubApiClient(authToken: joeUser.userId);
+    testWithProfile('publisher - not admin', fn: () async {
+      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
       final rs = await client.accountPublisherOptions('example.com');
       expect(rs.isAdmin, isFalse);
     });
 
-    testWithServices('publisher - admin', () async {
-      final client = createPubApiClient(authToken: hansUser.userId);
+    testWithProfile('publisher - admin', fn: () async {
+      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
       final rs = await client.accountPublisherOptions('example.com');
       expect(rs.isAdmin, isTrue);
     });
