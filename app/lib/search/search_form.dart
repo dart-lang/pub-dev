@@ -41,9 +41,6 @@ class SearchForm {
   /// True, if packages with is:unlisted tag should be included.
   final bool includeUnlisted;
 
-  /// True, if packages which only support dart 1.x should be included.
-  final bool includeLegacy;
-
   /// True, if null safe prerelease package should be listed.
   final bool prereleaseNullSafe;
 
@@ -57,7 +54,6 @@ class SearchForm {
     this.pageSize,
     this.includeDiscontinued,
     this.includeUnlisted,
-    this.includeLegacy,
     this.prereleaseNullSafe,
   })  : parsedQuery = ParsedQueryText.parse(query),
         tagsPredicate = tagsPredicate ?? TagsPredicate(),
@@ -77,7 +73,6 @@ class SearchForm {
     int pageSize,
     bool includeDiscontinued = false,
     bool includeUnlisted = false,
-    bool includeLegacy = false,
     bool prereleaseNullSafe = false,
   }) {
     currentPage ??= 1;
@@ -109,7 +104,6 @@ class SearchForm {
       pageSize: pageSize,
       includeDiscontinued: includeDiscontinued,
       includeUnlisted: includeUnlisted,
-      includeLegacy: includeLegacy,
       prereleaseNullSafe: prereleaseNullSafe,
     );
   }
@@ -144,7 +138,6 @@ class SearchForm {
       pageSize: pageSize ?? this.pageSize,
       includeDiscontinued: includeDiscontinued,
       includeUnlisted: includeUnlisted,
-      includeLegacy: includeLegacy,
       prereleaseNullSafe: prereleaseNullSafe,
     );
   }
@@ -159,9 +152,19 @@ class SearchForm {
         tagsPredicate.isProhibitedTag(PackageTags.isUnlisted)) {
       tagsPredicate = tagsPredicate.withoutTag(PackageTags.isUnlisted);
     }
-    if (includeLegacy &&
-        tagsPredicate.isProhibitedTag(PackageVersionTags.isLegacy)) {
-      tagsPredicate = tagsPredicate.withoutTag(PackageVersionTags.isLegacy);
+    // Only parse query texts when a quick text match indicates the presence of
+    // `is:legacy` override.
+    if (tagsPredicate.isProhibitedTag(PackageVersionTags.isLegacy) &&
+        hasQuery &&
+        query.contains(PackageVersionTags.isLegacy)) {
+      final parsed = ParsedQueryText.parse(query);
+      if (parsed.tagsPredicate != null &&
+          parsed.tagsPredicate.isRequiredTag(PackageVersionTags.isLegacy)) {
+        tagsPredicate = tagsPredicate
+            .withoutTag(PackageVersionTags.isLegacy)
+            .appendPredicate(
+                TagsPredicate(requiredTags: [PackageVersionTags.isLegacy]));
+      }
     }
     if (prereleaseNullSafe) {
       tagsPredicate =
@@ -232,9 +235,6 @@ class SearchForm {
     if (includeUnlisted) {
       params['unlisted'] = '1';
     }
-    if (includeLegacy && SdkTagValue.isAny(sdk)) {
-      params['legacy'] = '1';
-    }
     if (prereleaseNullSafe) {
       params['prerelease-null-safe'] = '1';
     }
@@ -282,11 +282,6 @@ SearchForm parseFrontendSearchForm(
     currentPage: currentPage,
     includeDiscontinued: queryParameters['discontinued'] == '1',
     includeUnlisted: queryParameters['unlisted'] == '1',
-    // legacy URL parameter should be enabled only on the default /packages page
-    includeLegacy: publisherId == null &&
-        uploaderOrPublishers == null &&
-        queryParameters['legacy'] == '1' &&
-        SdkTagValue.isAny(sdk),
     prereleaseNullSafe: queryParameters['prerelease-null-safe'] == '1',
     tagsPredicate: tagsPredicate,
   );
