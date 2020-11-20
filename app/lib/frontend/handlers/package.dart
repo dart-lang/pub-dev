@@ -197,15 +197,14 @@ Future<shelf.Response> _handlePackagePage({
     final data =
         await _loadPackagePageData(packageName, versionName, assetKind);
     _packageDataLoadLatencyTracker.add(serviceSw.elapsed);
-    if (data.package == null || data.package.isNotVisible) {
+    if (data.package == null ||
+        data.package.isNotVisible ||
+        data.version == null) {
       if (data.moderatedPackage != null) {
         final content = renderModeratedPackagePage(packageName);
         return htmlResponse(content, status: 404);
       }
       return formattedNotFoundHandler(request);
-    }
-    if (data.version == null) {
-      return redirectResponse(urls.pkgVersionsUrl(packageName));
     }
     final renderedResult = await renderFn(data);
     if (renderedResult is String) {
