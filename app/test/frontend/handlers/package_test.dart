@@ -96,18 +96,16 @@ void main() {
     testWithServices(
       '/packages/foobar_pkg/versions/0.1.2 - not found',
       () async {
-        await expectRedirectResponse(
-            await issueGet('/packages/foobar_pkg/versions/0.1.2'),
-            '/packages/foobar_pkg/versions');
+        await expectNotFoundResponse(
+            await issueGet('/packages/foobar_pkg/versions/0.1.2'));
       },
     );
 
     testWithServices(
       '/packages/foobar_pkg/versions/xyz - bad version',
       () async {
-        await expectRedirectResponse(
-            await issueGet('/packages/foobar_pkg/versions/xyz'),
-            '/packages/foobar_pkg/versions');
+        await expectNotFoundResponse(
+            await issueGet('/packages/foobar_pkg/versions/xyz'));
       },
     );
 
