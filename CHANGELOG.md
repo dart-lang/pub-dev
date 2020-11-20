@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bumped runtimeVersion to `2020.11.20`.
  * Upgraded Dart analysis SDK to `2.12.0-51.0.dev`.
  * Upgraded Flutter to `1.24.0-10.2.pre`.
+ * Upgraded dartdoc to `0.37.0`.
  * NOTE: `PackageVersion`'s `readme`, `changelog` and `example` fields
          are no longer used (and not updated on uploading a version).
          TODO(deferred): run cleanup after this release.

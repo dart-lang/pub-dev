@@ -63,7 +63,7 @@ final String flutterVersion = '1.24.0-10.2.pre';
 final Version semanticFlutterVersion = Version.parse(flutterVersion);
 
 // keep in-sync with pkg/pub_dartdoc/pubspec.yaml
-final String dartdocVersion = '0.36.2';
+final String dartdocVersion = '0.37.0';
 final Version semanticDartdocVersion = Version.parse(dartdocVersion);
 
 // Version that control the dartdoc serving.
