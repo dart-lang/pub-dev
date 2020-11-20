@@ -44,7 +44,7 @@ RUN pub get --offline --no-precompile
 #ENV GCLOUD_PROJECT dartlang-pub
 
 RUN cd / && \
-  curl -sS https://storage.googleapis.com/dart-archive/channels/dev/raw/2.12.0-29.0.dev/sdk/dartsdk-linux-x64-release.zip >/dartsdk.zip && \
+  curl -sS https://storage.googleapis.com/dart-archive/channels/dev/raw/2.12.0-51.0.dev/sdk/dartsdk-linux-x64-release.zip >/dartsdk.zip && \
   unzip -q /dartsdk.zip && \
   rm -f /dartsdk.zip
 
