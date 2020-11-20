@@ -186,7 +186,6 @@ String _renderSearchBanner({
     'search_sort_param': searchSort,
     'include_discontinued': searchForm?.includeDiscontinued ?? false,
     'include_unlisted': searchForm?.includeUnlisted ?? false,
-    'legacy_search_enabled': searchForm?.includeLegacy ?? false,
     'prerelease_null_safe': searchForm?.prereleaseNullSafe ?? false,
     'hidden_inputs': hiddenInputs,
   });
