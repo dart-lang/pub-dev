@@ -496,7 +496,10 @@ class PackageBackend {
   }
 
   @visibleForTesting
-  Future<PackageVersion> upload(Stream<List<int>> data) async {
+  Future<PackageVersion> upload(
+    Stream<List<int>> data, {
+    DateTime versionCreated,
+  }) async {
     await requireAuthenticatedUser();
     final guid = createUuid();
     _logger.info('Starting semi-async upload (uuid: $guid)');
@@ -506,7 +509,7 @@ class PackageBackend {
       path: '/api/packages/versions/newUploadFinish',
       queryParameters: {'upload_id': guid},
     );
-    return await publishUploadedBlob(finishUri);
+    return await publishUploadedBlob(finishUri, versionCreated: versionCreated);
   }
 
   Future<api.UploadInfo> startUpload(Uri redirectUrl) async {
@@ -535,7 +538,10 @@ class PackageBackend {
   }
 
   /// Finishes the upload of a package.
-  Future<PackageVersion> publishUploadedBlob(Uri uri) async {
+  Future<PackageVersion> publishUploadedBlob(
+    Uri uri, {
+    DateTime versionCreated,
+  }) async {
     final restriction = await getUploadRestrictionStatus();
     if (restriction == UploadRestrictionStatus.noUploads) {
       throw PackageRejectedException.uploadRestricted();
@@ -555,6 +561,7 @@ class PackageBackend {
         (package, version) =>
             _storage.uploadViaTempObject(guid, package, version),
         restriction,
+        versionCreated ?? DateTime.now().toUtc(),
       );
       _logger.info('Removing temporary object $guid.');
       await _storage.removeTempObject(guid);
@@ -567,11 +574,13 @@ class PackageBackend {
     String filename,
     Future<void> Function(String name, String version) tarballUpload,
     UploadRestrictionStatus restriction,
+    DateTime versionCreated,
   ) async {
     _logger.info('Examining tarball content.');
 
     // Parse metadata from the tarball.
-    final validatedUpload = await _parseAndValidateUpload(db, filename, user);
+    final validatedUpload =
+        await _parseAndValidateUpload(db, filename, user, versionCreated);
     final newVersion = validatedUpload.packageVersion;
 
     Package package;
@@ -1091,8 +1100,13 @@ class DerivedPackageVersionEntities {
 ///   * reads readme, changelog and pubspec files
 ///   * creates a [PackageVersion] and populates it with all metadata
 Future<_ValidatedUpload> _parseAndValidateUpload(
-    DatastoreDB db, String filename, User user) async {
+  DatastoreDB db,
+  String filename,
+  User user,
+  DateTime versionCreated,
+) async {
   assert(user != null);
+  versionCreated ??= DateTime.now().toUtc();
 
   final archive = await summarizePackageArchive(filename,
       maxContentLength: maxAssetContentLength);
@@ -1120,7 +1134,7 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
     ..parentKey = packageKey
     ..version = versionString
     ..packageKey = packageKey
-    ..created = DateTime.now().toUtc()
+    ..created = versionCreated
     ..pubspec = pubspec
     ..libraries = archive.libraries
     ..downloads = 0
@@ -1128,7 +1142,7 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
 
   final derived = derivePackageVersionEntities(
     archive: archive,
-    versionCreated: version.created,
+    versionCreated: versionCreated,
   );
 
   if (derived.assets.any((a) => spamBackend.isSpam(a.textContent))) {

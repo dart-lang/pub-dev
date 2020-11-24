@@ -79,6 +79,8 @@ Future<void> importProfile({
     final packageName = testPackage.name;
     User lastActiveUser;
     for (final versionName in testPackage.versions) {
+      final rv = resolvedVersions.firstWhere(
+          (rv) => rv.package == packageName && rv.version == versionName);
       // figure out the active user
       final uploaderEmails = _potentialActiveEmails(profile, packageName);
       final uploaderEmail =
@@ -91,8 +93,11 @@ Future<void> importProfile({
       await fork(() async {
         registerAuthenticatedUser(activeUser);
         // ignore: invalid_use_of_visible_for_testing_member
-        await packageBackend.upload(Stream<List<int>>.fromFuture(
-            source.getArchiveBytes(packageName, versionName)));
+        await packageBackend.upload(
+          Stream<List<int>>.fromFuture(
+              source.getArchiveBytes(packageName, versionName)),
+          versionCreated: rv.created,
+        );
       });
     }
 

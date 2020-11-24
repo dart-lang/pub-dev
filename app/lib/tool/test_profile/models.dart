@@ -149,16 +149,26 @@ class TestUser {
 class ResolvedVersion implements Comparable<ResolvedVersion> {
   final String package;
   final String version;
+  final DateTime created;
 
   ResolvedVersion({
     @required this.package,
     @required this.version,
+    this.created,
   });
 
   factory ResolvedVersion.fromJson(Map<String, dynamic> json) =>
       _$ResolvedVersionFromJson(json);
 
   Map<String, dynamic> toJson() => _$ResolvedVersionToJson(this);
+
+  ResolvedVersion change({DateTime created}) {
+    return ResolvedVersion(
+      package: package,
+      version: version,
+      created: created ?? this.created,
+    );
+  }
 
   @override
   int compareTo(ResolvedVersion other) {
