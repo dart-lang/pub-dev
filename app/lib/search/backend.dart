@@ -169,11 +169,11 @@ class SearchBackend {
     view.allDependencies?.forEach((pd) {
       dependencies[pd.package] = pd.dependencyType;
     });
-    pubspec.dependencies.forEach((package) {
-      dependencies[package] = DependencyTypes.direct;
-    });
     pubspec.devDependencies.forEach((package) {
       dependencies[package] = DependencyTypes.dev;
+    });
+    pubspec.dependencies.forEach((package) {
+      dependencies[package] = DependencyTypes.direct;
     });
     return dependencies;
   }
