@@ -23,7 +23,16 @@ final _forms = <SearchForm>[
   SearchForm.parse(order: SearchOrder.updated, currentPage: 3),
 ];
 
-Future<void> main() async {
+Future<void> main(List<String> args) async {
+  if (args.contains('--help')) {
+    print('''
+Checks the current state of search drift between independent search instances,
+using only public API with GET requests to infer the level. Runs the sampling
+every 10-20 seconds, continuously printing the stats.
+''');
+    return;
+  }
+
   final items = _forms.map((f) => _FormWithSummary(f)).toList();
 
   for (int cycle = 0; cycle < 10000; cycle++) {
