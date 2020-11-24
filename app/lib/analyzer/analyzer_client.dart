@@ -92,18 +92,5 @@ class AnalysisView {
 
   LicenseFile get licenseFile => _pana?.licenseFile;
 
-  List<PkgDependency> get directDependencies =>
-      _getDependencies(DependencyTypes.direct);
-
   List<PkgDependency> get allDependencies => _pana?.pkgDependencies;
-
-  List<PkgDependency> _getDependencies(String type) {
-    final List<PkgDependency> list = allDependencies
-        ?.where((pd) => pd.dependencyType == type)
-        ?.where((pd) => pd.package != _card.packageName)
-        ?.toList();
-    if (list == null || list.isEmpty) return const [];
-    list.sort((a, b) => a.package.compareTo(b.package));
-    return list;
-  }
 }

@@ -10,6 +10,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:logging/logging.dart';
+import 'package:pana/pana.dart' show DependencyTypes;
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 
@@ -17,6 +18,7 @@ import '../account/backend.dart';
 import '../analyzer/analyzer_client.dart';
 import '../dartdoc/dartdoc_client.dart';
 import '../package/backend.dart';
+import '../package/model_properties.dart';
 import '../package/models.dart';
 import '../package/overrides.dart';
 import '../shared/datastore.dart';
@@ -154,7 +156,7 @@ class SearchBackend {
       likeCount: p.likes,
       grantedPoints: analysisView.report?.grantedPoints ?? 0,
       maxPoints: analysisView.report?.maxPoints ?? 0,
-      dependencies: _buildDependencies(analysisView),
+      dependencies: _buildDependencies(pv.pubspec, analysisView),
       publisherId: p.publisherId,
       uploaderEmails: await _buildUploaderEmails(p),
       apiDocPages: apiDocPages,
@@ -162,10 +164,16 @@ class SearchBackend {
     );
   }
 
-  Map<String, String> _buildDependencies(AnalysisView view) {
+  Map<String, String> _buildDependencies(Pubspec pubspec, AnalysisView view) {
     final Map<String, String> dependencies = <String, String>{};
     view.allDependencies?.forEach((pd) {
       dependencies[pd.package] = pd.dependencyType;
+    });
+    pubspec.dependencies.forEach((package) {
+      dependencies[package] = DependencyTypes.direct;
+    });
+    pubspec.devDependencies.forEach((package) {
+      dependencies[package] = DependencyTypes.dev;
     });
     return dependencies;
   }
