@@ -240,6 +240,13 @@ class PubApiClient {
     );
   }
 
+  Future<List<int>> packageNames() async {
+    return await _client.requestBytes(
+      verb: 'get',
+      path: '/api/package-names',
+    );
+  }
+
   Future<List<int>> packageMetrics(String package) async {
     return await _client.requestBytes(
       verb: 'get',
