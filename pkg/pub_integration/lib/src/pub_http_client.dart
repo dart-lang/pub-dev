@@ -210,6 +210,20 @@ class PubHttpClient {
         MapEntry<String, String>(m['email'] as String, m['role'] as String)));
   }
 
+  /// Returns the list of packages from `/api/package-names` endpoint.
+  Future<List<String>> apiPackageNames() async {
+    final rs = await _http.get('$pubHostedUrl/api/package-names');
+    if (rs.statusCode != 200) {
+      throw Exception('Unexpected status code: ${rs.statusCode}');
+    }
+    final map = json.decode(rs.body) as Map<String, dynamic>;
+    final packages = (map['packages'] as List).cast<String>();
+    if (!map.containsKey('nextUrl') || map['nextUrl'] != null) {
+      throw Exception('"nextUrl" attribute is expected to be null');
+    }
+    return packages;
+  }
+
   /// Free resources.
   Future<void> close() async {
     _http.close();

@@ -425,6 +425,18 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
+  router.add('GET', r'/api/package-names', (Request request) async {
+    try {
+      final _$result = await service.packageNames(
+        request,
+      );
+      return _$result;
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
   router.add('GET', r'/api/packages/<package>/metrics',
       (Request request, String package) async {
     try {

@@ -29,6 +29,7 @@ class PublicPagesScript {
       await _atomFeed();
       await _searchPage();
       await _sitemaps();
+      await _customApis();
       await _badRequest();
     } finally {
       await _pubClient.close();
@@ -77,6 +78,13 @@ class PublicPagesScript {
   Future<void> _sitemaps() async {
     await _pubClient.getContent('/sitemap.txt');
     await _pubClient.getContent('/sitemap-2.txt');
+  }
+
+  Future<void> _customApis() async {
+    final packageNames = await _pubClient.apiPackageNames();
+    if (packageNames == null || !packageNames.contains('retry')) {
+      throw Exception('Expected "retry" in the list of package names.');
+    }
   }
 
   Future<void> _badRequest() async {

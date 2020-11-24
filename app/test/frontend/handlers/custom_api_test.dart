@@ -98,5 +98,18 @@ void main() {
         },
       );
     });
+
+    testWithProfile('/api/package-names', fn: () async {
+      await expectJsonResponse(
+        await issueGet('/api/package-names'),
+        body: {
+          'packages': containsAll([
+            'neon',
+            'oxygen',
+          ]),
+          'nextUrl': null,
+        },
+      );
+    });
   });
 }

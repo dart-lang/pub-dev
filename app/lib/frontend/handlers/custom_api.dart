@@ -75,11 +75,19 @@ Future<shelf.Response> apiDocumentationHandler(
 
 /// Handles requests for
 /// - /api/packages?compact=1
-Future<shelf.Response> apiPackagesCompactListHandler(
-    shelf.Request request) async {
+Future<shelf.Response> apiPackagesCompactListHandler(shelf.Request request) =>
+    apiPackageNamesHandler(request);
+
+/// Handles requests for
+/// - /api/package-names
+Future<shelf.Response> apiPackageNamesHandler(shelf.Request request) async {
   final packageNames = await nameTracker.getPackageNames();
   packageNames.removeWhere(isSoftRemoved);
-  return jsonResponse({'packages': packageNames});
+  return jsonResponse({
+    'packages': packageNames,
+    // pagination is off for now
+    'nextUrl': null,
+  });
 }
 
 /// Handles request for /api/packages?page=<num>
