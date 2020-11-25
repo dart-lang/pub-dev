@@ -7,6 +7,8 @@ import 'package:test/test.dart';
 import 'package:pub_validations/html/html_validation.dart';
 
 void main() {
+  final defaultHeader = '<head><meta name="robots" content="noindex" /></head>';
+
   void expectException(String html) {
     expect(() => parseAndValidateHtml(html), throwsA(isA<Exception>()));
   }
@@ -22,34 +24,34 @@ void main() {
     });
 
     test('bad attribute quotes', () {
-      expectException('<html><head></head><body attr="x\'></body></html>');
+      expectException('<html>$defaultHeader<body attr="x\'></body></html>');
     });
   });
 
   group('pub restrictions', () {
     test('no onclick or other inline JS calls', () {
-      expectError('<html><head></head><body onclick="x"></body></html>');
-      expectError('<html><head></head><body onblur="x"></body></html>');
-      expectError('<html><head></head><body onxyz="x"></body></html>');
+      expectError('<html>$defaultHeader<body onclick="x"></body></html>');
+      expectError('<html>$defaultHeader<body onblur="x"></body></html>');
+      expectError('<html>$defaultHeader<body onxyz="x"></body></html>');
     });
 
     test('target="_blank" with rel="noopener"', () {
       expectError(
-          '<html><head></head><body><a href="x" target="_blank"></a></body></html>');
+          '<html>$defaultHeader<body><a href="x" target="_blank"></a></body></html>');
       expectError(
-          '<html><head></head><body><a href="x" target="_blank" rel="noopen"></a></body></html>');
+          '<html>$defaultHeader<body><a href="x" target="_blank" rel="noopen"></a></body></html>');
     });
 
     test('script with src only', () {
-      expectError('<html><head></head><body><script></script></body></html>');
+      expectError('<html>$defaultHeader<body><script></script></body></html>');
       expectError(
-          '<html><head></head><body><script>window.alert("!");</script></body></html>');
+          '<html>$defaultHeader<body><script>window.alert("!");</script></body></html>');
       expectError(
-          '<html><head></head><body><script src="x.js">window.alert("!");</script></body></html>');
+          '<html>$defaultHeader<body><script src="x.js">window.alert("!");</script></body></html>');
     });
 
     test('without canonical url or noindex', () {
-      expectError('<html><head></head><body></body></html>');
+      expectError('<html>$defaultHeader<body></body></html>');
     });
 
     test('more than one canonical url', () {
@@ -70,8 +72,6 @@ void main() {
     });
 
     test('pub restrictions used correctly', () {
-      final defaultHeader =
-          '<head><meta name="robots" content="noindex" /></head>';
       parseAndValidateHtml(
           '<html>$defaultHeader<body><a href="x" target="_blank" rel="x noopener y"></a></body></html>');
       parseAndValidateHtml(
