@@ -48,6 +48,10 @@ void main() {
           '<html><head></head><body><script src="x.js">window.alert("!");</script></body></html>');
     });
 
+    test('without canonical url or noindex', () {
+      expectError('<html><head></head><body></body></html>');
+    });
+
     test('more than one canonical url', () {
       expectError('<html><head><link rel="canonical" href="https://pub.dev/" />'
           '<link rel="canonical" href="https://pub.dev/x" /></head><body></body></html>');
@@ -61,18 +65,25 @@ void main() {
 
   group('valid html', () {
     test('minimal', () {
-      parseAndValidateHtml('<html><head></head><body></body></html>');
+      parseAndValidateHtml(
+          '<html><head><meta name="robots" content="noindex" /></head><body></body></html>');
     });
 
     test('pub restrictions used correctly', () {
+      final defaultHeader =
+          '<head><meta name="robots" content="noindex" /></head>';
       parseAndValidateHtml(
-          '<html><head></head><body><a href="x" target="_blank" rel="x noopener y"></a></body></html>');
+          '<html>$defaultHeader<body><a href="x" target="_blank" rel="x noopener y"></a></body></html>');
       parseAndValidateHtml(
-          '<html><head></head><body><script src="x.js"></script></body></html>');
+          '<html>$defaultHeader<body><script src="x.js"></script></body></html>');
       parseAndValidateHtml(
-          '<html><head></head><body><script type="application/ld+json">{}</script></body></html>');
+          '<html>$defaultHeader<body><script type="application/ld+json">{}</script></body></html>');
       parseAndValidateHtml(
           '<html><head><link rel="canonical" href="https://pub.dev/" /></head><body></body></html>');
+      parseAndValidateHtml(
+          '<html><head><meta name="robots" content="noindex" />'
+          '<link rel="canonical" href="https://pub.dev/" /></head>'
+          '<body></body></html>');
     });
   });
 }

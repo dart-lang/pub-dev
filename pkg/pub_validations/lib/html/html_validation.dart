@@ -101,6 +101,18 @@ void _validateHead(Element head) {
   if (canonicalLinks.length > 1) {
     throw ArgumentError('More than one canonical link was specified.');
   }
+  if (canonicalLinks.isEmpty) {
+    final robotsValues = head
+        .querySelectorAll('meta')
+        .where((elem) => elem.attributes['name'] == 'robots')
+        .map((elem) => elem.attributes['content'])
+        .expand((v) => v.split(' '))
+        .toSet();
+    if (!robotsValues.contains('noindex')) {
+      throw ArgumentError(
+          'When canonical URL is missing, noindex must be set.');
+    }
+  }
   if (canonicalLinks.length == 1) {
     final link = canonicalLinks.single;
     final href = link.attributes['href'];
