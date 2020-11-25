@@ -134,6 +134,7 @@ final _reservedPackageNames = <String>[
   'pub',
   'versions',
   'webview_flutter',
+  'firebaseui',
   // removed in https://github.com/dart-lang/pub-dev/issues/2853
   'fluttery',
   'fluttery_audio',
