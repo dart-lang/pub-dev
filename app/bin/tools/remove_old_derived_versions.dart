@@ -38,7 +38,7 @@ Future main(List<String> args) async {
       final futures = <Future>[];
 
       await for (final package in dbService.query<Package>().run()) {
-        futures.add(_processPackage(package.name));
+        futures.add(pool.withResource(() => _processPackage(package.name)));
       }
 
       await Future.wait(futures);
