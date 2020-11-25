@@ -240,9 +240,11 @@ class _HtmlVerifierHttpClient extends BaseClient {
   Future<StreamedResponse> send(BaseRequest request) async {
     final rs = await _delegate.send(request);
     final contentType = rs.headers[HttpHeaders.contentTypeHeader];
-    if (rs.statusCode == 200 &&
-        contentType != null &&
-        contentType.contains('text/html')) {
+    if (contentType == null || contentType.isEmpty) {
+      throw FormatException(
+          'Content type header is missing for ${request.url}.');
+    }
+    if (rs.statusCode == 200 && contentType.contains('text/html')) {
       final body = await rs.stream.bytesToString();
       parseAndValidateHtml(body);
       return StreamedResponse(

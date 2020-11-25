@@ -129,9 +129,11 @@ class HeadlessEnv {
       }
 
       final contentType = rs.headers[HttpHeaders.contentTypeHeader];
-      if (rs.status == 200 &&
-          contentType != null &&
-          contentType.contains('text/html')) {
+      if (contentType == null || contentType.isEmpty) {
+        serverErrors
+            .add('Content type header is missing for ${rs.request.url}.');
+      }
+      if (rs.status == 200 && contentType.contains('text/html')) {
         try {
           parseAndValidateHtml(await rs.text);
         } catch (e) {
