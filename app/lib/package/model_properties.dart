@@ -90,7 +90,8 @@ class Pubspec {
 
   // TODO: migrate uses to SdkConstraintStatus.isDart2Compatible
   bool get supportsOnlyLegacySdk {
-    final s = SdkConstraintStatus.fromSdkVersion(_inner.environment['sdk']);
+    final s =
+        SdkConstraintStatus.fromSdkVersion(_inner.environment['sdk'], name);
     return !s.isDart2Compatible;
   }
 
