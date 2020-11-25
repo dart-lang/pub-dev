@@ -75,10 +75,13 @@ Future<void> importProfile({
   }
 
   // create versions
-  for (final testPackage in profile.packages) {
+  final orderedPackages =
+      _sortByShaHash<TestPackage>(profile.packages, (tp) => tp.name);
+  for (final testPackage in orderedPackages) {
     final packageName = testPackage.name;
     User lastActiveUser;
-    for (final versionName in testPackage.versions) {
+    final orderedVersions = _sortByShaHash(testPackage.versions);
+    for (final versionName in orderedVersions) {
       // figure out the active user
       final uploaderEmails = _potentialActiveEmails(profile, packageName);
       final uploaderEmail =
@@ -135,6 +138,21 @@ Future<void> importProfile({
   }
 
   await source.close();
+}
+
+/// Sorts items in the order of their SHA1 hash, to ensure a deterministic, but
+/// random-looking time order for the entities inserted.
+List<R> _sortByShaHash<R>(
+  Iterable<R> items, [
+  String Function(R item) toStringFn,
+]) {
+  toStringFn ??= (R item) => item.toString();
+  String shaHashFn(R item) =>
+      sha1.convert(utf8.encode(toStringFn(item))).toString();
+
+  final list = items.toList();
+  list.sort((a, b) => shaHashFn(a).compareTo(shaHashFn(b)));
+  return list;
 }
 
 List<String> _potentialActiveEmails(TestProfile profile, String packageName) {
