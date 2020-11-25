@@ -10,6 +10,7 @@ import 'package:pana/pana.dart' show getRepositoryUrl;
 import 'package:pub_dev/shared/handlers.dart';
 
 import '../../analyzer/analyzer_client.dart';
+import '../../package/model_properties.dart';
 import '../../package/models.dart';
 import '../../package/overrides.dart' show devDependencyPackages;
 import '../../scorecard/models.dart';
@@ -44,12 +45,9 @@ String _renderLicense(String baseUrl, LicenseFile license) {
   return html;
 }
 
-String _renderDependencyList(AnalysisView analysis) {
-  if (analysis == null ||
-      !analysis.hasPanaSummary ||
-      analysis.directDependencies == null) return null;
-  final List<String> packages =
-      analysis.directDependencies.map((pd) => pd.package).toList()..sort();
+String _renderDependencyList(Pubspec pubspec) {
+  if (pubspec == null) return null;
+  final packages = pubspec.dependencies.toList()..sort();
   if (packages.isEmpty) return null;
   return packages
       .map((p) => '<a href="${urls.pkgPageUrl(p)}">$p</a>')
@@ -194,7 +192,7 @@ String renderPkgInfoBox(PackagePageData data) {
         : _getAuthorsHtml(data.uploaderEmails),
     'license_html':
         _renderLicense(packageLinks.baseUrl, data.analysis?.licenseFile),
-    'dependencies_html': _renderDependencyList(data.analysis),
+    'dependencies_html': _renderDependencyList(data.version.pubspec),
     'search_deps_link': urls.searchUrl(q: 'dependency:${package.name}'),
     'labeled_scores_html': renderLabeledScores(data.toPackageView()),
   });
