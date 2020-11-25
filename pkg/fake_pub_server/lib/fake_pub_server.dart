@@ -16,9 +16,7 @@ import 'package:shelf/shelf_io.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/testing/fake_auth_provider.dart';
 import 'package:pub_dev/frontend/handlers.dart';
-import 'package:pub_dev/frontend/testing/fake_upload_signer_service.dart';
 import 'package:pub_dev/package/name_tracker.dart';
-import 'package:pub_dev/package/upload_signer_service.dart';
 import 'package:pub_dev/publisher/domain_verifier.dart';
 import 'package:pub_dev/publisher/testing/fake_domain_verifier.dart';
 import 'package:pub_dev/service/services.dart';
@@ -46,8 +44,6 @@ class FakePubServer {
         fn: () async {
           registerAuthProvider(FakeAuthProvider(port));
           registerDomainVerifier(FakeDomainVerifier());
-          registerUploadSigner(
-              FakeUploadSignerService(configuration.storageBaseUrl));
 
           nameTracker.startTracking();
           spamBackend.setSpamConfig(spamWords: ['SPAM-SPAM-SPAM']);

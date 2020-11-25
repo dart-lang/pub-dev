@@ -6,10 +6,8 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:args/command_runner.dart';
-import 'package:http/http.dart' as http;
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
-import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:stream_transform/stream_transform.dart' show RateLimit;
@@ -23,7 +21,6 @@ import '../../frontend/static_files.dart';
 import '../../frontend/templates/_cache.dart';
 import '../../package/deps_graph.dart';
 import '../../package/name_tracker.dart';
-import '../../package/upload_signer_service.dart';
 import '../../service/announcement/backend.dart';
 import '../../service/spam/backend.dart';
 import '../../shared/configuration.dart';
@@ -70,8 +67,6 @@ Future _main(FrontendEntryMessage message) async {
 
   await updateLocalBuiltFilesIfNeeded();
   await withServices(() async {
-    await _setupUploadSigner();
-
     final cron = CronJobs(await getOrCreateBucket(
       storageService,
       activeConfiguration.backupSnapshotBucketName,
@@ -91,20 +86,6 @@ Future _main(FrontendEntryMessage message) async {
     await runHandler(_logger, appHandler,
         sanitize: true, cronHandler: cron.handler);
   });
-}
-
-Future<void> _setupUploadSigner() async {
-  UploadSignerService uploadSigner;
-  if (envConfig.isRunningLocally) {
-    uploadSigner = ServiceAccountBasedUploadSigner();
-  } else {
-    final authClient = await auth.clientViaMetadataServer();
-    registerScopeExitCallback(() async => authClient.close());
-    final email = await obtainServiceAccountEmail();
-    uploadSigner =
-        IamBasedUploadSigner(activeConfiguration.projectId, email, authClient);
-  }
-  registerUploadSigner(uploadSigner);
 }
 
 /// Setup local filesystem change notifications and force-reload resource files
@@ -167,12 +148,4 @@ Future _worker(WorkerEntryMessage message) async {
         db.dbService, triggerDependentAnalysis);
     await pdb.monitorInBackground(); // never returns
   });
-}
-
-Future<String> obtainServiceAccountEmail() async {
-  final http.Response response = await http.get(
-      'http://metadata/computeMetadata/'
-      'v1/instance/service-accounts/default/email',
-      headers: const {'Metadata-Flavor': 'Google'});
-  return response.body.trim();
 }

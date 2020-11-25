@@ -28,6 +28,21 @@ UploadSignerService get uploadSigner =>
 void registerUploadSigner(UploadSignerService uploadSigner) =>
     ss.register(#_url_signer, uploadSigner);
 
+/// Creates an upload signer based on the current environment.
+Future<UploadSignerService> createUploadSigner(http.Client authClient) async {
+  if (envConfig.isRunningLocally) {
+    return ServiceAccountBasedUploadSigner();
+  } else {
+    final emailRs = await http.get(
+        'http://metadata/computeMetadata/'
+        'v1/instance/service-accounts/default/email',
+        headers: const {'Metadata-Flavor': 'Google'});
+    final email = emailRs.body.trim();
+    return IamBasedUploadSigner(
+        activeConfiguration.projectId, email, authClient);
+  }
+}
+
 /// Signs Google Cloud Storage upload URLs.
 ///
 /// Instead of letting the pub client upload package data via the pub server
