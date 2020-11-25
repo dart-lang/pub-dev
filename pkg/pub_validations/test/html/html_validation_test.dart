@@ -51,7 +51,7 @@ void main() {
     });
 
     test('without canonical url or noindex', () {
-      expectError('<html>$defaultHeader<body></body></html>');
+      expectError('<html><head></head><body></body></html>');
     });
 
     test('more than one canonical url', () {
