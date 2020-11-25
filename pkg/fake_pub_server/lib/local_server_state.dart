@@ -12,16 +12,15 @@ import 'package:fake_gcloud/mem_storage.dart';
 class LocalServerState {
   final datastore = MemDatastore();
   final storage = MemStorage();
-  final File _file;
 
-  LocalServerState({String path}) : _file = path == null ? null : File(path);
-
-  bool get hasValidFile => _file != null;
-
-  Future<void> load() async {
-    if (_file != null && await _file.exists()) {
+  /// Loads state from [path].
+  ///
+  /// Note: this method does not throw Exception if the file on [path] is missing.
+  Future<void> loadIfExists(String path) async {
+    final file = File(path);
+    if (file.existsSync()) {
       final lines =
-          _file.openRead().transform(utf8.decoder).transform(LineSplitter());
+          file.openRead().transform(utf8.decoder).transform(LineSplitter());
       var marker = 'start';
       await for (final line in lines) {
         if (line.startsWith('{"marker":')) {
@@ -42,11 +41,12 @@ class LocalServerState {
     }
   }
 
-  Future<void> save() async {
-    if (_file == null) return;
-    print('Storing state in ${_file.path}...');
-    await _file.parent.create(recursive: true);
-    final sink = _file.openWrite();
+  /// Saves state to [path].
+  Future<void> save(String path) async {
+    print('Storing state in $path...');
+    final file = File(path);
+    await file.parent.create(recursive: true);
+    final sink = file.openWrite();
 
     void writeMarker(String marker) {
       sink.writeln(json.encode({'marker': marker}));

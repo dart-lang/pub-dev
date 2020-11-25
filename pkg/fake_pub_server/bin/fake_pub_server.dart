@@ -40,6 +40,7 @@ Future main(List<String> args) async {
   final analyzerPort = int.parse(argv['analyzer-port'] as String);
   final dartdocPort = int.parse(argv['dartdoc-port'] as String);
   final readOnly = argv['read-only'] == true;
+  final dataFile = argv['data-file'] as String;
 
   Logger.root.onRecord.listen((r) {
     print([
@@ -50,8 +51,10 @@ Future main(List<String> args) async {
     ].where((e) => e != null).join(' '));
   });
 
-  final state = LocalServerState(path: argv['data-file'] as String);
-  await state.load();
+  final state = LocalServerState();
+  if (dataFile != null) {
+    await state.loadIfExists(dataFile);
+  }
 
   final storage = state.storage;
   final datastore = state.datastore;
@@ -123,8 +126,8 @@ Future main(List<String> args) async {
     eagerError: true,
   );
 
-  if (!readOnly) {
-    await state.save();
+  if (!readOnly && dataFile != null) {
+    await state.save(dataFile);
   }
   print('Server processes completed.');
 }
