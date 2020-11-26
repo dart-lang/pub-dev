@@ -27,6 +27,7 @@ Future<void> importProfile({
   @required ImportSource source,
 }) async {
   final resolvedVersions = await source.resolveVersions(profile);
+  resolvedVersions.sort();
 
   // expand profile with resolved version information
   profile = normalize(profile, resolvedVersions: resolvedVersions);
@@ -74,31 +75,34 @@ Future<void> importProfile({
     ]);
   }
 
+  // last active uploader
+  final lastActiveUploaders = <String, User>{};
+
   // create versions
+  for (final rv in resolvedVersions) {
+    // figure out the active user
+    final uploaderEmails = _potentialActiveEmails(profile, rv.package);
+    final uploaderEmail =
+        uploaderEmails[rv.version.hashCode.abs() % uploaderEmails.length];
+    final activeUser =
+        await accountBackend.lookupUserById(_userIdFromEmail(uploaderEmail));
+    lastActiveUploaders[rv.package] = activeUser;
+
+    // upload package in the name of the active user
+    await fork(() async {
+      registerAuthenticatedUser(activeUser);
+      // ignore: invalid_use_of_visible_for_testing_member
+      await packageBackend.upload(Stream<List<int>>.fromFuture(
+          source.getArchiveBytes(rv.package, rv.version)));
+    });
+  }
   for (final testPackage in profile.packages) {
     final packageName = testPackage.name;
-    User lastActiveUser;
-    for (final versionName in testPackage.versions) {
-      // figure out the active user
-      final uploaderEmails = _potentialActiveEmails(profile, packageName);
-      final uploaderEmail =
-          uploaderEmails[versionName.hashCode.abs() % uploaderEmails.length];
-      final activeUser =
-          await accountBackend.lookupUserById(_userIdFromEmail(uploaderEmail));
-      lastActiveUser = activeUser;
-
-      // upload package in the name of the active user
-      await fork(() async {
-        registerAuthenticatedUser(activeUser);
-        // ignore: invalid_use_of_visible_for_testing_member
-        await packageBackend.upload(Stream<List<int>>.fromFuture(
-            source.getArchiveBytes(packageName, versionName)));
-      });
-    }
+    final activeUser = lastActiveUploaders[packageName];
 
     // update package info
     await fork(() async {
-      registerAuthenticatedUser(lastActiveUser);
+      registerAuthenticatedUser(activeUser);
       // update publisher
       if (testPackage.publisher != null) {
         await packageBackend.setPublisher(

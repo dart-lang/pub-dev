@@ -170,6 +170,9 @@ ResolvedVersion _$ResolvedVersionFromJson(Map<String, dynamic> json) {
   return ResolvedVersion(
     package: json['package'] as String,
     version: json['version'] as String,
+    created: json['created'] == null
+        ? null
+        : DateTime.parse(json['created'] as String),
   );
 }
 
@@ -184,5 +187,6 @@ Map<String, dynamic> _$ResolvedVersionToJson(ResolvedVersion instance) {
 
   writeNotNull('package', instance.package);
   writeNotNull('version', instance.version);
+  writeNotNull('created', instance.created?.toIso8601String());
   return val;
 }

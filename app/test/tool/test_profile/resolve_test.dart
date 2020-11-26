@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:http/http.dart';
 import 'package:pub_dev/tool/test_profile/normalizer.dart';
 import 'package:test/test.dart';
 
@@ -10,13 +11,17 @@ import 'package:pub_dev/tool/test_profile/resolver.dart';
 
 void main() {
   Future<List<ResolvedVersion>> _resolve(List<TestPackage> packages) async {
+    final client = Client();
     final profile = normalize(TestProfile(
       publishers: [],
       packages: packages,
       users: [],
       defaultUser: 'dev@example.com',
     ));
-    return await resolveVersions(profile);
+    final rs = await resolveVersions(client, profile);
+    client.close();
+    rs.sort();
+    return rs;
   }
 
   group('resolver tests', () {
@@ -34,9 +39,10 @@ void main() {
         )
       ]);
       expect(pvs, hasLength(2));
-      expect(pvs[0].package, 'retry');
-      expect(pvs[1].package, 'safe_url_check');
-      expect(pvs[1].version, '1.0.0');
+      expect(pvs[0].package, 'safe_url_check');
+      expect(pvs[0].version, '1.0.0');
+      // the latest version of retry has been updated after safe_url_check 1.0.0
+      expect(pvs[1].package, 'retry');
     });
   });
 }

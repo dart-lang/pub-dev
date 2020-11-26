@@ -149,10 +149,12 @@ class TestUser {
 class ResolvedVersion implements Comparable<ResolvedVersion> {
   final String package;
   final String version;
+  final DateTime created;
 
   ResolvedVersion({
     @required this.package,
     @required this.version,
+    @required this.created,
   });
 
   factory ResolvedVersion.fromJson(Map<String, dynamic> json) =>
@@ -161,12 +163,5 @@ class ResolvedVersion implements Comparable<ResolvedVersion> {
   Map<String, dynamic> toJson() => _$ResolvedVersionToJson(this);
 
   @override
-  int compareTo(ResolvedVersion other) {
-    final p = package.compareTo(other.package);
-    if (p != 0) return p;
-    // We could sort by semantic version, but it is only needed for consistent,
-    // but not necessarily semantically consistent ordering. A simple string
-    // comparison will do it.
-    return version.compareTo(other.version);
-  }
+  int compareTo(ResolvedVersion other) => created.compareTo(other.created);
 }

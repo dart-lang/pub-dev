@@ -6,10 +6,15 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:basics/basics.dart';
+import 'package:http/http.dart' as http;
 import 'package:pana/pana.dart' show ToolEnvironment;
 import 'package:path/path.dart' as p;
-import 'package:pub_dev/shared/configuration.dart';
-import 'package:pub_dev/shared/utils.dart';
+
+import 'package:client_data/package_api.dart' as package_api;
+
+import '../../shared/configuration.dart';
+import '../../shared/urls.dart' as urls;
+import '../../shared/utils.dart';
 
 import 'models.dart';
 
@@ -19,7 +24,8 @@ import 'models.dart';
 ///
 /// The resulting list contains all the resolved versions (may be more packages
 /// than the profile originally specified).
-Future<List<ResolvedVersion>> resolveVersions(TestProfile profile) async {
+Future<List<ResolvedVersion>> resolveVersions(
+    http.Client client, TestProfile profile) async {
   return await withTempDirectory((temp) async {
     final pubCacheDir = Directory(p.join(temp.path, 'pub-cache'));
     await pubCacheDir.create();
@@ -57,15 +63,26 @@ Future<List<ResolvedVersion>> resolveVersions(TestProfile profile) async {
     final pubHostedDir =
         Directory(p.join(pubCacheDir.path, 'hosted', 'pub.dartlang.org'));
     final dirs = await pubHostedDir.list().toList();
-    return dirs
-        .whereType<Directory>()
-        .map((d) => p.basename(d.path))
-        .where((v) => v.contains('-'))
-        .map((v) {
-      final parts = v.partition('-');
-      return ResolvedVersion(package: parts.first, version: parts.last);
-    }).toList()
-          ..sort();
+    final versions = <ResolvedVersion>[];
+    for (final dir in dirs.whereType<Directory>()) {
+      final basename = p.basename(dir.path);
+      if (!basename.contains('-')) continue;
+      final parts = basename.partition('-');
+      final package = parts.first;
+      final version = parts.last;
+
+      final rs = await client
+          .get('${urls.siteRoot}/api/packages/$package/versions/$version');
+      final map = json.decode(rs.body) as Map<String, dynamic>;
+      final info = package_api.VersionInfo.fromJson(map);
+
+      versions.add(ResolvedVersion(
+        package: package,
+        version: version,
+        created: info.published,
+      ));
+    }
+    return versions;
   });
 }
 
