@@ -66,8 +66,14 @@ class Package extends db.ExpandoModel<String> {
   @db.ModelKeyProperty(propertyName: 'latest_version', required: true)
   db.Key latestVersionKey;
 
+  @db.DateTimeProperty()
+  DateTime latestPublished;
+
   @db.ModelKeyProperty(propertyName: 'latest_dev_version')
   db.Key latestPrereleaseVersionKey;
+
+  @db.DateTimeProperty()
+  DateTime latestPrereleasePublished;
 
   /// The publisher id (null, if the package does not have a publisher).
   @db.StringProperty()
@@ -179,12 +185,14 @@ class Package extends db.ExpandoModel<String> {
     if (latestVersionKey == null ||
         isNewer(latestSemanticVersion, newVersion, pubSorted: true)) {
       latestVersionKey = pv.key;
+      latestPublished = pv.created;
     }
 
     if (latestPrereleaseVersionKey == null ||
         isNewer(latestPrereleaseSemanticVersion, newVersion,
             pubSorted: false)) {
       latestPrereleaseVersionKey = pv.key;
+      latestPrereleasePublished = pv.created;
     }
   }
 

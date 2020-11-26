@@ -1048,7 +1048,9 @@ Package _newPackageFromVersion(
     ..updated = now
     ..downloads = 0
     ..latestVersionKey = version.key
+    ..latestPublished = now
     ..latestPrereleaseVersionKey = version.key
+    ..latestPrereleasePublished = now
     ..uploaders = [userId]
     ..likes = 0
     ..isDiscontinued = false
