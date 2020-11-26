@@ -2,6 +2,8 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20201126t141046-all`
  * Bumped runtimeVersion to `2020.11.25`.
  * Upgraded pana to `0.14.9`.
  * Run `app/bin/tools/clear_package_properties.dart` after the release got deployed.
