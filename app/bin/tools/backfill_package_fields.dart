@@ -20,11 +20,12 @@ Future main(List<String> args) async {
   if (argv['help'] as bool == true) {
     print('Usage: dart backfill_package_fields.dart');
     print('Ensures Package.likes is set to an integer.');
-    print('Ensures Package.doNotAdvertise is set to a bool.');
     print('Ensures Package.isDiscontinued is set to a bool.');
     print('Ensures Package.isUnlisted is set to a bool.');
     print('Ensures Package.isWithheld is set to a bool.');
     print('Ensures Package.assignedTags is a list.');
+    print('Ensures Package.latestPublished is a DateTime.');
+    print('Ensures Package.latestPrereleasePublished is a DateTime.');
     print(_argParser.usage);
     return;
   }
@@ -51,10 +52,16 @@ Future<void> _backfillPackageFields(Package p) async {
       p.isDiscontinued != null &&
       p.isUnlisted != null &&
       p.isWithheld != null &&
-      p.assignedTags != null) {
+      p.assignedTags != null &&
+      p.latestPublished != null &&
+      p.latestPrereleasePublished != null) {
     return;
   }
   print('Backfilling properties on package ${p.name}');
+  final latestVersion =
+      await dbService.lookupValue<PackageVersion>(p.latestVersionKey);
+  final latestPrereleaseVersion =
+      await dbService.lookupValue<PackageVersion>(p.latestPrereleaseVersionKey);
   try {
     await withRetryTransaction(dbService, (tx) async {
       final package = await tx.lookupValue<Package>(p.key, orElse: () => null);
@@ -66,6 +73,8 @@ Future<void> _backfillPackageFields(Package p) async {
       package.isUnlisted ??= false;
       package.isWithheld ??= false;
       package.assignedTags ??= [];
+      package.latestPublished = latestVersion.created;
+      package.latestPrereleasePublished = latestPrereleaseVersion.created;
       tx.insert(package);
     });
     print('Updated properties on package ${p.name}.');
