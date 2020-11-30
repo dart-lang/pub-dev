@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:client_data/package_api.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -86,6 +88,40 @@ Future<shelf.Response> apiPackageNamesHandler(shelf.Request request) async {
     'packages': packageNames,
     // pagination is off for now
     'nextUrl': null,
+  });
+}
+
+/// Handles requests for
+/// - /api/package-name-completion-data
+Future<shelf.Response> apiPackageNameCompletionDataHandler(
+    shelf.Request request) async {
+  // only accept requests which allow gzip content encoding
+  final acceptsEncoding =
+      request.headers[HttpHeaders.acceptEncodingHeader] ?? '*';
+  if (!acceptsEncoding.contains('*') && !acceptsEncoding.contains('gzip')) {
+    throw NotAcceptableException('Client must accept gzip content.');
+  }
+
+  final bytes = await cache.packageNameCompletitionDataJsonGz().get(() async {
+    final rs = await searchClient.search(
+      ServiceSearchQuery.parse(
+        tagsPredicate: TagsPredicate.regularSearch(),
+        limit: 20000,
+      ),
+      // Do not cache response at the search client level, as we'll be caching
+      // it in a processed form much longer.
+      skipCache: true,
+    );
+
+    return gzip.encode(utf8.encode(json.encode({
+      'packages': rs.packages.map((p) => p.package).toList(),
+    })));
+  });
+
+  return shelf.Response(200, body: bytes, headers: {
+    ...jsonResponseHeaders,
+    'Content-Encoding': 'gzip',
+    'Cache-Control': 'public, max-age=28800', // 8 hours caching
   });
 }
 

@@ -27,6 +27,12 @@ const staticShortCache = Duration(minutes: 5);
 /// and it matches the etag.
 const staticLongCache = Duration(days: 7);
 
+/// The default header values for JSON responses.
+const jsonResponseHeaders = <String, String>{
+  'content-type': 'application/json; charset="utf-8"',
+  'x-content-type-options': 'nosniff',
+};
+
 final _logger = Logger('pub.shared.handler');
 final _prettyJson = JsonUtf8Encoder('  ');
 
@@ -49,9 +55,8 @@ shelf.Response jsonResponse(
     status,
     body: body,
     headers: {
+      ...jsonResponseHeaders,
       if (headers != null) ...headers,
-      'content-type': 'application/json; charset="utf-8"',
-      'x-content-type-options': 'nosniff',
     },
   );
 }

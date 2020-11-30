@@ -32,6 +32,12 @@ class NotFoundException extends ResponseException {
       : super._(404, 'NotFound', 'Could not find `$resource`.');
 }
 
+/// Thrown when request is not acceptable.
+class NotAcceptableException extends ResponseException {
+  NotAcceptableException(String message)
+      : super._(406, 'NotAcceptable', message);
+}
+
 /// Thrown when request input is invalid, bad payload, wrong querystring, etc.
 class InvalidInputException extends ResponseException {
   InvalidInputException._(String message)
