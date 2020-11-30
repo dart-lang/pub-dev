@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart' as parser;
 
-/// Validates the HTML content and throws ArgumentError if any of the
+/// Validates the HTML content and throws AssertionError if any of the
 /// following issues are present:
 /// - Canonical URL has invalid format or value.
 /// - Inline JavaScript actions are present (e.g. `onclick`).
@@ -21,7 +21,7 @@ void parseAndValidateHtml(String html) {
   validateHtml(parser.HtmlParser(html, strict: true).parse());
 }
 
-/// Validates the parsed HTML content and throws ArgumentError if any of the
+/// Validates the parsed HTML content and throws AssertionError if any of the
 /// following issues are present:
 /// - Inline JavaScript actions are present (e.g. `onclick`).
 /// - Links with `<a target="_blank">` do not have `rel="repooner"`.
@@ -42,7 +42,7 @@ void validateHtml(Node root) {
     links = root.querySelectorAll('a');
     scripts = root.querySelectorAll('script');
   } else {
-    throw ArgumentError('Unknown html element type: $root');
+    throw AssertionError('Unknown html element type: $root');
   }
 
   // No inline JS attribute
@@ -50,7 +50,7 @@ void validateHtml(Node root) {
     for (final attr in elem.attributes.keys) {
       final name = attr.toString();
       if (name.toLowerCase().startsWith('on')) {
-        throw ArgumentError(
+        throw AssertionError(
             'No inline JS attribute is allowed, found: ${elem.outerHtml}.');
       }
     }
@@ -61,7 +61,7 @@ void validateHtml(Node root) {
     if (elem.attributes['target'] == '_blank') {
       final rel = elem.attributes['rel'];
       if (!rel.split(' ').contains('noopener')) {
-        throw ArgumentError(
+        throw AssertionError(
             '_blank links must have rel=noopener, found: ${elem.outerHtml}.');
       }
     }
@@ -71,22 +71,22 @@ void validateHtml(Node root) {
   for (Element elem in scripts) {
     if (elem.attributes['type'] == 'application/ld+json') {
       if (elem.attributes.length != 1) {
-        throw ArgumentError(
+        throw AssertionError(
             'Only a single attribute is allowed on ld+json, found: ${elem.outerHtml}');
       }
       if (elem.text.trim().isEmpty) {
-        throw ArgumentError('ld+json element must not be empty.');
+        throw AssertionError('ld+json element must not be empty.');
       }
       // trigger parsing of the content
       json.decode(elem.text);
     } else {
       final src = elem.attributes['src'];
       if (src == null || src.isEmpty) {
-        throw ArgumentError(
+        throw AssertionError(
             'script tag must have src attribute, found: ${elem.parent?.outerHtml}');
       }
       if (elem.text.trim().isNotEmpty) {
-        throw ArgumentError(
+        throw AssertionError(
             'script tag must text content must be empty, found: ${elem.outerHtml}');
       }
     }
@@ -114,7 +114,7 @@ void _validateCanonicalLink(Element head) {
       .where((e) => e.attributes['rel'] == 'canonical')
       .toList();
   if (canonicalLinks.length > 1) {
-    throw ArgumentError('More than one canonical link was specified.');
+    throw AssertionError('More than one canonical link was specified.');
   }
   if (canonicalLinks.isEmpty) {
     final robotsValues = head
@@ -124,7 +124,7 @@ void _validateCanonicalLink(Element head) {
         .expand((v) => v.split(' '))
         .toSet();
     if (!robotsValues.contains('noindex')) {
-      throw ArgumentError(
+      throw AssertionError(
           'When canonical URL is missing, noindex must be set.');
     }
   }
@@ -132,12 +132,12 @@ void _validateCanonicalLink(Element head) {
     final link = canonicalLinks.single;
     final href = link.attributes['href'];
     if (!href.startsWith('https://pub.dev/')) {
-      throw ArgumentError(
+      throw AssertionError(
           'Canonical URL must start with https://pub.dev/, found: $href.');
     }
     final uri = Uri.parse(href);
     if (uri.pathSegments.contains('.') || uri.pathSegments.contains('..')) {
-      throw ArgumentError(
+      throw AssertionError(
           'Canonical URL must not contain /./ or /../, found: $href.');
     }
   }
