@@ -28,6 +28,21 @@ UploadSignerService get uploadSigner =>
 void registerUploadSigner(UploadSignerService uploadSigner) =>
     ss.register(#_url_signer, uploadSigner);
 
+/// Creates an upload signer based on the current environment.
+Future<UploadSignerService> createUploadSigner(http.Client authClient) async {
+  if (envConfig.isRunningLocally) {
+    return _ServiceAccountBasedUploadSigner();
+  } else {
+    final emailRs = await http.get(
+        'http://metadata/computeMetadata/'
+        'v1/instance/service-accounts/default/email',
+        headers: const {'Metadata-Flavor': 'Google'});
+    final email = emailRs.body.trim();
+    return _IamBasedUploadSigner(
+        activeConfiguration.projectId, email, authClient);
+  }
+}
+
 /// Signs Google Cloud Storage upload URLs.
 ///
 /// Instead of letting the pub client upload package data via the pub server
@@ -91,20 +106,20 @@ abstract class UploadSignerService {
 /// GCLOUD_KEY environment variables.
 ///
 /// See [UploadSignerService] for more information.
-class ServiceAccountBasedUploadSigner extends UploadSignerService {
+class _ServiceAccountBasedUploadSigner extends UploadSignerService {
   final String googleAccessId;
   final RS256Signer signer;
 
-  ServiceAccountBasedUploadSigner._(this.googleAccessId, this.signer);
+  _ServiceAccountBasedUploadSigner._(this.googleAccessId, this.signer);
 
-  factory ServiceAccountBasedUploadSigner() {
+  factory _ServiceAccountBasedUploadSigner() {
     if (envConfig.gcloudKey == null) {
       throw Exception('Missing GCLOUD_* environments for package:appengine');
     }
     final path = envConfig.gcloudKey;
     final content = File(path).readAsStringSync();
     final account = auth.ServiceAccountCredentials.fromJson(content);
-    return ServiceAccountBasedUploadSigner._(
+    return _ServiceAccountBasedUploadSigner._(
         account.email, RS256Signer(account.privateRSAKey));
   }
 
@@ -117,12 +132,12 @@ class ServiceAccountBasedUploadSigner extends UploadSignerService {
 /// Uses the [iam.IamApi] to sign Google Cloud Storage upload URLs.
 ///
 /// See [UploadSignerService] for more information.
-class IamBasedUploadSigner extends UploadSignerService {
+class _IamBasedUploadSigner extends UploadSignerService {
   final String projectId;
   final String email;
   final iam.IamApi iamApi;
 
-  IamBasedUploadSigner(this.projectId, this.email, http.Client client)
+  _IamBasedUploadSigner(this.projectId, this.email, http.Client client)
       : iamApi = iam.IamApi(client);
 
   @override

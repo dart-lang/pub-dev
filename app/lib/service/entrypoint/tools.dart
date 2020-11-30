@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:logging/logging.dart';
 
-import 'package:pub_dev/package/upload_signer_service.dart';
 import '../services.dart';
 
 /// Helper for utilities in bin/tools to setup a minimal AppEngine environment,
@@ -17,7 +16,6 @@ import '../services.dart';
 /// environment variables.
 Future<void> withProdServices(Future<void> Function() fn) {
   return withServices(() {
-    registerUploadSigner(ServiceAccountBasedUploadSigner());
     return fn();
   });
 }

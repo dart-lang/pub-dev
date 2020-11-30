@@ -18,8 +18,6 @@ import 'package:pub_dev/account/testing/fake_auth_provider.dart';
 import 'package:pub_dev/frontend/email_sender.dart';
 import 'package:pub_dev/frontend/handlers.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
-import 'package:pub_dev/frontend/testing/fake_upload_signer_service.dart';
-import 'package:pub_dev/package/upload_signer_service.dart';
 import 'package:pub_dev/publisher/domain_verifier.dart';
 import 'package:pub_dev/publisher/testing/fake_domain_verifier.dart';
 import 'package:pub_dev/scorecard/backend.dart';
@@ -86,7 +84,6 @@ void testWithServices(
           registerAuthProvider(FakeAuthProvider());
           registerDomainVerifier(FakeDomainVerifier());
           registerEmailSender(FakeEmailSender());
-          registerUploadSigner(FakeUploadSignerService('https://storage.url'));
 
           if (!omitData) {
             await _populateDefaultData();
