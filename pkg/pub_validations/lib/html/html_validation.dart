@@ -37,7 +37,7 @@ void validateHtml(Node root) {
     links = root.querySelectorAll('a');
     scripts = root.querySelectorAll('script');
   } else if (root is Document) {
-    _validateHead(root.querySelector('head'));
+    _validateCanonicalLink(root.querySelector('head'));
     elements = root.querySelectorAll('*');
     links = root.querySelectorAll('a');
     scripts = root.querySelectorAll('script');
@@ -93,7 +93,22 @@ void validateHtml(Node root) {
   }
 }
 
-void _validateHead(Element head) {
+/// "Google Search result usually points to the canonical page, unless one of
+/// the duplicates is explicitly better suited for a user."
+/// https://developers.google.com/search/docs/advanced/crawling/consolidate-duplicate-urls
+///
+/// To make sure we optimize our ranking, we should have a canonical URL for
+/// every content we serve. This helps not only with duplicate pages inside our
+/// site, but also handles proxying mirrors, which - accidentally or not - would
+/// otherwise compete to rank for the same content.
+///
+/// If a page doesn't have a canonical URL (because it is non-public, and/or
+/// customized to the current user), the page should be marked as `noindex`:
+/// "When Googlebot next crawls that page and sees the tag or header, Googlebot
+/// will drop that page entirely from Google Search results, regardless of
+/// whether other sites link to it."
+/// https://developers.google.com/search/docs/advanced/crawling/block-indexing
+void _validateCanonicalLink(Element head) {
   final canonicalLinks = head
       .querySelectorAll('link')
       .where((e) => e.attributes['rel'] == 'canonical')
