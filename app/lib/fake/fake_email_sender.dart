@@ -13,6 +13,8 @@ class FakeEmailSender implements EmailSender {
   @override
   Future<void> sendMessage(EmailMessage message) async {
     sentMessages.add(message);
+    // also trigger logging as fake pub server's integration test expect them
+    await loggingEmailSender.sendMessage(message);
     return;
   }
 }

@@ -54,7 +54,7 @@ class _LoggingEmailSender implements EmailSender {
   }
 }
 
-final EmailSender loggingEmailSender = _LoggingEmailSender();
+final loggingEmailSender = _LoggingEmailSender();
 
 Message _toMessage(EmailMessage input) {
   return Message()
