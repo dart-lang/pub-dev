@@ -635,7 +635,8 @@ class PackageBackend {
       } else if (!await packageBackend.isPackageAdmin(package, user.userId)) {
         _logger.info('User ${user.userId} (${user.email}) is not an uploader '
             'for package ${package.name}, rolling transaction back.');
-        throw AuthorizationException.userCannotUploadNewVersion(package.name);
+        throw AuthorizationException.userCannotUploadNewVersion(
+            user.email, package.name);
       }
 
       if (package.isNotVisible) {
