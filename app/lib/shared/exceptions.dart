@@ -195,6 +195,14 @@ class PackageRejectedException extends ResponseException {
   PackageRejectedException.nameReserved(String package)
       : super._(400, 'PackageRejected', 'Package name $package is reserved.');
 
+  /// The [package] has reached or has more versions than [limit].
+  PackageRejectedException.maxVersionCountReached(String package, int limit)
+      : super._(
+            400,
+            'PackageRejected',
+            'Package `$package` has reached the maximum version limit of `$limit`. '
+                'Please contact "support@pub.dev".');
+
   /// The [package] has an existing [version].
   PackageRejectedException.versionExists(String package, String version)
       : super._(400, 'PackageRejected',

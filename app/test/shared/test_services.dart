@@ -36,6 +36,7 @@ import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/importer.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
+import 'package:test/test.dart';
 
 import '../shared/utils.dart';
 import 'test_models.dart';
@@ -47,6 +48,7 @@ void testWithProfile(
   TestProfile testProfile,
   ImportSource importSource,
   @required Future<void> Function() fn,
+  Timeout timeout,
 }) {
   testWithServices(
     name,
@@ -62,6 +64,7 @@ void testWithProfile(
       });
     },
     omitData: true,
+    timeout: timeout,
   );
 }
 
@@ -73,6 +76,7 @@ void testWithServices(
   String name,
   Future<void> Function() fn, {
   bool omitData = false,
+  Timeout timeout,
 }) {
   scopedTest(name, () async {
     _setupLogging();
@@ -105,7 +109,7 @@ void testWithServices(
             }
           });
         });
-  });
+  }, timeout: timeout);
 }
 
 Future<void> _populateDefaultData() async {
