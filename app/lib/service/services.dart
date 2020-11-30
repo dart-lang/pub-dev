@@ -67,6 +67,25 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
       // override storageService with retrying http client
       registerStorageService(
           Storage(retryingAuthClient, activeConfiguration.projectId));
+
+      // register services with external dependencies
+      registerAuthProvider(GoogleOauth2AuthProvider(
+        <String>[
+          activeConfiguration.pubClientAudience,
+          activeConfiguration.pubSiteAudience,
+          activeConfiguration.adminAudience,
+        ],
+      ));
+      registerDomainVerifier(DomainVerifier());
+      registerEmailSender(
+        activeConfiguration.gmailRelayServiceAccount != null &&
+                activeConfiguration.gmailRelayImpersonatedGSuiteUser != null
+            ? createGmailRelaySender(
+                activeConfiguration.gmailRelayServiceAccount,
+                activeConfiguration.gmailRelayImpersonatedGSuiteUser,
+              )
+            : loggingEmailSender,
+      );
       registerUploadSigner(await createUploadSigner(retryingAuthClient));
 
       return await _withPubServices(fn);
@@ -86,11 +105,13 @@ Future<void> withFakeServices({
   }
   return await fork(() async {
     registerActiveConfiguration(configuration);
-    registerAuthProvider(FakeAuthProvider());
     registerDbService(DatastoreDB(datastore ?? MemDatastore()));
+    registerStorageService(storage ?? MemStorage());
+
+    // register fake services that would have external dependencies
+    registerAuthProvider(FakeAuthProvider());
     registerDomainVerifier(FakeDomainVerifier());
     registerEmailSender(FakeEmailSender());
-    registerStorageService(storage ?? MemStorage());
     registerUploadSigner(FakeUploadSignerService(configuration.storageBaseUrl));
     return await _withPubServices(fn);
   });
@@ -104,13 +125,6 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
     registerAdminBackend(AdminBackend(dbService));
     registerAnalyzerClient(AnalyzerClient());
     registerAnnouncementBackend(AnnouncementBackend());
-    registerAuthProvider(GoogleOauth2AuthProvider(
-      <String>[
-        activeConfiguration.pubClientAudience,
-        activeConfiguration.pubSiteAudience,
-        activeConfiguration.adminAudience,
-      ],
-    ));
     registerConsentBackend(ConsentBackend(dbService));
     registerDartdocBackend(
       DartdocBackend(
@@ -122,15 +136,6 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
     registerDartdocClient(DartdocClient());
     registerDartSdkIndex(
         InMemoryPackageIndex.sdk(urlPrefix: dartSdkMainUrl(toolEnvSdkVersion)));
-    registerEmailSender(
-      activeConfiguration.gmailRelayServiceAccount != null &&
-              activeConfiguration.gmailRelayImpersonatedGSuiteUser != null
-          ? createGmailRelaySender(
-              activeConfiguration.gmailRelayServiceAccount,
-              activeConfiguration.gmailRelayImpersonatedGSuiteUser,
-            )
-          : loggingEmailSender,
-    );
     registerHistoryBackend(HistoryBackend(dbService));
     registerJobBackend(JobBackend(dbService));
     registerNameTracker(NameTracker(dbService));
@@ -140,7 +145,6 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
       PopularityStorage(await getOrCreateBucket(
           storageService, activeConfiguration.popularityDumpBucketName)),
     );
-    registerDomainVerifier(DomainVerifier());
     registerPublisherBackend(PublisherBackend(dbService));
     registerScoreCardBackend(ScoreCardBackend(dbService));
     registerSearchBackend(SearchBackend(dbService));
