@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../auth_provider.dart';
+import '../account/auth_provider.dart';
 
 /// A fake auth provider where user resolution is done via the provided access
 /// token.
@@ -12,9 +12,6 @@ import '../auth_provider.dart';
 ///
 /// Access tokens without '-at-' are not resolving to any user.
 class FakeAuthProvider implements AuthProvider {
-  final int httpPort;
-  FakeAuthProvider([this.httpPort = 8080]);
-
   @override
   Future<void> close() async {}
 

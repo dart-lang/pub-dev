@@ -1,3 +1,7 @@
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async' show FutureOr;
 
 import 'package:appengine/appengine.dart';
@@ -15,6 +19,9 @@ import '../admin/backend.dart';
 import '../analyzer/analyzer_client.dart';
 import '../dartdoc/backend.dart';
 import '../dartdoc/dartdoc_client.dart';
+import '../fake/fake_auth_provider.dart';
+import '../fake/fake_domain_verifier.dart';
+import '../fake/fake_email_sender.dart';
 import '../fake/fake_upload_signer_service.dart';
 import '../frontend/email_sender.dart';
 import '../history/backend.dart';
@@ -79,7 +86,10 @@ Future<void> withFakeServices({
   }
   return await fork(() async {
     registerActiveConfiguration(configuration);
+    registerAuthProvider(FakeAuthProvider());
     registerDbService(DatastoreDB(datastore ?? MemDatastore()));
+    registerDomainVerifier(FakeDomainVerifier());
+    registerEmailSender(FakeEmailSender());
     registerStorageService(storage ?? MemStorage());
     registerUploadSigner(FakeUploadSignerService(configuration.storageBaseUrl));
     return await _withPubServices(fn);
