@@ -18,8 +18,6 @@ import 'package:pub_dev/account/testing/fake_auth_provider.dart';
 import 'package:pub_dev/frontend/email_sender.dart';
 import 'package:pub_dev/frontend/handlers.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
-import 'package:pub_dev/frontend/testing/fake_upload_signer_service.dart';
-import 'package:pub_dev/package/upload_signer_service.dart';
 import 'package:pub_dev/publisher/domain_verifier.dart';
 import 'package:pub_dev/publisher/testing/fake_domain_verifier.dart';
 import 'package:pub_dev/scorecard/backend.dart';
@@ -36,6 +34,7 @@ import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/importer.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
+import 'package:test/test.dart';
 
 import '../shared/utils.dart';
 import 'test_models.dart';
@@ -47,6 +46,7 @@ void testWithProfile(
   TestProfile testProfile,
   ImportSource importSource,
   @required Future<void> Function() fn,
+  Timeout timeout,
 }) {
   testWithServices(
     name,
@@ -62,6 +62,7 @@ void testWithProfile(
       });
     },
     omitData: true,
+    timeout: timeout,
   );
 }
 
@@ -73,6 +74,7 @@ void testWithServices(
   String name,
   Future<void> Function() fn, {
   bool omitData = false,
+  Timeout timeout,
 }) {
   scopedTest(name, () async {
     _setupLogging();
@@ -82,7 +84,6 @@ void testWithServices(
           registerAuthProvider(FakeAuthProvider());
           registerDomainVerifier(FakeDomainVerifier());
           registerEmailSender(FakeEmailSender());
-          registerUploadSigner(FakeUploadSignerService('https://storage.url'));
 
           if (!omitData) {
             await _populateDefaultData();
@@ -105,7 +106,7 @@ void testWithServices(
             }
           });
         });
-  });
+  }, timeout: timeout);
 }
 
 Future<void> _populateDefaultData() async {

@@ -195,6 +195,14 @@ class PackageRejectedException extends ResponseException {
   PackageRejectedException.nameReserved(String package)
       : super._(400, 'PackageRejected', 'Package name $package is reserved.');
 
+  /// The [package] has reached or has more versions than [limit].
+  PackageRejectedException.maxVersionCountReached(String package, int limit)
+      : super._(
+            400,
+            'PackageRejected',
+            'Package `$package` has reached the maximum version limit of `$limit`. '
+                'Please contact "support@pub.dev".');
+
   /// The [package] has an existing [version].
   PackageRejectedException.versionExists(String package, String version)
       : super._(400, 'PackageRejected',
@@ -325,9 +333,11 @@ class AuthorizationException extends ResponseException {
 
   /// Signaling that the user does not have permissions to upload a new version
   /// of [package].
-  factory AuthorizationException.userCannotUploadNewVersion(String package) =>
+  factory AuthorizationException.userCannotUploadNewVersion(
+          String email, String package) =>
       AuthorizationException._(
-        'Insufficient permissions to upload new versions of package `$package`.',
+        '`$email` has insufficient permissions to upload new versions of '
+        'package `$package`.',
       );
 
   /// Signaling that the user does not have permissions to change uploaders for

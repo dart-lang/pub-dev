@@ -63,11 +63,26 @@ class Package extends db.ExpandoModel<String> {
   @db.IntProperty(required: true)
   int likes;
 
+  /// Key referencing the [PackageVersion] for the latest version of this package, ordered by priority order of
+  /// semantic versioning, hence, deprioritizing prereleases.
   @db.ModelKeyProperty(propertyName: 'latest_version', required: true)
   db.Key latestVersionKey;
 
+  /// [DateTime] when the [PackageVersion] in [latestVersionKey] was published.
+  @db.DateTimeProperty()
+  DateTime latestPublished;
+
+  /// Reference to latest version of this package ordered by semantic versioning, including
+  /// prerelease versions of this package.
+  ///
+  /// Note. This is **not** the _latest prerelease version_, it is the _latest version_ without deprioritization of
+  /// prereleases. Hence, this might not be a prerelease version, if a newer non-prerelease exists.
   @db.ModelKeyProperty(propertyName: 'latest_dev_version')
   db.Key latestPrereleaseVersionKey;
+
+  /// DateTime at which point the `PackageVersion` referenced in [latestPrereleaseVersionKey] was published.
+  @db.DateTimeProperty()
+  DateTime latestPrereleasePublished;
 
   /// The publisher id (null, if the package does not have a publisher).
   @db.StringProperty()
@@ -179,12 +194,14 @@ class Package extends db.ExpandoModel<String> {
     if (latestVersionKey == null ||
         isNewer(latestSemanticVersion, newVersion, pubSorted: true)) {
       latestVersionKey = pv.key;
+      latestPublished = pv.created;
     }
 
     if (latestPrereleaseVersionKey == null ||
         isNewer(latestPrereleaseSemanticVersion, newVersion,
             pubSorted: false)) {
       latestPrereleaseVersionKey = pv.key;
+      latestPrereleasePublished = pv.created;
     }
   }
 

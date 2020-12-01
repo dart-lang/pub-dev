@@ -166,8 +166,8 @@ class SearchBackend {
 
   Map<String, String> _buildDependencies(Pubspec pubspec, AnalysisView view) {
     final Map<String, String> dependencies = <String, String>{};
-    view.allDependencies?.forEach((pd) {
-      dependencies[pd.package] = pd.dependencyType;
+    view.allDependencies?.forEach((p) {
+      dependencies[p] = DependencyTypes.transitive;
     });
     pubspec.devDependencies.forEach((package) {
       dependencies[package] = DependencyTypes.dev;

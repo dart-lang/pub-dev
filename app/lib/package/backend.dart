@@ -47,6 +47,9 @@ import 'upload_signer_service.dart';
 // that is stored separately in the database.
 final maxAssetContentLength = 128 * 1024;
 
+/// The maximum number of versions a package is allowed to have.
+final maxVersionsPerPackage = 1000;
+
 final Logger _logger = Logger('pub.cloud_repository');
 
 /// Sets the active tarball storage
@@ -69,10 +72,16 @@ PackageBackend get packageBackend =>
 class PackageBackend {
   final DatastoreDB db;
   final TarballStorage _storage;
+  final int _maxVersionsPerPackage;
 
-  PackageBackend(DatastoreDB db, TarballStorage storage)
-      : db = db,
-        _storage = storage;
+  PackageBackend(
+    DatastoreDB db,
+    TarballStorage storage, {
+    int maxVersionsPerPackageOverride,
+  })  : db = db,
+        _storage = storage,
+        _maxVersionsPerPackage =
+            maxVersionsPerPackageOverride ?? maxVersionsPerPackage;
 
   /// Whether the package exists and is not withheld or deleted.
   Future<bool> isPackageVisible(String package) {
@@ -133,6 +142,11 @@ class PackageBackend {
       );
       return p?.latestVersion;
     });
+  }
+
+  /// Returns the number of versions for a given [package].
+  Future<int> getPackageVersionsCount(String package) async {
+    return (await versionsOfPackage(package)).length;
   }
 
   /// Looks up a package by name.
@@ -574,6 +588,13 @@ class PackageBackend {
     final validatedUpload = await _parseAndValidateUpload(db, filename, user);
     final newVersion = validatedUpload.packageVersion;
 
+    // Check version count outside of the transaction.
+    final versionsCount = await getPackageVersionsCount(newVersion.package);
+    if (versionsCount >= _maxVersionsPerPackage) {
+      throw PackageRejectedException.maxVersionCountReached(
+          newVersion.package, _maxVersionsPerPackage);
+    }
+
     Package package;
     String prevLatestStableVersion;
     String prevLatestPrereleaseVersion;
@@ -614,7 +635,8 @@ class PackageBackend {
       } else if (!await packageBackend.isPackageAdmin(package, user.userId)) {
         _logger.info('User ${user.userId} (${user.email}) is not an uploader '
             'for package ${package.name}, rolling transaction back.');
-        throw AuthorizationException.userCannotUploadNewVersion(package.name);
+        throw AuthorizationException.userCannotUploadNewVersion(
+            user.email, package.name);
       }
 
       if (package.isNotVisible) {
@@ -1048,7 +1070,9 @@ Package _newPackageFromVersion(
     ..updated = now
     ..downloads = 0
     ..latestVersionKey = version.key
+    ..latestPublished = now
     ..latestPrereleaseVersionKey = version.key
+    ..latestPrereleasePublished = now
     ..uploaders = [userId]
     ..likes = 0
     ..isDiscontinued = false

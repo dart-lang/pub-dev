@@ -15,12 +15,14 @@ import '../admin/backend.dart';
 import '../analyzer/analyzer_client.dart';
 import '../dartdoc/backend.dart';
 import '../dartdoc/dartdoc_client.dart';
+import '../fake/fake_upload_signer_service.dart';
 import '../frontend/email_sender.dart';
 import '../history/backend.dart';
 import '../job/backend.dart';
 import '../package/backend.dart';
 import '../package/name_tracker.dart';
 import '../package/search_adapter.dart';
+import '../package/upload_signer_service.dart';
 import '../publisher/backend.dart';
 import '../publisher/domain_verifier.dart';
 import '../scorecard/backend.dart';
@@ -49,16 +51,16 @@ import 'spam/backend.dart';
 Future<void> withServices(FutureOr<void> Function() fn) async {
   return withAppEngineServices(() async {
     return await fork(() async {
-      // acquire auth client for storage service
-      // TODO: reuse it for upload signer service
+      // retrying auth client for storage service
       final authClient = await auth
           .clientViaApplicationDefaultCredentials(scopes: [...Storage.SCOPES]);
+      final retryingAuthClient = httpRetryClient(innerClient: authClient);
+      registerScopeExitCallback(() async => retryingAuthClient.close());
 
       // override storageService with retrying http client
-      final storageClient = httpRetryClient(innerClient: authClient);
       registerStorageService(
-          Storage(storageClient, activeConfiguration.projectId));
-      registerScopeExitCallback(() async => storageClient.close());
+          Storage(retryingAuthClient, activeConfiguration.projectId));
+      registerUploadSigner(await createUploadSigner(retryingAuthClient));
 
       return await _withPubServices(fn);
     });
@@ -79,7 +81,7 @@ Future<void> withFakeServices({
     registerActiveConfiguration(configuration);
     registerDbService(DatastoreDB(datastore ?? MemDatastore()));
     registerStorageService(storage ?? MemStorage());
-
+    registerUploadSigner(FakeUploadSignerService(configuration.storageBaseUrl));
     return await _withPubServices(fn);
   });
 }

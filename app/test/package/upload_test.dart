@@ -10,6 +10,7 @@ import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/service/secret/backend.dart';
+import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -37,8 +38,7 @@ void main() {
         final Uri redirectUri = Uri.parse('http://blobstore.com/upload');
         registerAuthenticatedUser(hansUser);
         final info = await packageBackend.startUpload(redirectUri);
-        expect(
-            info.url, startsWith('https://storage.url/fake-bucket-pub/tmp/'));
+        expect(info.url, startsWith('http://localhost:0/fake-bucket-pub/tmp/'));
         expect(info.fields, {
           'key': startsWith('fake-bucket-pub/tmp/'),
           'success_action_redirect': startsWith('$redirectUri?upload_id='),
@@ -413,6 +413,38 @@ void main() {
         expect(bytes, tarball);
       });
     });
+  });
+
+  group('other limits', () {
+    testWithProfile(
+      'max versions',
+      testProfile: TestProfile(
+        defaultUser: adminUser.email,
+        packages: <TestPackage>[
+          TestPackage(
+              name: 'busy_pkg', versions: List.generate(100, (i) => '1.0.$i')),
+        ],
+      ),
+      fn: () async {
+        registerPackageBackend(PackageBackend(
+          dbService,
+          tarballStorage,
+          maxVersionsPerPackageOverride: 100,
+        ));
+        registerAuthenticatedUser(adminUser);
+        final tarball = await packageArchiveBytes(
+            pubspecContent: generatePubspecYaml('busy_pkg', '2.0.0'));
+        final rs = packageBackend.upload(Stream.fromIterable([tarball]));
+        await expectLater(
+            rs,
+            throwsA(isA<PackageRejectedException>().having(
+              (e) => '$e',
+              'text',
+              contains('has reached the maximum version limit of'),
+            )));
+      },
+      timeout: Timeout.factor(1.5),
+    );
   });
 
   group('.tar.gz verification', () {
