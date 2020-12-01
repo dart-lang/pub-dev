@@ -29,7 +29,7 @@ Future main(List<String> arguments) async {
   final String package = arguments[1];
   final String uploader = arguments.length == 3 ? arguments[2] : null;
 
-  await withProdServices(() async {
+  await withToolRuntime(() async {
     if (command == 'list') {
       await listUploaders(package);
     } else if (command == 'add') {

@@ -27,7 +27,7 @@ Future main(List<String> args) async {
     return;
   }
 
-  await withProdServices(() async {
+  await withToolRuntime(() async {
     await secretBackend.update(id, value);
   });
 }

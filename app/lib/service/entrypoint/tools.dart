@@ -8,18 +8,6 @@ import 'package:logging/logging.dart';
 
 import '../services.dart';
 
-/// Helper for utilities in bin/tools to setup a minimal AppEngine environment,
-/// calling [fn] to run inside it. It registers only the most frequently used
-/// services (at the moment only `frontend/backend.dart`).
-///
-/// Connection parameters are inferred from the GCLOUD_PROJECT and the GCLOUD_KEY
-/// environment variables.
-Future<void> withProdServices(Future<void> Function() fn) {
-  return withServices(() {
-    return fn();
-  });
-}
-
 /// Setup the tool's runtime environment, including Datastore access and logging.
 Future<void> withToolRuntime(Future<void> Function() fn) async {
   final subs = Logger.root.onRecord.listen((r) {
@@ -31,7 +19,7 @@ Future<void> withToolRuntime(Future<void> Function() fn) async {
     ].where((e) => e != null).join(' '));
   });
   try {
-    await withProdServices(fn);
+    await withServices(fn);
   } finally {
     await subs.cancel();
   }

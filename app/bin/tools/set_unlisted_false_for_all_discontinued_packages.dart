@@ -26,7 +26,7 @@ Future main(List<String> args) async {
 
   final concurrency = int.parse(argv['concurrency'] as String);
 
-  await withProdServices(() async {
+  await withToolRuntime(() async {
     final pool = Pool(concurrency);
     final futures = <Future>[];
 

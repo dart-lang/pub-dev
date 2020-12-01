@@ -27,7 +27,7 @@ Future main(List<String> arguments) async {
   String version;
   if (arguments.length == 3) version = arguments[2];
 
-  await withProdServices(() async {
+  await withToolRuntime(() async {
     if (command == 'list') {
       await listPackage(package);
     } else if (command == 'remove') {

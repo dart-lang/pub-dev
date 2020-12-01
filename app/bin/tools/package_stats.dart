@@ -34,7 +34,7 @@ Future main(List<String> args) async {
   final grantedPoints = _Counter();
   final tags = _Counter();
 
-  await withProdServices(() async {
+  await withToolRuntime(() async {
     Future<void> process(Package p) async {
       totalCount++;
       if (totalCount % 25 == 0) {

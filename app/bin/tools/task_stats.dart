@@ -31,7 +31,7 @@ Future main(List<String> args) async {
 
   final Map report = {};
 
-  await withProdServices(() async {
+  await withToolRuntime(() async {
     final statFutures = <Future<_Stat>>[];
     final updatedAfter = DateTime.now().subtract(Duration(days: maxAgeDays));
     final query = dbService.query<Package>()

@@ -24,7 +24,7 @@ Future main(List<String> args) async {
     _printHelp();
     return;
   }
-  await withProdServices(() async {
+  await withToolRuntime(() async {
     if (args[0] == '--all') {
       final pool = Pool(100);
       final futures = <Future>[];

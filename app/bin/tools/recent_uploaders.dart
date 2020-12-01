@@ -29,7 +29,7 @@ Future main(List<String> args) async {
 
   final pool = Pool(10);
 
-  await withProdServices(() async {
+  await withToolRuntime(() async {
     final updatedAfter = DateTime.now().subtract(Duration(days: maxAgeDays));
     final query = dbService.query<Package>()
       ..filter('updated >=', updatedAfter);

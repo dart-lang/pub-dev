@@ -24,7 +24,7 @@ Future main(List<String> args) async {
   final valueAsString = args.length == 2 ? args[1] : null;
   final blockedStatus = _parseValue(valueAsString);
 
-  await withProdServices(() async {
+  await withToolRuntime(() async {
     final user = await accountBackend.lookupUserById(idOrEmail) ??
         await accountBackend.lookupUserByEmail(idOrEmail);
     if (user == null) {

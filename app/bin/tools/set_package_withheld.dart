@@ -41,7 +41,7 @@ Future main(List<String> args) async {
     return;
   }
 
-  await withProdServices(() async {
+  await withToolRuntime(() async {
     print('Scanning packages...');
     final packages = <String, Package>{};
 
