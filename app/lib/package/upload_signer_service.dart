@@ -33,11 +33,15 @@ Future<UploadSignerService> createUploadSigner(http.Client authClient) async {
   if (envConfig.isRunningLocally) {
     return _ServiceAccountBasedUploadSigner();
   } else {
-    final emailRs = await http.get(
-        'http://metadata/computeMetadata/'
-        'v1/instance/service-accounts/default/email',
-        headers: const {'Metadata-Flavor': 'Google'});
-    final email = emailRs.body.trim();
+    var email = activeConfiguration.uploadSignerServiceAccount;
+    // TODO: remove this fallback after upgrading to appengine 0.12.0
+    if (email == null) {
+      final emailRs = await http.get(
+          'http://metadata/computeMetadata/'
+          'v1/instance/service-accounts/default/email',
+          headers: const {'Metadata-Flavor': 'Google'});
+      email = emailRs.body.trim();
+    }
     return _IamBasedUploadSigner(
         activeConfiguration.projectId, email, authClient);
   }
