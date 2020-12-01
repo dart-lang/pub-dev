@@ -38,7 +38,7 @@ Future main(List<String> args) async {
     return;
   }
 
-  await withProdServices(() async {
+  await withToolRuntime(() async {
     final user = await accountBackend.lookupUserByEmail(userEmail);
     if (user == null) {
       print('ERROR: unknown user: $userEmail');
