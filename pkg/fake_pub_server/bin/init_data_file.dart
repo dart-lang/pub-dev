@@ -39,6 +39,7 @@ Future<void> main(List<String> args) async {
 
   final argv = _argParser.parse(args);
   final analyze = argv['analyze'] as bool;
+  final dataFile = argv['data-file'] as String;
   final profile = TestProfile.fromYaml(
     await File(argv['test-profile'] as String).readAsString(),
   );
@@ -50,7 +51,7 @@ Future<void> main(List<String> args) async {
     'archives',
   );
 
-  final state = LocalServerState(path: argv['data-file'] as String);
+  final state = LocalServerState();
 
   await withFakeServices(
       configuration: Configuration.test(),
@@ -67,7 +68,7 @@ Future<void> main(List<String> args) async {
           await _analyze();
         }
       });
-  await state.save();
+  await state.save(dataFile);
 }
 
 Future<void> _analyze() async {
