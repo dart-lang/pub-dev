@@ -31,7 +31,7 @@ Future main(List<String> args) async {
         '${r.time.toIso8601String()} [${r.level.toString().toUpperCase()}] ${r.message}');
   });
 
-  await withProdServices(() async {
+  await withToolRuntime(() async {
     final checker = IntegrityChecker(dbService, concurrency: concurrency);
     final problems = await checker.check();
     print('\nProblems detected: ${problems.length}\n');

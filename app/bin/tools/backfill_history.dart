@@ -22,7 +22,7 @@ Future main(List<String> args) async {
   final package = argv['package'] as String;
 
   useLoggingPackageAdaptor();
-  await withProdServices(() async {
+  await withToolRuntime(() async {
     if (package != null) {
       await _backfillPackage(package);
     } else {

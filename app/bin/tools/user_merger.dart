@@ -27,7 +27,7 @@ Future main(List<String> args) async {
   concurrency = int.parse(argv['concurrency'] as String);
   final oauthUserId = argv['oauth-user-id'] as String;
 
-  await withProdServices(() async {
+  await withToolRuntime(() async {
     final userMerger = UserMerger(db: dbService, concurrency: concurrency);
     if (oauthUserId != null) {
       await userMerger.fixOAuthUserID(oauthUserId);

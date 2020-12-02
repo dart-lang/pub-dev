@@ -24,7 +24,7 @@ Future main(List<String> args) async {
   }
   final publisherId = args.single;
 
-  await withProdServices(() async {
+  await withToolRuntime(() async {
     final publisher = await publisherBackend.getPublisher(publisherId);
     final members = await publisherBackend.listPublisherMembers(publisherId);
 

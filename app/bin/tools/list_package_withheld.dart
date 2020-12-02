@@ -23,7 +23,7 @@ Future main(List<String> args) async {
     return;
   }
 
-  await withProdServices(() async {
+  await withToolRuntime(() async {
     print('Scanning packages...');
     final query = dbService.query<Package>()..filter('isWithheld =', true);
     await for (final p in query.run()) {

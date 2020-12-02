@@ -12,7 +12,7 @@ import 'package:pub_dev/shared/datastore.dart';
 
 Future main(List<String> args) async {
   useLoggingPackageAdaptor();
-  await withProdServices(() async {
+  await withToolRuntime(() async {
     final counts = <String, int>{};
 
     int index = 0;

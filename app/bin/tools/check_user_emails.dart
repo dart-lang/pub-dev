@@ -12,7 +12,7 @@ import 'package:pub_dev/shared/datastore.dart';
 /// uppercase characters too.
 Future main(List<String> args) async {
   int count = 0;
-  await withProdServices(() async {
+  await withToolRuntime(() async {
     final bad = <String>{};
     final good = <String>{};
     final query = dbService.query<User>();

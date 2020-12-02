@@ -40,7 +40,7 @@ Future main(List<String> args) async {
   _isVerbose = argv['verbose'] as bool;
   final concurrency = int.parse(argv['concurrency'] as String);
   final package = argv['package'] as String;
-  await withProdServices(() async {
+  await withToolRuntime(() async {
     if (package != null) {
       final p = (await dbService.lookup<Package>(
               [dbService.emptyKey.append(Package, id: package)]))
