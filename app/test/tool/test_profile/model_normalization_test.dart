@@ -97,7 +97,11 @@ packages:
   - name: foo
 '''),
           resolvedVersions: [
-            ResolvedVersion(package: 'foo', version: '1.1.0'),
+            ResolvedVersion(
+              package: 'foo',
+              version: '1.1.0',
+              created: DateTime.now(),
+            ),
           ],
         ).toJson(),
         {
