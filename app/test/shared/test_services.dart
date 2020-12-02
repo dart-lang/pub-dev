@@ -13,19 +13,13 @@ import 'package:meta/meta.dart';
 import 'package:pub_dev/package/name_tracker.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
-import 'package:pub_dev/account/backend.dart';
-import 'package:pub_dev/account/testing/fake_auth_provider.dart';
-import 'package:pub_dev/frontend/email_sender.dart';
 import 'package:pub_dev/frontend/handlers.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
-import 'package:pub_dev/publisher/domain_verifier.dart';
-import 'package:pub_dev/publisher/testing/fake_domain_verifier.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/search/backend.dart';
 import 'package:pub_dev/search/handlers.dart';
 import 'package:pub_dev/search/updater.dart';
 import 'package:pub_dev/shared/configuration.dart';
-import 'package:pub_dev/shared/email.dart';
 import 'package:pub_dev/shared/handler_helpers.dart';
 import 'package:pub_dev/shared/integrity.dart';
 import 'package:pub_dev/shared/popularity_storage.dart';
@@ -81,10 +75,6 @@ void testWithServices(
     await withFakeServices(
         configuration: Configuration.test(),
         fn: () async {
-          registerAuthProvider(FakeAuthProvider());
-          registerDomainVerifier(FakeDomainVerifier());
-          registerEmailSender(FakeEmailSender());
-
           if (!omitData) {
             await _populateDefaultData();
           }
@@ -233,16 +223,4 @@ void _setupLogging() {
       print('ERROR: ${rec.error}, ${rec.stackTrace}');
     }
   });
-}
-
-FakeEmailSender get fakeEmailSender => emailSender as FakeEmailSender;
-
-class FakeEmailSender implements EmailSender {
-  final sentMessages = <EmailMessage>[];
-
-  @override
-  Future<void> sendMessage(EmailMessage message) async {
-    sentMessages.add(message);
-    return;
-  }
 }

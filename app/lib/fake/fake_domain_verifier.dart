@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../shared/exceptions.dart' show AuthorizationException;
-import '../domain_verifier.dart';
+import '../publisher/domain_verifier.dart';
+import '../shared/exceptions.dart' show AuthorizationException;
 
 /// Fake implementation of [DomainVerifier] for testing.
 class FakeDomainVerifier implements DomainVerifier {

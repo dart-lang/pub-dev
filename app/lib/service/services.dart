@@ -1,3 +1,7 @@
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async' show FutureOr;
 
 import 'package:appengine/appengine.dart';
@@ -15,6 +19,9 @@ import '../admin/backend.dart';
 import '../analyzer/analyzer_client.dart';
 import '../dartdoc/backend.dart';
 import '../dartdoc/dartdoc_client.dart';
+import '../fake/fake_auth_provider.dart';
+import '../fake/fake_domain_verifier.dart';
+import '../fake/fake_email_sender.dart';
 import '../fake/fake_upload_signer_service.dart';
 import '../frontend/email_sender.dart';
 import '../history/backend.dart';
@@ -60,6 +67,25 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
       // override storageService with retrying http client
       registerStorageService(
           Storage(retryingAuthClient, activeConfiguration.projectId));
+
+      // register services with external dependencies
+      registerAuthProvider(GoogleOauth2AuthProvider(
+        <String>[
+          activeConfiguration.pubClientAudience,
+          activeConfiguration.pubSiteAudience,
+          activeConfiguration.adminAudience,
+        ],
+      ));
+      registerDomainVerifier(DomainVerifier());
+      registerEmailSender(
+        activeConfiguration.gmailRelayServiceAccount != null &&
+                activeConfiguration.gmailRelayImpersonatedGSuiteUser != null
+            ? createGmailRelaySender(
+                activeConfiguration.gmailRelayServiceAccount,
+                activeConfiguration.gmailRelayImpersonatedGSuiteUser,
+              )
+            : loggingEmailSender,
+      );
       registerUploadSigner(await createUploadSigner(retryingAuthClient));
 
       return await _withPubServices(fn);
@@ -81,6 +107,11 @@ Future<void> withFakeServices({
     registerActiveConfiguration(configuration);
     registerDbService(DatastoreDB(datastore ?? MemDatastore()));
     registerStorageService(storage ?? MemStorage());
+
+    // register fake services that would have external dependencies
+    registerAuthProvider(FakeAuthProvider());
+    registerDomainVerifier(FakeDomainVerifier());
+    registerEmailSender(FakeEmailSender());
     registerUploadSigner(FakeUploadSignerService(configuration.storageBaseUrl));
     return await _withPubServices(fn);
   });
@@ -94,13 +125,6 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
     registerAdminBackend(AdminBackend(dbService));
     registerAnalyzerClient(AnalyzerClient());
     registerAnnouncementBackend(AnnouncementBackend());
-    registerAuthProvider(GoogleOauth2AuthProvider(
-      <String>[
-        activeConfiguration.pubClientAudience,
-        activeConfiguration.pubSiteAudience,
-        activeConfiguration.adminAudience,
-      ],
-    ));
     registerConsentBackend(ConsentBackend(dbService));
     registerDartdocBackend(
       DartdocBackend(
@@ -112,15 +136,6 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
     registerDartdocClient(DartdocClient());
     registerDartSdkIndex(
         InMemoryPackageIndex.sdk(urlPrefix: dartSdkMainUrl(toolEnvSdkVersion)));
-    registerEmailSender(
-      activeConfiguration.gmailRelayServiceAccount != null &&
-              activeConfiguration.gmailRelayImpersonatedGSuiteUser != null
-          ? createGmailRelaySender(
-              activeConfiguration.gmailRelayServiceAccount,
-              activeConfiguration.gmailRelayImpersonatedGSuiteUser,
-            )
-          : loggingEmailSender,
-    );
     registerHistoryBackend(HistoryBackend(dbService));
     registerJobBackend(JobBackend(dbService));
     registerNameTracker(NameTracker(dbService));
@@ -130,7 +145,6 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
       PopularityStorage(await getOrCreateBucket(
           storageService, activeConfiguration.popularityDumpBucketName)),
     );
-    registerDomainVerifier(DomainVerifier());
     registerPublisherBackend(PublisherBackend(dbService));
     registerScoreCardBackend(ScoreCardBackend(dbService));
     registerSearchBackend(SearchBackend(dbService));

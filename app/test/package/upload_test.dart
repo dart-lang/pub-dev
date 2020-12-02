@@ -8,18 +8,19 @@ import 'dart:io';
 import 'package:gcloud/db.dart';
 import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
-import 'package:pub_dev/account/models.dart';
-import 'package:pub_dev/service/secret/backend.dart';
-import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
 import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/fake/fake_email_sender.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/package/upload_signer_service.dart';
+import 'package:pub_dev/service/secret/backend.dart';
 import 'package:pub_dev/shared/exceptions.dart';
+import 'package:pub_dev/tool/test_profile/models.dart';
 
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';

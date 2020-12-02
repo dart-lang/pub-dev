@@ -13,12 +13,8 @@ import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
 
-import 'package:pub_dev/account/backend.dart';
-import 'package:pub_dev/account/testing/fake_auth_provider.dart';
 import 'package:pub_dev/frontend/handlers.dart';
 import 'package:pub_dev/package/name_tracker.dart';
-import 'package:pub_dev/publisher/domain_verifier.dart';
-import 'package:pub_dev/publisher/testing/fake_domain_verifier.dart';
 import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/service/spam/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
@@ -42,9 +38,6 @@ class FakePubServer {
         datastore: _datastore,
         storage: _storage,
         fn: () async {
-          registerAuthProvider(FakeAuthProvider(port));
-          registerDomainVerifier(FakeDomainVerifier());
-
           nameTracker.startTracking();
           spamBackend.setSpamConfig(spamWords: ['SPAM-SPAM-SPAM']);
 
