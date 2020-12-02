@@ -58,7 +58,8 @@ void main() {
     // server startup.
     test('start browser', () async {
       headlessEnv = HeadlessEnv(trackCoverage: trackCoverage);
-      await headlessEnv.startBrowser();
+      await headlessEnv.startBrowser(
+          origin: 'http://localhost:${fakePubServerProcess.port}');
     });
 
     test('landing page', () async {
@@ -117,6 +118,7 @@ void main() {
           }
 
           await checkHeaderTitle();
+          await _checkCopyToClipboard(page);
 
           await page.goto(
               'http://localhost:${fakePubServerProcess.port}/packages/retry/versions/2.0.1',
@@ -131,4 +133,30 @@ void main() {
       );
     });
   }, timeout: Timeout.factor(testTimeoutFactor));
+}
+
+Future _checkCopyToClipboard(Page page) async {
+  // we have an icon that we can hover
+  final copyIconHandle = await page.$('.pkg-page-title-copy-icon');
+  await copyIconHandle.hover();
+
+  // feedback must not be visible at first
+  final feedbackHandle = await page.$('.pkg-page-title-copy-feedback');
+  expect(await feedbackHandle.isIntersectingViewport, false);
+
+  // triggers copy to clipboard + feedback
+  await copyIconHandle.click();
+
+  // feedback is visible
+  expect(await feedbackHandle.isIntersectingViewport, true);
+
+  // clipboard has the content
+  expect(
+    await page.evaluate('() => navigator.clipboard.readText()'),
+    'retry: ^2.0.1',
+  );
+
+  // feedback should not be visible after 2.5 seconds
+  await Future.delayed(Duration(milliseconds: 2600));
+  expect(await feedbackHandle.isIntersectingViewport, false);
 }

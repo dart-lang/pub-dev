@@ -54,7 +54,7 @@ class HeadlessEnv {
     return r.executablePath;
   }
 
-  Future<void> startBrowser() async {
+  Future<void> startBrowser({String origin}) async {
     if (_browser != null) return;
     final chromeBin = await _detectChromeBinary();
     final userDataDir = await tempDir.createTemp('user');
@@ -72,12 +72,21 @@ class HeadlessEnv {
       headless: !debug,
       devTools: false,
     );
+    // When origin is specified, update the default permissions like clipboard
+    // access.
+    if (origin != null) {
+      await _browser.defaultBrowserContext
+          .overridePermissions(origin, [PermissionType.clipboardReadWrite]);
+    }
   }
 
   /// Creates a new page and setup overrides and tracking.
-  Future<R> withPage<R>(
-      {FakeGoogleUser user, Future<R> Function(Page page) fn}) async {
-    await startBrowser();
+  Future<R> withPage<R>({
+    FakeGoogleUser user,
+    Future<R> Function(Page page) fn,
+    String origin,
+  }) async {
+    await startBrowser(origin: origin);
     final page = await _browser.newPage();
     await page.setRequestInterception(true);
     if (trackCoverage) {
