@@ -292,13 +292,17 @@ class IntegrityChecker {
             'PackageVersion(${pv.package} ${pv.version}) has invalid uploader: User(${pv.uploader})');
       }
     }
-    if (p.latestVersionKey != null &&
-        !versionKeys.contains(p.latestVersionKey)) {
+    if (p.latestVersionKey == null) {
+      _problems.add(
+          'Package(${p.name}) has a `latestVersionKey` property which is null.');
+    } else if (!versionKeys.contains(p.latestVersionKey)) {
       _problems.add(
           'Package(${p.name}) has missing latestVersionKey: ${p.latestVersionKey.id}');
     }
-    if (p.latestPrereleaseVersionKey != null &&
-        !versionKeys.contains(p.latestPrereleaseVersionKey)) {
+    if (p.latestPrereleaseVersionKey == null) {
+      _problems.add(
+          'Package(${p.name}) has a `latestPrereleaseVersionKey` property which is null.');
+    } else if (!versionKeys.contains(p.latestPrereleaseVersionKey)) {
       _problems.add(
           'Package(${p.name}) has missing latestPrereleaseVersionKey: ${p.latestPrereleaseVersionKey.id}');
     }
