@@ -13,7 +13,7 @@ import 'package:yaml/yaml.dart';
 
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
-import 'package:pub_dev/fake/fake_email_sender.dart';
+import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/name_tracker.dart';

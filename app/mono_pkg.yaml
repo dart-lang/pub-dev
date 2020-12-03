@@ -15,3 +15,7 @@ stages:
     - test: --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '4~7p'`
     - test: --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '5~7p'`
     - test: --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '6~7p'`
+
+cache:
+  directories:
+    - ".dart_tool/pub-test-profile"

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../account/auth_provider.dart';
+import '../../account/auth_provider.dart';
 
 /// A fake auth provider where user resolution is done via the provided access
 /// token.

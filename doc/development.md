@@ -2,7 +2,7 @@
 
 ## Local Development without external services
 
-The `pkg/fake_pub_server` project is able to run `pub-dev` with a local,
+The `app/` project is able to run `pub-dev` with a local,
 in-memory Datastore and Storage service (being implemented in `pkg/fake_gcloud`).
 
 To initialize it with some minimal data, create the following file:
@@ -17,8 +17,8 @@ packages:
 Import the latest versions and their dependencies into a data file:
 
 ```shell script
-cd pkg/fake_pub_server
-dart bin/init_data_file.dart \
+cd app/
+dart bin/fake_server.dart init-data-file \
   --test-profile=[the file you have created] \
   --analyze \
   --data-file=dev-data-file.jsonl
@@ -27,8 +27,8 @@ dart bin/init_data_file.dart \
 After the data file has been created, you can start using it locally:
 
 ```shell script
-cd pkg/fake_pub_server
-dart bin/fake_pub_server --data-file=dev-data-file.jsonl
+cd app/
+dart bin/fake_server.dart run --data-file=dev-data-file.jsonl
 ```
 
 ## Updating generated code
