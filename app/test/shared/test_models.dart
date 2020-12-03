@@ -129,7 +129,6 @@ Package _createFoobarPackage() {
     ..uploaders = [hansUser.userId]
     ..latestVersionKey = foobarStablePVKey
     ..latestPrereleaseVersionKey = foobarDevPVKey
-    ..downloads = 0
     ..likes = 0
     ..isDiscontinued = false
     ..isUnlisted = false
@@ -152,8 +151,7 @@ final foobarStablePV = PackageVersion()
   ..created = DateTime.utc(2014)
   ..uploader = hansUser.userId
   ..libraries = ['foolib.dart']
-  ..pubspec = Pubspec.fromYaml(foobarStablePubspec)
-  ..downloads = 0;
+  ..pubspec = Pubspec.fromYaml(foobarStablePubspec);
 
 final foobarStablePvInfo = PackageVersionInfo()
   ..parentKey = foobarStablePV.parentKey.parent
@@ -227,8 +225,7 @@ PackageVersion _clonePackageVersion(PackageVersion original) => PackageVersion()
   ..publisherId = original.publisherId
   ..uploader = original.uploader
   ..libraries = original.libraries
-  ..pubspec = original.pubspec
-  ..downloads = original.downloads;
+  ..pubspec = original.pubspec;
 
 final moderatedPackage = ModeratedPackage()
   ..parentKey = moderatedPkgKey
@@ -433,7 +430,6 @@ PkgBundle generateBundle(
     ..parentKey = Key.emptyKey(Partition(null))
     ..id = name
     ..name = name
-    ..downloads = 0
     ..likes = 0
     ..isDiscontinued = false
     ..isUnlisted = false
@@ -480,7 +476,6 @@ PkgBundle generateBundle(
       ..created = ts
       ..pubspec = Pubspec.fromYaml(pubspec)
       ..libraries = ['lib/$name.dart']
-      ..downloads = 0
       ..uploader = uploader.userId
       ..publisherId = publisherId;
     versions.add(version);

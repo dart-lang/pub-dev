@@ -122,7 +122,6 @@ void main() {
         expect(pv.libraries, ['test_library.dart']);
         expect(pv.uploader, 'hans-at-juergen-dot-com');
         expect(pv.publisherId, isNull);
-        expect(pv.downloads, 0);
 
         expect(fakeEmailSender.sentMessages, hasLength(1));
         final email = fakeEmailSender.sentMessages.single;
@@ -176,7 +175,6 @@ void main() {
         expect(pv.libraries, ['test_library.dart']);
         expect(pv.uploader, 'hans-at-juergen-dot-com');
         expect(pv.publisherId, 'example.com');
-        expect(pv.downloads, 0);
 
         expect(fakeEmailSender.sentMessages, hasLength(1));
         final email = fakeEmailSender.sentMessages.single;
