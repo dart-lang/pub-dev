@@ -31,6 +31,13 @@ final defaultTestProfile = TestProfile(
       versions: ['1.0.0'],
       publisher: 'example.com',
     ),
+    TestPackage(
+      name: 'flutter_titanium',
+      versions: [
+        '1.9.0',
+        '1.10.0',
+      ],
+    ),
   ],
   users: [
     TestUser(
