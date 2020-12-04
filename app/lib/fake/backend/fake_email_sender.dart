@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../frontend/email_sender.dart';
-import '../shared/email.dart';
+import '../../frontend/email_sender.dart';
+import '../../shared/email.dart';
 
 FakeEmailSender get fakeEmailSender => emailSender as FakeEmailSender;
 

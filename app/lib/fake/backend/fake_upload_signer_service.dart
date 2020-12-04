@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:client_data/package_api.dart';
-import 'package:pub_dev/package/upload_signer_service.dart';
+
+import '../../package/upload_signer_service.dart';
 
 /// Returns an upload URL with no signed signature.
 class FakeUploadSignerService implements UploadSignerService {

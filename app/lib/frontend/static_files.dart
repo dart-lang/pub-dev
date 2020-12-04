@@ -38,8 +38,8 @@ String resolveAppDir() {
   if (Platform.script.path.contains('bin/server.dart')) {
     return Platform.script.resolve('../').toFilePath();
   }
-  if (Platform.script.path.contains('/fake_pub_server')) {
-    return Platform.script.resolve('../../../app').toFilePath();
+  if (Platform.script.path.contains('bin/fake_server.dart')) {
+    return Platform.script.resolve('../').toFilePath();
   }
   if (Platform.script.path.contains('app/test')) {
     return Directory.current.path;
@@ -73,12 +73,6 @@ String resolvePubDartdocDirPath() {
 /// Returns the path of /doc on the local filesystem.
 String resolveDocDirPath() {
   return path.join(resolveAppDir(), '../doc');
-}
-
-/// Returns the path of pkg/fake_pub_server on the local filesystem.
-String resolveFakePubServerDirPath() {
-  return Directory(path.join(resolveAppDir(), '../pkg/fake_pub_server'))
-      .resolveSymbolicLinksSync();
 }
 
 String _resolveRootDirPath() =>

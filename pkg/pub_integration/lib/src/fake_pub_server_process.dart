@@ -14,7 +14,7 @@ final _random = Random.secure();
 /// The timeout factor that should be used in integration tests.
 final testTimeoutFactor = 4;
 
-/// Wrapper and helper methods around the fake_pub_server process.
+/// Wrapper and helper methods around the fake server process.
 class FakePubServerProcess {
   final int port;
   final Process _process;
@@ -31,7 +31,7 @@ class FakePubServerProcess {
     String pkgDir,
     int port,
   }) async {
-    pkgDir ??= p.join(Directory.current.path, '../fake_pub_server');
+    pkgDir ??= p.join(Directory.current.path, '../../app');
     // TODO: check for free port
     port ??= 20000 + _random.nextInt(990);
     final storagePort = port + 1;
@@ -43,7 +43,7 @@ class FakePubServerProcess {
 
     final pr1 = await Process.run('pub', ['get'], workingDirectory: pkgDir);
     if (pr1.exitCode != 0) {
-      throw Exception('pub get failed in fake_pub_server');
+      throw Exception('pub get failed in app');
     }
     final process = await Process.start(
       'dart',
@@ -53,7 +53,8 @@ class FakePubServerProcess {
           '--enable-vm-service=${coverageConfig.vmPort}',
           '--disable-service-auth-codes',
         ],
-        'bin/fake_pub_server.dart',
+        'bin/fake_server.dart',
+        'run',
         '--port=$port',
         '--storage-port=$storagePort',
         '--search-port=$searchPort',
@@ -96,7 +97,7 @@ class FakePubServerProcess {
     });
     _startupTimeoutTimer = Timer(Duration(seconds: 60), () {
       if (!_startedCompleter.isCompleted) {
-        _startedCompleter.completeError('Timout starting fake_pub_server');
+        _startedCompleter.completeError('Timout starting fake_server');
       }
     });
   }

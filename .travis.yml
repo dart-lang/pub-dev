@@ -16,10 +16,10 @@ jobs:
       os: linux
       script: "pub global activate mono_repo 3.0.0 && pub global run mono_repo travis --validate"
     - stage: smoke_test
-      name: "SDK: 2.10.0; PKGS: app, pkg/_popularity, pkg/api_builder, pkg/client_data, pkg/fake_gcloud, pkg/fake_pub_server, pkg/pub_dartdoc, pkg/pub_dartdoc_data, pkg/pub_package_reader, pkg/pub_validations, pkg/web_app, pkg/web_css; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`]"
+      name: "SDK: 2.10.0; PKGS: app, pkg/_popularity, pkg/api_builder, pkg/client_data, pkg/fake_gcloud, pkg/pub_dartdoc, pkg/pub_dartdoc_data, pkg/pub_package_reader, pkg/pub_validations, pkg/web_app, pkg/web_css; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`]"
       dart: "2.10.0"
       os: linux
-      env: PKGS="app pkg/_popularity pkg/api_builder pkg/client_data pkg/fake_gcloud pkg/fake_pub_server pkg/pub_dartdoc pkg/pub_dartdoc_data pkg/pub_package_reader pkg/pub_validations pkg/web_app pkg/web_css"
+      env: PKGS="app pkg/_popularity pkg/api_builder pkg/client_data pkg/fake_gcloud pkg/pub_dartdoc pkg/pub_dartdoc_data pkg/pub_package_reader pkg/pub_validations pkg/web_app pkg/web_css"
       script: tool/travis.sh dartfmt dartanalyzer_0
     - stage: smoke_test
       name: "SDK: 2.10.0; PKG: pkg/pub_integration; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings bin/ lib/`]"
@@ -167,4 +167,4 @@ branches:
 cache:
   directories:
     - "$HOME/.pub-cache"
-    - "pkg/fake_pub_server/.dart_tool/pub-test-profile"
+    - "app/.dart_tool/pub-test-profile"
