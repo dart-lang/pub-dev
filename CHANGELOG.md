@@ -7,6 +7,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
          The field can be removed after this release is stable.
  * NOTE: added `Package`'s `latestPublished` and `latestPrereleasePublished`.
          TODO(deferred): schedule backfill after this release.
+ * NOTE: `downloads` property in `Package` and `PackageVersion` is deprecated
+         and no longer `required`.
 
 ## `20201126t141046-all`
  * Bumped runtimeVersion to `2020.11.25`.

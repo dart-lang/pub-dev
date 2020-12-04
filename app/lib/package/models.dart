@@ -53,6 +53,7 @@ class Package extends db.ExpandoModel<String> {
   DateTime updated;
 
   @db.IntProperty()
+  @deprecated
   int downloads;
 
   /// Number of `User`s for which a `Like` entity of this package exists.
@@ -249,7 +250,8 @@ class PackageVersion extends db.ExpandoModel<String> {
 
   // Metadata about the package version.
 
-  @db.IntProperty(required: true)
+  @db.IntProperty()
+  @deprecated
   int downloads;
 
   @db.StringProperty(required: true)

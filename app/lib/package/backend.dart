@@ -1068,6 +1068,7 @@ Package _newPackageFromVersion(
     ..name = version.pubspec.name
     ..created = now
     ..updated = now
+    // ignore: deprecated_member_use_from_same_package
     ..downloads = 0
     ..latestVersionKey = version.key
     ..latestPublished = now
@@ -1147,6 +1148,7 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
     ..created = DateTime.now().toUtc()
     ..pubspec = pubspec
     ..libraries = archive.libraries
+    // ignore: deprecated_member_use_from_same_package
     ..downloads = 0
     ..uploader = user.userId;
 
