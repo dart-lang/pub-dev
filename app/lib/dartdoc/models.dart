@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
+import '../shared/utils.dart' show jsonUtf8Encoder, utf8JsonDecoder;
 import '../shared/versions.dart' as versions;
 import 'storage_path.dart' as storage_path;
 
@@ -81,7 +81,7 @@ class DartdocEntry {
       _$DartdocEntryFromJson(json);
 
   factory DartdocEntry.fromBytes(List<int> bytes) => DartdocEntry.fromJson(
-      json.decode(utf8.decode(bytes)) as Map<String, dynamic>);
+      utf8JsonDecoder.convert(bytes) as Map<String, dynamic>);
 
   static Future<DartdocEntry> fromStream(Stream<List<int>> stream) async {
     final bytes =
@@ -147,7 +147,7 @@ class DartdocEntry {
     }
   }
 
-  List<int> asBytes() => utf8.encode(json.encode(toJson()));
+  List<int> asBytes() => jsonUtf8Encoder.convert(toJson());
 
   bool isRegression(DartdocEntry oldEntry) {
     if (oldEntry == null) {
@@ -186,10 +186,10 @@ class FileInfo {
   factory FileInfo.fromJson(Map<String, dynamic> json) =>
       _$FileInfoFromJson(json);
 
-  factory FileInfo.fromBytes(List<int> bytes) => FileInfo.fromJson(
-      json.decode(utf8.decode(bytes)) as Map<String, dynamic>);
+  factory FileInfo.fromBytes(List<int> bytes) =>
+      FileInfo.fromJson(utf8JsonDecoder.convert(bytes) as Map<String, dynamic>);
 
-  List<int> asBytes() => utf8.encode(json.encode(toJson()));
+  List<int> asBytes() => jsonUtf8Encoder.convert(toJson());
 
   Map<String, dynamic> toJson() => _$FileInfoToJson(this);
 }

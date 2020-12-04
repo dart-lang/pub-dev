@@ -2,18 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/models.dart'
     show LicenseFile, PanaRuntimeInfo, PkgDependency, Report, ReportSection;
-import 'package:pub_dev/dartdoc/models.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import '../dartdoc/models.dart';
 import '../shared/datastore.dart' as db;
 import '../shared/model_properties.dart';
+import '../shared/utils.dart' show jsonUtf8Encoder, utf8JsonDecoder;
 import '../shared/versions.dart' as versions;
 
 import 'helpers.dart';
@@ -207,7 +207,7 @@ class ScoreCardReport extends db.ExpandoModel<String> {
 
   Map<String, dynamic> get reportJson {
     if (reportJsonGz == null) return null;
-    return json.decode(utf8.decode(_gzipCodec.decode(reportJsonGz)))
+    return utf8JsonDecoder.convert(_gzipCodec.decode(reportJsonGz))
         as Map<String, dynamic>;
   }
 
@@ -215,7 +215,7 @@ class ScoreCardReport extends db.ExpandoModel<String> {
     if (map == null) {
       reportJsonGz = null;
     } else {
-      reportJsonGz = _gzipCodec.encode(utf8.encode(json.encode(map)));
+      reportJsonGz = _gzipCodec.encode(jsonUtf8Encoder.convert(map));
     }
   }
 
