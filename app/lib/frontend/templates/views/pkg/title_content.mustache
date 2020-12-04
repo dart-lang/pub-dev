@@ -4,12 +4,10 @@
 
 {{ package }} {{ version }}
 
-<span class="pkg-page-title-copy-hoverable hoverable">
-  <img class="pkg-page-title-copy-icon" src="{{& static_assets.img__content-copy-icon_svg }}" />
-  <div class="pkg-page-title-copy-dropdown">
-    <div class="pkg-page-title-copy-item" data-ga-click-event="copy-package-version">{{ package }}: ^{{ version }}</div>
-    {{#show_prerelease}}
-    <div class="pkg-page-title-copy-item" data-ga-click-event="copy-package-version">{{ package }}: ^{{ prerelease_version }}</div>
-    {{/show_prerelease}}
-  </div>
+<span class="pkg-page-title-copy">
+  <img class="pkg-page-title-copy-icon"
+       data-copy-content="{{ package }}: ^{{ version }}"
+       src="{{& static_assets.img__content-copy-icon_svg }}"
+       title="Copy &quot;{{ package }}: ^{{ version }}&quot; to clipboard" />
+  <div class="pkg-page-title-copy-feedback"><span class="code">{{ package }}: ^{{ version }}</span> copied to clipboard</div>
 </span>

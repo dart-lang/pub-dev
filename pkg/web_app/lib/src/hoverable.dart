@@ -52,30 +52,28 @@ void registerHoverable(Element h) {
 }
 
 void _setEventForPackageTitleCopyToClipboard() {
-  final root = document.querySelector('.pkg-page-title-copy-hoverable');
-  final dropdown = root?.querySelector('.pkg-page-title-copy-dropdown');
-  root?.querySelectorAll('.pkg-page-title-copy-item')?.forEach((elem) {
-    elem.onClick.listen((e) async {
-      _copyToClipboard(elem.text.trim());
+  final root = document.querySelector('.pkg-page-title-copy');
+  final icon = root?.querySelector('.pkg-page-title-copy-icon');
+  final feedback = root?.querySelector('.pkg-page-title-copy-feedback');
+  if (root == null || icon == null || feedback == null) return;
 
-      // remove hover style on parent
-      deactivateHover(null);
+  final copyContent = icon.dataset['copy-content'];
+  if (copyContent == null || copyContent.isEmpty) return;
 
-      // prevent re-adding hover style on parent
-      e.stopPropagation();
+  icon.onClick.listen((_) async {
+    _copyToClipboard(copyContent);
 
-      // force unhover in case :hover was the trigger
-      root.classes.add('unhover');
-      await window.animationFrame;
-      // NOTE: keep in sync with _pkg.scss 0.3s animation
-      await Future.delayed(Duration(milliseconds: 300));
-      await window.animationFrame;
-      root.classes.remove('unhover');
-      await window.animationFrame;
-      dropdown.style.display = 'none';
-      await window.animationFrame;
-      dropdown.style.display = 'block';
-    });
+    feedback.classes.add('visible');
+    await window.animationFrame;
+    await Future.delayed(Duration(milliseconds: 1600));
+    feedback.classes.add('fadeout');
+    await window.animationFrame;
+    // NOTE: keep in sync with _pkg.scss 0.9s animation
+    await Future.delayed(Duration(milliseconds: 900));
+    await window.animationFrame;
+
+    feedback.classes.remove('visible');
+    feedback.classes.remove('fadeout');
   });
 }
 
