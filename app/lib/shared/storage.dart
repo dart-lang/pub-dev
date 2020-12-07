@@ -14,7 +14,7 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
 
-import 'utils.dart' show contentType, retryAsync;
+import 'utils.dart' show contentType, jsonUtf8Encoder, retryAsync;
 import 'versions.dart' as versions;
 
 final _gzip = GZipCodec();
@@ -146,7 +146,7 @@ class VersionedJsonStorage {
   /// Upload the current data to the storage bucket.
   Future<void> uploadDataAsJsonMap(Map<String, dynamic> map) async {
     final objectName = _objectName();
-    final bytes = _gzip.encode(utf8.encode(json.encode(map)));
+    final bytes = _gzip.encode(jsonUtf8Encoder.convert(map));
     try {
       await uploadBytesWithRetry(_bucket, objectName, bytes);
     } catch (e, st) {

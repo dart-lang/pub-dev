@@ -13,7 +13,7 @@ import '../frontend/request_context.dart';
 import 'popularity_storage.dart';
 import 'scheduler_stats.dart';
 import 'urls.dart' as urls;
-import 'utils.dart' show eventLoopLatencyTracker;
+import 'utils.dart' show eventLoopLatencyTracker, jsonUtf8Encoder;
 import 'versions.dart';
 
 const String default400BadRequest = '400 Bad Request';
@@ -28,7 +28,7 @@ const staticShortCache = Duration(minutes: 5);
 const staticLongCache = Duration(days: 7);
 
 final _logger = Logger('pub.shared.handler');
-final _prettyJson = JsonEncoder.withIndent('  ');
+final _prettyJson = JsonUtf8Encoder('  ');
 
 shelf.Response redirectResponse(String url) => shelf.Response.seeOther(url);
 
@@ -42,9 +42,9 @@ shelf.Response jsonResponse(
   bool indentJson = false,
   Map<String, String> headers,
 }) {
-  final String body = (indentJson || requestContext.indentJson)
+  final body = (indentJson || requestContext.indentJson)
       ? _prettyJson.convert(map)
-      : json.encode(map);
+      : jsonUtf8Encoder.convert(map);
   return shelf.Response(
     status,
     body: body,

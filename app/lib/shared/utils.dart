@@ -6,6 +6,7 @@ library pub_dartlang_org.utils;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -42,6 +43,9 @@ final Logger _logger = Logger('pub.utils');
 final _random = Random.secure();
 
 final DateFormat shortDateFormat = DateFormat.yMMMd();
+
+final jsonUtf8Encoder = JsonUtf8Encoder();
+final utf8JsonDecoder = utf8.decoder.fuse(json.decoder);
 
 Future<T> withTempDirectory<T>(Future<T> Function(Directory dir) func,
     {String prefix = 'dart-tempdir'}) {

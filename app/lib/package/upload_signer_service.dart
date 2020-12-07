@@ -18,6 +18,7 @@ import 'package:http/http.dart' as http;
 import 'package:client_data/package_api.dart';
 
 import '../shared/configuration.dart';
+import '../shared/utils.dart' show jsonUtf8Encoder;
 
 /// The registered [UploadSignerService] object.
 UploadSignerService get uploadSigner =>
@@ -81,7 +82,7 @@ abstract class UploadSignerService {
       'conditions': conditions,
     };
 
-    final policyString = base64.encode(utf8.encode(json.encode(policyMap)));
+    final policyString = base64.encode(jsonUtf8Encoder.convert(policyMap));
     final SigningResult result = await sign(ascii.encode(policyString));
     final signatureString = base64.encode(result.bytes);
 
