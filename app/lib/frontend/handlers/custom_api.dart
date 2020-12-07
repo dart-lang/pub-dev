@@ -96,9 +96,7 @@ Future<shelf.Response> apiPackageNamesHandler(shelf.Request request) async {
 Future<shelf.Response> apiPackageNameCompletionDataHandler(
     shelf.Request request) async {
   // only accept requests which allow gzip content encoding
-  final acceptsEncoding =
-      request.headers[HttpHeaders.acceptEncodingHeader] ?? '*';
-  if (!acceptsEncoding.contains('*') && !acceptsEncoding.contains('gzip')) {
+  if (!request.acceptsEncoding('gzip')) {
     throw NotAcceptableException('Client must accept gzip content.');
   }
 

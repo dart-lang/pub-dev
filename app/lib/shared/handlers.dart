@@ -197,3 +197,16 @@ bool isNotModified(shelf.Request request, DateTime lastModified, String etag) {
 
   return false;
 }
+
+extension RequestExt on shelf.Request {
+  /// Returns true if the current request declares that it accepts the [encoding].
+  ///
+  /// NOTE: the method does not parses the header, only checks whether the String
+  ///       value is present (or everything is accepted).
+  bool acceptsEncoding(String encoding) {
+    final accepting = headers[HttpHeaders.acceptEncodingHeader];
+    return accepting == null ||
+        accepting.contains('*') ||
+        accepting.contains(encoding);
+  }
+}
