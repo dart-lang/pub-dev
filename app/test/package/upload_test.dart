@@ -13,6 +13,7 @@ import 'package:yaml/yaml.dart';
 
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
@@ -305,14 +306,25 @@ void main() {
         expect(await fn('ok_name'), isNull);
       });
 
-      testWithServices('conflicting package names are rejected', () async {
-        await nameTracker.scanDatastore();
-        registerAuthenticatedUser(hansUser);
+      testWithProfile('similar package names are rejected', fn: () async {
+        registerAuthenticatedUser(adminUser);
 
-        expect(await fn('hy_drogen'),
+        expect(await fn('ox_ygen'),
             'PackageRejected(400): Package name is too similar to another active or moderated package.');
 
-        expect(await fn('mo_derate'),
+        expect(await fn('ox_y_ge_n'),
+            'PackageRejected(400): Package name is too similar to another active or moderated package.');
+      });
+
+      testWithProfile('moderated package names are rejected', fn: () async {
+        registerAuthenticatedUser(adminUser);
+        await adminBackend.removePackage('neon');
+        await nameTracker.scanDatastore();
+
+        expect(await fn('neon'),
+            'PackageRejected(400): Package name is too similar to another active or moderated package.');
+
+        expect(await fn('ne_on'),
             'PackageRejected(400): Package name is too similar to another active or moderated package.');
       });
 

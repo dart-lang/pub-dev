@@ -126,7 +126,6 @@ Future<void> _populateDefaultData() async {
     ...lithium.versions.map(pvModels).expand((m) => m),
     ...lithium.infos,
     ...lithium.assets,
-    moderatedPackage,
     exampleComPublisher,
     exampleComHansAdmin,
   ]);
