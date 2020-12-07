@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:client_data/package_api.dart';
@@ -23,6 +22,7 @@ import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../../shared/urls.dart' as urls;
+import '../../shared/utils.dart' show jsonUtf8Encoder;
 
 /// Handles requests for /api/documentation/<package>
 Future<shelf.Response> apiDocumentationHandler(
@@ -113,9 +113,9 @@ Future<shelf.Response> apiPackageNameCompletionDataHandler(
       skipCache: true,
     );
 
-    return gzip.encode(utf8.encode(json.encode({
+    return gzip.encode(jsonUtf8Encoder.convert({
       'packages': rs.packages.map((p) => p.package).toList(),
-    })));
+    }));
   });
 
   return shelf.Response(200, body: bytes, headers: {
