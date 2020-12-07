@@ -224,6 +224,18 @@ class PubHttpClient {
     return packages;
   }
 
+  /// Returns the list of packages from `/api/package-name-completion-data` endpoint.
+  Future<List<String>> apiPackageNameCompletionData() async {
+    final rs =
+        await _http.get('$pubHostedUrl/api/package-name-completion-data');
+    if (rs.statusCode != 200) {
+      throw Exception('Unexpected status code: ${rs.statusCode}');
+    }
+    final map = json.decode(rs.body) as Map<String, dynamic>;
+    final packages = (map['packages'] as List).cast<String>();
+    return packages;
+  }
+
   /// Free resources.
   Future<void> close() async {
     _http.close();

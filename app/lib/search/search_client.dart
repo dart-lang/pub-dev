@@ -43,6 +43,7 @@ class SearchClient {
     ServiceSearchQuery query, {
     Duration ttl,
     Duration updateCacheAfter,
+    bool skipCache = false,
   }) async {
     // check validity first
     final validity = query.evaluateValidity();
@@ -76,17 +77,23 @@ class SearchClient {
       return result;
     }
 
-    final cacheEntry = cache.packageSearchResult(serviceUrl, ttl: ttl);
-    var result = await cacheEntry.get(searchFn);
+    PackageSearchResult result;
 
-    if (updateCacheAfter != null &&
-        result?.timestamp != null &&
-        result.age > updateCacheAfter) {
-      _logger.info('Updating stale cache entry.');
-      final value = await searchFn();
-      if (value != null) {
-        await cacheEntry.set(value);
-        result = value;
+    if (skipCache) {
+      result = await searchFn();
+    } else {
+      final cacheEntry = cache.packageSearchResult(serviceUrl, ttl: ttl);
+      result = await cacheEntry.get(searchFn);
+
+      if (updateCacheAfter != null &&
+          result?.timestamp != null &&
+          result.age > updateCacheAfter) {
+        _logger.info('Updating stale cache entry.');
+        final value = await searchFn();
+        if (value != null) {
+          await cacheEntry.set(value);
+          result = value;
+        }
       }
     }
 

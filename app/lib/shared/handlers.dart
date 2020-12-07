@@ -27,6 +27,12 @@ const staticShortCache = Duration(minutes: 5);
 /// and it matches the etag.
 const staticLongCache = Duration(days: 7);
 
+/// The default header values for JSON responses.
+const jsonResponseHeaders = <String, String>{
+  'content-type': 'application/json; charset="utf-8"',
+  'x-content-type-options': 'nosniff',
+};
+
 final _logger = Logger('pub.shared.handler');
 final _prettyJson = JsonUtf8Encoder('  ');
 
@@ -49,9 +55,8 @@ shelf.Response jsonResponse(
     status,
     body: body,
     headers: {
+      ...jsonResponseHeaders,
       if (headers != null) ...headers,
-      'content-type': 'application/json; charset="utf-8"',
-      'x-content-type-options': 'nosniff',
     },
   );
 }
@@ -191,4 +196,17 @@ bool isNotModified(shelf.Request request, DateTime lastModified, String etag) {
   }
 
   return false;
+}
+
+extension RequestExt on shelf.Request {
+  /// Returns true if the current request declares that it accepts the [encoding].
+  ///
+  /// NOTE: the method does not parses the header, only checks whether the String
+  ///       value is present (or everything is accepted).
+  bool acceptsEncoding(String encoding) {
+    final accepting = headers[HttpHeaders.acceptEncodingHeader];
+    return accepting == null ||
+        accepting.contains('*') ||
+        accepting.contains(encoding);
+  }
 }

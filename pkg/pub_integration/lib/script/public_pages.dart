@@ -23,6 +23,9 @@ class PublicPagesScript {
     assert(_pubClient == null);
     _pubClient = PubHttpClient(pubHostedUrl);
     try {
+      if (!expectLiveSite) {
+        await _pubClient.forceSearchUpdate();
+      }
       await _landingPage();
       await _helpPages();
       await _securityPage();
@@ -84,6 +87,11 @@ class PublicPagesScript {
     final packageNames = await _pubClient.apiPackageNames();
     if (packageNames == null || !packageNames.contains('retry')) {
       throw Exception('Expected "retry" in the list of package names.');
+    }
+
+    final completitionData = await _pubClient.apiPackageNameCompletionData();
+    if (completitionData == null || !completitionData.contains('retry')) {
+      throw Exception('Expected "retry" in the package name completion data.');
     }
   }
 

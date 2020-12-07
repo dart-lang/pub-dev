@@ -221,6 +221,10 @@ class CachePatterns {
       .withTTL(Duration(hours: 12))
       .withCodec(utf8)[requestedUri];
 
+  Entry<List<int>> packageNameCompletitionDataJsonGz() => _cache
+      .withPrefix('api-package-name-completition-data-json-gz')
+      .withTTL(Duration(hours: 8))['-'];
+
   Entry<PublisherPage> allPublishersPage() => publisherPage('-');
 
   Entry<PublisherPage> publisherPage(String userId) => _cache

@@ -316,6 +316,11 @@ class PubApi {
     return apiPackageNamesHandler(request);
   }
 
+  @EndPoint.get('/api/package-name-completion-data')
+  Future<Response> packageNameCompletionData(Request request) async {
+    return apiPackageNameCompletionDataHandler(request);
+  }
+
   @EndPoint.get('/api/packages/<package>/metrics')
   Future<Response> packageMetrics(Request request, String package) =>
       apiPackageMetricsHandler(request, package);
