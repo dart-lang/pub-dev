@@ -9,7 +9,6 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../../dartdoc/backend.dart';
 import '../../frontend/request_context.dart';
-import '../../history/backend.dart';
 import '../../package/backend.dart';
 import '../../package/name_tracker.dart';
 import '../../package/overrides.dart';
