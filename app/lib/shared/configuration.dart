@@ -100,6 +100,15 @@ class Configuration {
   /// **Optional**, if omitted email sending is disabled.
   final String gmailRelayImpersonatedGSuiteUser;
 
+  /// The email of the service account which has access rights to sign upload
+  /// requests. The current service must be able to impersonate this account.
+  ///
+  /// Authorization requires the following IAM permission on the package bucket:
+  /// - iam.serviceAccounts.signBlob
+  ///
+  /// https://cloud.google.com/iam/docs/reference/credentials/rest/v1/projects.serviceAccounts/signBlob
+  final String uploadSignerServiceAccount;
+
   /// Whether indexing of the content by robots should be blocked.
   final bool blockRobots;
 
@@ -140,6 +149,8 @@ class Configuration {
       gmailRelayServiceAccount:
           'pub-gsuite-gmail-delegatee@dartlang-pub.iam.gserviceaccount.com',
       gmailRelayImpersonatedGSuiteUser: 'noreply@pub.dev',
+      uploadSignerServiceAccount:
+          null, // TODO: update before upgrading package:appengine
       blockRobots: false,
       productionHosts: const ['pub.dartlang.org', 'pub.dev', 'api.pub.dev'],
       primaryApiUri: Uri.parse('https://pub.dartlang.org/'),
@@ -184,6 +195,8 @@ class Configuration {
       adminAudience: 'https://pub.dev',
       gmailRelayServiceAccount: null, // disable email sending
       gmailRelayImpersonatedGSuiteUser: null, // disable email sending
+      uploadSignerServiceAccount:
+          'package-uploader-signer@dartlang-pub-dev.iam.gserviceaccount.com',
       blockRobots: true,
       productionHosts: envConfig.isRunningLocally
           ? ['localhost']
@@ -226,6 +239,7 @@ class Configuration {
     @required this.adminAudience,
     @required this.gmailRelayServiceAccount,
     @required this.gmailRelayImpersonatedGSuiteUser,
+    @required this.uploadSignerServiceAccount,
     @required this.blockRobots,
     @required this.productionHosts,
     @required this.primaryApiUri,
@@ -264,6 +278,7 @@ class Configuration {
       adminAudience: null,
       gmailRelayServiceAccount: null, // disable email sending
       gmailRelayImpersonatedGSuiteUser: null, // disable email sending
+      uploadSignerServiceAccount: null,
       blockRobots: false,
       productionHosts: ['localhost'],
       primaryApiUri: Uri.parse('http://localhost:$frontendPort/'),
@@ -294,6 +309,7 @@ class Configuration {
       adminAudience: null,
       gmailRelayServiceAccount: null, // disable email sending
       gmailRelayImpersonatedGSuiteUser: null, // disable email sending
+      uploadSignerServiceAccount: null,
       blockRobots: true,
       productionHosts: ['localhost'],
       primaryApiUri: Uri.parse('https://pub.dartlang.org/'),
