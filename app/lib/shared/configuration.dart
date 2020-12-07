@@ -101,9 +101,9 @@ class Configuration {
   final String gmailRelayImpersonatedGSuiteUser;
 
   /// The email of the service account which has access rights to sign upload
-  /// requests.
+  /// requests. The current service must be able to impersonate this account.
   ///
-  /// Authorization requires the following IAM permission on the specified resource name:
+  /// Authorization requires the following IAM permission on the package bucket:
   /// - iam.serviceAccounts.signBlob
   ///
   /// https://cloud.google.com/iam/docs/reference/credentials/rest/v1/projects.serviceAccounts/signBlob
