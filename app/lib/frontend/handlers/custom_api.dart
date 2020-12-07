@@ -222,32 +222,6 @@ Future<VersionScore> packageVersionScoreHandler(
   });
 }
 
-/// Handles requests for /api/history
-/// NOTE: Experimental, do not rely on it.
-Future<shelf.Response> apiHistoryHandler(shelf.Request request) async {
-  final list = await historyBackend
-      .getAll(
-        packageName: request.requestedUri.queryParameters['package'],
-        packageVersion: request.requestedUri.queryParameters['version'],
-        limit: 25,
-      )
-      .toList();
-  return jsonResponse({
-    'results': list
-        .map((h) => {
-              'id': h.id,
-              'package': h.packageName,
-              'version': h.packageVersion,
-              'timestamp': h.timestamp.toIso8601String(),
-              'source': h.source,
-              'eventType': h.eventType,
-              'eventData': h.eventData,
-              'markdown': h.formatMarkdown(),
-            })
-        .toList(),
-  });
-}
-
 /// Handles requests for /api/search
 Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
   final searchForm = parseFrontendSearchForm(
