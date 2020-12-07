@@ -49,6 +49,7 @@ class NameTracker {
   void addReservedName(String name) {
     _reservedNames.add(name);
     _reducedNames.add(reducePackageName(name));
+    _names.remove(name);
   }
 
   /// Whether the package was already added to the tracker.
