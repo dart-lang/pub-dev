@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bumped runtimeVersion to `2020.11.27`.
  * Using fused json-utf8 converters in JSON API responses and binary
    serialization of JSON blobs in Datastore entities.
+ * Run `app/bin/tools/backfill_history.dart` after the release got deployed.
  * NOTE: `PanaReport` has deprecated `pkgDependencies`.
          The field can be removed after this release is stable.
  * NOTE: added `Package`'s `latestPublished` and `latestPrereleasePublished`.
