@@ -14,6 +14,7 @@ import 'package:yaml/yaml.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/admin/backend.dart';
+import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
@@ -131,7 +132,22 @@ void main() {
         expect(email.bodyText,
             contains('https://pub.dev/packages/new_package/versions/1.2.3\n'));
 
-        // TODO: check history
+        final audits = await (dbService.query<AuditLogRecord>()
+              ..filter('packageVersions =', 'new_package/1.2.3'))
+            .run()
+            .toList();
+        final publishedAudit = audits
+            .where((r) => r.kind == AuditLogRecordKind.packagePublished)
+            .single;
+        expect(publishedAudit.created, isNotNull);
+        expect(publishedAudit.expires, isNull);
+        expect(publishedAudit.agent, hansUser.userId);
+        expect(publishedAudit.users, [hansUser.userId]);
+        expect(publishedAudit.packages, ['new_package']);
+        expect(publishedAudit.packageVersions, ['new_package/1.2.3']);
+        expect(publishedAudit.publishers, []);
+        expect(publishedAudit.summary,
+            'Package `new_package` version `1.2.3` was published by `hans@juergen.com`.');
 
         final assets = await dbService
             .query<PackageVersionAsset>()
@@ -184,7 +200,16 @@ void main() {
         expect(email.bodyText,
             contains('https://pub.dev/packages/lithium/versions/7.0.0\n'));
 
-        // TODO: check history
+        final audits = await (dbService.query<AuditLogRecord>()
+              ..filter('packageVersions =', 'lithium/7.0.0'))
+            .run()
+            .toList();
+        final publishedAudit = audits
+            .where((r) => r.kind == AuditLogRecordKind.packagePublished)
+            .single;
+        expect(publishedAudit.summary,
+            'Package `lithium` version `7.0.0` was published by `hans@juergen.com`.');
+        expect(publishedAudit.publishers, []);
 
         final assets = await dbService
             .query<PackageVersionAsset>()
