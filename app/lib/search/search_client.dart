@@ -13,6 +13,7 @@ import '../scorecard/backend.dart';
 import '../shared/configuration.dart';
 import '../shared/redis_cache.dart' show cache;
 import '../shared/utils.dart';
+import '../tool/utils/http.dart';
 
 import 'search_service.dart';
 

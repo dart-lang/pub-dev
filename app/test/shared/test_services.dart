@@ -10,11 +10,11 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart' as http_testing;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-import 'package:pub_dev/package/name_tracker.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import 'package:pub_dev/frontend/handlers.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
+import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/search/backend.dart';
 import 'package:pub_dev/search/handlers.dart';
@@ -28,6 +28,7 @@ import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/importer.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
+import 'package:pub_dev/tool/utils/http.dart';
 import 'package:test/test.dart';
 
 import '../shared/utils.dart';
@@ -153,7 +154,7 @@ PubApiClient createPubApiClient({String authToken}) =>
 /// the actual HTTP transport layer.
 ///
 /// If [handler] is not specified, it will use the default frontend handler.
-http_testing.MockClient _httpClient({
+http.Client _httpClient({
   shelf.Handler handler,
   String authToken,
 }) {
@@ -163,8 +164,10 @@ http_testing.MockClient _httpClient({
     handler,
     sanitize: true,
   );
-  return http_testing.MockClient(
-      _wrapShelfHandler(handler, authToken: authToken));
+  return httpClientWithAuthorization(
+    bearerToken: authToken,
+    client: http_testing.MockClient(_wrapShelfHandler(handler)),
+  );
 }
 
 String _removeLeadingSlashes(String path) {
@@ -174,19 +177,13 @@ String _removeLeadingSlashes(String path) {
   return path;
 }
 
-http_testing.MockClientHandler _wrapShelfHandler(
-  shelf.Handler handler, {
-  String authToken,
-}) {
+http_testing.MockClientHandler _wrapShelfHandler(shelf.Handler handler) {
   return (rq) async {
     final shelfRq = shelf.Request(
       rq.method,
       rq.url.replace(path: _removeLeadingSlashes(rq.url.path)),
       body: rq.body,
-      headers: <String, String>{
-        if (authToken != null) 'authorization': 'bearer $authToken',
-        ...rq.headers,
-      },
+      headers: rq.headers,
       url: Uri(path: _removeLeadingSlashes(rq.url.path), query: rq.url.query),
       handlerPath: '',
     );
