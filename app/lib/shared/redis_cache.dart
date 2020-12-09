@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:appengine/appengine.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:neat_cache/cache_provider.dart';
@@ -244,34 +243,25 @@ class CachePatterns {
 }
 
 /// The active cache.
-///
-/// Can only be used within the context of [withAppEngineAndCache].
 CachePatterns get cache => ss.lookup(#_cache) as CachePatterns;
 
 void _registerCache(CachePatterns cache) => ss.register(#_cache, cache);
 
-/// Run [fn] with AppEngine services and [cache].
-///
-/// See `package:appengine` for details on how [withAppEngineServices] sets up
-/// services like datastore and logging.
-Future withAppEngineAndCache(FutureOr Function() fn) async {
-  return withAppEngineServices(() async {
-    return await withCache(fn);
-  });
-}
-
-// Run [fn] with a redis or an in-memory cache.
-Future withCache(FutureOr Function() fn) async {
+/// Initializes caches based on the environment.
+/// - In AppEngine, it will use redis cache,
+/// - otherwise, a local in-memory cache.
+Future<void> setupCache() async {
   // Use in-memory cache, if not running on AppEngine
   if (Platform.environment.containsKey('GAE_VERSION')) {
-    return await _withRedisCache(fn);
+    return await _registerRedisCache();
   }
   _log.warning('using in-memory cache instead of redis');
-  return await _withInmemoryCache(fn);
+  return await _registerInmemoryCache();
 }
 
-/// Run [fn] with [cache] connected to a redis cache.
-Future _withRedisCache(FutureOr Function() fn) async {
+/// Read redis connection string from the secret backend and initialize redis
+/// cache.
+Future _registerRedisCache() async {
   final connectionString =
       await secretBackend.lookup(SecretKey.redisConnectionString);
   // Validate that we got a connection string
@@ -283,19 +273,11 @@ Future _withRedisCache(FutureOr Function() fn) async {
   final cacheProvider = await _ConnectionRefreshingCacheProvider.connect(
       () async => Cache.redisCacheProvider(connectionString));
   _registerCache(CachePatterns._(Cache(cacheProvider)));
-
-  try {
-    // Call fn
-    return await fn();
-  } finally {
-    await cacheProvider.close();
-  }
+  ss.registerScopeExitCallback(() async => cacheProvider.close());
 }
 
-/// Run [fn] with an in-memory cache for [cache].
-Future _withInmemoryCache(FutureOr Function() fn) async {
+Future _registerInmemoryCache() async {
   _registerCache(CachePatterns._(Cache(Cache.inMemoryCacheProvider(4096))));
-  return await fn();
 }
 
 /// Creates a [CacheProvider] when called.
