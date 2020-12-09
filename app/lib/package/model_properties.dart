@@ -7,7 +7,8 @@ library pub_dartlang_org.model_properties;
 import 'dart:convert';
 
 import 'package:pana/pana.dart' show SdkConstraintStatus;
-import 'package:pubspec_parse/pubspec_parse.dart' as pubspek show Pubspec;
+import 'package:pubspec_parse/pubspec_parse.dart' as pubspek
+    show HostedDependency, Pubspec;
 import 'package:yaml/yaml.dart';
 
 import '../shared/datastore.dart';
@@ -57,6 +58,11 @@ class Pubspec {
   }
 
   Iterable<String> get dependencies => _inner.dependencies.keys;
+
+  bool isHostedDependency(String package) {
+    final d = _inner.dependencies[package];
+    return d is pubspek.HostedDependency;
+  }
 
   Iterable<String> get devDependencies => _inner.devDependencies.keys;
 
