@@ -40,7 +40,7 @@ import '../search/updater.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
 import '../shared/popularity_storage.dart';
-import '../shared/redis_cache.dart' show withCache;
+import '../shared/redis_cache.dart' show setupCache;
 import '../shared/storage.dart';
 import '../shared/urls.dart';
 import '../shared/utils.dart' show httpRetryClient;
@@ -164,6 +164,7 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
 
     // depends on previously registered services
     registerPackageBackend(PackageBackend(dbService, tarballStorage));
+    await setupCache();
 
     registerScopeExitCallback(announcementBackend.close);
     registerScopeExitCallback(() async => nameTracker.stopTracking());
@@ -175,6 +176,6 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
     registerScopeExitCallback(searchAdapter.close);
     registerScopeExitCallback(spamBackend.close);
 
-    return await fork(() async => await withCache(fn));
+    return await fork(() async => fn());
   });
 }
