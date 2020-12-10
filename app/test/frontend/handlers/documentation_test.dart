@@ -74,14 +74,14 @@ void main() {
     testWithServices('/documentation/flutter redirect', () async {
       await expectRedirectResponse(
         await issueGet('/documentation/flutter'),
-        'https://docs.flutter.io/',
+        'https://api.flutter.dev/',
       );
     });
 
     testWithServices('/documentation/flutter/version redirect', () async {
       await expectRedirectResponse(
         await issueGet('/documentation/flutter/version'),
-        'https://docs.flutter.io/',
+        'https://api.flutter.dev/',
       );
     });
 

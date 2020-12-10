@@ -12,7 +12,8 @@ import 'package:pub_dev/shared/handlers.dart';
 import '../../analyzer/analyzer_client.dart';
 import '../../package/model_properties.dart';
 import '../../package/models.dart';
-import '../../package/overrides.dart' show devDependencyPackages;
+import '../../package/overrides.dart'
+    show devDependencyPackages, redirectPackageUrls;
 import '../../scorecard/models.dart';
 import '../../search/search_form.dart';
 import '../../shared/email.dart' show EmailAddress;
@@ -49,9 +50,13 @@ String _renderDependencyList(Pubspec pubspec) {
   if (pubspec == null) return null;
   final packages = pubspec.dependencies.toList()..sort();
   if (packages.isEmpty) return null;
-  return packages
-      .map((p) => '<a href="${urls.pkgPageUrl(p)}">$p</a>')
-      .join(', ');
+  return packages.map((p) {
+    var href = redirectPackageUrls[p];
+    if (href == null && pubspec.isHostedDependency(p)) {
+      href = urls.pkgPageUrl(p);
+    }
+    return href == null ? p : '<a href="$href">$p</a>';
+  }).join(', ');
 }
 
 String _renderInstallTab(PackageVersion selectedVersion, List<String> tags) {

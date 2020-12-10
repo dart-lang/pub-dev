@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../shared/urls.dart' as urls;
-
 /// 'internal' packages are developed by the Dart team, and they are allowed to
 /// point their URLs to *.dartlang.org (others would get a penalty for it).
 const internalPackageNames = <String>[
@@ -11,12 +9,18 @@ const internalPackageNames = <String>[
   'angular_components',
 ];
 
-const redirectPackagePages = <String, String>{
-  'flutter': '${urls.siteRoot}/flutter',
-};
-
-const redirectDartdocPages = <String, String>{
-  'flutter': 'https://docs.flutter.io/',
+const redirectPackageUrls = <String, String>{
+  'flutter': 'https://api.flutter.dev/',
+  'flutter_driver':
+      'https://api.flutter.dev/flutter/flutter_driver/flutter_driver-library.html',
+  'flutter_driver_extension':
+      'https://api.flutter.dev/flutter/flutter_driver_extension/flutter_driver_extension-library.html',
+  'flutter_localizations':
+      'https://api.flutter.dev/flutter/flutter_localizations/flutter_localizations-library.html',
+  'flutter_test':
+      'https://api.flutter.dev/flutter/flutter_test/flutter_test-library.html',
+  'flutter_web_plugins':
+      'https://api.flutter.dev/flutter/package-flutter_web_plugins_flutter_web_plugins/package-flutter_web_plugins_flutter_web_plugins-library.html',
 };
 
 /// Known packages that should be put in `dev_dependencies`
@@ -49,4 +53,4 @@ String overrideIssueTrackerUrl(String url) {
 /// A package is soft-removed when we keep it in the archives and index, but we
 /// won't serve the package or the documentation page, or any data about it.
 bool isSoftRemoved(String packageName) =>
-    redirectPackagePages.containsKey(packageName);
+    redirectPackageUrls.containsKey(packageName);

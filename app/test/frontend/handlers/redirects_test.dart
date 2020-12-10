@@ -97,14 +97,14 @@ void main() {
     testWithServices('/packages/flutter - redirect', () async {
       await expectRedirectResponse(
         await issueGet('/packages/flutter'),
-        '$siteRoot/flutter',
+        'https://api.flutter.dev/',
       );
     });
 
     testWithServices('/packages/flutter/versions/* - redirect', () async {
       await expectRedirectResponse(
         await issueGet('/packages/flutter/versions/0.20'),
-        '$siteRoot/flutter',
+        'https://api.flutter.dev/',
       );
     });
   });

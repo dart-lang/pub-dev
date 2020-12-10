@@ -28,8 +28,8 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   if (docFilePath == null) {
     return notFoundHandler(request);
   }
-  if (redirectDartdocPages.containsKey(docFilePath.package)) {
-    return redirectResponse(redirectDartdocPages[docFilePath.package]);
+  if (redirectPackageUrls.containsKey(docFilePath.package)) {
+    return redirectResponse(redirectPackageUrls[docFilePath.package]);
   }
   if (!await packageBackend.isPackageVisible(docFilePath.package)) {
     return notFoundHandler(request);

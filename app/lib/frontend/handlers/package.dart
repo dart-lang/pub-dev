@@ -182,8 +182,8 @@ Future<shelf.Response> _handlePackagePage({
   @required FutureOr Function(PackagePageData data) renderFn,
   Entry<String> cacheEntry,
 }) async {
-  if (redirectPackagePages.containsKey(packageName)) {
-    return redirectResponse(redirectPackagePages[packageName]);
+  if (redirectPackageUrls.containsKey(packageName)) {
+    return redirectResponse(redirectPackageUrls[packageName]);
   }
   final Stopwatch sw = Stopwatch()..start();
   String cachedPage;
