@@ -77,12 +77,6 @@ Map<String, dynamic> _$TestPackageToJson(TestPackage instance) {
 TestPublisher _$TestPublisherFromJson(Map<String, dynamic> json) {
   return TestPublisher(
     name: json['name'] as String,
-    created: json['created'] == null
-        ? null
-        : DateTime.parse(json['created'] as String),
-    updated: json['updated'] == null
-        ? null
-        : DateTime.parse(json['updated'] as String),
     members: (json['members'] as List)
         ?.map((e) =>
             e == null ? null : TestMember.fromJson(e as Map<String, dynamic>))
@@ -100,8 +94,6 @@ Map<String, dynamic> _$TestPublisherToJson(TestPublisher instance) {
   }
 
   writeNotNull('name', instance.name);
-  writeNotNull('created', instance.created?.toIso8601String());
-  writeNotNull('updated', instance.updated?.toIso8601String());
   writeNotNull('members', instance.members?.map((e) => e?.toJson())?.toList());
   return val;
 }
@@ -110,12 +102,6 @@ TestMember _$TestMemberFromJson(Map<String, dynamic> json) {
   return TestMember(
     email: json['email'] as String,
     role: json['role'] as String,
-    created: json['created'] == null
-        ? null
-        : DateTime.parse(json['created'] as String),
-    updated: json['updated'] == null
-        ? null
-        : DateTime.parse(json['updated'] as String),
   );
 }
 
@@ -130,20 +116,12 @@ Map<String, dynamic> _$TestMemberToJson(TestMember instance) {
 
   writeNotNull('email', instance.email);
   writeNotNull('role', instance.role);
-  writeNotNull('created', instance.created?.toIso8601String());
-  writeNotNull('updated', instance.updated?.toIso8601String());
   return val;
 }
 
 TestUser _$TestUserFromJson(Map<String, dynamic> json) {
   return TestUser(
     email: json['email'] as String,
-    oauthUserId: json['oauthUserId'] as String,
-    created: json['created'] == null
-        ? null
-        : DateTime.parse(json['created'] as String),
-    isDeleted: json['isDeleted'] as bool,
-    isBlocked: json['isBlocked'] as bool,
     likes: (json['likes'] as List)?.map((e) => e as String)?.toList(),
   );
 }
@@ -158,10 +136,6 @@ Map<String, dynamic> _$TestUserToJson(TestUser instance) {
   }
 
   writeNotNull('email', instance.email);
-  writeNotNull('oauthUserId', instance.oauthUserId);
-  writeNotNull('created', instance.created?.toIso8601String());
-  writeNotNull('isDeleted', instance.isDeleted);
-  writeNotNull('isBlocked', instance.isBlocked);
   writeNotNull('likes', instance.likes);
   return val;
 }

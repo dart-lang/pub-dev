@@ -82,14 +82,10 @@ class TestPackage {
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
 class TestPublisher {
   final String name;
-  final DateTime created;
-  final DateTime updated;
   final List<TestMember> members;
 
   TestPublisher({
     @required this.name,
-    this.created,
-    this.updated,
     @required List<TestMember> members,
   }) : members = members ?? <TestMember>[];
 
@@ -103,14 +99,10 @@ class TestPublisher {
 class TestMember {
   final String email;
   final String role;
-  final DateTime created;
-  final DateTime updated;
 
   TestMember({
     @required this.email,
     @required this.role,
-    this.created,
-    this.updated,
   });
 
   factory TestMember.fromJson(Map<String, dynamic> json) =>
@@ -122,20 +114,12 @@ class TestMember {
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
 class TestUser {
   final String email;
-  final String oauthUserId;
-  final DateTime created;
-  final bool isDeleted;
-  final bool isBlocked;
 
   /// The list of package names that the user liked.
   final List<String> likes;
 
   TestUser({
     @required this.email,
-    this.oauthUserId,
-    this.created,
-    this.isDeleted,
-    this.isBlocked,
     @required List<String> likes,
   }) : likes = likes ?? <String>[];
 

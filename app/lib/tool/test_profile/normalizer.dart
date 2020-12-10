@@ -86,8 +86,6 @@ TestUser _createUserIfNeeded(Map<String, TestUser> users, String email) {
     email,
     () => TestUser(
       email: email,
-      created: DateTime.now().toUtc(),
-      isDeleted: false,
       likes: <String>[],
     ),
   );
@@ -97,23 +95,14 @@ TestPublisher _createPublisherIfNeeded(
   Map<String, TestPublisher> publishers,
   String publisherId, {
   @required String memberEmail,
-  DateTime created,
-  DateTime updated,
 }) {
   return publishers.putIfAbsent(publisherId, () {
-    final now = DateTime.now().toUtc();
-    final publisherCreated = created ?? now;
-    final publisherUpdated = updated ?? publisherCreated;
     return TestPublisher(
       name: publisherId,
-      created: publisherCreated,
-      updated: publisherUpdated,
       members: <TestMember>[
         TestMember(
           email: memberEmail,
           role: 'admin',
-          created: publisherUpdated,
-          updated: publisherUpdated,
         ),
       ],
     );
