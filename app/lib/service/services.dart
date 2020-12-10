@@ -43,8 +43,8 @@ import '../shared/popularity_storage.dart';
 import '../shared/redis_cache.dart' show setupCache;
 import '../shared/storage.dart';
 import '../shared/urls.dart';
-import '../shared/utils.dart' show httpRetryClient;
 import '../shared/versions.dart';
+import '../tool/utils/http.dart';
 
 import 'announcement/backend.dart';
 import 'secret/backend.dart';
