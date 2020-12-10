@@ -31,11 +31,11 @@ http.Client httpRetryClient({
 /// Returns an [http.Client] which sends a `Bearer` token as `Authorization`
 /// header for each request.
 http.Client httpClientWithAuthorization({
-  @required String bearerToken,
+  @required Future<String> Function() bearerTokenFn,
   http.Client client,
 }) {
   return _AuthenticatedClient(
-    bearerToken,
+    bearerTokenFn,
     client ?? http.Client(),
     client == null,
   );
@@ -44,15 +44,19 @@ http.Client httpClientWithAuthorization({
 /// An [http.Client] which sends a `Bearer` token as `Authorization` header for
 /// each request.
 class _AuthenticatedClient extends http.BaseClient {
-  final String _bearerToken;
+  final Future<String> Function() _bearerTokenFn;
   final http.Client _client;
   final bool _closeInnerClient;
 
-  _AuthenticatedClient(this._bearerToken, this._client, this._closeInnerClient);
+  _AuthenticatedClient(
+      this._bearerTokenFn, this._client, this._closeInnerClient);
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    request.headers['Authorization'] = 'Bearer $_bearerToken';
+    final token = await _bearerTokenFn();
+    if (token != null) {
+      request.headers['Authorization'] = 'Bearer $token';
+    }
     return await _client.send(request);
   }
 

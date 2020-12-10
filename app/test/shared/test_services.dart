@@ -165,7 +165,7 @@ http.Client _httpClient({
     sanitize: true,
   );
   return httpClientWithAuthorization(
-    bearerToken: authToken,
+    bearerTokenFn: () async => authToken,
     client: http_testing.MockClient(_wrapShelfHandler(handler)),
   );
 }
