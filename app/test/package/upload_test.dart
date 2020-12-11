@@ -140,7 +140,7 @@ void main() {
             .where((r) => r.kind == AuditLogRecordKind.packagePublished)
             .single;
         expect(publishedAudit.created, isNotNull);
-        expect(publishedAudit.expires, isNull);
+        expect(publishedAudit.expires.year, greaterThan(9998));
         expect(publishedAudit.agent, hansUser.userId);
         expect(publishedAudit.users, [hansUser.userId]);
         expect(publishedAudit.packages, ['new_package']);
