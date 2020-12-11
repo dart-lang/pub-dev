@@ -56,7 +56,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   String summary;
 
   /// A free-form Map of data about the event's details.
-  @db.StringProperty(indexed: false)
+  @db.StringProperty(required: true, indexed: false)
   String dataJson;
 
   /// List of [User.userId] for the users involved in this record.
