@@ -22,6 +22,7 @@ import '../account/backend.dart';
 import '../account/consent_backend.dart';
 import '../account/models.dart' show User;
 import '../analyzer/analyzer_client.dart';
+import '../audit/models.dart';
 import '../dartdoc/dartdoc_client.dart';
 import '../frontend/email_sender.dart';
 import '../history/backend.dart';
@@ -662,6 +663,12 @@ class PackageBackend {
         validatedUpload.packageVersionPubspec,
         validatedUpload.packageVersionInfo,
         ...validatedUpload.assets,
+        AuditLogRecord.packagePublished(
+          uploader: user,
+          package: newVersion.package,
+          version: newVersion.version,
+          created: newVersion.created,
+        ),
         History.entry(PackageUploaded(
           packageName: newVersion.package,
           packageVersion: newVersion.version,
