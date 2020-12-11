@@ -61,12 +61,36 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   @db.StringListProperty()
   List<String> users;
 
+  /// List of packages involved in this record.
+  ///
+  /// This is the list of packages who should have this record show up in their
+  /// audit-log.
+  ///
+  /// This property **MUST** only be used for querying. The contents of this property is
+  /// **NOT** intended for consumption or presentation by other means. It's only here
+  /// to make it easy to find [AuditLogRecord]s relevant for a specific package.
   @db.StringListProperty()
   List<String> packages;
 
+  /// List of package versions involved in this record.
+  ///
+  /// This is the list of package version who should have this record show up in
+  /// their audit-log.
+  ///
+  /// This property **MUST** only be used for querying. The contents of this property is
+  /// **NOT** intended for consumption or presentation by other means. It's only here
+  /// to make it easy to find [AuditLogRecord]s relevant for a specific package version.
   @db.StringListProperty()
   List<String> packageVersions;
 
+  /// List of publishers involved in this record.
+  ///
+  /// This is the list of publishers who should have this record show up in their
+  /// audit-log.
+  ///
+  /// This property **MUST** only be used for querying. The contents of this property is
+  /// **NOT** intended for consumption or presentation by other means. It's only here
+  /// to make it easy to find [AuditLogRecord]s relevant for a specific publisher.
   @db.StringListProperty()
   List<String> publishers;
 
