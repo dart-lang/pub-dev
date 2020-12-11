@@ -13,18 +13,51 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   @db.DateTimeProperty(required: true)
   DateTime created;
 
+  /// [DateTime] after which a background tasks should delete this entity.
+  ///
+  /// `null`, if the entity does not expire, this is used for package publication records.
   @db.DateTimeProperty()
   DateTime expires;
 
+  /// String identifying the kind of event recorded.
+  ///
+  /// Allowed values are documented in [AuditLogRecordKind].
   @db.StringProperty(required: true)
   String kind;
 
+  /// [User.userId] of the user who initiated / authorized the recorded action.
+  ///
+  /// This is a UUIDv4. If the user has been deleted, it is possible that this
+  /// property may not match any [User] entity.
   @db.StringProperty(required: true)
   String agent;
 
-  @db.StringProperty(required: true)
+  /// Textual summary of the action that was performed in **markdown**.
+  ///
+  /// This summary should contain a full explanation of the action that was taken,
+  /// including who authorized it, which user or resource was subject of the action.
+  /// Users are identified by the email associated with their account at the point-in-time
+  /// when the action was taken.
+  ///
+  /// The following properties are intended for presentation in a table when rendering an audit-log:
+  ///  * [created]
+  ///  * [kind]
+  ///  * [agent] (left as `<deleted-user>` if user no longer exists)
+  ///  * [summary]
+  ///
+  /// This can only use simple markdown formatting no block structures.
+  @db.StringProperty(required: true, indexed: false)
   String summary;
 
+  /// List of [User.userId] for the users involved in this record.
+  ///
+  /// This is the list of users who should have this record show up in their personal audit-log.
+  /// This should include [agent], as well as any users who is subject of this action, that's
+  /// it should include the user who did this action, and the user who is invited/removed.
+  ///
+  /// This property **MUST** only be used for querying. The contents of this property is
+  /// **NOT** intended for consumption or presentation by other means. It's only here
+  /// to make it easy to find [AuditLogRecord]s relevant for a specific user.
   @db.StringListProperty()
   List<String> users;
 
