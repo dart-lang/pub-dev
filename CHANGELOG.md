@@ -2,6 +2,8 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20201210t173100-all`
  * Bumped runtimeVersion to `2020.12.09`.
  * Upgraded dartdoc to `0.38.0`.
  * Using fused json-utf8 converters in JSON API responses and binary
