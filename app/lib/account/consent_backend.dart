@@ -415,6 +415,8 @@ class _PublisherMemberAction extends ConsentAction {
   @override
   Future<void> onAccept(Consent consent) async {
     final publisherId = consent.args[0];
+    // consent.userId will be set in `ConsentBackend._lookupAndCheck` if it's not already set
+    // when the invite is created.
     if (consent.userId == null) {
       throw AssertionError(
           'Expected a non-null `userId` for publisher invite for '
