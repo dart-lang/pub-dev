@@ -8,6 +8,8 @@ import '../account/models.dart';
 import '../shared/datastore.dart' as db;
 import '../shared/utils.dart' show createUuid;
 
+final _expiresInFarFuture = DateTime.utc(9999, 12, 31, 23, 59, 59);
+
 @db.Kind(name: 'AuditLogRecord', idType: db.IdType.String)
 class AuditLogRecord extends db.ExpandoModel<String> {
   @db.DateTimeProperty(required: true)
@@ -15,8 +17,10 @@ class AuditLogRecord extends db.ExpandoModel<String> {
 
   /// [DateTime] after which a background tasks should delete this entity.
   ///
-  /// `null`, if the entity does not expire, this is used for package publication records.
-  @db.DateTimeProperty()
+  /// Set this to the far future ([_expiresInFarFuture]) for records that
+  /// shouldn't expire anytime soon.
+  /// NOTE(year 9998): Migrate expiry date even further in the future.
+  @db.DateTimeProperty(required: true)
   DateTime expires;
 
   /// String identifying the kind of event recorded.
@@ -109,7 +113,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
     return AuditLogRecord()
       ..id = createUuid()
       ..created = created
-      ..expires = null // does not expire
+      ..expires = _expiresInFarFuture
       ..kind = AuditLogRecordKind.packagePublished
       ..agent = uploader.userId
       ..summary = summary
