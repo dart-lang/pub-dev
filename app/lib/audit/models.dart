@@ -125,5 +125,8 @@ class AuditLogRecord extends db.ExpandoModel<String> {
 }
 
 abstract class AuditLogRecordKind {
+  /// Event that a package was published.
+  ///
+  /// This can be an entirely new package or just a new version to an existing package.
   static const packagePublished = 'package-published';
 }
