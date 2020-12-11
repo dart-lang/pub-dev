@@ -437,7 +437,7 @@ void main() {
         expect(rs2.emailSent, isFalse);
       });
 
-      testWithServices('Accept invite', () async {
+      testWithServices('Accept invite with existing user', () async {
         final client1 = createPubApiClient(authToken: hansUser.userId);
         await client1.invitePublisherMember(
             'example.com', InviteMemberRequest(email: joeUser.email));
@@ -457,6 +457,30 @@ void main() {
           'userId': 'joe-at-example-dot-com',
           'role': 'admin',
           'email': 'joe@example.com',
+        });
+      });
+
+      testWithServices('Accept invite with new account', () async {
+        final client1 = createPubApiClient(authToken: hansUser.userId);
+        await client1.invitePublisherMember(
+            'example.com', InviteMemberRequest(email: 'newaccount@pub.dev'));
+        final consents = await dbService
+            .query<Consent>()
+            .run()
+            .where((c) => c.email == 'newaccount@pub.dev')
+            .toList();
+        final consentId = consents.single.consentId;
+        final client2 =
+            createPubApiClient(authToken: 'newaccount-at-pub-dot-dev');
+        final rs2 = await client2.resolveConsent(
+            consentId, account_api.ConsentResult(granted: true));
+        expect(rs2.granted, isTrue);
+        final list = await client1.listPublisherMembers('example.com');
+        final m = list.members.firstWhere((m) => m.email.startsWith('new'));
+        expect(m.toJson(), {
+          'userId': isNotNull,
+          'role': 'admin',
+          'email': 'newaccount@pub.dev',
         });
       });
 
