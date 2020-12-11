@@ -414,15 +414,20 @@ class _PublisherContactAction extends ConsentAction {
 class _PublisherMemberAction extends ConsentAction {
   @override
   Future<void> onAccept(Consent consent) async {
-    final member = consent.userId != null
-        ? await accountBackend.lookupUserById(consent.userId)
-        : await accountBackend.lookupUserByEmail(consent.email);
+    final publisherId = consent.args[0];
+    // consent.userId will be set in `ConsentBackend._lookupAndCheck` if it's not already set
+    // when the invite is created.
+    if (consent.userId == null) {
+      throw AssertionError(
+          'Expected a non-null `userId` for publisher invite for '
+          '`$publisherId` to `${consent.email}`.');
+    }
+    final member = await accountBackend.lookupUserById(consent.userId);
     if (member == null) {
       // NOTE: This should never happen because `userId` of the consent entity
       //       will be set when it is loaded.
       throw AuthenticationException.userNotFound();
     }
-    final publisherId = consent.args[0];
     await publisherBackend.inviteConsentGranted(publisherId, member.userId);
   }
 
