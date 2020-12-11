@@ -148,6 +148,11 @@ void main() {
         expect(publishedAudit.publishers, []);
         expect(publishedAudit.summary,
             'Package `new_package` version `1.2.3` was published by `hans@juergen.com`.');
+        expect(publishedAudit.data, {
+          'package': 'new_package',
+          'version': '1.2.3',
+          'email': 'hans@juergen.com',
+        });
 
         final assets = await dbService
             .query<PackageVersionAsset>()

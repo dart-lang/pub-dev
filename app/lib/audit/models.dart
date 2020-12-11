@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:meta/meta.dart';
 
 import '../account/models.dart';
@@ -53,6 +55,10 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   @db.StringProperty(required: true, indexed: false)
   String summary;
 
+  /// A free-form Map of data about the event's details.
+  @db.StringProperty(indexed: false)
+  String dataJson;
+
   /// List of [User.userId] for the users involved in this record.
   ///
   /// This is the list of users who should have this record show up in their personal audit-log.
@@ -100,6 +106,12 @@ class AuditLogRecord extends db.ExpandoModel<String> {
 
   AuditLogRecord();
 
+  Map<String, dynamic> get data =>
+      dataJson == null ? null : json.decode(dataJson) as Map<String, dynamic>;
+  set data(Map<String, dynamic> value) {
+    dataJson = json.encode(value);
+  }
+
   factory AuditLogRecord.packagePublished({
     @required User uploader,
     @required String package,
@@ -117,6 +129,11 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..kind = AuditLogRecordKind.packagePublished
       ..agent = uploader.userId
       ..summary = summary
+      ..data = {
+        'package': package,
+        'version': version,
+        'email': uploader.email,
+      }
       ..users = [uploader.userId]
       ..packages = [package]
       ..packageVersions = ['$package/$version']
