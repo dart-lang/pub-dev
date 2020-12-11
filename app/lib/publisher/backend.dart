@@ -15,7 +15,7 @@ import '../history/models.dart';
 import '../shared/datastore.dart';
 import '../shared/email.dart';
 import '../shared/exceptions.dart';
-import '../shared/redis_cache.dart' show cache;
+import '../shared/redis_cache.dart' show cache, EntryPurgeExt;
 import 'domain_verifier.dart' show domainVerifier;
 
 import 'models.dart';
@@ -544,7 +544,8 @@ Future<Publisher> requirePublisherAdmin(
 /// Purge [cache] entries for given [publisherId].
 Future purgePublisherCache({String publisherId}) async {
   await Future.wait([
-    if (publisherId != null) cache.uiPublisherPackagesPage(publisherId).purge(),
+    if (publisherId != null)
+      cache.uiPublisherPackagesPage(publisherId).purgeAndRepeat(),
     cache.uiPublisherListPage().purge(),
   ]);
 }
