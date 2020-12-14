@@ -2,6 +2,7 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Run `app/bin/tools/backfill_package_fields.dart`.
  * NOTE: `PackageVersionPubspec` is no longer used in dependency graph calculation.
          The next release may remove the use of the entity.
 
