@@ -186,7 +186,7 @@ String _renderSearchBanner({
     'search_sort_param': searchSort,
     'include_discontinued': searchForm?.includeDiscontinued ?? false,
     'include_unlisted': searchForm?.includeUnlisted ?? false,
-    'prerelease_null_safe': searchForm?.prereleaseNullSafe ?? false,
+    'null_safe': searchForm?.nullSafe ?? false,
     'hidden_inputs': hiddenInputs,
   });
 }
