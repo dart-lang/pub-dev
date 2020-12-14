@@ -25,6 +25,10 @@ final _logger = Logger('pub.scorecard.backend');
 
 final Duration _deleteThreshold = const Duration(days: 182);
 
+/// The minimum age of the [PackageVersion] which will trigger a fallback to
+/// older scorecards. Below this age we only display the current [ScoreCard].
+final _fallbackMinimumAge = const Duration(hours: 4);
+
 /// The maximum number of keys we'll try to lookup when we need to load the
 /// scorecard or the report information for multiple versions.
 ///
@@ -93,13 +97,29 @@ class ScoreCardBackend {
 
     if (fallbackCardData.isEmpty) return null;
 
-    return fallbackCardData.firstWhere(
+    final fallbackCard = fallbackCardData.firstWhere(
       (d) => d.hasReports(requiredReportTypes),
       orElse: () => fallbackCardData.firstWhere(
         (d) => d.hasReports([ReportType.pana]),
         orElse: () => null,
       ),
     );
+
+    // For recently uploaded version, we don't want to fallback to an analysis
+    // coming from an older running deployment too early. A new analysis may
+    // come soon from the current runtime, and if it is different in significant
+    // ways (e.g. score or success status differs), it may confuse users looking
+    // at it in the interim period.
+    //
+    // However, once the upload is above the specified age, it is better to
+    // display and old analysis than to keep waiting on a new one.
+    if (fallbackCard != null) {
+      final age = DateTime.now().difference(fallbackCard.packageVersionCreated);
+      if (age < _fallbackMinimumAge) {
+        return null;
+      }
+    }
+    return fallbackCard;
   }
 
   /// Creates or updates a [ScoreCardReport] entry with the report's [data].
