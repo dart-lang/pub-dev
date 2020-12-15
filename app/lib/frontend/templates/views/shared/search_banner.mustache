@@ -14,7 +14,7 @@
   {{#search_sort_param}}<input type="hidden" name="sort" value="{{search_sort_param}}"/>{{/search_sort_param}}
   <input id="-search-discontinued-field" type="hidden" name="discontinued" value="1"{{^include_discontinued}} disabled="disabled"{{/include_discontinued}} />
   <input id="-search-unlisted-field" type="hidden" name="unlisted" value="1"{{^include_unlisted}} disabled="disabled"{{/include_unlisted}} />
-  <input id="-search-prerelease-null-safe-field" type="hidden" name="prerelease-null-safe" value="1"{{^prerelease_null_safe}} disabled="disabled"{{/prerelease_null_safe}} />
+  <input id="-search-null-safe-field" type="hidden" name="null-safe" value="1"{{^null_safe}} disabled="disabled"{{/null_safe}} />
   {{#hidden_inputs}}
   <input type="hidden" name="{{name}}" value="{{value}}" />
   {{/hidden_inputs}}

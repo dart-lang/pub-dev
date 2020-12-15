@@ -130,7 +130,7 @@ String renderPkgIndexPage(
   final isSearch = searchForm != null && searchForm.hasQuery;
   final includeDiscontinued = searchForm?.includeDiscontinued ?? false;
   final includeUnlisted = searchForm?.includeUnlisted ?? false;
-  final prereleaseNullSafe = searchForm?.prereleaseNullSafe ?? false;
+  final nullSafe = searchForm?.nullSafe ?? false;
   final subSdkTabsAdvanced =
       renderSubSdkTabsHtml(searchForm: searchForm, onlyAdvanced: true);
   // TODO: There should be a more efficient way to calculate this
@@ -139,7 +139,7 @@ String renderPkgIndexPage(
   final hasActiveAdvanced = includeDiscontinued ||
       includeUnlisted ||
       hasActiveSubSdkAdvanced ||
-      prereleaseNullSafe;
+      nullSafe;
   final values = {
     'has_active_advanced': hasActiveAdvanced,
     'sdk_tabs_html': renderSdkTabs(searchForm: searchForm),
@@ -159,7 +159,7 @@ String renderPkgIndexPage(
     'pagination': renderPagination(links),
     'include_discontinued': includeDiscontinued,
     'include_unlisted': includeUnlisted,
-    'prerelease_null_safe': prereleaseNullSafe,
+    'null_safe': nullSafe,
   };
   final content = templateCache.renderTemplate('pkg/index', values);
 
