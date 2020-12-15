@@ -2,6 +2,8 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * NOTE: `PackageVersionPubspec` is no longer used in dependency graph calculation.
+         The next release may remove the use of the entity.
 
 ## `20201210t173100-all`
  * Bumped runtimeVersion to `2020.12.09`.

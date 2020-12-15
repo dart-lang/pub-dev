@@ -106,10 +106,10 @@ class PackageDependencyBuilder {
       try {
         // We scan from oldest to newest and therefore keep [_lastTs] always
         // increasing.
-        final query = _db.query<PackageVersionPubspec>()..order('updated');
-        await for (PackageVersionPubspec pv in query.run()) {
+        final query = _db.query<PackageVersion>()..order('created');
+        await for (PackageVersion pv in query.run()) {
           addPackageVersion(pv);
-          _lastTs = pv.updated;
+          _lastTs = pv.created;
         }
       } catch (e, s) {
         _logger.severe(e, s);
@@ -126,11 +126,11 @@ class PackageDependencyBuilder {
     _logger.info('Monitoring new package uploads.');
     for (;;) {
       try {
-        final query = _db.query<PackageVersionPubspec>()
-          ..filter('updated >', _lastTs)
-          ..order('updated');
+        final query = _db.query<PackageVersion>()
+          ..filter('created >', _lastTs)
+          ..order('created');
         var updated = false;
-        await for (PackageVersionPubspec pv in query.run()) {
+        await for (PackageVersion pv in query.run()) {
           addPackageVersion(pv);
           updated = true;
 
@@ -149,7 +149,7 @@ class PackageDependencyBuilder {
             }
           }
 
-          _lastTs = pv.updated;
+          _lastTs = pv.created;
         }
         if (updated) {
           _reverseDeps._logStats();
@@ -161,7 +161,7 @@ class PackageDependencyBuilder {
     }
   }
 
-  void addPackageVersion(PackageVersionPubspec pv) {
+  void addPackageVersion(PackageVersion pv) {
     final Set<String> depsSet = Set<String>.from(pv.pubspec.dependencies);
     final Set<String> devDepsSet = Set<String>.from(pv.pubspec.devDependencies);
 
