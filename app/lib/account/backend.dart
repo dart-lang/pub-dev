@@ -84,6 +84,28 @@ Future<User> requireAuthenticatedUser() async {
   return _authenticatedUser;
 }
 
+/// Authenticates with bearer [token] and populates [_authenticatedUser] with
+/// it, running in a new scope.
+///
+/// The [token] may be an oauth2 `access_token` or an openid-connect
+/// `id_token` (signed JWT).
+///
+/// When no associated User entry exists in Datastore, this method will create
+/// a new one. When the authenticated email of the user changes, the email
+/// field will be updated to the latest one.
+Future<R> withAuthorizationToken<R>(
+    String token, Future<R> Function() fn) async {
+  return await ss.fork(() async {
+    final user = token == null || token.isEmpty
+        ? null
+        : await accountBackend._authenticateWithBearerToken(token);
+    if (user != null) {
+      registerAuthenticatedUser(user);
+    }
+    return await fn();
+  }) as R;
+}
+
 /// Represents the backend for the account handling and authentication.
 class AccountBackend {
   final DatastoreDB _db;
@@ -268,7 +290,7 @@ class AccountBackend {
   /// When no associated User entry exists in Datastore, this method will create
   /// a new one. When the authenticated email of the user changes, the email
   /// field will be updated to the latest one.
-  Future<User> authenticateWithBearerToken(String token) async {
+  Future<User> _authenticateWithBearerToken(String token) async {
     final auth = await authProvider.tryAuthenticate(token);
     if (auth == null) {
       return null;

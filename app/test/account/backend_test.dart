@@ -7,6 +7,7 @@ import 'package:test/test.dart';
 
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/shared/exceptions.dart';
 
 import '../shared/test_services.dart';
 
@@ -45,8 +46,10 @@ void main() {
     });
 
     testWithServices('Authenticate: token failure', () async {
-      final u = await accountBackend.authenticateWithBearerToken('x');
-      expect(u, isNull);
+      await withAuthorizationToken('', () async {
+        await expectLater(() => requireAuthenticatedUser(),
+            throwsA(isA<AuthenticationException>()));
+      });
     });
 
     testWithServices('Authenticate: pre-created', () async {
@@ -57,10 +60,11 @@ void main() {
           .toList();
       expect(ids1, ['admin-pub-dev']);
 
-      final u1 = await accountBackend
-          .authenticateWithBearerToken('a-at-example-dot-com');
-      expect(u1.userId, 'a-example-com');
-      expect(u1.email, 'a@example.com');
+      await withAuthorizationToken('a-at-example-dot-com', () async {
+        final u1 = await requireAuthenticatedUser();
+        expect(u1.userId, 'a-example-com');
+        expect(u1.email, 'a@example.com');
+      });
 
       final u2 = await accountBackend.lookupUserById('a-example-com');
       expect(u2.email, 'a@example.com');
@@ -82,14 +86,15 @@ void main() {
           .toList();
       expect(ids1, ['admin-pub-dev']);
 
-      final u1 = await accountBackend
-          .authenticateWithBearerToken('c-at-example-dot-com');
-      expect(u1.userId, hasLength(36));
-      expect(u1.email, 'c@example.com');
+      await withAuthorizationToken('c-at-example-dot-com', () async {
+        final u1 = await requireAuthenticatedUser();
+        expect(u1.userId, hasLength(36));
+        expect(u1.email, 'c@example.com');
 
-      final u2 = await accountBackend.lookupUserById(u1.userId);
-      expect(u2.email, 'c@example.com');
-      expect(u2.oauthUserId, 'c-example-com');
+        final u2 = await accountBackend.lookupUserById(u1.userId);
+        expect(u2.email, 'c@example.com');
+        expect(u2.oauthUserId, 'c-example-com');
+      });
 
       final ids2 = await dbService
           .query<OAuthUserID>()
