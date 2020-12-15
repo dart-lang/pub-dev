@@ -27,10 +27,10 @@ void _logPubHeaders(shelf.Request request) {
 
 /// Handler for the whole URL space of the pub site.
 shelf.Handler createAppHandler() {
-  final legacyDartdocHandler = LegacyDartdocService().router.handler;
-  final pubDartlangOrgHandler = PubDartlangOrgService().router.handler;
-  final apiPubDevHandler = ApiPubDevService().router.handler;
-  final pubSiteHandler = PubSiteService().router.handler;
+  final legacyDartdocHandler = LegacyDartdocService().router;
+  final pubDartlangOrgHandler = PubDartlangOrgService().router;
+  final apiPubDevHandler = ApiPubDevService().router;
+  final pubSiteHandler = PubSiteService().router;
   return (shelf.Request request) async {
     _logPubHeaders(request);
 
