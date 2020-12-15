@@ -29,14 +29,23 @@ UploadSignerService get uploadSigner =>
 void registerUploadSigner(UploadSignerService uploadSigner) =>
     ss.register(#_url_signer, uploadSigner);
 
+/// If this is set to `true`, the IAM signer service will be used even if we are
+/// running locally.
+/// TODO: remove this after the appengine 0.12 upgrade.
+bool forceIamSigner = false;
+
 /// Creates an upload signer based on the current environment.
 Future<UploadSignerService> createUploadSigner(http.Client authClient) async {
-  if (envConfig.isRunningLocally) {
+  if (envConfig.isRunningLocally && !forceIamSigner) {
     return _ServiceAccountBasedUploadSigner();
   } else {
     var email = activeConfiguration.uploadSignerServiceAccount;
     // TODO: remove this fallback after upgrading to appengine 0.12.0
     if (email == null) {
+      if (forceIamSigner) {
+        throw AssertionError(
+            'Configuration.uploadSignerServiceAccount must be set.');
+      }
       final emailRs = await http.get(
           'http://metadata/computeMetadata/'
           'v1/instance/service-accounts/default/email',
