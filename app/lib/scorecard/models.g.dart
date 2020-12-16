@@ -60,11 +60,6 @@ PanaReport _$PanaReportFromJson(Map<String, dynamic> json) {
     reportStatus: json['reportStatus'] as String,
     derivedTags:
         (json['derivedTags'] as List)?.map((e) => e as String)?.toList(),
-    pkgDependencies: (json['pkgDependencies'] as List)
-        ?.map((e) => e == null
-            ? null
-            : PkgDependency.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
     allDependencies:
         (json['allDependencies'] as List)?.map((e) => e as String)?.toList(),
     licenseFile: json['licenseFile'] == null
@@ -83,7 +78,6 @@ Map<String, dynamic> _$PanaReportToJson(PanaReport instance) {
     'panaRuntimeInfo': instance.panaRuntimeInfo,
     'reportStatus': instance.reportStatus,
     'derivedTags': instance.derivedTags,
-    'pkgDependencies': instance.pkgDependencies,
     'allDependencies': instance.allDependencies,
     'licenseFile': instance.licenseFile,
   };

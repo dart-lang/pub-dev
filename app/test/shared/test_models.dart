@@ -521,7 +521,6 @@ PanaReport generatePanaReport({List<String> derivedTags}) {
     panaRuntimeInfo: PanaRuntimeInfo(),
     reportStatus: ReportStatus.success,
     derivedTags: derivedTags ?? <String>[],
-    pkgDependencies: null,
     allDependencies: null,
     licenseFile: null,
     flags: null,

@@ -92,5 +92,5 @@ class AnalysisView {
 
   LicenseFile get licenseFile => _pana?.licenseFile;
 
-  List<String> get allDependencies => _pana?.allDependenciesWithFallback;
+  List<String> get allDependencies => _pana?.allDependencies;
 }

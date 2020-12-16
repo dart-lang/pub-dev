@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Run `app/bin/tools/backfill_package_fields.dart`.
  * NOTE: `PackageVersionPubspec` is no longer used in dependency graph calculation.
          The next release may remove the use of the entity.
+ * NOTE: `PanaReport.pkgDependencies` removed (was deprecated in previous release).
 
 ## `20201210t173100-all`
  * Bumped runtimeVersion to `2020.12.09`.

@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/models.dart'
-    show LicenseFile, PanaRuntimeInfo, PkgDependency, Report, ReportSection;
+    show LicenseFile, PanaRuntimeInfo, Report, ReportSection;
 import 'package:pub_semver/pub_semver.dart';
 
 import '../dartdoc/models.dart';
@@ -17,9 +17,6 @@ import '../shared/utils.dart' show jsonUtf8Encoder, utf8JsonDecoder;
 import '../shared/versions.dart' as versions;
 
 import 'helpers.dart';
-
-export 'package:pana/models.dart'
-    show LicenseFile, PanaRuntimeInfo, PkgDependency;
 
 part 'models.g.dart';
 
@@ -330,10 +327,6 @@ class PanaReport implements ReportData {
   /// List of tags computed by `pana`.
   final List<String> derivedTags;
 
-  /// WARNING: this field is deprecated, use `allDependencies` instead.
-  /// TODO: remove this field after the runtime `2020.11.27` gets released.
-  final List<PkgDependency> pkgDependencies;
-
   /// The list of packages that the current one depends on either directly or
   /// transitively.
   final List<String> allDependencies;
@@ -353,7 +346,6 @@ class PanaReport implements ReportData {
     @required this.panaRuntimeInfo,
     @required this.reportStatus,
     @required this.derivedTags,
-    @required this.pkgDependencies,
     @required this.allDependencies,
     @required this.licenseFile,
     @required this.report,
@@ -365,10 +357,6 @@ class PanaReport implements ReportData {
 
   @override
   Map<String, dynamic> toJson() => _$PanaReportToJson(this);
-
-  // TODO: remove when pkgDependencies is removed
-  List<String> get allDependenciesWithFallback =>
-      allDependencies ?? pkgDependencies?.map((p) => p.package)?.toList();
 }
 
 @JsonSerializable()

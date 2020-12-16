@@ -14,7 +14,6 @@ import '../../package/model_properties.dart';
 import '../../package/models.dart';
 import '../../package/overrides.dart'
     show devDependencyPackages, redirectPackageUrls;
-import '../../scorecard/models.dart';
 import '../../search/search_form.dart';
 import '../../shared/email.dart' show EmailAddress;
 import '../../shared/tags.dart';
