@@ -141,21 +141,25 @@ class PublishingScript {
           'Expected version does not match: $dv != $_newDummyVersion');
     }
 
-    final pageHtml = await _pubHttpClient.getLatestVersionPage('_dummy_pkg');
-    if (!pageHtml.contains(_newDummyVersion)) {
-      throw Exception('New version is not to be found on package page.');
-    }
-    if (pageHtml.contains('developer@example.com')) {
-      throw Exception(
-          'pubspec author field most not be found on package page.');
-    }
-    if (matchInvited != null) {
-      final found = pageHtml.contains(invitedEmail);
-      if (matchInvited && !found) {
-        throw Exception('Invited email is not to be found on package page.');
+    for (final tab in [null, 'changelog', 'license', 'pubspec']) {
+      final pageHtml =
+          await _pubHttpClient.getLatestVersionPage('_dummy_pkg', tab: tab);
+      if (!pageHtml.contains(_newDummyVersion)) {
+        throw Exception('New version is not to be found on package page.');
       }
-      if (!matchInvited && found) {
-        throw Exception('Invited email is still to be found on package page.');
+      if (pageHtml.contains('developer@example.com')) {
+        throw Exception(
+            'pubspec author field must not be found on package page.');
+      }
+      if (matchInvited != null) {
+        final found = pageHtml.contains(invitedEmail);
+        if (matchInvited && !found) {
+          throw Exception('Invited email is not to be found on package page.');
+        }
+        if (!matchInvited && found) {
+          throw Exception(
+              'Invited email is still to be found on package page.');
+        }
       }
     }
   }

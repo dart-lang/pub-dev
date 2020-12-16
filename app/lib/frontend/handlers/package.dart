@@ -144,6 +144,35 @@ Future<shelf.Response> packageInstallHandler(
   );
 }
 
+/// Handles requests for /packages/<package>/license
+/// Handles requests for /packages/<package>/versions/<version>/license
+Future<shelf.Response> packageLicenseHandler(
+    shelf.Request request, String packageName,
+    {String versionName}) async {
+  return await _handlePackagePage(
+    request: request,
+    packageName: packageName,
+    versionName: versionName,
+    assetKind: AssetKind.license,
+    renderFn: (data) => renderPkgLicensePage(data),
+    cacheEntry: cache.uiPackageLicense(packageName, versionName),
+  );
+}
+
+/// Handles requests for /packages/<package>/pubspec
+/// Handles requests for /packages/<package>/versions/<version>/pubspec
+Future<shelf.Response> packagePubspecHandler(
+    shelf.Request request, String packageName,
+    {String versionName}) async {
+  return await _handlePackagePage(
+    request: request,
+    packageName: packageName,
+    versionName: versionName,
+    assetKind: AssetKind.pubspec,
+    renderFn: (data) => renderPkgPubspecPage(data),
+    cacheEntry: cache.uiPackagePubspec(packageName, versionName),
+  );
+}
 /// Handles requests for /packages/<package>/score
 /// Handles requests for /packages/<package>/versions/<version>/score
 Future<shelf.Response> packageScoreHandler(

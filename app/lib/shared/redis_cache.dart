@@ -99,6 +99,16 @@ class CachePatterns {
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8)['$package-$version'];
 
+  Entry<String> uiPackageLicense(String package, String version) => _cache
+      .withPrefix('ui-package-license')
+      .withTTL(Duration(minutes: 10))
+      .withCodec(utf8)['$package-$version'];
+
+  Entry<String> uiPackagePubspec(String package, String version) => _cache
+      .withPrefix('ui-package-pubspec')
+      .withTTL(Duration(minutes: 10))
+      .withCodec(utf8)['$package-$version'];
+
   Entry<String> uiPackageScore(String package, String version) => _cache
       .withPrefix('ui-package-score')
       .withTTL(Duration(minutes: 10))
