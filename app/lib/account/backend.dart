@@ -84,28 +84,6 @@ Future<User> requireAuthenticatedUser() async {
   return _authenticatedUser;
 }
 
-/// Authenticates with bearer [token] and populates [_authenticatedUser] with
-/// it, running in a new scope.
-///
-/// The [token] may be an oauth2 `access_token` or an openid-connect
-/// `id_token` (signed JWT).
-///
-/// When no associated User entry exists in Datastore, this method will create
-/// a new one. When the authenticated email of the user changes, the email
-/// field will be updated to the latest one.
-Future<R> withAuthorizationToken<R>(
-    String token, Future<R> Function() fn) async {
-  return await ss.fork(() async {
-    final user = token == null || token.isEmpty
-        ? null
-        : await accountBackend._authenticateWithBearerToken(token);
-    if (user != null) {
-      registerAuthenticatedUser(user);
-    }
-    return await fn();
-  }) as R;
-}
-
 /// Represents the backend for the account handling and authentication.
 class AccountBackend {
   final DatastoreDB _db;
@@ -280,9 +258,13 @@ class AccountBackend {
     }
   }
 
-  /// Authenticates with bearer [token] and returns an `User` object.
+  /// Authenticates with bearer [token] and populates [_authenticatedUser] with
+  /// it, running [fn] in a new scope.
   ///
-  /// The method returns null if [token] is invalid.
+  /// When the token authentication fails, the method throws
+  /// [AuthenticationException].
+  ///
+  /// The method returns with the response of [fn].
   ///
   /// The [token] may be an oauth2 `access_token` or an openid-connect
   /// `id_token` (signed JWT).
@@ -290,19 +272,28 @@ class AccountBackend {
   /// When no associated User entry exists in Datastore, this method will create
   /// a new one. When the authenticated email of the user changes, the email
   /// field will be updated to the latest one.
-  Future<User> _authenticateWithBearerToken(String token) async {
-    final auth = await authProvider.tryAuthenticate(token);
-    if (auth == null) {
-      return null;
+  Future<R> withBearerToken<R>(String token, Future<R> Function() fn) async {
+    if (token == null || token.isEmpty) {
+      throw AuthenticationException.authenticationRequired();
     }
-    final user = await _lookupOrCreateUserByOauthUserId(auth);
-    if (user.isDeleted) {
-      // This can only happen if we have a data inconsistency in the datastore.
-      _logger
-          .severe('Login on deleted account: ${user.userId} / ${user.email}');
-      throw StateError('Account had been deleted, login is not allowed.');
-    }
-    return user;
+    return await ss.fork(() async {
+      final auth = await authProvider.tryAuthenticate(token);
+      if (auth == null) {
+        throw AuthenticationException.authenticationRequired();
+      }
+      final user = await _lookupOrCreateUserByOauthUserId(auth);
+      if (user == null) {
+        throw AuthenticationException.authenticationRequired();
+      }
+      if (user.isDeleted) {
+        // This can only happen if we have a data inconsistency in the datastore.
+        _logger
+            .severe('Login on deleted account: ${user.userId} / ${user.email}');
+        throw StateError('Account had been deleted, login is not allowed.');
+      }
+      registerAuthenticatedUser(user);
+      return await fn();
+    }) as R;
   }
 
   Future<User> _lookupUserByOauthUserId(String oauthUserId) async {

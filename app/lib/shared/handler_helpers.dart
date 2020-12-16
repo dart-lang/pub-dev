@@ -244,16 +244,18 @@ shelf.Handler _sanitizeRequestWrapper(shelf.Handler handler) {
 /// the user email address and registers it.
 shelf.Handler _userAuthWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
-    String accessToken;
     final authorization = request.headers['authorization'];
     if (authorization != null) {
+      String accessToken;
       final parts = authorization.split(' ');
       if (parts.length == 2 && parts.first.trim().toLowerCase() == 'bearer') {
         accessToken = parts.last.trim();
       }
+      return await accountBackend.withBearerToken(
+          accessToken, () async => await handler(request));
+    } else {
+      return await handler(request);
     }
-    return await withAuthorizationToken(
-        accessToken, () async => await handler(request));
   };
 }
 

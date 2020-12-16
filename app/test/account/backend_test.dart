@@ -46,10 +46,9 @@ void main() {
     });
 
     testWithServices('Authenticate: token failure', () async {
-      await withAuthorizationToken('', () async {
-        await expectLater(() => requireAuthenticatedUser(),
-            throwsA(isA<AuthenticationException>()));
-      });
+      await expectLater(
+          () => accountBackend.withBearerToken('', () async => null),
+          throwsA(isA<AuthenticationException>()));
     });
 
     testWithServices('Authenticate: pre-created', () async {
@@ -60,7 +59,7 @@ void main() {
           .toList();
       expect(ids1, ['admin-pub-dev']);
 
-      await withAuthorizationToken('a-at-example-dot-com', () async {
+      await accountBackend.withBearerToken('a-at-example-dot-com', () async {
         final u1 = await requireAuthenticatedUser();
         expect(u1.userId, 'a-example-com');
         expect(u1.email, 'a@example.com');
@@ -86,7 +85,7 @@ void main() {
           .toList();
       expect(ids1, ['admin-pub-dev']);
 
-      await withAuthorizationToken('c-at-example-dot-com', () async {
+      await accountBackend.withBearerToken('c-at-example-dot-com', () async {
         final u1 = await requireAuthenticatedUser();
         expect(u1.userId, hasLength(36));
         expect(u1.email, 'c@example.com');
