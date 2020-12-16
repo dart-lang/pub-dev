@@ -173,6 +173,7 @@ Future<shelf.Response> packagePubspecHandler(
     cacheEntry: cache.uiPackagePubspec(packageName, versionName),
   );
 }
+
 /// Handles requests for /packages/<package>/score
 /// Handles requests for /packages/<package>/versions/<version>/score
 Future<shelf.Response> packageScoreHandler(
