@@ -16,7 +16,7 @@ final _argParser = ArgParser()
   ..addOption('package', help: 'The package directory.')
   ..addOption('test', help: 'The relative path inside the package directory.')
   ..addOption('prefix', help: 'The file name prefix to use.')
-  ..addOption('fake-pub-server', help: 'The directory of pkg/fake_pub_server.');
+  ..addOption('app-dir', help: 'The directory of app/.');
 
 Future<void> main(List<String> args) async {
   final buildDir = '${Directory.current.path}/build';
@@ -25,7 +25,7 @@ Future<void> main(List<String> args) async {
   final packageDir = argv['package'] as String;
   final testPath = argv['test'] as String;
   final outputPrefix = argv['prefix'] as String;
-  final fakePubServerDir = argv['fake-pub-server'] as String;
+  final appDir = argv['app-dir'] as String;
 
   ArgumentError.checkNotNull(packageDir);
   ArgumentError.checkNotNull(testPath);
@@ -69,7 +69,7 @@ Future<void> main(List<String> args) async {
   for (final file in files) {
     final name = file.path.split('/').last;
     await _convertToLcov(
-      name.contains('fake-pub-server') ? fakePubServerDir : packageDir,
+      name.contains('fake-pub-server') ? appDir : packageDir,
       '$buildDir/raw/$name',
       '$buildDir/lcov/$name.info',
     );
@@ -125,10 +125,11 @@ Future<void> _convertToLcov(
       '-i',
       inputFile,
       '--base-directory',
-      '../../',
+      packageDir.contains('/app') ? '../' : '../../',
       '--lcov',
       '--out',
       outputFile,
     ],
+    workingDirectory: packageDir,
   );
 }

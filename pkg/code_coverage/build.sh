@@ -8,7 +8,6 @@ ALL_TEST_NAME="_all_tests.dart"
 APP_ALL_TEST_PATH="${APP_DIR}/test/${ALL_TEST_NAME}"
 PUB_INTEGRATION_DIR="${PROJECT_DIR}/pkg/pub_integration"
 PUB_INTEGRATION_ALL_TEST_PATH="${PUB_INTEGRATION_DIR}/test/${ALL_TEST_NAME}"
-FAKE_PUB_SERVER_DIR="${PROJECT_DIR}/pkg/fake_pub_server"
 
 OUTPUT_DIR="${CODE_COVERAGE_DIR}/build"
 
@@ -73,7 +72,7 @@ ls -1 "${PUB_INTEGRATION_DIR}/test" | grep .dart$ | xargs -n 1 -I ZZZ dart \
   --package "${PUB_INTEGRATION_DIR}" \
   --test test/ZZZ \
   --prefix ZZZ \
-  --fake-pub-server "${FAKE_PUB_SERVER_DIR}"
+  --app-dir "${APP_DIR}"
 
 ## Processing coverage
 
