@@ -22,6 +22,8 @@ import '_utils.dart';
 import 'layout.dart';
 import 'package_misc.dart';
 
+import 'views/shared/search_tabs.dart';
+
 /// Renders the `views/shared/pagination.mustache` template.
 String renderPagination(PageLinks pageLinks) {
   final values = {
@@ -131,22 +133,20 @@ String renderPkgIndexPage(
   final includeDiscontinued = searchForm?.includeDiscontinued ?? false;
   final includeUnlisted = searchForm?.includeUnlisted ?? false;
   final nullSafe = searchForm?.nullSafe ?? false;
-  final subSdkTabsAdvanced =
-      renderSubSdkTabsHtml(searchForm: searchForm, onlyAdvanced: true);
-  // TODO: There should be a more efficient way to calculate this
-  final hasActiveSubSdkAdvanced =
-      subSdkTabsAdvanced != null && subSdkTabsAdvanced.contains('-active');
+  final subSdkLayout = _calculateLayout(searchForm);
   final hasActiveAdvanced = includeDiscontinued ||
       includeUnlisted ||
-      hasActiveSubSdkAdvanced ||
+      subSdkLayout.hasActiveAdvanced ||
       nullSafe;
   final values = {
     'has_active_advanced': hasActiveAdvanced,
     'sdk_tabs_html': renderSdkTabs(searchForm: searchForm),
     'subsdk_label': _subSdkLabel(searchForm),
-    'subsdk_tabs_html': renderSubSdkTabsHtml(searchForm: searchForm),
-    'has_subsdk_tabs_advanced_html': subSdkTabsAdvanced != null,
-    'subsdk_tabs_advanced_html': subSdkTabsAdvanced,
+    'subsdk_primary_buttons_html': _renderFilterButtons(
+        searchForm: searchForm, options: subSdkLayout.primaryOptions),
+    'has_subsdk_advanced_buttons_html': subSdkLayout.hasAdvanced,
+    'subsdk_advanced_buttons_html': _renderFilterButtons(
+        searchForm: searchForm, options: subSdkLayout.advancedOptions),
     'is_search': isSearch,
     'listing_info_html': renderListingInfo(
       searchForm: searchForm,
@@ -305,4 +305,141 @@ class PageLinks {
         .any((map) => map['disabled'] == true && map['active'] == true));
     return results;
   }
+}
+
+String _renderFilterButtons({
+  @required SearchForm searchForm,
+  @required List<_FilterOption> options,
+}) {
+  if (options == null || options.isEmpty) return null;
+  final tp = searchForm.tagsPredicate;
+  String searchWithTagsLink(TagsPredicate tagsPredicate) {
+    return searchForm.change(tagsPredicate: tagsPredicate).toSearchLink();
+  }
+
+  final searchTabs = SearchTabs(
+    tabs: options
+        .map((option) => SearchTab(
+              title: option.title,
+              text: option.label,
+              href: htmlAttrEscape.convert(searchWithTagsLink(
+                tp.isRequiredTag(option.tag)
+                    ? tp.withoutTag(option.tag)
+                    : tp.appendPredicate(TagsPredicate(
+                        requiredTags: [option.tag],
+                      )),
+              )),
+              active: option.isActive,
+            ))
+        .toList(),
+  );
+  return templateCache.renderTemplate(
+      'shared/search_tabs', searchTabs.toJson());
+}
+
+/// `Linux`, `macOS`, `Windows` platforms are not yet stable, and we want
+/// to display them only when the user has already opted-in to get them
+/// displayed.
+_SubSdkLayout _calculateLayout(SearchForm searchForm) {
+  List<_FilterOption> primaryOptions;
+  List<_FilterOption> advancedOptions;
+
+  _FilterOption option({
+    @required String label,
+    @required String tag,
+    @required String title,
+  }) {
+    return _FilterOption(
+      label: label,
+      tag: tag,
+      title: title,
+      isActive: searchForm?.tagsPredicate?.isRequiredTag(tag) ?? false,
+    );
+  }
+
+  final sdk = searchForm?.sdk;
+  if (sdk == SdkTagValue.dart) {
+    primaryOptions = [
+      option(
+        label: 'native',
+        tag: DartSdkTag.runtimeNativeJit,
+        title:
+            'Packages compatible with Dart running on a native platform (JIT/AOT)',
+      ),
+      option(
+        label: 'JS',
+        tag: DartSdkTag.runtimeWeb,
+        title: 'Packages compatible with Dart compiled for the web',
+      ),
+    ];
+  }
+  if (sdk == SdkTagValue.flutter) {
+    primaryOptions = [
+      option(
+        label: 'Android',
+        tag: FlutterSdkTag.platformAndroid,
+        title: 'Packages compatible with Flutter on the Android platform',
+      ),
+      option(
+        label: 'iOS',
+        tag: FlutterSdkTag.platformIos,
+        title: 'Packages compatible with Flutter on the iOS platform',
+      ),
+      option(
+        label: 'Web',
+        tag: FlutterSdkTag.platformWeb,
+        title: 'Packages compatible with Flutter on the Web platform',
+      ),
+    ];
+
+    advancedOptions = [
+      option(
+        label: 'Linux',
+        tag: FlutterSdkTag.platformLinux,
+        title: 'Packages compatible with Flutter on the Linux platform',
+      ),
+      option(
+        label: 'macOS',
+        tag: FlutterSdkTag.platformMacos,
+        title: 'Packages compatible with Flutter on the macOS platform',
+      ),
+      option(
+        label: 'Windows',
+        tag: FlutterSdkTag.platformWindows,
+        title: 'Packages compatible with Flutter on the Windows platform',
+      ),
+    ];
+  }
+  return _SubSdkLayout(
+    primaryOptions: primaryOptions,
+    advancedOptions: advancedOptions,
+  );
+}
+
+class _SubSdkLayout {
+  final List<_FilterOption> primaryOptions;
+  final List<_FilterOption> advancedOptions;
+
+  _SubSdkLayout({
+    @required this.primaryOptions,
+    @required this.advancedOptions,
+  });
+
+  bool get hasAdvanced => advancedOptions != null && advancedOptions.isNotEmpty;
+  bool get hasActiveAdvanced =>
+      hasAdvanced && advancedOptions.any((o) => o.isActive);
+}
+
+class _FilterOption {
+  final String label;
+  final String tag;
+  final String title;
+  final bool isActive;
+
+  _FilterOption({
+    @required this.label,
+    @required this.tag,
+    @required this.title,
+    @required this.isActive,
+  });
 }
