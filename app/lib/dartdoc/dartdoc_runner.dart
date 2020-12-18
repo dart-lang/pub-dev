@@ -411,7 +411,9 @@ class DartdocJobProcessor extends JobProcessor {
     final hasContent = r.hasIndexHtml && r.hasIndexJson;
 
     if (r.processResult.exitCode != 0) {
-      if (hasContent || _isKnownFailurePattern(_mergeOutput(r.processResult))) {
+      if (hasContent ||
+          r.wasTimeout ||
+          _isKnownFailurePattern(_mergeOutput(r.processResult))) {
         logger.info('Error while running dartdoc for $job (see log.txt).');
       } else {
         final output = _mergeOutput(r.processResult, compressStdout: true);
