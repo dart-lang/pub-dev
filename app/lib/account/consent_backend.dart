@@ -79,23 +79,17 @@ class ConsentBackend {
   /// Resolves the consent.
   Future<api.ConsentResult> resolveConsent(
       String consentId, api.ConsentResult result) async {
-    try {
-      InvalidInputException.checkUlid(consentId, 'consentId');
-      final user = await requireAuthenticatedUser();
+    InvalidInputException.checkUlid(consentId, 'consentId');
+    final user = await requireAuthenticatedUser();
 
-      final c = await _lookupAndCheck(consentId, user);
-      InvalidInputException.checkNotNull(result.granted, 'granted');
-      if (result.granted) {
-        await _accept(c);
-        return api.ConsentResult(granted: true);
-      } else {
-        await _delete(c);
-        return api.ConsentResult(granted: false);
-      }
-    } catch (e, st) {
-      print(e);
-      print(st);
-      rethrow;
+    final c = await _lookupAndCheck(consentId, user);
+    InvalidInputException.checkNotNull(result.granted, 'granted');
+    if (result.granted) {
+      await _accept(c);
+      return api.ConsentResult(granted: true);
+    } else {
+      await _delete(c);
+      return api.ConsentResult(granted: false);
     }
   }
 
