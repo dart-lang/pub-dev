@@ -244,7 +244,8 @@ class Consent extends db.Model {
   @db.StringProperty()
   String userId;
 
-  @db.StringProperty()
+  /// The email that this consent is for.
+  @db.StringProperty(required: true)
   String email;
 
   /// A [Uri.path]-like concatenation of identifiers from [kind] and [args].
@@ -277,7 +278,6 @@ class Consent extends db.Model {
 
   Consent.init({
     @required this.fromUserId,
-    @required this.userId,
     @required this.email,
     @required this.kind,
     @required this.args,
@@ -286,7 +286,6 @@ class Consent extends db.Model {
     id = Ulid().toString();
     dedupId = consentDedupId(
       fromUserId: fromUserId,
-      userId: userId,
       email: email,
       kind: kind,
       args: args,
@@ -311,12 +310,11 @@ class Consent extends db.Model {
 /// Calculates the dedupId of a consent request.
 String consentDedupId({
   @required String fromUserId,
-  @required String userId,
   @required String email,
   @required String kind,
   @required List<String> args,
 }) =>
-    [fromUserId, userId, email, kind, ...args]
+    [fromUserId, email, kind, ...args]
         .where((s) => s != null)
         .map(Uri.encodeComponent)
         .join('/');

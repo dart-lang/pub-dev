@@ -39,16 +39,26 @@ Future main(List<String> args) async {
   }
 
   await withToolRuntime(() async {
-    final user = await accountBackend.lookupUserByEmail(userEmail);
-    if (user == null) {
+    final users = await accountBackend.lookupUsersByEmail(userEmail);
+    if (users.isEmpty) {
       print('ERROR: unknown user: $userEmail');
       return;
     }
-    final admin = await accountBackend.lookupUserByEmail(adminEmail);
-    if (admin == null) {
+    if (users.length > 1) {
+      print('ERROR: more than one user: $userEmail');
+      return;
+    }
+    final user = users.single;
+    final admins = await accountBackend.lookupUsersByEmail(adminEmail);
+    if (admins.isEmpty) {
       print('ERROR: unknown user: $adminEmail');
       return;
     }
+    if (admins.length > 1) {
+      print('ERROR: more than one user: $adminEmail');
+      return;
+    }
+    final admin = admins.single;
 
     // Create the publisher
     final now = DateTime.now().toUtc();

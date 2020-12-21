@@ -100,20 +100,17 @@ void main() {
 
   testWithServices('new consent', () async {
     final target1 = Consent.init(
-        userId: hansUser.userId,
-        email: null,
+        email: hansUser.email,
         kind: 'k1',
         args: ['1'],
         fromUserId: adminUser.userId);
     final target2 = Consent.init(
-        userId: adminUser.userId,
-        email: null,
+        email: adminUser.email,
         kind: 'k2',
         args: ['2'],
         fromUserId: hansUser.userId);
     final control = Consent.init(
-        userId: adminUser.userId,
-        email: null,
+        email: adminUser.email,
         kind: 'k3',
         args: ['3'],
         fromUserId: adminUser.userId);
@@ -126,11 +123,8 @@ void main() {
     final updated2 = list.firstWhere((c) => c.id == target2.id);
     final updated3 = list.firstWhere((c) => c.id == control.id);
 
-    expect(updated1.userId, joeUser.userId);
     expect(updated1.fromUserId, adminUser.userId);
-    expect(updated2.userId, adminUser.userId);
     expect(updated2.fromUserId, joeUser.userId);
-    expect(updated3.userId, adminUser.userId);
     expect(updated3.fromUserId, adminUser.userId);
   });
 

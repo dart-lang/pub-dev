@@ -25,19 +25,23 @@ Future main(List<String> args) async {
   final blockedStatus = _parseValue(valueAsString);
 
   await withToolRuntime(() async {
-    final user = await accountBackend.lookupUserById(idOrEmail) ??
-        await accountBackend.lookupUserByEmail(idOrEmail);
-    if (user == null) {
+    final userById = await accountBackend.lookupUserById(idOrEmail);
+    final users = userById != null
+        ? [userById]
+        : await accountBackend.lookupUsersByEmail(idOrEmail);
+    if (users.isEmpty) {
       print('No user found.');
       return;
     }
-    if (blockedStatus == null) {
-      print('userId: ${user.userId}');
-      print('email: ${user.email}');
-      print('isBlocked: ${user.isBlocked}');
-      return;
+    for (final user in users) {
+      if (blockedStatus == null) {
+        print('userId: ${user.userId}');
+        print('email: ${user.email}');
+        print('isBlocked: ${user.isBlocked}');
+        return;
+      }
+      await accountBackend.updateBlockedFlag(user.userId, blockedStatus);
     }
-    await accountBackend.updateBlockedFlag(user.userId, blockedStatus);
   });
 }
 

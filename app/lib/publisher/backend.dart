@@ -267,18 +267,15 @@ class PublisherBackend {
 
         bool contactEmailMatchedAdmin = false;
 
-        final user =
-            await accountBackend.lookupUserByEmail(update.contactEmail);
-        if (user != null) {
-          final member = await tx.lookupValue<PublisherMember>(
-              p.key.append(PublisherMember, id: user.userId),
-              orElse: () => null);
+        final usersByEmail =
+            await accountBackend.lookupUsersByEmail(update.contactEmail);
+        if (usersByEmail.isNotEmpty) {
           InvalidInputException.check(
-            member?.role == PublisherMemberRole.admin,
+            user.email == update.contactEmail,
             'The contact email is a registered user, but not member of the publisher.',
           );
           contactEmailMatchedAdmin = true;
-          p.contactEmail = user.email;
+          p.contactEmail = update.contactEmail;
         }
 
         if (!contactEmailMatchedAdmin) {
@@ -328,14 +325,17 @@ class PublisherBackend {
     InvalidInputException.check(
         isValidEmail(invite.email), 'Invalid email: `${invite.email}`');
 
-    final invitedUser = await accountBackend.lookupUserByEmail(invite.email);
-    final invitedUserId = invitedUser?.userId;
-    final invitedUserEmail = invitedUser?.email ?? invite.email;
-    if (invitedUserId != null) {
-      final key = p.key.append(PublisherMember, id: invitedUserId);
-      final pm =
-          await _db.lookupValue<PublisherMember>(key, orElse: () => null);
-      InvalidInputException.checkNull(pm, 'User is already a member.');
+    final usersByEmail = await accountBackend.lookupUsersByEmail(invite.email);
+    if (usersByEmail.isNotEmpty) {
+      final maybeMembers = await _db.lookup<PublisherMember>(usersByEmail
+          .map((u) => p.key.append(PublisherMember, id: u.userId))
+          .toList());
+      for (final m in maybeMembers) {
+        if (m == null) continue;
+        final email = await accountBackend.getEmailOfUserId(m.userId);
+        InvalidInputException.check(
+            email != invite.email, 'User is already a member.');
+      }
     }
 
     await _db.commit(inserts: [
@@ -344,16 +344,15 @@ class PublisherBackend {
           publisherId: p.publisherId,
           currentUserId: activeUser.userId,
           currentUserEmail: activeUser.email,
-          invitedUserId: invitedUserId,
-          invitedUserEmail: invitedUserEmail,
+          invitedUserId: null,
+          invitedUserEmail: invite.email,
         ),
       ),
     ]);
 
     return await consentBackend.invitePublisherMember(
       publisherId: p.publisherId,
-      invitedUserId: invitedUserId,
-      invitedUserEmail: invitedUserEmail,
+      invitedUserEmail: invite.email,
     );
   }
 

@@ -136,20 +136,12 @@ class AccountBackend {
     return result;
   }
 
-  /// Returns the `User` entry for the [email] or null if it does not exists.
-  ///
-  /// Throws Exception if more then one `User` entry exists.
-  Future<User> lookupUserByEmail(String email) async {
+  /// Returns the list of `User` entries for the [email] or empty list if it
+  /// does not exists.
+  Future<List<User>> lookupUsersByEmail(String email) async {
     email = email.toLowerCase();
     final query = _db.query<User>()..filter('email =', email);
-    final list = await query.run().toList();
-    if (list.length > 1) {
-      throw Exception('More than one User exists for email: $email');
-    }
-    if (list.length == 1) {
-      return list.single;
-    }
-    return null;
+    return await query.run().toList();
   }
 
   /// Returns the `User` entry for the [email] or creates a new one if it does
@@ -158,11 +150,12 @@ class AccountBackend {
   /// Throws Exception if more then one `User` entry exists.
   Future<User> lookupOrCreateUserByEmail(String email) async {
     email = email.toLowerCase();
-    User user = await lookupUserByEmail(email);
-    if (user != null) {
-      return user;
+    final users = await lookupUsersByEmail(email);
+    if (users.length > 1) {
+      throw Exception('More than one User exists for email: $email');
     }
-    user = User()
+    if (users.isNotEmpty) return users.single;
+    final user = User()
       ..parentKey = _db.emptyKey
       ..id = createUuid()
       ..email = email

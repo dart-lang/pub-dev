@@ -757,9 +757,10 @@ class PackageBackend {
     InvalidInputException.check(
         isValidEmail(uploaderEmail), 'Not a valid email: `$uploaderEmail`.');
 
-    final uploader = await accountBackend.lookupUserByEmail(uploaderEmail);
+    final uploaderUsers =
+        await accountBackend.lookupUsersById(package.uploaders);
     final isNotUploaderYet =
-        uploader == null || !package.containsUploader(uploader.userId);
+        !uploaderUsers.any((u) => u.email == uploaderEmail);
     InvalidInputException.check(
         isNotUploaderYet, '`$uploaderEmail` is already an uploader.');
 
@@ -772,7 +773,6 @@ class PackageBackend {
 
     final status = await consentBackend.invitePackageUploader(
       packageName: packageName,
-      uploaderUserId: uploader?.userId,
       uploaderEmail: uploaderEmail,
     );
 
@@ -864,10 +864,21 @@ class PackageBackend {
       await _validatePackageUploader(packageName, package, user.userId);
 
       // Fail if the uploader we want to remove does not exist.
-      final uploader = await accountBackend.lookupUserByEmail(uploaderEmail);
-      if (uploader == null || !package.containsUploader(uploader.userId)) {
+      final uploaderUsers =
+          await accountBackend.lookupUsersById(package.uploaders);
+      final uploadersWithEmail = <User>[];
+      for (final u in uploaderUsers) {
+        final email = await accountBackend.getEmailOfUserId(u.userId);
+        if (email == uploaderEmail) uploadersWithEmail.add(u);
+      }
+      if (uploadersWithEmail.isEmpty) {
         throw NotFoundException.resource('uploader: $uploaderEmail');
       }
+      if (uploadersWithEmail.length > 1) {
+        throw NotAcceptableException(
+            'Multiple uploaders with email: $uploaderEmail');
+      }
+      final uploader = uploadersWithEmail.single;
 
       // We cannot have 0 uploaders, if we would remove the last one, we
       // fail with an error.

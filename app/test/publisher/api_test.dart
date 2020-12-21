@@ -245,9 +245,9 @@ void main() {
         expect(updated.contactEmail, 'not-registered@example.com');
 
         // no User entity created
-        final user = await accountBackend
-            .lookupUserByEmail('not-registered@example.com');
-        expect(user, isNull);
+        final users = await accountBackend
+            .lookupUsersByEmail('not-registered@example.com');
+        expect(users, isEmpty);
       });
 
       testWithServices('User is not a member', () async {
@@ -314,7 +314,7 @@ void main() {
         final query = dbService.query<Consent>();
         return await query
             .run()
-            .where((c) => c.userId == userId || userId == null)
+            .where((c) => c.userId == null || c.userId == userId || userId == null)
             .where((c) => c.email == email || email == null)
             .map((c) => {
                   'id': c.consentId,
@@ -356,7 +356,6 @@ void main() {
       testWithServices('Pending with Consent, sending new e-mail', () async {
         final consent = Consent.init(
           fromUserId: hansUser.userId,
-          userId: testUserA.userId,
           email: testUserA.email,
           kind: 'PublisherMember',
           args: ['example.com'],
@@ -372,7 +371,7 @@ void main() {
           {
             'id': isNotNull,
             'fromUserId': hansUser.userId,
-            'userId': testUserA.userId,
+            'userId': null,
             'email': testUserA.email,
             'kind': 'PublisherMember',
             'args': ['example.com'],
@@ -418,7 +417,7 @@ void main() {
           {
             'id': isNotNull,
             'fromUserId': hansUser.userId,
-            'userId': testUserA.userId,
+            'userId': null,
             'email': testUserA.email,
             'kind': 'PublisherMember',
             'args': ['example.com'],
