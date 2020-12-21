@@ -130,23 +130,6 @@ class UserMerger {
       },
     );
 
-    // Consent's userId attribute
-    await _processConcurrently(
-      _db.query<Consent>()..filter('userId =', fromUserId),
-      (Consent m) async {
-        if (m?.parentKey?.id != null) {
-          throw StateError('Old Consent entity: ${m.consentId}.');
-        }
-        await withRetryTransaction(_db, (tx) async {
-          final consent = await tx.lookupValue<Consent>(m.key);
-          if (consent.userId == fromUserId) {
-            consent.userId = toUserId;
-            tx.insert(consent);
-          }
-        });
-      },
-    );
-
     // Consent's fromUserId attribute
     await _processConcurrently(
       _db.query<Consent>()..filter('fromUserId =', fromUserId),

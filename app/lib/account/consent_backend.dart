@@ -220,9 +220,6 @@ class ConsentBackend {
     if (c == null) {
       throw NotFoundException.resource('consent: $consentId');
     }
-    // Checking that consent is for the current user.
-    InvalidInputException.check(c.userId == null || c.userId == user.userId,
-        'This invitation is not for the user account currently logged in.');
     final action = _actions[c.kind];
     if (!action.permitConfirmationWithOtherEmail && c.email != null) {
       InvalidInputException.check(c.email == user.email,

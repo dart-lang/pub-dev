@@ -232,17 +232,11 @@ class UserInfo extends db.ExpandoModel<String> {
 }
 
 /// An active consent request sent to a recipient.
-///
-/// When [userId] or [email] is specified, the accepting user is matched against
-/// these values on accepting the consent.
+/// Users are identified by their e-mail address, and not by their userId.
 @db.Kind(name: 'Consent', idType: db.IdType.String)
 class Consent extends db.Model {
   /// The consent id.
   String get consentId => id as String;
-
-  /// The user that this consent is for.
-  @db.StringProperty()
-  String userId;
 
   /// The email that this consent is for.
   @db.StringProperty(required: true)
