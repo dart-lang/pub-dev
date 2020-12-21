@@ -59,7 +59,7 @@ final String toolEnvSdkVersion = '2.12.0-133.2.beta';
 final String panaVersion = pana.packageVersion;
 final Version semanticPanaVersion = Version.parse(panaVersion);
 
-final String flutterVersion = '1.25.0-8.0.pre';
+final String flutterVersion = '1.25.0-8.1.pre';
 final Version semanticFlutterVersion = Version.parse(flutterVersion);
 
 // keep in-sync with pkg/pub_dartdoc/pubspec.yaml
