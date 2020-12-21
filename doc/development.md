@@ -70,7 +70,7 @@ pub global run mono_repo pub get
 
 1. Create `mono_pkg.yaml` for the package. (Use the existing ones as template.)
 
-2. Run `pub global run mono_repo travis` from the root.
+2. Run `pub global run mono_repo generate` from the root.
 
 
 ## Local Development with Google AppEngine
