@@ -387,7 +387,15 @@ class DartdocJobProcessor extends JobProcessor {
       );
       final hasIndexHtml = await File(p.join(outputDir, 'index.html')).exists();
       final hasIndexJson = await File(p.join(outputDir, 'index.json')).exists();
-      return DartdocResult(pr, pr.exitCode == 15, hasIndexHtml, hasIndexJson);
+      final stdoutStr = pr.stdout.toString();
+      return DartdocResult(
+        pr,
+        pr.exitCode == 15 ||
+            pr.exitCode == -9 ||
+            (pr.exitCode != 0 && stdoutStr.contains('timeout')),
+        hasIndexHtml,
+        hasIndexJson,
+      );
     }
 
     final sw = Stopwatch()..start();
@@ -395,12 +403,7 @@ class DartdocJobProcessor extends JobProcessor {
     sw.stop();
     logger.info('Running dartdoc for ${job.packageName} ${job.packageVersion} '
         'completed in ${sw.elapsed}.');
-    final shouldRetry = r.wasTimeout ||
-        // TODO: remove this after https://github.com/dart-lang/dartdoc/issues/2101 gets fixed
-        (!r.wasSuccessful &&
-            r.processResult.stdout.toString().contains(
-                "type 'FunctionTypeImpl' is not a subtype of type 'InterfaceType'"));
-    if (shouldRetry) {
+    if (r.wasTimeout) {
       r = await runDartdoc(isReduced: true);
     }
 
@@ -408,7 +411,9 @@ class DartdocJobProcessor extends JobProcessor {
     final hasContent = r.hasIndexHtml && r.hasIndexJson;
 
     if (r.processResult.exitCode != 0) {
-      if (hasContent || _isKnownFailurePattern(_mergeOutput(r.processResult))) {
+      if (hasContent ||
+          r.wasTimeout ||
+          _isKnownFailurePattern(_mergeOutput(r.processResult))) {
         logger.info('Error while running dartdoc for $job (see log.txt).');
       } else {
         final output = _mergeOutput(r.processResult, compressStdout: true);
