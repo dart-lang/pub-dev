@@ -14,7 +14,7 @@
       </div>
       <div class="search-controls-subsdk search-controls-buttons">
         <span class="search-controls-label">{{subsdk_label}}</span>
-        {{& subsdk_tabs_html}}
+        {{& subsdk_primary_buttons_html }}
       </div>
       <div class="search-filters-btn search-filters-btn-wrapper search-controls-more" data-ga-click-event="toggle-advanced-search">
         Advanced
@@ -25,13 +25,13 @@
   <div class="search-controls-advanced">
     <div class="container">
       <div class="search-controls-advanced-block">
-        {{#has_subsdk_tabs_advanced_html}}
+        {{#has_subsdk_advanced_buttons_html}}
         <div class="search-controls-subsdk-advanced search-controls-buttons"
              title="Prerelease platforms">
           <span class="search-controls-label">Prerelease platforms</span>
-          {{& subsdk_tabs_advanced_html }}
+          {{& subsdk_advanced_buttons_html }}
         </div>
-        {{/has_subsdk_tabs_advanced_html}}
+        {{/has_subsdk_advanced_buttons_html}}
         <div class="search-controls-checkbox">
           <input id="-search-unlisted-checkbox" type="checkbox" name="unlisted" {{#include_unlisted}} checked="checked"{{/include_unlisted}} />
           <label for="-search-unlisted-checkbox">Include unlisted packages</label>
