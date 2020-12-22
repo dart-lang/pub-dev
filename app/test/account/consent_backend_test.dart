@@ -17,7 +17,6 @@ void main() {
     testWithServices('Uploader invite', () async {
       registerAuthenticatedUser(hansUser);
       final status = await consentBackend.invitePackageUploader(
-        uploaderUserId: joeUser.userId,
         uploaderEmail: joeUser.email,
         packageName: hydrogen.packageName,
       );
@@ -49,7 +48,6 @@ void main() {
       registerAuthenticatedUser(hansUser);
       final status = await consentBackend.invitePublisherMember(
         publisherId: exampleComPublisher.publisherId,
-        invitedUserId: joeUser.userId,
         invitedUserEmail: joeUser.email,
       );
       expect(status.emailSent, isTrue);

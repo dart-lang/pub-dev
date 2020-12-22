@@ -67,11 +67,13 @@ Future main(List<String> args) async {
       }
     } else if (lookupKey == 'email') {
       for (final email in argv.rest) {
-        final user = await accountBackend.lookupUserByEmail(email);
-        if (user == null) {
+        final users = await accountBackend.lookupUsersByEmail(email);
+        if (users.isEmpty) {
           throw Exception('Email lookup failed: $email');
         }
-        await loadPackages('uploaders', user.userId);
+        for (final u in users) {
+          await loadPackages('uploaders', u.userId);
+        }
       }
     } else {
       throw Exception('Lookup not recognized: $lookupKey');

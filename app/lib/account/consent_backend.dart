@@ -97,7 +97,6 @@ class ConsentBackend {
   /// - if it already exists, re-send the notification, or
   /// - if it was sent recently, do nothing.
   Future<api.InviteStatus> _invite({
-    @required String userId,
     @required String email,
     @required String kind,
     @required List<String> args,
@@ -107,7 +106,6 @@ class ConsentBackend {
       // First check for existing consents with identical dedupId.
       final dedupId = consentDedupId(
         fromUserId: activeUser.userId,
-        userId: userId,
         email: email,
         kind: kind,
         args: args,
@@ -130,7 +128,6 @@ class ConsentBackend {
       // Create a new entry.
       final consent = Consent.init(
         fromUserId: activeUser.userId,
-        userId: userId,
         email: email,
         kind: kind,
         args: args,
@@ -143,11 +140,9 @@ class ConsentBackend {
   /// Invites a new uploader to the package.
   Future<api.InviteStatus> invitePackageUploader({
     @required String packageName,
-    @required String uploaderUserId,
     @required String uploaderEmail,
   }) async {
     return await _invite(
-      userId: uploaderUserId,
       email: uploaderEmail,
       kind: ConsentKind.packageUploader,
       args: [packageName],
@@ -160,7 +155,6 @@ class ConsentBackend {
     @required String contactEmail,
   }) async {
     return await _invite(
-      userId: null,
       email: contactEmail,
       kind: ConsentKind.publisherContact,
       args: [publisherId, contactEmail],
@@ -170,11 +164,9 @@ class ConsentBackend {
   /// Invites a new member for the publisher.
   Future<api.InviteStatus> invitePublisherMember({
     @required String publisherId,
-    @required String invitedUserId,
     @required String invitedUserEmail,
   }) async {
     return await _invite(
-      userId: invitedUserId,
       email: invitedUserEmail,
       kind: ConsentKind.publisherMember,
       args: [publisherId],
@@ -183,8 +175,7 @@ class ConsentBackend {
 
   Future<api.InviteStatus> _sendNotification(
       String activeUserEmail, Consent consent) async {
-    final invitedEmail =
-        consent.email ?? await accountBackend.getEmailOfUserId(consent.userId);
+    final invitedEmail = consent.email;
     final action = _actions[consent.kind];
     await emailSender.sendMessage(createInviteEmail(
       invitedEmail: invitedEmail,
@@ -219,26 +210,16 @@ class ConsentBackend {
   /// Returns the [Consent] for [consentId] and checks if it is for [user].
   Future<Consent> _lookupAndCheck(String consentId, User user) async {
     final key = _db.emptyKey.append(Consent, id: consentId);
-    return await withRetryTransaction(_db, (tx) async {
-      final c = await tx.lookupOrNull<Consent>(key);
-      if (c == null) {
-        throw NotFoundException.resource('consent: $consentId');
-      }
-      if (c.userId == null && c.email == user.email) {
-        c.userId = user.userId;
-        tx.insert(c);
-      }
-
-      // Checking that consent is for the current user.
-      InvalidInputException.check(c.userId == null || c.userId == user.userId,
+    final c = await _db.lookupValue<Consent>(key, orElse: () => null);
+    if (c == null) {
+      throw NotFoundException.resource('consent: $consentId');
+    }
+    final action = _actions[c.kind];
+    if (!action.permitConfirmationWithOtherEmail && c.email != null) {
+      InvalidInputException.check(c.email == user.email,
           'This invitation is not for the user account currently logged in.');
-      final action = _actions[c.kind];
-      if (!action.permitConfirmationWithOtherEmail && c.email != null) {
-        InvalidInputException.check(c.email == user.email,
-            'This invitation is not for the user account currently logged in.');
-      }
-      return c;
-    });
+    }
+    return c;
   }
 
   Future<void> _accept(Consent consent) async {
@@ -314,17 +295,14 @@ class _PackageUploaderAction extends ConsentAction {
     final packageName = consent.args[0];
     final fromUserEmail =
         await accountBackend.getEmailOfUserId(consent.fromUserId);
-    final uploader = consent.userId != null
-        ? await accountBackend.lookupUserById(consent.userId)
-        : await accountBackend.lookupUserByEmail(consent.email);
-    if (uploader == null) {
-      // NOTE: This should never happen because `userId` of the consent entity
-      //       will be set when it is loaded.
-      throw AuthenticationException.userNotFound();
+    final currentUser = await requireAuthenticatedUser();
+    if (currentUser.email != consent.email) {
+      throw NotAcceptableException(
+          'Current user and consent user does not match.');
     }
 
     await packageBackend.confirmUploader(
-        consent.fromUserId, fromUserEmail, packageName, uploader);
+        consent.fromUserId, fromUserEmail, packageName, currentUser);
   }
 
   @override
@@ -415,20 +393,12 @@ class _PublisherMemberAction extends ConsentAction {
   @override
   Future<void> onAccept(Consent consent) async {
     final publisherId = consent.args[0];
-    // consent.userId will be set in `ConsentBackend._lookupAndCheck` if it's not already set
-    // when the invite is created.
-    if (consent.userId == null) {
-      throw AssertionError(
-          'Expected a non-null `userId` for publisher invite for '
-          '`$publisherId` to `${consent.email}`.');
+    final currentUser = await requireAuthenticatedUser();
+    if (consent.email != currentUser.email) {
+      throw NotAcceptableException('Consent is not for the current user.');
     }
-    final member = await accountBackend.lookupUserById(consent.userId);
-    if (member == null) {
-      // NOTE: This should never happen because `userId` of the consent entity
-      //       will be set when it is loaded.
-      throw AuthenticationException.userNotFound();
-    }
-    await publisherBackend.inviteConsentGranted(publisherId, member.userId);
+    await publisherBackend.inviteConsentGranted(
+        publisherId, currentUser.userId);
   }
 
   @override

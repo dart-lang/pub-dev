@@ -232,19 +232,14 @@ class UserInfo extends db.ExpandoModel<String> {
 }
 
 /// An active consent request sent to a recipient.
-///
-/// When [userId] or [email] is specified, the accepting user is matched against
-/// these values on accepting the consent.
+/// Users are identified by their e-mail address, and not by their userId.
 @db.Kind(name: 'Consent', idType: db.IdType.String)
 class Consent extends db.Model {
   /// The consent id.
   String get consentId => id as String;
 
-  /// The user that this consent is for.
-  @db.StringProperty()
-  String userId;
-
-  @db.StringProperty()
+  /// The email that this consent is for.
+  @db.StringProperty(required: true)
   String email;
 
   /// A [Uri.path]-like concatenation of identifiers from [kind] and [args].
@@ -277,7 +272,6 @@ class Consent extends db.Model {
 
   Consent.init({
     @required this.fromUserId,
-    @required this.userId,
     @required this.email,
     @required this.kind,
     @required this.args,
@@ -286,7 +280,6 @@ class Consent extends db.Model {
     id = Ulid().toString();
     dedupId = consentDedupId(
       fromUserId: fromUserId,
-      userId: userId,
       email: email,
       kind: kind,
       args: args,
@@ -311,12 +304,11 @@ class Consent extends db.Model {
 /// Calculates the dedupId of a consent request.
 String consentDedupId({
   @required String fromUserId,
-  @required String userId,
   @required String email,
   @required String kind,
   @required List<String> args,
 }) =>
-    [fromUserId, userId, email, kind, ...args]
+    [fromUserId, email, kind, ...args]
         .where((s) => s != null)
         .map(Uri.encodeComponent)
         .join('/');

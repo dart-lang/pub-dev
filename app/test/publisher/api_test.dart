@@ -245,9 +245,9 @@ void main() {
         expect(updated.contactEmail, 'not-registered@example.com');
 
         // no User entity created
-        final user = await accountBackend
-            .lookupUserByEmail('not-registered@example.com');
-        expect(user, isNull);
+        final users = await accountBackend
+            .lookupUsersByEmail('not-registered@example.com');
+        expect(users, isEmpty);
       });
 
       testWithServices('User is not a member', () async {
@@ -310,16 +310,14 @@ void main() {
     });
 
     group('Invite a new member', () {
-      Future<List<Map>> queryConstents({String userId, String email}) async {
+      Future<List<Map>> queryConstents({String email}) async {
         final query = dbService.query<Consent>();
         return await query
             .run()
-            .where((c) => c.userId == userId || userId == null)
             .where((c) => c.email == email || email == null)
             .map((c) => {
                   'id': c.consentId,
                   'fromUserId': c.fromUserId,
-                  'userId': c.userId,
                   'email': c.email,
                   'kind': c.kind,
                   'args': c.args,
@@ -356,7 +354,6 @@ void main() {
       testWithServices('Pending with Consent, sending new e-mail', () async {
         final consent = Consent.init(
           fromUserId: hansUser.userId,
-          userId: testUserA.userId,
           email: testUserA.email,
           kind: 'PublisherMember',
           args: ['example.com'],
@@ -372,7 +369,6 @@ void main() {
           {
             'id': isNotNull,
             'fromUserId': hansUser.userId,
-            'userId': testUserA.userId,
             'email': testUserA.email,
             'kind': 'PublisherMember',
             'args': ['example.com'],
@@ -400,7 +396,6 @@ void main() {
           {
             'id': isNotNull,
             'fromUserId': hansUser.userId,
-            'userId': isNull, // no user has been created
             'email': 'newuser@example.com',
             'kind': 'PublisherMember',
             'args': ['example.com'],
@@ -418,7 +413,6 @@ void main() {
           {
             'id': isNotNull,
             'fromUserId': hansUser.userId,
-            'userId': testUserA.userId,
             'email': testUserA.email,
             'kind': 'PublisherMember',
             'args': ['example.com'],
