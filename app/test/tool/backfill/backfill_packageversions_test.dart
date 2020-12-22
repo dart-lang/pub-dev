@@ -34,7 +34,6 @@ void main() {
         stat.toJson(),
         {
           'versionCount': 13,
-          'pvPubspecCount': 13,
           'pvInfoCount': 13,
           'pvAssetUpdatedCount': 26,
           // TODO: fix test models and don't delete here
@@ -54,7 +53,6 @@ void main() {
         stats.toJson(),
         {
           'versionCount': 13,
-          'pvPubspecCount': 0,
           'pvInfoCount': 0,
           'pvAssetUpdatedCount': 0,
           'pvAssetDeletedCount': 0,
@@ -96,7 +94,6 @@ void main() {
         stats.toJson(),
         {
           'versionCount': 13,
-          'pvPubspecCount': 0,
           'pvInfoCount': 1,
           'pvAssetUpdatedCount': 0,
           'pvAssetDeletedCount': 0,
@@ -119,7 +116,6 @@ void main() {
         stats.toJson(),
         {
           'versionCount': 13,
-          'pvPubspecCount': 0,
           'pvInfoCount': 0,
           'pvAssetUpdatedCount': 1,
           'pvAssetDeletedCount': 0,
