@@ -300,8 +300,7 @@ class PackageVersion extends db.ExpandoModel<String> {
 /// change was introduced since the [PackageVersion] was published.
 @db.Kind(name: 'PackageVersionPubspec', idType: db.IdType.String)
 @deprecated
-class PackageVersionPubspec extends db.ExpandoModel<String> {
-}
+class PackageVersionPubspec extends db.ExpandoModel<String> {}
 
 /// A derived entity that holds derived/cleaned content of [PackageVersion].
 @db.Kind(name: 'PackageVersionInfo', idType: db.IdType.String)
