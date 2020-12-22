@@ -110,7 +110,7 @@ void main() {
     'Flutter is using the latest stable',
     () async {
       // TODO: remove this check after we are using stable Flutter again
-      if (flutterVersion == '1.25.0-8.0.pre') return;
+      if (flutterVersion == '1.25.0-8.1.pre') return;
       final flutterArchive = await fetchFlutterArchive();
       final currentStable = flutterArchive.releases.firstWhere(
         (r) => r.hash == flutterArchive.currentRelease.stable,
