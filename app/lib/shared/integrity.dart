@@ -307,27 +307,6 @@ class IntegrityChecker {
           'Package(${p.name}) has missing latestPrereleaseVersionKey: ${p.latestPrereleaseVersionKey.id}');
     }
 
-    // Checking if PackageVersionPubspec is referenced by a PackageVersion entity.
-    final pvpQuery = _db.query<PackageVersionPubspec>()
-      ..filter('package =', p.name);
-    final pvpKeys = <QualifiedVersionKey>{};
-    await for (PackageVersionPubspec pvp in pvpQuery.run()) {
-      final key = pvp.qualifiedVersionKey;
-      if (pvp.id == key.oldQualifiedVersion) {
-        _problems.add('PackageVersionPubspec($key) uses old id format.');
-        continue;
-      }
-      pvpKeys.add(key);
-      if (!qualifiedVersionKeys.contains(key)) {
-        _problems.add('PackageVersionPubspec($key) has no PackageVersion.');
-      }
-    }
-    for (QualifiedVersionKey key in qualifiedVersionKeys) {
-      if (!pvpKeys.contains(key)) {
-        _problems.add('PackageVersion($key) has no PackageVersionPubspec.');
-      }
-    }
-
     // Checking if PackageVersionInfo is referenced by a PackageVersion entity.
     final pviQuery = _db.query<PackageVersionInfo>()
       ..filter('package =', p.name);

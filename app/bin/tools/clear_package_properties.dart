@@ -76,10 +76,6 @@ Future _processPackage(Package package) async {
       dbService.query<PackageVersion>(ancestorKey: package.key);
   await _processWithQuery(versionQuery);
 
-  final pubspecQuery = dbService.query<PackageVersionPubspec>()
-    ..filter('package =', package.name);
-  await _processWithQuery(pubspecQuery);
-
   final infoQuery = dbService.query<PackageVersionInfo>()
     ..filter('package =', package.name);
   await _processWithQuery(infoQuery);

@@ -272,20 +272,6 @@ dependencies:
   gcloud: any
 ''';
 
-Iterable<Model> pvModels(PackageVersion pv) sync* {
-  yield pv;
-  yield _pvPubspec(pv);
-}
-
-PackageVersionPubspec _pvPubspec(PackageVersion pv) {
-  return PackageVersionPubspec()
-    ..parentKey = pv.parentKey.parent
-    ..initFromKey(pv.qualifiedVersionKey)
-    ..versionCreated = pv.created
-    ..updated = pv.created
-    ..pubspec = pv.pubspec;
-}
-
 PackageVersionInfo _pvToInfo(PackageVersion pv, {List<String> assets}) {
   return PackageVersionInfo()
     ..parentKey = pv.parentKey.parent

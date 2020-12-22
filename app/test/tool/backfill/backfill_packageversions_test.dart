@@ -104,29 +104,6 @@ void main() {
       );
     });
 
-    testWithServices('pubspec missing', () async {
-      await _updateModels();
-      final lastId =
-          hydrogen.versions.last.qualifiedVersionKey.qualifiedVersion;
-      await dbService.commit(deletes: [
-        dbService.emptyKey.append(PackageVersionPubspec, id: lastId)
-      ]);
-      final stats = await backfillAllVersionsOfPackage(
-        'hydrogen',
-        archiveResolver: _archive,
-      );
-      expect(
-        stats.toJson(),
-        {
-          'versionCount': 13,
-          'pvPubspecCount': 1,
-          'pvInfoCount': 0,
-          'pvAssetUpdatedCount': 0,
-          'pvAssetDeletedCount': 0,
-        },
-      );
-    });
-
     testWithServices('asset missing', () async {
       await _updateModels();
       final lastId =

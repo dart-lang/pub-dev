@@ -659,7 +659,6 @@ class PackageBackend {
       final inserts = <Model>[
         package,
         newVersion,
-        validatedUpload.packageVersionPubspec,
         validatedUpload.packageVersionInfo,
         ...validatedUpload.assets,
         AuditLogRecord.packagePublished(
@@ -1092,25 +1091,21 @@ Package _newPackageFromVersion(
 
 class _ValidatedUpload {
   final PackageVersion packageVersion;
-  final PackageVersionPubspec packageVersionPubspec;
   final PackageVersionInfo packageVersionInfo;
   final List<PackageVersionAsset> assets;
 
   _ValidatedUpload(
     this.packageVersion,
-    this.packageVersionPubspec,
     this.packageVersionInfo,
     this.assets,
   );
 }
 
 class DerivedPackageVersionEntities {
-  final PackageVersionPubspec packageVersionPubspec;
   final PackageVersionInfo packageVersionInfo;
   final List<PackageVersionAsset> assets;
 
   DerivedPackageVersionEntities(
-    this.packageVersionPubspec,
     this.packageVersionInfo,
     this.assets,
   );
@@ -1168,8 +1163,7 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
   }
 
   // TODO: verify if assets sizes are within the transaction limit (10 MB)
-  return _ValidatedUpload(version, derived.packageVersionPubspec,
-      derived.packageVersionInfo, derived.assets);
+  return _ValidatedUpload(version, derived.packageVersionInfo, derived.assets);
 }
 
 /// Creates new Datastore entities from the actual extraction of package [archive].
@@ -1180,12 +1174,6 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
   final pubspec = Pubspec.fromYaml(archive.pubspecContent);
   final key = QualifiedVersionKey(
       package: pubspec.name, version: pubspec.canonicalVersion);
-
-  final versionPubspec = PackageVersionPubspec()
-    ..initFromKey(key)
-    ..versionCreated = versionCreated
-    ..updated = DateTime.now().toUtc()
-    ..pubspec = pubspec;
 
   String capContent(String text) {
     if (text == null) return text;
@@ -1249,7 +1237,7 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
     ..assets = assets.map((a) => a.kind).toList()
     ..assetCount = assets.length;
 
-  return DerivedPackageVersionEntities(versionPubspec, versionInfo, assets);
+  return DerivedPackageVersionEntities(versionInfo, assets);
 }
 
 /// Helper utility class for interfacing with Cloud Storage for storing
