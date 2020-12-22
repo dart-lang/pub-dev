@@ -2,19 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
-import 'package:crypto/crypto.dart';
-import 'package:gcloud/service_scope.dart';
 import 'package:meta/meta.dart';
 
 import 'package:client_data/package_api.dart';
+import 'package:client_data/publisher_api.dart';
 
 import '../../account/backend.dart';
-import '../../account/models.dart';
 import '../../package/backend.dart';
-import '../../publisher/models.dart';
-import '../../shared/datastore.dart';
+import '../../publisher/backend.dart';
 
 import 'import_source.dart';
 import 'models.dart';
@@ -32,51 +27,29 @@ Future<void> importProfile({
   // expand profile with resolved version information
   profile = normalize(profile, resolvedVersions: resolvedVersions);
 
-  // create users
-  for (final u in profile.users) {
-    // The default oauthUserId is following the same pattern as we have in
-    // `fake_auth_provider.dart`.
-    final oauthUserId =
-        u.oauthUserId ?? u.email.replaceAll('.', '-').replaceAll('@', '-');
-    final userId = _userIdFromEmail(u.email);
-    await dbService.commit(inserts: [
-      User()
-        ..id = userId
-        ..oauthUserId = oauthUserId
-        ..email = u.email
-        ..created = u.created ?? DateTime.now().toUtc()
-        ..isDeleted = u.isDeleted ?? false
-        ..isBlocked = u.isBlocked ?? false,
-      OAuthUserID()
-        ..id = oauthUserId
-        ..userIdKey = dbService.emptyKey.append(User, id: userId),
-    ]);
+  if (profile.packages
+      .any((p) => p.uploaders != null && p.uploaders.length > 1)) {
+    throw UnimplementedError('More than one uploader is not implemented.');
   }
 
   // create publishers
   for (final p in profile.publishers) {
-    await dbService.commit(inserts: [
-      Publisher()
-        ..id = p.name
-        ..contactEmail = p.members.isEmpty ? null : p.members.first.email
-        ..websiteUrl = 'https://${p.name}/'
-        ..created = p.created ?? DateTime.now().toUtc()
-        ..updated = p.updated ?? DateTime.now().toUtc()
-        ..isAbandoned = false,
-      ...p.members.map(
-        (m) => PublisherMember()
-          ..parentKey = dbService.emptyKey.append(Publisher, id: p.name)
-          ..id = _userIdFromEmail(m.email)
-          ..userId = _userIdFromEmail(m.email)
-          ..created = m.created ?? DateTime.now().toUtc()
-          ..updated = m.updated ?? DateTime.now().toUtc()
-          ..role = PublisherMemberRole.admin,
-      )
-    ]);
+    final firstMemberEmail = p.members.first.email;
+    final token = _fakeToken(firstMemberEmail);
+    await accountBackend.withBearerToken(token, () async {
+      await publisherBackend.createPublisher(
+          p.name, CreatePublisherRequest(accessToken: token));
+
+      for (final _ in p.members.skip(1)) {
+        // TODO: explore implementation options how to add this
+        throw UnimplementedError(
+            'More than one publisher members is not implemented (${p.name}).');
+      }
+    });
   }
 
   // last active uploader
-  final lastActiveUploaders = <String, User>{};
+  final lastActiveUploaderEmails = <String, String>{};
 
   // create versions
   for (final rv in resolvedVersions) {
@@ -84,13 +57,9 @@ Future<void> importProfile({
     final uploaderEmails = _potentialActiveEmails(profile, rv.package);
     final uploaderEmail =
         uploaderEmails[rv.version.hashCode.abs() % uploaderEmails.length];
-    final activeUser =
-        await accountBackend.lookupUserById(_userIdFromEmail(uploaderEmail));
-    lastActiveUploaders[rv.package] = activeUser;
+    lastActiveUploaderEmails[rv.package] = uploaderEmail;
 
-    // upload package in the name of the active user
-    await fork(() async {
-      registerAuthenticatedUser(activeUser);
+    await accountBackend.withBearerToken(_fakeToken(uploaderEmail), () async {
       // ignore: invalid_use_of_visible_for_testing_member
       await packageBackend.upload(Stream<List<int>>.fromFuture(
           source.getArchiveBytes(rv.package, rv.version)));
@@ -98,11 +67,9 @@ Future<void> importProfile({
   }
   for (final testPackage in profile.packages) {
     final packageName = testPackage.name;
-    final activeUser = lastActiveUploaders[packageName];
+    final activeEmail = lastActiveUploaderEmails[packageName];
 
-    // update package info
-    await fork(() async {
-      registerAuthenticatedUser(activeUser);
+    await accountBackend.withBearerToken(_fakeToken(activeEmail), () async {
       // update publisher
       if (testPackage.publisher != null) {
         await packageBackend.setPublisher(
@@ -124,18 +91,16 @@ Future<void> importProfile({
 
   // create likes
   for (final u in profile.users) {
-    if (u.likes == null || u.likes.isEmpty) continue;
-    final userId = _userIdFromEmail(u.email);
-    await dbService.commit(inserts: [
-      ...u.likes.map(
-        (p) => Like()
-          ..parentKey = dbService.emptyKey.append(User, id: userId)
-          ..id = p
-          // TODO: support via [TestProfile]
-          ..created = DateTime.now().toUtc()
-          ..packageName = p,
-      )
-    ]);
+    // create user
+    await accountBackend.withBearerToken(_fakeToken(u.email), () async {});
+
+    if (u.likes != null && u.likes.isNotEmpty) {
+      await accountBackend.withBearerToken(_fakeToken(u.email), () async {
+        for (final p in u.likes) {
+          await accountBackend.likePackage(await requireAuthenticatedUser(), p);
+        }
+      });
+    }
   }
 
   await source.close();
@@ -154,15 +119,5 @@ List<String> _potentialActiveEmails(TestProfile profile, String packageName) {
   return members.map((m) => m.email).toList();
 }
 
-String _userIdFromEmail(String email) {
-  final hash = sha1.convert(utf8.encode('email-$email')).toString();
-  return hash.substring(0, 8) +
-      '-' +
-      hash.substring(8, 12) +
-      '-' +
-      hash.substring(12, 16) +
-      '-' +
-      hash.substring(16, 20) +
-      '-' +
-      hash.substring(20, 32);
-}
+String _fakeToken(String email) =>
+    email.replaceAll('@', '-at-').replaceAll('.', '-dot-');
