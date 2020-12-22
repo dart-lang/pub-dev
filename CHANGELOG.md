@@ -2,6 +2,8 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * NOTE: `downloads` property in `Package` and `PackageVersion` is no longer populated.
+   TODO(deferred): schedule cleanup after this release.
 
 ## `20201222t135400-all`
  * Bumped runtimeVersion to `2020.12.21`.
