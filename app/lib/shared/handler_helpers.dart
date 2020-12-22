@@ -246,18 +246,16 @@ shelf.Handler _userAuthWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
     final authorization = request.headers['authorization'];
     if (authorization != null) {
+      String accessToken;
       final parts = authorization.split(' ');
       if (parts.length == 2 && parts.first.trim().toLowerCase() == 'bearer') {
-        final accessToken = parts.last.trim();
-
-        final user =
-            await accountBackend.authenticateWithBearerToken(accessToken);
-        if (user != null) {
-          registerAuthenticatedUser(user);
-        }
+        accessToken = parts.last.trim();
       }
+      return await accountBackend.withBearerToken(
+          accessToken, () async => await handler(request));
+    } else {
+      return await handler(request);
     }
-    return await handler(request);
   };
 }
 
