@@ -7,7 +7,6 @@ import 'dart:io';
 
 import 'package:html/parser.dart';
 import 'package:pana/pana.dart' hide ReportStatus;
-import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:xml/xml.dart' as xml;
 
@@ -153,26 +152,6 @@ void main() {
                 panaRuntimeInfo: _panaRuntimeInfo,
                 reportStatus: ReportStatus.success,
                 derivedTags: null,
-                pkgDependencies: [
-                  PkgDependency(
-                    package: 'quiver',
-                    dependencyType: 'direct',
-                    constraintType: 'normal',
-                    constraint: VersionConstraint.parse('^1.0.0'),
-                    resolved: Version.parse('1.0.0'),
-                    available: null,
-                    errors: null,
-                  ),
-                  PkgDependency(
-                    package: 'http',
-                    dependencyType: 'direct',
-                    constraintType: 'normal',
-                    constraint: VersionConstraint.parse('>=1.0.0 <1.2.0'),
-                    resolved: Version.parse('1.2.0'),
-                    available: Version.parse('1.3.0'),
-                    errors: null,
-                  )
-                ],
                 allDependencies: ['quiver', 'http'],
                 licenseFile: LicenseFile('LICENSE.txt', 'BSD'),
                 report: Report(sections: <ReportSection>[]),
@@ -246,26 +225,6 @@ void main() {
               panaRuntimeInfo: _panaRuntimeInfo,
               reportStatus: ReportStatus.success,
               derivedTags: null,
-              pkgDependencies: [
-                PkgDependency(
-                  package: 'quiver',
-                  dependencyType: 'direct',
-                  constraintType: 'normal',
-                  constraint: VersionConstraint.parse('^1.0.0'),
-                  resolved: Version.parse('1.0.0'),
-                  available: null,
-                  errors: null,
-                ),
-                PkgDependency(
-                  package: 'http',
-                  dependencyType: 'direct',
-                  constraintType: 'normal',
-                  constraint: VersionConstraint.parse('>=1.0.0 <1.2.0'),
-                  resolved: Version.parse('1.2.0'),
-                  available: Version.parse('1.3.0'),
-                  errors: null,
-                )
-              ],
               allDependencies: ['quiver', 'http'],
               licenseFile: LicenseFile('LICENSE.txt', 'BSD'),
               report: Report(sections: <ReportSection>[]),
@@ -297,7 +256,6 @@ void main() {
               panaRuntimeInfo: _panaRuntimeInfo,
               reportStatus: ReportStatus.success,
               derivedTags: ['sdk:flutter', 'platform:android'],
-              pkgDependencies: null,
               allDependencies: null,
               licenseFile: null,
               report: Report(sections: <ReportSection>[]),
@@ -430,26 +388,6 @@ void main() {
             panaRuntimeInfo: _panaRuntimeInfo,
             reportStatus: ReportStatus.failed,
             derivedTags: card.derivedTags,
-            pkgDependencies: [
-              PkgDependency(
-                package: 'http',
-                dependencyType: 'direct',
-                constraintType: 'normal',
-                constraint: VersionConstraint.parse('^1.0.0'),
-                resolved: Version.parse('1.0.0'),
-                available: Version.parse('1.1.0'),
-                errors: null,
-              ),
-              PkgDependency(
-                package: 'async',
-                dependencyType: 'transitive',
-                constraintType: 'normal',
-                constraint: VersionConstraint.parse('>=0.3.0 <1.0.0'),
-                resolved: Version.parse('0.5.1'),
-                available: Version.parse('1.0.2'),
-                errors: null,
-              ),
-            ],
             allDependencies: ['http', 'async'],
             licenseFile: null,
             report: Report(sections: <ReportSection>[]),
@@ -479,7 +417,6 @@ void main() {
             panaRuntimeInfo: _panaRuntimeInfo,
             reportStatus: ReportStatus.aborted,
             derivedTags: null,
-            pkgDependencies: null,
             allDependencies: null,
             licenseFile: null,
             report: Report(sections: <ReportSection>[]),
