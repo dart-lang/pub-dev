@@ -257,16 +257,27 @@ CachePatterns get cache => ss.lookup(#_cache) as CachePatterns;
 
 void _registerCache(CachePatterns cache) => ss.register(#_cache, cache);
 
+final _delayedCachePurgerKey = #_delayedCachePurger;
+_DelayedCachePurger get _delayedCachePurger =>
+    ss.lookup(_delayedCachePurgerKey) as _DelayedCachePurger;
+void _registerDelayedCachePurgerKey(_DelayedCachePurger value) =>
+    ss.register(_delayedCachePurgerKey, value);
+
 /// Initializes caches based on the environment.
 /// - In AppEngine, it will use redis cache,
 /// - otherwise, a local in-memory cache.
 Future<void> setupCache() async {
   // Use in-memory cache, if not running on AppEngine
   if (Platform.environment.containsKey('GAE_VERSION')) {
-    return await _registerRedisCache();
+    await _registerRedisCache();
+  } else {
+    _log.warning('using in-memory cache instead of redis');
+    await _registerInmemoryCache();
   }
-  _log.warning('using in-memory cache instead of redis');
-  return await _registerInmemoryCache();
+
+  final purger = _DelayedCachePurger();
+  _registerDelayedCachePurgerKey(purger);
+  ss.registerScopeExitCallback(purger._close);
 }
 
 /// Read redis connection string from the secret backend and initialize redis
@@ -352,4 +363,53 @@ class _ConnectionRefreshingCacheProvider<T> implements CacheProvider<T> {
   Future<void> set(String key, T value, [Duration ttl]) => _delegate
       .set(key, value, ttl)
       .timeout(_defaultCacheWriteTimeout, onTimeout: () => null);
+}
+
+extension EntryPurgeExt on Entry {
+  /// Datastore.query is only eventually consistent, and when we are changing
+  /// entries that are then fetched via query, the cache may store the old values.
+  /// Running a repeated purge after a reasonable delay will make sure that the
+  /// cache won't store the old values for too long.
+  Future purgeAndRepeat({int retries = 0, Duration delay}) async {
+    await purge(retries: retries);
+    _delayedCachePurger.add(this, delay);
+  }
+}
+
+class _DelayedCachePurger {
+  final _entries = <_DelayedPurge>[];
+  Timer _timer;
+
+  void add(Entry cacheEntry, Duration delay) {
+    final entry = _DelayedPurge(cacheEntry, delay);
+    _entries.add(entry);
+    _timer ??= Timer.periodic(Duration(seconds: 20), (timer) {
+      _purge();
+    });
+  }
+
+  Future<void> _purge() async {
+    final now = DateTime.now();
+    for (final e in _entries.where((e) => !e.time.isAfter(now)).toList()) {
+      await e.entry.purge();
+      _entries.remove(e);
+    }
+    if (_entries.isEmpty) {
+      _timer?.cancel();
+      _timer = null;
+    }
+  }
+
+  Future<void> _close() async {
+    _timer?.cancel();
+    _timer = null;
+  }
+}
+
+class _DelayedPurge {
+  final Entry entry;
+  final DateTime time;
+
+  _DelayedPurge(this.entry, Duration delay)
+      : time = DateTime.now().add(delay ?? Duration(seconds: 30));
 }

@@ -13,7 +13,7 @@ import 'package:neat_cache/neat_cache.dart';
 import '../package/models.dart';
 import '../shared/datastore.dart';
 import '../shared/exceptions.dart';
-import '../shared/redis_cache.dart' show cache;
+import '../shared/redis_cache.dart' show cache, EntryPurgeExt;
 import '../shared/utils.dart';
 
 import 'auth_provider.dart';
@@ -541,7 +541,7 @@ Future<void> purgeAccountCache({
   @required String userId,
 }) async {
   await Future.wait([
-    cache.userPackageLikes(userId).purge(),
-    cache.publisherPage(userId).purge(),
+    cache.userPackageLikes(userId).purgeAndRepeat(),
+    cache.publisherPage(userId).purgeAndRepeat(),
   ]);
 }
