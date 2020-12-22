@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:gcloud/service_scope.dart';
 import 'package:meta/meta.dart';
 
 import 'package:client_data/package_api.dart';
@@ -37,7 +36,7 @@ Future<void> importProfile({
   for (final p in profile.publishers) {
     final firstMemberEmail = p.members.first.email;
     final token = _fakeToken(firstMemberEmail);
-    await _withAuthorizationToken(token, () async {
+    await accountBackend.withBearerToken(token, () async {
       await publisherBackend.createPublisher(
           p.name, CreatePublisherRequest(accessToken: token));
 
@@ -60,7 +59,7 @@ Future<void> importProfile({
         uploaderEmails[rv.version.hashCode.abs() % uploaderEmails.length];
     lastActiveUploaderEmails[rv.package] = uploaderEmail;
 
-    await _withAuthorizationToken(_fakeToken(uploaderEmail), () async {
+    await accountBackend.withBearerToken(_fakeToken(uploaderEmail), () async {
       // ignore: invalid_use_of_visible_for_testing_member
       await packageBackend.upload(Stream<List<int>>.fromFuture(
           source.getArchiveBytes(rv.package, rv.version)));
@@ -70,7 +69,7 @@ Future<void> importProfile({
     final packageName = testPackage.name;
     final activeEmail = lastActiveUploaderEmails[packageName];
 
-    await _withAuthorizationToken(_fakeToken(activeEmail), () async {
+    await accountBackend.withBearerToken(_fakeToken(activeEmail), () async {
       // update publisher
       if (testPackage.publisher != null) {
         await packageBackend.setPublisher(
@@ -93,10 +92,10 @@ Future<void> importProfile({
   // create likes
   for (final u in profile.users) {
     // create user
-    await _withAuthorizationToken(_fakeToken(u.email), () async {});
+    await accountBackend.withBearerToken(_fakeToken(u.email), () async {});
 
     if (u.likes != null && u.likes.isNotEmpty) {
-      await _withAuthorizationToken(_fakeToken(u.email), () async {
+      await accountBackend.withBearerToken(_fakeToken(u.email), () async {
         for (final p in u.likes) {
           await accountBackend.likePackage(await requireAuthenticatedUser(), p);
         }
@@ -122,14 +121,3 @@ List<String> _potentialActiveEmails(TestProfile profile, String packageName) {
 
 String _fakeToken(String email) =>
     email.replaceAll('@', '-at-').replaceAll('.', '-dot-');
-
-Future<R> _withAuthorizationToken<R>(
-    String token, Future<R> Function() fn) async {
-  return await fork(() async {
-    final user = await accountBackend.authenticateWithBearerToken(token);
-    if (user != null) {
-      registerAuthenticatedUser(user);
-    }
-    return await fn();
-  }) as R;
-}
