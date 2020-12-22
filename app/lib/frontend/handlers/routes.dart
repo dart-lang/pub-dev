@@ -99,6 +99,16 @@ class PubSiteService {
           Request request, String package, String version) =>
       packageInstallHandler(request, package, versionName: version);
 
+  @Route.get('/packages/<package>/versions/<version>/license')
+  Future<Response> packageVersionLicense(
+          Request request, String package, String version) =>
+      packageLicenseHandler(request, package, versionName: version);
+
+  @Route.get('/packages/<package>/versions/<version>/pubspec')
+  Future<Response> packageVersionPubspec(
+          Request request, String package, String version) =>
+      packagePubspecHandler(request, package, versionName: version);
+
   @Route.get('/packages/<package>/versions/<version>/score')
   Future<Response> packageVersionScore(
           Request request, String package, String version) =>
@@ -124,6 +134,14 @@ class PubSiteService {
   @Route.get('/packages/<package>/install')
   Future<Response> packageInstall(Request request, String package) =>
       packageInstallHandler(request, package);
+
+  @Route.get('/packages/<package>/license')
+  Future<Response> packageLicense(Request request, String package) =>
+      packageLicenseHandler(request, package);
+
+  @Route.get('/packages/<package>/pubspec')
+  Future<Response> packagePubspec(Request request, String package) =>
+      packagePubspecHandler(request, package);
 
   @Route.get('/packages/<package>/score')
   Future<Response> packageScore(Request request, String package) =>

@@ -818,6 +818,8 @@ class PackagePageData {
   bool get hasReadme => versionInfo.assets.contains(AssetKind.readme);
   bool get hasChangelog => versionInfo.assets.contains(AssetKind.changelog);
   bool get hasExample => versionInfo.assets.contains(AssetKind.example);
+  bool get hasLicense => versionInfo.assets.contains(AssetKind.license);
+  bool get hasPubspec => versionInfo.assets.contains(AssetKind.pubspec);
 
   bool get isLatestStable => version.version == package.latestVersion;
 

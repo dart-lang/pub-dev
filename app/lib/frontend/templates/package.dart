@@ -299,6 +299,30 @@ String renderPkgInstallPage(PackagePageData data) {
   );
 }
 
+/// Renders the package license page.
+String renderPkgLicensePage(PackagePageData data) {
+  return _renderPkgPage(
+    data: data,
+    tabs: buildPackageTabs(
+      data: data,
+      licenseTab: _licenseTab(data),
+    ),
+    pkgPageTab: urls.PkgPageTab.license,
+  );
+}
+
+/// Renders the package pubspec page.
+String renderPkgPubspecPage(PackagePageData data) {
+  return _renderPkgPage(
+    data: data,
+    tabs: buildPackageTabs(
+      data: data,
+      pubspecTab: _pubspecTab(data),
+    ),
+    pkgPageTab: urls.PkgPageTab.pubspec,
+  );
+}
+
 /// Renders the package score page.
 String renderPkgScorePage(PackagePageData data) {
   return _renderPkgPage(
@@ -430,6 +454,28 @@ Tab _installTab(PackagePageData data) {
   );
 }
 
+Tab _licenseTab(PackagePageData data) {
+  final contentHtml = data.hasLicense
+      ? renderFile(data.asset.toFileObject(), data.version.packageLinks.baseUrl)
+      : 'No license file found.';
+  return Tab.withContent(
+    id: 'license',
+    title: 'License',
+    contentHtml: contentHtml,
+  );
+}
+
+Tab _pubspecTab(PackagePageData data) {
+  final contentHtml = data.hasPubspec
+      ? renderFile(data.asset.toFileObject(), data.version.packageLinks.baseUrl)
+      : 'No license file found.';
+  return Tab.withContent(
+    id: 'pubspec',
+    title: 'Pubspec',
+    contentHtml: contentHtml,
+  );
+}
+
 Tab _scoreTab(PackagePageData data) {
   return Tab.withContent(
     id: 'analysis',
@@ -496,6 +542,8 @@ List<Tab> buildPackageTabs({
   Tab changelogTab,
   Tab exampleTab,
   Tab installingTab,
+  Tab licenseTab,
+  Tab pubspecTab,
   Tab versionsTab,
   Tab scoreTab,
   Tab adminTab,
@@ -542,6 +590,8 @@ List<Tab> buildPackageTabs({
     if (data.hasChangelog) changelogTab,
     if (data.hasExample) exampleTab,
     installingTab,
+    if (licenseTab != null) licenseTab,
+    if (pubspecTab != null) pubspecTab,
     versionsTab,
     scoreTab,
     if (data.isAdmin) adminTab,

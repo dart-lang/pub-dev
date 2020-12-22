@@ -26,6 +26,10 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
       service.packageVersionExample);
   router.add('GET', r'/packages/<package>/versions/<version>/install',
       service.packageVersionInstall);
+  router.add('GET', r'/packages/<package>/versions/<version>/license',
+      service.packageVersionLicense);
+  router.add('GET', r'/packages/<package>/versions/<version>/pubspec',
+      service.packageVersionPubspec);
   router.add('GET', r'/packages/<package>/versions/<version>/score',
       service.packageVersionScore);
   router.add(
@@ -34,6 +38,8 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add('GET', r'/packages/<package>/changelog', service.packageChangelog);
   router.add('GET', r'/packages/<package>/example', service.packageExample);
   router.add('GET', r'/packages/<package>/install', service.packageInstall);
+  router.add('GET', r'/packages/<package>/license', service.packageLicense);
+  router.add('GET', r'/packages/<package>/pubspec', service.packagePubspec);
   router.add('GET', r'/packages/<package>/score', service.packageScore);
   router.add('GET', r'/packages/<package>/versions', service.packageVersions);
   router.add('GET', r'/packages/<package>', service.package);
