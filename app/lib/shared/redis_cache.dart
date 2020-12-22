@@ -356,6 +356,10 @@ class _ConnectionRefreshingCacheProvider<T> implements CacheProvider<T> {
 }
 
 extension EntryPurgeExt on Entry {
+  /// Datastore.query is only eventually consistent, and when we are changing
+  /// entries that are then fetched via query, the cache may store the old values.
+  /// Running a repeated purge after a reasonable delay will make sure that the
+  /// cache won't store the old values for too long.
   Future purgeAndRepeat({int retries = 0, Duration delay}) async {
     await purge(retries: retries);
     _delayedCachePurger.add(this, delay);
