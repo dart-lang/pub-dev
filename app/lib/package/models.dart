@@ -52,10 +52,6 @@ class Package extends db.ExpandoModel<String> {
   @db.DateTimeProperty(required: true)
   DateTime updated;
 
-  @db.IntProperty()
-  @deprecated
-  int downloads;
-
   /// Number of `User`s for which a `Like` entity of this package exists.
   ///
   /// Should be set zero when [Package] is created, and always updated in a
@@ -249,10 +245,6 @@ class PackageVersion extends db.ExpandoModel<String> {
   List<String> libraries;
 
   // Metadata about the package version.
-
-  @db.IntProperty()
-  @deprecated
-  int downloads;
 
   @db.StringProperty(required: true)
   String uploader;
