@@ -25,7 +25,6 @@ import '../analyzer/analyzer_client.dart';
 import '../audit/models.dart';
 import '../dartdoc/dartdoc_client.dart';
 import '../frontend/email_sender.dart';
-import '../history/backend.dart';
 import '../history/models.dart';
 import '../publisher/backend.dart';
 import '../publisher/models.dart';
@@ -763,13 +762,6 @@ class PackageBackend {
         !uploaderUsers.any((u) => u.email == uploaderEmail);
     InvalidInputException.check(
         isNotUploaderYet, '`$uploaderEmail` is already an uploader.');
-
-    await historyBackend.storeEvent(UploaderInvited(
-      packageName: packageName,
-      currentUserId: user.userId,
-      currentUserEmail: user.email,
-      uploaderUserEmail: uploaderEmail,
-    ));
 
     final status = await consentBackend.invitePackageUploader(
       packageName: packageName,

@@ -6,7 +6,6 @@ import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dev/account/models.dart';
-import 'package:pub_dev/history/backend.dart';
 import 'package:pub_dev/history/models.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/publisher/models.dart';
@@ -147,12 +146,13 @@ void main() {
   });
 
   Future<T> updateHistoryEvent<T extends HistoryEvent>(T event) async {
-    final id = await historyBackend.storeEvent(event);
+    final history = History.entry(event);
+    await dbService.commit(inserts: [history]);
 
     await _corruptAndFix();
 
-    final h = await dbService
-        .lookupValue<History>(dbService.emptyKey.append(History, id: id));
+    final h = await dbService.lookupValue<History>(
+        dbService.emptyKey.append(History, id: history.id));
     return h.historyEvent as T;
   }
 
