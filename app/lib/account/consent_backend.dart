@@ -10,6 +10,7 @@ import 'package:retry/retry.dart';
 
 import '../frontend/email_sender.dart';
 import '../frontend/templates/consent.dart';
+import '../history/models.dart';
 import '../package/backend.dart';
 import '../publisher/backend.dart';
 import '../shared/datastore.dart';
@@ -100,6 +101,7 @@ class ConsentBackend {
     @required String email,
     @required String kind,
     @required List<String> args,
+    HistoryEvent historyEvent,
   }) async {
     return retry(() async {
       final activeUser = await requireAuthenticatedUser();
@@ -132,7 +134,10 @@ class ConsentBackend {
         kind: kind,
         args: args,
       );
-      await _db.commit(inserts: [consent]);
+      await _db.commit(inserts: [
+        consent,
+        if (historyEvent != null) History.entry(historyEvent),
+      ]);
       return await _sendNotification(activeUser.email, consent);
     });
   }
@@ -142,10 +147,17 @@ class ConsentBackend {
     @required String packageName,
     @required String uploaderEmail,
   }) async {
+    final user = await requireAuthenticatedUser();
     return await _invite(
       email: uploaderEmail,
       kind: ConsentKind.packageUploader,
       args: [packageName],
+      historyEvent: UploaderInvited(
+        packageName: packageName,
+        currentUserId: user.userId,
+        currentUserEmail: user.email,
+        uploaderUserEmail: uploaderEmail,
+      ),
     );
   }
 

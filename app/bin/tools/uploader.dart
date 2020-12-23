@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:pub_dev/account/backend.dart';
-import 'package:pub_dev/history/backend.dart';
 import 'package:pub_dev/history/models.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/backend.dart';
@@ -79,12 +78,12 @@ Future addUploader(String packageName, String uploaderEmail) async {
 
     final pubUser =
         await accountBackend.lookupOrCreateUserByEmail(pubDartlangOrgEmail);
-    await historyBackend.storeEvent(UploaderChanged(
+    tx.insert(History.entry(UploaderChanged(
       packageName: packageName,
       currentUserId: pubUser.userId,
       currentUserEmail: pubDartlangOrgEmail,
       addedUploaderEmails: [uploaderEmail],
-    ));
+    )));
   });
 }
 
@@ -113,11 +112,11 @@ Future removeUploader(String packageName, String uploaderEmail) async {
 
     final pubUser =
         await accountBackend.lookupOrCreateUserByEmail(pubDartlangOrgEmail);
-    await historyBackend.storeEvent(UploaderChanged(
+    tx.insert(History.entry(UploaderChanged(
       packageName: packageName,
       currentUserId: pubUser.userId,
       currentUserEmail: pubDartlangOrgEmail,
       removedUploaderEmails: [uploaderEmail],
-    ));
+    )));
   });
 }

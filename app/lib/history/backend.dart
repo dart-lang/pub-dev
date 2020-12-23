@@ -23,14 +23,6 @@ class HistoryBackend {
   final DatastoreDB _db;
   HistoryBackend(this._db);
 
-  /// Store a history [event]. When storing is not enabled, this will only log
-  /// the method call, and not store the entry in Datastore.
-  Future<String> storeEvent(HistoryEvent event) async {
-    final history = History.entry(event);
-    await _db.commit(inserts: [history]);
-    return history.id;
-  }
-
   Stream<History> getAll({
     @required String packageName,
     @required String packageVersion,
