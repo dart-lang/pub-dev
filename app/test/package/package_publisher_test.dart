@@ -9,6 +9,8 @@ import 'package:test/test.dart';
 
 import 'package:client_data/package_api.dart';
 import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/audit/backend.dart';
+import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/publisher/models.dart';
@@ -78,6 +80,12 @@ void main() {
 
       final info = await client.getPackagePublisher('hydrogen');
       expect(_json(info.toJson()), _json(rs.toJson()));
+
+      final auditLogs =
+          await auditBackend.listRecordsForPublisher('example.com');
+      expect(auditLogs.first.kind, AuditLogRecordKind.packageTransferred);
+      expect(auditLogs.first.summary,
+          'Package `hydrogen` was transferred to publisher `example.com` by `hans@juergen.com`.');
     });
   });
 

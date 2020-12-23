@@ -394,6 +394,12 @@ class PackageBackend {
       package.updated = DateTime.now().toUtc();
 
       tx.insert(package);
+      tx.insert(AuditLogRecord.packageTransferred(
+        user: user,
+        package: package.name,
+        fromPublisherId: fromPublisherId,
+        toPublisherId: package.publisherId,
+      ));
       tx.insert(History.entry(
         PackageTransferred(
           packageName: package.name,
