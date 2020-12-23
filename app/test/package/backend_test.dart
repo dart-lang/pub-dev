@@ -49,6 +49,7 @@ void main() {
       testWithServices('default packages, extra earlier', () async {
         final h = (await dbService.lookup<Package>([helium.packageKey])).single;
         h.updated = DateTime(2010);
+        h.latestPrereleasePublished = DateTime(2010);
         await dbService.commit(inserts: [h]);
         final page = await packageBackend.latestPackages();
         expect(page.packages.last.name, 'helium');
@@ -57,6 +58,7 @@ void main() {
       testWithServices('default packages, extra later', () async {
         final h = (await dbService.lookup<Package>([helium.packageKey])).single;
         h.updated = DateTime(2030);
+        h.latestPrereleasePublished = DateTime(2030);
         await dbService.commit(inserts: [h]);
         final page = await packageBackend.latestPackages();
         expect(page.packages.first.name, 'helium');

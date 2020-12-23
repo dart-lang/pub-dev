@@ -98,7 +98,7 @@ class PackageBackend {
     offset ??= 0;
     limit ??= 10;
     final query = db.query<Package>()
-      ..order('-updated')
+      ..order('-latestPrereleasePublished')
       ..offset(offset)
       ..limit(limit + 1);
     final result = await query.run().toList();

@@ -131,7 +131,9 @@ Package _createFoobarPackage() {
     ..created = DateTime.utc(2014)
     ..updated = DateTime.utc(2015)
     ..uploaders = [hansUser.userId]
+    ..latestPublished = DateTime.utc(2015)
     ..latestVersionKey = foobarStablePVKey
+    ..latestPrereleasePublished = DateTime.utc(2015)
     ..latestPrereleaseVersionKey = foobarDevPVKey
     ..likes = 0
     ..isDiscontinued = false
@@ -474,6 +476,7 @@ PkgBundle generateBundle(
       ..libraries = ['lib/$name.dart']
       ..uploader = uploader.userId
       ..publisherId = publisherId;
+    package.updateVersion(version);
     versions.add(version);
     infos.add(_pvToInfo(version, assets: [
       if (readme != null) AssetKind.readme,
