@@ -158,8 +158,8 @@ class Package extends db.ExpandoModel<String> {
     return latestSemanticVersion < latestPrereleaseSemanticVersion;
   }
 
-  String get shortUpdated {
-    return shortDateFormat.format(updated);
+  String get shortLatestPrereleasePublished {
+    return shortDateFormat.format(latestPrereleasePublished);
   }
 
   // Check if a [userId] is in the list of [uploaders].
@@ -675,7 +675,7 @@ class PackageView extends Object with FlagMixin {
       prereleaseVersion: prereleaseVersion,
       ellipsizedDescription: version?.ellipsizedDescription,
       created: package.created,
-      shortUpdated: version?.shortCreated ?? package?.shortUpdated,
+      shortUpdated: package.shortLatestPrereleasePublished,
       flags: scoreCard?.flags,
       publisherId: package.publisherId,
       isAwaiting: isAwaiting,
