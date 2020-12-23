@@ -2,6 +2,13 @@
 self_validate: smoke_test
 pub_action: get
 
+github:
+  on:
+    push:
+    pull_request:
+    schedule:
+      - cron: "0 0 * * 0"
+
 travis:
   services:
     - redis-server
