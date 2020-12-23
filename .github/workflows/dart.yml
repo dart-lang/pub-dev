@@ -1,0 +1,929 @@
+# Created with package:mono_repo v3.4.2
+name: Dart CI
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 0 * * 0"
+defaults:
+  run:
+    shell: bash
+env:
+  PUB_ENVIRONMENT: bot.github
+
+jobs:
+  job_001:
+    name: mono_repo self validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:stable"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - name: mono_repo self validate
+        run: pub global activate mono_repo 3.4.2
+      - name: mono_repo self validate
+        run: pub global run mono_repo generate --validate
+  job_002:
+    name: "smoke_test; PKGS: pkg/web_css, pkg/client_data, pkg/_popularity, pkg/api_builder, app, pkg/fake_gcloud, pkg/pub_dartdoc, pkg/pub_dartdoc_data, pkg/pub_package_reader, pkg/pub_validations, pkg/web_app; `dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/web_css-pkg/client_data-pkg/_popularity-pkg/api_builder-app-pkg/fake_gcloud-pkg/pub_dartdoc-pkg/pub_dartdoc_data-pkg/pub_package_reader-pkg/pub_validations-pkg/web_app;commands:dartfmt-dartanalyzer_0"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/web_css-pkg/client_data-pkg/_popularity-pkg/api_builder-app-pkg/fake_gcloud-pkg/pub_dartdoc-pkg/pub_dartdoc_data-pkg/pub_package_reader-pkg/pub_validations-pkg/web_app
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - id: pkg_web_css_pub_get
+        name: "pkg/web_css; pub get --no-precompile"
+        working-directory: pkg/web_css
+        run: pub get --no-precompile
+      - name: "pkg/web_css; dartfmt -n --set-exit-if-changed ."
+        if: "steps.pkg_web_css_pub_get.conclusion == 'success'"
+        working-directory: pkg/web_css
+        run: dartfmt -n --set-exit-if-changed .
+      - name: "pkg/web_css; dartanalyzer --fatal-infos --fatal-warnings ."
+        if: "steps.pkg_web_css_pub_get.conclusion == 'success'"
+        working-directory: pkg/web_css
+        run: dartanalyzer --fatal-infos --fatal-warnings .
+      - id: pkg_client_data_pub_get
+        name: "pkg/client_data; pub get --no-precompile"
+        working-directory: pkg/client_data
+        run: pub get --no-precompile
+      - name: "pkg/client_data; dartfmt -n --set-exit-if-changed ."
+        if: "steps.pkg_client_data_pub_get.conclusion == 'success'"
+        working-directory: pkg/client_data
+        run: dartfmt -n --set-exit-if-changed .
+      - name: "pkg/client_data; dartanalyzer --fatal-infos --fatal-warnings ."
+        if: "steps.pkg_client_data_pub_get.conclusion == 'success'"
+        working-directory: pkg/client_data
+        run: dartanalyzer --fatal-infos --fatal-warnings .
+      - id: pkg__popularity_pub_get
+        name: "pkg/_popularity; pub get --no-precompile"
+        working-directory: pkg/_popularity
+        run: pub get --no-precompile
+      - name: "pkg/_popularity; dartfmt -n --set-exit-if-changed ."
+        if: "steps.pkg__popularity_pub_get.conclusion == 'success'"
+        working-directory: pkg/_popularity
+        run: dartfmt -n --set-exit-if-changed .
+      - name: "pkg/_popularity; dartanalyzer --fatal-infos --fatal-warnings ."
+        if: "steps.pkg__popularity_pub_get.conclusion == 'success'"
+        working-directory: pkg/_popularity
+        run: dartanalyzer --fatal-infos --fatal-warnings .
+      - id: pkg_api_builder_pub_get
+        name: "pkg/api_builder; pub get --no-precompile"
+        working-directory: pkg/api_builder
+        run: pub get --no-precompile
+      - name: "pkg/api_builder; dartfmt -n --set-exit-if-changed ."
+        if: "steps.pkg_api_builder_pub_get.conclusion == 'success'"
+        working-directory: pkg/api_builder
+        run: dartfmt -n --set-exit-if-changed .
+      - name: "pkg/api_builder; dartanalyzer --fatal-infos --fatal-warnings ."
+        if: "steps.pkg_api_builder_pub_get.conclusion == 'success'"
+        working-directory: pkg/api_builder
+        run: dartanalyzer --fatal-infos --fatal-warnings .
+      - id: app_pub_get
+        name: "app; pub get --no-precompile"
+        working-directory: app
+        run: pub get --no-precompile
+      - name: "app; dartfmt -n --set-exit-if-changed ."
+        if: "steps.app_pub_get.conclusion == 'success'"
+        working-directory: app
+        run: dartfmt -n --set-exit-if-changed .
+      - name: "app; dartanalyzer --fatal-infos --fatal-warnings ."
+        if: "steps.app_pub_get.conclusion == 'success'"
+        working-directory: app
+        run: dartanalyzer --fatal-infos --fatal-warnings .
+      - id: pkg_fake_gcloud_pub_get
+        name: "pkg/fake_gcloud; pub get --no-precompile"
+        working-directory: pkg/fake_gcloud
+        run: pub get --no-precompile
+      - name: "pkg/fake_gcloud; dartfmt -n --set-exit-if-changed ."
+        if: "steps.pkg_fake_gcloud_pub_get.conclusion == 'success'"
+        working-directory: pkg/fake_gcloud
+        run: dartfmt -n --set-exit-if-changed .
+      - name: "pkg/fake_gcloud; dartanalyzer --fatal-infos --fatal-warnings ."
+        if: "steps.pkg_fake_gcloud_pub_get.conclusion == 'success'"
+        working-directory: pkg/fake_gcloud
+        run: dartanalyzer --fatal-infos --fatal-warnings .
+      - id: pkg_pub_dartdoc_pub_get
+        name: "pkg/pub_dartdoc; pub get --no-precompile"
+        working-directory: pkg/pub_dartdoc
+        run: pub get --no-precompile
+      - name: "pkg/pub_dartdoc; dartfmt -n --set-exit-if-changed ."
+        if: "steps.pkg_pub_dartdoc_pub_get.conclusion == 'success'"
+        working-directory: pkg/pub_dartdoc
+        run: dartfmt -n --set-exit-if-changed .
+      - name: "pkg/pub_dartdoc; dartanalyzer --fatal-infos --fatal-warnings ."
+        if: "steps.pkg_pub_dartdoc_pub_get.conclusion == 'success'"
+        working-directory: pkg/pub_dartdoc
+        run: dartanalyzer --fatal-infos --fatal-warnings .
+      - id: pkg_pub_dartdoc_data_pub_get
+        name: "pkg/pub_dartdoc_data; pub get --no-precompile"
+        working-directory: pkg/pub_dartdoc_data
+        run: pub get --no-precompile
+      - name: "pkg/pub_dartdoc_data; dartfmt -n --set-exit-if-changed ."
+        if: "steps.pkg_pub_dartdoc_data_pub_get.conclusion == 'success'"
+        working-directory: pkg/pub_dartdoc_data
+        run: dartfmt -n --set-exit-if-changed .
+      - name: "pkg/pub_dartdoc_data; dartanalyzer --fatal-infos --fatal-warnings ."
+        if: "steps.pkg_pub_dartdoc_data_pub_get.conclusion == 'success'"
+        working-directory: pkg/pub_dartdoc_data
+        run: dartanalyzer --fatal-infos --fatal-warnings .
+      - id: pkg_pub_package_reader_pub_get
+        name: "pkg/pub_package_reader; pub get --no-precompile"
+        working-directory: pkg/pub_package_reader
+        run: pub get --no-precompile
+      - name: "pkg/pub_package_reader; dartfmt -n --set-exit-if-changed ."
+        if: "steps.pkg_pub_package_reader_pub_get.conclusion == 'success'"
+        working-directory: pkg/pub_package_reader
+        run: dartfmt -n --set-exit-if-changed .
+      - name: "pkg/pub_package_reader; dartanalyzer --fatal-infos --fatal-warnings ."
+        if: "steps.pkg_pub_package_reader_pub_get.conclusion == 'success'"
+        working-directory: pkg/pub_package_reader
+        run: dartanalyzer --fatal-infos --fatal-warnings .
+      - id: pkg_pub_validations_pub_get
+        name: "pkg/pub_validations; pub get --no-precompile"
+        working-directory: pkg/pub_validations
+        run: pub get --no-precompile
+      - name: "pkg/pub_validations; dartfmt -n --set-exit-if-changed ."
+        if: "steps.pkg_pub_validations_pub_get.conclusion == 'success'"
+        working-directory: pkg/pub_validations
+        run: dartfmt -n --set-exit-if-changed .
+      - name: "pkg/pub_validations; dartanalyzer --fatal-infos --fatal-warnings ."
+        if: "steps.pkg_pub_validations_pub_get.conclusion == 'success'"
+        working-directory: pkg/pub_validations
+        run: dartanalyzer --fatal-infos --fatal-warnings .
+      - id: pkg_web_app_pub_get
+        name: "pkg/web_app; pub get --no-precompile"
+        working-directory: pkg/web_app
+        run: pub get --no-precompile
+      - name: "pkg/web_app; dartfmt -n --set-exit-if-changed ."
+        if: "steps.pkg_web_app_pub_get.conclusion == 'success'"
+        working-directory: pkg/web_app
+        run: dartfmt -n --set-exit-if-changed .
+      - name: "pkg/web_app; dartanalyzer --fatal-infos --fatal-warnings ."
+        if: "steps.pkg_web_app_pub_get.conclusion == 'success'"
+        working-directory: pkg/web_app
+        run: dartanalyzer --fatal-infos --fatal-warnings .
+  job_003:
+    name: "smoke_test; PKG: pkg/pub_integration; `dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings bin/ lib/`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_integration;commands:dartfmt-dartanalyzer_1"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_integration
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - id: pkg_pub_integration_pub_get
+        name: "pkg/pub_integration; pub get --no-precompile"
+        working-directory: pkg/pub_integration
+        run: pub get --no-precompile
+      - name: "pkg/pub_integration; dartfmt -n --set-exit-if-changed ."
+        if: "steps.pkg_pub_integration_pub_get.conclusion == 'success'"
+        working-directory: pkg/pub_integration
+        run: dartfmt -n --set-exit-if-changed .
+      - name: "pkg/pub_integration; dartanalyzer --fatal-infos --fatal-warnings bin/ lib/"
+        if: "steps.pkg_pub_integration_pub_get.conclusion == 'success'"
+        working-directory: pkg/pub_integration
+        run: dartanalyzer --fatal-infos --fatal-warnings bin/ lib/
+  job_004:
+    name: "build; PKG: pkg/web_app; `./build.sh`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/web_app;commands:command"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/web_app
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - id: pkg_web_app_pub_get
+        name: "pkg/web_app; pub get --no-precompile"
+        working-directory: pkg/web_app
+        run: pub get --no-precompile
+      - name: pkg/web_app; ./build.sh
+        if: "steps.pkg_web_app_pub_get.conclusion == 'success'"
+        working-directory: pkg/web_app
+        run: ./build.sh
+    needs:
+      - job_001
+      - job_002
+      - job_003
+  job_005:
+    name: "build; PKG: pkg/web_css; `./build.sh`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/web_css;commands:command"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/web_css
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - id: pkg_web_css_pub_get
+        name: "pkg/web_css; pub get --no-precompile"
+        working-directory: pkg/web_css
+        run: pub get --no-precompile
+      - name: pkg/web_css; ./build.sh
+        if: "steps.pkg_web_css_pub_get.conclusion == 'success'"
+        working-directory: pkg/web_css
+        run: ./build.sh
+    needs:
+      - job_001
+      - job_002
+      - job_003
+  job_006:
+    name: "unit_test; PKG: pkg/fake_gcloud; `pub run test --run-skipped`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/fake_gcloud;commands:test_07"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/fake_gcloud
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - id: pkg_fake_gcloud_pub_get
+        name: "pkg/fake_gcloud; pub get --no-precompile"
+        working-directory: pkg/fake_gcloud
+        run: pub get --no-precompile
+      - name: "pkg/fake_gcloud; pub run test --run-skipped"
+        if: "steps.pkg_fake_gcloud_pub_get.conclusion == 'success'"
+        working-directory: pkg/fake_gcloud
+        run: pub run test --run-skipped
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+  job_007:
+    name: "unit_test; PKG: pkg/pub_dartdoc_data; `pub run test --run-skipped`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_dartdoc_data;commands:test_07"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_dartdoc_data
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - id: pkg_pub_dartdoc_data_pub_get
+        name: "pkg/pub_dartdoc_data; pub get --no-precompile"
+        working-directory: pkg/pub_dartdoc_data
+        run: pub get --no-precompile
+      - name: "pkg/pub_dartdoc_data; pub run test --run-skipped"
+        if: "steps.pkg_pub_dartdoc_data_pub_get.conclusion == 'success'"
+        working-directory: pkg/pub_dartdoc_data
+        run: pub run test --run-skipped
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+  job_008:
+    name: "unit_test; PKG: pkg/_popularity; `pub run test --run-skipped`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/_popularity;commands:test_07"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/_popularity
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - id: pkg__popularity_pub_get
+        name: "pkg/_popularity; pub get --no-precompile"
+        working-directory: pkg/_popularity
+        run: pub get --no-precompile
+      - name: "pkg/_popularity; pub run test --run-skipped"
+        if: "steps.pkg__popularity_pub_get.conclusion == 'success'"
+        working-directory: pkg/_popularity
+        run: pub run test --run-skipped
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+  job_009:
+    name: "unit_test; PKG: pkg/pub_package_reader; `pub run test --run-skipped`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_package_reader;commands:test_07"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_package_reader
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - id: pkg_pub_package_reader_pub_get
+        name: "pkg/pub_package_reader; pub get --no-precompile"
+        working-directory: pkg/pub_package_reader
+        run: pub get --no-precompile
+      - name: "pkg/pub_package_reader; pub run test --run-skipped"
+        if: "steps.pkg_pub_package_reader_pub_get.conclusion == 'success'"
+        working-directory: pkg/pub_package_reader
+        run: pub run test --run-skipped
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+  job_010:
+    name: "unit_test; PKG: pkg/pub_validations; `pub run test --run-skipped`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_validations;commands:test_07"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_validations
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - id: pkg_pub_validations_pub_get
+        name: "pkg/pub_validations; pub get --no-precompile"
+        working-directory: pkg/pub_validations
+        run: pub get --no-precompile
+      - name: "pkg/pub_validations; pub run test --run-skipped"
+        if: "steps.pkg_pub_validations_pub_get.conclusion == 'success'"
+        working-directory: pkg/pub_validations
+        run: pub run test --run-skipped
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+  job_011:
+    name: "unit_test; PKG: pkg/client_data; `pub run test --run-skipped`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/client_data;commands:test_07"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/client_data
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - id: pkg_client_data_pub_get
+        name: "pkg/client_data; pub get --no-precompile"
+        working-directory: pkg/client_data
+        run: pub get --no-precompile
+      - name: "pkg/client_data; pub run test --run-skipped"
+        if: "steps.pkg_client_data_pub_get.conclusion == 'success'"
+        working-directory: pkg/client_data
+        run: pub run test --run-skipped
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+  job_012:
+    name: "unit_test; PKG: pkg/web_app; `pub run test --run-skipped`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/web_app;commands:test_07"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/web_app
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - id: pkg_web_app_pub_get
+        name: "pkg/web_app; pub get --no-precompile"
+        working-directory: pkg/web_app
+        run: pub get --no-precompile
+      - name: "pkg/web_app; pub run test --run-skipped"
+        if: "steps.pkg_web_app_pub_get.conclusion == 'success'"
+        working-directory: pkg/web_app
+        run: pub run test --run-skipped
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+  job_013:
+    name: "unit_test; PKG: pkg/web_css; `pub run test --run-skipped`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/web_css;commands:test_07"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/web_css
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - id: pkg_web_css_pub_get
+        name: "pkg/web_css; pub get --no-precompile"
+        working-directory: pkg/web_css
+        run: pub get --no-precompile
+      - name: "pkg/web_css; pub run test --run-skipped"
+        if: "steps.pkg_web_css_pub_get.conclusion == 'success'"
+        working-directory: pkg/web_css
+        run: pub run test --run-skipped
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+  job_014:
+    name: "unit_test; PKG: pkg/pub_dartdoc; `pub run test --run-skipped`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_dartdoc;commands:test_07"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_dartdoc
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - id: pkg_pub_dartdoc_pub_get
+        name: "pkg/pub_dartdoc; pub get --no-precompile"
+        working-directory: pkg/pub_dartdoc
+        run: pub get --no-precompile
+      - name: "pkg/pub_dartdoc; pub run test --run-skipped"
+        if: "steps.pkg_pub_dartdoc_pub_get.conclusion == 'success'"
+        working-directory: pkg/pub_dartdoc
+        run: pub run test --run-skipped
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+  job_015:
+    name: "unit_test; PKG: app; `pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '5~7p'``"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app;commands:test_05"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - id: app_pub_get
+        name: "app; pub get --no-precompile"
+        working-directory: app
+        run: pub get --no-precompile
+      - name: "app; pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '5~7p'`"
+        if: "steps.app_pub_get.conclusion == 'success'"
+        working-directory: app
+        run: "pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '5~7p'`"
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+  job_016:
+    name: "unit_test; PKG: app; `pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '4~7p'``"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app;commands:test_04"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - id: app_pub_get
+        name: "app; pub get --no-precompile"
+        working-directory: app
+        run: pub get --no-precompile
+      - name: "app; pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '4~7p'`"
+        if: "steps.app_pub_get.conclusion == 'success'"
+        working-directory: app
+        run: "pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '4~7p'`"
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+  job_017:
+    name: "unit_test; PKG: app; `pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '6~7p'``"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app;commands:test_06"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - id: app_pub_get
+        name: "app; pub get --no-precompile"
+        working-directory: app
+        run: pub get --no-precompile
+      - name: "app; pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '6~7p'`"
+        if: "steps.app_pub_get.conclusion == 'success'"
+        working-directory: app
+        run: "pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '6~7p'`"
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+  job_018:
+    name: "unit_test; PKG: app; `pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~7p'``"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app;commands:test_01"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - id: app_pub_get
+        name: "app; pub get --no-precompile"
+        working-directory: app
+        run: pub get --no-precompile
+      - name: "app; pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~7p'`"
+        if: "steps.app_pub_get.conclusion == 'success'"
+        working-directory: app
+        run: "pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~7p'`"
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+  job_019:
+    name: "unit_test; PKG: pkg/pub_integration; `pub run test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~3p'``"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_integration;commands:test_08"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_integration
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - id: pkg_pub_integration_pub_get
+        name: "pkg/pub_integration; pub get --no-precompile"
+        working-directory: pkg/pub_integration
+        run: pub get --no-precompile
+      - name: "pkg/pub_integration; pub run test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~3p'`"
+        if: "steps.pkg_pub_integration_pub_get.conclusion == 'success'"
+        working-directory: pkg/pub_integration
+        run: "pub run test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~3p'`"
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+  job_020:
+    name: "unit_test; PKG: pkg/pub_integration; `pub run test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~3p'``"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_integration;commands:test_10"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_integration
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - id: pkg_pub_integration_pub_get
+        name: "pkg/pub_integration; pub get --no-precompile"
+        working-directory: pkg/pub_integration
+        run: pub get --no-precompile
+      - name: "pkg/pub_integration; pub run test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~3p'`"
+        if: "steps.pkg_pub_integration_pub_get.conclusion == 'success'"
+        working-directory: pkg/pub_integration
+        run: "pub run test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~3p'`"
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+  job_021:
+    name: "unit_test; PKG: app; `pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~7p'``"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app;commands:test_02"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - id: app_pub_get
+        name: "app; pub get --no-precompile"
+        working-directory: app
+        run: pub get --no-precompile
+      - name: "app; pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~7p'`"
+        if: "steps.app_pub_get.conclusion == 'success'"
+        working-directory: app
+        run: "pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~7p'`"
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+  job_022:
+    name: "unit_test; PKG: app; `pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '3~7p'``"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app;commands:test_03"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - id: app_pub_get
+        name: "app; pub get --no-precompile"
+        working-directory: app
+        run: pub get --no-precompile
+      - name: "app; pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '3~7p'`"
+        if: "steps.app_pub_get.conclusion == 'success'"
+        working-directory: app
+        run: "pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '3~7p'`"
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+  job_023:
+    name: "unit_test; PKG: pkg/pub_integration; `pub run test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~3p'``"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_integration;commands:test_09"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_integration
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - id: pkg_pub_integration_pub_get
+        name: "pkg/pub_integration; pub get --no-precompile"
+        working-directory: pkg/pub_integration
+        run: pub get --no-precompile
+      - name: "pkg/pub_integration; pub run test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~3p'`"
+        if: "steps.pkg_pub_integration_pub_get.conclusion == 'success'"
+        working-directory: pkg/pub_integration
+        run: "pub run test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~3p'`"
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+  job_024:
+    name: "unit_test; PKG: app; `pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~7p'``"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app;commands:test_00"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: stable
+          version: "2.10.0"
+      - run: dart --version
+      - uses: actions/checkout@v2
+      - id: app_pub_get
+        name: "app; pub get --no-precompile"
+        working-directory: app
+        run: pub get --no-precompile
+      - name: "app; pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~7p'`"
+        if: "steps.app_pub_get.conclusion == 'success'"
+        working-directory: app
+        run: "pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~7p'`"
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
