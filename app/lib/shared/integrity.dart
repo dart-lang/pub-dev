@@ -417,6 +417,20 @@ class IntegrityChecker {
           .add('PackageVersion(${pv.qualifiedVersionKey}) has no uploader.');
     }
 
+    // Sanity checks for the `created` property
+    if (pv.created == null) {
+      _problems.add(
+          'PackageVersion(${pv.qualifiedVersionKey}) has no `created` property.');
+    } else if (pv.created.isAfter(DateTime.now().add(Duration(minutes: 15)))) {
+      // Can't be published in the future (+15 min to allow for clock drift)
+      _problems.add(
+          'PackageVersion(${pv.qualifiedVersionKey}) has `created` > now().');
+    } else if (pv.created.isBefore(DateTime(2011))) {
+      // Can't be published before Dart was published in 2011
+      _problems.add(
+          'PackageVersion(${pv.qualifiedVersionKey}) has `created` < 2011.');
+    }
+
     _versionChecked++;
     if (_versionChecked % 5000 == 0) {
       _logger.info('  .. $_versionChecked done (${pv.qualifiedVersionKey})');
@@ -466,7 +480,7 @@ class IntegrityChecker {
     _moderatedPackages
         .where((package) => _packages.contains(package))
         .forEach((pkg) {
-      _problems.add('Moderated package also present in active packages');
+      _problems.add('Moderated package:$pkg also present in active packages');
     });
   }
 }

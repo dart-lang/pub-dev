@@ -234,7 +234,8 @@ class PackageVersion extends db.ExpandoModel<String> {
   @db.ModelKeyProperty(required: true, propertyName: 'package')
   db.Key packageKey;
 
-  @db.DateTimeProperty()
+  /// [DateTime] when [version] of [package] was published.
+  @db.DateTimeProperty(/* required: true */) // TODO: Enable after testing
   DateTime created;
 
   // Extracted data from the uploaded package.
