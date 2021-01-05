@@ -11,6 +11,7 @@ import '../shared/datastore.dart' as db;
 import '../shared/utils.dart' show createUuid;
 
 final _expiresInFarFuture = DateTime.utc(9999, 12, 31, 23, 59, 59);
+final _defaultExpires = Duration(days: 61);
 
 @db.Kind(name: 'AuditLogRecord', idType: db.IdType.String)
 class AuditLogRecord extends db.ExpandoModel<String> {
@@ -106,6 +107,17 @@ class AuditLogRecord extends db.ExpandoModel<String> {
 
   AuditLogRecord();
 
+  bool get isExpired => DateTime.now().isAfter(expires);
+  bool get isNotExpired => !isExpired;
+
+  /// Init log record with default id and timestamps
+  AuditLogRecord._init() {
+    final now = DateTime.now().toUtc();
+    id = createUuid();
+    created = now;
+    expires = now.add(_defaultExpires);
+  }
+
   Map<String, dynamic> get data =>
       dataJson == null ? null : json.decode(dataJson) as Map<String, dynamic>;
   set data(Map<String, dynamic> value) {
@@ -139,6 +151,36 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..packageVersions = ['$package/$version']
       ..publishers = [];
   }
+
+  factory AuditLogRecord.packageTransferred({
+    @required User user,
+    @required String package,
+    @required String fromPublisherId,
+    @required String toPublisherId,
+  }) {
+    return AuditLogRecord._init()
+      ..kind = AuditLogRecordKind.packageTransferred
+      ..agent = user.userId
+      ..summary = [
+        'Package `$package` ',
+        if (fromPublisherId != null) 'from `$fromPublisherId` ',
+        'was transferred to publisher `$toPublisherId` ',
+        'by `${user.email}`.',
+      ].join()
+      ..data = {
+        'package': package,
+        if (fromPublisherId != null) 'fromPublisherId': fromPublisherId,
+        'toPublisherId': toPublisherId,
+        'user': user.email,
+      }
+      ..users = [user.userId]
+      ..packages = [package]
+      ..packageVersions = []
+      ..publishers = [
+        if (fromPublisherId != null) fromPublisherId,
+        toPublisherId,
+      ];
+  }
 }
 
 abstract class AuditLogRecordKind {
@@ -146,4 +188,20 @@ abstract class AuditLogRecordKind {
   ///
   /// This can be an entirely new package or just a new version to an existing package.
   static const packagePublished = 'package-published';
+
+  /// Event that a package has transferred to a (new) publisher.
+  static const packageTransferred = 'package-transferred';
+
+  // TODO: implement further kinds
+  // uploader-invited
+  // uploader-invite-accepted/added
+  // uploader-invite-rejected
+  // uploader-removed
+  // publisher-created
+  // publisher-updated
+  // publisher-contact-changed
+  // publisher-member-invited
+  // publisher-member-invite-accepted/added
+  // publisher-member-invite-rejected
+  // publisher-member-removed
 }

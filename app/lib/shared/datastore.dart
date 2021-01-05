@@ -61,6 +61,28 @@ class TransactionWrapper {
   }
 }
 
+extension DatastoreDBExt on DatastoreDB {
+  // Deletes the entries that are returned from the [query].
+  Future<void> deleteWithQuery<T extends Model>(
+    Query<T> query, {
+    bool Function(T model) where,
+  }) async {
+    final deletes = <Key>[];
+    final stream = query.run().where((model) => where == null || where(model));
+    await for (T model in stream) {
+      deletes.add(model.key);
+      if (deletes.length == 20) {
+        await commit(deletes: deletes);
+        deletes.clear();
+      }
+    }
+    if (deletes.isNotEmpty) {
+      await commit(deletes: deletes);
+      deletes.clear();
+    }
+  }
+}
+
 /// Call [fn] with a [TransactionWrapper] that is either committed or
 /// rolled back when [fn] returns.
 Future<T> _withTransaction<T>(

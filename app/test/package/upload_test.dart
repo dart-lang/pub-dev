@@ -14,6 +14,7 @@ import 'package:yaml/yaml.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/admin/backend.dart';
+import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/package/backend.dart';
@@ -132,13 +133,10 @@ void main() {
         expect(email.bodyText,
             contains('https://pub.dev/packages/new_package/versions/1.2.3\n'));
 
-        final audits = await (dbService.query<AuditLogRecord>()
-              ..filter('packageVersions =', 'new_package/1.2.3'))
-            .run()
-            .toList();
-        final publishedAudit = audits
-            .where((r) => r.kind == AuditLogRecordKind.packagePublished)
-            .single;
+        final audits = await auditBackend.listRecordsForPackageVersion(
+            'new_package', '1.2.3');
+        final publishedAudit = audits.first;
+        expect(publishedAudit.kind, AuditLogRecordKind.packagePublished);
         expect(publishedAudit.created, isNotNull);
         expect(publishedAudit.expires.year, greaterThan(9998));
         expect(publishedAudit.agent, hansUser.userId);
@@ -205,13 +203,10 @@ void main() {
         expect(email.bodyText,
             contains('https://pub.dev/packages/lithium/versions/7.0.0\n'));
 
-        final audits = await (dbService.query<AuditLogRecord>()
-              ..filter('packageVersions =', 'lithium/7.0.0'))
-            .run()
-            .toList();
-        final publishedAudit = audits
-            .where((r) => r.kind == AuditLogRecordKind.packagePublished)
-            .single;
+        final audits =
+            await auditBackend.listRecordsForPackageVersion('lithium', '7.0.0');
+        final publishedAudit = audits.first;
+        expect(publishedAudit.kind, AuditLogRecordKind.packagePublished);
         expect(publishedAudit.summary,
             'Package `lithium` version `7.0.0` was published by `hans@juergen.com`.');
         expect(publishedAudit.publishers, []);
