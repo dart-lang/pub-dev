@@ -207,7 +207,7 @@ void main() {
         final bundle = generateBundle(pkg, ['1.0.0'], uploaders: uploaders);
         await dbService.commit(inserts: [
           bundle.package,
-          ...bundle.versions.map(pvModels).expand((m) => m),
+          ...bundle.versions,
           ...bundle.infos,
           ...bundle.assets,
         ]);
@@ -300,7 +300,7 @@ void main() {
         final bundle = generateBundle(pkg, ['1.0.0'], uploaders: uploaders);
         await dbService.commit(inserts: [
           bundle.package,
-          ...bundle.versions.map(pvModels).expand((m) => m),
+          ...bundle.versions,
           ...bundle.infos,
           ...bundle.assets,
         ]);

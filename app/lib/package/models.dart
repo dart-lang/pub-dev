@@ -299,58 +299,8 @@ class PackageVersion extends db.ExpandoModel<String> {
 /// The content of `pubspec.yaml` may be updated/cleaned in case of a breaking
 /// change was introduced since the [PackageVersion] was published.
 @db.Kind(name: 'PackageVersionPubspec', idType: db.IdType.String)
-class PackageVersionPubspec extends db.ExpandoModel<String> {
-  @db.StringProperty(required: true)
-  String package;
-
-  @db.StringProperty(required: true)
-  String version;
-
-  /// The created timestamp of the [PackageVersion] (the time of publishing).
-  // TODO: add required: true once we run the backfill and removed outdated entities
-  @db.DateTimeProperty()
-  DateTime versionCreated;
-
-  // TODO: add required: true once we run the backfill and removed outdated entities
-  @db.DateTimeProperty()
-  DateTime updated;
-
-  @PubspecProperty(required: true)
-  Pubspec pubspec;
-
-  PackageVersionPubspec();
-
-  /// Updates the current instance with the newly [derived] data.
-  /// Returns true if the current instance changed.
-  bool updateIfChanged(PackageVersionPubspec derived) {
-    var changed = false;
-    if (versionCreated != derived.versionCreated) {
-      versionCreated = derived.versionCreated;
-      changed = true;
-    }
-    if (pubspec?.jsonString != derived.pubspec?.jsonString) {
-      pubspec = derived.pubspec;
-      changed = true;
-    }
-    if (changed) {
-      updated = DateTime.now().toUtc();
-    }
-    return changed;
-  }
-
-  void initFromKey(QualifiedVersionKey key) {
-    id = key.qualifiedVersion;
-    package = key.package;
-    version = key.version;
-  }
-
-  QualifiedVersionKey get qualifiedVersionKey {
-    return QualifiedVersionKey(
-      package: package,
-      version: version,
-    );
-  }
-}
+@deprecated
+class PackageVersionPubspec extends db.ExpandoModel<String> {}
 
 /// A derived entity that holds derived/cleaned content of [PackageVersion].
 @db.Kind(name: 'PackageVersionInfo', idType: db.IdType.String)

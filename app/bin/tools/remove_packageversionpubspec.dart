@@ -8,7 +8,6 @@ import 'package:args/args.dart';
 
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/service/entrypoint/tools.dart';
-import 'package:pub_dev/shared/utils.dart';
 import 'package:pub_dev/shared/datastore.dart';
 
 final _argParser = ArgParser()
@@ -16,16 +15,12 @@ final _argParser = ArgParser()
       abbr: 'n', defaultsTo: false, help: 'Do not change Datastore.')
   ..addFlag('help', abbr: 'h', defaultsTo: false, help: 'Show help.');
 
-/// Deletes PackageVersionPubspec and PackageVersionInfo using old IDs, see CHANGELOG.md
-/// For when to run this.
+/// Deletes all PackageVersionPubspec entities.
 Future main(List<String> args) async {
   final argv = _argParser.parse(args);
   if (argv['help'] as bool == true) {
-    print('Usage: dart remove_noncanonical_entities.dart');
-    print('Deletes PackageVersionAsset entities with non-canonical versions.');
-    print('Deletes PackageVersionInfo entities with non-canonical versions.');
-    print(
-        'Deletes PackageVersionPubspec entities with non-canonical versions.');
+    print('Usage: dart remove_packageversionpubspec.dart');
+    print('Deletes PackageVersionPubspec entities.');
     print(_argParser.usage);
     return;
   }
@@ -33,32 +28,23 @@ Future main(List<String> args) async {
   final dryRun = argv['dry-run'] as bool;
 
   await withToolRuntime(() async {
-    await _deleteWithQuery<PackageVersionAsset>(
-      dbService.query<PackageVersionAsset>(),
-      where: (a) => canonicalizeVersion(a.version) != a.version,
-      dryRun: dryRun,
-    );
-
-    await _deleteWithQuery<PackageVersionInfo>(
-      dbService.query<PackageVersionInfo>(),
-      where: (a) => canonicalizeVersion(a.version) != a.version,
+    // ignore: deprecated_member_use_from_same_package
+    await _deleteWithQuery<PackageVersionPubspec>(
+      // ignore: deprecated_member_use_from_same_package
+      dbService.query<PackageVersionPubspec>(),
       dryRun: dryRun,
     );
   });
 }
 
-Future<void> _deleteWithQuery<T>(Query query,
-    {bool Function(T item) where, bool dryRun}) async {
+Future<void> _deleteWithQuery<T>(Query query, {bool dryRun}) async {
   print('Running query for $T...');
   final deletes = <Key>[];
   await for (Model m in query.run()) {
-    final shouldDelete = where == null || where(m as T);
-    if (shouldDelete) {
-      deletes.add(m.key);
-      if (deletes.length >= 500) {
-        deletes.clear();
-        await _commit(deletes, dryRun);
-      }
+    deletes.add(m.key);
+    if (deletes.length >= 500) {
+      deletes.clear();
+      await _commit(deletes, dryRun);
     }
   }
   if (deletes.isNotEmpty) {

@@ -34,7 +34,6 @@ void main() {
         stat.toJson(),
         {
           'versionCount': 13,
-          'pvPubspecCount': 13,
           'pvInfoCount': 13,
           'pvAssetUpdatedCount': 26,
           // TODO: fix test models and don't delete here
@@ -54,7 +53,6 @@ void main() {
         stats.toJson(),
         {
           'versionCount': 13,
-          'pvPubspecCount': 0,
           'pvInfoCount': 0,
           'pvAssetUpdatedCount': 0,
           'pvAssetDeletedCount': 0,
@@ -96,31 +94,7 @@ void main() {
         stats.toJson(),
         {
           'versionCount': 13,
-          'pvPubspecCount': 0,
           'pvInfoCount': 1,
-          'pvAssetUpdatedCount': 0,
-          'pvAssetDeletedCount': 0,
-        },
-      );
-    });
-
-    testWithServices('pubspec missing', () async {
-      await _updateModels();
-      final lastId =
-          hydrogen.versions.last.qualifiedVersionKey.qualifiedVersion;
-      await dbService.commit(deletes: [
-        dbService.emptyKey.append(PackageVersionPubspec, id: lastId)
-      ]);
-      final stats = await backfillAllVersionsOfPackage(
-        'hydrogen',
-        archiveResolver: _archive,
-      );
-      expect(
-        stats.toJson(),
-        {
-          'versionCount': 13,
-          'pvPubspecCount': 1,
-          'pvInfoCount': 0,
           'pvAssetUpdatedCount': 0,
           'pvAssetDeletedCount': 0,
         },
@@ -142,7 +116,6 @@ void main() {
         stats.toJson(),
         {
           'versionCount': 13,
-          'pvPubspecCount': 0,
           'pvInfoCount': 0,
           'pvAssetUpdatedCount': 1,
           'pvAssetDeletedCount': 0,

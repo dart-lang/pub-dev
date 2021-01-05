@@ -50,11 +50,6 @@ Future main(List<String> args) async {
 }
 
 Future<void> _processPackage(String package) async {
-  await _deleteWithQuery<PackageVersionPubspec>(
-    dbService.query<PackageVersionPubspec>()..filter('package =', package),
-    where: (p) => p.id.toString() == p.qualifiedVersionKey.oldQualifiedVersion,
-  );
-
   await _deleteWithQuery<PackageVersionInfo>(
     dbService.query<PackageVersionInfo>()..filter('package =', package),
     where: (p) => p.id.toString() == p.qualifiedVersionKey.oldQualifiedVersion,

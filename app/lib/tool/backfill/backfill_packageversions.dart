@@ -37,7 +37,6 @@ Future<BackfillStat> backfillAllVersionsOfPackages(int concurrency) async {
 typedef ArchiveResolver = Future<PackageSummary> Function(
     String package, String version);
 
-/// Ensures a matching [PackageVersionPubspec] entity exists for each [PackageVersion]
 /// Ensures a matching [PackageVersionInfo] entity exists for each [PackageVersion].
 Future<BackfillStat> backfillAllVersionsOfPackage(
   String package, {
@@ -87,10 +86,6 @@ Future<BackfillStat> backfillPackageVersion({
       await existingAssetQuery.run().map((a) => a.key).toList();
 
   return await withRetryTransaction(dbService, (tx) async {
-    final pvPubspec = await tx.lookupValue<PackageVersionPubspec>(
-        dbService.emptyKey.append(PackageVersionPubspec,
-            id: derived.packageVersionPubspec.id),
-        orElse: () => null);
     final pvInfo = await tx.lookupValue<PackageVersionInfo>(
       dbService.emptyKey
           .append(PackageVersionInfo, id: derived.packageVersionInfo.id),
@@ -100,12 +95,6 @@ Future<BackfillStat> backfillPackageVersion({
 
     final inserts = <Model>[];
     final deletes = <Key>[];
-
-    if (pvPubspec == null) {
-      inserts.add(derived.packageVersionPubspec);
-    } else if (pvPubspec.updateIfChanged(derived.packageVersionPubspec)) {
-      inserts.add(pvPubspec);
-    }
 
     if (pvInfo == null) {
       inserts.add(derived.packageVersionInfo);
@@ -136,7 +125,6 @@ Future<BackfillStat> backfillPackageVersion({
     }
     return BackfillStat(
       versionCount: 1,
-      pvPubspecCount: inserts.whereType<PackageVersionPubspec>().length,
       pvInfoCount: inserts.whereType<PackageVersionInfo>().length,
       pvAssetUpdatedCount: inserts.whereType<PackageVersionAsset>().length,
       pvAssetDeletedCount: deletes.length, // only assets are deleted
@@ -166,14 +154,12 @@ class BackfillStat {
   // package stat
   final int versionCount;
   // updated counts
-  final int pvPubspecCount;
   final int pvInfoCount;
   final int pvAssetUpdatedCount;
   final int pvAssetDeletedCount;
 
   BackfillStat({
     @required this.versionCount,
-    @required this.pvPubspecCount,
     @required this.pvInfoCount,
     @required this.pvAssetUpdatedCount,
     @required this.pvAssetDeletedCount,
@@ -182,14 +168,12 @@ class BackfillStat {
   BackfillStat operator +(BackfillStat other) => BackfillStat(
         versionCount: versionCount + other.versionCount,
         pvInfoCount: pvInfoCount + other.pvInfoCount,
-        pvPubspecCount: pvPubspecCount + other.pvPubspecCount,
         pvAssetUpdatedCount: pvAssetUpdatedCount + other.pvAssetUpdatedCount,
         pvAssetDeletedCount: pvAssetDeletedCount + other.pvAssetDeletedCount,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'versionCount': versionCount,
-        'pvPubspecCount': pvPubspecCount,
         'pvInfoCount': pvInfoCount,
         'pvAssetUpdatedCount': pvAssetUpdatedCount,
         'pvAssetDeletedCount': pvAssetDeletedCount,

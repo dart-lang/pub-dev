@@ -339,10 +339,6 @@ class AdminBackend {
     _logger.info('Removing package from dartdoc backend ...');
     await dartdocBackend.removeAll(packageName, concurrency: 32);
 
-    _logger.info('Removing package from PackageVersionPubspec ...');
-    await _deleteWithQuery(
-        _db.query<PackageVersionPubspec>()..filter('package =', packageName));
-
     _logger.info('Removing package from PackageVersionInfo ...');
     await _deleteWithQuery(
         _db.query<PackageVersionInfo>()..filter('package =', packageName));
@@ -430,11 +426,6 @@ class AdminBackend {
     await storage.remove(packageName, version);
 
     await dartdocBackend.removeAll(packageName, version: version);
-
-    await _deleteWithQuery(
-      _db.query<PackageVersionPubspec>()..filter('package =', packageName),
-      where: (PackageVersionPubspec info) => info.version == version,
-    );
 
     await _deleteWithQuery(
       _db.query<PackageVersionInfo>()..filter('package =', packageName),

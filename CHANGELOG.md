@@ -4,6 +4,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * NOTE: `downloads` property in `Package` and `PackageVersion` is no longer populated.
    TODO(deferred): schedule cleanup after this release.
+ * NOTE: `PackageVersionPubspec` is no longer used or added.
+   TODO(deferred): schedule remove script after this release. 
 
 ## `20201222t135400-all`
  * Bumped runtimeVersion to `2020.12.21`.

@@ -92,7 +92,7 @@ void main() {
         final bundle = generateBundle('pkg$i', ['1.0.0']);
         await dbService.commit(inserts: [
           bundle.package,
-          ...bundle.versions.map(pvModels).expand((m) => m),
+          ...bundle.versions,
           ...bundle.infos,
           ...bundle.assets,
         ]);
@@ -139,7 +139,7 @@ flutter:
         );
         await dbService.commit(inserts: [
           bundle.package,
-          ...bundle.versions.map(pvModels).expand((m) => m),
+          ...bundle.versions,
           ...bundle.infos,
           ...bundle.assets,
         ]);
@@ -166,7 +166,7 @@ flutter:
         bundle.package.assignedTags.add(PackageTags.isFlutterFavorite);
         await dbService.commit(inserts: [
           bundle.package,
-          ...bundle.versions.map(pvModels).expand((m) => m),
+          ...bundle.versions,
           ...bundle.infos,
           ...bundle.assets,
         ]);
