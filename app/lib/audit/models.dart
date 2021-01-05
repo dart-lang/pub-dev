@@ -111,7 +111,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   bool get isNotExpired => !isExpired;
 
   /// Init log record with default id and timestamps
-  AuditLogRecord.init() {
+  AuditLogRecord._init() {
     final now = DateTime.now().toUtc();
     id = createUuid();
     created = now;
@@ -158,7 +158,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
     @required String fromPublisherId,
     @required String toPublisherId,
   }) {
-    return AuditLogRecord.init()
+    return AuditLogRecord._init()
       ..kind = AuditLogRecordKind.packageTransferred
       ..agent = user.userId
       ..summary = [
