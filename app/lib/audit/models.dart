@@ -192,7 +192,7 @@ abstract class AuditLogRecordKind {
   /// Event that a package has transferred to a (new) publisher.
   static const packageTransferred = 'package-transferred';
 
-  // TODO: implement further models
+  // TODO: implement further kinds
   // uploader-invited
   // uploader-invite-accepted/added
   // uploader-invite-rejected
