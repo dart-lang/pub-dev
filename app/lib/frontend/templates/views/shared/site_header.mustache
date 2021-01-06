@@ -83,11 +83,11 @@
     </div>
     {{#is_logged_in}}
     <div class="nav-container nav-profile-container hoverable">
-      <img class="nav-profile-img nav-profile-image-desktop" src="{{& user_session.image_url}}" />
+      <input type="image" class="nav-profile-img nav-profile-image-desktop" src="{{& user_session.image_url}}" alt="Profile Image" />
       <div class="nav-hover-popup">
         <div class="nav-table-column">
           <div class="nav-account-title-mobile">
-            <img class="nav-profile-img nav-profile-img-mobile" src="{{& user_session.image_url}}" />
+            <img class="nav-profile-img nav-profile-img-mobile" src="{{& user_session.image_url}}" alt="Profile Image" />
             <div class="nav-account-title">
               {{#user_session.has_name}}<div class="nav-account-name">{{user_session.name}}</div>{{/user_session.has_name}}
               <div class="nav-account-email" id="-account-profile-email">{{user_session.email}}</div>
