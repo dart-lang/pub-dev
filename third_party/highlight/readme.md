@@ -1,6 +1,6 @@
 # highlight.js
 
-Generated from https://highlightjs.org/download/ on 2019-05-16
+Generated from https://highlightjs.org/download/ on 2020-12-30
 
 Included languages:
 
