@@ -163,26 +163,20 @@ class PubSiteService {
   Future<Response> documentation(
           Request request, String package, String version, String path) =>
       // TODO: pass in the [package] and [version] parameters, and maybe also the rest of the path.
-      // TODO: investigate if _originalRequest is still needed
-      documentationHandler(
-          request.context['_originalRequest'] as Request ?? request);
+      documentationHandler(request);
 
   @Route.get('/documentation/<package>/<version>')
   @Route.get('/documentation/<package>/<version>/')
   Future<Response> documentationVersion(
           Request request, String package, String version) =>
       // TODO: pass in the [package] and [version] parameters, and maybe also the rest of the path.
-      // TODO: investigate if _originalRequest is still needed
-      documentationHandler(
-          request.context['_originalRequest'] as Request ?? request);
+      documentationHandler(request);
 
   @Route.get('/documentation/<package>')
   @Route.get('/documentation/<package>/')
   Future<Response> documentationLatest(Request request, String package) =>
       // TODO: pass in the [package] parameter, or do redirect to /latest/ here
-      // TODO: investigate if _originalRequest is still needed
-      documentationHandler(
-          request.context['_originalRequest'] as Request ?? request);
+      documentationHandler(request);
 
   // ****
   // **** Publishers
