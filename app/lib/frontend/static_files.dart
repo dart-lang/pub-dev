@@ -259,7 +259,7 @@ Future _runPubGet(Directory dir) async {
     timeout: Duration(minutes: 2),
   );
   if (pr.exitCode != 0) {
-    final message = 'Unable to run `pub get` in ${dir.path}\n\n'
+    final message = 'Unable to run `dart pub get` in ${dir.path}\n\n'
         'exitCode: ${pr.exitCode}\n'
         'STDOUT:\n${pr.stdout}\n\n'
         'STDERR:\n${pr.stderr}';

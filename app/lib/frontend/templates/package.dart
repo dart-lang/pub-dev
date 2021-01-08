@@ -95,11 +95,11 @@ String _renderInstallTab(PackageVersion selectedVersion, List<String> tags) {
   String editorSupportedToolHtml;
   if (usePubGet && useFlutterPackagesGet) {
     editorSupportedToolHtml =
-        '<code>pub get</code> or <code>flutter pub get</code>';
+        '<code>dart pub get</code> or <code>flutter dart pub get</code>';
   } else if (useFlutterPackagesGet) {
-    editorSupportedToolHtml = '<code>flutter pub get</code>';
+    editorSupportedToolHtml = '<code>flutter dart pub get</code>';
   } else {
-    editorSupportedToolHtml = '<code>pub get</code>';
+    editorSupportedToolHtml = '<code>dart pub get</code>';
   }
 
   return templateCache.renderTemplate('pkg/install_tab', {

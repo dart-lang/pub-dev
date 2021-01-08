@@ -47,11 +47,11 @@ for PKG in ${PKGS}; do
     exit 64
   fi
 
-  pub get --no-precompile || EXIT_CODE=$?
+  dart pub get --no-precompile || EXIT_CODE=$?
 
   if [[ ${EXIT_CODE} -ne 0 ]]; then
-    echo -e "\033[31mPKG: ${PKG}; 'pub get' - FAILED  (${EXIT_CODE})\033[0m"
-    FAILURES+=("${PKG}; 'pub get'")
+    echo -e "\033[31mPKG: ${PKG}; 'dart pub get' - FAILED  (${EXIT_CODE})\033[0m"
+    FAILURES+=("${PKG}; 'dart pub get'")
   else
     for TASK in "$@"; do
       EXIT_CODE=0

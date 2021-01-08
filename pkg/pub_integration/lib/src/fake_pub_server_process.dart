@@ -43,7 +43,7 @@ class FakePubServerProcess {
 
     final pr1 = await Process.run('pub', ['get'], workingDirectory: pkgDir);
     if (pr1.exitCode != 0) {
-      throw Exception('pub get failed in app');
+      throw Exception('dart pub get failed in app');
     }
     final process = await Process.start(
       'dart',

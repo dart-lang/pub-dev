@@ -4,7 +4,7 @@ PROJECT_DIR="$( cd ${SCRIPT_DIR}/.. && pwd )"
 PUB_INTEGRATION_DIR="$( cd ${PROJECT_DIR}/pkg/pub_integration && pwd )"
 
 cd ${PUB_INTEGRATION_DIR};
-pub get
+dart pub get
 
 ## Runs integration test against staging or prod server.
 ## Options:

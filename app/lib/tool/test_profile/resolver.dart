@@ -54,7 +54,7 @@ Future<List<ResolvedVersion>> resolveVersions(
         final pr = await toolEnv.runUpgrade(dummyDir.path, false);
         if (pr.exitCode != 0) {
           throw Exception(
-              'pub get on `${package.name} $version` exited with ${pr.exitCode}.\n${pr.stderr}');
+              'dart pub get on `${package.name} $version` exited with ${pr.exitCode}.\n${pr.stderr}');
         }
 
         await dummyDir.delete(recursive: true);
