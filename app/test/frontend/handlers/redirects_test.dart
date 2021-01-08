@@ -33,14 +33,14 @@ void main() {
     testWithServices('dartdocs.org redirect', () async {
       await expectRedirectResponse(
         await issueGet('/documentation/pkg/latest/', host: 'dartdocs.org'),
-        '$siteRoot/documentation/pkg/latest',
+        '$siteRoot/documentation/pkg/latest/',
       );
     });
 
     testWithServices('www.dartdocs.org redirect', () async {
       await expectRedirectResponse(
         await issueGet('/documentation/pkg/latest/', host: 'www.dartdocs.org'),
-        '$siteRoot/documentation/pkg/latest',
+        '$siteRoot/documentation/pkg/latest/',
       );
     });
 
