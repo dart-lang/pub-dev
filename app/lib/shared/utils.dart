@@ -17,7 +17,6 @@ import 'package:meta/meta.dart';
 // ignore: implementation_imports
 import 'package:mime/src/default_extension_map.dart' as mime;
 import 'package:path/path.dart' as p;
-import 'package:pub_package_reader/pub_package_reader.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:stream_transform/stream_transform.dart';
 
@@ -113,39 +112,6 @@ int compareSemanticVersionsDesc(
 /// sorting (e.g. it will order "0.8.0 < 0.9.0-dev.1").
 bool isNewer(semver.Version a, semver.Version b, {bool pubSorted = true}) =>
     compareSemanticVersionsDesc(a, b, false, pubSorted) < 0;
-
-final _reservedPackageNames = <String>[
-  'core',
-  'dart',
-  'dart2js',
-  'dart2native',
-  'dartanalyzer',
-  'dartaotruntime',
-  'dartdevc',
-  'dartfmt',
-  'flutter_web',
-  'flutter_web_test',
-  'flutter_web_ui',
-  'google_maps_flutter',
-  'hummingbird',
-  'in_app_purchase',
-  'location_background',
-  'math',
-  'mirrors',
-  'developer',
-  'pub',
-  'versions',
-  'webview_flutter',
-  'firebaseui',
-  // removed in https://github.com/dart-lang/pub-dev/issues/2853
-  'fluttery',
-  'fluttery_audio',
-  'fluttery_seekbar',
-].map(reducePackageName).toList();
-
-/// Whether the [name] is (very similar) to a reserved package name.
-bool matchesReservedPackageName(String name) =>
-    _reservedPackageNames.contains(reducePackageName(name));
 
 List<List<T>> _sliceList<T>(List<T> list, int limit) {
   if (list.length <= limit) return [list];
