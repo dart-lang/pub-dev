@@ -15,6 +15,7 @@ import 'package:shelf/shelf_io.dart';
 
 import 'package:pub_dev/frontend/handlers.dart';
 import 'package:pub_dev/package/name_tracker.dart';
+import 'package:pub_dev/service/entrypoint/frontend.dart';
 import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/service/spam/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
@@ -25,8 +26,10 @@ final _logger = Logger('fake_server');
 class FakePubServer {
   final MemDatastore _datastore;
   final MemStorage _storage;
+  final bool _watch;
 
-  FakePubServer(this._datastore, this._storage);
+  FakePubServer(this._datastore, this._storage, {bool watch})
+      : _watch = watch ?? false;
 
   Future<void> run({
     @required int port,
@@ -38,6 +41,10 @@ class FakePubServer {
         datastore: _datastore,
         storage: _storage,
         fn: () async {
+          if (_watch) {
+            await watchForResourceChanges();
+          }
+
           nameTracker.startTracking();
           spamBackend.setSpamConfig(spamWords: ['SPAM-SPAM-SPAM']);
 

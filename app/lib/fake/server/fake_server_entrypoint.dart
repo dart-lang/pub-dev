@@ -42,6 +42,8 @@ class FakeServerCommand extends Command {
           help: 'The HTTP port for the fake dartdoc service.')
       ..addOption('data-file',
           help: 'The file to read and also to store the local state.')
+      ..addFlag('watch',
+          help: 'Monitor changes of local files and reload them.')
       ..addFlag('read-only',
           help: 'Only read the data from the data-file, do not store it.');
   }
@@ -55,6 +57,7 @@ class FakeServerCommand extends Command {
     final dartdocPort = int.parse(argResults['dartdoc-port'] as String);
     final readOnly = argResults['read-only'] == true;
     final dataFile = argResults['data-file'] as String;
+    final watch = argResults['watch'] == true;
 
     Logger.root.onRecord.listen((r) {
       print([
@@ -74,7 +77,7 @@ class FakeServerCommand extends Command {
     final datastore = state.datastore;
 
     final storageServer = FakeStorageServer(storage);
-    final pubServer = FakePubServer(datastore, storage);
+    final pubServer = FakePubServer(datastore, storage, watch: watch);
     final searchService = FakeSearchService(datastore, storage);
     final analyzerService = FakeAnalyzerService(datastore, storage);
     final dartdocService = FakeDartdocService(datastore, storage);
