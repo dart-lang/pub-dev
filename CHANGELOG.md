@@ -13,6 +13,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
    TODO(deferred): schedule cleanup after this release.
  * NOTE: `PackageVersionPubspec` is no longer used or added.
    TODO(deferred): schedule remove script after this release. 
+ * Dartdoc timeout increased for latest stable versions, no more retry on timeout.
 
 ## `20201222t135400-all`
  * Bumped runtimeVersion to `2020.12.21`.
