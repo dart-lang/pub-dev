@@ -44,11 +44,11 @@
     }
 
     &.sdk {
-      text-align: right;
-      width: 160px;
+      text-align: center;
+      width: 90px;
 
-      @media (max-width: $device-mobile-max-width) {
-        width: auto;
+      .sdk-code {
+        color: #ddd;
       }
     }
 

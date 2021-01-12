@@ -93,13 +93,21 @@ String renderPkgVersionsPage(
 }
 
 String renderVersionTableRow(PackageVersion version, String downloadUrl) {
-  final sdk = version.pubspec.sdkConstraint?.trim() ?? '';
+  final minSdkVersion = version.pubspec.minSdkVersion;
   final versionData = {
     'package': version.package,
     'version': version.version,
     'version_url': urls.pkgPageUrl(version.package, version: version.version),
-    'has_sdk': sdk.isNotEmpty,
-    'sdk': sdk,
+    'has_sdk': minSdkVersion != null,
+    'sdk': minSdkVersion == null
+        ? null
+        : {
+            'code': minSdkVersion.code,
+            'major': minSdkVersion.major,
+            'minor': minSdkVersion.minor,
+            'has_channel': minSdkVersion.channel != null,
+            'channel': minSdkVersion.channel,
+          },
     'short_created': version.shortCreated,
     'dartdocs_url':
         _attr(urls.pkgDocUrl(version.package, version: version.version)),
