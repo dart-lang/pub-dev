@@ -181,6 +181,75 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         toPublisherId,
       ];
   }
+
+  factory AuditLogRecord.publisherContactInvited({
+    @required User user,
+    @required String publisherId,
+    @required String contactEmail,
+  }) {
+    return AuditLogRecord._init()
+      ..kind = AuditLogRecordKind.publisherContactInvited
+      ..agent = user.userId
+      ..summary = [
+        '`${user.email}` invited `$contactEmail` ',
+        'to be contact email for publisher `$publisherId`.',
+      ].join()
+      ..data = {
+        'publisherId': publisherId,
+        'contactEmail': contactEmail,
+        'user': user.email,
+      }
+      ..users = [user.userId]
+      ..packages = []
+      ..packageVersions = []
+      ..publishers = [publisherId];
+  }
+
+  factory AuditLogRecord.publisherMemberInvited({
+    @required User user,
+    @required String publisherId,
+    @required String memberEmail,
+  }) {
+    return AuditLogRecord._init()
+      ..kind = AuditLogRecordKind.publisherMemberInvited
+      ..agent = user.userId
+      ..summary = [
+        '`${user.email}` invited `$memberEmail` ',
+        'to be a member for publisher `$publisherId`.',
+      ].join()
+      ..data = {
+        'publisherId': publisherId,
+        'memberEmail': memberEmail,
+        'user': user.email,
+      }
+      ..users = [user.userId]
+      ..packages = []
+      ..packageVersions = []
+      ..publishers = [publisherId];
+  }
+
+  factory AuditLogRecord.uploaderInvited({
+    @required User user,
+    @required String package,
+    @required String uploaderEmail,
+  }) {
+    return AuditLogRecord._init()
+      ..kind = AuditLogRecordKind.uploadedInvited
+      ..agent = user.userId
+      ..summary = [
+        '`${user.email}` invited `$uploaderEmail` ',
+        'to be an uploader for package `$package`.',
+      ].join()
+      ..data = {
+        'package': package,
+        'uploaderEmail': uploaderEmail,
+        'user': user.email,
+      }
+      ..users = [user.userId]
+      ..packages = [package]
+      ..packageVersions = []
+      ..publishers = [];
+  }
 }
 
 abstract class AuditLogRecordKind {
@@ -192,15 +261,22 @@ abstract class AuditLogRecordKind {
   /// Event that a package has transferred to a (new) publisher.
   static const packageTransferred = 'package-transferred';
 
-  // TODO: implement further kinds
-  // uploader-invited
+  /// Event that an e-mail was invited to be a publisher contact.
+  static const publisherContactInvited = 'publisher-contact-invited';
+
+  /// Event that an e-mail was invited to be a publisher member.
+  static const publisherMemberInvited = 'publisher-member-invited';
+
+  /// Event that an uploader was invited to a package.
+  static const uploadedInvited = 'uploader-invited';
+
+// TODO: implement further kinds
   // uploader-invite-accepted/added
   // uploader-invite-rejected
   // uploader-removed
   // publisher-created
   // publisher-updated
   // publisher-contact-changed
-  // publisher-member-invited
   // publisher-member-invite-accepted/added
   // publisher-member-invite-rejected
   // publisher-member-removed
