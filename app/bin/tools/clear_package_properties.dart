@@ -31,7 +31,7 @@ Future main(List<String> args) async {
     print('Usage: dart clear_package_properties.dart');
     print('Deletes unmapped properties from the following entry types: '
         'Package, PackageVersion, '
-        'PackageVersionPubspec, PackageVersionInfo, PackageVersionAsset.');
+        'PackageVersionInfo, PackageVersionAsset.');
     print(_argParser.usage);
     return;
   }
