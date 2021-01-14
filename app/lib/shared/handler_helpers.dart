@@ -321,7 +321,13 @@ shelf.Request _sanitizeRequestedUri(shelf.Request request) {
   final uri = request.requestedUri;
   triggerUriParsingMethods(uri);
   final resource = Uri.decodeFull(uri.path);
-  final normalizedResource = path.normalize(resource);
+  final normalizedPath = path.normalize(resource);
+  // path.normalize removes trailing `/`, but in URLs we need to keep them
+  final normalizedResource = (resource.length > 1 &&
+          resource.endsWith('/') &&
+          !normalizedPath.endsWith('/'))
+      ? '$normalizedPath/'
+      : normalizedPath;
 
   if (uri.path == normalizedResource) {
     return request;
@@ -345,10 +351,6 @@ shelf.Request _sanitizeRequestedUri(shelf.Request request) {
       encoding: request.encoding,
       context: request.context,
     );
-    if (!sanitized.context.containsKey('_originalRequest')) {
-      return sanitized.change(context: {'_originalRequest': request});
-    } else {
-      return sanitized;
-    }
+    return sanitized;
   }
 }
