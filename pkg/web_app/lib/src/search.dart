@@ -16,8 +16,13 @@ void _setEventForKeyboardShortcut() {
   final inputElem = document.querySelector('input.site-header-search-input');
   if (inputElem != null && inputElem is InputElement) {
     window.onKeyPress.listen((e) {
-      // only trigger focus when it is not already focused
-      if (e.key == '/' && document.activeElement != inputElem) {
+      // Ignore keys other than the shortcut key:
+      if (e.key != '/') return;
+
+      // Only trigger focus when nothing is focused, so that we don't steal
+      // focus from other elements.
+      final active = document.activeElement;
+      if (active == null || active == document.body) {
         inputElem.focus();
 
         // prevent the trigger character to get typed into the input field
