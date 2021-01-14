@@ -165,6 +165,61 @@ pre {
   }
 }
 
+.-pub-pre-copy-container {
+  position: relative;
+
+  &:hover {
+    .-pub-pre-copy-button {
+      opacity: 0.35;
+    }
+  }
+
+  .-pub-pre-copy-button {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    background: url("/static/img/content-copy-icon.svg?hash=fg6h81ph6ii0740g39jkvci8jiqi2j4p");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 16px 16px;
+
+    cursor: copy;
+
+    opacity: 0.15;
+    transition: opacity 0.5s;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  .-pub-pre-copy-feedback {
+    display: none;
+
+    position: absolute;
+    top: 32px;
+    right: 4px;
+
+    font-size: 11px;
+    padding: 8px;
+    background: #fafaff;
+    box-shadow: 0px 0px 2px 2px rgba(0, 0, 0, 0.05);
+
+    white-space: nowrap;
+    transition: opacity $copy-feedback-transition-opacity-delay;
+
+    &.visible {
+      display: block;
+    }
+
+    &.fadeout {
+      opacity: 0;
+    }
+  }
+}
+
 .markdown-body {
   p {
     margin-top: 8px; /* overrides github-markdown.css */
