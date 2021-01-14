@@ -8,6 +8,7 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
+import '../audit/models.dart';
 import '../frontend/email_sender.dart';
 import '../frontend/templates/consent.dart';
 import '../history/models.dart';
@@ -101,6 +102,7 @@ class ConsentBackend {
     @required String email,
     @required String kind,
     @required List<String> args,
+    @required AuditLogRecord auditLogRecord,
     HistoryEvent historyEvent,
   }) async {
     return retry(() async {
@@ -136,6 +138,7 @@ class ConsentBackend {
       );
       await _db.commit(inserts: [
         consent,
+        auditLogRecord,
         if (historyEvent != null) History.entry(historyEvent),
       ]);
       return await _sendNotification(activeUser.email, consent);
@@ -152,6 +155,11 @@ class ConsentBackend {
       email: uploaderEmail,
       kind: ConsentKind.packageUploader,
       args: [packageName],
+      auditLogRecord: AuditLogRecord.uploaderInvited(
+        user: user,
+        package: packageName,
+        uploaderEmail: uploaderEmail,
+      ),
       historyEvent: UploaderInvited(
         packageName: packageName,
         currentUserId: user.userId,
@@ -166,11 +174,13 @@ class ConsentBackend {
     @required String publisherId,
     @required String contactEmail,
   }) async {
+    final user = await requireAuthenticatedUser();
     return await _invite(
-      email: contactEmail,
-      kind: ConsentKind.publisherContact,
-      args: [publisherId, contactEmail],
-    );
+        email: contactEmail,
+        kind: ConsentKind.publisherContact,
+        args: [publisherId, contactEmail],
+        auditLogRecord: AuditLogRecord.publisherContactInvited(
+            user: user, publisherId: publisherId, contactEmail: contactEmail));
   }
 
   /// Invites a new member for the publisher.
@@ -178,10 +188,13 @@ class ConsentBackend {
     @required String publisherId,
     @required String invitedUserEmail,
   }) async {
+    final user = await requireAuthenticatedUser();
     return await _invite(
       email: invitedUserEmail,
       kind: ConsentKind.publisherMember,
       args: [publisherId],
+      auditLogRecord: AuditLogRecord.publisherMemberInvited(
+          user: user, publisherId: publisherId, memberEmail: invitedUserEmail),
     );
   }
 
