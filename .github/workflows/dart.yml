@@ -54,9 +54,9 @@ jobs:
       - run: dart --version
       - uses: actions/checkout@v2
       - id: pkg_web_css_pub_get
-        name: "pkg/web_css; dart pub get --no-precompile"
+        name: "pkg/web_css; pub get --no-precompile"
         working-directory: pkg/web_css
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "pkg/web_css; dartfmt -n --set-exit-if-changed ."
         if: "steps.pkg_web_css_pub_get.conclusion == 'success'"
         working-directory: pkg/web_css
@@ -66,9 +66,9 @@ jobs:
         working-directory: pkg/web_css
         run: dartanalyzer --fatal-infos --fatal-warnings .
       - id: pkg_client_data_pub_get
-        name: "pkg/client_data; dart pub get --no-precompile"
+        name: "pkg/client_data; pub get --no-precompile"
         working-directory: pkg/client_data
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "pkg/client_data; dartfmt -n --set-exit-if-changed ."
         if: "steps.pkg_client_data_pub_get.conclusion == 'success'"
         working-directory: pkg/client_data
@@ -78,9 +78,9 @@ jobs:
         working-directory: pkg/client_data
         run: dartanalyzer --fatal-infos --fatal-warnings .
       - id: pkg__popularity_pub_get
-        name: "pkg/_popularity; dart pub get --no-precompile"
+        name: "pkg/_popularity; pub get --no-precompile"
         working-directory: pkg/_popularity
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "pkg/_popularity; dartfmt -n --set-exit-if-changed ."
         if: "steps.pkg__popularity_pub_get.conclusion == 'success'"
         working-directory: pkg/_popularity
@@ -90,9 +90,9 @@ jobs:
         working-directory: pkg/_popularity
         run: dartanalyzer --fatal-infos --fatal-warnings .
       - id: pkg_api_builder_pub_get
-        name: "pkg/api_builder; dart pub get --no-precompile"
+        name: "pkg/api_builder; pub get --no-precompile"
         working-directory: pkg/api_builder
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "pkg/api_builder; dartfmt -n --set-exit-if-changed ."
         if: "steps.pkg_api_builder_pub_get.conclusion == 'success'"
         working-directory: pkg/api_builder
@@ -102,9 +102,9 @@ jobs:
         working-directory: pkg/api_builder
         run: dartanalyzer --fatal-infos --fatal-warnings .
       - id: app_pub_get
-        name: "app; dart pub get --no-precompile"
+        name: "app; pub get --no-precompile"
         working-directory: app
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "app; dartfmt -n --set-exit-if-changed ."
         if: "steps.app_pub_get.conclusion == 'success'"
         working-directory: app
@@ -114,9 +114,9 @@ jobs:
         working-directory: app
         run: dartanalyzer --fatal-infos --fatal-warnings .
       - id: pkg_fake_gcloud_pub_get
-        name: "pkg/fake_gcloud; dart pub get --no-precompile"
+        name: "pkg/fake_gcloud; pub get --no-precompile"
         working-directory: pkg/fake_gcloud
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "pkg/fake_gcloud; dartfmt -n --set-exit-if-changed ."
         if: "steps.pkg_fake_gcloud_pub_get.conclusion == 'success'"
         working-directory: pkg/fake_gcloud
@@ -126,9 +126,9 @@ jobs:
         working-directory: pkg/fake_gcloud
         run: dartanalyzer --fatal-infos --fatal-warnings .
       - id: pkg_pub_dartdoc_pub_get
-        name: "pkg/pub_dartdoc; dart pub get --no-precompile"
+        name: "pkg/pub_dartdoc; pub get --no-precompile"
         working-directory: pkg/pub_dartdoc
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "pkg/pub_dartdoc; dartfmt -n --set-exit-if-changed ."
         if: "steps.pkg_pub_dartdoc_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_dartdoc
@@ -138,9 +138,9 @@ jobs:
         working-directory: pkg/pub_dartdoc
         run: dartanalyzer --fatal-infos --fatal-warnings .
       - id: pkg_pub_dartdoc_data_pub_get
-        name: "pkg/pub_dartdoc_data; dart pub get --no-precompile"
+        name: "pkg/pub_dartdoc_data; pub get --no-precompile"
         working-directory: pkg/pub_dartdoc_data
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "pkg/pub_dartdoc_data; dartfmt -n --set-exit-if-changed ."
         if: "steps.pkg_pub_dartdoc_data_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_dartdoc_data
@@ -150,9 +150,9 @@ jobs:
         working-directory: pkg/pub_dartdoc_data
         run: dartanalyzer --fatal-infos --fatal-warnings .
       - id: pkg_pub_package_reader_pub_get
-        name: "pkg/pub_package_reader; dart pub get --no-precompile"
+        name: "pkg/pub_package_reader; pub get --no-precompile"
         working-directory: pkg/pub_package_reader
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "pkg/pub_package_reader; dartfmt -n --set-exit-if-changed ."
         if: "steps.pkg_pub_package_reader_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_package_reader
@@ -162,9 +162,9 @@ jobs:
         working-directory: pkg/pub_package_reader
         run: dartanalyzer --fatal-infos --fatal-warnings .
       - id: pkg_pub_validations_pub_get
-        name: "pkg/pub_validations; dart pub get --no-precompile"
+        name: "pkg/pub_validations; pub get --no-precompile"
         working-directory: pkg/pub_validations
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "pkg/pub_validations; dartfmt -n --set-exit-if-changed ."
         if: "steps.pkg_pub_validations_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_validations
@@ -174,9 +174,9 @@ jobs:
         working-directory: pkg/pub_validations
         run: dartanalyzer --fatal-infos --fatal-warnings .
       - id: pkg_web_app_pub_get
-        name: "pkg/web_app; dart pub get --no-precompile"
+        name: "pkg/web_app; pub get --no-precompile"
         working-directory: pkg/web_app
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "pkg/web_app; dartfmt -n --set-exit-if-changed ."
         if: "steps.pkg_web_app_pub_get.conclusion == 'success'"
         working-directory: pkg/web_app
@@ -206,9 +206,9 @@ jobs:
       - run: dart --version
       - uses: actions/checkout@v2
       - id: pkg_pub_integration_pub_get
-        name: "pkg/pub_integration; dart pub get --no-precompile"
+        name: "pkg/pub_integration; pub get --no-precompile"
         working-directory: pkg/pub_integration
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "pkg/pub_integration; dartfmt -n --set-exit-if-changed ."
         if: "steps.pkg_pub_integration_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_integration
@@ -238,9 +238,9 @@ jobs:
       - run: dart --version
       - uses: actions/checkout@v2
       - id: pkg_web_app_pub_get
-        name: "pkg/web_app; dart pub get --no-precompile"
+        name: "pkg/web_app; pub get --no-precompile"
         working-directory: pkg/web_app
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: pkg/web_app; ./build.sh
         if: "steps.pkg_web_app_pub_get.conclusion == 'success'"
         working-directory: pkg/web_app
@@ -270,9 +270,9 @@ jobs:
       - run: dart --version
       - uses: actions/checkout@v2
       - id: pkg_web_css_pub_get
-        name: "pkg/web_css; dart pub get --no-precompile"
+        name: "pkg/web_css; pub get --no-precompile"
         working-directory: pkg/web_css
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: pkg/web_css; ./build.sh
         if: "steps.pkg_web_css_pub_get.conclusion == 'success'"
         working-directory: pkg/web_css
@@ -302,9 +302,9 @@ jobs:
       - run: dart --version
       - uses: actions/checkout@v2
       - id: pkg_fake_gcloud_pub_get
-        name: "pkg/fake_gcloud; dart pub get --no-precompile"
+        name: "pkg/fake_gcloud; pub get --no-precompile"
         working-directory: pkg/fake_gcloud
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "pkg/fake_gcloud; pub run test --run-skipped"
         if: "steps.pkg_fake_gcloud_pub_get.conclusion == 'success'"
         working-directory: pkg/fake_gcloud
@@ -336,9 +336,9 @@ jobs:
       - run: dart --version
       - uses: actions/checkout@v2
       - id: pkg_pub_dartdoc_data_pub_get
-        name: "pkg/pub_dartdoc_data; dart pub get --no-precompile"
+        name: "pkg/pub_dartdoc_data; pub get --no-precompile"
         working-directory: pkg/pub_dartdoc_data
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "pkg/pub_dartdoc_data; pub run test --run-skipped"
         if: "steps.pkg_pub_dartdoc_data_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_dartdoc_data
@@ -370,9 +370,9 @@ jobs:
       - run: dart --version
       - uses: actions/checkout@v2
       - id: pkg__popularity_pub_get
-        name: "pkg/_popularity; dart pub get --no-precompile"
+        name: "pkg/_popularity; pub get --no-precompile"
         working-directory: pkg/_popularity
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "pkg/_popularity; pub run test --run-skipped"
         if: "steps.pkg__popularity_pub_get.conclusion == 'success'"
         working-directory: pkg/_popularity
@@ -404,9 +404,9 @@ jobs:
       - run: dart --version
       - uses: actions/checkout@v2
       - id: pkg_pub_package_reader_pub_get
-        name: "pkg/pub_package_reader; dart pub get --no-precompile"
+        name: "pkg/pub_package_reader; pub get --no-precompile"
         working-directory: pkg/pub_package_reader
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "pkg/pub_package_reader; pub run test --run-skipped"
         if: "steps.pkg_pub_package_reader_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_package_reader
@@ -438,9 +438,9 @@ jobs:
       - run: dart --version
       - uses: actions/checkout@v2
       - id: pkg_pub_validations_pub_get
-        name: "pkg/pub_validations; dart pub get --no-precompile"
+        name: "pkg/pub_validations; pub get --no-precompile"
         working-directory: pkg/pub_validations
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "pkg/pub_validations; pub run test --run-skipped"
         if: "steps.pkg_pub_validations_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_validations
@@ -472,9 +472,9 @@ jobs:
       - run: dart --version
       - uses: actions/checkout@v2
       - id: pkg_client_data_pub_get
-        name: "pkg/client_data; dart pub get --no-precompile"
+        name: "pkg/client_data; pub get --no-precompile"
         working-directory: pkg/client_data
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "pkg/client_data; pub run test --run-skipped"
         if: "steps.pkg_client_data_pub_get.conclusion == 'success'"
         working-directory: pkg/client_data
@@ -506,9 +506,9 @@ jobs:
       - run: dart --version
       - uses: actions/checkout@v2
       - id: pkg_web_app_pub_get
-        name: "pkg/web_app; dart pub get --no-precompile"
+        name: "pkg/web_app; pub get --no-precompile"
         working-directory: pkg/web_app
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "pkg/web_app; pub run test --run-skipped"
         if: "steps.pkg_web_app_pub_get.conclusion == 'success'"
         working-directory: pkg/web_app
@@ -540,9 +540,9 @@ jobs:
       - run: dart --version
       - uses: actions/checkout@v2
       - id: pkg_web_css_pub_get
-        name: "pkg/web_css; dart pub get --no-precompile"
+        name: "pkg/web_css; pub get --no-precompile"
         working-directory: pkg/web_css
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "pkg/web_css; pub run test --run-skipped"
         if: "steps.pkg_web_css_pub_get.conclusion == 'success'"
         working-directory: pkg/web_css
@@ -574,9 +574,9 @@ jobs:
       - run: dart --version
       - uses: actions/checkout@v2
       - id: pkg_pub_dartdoc_pub_get
-        name: "pkg/pub_dartdoc; dart pub get --no-precompile"
+        name: "pkg/pub_dartdoc; pub get --no-precompile"
         working-directory: pkg/pub_dartdoc
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "pkg/pub_dartdoc; pub run test --run-skipped"
         if: "steps.pkg_pub_dartdoc_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_dartdoc
@@ -608,9 +608,9 @@ jobs:
       - run: dart --version
       - uses: actions/checkout@v2
       - id: app_pub_get
-        name: "app; dart pub get --no-precompile"
+        name: "app; pub get --no-precompile"
         working-directory: app
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "app; pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '5~7p'`"
         if: "steps.app_pub_get.conclusion == 'success'"
         working-directory: app
@@ -642,9 +642,9 @@ jobs:
       - run: dart --version
       - uses: actions/checkout@v2
       - id: app_pub_get
-        name: "app; dart pub get --no-precompile"
+        name: "app; pub get --no-precompile"
         working-directory: app
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "app; pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '4~7p'`"
         if: "steps.app_pub_get.conclusion == 'success'"
         working-directory: app
@@ -676,9 +676,9 @@ jobs:
       - run: dart --version
       - uses: actions/checkout@v2
       - id: app_pub_get
-        name: "app; dart pub get --no-precompile"
+        name: "app; pub get --no-precompile"
         working-directory: app
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "app; pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '6~7p'`"
         if: "steps.app_pub_get.conclusion == 'success'"
         working-directory: app
@@ -710,9 +710,9 @@ jobs:
       - run: dart --version
       - uses: actions/checkout@v2
       - id: app_pub_get
-        name: "app; dart pub get --no-precompile"
+        name: "app; pub get --no-precompile"
         working-directory: app
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "app; pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~7p'`"
         if: "steps.app_pub_get.conclusion == 'success'"
         working-directory: app
@@ -744,9 +744,9 @@ jobs:
       - run: dart --version
       - uses: actions/checkout@v2
       - id: pkg_pub_integration_pub_get
-        name: "pkg/pub_integration; dart pub get --no-precompile"
+        name: "pkg/pub_integration; pub get --no-precompile"
         working-directory: pkg/pub_integration
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "pkg/pub_integration; pub run test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~3p'`"
         if: "steps.pkg_pub_integration_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_integration
@@ -778,9 +778,9 @@ jobs:
       - run: dart --version
       - uses: actions/checkout@v2
       - id: pkg_pub_integration_pub_get
-        name: "pkg/pub_integration; dart pub get --no-precompile"
+        name: "pkg/pub_integration; pub get --no-precompile"
         working-directory: pkg/pub_integration
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "pkg/pub_integration; pub run test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~3p'`"
         if: "steps.pkg_pub_integration_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_integration
@@ -812,9 +812,9 @@ jobs:
       - run: dart --version
       - uses: actions/checkout@v2
       - id: app_pub_get
-        name: "app; dart pub get --no-precompile"
+        name: "app; pub get --no-precompile"
         working-directory: app
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "app; pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~7p'`"
         if: "steps.app_pub_get.conclusion == 'success'"
         working-directory: app
@@ -846,9 +846,9 @@ jobs:
       - run: dart --version
       - uses: actions/checkout@v2
       - id: app_pub_get
-        name: "app; dart pub get --no-precompile"
+        name: "app; pub get --no-precompile"
         working-directory: app
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "app; pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '3~7p'`"
         if: "steps.app_pub_get.conclusion == 'success'"
         working-directory: app
@@ -880,9 +880,9 @@ jobs:
       - run: dart --version
       - uses: actions/checkout@v2
       - id: pkg_pub_integration_pub_get
-        name: "pkg/pub_integration; dart pub get --no-precompile"
+        name: "pkg/pub_integration; pub get --no-precompile"
         working-directory: pkg/pub_integration
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "pkg/pub_integration; pub run test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~3p'`"
         if: "steps.pkg_pub_integration_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_integration
@@ -914,9 +914,9 @@ jobs:
       - run: dart --version
       - uses: actions/checkout@v2
       - id: app_pub_get
-        name: "app; dart pub get --no-precompile"
+        name: "app; pub get --no-precompile"
         working-directory: app
-        run: dart pub get --no-precompile
+        run: pub get --no-precompile
       - name: "app; pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~7p'`"
         if: "steps.app_pub_get.conclusion == 'success'"
         working-directory: app
