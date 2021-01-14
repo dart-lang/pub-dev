@@ -102,7 +102,6 @@ String renderVersionTableRow(PackageVersion version, String downloadUrl) {
     'sdk': minSdkVersion == null
         ? null
         : {
-            'code': minSdkVersion.code,
             'major': minSdkVersion.major,
             'minor': minSdkVersion.minor,
             'has_channel': minSdkVersion.channel != null,

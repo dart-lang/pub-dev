@@ -88,14 +88,13 @@ class Pubspec {
     return map is Map<String, dynamic> ? map : null;
   }
 
-  /// Returns the minimal SDK version for Flutter SDK or Dart SDK, in that order,
-  /// only if specified.
+  /// Returns the minimal SDK version for the Dart SDK.
   ///
-  /// Returns null if the constraint does not follow the `>=<version>` pattern.
+  /// Returns null if the constraint is missing or does not follow the
+  /// `>=<version>` pattern.
   MinSdkVersion get minSdkVersion {
     _load();
-    return MinSdkVersion.tryParse('F', _inner.environment['flutter']) ??
-        MinSdkVersion.tryParse('D', _inner.environment['sdk']);
+    return MinSdkVersion.tryParse(_inner.environment['sdk']);
   }
 
   String get sdkConstraint {
@@ -162,15 +161,13 @@ class Pubspec {
 }
 
 class MinSdkVersion {
-  /// D for Dart, F for Flutter
-  final String code;
   final int major;
   final int minor;
   final String channel;
 
-  MinSdkVersion(this.code, this.major, this.minor, this.channel);
+  MinSdkVersion(this.major, this.minor, this.channel);
 
-  static MinSdkVersion tryParse(String code, VersionConstraint constraint) {
+  static MinSdkVersion tryParse(VersionConstraint constraint) {
     if (constraint == null || constraint is! VersionRange) {
       return null;
     }
@@ -183,7 +180,7 @@ class MinSdkVersion {
       } else if (str.endsWith('.beta')) {
         channel = 'beta';
       }
-      return MinSdkVersion(code, min.major, min.minor, channel);
+      return MinSdkVersion(min.major, min.minor, channel);
     }
     return null;
   }
