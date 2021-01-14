@@ -2,6 +2,39 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_package_reader/pub_package_reader.dart'
+    show reducePackageName;
+
+/// Package names that are reserved for the Dart or Flutter team.
+final _reservedPackageNames = <String>[
+  'core',
+  'dart',
+  'dart2js',
+  'dart2native',
+  'dartanalyzer',
+  'dartaotruntime',
+  'dartdevc',
+  'dartfmt',
+  'flutter_web',
+  'flutter_web_test',
+  'flutter_web_ui',
+  'google_maps_flutter',
+  'hummingbird',
+  'in_app_purchase',
+  'location_background',
+  'math',
+  'mirrors',
+  'developer',
+  'pub',
+  'versions',
+  'webview_flutter',
+  'firebaseui',
+  // removed in https://github.com/dart-lang/pub-dev/issues/2853
+  'fluttery',
+  'fluttery_audio',
+  'fluttery_seekbar',
+].map(reducePackageName).toList();
+
 /// 'internal' packages are developed by the Dart team, and they are allowed to
 /// point their URLs to *.dartlang.org (others would get a penalty for it).
 const internalPackageNames = <String>[
@@ -54,3 +87,7 @@ String overrideIssueTrackerUrl(String url) {
 /// won't serve the package or the documentation page, or any data about it.
 bool isSoftRemoved(String packageName) =>
     redirectPackageUrls.containsKey(packageName);
+
+/// Whether the [name] is (very similar) to a reserved package name.
+bool matchesReservedPackageName(String name) =>
+    _reservedPackageNames.contains(reducePackageName(name));
