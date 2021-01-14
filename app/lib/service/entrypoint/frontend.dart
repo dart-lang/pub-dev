@@ -75,7 +75,7 @@ Future _main(FrontendEntryMessage message) async {
     final appHandler = createAppHandler();
 
     if (envConfig.isRunningLocally) {
-      await _watchForResourceChanges();
+      await watchForResourceChanges();
     }
     await popularityStorage.init();
     nameTracker.startTracking();
@@ -90,7 +90,7 @@ Future _main(FrontendEntryMessage message) async {
 }
 
 /// Setup local filesystem change notifications and force-reload resource files
-Future<void> _watchForResourceChanges() async {
+Future<void> watchForResourceChanges() async {
   _logger.info('Watching for resource changes...');
 
   void setupWatcher(
