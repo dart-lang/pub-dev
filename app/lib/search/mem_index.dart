@@ -521,9 +521,11 @@ class _PackageNameIndex {
   /// the same character parts, but without `-`.
   final _namesWithoutGaps = <String, String>{};
 
+  String _collapseName(String package) => package.replaceAll('_', '');
+
   /// Add a new [package] to the index.
   void add(String package) {
-    _namesWithoutGaps[package] = package.replaceAll('_', '');
+    _namesWithoutGaps[package] = _collapseName(package);
   }
 
   /// Remove a [package] from the index.
@@ -541,7 +543,10 @@ class _PackageNameIndex {
     final pkgNamesToCheck = packages ?? _namesWithoutGaps.keys;
     final values = <String, double>{};
     for (final pkg in pkgNamesToCheck) {
-      final nameWithoutGaps = _namesWithoutGaps[pkg];
+      // Calculate the collapsed format of the package name based on the cache.
+      // Fallback value is used in cases where concurrent updates of the index
+      // would cause inconsistencies and empty value in the cache.
+      final nameWithoutGaps = _namesWithoutGaps[pkg] ?? _collapseName(pkg);
       final matchedChars = List<bool>.filled(nameWithoutGaps.length, false);
       var unmatchedNgrams = 0;
 
