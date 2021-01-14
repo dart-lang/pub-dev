@@ -15,7 +15,7 @@ void setupSearch() {
 void _setEventForKeyboardShortcut() {
   final inputElem = document.querySelector('input.site-header-search-input');
   if (inputElem != null && inputElem is InputElement) {
-    document.onKeyPress.listen((e) {
+    window.onKeyPress.listen((e) {
       // only trigger focus when it is not already focused
       if (e.key == '/' && document.activeElement != inputElem) {
         inputElem.focus();
