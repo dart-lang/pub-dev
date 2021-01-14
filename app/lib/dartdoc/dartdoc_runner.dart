@@ -35,6 +35,7 @@ const statusFilePath = 'status.json';
 const _archiveFilePath = 'package.tar.gz';
 const _buildLogFilePath = 'log.txt';
 const _packageTimeout = Duration(minutes: 10);
+final _packageTimeoutExtended = _packageTimeout * 2;
 const _pubDataFileName = 'pub-data.json';
 const _sdkTimeout = Duration(minutes: 20);
 final Duration _twoYears = const Duration(days: 2 * 365);
@@ -358,7 +359,7 @@ class DartdocJobProcessor extends JobProcessor {
 
     /// When [isReduced] is set, we are running dartdoc with reduced features,
     /// hopefully to complete within the time limit and fewer issues.
-    Future<DartdocResult> runDartdoc({bool isReduced = false}) async {
+    Future<DartdocResult> runDartdoc() async {
       await _initializeIfNeeded();
       final args = [
         '--input',
@@ -367,8 +368,8 @@ class DartdocJobProcessor extends JobProcessor {
         outputDir,
         '--rel-canonical-prefix',
         canonicalUrl,
-        if (isReduced) '--no-link-to-remote',
-        if (isReduced) '--no-validate-links',
+        '--no-link-to-remote',
+        '--no-validate-links',
       ];
       if (envConfig.toolEnvDartSdkDir != null) {
         args.addAll(['--sdk-dir', envConfig.toolEnvDartSdkDir]);
@@ -376,14 +377,13 @@ class DartdocJobProcessor extends JobProcessor {
       final environment = <String, String>{
         'PUB_HOSTED_URL': activeConfiguration.primaryApiUri.toString(),
       };
-      environment.removeWhere((k, v) => v == null);
       logFileOutput.writeln('Running: pub_dartdoc ${args.join(' ')}');
       final pr = await runProc(
         'dart',
         ['bin/pub_dartdoc.dart', ...args],
         environment: environment,
         workingDirectory: resolvePubDartdocDirPath(),
-        timeout: _packageTimeout,
+        timeout: job.isLatestStable ? _packageTimeoutExtended : _packageTimeout,
       );
       final hasIndexHtml = await File(p.join(outputDir, 'index.html')).exists();
       final hasIndexJson = await File(p.join(outputDir, 'index.json')).exists();
@@ -399,13 +399,10 @@ class DartdocJobProcessor extends JobProcessor {
     }
 
     final sw = Stopwatch()..start();
-    DartdocResult r = await runDartdoc();
+    final r = await runDartdoc();
     sw.stop();
     logger.info('Running dartdoc for ${job.packageName} ${job.packageVersion} '
         'completed in ${sw.elapsed}.');
-    if (r.wasTimeout) {
-      r = await runDartdoc(isReduced: true);
-    }
 
     _appendLog(logFileOutput, r.processResult);
     final hasContent = r.hasIndexHtml && r.hasIndexJson;

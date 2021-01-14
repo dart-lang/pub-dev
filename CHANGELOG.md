@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Run `app/bin/tools/clear_package_properties.dart` after the release got deployed.
    This clears the `download` property in `Package` and `PackageVersion`.
  * Run `app/bin/tools/remove_packageversionpubspec.dart` after the release got deployed.
+ * Dartdoc timeout increased for latest stable versions, no more retry on timeout.
 
 ## `20210111t165700-all`
  * Bumped runtimeVersion to `2021.01.07`.
