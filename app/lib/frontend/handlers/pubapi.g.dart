@@ -93,6 +93,20 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
+  router.add('GET', r'/api/packages/versions/newUploadFinish/<uploadId>',
+      (Request request, String uploadId) async {
+    try {
+      final _$result = await service.finishPackageUpload(
+        request,
+        uploadId,
+      );
+      return $utilities.jsonResponse(_$result.toJson());
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
   router.add('POST', r'/api/packages/<package>/uploaders',
       (Request request, String package) async {
     try {

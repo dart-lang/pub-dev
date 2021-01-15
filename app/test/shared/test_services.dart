@@ -6,21 +6,15 @@ import 'dart:io';
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/testing.dart' as http_testing;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-import 'package:shelf/shelf.dart' as shelf;
 
-import 'package:pub_dev/frontend/handlers.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/search/backend.dart';
 import 'package:pub_dev/search/handlers.dart';
 import 'package:pub_dev/search/updater.dart';
-import 'package:pub_dev/shared/configuration.dart';
-import 'package:pub_dev/shared/handler_helpers.dart';
 import 'package:pub_dev/shared/integrity.dart';
 import 'package:pub_dev/shared/popularity_storage.dart';
 import 'package:pub_dev/search/search_client.dart';
@@ -28,7 +22,8 @@ import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/importer.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
-import 'package:pub_dev/tool/utils/http.dart';
+import 'package:pub_dev/tool/utils/http_client_to_shelf_handler.dart';
+import 'package:pub_dev/tool/utils/pub_api_client.dart';
 import 'package:test/test.dart';
 
 import '../shared/utils.dart';
@@ -74,29 +69,29 @@ void testWithServices(
   scopedTest(name, () async {
     _setupLogging();
     await withFakeServices(
-        configuration: Configuration.test(),
-        fn: () async {
-          if (!omitData) {
-            await _populateDefaultData();
+      fn: () async {
+        if (!omitData) {
+          await _populateDefaultData();
+        }
+        await dartSdkIndex.markReady();
+        await indexUpdater.updateAllPackages();
+
+        registerSearchClient(SearchClient(
+            httpClientToShelfHandler(handler: searchServiceHandler)));
+
+        registerScopeExitCallback(searchClient.close);
+
+        await fork(() async {
+          await fn();
+          // post-test integrity check
+          final problems = await IntegrityChecker(dbService).check();
+          if (problems.isNotEmpty) {
+            throw Exception(
+                '${problems.length} integrity problems detected. First: ${problems.first}');
           }
-          await dartSdkIndex.markReady();
-          await indexUpdater.updateAllPackages();
-
-          registerSearchClient(
-              SearchClient(_httpClient(handler: searchServiceHandler)));
-
-          registerScopeExitCallback(searchClient.close);
-
-          await fork(() async {
-            await fn();
-            // post-test integrity check
-            final problems = await IntegrityChecker(dbService).check();
-            if (problems.isNotEmpty) {
-              throw Exception(
-                  '${problems.length} integrity problems detected. First: ${problems.first}');
-            }
-          });
         });
+      },
+    );
   }, timeout: timeout);
 }
 
@@ -147,59 +142,7 @@ Future<void> _populateDefaultData() async {
 
 /// Creates local, non-HTTP-based API client with [authToken].
 PubApiClient createPubApiClient({String authToken}) =>
-    PubApiClient('http://localhost:0/',
-        client: _httpClient(authToken: authToken));
-
-/// Returns a HTTP client that bridges HTTP requests and shelf handlers without
-/// the actual HTTP transport layer.
-///
-/// If [handler] is not specified, it will use the default frontend handler.
-http.Client _httpClient({
-  shelf.Handler handler,
-  String authToken,
-}) {
-  handler ??= createAppHandler();
-  handler = wrapHandler(
-    Logger.detached('test'),
-    handler,
-    sanitize: true,
-  );
-  return httpClientWithAuthorization(
-    tokenProvider: () async => authToken,
-    client: http_testing.MockClient(_wrapShelfHandler(handler)),
-  );
-}
-
-String _removeLeadingSlashes(String path) {
-  while (path.startsWith('/')) {
-    path = path.substring(1);
-  }
-  return path;
-}
-
-http_testing.MockClientHandler _wrapShelfHandler(shelf.Handler handler) {
-  return (rq) async {
-    final shelfRq = shelf.Request(
-      rq.method,
-      rq.url.replace(path: _removeLeadingSlashes(rq.url.path)),
-      body: rq.body,
-      headers: rq.headers,
-      url: Uri(path: _removeLeadingSlashes(rq.url.path), query: rq.url.query),
-      handlerPath: '',
-    );
-    shelf.Response rs;
-    // Need to fork a service scope to create a separate RequestContext in the
-    // search service handler.
-    await fork(() async {
-      rs = await handler(shelfRq);
-    });
-    return http.Response(
-      await rs.readAsString(),
-      rs.statusCode,
-      headers: rs.headers,
-    );
-  };
-}
+    createLocalPubApiClient(authToken: authToken);
 
 bool _loggingDone = false;
 

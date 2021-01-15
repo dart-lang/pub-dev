@@ -11,6 +11,7 @@ import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:meta/meta.dart';
+import 'package:pub_dev/fake/server/fake_storage_server.dart';
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
@@ -96,18 +97,30 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
 
 /// Run [fn] with services.
 Future<void> withFakeServices({
-  @required Configuration configuration,
   @required FutureOr<void> Function() fn,
+  Configuration configuration,
   MemDatastore datastore,
   MemStorage storage,
 }) async {
   if (!envConfig.isRunningLocally) {
     throw StateError("Mustn't use fake services inside AppEngine.");
   }
+  datastore ??= MemDatastore();
+  storage ??= MemStorage();
   return await fork(() async {
+    registerDbService(DatastoreDB(datastore));
+    registerStorageService(storage);
+    if (configuration == null) {
+      // start storage server
+      final storageServer = FakeStorageServer(storage);
+      await storageServer.start();
+      registerScopeExitCallback(storageServer.close);
+
+      // update configuration
+      configuration = Configuration.test(
+          storageBaseUrl: 'http://localhost:${storageServer.port}');
+    }
     registerActiveConfiguration(configuration);
-    registerDbService(DatastoreDB(datastore ?? MemDatastore()));
-    registerStorageService(storage ?? MemStorage());
 
     // register fake services that would have external dependencies
     registerAuthProvider(FakeAuthProvider());

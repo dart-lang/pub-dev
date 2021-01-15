@@ -3,13 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:meta/meta.dart';
+import 'package:http/http.dart' as http;
 
 import 'package:client_data/package_api.dart';
 import 'package:client_data/publisher_api.dart';
 
-import '../../account/backend.dart';
-import '../../package/backend.dart';
-import '../../publisher/backend.dart';
+import '../utils/pub_api_client.dart';
 
 import 'import_source.dart';
 import 'models.dart';
@@ -20,6 +19,7 @@ import 'normalizer.dart';
 Future<void> importProfile({
   @required TestProfile profile,
   @required ImportSource source,
+  String pubHostedUrl,
 }) async {
   final resolvedVersions = await source.resolveVersions(profile);
   resolvedVersions.sort();
@@ -36,16 +36,20 @@ Future<void> importProfile({
   for (final p in profile.publishers) {
     final firstMemberEmail = p.members.first.email;
     final token = _fakeToken(firstMemberEmail);
-    await accountBackend.withBearerToken(token, () async {
-      await publisherBackend.createPublisher(
-          p.name, CreatePublisherRequest(accessToken: token));
+    await withPubApiClient(
+      bearerToken: token,
+      pubHostedUrl: pubHostedUrl,
+      fn: (client) async {
+        await client.createPublisher(
+            p.name, CreatePublisherRequest(accessToken: token));
 
-      for (final _ in p.members.skip(1)) {
-        // TODO: explore implementation options how to add this
-        throw UnimplementedError(
-            'More than one publisher members is not implemented (${p.name}).');
-      }
-    });
+        for (final _ in p.members.skip(1)) {
+          // TODO: explore implementation options how to add this
+          throw UnimplementedError(
+              'More than one publisher members is not implemented (${p.name}).');
+        }
+      },
+    );
   }
 
   // last active uploader
@@ -59,48 +63,74 @@ Future<void> importProfile({
         uploaderEmails[rv.version.hashCode.abs() % uploaderEmails.length];
     lastActiveUploaderEmails[rv.package] = uploaderEmail;
 
-    await accountBackend.withBearerToken(_fakeToken(uploaderEmail), () async {
-      // ignore: invalid_use_of_visible_for_testing_member
-      await packageBackend.upload(Stream<List<int>>.fromFuture(
-          source.getArchiveBytes(rv.package, rv.version)));
-    });
+    final bytes = await source.getArchiveBytes(rv.package, rv.version);
+    await withPubApiClient(
+      bearerToken: _fakeToken(uploaderEmail),
+      pubHostedUrl: pubHostedUrl,
+      fn: (client) async {
+        final uploadInfo = await client.getPackageUploadUrl();
+
+        final request = http.MultipartRequest('POST', Uri.parse(uploadInfo.url))
+          ..fields.addAll(uploadInfo.fields)
+          ..files.add(http.MultipartFile.fromBytes('file', bytes))
+          ..followRedirects = false;
+        final uploadRs = await request.send();
+        if (uploadRs.statusCode != 303) {
+          throw AssertionError(
+              'Expected HTTP redirect, got ${uploadRs.statusCode}.');
+        }
+
+        final callbackUri =
+            Uri.parse(uploadInfo.fields['success_action_redirect']);
+        await client
+            .finishPackageUpload(callbackUri.queryParameters['upload_id']);
+      },
+    );
   }
   for (final testPackage in profile.packages) {
     final packageName = testPackage.name;
     final activeEmail = lastActiveUploaderEmails[packageName];
 
-    await accountBackend.withBearerToken(_fakeToken(activeEmail), () async {
-      // update publisher
-      if (testPackage.publisher != null) {
-        await packageBackend.setPublisher(
-          packageName,
-          PackagePublisherInfo(publisherId: testPackage.publisher),
-        );
-      }
+    await withPubApiClient(
+      bearerToken: _fakeToken(activeEmail),
+      pubHostedUrl: pubHostedUrl,
+      fn: (client) async {
+        // update publisher
+        if (testPackage.publisher != null) {
+          await client.setPackagePublisher(
+            packageName,
+            PackagePublisherInfo(publisherId: testPackage.publisher),
+          );
+        }
 
-      // update options - sending null is a no-op
-      await packageBackend.updateOptions(
-          packageName,
-          PkgOptions(
-            isDiscontinued: testPackage.isDiscontinued,
-            replacedBy: testPackage.replacedBy,
-            isUnlisted: testPackage.isUnlisted,
-          ));
-    });
+        // update options - sending null is a no-op
+        await client.setPackageOptions(
+            packageName,
+            PkgOptions(
+              isDiscontinued: testPackage.isDiscontinued,
+              replacedBy: testPackage.replacedBy,
+              isUnlisted: testPackage.isUnlisted,
+            ));
+      },
+    );
   }
 
   // create likes
   for (final u in profile.users) {
-    // create user
-    await accountBackend.withBearerToken(_fakeToken(u.email), () async {});
+    await withPubApiClient(
+      bearerToken: _fakeToken(u.email),
+      pubHostedUrl: pubHostedUrl,
+      fn: (client) async {
+        // creates user
+        await client.listPackageLikes();
 
-    if (u.likes != null && u.likes.isNotEmpty) {
-      await accountBackend.withBearerToken(_fakeToken(u.email), () async {
-        for (final p in u.likes) {
-          await accountBackend.likePackage(await requireAuthenticatedUser(), p);
+        if (u.likes != null && u.likes.isNotEmpty) {
+          for (final p in u.likes) {
+            await client.likePackage(p);
+          }
         }
-      });
-    }
+      },
+    );
   }
 
   await source.close();

@@ -51,16 +51,15 @@ void main() {
     });
 
     group('packageBackend.publishUploadedBlob', () {
-      final Uri redirectUri =
-          Uri.parse('http://blobstore.com/upload?upload_id=my-uuid');
+      final uploadId = 'my-uuid';
 
       testWithServices('uploaded zero-length file', () async {
         registerAuthenticatedUser(hansUser);
 
         // create empty file
-        await tarballStorage.bucket.write('tmp/my-uuid').close();
+        await tarballStorage.bucket.write('tmp/$uploadId').close();
 
-        final rs = packageBackend.publishUploadedBlob(redirectUri);
+        final rs = packageBackend.publishUploadedBlob(uploadId);
         await expectLater(
           rs,
           throwsA(
@@ -82,11 +81,11 @@ void main() {
         // Add one more byte than allowed.
         bigTarball.add([1]);
 
-        final sink = tarballStorage.bucket.write('tmp/my-uuid');
+        final sink = tarballStorage.bucket.write('tmp/$uploadId');
         bigTarball.forEach(sink.add);
         await sink.close();
 
-        final rs = packageBackend.publishUploadedBlob(redirectUri);
+        final rs = packageBackend.publishUploadedBlob(uploadId);
         await expectLater(
           rs,
           throwsA(
@@ -101,10 +100,10 @@ void main() {
 
         final dateBeforeTest = DateTime.now().toUtc();
         final pubspecContent = generatePubspecYaml('new_package', '1.2.3');
-        await tarballStorage.bucket.writeBytes('tmp/my-uuid',
+        await tarballStorage.bucket.writeBytes('tmp/$uploadId',
             await packageArchiveBytes(pubspecContent: pubspecContent));
 
-        final version = await packageBackend.publishUploadedBlob(redirectUri);
+        final version = await packageBackend.publishUploadedBlob(uploadId);
         expect(version.package, 'new_package');
         expect(version.version, '1.2.3');
 
@@ -171,10 +170,10 @@ void main() {
 
         final dateBeforeTest = DateTime.now().toUtc();
         final pubspecContent = generatePubspecYaml('lithium', '7.0.0');
-        await tarballStorage.bucket.writeBytes('tmp/my-uuid',
+        await tarballStorage.bucket.writeBytes('tmp/$uploadId',
             await packageArchiveBytes(pubspecContent: pubspecContent));
 
-        final version = await packageBackend.publishUploadedBlob(redirectUri);
+        final version = await packageBackend.publishUploadedBlob(uploadId);
         expect(version.package, 'lithium');
         expect(version.version, '7.0.0');
 
