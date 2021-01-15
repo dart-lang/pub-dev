@@ -7,6 +7,7 @@ import 'dart:html';
 void setupHoverable() {
   _setEventForHoverable();
   _setEventForPackageTitleCopyToClipboard();
+  _setEventForPreCodeCopyToClipboard();
 }
 
 Element _activeHover;
@@ -62,19 +63,23 @@ void _setEventForPackageTitleCopyToClipboard() {
 
   icon.onClick.listen((_) async {
     _copyToClipboard(copyContent);
-
-    feedback.classes.add('visible');
-    await window.animationFrame;
-    await Future.delayed(Duration(milliseconds: 1600));
-    feedback.classes.add('fadeout');
-    await window.animationFrame;
-    // NOTE: keep in sync with _pkg.scss 0.9s animation
-    await Future.delayed(Duration(milliseconds: 900));
-    await window.animationFrame;
-
-    feedback.classes.remove('visible');
-    feedback.classes.remove('fadeout');
+    await _animateCopyFeedback(feedback);
   });
+}
+
+Future<void> _animateCopyFeedback(Element feedback) async {
+  feedback.classes.add('visible');
+  await window.animationFrame;
+  await Future.delayed(Duration(milliseconds: 1600));
+  feedback.classes.add('fadeout');
+  await window.animationFrame;
+  // NOTE: keep in sync with _variables.scss 0.9s animation with the key
+  //       $copy-feedback-transition-opacity-delay
+  await Future.delayed(Duration(milliseconds: 900));
+  await window.animationFrame;
+
+  feedback.classes.remove('visible');
+  feedback.classes.remove('fadeout');
 }
 
 void _copyToClipboard(String text) {
@@ -84,4 +89,27 @@ void _copyToClipboard(String text) {
   ta.select();
   document.execCommand('copy');
   ta.remove();
+}
+
+void _setEventForPreCodeCopyToClipboard() {
+  document.querySelectorAll('.markdown-body pre').forEach((pre) {
+    final container = DivElement()..classes.add('-pub-pre-copy-container');
+    pre.replaceWith(container);
+    container.append(pre);
+
+    final button = DivElement()
+      ..classes.add('-pub-pre-copy-button')
+      ..setAttribute('title', 'copy to clipboard');
+    container.append(button);
+
+    final feedback = DivElement()
+      ..classes.add('-pub-pre-copy-feedback')
+      ..text = 'copied to clipboard';
+    container.append(feedback);
+
+    button.onClick.listen((_) async {
+      _copyToClipboard(pre.text);
+      await _animateCopyFeedback(feedback);
+    });
+  });
 }

@@ -283,8 +283,7 @@
 
     opacity: 1;
     display: none;
-    // NOTE: keep in sync with hoverable.dart 900ms delay
-    transition: opacity 0.9s;
+    transition: opacity $copy-feedback-transition-opacity-delay;
 
     >.code {
       font-family: $font-family-roboto-mono;

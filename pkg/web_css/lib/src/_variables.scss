@@ -32,3 +32,6 @@ $color-searchbar-dark-link: #0175c2;
 $color-input-primary: #0175C2;
 $color-input-danger: #ff4242;
 $color-link: $color-input-primary;
+
+// NOTE: keep in sync with hoverable.dart 900ms delay
+$copy-feedback-transition-opacity-delay: 0.9s;
