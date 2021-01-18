@@ -15,5 +15,5 @@ targets:
       - 'lib/scorecard/models.dart'
       - 'lib/search/backend.dart'
       - 'lib/search/search_service.dart'
-      - 'lib/shared/*.dart'
       - 'lib/tool/test_profile/models.dart'
+      - 'lib/tool/utils/flutter_archive.dart'
