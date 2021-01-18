@@ -4,8 +4,9 @@
 
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
 import 'package:pub_semver/pub_semver.dart';
+
+import 'http.dart' show httpRetryClient;
 
 /// The locally cached last fetch.
 DartSdkVersion _cached;
@@ -34,13 +35,18 @@ Future<DartSdkVersion> getDartSdkVersion(
 
 /// Fetches the latest Dart SDK version information.
 Future<DartSdkVersion> _fetchDartSdkVersion() async {
-  final rs = await http.get(
-      'https://storage.googleapis.com/dart-archive/channels/stable/release/latest/VERSION');
-  if (rs.statusCode != 200) {
-    throw AssertionError('Expected OK status code, got: ${rs.statusCode}.');
+  final client = httpRetryClient();
+  try {
+    final rs = await client.get(
+        'https://storage.googleapis.com/dart-archive/channels/stable/release/latest/VERSION');
+    if (rs.statusCode != 200) {
+      throw AssertionError('Expected OK status code, got: ${rs.statusCode}.');
+    }
+    final map = json.decode(rs.body) as Map<String, dynamic>;
+    final version = map['version'] as String;
+    final date = DateTime.parse(map['date'] as String);
+    return _cached = DartSdkVersion(version, date);
+  } finally {
+    client.close();
   }
-  final map = json.decode(rs.body) as Map<String, dynamic>;
-  final version = map['version'] as String;
-  final date = DateTime.parse(map['date'] as String);
-  return _cached = DartSdkVersion(version, date);
 }
