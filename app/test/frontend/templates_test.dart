@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:html/parser.dart';
 import 'package:pana/pana.dart' hide ReportStatus;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:xml/xml.dart' as xml;
 
@@ -547,6 +548,7 @@ void main() {
           Uri.parse('https://pub.dartlang.org/mock-download-uri.tar.gz'),
           Uri.parse('https://pub.dartlang.org/mock-download-uri.tar.gz'),
         ],
+        dartSdkVersion: Version(2, 10, 0),
       );
       expectGoldenFile(html, 'pkg_versions_page.html');
     });

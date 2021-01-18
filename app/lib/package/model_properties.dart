@@ -97,6 +97,12 @@ class Pubspec {
     return MinSdkVersion.tryParse(_inner.environment['sdk']);
   }
 
+  /// True if the min Dart SDK version constraint is higher than the current SDK.
+  bool isPreviewForCurrentSdk(Version currentSdkVersion) {
+    final msv = minSdkVersion;
+    return msv != null && msv.value.compareTo(currentSdkVersion) > 0;
+  }
+
   String get sdkConstraint {
     _load();
     final environment = _json['environment'];
@@ -161,11 +167,10 @@ class Pubspec {
 }
 
 class MinSdkVersion {
-  final int major;
-  final int minor;
+  final Version value;
   final String channel;
 
-  MinSdkVersion(this.major, this.minor, this.channel);
+  MinSdkVersion(this.value, this.channel);
 
   static MinSdkVersion tryParse(VersionConstraint constraint) {
     if (constraint == null || constraint is! VersionRange) {
@@ -180,10 +185,13 @@ class MinSdkVersion {
       } else if (str.endsWith('.beta')) {
         channel = 'beta';
       }
-      return MinSdkVersion(min.major, min.minor, channel);
+      return MinSdkVersion(min, channel);
     }
     return null;
   }
+
+  int get major => value.major;
+  int get minor => value.minor;
 }
 
 class PubspecProperty extends StringProperty {

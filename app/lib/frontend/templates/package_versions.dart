@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:meta/meta.dart';
+import 'package:pub_semver/pub_semver.dart';
+
 import '../../package/models.dart';
 import '../../shared/urls.dart' as urls;
 
@@ -17,22 +20,27 @@ import 'package.dart';
 String renderPkgVersionsPage(
   PackagePageData data,
   List<PackageVersion> versions,
-  List<Uri> versionDownloadUrls,
-) {
+  List<Uri> versionDownloadUrls, {
+  @required Version dartSdkVersion,
+}) {
   assert(versions.length == versionDownloadUrls.length);
 
-  final stableVersionRows = [];
-  final prereleaseVersionRows = [];
+  final previewVersionRows = <String>[];
+  final stableVersionRows = <String>[];
+  final prereleaseVersionRows = <String>[];
   final latestPrereleaseVersion = versions.firstWhere(
     (v) => v.version == data.package.latestPrereleaseVersion,
     orElse: () => null,
   );
   for (int i = 0; i < versions.length; i++) {
-    final PackageVersion version = versions[i];
-    final String url = versionDownloadUrls[i].toString();
+    final version = versions[i];
+    final url = versionDownloadUrls[i].toString();
     final rowHtml = renderVersionTableRow(version, url);
     if (version.semanticVersion.isPreRelease) {
       prereleaseVersionRows.add(rowHtml);
+    } else if (dartSdkVersion != null &&
+        version.pubspec.isPreviewForCurrentSdk(dartSdkVersion)) {
+      previewVersionRows.add(rowHtml);
     } else {
       stableVersionRows.add(rowHtml);
     }
@@ -45,6 +53,14 @@ String renderPkgVersionsPage(
     htmlBlocks.add(
         '<p>The latest prerelease was <a href="#prerelease">${latestPrereleaseVersion.version}</a> '
         'on ${latestPrereleaseVersion.shortCreated}.</p>');
+  }
+  if (previewVersionRows.isNotEmpty) {
+    htmlBlocks.add(templateCache.renderTemplate('pkg/versions/index', {
+      'id': 'preview',
+      'kind': 'Preview',
+      'package': {'name': data.package.name},
+      'version_table_rows': previewVersionRows,
+    }));
   }
   if (stableVersionRows.isNotEmpty) {
     htmlBlocks.add(templateCache.renderTemplate('pkg/versions/index', {
