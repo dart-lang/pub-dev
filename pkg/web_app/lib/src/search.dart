@@ -22,7 +22,8 @@ void _setEventForKeyboardShortcut() {
       // Only trigger the input field and steal focus when nothing is focused,
       // or when the focused element is not an input element.
       final active = document.activeElement;
-      if (active == null || active is! InputElement) {
+      final isRestricted = active is InputElement || active is TextAreaElement;
+      if (!isRestricted) {
         inputElem.focus();
 
         // prevent the trigger character to get typed into the input field
