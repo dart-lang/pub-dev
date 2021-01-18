@@ -7,6 +7,7 @@ library pub_dartlang_org.model_properties;
 import 'dart:convert';
 
 import 'package:pana/pana.dart' show SdkConstraintStatus;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspek
     show HostedDependency, Pubspec;
 import 'package:yaml/yaml.dart';
@@ -87,6 +88,15 @@ class Pubspec {
     return map is Map<String, dynamic> ? map : null;
   }
 
+  /// Returns the minimal SDK version for the Dart SDK.
+  ///
+  /// Returns null if the constraint is missing or does not follow the
+  /// `>=<version>` pattern.
+  MinSdkVersion get minSdkVersion {
+    _load();
+    return MinSdkVersion.tryParse(_inner.environment['sdk']);
+  }
+
   String get sdkConstraint {
     _load();
     final environment = _json['environment'];
@@ -147,6 +157,32 @@ class Pubspec {
       throw Exception('Expected a String value in pubspec.yaml.');
     }
     return obj as String;
+  }
+}
+
+class MinSdkVersion {
+  final int major;
+  final int minor;
+  final String channel;
+
+  MinSdkVersion(this.major, this.minor, this.channel);
+
+  static MinSdkVersion tryParse(VersionConstraint constraint) {
+    if (constraint == null || constraint is! VersionRange) {
+      return null;
+    }
+    final min = (constraint as VersionRange).min;
+    if (min != null && !min.isAny && !min.isEmpty) {
+      final str = min.toString();
+      String channel;
+      if (str.endsWith('.dev')) {
+        channel = 'dev';
+      } else if (str.endsWith('.beta')) {
+        channel = 'beta';
+      }
+      return MinSdkVersion(min.major, min.minor, channel);
+    }
+    return null;
   }
 }
 

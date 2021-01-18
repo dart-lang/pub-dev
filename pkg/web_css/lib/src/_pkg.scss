@@ -35,12 +35,18 @@
 
   td, th {
     border-bottom: 1px solid #c8c8ca;
-    padding: 8px 0px;
+    padding: 8px 4px;
     text-align: left;
 
     &.version {
       font-family: $font-family-google-sans;
       font-size: 24px;
+    }
+
+    &.sdk {
+      text-align: center;
+      white-space: nowrap;
+      width: 80px;
     }
 
     &.uploaded {
@@ -74,7 +80,8 @@
     }
 
     @media (max-width: $device-mobile-max-width) {
-      &.uploaded > span.label{
+      &.sdk > span.label,
+      &.uploaded > span.label {
         display: none;
       }
     }

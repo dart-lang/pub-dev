@@ -4,6 +4,12 @@
 
 <tr data-version="{{version}}">
   <td class="version"><a href="{{& version_url}}">{{version}}</a></td>
+  <td class="sdk">
+    {{#has_sdk}}
+      {{ sdk.major }}.{{ sdk.minor }}
+      {{#sdk.has_channel}}({{ sdk.channel }}){{/sdk.has_channel}}
+    {{/has_sdk}}
+  </td>
   <td class="uploaded">{{short_created}}</td>
   <td class="documentation">
     <a href="{{& dartdocs_url}}"
