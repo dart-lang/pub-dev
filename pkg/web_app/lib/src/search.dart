@@ -19,10 +19,10 @@ void _setEventForKeyboardShortcut() {
       // Ignore keys other than the shortcut key:
       if (e.key != '/') return;
 
-      // Only trigger focus when nothing is focused, so that we don't steal
-      // focus from other elements.
+      // Only trigger the input field and steal focus when nothing is focused,
+      // or when the focused element is not an input element.
       final active = document.activeElement;
-      if (active == null || active == document.body) {
+      if (active == null || active is! InputElement) {
         inputElem.focus();
 
         // prevent the trigger character to get typed into the input field
