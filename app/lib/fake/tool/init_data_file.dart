@@ -15,7 +15,6 @@ import 'package:pub_dev/dartdoc/dartdoc_runner.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/job/job.dart';
 import 'package:pub_dev/service/services.dart';
-import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/importer.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
@@ -65,7 +64,6 @@ class FakeInitDataFileCommand extends Command {
     final state = LocalServerState();
 
     await withFakeServices(
-        configuration: Configuration.test(),
         datastore: state.datastore,
         storage: state.storage,
         fn: () async {

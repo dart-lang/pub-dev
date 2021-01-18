@@ -158,13 +158,13 @@ void main() {
       testWithServices('no escape needed', () async {
         final url = await packageBackend.downloadUrl('hydrogen', '2.0.8');
         expect(url.toString(),
-            'http://localhost:0/fake-bucket-pub/packages/hydrogen-2.0.8.tar.gz');
+            contains('/fake-bucket-pub/packages/hydrogen-2.0.8.tar.gz'));
       });
 
       testWithServices('version escape needed', () async {
         final url = await packageBackend.downloadUrl('hydrogen', '2.0.8+5');
         expect(url.toString(),
-            'http://localhost:0/fake-bucket-pub/packages/hydrogen-2.0.8%2B5.tar.gz');
+            contains('/fake-bucket-pub/packages/hydrogen-2.0.8%2B5.tar.gz'));
       });
     });
   });

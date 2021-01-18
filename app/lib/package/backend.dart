@@ -522,11 +522,7 @@ class PackageBackend {
     _logger.info('Starting semi-async upload (uuid: $guid)');
     final object = _storage.tempObjectName(guid);
     await data.pipe(_storage.bucket.write(object));
-    final finishUri = Uri(
-      path: '/api/packages/versions/newUploadFinish',
-      queryParameters: {'upload_id': guid},
-    );
-    return await publishUploadedBlob(finishUri);
+    return await publishUploadedBlob(guid);
   }
 
   Future<api.UploadInfo> startUpload(Uri redirectUrl) async {
@@ -555,13 +551,12 @@ class PackageBackend {
   }
 
   /// Finishes the upload of a package.
-  Future<PackageVersion> publishUploadedBlob(Uri uri) async {
+  Future<PackageVersion> publishUploadedBlob(String guid) async {
     final restriction = await getUploadRestrictionStatus();
     if (restriction == UploadRestrictionStatus.noUploads) {
       throw PackageRejectedException.uploadRestricted();
     }
     final user = await requireAuthenticatedUser();
-    final guid = uri.queryParameters['upload_id'];
     _logger.info('Finishing async upload (uuid: $guid)');
     _logger.info('Reading tarball from cloud storage.');
 

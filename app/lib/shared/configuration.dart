@@ -294,7 +294,7 @@ class Configuration {
   }
 
   /// Configuration for tests.
-  factory Configuration.test() {
+  factory Configuration.test({String storageBaseUrl}) {
     return Configuration(
       projectId: 'dartlang-pub-test',
       packageBucketName: 'fake-bucket-pub',
@@ -303,7 +303,7 @@ class Configuration {
       searchSnapshotBucketName: 'fake-bucket-search',
       backupSnapshotBucketName: 'fake-bucket-backup',
       searchServicePrefix: 'http://localhost:0',
-      storageBaseUrl: 'http://localhost:0',
+      storageBaseUrl: storageBaseUrl ?? 'http://localhost:0',
       pubClientAudience: null,
       pubSiteAudience: null,
       adminAudience: null,

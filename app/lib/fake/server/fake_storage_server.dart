@@ -18,14 +18,29 @@ final _logger = Logger('storage');
 
 class FakeStorageServer {
   final MemStorage _storage;
+  IOServer _server;
   FakeStorageServer(this._storage);
 
+  int get port => _server?.server?.port;
+
   Future<void> run({int port = 8081}) async {
-    final server = await IOServer.bind('localhost', port);
-    serveRequests(server.server, _handler);
-    _logger.info('Storage server running on port $port');
+    await start(port: port);
     await ProcessSignal.sigint.watch().first;
-    await server.close();
+    await close();
+  }
+
+  Future<void> start({int port}) async {
+    if (_server != null) {
+      throw StateError('Server is already running.');
+    }
+    _server = await IOServer.bind('localhost', port ?? 0);
+    serveRequests(_server.server, _handler);
+    _logger.info('Storage _server running on port ${this.port}');
+  }
+
+  Future<void> close() async {
+    await _server.close();
+    _server = null;
   }
 
   Future<Response> _handler(Request request) async {
