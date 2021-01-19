@@ -6,9 +6,17 @@
 library gtag_js;
 
 import 'package:js/js.dart';
+import 'package:meta/meta.dart';
 
 @JS('gtag')
 external dynamic _gtag(String type, String action, Map<String, dynamic> data);
 
-void gtagEvent(String action, Map<String, dynamic> data) =>
-    _gtag('event', action, data);
+void gtagEvent(
+  String action, {
+  @required String category,
+  @required String label,
+}) =>
+    _gtag('event', action, {
+      'event_category': category,
+      'event_label': label,
+    });

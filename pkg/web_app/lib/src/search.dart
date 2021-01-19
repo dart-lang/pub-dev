@@ -32,10 +32,11 @@ void _setEventForKeyboardShortcut() {
         e.preventDefault();
 
         // notify analytics
-        gtagEvent('keyboard-shortcut-search', {
-          'event_category': 'keyboard-shortcut',
-          'event_label': 'search',
-        });
+        gtagEvent(
+          'keyboard-shortcut-search',
+          category: 'keyboard-shortcut',
+          label: 'search',
+        );
       }
     });
   }
