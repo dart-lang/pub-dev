@@ -18,6 +18,7 @@ import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart';
+import '../../tool/utils/dart_sdk_version.dart';
 
 import '../request_context.dart';
 import '../templates/misc.dart';
@@ -81,7 +82,9 @@ Future<shelf.Response> packageVersionsListHandler(
         return packageBackend.downloadUrl(packageName, version.version);
       }).toList());
 
-      return renderPkgVersionsPage(data, versions, versionDownloadUrls);
+      final dartSdkVersion = await getDartSdkVersion();
+      return renderPkgVersionsPage(data, versions, versionDownloadUrls,
+          dartSdkVersion: dartSdkVersion.semanticVersion);
     },
     cacheEntry: cache.uiPackageVersions(packageName),
   );
