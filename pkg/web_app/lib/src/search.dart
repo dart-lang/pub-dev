@@ -4,6 +4,8 @@
 
 import 'dart:html';
 
+import 'package:web_app/src/gtag_js.dart';
+
 void setupSearch() {
   _setEventForKeyboardShortcut();
   _setEventForSearchInput();
@@ -28,6 +30,12 @@ void _setEventForKeyboardShortcut() {
 
         // prevent the trigger character to get typed into the input field
         e.preventDefault();
+
+        // notify analytics
+        gtagEvent('keyboard-shortcut-search', {
+          'event_category': 'keyboard-shortcut',
+          'event_label': 'search',
+        });
       }
     });
   }
