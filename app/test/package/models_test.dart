@@ -154,15 +154,16 @@ class _PublishSequence {
   final _p = Package()
     ..parentKey = Key.emptyKey(Partition(null))
     ..id = foobarPkgName
-    ..name = foobarPkgName;
+    ..name = foobarPkgName
+    ..created = DateTime(2021, 01, 29);
 
   void publish(String version, {int sdk = 0}) {
     final minSdk = sdk > 0 ? _futureSdk : (sdk < 0 ? _pastSdk : _currentSdk);
     final pv = PackageVersion()
-      ..parentKey = foobarPkgKey
+      ..parentKey = _p.key
       ..id = version
       ..version = version
-      ..created = DateTime(2021, 01, 29).add(Duration(minutes: _counter++))
+      ..created = _p.created.add(Duration(minutes: _counter++))
       ..pubspec = Pubspec.fromJson({
         'name': foobarPkgName,
         'version': version,
