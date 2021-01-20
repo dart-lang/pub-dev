@@ -175,7 +175,8 @@ class Package extends db.ExpandoModel<String> {
   bool get showPrereleaseVersion {
     if (latestPrereleaseVersion == null) return false;
     return latestSemanticVersion < latestPrereleaseSemanticVersion &&
-        latestPreviewSemanticVersion < latestPrereleaseSemanticVersion;
+        (latestPreviewSemanticVersion == null ||
+            latestPreviewSemanticVersion < latestPrereleaseSemanticVersion);
   }
 
   bool get showPreviewVersion {
