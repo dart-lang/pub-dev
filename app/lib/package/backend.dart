@@ -264,7 +264,6 @@ class PackageBackend {
     // ordered version list by publish date
     final versions =
         await db.query<PackageVersion>(ancestorKey: pkgKey).run().toList();
-    versions.sort((a, b) => a.created.compareTo(b.created));
 
     return await withRetryTransaction(db, (tx) async {
       final p = await tx.lookupOrNull<Package>(pkgKey);
