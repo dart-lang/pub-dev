@@ -15,8 +15,8 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' show runProc;
 import 'package:path/path.dart' as p;
-import 'package:pub_dev/package/overrides.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
@@ -38,9 +38,11 @@ import '../shared/redis_cache.dart' show cache;
 import '../shared/storage.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
+import '../tool/utils/dart_sdk_version.dart';
 import 'model_properties.dart';
 import 'models.dart';
 import 'name_tracker.dart';
+import 'overrides.dart';
 import 'upload_signer_service.dart';
 
 // The maximum stored length of `README.md` and other user-provided file content
@@ -247,6 +249,79 @@ class PackageBackend {
     InvalidInputException.checkSemanticVersion(version);
     version = canonicalizeVersion(version);
     return _storage.downloadUrl(package, version);
+  }
+
+  /// Updates the stable, prerelease and preview versions of [package].
+  ///
+  /// Returns true if the values did change.
+  Future<bool> updatePackageVersions(
+    String package, {
+    Version dartSdkVersion,
+  }) async {
+    final pkgKey = db.emptyKey.append(Package, id: package);
+    dartSdkVersion ??= (await getDartSdkVersion()).semanticVersion;
+
+    // ordered version list by publish date
+    final versions =
+        await db.query<PackageVersion>(ancestorKey: pkgKey).run().toList();
+
+    return await withRetryTransaction(db, (tx) async {
+      final p = await tx.lookupOrNull<Package>(pkgKey);
+      if (p == null) {
+        throw NotFoundException.resource('package "$package"');
+      }
+
+      final oldStableVersion = p.latestSemanticVersion;
+      final oldPrereleaseVersion = p.latestPrereleaseSemanticVersion;
+      final oldPreviewVersion = p.latestPreviewSemanticVersion;
+
+      // reset field values
+      p.latestVersionKey = null;
+      p.latestPrereleaseVersionKey = null;
+      p.latestPreviewVersionKey = null;
+
+      // update fields
+      for (final pv in versions) {
+        p.updateVersion(pv, dartSdkVersion: dartSdkVersion);
+      }
+
+      // shortcut if there was no change
+      final unchanged = oldStableVersion == p.latestSemanticVersion &&
+          oldPrereleaseVersion == p.latestPrereleaseSemanticVersion &&
+          oldPreviewVersion == p.latestPreviewSemanticVersion;
+      if (unchanged) {
+        return false;
+      }
+
+      // sanity check changes
+      if (oldStableVersion.compareTo(p.latestSemanticVersion) > 0 ||
+          oldPrereleaseVersion.compareTo(p.latestPrereleaseSemanticVersion) >
+              0 ||
+          oldPreviewVersion.compareTo(p.latestPreviewSemanticVersion) > 0) {
+        _logger.severe(
+            'Version update sanity check failed for package "$package": '
+            '$oldStableVersion -> ${p.latestVersion} / '
+            '$oldPrereleaseVersion -> ${p.latestPrereleaseVersion} / '
+            '$oldPreviewVersion -> ${p.latestPreviewVersion}');
+        return false;
+      }
+
+      tx.insert(p);
+      return true;
+    });
+  }
+
+  /// Updates the stable, prerelase and preview versions of all package.
+  ///
+  /// Return the number of updated packages.
+  Future<int> updateAllPackageVersions({Version dartSdkVersion}) async {
+    var count = 0;
+    await for (final p in db.query<Package>().run()) {
+      final updated =
+          await updatePackageVersions(p.name, dartSdkVersion: dartSdkVersion);
+      if (updated) count++;
+    }
+    return count;
   }
 
   /// Updates [options] on [package].
@@ -596,6 +671,8 @@ class PackageBackend {
           newVersion.package, _maxVersionsPerPackage);
     }
 
+    final currentDartSdk = await getDartSdkVersion();
+
     Package package;
     String prevLatestStableVersion;
     String prevLatestPrereleaseVersion;
@@ -648,7 +725,8 @@ class PackageBackend {
       newVersion.publisherId = package.publisherId;
 
       // Keep the latest version in the package object up-to-date.
-      package.updateVersion(newVersion);
+      package.updateVersion(newVersion,
+          dartSdkVersion: currentDartSdk.semanticVersion);
       package.updated = DateTime.now().toUtc();
 
       _logger.info(

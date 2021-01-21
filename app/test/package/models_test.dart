@@ -2,113 +2,96 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/model_properties.dart';
+import 'package:pub_dev/shared/datastore.dart';
 
 import '../shared/test_models.dart';
 
 void main() {
   group('models', () {
     group('Package', () {
-      test('only dev version', () {
-        final devVersion = foobarPkgKey.append(PackageVersion, id: '0.0.1-dev');
-        final Package p = Package()
-          ..latestVersionKey = devVersion
-          ..latestPrereleaseVersionKey = devVersion;
-        p.updateVersion(PackageVersion()
-          ..parentKey = foobarPkgKey
-          ..id = '0.2.0-dev'
-          ..version = '0.2.0-dev');
-        expect(p.latestVersion, '0.2.0-dev');
-        expect(p.latestPrereleaseVersion, '0.2.0-dev');
+      test('only prerelease version', () {
+        final ps = _PublishSequence();
+        ps.publish('0.0.1-dev');
+        ps.verify('0.0.1-dev');
+
+        // newer prerelease
+        ps.publish('0.2.0-dev');
+        ps.verify('0.2.0-dev');
+
+        // earlier prerelease
+        ps.publish('0.1.0-dev');
+        ps.verify('0.2.0-dev');
       });
 
-      test('update old with only dev version', () {
-        final devVersion = foobarPkgKey.append(PackageVersion, id: '1.0.0-dev');
-        final Package p = Package()
-          ..latestVersionKey = devVersion
-          ..latestPrereleaseVersionKey = devVersion;
-        p.updateVersion(PackageVersion()
-          ..parentKey = foobarPkgKey
-          ..id = '0.2.1-dev'
-          ..version = '0.2.1-dev');
-        expect(p.latestVersion, '1.0.0-dev');
-        expect(p.latestPrereleaseVersion, '1.0.0-dev');
+      test('stable after prerelease', () {
+        final ps = _PublishSequence();
+        ps.publish('1.0.0-dev');
+        ps.verify('1.0.0-dev');
+
+        // stable but earlier
+        ps.publish('0.2.0+2');
+        ps.verify('0.2.0+2', prerelease: '1.0.0-dev', showPrerelease: true);
+
+        // release 1.0
+        ps.publish('1.0.0');
+        ps.verify('1.0.0');
+
+        // update old version
+        ps.publish('0.2.0+2');
+        ps.verify('1.0.0');
+
+        // verify date
+        expect(ps._p.lastVersionPublished, isNotNull);
+        expect(ps._p.lastVersionPublished.isAfter(ps._p.created), isTrue);
       });
 
-      test('stable after dev', () {
-        final devVersion = foobarPkgKey.append(PackageVersion, id: '1.0.0-dev');
-        final Package p = Package()
-          ..latestVersionKey = devVersion
-          ..latestPrereleaseVersionKey = devVersion;
-        p.updateVersion(PackageVersion()
-          ..parentKey = foobarPkgKey
-          ..id = '0.2.0'
-          ..version = '0.2.0');
-        expect(p.latestVersion, '0.2.0');
-        expect(p.latestPrereleaseVersion, '1.0.0-dev');
+      test('preview', () {
+        final ps = _PublishSequence();
+        // stable
+        ps.publish('1.0.0');
+        ps.verify('1.0.0');
+
+        // displaying as prerelease
+        ps.publish('1.1.0-dev', sdk: 1);
+        ps.verify(
+          '1.0.0',
+          prerelease: '1.1.0-dev',
+          preview: '1.0.0',
+          showPrerelease: true,
+        );
+
+        // stable preview
+        ps.publish('1.2.0', sdk: 1);
+        ps.verify(
+          '1.0.0',
+          prerelease: '1.2.0',
+          preview: '1.2.0',
+          showPreview: true,
+        );
       });
 
-      test('new stable version', () {
-        final Package p = Package()
-          ..latestVersionKey = foobarStablePVKey
-          ..latestPrereleaseVersionKey = foobarStablePVKey;
-        expect(p.latestVersion, '0.1.1+5');
-        p.updateVersion(PackageVersion()
-          ..parentKey = foobarPkgKey
-          ..id = '0.2.0'
-          ..version = '0.2.0');
-        expect(p.latestVersion, '0.2.0');
-        expect(p.latestPrereleaseVersion, '0.2.0');
-      });
+      test('prerelease and preview', () {
+        final ps = _PublishSequence();
+        ps.publish('1.0.0');
 
-      test('update old stable version', () {
-        final Package p = Package()
-          ..latestVersionKey = foobarStablePVKey
-          ..latestPrereleaseVersionKey = foobarStablePVKey;
-        expect(p.latestVersion, '0.1.1+5');
-        p.updateVersion(PackageVersion()
-          ..parentKey = foobarPkgKey
-          ..id = '0.1.0'
-          ..version = '0.1.0');
-        expect(p.latestVersion, '0.1.1+5');
-        expect(p.latestPrereleaseVersion, '0.1.1+5');
-      });
+        // prerelease
+        ps.publish('2.0.0-dev');
+        ps.verify('1.0.0', prerelease: '2.0.0-dev', showPrerelease: true);
 
-      test('new dev version', () {
-        final Package p = Package()
-          ..latestVersionKey = foobarStablePVKey
-          ..latestPrereleaseVersionKey = foobarStablePVKey;
-        expect(p.latestVersion, '0.1.1+5');
-        p.updateVersion(PackageVersion()
-          ..parentKey = foobarPkgKey
-          ..id = '1.0.0-dev'
-          ..version = '1.0.0-dev');
-        expect(p.latestVersion, '0.1.1+5');
-        expect(p.latestPrereleaseVersion, '1.0.0-dev');
-      });
-
-      test('new dev version, then a stable patch', () {
-        final Package p = Package()
-          ..latestVersionKey = foobarStablePVKey
-          ..latestPrereleaseVersionKey = foobarStablePVKey;
-        expect(p.latestVersion, '0.1.1+5');
-
-        p.updateVersion(PackageVersion()
-          ..parentKey = foobarPkgKey
-          ..id = '1.0.0-dev'
-          ..version = '1.0.0-dev');
-        expect(p.latestVersion, '0.1.1+5');
-        expect(p.latestPrereleaseVersion, '1.0.0-dev');
-
-        p.updateVersion(PackageVersion()
-          ..parentKey = foobarPkgKey
-          ..id = '0.2.0'
-          ..version = '0.2.0');
-        expect(p.latestVersion, '0.2.0');
-        expect(p.latestPrereleaseVersion, '1.0.0-dev');
+        // preview
+        ps.publish('1.2.0', sdk: 1);
+        ps.verify(
+          '1.0.0',
+          preview: '1.2.0',
+          prerelease: '2.0.0-dev',
+          showPrerelease: true,
+          showPreview: true,
+        );
       });
     });
   });
@@ -151,4 +134,59 @@ version: 1.0.9
       });
     });
   });
+}
+
+class _PublishSequence {
+  final Version _pastSdk;
+  final Version _currentSdk;
+  final Version _futureSdk;
+
+  int _counter = 0;
+
+  _PublishSequence({
+    String pastSdk = '2.7.0',
+    String currentSdk = '2.10.4',
+    String nextSdk = '2.12.0',
+  })  : _pastSdk = Version.parse(pastSdk),
+        _currentSdk = Version.parse(currentSdk),
+        _futureSdk = Version.parse(nextSdk);
+
+  final _p = Package()
+    ..parentKey = Key.emptyKey(Partition(null))
+    ..id = foobarPkgName
+    ..name = foobarPkgName
+    ..created = DateTime(2021, 01, 29);
+
+  void publish(String version, {int sdk = 0}) {
+    final minSdk = sdk > 0 ? _futureSdk : (sdk < 0 ? _pastSdk : _currentSdk);
+    final pv = PackageVersion()
+      ..parentKey = _p.key
+      ..id = version
+      ..version = version
+      ..created = _p.created.add(Duration(minutes: _counter++))
+      ..pubspec = Pubspec.fromJson({
+        'name': foobarPkgName,
+        'version': version,
+        'environment': {
+          'sdk': '>=$minSdk <3.0.0',
+        },
+      });
+    _p.updateVersion(pv, dartSdkVersion: _currentSdk);
+  }
+
+  void verify(
+    String stable, {
+    String preview,
+    String prerelease,
+    bool showPrerelease = false,
+    bool showPreview = false,
+  }) {
+    preview ??= stable;
+    prerelease ??= stable;
+    expect(_p.latestVersion, stable);
+    expect(_p.latestPreviewVersion, preview);
+    expect(_p.latestPrereleaseVersion, prerelease);
+    expect(_p.showPrereleaseVersion, showPrerelease);
+    expect(_p.showPreviewVersion, showPreview);
+  }
 }

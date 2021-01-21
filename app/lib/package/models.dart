@@ -60,6 +60,11 @@ class Package extends db.ExpandoModel<String> {
   @db.IntProperty(required: true)
   int likes;
 
+  /// [DateTime] when the most recently uploaded [PackageVersion] was published.
+  /// TODO: set required: true after backfill was done.
+  @db.DateTimeProperty(required: false)
+  DateTime lastVersionPublished;
+
   /// Key referencing the [PackageVersion] for the latest version of this package, ordered by priority order of
   /// semantic versioning, hence, deprioritizing prereleases.
   @db.ModelKeyProperty(propertyName: 'latest_version', required: true)
@@ -80,6 +85,18 @@ class Package extends db.ExpandoModel<String> {
   /// DateTime at which point the `PackageVersion` referenced in [latestPrereleaseVersionKey] was published.
   @db.DateTimeProperty()
   DateTime latestPrereleasePublished;
+
+  /// Reference to latest version of this package ordered by semantic versioning,
+  /// filtered for versions that depend on an SDK that will be published in the
+  /// future.
+  ///
+  /// Note: the version may be stable or prerelease.
+  @db.ModelKeyProperty()
+  db.Key latestPreviewVersionKey;
+
+  /// DateTime at which point the `PackageVersion` referenced in [latestPreviewVersionKey] was published.
+  @db.DateTimeProperty()
+  DateTime latestPreviewPublished;
 
   /// The publisher id (null, if the package does not have a publisher).
   @db.StringProperty()
@@ -144,14 +161,27 @@ class Package extends db.ExpandoModel<String> {
   String get latestPrereleaseVersion =>
       latestPrereleaseVersionKey?.id as String;
 
+  String get latestPreviewVersion => latestPreviewVersionKey?.id as String;
+
   Version get latestPrereleaseSemanticVersion =>
       latestPrereleaseVersionKey == null
           ? null
           : Version.parse(latestPrereleaseVersion);
 
+  Version get latestPreviewSemanticVersion => latestPreviewVersionKey == null
+      ? null
+      : Version.parse(latestPreviewVersion);
+
   bool get showPrereleaseVersion {
     if (latestPrereleaseVersion == null) return false;
-    return latestSemanticVersion < latestPrereleaseSemanticVersion;
+    return latestSemanticVersion < latestPrereleaseSemanticVersion &&
+        (latestPreviewSemanticVersion == null ||
+            latestPreviewSemanticVersion < latestPrereleaseSemanticVersion);
+  }
+
+  bool get showPreviewVersion {
+    if (latestPreviewVersion == null) return false;
+    return latestSemanticVersion < latestPreviewSemanticVersion;
   }
 
   String get shortLatestPrereleasePublished {
@@ -185,14 +215,25 @@ class Package extends db.ExpandoModel<String> {
     uploaders.remove(userId);
   }
 
-  /// Updates latest stable and dev version keys with the new version.
-  void updateVersion(PackageVersion pv) {
-    final Version newVersion = pv.semanticVersion;
+  /// Updates latest stable, prerelease and preview versions and published
+  /// timestamp with the new version.
+  void updateVersion(
+    PackageVersion pv, {
+    @required Version dartSdkVersion,
+  }) {
+    final newVersion = pv.semanticVersion;
 
     if (latestVersionKey == null ||
-        isNewer(latestSemanticVersion, newVersion, pubSorted: true)) {
+        (isNewer(latestSemanticVersion, newVersion, pubSorted: true) &&
+            !pv.pubspec.isPreviewForCurrentSdk(dartSdkVersion))) {
       latestVersionKey = pv.key;
       latestPublished = pv.created;
+    }
+
+    if (latestPreviewVersionKey == null ||
+        isNewer(latestPreviewSemanticVersion, newVersion, pubSorted: true)) {
+      latestPreviewVersionKey = pv.key;
+      latestPreviewPublished = pv.created;
     }
 
     if (latestPrereleaseVersionKey == null ||
@@ -200,6 +241,11 @@ class Package extends db.ExpandoModel<String> {
             pubSorted: false)) {
       latestPrereleaseVersionKey = pv.key;
       latestPrereleasePublished = pv.created;
+    }
+
+    if (lastVersionPublished == null ||
+        lastVersionPublished.isBefore(pv.created)) {
+      lastVersionPublished = pv.created;
     }
   }
 

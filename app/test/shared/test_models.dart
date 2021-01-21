@@ -462,7 +462,7 @@ PkgBundle generateBundle(
       ..libraries = ['lib/$name.dart']
       ..uploader = uploader.userId
       ..publisherId = publisherId;
-    package.updateVersion(version);
+    package.updateVersion(version, dartSdkVersion: Version(2, 10, 4));
     versions.add(version);
     infos.add(_pvToInfo(version, assets: [
       if (readme != null) AssetKind.readme,

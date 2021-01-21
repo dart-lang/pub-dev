@@ -39,6 +39,9 @@ class Pubspec {
       pubspek.Pubspec.parse(yamlString, lenient: true),
       json.encode(_loadYaml(yamlString)));
 
+  factory Pubspec.fromJson(Map<String, dynamic> map) =>
+      Pubspec._(pubspek.Pubspec.fromJson(map, lenient: true), json.encode(map));
+
   Map<String, dynamic> get asJson {
     _load();
     return _json;

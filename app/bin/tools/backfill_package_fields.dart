@@ -9,6 +9,7 @@ import 'package:pool/pool.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/service/entrypoint/tools.dart';
 import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/tool/utils/dart_sdk_version.dart';
 
 final _argParser = ArgParser()
   ..addOption('concurrency',
@@ -26,6 +27,7 @@ Future main(List<String> args) async {
     print('Ensures Package.assignedTags is a list.');
     print('Ensures Package.latestPublished is a DateTime.');
     print('Ensures Package.latestPrereleasePublished is a DateTime.');
+    print('Ensures Package.lastVersionPublished is a DateTime.');
     print(_argParser.usage);
     return;
   }
@@ -54,10 +56,12 @@ Future<void> _backfillPackageFields(Package p) async {
       p.isWithheld != null &&
       p.assignedTags != null &&
       p.latestPublished != null &&
-      p.latestPrereleasePublished != null) {
+      p.latestPrereleasePublished != null &&
+      p.lastVersionPublished != null) {
     return;
   }
   print('Backfilling properties on package ${p.name}');
+  final currentDartSdk = await getDartSdkVersion();
   final latestVersion =
       await dbService.lookupValue<PackageVersion>(p.latestVersionKey);
   final latestPrereleaseVersion =
@@ -73,8 +77,13 @@ Future<void> _backfillPackageFields(Package p) async {
       package.isUnlisted ??= false;
       package.isWithheld ??= false;
       package.assignedTags ??= [];
-      package.latestPublished = latestVersion.created;
-      package.latestPrereleasePublished = latestPrereleaseVersion.created;
+      package.latestPublished ??= latestVersion.created;
+      package.latestPrereleasePublished ??= latestPrereleaseVersion.created;
+      // updates lastVersionPublished
+      package.updateVersion(latestVersion,
+          dartSdkVersion: currentDartSdk.semanticVersion);
+      package.updateVersion(latestPrereleaseVersion,
+          dartSdkVersion: currentDartSdk.semanticVersion);
       tx.insert(package);
     });
     print('Updated properties on package ${p.name}.');

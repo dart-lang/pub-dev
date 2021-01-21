@@ -25,6 +25,7 @@ import '../shared/configuration.dart';
 import '../shared/datastore.dart';
 import '../shared/exceptions.dart';
 import '../shared/tags.dart';
+import '../tool/utils/dart_sdk_version.dart';
 
 final _logger = Logger('pub.admin.backend');
 final _continuationCodec = utf8.fuse(hex);
@@ -381,6 +382,7 @@ class AdminBackend {
     _logger.info('${caller.userId} (${caller.email}) initiated the delete '
         'of package $packageName $version');
 
+    final currentDartSdk = await getDartSdkVersion();
     await withRetryTransaction(_db, (tx) async {
       final Key packageKey = _db.emptyKey.append(Package, id: packageName);
       final package = (await tx.lookup([packageKey])).first as Package;
@@ -405,16 +407,22 @@ class AdminBackend {
       bool updatePackage = false;
       if (package != null && package.latestVersion == version) {
         package.latestVersionKey = null;
+        package.latestPublished = null;
         updatePackage = true;
       }
       if (package != null && package.latestPrereleaseVersion == version) {
         package.latestPrereleaseVersionKey = null;
+        package.latestPrereleasePublished = null;
         updatePackage = true;
       }
+      if (package != null && package.latestPreviewVersion == version) {
+        package.latestPreviewVersionKey = null;
+        package.latestPreviewPublished = null;
+      }
       if (updatePackage) {
-        versions
-            .where((v) => v.version != version)
-            .forEach(package.updateVersion);
+        package.lastVersionPublished = null;
+        versions.where((v) => v.version != version).forEach((v) => package
+            .updateVersion(v, dartSdkVersion: currentDartSdk.semanticVersion));
         package.updated = DateTime.now().toUtc();
         tx.insert(package);
       }
