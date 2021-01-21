@@ -44,8 +44,8 @@ class HeadlessEnv {
       if (File(binary).existsSync()) return binary;
     }
 
-    // sanity check for travis
-    if (Platform.environment['TRAVIS'] == 'true') {
+    // sanity check for CI
+    if (Platform.environment['CI'] == 'true') {
       throw StateError('Could not detect chrome binary while running in CI.');
     }
 
