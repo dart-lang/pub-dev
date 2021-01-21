@@ -3,11 +3,7 @@ self_validate: smoke_test
 pub_action: get
 
 github:
-  on:
-    push:
-    pull_request:
-    schedule:
-      - cron: "0 0 * * 0"
+  cron: "0 0 * * 0"
 
 merge_stages:
   - smoke_test
