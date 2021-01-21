@@ -9,13 +9,5 @@ github:
     schedule:
       - cron: "0 0 * * 0"
 
-travis:
-  services:
-    - redis-server
-  addons:
-    chrome: stable
-    packages:
-      - gnu-sed
-
 merge_stages:
   - smoke_test
