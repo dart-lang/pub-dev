@@ -1,4 +1,4 @@
-# Created with package:mono_repo v3.4.2
+# Created with package:mono_repo v3.4.6
 name: Dart CI
 on:
   push:
@@ -24,13 +24,13 @@ jobs:
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v0.3
         with:
-          release-channel: stable
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: stable
+      - id: checkout
+        uses: actions/checkout@v2
       - name: mono_repo self validate
-        run: pub global activate mono_repo 3.4.2
+        run: pub global activate mono_repo 3.4.6
       - name: mono_repo self validate
         run: pub global run mono_repo generate --validate
   job_002:
@@ -47,142 +47,152 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v0.3
         with:
-          release-channel: stable
-          version: "2.10.0"
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: "2.10.0"
+      - id: checkout
+        uses: actions/checkout@v2
       - id: pkg_web_css_pub_get
         name: "pkg/web_css; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/web_css
         run: pub get --no-precompile
       - name: "pkg/web_css; dartfmt -n --set-exit-if-changed ."
-        if: "steps.pkg_web_css_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_web_css_pub_get.conclusion == 'success'"
         working-directory: pkg/web_css
         run: dartfmt -n --set-exit-if-changed .
       - name: "pkg/web_css; dartanalyzer --fatal-infos --fatal-warnings ."
-        if: "steps.pkg_web_css_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_web_css_pub_get.conclusion == 'success'"
         working-directory: pkg/web_css
         run: dartanalyzer --fatal-infos --fatal-warnings .
       - id: pkg_client_data_pub_get
         name: "pkg/client_data; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/client_data
         run: pub get --no-precompile
       - name: "pkg/client_data; dartfmt -n --set-exit-if-changed ."
-        if: "steps.pkg_client_data_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_client_data_pub_get.conclusion == 'success'"
         working-directory: pkg/client_data
         run: dartfmt -n --set-exit-if-changed .
       - name: "pkg/client_data; dartanalyzer --fatal-infos --fatal-warnings ."
-        if: "steps.pkg_client_data_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_client_data_pub_get.conclusion == 'success'"
         working-directory: pkg/client_data
         run: dartanalyzer --fatal-infos --fatal-warnings .
       - id: pkg__popularity_pub_get
         name: "pkg/_popularity; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/_popularity
         run: pub get --no-precompile
       - name: "pkg/_popularity; dartfmt -n --set-exit-if-changed ."
-        if: "steps.pkg__popularity_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg__popularity_pub_get.conclusion == 'success'"
         working-directory: pkg/_popularity
         run: dartfmt -n --set-exit-if-changed .
       - name: "pkg/_popularity; dartanalyzer --fatal-infos --fatal-warnings ."
-        if: "steps.pkg__popularity_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg__popularity_pub_get.conclusion == 'success'"
         working-directory: pkg/_popularity
         run: dartanalyzer --fatal-infos --fatal-warnings .
       - id: pkg_api_builder_pub_get
         name: "pkg/api_builder; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/api_builder
         run: pub get --no-precompile
       - name: "pkg/api_builder; dartfmt -n --set-exit-if-changed ."
-        if: "steps.pkg_api_builder_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_api_builder_pub_get.conclusion == 'success'"
         working-directory: pkg/api_builder
         run: dartfmt -n --set-exit-if-changed .
       - name: "pkg/api_builder; dartanalyzer --fatal-infos --fatal-warnings ."
-        if: "steps.pkg_api_builder_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_api_builder_pub_get.conclusion == 'success'"
         working-directory: pkg/api_builder
         run: dartanalyzer --fatal-infos --fatal-warnings .
       - id: app_pub_get
         name: "app; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
         run: pub get --no-precompile
       - name: "app; dartfmt -n --set-exit-if-changed ."
-        if: "steps.app_pub_get.conclusion == 'success'"
+        if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
         run: dartfmt -n --set-exit-if-changed .
       - name: "app; dartanalyzer --fatal-infos --fatal-warnings ."
-        if: "steps.app_pub_get.conclusion == 'success'"
+        if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
         run: dartanalyzer --fatal-infos --fatal-warnings .
       - id: pkg_fake_gcloud_pub_get
         name: "pkg/fake_gcloud; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/fake_gcloud
         run: pub get --no-precompile
       - name: "pkg/fake_gcloud; dartfmt -n --set-exit-if-changed ."
-        if: "steps.pkg_fake_gcloud_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_fake_gcloud_pub_get.conclusion == 'success'"
         working-directory: pkg/fake_gcloud
         run: dartfmt -n --set-exit-if-changed .
       - name: "pkg/fake_gcloud; dartanalyzer --fatal-infos --fatal-warnings ."
-        if: "steps.pkg_fake_gcloud_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_fake_gcloud_pub_get.conclusion == 'success'"
         working-directory: pkg/fake_gcloud
         run: dartanalyzer --fatal-infos --fatal-warnings .
       - id: pkg_pub_dartdoc_pub_get
         name: "pkg/pub_dartdoc; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/pub_dartdoc
         run: pub get --no-precompile
       - name: "pkg/pub_dartdoc; dartfmt -n --set-exit-if-changed ."
-        if: "steps.pkg_pub_dartdoc_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_pub_dartdoc_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_dartdoc
         run: dartfmt -n --set-exit-if-changed .
       - name: "pkg/pub_dartdoc; dartanalyzer --fatal-infos --fatal-warnings ."
-        if: "steps.pkg_pub_dartdoc_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_pub_dartdoc_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_dartdoc
         run: dartanalyzer --fatal-infos --fatal-warnings .
       - id: pkg_pub_dartdoc_data_pub_get
         name: "pkg/pub_dartdoc_data; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/pub_dartdoc_data
         run: pub get --no-precompile
       - name: "pkg/pub_dartdoc_data; dartfmt -n --set-exit-if-changed ."
-        if: "steps.pkg_pub_dartdoc_data_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_pub_dartdoc_data_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_dartdoc_data
         run: dartfmt -n --set-exit-if-changed .
       - name: "pkg/pub_dartdoc_data; dartanalyzer --fatal-infos --fatal-warnings ."
-        if: "steps.pkg_pub_dartdoc_data_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_pub_dartdoc_data_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_dartdoc_data
         run: dartanalyzer --fatal-infos --fatal-warnings .
       - id: pkg_pub_package_reader_pub_get
         name: "pkg/pub_package_reader; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/pub_package_reader
         run: pub get --no-precompile
       - name: "pkg/pub_package_reader; dartfmt -n --set-exit-if-changed ."
-        if: "steps.pkg_pub_package_reader_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_pub_package_reader_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_package_reader
         run: dartfmt -n --set-exit-if-changed .
       - name: "pkg/pub_package_reader; dartanalyzer --fatal-infos --fatal-warnings ."
-        if: "steps.pkg_pub_package_reader_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_pub_package_reader_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_package_reader
         run: dartanalyzer --fatal-infos --fatal-warnings .
       - id: pkg_pub_validations_pub_get
         name: "pkg/pub_validations; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/pub_validations
         run: pub get --no-precompile
       - name: "pkg/pub_validations; dartfmt -n --set-exit-if-changed ."
-        if: "steps.pkg_pub_validations_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_pub_validations_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_validations
         run: dartfmt -n --set-exit-if-changed .
       - name: "pkg/pub_validations; dartanalyzer --fatal-infos --fatal-warnings ."
-        if: "steps.pkg_pub_validations_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_pub_validations_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_validations
         run: dartanalyzer --fatal-infos --fatal-warnings .
       - id: pkg_web_app_pub_get
         name: "pkg/web_app; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/web_app
         run: pub get --no-precompile
       - name: "pkg/web_app; dartfmt -n --set-exit-if-changed ."
-        if: "steps.pkg_web_app_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_web_app_pub_get.conclusion == 'success'"
         working-directory: pkg/web_app
         run: dartfmt -n --set-exit-if-changed .
       - name: "pkg/web_app; dartanalyzer --fatal-infos --fatal-warnings ."
-        if: "steps.pkg_web_app_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_web_app_pub_get.conclusion == 'success'"
         working-directory: pkg/web_app
         run: dartanalyzer --fatal-infos --fatal-warnings .
   job_003:
@@ -199,22 +209,22 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v0.3
         with:
-          release-channel: stable
-          version: "2.10.0"
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: "2.10.0"
+      - id: checkout
+        uses: actions/checkout@v2
       - id: pkg_pub_integration_pub_get
         name: "pkg/pub_integration; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/pub_integration
         run: pub get --no-precompile
       - name: "pkg/pub_integration; dartfmt -n --set-exit-if-changed ."
-        if: "steps.pkg_pub_integration_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_pub_integration_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_integration
         run: dartfmt -n --set-exit-if-changed .
       - name: "pkg/pub_integration; dartanalyzer --fatal-infos --fatal-warnings bin/ lib/"
-        if: "steps.pkg_pub_integration_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_pub_integration_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_integration
         run: dartanalyzer --fatal-infos --fatal-warnings bin/ lib/
   job_004:
@@ -231,18 +241,18 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v0.3
         with:
-          release-channel: stable
-          version: "2.10.0"
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: "2.10.0"
+      - id: checkout
+        uses: actions/checkout@v2
       - id: pkg_web_app_pub_get
         name: "pkg/web_app; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/web_app
         run: pub get --no-precompile
       - name: pkg/web_app; ./build.sh
-        if: "steps.pkg_web_app_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_web_app_pub_get.conclusion == 'success'"
         working-directory: pkg/web_app
         run: ./build.sh
     needs:
@@ -263,18 +273,18 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v0.3
         with:
-          release-channel: stable
-          version: "2.10.0"
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: "2.10.0"
+      - id: checkout
+        uses: actions/checkout@v2
       - id: pkg_web_css_pub_get
         name: "pkg/web_css; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/web_css
         run: pub get --no-precompile
       - name: pkg/web_css; ./build.sh
-        if: "steps.pkg_web_css_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_web_css_pub_get.conclusion == 'success'"
         working-directory: pkg/web_css
         run: ./build.sh
     needs:
@@ -295,18 +305,18 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v0.3
         with:
-          release-channel: stable
-          version: "2.10.0"
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: "2.10.0"
+      - id: checkout
+        uses: actions/checkout@v2
       - id: pkg_fake_gcloud_pub_get
         name: "pkg/fake_gcloud; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/fake_gcloud
         run: pub get --no-precompile
       - name: "pkg/fake_gcloud; pub run test --run-skipped"
-        if: "steps.pkg_fake_gcloud_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_fake_gcloud_pub_get.conclusion == 'success'"
         working-directory: pkg/fake_gcloud
         run: pub run test --run-skipped
     needs:
@@ -329,18 +339,18 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v0.3
         with:
-          release-channel: stable
-          version: "2.10.0"
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: "2.10.0"
+      - id: checkout
+        uses: actions/checkout@v2
       - id: pkg_pub_dartdoc_data_pub_get
         name: "pkg/pub_dartdoc_data; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/pub_dartdoc_data
         run: pub get --no-precompile
       - name: "pkg/pub_dartdoc_data; pub run test --run-skipped"
-        if: "steps.pkg_pub_dartdoc_data_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_pub_dartdoc_data_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_dartdoc_data
         run: pub run test --run-skipped
     needs:
@@ -363,18 +373,18 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v0.3
         with:
-          release-channel: stable
-          version: "2.10.0"
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: "2.10.0"
+      - id: checkout
+        uses: actions/checkout@v2
       - id: pkg__popularity_pub_get
         name: "pkg/_popularity; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/_popularity
         run: pub get --no-precompile
       - name: "pkg/_popularity; pub run test --run-skipped"
-        if: "steps.pkg__popularity_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg__popularity_pub_get.conclusion == 'success'"
         working-directory: pkg/_popularity
         run: pub run test --run-skipped
     needs:
@@ -397,18 +407,18 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v0.3
         with:
-          release-channel: stable
-          version: "2.10.0"
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: "2.10.0"
+      - id: checkout
+        uses: actions/checkout@v2
       - id: pkg_pub_package_reader_pub_get
         name: "pkg/pub_package_reader; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/pub_package_reader
         run: pub get --no-precompile
       - name: "pkg/pub_package_reader; pub run test --run-skipped"
-        if: "steps.pkg_pub_package_reader_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_pub_package_reader_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_package_reader
         run: pub run test --run-skipped
     needs:
@@ -431,18 +441,18 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v0.3
         with:
-          release-channel: stable
-          version: "2.10.0"
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: "2.10.0"
+      - id: checkout
+        uses: actions/checkout@v2
       - id: pkg_pub_validations_pub_get
         name: "pkg/pub_validations; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/pub_validations
         run: pub get --no-precompile
       - name: "pkg/pub_validations; pub run test --run-skipped"
-        if: "steps.pkg_pub_validations_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_pub_validations_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_validations
         run: pub run test --run-skipped
     needs:
@@ -465,18 +475,18 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v0.3
         with:
-          release-channel: stable
-          version: "2.10.0"
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: "2.10.0"
+      - id: checkout
+        uses: actions/checkout@v2
       - id: pkg_client_data_pub_get
         name: "pkg/client_data; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/client_data
         run: pub get --no-precompile
       - name: "pkg/client_data; pub run test --run-skipped"
-        if: "steps.pkg_client_data_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_client_data_pub_get.conclusion == 'success'"
         working-directory: pkg/client_data
         run: pub run test --run-skipped
     needs:
@@ -499,18 +509,18 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v0.3
         with:
-          release-channel: stable
-          version: "2.10.0"
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: "2.10.0"
+      - id: checkout
+        uses: actions/checkout@v2
       - id: pkg_web_app_pub_get
         name: "pkg/web_app; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/web_app
         run: pub get --no-precompile
       - name: "pkg/web_app; pub run test --run-skipped"
-        if: "steps.pkg_web_app_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_web_app_pub_get.conclusion == 'success'"
         working-directory: pkg/web_app
         run: pub run test --run-skipped
     needs:
@@ -533,18 +543,18 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v0.3
         with:
-          release-channel: stable
-          version: "2.10.0"
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: "2.10.0"
+      - id: checkout
+        uses: actions/checkout@v2
       - id: pkg_web_css_pub_get
         name: "pkg/web_css; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/web_css
         run: pub get --no-precompile
       - name: "pkg/web_css; pub run test --run-skipped"
-        if: "steps.pkg_web_css_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_web_css_pub_get.conclusion == 'success'"
         working-directory: pkg/web_css
         run: pub run test --run-skipped
     needs:
@@ -567,18 +577,18 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v0.3
         with:
-          release-channel: stable
-          version: "2.10.0"
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: "2.10.0"
+      - id: checkout
+        uses: actions/checkout@v2
       - id: pkg_pub_dartdoc_pub_get
         name: "pkg/pub_dartdoc; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/pub_dartdoc
         run: pub get --no-precompile
       - name: "pkg/pub_dartdoc; pub run test --run-skipped"
-        if: "steps.pkg_pub_dartdoc_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_pub_dartdoc_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_dartdoc
         run: pub run test --run-skipped
     needs:
@@ -601,18 +611,18 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v0.3
         with:
-          release-channel: stable
-          version: "2.10.0"
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: "2.10.0"
+      - id: checkout
+        uses: actions/checkout@v2
       - id: app_pub_get
         name: "app; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
         run: pub get --no-precompile
       - name: "app; pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '5~7p'`"
-        if: "steps.app_pub_get.conclusion == 'success'"
+        if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
         run: "pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '5~7p'`"
     needs:
@@ -635,18 +645,18 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v0.3
         with:
-          release-channel: stable
-          version: "2.10.0"
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: "2.10.0"
+      - id: checkout
+        uses: actions/checkout@v2
       - id: app_pub_get
         name: "app; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
         run: pub get --no-precompile
       - name: "app; pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '4~7p'`"
-        if: "steps.app_pub_get.conclusion == 'success'"
+        if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
         run: "pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '4~7p'`"
     needs:
@@ -669,18 +679,18 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v0.3
         with:
-          release-channel: stable
-          version: "2.10.0"
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: "2.10.0"
+      - id: checkout
+        uses: actions/checkout@v2
       - id: app_pub_get
         name: "app; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
         run: pub get --no-precompile
       - name: "app; pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '6~7p'`"
-        if: "steps.app_pub_get.conclusion == 'success'"
+        if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
         run: "pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '6~7p'`"
     needs:
@@ -703,18 +713,18 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v0.3
         with:
-          release-channel: stable
-          version: "2.10.0"
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: "2.10.0"
+      - id: checkout
+        uses: actions/checkout@v2
       - id: app_pub_get
         name: "app; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
         run: pub get --no-precompile
       - name: "app; pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~7p'`"
-        if: "steps.app_pub_get.conclusion == 'success'"
+        if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
         run: "pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~7p'`"
     needs:
@@ -737,18 +747,18 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v0.3
         with:
-          release-channel: stable
-          version: "2.10.0"
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: "2.10.0"
+      - id: checkout
+        uses: actions/checkout@v2
       - id: pkg_pub_integration_pub_get
         name: "pkg/pub_integration; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/pub_integration
         run: pub get --no-precompile
       - name: "pkg/pub_integration; pub run test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~3p'`"
-        if: "steps.pkg_pub_integration_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_pub_integration_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_integration
         run: "pub run test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~3p'`"
     needs:
@@ -771,18 +781,18 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v0.3
         with:
-          release-channel: stable
-          version: "2.10.0"
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: "2.10.0"
+      - id: checkout
+        uses: actions/checkout@v2
       - id: pkg_pub_integration_pub_get
         name: "pkg/pub_integration; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/pub_integration
         run: pub get --no-precompile
       - name: "pkg/pub_integration; pub run test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~3p'`"
-        if: "steps.pkg_pub_integration_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_pub_integration_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_integration
         run: "pub run test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~3p'`"
     needs:
@@ -805,18 +815,18 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v0.3
         with:
-          release-channel: stable
-          version: "2.10.0"
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: "2.10.0"
+      - id: checkout
+        uses: actions/checkout@v2
       - id: app_pub_get
         name: "app; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
         run: pub get --no-precompile
       - name: "app; pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~7p'`"
-        if: "steps.app_pub_get.conclusion == 'success'"
+        if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
         run: "pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~7p'`"
     needs:
@@ -839,18 +849,18 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v0.3
         with:
-          release-channel: stable
-          version: "2.10.0"
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: "2.10.0"
+      - id: checkout
+        uses: actions/checkout@v2
       - id: app_pub_get
         name: "app; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
         run: pub get --no-precompile
       - name: "app; pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '3~7p'`"
-        if: "steps.app_pub_get.conclusion == 'success'"
+        if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
         run: "pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '3~7p'`"
     needs:
@@ -873,18 +883,18 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v0.3
         with:
-          release-channel: stable
-          version: "2.10.0"
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: "2.10.0"
+      - id: checkout
+        uses: actions/checkout@v2
       - id: pkg_pub_integration_pub_get
         name: "pkg/pub_integration; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/pub_integration
         run: pub get --no-precompile
       - name: "pkg/pub_integration; pub run test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~3p'`"
-        if: "steps.pkg_pub_integration_pub_get.conclusion == 'success'"
+        if: "always() && steps.pkg_pub_integration_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_integration
         run: "pub run test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~3p'`"
     needs:
@@ -907,18 +917,18 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v0.3
         with:
-          release-channel: stable
-          version: "2.10.0"
-      - run: dart --version
-      - uses: actions/checkout@v2
+          sdk: "2.10.0"
+      - id: checkout
+        uses: actions/checkout@v2
       - id: app_pub_get
         name: "app; pub get --no-precompile"
+        if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
         run: pub get --no-precompile
       - name: "app; pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~7p'`"
-        if: "steps.app_pub_get.conclusion == 'success'"
+        if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
         run: "pub run test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~7p'`"
     needs:
