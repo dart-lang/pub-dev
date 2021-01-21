@@ -1,4 +1,4 @@
-[![Build Status](https://github.com/dart-lang/pub-dev/workflows/Dart%20CI/badge.svg)](https://github.com/dart-lang/pub-dev/actions?query=workflow%3A"Dart+CI"+branch%3Amain)
+[![Build Status](https://github.com/dart-lang/pub-dev/workflows/Dart%20CI/badge.svg)](https://github.com/dart-lang/pub-dev/actions?query=workflow%3A"Dart+CI"+branch%3Amaster)
 
 # Code for the "pub.dev" website.
 
