@@ -74,7 +74,8 @@ void main() {
         isTrue);
     final String monoPkg = await File('mono_pkg.yaml').readAsString();
     expect(monoPkg.contains('$runtimeSdkVersion'), isTrue);
-    final String ci = await File('../.github/workflows/dart.yml').readAsString();
+    final String ci =
+        await File('../.github/workflows/dart.yml').readAsString();
     expect(ci.contains('$runtimeSdkVersion'), isTrue);
   });
 
