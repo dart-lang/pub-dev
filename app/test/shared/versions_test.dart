@@ -67,15 +67,16 @@ void main() {
     expect(acceptedRuntimeVersions, hasLength(lessThan(6)));
   });
 
-  test('runtime sdk version should match travis and dockerfile', () async {
+  test('runtime sdk version should match CI and dockerfile', () async {
     final String docker = await File('../Dockerfile').readAsString();
     expect(
         docker.contains('\nFROM google/dart-runtime-base:$runtimeSdkVersion\n'),
         isTrue);
     final String monoPkg = await File('mono_pkg.yaml').readAsString();
     expect(monoPkg.contains('$runtimeSdkVersion'), isTrue);
-    final String travis = await File('../.travis.yml').readAsString();
-    expect(travis.contains('$runtimeSdkVersion'), isTrue);
+    final String ci =
+        await File('../.github/workflows/dart.yml').readAsString();
+    expect(ci.contains('$runtimeSdkVersion'), isTrue);
   });
 
   test('tool-env sdk version should match dockerfile', () async {
