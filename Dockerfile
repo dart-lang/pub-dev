@@ -21,22 +21,22 @@ COPY doc /project/doc
 COPY third_party /project/third_party
 
 WORKDIR /project/pkg/pub_dartdoc
-RUN pub get --no-precompile
-RUN pub get --offline --no-precompile
+RUN dart pub get --no-precompile
+RUN dart pub get --offline --no-precompile
 
 WORKDIR /project/pkg/web_app
-RUN pub get --no-precompile
-RUN pub get --offline --no-precompile
+RUN dart pub get --no-precompile
+RUN dart pub get --offline --no-precompile
 RUN ./build.sh
 
 WORKDIR /project/pkg/web_css
-RUN pub get --no-precompile
-RUN pub get --offline --no-precompile
+RUN dart pub get --no-precompile
+RUN dart pub get --offline --no-precompile
 RUN ./build.sh
 
 WORKDIR /project/app
-RUN pub get --no-precompile
-RUN pub get --offline --no-precompile
+RUN dart pub get --no-precompile
+RUN dart pub get --offline --no-precompile
 
 ## NOTE: Uncomment the following lines for local testing:
 #ADD key.json /project/key.json

@@ -173,7 +173,7 @@ class PackageDependencyBuilder {
 
   Set<String> affectedPackages(String package) {
     // Due to the constraints in the new [pubspec] it might cause a number of
-    // packages to get new transitive dependencies during a `pub get` and
+    // packages to get new transitive dependencies during a `dart pub get` and
     // therefore might cause new analysis results.
     //
     // So we trigger all packages that depend (directly or indirectly) on

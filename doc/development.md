@@ -38,7 +38,7 @@ annotations. Input files are usually listed in `build.yaml`, and generated
 files usually suffixed `.g.dart`. To generate code use:
 
 ```bash
-pub run build_runner build
+dart run build_runner build
 ```
 
 ## Working with `mono_repo`
@@ -51,7 +51,7 @@ multiple packages inside the repository.
 To use `mono_repo`, first activate it:
 
 ````bash
-pub global activate mono_repo
+dart pub global activate mono_repo
 ````
 
 > Note: Run `pub global list` to make sure the version is at least `2.0.0`.
@@ -63,14 +63,14 @@ pub global activate mono_repo
 ### Update/upgrade dependencies
 
 ````bash
-pub global run mono_repo pub get
+dart pub global run mono_repo pub get
 ````
 
 ### Creating a new package (or vendoring existing packages)
 
 1. Create `mono_pkg.yaml` for the package. (Use the existing ones as template.)
 
-2. Run `pub global run mono_repo generate` from the root.
+2. Run `dart pub global run mono_repo generate` from the root.
 
 
 ## Local Development with Google AppEngine
@@ -78,7 +78,7 @@ pub global run mono_repo pub get
 To run the default application (web frontend) locally, do the following steps:
 ```
 cd app
-pub get
+dart pub get
 export GCLOUD_PROJECT=<gcloud-project>
 export GCLOUD_KEY=<path-to-service-account-key.json>
 dart bin/server.dart default

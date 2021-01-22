@@ -17,7 +17,7 @@ mkdir -p "${OUTPUT_DIR}/puppeteer"
 mkdir -p "${OUTPUT_DIR}/raw"
 
 cd "${CODE_COVERAGE_DIR}"
-pub get
+dart pub get
 
 ## Collect coverage for app tests.
 
