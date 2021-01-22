@@ -35,7 +35,7 @@ void main() {
       expect(await p2.get(), [1, 2]);
       expect(await p2.set([3, 4]), isTrue);
       expect(await p2.get(), [3, 4]);
-      
+
       expect(await p1.set([1, 2]), isFalse);
     });
   });
