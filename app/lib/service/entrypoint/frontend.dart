@@ -10,6 +10,7 @@ import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_dev/tool/neat_task/pub_dev_tasks.dart';
 import 'package:stream_transform/stream_transform.dart' show RateLimit;
 import 'package:watcher/watcher.dart';
 
@@ -128,6 +129,7 @@ Future _worker(WorkerEntryMessage message) async {
   message.protocolSendPort.send(WorkerProtocolMessage());
 
   await withServices(() async {
+    setupPubDevPeriodicTasks();
     // TODO: use package:neat_periodic_task
     // Randomization reduces race conditions.
     Timer.periodic(Duration(hours: 8, minutes: _random.nextInt(240)),

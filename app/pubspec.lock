@@ -435,6 +435,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.1"
+  neat_periodic_task:
+    dependency: "direct main"
+    description:
+      name: neat_periodic_task
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.1"
   node_interop:
     dependency: transitive
     description:
@@ -617,6 +624,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.2.3"
+  slugid:
+    dependency: transitive
+    description:
+      name: slugid
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0+1"
   source_gen:
     dependency: "direct dev"
     description:
