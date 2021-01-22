@@ -109,22 +109,36 @@ class SearchBackend {
       pra?.derivedTags?.forEach(prereleaseTags.add);
     }
 
-    final tags = <String>[
+    // Find tags from latest preview (if there one) following the same patter
+    // as for prerelease.
+    // This allows searching for tags with `<tag>-in-prerelease`.
+    // Example: `is:null-safe-in-prerelease`, or `platform:android-in-prerelease`
+    final previewTags = <String>[];
+    if (p.showPreviewVersion) {
+      final prv = await _db.lookupValue<PackageVersion>(
+          p.latestPreviewVersionKey,
+          orElse: () => null);
+      prv?.getTags()?.forEach(previewTags.add);
+
+      final pra = await analyzerClient.getAnalysisView(
+          packageName, p.latestPreviewVersion);
+      pra?.derivedTags?.forEach(previewTags.add);
+    }
+
+    final tags = <String>{
       ...p.getTags(),
       ...pv.getTags(),
       ...analysisView.derivedTags,
       ...prereleaseTags.map(PackageTags.convertToPrereleaseTag),
-    ];
+      ...previewTags.map(PackageTags.convertToPrereleaseTag),
+    };
 
     // This is a temporary workaround to expose latest stable versions with
     // null-safety support.
     // TODO: Cleanup after we've implemented better search support for this.
     if (tags.contains(PackageVersionTags.isNullSafe)) {
-      final prereleaseTag =
-          PackageTags.convertToPrereleaseTag(PackageVersionTags.isNullSafe);
-      if (!tags.contains(prereleaseTag)) {
-        tags.add(prereleaseTag);
-      }
+      tags.add(
+          PackageTags.convertToPrereleaseTag(PackageVersionTags.isNullSafe));
     }
 
     final pubDataContent = await dartdocClient.getTextContent(
@@ -147,7 +161,7 @@ class SearchBackend {
     return PackageDocument(
       package: pv.package,
       version: p.latestVersion,
-      tags: tags,
+      tags: tags.toList(),
       description: compactDescription(pv.pubspec.description),
       created: p.created,
       updated: p.latestPrereleasePublished,
