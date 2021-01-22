@@ -265,7 +265,7 @@ class PackageBackend {
     final versions =
         await db.query<PackageVersion>(ancestorKey: pkgKey).run().toList();
 
-    return await withRetryTransaction(db, (tx) async {
+    final updated = await withRetryTransaction(db, (tx) async {
       final p = await tx.lookupOrNull<Package>(pkgKey);
       if (p == null) {
         throw NotFoundException.resource('package "$package"');
@@ -309,6 +309,10 @@ class PackageBackend {
       tx.insert(p);
       return true;
     });
+    if (updated) {
+      await purgePackageCache(package);
+    }
+    return updated;
   }
 
   /// Updates the stable, prerelase and preview versions of all package.
