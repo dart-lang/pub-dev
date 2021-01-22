@@ -583,6 +583,8 @@ void main() {
           PackageView(
             name: 'super_package',
             version: '1.0.0',
+            previewVersion: '1.4.0',
+            prereleaseVersion: '1.5.0-dev',
             ellipsizedDescription: 'A great web UI library.',
             created: DateTime.utc(2019, 01, 03),
             shortUpdated: '3 Jan 2019',

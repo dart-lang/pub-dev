@@ -206,8 +206,10 @@ String renderPkgInfoBox(PackagePageData data) {
 /// wraps it with content-header.
 String renderPkgHeader(PackagePageData data) {
   final package = data.package;
-  final bool showPrereleaseVersion = package.showPrereleaseVersion;
-  final bool showUpdated = !data.isLatestStable || showPrereleaseVersion;
+  final showPrereleaseVersion = package.showPrereleaseVersion;
+  final showPreviewVersion = package.showPreviewVersion;
+  final bool showUpdated =
+      !data.isLatestStable || showPrereleaseVersion || showPreviewVersion;
 
   final isNullSafe =
       data.toPackageView().tags.contains(PackageVersionTags.isNullSafe);
@@ -222,11 +224,16 @@ String renderPkgHeader(PackagePageData data) {
     'latest': {
       'show_updated': showUpdated,
       'show_prerelease_version': showPrereleaseVersion,
+      'show_preview_version': showPreviewVersion,
       'stable_url': urls.pkgPageUrl(package.name),
       'stable_version': package.latestVersion,
       'prerelease_url': urls.pkgPageUrl(package.name,
           version: package.latestPrereleaseVersion),
       'prerelease_version': package.latestPrereleaseVersion,
+      'preview_url': showPreviewVersion
+          ? urls.pkgPageUrl(package.name, version: package.latestPreviewVersion)
+          : null,
+      'preview_version': package.latestPreviewVersion,
     },
     'short_created': data.version.shortCreated,
   });

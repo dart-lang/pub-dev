@@ -586,8 +586,10 @@ class PackageView extends Object with FlagMixin {
   final String name;
   final String version;
 
-  // Not null only if there is a difference compared to the [version].
+  // Not null only if there is a difference compared to the [version] or [previewVersion].
   final String prereleaseVersion;
+  // Not null only if there is a difference compared to the [version].
+  final String previewVersion;
   final String ellipsizedDescription;
 
   /// The date when the package was first published.
@@ -621,6 +623,7 @@ class PackageView extends Object with FlagMixin {
     this.name,
     this.version,
     this.prereleaseVersion,
+    this.previewVersion,
     this.ellipsizedDescription,
     this.created,
     this.shortUpdated,
@@ -644,9 +647,11 @@ class PackageView extends Object with FlagMixin {
     ScoreCardData scoreCard,
     List<ApiPageRef> apiPages,
   }) {
-    final prereleaseVersion = package != null &&
-            package.latestVersion != package.latestPrereleaseVersion
+    final prereleaseVersion = package != null && package.showPrereleaseVersion
         ? package.latestPrereleaseVersion
+        : null;
+    final previewVersion = package != null && package.showPreviewVersion
+        ? package.latestPreviewVersion
         : null;
     final hasPanaReport = scoreCard?.reportTypes != null &&
         scoreCard.reportTypes.contains(ReportType.pana);
@@ -662,6 +667,7 @@ class PackageView extends Object with FlagMixin {
       name: version?.package ?? package?.name,
       version: version?.version ?? package?.latestVersion,
       prereleaseVersion: prereleaseVersion,
+      previewVersion: previewVersion,
       ellipsizedDescription: version?.ellipsizedDescription,
       created: package.created,
       shortUpdated: package.shortLatestPrereleasePublished,
@@ -690,6 +696,7 @@ class PackageView extends Object with FlagMixin {
       name: name,
       version: version,
       prereleaseVersion: prereleaseVersion,
+      previewVersion: previewVersion,
       ellipsizedDescription: ellipsizedDescription,
       created: created,
       shortUpdated: shortUpdated,
