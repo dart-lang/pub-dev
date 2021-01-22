@@ -53,6 +53,7 @@ final defaultTestProfile = TestProfile(
 
 final adminAtPubDevAuthToken = 'admin-at-pub-dot-dev';
 final userAtPubDevAuthToken = 'user-at-pub-dot-dev';
+final unauthorizedAtPubDevAuthToken = 'unauthorized-at-pub-dot-dev';
 
 // regular package
 final hydrogen = generateBundle('hydrogen', generateVersions(13, increment: 9));

@@ -12,19 +12,18 @@ import 'package:test/test.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/admin/backend.dart';
-import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 
-import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
 
 void main() {
   group('Admin API', () {
     group('List users', () {
-      _testNotAdmin((client) => client.adminListUsers());
+      setupTestsWithCallerAuthorizationIssues(
+          (client) => client.adminListUsers());
 
       testWithServices('OK', () async {
         final client = createPubApiClient(authToken: adminUser.userId);
@@ -163,7 +162,7 @@ void main() {
     });
 
     group('Delete package', () {
-      _testNotAdmin(
+      setupTestsWithCallerAuthorizationIssues(
           (client) => client.adminRemovePackage(hydrogen.packageName));
 
       testWithServices('OK', () async {
@@ -224,8 +223,9 @@ void main() {
     });
 
     group('Delete package version', () {
-      _testNotAdmin((client) => client.adminRemovePackageVersion(
-          hydrogen.packageName, hydrogen.latestVersion));
+      setupTestsWithCallerAuthorizationIssues((client) =>
+          client.adminRemovePackageVersion(
+              hydrogen.packageName, hydrogen.latestVersion));
 
       testWithServices('OK', () async {
         final client = createPubApiClient(authToken: adminUser.userId);
@@ -291,7 +291,8 @@ void main() {
     });
 
     group('Delete user', () {
-      _testNotAdmin((client) => client.adminRemoveUser(joeUser.userId));
+      setupTestsWithCallerAuthorizationIssues(
+          (client) => client.adminRemoveUser(joeUser.userId));
 
       testWithServices('OK', () async {
         final client = createPubApiClient(authToken: adminUser.userId);
@@ -349,7 +350,8 @@ void main() {
     });
 
     group('get assignedTags', () {
-      _testNotAdmin((client) => client.adminGetAssignedTags('hydrogen'));
+      setupTestsWithCallerAuthorizationIssues(
+          (client) => client.adminGetAssignedTags('hydrogen'));
 
       testWithServices('get assignedTags', () async {
         final client = createPubApiClient(authToken: adminUser.userId);
@@ -359,10 +361,11 @@ void main() {
     });
 
     group('set assignedTags', () {
-      _testNotAdmin((client) => client.adminPostAssignedTags(
-            'hydrogen',
-            PatchAssignedTags(assignedTagsAdded: ['is:featured']),
-          ));
+      setupTestsWithCallerAuthorizationIssues(
+          (client) => client.adminPostAssignedTags(
+                'hydrogen',
+                PatchAssignedTags(assignedTagsAdded: ['is:featured']),
+              ));
 
       testWithServices('set assignedTags', () async {
         final client = createPubApiClient(authToken: adminUser.userId);
@@ -412,31 +415,6 @@ void main() {
         expect(r6.assignedTags, isNot(contains('is:featured')));
       });
     });
-  });
-}
-
-void _testNotAdmin(Future Function(PubApiClient client) fn) {
-  testWithServices('No active user', () async {
-    final client = createPubApiClient();
-    final rs = fn(client);
-    await expectApiException(rs, status: 401, code: 'MissingAuthentication');
-  });
-
-  testWithServices('Active user is not an admin', () async {
-    final client = createPubApiClient(authToken: hansUser.userId);
-    final rs = fn(client);
-    await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
-  });
-
-  testWithServices('Active user is blocked', () async {
-    final user = await dbService.lookupValue<User>(hansUser.key);
-    await dbService.commit(inserts: [user..isBlocked = true]);
-    final client = createPubApiClient(authToken: hansUser.userId);
-    final rs = fn(client);
-    await expectApiException(rs,
-        status: 403,
-        code: 'InsufficientPermissions',
-        message: 'User is blocked.');
   });
 }
 

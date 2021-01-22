@@ -672,14 +672,7 @@ void main() {
 dynamic _json(value) => json.decode(json.encode(value));
 
 void _testAdminAuthIssues(Future Function(PubApiClient client) fn) {
-  testWithServices('No active user', () async {
-    final client = createPubApiClient();
-    final rs = fn(client);
-    await expectApiException(rs,
-        status: 401,
-        code: 'MissingAuthentication',
-        message: 'please add `authorization` header');
-  });
+  setupTestsWithCallerAuthorizationIssues(fn);
 
   testWithServices('Active user is not a member', () async {
     await dbService.commit(
@@ -698,25 +691,11 @@ void _testAdminAuthIssues(Future Function(PubApiClient client) fn) {
     final rs = fn(client);
     await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
   });
-
-  testWithServices('Active user is blocked', () async {
-    final user = await dbService.lookupValue<User>(hansUser.key);
-    await dbService.commit(inserts: [
-      publisherMember(hansUser.userId, 'admin'),
-      user..isBlocked = true,
-    ]);
-    final client = createPubApiClient(authToken: hansUser.userId);
-    final rs = fn(client);
-    await expectApiException(rs,
-        status: 403,
-        code: 'InsufficientPermissions',
-        message: 'User is blocked.');
-  });
 }
 
 void _testNoPublisher(Future Function(PubApiClient client) fn) {
-  testWithServices('No publisher with given id', () async {
-    final client = createPubApiClient(authToken: hansUser.userId);
+  testWithProfile('No publisher with given id', fn: () async {
+    final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
     final rs = fn(client);
     await expectApiException(rs, status: 404, code: 'NotFound');
   });

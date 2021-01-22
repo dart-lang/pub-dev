@@ -9,6 +9,7 @@ import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
+import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/scorecard/backend.dart';
@@ -27,6 +28,7 @@ import 'package:pub_dev/tool/utils/pub_api_client.dart';
 import 'package:test/test.dart';
 
 import '../shared/utils.dart';
+import 'handlers_test_utils.dart';
 import 'test_models.dart';
 
 /// Registers test with [name] and runs it in pkg/fake_gcloud's scope, populated
@@ -161,5 +163,33 @@ void _setupLogging() {
     if (rec.error != null) {
       print('ERROR: ${rec.error}, ${rec.stackTrace}');
     }
+  });
+}
+
+void setupTestsWithCallerAuthorizationIssues(
+  Future Function(PubApiClient client) fn,
+) {
+  testWithProfile('No active user', fn: () async {
+    final client = createPubApiClient();
+    final rs = fn(client);
+    await expectApiException(rs, status: 401, code: 'MissingAuthentication');
+  });
+
+  testWithProfile('Active user is not authorized', fn: () async {
+    final client = createPubApiClient(authToken: unauthorizedAtPubDevAuthToken);
+    final rs = fn(client);
+    await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
+  });
+
+  testWithProfile('Active user is blocked', fn: () async {
+    final users = await dbService.query<User>().run().toList();
+    final user = users.firstWhere((u) => u.email == 'admin@pub.dev');
+    await dbService.commit(inserts: [user..isBlocked = true]);
+    final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+    final rs = fn(client);
+    await expectApiException(rs,
+        status: 403,
+        code: 'InsufficientPermissions',
+        message: 'User is blocked.');
   });
 }
