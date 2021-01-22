@@ -15,6 +15,7 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' show runProc;
 import 'package:path/path.dart' as p;
+import 'package:pool/pool.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -258,6 +259,7 @@ class PackageBackend {
     String package, {
     Version dartSdkVersion,
   }) async {
+    _logger.info("Checking Package's versions fields for package `$package`.");
     final pkgKey = db.emptyKey.append(Package, id: package);
     dartSdkVersion ??= (await getDartSdkVersion()).semanticVersion;
 
@@ -290,6 +292,7 @@ class PackageBackend {
           oldPrereleaseVersion == p.latestPrereleaseSemanticVersion &&
           oldPreviewVersion == p.latestPreviewSemanticVersion;
       if (unchanged) {
+        _logger.info('No version field updates for package `$package`.');
         return false;
       }
 
@@ -306,6 +309,7 @@ class PackageBackend {
         return false;
       }
 
+      _logger.info('Updating version fields for package `$package`.');
       tx.insert(p);
       return true;
     });
@@ -314,13 +318,22 @@ class PackageBackend {
   /// Updates the stable, prerelase and preview versions of all package.
   ///
   /// Return the number of updated packages.
-  Future<int> updateAllPackageVersions({Version dartSdkVersion}) async {
+  Future<int> updateAllPackageVersions(
+      {Version dartSdkVersion, int concurrency}) async {
+    final pool = Pool(concurrency ?? 1);
     var count = 0;
+    final futures = <Future>[];
     await for (final p in db.query<Package>().run()) {
-      final updated =
-          await updatePackageVersions(p.name, dartSdkVersion: dartSdkVersion);
-      if (updated) count++;
+      final package = p.name;
+      final f = pool.withResource(() async {
+        final updated = await updatePackageVersions(package,
+            dartSdkVersion: dartSdkVersion);
+        if (updated) count++;
+      });
+      futures.add(f);
     }
+    await Future.wait(futures);
+    await pool.close();
     return count;
   }
 
