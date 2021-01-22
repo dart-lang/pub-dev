@@ -333,6 +333,7 @@ class PackageBackend {
       futures.add(f);
     }
     await Future.wait(futures);
+    await pool.close();
     return count;
   }
 
