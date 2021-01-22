@@ -71,6 +71,10 @@ String renderPackageList(
       'prerelease_version': view.prereleaseVersion,
       'prerelease_version_url':
           urls.pkgPageUrl(view.name, version: view.prereleaseVersion),
+      'show_preview_version': view.previewVersion != null,
+      'preview_version': view.previewVersion,
+      'preview_version_url':
+          urls.pkgPageUrl(view.name, version: view.previewVersion),
       'is_new': addedXAgo != null,
       'added_x_ago': addedXAgo,
       'last_uploaded': view.shortUpdated,
