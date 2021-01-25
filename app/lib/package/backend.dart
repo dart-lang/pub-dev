@@ -297,10 +297,13 @@ class PackageBackend {
       }
 
       // sanity check changes
-      if (oldStableVersion.compareTo(p.latestSemanticVersion) > 0 ||
-          oldPrereleaseVersion.compareTo(p.latestPrereleaseSemanticVersion) >
-              0 ||
-          oldPreviewVersion.compareTo(p.latestPreviewSemanticVersion) > 0) {
+      final stableNotOk =
+          oldStableVersion.compareTo(p.latestSemanticVersion) > 0;
+      final prereleaseNotOk =
+          oldPrereleaseVersion.compareTo(p.latestPrereleaseSemanticVersion) > 0;
+      final previewNotOk = oldPreviewVersion != null &&
+          oldPreviewVersion.compareTo(p.latestPreviewSemanticVersion) > 0;
+      if (stableNotOk || prereleaseNotOk || previewNotOk) {
         _logger.severe(
             'Version update sanity check failed for package "$package": '
             '$oldStableVersion -> ${p.latestVersion} / '

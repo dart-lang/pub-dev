@@ -5,13 +5,15 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:pub_dev/tool/test_profile/import_source.dart';
-import 'package:pub_dev/tool/utils/dart_sdk_version.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
+import 'package:pub_dev/tool/utils/dart_sdk_version.dart';
 
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
@@ -76,6 +78,39 @@ Future<void> main() async {
         expect(p2.latestPreviewVersion, '1.2.0');
         expect(p2.showPrereleaseVersion, isFalse);
         expect(p2.showPreviewVersion, isFalse);
+      },
+    );
+
+    testWithProfile(
+      'backfill preview version',
+      testProfile: TestProfile(
+        defaultUser: adminUser.email,
+        packages: [
+          TestPackage(name: 'pkg', versions: ['1.0.0', '1.2.0']),
+        ],
+      ),
+      importSource: importSource,
+      fn: () async {
+        final pkg = await dbService.lookupValue<Package>(
+            dbService.emptyKey.append(Package, id: 'pkg'));
+        pkg.latestPreviewVersionKey = null;
+        pkg.latestPreviewPublished = null;
+        pkg.lastVersionPublished = null;
+        await dbService.commit(inserts: [pkg]);
+
+        final u1 = await packageBackend.updateAllPackageVersions(
+            dartSdkVersion: currentSdkVersion);
+        expect(u1, 1);
+
+        // check that fields were updated
+        final p1 = await packageBackend.lookupPackage('pkg');
+        expect(p1.latestVersion, '1.0.0');
+        expect(p1.latestPrereleaseVersion, '1.2.0');
+        expect(p1.latestPreviewVersion, '1.2.0');
+        expect(p1.showPrereleaseVersion, isFalse);
+        expect(p1.showPreviewVersion, isTrue);
+        expect(p1.latestPreviewPublished, isNotNull);
+        expect(p1.lastVersionPublished, isNotNull);
       },
     );
   });
