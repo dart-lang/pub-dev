@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:neat_periodic_task/neat_periodic_task.dart';
 import 'package:ulid/ulid.dart';
 
@@ -14,8 +16,8 @@ class NeatTaskStatus extends db.ExpandoModel<String> {
   @db.StringProperty(required: true, indexed: false)
   String etag;
 
-  @db.BlobProperty(required: true)
-  List<int> status;
+  @db.StringProperty(required: true, indexed: false)
+  String statusBase64;
 }
 
 /// Task status provider that uses Datastore and [NeatTaskStatus] entries
@@ -48,12 +50,12 @@ class DatastoreStatusProvider extends NeatStatusProvider {
         tx.insert(NeatTaskStatus()
           ..id = name
           ..etag = Ulid().toCanonical()
-          ..status = <int>[]);
+          ..statusBase64 = base64.encode(<int>[]));
       });
       e ??= await _db.lookupValue<NeatTaskStatus>(key, orElse: () => null);
     }
     _etag = e.etag;
-    return e.status;
+    return base64.decode(e.statusBase64);
   }
 
   @override
@@ -65,7 +67,7 @@ class DatastoreStatusProvider extends NeatStatusProvider {
         return null;
       }
       e ??= NeatTaskStatus()..id = name;
-      e.status = status;
+      e.statusBase64 = base64.encode(status ?? <int>[]);
       e.etag = Ulid().toCanonical();
       tx.insert(e);
       return e.etag;
