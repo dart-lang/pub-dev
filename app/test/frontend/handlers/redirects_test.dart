@@ -45,9 +45,14 @@ void main() {
     });
 
     testWithServices('/doc', () async {
-      for (var path in redirectPaths.keys) {
+      for (final path in redirectPaths.keys) {
         final redirectUrl = 'https://dart.dev/tools/pub/${redirectPaths[path]}';
-        await expectNotFoundResponse(await issueGet(path));
+        if (path.endsWith('/')) {
+          await expectRedirectResponse(
+              await issueGet(path), 'https://pub.dev/doc');
+        } else {
+          await expectNotFoundResponse(await issueGet(path));
+        }
         await expectRedirectResponse(
             await issueGet(path, host: 'pub.dartlang.org'), redirectUrl);
       }
