@@ -62,171 +62,173 @@ Future startIsolates({
   Future<void> Function(WorkerEntryMessage message) workerEntryPoint,
   Duration deadWorkerTimeout,
 }) async {
-  if (!envConfig.isRunningLocally) {
-    // The existence of this file may indicate an issue with the service health.
-    // Checking it only in AppEngine environment.
-    final stampFile =
-        File(p.join(Directory.systemTemp.path, 'pub-dev-started.stamp'));
-    if (stampFile.existsSync()) {
-      print('[warning-service-restarted]: '
-          '${stampFile.path} already exists, indicating that this process has been restarted.');
-    } else {
-      stampFile.createSync(recursive: true);
+  await withAppEngineServices(() async {
+    if (!envConfig.isRunningLocally) {
+      // The existence of this file may indicate an issue with the service health.
+      // Checking it only in AppEngine environment.
+      final stampFile =
+          File(p.join(Directory.systemTemp.path, 'pub-dev-started.stamp'));
+      if (stampFile.existsSync()) {
+        print('[warning-service-restarted]: '
+            '${stampFile.path} already exists, indicating that this process has been restarted.');
+      } else {
+        stampFile.createSync(recursive: true);
+      }
     }
-  }
+    _setupServiceIsolate();
 
-  useLoggingPackageAdaptor();
-  int frontendStarted = 0;
-  int workerStarted = 0;
-  final statConsumerPorts = <SendPort>[];
+    int frontendStarted = 0;
+    int workerStarted = 0;
+    final statConsumerPorts = <SendPort>[];
 
-  Future<void> startFrontendIsolate() async {
-    frontendStarted++;
-    final frontendIndex = frontendStarted;
-    logger.info('About to start frontend isolate #$frontendIndex...');
-    final ReceivePort errorReceivePort = ReceivePort();
-    final ReceivePort protocolReceivePort = ReceivePort();
-    await Isolate.spawn(
-      _wrapper,
-      [
-        frontendEntryPoint,
-        FrontendEntryMessage(
-          frontendIndex: frontendIndex,
-          protocolSendPort: protocolReceivePort.sendPort,
-        ),
-      ],
-      onError: errorReceivePort.sendPort,
-      onExit: errorReceivePort.sendPort,
-      errorsAreFatal: true,
-    );
-    final protocolMessage = (await protocolReceivePort.take(1).toList()).single
-        as FrontendProtocolMessage;
-    if (protocolMessage.statsConsumerPort != null) {
-      statConsumerPorts.add(protocolMessage.statsConsumerPort);
-    }
-    logger.info('Frontend isolate #$frontendIndex started.');
-
-    StreamSubscription errorSubscription;
-
-    Future<void> close() async {
+    Future<void> startFrontendIsolate() async {
+      frontendStarted++;
+      final frontendIndex = frontendStarted;
+      logger.info('About to start frontend isolate #$frontendIndex...');
+      final ReceivePort errorReceivePort = ReceivePort();
+      final ReceivePort protocolReceivePort = ReceivePort();
+      await Isolate.spawn(
+        _wrapper,
+        [
+          frontendEntryPoint,
+          FrontendEntryMessage(
+            frontendIndex: frontendIndex,
+            protocolSendPort: protocolReceivePort.sendPort,
+          ),
+        ],
+        onError: errorReceivePort.sendPort,
+        onExit: errorReceivePort.sendPort,
+        errorsAreFatal: true,
+      );
+      final protocolMessage = (await protocolReceivePort.take(1).toList())
+          .single as FrontendProtocolMessage;
       if (protocolMessage.statsConsumerPort != null) {
-        statConsumerPorts.remove(protocolMessage.statsConsumerPort);
+        statConsumerPorts.add(protocolMessage.statsConsumerPort);
       }
-      await errorSubscription?.cancel();
-      errorReceivePort.close();
-      protocolReceivePort.close();
-    }
+      logger.info('Frontend isolate #$frontendIndex started.');
 
-    errorSubscription = errorReceivePort.listen((e) async {
-      print('ERROR from frontend isolate #$frontendIndex: $e');
-      logger.severe('ERROR from frontend isolate #$frontendIndex', e);
-      await close();
-      // restart isolate after a brief pause
-      await Future.delayed(Duration(seconds: 5));
-      await startFrontendIsolate();
-    });
-  }
+      StreamSubscription errorSubscription;
 
-  Future<void> startWorkerIsolate() async {
-    workerStarted++;
-    final workerIndex = workerStarted;
-    logger.info('About to start worker isolate #$workerIndex...');
-    final errorReceivePort = ReceivePort();
-    final protocolReceivePort = ReceivePort();
-    final statsReceivePort = ReceivePort();
-    final aliveReceivePort = ReceivePort();
-    final isolate = await Isolate.spawn(
-      _wrapper,
-      [
-        workerEntryPoint,
-        WorkerEntryMessage(
-          workerIndex: workerIndex,
-          protocolSendPort: protocolReceivePort.sendPort,
-          statsSendPort: statsReceivePort.sendPort,
-          aliveSendPort: aliveReceivePort.sendPort,
-        ),
-      ],
-      onError: errorReceivePort.sendPort,
-      onExit: errorReceivePort.sendPort,
-      errorsAreFatal: true,
-    );
-    // read WorkerProtocolMessage
-    (await protocolReceivePort.take(1).toList()).single;
-    final statsSubscription =
-        statsReceivePort?.cast<Map>()?.listen((Map stats) {
-      updateLatestStats(stats);
-      for (SendPort sp in statConsumerPorts) {
-        sp.send(stats);
+      Future<void> close() async {
+        if (protocolMessage.statsConsumerPort != null) {
+          statConsumerPorts.remove(protocolMessage.statsConsumerPort);
+        }
+        await errorSubscription?.cancel();
+        errorReceivePort.close();
+        protocolReceivePort.close();
       }
-    });
-    logger.info('Worker isolate #$workerIndex started.');
 
-    Timer autoKillTimer;
-    void resetAutoKillTimer() {
-      if (deadWorkerTimeout == null) return;
-      autoKillTimer?.cancel();
-
-      /// Randomize TTL so that isolate restarts do not happen at the same time.
-      final ttl = deadWorkerTimeout +
-          Duration(seconds: _random.nextInt(deadWorkerTimeout.inSeconds));
-      autoKillTimer = Timer(ttl, () {
-        logger.info('Killing worker isolate #$workerIndex...');
-        isolate.kill();
+      errorSubscription = errorReceivePort.listen((e) async {
+        print('ERROR from frontend isolate #$frontendIndex: $e');
+        logger.severe('ERROR from frontend isolate #$frontendIndex', e);
+        await close();
+        // restart isolate after a brief pause
+        await Future.delayed(Duration(seconds: 5));
+        await startFrontendIsolate();
       });
     }
 
-    // We DO NOT initialize [autoKillTimer] at this point, allowing the worker
-    // to do arbitrary-length setup. Once the first message comes in, we can
-    // start the auto-kill timer.
-    final aliveSubscription = aliveReceivePort.listen((_) {
-      resetAutoKillTimer();
-    });
+    Future<void> startWorkerIsolate() async {
+      workerStarted++;
+      final workerIndex = workerStarted;
+      logger.info('About to start worker isolate #$workerIndex...');
+      final errorReceivePort = ReceivePort();
+      final protocolReceivePort = ReceivePort();
+      final statsReceivePort = ReceivePort();
+      final aliveReceivePort = ReceivePort();
+      final isolate = await Isolate.spawn(
+        _wrapper,
+        [
+          workerEntryPoint,
+          WorkerEntryMessage(
+            workerIndex: workerIndex,
+            protocolSendPort: protocolReceivePort.sendPort,
+            statsSendPort: statsReceivePort.sendPort,
+            aliveSendPort: aliveReceivePort.sendPort,
+          ),
+        ],
+        onError: errorReceivePort.sendPort,
+        onExit: errorReceivePort.sendPort,
+        errorsAreFatal: true,
+      );
+      // read WorkerProtocolMessage
+      (await protocolReceivePort.take(1).toList()).single;
+      final statsSubscription =
+          statsReceivePort?.cast<Map>()?.listen((Map stats) {
+        updateLatestStats(stats);
+        for (SendPort sp in statConsumerPorts) {
+          sp.send(stats);
+        }
+      });
+      logger.info('Worker isolate #$workerIndex started.');
 
-    StreamSubscription errorSubscription;
+      Timer autoKillTimer;
+      void resetAutoKillTimer() {
+        if (deadWorkerTimeout == null) return;
+        autoKillTimer?.cancel();
 
-    Future<void> close() async {
-      await aliveSubscription?.cancel();
-      autoKillTimer?.cancel();
-      await statsSubscription?.cancel();
-      await errorSubscription?.cancel();
-      errorReceivePort.close();
-      protocolReceivePort.close();
-      statsReceivePort.close();
+        /// Randomize TTL so that isolate restarts do not happen at the same time.
+        final ttl = deadWorkerTimeout +
+            Duration(seconds: _random.nextInt(deadWorkerTimeout.inSeconds));
+        autoKillTimer = Timer(ttl, () {
+          logger.info('Killing worker isolate #$workerIndex...');
+          isolate.kill();
+        });
+      }
+
+      // We DO NOT initialize [autoKillTimer] at this point, allowing the worker
+      // to do arbitrary-length setup. Once the first message comes in, we can
+      // start the auto-kill timer.
+      final aliveSubscription = aliveReceivePort.listen((_) {
+        resetAutoKillTimer();
+      });
+
+      StreamSubscription errorSubscription;
+
+      Future<void> close() async {
+        await aliveSubscription?.cancel();
+        autoKillTimer?.cancel();
+        await statsSubscription?.cancel();
+        await errorSubscription?.cancel();
+        errorReceivePort.close();
+        protocolReceivePort.close();
+        statsReceivePort.close();
+      }
+
+      errorSubscription = errorReceivePort.listen((e) async {
+        print('ERROR from worker isolate #$workerIndex: $e');
+        logger.severe('ERROR from worker isolate #$workerIndex', e);
+        await close();
+        // restart isolate after a brief pause
+        await Future.delayed(Duration(minutes: 1));
+        await startWorkerIsolate();
+      });
     }
 
-    errorSubscription = errorReceivePort.listen((e) async {
-      print('ERROR from worker isolate #$workerIndex: $e');
-      logger.severe('ERROR from worker isolate #$workerIndex', e);
-      await close();
-      // restart isolate after a brief pause
-      await Future.delayed(Duration(minutes: 1));
-      await startWorkerIsolate();
-    });
-  }
-
-  try {
-    await withServices(() async {
-      if (frontendEntryPoint != null) {
-        for (int i = 0; i < envConfig.frontendCount; i++) {
-          await startFrontendIsolate();
+    try {
+      await withServices(() async {
+        if (frontendEntryPoint != null) {
+          for (int i = 0; i < envConfig.frontendCount; i++) {
+            await startFrontendIsolate();
+          }
         }
-      }
-      if (workerEntryPoint != null) {
-        if (workerSetup != null) {
-          await workerSetup();
+        if (workerEntryPoint != null) {
+          if (workerSetup != null) {
+            await workerSetup();
+          }
+          for (int i = 0; i < envConfig.workerCount; i++) {
+            await startWorkerIsolate();
+          }
         }
-        for (int i = 0; i < envConfig.workerCount; i++) {
-          await startWorkerIsolate();
-        }
-      }
-    });
-  } catch (e, st) {
-    logger.shout('Failed to start server.', e, st);
-    rethrow;
-  }
+      });
+    } catch (e, st) {
+      logger.shout('Failed to start server.', e, st);
+      rethrow;
+    }
+  });
 }
 
-void setupServiceIsolate() {
+void _setupServiceIsolate() {
   useLoggingPackageAdaptor();
   trackEventLoopLatency();
 }
@@ -235,12 +237,15 @@ void _wrapper(List fnAndMessage) {
   final fn = fnAndMessage[0] as Function;
   final message = fnAndMessage[1];
   final logger = Logger('isolate.wrapper');
-  Chain.capture(() async {
-    try {
-      return await fn(message);
-    } catch (e, st) {
-      logger.severe('Uncaught exception in isolate.', e, st);
-      rethrow;
-    }
+  withAppEngineServices(() async {
+    await Chain.capture(() async {
+      try {
+        _setupServiceIsolate();
+        return await fn(message);
+      } catch (e, st) {
+        logger.severe('Uncaught exception in isolate.', e, st);
+        rethrow;
+      }
+    });
   });
 }

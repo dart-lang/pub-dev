@@ -45,8 +45,6 @@ class SearchCommand extends Command {
 }
 
 Future _main(FrontendEntryMessage message) async {
-  setupServiceIsolate();
-
   final statsConsumer = ReceivePort();
   registerSchedulerStatsStream(statsConsumer.cast<Map>());
   message.protocolSendPort.send(FrontendProtocolMessage(

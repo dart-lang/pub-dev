@@ -59,8 +59,6 @@ class DartdocCommand extends Command {
 }
 
 Future _frontendMain(FrontendEntryMessage message) async {
-  setupServiceIsolate();
-
   final statsConsumer = ReceivePort();
   registerSchedulerStatsStream(statsConsumer.cast<Map>());
   message.protocolSendPort.send(FrontendProtocolMessage(
@@ -73,8 +71,6 @@ Future _frontendMain(FrontendEntryMessage message) async {
 }
 
 Future _workerMain(WorkerEntryMessage message) async {
-  setupServiceIsolate();
-
   message.protocolSendPort.send(WorkerProtocolMessage());
 
   await withServices(() async {
