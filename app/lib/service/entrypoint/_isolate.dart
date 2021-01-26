@@ -62,7 +62,7 @@ Future startIsolates({
   Future<void> Function(WorkerEntryMessage message) workerEntryPoint,
   Duration deadWorkerTimeout,
 }) async {
-  await withAppEngineServices(() async {
+  await withServices(() async {
     if (!envConfig.isRunningLocally) {
       // The existence of this file may indicate an issue with the service health.
       // Checking it only in AppEngine environment.
@@ -237,7 +237,7 @@ void _wrapper(List fnAndMessage) {
   final fn = fnAndMessage[0] as Function;
   final message = fnAndMessage[1];
   final logger = Logger('isolate.wrapper');
-  withAppEngineServices(() async {
+  withServices(() async {
     await Chain.capture(() async {
       try {
         _setupServiceIsolate();
