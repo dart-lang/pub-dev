@@ -63,7 +63,6 @@ class DefaultCommand extends Command {
 }
 
 Future _main(FrontendEntryMessage message) async {
-  setupServiceIsolate();
   message.protocolSendPort
       .send(FrontendProtocolMessage(statsConsumerPort: null));
 
@@ -125,7 +124,6 @@ Future<void> watchForResourceChanges() async {
 }
 
 Future _worker(WorkerEntryMessage message) async {
-  setupServiceIsolate();
   message.protocolSendPort.send(WorkerProtocolMessage());
 
   await withServices(() async {

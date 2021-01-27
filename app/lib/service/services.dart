@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async' show FutureOr;
+import 'dart:async' show FutureOr, Zone;
 
 import 'package:appengine/appengine.dart';
 import 'package:fake_gcloud/mem_datastore.dart';
@@ -52,12 +52,17 @@ import 'announcement/backend.dart';
 import 'secret/backend.dart';
 import 'spam/backend.dart';
 
+final _pubDevServicesInitializedKey = '_pubDevServicesInitializedKey';
+
 /// Run [fn] with services;
 ///
 ///  * AppEngine: storage and datastore,
 ///  * Redis cache, and,
 ///  * storage wrapped with retry.
 Future<void> withServices(FutureOr<void> Function() fn) async {
+  if (Zone.current[_pubDevServicesInitializedKey] == true) {
+    return await fork(() async => await fn());
+  }
   return withAppEngineServices(() async {
     return await fork(() async {
       // retrying auth client for storage service
@@ -102,6 +107,9 @@ Future<void> withFakeServices({
   MemDatastore datastore,
   MemStorage storage,
 }) async {
+  if (Zone.current[_pubDevServicesInitializedKey] == true) {
+    return await fork(() async => await fn());
+  }
   if (!envConfig.isRunningLocally) {
     throw StateError("Mustn't use fake services inside AppEngine.");
   }
@@ -191,6 +199,9 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
     registerScopeExitCallback(searchAdapter.close);
     registerScopeExitCallback(spamBackend.close);
 
-    return await fork(() async => fn());
+    // Create a zone-local flag to indicate that services setup has been completed.
+    return await fork(() => Zone.current.fork(zoneValues: {
+          _pubDevServicesInitializedKey: true,
+        }).run(() async => await fn()));
   });
 }
