@@ -124,6 +124,24 @@ class AuditLogRecord extends db.ExpandoModel<String> {
     dataJson = json.encode(value);
   }
 
+  factory AuditLogRecord.packageOptionsUpdated({
+    @required String package,
+    @required User user,
+  }) {
+    return AuditLogRecord._init()
+      ..kind = AuditLogRecordKind.packageOptionsUpdated
+      ..agent = user.userId
+      ..summary = '`${user.email}` updated package `$package`.'
+      ..data = {
+        'package': package,
+        'user': user.email,
+      }
+      ..users = [user.userId]
+      ..packages = [package]
+      ..packageVersions = []
+      ..publishers = [];
+  }
+
   factory AuditLogRecord.packagePublished({
     @required User uploader,
     @required String package,
@@ -182,6 +200,29 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ];
   }
 
+  factory AuditLogRecord.publisherContactInviteAccepted({
+    @required User user,
+    @required String publisherId,
+    @required String contactEmail,
+  }) {
+    return AuditLogRecord._init()
+      ..kind = AuditLogRecordKind.publisherContactInviteAccepted
+      ..agent = user.userId
+      ..summary = [
+        '`${user.email}` accepted `$contactEmail` ',
+        'to be contact email for publisher `$publisherId`.',
+      ].join()
+      ..data = {
+        'publisherId': publisherId,
+        'contactEmail': contactEmail,
+        'user': user.email,
+      }
+      ..users = [user.userId]
+      ..packages = []
+      ..packageVersions = []
+      ..publishers = [publisherId];
+  }
+
   factory AuditLogRecord.publisherContactInvited({
     @required User user,
     @required String publisherId,
@@ -197,6 +238,24 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..data = {
         'publisherId': publisherId,
         'contactEmail': contactEmail,
+        'user': user.email,
+      }
+      ..users = [user.userId]
+      ..packages = []
+      ..packageVersions = []
+      ..publishers = [publisherId];
+  }
+
+  factory AuditLogRecord.publisherCreated({
+    @required User user,
+    @required String publisherId,
+  }) {
+    return AuditLogRecord._init()
+      ..kind = AuditLogRecordKind.publisherCreated
+      ..agent = user.userId
+      ..summary = '`${user.email}` created publisher `$publisherId`.'
+      ..data = {
+        'publisherId': publisherId,
         'user': user.email,
       }
       ..users = [user.userId]
@@ -228,6 +287,66 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..publishers = [publisherId];
   }
 
+  factory AuditLogRecord.publisherMemberInviteAccepted({
+    @required User user,
+    @required String publisherId,
+  }) {
+    return AuditLogRecord._init()
+      ..kind = AuditLogRecordKind.publisherMemberInviteAccepted
+      ..agent = user.userId
+      ..summary =
+          '`${user.email}` accepted member invite for publisher `$publisherId`.'
+      ..data = {
+        'publisherId': publisherId,
+        'user': user.email,
+      }
+      ..users = [user.userId]
+      ..packages = []
+      ..packageVersions = []
+      ..publishers = [publisherId];
+  }
+
+  factory AuditLogRecord.publisherMemberRemoved({
+    @required User activeUser,
+    @required String publisherId,
+    @required User memberToRemove,
+  }) {
+    return AuditLogRecord._init()
+      ..kind = AuditLogRecordKind.publisherMemberRemoved
+      ..agent = activeUser.userId
+      ..summary = [
+        '`${activeUser.email}` removed `${memberToRemove.email}` ',
+        'from publisher `$publisherId`.',
+      ].join()
+      ..data = {
+        'publisherId': publisherId,
+        'memberEmail': memberToRemove.email,
+        'user': activeUser.email,
+      }
+      ..users = [activeUser.userId, memberToRemove.userId]
+      ..packages = []
+      ..packageVersions = []
+      ..publishers = [publisherId];
+  }
+
+  factory AuditLogRecord.publisherUpdated({
+    @required User user,
+    @required String publisherId,
+  }) {
+    return AuditLogRecord._init()
+      ..kind = AuditLogRecordKind.publisherUpdated
+      ..agent = user.userId
+      ..summary = '`${user.email}` updated publisher `$publisherId`.'
+      ..data = {
+        'publisherId': publisherId,
+        'user': user.email,
+      }
+      ..users = [user.userId]
+      ..packages = []
+      ..packageVersions = []
+      ..publishers = [publisherId];
+  }
+
   factory AuditLogRecord.uploaderInvited({
     @required User user,
     @required String package,
@@ -250,9 +369,55 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..packageVersions = []
       ..publishers = [];
   }
+
+  factory AuditLogRecord.uploaderInviteAccepted({
+    @required User user,
+    @required String package,
+  }) {
+    return AuditLogRecord._init()
+      ..kind = AuditLogRecordKind.uploaderInviteAccepted
+      ..agent = user.userId
+      ..summary = [
+        '`${user.email}` accepted uploader invite for package `$package`.',
+      ].join()
+      ..data = {
+        'package': package,
+        'user': user.email,
+      }
+      ..users = [user.userId]
+      ..packages = [package]
+      ..packageVersions = []
+      ..publishers = [];
+  }
+
+  factory AuditLogRecord.uploaderRemoved({
+    @required User activeUser,
+    @required String package,
+    @required User uploaderUser,
+  }) {
+    return AuditLogRecord._init()
+      ..kind = AuditLogRecordKind.uploaderRemoved
+      ..agent = activeUser.userId
+      ..summary = [
+        '`${activeUser.email}` removed `${uploaderUser.email}` ',
+        'from the uploaders of package `$package`.',
+      ].join()
+      ..data = {
+        'package': package,
+        'uploaderEmail': uploaderUser.email,
+        'user': activeUser.email,
+      }
+      ..users = [activeUser.userId, uploaderUser.userId]
+      ..packages = [package]
+      ..packageVersions = []
+      ..publishers = [];
+  }
 }
 
 abstract class AuditLogRecordKind {
+  /// Event that a package was updated with new options
+  static const packageOptionsUpdated = 'package-options-updated';
+
   /// Event that a package was published.
   ///
   /// This can be an entirely new package or just a new version to an existing package.
@@ -264,20 +429,40 @@ abstract class AuditLogRecordKind {
   /// Event that an e-mail was invited to be a publisher contact.
   static const publisherContactInvited = 'publisher-contact-invited';
 
+  /// Event that an e-mail consent was accepted to become a publisher contact.
+  static const publisherContactInviteAccepted =
+      'publisher-contact-invite-accepted';
+
+  /// Event that a publisher was created.
+  static const publisherCreated = 'publisher-created';
+
   /// Event that an e-mail was invited to be a publisher member.
   static const publisherMemberInvited = 'publisher-member-invited';
+
+  /// Event that a user has accepted the invite to become member of a publisher.
+  static const publisherMemberInviteAccepted =
+      'publisher-member-invite-accepted';
+
+  /// Event that a publisher member was removed.
+  static const publisherMemberRemoved = 'publisher-member-removed';
+
+  /// Event that a publisher was updated.
+  static const publisherUpdated = 'publisher-updated';
 
   /// Event that an uploader was invited to a package.
   static const uploadedInvited = 'uploader-invited';
 
+  /// Event that an uploader accepted the invite for a package.
+  static const uploaderInviteAccepted = 'uploader-invite-accepted';
+
+  /// Event that an uploader was removed from a package.
+  static const uploaderRemoved = 'uploader-removed';
+
 // TODO: implement further kinds
-  // uploader-invite-accepted/added
+  // uploader-invite-expired
   // uploader-invite-rejected
-  // uploader-removed
-  // publisher-created
-  // publisher-updated
-  // publisher-contact-changed
-  // publisher-member-invite-accepted/added
+  // publisher-contact-invite-expired
+  // publisher-contact-invite-rejected
+  // publisher-member-invite-expired
   // publisher-member-invite-rejected
-  // publisher-member-removed
 }
