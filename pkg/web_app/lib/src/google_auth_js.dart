@@ -56,7 +56,7 @@ abstract class GoogleAuth {
 
   /// Triggers a sign-out, and returns a Promise that will complete when the
   /// sign-out is finalized.
-  external dynamic signOut();
+  external Promise signOut();
 
   /// Revokes all of the scopes that the user granted.
   ///
