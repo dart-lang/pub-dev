@@ -18,7 +18,9 @@ PackageView _$PackageViewFromJson(Map<String, dynamic> json) {
     created: json['created'] == null
         ? null
         : DateTime.parse(json['created'] as String),
-    shortUpdated: json['shortUpdated'] as String,
+    updated: json['updated'] == null
+        ? null
+        : DateTime.parse(json['updated'] as String),
     flags: (json['flags'] as List)?.map((e) => e as String)?.toList(),
     publisherId: json['publisherId'] as String,
     isAwaiting: json['isAwaiting'] as bool,
@@ -51,7 +53,7 @@ Map<String, dynamic> _$PackageViewToJson(PackageView instance) {
   writeNotNull('previewVersion', instance.previewVersion);
   writeNotNull('ellipsizedDescription', instance.ellipsizedDescription);
   writeNotNull('created', instance.created?.toIso8601String());
-  writeNotNull('shortUpdated', instance.shortUpdated);
+  writeNotNull('updated', instance.updated?.toIso8601String());
   writeNotNull('flags', instance.flags);
   writeNotNull('publisherId', instance.publisherId);
   writeNotNull('isAwaiting', instance.isAwaiting);

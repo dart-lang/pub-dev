@@ -594,7 +594,7 @@ class PackageView extends Object with FlagMixin {
 
   /// The date when the package was first published.
   final DateTime created;
-  final String shortUpdated;
+  final DateTime updated;
   @override
   final List<String> flags;
   final String publisherId;
@@ -626,7 +626,7 @@ class PackageView extends Object with FlagMixin {
     this.previewVersion,
     this.ellipsizedDescription,
     this.created,
-    this.shortUpdated,
+    this.updated,
     this.flags,
     this.publisherId,
     this.isAwaiting = false,
@@ -670,7 +670,9 @@ class PackageView extends Object with FlagMixin {
       previewVersion: previewVersion,
       ellipsizedDescription: version?.ellipsizedDescription,
       created: package.created,
-      shortUpdated: package.shortLatestPrereleasePublished,
+      updated:
+          // TODO: use only lastVersionPublished after preview backfill is done
+          package.lastVersionPublished ?? package.latestPrereleasePublished,
       flags: scoreCard?.flags,
       publisherId: package.publisherId,
       isAwaiting: isAwaiting,
@@ -699,7 +701,7 @@ class PackageView extends Object with FlagMixin {
       previewVersion: previewVersion,
       ellipsizedDescription: ellipsizedDescription,
       created: created,
-      shortUpdated: shortUpdated,
+      updated: updated,
       flags: flags,
       publisherId: publisherId,
       isAwaiting: isAwaiting,
