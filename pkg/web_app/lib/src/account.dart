@@ -12,23 +12,12 @@ import 'package:client_data/publisher_api.dart';
 import 'package:http/browser_client.dart' as http;
 
 import '_authenticated_client.dart';
+import '_authentication_proxy.dart';
 import '_dom_helper.dart';
 import 'google_auth_js.dart';
 import 'google_js.dart';
 import 'page_data.dart';
 import 'pubapi.client.dart';
-
-final _initialized = Completer<void>();
-GoogleUser _currentUser;
-
-/// Returns whether the user is currently signed-in.
-bool get isSignedIn =>
-    _initialized.isCompleted &&
-    _currentUser != null &&
-    _currentUser.isSignedIn();
-
-/// Returns the currently signed-in user or null.
-GoogleUser get currentUser => _currentUser;
 
 final _pkgAdminWidget = _PkgAdminWidget();
 final _publisherAdminWidget = _PublisherAdminWidget();
@@ -52,47 +41,35 @@ PubApiClient get unauthenticatedClient =>
 PubApiClient get client {
   return PubApiClient(_baseUrl, client: createAuthenticatedClient(() async {
     // Wait until we're initialized
-    await _initialized.future;
+    await authProxyReady;
 
-    var user = getAuthInstance().currentUser.get();
-    if (user == null || !user.isSignedIn()) {
-      // Attempt a login flow
-      user = await promiseAsFuture(
-          getAuthInstance().signIn(SignInOptions(prompt: 'select_account')));
+    if (!authenticationProxy.isSignedIn()) {
+      await authenticationProxy.trySignIn();
     }
-    if (user == null || !user.isSignedIn()) {
+    if (!authenticationProxy.isSignedIn()) {
       print('Login failed');
       throw StateError('User not logged in');
     }
-
-    var authResponse = user.getAuthResponse(true);
-
-    if (authResponse == null ||
-        authResponse.expires_at == null ||
-        DateTime.now().millisecondsSinceEpoch > authResponse.expires_at) {
-      authResponse = await promiseAsFuture(user.reloadAuthResponse());
-    }
-
-    if (authResponse == null ||
-        authResponse.expires_at == null ||
-        DateTime.now().millisecondsSinceEpoch > authResponse.expires_at) {
-      throw StateError(
-          'Unable to get response object from the user\'s auth session.');
-    }
-
-    return authResponse.id_token;
+    return authenticationProxy.idToken();
   }));
 }
 
 void setupAccount() {
+  final metaElem =
+      document.querySelector('meta[name="google-signin-client_id"]');
+  final clientId = metaElem == null ? null : metaElem.attributes['content'];
+  if (clientId == null || clientId.isEmpty) {
+    // pub is running in a fake server or test mode
+    // TODO: implement fake login flow
+    setupFakeUser(accessToken: null, idToken: null);
+    _signInNotAvailable();
+    return;
+  }
+
   // Initialization hook that will run after the auth library is loaded and
   // initialized. Method name is passed in as request parameter when loading
   // the auth library.
   context['pubAuthInit'] = () {
-    final clientId = document
-        .querySelector('meta[name="google-signin-client_id"]')
-        .attributes['content'];
-    if (clientId == null) return;
     load('auth2', allowInterop(() {
       init(JsObject.jsify({'client_id': clientId})).then(
         allowInterop((_) => _init()), // success
@@ -104,9 +81,13 @@ void setupAccount() {
 
 void _initFailed() {
   // Unblocking the initialization of PubApiClient.
-  _initialized.complete();
+  setupGoogleAuthenticationProxy();
 
   // Login at this point is unlikely to work.
+  _signInNotAvailable();
+}
+
+void _signInNotAvailable() {
   document.getElementById('-account-login')?.onClick?.listen((_) async {
     await modalMessage(
         'Sign in is not available',
@@ -114,46 +95,31 @@ void _initFailed() {
             '`pub.dev` uses third-party cookies and access to Google domains for accounts and sign in. '
             'Please enable third-party cookies and don\'t block content on `pub.dev`.'));
   });
-
-  // TODO: consider blocking admin form elements and buttons (but no search controls).
 }
 
 void _init() {
-  _initialized.complete();
-  document.getElementById('-account-login')?.onClick?.listen(
-        (_) => getAuthInstance().signIn(
-          SignInOptions(prompt: 'select_account'),
-        ),
-      );
+  setupGoogleAuthenticationProxy(
+    onUpdated: () async {
+      await _updateSession();
+    },
+  );
+  document
+      .getElementById('-account-login')
+      ?.onClick
+      ?.listen((_) => authenticationProxy.trySignIn());
   document
       .getElementById('-account-logout')
       ?.onClick
-      ?.listen((_) => getAuthInstance().signOut());
+      ?.listen((_) => authenticationProxy.signOut());
   _pkgAdminWidget.init();
   _createPublisherWidget.init();
   _publisherAdminWidget.init();
   _consentWidget.init();
-  _updateUser(getAuthInstance()?.currentUser?.get());
-  getAuthInstance().currentUser.listen(allowInterop(_updateUser));
 }
 
-Future _updateUser(GoogleUser user) async {
-  if (!getAuthInstance().isSignedIn.get()) {
-    user = null;
-  }
-  if (user?.getId() == null) {
-    user = null;
-  }
-
-  // no need to update session if there is no change in the user id
-  if (_currentUser?.getId() == user?.getId()) {
-    return;
-  }
-
-  _currentUser = user;
-
-  // update or delete session
-  if (user == null) {
+/// update or delete session
+Future _updateSession() async {
+  if (!authenticationProxy.isSignedIn()) {
     final st1 = ClientSessionStatus.fromBytes(
         await unauthenticatedClient.invalidateSession());
     if (st1.changed) {
@@ -171,8 +137,7 @@ Future _updateUser(GoogleUser user) async {
     }
   } else {
     final body = ClientSessionRequest(
-      accessToken: currentUser.getAuthResponse(true).access_token,
-    );
+        accessToken: await authenticationProxy.accessToken());
     final st1 = ClientSessionStatus.fromBytes(await client.updateSession(body));
     if (st1.changed) {
       final st2 =
@@ -401,18 +366,11 @@ class _CreatePublisherWidget {
       confirmQuestion: markdown(
           'Are you sure you want to create publisher for `$publisherId`?'),
       fn: () async {
-        GoogleUser currentUser = getAuthInstance()?.currentUser?.get();
         final extraScope =
             'https://www.googleapis.com/auth/webmasters.readonly';
-
-        if (!currentUser.hasGrantedScopes(extraScope)) {
-          // We don't have the extract scope, so let's ask for it
-          currentUser = await promiseAsFuture(currentUser.grant(GrantOptions(
-            scope: extraScope,
-          )));
-        }
         final payload = CreatePublisherRequest(
-          accessToken: currentUser.getAuthResponse(true).access_token,
+          accessToken:
+              await authenticationProxy.accessToken(extraScope: extraScope),
         );
         await client.createPublisher(publisherId, payload);
       },
