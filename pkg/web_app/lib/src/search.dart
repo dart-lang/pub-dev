@@ -33,9 +33,9 @@ void _setEventForKeyboardShortcut() {
 
         // notify analytics
         gtagEvent(
-          'keyboard-shortcut-search',
+          'focus-search',
           category: 'keyboard-shortcut',
-          label: 'search',
+          label: 'path:${window.location.pathname}',
         );
       }
     });
