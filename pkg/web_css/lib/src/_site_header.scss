@@ -113,12 +113,14 @@
       border: none;
       border-radius: 5px;
       outline: none;
+      cursor: pointer;
 
       &:focus {
         width: 240px;
         background-color: lighten($site-header-banner-bg, 10%);
         padding-left: 10px;
         padding-right: 30px;
+        cursor: inherit;
 
         @media (max-width: $device-tablet-max-width) {
           width: 120px;
