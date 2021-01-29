@@ -3,14 +3,14 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Bumped runtimeVersion to `2021.01.29`.
+ * NOTE: the release starts to create `AuditLogRecord`s for all the existing
+         `History` entries. `History` entries could be removed after this release.
 
 ## `20210129t103600-all`
  * Bumped runtimeVersion to `2021.01.26`.
  * Upgraded Flutter to `1.25.0-8.3.pre` (beta).
  * NOTE: the release starts to populate preview version fields and runs
          a periodic task to update it.
- * NOTE: the release starts to create `AuditLogRecord`s for all the existing
-         `History` entries. `History` entries could be removed after this release.
 
 ## `20210119t122300-all`
  * Bumped runtimeVersion to `2021.01.18`.
