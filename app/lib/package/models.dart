@@ -222,10 +222,11 @@ class Package extends db.ExpandoModel<String> {
     @required Version dartSdkVersion,
   }) {
     final newVersion = pv.semanticVersion;
+    final isOnStableSdk = !pv.pubspec.isPreviewForCurrentSdk(dartSdkVersion);
 
     if (latestVersionKey == null ||
         (isNewer(latestSemanticVersion, newVersion, pubSorted: true) &&
-            !pv.pubspec.isPreviewForCurrentSdk(dartSdkVersion))) {
+            (latestSemanticVersion.isPreRelease || isOnStableSdk))) {
       latestVersionKey = pv.key;
       latestPublished = pv.created;
     }

@@ -116,6 +116,44 @@ void main() {
         expect(p1.lastVersionPublished, isNotNull);
       },
     );
+
+    testWithProfile(
+      'only future prerelease versions',
+      testProfile: TestProfile(
+        defaultUser: adminUser.email,
+        packages: [
+          TestPackage(name: 'pkg', versions: [
+            '0.1.0-nullsafety.0',
+            '0.1.0-nullsafety.1',
+            '0.2.0-nullsafety.0',
+            '0.2.1-nullsafety.0',
+          ]),
+        ],
+      ),
+      importSource:
+          _ImportSource(() => futureSdkVersion, () => futureSdkVersion),
+      fn: () async {
+        final pkg = await dbService.lookupValue<Package>(
+            dbService.emptyKey.append(Package, id: 'pkg'));
+        expect(pkg.latestVersion, '0.2.1-nullsafety.0');
+        pkg.latestPreviewVersionKey = null;
+        pkg.latestPreviewPublished = null;
+        pkg.lastVersionPublished = null;
+        await dbService.commit(inserts: [pkg]);
+
+        final u1 = await packageBackend.updateAllPackageVersions(
+            dartSdkVersion: currentSdkVersion);
+        expect(u1, 1);
+
+        // check that fields were updated
+        final p1 = await packageBackend.lookupPackage('pkg');
+        expect(p1.latestVersion, '0.2.1-nullsafety.0');
+        expect(p1.latestPrereleaseVersion, '0.2.1-nullsafety.0');
+        expect(p1.latestPreviewVersion, '0.2.1-nullsafety.0');
+        expect(p1.showPrereleaseVersion, isFalse);
+        expect(p1.showPreviewVersion, isFalse);
+      },
+    );
   });
 }
 
