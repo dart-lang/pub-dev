@@ -411,6 +411,10 @@ class PackageBackend {
           isUnlisted: options.isUnlisted,
         ),
       ));
+      tx.insert(AuditLogRecord.packageOptionsUpdated(
+        package: p.name,
+        user: user,
+      ));
     });
     await purgePackageCache(package);
     await analyzerClient.triggerAnalysis(package, latestVersion, <String>{});
@@ -922,6 +926,10 @@ class PackageBackend {
         addedUploaderIds: [uploader.userId],
         addedUploaderEmails: [uploader.email],
       )));
+      tx.insert(AuditLogRecord.uploaderInviteAccepted(
+        user: uploader,
+        package: packageName,
+      ));
     });
     await purgePackageCache(packageName);
   }
@@ -995,6 +1003,11 @@ class PackageBackend {
         removedUploaderIds: [uploader.userId],
         removedUploaderEmails: [uploader.email],
       )));
+      tx.insert(AuditLogRecord.uploaderRemoved(
+        activeUser: user,
+        package: packageName,
+        uploaderUser: uploader,
+      ));
     });
     await purgePackageCache(packageName);
     return api.SuccessMessage(

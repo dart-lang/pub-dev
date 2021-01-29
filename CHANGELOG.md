@@ -3,6 +3,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Bumped runtimeVersion to `2021.01.29`.
+ * NOTE: the release starts to create `AuditLogRecord`s for all the existing
+         `History` entries. `History` entries could be removed after this release.
 
 ## `20210129t103600-all`
  * Bumped runtimeVersion to `2021.01.26`.

@@ -11,6 +11,7 @@ import 'package:logging/logging.dart';
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
+import '../audit/models.dart';
 import '../history/models.dart';
 import '../shared/datastore.dart';
 import '../shared/email.dart';
@@ -205,6 +206,10 @@ class PublisherBackend {
             role: PublisherMemberRole.admin,
           ),
         ),
+        AuditLogRecord.publisherCreated(
+          user: user,
+          publisherId: publisherId,
+        ),
       ]);
     });
     await purgeAccountCache(userId: user.userId);
@@ -291,6 +296,10 @@ class PublisherBackend {
       p.updated = DateTime.now().toUtc();
 
       tx.insert(p);
+      tx.insert(AuditLogRecord.publisherUpdated(
+        user: user,
+        publisherId: publisherId,
+      ));
       return p;
     });
 
@@ -311,6 +320,11 @@ class PublisherBackend {
       p.contactEmail = contactEmail;
       p.updated = DateTime.now().toUtc();
       tx.insert(p);
+      tx.insert(AuditLogRecord.publisherContactInviteAccepted(
+        user: activeUser,
+        publisherId: publisherId,
+        contactEmail: contactEmail,
+      ));
     });
   }
 
@@ -451,17 +465,22 @@ class PublisherBackend {
     final key = p.key.append(PublisherMember, id: userId);
     final pm = await _db.lookupValue<PublisherMember>(key, orElse: () => null);
     if (pm != null) {
-      final userEmail = await accountBackend.getEmailOfUserId(userId);
+      final memberUser = await accountBackend.lookupUserById(userId);
       final history = History.entry(
         MemberRemoved(
           publisherId: publisherId,
           currentUserId: user.userId,
           currentUserEmail: user.email,
-          removedUserId: userId,
-          removedUserEmail: userEmail,
+          removedUserId: memberUser.userId,
+          removedUserEmail: memberUser.email,
         ),
       );
-      await _db.commit(inserts: [history], deletes: [pm.key]);
+      final auditLogRecord = AuditLogRecord.publisherMemberRemoved(
+        publisherId: publisherId,
+        activeUser: user,
+        memberToRemove: memberUser,
+      );
+      await _db.commit(inserts: [history, auditLogRecord], deletes: [pm.key]);
     }
     await purgePublisherCache(publisherId: publisherId);
     await purgeAccountCache(userId: userId);
@@ -470,7 +489,7 @@ class PublisherBackend {
   /// A callback from consent backend, when a consent is granted.
   /// Note: this will be retried when transaction fails due race conditions.
   Future<void> inviteConsentGranted(String publisherId, String userId) async {
-    final userEmail = await accountBackend.getEmailOfUserId(userId);
+    final user = await accountBackend.lookupUserById(userId);
     await withRetryTransaction(_db, (tx) async {
       final key = _db.emptyKey
           .append(Publisher, id: publisherId)
@@ -491,9 +510,13 @@ class PublisherBackend {
           MemberJoined(
             publisherId: publisherId,
             userId: userId,
-            userEmail: userEmail,
+            userEmail: user.email,
             role: PublisherMemberRole.admin,
           ),
+        ),
+        AuditLogRecord.publisherMemberInviteAccepted(
+          user: user,
+          publisherId: publisherId,
         ),
       ]);
     });

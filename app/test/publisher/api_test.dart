@@ -9,8 +9,11 @@ import 'package:test/test.dart';
 
 import 'package:client_data/account_api.dart' as account_api;
 import 'package:client_data/publisher_api.dart';
+
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/audit/backend.dart';
+import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dev/publisher/models.dart';
@@ -67,6 +70,14 @@ void main() {
           'websiteUrl': 'https://verified.com/',
           'contactEmail': hansUser.email,
         });
+
+        // check audit log record
+        final records =
+            await auditBackend.listRecordsForPublisher('verified.com');
+        final r = records
+            .firstWhere((r) => r.kind == AuditLogRecordKind.publisherCreated);
+        expect(
+            r.summary, '`hans@juergen.com` created publisher `verified.com`.');
       });
 
       testWithServices('notverified.com', () async {
@@ -114,6 +125,14 @@ void main() {
         // Info request should return with the same content.
         final info = await client.publisherInfo('example.com');
         expect(info.toJson(), rs.toJson());
+
+        // check audit log record
+        final records =
+            await auditBackend.listRecordsForPublisher('example.com');
+        final r = records
+            .firstWhere((r) => r.kind == AuditLogRecordKind.publisherUpdated);
+        expect(
+            r.summary, '`hans@juergen.com` updated publisher `example.com`.');
       });
     });
 
@@ -664,6 +683,13 @@ void main() {
         final updated =
             client.publisherMemberInfo('example.com', testUserA.userId);
         await expectApiException(updated, status: 404, code: 'NotFound');
+        // check audit log
+        final records =
+            await auditBackend.listRecordsForPublisher('example.com');
+        final r = records.firstWhere(
+            (r) => r.kind == AuditLogRecordKind.publisherMemberRemoved);
+        expect(r.summary,
+            '`hans@juergen.com` removed `a@example.com` from publisher `example.com`.');
       });
     });
   });
