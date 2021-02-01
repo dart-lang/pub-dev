@@ -134,6 +134,40 @@ version: 1.0.9
       });
     });
   });
+
+  group('MinSdkVersion', () {
+    test('dev only', () {
+      final msd =
+          MinSdkVersion.tryParse(VersionConstraint.parse('>=2.12.0-0 <2.12.0'));
+      expect(msd.major, 2);
+      expect(msd.minor, 12);
+      expect(msd.channel, 'dev');
+    });
+
+    test('dev', () {
+      final msd = MinSdkVersion.tryParse(
+          VersionConstraint.parse('>=2.12.0-29.10.dev <3.0.0'));
+      expect(msd.major, 2);
+      expect(msd.minor, 12);
+      expect(msd.channel, 'dev');
+    });
+
+    test('beta', () {
+      final msd = MinSdkVersion.tryParse(
+          VersionConstraint.parse('>=2.12.0-29.10.beta <3.0.0'));
+      expect(msd.major, 2);
+      expect(msd.minor, 12);
+      expect(msd.channel, 'beta');
+    });
+
+    test('stable', () {
+      final msd =
+          MinSdkVersion.tryParse(VersionConstraint.parse('>=2.12.0 <3.0.0'));
+      expect(msd.major, 2);
+      expect(msd.minor, 12);
+      expect(msd.channel, isNull);
+    });
+  });
 }
 
 class _PublishSequence {
