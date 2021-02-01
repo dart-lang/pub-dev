@@ -22,8 +22,8 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 /// when the version switch happens.
 const acceptedRuntimeVersions = <String>[
   '2021.01.29', // The current [runtimeVersion].
+  '2021.01.26',
   '2021.01.18',
-  '2021.01.07',
 ];
 
 /// Represents a combined version of the overall toolchain and processing,
