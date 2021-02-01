@@ -154,6 +154,42 @@ void main() {
         expect(p1.showPreviewVersion, isFalse);
       },
     );
+
+    testWithProfile(
+      'allow latest stable to go back',
+      testProfile: TestProfile(
+        defaultUser: adminUser.email,
+        packages: [
+          TestPackage(name: 'pkg', versions: ['1.0.0', '1.2.0']),
+        ],
+      ),
+      importSource: importSource,
+      fn: () async {
+        final pkg = await dbService.lookupValue<Package>(
+            dbService.emptyKey.append(Package, id: 'pkg'));
+
+        // force-update latest stable to match preview
+        expect(pkg.latestVersion, '1.0.0');
+        pkg.latestVersionKey = pkg.latestPreviewVersionKey;
+        expect(pkg.latestVersion, '1.2.0');
+        await dbService.commit(inserts: [pkg]);
+
+        // trigger update
+        final u1 = await packageBackend.updateAllPackageVersions(
+            dartSdkVersion: currentSdkVersion);
+        expect(u1, 1);
+
+        // check that fields were updated
+        final p1 = await packageBackend.lookupPackage('pkg');
+        expect(p1.latestVersion, '1.0.0');
+        expect(p1.latestPrereleaseVersion, '1.2.0');
+        expect(p1.latestPreviewVersion, '1.2.0');
+        expect(p1.showPrereleaseVersion, isFalse);
+        expect(p1.showPreviewVersion, isTrue);
+        expect(p1.latestPreviewPublished, isNotNull);
+        expect(p1.lastVersionPublished, isNotNull);
+      },
+    );
   });
 }
 

@@ -297,22 +297,30 @@ class PackageBackend {
       }
 
       // sanity check changes
-      final stableNotOk =
-          oldStableVersion.compareTo(p.latestSemanticVersion) > 0;
       final prereleaseNotOk =
           oldPrereleaseVersion.compareTo(p.latestPrereleaseSemanticVersion) > 0;
       final previewNotOk = oldPreviewVersion != null &&
           oldPreviewVersion.compareTo(p.latestPreviewSemanticVersion) > 0;
-      if (stableNotOk || prereleaseNotOk || previewNotOk) {
+      if (prereleaseNotOk || previewNotOk) {
         _logger.severe(
             'Version update sanity check failed for package "$package": '
-            '$oldStableVersion -> ${p.latestVersion} / '
             '$oldPrereleaseVersion -> ${p.latestPrereleaseVersion} / '
             '$oldPreviewVersion -> ${p.latestPreviewVersion}');
         return false;
       }
 
+      // Stepping back a version on latest stable seems to be a valid use case
+      // at the time of introducing the feature, let's keep it on as a warning.
+      final stableNotOk =
+          oldStableVersion.compareTo(p.latestSemanticVersion) > 0 &&
+              oldStableVersion.compareTo(p.latestPreviewSemanticVersion) != 0;
+      if (stableNotOk) {
+        _logger.warning('Possible version update issue for package "$package": '
+            '$oldStableVersion -> ${p.latestVersion} / ');
+      }
+
       _logger.info('Updating version fields for package `$package`.');
+      p.updated = DateTime.now().toUtc();
       tx.insert(p);
       return true;
     });
