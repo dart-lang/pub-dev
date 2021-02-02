@@ -5,8 +5,9 @@
 import 'dart:async';
 
 import 'package:args/args.dart';
-import 'package:pub_dev/account/backend.dart';
 
+import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/history/models.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/service/entrypoint/tools.dart';
@@ -111,6 +112,10 @@ Future main(List<String> args) async {
             userEmail: user.email,
             role: PublisherMemberRole.admin,
           ),
+        ),
+        AuditLogRecord.publisherCreated(
+          user: user,
+          publisherId: publisherId,
         ),
       ]);
     });
