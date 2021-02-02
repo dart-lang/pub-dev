@@ -38,13 +38,7 @@
     padding: 8px 4px;
     text-align: left;
 
-    &.version {
-      font-family: $font-family-google-sans;
-      font-size: 24px;
-    }
-
     &.sdk {
-      text-align: center;
       white-space: nowrap;
       width: 80px;
     }
@@ -91,6 +85,7 @@
     font-size: 14px;
 
     .version {
+      font-family: $font-family-google-sans;
       font-size: 24px;
     }
   }
