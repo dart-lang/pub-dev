@@ -60,9 +60,8 @@ void setupAccount() {
   final clientId = metaElem == null ? null : metaElem.attributes['content'];
   if (clientId == null || clientId.isEmpty) {
     // pub is running in a fake server or test mode
-    // TODO: implement fake login flow
-    setupFakeUser(accessToken: null, idToken: null);
-    _signInNotAvailable();
+    setupFakeTokenAuthenticationProxy(onUpdated: () => _updateSession());
+    _initWidgets();
     return;
   }
 
@@ -72,7 +71,7 @@ void setupAccount() {
   context['pubAuthInit'] = () {
     load('auth2', allowInterop(() {
       init(JsObject.jsify({'client_id': clientId})).then(
-        allowInterop((_) => _init()), // success
+        allowInterop((_) => _initGoogleAuthAndWidgets()), // success
         allowInterop((_) => _initFailed()), // failure
       );
     }));
@@ -97,12 +96,16 @@ void _signInNotAvailable() {
   });
 }
 
-void _init() {
+void _initGoogleAuthAndWidgets() {
   setupGoogleAuthenticationProxy(
     onUpdated: () async {
       await _updateSession();
     },
   );
+  _initWidgets();
+}
+
+void _initWidgets() {
   document
       .getElementById('-account-login')
       ?.onClick
