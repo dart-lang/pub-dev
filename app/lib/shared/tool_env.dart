@@ -5,9 +5,12 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:logging/logging.dart';
 import 'package:pana/pana.dart';
 
 import 'configuration.dart';
+
+final _logger = Logger('tool_env');
 
 /// Subsequent calls of the analyzer or dartdoc job can use the same [ToolEnvRef]
 /// instance [_maxCount] times.
@@ -25,6 +28,9 @@ const _maxCount = 50;
 /// will be deleted and a new [ToolEnvRef] with a new directory will be created.
 const _maxSize = 500 * 1024 * 1024; // 500 MB
 
+/// The id of the next [ToolEnvRef] to be created.
+int _nextId = 0;
+
 ToolEnvRef _current;
 Completer _ongoing;
 
@@ -38,6 +44,7 @@ Completer _ongoing;
 class ToolEnvRef {
   final Directory _pubCacheDir;
   final ToolEnvironment toolEnv;
+  final _id = _nextId++;
   int _started = 0;
   int _active = 0;
   bool _isAboveSizeLimit = false;
@@ -46,18 +53,23 @@ class ToolEnvRef {
 
   bool get _isAvailable => _started < _maxCount && !_isAboveSizeLimit;
 
-  void _aquire() {
+  void _acquire() {
     _started++;
     _active++;
+    _logger
+        .info('($_id) Tool env acquired. started: $_started, active: $_active');
   }
 
   Future<void> release() async {
+    _logger
+        .info('($_id) Tool env released. started: $_started, active: $_active');
     await _checkSizeLimit();
     _active--;
     if (_active == 0) {
       // Delete directory if the instance is no longer active or it reached the
       // maximum threshold.
       if (_started >= _maxCount || _current != this) {
+        _logger.info('($_id) Deleting pub cache dir: $_pubCacheDir');
         await _pubCacheDir.delete(recursive: true);
       }
     }
@@ -71,6 +83,7 @@ class ToolEnvRef {
         size += await fse.length();
       }
     }
+    _logger.info('($_id) Current size of pub cache dir: $size');
     _isAboveSizeLimit = size > _maxSize;
   }
 }
@@ -83,7 +96,7 @@ Future<ToolEnvRef> getOrCreateToolEnvRef() async {
   while (result == null) {
     if (_current != null && _current._isAvailable) {
       result = _current;
-      result._aquire();
+      result._acquire();
       break;
     }
 
@@ -103,7 +116,7 @@ Future<ToolEnvRef> getOrCreateToolEnvRef() async {
     );
     _current = ToolEnvRef(cacheDir, toolEnv);
     result = _current;
-    result._aquire();
+    result._acquire();
     _ongoing.complete();
     _ongoing = null;
     break;
