@@ -2,6 +2,8 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20210202t151000-all`
  * Bumped runtimeVersion to `2021.01.29`.
  * NOTE: the release starts to create `AuditLogRecord`s for all the existing
          `History` entries. `History` entries could be removed after this release.
