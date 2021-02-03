@@ -26,7 +26,6 @@ import '../fake/backend/fake_domain_verifier.dart';
 import '../fake/backend/fake_email_sender.dart';
 import '../fake/backend/fake_upload_signer_service.dart';
 import '../frontend/email_sender.dart';
-import '../history/backend.dart';
 import '../job/backend.dart';
 import '../package/backend.dart';
 import '../package/name_tracker.dart';
@@ -159,7 +158,6 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
     registerDartdocClient(DartdocClient());
     registerDartSdkIndex(
         InMemoryPackageIndex.sdk(urlPrefix: dartSdkMainUrl(toolEnvSdkVersion)));
-    registerHistoryBackend(HistoryBackend(dbService));
     registerJobBackend(JobBackend(dbService));
     registerNameTracker(NameTracker(dbService));
     registerPackageIndex(InMemoryPackageIndex());
