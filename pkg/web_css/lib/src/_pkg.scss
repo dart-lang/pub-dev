@@ -19,6 +19,15 @@
     position: relative;
     top: 2px;
   }
+
+  /*
+    NOTE: This changes the side margins for the badge(s) on the package page,
+          while subsequent badges still have 8px between them.
+  */
+  .detail-header-content-block .metadata & {
+    margin-left: 4px;
+    margin-right: 4px;
+  }
 }
 
 .package-vp-icon {
