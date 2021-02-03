@@ -77,7 +77,8 @@ String renderPackageList(
           urls.pkgPageUrl(view.name, version: view.previewVersion),
       'is_new': addedXAgo != null,
       'added_x_ago': addedXAgo,
-      'last_uploaded': shortDateFormat.format(view.updated),
+      'last_uploaded':
+          view.updated == null ? null : shortDateFormat.format(view.updated),
       'desc': view.ellipsizedDescription,
       'flutter_favorite_badge_html': flutterFavoriteBadgeHtml,
       'null_safe_badge_html': nullSafeBadgeHtml,
