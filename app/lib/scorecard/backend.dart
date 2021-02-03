@@ -7,16 +7,16 @@ import 'dart:async';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-
-import 'package:pub_dev/package/models.dart' show Package, PackageVersion;
-import 'package:pub_dev/tool/utils/dart_sdk_version.dart';
 import 'package:pub_semver/pub_semver.dart';
+
+import '../package/models.dart' show Package, PackageVersion;
 import '../package/overrides.dart';
 import '../shared/datastore.dart' as db;
 import '../shared/popularity_storage.dart';
 import '../shared/redis_cache.dart' show cache;
 import '../shared/utils.dart';
 import '../shared/versions.dart' as versions;
+import '../tool/utils/dart_sdk_version.dart';
 
 import 'helpers.dart';
 import 'models.dart';
@@ -390,8 +390,7 @@ class PackageStatus {
       isObsolete: isObsolete,
       isLegacy: pv.pubspec.supportsOnlyLegacySdk,
       usesFlutter: pv.pubspec.usesFlutter,
-      usesPreviewSdk:
-          pv.pubspec.isPreviewForCurrentSdk(currentSdkVersion),
+      usesPreviewSdk: pv.pubspec.isPreviewForCurrentSdk(currentSdkVersion),
     );
   }
 }
