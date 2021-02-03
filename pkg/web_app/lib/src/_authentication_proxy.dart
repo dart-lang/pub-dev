@@ -3,11 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:html';
 
 import 'package:js/js.dart';
 import 'package:meta/meta.dart';
 
+import '_dom_helper.dart';
 import 'google_auth_js.dart';
+
+/// Callback to run when the authenticated user changes.
+typedef OnUpdatedFn = void Function();
 
 /// Abstraction for the client-side authentication service.
 abstract class AuthenticationProxy {
@@ -26,7 +31,7 @@ Future<void> get authProxyReady => _authProxyReadyCompleter.future;
 
 /// Initializes [authenticationProxy] with Google auth.
 void setupGoogleAuthenticationProxy({
-  void Function() onUpdated,
+  OnUpdatedFn onUpdated,
 }) {
   _proxy = _GoogleAuthenticationProxy();
   if (!_authProxyReadyCompleter.isCompleted) {
@@ -44,18 +49,19 @@ void setupGoogleAuthenticationProxy({
   }
 }
 
-/// Initializes [authenticationProxy] with fake account and fixed tokens.
-void setupFakeUser({
-  @required String accessToken,
-  @required String idToken,
+/// Initializes [authenticationProxy] with fake account and fixed tokens stored
+/// in the browser's local storage.
+void setupFakeTokenAuthenticationProxy({
+  @required OnUpdatedFn onUpdated,
 }) {
   if (_proxy is _GoogleAuthenticationProxy) {
     throw StateError('Authenticated user is already initialized.');
   }
-  _proxy = _FakeAuthenticationProxy(accessToken, idToken);
+  _proxy = _FakeAuthenticationProxy(onUpdated);
   if (!_authProxyReadyCompleter.isCompleted) {
     _authProxyReadyCompleter.complete();
   }
+  onUpdated();
 }
 
 class _GoogleAuthenticationProxy implements AuthenticationProxy {
@@ -119,22 +125,61 @@ class _GoogleAuthenticationProxy implements AuthenticationProxy {
 }
 
 class _FakeAuthenticationProxy implements AuthenticationProxy {
-  final String _accessToken;
-  final String _idToken;
+  static const _accessTokenKey = '-pub-fake-access-token';
+  static const _idTokenKey = '-pub-fake-id-token';
 
-  _FakeAuthenticationProxy(this._accessToken, this._idToken);
+  void _updateTokens(String accessToken, String idToken) {
+    if (_accessToken == accessToken && _idToken == idToken) {
+      // no-op
+    } else {
+      if (accessToken == null || accessToken.isEmpty) {
+        window.localStorage.remove(_accessTokenKey);
+      } else {
+        window.localStorage[_accessTokenKey] = accessToken;
+      }
+
+      if (idToken == null || idToken.isEmpty) {
+        window.localStorage.remove(_idTokenKey);
+      } else {
+        window.localStorage[_idTokenKey] = idToken;
+      }
+
+      // TODO: also add expiry
+      _onUpdatedFn();
+    }
+  }
+
+  final OnUpdatedFn _onUpdatedFn;
+
+  _FakeAuthenticationProxy(this._onUpdatedFn);
+
+  String get _accessToken => window.localStorage[_accessTokenKey];
+  String get _idToken => window.localStorage[_idTokenKey];
 
   @override
   bool isSignedIn() => _accessToken != null && _accessToken.isNotEmpty;
 
   @override
   Future<bool> trySignIn() async {
+    final input = InputElement()
+      ..placeholder = 'Enter token here'
+      ..style.width = '100%';
+    final ok = await modalWindow(
+      titleText: 'Use custom token',
+      content: input,
+      isQuestion: true,
+    );
+    if (ok) {
+      final token = input.value.trim();
+      // TODO: consider shortcut for email -> fake token conversion
+      _updateTokens(token, token);
+    }
     return isSignedIn();
   }
 
   @override
   Future<void> signOut() async {
-    setupFakeUser(accessToken: null, idToken: null);
+    _updateTokens(null, null);
   }
 
   @override
