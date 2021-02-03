@@ -9,6 +9,8 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
 import 'package:pub_dev/package/models.dart' show Package, PackageVersion;
+import 'package:pub_dev/tool/utils/dart_sdk_version.dart';
+import 'package:pub_semver/pub_semver.dart';
 import '../package/overrides.dart';
 import '../shared/datastore.dart' as db;
 import '../shared/popularity_storage.dart';
@@ -212,7 +214,9 @@ class ScoreCardBackend {
       throw Exception('Unable to lookup $packageName $packageVersion.');
     }
 
-    final status = PackageStatus.fromModels(package, version);
+    final currentSdkVersion = await getDartSdkVersion();
+    final status = PackageStatus.fromModels(
+        package, version, currentSdkVersion.semanticVersion);
     final reports = await loadReports(packageName, packageVersion);
 
     await db.withRetryTransaction(_db, (tx) async {
@@ -286,12 +290,13 @@ class ScoreCardBackend {
 
   /// Returns the status of a package and version.
   Future<PackageStatus> getPackageStatus(String package, String version) async {
+    final currentSdkVersion = await getDartSdkVersion();
     final packageKey = _db.emptyKey.append(Package, id: package);
     final List list = await _db
         .lookup([packageKey, packageKey.append(PackageVersion, id: version)]);
     final p = list[0] as Package;
     final pv = list[1] as PackageVersion;
-    return PackageStatus.fromModels(p, pv);
+    return PackageStatus.fromModels(p, pv, currentSdkVersion.semanticVersion);
   }
 
   /// Returns whether we should update the [reportType] report for the given
@@ -352,8 +357,9 @@ class PackageStatus {
   final bool isObsolete;
   final bool isLegacy;
   final bool usesFlutter;
+  final bool usesPreviewSdk;
 
-  PackageStatus({
+  PackageStatus._({
     this.exists,
     this.publishDate,
     this.age,
@@ -362,18 +368,20 @@ class PackageStatus {
     this.isObsolete = false,
     this.isLegacy = false,
     this.usesFlutter = false,
+    this.usesPreviewSdk = false,
   });
 
-  factory PackageStatus.fromModels(Package p, PackageVersion pv) {
+  factory PackageStatus.fromModels(
+      Package p, PackageVersion pv, Version currentSdkVersion) {
     if (p == null || pv == null || p.isNotVisible) {
-      return PackageStatus(exists: false);
+      return PackageStatus._(exists: false);
     }
     final publishDate = pv.created;
     final isLatestStable = p.latestVersion == pv.version;
     final now = DateTime.now().toUtc();
     final age = now.difference(publishDate).abs();
     final isObsolete = age > twoYears && !isLatestStable;
-    return PackageStatus(
+    return PackageStatus._(
       exists: true,
       publishDate: publishDate,
       age: age,
@@ -382,6 +390,8 @@ class PackageStatus {
       isObsolete: isObsolete,
       isLegacy: pv.pubspec.supportsOnlyLegacySdk,
       usesFlutter: pv.pubspec.usesFlutter,
+      usesPreviewSdk:
+          pv.pubspec.isPreviewForCurrentSdk(currentSdkVersion),
     );
   }
 }

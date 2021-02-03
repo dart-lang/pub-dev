@@ -32,12 +32,13 @@ const _maxSize = 500 * 1024 * 1024; // 500 MB
 /// Calls [fn] with the [ToolEnvironment], handling the lifecycle of the local
 /// pub cache.
 Future<R> withToolEnv<R>({
+  @required bool usesPreviewSdk,
   @required Future<R> Function(ToolEnvironment toolEnv) fn,
 }) async {
   _ToolEnvRef ref;
   try {
     ref = await _getOrCreateToolEnvRef();
-    return await fn(ref.toolEnv);
+    return await fn(usesPreviewSdk ? ref.preview : ref.stable);
   } finally {
     await ref?._release();
   }
@@ -58,13 +59,14 @@ Completer _ongoing;
 /// the associated jobs complete.
 class _ToolEnvRef {
   final Directory _pubCacheDir;
-  final ToolEnvironment toolEnv;
+  final ToolEnvironment stable;
+  final ToolEnvironment preview;
   final _id = _nextId++;
   int _started = 0;
   int _active = 0;
   bool _isAboveSizeLimit = false;
 
-  _ToolEnvRef(this._pubCacheDir, this.toolEnv);
+  _ToolEnvRef(this._pubCacheDir, this.stable, this.preview);
 
   bool get _isAvailable => _started < _maxCount && !_isAboveSizeLimit;
 
@@ -124,12 +126,18 @@ Future<_ToolEnvRef> _getOrCreateToolEnvRef() async {
 
     final cacheDir = await Directory.systemTemp.createTemp('pub-cache-dir');
     final resolvedDirName = await cacheDir.resolveSymbolicLinks();
-    final toolEnv = await ToolEnvironment.create(
+    final stableToolEnv = await ToolEnvironment.create(
       dartSdkDir: envConfig.toolEnvDartSdkDir,
       flutterSdkDir: envConfig.flutterSdkDir,
       pubCacheDir: resolvedDirName,
     );
-    _current = _ToolEnvRef(cacheDir, toolEnv);
+    // TODO: use different SDK directories
+    final previewToolEnv = await ToolEnvironment.create(
+      dartSdkDir: envConfig.toolEnvDartSdkDir,
+      flutterSdkDir: envConfig.flutterSdkDir,
+      pubCacheDir: resolvedDirName,
+    );
+    _current = _ToolEnvRef(cacheDir, stableToolEnv, previewToolEnv);
     result = _current;
     result._acquire();
     _ongoing.complete();

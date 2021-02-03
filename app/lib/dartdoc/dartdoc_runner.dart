@@ -178,6 +178,7 @@ class DartdocJobProcessor extends JobProcessor {
         pubHostedUrl: activeConfiguration.primarySiteUri.toString(),
       );
       await withToolEnv(
+        usesPreviewSdk: packageStatus.usesPreviewSdk,
         fn: (toolEnv) async {
           final usesFlutter = await toolEnv.detectFlutterUse(pkgPath);
 
