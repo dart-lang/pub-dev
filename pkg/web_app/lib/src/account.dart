@@ -58,8 +58,15 @@ void setupAccount() {
   final metaElem =
       document.querySelector('meta[name="google-signin-client_id"]');
   final clientId = metaElem == null ? null : metaElem.attributes['content'];
+
+  // Handle missing clientId by not allowing the sign-in button at all.
   if (clientId == null || clientId.isEmpty) {
-    // pub is running in a fake server or test mode
+    _initFailed();
+    return;
+  }
+
+  // Special value to use fake token authentication.
+  if (clientId == 'fake-site-audience') {
     setupFakeTokenAuthenticationProxy(onUpdated: () => _updateSession());
     _initWidgets();
     return;

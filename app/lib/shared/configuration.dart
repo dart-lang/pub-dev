@@ -29,6 +29,10 @@ void registerActiveConfiguration(Configuration configuration) {
 const _pubClientAudience =
     '818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.googleusercontent.com';
 
+/// Special value to indicate that the site is running in fake mode, and the
+/// client side authentication should use the fake authentication tokens.
+const _fakeSiteAudience = 'fake-site-audience';
+
 /// Class describing the configuration of running the pub site.
 ///
 /// The configuration define the location of the Datastore with the
@@ -274,7 +278,7 @@ class Configuration {
       searchServicePrefix: 'http://localhost:$searchPort',
       storageBaseUrl: storageBaseUrl,
       pubClientAudience: null,
-      pubSiteAudience: null,
+      pubSiteAudience: _fakeSiteAudience,
       adminAudience: null,
       gmailRelayServiceAccount: null, // disable email sending
       gmailRelayImpersonatedGSuiteUser: null, // disable email sending
