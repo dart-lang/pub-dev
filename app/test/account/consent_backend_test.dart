@@ -18,7 +18,7 @@ import '../shared/test_services.dart';
 
 void main() {
   group('Uploader invite', () {
-    testWithProfile('Uploader invite', fn: () async {
+    Future<String> inviteUploader() async {
       await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
         final status = await consentBackend.invitePackageUploader(
           uploaderEmail: 'user@pub.dev',
@@ -37,12 +37,17 @@ void main() {
         consentId = consentRow.consentId;
       });
 
-      final records1 = await auditBackend.listRecordsForPackage('oxygen');
-      final r1 = records1
+      final records = await auditBackend.listRecordsForPackage('oxygen');
+      final r = records
           .firstWhere((e) => e.kind == AuditLogRecordKind.uploadedInvited);
-      expect(r1.summary,
+      expect(r.summary,
           '`admin@pub.dev` invited `user@pub.dev` to be an uploader for package `oxygen`.');
 
+      return consentId;
+    }
+
+    testWithProfile('Uploader invite accepted', fn: () async {
+      final consentId = await inviteUploader();
       await withPubApiClient(
           bearerToken: userAtPubDevAuthToken,
           fn: (client) async {
@@ -51,14 +56,45 @@ void main() {
             expect(rs.granted, true);
           });
 
-      final records2 = await auditBackend.listRecordsForPackage('oxygen');
-      final r2 = records2.firstWhere(
+      final records = await auditBackend.listRecordsForPackage('oxygen');
+      final r = records.firstWhere(
           (e) => e.kind == AuditLogRecordKind.uploaderInviteAccepted);
-      expect(r2.summary,
+      expect(r.summary,
           '`user@pub.dev` accepted uploader invite for package `oxygen`.');
     });
 
-    testWithProfile('Publisher contact', fn: () async {
+    testWithProfile('Uploader invite rejected', fn: () async {
+      final consentId = await inviteUploader();
+
+      await withPubApiClient(
+          bearerToken: userAtPubDevAuthToken,
+          fn: (client) async {
+            final rs = await client.resolveConsent(
+                consentId, account_api.ConsentResult(granted: false));
+            expect(rs.granted, false);
+          });
+
+      final records = await auditBackend.listRecordsForPackage('oxygen');
+      final r = records.firstWhere(
+          (e) => e.kind == AuditLogRecordKind.uploaderInviteRejected);
+      expect(r.summary,
+          '`user@pub.dev` rejected uploader invite for package `oxygen`.');
+    });
+
+    testWithProfile('Uploader invite expired', fn: () async {
+      final consentId = await inviteUploader();
+      await _expireConsent(consentId);
+
+      final records = await auditBackend.listRecordsForPackage('oxygen');
+      final r = records.firstWhere(
+          (e) => e.kind == AuditLogRecordKind.uploaderInviteExpired);
+      expect(r.summary,
+          'Uploader invite for package `oxygen` expired, `user@pub.dev` did not respond.');
+    });
+  });
+
+  group('Publisher contact', () {
+    Future<String> inviteContact() async {
       await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
         final status = await consentBackend.invitePublisherContact(
           publisherId: exampleComPublisher.publisherId,
@@ -77,12 +113,16 @@ void main() {
         consentId = consentRow.consentId;
       });
 
-      final records1 =
-          await auditBackend.listRecordsForPublisher('example.com');
-      final r1 = records1.firstWhere(
+      final records = await auditBackend.listRecordsForPublisher('example.com');
+      final r = records.firstWhere(
           (e) => e.kind == AuditLogRecordKind.publisherContactInvited);
-      expect(r1.summary,
+      expect(r.summary,
           '`admin@pub.dev` invited `info@example.com` to be contact email for publisher `example.com`.');
+      return consentId;
+    }
+
+    testWithProfile('Publisher contact accepted', fn: () async {
+      final consentId = await inviteContact();
 
       await withPubApiClient(
           bearerToken: adminAtPubDevAuthToken,
@@ -92,15 +132,45 @@ void main() {
             expect(rs.granted, true);
           });
 
-      final records2 =
-          await auditBackend.listRecordsForPublisher('example.com');
-      final r2 = records2.firstWhere(
+      final records = await auditBackend.listRecordsForPublisher('example.com');
+      final r = records.firstWhere(
           (e) => e.kind == AuditLogRecordKind.publisherContactInviteAccepted);
-      expect(r2.summary,
+      expect(r.summary,
           '`admin@pub.dev` accepted `info@example.com` to be contact email for publisher `example.com`.');
     });
 
-    testWithProfile('Publisher member', fn: () async {
+    testWithProfile('Publisher contact rejected', fn: () async {
+      final consentId = await inviteContact();
+
+      await withPubApiClient(
+          bearerToken: adminAtPubDevAuthToken,
+          fn: (client) async {
+            final rs = await client.resolveConsent(
+                consentId, account_api.ConsentResult(granted: false));
+            expect(rs.granted, false);
+          });
+
+      final records = await auditBackend.listRecordsForPublisher('example.com');
+      final r = records.firstWhere(
+          (e) => e.kind == AuditLogRecordKind.publisherContactInviteRejected);
+      expect(r.summary,
+          '`admin@pub.dev` rejected contact invite of `info@example.com` for publisher `example.com`.');
+    });
+
+    testWithProfile('Publisher contact expired', fn: () async {
+      final consentId = await inviteContact();
+      await _expireConsent(consentId);
+
+      final records = await auditBackend.listRecordsForPublisher('example.com');
+      final r = records.firstWhere(
+          (e) => e.kind == AuditLogRecordKind.publisherContactInviteExpired);
+      expect(r.summary,
+          'Contact invite for publisher `example.com` expired, `info@example.com` did not respond.');
+    });
+  });
+
+  group('Publisher member', () {
+    Future<String> inviteMember() async {
       await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
         final status = await consentBackend.invitePublisherMember(
           publisherId: exampleComPublisher.publisherId,
@@ -120,12 +190,17 @@ void main() {
         consentId = consentRow.consentId;
       });
 
-      final records1 =
-          await auditBackend.listRecordsForPublisher('example.com');
-      final r1 = records1.firstWhere(
+      final records = await auditBackend.listRecordsForPublisher('example.com');
+      final r = records.firstWhere(
           (e) => e.kind == AuditLogRecordKind.publisherMemberInvited);
-      expect(r1.summary,
+      expect(r.summary,
           '`admin@pub.dev` invited `user@pub.dev` to be a member for publisher `example.com`.');
+
+      return consentId;
+    }
+
+    testWithProfile('Publisher member accepted', fn: () async {
+      final consentId = await inviteMember();
 
       await withPubApiClient(
           bearerToken: userAtPubDevAuthToken,
@@ -135,12 +210,48 @@ void main() {
             expect(rs.granted, true);
           });
 
-      final records2 =
-          await auditBackend.listRecordsForPublisher('example.com');
-      final r2 = records2.firstWhere(
+      final records = await auditBackend.listRecordsForPublisher('example.com');
+      final r = records.firstWhere(
           (e) => e.kind == AuditLogRecordKind.publisherMemberInviteAccepted);
-      expect(r2.summary,
+      expect(r.summary,
           '`user@pub.dev` accepted member invite for publisher `example.com`.');
     });
+
+    testWithProfile('Publisher member rejected', fn: () async {
+      final consentId = await inviteMember();
+
+      await withPubApiClient(
+          bearerToken: userAtPubDevAuthToken,
+          fn: (client) async {
+            final rs = await client.resolveConsent(
+                consentId, account_api.ConsentResult(granted: false));
+            expect(rs.granted, false);
+          });
+
+      final records = await auditBackend.listRecordsForPublisher('example.com');
+      final r = records.firstWhere(
+          (e) => e.kind == AuditLogRecordKind.publisherMemberInviteRejected);
+      expect(r.summary,
+          '`user@pub.dev` rejected member invite for publisher `example.com`.');
+    });
+
+    testWithProfile('Publisher member expired', fn: () async {
+      final consentId = await inviteMember();
+      await _expireConsent(consentId);
+
+      final records = await auditBackend.listRecordsForPublisher('example.com');
+      final r = records.firstWhere(
+          (e) => e.kind == AuditLogRecordKind.publisherMemberInviteExpired);
+      expect(r.summary,
+          'Member invite for publisher `example.com` expired, `user@pub.dev` did not respond.');
+    });
   });
+}
+
+Future<void> _expireConsent(String consentId) async {
+  final consent = await dbService
+      .lookupValue<Consent>(dbService.emptyKey.append(Consent, id: consentId));
+  consent.expires = consent.created;
+  await dbService.commit(inserts: [consent]);
+  await consentBackend.deleteObsoleteConsents();
 }

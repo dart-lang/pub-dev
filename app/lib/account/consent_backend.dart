@@ -87,10 +87,10 @@ class ConsentBackend {
     final c = await _lookupAndCheck(consentId, user);
     InvalidInputException.checkNotNull(result.granted, 'granted');
     if (result.granted) {
-      await _accept(c);
+      await _delete(c, (a) => a.onAccept(c));
       return api.ConsentResult(granted: true);
     } else {
-      await _delete(c);
+      await _delete(c, (a) => a.onReject(c, user));
       return api.ConsentResult(granted: false);
     }
   }
@@ -120,7 +120,7 @@ class ConsentBackend {
         final old = list.first;
         if (old.isExpired()) {
           // expired entries should be deleted
-          await _delete(old);
+          await _delete(old, (a) => a.onExpire(old));
         } else if (old.shouldNotify()) {
           // non-expired entries just re-send the notification
           return await _sendNotification(activeUser.email, old);
@@ -224,7 +224,7 @@ class ConsentBackend {
       ..filter('expires <', DateTime.now().toUtc());
     await for (var entry in query.run()) {
       try {
-        await _delete(entry);
+        await _delete(entry, (a) => a.onExpire(entry));
       } catch (e) {
         _logger.shout(
             'Delete failed: ${entry.consentId} ${entry.kind} ${entry.args}', e);
@@ -247,25 +247,14 @@ class ConsentBackend {
     return c;
   }
 
-  Future<void> _accept(Consent consent) async {
+  Future<void> _delete(
+    Consent consent,
+    Future Function(ConsentAction action) fn,
+  ) async {
     final action = _actions[consent.kind];
     await retry(
       () async {
-        await action?.onAccept(consent);
-        await withRetryTransaction(_db, (tx) async {
-          final c = await tx.lookupOrNull<Consent>(consent.key);
-          if (c != null) tx.delete(c.key);
-        });
-      },
-      maxAttempts: 3,
-    );
-  }
-
-  Future<void> _delete(Consent consent) async {
-    final action = _actions[consent.kind];
-    await retry(
-      () async {
-        await action?.onDelete(consent);
+        if (action != null) await fn(action);
         await withRetryTransaction(_db, (tx) async {
           final c = await tx.lookupOrNull<Consent>(consent.key);
           if (c != null) tx.delete(c.key);
@@ -281,8 +270,11 @@ abstract class ConsentAction {
   /// Callback on accepting the consent.
   Future<void> onAccept(Consent consent);
 
-  /// Callback on rejecting the consent or timeout.
-  Future<void> onDelete(Consent consent);
+  /// Callback on rejecting the consent.
+  Future<void> onReject(Consent consent, User user);
+
+  /// Callback on timeout of the consent.
+  Future<void> onExpire(Consent consent);
 
   /// Whether the user accepting the consent can have a different e-mail than
   /// the one the consent request was sent to.
@@ -331,8 +323,28 @@ class _PackageUploaderAction extends ConsentAction {
   }
 
   @override
-  Future<void> onDelete(Consent consent) async {
-    // nothing to do
+  Future<void> onReject(Consent consent, User user) async {
+    final packageName = consent.args[0];
+    await dbService.commit(inserts: [
+      AuditLogRecord.uploaderInviteRejected(
+        fromUserId: consent.fromUserId,
+        package: packageName,
+        uploaderEmail: user?.email ?? consent.email,
+        userId: user?.userId,
+      ),
+    ]);
+  }
+
+  @override
+  Future<void> onExpire(Consent consent) async {
+    final packageName = consent.args[0];
+    await dbService.commit(inserts: [
+      AuditLogRecord.uploaderInviteExpired(
+        fromUserId: consent.fromUserId,
+        package: packageName,
+        uploaderEmail: consent.email,
+      ),
+    ]);
   }
 
   @override
@@ -372,8 +384,29 @@ class _PublisherContactAction extends ConsentAction {
   }
 
   @override
-  Future<void> onDelete(Consent consent) async {
-    // nothing to do
+  Future<void> onReject(Consent consent, User user) async {
+    final publisherId = consent.args[0];
+    await dbService.commit(inserts: [
+      AuditLogRecord.publisherContactInviteRejected(
+        fromUserId: consent.fromUserId,
+        publisherId: publisherId,
+        contactEmail: consent.email,
+        userEmail: user?.email,
+        userId: user?.userId,
+      ),
+    ]);
+  }
+
+  @override
+  Future<void> onExpire(Consent consent) async {
+    final publisherId = consent.args[0];
+    await dbService.commit(inserts: [
+      AuditLogRecord.publisherContactInviteExpired(
+        fromUserId: consent.fromUserId,
+        publisherId: publisherId,
+        contactEmail: consent.email,
+      ),
+    ]);
   }
 
   @override
@@ -427,8 +460,28 @@ class _PublisherMemberAction extends ConsentAction {
   }
 
   @override
-  Future<void> onDelete(Consent consent) async {
-    // nothing to do
+  Future<void> onReject(Consent consent, User user) async {
+    final publisherId = consent.args[0];
+    await dbService.commit(inserts: [
+      AuditLogRecord.publisherMemberInviteRejected(
+        fromUserId: consent.fromUserId,
+        publisherId: publisherId,
+        memberEmail: user?.email ?? consent.email,
+        userId: user?.userId,
+      ),
+    ]);
+  }
+
+  @override
+  Future<void> onExpire(Consent consent) async {
+    final publisherId = consent.args[0];
+    await dbService.commit(inserts: [
+      AuditLogRecord.publisherMemberInviteExpired(
+        fromUserId: consent.fromUserId,
+        publisherId: publisherId,
+        memberEmail: consent.email,
+      ),
+    ]);
   }
 
   @override

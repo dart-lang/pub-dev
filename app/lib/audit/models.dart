@@ -246,6 +246,56 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..publishers = [publisherId];
   }
 
+  factory AuditLogRecord.publisherContactInviteExpired({
+    @required String fromUserId,
+    @required String publisherId,
+    @required String contactEmail,
+  }) {
+    return AuditLogRecord._init()
+      ..kind = AuditLogRecordKind.publisherContactInviteExpired
+      ..agent = fromUserId
+      ..summary = 'Contact invite for publisher `$publisherId` expired, '
+          '`$contactEmail` did not respond.'
+      ..data = {
+        'fromUserId': fromUserId,
+        'publisherId': publisherId,
+        'contactEmail': contactEmail,
+      }
+      ..users = [fromUserId]
+      ..packages = []
+      ..packageVersions = []
+      ..publishers = [publisherId];
+  }
+
+  factory AuditLogRecord.publisherContactInviteRejected({
+    @required String fromUserId,
+    @required String publisherId,
+    @required String contactEmail,
+
+    /// Optional, in the future we may allow invite rejection without sign-in.
+    @required String userId,
+    @required String userEmail,
+  }) {
+    final summary = (userEmail == null || userEmail == contactEmail)
+        ? '`$contactEmail` rejected contact invite for publisher `$publisherId`.'
+        : '`$userEmail` rejected contact invite of `$contactEmail` for publisher `$publisherId`.';
+    return AuditLogRecord._init()
+      ..kind = AuditLogRecordKind.publisherContactInviteRejected
+      ..agent = userId ?? fromUserId
+      ..summary = summary
+      ..data = {
+        'fromUserId': fromUserId,
+        'publisherId': publisherId,
+        'contactEmail': contactEmail,
+        if (userId != null) 'userId': userId,
+        if (userEmail != null) 'userEmail': userEmail,
+      }
+      ..users = [fromUserId, if (userId != null) userId]
+      ..packages = []
+      ..packageVersions = []
+      ..publishers = [publisherId];
+  }
+
   factory AuditLogRecord.publisherCreated({
     @required User user,
     @required String publisherId,
@@ -301,6 +351,52 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'user': user.email,
       }
       ..users = [user.userId]
+      ..packages = []
+      ..packageVersions = []
+      ..publishers = [publisherId];
+  }
+
+  factory AuditLogRecord.publisherMemberInviteExpired({
+    @required String fromUserId,
+    @required String publisherId,
+    @required String memberEmail,
+  }) {
+    return AuditLogRecord._init()
+      ..kind = AuditLogRecordKind.publisherMemberInviteExpired
+      ..agent = fromUserId
+      ..summary = 'Member invite for publisher `$publisherId` expired, '
+          '`$memberEmail` did not respond.'
+      ..data = {
+        'fromUserId': fromUserId,
+        'publisherId': publisherId,
+        'memberEmail': memberEmail,
+      }
+      ..users = [fromUserId]
+      ..packages = []
+      ..packageVersions = []
+      ..publishers = [publisherId];
+  }
+
+  factory AuditLogRecord.publisherMemberInviteRejected({
+    @required String fromUserId,
+    @required String publisherId,
+    @required String memberEmail,
+
+    /// Optional, in the future we may allow invite rejection without sign-in.
+    @required String userId,
+  }) {
+    return AuditLogRecord._init()
+      ..kind = AuditLogRecordKind.publisherMemberInviteRejected
+      ..agent = userId ?? fromUserId
+      ..summary =
+          '`$memberEmail` rejected member invite for publisher `$publisherId`.'
+      ..data = {
+        'fromUserId': fromUserId,
+        'publisherId': publisherId,
+        'memberEmail': memberEmail,
+        if (userId != null) 'userId': userId,
+      }
+      ..users = [fromUserId, if (userId != null) userId]
       ..packages = []
       ..packageVersions = []
       ..publishers = [publisherId];
@@ -390,6 +486,52 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..publishers = [];
   }
 
+  factory AuditLogRecord.uploaderInviteExpired({
+    @required String fromUserId,
+    @required String package,
+    @required String uploaderEmail,
+  }) {
+    return AuditLogRecord._init()
+      ..kind = AuditLogRecordKind.uploaderInviteExpired
+      ..agent = fromUserId
+      ..summary = 'Uploader invite for package `$package` expired, '
+          '`$uploaderEmail` did not respond.'
+      ..data = {
+        'fromUserId': fromUserId,
+        'package': package,
+        'uploaderEmail': uploaderEmail,
+      }
+      ..users = [fromUserId]
+      ..packages = [package]
+      ..packageVersions = []
+      ..publishers = [];
+  }
+
+  factory AuditLogRecord.uploaderInviteRejected({
+    @required String fromUserId,
+    @required String package,
+    @required String uploaderEmail,
+
+    /// Optional, in the future we may allow invite rejection without sign-in.
+    @required String userId,
+  }) {
+    return AuditLogRecord._init()
+      ..kind = AuditLogRecordKind.uploaderInviteRejected
+      ..agent = userId ?? fromUserId
+      ..summary =
+          '`$uploaderEmail` rejected uploader invite for package `$package`.'
+      ..data = {
+        'fromUserId': fromUserId,
+        'package': package,
+        'uploaderEmail': uploaderEmail,
+        if (userId != null) 'userId': userId,
+      }
+      ..users = [fromUserId, if (userId != null) userId]
+      ..packages = [package]
+      ..packageVersions = []
+      ..publishers = [];
+  }
+
   factory AuditLogRecord.uploaderRemoved({
     @required User activeUser,
     @required String package,
@@ -433,6 +575,14 @@ abstract class AuditLogRecordKind {
   static const publisherContactInviteAccepted =
       'publisher-contact-invite-accepted';
 
+  /// Event that a publisher contact invite expired.
+  static const publisherContactInviteExpired =
+      'publisher-contact-invite-expired';
+
+  /// Event that a user has rejected the invite to use email as contact of a publisher.
+  static const publisherContactInviteRejected =
+      'publisher-contact-invite-rejected';
+
   /// Event that a publisher was created.
   static const publisherCreated = 'publisher-created';
 
@@ -442,6 +592,13 @@ abstract class AuditLogRecordKind {
   /// Event that a user has accepted the invite to become member of a publisher.
   static const publisherMemberInviteAccepted =
       'publisher-member-invite-accepted';
+
+  /// Event that a publisher member invite expired.
+  static const publisherMemberInviteExpired = 'publisher-member-invite-expired';
+
+  /// Event that a user has rejected the invite to become member of a publisher.
+  static const publisherMemberInviteRejected =
+      'publisher-member-invite-rejected';
 
   /// Event that a publisher member was removed.
   static const publisherMemberRemoved = 'publisher-member-removed';
@@ -455,14 +612,12 @@ abstract class AuditLogRecordKind {
   /// Event that an uploader accepted the invite for a package.
   static const uploaderInviteAccepted = 'uploader-invite-accepted';
 
+  /// Event that an uploader invite expired.
+  static const uploaderInviteExpired = 'uploader-invite-expired';
+
+  /// Event that an uploader rejected the invite for a package.
+  static const uploaderInviteRejected = 'uploader-invite-rejected';
+
   /// Event that an uploader was removed from a package.
   static const uploaderRemoved = 'uploader-removed';
-
-// TODO: implement further kinds
-  // uploader-invite-expired
-  // uploader-invite-rejected
-  // publisher-contact-invite-expired
-  // publisher-contact-invite-rejected
-  // publisher-member-invite-expired
-  // publisher-member-invite-rejected
 }
