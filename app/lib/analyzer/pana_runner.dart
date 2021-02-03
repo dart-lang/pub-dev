@@ -68,31 +68,33 @@ class AnalyzerJobProcessor extends JobProcessor {
     }
 
     Future<Summary> analyze() async {
-      final toolEnvRef = await getOrCreateToolEnvRef();
-      try {
-        final PackageAnalyzer analyzer =
-            PackageAnalyzer(toolEnvRef.toolEnv, urlChecker: _urlChecker);
-        final isInternal = internalPackageNames.contains(job.packageName);
-        return await analyzer.inspectPackage(
-          job.packageName,
-          version: job.packageVersion,
-          options: InspectOptions(
-            isInternal: isInternal,
-            pubHostedUrl: activeConfiguration.primaryApiUri.toString(),
-            analysisOptionsUri: 'package:pedantic/analysis_options.1.8.0.yaml',
-          ),
-          logger:
-              Logger.detached('pana/${job.packageName}/${job.packageVersion}'),
-        );
-      } catch (e, st) {
-        _logger.severe(
-            'Failed (v$packageVersion) - ${job.packageName}/${job.packageVersion}',
-            e,
-            st);
-      } finally {
-        await toolEnvRef.release();
-      }
-      return null;
+      return await withToolEnv(
+        fn: (toolEnv) async {
+          try {
+            final PackageAnalyzer analyzer =
+                PackageAnalyzer(toolEnv, urlChecker: _urlChecker);
+            final isInternal = internalPackageNames.contains(job.packageName);
+            return await analyzer.inspectPackage(
+              job.packageName,
+              version: job.packageVersion,
+              options: InspectOptions(
+                isInternal: isInternal,
+                pubHostedUrl: activeConfiguration.primaryApiUri.toString(),
+                analysisOptionsUri:
+                    'package:pedantic/analysis_options.1.8.0.yaml',
+              ),
+              logger: Logger.detached(
+                  'pana/${job.packageName}/${job.packageVersion}'),
+            );
+          } catch (e, st) {
+            _logger.severe(
+                'Failed (v$packageVersion) - ${job.packageName}/${job.packageVersion}',
+                e,
+                st);
+          }
+          return null;
+        },
+      );
     }
 
     Summary summary = await analyze();
