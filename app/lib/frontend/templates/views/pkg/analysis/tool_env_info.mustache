@@ -1,0 +1,23 @@
+{{! Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+<div class="tool-env-info">
+  <h3>Analysis environment</h3>
+  <table class="tool-env-info-table">
+    <thead>
+    <tr>
+      <td>Tool</td>
+      <td>Version</td>
+    </tr>
+    </thead>
+    <tbody>
+    {{#tools}}
+      <tr>
+        <td>{{ name }}</td>
+        <td><code>{{ version }}</code></td>
+      </tr>
+    {{/tools}}
+    </tbody>
+  </table>
+</div>

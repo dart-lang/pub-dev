@@ -75,10 +75,11 @@ class AnalysisView {
   }) =>
       AnalysisView._(card, panaReport, dartdocReport);
 
+  PanaRuntimeInfo get panaRuntimeInfo => _pana?.panaRuntimeInfo;
+
   bool get isLatestRuntimeVersion => _card?.runtimeVersion == runtimeVersion;
 
   bool get hasAnalysisData => _card != null;
-  bool get hasPanaSummary => _pana != null;
   ScoreCardData get card => _card;
   bool get hasApiDocs =>
       _dartdoc != null && _dartdoc.reportStatus == ReportStatus.success;
