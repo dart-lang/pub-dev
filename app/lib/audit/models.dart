@@ -443,13 +443,36 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..publishers = [publisherId];
   }
 
+  factory AuditLogRecord.uploaderAdded({
+    @required User activeUser,
+    @required String package,
+    @required User uploaderUser,
+  }) {
+    return AuditLogRecord._init()
+      ..kind = AuditLogRecordKind.uploaderAdded
+      ..agent = activeUser.userId
+      ..summary = [
+        '`${activeUser.email}` added `${uploaderUser.email}` ',
+        'to the uploaders of package `$package`.',
+      ].join()
+      ..data = {
+        'package': package,
+        'uploaderEmail': uploaderUser.email,
+        'user': activeUser.email,
+      }
+      ..users = [activeUser.userId, uploaderUser.userId]
+      ..packages = [package]
+      ..packageVersions = []
+      ..publishers = [];
+  }
+
   factory AuditLogRecord.uploaderInvited({
     @required User user,
     @required String package,
     @required String uploaderEmail,
   }) {
     return AuditLogRecord._init()
-      ..kind = AuditLogRecordKind.uploadedInvited
+      ..kind = AuditLogRecordKind.uploaderInvited
       ..agent = user.userId
       ..summary = [
         '`${user.email}` invited `$uploaderEmail` ',
@@ -606,8 +629,11 @@ abstract class AuditLogRecordKind {
   /// Event that a publisher was updated.
   static const publisherUpdated = 'publisher-updated';
 
+  /// Event that an uploader was added to a package (by an admin).
+  static const uploaderAdded = 'uploader-added';
+
   /// Event that an uploader was invited to a package.
-  static const uploadedInvited = 'uploader-invited';
+  static const uploaderInvited = 'uploader-invited';
 
   /// Event that an uploader accepted the invite for a package.
   static const uploaderInviteAccepted = 'uploader-invite-accepted';
