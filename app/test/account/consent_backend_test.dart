@@ -39,7 +39,7 @@ void main() {
 
       final records = await auditBackend.listRecordsForPackage('oxygen');
       final r = records
-          .firstWhere((e) => e.kind == AuditLogRecordKind.uploadedInvited);
+          .firstWhere((e) => e.kind == AuditLogRecordKind.uploaderInvited);
       expect(r.summary,
           '`admin@pub.dev` invited `user@pub.dev` to be an uploader for package `oxygen`.');
 

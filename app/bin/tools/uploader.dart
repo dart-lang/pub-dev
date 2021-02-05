@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/history/models.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/backend.dart';
@@ -84,6 +85,11 @@ Future addUploader(String packageName, String uploaderEmail) async {
       currentUserEmail: pubDartlangOrgEmail,
       addedUploaderEmails: [uploaderEmail],
     )));
+    tx.insert(AuditLogRecord.uploaderAdded(
+      activeUser: pubUser,
+      package: packageName,
+      uploaderUser: user,
+    ));
   });
 }
 
@@ -118,5 +124,10 @@ Future removeUploader(String packageName, String uploaderEmail) async {
       currentUserEmail: pubDartlangOrgEmail,
       removedUploaderEmails: [uploaderEmail],
     )));
+    tx.insert(AuditLogRecord.uploaderRemoved(
+      activeUser: pubUser,
+      package: packageName,
+      uploaderUser: user,
+    ));
   });
 }
