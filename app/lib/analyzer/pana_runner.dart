@@ -69,6 +69,7 @@ class AnalyzerJobProcessor extends JobProcessor {
 
     Future<Summary> analyze() async {
       return await withToolEnv(
+        usesPreviewSdk: packageStatus.usesPreviewSdk,
         fn: (toolEnv) async {
           try {
             final PackageAnalyzer analyzer =
