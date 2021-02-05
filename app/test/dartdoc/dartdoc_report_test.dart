@@ -27,7 +27,7 @@ void main() {
               runtimeVersion: runtimeVersion,
               flutterVersion: flutterVersion,
               dartdocVersion: dartdocVersion,
-              sdkVersion: toolEnvSdkVersion,
+              sdkVersion: toolStableSdkVersion,
               hasContent: true,
               depsResolved: true,
               isLatest: true,

@@ -77,8 +77,8 @@ class DartdocJobProcessor extends JobProcessor {
         outputDir,
         '--no-validate-links',
       ];
-      if (envConfig.toolEnvDartSdkDir != null) {
-        args.addAll(['--sdk-dir', envConfig.toolEnvDartSdkDir]);
+      if (envConfig.stableDartSdkDir != null) {
+        args.addAll(['--sdk-dir', envConfig.stableDartSdkDir]);
       }
       final pr = await runProc(
         'dart',
@@ -185,12 +185,12 @@ class DartdocJobProcessor extends JobProcessor {
           final logFileOutput = StringBuffer();
           logFileOutput.write('Dartdoc generation for $job\n\n'
               'runtime: ${versions.runtimeVersion}\n'
-              'toolEnv Dart SDK: ${versions.toolEnvSdkVersion}\n'
               'runtime Dart SDK: ${versions.runtimeSdkVersion}\n'
-              'pana: ${versions.panaVersion}\n'
               'dartdoc: ${versions.dartdocVersion}\n'
-              'flutter: ${versions.flutterVersion}\n'
+              'pana: ${versions.panaVersion}\n'
+              'toolEnv Dart SDK: ${toolEnv.runtimeInfo.sdkVersion}\n'
               'usesFlutter: $usesFlutter\n'
+              'flutter: ${versions.flutterVersion}\n'
               'started: ${DateTime.now().toUtc().toIso8601String()}\n\n');
 
           final status = await scoreCardBackend.getPackageStatus(
@@ -208,7 +208,7 @@ class DartdocJobProcessor extends JobProcessor {
           // Generate docs only for packages that have healthy dependencies.
           if (depsResolved) {
             dartdocResult = await _generateDocs(
-                logger, job, pkgPath, outputDir, logFileOutput);
+                toolEnv, logger, job, pkgPath, outputDir, logFileOutput);
             hasContent =
                 dartdocResult.hasIndexHtml && dartdocResult.hasIndexJson;
           } else {
@@ -235,7 +235,7 @@ class DartdocJobProcessor extends JobProcessor {
           }
 
           entry = await _createEntry(
-              job, outputDir, usesFlutter, depsResolved, hasContent);
+              toolEnv, job, outputDir, usesFlutter, depsResolved, hasContent);
           logFileOutput.write('entry created: ${entry.uuid}\n\n');
 
           logFileOutput
@@ -339,6 +339,7 @@ class DartdocJobProcessor extends JobProcessor {
   }
 
   Future<DartdocResult> _generateDocs(
+    ToolEnvironment toolEnv,
     Logger logger,
     Job job,
     String pkgPath,
@@ -375,8 +376,8 @@ class DartdocJobProcessor extends JobProcessor {
         '--no-link-to-remote',
         '--no-validate-links',
       ];
-      if (envConfig.toolEnvDartSdkDir != null) {
-        args.addAll(['--sdk-dir', envConfig.toolEnvDartSdkDir]);
+      if (toolEnv.dartSdkDir != null) {
+        args.addAll(['--sdk-dir', toolEnv.dartSdkDir]);
       }
       final environment = <String, String>{
         'PUB_HOSTED_URL': activeConfiguration.primaryApiUri.toString(),
@@ -425,8 +426,13 @@ class DartdocJobProcessor extends JobProcessor {
     return r;
   }
 
-  Future<DartdocEntry> _createEntry(Job job, String outputDir, bool usesFlutter,
-      bool depsResolved, bool hasContent) async {
+  Future<DartdocEntry> _createEntry(
+      ToolEnvironment toolEnv,
+      Job job,
+      String outputDir,
+      bool usesFlutter,
+      bool depsResolved,
+      bool hasContent) async {
     int archiveSize;
     int totalSize;
     if (hasContent) {
@@ -451,7 +457,7 @@ class DartdocJobProcessor extends JobProcessor {
       isObsolete: isObsolete,
       usesFlutter: usesFlutter,
       runtimeVersion: versions.runtimeVersion,
-      sdkVersion: versions.toolEnvSdkVersion,
+      sdkVersion: toolEnv.runtimeInfo.sdkVersion,
       dartdocVersion: versions.dartdocVersion,
       flutterVersion: versions.flutterVersion,
       timestamp: DateTime.now().toUtc(),

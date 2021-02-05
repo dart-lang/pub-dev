@@ -9,7 +9,8 @@ env_variables:
   # Needs to be in sync with app/script/setup-flutter.sh and with app/lib/shared/configuration.dart
   FLUTTER_ROOT: '/flutter'
   FLUTTER_SDK: '/flutter'
-  TOOL_ENV_DART_SDK: '/dart-sdk'
+  TOOL_STABLE_DART_SDK: '/tool/stable/dart-sdk'
+  TOOL_PREVIEW_DART_SDK: '/tool/preview/dart-sdk'
 
 resources:
   cpu: 2

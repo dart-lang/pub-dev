@@ -31,7 +31,7 @@ Future<List<ResolvedVersion>> resolveVersions(
     await pubCacheDir.create();
 
     final toolEnv = await ToolEnvironment.create(
-      dartSdkDir: envConfig.toolEnvDartSdkDir,
+      dartSdkDir: envConfig.previewDartSdkDir,
       flutterSdkDir: envConfig.flutterSdkDir,
       pubCacheDir: pubCacheDir.path,
     );

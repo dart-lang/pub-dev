@@ -46,7 +46,8 @@ void main() {
       }
     }
 
-    check(toolEnvSdkVersion, 'Dart analysis SDK');
+    check(toolStableSdkVersion, 'stable Dart analysis SDK');
+    check(toolPreviewSdkVersion, 'preview Dart analysis SDK');
     check(runtimeSdkVersion, 'runtime Dart SDK');
     check(flutterVersion, 'Flutter');
     check(panaVersion, 'pana');
@@ -79,10 +80,10 @@ void main() {
     expect(ci.contains('$runtimeSdkVersion'), isTrue);
   });
 
-  test('tool-env sdk version should match dockerfile', () async {
+  test('Dart sdk versions should match dockerfile', () async {
     final String docker = await File('../Dockerfile').readAsString();
-    expect(docker.contains('/$toolEnvSdkVersion/sdk/dartsdk-linux-x64-release'),
-        isTrue);
+    expect(docker.contains('/$toolStableSdkVersion/sdk/'), isTrue);
+    expect(docker.contains('/$toolPreviewSdkVersion/sdk/'), isTrue);
   });
 
   test('analyzer version should match resolved pana version', () async {
