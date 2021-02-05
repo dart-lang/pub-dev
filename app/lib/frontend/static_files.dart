@@ -164,6 +164,7 @@ class StaticUrls {
   final String reportMissingIconRed;
   final String reportMissingIconYellow;
   final String reportOKIconGreen;
+  final String gtmJs;
   Map _versionsTableIcons;
   Map<String, String> _assets;
 
@@ -186,7 +187,8 @@ class StaticUrls {
         reportMissingIconYellow = _getCacheableStaticUrl(
             '$_defaultStaticPath/img/report-missing-icon-yellow.svg'),
         reportOKIconGreen = _getCacheableStaticUrl(
-            '$_defaultStaticPath/img/report-ok-icon-green.svg');
+            '$_defaultStaticPath/img/report-ok-icon-green.svg'),
+        gtmJs = _getCacheableStaticUrl('$_defaultStaticPath/js/gtm.js');
 
   Map get versionsTableIcons {
     return _versionsTableIcons ??= {

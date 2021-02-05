@@ -49,7 +49,7 @@ class DartdocCustomizer {
         );
     _stripCanonicalUrl(canonical);
     _addAlternateUrl(doc.head, canonical);
-    _addAnalyticsTracker(doc.head);
+    _addAnalyticsTracker(doc.head, doc.body);
     _addGithubMarkdownStyle(doc.head, doc.body);
     final docRoot = isLatestStable
         ? pkgDocUrl(packageName, isLatest: true)
@@ -139,17 +139,42 @@ class DartdocCustomizer {
     }
   }
 
-  void _addAnalyticsTracker(Element head) {
-    final firstChild = head.firstChild;
-    final gtagScript = Element.tag('script')
-      ..attributes['async'] = 'async'
-      ..attributes['src'] =
-          'https://www.googletagmanager.com/gtag/js?id=UA-26406144-13'
-      ..text = '';
-    head.insertBefore(gtagScript, firstChild);
-    final gtagInit = Element.tag('script')
-      ..attributes['src'] = '/static/js/gtag.js';
-    head.insertBefore(gtagInit, firstChild);
+  void _addAnalyticsTracker(Element head, Element body) {
+    // Insert right after HEAD:
+    // <script async="async" src="https://www.googletagmanager.com/gtm.js?id=GTM-MX6DBN9"></script>
+    // <script src="${staticUrls.gtmJs}"></script>
+    final firstHeadChild = head.firstChild;
+    head.insertBefore(
+      Element.tag('script')
+        ..attributes['async'] = 'async'
+        ..attributes['src'] =
+            'https://www.googletagmanager.com/gtm.js?id=GTM-MX6DBN9'
+        ..text = '',
+      firstHeadChild,
+    );
+    head.insertBefore(
+      Element.tag('script')
+        ..attributes['src'] = staticUrls.gtmJs
+        ..text = '',
+      firstHeadChild,
+    );
+
+    // Insert right after BODY:
+    // <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MX6DBN9"
+    // height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    body.insertBefore(
+      Element.tag('noscript')
+        ..append(
+          Element.tag('iframe')
+            ..attributes['src'] =
+                'https://www.googletagmanager.com/ns.html?id=GTM-MX6DBN9'
+            ..attributes['height'] = '0'
+            ..attributes['width'] = '0'
+            ..attributes['style'] = 'display:none;visibility:hidden'
+            ..text = '',
+        ),
+      body.firstChild,
+    );
   }
 
   void _addPubSiteLogo(Element breadcrumbs) {
