@@ -8,7 +8,6 @@ import 'package:args/args.dart';
 
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/audit/models.dart';
-import 'package:pub_dev/history/models.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/service/entrypoint/tools.dart';
 import 'package:pub_dev/shared/datastore.dart';
@@ -59,7 +58,6 @@ Future main(List<String> args) async {
       print('ERROR: more than one user: $adminEmail');
       return;
     }
-    final admin = admins.single;
 
     // Create the publisher
     final now = DateTime.now().toUtc();
@@ -98,21 +96,6 @@ Future main(List<String> args) async {
           ..created = now
           ..updated = now
           ..role = PublisherMemberRole.admin,
-        History.entry(
-          PublisherCreated(
-            publisherId: publisherId,
-            userId: admin.userId,
-            userEmail: admin.email,
-          ),
-        ),
-        History.entry(
-          MemberJoined(
-            publisherId: publisherId,
-            userId: user.userId,
-            userEmail: user.email,
-            role: PublisherMemberRole.admin,
-          ),
-        ),
         AuditLogRecord.publisherCreated(
           user: user,
           publisherId: publisherId,

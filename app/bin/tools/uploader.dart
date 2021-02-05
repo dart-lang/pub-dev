@@ -7,7 +7,6 @@ import 'dart:io';
 
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/audit/models.dart';
-import 'package:pub_dev/history/models.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/service/entrypoint/tools.dart';
@@ -79,12 +78,6 @@ Future addUploader(String packageName, String uploaderEmail) async {
 
     final pubUser =
         await accountBackend.lookupOrCreateUserByEmail(pubDartlangOrgEmail);
-    tx.insert(History.entry(UploaderChanged(
-      packageName: packageName,
-      currentUserId: pubUser.userId,
-      currentUserEmail: pubDartlangOrgEmail,
-      addedUploaderEmails: [uploaderEmail],
-    )));
     tx.insert(AuditLogRecord.uploaderAdded(
       activeUser: pubUser,
       package: packageName,
@@ -118,12 +111,6 @@ Future removeUploader(String packageName, String uploaderEmail) async {
 
     final pubUser =
         await accountBackend.lookupOrCreateUserByEmail(pubDartlangOrgEmail);
-    tx.insert(History.entry(UploaderChanged(
-      packageName: packageName,
-      currentUserId: pubUser.userId,
-      currentUserEmail: pubDartlangOrgEmail,
-      removedUploaderEmails: [uploaderEmail],
-    )));
     tx.insert(AuditLogRecord.uploaderRemoved(
       activeUser: pubUser,
       package: packageName,

@@ -15,7 +15,6 @@ import 'package:pub_semver/pub_semver.dart';
 import '../account/backend.dart';
 import '../account/models.dart';
 import '../dartdoc/backend.dart';
-import '../history/models.dart';
 import '../job/model.dart';
 import '../package/backend.dart' show TarballStorage, packageBackend;
 import '../package/models.dart';
@@ -352,10 +351,6 @@ class AdminBackend {
     await _deleteWithQuery(
         _db.query<Job>()..filter('packageName =', packageName));
 
-    _logger.info('Removing package from History ...');
-    await _deleteWithQuery(
-        _db.query<History>()..filter('packageName =', packageName));
-
     _logger.info('Removing package from ScoreCardReport ...');
     await _deleteWithQuery(
         _db.query<ScoreCardReport>()..filter('packageName =', packageName));
@@ -448,11 +443,6 @@ class AdminBackend {
     await _deleteWithQuery(
       _db.query<Job>()..filter('packageName =', packageName),
       where: (Job job) => job.packageVersion == version,
-    );
-
-    await _deleteWithQuery(
-      _db.query<History>()..filter('packageName =', packageName),
-      where: (History history) => history.packageVersion == version,
     );
   }
 

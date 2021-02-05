@@ -26,7 +26,6 @@ import '../analyzer/analyzer_client.dart';
 import '../audit/models.dart';
 import '../dartdoc/dartdoc_client.dart';
 import '../frontend/email_sender.dart';
-import '../history/models.dart';
 import '../publisher/backend.dart';
 import '../publisher/models.dart';
 import '../service/secret/backend.dart';
@@ -410,15 +409,6 @@ class PackageBackend {
           'isDiscontinued: ${p.isDiscontinued} '
           'isUnlisted: ${p.isUnlisted}');
       tx.insert(p);
-      tx.insert(History.entry(
-        PackageOptionsChanged(
-          packageName: p.name,
-          userId: user.userId,
-          userEmail: user.email,
-          isDiscontinued: options.isDiscontinued,
-          isUnlisted: options.isUnlisted,
-        ),
-      ));
       tx.insert(AuditLogRecord.packageOptionsUpdated(
         package: p.name,
         user: user,
@@ -506,15 +496,6 @@ class PackageBackend {
         package: package.name,
         fromPublisherId: fromPublisherId,
         toPublisherId: package.publisherId,
-      ));
-      tx.insert(History.entry(
-        PackageTransferred(
-          packageName: package.name,
-          fromPublisherId: fromPublisherId,
-          toPublisherId: package.publisherId,
-          userId: user.userId,
-          userEmail: user.email,
-        ),
       ));
 
       return _asPackagePublisherInfo(package);
@@ -778,13 +759,6 @@ class PackageBackend {
           version: newVersion.version,
           created: newVersion.created,
         ),
-        History.entry(PackageUploaded(
-          packageName: newVersion.package,
-          packageVersion: newVersion.version,
-          uploaderId: user.userId,
-          uploaderEmail: user.email,
-          timestamp: newVersion.created,
-        )),
       ];
 
       _logger.info('Trying to commit datastore changes.');
@@ -927,13 +901,6 @@ class PackageBackend {
       package.updated = DateTime.now().toUtc();
 
       tx.insert(package);
-      tx.insert(History.entry(UploaderChanged(
-        packageName: packageName,
-        currentUserId: fromUserId,
-        currentUserEmail: fromUserEmail,
-        addedUploaderIds: [uploader.userId],
-        addedUploaderEmails: [uploader.email],
-      )));
       tx.insert(AuditLogRecord.uploaderInviteAccepted(
         user: uploader,
         package: packageName,
@@ -1004,13 +971,6 @@ class PackageBackend {
       package.updated = DateTime.now().toUtc();
 
       tx.insert(package);
-      tx.insert(History.entry(UploaderChanged(
-        packageName: packageName,
-        currentUserId: user.userId,
-        currentUserEmail: user.email,
-        removedUploaderIds: [uploader.userId],
-        removedUploaderEmails: [uploader.email],
-      )));
       tx.insert(AuditLogRecord.uploaderRemoved(
         activeUser: user,
         package: packageName,

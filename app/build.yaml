@@ -9,7 +9,6 @@ targets:
       - 'lib/frontend/handlers/pubapi.dart'
       - 'lib/frontend/handlers/routes.dart'
       - 'lib/frontend/handlers/redirects.dart'
-      - 'lib/history/models.dart'
       - 'lib/package/models.dart'
       - 'lib/publisher/models.dart'
       - 'lib/scorecard/models.dart'

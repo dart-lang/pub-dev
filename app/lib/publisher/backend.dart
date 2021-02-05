@@ -12,7 +12,6 @@ import 'package:logging/logging.dart';
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
 import '../audit/models.dart';
-import '../history/models.dart';
 import '../shared/datastore.dart';
 import '../shared/email.dart';
 import '../shared/exceptions.dart';
@@ -191,21 +190,6 @@ class PublisherBackend {
           ..created = now
           ..updated = now
           ..role = PublisherMemberRole.admin,
-        History.entry(
-          PublisherCreated(
-            publisherId: publisherId,
-            userId: user.userId,
-            userEmail: user.email,
-          ),
-        ),
-        History.entry(
-          MemberJoined(
-            publisherId: publisherId,
-            userId: user.userId,
-            userEmail: user.email,
-            role: PublisherMemberRole.admin,
-          ),
-        ),
         AuditLogRecord.publisherCreated(
           user: user,
           publisherId: publisherId,
@@ -352,18 +336,6 @@ class PublisherBackend {
       }
     }
 
-    await _db.commit(inserts: [
-      History.entry(
-        MemberInvited(
-          publisherId: p.publisherId,
-          currentUserId: activeUser.userId,
-          currentUserEmail: activeUser.email,
-          invitedUserId: null,
-          invitedUserEmail: invite.email,
-        ),
-      ),
-    ]);
-
     return await consentBackend.invitePublisherMember(
       publisherId: p.publisherId,
       invitedUserEmail: invite.email,
@@ -466,21 +438,12 @@ class PublisherBackend {
     final pm = await _db.lookupValue<PublisherMember>(key, orElse: () => null);
     if (pm != null) {
       final memberUser = await accountBackend.lookupUserById(userId);
-      final history = History.entry(
-        MemberRemoved(
-          publisherId: publisherId,
-          currentUserId: user.userId,
-          currentUserEmail: user.email,
-          removedUserId: memberUser.userId,
-          removedUserEmail: memberUser.email,
-        ),
-      );
       final auditLogRecord = AuditLogRecord.publisherMemberRemoved(
         publisherId: publisherId,
         activeUser: user,
         memberToRemove: memberUser,
       );
-      await _db.commit(inserts: [history, auditLogRecord], deletes: [pm.key]);
+      await _db.commit(inserts: [auditLogRecord], deletes: [pm.key]);
     }
     await purgePublisherCache(publisherId: publisherId);
     await purgeAccountCache(userId: userId);
@@ -506,14 +469,6 @@ class PublisherBackend {
           ..created = now
           ..updated = now
           ..role = PublisherMemberRole.admin,
-        History.entry(
-          MemberJoined(
-            publisherId: publisherId,
-            userId: userId,
-            userEmail: user.email,
-            role: PublisherMemberRole.admin,
-          ),
-        ),
         AuditLogRecord.publisherMemberInviteAccepted(
           user: user,
           publisherId: publisherId,
