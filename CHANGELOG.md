@@ -2,6 +2,8 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * NOTE: added daily periodic tasks: `delete-expired-audit-log-records`,
+         `delete-expired-consents`, `delete-expired-sessions`.
 
 ## `20210203t120700-all`
 
