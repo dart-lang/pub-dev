@@ -5,6 +5,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Deploy `index.yaml` to remove composite index for History.
  * NOTE: added daily periodic tasks: `delete-expired-audit-log-records`,
          `delete-expired-consents`, `delete-expired-sessions`.
+ * Removed all usage of `app/static/js/gtag.js` it can be removed after a few
+   runtimeVerions when we are no-longer serving old generated dartdoc files.
 
 ## `20210203t120700-all`
 
@@ -18,9 +20,6 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded Flutter to `1.25.0-8.3.pre` (beta).
  * NOTE: the release starts to populate preview version fields and runs
          a periodic task to update it.
-
- * Removed all usage of `app/static/js/gtag.js` it can be removed after a few
-   runtimeVerions when we are no-longer serving old generated dartdoc files.
 
 ## `20210119t122300-all`
  * Bumped runtimeVersion to `2021.01.18`.
