@@ -2,6 +2,22 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Deploy `index.yaml` to remove composite index for History.
+ * NOTE: added daily periodic tasks: `delete-expired-audit-log-records`,
+         `delete-expired-consents`, `delete-expired-sessions`.
+
+## `20210203t120700-all`
+
+## `20210202t151000-all`
+ * Bumped runtimeVersion to `2021.01.29`.
+ * NOTE: the release starts to create `AuditLogRecord`s for all the existing
+         `History` entries. `History` entries could be removed after this release.
+
+## `20210129t103600-all`
+ * Bumped runtimeVersion to `2021.01.26`.
+ * Upgraded Flutter to `1.25.0-8.3.pre` (beta).
+ * NOTE: the release starts to populate preview version fields and runs
+         a periodic task to update it.
 
  * Removed all usage of `app/static/js/gtag.js` it can be removed after a few
    runtimeVerions when we are no-longer serving old generated dartdoc files.

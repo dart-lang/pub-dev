@@ -222,10 +222,11 @@ class Package extends db.ExpandoModel<String> {
     @required Version dartSdkVersion,
   }) {
     final newVersion = pv.semanticVersion;
+    final isOnStableSdk = !pv.pubspec.isPreviewForCurrentSdk(dartSdkVersion);
 
     if (latestVersionKey == null ||
         (isNewer(latestSemanticVersion, newVersion, pubSorted: true) &&
-            !pv.pubspec.isPreviewForCurrentSdk(dartSdkVersion))) {
+            (latestSemanticVersion.isPreRelease || isOnStableSdk))) {
       latestVersionKey = pv.key;
       latestPublished = pv.created;
     }
@@ -339,14 +340,6 @@ class PackageVersion extends db.ExpandoModel<String> {
     ];
   }
 }
-
-/// An derived entity that holds only the `pubspec.yaml` content of [PackageVersion].
-///
-/// The content of `pubspec.yaml` may be updated/cleaned in case of a breaking
-/// change was introduced since the [PackageVersion] was published.
-@db.Kind(name: 'PackageVersionPubspec', idType: db.IdType.String)
-@deprecated
-class PackageVersionPubspec extends db.ExpandoModel<String> {}
 
 /// A derived entity that holds derived/cleaned content of [PackageVersion].
 @db.Kind(name: 'PackageVersionInfo', idType: db.IdType.String)
@@ -594,7 +587,7 @@ class PackageView extends Object with FlagMixin {
 
   /// The date when the package was first published.
   final DateTime created;
-  final String shortUpdated;
+  final DateTime updated;
   @override
   final List<String> flags;
   final String publisherId;
@@ -626,7 +619,7 @@ class PackageView extends Object with FlagMixin {
     this.previewVersion,
     this.ellipsizedDescription,
     this.created,
-    this.shortUpdated,
+    this.updated,
     this.flags,
     this.publisherId,
     this.isAwaiting = false,
@@ -670,7 +663,9 @@ class PackageView extends Object with FlagMixin {
       previewVersion: previewVersion,
       ellipsizedDescription: version?.ellipsizedDescription,
       created: package.created,
-      shortUpdated: package.shortLatestPrereleasePublished,
+      updated:
+          // TODO: use only lastVersionPublished after preview backfill is done
+          package.lastVersionPublished ?? package.latestPrereleasePublished,
       flags: scoreCard?.flags,
       publisherId: package.publisherId,
       isAwaiting: isAwaiting,
@@ -699,7 +694,7 @@ class PackageView extends Object with FlagMixin {
       previewVersion: previewVersion,
       ellipsizedDescription: ellipsizedDescription,
       created: created,
-      shortUpdated: shortUpdated,
+      updated: updated,
       flags: flags,
       publisherId: publisherId,
       isAwaiting: isAwaiting,

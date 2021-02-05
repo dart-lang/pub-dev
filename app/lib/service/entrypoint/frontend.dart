@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:math';
 
 import 'package:args/command_runner.dart';
 import 'package:gcloud/service_scope.dart';
@@ -14,10 +13,7 @@ import 'package:pub_dev/tool/neat_task/pub_dev_tasks.dart';
 import 'package:stream_transform/stream_transform.dart' show RateLimit;
 import 'package:watcher/watcher.dart';
 
-import '../../account/backend.dart';
-import '../../account/consent_backend.dart';
 import '../../analyzer/analyzer_client.dart';
-import '../../audit/backend.dart';
 import '../../frontend/handlers.dart';
 import '../../frontend/static_files.dart';
 import '../../frontend/templates/_cache.dart';
@@ -36,7 +32,6 @@ import '_cronjobs.dart' show CronJobs;
 import '_isolate.dart';
 
 final Logger _logger = Logger('pub');
-final _random = Random.secure();
 
 class DefaultCommand extends Command {
   @override
@@ -63,7 +58,6 @@ class DefaultCommand extends Command {
 }
 
 Future _main(FrontendEntryMessage message) async {
-  setupServiceIsolate();
   message.protocolSendPort
       .send(FrontendProtocolMessage(statsConsumerPort: null));
 
@@ -125,19 +119,10 @@ Future<void> watchForResourceChanges() async {
 }
 
 Future _worker(WorkerEntryMessage message) async {
-  setupServiceIsolate();
   message.protocolSendPort.send(WorkerProtocolMessage());
 
   await withServices(() async {
     setupPubDevPeriodicTasks();
-    // TODO: use package:neat_periodic_task
-    // Randomization reduces race conditions.
-    Timer.periodic(Duration(hours: 8, minutes: _random.nextInt(240)),
-        (_) async {
-      await consentBackend.deleteObsoleteConsents();
-      await accountBackend.deleteObsoleteSessions();
-      await auditBackend.deleteExpiredRecords();
-    });
 
     // Updates job entries for analyzer and dartdoc.
     Future<void> triggerDependentAnalysis(

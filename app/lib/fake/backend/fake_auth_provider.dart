@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
+
 import '../../account/auth_provider.dart';
 
 /// A fake auth provider where user resolution is done via the provided access
@@ -26,13 +30,18 @@ class FakeAuthProvider implements AuthProvider {
   @override
   Future<AccountProfile> getAccountProfile(String accessToken) async {
     if (accessToken == null || !accessToken.contains('-at-')) return null;
-    final imageUrl = '/images/user/$accessToken.jpg';
+    final email = accessToken.replaceAll('-dot-', '.').replaceAll('-at-', '@');
+
+    // using the user part as name
+    final name =
+        email.split('@').first.replaceAll('-', ' ').replaceAll('.', ' ');
+
+    // gravatar image with retro face
+    final emailMd5 = md5.convert(utf8.encode(email.trim())).toString();
+    final imageUrl = 'https://www.gravatar.com/avatar/$emailMd5?d=retro&s=200';
+
     return AccountProfile(
-      name: accessToken
-          .split('-at-')
-          .first
-          .replaceAll('-', ' ')
-          .replaceAll('.', ' '),
+      name: name,
       imageUrl: imageUrl,
     );
   }

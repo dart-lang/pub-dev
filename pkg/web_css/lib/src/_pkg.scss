@@ -19,6 +19,15 @@
     position: relative;
     top: 2px;
   }
+
+  /*
+    NOTE: This changes the side margins for the badge(s) on the package page,
+          while subsequent badges still have 8px between them.
+  */
+  .detail-header-content-block .metadata & {
+    margin-left: 4px;
+    margin-right: 4px;
+  }
 }
 
 .package-vp-icon {
@@ -38,13 +47,7 @@
     padding: 8px 4px;
     text-align: left;
 
-    &.version {
-      font-family: $font-family-google-sans;
-      font-size: 24px;
-    }
-
     &.sdk {
-      text-align: center;
       white-space: nowrap;
       width: 80px;
     }
@@ -91,6 +94,7 @@
     font-size: 14px;
 
     .version {
+      font-family: $font-family-google-sans;
       font-size: 24px;
     }
   }

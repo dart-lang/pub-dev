@@ -297,19 +297,30 @@ class PackageBackend {
       }
 
       // sanity check changes
-      if (oldStableVersion.compareTo(p.latestSemanticVersion) > 0 ||
-          oldPrereleaseVersion.compareTo(p.latestPrereleaseSemanticVersion) >
-              0 ||
-          oldPreviewVersion.compareTo(p.latestPreviewSemanticVersion) > 0) {
+      final prereleaseNotOk =
+          oldPrereleaseVersion.compareTo(p.latestPrereleaseSemanticVersion) > 0;
+      final previewNotOk = oldPreviewVersion != null &&
+          oldPreviewVersion.compareTo(p.latestPreviewSemanticVersion) > 0;
+      if (prereleaseNotOk || previewNotOk) {
         _logger.severe(
             'Version update sanity check failed for package "$package": '
-            '$oldStableVersion -> ${p.latestVersion} / '
             '$oldPrereleaseVersion -> ${p.latestPrereleaseVersion} / '
             '$oldPreviewVersion -> ${p.latestPreviewVersion}');
         return false;
       }
 
+      // Stepping back a version on latest stable seems to be a valid use case
+      // at the time of introducing the feature, let's keep it on as a warning.
+      final stableNotOk =
+          oldStableVersion.compareTo(p.latestSemanticVersion) > 0 &&
+              oldStableVersion.compareTo(p.latestPreviewSemanticVersion) != 0;
+      if (stableNotOk) {
+        _logger.warning('Possible version update issue for package "$package": '
+            '$oldStableVersion -> ${p.latestVersion} / ');
+      }
+
       _logger.info('Updating version fields for package `$package`.');
+      p.updated = DateTime.now().toUtc();
       tx.insert(p);
       return true;
     });
@@ -407,6 +418,10 @@ class PackageBackend {
           isDiscontinued: options.isDiscontinued,
           isUnlisted: options.isUnlisted,
         ),
+      ));
+      tx.insert(AuditLogRecord.packageOptionsUpdated(
+        package: p.name,
+        user: user,
       ));
     });
     await purgePackageCache(package);
@@ -919,6 +934,10 @@ class PackageBackend {
         addedUploaderIds: [uploader.userId],
         addedUploaderEmails: [uploader.email],
       )));
+      tx.insert(AuditLogRecord.uploaderInviteAccepted(
+        user: uploader,
+        package: packageName,
+      ));
     });
     await purgePackageCache(packageName);
   }
@@ -992,6 +1011,11 @@ class PackageBackend {
         removedUploaderIds: [uploader.userId],
         removedUploaderEmails: [uploader.email],
       )));
+      tx.insert(AuditLogRecord.uploaderRemoved(
+        activeUser: user,
+        package: packageName,
+        uploaderUser: uploader,
+      ));
     });
     await purgePackageCache(packageName);
     return api.SuccessMessage(

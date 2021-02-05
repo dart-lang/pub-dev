@@ -69,6 +69,15 @@ shelf.Handler createAppHandler() {
       return res;
     }
 
+    // Some clients add an extra `/` at the end of the request. When the above
+    // handlers were not able to respond to the request, we redirect it to a
+    // a path without the `/`.
+    final path = request.requestedUri.path;
+    if (path.endsWith('/') && path.length > 1) {
+      final newPath = path.substring(0, path.length - 1);
+      return redirectResponse(request.requestedUri.resolve(newPath).toString());
+    }
+
     return formattedNotFoundHandler(request);
   };
 }

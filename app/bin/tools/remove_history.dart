@@ -1,4 +1,4 @@
-// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:args/args.dart';
 
-import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/history/models.dart';
 import 'package:pub_dev/service/entrypoint/tools.dart';
 import 'package:pub_dev/shared/datastore.dart';
 
@@ -15,12 +15,12 @@ final _argParser = ArgParser()
       abbr: 'n', defaultsTo: false, help: 'Do not change Datastore.')
   ..addFlag('help', abbr: 'h', defaultsTo: false, help: 'Show help.');
 
-/// Deletes all PackageVersionPubspec entities.
+/// Deletes all History entities.
 Future main(List<String> args) async {
   final argv = _argParser.parse(args);
   if (argv['help'] as bool == true) {
-    print('Usage: dart remove_packageversionpubspec.dart');
-    print('Deletes PackageVersionPubspec entities.');
+    print('Usage: dart remove_history.dart');
+    print('Deletes History entities.');
     print(_argParser.usage);
     return;
   }
@@ -29,9 +29,9 @@ Future main(List<String> args) async {
 
   await withToolRuntime(() async {
     // ignore: deprecated_member_use_from_same_package
-    await _deleteWithQuery<PackageVersionPubspec>(
+    await _deleteWithQuery<History>(
       // ignore: deprecated_member_use_from_same_package
-      dbService.query<PackageVersionPubspec>(),
+      dbService.query<History>(),
       dryRun: dryRun,
     );
   });
@@ -43,8 +43,8 @@ Future<void> _deleteWithQuery<T>(Query query, {bool dryRun}) async {
   await for (Model m in query.run()) {
     deletes.add(m.key);
     if (deletes.length >= 500) {
-      deletes.clear();
       await _commit(deletes, dryRun);
+      deletes.clear();
     }
   }
   if (deletes.isNotEmpty) {

@@ -5,25 +5,30 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:pub_dev/tool/test_profile/import_source.dart';
-import 'package:pub_dev/tool/utils/dart_sdk_version.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
+import 'package:pub_dev/tool/utils/dart_sdk_version.dart';
 
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
 
-Future<void> main() async {
-  final current = await getDartSdkVersion();
-  final currentSdkVersion = current.semanticVersion;
-  final futureSdkVersion = currentSdkVersion.nextMinor.nextMinor;
-  final importSource = _ImportSource(currentSdkVersion, futureSdkVersion);
+void main() {
+  Version currentSdkVersion;
+  Version futureSdkVersion;
+  final importSource =
+      _ImportSource(() => currentSdkVersion, () => futureSdkVersion);
 
   group('SDK version changing', () {
-    test('verify versions', () {
+    test('verify versions', () async {
+      final current = await getDartSdkVersion();
+      currentSdkVersion = current.semanticVersion;
+      futureSdkVersion = currentSdkVersion.nextMinor.nextMinor;
       expect(currentSdkVersion.major, isNotNull);
       expect(futureSdkVersion.major, currentSdkVersion.major);
     });
@@ -78,15 +83,122 @@ Future<void> main() async {
         expect(p2.showPreviewVersion, isFalse);
       },
     );
+
+    testWithProfile(
+      'backfill preview version',
+      testProfile: TestProfile(
+        defaultUser: adminUser.email,
+        packages: [
+          TestPackage(name: 'pkg', versions: ['1.0.0', '1.2.0']),
+        ],
+      ),
+      importSource: importSource,
+      fn: () async {
+        final pkg = await dbService.lookupValue<Package>(
+            dbService.emptyKey.append(Package, id: 'pkg'));
+        pkg.latestPreviewVersionKey = null;
+        pkg.latestPreviewPublished = null;
+        pkg.lastVersionPublished = null;
+        await dbService.commit(inserts: [pkg]);
+
+        final u1 = await packageBackend.updateAllPackageVersions(
+            dartSdkVersion: currentSdkVersion);
+        expect(u1, 1);
+
+        // check that fields were updated
+        final p1 = await packageBackend.lookupPackage('pkg');
+        expect(p1.latestVersion, '1.0.0');
+        expect(p1.latestPrereleaseVersion, '1.2.0');
+        expect(p1.latestPreviewVersion, '1.2.0');
+        expect(p1.showPrereleaseVersion, isFalse);
+        expect(p1.showPreviewVersion, isTrue);
+        expect(p1.latestPreviewPublished, isNotNull);
+        expect(p1.lastVersionPublished, isNotNull);
+      },
+    );
+
+    testWithProfile(
+      'only future prerelease versions',
+      testProfile: TestProfile(
+        defaultUser: adminUser.email,
+        packages: [
+          TestPackage(name: 'pkg', versions: [
+            '0.1.0-nullsafety.0',
+            '0.1.0-nullsafety.1',
+            '0.2.0-nullsafety.0',
+            '0.2.1-nullsafety.0',
+          ]),
+        ],
+      ),
+      importSource:
+          _ImportSource(() => futureSdkVersion, () => futureSdkVersion),
+      fn: () async {
+        final pkg = await dbService.lookupValue<Package>(
+            dbService.emptyKey.append(Package, id: 'pkg'));
+        expect(pkg.latestVersion, '0.2.1-nullsafety.0');
+        pkg.latestPreviewVersionKey = null;
+        pkg.latestPreviewPublished = null;
+        pkg.lastVersionPublished = null;
+        await dbService.commit(inserts: [pkg]);
+
+        final u1 = await packageBackend.updateAllPackageVersions(
+            dartSdkVersion: currentSdkVersion);
+        expect(u1, 1);
+
+        // check that fields were updated
+        final p1 = await packageBackend.lookupPackage('pkg');
+        expect(p1.latestVersion, '0.2.1-nullsafety.0');
+        expect(p1.latestPrereleaseVersion, '0.2.1-nullsafety.0');
+        expect(p1.latestPreviewVersion, '0.2.1-nullsafety.0');
+        expect(p1.showPrereleaseVersion, isFalse);
+        expect(p1.showPreviewVersion, isFalse);
+      },
+    );
+
+    testWithProfile(
+      'allow latest stable to go back',
+      testProfile: TestProfile(
+        defaultUser: adminUser.email,
+        packages: [
+          TestPackage(name: 'pkg', versions: ['1.0.0', '1.2.0']),
+        ],
+      ),
+      importSource: importSource,
+      fn: () async {
+        final pkg = await dbService.lookupValue<Package>(
+            dbService.emptyKey.append(Package, id: 'pkg'));
+
+        // force-update latest stable to match preview
+        expect(pkg.latestVersion, '1.0.0');
+        pkg.latestVersionKey = pkg.latestPreviewVersionKey;
+        expect(pkg.latestVersion, '1.2.0');
+        await dbService.commit(inserts: [pkg]);
+
+        // trigger update
+        final u1 = await packageBackend.updateAllPackageVersions(
+            dartSdkVersion: currentSdkVersion);
+        expect(u1, 1);
+
+        // check that fields were updated
+        final p1 = await packageBackend.lookupPackage('pkg');
+        expect(p1.latestVersion, '1.0.0');
+        expect(p1.latestPrereleaseVersion, '1.2.0');
+        expect(p1.latestPreviewVersion, '1.2.0');
+        expect(p1.showPrereleaseVersion, isFalse);
+        expect(p1.showPreviewVersion, isTrue);
+        expect(p1.latestPreviewPublished, isNotNull);
+        expect(p1.lastVersionPublished, isNotNull);
+      },
+    );
   });
 }
 
 class _ImportSource implements ImportSource {
-  final Version _currentSdkVersion;
-  final Version _futureSdkVersion;
+  final Version Function() _currentSdkVersionFn;
+  final Version Function() _futureSdkVersionFn;
   final _defaultSource = ImportSource.autoGenerated();
 
-  _ImportSource(this._currentSdkVersion, this._futureSdkVersion);
+  _ImportSource(this._currentSdkVersionFn, this._futureSdkVersionFn);
 
   @override
   Future<List<ResolvedVersion>> resolveVersions(TestProfile profile) async {
@@ -97,7 +209,8 @@ class _ImportSource implements ImportSource {
   Future<List<int>> getArchiveBytes(String package, String version) async {
     final archive = ArchiveBuilder();
 
-    final minSdk = version == '1.2.0' ? _futureSdkVersion : _currentSdkVersion;
+    final minSdk =
+        version == '1.2.0' ? _futureSdkVersionFn() : _currentSdkVersionFn();
     final pubspec = json.encode({
       'name': package,
       'version': version,

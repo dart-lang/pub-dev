@@ -14,6 +14,8 @@ import 'package:client_data/package_api.dart';
 
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/audit/backend.dart';
+import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
@@ -427,6 +429,13 @@ void main() {
         // verify after change
         final pkg3 = (await dbService.lookup<Package>([key])).single;
         expect(pkg3.uploaders, [hansUser.userId]);
+
+        // check audit log record
+        final records = await auditBackend.listRecordsForPackage('hydrogen');
+        final r = records
+            .firstWhere((r) => r.kind == AuditLogRecordKind.uploaderRemoved);
+        expect(r.summary,
+            '`hans@juergen.com` removed `a@example.com` from the uploaders of package `hydrogen`.');
       });
     });
 
@@ -559,6 +568,12 @@ void main() {
         expect(p1.isDiscontinued, isTrue);
         expect(p1.replacedBy, isNull);
         expect(p1.isUnlisted, isFalse);
+
+        // check audit log record
+        final records = await auditBackend.listRecordsForPackage('hydrogen');
+        final r = records.firstWhere(
+            (r) => r.kind == AuditLogRecordKind.packageOptionsUpdated);
+        expect(r.summary, '`hans@juergen.com` updated package `hydrogen`.');
 
         await packageBackend.updateOptions(
             'hydrogen', PkgOptions(isDiscontinued: false));

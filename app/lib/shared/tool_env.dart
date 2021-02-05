@@ -5,27 +5,49 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:pana/pana.dart';
 
 import 'configuration.dart';
 
-/// Subsequent calls of the analyzer or dartdoc job can use the same [ToolEnvRef]
+final _logger = Logger('tool_env');
+
+/// Subsequent calls of the analyzer or dartdoc job can use the same [_ToolEnvRef]
 /// instance [_maxCount] times.
 ///
-/// Until the limit is reached, the [ToolEnvRef] will reuse the pub cache
+/// Until the limit is reached, the [_ToolEnvRef] will reuse the pub cache
 /// directory for its `pub upgrade` calls, but once it is reached, the cache
-/// will be deleted and a new [ToolEnvRef] with a new directory will be created.
+/// will be deleted and a new [_ToolEnvRef] with a new directory will be created.
 const _maxCount = 50;
 
-/// Subsequent calls of the analyzer or dartdoc job can use the same [ToolEnvRef]
+/// Subsequent calls of the analyzer or dartdoc job can use the same [_ToolEnvRef]
 /// instance up until its size reaches [_maxSize].
 ///
-/// Until the limit is reached, the [ToolEnvRef] will reuse the pub cache
+/// Until the limit is reached, the [_ToolEnvRef] will reuse the pub cache
 /// directory for its `pub upgrade` calls, but once it is reached, the cache
-/// will be deleted and a new [ToolEnvRef] with a new directory will be created.
+/// will be deleted and a new [_ToolEnvRef] with a new directory will be created.
 const _maxSize = 500 * 1024 * 1024; // 500 MB
 
-ToolEnvRef _current;
+/// Calls [fn] with the [ToolEnvironment], handling the lifecycle of the local
+/// pub cache.
+Future<R> withToolEnv<R>({
+  @required bool usesPreviewSdk,
+  @required Future<R> Function(ToolEnvironment toolEnv) fn,
+}) async {
+  _ToolEnvRef ref;
+  try {
+    ref = await _getOrCreateToolEnvRef();
+    return await fn(usesPreviewSdk ? ref.preview : ref.stable);
+  } finally {
+    await ref?._release();
+  }
+}
+
+/// The id of the next [_ToolEnvRef] to be created.
+int _nextId = 0;
+
+_ToolEnvRef _current;
 Completer _ongoing;
 
 /// Tracks the temporary directory of the downloaded package cache with the
@@ -35,29 +57,36 @@ Completer _ongoing;
 /// The pub cache will be reused between `pub upgrade` calls, until the
 /// [_maxCount] threshold is reached. The directory will be deleted once all of
 /// the associated jobs complete.
-class ToolEnvRef {
+class _ToolEnvRef {
   final Directory _pubCacheDir;
-  final ToolEnvironment toolEnv;
+  final ToolEnvironment stable;
+  final ToolEnvironment preview;
+  final _id = _nextId++;
   int _started = 0;
   int _active = 0;
   bool _isAboveSizeLimit = false;
 
-  ToolEnvRef(this._pubCacheDir, this.toolEnv);
+  _ToolEnvRef(this._pubCacheDir, this.stable, this.preview);
 
   bool get _isAvailable => _started < _maxCount && !_isAboveSizeLimit;
 
-  void _aquire() {
+  void _acquire() {
     _started++;
     _active++;
+    _logger
+        .info('($_id) Tool env acquired. started: $_started, active: $_active');
   }
 
-  Future<void> release() async {
+  Future<void> _release() async {
+    _logger
+        .info('($_id) Tool env released. started: $_started, active: $_active');
     await _checkSizeLimit();
     _active--;
     if (_active == 0) {
       // Delete directory if the instance is no longer active or it reached the
       // maximum threshold.
       if (_started >= _maxCount || _current != this) {
+        _logger.info('($_id) Deleting pub cache dir: $_pubCacheDir');
         await _pubCacheDir.delete(recursive: true);
       }
     }
@@ -71,19 +100,20 @@ class ToolEnvRef {
         size += await fse.length();
       }
     }
+    _logger.info('($_id) Current size of pub cache dir: $size');
     _isAboveSizeLimit = size > _maxSize;
   }
 }
 
-/// Gets a currently available [ToolEnvRef] if it is used less than the
+/// Gets a currently available [_ToolEnvRef] if it is used less than the
 /// configured threshold ([_maxCount]). If it it has already
 /// reached the amount, a new cache dir and environment will be created.
-Future<ToolEnvRef> getOrCreateToolEnvRef() async {
-  ToolEnvRef result;
+Future<_ToolEnvRef> _getOrCreateToolEnvRef() async {
+  _ToolEnvRef result;
   while (result == null) {
     if (_current != null && _current._isAvailable) {
       result = _current;
-      result._aquire();
+      result._acquire();
       break;
     }
 
@@ -96,14 +126,20 @@ Future<ToolEnvRef> getOrCreateToolEnvRef() async {
 
     final cacheDir = await Directory.systemTemp.createTemp('pub-cache-dir');
     final resolvedDirName = await cacheDir.resolveSymbolicLinks();
-    final toolEnv = await ToolEnvironment.create(
+    final stableToolEnv = await ToolEnvironment.create(
       dartSdkDir: envConfig.toolEnvDartSdkDir,
       flutterSdkDir: envConfig.flutterSdkDir,
       pubCacheDir: resolvedDirName,
     );
-    _current = ToolEnvRef(cacheDir, toolEnv);
+    // TODO: use different SDK directories
+    final previewToolEnv = await ToolEnvironment.create(
+      dartSdkDir: envConfig.toolEnvDartSdkDir,
+      flutterSdkDir: envConfig.flutterSdkDir,
+      pubCacheDir: resolvedDirName,
+    );
+    _current = _ToolEnvRef(cacheDir, stableToolEnv, previewToolEnv);
     result = _current;
-    result._aquire();
+    result._acquire();
     _ongoing.complete();
     _ongoing = null;
     break;

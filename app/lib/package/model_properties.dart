@@ -187,6 +187,8 @@ class MinSdkVersion {
         channel = 'dev';
       } else if (str.endsWith('.beta')) {
         channel = 'beta';
+      } else if (min.isPreRelease) {
+        channel = 'dev';
       }
       return MinSdkVersion(min, channel);
     }

@@ -4,11 +4,42 @@
 
 import 'dart:html';
 
+import 'package:web_app/src/gtag_js.dart';
+
 void setupSearch() {
+  _setEventForKeyboardShortcut();
   _setEventForSearchInput();
   _setEventForFiltersToggle();
   _setEventForSortControl();
   _setEventForCheckboxChanges();
+}
+
+void _setEventForKeyboardShortcut() {
+  final inputElem = document.querySelector('input.site-header-search-input');
+  if (inputElem != null && inputElem is InputElement) {
+    window.onKeyPress.listen((e) {
+      // Ignore keys other than the shortcut key:
+      if (e.key != '/') return;
+
+      // Only trigger the input field and steal focus when nothing is focused,
+      // or when the focused element is not an input element.
+      final active = document.activeElement;
+      final isRestricted = active is InputElement || active is TextAreaElement;
+      if (!isRestricted) {
+        inputElem.focus();
+
+        // prevent the trigger character to get typed into the input field
+        e.preventDefault();
+
+        // notify analytics
+        gtagEvent(
+          'focus-search',
+          category: 'keyboard-shortcut',
+          label: 'path:${window.location.pathname}',
+        );
+      }
+    });
+  }
 }
 
 void _setEventForSearchInput() {

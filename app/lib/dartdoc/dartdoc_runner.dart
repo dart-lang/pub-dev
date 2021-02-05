@@ -158,8 +158,6 @@ class DartdocJobProcessor extends JobProcessor {
     // directories need to be created
     await Directory(outputDir).create(recursive: true);
 
-    final toolEnvRef = await getOrCreateToolEnvRef();
-
     final latestVersion =
         await packageBackend.getLatestVersion(job.packageName);
     final bool isLatestStable = latestVersion == job.packageVersion;
@@ -179,65 +177,72 @@ class DartdocJobProcessor extends JobProcessor {
         destination: pkgPath,
         pubHostedUrl: activeConfiguration.primarySiteUri.toString(),
       );
-      final usesFlutter = await toolEnvRef.toolEnv.detectFlutterUse(pkgPath);
+      await withToolEnv(
+        usesPreviewSdk: packageStatus.usesPreviewSdk,
+        fn: (toolEnv) async {
+          final usesFlutter = await toolEnv.detectFlutterUse(pkgPath);
 
-      final logFileOutput = StringBuffer();
-      logFileOutput.write('Dartdoc generation for $job\n\n'
-          'runtime: ${versions.runtimeVersion}\n'
-          'toolEnv Dart SDK: ${versions.toolEnvSdkVersion}\n'
-          'runtime Dart SDK: ${versions.runtimeSdkVersion}\n'
-          'pana: ${versions.panaVersion}\n'
-          'dartdoc: ${versions.dartdocVersion}\n'
-          'flutter: ${versions.flutterVersion}\n'
-          'usesFlutter: $usesFlutter\n'
-          'started: ${DateTime.now().toUtc().toIso8601String()}\n\n');
+          final logFileOutput = StringBuffer();
+          logFileOutput.write('Dartdoc generation for $job\n\n'
+              'runtime: ${versions.runtimeVersion}\n'
+              'toolEnv Dart SDK: ${versions.toolEnvSdkVersion}\n'
+              'runtime Dart SDK: ${versions.runtimeSdkVersion}\n'
+              'pana: ${versions.panaVersion}\n'
+              'dartdoc: ${versions.dartdocVersion}\n'
+              'flutter: ${versions.flutterVersion}\n'
+              'usesFlutter: $usesFlutter\n'
+              'started: ${DateTime.now().toUtc().toIso8601String()}\n\n');
 
-      final status = await scoreCardBackend.getPackageStatus(
-          job.packageName, job.packageVersion);
+          final status = await scoreCardBackend.getPackageStatus(
+              job.packageName, job.packageVersion);
 
-      // Resolve dependencies only for non-legacy package versions.
-      if (!status.isLegacy) {
-        depsResolved = await _resolveDependencies(logger, toolEnvRef.toolEnv,
-            job, pkgPath, usesFlutter, logFileOutput);
-      } else {
-        logFileOutput.write(
-            'Package version does not allow current SDK, skipping pub upgrade.\n\n');
-      }
+          // Resolve dependencies only for non-legacy package versions.
+          if (!status.isLegacy) {
+            depsResolved = await _resolveDependencies(
+                logger, toolEnv, job, pkgPath, usesFlutter, logFileOutput);
+          } else {
+            logFileOutput.write(
+                'Package version does not allow current SDK, skipping pub upgrade.\n\n');
+          }
 
-      // Generate docs only for packages that have healthy dependencies.
-      if (depsResolved) {
-        dartdocResult =
-            await _generateDocs(logger, job, pkgPath, outputDir, logFileOutput);
-        hasContent = dartdocResult.hasIndexHtml && dartdocResult.hasIndexJson;
-      } else {
-        abortLog = 'Dependencies were not resolved.';
-        logFileOutput
-            .write('Dependencies were not resolved, skipping dartdoc.\n\n');
-      }
+          // Generate docs only for packages that have healthy dependencies.
+          if (depsResolved) {
+            dartdocResult = await _generateDocs(
+                logger, job, pkgPath, outputDir, logFileOutput);
+            hasContent =
+                dartdocResult.hasIndexHtml && dartdocResult.hasIndexJson;
+          } else {
+            abortLog = 'Dependencies were not resolved.';
+            logFileOutput
+                .write('Dependencies were not resolved, skipping dartdoc.\n\n');
+          }
 
-      if (hasContent) {
-        try {
-          await DartdocCustomizer(
-                  job.packageName, job.packageVersion, job.isLatestStable)
-              .customizeDir(outputDir);
-          logFileOutput.write('Content customization completed.\n\n');
-        } catch (e, st) {
-          // Do not block on customization failure.
-          _logger.severe('Dartdoc customization failed ($job).', e, st);
-          logFileOutput.write('Content customization failed.\n\n');
-        }
+          if (hasContent) {
+            try {
+              await DartdocCustomizer(
+                      job.packageName, job.packageVersion, job.isLatestStable)
+                  .customizeDir(outputDir);
+              logFileOutput.write('Content customization completed.\n\n');
+            } catch (e, st) {
+              // Do not block on customization failure.
+              _logger.severe('Dartdoc customization failed ($job).', e, st);
+              logFileOutput.write('Content customization failed.\n\n');
+            }
 
-        await _tar(tempDirPath, tarDir, outputDir, logFileOutput);
-      } else {
-        logFileOutput.write('No content found!\n\n');
-      }
+            await _tar(tempDirPath, tarDir, outputDir, logFileOutput);
+          } else {
+            logFileOutput.write('No content found!\n\n');
+          }
 
-      entry = await _createEntry(
-          job, outputDir, usesFlutter, depsResolved, hasContent);
-      logFileOutput.write('entry created: ${entry.uuid}\n\n');
+          entry = await _createEntry(
+              job, outputDir, usesFlutter, depsResolved, hasContent);
+          logFileOutput.write('entry created: ${entry.uuid}\n\n');
 
-      logFileOutput.write('completed: ${entry.timestamp.toIso8601String()}\n');
-      await _writeLog(outputDir, logFileOutput);
+          logFileOutput
+              .write('completed: ${entry.timestamp.toIso8601String()}\n');
+          await _writeLog(outputDir, logFileOutput);
+        },
+      );
 
       final oldEntry =
           await dartdocBackend.getEntry(job.packageName, job.packageVersion);
@@ -270,7 +275,6 @@ class DartdocJobProcessor extends JobProcessor {
           'Running `dartdoc` failed with the following output: $e\n\n```\n$st\n```\n';
     } finally {
       await tempDir.delete(recursive: true);
-      await toolEnvRef.release();
     }
 
     final coverage = dartdocData?.coverage;
