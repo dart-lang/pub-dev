@@ -163,6 +163,8 @@
 }
 
 .pkg-report {
+  border-bottom: 1px solid #c8c8ca;
+
   .pkg-report-section {
     border-top: 1px solid #c8c8ca;
     padding: 13px 0;
@@ -309,4 +311,9 @@
       opacity: 0;
     }
   }
+}
+
+.tool-env-info {
+  margin-top: 40px;
+  font-size: 14px;
 }

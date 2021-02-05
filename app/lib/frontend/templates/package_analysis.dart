@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:meta/meta.dart';
-import 'package:pana/models.dart' show Report, ReportSection, ReportStatus;
+import 'package:pana/models.dart'
+    show PanaRuntimeInfo, Report, ReportSection, ReportStatus;
 
 import '../../analyzer/analyzer_client.dart';
 import '../../scorecard/models.dart' hide ReportStatus;
@@ -48,6 +49,8 @@ String renderAnalysisTab(
     'popularity_key_figure_html':
         _renderPopularityKeyFigure(card.popularityScore),
     'pubpoints_key_figure_html': _renderPubPointsKeyFigure(report),
+    'tool_env_info_html':
+        _renderToolEnvInfo(analysis.panaRuntimeInfo, card.usesFlutter),
   };
 
   return templateCache.renderTemplate('pkg/analysis/tab', data);
@@ -152,5 +155,31 @@ String _renderKeyFigure({
     'value': value,
     'supplemental': supplemental,
     'label': label,
+  });
+}
+
+String _renderToolEnvInfo(PanaRuntimeInfo info, bool usesFlutter) {
+  if (info == null) return null;
+  return templateCache.renderTemplate('pkg/analysis/tool_env_info', {
+    'tools': [
+      {
+        'name': 'Pana',
+        'version': info.panaVersion,
+        'last': false,
+      },
+      if (usesFlutter)
+        {
+          'name': 'Flutter',
+          'version': info.flutterVersions['frameworkVersion'],
+          'last': false,
+        },
+      {
+        'name': 'Dart',
+        'version': usesFlutter
+            ? info.flutterVersions['dartSdkVersion']
+            : info.sdkVersion,
+        'last': true,
+      },
+    ],
   });
 }
