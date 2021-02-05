@@ -163,19 +163,22 @@ String _renderToolEnvInfo(PanaRuntimeInfo info, bool usesFlutter) {
   return templateCache.renderTemplate('pkg/analysis/tool_env_info', {
     'tools': [
       {
-        'name': 'pana',
+        'name': 'Pana',
         'version': info.panaVersion,
+        'last': false,
       },
       if (usesFlutter)
         {
           'name': 'Flutter',
           'version': info.flutterVersions['frameworkVersion'],
+          'last': false,
         },
       {
         'name': 'Dart',
         'version': usesFlutter
             ? info.flutterVersions['dartSdkVersion']
             : info.sdkVersion,
+        'last': true,
       },
     ],
   });
