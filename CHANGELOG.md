@@ -3,6 +3,9 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+ * Removed all usage of `app/static/js/gtag.js` it can be removed after a few
+   runtimeVerions when we are no-longer serving old generated dartdoc files.
+
 ## `20210119t122300-all`
  * Bumped runtimeVersion to `2021.01.18`.
  * Upgraded dartdoc to `0.39.0`.
