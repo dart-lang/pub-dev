@@ -9,13 +9,15 @@ import 'package:neat_periodic_task/neat_periodic_task.dart';
 import '../../account/backend.dart';
 import '../../account/consent_backend.dart';
 import '../../audit/backend.dart';
+import '../../job/backend.dart';
 import '../../package/backend.dart';
+import '../../scorecard/backend.dart';
 import '../../shared/datastore.dart';
 
 import 'datastore_status_provider.dart';
 
-/// Setup the tasks that we are running in pub-dev.
-void setupPubDevPeriodicTasks() {
+/// Setup the tasks that we are running in pub.dev frontend.
+void setupFrontendPeriodicTasks() {
   // Deletes expired audit log records.
   _daily(
     name: 'delete-expired-audit-log-records',
@@ -39,6 +41,33 @@ void setupPubDevPeriodicTasks() {
   _daily(
     name: 'update-package-versions',
     task: () async => await packageBackend.updateAllPackageVersions(),
+  );
+}
+
+/// Setup the tasks that we are running in the analyzer service.
+void setupAnalyzerPeriodicTasks() {
+  _setupJobCleanupPeriodicTasks();
+}
+
+/// Setup the tasks that we are running in the dartdoc service.
+void setupDartdocPeriodicTasks() {
+  _setupJobCleanupPeriodicTasks();
+  // TODO: migrate cleanup of the extracted SDK data
+}
+
+/// Setup the tasks that we are running in both analyzer and dartdoc services.
+void _setupJobCleanupPeriodicTasks() {
+  // Deletes Job entities that are older than the accepted runtime versions.
+  _daily(
+    name: 'delete-old-jobs',
+    task: () async => await jobBackend.deleteOldEntries(),
+  );
+
+  // Deletes ScoreCard and ScoreCardReport entities that are older than the
+  // accepted runtime versions.
+  _daily(
+    name: 'delete-old-scorecards',
+    task: () async => await scoreCardBackend.deleteOldEntries(),
   );
 }
 

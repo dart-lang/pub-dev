@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:isolate';
-import 'dart:math' as math;
 
 import 'package:args/command_runner.dart';
 import 'package:logging/logging.dart';
@@ -13,12 +12,12 @@ import '../../analyzer/handlers.dart';
 import '../../analyzer/pana_runner.dart';
 import '../../job/backend.dart';
 import '../../job/job.dart';
-import '../../scorecard/backend.dart';
 import '../../shared/configuration.dart';
 import '../../shared/datastore.dart' as db;
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
 import '../../shared/scheduler_stats.dart';
+import '../../tool/neat_task/pub_dev_tasks.dart';
 
 import '../services.dart';
 
@@ -26,7 +25,6 @@ import '_gae_setup.dart';
 import '_isolate.dart';
 
 final Logger logger = Logger('pub.analyzer');
-final _random = math.Random.secure();
 
 class AnalyzerCommand extends Command {
   @override
@@ -74,6 +72,7 @@ Future _workerMain(WorkerEntryMessage message) async {
   message.protocolSendPort.send(WorkerProtocolMessage());
 
   await withServices(() async {
+    setupAnalyzerPeriodicTasks();
     await popularityStorage.init();
     final jobProcessor = AnalyzerJobProcessor(
         aliveCallback: () => message.aliveSendPort.send(null));
@@ -81,12 +80,6 @@ Future _workerMain(WorkerEntryMessage message) async {
 
     Timer.periodic(const Duration(minutes: 15), (_) async {
       message.statsSendPort.send(await jobBackend.stats(JobService.analyzer));
-    });
-
-    // Run GC in the next 6-12 hours (randomized wait to reduce race).
-    Timer(Duration(minutes: 360 + _random.nextInt(360)), () {
-      scoreCardBackend.deleteOldEntries();
-      jobBackend.deleteOldEntries();
     });
 
     await jobMaintenance.run();
