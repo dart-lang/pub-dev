@@ -259,12 +259,20 @@ class PublisherBackend {
         final usersByEmail =
             await accountBackend.lookupUsersByEmail(update.contactEmail);
         if (usersByEmail.isNotEmpty) {
-          InvalidInputException.check(
-            user.email == update.contactEmail,
-            'The contact email is a registered user, but not member of the publisher.',
-          );
-          contactEmailMatchedAdmin = true;
-          p.contactEmail = update.contactEmail;
+          for (final user in usersByEmail) {
+            if (await isMemberAdmin(publisherId, user.userId)) {
+              contactEmailMatchedAdmin = true;
+              p.contactEmail = update.contactEmail;
+              break;
+            }
+          }
+
+          if (!contactEmailMatchedAdmin) {
+            InvalidInputException.check(
+              user.email == update.contactEmail,
+              'The contact email is a registered user, but not member of the publisher.',
+            );
+          }
         }
 
         if (!contactEmailMatchedAdmin) {
