@@ -17,7 +17,6 @@ import 'package:pub_dev/frontend/handlers.dart';
 import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/service/entrypoint/frontend.dart';
 import 'package:pub_dev/service/services.dart';
-import 'package:pub_dev/service/spam/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/handler_helpers.dart';
 
@@ -46,7 +45,6 @@ class FakePubServer {
           }
 
           nameTracker.startTracking();
-          spamBackend.setSpamConfig(spamWords: ['SPAM-SPAM-SPAM']);
 
           final appHandler = createAppHandler();
           final handler = wrapHandler(_logger, appHandler, sanitize: true);
