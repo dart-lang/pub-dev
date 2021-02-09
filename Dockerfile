@@ -46,6 +46,9 @@ RUN dart pub get --offline --no-precompile
 RUN /project/app/script/setup-dart.sh /tool/stable https://storage.googleapis.com/dart-archive/channels/stable/release/2.10.5/sdk/dartsdk-linux-x64-release.zip
 RUN /project/app/script/setup-dart.sh /tool/preview https://storage.googleapis.com/dart-archive/channels/beta/raw/2.12.0-133.2.beta/sdk/dartsdk-linux-x64-release.zip
 
+RUN /project/app/script/setup-flutter.sh /tool/stable 1.22.6
+RUN /project/app/script/setup-flutter.sh /tool/preview 1.25.0-8.3.pre
+
 # Clear out any arguments the base images might have set
 CMD []
 ENTRYPOINT /usr/bin/dart bin/server.dart "$GAE_SERVICE"

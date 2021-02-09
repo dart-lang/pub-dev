@@ -46,10 +46,11 @@ void main() {
       }
     }
 
-    check(toolStableSdkVersion, 'stable Dart analysis SDK');
-    check(toolPreviewSdkVersion, 'preview Dart analysis SDK');
+    check(toolStableDartSdkVersion, 'stable Dart analysis SDK');
+    check(toolPreviewDartSdkVersion, 'preview Dart analysis SDK');
     check(runtimeSdkVersion, 'runtime Dart SDK');
-    check(flutterVersion, 'Flutter');
+    check(toolStableFlutterSdkVersion, 'stable Flutter');
+    check(toolPreviewFlutterSdkVersion, 'preview Flutter');
     check(panaVersion, 'pana');
     check(dartdocVersion, 'dartdoc');
     check(runtimeVersion, 'runtimeVersion', isRuntimeVersion: true);
@@ -80,10 +81,16 @@ void main() {
     expect(ci.contains('$runtimeSdkVersion'), isTrue);
   });
 
-  test('Dart sdk versions should match dockerfile', () async {
+  test('Dart SDK versions should match dockerfile', () async {
     final String docker = await File('../Dockerfile').readAsString();
-    expect(docker.contains('/$toolStableSdkVersion/sdk/'), isTrue);
-    expect(docker.contains('/$toolPreviewSdkVersion/sdk/'), isTrue);
+    expect(docker.contains('/$toolStableDartSdkVersion/sdk/'), isTrue);
+    expect(docker.contains('/$toolPreviewDartSdkVersion/sdk/'), isTrue);
+  });
+
+  test('Flutter SDK versions should match dockerfile', () async {
+    final String docker = await File('../Dockerfile').readAsString();
+    expect(docker.contains('stable $toolStableFlutterSdkVersion'), isTrue);
+    expect(docker.contains('preview $toolPreviewFlutterSdkVersion'), isTrue);
   });
 
   test('analyzer version should match resolved pana version', () async {
@@ -92,27 +99,21 @@ void main() {
     expect(lock['packages']['pana']['version'], panaVersion);
   });
 
-  test('flutter version should be a dynamic tag in setup-flutter.sh', () {
-    final flutterSetupContent =
-        File('script/setup-flutter.sh').readAsStringSync();
-
-    expect(
-        flutterSetupContent,
-        contains('git clone -b \$1 --single-branch '
-            'https://github.com/flutter/flutter.git \$FLUTTER_SDK'));
-  });
-
   test('Flutter is using a released version from any channel.', () async {
     final flutterArchive = await fetchFlutterArchive();
-    expect(flutterArchive.releases.any((fr) => fr.version == flutterVersion),
+    expect(
+        flutterArchive.releases
+            .any((fr) => fr.version == toolStableFlutterSdkVersion),
+        isTrue);
+    expect(
+        flutterArchive.releases
+            .any((fr) => fr.version == toolPreviewFlutterSdkVersion),
         isTrue);
   });
 
   test(
     'Flutter is using the latest stable',
     () async {
-      // TODO: remove this check after we are using stable Flutter again
-      if (flutterVersion == '1.25.0-8.3.pre') return;
       final flutterArchive = await fetchFlutterArchive();
       final currentStable = flutterArchive.releases.firstWhere(
         (r) => r.hash == flutterArchive.currentRelease.stable,
@@ -120,7 +121,7 @@ void main() {
       );
       assert(currentStable != null, 'Expected current stable to exist');
       expect(
-        flutterVersion,
+        toolStableFlutterSdkVersion,
         equals(currentStable.version),
         reason: '''Expected flutterVersion to be current stable
 Please update flutterVersion in app/lib/shared/versions.dart

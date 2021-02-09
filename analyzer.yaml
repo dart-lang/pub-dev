@@ -6,11 +6,11 @@ runtime: custom
 env: flex
 service: analyzer
 env_variables:
-  # Needs to be in sync with app/script/setup-flutter.sh and with app/lib/shared/configuration.dart
-  FLUTTER_ROOT: '/flutter'
-  FLUTTER_SDK: '/flutter'
+  # Needs to be in sync with Dockerfile
   TOOL_STABLE_DART_SDK: '/tool/stable/dart-sdk'
+  TOOL_STABLE_FLUTTER_SDK: '/tool/stable/flutter'
   TOOL_PREVIEW_DART_SDK: '/tool/preview/dart-sdk'
+  TOOL_PREVIEW_FLUTTER_SDK: '/tool/preview/flutter'
 
 resources:
   cpu: 2

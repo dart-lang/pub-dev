@@ -347,8 +347,9 @@ class EnvConfig {
   final String gcloudKey;
   final String gcloudProject;
   final String stableDartSdkDir;
+  final String stableFlutterSdkDir;
   final String previewDartSdkDir;
-  final String flutterSdkDir;
+  final String previewFlutterSdkDir;
   final int frontendCount;
   final int workerCount;
 
@@ -359,8 +360,9 @@ class EnvConfig {
     this.gcloudProject,
     this.gcloudKey,
     this.stableDartSdkDir,
+    this.stableFlutterSdkDir,
     this.previewDartSdkDir,
-    this.flutterSdkDir,
+    this.previewFlutterSdkDir,
     this.frontendCount,
     this.workerCount,
   );
@@ -377,8 +379,9 @@ class EnvConfig {
       Platform.environment['GCLOUD_PROJECT'],
       Platform.environment['GCLOUD_KEY'],
       Platform.environment['TOOL_STABLE_DART_SDK'],
+      Platform.environment['TOOL_STABLE_FLUTTER_SDK'],
       Platform.environment['TOOL_PREVIEW_DART_SDK'],
-      Platform.environment['FLUTTER_SDK'],
+      Platform.environment['TOOL_PREVIEW_FLUTTER_SDK'],
       frontendCount,
       workerCount,
     );

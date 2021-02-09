@@ -157,7 +157,7 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
     );
     registerDartdocClient(DartdocClient());
     registerDartSdkIndex(InMemoryPackageIndex.sdk(
-        urlPrefix: dartSdkMainUrl(toolStableSdkVersion)));
+        urlPrefix: dartSdkMainUrl(toolStableDartSdkVersion)));
     registerJobBackend(JobBackend(dbService));
     registerNameTracker(NameTracker(dbService));
     registerPackageIndex(InMemoryPackageIndex());

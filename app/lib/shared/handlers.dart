@@ -159,12 +159,12 @@ shelf.Response debugResponse([Map<String, dynamic> data]) {
       'pana': panaVersion,
       'dartdoc': dartdocVersion,
       'stable': {
-        'dart': toolStableSdkVersion,
-        'flutter': flutterVersion,
+        'dart': toolStableDartSdkVersion,
+        'flutter': toolStableFlutterSdkVersion,
       },
       'preview': {
-        'dart': toolPreviewSdkVersion,
-        'flutter': flutterVersion,
+        'dart': toolPreviewDartSdkVersion,
+        'flutter': toolPreviewFlutterSdkVersion,
       }
     },
     'scheduler': latestSchedulerStats,

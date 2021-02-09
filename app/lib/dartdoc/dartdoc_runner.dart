@@ -190,7 +190,7 @@ class DartdocJobProcessor extends JobProcessor {
               'pana: ${versions.panaVersion}\n'
               'toolEnv Dart SDK: ${toolEnv.runtimeInfo.sdkVersion}\n'
               'usesFlutter: $usesFlutter\n'
-              'flutter: ${versions.flutterVersion}\n'
+              'flutter: ${toolEnv.runtimeInfo.flutterVersions}\n'
               'started: ${DateTime.now().toUtc().toIso8601String()}\n\n');
 
           final status = await scoreCardBackend.getPackageStatus(
@@ -459,7 +459,8 @@ class DartdocJobProcessor extends JobProcessor {
       runtimeVersion: versions.runtimeVersion,
       sdkVersion: toolEnv.runtimeInfo.sdkVersion,
       dartdocVersion: versions.dartdocVersion,
-      flutterVersion: versions.flutterVersion,
+      flutterVersion:
+          toolEnv.runtimeInfo.flutterVersions['frameworkVersion'] as String,
       timestamp: DateTime.now().toUtc(),
       depsResolved: depsResolved,
       hasContent: hasContent,

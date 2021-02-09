@@ -22,7 +22,6 @@ import '../../shared/scheduler_stats.dart';
 
 import '../services.dart';
 
-import '_gae_setup.dart';
 import '_isolate.dart';
 
 final Logger logger = Logger('pub.analyzer');
@@ -44,14 +43,9 @@ class AnalyzerCommand extends Command {
       );
     }
 
-    Future<void> workerSetup() async {
-      await initFlutterSdk(logger);
-    }
-
     await startIsolates(
       logger: logger,
       frontendEntryPoint: _frontendMain,
-      workerSetup: workerSetup,
       workerEntryPoint: _workerMain,
       deadWorkerTimeout: Duration(hours: 1),
     );

@@ -314,7 +314,7 @@ PackageDocument createSdkDocument(PubDartdocData lib) {
   final description = documentation.split('\n\n').first.trim();
   return PackageDocument(
     package: package,
-    version: versions.toolStableSdkVersion,
+    version: versions.toolStableDartSdkVersion,
     description: description,
     apiDocPages: apiDocPages,
   );
