@@ -459,8 +459,9 @@ class DartdocJobProcessor extends JobProcessor {
       runtimeVersion: versions.runtimeVersion,
       sdkVersion: toolEnv.runtimeInfo.sdkVersion,
       dartdocVersion: versions.dartdocVersion,
-      flutterVersion:
-          toolEnv.runtimeInfo.flutterVersions['frameworkVersion'] as String,
+      flutterVersion: toolEnv.runtimeInfo.flutterVersions == null
+          ? null
+          : toolEnv.runtimeInfo.flutterVersions['frameworkVersion'] as String,
       timestamp: DateTime.now().toUtc(),
       depsResolved: depsResolved,
       hasContent: hasContent,
