@@ -208,7 +208,8 @@ class DartdocJobProcessor extends JobProcessor {
           // Generate docs only for packages that have healthy dependencies.
           if (depsResolved) {
             dartdocResult = await _generateDocs(
-                toolEnv, logger, job, pkgPath, outputDir, logFileOutput);
+                toolEnv, logger, job, pkgPath, outputDir, logFileOutput,
+                usesPreviewSdk: packageStatus.usesPreviewSdk);
             hasContent =
                 dartdocResult.hasIndexHtml && dartdocResult.hasIndexJson;
           } else {
@@ -344,8 +345,9 @@ class DartdocJobProcessor extends JobProcessor {
     Job job,
     String pkgPath,
     String outputDir,
-    StringBuffer logFileOutput,
-  ) async {
+    StringBuffer logFileOutput, {
+    @required bool usesPreviewSdk,
+  }) async {
     logFileOutput.write('Running dartdoc:\n');
     final canonicalVersion = job.isLatestStable ? 'latest' : job.packageVersion;
     final canonicalUrl = pkgDocUrl(job.packageName,
@@ -379,8 +381,12 @@ class DartdocJobProcessor extends JobProcessor {
       if (toolEnv.dartSdkDir != null) {
         args.addAll(['--sdk-dir', toolEnv.dartSdkDir]);
       }
+      final flutterRoot = usesPreviewSdk
+          ? envConfig.previewFlutterSdkDir
+          : envConfig.stableFlutterSdkDir;
       final environment = <String, String>{
         'PUB_HOSTED_URL': activeConfiguration.primaryApiUri.toString(),
+        if (flutterRoot != null) 'FLUTTER_ROOT': flutterRoot,
       };
       logFileOutput.writeln('Running: pub_dartdoc ${args.join(' ')}');
       final pr = await runProc(
