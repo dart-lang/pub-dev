@@ -300,34 +300,26 @@ class ScoreCardBackend {
   }
 
   /// Returns whether we should update the [reportType] report for the given
-  /// [packageName] and [packageVersion].
+  /// package version.
   ///
-  /// The method will return false, if the package or version does not exists.
   /// The method will return true, if either of the following is true:
   /// - it does not have a report yet,
   /// - the report was updated before [updatedAfter],
   /// - the report is older than [successThreshold] if it was a success,
   /// - the report is older than [failureThreshold] if it was a failure.
   Future<bool> shouldUpdateReport(
-    String packageName,
-    String packageVersion,
+    PackageVersion pv,
     String reportType, {
     Duration successThreshold = const Duration(days: 30),
     Duration failureThreshold = const Duration(days: 1),
     DateTime updatedAfter,
   }) async {
-    if (packageName == null ||
-        packageVersion == null ||
-        isSoftRemoved(packageName)) {
-      return false;
-    }
-    final pkgStatus = await getPackageStatus(packageName, packageVersion);
-    if (!pkgStatus.exists) {
+    if (pv == null || isSoftRemoved(pv.package)) {
       return false;
     }
 
     // checking existing report
-    final key = scoreCardKey(packageName, packageVersion)
+    final key = scoreCardKey(pv.package, pv.version)
         .append(ScoreCardReport, id: reportType);
     final list = await _db.lookup([key]);
     final report = list.single as ScoreCardReport;

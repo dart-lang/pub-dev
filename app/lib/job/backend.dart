@@ -9,10 +9,10 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
-import 'package:pub_dev/package/models.dart';
-import 'package:pub_dev/shared/popularity_storage.dart';
-
+import '../package/backend.dart';
+import '../package/models.dart';
 import '../shared/datastore.dart' as db;
+import '../shared/popularity_storage.dart';
 import '../shared/utils.dart';
 import '../shared/versions.dart' as versions;
 
@@ -28,7 +28,7 @@ final _logger = Logger('pub.job.backend');
 final _random = math.Random.secure();
 
 typedef ShouldProcess = Future<bool> Function(
-    String package, String version, DateTime updated);
+    PackageVersion pv, DateTime updated);
 
 /// Sets the active job backend.
 void registerJobBackend(JobBackend backend) =>
@@ -277,8 +277,9 @@ class JobBackend {
     await for (Job job in query.run()) {
       if (job.runtimeVersion != versions.runtimeVersion) continue;
       try {
-        final process = await shouldProcess(
-            job.packageName, job.packageVersion, job.packageVersionUpdated);
+        final pv = await packageBackend.lookupPackageVersion(
+            job.packageName, job.packageVersion);
+        final process = await shouldProcess(pv, job.packageVersionUpdated);
         if (process) {
           await _schedule(job);
         } else {

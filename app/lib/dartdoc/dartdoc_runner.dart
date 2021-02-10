@@ -17,6 +17,7 @@ import '../frontend/static_files.dart';
 import '../job/backend.dart';
 import '../job/job.dart';
 import '../package/backend.dart';
+import '../package/models.dart';
 import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
 import '../shared/configuration.dart';
@@ -110,10 +111,9 @@ class DartdocJobProcessor extends JobProcessor {
   }
 
   @override
-  Future<bool> shouldProcess(String package, String version, DateTime updated) {
+  Future<bool> shouldProcess(PackageVersion pv, DateTime updated) {
     return scoreCardBackend.shouldUpdateReport(
-      package,
-      version,
+      pv,
       ReportType.dartdoc,
       updatedAfter: updated,
     );
