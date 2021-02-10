@@ -12,9 +12,10 @@ import 'package:pool/pool.dart';
 import '../package/backend.dart';
 import '../package/models.dart' show Package, PackageVersion;
 import '../shared/datastore.dart' as db;
+import '../shared/redis_cache.dart';
 import '../shared/task_scheduler.dart';
 import '../shared/task_sources.dart';
-import '../shared/utils.dart' show randomizeStream, DurationTracker;
+import '../shared/utils.dart' show DurationTracker;
 
 import 'backend.dart';
 import 'model.dart';
@@ -204,15 +205,24 @@ class JobMaintenance {
     await Future.wait(futures);
     await pool.close();
 
-    pool = Pool(4);
-    futures.clear();
-    final stream = randomizeStream(_db.query<PackageVersion>().run());
-    await for (PackageVersion pv in stream) {
-      final f = pool.withResource(() => updateJob(pv, true));
-      futures.add(f);
+    for (final package in packages) {
+      final cacheEntry = cache.jobHistoryPackageScanned(
+          jobServiceAsString(_processor.service), package);
+
+      await cacheEntry.get(() async {
+        pool = Pool(4);
+        futures.clear();
+        final versions = await packageBackend.versionsOfPackage(package);
+        versions.shuffle();
+        for (final pv in versions) {
+          final f = pool.withResource(() => updateJob(pv, true));
+          futures.add(f);
+        }
+        await Future.wait(futures);
+        await pool.close();
+        return true;
+      });
     }
-    await Future.wait(futures);
-    await pool.close();
   }
 
   /// Never completes
