@@ -79,7 +79,10 @@ class JobBackend {
     }
 
     final isLatestStable = p.latestVersion == version;
-    final isLatestPrerelease = p.latestPrereleaseVersion == version;
+    final isLatestPrerelease =
+        p.showPrereleaseVersion && p.latestPrereleaseVersion == version;
+    final isLatestPreview =
+        p.showPreviewVersion && p.latestPreviewVersion == version;
     shouldProcess ??= updated == null || updated.isAfter(pv.created);
     shouldProcess |= isHighPriority;
     await createOrUpdate(
@@ -88,6 +91,7 @@ class JobBackend {
       version: version,
       isLatestStable: isLatestStable,
       isLatestPrerelease: isLatestPrerelease,
+      isLatestPreview: isLatestPreview,
       packageVersionUpdated: pv.created,
       shouldProcess: shouldProcess,
       priority: isHighPriority ? 0 : null,
@@ -100,6 +104,7 @@ class JobBackend {
     @required String version,
     @required bool isLatestStable,
     @required bool isLatestPrerelease,
+    @required bool isLatestPreview,
     @required DateTime packageVersionUpdated,
     @required bool shouldProcess,
     int priority,
@@ -116,6 +121,7 @@ class JobBackend {
       if (current != null) {
         final hasNotChanged = current.isLatestStable == isLatestStable &&
             current.isLatestPrerelease == isLatestPrerelease &&
+            current.isLatestPreview == isLatestPreview &&
             !current.packageVersionUpdated.isBefore(packageVersionUpdated) &&
             (priority == null || current.priority <= priority);
         if (hasNotChanged) {
@@ -133,6 +139,7 @@ class JobBackend {
         current
           ..isLatestStable = isLatestStable
           ..isLatestPrerelease = isLatestPrerelease
+          ..isLatestPreview = isLatestPreview
           ..packageVersionUpdated = packageVersionUpdated
           ..state = state
           ..lockedUntil = lockedUntil
@@ -152,6 +159,7 @@ class JobBackend {
           ..packageVersion = version
           ..isLatestStable = isLatestStable
           ..isLatestPrerelease = isLatestPrerelease
+          ..isLatestPreview = isLatestPreview
           ..packageVersionUpdated = packageVersionUpdated
           ..state = state
           ..lockedUntil = lockedUntil

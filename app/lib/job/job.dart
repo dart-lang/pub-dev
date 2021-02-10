@@ -160,22 +160,20 @@ class JobMaintenance {
 
   /// Reads the current package versions and syncs them with job entries.
   Future<void> syncDatastoreHistory() async {
-    final latestStableVersions = <String, String>{};
-    final latestPrereleaseVersions = <String, String>{};
-    await for (Package p in _db.query<Package>().run()) {
-      latestStableVersions[p.name] = p.latestVersion;
-      latestPrereleaseVersions[p.name] = p.latestPrereleaseVersion;
+    final packages = <String, Package>{};
+    await for (final p in _db.query<Package>().run()) {
+      packages[p.name] = p;
     }
-
-    final packages = latestStableVersions.keys.toList();
-    packages.shuffle();
 
     Future<void> updateJob(PackageVersion pv, bool skipLatestStable) async {
       try {
         if (!await packageBackend.isPackageVisible(pv.package)) return;
-        final isLatestStable = latestStableVersions[pv.package] == pv.version;
+        final p = packages[pv.package];
+        final isLatestStable = p.latestVersion == pv.version;
         final isLatestPrerelease =
-            latestPrereleaseVersions[pv.package] == pv.version;
+            p.showPrereleaseVersion && p.latestPrereleaseVersion == pv.version;
+        final isLatestPreview =
+            p.showPreviewVersion && p.latestPreviewVersion == pv.version;
         if (isLatestStable && skipLatestStable) return;
         final shouldProcess = await _processor.shouldProcess(pv, pv.created);
         await jobBackend.createOrUpdate(
@@ -184,6 +182,7 @@ class JobMaintenance {
           version: pv.version,
           isLatestStable: isLatestStable,
           isLatestPrerelease: isLatestPrerelease,
+          isLatestPreview: isLatestPreview,
           packageVersionUpdated: pv.created,
           shouldProcess: shouldProcess,
         );
@@ -195,11 +194,10 @@ class JobMaintenance {
 
     var pool = Pool(4);
     final futures = <Future>[];
-    for (String package in packages) {
-      final version = latestStableVersions[package];
-      final pv = await _db.lookupValue<PackageVersion>(_db.emptyKey
-          .append(Package, id: package)
-          .append(PackageVersion, id: version));
+    final packageNames = packages.keys.toList()..shuffle();
+    for (final package in packageNames) {
+      final p = packages[package];
+      final pv = await _db.lookupValue<PackageVersion>(p.latestVersionKey);
       final f = pool.withResource(() => updateJob(pv, false));
       futures.add(f);
     }
