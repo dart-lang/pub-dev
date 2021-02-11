@@ -19,6 +19,7 @@ import '../../shared/datastore.dart';
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
 import '../../shared/scheduler_stats.dart';
+import '../../tool/neat_task/pub_dev_tasks.dart';
 
 import '../services.dart';
 
@@ -68,6 +69,7 @@ Future _workerMain(WorkerEntryMessage message) async {
   message.protocolSendPort.send(WorkerProtocolMessage());
 
   await withServices(() async {
+    setupDartdocPeriodicTasks();
     await popularityStorage.init();
 
     final jobProcessor = DartdocJobProcessor(
@@ -85,11 +87,6 @@ Future _workerMain(WorkerEntryMessage message) async {
     });
 
     dartdocBackend.scheduleOldDataGC();
-
-    // Run Job entity GC in the next 6-12 hours (randomized wait to reduce race).
-    Timer(Duration(minutes: 360 + _random.nextInt(360)), () {
-      jobBackend.deleteOldEntries();
-    });
 
     // Start dartdoc file GC in the next 6-12 hours (randomized wait to reduce race).
     // The delay is useful here so that a new deployment is not slowed down with GCs.

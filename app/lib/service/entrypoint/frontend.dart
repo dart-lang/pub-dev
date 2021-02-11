@@ -119,7 +119,7 @@ Future _worker(WorkerEntryMessage message) async {
   message.protocolSendPort.send(WorkerProtocolMessage());
 
   await withServices(() async {
-    setupPubDevPeriodicTasks();
+    setupFrontendPeriodicTasks();
 
     // Updates job entries for analyzer and dartdoc.
     Future<void> triggerDependentAnalysis(

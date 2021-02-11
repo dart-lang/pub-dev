@@ -10,7 +10,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Deploy `index.yaml` to remove composite index for History.
  * Run `app/bin/tools/remove_history.dart` after the release got deployed.
  * NOTE: added daily periodic tasks: `delete-expired-audit-log-records`,
-         `delete-expired-consents`, `delete-expired-sessions`.
+         `delete-expired-consents`, `delete-expired-sessions`,
+         `delete-old-jobs`, `delete-old-scorecards`.
  * Removed all usage of `app/static/js/gtag.js` it can be removed after a few
    runtimeVerions when we are no-longer serving old generated dartdoc files.
 
