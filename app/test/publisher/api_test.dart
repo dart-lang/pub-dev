@@ -27,34 +27,34 @@ void main() {
     group('Get publisher info', () {
       _testNoPublisher((client) => client.publisherInfo('no-domain.net'));
 
-      testWithServices('OK', () async {
+      testWithProfile('OK', fn: () async {
         final client = createPubApiClient();
         final rs = await client.publisherInfo('example.com');
         expect(rs.toJson(), {
-          'description': 'This is us!',
+          'description': '',
           'websiteUrl': 'https://example.com/',
-          'contactEmail': 'contact@example.com',
+          'contactEmail': 'admin@pub.dev',
         });
       });
     });
 
     group('Create publisher', () {
-      testWithServices('verified.com', () async {
-        final api = createPubApiClient(authToken: hansUser.userId);
+      testWithProfile('verified.com', fn: () async {
+        final api = createPubApiClient(authToken: adminAtPubDevAuthToken);
 
         // Check that we can create the publisher
         final r1 = await api.createPublisher(
           'verified.com',
-          CreatePublisherRequest(accessToken: hansUser.userId),
+          CreatePublisherRequest(accessToken: adminAtPubDevAuthToken),
         );
-        expect(r1.contactEmail, hansUser.email);
+        expect(r1.contactEmail, 'admin@pub.dev');
 
         // Check that creating again idempotently works too
         final r2 = await api.createPublisher(
           'verified.com',
-          CreatePublisherRequest(accessToken: hansUser.userId),
+          CreatePublisherRequest(accessToken: adminAtPubDevAuthToken),
         );
-        expect(r2.contactEmail, hansUser.email);
+        expect(r2.contactEmail, 'admin@pub.dev');
 
         // Check that we can update the description
         final r3 = await api.updatePublisher(
@@ -68,7 +68,7 @@ void main() {
         expect(r4.toJson(), {
           'description': 'hello-world',
           'websiteUrl': 'https://verified.com/',
-          'contactEmail': hansUser.email,
+          'contactEmail': 'admin@pub.dev',
         });
 
         // check audit log record
@@ -76,17 +76,16 @@ void main() {
             await auditBackend.listRecordsForPublisher('verified.com');
         final r = records
             .firstWhere((r) => r.kind == AuditLogRecordKind.publisherCreated);
-        expect(
-            r.summary, '`hans@juergen.com` created publisher `verified.com`.');
+        expect(r.summary, '`admin@pub.dev` created publisher `verified.com`.');
       });
 
-      testWithServices('notverified.com', () async {
-        final api = createPubApiClient(authToken: hansUser.userId);
+      testWithProfile('notverified.com', fn: () async {
+        final api = createPubApiClient(authToken: adminAtPubDevAuthToken);
 
         // Check that we can create the publisher
         final rs = api.createPublisher(
           'notverified.com',
-          CreatePublisherRequest(accessToken: hansUser.userId),
+          CreatePublisherRequest(accessToken: adminAtPubDevAuthToken),
         );
         await expectApiException(
           rs,
@@ -111,8 +110,8 @@ void main() {
         ),
       );
 
-      testWithServices('OK', () async {
-        final client = createPubApiClient(authToken: hansUser.userId);
+      testWithProfile('OK', fn: () async {
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = await client.updatePublisher(
           'example.com',
           UpdatePublisherRequest(description: 'new description'),
@@ -120,7 +119,7 @@ void main() {
         expect(rs.toJson(), {
           'description': 'new description',
           'websiteUrl': 'https://example.com/',
-          'contactEmail': 'contact@example.com',
+          'contactEmail': 'admin@pub.dev',
         });
         // Info request should return with the same content.
         final info = await client.publisherInfo('example.com');
@@ -131,8 +130,7 @@ void main() {
             await auditBackend.listRecordsForPublisher('example.com');
         final r = records
             .firstWhere((r) => r.kind == AuditLogRecordKind.publisherUpdated);
-        expect(
-            r.summary, '`hans@juergen.com` updated publisher `example.com`.');
+        expect(r.summary, '`admin@pub.dev` updated publisher `example.com`.');
       });
     });
 
@@ -151,8 +149,8 @@ void main() {
         ),
       );
 
-      testWithServices('bad URL: relative link', () async {
-        final client = createPubApiClient(authToken: hansUser.userId);
+      testWithProfile('bad URL: relative link', fn: () async {
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = client.updatePublisher(
           'example.com',
           UpdatePublisherRequest(websiteUrl: 'example.com/'),
@@ -160,8 +158,8 @@ void main() {
         await expectApiException(rs, status: 400, message: 'Not a valid URL.');
       });
 
-      testWithServices('bad URL with escapes', () async {
-        final client = createPubApiClient(authToken: hansUser.userId);
+      testWithProfile('bad URL with escapes', fn: () async {
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = client.updatePublisher(
           'example.com',
           UpdatePublisherRequest(websiteUrl: 'https://example.com/  /%%%%'),
@@ -171,8 +169,8 @@ void main() {
             message: 'The parsed URL does not match its original form.');
       });
 
-      testWithServices('bad URL scheme', () async {
-        final client = createPubApiClient(authToken: hansUser.userId);
+      testWithProfile('bad URL scheme', fn: () async {
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = client.updatePublisher(
           'example.com',
           UpdatePublisherRequest(websiteUrl: 'ftp://example.com/'),
@@ -181,33 +179,33 @@ void main() {
             status: 400, message: 'must be any of http, https');
       });
 
-      testWithServices('OK: normal URL', () async {
-        final client = createPubApiClient(authToken: hansUser.userId);
+      testWithProfile('OK: normal URL', fn: () async {
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = await client.updatePublisher(
           'example.com',
           UpdatePublisherRequest(websiteUrl: 'https://example.com/about'),
         );
         expect(rs.toJson(), {
-          'description': 'This is us!',
+          'description': '',
           'websiteUrl': 'https://example.com/about',
-          'contactEmail': 'contact@example.com',
+          'contactEmail': 'admin@pub.dev',
         });
         // Info request should return with the same content.
         final info = await client.publisherInfo('example.com');
         expect(info.toJson(), rs.toJson());
       });
 
-      testWithServices('OK: unusual URL', () async {
-        final client = createPubApiClient(authToken: hansUser.userId);
+      testWithProfile('OK: unusual URL', fn: () async {
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = await client.updatePublisher(
           'example.com',
           UpdatePublisherRequest(
               websiteUrl: 'http://other-domain.com:2222/about'),
         );
         expect(rs.toJson(), {
-          'description': 'This is us!',
+          'description': '',
           'websiteUrl': 'http://other-domain.com:2222/about',
-          'contactEmail': 'contact@example.com',
+          'contactEmail': 'admin@pub.dev',
         });
         // Info request should return with the same content.
         final info = await client.publisherInfo('example.com');
@@ -219,19 +217,19 @@ void main() {
       _testAdminAuthIssues(
         (client) => client.updatePublisher(
           'example.com',
-          UpdatePublisherRequest(contactEmail: hansUser.email),
+          UpdatePublisherRequest(contactEmail: 'user@pub.dev'),
         ),
       );
 
       _testNoPublisher(
         (client) => client.updatePublisher(
           'example.net',
-          UpdatePublisherRequest(contactEmail: hansUser.email),
+          UpdatePublisherRequest(contactEmail: 'user@pub.dev'),
         ),
       );
 
-      testWithServices('Not registered user e-mail', () async {
-        final client = createPubApiClient(authToken: hansUser.userId);
+      testWithProfile('Not registered user e-mail', fn: () async {
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final orig = await client.publisherInfo('example.com');
         final rs = await client.updatePublisher(
           'example.com',
@@ -269,37 +267,44 @@ void main() {
         expect(users, isEmpty);
       });
 
-      testWithServices('User is not a member', () async {
-        final client = createPubApiClient(authToken: hansUser.userId);
+      testWithProfile('User is not a member', fn: () async {
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = client.updatePublisher(
           'example.com',
-          UpdatePublisherRequest(contactEmail: testUserA.userId),
+          UpdatePublisherRequest(contactEmail: 'user@pub.dev'),
         );
         await expectApiException(rs, status: 400, code: 'InvalidInput');
       });
 
-      testWithServices('User is not admin', () async {
+      testWithProfile('User is not admin', fn: () async {
+        final user =
+            await accountBackend.lookupOrCreateUserByEmail('other@pub.dev');
         await dbService.commit(inserts: [
-          publisherMember(testUserA.userId, 'not-admin'),
+          publisherMember(user.userId, 'not-admin'),
         ]);
-        final client = createPubApiClient(authToken: hansUser.userId);
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = client.updatePublisher(
           'example.com',
-          UpdatePublisherRequest(contactEmail: testUserA.userId),
+          UpdatePublisherRequest(contactEmail: user.email),
         );
         await expectApiException(rs, status: 400, code: 'InvalidInput');
       });
 
-      testWithServices('OK', () async {
-        final client = createPubApiClient(authToken: hansUser.userId);
+      testWithProfile('OK', fn: () async {
+        final user =
+            await accountBackend.lookupOrCreateUserByEmail('other@pub.dev');
+        await dbService.commit(inserts: [
+          publisherMember(user.userId, 'admin'),
+        ]);
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = await client.updatePublisher(
           'example.com',
-          UpdatePublisherRequest(contactEmail: hansUser.email),
+          UpdatePublisherRequest(contactEmail: user.email),
         );
         expect(rs.toJson(), {
-          'description': 'This is us!',
+          'description': '',
           'websiteUrl': 'https://example.com/',
-          'contactEmail': 'hans@juergen.com',
+          'contactEmail': 'other@pub.dev',
         });
         // Info request should return with the same content.
         final info = await client.publisherInfo('example.com');
@@ -308,19 +313,24 @@ void main() {
     });
 
     group('Update all publisher detail', () {
-      testWithServices('OK', () async {
-        final client = createPubApiClient(authToken: hansUser.userId);
+      testWithProfile('OK', fn: () async {
+        final user =
+            await accountBackend.lookupOrCreateUserByEmail('other@pub.dev');
+        await dbService.commit(inserts: [
+          publisherMember(user.userId, 'admin'),
+        ]);
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = await client.updatePublisher(
           'example.com',
           UpdatePublisherRequest(
               description: 'new description',
               websiteUrl: 'https://www.example.com/about',
-              contactEmail: hansUser.email),
+              contactEmail: user.email),
         );
         expect(rs.toJson(), {
           'description': 'new description',
           'websiteUrl': 'https://www.example.com/about',
-          'contactEmail': 'hans@juergen.com',
+          'contactEmail': user.email,
         });
         // Info request should return with the same content.
         final info = await client.publisherInfo('example.com');
@@ -347,48 +357,57 @@ void main() {
 
       _testAdminAuthIssues(
         (client) => client.invitePublisherMember(
-            'example.com', InviteMemberRequest(email: testUserA.email)),
+            'example.com', InviteMemberRequest(email: 'other@pub.dev')),
       );
 
       _testNoPublisher((client) => client.invitePublisherMember(
-          'no-domain.net', InviteMemberRequest(email: testUserA.email)));
+          'no-domain.net', InviteMemberRequest(email: 'other@pub.dev')));
 
-      testWithServices('Invalid e-mail', () async {
-        final client = createPubApiClient(authToken: hansUser.userId);
+      testWithProfile('Invalid e-mail', fn: () async {
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = client.invitePublisherMember(
             'example.com', InviteMemberRequest(email: 'not an e-mail'));
         await expectApiException(rs, status: 400, code: 'InvalidInput');
       });
 
-      testWithServices('User is already a member', () async {
+      testWithProfile('User is already a member', fn: () async {
+        final user =
+            await accountBackend.lookupOrCreateUserByEmail('other@pub.dev');
         await dbService.commit(inserts: [
-          publisherMember(testUserA.userId, PublisherMemberRole.admin),
+          publisherMember(user.userId, PublisherMemberRole.admin),
         ]);
-        final client = createPubApiClient(authToken: hansUser.userId);
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = client.invitePublisherMember(
-            'example.com', InviteMemberRequest(email: testUserA.email));
-        await expectApiException(rs, status: 400, code: 'InvalidInput');
+            'example.com', InviteMemberRequest(email: user.email));
+        await expectApiException(rs,
+            status: 400,
+            code: 'InvalidInput',
+            message: 'User is already a member.');
       });
 
-      testWithServices('Pending with Consent, sending new e-mail', () async {
+      testWithProfile('Pending with Consent, sending new e-mail', fn: () async {
+        final adminUser =
+            await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
+        final otherUser =
+            await accountBackend.lookupOrCreateUserByEmail('other@pub.dev');
         final consent = Consent.init(
-          fromUserId: hansUser.userId,
-          email: testUserA.email,
+          fromUserId: adminUser.userId,
+          email: 'other@pub.dev',
           kind: 'PublisherMember',
           args: ['example.com'],
         );
         consent.created = consent.created.subtract(Duration(hours: 1));
         consent.notificationCount++;
         await dbService.commit(inserts: [consent]);
-        final client = createPubApiClient(authToken: hansUser.userId);
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = await client.invitePublisherMember(
-            'example.com', InviteMemberRequest(email: testUserA.email));
+            'example.com', InviteMemberRequest(email: 'other@pub.dev'));
         expect(rs.emailSent, isTrue);
-        expect(await queryConstents(email: testUserA.email), [
+        expect(await queryConstents(email: 'other@pub.dev'), [
           {
             'id': isNotNull,
-            'fromUserId': hansUser.userId,
-            'email': testUserA.email,
+            'fromUserId': adminUser.userId,
+            'email': 'other@pub.dev',
             'kind': 'PublisherMember',
             'args': ['example.com'],
             'notificationCount': 2,
@@ -396,14 +415,16 @@ void main() {
         ]);
 
         await expectApiException(
-          client.publisherMemberInfo('example.com', testUserA.userId),
+          client.publisherMemberInfo('example.com', otherUser.userId),
           status: 404,
           code: 'NotFound',
         );
       });
 
-      testWithServices('Invite new account', () async {
-        final client = createPubApiClient(authToken: hansUser.userId);
+      testWithProfile('Invite new account', fn: () async {
+        final user =
+            await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = await client.invitePublisherMember(
             'example.com', InviteMemberRequest(email: 'newuser@example.com'));
         expect(rs.emailSent, isTrue);
@@ -414,7 +435,7 @@ void main() {
         expect(await queryConstents(email: 'newuser@example.com'), [
           {
             'id': isNotNull,
-            'fromUserId': hansUser.userId,
+            'fromUserId': user.userId,
             'email': 'newuser@example.com',
             'kind': 'PublisherMember',
             'args': ['example.com'],
@@ -423,16 +444,18 @@ void main() {
         ]);
       });
 
-      testWithServices('Invite existing account', () async {
-        final client = createPubApiClient(authToken: hansUser.userId);
+      testWithProfile('Invite existing account', fn: () async {
+        final user =
+            await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = await client.invitePublisherMember(
-            'example.com', InviteMemberRequest(email: testUserA.email));
+            'example.com', InviteMemberRequest(email: 'user@pub.dev'));
         expect(rs.emailSent, isTrue);
-        expect(await queryConstents(email: testUserA.email), [
+        expect(await queryConstents(email: 'user@pub.dev'), [
           {
             'id': isNotNull,
-            'fromUserId': hansUser.userId,
-            'email': testUserA.email,
+            'fromUserId': user.userId,
+            'email': 'user@pub.dev',
             'kind': 'PublisherMember',
             'args': ['example.com'],
             'notificationCount': 1,
@@ -440,41 +463,42 @@ void main() {
         ]);
       });
 
-      testWithServices('Don not send e-mail twice in a row', () async {
-        final client = createPubApiClient(authToken: hansUser.userId);
+      testWithProfile('Don not send e-mail twice in a row', fn: () async {
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs1 = await client.invitePublisherMember(
-            'example.com', InviteMemberRequest(email: testUserA.email));
+            'example.com', InviteMemberRequest(email: 'other@pub.dev'));
         expect(rs1.emailSent, isTrue);
         final rs2 = await client.invitePublisherMember(
-            'example.com', InviteMemberRequest(email: testUserA.email));
+            'example.com', InviteMemberRequest(email: 'other@pub.dev'));
         expect(rs2.emailSent, isFalse);
       });
 
-      testWithServices('Accept invite with existing user', () async {
-        final client1 = createPubApiClient(authToken: hansUser.userId);
+      testWithProfile('Accept invite with existing user', fn: () async {
+        final user =
+            await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+        final client1 = createPubApiClient(authToken: adminAtPubDevAuthToken);
         await client1.invitePublisherMember(
-            'example.com', InviteMemberRequest(email: joeUser.email));
+            'example.com', InviteMemberRequest(email: 'user@pub.dev'));
         final consents = await dbService
             .query<Consent>()
             .run()
-            .where((c) => c.email == joeUser.email)
+            .where((c) => c.email == 'user@pub.dev')
             .toList();
         final consentId = consents.single.consentId;
-        final client2 = createPubApiClient(authToken: joeUser.userId);
+        final client2 = createPubApiClient(authToken: userAtPubDevAuthToken);
         final rs2 = await client2.resolveConsent(
             consentId, account_api.ConsentResult(granted: true));
         expect(rs2.granted, isTrue);
-        final m =
-            await client1.publisherMemberInfo('example.com', joeUser.userId);
+        final m = await client1.publisherMemberInfo('example.com', user.userId);
         expect(m.toJson(), {
-          'userId': 'joe-at-example-dot-com',
+          'userId': user.userId,
           'role': 'admin',
-          'email': 'joe@example.com',
+          'email': 'user@pub.dev',
         });
       });
 
-      testWithServices('Accept invite with new account', () async {
-        final client1 = createPubApiClient(authToken: hansUser.userId);
+      testWithProfile('Accept invite with new account', fn: () async {
+        final client1 = createPubApiClient(authToken: adminAtPubDevAuthToken);
         await client1.invitePublisherMember(
             'example.com', InviteMemberRequest(email: 'newaccount@pub.dev'));
         final consents = await dbService
@@ -497,17 +521,19 @@ void main() {
         });
       });
 
-      testWithServices('Decline invite', () async {
-        final client1 = createPubApiClient(authToken: hansUser.userId);
+      testWithProfile('Decline invite', fn: () async {
+        final user =
+            await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+        final client1 = createPubApiClient(authToken: adminAtPubDevAuthToken);
         await client1.invitePublisherMember(
-            'example.com', InviteMemberRequest(email: joeUser.email));
+            'example.com', InviteMemberRequest(email: 'user@pub.dev'));
         final consents = await dbService
             .query<Consent>()
             .run()
-            .where((c) => c.email == joeUser.email)
+            .where((c) => c.email == 'user@pub.dev')
             .toList();
         final consentId = consents.single.consentId;
-        final client2 = createPubApiClient(authToken: joeUser.userId);
+        final client2 = createPubApiClient(authToken: userAtPubDevAuthToken);
         final rs2 = await client2.resolveConsent(
             consentId, account_api.ConsentResult(granted: false));
         expect(rs2.granted, isFalse);
@@ -518,7 +544,7 @@ void main() {
           status: 404,
           code: 'NotFound',
         );
-        final rs4 = client1.publisherMemberInfo('example.com', joeUser.userId);
+        final rs4 = client1.publisherMemberInfo('example.com', user.userId);
         await expectApiException(rs4, status: 404, code: 'NotFound');
       });
     });
@@ -532,14 +558,14 @@ void main() {
         (client) => client.listPublisherMembers('no-domain.net'),
       );
 
-      testWithServices('OK', () async {
-        final client = createPubApiClient(authToken: hansUser.userId);
+      testWithProfile('OK', fn: () async {
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = await client.listPublisherMembers('example.com');
         expect(_json(rs.toJson()), {
           'members': [
             {
-              'userId': 'hans-at-juergen-dot-com',
-              'email': 'hans@juergen.com',
+              'userId': isNotEmpty,
+              'email': 'admin@pub.dev',
               'role': 'admin',
             },
           ],
@@ -549,27 +575,35 @@ void main() {
 
     group('Get member detail', () {
       _testAdminAuthIssues(
-        (client) => client.publisherMemberInfo('example.com', hansUser.userId),
+        (client) async {
+          final user =
+              await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
+          return await client.publisherMemberInfo('example.com', user.userId);
+        },
       );
 
       _testNoPublisher(
-        (client) =>
-            client.publisherMemberInfo('no-domain.net', hansUser.userId),
+        (client) async {
+          final user =
+              await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
+          return await client.publisherMemberInfo('no-domain.net', user.userId);
+        },
       );
 
-      testWithServices('User is not a member', () async {
-        final client = createPubApiClient(authToken: hansUser.userId);
+      testWithProfile('User is not a member', fn: () async {
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = client.publisherMemberInfo('example.com', 'not-a-user-id');
         await expectApiException(rs, status: 404, code: 'NotFound');
       });
 
-      testWithServices('OK', () async {
-        final client = createPubApiClient(authToken: hansUser.userId);
-        final rs =
-            await client.publisherMemberInfo('example.com', hansUser.userId);
+      testWithProfile('OK', fn: () async {
+        final user =
+            await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+        final rs = await client.publisherMemberInfo('example.com', user.userId);
         expect(rs.toJson(), {
-          'userId': 'hans-at-juergen-dot-com',
-          'email': 'hans@juergen.com',
+          'userId': user.userId,
+          'email': user.email,
           'role': 'admin',
         });
       });
@@ -577,111 +611,140 @@ void main() {
 
     group('Update member detail', () {
       _testAdminAuthIssues(
-        (client) => client.updatePublisherMember(
-          'example.com',
-          testUserA.userId,
-          UpdatePublisherMemberRequest(role: 'admin'),
-        ),
+        (client) async {
+          final user =
+              await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+          return await client.updatePublisherMember(
+            'example.com',
+            user.userId,
+            UpdatePublisherMemberRequest(role: 'admin'),
+          );
+        },
       );
 
       _testNoPublisher(
-        (client) => client.updatePublisherMember(
-          'no-domain.net',
-          testUserA.userId,
-          UpdatePublisherMemberRequest(role: 'admin'),
-        ),
+        (client) async {
+          final user =
+              await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+          return await client.updatePublisherMember(
+            'no-domain.net',
+            user.userId,
+            UpdatePublisherMemberRequest(role: 'admin'),
+          );
+        },
       );
 
-      testWithServices('Modification of self is blocked', () async {
-        final client = createPubApiClient(authToken: hansUser.userId);
+      testWithProfile('Modification of self is blocked', fn: () async {
+        final user =
+            await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = client.updatePublisherMember(
             'example.com',
-            hansUser.userId,
+            user.userId,
             UpdatePublisherMemberRequest(
               role: 'x',
             ));
         await expectApiException(rs, status: 409, code: 'RequestConflict');
       });
 
-      testWithServices('Modification of unrelated user is blocked', () async {
-        final client = createPubApiClient(authToken: hansUser.userId);
+      testWithProfile('Modification of unrelated user is blocked',
+          fn: () async {
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+        final user =
+            await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
         final rs = client.updatePublisherMember(
-            'example.com', testUserA.userId, UpdatePublisherMemberRequest());
+            'example.com', user.userId, UpdatePublisherMemberRequest());
         await expectApiException(rs, status: 404, code: 'NotFound');
       });
 
-      testWithServices('Role value is not allowed', () async {
+      testWithProfile('Role value is not allowed', fn: () async {
+        final user =
+            await accountBackend.lookupOrCreateUserByEmail('other@pub.dev');
         await dbService.commit(inserts: [
-          publisherMember(testUserA.userId, PublisherMemberRole.admin),
+          publisherMember(user.userId, PublisherMemberRole.admin),
         ]);
-        final client = createPubApiClient(authToken: hansUser.userId);
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = client.updatePublisherMember(
             'example.com',
-            testUserA.userId,
+            user.userId,
             UpdatePublisherMemberRequest(
               role: 'not-allowed-role',
             ));
         await expectApiException(rs, status: 400, code: 'InvalidInput');
       });
 
-      testWithServices('OK', () async {
+      testWithProfile('OK', fn: () async {
+        final user =
+            await accountBackend.lookupOrCreateUserByEmail('other@pub.dev');
         await dbService.commit(inserts: [
-          publisherMember(testUserA.userId, 'someotherrole'),
+          publisherMember(user.userId, 'someotherrole'),
         ]);
-        final client = createPubApiClient(authToken: hansUser.userId);
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = await client.updatePublisherMember(
             'example.com',
-            testUserA.userId,
+            user.userId,
             UpdatePublisherMemberRequest(
               role: PublisherMemberRole.admin,
             ));
         expect(rs.toJson(), {
-          'userId': 'a-example-com',
+          'userId': isNotEmpty,
           'role': 'admin',
-          'email': 'a@example.com',
+          'email': 'other@pub.dev',
         });
         // Info request should return with the same content.
         final updated =
-            await client.publisherMemberInfo('example.com', testUserA.userId);
+            await client.publisherMemberInfo('example.com', user.userId);
         expect(updated.toJson(), rs.toJson());
       });
     });
 
     group('Delete member', () {
       _testAdminAuthIssues(
-        (client) =>
-            client.removePublisherMember('example.com', testUserA.userId),
+        (client) async {
+          final user =
+              await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+          return await client.removePublisherMember('example.com', user.userId);
+        },
       );
 
       _testNoPublisher(
-        (client) =>
-            client.removePublisherMember('no-domain.net', testUserA.userId),
+        (client) async {
+          final user =
+              await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+          return await client.removePublisherMember(
+              'no-domain.net', user.userId);
+        },
       );
 
-      testWithServices('Modification of self is blocked', () async {
-        final client = createPubApiClient(authToken: hansUser.userId);
-        final rs = client.removePublisherMember('example.com', hansUser.userId);
+      testWithProfile('Modification of self is blocked', fn: () async {
+        final user =
+            await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+        final rs = client.removePublisherMember('example.com', user.userId);
         await expectApiException(rs, status: 409, code: 'RequestConflict');
       });
 
-      testWithServices('Remove of non-member is idempotent', () async {
-        final client = createPubApiClient(authToken: hansUser.userId);
+      testWithProfile('Remove of non-member is idempotent', fn: () async {
+        final user =
+            await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs =
-            await client.removePublisherMember('example.com', testUserA.userId);
+            await client.removePublisherMember('example.com', user.userId);
         expect(json.fuse(utf8).decode(rs), {'status': 'OK'});
       });
 
-      testWithServices('OK', () async {
+      testWithProfile('OK', fn: () async {
+        final user =
+            await accountBackend.lookupOrCreateUserByEmail('other@pub.dev');
         await dbService.commit(inserts: [
-          publisherMember(testUserA.userId, PublisherMemberRole.admin),
+          publisherMember(user.userId, PublisherMemberRole.admin),
         ]);
-        final client = createPubApiClient(authToken: hansUser.userId);
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs =
-            await client.removePublisherMember('example.com', testUserA.userId);
+            await client.removePublisherMember('example.com', user.userId);
         expect(json.fuse(utf8).decode(rs), {'status': 'OK'});
         // Info request should return with NotFound exception.
-        final updated =
-            client.publisherMemberInfo('example.com', testUserA.userId);
+        final updated = client.publisherMemberInfo('example.com', user.userId);
         await expectApiException(updated, status: 404, code: 'NotFound');
         // check audit log
         final records =
@@ -689,7 +752,7 @@ void main() {
         final r = records.firstWhere(
             (r) => r.kind == AuditLogRecordKind.publisherMemberRemoved);
         expect(r.summary,
-            '`hans@juergen.com` removed `a@example.com` from publisher `example.com`.');
+            '`admin@pub.dev` removed `other@pub.dev` from publisher `example.com`.');
       });
     });
   });
@@ -700,20 +763,18 @@ dynamic _json(value) => json.decode(json.encode(value));
 void _testAdminAuthIssues(Future Function(PubApiClient client) fn) {
   setupTestsWithCallerAuthorizationIssues(fn);
 
-  testWithServices('Active user is not a member', () async {
-    await dbService.commit(
-        inserts: [publisherMember(joeUser.userId, 'admin')],
-        deletes: [exampleComHansAdmin.key]);
-    final client = createPubApiClient(authToken: hansUser.userId);
+  testWithProfile('Active user is not a member', fn: () async {
+    final client = createPubApiClient(authToken: userAtPubDevAuthToken);
     final rs = fn(client);
     await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
   });
 
-  testWithServices('Active user is not an admin yet', () async {
+  testWithProfile('Active user is not an admin yet', fn: () async {
+    final user = await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
     await dbService.commit(inserts: [
-      publisherMember(hansUser.userId, 'non-admin'),
+      publisherMember(user.userId, 'non-admin'),
     ]);
-    final client = createPubApiClient(authToken: hansUser.userId);
+    final client = createPubApiClient(authToken: userAtPubDevAuthToken);
     final rs = fn(client);
     await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
   });
