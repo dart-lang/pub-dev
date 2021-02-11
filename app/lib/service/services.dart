@@ -49,7 +49,6 @@ import '../tool/utils/http.dart';
 
 import 'announcement/backend.dart';
 import 'secret/backend.dart';
-import 'spam/backend.dart';
 
 final _pubDevServicesInitializedKey = '_pubDevServicesInitializedKey';
 
@@ -174,7 +173,6 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
     registerSecretBackend(SecretBackend(dbService));
     registerSnapshotStorage(SnapshotStorage(await getOrCreateBucket(
         storageService, activeConfiguration.searchSnapshotBucketName)));
-    registerSpamBackend(SpamBackend());
     registerTarballStorage(
       TarballStorage(
           storageService,
@@ -195,7 +193,6 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
     registerScopeExitCallback(dartdocClient.close);
     registerScopeExitCallback(searchClient.close);
     registerScopeExitCallback(searchAdapter.close);
-    registerScopeExitCallback(spamBackend.close);
 
     // Create a zone-local flag to indicate that services setup has been completed.
     return await fork(() => Zone.current.fork(zoneValues: {

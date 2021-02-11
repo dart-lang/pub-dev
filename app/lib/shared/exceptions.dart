@@ -214,11 +214,6 @@ class PackageRejectedException extends ResponseException {
       : super._(400, 'PackageRejected',
             'Version $version of package $package already exists.');
 
-  /// The package archive seems to be spam.
-  PackageRejectedException.classifiedAsSpam()
-      : super._(
-            400, 'PackageRejected', 'Package archive is classified as spam.');
-
   /// The package is has an active `isWithheld` flag, no further version is allowed.
   PackageRejectedException.isWithheld()
       : super._(400, 'PackageRejected', 'Package has been withheld.');

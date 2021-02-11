@@ -20,7 +20,6 @@ import '../../frontend/templates/_cache.dart';
 import '../../package/deps_graph.dart';
 import '../../package/name_tracker.dart';
 import '../../service/announcement/backend.dart';
-import '../../service/spam/backend.dart';
 import '../../shared/configuration.dart';
 import '../../shared/datastore.dart' as db;
 import '../../shared/handler_helpers.dart';
@@ -76,8 +75,6 @@ Future _main(FrontendEntryMessage message) async {
     nameTracker.startTracking();
     await announcementBackend.update();
     announcementBackend.scheduleRegularUpdates();
-    await spamBackend.update();
-    spamBackend.scheduleRegularUpdates();
 
     await runHandler(_logger, appHandler,
         sanitize: true, cronHandler: cron.handler);
