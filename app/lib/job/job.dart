@@ -205,7 +205,7 @@ class JobMaintenance {
     await Future.wait(futures);
     await pool.close();
 
-    for (final package in packages) {
+    for (final package in packageNames) {
       final cacheEntry = cache.jobHistoryPackageScanned(
           jobServiceAsString(_processor.service), package);
 
