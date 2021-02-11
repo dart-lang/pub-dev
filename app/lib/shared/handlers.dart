@@ -156,10 +156,16 @@ shelf.Response debugResponse([Map<String, dynamic> data]) {
     'versions': {
       'runtime': runtimeVersion,
       'runtime-sdk': runtimeSdkVersion,
-      'tool-env-sdk': toolEnvSdkVersion,
       'pana': panaVersion,
-      'flutter': flutterVersion,
       'dartdoc': dartdocVersion,
+      'stable': {
+        'dart': toolStableDartSdkVersion,
+        'flutter': toolStableFlutterSdkVersion,
+      },
+      'preview': {
+        'dart': toolPreviewDartSdkVersion,
+        'flutter': toolPreviewFlutterSdkVersion,
+      }
     },
     'scheduler': latestSchedulerStats,
   };

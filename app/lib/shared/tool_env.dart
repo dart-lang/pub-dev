@@ -127,15 +127,20 @@ Future<_ToolEnvRef> _getOrCreateToolEnvRef() async {
     final cacheDir = await Directory.systemTemp.createTemp('pub-cache-dir');
     final resolvedDirName = await cacheDir.resolveSymbolicLinks();
     final stableToolEnv = await ToolEnvironment.create(
-      dartSdkDir: envConfig.toolEnvDartSdkDir,
-      flutterSdkDir: envConfig.flutterSdkDir,
+      dartSdkDir: envConfig.stableDartSdkDir,
+      flutterSdkDir: envConfig.stableFlutterSdkDir,
       pubCacheDir: resolvedDirName,
+      environment: {
+        'FLUTTER_ROOT': envConfig.stableFlutterSdkDir,
+      },
     );
-    // TODO: use different SDK directories
     final previewToolEnv = await ToolEnvironment.create(
-      dartSdkDir: envConfig.toolEnvDartSdkDir,
-      flutterSdkDir: envConfig.flutterSdkDir,
+      dartSdkDir: envConfig.previewDartSdkDir,
+      flutterSdkDir: envConfig.previewFlutterSdkDir,
       pubCacheDir: resolvedDirName,
+      environment: {
+        'FLUTTER_ROOT': envConfig.previewFlutterSdkDir,
+      },
     );
     _current = _ToolEnvRef(cacheDir, stableToolEnv, previewToolEnv);
     result = _current;
