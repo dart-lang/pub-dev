@@ -61,32 +61,35 @@ class Job extends ExpandoModel<String> {
   @StringProperty()
   String packageName;
 
-  @StringProperty()
+  @StringProperty(indexed: false)
   String packageVersion;
 
-  @DateTimeProperty()
+  @DateTimeProperty(indexed: false)
   DateTime packageVersionUpdated;
 
-  @BoolProperty()
+  @BoolProperty(indexed: false)
   bool isLatestStable;
 
-  @BoolProperty()
+  @BoolProperty(indexed: false)
   bool isLatestPrerelease;
+
+  @BoolProperty(indexed: false)
+  bool isLatestPreview;
 
   @JobStateProperty()
   JobState state;
 
-  @DateTimeProperty()
+  @DateTimeProperty(indexed: false)
   DateTime lockedUntil;
 
   // fields for state = available
 
-  @IntProperty()
+  @IntProperty(indexed: false)
   int priority;
 
   // fields for state = processing
 
-  @StringProperty()
+  @StringProperty(indexed: false)
   String processingKey;
 
   // fields for state = idle
@@ -94,10 +97,10 @@ class Job extends ExpandoModel<String> {
   @JobStatusProperty()
   JobStatus lastStatus;
 
-  @IntProperty()
+  @IntProperty(indexed: false)
   int errorCount;
 
-  bool get isLatest => isLatestStable || isLatestPrerelease;
+  bool get isLatest => isLatestStable || isLatestPrerelease || isLatestPreview;
 
   @override
   String toString() => '$packageName $packageVersion';
@@ -140,7 +143,7 @@ class Job extends ExpandoModel<String> {
 
 class JobServiceProperty extends StringProperty {
   const JobServiceProperty({String propertyName, bool required = false})
-      : super(propertyName: propertyName, required: required, indexed: true);
+      : super(propertyName: propertyName, required: required, indexed: false);
 
   @override
   bool validate(ModelDB db, Object value) =>
@@ -166,7 +169,7 @@ class JobServiceProperty extends StringProperty {
 
 class JobStateProperty extends StringProperty {
   const JobStateProperty({String propertyName, bool required = false})
-      : super(propertyName: propertyName, required: required, indexed: true);
+      : super(propertyName: propertyName, required: required, indexed: false);
 
   @override
   bool validate(ModelDB db, Object value) =>
@@ -191,7 +194,7 @@ class JobStateProperty extends StringProperty {
 
 class JobStatusProperty extends StringProperty {
   const JobStatusProperty({String propertyName, bool required = false})
-      : super(propertyName: propertyName, required: required, indexed: true);
+      : super(propertyName: propertyName, required: required, indexed: false);
 
   @override
   bool validate(ModelDB db, Object value) =>
