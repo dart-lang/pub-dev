@@ -9,6 +9,7 @@ import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' hide ReportStatus;
 
 import '../job/job.dart';
+import '../package/models.dart';
 import '../package/overrides.dart';
 import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
@@ -28,10 +29,9 @@ class AnalyzerJobProcessor extends JobProcessor {
         );
 
   @override
-  Future<bool> shouldProcess(String package, String version, DateTime updated) {
+  Future<bool> shouldProcess(PackageVersion pv, DateTime updated) {
     return scoreCardBackend.shouldUpdateReport(
-      package,
-      version,
+      pv,
       ReportType.pana,
       updatedAfter: updated,
     );

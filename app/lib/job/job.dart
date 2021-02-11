@@ -43,7 +43,7 @@ abstract class JobProcessor {
 
   Future<JobStatus> process(Job job);
 
-  Future<bool> shouldProcess(String package, String version, DateTime updated);
+  Future<bool> shouldProcess(PackageVersion pv, DateTime updated);
 
   /// Never completes.
   Future<void> run() async {
@@ -177,8 +177,7 @@ class JobMaintenance {
         final isLatestPrerelease =
             latestPrereleaseVersions[pv.package] == pv.version;
         if (isLatestStable && skipLatestStable) return;
-        final shouldProcess =
-            await _processor.shouldProcess(pv.package, pv.version, pv.created);
+        final shouldProcess = await _processor.shouldProcess(pv, pv.created);
         await jobBackend.createOrUpdate(
           service: _processor.service,
           package: pv.package,
