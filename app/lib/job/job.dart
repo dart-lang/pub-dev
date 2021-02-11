@@ -165,6 +165,7 @@ class JobMaintenance {
     await for (final p in _db.query<Package>().run()) {
       packages[p.name] = p;
     }
+    final packageNames = packages.keys.toList()..shuffle();
 
     Future<void> updateJob(PackageVersion pv, bool skipLatestStable) async {
       try {
@@ -193,25 +194,30 @@ class JobMaintenance {
       }
     }
 
-    var pool = Pool(4);
-    final futures = <Future>[];
-    final packageNames = packages.keys.toList()..shuffle();
-    for (final package in packageNames) {
-      final p = packages[package];
-      final pv = await _db.lookupValue<PackageVersion>(p.latestVersionKey);
-      final f = pool.withResource(() => updateJob(pv, false));
-      futures.add(f);
-    }
-    await Future.wait(futures);
-    await pool.close();
+    // prevent updating the latest versions if they were already scanned recently
+    await cache
+        .jobHistoryLatestScanned(jobServiceAsString(_processor.service))
+        .get(() async {
+      final pool = Pool(4);
+      final futures = <Future>[];
+      for (final package in packageNames) {
+        final p = packages[package];
+        final pv = await _db.lookupValue<PackageVersion>(p.latestVersionKey);
+        final f = pool.withResource(() => updateJob(pv, false));
+        futures.add(f);
+      }
+      await Future.wait(futures);
+      await pool.close();
+      return true;
+    });
 
     for (final package in packageNames) {
       final cacheEntry = cache.jobHistoryPackageScanned(
           jobServiceAsString(_processor.service), package);
 
       await cacheEntry.get(() async {
-        pool = Pool(4);
-        futures.clear();
+        final pool = Pool(4);
+        final futures = <Future>[];
         final versions = await packageBackend.versionsOfPackage(package);
         versions.shuffle();
         for (final pv in versions) {

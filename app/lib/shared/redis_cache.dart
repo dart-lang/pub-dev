@@ -251,6 +251,10 @@ class CachePatterns {
       .withTTL(Duration(minutes: 3))
       .withCodec(utf8)['/'];
 
+  /// Stores the flag that latest version of packages have been scanned for job entities.
+  Entry<bool> jobHistoryLatestScanned(String service) =>
+      jobHistoryPackageScanned(service, '');
+
   /// Stores the flag that a [package]'s versions have been scanned for job entities.
   Entry<bool> jobHistoryPackageScanned(String service, String package) => _cache
       .withPrefix('job-history-package-scanned')
