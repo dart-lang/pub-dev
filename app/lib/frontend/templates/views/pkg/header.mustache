@@ -16,8 +16,11 @@ Published <span>{{short_created}}</span>
   &bull; Latest:
   <span><a href="{{& latest.stable_url}}">{{latest.stable_version}}</a></span>
   {{#latest.show_preview_version}}
-    / Preview:
-    <span><a href="{{& latest.preview_url}}">{{latest.preview_version}}</a></span>
+    /
+    <span title="Preview is a stable version that depends on a prerelease SDK.">
+      Preview:
+      <a href="{{& latest.preview_url}}">{{latest.preview_version}}</a>
+    </span>
   {{/latest.show_preview_version}}
   {{#latest.show_prerelease_version}}
     / Prerelease:
