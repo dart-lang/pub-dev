@@ -250,6 +250,21 @@ class CachePatterns {
       .withPrefix('atom-feed-xml')
       .withTTL(Duration(minutes: 3))
       .withCodec(utf8)['/'];
+
+  /// Stores the flag that latest version of packages have been scanned for job entities.
+  Entry<bool> jobHistoryLatestScanned(String service) =>
+      jobHistoryPackageScanned(service, '');
+
+  /// Stores the flag that a [package]'s versions have been scanned for job entities.
+  Entry<bool> jobHistoryPackageScanned(String service, String package) => _cache
+      .withPrefix('job-history-package-scanned')
+      .withTTL(Duration(days: 7))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(wrapAsCodec(
+        encode: (bool value) => value,
+        decode: (d) => d as bool,
+      ))['$service/$package'];
 }
 
 /// The active cache.
