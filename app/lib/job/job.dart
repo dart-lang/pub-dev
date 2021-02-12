@@ -52,9 +52,9 @@ abstract class JobProcessor {
     for (;;) {
       final status = await _runOneJob();
       if (_aliveCallback != null) await _aliveCallback();
-      sleepSeconds = (status == JobStatus.failed || status == JobStatus.aborted)
-          ? math.min(sleepSeconds + 1, 60)
-          : 0;
+      final wasProcessing =
+          status == JobStatus.success || status == JobStatus.skipped;
+      sleepSeconds = wasProcessing ? 0 : math.min(sleepSeconds + 1, 60);
       await Future.delayed(Duration(seconds: sleepSeconds));
     }
   }
