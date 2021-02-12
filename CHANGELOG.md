@@ -2,11 +2,11 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bumped runtimeVersion to `2021.02.11`.
+ * Bumped runtimeVersion to `2021.02.12`.
  * Split: stable Dart analysis SDK to `2.10.5`.
- * Split: preview Dart analysis SDK to `2.12.0-133.2.beta`.
+ * Upgraded preview Dart analysis SDK to `2.12.0-259.9.beta`.
  * Split: stable Flutter analysis SDK to `1.22.6`.
- * Split: preview Flutter analysis SDK to `1.25.0-8.3.pre`.
+ * Upgraded preview Flutter analysis SDK to `1.26.0-17.5.pre`.
  * Deploy `index.yaml` to remove composite index for History.
  * Run `app/bin/tools/remove_history.dart` after the release got deployed.
  * NOTE: added daily periodic tasks: `delete-expired-audit-log-records`,
