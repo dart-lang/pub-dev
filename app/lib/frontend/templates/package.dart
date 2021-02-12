@@ -245,7 +245,10 @@ String renderPkgHeader(PackagePageData data) {
     isFlutterFavorite:
         (package.assignedTags ?? []).contains(PackageTags.isFlutterFavorite),
     metadataHtml: metadataHtml,
-    tagsHtml: renderTags(package: pkgView),
+    tagsHtml: renderTags(
+      package: pkgView,
+      version: data.isLatestStable ? null : data.version.version,
+    ),
     isLoose: true,
   );
 }

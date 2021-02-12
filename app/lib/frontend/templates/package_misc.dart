@@ -42,7 +42,10 @@ String _renderPackageBadge({
 }
 
 /// Renders the tags using the pkg/tags template.
-String renderTags({@required PackageView package}) {
+String renderTags({
+  @required PackageView package,
+  String version,
+}) {
   final tags = package.tags;
   final sdkTags = tags.where((s) => s.startsWith('sdk:')).toSet().toList();
   final tagValues = <Map>[];
@@ -142,7 +145,7 @@ String renderTags({@required PackageView package}) {
       'text': '[unidentified]',
       'title': 'Check the scores tab for further details.',
       'has_href': true,
-      'href': urls.pkgScoreUrl(package.name),
+      'href': urls.pkgScoreUrl(package.name, version: version),
     });
   }
   return templateCache.renderTemplate('pkg/tags', {
