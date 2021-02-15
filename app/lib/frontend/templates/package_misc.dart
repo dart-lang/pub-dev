@@ -123,10 +123,25 @@ String renderTags({
             'text': 'iOS',
             'title': 'Packages compatible with Flutter on the iOS platform'
           },
+        if (tags.contains(FlutterSdkTag.platformLinux))
+          {
+            'text': 'Linux',
+            'title': 'Packages compatible with Flutter on the Linux platform',
+          },
+        if (tags.contains(FlutterSdkTag.platformMacos))
+          {
+            'text': 'macOS',
+            'title': 'Packages compatible with Flutter on the macOS platform',
+          },
         if (tags.contains(FlutterSdkTag.platformWeb))
           {
             'text': 'web',
             'title': 'Packages compatible with Flutter on the Web platform',
+          },
+        if (tags.contains(FlutterSdkTag.platformWindows))
+          {
+            'text': 'Windows',
+            'title': 'Packages compatible with Flutter on the Windows platform',
           },
       ],
     });
