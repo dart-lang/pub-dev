@@ -86,10 +86,9 @@ Future _workerMain(WorkerEntryMessage message) async {
       });
     });
 
-    dartdocBackend.scheduleOldDataGC();
-
     // Start dartdoc file GC in the next 6-12 hours (randomized wait to reduce race).
     // The delay is useful here so that a new deployment is not slowed down with GCs.
+    // TODO: setup a periodic task for this
     Timer(Duration(minutes: 360 + _random.nextInt(360)), () {
       dartdocBackend.processScheduledGCTasks();
     });

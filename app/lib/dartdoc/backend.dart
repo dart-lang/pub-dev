@@ -74,9 +74,10 @@ class DartdocBackend {
     return PubDartdocData.fromJson(map);
   }
 
-  /// Schedules the delete of old data files.
-  void scheduleOldDataGC() {
-    _sdkStorage.scheduleOldDataGC();
+  /// Deletes old data files in SDK storage (for old runtimes that are more than
+  /// half a year old).
+  Future<void> deleteOldData() async {
+    await _sdkStorage.deleteOldData(minAgeThreshold: Duration(days: 182));
   }
 
   Future<List<String>> getLatestVersions(String package,

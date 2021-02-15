@@ -9,9 +9,11 @@ import 'package:neat_periodic_task/neat_periodic_task.dart';
 import '../../account/backend.dart';
 import '../../account/consent_backend.dart';
 import '../../audit/backend.dart';
+import '../../dartdoc/backend.dart';
 import '../../job/backend.dart';
 import '../../package/backend.dart';
 import '../../scorecard/backend.dart';
+import '../../search/backend.dart';
 import '../../shared/datastore.dart';
 
 import 'datastore_status_provider.dart';
@@ -52,7 +54,21 @@ void setupAnalyzerPeriodicTasks() {
 /// Setup the tasks that we are running in the dartdoc service.
 void setupDartdocPeriodicTasks() {
   _setupJobCleanupPeriodicTasks();
-  // TODO: migrate cleanup of the extracted SDK data
+
+  // Deletes the extracted dartdoc data from old SDKs.
+  _daily(
+    name: 'delete-old-dartdoc-sdks',
+    task: () => dartdocBackend.deleteOldData(),
+  );
+}
+
+/// Setup the tasks that we are running in the search service.
+void setupSearchPeriodicTasks() {
+  // Deletes the old search snapshots
+  _daily(
+    name: 'delete-old-search-snapshots',
+    task: () => snapshotStorage.deleteOldData(),
+  );
 }
 
 /// Setup the tasks that we are running in both analyzer and dartdoc services.

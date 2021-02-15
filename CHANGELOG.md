@@ -4,6 +4,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Bumped runtimeVersion to `2021.02.16`.
  * Upgraded pana to `0.15.0+1`.
+ * NOTE: added daily periodic tasks: `delete-old-dartdoc-sdks`,
+         `delete-old-search-snapshots`.
 
 ## `20210215t122000-all`
  * Bumped runtimeVersion to `2021.02.12`.

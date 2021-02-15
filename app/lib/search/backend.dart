@@ -365,8 +365,10 @@ class SnapshotStorage {
     _snapshot ??= SearchSnapshot();
   }
 
-  void scheduleOldDataGC() {
-    _storage.scheduleOldDataGC();
+  /// Deletes old data files in snapshot storage (for old runtimes that are more
+  /// than half a year old).
+  Future<void> deleteOldData() async {
+    await _storage.deleteOldData(minAgeThreshold: Duration(days: 182));
   }
 
   Future<void> _updateSnapshotIfNeeded() async {
