@@ -39,9 +39,6 @@ final _toolEnvTempDir = Directory.systemTemp.createTempSync('tool-env');
 /// Forcing callback processing into a single thread.
 final _pool = Pool(1);
 
-// The cached values of directory sizes (path -> size in bytes).
-Map<String, int> _sizes;
-
 _ToolEnvRef _current;
 
 /// Calls [fn] with the [ToolEnvironment], handling the lifecycle of the local
@@ -54,17 +51,6 @@ Future<R> withToolEnv<R>({
     if (_current != null && !_current._isAvailable) {
       await _current?._cleanup();
       _current = null;
-    }
-    if (_current == null) {
-      final sizes = await _calcSubdirSizes([
-        Directory.systemTemp,
-        Directory('/tmp'),
-        Directory('/var'),
-        Directory('/tool'),
-      ]);
-      _logSpecialDirSizes(sizes);
-      _logChanges(_sizes, sizes);
-      _sizes = sizes;
     }
     _current ??= await _createToolEnvRef();
     _current._started++;
@@ -158,56 +144,4 @@ Future<int> _calcDirectorySize(Directory dir) async {
     }
   }
   return size;
-}
-
-Future<Map<String, int>> _calcSubdirSizes(Iterable<Directory> dirs) async {
-  final results = <String, int>{};
-  final sw = Stopwatch()..start();
-  for (final dir in dirs) {
-    if (dir.existsSync()) {
-      // filter duplicate directories
-      if (results.containsKey(dir.path)) continue;
-
-      // TODO: optimize this for a single directory scan
-      final subdirs = [
-        dir,
-        ...dir.listSync(recursive: true).whereType<Directory>(),
-      ];
-      for (final sd in subdirs) {
-        results[sd.path] = await _calcDirectorySize(sd);
-      }
-    } else {
-      _logger.info('No $dir directory');
-    }
-  }
-  _logger.info('Directory sizes scanned in ${sw.elapsed}');
-  return results;
-}
-
-void _logSpecialDirSizes(Map<String, int> sizes) {
-  final specials = <String>[
-    '/tool/stable/dart-sdk',
-    '/tool/stable/flutter',
-    '/tool/preview/dart-sdk',
-    '/tool/preview/flutter',
-  ];
-  for (final path in specials) {
-    if (sizes.containsKey(path)) {
-      _logger.info('Directory size of $path: ${sizes[path]}');
-    }
-  }
-}
-
-void _logChanges(Map<String, int> old, Map<String, int> current) {
-  if (old == null) return;
-  final paths = (<String>{...old.keys, ...current.keys}).toList()..sort();
-  for (final path in paths) {
-    final ov = old[path] ?? 0;
-    final nv = current[path] ?? 0;
-
-    final diff = nv - ov;
-    if (diff == 0) continue;
-
-    _logger.info('Directory size changed: $path $ov -> $nv ($diff)');
-  }
 }
