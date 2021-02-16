@@ -3,15 +3,111 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
+import '../shared/datastore.dart' as db;
 import '../shared/utils.dart' show jsonUtf8Encoder, utf8JsonDecoder;
 import '../shared/versions.dart' as versions;
 import 'storage_path.dart' as storage_path;
 
 part 'models.g.dart';
+
+/// Status values for [DartdocRecord].
+abstract class DartdocRecordStatus {
+  static const uploading = 'uploading';
+  static const ready = 'ready';
+  static const deleting = 'deleting';
+}
+
+@db.Kind(name: 'DartdocRecord', idType: db.IdType.String)
+class DartdocRecord extends db.ExpandoModel<String> {
+  String get uuid => id;
+
+  @db.DateTimeProperty(required: true)
+  DateTime created;
+
+  /// Indicates the status of the record, e.g. if the content is still uploading.
+  /// Values are described in [DartdocRecordStatus].
+  @db.StringProperty(required: true, indexed: true)
+  String status;
+
+  @db.StringProperty(required: true, indexed: true)
+  String package;
+
+  @db.StringProperty(required: true, indexed: false)
+  String version;
+
+  /// The package and version encoded as `<package>/<version>`.
+  @db.StringProperty(required: true, indexed: true)
+  String packageVersion;
+
+  @db.StringProperty(required: true, indexed: true)
+  String runtimeVersion;
+
+  /// Indicates whether at the time of running dartdoc the version was
+  /// considered the latest stable version of the package.
+  @db.BoolProperty(required: true, indexed: false)
+  bool wasLatestStable;
+
+  /// Indicates whether the record has a valid content and can be served.
+  /// The content directory may contain the log.txt file even if there was an
+  /// error while running dartdoc.
+  @db.BoolProperty(required: true, indexed: false)
+  bool hasValidContent;
+
+  /// Contains user-friendly message describing the reason if there is
+  /// no content. (E.g. may be too old, dartdoc failed)
+  @db.StringProperty(indexed: false)
+  String errorMessage;
+
+  /// The size of the archive file.
+  @db.StringProperty(required: true, indexed: false)
+  int archiveSize;
+
+  /// The directory path inside the storage bucket where the content lives.
+  @db.StringProperty(required: true, indexed: false)
+  String contentPath;
+
+  /// The total size of the generated content.
+  @db.StringProperty(required: true, indexed: false)
+  int contentSize;
+
+  /// [DartdocEntry] encoded as JSON string.
+  @db.StringProperty(required: true, indexed: false)
+  String entryJson;
+
+  DartdocRecord();
+
+  DartdocRecord.fromEntry(
+    DartdocEntry entry, {
+    @required this.status,
+  }) {
+    id = entry.uuid;
+    created = entry.timestamp;
+    package = entry.packageName;
+    version = entry.packageVersion;
+    packageVersion = '$package/$version';
+    runtimeVersion = entry.runtimeVersion;
+    wasLatestStable = entry.isLatest;
+    hasValidContent = entry.hasContent;
+    if (!hasValidContent && entry.isObsolete) {
+      errorMessage = 'Version was too old.';
+    } else if (!hasValidContent && !entry.depsResolved) {
+      errorMessage = "Couldn't resolve dependencies.";
+    }
+    archiveSize = entry.archiveSize;
+    contentPath = entry.contentPrefix;
+    contentSize = entry.totalSize;
+    entryJson = json.encode(entry.toJson());
+  }
+
+  DartdocEntry get entry => entryJson == null
+      ? null
+      : DartdocEntry.fromJson(json.decode(entryJson) as Map<String, dynamic>);
+}
 
 /// Describes the details of a dartdoc-generated content.
 @JsonSerializable()
