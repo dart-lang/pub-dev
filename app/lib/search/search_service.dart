@@ -726,3 +726,9 @@ int extractPageFromUrlParameters(Map<String, String> queryParameters) {
   final pageAsInt = int.tryParse(pageAsString ?? '1') ?? 1;
   return max(pageAsInt, 1);
 }
+
+abstract class DependencyTypes {
+  static const dev = 'dev';
+  static const direct = 'direct';
+  static const transitive = 'transitive';
+}

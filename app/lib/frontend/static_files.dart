@@ -255,8 +255,7 @@ Future<DateTime> _detectLastModified(Directory dir) async {
 
 Future _runPubGet(Directory dir) async {
   final pr = await runProc(
-    'pub',
-    ['get'],
+    ['pub', 'get'],
     workingDirectory: dir.path,
     timeout: Duration(minutes: 2),
   );
@@ -307,8 +306,7 @@ Future<void> updateWebAppBuild() async {
 
   await _runPubGet(webAppDir);
   final pr = await runProc(
-    '/bin/sh',
-    ['build.sh'],
+    ['/bin/sh', 'build.sh'],
     workingDirectory: webAppDir.path,
     timeout: const Duration(minutes: 2),
   );
@@ -326,8 +324,7 @@ Future<void> updateWebCssBuild() async {
   final webCssDir = Directory(resolveWebCssDirPath());
   await _runPubGet(webCssDir);
   final pr = await runProc(
-    '/bin/sh',
-    ['build.sh'],
+    ['/bin/sh', 'build.sh'],
     workingDirectory: webCssDir.path,
     timeout: const Duration(minutes: 2),
   );

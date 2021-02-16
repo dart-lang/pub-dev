@@ -140,8 +140,7 @@ PanaReport panaReportFromSummary(Summary summary, {List<String> flags}) {
     panaRuntimeInfo: summary?.runtimeInfo,
     reportStatus: reportStatus,
     derivedTags: summary?.tags,
-    allDependencies:
-        summary?.pkgResolution?.dependencies?.map((d) => d.package)?.toList(),
+    allDependencies: summary?.allDependencies,
     licenseFile: summary?.licenseFile,
     report: summary?.report,
     flags: flags,

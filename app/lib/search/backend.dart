@@ -10,7 +10,6 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:logging/logging.dart';
-import 'package:pana/pana.dart' show DependencyTypes;
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 

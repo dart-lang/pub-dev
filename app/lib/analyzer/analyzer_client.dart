@@ -12,7 +12,7 @@ import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
 import '../shared/versions.dart' show runtimeVersion;
 
-export 'package:pana/pana.dart' show LicenseFile, PkgDependency;
+export 'package:pana/pana.dart' show LicenseFile;
 export '../scorecard/models.dart' show ReportExt;
 
 /// Sets the analyzer client.

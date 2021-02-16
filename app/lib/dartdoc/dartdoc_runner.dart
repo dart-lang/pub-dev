@@ -54,8 +54,7 @@ class DartdocJobProcessor extends JobProcessor {
   Future<void> _initializeIfNeeded() async {
     if (_initialized) return;
     await runProc(
-      'pub',
-      ['get'],
+      ['pub', 'get'],
       workingDirectory: resolvePubDartdocDirPath(),
     );
     _initialized = true;
@@ -82,8 +81,7 @@ class DartdocJobProcessor extends JobProcessor {
         args.addAll(['--sdk-dir', envConfig.stableDartSdkDir]);
       }
       final pr = await runProc(
-        'dart',
-        ['bin/pub_dartdoc.dart', ...args],
+        ['dart', 'bin/pub_dartdoc.dart', ...args],
         workingDirectory: resolvePubDartdocDirPath(),
         timeout: _sdkTimeout,
       );
@@ -390,8 +388,7 @@ class DartdocJobProcessor extends JobProcessor {
       };
       logFileOutput.writeln('Running: pub_dartdoc ${args.join(' ')}');
       final pr = await runProc(
-        'dart',
-        ['bin/pub_dartdoc.dart', ...args],
+        ['dart', 'bin/pub_dartdoc.dart', ...args],
         environment: environment,
         workingDirectory: resolvePubDartdocDirPath(),
         timeout: job.isLatestStable ? _packageTimeoutExtended : _packageTimeout,
@@ -496,8 +493,7 @@ class DartdocJobProcessor extends JobProcessor {
     logFileOutput.write('Running tar:\n');
     final File tmpTar = File(p.join(tmpDir, _archiveFilePath));
     final pr = await runProc(
-      'tar',
-      ['-czf', tmpTar.path, '.'],
+      ['tar', '-czf', tmpTar.path, '.'],
       workingDirectory: tarDir,
     );
     await tmpTar.rename(p.join(outputDir, _archiveFilePath));
