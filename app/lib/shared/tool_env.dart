@@ -126,7 +126,7 @@ Future<void> _gitGc(String path) async {
   if (path != null &&
       Directory(path).existsSync() &&
       Directory('$path/.git').existsSync()) {
-    await runProc('git', ['gc'], workingDirectory: path);
+    await runProc(['git', 'gc'], workingDirectory: path);
   }
 }
 
