@@ -110,7 +110,9 @@ class DartdocBackend {
     final record =
         DartdocRecord.fromEntry(entry, status: DartdocRecordStatus.uploading);
     // store record's upload status
-    await withRetryTransaction(_db, (tx) async => tx.insert(record));
+    await withRetryTransaction(_db, (tx) async {
+      tx.insert(record);
+    });
 
     // upload is in progress
     await uploadBytesWithRetry(
