@@ -508,7 +508,7 @@ void main() {
         final pkgDir = Directory(p.join(tempDir, 'pkg'));
         await pkgDir.create(recursive: true);
         await setupDir(pkgDir.path);
-        final pr = await runProc('tar', ['-czvf', archiveFile.path, 'pkg'],
+        final pr = await runProc(['tar', '-czvf', archiveFile.path, 'pkg'],
             workingDirectory: tempDir);
         expect(pr.exitCode, 0);
         final rs = verifyTarGzSymlinks(archiveFile.path);

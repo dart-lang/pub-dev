@@ -8,7 +8,6 @@ import 'dart:math' as math;
 
 import 'package:meta/meta.dart';
 import 'package:logging/logging.dart';
-import 'package:pana/pana.dart' show DependencyTypes;
 import 'package:path/path.dart' as p;
 
 import '../shared/utils.dart' show boundedList;

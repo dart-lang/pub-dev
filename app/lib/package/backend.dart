@@ -1114,8 +1114,7 @@ Future<void> _verifyTarball(String filename) async {
 Future<void> verifyTarGzSymlinks(String filename) async {
   Future<List<String>> listFiles(bool verbose) async {
     final pr = await runProc(
-      'tar',
-      [verbose ? '-tvf' : '-tf', filename],
+      ['tar', verbose ? '-tvf' : '-tf', filename],
     );
     if (pr.exitCode != 0) {
       _logger.info('Rejecting package: tar returned with ${pr.exitCode}\n'
