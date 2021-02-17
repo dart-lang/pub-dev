@@ -64,7 +64,7 @@ class DartdocRecord extends db.ExpandoModel<String> {
   String errorMessage;
 
   /// The size of the archive file.
-  @db.StringProperty(required: true, indexed: false)
+  @db.IntProperty(required: true, indexed: false)
   int archiveSize;
 
   /// The directory path inside the storage bucket where the content lives.
@@ -72,7 +72,7 @@ class DartdocRecord extends db.ExpandoModel<String> {
   String contentPath;
 
   /// The total size of the generated content.
-  @db.StringProperty(required: true, indexed: false)
+  @db.IntProperty(required: true, indexed: false)
   int contentSize;
 
   /// [DartdocEntry] encoded as JSON string.
@@ -98,9 +98,9 @@ class DartdocRecord extends db.ExpandoModel<String> {
     } else if (!hasValidContent && !entry.depsResolved) {
       errorMessage = "Couldn't resolve dependencies.";
     }
-    archiveSize = entry.archiveSize;
+    archiveSize = entry.archiveSize ?? 0;
     contentPath = entry.contentPrefix;
-    contentSize = entry.totalSize;
+    contentSize = entry.totalSize ?? 0;
     entryJson = json.encode(entry.toJson());
   }
 
