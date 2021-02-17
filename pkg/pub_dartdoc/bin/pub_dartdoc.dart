@@ -3,40 +3,23 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dartdoc/dartdoc.dart';
-import 'package:dartdoc/src/dartdoc_options.dart';
-import 'package:dartdoc/src/logging.dart';
-import 'package:dartdoc/src/package_meta.dart';
+import 'package:dartdoc/options.dart';
 
 import 'package:pub_dartdoc/pub_data_generator.dart';
 
 void main(List<String> arguments) async {
-  final optionSet = await DartdocOptionSet.fromOptionGenerators(
-    'pub_dartdoc',
-    [
-      createDartdocOptions,
-      createLoggingOptions,
-      createGeneratorOptions,
-    ],
-    pubPackageMetaProvider,
-  );
-  optionSet.parseArguments(arguments);
-
-  final optionContext = DartdocProgramOptionContext(optionSet);
-  startLogging(optionContext);
-
+  final config = await parseOptions(pubPackageMetaProvider, arguments);
+  if (config == null) {
+    throw ArgumentError();
+  }
   final packageConfigProvider = PhysicalPackageConfigProvider();
-  final dartdoc = await Dartdoc.fromContext(
-      optionContext,
-      PubPackageBuilder(
-          optionContext, pubPackageMetaProvider, packageConfigProvider));
+  final packageBuilder =
+      PubPackageBuilder(config, pubPackageMetaProvider, packageConfigProvider);
+  final dartdoc = config.generateDocs
+      ? await Dartdoc.fromContext(config, packageBuilder)
+      : await Dartdoc.withEmptyGenerator(config, packageBuilder);
   final results = await dartdoc.generateDocs();
 
-  final pubDataGenerator = PubDataGenerator(optionContext.inputDir);
-  await pubDataGenerator.generate(results.packageGraph, optionContext.output);
-}
-
-class DartdocProgramOptionContext extends DartdocGeneratorOptionContext
-    with LoggingContext {
-  DartdocProgramOptionContext(DartdocOptionSet optionSet)
-      : super(optionSet, null, pubPackageMetaProvider.resourceProvider);
+  final pubDataGenerator = PubDataGenerator(config.inputDir);
+  await pubDataGenerator.generate(results.packageGraph, config.output);
 }
