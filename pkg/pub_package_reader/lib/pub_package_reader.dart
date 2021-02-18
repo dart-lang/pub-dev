@@ -259,7 +259,7 @@ Iterable<ArchiveIssue> syntaxCheckUrl(String url, String name) sync* {
       uri.host.isEmpty ||
       !uri.host.contains('.') ||
       invalidHostNames.contains(uri.host)) {
-    final titleCaseName = name[1].toUpperCase() + name.substring(1);
+    final titleCaseName = name[0].toUpperCase() + name.substring(1);
     yield ArchiveIssue('$titleCaseName URL has no valid host: $url');
   }
 }
