@@ -15,17 +15,15 @@
 /// https://github.com/dart-lang/pub-dev/issues/4521#issuecomment-779821098
 Map<String, dynamic> customizeDartdocOptions(Map<String, dynamic> original) {
   final passThroughOptions = <String, dynamic>{};
-  try {
-    if (original != null && original.containsKey('dartdoc')) {
-      final dartdoc = original['dartdoc'] as Map<String, dynamic>;
-      for (final key in _passThroughKeys) {
-        if (dartdoc.containsKey(key)) {
-          passThroughOptions[key] = dartdoc[key];
-        }
+  if (original != null &&
+      original.containsKey('dartdoc') &&
+      original['dartdoc'] is Map<String, dynamic>) {
+    final dartdoc = original['dartdoc'] as Map<String, dynamic>;
+    for (final key in _passThroughKeys) {
+      if (dartdoc.containsKey(key)) {
+        passThroughOptions[key] = dartdoc[key];
       }
     }
-  } catch (_) {
-    // ignore unexpected issues in the user-provided content
   }
   return <String, dynamic>{
     'dartdoc': <String, dynamic>{
