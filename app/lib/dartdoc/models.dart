@@ -24,7 +24,8 @@ abstract class DartdocRecordStatus {
 
 @db.Kind(name: 'DartdocRecord', idType: db.IdType.String)
 class DartdocRecord extends db.ExpandoModel<String> {
-  String get uuid => id;
+  /// Unique identifier that identifies a specific execution of dartdoc.
+  String get runId => id;
 
   @db.DateTimeProperty(required: true)
   DateTime created;
