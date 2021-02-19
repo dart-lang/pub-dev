@@ -28,6 +28,7 @@ import '../shared/versions.dart' as versions;
 
 import 'backend.dart';
 import 'customization.dart';
+import 'dartdoc_options.dart';
 import 'models.dart';
 
 final Logger _logger = Logger('pub.dartdoc.runner');
@@ -351,16 +352,19 @@ class DartdocJobProcessor extends JobProcessor {
     final canonicalUrl = pkgDocUrl(job.packageName,
         version: canonicalVersion, includeHost: true, omitTrailingSlash: true);
 
-    // dartdoc_options.yaml allows to change how doc content is generated.
-    // To provide uniform experience across the pub site, and to reduce the
-    // potential attack surface (HTML-, and code-injections, code executions),
-    // we do not support the use of the options.
-    //
-    // https://github.com/dart-lang/dartdoc#dartdoc_optionsyaml
+    // Create and/or customize dartdoc_options.yaml
     final optionsFile = File(p.join(pkgPath, 'dartdoc_options.yaml'));
+    Map<String, dynamic> originalContent;
     if (await optionsFile.exists()) {
-      await optionsFile.delete();
+      final content = await optionsFile.readAsString();
+      try {
+        originalContent = yamlToJson(content);
+      } catch (_) {
+        // ignore parse errors
+      }
     }
+    final updatedContent = customizeDartdocOptions(originalContent);
+    await optionsFile.writeAsString(convert.json.encode(updatedContent));
 
     /// When [isReduced] is set, we are running dartdoc with reduced features,
     /// hopefully to complete within the time limit and fewer issues.
