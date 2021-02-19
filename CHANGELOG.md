@@ -10,6 +10,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * NOTE: started creating `DartdocRecord` entities in Datastore.
    TODO(deferred): we may use these entities instead of Bucket objects
                    to scan and load `DartdocEntry`.
+ * NOTE: Job processing uses a cached list of available entries.
 
 ## `20210215t122000-all`
  * Bumped runtimeVersion to `2021.02.12`.

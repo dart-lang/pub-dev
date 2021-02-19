@@ -40,6 +40,8 @@ JobBackend get jobBackend => ss.lookup(#_job_backend) as JobBackend;
 class JobBackend {
   final db.DatastoreDB _db;
   final _lastStats = <JobService, List<_AllStats>>{};
+  final _availablePools = <JobService, _AvailablePool>{};
+
   JobBackend(this._db);
 
   String _id(JobService service, String package, String version) => Uri(
@@ -177,14 +179,6 @@ class JobBackend {
   }
 
   Future<Job> lockAvailable(JobService service) async {
-    final query = _db.query<Job>()
-      ..filter('runtimeVersion =', versions.runtimeVersion)
-      ..filter('service =', service)
-      ..filter('state =', JobState.available)
-      ..order('priority')
-      ..limit(100);
-    final list = await query.run().toList();
-
     bool isApplicable(Job job) {
       if (job == null) return false;
       if (job.state != JobState.available) return false;
@@ -192,27 +186,41 @@ class JobBackend {
       return true;
     }
 
-    list.removeWhere((job) => !isApplicable(job));
-    if (list.isEmpty) return null;
+    final pool = _availablePools.putIfAbsent(service, () => _AvailablePool());
+    if (!pool.hasAvailable) {
+      final query = _db.query<Job>()
+        ..filter('runtimeVersion =', versions.runtimeVersion)
+        ..filter('service =', service)
+        ..filter('state =', JobState.available)
+        ..order('priority')
+        ..limit(200);
+      final list = await query.run().toList();
+      list.removeWhere((job) => !isApplicable(job));
+      pool.update(list);
+    }
 
-    return await db.withRetryTransaction(_db, (tx) async {
-      // Select from the available list randomly, with a preferential bias
-      // towards the first part of the available items.
-      final r1 = _random.nextInt(list.length);
-      final r2 = r1 < 20 ? r1 : _random.nextInt(list.length);
-      final selectedId = list[r2].id;
-      final selected = await tx.lookupValue<Job>(
-          _db.emptyKey.append(Job, id: selectedId),
-          orElse: () => null);
-      if (!isApplicable(selected)) return null;
-      final now = DateTime.now().toUtc();
-      selected
-        ..state = JobState.processing
-        ..processingKey = createUuid()
-        ..lockedUntil = now.add(_defaultLockDuration);
-      tx.insert(selected);
-      return selected;
-    });
+    while (pool.hasAvailable) {
+      final selectedId = pool.select().id;
+
+      final job = await db.withRetryTransaction(_db, (tx) async {
+        final selected = await tx.lookupValue<Job>(
+            _db.emptyKey.append(Job, id: selectedId),
+            orElse: () => null);
+        if (!isApplicable(selected)) {
+          pool.markRace();
+          return null;
+        }
+        final now = DateTime.now().toUtc();
+        selected
+          ..state = JobState.processing
+          ..processingKey = createUuid()
+          ..lockedUntil = now.add(_defaultLockDuration);
+        tx.insert(selected);
+        return selected;
+      });
+      if (job != null) return job;
+    }
+    return null;
   }
 
   Future<void> unlockStaleProcessing(JobService service) async {
@@ -380,6 +388,43 @@ class JobBackend {
       _logger.info('Deleting ${deleteKeys.length} old Job entries.');
       await _db.commit(deletes: deleteKeys);
     }
+  }
+}
+
+/// Tracks the cached results of the latest available Job query.
+class _AvailablePool {
+  final _jobs = <Job>[];
+  DateTime _queried = DateTime.now();
+  int _race = 0;
+
+  /// Update pool with a fresh list of jobs.
+  void update(List<Job> jobs) {
+    _jobs.clear();
+    _jobs.addAll(jobs);
+    _queried = DateTime.now();
+    _race = 0;
+  }
+
+  /// Returns whether a [Job] is available in the current pool.
+  bool get hasAvailable {
+    if (_jobs.isEmpty) return false;
+    // expire list after 15 minutes
+    if (DateTime.now().difference(_queried).inMinutes >= 15) return false;
+    // force expire if there are too many races compared to the remaining items
+    if (_race * 10 > _jobs.length) return false;
+    // otherwise a Job should be available
+    return true;
+  }
+
+  /// Select one [Job] randomly, with preference to the beginning of the list.
+  Job select() {
+    final r1 = _random.nextInt(_jobs.length);
+    final r2 = _random.nextInt(_jobs.length);
+    return _jobs.removeAt(math.min(r1, r2));
+  }
+
+  void markRace() {
+    _race++;
   }
 }
 
