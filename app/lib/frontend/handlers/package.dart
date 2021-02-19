@@ -226,8 +226,7 @@ Future<shelf.Response> _handlePackagePage({
 
   if (cachedPage == null) {
     final serviceSw = Stopwatch()..start();
-    final data =
-        await _loadPackagePageData(packageName, versionName, assetKind);
+    final data = await loadPackagePageData(packageName, versionName, assetKind);
     _packageDataLoadLatencyTracker.add(serviceSw.elapsed);
     if (data.package == null ||
         data.package.isNotVisible ||
@@ -278,7 +277,8 @@ Future<shelf.Response> packageAdminHandler(
   );
 }
 
-Future<PackagePageData> _loadPackagePageData(
+@visibleForTesting
+Future<PackagePageData> loadPackagePageData(
   String packageName,
   String versionName,
   String assetKind,

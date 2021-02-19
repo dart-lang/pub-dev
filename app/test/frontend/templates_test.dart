@@ -14,6 +14,8 @@ import 'package:xml/xml.dart' as xml;
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/analyzer/analyzer_client.dart';
 import 'package:pub_dev/dartdoc/models.dart';
+import 'package:pub_dev/frontend/handlers/package.dart'
+    show loadPackagePageData;
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/frontend/templates/admin.dart';
 import 'package:pub_dev/frontend/templates/landing.dart';
@@ -31,9 +33,11 @@ import 'package:pub_dev/scorecard/models.dart';
 import 'package:pub_dev/search/search_form.dart';
 import 'package:pub_dev/search/search_service.dart';
 import 'package:pub_dev/shared/versions.dart';
+import 'package:pub_dev/shared/utils.dart' show shortDateFormat;
 import 'package:pub_validations/html/html_validation.dart';
 
 import '../shared/test_models.dart';
+import '../shared/test_services.dart';
 import '../shared/utils.dart';
 
 const String goldenDir = 'test/frontend/golden';
@@ -62,8 +66,12 @@ void main() {
       registerStaticFileCacheForTest(oldCache);
     });
 
-    void expectGoldenFile(String content, String fileName,
-        {bool isFragment = false}) {
+    void expectGoldenFile(
+      String content,
+      String fileName, {
+      bool isFragment = false,
+      Map<String, DateTime> timestamps,
+    }) {
       // Making sure it is valid HTML
       final htmlParser = HtmlParser(content, strict: true);
 
@@ -75,9 +83,20 @@ void main() {
         validateHtml(root);
       }
 
+      var replacedContent = content;
+      timestamps?.forEach((key, value) {
+        if (value != null) {
+          replacedContent = replacedContent
+              .replaceAll(shortDateFormat.format(value), '%%$key-date%%')
+              .replaceAll(value.toIso8601String(), '%%$key-timestamp%%');
+        }
+      });
+
       // Pretty printing output using XML parser and formatter.
       final xmlDoc = xml.XmlDocument.parse(
-        isFragment ? '<fragment>' + content + '</fragment>' : content,
+        isFragment
+            ? '<fragment>' + replacedContent + '</fragment>'
+            : replacedContent,
         entityMapping: xml.XmlDefaultEntityMapping.html5(),
       );
       final xmlContent = xmlDoc.toXmlString(
@@ -330,23 +349,13 @@ void main() {
       expectGoldenFile(html, 'pkg_show_page_legacy.html');
     });
 
-    scopedTest('package show page with publisher', () {
-      final String html = renderPkgShowPage(PackagePageData(
-        package: lithium.package,
-        isLiked: false,
-        uploaderEmails: <String>[],
-        version: lithium.versions.last,
-        versionInfo: lithium.infos.last,
-        asset: lithium.assets.lastWhere((a) => a.kind == AssetKind.readme),
-        analysis: AnalysisView(
-          card: ScoreCardData(
-            updated: DateTime(2018, 02, 05),
-          ),
-        ),
-        isAdmin: false,
-      ));
-
-      expectGoldenFile(html, 'pkg_show_page_publisher.html');
+    testWithProfile('package show page with publisher', fn: () async {
+      final data = await loadPackagePageData('neon', '1.0.0', AssetKind.readme);
+      final html = renderPkgShowPage(data);
+      expectGoldenFile(html, 'pkg_show_page_publisher.html', timestamps: {
+        'published': data.package.created,
+        'updated': data.package.lastVersionPublished,
+      });
     });
 
     scopedTest('no content for analysis tab', () async {
