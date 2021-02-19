@@ -309,7 +309,7 @@ class DartdocBackend {
   /// both the Datastore entity and the Storage Bucket's content.
   Future<void> deleteOldRecords() async {
     final query = _db.query<DartdocRecord>()
-      ..filter('runtimeVersion < ', shared_versions.gcBeforeRuntimeVersion);
+      ..filter('runtimeVersion <', shared_versions.gcBeforeRuntimeVersion);
     await for (final r in query.run()) {
       await _deleteAll(r.entry);
     }
