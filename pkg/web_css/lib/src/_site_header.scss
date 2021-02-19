@@ -92,9 +92,9 @@
 
   .site-header-search {
     @media (max-width: $device-mobile-max-width) {
-      position: absolute;
-      right: 12px;
-      left: 12px;
+      // Takes up most of the available space, but still leaves ample whitespace
+      // between the input field and the site logo.
+      flex-grow: 10;
       text-align: right;
     }
 
