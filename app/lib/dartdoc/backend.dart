@@ -107,6 +107,13 @@ class DartdocBackend {
 
   /// Uploads a directory to the storage bucket.
   Future<void> uploadDir(DartdocEntry entry, String dirPath) async {
+    final record =
+        DartdocRecord.fromEntry(entry, status: DartdocRecordStatus.uploading);
+    // store record's upload status
+    await withRetryTransaction(_db, (tx) async {
+      tx.insert(record);
+    });
+
     // upload is in progress
     await uploadBytesWithRetry(
         _storage, entry.inProgressObjectName, entry.asBytes());
@@ -149,6 +156,14 @@ class DartdocBackend {
         '$count files uploaded in ${sw.elapsed}.');
 
     // upload was completed
+    await withRetryTransaction(_db, (tx) async {
+      final r = await tx.lookupValue<DartdocRecord>(record.key);
+      if (r.status == DartdocRecordStatus.uploading) {
+        r.status = DartdocRecordStatus.ready;
+        tx.insert(r);
+      }
+    });
+
     await uploadBytesWithRetry(
         _storage, entry.entryObjectName, entry.asBytes());
 
@@ -289,6 +304,17 @@ class DartdocBackend {
     await _deleteAllWithPrefix(prefix, concurrency: concurrency);
   }
 
+  /// Scan the Datastore for [DartdocRecord]s and remove the ones that
+  /// predate [shared_versions.gcBeforeRuntimeVersion]. This will delete
+  /// both the Datastore entity and the Storage Bucket's content.
+  Future<void> deleteOldRecords() async {
+    final query = _db.query<DartdocRecord>()
+      ..filter('runtimeVersion < ', shared_versions.gcBeforeRuntimeVersion);
+    await for (final r in query.run()) {
+      await _deleteAll(r.entry);
+    }
+  }
+
   /// Schedules the garbage collection of the [package] and [version].
   ///
   /// The wait queue is in-memory, it is not persisted, and only only works as a
@@ -376,9 +402,29 @@ class DartdocBackend {
   }
 
   Future<void> _deleteAll(DartdocEntry entry, {int concurrency}) async {
+    await withRetryTransaction(_db, (tx) async {
+      final r = await tx.lookupValue<DartdocRecord>(
+        _db.emptyKey.append(DartdocRecord, id: entry.uuid),
+        orElse: () => null,
+      );
+      if (r != null) {
+        r.status = DartdocRecordStatus.deleting;
+        tx.insert(r);
+      }
+    });
+
     await _deleteAllWithPrefix(entry.contentPrefix, concurrency: concurrency);
     await deleteFromBucket(_storage, entry.entryObjectName);
     await deleteFromBucket(_storage, entry.inProgressObjectName);
+    await withRetryTransaction(_db, (tx) async {
+      final r = await tx.lookupValue<DartdocRecord>(
+        _db.emptyKey.append(DartdocRecord, id: entry.uuid),
+        orElse: () => null,
+      );
+      if (r != null) {
+        tx.delete(r.key);
+      }
+    });
   }
 
   Future<void> _deleteAllWithPrefix(String prefix, {int concurrency}) async {

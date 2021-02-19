@@ -60,6 +60,13 @@ void setupDartdocPeriodicTasks() {
     name: 'delete-old-dartdoc-sdks',
     task: () => dartdocBackend.deleteOldData(),
   );
+
+  // Deletes DartdocRecord entities and their storage content that are older
+  // than the accepted runtime versions.
+  _daily(
+    name: 'delete-old-dartdoc-records',
+    task: () async => await dartdocBackend.deleteOldRecords(),
+  );
 }
 
 /// Setup the tasks that we are running in the search service.

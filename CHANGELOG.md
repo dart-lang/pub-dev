@@ -5,8 +5,11 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bumped runtimeVersion to `2021.02.16`.
  * Upgraded pana to `0.15.0+1`.
  * NOTE: added daily periodic tasks: `delete-old-dartdoc-sdks`,
-         `delete-old-search-snapshots`.
+         `delete-old-search-snapshots`, `delete-old-dartdoc-records`.
  * NOTE: Running `git gc` regularly, disk full events (#4458) should decrease.
+ * NOTE: started creating `DartdocRecord` entities in Datastore.
+   TODO(deferred): we may use these entities instead of Bucket objects
+                   to scan and load `DartdocEntry`.
 
 ## `20210215t122000-all`
  * Bumped runtimeVersion to `2021.02.12`.
