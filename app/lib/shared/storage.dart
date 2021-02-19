@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math' as math;
 
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
     show DetailedApiRequestError;
@@ -19,7 +18,6 @@ import 'versions.dart' as versions;
 
 final _gzip = GZipCodec();
 final _logger = Logger('shared.storage');
-final _random = math.Random.secure();
 
 /// Returns a valid `gs://` URI for a given [bucket] + [path] combination.
 String bucketUri(Bucket bucket, String path) =>
@@ -215,19 +213,6 @@ class VersionedJsonStorage {
         }
       }
     }
-  }
-
-  /// Schedules a GC of old data files to be run in the next 6 hours.
-  void scheduleOldDataGC({Duration minAgeThreshold}) {
-    // Run GC in the next 6 hours (randomized wait to reduce race).
-    _oldGcTimer = Timer(Duration(minutes: _random.nextInt(360)), () async {
-      try {
-        await deleteOldData(
-            minAgeThreshold: minAgeThreshold ?? const Duration(days: 182));
-      } catch (e, st) {
-        _logger.warning('Error while deleting old data.', e, st);
-      }
-    });
   }
 
   String getBucketUri([String version]) =>

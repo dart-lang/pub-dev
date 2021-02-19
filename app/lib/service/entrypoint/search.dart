@@ -8,7 +8,6 @@ import 'dart:isolate';
 import 'package:args/command_runner.dart';
 import 'package:logging/logging.dart';
 
-import '../../search/backend.dart';
 import '../../search/handlers.dart';
 import '../../search/updater.dart';
 import '../../shared/configuration.dart';
@@ -17,6 +16,7 @@ import '../../shared/popularity_storage.dart';
 import '../../shared/scheduler_stats.dart';
 import '../../shared/task_client.dart';
 import '../../shared/task_scheduler.dart';
+import '../../tool/neat_task/pub_dev_tasks.dart';
 
 import '../services.dart';
 
@@ -52,9 +52,8 @@ Future _main(FrontendEntryMessage message) async {
   ));
 
   await withServices(() async {
+    setupSearchPeriodicTasks();
     await popularityStorage.init();
-
-    snapshotStorage.scheduleOldDataGC();
 
     final ReceivePort taskReceivePort = ReceivePort();
     registerTaskSendPort(taskReceivePort.sendPort);
