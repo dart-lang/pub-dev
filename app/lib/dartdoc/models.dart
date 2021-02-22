@@ -53,6 +53,10 @@ class DartdocRecord extends db.ExpandoModel<String> {
   @db.BoolProperty(required: true, indexed: false)
   bool wasLatestStable;
 
+  /// The time spent generating the content (in seconds).
+  @db.IntProperty(required: true, indexed: false)
+  int runDurationInSeconds;
+
   /// Indicates whether the record has a valid content and can be served.
   /// The content directory may contain the log.txt file even if there was an
   /// error while running dartdoc.
@@ -94,6 +98,7 @@ class DartdocRecord extends db.ExpandoModel<String> {
     runtimeVersion = entry.runtimeVersion;
     wasLatestStable = entry.isLatest;
     hasValidContent = entry.hasContent;
+    runDurationInSeconds = entry.runDuration?.inSeconds ?? 0;
     if (!hasValidContent && entry.isObsolete) {
       errorMessage = 'Version was too old.';
     } else if (!hasValidContent && !entry.depsResolved) {
@@ -144,6 +149,9 @@ class DartdocEntry {
   /// When the content was generated.
   final DateTime timestamp;
 
+  /// The time spent generating the content.
+  final Duration runDuration;
+
   /// Whether the dependencies were resolved successfully.
   final bool depsResolved;
 
@@ -168,6 +176,7 @@ class DartdocEntry {
     @required this.dartdocVersion,
     @required this.flutterVersion,
     @required this.timestamp,
+    @required this.runDuration,
     @required this.depsResolved,
     @required this.hasContent,
     @required this.archiveSize,
@@ -201,6 +210,7 @@ class DartdocEntry {
       dartdocVersion: dartdocVersion,
       flutterVersion: flutterVersion,
       timestamp: timestamp,
+      runDuration: runDuration,
       depsResolved: depsResolved,
       hasContent: hasContent,
       archiveSize: archiveSize,

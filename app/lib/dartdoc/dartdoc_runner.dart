@@ -192,6 +192,7 @@ class DartdocJobProcessor extends JobProcessor {
               'flutter: ${toolEnv.runtimeInfo.flutterVersions}\n'
               'started: ${DateTime.now().toUtc().toIso8601String()}\n\n');
 
+          final sw = Stopwatch()..start();
           final status = await scoreCardBackend.getPackageStatus(
               job.packageName, job.packageVersion);
 
@@ -234,9 +235,10 @@ class DartdocJobProcessor extends JobProcessor {
             logFileOutput.write('No content found!\n\n');
           }
 
-          entry = await _createEntry(
-              toolEnv, job, outputDir, usesFlutter, depsResolved, hasContent);
-          logFileOutput.write('entry created: ${entry.uuid}\n\n');
+          entry = await _createEntry(toolEnv, job, outputDir, usesFlutter,
+              depsResolved, hasContent, sw.elapsed);
+          logFileOutput
+              .write('entry created: ${entry.uuid} in ${sw.elapsed}\n\n');
 
           logFileOutput
               .write('completed: ${entry.timestamp.toIso8601String()}\n');
@@ -439,7 +441,8 @@ class DartdocJobProcessor extends JobProcessor {
       String outputDir,
       bool usesFlutter,
       bool depsResolved,
-      bool hasContent) async {
+      bool hasContent,
+      Duration runDuration) async {
     int archiveSize;
     int totalSize;
     if (hasContent) {
@@ -470,6 +473,7 @@ class DartdocJobProcessor extends JobProcessor {
           ? null
           : toolEnv.runtimeInfo.flutterVersions['frameworkVersion'] as String,
       timestamp: DateTime.now().toUtc(),
+      runDuration: runDuration,
       depsResolved: depsResolved,
       hasContent: hasContent,
       archiveSize: archiveSize,
@@ -490,6 +494,7 @@ class DartdocJobProcessor extends JobProcessor {
   void _appendLog(StringBuffer buffer, ProcessResult pr) {
     buffer.write('STDOUT:\n${pr.stdout}\n\n');
     buffer.write('STDERR:\n${pr.stderr}\n\n');
+    buffer.write('exit code: ${pr.exitCode}');
   }
 
   Future<void> _tar(String tmpDir, String tarDir, String outputDir,

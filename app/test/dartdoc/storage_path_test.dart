@@ -32,6 +32,7 @@ void main() {
       dartdocVersion: '0.16.0',
       flutterVersion: '0.1.6',
       timestamp: DateTime(2018, 03, 08),
+      runDuration: Duration(seconds: 33),
       depsResolved: true,
       hasContent: true,
       archiveSize: 10000,
