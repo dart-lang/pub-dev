@@ -312,7 +312,6 @@ class DartdocJobProcessor extends JobProcessor {
     await scoreCardBackend.updateReport(
         job.packageName, job.packageVersion, report);
     await scoreCardBackend.updateScoreCard(job.packageName, job.packageVersion);
-    dartdocBackend.scheduleGC(job.packageName, job.packageVersion);
   }
 
   Future<bool> _resolveDependencies(

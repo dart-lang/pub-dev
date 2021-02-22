@@ -67,6 +67,19 @@ void setupDartdocPeriodicTasks() {
     name: 'delete-old-dartdoc-records',
     task: () async => await dartdocBackend.deleteOldRecords(),
   );
+
+  // Deletes DartdocRecord entities and their storage content that are expired,
+  // and have newer version with content.
+  _daily(
+    name: 'delete-expired-dartdoc-records',
+    task: () async => await dartdocBackend.deleteExpiredRecords(),
+  );
+
+  // Deletes content from dartdoc storage bucket based on the old entries.
+  _daily(
+    name: 'gc-dartdoc-storage-bucket',
+    task: () async => await dartdocBackend.gcStorageBucket(),
+  );
 }
 
 /// Setup the tasks that we are running in the search service.
