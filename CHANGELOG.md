@@ -2,8 +2,10 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bumped runtimeVersion to `2021.02.16`.
+ * Bumped runtimeVersion to `2021.02.23`.
  * Upgraded pana to `0.15.0+1`.
+ * Upgraded preview Dart analysis SDK to `2.12.0-259.15.beta`.
+ * Upgraded preview Flutter analysis SDK to `1.26.0-17.6.pre`.
  * NOTE: added daily periodic tasks: `delete-old-dartdoc-sdks`,
          `delete-old-search-snapshots`, `delete-old-dartdoc-records`.
  * NOTE: Running `git gc` regularly, disk full events (#4458) should decrease.
