@@ -101,18 +101,18 @@ class DartdocBackend {
 
   /// Uploads a directory to the storage bucket.
   Future<void> uploadDir(DartdocEntry entry, String dirPath) async {
-    final oldRecordsQuery = _db.query<DartdocRecord>()
+    final oldRunsQuery = _db.query<DartdocRun>()
       ..filter(
           'packageVersionRuntime =',
           [entry.packageName, entry.packageVersion, entry.runtimeVersion]
               .join('/'));
-    final oldRecords = await oldRecordsQuery.run().toList();
+    final oldRuns = await oldRunsQuery.run().toList();
 
-    final record =
-        DartdocRecord.fromEntry(entry, status: DartdocRecordStatus.uploading);
-    // store record's upload status
+    final run =
+        DartdocRun.fromEntry(entry, status: DartdocRunStatus.uploading);
+    // store the current run's upload status
     await withRetryTransaction(_db, (tx) async {
-      tx.insert(record);
+      tx.insert(run);
     });
 
     // upload is in progress
@@ -158,9 +158,9 @@ class DartdocBackend {
 
     // upload was completed
     await withRetryTransaction(_db, (tx) async {
-      final r = await tx.lookupValue<DartdocRecord>(record.key);
-      if (r.status == DartdocRecordStatus.uploading) {
-        r.status = DartdocRecordStatus.ready;
+      final r = await tx.lookupValue<DartdocRun>(run.key);
+      if (r.status == DartdocRunStatus.uploading) {
+        r.status = DartdocRunStatus.ready;
         tx.insert(r);
       }
     });
@@ -179,12 +179,12 @@ class DartdocBackend {
     ]);
 
     // Mark old content as expired.
-    if (record.hasValidContent && oldRecords.isNotEmpty) {
+    if (run.hasValidContent && oldRuns.isNotEmpty) {
       await withRetryTransaction(_db, (tx) async {
-        for (final old in oldRecords) {
+        for (final old in oldRuns) {
           if (old.isExpired) continue;
           final r =
-              await tx.lookupValue<DartdocRecord>(old.key, orElse: () => null);
+              await tx.lookupValue<DartdocRun>(old.key, orElse: () => null);
           if (r == null || r.isExpired) continue;
           r.isExpired = true;
           tx.insert(r);
@@ -319,34 +319,34 @@ class DartdocBackend {
     await _deleteAllWithPrefix(prefix, concurrency: concurrency);
   }
 
-  /// Scan the Datastore for [DartdocRecord]s and remove the ones that
+  /// Scan the Datastore for [DartdocRun]s and remove the ones that
   /// predate [shared_versions.gcBeforeRuntimeVersion]. This will delete
   /// both the Datastore entity and the Storage Bucket's content.
-  Future<void> deleteOldRecords() async {
-    final query = _db.query<DartdocRecord>()
+  Future<void> deleteOldRuns() async {
+    final query = _db.query<DartdocRun>()
       ..filter('runtimeVersion <', shared_versions.gcBeforeRuntimeVersion);
     await for (final r in query.run()) {
       await _deleteAll(r.entry);
     }
   }
 
-  /// Scan the Datastore for [DartdocRecord]s and remove the ones that
+  /// Scan the Datastore for [DartdocRun]s and remove the ones that
   /// are marked as expired. This will delete both the Datastore entity and
   /// the Storage Bucket's content.
-  Future<void> deleteExpiredRecords() async {
-    final query = _db.query<DartdocRecord>()..filter('isExpired =', true);
+  Future<void> deleteExpiredRuns() async {
+    final query = _db.query<DartdocRun>()..filter('isExpired =', true);
     await for (final r in query.run()) {
       await _deleteAll(r.entry);
     }
   }
 
-  /// Scan the Datastore for recent [DartdocRecord]s and run the storage
+  /// Scan the Datastore for recent [DartdocRun]s and run the storage
   /// bucket GC on them. Failing to run these GC should be fine, as we
   /// eventually remove them by their old runtimeVersion.
   ///
-  /// TODO: remove this after we only use [DartdocRecord] to store state.
+  /// TODO: remove this after we only use [DartdocRun] to store state.
   Future<void> gcStorageBucket() async {
-    final query = _db.query<DartdocRecord>()
+    final query = _db.query<DartdocRun>()
       ..filter('created >', DateTime.now().toUtc().subtract(Duration(days: 2)));
     await for (final r in query.run()) {
       if (r.runtimeVersion != shared_versions.runtimeVersion) continue;
@@ -413,12 +413,12 @@ class DartdocBackend {
 
   Future<void> _deleteAll(DartdocEntry entry, {int concurrency}) async {
     await withRetryTransaction(_db, (tx) async {
-      final r = await tx.lookupValue<DartdocRecord>(
-        _db.emptyKey.append(DartdocRecord, id: entry.uuid),
+      final r = await tx.lookupValue<DartdocRun>(
+        _db.emptyKey.append(DartdocRun, id: entry.uuid),
         orElse: () => null,
       );
       if (r != null) {
-        r.status = DartdocRecordStatus.deleting;
+        r.status = DartdocRunStatus.deleting;
         tx.insert(r);
       }
     });
@@ -427,8 +427,8 @@ class DartdocBackend {
     await deleteFromBucket(_storage, entry.entryObjectName);
     await deleteFromBucket(_storage, entry.inProgressObjectName);
     await withRetryTransaction(_db, (tx) async {
-      final r = await tx.lookupValue<DartdocRecord>(
-        _db.emptyKey.append(DartdocRecord, id: entry.uuid),
+      final r = await tx.lookupValue<DartdocRun>(
+        _db.emptyKey.append(DartdocRun, id: entry.uuid),
         orElse: () => null,
       );
       if (r != null) {

@@ -7,10 +7,10 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded preview Dart analysis SDK to `2.12.0-259.15.beta`.
  * Upgraded preview Flutter analysis SDK to `1.26.0-17.6.pre`.
  * NOTE: added daily periodic tasks: `delete-old-dartdoc-sdks`,
-         `delete-old-search-snapshots`, `delete-old-dartdoc-records`,
-         `delete-expired-dartdoc-records`, `gc-dartdoc-storage-bucket`.
+         `delete-old-search-snapshots`, `delete-old-dartdoc-runs`,
+         `delete-expired-dartdoc-runs`, `gc-dartdoc-storage-bucket`.
  * NOTE: Running `git gc` regularly, disk full events (#4458) should decrease.
- * NOTE: started creating `DartdocRecord` entities in Datastore.
+ * NOTE: started creating `DartdocRun` entities in Datastore.
    TODO(deferred): we may use these entities instead of Bucket objects
                    to scan and load `DartdocEntry`.
  * NOTE: Job processing uses a cached list of available entries.
