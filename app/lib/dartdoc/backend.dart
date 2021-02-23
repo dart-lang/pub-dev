@@ -108,8 +108,7 @@ class DartdocBackend {
               .join('/'));
     final oldRuns = await oldRunsQuery.run().toList();
 
-    final run =
-        DartdocRun.fromEntry(entry, status: DartdocRunStatus.uploading);
+    final run = DartdocRun.fromEntry(entry, status: DartdocRunStatus.uploading);
     // store the current run's upload status
     await withRetryTransaction(_db, (tx) async {
       tx.insert(run);
