@@ -79,7 +79,7 @@ abstract class JobProcessor {
         } catch (e, st) {
           _logger.severe('$_serviceAsString job error $jobDescription', e, st);
         }
-        await jobBackend.complete(job, status);
+        await jobBackend.complete(job, status, sw.elapsed);
       }
     } on db.DatastoreError catch (e, st) {
       statEvent = 'datastore-error';

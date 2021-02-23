@@ -21,6 +21,9 @@ DartdocEntry _$DartdocEntryFromJson(Map<String, dynamic> json) {
     timestamp: json['timestamp'] == null
         ? null
         : DateTime.parse(json['timestamp'] as String),
+    runDuration: json['runDuration'] == null
+        ? null
+        : Duration(microseconds: json['runDuration'] as int),
     depsResolved: json['depsResolved'] as bool,
     hasContent: json['hasContent'] as bool,
     archiveSize: json['archiveSize'] as int,
@@ -41,6 +44,7 @@ Map<String, dynamic> _$DartdocEntryToJson(DartdocEntry instance) =>
       'dartdocVersion': instance.dartdocVersion,
       'flutterVersion': instance.flutterVersion,
       'timestamp': instance.timestamp?.toIso8601String(),
+      'runDuration': instance.runDuration?.inMicroseconds,
       'depsResolved': instance.depsResolved,
       'hasContent': instance.hasContent,
       'archiveSize': instance.archiveSize,

@@ -307,7 +307,7 @@ class JobBackend {
     }
   }
 
-  Future<void> complete(Job job, JobStatus status) async {
+  Future<void> complete(Job job, JobStatus status, Duration runDuration) async {
     await db.withRetryTransaction(_db, (tx) async {
       final selected = await tx.lookupValue<Job>(
           _db.emptyKey.append(Job, id: job.id),
@@ -325,6 +325,7 @@ class JobBackend {
         selected
           ..state = JobState.idle
           ..lastStatus = status
+          ..lastRunDurationInSeconds = runDuration.inSeconds
           ..processingKey = null
           ..errorCount = errorCount
           ..lockedUntil = _extendLock(errorCount)

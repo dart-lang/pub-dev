@@ -36,6 +36,7 @@ void main() {
               archiveSize: 101010,
               usesFlutter: false,
               timestamp: DateTime(2020, 07, 14, 11, 12, 13),
+              runDuration: Duration(seconds: 33),
             ),
             documentationSection:
                 documentationCoverageSection(documented: 10, total: 12),

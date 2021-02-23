@@ -98,6 +98,9 @@ class Job extends ExpandoModel<String> {
   JobStatus lastStatus;
 
   @IntProperty(indexed: false)
+  int lastRunDurationInSeconds;
+
+  @IntProperty(indexed: false)
   int errorCount;
 
   bool get isLatest => isLatestStable || isLatestPrerelease || isLatestPreview;
