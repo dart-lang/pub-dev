@@ -377,7 +377,6 @@ class DartdocJobProcessor extends JobProcessor {
         outputDir,
         '--rel-canonical-prefix',
         canonicalUrl,
-        '--no-link-to-remote',
         '--no-validate-links',
       ];
       if (toolEnv.dartSdkDir != null) {
