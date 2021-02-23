@@ -61,18 +61,18 @@ void setupDartdocPeriodicTasks() {
     task: () => dartdocBackend.deleteOldData(),
   );
 
-  // Deletes DartdocRecord entities and their storage content that are older
+  // Deletes DartdocRun entities and their storage content that are older
   // than the accepted runtime versions.
   _daily(
-    name: 'delete-old-dartdoc-records',
-    task: () async => await dartdocBackend.deleteOldRecords(),
+    name: 'delete-old-dartdoc-runs',
+    task: () async => await dartdocBackend.deleteOldRuns(),
   );
 
-  // Deletes DartdocRecord entities and their storage content that are expired,
+  // Deletes DartdocRun entities and their storage content that are expired,
   // and have newer version with content.
   _daily(
-    name: 'delete-expired-dartdoc-records',
-    task: () async => await dartdocBackend.deleteExpiredRecords(),
+    name: 'delete-expired-dartdoc-runs',
+    task: () async => await dartdocBackend.deleteExpiredRuns(),
   );
 
   // Deletes content from dartdoc storage bucket based on the old entries.

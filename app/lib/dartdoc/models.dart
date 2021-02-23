@@ -15,23 +15,23 @@ import 'storage_path.dart' as storage_path;
 
 part 'models.g.dart';
 
-/// Status values for [DartdocRecord].
-abstract class DartdocRecordStatus {
+/// Status values for [DartdocRun].
+abstract class DartdocRunStatus {
   static const uploading = 'uploading';
   static const ready = 'ready';
   static const deleting = 'deleting';
 }
 
-@db.Kind(name: 'DartdocRecord', idType: db.IdType.String)
-class DartdocRecord extends db.ExpandoModel<String> {
+@db.Kind(name: 'DartdocRun', idType: db.IdType.String)
+class DartdocRun extends db.ExpandoModel<String> {
   /// Unique identifier that identifies a specific execution of dartdoc.
   String get runId => id;
 
   @db.DateTimeProperty(required: true)
   DateTime created;
 
-  /// Indicates the status of the record, e.g. if the content is still uploading.
-  /// Values are described in [DartdocRecordStatus].
+  /// Indicates the status of the run, e.g. if the content is still uploading.
+  /// Values are described in [DartdocRunStatus].
   @db.StringProperty(required: true, indexed: true)
   String status;
 
@@ -62,7 +62,7 @@ class DartdocRecord extends db.ExpandoModel<String> {
   @db.IntProperty(required: true, indexed: false)
   int runDurationInSeconds;
 
-  /// Indicates whether the record has a valid content and can be served.
+  /// Indicates whether the run has a valid content and can be served.
   /// The content directory may contain the log.txt file even if there was an
   /// error while running dartdoc.
   @db.BoolProperty(required: true, indexed: false)
@@ -90,13 +90,13 @@ class DartdocRecord extends db.ExpandoModel<String> {
   String entryJson;
 
   /// Indicates whether the content has been expired and replaced by a newer
-  /// [DartdocRecord] in the current runtime.
+  /// [DartdocRun] in the current runtime.
   @db.BoolProperty(required: true, indexed: true)
   bool isExpired;
 
-  DartdocRecord();
+  DartdocRun();
 
-  DartdocRecord.fromEntry(
+  DartdocRun.fromEntry(
     DartdocEntry entry, {
     @required this.status,
   }) {
