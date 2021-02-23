@@ -25,6 +25,12 @@ abstract class SecretKey {
   /// JSON-encoded list of Strings that will be considered as spam.
   static const String spamWords = 'spam-words';
 
+  /// Extension for the content security policy's script-src section.
+  static const String cspScriptSrc = 'csp-script-src';
+
+  /// Extension for the content security policy's script-src section.
+  static const String cspStyleSrc = 'csp-style-src';
+
   /// The restriction applied on uploads.
   ///
   /// This feature is intended as an emergency break.
@@ -40,6 +46,8 @@ abstract class SecretKey {
     redisConnectionString,
     announcement,
     spamWords,
+    cspScriptSrc,
+    cspStyleSrc,
     uploadRestriction,
   ];
 
