@@ -9,6 +9,7 @@ import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_dev/service/csp/backend.dart';
 import 'package:pub_dev/tool/neat_task/pub_dev_tasks.dart';
 import 'package:stream_transform/stream_transform.dart' show RateLimit;
 import 'package:watcher/watcher.dart';
@@ -75,6 +76,8 @@ Future _main(FrontendEntryMessage message) async {
     nameTracker.startTracking();
     await announcementBackend.update();
     announcementBackend.scheduleRegularUpdates();
+    await cspBackend.update();
+    cspBackend.scheduleRegularUpdates();
 
     await runHandler(_logger, appHandler,
         sanitize: true, cronHandler: cron.handler);

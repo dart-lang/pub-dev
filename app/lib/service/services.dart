@@ -12,6 +12,7 @@ import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:meta/meta.dart';
 import 'package:pub_dev/fake/server/fake_storage_server.dart';
+import 'package:pub_dev/service/csp/backend.dart';
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
@@ -146,6 +147,7 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
     registerAnalyzerClient(AnalyzerClient());
     registerAnnouncementBackend(AnnouncementBackend());
     registerAuditBackend(AuditBackend(dbService));
+    registerCspBackend(CspBackend());
     registerConsentBackend(ConsentBackend(dbService));
     registerDartdocBackend(
       DartdocBackend(
@@ -186,6 +188,7 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
     await setupCache();
 
     registerScopeExitCallback(announcementBackend.close);
+    registerScopeExitCallback(cspBackend.close);
     registerScopeExitCallback(() async => nameTracker.stopTracking());
     registerScopeExitCallback(snapshotStorage.close);
     registerScopeExitCallback(indexUpdater.close);

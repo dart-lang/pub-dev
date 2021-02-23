@@ -61,59 +61,6 @@ shelf.Response jsonResponse(
   );
 }
 
-final _none = <String>["'none'"];
-final _contentSecurityPolicyMap = <String, List<String>>{
-  'default-src': <String>[
-    "'self'",
-    'https:',
-  ],
-  'font-src': <String>[
-    "'self'",
-    'data:',
-    'https://fonts.googleapis.com/',
-    'https://fonts.gstatic.com/',
-  ],
-  'img-src': <String>[
-    "'self'",
-    'https:',
-    'data:',
-  ],
-  'manifest-src': _none,
-  'object-src': _none,
-  'script-src': <String>[
-    // See: https://developers.google.com/tag-manager/web/csp
-    "'self'",
-    'https://tagmanager.google.com',
-    'https://www.googletagmanager.com/',
-    'https://www.google.com/',
-    'https://www.google-analytics.com/',
-    'https://ssl.google-analytics.com',
-    'https://adservice.google.com/',
-    'https://ajax.googleapis.com/',
-    'https://apis.google.com/',
-    'https://unpkg.com/',
-    'https://www.gstatic.com/',
-    'https://apis.google.com/',
-    'https://gstatic.com',
-  ],
-  'style-src': <String>[
-    "'self'",
-    'https://unpkg.com/',
-    'https://pub.dartlang.org/static/', // older dartdoc content requires it
-    "'unsafe-inline'", // package page (esp. analysis tab) required is
-    'https://fonts.googleapis.com/',
-    'https://gstatic.com',
-    'https://www.gstatic.com/',
-    'https://tagmanager.google.com',
-  ],
-};
-
-/// The serialized string of the CSP header.
-final contentSecurityPolicy = _contentSecurityPolicyMap.keys.map<String>((key) {
-  final list = _contentSecurityPolicyMap[key];
-  return '$key ${list.join(' ')}';
-}).join(';');
-
 shelf.Response htmlResponse(
   String content, {
   int status = 200,
