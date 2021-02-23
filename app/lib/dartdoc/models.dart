@@ -48,6 +48,11 @@ class DartdocRecord extends db.ExpandoModel<String> {
   @db.StringProperty(required: true, indexed: true)
   String runtimeVersion;
 
+  /// The package, version and runtime encoded as
+  /// `<package>/<version>/<runtimeVersion>`.
+  @db.StringProperty(required: true, indexed: true)
+  String packageVersionRuntime;
+
   /// Indicates whether at the time of running dartdoc the version was
   /// considered the latest stable version of the package.
   @db.BoolProperty(required: true, indexed: false)
@@ -84,6 +89,11 @@ class DartdocRecord extends db.ExpandoModel<String> {
   @db.StringProperty(required: true, indexed: false)
   String entryJson;
 
+  /// Indicates whether the content has been expired and replaced by a newer
+  /// [DartdocRecord] in the current runtime.
+  @db.BoolProperty(required: true, indexed: true)
+  bool isExpired;
+
   DartdocRecord();
 
   DartdocRecord.fromEntry(
@@ -96,6 +106,7 @@ class DartdocRecord extends db.ExpandoModel<String> {
     version = entry.packageVersion;
     packageVersion = '$package/$version';
     runtimeVersion = entry.runtimeVersion;
+    packageVersionRuntime = '$package/$version/$runtimeVersion';
     wasLatestStable = entry.isLatest;
     hasValidContent = entry.hasContent;
     runDurationInSeconds = entry.runDuration?.inSeconds ?? 0;
@@ -108,6 +119,7 @@ class DartdocRecord extends db.ExpandoModel<String> {
     contentPath = entry.contentPrefix;
     contentSize = entry.totalSize ?? 0;
     entryJson = json.encode(entry.toJson());
+    isExpired = false;
   }
 
   DartdocEntry get entry => entryJson == null

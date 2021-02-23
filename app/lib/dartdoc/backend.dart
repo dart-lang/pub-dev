@@ -47,12 +47,6 @@ class DartdocBackend {
   final Bucket _storage;
   final VersionedJsonStorage _sdkStorage;
 
-  /// If the server crashed, the pending GC tasks will disappear. This is
-  /// acceptable, as - eventually - new dartdoc will be generated in the future,
-  /// which will trigger another GC for the package/version, and hopefully
-  /// we'll catch up on these files.
-  final _gcTasks = <_GCTask>{};
-
   DartdocBackend(this._db, this._storage)
       : _sdkStorage =
             VersionedJsonStorage(_storage, storage_path.dartSdkDartdocPrefix());
@@ -107,6 +101,13 @@ class DartdocBackend {
 
   /// Uploads a directory to the storage bucket.
   Future<void> uploadDir(DartdocEntry entry, String dirPath) async {
+    final oldRecordsQuery = _db.query<DartdocRecord>()
+      ..filter(
+          'packageVersionRuntime =',
+          [entry.packageName, entry.packageVersion, entry.runtimeVersion]
+              .join('/'));
+    final oldRecords = await oldRecordsQuery.run().toList();
+
     final record =
         DartdocRecord.fromEntry(entry, status: DartdocRecordStatus.uploading);
     // store record's upload status
@@ -176,6 +177,20 @@ class DartdocBackend {
       cache.dartdocEntry(entry.packageName, 'latest').purge(),
       cache.dartdocApiSummary(entry.packageName).purge(),
     ]);
+
+    // Mark old content as expired.
+    if (record.hasValidContent && oldRecords.isNotEmpty) {
+      await withRetryTransaction(_db, (tx) async {
+        for (final old in oldRecords) {
+          if (old.isExpired) continue;
+          final r =
+              await tx.lookupValue<DartdocRecord>(old.key, orElse: () => null);
+          if (r == null || r.isExpired) continue;
+          r.isExpired = true;
+          tx.insert(r);
+        }
+      });
+    }
   }
 
   /// Return the latest entries that should be used to serve the content.
@@ -315,32 +330,27 @@ class DartdocBackend {
     }
   }
 
-  /// Schedules the garbage collection of the [package] and [version].
-  ///
-  /// The wait queue is in-memory, it is not persisted, and only only works as a
-  /// best-effort method to clean up obsolete files.
-  /// TODO: implement weekly cleanup process outside of the job processing
-  void scheduleGC(String package, String version) {
-    _gcTasks.add(_GCTask(package, version));
+  /// Scan the Datastore for [DartdocRecord]s and remove the ones that
+  /// are marked as expired. This will delete both the Datastore entity and
+  /// the Storage Bucket's content.
+  Future<void> deleteExpiredRecords() async {
+    final query = _db.query<DartdocRecord>()..filter('isExpired =', true);
+    await for (final r in query.run()) {
+      await _deleteAll(r.entry);
+    }
   }
 
-  /// Runs obsolete GC of old dartdoc files with low overhead (concurrency = 1).
+  /// Scan the Datastore for recent [DartdocRecord]s and run the storage
+  /// bucket GC on them. Failing to run these GC should be fine, as we
+  /// eventually remove them by their old runtimeVersion.
   ///
-  /// The function never returns.
-  Future<void> processScheduledGCTasks() async {
-    for (;;) {
-      if (_gcTasks.isEmpty) {
-        await Future.delayed(Duration(seconds: 30));
-        continue;
-      }
-      final task = _gcTasks.first;
-      _gcTasks.remove(task);
-      try {
-        await _removeObsolete(task.package, task.version, concurrency: 1);
-      } catch (e, st) {
-        _logger.warning(
-            'Unable to GC files of ${task.package} ${task.version}.', e, st);
-      }
+  /// TODO: remove this after we only use [DartdocRecord] to store state.
+  Future<void> gcStorageBucket() async {
+    final query = _db.query<DartdocRecord>()
+      ..filter('created >', DateTime.now().toUtc().subtract(Duration(days: 2)));
+    await for (final r in query.run()) {
+      if (r.runtimeVersion != shared_versions.runtimeVersion) continue;
+      await _removeObsolete(r.package, r.version);
     }
   }
 
@@ -434,22 +444,4 @@ class DartdocBackend {
     sw.stop();
     _logger.info('$prefix: $count files deleted in ${sw.elapsed}.');
   }
-}
-
-class _GCTask {
-  final String package;
-  final String version;
-
-  _GCTask(this.package, this.version);
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is _GCTask &&
-          runtimeType == other.runtimeType &&
-          package == other.package &&
-          version == other.version;
-
-  @override
-  int get hashCode => package.hashCode ^ version.hashCode;
 }
