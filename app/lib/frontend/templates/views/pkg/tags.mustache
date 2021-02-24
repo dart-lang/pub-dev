@@ -3,9 +3,9 @@
     BSD-style license that can be found in the LICENSE file. }}
 {{#tag_badges}}
 <div class="-pub-tag-badge">
-  <span class="tag-badge-main"{{#title}} title="{{title}}"{{/title}}>{{sdk}}</span>
+  <a class="tag-badge-main" title="{{ title }}" href="{{ href }}">{{ sdk }}</a>
   {{#sub_tags}}
-  <span class="tag-badge-sub"{{#title}} title="{{title}}"{{/title}}>{{text}}</span>
+    <a class="tag-badge-sub" title="{{ title }}" href="{{ href }}">{{ text }}</a>
   {{/sub_tags}}
 </div>
 {{/tag_badges}}

@@ -93,17 +93,26 @@ String renderTags({
     tagBadges.add({
       'sdk': 'Dart',
       'title': 'Packages compatible with Dart SDK',
+      'href': urls.searchUrl(sdk: SdkTagValue.dart),
       'sub_tags': [
         if (tags.contains(DartSdkTag.runtimeNativeJit))
           {
             'text': 'native',
             'title':
                 'Packages compatible with Dart running on a native platform (JIT/AOT)',
+            'href': urls.searchUrl(
+                sdk: SdkTagValue.dart,
+                runtimes: DartSdkRuntime.encodeRuntimeTags(
+                    [DartSdkRuntime.nativeJit])),
           },
         if (tags.contains(DartSdkTag.runtimeWeb))
           {
             'text': 'js',
             'title': 'Packages compatible with Dart compiled for the web',
+            'href': urls.searchUrl(
+                sdk: SdkTagValue.dart,
+                runtimes:
+                    DartSdkRuntime.encodeRuntimeTags([DartSdkRuntime.web])),
           },
       ],
     });
@@ -112,36 +121,53 @@ String renderTags({
     tagBadges.add({
       'sdk': 'Flutter',
       'title': 'Packages compatible with Flutter SDK',
+      'href': urls.searchUrl(sdk: SdkTagValue.flutter),
       'sub_tags': [
         if (tags.contains(FlutterSdkTag.platformAndroid))
           {
             'text': 'Android',
             'title': 'Packages compatible with Flutter on the Android platform',
+            'href': urls.searchUrl(
+                sdk: SdkTagValue.flutter,
+                platforms: [FlutterSdkPlatform.android]),
           },
         if (tags.contains(FlutterSdkTag.platformIos))
           {
             'text': 'iOS',
-            'title': 'Packages compatible with Flutter on the iOS platform'
+            'title': 'Packages compatible with Flutter on the iOS platform',
+            'href': urls.searchUrl(
+                sdk: SdkTagValue.flutter, platforms: [FlutterSdkPlatform.ios]),
           },
         if (tags.contains(FlutterSdkTag.platformLinux))
           {
             'text': 'Linux',
             'title': 'Packages compatible with Flutter on the Linux platform',
+            'href': urls.searchUrl(
+                sdk: SdkTagValue.flutter,
+                platforms: [FlutterSdkPlatform.linux]),
           },
         if (tags.contains(FlutterSdkTag.platformMacos))
           {
             'text': 'macOS',
             'title': 'Packages compatible with Flutter on the macOS platform',
+            'href': urls.searchUrl(
+                sdk: SdkTagValue.flutter,
+                platforms: [FlutterSdkPlatform.macos]),
           },
         if (tags.contains(FlutterSdkTag.platformWeb))
           {
             'text': 'web',
             'title': 'Packages compatible with Flutter on the Web platform',
+            'href': urls.searchUrl(
+                sdk: SdkTagValue.flutter, platforms: [FlutterSdkPlatform.web]),
           },
         if (tags.contains(FlutterSdkTag.platformWindows))
           {
             'text': 'Windows',
             'title': 'Packages compatible with Flutter on the Windows platform',
+            'href': urls.searchUrl(
+                sdk: SdkTagValue.flutter,
+                platforms: [FlutterSdkPlatform.windows]),
           },
       ],
     });
