@@ -122,6 +122,7 @@ class Tab {
     ];
     final contentClasses = <String>[
       'tab-content',
+      'detail-tab-$id-content',
       if (isActive) '-active',
       if (isMarkdown) 'markdown-body',
     ];

@@ -464,13 +464,15 @@ Tab _installTab(PackagePageData data) {
 }
 
 Tab _licenseTab(PackagePageData data) {
-  final contentHtml = data.hasLicense
+  final licenseAsHtml = data.hasLicense
       ? renderFile(data.asset.toFileObject(), data.version.packageLinks.baseUrl)
       : 'No license file found.';
+  final contentHtml = '<h2>License</h2>\n$licenseAsHtml';
   return Tab.withContent(
     id: 'license',
     title: 'License',
     contentHtml: contentHtml,
+    isMarkdown: true,
   );
 }
 

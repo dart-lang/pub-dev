@@ -317,3 +317,23 @@
   margin-top: 40px;
   font-size: 14px;
 }
+
+.detail-tab-license-content.markdown-body {
+  .highlight {
+    pre {
+      // Most lines have 80 characters, better to scale down the font size
+      // to keep everything visible at the same time.
+      font-size: 60%;
+
+      @media (min-width: $device-desktop-min-width) {
+        // On larger screens the above setting seems to be too small. The
+        // vertical width scaling will roughly make the 80-character lines
+        // fit the available width of the container.
+        //
+        // The scaling breaks down on smaller screens, keeping it for
+        // desktop only.
+        font-size: 1.2vw;
+      }
+    }
+  }
+}
