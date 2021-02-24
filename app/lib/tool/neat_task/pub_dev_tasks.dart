@@ -129,7 +129,7 @@ void _weekly({
 }) {
   final scheduler = NeatPeriodicTaskScheduler(
     name: name,
-    interval: Duration(days: 7),
+    interval: Duration(days: 6), // shifts the day when the task is triggered
     timeout: Duration(hours: 12),
     status: DatastoreStatusProvider.create(dbService, name),
     task: task,
