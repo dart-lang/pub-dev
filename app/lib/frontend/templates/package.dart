@@ -6,10 +6,9 @@ import 'dart:convert';
 
 import 'package:client_data/page_data.dart';
 import 'package:meta/meta.dart';
-import 'package:pana/pana.dart' show getRepositoryUrl;
+import 'package:pana/pana.dart' show getRepositoryUrl, LicenseNames;
 import 'package:pub_dev/shared/handlers.dart';
 
-import '../../analyzer/analyzer_client.dart';
 import '../../package/model_properties.dart';
 import '../../package/models.dart';
 import '../../package/overrides.dart'
@@ -29,20 +28,25 @@ import 'misc.dart';
 import 'package_analysis.dart';
 import 'package_misc.dart';
 
-String _renderLicense(String baseUrl, LicenseFile license) {
-  if (license == null) return null;
-  final String escapedName = htmlEscape.convert(license.shortFormatted);
-  String html = escapedName;
+String _renderLicense(PackagePageData data) {
+  if (data.versionInfo != null && data.versionInfo.hasLicense) {
+    final license =
+        data.analysis?.licenseFile?.shortFormatted ?? LicenseNames.unknown;
+    final url = urls.pkgLicenseUrl(
+      data.package.name,
+      version: data.isLatestStable ? null : data.version.version,
+    );
+    final fileName = data.analysis?.licenseFile?.path ?? 'LICENSE';
 
-  if (license.url != null && license.path != null) {
-    final String escapedLink = htmlAttrEscape.convert(license.url);
-    final String escapedPath = htmlEscape.convert(license.path);
-    html += ' (<a href="$escapedLink">$escapedPath</a>)';
-  } else if (license.path != null) {
-    final String escapedPath = htmlEscape.convert(license.path);
-    html += ' ($escapedPath)';
+    final linkAndFileName =
+        '<a href="$url">${htmlEscape.convert(fileName)}</a>';
+    if (license == LicenseNames.unknown) {
+      return linkAndFileName;
+    } else {
+      return '$license ($linkAndFileName)';
+    }
   }
-  return html;
+  return null;
 }
 
 String _renderDependencyList(Pubspec pubspec) {
@@ -194,8 +198,7 @@ String renderPkgInfoBox(PackagePageData data) {
     'uploaders_html': data.uploaderEmails.isEmpty
         ? null
         : _getAuthorsHtml(data.uploaderEmails),
-    'license_html':
-        _renderLicense(packageLinks.baseUrl, data.analysis?.licenseFile),
+    'license_html': _renderLicense(data),
     'dependencies_html': _renderDependencyList(data.version.pubspec),
     'search_deps_link': urls.searchUrl(q: 'dependency:${package.name}'),
     'labeled_scores_html': renderLabeledScores(data.toPackageView()),

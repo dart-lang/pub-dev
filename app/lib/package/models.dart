@@ -419,6 +419,8 @@ class PackageVersionInfo extends db.ExpandoModel<String> {
       version: version,
     );
   }
+
+  bool get hasLicense => assets != null && assets.contains(AssetKind.license);
 }
 
 /// The kind classifier of the extracted [PackageVersionAsset].
