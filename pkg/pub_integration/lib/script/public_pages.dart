@@ -44,7 +44,7 @@ class PublicPagesScript {
     final html = await _pubClient.getContent('/');
     _contains(html, 'Find and use packages');
     if (expectLiveSite) {
-      _contains(html, 'Top packages');
+      _contains(html, 'top packages');
       _contains(html, 'View all');
     }
   }
