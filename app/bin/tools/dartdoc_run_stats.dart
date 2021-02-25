@@ -55,7 +55,7 @@ Future<void> main(List<String> args) async {
     String Function(DartdocEntry e) keyFn,
   }) {
     final map = <String, int>{};
-    for (final e in entries.take(100)) {
+    for (final e in entries.take(top)) {
       final key = keyFn(e) ?? '';
       map[key] = (map[key] ?? 0) + 1;
     }
