@@ -4,6 +4,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Bumped runtimeVersion to `2021.02.26`.
  * Upgraded pana to `0.15.2`.
+ * Upgraded stable Dart analysis SDK to `2.12.0`.
  * Upgraded preview Dart analysis SDK to `2.12.0-259.16.beta`.
  * Upgraded preview Flutter analysis SDK to `1.26.0-17.8.pre`.
 
