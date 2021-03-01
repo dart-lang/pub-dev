@@ -73,7 +73,7 @@ void main() {
           await combiner.search(ServiceSearchQuery.parse(query: 'substring'));
       expect(json.decode(json.encode(results.toJson())), {
         'timestamp': isNotNull,
-        'totalCount': 2,
+        'totalCount': 1,
         'packages': [
           {
             'package': 'dart:core',
@@ -100,7 +100,7 @@ void main() {
           await combiner.search(ServiceSearchQuery.parse(query: 'stringutils'));
       expect(json.decode(json.encode(results.toJson())), {
         'timestamp': isNotNull,
-        'totalCount': 2,
+        'totalCount': 1,
         'packages': [
           {'package': 'stringutils', 'score': closeTo(0.80, 0.01)},
           {

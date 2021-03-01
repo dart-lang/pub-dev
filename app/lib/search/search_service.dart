@@ -331,6 +331,10 @@ class ServiceSearchQuery {
   }
 
   bool get hasQuery => query != null && query.isNotEmpty;
+  bool get hasFreeTextComponent =>
+      hasQuery && parsedQuery.text != null && parsedQuery.text.isNotEmpty;
+  bool get isNaturalOrder =>
+      order == null || order == SearchOrder.top || order == SearchOrder.text;
 
   String get sdk {
     final values = tagsPredicate._values.entries

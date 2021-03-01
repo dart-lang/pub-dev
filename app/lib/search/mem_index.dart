@@ -270,6 +270,8 @@ class InMemoryPackageIndex implements PackageIndex {
         break;
     }
 
+    //
+
     // bound by offset and limit (or randomize items)
     final totalCount = results.length;
     results = boundedList(results, offset: query.offset, limit: query.limit);
@@ -457,12 +459,8 @@ class InMemoryPackageIndex implements PackageIndex {
   }
 
   List<PackageScore> _rankWithValues(Map<String, double> values) {
-    final List<PackageScore> list = values.keys
-        .map((package) {
-          final score = values[package];
-          return PackageScore(package: package, score: score);
-        })
-        .where((ps) => ps != null)
+    final list = values.entries
+        .map((e) => PackageScore(package: e.key, score: e.value))
         .toList();
     list.sort((a, b) {
       final int scoreCompare = -a.score.compareTo(b.score);
