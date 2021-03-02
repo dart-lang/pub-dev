@@ -120,12 +120,20 @@ class SearchForm {
   }) {
     if (sdk != null) {
       tagsPredicate ??= this.tagsPredicate ?? TagsPredicate();
-      tagsPredicate = tagsPredicate
-          .removePrefix('sdk:')
-          .withoutTag(PackageTags.isFlutterFavorite);
-      if (SdkTagValue.isNotAny(sdk)) {
+      if (!tagsPredicate.isRequiredTag('sdk:$sdk')) {
         tagsPredicate = tagsPredicate
-            .appendPredicate(TagsPredicate(requiredTags: ['sdk:$sdk']));
+            .removePrefix('sdk:')
+            .withoutTag(PackageTags.isFlutterFavorite);
+        if (SdkTagValue.isNotAny(sdk)) {
+          tagsPredicate = tagsPredicate
+              .appendPredicate(TagsPredicate(requiredTags: ['sdk:$sdk']));
+        }
+        if (sdk != SdkTagValue.dart) {
+          tagsPredicate = tagsPredicate.removePrefix('runtime:');
+        }
+        if (sdk != SdkTagValue.flutter) {
+          tagsPredicate = tagsPredicate.removePrefix('platform:');
+        }
       }
     }
     return SearchForm._(
