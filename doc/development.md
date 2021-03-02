@@ -38,7 +38,7 @@ annotations. Input files are usually listed in `build.yaml`, and generated
 files usually suffixed `.g.dart`. To generate code use:
 
 ```bash
-dart run build_runner build
+dart pub run build_runner build
 ```
 
 ## Working with `mono_repo`
