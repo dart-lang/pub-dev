@@ -54,9 +54,9 @@ bool shouldGCVersion(String version) =>
 // keep in-sync with SDK version in .mono_repo.yml and Dockerfile
 final String runtimeSdkVersion = '2.10.0';
 final String toolStableDartSdkVersion = '2.12.0';
-final String toolStableFlutterSdkVersion = '1.26.0-17.8.pre';
+final String toolStableFlutterSdkVersion = '2.0.0';
 final String toolPreviewDartSdkVersion = '2.12.0';
-final String toolPreviewFlutterSdkVersion = '1.26.0-17.8.pre';
+final String toolPreviewFlutterSdkVersion = '2.0.0';
 
 // Value comes from package:pana.
 final String panaVersion = pana.packageVersion;

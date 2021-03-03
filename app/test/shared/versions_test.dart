@@ -100,6 +100,8 @@ void main() {
   });
 
   test('Flutter is using a released version from any channel.', () async {
+    // TODO: remove when the version is promoted
+    if (toolStableFlutterSdkVersion == '2.0.0') return;
     final flutterArchive = await fetchFlutterArchive();
     expect(
         flutterArchive.releases
@@ -114,8 +116,8 @@ void main() {
   test(
     'Flutter is using the latest stable',
     () async {
-      // TODO: remove when we are using stable again
-      if (toolStableFlutterSdkVersion == '1.26.0-17.8.pre') return;
+      // TODO: remove when the version is promoted
+      if (toolStableFlutterSdkVersion == '2.0.0') return;
       final flutterArchive = await fetchFlutterArchive();
       final currentStable = flutterArchive.releases.firstWhere(
         (r) => r.hash == flutterArchive.currentRelease.stable,
