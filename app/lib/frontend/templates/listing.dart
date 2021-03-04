@@ -86,7 +86,7 @@ String renderPackageList(
       'publisher_url':
           view.publisherId == null ? null : urls.publisherUrl(view.publisherId),
       'tags_html': renderTags(package: view),
-      'labeled_scores_html': renderLabeledScores(view),
+      'labeled_scores_html': view.isExternal ? null : renderLabeledScores(view),
       'has_api_pages': hasApiPages,
       'has_more_api_pages': hasMoreThanOneApiPages,
       'first_api_page': hasApiPages ? apiPages.first : null,
