@@ -56,21 +56,21 @@ void setupDartdocPeriodicTasks() {
   _setupJobCleanupPeriodicTasks();
 
   // Deletes the extracted dartdoc data from old SDKs.
-  _daily(
+  _weekly(
     name: 'delete-old-dartdoc-sdks',
     task: () => dartdocBackend.deleteOldData(),
   );
 
   // Deletes DartdocRun entities and their storage content that are older
   // than the accepted runtime versions.
-  _daily(
+  _weekly(
     name: 'delete-old-dartdoc-runs',
     task: () async => await dartdocBackend.deleteOldRuns(),
   );
 
   // Deletes DartdocRun entities and their storage content that are expired,
   // and have newer version with content.
-  _daily(
+  _weekly(
     name: 'delete-expired-dartdoc-runs',
     task: () async => await dartdocBackend.deleteExpiredRuns(),
   );
@@ -85,7 +85,7 @@ void setupDartdocPeriodicTasks() {
 /// Setup the tasks that we are running in the search service.
 void setupSearchPeriodicTasks() {
   // Deletes the old search snapshots
-  _daily(
+  _weekly(
     name: 'delete-old-search-snapshots',
     task: () => snapshotStorage.deleteOldData(),
   );
@@ -94,14 +94,14 @@ void setupSearchPeriodicTasks() {
 /// Setup the tasks that we are running in both analyzer and dartdoc services.
 void _setupJobCleanupPeriodicTasks() {
   // Deletes Job entities that are older than the accepted runtime versions.
-  _daily(
+  _weekly(
     name: 'delete-old-jobs',
     task: () async => await jobBackend.deleteOldEntries(),
   );
 
   // Deletes ScoreCard and ScoreCardReport entities that are older than the
   // accepted runtime versions.
-  _daily(
+  _weekly(
     name: 'delete-old-scorecards',
     task: () async => await scoreCardBackend.deleteOldEntries(),
   );
@@ -114,6 +114,22 @@ void _daily({
   final scheduler = NeatPeriodicTaskScheduler(
     name: name,
     interval: Duration(hours: 24),
+    timeout: Duration(hours: 12),
+    status: DatastoreStatusProvider.create(dbService, name),
+    task: task,
+  );
+
+  ss.registerScopeExitCallback(() => scheduler.stop());
+  scheduler.start();
+}
+
+void _weekly({
+  @required String name,
+  @required NeatPeriodicTask task,
+}) {
+  final scheduler = NeatPeriodicTaskScheduler(
+    name: name,
+    interval: Duration(days: 6), // shifts the day when the task is triggered
     timeout: Duration(hours: 12),
     status: DatastoreStatusProvider.create(dbService, name),
     task: task,
