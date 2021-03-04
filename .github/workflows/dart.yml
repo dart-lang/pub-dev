@@ -44,15 +44,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/web_css-pkg/client_data-pkg/_popularity-pkg/api_builder-app-pkg/fake_gcloud-pkg/pub_dartdoc-pkg/pub_dartdoc_data-pkg/pub_package_reader-pkg/pub_validations-pkg/web_app;commands:dartfmt-dartanalyzer_0"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/web_css-pkg/client_data-pkg/_popularity-pkg/api_builder-app-pkg/fake_gcloud-pkg/pub_dartdoc-pkg/pub_dartdoc_data-pkg/pub_package_reader-pkg/pub_validations-pkg/web_app;commands:dartfmt-dartanalyzer_0"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/web_css-pkg/client_data-pkg/_popularity-pkg/api_builder-app-pkg/fake_gcloud-pkg/pub_dartdoc-pkg/pub_dartdoc_data-pkg/pub_package_reader-pkg/pub_validations-pkg/web_app
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/web_css-pkg/client_data-pkg/_popularity-pkg/api_builder-app-pkg/fake_gcloud-pkg/pub_dartdoc-pkg/pub_dartdoc_data-pkg/pub_package_reader-pkg/pub_validations-pkg/web_app
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@v0.3
         with:
-          sdk: "2.10.0"
+          sdk: "2.12.0"
       - id: checkout
         uses: actions/checkout@v2
       - id: pkg_web_css_pub_get
@@ -206,15 +206,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_integration;commands:dartfmt-dartanalyzer_1"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/pub_integration;commands:dartfmt-dartanalyzer_1"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_integration
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/pub_integration
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@v0.3
         with:
-          sdk: "2.10.0"
+          sdk: "2.12.0"
       - id: checkout
         uses: actions/checkout@v2
       - id: pkg_pub_integration_pub_get
@@ -238,15 +238,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/web_app;commands:command"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/web_app;commands:command"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/web_app
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/web_app
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@v0.3
         with:
-          sdk: "2.10.0"
+          sdk: "2.12.0"
       - id: checkout
         uses: actions/checkout@v2
       - id: pkg_web_app_pub_get
@@ -270,15 +270,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/web_css;commands:command"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/web_css;commands:command"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/web_css
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/web_css
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@v0.3
         with:
-          sdk: "2.10.0"
+          sdk: "2.12.0"
       - id: checkout
         uses: actions/checkout@v2
       - id: pkg_web_css_pub_get
@@ -302,15 +302,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/fake_gcloud;commands:test_07"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/fake_gcloud;commands:test_07"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/fake_gcloud
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/fake_gcloud
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@v0.3
         with:
-          sdk: "2.10.0"
+          sdk: "2.12.0"
       - id: checkout
         uses: actions/checkout@v2
       - id: pkg_fake_gcloud_pub_get
@@ -336,15 +336,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_dartdoc_data;commands:test_07"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/pub_dartdoc_data;commands:test_07"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_dartdoc_data
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/pub_dartdoc_data
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@v0.3
         with:
-          sdk: "2.10.0"
+          sdk: "2.12.0"
       - id: checkout
         uses: actions/checkout@v2
       - id: pkg_pub_dartdoc_data_pub_get
@@ -370,15 +370,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/_popularity;commands:test_07"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/_popularity;commands:test_07"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/_popularity
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/_popularity
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@v0.3
         with:
-          sdk: "2.10.0"
+          sdk: "2.12.0"
       - id: checkout
         uses: actions/checkout@v2
       - id: pkg__popularity_pub_get
@@ -404,15 +404,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_package_reader;commands:test_07"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/pub_package_reader;commands:test_07"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_package_reader
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/pub_package_reader
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@v0.3
         with:
-          sdk: "2.10.0"
+          sdk: "2.12.0"
       - id: checkout
         uses: actions/checkout@v2
       - id: pkg_pub_package_reader_pub_get
@@ -438,15 +438,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_validations;commands:test_07"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/pub_validations;commands:test_07"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_validations
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/pub_validations
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@v0.3
         with:
-          sdk: "2.10.0"
+          sdk: "2.12.0"
       - id: checkout
         uses: actions/checkout@v2
       - id: pkg_pub_validations_pub_get
@@ -472,15 +472,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/client_data;commands:test_07"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/client_data;commands:test_07"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/client_data
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/client_data
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@v0.3
         with:
-          sdk: "2.10.0"
+          sdk: "2.12.0"
       - id: checkout
         uses: actions/checkout@v2
       - id: pkg_client_data_pub_get
@@ -506,15 +506,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/web_app;commands:test_07"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/web_app;commands:test_07"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/web_app
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/web_app
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@v0.3
         with:
-          sdk: "2.10.0"
+          sdk: "2.12.0"
       - id: checkout
         uses: actions/checkout@v2
       - id: pkg_web_app_pub_get
@@ -540,15 +540,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/web_css;commands:test_07"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/web_css;commands:test_07"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/web_css
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/web_css
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@v0.3
         with:
-          sdk: "2.10.0"
+          sdk: "2.12.0"
       - id: checkout
         uses: actions/checkout@v2
       - id: pkg_web_css_pub_get
@@ -574,15 +574,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_dartdoc;commands:test_07"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/pub_dartdoc;commands:test_07"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_dartdoc
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/pub_dartdoc
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@v0.3
         with:
-          sdk: "2.10.0"
+          sdk: "2.12.0"
       - id: checkout
         uses: actions/checkout@v2
       - id: pkg_pub_dartdoc_pub_get
@@ -608,15 +608,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app;commands:test_05"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:app;commands:test_05"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@v0.3
         with:
-          sdk: "2.10.0"
+          sdk: "2.12.0"
       - id: checkout
         uses: actions/checkout@v2
       - id: app_pub_get
@@ -642,15 +642,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app;commands:test_04"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:app;commands:test_04"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@v0.3
         with:
-          sdk: "2.10.0"
+          sdk: "2.12.0"
       - id: checkout
         uses: actions/checkout@v2
       - id: app_pub_get
@@ -676,15 +676,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app;commands:test_06"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:app;commands:test_06"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@v0.3
         with:
-          sdk: "2.10.0"
+          sdk: "2.12.0"
       - id: checkout
         uses: actions/checkout@v2
       - id: app_pub_get
@@ -710,15 +710,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app;commands:test_01"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:app;commands:test_01"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@v0.3
         with:
-          sdk: "2.10.0"
+          sdk: "2.12.0"
       - id: checkout
         uses: actions/checkout@v2
       - id: app_pub_get
@@ -744,15 +744,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_integration;commands:test_08"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/pub_integration;commands:test_08"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_integration
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/pub_integration
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@v0.3
         with:
-          sdk: "2.10.0"
+          sdk: "2.12.0"
       - id: checkout
         uses: actions/checkout@v2
       - id: pkg_pub_integration_pub_get
@@ -778,15 +778,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_integration;commands:test_10"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/pub_integration;commands:test_10"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_integration
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/pub_integration
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@v0.3
         with:
-          sdk: "2.10.0"
+          sdk: "2.12.0"
       - id: checkout
         uses: actions/checkout@v2
       - id: pkg_pub_integration_pub_get
@@ -812,15 +812,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app;commands:test_02"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:app;commands:test_02"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@v0.3
         with:
-          sdk: "2.10.0"
+          sdk: "2.12.0"
       - id: checkout
         uses: actions/checkout@v2
       - id: app_pub_get
@@ -846,15 +846,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app;commands:test_03"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:app;commands:test_03"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@v0.3
         with:
-          sdk: "2.10.0"
+          sdk: "2.12.0"
       - id: checkout
         uses: actions/checkout@v2
       - id: app_pub_get
@@ -880,15 +880,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_integration;commands:test_09"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/pub_integration;commands:test_09"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:pkg/pub_integration
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:pkg/pub_integration
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@v0.3
         with:
-          sdk: "2.10.0"
+          sdk: "2.12.0"
       - id: checkout
         uses: actions/checkout@v2
       - id: pkg_pub_integration_pub_get
@@ -914,15 +914,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app;commands:test_00"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:app;commands:test_00"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0;packages:app
-            os:ubuntu-latest;pub-cache-hosted;dart:2.10.0
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;dart:2.12.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@v0.3
         with:
-          sdk: "2.10.0"
+          sdk: "2.12.0"
       - id: checkout
         uses: actions/checkout@v2
       - id: app_pub_get
