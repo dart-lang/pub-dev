@@ -8,6 +8,7 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../../package/search_adapter.dart';
 import '../../search/search_service.dart' show SearchOrder;
+import '../../service/youtube/backend.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../../shared/tags.dart';
@@ -61,11 +62,14 @@ Future<shelf.Response> indexLandingHandler(shelf.Request request) async {
     final topDartPackages =
         await searchAdapter.topFeatured(requiredTags: [SdkTag.sdkDart]);
 
+    final topPoWVideos = youtubeBackend.getTopPackageOfWeekVideos(count: 4);
+
     return renderLandingPage(
       ffPackages: ffPackages,
       mostPopularPackages: mostPopularPackages,
       topFlutterPackages: topFlutterPackages,
       topDartPackages: topDartPackages,
+      topPoWVideos: topPoWVideos,
     );
   }
 

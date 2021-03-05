@@ -41,6 +41,9 @@ abstract class SecretKey {
   ///  * `no-restriction`, (default) publication of new packages and new versions is allowed.
   static const String uploadRestriction = 'upload-restriction';
 
+  /// Youtube API Key.
+  static const String youtubeApiKey = 'youtube-api-key';
+
   /// List of all keys.
   static const values = [
     redisConnectionString,
@@ -49,6 +52,7 @@ abstract class SecretKey {
     cspScriptSrc,
     cspStyleSrc,
     uploadRestriction,
+    youtubeApiKey,
   ];
 
   /// Whether the key is valid.
