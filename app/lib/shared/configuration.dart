@@ -180,8 +180,7 @@ class Configuration {
   }
 
   /// Create a configuration for development/staging deployment.
-  factory Configuration._dev() {
-    final projectId = 'dartlang-pub-dev';
+  factory Configuration._dev(final String projectId) {
     return Configuration(
       projectId: projectId,
       packageBucketName: '$projectId--pub-packages',
@@ -255,10 +254,12 @@ class Configuration {
   factory Configuration.fromEnv(EnvConfig env) {
     if (env.gcloudProject == 'dartlang-pub') {
       return Configuration._prod();
-    } else if (env.gcloudProject == 'dartlang-pub-dev') {
-      return Configuration._dev();
+    } else if (env.gcloudProject.startsWith('dartlang-pub-dev')) {
+      return Configuration._dev(env.gcloudProject);
     } else {
-      throw Exception('Unknown project id: ${env.gcloudProject}');
+      throw Exception('Unknown project id: ${env.gcloudProject}. '
+          'Any project starting with "dartlang-pub-dev" will be considered as a dev'
+          'You may still need to adjust some dev setup to your usecase');
     }
   }
 
