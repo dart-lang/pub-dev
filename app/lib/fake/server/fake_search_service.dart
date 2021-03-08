@@ -13,6 +13,7 @@ import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
 
+import 'package:pub_dev/fake/backend/fake_popularity.dart';
 import 'package:pub_dev/search/handlers.dart';
 import 'package:pub_dev/search/updater.dart';
 import 'package:pub_dev/shared/configuration.dart';
@@ -52,6 +53,7 @@ class FakeSearchService {
           });
           _logger.info('running on port $port');
 
+          await generateFakePopularityValues();
           // ignore: invalid_use_of_visible_for_testing_member
           await indexUpdater.updateAllPackages();
 
