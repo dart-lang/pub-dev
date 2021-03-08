@@ -288,6 +288,12 @@
   .pow-video {
     margin: 0 16px 16px 0;
     text-align: center;
+    position: relative;
+
+    &:hover {
+      .pow-video-overlay-img-active { display: inline-block; }
+      .pow-video-overlay-img-inactive { display: none; }
+    }
   }
 
   .pow-video-thumbnail {
@@ -297,5 +303,26 @@
     }
     height: auto;
     width: 100%;
+  }
+
+  .pow-video-overlay {
+    display: flex;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 30%;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .pow-video-overlay-img-inactive {
+    opacity: 0.4;
+  }
+
+  .pow-video-overlay-img-active {
+    opacity: 0.4;
+    display: none;
   }
 }

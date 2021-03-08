@@ -12,6 +12,12 @@
       <img class="pow-video-thumbnail"
            src="{{& thumbnail_url }}"
            alt="{{ title }}" />
+      <div class="pow-video-overlay">
+        <img class="pow-video-overlay-img-active"
+             src="{{& static_assets.img__youtube-play-red_png }}" />
+        <img class="pow-video-overlay-img-inactive"
+             src="{{& static_assets.img__youtube-play-black_png }}" />
+      </div>
     </a>
   </div>
   {{/videos}}
