@@ -60,7 +60,6 @@ void main() {
         'static-assets/readme.md',
         'static-assets/script.js',
         'static-assets/styles.css',
-        'static-assets/typeahead.bundle.min.js',
       ]);
     });
 
