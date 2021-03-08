@@ -129,6 +129,11 @@ void main() {
               'http://localhost:${fakePubServerProcess.port}/packages/retry/versions/2.0.01',
               wait: Until.networkIdle);
           await checkHeaderTitle();
+
+          await page.goto(
+              'http://localhost:${fakePubServerProcess.port}/packages/retry/license',
+              wait: Until.networkIdle);
+          await checkHeaderTitle();
         },
       );
     });
