@@ -11,6 +11,7 @@ import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
 import 'package:retry/retry.dart';
@@ -90,12 +91,25 @@ class DartdocBackend {
     return versions.map((pv) => pv.version).take(limit).toList();
   }
 
-  /// Updates the [old] entry with the status fields from the [current] one.
-  Future<void> updateOldEntry(DartdocEntry old, DartdocEntry current) async {
-    final newEntry = old.replace(
-      isLatest: current.isLatest,
-      isObsolete: current.isObsolete,
-    );
+  /// Updates the [oldEntry] entry with the current isLatest value.
+  Future<void> updateOldIsLatest(
+    DartdocEntry oldEntry, {
+    @required bool isLatest,
+  }) async {
+    final newEntry = oldEntry.replace(isLatest: isLatest);
+    await withRetryTransaction(_db, (tx) async {
+      final oldRun = await tx.lookupOrNull<DartdocRun>(
+          _db.emptyKey.append(DartdocRun, id: oldEntry.uuid));
+      if (oldRun == null) {
+        return;
+      }
+      final oldStoredEntry = oldRun.entry;
+      if (oldStoredEntry.isLatest == isLatest) {
+        return;
+      }
+      oldRun.wasLatestStable = isLatest;
+      tx.insert(oldRun);
+    });
     await _storage.writeBytes(newEntry.entryObjectName, newEntry.asBytes());
   }
 

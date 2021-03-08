@@ -209,13 +209,13 @@ class DartdocEntry {
 
   /// Creates a new instance, copying fields that are not specified, overriding
   /// the ones that are.
-  DartdocEntry replace({bool isLatest, bool isObsolete}) {
+  DartdocEntry replace({bool isLatest}) {
     return DartdocEntry(
       uuid: uuid,
       packageName: packageName,
       packageVersion: packageVersion,
       isLatest: isLatest ?? this.isLatest,
-      isObsolete: isObsolete ?? this.isObsolete,
+      isObsolete: isObsolete,
       usesFlutter: usesFlutter,
       runtimeVersion: runtimeVersion,
       sdkVersion: sdkVersion,
