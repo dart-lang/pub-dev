@@ -20,7 +20,7 @@ void main() {
   group('pub client authorization landing page', () {
     setUpAll(() => updateLocalBuiltFilesIfNeeded());
 
-    testWithServices('/authorized', () async {
+    testWithProfile('/authorized', fn: () async {
       await expectHtmlResponse(await issueGet('/authorized'));
     });
   });

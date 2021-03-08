@@ -33,7 +33,7 @@ void main() {
       );
     });
 
-    testWithServices('/ without a working search service', () async {
+    testWithProfile('/ without a working search service', fn: () async {
       registerSearchClient(null);
       final rs = await issueGet('/');
       await expectHtmlResponse(
@@ -42,19 +42,19 @@ void main() {
           'Find and use packages to build',
         ],
         absent: [
-          '/packages/helium',
-          '/packages/hydrogen',
-          'hydrogen is a Dart package',
+          '/packages/neon',
+          '/packages/oxygen',
+          'Awesome package',
         ],
       );
     });
 
-    testWithServices('/flutter', () async {
+    testWithProfile('/flutter', fn: () async {
       final rs = await issueGet('/flutter');
       await expectRedirectResponse(rs, '/flutter/packages');
     });
 
-    testWithServices('/xxx - not found page', () async {
+    testWithProfile('/xxx - not found page', fn: () async {
       final rs = await issueGet('/xxx');
       await expectHtmlResponse(rs, status: 404, present: [
         'You\'ve stumbled onto a page',
@@ -62,9 +62,9 @@ void main() {
         '/packages/http',
         '/packages/event_bus',
         'lightweight library for parsing',
-        '/packages/helium',
-        '/packages/hydrogen',
-        'hydrogen is a Dart package',
+        '/packages/neon',
+        '/packages/oxygen',
+        'Awesome package',
       ]);
     });
   });
