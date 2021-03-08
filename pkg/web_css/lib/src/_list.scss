@@ -19,6 +19,14 @@
   background: #f5f5f7;
   display: none;
 
+  .search-controls-subsdk {
+    @media (min-width: $device-desktop-min-width) {
+      background: white;
+      border-bottom: 1px solid #d5d5d5;
+      padding-top: 8px;
+    }
+  }
+
   .search-controls-advanced {
     display: none;
 
@@ -124,6 +132,7 @@
         color: #212121;
         display: inline-block;
         font-size: 14px;
+        margin-bottom: 8px;
         padding: 3px 24px;
 
         .filter-icon {
@@ -174,10 +183,6 @@
         transform: rotate(0deg);
       }
     }
-  }
-
-  .search-controls-subsdk-advanced {
-    padding: 12px 0 8px 0;
   }
 
   .search-controls-checkbox {
