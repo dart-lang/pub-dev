@@ -9,6 +9,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/youtube/v3.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:meta/meta.dart';
+import 'package:retry/retry.dart';
 
 import '../../tool/utils/http.dart';
 import '../secret/backend.dart';
@@ -31,15 +32,17 @@ class YoutubeBackend {
 
   /// Loads the data from Youtube and caches locally.
   Future<void> update() async {
-    final apiKey = Platform.environment['YOUTUBE_API_KEY'] ??
-        await secretBackend.lookup(SecretKey.youtubeApiKey);
-    if (apiKey == null || apiKey.isEmpty) return;
+    await retry(() async {
+      final apiKey = Platform.environment['YOUTUBE_API_KEY'] ??
+          await secretBackend.lookup(SecretKey.youtubeApiKey);
+      if (apiKey == null || apiKey.isEmpty) return;
 
-    final httpClient = httpRetryClient();
-    final apiClient = clientViaApiKey(apiKey, baseClient: httpClient);
-    final youtube = YoutubeApi(apiClient);
-    await _updatePoWVideos(youtube);
-    httpClient.close();
+      final httpClient = httpRetryClient();
+      final apiClient = clientViaApiKey(apiKey, baseClient: httpClient);
+      final youtube = YoutubeApi(apiClient);
+      await _updatePoWVideos(youtube);
+      httpClient.close();
+    });
   }
 
   Future _updatePoWVideos(YoutubeApi youtube) async {
