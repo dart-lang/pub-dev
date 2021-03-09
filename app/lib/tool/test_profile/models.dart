@@ -39,6 +39,15 @@ class TestProfile {
   }
 
   Map<String, dynamic> toJson() => _$TestProfileToJson(this);
+
+  TestProfile changeDefaultUser(String email) {
+    return TestProfile(
+      packages: packages,
+      publishers: publishers,
+      users: users,
+      defaultUser: email,
+    );
+  }
 }
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
