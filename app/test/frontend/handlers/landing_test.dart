@@ -16,14 +16,14 @@ void main() {
   setUpAll(() => updateLocalBuiltFilesIfNeeded());
 
   group('ui', () {
-    testWithServices('/', () async {
+    testWithProfile('/', fn: () async {
       final rs = await issueGet('/');
       await expectHtmlResponse(
         rs,
         present: [
-          '/packages/helium',
-          '/packages/hydrogen',
-          'hydrogen is a Dart package',
+          '/packages/oxygen',
+          '/packages/neon',
+          'oxygen is awesome',
         ],
         absent: [
           '/packages/http',
