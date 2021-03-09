@@ -1,0 +1,6 @@
+projectId: foo
+packageBucketName: foo
+dartdocStorageBucketName: foo
+popularityDumpBucketName: foo
+searchSnapshotBucketName: foo
+backupSnapshotBucketName: foo

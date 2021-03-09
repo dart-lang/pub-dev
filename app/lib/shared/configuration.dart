@@ -3,11 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'package:googleapis/run/v1.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:yaml/yaml.dart';
+import 'dart:convert';
 
 import 'package:collection/collection.dart' show UnmodifiableSetView;
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:meta/meta.dart';
+
+part 'configuration.g.dart';
 
 final _configurationKey = #_active_configuration;
 
@@ -181,6 +186,14 @@ class Configuration {
     );
   }
 
+  factory Configuration.fromYaml(final String path) {
+    final file = File(path);
+    final content = file.readAsStringSync();
+    final map =
+        json.decode(json.encode(loadYaml(content))) as Map<String, dynamic>;
+    return _$ConfigurationFromJson(map);
+  }
+
   /// Create a configuration for development/staging deployment.
   factory Configuration._dev(final String projectId) {
     return Configuration(
@@ -258,11 +271,7 @@ class Configuration {
       return Configuration._prod();
     } else if (env.gcloudProject.startsWith('dartlang-pub-dev')) {
       return Configuration._dev(env.gcloudProject);
-    } else {
-      throw Exception('Unknown project id: ${env.gcloudProject}. '
-          'Any project starting with "dartlang-pub-dev" will be considered as a dev'
-          'You may still need to adjust some dev setup to your usecase');
-    }
+    } else {}
   }
 
   /// Configuration for pkg/fake_pub_server.
