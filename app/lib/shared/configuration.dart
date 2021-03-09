@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'package:json_annotation/json_annotation.dart';
 
 import 'package:collection/collection.dart' show UnmodifiableSetView;
 import 'package:gcloud/service_scope.dart' as ss;
@@ -38,6 +39,7 @@ const _fakeSiteAudience = 'fake-site-audience';
 /// The configuration define the location of the Datastore with the
 /// package metadata and the Cloud Storage bucket for the actual package
 /// tar files.
+@JsonSerializable()
 class Configuration {
   /// The name of the Cloud Storage bucket to use for uploaded package content.
   final String packageBucketName;
@@ -396,6 +398,7 @@ class EnvConfig {
 final EnvConfig envConfig = EnvConfig._detect();
 
 /// Data structure to describe an admin user.
+@JsonSerializable()
 class AdminId {
   final String oauthUserId;
   final String email;
