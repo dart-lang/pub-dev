@@ -24,7 +24,7 @@ export CLOUDSDK_CORE_DISABLE_PROMPTS=1
 IMAGE="gcr.io/dartlang-pub-dev/staging-$APP_VERSION-image"
 
 echo "### Building docker image: $IMAGE"
-time -p gcloud --project "$PROJECT_ID" builds submit -t "$IMAGE"
+time -p gcloud --project "$PROJECT_ID" builds submit --timeout=1200 -t "$IMAGE"
 
 
 # Setup number of instances to one
