@@ -76,14 +76,13 @@ dart pub global run mono_repo pub get
 ## Local Development with Google AppEngine
 
 To run the default application (web frontend) locally, do the following steps:
-```bash
+```
 cd app
 dart pub get
 export GCLOUD_PROJECT=<gcloud-project>
 export GCLOUD_KEY=<path-to-service-account-key.json>
 dart bin/server.dart default
 ```
-Any project with prefix `dartlang-pub-dev` will be considered as a `dev` env.
 
 The server will be available via at [localhost:8080](http://localhost:8080)
 
@@ -100,11 +99,3 @@ The key must have access to:
 If starting from a new cloud project, APIs for Cloud Data Store will have to be
 activated and it might be necessary to define indexes with
 `gcloud app deploy index.yaml`.
-
-To setup basic popularity data you may:
-```bash
-cd app
-cp ../pkg/_popularity/test/popularity-sample.json popularity.json
-gzip popularity.json
-gsutil cp popularity.json.gz gs://$PROJECT_ID--popularity/v3/popularity.json.gz
-```

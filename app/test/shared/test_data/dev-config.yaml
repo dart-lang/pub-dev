@@ -44,3 +44,4 @@ admins:
   - removeUsers
   - manageAssignedTags
   - removePackage
+  
