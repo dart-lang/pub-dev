@@ -69,6 +69,9 @@ dart bin/fake_server.dart run --data-file=dev-data-file.jsonl
 The web app and the API endpoints use a simple mechanism to map access tokens
 to authenticated accounts: `user-at-domain-dot-com` gets mapped to `user@domain.com`. 
 
+- On the web app one can use this token by clicking on the `Sign in` top nav item.
+- On the API endpoints one should send the `Authorization` header with `Bearer $token` as value.
+
 ## Updating generated code
 
 The application and various packages uses
