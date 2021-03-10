@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:test/test.dart';
-import 'package:yaml/yaml.dart';
 
 import 'package:pub_dev/shared/configuration.dart';
 
@@ -14,19 +11,12 @@ void main() {
     final Configuration config =
         Configuration.fromYaml('test/shared/test_data/foo_config.yaml');
     final expectedValue = 'foo';
-    expect(config.projectId == expectedValue, isTrue);
-    expect(config.packageBucketName == expectedValue, isTrue);
-    expect(config.dartdocStorageBucketName == expectedValue, isTrue);
-    expect(config.popularityDumpBucketName == expectedValue, isTrue);
-  });
 
-  test('Dev config from yaml file', () async {
-    final Configuration config =
-        Configuration.fromYaml('test/shared/test_data/dev-config.yaml');
-    expect(config.projectId == 'dartlang-pub-dev', isTrue);
-
-    final Configuration cp = Configuration.test();
-    final d = cp.toJson();
-    print(d);
+    expect(config.projectId, expectedValue);
+    expect(config.packageBucketName, expectedValue);
+    expect(config.dartdocStorageBucketName, expectedValue);
+    expect(config.popularityDumpBucketName, expectedValue);
+    expect(config.admins[0].email, "foo@foo.foo");
+    expect(config.admins[0].oauthUserId, '42');
   });
 }

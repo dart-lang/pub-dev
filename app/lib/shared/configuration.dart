@@ -2,15 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert' show json;
 import 'dart:io';
-import 'package:googleapis/run/v1.dart';
-import 'package:json_annotation/json_annotation.dart';
-import 'package:yaml/yaml.dart';
-import 'dart:convert';
 
 import 'package:collection/collection.dart' show UnmodifiableSetView;
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
+import 'package:yaml/yaml.dart';
 
 part 'configuration.g.dart';
 
