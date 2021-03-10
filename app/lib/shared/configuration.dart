@@ -30,10 +30,6 @@ void registerActiveConfiguration(Configuration configuration) {
   ss.register(_configurationKey, configuration);
 }
 
-/// The OAuth audience (`client_id`) that the `pub` client uses.
-const _pubClientAudience =
-    '818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.googleusercontent.com';
-
 /// Special value to indicate that the site is running in fake mode, and the
 /// client side authentication should use the fake authentication tokens.
 const _fakeSiteAudience = 'fake-site-audience';
