@@ -1,20 +1,51 @@
 # Developing `pub.dev`
 
-## Local Development without external services
+`pub.dev` runs on Google AppEngine, but we also support a local,
+in-memory server that is able to run 95-99% of the site on a single
+machine, without any need for AppEngine account or setup.
 
-The `app/` project is able to run `pub-dev` with a local,
-in-memory Datastore and Storage service (being implemented in `pkg/fake_gcloud`).
+- If you want to contribute to `pub.dev`, the current document will give you
+instructions how to work with the local, in-memory server (`fake_server`).
 
-To initialize it with some minimal data, create the following file:
+- I you want to setup the project on Google AppEngine, follow [this guide](appengine.md). 
 
-```
+## Project structure
+
+The main directories that one would be looking at:
+
+- `app/`: contains the main server application.
+- `pkg/web_app`: contains the client-side part of the app.
+- `pkg/web_css`: contains the SCSS files.
+- `static`: contains static files and images deployed alongside the app.
+- `third_party`: contains 3rd-party assets that are deployed alongside the app.
+
+## Initial data
+
+The in-memory server starts with no data. Prepopulated data can be created
+with test-profiles, using the following steps:
+
+### Create a test-profile description 
+
+A test-profile is a short description of packages, publishers, users,
+their flags and relations.
+
+To create an initialize it with some minimal data, create the following YAML file:
+
+```yaml
 defaultUser: 'your-email@example.com'
 packages:
   - name: retry
   - name: http
 ```
 
-Import the latest versions and their dependencies into a data file:
+### Process and create data file
+
+Using the test-profile above, the following process will:
+- fetch the latest versions and the archive file from pub.dev
+- publish the archive locally under the name of the user or
+  the publisher in the test-profile description
+- analyze the packages and runs dartdoc on them
+- stores the results and all the entities in a local file.
 
 ```shell script
 cd app/
@@ -24,6 +55,8 @@ dart bin/fake_server.dart init-data-file \
   --data-file=dev-data-file.jsonl
 ```
 
+### Using the fake server with the data file
+
 After the data file has been created, you can start using it locally:
 
 ```shell script
@@ -31,7 +64,13 @@ cd app/
 dart bin/fake_server.dart run --data-file=dev-data-file.jsonl
 ```
 
+## Local accounts
+
+The web app and the API endpoints use a simple mechanism to map access tokens
+to authenticated accounts: `user-at-domain-dot-com` gets mapped to `user@domain.com`. 
+
 ## Updating generated code
+
 The application and various packages uses
 [builders](https://pub.dev/packages/build) to generate code based on source
 annotations. Input files are usually listed in `build.yaml`, and generated
@@ -71,31 +110,3 @@ dart pub global run mono_repo pub get
 1. Create `mono_pkg.yaml` for the package. (Use the existing ones as template.)
 
 2. Run `dart pub global run mono_repo generate` from the root.
-
-
-## Local Development with Google AppEngine
-
-To run the default application (web frontend) locally, do the following steps:
-```
-cd app
-dart pub get
-export GCLOUD_PROJECT=<gcloud-project>
-export GCLOUD_KEY=<path-to-service-account-key.json>
-dart bin/server.dart default
-```
-
-The server will be available via at [localhost:8080](http://localhost:8080)
-
-The `GCLOUD_KEY` must be an exported service account key for the cloud project.
-This can be created in [console.cloud.google.com](https://console.cloud.google.com/)
-under `IAM and Admin > Service Accounts > Create Service Account` (export in JSON format).
-
-The key must have access to:
- * Cloud Data Store
- * Google Cloud Storage
-
-(and these must be enabled on the service)
-
-If starting from a new cloud project, APIs for Cloud Data Store will have to be
-activated and it might be necessary to define indexes with
-`gcloud app deploy index.yaml`.
