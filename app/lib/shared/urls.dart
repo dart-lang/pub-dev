@@ -83,6 +83,9 @@ String pkgChangelogUrl(String package, {String version}) =>
 String pkgExampleUrl(String package, {String version}) =>
     pkgPageUrl(package, version: version, pkgPageTab: PkgPageTab.example);
 
+String pkgLicenseUrl(String package, {String version}) =>
+    pkgPageUrl(package, version: version, pkgPageTab: PkgPageTab.license);
+
 String pkgInstallUrl(String package, {String version}) =>
     pkgPageUrl(package, version: version, pkgPageTab: PkgPageTab.install);
 

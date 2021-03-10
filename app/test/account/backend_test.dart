@@ -13,59 +13,61 @@ import '../shared/test_services.dart';
 
 void main() {
   group('AccountBackend', () {
-    testWithServices('No user', () async {
+    testWithProfile('No user', fn: () async {
       final email = await accountBackend.getEmailOfUserId('no-user-id');
       expect(email, isNull);
     });
 
-    testWithServices('Successful lookup', () async {
-      final email = await accountBackend.getEmailOfUserId('a-example-com');
-      expect(email, 'a@example.com');
-      final u1 = await accountBackend.lookupUserById('a-example-com');
-      expect(u1.email, 'a@example.com');
-      expect(u1.oauthUserId, isNull);
-      final u2 =
-          await accountBackend.lookupOrCreateUserByEmail('a@example.com');
-      expect(u2.id, u1.id);
+    testWithProfile('Successful lookup', fn: () async {
+      final user =
+          await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+      final email = await accountBackend.getEmailOfUserId(user.userId);
+      expect(email, 'user@pub.dev');
+      final u = await accountBackend.lookupUserById(user.userId);
+      expect(u.email, 'user@pub.dev');
+      expect(u.oauthUserId, isNotNull);
+      expect(u.id, user.id);
     });
 
-    testWithServices('Create missing user', () async {
+    testWithProfile('Create missing user', fn: () async {
       final oldIds =
           await dbService.query<User>().run().map((u) => u.userId).toList();
 
-      final u = await accountBackend.lookupOrCreateUserByEmail('b@example.com');
+      final u =
+          await accountBackend.lookupOrCreateUserByEmail('new-user@pub.dev');
       expect(u.userId, hasLength(36));
       expect(u.oauthUserId, isNull);
-      expect(u.email, 'b@example.com');
+      expect(u.email, 'new-user@pub.dev');
 
       final ids =
           await dbService.query<User>().run().map((u) => u.userId).toList();
       expect(ids.length, oldIds.length + 1);
-      expect(ids.contains('a-example-com'), isTrue);
       expect(ids.contains(u.userId), isTrue);
     });
 
-    testWithServices('Authenticate: token failure', () async {
+    testWithProfile('Authenticate: token failure', fn: () async {
       await expectLater(
           () => accountBackend.withBearerToken('', () async => null),
           throwsA(isA<AuthenticationException>()));
     });
 
-    testWithServices('Authenticate: pre-created', () async {
+    testWithProfile('Authenticate: pre-created', fn: () async {
       final ids1 = await dbService
           .query<OAuthUserID>()
           .run()
           .map((u) => u.oauthUserId)
-          .toList();
-      expect(ids1, ['admin-pub-dev']);
+          .toSet();
+      expect(ids1, {'admin-pub-dev', 'user-pub-dev'});
 
+      String userId;
       await accountBackend.withBearerToken('a-at-example-dot-com', () async {
         final u1 = await requireAuthenticatedUser();
-        expect(u1.userId, 'a-example-com');
+        expect(u1.userId, hasLength(36));
         expect(u1.email, 'a@example.com');
+        userId = u1.userId;
       });
 
-      final u2 = await accountBackend.lookupUserById('a-example-com');
+      final u2 = await accountBackend.lookupUserById(userId);
       expect(u2.email, 'a@example.com');
       expect(u2.oauthUserId, 'a-example-com');
 
@@ -73,17 +75,17 @@ void main() {
           .query<OAuthUserID>()
           .run()
           .map((u) => u.oauthUserId)
-          .toList();
-      expect(ids2, ['admin-pub-dev', 'a-example-com']);
+          .toSet();
+      expect(ids2, {'admin-pub-dev', 'user-pub-dev', 'a-example-com'});
     });
 
-    testWithServices('Authenticate: new user', () async {
+    testWithProfile('Authenticate: new user', fn: () async {
       final ids1 = await dbService
           .query<OAuthUserID>()
           .run()
           .map((u) => u.oauthUserId)
-          .toList();
-      expect(ids1, ['admin-pub-dev']);
+          .toSet();
+      expect(ids1, {'admin-pub-dev', 'user-pub-dev'});
 
       await accountBackend.withBearerToken('c-at-example-dot-com', () async {
         final u1 = await requireAuthenticatedUser();
@@ -99,9 +101,8 @@ void main() {
           .query<OAuthUserID>()
           .run()
           .map((u) => u.oauthUserId)
-          .toList();
-      ids2.sort();
-      expect(ids2, ['admin-pub-dev', 'c-example-com']);
+          .toSet();
+      expect(ids2, {'admin-pub-dev', 'c-example-com', 'user-pub-dev'});
     });
   });
 }

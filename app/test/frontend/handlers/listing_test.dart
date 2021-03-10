@@ -23,25 +23,29 @@ void main() {
   setUpAll(() => updateLocalBuiltFilesIfNeeded());
 
   group('old api', () {
-    testWithServices('/packages.json', () async {
-      await expectJsonResponse(await issueGet('/packages.json'), body: {
-        'packages': [
-          'https://pub.dev/packages/foobar_pkg.json',
-          'https://pub.dev/packages/lithium.json',
-          'https://pub.dev/packages/helium.json',
-          'https://pub.dev/packages/hydrogen.json',
-        ],
-        'next': null
-      });
+    testWithProfile('/packages.json', fn: () async {
+      await expectJsonResponse(
+        await issueGet('/packages.json'),
+        body: {
+          'packages': [
+            'https://pub.dev/packages/oxygen.json',
+            'https://pub.dev/packages/flutter_titanium.json',
+            'https://pub.dev/packages/neon.json',
+          ],
+          'next': null
+        },
+      );
     });
 
-    testWithServices('/packages/foobar_pkg.json', () async {
-      await expectJsonResponse(await issueGet('/packages/foobar_pkg.json'),
-          body: {
-            'name': 'foobar_pkg',
-            'uploaders': ['hans@juergen.com'],
-            'versions': ['0.2.0-dev', '0.1.1+5'],
-          });
+    testWithProfile('/packages/oxygen.json', fn: () async {
+      await expectJsonResponse(
+        await issueGet('/packages/oxygen.json'),
+        body: {
+          'name': 'oxygen',
+          'uploaders': ['admin@pub.dev'],
+          'versions': ['2.0.0-dev', '1.0.0', '1.2.0']
+        },
+      );
     });
   });
 
@@ -181,7 +185,7 @@ flutter:
   });
 
   group('Rejected queries', () {
-    testWithServices('too long', () async {
+    testWithProfile('too long', fn: () async {
       final longString = 'abcd1234+' * 30;
       await expectHtmlResponse(
         await issueGet('/packages?q=$longString'),
@@ -189,7 +193,7 @@ flutter:
       );
     });
 
-    testWithServices('invalid override', () async {
+    testWithProfile('invalid override', fn: () async {
       await expectHtmlResponse(
         await issueGet('/flutter/packages?q=-sdk:flutter'),
         present: [

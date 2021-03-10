@@ -37,5 +37,24 @@ void main() {
       expect(form.toSearchLink(page: 2),
           '/flutter/packages?q=some+framework&page=2');
     });
+
+    test('removing Dart runtimes', () {
+      final form =
+          SearchForm.parse(query: 'text', sdk: 'dart', runtimes: ['js']);
+      expect(form.toSearchLink(), '/dart/packages?q=text&runtime=js');
+      expect(form.change(sdk: 'dart').toSearchLink(), form.toSearchLink());
+      expect(form.change(sdk: 'flutter').toSearchLink(),
+          '/flutter/packages?q=text');
+      expect(form.change(sdk: 'any').toSearchLink(), '/packages?q=text');
+    });
+
+    test('removing Flutter platforms', () {
+      final form =
+          SearchForm.parse(query: 'text', sdk: 'flutter', platforms: ['web']);
+      expect(form.toSearchLink(), '/flutter/packages?q=text&platform=web');
+      expect(form.change(sdk: 'dart').toSearchLink(), '/dart/packages?q=text');
+      expect(form.change(sdk: 'flutter').toSearchLink(), form.toSearchLink());
+      expect(form.change(sdk: 'any').toSearchLink(), '/packages?q=text');
+    });
   });
 }

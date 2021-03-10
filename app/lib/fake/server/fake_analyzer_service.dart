@@ -16,6 +16,7 @@ import 'package:shelf/shelf_io.dart';
 
 import 'package:pub_dev/analyzer/handlers.dart';
 import 'package:pub_dev/analyzer/pana_runner.dart';
+import 'package:pub_dev/fake/backend/fake_popularity.dart';
 import 'package:pub_dev/job/job.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/handler_helpers.dart';
@@ -38,6 +39,7 @@ class FakeAnalyzerService {
         datastore: _datastore,
         storage: _storage,
         fn: () async {
+          await generateFakePopularityValues();
           final jobProcessor = AnalyzerJobProcessor(aliveCallback: null);
           final jobMaintenance = JobMaintenance(dbService, jobProcessor);
 

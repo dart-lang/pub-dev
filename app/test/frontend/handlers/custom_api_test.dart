@@ -3,98 +3,83 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:test/test.dart';
-import 'package:yaml/yaml.dart';
 
 import 'package:pub_dev/shared/urls.dart' as urls;
 
 import '../../shared/handlers_test_utils.dart';
-import '../../shared/test_models.dart';
 import '../../shared/test_services.dart';
 
 import '_utils.dart';
 
 void main() {
   group('editor api', () {
-    testWithServices('/api/packages', () async {
+    testWithProfile('/api/packages', fn: () async {
       await expectJsonResponse(
         await issueGet('/api/packages', host: urls.legacyHost),
         body: {
           'next_url': null,
           'packages': [
             {
-              'name': 'foobar_pkg',
+              'name': 'oxygen',
               'latest': {
-                'version': '0.1.1+5',
-                'pubspec': loadYaml(foobarStablePubspec),
-                'archive_url': 'https://pub.dartlang.org'
-                    '/packages/foobar_pkg/versions/0.1.1%2B5.tar.gz',
-                'package_url': 'https://pub.dartlang.org'
-                    '/api/packages/foobar_pkg',
-                'url': 'https://pub.dartlang.org'
-                    '/api/packages/foobar_pkg/versions/0.1.1%2B5'
-              },
-            },
-            {
-              'name': 'lithium',
-              'latest': {
-                'version': '5.8.6',
+                'version': '1.2.0',
                 'pubspec': {
-                  'homepage': 'https://example.com/lithium',
-                  'environment': {'sdk': '>=2.4.0 <3.0.0'},
-                  'version': '5.8.6',
-                  'name': 'lithium',
-                  'author': 'hans@juergen.com',
-                  'description': 'lithium is a Dart package'
+                  'name': 'oxygen',
+                  'version': '1.2.0',
+                  'description': 'oxygen is awesome',
+                  'homepage': 'https://oxygen.example.dev/',
+                  'environment': {'sdk': '>=2.6.0 <3.0.0'},
+                  'dependencies': {}
                 },
                 'archive_url':
-                    'https://pub.dartlang.org/packages/lithium/versions/5.8.6.tar.gz',
-                'package_url': 'https://pub.dartlang.org/api/packages/lithium',
+                    'https://pub.dartlang.org/packages/oxygen/versions/1.2.0.tar.gz',
+                'package_url': 'https://pub.dartlang.org/api/packages/oxygen',
                 'url':
-                    'https://pub.dartlang.org/api/packages/lithium/versions/5.8.6'
+                    'https://pub.dartlang.org/api/packages/oxygen/versions/1.2.0'
               }
             },
             {
-              'name': 'helium',
+              'name': 'flutter_titanium',
               'latest': {
-                'version': '2.0.5',
+                'version': '1.10.0',
                 'pubspec': {
-                  'homepage': 'https://example.com/helium',
-                  'environment': {'sdk': '>=2.4.0 <3.0.0'},
-                  'version': '2.0.5',
-                  'name': 'helium',
-                  'author': 'hans@juergen.com',
-                  'flutter': {
-                    'plugin': {'class': 'SomeClass'}
-                  },
-                  'description': 'helium is a Dart package'
+                  'name': 'flutter_titanium',
+                  'version': '1.10.0',
+                  'description': 'flutter_titanium is awesome',
+                  'homepage': 'https://flutter_titanium.example.dev/',
+                  'environment': {'sdk': '>=2.6.0 <3.0.0'},
+                  'dependencies': {
+                    'flutter': {'sdk': 'flutter'}
+                  }
                 },
                 'archive_url':
-                    'https://pub.dartlang.org/packages/helium/versions/2.0.5.tar.gz',
-                'package_url': 'https://pub.dartlang.org/api/packages/helium',
+                    'https://pub.dartlang.org/packages/flutter_titanium/versions/1.10.0.tar.gz',
+                'package_url':
+                    'https://pub.dartlang.org/api/packages/flutter_titanium',
                 'url':
-                    'https://pub.dartlang.org/api/packages/helium/versions/2.0.5'
+                    'https://pub.dartlang.org/api/packages/flutter_titanium/versions/1.10.0'
               }
             },
             {
-              'name': 'hydrogen',
+              'name': 'neon',
               'latest': {
-                'version': '2.0.8',
+                'version': '1.0.0',
                 'pubspec': {
-                  'homepage': 'https://example.com/hydrogen',
-                  'environment': {'sdk': '>=2.4.0 <3.0.0'},
-                  'version': '2.0.8',
-                  'name': 'hydrogen',
-                  'author': 'hans@juergen.com',
-                  'description': 'hydrogen is a Dart package'
+                  'name': 'neon',
+                  'version': '1.0.0',
+                  'description': 'neon is awesome',
+                  'homepage': 'https://neon.example.dev/',
+                  'environment': {'sdk': '>=2.6.0 <3.0.0'},
+                  'dependencies': {}
                 },
                 'archive_url':
-                    'https://pub.dartlang.org/packages/hydrogen/versions/2.0.8.tar.gz',
-                'package_url': 'https://pub.dartlang.org/api/packages/hydrogen',
+                    'https://pub.dartlang.org/packages/neon/versions/1.0.0.tar.gz',
+                'package_url': 'https://pub.dartlang.org/api/packages/neon',
                 'url':
-                    'https://pub.dartlang.org/api/packages/hydrogen/versions/2.0.8'
+                    'https://pub.dartlang.org/api/packages/neon/versions/1.0.0'
               }
-            },
-          ],
+            }
+          ]
         },
       );
     });

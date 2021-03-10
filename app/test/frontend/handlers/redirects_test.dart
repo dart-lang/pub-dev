@@ -17,7 +17,7 @@ void main() {
   setUpAll(() => updateLocalBuiltFilesIfNeeded());
 
   group('redirects', () {
-    testWithServices('pub.dartlang.org', () async {
+    testWithProfile('pub.dartlang.org', fn: () async {
       Future<void> testRedirect(String path) async {
         await expectRedirectResponse(
             await issueGet(path, host: 'pub.dartlang.org'), '$siteRoot$path');
@@ -30,21 +30,21 @@ void main() {
       await testRedirect('/web');
     });
 
-    testWithServices('dartdocs.org redirect', () async {
+    testWithProfile('dartdocs.org redirect', fn: () async {
       await expectRedirectResponse(
         await issueGet('/documentation/pkg/latest/', host: 'dartdocs.org'),
         '$siteRoot/documentation/pkg/latest/',
       );
     });
 
-    testWithServices('www.dartdocs.org redirect', () async {
+    testWithProfile('www.dartdocs.org redirect', fn: () async {
       await expectRedirectResponse(
         await issueGet('/documentation/pkg/latest/', host: 'www.dartdocs.org'),
         '$siteRoot/documentation/pkg/latest/',
       );
     });
 
-    testWithServices('/doc', () async {
+    testWithProfile('/doc', fn: () async {
       for (final path in redirectPaths.keys) {
         final redirectUrl = 'https://dart.dev/tools/pub/${redirectPaths[path]}';
         if (path.endsWith('/')) {
@@ -58,55 +58,55 @@ void main() {
       }
     });
 
-    testWithServices('/flutter/plugins', () async {
+    testWithProfile('/flutter/plugins', fn: () async {
       await expectRedirectResponse(
           await issueGet('/flutter/plugins', host: 'pub.dartlang.org'),
           'https://pub.dev/flutter/packages');
       await expectNotFoundResponse(await issueGet('/flutter/plugins'));
     });
 
-    testWithServices('/search?q=foobar', () async {
+    testWithProfile('/search?q=foobar', fn: () async {
       await expectRedirectResponse(
           await issueGet('/search?q=foobar', host: 'pub.dartlang.org'),
           '$siteRoot/packages?q=foobar');
       await expectNotFoundResponse(await issueGet('/search?q=foobar'));
     });
 
-    testWithServices('/search?q=foobar&page=2', () async {
+    testWithProfile('/search?q=foobar&page=2', fn: () async {
       await expectRedirectResponse(
           await issueGet('/search?q=foobar&page=2', host: 'pub.dartlang.org'),
           '$siteRoot/packages?q=foobar&page=2');
       await expectNotFoundResponse(await issueGet('/search?q=foobar&page=2'));
     });
 
-    testWithServices('/server', () async {
+    testWithProfile('/server', fn: () async {
       await expectRedirectResponse(
           await issueGet('/server', host: 'pub.dartlang.org'), '$siteRoot/');
       await expectNotFoundResponse(await issueGet('/server'));
     });
 
-    testWithServices('/server/packages with parameters', () async {
+    testWithProfile('/server/packages with parameters', fn: () async {
       await expectRedirectResponse(
           await issueGet('/server/packages?sort=top', host: 'pub.dartlang.org'),
           '$siteRoot/packages?sort=top');
       await expectNotFoundResponse(await issueGet('/server/packages?sort=top'));
     });
 
-    testWithServices('/server/packages', () async {
+    testWithProfile('/server/packages', fn: () async {
       await expectRedirectResponse(
           await issueGet('/server/packages', host: 'pub.dartlang.org'),
           '$siteRoot/packages');
       await expectNotFoundResponse(await issueGet('/server/packages'));
     });
 
-    testWithServices('/packages/flutter - redirect', () async {
+    testWithProfile('/packages/flutter - redirect', fn: () async {
       await expectRedirectResponse(
         await issueGet('/packages/flutter'),
         'https://api.flutter.dev/',
       );
     });
 
-    testWithServices('/packages/flutter/versions/* - redirect', () async {
+    testWithProfile('/packages/flutter/versions/* - redirect', fn: () async {
       await expectRedirectResponse(
         await issueGet('/packages/flutter/versions/0.20'),
         'https://api.flutter.dev/',

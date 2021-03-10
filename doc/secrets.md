@@ -8,7 +8,7 @@ entity in Datastore, where the `id` is the key of the secret, while the
 There is a command-line tool to change the secret value in Datastore:
 
 ````bash
-bin/tools/set_secret.dart [key] [value]
+dart bin/tools/set_secret.dart [key] [value]
 ````
 
 Currently used keys are listed in `SecretKey.values`. For example:

@@ -13,6 +13,7 @@ import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
 
+import 'package:pub_dev/fake/backend/fake_popularity.dart';
 import 'package:pub_dev/frontend/handlers.dart';
 import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/service/entrypoint/frontend.dart';
@@ -44,6 +45,7 @@ class FakePubServer {
             await watchForResourceChanges();
           }
 
+          await generateFakePopularityValues();
           nameTracker.startTracking();
 
           final appHandler = createAppHandler();
