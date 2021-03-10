@@ -19,4 +19,10 @@ void main() {
     expect(config.dartdocStorageBucketName == expectedValue, isTrue);
     expect(config.popularityDumpBucketName == expectedValue, isTrue);
   });
+
+  test('Dev config from yaml file', () async {
+    final Configuration config =
+        Configuration.fromYaml('test/shared/test_data/dev-config.yaml');
+    expect(config.projectId == 'dartlang-pub-dev', isTrue);
+  });
 }

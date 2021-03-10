@@ -6,33 +6,74 @@ part of 'configuration.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-Configuration _$ConfigurationFromJson(Map<String, dynamic> json) {
-  return Configuration(
-      projectId: json['projectId'] as String,
-      packageBucketName: json['packageBucketName'] as String,
-      dartdocStorageBucketName: json['dartdocStorageBucketName'] as String,
-      popularityDumpBucketName: json['popularityDumpBucketName'] as String,
-      searchSnapshotBucketName: json['searchSnapshotBucketName'] as String,
-      backupSnapshotBucketName: json['backupSnapshotBucketName'] as String,
-      searchServicePrefix: json['searchServicePrefix'] as String,
-      storageBaseUrl: json['storageBaseUrl'] as String,
-      pubClientAudience: json['pubClientAudience'] as String,
-      pubSiteAudience: json['pubSiteAudience'] as String,
-      adminAudience: json['adminAudience'] as String,
-      gmailRelayServiceAccount: json['gmailRelayServiceAccount'] as String,
-      gmailRelayImpersonatedGSuiteUser:
-          json['gmailRelayImpersonatedGSuiteUser'] as String,
-      uploadSignerServiceAccount: json['uploadSignerServiceAccount'] as String,
-      blockRobots: json['blockRobots'] as bool,
-      productionHosts:
-          (json['productionHosts'] as List)?.map((e) => e as String)?.toList(),
-      primaryApiUri: json['primaryApiUri'] == null
-          ? null
-          : Uri.parse(json['primaryApiUri'] as String),
-      primarySiteUri: json['primarySiteUri'] == null
-          ? null
-          : Uri.parse(json['primarySiteUri'] as String),
-      admins: (json['admins'] as List<AdminId>));
+Configuration _$ConfigurationFromJson(Map json) {
+  return $checkedNew('Configuration', json, () {
+    $checkKeys(json, allowedKeys: const [
+      'packageBucketName',
+      'projectId',
+      'searchServicePrefix',
+      'dartdocStorageBucketName',
+      'popularityDumpBucketName',
+      'searchSnapshotBucketName',
+      'backupSnapshotBucketName',
+      'storageBaseUrl',
+      'pubClientAudience',
+      'pubSiteAudience',
+      'adminAudience',
+      'gmailRelayServiceAccount',
+      'gmailRelayImpersonatedGSuiteUser',
+      'uploadSignerServiceAccount',
+      'blockRobots',
+      'productionHosts',
+      'primaryApiUri',
+      'primarySiteUri',
+      'admins'
+    ]);
+    final val = Configuration(
+      projectId: $checkedConvert(json, 'projectId', (v) => v as String),
+      packageBucketName:
+          $checkedConvert(json, 'packageBucketName', (v) => v as String),
+      dartdocStorageBucketName:
+          $checkedConvert(json, 'dartdocStorageBucketName', (v) => v as String),
+      popularityDumpBucketName:
+          $checkedConvert(json, 'popularityDumpBucketName', (v) => v as String),
+      searchSnapshotBucketName:
+          $checkedConvert(json, 'searchSnapshotBucketName', (v) => v as String),
+      backupSnapshotBucketName:
+          $checkedConvert(json, 'backupSnapshotBucketName', (v) => v as String),
+      searchServicePrefix:
+          $checkedConvert(json, 'searchServicePrefix', (v) => v as String),
+      storageBaseUrl:
+          $checkedConvert(json, 'storageBaseUrl', (v) => v as String),
+      pubClientAudience:
+          $checkedConvert(json, 'pubClientAudience', (v) => v as String),
+      pubSiteAudience:
+          $checkedConvert(json, 'pubSiteAudience', (v) => v as String),
+      adminAudience: $checkedConvert(json, 'adminAudience', (v) => v as String),
+      gmailRelayServiceAccount:
+          $checkedConvert(json, 'gmailRelayServiceAccount', (v) => v as String),
+      gmailRelayImpersonatedGSuiteUser: $checkedConvert(
+          json, 'gmailRelayImpersonatedGSuiteUser', (v) => v as String),
+      uploadSignerServiceAccount: $checkedConvert(
+          json, 'uploadSignerServiceAccount', (v) => v as String),
+      blockRobots: $checkedConvert(json, 'blockRobots', (v) => v as bool),
+      productionHosts: $checkedConvert(json, 'productionHosts',
+          (v) => (v as List)?.map((e) => e as String)?.toList()),
+      primaryApiUri: $checkedConvert(json, 'primaryApiUri',
+          (v) => v == null ? null : Uri.parse(v as String)),
+      primarySiteUri: $checkedConvert(json, 'primarySiteUri',
+          (v) => v == null ? null : Uri.parse(v as String)),
+      admins: $checkedConvert(
+          json,
+          'admins',
+          (v) => (v as List)
+              ?.map((e) => e == null
+                  ? null
+                  : AdminId.fromJson(e as Map<String, dynamic>))
+              ?.toList()),
+    );
+    return val;
+  });
 }
 
 Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
@@ -56,16 +97,24 @@ Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
       'productionHosts': instance.productionHosts,
       'primaryApiUri': instance.primaryApiUri?.toString(),
       'primarySiteUri': instance.primarySiteUri?.toString(),
-      'admins': instance.admins,
+      'admins': instance.admins?.map((e) => e?.toJson())?.toList(),
     };
 
-AdminId _$AdminIdFromJson(Map<String, dynamic> json) {
-  return AdminId(
-    oauthUserId: json['oauthUserId'] as String,
-    email: json['email'] as String,
-    permissions: (json['permissions'] as List)
-        ?.map((e) => _$enumDecodeNullable(_$AdminPermissionEnumMap, e)),
-  );
+AdminId _$AdminIdFromJson(Map json) {
+  return $checkedNew('AdminId', json, () {
+    $checkKeys(json,
+        allowedKeys: const ['oauthUserId', 'email', 'permissions']);
+    final val = AdminId(
+      oauthUserId: $checkedConvert(json, 'oauthUserId', (v) => v as String),
+      email: $checkedConvert(json, 'email', (v) => v as String),
+      permissions: $checkedConvert(
+          json,
+          'permissions',
+          (v) => (v as List)
+              ?.map((e) => _$enumDecodeNullable(_$AdminPermissionEnumMap, e))),
+    );
+    return val;
+  });
 }
 
 Map<String, dynamic> _$AdminIdToJson(AdminId instance) => <String, dynamic>{

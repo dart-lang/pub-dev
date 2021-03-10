@@ -44,7 +44,12 @@ const _fakeSiteAudience = 'fake-site-audience';
 /// The configuration define the location of the Datastore with the
 /// package metadata and the Cloud Storage bucket for the actual package
 /// tar files.
-@JsonSerializable()
+@JsonSerializable(
+  anyMap: true,
+  explicitToJson: true,
+  checked: true,
+  disallowUnrecognizedKeys: true,
+)
 class Configuration {
   /// The name of the Cloud Storage bucket to use for uploaded package content.
   final String packageBucketName;
@@ -136,6 +141,10 @@ class Configuration {
 
   /// The identifier of admins.
   final List<AdminId> admins;
+
+  factory Configuration.fromJson(Map<String, dynamic> json) =>
+      _$ConfigurationFromJson(json);
+  Map<String, dynamic> toJson() => _$ConfigurationToJson(this);
 
   /// Create a configuration for production deployment.
   ///
@@ -407,7 +416,12 @@ class EnvConfig {
 final EnvConfig envConfig = EnvConfig._detect();
 
 /// Data structure to describe an admin user.
-@JsonSerializable()
+@JsonSerializable(
+  anyMap: true,
+  explicitToJson: true,
+  checked: true,
+  disallowUnrecognizedKeys: true,
+)
 class AdminId {
   final String oauthUserId;
   final String email;
@@ -415,6 +429,9 @@ class AdminId {
   /// A set of strings that determine what operations the administrator is
   /// permitted to perform.
   final Set<AdminPermission> permissions;
+  factory AdminId.fromJson(Map<String, dynamic> json) =>
+      _$AdminIdFromJson(json);
+  Map<String, dynamic> toJson() => _$AdminIdToJson(this);
 
   AdminId({
     @required this.oauthUserId,
