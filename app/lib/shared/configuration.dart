@@ -146,110 +146,12 @@ class Configuration {
       _$ConfigurationFromJson(json);
   Map<String, dynamic> toJson() => _$ConfigurationToJson(this);
 
-  /// Create a configuration for production deployment.
-  ///
-  /// This will use the Datastore from the cloud project and the Cloud Storage
-  /// bucket 'pub-packages'. The credentials for accessing the Cloud
-  /// Storage is retrieved from the Datastore.
-  factory Configuration._prod() {
-    final projectId = 'dartlang-pub';
-    return Configuration(
-      projectId: projectId,
-      packageBucketName: 'pub-packages',
-      dartdocStorageBucketName: '$projectId--dartdoc-storage',
-      popularityDumpBucketName: '$projectId--popularity',
-      searchSnapshotBucketName: '$projectId--search-snapshot',
-      backupSnapshotBucketName: '$projectId--backup-snapshots',
-      searchServicePrefix: 'https://search-dot-$projectId.appspot.com',
-      storageBaseUrl: 'https://storage.googleapis.com/',
-      pubClientAudience: _pubClientAudience,
-      pubSiteAudience:
-          '818368855108-e8skaopm5ih5nbb82vhh66k7ft5o7dn3.apps.googleusercontent.com',
-      adminAudience: 'https://pub.dev',
-      gmailRelayServiceAccount:
-          'pub-gsuite-gmail-delegatee@dartlang-pub.iam.gserviceaccount.com',
-      gmailRelayImpersonatedGSuiteUser: 'noreply@pub.dev',
-      uploadSignerServiceAccount:
-          null, // TODO: update before upgrading package:appengine
-      blockRobots: false,
-      productionHosts: const ['pub.dartlang.org', 'pub.dev', 'api.pub.dev'],
-      primaryApiUri: Uri.parse('https://pub.dartlang.org/'),
-      primarySiteUri: Uri.parse('https://pub.dev/'),
-      admins: [
-        AdminId(
-          email: 'assigned-tags-admin@dartlang-pub.iam.gserviceaccount.com',
-          oauthUserId: '106306194842560376600',
-          permissions: {AdminPermission.manageAssignedTags},
-        ),
-        AdminId(
-          email: 'pub-admin-service@dartlang-pub.iam.gserviceaccount.com',
-          oauthUserId: '114536496314409930448',
-          permissions: {AdminPermission.listUsers, AdminPermission.removeUsers},
-        ),
-        AdminId(
-          email: 'pub-moderation-admin@dartlang-pub.iam.gserviceaccount.com',
-          oauthUserId: '108693445730271975989',
-          permissions: {AdminPermission.removePackage},
-        )
-      ],
-    );
-  }
-
   factory Configuration.fromYaml(final String path) {
     final file = File(path);
     final content = file.readAsStringSync();
     final map =
         json.decode(json.encode(loadYaml(content))) as Map<String, dynamic>;
     return _$ConfigurationFromJson(map);
-  }
-
-  /// Create a configuration for development/staging deployment.
-  factory Configuration._dev(final String projectId) {
-    return Configuration(
-      projectId: projectId,
-      packageBucketName: '$projectId--pub-packages',
-      dartdocStorageBucketName: '$projectId--dartdoc-storage',
-      popularityDumpBucketName: '$projectId--popularity',
-      searchSnapshotBucketName: '$projectId--search-snapshot',
-      backupSnapshotBucketName: '$projectId--backup-snapshots',
-      // TODO: Support finding search on localhost when envConfig.isRunningLocally
-      //       is true, this also requires running search on localhost.
-      searchServicePrefix: 'https://search-dot-$projectId.appspot.com',
-      storageBaseUrl: 'https://storage.googleapis.com/',
-      pubClientAudience: _pubClientAudience,
-      pubSiteAudience:
-          '621485135717-idb8t8nnguphtu2drfn2u4ig7r56rm6n.apps.googleusercontent.com',
-      adminAudience: 'https://pub.dev',
-      gmailRelayServiceAccount: null, // disable email sending
-      gmailRelayImpersonatedGSuiteUser: null, // disable email sending
-      uploadSignerServiceAccount:
-          'package-uploader-signer@dartlang-pub-dev.iam.gserviceaccount.com',
-      blockRobots: true,
-      productionHosts: envConfig.isRunningLocally
-          ? ['localhost']
-          : [
-              'dartlang-pub-dev.appspot.com',
-              '${envConfig.gaeService}-dot-dartlang-pub-dev.appspot.com',
-            ],
-      primaryApiUri: Uri.parse('https://dartlang-pub-dev.appspot.com'),
-      primarySiteUri: envConfig.isRunningLocally
-          ? Uri.parse('http://localhost:8080')
-          : Uri.parse(
-              'https://${envConfig.gaeVersion}-dot-dartlang-pub-dev.appspot.com',
-            ),
-      admins: [
-        AdminId(
-          oauthUserId: '111042304059633250784',
-          email: 'istvan.soos@gmail.com',
-          permissions: AdminPermission.values,
-        ),
-        AdminId(
-          oauthUserId: '117672289743137340098',
-          email: 'assigned-tags-admin@dartlang-pub-dev.iam.gserviceaccount.com',
-          permissions: {AdminPermission.manageAssignedTags},
-        )
-      ],
-    );
   }
 
   Configuration({
@@ -276,11 +178,11 @@ class Configuration {
 
   /// Create a configuration based on the environment variables.
   factory Configuration.fromEnv(EnvConfig env) {
-    if (env.gcloudProject == 'dartlang-pub') {
-      return Configuration._prod();
-    } else if (env.gcloudProject.startsWith('dartlang-pub-dev')) {
-      return Configuration._dev(env.gcloudProject);
-    } else {}
+    if (File(env.configPath).existsSync()) {
+      return Configuration.fromYaml(env.configPath);
+    }
+    throw Exception(
+        'File ${env.configPath} doesnt exist. Please ensure PUB_CONFIG env is pointing to the config');
   }
 
   /// Configuration for pkg/fake_pub_server.
@@ -352,6 +254,9 @@ class Configuration {
 
 /// Configuration from the environment variables.
 class EnvConfig {
+  // Config Path points to configuratio file
+  final String configPath;
+
   /// Service in AppEngine that this process is running in, `null` if running
   /// locally.
   final String gaeService;
@@ -386,6 +291,7 @@ class EnvConfig {
     this.previewFlutterSdkDir,
     this.frontendCount,
     this.workerCount,
+    this.configPath,
   );
 
   factory EnvConfig._detect() {
@@ -405,6 +311,7 @@ class EnvConfig {
       Platform.environment['TOOL_PREVIEW_FLUTTER_SDK'],
       frontendCount,
       workerCount,
+      Platform.environment['PUB_CONFIG'],
     );
   }
 

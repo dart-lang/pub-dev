@@ -24,5 +24,9 @@ void main() {
     final Configuration config =
         Configuration.fromYaml('test/shared/test_data/dev-config.yaml');
     expect(config.projectId == 'dartlang-pub-dev', isTrue);
+
+    final Configuration cp = Configuration.test();
+    final d = cp.toJson();
+    print(d);
   });
 }
