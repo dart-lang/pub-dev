@@ -13,6 +13,7 @@ import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:meta/meta.dart';
 import 'package:pub_dev/fake/server/fake_storage_server.dart';
 import 'package:pub_dev/service/csp/backend.dart';
+import 'package:pub_dev/service/youtube/backend.dart';
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
@@ -134,7 +135,10 @@ Future<void> withFakeServices({
     registerDomainVerifier(FakeDomainVerifier());
     registerEmailSender(FakeEmailSender());
     registerUploadSigner(FakeUploadSignerService(configuration.storageBaseUrl));
-    return await _withPubServices(fn);
+    return await _withPubServices(() async {
+      await youtubeBackend.update();
+      return await fn();
+    });
   });
 }
 
@@ -182,6 +186,7 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
               storageService, activeConfiguration.packageBucketName),
           null),
     );
+    registerYoutubeBackend(YoutubeBackend());
 
     // depends on previously registered services
     registerPackageBackend(PackageBackend(dbService, tarballStorage));
@@ -196,6 +201,7 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
     registerScopeExitCallback(dartdocClient.close);
     registerScopeExitCallback(searchClient.close);
     registerScopeExitCallback(searchAdapter.close);
+    registerScopeExitCallback(youtubeBackend.close);
 
     // Create a zone-local flag to indicate that services setup has been completed.
     return await fork(() => Zone.current.fork(zoneValues: {

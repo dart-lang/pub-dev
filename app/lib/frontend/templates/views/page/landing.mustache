@@ -68,3 +68,22 @@
   </div>
 </div>
 {{/has_td}}
+
+{{#has_pow}}
+<div class="home-block home-block-pow">
+  <div class="home-block-content">
+    <h1 class="home-block-title">Package of the Week</h1>
+    <p class="home-block-context-info">
+      Package of the Week is a series of quick, animated videos, each
+      of which covers a particular package
+    </p>
+    {{& pow_mini_list_html }}
+    <div class="home-block-view-all">
+      <a class="home-block-view-all-link"
+         href="https://www.youtube.com/playlist?list=PLjxrf2q8roU1quF6ny8oFHJ2gBdrYN_AK"
+         data-ga-click-event="package-of-the-week-playlist"
+         target="_blank">View playlist</a>
+    </div>
+  </div>
+</div>
+{{/has_pow}}
