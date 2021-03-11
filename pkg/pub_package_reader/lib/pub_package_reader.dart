@@ -59,9 +59,10 @@ class PackageSummary {
 Future<PackageSummary> summarizePackageArchive(
   String archivePath, {
   @required int maxContentLength,
+  bool useNative = false,
 }) async {
   final issues = <ArchiveIssue>[];
-  final tar = await TarArchive.scan(archivePath);
+  final tar = await TarArchive.scan(archivePath, useNative: useNative);
 
   // processing pubspec.yaml
   final pubspecPath = tar.searchForFile(['pubspec.yaml']);
@@ -70,7 +71,7 @@ Future<PackageSummary> summarizePackageArchive(
     return PackageSummary(issues: issues);
   }
 
-  final pubspecContent = await tar.readTarballFile(pubspecPath);
+  final pubspecContent = await tar.readContentAsString(pubspecPath);
   // Large pubspec content should be rejected, as either a storage limit will be
   // limiting it, or it will slow down queries and processing for very little
   // reason.
@@ -123,7 +124,8 @@ Future<PackageSummary> summarizePackageArchive(
 
   Future<String> extractContent(String contentPath) async {
     if (contentPath == null) return null;
-    final content = await tar.readTarballFile(contentPath);
+    final content =
+        await tar.readContentAsString(contentPath, maxLength: maxContentLength);
     if (content != null && content.trim().isEmpty) {
       return null;
     }
