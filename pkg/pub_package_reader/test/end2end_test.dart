@@ -31,20 +31,36 @@ void main() {
     }
 
     test('pana 0.12.19', () async {
+      void verify(PackageSummary summary) {
+        expect(summary.issues, isEmpty);
+        expect(summary.pubspecContent, contains('pana'));
+        expect(summary.readmePath, 'README.md');
+        expect(summary.readmeContent,
+            contains('image links in markdown content are insecure'));
+        expect(summary.changelogPath, 'CHANGELOG.md');
+        expect(summary.changelogContent,
+            contains('penalize outdated package constraints'));
+        expect(summary.examplePath, isNull);
+        expect(summary.exampleContent, isNull);
+        expect(summary.libraries, <String>['models.dart', 'pana.dart']);
+      }
+
       final path = await download('pana', '0.12.19');
-      final summary =
-          await summarizePackageArchive(path, maxContentLength: 128 * 1024);
-      expect(summary.issues, isEmpty);
-      expect(summary.pubspecContent, contains('pana'));
-      expect(summary.readmePath, 'README.md');
-      expect(summary.readmeContent,
-          contains('image links in markdown content are insecure'));
-      expect(summary.changelogPath, 'CHANGELOG.md');
-      expect(summary.changelogContent,
-          contains('penalize outdated package constraints'));
-      expect(summary.examplePath, isNull);
-      expect(summary.exampleContent, isNull);
-      expect(summary.libraries, <String>['models.dart', 'pana.dart']);
+      verify(await summarizePackageArchive(path, maxContentLength: 128 * 1024));
+      verify(await summarizePackageArchive(path,
+          maxContentLength: 128 * 1024, useNative: true));
+    });
+
+    test('maxContentLength', () async {
+      void verify(PackageSummary summary) {
+        expect(summary.readmeContent, '[![Build Status][...]\n\n');
+        expect(summary.changelogContent, '## 0.12.19\n\n* Fi[...]\n\n');
+      }
+
+      final path = await download('pana', '0.12.19');
+      verify(await summarizePackageArchive(path, maxContentLength: 16));
+      verify(await summarizePackageArchive(path,
+          maxContentLength: 16, useNative: true));
     });
   });
 }
