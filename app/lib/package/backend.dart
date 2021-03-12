@@ -175,6 +175,12 @@ class PackageBackend {
         .cast();
   }
 
+  /// Returns the latest releases info of a package.
+  Future<LatestReleases> latestReleases(Package package) async {
+    // TODO: implement runtimeVersion-specific release calculation
+    return package.latestReleases;
+  }
+
   /// Looks up a specific package version.
   ///
   /// Returns null if the version is not a semantic version or if the version

@@ -69,8 +69,9 @@ class JobBackend {
       _logger.info("Couldn't trigger $service job: $package not found.");
       return;
     }
+    final latestReleases = await packageBackend.latestReleases(p);
 
-    version ??= p.latestVersion;
+    version ??= latestReleases.stable.version;
     final pvKey = pKey.append(PackageVersion, id: version);
     final list = await _db.lookup([pvKey]);
     final pv = list[0] as PackageVersion;
@@ -81,10 +82,10 @@ class JobBackend {
     }
 
     final isLatestStable = p.latestVersion == version;
-    final isLatestPrerelease =
-        p.showPrereleaseVersion && p.latestPrereleaseVersion == version;
+    final isLatestPrerelease = latestReleases.showPrerelease &&
+        latestReleases.prerelease.version == version;
     final isLatestPreview =
-        p.showPreviewVersion && p.latestPreviewVersion == version;
+        latestReleases.showPreview && latestReleases.preview.version == version;
     shouldProcess ??= updated == null || updated.isAfter(pv.created);
     shouldProcess |= isHighPriority;
     await createOrUpdate(

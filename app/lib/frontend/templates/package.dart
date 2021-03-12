@@ -209,8 +209,8 @@ String renderPkgInfoBox(PackagePageData data) {
 /// wraps it with content-header.
 String renderPkgHeader(PackagePageData data) {
   final package = data.package;
-  final showPrereleaseVersion = package.showPrereleaseVersion;
-  final showPreviewVersion = package.showPreviewVersion;
+  final showPrereleaseVersion = data.latestReleases.showPrerelease;
+  final showPreviewVersion = data.latestReleases.showPreview;
   final bool showUpdated =
       !data.isLatestStable || showPrereleaseVersion || showPreviewVersion;
 

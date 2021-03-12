@@ -6,6 +6,41 @@ part of pub_dartlang_org.appengine_repository.models;
 // JsonSerializableGenerator
 // **************************************************************************
 
+LatestReleases _$LatestReleasesFromJson(Map<String, dynamic> json) {
+  return LatestReleases(
+    stable: json['stable'] == null
+        ? null
+        : Release.fromJson(json['stable'] as Map<String, dynamic>),
+    prerelease: json['prerelease'] == null
+        ? null
+        : Release.fromJson(json['prerelease'] as Map<String, dynamic>),
+    preview: json['preview'] == null
+        ? null
+        : Release.fromJson(json['preview'] as Map<String, dynamic>),
+  );
+}
+
+Map<String, dynamic> _$LatestReleasesToJson(LatestReleases instance) =>
+    <String, dynamic>{
+      'stable': instance.stable,
+      'prerelease': instance.prerelease,
+      'preview': instance.preview,
+    };
+
+Release _$ReleaseFromJson(Map<String, dynamic> json) {
+  return Release(
+    version: json['version'] as String,
+    published: json['published'] == null
+        ? null
+        : DateTime.parse(json['published'] as String),
+  );
+}
+
+Map<String, dynamic> _$ReleaseToJson(Release instance) => <String, dynamic>{
+      'version': instance.version,
+      'published': instance.published?.toIso8601String(),
+    };
+
 PackageView _$PackageViewFromJson(Map<String, dynamic> json) {
   return PackageView(
     isExternal: json['isExternal'] as bool,
