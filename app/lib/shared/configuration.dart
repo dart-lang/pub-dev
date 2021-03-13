@@ -141,12 +141,12 @@ class Configuration {
       _$ConfigurationFromJson(json);
   Map<String, dynamic> toJson() => _$ConfigurationToJson(this);
 
-  factory Configuration.fromYaml(final String path) {
+  factory Configuration.fromYamlFile(final String path) {
     final file = File(path);
     final content = file.readAsStringSync();
     final map =
         json.decode(json.encode(loadYaml(content))) as Map<String, dynamic>;
-    return _$ConfigurationFromJson(map);
+    return Configuration.fromJson(map);
   }
 
   Configuration({
@@ -174,7 +174,7 @@ class Configuration {
   /// Create a configuration based on the environment variables.
   factory Configuration.fromEnv(EnvConfig env) {
     if (File(env.configPath).existsSync()) {
-      return Configuration.fromYaml(env.configPath);
+      return Configuration.fromYamlFile(env.configPath);
     }
     throw Exception(
         'File ${env.configPath} doesnt exist. Please ensure PUB_CONFIG env is pointing to the config');

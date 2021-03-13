@@ -69,7 +69,9 @@ Configuration _$ConfigurationFromJson(Map json) {
           (v) => (v as List)
               ?.map((e) => e == null
                   ? null
-                  : AdminId.fromJson(e as Map<String, dynamic>))
+                  : AdminId.fromJson((e as Map)?.map(
+                      (k, e) => MapEntry(k as String, e),
+                    )))
               ?.toList()),
     );
     return val;

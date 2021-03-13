@@ -8,7 +8,7 @@ import 'package:pub_dev/shared/configuration.dart';
 
 void main() {
   test('Foo config from yaml file', () async {
-    final Configuration config =
+    final config =
         Configuration.fromYaml('test/shared/test_data/foo_config.yaml');
     final expectedValue = 'foo';
 
