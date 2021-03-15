@@ -37,7 +37,7 @@ void main() {
 
         // spoofed consent, trying to accept it with a different user
         final rs1 = await httpClient.put(
-          'http://localhost:${fakePubServerProcess.port}/api/account/consent/$consentId',
+            Uri.parse('http://localhost:${fakePubServerProcess.port}/api/account/consent/$consentId'),
           headers: {
             'Authorization': 'Bearer somebodyelse-at-example-dot-org',
           },
@@ -49,7 +49,7 @@ void main() {
 
         // accepting it with the good user
         final rs2 = await httpClient.put(
-          'http://localhost:${fakePubServerProcess.port}/api/account/consent/$consentId',
+            Uri.parse('http://localhost:${fakePubServerProcess.port}/api/account/consent/$consentId'),
           headers: {
             'Authorization': 'Bearer dev-at-example-dot-org',
           },
