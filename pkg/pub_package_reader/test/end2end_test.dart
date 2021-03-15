@@ -24,8 +24,8 @@ void main() {
 
     Future<String> download(String package, String version) async {
       final file = File(p.join(tempDir.path, '$package-$version.tar.gz'));
-      final rs = await get(
-          'https://pub.dartlang.org/packages/$package/versions/$version.tar.gz');
+      final rs = await get(Uri.parse(
+          'https://pub.dartlang.org/packages/$package/versions/$version.tar.gz'));
       await file.writeAsBytes(rs.bodyBytes);
       return file.path;
     }
