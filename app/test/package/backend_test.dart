@@ -49,19 +49,19 @@ void main() {
       testWithProfile('default packages, extra earlier', fn: () async {
         final h = await packageBackend.lookupPackage('oxygen');
         h.updated = DateTime(2010);
-        h.latestPrereleasePublished = DateTime(2010);
+        h.lastVersionPublished = DateTime(2010);
         await dbService.commit(inserts: [h]);
         final page = await packageBackend.latestPackages();
         expect(page.packages.last.name, 'oxygen');
       });
 
       testWithProfile('default packages, extra later', fn: () async {
-        final h = await packageBackend.lookupPackage('oxygen');
+        final h = await packageBackend.lookupPackage('neon');
         h.updated = DateTime(2030);
-        h.latestPrereleasePublished = DateTime(2030);
+        h.lastVersionPublished = DateTime(2030);
         await dbService.commit(inserts: [h]);
         final page = await packageBackend.latestPackages();
-        expect(page.packages.first.name, 'oxygen');
+        expect(page.packages.first.name, 'neon');
       });
 
       testWithProfile('default packages, offset: 2', fn: () async {

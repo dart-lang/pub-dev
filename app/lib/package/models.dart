@@ -61,8 +61,7 @@ class Package extends db.ExpandoModel<String> {
   int likes;
 
   /// [DateTime] when the most recently uploaded [PackageVersion] was published.
-  /// TODO: set required: true after backfill was done.
-  @db.DateTimeProperty(required: false)
+  @db.DateTimeProperty(required: true)
   DateTime lastVersionPublished;
 
   /// Key referencing the [PackageVersion] for the latest version of this package, ordered by priority order of
@@ -408,19 +407,16 @@ class PackageVersionInfo extends db.ExpandoModel<String> {
   String version;
 
   /// The created timestamp of the [PackageVersion] (the time of publishing).
-  // TODO: add required: true once we run the backfill and removed outdated entities
-  @db.DateTimeProperty()
+  @db.DateTimeProperty(required: true)
   DateTime versionCreated;
 
-  // TODO: add required: true once we run the backfill and removed outdated entities
-  @db.DateTimeProperty()
+  @db.DateTimeProperty(required: true)
   DateTime updated;
 
   @db.StringListProperty()
   List<String> libraries = <String>[];
 
-  // TODO: add required: true once we run the backfill and removed outdated entities
-  @db.IntProperty()
+  @db.IntProperty(required: true)
   int libraryCount;
 
   /// The [AssetKind] identifier of assets extracted from the archive.
@@ -722,9 +718,7 @@ class PackageView extends Object with FlagMixin {
       previewVersion: previewVersion,
       ellipsizedDescription: version?.ellipsizedDescription,
       created: package.created,
-      updated:
-          // TODO: use only lastVersionPublished after preview backfill is done
-          package.lastVersionPublished ?? package.latestPrereleasePublished,
+      updated: package.lastVersionPublished,
       flags: scoreCard?.flags,
       publisherId: package.publisherId,
       isAwaiting: isAwaiting,
