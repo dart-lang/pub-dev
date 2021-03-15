@@ -6,12 +6,11 @@ import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dev/frontend/handlers/documentation.dart';
-import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/urls.dart';
 
 import '../../frontend/handlers/_utils.dart';
 import '../../shared/handlers_test_utils.dart';
-import '../../shared/test_models.dart';
 import '../../shared/test_services.dart';
 
 void main() {
@@ -71,55 +70,54 @@ void main() {
   });
 
   group('dartdoc handlers', () {
-    testWithServices('/documentation/flutter redirect', () async {
+    testWithProfile('/documentation/flutter redirect', fn: () async {
       await expectRedirectResponse(
         await issueGet('/documentation/flutter'),
         'https://api.flutter.dev/',
       );
     });
 
-    testWithServices('/documentation/flutter/version redirect', () async {
+    testWithProfile('/documentation/flutter/version redirect', fn: () async {
       await expectRedirectResponse(
         await issueGet('/documentation/flutter/version'),
         'https://api.flutter.dev/',
       );
     });
 
-    testWithServices('/documentation/foobar_pkg/bar redirect', () async {
+    testWithProfile('/documentation/foobar_pkg/bar redirect', fn: () async {
       await expectRedirectResponse(
-        await issueGet('/documentation/foobar_pkg/bar'),
-        '/documentation/foobar_pkg/latest/',
+        await issueGet('/documentation/oxygen/bar'),
+        '/documentation/oxygen/latest/',
       );
     });
 
-    testWithServices('trailing slash redirect', () async {
-      await expectRedirectResponse(await issueGet('/documentation/foobar_pkg'),
-          '/documentation/foobar_pkg/latest/');
+    testWithProfile('trailing slash redirect', fn: () async {
+      await expectRedirectResponse(await issueGet('/documentation/oxygen'),
+          '/documentation/oxygen/latest/');
     });
 
-    testWithServices('/documentation/foobar_pkg - no entry redirect', () async {
+    testWithProfile('/documentation/oxygen - no entry redirect', fn: () async {
+      await expectRedirectResponse(await issueGet('/documentation/oxygen/'),
+          '/documentation/oxygen/latest/');
+    });
+
+    testWithProfile('/d/oxygen/latest/ redirect', fn: () async {
       await expectRedirectResponse(
-          await issueGet('/documentation/foobar_pkg/latest/'),
-          '/packages/foobar_pkg/versions');
+          await issueGet('/documentation/oxygen/latest/'),
+          '/packages/oxygen/versions');
     });
 
-    testWithServices('/d/foobar_pkg/latest/ redirect', () async {
+    testWithProfile('/d/oxygen/latest/unknown.html redirect', fn: () async {
       await expectRedirectResponse(
-          await issueGet('/documentation/foobar_pkg/latest/'),
-          '/packages/foobar_pkg/versions');
+          await issueGet('/documentation/oxygen/latest/unknown.html'),
+          '/packages/oxygen/versions');
     });
 
-    testWithServices('/d/foobar_pkg/latest/unknown.html redirect', () async {
-      await expectRedirectResponse(
-          await issueGet('/documentation/foobar_pkg/latest/unknown.html'),
-          '/packages/foobar_pkg/versions');
-    });
-
-    testWithServices('withheld package gets rejected', () async {
-      final pkg = await dbService.lookupValue<Package>(foobarPkgKey);
+    testWithProfile('withheld package gets rejected', fn: () async {
+      final pkg = await packageBackend.lookupPackage('oxygen');
       await dbService.commit(inserts: [pkg..isWithheld = true]);
       await expectNotFoundResponse(
-          await issueGet('/documentation/foobar_pkg/latest/'));
+          await issueGet('/documentation/oxygen/latest/'));
     });
   });
 }

@@ -389,7 +389,7 @@ void main() {
         });
       });
 
-      testWithServices('bad pubspec content: bad version', () async {
+      testWithProfile('bad pubspec content: bad version', fn: () async {
         await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
           final tarball = await packageArchiveBytes(
               pubspecContent: generatePubspecYaml('xyz', 'not-a-version'));

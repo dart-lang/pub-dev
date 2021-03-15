@@ -27,65 +27,63 @@ import '../shared/test_services.dart';
 void main() {
   group('backend', () {
     group('Backend.latestPackages', () {
-      testWithServices('default packages', () async {
+      testWithProfile('default packages', fn: () async {
         final page = await packageBackend.latestPackages();
         expect(page.packages.map((p) => p.name), [
-          'foobar_pkg',
-          'lithium',
-          'helium',
-          'hydrogen',
+          'oxygen',
+          'flutter_titanium',
+          'neon',
         ]);
       });
 
-      testWithServices('default packages with withheld', () async {
-        final pkg = await dbService.lookupValue<Package>(foobarPkgKey);
+      testWithProfile('default packages with withheld', fn: () async {
+        final pkg = await packageBackend.lookupPackage('oxygen');
         await dbService.commit(inserts: [pkg..isWithheld = true]);
         final page = await packageBackend.latestPackages();
         expect(page.packages.map((p) => p.name), [
-          'lithium',
-          'helium',
-          'hydrogen',
+          'flutter_titanium',
+          'neon',
         ]);
       });
 
-      testWithServices('default packages, extra earlier', () async {
-        final h = (await dbService.lookup<Package>([helium.packageKey])).single;
+      testWithProfile('default packages, extra earlier', fn: () async {
+        final h = await packageBackend.lookupPackage('oxygen');
         h.updated = DateTime(2010);
         h.latestPrereleasePublished = DateTime(2010);
         await dbService.commit(inserts: [h]);
         final page = await packageBackend.latestPackages();
-        expect(page.packages.last.name, 'helium');
+        expect(page.packages.last.name, 'oxygen');
       });
 
-      testWithServices('default packages, extra later', () async {
-        final h = (await dbService.lookup<Package>([helium.packageKey])).single;
+      testWithProfile('default packages, extra later', fn: () async {
+        final h = await packageBackend.lookupPackage('oxygen');
         h.updated = DateTime(2030);
         h.latestPrereleasePublished = DateTime(2030);
         await dbService.commit(inserts: [h]);
         final page = await packageBackend.latestPackages();
-        expect(page.packages.first.name, 'helium');
+        expect(page.packages.first.name, 'oxygen');
       });
 
-      testWithServices('default packages, offset: 2', () async {
+      testWithProfile('default packages, offset: 2', fn: () async {
         final page = await packageBackend.latestPackages(offset: 2);
-        expect(page.packages.map((p) => p.name), ['helium', 'hydrogen']);
+        expect(page.packages.map((p) => p.name), ['neon']);
       });
 
-      testWithServices('default packages, offset: 1, limit: 1', () async {
+      testWithProfile('default packages, offset: 1, limit: 1', fn: () async {
         final page = await packageBackend.latestPackages(offset: 1, limit: 1);
-        expect(page.packages.map((p) => p.name), ['lithium']);
+        expect(page.packages.map((p) => p.name), ['flutter_titanium']);
       });
     });
 
     group('Backend.latestPackageVersions', () {
-      testWithServices('one package', () async {
+      testWithProfile('one package', fn: () async {
         final list =
             await packageBackend.latestPackageVersions(offset: 2, limit: 1);
         expect(list.map((pv) => pv.qualifiedVersionKey.toString()),
-            ['helium/2.0.5']);
+            ['neon/1.0.0']);
       });
 
-      testWithServices('empty', () async {
+      testWithProfile('empty', fn: () async {
         final list =
             await packageBackend.latestPackageVersions(offset: 200, limit: 1);
         expect(list, isEmpty);
@@ -93,63 +91,62 @@ void main() {
     });
 
     group('Backend.lookupPackage', () {
-      testWithServices('exists', () async {
-        final p = await packageBackend.lookupPackage('hydrogen');
+      testWithProfile('exists', fn: () async {
+        final p = await packageBackend.lookupPackage('oxygen');
         expect(p, isNotNull);
-        expect(p.name, 'hydrogen');
+        expect(p.name, 'oxygen');
         expect(p.latestVersion, isNotNull);
       });
 
-      testWithServices('does not exists', () async {
+      testWithProfile('does not exists', fn: () async {
         final p = await packageBackend.lookupPackage('not_yet_a_package');
         expect(p, isNull);
       });
     });
 
     group('Backend.lookupPackageVersion', () {
-      testWithServices('exists', () async {
-        final p = await packageBackend.lookupPackage('hydrogen');
+      testWithProfile('exists', fn: () async {
+        final p = await packageBackend.lookupPackage('oxygen');
         final pv = await packageBackend.lookupPackageVersion(
-            'hydrogen', p.latestVersion);
+            'oxygen', p.latestVersion);
         expect(pv, isNotNull);
-        expect(pv.package, 'hydrogen');
+        expect(pv.package, 'oxygen');
         expect(pv.version, p.latestVersion);
       });
 
-      testWithServices('package does not exists', () async {
+      testWithProfile('package does not exists', fn: () async {
         final pv = await packageBackend.lookupPackageVersion(
             'not_yet_a_package', '1.0.0');
         expect(pv, isNull);
       });
 
-      testWithServices('version does not exists', () async {
+      testWithProfile('version does not exists', fn: () async {
         final pv =
-            await packageBackend.lookupPackageVersion('hydrogen', '0.0.0-dev');
+            await packageBackend.lookupPackageVersion('oxygen', '0.0.0-dev');
         expect(pv, isNull);
       });
     });
 
     group('Backend.lookupLatestVersions', () {
-      testWithServices('two packages', () async {
-        final list = await packageBackend
-            .lookupLatestVersions([hydrogen.package, helium.package]);
+      testWithProfile('two packages', fn: () async {
+        final list = await packageBackend.lookupLatestVersions([
+          await packageBackend.lookupPackage('oxygen'),
+          await packageBackend.lookupPackage('neon'),
+        ]);
         expect(list.map((pv) => pv.qualifiedVersionKey.toString()),
-            ['hydrogen/2.0.8', 'helium/2.0.5']);
+            ['oxygen/1.2.0', 'neon/1.0.0']);
       });
     });
 
     group('Backend.versionsOfPackage', () {
-      testWithServices('exists', () async {
-        final list = await packageBackend.versionsOfPackage('hydrogen');
+      testWithProfile('exists', fn: () async {
+        final list = await packageBackend.versionsOfPackage('oxygen');
         final values = list.map((pv) => pv.version).toList();
         values.sort();
-        expect(values, hasLength(13));
-        expect(values.first, '1.0.0');
-        expect(values[5], '1.4.5');
-        expect(values.last, '2.0.8');
+        expect(values, ['1.0.0', '1.2.0', '2.0.0-dev']);
       });
 
-      testWithServices('package does not exists', () async {
+      testWithProfile('package does not exists', fn: () async {
         final list =
             await packageBackend.versionsOfPackage('not_yet_a_package');
         expect(list, isEmpty);
@@ -157,51 +154,48 @@ void main() {
     });
 
     group('Backend.downloadUrl', () {
-      testWithServices('no escape needed', () async {
-        final url = await packageBackend.downloadUrl('hydrogen', '2.0.8');
+      testWithProfile('no escape needed', fn: () async {
+        final url = await packageBackend.downloadUrl('oxygen', '2.0.8');
         expect(url.toString(),
-            contains('/fake-bucket-pub/packages/hydrogen-2.0.8.tar.gz'));
+            contains('/fake-bucket-pub/packages/oxygen-2.0.8.tar.gz'));
       });
 
-      testWithServices('version escape needed', () async {
-        final url = await packageBackend.downloadUrl('hydrogen', '2.0.8+5');
+      testWithProfile('version escape needed', fn: () async {
+        final url = await packageBackend.downloadUrl('oxygen', '2.0.8+5');
         expect(url.toString(),
-            contains('/fake-bucket-pub/packages/hydrogen-2.0.8%2B5.tar.gz'));
+            contains('/fake-bucket-pub/packages/oxygen-2.0.8%2B5.tar.gz'));
       });
     });
   });
 
   group('backend.repository', () {
     group('add uploader', () {
-      testWithServices('not logged in', () async {
-        final pkg = foobarPkgName;
-        final rs = packageBackend.addUploader(pkg, 'a@b.com');
+      testWithProfile('not logged in', fn: () async {
+        final rs = packageBackend.addUploader('oxygen', 'a@b.com');
         await expectLater(rs, throwsA(isA<AuthenticationException>()));
       });
 
-      testWithServices('not authorized', () async {
-        final pkg = foobarPkgName;
-        registerAuthenticatedUser(User()
-          ..id = 'uuid-foo-at-bar-dot-com'
-          ..email = 'foo@bar.com'
-          ..isDeleted = false
-          ..isBlocked = false);
-        final rs = packageBackend.addUploader(pkg, 'a@b.com');
-        await expectLater(rs, throwsA(isA<AuthorizationException>()));
+      testWithProfile('not authorized', fn: () async {
+        await accountBackend.withBearerToken('foo-at-bar-dot-com', () async {
+          final rs = packageBackend.addUploader('oxygen', 'a@b.com');
+          await expectLater(rs, throwsA(isA<AuthorizationException>()));
+        });
       });
 
-      testWithServices('blocked user', () async {
-        final user = await dbService.lookupValue<User>(hansUser.key);
+      testWithProfile('blocked user', fn: () async {
+        final user =
+            await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
         await dbService.commit(inserts: [user..isBlocked = true]);
         registerAuthenticatedUser(user);
-        final rs = packageBackend.addUploader(foobarPkgName, 'a@b.com');
+        final rs = packageBackend.addUploader('oxygen', 'a@b.com');
         await expectLater(rs, throwsA(isA<AuthorizationException>()));
       });
 
-      testWithServices('package does not exist', () async {
-        registerAuthenticatedUser(hansUser);
-        final rs = packageBackend.addUploader('no_package', 'a@b.com');
-        await expectLater(rs, throwsA(isA<NotFoundException>()));
+      testWithProfile('package does not exist', fn: () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          final rs = packageBackend.addUploader('no_package', 'a@b.com');
+          await expectLater(rs, throwsA(isA<NotFoundException>()));
+        });
       });
 
       Future<void> testAlreadyExists(
@@ -228,73 +222,66 @@ void main() {
         await testAlreadyExists('p4', [joeUser, hansUser], ucEmail);
       });
 
-      testWithServices('successful', () async {
-        registerAuthenticatedUser(hansUser);
+      testWithProfile('successful', fn: () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          final newUploader = 'somebody@example.com';
+          final rs = packageBackend.addUploader('oxygen', newUploader);
+          await expectLater(
+              rs,
+              throwsA(isException.having(
+                  (e) => '$e',
+                  'text',
+                  "OperationForbidden(403): We've sent an invitation email to $newUploader.\n"
+                      "They'll be added as an uploader after they accept the invitation.")));
 
-        final newUploader = 'somebody@example.com';
-        final rs =
-            packageBackend.addUploader(hydrogen.packageName, newUploader);
-        await expectLater(
-            rs,
-            throwsA(isException.having(
-                (e) => '$e',
-                'text',
-                "OperationForbidden(403): We've sent an invitation email to $newUploader.\n"
-                    "They'll be added as an uploader after they accept the invitation.")));
+          // uploaders do not change yet
+          final p = await packageBackend.lookupPackage('oxygen');
+          expect(p.uploaders, hasLength(1));
 
-        // uploaders do not change yet
-        final list = await dbService.lookup<Package>([hydrogen.packageKey]);
-        final p = list.single;
-        expect(p.uploaders, [hansUser.userId]);
-
-        expect(fakeEmailSender.sentMessages, hasLength(1));
-        final email = fakeEmailSender.sentMessages.single;
-        expect(email.recipients.single.email, 'somebody@example.com');
-        expect(
-            email.subject, 'You have a new invitation to confirm on pub.dev');
-        expect(
-            email.bodyText,
-            contains(
-                'hans@juergen.com has invited you to be an uploader of the package\nhydrogen.\n'));
-
-        // TODO: check consent (after migrating to consent API)
+          expect(fakeEmailSender.sentMessages, hasLength(1));
+          final email = fakeEmailSender.sentMessages.single;
+          expect(email.recipients.single.email, 'somebody@example.com');
+          expect(
+              email.subject, 'You have a new invitation to confirm on pub.dev');
+          expect(
+              email.bodyText,
+              contains(
+                  'admin@pub.dev has invited you to be an uploader of the package oxygen.\n'));
+        });
       });
     });
 
     group('invite uploader', () {
-      testWithServices('not logged in', () async {
-        final pkg = foobarPkgName;
+      testWithProfile('not logged in', fn: () async {
         final rs = packageBackend.inviteUploader(
-            pkg, InviteUploaderRequest(email: 'a@b.com'));
+            'oxygen', InviteUploaderRequest(email: 'a@b.com'));
         await expectLater(rs, throwsA(isA<AuthenticationException>()));
       });
 
-      testWithServices('not authorized', () async {
-        final pkg = foobarPkgName;
-        registerAuthenticatedUser(User()
-          ..id = 'uuid-foo-at-bar-dot-com'
-          ..email = 'foo@bar.com'
-          ..isDeleted = false
-          ..isBlocked = false);
-        final rs = packageBackend.inviteUploader(
-            pkg, InviteUploaderRequest(email: 'a@b.com'));
-        await expectLater(rs, throwsA(isA<AuthorizationException>()));
+      testWithProfile('not authorized', fn: () async {
+        await accountBackend.withBearerToken('foo-at-bar-dot-com', () async {
+          final rs = packageBackend.inviteUploader(
+              'oxygen', InviteUploaderRequest(email: 'a@b.com'));
+          await expectLater(rs, throwsA(isA<AuthorizationException>()));
+        });
       });
 
-      testWithServices('blocked user', () async {
-        final user = await dbService.lookupValue<User>(hansUser.key);
+      testWithProfile('blocked user', fn: () async {
+        final user =
+            await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
         await dbService.commit(inserts: [user..isBlocked = true]);
         registerAuthenticatedUser(user);
         final rs = packageBackend.inviteUploader(
-            foobarPkgName, InviteUploaderRequest(email: 'a@b.com'));
+            'oxygen', InviteUploaderRequest(email: 'a@b.com'));
         await expectLater(rs, throwsA(isA<AuthorizationException>()));
       });
 
-      testWithServices('package does not exist', () async {
-        registerAuthenticatedUser(hansUser);
-        final rs = packageBackend.inviteUploader(
-            'no_package', InviteUploaderRequest(email: 'a@b.com'));
-        await expectLater(rs, throwsA(isA<NotFoundException>()));
+      testWithProfile('package does not exist', fn: () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          final rs = packageBackend.inviteUploader(
+              'no_package', InviteUploaderRequest(email: 'a@b.com'));
+          await expectLater(rs, throwsA(isA<NotFoundException>()));
+        });
       });
 
       Future<void> testAlreadyExists(
@@ -326,136 +313,134 @@ void main() {
         await testAlreadyExists('p4', [joeUser, hansUser], ucEmail);
       });
 
-      testWithServices('successful', () async {
-        registerAuthenticatedUser(hansUser);
+      testWithProfile('successful', fn: () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          final newUploader = 'somebody@example.com';
+          final rs = await packageBackend.inviteUploader(
+              'oxygen', InviteUploaderRequest(email: newUploader));
+          expect(rs.emailSent, isTrue);
 
-        final newUploader = 'somebody@example.com';
-        final rs = await packageBackend.inviteUploader(
-            hydrogen.packageName, InviteUploaderRequest(email: newUploader));
-        expect(rs.emailSent, isTrue);
+          // uploaders do not change yet
+          final p = await packageBackend.lookupPackage('oxygen');
+          expect(p.uploaders, hasLength(1));
 
-        // uploaders do not change yet
-        final list = await dbService.lookup<Package>([hydrogen.packageKey]);
-        final p = list.single;
-        expect(p.uploaders, [hansUser.userId]);
-
-        expect(fakeEmailSender.sentMessages, hasLength(1));
-        final email = fakeEmailSender.sentMessages.single;
-        expect(email.recipients.single.email, 'somebody@example.com');
-        expect(
-            email.subject, 'You have a new invitation to confirm on pub.dev');
-        expect(
-            email.bodyText,
-            contains(
-                'hans@juergen.com has invited you to be an uploader of the package\nhydrogen.\n'));
-
-        // TODO: check consent (after migrating to consent API)
+          expect(fakeEmailSender.sentMessages, hasLength(1));
+          final email = fakeEmailSender.sentMessages.single;
+          expect(email.recipients.single.email, 'somebody@example.com');
+          expect(
+              email.subject, 'You have a new invitation to confirm on pub.dev');
+          expect(
+              email.bodyText,
+              contains(
+                  'admin@pub.dev has invited you to be an uploader of the package oxygen.\n'));
+        });
       });
     });
 
     group('GCloudRepository.removeUploader', () {
-      testWithServices('not logged in', () async {
-        final rs = packageBackend.removeUploader('hydrogen', hansUser.email);
+      testWithProfile('not logged in', fn: () async {
+        final rs = packageBackend.removeUploader('oxygen', hansUser.email);
         await expectLater(rs, throwsA(isA<AuthenticationException>()));
       });
 
-      testWithServices('not authorized', () async {
-        // replace uploader for the scope of this test
-        final pkg =
-            (await dbService.lookup<Package>([hydrogen.packageKey])).single;
-        pkg.addUploader(testUserA.userId);
-        pkg.removeUploader(hansUser.userId);
+      testWithProfile('not authorized', fn: () async {
+        await accountBackend.withBearerToken('foo-at-bar-dot-com', () async {
+          final rs = packageBackend.removeUploader('oxygen', 'admin@pub.dev');
+          await expectLater(rs, throwsA(isA<AuthorizationException>()));
+        });
+      });
+
+      testWithProfile('package does not exist', fn: () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          final rs =
+              packageBackend.removeUploader('non_hydrogen', 'user@pub.dev');
+          await expectLater(rs, throwsA(isA<NotFoundException>()));
+        });
+      });
+
+      testWithProfile('cannot remove last uploader', fn: () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          final rs = packageBackend.removeUploader('oxygen', 'admin@pub.dev');
+          await expectLater(
+              rs,
+              throwsA(isException.having((e) => '$e', 'toString',
+                  'OperationForbidden(403): Cannot remove last uploader of a package.')));
+        });
+      });
+
+      testWithProfile('cannot remove non-existent uploader', fn: () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          final rs = packageBackend.removeUploader('oxygen', 'foo2@bar.com');
+          await expectLater(
+              rs,
+              throwsA(isException.having((e) => '$e', 'toString',
+                  'NotFound(404): Could not find `uploader: foo2@bar.com`.')));
+        });
+      });
+
+      testWithProfile('cannot remove self', fn: () async {
+        // adding extra uploader for the scope of this test
+        final pkg = await packageBackend.lookupPackage('oxygen');
+        final user =
+            await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+        pkg.addUploader(user.userId);
         await dbService.commit(inserts: [pkg]);
 
-        registerAuthenticatedUser(hansUser);
-        final rs = packageBackend.removeUploader('hydrogen', hansUser.email);
-        await expectLater(rs, throwsA(isA<AuthorizationException>()));
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          final rs = packageBackend.removeUploader('oxygen', 'admin@pub.dev');
+          await expectLater(
+              rs,
+              throwsA(isException.having((e) => '$e', 'toString',
+                  'OperationForbidden(403): Self-removal is not allowed. Use another account to remove this email address.')));
+        });
       });
 
-      testWithServices('package does not exist', () async {
-        registerAuthenticatedUser(hansUser);
-        final rs =
-            packageBackend.removeUploader('non_hydrogen', hansUser.email);
-        await expectLater(rs, throwsA(isA<NotFoundException>()));
-      });
-
-      testWithServices('cannot remove last uploader', () async {
-        registerAuthenticatedUser(hansUser);
-        final rs = packageBackend.removeUploader('hydrogen', hansUser.email);
-        await expectLater(
-            rs,
-            throwsA(isException.having((e) => '$e', 'toString',
-                'OperationForbidden(403): Cannot remove last uploader of a package.')));
-      });
-
-      testWithServices('cannot remove non-existent uploader', () async {
-        registerAuthenticatedUser(hansUser);
-        final rs = packageBackend.removeUploader('hydrogen', 'foo2@bar.com');
-        await expectLater(
-            rs,
-            throwsA(isException.having((e) => '$e', 'toString',
-                'NotFound(404): Could not find `uploader: foo2@bar.com`.')));
-      });
-
-      testWithServices('cannot remove self', () async {
+      testWithProfile('successful1', fn: () async {
         // adding extra uploader for the scope of this test
-        final pkg =
-            (await dbService.lookup<Package>([hydrogen.packageKey])).single;
-        pkg.addUploader(testUserA.userId);
+        final pkg = await packageBackend.lookupPackage('oxygen');
+        final user =
+            await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+        pkg.addUploader(user.userId);
         await dbService.commit(inserts: [pkg]);
-
-        registerAuthenticatedUser(hansUser);
-        final rs = packageBackend.removeUploader('hydrogen', hansUser.email);
-        await expectLater(
-            rs,
-            throwsA(isException.having((e) => '$e', 'toString',
-                'OperationForbidden(403): Self-removal is not allowed. Use another account to remove this email address.')));
-      });
-
-      testWithServices('successful1', () async {
-        // adding extra uploader for the scope of this test
-        final key = hydrogen.packageKey;
-        final pkg1 = (await dbService.lookup<Package>([key])).single;
-        pkg1.addUploader(testUserA.userId);
-        await dbService.commit(inserts: [pkg1]);
 
         // verify before change
-        final pkg2 = (await dbService.lookup<Package>([key])).single;
-        expect(pkg2.uploaders, [hansUser.userId, testUserA.userId]);
+        final pkg2 = await packageBackend.lookupPackage('oxygen');
+        expect(pkg2.uploaders, contains(user.userId));
 
-        registerAuthenticatedUser(hansUser);
-        await packageBackend.removeUploader('hydrogen', testUserA.email);
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          await packageBackend.removeUploader('oxygen', 'user@pub.dev');
+        });
 
         // verify after change
-        final pkg3 = (await dbService.lookup<Package>([key])).single;
-        expect(pkg3.uploaders, [hansUser.userId]);
+        final pkg3 = await packageBackend.lookupPackage('oxygen');
+        expect(pkg3.uploaders, isNot(contains(user.userId)));
 
         // check audit log record
-        final records = await auditBackend.listRecordsForPackage('hydrogen');
+        final records = await auditBackend.listRecordsForPackage('oxygen');
         final r = records
             .firstWhere((r) => r.kind == AuditLogRecordKind.uploaderRemoved);
         expect(r.summary,
-            '`hans@juergen.com` removed `a@example.com` from the uploaders of package `hydrogen`.');
+            '`admin@pub.dev` removed `user@pub.dev` from the uploaders of package `oxygen`.');
       });
     });
 
     group('GCloudRepository.lookupVersion', () {
       final baseUri = Uri.parse('https://pub.dev');
 
-      testWithServices('package not found', () async {
+      testWithProfile('package not found', fn: () async {
         final rs =
             packageBackend.lookupVersion(baseUri, 'not_hydrogen', '1.0.0');
         await expectLater(rs, throwsA(isA<NotFoundException>()));
       });
 
-      testWithServices('version not found', () async {
-        final rs = packageBackend.lookupVersion(baseUri, 'hydrogen', '0.3.0');
+      testWithProfile('version not found', fn: () async {
+        final rs = packageBackend.lookupVersion(baseUri, 'oxygen', '0.3.0');
         await expectLater(rs, throwsA(isA<NotFoundException>()));
       });
 
-      testWithServices('successful', () async {
+      testWithProfile('successful', fn: () async {
         final version =
-            await packageBackend.lookupVersion(baseUri, 'hydrogen', '1.0.0');
+            await packageBackend.lookupVersion(baseUri, 'oxygen', '1.0.0');
         expect(version, isNotNull);
         expect(version.version, '1.0.0');
       });
@@ -464,133 +449,142 @@ void main() {
     group('listVersions', () {
       final baseUri = Uri.parse('https://pub.dev');
 
-      testWithServices('not found', () async {
+      testWithProfile('not found', fn: () async {
         final rs = packageBackend.listVersions(baseUri, 'non_hydrogen');
         await expectLater(rs, throwsA(isA<NotFoundException>()));
       });
 
-      testWithServices('found', () async {
-        final pd = await packageBackend.listVersions(baseUri, 'hydrogen');
+      testWithProfile('found', fn: () async {
+        final pd = await packageBackend.listVersions(baseUri, 'oxygen');
         expect(pd.versions, isNotEmpty);
-        expect(pd.versions, hasLength(13));
+        expect(pd.versions, hasLength(3));
         expect(pd.versions.first.version, '1.0.0');
-        expect(pd.versions.last.version, '2.0.8');
-        expect(pd.latest.version, '2.0.8');
+        expect(pd.versions.last.version, '2.0.0-dev');
+        expect(pd.latest.version, '1.2.0');
         expect(pd.isDiscontinued, isNull);
       });
 
-      testWithServices('isDiscontinued', () async {
-        registerAuthenticatedUser(hansUser);
-        await packageBackend.updateOptions(
-            'hydrogen', PkgOptions(isDiscontinued: true));
-        final pd = await packageBackend.listVersions(baseUri, 'hydrogen');
+      testWithProfile('isDiscontinued', fn: () async {
+        await accountBackend.withBearerToken(
+            adminAtPubDevAuthToken,
+            () => packageBackend.updateOptions(
+                'oxygen', PkgOptions(isDiscontinued: true)));
+        final pd = await packageBackend.listVersions(baseUri, 'oxygen');
         expect(pd.isDiscontinued, isTrue);
       });
     });
 
     group('options', () {
-      testWithServices('discontinued', () async {
-        registerAuthenticatedUser(hansUser);
-        await packageBackend.updateOptions(
-            'hydrogen', PkgOptions(isDiscontinued: true));
-        final p = await packageBackend.lookupPackage('hydrogen');
-        expect(p.isDiscontinued, isTrue);
-        expect(p.replacedBy, isNull);
-        expect(p.isUnlisted, isFalse);
+      testWithProfile('discontinued', fn: () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          await packageBackend.updateOptions(
+              'oxygen', PkgOptions(isDiscontinued: true));
+          final p = await packageBackend.lookupPackage('oxygen');
+          expect(p.isDiscontinued, isTrue);
+          expect(p.replacedBy, isNull);
+          expect(p.isUnlisted, isFalse);
+        });
       });
 
-      testWithServices('replaced by - without discontinued', () async {
-        registerAuthenticatedUser(hansUser);
-        final rs = packageBackend.updateOptions(
-            'hydrogen', PkgOptions(replacedBy: 'helium'));
-        await expectLater(
-            rs,
-            throwsA(isA<InvalidInputException>().having((e) => '$e', 'text',
-                'InvalidInput(400): "replacedBy" must be set only with "isDiscontinued": true.')));
+      testWithProfile('replaced by - without discontinued', fn: () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          final rs = packageBackend.updateOptions(
+              'oxygen', PkgOptions(replacedBy: 'neon'));
+          await expectLater(
+              rs,
+              throwsA(isA<InvalidInputException>().having((e) => '$e', 'text',
+                  'InvalidInput(400): "replacedBy" must be set only with "isDiscontinued": true.')));
+        });
       });
 
-      testWithServices('replaced by - with discontinued=false', () async {
-        registerAuthenticatedUser(hansUser);
-        final rs = packageBackend.updateOptions('hydrogen',
-            PkgOptions(isDiscontinued: false, replacedBy: 'helium'));
-        await expectLater(
-            rs,
-            throwsA(isA<InvalidInputException>().having((e) => '$e', 'text',
-                'InvalidInput(400): "replacedBy" must be set only with "isDiscontinued": true.')));
+      testWithProfile('replaced by - with discontinued=false', fn: () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          final rs = packageBackend.updateOptions(
+              'oxygen', PkgOptions(isDiscontinued: false, replacedBy: 'neon'));
+          await expectLater(
+              rs,
+              throwsA(isA<InvalidInputException>().having((e) => '$e', 'text',
+                  'InvalidInput(400): "replacedBy" must be set only with "isDiscontinued": true.')));
+        });
       });
 
-      testWithServices('replaced by - same package', () async {
-        registerAuthenticatedUser(hansUser);
-        final rs = packageBackend.updateOptions('hydrogen',
-            PkgOptions(isDiscontinued: true, replacedBy: 'hydrogen'));
-        await expectLater(
-            rs,
-            throwsA(isA<InvalidInputException>().having((e) => '$e', 'text',
-                'InvalidInput(400): "replacedBy" must point to a different package.')));
+      testWithProfile('replaced by - same package', fn: () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          final rs = packageBackend.updateOptions(
+              'oxygen', PkgOptions(isDiscontinued: true, replacedBy: 'oxygen'));
+          await expectLater(
+              rs,
+              throwsA(isA<InvalidInputException>().having((e) => '$e', 'text',
+                  'InvalidInput(400): "replacedBy" must point to a different package.')));
+        });
       });
 
-      testWithServices('replaced by - with invalid / non existing package',
-          () async {
-        registerAuthenticatedUser(hansUser);
-        final rs = packageBackend.updateOptions('hydrogen',
-            PkgOptions(isDiscontinued: true, replacedBy: 'no such package'));
-        await expectLater(
-            rs,
-            throwsA(isA<InvalidInputException>().having((e) => '$e', 'text',
-                'InvalidInput(400): Package specified by "replaceBy" does not exists.')));
+      testWithProfile('replaced by - with invalid / non existing package',
+          fn: () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          final rs = packageBackend.updateOptions('oxygen',
+              PkgOptions(isDiscontinued: true, replacedBy: 'no such package'));
+          await expectLater(
+              rs,
+              throwsA(isA<InvalidInputException>().having((e) => '$e', 'text',
+                  'InvalidInput(400): Package specified by "replaceBy" does not exists.')));
+        });
       });
 
-      testWithServices('replaced by - other package is discontinued too',
-          () async {
-        registerAuthenticatedUser(hansUser);
-        await packageBackend.updateOptions(
-            'hydrogen', PkgOptions(isDiscontinued: true, replacedBy: 'helium'));
-        final rs = packageBackend.updateOptions(
-            'helium', PkgOptions(isDiscontinued: true, replacedBy: 'hydrogen'));
-        await expectLater(
-            rs,
-            throwsA(isA<InvalidInputException>().having((e) => '$e', 'text',
-                'InvalidInput(400): Package specified by "replaceBy" must not be discontinued.')));
+      testWithProfile('replaced by - other package is discontinued too',
+          fn: () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          await packageBackend.updateOptions(
+              'oxygen', PkgOptions(isDiscontinued: true, replacedBy: 'neon'));
+          final rs = packageBackend.updateOptions('flutter_titanium',
+              PkgOptions(isDiscontinued: true, replacedBy: 'oxygen'));
+          await expectLater(
+              rs,
+              throwsA(isA<InvalidInputException>().having((e) => '$e', 'text',
+                  'InvalidInput(400): Package specified by "replaceBy" must not be discontinued.')));
+        });
       });
 
-      testWithServices('replaced by - success', () async {
-        registerAuthenticatedUser(hansUser);
-        await packageBackend.updateOptions(
-            'hydrogen', PkgOptions(isDiscontinued: true, replacedBy: 'helium'));
-        final p = await packageBackend.lookupPackage('hydrogen');
-        expect(p.isDiscontinued, isTrue);
-        expect(p.replacedBy, 'helium');
-        expect(p.isUnlisted, isFalse);
+      testWithProfile('replaced by - success', fn: () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          await packageBackend.updateOptions(
+              'oxygen', PkgOptions(isDiscontinued: true, replacedBy: 'neon'));
+          final p = await packageBackend.lookupPackage('oxygen');
+          expect(p.isDiscontinued, isTrue);
+          expect(p.replacedBy, 'neon');
+          expect(p.isUnlisted, isFalse);
 
-        await packageBackend.updateOptions(
-            'hydrogen', PkgOptions(isDiscontinued: true));
-        final p1 = await packageBackend.lookupPackage('hydrogen');
-        expect(p1.isDiscontinued, isTrue);
-        expect(p1.replacedBy, isNull);
-        expect(p1.isUnlisted, isFalse);
+          await packageBackend.updateOptions(
+              'oxygen', PkgOptions(isDiscontinued: true));
+          final p1 = await packageBackend.lookupPackage('oxygen');
+          expect(p1.isDiscontinued, isTrue);
+          expect(p1.replacedBy, isNull);
+          expect(p1.isUnlisted, isFalse);
 
-        // check audit log record
-        final records = await auditBackend.listRecordsForPackage('hydrogen');
-        final r = records.firstWhere(
-            (r) => r.kind == AuditLogRecordKind.packageOptionsUpdated);
-        expect(r.summary, '`hans@juergen.com` updated package `hydrogen`.');
+          // check audit log record
+          final records = await auditBackend.listRecordsForPackage('oxygen');
+          final r = records.firstWhere(
+              (r) => r.kind == AuditLogRecordKind.packageOptionsUpdated);
+          expect(r.summary, '`admin@pub.dev` updated package `oxygen`.');
 
-        await packageBackend.updateOptions(
-            'hydrogen', PkgOptions(isDiscontinued: false));
-        final p2 = await packageBackend.lookupPackage('hydrogen');
-        expect(p2.isDiscontinued, isFalse);
-        expect(p2.replacedBy, isNull);
-        expect(p2.isUnlisted, isFalse);
+          await packageBackend.updateOptions(
+              'oxygen', PkgOptions(isDiscontinued: false));
+          final p2 = await packageBackend.lookupPackage('oxygen');
+          expect(p2.isDiscontinued, isFalse);
+          expect(p2.replacedBy, isNull);
+          expect(p2.isUnlisted, isFalse);
+        });
       });
 
-      testWithServices('unlisted', () async {
-        registerAuthenticatedUser(hansUser);
-        await packageBackend.updateOptions(
-            'hydrogen', PkgOptions(isUnlisted: true));
-        final p = await packageBackend.lookupPackage('hydrogen');
-        expect(p.isDiscontinued, isFalse);
-        expect(p.replacedBy, isNull);
-        expect(p.isUnlisted, isTrue);
+      testWithProfile('unlisted', fn: () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          await packageBackend.updateOptions(
+              'oxygen', PkgOptions(isUnlisted: true));
+          final p = await packageBackend.lookupPackage('oxygen');
+          expect(p.isDiscontinued, isFalse);
+          expect(p.replacedBy, isNull);
+          expect(p.isUnlisted, isTrue);
+        });
       });
     });
   });

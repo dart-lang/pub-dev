@@ -26,9 +26,10 @@ void main() {
   group('Get publisher info', () {
     _testNoPackage((client) => client.getPackagePublisher('no_package'));
 
-    testWithServices('traditional package, not authenticated user', () async {
+    testWithProfile('traditional package, not authenticated user',
+        fn: () async {
       final client = createPubApiClient();
-      final rs = await client.getPackagePublisher('hydrogen');
+      final rs = await client.getPackagePublisher('oxygen');
       expect(rs.toJson(), {'publisherId': null});
     });
   });
@@ -52,40 +53,36 @@ void main() {
       ),
     );
 
-    testWithServices('User is not an uploader', () async {
-      final p = await packageBackend.lookupPackage('hydrogen');
-      p.uploaders = [joeUser.userId];
-      await dbService.commit(inserts: [p]);
-
-      final client = createPubApiClient(authToken: hansUser.userId);
+    testWithProfile('User is not an uploader', fn: () async {
+      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
       final rs = client.setPackagePublisher(
-        hydrogen.packageName,
+        'oxygen',
         PackagePublisherInfo(publisherId: 'example.com'),
       );
       await expectApiException(rs,
           status: 403, code: 'InsufficientPermissions');
     });
 
-    testWithServices('successful', () async {
-      final client = createPubApiClient(authToken: hansUser.userId);
+    testWithProfile('successful', fn: () async {
+      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
       final rs = await client.setPackagePublisher(
-        hydrogen.packageName,
+        'oxygen',
         PackagePublisherInfo(publisherId: 'example.com'),
       );
       expect(_json(rs.toJson()), {'publisherId': 'example.com'});
 
-      final p = await packageBackend.lookupPackage('hydrogen');
+      final p = await packageBackend.lookupPackage('oxygen');
       expect(p.publisherId, 'example.com');
       expect(p.uploaders, []);
 
-      final info = await client.getPackagePublisher('hydrogen');
+      final info = await client.getPackagePublisher('oxygen');
       expect(_json(info.toJson()), _json(rs.toJson()));
 
       final auditLogs =
           await auditBackend.listRecordsForPublisher('example.com');
       expect(auditLogs.first.kind, AuditLogRecordKind.packageTransferred);
       expect(auditLogs.first.summary,
-          'Package `hydrogen` was transferred to publisher `example.com` by `hans@juergen.com`.');
+          'Package `oxygen` was transferred to publisher `example.com` by `admin@pub.dev`.');
     });
   });
 
