@@ -13,15 +13,33 @@ window.dataLayer.push({
 // with a 'data-ga-click-event' attribute is clicked.
 window.addEventListener('DOMContentLoaded', function () {
   function sendEvent(e) {
-    // Create a custom event in Google Tag Manager, which we then have
-    // configured GTM to forward to Google Analytics.
-    window.dataLayer.push({
+    var element = e.currentTarget;
+    var customEvent = {
       event: 'custom-event',
       customEventCategory: 'click',
-      customEventAction: e.currentTarget.dataset.gaClickEvent,
+      customEventAction: element.dataset.gaClickEvent,
       customEventLabel: 'path:' + window.location.pathname,
-      customEventValue: 1
-    });
+      customEventValue: 1 
+    };
+
+    if (element.hasAttribute('href')) {
+      var done = false;
+      // Change location after handling the event:
+      // https://developers.google.com/tag-manager/enhanced-ecommerce
+      customEvent.eventCallback = function () {
+        if (!done) {
+          done = true;
+          document.location = element.href;
+        }
+      };
+      e.preventDefault();
+      // Fallback location change in case the Google Tag Manager is blocked.
+      setTimeout(customEvent.eventCallback, 100);
+    }
+
+    // Push custom-event to GTM, which is configured to forward it to
+    // Google Analytics.
+    window.dataLayer.push(customEvent);    
   }
   function addListeners() {
     var elements = document.querySelectorAll('[data-ga-click-event]');
