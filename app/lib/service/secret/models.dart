@@ -22,9 +22,6 @@ abstract class SecretKey {
   /// Site-wide announcement.
   static const String announcement = 'announcement';
 
-  /// JSON-encoded list of Strings that will be considered as spam.
-  static const String spamWords = 'spam-words';
-
   /// Extension for the content security policy's script-src section.
   static const String cspScriptSrc = 'csp-script-src';
 
@@ -48,7 +45,6 @@ abstract class SecretKey {
   static const values = [
     redisConnectionString,
     announcement,
-    spamWords,
     cspScriptSrc,
     cspStyleSrc,
     uploadRestriction,
