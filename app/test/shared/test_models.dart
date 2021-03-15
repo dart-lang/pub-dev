@@ -136,6 +136,7 @@ Package _createFoobarPackage() {
     ..latestVersionKey = foobarStablePVKey
     ..latestPrereleasePublished = DateTime.utc(2015)
     ..latestPrereleaseVersionKey = foobarDevPVKey
+    ..lastVersionPublished = DateTime.utc(2015)
     ..likes = 0
     ..isDiscontinued = false
     ..isUnlisted = false
