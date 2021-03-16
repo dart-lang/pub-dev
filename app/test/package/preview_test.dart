@@ -98,7 +98,7 @@ void main() {
             dbService.emptyKey.append(Package, id: 'pkg'));
         pkg.latestPreviewVersionKey = null;
         pkg.latestPreviewPublished = null;
-        pkg.lastVersionPublished = null;
+        pkg.lastVersionPublished = pkg.created;
         await dbService.commit(inserts: [pkg]);
 
         final u1 = await packageBackend.updateAllPackageVersions(
@@ -113,7 +113,7 @@ void main() {
         expect(p1.showPrereleaseVersion, isFalse);
         expect(p1.showPreviewVersion, isTrue);
         expect(p1.latestPreviewPublished, isNotNull);
-        expect(p1.lastVersionPublished, isNotNull);
+        expect(p1.lastVersionPublished, isNot(pkg.created));
       },
     );
 
@@ -138,7 +138,6 @@ void main() {
         expect(pkg.latestVersion, '0.2.1-nullsafety.0');
         pkg.latestPreviewVersionKey = null;
         pkg.latestPreviewPublished = null;
-        pkg.lastVersionPublished = null;
         await dbService.commit(inserts: [pkg]);
 
         final u1 = await packageBackend.updateAllPackageVersions(
