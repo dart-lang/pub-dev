@@ -59,6 +59,10 @@ void validateHtml(Node root) {
   // All <a target="_blank"> links must have rel="noopener"
   for (Element elem in links) {
     if (elem.attributes['target'] == '_blank') {
+      if (!elem.attributes.containsKey('rel')) {
+        throw AssertionError(
+            '_blank links must have rel=noopener, found: ${elem.outerHtml}.');
+      }
       final rel = elem.attributes['rel']!;
       if (!rel.split(' ').contains('noopener')) {
         throw AssertionError(
