@@ -217,6 +217,11 @@ void main() {
       expect(markdownToHtml('[a][b]', baseUrl: 'http://www.example.com/'),
           '<p>[a][b]</p>\n');
     });
+
+    test('bad image link with attribute', () {
+      expect(markdownToHtml('![demo](src="https://github.com/a/b/c.gif")'),
+          '<p></p>\n');
+    });
   });
 
   group('non-whitelisted inline HTML', () {

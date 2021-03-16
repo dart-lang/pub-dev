@@ -219,17 +219,34 @@ class _RelativeUrlRewriter implements m.NodeVisitor {
 
   @override
   void visitElementAfter(m.Element element) {
+    // check current element
     if (element.tag == 'a') {
-      element.attributes['href'] = _rewriteUrl(element.attributes['href']);
+      _updateAttributes(element, 'href');
     } else if (element.tag == 'img') {
-      element.attributes['src'] =
-          _rewriteUrl(element.attributes['src'], raw: true);
+      _updateAttributes(element, 'src', raw: true);
+    }
+    // remove children that are marked to be removed
+    element.children?.removeWhere((n) =>
+        n is m.Element && n.attributes.containsKey('pub-markdown-remove'));
+  }
+
+  void _updateAttributes(m.Element element, String attrName,
+      {bool raw = false}) {
+    final newUrl = _rewriteUrl(element.attributes[attrName], raw: raw);
+    if (newUrl != null) {
+      element.attributes[attrName] = newUrl;
+    } else {
+      element.attributes.remove(attrName);
+      element.attributes['pub-markdown-remove'] = 'true';
     }
   }
 
   String _rewriteUrl(String url, {bool raw = false}) {
     if (url == null || url.startsWith('#')) {
       return url;
+    }
+    if (Uri.tryParse(url) == null) {
+      return null;
     }
     try {
       String newUrl = url;
