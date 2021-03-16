@@ -13,12 +13,10 @@ import 'package:test/test.dart';
 import 'package:client_data/package_api.dart';
 
 import 'package:pub_dev/account/backend.dart';
-import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/package/backend.dart';
-import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 
 import '../shared/test_models.dart';
@@ -198,28 +196,18 @@ void main() {
         });
       });
 
-      Future<void> testAlreadyExists(
-          String pkg, List<User> uploaders, String newUploader) async {
-        final bundle = generateBundle(pkg, ['1.0.0'], uploaders: uploaders);
-        await dbService.commit(inserts: [
-          bundle.package,
-          ...bundle.versions,
-          ...bundle.infos,
-          ...bundle.assets,
-        ]);
-        await packageBackend.addUploader(pkg, newUploader);
-        final list = await dbService.lookup<Package>([bundle.packageKey]);
-        final p = list.single;
-        expect(p.uploaders, uploaders.map((u) => u.userId));
-      }
+      testWithProfile('already exists', fn: () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          Future<void> verify(String email) async {
+            await packageBackend.addUploader('oxygen', email);
+            final p = await packageBackend.lookupPackage('oxygen');
+            final emails = await accountBackend.getEmailsOfUserIds(p.uploaders);
+            expect(emails.toSet(), {'admin@pub.dev'});
+          }
 
-      testWithServices('already exists', () async {
-        registerAuthenticatedUser(hansUser);
-        final ucEmail = 'Hans@Juergen.Com';
-        await testAlreadyExists('p1', [hansUser], hansUser.email);
-        await testAlreadyExists('p2', [hansUser], ucEmail);
-        await testAlreadyExists('p3', [hansUser, joeUser], ucEmail);
-        await testAlreadyExists('p4', [joeUser, hansUser], ucEmail);
+          await verify('admin@pub.dev');
+          await verify('Admin@Pub.Dev');
+        });
       });
 
       testWithProfile('successful', fn: () async {
@@ -284,33 +272,23 @@ void main() {
         });
       });
 
-      Future<void> testAlreadyExists(
-          String pkg, List<User> uploaders, String newUploader) async {
-        final bundle = generateBundle(pkg, ['1.0.0'], uploaders: uploaders);
-        await dbService.commit(inserts: [
-          bundle.package,
-          ...bundle.versions,
-          ...bundle.infos,
-          ...bundle.assets,
-        ]);
-        final rs = packageBackend.inviteUploader(
-            pkg, InviteUploaderRequest(email: newUploader));
-        await expectLater(
-            rs,
-            throwsA(isA<InvalidInputException>().having((e) => '$e', 'text',
-                'InvalidInput(400): `hans@juergen.com` is already an uploader.')));
-        final list = await dbService.lookup<Package>([bundle.package.key]);
-        final p = list.single;
-        expect(p.uploaders, uploaders.map((u) => u.userId));
-      }
+      testWithProfile('already exists', fn: () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          Future<void> verify(String email) async {
+            final rs = packageBackend.inviteUploader(
+                'oxygen', InviteUploaderRequest(email: email));
+            await expectLater(
+                rs,
+                throwsA(isA<InvalidInputException>().having((e) => '$e', 'text',
+                    'InvalidInput(400): `${email.toLowerCase()}` is already an uploader.')));
+            final p = await packageBackend.lookupPackage('oxygen');
+            final emails = await accountBackend.getEmailsOfUserIds(p.uploaders);
+            expect(emails.toSet(), {'admin@pub.dev'});
+          }
 
-      testWithServices('already exists', () async {
-        registerAuthenticatedUser(hansUser);
-        final ucEmail = 'Hans@Juergen.Com';
-        await testAlreadyExists('p1', [hansUser], hansUser.email);
-        await testAlreadyExists('p2', [hansUser], ucEmail);
-        await testAlreadyExists('p3', [hansUser, joeUser], ucEmail);
-        await testAlreadyExists('p4', [joeUser, hansUser], ucEmail);
+          await verify('admin@pub.dev');
+          await verify('Admin@Pub.Dev');
+        });
       });
 
       testWithProfile('successful', fn: () async {
