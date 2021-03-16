@@ -8,6 +8,7 @@ import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
 import '_cache.dart';
+import '_utils.dart';
 import 'layout.dart';
 import 'misc.dart' show renderMiniList;
 
@@ -58,10 +59,10 @@ String _renderPoW(List<PkgOfWeekVideo> videos) {
   return templateCache.renderTemplate('landing/pow_video_list', {
     'videos': videos
         .map((v) => {
-              'video_url': v.videoUrl,
+              'video_url': htmlAttrEscape.convert(v.videoUrl),
               'title': v.title,
               'description': v.description,
-              'thumbnail_url': v.thumbnailUrl,
+              'thumbnail_url': htmlAttrEscape.convert(v.thumbnailUrl),
             })
         .toList(),
   });

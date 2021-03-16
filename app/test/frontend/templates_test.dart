@@ -32,6 +32,7 @@ import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/scorecard/models.dart';
 import 'package:pub_dev/search/search_form.dart';
 import 'package:pub_dev/search/search_service.dart';
+import 'package:pub_dev/service/youtube/backend.dart';
 import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/shared/utils.dart' show shortDateFormat;
 import 'package:pub_validations/html/html_validation.dart';
@@ -152,6 +153,12 @@ void main() {
             reportTypes: ['pana'],
           ),
         ),
+      ], topPoWVideos: [
+        PkgOfWeekVideo(
+            videoId: 'video-id',
+            title: 'POW Title',
+            description: 'POW description',
+            thumbnailUrl: 'http://youtube.com/image/thumbnail?i=123&s=4'),
       ]);
       expectGoldenFile(html, 'landing_page.html');
     });
