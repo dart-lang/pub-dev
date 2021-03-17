@@ -218,9 +218,9 @@ void main() {
           '<p>[a][b]</p>\n');
     });
 
-    test('bad link, keeping link content', () {
-      expect(markdownToHtml('[awesome](href="https://github.com/a/b/c.gif")'),
-          '<p>awesome</p>\n');
+    test('bad link, keeping link text', () {
+      expect(markdownToHtml('[my illegal url](http://illegal@@thing)'),
+          '<p>my illegal url</p>\n');
     });
 
     test('complex link inside a quote, keeping link content', () {
