@@ -10,7 +10,6 @@ import '../../shared/urls.dart' as urls;
 import '_cache.dart';
 import '_utils.dart';
 import 'layout.dart';
-import 'misc.dart' show renderMiniList;
 
 /// Renders the `views/page/landing.mustache` template.
 String renderLandingPage({
@@ -45,7 +44,7 @@ String renderLandingPage({
     'has_pow': hasPoW,
     'pow_mini_list_html': hasPoW ? _renderPoW(topPoWVideos) : null,
   };
-  final String content = templateCache.renderTemplate('page/landing', values);
+  final content = templateCache.renderTemplate('landing/page', values);
   return renderLayoutPage(
     PageType.landing,
     content,
@@ -66,4 +65,19 @@ String _renderPoW(List<PkgOfWeekVideo> videos) {
             })
         .toList(),
   });
+}
+
+/// Renders the `views/pkg/mini_list.mustache` template.
+String renderMiniList(List<PackageView> packages) {
+  final values = {
+    'packages': packages.map((package) {
+      return {
+        'name': package.name,
+        'publisher_id': package.publisherId,
+        'package_url': urls.pkgPageUrl(package.name),
+        'ellipsized_description': package.ellipsizedDescription,
+      };
+    }).toList(),
+  };
+  return templateCache.renderTemplate('landing/mini_list', values);
 }

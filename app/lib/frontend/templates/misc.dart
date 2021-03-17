@@ -6,9 +6,7 @@ import 'dart:io' as io;
 
 import 'package:path/path.dart' as p;
 
-import '../../package/models.dart';
 import '../../shared/markdown.dart';
-import '../../shared/urls.dart' as urls;
 import '../static_files.dart' as static_files;
 
 import '_cache.dart';
@@ -169,19 +167,4 @@ String renderErrorPage(String title, String message) {
     title: title,
     noIndex: true,
   );
-}
-
-/// Renders the `views/pkg/mini_list.mustache` template.
-String renderMiniList(List<PackageView> packages) {
-  final values = {
-    'packages': packages.map((package) {
-      return {
-        'name': package.name,
-        'publisher_id': package.publisherId,
-        'package_url': urls.pkgPageUrl(package.name),
-        'ellipsized_description': package.ellipsizedDescription,
-      };
-    }).toList(),
-  };
-  return templateCache.renderTemplate('pkg/mini_list', values);
 }
