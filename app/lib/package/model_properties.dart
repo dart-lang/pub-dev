@@ -9,7 +9,7 @@ import 'dart:convert';
 import 'package:pana/pana.dart' show SdkConstraintStatus;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspek
-    show HostedDependency, Pubspec;
+    show Dependency, Pubspec;
 import 'package:yaml/yaml.dart';
 
 import '../shared/datastore.dart';
@@ -61,12 +61,8 @@ class Pubspec {
     return _canonicalVersion;
   }
 
-  Iterable<String> get dependencies => _inner.dependencies.keys;
-
-  bool isHostedDependency(String package) {
-    final d = _inner.dependencies[package];
-    return d is pubspek.HostedDependency;
-  }
+  Iterable<String> get dependencyNames => _inner.dependencies.keys;
+  Map<String, pubspek.Dependency> get dependencies => _inner.dependencies;
 
   Iterable<String> get devDependencies => _inner.devDependencies.keys;
 
