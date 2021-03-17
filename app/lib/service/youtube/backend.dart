@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/youtube/v3.dart';
@@ -80,12 +81,35 @@ class YoutubeBackend {
     _packageOfWeekVideos = videos;
   }
 
-  // TODO: implement randomized selection (but always keep the first item)
-  List<PkgOfWeekVideo> getTopPackageOfWeekVideos({int count = 4}) {
+  /// Returns a randomized selection from the list of videos.
+  /// - The first item will be always kept as the first selected.
+  /// - The second item will be selected from items #1-#3. (from the last month)
+  /// - The rest of the items selection will be selected randomly.
+  /// - Random seed changes hourly.
+  List<PkgOfWeekVideo> getTopPackageOfWeekVideos({
+    int count = 4,
+    math.Random random,
+  }) {
     if (_packageOfWeekVideos == null) {
       return const <PkgOfWeekVideo>[];
     }
-    return _packageOfWeekVideos.take(count).toList();
+    final now = DateTime.now().toUtc();
+    random ??= math.Random(
+        now.year * 1000 + now.month * 100 + now.day * 10 + now.hour);
+    final selectable = List<PkgOfWeekVideo>.from(_packageOfWeekVideos);
+    final selected = <PkgOfWeekVideo>[];
+    while (selected.length < count && selectable.isNotEmpty) {
+      if (selected.isEmpty) {
+        selected.add(selectable.removeAt(0));
+      } else if (selected.length == 1) {
+        final s =
+            selectable.removeAt(random.nextInt(math.min(3, selectable.length)));
+        selected.add(s);
+      } else {
+        selected.add(selectable.removeAt(random.nextInt(selectable.length)));
+      }
+    }
+    return selected;
   }
 
   /// Cancel timer and free resources.
