@@ -209,6 +209,7 @@ class _UnsafeUrlFilter implements m.NodeVisitor {
 class _RelativeUrlRewriter implements m.NodeVisitor {
   final String baseUrl;
   final String baseDir;
+  final _elementsToRemove = <m.Element>{};
   _RelativeUrlRewriter(this.baseUrl, this.baseDir);
 
   @override
@@ -226,8 +227,20 @@ class _RelativeUrlRewriter implements m.NodeVisitor {
       _updateAttributes(element, 'src', raw: true);
     }
     // remove children that are marked to be removed
-    element.children?.removeWhere((n) =>
-        n is m.Element && n.attributes.containsKey('pub-markdown-remove'));
+    if (element.children != null &&
+        element.children.isNotEmpty &&
+        _elementsToRemove.isNotEmpty) {
+      for (final r in _elementsToRemove.toList()) {
+        final index = element.children.indexOf(r);
+        if (index == -1) continue;
+
+        if (r.children != null && r.children.isNotEmpty) {
+          element.children.insertAll(index, r.children);
+        }
+        element.children.remove(r);
+        _elementsToRemove.remove(r);
+      }
+    }
   }
 
   void _updateAttributes(m.Element element, String attrName,
@@ -236,8 +249,7 @@ class _RelativeUrlRewriter implements m.NodeVisitor {
     if (newUrl != null) {
       element.attributes[attrName] = newUrl;
     } else {
-      element.attributes.remove(attrName);
-      element.attributes['pub-markdown-remove'] = 'true';
+      _elementsToRemove.add(element);
     }
   }
 

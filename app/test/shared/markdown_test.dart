@@ -218,6 +218,18 @@ void main() {
           '<p>[a][b]</p>\n');
     });
 
+    test('bad link, keeping link content', () {
+      expect(markdownToHtml('[awesome](href="https://github.com/a/b/c.gif")'),
+          '<p>awesome</p>\n');
+    });
+
+    test('complex link inside a quote, keeping link content', () {
+      expect(
+          markdownToHtml(
+              '> [**awesome**](href="https://github.com/a/b/c.gif")'),
+          '<blockquote>\n<p><strong>awesome</strong></p>\n</blockquote>\n');
+    });
+
     test('bad image link with attribute', () {
       expect(markdownToHtml('![demo](src="https://github.com/a/b/c.gif")'),
           '<p></p>\n');
