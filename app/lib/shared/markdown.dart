@@ -222,9 +222,9 @@ class _RelativeUrlRewriter implements m.NodeVisitor {
   void visitElementAfter(m.Element element) {
     // check current element
     if (element.tag == 'a') {
-      _updateAttributes(element, 'href');
+      _updateUrlAttributes(element, 'href');
     } else if (element.tag == 'img') {
-      _updateAttributes(element, 'src', raw: true);
+      _updateUrlAttributes(element, 'src', raw: true);
     }
     // remove children that are marked to be removed
     if (element.children != null &&
@@ -243,7 +243,7 @@ class _RelativeUrlRewriter implements m.NodeVisitor {
     }
   }
 
-  void _updateAttributes(m.Element element, String attrName,
+  void _updateUrlAttributes(m.Element element, String attrName,
       {bool raw = false}) {
     final newUrl = _rewriteUrl(element.attributes[attrName], raw: raw);
     if (newUrl != null) {
