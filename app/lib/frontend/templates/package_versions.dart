@@ -28,10 +28,12 @@ String renderPkgVersionsPage(
   final previewVersionRows = <String>[];
   final stableVersionRows = <String>[];
   final prereleaseVersionRows = <String>[];
-  final latestPrereleaseVersion = versions.firstWhere(
-    (v) => v.version == data.package.latestPrereleaseVersion,
-    orElse: () => null,
-  );
+  final latestPrereleaseVersion = data.latestReleases.showPrerelease
+      ? versions.firstWhere(
+          (v) => v.version == data.latestReleases.prerelease.version,
+          orElse: () => null,
+        )
+      : null;
   for (int i = 0; i < versions.length; i++) {
     final version = versions[i];
     final url = versionDownloadUrls[i].toString();
@@ -49,7 +51,7 @@ String renderPkgVersionsPage(
   final htmlBlocks = <String>[];
   if (stableVersionRows.isNotEmpty &&
       prereleaseVersionRows.isNotEmpty &&
-      data.package.showPrereleaseVersion) {
+      data.latestReleases.showPrerelease) {
     htmlBlocks.add(
         '<p>The latest prerelease was <a href="#prerelease">${latestPrereleaseVersion.version}</a> '
         'on ${latestPrereleaseVersion.shortCreated}.</p>');

@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:logging/logging.dart';
+import 'package:pub_dev/package/backend.dart';
 
 import '../package/models.dart';
 import '../scorecard/models.dart';
@@ -72,7 +73,7 @@ class DatastoreHeadTaskSource implements TaskSource {
   }
 
   Stream<Task> _poll<M extends Model>(
-      String field, Task Function(M model) modelToTask) async* {
+      String field, FutureOr<Task> Function(M model) modelToTask) async* {
     final Query q = _db.query<M>();
     if (_lastTs != null) {
       q.filter('$field >=', _lastTs);
@@ -84,7 +85,7 @@ class DatastoreHeadTaskSource implements TaskSource {
         _logger.warning(
             'More than 5 minutes elapsed between poll stream entries.');
       });
-      final Task task = modelToTask(model);
+      final task = await modelToTask(model);
       if (task != null) {
         yield task;
       }
@@ -92,8 +93,10 @@ class DatastoreHeadTaskSource implements TaskSource {
     timer?.cancel();
   }
 
-  Task _packageToTask(Package p) =>
-      Task(p.name, p.latestVersion ?? p.latestPrereleaseVersion, p.updated);
+  Future<Task> _packageToTask(Package p) async {
+    final releases = await packageBackend.latestReleases(p);
+    return Task(p.name, releases.stable.version, p.updated);
+  }
 
   Task _versionToTask(PackageVersion pv) =>
       Task(pv.package, pv.version, pv.created);
@@ -124,15 +127,21 @@ abstract class DatastoreHistoryTaskSource implements TaskSource {
       try {
         // Check and schedule the latest stable version of each package.
         final Query packageQuery = _db.query<Package>()..order('-updated');
-        await for (Package p in packageQuery.run().cast<Package>()) {
-          if (await requiresUpdate(p.name, p.latestVersion,
+        await for (final p in packageQuery.run().cast<Package>()) {
+          final releases = await packageBackend.latestReleases(p);
+          if (await requiresUpdate(p.name, releases.stable.version,
               retryFailed: true)) {
-            yield Task(p.name, p.latestVersion, p.updated);
+            yield Task(p.name, releases.stable.version, p.updated);
           }
 
-          if (p.latestVersion != p.latestPrereleaseVersion &&
-              await requiresUpdate(p.name, p.latestPrereleaseVersion)) {
-            yield Task(p.name, p.latestPrereleaseVersion, p.updated);
+          if (releases.showPrerelease &&
+              await requiresUpdate(p.name, releases.prerelease.version)) {
+            yield Task(p.name, releases.prerelease.version, p.updated);
+          }
+
+          if (releases.showPreview &&
+              await requiresUpdate(p.name, releases.preview.version)) {
+            yield Task(p.name, releases.preview.version, p.updated);
           }
         }
 

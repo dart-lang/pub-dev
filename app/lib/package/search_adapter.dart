@@ -147,7 +147,8 @@ class SearchAdapter {
         return null;
       }
 
-      final version = p.latestVersion;
+      final releases = await packageBackend.latestReleases(p);
+      final version = releases.stable.version;
       final pvFuture = packageBackend.lookupPackageVersion(package, version);
       final cardFuture = scoreCardBackend.getScoreCardData(package, version);
       await Future.wait([pvFuture, cardFuture]);
