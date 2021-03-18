@@ -196,7 +196,6 @@ shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
     } catch (error, st) {
       logger.severe('Request handler failed', error, Trace.from(st));
 
-      print(st);
       final title = 'Pub is not feeling well';
       Map<String, String> debugHeaders;
       if (context.traceId != null) {
