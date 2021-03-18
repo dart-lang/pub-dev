@@ -479,7 +479,7 @@ void main() {
     testWithProfile(
       'max versions',
       testProfile: TestProfile(
-        defaultUser: adminUser.email,
+        defaultUser: 'admin@pub.dev',
         packages: <TestPackage>[
           TestPackage(
               name: 'busy_pkg', versions: List.generate(100, (i) => '1.0.$i')),

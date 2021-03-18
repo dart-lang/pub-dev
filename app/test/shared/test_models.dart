@@ -112,17 +112,6 @@ final testUserA = User()
   ..created = DateTime(2019, 01, 01)
   ..isBlocked = false
   ..isDeleted = false;
-final adminUser = User()
-  ..id = 'admin-at-pub-dot-dev'
-  ..oauthUserId = 'admin-pub-dev'
-  ..email = 'admin@pub.dev'
-  ..created = DateTime(2019, 08, 01)
-  ..isBlocked = false
-  ..isDeleted = false;
-final adminOAuthUserID = OAuthUserID()
-  ..id = 'admin-pub-dev'
-  ..userIdKey =
-      Key.emptyKey(Partition(null)).append(User, id: 'admin-at-pub-dot-dev');
 
 Package _createFoobarPackage() {
   return Package()

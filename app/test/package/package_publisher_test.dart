@@ -87,36 +87,35 @@ void main() {
   });
 
   group('Upload with a publisher', () {
-    testWithServices('not an admin', () async {
-      final client = createPubApiClient(authToken: hansUser.userId);
+    testWithProfile('not an admin', fn: () async {
+      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
       await client.setPackagePublisher(
-        hydrogen.packageName,
+        'oxygen',
         PackagePublisherInfo(publisherId: 'example.com'),
       );
-      await dbService.commit(inserts: [
-        publisherMember(hansUser.userId, 'non-admin'),
-      ]);
-      registerAuthenticatedUser(hansUser);
-      final tarball = await packageArchiveBytes(
-          pubspecContent: generatePubspecYaml('hydrogen', '3.0.0'));
-      final rs = packageBackend.upload(Stream.fromIterable([tarball]));
-      await expectLater(
-          rs,
-          throwsA(isA<AuthorizationException>()
-              .having((a) => a.code, 'code', 'InsufficientPermissions')));
+      await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
+        final tarball = await packageArchiveBytes(
+            pubspecContent: generatePubspecYaml('oxygen', '3.0.0'));
+        final rs = packageBackend.upload(Stream.fromIterable([tarball]));
+        await expectLater(
+            rs,
+            throwsA(isA<AuthorizationException>()
+                .having((a) => a.code, 'code', 'InsufficientPermissions')));
+      });
     });
 
-    testWithServices('successful', () async {
-      final client = createPubApiClient(authToken: hansUser.userId);
+    testWithProfile('successful', fn: () async {
+      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
       await client.setPackagePublisher(
-        hydrogen.packageName,
+        'oxygen',
         PackagePublisherInfo(publisherId: 'example.com'),
       );
-      registerAuthenticatedUser(hansUser);
-      final tarball = await packageArchiveBytes(
-          pubspecContent: generatePubspecYaml('hydrogen', '3.0.0'));
-      final pv = await packageBackend.upload(Stream.fromIterable([tarball]));
-      expect(pv.version.toString(), '3.0.0');
+      await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        final tarball = await packageArchiveBytes(
+            pubspecContent: generatePubspecYaml('hydrogen', '3.0.0'));
+        final pv = await packageBackend.upload(Stream.fromIterable([tarball]));
+        expect(pv.version.toString(), '3.0.0');
+      });
     });
   });
 
@@ -266,7 +265,7 @@ void _testPublisherAdminAuthIssues(
 }
 
 void _testNoPackage(Future Function(PubApiClient client) fn) {
-  testWithServices('No puackage with given name', () async {
+  testWithServices('No package with given name', () async {
     final client = createPubApiClient(authToken: hansUser.userId);
     final rs = fn(client);
     await expectApiException(rs, status: 404, code: 'NotFound');

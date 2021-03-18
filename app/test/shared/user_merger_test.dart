@@ -5,32 +5,28 @@
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
+import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
-import 'package:pub_dev/package/models.dart';
-import 'package:pub_dev/publisher/models.dart';
+import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/shared/user_merger.dart';
+import 'package:pub_dev/tool/test_profile/models.dart';
 
-import 'test_models.dart';
 import 'test_services.dart';
 
 void main() {
-  Future<void> _updateUsers() async {
+  Future<void> _corruptAndFix() async {
+    final admin =
+        await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
+    final user = await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
     await dbService.withTransaction((tx) async {
-      final users = await tx.lookup<User>([hansUser.key, joeUser.key]);
-      users.forEach((u) => u.oauthUserId = 'oauth-1');
-      tx.queueMutations(inserts: users);
-      tx.queueMutations(inserts: [
-        OAuthUserID()
-          ..id = 'oauth-1'
-          ..userIdKey =
-              Key.emptyKey(Partition(null)).append(User, id: joeUser.userId)
-      ]);
+      final oauth = await tx.lookupValue<OAuthUserID>(
+          dbService.emptyKey.append(OAuthUserID, id: admin.oauthUserId));
+      final u = await tx.lookupValue<User>(admin.key);
+      u.oauthUserId = user.oauthUserId;
+      tx.queueMutations(inserts: [u], deletes: [oauth.key]);
       await tx.commit();
     });
-  }
-
-  Future<void> _corruptAndFix() async {
-    await _updateUsers();
     final merger = UserMerger(
       db: dbService,
       concurrency: 2,
@@ -39,48 +35,40 @@ void main() {
     await merger.fixAll();
   }
 
-  testWithServices('packages and versions', () async {
-    final control = generateBundle(
-      'control',
-      ['1.0.0'],
-      uploaders: [adminUser],
-    );
-    await dbService.commit(inserts: [
-      control.package,
-      ...control.versions,
-      ...control.infos,
-      ...control.assets,
-    ]);
+  testWithProfile('packages and versions', fn: () async {
+    final admin =
+        await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
+    final user = await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+    final pkg1 = await packageBackend.lookupPackage('oxygen');
+    expect(pkg1.uploaders, [admin.userId]);
 
     await _corruptAndFix();
 
-    final pkgList = await dbService.lookup<Package>([
-      foobarPkgKey,
-      control.packageKey,
-    ]);
-    expect(pkgList[0].uploaders, [joeUser.userId]);
-    expect(pkgList[1].uploaders, [adminUser.userId]);
+    final pkg = await packageBackend.lookupPackage('oxygen');
+    expect(pkg.uploaders, [user.userId]);
 
-    final pvList = await dbService.lookup<PackageVersion>([
-      foobarStablePVKey,
-      control.versions.single.key,
-    ]);
-    expect(pvList[0].uploader, joeUser.userId);
-    expect(pvList[1].uploader, adminUser.userId);
+    final pv =
+        await packageBackend.lookupPackageVersion(pkg.name, pkg.latestVersion);
+    expect(pv.uploader, user.userId);
   });
 
-  testWithServices('session', () async {
+  testWithProfile('session', fn: () async {
+    final admin =
+        await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
+    final user = await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+    final control =
+        await accountBackend.lookupOrCreateUserByEmail('control@pub.dev');
     await dbService.commit(inserts: [
       UserSession()
         ..id = 'target'
-        ..userId = hansUser.userId
-        ..email = 'target@domain.com'
+        ..userId = admin.userId
+        ..email = admin.email
         ..created = DateTime.now()
         ..expires = DateTime.now(),
       UserSession()
         ..id = 'control'
-        ..userId = adminUser.userId
-        ..email = 'control@domain.com'
+        ..userId = control.userId
+        ..email = control.userId
         ..created = DateTime.now()
         ..expires = DateTime.now(),
     ]);
@@ -91,55 +79,58 @@ void main() {
       dbService.emptyKey.append(UserSession, id: 'target'),
       dbService.emptyKey.append(UserSession, id: 'control'),
     ]);
-    expect(list[0].userId, joeUser.userId);
-    expect(list[1].userId, adminUser.userId);
+    expect(list[0].userId, user.userId);
+    expect(list[1].userId, control.userId);
   });
 
-  testWithServices('new consent', () async {
+  testWithProfile('new consent', fn: () async {
+    final admin =
+        await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
+    final user = await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+    final control =
+        await accountBackend.lookupOrCreateUserByEmail('control@pub.dev');
+
     final target1 = Consent.init(
-        email: hansUser.email,
-        kind: 'k1',
-        args: ['1'],
-        fromUserId: adminUser.userId);
+        email: admin.email, kind: 'k1', args: ['1'], fromUserId: user.userId);
     final target2 = Consent.init(
-        email: adminUser.email,
-        kind: 'k2',
-        args: ['2'],
-        fromUserId: hansUser.userId);
-    final control = Consent.init(
-        email: adminUser.email,
+        email: user.email, kind: 'k2', args: ['2'], fromUserId: admin.userId);
+    final controlConsent = Consent.init(
+        email: control.email,
         kind: 'k3',
         args: ['3'],
-        fromUserId: adminUser.userId);
-    await dbService.commit(inserts: [target1, target2, control]);
+        fromUserId: control.userId);
+    await dbService.commit(inserts: [target1, target2, controlConsent]);
 
     await _corruptAndFix();
 
     final list = await dbService.query<Consent>().run().toList();
     final updated1 = list.firstWhere((c) => c.id == target1.id);
     final updated2 = list.firstWhere((c) => c.id == target2.id);
-    final updated3 = list.firstWhere((c) => c.id == control.id);
+    final updated3 = list.firstWhere((c) => c.id == controlConsent.id);
 
-    expect(updated1.fromUserId, adminUser.userId);
-    expect(updated2.fromUserId, joeUser.userId);
-    expect(updated3.fromUserId, adminUser.userId);
+    expect(updated1.fromUserId, user.userId);
+    expect(updated2.fromUserId, user.userId);
+    expect(updated3.fromUserId, control.userId);
   });
 
-  testWithServices('publisher membership', () async {
-    final control = publisherMember(adminUser.userId, 'admin');
-    await dbService.commit(inserts: [control]);
-    final before = await dbService.query<PublisherMember>().run().toList();
-    expect(before.map((m) => m.userId).toList()..sort(), [
-      adminUser.userId,
-      hansUser.userId,
-    ]);
-
+  testWithProfile('publisher membership',
+      testProfile: TestProfile(
+        packages: [],
+        publishers: [
+          TestPublisher(
+              name: 'example.com',
+              members: [TestMember(email: 'admin@pub.dev', role: 'admin')]),
+          TestPublisher(
+              name: 'verified.com',
+              members: [TestMember(email: 'control@pub.dev', role: 'admin')]),
+        ],
+        users: [TestUser(email: 'user@pub.dev', likes: [])],
+      ), fn: () async {
     await _corruptAndFix();
 
-    final after = await dbService.query<PublisherMember>().run().toList();
-    expect(after.map((m) => m.userId).toList()..sort(), [
-      adminUser.userId,
-      joeUser.userId,
-    ]);
+    expect(await publisherBackend.getAdminMemberEmails('example.com'),
+        ['user@pub.dev']);
+    expect(await publisherBackend.getAdminMemberEmails('verified.com'),
+        ['control@pub.dev']);
   });
 }
