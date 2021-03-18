@@ -242,12 +242,14 @@ String renderPkgHeader(PackagePageData data) {
           ? urls.pkgPageUrl(package.name,
               version: data.latestReleases.prerelease.version)
           : null,
-      'prerelease_version': data.latestReleases.prerelease.version,
+      'prerelease_version':
+          showPrereleaseVersion ? data.latestReleases.prerelease.version : null,
       'preview_url': showPreviewVersion
           ? urls.pkgPageUrl(package.name,
               version: data.latestReleases.preview.version)
           : null,
-      'preview_version': data.latestReleases.preview.version,
+      'preview_version':
+          showPreviewVersion ? data.latestReleases.preview.version : null,
     },
     'short_created': data.version.shortCreated,
   });
