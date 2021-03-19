@@ -232,13 +232,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.3.0"
-  equatable:
-    dependency: "direct dev"
-    description:
-      name: equatable
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.0"
   fake_gcloud:
     dependency: "direct main"
     description:

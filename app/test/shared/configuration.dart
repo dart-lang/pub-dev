@@ -24,12 +24,12 @@ void main() {
   test('Prod config from yaml file', () async {
     final config = Configuration.fromYamlFile('config/prod-config.yaml');
     final expectedConfig = Configuration.prodConfig();
-    expect(config, expectedConfig);
+    expect(config.toJson(), expectedConfig.toJson());
   });
 
   test('Staging config from yaml file', () async {
     final config = Configuration.fromYamlFile('config/staging-config.yaml');
     final expectedConfig = Configuration.devConfig();
-    expect(config, expectedConfig);
+    expect(config.toJson(), expectedConfig.toJson());
   });
 }

@@ -6,7 +6,6 @@ import 'dart:convert' show json;
 import 'dart:io';
 
 import 'package:collection/collection.dart' show UnmodifiableSetView;
-import 'package:equatable/equatable.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
@@ -50,7 +49,7 @@ const _fakeSiteAudience = 'fake-site-audience';
   checked: true,
   disallowUnrecognizedKeys: true,
 )
-class Configuration extends Equatable {
+class Configuration {
   /// The name of the Cloud Storage bucket to use for uploaded package content.
   final String packageBucketName;
 
@@ -141,29 +140,6 @@ class Configuration extends Equatable {
 
   /// The identifier of admins.
   final List<AdminId> admins;
-
-  @override
-  List<Object> get props => [
-        projectId,
-        packageBucketName,
-        dartdocStorageBucketName,
-        popularityDumpBucketName,
-        searchSnapshotBucketName,
-        backupSnapshotBucketName,
-        searchServicePrefix,
-        storageBaseUrl,
-        pubClientAudience,
-        pubSiteAudience,
-        adminAudience,
-        gmailRelayServiceAccount,
-        gmailRelayImpersonatedGSuiteUser,
-        uploadSignerServiceAccount,
-        blockRobots,
-        productionHosts,
-        primaryApiUri,
-        primarySiteUri,
-        admins,
-      ];
 
   factory Configuration.fromJson(Map<String, dynamic> json) =>
       _$ConfigurationFromJson(json);
@@ -461,7 +437,7 @@ final EnvConfig envConfig = EnvConfig._detect();
   checked: true,
   disallowUnrecognizedKeys: true,
 )
-class AdminId extends Equatable {
+class AdminId {
   final String oauthUserId;
   final String email;
 
@@ -477,9 +453,6 @@ class AdminId extends Equatable {
     @required this.email,
     @required Iterable<AdminPermission> permissions,
   }) : permissions = UnmodifiableSetView(Set.from(permissions));
-
-  @override
-  List<Object> get props => [oauthUserId, email, permissions];
 }
 
 /// Permission that can be granted to administrators.
