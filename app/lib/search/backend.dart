@@ -185,7 +185,7 @@ class SearchBackend {
     pubspec.devDependencies.forEach((package) {
       dependencies[package] = DependencyTypes.dev;
     });
-    pubspec.dependencies.forEach((package) {
+    pubspec.dependencyNames.forEach((package) {
       dependencies[package] = DependencyTypes.direct;
     });
     return dependencies;

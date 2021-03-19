@@ -162,7 +162,7 @@ class PackageDependencyBuilder {
   }
 
   void addPackageVersion(PackageVersion pv) {
-    final Set<String> depsSet = Set<String>.from(pv.pubspec.dependencies);
+    final Set<String> depsSet = Set<String>.from(pv.pubspec.dependencyNames);
     final Set<String> devDepsSet = Set<String>.from(pv.pubspec.devDependencies);
 
     // First we add the [package] together with the dependencies /

@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'package:client_data/page_data.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' show getRepositoryUrl, LicenseNames;
-import 'package:pub_dev/shared/handlers.dart';
+import 'package:pubspec_parse/pubspec_parse.dart' show HostedDependency;
 
 import '../../package/model_properties.dart';
 import '../../package/models.dart';
@@ -15,6 +15,7 @@ import '../../package/overrides.dart'
     show devDependencyPackages, redirectPackageUrls;
 import '../../search/search_form.dart';
 import '../../shared/email.dart' show EmailAddress;
+import '../../shared/handlers.dart';
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
@@ -51,14 +52,21 @@ String _renderLicense(PackagePageData data) {
 
 String _renderDependencyList(Pubspec pubspec) {
   if (pubspec == null) return null;
-  final packages = pubspec.dependencies.toList()..sort();
+  final dependencies = pubspec.dependencies;
+  final packages = dependencies.keys.toList()..sort();
   if (packages.isEmpty) return null;
   return packages.map((p) {
+    final dep = dependencies[p];
     var href = redirectPackageUrls[p];
-    if (href == null && pubspec.isHostedDependency(p)) {
+    String constraint;
+    if (href == null && dep is HostedDependency) {
       href = urls.pkgPageUrl(p);
+      constraint = dep.version.toString();
     }
-    return href == null ? p : '<a href="$href">$p</a>';
+    final title = constraint == null
+        ? ''
+        : ' title="${htmlAttrEscape.convert(constraint)}"';
+    return href == null ? p : '<a href="$href"$title>$p</a>';
   }).join(', ');
 }
 
