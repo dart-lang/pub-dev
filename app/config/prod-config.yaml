@@ -2,6 +2,7 @@
 # This will use the Datastore from the cloud project and the Cloud Storage
 # bucket 'pub-packages'. The credentials for accessing the Cloud
 # Storage is retrieved from the Datastore.
+---
 packageBucketName: pub-packages
 projectId: dartlang-pub
 searchServicePrefix: https://search-dot-dartlang-pub.appspot.com
@@ -15,7 +16,7 @@ pubSiteAudience: 818368855108-e8skaopm5ih5nbb82vhh66k7ft5o7dn3.apps.googleuserco
 adminAudience: https://pub.dev
 gmailRelayServiceAccount: pub-gsuite-gmail-delegatee@dartlang-pub.iam.gserviceaccount.com
 gmailRelayImpersonatedGSuiteUser: noreply@pub.dev
-uploadSignerServiceAccount: null # TODO: update before upgrading package:appengine
+uploadSignerServiceAccount:
 blockRobots: false
 productionHosts:
 - pub.dartlang.org
@@ -24,15 +25,16 @@ productionHosts:
 primaryApiUri: https://pub.dartlang.org/
 primarySiteUri: https://pub.dev/
 admins:
-- oauthUserId: 106306194842560376600
+- oauthUserId: '106306194842560376600'
   email: assigned-tags-admin@dartlang-pub.iam.gserviceaccount.com
   permissions:
   - manageAssignedTags
-- oauthUserId: 114536496314409930448
+- oauthUserId: '114536496314409930448'
   email: pub-admin-service@dartlang-pub.iam.gserviceaccount.com
   permissions:
-  - listUsers, removeUsers
-- oauthUserId: 108693445730271975989
+  - listUsers
+  - removeUsers
+- oauthUserId: '108693445730271975989'
   email: pub-moderation-admin@dartlang-pub.iam.gserviceaccount.com
   permissions:
   - removePackage

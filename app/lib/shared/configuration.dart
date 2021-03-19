@@ -4,6 +4,7 @@
 
 import 'dart:convert' show json;
 import 'dart:io';
+import 'package:equatable/equatable.dart';
 
 import 'package:collection/collection.dart' show UnmodifiableSetView;
 import 'package:gcloud/service_scope.dart' as ss;
@@ -25,14 +26,14 @@ Configuration get activeConfiguration {
   return config;
 }
 
-/// The OAuth audience (`client_id`) that the `pub` client uses.
-const _pubClientAudience =
-    '818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.googleusercontent.com';
-
 /// Sets the active configuration.
 void registerActiveConfiguration(Configuration configuration) {
   ss.register(_configurationKey, configuration);
 }
+
+/// The OAuth audience (`client_id`) that the `pub` client uses.
+const _pubClientAudience =
+    '818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.googleusercontent.com';
 
 /// Special value to indicate that the site is running in fake mode, and the
 /// client side authentication should use the fake authentication tokens.
@@ -49,7 +50,7 @@ const _fakeSiteAudience = 'fake-site-audience';
   checked: true,
   disallowUnrecognizedKeys: true,
 )
-class Configuration {
+class Configuration extends Equatable {
   /// The name of the Cloud Storage bucket to use for uploaded package content.
   final String packageBucketName;
 
@@ -141,6 +142,29 @@ class Configuration {
   /// The identifier of admins.
   final List<AdminId> admins;
 
+  @override
+  List<Object> get props => [
+        projectId,
+        packageBucketName,
+        dartdocStorageBucketName,
+        popularityDumpBucketName,
+        searchSnapshotBucketName,
+        backupSnapshotBucketName,
+        searchServicePrefix,
+        storageBaseUrl,
+        pubClientAudience,
+        pubSiteAudience,
+        adminAudience,
+        gmailRelayServiceAccount,
+        gmailRelayImpersonatedGSuiteUser,
+        uploadSignerServiceAccount,
+        blockRobots,
+        productionHosts,
+        primaryApiUri,
+        primarySiteUri,
+        admins,
+      ];
+
   factory Configuration.fromJson(Map<String, dynamic> json) =>
       _$ConfigurationFromJson(json);
   Map<String, dynamic> toJson() => _$ConfigurationToJson(this);
@@ -152,28 +176,6 @@ class Configuration {
         json.decode(json.encode(loadYaml(content))) as Map<String, dynamic>;
     return Configuration.fromJson(map);
   }
-
-  Configuration({
-    @required this.projectId,
-    @required this.packageBucketName,
-    @required this.dartdocStorageBucketName,
-    @required this.popularityDumpBucketName,
-    @required this.searchSnapshotBucketName,
-    @required this.backupSnapshotBucketName,
-    @required this.searchServicePrefix,
-    @required this.storageBaseUrl,
-    @required this.pubClientAudience,
-    @required this.pubSiteAudience,
-    @required this.adminAudience,
-    @required this.gmailRelayServiceAccount,
-    @required this.gmailRelayImpersonatedGSuiteUser,
-    @required this.uploadSignerServiceAccount,
-    @required this.blockRobots,
-    @required this.productionHosts,
-    @required this.primaryApiUri,
-    @required this.primarySiteUri,
-    @required this.admins,
-  });
 
   /// Create a configuration for production deployment.
   ///
@@ -225,7 +227,7 @@ class Configuration {
   }
 
   /// Create a configuration for development/staging deployment.
-  factory Configuration._dev() {
+  factory Configuration.devConfig() {
     final projectId = 'dartlang-pub-dev';
     return Configuration(
       projectId: projectId,
@@ -273,6 +275,28 @@ class Configuration {
       ],
     );
   }
+
+  Configuration({
+    @required this.projectId,
+    @required this.packageBucketName,
+    @required this.dartdocStorageBucketName,
+    @required this.popularityDumpBucketName,
+    @required this.searchSnapshotBucketName,
+    @required this.backupSnapshotBucketName,
+    @required this.searchServicePrefix,
+    @required this.storageBaseUrl,
+    @required this.pubClientAudience,
+    @required this.pubSiteAudience,
+    @required this.adminAudience,
+    @required this.gmailRelayServiceAccount,
+    @required this.gmailRelayImpersonatedGSuiteUser,
+    @required this.uploadSignerServiceAccount,
+    @required this.blockRobots,
+    @required this.productionHosts,
+    @required this.primaryApiUri,
+    @required this.primarySiteUri,
+    @required this.admins,
+  });
 
   /// Create a configuration based on the environment variables.
   factory Configuration.fromEnv(EnvConfig env) {
@@ -427,7 +451,7 @@ final EnvConfig envConfig = EnvConfig._detect();
   checked: true,
   disallowUnrecognizedKeys: true,
 )
-class AdminId {
+class AdminId extends Equatable {
   final String oauthUserId;
   final String email;
 
@@ -443,6 +467,9 @@ class AdminId {
     @required this.email,
     @required Iterable<AdminPermission> permissions,
   }) : permissions = UnmodifiableSetView(Set.from(permissions));
+
+  @override
+  List<Object> get props => [oauthUserId, email, permissions];
 }
 
 /// Permission that can be granted to administrators.

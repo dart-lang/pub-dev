@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:test/test.dart';
+import 'dart:convert' show json;
 
 import 'package:pub_dev/shared/configuration.dart';
 
@@ -24,6 +25,12 @@ void main() {
   test('Prod config from yaml file', () async {
     final config = Configuration.fromYamlFile('config/prod-config.yaml');
     final expectedConfig = Configuration.prodConfig();
-    expect(config.projectId, expectedConfig);
+    expect(config, expectedConfig);
+  });
+
+  test('Staging config from yaml file', () async {
+    final config = Configuration.fromYamlFile('config/staging-config.yaml');
+    final expectedConfig = Configuration.devConfig();
+    expect(config, expectedConfig);
   });
 }
