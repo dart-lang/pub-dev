@@ -300,11 +300,21 @@ class Configuration extends Equatable {
 
   /// Create a configuration based on the environment variables.
   factory Configuration.fromEnv(EnvConfig env) {
-    if (File(env.configPath).existsSync()) {
-      return Configuration.fromYamlFile(env.configPath);
+    if (env.gcloudProject == 'dartlang-pub') {
+      return Configuration.prodConfig();
+    } else if (env.gcloudProject == 'dartlang-pub-dev') {
+      return Configuration.devConfig();
+    } else {
+      if (env.configPath.isEmpty) {
+        throw Exception(
+            'Unknown project id: ${env.gcloudProject}. Please setup env var GCLOUD_PROJECT or PUB_SERVER_CONFIG');
+      }
+      if (File(env.configPath).existsSync()) {
+        return Configuration.fromYamlFile(env.configPath);
+      }
+      throw Exception(
+          'File ${env.configPath} doesnt exist. Please ensure PUB_SERVER_CONFIG env is pointing to the config');
     }
-    throw Exception(
-        'File ${env.configPath} doesnt exist. Please ensure PUB_SERVER_CONFIG env is pointing to the config');
   }
 
   /// Configuration for pkg/fake_pub_server.
