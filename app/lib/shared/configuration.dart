@@ -25,6 +25,10 @@ Configuration get activeConfiguration {
   return config;
 }
 
+/// The OAuth audience (`client_id`) that the `pub` client uses.
+const _pubClientAudience =
+    '818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.googleusercontent.com';
+
 /// Sets the active configuration.
 void registerActiveConfiguration(Configuration configuration) {
   ss.register(_configurationKey, configuration);
@@ -170,6 +174,105 @@ class Configuration {
     @required this.primarySiteUri,
     @required this.admins,
   });
+
+  /// Create a configuration for production deployment.
+  ///
+  /// This will use the Datastore from the cloud project and the Cloud Storage
+  /// bucket 'pub-packages'. The credentials for accessing the Cloud
+  /// Storage is retrieved from the Datastore.
+  factory Configuration.prodConfig() {
+    final projectId = 'dartlang-pub';
+    return Configuration(
+      projectId: projectId,
+      packageBucketName: 'pub-packages',
+      dartdocStorageBucketName: '$projectId--dartdoc-storage',
+      popularityDumpBucketName: '$projectId--popularity',
+      searchSnapshotBucketName: '$projectId--search-snapshot',
+      backupSnapshotBucketName: '$projectId--backup-snapshots',
+      searchServicePrefix: 'https://search-dot-$projectId.appspot.com',
+      storageBaseUrl: 'https://storage.googleapis.com/',
+      pubClientAudience: _pubClientAudience,
+      pubSiteAudience:
+          '818368855108-e8skaopm5ih5nbb82vhh66k7ft5o7dn3.apps.googleusercontent.com',
+      adminAudience: 'https://pub.dev',
+      gmailRelayServiceAccount:
+          'pub-gsuite-gmail-delegatee@dartlang-pub.iam.gserviceaccount.com',
+      gmailRelayImpersonatedGSuiteUser: 'noreply@pub.dev',
+      uploadSignerServiceAccount:
+          null, // TODO: update before upgrading package:appengine
+      blockRobots: false,
+      productionHosts: const ['pub.dartlang.org', 'pub.dev', 'api.pub.dev'],
+      primaryApiUri: Uri.parse('https://pub.dartlang.org/'),
+      primarySiteUri: Uri.parse('https://pub.dev/'),
+      admins: [
+        AdminId(
+          email: 'assigned-tags-admin@dartlang-pub.iam.gserviceaccount.com',
+          oauthUserId: '106306194842560376600',
+          permissions: {AdminPermission.manageAssignedTags},
+        ),
+        AdminId(
+          email: 'pub-admin-service@dartlang-pub.iam.gserviceaccount.com',
+          oauthUserId: '114536496314409930448',
+          permissions: {AdminPermission.listUsers, AdminPermission.removeUsers},
+        ),
+        AdminId(
+          email: 'pub-moderation-admin@dartlang-pub.iam.gserviceaccount.com',
+          oauthUserId: '108693445730271975989',
+          permissions: {AdminPermission.removePackage},
+        )
+      ],
+    );
+  }
+
+  /// Create a configuration for development/staging deployment.
+  factory Configuration._dev() {
+    final projectId = 'dartlang-pub-dev';
+    return Configuration(
+      projectId: projectId,
+      packageBucketName: '$projectId--pub-packages',
+      dartdocStorageBucketName: '$projectId--dartdoc-storage',
+      popularityDumpBucketName: '$projectId--popularity',
+      searchSnapshotBucketName: '$projectId--search-snapshot',
+      backupSnapshotBucketName: '$projectId--backup-snapshots',
+      // TODO: Support finding search on localhost when envConfig.isRunningLocally
+      //       is true, this also requires running search on localhost.
+      searchServicePrefix: 'https://search-dot-$projectId.appspot.com',
+      storageBaseUrl: 'https://storage.googleapis.com/',
+      pubClientAudience: _pubClientAudience,
+      pubSiteAudience:
+          '621485135717-idb8t8nnguphtu2drfn2u4ig7r56rm6n.apps.googleusercontent.com',
+      adminAudience: 'https://pub.dev',
+      gmailRelayServiceAccount: null, // disable email sending
+      gmailRelayImpersonatedGSuiteUser: null, // disable email sending
+      uploadSignerServiceAccount:
+          'package-uploader-signer@dartlang-pub-dev.iam.gserviceaccount.com',
+      blockRobots: true,
+      productionHosts: envConfig.isRunningLocally
+          ? ['localhost']
+          : [
+              'dartlang-pub-dev.appspot.com',
+              '${envConfig.gaeService}-dot-dartlang-pub-dev.appspot.com',
+            ],
+      primaryApiUri: Uri.parse('https://dartlang-pub-dev.appspot.com'),
+      primarySiteUri: envConfig.isRunningLocally
+          ? Uri.parse('http://localhost:8080')
+          : Uri.parse(
+              'https://${envConfig.gaeVersion}-dot-dartlang-pub-dev.appspot.com',
+            ),
+      admins: [
+        AdminId(
+          oauthUserId: '111042304059633250784',
+          email: 'istvan.soos@gmail.com',
+          permissions: AdminPermission.values,
+        ),
+        AdminId(
+          oauthUserId: '117672289743137340098',
+          email: 'assigned-tags-admin@dartlang-pub-dev.iam.gserviceaccount.com',
+          permissions: {AdminPermission.manageAssignedTags},
+        )
+      ],
+    );
+  }
 
   /// Create a configuration based on the environment variables.
   factory Configuration.fromEnv(EnvConfig env) {

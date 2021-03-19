@@ -9,9 +9,8 @@ import 'package:pub_dev/shared/configuration.dart';
 void main() {
   test('Foo config from yaml file', () async {
     final config =
-        Configuration.fromYaml('test/shared/test_data/foo_config.yaml');
+        Configuration.fromYamlFile('test/shared/test_data/foo_config.yaml');
     final expectedValue = 'foo';
-
     expect(config.projectId, expectedValue);
     expect(config.packageBucketName, expectedValue);
     expect(config.dartdocStorageBucketName, expectedValue);
@@ -20,5 +19,11 @@ void main() {
     expect(config.admins[0].oauthUserId, '42');
     expect(config.admins[0].permissions.contains(AdminPermission.listUsers),
         isTrue);
+  });
+
+  test('Prod config from yaml file', () async {
+    final config = Configuration.fromYamlFile('config/prod-config.yaml');
+    final expectedConfig = Configuration.prodConfig();
+    expect(config.projectId, expectedConfig);
   });
 }
