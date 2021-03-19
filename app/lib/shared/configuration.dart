@@ -177,7 +177,7 @@ class Configuration {
       return Configuration.fromYamlFile(env.configPath);
     }
     throw Exception(
-        'File ${env.configPath} doesnt exist. Please ensure PUB_CONFIG env is pointing to the config');
+        'File ${env.configPath} doesnt exist. Please ensure PUB_SERVER_CONFIG env is pointing to the config');
   }
 
   /// Configuration for pkg/fake_pub_server.
@@ -306,7 +306,7 @@ class EnvConfig {
       Platform.environment['TOOL_PREVIEW_FLUTTER_SDK'],
       frontendCount,
       workerCount,
-      Platform.environment['PUB_CONFIG'],
+      Platform.environment['PUB_SERVER_CONFIG'],
     );
   }
 
