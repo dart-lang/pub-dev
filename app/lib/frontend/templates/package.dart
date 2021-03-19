@@ -237,14 +237,19 @@ String renderPkgHeader(PackagePageData data) {
       'show_prerelease_version': showPrereleaseVersion,
       'show_preview_version': showPreviewVersion,
       'stable_url': urls.pkgPageUrl(package.name),
-      'stable_version': package.latestVersion,
-      'prerelease_url': urls.pkgPageUrl(package.name,
-          version: package.latestPrereleaseVersion),
-      'prerelease_version': package.latestPrereleaseVersion,
-      'preview_url': showPreviewVersion
-          ? urls.pkgPageUrl(package.name, version: package.latestPreviewVersion)
+      'stable_version': data.latestReleases.stable.version,
+      'prerelease_url': showPrereleaseVersion
+          ? urls.pkgPageUrl(package.name,
+              version: data.latestReleases.prerelease.version)
           : null,
-      'preview_version': package.latestPreviewVersion,
+      'prerelease_version':
+          showPrereleaseVersion ? data.latestReleases.prerelease.version : null,
+      'preview_url': showPreviewVersion
+          ? urls.pkgPageUrl(package.name,
+              version: data.latestReleases.preview.version)
+          : null,
+      'preview_version':
+          showPreviewVersion ? data.latestReleases.preview.version : null,
     },
     'short_created': data.version.shortCreated,
   });

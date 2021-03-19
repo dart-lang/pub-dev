@@ -292,8 +292,8 @@ class LatestReleases {
 
   LatestReleases({
     @required this.stable,
-    @required this.prerelease,
-    @required this.preview,
+    this.prerelease,
+    this.preview,
   });
 
   factory LatestReleases.fromJson(Map<String, dynamic> json) =>
@@ -301,8 +301,9 @@ class LatestReleases {
 
   Map<String, dynamic> toJson() => _$LatestReleasesToJson(this);
 
-  bool get showPrerelease => prerelease != null;
-  bool get showPreview => preview != null;
+  bool get showPrerelease =>
+      prerelease != null && stable.version != prerelease.version;
+  bool get showPreview => preview != null && stable.version != preview.version;
 }
 
 @JsonSerializable()
@@ -338,7 +339,7 @@ class PackageVersion extends db.ExpandoModel<String> {
   db.Key packageKey;
 
   /// [DateTime] when [version] of [package] was published.
-  @db.DateTimeProperty(/* required: true */) // TODO: Enable after testing
+  @db.DateTimeProperty(required: true)
   DateTime created;
 
   // Extracted data from the uploaded package.

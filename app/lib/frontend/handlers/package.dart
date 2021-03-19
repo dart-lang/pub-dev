@@ -334,7 +334,7 @@ Future<PackagePageData> loadPackagePageData(
 
   return PackagePageData(
     package: package,
-    latestReleases: package.latestReleases,
+    latestReleases: await packageBackend.latestReleases(package),
     version: selectedVersion,
     versionInfo: versionInfo,
     asset: asset,
