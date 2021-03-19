@@ -115,8 +115,6 @@ Future<void> _populateDefaultData() async {
     testUserA,
     hansUser,
     joeUser,
-    adminUser,
-    adminOAuthUserID,
     hydrogen.package,
     ...hydrogen.versions,
     ...hydrogen.infos,

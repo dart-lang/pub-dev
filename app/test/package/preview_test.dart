@@ -15,7 +15,6 @@ import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:pub_dev/tool/utils/dart_sdk_version.dart';
 
-import '../shared/test_models.dart';
 import '../shared/test_services.dart';
 
 void main() {
@@ -36,7 +35,7 @@ void main() {
     testWithProfile(
       'preview becomes stable',
       testProfile: TestProfile(
-        defaultUser: adminUser.email,
+        defaultUser: 'admin@pub.dev',
         packages: [
           TestPackage(name: 'pkg', versions: ['1.0.0', '1.2.0']),
         ],
@@ -87,7 +86,7 @@ void main() {
     testWithProfile(
       'backfill preview version',
       testProfile: TestProfile(
-        defaultUser: adminUser.email,
+        defaultUser: 'admin@pub.dev',
         packages: [
           TestPackage(name: 'pkg', versions: ['1.0.0', '1.2.0']),
         ],
@@ -120,7 +119,7 @@ void main() {
     testWithProfile(
       'only future prerelease versions',
       testProfile: TestProfile(
-        defaultUser: adminUser.email,
+        defaultUser: 'admin@pub.dev',
         packages: [
           TestPackage(name: 'pkg', versions: [
             '0.1.0-nullsafety.0',
@@ -157,7 +156,7 @@ void main() {
     testWithProfile(
       'allow latest stable to go back',
       testProfile: TestProfile(
-        defaultUser: adminUser.email,
+        defaultUser: 'admin@pub.dev',
         packages: [
           TestPackage(name: 'pkg', versions: ['1.0.0', '1.2.0']),
         ],
