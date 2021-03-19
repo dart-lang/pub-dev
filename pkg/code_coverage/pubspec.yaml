@@ -5,11 +5,11 @@ environment:
   sdk: '>=2.6.0 <3.0.0'
 
 dependencies:
-  args: ^1.5.0
-  coverage: ^0.14.2
+  args: ^2.0.0
+  coverage: ^1.0.1
   lcov: ^6.0.0
-  path: ^1.0.0
-  source_maps: ^0.10.8
+  path: ^1.8.0
+  source_maps: ^0.10.10
 
 dev_dependencies:
-  test: ^1.5.1
+  test: ^1.16.5

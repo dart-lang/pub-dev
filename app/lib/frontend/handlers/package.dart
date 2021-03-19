@@ -286,7 +286,11 @@ Future<PackagePageData> loadPackagePageData(
   final package = await packageBackend.lookupPackage(packageName);
   if (package == null || package.isNotVisible) {
     final moderated = await packageBackend.lookupModeratedPackage(packageName);
-    return PackagePageData.missing(package: null, moderatedPackage: moderated);
+    return PackagePageData.missing(
+      package: null,
+      latestReleases: null,
+      moderatedPackage: moderated,
+    );
   }
 
   final bool isLiked = (userSessionData == null)
@@ -299,13 +303,19 @@ Future<PackagePageData> loadPackagePageData(
   final selectedVersion =
       await packageBackend.lookupPackageVersion(packageName, versionName);
   if (selectedVersion == null) {
-    return PackagePageData.missing(package: package);
+    return PackagePageData.missing(
+      package: package,
+      latestReleases: await packageBackend.latestReleases(package),
+    );
   }
 
   final versionInfo =
       await packageBackend.lookupPackageVersionInfo(packageName, versionName);
   if (versionInfo == null) {
-    return PackagePageData.missing(package: package);
+    return PackagePageData.missing(
+      package: package,
+      latestReleases: await packageBackend.latestReleases(package),
+    );
   }
 
   final asset = assetKind == null
@@ -324,6 +334,7 @@ Future<PackagePageData> loadPackagePageData(
 
   return PackagePageData(
     package: package,
+    latestReleases: package.latestReleases,
     version: selectedVersion,
     versionInfo: versionInfo,
     asset: asset,

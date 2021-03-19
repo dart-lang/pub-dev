@@ -6,6 +6,8 @@ import 'dart:convert';
 
 import 'package:client_data/admin_api.dart';
 import 'package:gcloud/db.dart';
+import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
@@ -25,178 +27,164 @@ void main() {
       setupTestsWithCallerAuthorizationIssues(
           (client) => client.adminListUsers());
 
-      testWithServices('OK', () async {
-        final client = createPubApiClient(authToken: adminUser.userId);
+      testWithProfile('OK', fn: () async {
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = await client.adminListUsers();
         expect(
           _json(rs.toJson()),
           {
             'users': [
               {
-                'userId': 'a-example-com',
-                'oauthUserId': null,
-                'email': 'a@example.com',
+                'userId': isNotNull,
+                'oauthUserId': isNotNull,
+                'email': isNotNull,
               },
               {
-                'userId': 'admin-at-pub-dot-dev',
-                'oauthUserId': 'admin-pub-dev',
-                'email': 'admin@pub.dev',
+                'userId': isNotNull,
+                'oauthUserId': isNotNull,
+                'email': isNotNull,
               },
-              {
-                'userId': 'hans-at-juergen-dot-com',
-                'oauthUserId': null,
-                'email': 'hans@juergen.com',
-              },
-              {
-                'userId': 'joe-at-example-dot-com',
-                'oauthUserId': null,
-                'email': 'joe@example.com',
-              }
             ],
             'continuationToken': null
           },
         );
+        expect(rs.users.map((u) => u.email).toSet(), <String>{
+          'admin@pub.dev',
+          'user@pub.dev',
+        });
       });
 
-      testWithServices('pagination', () async {
-        registerAuthenticatedUser(adminUser);
+      testWithProfile('pagination', fn: () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          final page1 = await adminBackend.listUsers(limit: 1);
+          expect(
+            _json(page1.toJson()),
+            {
+              'users': [isNotNull],
+              'continuationToken': isNotNull,
+            },
+          );
 
-        final page1 = await adminBackend.listUsers(limit: 3);
-        expect(
-          _json(page1.toJson()),
-          {
+          final page2 = await adminBackend.listUsers(
+              continuationToken: page1.continuationToken);
+          expect(
+            _json(page2.toJson()),
+            {
+              'users': [isNotNull],
+              'continuationToken': null,
+            },
+          );
+
+          expect({
+            page1.users.single.email,
+            page2.users.single.email
+          }, {
+            'admin@pub.dev',
+            'user@pub.dev',
+          });
+        });
+      });
+
+      testWithProfile('lookup by email - not found', fn: () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          final page = await adminBackend.listUsers(email: 'no@such.email');
+          expect(_json(page.toJson()), {
+            'users': [],
+            'continuationToken': null,
+          });
+        });
+      });
+
+      testWithProfile('lookup by email - found', fn: () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          final page = await adminBackend.listUsers(email: 'user@pub.dev');
+          expect(_json(page.toJson()), {
             'users': [
               {
-                'userId': 'a-example-com',
-                'oauthUserId': null,
-                'email': 'a@example.com',
+                'userId': isNotNull,
+                'oauthUserId': isNotNull,
+                'email': 'user@pub.dev',
               },
+            ],
+            'continuationToken': null,
+          });
+        });
+      });
+
+      testWithProfile('lookup by oauthUserId - not found', fn: () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          final page = await adminBackend.listUsers(oauthUserId: 'no-such-id');
+          expect(_json(page.toJson()), {
+            'users': [],
+            'continuationToken': null,
+          });
+        });
+      });
+
+      testWithProfile('lookup by oauthUserId - found', fn: () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          final page =
+              await adminBackend.listUsers(oauthUserId: 'admin-pub-dev');
+          expect(_json(page.toJson()), {
+            'users': [
               {
-                'userId': 'admin-at-pub-dot-dev',
+                'userId': isNotNull,
                 'oauthUserId': 'admin-pub-dev',
                 'email': 'admin@pub.dev',
               },
-              {
-                'userId': 'hans-at-juergen-dot-com',
-                'oauthUserId': null,
-                'email': 'hans@juergen.com',
-              },
-            ],
-            'continuationToken':
-                '68616e732d61742d6a75657267656e2d646f742d636f6d',
-          },
-        );
-
-        final page2 = await adminBackend.listUsers(
-            continuationToken: page1.continuationToken);
-        expect(
-          _json(page2.toJson()),
-          {
-            'users': [
-              {
-                'userId': 'joe-at-example-dot-com',
-                'oauthUserId': null,
-                'email': 'joe@example.com',
-              }
             ],
             'continuationToken': null,
-          },
-        );
-      });
-
-      testWithServices('lookup by email - not found', () async {
-        registerAuthenticatedUser(adminUser);
-        final page = await adminBackend.listUsers(email: 'no@such.email');
-        expect(_json(page.toJson()), {
-          'users': [],
-          'continuationToken': null,
+          });
         });
       });
 
-      testWithServices('lookup by email - found', () async {
-        registerAuthenticatedUser(adminUser);
-        final page = await adminBackend.listUsers(email: joeUser.email);
-        expect(_json(page.toJson()), {
-          'users': [
-            {
-              'userId': 'joe-at-example-dot-com',
-              'oauthUserId': null,
-              'email': 'joe@example.com',
-            },
-          ],
-          'continuationToken': null,
+      testWithProfile('lookup by multiple attribute', fn: () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          final rs =
+              adminBackend.listUsers(email: 'x', oauthUserId: 'no-such-id');
+          await expectLater(rs, throwsA(isA<InvalidInputException>()));
         });
-      });
-
-      testWithServices('lookup by oauthUserId - not found', () async {
-        registerAuthenticatedUser(adminUser);
-        final page = await adminBackend.listUsers(oauthUserId: 'no-such-id');
-        expect(_json(page.toJson()), {
-          'users': [],
-          'continuationToken': null,
-        });
-      });
-
-      testWithServices('lookup by oauthUserId - found', () async {
-        registerAuthenticatedUser(adminUser);
-        final page =
-            await adminBackend.listUsers(oauthUserId: adminUser.oauthUserId);
-        expect(_json(page.toJson()), {
-          'users': [
-            {
-              'userId': 'admin-at-pub-dot-dev',
-              'oauthUserId': 'admin-pub-dev',
-              'email': 'admin@pub.dev',
-            },
-          ],
-          'continuationToken': null,
-        });
-      });
-
-      testWithServices('lookup by multiple attribute', () async {
-        registerAuthenticatedUser(adminUser);
-        final rs =
-            adminBackend.listUsers(email: 'x', oauthUserId: 'no-such-id');
-        await expectLater(rs, throwsA(isA<InvalidInputException>()));
       });
     });
 
     group('Delete package', () {
       setupTestsWithCallerAuthorizationIssues(
-          (client) => client.adminRemovePackage(hydrogen.packageName));
+          (client) => client.adminRemovePackage('oxygen'));
 
-      testWithServices('OK', () async {
-        final client = createPubApiClient(authToken: adminUser.userId);
+      testWithProfile('OK', fn: () async {
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
 
-        final pkgKey =
-            dbService.emptyKey.append(Package, id: hydrogen.packageName);
+        final pkgKey = dbService.emptyKey.append(Package, id: 'oxygen');
         final package = await dbService.lookupValue<Package>(pkgKey);
         expect(package, isNotNull);
 
         final versionsQuery =
             dbService.query<PackageVersion>(ancestorKey: pkgKey);
         final versions = await versionsQuery.run().toList();
-        final expectedVersions = generateVersions(13, increment: 9);
-        expect(versions.map((v) => v.version), expectedVersions);
+        expect(versions.map((v) => v.version), ['1.0.0', '1.2.0', '2.0.0-dev']);
 
-        final hansClient = createPubApiClient(authToken: hansUser.userId);
-        await hansClient.likePackage(hydrogen.packageName);
+        final userClient = createPubApiClient(authToken: userAtPubDevAuthToken);
+        await userClient.likePackage('oxygen');
 
-        final likeKey = dbService.emptyKey
-            .append(User, id: hansUser.userId)
-            .append(Like, id: hydrogen.packageName);
-        final like =
-            await dbService.lookupValue<Like>(likeKey, orElse: () => null);
-        expect(like, isNotNull);
+        Key likeKey;
+        await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
+          final user = await requireAuthenticatedUser();
+          likeKey = dbService.emptyKey
+              .append(User, id: user.userId)
+              .append(Like, id: 'oxygen');
+          final like =
+              await dbService.lookupValue<Like>(likeKey, orElse: () => null);
+          expect(like, isNotNull);
+        });
 
-        final moderatedPkgKey = dbService.emptyKey
-            .append(ModeratedPackage, id: hydrogen.packageName);
+        final moderatedPkgKey =
+            dbService.emptyKey.append(ModeratedPackage, id: 'oxygen');
         ModeratedPackage moderatedPkg = await dbService
             .lookupValue<ModeratedPackage>(moderatedPkgKey, orElse: () => null);
         expect(moderatedPkg, isNull);
 
         final timeBeforeRemoval = DateTime.now().toUtc();
-        final rs = await client.adminRemovePackage(hydrogen.packageName);
+        final rs = await client.adminRemovePackage('oxygen');
 
         expect(utf8.decode(rs), '{"status":"OK"}');
 
@@ -218,49 +206,50 @@ void main() {
         expect(moderatedPkg.moderated.isAfter(timeBeforeRemoval), isTrue);
         expect(moderatedPkg.uploaders, package.uploaders);
         expect(moderatedPkg.publisherId, package.publisherId);
-        expect(moderatedPkg.versions, expectedVersions);
+        expect(moderatedPkg.versions, ['1.0.0', '1.2.0', '2.0.0-dev']);
       });
     });
 
     group('Delete package version', () {
-      setupTestsWithCallerAuthorizationIssues((client) =>
-          client.adminRemovePackageVersion(
-              hydrogen.packageName, hydrogen.latestVersion));
+      setupTestsWithCallerAuthorizationIssues(
+          (client) => client.adminRemovePackageVersion('oxygen', '1.2.0'));
 
-      testWithServices('OK', () async {
-        final client = createPubApiClient(authToken: adminUser.userId);
-        final removeVersion = hydrogen.latestVersion;
+      testWithProfile('OK', fn: () async {
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+        final removeVersion = '1.2.0';
 
-        final pkgKey =
-            dbService.emptyKey.append(Package, id: hydrogen.packageName);
+        final pkgKey = dbService.emptyKey.append(Package, id: 'oxygen');
         final package = await dbService.lookupValue<Package>(pkgKey);
         expect(package, isNotNull);
 
         final versionsQuery =
             dbService.query<PackageVersion>(ancestorKey: pkgKey);
         final versions = await versionsQuery.run().toList();
-        final expectedVersions = generateVersions(13, increment: 9);
-        expect(versions.map((v) => v.version), expectedVersions);
+        expect(versions.map((v) => v.version), ['1.0.0', '1.2.0', '2.0.0-dev']);
 
-        final hansClient = createPubApiClient(authToken: hansUser.userId);
-        await hansClient.likePackage(hydrogen.packageName);
+        final userClient = createPubApiClient(authToken: userAtPubDevAuthToken);
+        await userClient.likePackage('oxygen');
 
-        final likeKey = dbService.emptyKey
-            .append(User, id: hansUser.userId)
-            .append(Like, id: hydrogen.packageName);
-        final like =
-            await dbService.lookupValue<Like>(likeKey, orElse: () => null);
-        expect(like, isNotNull);
+        Key likeKey;
+        await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
+          final user = await requireAuthenticatedUser();
+          likeKey = dbService.emptyKey
+              .append(User, id: user.userId)
+              .append(Like, id: 'oxygen');
+          final like =
+              await dbService.lookupValue<Like>(likeKey, orElse: () => null);
+          expect(like, isNotNull);
+        });
 
-        final moderatedPkgKey = dbService.emptyKey
-            .append(ModeratedPackage, id: hydrogen.packageName);
+        final moderatedPkgKey =
+            dbService.emptyKey.append(ModeratedPackage, id: 'oxygen');
         ModeratedPackage moderatedPkg = await dbService
             .lookupValue<ModeratedPackage>(moderatedPkgKey, orElse: () => null);
         expect(moderatedPkg, isNull);
 
         final timeBeforeRemoval = DateTime.now().toUtc();
-        final rs = await client.adminRemovePackageVersion(
-            hydrogen.packageName, removeVersion);
+        final rs =
+            await client.adminRemovePackageVersion('oxygen', removeVersion);
 
         expect(utf8.decode(rs), '{"status":"OK"}');
 
@@ -291,53 +280,62 @@ void main() {
     });
 
     group('Delete user', () {
-      setupTestsWithCallerAuthorizationIssues(
-          (client) => client.adminRemoveUser(joeUser.userId));
-
-      testWithServices('OK', () async {
-        final client = createPubApiClient(authToken: adminUser.userId);
-        final rs = await client.adminRemoveUser(hansUser.userId);
-        expect(utf8.decode(rs), '{"status":"OK"}');
-
-        final hydrogenKey = dbService.emptyKey.append(Package, id: 'hydrogen');
-        final hydrogen =
-            (await dbService.lookup<Package>([hydrogenKey])).single;
-        expect(hydrogen.uploaders, []);
-        expect(hydrogen.isDiscontinued, true);
-
-        final publisher =
-            (await dbService.lookup<Publisher>([exampleComPublisher.key]))
-                .single;
-        expect(publisher.contactEmail, isNull);
-        expect(publisher.isAbandoned, isTrue);
-
-        final members = await dbService
-            .query<PublisherMember>(ancestorKey: exampleComPublisher.key)
-            .run()
-            .toList();
-        expect(members, isEmpty);
+      setupTestsWithCallerAuthorizationIssues((client) async {
+        final user =
+            await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+        await client.adminRemoveUser(user.userId);
       });
 
-      testWithServices('Likes are cleaned up on user deletion', () async {
-        final client = createPubApiClient(authToken: adminUser.userId);
-        final hansClient = createPubApiClient(authToken: hansUser.userId);
+      testWithProfile(
+        'OK',
+        testProfile: defaultTestProfile.changeDefaultUser('user@pub.dev'),
+        fn: () async {
+          final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+          final user =
+              await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
 
-        await hansClient.likePackage(helium.packageName);
+          final rs = await client.adminRemoveUser(user.userId);
+          expect(utf8.decode(rs), '{"status":"OK"}');
 
-        final r2 = await client.getPackageLikes(helium.packageName);
+          final oxygen = await packageBackend.lookupPackage('oxygen');
+          expect(oxygen.publisherId, isNull);
+          expect(oxygen.uploaders, []);
+          expect(oxygen.isDiscontinued, true);
+
+          final publisher = await publisherBackend.getPublisher('example.com');
+          expect(publisher.contactEmail, isNull);
+          expect(publisher.isAbandoned, isTrue);
+
+          final members = await dbService
+              .query<PublisherMember>(ancestorKey: publisher.key)
+              .run()
+              .toList();
+          expect(members, isEmpty);
+        },
+      );
+
+      testWithProfile('Likes are cleaned up on user deletion', fn: () async {
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+
+        final user =
+            await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+        final userClient = createPubApiClient(authToken: userAtPubDevAuthToken);
+        await userClient.likePackage('oxygen');
+
+        final r2 = await client.getPackageLikes('oxygen');
         expect(r2.likes, 1);
 
         final likeKey = dbService.emptyKey
-            .append(User, id: hansUser.userId)
-            .append(Like, id: helium.packageName);
+            .append(User, id: user.userId)
+            .append(Like, id: 'oxygen');
 
         Like like =
             await dbService.lookupValue<Like>(likeKey, orElse: () => null);
         expect(like, isNotNull);
 
-        await client.adminRemoveUser(hansUser.userId);
+        await client.adminRemoveUser(user.userId);
 
-        final r3 = await client.getPackageLikes(helium.packageName);
+        final r3 = await client.getPackageLikes('oxygen');
         expect(r3.likes, 0);
 
         like = await dbService.lookupValue<Like>(likeKey, orElse: () => null);
@@ -351,11 +349,11 @@ void main() {
 
     group('get assignedTags', () {
       setupTestsWithCallerAuthorizationIssues(
-          (client) => client.adminGetAssignedTags('hydrogen'));
+          (client) => client.adminGetAssignedTags('oxygen'));
 
-      testWithServices('get assignedTags', () async {
-        final client = createPubApiClient(authToken: adminUser.userId);
-        final result = await client.adminGetAssignedTags('hydrogen');
+      testWithProfile('get assignedTags', fn: () async {
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+        final result = await client.adminGetAssignedTags('oxygen');
         expect(result.assignedTags, isNot(contains('is:featured')));
       });
     });
@@ -363,55 +361,55 @@ void main() {
     group('set assignedTags', () {
       setupTestsWithCallerAuthorizationIssues(
           (client) => client.adminPostAssignedTags(
-                'hydrogen',
+                'oxygen',
                 PatchAssignedTags(assignedTagsAdded: ['is:featured']),
               ));
 
-      testWithServices('set assignedTags', () async {
-        final client = createPubApiClient(authToken: adminUser.userId);
+      testWithProfile('set assignedTags', fn: () async {
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
 
         // Is initially not featured
-        final r1 = await client.adminGetAssignedTags('hydrogen');
+        final r1 = await client.adminGetAssignedTags('oxygen');
         expect(r1.assignedTags, isNot(contains('is:featured')));
 
         // Set updating with no change, should have no effect
         await client.adminPostAssignedTags(
-          'hydrogen',
+          'oxygen',
           PatchAssignedTags(assignedTagsAdded: r1.assignedTags),
         );
-        final r2 = await client.adminGetAssignedTags('hydrogen');
+        final r2 = await client.adminGetAssignedTags('oxygen');
         expect(r2.assignedTags, isNot(contains('is:featured')));
 
         // Check that we can set is:featured
         await client.adminPostAssignedTags(
-          'hydrogen',
+          'oxygen',
           PatchAssignedTags(assignedTagsAdded: ['is:featured']),
         );
-        final r3 = await client.adminGetAssignedTags('hydrogen');
+        final r3 = await client.adminGetAssignedTags('oxygen');
         expect(r3.assignedTags, contains('is:featured'));
 
         // Check that we can set is:featured (again)
         await client.adminPostAssignedTags(
-          'hydrogen',
+          'oxygen',
           PatchAssignedTags(assignedTagsAdded: ['is:featured']),
         );
-        final r4 = await client.adminGetAssignedTags('hydrogen');
+        final r4 = await client.adminGetAssignedTags('oxygen');
         expect(r4.assignedTags, contains('is:featured'));
 
         // Check that we can remove the tag.
         await client.adminPostAssignedTags(
-          'hydrogen',
+          'oxygen',
           PatchAssignedTags(assignedTagsRemoved: ['is:featured']),
         );
-        final r5 = await client.adminGetAssignedTags('hydrogen');
+        final r5 = await client.adminGetAssignedTags('oxygen');
         expect(r5.assignedTags, isNot(contains('is:featured')));
 
         // Check that we can remove the tag (again).
         await client.adminPostAssignedTags(
-          'hydrogen',
+          'oxygen',
           PatchAssignedTags(assignedTagsRemoved: ['is:featured']),
         );
-        final r6 = await client.adminGetAssignedTags('hydrogen');
+        final r6 = await client.adminGetAssignedTags('oxygen');
         expect(r6.assignedTags, isNot(contains('is:featured')));
       });
     });

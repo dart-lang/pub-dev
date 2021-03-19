@@ -1,0 +1,25 @@
+{{! Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+<div class="landing-pow-list">
+  {{#videos}}
+  <div class="pow-video">
+    <a href="{{& video_url }}"
+       target="_blank"
+       rel="noopener"
+       title="{{ description }}"
+       data-ga-click-event="package-of-the-week-video">
+      <img class="pow-video-thumbnail"
+           src="{{& thumbnail_url }}"
+           alt="{{ title }}" />
+      <div class="pow-video-overlay">
+        <img class="pow-video-overlay-img-active"
+             src="{{& static_assets.img__youtube-play-red_png }}" />
+        <img class="pow-video-overlay-img-inactive"
+             src="{{& static_assets.img__youtube-play-black_png }}" />
+      </div>
+    </a>
+  </div>
+  {{/videos}}
+</div>

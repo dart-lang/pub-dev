@@ -22,9 +22,6 @@ abstract class SecretKey {
   /// Site-wide announcement.
   static const String announcement = 'announcement';
 
-  /// JSON-encoded list of Strings that will be considered as spam.
-  static const String spamWords = 'spam-words';
-
   /// Extension for the content security policy's script-src section.
   static const String cspScriptSrc = 'csp-script-src';
 
@@ -41,14 +38,17 @@ abstract class SecretKey {
   ///  * `no-restriction`, (default) publication of new packages and new versions is allowed.
   static const String uploadRestriction = 'upload-restriction';
 
+  /// Youtube API Key.
+  static const String youtubeApiKey = 'youtube-api-key';
+
   /// List of all keys.
   static const values = [
     redisConnectionString,
     announcement,
-    spamWords,
     cspScriptSrc,
     cspStyleSrc,
     uploadRestriction,
+    youtubeApiKey,
   ];
 
   /// Whether the key is valid.

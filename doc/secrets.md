@@ -12,5 +12,9 @@ dart bin/tools/set_secret.dart [key] [value]
 ````
 
 Currently used keys are listed in `SecretKey.values`. For example:
-- Redis connection string: `redis.connectionString`
-- OAuth `secret_key`: `oauth.secret-[client_id]` (used for the site OAuth flow)
+- Redis connection string: `redis.connectionString`.
+- OAuth `secret_key`: `oauth.secret-[client_id]` (used for the site OAuth flow).
+- Announcement banner contains the HTML markup: `announcement`.
+- Content Security Policy extensions: `csp-script-src` and `csp-style-src`.
+- Site-wide upload restrictions: `upload-restriction`.
+- Youtube API key: `youtube-api-key`.

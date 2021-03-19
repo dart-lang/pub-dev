@@ -250,13 +250,13 @@ class DartdocJobProcessor extends JobProcessor {
           await dartdocBackend.getEntry(job.packageName, job.packageVersion);
       if (entry.isRegression(oldEntry)) {
         logger.severe('Regression detected in $job, aborting upload.');
-        // If `isLatest` or `isObsolete` have changed, we still want to update
-        // the old entry, even if the job failed. `isLatest` is used to redirect
-        // latest versions from versioned url to url with `/latest/`, and this
+        // If `isLatest` has changed, we still want to update the old entry,
+        // even if the job failed. `isLatest` is used to redirect latest
+        // versions from versioned url to url with `/latest/`, and this
         // is cheaper than checking it on each request.
-        if (oldEntry.isLatest != entry.isLatest ||
-            oldEntry.isObsolete != entry.isObsolete) {
-          await dartdocBackend.updateOldEntry(oldEntry, entry);
+        if (oldEntry.isLatest != entry.isLatest) {
+          await dartdocBackend.updateOldIsLatest(oldEntry,
+              isLatest: entry.isLatest);
         }
       } else {
         await dartdocBackend.uploadDir(entry, outputDir);

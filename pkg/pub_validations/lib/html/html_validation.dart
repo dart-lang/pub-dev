@@ -37,7 +37,7 @@ void validateHtml(Node root) {
     links = root.querySelectorAll('a');
     scripts = root.querySelectorAll('script');
   } else if (root is Document) {
-    _validateCanonicalLink(root.querySelector('head'));
+    _validateCanonicalLink(root.querySelector('head')!);
     elements = root.querySelectorAll('*');
     links = root.querySelectorAll('a');
     scripts = root.querySelectorAll('script');
@@ -59,7 +59,11 @@ void validateHtml(Node root) {
   // All <a target="_blank"> links must have rel="noopener"
   for (Element elem in links) {
     if (elem.attributes['target'] == '_blank') {
-      final rel = elem.attributes['rel'];
+      if (!elem.attributes.containsKey('rel')) {
+        throw AssertionError(
+            '_blank links must have rel=noopener, found: ${elem.outerHtml}.');
+      }
+      final rel = elem.attributes['rel']!;
       if (!rel.split(' ').contains('noopener')) {
         throw AssertionError(
             '_blank links must have rel=noopener, found: ${elem.outerHtml}.');
@@ -121,7 +125,7 @@ void _validateCanonicalLink(Element head) {
         .querySelectorAll('meta')
         .where((elem) => elem.attributes['name'] == 'robots')
         .map((elem) => elem.attributes['content'])
-        .expand((v) => v.split(' '))
+        .expand((v) => v!.split(' '))
         .toSet();
     if (!robotsValues.contains('noindex')) {
       throw AssertionError(
@@ -130,7 +134,7 @@ void _validateCanonicalLink(Element head) {
   }
   if (canonicalLinks.length == 1) {
     final link = canonicalLinks.single;
-    final href = link.attributes['href'];
+    final href = link.attributes['href']!;
     if (!href.startsWith('https://pub.dev/')) {
       throw AssertionError(
           'Canonical URL must start with https://pub.dev/, found: $href.');

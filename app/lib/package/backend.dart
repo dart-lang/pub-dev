@@ -99,7 +99,7 @@ class PackageBackend {
     offset ??= 0;
     limit ??= 10;
     final query = db.query<Package>()
-      ..order('-latestPrereleasePublished')
+      ..order('-lastVersionPublished')
       ..offset(offset)
       ..limit(limit + 1);
     final result = await query.run().toList();
@@ -173,6 +173,12 @@ class PackageBackend {
             .map((p) => db.emptyKey.append(Package, id: p))
             .toList()))
         .cast();
+  }
+
+  /// Returns the latest releases info of a package.
+  Future<LatestReleases> latestReleases(Package package) async {
+    // TODO: implement runtimeVersion-specific release calculation
+    return package.latestReleases;
   }
 
   /// Looks up a specific package version.

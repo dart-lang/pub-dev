@@ -1,6 +1,10 @@
 name: api_builder
 description: Builder for generating API routers.
 publish_to: none
+
+environment:
+  sdk: '>=2.6.0 <3.0.0'
+
 dependencies:
   build: ^1.0.0
   build_config: '>= 0.3.1 <= 0.5.0'
@@ -9,15 +13,13 @@ dependencies:
   shelf_router: ^0.7.0
   code_builder: ^3.2.0
   shelf: ^0.7.3
-  meta: ^1.1.7
-  http_methods: ^1.0.0
+  meta: ^1.3.0
+  http_methods: ^1.1.0
   http: ^0.12.0+2
   uuid: ^2.0.0
   logging: ^0.11.3+2
 dev_dependencies:
-  test: ^1.5.3
+  test: ^1.16.5
   build_verify: ^1.1.1
   build_runner: ^1.4.0
-  pedantic: ^1.4.0
-environment:
-  sdk: '>=2.6.0 <3.0.0'
+  pedantic: ^1.11.0

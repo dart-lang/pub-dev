@@ -61,8 +61,7 @@ class Package extends db.ExpandoModel<String> {
   int likes;
 
   /// [DateTime] when the most recently uploaded [PackageVersion] was published.
-  /// TODO: set required: true after backfill was done.
-  @db.DateTimeProperty(required: false)
+  @db.DateTimeProperty(required: true)
   DateTime lastVersionPublished;
 
   /// Key referencing the [PackageVersion] for the latest version of this package, ordered by priority order of
@@ -148,7 +147,7 @@ class Package extends db.ExpandoModel<String> {
         !isDiscontinued &&
         !isUnlisted &&
         now.difference(created) > robotsVisibilityMinAge &&
-        now.difference(latestPrereleasePublished) < robotsVisibilityMaxAge;
+        now.difference(latestPublished) < robotsVisibilityMaxAge;
   }
 
   bool get isExcludedInRobots => !isIncludedInRobots;
@@ -182,10 +181,6 @@ class Package extends db.ExpandoModel<String> {
   bool get showPreviewVersion {
     if (latestPreviewVersion == null) return false;
     return latestSemanticVersion < latestPreviewSemanticVersion;
-  }
-
-  String get shortLatestPrereleasePublished {
-    return shortDateFormat.format(latestPrereleasePublished);
   }
 
   // Check if a [userId] is in the list of [uploaders].
@@ -265,6 +260,67 @@ class Package extends db.ExpandoModel<String> {
       // TODO: uploader:<...>
     ];
   }
+
+  LatestReleases get latestReleases {
+    return LatestReleases(
+      stable: Release(
+        version: latestVersion,
+        published: latestPublished,
+      ),
+      prerelease: showPrereleaseVersion
+          ? Release(
+              version: latestPrereleaseVersion,
+              published: latestPrereleasePublished,
+            )
+          : null,
+      preview: showPreviewVersion
+          ? Release(
+              version: latestPreviewVersion,
+              published: latestPreviewPublished,
+            )
+          : null,
+    );
+  }
+}
+
+/// Describes the various categories of latest releases.
+@JsonSerializable()
+class LatestReleases {
+  final Release stable;
+  final Release prerelease;
+  final Release preview;
+
+  LatestReleases({
+    @required this.stable,
+    @required this.prerelease,
+    @required this.preview,
+  });
+
+  factory LatestReleases.fromJson(Map<String, dynamic> json) =>
+      _$LatestReleasesFromJson(json);
+
+  Map<String, dynamic> toJson() => _$LatestReleasesToJson(this);
+
+  bool get showPrerelease => prerelease != null;
+  bool get showPreview => preview != null;
+}
+
+@JsonSerializable()
+class Release {
+  final String version;
+  final DateTime published;
+
+  Release({
+    @required this.version,
+    @required this.published,
+  });
+
+  factory Release.fromJson(Map<String, dynamic> json) =>
+      _$ReleaseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ReleaseToJson(this);
+
+  String get shortPublished => shortDateFormat.format(published);
 }
 
 /// Pub package metadata for a specific uploaded version.
@@ -351,19 +407,16 @@ class PackageVersionInfo extends db.ExpandoModel<String> {
   String version;
 
   /// The created timestamp of the [PackageVersion] (the time of publishing).
-  // TODO: add required: true once we run the backfill and removed outdated entities
-  @db.DateTimeProperty()
+  @db.DateTimeProperty(required: true)
   DateTime versionCreated;
 
-  // TODO: add required: true once we run the backfill and removed outdated entities
-  @db.DateTimeProperty()
+  @db.DateTimeProperty(required: true)
   DateTime updated;
 
   @db.StringListProperty()
   List<String> libraries = <String>[];
 
-  // TODO: add required: true once we run the backfill and removed outdated entities
-  @db.IntProperty()
+  @db.IntProperty(required: true)
   int libraryCount;
 
   /// The [AssetKind] identifier of assets extracted from the archive.
@@ -665,9 +718,7 @@ class PackageView extends Object with FlagMixin {
       previewVersion: previewVersion,
       ellipsizedDescription: version?.ellipsizedDescription,
       created: package.created,
-      updated:
-          // TODO: use only lastVersionPublished after preview backfill is done
-          package.lastVersionPublished ?? package.latestPrereleasePublished,
+      updated: package.lastVersionPublished,
       flags: scoreCard?.flags,
       publisherId: package.publisherId,
       isAwaiting: isAwaiting,
@@ -777,6 +828,7 @@ class PackageLinks {
 /// Common data structure shared between package pages.
 class PackagePageData {
   final Package package;
+  final LatestReleases latestReleases;
   final ModeratedPackage moderatedPackage;
   final PackageVersion version;
   final PackageVersionInfo versionInfo;
@@ -789,6 +841,7 @@ class PackagePageData {
 
   PackagePageData({
     @required this.package,
+    LatestReleases latestReleases,
     @required this.version,
     @required this.versionInfo,
     @required this.asset,
@@ -796,10 +849,12 @@ class PackagePageData {
     @required this.uploaderEmails,
     @required this.isAdmin,
     @required this.isLiked,
-  }) : moderatedPackage = null;
+  })  : latestReleases = latestReleases ?? package.latestReleases,
+        moderatedPackage = null;
 
   PackagePageData.missing({
     @required this.package,
+    @required this.latestReleases,
     this.moderatedPackage,
   })  : version = null,
         versionInfo = null,

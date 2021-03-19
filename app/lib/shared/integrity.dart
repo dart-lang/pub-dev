@@ -292,6 +292,10 @@ class IntegrityChecker {
             'PackageVersion(${pv.package} ${pv.version}) has invalid uploader: User(${pv.uploader})');
       }
     }
+    if (p.lastVersionPublished == null) {
+      _problems.add(
+          'Package(${p.name}) has a `lastVersionPublished` property which is null.');
+    }
     if (p.latestVersionKey == null) {
       _problems.add(
           'Package(${p.name}) has a `latestVersionKey` property which is null.');
@@ -321,6 +325,18 @@ class IntegrityChecker {
       pviKeys.add(key);
       if (!qualifiedVersionKeys.contains(key)) {
         _problems.add('PackageVersionInfo($key) has no PackageVersion.');
+      }
+      if (pvi.versionCreated == null) {
+        _problems.add(
+            'PackageVersionInfo($key) has a `versionCreated` property which is null.');
+      }
+      if (pvi.updated == null) {
+        _problems.add(
+            'PackageVersionInfo($key) has a `updated` property which is null.');
+      }
+      if (pvi.libraryCount == null) {
+        _problems.add(
+            'PackageVersionInfo($key) has a `libraryCount` property which is null.');
       }
       if (pvi.assets != null) {
         for (final kind in pvi.assets) {
