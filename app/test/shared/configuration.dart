@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:test/test.dart';
-import 'dart:convert' show json;
 
 import 'package:pub_dev/shared/configuration.dart';
 

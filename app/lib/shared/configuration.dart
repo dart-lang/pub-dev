@@ -4,9 +4,9 @@
 
 import 'dart:convert' show json;
 import 'dart:io';
-import 'package:equatable/equatable.dart';
 
 import 'package:collection/collection.dart' show UnmodifiableSetView;
+import 'package:equatable/equatable.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
@@ -313,7 +313,7 @@ class Configuration extends Equatable {
         return Configuration.fromYamlFile(env.configPath);
       }
       throw Exception(
-          'File ${env.configPath} doesnt exist. Please ensure PUB_SERVER_CONFIG env is pointing to the config');
+          'File ${env.configPath} doesnt exist. Please ensure PUB_SERVER_CONFIG env is pointing to the existing config');
     }
   }
 
