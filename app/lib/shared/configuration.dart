@@ -249,9 +249,6 @@ class Configuration {
 
 /// Configuration from the environment variables.
 class EnvConfig {
-  // Config Path points to configuratio file
-  final String configPath;
-
   /// Service in AppEngine that this process is running in, `null` if running
   /// locally.
   final String gaeService;
@@ -273,6 +270,9 @@ class EnvConfig {
   final String previewFlutterSdkDir;
   final int frontendCount;
   final int workerCount;
+
+  // Config Path points to configuratio file
+  final String configPath;
 
   EnvConfig._(
     this.gaeService,
