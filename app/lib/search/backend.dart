@@ -76,14 +76,14 @@ class SearchBackend {
   /// When a package, or its latest version is missing, the method throws
   /// [RemovedPackageException].
   Future<PackageDocument> loadDocument(String packageName) async {
-    final packageKey = _db.emptyKey.append(Package, id: packageName);
-    final p = (await _db.lookup<Package>([packageKey])).single;
+    final p = await packageBackend.lookupPackage(packageName);
     if (p == null || p.isNotVisible) {
       throw RemovedPackageException();
     }
+    final releases = await packageBackend.latestReleases(p);
 
-    final pv = await _db.lookupValue<PackageVersion>(p.latestVersionKey,
-        orElse: () => null);
+    final pv = await packageBackend.lookupPackageVersion(
+        packageName, releases.stable.version);
     if (pv == null) {
       throw RemovedPackageException();
     }
@@ -93,36 +93,26 @@ class SearchBackend {
     final analysisView =
         await analyzerClient.getAnalysisView(packageName, pv.version);
 
-    // Find tags from latest prerelease (if there one)
+    // Find tags from latest prerelease and/or preview (if there one)
     // This allows searching for tags with `<tag>-in-prerelease`.
     // Example: `is:null-safe-in-prerelease`, or `platform:android-in-prerelease`
-    final prereleaseTags = <String>[];
-    if (p.showPrereleaseVersion) {
-      final prv = await _db.lookupValue<PackageVersion>(
-          p.latestPrereleaseVersionKey,
-          orElse: () => null);
-      prv?.getTags()?.forEach(prereleaseTags.add);
+    Future<List<String>> loadTags(String version) async {
+      final tags = <String>[];
+      final prv =
+          await packageBackend.lookupPackageVersion(packageName, version);
+      prv?.getTags()?.forEach(tags.add);
 
-      final pra = await analyzerClient.getAnalysisView(
-          packageName, p.latestPrereleaseVersion);
-      pra?.derivedTags?.forEach(prereleaseTags.add);
+      final pra = await analyzerClient.getAnalysisView(packageName, version);
+      pra?.derivedTags?.forEach(tags.add);
+      return tags;
     }
 
-    // Find tags from latest preview (if there one) following the same patter
-    // as for prerelease.
-    // This allows searching for tags with `<tag>-in-prerelease`.
-    // Example: `is:null-safe-in-prerelease`, or `platform:android-in-prerelease`
-    final previewTags = <String>[];
-    if (p.showPreviewVersion) {
-      final prv = await _db.lookupValue<PackageVersion>(
-          p.latestPreviewVersionKey,
-          orElse: () => null);
-      prv?.getTags()?.forEach(previewTags.add);
-
-      final pra = await analyzerClient.getAnalysisView(
-          packageName, p.latestPreviewVersion);
-      pra?.derivedTags?.forEach(previewTags.add);
-    }
+    final prereleaseTags = releases.showPrerelease
+        ? await loadTags(releases.prerelease.version)
+        : <String>[];
+    final previewTags = releases.showPreview
+        ? await loadTags(releases.preview.version)
+        : <String>[];
 
     final tags = <String>{
       ...p.getTags(),
@@ -159,7 +149,7 @@ class SearchBackend {
 
     return PackageDocument(
       package: pv.package,
-      version: p.latestVersion,
+      version: pv.version,
       tags: tags.toList(),
       description: compactDescription(pv.pubspec.description),
       created: p.created,
@@ -185,7 +175,7 @@ class SearchBackend {
     pubspec.devDependencies.forEach((package) {
       dependencies[package] = DependencyTypes.dev;
     });
-    pubspec.dependencies.forEach((package) {
+    pubspec.dependencyNames.forEach((package) {
       dependencies[package] = DependencyTypes.direct;
     });
     return dependencies;
@@ -210,10 +200,11 @@ class SearchBackend {
   Stream<PackageDocument> loadMinimumPackageIndex() async* {
     final query = _db.query<Package>();
     await for (final p in query.run()) {
+      final releases = await packageBackend.latestReleases(p);
       final popularity = popularityStorage.lookup(p.name) ?? 0.0;
       yield PackageDocument(
         package: p.name,
-        version: p.latestVersion,
+        version: releases.stable.version,
         tags: p.getTags(),
         created: p.created,
         updated: p.lastVersionPublished,

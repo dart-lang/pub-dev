@@ -48,7 +48,7 @@ abstract class ReportStatus {
 /// The details are pulled in from various data sources, and the entry is
 /// recalculated from scratch each time any of the sources change.
 @db.Kind(name: 'ScoreCard', idType: db.IdType.String)
-class ScoreCard extends db.ExpandoModel<String> with FlagMixin {
+class ScoreCard extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)
   String packageName;
 
@@ -88,7 +88,6 @@ class ScoreCard extends db.ExpandoModel<String> with FlagMixin {
   /// The flags for the package, version or analysis.
   /// Example values: entries from [PackageFlags].
   @CompatibleStringListProperty()
-  @override
   List<String> flags = <String>[];
 
   /// The report types that are already done for the ScoreCard.
@@ -153,12 +152,8 @@ class ScoreCard extends db.ExpandoModel<String> with FlagMixin {
     panaReport?.flags?.forEach(addFlag);
     final report =
         joinReport(panaReport: panaReport, dartdocReport: dartdocReport);
-    grantedPubPoints = report?.grantedPoints;
-    maxPubPoints = report?.maxPoints;
-    if (isSkipped) {
-      grantedPubPoints = 0;
-      maxPubPoints = 0;
-    }
+    grantedPubPoints = report?.grantedPoints ?? 0;
+    maxPubPoints = report?.maxPoints ?? 0;
   }
 }
 

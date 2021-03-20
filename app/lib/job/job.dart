@@ -171,11 +171,12 @@ class JobMaintenance {
       try {
         if (!await packageBackend.isPackageVisible(pv.package)) return;
         final p = packages[pv.package];
-        final isLatestStable = p.latestVersion == pv.version;
-        final isLatestPrerelease =
-            p.showPrereleaseVersion && p.latestPrereleaseVersion == pv.version;
+        final releases = await packageBackend.latestReleases(p);
+        final isLatestStable = releases.stable.version == pv.version;
+        final isLatestPrerelease = releases.showPrerelease &&
+            releases.prerelease.version == pv.version;
         final isLatestPreview =
-            p.showPreviewVersion && p.latestPreviewVersion == pv.version;
+            releases.showPreview && releases.preview.version == pv.version;
         if (isLatestStable && skipLatestStable) return;
         final shouldProcess = await _processor.shouldProcess(pv, pv.created);
         await jobBackend.createOrUpdate(

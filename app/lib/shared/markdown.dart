@@ -209,6 +209,7 @@ class _UnsafeUrlFilter implements m.NodeVisitor {
 class _RelativeUrlRewriter implements m.NodeVisitor {
   final String baseUrl;
   final String baseDir;
+  final _elementsToRemove = <m.Element>{};
   _RelativeUrlRewriter(this.baseUrl, this.baseDir);
 
   @override
@@ -219,17 +220,45 @@ class _RelativeUrlRewriter implements m.NodeVisitor {
 
   @override
   void visitElementAfter(m.Element element) {
+    // check current element
     if (element.tag == 'a') {
-      element.attributes['href'] = _rewriteUrl(element.attributes['href']);
+      _updateUrlAttributes(element, 'href');
     } else if (element.tag == 'img') {
-      element.attributes['src'] =
-          _rewriteUrl(element.attributes['src'], raw: true);
+      _updateUrlAttributes(element, 'src', raw: true);
+    }
+    // remove children that are marked to be removed
+    if (element.children != null &&
+        element.children.isNotEmpty &&
+        _elementsToRemove.isNotEmpty) {
+      for (final r in _elementsToRemove.toList()) {
+        final index = element.children.indexOf(r);
+        if (index == -1) continue;
+
+        if (r.children != null && r.children.isNotEmpty) {
+          element.children.insertAll(index, r.children);
+        }
+        element.children.remove(r);
+        _elementsToRemove.remove(r);
+      }
+    }
+  }
+
+  void _updateUrlAttributes(m.Element element, String attrName,
+      {bool raw = false}) {
+    final newUrl = _rewriteUrl(element.attributes[attrName], raw: raw);
+    if (newUrl != null) {
+      element.attributes[attrName] = newUrl;
+    } else {
+      _elementsToRemove.add(element);
     }
   }
 
   String _rewriteUrl(String url, {bool raw = false}) {
     if (url == null || url.startsWith('#')) {
       return url;
+    }
+    if (Uri.tryParse(url) == null) {
+      return null;
     }
     try {
       String newUrl = url;

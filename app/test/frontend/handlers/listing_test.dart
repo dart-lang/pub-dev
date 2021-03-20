@@ -12,6 +12,7 @@ import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/search/search_client.dart';
 import 'package:pub_dev/search/updater.dart';
 import 'package:pub_dev/shared/tags.dart';
+import 'package:pub_dev/tool/test_profile/models.dart';
 
 import '../../shared/handlers_test_utils.dart';
 import '../../shared/test_models.dart';
@@ -50,13 +51,13 @@ void main() {
   });
 
   group('ui', () {
-    testWithServices('/packages', () async {
+    testWithProfile('/packages', fn: () async {
       await expectHtmlResponse(
         await issueGet('/packages'),
         present: [
-          '/packages/helium',
-          '/packages/hydrogen',
-          'hydrogen is a Dart package',
+          '/packages/oxygen',
+          '/packages/neon',
+          'oxygen is awesome',
         ],
         absent: [
           '/packages/http',
@@ -66,15 +67,15 @@ void main() {
       );
     });
 
-    testWithServices('/packages?q="hydrogen is"', () async {
+    testWithProfile('/packages?q="oxygen is"', fn: () async {
       await expectHtmlResponse(
-        await issueGet('/packages?q="hydrogen is"'),
+        await issueGet('/packages?q="oxygen is"'),
         present: [
-          '/packages/hydrogen',
-          'hydrogen is a Dart package',
+          '/packages/oxygen',
+          'oxygen is awesome',
         ],
         absent: [
-          '/packages/helium',
+          '/packages/neon',
           '/packages/http',
           '/packages/event_bus',
           'lightweight library for parsing',
@@ -82,34 +83,27 @@ void main() {
       );
     });
 
-    testWithServices('/packages?q=heliu without working search', () async {
+    testWithProfile('/packages?q=oxyge without working search', fn: () async {
       registerSearchClient(
           SearchClient(MockClient((_) async => throw Exception())));
       await nameTracker.scanDatastore();
       final content =
-          await expectHtmlResponse(await issueGet('/packages?q=heliu'));
-      expect(content, contains('helium is a Dart package'));
+          await expectHtmlResponse(await issueGet('/packages?q=oxyge'));
+      expect(content, contains('oxygen is awesome'));
     });
 
-    testWithServices('/packages?page=2', () async {
-      for (int i = 0; i < 15; i++) {
-        final bundle = generateBundle('pkg$i', ['1.0.0']);
-        await dbService.commit(inserts: [
-          bundle.package,
-          ...bundle.versions,
-          ...bundle.infos,
-          ...bundle.assets,
-        ]);
-      }
-      await indexUpdater.updateAllPackages();
-
-      final names = ['pkg0', 'pkg3', 'pkg10'];
-      final list = await packageBackend.latestPackageVersions(offset: 10);
-      expect(list.map((p) => p.package).toList(), containsAll(names));
-
+    testWithProfile('/packages?page=2',
+        testProfile: TestProfile(
+          defaultUser: 'admin@pub.dev',
+          packages: List<TestPackage>.generate(
+              15, (i) => TestPackage(name: 'pkg$i', versions: ['1.0.0'])),
+        ), fn: () async {
+      final present = ['pkg5', 'pkg7', 'pkg11', 'pkg13', 'pkg14'];
+      final absent = ['pkg0', 'pkg2', 'pkg3', 'pkg4', 'pkg6', 'pkg9', 'pkg10'];
       await expectHtmlResponse(
         await issueGet('/packages?page=2'),
-        present: names.map((name) => '/packages/$name').toList(),
+        present: present.map((name) => '/packages/$name').toList(),
+        absent: absent.map((name) => '/packages/$name').toList(),
       );
     });
 

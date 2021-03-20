@@ -217,6 +217,23 @@ void main() {
       expect(markdownToHtml('[a][b]', baseUrl: 'http://www.example.com/'),
           '<p>[a][b]</p>\n');
     });
+
+    test('bad link, keeping link text', () {
+      expect(markdownToHtml('[my illegal url](http://illegal@@thing)'),
+          '<p>my illegal url</p>\n');
+    });
+
+    test('complex link inside a quote, keeping link content', () {
+      expect(
+          markdownToHtml(
+              '> [**awesome**](href="https://github.com/a/b/c.gif")'),
+          '<blockquote>\n<p><strong>awesome</strong></p>\n</blockquote>\n');
+    });
+
+    test('bad image link with attribute', () {
+      expect(markdownToHtml('![demo](src="https://github.com/a/b/c.gif")'),
+          '<p></p>\n');
+    });
   });
 
   group('non-whitelisted inline HTML', () {
