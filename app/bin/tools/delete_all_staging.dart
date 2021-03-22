@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:args/args.dart';
+import 'package:gcloud/datastore.dart' as ds;
 import 'package:pool/pool.dart';
 
 import 'package:pub_dev/account/models.dart';
@@ -78,7 +79,7 @@ Future main(List<String> args) async {
           final f = pool.withResource(() => _commit(keys, dryRun));
           futures.add(f);
         },
-        batchSize: entity.value,
+        maxBatchSize: entity.value,
       );
       await Future.wait(futures);
     }
@@ -86,27 +87,63 @@ Future main(List<String> args) async {
   });
 }
 
+const _defaultBudget = 512000;
+
 Future<void> _batchedQuery<T extends Model>(
   Query<T> query,
   void Function(List<Key> keys) fn, {
-  int batchSize = 100,
+  int maxBatchSize = 100,
 }) async {
   print('Running query for $T...');
   final keys = <Key>[];
+  var budget = _defaultBudget;
   var scheduled = 0;
+
+  void flush() {
+    if (keys.isEmpty) return;
+    fn(List.from(keys));
+    keys.clear();
+    scheduled++;
+    budget = _defaultBudget;
+  }
+
   await for (Model m in query.run()) {
+    final size = _estimateSize(m);
+    if (size * 4 >= _defaultBudget) {
+      flush();
+      keys.add(m.key);
+      flush();
+      continue;
+    }
+
     keys.add(m.key);
-    if (keys.length >= batchSize) {
-      fn(List.from(keys));
-      keys.clear();
-      scheduled++;
+    budget -= size;
+    if (keys.length >= maxBatchSize || budget < 0) {
+      flush();
     }
   }
-  if (keys.isNotEmpty) {
-    fn(keys);
-    scheduled++;
-  }
+  flush();
   print('Scheduled $scheduled $T batches.');
+}
+
+// Unscientific estimate of the model's stored size in Datastore.
+int _estimateSize(Model m) {
+  var size = 1024;
+  final entity = dbService.modelDB.toDatastoreEntity(m);
+  entity.properties?.forEach((k, v) {
+    size += 128;
+    size += k.toString().length;
+    if (v == null || v is num || v is bool) {
+      size += 8;
+    } else if (v is String) {
+      size += v.length;
+    } else if (v is ds.BlobValue) {
+      size += v.bytes.length;
+    } else {
+      size += 1024;
+    }
+  });
+  return size;
 }
 
 Future<void> _commit(List<Key> keys, bool dryRun) async {
