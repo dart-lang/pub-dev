@@ -278,7 +278,7 @@ class Configuration {
       return Configuration.prod();
     } else if (env.gcloudProject == 'dartlang-pub-dev') {
       return Configuration.staging();
-    } else if (env.configPath?.isEmpty ?? false) {
+    } else if (env.configPath?.isEmpty ?? true) {
       throw Exception(
           'Unknown project id: ${env.gcloudProject}. Please setup env var GCLOUD_PROJECT or PUB_SERVER_CONFIG');
     } else if (File(env.configPath).existsSync()) {
