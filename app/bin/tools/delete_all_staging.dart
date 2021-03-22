@@ -45,30 +45,30 @@ Future main(List<String> args) async {
   final concurrency = int.parse(argv['concurrency'] as String);
   final dryRun = argv['dry-run'] as bool;
 
-  final entities = <Query, int>{
-    dbService.query<AuditLogRecord>(): 500,
-    dbService.query<Job>(): 500,
-    dbService.query<DartdocRun>(): 100,
-    dbService.query<UserInfo>(): 500,
-    dbService.query<OAuthUserID>(): 500,
-    dbService.query<UserSession>(): 500,
-    dbService.query<User>(): 500,
-    dbService.query<Like>(): 500,
-    dbService.query<ScoreCardReport>(): 100,
-    dbService.query<ScoreCard>(): 500,
-    dbService.query<PackageVersionInfo>(): 500,
-    dbService.query<PackageVersionAsset>(): 100,
-    dbService.query<PackageVersion>(): 500,
-    dbService.query<Package>(): 500,
-    dbService.query<PublisherMember>(): 500,
-    dbService.query<PublisherInfo>(): 500,
-    dbService.query<Publisher>(): 500,
-    dbService.query<ModeratedPackage>(): 500,
-    dbService.query<NeatTaskStatus>(): 500,
-    dbService.query<Secret>(): 500,
-  };
-
   await withToolRuntime(() async {
+    final entities = <Query, int>{
+      dbService.query<AuditLogRecord>(): 500,
+      dbService.query<Job>(): 500,
+      dbService.query<DartdocRun>(): 100,
+      dbService.query<UserInfo>(): 500,
+      dbService.query<OAuthUserID>(): 500,
+      dbService.query<UserSession>(): 500,
+      dbService.query<User>(): 500,
+      dbService.query<Like>(): 500,
+      dbService.query<ScoreCardReport>(): 100,
+      dbService.query<ScoreCard>(): 500,
+      dbService.query<PackageVersionInfo>(): 500,
+      dbService.query<PackageVersionAsset>(): 100,
+      dbService.query<PackageVersion>(): 500,
+      dbService.query<Package>(): 500,
+      dbService.query<PublisherMember>(): 500,
+      dbService.query<PublisherInfo>(): 500,
+      dbService.query<Publisher>(): 500,
+      dbService.query<ModeratedPackage>(): 500,
+      dbService.query<NeatTaskStatus>(): 500,
+      dbService.query<Secret>(): 500,
+    };
+
     final pool = Pool(concurrency);
     for (final entity in entities.entries) {
       final futures = <Future>[];
