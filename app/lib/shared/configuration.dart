@@ -141,10 +141,6 @@ class Configuration {
   /// The identifier of admins.
   final List<AdminId> admins;
 
-  factory Configuration.fromJson(Map<String, dynamic> json) =>
-      _$ConfigurationFromJson(json);
-  Map<String, dynamic> toJson() => _$ConfigurationToJson(this);
-
   factory Configuration.fromYamlFile(final String path) {
     final file = File(path);
     final content = file.readAsStringSync();
@@ -158,7 +154,8 @@ class Configuration {
   /// This will use the Datastore from the cloud project and the Cloud Storage
   /// bucket 'pub-packages'. The credentials for accessing the Cloud
   /// Storage is retrieved from the Datastore.
-  factory Configuration.prodConfig() {
+  @visibleForTesting
+  factory Configuration.prod() {
     final projectId = 'dartlang-pub';
     return Configuration(
       projectId: projectId,
@@ -203,7 +200,8 @@ class Configuration {
   }
 
   /// Create a configuration for development/staging deployment.
-  factory Configuration.devConfig() {
+  @visibleForTesting
+  factory Configuration.staging() {
     final projectId = 'dartlang-pub-dev';
     return Configuration(
       projectId: projectId,
@@ -277,17 +275,15 @@ class Configuration {
   /// Create a configuration based on the environment variables.
   factory Configuration.fromEnv(EnvConfig env) {
     if (env.gcloudProject == 'dartlang-pub') {
-      return Configuration.prodConfig();
+      return Configuration.prod();
     } else if (env.gcloudProject == 'dartlang-pub-dev') {
-      return Configuration.devConfig();
+      return Configuration.staging();
+    } else if (env.configPath.isEmpty) {
+      throw Exception(
+          'Unknown project id: ${env.gcloudProject}. Please setup env var GCLOUD_PROJECT or PUB_SERVER_CONFIG');
+    } else if (File(env.configPath).existsSync()) {
+      return Configuration.fromYamlFile(env.configPath);
     } else {
-      if (env.configPath.isEmpty) {
-        throw Exception(
-            'Unknown project id: ${env.gcloudProject}. Please setup env var GCLOUD_PROJECT or PUB_SERVER_CONFIG');
-      }
-      if (File(env.configPath).existsSync()) {
-        return Configuration.fromYamlFile(env.configPath);
-      }
       throw Exception(
           'File ${env.configPath} doesnt exist. Please ensure PUB_SERVER_CONFIG env is pointing to the existing config');
     }
@@ -358,6 +354,10 @@ class Configuration {
       ],
     );
   }
+
+  factory Configuration.fromJson(Map<String, dynamic> json) =>
+      _$ConfigurationFromJson(json);
+  Map<String, dynamic> toJson() => _$ConfigurationToJson(this);
 }
 
 /// Configuration from the environment variables.
@@ -444,15 +444,16 @@ class AdminId {
   /// A set of strings that determine what operations the administrator is
   /// permitted to perform.
   final Set<AdminPermission> permissions;
-  factory AdminId.fromJson(Map<String, dynamic> json) =>
-      _$AdminIdFromJson(json);
-  Map<String, dynamic> toJson() => _$AdminIdToJson(this);
 
   AdminId({
     @required this.oauthUserId,
     @required this.email,
     @required Iterable<AdminPermission> permissions,
   }) : permissions = UnmodifiableSetView(Set.from(permissions));
+
+  factory AdminId.fromJson(Map<String, dynamic> json) =>
+      _$AdminIdFromJson(json);
+  Map<String, dynamic> toJson() => _$AdminIdToJson(this);
 }
 
 /// Permission that can be granted to administrators.
