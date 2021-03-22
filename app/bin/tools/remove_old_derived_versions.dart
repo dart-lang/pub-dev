@@ -70,8 +70,8 @@ Future<void> _deleteWithQuery<T>(Query query,
     if (shouldDelete) {
       deletes.add(m.key);
       if (deletes.length >= 500) {
-        deletes.clear();
         await _commit(deletes, dryRun);
+        deletes.clear();
       }
     }
   }
