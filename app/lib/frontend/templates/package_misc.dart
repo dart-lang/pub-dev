@@ -196,9 +196,9 @@ String renderTags({
 }
 
 /// Renders the `views/pkg/labeled_scores.mustache` template.
-String renderLabeledScores(PackageView view) {
+String renderLabeledScores(PackageView view, {String version}) {
   return templateCache.renderTemplate('pkg/labeled_scores', {
-    'pkg_score_url': urls.pkgScoreUrl(view.name),
+    'pkg_score_url': urls.pkgScoreUrl(view.name, version: version),
     'like_score_html': _renderLabeledScore('likes', view.likes, ''),
     'pub_points_html':
         _renderLabeledScore('pub points', view.grantedPubPoints, ''),
