@@ -127,16 +127,14 @@ class JobBackend {
             current.isLatestPreview == isLatestPreview &&
             !current.packageVersionUpdated.isBefore(packageVersionUpdated) &&
             (priority == null || current.priority <= priority);
-        if (hasNotChanged) {
-          if (!shouldProcess) {
-            // no reason to re-schedule the job
-            return;
-          }
-          if (current.state == JobState.available &&
-              current.lockedUntil == null) {
-            // already scheduled for processing
-            return;
-          }
+        if (hasNotChanged && !shouldProcess) {
+          // no reason to re-schedule the job
+          return;
+        }
+        if (current.state == JobState.available &&
+            current.lockedUntil == null) {
+          // already scheduled for processing
+          return;
         }
         _logger.info('Updating job: $id ($state, $lockedUntil)');
         current
@@ -164,8 +162,8 @@ class JobBackend {
           ..isLatestPrerelease = isLatestPrerelease
           ..isLatestPreview = isLatestPreview
           ..packageVersionUpdated = packageVersionUpdated
-          ..state = state
-          ..lockedUntil = lockedUntil
+          ..state = JobState.available
+          ..lockedUntil = null
           ..lastStatus = JobStatus.none
           ..runtimeVersion = versions.runtimeVersion
           ..errorCount = 0
