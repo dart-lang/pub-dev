@@ -13,4 +13,4 @@ steps:
   env:
     - 'PROJECT_ID=$PROJECT_ID'
     - 'BRANCH_NAME=$BRANCH_NAME'
-timeout: '1600s'
+timeout: '3600s'
