@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:args/args.dart';
-import 'package:gcloud/datastore.dart' as ds;
 import 'package:pool/pool.dart';
 
 import 'package:pub_dev/account/models.dart';
@@ -137,7 +136,7 @@ int _estimateSize(Model m) {
       size += 8;
     } else if (v is String) {
       size += v.length;
-    } else if (v is ds.BlobValue) {
+    } else if (v is BlobValue) {
       size += v.bytes.length;
     } else {
       size += 1024;
