@@ -4,6 +4,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Bumped runtimeVersion to `2021.03.30`.
  * Upgraded dartdoc to `0.41.0`.
+ * NOTE: Expected reduction in Job-related API calls.
 
 ## `20210325t074600-all`
  * Tempoarily disabled youtube integration.
