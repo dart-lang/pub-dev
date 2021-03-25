@@ -33,6 +33,7 @@ class YoutubeBackend {
 
   /// Loads the data from Youtube and caches locally.
   Future<void> update() async {
+    /*
     await retry(() async {
       final apiKey = Platform.environment['YOUTUBE_API_KEY'] ??
           await secretBackend.lookup(SecretKey.youtubeApiKey);
@@ -43,7 +44,7 @@ class YoutubeBackend {
       final youtube = YoutubeApi(apiClient);
       await _updatePoWVideos(youtube);
       httpClient.close();
-    });
+    });*/
   }
 
   Future _updatePoWVideos(YoutubeApi youtube) async {
@@ -90,6 +91,8 @@ class YoutubeBackend {
     int count = 4,
     math.Random random,
   }) {
+    return const <PkgOfWeekVideo>[];
+    /*
     if (_packageOfWeekVideos == null) {
       return const <PkgOfWeekVideo>[];
     }
@@ -109,7 +112,7 @@ class YoutubeBackend {
         selected.add(selectable.removeAt(random.nextInt(selectable.length)));
       }
     }
-    return selected;
+    return selected;*/
   }
 
   /// Cancel timer and free resources.
