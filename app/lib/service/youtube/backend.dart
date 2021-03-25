@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:logging/logging.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/youtube/v3.dart';
 import 'package:googleapis_auth/auth_io.dart';
@@ -14,6 +15,8 @@ import 'package:retry/retry.dart';
 
 import '../../tool/utils/http.dart';
 import '../secret/backend.dart';
+
+final _logger = Logger('youtube.backend');
 
 /// The playlist ID for the Package of the Week channel.
 const powPlaylistId = 'PLjxrf2q8roU1quF6ny8oFHJ2gBdrYN_AK';
@@ -30,21 +33,30 @@ YoutubeBackend get youtubeBackend =>
 class YoutubeBackend {
   List<PkgOfWeekVideo> _packageOfWeekVideos;
   Timer _updateTimer;
+  final bool _enabled;
+
+  YoutubeBackend({bool enabled}) : _enabled = enabled ?? false;
 
   /// Loads the data from Youtube and caches locally.
   Future<void> update() async {
-    /*
-    await retry(() async {
-      final apiKey = Platform.environment['YOUTUBE_API_KEY'] ??
-          await secretBackend.lookup(SecretKey.youtubeApiKey);
-      if (apiKey == null || apiKey.isEmpty) return;
+    // TODO: remove when we want to re-enable videos on the langing page.
+    if (!_enabled) return;
 
-      final httpClient = httpRetryClient();
-      final apiClient = clientViaApiKey(apiKey, baseClient: httpClient);
-      final youtube = YoutubeApi(apiClient);
-      await _updatePoWVideos(youtube);
-      httpClient.close();
-    });*/
+    try {
+      await retry(() async {
+        final apiKey = Platform.environment['YOUTUBE_API_KEY'] ??
+            await secretBackend.lookup(SecretKey.youtubeApiKey);
+        if (apiKey == null || apiKey.isEmpty) return;
+
+        final httpClient = httpRetryClient();
+        final apiClient = clientViaApiKey(apiKey, baseClient: httpClient);
+        final youtube = YoutubeApi(apiClient);
+        await _updatePoWVideos(youtube);
+        httpClient.close();
+      });
+    } catch (e, st) {
+      _logger.warning('Fetching Package of the Week playlist failed.', e, st);
+    }
   }
 
   Future _updatePoWVideos(YoutubeApi youtube) async {
@@ -91,8 +103,6 @@ class YoutubeBackend {
     int count = 4,
     math.Random random,
   }) {
-    return const <PkgOfWeekVideo>[];
-    /*
     if (_packageOfWeekVideos == null) {
       return const <PkgOfWeekVideo>[];
     }
@@ -112,7 +122,7 @@ class YoutubeBackend {
         selected.add(selectable.removeAt(random.nextInt(selectable.length)));
       }
     }
-    return selected;*/
+    return selected;
   }
 
   /// Cancel timer and free resources.
