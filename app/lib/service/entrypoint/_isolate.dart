@@ -77,6 +77,9 @@ Future startIsolates({
     _setupServiceIsolate();
 
     int frontendStarted = 0;
+
+    /// The timestamp until errors won't cause frontend isolates to restart.
+    var frontendRestartProtection = DateTime.now();
     int workerStarted = 0;
     final statConsumerPorts = <SendPort>[];
 
@@ -121,19 +124,38 @@ Future startIsolates({
         protocolReceivePort.close();
       }
 
+      Future<void> restart() async {
+        await close();
+        // Restart the isolate after a pause, increasing the pause duration at
+        // each restart.
+        //
+        // NOTE: As this wait period increases, the service may miss /liveness_check
+        //       requests, and eventually AppEngine may just kill the instance
+        //       marking it unreachable.
+        await Future.delayed(Duration(seconds: 5 + frontendStarted));
+        await startFrontendIsolate();
+      }
+
       errorSubscription = errorReceivePort.listen((e) async {
         stderr.writeln('ERROR from frontend isolate #$frontendIndex: $e');
         logger.severe('ERROR from frontend isolate #$frontendIndex', e);
+
+        // If we have recently restarted an isolate, let's keep it running.
+        if (DateTime.now().isBefore(frontendRestartProtection)) {
+          return;
+        }
+
+        // Extend restart protection for up to 20 minutes.
+        frontendRestartProtection =
+            DateTime.now().add(Duration(minutes: min(frontendStarted, 20)));
+        await restart();
       });
 
       exitSubscription = exitReceivePort.listen((e) async {
-        stderr.writeln('Frontend isolate #$frontendIndex exited with message: $e');
+        stderr.writeln(
+            'Frontend isolate #$frontendIndex exited with message: $e');
         logger.warning('Frontend isolate #$frontendIndex exited.', e);
-
-        await close();
-        // restart isolate after a brief pause
-        await Future.delayed(Duration(seconds: 5 + frontendStarted));
-        await startFrontendIsolate();
+        await restart();
       });
     }
 
