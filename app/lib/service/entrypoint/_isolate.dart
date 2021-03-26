@@ -68,7 +68,7 @@ Future startIsolates({
       final stampFile =
           File(p.join(Directory.systemTemp.path, 'pub-dev-started.stamp'));
       if (stampFile.existsSync()) {
-        print('[warning-service-restarted]: '
+        stderr.writeln('[warning-service-restarted]: '
             '${stampFile.path} already exists, indicating that this process has been restarted.');
       } else {
         stampFile.createSync(recursive: true);
@@ -84,8 +84,9 @@ Future startIsolates({
       frontendStarted++;
       final frontendIndex = frontendStarted;
       logger.info('About to start frontend isolate #$frontendIndex...');
-      final ReceivePort errorReceivePort = ReceivePort();
-      final ReceivePort protocolReceivePort = ReceivePort();
+      final errorReceivePort = ReceivePort();
+      final exitReceivePort = ReceivePort();
+      final protocolReceivePort = ReceivePort();
       await Isolate.spawn(
         _wrapper,
         [
@@ -96,7 +97,7 @@ Future startIsolates({
           ),
         ],
         onError: errorReceivePort.sendPort,
-        onExit: errorReceivePort.sendPort,
+        onExit: exitReceivePort.sendPort,
         errorsAreFatal: true,
       );
       final protocolMessage = (await protocolReceivePort.take(1).toList())
@@ -107,22 +108,31 @@ Future startIsolates({
       logger.info('Frontend isolate #$frontendIndex started.');
 
       StreamSubscription errorSubscription;
+      StreamSubscription exitSubscription;
 
       Future<void> close() async {
         if (protocolMessage.statsConsumerPort != null) {
           statConsumerPorts.remove(protocolMessage.statsConsumerPort);
         }
         await errorSubscription?.cancel();
+        await exitSubscription?.cancel();
         errorReceivePort.close();
+        exitReceivePort.close();
         protocolReceivePort.close();
       }
 
       errorSubscription = errorReceivePort.listen((e) async {
-        print('ERROR from frontend isolate #$frontendIndex: $e');
+        stderr.writeln('ERROR from frontend isolate #$frontendIndex: $e');
         logger.severe('ERROR from frontend isolate #$frontendIndex', e);
+      });
+
+      exitSubscription = exitReceivePort.listen((e) async {
+        stderr.writeln('Frontend isolate #$frontendIndex exited with message: $e');
+        logger.warning('Frontend isolate #$frontendIndex exited.', e);
+
         await close();
         // restart isolate after a brief pause
-        await Future.delayed(Duration(seconds: 5));
+        await Future.delayed(Duration(seconds: 5 + frontendStarted));
         await startFrontendIsolate();
       });
     }
@@ -195,7 +205,7 @@ Future startIsolates({
       }
 
       errorSubscription = errorReceivePort.listen((e) async {
-        print('ERROR from worker isolate #$workerIndex: $e');
+        stderr.writeln('ERROR from worker isolate #$workerIndex: $e');
         logger.severe('ERROR from worker isolate #$workerIndex', e);
         await close();
         // restart isolate after a brief pause
