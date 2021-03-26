@@ -4,9 +4,19 @@
 
 import 'dart:convert';
 
+import 'package:logging/logging.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import '../../shared/versions.dart';
 import 'http.dart' show httpRetryClient;
+
+final _logger = Logger('tool.sdk_version');
+
+/// The default cache timeout after the request is made to the storage server.
+const _defaultMaxAge = Duration(hours: 1);
+
+/// The cache timeout used in case the fetch encountered a failure.
+const _failedFetchCacheDuration = Duration(minutes: 5);
 
 /// The locally cached last fetch.
 DartSdkVersion _cached;
@@ -16,20 +26,20 @@ class DartSdkVersion {
   final String version;
   final Version semanticVersion;
   final DateTime published;
-  final DateTime fetched;
+  final DateTime expires;
 
-  DartSdkVersion(this.version, this.published)
+  DartSdkVersion(this.version, this.published, {DateTime expires})
       : semanticVersion = Version.parse(version),
-        fetched = DateTime.now();
+        expires = expires ?? DateTime.now().add(_defaultMaxAge);
 
-  Duration get age => DateTime.now().difference(fetched);
+  bool get isExpired => DateTime.now().isBefore(expires);
 }
 
-/// Gets the latest Dart SDK version information (may be cached, but not older
-/// than [maxAge]).
-Future<DartSdkVersion> getDartSdkVersion(
-    {Duration maxAge = const Duration(hours: 1)}) async {
-  if (_cached != null && _cached.age < maxAge) return _cached;
+/// Gets the latest Dart SDK version information (value may be cached).
+Future<DartSdkVersion> getDartSdkVersion() async {
+  if (_cached != null && !_cached.isExpired) {
+    return _cached;
+  }
   return _fetchDartSdkVersion();
 }
 
@@ -46,6 +56,15 @@ Future<DartSdkVersion> _fetchDartSdkVersion() async {
     final version = map['version'] as String;
     final date = DateTime.parse(map['date'] as String);
     return _cached = DartSdkVersion(version, date);
+  } catch (e, st) {
+    _logger.warning('Unable to fetch the Dart SDK version', e, st);
+    // If there exists a cached value, extend it.
+    // If there is no cached value, use the runtime analysis SDK as the latest.
+    return _cached = DartSdkVersion(
+      _cached?.version ?? toolStableDartSdkVersion,
+      _cached?.published ?? DateTime.now(),
+      expires: DateTime.now().add(_failedFetchCacheDuration),
+    );
   } finally {
     client.close();
   }
