@@ -15,7 +15,7 @@ import 'package:stack_trace/stack_trace.dart';
 
 import '../../shared/configuration.dart';
 import '../../shared/scheduler_stats.dart';
-import '../../shared/utils.dart' show trackEventLoopLatency;
+import '../../tool/utils/event_loop_tracker.dart';
 
 import '../services.dart';
 

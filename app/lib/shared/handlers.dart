@@ -9,11 +9,12 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../frontend/request_context.dart';
+import '../tool/utils/event_loop_tracker.dart';
 
 import 'popularity_storage.dart';
 import 'scheduler_stats.dart';
 import 'urls.dart' as urls;
-import 'utils.dart' show eventLoopLatencyTracker, jsonUtf8Encoder;
+import 'utils.dart' show jsonUtf8Encoder;
 import 'versions.dart';
 
 const String default400BadRequest = '400 Bad Request';
