@@ -14,7 +14,7 @@ import 'package:pub_integration/src/fake_pub_server_process.dart';
 
 void main() {
   group('Integration test using pkg/fake_pub_server', () {
-    FakePubServerProcess fakePubServerProcess;
+    late FakePubServerProcess fakePubServerProcess;
     final httpClient = http.Client();
 
     setUpAll(() async {
@@ -23,7 +23,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      await fakePubServerProcess?.kill();
+      await fakePubServerProcess.kill();
       httpClient.close();
     });
 

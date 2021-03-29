@@ -20,9 +20,9 @@ void main() {
       coverageDir != null || Platform.environment['COVERAGE'] == '1';
 
   group('browser', () {
-    FakePubServerProcess fakePubServerProcess;
-    BaseSetupScript script;
-    HeadlessEnv headlessEnv;
+    late FakePubServerProcess fakePubServerProcess;
+    late BaseSetupScript script;
+    HeadlessEnv? headlessEnv;
     final httpClient = http.Client();
 
     setUpAll(() async {
@@ -31,9 +31,9 @@ void main() {
     });
 
     tearDownAll(() async {
-      await script?.close();
+      await script.close();
       await headlessEnv?.close();
-      await fakePubServerProcess?.kill();
+      await fakePubServerProcess.kill();
       httpClient.close();
       headlessEnv?.printCoverage();
       if (coverageDir != null) {
@@ -58,12 +58,12 @@ void main() {
     // server startup.
     test('start browser', () async {
       headlessEnv = HeadlessEnv(trackCoverage: trackCoverage);
-      await headlessEnv.startBrowser(
+      await headlessEnv!.startBrowser(
           origin: 'http://localhost:${fakePubServerProcess.port}');
     });
 
     test('landing page', () async {
-      await headlessEnv.withPage(
+      await headlessEnv!.withPage(
         user: FakeGoogleUser.withDefaults('dev@example.org'),
         fn: (page) async {
           await page.goto('http://localhost:${fakePubServerProcess.port}',
@@ -76,7 +76,7 @@ void main() {
     });
 
     test('listing page', () async {
-      await headlessEnv.withPage(
+      await headlessEnv!.withPage(
         user: FakeGoogleUser.withDefaults('dev@example.org'),
         fn: (page) async {
           await page.goto(
@@ -84,10 +84,10 @@ void main() {
               wait: Until.networkIdle);
 
           // check package list
-          final packages = <String>{};
+          final packages = <String?>{};
           for (final item in await page.$$('.packages .packages-title a')) {
             final text = await (await item.property('textContent')).jsonValue;
-            packages.add(text as String);
+            packages.add(text as String?);
           }
           expect(packages, {'_dummy_pkg', 'retry'});
         },
@@ -95,7 +95,7 @@ void main() {
     });
 
     test('package page', () async {
-      await headlessEnv.withPage(
+      await headlessEnv!.withPage(
         user: FakeGoogleUser.withDefaults('dev@example.org'),
         fn: (page) async {
           await page.goto(
@@ -107,7 +107,7 @@ void main() {
               .$('.packages-score-health .packages-score-value-number');
           final pubScore =
               await (await (pubScoreElem).property('textContent')).jsonValue;
-          expect(pubScore, '80');
+          expect(pubScore, '110');
 
           // check header with name and version
           Future<void> checkHeaderTitle() async {

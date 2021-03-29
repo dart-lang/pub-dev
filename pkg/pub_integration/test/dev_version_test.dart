@@ -11,7 +11,7 @@ import 'package:pub_integration/src/fake_pub_server_process.dart';
 
 void main() {
   group('devVersion - dev first', () {
-    FakePubServerProcess fakePubServerProcess;
+    late FakePubServerProcess fakePubServerProcess;
     final httpClient = http.Client();
 
     setUpAll(() async {
@@ -20,7 +20,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      await fakePubServerProcess?.kill();
+      await fakePubServerProcess.kill();
       httpClient.close();
     });
 
@@ -34,7 +34,7 @@ void main() {
   }, timeout: Timeout.factor(testTimeoutFactor));
 
   group('devVersion - stable first', () {
-    FakePubServerProcess fakePubServerProcess;
+    late FakePubServerProcess fakePubServerProcess;
     final httpClient = http.Client();
 
     setUpAll(() async {
@@ -43,7 +43,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      await fakePubServerProcess?.kill();
+      await fakePubServerProcess.kill();
       httpClient.close();
     });
 

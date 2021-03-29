@@ -10,7 +10,7 @@ Future createFakeRetryPkg(String dir) async {
   await _copy('test_data/retry', dir);
 }
 
-Future createDummyPkg(String dir, String version,
+Future createDummyPkg(String dir, String? version,
     {int changelogContentSizeInKB = 0}) async {
   await _copy('test_data/_dummy_pkg', dir);
   final pubspecFile = File(p.join(dir, 'pubspec.yaml'));

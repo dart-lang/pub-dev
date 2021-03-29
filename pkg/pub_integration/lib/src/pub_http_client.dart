@@ -6,14 +6,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart';
-import 'package:meta/meta.dart';
 
 import 'package:pub_validations/html/html_validation.dart';
 
 /// Simple pub client library.
 class PubHttpClient {
   final _http = _HtmlVerifierHttpClient(Client());
-  final String pubHostedUrl;
+  final String? pubHostedUrl;
 
   PubHttpClient(this.pubHostedUrl) {
     if (pubHostedUrl == null) {
@@ -67,7 +66,7 @@ class PubHttpClient {
   }
 
   /// Get the latest version name of a package.
-  Future<String> getLatestVersionName(String package) async {
+  Future<String?> getLatestVersionName(String package) async {
     final url = '$pubHostedUrl/api/packages/$package';
     final rs = await _http.get(Uri.parse(url));
     if (rs.statusCode == 404) {
@@ -75,7 +74,7 @@ class PubHttpClient {
     } else if (rs.statusCode == 200) {
       final map = json.decode(rs.body) as Map<String, dynamic>;
       final latest = map['latest'] as Map<String, dynamic>;
-      return latest['version'] as String;
+      return latest['version'] as String?;
     } else {
       throw Exception('Unexpected result: ${rs.statusCode} ${rs.reasonPhrase}');
     }
@@ -83,7 +82,7 @@ class PubHttpClient {
 
   /// Get the content of the latest version page of a package or null if it does
   /// not exists.
-  Future<String> getLatestVersionPage(String package, {String tab}) async {
+  Future<String?> getLatestVersionPage(String package, {String? tab}) async {
     final tabUrl = tab == null ? '' : '/$tab';
     final rs =
         await _http.get(Uri.parse('$pubHostedUrl/packages/$package$tabUrl'));
@@ -107,7 +106,7 @@ class PubHttpClient {
   }
 
   /// Get the content of the publisher page or null if it does not exists.
-  Future<String> getPublisherPage(String publisherId) async {
+  Future<String?> getPublisherPage(String publisherId) async {
     final rs =
         await _http.get(Uri.parse('$pubHostedUrl/publishers/$publisherId'));
     if (rs.statusCode == 404) {
@@ -134,9 +133,9 @@ class PubHttpClient {
 
   /// Creates a publisher.
   Future<void> createPublisher({
-    @required String authToken,
-    @required String publisherId,
-    @required String accessToken,
+    required String authToken,
+    required String publisherId,
+    required String accessToken,
   }) async {
     final rs = await _http.post(
       Uri.parse('$pubHostedUrl/api/publishers/$publisherId'),
@@ -154,9 +153,9 @@ class PubHttpClient {
 
   /// Move a package under a publisher.
   Future<void> setPackagePublisher({
-    @required String authToken,
-    @required String package,
-    @required String publisherId,
+    required String authToken,
+    required String package,
+    required String publisherId,
   }) async {
     final rs = await _http.put(
       Uri.parse('$pubHostedUrl/api/packages/$package/publisher'),
@@ -174,9 +173,9 @@ class PubHttpClient {
 
   /// Invite a member into a publisher.
   Future<void> inviteMember({
-    @required String authToken,
-    @required String publisherId,
-    @required String invitedEmail,
+    required String authToken,
+    required String publisherId,
+    required String invitedEmail,
   }) async {
     final rs = await _http.post(
       Uri.parse('$pubHostedUrl/api/publishers/$publisherId/invite-member'),
@@ -193,9 +192,9 @@ class PubHttpClient {
   }
 
   /// Returns the e-mail -> role map of publisher members.
-  Future<Map<String, String>> listMembers({
-    @required String authToken,
-    @required String publisherId,
+  Future<Map<String?, String?>> listMembers({
+    required String authToken,
+    required String publisherId,
   }) async {
     final rs = await _http.get(
       Uri.parse('$pubHostedUrl/api/publishers/$publisherId/members'),
@@ -208,8 +207,8 @@ class PubHttpClient {
     }
     final map = json.decode(rs.body);
     final members = (map['members'] as List).cast<Map>();
-    return Map.fromEntries(members.map((Map m) =>
-        MapEntry<String, String>(m['email'] as String, m['role'] as String)));
+    return Map.fromEntries(members.map((Map m) => MapEntry<String?, String?>(
+        m['email'] as String?, m['role'] as String?)));
   }
 
   /// Returns the list of packages from `/api/package-names` endpoint.
