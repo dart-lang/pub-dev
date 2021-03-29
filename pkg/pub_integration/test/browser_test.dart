@@ -107,7 +107,7 @@ void main() {
               .$('.packages-score-health .packages-score-value-number');
           final pubScore =
               await (await (pubScoreElem).property('textContent')).jsonValue;
-          expect(pubScore, '110');
+          expect(pubScore, '100');
 
           // check header with name and version
           Future<void> checkHeaderTitle() async {
