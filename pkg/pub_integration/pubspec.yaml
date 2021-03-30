@@ -3,12 +3,11 @@ publish_to: none  # don't publish yet
 description: Tools for integration tests.
 
 environment:
-  sdk: '>=2.6.0 <3.0.0'
+  sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
   args: ^2.0.0
   http: ^0.13.0
-  meta: ^1.3.0
   path: ^1.8.0
   pub_semver: ^2.0.0
   pub_validations:

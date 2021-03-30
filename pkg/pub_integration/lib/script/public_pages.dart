@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/meta.dart';
-
 import '../src/pub_http_client.dart';
 
 /// A single object to execute integration script and verification tests querying
@@ -11,17 +9,15 @@ import '../src/pub_http_client.dart';
 class PublicPagesScript {
   final String pubHostedUrl;
   final bool expectLiveSite;
-  PubHttpClient _pubClient;
+  final PubHttpClient _pubClient;
 
   PublicPagesScript(
     this.pubHostedUrl, {
-    @required this.expectLiveSite,
-  });
+    required this.expectLiveSite,
+  }) : _pubClient = PubHttpClient(pubHostedUrl);
 
   /// Verify public pages.
   Future<void> verify() async {
-    assert(_pubClient == null);
-    _pubClient = PubHttpClient(pubHostedUrl);
     try {
       if (!expectLiveSite) {
         await _pubClient.forceSearchUpdate();
@@ -36,7 +32,6 @@ class PublicPagesScript {
       await _badRequest();
     } finally {
       await _pubClient.close();
-      _pubClient = null;
     }
   }
 
@@ -85,12 +80,12 @@ class PublicPagesScript {
 
   Future<void> _customApis() async {
     final packageNames = await _pubClient.apiPackageNames();
-    if (packageNames == null || !packageNames.contains('retry')) {
+    if (!packageNames.contains('retry')) {
       throw Exception('Expected "retry" in the list of package names.');
     }
 
     final completitionData = await _pubClient.apiPackageNameCompletionData();
-    if (completitionData == null || !completitionData.contains('retry')) {
+    if (!completitionData.contains('retry')) {
       throw Exception('Expected "retry" in the package name completion data.');
     }
   }

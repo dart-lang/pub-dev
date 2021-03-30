@@ -14,16 +14,16 @@ import '../src/test_data.dart';
 /// `pub` tool on the pub.dev site (or on a test site).
 class BaseSetupScript {
   final String pubHostedUrl;
-  final String credentialsFileContent;
+  final String? credentialsFileContent;
   final PubHttpClient _pubHttpClient;
-  PubToolClient _pubToolClient;
+  PubToolClient? _pubToolClient;
 
-  Directory _temp;
-  Directory _dummyDir;
-  Directory _retryDir;
+  late Directory _temp;
+  late Directory _dummyDir;
+  late Directory _retryDir;
 
   BaseSetupScript({
-    this.pubHostedUrl,
+    required this.pubHostedUrl,
     this.credentialsFileContent,
   }) : _pubHttpClient = PubHttpClient(pubHostedUrl);
 
@@ -38,16 +38,16 @@ class BaseSetupScript {
     try {
       _pubToolClient = await PubToolClient.create(
           pubHostedUrl: pubHostedUrl,
-          credentialsFileContent: credentialsFileContent);
+          credentialsFileContent: credentialsFileContent!);
 
       // creating packages
       await _createFakeRetryPkg();
-      await _pubToolClient.getDependencies(_retryDir.path);
-      await _pubToolClient.publish(_retryDir.path);
+      await _pubToolClient!.getDependencies(_retryDir.path);
+      await _pubToolClient!.publish(_retryDir.path);
 
       await _createDummyPkg();
-      await _pubToolClient.getDependencies(_dummyDir.path);
-      await _pubToolClient.publish(_dummyDir.path);
+      await _pubToolClient!.getDependencies(_dummyDir.path);
+      await _pubToolClient!.publish(_dummyDir.path);
     } finally {
       await _temp.delete(recursive: true);
       await _pubToolClient?.close();

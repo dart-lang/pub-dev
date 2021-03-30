@@ -16,7 +16,7 @@ import 'package:pub_validations/html/html_validation.dart';
 class HeadlessEnv {
   final Directory tempDir;
   final bool debug;
-  Browser _browser;
+  Browser? _browser;
   final clientErrors = <ClientError>[];
   final serverErrors = <String>[];
   final bool trackCoverage;
@@ -29,7 +29,7 @@ class HeadlessEnv {
   final _cssCoverages = <String, _Coverage>{};
 
   HeadlessEnv({
-    Directory tempDir,
+    Directory? tempDir,
     this.trackCoverage = false,
     this.debug = false,
   }) : tempDir = tempDir ?? Directory.systemTemp.createTempSync('pub-headless');
@@ -54,7 +54,7 @@ class HeadlessEnv {
     return r.executablePath;
   }
 
-  Future<void> startBrowser({String origin}) async {
+  Future<void> startBrowser({String? origin}) async {
     if (_browser != null) return;
     final chromeBin = await _detectChromeBinary();
     final userDataDir = await tempDir.createTemp('user');
@@ -75,19 +75,19 @@ class HeadlessEnv {
     // When origin is specified, update the default permissions like clipboard
     // access.
     if (origin != null) {
-      await _browser.defaultBrowserContext
+      await _browser!.defaultBrowserContext
           .overridePermissions(origin, [PermissionType.clipboardReadWrite]);
     }
   }
 
   /// Creates a new page and setup overrides and tracking.
   Future<R> withPage<R>({
-    FakeGoogleUser user,
-    Future<R> Function(Page page) fn,
-    String origin,
+    FakeGoogleUser? user,
+    required Future<R> Function(Page page) fn,
+    String? origin,
   }) async {
     await startBrowser(origin: origin);
-    final page = await _browser.newPage();
+    final page = await _browser!.newPage();
     await page.setRequestInterception(true);
     if (trackCoverage) {
       await page.coverage.startJSCoverage(resetOnNavigation: false);
@@ -142,7 +142,7 @@ class HeadlessEnv {
         serverErrors
             .add('Content type header is missing for ${rs.request.url}.');
       }
-      if (rs.status == 200 && contentType.contains('text/html')) {
+      if (rs.status == 200 && contentType!.contains('text/html')) {
         try {
           parseAndValidateHtml(await rs.text);
         } catch (e) {
@@ -172,21 +172,19 @@ class HeadlessEnv {
 
   /// Gets tracking results of [page] and closes it.
   Future<void> _closePage(Page page) async {
-    if (page == null) return;
-
     if (trackCoverage) {
       final jsEntries = await page.coverage.stopJSCoverage();
       for (final e in jsEntries) {
         _jsCoverages[e.url] ??= _Coverage(e.url);
-        _jsCoverages[e.url].textLength = e.text.length;
-        _jsCoverages[e.url].addRanges(e.ranges);
+        _jsCoverages[e.url]!.textLength = e.text.length;
+        _jsCoverages[e.url]!.addRanges(e.ranges);
       }
 
       final cssEntries = await page.coverage.stopCSSCoverage();
       for (final e in cssEntries) {
         _cssCoverages[e.url] ??= _Coverage(e.url);
-        _cssCoverages[e.url].textLength = e.text.length;
-        _cssCoverages[e.url].addRanges(e.ranges);
+        _cssCoverages[e.url]!.textLength = e.text.length;
+        _cssCoverages[e.url]!.addRanges(e.ranges);
       }
     }
 
@@ -207,7 +205,7 @@ class HeadlessEnv {
     if (_trackedPages.isNotEmpty) {
       throw StateError('There are tracked pages with pending coverage report.');
     }
-    await _browser.close();
+    await _browser!.close();
   }
 
   void printCoverage() {
@@ -244,7 +242,7 @@ class HeadlessEnv {
 /// Track the covered ranges in the source file.
 class _Coverage {
   final String url;
-  int textLength;
+  int? textLength;
 
   /// List of start-end ranges that were covered in the source file during the
   /// execution of the app.
@@ -274,19 +272,19 @@ class _Coverage {
   double get percent {
     final coveredPosition =
         _coveredRanges.fold<int>(0, (sum, r) => sum + r.end - r.start);
-    return coveredPosition * 100 / textLength;
+    return coveredPosition * 100 / textLength!;
   }
 }
 
 /// User to inject in the fake google auth JS script.
 class FakeGoogleUser {
-  final String id;
-  final String email;
-  final String imageUrl;
-  final String accessToken;
-  final String idToken;
-  final String scope;
-  final DateTime expiresAt;
+  final String? id;
+  final String? email;
+  final String? imageUrl;
+  final String? accessToken;
+  final String? idToken;
+  final String? scope;
+  final DateTime? expiresAt;
 
   FakeGoogleUser({
     this.id,
