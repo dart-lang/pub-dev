@@ -78,8 +78,9 @@ Future startIsolates({
 
     int frontendStarted = 0;
 
-    /// The timestamp until errors won't cause frontend isolates to restart.
-    var frontendRestartProtection = DateTime.now();
+    /// The duration while errors won't cause frontend isolates to restart.
+    var restartProtectionOffset = Duration.zero;
+    var lastStarted = DateTime.now();
     int workerStarted = 0;
     final statConsumerPorts = <SendPort>[];
 
@@ -109,6 +110,7 @@ Future startIsolates({
         statConsumerPorts.add(protocolMessage.statsConsumerPort);
       }
       logger.info('Frontend isolate #$frontendIndex started.');
+      lastStarted = DateTime.now();
 
       StreamSubscription errorSubscription;
       StreamSubscription exitSubscription;
@@ -140,14 +142,23 @@ Future startIsolates({
         stderr.writeln('ERROR from frontend isolate #$frontendIndex: $e');
         logger.severe('ERROR from frontend isolate #$frontendIndex', e);
 
+        final now = DateTime.now();
+        // If the last isolate was started more than an hour ago, we can reset
+        // the protection.
+        if (now.isAfter(lastStarted.add(Duration(hours: 1)))) {
+          restartProtectionOffset = Duration.zero;
+        }
+
         // If we have recently restarted an isolate, let's keep it running.
-        if (DateTime.now().isBefore(frontendRestartProtection)) {
+        if (now.isBefore(lastStarted.add(restartProtectionOffset))) {
           return;
         }
 
         // Extend restart protection for up to 20 minutes.
-        frontendRestartProtection =
-            DateTime.now().add(Duration(minutes: min(frontendStarted, 20)));
+        if (restartProtectionOffset.inMinutes < 20) {
+          restartProtectionOffset += Duration(minutes: 4);
+        }
+
         await restart();
       });
 
