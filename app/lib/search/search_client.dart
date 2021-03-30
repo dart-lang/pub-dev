@@ -107,7 +107,7 @@ class SearchClient {
   /// This method will update the [ScoreCard] entry of the package, and it will
   /// be picked up by each search index individually, within a few minutes.
   Future<void> triggerReindex(String package, String version) async {
-    await scoreCardBackend.updateScoreCard(package, version);
+    await scoreCardBackend.markScoreCardUpdated(package, version);
   }
 
   Future<void> close() async {

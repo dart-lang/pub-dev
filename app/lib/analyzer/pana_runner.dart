@@ -123,12 +123,11 @@ class AnalyzerJobProcessor extends JobProcessor {
 
   Future<void> _storeScoreCard(Job job, Summary summary,
       {List<String> flags}) async {
-    await scoreCardBackend.updateReport(
+    await scoreCardBackend.updateReportAndCard(
       job.packageName,
       job.packageVersion,
       panaReportFromSummary(summary, flags: flags),
     );
-    await scoreCardBackend.updateScoreCard(job.packageName, job.packageVersion);
   }
 }
 

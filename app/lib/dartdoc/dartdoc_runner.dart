@@ -412,7 +412,6 @@ class DartdocJobProcessor extends JobProcessor {
           dartdocEntry: entry,
           documentationSection: documentationSection,
         ));
-    await scoreCardBackend.updateScoreCard(job.packageName, job.packageVersion);
 
     if (abortLog != null) {
       return JobStatus.aborted;
@@ -422,9 +421,8 @@ class DartdocJobProcessor extends JobProcessor {
   }
 
   Future _storeScoreCard(Job job, DartdocReport report) async {
-    await scoreCardBackend.updateReport(
+    await scoreCardBackend.updateReportAndCard(
         job.packageName, job.packageVersion, report);
-    await scoreCardBackend.updateScoreCard(job.packageName, job.packageVersion);
   }
 
   Future<bool> _resolveDependencies(
