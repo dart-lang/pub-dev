@@ -7,7 +7,7 @@ import 'package:dartdoc/options.dart';
 
 import 'package:pub_dartdoc/pub_data_generator.dart';
 
-void main(List<String> arguments) async {
+Future<void> main(List<String> arguments) async {
   final config = await parseOptions(pubPackageMetaProvider, arguments);
   if (config == null) {
     throw ArgumentError();
