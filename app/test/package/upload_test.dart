@@ -465,7 +465,7 @@ void main() {
           expect(pkgPage.packages.first.name, 'oxygen');
           expect(pkgPage.packages.first.latestVersion, '3.0.0');
 
-          final stream = await packageBackend.download('oxygen', '3.0.0');
+          final stream = packageBackend.download('oxygen', '3.0.0');
           final chunks = await stream.toList();
           final bytes = chunks.fold<List<int>>(
               <int>[], (buffer, chunk) => buffer..addAll(chunk));

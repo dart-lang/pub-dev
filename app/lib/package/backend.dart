@@ -601,7 +601,7 @@ class PackageBackend {
       );
 
   @visibleForTesting
-  Future<Stream<List<int>>> download(String package, String version) async {
+  Stream<List<int>> download(String package, String version) {
     // TODO: Should we first test for existence?
     // Maybe with a cache?
     version = canonicalizeVersion(version);
