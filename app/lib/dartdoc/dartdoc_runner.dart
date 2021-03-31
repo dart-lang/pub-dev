@@ -9,6 +9,9 @@ import 'dart:io';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' hide Pubspec, ReportStatus;
+import 'package:pana/pana.dart' as pana;
+// ignore: implementation_imports
+import 'package:pana/src/create_report.dart' show renderSimpleSectionSummary;
 import 'package:path/path.dart' as p;
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
@@ -281,7 +284,7 @@ class DartdocJobProcessor extends JobProcessor {
     PubDartdocData dartdocData;
 
     String reportStatus = ReportStatus.failed;
-    String abortLog;
+    String abortMessage;
     DartdocEntry entry;
     try {
       await withToolEnv(
@@ -309,8 +312,10 @@ class DartdocJobProcessor extends JobProcessor {
 
           // Resolve dependencies only for non-legacy package versions.
           if (!packageStatus.isLegacy) {
-            depsResolved = await _resolveDependencies(
+            final output = await _resolveDependencies(
                 logger, toolEnv, job, pkgPath, usesFlutter, logFileOutput);
+            depsResolved = output == null;
+            abortMessage ??= output;
           } else {
             logFileOutput.write(
                 'Package version does not allow current SDK, skipping pub upgrade.\n\n');
@@ -324,7 +329,6 @@ class DartdocJobProcessor extends JobProcessor {
             hasContent =
                 dartdocResult.hasIndexHtml && dartdocResult.hasIndexJson;
           } else {
-            abortLog = 'Dependencies were not resolved.';
             logFileOutput
                 .write('Dependencies were not resolved, skipping dartdoc.\n\n');
           }
@@ -384,8 +388,8 @@ class DartdocJobProcessor extends JobProcessor {
       if (isLatestStable) {
         reportIssueWithLatest(job, '$e\n$st');
       }
-      abortLog =
-          'Running `dartdoc` failed with the following output: $e\n\n```\n$st\n```\n';
+      abortMessage ??=
+          'Running `dartdoc` failed with the following error: `$e`\n\n```\n$st\n```\n';
     } finally {
       await tempDir.delete(recursive: true);
     }
@@ -398,12 +402,16 @@ class DartdocJobProcessor extends JobProcessor {
         total: coverage.total,
       );
     } else {
-      if (abortLog == null && dartdocResult != null) {
-        abortLog =
-            _mergeOutput(dartdocResult.processResult, compressStdout: true);
+      if (dartdocResult.wasTimeout) {
+        abortMessage ??= '`dartdoc` timed out.';
       }
-      abortLog ??= '';
-      documentationSection = dartdocFailedSection(dartdocResult);
+      if (abortMessage == null && dartdocResult != null) {
+        final output =
+            _mergeOutput(dartdocResult.processResult, compressStdout: true);
+        abortMessage = '`dartdoc` failed with:\n\n```\n$output\n```';
+      }
+      abortMessage ??= '`dartdoc` failed with unknown reason.';
+      documentationSection = _dartdocFailedSection(abortMessage);
     }
     await _storeScoreCard(
         job,
@@ -413,7 +421,7 @@ class DartdocJobProcessor extends JobProcessor {
           documentationSection: documentationSection,
         ));
 
-    if (abortLog != null) {
+    if (abortMessage != null) {
       return JobStatus.aborted;
     } else {
       return hasContent ? JobStatus.success : JobStatus.failed;
@@ -425,7 +433,7 @@ class DartdocJobProcessor extends JobProcessor {
         job.packageName, job.packageVersion, report);
   }
 
-  Future<bool> _resolveDependencies(
+  Future<String> _resolveDependencies(
       Logger logger,
       ToolEnvironment toolEnv,
       Job job,
@@ -440,13 +448,13 @@ class DartdocJobProcessor extends JobProcessor {
       final message = pr.stderr.toString() ?? '';
       final isUserProblem = message.contains('version solving failed') ||
           message.contains('Git error.');
+      final output = _mergeOutput(pr, compressStdout: true);
       if (!isUserProblem) {
-        final output = _mergeOutput(pr, compressStdout: true);
         logger.warning('Error while running pub upgrade for $job.\n$output');
       }
-      return false;
+      return 'Failed to resolve dependencies.\n\n```$output```';
     }
-    return true;
+    return null;
   }
 
   Future<DartdocResult> _generateDocs(
@@ -587,7 +595,7 @@ class DartdocJobProcessor extends JobProcessor {
   void _appendLog(StringBuffer buffer, ProcessResult pr) {
     buffer.write('STDOUT:\n${pr.stdout}\n\n');
     buffer.write('STDERR:\n${pr.stderr}\n\n');
-    buffer.write('exit code: ${pr.exitCode}');
+    buffer.write('exit code: ${pr.exitCode}\n');
   }
 
   Future<void> _tar(String tmpDir, String tarDir, String outputDir,
@@ -657,3 +665,20 @@ DartdocReport _emptyReport() => DartdocReport(
       // TODO: add meaningful message for missing documentation on dartdoc
       documentationSection: null,
     );
+
+/// Creates a report section when running dartdoc failed to produce content.
+ReportSection _dartdocFailedSection(String abortMessage) {
+  return ReportSection(
+    id: ReportSectionId.documentation,
+    title: documentationSectionTitle,
+    grantedPoints: 0,
+    maxPoints: 10,
+    summary: renderSimpleSectionSummary(
+      title: 'Failed to run dartdoc',
+      description: abortMessage,
+      grantedPoints: 0,
+      maxPoints: 10,
+    ),
+    status: pana.ReportStatus.failed,
+  );
+}
