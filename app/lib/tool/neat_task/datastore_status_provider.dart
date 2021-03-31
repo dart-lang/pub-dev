@@ -4,40 +4,74 @@
 
 import 'dart:convert';
 
+import 'package:meta/meta.dart';
 import 'package:neat_periodic_task/neat_periodic_task.dart';
 import 'package:ulid/ulid.dart';
 
 import '../../shared/datastore.dart' as db;
+import '../../shared/versions.dart' show runtimeVersion;
 
+/// Tracks the status of the task.
+///
+/// The `id` of the entity is either `global/name` or `scope/name`.
 @db.Kind(name: 'NeatTaskStatus', idType: db.IdType.String)
 class NeatTaskStatus extends db.ExpandoModel<String> {
-  String get name => id;
+  /// The name of the task.
+  @db.StringProperty()
+  String name;
+
+  /// The scope of the task.
+  ///
+  /// TODO: cleanup entities without scope or name
+  /// TODO: make scope and name required: true
+  @db.StringProperty()
+  String scope;
 
   @db.StringProperty(required: true, indexed: false)
   String etag;
 
   @db.StringProperty(required: true, indexed: false)
   String statusBase64;
+
+  @db.DateTimeProperty()
+  DateTime updated;
+
+  NeatTaskStatus();
+
+  NeatTaskStatus.init(this.name, this.scope) {
+    scope ??= 'global';
+    id = '$scope/$name';
+    updated = DateTime.now().toUtc();
+  }
 }
 
 /// Task status provider that uses Datastore and [NeatTaskStatus] entries
 /// to load and store the status of the process.
 class DatastoreStatusProvider extends NeatStatusProvider {
   final db.DatastoreDB _db;
-  final String name;
+  final String _name;
+  final String _scope;
+  String _id;
   String _etag;
 
-  DatastoreStatusProvider._(this._db, this.name);
+  DatastoreStatusProvider._(this._db, this._name, String scope)
+      : _scope = scope ?? 'global' {
+    _id = '$_scope/$_name';
+  }
 
-  static NeatStatusProvider create(db.DatastoreDB db, String name) {
+  static NeatStatusProvider create(
+    db.DatastoreDB db,
+    String name, {
+    @required bool isVersioned,
+  }) {
     return NeatStatusProvider.withRetry(
-      DatastoreStatusProvider._(db, name),
+      DatastoreStatusProvider._(db, name, isVersioned ? runtimeVersion : null),
     );
   }
 
   @override
   Future<List<int>> get() async {
-    final key = _db.emptyKey.append(NeatTaskStatus, id: name);
+    final key = _db.emptyKey.append(NeatTaskStatus, id: _id);
 
     var e = await _db.lookupValue<NeatTaskStatus>(key, orElse: () => null);
     if (e == null) {
@@ -47,8 +81,7 @@ class DatastoreStatusProvider extends NeatStatusProvider {
           e = status;
           return;
         }
-        tx.insert(NeatTaskStatus()
-          ..id = name
+        tx.insert(NeatTaskStatus.init(_name, _scope)
           ..etag = Ulid().toCanonical()
           ..statusBase64 = base64.encode(<int>[]));
       });
@@ -60,15 +93,17 @@ class DatastoreStatusProvider extends NeatStatusProvider {
 
   @override
   Future<bool> set(List<int> status) async {
-    final key = _db.emptyKey.append(NeatTaskStatus, id: name);
+    final key = _db.emptyKey.append(NeatTaskStatus, id: _id);
     final newEtag = await db.withRetryTransaction(_db, (tx) async {
       var e = await tx.lookupOrNull<NeatTaskStatus>(key);
       if (e != null && e.etag != _etag) {
         return null;
       }
-      e ??= NeatTaskStatus()..id = name;
-      e.statusBase64 = base64.encode(status ?? <int>[]);
-      e.etag = Ulid().toCanonical();
+      e ??= NeatTaskStatus.init(_name, _scope);
+      e
+        ..statusBase64 = base64.encode(status ?? <int>[])
+        ..etag = Ulid().toCanonical()
+        ..updated = DateTime.now().toUtc();
       tx.insert(e);
       return e.etag;
     });
@@ -79,4 +114,21 @@ class DatastoreStatusProvider extends NeatStatusProvider {
       return false;
     }
   }
+}
+
+/// Deletes old entities in datastore that were not updated for
+/// more than a month ago.
+Future<void> deleteOldNeatTaskStatuses(
+  db.DatastoreDB dbService, {
+  Duration maxAge = const Duration(days: 30),
+}) async {
+  final query = dbService.query<NeatTaskStatus>();
+  final now = DateTime.now().toUtc();
+  await dbService.deleteWithQuery<NeatTaskStatus>(query, where: (status) {
+    // TODO: once a month passed after the release of this feature, delete these too.
+    if (status.updated == null) return false;
+
+    final diff = now.difference(status.updated);
+    return diff > maxAge;
+  });
 }

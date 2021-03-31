@@ -23,18 +23,21 @@ void setupFrontendPeriodicTasks() {
   // Deletes expired audit log records.
   _daily(
     name: 'delete-expired-audit-log-records',
+    isVersioned: false,
     task: () async => await auditBackend.deleteExpiredRecords(),
   );
 
   // Deletes expired consent invites.
   _daily(
     name: 'delete-expired-consents',
+    isVersioned: false,
     task: () async => await consentBackend.deleteObsoleteConsents(),
   );
 
   // Deletes expired sessions.
   _daily(
     name: 'delete-expired-sessions',
+    isVersioned: false,
     task: () async => await accountBackend.deleteObsoleteSessions(),
   );
 
@@ -42,7 +45,16 @@ void setupFrontendPeriodicTasks() {
   // new Dart SDK got released.
   _daily(
     name: 'update-package-versions',
+    isVersioned: false,
     task: () async => await packageBackend.updateAllPackageVersions(),
+  );
+
+  // Deletes task status entities where the status hasn't been updated
+  // for more than a month.
+  _weekly(
+    name: 'delete-old-neat-task-statuses',
+    isVersioned: false,
+    task: () => deleteOldNeatTaskStatuses(dbService),
   );
 }
 
@@ -58,6 +70,7 @@ void setupDartdocPeriodicTasks() {
   // Deletes the extracted dartdoc data from old SDKs.
   _weekly(
     name: 'delete-old-dartdoc-sdks',
+    isVersioned: true,
     task: () => dartdocBackend.deleteOldData(),
   );
 
@@ -65,6 +78,7 @@ void setupDartdocPeriodicTasks() {
   // than the accepted runtime versions.
   _weekly(
     name: 'delete-old-dartdoc-runs',
+    isVersioned: true,
     task: () async => await dartdocBackend.deleteOldRuns(),
   );
 
@@ -72,12 +86,14 @@ void setupDartdocPeriodicTasks() {
   // and have newer version with content.
   _weekly(
     name: 'delete-expired-dartdoc-runs',
+    isVersioned: true,
     task: () async => await dartdocBackend.deleteExpiredRuns(),
   );
 
   // Deletes content from dartdoc storage bucket based on the old entries.
   _daily(
     name: 'gc-dartdoc-storage-bucket',
+    isVersioned: true,
     task: () async => await dartdocBackend.gcStorageBucket(),
   );
 }
@@ -87,6 +103,7 @@ void setupSearchPeriodicTasks() {
   // Deletes the old search snapshots
   _weekly(
     name: 'delete-old-search-snapshots',
+    isVersioned: true,
     task: () => snapshotStorage.deleteOldData(),
   );
 }
@@ -96,6 +113,7 @@ void _setupJobCleanupPeriodicTasks() {
   // Deletes Job entities that are older than the accepted runtime versions.
   _weekly(
     name: 'delete-old-jobs',
+    isVersioned: true,
     task: () async => await jobBackend.deleteOldEntries(),
   );
 
@@ -103,19 +121,22 @@ void _setupJobCleanupPeriodicTasks() {
   // accepted runtime versions.
   _weekly(
     name: 'delete-old-scorecards',
+    isVersioned: true,
     task: () async => await scoreCardBackend.deleteOldEntries(),
   );
 }
 
 void _daily({
   @required String name,
+  @required bool isVersioned,
   @required NeatPeriodicTask task,
 }) {
   final scheduler = NeatPeriodicTaskScheduler(
     name: name,
     interval: Duration(hours: 24),
     timeout: Duration(hours: 12),
-    status: DatastoreStatusProvider.create(dbService, name),
+    status: DatastoreStatusProvider.create(dbService, name,
+        isVersioned: isVersioned),
     task: task,
   );
 
@@ -125,13 +146,15 @@ void _daily({
 
 void _weekly({
   @required String name,
+  @required bool isVersioned,
   @required NeatPeriodicTask task,
 }) {
   final scheduler = NeatPeriodicTaskScheduler(
     name: name,
     interval: Duration(days: 6), // shifts the day when the task is triggered
     timeout: Duration(hours: 12),
-    status: DatastoreStatusProvider.create(dbService, name),
+    status: DatastoreStatusProvider.create(dbService, name,
+        isVersioned: isVersioned),
     task: task,
   );
 
