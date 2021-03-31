@@ -38,7 +38,7 @@ APP_TEST_PID=$!
 sleep 15;
 
 cd "${CODE_COVERAGE_DIR}"
-pub run coverage:collect_coverage \
+dart pub run coverage:collect_coverage \
   --uri=http://localhost:20202 \
   -o "${OUTPUT_DIR}/raw/app_unit.json" \
   --wait-paused \
@@ -57,7 +57,7 @@ rm ${APP_ALL_TEST_PATH}
 
 echo "Exporting to LCOV"
 cd "${APP_DIR}"
-pub run coverage:format_coverage \
+dart pub run coverage:format_coverage \
   --packages "${APP_DIR}/.packages" \
   -i "${OUTPUT_DIR}/raw/app_unit.json" \
   --base-directory "${PROJECT_DIR}" \

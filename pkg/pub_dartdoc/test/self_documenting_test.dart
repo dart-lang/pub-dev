@@ -16,7 +16,8 @@ void main() {
   group('generate documentation on self', () {
     setUpAll(() async {
       tempDir = await Directory.systemTemp.createTemp();
-      final pr = await Process.run('pub', [
+      final pr = await Process.run('dart', [
+        'pub',
         'run',
         'pub_dartdoc',
         '--input',

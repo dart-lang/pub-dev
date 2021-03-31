@@ -70,13 +70,13 @@ class PubToolClient {
   }
 
   Future<ProcessResult> getDependencies(String pkgDir) async {
-    return await runProc('pub', ['get'], workingDirectory: pkgDir);
+    return await runProc('dart', ['pub', 'get'], workingDirectory: pkgDir);
   }
 
   Future<ProcessResult> publish(String pkgDir, {String? expectedError}) async {
     return await runProc(
-      'pub',
-      ['publish', '--force'],
+      'dart',
+      ['pub', 'publish', '--force'],
       workingDirectory: pkgDir,
       expectedError: expectedError,
     );
@@ -84,8 +84,8 @@ class PubToolClient {
 
   Future<ProcessResult> addUploader(String pkgDir, String email) async {
     return await runProc(
-      'pub',
-      ['uploader', 'add', email],
+      'dart',
+      ['pub', 'uploader', 'add', email],
       workingDirectory: pkgDir,
       expectedError: "We've sent an invitation email to $email.\n"
           "They'll be added as an uploader after they accept the invitation.",
@@ -94,8 +94,8 @@ class PubToolClient {
 
   Future<ProcessResult> removeUploader(String pkgDir, String email) async {
     return await runProc(
-      'pub',
-      ['uploader', 'remove', email],
+      'dart',
+      ['pub', 'uploader', 'remove', email],
       workingDirectory: pkgDir,
     );
   }

@@ -88,7 +88,7 @@ class _DartdocRunner implements DartdocRunner {
   Future<void> _initializeIfNeeded() async {
     if (_initialized) return;
     await runProc(
-      ['pub', 'get'],
+      ['dart', 'pub', 'get'],
       workingDirectory: resolvePubDartdocDirPath(),
     );
     _initialized = true;
