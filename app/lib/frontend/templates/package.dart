@@ -479,6 +479,7 @@ Tab _installTab(PackagePageData data) {
     id: 'installing',
     title: 'Installing',
     contentHtml: _renderInstallTab(data.version, data.analysis?.derivedTags),
+    isMarkdown: true,
   );
 }
 
