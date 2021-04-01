@@ -602,9 +602,6 @@ class QualifiedVersionKey {
     @required this.version,
   });
 
-  /// The qualified key in `<package>-<version>` format.
-  String get oldQualifiedVersion => '$package-$version';
-
   /// The qualified key in `<package>/<version>` format.
   String get qualifiedVersion => Uri(pathSegments: [package, version]).path;
 
