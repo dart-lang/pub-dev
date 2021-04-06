@@ -18,12 +18,61 @@ import '../shared/tool_env.dart';
 
 final Logger _logger = Logger('pub.analyzer.pana');
 
-class AnalyzerJobProcessor extends JobProcessor {
+/// Generic interface to run pana for package-analysis.
+// ignore: one_member_abstracts
+abstract class PanaRunner {
+  Future<Summary> analyze({
+    @required String package,
+    @required String version,
+    @required PackageStatus packageStatus,
+  });
+}
+
+class _PanaRunner implements PanaRunner {
   final _urlChecker = UrlChecker();
 
+  @override
+  Future<Summary> analyze({
+    @required String package,
+    @required String version,
+    @required PackageStatus packageStatus,
+  }) async {
+    return await withToolEnv(
+      usesPreviewSdk: packageStatus.usesPreviewSdk,
+      fn: (toolEnv) async {
+        try {
+          final PackageAnalyzer analyzer =
+              PackageAnalyzer(toolEnv, urlChecker: _urlChecker);
+          final isInternal = internalPackageNames.contains(package);
+          return await analyzer.inspectPackage(
+            package,
+            version: version,
+            options: InspectOptions(
+              isInternal: isInternal,
+              pubHostedUrl: activeConfiguration.primaryApiUri.toString(),
+              analysisOptionsUri:
+                  'package:pedantic/analysis_options.1.8.0.yaml',
+            ),
+            logger: Logger.detached('pana/$package/$version'),
+          );
+        } catch (e, st) {
+          _logger.severe(
+              'Failed (v$packageVersion) - $package/$version', e, st);
+        }
+        return null;
+      },
+    );
+  }
+}
+
+class AnalyzerJobProcessor extends JobProcessor {
+  final PanaRunner _runner;
+
   AnalyzerJobProcessor({
+    PanaRunner runner,
     @required AliveCallback aliveCallback,
-  }) : super(
+  })  : _runner = runner ?? _PanaRunner(),
+        super(
           service: JobService.analyzer,
           aliveCallback: aliveCallback,
         );
@@ -67,37 +116,11 @@ class AnalyzerJobProcessor extends JobProcessor {
       return JobStatus.skipped;
     }
 
-    Future<Summary> analyze() async {
-      return await withToolEnv(
-        usesPreviewSdk: packageStatus.usesPreviewSdk,
-        fn: (toolEnv) async {
-          try {
-            final PackageAnalyzer analyzer =
-                PackageAnalyzer(toolEnv, urlChecker: _urlChecker);
-            final isInternal = internalPackageNames.contains(job.packageName);
-            return await analyzer.inspectPackage(
-              job.packageName,
-              version: job.packageVersion,
-              options: InspectOptions(
-                isInternal: isInternal,
-                pubHostedUrl: activeConfiguration.primaryApiUri.toString(),
-                analysisOptionsUri:
-                    'package:pedantic/analysis_options.1.8.0.yaml',
-              ),
-              logger: Logger.detached(
-                  'pana/${job.packageName}/${job.packageVersion}'),
-            );
-          } catch (e, st) {
-            _logger.severe(
-                'Failed (v$packageVersion) - ${job.packageName}/${job.packageVersion}',
-                e,
-                st);
-          }
-          return null;
-        },
-      );
-    }
-
+    Future<Summary> analyze() => _runner.analyze(
+          package: job.packageName,
+          version: job.packageVersion,
+          packageStatus: packageStatus,
+        );
     Summary summary = await analyze();
     if (summary?.report == null) {
       _logger.info('Retrying $job...');
