@@ -318,10 +318,6 @@ class IntegrityChecker {
     final referencedAssetIds = <String>[];
     await for (PackageVersionInfo pvi in pviQuery.run()) {
       final key = pvi.qualifiedVersionKey;
-      if (pvi.id == key.oldQualifiedVersion) {
-        _problems.add('PackageVersionInfo($key) uses old id format.');
-        continue;
-      }
       pviKeys.add(key);
       if (!qualifiedVersionKeys.contains(key)) {
         _problems.add('PackageVersionInfo($key) has no PackageVersion.');
