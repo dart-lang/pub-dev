@@ -10,7 +10,9 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
 import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/fake/backend/fake_dartdoc_runner.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
+import 'package:pub_dev/fake/backend/fake_pana_runner.dart';
 import 'package:pub_dev/fake/backend/fake_popularity.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dev/package/name_tracker.dart';
@@ -41,6 +43,7 @@ void testWithProfile(
   ImportSource importSource,
   @required Future<void> Function() fn,
   Timeout timeout,
+  bool processJobsWithFakeRunners = false,
 }) {
   testWithServices(
     name,
@@ -51,6 +54,10 @@ void testWithProfile(
       );
       await nameTracker.scanDatastore();
       await generateFakePopularityValues();
+      if (processJobsWithFakeRunners) {
+        await processJobsWithFakePanaRunner();
+        await processJobsWithFakeDartdocRunner();
+      }
       await indexUpdater.updateAllPackages();
       fakeEmailSender.sentMessages.clear();
 
