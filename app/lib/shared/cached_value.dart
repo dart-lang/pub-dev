@@ -57,10 +57,11 @@ class CachedValue<T> {
   Duration get age => DateTime.now().difference(_lastUpdated);
   bool get isAvailable => _value != null && age <= _maxAge;
 
+  /// The cached value, may be null.
   T get value => _value;
 
   @visibleForTesting
-  set value(T v) {
+  void setValue(T v) {
     _value = v;
     _lastUpdated = DateTime.now();
   }

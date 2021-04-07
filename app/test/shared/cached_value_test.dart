@@ -15,7 +15,7 @@ void main() {
       updateFn: () async => null,
     );
     expect(cv.isAvailable, isFalse);
-    cv.value = 'x';
+    cv.setValue('x');
     expect(cv.isAvailable, isTrue);
     expect(cv.value, 'x');
   });
