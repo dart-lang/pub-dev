@@ -222,6 +222,18 @@ class InMemoryPackageIndex implements PackageIndex {
       packages.removeWhere((x) => !keys.contains(x));
     }
 
+    final queryText = query.parsedQuery?.text;
+    final matchingPackage = queryText == null
+        ? null
+        : (_packages[queryText] ?? _packages[queryText.toLowerCase()]);
+    final highlightedHit = matchingPackage == null
+        ? null
+        : PackageHit(
+            package: matchingPackage.package,
+            score: null,
+            apiPages: null,
+          );
+
     List<PackageScore> results;
     switch (query.order ?? SearchOrder.top) {
       case SearchOrder.top:
@@ -233,10 +245,6 @@ class InMemoryPackageIndex implements PackageIndex {
         ];
         Score overallScore = Score.multiply(scores);
         // If there is an exact match for a package name, promote it to the top position.
-        final queryText = query?.parsedQuery?.text;
-        final matchingPackage = queryText == null
-            ? null
-            : (_packages[queryText] ?? _packages[queryText.toLowerCase()]);
         if (matchingPackage != null &&
             matchingPackage.grantedPoints != null &&
             matchingPackage.grantedPoints > 0 &&
@@ -288,8 +296,9 @@ class InMemoryPackageIndex implements PackageIndex {
       }).toList();
     }
 
+    List<SdkLibraryHit> sdkLibraryHits;
     if (_isSdkIndex) {
-      results = results.map((ps) {
+      sdkLibraryHits = results.map((ps) {
         String url = _urlPrefix;
         final doc = _packages[ps.package];
         final description = doc.description ?? ps.package;
@@ -303,19 +312,46 @@ class InMemoryPackageIndex implements PackageIndex {
         final apiPages = ps.apiPages
             ?.map((ref) => ref.change(url: p.join(_urlPrefix, ref.path)))
             ?.toList();
-        return ps.change(
-          url: url,
+        return SdkLibraryHit(
+          sdk: 'dart',
           version: doc.version,
+          library: ps.package,
           description: description,
+          url: url,
+          score: ps.score,
           apiPages: apiPages,
         );
       }).toList();
+
+      // TODO: remove once nothing uses [PackageScore]
+      results = sdkLibraryHits
+          .map((h) => PackageScore(
+                package: h.library,
+                version: h.version,
+                description: h.description,
+                url: h.url,
+                score: h.score,
+                apiPages: h.apiPages,
+              ))
+          .toList();
     }
 
     return PackageSearchResult(
+      timestamp: DateTime.now().toUtc(),
       totalCount: totalCount,
       packages: results,
-      timestamp: DateTime.now().toUtc(),
+      highlightedHit: highlightedHit,
+      sdkLibraryHits: sdkLibraryHits,
+      packageHits: results
+          // TODO: remove the `where` condition after [PackageScore] is no longer used.
+          .where((ps) =>
+              highlightedHit == null || highlightedHit.package != ps.package)
+          .map((ps) => PackageHit(
+                package: ps.package,
+                score: ps.score,
+                apiPages: ps.apiPages,
+              ))
+          .toList(),
     );
   }
 

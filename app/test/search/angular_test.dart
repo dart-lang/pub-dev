@@ -45,6 +45,14 @@ void main() {
             'score': closeTo(0.88, 0.01),
           },
         ],
+        'highlightedHit': {'package': 'angular'},
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {
+            'package': 'angular_ui',
+            'score': closeTo(0.88, 0.01),
+          },
+        ],
       });
     });
   });

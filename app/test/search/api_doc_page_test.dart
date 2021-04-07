@@ -70,6 +70,18 @@ void main() {
           },
           // should not contain `other_without_api`
         ],
+        'highlightedHit': {'package': 'foo'}, // finds package name
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {
+            'package': 'other_with_api',
+            'score': closeTo(0.695, 0.001), // finds foo method
+            'apiPages': [
+              {'title': null, 'path': 'main.html'},
+            ],
+          },
+          // should not contain `other_without_api`
+        ],
       });
     });
 
@@ -80,6 +92,17 @@ void main() {
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
+          {
+            'package': 'other_with_api',
+            'score': closeTo(0.26, 0.01), // find serveWebPages
+            'apiPages': [
+              {'title': null, 'path': 'serve.html'},
+            ],
+          },
+          // should not contain `other_without_api`
+        ],
+        'sdkLibraryHits': [],
+        'packageHits': [
           {
             'package': 'other_with_api',
             'score': closeTo(0.26, 0.01), // find serveWebPages
