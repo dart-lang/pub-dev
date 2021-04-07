@@ -127,14 +127,17 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   factory AuditLogRecord.packageOptionsUpdated({
     @required String package,
     @required User user,
+    @required List<String> options,
   }) {
+    final optionsStr = options.map((o) => '`$o`').join(', ');
     return AuditLogRecord._init()
       ..kind = AuditLogRecordKind.packageOptionsUpdated
       ..agent = user.userId
-      ..summary = '`${user.email}` updated package `$package`.'
+      ..summary = '`${user.email}` updated $optionsStr of package $package`.'
       ..data = {
         'package': package,
         'user': user.email,
+        'options': options,
       }
       ..users = [user.userId]
       ..packages = [package]
