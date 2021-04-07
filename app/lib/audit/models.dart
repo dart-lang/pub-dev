@@ -133,7 +133,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
     return AuditLogRecord._init()
       ..kind = AuditLogRecordKind.packageOptionsUpdated
       ..agent = user.userId
-      ..summary = '`${user.email}` updated $optionsStr of package $package`.'
+      ..summary = '`${user.email}` updated $optionsStr of package `$package`.'
       ..data = {
         'package': package,
         'user': user.email,
