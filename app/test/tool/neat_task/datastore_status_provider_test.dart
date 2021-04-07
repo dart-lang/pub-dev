@@ -18,7 +18,7 @@ void main() {
 
     testWithProfile('get empty status - global', fn: () async {
       final provider = DatastoreStatusProvider.create(dbService, 'task-id',
-          isVersioned: false);
+          isRuntimeVersioned: false);
       expect(await provider.get(), isEmpty);
       expect(await provider.get(), isEmpty);
 
@@ -36,7 +36,7 @@ void main() {
 
     testWithProfile('get empty status - versioned', fn: () async {
       final provider = DatastoreStatusProvider.create(dbService, 'task-id',
-          isVersioned: true);
+          isRuntimeVersioned: true);
       expect(await provider.get(), isEmpty);
       expect(await provider.get(), isEmpty);
       final list = await listStatuses();
@@ -47,7 +47,7 @@ void main() {
 
     testWithProfile('set status - global', fn: () async {
       final provider = DatastoreStatusProvider.create(dbService, 'task-id',
-          isVersioned: false);
+          isRuntimeVersioned: false);
       expect(await provider.set([1, 2]), isTrue);
       expect(await provider.get(), [1, 2]);
       expect(await provider.set([3, 4]), isTrue);
@@ -56,7 +56,7 @@ void main() {
 
     testWithProfile('set status - versioned', fn: () async {
       final provider = DatastoreStatusProvider.create(dbService, 'task-id',
-          isVersioned: true);
+          isRuntimeVersioned: true);
       expect(await provider.set([1, 2]), isTrue);
       expect(await provider.get(), [1, 2]);
       expect(await provider.set([3, 4]), isTrue);
@@ -65,12 +65,12 @@ void main() {
 
     testWithProfile('set status concurrently - global', fn: () async {
       final p1 = DatastoreStatusProvider.create(dbService, 'task-id',
-          isVersioned: false);
+          isRuntimeVersioned: false);
       expect(await p1.set([1, 2]), isTrue);
       expect(await p1.get(), [1, 2]);
 
       final p2 = DatastoreStatusProvider.create(dbService, 'task-id',
-          isVersioned: false);
+          isRuntimeVersioned: false);
       expect(await p2.set([3, 4]), isFalse);
       expect(await p2.get(), [1, 2]);
       expect(await p2.set([3, 4]), isTrue);
@@ -81,12 +81,12 @@ void main() {
 
     testWithProfile('set status concurrently - versioned', fn: () async {
       final p1 = DatastoreStatusProvider.create(dbService, 'task-id',
-          isVersioned: true);
+          isRuntimeVersioned: true);
       expect(await p1.set([1, 2]), isTrue);
       expect(await p1.get(), [1, 2]);
 
       final p2 = DatastoreStatusProvider.create(dbService, 'task-id',
-          isVersioned: true);
+          isRuntimeVersioned: true);
       expect(await p2.set([3, 4]), isFalse);
       expect(await p2.get(), [1, 2]);
       expect(await p2.set([3, 4]), isTrue);

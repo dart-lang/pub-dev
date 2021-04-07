@@ -62,10 +62,11 @@ class DatastoreStatusProvider extends NeatStatusProvider {
   static NeatStatusProvider create(
     db.DatastoreDB db,
     String name, {
-    @required bool isVersioned,
+    @required bool isRuntimeVersioned,
   }) {
     return NeatStatusProvider.withRetry(
-      DatastoreStatusProvider._(db, name, isVersioned ? runtimeVersion : null),
+      DatastoreStatusProvider._(
+          db, name, isRuntimeVersioned ? runtimeVersion : null),
     );
   }
 
