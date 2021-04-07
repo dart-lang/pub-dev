@@ -67,6 +67,7 @@ class CachedValue<T> {
   }
 
   /// Updates the cached value.
+  @visibleForTesting
   Future<void> update() async {
     if (_closing) {
       throw StateError('Cache `$_name` is already closed.');
@@ -99,9 +100,18 @@ class CachedValue<T> {
     }
   }
 
-  void scheduleUpdates() {
+  /// Starts a periodic Timer to update the cached value.
+  ///
+  /// If this is the first call of [start], and initial value
+  /// was not set, this will also call [update].
+  Future<void> start() async {
     if (_closing) {
       throw StateError('Cache `$_name` is already closed.');
+    }
+    if (!isAvailable && _timer == null) {
+      await _update();
+      // ignore: invariant_booleans
+      if (_closing) return;
     }
     _timer ??= Timer.periodic(_interval, (timer) {
       _update();

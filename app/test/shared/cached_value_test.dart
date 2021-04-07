@@ -31,7 +31,7 @@ void main() {
         throw Exception();
       },
     );
-    cv.scheduleUpdates();
+    await cv.start();
     await Future.delayed(Duration(seconds: 2));
     expect(cv.isAvailable, isFalse);
     expect(count, greaterThan(10));
