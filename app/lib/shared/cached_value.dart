@@ -7,6 +7,8 @@ import 'dart:async';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
+import 'monitoring.dart';
+
 final _logger = Logger('cached_value');
 
 typedef UpdateFn<T> = Future<T> Function();
@@ -89,9 +91,11 @@ class CachedValue<T> {
       }
     } catch (e, st) {
       if (age <= _maxAge) {
-        _logger.warning('Updating cached `$_name` value failed.', e, st);
+        _logger.pubWarning(
+            'cached_value', 'Updating cached `$_name` value failed.', e, st);
       } else {
-        _logger.shout('Updating cached `$_name` value failed.', e, st);
+        _logger.pubShout(
+            'cached_value', 'Updating cached `$_name` value failed.', e, st);
       }
     } finally {
       final c = _ongoingCompleter;
