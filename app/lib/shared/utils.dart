@@ -210,26 +210,6 @@ String contentType(String name) {
   return mime.defaultExtensionMap[ext] ?? 'application/octet-stream';
 }
 
-final eventLoopLatencyTracker = LastNTracker<Duration>();
-
-void trackEventLoopLatency() {
-  final samplePeriod = const Duration(seconds: 3);
-  void measure() {
-    final sw = Stopwatch()..start();
-    Timer(samplePeriod, () {
-      sw.stop();
-      final diff = sw.elapsed - samplePeriod;
-      final latency = diff.isNegative ? Duration.zero : diff;
-      eventLoopLatencyTracker.add(latency);
-      measure();
-    });
-  }
-
-  Zone.root.run(() {
-    measure();
-  });
-}
-
 /// Returns a subset of the list, bounded by [offset] and [limit].
 List<T> boundedList<T>(List<T> list, {int offset, int limit}) {
   if (list == null) return null;
