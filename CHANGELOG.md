@@ -4,6 +4,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Re-enabled YouTube integrations with `cached_value` pattern.
  * Upgraded `package:appengine` to `0.12.0`.
+ * Periodic tasks are now scoped to `global` or `runtimeVersion`.
+   NOTE: added weekly periodic task: `delete-old-neat-task-statuses`.
 
 ## `20210407t142600-all`
  * Bumped runtimeVersion to `2021.04.06`.
@@ -11,8 +13,6 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Flutter analysis SDK to `2.0.4`.
  * Upgraded dartdoc to `0.42.0`.
  * NOTE: Expected reduction in Job-related API calls.
- * Periodic tasks are now scoped to `global` or `runtimeVersion`.
-   NOTE: added weekly periodic task: `delete-old-neat-task-statuses`.
 
 ## `20210325t074600-all`
  * Tempoarily disabled youtube integration.
