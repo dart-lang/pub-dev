@@ -91,10 +91,10 @@ class CachedValue<T> {
       }
     } catch (e, st) {
       if (age <= _maxAge) {
-        _logger.pubWarning(
+        _logger.pubNoticeWarning(
             'cached_value', 'Updating cached `$_name` value failed.', e, st);
       } else {
-        _logger.pubShout(
+        _logger.pubNoticeShout(
             'cached_value', 'Updating cached `$_name` value failed.', e, st);
       }
     } finally {
