@@ -16,7 +16,14 @@ extension LoggerExt on Logger {
     warning('[pub-notice:$code] $message', error, st);
   }
 
-  void pubShout(String code, String message, [Object error, StackTrace st]) {
+  /// Log a `[pub-notice:${code}` with severity shout.
+  ///
+  /// A custom log based metric will track how frequently each [code] happens.
+  /// This is useful for logging non-critical errors that we can tolerate, but want to
+  /// detect and remedy, should they occur frequently.
+  ///
+  /// [code] should be a hardcoded string to keep dimensionality manageable. 
+  void pubNoticeShout(String code, String message, [Object error, StackTrace st]) {
     shout('[pub-notice:$code] $message', error, st);
   }
 }
