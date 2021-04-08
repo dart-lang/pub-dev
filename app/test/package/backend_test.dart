@@ -543,7 +543,8 @@ void main() {
           final records = await auditBackend.listRecordsForPackage('oxygen');
           final r = records.firstWhere(
               (r) => r.kind == AuditLogRecordKind.packageOptionsUpdated);
-          expect(r.summary, '`admin@pub.dev` updated package `oxygen`.');
+          expect(r.summary,
+              '`admin@pub.dev` updated `replacedBy` of package `oxygen`.');
 
           await packageBackend.updateOptions(
               'oxygen', PkgOptions(isDiscontinued: false));
