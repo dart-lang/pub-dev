@@ -13,7 +13,6 @@ import '../../shared/test_services.dart';
 void main() {
   testWithProfile('when a key is specified, it has items', fn: () async {
     if (Platform.environment.containsKey('YOUTUBE_API_KEY')) {
-      registerYoutubeBackend(YoutubeBackend(enabled: true));
       final videos = youtubeBackend.getTopPackageOfWeekVideos(count: 100);
       expect(videos, hasLength(greaterThan(5)));
     }

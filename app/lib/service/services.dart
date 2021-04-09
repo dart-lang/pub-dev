@@ -136,7 +136,7 @@ Future<void> withFakeServices({
     registerEmailSender(FakeEmailSender());
     registerUploadSigner(FakeUploadSignerService(configuration.storageBaseUrl));
     return await _withPubServices(() async {
-      await youtubeBackend.update();
+      await youtubeBackend.start();
       return await fn();
     });
   });

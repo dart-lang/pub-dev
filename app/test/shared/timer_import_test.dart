@@ -44,9 +44,6 @@ void main() {
     // Uses timer to send stats periodically to the frontend isolate.
     'lib/service/entrypoint/dartdoc.dart',
 
-    // TODO: migrate youtube API use to use cached_value
-    'lib/service/youtube/backend.dart',
-
     // Uses timer to track event loop latencies.
     'lib/tool/utils/event_loop_tracker.dart',
   };
