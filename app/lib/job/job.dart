@@ -169,8 +169,8 @@ class JobMaintenance {
 
     Future<void> updateJob(PackageVersion pv, bool skipLatestStable) async {
       try {
-        if (!await packageBackend.isPackageVisible(pv.package)) return;
         final p = packages[pv.package];
+        if (p == null || p.isNotVisible) return;
         final releases = await packageBackend.latestReleases(p);
         final isLatestStable = releases.stable.version == pv.version;
         final isLatestPrerelease = releases.showPrerelease &&

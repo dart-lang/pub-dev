@@ -79,8 +79,7 @@ Future _main(FrontendEntryMessage message) async {
     announcementBackend.scheduleRegularUpdates();
     await cspBackend.update();
     cspBackend.scheduleRegularUpdates();
-    await youtubeBackend.update();
-    youtubeBackend.scheduleRegularUpdates();
+    await youtubeBackend.start();
 
     await runHandler(_logger, appHandler,
         sanitize: true, cronHandler: cron.handler);

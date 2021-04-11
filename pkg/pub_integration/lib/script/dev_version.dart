@@ -4,7 +4,6 @@
 
 import 'dart:io';
 
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 import '../src/pub_http_client.dart';
@@ -16,20 +15,18 @@ import '../src/test_data.dart';
 class DevVersionScript {
   final String pubHostedUrl;
   final String credentialsFileContent;
-  PubHttpClient _pubHttpClient;
-  PubToolClient _pubToolClient;
-  Directory _temp;
-  Directory _pubCacheDir;
+  final PubHttpClient _pubHttpClient;
+  PubToolClient? _pubToolClient;
+  late Directory _temp;
+  late Directory _pubCacheDir;
 
   DevVersionScript({
-    @required this.pubHostedUrl,
-    @required this.credentialsFileContent,
-  });
+    required this.pubHostedUrl,
+    required this.credentialsFileContent,
+  }) : _pubHttpClient = PubHttpClient(pubHostedUrl);
 
   /// Publish and verify dev and stable versions.
   Future<void> verify(bool stableFirst) async {
-    assert(_pubHttpClient == null);
-    _pubHttpClient = PubHttpClient(pubHostedUrl);
     _pubToolClient = await PubToolClient.create(
         pubHostedUrl: pubHostedUrl,
         credentialsFileContent: credentialsFileContent);
@@ -162,29 +159,28 @@ class DevVersionScript {
       );
     } finally {
       await _temp.delete(recursive: true);
-      await _pubToolClient.close();
+      await _pubToolClient!.close();
       _pubToolClient = null;
       await _pubHttpClient.close();
-      _pubHttpClient = null;
     }
   }
 
   Future<void> _publishVersion(String version) async {
     final dir = await _temp.createTemp();
     await createDummyPkg(dir.path, version);
-    await _pubToolClient.publish(dir.path);
+    await _pubToolClient!.publish(dir.path);
     await dir.delete(recursive: true);
   }
 
-  void _expectContent(String content,
-      {List<Pattern> present, List<Pattern> absent}) {
+  void _expectContent(String? content,
+      {List<Pattern>? present, List<Pattern>? absent}) {
     for (Pattern p in present ?? []) {
-      if (p.allMatches(content).isEmpty) {
+      if (p.allMatches(content!).isEmpty) {
         throw Exception('$p is missing from the content.');
       }
     }
     for (Pattern p in absent ?? []) {
-      if (p.allMatches(content).isNotEmpty) {
+      if (p.allMatches(content!).isNotEmpty) {
         throw Exception('$p is present in the content.');
       }
     }

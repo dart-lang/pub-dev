@@ -255,7 +255,7 @@ Future<DateTime> _detectLastModified(Directory dir) async {
 
 Future _runPubGet(Directory dir) async {
   final pr = await runProc(
-    ['pub', 'get'],
+    ['dart', 'pub', 'get'],
     workingDirectory: dir.path,
     timeout: Duration(minutes: 2),
   );

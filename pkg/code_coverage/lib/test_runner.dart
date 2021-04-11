@@ -94,8 +94,9 @@ Future<Process> _startCollect(int port, String outputFile) async {
   await File(outputFile).parent.create(recursive: true);
   print('[collect-$port-$outputFile] starting...');
   final p = await Process.start(
-    'pub',
+    'dart',
     [
+      'pub',
       'run',
       'coverage:collect_coverage',
       '--uri=http://localhost:$port',
@@ -116,8 +117,9 @@ Future<void> _convertToLcov(
   if (await out.exists()) return;
   await out.parent.create(recursive: true);
   await Process.run(
-    'pub',
+    'dart',
     [
+      'pub',
       'run',
       'coverage:format_coverage',
       '--packages',

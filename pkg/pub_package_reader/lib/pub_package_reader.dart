@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:meta/meta.dart';
+import 'package:pub_package_reader/src/yaml_utils.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart' show YamlException;
@@ -78,6 +79,17 @@ Future<PackageSummary> summarizePackageArchive(
   if (pubspecContent.length > 128 * 1024) {
     issues.add(ArchiveIssue('pubspec.yaml is too large.'));
   }
+
+  // Reject packages using aliases in `pubspec.yaml`, these are poorly supported
+  // when transcoding to json.
+  if (yamlContainsAliases(pubspecContent)) {
+    issues.add(ArchiveIssue(
+      'pubspec.yaml may not use references (alias/anchors), '
+      'only the subset of YAML that can be encoded as JSON is allowed.',
+    ));
+    return PackageSummary(issues: issues);
+  }
+
   Pubspec pubspec;
   try {
     pubspec = Pubspec.parse(pubspecContent);

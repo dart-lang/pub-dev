@@ -4,12 +4,11 @@
 
 import 'dart:io';
 
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 /// Command line pub interface.
 class PubToolClient {
-  final String _dartSdkDir;
+  final String? _dartSdkDir;
   final String _pubHostedUrl;
   final Directory _tempDir;
   final Directory _pubCacheDir;
@@ -23,9 +22,9 @@ class PubToolClient {
 
   /// Creates a new PubToolClient context with a temporary directory.
   static Future<PubToolClient> create({
-    @required String pubHostedUrl,
-    @required String credentialsFileContent,
-    String dartSdkDir,
+    required String pubHostedUrl,
+    required String credentialsFileContent,
+    String? dartSdkDir,
   }) async {
     final dir = await Directory.systemTemp.createTemp();
     final pubCacheDir = Directory(p.join(dir.path, 'pub-cache'));
@@ -37,20 +36,20 @@ class PubToolClient {
 
   /// Delete temp resources.
   Future<void> close() async {
-    await _tempDir?.delete(recursive: true);
+    await _tempDir.delete(recursive: true);
   }
 
   /// Runs a process.
   Future<ProcessResult> runProc(
     String executable,
     List<String> arguments, {
-    String workingDirectory,
-    Map<String, String> environment,
-    String expectedError,
+    String? workingDirectory,
+    Map<String, String>? environment,
+    String? expectedError,
   }) async {
     final fullPathExecutable = _dartSdkDir == null
         ? executable
-        : p.join(_dartSdkDir, 'bin', executable);
+        : p.join(_dartSdkDir!, 'bin', executable);
     final cmd = '$fullPathExecutable ${arguments.join(' ')}';
     print('Running $cmd in $workingDirectory...');
     environment ??= <String, String>{};
@@ -71,13 +70,13 @@ class PubToolClient {
   }
 
   Future<ProcessResult> getDependencies(String pkgDir) async {
-    return await runProc('pub', ['get'], workingDirectory: pkgDir);
+    return await runProc('dart', ['pub', 'get'], workingDirectory: pkgDir);
   }
 
-  Future<ProcessResult> publish(String pkgDir, {String expectedError}) async {
+  Future<ProcessResult> publish(String pkgDir, {String? expectedError}) async {
     return await runProc(
-      'pub',
-      ['publish', '--force'],
+      'dart',
+      ['pub', 'publish', '--force'],
       workingDirectory: pkgDir,
       expectedError: expectedError,
     );
@@ -85,8 +84,8 @@ class PubToolClient {
 
   Future<ProcessResult> addUploader(String pkgDir, String email) async {
     return await runProc(
-      'pub',
-      ['uploader', 'add', email],
+      'dart',
+      ['pub', 'uploader', 'add', email],
       workingDirectory: pkgDir,
       expectedError: "We've sent an invitation email to $email.\n"
           "They'll be added as an uploader after they accept the invitation.",
@@ -95,8 +94,8 @@ class PubToolClient {
 
   Future<ProcessResult> removeUploader(String pkgDir, String email) async {
     return await runProc(
-      'pub',
-      ['uploader', 'remove', email],
+      'dart',
+      ['pub', 'uploader', 'remove', email],
       workingDirectory: pkgDir,
     );
   }

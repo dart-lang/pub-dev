@@ -25,7 +25,7 @@ Future main(List<String> args) async {
 
   bool verifyParameters = false;
 
-  String pubHostedUrl = (argv['pub-hosted-url'] as String);
+  String? pubHostedUrl = (argv['pub-hosted-url'] as String?);
   if (pubHostedUrl == null) {
     pubHostedUrl = Platform.environment['PUB_HOSTED_URL'];
     verifyParameters = true;
@@ -38,21 +38,21 @@ Future main(List<String> args) async {
     pubHostedUrl = pubHostedUrl.substring(0, pubHostedUrl.length - 1);
   }
 
-  final invitedEmail = argv['invited-email'] as String;
+  final invitedEmail = argv['invited-email'] as String?;
   if (invitedEmail == null || invitedEmail.isEmpty) {
     print('--invited-email must be set');
     exit(1);
   }
 
-  String credentialsFile = argv['credentials-json'] as String;
+  String? credentialsFile = argv['credentials-json'] as String?;
   if (credentialsFile == null && Platform.environment['PUB_CACHE'] != null) {
     credentialsFile =
-        p.join(Platform.environment['PUB_CACHE'], 'credentials.json');
+        p.join(Platform.environment['PUB_CACHE']!, 'credentials.json');
     verifyParameters = true;
   }
   if (credentialsFile == null && Platform.environment['HOME'] != null) {
     credentialsFile =
-        p.join(Platform.environment['HOME'], '.pub-cache', 'credentials.json');
+        p.join(Platform.environment['HOME']!, '.pub-cache', 'credentials.json');
     verifyParameters = true;
   }
   if (credentialsFile == null) {

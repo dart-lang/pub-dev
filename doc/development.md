@@ -7,7 +7,7 @@ machine, without any need for AppEngine account or setup.
 - If you want to contribute to `pub.dev`, the current document will give you
 instructions how to work with the local, in-memory server (`fake_server`).
 
-- I you want to setup the project on Google AppEngine, follow [this guide](appengine.md). 
+- If you want to setup the project on Google AppEngine, follow [this guide](appengine.md). 
 
 ## Project structure
 
@@ -92,9 +92,9 @@ multiple packages inside the repository.
 
 To use `mono_repo`, first activate it:
 
-````bash
+```bash
 dart pub global activate mono_repo
-````
+```
 
 > Note: Run `pub global list` to make sure the version is at least `2.0.0`.
 
@@ -104,9 +104,9 @@ dart pub global activate mono_repo
 
 ### Update/upgrade dependencies
 
-````bash
+```bash
 dart pub global run mono_repo pub get
-````
+```
 
 ### Creating a new package (or vendoring existing packages)
 

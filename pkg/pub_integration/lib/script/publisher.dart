@@ -5,8 +5,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:meta/meta.dart';
-
 import '../src/pub_http_client.dart';
 import '../src/pub_tool_client.dart';
 import '../src/test_data.dart';
@@ -20,23 +18,21 @@ class PublisherScript {
   final String credentialsFileContent;
   final String invitedEmail;
   final InviteCompleterFn inviteCompleterFn;
-  PubHttpClient _pubHttpClient;
-  PubToolClient _pubToolClient;
+  final PubHttpClient _pubHttpClient;
+  PubToolClient? _pubToolClient;
 
-  Directory _temp;
+  late Directory _temp;
 
   PublisherScript({
-    @required this.pubHostedUrl,
-    @required this.credentialsFileContent,
-    @required this.invitedEmail,
-    @required this.inviteCompleterFn,
-  });
+    required this.pubHostedUrl,
+    required this.credentialsFileContent,
+    required this.invitedEmail,
+    required this.inviteCompleterFn,
+  }) : _pubHttpClient = PubHttpClient(pubHostedUrl);
 
   /// Verify all integration steps.
   Future<void> verify() async {
-    assert(_pubHttpClient == null);
     assert(_pubToolClient == null);
-    _pubHttpClient = PubHttpClient(pubHostedUrl);
     _temp = await Directory.systemTemp.createTemp('pub-integration');
     try {
       _pubToolClient = await PubToolClient.create(
@@ -108,18 +104,20 @@ class PublisherScript {
   Future<void> _publishDummyPkg(String version) async {
     final dir = await _temp.createTemp();
     await createDummyPkg(dir.path, version);
-    await _pubToolClient.publish(dir.path);
+    await _pubToolClient!.publish(dir.path);
     await dir.delete(recursive: true);
   }
 
   Future<void> _verifyDummyPkg(
-      {String version, String uploaderEmail, String publisherId}) async {
+      {required String version,
+      String? uploaderEmail,
+      String? publisherId}) async {
     final dv = await _pubHttpClient.getLatestVersionName('_dummy_pkg');
     if (dv != version) {
       throw Exception('Expected version does not match: $dv != $version');
     }
 
-    final pageHtml = await _pubHttpClient.getLatestVersionPage('_dummy_pkg');
+    final pageHtml = (await _pubHttpClient.getLatestVersionPage('_dummy_pkg'))!;
     if (!pageHtml.contains(version)) {
       throw Exception('New version is not to be found on package page.');
     }
@@ -163,7 +161,7 @@ class PublisherScript {
   }
 
   Future<void> _verifyPublisherPackageListPage() async {
-    final html = await _pubHttpClient.getPublisherPage('example.com');
+    final html = (await _pubHttpClient.getPublisherPage('example.com'))!;
     if (!html.contains('href="/packages/_dummy_pkg"')) {
       throw Exception('Does not contain link to package.');
     }

@@ -15,7 +15,7 @@ import 'package:stack_trace/stack_trace.dart';
 
 import '../../shared/configuration.dart';
 import '../../shared/scheduler_stats.dart';
-import '../../shared/utils.dart' show trackEventLoopLatency;
+import '../../tool/utils/event_loop_tracker.dart';
 
 import '../services.dart';
 
@@ -68,7 +68,7 @@ Future startIsolates({
       final stampFile =
           File(p.join(Directory.systemTemp.path, 'pub-dev-started.stamp'));
       if (stampFile.existsSync()) {
-        print('[warning-service-restarted]: '
+        stderr.writeln('[warning-service-restarted]: '
             '${stampFile.path} already exists, indicating that this process has been restarted.');
       } else {
         stampFile.createSync(recursive: true);
@@ -77,6 +77,10 @@ Future startIsolates({
     _setupServiceIsolate();
 
     int frontendStarted = 0;
+
+    /// The duration while errors won't cause frontend isolates to restart.
+    var restartProtectionOffset = Duration.zero;
+    var lastStarted = DateTime.now();
     int workerStarted = 0;
     final statConsumerPorts = <SendPort>[];
 
@@ -84,8 +88,9 @@ Future startIsolates({
       frontendStarted++;
       final frontendIndex = frontendStarted;
       logger.info('About to start frontend isolate #$frontendIndex...');
-      final ReceivePort errorReceivePort = ReceivePort();
-      final ReceivePort protocolReceivePort = ReceivePort();
+      final errorReceivePort = ReceivePort();
+      final exitReceivePort = ReceivePort();
+      final protocolReceivePort = ReceivePort();
       await Isolate.spawn(
         _wrapper,
         [
@@ -96,7 +101,7 @@ Future startIsolates({
           ),
         ],
         onError: errorReceivePort.sendPort,
-        onExit: errorReceivePort.sendPort,
+        onExit: exitReceivePort.sendPort,
         errorsAreFatal: true,
       );
       final protocolMessage = (await protocolReceivePort.take(1).toList())
@@ -105,25 +110,63 @@ Future startIsolates({
         statConsumerPorts.add(protocolMessage.statsConsumerPort);
       }
       logger.info('Frontend isolate #$frontendIndex started.');
+      lastStarted = DateTime.now();
 
       StreamSubscription errorSubscription;
+      StreamSubscription exitSubscription;
 
       Future<void> close() async {
         if (protocolMessage.statsConsumerPort != null) {
           statConsumerPorts.remove(protocolMessage.statsConsumerPort);
         }
         await errorSubscription?.cancel();
+        await exitSubscription?.cancel();
         errorReceivePort.close();
+        exitReceivePort.close();
         protocolReceivePort.close();
       }
 
-      errorSubscription = errorReceivePort.listen((e) async {
-        print('ERROR from frontend isolate #$frontendIndex: $e');
-        logger.severe('ERROR from frontend isolate #$frontendIndex', e);
+      Future<void> restart() async {
         await close();
-        // restart isolate after a brief pause
-        await Future.delayed(Duration(seconds: 5));
+        // Restart the isolate after a pause, increasing the pause duration at
+        // each restart.
+        //
+        // NOTE: As this wait period increases, the service may miss /liveness_check
+        //       requests, and eventually AppEngine may just kill the instance
+        //       marking it unreachable.
+        await Future.delayed(Duration(seconds: 5 + frontendStarted));
         await startFrontendIsolate();
+      }
+
+      errorSubscription = errorReceivePort.listen((e) async {
+        stderr.writeln('ERROR from frontend isolate #$frontendIndex: $e');
+        logger.severe('ERROR from frontend isolate #$frontendIndex', e);
+
+        final now = DateTime.now();
+        // If the last isolate was started more than an hour ago, we can reset
+        // the protection.
+        if (now.isAfter(lastStarted.add(Duration(hours: 1)))) {
+          restartProtectionOffset = Duration.zero;
+        }
+
+        // If we have recently restarted an isolate, let's keep it running.
+        if (now.isBefore(lastStarted.add(restartProtectionOffset))) {
+          return;
+        }
+
+        // Extend restart protection for up to 20 minutes.
+        if (restartProtectionOffset.inMinutes < 20) {
+          restartProtectionOffset += Duration(minutes: 4);
+        }
+
+        await restart();
+      });
+
+      exitSubscription = exitReceivePort.listen((e) async {
+        stderr.writeln(
+            'Frontend isolate #$frontendIndex exited with message: $e');
+        logger.warning('Frontend isolate #$frontendIndex exited.', e);
+        await restart();
       });
     }
 
@@ -195,7 +238,7 @@ Future startIsolates({
       }
 
       errorSubscription = errorReceivePort.listen((e) async {
-        print('ERROR from worker isolate #$workerIndex: $e');
+        stderr.writeln('ERROR from worker isolate #$workerIndex: $e');
         logger.severe('ERROR from worker isolate #$workerIndex', e);
         await close();
         // restart isolate after a brief pause

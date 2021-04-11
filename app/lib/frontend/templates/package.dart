@@ -209,7 +209,10 @@ String renderPkgInfoBox(PackagePageData data) {
     'license_html': _renderLicense(data),
     'dependencies_html': _renderDependencyList(data.version.pubspec),
     'search_deps_link': urls.searchUrl(q: 'dependency:${package.name}'),
-    'labeled_scores_html': renderLabeledScores(data.toPackageView()),
+    'labeled_scores_html': renderLabeledScores(
+      data.toPackageView(),
+      version: data.isLatestStable ? null : data.version.version,
+    ),
   });
 }
 
@@ -476,6 +479,7 @@ Tab _installTab(PackagePageData data) {
     id: 'installing',
     title: 'Installing',
     contentHtml: _renderInstallTab(data.version, data.analysis?.derivedTags),
+    isMarkdown: true,
   );
 }
 

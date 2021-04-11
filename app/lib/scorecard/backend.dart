@@ -127,7 +127,9 @@ class ScoreCardBackend {
   /// Creates or updates a [ScoreCardReport] entry with the report's [data].
   /// The [data] will be converted to json and stored as a byte in the report
   /// entry.
-  Future<void> updateReport(
+  ///
+  /// Also updates the [ScoreCard] entry.
+  Future<void> updateReportAndCard(
       String packageName, String packageVersion, ReportData data) async {
     final key = scoreCardKey(packageName, packageVersion)
         .append(ScoreCardReport, id: data.reportType);
@@ -152,6 +154,7 @@ class ScoreCardBackend {
       }
       tx.insert(report);
     });
+    await _updateScoreCard(packageName, packageVersion);
   }
 
   /// Load and deserialize the reports for the given package and version.
@@ -202,9 +205,22 @@ class ScoreCardBackend {
     return results;
   }
 
+  /// Updates the `updated` field of the [ScoreCard] entry, forcing search
+  /// indexes to pick it up and update their index.
+  Future<void> markScoreCardUpdated(
+      String packageName, String packageVersion) async {
+    final key = scoreCardKey(packageName, packageVersion);
+    await db.withRetryTransaction(_db, (tx) async {
+      final card = await tx.lookupValue<ScoreCard>(key, orElse: () => null);
+      if (card == null) return;
+      card.updated = DateTime.now().toUtc();
+      tx.insert(card);
+    });
+  }
+
   /// Updates the [ScoreCard] entry, reading both the package and version data,
   /// alongside the data from reports, and compiles a new summary of them.
-  Future<void> updateScoreCard(
+  Future<void> _updateScoreCard(
       String packageName, String packageVersion) async {
     final key = scoreCardKey(packageName, packageVersion);
     final pAndPv = await _db.lookup([key.parent, key.parent.parent]);

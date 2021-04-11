@@ -386,26 +386,26 @@ class PackageBackend {
       // Check that the user is admin for this package.
       await checkPackageAdmin(p, user.userId);
 
-      bool hasOptionsChanged = false;
+      final optionsChanges = <String>[];
       if (options.isDiscontinued != null &&
           options.isDiscontinued != p.isDiscontinued) {
         p.isDiscontinued = options.isDiscontinued;
         if (!p.isDiscontinued) {
           p.replacedBy = null;
         }
-        hasOptionsChanged = true;
+        optionsChanges.add('discontinued');
       }
       if (options.isDiscontinued == true &&
           (p.replacedBy ?? '') != replacedBy) {
         p.replacedBy = replacedBy.isEmpty ? null : replacedBy;
-        hasOptionsChanged = true;
+        optionsChanges.add('replacedBy');
       }
       if (options.isUnlisted != null && options.isUnlisted != p.isUnlisted) {
         p.isUnlisted = options.isUnlisted;
-        hasOptionsChanged = true;
+        optionsChanges.add('unlisted');
       }
 
-      if (!hasOptionsChanged) {
+      if (optionsChanges.isEmpty) {
         return;
       }
 
@@ -417,6 +417,7 @@ class PackageBackend {
       tx.insert(AuditLogRecord.packageOptionsUpdated(
         package: p.name,
         user: user,
+        options: optionsChanges,
       ));
     });
     await purgePackageCache(package);
@@ -601,7 +602,7 @@ class PackageBackend {
       );
 
   @visibleForTesting
-  Future<Stream<List<int>>> download(String package, String version) async {
+  Stream<List<int>> download(String package, String version) {
     // TODO: Should we first test for existence?
     // Maybe with a cache?
     version = canonicalizeVersion(version);

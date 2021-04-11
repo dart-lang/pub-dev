@@ -137,12 +137,10 @@ Future<void> _populateDefaultData() async {
     lithium.package.name: 0.7,
   });
 
-  await scoreCardBackend.updateReport(
+  await scoreCardBackend.updateReportAndCard(
       helium.package.name,
       helium.package.latestVersion,
       generatePanaReport(derivedTags: ['sdk:flutter']));
-  await scoreCardBackend.updateScoreCard(
-      helium.package.name, helium.package.latestVersion);
 }
 
 /// Creates local, non-HTTP-based API client with [authToken].

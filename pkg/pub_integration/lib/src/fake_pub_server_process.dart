@@ -18,18 +18,18 @@ final testTimeoutFactor = 4;
 class FakePubServerProcess {
   final int port;
   final Process _process;
-  final _CoverageConfig _coverageConfig;
+  final _CoverageConfig? _coverageConfig;
   final _startedCompleter = Completer();
-  StreamSubscription _stdoutListener;
-  StreamSubscription _stderrListener;
-  Timer _startupTimeoutTimer;
+  StreamSubscription? _stdoutListener;
+  StreamSubscription? _stderrListener;
+  Timer? _startupTimeoutTimer;
   final _linePatterns = <_LinePattern>[];
 
   FakePubServerProcess._(this.port, this._process, this._coverageConfig);
 
   static Future<FakePubServerProcess> start({
-    String pkgDir,
-    int port,
+    String? pkgDir,
+    int? port,
   }) async {
     pkgDir ??= p.join(Directory.current.path, '../../app');
     // TODO: check for free port
@@ -140,11 +140,11 @@ class _LinePattern {
 class _CoverageConfig {
   final int vmPort;
   final String outputPath;
-  Process _process;
+  late Process _process;
 
   _CoverageConfig(this.vmPort, this.outputPath);
 
-  static Future<_CoverageConfig> detect(int vmPort) async {
+  static Future<_CoverageConfig?> detect(int vmPort) async {
     final coverageDir = Platform.environment['COVERAGE_DIR'];
     if (coverageDir == null || coverageDir.isEmpty) return null;
 
@@ -183,7 +183,7 @@ class _CoverageConfig {
 
   Future<void> waitForCollect() async {
     print('[collect-$outputPath] waiting for completion...');
-    await _process?.exitCode;
+    await _process.exitCode;
   }
 }
 

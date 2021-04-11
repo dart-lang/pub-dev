@@ -2,19 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/meta.dart';
-
 import 'script/public_pages.dart';
 import 'script/publishing.dart';
 
 /// Runs the integration tests on the [pubHostedUrl].
 Future verifyPub({
-  @required String pubHostedUrl,
-  @required String credentialsFileContent,
-  @required String invitedEmail,
-  @required InviteCompleterFn inviteCompleterFn,
+  required String pubHostedUrl,
+  required String credentialsFileContent,
+  required String invitedEmail,
+  required InviteCompleterFn inviteCompleterFn,
   bool expectLiveSite = true,
-  String clientSdkDir,
+  String? clientSdkDir,
 }) async {
   final pubToolScript = PublishingScript(
     clientSdkDir,
