@@ -21,19 +21,10 @@ void main() {
     // Periodically updated cached values should use this wrapper.
     'lib/shared/cached_value.dart',
 
-    // TODO: migrate popularity data fetch to use cached_value
-    'lib/shared/popularity_storage.dart',
-
     // Periodically updates redis connection.
     // Periodically purges selected caches.
     // TODO: consider refactor/redesign
     'lib/shared/redis_cache.dart',
-
-    // TODO: migrate periodic announcement info fetch to use cached_value
-    'lib/service/announcement/backend.dart',
-
-    // TODO: migrate periodic CSP info fetch to use cached_value
-    'lib/service/csp/backend.dart',
 
     // Uses timer to auto-kill worker isolates.
     'lib/service/entrypoint/_isolate.dart',

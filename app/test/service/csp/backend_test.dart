@@ -38,7 +38,7 @@ void main() {
 
     await secretBackend.update(
         SecretKey.cspScriptSrc, 'https://example.com/js http://example.com/');
-    await cspBackend.update();
+    await cspBackend.start();
 
     final newScriptValues = getCspValues()['script-src'];
     final newStyleValues = getCspValues()['style-src'];

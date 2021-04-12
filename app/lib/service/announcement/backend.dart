@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:sanitize_html/sanitize_html.dart';
 
+import '../../shared/cached_value.dart';
 import '../secret/backend.dart';
 
 /// Sets the announcement backend service.
@@ -19,42 +20,34 @@ AnnouncementBackend get announcementBackend =>
 
 /// Represents the backend for the announcement handling and related utilities.
 class AnnouncementBackend {
-  String _announcementHtml;
-  Timer _updateTimer;
+  final _announcementHtml = CachedValue<String>(
+    name: 'announcement-html',
+    maxAge: Duration(hours: 12),
+    interval: Duration(minutes: 30),
+    updateFn: () async {
+      final value = await secretBackend.lookup(SecretKey.announcement);
+      if (value != null && value.trim().isNotEmpty) {
+        return sanitizeHtml(value.trim());
+      } else {
+        return null;
+      }
+    },
+  );
 
-  /// Loads the active announcement from Datastore.
-  Future<void> update() async {
-    final value = await secretBackend.lookup(SecretKey.announcement);
-    if (value != null && value.trim().isNotEmpty) {
-      _announcementHtml = sanitizeHtml(value.trim());
-    } else {
-      _announcementHtml = null;
-    }
+  /// Update announcements regularly.
+  Future<void> start() async {
+    await _announcementHtml.start();
   }
 
-  /// Sets a timer to update announcements regularly.
-  void scheduleRegularUpdates() {
-    _updateTimer = Timer.periodic(Duration(minutes: 10), (_) async {
-      await update();
-    });
-  }
-
-  /// Cancel timer and free resources.
+  /// Cancel updates and free resources.
   Future<void> close() async {
-    _updateTimer?.cancel();
-    _updateTimer = null;
+    await _announcementHtml.close();
   }
 
   /// Returns the current announcement in sanitized HTML (if it is loaded).
   ///
   /// May be `null` if there is nothing to display.
   String getAnnouncementHtml() {
-    return _announcementHtml;
-  }
-
-  /// Sets the current announcement.
-  /// [value] must be sanitized HTML from trusted source.
-  Future<void> setAnnouncementHtml(String value) async {
-    _announcementHtml = value;
+    return _announcementHtml.isAvailable ? _announcementHtml.value : null;
   }
 }
