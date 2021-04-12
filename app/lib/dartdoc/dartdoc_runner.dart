@@ -402,7 +402,7 @@ class DartdocJobProcessor extends JobProcessor {
         total: coverage.total,
       );
     } else {
-      if (dartdocResult.wasTimeout) {
+      if (dartdocResult != null && dartdocResult.wasTimeout) {
         abortMessage ??= '`dartdoc` timed out.';
       }
       if (abortMessage == null && dartdocResult != null) {
