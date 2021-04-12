@@ -30,6 +30,12 @@ void main() {
       return file.path;
     }
 
+    Future<void> expandWithBytes(String path, List<int> bytes) async {
+      final compressed = await File(path).readAsBytes();
+      final uncompressed = gzip.decode(compressed);
+      await File(path).writeAsBytes([...uncompressed, ...bytes]);
+    }
+
     test('pana 0.12.19', () async {
       void verify(PackageSummary summary) {
         expect(summary.issues, isEmpty);
@@ -49,6 +55,15 @@ void main() {
       verify(await summarizePackageArchive(path, maxContentLength: 128 * 1024));
       verify(await summarizePackageArchive(path,
           maxContentLength: 128 * 1024, useNative: true));
+
+      await expandWithBytes(path, <int>[1]);
+      await expectLater(
+          () => summarizePackageArchive(path, maxContentLength: 128 * 1024),
+          throwsA(isA<Exception>()));
+      await expectLater(
+          () => summarizePackageArchive(path,
+              maxContentLength: 128 * 1024, useNative: true),
+          throwsA(isA<Exception>()));
     });
 
     test('maxContentLength', () async {
@@ -61,6 +76,15 @@ void main() {
       verify(await summarizePackageArchive(path, maxContentLength: 16));
       verify(await summarizePackageArchive(path,
           maxContentLength: 16, useNative: true));
+
+      await expandWithBytes(path, <int>[1]);
+      await expectLater(
+          () => summarizePackageArchive(path, maxContentLength: 16),
+          throwsA(isA<Exception>()));
+      await expectLater(
+          () => summarizePackageArchive(path,
+              maxContentLength: 16, useNative: true),
+          throwsA(isA<Exception>()));
     });
   });
 }

@@ -112,7 +112,10 @@ class _PkgTarArchive extends TarArchive {
   /// Creates a new instance by scanning the archive at [path].
   static Future<_PkgTarArchive> _scan(String path) async {
     final names = <String>[];
-    final reader = TarReader(File(path).openRead().transform(gzip.decoder));
+    final reader = TarReader(
+      File(path).openRead().transform(gzip.decoder),
+      disallowTrailingData: true,
+    );
     while (await reader.moveNext()) {
       final entry = reader.current;
       names.add(entry.name);
@@ -124,7 +127,10 @@ class _PkgTarArchive extends TarArchive {
   @override
   Future<String> readContentAsString(String name, {int maxLength = 0}) async {
     final mappedName = _normalizedNames[name] ?? name;
-    final reader = TarReader(File(_path).openRead().transform(gzip.decoder));
+    final reader = TarReader(
+      File(_path).openRead().transform(gzip.decoder),
+      disallowTrailingData: true,
+    );
     try {
       while (await reader.moveNext()) {
         if (reader.current.name != mappedName) continue;
