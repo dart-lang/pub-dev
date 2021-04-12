@@ -357,14 +357,19 @@ void main() {
       expectGoldenFile(html, 'pkg_show_page_legacy.html');
     });
 
-    testWithProfile('package show page with publisher', fn: () async {
-      final data = await loadPackagePageData('neon', '1.0.0', AssetKind.readme);
-      final html = renderPkgShowPage(data);
-      expectGoldenFile(html, 'pkg_show_page_publisher.html', timestamps: {
-        'published': data.package.created,
-        'updated': data.package.lastVersionPublished,
-      });
-    });
+    testWithProfile(
+      'package show page with publisher',
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final data =
+            await loadPackagePageData('neon', '1.0.0', AssetKind.readme);
+        final html = renderPkgShowPage(data);
+        expectGoldenFile(html, 'pkg_show_page_publisher.html', timestamps: {
+          'published': data.package.created,
+          'updated': data.package.lastVersionPublished,
+        });
+      },
+    );
 
     scopedTest('no content for analysis tab', () async {
       // no content
