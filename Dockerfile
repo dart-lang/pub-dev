@@ -13,7 +13,6 @@ RUN apt-mark hold dart &&\
 
 # Let the pub server know that this is not a "typical" pub client but rather a bot.
 ENV PUB_ENVIRONMENT="bot.pub_dartlang_org.docker"
-ENV PUB_CACHE="/project/build/pub-cache"
 
 COPY app /project/app
 COPY pkg /project/pkg
@@ -22,22 +21,19 @@ COPY doc /project/doc
 COPY third_party /project/third_party
 COPY tool /project/tool
 
-# Populates /project/build/pub-cache
-RUN dart /project/tool/populate_pub_cache.dart
-
 WORKDIR /project/pkg/pub_dartdoc
-RUN dart pub get --offline --no-precompile
+RUN dart /project/tool/pub_get_offline.dart /project/pkg/pub_dartdoc
 
 WORKDIR /project/pkg/web_app
-RUN dart pub get --offline --no-precompile
+RUN dart /project/tool/pub_get_offline.dart /project/pkg/web_app
 RUN ./build.sh
 
 WORKDIR /project/pkg/web_css
-RUN dart pub get --offline --no-precompile
+RUN dart /project/tool/pub_get_offline.dart /project/pkg/web_css
 RUN ./build.sh
 
 WORKDIR /project/app
-RUN dart pub get --offline --no-precompile
+RUN dart /project/tool/pub_get_offline.dart /project/app
 
 ## NOTE: Uncomment the following lines for local testing:
 #ADD key.json /project/key.json
