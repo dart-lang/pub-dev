@@ -138,7 +138,7 @@ This category measures if a package has up-to-date dependencies in three areas:
 
   - Works with the latest stable Dart SDK.
   - Works with the latest stable Flutter SDK (if applicable).
-  - Works with the latest versions of all pendendencies.
+  - Works with the latest versions of all dependencies.
 
 To determine if your package supports the latest versions of dependencies prior
 to publishing, run the `pub outdated` command (Dart SDK) or `flutter pub
