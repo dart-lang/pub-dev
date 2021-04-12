@@ -8,11 +8,14 @@ import 'package:meta/meta.dart';
 import 'package:pub_package_reader/src/yaml_utils.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:pub_semver/pub_semver.dart';
-import 'package:yaml/yaml.dart' show YamlException;
+import 'package:yaml/yaml.dart' show YamlException, loadYaml;
+import 'package:logging/logging.dart';
 
 import 'src/file_names.dart';
 import 'src/names.dart';
 import 'src/tar_utils.dart';
+
+final _logger = Logger('pub_package_reader');
 
 /// A validation issue in the package archive.
 class ArchiveIssue {
@@ -99,7 +102,6 @@ Future<PackageSummary> summarizePackageArchive(
   } on Exception catch (e) {
     issues.add(ArchiveIssue('Error parsing pubspec.yaml: $e'));
   }
-
   // Try again with lenient parsing.
   try {
     pubspec ??= Pubspec.parse(pubspecContent, lenient: true);
@@ -107,7 +109,8 @@ Future<PackageSummary> summarizePackageArchive(
     issues.add(ArchiveIssue('Error parsing pubspec.yaml: $e'));
     return PackageSummary(issues: issues);
   }
-
+  // Check wether the pubspecContent can be converted to JSON
+  issues.addAll(checkValidJson(pubspecContent));
   // Check whether the files can be extracted on case-preserving file systems
   // (e.g. on Windows). We can't allow two files with the same case-insensitive
   // name.
@@ -330,6 +333,18 @@ Iterable<ArchiveIssue> forbidGitDependencies(Pubspec pubspec) sync* {
         'Package dependency $name depends on a package with a different name',
       );
     }
+  }
+}
+
+Iterable<ArchiveIssue> checkValidJson(String pubspecContent) sync* {
+  try {
+    final map = loadYaml(pubspecContent) as Map;
+    json.decode(json.encode(map)) as Map<String, dynamic>;
+  } on JsonUnsupportedObjectError catch (_) {
+    yield ArchiveIssue(
+        'pubspec.yaml contains values that can\'t be converted to JSON.');
+  } on Exception catch (e, st) {
+    _logger.warning('Error while converting pubspec.yaml to JSON', e, st);
   }
 }
 

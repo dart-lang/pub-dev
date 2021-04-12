@@ -483,4 +483,31 @@ $dependencies
       expect(requireNonEmptyLicense('LICENSE', 'BSD license'), isEmpty);
     });
   });
+
+  group('pubspec.yaml to json conversion', () {
+    test('pubspec.yaml to json conversion valid', () {
+      final pubspec = '''
+      name: provider     
+      environment:
+        sdk: ">=2.0.0 <3.0.0"
+      dependencies:
+        flutter:
+          sdk: flutter
+      ''';
+      expect(checkValidJson(pubspec), isEmpty);
+    });
+    test('pubspec.yaml to json conversion invalid', () {
+      final pubspec = '''
+      name: provider    
+      environment:
+        sdk: ">=2.0.0 <3.0.0"
+      dependencies:
+        flutter:
+          sdk: flutter
+      mykey:
+        [1,2,3,4,5]: 'value of a composite key'
+      ''';
+      expect(checkValidJson(pubspec), isNotEmpty);
+    });
+  });
 }
