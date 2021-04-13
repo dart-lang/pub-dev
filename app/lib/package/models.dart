@@ -142,7 +142,7 @@ class Package extends db.ExpandoModel<String> {
   factory Package.fromVersion(PackageVersion version) {
     final now = DateTime.now().toUtc();
     return Package()
-      ..parentKey = version.packageKey
+      ..parentKey = version.packageKey.parent
       ..id = version.pubspec.name
       ..name = version.pubspec.name
       ..created = now
