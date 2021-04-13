@@ -656,6 +656,15 @@ class PackageBackend {
 
     return await withTempDirectory((Directory dir) async {
       final filename = '${dir.absolute.path}/tarball.tar.gz';
+      final info =
+          await _storage.bucket.tryInfo(_storage.namer.tmpObjectName(guid));
+      if (info?.length == null) {
+        throw PackageRejectedException.archiveEmpty();
+      }
+      if (info.length > UploadSignerService.maxUploadSize) {
+        throw PackageRejectedException.archiveTooLarge(
+            UploadSignerService.maxUploadSize);
+      }
       await _saveTarballToFS(_storage.readTempObject(guid), filename);
       await _verifyTarball(filename);
       final version = await _performTarballUpload(
