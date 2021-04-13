@@ -109,8 +109,8 @@ Future<PackageSummary> summarizePackageArchive(
     issues.add(ArchiveIssue('Error parsing pubspec.yaml: $e'));
     return PackageSummary(issues: issues);
   }
-  // Check wether the pubspecContent can be converted to JSON
   issues.addAll(checkValidJson(pubspecContent));
+  issues.addAll(checkAuthors(pubspecContent));
   // Check whether the files can be extracted on case-preserving file systems
   // (e.g. on Windows). We can't allow two files with the same case-insensitive
   // name.
@@ -253,6 +253,15 @@ Iterable<ArchiveIssue> validatePackageVersion(Version version) sync* {
   }
 }
 
+/// Checks if the pubspec has both `author` and `authors` specified.
+Iterable<ArchiveIssue> checkAuthors(String pubspecContent) sync* {
+  final map = loadYaml(pubspecContent);
+  if (map is Map && map.containsKey('author') && map.containsKey('authors')) {
+    yield ArchiveIssue(
+        'Do not specify both `author` and `authors` in `pubspec.yaml`.');
+  }
+}
+
 /// Removes extra characters from the package name
 String reducePackageName(String name) =>
     // we allow only `_` as part of the name.
@@ -336,6 +345,7 @@ Iterable<ArchiveIssue> forbidGitDependencies(Pubspec pubspec) sync* {
   }
 }
 
+/// Check wether the pubspecContent can be converted to JSON
 Iterable<ArchiveIssue> checkValidJson(String pubspecContent) sync* {
   try {
     final map = loadYaml(pubspecContent) as Map;

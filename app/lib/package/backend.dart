@@ -666,13 +666,29 @@ class PackageBackend {
             UploadSignerService.maxUploadSize);
       }
       await _saveTarballToFS(_storage.readTempObject(guid), filename);
+      _logger.info('Examining tarball content ($guid).');
       await _verifyTarball(filename);
+      final archive = await summarizePackageArchive(filename,
+          maxContentLength: maxAssetContentLength);
+      if (archive.hasIssues) {
+        throw PackageRejectedException(archive.issues.first.message);
+      }
+
+      final pubspec = Pubspec.fromYaml(archive.pubspecContent);
+      PackageRejectedException.check(await nameTracker.accept(pubspec.name),
+          'Package name is too similar to another active or moderated package.');
+      final versionString = canonicalizeVersion(pubspec.nonCanonicalVersion);
+      if (versionString == null) {
+        throw InvalidInputException.canonicalizeVersionError(
+            pubspec.nonCanonicalVersion);
+      }
+
       final version = await _performTarballUpload(
         user,
-        filename,
         (package, version) =>
             _storage.uploadViaTempObject(guid, package, version),
         restriction,
+        archive,
       );
       _logger.info('Removing temporary object $guid.');
       await _storage.removeTempObject(guid);
@@ -682,15 +698,12 @@ class PackageBackend {
 
   Future<PackageVersion> _performTarballUpload(
     User user,
-    String filename,
     Future<void> Function(String name, String version) tarballUpload,
     UploadRestrictionStatus restriction,
+    PackageSummary archive,
   ) async {
-    _logger.info('Examining tarball content.');
-
-    // Parse metadata from the tarball.
-    final validatedUpload = await _parseAndValidateUpload(db, filename, user);
-    final newVersion = validatedUpload.packageVersion;
+    final entities = await _createUploadEntities(db, user, archive);
+    final newVersion = entities.packageVersion;
 
     // Check version count outside of the transaction.
     final versionsCount = await getPackageVersionsCount(newVersion.package);
@@ -737,7 +750,7 @@ class PackageBackend {
         if (restriction == UploadRestrictionStatus.onlyUpdates) {
           throw PackageRejectedException.uploadRestricted();
         }
-        package = _newPackageFromVersion(db, newVersion, user.userId);
+        package = Package.fromVersion(newVersion);
       } else if (!await packageBackend.isPackageAdmin(package, user.userId)) {
         _logger.info('User ${user.userId} (${user.email}) is not an uploader '
             'for package ${package.name}, rolling transaction back.');
@@ -766,8 +779,8 @@ class PackageBackend {
       final inserts = <Model>[
         package,
         newVersion,
-        validatedUpload.packageVersionInfo,
-        ...validatedUpload.assets,
+        entities.packageVersionInfo,
+        ...entities.assets,
         AuditLogRecord.packagePublished(
           uploader: user,
           package: newVersion.package,
@@ -1161,34 +1174,12 @@ Future<void> verifyTarGzSymlinks(String filename) async {
   }
 }
 
-/// Creates a new `Package` and populates all of it's fields.
-Package _newPackageFromVersion(
-    DatastoreDB db, PackageVersion version, String userId) {
-  final now = DateTime.now().toUtc();
-  return Package()
-    ..parentKey = db.emptyKey
-    ..id = version.pubspec.name
-    ..name = version.pubspec.name
-    ..created = now
-    ..updated = now
-    ..latestVersionKey = version.key
-    ..latestPublished = now
-    ..latestPrereleaseVersionKey = version.key
-    ..latestPrereleasePublished = now
-    ..uploaders = [userId]
-    ..likes = 0
-    ..isDiscontinued = false
-    ..isUnlisted = false
-    ..isWithheld = false
-    ..assignedTags = [];
-}
-
-class _ValidatedUpload {
+class _UploadEntities {
   final PackageVersion packageVersion;
   final PackageVersionInfo packageVersionInfo;
   final List<PackageVersionAsset> assets;
 
-  _ValidatedUpload(
+  _UploadEntities(
     this.packageVersion,
     this.packageVersionInfo,
     this.assets,
@@ -1205,37 +1196,12 @@ class DerivedPackageVersionEntities {
   );
 }
 
-/// Parses metadata from a tarball and & validates it.
-///
-/// This function ensures that `tarball`
-///   * is a valid `tar.gz` file
-///   * contains a valid `pubspec.yaml` file
-///   * reads readme, changelog and pubspec files
-///   * creates a [PackageVersion] and populates it with all metadata
-Future<_ValidatedUpload> _parseAndValidateUpload(
-    DatastoreDB db, String filename, User user) async {
-  assert(user != null);
-
-  final archive = await summarizePackageArchive(filename,
-      maxContentLength: maxAssetContentLength);
-  if (archive.hasIssues) {
-    throw PackageRejectedException(archive.issues.first.message);
-  }
-
+/// Creates entities from [archive] summary.
+Future<_UploadEntities> _createUploadEntities(
+    DatastoreDB db, User user, PackageSummary archive) async {
   final pubspec = Pubspec.fromYaml(archive.pubspecContent);
-  PackageRejectedException.check(await nameTracker.accept(pubspec.name),
-      'Package name is too similar to another active or moderated package.');
-
-  PackageRejectedException.check(!pubspec.hasBothAuthorAndAuthors,
-      'Do not specify both `author` and `authors` in `pubspec.yaml`.');
-
   final packageKey = db.emptyKey.append(Package, id: pubspec.name);
-
   final versionString = canonicalizeVersion(pubspec.nonCanonicalVersion);
-  if (versionString == null) {
-    throw InvalidInputException.canonicalizeVersionError(
-        pubspec.nonCanonicalVersion);
-  }
 
   final version = PackageVersion()
     ..id = versionString
@@ -1253,7 +1219,7 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
   );
 
   // TODO: verify if assets sizes are within the transaction limit (10 MB)
-  return _ValidatedUpload(version, derived.packageVersionInfo, derived.assets);
+  return _UploadEntities(version, derived.packageVersionInfo, derived.assets);
 }
 
 /// Creates new Datastore entities from the actual extraction of package [archive].

@@ -91,6 +91,20 @@ void main() {
     });
   });
 
+  group('author vs. authors', () {
+    test('author is allowed', () {
+      expect(checkAuthors('author: x'), isEmpty);
+    });
+
+    test('authors is allowed', () {
+      expect(checkAuthors('authors: x'), isEmpty);
+    });
+
+    test('both author and authors is not allowed', () {
+      expect(checkAuthors('author: x\nauthors: x'), isNotEmpty);
+    });
+  });
+
   group('too many dependencies', () {
     test('allow the limit', () {
       final dependencies =
