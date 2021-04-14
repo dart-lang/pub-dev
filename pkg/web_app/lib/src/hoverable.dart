@@ -108,11 +108,7 @@ void _setEventForPreCodeCopyToClipboard() {
     container.append(feedback);
 
     button.onClick.listen((_) async {
-      var text = pre.text.trim();
-      // Strip the dollar-sign prefix from single-line shell commands.
-      if (text.startsWith(r'$ ') && !text.contains('\n')) {
-        text = text.substring(1).trim();
-      }
+      final text = pre.dataset['textToCopy']?.trim() ?? pre.text.trim();
       _copyToClipboard(text);
       await _animateCopyFeedback(feedback);
     });
