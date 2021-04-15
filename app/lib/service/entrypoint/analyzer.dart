@@ -67,7 +67,7 @@ Future _workerMain(WorkerEntryMessage message) async {
 
   await withServices(() async {
     setupAnalyzerPeriodicTasks();
-    await popularityStorage.init();
+    await popularityStorage.start();
     final jobProcessor = AnalyzerJobProcessor(
         aliveCallback: () => message.aliveSendPort.send(null));
     final jobMaintenance = JobMaintenance(db.dbService, jobProcessor);

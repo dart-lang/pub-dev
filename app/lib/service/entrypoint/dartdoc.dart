@@ -67,7 +67,7 @@ Future _workerMain(WorkerEntryMessage message) async {
 
   await withServices(() async {
     setupDartdocPeriodicTasks();
-    await popularityStorage.init();
+    await popularityStorage.start();
 
     final jobProcessor = DartdocJobProcessor(
       aliveCallback: () => message.aliveSendPort.send(null),

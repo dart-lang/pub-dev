@@ -56,6 +56,7 @@ class CachedValue<T> {
         _updateFn = updateFn,
         _timeout = timeout ?? interval ~/ 2;
 
+  DateTime get lastUpdated => _lastUpdated;
   Duration get age => DateTime.now().difference(_lastUpdated);
   bool get isAvailable => _value != null && age <= _maxAge;
 

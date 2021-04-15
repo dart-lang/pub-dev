@@ -73,12 +73,10 @@ Future _main(FrontendEntryMessage message) async {
     if (envConfig.isRunningLocally) {
       await watchForResourceChanges();
     }
-    await popularityStorage.init();
+    await popularityStorage.start();
     nameTracker.startTracking();
-    await announcementBackend.update();
-    announcementBackend.scheduleRegularUpdates();
-    await cspBackend.update();
-    cspBackend.scheduleRegularUpdates();
+    await announcementBackend.start();
+    await cspBackend.start();
     await youtubeBackend.start();
 
     await runHandler(_logger, appHandler,
