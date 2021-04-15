@@ -13,7 +13,9 @@ final _client = HttpClient();
 /// a new version.
 Future<void> main(List<String> args) async {
   final pkgDir = args.single;
-  final pubCacheDir = Directory('$pkgDir/.dart_tool/pub-cache').absolute;
+  final pubCachePath =
+      Platform.environment['PUB_CACHE'] ?? '$pkgDir/.dart_tool/pub-cache';
+  final pubCacheDir = Directory(pubCachePath).absolute;
   print('PUB_CACHE: ${pubCacheDir.path}');
   if (pubCacheDir.existsSync()) {
     pubCacheDir.deleteSync(recursive: true);
