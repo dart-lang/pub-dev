@@ -24,17 +24,16 @@ Future<void> main(List<String> args) async {
   final packages = pvs.keys.toList()..sort();
   for (final package in packages) {
     final version = pvs[package]!;
-    var retry = 0;
-    while (true) {
-      print('Downloading $package: $version (attempt: ${retry+1})');
+    for (var retry = 0;; retry++) {
+      print('Downloading $package: $version (attempt: ${retry + 1})');
       try {
         await _downloadInto(package, version, pubCacheDir);
+        break;
       } catch (e) {
         if (retry >= 8) {
           rethrow;
         }
         await Future.delayed(Duration(seconds: 1));
-        retry++;
       }
     }
   }
