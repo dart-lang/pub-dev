@@ -76,11 +76,6 @@ class Pubspec {
 
   String get description => _inner.description;
 
-  bool get hasBothAuthorAndAuthors {
-    _load();
-    return _json['author'] != null && _json['authors'] != null;
-  }
-
   Map<String, dynamic> get executables {
     _load();
     final map = _json['executables'];
