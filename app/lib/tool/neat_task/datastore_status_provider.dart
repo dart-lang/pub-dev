@@ -9,7 +9,7 @@ import 'package:neat_periodic_task/neat_periodic_task.dart';
 import 'package:ulid/ulid.dart';
 
 import '../../shared/datastore.dart' as db;
-import '../../shared/versions.dart' show runtimeVersion;
+import '../../shared/versions.dart' as versions show runtimeVersion;
 
 /// Tracks the status of the task.
 ///
@@ -20,12 +20,13 @@ class NeatTaskStatus extends db.ExpandoModel<String> {
   @db.StringProperty()
   String name;
 
-  /// The scope of the task.
+  /// The runtimeVersion of the task.
+  /// Tasks the work on non-versioned data should use '-' as a value.
   ///
   /// TODO: cleanup entities without scope or name
   /// TODO: make scope and name required: true
   @db.StringProperty()
-  String scope;
+  String runtimeVersion;
 
   @db.StringProperty(required: true, indexed: false)
   String etag;
@@ -38,11 +39,22 @@ class NeatTaskStatus extends db.ExpandoModel<String> {
 
   NeatTaskStatus();
 
-  NeatTaskStatus.init(this.name, this.scope) {
-    scope ??= 'global';
-    id = '$scope/$name';
+  NeatTaskStatus.init(this.name, {@required bool isRuntimeVersioned}) {
+    runtimeVersion =
+        _runtimeVersion(name, isRuntimeVersioned: isRuntimeVersioned);
+    id = _compositeId(name, isRuntimeVersioned: isRuntimeVersioned);
     updated = DateTime.now().toUtc();
   }
+}
+
+String _runtimeVersion(String name, {@required bool isRuntimeVersioned}) {
+  return isRuntimeVersioned ? versions.runtimeVersion : '-';
+}
+
+String _compositeId(String name, {@required bool isRuntimeVersioned}) {
+  final runtimeVersion =
+      _runtimeVersion(name, isRuntimeVersioned: isRuntimeVersioned);
+  return '$runtimeVersion/$name';
 }
 
 /// Task status provider that uses Datastore and [NeatTaskStatus] entries
@@ -50,14 +62,12 @@ class NeatTaskStatus extends db.ExpandoModel<String> {
 class DatastoreStatusProvider extends NeatStatusProvider {
   final db.DatastoreDB _db;
   final String _name;
-  final String _scope;
-  String _id;
+  final bool _isRuntimeVersioned;
+  final String _id;
   String _etag;
 
-  DatastoreStatusProvider._(this._db, this._name, String scope)
-      : _scope = scope ?? 'global' {
-    _id = '$_scope/$_name';
-  }
+  DatastoreStatusProvider._(this._db, this._name, this._isRuntimeVersioned)
+      : _id = _compositeId(_name, isRuntimeVersioned: _isRuntimeVersioned);
 
   static NeatStatusProvider create(
     db.DatastoreDB db,
@@ -65,9 +75,7 @@ class DatastoreStatusProvider extends NeatStatusProvider {
     @required bool isRuntimeVersioned,
   }) {
     return NeatStatusProvider.withRetry(
-      DatastoreStatusProvider._(
-          db, name, isRuntimeVersioned ? runtimeVersion : null),
-    );
+        DatastoreStatusProvider._(db, name, isRuntimeVersioned));
   }
 
   @override
@@ -82,9 +90,10 @@ class DatastoreStatusProvider extends NeatStatusProvider {
           e = status;
           return;
         }
-        tx.insert(NeatTaskStatus.init(_name, _scope)
-          ..etag = Ulid().toCanonical()
-          ..statusBase64 = base64.encode(<int>[]));
+        tx.insert(
+            NeatTaskStatus.init(_name, isRuntimeVersioned: _isRuntimeVersioned)
+              ..etag = Ulid().toCanonical()
+              ..statusBase64 = base64.encode(<int>[]));
       });
       e ??= await _db.lookupValue<NeatTaskStatus>(key, orElse: () => null);
     }
@@ -100,7 +109,7 @@ class DatastoreStatusProvider extends NeatStatusProvider {
       if (e != null && e.etag != _etag) {
         return null;
       }
-      e ??= NeatTaskStatus.init(_name, _scope);
+      e ??= NeatTaskStatus.init(_name, isRuntimeVersioned: _isRuntimeVersioned);
       e
         ..statusBase64 = base64.encode(status ?? <int>[])
         ..etag = Ulid().toCanonical()

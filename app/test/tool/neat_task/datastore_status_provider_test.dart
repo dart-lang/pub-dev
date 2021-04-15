@@ -23,9 +23,9 @@ void main() {
       expect(await provider.get(), isEmpty);
 
       final list = await listStatuses();
-      expect(list.single.id, 'global/task-id');
+      expect(list.single.id, '-/task-id');
       expect(list.single.name, 'task-id');
-      expect(list.single.scope, 'global');
+      expect(list.single.runtimeVersion, '-');
 
       await deleteOldNeatTaskStatuses(dbService, maxAge: Duration(hours: 1));
       expect(await listStatuses(), isNotEmpty);
@@ -42,7 +42,7 @@ void main() {
       final list = await listStatuses();
       expect(list.single.id, '$runtimeVersion/task-id');
       expect(list.single.name, 'task-id');
-      expect(list.single.scope, runtimeVersion);
+      expect(list.single.runtimeVersion, runtimeVersion);
     });
 
     testWithProfile('set status - global', fn: () async {
