@@ -99,6 +99,6 @@ Future<void> _downloadInto(
   await rs.pipe(process.stdin);
   final exitCode = await process.exitCode;
   if (exitCode != 0) {
-    throw AssertionError('Unable to extract archive of $package-$version.');
+    throw Exception('Unable to extract archive of $package-$version.');
   }
 }
