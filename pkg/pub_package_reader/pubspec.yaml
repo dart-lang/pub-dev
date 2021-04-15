@@ -11,7 +11,7 @@ dependencies:
   pub_semver: ^1.4.4
   pubspec_parse: ^0.1.4
   yaml: ^2.0.0
-  tar: 0.3.0
+  tar: 0.3.2
 
 dev_dependencies:
   http: ^0.13.0
