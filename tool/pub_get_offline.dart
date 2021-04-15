@@ -85,7 +85,7 @@ Future<void> _downloadInto(
   final targetDir = Directory(
       '${pubCacheDir.path}/hosted/pub.dartlang.org/$package-$version');
   if (targetDir.existsSync()) {
-    throw AssertionError('$package-$version already exists');
+    targetDir.deleteSync(recursive: true);
   }
   targetDir.createSync(recursive: true);
   final rq = await _client.getUrl(Uri.parse(
