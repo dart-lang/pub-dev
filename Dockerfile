@@ -13,6 +13,7 @@ RUN apt-mark hold dart &&\
 
 # Let the pub server know that this is not a "typical" pub client but rather a bot.
 ENV PUB_ENVIRONMENT="bot.pub_dartlang_org.docker"
+ENV PUB_CACHE="/project/.pub-cache"
 
 COPY app /project/app
 COPY pkg /project/pkg
