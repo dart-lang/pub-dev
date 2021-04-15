@@ -92,7 +92,7 @@ Future<void> _downloadInto(
       'https://storage.googleapis.com/pub-packages/packages/${Uri.encodeComponent(package)}-${Uri.encodeComponent(version)}.tar.gz'));
   final rs = await rq.close();
   if (rs.statusCode != 200) {
-    throw AssertionError('Unable to access archive of $package-$version.');
+    throw Exception('Unable to access archive of $package-$version.');
   }
   final process =
       await Process.start('tar', ['-zxf', '-', '-C', targetDir.path]);
