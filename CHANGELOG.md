@@ -2,6 +2,8 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Re-enabled YouTube integrations with `cached_value` pattern.
+ * Upgraded `package:appengine` to `0.12.0`.
 
 ## `20210407t142600-all`
  * Bumped runtimeVersion to `2021.04.06`.
