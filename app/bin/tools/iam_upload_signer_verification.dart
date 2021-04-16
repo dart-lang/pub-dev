@@ -5,13 +5,11 @@
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/package/backend.dart';
-import 'package:pub_dev/package/upload_signer_service.dart';
 import 'package:pub_dev/service/entrypoint/tools.dart';
 
 /// Checks if the IAM based upload signer service can be called successfully.
 /// TODO: remove this after the appengine 0.12 upgrade.
 Future<void> main(List<String> args) async {
-  forceIamSigner = true;
   await withToolRuntime(() async {
     // NOTE: We use a authenticated user scope here to ensure the uploading
     // user is authenticated. But we're not validating anything at this point
