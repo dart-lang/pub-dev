@@ -166,7 +166,7 @@ String renderPkgInfoBox(PackagePageData data) {
       }
     }
     final linkData = <String, dynamic>{
-      'href': href,
+      'href': htmlAttrEscape.convert(uri.toString()),
       'label': label,
       'rel': uri.shouldIndicateUgc ? 'ugc' : null,
     };
