@@ -187,7 +187,8 @@ Future<PackageSummary> summarizePackageArchive(
   issues.addAll(syntaxCheckUrl(pubspec.homepage, 'homepage'));
   issues.addAll(syntaxCheckUrl(pubspec.repository?.toString(), 'repository'));
   issues.addAll(syntaxCheckUrl(pubspec.documentation, 'documentation'));
-  issues.addAll(syntaxCheckUrl(pubspec.issueTracker?.toString(), 'issueTracker'));
+  issues
+      .addAll(syntaxCheckUrl(pubspec.issueTracker?.toString(), 'issueTracker'));
   issues.addAll(validateDependencies(pubspec));
   issues.addAll(forbidGitDependencies(pubspec));
   // TODO: re-enable or remove after version pinning gets resolved
