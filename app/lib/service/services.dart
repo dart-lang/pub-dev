@@ -90,7 +90,7 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
             ? createGmailRelaySender(
                 activeConfiguration.gmailRelayServiceAccount,
                 activeConfiguration.gmailRelayImpersonatedGSuiteUser,
-                retryingAuthClient,
+                authClient,
               )
             : loggingEmailSender,
       );
