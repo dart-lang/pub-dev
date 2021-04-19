@@ -7,7 +7,6 @@ import 'dart:convert' show json;
 import 'dart:io';
 
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:gcloud/http.dart' show authClientService;
 import 'package:googleapis/iamcredentials/v1.dart' as iam_credentials;
 import 'package:logging/logging.dart';
 import 'package:mailer/mailer.dart';
@@ -35,11 +34,12 @@ abstract class EmailSender {
 EmailSender createGmailRelaySender(
   String serviceAccountEmail,
   String impersonatedGSuiteUser,
+  http.Client authClient,
 ) =>
     _GmailSmtpRelay(
       serviceAccountEmail,
       impersonatedGSuiteUser,
-      authClientService,
+      authClient,
     );
 
 class _LoggingEmailSender implements EmailSender {
