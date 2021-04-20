@@ -3,8 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io';
 
-import 'package:meta/meta.dart';
+import 'package:pub_package_reader/src/archive_surface.dart';
 import 'package:pub_package_reader/src/yaml_utils.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -56,17 +57,42 @@ class PackageSummary {
     this.libraries,
   });
 
+  factory PackageSummary.fail(ArchiveIssue issue) =>
+      PackageSummary(issues: [issue]);
+
   bool get hasIssues => issues != null && issues.isNotEmpty;
 }
 
 /// Observe the .tar.gz archive on [archivePath] and return the results.
 Future<PackageSummary> summarizePackageArchive(
   String archivePath, {
-  @required int maxContentLength,
+
+  /// The maximum length of the extracted content text.
+  int maxContentLength = 128 * 1024,
+
+  /// The maximum file size of the archive (gzipped or compressed) and
+  /// the maximum total size of the files inside the archive.
+  int maxArchiveSize = 100 * 1024 * 1024,
   bool useNative = false,
 }) async {
   final issues = <ArchiveIssue>[];
-  final tar = await TarArchive.scan(archivePath, useNative: useNative);
+
+  // Run scans before tar parsing...
+  issues.addAll(
+      await scanArchiveSurface(archivePath, maxArchiveSize: maxArchiveSize)
+          .toList());
+  if (issues.isNotEmpty) {
+    return PackageSummary(issues: issues);
+  }
+
+  TarArchive tar;
+  try {
+    tar = await TarArchive.scan(archivePath, useNative: useNative);
+  } catch (e, st) {
+    _logger.info('Failed to scan tar archive.', e, st);
+    return PackageSummary.fail(
+        ArchiveIssue('Failed to scan tar archive. ($e)'));
+  }
 
   // processing pubspec.yaml
   final pubspecPath = tar.searchForFile(['pubspec.yaml']);

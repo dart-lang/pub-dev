@@ -52,17 +52,13 @@ void main() {
       }
 
       final path = await download('pana', '0.12.19');
-      verify(await summarizePackageArchive(path, maxContentLength: 128 * 1024));
-      verify(await summarizePackageArchive(path,
-          maxContentLength: 128 * 1024, useNative: true));
+      verify(await summarizePackageArchive(path));
+      verify(await summarizePackageArchive(path, useNative: true));
 
       await expandWithBytes(path, <int>[1]);
       await expectLater(
-          () => summarizePackageArchive(path, maxContentLength: 128 * 1024),
-          throwsA(isA<Exception>()));
-      await expectLater(
-          () => summarizePackageArchive(path,
-              maxContentLength: 128 * 1024, useNative: true),
+          () => summarizePackageArchive(path), throwsA(isA<Exception>()));
+      await expectLater(() => summarizePackageArchive(path, useNative: true),
           throwsA(isA<Exception>()));
     });
 

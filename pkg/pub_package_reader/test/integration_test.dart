@@ -48,7 +48,6 @@ version: 1.0.0
 ''',
           'LICENSE': 'All rights reserved...',
         }),
-        maxContentLength: 128 * 1024,
       );
 
       expect(summary.issues, isEmpty);
@@ -65,7 +64,6 @@ dev_dependencies:
 ''',
           'LICENSE': 'All rights reserved...',
         }),
-        maxContentLength: 128 * 1024,
       );
 
       expect(
