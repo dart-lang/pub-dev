@@ -3,18 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:pub_package_reader/src/archive_surface.dart';
-import 'package:pub_package_reader/src/yaml_utils.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart' show YamlException, loadYaml;
 import 'package:logging/logging.dart';
 
+import 'src/archive_surface.dart';
 import 'src/file_names.dart';
 import 'src/names.dart';
 import 'src/tar_utils.dart';
+import 'src/yaml_utils.dart';
 
 final _logger = Logger('pub_package_reader');
 
