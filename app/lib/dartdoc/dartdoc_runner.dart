@@ -640,6 +640,11 @@ bool _isKnownFailurePattern(String output) {
   if (output.contains('fatal error: unable to locate the input directory at')) {
     return true;
   }
+  // dartdoc_options.yaml references a file missing (usually outside of the published package).
+  if (output.contains('categories definition') &&
+      output.contains('resolves to the missing file')) {
+    return true;
+  }
   return false;
 }
 
