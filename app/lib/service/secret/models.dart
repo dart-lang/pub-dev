@@ -22,12 +22,6 @@ abstract class SecretKey {
   /// Site-wide announcement.
   static const String announcement = 'announcement';
 
-  /// Extension for the content security policy's script-src section.
-  static const String cspScriptSrc = 'csp-script-src';
-
-  /// Extension for the content security policy's script-src section.
-  static const String cspStyleSrc = 'csp-style-src';
-
   /// The restriction applied on uploads.
   ///
   /// This feature is intended as an emergency break.
@@ -45,8 +39,6 @@ abstract class SecretKey {
   static const values = [
     redisConnectionString,
     announcement,
-    cspScriptSrc,
-    cspStyleSrc,
     uploadRestriction,
     youtubeApiKey,
   ];

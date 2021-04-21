@@ -15,7 +15,7 @@ import 'package:stack_trace/stack_trace.dart';
 import '../account/backend.dart';
 import '../frontend/request_context.dart';
 import '../frontend/templates/layout.dart';
-import '../service/csp/backend.dart';
+import '../service/csp/default_csp.dart';
 
 import 'configuration.dart';
 import 'exceptions.dart';
@@ -161,7 +161,7 @@ shelf.Handler _cspHeaderWrapper(shelf.Handler handler) {
       return rs.change(headers: {
         'x-content-type-options': 'nosniff',
         'x-frame-options': 'deny',
-        'content-security-policy': cspBackend.cspValue,
+        'content-security-policy': defaultContentSecurityPolicySerialized,
       });
     } else {
       return rs;
