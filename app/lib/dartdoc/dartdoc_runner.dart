@@ -9,9 +9,6 @@ import 'dart:io';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' hide Pubspec, ReportStatus;
-import 'package:pana/pana.dart' as pana;
-// ignore: implementation_imports
-import 'package:pana/src/create_report.dart' show renderSimpleSectionSummary;
 import 'package:path/path.dart' as p;
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
@@ -411,7 +408,7 @@ class DartdocJobProcessor extends JobProcessor {
         abortMessage = '`dartdoc` failed with:\n\n```\n$output\n```';
       }
       abortMessage ??= '`dartdoc` failed with unknown reason.';
-      documentationSection = _dartdocFailedSection(abortMessage);
+      documentationSection = dartdocFailedSection(abortMessage);
     }
     await _storeScoreCard(
         job,
@@ -665,20 +662,3 @@ DartdocReport _emptyReport() => DartdocReport(
       // TODO: add meaningful message for missing documentation on dartdoc
       documentationSection: null,
     );
-
-/// Creates a report section when running dartdoc failed to produce content.
-ReportSection _dartdocFailedSection(String abortMessage) {
-  return ReportSection(
-    id: ReportSectionId.documentation,
-    title: documentationSectionTitle,
-    grantedPoints: 0,
-    maxPoints: 10,
-    summary: renderSimpleSectionSummary(
-      title: 'Failed to run dartdoc',
-      description: abortMessage,
-      grantedPoints: 0,
-      maxPoints: 10,
-    ),
-    status: pana.ReportStatus.failed,
-  );
-}

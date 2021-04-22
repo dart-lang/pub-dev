@@ -3,11 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' hide ReportStatus;
+import 'package:path/path.dart' as p;
 
+import '../frontend/static_files.dart' as static_files;
 import '../job/job.dart';
 import '../package/models.dart';
 import '../package/overrides.dart';
@@ -17,6 +20,11 @@ import '../shared/configuration.dart';
 import '../shared/tool_env.dart';
 
 final Logger _logger = Logger('pub.analyzer.pana');
+
+@visibleForTesting
+final pedanticAnalysisOptionsYaml = File(p.join(static_files.resolveAppDir(),
+        'lib', 'analyzer', 'pedantic-analysis_options.1.8.0.yaml'))
+    .readAsStringSync();
 
 /// Generic interface to run pana for package-analysis.
 // ignore: one_member_abstracts
@@ -50,8 +58,9 @@ class _PanaRunner implements PanaRunner {
             options: InspectOptions(
               isInternal: isInternal,
               pubHostedUrl: activeConfiguration.primaryApiUri.toString(),
-              analysisOptionsUri:
-                  'package:pedantic/analysis_options.1.8.0.yaml',
+              analysisOptionsYaml: packageStatus.usesFlutter
+                  ? null
+                  : pedanticAnalysisOptionsYaml,
             ),
             logger: Logger.detached('pana/$package/$version'),
           );
