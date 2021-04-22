@@ -8,6 +8,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Flutter analysis SDK to `2.0.5`.
  * Upgraded preview Flutter analysis SDK to `2.2.0-10.1.pre`.
  * Upgraded pana to `0.16.0`.
+ * Upgraded a few dependencies including `markdown`, `pub_semver` and `yaml`.
 
 ## `20210419t154700-all`
 
