@@ -8,8 +8,8 @@ dependencies:
     path: ../pkg/_popularity
   neat_cache: ^1.0.0
   appengine: '^0.12.0'
-  args: '>=0.13.7 <2.0.0'
-  basics: ^0.4.0
+  args: '^2.0.0'
+  basics: ^0.6.0
   client_data:
     path: ../pkg/client_data
   convert: '^2.0.0'
@@ -25,7 +25,7 @@ dependencies:
   intl: '^0.16.0'
   json_annotation: '^3.0.0'
   logging: '>=0.9.3 <1.0.0'
-  markdown: ^3.0.0
+  markdown: ^4.0.0
   meta: ^1.1.2
   mime: '>=0.9.3 <0.10.0'
   mustache: ^1.0.0
@@ -36,16 +36,16 @@ dependencies:
     path: ../pkg/pub_dartdoc_data
   pub_package_reader:
     path: ../pkg/pub_package_reader
-  pub_semver: '>=1.2.2 <2.0.0'
+  pub_semver: '^2.0.0'
   pubspec_parse: ^0.1.4
   shelf: '^0.7.9'
   shelf_router: ^0.7.4
   stack_trace: ^1.10.0
-  stream_transform: ^1.1.0
-  watcher: ^0.9.7
-  yaml: '^2.1.12'
+  stream_transform: ^2.0.0
+  watcher: ^1.0.0
+  yaml: '^3.0.0'
   # pana version to be pinned
-  pana: '0.15.4'
+  pana: '0.16.0'
   # 3rd-party packages with pinned versions
   buffer: '1.1.0'
   mailer: '3.2.1'
