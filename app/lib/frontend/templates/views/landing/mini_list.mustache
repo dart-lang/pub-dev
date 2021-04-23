@@ -5,7 +5,9 @@
 <div class="mini-list">
   {{#packages}}
   <div class="mini-list-item">
-    <a class="mini-list-item-title" href="{{& package_url}}"><h3>{{name}}</h3></a>
+    <a class="mini-list-item-title"
+       href="{{& package_url}}"
+       data-ga-click-event="landing-{{ section_tag }}-card-title"><h3>{{name}}</h3></a>
     <div class="mini-list-item-body">
       <p class="mini-list-item-description">{{ellipsized_description}}</p>
     </div>
@@ -15,7 +17,9 @@
           <img class="publisher-badge"
                src="{{& static_assets.img__verified-publisher-gray_svg}}"
                title="Published by a pub.dev verified publisher" />
-          <a class="publisher-link" href="/publishers/{{publisher_id}}">{{publisher_id}}</a>
+          <a class="publisher-link"
+             href="/publishers/{{publisher_id}}"
+             data-ga-click-event="landing-{{ section_tag }}-card-publisher">{{publisher_id}}</a>
         </div>
       {{/publisher_id}}
     </div>
