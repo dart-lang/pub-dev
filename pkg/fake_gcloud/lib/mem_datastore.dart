@@ -6,6 +6,7 @@ import 'package:gcloud/common.dart';
 import 'package:gcloud/datastore.dart';
 
 final _maxIndexedPropertyLength = 1500;
+final _maxKeySegmentLength = 1500;
 final _maxPropertyLength = 1024 * 1024;
 
 /// Implementation of [Datastore] interface with in-memory storage.
@@ -80,8 +81,40 @@ class MemDatastore implements Datastore {
     return CommitResult([]);
   }
 
+  // Returns the length of the key.
+  int _verifyKeyLength(Key key) {
+    int overallLength = 0;
+
+    // A key can have at most 100 path elements.
+    if (key.elements.length > 100) {
+      throw DatastoreError('Key $key must not exceed 100 elements.');
+    }
+    // Each kind can be at most 1500 bytes.
+    // Each name can be at most 1500 bytes.
+    for (final element in key.elements) {
+      void check(Object segmentPart) {
+        final length = _propertyLength(segmentPart);
+        overallLength += length;
+        if (length > _maxKeySegmentLength) {
+          throw DatastoreError(
+              'Key segment $segmentPart must not exceed $_maxKeySegmentLength bytes.');
+        }
+      }
+
+      check(element.kind);
+      check('${element.id}');
+    }
+
+    return overallLength;
+  }
+
   void _checkProperties(Entity entity) {
     int overallLength = 0;
+
+    // key
+    overallLength += _verifyKeyLength(entity.key);
+
+    // properties
     for (final p in entity.properties.entries) {
       final length = _propertyLength(p.value);
       overallLength += length;
@@ -118,7 +151,10 @@ class MemDatastore implements Datastore {
     if (keys.any((k) => k.elements.any((e) => e.id == null))) {
       throw ArgumentError('Key contains null.');
     }
-    return keys.map((key) => _entities[key]).toList();
+    return keys.map((key) {
+      _verifyKeyLength(key);
+      return _entities[key];
+    }).toList();
   }
 
   dynamic _getValue(Entity entity, String property) {
