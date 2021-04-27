@@ -16,7 +16,7 @@ pubSiteAudience: 818368855108-e8skaopm5ih5nbb82vhh66k7ft5o7dn3.apps.googleuserco
 adminAudience: https://pub.dev
 gmailRelayServiceAccount: pub-gsuite-gmail-delegatee@dartlang-pub.iam.gserviceaccount.com
 gmailRelayImpersonatedGSuiteUser: noreply@pub.dev
-uploadSignerServiceAccount:
+uploadSignerServiceAccount: package-uploader-signer@dartlang-pub.iam.gserviceaccount.com
 blockRobots: false
 productionHosts:
 - pub.dartlang.org
