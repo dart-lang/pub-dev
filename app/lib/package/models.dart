@@ -136,6 +136,29 @@ class Package extends db.ExpandoModel<String> {
   @db.StringListProperty()
   List<String> assignedTags;
 
+  Package();
+
+  /// Creates a new [Package] and populates all of it's fields from [version].
+  factory Package.fromVersion(PackageVersion version) {
+    final now = DateTime.now().toUtc();
+    return Package()
+      ..parentKey = version.packageKey.parent
+      ..id = version.pubspec.name
+      ..name = version.pubspec.name
+      ..created = now
+      ..updated = now
+      ..latestVersionKey = version.key
+      ..latestPublished = now
+      ..latestPrereleaseVersionKey = version.key
+      ..latestPrereleasePublished = now
+      ..uploaders = [version.uploader]
+      ..likes = 0
+      ..isDiscontinued = false
+      ..isUnlisted = false
+      ..isWithheld = false
+      ..assignedTags = [];
+  }
+
   // Convenience Fields:
 
   bool get isVisible => !isWithheld;

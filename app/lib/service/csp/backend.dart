@@ -5,7 +5,9 @@
 import 'dart:async';
 
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:meta/meta.dart';
 
+import '../../shared/cached_value.dart';
 import '../secret/backend.dart';
 
 import 'default_csp.dart';
@@ -19,30 +21,37 @@ CspBackend get cspBackend => ss.lookup(#_cspBackend) as CspBackend;
 
 /// Represents the backend for the CSP handling and related utilities.
 class CspBackend {
-  String _cspValue;
-  Timer _updateTimer;
+  final _defaultCspValue = _serializeCSP(null);
+  final _cspValue = CachedValue<String>(
+    name: 'csp',
+    maxAge: Duration(days: 7),
+    interval: Duration(minutes: 30),
+    updateFn: () async {
+      return _serializeCSP({
+        'script-src': await secretBackend.lookup(SecretKey.cspScriptSrc),
+        'style-src': await secretBackend.lookup(SecretKey.cspStyleSrc),
+      });
+    },
+  );
 
-  String get cspValue => _cspValue ??= _serializeCSP(null);
+  String get cspValue =>
+      _cspValue.isAvailable ? _cspValue.value : _defaultCspValue;
 
-  /// Updates the default CSP values with the customization from Datastore.
+  /// Update CSP values from Datastore.
+  @visibleForTesting
   Future<void> update() async {
-    _cspValue = _serializeCSP({
-      'script-src': await secretBackend.lookup(SecretKey.cspScriptSrc),
-      'style-src': await secretBackend.lookup(SecretKey.cspStyleSrc),
-    });
+    // ignore: invalid_use_of_visible_for_testing_member
+    await _cspValue.update();
   }
 
-  /// Sets a timer to update CSPs regularly.
-  void scheduleRegularUpdates() {
-    _updateTimer = Timer.periodic(Duration(minutes: 10), (_) async {
-      await update();
-    });
+  /// Update CSP values regularly.
+  Future<void> start() async {
+    await _cspValue.start();
   }
 
-  /// Cancel timer and free resources.
+  /// Cancel updates and free resources.
   Future<void> close() async {
-    _updateTimer?.cancel();
-    _updateTimer = null;
+    await _cspValue.close();
   }
 }
 

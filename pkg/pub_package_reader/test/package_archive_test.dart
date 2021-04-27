@@ -91,6 +91,20 @@ void main() {
     });
   });
 
+  group('author vs. authors', () {
+    test('author is allowed', () {
+      expect(checkAuthors('author: x'), isEmpty);
+    });
+
+    test('authors is allowed', () {
+      expect(checkAuthors('authors: x'), isEmpty);
+    });
+
+    test('both author and authors is not allowed', () {
+      expect(checkAuthors('author: x\nauthors: x'), isNotEmpty);
+    });
+  });
+
   group('too many dependencies', () {
     test('allow the limit', () {
       final dependencies =
@@ -481,6 +495,33 @@ $dependencies
 
     test('valid-looking license', () {
       expect(requireNonEmptyLicense('LICENSE', 'BSD license'), isEmpty);
+    });
+  });
+
+  group('pubspec.yaml to json conversion', () {
+    test('pubspec.yaml to json conversion valid', () {
+      final pubspec = '''
+      name: provider     
+      environment:
+        sdk: ">=2.0.0 <3.0.0"
+      dependencies:
+        flutter:
+          sdk: flutter
+      ''';
+      expect(checkValidJson(pubspec), isEmpty);
+    });
+    test('pubspec.yaml to json conversion invalid', () {
+      final pubspec = '''
+      name: provider    
+      environment:
+        sdk: ">=2.0.0 <3.0.0"
+      dependencies:
+        flutter:
+          sdk: flutter
+      mykey:
+        [1,2,3,4,5]: 'value of a composite key'
+      ''';
+      expect(checkValidJson(pubspec), isNotEmpty);
     });
   });
 }

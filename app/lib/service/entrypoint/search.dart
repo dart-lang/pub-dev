@@ -53,7 +53,7 @@ Future _main(FrontendEntryMessage message) async {
 
   await withServices(() async {
     setupSearchPeriodicTasks();
-    await popularityStorage.init();
+    await popularityStorage.start();
 
     final ReceivePort taskReceivePort = ReceivePort();
     registerTaskSendPort(taskReceivePort.sendPort);

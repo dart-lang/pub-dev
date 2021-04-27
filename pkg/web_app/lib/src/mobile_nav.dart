@@ -30,10 +30,24 @@ void _setEventForMobileNav() {
 }
 
 void _setEventForDetailMetadataToggle() {
+  // Stored x,y coordinate of the scroll position at the time of the opening of metadata.
+  int origX, origY;
+
   document.querySelectorAll('.detail-metadata-toggle').forEach((e) {
-    e.onClick.listen((_) {
+    e.onClick.listen((_) async {
       document.querySelector('.detail-wrapper')?.classes?.toggle('-active');
       document.querySelector('.detail-metadata')?.classes?.toggle('-active');
+      await window.animationFrame;
+      if (origX == null) {
+        // store scroll position and scroll to the top
+        origX = window.scrollX;
+        origY = window.scrollY;
+        window.scrollTo(0, 0);
+      } else {
+        // restore scroll position
+        window.scrollTo(origX, origY);
+        origX = null;
+      }
     });
   });
 }

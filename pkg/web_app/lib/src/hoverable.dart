@@ -108,7 +108,8 @@ void _setEventForPreCodeCopyToClipboard() {
     container.append(feedback);
 
     button.onClick.listen((_) async {
-      _copyToClipboard(pre.text);
+      final text = pre.dataset['textToCopy']?.trim() ?? pre.text.trim();
+      _copyToClipboard(text);
       await _animateCopyFeedback(feedback);
     });
   });

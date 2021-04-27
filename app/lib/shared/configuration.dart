@@ -174,7 +174,7 @@ class Configuration {
           'pub-gsuite-gmail-delegatee@dartlang-pub.iam.gserviceaccount.com',
       gmailRelayImpersonatedGSuiteUser: 'noreply@pub.dev',
       uploadSignerServiceAccount:
-          null, // TODO: update before upgrading package:appengine
+          'package-uploader-signer@dartlang-pub.iam.gserviceaccount.com',
       blockRobots: false,
       productionHosts: const ['pub.dartlang.org', 'pub.dev', 'api.pub.dev'],
       primaryApiUri: Uri.parse('https://pub.dartlang.org/'),

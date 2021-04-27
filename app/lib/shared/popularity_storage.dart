@@ -12,6 +12,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:meta/meta.dart';
 import 'package:_popularity/popularity.dart';
 
+import '../shared/cached_value.dart';
 import '../shared/storage.dart';
 
 final Logger _logger = Logger('pub.popularity');
@@ -27,73 +28,92 @@ PopularityStorage get popularityStorage =>
 
 class PopularityStorage {
   final Bucket bucket;
-  final _values = <String, double>{};
-  DateTime _lastFetched;
-  String _dateRange;
-  Timer _timer;
+  CachedValue<_PopularityData> _popularity;
 
-  String get _latestPath => PackagePopularity.popularityFileName;
+  PopularityStorage(this.bucket) {
+    _popularity = CachedValue<_PopularityData>(
+      name: 'popularity',
+      interval: Duration(hours: 4),
+      maxAge: Duration(days: 14),
+      updateFn: () async => _PopularityLoader(bucket).fetch(),
+    );
+  }
 
-  PopularityStorage(this.bucket);
+  DateTime get lastFetched => _popularity.lastUpdated;
+  String get dateRange => _popularity.value?.dateRange;
+  int get count => _popularity.value?.values?.length ?? 0;
 
-  DateTime get lastFetched => _lastFetched;
-  String get dateRange => _dateRange;
-  int get count => _values.length;
+  double lookup(String package) =>
+      _popularity.isAvailable ? _popularity.value.values[package] : 0.0;
 
-  double lookup(String package) => _values[package];
-
-  Future<void> init() async {
-    await fetch('init');
-    _timer = Timer.periodic(const Duration(hours: 4), (_) {
-      fetch('refetch');
-    });
+  Future<void> start() async {
+    await _popularity.start();
   }
 
   Future<void> close() async {
-    _timer?.cancel();
-    _timer = null;
+    await _popularity.close();
   }
 
-  Future<void> fetch(String reason) async {
-    _logger.info(
-        'Loading popularity data ($reason): ${bucketUri(bucket, _latestPath)}');
-    try {
-      final latest = (await bucket
-          .read(_latestPath)
-          .transform(_gzip.decoder)
-          .transform(utf8.decoder)
-          .transform(json.decoder)
-          .single) as Map<String, dynamic>;
-      _updateLatest(latest);
-      _lastFetched = DateTime.now().toUtc();
-    } catch (e, st) {
-      _logger.severe(
-          'Unable to load popularity data: ${bucketUri(bucket, _latestPath)}',
-          e,
-          st);
-    }
+  // Updates popularity scores to fixed values, useful for testing.
+  @visibleForTesting
+  void updateValues(Map<String, double> values) {
+    // ignore: invalid_use_of_visible_for_testing_member
+    _popularity.setValue(_PopularityData(
+        values: values, first: DateTime.now(), last: DateTime.now()));
+  }
+}
+
+class _PopularityLoader {
+  final Bucket bucket;
+  _PopularityLoader(this.bucket);
+
+  String get _latestPath => PackagePopularity.popularityFileName;
+
+  Future<_PopularityData> fetch() async {
+    _logger.info('Loading popularity data: ${bucketUri(bucket, _latestPath)}');
+    final latest = (await bucket
+        .read(_latestPath)
+        .transform(_gzip.decoder)
+        .transform(utf8.decoder)
+        .transform(json.decoder)
+        .single) as Map<String, dynamic>;
+    final data = _processJson(latest);
+    _logger.info('Popularity updated for ${data.values.length} packages.');
+    return data;
   }
 
-  void _updateLatest(Map<String, dynamic> raw) {
+  _PopularityData _processJson(Map<String, dynamic> raw) {
     final popularity = PackagePopularity.fromJson(raw);
     final List<_Entry> entries = <_Entry>[];
     popularity.items.forEach((package, totals) {
       entries.add(_Entry(package, totals.score, totals.total));
     });
     entries.sort();
+    final values = <String, double>{};
     for (int i = 0; i < entries.length; i++) {
-      _values[entries[i].package] = i / entries.length;
+      values[entries[i].package] = i / entries.length;
     }
-    _dateRange = '${popularity.dateFirst?.toIso8601String()} - '
-        '${popularity.dateLast?.toIso8601String()}';
-    _logger.info('Popularity updated for ${popularity.items.length} packages.');
+    return _PopularityData(
+      values: values,
+      first: popularity.dateFirst,
+      last: popularity.dateLast,
+    );
   }
+}
 
-  // Updates popularity scores to fixed values, useful for testing.
-  @visibleForTesting
-  void updateValues(Map<String, double> values) {
-    _values.addAll(values);
-  }
+class _PopularityData {
+  final Map<String, double> values;
+  final DateTime first;
+  final DateTime last;
+
+  _PopularityData({
+    @required this.values,
+    @required this.first,
+    @required this.last,
+  });
+
+  String get dateRange =>
+      '${first?.toIso8601String()} - ${last?.toIso8601String()}';
 }
 
 class _Entry implements Comparable<_Entry> {

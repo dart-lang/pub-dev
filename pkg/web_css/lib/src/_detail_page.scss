@@ -120,6 +120,12 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   }
 }
 
+.detail-lead-more,
+.detail-lead-back {
+  padding-right: 16px;
+  text-align: right;
+}
+
 .detail-header {
   .detail-header-outer-block {
     display: flex;

@@ -19,6 +19,19 @@ import 'versions.dart' as versions;
 final _gzip = GZipCodec();
 final _logger = Logger('shared.storage');
 
+/// Additional methods on buckets.
+extension BucketExt on Bucket {
+  /// Returns an [ObjectInfo] if [name] exists, `null` otherwise.
+  Future<ObjectInfo> tryInfo(String name) async {
+    try {
+      return await info(name);
+    } on DetailedApiRequestError catch (e) {
+      if (e.status == 404) return null;
+      rethrow;
+    }
+  }
+}
+
 /// Returns a valid `gs://` URI for a given [bucket] + [path] combination.
 String bucketUri(Bucket bucket, String path) =>
     'gs://${bucket.bucketName}/$path';
@@ -123,22 +136,15 @@ class VersionedJsonStorage {
 
   /// Whether the storage bucket has a data file for the current runtime version.
   Future<bool> hasCurrentData({Duration maxAge}) async {
-    try {
-      final info = await _bucket.info(_objectName());
-      if (info == null) {
-        return false;
-      }
-      final now = DateTime.now();
-      if (maxAge != null && now.difference(info.updated) > maxAge) {
-        return false;
-      }
-      return true;
-    } catch (e) {
-      if (e is DetailedApiRequestError && e.status == 404) {
-        return false;
-      }
-      rethrow;
+    final info = await _bucket.tryInfo(_objectName());
+    if (info == null) {
+      return false;
     }
+    final now = DateTime.now();
+    if (maxAge != null && now.difference(info.updated) > maxAge) {
+      return false;
+    }
+    return true;
   }
 
   /// Upload the current data to the storage bucket.

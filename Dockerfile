@@ -13,41 +13,39 @@ RUN apt-mark hold dart &&\
 
 # Let the pub server know that this is not a "typical" pub client but rather a bot.
 ENV PUB_ENVIRONMENT="bot.pub_dartlang_org.docker"
+ENV PUB_CACHE="/project/.pub-cache"
 
 COPY app /project/app
 COPY pkg /project/pkg
 COPY static /project/static
 COPY doc /project/doc
 COPY third_party /project/third_party
+COPY tool /project/tool
 
 WORKDIR /project/pkg/pub_dartdoc
-RUN dart pub get --no-precompile
-RUN dart pub get --offline --no-precompile
+RUN dart /project/tool/pub_get_offline.dart /project/pkg/pub_dartdoc
 
 WORKDIR /project/pkg/web_app
-RUN dart pub get --no-precompile
-RUN dart pub get --offline --no-precompile
+RUN dart /project/tool/pub_get_offline.dart /project/pkg/web_app
 RUN ./build.sh
 
 WORKDIR /project/pkg/web_css
-RUN dart pub get --no-precompile
-RUN dart pub get --offline --no-precompile
+RUN dart /project/tool/pub_get_offline.dart /project/pkg/web_css
 RUN ./build.sh
 
 WORKDIR /project/app
-RUN dart pub get --no-precompile
-RUN dart pub get --offline --no-precompile
+RUN dart /project/tool/pub_get_offline.dart /project/app
 
 ## NOTE: Uncomment the following lines for local testing:
 #ADD key.json /project/key.json
 #ENV GCLOUD_KEY /project/key.json
 #ENV GCLOUD_PROJECT dartlang-pub
 
-RUN /project/app/script/setup-dart.sh /tool/stable https://storage.googleapis.com/dart-archive/channels/stable/raw/2.12.2/sdk/dartsdk-linux-x64-release.zip
-RUN /project/app/script/setup-dart.sh /tool/preview https://storage.googleapis.com/dart-archive/channels/beta/release/2.13.0-116.1.beta/sdk/dartsdk-linux-x64-release.zip
+RUN /project/app/script/setup-dart.sh /tool/stable https://storage.googleapis.com/dart-archive/channels/stable/raw/2.12.4/sdk/dartsdk-linux-x64-release.zip
+RUN /project/app/script/setup-dart.sh /tool/preview https://storage.googleapis.com/dart-archive/channels/beta/release/2.13.0-211.6.beta/sdk/dartsdk-linux-x64-release.zip
 
-RUN /project/app/script/setup-flutter.sh /tool/stable 2.0.4
-RUN /project/app/script/setup-flutter.sh /tool/preview 2.1.0-12.2.pre
+RUN /project/app/script/setup-flutter.sh /tool/stable 2.0.5
+RUN /project/app/script/setup-flutter.sh /tool/preview 2.2.0-10.1.pre
 
 # Clear out any arguments the base images might have set
 CMD []

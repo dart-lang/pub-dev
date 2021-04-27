@@ -8,11 +8,14 @@ import 'package:meta/meta.dart';
 import 'package:pub_package_reader/src/yaml_utils.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:pub_semver/pub_semver.dart';
-import 'package:yaml/yaml.dart' show YamlException;
+import 'package:yaml/yaml.dart' show YamlException, loadYaml;
+import 'package:logging/logging.dart';
 
 import 'src/file_names.dart';
 import 'src/names.dart';
 import 'src/tar_utils.dart';
+
+final _logger = Logger('pub_package_reader');
 
 /// A validation issue in the package archive.
 class ArchiveIssue {
@@ -99,7 +102,6 @@ Future<PackageSummary> summarizePackageArchive(
   } on Exception catch (e) {
     issues.add(ArchiveIssue('Error parsing pubspec.yaml: $e'));
   }
-
   // Try again with lenient parsing.
   try {
     pubspec ??= Pubspec.parse(pubspecContent, lenient: true);
@@ -107,7 +109,8 @@ Future<PackageSummary> summarizePackageArchive(
     issues.add(ArchiveIssue('Error parsing pubspec.yaml: $e'));
     return PackageSummary(issues: issues);
   }
-
+  issues.addAll(checkValidJson(pubspecContent));
+  issues.addAll(checkAuthors(pubspecContent));
   // Check whether the files can be extracted on case-preserving file systems
   // (e.g. on Windows). We can't allow two files with the same case-insensitive
   // name.
@@ -183,6 +186,9 @@ Future<PackageSummary> summarizePackageArchive(
   issues.addAll(validatePackageVersion(pubspec.version));
   issues.addAll(syntaxCheckUrl(pubspec.homepage, 'homepage'));
   issues.addAll(syntaxCheckUrl(pubspec.repository?.toString(), 'repository'));
+  issues.addAll(syntaxCheckUrl(pubspec.documentation, 'documentation'));
+  issues
+      .addAll(syntaxCheckUrl(pubspec.issueTracker?.toString(), 'issueTracker'));
   issues.addAll(validateDependencies(pubspec));
   issues.addAll(forbidGitDependencies(pubspec));
   // TODO: re-enable or remove after version pinning gets resolved
@@ -247,6 +253,15 @@ Iterable<ArchiveIssue> validatePackageVersion(Version version) sync* {
   if (version.toString().length > 64) {
     yield ArchiveIssue('Package version must not exceed 64 characters. '
         '(Please file an issue if you think you have a good reason for a longer version.)');
+  }
+}
+
+/// Checks if the pubspec has both `author` and `authors` specified.
+Iterable<ArchiveIssue> checkAuthors(String pubspecContent) sync* {
+  final map = loadYaml(pubspecContent);
+  if (map is Map && map.containsKey('author') && map.containsKey('authors')) {
+    yield ArchiveIssue(
+        'Do not specify both `author` and `authors` in `pubspec.yaml`.');
   }
 }
 
@@ -330,6 +345,19 @@ Iterable<ArchiveIssue> forbidGitDependencies(Pubspec pubspec) sync* {
         'Package dependency $name depends on a package with a different name',
       );
     }
+  }
+}
+
+/// Check wether the pubspecContent can be converted to JSON
+Iterable<ArchiveIssue> checkValidJson(String pubspecContent) sync* {
+  try {
+    final map = loadYaml(pubspecContent) as Map;
+    json.decode(json.encode(map)) as Map<String, dynamic>;
+  } on JsonUnsupportedObjectError catch (_) {
+    yield ArchiveIssue(
+        'pubspec.yaml contains values that can\'t be converted to JSON.');
+  } on Exception catch (e, st) {
+    _logger.warning('Error while converting pubspec.yaml to JSON', e, st);
   }
 }
 

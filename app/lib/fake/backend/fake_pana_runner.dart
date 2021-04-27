@@ -11,8 +11,20 @@ import 'package:pana/src/create_report.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../../analyzer/pana_runner.dart';
+import '../../job/job.dart';
 import '../../scorecard/backend.dart' show PackageStatus;
+import '../../shared/datastore.dart';
 import '../../shared/versions.dart';
+
+/// Runs package analysis for all packages with fake pana runner.
+Future<void> processJobsWithFakePanaRunner() async {
+  final jobProcessor = AnalyzerJobProcessor(
+    aliveCallback: null,
+    runner: FakePanaRunner(),
+  );
+  // ignore: invalid_use_of_visible_for_testing_member
+  await JobMaintenance(dbService, jobProcessor).scanUpdateAndRunOnce();
+}
 
 /// Generates pana analysis result based on a deterministic random seed.
 class FakePanaRunner implements PanaRunner {
