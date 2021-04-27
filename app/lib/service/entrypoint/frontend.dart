@@ -9,7 +9,6 @@ import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
-import 'package:pub_dev/service/csp/backend.dart';
 import 'package:pub_dev/service/youtube/backend.dart';
 import 'package:pub_dev/tool/neat_task/pub_dev_tasks.dart';
 import 'package:stream_transform/stream_transform.dart' show RateLimit;
@@ -76,7 +75,6 @@ Future _main(FrontendEntryMessage message) async {
     await popularityStorage.start();
     nameTracker.startTracking();
     await announcementBackend.start();
-    await cspBackend.start();
     await youtubeBackend.start();
 
     await runHandler(_logger, appHandler,
