@@ -35,6 +35,7 @@ void main() {
     await Future.delayed(Duration(seconds: 2));
     expect(cv.isAvailable, isFalse);
     expect(count, greaterThan(10));
+    await cv.close();
   });
 
   test('successful update', () async {

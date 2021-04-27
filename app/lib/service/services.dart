@@ -197,6 +197,7 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
     registerScopeExitCallback(indexUpdater.close);
     registerScopeExitCallback(authProvider.close);
     registerScopeExitCallback(dartdocClient.close);
+    registerScopeExitCallback(popularityStorage.close);
     registerScopeExitCallback(searchClient.close);
     registerScopeExitCallback(searchAdapter.close);
     registerScopeExitCallback(youtubeBackend.close);
