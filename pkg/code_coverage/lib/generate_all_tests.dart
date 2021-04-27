@@ -9,6 +9,8 @@ import 'package:path/path.dart' as p;
 
 final _parser = ArgParser()
   ..addOption('dir', defaultsTo: 'test', help: 'The test directory.')
+  ..addOption('test-path-prefix',
+      help: 'Scan only includes files with this prefix.')
   ..addOption('name',
       defaultsTo: '_all_tests.dart',
       help: 'The file name to use for all tests.');
@@ -17,12 +19,14 @@ final _parser = ArgParser()
 Future main(List<String> args) async {
   final argv = _parser.parse(args);
   final name = argv['name'] as String;
+  final pathPrefix = argv['test-path-prefix'] as String;
   final dir = Directory(argv['dir'] as String);
 
   final files = await dir
       .list(recursive: true)
       .where((fse) => fse is File && fse.path.endsWith('_test.dart'))
       .map((fse) => p.relative(fse.path, from: dir.path))
+      .where((path) => pathPrefix == null || path.startsWith(pathPrefix))
       .toList();
   files.sort();
 
