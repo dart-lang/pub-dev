@@ -31,18 +31,20 @@ String renderLandingPage({
   final hasPoW = isNotEmptyList(topPoWVideos);
   final values = {
     'has_ff': hasFF,
-    'ff_mini_list_html': renderMiniListIf(hasFF, 'ff', ffPackages),
+    'ff_mini_list_html':
+        renderMiniListIf(hasFF, 'flutter-favorites', ffPackages),
     'ff_view_all_url': '/flutter/favorites',
     'has_mp': hasMostPopular,
     'mp_mini_list_html':
-        renderMiniListIf(hasMostPopular, 'mp', mostPopularPackages),
+        renderMiniListIf(hasMostPopular, 'most-popular', mostPopularPackages),
     'mp_view_all_url': urls.searchUrl(order: urls.SearchOrder.popularity),
     'has_tf': hasTopFlutter,
     'tf_mini_list_html':
-        renderMiniListIf(hasTopFlutter, 'tf', topFlutterPackages),
+        renderMiniListIf(hasTopFlutter, 'top-flutter', topFlutterPackages),
     'tf_view_all_url': urls.searchUrl(sdk: SdkTagValue.flutter),
     'has_td': hasTopDart,
-    'td_mini_list_html': renderMiniListIf(hasTopDart, 'td', topDartPackages),
+    'td_mini_list_html':
+        renderMiniListIf(hasTopDart, 'top-dart', topDartPackages),
     'td_view_all_url': urls.searchUrl(sdk: SdkTagValue.dart),
     'has_pow': hasPoW,
     'pow_mini_list_html': hasPoW ? _renderPoW(topPoWVideos) : null,
