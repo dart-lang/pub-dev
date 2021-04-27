@@ -667,12 +667,16 @@ class PackageBackend {
       }
       await _saveTarballToFS(_storage.readTempObject(guid), filename);
       _logger.info('Examining tarball content ($guid).');
-      await _verifyTarball(filename);
-      final archive = await summarizePackageArchive(filename,
-          maxContentLength: maxAssetContentLength);
+      final archive = await summarizePackageArchive(
+        filename,
+        maxContentLength: maxAssetContentLength,
+        maxArchiveSize: UploadSignerService.maxUploadSize,
+      );
       if (archive.hasIssues) {
         throw PackageRejectedException(archive.issues.first.message);
       }
+      // TODO: move this to pkg/pub_package_reader
+      await verifyTarGzSymlinks(filename);
 
       final pubspec = Pubspec.fromYaml(archive.pubspecContent);
       PackageRejectedException.check(await nameTracker.accept(pubspec.name),
@@ -1125,16 +1129,6 @@ Future _saveTarballToFS(Stream<List<int>> data, String filename) async {
     rethrow;
   }
   _logger.info('Finished streaming tarball to FS.');
-}
-
-Future<void> _verifyTarball(String filename) async {
-  final file = File(filename);
-  // Some platforms may not be able to create an archive, only an empty file.
-  final fileSize = await file.length();
-  if (fileSize == 0) {
-    throw PackageRejectedException.archiveEmpty();
-  }
-  await verifyTarGzSymlinks(filename);
 }
 
 // Throws [PackageRejectedException] if the archive is not readable or if there
