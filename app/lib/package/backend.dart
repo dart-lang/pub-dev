@@ -460,6 +460,7 @@ class PackageBackend {
 
   /// Returns the publisher info of a given package.
   Future<api.PackagePublisherInfo> getPublisherInfo(String packageName) async {
+    checkPackageVersionParams(packageName);
     final key = db.emptyKey.append(Package, id: packageName);
     final package = (await db.lookup<Package>([key])).single;
     if (package == null) {
@@ -471,6 +472,7 @@ class PackageBackend {
   /// Returns the number of likes of a given package.
   Future<account_api.PackageLikesCount> getPackageLikesCount(
       String packageName) async {
+    checkPackageVersionParams(packageName);
     final key = db.emptyKey.append(Package, id: packageName);
     final package = await db.lookupValue<Package>(key, orElse: () => null);
     if (package == null) {
@@ -572,7 +574,7 @@ class PackageBackend {
   /// Throws [NotFoundException] when the version is missing.
   Future<api.VersionInfo> lookupVersion(
       Uri baseUri, String package, String version) async {
-    InvalidInputException.checkSemanticVersion(version);
+    checkPackageVersionParams(package, version);
     final canonicalVersion = canonicalizeVersion(version);
     InvalidInputException.checkSemanticVersion(canonicalVersion);
 
@@ -1404,5 +1406,22 @@ class TarballStorageNamer {
   String tarballObjectUrl(String package, String version) {
     final object = tarballObjectName(package, Uri.encodeComponent(version));
     return '$storageBaseUrl/$bucket/$object';
+  }
+}
+
+/// Verify that the [package] and the optional [version] parameter looks as acceptable input.
+void checkPackageVersionParams(String package, [String version]) {
+  InvalidInputException.checkNotNull(package, 'package');
+  InvalidInputException.check(
+      package.trim() == package, 'Invalid package name.');
+  InvalidInputException.checkStringLength(package, 'package',
+      minimum: 1, maximum: 64);
+  if (version != null) {
+    InvalidInputException.check(version.trim() == version, 'Invalid version.');
+    InvalidInputException.checkStringLength(version, 'version',
+        minimum: 1, maximum: 64);
+    if (version != 'latest') {
+      InvalidInputException.checkSemanticVersion(version);
+    }
   }
 }

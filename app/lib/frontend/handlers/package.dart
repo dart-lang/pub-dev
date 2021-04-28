@@ -42,6 +42,7 @@ Map packageDebugStats() {
 /// Handles requests for /packages/<package> - JSON
 Future<shelf.Response> packageShowHandlerJson(
     shelf.Request request, String packageName) async {
+  checkPackageVersionParams(packageName);
   final package = await packageBackend.lookupPackage(packageName);
   if (package == null || package.isNotVisible) {
     return formattedNotFoundHandler(request);
@@ -215,6 +216,7 @@ Future<shelf.Response> _handlePackagePage({
   @required FutureOr Function(PackagePageData data) renderFn,
   Entry<String> cacheEntry,
 }) async {
+  checkPackageVersionParams(packageName, versionName);
   if (redirectPackageUrls.containsKey(packageName)) {
     return redirectResponse(redirectPackageUrls[packageName]);
   }
@@ -348,6 +350,7 @@ Future<PackagePageData> loadPackagePageData(
 /// Handles /api/packages/<package> requests.
 Future<shelf.Response> listVersionsHandler(
     shelf.Request request, Uri baseUri, String package) async {
+  checkPackageVersionParams(package);
   final body = await cache.packageData(package).get(() async {
     final data = await packageBackend.listVersions(baseUri, package);
     return jsonUtf8Encoder.convert(data.toJson());

@@ -60,8 +60,11 @@ class PubApi {
     Request request,
     String package,
     String version,
-  ) async =>
-      Response.seeOther(await packageBackend.downloadUrl(package, version));
+  ) async {
+    checkPackageVersionParams(package, version);
+    return Response.seeOther(
+        await packageBackend.downloadUrl(package, version));
+  }
 
   /// Start async upload.
   /// TODO: Link to the spec once it has the details updated:
