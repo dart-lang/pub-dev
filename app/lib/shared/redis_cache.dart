@@ -365,9 +365,16 @@ class _ConnectionRefreshingCacheProvider<T> implements CacheProvider<T> {
   }
 
   @override
-  Future<T> get(String key) => _delegate
-      .get(key)
-      .timeout(_defaultCacheReadTimeout, onTimeout: () => null);
+  Future<T> get(String key) async {
+    try {
+      return await _delegate
+          .get(key)
+          .timeout(_defaultCacheReadTimeout, onTimeout: () => null);
+    } catch (e, st) {
+      _log.warning('Redis access failed.', e, st);
+      return null;
+    }
+  }
 
   @override
   Future<void> purge(String key) => _delegate
