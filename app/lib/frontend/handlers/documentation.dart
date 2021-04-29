@@ -28,6 +28,7 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   if (docFilePath == null) {
     return notFoundHandler(request);
   }
+  checkPackageVersionParams(docFilePath.package, docFilePath.version);
   if (redirectPackageUrls.containsKey(docFilePath.package)) {
     return redirectResponse(redirectPackageUrls[docFilePath.package]);
   }

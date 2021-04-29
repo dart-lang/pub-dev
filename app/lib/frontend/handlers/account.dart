@@ -126,9 +126,10 @@ Future<shelf.Response> consentPageHandler(
   );
 }
 
-/// Handles /api/account/options/packages/<package>
+/// Handles GET /api/account/options/packages/<package>
 Future<AccountPkgOptions> accountPkgOptionsHandler(
     shelf.Request request, String package) async {
+  checkPackageVersionParams(package);
   final user = await requireAuthenticatedUser();
   final p = await packageBackend.lookupPackage(package);
   if (p == null) {
@@ -152,6 +153,7 @@ Future<LikedPackagesRepsonse> listPackageLikesHandler(
 /// Handles GET /api/account/likes/<package>
 Future<PackageLikeResponse> getLikePackageHandler(
     shelf.Request request, String package) async {
+  checkPackageVersionParams(package);
   final user = await requireAuthenticatedUser();
   final p = await packageBackend.lookupPackage(package);
   if (p == null) {

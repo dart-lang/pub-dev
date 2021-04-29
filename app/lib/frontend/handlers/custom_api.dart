@@ -27,6 +27,7 @@ import '../../shared/utils.dart' show jsonUtf8Encoder;
 /// Handles requests for /api/documentation/<package>
 Future<shelf.Response> apiDocumentationHandler(
     shelf.Request request, String package) async {
+  checkPackageVersionParams(package);
   if (isSoftRemoved(package)) {
     return jsonResponse({}, status: 404);
   }
@@ -206,6 +207,7 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
 Future<shelf.Response> apiPackageMetricsHandler(
     shelf.Request request, String packageName) async {
   final packageVersion = request.requestedUri.queryParameters['version'];
+  checkPackageVersionParams(packageName, packageVersion);
   final current = request.requestedUri.queryParameters.containsKey('current');
   final data = await scoreCardBackend
       .getScoreCardData(packageName, packageVersion, onlyCurrent: current);
@@ -235,6 +237,7 @@ Future<shelf.Response> apiPackageMetricsHandler(
 Future<VersionScore> packageVersionScoreHandler(
     shelf.Request request, String package,
     {String version}) async {
+  checkPackageVersionParams(package, version);
   return await cache.versionScore(package, version).get(() async {
     final pkg = await packageBackend.lookupPackage(package);
     if (pkg == null) {
@@ -242,6 +245,16 @@ Future<VersionScore> packageVersionScoreHandler(
     }
     var updated = pkg.updated;
     final card = await scoreCardBackend.getScoreCardData(package, version);
+
+    // sanity check in case we have no card
+    if (card == null && version != null && version != 'latest') {
+      final pv = await packageBackend.lookupPackageVersion(package, version);
+      if (pv == null) {
+        throw NotFoundException.resource(
+            'package "$package" version "$version"');
+      }
+    }
+
     if (card != null && card.updated.isAfter(updated)) {
       updated = card.updated;
     }
@@ -284,6 +297,7 @@ Future<PkgOptions> getPackageOptionsHandler(
   shelf.Request request,
   String package,
 ) async {
+  checkPackageVersionParams(package);
   final p = await packageBackend.lookupPackage(package);
   if (p == null) {
     throw NotFoundException.resource(package);
