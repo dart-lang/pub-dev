@@ -3,11 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:gcloud/db.dart';
-import 'package:pana/pana.dart';
-import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -506,92 +503,5 @@ void main() {
       },
       timeout: Timeout.factor(1.5),
     );
-  });
-
-  group('.tar.gz verification', () {
-    test('invalid file content', () async {
-      await withTempDirectory((tempDir) async {
-        final file = File(p.join(tempDir, 'bad.tar.gz'));
-        await file.writeAsBytes([0, 1, 2]);
-        final rs = verifyTarGzSymlinks(file.path);
-        await expectLater(
-            rs,
-            throwsA(isA<PackageRejectedException>().having(
-              (e) => '$e',
-              'text',
-              contains('is not a valid'),
-            )));
-      });
-    });
-
-    Future<void> runArchiveVerification({
-      Future<void> Function(String pkgDirPath) setupDir,
-      String expectedErrorMessage,
-    }) async {
-      return await withTempDirectory((tempDir) async {
-        final archiveFile = File(p.join(tempDir, 'with-symlink.tar.gz'));
-        final pkgDir = Directory(p.join(tempDir, 'pkg'));
-        await pkgDir.create(recursive: true);
-        await setupDir(pkgDir.path);
-        final pr = await runProc(['tar', '-czvf', archiveFile.path, 'pkg'],
-            workingDirectory: tempDir);
-        expect(pr.exitCode, 0);
-        final rs = verifyTarGzSymlinks(archiveFile.path);
-        if (expectedErrorMessage != null) {
-          await expectLater(
-              rs,
-              throwsA(isA<PackageRejectedException>().having(
-                (e) => '$e',
-                'text',
-                contains(expectedErrorMessage),
-              )));
-        } else {
-          await rs;
-        }
-      });
-    }
-
-    test('has a relative symlink outside of archive', () async {
-      await runArchiveVerification(
-        setupDir: (pkgDir) async {
-          await Link(p.join(pkgDir, 'README.md')).create('../../README.md');
-        },
-        expectedErrorMessage:
-            'Package archive contains a broken symlink: `pkg/README.md` -> `../../README.md`.',
-      );
-    });
-
-    test('has an absolute symlink', () async {
-      await runArchiveVerification(
-        setupDir: (pkgDir) async {
-          await Link(p.join(pkgDir, 'README.md')).create('/README.md');
-        },
-        expectedErrorMessage:
-            'Package archive contains a broken symlink: `pkg/README.md` -> `/README.md`.',
-      );
-    });
-
-    // This test-case should fail, but it for simplicity it is accepted by pub.
-    // TODO: fix verification to detect circular links
-    test('has symlink(s) with circular links', () async {
-      // TODO: this use case should fail instead
-      await runArchiveVerification(
-        setupDir: (pkgDir) async {
-          await Link(p.join(pkgDir, 'README.md')).create('./README.md');
-        },
-      );
-    });
-
-    test('valid symlink to another file', () async {
-      await runArchiveVerification(
-        setupDir: (pkgDir) async {
-          await Directory(p.join(pkgDir, 'a')).create();
-          await Directory(p.join(pkgDir, 'b')).create();
-          await File(p.join(pkgDir, 'a', 'existing.txt')).writeAsString('');
-          await Link(p.join(pkgDir, 'b', 'link.txt'))
-              .create('../a/existing.txt');
-        },
-      );
-    });
   });
 }

@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:tar/tar.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_package_reader/pub_package_reader.dart';
+
+import '_tar_writer.dart';
 
 void main() {
   group('integration', () {
@@ -27,15 +27,7 @@ void main() {
     Future<String> makeTar(Map<String, String> files) async {
       count++;
       final tarFile = File.fromUri(tempDir.uri.resolve('pkg-$count.tar.gz'));
-
-      await () async* {
-        for (final e in files.entries) {
-          yield TarEntry.data(TarHeader(name: e.key), utf8.encode(e.value));
-        }
-      }()
-          .transform(tarWriter)
-          .transform(gzip.encoder)
-          .pipe(tarFile.openWrite());
+      await writeTarGzFile(tarFile, textFiles: files);
       return tarFile.path;
     }
 
