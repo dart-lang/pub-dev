@@ -4,6 +4,7 @@ description: The customized dartdoc for pub.dartlang.org.
 environment:
   sdk: ">=2.6.0 <3.0.0"
 dependencies:
+  analyzer: any # whatever dartdoc supports
   path: ^1.8.0
   pub_dartdoc_data:
     path: ../pub_dartdoc_data
