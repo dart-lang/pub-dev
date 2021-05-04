@@ -93,6 +93,15 @@ Future<PackageSummary> summarizePackageArchive(
         ArchiveIssue('Failed to scan tar archive. ($e)'));
   }
 
+  // symlinks check
+  final brokenSymlinks = tar.brokenSymlinks();
+  if (brokenSymlinks.isNotEmpty) {
+    final from = brokenSymlinks.keys.first;
+    final to = brokenSymlinks[from];
+    return PackageSummary.fail(ArchiveIssue(
+        'Package archive contains a broken symlink: `$from` -> `$to`.'));
+  }
+
   // processing pubspec.yaml
   final pubspecPath = tar.searchForFile(['pubspec.yaml']);
   if (pubspecPath == null) {
