@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:convert' as convert;
-import 'dart:io';
 
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:dartdoc/dartdoc.dart';
 import 'package:path/path.dart' as p;
 
@@ -17,11 +16,11 @@ const fileName = 'pub-data.json';
 /// [PubDartdocData] instance.
 class PubDataGenerator {
   final String _inputDirectory;
+  final ResourceProvider _resourceProvider;
 
-  PubDataGenerator(this._inputDirectory);
+  PubDataGenerator(this._inputDirectory, this._resourceProvider);
 
-  Future<void> generate(
-      PackageGraph packageGraph, String outputDirectoryPath) async {
+  void generate(PackageGraph packageGraph, String outputDirectoryPath) {
     final modelElements = packageGraph.allCanonicalModelElements
         .where((elem) => elem.isPublic)
         .where((elem) => p.isWithin(_inputDirectory, elem.sourceFileName))
@@ -89,8 +88,9 @@ class PubDataGenerator {
         PubDartdocData(coverage: coverage, apiElements: apiElements);
 
     final fileName = 'pub-data.json';
-    final outputFile = File(p.join(outputDirectoryPath, fileName));
-    await outputFile.writeAsString(convert.json.encode(extract.toJson()));
+    _resourceProvider
+        .getFile(p.join(outputDirectoryPath, fileName))
+        .writeAsStringSync(convert.json.encode(extract.toJson()));
   }
 
   // Inherited member, should not show up in pub-data.json
