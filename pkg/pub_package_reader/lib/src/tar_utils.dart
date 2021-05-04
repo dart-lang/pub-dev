@@ -83,10 +83,17 @@ abstract class TarArchive {
   }
 
   /// Creates a new instance by scanning the archive at [path].
-  static Future<TarArchive> scan(String path, {bool useNative = false}) async {
+  static Future<TarArchive> scan(
+    String path, {
+    bool useNative = false,
+    int maxFileCount,
+    int maxTotalLengthBytes,
+  }) async {
     return useNative
-        ? await _PkgTarArchive._scan(path)
-        : await _ProcessTarArchive._scan(path);
+        ? await _PkgTarArchive._scan(path,
+            maxFileCount: maxFileCount,
+            maxTotalLengthBytes: maxTotalLengthBytes)
+        : await _ProcessTarArchive._scan(path, maxFileCount: maxFileCount);
   }
 }
 
@@ -101,14 +108,23 @@ class _ProcessTarArchive extends TarArchive {
   ) : super(names, symlinks);
 
   /// Creates a new instance by scanning the archive at [path].
-  static Future<_ProcessTarArchive> _scan(String path) async {
+  static Future<_ProcessTarArchive> _scan(
+    String path, {
+    int maxFileCount,
+  }) async {
     // normal file list
     final rs1 = await _runTar(['-tzf', path]);
     final names = <String>{};
     for (final name in (rs1.stdout as String).split('\n')) {
+      if (name.isEmpty) continue;
       if (!names.add(name)) {
         throw Exception('Duplicate tar entry: `$name`.');
       }
+    }
+
+    final fileCount = names.length;
+    if (maxFileCount != null && fileCount > maxFileCount) {
+      throw Exception('Maximum file count reached: $maxFileCount.');
     }
 
     // symlink file list
@@ -171,15 +187,33 @@ class _PkgTarArchive extends TarArchive {
   ) : super(names, symlinks);
 
   /// Creates a new instance by scanning the archive at [path].
-  static Future<_PkgTarArchive> _scan(String path) async {
+  static Future<_PkgTarArchive> _scan(
+    String path, {
+    int maxFileCount,
+    int maxTotalLengthBytes,
+  }) async {
     final names = <String>{};
     final symlinks = <String, String>{};
     final reader = TarReader(
       File(path).openRead().transform(gzip.decoder),
       disallowTrailingData: true,
     );
+    int fileCount = 0;
+    int totalLengthBytes = 0;
     while (await reader.moveNext()) {
       final entry = reader.current;
+
+      fileCount++;
+      if (maxFileCount != null && fileCount > maxFileCount) {
+        throw Exception('Maximum file count reached: $maxFileCount.');
+      }
+
+      totalLengthBytes += entry.size;
+      if (maxTotalLengthBytes != null &&
+          totalLengthBytes > maxTotalLengthBytes) {
+        throw Exception('Maximum total length reached: $maxTotalLengthBytes.');
+      }
+
       if (!names.add(entry.name)) {
         throw Exception('Duplicate tar entry: `${entry.name}`.');
       }

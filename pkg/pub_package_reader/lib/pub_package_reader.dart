@@ -72,6 +72,10 @@ Future<PackageSummary> summarizePackageArchive(
   /// The maximum file size of the archive (gzipped or compressed) and
   /// the maximum total size of the files inside the archive.
   int maxArchiveSize = 100 * 1024 * 1024,
+
+  /// The maximum number of files in the archive.
+  /// TODO: set this lower once we scan the existing archives
+  int maxFileCount = 64 * 1024,
   bool useNative = false,
 }) async {
   final issues = <ArchiveIssue>[];
@@ -86,7 +90,12 @@ Future<PackageSummary> summarizePackageArchive(
 
   TarArchive tar;
   try {
-    tar = await TarArchive.scan(archivePath, useNative: useNative);
+    tar = await TarArchive.scan(
+      archivePath,
+      useNative: useNative,
+      maxFileCount: maxFileCount,
+      maxTotalLengthBytes: maxArchiveSize,
+    );
   } catch (e, st) {
     _logger.info('Failed to scan tar archive.', e, st);
     return PackageSummary.fail(
