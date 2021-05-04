@@ -21,6 +21,9 @@ const _maxTotalLengthBytes = 10 * 1024 * 1024;
 
 /// Creates an overlay file system with binary file support on top
 /// of the input sources.
+/// 
+/// TODO: Use a propr overlay in-memory filesystem with binary support,
+///       instead of overriding file writes in the output path.
 class PubResourceProvider implements ResourceProvider {
   final ResourceProvider _defaultProvider;
   final _memoryResourceProvider = MemoryResourceProvider();
