@@ -47,6 +47,7 @@ Future<shelf.Response> publisherListHandler(shelf.Request request) async {
 /// Handles requests for GET /publishers/<publisherId>
 Future<shelf.Response> publisherPageHandler(
     shelf.Request request, String publisherId) async {
+  checkPublisherIdParam(publisherId);
   return redirectResponse(urls.publisherPackagesUrl(publisherId));
 }
 

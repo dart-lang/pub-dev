@@ -188,6 +188,7 @@ Future<shelf.Response> unlikePackageHandler(
 /// Handles /api/account/options/publishers/<publisherId>
 Future<AccountPublisherOptions> accountPublisherOptionsHandler(
     shelf.Request request, String publisherId) async {
+  checkPublisherIdParam(publisherId);
   final user = await requireAuthenticatedUser();
   final member =
       await publisherBackend.getPublisherMember(publisherId, user.userId);
