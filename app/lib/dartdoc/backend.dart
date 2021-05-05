@@ -96,7 +96,6 @@ class DartdocBackend {
     DartdocEntry oldEntry, {
     @required bool isLatest,
   }) async {
-    final newEntry = oldEntry.replace(isLatest: isLatest);
     await withRetryTransaction(_db, (tx) async {
       final oldRun = await tx.lookupOrNull<DartdocRun>(
           _db.emptyKey.append(DartdocRun, id: oldEntry.uuid));
@@ -110,7 +109,6 @@ class DartdocBackend {
       oldRun.wasLatestStable = isLatest;
       tx.insert(oldRun);
     });
-    await _storage.writeBytes(newEntry.entryObjectName, newEntry.asBytes());
   }
 
   /// Uploads a directory to the storage bucket.
@@ -127,10 +125,6 @@ class DartdocBackend {
     await withRetryTransaction(_db, (tx) async {
       tx.insert(run);
     });
-
-    // upload is in progress
-    await uploadBytesWithRetry(
-        _storage, entry.inProgressObjectName, entry.asBytes());
 
     // upload all files
     final dir = Directory(dirPath);
@@ -177,13 +171,6 @@ class DartdocBackend {
         tx.insert(r);
       }
     });
-
-    await uploadBytesWithRetry(
-        _storage, entry.entryObjectName, entry.asBytes());
-
-    // there is a small chance that the process is interrupted before this gets
-    // deleted, but the [removeObsolete] should be able to validate it.
-    await deleteFromBucket(_storage, entry.inProgressObjectName);
 
     await Future.wait([
       cache.dartdocEntry(entry.packageName, entry.packageVersion).purge(),

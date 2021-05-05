@@ -5,6 +5,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bumped runtimeVersion to `2021.05.03`.
  * Upgraded stable Flutter analysis SDK to `2.0.6`.
  * Upgraded preview Flutter analysis SDK to `2.2.0-10.2.pre`.
+ * NOTE: `DartdocEntry` status files are no longer stored in the Bucket,
+          only in Datastore's `DartdocRun` entity.
 
 ## `20210428t105500-all`
  * Bumped runtimeVersion to `2021.04.27`.
