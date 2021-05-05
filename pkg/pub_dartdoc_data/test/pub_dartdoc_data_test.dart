@@ -8,7 +8,11 @@ import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 
 void main() {
   test('name conversion', () {
-    final value = ApiElement.fromJson({'name': 'a.B', 'parent': 'a'});
+    final value = ApiElement.fromJson({
+      'name': 'a.B',
+      'kind': 'x',
+      'parent': 'a',
+    });
     expect(value.name, 'B');
     expect(value.qualifiedName, 'a.B');
   });

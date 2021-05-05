@@ -14,13 +14,13 @@ class PackagePopularity {
 
   static final String popularityFileName = 'v$version/popularity.json.gz';
 
-  @JsonKey(name: 'date_first', nullable: false)
+  @JsonKey(name: 'date_first')
   final DateTime dateFirst;
 
-  @JsonKey(name: 'date_last', nullable: false)
+  @JsonKey(name: 'date_last')
   final DateTime dateLast;
 
-  @JsonKey(nullable: false)
+  @JsonKey()
   final Map<String, VoteTotals> items;
 
   PackagePopularity(this.dateFirst, this.dateLast, this.items);
@@ -33,9 +33,9 @@ class PackagePopularity {
 
 @JsonSerializable()
 class VoteTotals implements VoteData {
-  @JsonKey(nullable: false)
+  @JsonKey()
   final VoteData flutter;
-  @JsonKey(nullable: false)
+  @JsonKey()
   final VoteData notFlutter;
 
   @override
@@ -61,13 +61,13 @@ class VoteTotals implements VoteData {
 
 @JsonSerializable()
 class VoteData {
-  @JsonKey(name: 'votes_direct', nullable: false)
+  @JsonKey(name: 'votes_direct')
   final int direct;
 
-  @JsonKey(name: 'votes_dev', nullable: false)
+  @JsonKey(name: 'votes_dev')
   final int dev;
 
-  @JsonKey(name: 'votes_total', nullable: false)
+  @JsonKey(name: 'votes_total')
   final int total;
 
   int get score => _score(this);

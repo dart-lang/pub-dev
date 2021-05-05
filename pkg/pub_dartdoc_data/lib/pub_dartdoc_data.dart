@@ -5,7 +5,6 @@
 import 'dart:math';
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:meta/meta.dart';
 
 part 'pub_dartdoc_data.g.dart';
 
@@ -14,12 +13,12 @@ class PubDartdocData {
   /// Coverage may be non-existent in `pub-data.json` created with runtime
   /// before version `2019.09.30`.
   /// TODO: remove this note after we've deprecated that runtime version.
-  final Coverage coverage;
-  final List<ApiElement> apiElements;
+  final Coverage? coverage;
+  final List<ApiElement>? apiElements;
 
   PubDartdocData({
-    @required this.coverage,
-    @required this.apiElements,
+    required this.coverage,
+    required this.apiElements,
   });
 
   factory PubDartdocData.fromJson(Map<String, dynamic> json) =>
@@ -33,18 +32,18 @@ class ApiElement {
   /// The last part of the [qualifiedName].
   final String name;
   final String kind;
-  final String parent;
-  final String source;
-  final String href;
-  String documentation;
+  final String? parent;
+  final String? source;
+  final String? href;
+  String? documentation;
 
   ApiElement({
-    @required this.name,
-    @required this.kind,
-    @required this.parent,
-    @required this.source,
-    @required this.href,
-    @required this.documentation,
+    required this.name,
+    required this.kind,
+    required this.parent,
+    required this.source,
+    required this.href,
+    required this.documentation,
   });
 
   factory ApiElement.fromJson(Map<String, dynamic> json) {
@@ -71,8 +70,8 @@ class Coverage {
   final int documented;
 
   Coverage({
-    @required this.total,
-    @required this.documented,
+    required this.total,
+    required this.documented,
   });
 
   factory Coverage.fromJson(Map<String, dynamic> json) =>

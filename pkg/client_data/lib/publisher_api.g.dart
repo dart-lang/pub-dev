@@ -22,9 +22,9 @@ Map<String, dynamic> _$CreatePublisherRequestToJson(
 UpdatePublisherRequest _$UpdatePublisherRequestFromJson(
     Map<String, dynamic> json) {
   return UpdatePublisherRequest(
-    description: json['description'] as String,
-    websiteUrl: json['websiteUrl'] as String,
-    contactEmail: json['contactEmail'] as String,
+    description: json['description'] as String?,
+    websiteUrl: json['websiteUrl'] as String?,
+    contactEmail: json['contactEmail'] as String?,
   );
 }
 
@@ -38,9 +38,9 @@ Map<String, dynamic> _$UpdatePublisherRequestToJson(
 
 PublisherInfo _$PublisherInfoFromJson(Map<String, dynamic> json) {
   return PublisherInfo(
-    description: json['description'] as String,
-    websiteUrl: json['websiteUrl'] as String,
-    contactEmail: json['contactEmail'] as String,
+    description: json['description'] as String?,
+    websiteUrl: json['websiteUrl'] as String?,
+    contactEmail: json['contactEmail'] as String?,
   );
 }
 
@@ -53,11 +53,9 @@ Map<String, dynamic> _$PublisherInfoToJson(PublisherInfo instance) =>
 
 PublisherMembers _$PublisherMembersFromJson(Map<String, dynamic> json) {
   return PublisherMembers(
-    members: (json['members'] as List)
-        ?.map((e) => e == null
-            ? null
-            : PublisherMember.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
+    members: (json['members'] as List<dynamic>)
+        .map((e) => PublisherMember.fromJson(e as Map<String, dynamic>))
+        .toList(),
   );
 }
 
@@ -84,7 +82,7 @@ Map<String, dynamic> _$PublisherMemberToJson(PublisherMember instance) =>
 UpdatePublisherMemberRequest _$UpdatePublisherMemberRequestFromJson(
     Map<String, dynamic> json) {
   return UpdatePublisherMemberRequest(
-    role: json['role'] as String,
+    role: json['role'] as String?,
   );
 }
 

@@ -9,12 +9,10 @@ part of 'admin_api.dart';
 AdminListUsersResponse _$AdminListUsersResponseFromJson(
     Map<String, dynamic> json) {
   return AdminListUsersResponse(
-    users: (json['users'] as List)
-        ?.map((e) => e == null
-            ? null
-            : AdminUserEntry.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
-    continuationToken: json['continuationToken'] as String,
+    users: (json['users'] as List<dynamic>)
+        .map((e) => AdminUserEntry.fromJson(e as Map<String, dynamic>))
+        .toList(),
+    continuationToken: json['continuationToken'] as String?,
   );
 }
 
@@ -27,9 +25,9 @@ Map<String, dynamic> _$AdminListUsersResponseToJson(
 
 AdminUserEntry _$AdminUserEntryFromJson(Map<String, dynamic> json) {
   return AdminUserEntry(
-    userId: json['userId'] as String,
-    email: json['email'] as String,
-    oauthUserId: json['oauthUserId'] as String,
+    userId: json['userId'] as String?,
+    email: json['email'] as String?,
+    oauthUserId: json['oauthUserId'] as String?,
   );
 }
 
@@ -42,8 +40,9 @@ Map<String, dynamic> _$AdminUserEntryToJson(AdminUserEntry instance) =>
 
 AssignedTags _$AssignedTagsFromJson(Map<String, dynamic> json) {
   return AssignedTags(
-    assignedTags:
-        (json['assignedTags'] as List)?.map((e) => e as String)?.toList(),
+    assignedTags: (json['assignedTags'] as List<dynamic>)
+        .map((e) => e as String)
+        .toList(),
   );
 }
 
@@ -54,11 +53,12 @@ Map<String, dynamic> _$AssignedTagsToJson(AssignedTags instance) =>
 
 PatchAssignedTags _$PatchAssignedTagsFromJson(Map<String, dynamic> json) {
   return PatchAssignedTags(
-    assignedTagsAdded:
-        (json['assignedTagsAdded'] as List)?.map((e) => e as String)?.toList(),
-    assignedTagsRemoved: (json['assignedTagsRemoved'] as List)
+    assignedTagsAdded: (json['assignedTagsAdded'] as List<dynamic>?)
         ?.map((e) => e as String)
-        ?.toList(),
+        .toList(),
+    assignedTagsRemoved: (json['assignedTagsRemoved'] as List<dynamic>?)
+        ?.map((e) => e as String)
+        .toList(),
   );
 }
 
