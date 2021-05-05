@@ -8,7 +8,7 @@ part of 'page_data.dart';
 
 PageData _$PageDataFromJson(Map<String, dynamic> json) {
   return PageData(
-    consentId: json['consentId'] as String,
+    consentId: json['consentId'] as String?,
     pkgData: json['pkgData'] == null
         ? null
         : PkgData.fromJson(json['pkgData'] as Map<String, dynamic>),
@@ -37,14 +37,18 @@ PkgData _$PkgDataFromJson(Map<String, dynamic> json) {
   return PkgData(
     package: json['package'] as String,
     version: json['version'] as String,
-    publisherId: json['publisherId'] as String,
+    publisherId: json['publisherId'] as String?,
     isDiscontinued: json['isDiscontinued'] as bool,
     likes: json['likes'] as int,
   );
 }
 
 Map<String, dynamic> _$PkgDataToJson(PkgData instance) {
-  final val = <String, dynamic>{};
+  final val = <String, dynamic>{
+    'package': instance.package,
+    'version': instance.version,
+    'likes': instance.likes,
+  };
 
   void writeNotNull(String key, dynamic value) {
     if (value != null) {
@@ -52,11 +56,8 @@ Map<String, dynamic> _$PkgDataToJson(PkgData instance) {
     }
   }
 
-  writeNotNull('package', instance.package);
-  writeNotNull('version', instance.version);
-  writeNotNull('likes', instance.likes);
   writeNotNull('publisherId', instance.publisherId);
-  writeNotNull('isDiscontinued', instance.isDiscontinued);
+  val['isDiscontinued'] = instance.isDiscontinued;
   return val;
 }
 

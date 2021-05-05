@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:meta/meta.dart';
 
 part 'account_api.g.dart';
 
@@ -18,10 +17,10 @@ class ClientSessionRequest {
   /// This must:
   ///  * be valid at the time of the request,
   ///  * obtained from the OAuth2 flow used on the pub.dev website.
-  final String accessToken;
+  final String? accessToken;
 
   ClientSessionRequest({
-    @required this.accessToken,
+    required this.accessToken,
   });
 
   factory ClientSessionRequest.fromJson(Map<String, dynamic> json) =>
@@ -35,12 +34,12 @@ class ClientSessionRequest {
 class ClientSessionStatus {
   /// True, if the user session has been updated and the current page should be
   /// reloaded.
-  final bool changed;
-  final DateTime expires;
+  final bool? changed;
+  final DateTime? expires;
 
   ClientSessionStatus({
-    @required this.changed,
-    @required this.expires,
+    required this.changed,
+    required this.expires,
   });
 
   factory ClientSessionStatus.fromJson(Map<String, dynamic> json) =>
@@ -52,14 +51,14 @@ class ClientSessionStatus {
 
   Map<String, dynamic> toJson() => _$ClientSessionStatusToJson(this);
 
-  bool get isValid => expires != null && DateTime.now().isBefore(expires);
+  bool get isValid => expires != null && DateTime.now().isBefore(expires!);
 }
 
 /// Response from listing of likes.
 @JsonSerializable()
 class LikedPackagesRepsonse {
-  List<PackageLikeResponse> likedPackages;
-  LikedPackagesRepsonse({@required this.likedPackages});
+  List<PackageLikeResponse>? likedPackages;
+  LikedPackagesRepsonse({required this.likedPackages});
 
   factory LikedPackagesRepsonse.fromJson(Map<String, dynamic> json) =>
       _$LikedPackagesRepsonseFromJson(json);
@@ -72,12 +71,12 @@ class LikedPackagesRepsonse {
 /// [created] might be null when [liked] is `false`.
 @JsonSerializable()
 class PackageLikeResponse {
-  String package;
-  bool liked;
-  DateTime created;
+  String? package;
+  bool? liked;
+  DateTime? created;
 
   PackageLikeResponse(
-      {@required this.package, @required this.liked, this.created});
+      {required this.package, required this.liked, this.created});
 
   factory PackageLikeResponse.fromJson(Map<String, dynamic> json) =>
       _$PackageLikeResponseFromJson(json);
@@ -89,12 +88,12 @@ class PackageLikeResponse {
 @JsonSerializable()
 class PackageLikesCount {
   /// Package that was liked.
-  String package;
+  String? package;
 
   /// Number of users who have liked [package].
-  int likes;
+  int? likes;
 
-  PackageLikesCount({@required this.package, @required this.likes});
+  PackageLikesCount({required this.package, required this.likes});
 
   factory PackageLikesCount.fromJson(Map<String, dynamic> json) =>
       _$PackageLikesCountFromJson(json);
@@ -105,10 +104,10 @@ class PackageLikesCount {
 /// Account-specific information about a package.
 @JsonSerializable()
 class AccountPkgOptions {
-  final bool isAdmin;
+  final bool? isAdmin;
 
   AccountPkgOptions({
-    @required this.isAdmin,
+    required this.isAdmin,
   });
 
   factory AccountPkgOptions.fromJson(Map<String, dynamic> json) =>
@@ -120,10 +119,10 @@ class AccountPkgOptions {
 /// Account-specific information about a publisher.
 @JsonSerializable()
 class AccountPublisherOptions {
-  final bool isAdmin;
+  final bool? isAdmin;
 
   AccountPublisherOptions({
-    @required this.isAdmin,
+    required this.isAdmin,
   });
 
   factory AccountPublisherOptions.fromJson(Map<String, dynamic> json) =>
@@ -132,7 +131,7 @@ class AccountPublisherOptions {
   Map<String, dynamic> toJson() => _$AccountPublisherOptionsToJson(this);
 }
 
-@JsonSerializable(nullable: false)
+@JsonSerializable()
 class Consent {
   /// Title for this consent request.
   final String titleText;
@@ -141,8 +140,8 @@ class Consent {
   final String descriptionHtml;
 
   Consent({
-    @required this.titleText,
-    @required this.descriptionHtml,
+    required this.titleText,
+    required this.descriptionHtml,
   });
 
   factory Consent.fromJson(Map<String, dynamic> json) =>
@@ -151,11 +150,11 @@ class Consent {
   Map<String, dynamic> toJson() => _$ConsentToJson(this);
 }
 
-@JsonSerializable(nullable: false)
+@JsonSerializable()
 class ConsentResult {
   final bool granted;
 
-  ConsentResult({@required this.granted});
+  ConsentResult({required this.granted});
 
   factory ConsentResult.fromJson(Map<String, dynamic> json) =>
       _$ConsentResultFromJson(json);
@@ -173,7 +172,10 @@ class InviteStatus {
   /// send a new message before this timestamp.
   final DateTime nextNotification;
 
-  InviteStatus({@required this.emailSent, @required this.nextNotification});
+  InviteStatus({
+    required this.emailSent,
+    required this.nextNotification,
+  });
   factory InviteStatus.fromJson(Map<String, dynamic> json) =>
       _$InviteStatusFromJson(json);
   Map<String, dynamic> toJson() => _$InviteStatusToJson(this);

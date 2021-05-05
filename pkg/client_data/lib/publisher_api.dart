@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:meta/meta.dart';
 
 part 'publisher_api.g.dart';
 
@@ -20,7 +19,7 @@ class CreatePublisherRequest {
   final String accessToken;
 
   // json_serializable boiler-plate
-  CreatePublisherRequest({@required this.accessToken});
+  CreatePublisherRequest({required this.accessToken});
   factory CreatePublisherRequest.fromJson(Map<String, dynamic> json) =>
       _$CreatePublisherRequestFromJson(json);
   Map<String, dynamic> toJson() => _$CreatePublisherRequestToJson(this);
@@ -33,20 +32,20 @@ class UpdatePublisherRequest {
   ///
   /// If left as `null` this field will be ignored, and the description of the
   /// publisher will not be changed.
-  final String description;
+  final String? description;
 
   /// A valid URL that points to the publisher's website.
   ///
   /// If left as `null` this field will be ignored, and the website URL of the
   /// publisher will not be changed.
-  final String websiteUrl;
+  final String? websiteUrl;
 
   /// Email to be set as contact email for the publisher.
   ///
   /// If left as `null` this field will be ignored.
   /// If changed, the change will not take effect until the confirmation email
   /// have been confirmed by the user.
-  final String contactEmail;
+  final String? contactEmail;
 
   // json_serializable boiler-plate
   UpdatePublisherRequest({
@@ -64,19 +63,19 @@ class UpdatePublisherRequest {
 @JsonSerializable()
 class PublisherInfo {
   /// A human readable description in markdown.
-  final String description;
+  final String? description;
 
   /// The website URL of the publisher.
-  final String websiteUrl;
+  final String? websiteUrl;
 
   /// The currently verified contact email for the publisher.
-  final String contactEmail;
+  final String? contactEmail;
 
   // json_serializable boiler-plate
   PublisherInfo({
-    @required this.description,
-    @required this.websiteUrl,
-    @required this.contactEmail,
+    required this.description,
+    required this.websiteUrl,
+    required this.contactEmail,
   });
 
   factory PublisherInfo.fromJson(Map<String, dynamic> json) =>
@@ -91,7 +90,7 @@ class PublisherMembers {
   final List<PublisherMember> members;
 
   // json_serializable boiler-plate
-  PublisherMembers({@required this.members});
+  PublisherMembers({required this.members});
   factory PublisherMembers.fromJson(Map<String, dynamic> json) =>
       _$PublisherMembersFromJson(json);
   Map<String, dynamic> toJson() => _$PublisherMembersToJson(this);
@@ -116,9 +115,9 @@ class PublisherMember {
 
   // json_serializable boiler-plate
   PublisherMember({
-    @required this.userId,
-    @required this.role,
-    @required this.email,
+    required this.userId,
+    required this.role,
+    required this.email,
   });
 
   factory PublisherMember.fromJson(Map<String, dynamic> json) =>
@@ -135,7 +134,7 @@ class UpdatePublisherMemberRequest {
   ///  * `'admin'`, can perform any operation.
   ///
   /// If left `null` the server will ignore this field and leave it unchanged.
-  final String role;
+  final String? role;
 
   // json_serializable boiler-plate
   UpdatePublisherMemberRequest({this.role});
@@ -155,7 +154,7 @@ class InviteMemberRequest {
   final String email;
 
   // json_serializable boiler-plate
-  InviteMemberRequest({@required this.email});
+  InviteMemberRequest({required this.email});
   factory InviteMemberRequest.fromJson(Map<String, dynamic> json) =>
       _$InviteMemberRequestFromJson(json);
   Map<String, dynamic> toJson() => _$InviteMemberRequestToJson(this);

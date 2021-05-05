@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:meta/meta.dart';
 
 part 'package_api.g.dart';
 
@@ -17,11 +16,11 @@ class UploadInfo {
   final String url;
 
   /// The fields the uploader should add to the multipart upload.
-  final Map<String, String> fields;
+  final Map<String, String>? fields;
 
   UploadInfo({
-    @required this.url,
-    @required this.fields,
+    required this.url,
+    required this.fields,
   });
 
   factory UploadInfo.fromJson(Map<String, dynamic> json) =>
@@ -33,9 +32,9 @@ class UploadInfo {
 /// Options and flags to get/set on a package.
 @JsonSerializable()
 class PkgOptions {
-  final bool isDiscontinued;
-  final String replacedBy;
-  final bool isUnlisted;
+  final bool? isDiscontinued;
+  final String? replacedBy;
+  final bool? isUnlisted;
 
   PkgOptions({
     this.isDiscontinued,
@@ -54,7 +53,7 @@ class PkgOptions {
 class PackagePublisherInfo {
   /// Domain name of the publisher that owns this package, `null` if package
   /// is not owned by a publisher.
-  final String publisherId;
+  final String? publisherId;
 
   PackagePublisherInfo({
     this.publisherId,
@@ -71,7 +70,7 @@ class PackagePublisherInfo {
 class SuccessMessage {
   final Message success;
 
-  SuccessMessage({@required this.success});
+  SuccessMessage({required this.success});
 
   factory SuccessMessage.fromJson(Map<String, dynamic> json) =>
       _$SuccessMessageFromJson(json);
@@ -84,7 +83,7 @@ class SuccessMessage {
 class Message {
   final String message;
 
-  Message({@required this.message});
+  Message({required this.message});
 
   factory Message.fromJson(Map<String, dynamic> json) =>
       _$MessageFromJson(json);
@@ -101,11 +100,11 @@ class PackageData {
 
   /// `true` if package is discontinued.
   /// If it is omitted, `null` or `false` the package is *not discontinued*.
-  final bool isDiscontinued;
+  final bool? isDiscontinued;
 
   /// If [isDiscontinued] is set, this _may_ point to a package that can be used
   /// instead (set by the package admin).
-  final String replacedBy;
+  final String? replacedBy;
 
   /// This is merely a convenience property, because the [VersionInfo] for the
   /// latest version also exists in the [versions] list.
@@ -118,11 +117,11 @@ class PackageData {
   final List<VersionInfo> versions;
 
   PackageData({
-    @required this.name,
+    required this.name,
     this.isDiscontinued,
     this.replacedBy,
-    @required this.latest,
-    @required this.versions,
+    required this.latest,
+    required this.versions,
   });
 
   factory PackageData.fromJson(Map<String, dynamic> json) =>
@@ -139,16 +138,16 @@ class VersionInfo {
 
   /// As of Dart 2.8 `pub` client uses [archiveUrl] to find the archive.
   @JsonKey(name: 'archive_url')
-  final String archiveUrl;
+  final String? archiveUrl;
 
   /// This is an optional field of the API response, it may be `null` or omitted.
-  final DateTime published;
+  final DateTime? published;
 
   VersionInfo({
-    @required this.version,
-    @required this.pubspec,
-    @required this.archiveUrl,
-    @required this.published,
+    required this.version,
+    required this.pubspec,
+    required this.archiveUrl,
+    required this.published,
   });
 
   factory VersionInfo.fromJson(Map<String, dynamic> json) =>
@@ -159,18 +158,18 @@ class VersionInfo {
 
 @JsonSerializable(includeIfNull: false)
 class VersionScore {
-  final int grantedPoints;
-  final int maxPoints;
-  final int likeCount;
-  final double popularityScore;
-  final DateTime lastUpdated;
+  final int? grantedPoints;
+  final int? maxPoints;
+  final int? likeCount;
+  final double? popularityScore;
+  final DateTime? lastUpdated;
 
   VersionScore({
-    @required this.grantedPoints,
-    @required this.maxPoints,
-    @required this.likeCount,
-    @required this.popularityScore,
-    @required this.lastUpdated,
+    required this.grantedPoints,
+    required this.maxPoints,
+    required this.likeCount,
+    required this.popularityScore,
+    required this.lastUpdated,
   });
 
   factory VersionScore.fromJson(Map<String, dynamic> json) =>
@@ -190,7 +189,7 @@ class InviteUploaderRequest {
   final String email;
 
   // json_serializable boiler-plate
-  InviteUploaderRequest({@required this.email});
+  InviteUploaderRequest({required this.email});
 
   factory InviteUploaderRequest.fromJson(Map<String, dynamic> json) =>
       _$InviteUploaderRequestFromJson(json);

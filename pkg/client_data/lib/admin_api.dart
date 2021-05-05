@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:meta/meta.dart';
 
 part 'admin_api.g.dart';
 
@@ -22,10 +21,10 @@ class AdminListUsersResponse {
   /// single request body can include, the [continuationToken] can be provided
   /// as query-string parameter `?ct=`, in another request.
   /// If [continuationToken] is `null` no further `users` can be returned.
-  final String continuationToken;
+  final String? continuationToken;
 
   // json_serializable boiler-plate
-  AdminListUsersResponse({@required this.users, this.continuationToken});
+  AdminListUsersResponse({required this.users, this.continuationToken});
   factory AdminListUsersResponse.fromJson(Map<String, dynamic> json) =>
       _$AdminListUsersResponseFromJson(json);
   Map<String, dynamic> toJson() => _$AdminListUsersResponseToJson(this);
@@ -37,21 +36,21 @@ class AdminUserEntry {
   /// The `pub.dev` specific user identifier.
   ///
   /// This is a random UUID generated when the user was created.
-  final String userId;
+  final String? userId;
 
   /// OAuth2 `user_id`, if one was ever set (otherwise this is `null`).
   ///
   /// Legacy users may not have an [oauthUserId], if they have not signed in
   /// since we started recording this attribute.
-  final String oauthUserId;
+  final String? oauthUserId;
 
   /// Email of the user.
-  final String email;
+  final String? email;
 
   // json_serializable boiler-plate
   AdminUserEntry({
-    @required this.userId,
-    @required this.email,
+    required this.userId,
+    required this.email,
     this.oauthUserId,
   });
   factory AdminUserEntry.fromJson(Map<String, dynamic> json) =>
@@ -65,7 +64,7 @@ class AssignedTags {
   final List<String> assignedTags;
 
   // json_serializable boiler-plate
-  AssignedTags({@required this.assignedTags});
+  AssignedTags({required this.assignedTags});
   factory AssignedTags.fromJson(Map<String, dynamic> json) =>
       _$AssignedTagsFromJson(json);
   Map<String, dynamic> toJson() => _$AssignedTagsToJson(this);
@@ -74,8 +73,8 @@ class AssignedTags {
 /// Admin API request to mutate list of assigned tags.
 @JsonSerializable()
 class PatchAssignedTags {
-  final List<String> assignedTagsAdded;
-  final List<String> assignedTagsRemoved;
+  final List<String>? assignedTagsAdded;
+  final List<String>? assignedTagsRemoved;
 
   // json_serializable boiler-plate
   PatchAssignedTags({
