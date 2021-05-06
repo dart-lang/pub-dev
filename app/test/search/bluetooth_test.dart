@@ -43,6 +43,13 @@ void main() {
             'score': closeTo(0.89, 0.01),
           },
         ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {
+            'package': 'flutter_blue',
+            'score': closeTo(0.89, 0.01),
+          },
+        ],
       });
     });
   });

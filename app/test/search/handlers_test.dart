@@ -52,6 +52,9 @@ void main() {
               'score': closeTo(0.51, 0.01),
             }
           ],
+          'highlightedHit': {'package': 'pkg_foo'},
+          'sdkLibraryHits': [],
+          'packageHits': [],
         });
       });
 
@@ -65,6 +68,13 @@ void main() {
               'package': 'pkg_foo',
               'score': closeTo(0.45, 0.01),
             }
+          ],
+          'sdkLibraryHits': [],
+          'packageHits': [
+            {
+              'package': 'pkg_foo',
+              'score': closeTo(0.45, 0.01),
+            },
           ],
         });
       });
@@ -81,6 +91,13 @@ void main() {
                   'score': closeTo(0.45, 0.01),
                 }
               ],
+              'sdkLibraryHits': [],
+              'packageHits': [
+                {
+                  'package': 'pkg_foo',
+                  'score': closeTo(0.45, 0.01),
+                },
+              ],
             });
       });
 
@@ -95,6 +112,13 @@ void main() {
               'score': closeTo(0.51, 0.01),
             }
           ],
+          'sdkLibraryHits': [],
+          'packageHits': [
+            {
+              'package': 'pkg_foo',
+              'score': closeTo(0.51, 0.01),
+            },
+          ],
         });
       });
 
@@ -105,6 +129,8 @@ void main() {
               'timestamp': isNotNull,
               'totalCount': 0,
               'packages': [],
+              'sdkLibraryHits': [],
+              'packageHits': [],
             });
       });
     });

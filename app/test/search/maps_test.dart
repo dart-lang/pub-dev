@@ -30,6 +30,11 @@ void main() {
           {'package': 'maps', 'score': 1.0},
           {'package': 'map', 'score': 1.0},
         ],
+        'highlightedHit': {'package': 'maps'},
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {'package': 'map', 'score': 1.0},
+        ],
       });
     });
 
@@ -42,6 +47,11 @@ void main() {
         'packages': [
           {'package': 'maps', 'score': 1.0},
           {'package': 'map', 'score': 1.0},
+        ],
+        'highlightedHit': {'package': 'map'},
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {'package': 'maps', 'score': 1.0},
         ],
       });
     });

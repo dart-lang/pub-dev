@@ -108,7 +108,10 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             'package': 'async',
             'score': closeTo(0.71, 0.01),
           },
-        ]
+        ],
+        'highlightedHit': {'package': 'async'},
+        'sdkLibraryHits': [],
+        'packageHits': [],
       });
     });
 
@@ -123,7 +126,14 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             'package': 'http',
             'score': closeTo(0.85, 0.01),
           },
-        ]
+        ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {
+            'package': 'http',
+            'score': closeTo(0.85, 0.01),
+          },
+        ],
       });
     });
 
@@ -138,7 +148,14 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             'package': 'chrome_net',
             'score': closeTo(0.29, 0.01),
           },
-        ]
+        ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {
+            'package': 'chrome_net',
+            'score': closeTo(0.29, 0.01),
+          },
+        ],
       });
     });
 
@@ -152,6 +169,11 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           {'package': 'http', 'score': closeTo(0.70, 0.01)},
           {'package': 'async', 'score': closeTo(0.62, 0.01)},
         ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {'package': 'http', 'score': closeTo(0.70, 0.01)},
+          {'package': 'async', 'score': closeTo(0.62, 0.01)},
+        ],
       });
     });
 
@@ -162,6 +184,10 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
+          {'package': 'async', 'score': closeTo(0.29, 0.01)},
+        ],
+        'sdkLibraryHits': [],
+        'packageHits': [
           {'package': 'async', 'score': closeTo(0.29, 0.01)},
         ],
       });
@@ -178,7 +204,14 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             'package': 'chrome_net',
             'score': closeTo(0.54, 0.1),
           },
-        ]
+        ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {
+            'package': 'chrome_net',
+            'score': closeTo(0.54, 0.1),
+          },
+        ],
       });
     });
 
@@ -192,6 +225,11 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           {'package': 'http', 'score': 0.5},
           {'package': 'chrome_net', 'score': closeTo(0.11, 0.01)},
         ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {'package': 'http', 'score': 0.5},
+          {'package': 'chrome_net', 'score': closeTo(0.11, 0.01)},
+        ],
       });
     });
 
@@ -202,6 +240,12 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'timestamp': isNotNull,
         'totalCount': 3,
         'packages': [
+          {'package': 'async'},
+          {'package': 'http'},
+          {'package': 'chrome_net'},
+        ],
+        'sdkLibraryHits': [],
+        'packageHits': [
           {'package': 'async'},
           {'package': 'http'},
           {'package': 'chrome_net'},
@@ -220,6 +264,12 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           {'package': 'async'},
           {'package': 'chrome_net'},
         ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {'package': 'http'},
+          {'package': 'async'},
+          {'package': 'chrome_net'},
+        ],
       });
     });
 
@@ -231,6 +281,11 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 2,
         'packages': [
           {'package': 'http'},
+          {'package': 'chrome_net'},
+        ],
+        'highlightedHit': {'package': 'http'},
+        'sdkLibraryHits': [],
+        'packageHits': [
           {'package': 'chrome_net'},
         ],
       });
@@ -251,6 +306,11 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           {'package': 'http'},
           {'package': 'async'},
         ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {'package': 'http'},
+          {'package': 'async'},
+        ],
       });
     });
 
@@ -261,6 +321,12 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'timestamp': isNotNull,
         'totalCount': 3,
         'packages': [
+          {'package': 'async', 'score': 0.8},
+          {'package': 'http', 'score': 0.7},
+          {'package': 'chrome_net', 'score': 0.0},
+        ],
+        'sdkLibraryHits': [],
+        'packageHits': [
           {'package': 'async', 'score': 0.8},
           {'package': 'http', 'score': 0.7},
           {'package': 'chrome_net', 'score': 0.0},
@@ -279,6 +345,12 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           {'package': 'async', 'score': 1.0},
           {'package': 'chrome_net', 'score': 0.0},
         ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {'package': 'http', 'score': 10.0},
+          {'package': 'async', 'score': 1.0},
+          {'package': 'chrome_net', 'score': 0.0},
+        ],
       });
     });
 
@@ -289,6 +361,12 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'timestamp': isNotNull,
         'totalCount': 3,
         'packages': [
+          {'package': 'http', 'score': 110.0},
+          {'package': 'async', 'score': 10.0},
+          {'package': 'chrome_net', 'score': 0.0},
+        ],
+        'sdkLibraryHits': [],
+        'packageHits': [
           {'package': 'http', 'score': 110.0},
           {'package': 'async', 'score': 10.0},
           {'package': 'chrome_net', 'score': 0.0},
@@ -306,6 +384,11 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           {'package': 'http', 'score': closeTo(0.96, 0.01)},
           {'package': 'async', 'score': closeTo(0.70, 0.01)},
         ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {'package': 'http', 'score': closeTo(0.96, 0.01)},
+          {'package': 'async', 'score': closeTo(0.70, 0.01)},
+        ],
       });
     });
 
@@ -316,6 +399,10 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
+          {'package': 'chrome_net', 'score': closeTo(0.54, 0.01)},
+        ],
+        'sdkLibraryHits': [],
+        'packageHits': [
           {'package': 'chrome_net', 'score': closeTo(0.54, 0.01)},
         ],
       });
@@ -331,6 +418,11 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           {'package': 'http', 'score': closeTo(0.96, 0.01)},
           {'package': 'chrome_net', 'score': closeTo(0.54, 0.01)},
         ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {'package': 'http', 'score': closeTo(0.96, 0.01)},
+          {'package': 'chrome_net', 'score': closeTo(0.54, 0.01)},
+        ],
       });
     });
 
@@ -341,6 +433,10 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
+          {'package': 'http', 'score': closeTo(0.85, 0.01)},
+        ],
+        'sdkLibraryHits': [],
+        'packageHits': [
           {'package': 'http', 'score': closeTo(0.85, 0.01)},
         ],
       });
@@ -355,6 +451,10 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'packages': [
           {'package': 'http', 'score': closeTo(0.96, 0.01)},
         ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {'package': 'http', 'score': closeTo(0.96, 0.01)},
+        ],
       });
     });
 
@@ -365,6 +465,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'timestamp': isNotNull,
         'totalCount': 0,
         'packages': [],
+        'sdkLibraryHits': [],
+        'packageHits': [],
       });
     });
 
@@ -377,6 +479,10 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'packages': [
           {'package': 'async', 'score': closeTo(0.70, 0.01)},
         ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {'package': 'async', 'score': closeTo(0.70, 0.01)},
+        ],
       });
     });
 
@@ -387,6 +493,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'timestamp': isNotNull,
         'totalCount': 0,
         'packages': [],
+        'sdkLibraryHits': [],
+        'packageHits': [],
       });
     });
 
@@ -397,6 +505,10 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
+          {'package': 'async', 'score': closeTo(0.70, 0.01)},
+        ],
+        'sdkLibraryHits': [],
+        'packageHits': [
           {'package': 'async', 'score': closeTo(0.70, 0.01)},
         ],
       });
@@ -415,6 +527,11 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           {'package': 'http', 'score': closeTo(0.96, 0.01)},
           {'package': 'async', 'score': closeTo(0.70, 0.01)},
         ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {'package': 'http', 'score': closeTo(0.96, 0.01)},
+          {'package': 'async', 'score': closeTo(0.70, 0.01)},
+        ],
       });
     });
 
@@ -425,6 +542,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'timestamp': isNotNull,
         'totalCount': 0,
         'packages': [],
+        'sdkLibraryHits': [],
+        'packageHits': [],
       });
     });
 
@@ -435,6 +554,11 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'timestamp': isNotNull,
         'totalCount': 2,
         'packages': [
+          {'package': 'http', 'score': closeTo(0.96, 0.01)},
+          {'package': 'async', 'score': closeTo(0.70, 0.01)},
+        ],
+        'sdkLibraryHits': [],
+        'packageHits': [
           {'package': 'http', 'score': closeTo(0.96, 0.01)},
           {'package': 'async', 'score': closeTo(0.70, 0.01)},
         ],
@@ -451,6 +575,10 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'packages': [
           {'package': 'http', 'score': closeTo(0.88, 0.01)},
         ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {'package': 'http', 'score': closeTo(0.88, 0.01)},
+        ],
       });
 
       final PackageSearchResult library = await index.search(
@@ -459,6 +587,12 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'timestamp': isNotNull,
         'totalCount': 3,
         'packages': [
+          {'package': 'chrome_net', 'score': closeTo(0.88, 0.01)},
+          {'package': 'async', 'score': closeTo(0.88, 0.01)},
+          {'package': 'http', 'score': closeTo(0.72, 0.01)},
+        ],
+        'sdkLibraryHits': [],
+        'packageHits': [
           {'package': 'chrome_net', 'score': closeTo(0.88, 0.01)},
           {'package': 'async', 'score': closeTo(0.88, 0.01)},
           {'package': 'http', 'score': closeTo(0.72, 0.01)},
@@ -474,6 +608,10 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
+          {'package': 'http', 'score': closeTo(0.54, 0.01)},
+        ],
+        'sdkLibraryHits': [],
+        'packageHits': [
           {'package': 'http', 'score': closeTo(0.54, 0.01)},
         ],
       });

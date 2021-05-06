@@ -132,6 +132,17 @@ void main() {
           },
           // should not contain `other_without_api`
         ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {
+            'package': 'foo',
+            'score': closeTo(0.072, 0.001), // find WebPageGenerator
+            'apiPages': [
+              {'title': null, 'path': 'generator.html'},
+            ],
+          },
+          // should not contain `other_without_api`
+        ],
       });
     });
 
@@ -142,6 +153,18 @@ void main() {
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
+          {
+            'package': 'foo',
+            'score': closeTo(0.025, 0.001), // find WebPageGenerator
+            'apiPages': [
+              {'title': null, 'path': 'generator.html'},
+            ],
+          },
+          // should contain 'other_with_api' finding `serveWebPages`
+          // should not contain `other_without_api`
+        ],
+        'sdkLibraryHits': [],
+        'packageHits': [
           {
             'package': 'foo',
             'score': closeTo(0.025, 0.001), // find WebPageGenerator
@@ -163,6 +186,16 @@ void main() {
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
+          {
+            'package': 'foo',
+            'score': closeTo(0.157, 0.001),
+            'apiPages': [
+              {'title': null, 'path': 'generator.html'},
+            ],
+          },
+        ],
+        'sdkLibraryHits': [],
+        'packageHits': [
           {
             'package': 'foo',
             'score': closeTo(0.157, 0.001),

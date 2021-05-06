@@ -85,6 +85,25 @@ void main() {
             'score': closeTo(0.4, 0.01),
           },
         ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {
+            'package': 'json_0',
+            'score': closeTo(0.4, 0.01),
+          },
+          {
+            'package': 'json_1',
+            'score': closeTo(0.4, 0.01),
+          },
+          {
+            'package': 'json_2',
+            'score': closeTo(0.4, 0.01),
+          },
+          {
+            'package': 'json_3',
+            'score': closeTo(0.4, 0.01),
+          }
+        ],
       });
     });
 
@@ -108,6 +127,17 @@ void main() {
             'score': closeTo(0.36, 0.01),
           },
         ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {
+            'package': 'json_1',
+            'score': closeTo(0.40, 0.01),
+          },
+          {
+            'package': 'json_3',
+            'score': closeTo(0.36, 0.01),
+          },
+        ]
       });
     });
   });

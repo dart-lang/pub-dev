@@ -23,6 +23,8 @@ void main() {
         'timestamp': isNotNull,
         'totalCount': 0,
         'packages': [],
+        'sdkLibraryHits': [],
+        'packageHits': [],
       });
     });
 
@@ -38,6 +40,10 @@ void main() {
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
+          {'package': 'pkg1', 'score': isNotNull},
+        ],
+        'sdkLibraryHits': [],
+        'packageHits': [
           {'package': 'pkg1', 'score': isNotNull},
         ],
       });
@@ -58,6 +64,10 @@ void main() {
         'packages': [
           {'package': 'pkg2', 'score': isNotNull},
         ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {'package': 'pkg2', 'score': isNotNull},
+        ],
       });
     });
 
@@ -74,6 +84,10 @@ void main() {
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
+          {'package': 'pkg1', 'score': isNotNull},
+        ],
+        'sdkLibraryHits': [],
+        'packageHits': [
           {'package': 'pkg1', 'score': isNotNull},
         ],
       });
@@ -97,6 +111,11 @@ void main() {
           {'package': 'pkg1', 'score': isNotNull},
           {'package': 'pkg2', 'score': isNotNull},
         ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {'package': 'pkg1', 'score': isNotNull},
+          {'package': 'pkg2', 'score': isNotNull},
+        ],
       });
     });
 
@@ -115,6 +134,10 @@ void main() {
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
+          {'package': 'pkg2', 'score': isNotNull},
+        ],
+        'sdkLibraryHits': [],
+        'packageHits': [
           {'package': 'pkg2', 'score': isNotNull},
         ],
       });
@@ -137,6 +160,10 @@ void main() {
         'packages': [
           {'package': 'pkg1', 'score': isNotNull},
         ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {'package': 'pkg1', 'score': isNotNull},
+        ],
       });
     });
 
@@ -153,6 +180,10 @@ void main() {
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
+          {'package': 'pkg2', 'score': isNotNull},
+        ],
+        'sdkLibraryHits': [],
+        'packageHits': [
           {'package': 'pkg2', 'score': isNotNull},
         ],
       });
@@ -172,6 +203,10 @@ void main() {
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
+          {'package': 'pkg1', 'score': isNotNull},
+        ],
+        'sdkLibraryHits': [],
+        'packageHits': [
           {'package': 'pkg1', 'score': isNotNull},
         ],
       });
