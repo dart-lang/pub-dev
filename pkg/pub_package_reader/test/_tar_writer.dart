@@ -11,8 +11,8 @@ import 'package:tar/tar.dart';
 /// Creates a .tar.gz file with content.
 Future<void> writeTarGzFile(
   File file, {
-  Map<String, String> textFiles,
-  Map<String, String> symlinks,
+  Map<String, String>? textFiles,
+  Map<String, String>? symlinks,
 }) async {
   await () async* {
     if (textFiles != null) {

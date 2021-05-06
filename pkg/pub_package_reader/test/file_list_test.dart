@@ -58,7 +58,7 @@ void main() {
         Future<void> verify(bool useNative) async {
           final summary = await summarizePackageArchive(archiveFile.path,
               useNative: useNative);
-          expect(summary.issues.single.message,
+          expect(summary.issues!.single.message,
               'Package archive contains a broken symlink: `$from` -> `$to`.');
         }
 
@@ -97,7 +97,7 @@ void main() {
       Future<void> verify(bool useNative) async {
         final summary = await summarizePackageArchive(archiveFile.path,
             useNative: useNative);
-        expect(summary.issues.single.message,
+        expect(summary.issues!.single.message,
             'Failed to scan tar archive. (Exception: Duplicate tar entry: `README.md`.)');
       }
 

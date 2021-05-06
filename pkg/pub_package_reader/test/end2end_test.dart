@@ -12,7 +12,7 @@ import 'package:pub_package_reader/pub_package_reader.dart';
 
 void main() {
   group('end2end', () {
-    Directory tempDir;
+    late Directory tempDir;
 
     setUpAll(() async {
       tempDir = await Directory.systemTemp.createTemp();
@@ -59,7 +59,7 @@ void main() {
       verify(await summarizePackageArchive(path));
       expect(
           (await summarizePackageArchive(path, useNative: true))
-              .issues
+              .issues!
               .single
               .message,
           'Failed to scan tar archive. (FormatException: Illegal content after the end of the tar archive.)');
@@ -81,7 +81,7 @@ void main() {
       expect(
           (await summarizePackageArchive(path,
                   maxContentLength: 16, useNative: true))
-              .issues
+              .issues!
               .single
               .message,
           'Failed to scan tar archive. (FormatException: Illegal content after the end of the tar archive.)');
