@@ -91,3 +91,13 @@ bool isSoftRemoved(String packageName) =>
 /// Whether the [name] is (very similar) to a reserved package name.
 bool matchesReservedPackageName(String name) =>
     _reservedPackageNames.contains(reducePackageName(name));
+
+/// Whether the [publisherId] is part of dart.dev.
+/// Packages under dart.dev are considered 'internal', and allowed to have homepage
+/// URLs pointing to e.g. dart.dev.
+bool isDartDevPublisher(String publisherId) {
+  if (publisherId == null) return false;
+  if (publisherId == 'dart.dev') return true;
+  if (publisherId.endsWith('.dart.dev')) return true;
+  return false;
+}
