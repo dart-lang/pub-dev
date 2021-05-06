@@ -49,6 +49,9 @@ class SearchResultCombiner {
       timestamp: primaryResult.timestamp,
       totalCount: primaryResult.totalCount,
       packages: allPackages,
+      highlightedHit: primaryResult.highlightedHit,
+      packageHits: primaryResult.packageHits,
+      sdkLibraryHits: dartSdkResult.sdkLibraryHits,
     );
   }
 }

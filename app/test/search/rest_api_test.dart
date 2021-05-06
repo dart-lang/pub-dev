@@ -60,6 +60,14 @@ Recent versions (0.3.x and 0.4.x) of this plugin require [extensible codec funct
           },
           // cloud_firestore should not show up
         ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {
+            'package': 'currency_cloud',
+            'score': closeTo(0.79, 0.01),
+          },
+          // cloud_firestore should not show up
+        ],
       });
     });
   });

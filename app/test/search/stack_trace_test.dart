@@ -40,7 +40,14 @@ void main() {
             'package': 'stack_trace',
             'score': 1.0,
           },
-        ]
+        ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {
+            'package': 'stack_trace',
+            'score': 1.0,
+          },
+        ],
       });
     });
   });

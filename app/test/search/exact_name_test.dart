@@ -50,6 +50,10 @@ void main() {
             'package': 'build_config',
             'score': 1.0,
           },
+        ],
+        'highlightedHit': {'package': 'build_config'},
+        'sdkLibraryHits': [],
+        'packageHits': [
           // would be nice if `package:build` would show up here
         ],
       });
