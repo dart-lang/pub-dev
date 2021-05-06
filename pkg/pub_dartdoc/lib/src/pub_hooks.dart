@@ -13,6 +13,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/generated/source.dart';
 import 'package:dartdoc/dartdoc.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:watcher/watcher.dart';
 
@@ -27,6 +28,7 @@ const _maxTotalLengthBytes = 10 * 1024 * 1024;
 class PubResourceProvider implements ResourceProvider {
   final ResourceProvider _defaultProvider;
   final _memoryResourceProvider = MemoryResourceProvider();
+  bool _isSdkDocs = false;
   String _outputPath;
   int _fileCount = 0;
   int _totalLengthBytes = 0;
@@ -54,6 +56,10 @@ class PubResourceProvider implements ResourceProvider {
   void _aboutToWriteBytes(int length) {
     _fileCount++;
     _totalLengthBytes += length;
+    if (_isSdkDocs) {
+      // do not throw on too output large file
+      return;
+    }
     if (_fileCount > _maxFileCount) {
       throw AssertionError(
           'Reached $_maxFileCount files in the output directory.');
@@ -64,8 +70,12 @@ class PubResourceProvider implements ResourceProvider {
     }
   }
 
-  void setOutput(String value) {
-    _outputPath = value;
+  void setConfig({
+    @required String output,
+    @required bool isSdkDocs,
+  }) {
+    _outputPath = output;
+    _isSdkDocs = isSdkDocs;
   }
 
   bool _isOutput(String path) {
@@ -160,6 +170,9 @@ class _File implements File {
 
   @override
   void writeAsBytesSync(List<int> bytes) {
+    if (_provider._isSdkDocs && path.endsWith('.html')) {
+      // do not write file for SDK docs
+    }
     _provider._aboutToWriteBytes(bytes.length);
     _delegate.writeAsBytesSync(bytes);
   }

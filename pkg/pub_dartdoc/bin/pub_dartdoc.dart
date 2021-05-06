@@ -20,7 +20,10 @@ Future<void> main(List<String> arguments) async {
   if (config == null) {
     throw ArgumentError();
   }
-  pubResourceProvider.setOutput(config.output);
+  pubResourceProvider.setConfig(
+    output: config.output,
+    isSdkDocs: config.sdkDocs,
+  );
 
   final packageConfigProvider = PhysicalPackageConfigProvider();
   final packageBuilder =
