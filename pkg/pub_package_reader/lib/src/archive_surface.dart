@@ -4,7 +4,6 @@
 
 import 'dart:io';
 
-import 'package:meta/meta.dart';
 import 'package:pub_package_reader/pub_package_reader.dart' show ArchiveIssue;
 
 /// Scans the archive.tar.gz before parsing the tar content:
@@ -13,7 +12,7 @@ import 'package:pub_package_reader/pub_package_reader.dart' show ArchiveIssue;
 /// - too large content (gzip or uncompressed)
 Stream<ArchiveIssue> scanArchiveSurface(
   String archivePath, {
-  @required int maxArchiveSize,
+  required int maxArchiveSize,
 }) async* {
   // Some platforms may not be able to create an archive, only an empty file.
   final file = File(archivePath);

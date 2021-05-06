@@ -52,7 +52,7 @@ abstract class TarArchive {
   // case-insensitive manner.
   //
   // Returns `null` if not found otherwise the correct filename.
-  String searchForFile(Iterable<String> names) {
+  String? searchForFile(Iterable<String> names) {
     for (String name in names) {
       final String nameLowercase = name.toLowerCase();
       for (final filename in fileNames) {
@@ -68,7 +68,7 @@ abstract class TarArchive {
   Map<String, String> brokenSymlinks() {
     final broken = <String, String>{};
     for (final from in _symlinks.keys) {
-      final to = _symlinks[from];
+      final to = _symlinks[from]!;
       final toAsUri = Uri.tryParse(to);
       if (toAsUri == null || toAsUri.isAbsolute) {
         broken[from] = to;
@@ -86,8 +86,8 @@ abstract class TarArchive {
   static Future<TarArchive> scan(
     String path, {
     bool useNative = false,
-    int maxFileCount,
-    int maxTotalLengthBytes,
+    int? maxFileCount,
+    int? maxTotalLengthBytes,
   }) async {
     return useNative
         ? await _PkgTarArchive._scan(path,
@@ -110,7 +110,7 @@ class _ProcessTarArchive extends TarArchive {
   /// Creates a new instance by scanning the archive at [path].
   static Future<_ProcessTarArchive> _scan(
     String path, {
-    int maxFileCount,
+    int? maxFileCount,
   }) async {
     // normal file list
     final rs1 = await _runTar(['-tzf', path]);
@@ -189,8 +189,8 @@ class _PkgTarArchive extends TarArchive {
   /// Creates a new instance by scanning the archive at [path].
   static Future<_PkgTarArchive> _scan(
     String path, {
-    int maxFileCount,
-    int maxTotalLengthBytes,
+    int? maxFileCount,
+    int? maxTotalLengthBytes,
   }) async {
     final names = <String>{};
     final symlinks = <String, String>{};
@@ -218,7 +218,7 @@ class _PkgTarArchive extends TarArchive {
         throw Exception('Duplicate tar entry: `${entry.name}`.');
       }
       if (entry.header.linkName != null) {
-        symlinks[entry.name] = entry.header.linkName;
+        symlinks[entry.name] = entry.header.linkName!;
       }
     }
     await reader.cancel();

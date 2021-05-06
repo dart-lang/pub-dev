@@ -12,7 +12,7 @@ import 'package:pub_package_reader/pub_package_reader.dart';
 
 void main() {
   group('end2end', () {
-    Directory tempDir;
+    late Directory tempDir;
 
     setUpAll(() async {
       tempDir = await Directory.systemTemp.createTemp();

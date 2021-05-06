@@ -12,7 +12,7 @@ import '_tar_writer.dart';
 
 void main() {
   group('integration', () {
-    Directory tempDir;
+    late Directory tempDir;
     var count = 0;
 
     setUpAll(() async {
