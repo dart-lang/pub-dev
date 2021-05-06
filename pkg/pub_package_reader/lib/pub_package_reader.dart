@@ -31,7 +31,7 @@ class ArchiveIssue {
 
 /// The observed / extracted information of a package archive.
 class PackageSummary {
-  final List<ArchiveIssue>? issues;
+  final List<ArchiveIssue> issues;
   final String? pubspecContent;
   final String? readmePath;
   final String? readmeContent;
@@ -44,7 +44,7 @@ class PackageSummary {
   final List<String>? libraries;
 
   PackageSummary({
-    this.issues,
+    List<ArchiveIssue>? issues,
     this.pubspecContent,
     this.readmePath,
     this.readmeContent,
@@ -55,12 +55,12 @@ class PackageSummary {
     this.licensePath,
     this.licenseContent,
     this.libraries,
-  });
+  }) : issues = issues ?? <ArchiveIssue>[];
 
   factory PackageSummary.fail(ArchiveIssue issue) =>
       PackageSummary(issues: [issue]);
 
-  bool get hasIssues => issues != null && issues!.isNotEmpty;
+  bool get hasIssues => issues.isNotEmpty;
 }
 
 /// Observe the .tar.gz archive on [archivePath] and return the results.

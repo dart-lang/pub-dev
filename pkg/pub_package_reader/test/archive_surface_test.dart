@@ -22,7 +22,7 @@ void main() {
     test('file does not exists', () async {
       final summary = await summarizePackageArchive(archiveFile.path);
       expect(summary.issues, isNotEmpty);
-      expect(summary.issues!.single.message,
+      expect(summary.issues.single.message,
           'Package archive is empty (size = 0).');
     });
 
@@ -30,7 +30,7 @@ void main() {
       await archiveFile.writeAsBytes(<int>[]);
       final summary = await summarizePackageArchive(archiveFile.path);
       expect(summary.issues, isNotEmpty);
-      expect(summary.issues!.single.message,
+      expect(summary.issues.single.message,
           'Package archive is empty (size = 0).');
     });
 
@@ -38,7 +38,7 @@ void main() {
       await archiveFile.writeAsBytes(gzip.encode(<int>[]));
       final summary = await summarizePackageArchive(archiveFile.path);
       expect(summary.issues, isNotEmpty);
-      expect(summary.issues!.single.message,
+      expect(summary.issues.single.message,
           'Uncompressed archive is empty (size = 0).');
     });
 
@@ -46,13 +46,13 @@ void main() {
       await archiveFile.writeAsBytes(<int>[1, 2, 3, 4, 5, 6, 7]);
       final s1 = await summarizePackageArchive(archiveFile.path);
       expect(s1.issues, isNotEmpty);
-      expect(s1.issues!.single.message,
+      expect(s1.issues.single.message,
           'gzip decoder failed: FormatException: Filter error, bad data.');
 
       final s2 =
           await summarizePackageArchive(archiveFile.path, useNative: true);
       expect(s2.issues, isNotEmpty);
-      expect(s2.issues!.single.message,
+      expect(s2.issues.single.message,
           'gzip decoder failed: FormatException: Filter error, bad data.');
     });
 
@@ -60,12 +60,12 @@ void main() {
       await archiveFile.writeAsBytes(gzip.encode(<int>[1, 2, 3, 4, 5, 6, 7]));
       final s1 = await summarizePackageArchive(archiveFile.path);
       expect(s1.issues, isNotEmpty);
-      expect(s1.issues!.single.message, 'pubspec.yaml is missing.');
+      expect(s1.issues.single.message, 'pubspec.yaml is missing.');
 
       final s2 =
           await summarizePackageArchive(archiveFile.path, useNative: true);
       expect(s2.issues, isNotEmpty);
-      expect(s2.issues!.single.message,
+      expect(s2.issues.single.message,
           'Failed to scan tar archive. (FormatException: Invalid header: Unexpected end of file)');
     });
 
@@ -74,7 +74,7 @@ void main() {
       final summary = await summarizePackageArchive(archiveFile.path,
           maxArchiveSize: 199999);
       expect(summary.issues, isNotEmpty);
-      expect(summary.issues!.single.message,
+      expect(summary.issues.single.message,
           'Package archive is too large (size > 199999).');
     });
 
@@ -85,7 +85,7 @@ void main() {
       final summary = await summarizePackageArchive(archiveFile.path,
           maxArchiveSize: 199999);
       expect(summary.issues, isNotEmpty);
-      expect(summary.issues!.single.message,
+      expect(summary.issues.single.message,
           'Uncompressed package archive is too large (size > 199999).');
     });
   });
