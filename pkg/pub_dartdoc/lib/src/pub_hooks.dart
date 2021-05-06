@@ -28,7 +28,7 @@ const _maxTotalLengthBytes = 10 * 1024 * 1024;
 class PubResourceProvider implements ResourceProvider {
   final ResourceProvider _defaultProvider;
   final _memoryResourceProvider = MemoryResourceProvider();
-  bool _isSdkDocs;
+  bool _isSdkDocs = false;
   String _outputPath;
   int _fileCount = 0;
   int _totalLengthBytes = 0;
