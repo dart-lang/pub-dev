@@ -19,19 +19,31 @@ abstract class TarArchive {
   /// Maps the normalized names to their original value;
   final Map<String, String> _normalizedNames;
 
-  TarArchive._(this._normalizedNames)
-      : fileNames = _normalizedNames.keys.toList()..sort();
+  /// The map of files that are symlinks, using normalized names
+  /// in both parts of the map entries.
+  final Map<String, String> _symlinks;
 
-  TarArchive(List<String> names) : this._(_normalizeNames(names));
+  TarArchive._(
+    this._normalizedNames,
+    this._symlinks,
+  ) : fileNames = _normalizedNames.keys.toList()..sort();
+
+  TarArchive(List<String> names, Map<String, String> symlinks)
+      : this._(
+          _normalizeNames(names),
+          symlinks.map((key, value) =>
+              MapEntry<String, String>(_normalize(key), _normalize(value))),
+        );
 
   static Map<String, String> _normalizeNames(List<String> names) {
     final files = <String, String>{};
     for (final name in names) {
-      final normalized = p.normalize(name).trim();
-      files[normalized] = name;
+      files[_normalize(name)] = name;
     }
     return files;
   }
+
+  static String _normalize(String path) => p.normalize(path).trim();
 
   /// Reads file content as String.
   Future<String> readContentAsString(String name, {int maxLength = 0});
@@ -40,7 +52,7 @@ abstract class TarArchive {
   // case-insensitive manner.
   //
   // Returns `null` if not found otherwise the correct filename.
-  String searchForFile(Iterable<String> names) {
+  String? searchForFile(Iterable<String> names) {
     for (String name in names) {
       final String nameLowercase = name.toLowerCase();
       for (final filename in fileNames) {
@@ -52,11 +64,36 @@ abstract class TarArchive {
     return null;
   }
 
+  /// Returns the brokens links (that point outside, or to a non-existent file).
+  Map<String, String> brokenSymlinks() {
+    final broken = <String, String>{};
+    for (final from in _symlinks.keys) {
+      final to = _symlinks[from]!;
+      final toAsUri = Uri.tryParse(to);
+      if (toAsUri == null || toAsUri.isAbsolute) {
+        broken[from] = to;
+        continue;
+      }
+      final resolvedPath = p.normalize(Uri(path: from).resolve(to).path);
+      if (!fileNames.contains(resolvedPath)) {
+        broken[from] = to;
+      }
+    }
+    return broken;
+  }
+
   /// Creates a new instance by scanning the archive at [path].
-  static Future<TarArchive> scan(String path, {bool useNative = false}) async {
+  static Future<TarArchive> scan(
+    String path, {
+    bool useNative = false,
+    int? maxFileCount,
+    int? maxTotalLengthBytes,
+  }) async {
     return useNative
-        ? await _PkgTarArchive._scan(path)
-        : await _ProcessTarArchive._scan(path);
+        ? await _PkgTarArchive._scan(path,
+            maxFileCount: maxFileCount,
+            maxTotalLengthBytes: maxTotalLengthBytes)
+        : await _ProcessTarArchive._scan(path, maxFileCount: maxFileCount);
   }
 }
 
@@ -64,22 +101,58 @@ abstract class TarArchive {
 class _ProcessTarArchive extends TarArchive {
   final String _path;
 
-  _ProcessTarArchive._(this._path, List<String> names) : super(names);
+  _ProcessTarArchive._(
+    this._path,
+    List<String> names,
+    Map<String, String> symlinks,
+  ) : super(names, symlinks);
 
   /// Creates a new instance by scanning the archive at [path].
-  static Future<_ProcessTarArchive> _scan(String path) async {
-    final args = ['-tzf', path];
-    final result = await Process.run('tar', args);
-    if (result.exitCode != 0) {
-      _logger.warning('The "tar $args" command failed:\n'
-          'with exit code: ${result.exitCode}\n'
-          'stdout: ${result.stdout}\n'
-          'stderr: ${result.stderr}');
-      throw Exception('Failed to list tarball contents.');
+  static Future<_ProcessTarArchive> _scan(
+    String path, {
+    int? maxFileCount,
+  }) async {
+    // normal file list
+    final rs1 = await _runTar(['-tzf', path]);
+    final names = <String>{};
+    for (final name in (rs1.stdout as String).split('\n')) {
+      if (name.isEmpty) continue;
+      if (!names.add(name)) {
+        throw Exception('Duplicate tar entry: `$name`.');
+      }
     }
 
-    final names = (result.stdout as String).split('\n').toList();
-    return _ProcessTarArchive._(path, names);
+    final fileCount = names.length;
+    if (maxFileCount != null && fileCount > maxFileCount) {
+      throw Exception('Maximum file count reached: $maxFileCount.');
+    }
+
+    // symlink file list
+    final symlinks = <String, String>{};
+    final rs2 = await _runTar(['-tvzf', path]);
+    for (final line in (rs2.stdout as String).split('\n')) {
+      if (line.startsWith('l')) {
+        final parts = line.split(' -> ');
+        if (parts.length != 2) {
+          throw Exception('Unable to parse symlinks: $line');
+        }
+        symlinks[parts.first.trim().split(' ').last] = parts.last.trim();
+      }
+    }
+
+    return _ProcessTarArchive._(path, names.toList(), symlinks);
+  }
+
+  static Future<ProcessResult> _runTar(List<String> args) async {
+    final rs = await Process.run('tar', args);
+    if (rs.exitCode != 0) {
+      _logger.warning('The "tar $args" command failed:\n'
+          'with exit code: ${rs.exitCode}\n'
+          'stdout: ${rs.stdout}\n'
+          'stderr: ${rs.stderr}');
+      throw Exception('Failed to list tarball contents.');
+    }
+    return rs;
   }
 
   /// Reads a text content of [name] from the tar.gz file identified by [_path].
@@ -107,21 +180,49 @@ class _ProcessTarArchive extends TarArchive {
 
 class _PkgTarArchive extends TarArchive {
   final String _path;
-  _PkgTarArchive._(this._path, List<String> names) : super(names);
+  _PkgTarArchive._(
+    this._path,
+    List<String> names,
+    Map<String, String> symlinks,
+  ) : super(names, symlinks);
 
   /// Creates a new instance by scanning the archive at [path].
-  static Future<_PkgTarArchive> _scan(String path) async {
-    final names = <String>[];
+  static Future<_PkgTarArchive> _scan(
+    String path, {
+    int? maxFileCount,
+    int? maxTotalLengthBytes,
+  }) async {
+    final names = <String>{};
+    final symlinks = <String, String>{};
     final reader = TarReader(
       File(path).openRead().transform(gzip.decoder),
       disallowTrailingData: true,
     );
+    int fileCount = 0;
+    int totalLengthBytes = 0;
     while (await reader.moveNext()) {
       final entry = reader.current;
-      names.add(entry.name);
+
+      fileCount++;
+      if (maxFileCount != null && fileCount > maxFileCount) {
+        throw Exception('Maximum file count reached: $maxFileCount.');
+      }
+
+      totalLengthBytes += entry.size;
+      if (maxTotalLengthBytes != null &&
+          totalLengthBytes > maxTotalLengthBytes) {
+        throw Exception('Maximum total length reached: $maxTotalLengthBytes.');
+      }
+
+      if (!names.add(entry.name)) {
+        throw Exception('Duplicate tar entry: `${entry.name}`.');
+      }
+      if (entry.header.linkName != null) {
+        symlinks[entry.name] = entry.header.linkName!;
+      }
     }
     await reader.cancel();
-    return _PkgTarArchive._(path, names);
+    return _PkgTarArchive._(path, names.toList(), symlinks);
   }
 
   @override

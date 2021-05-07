@@ -16,7 +16,8 @@ import '../account/backend.dart';
 import '../account/models.dart';
 import '../dartdoc/backend.dart';
 import '../job/model.dart';
-import '../package/backend.dart' show TarballStorage, packageBackend;
+import '../package/backend.dart'
+    show TarballStorage, checkPackageVersionParams, packageBackend;
 import '../package/models.dart';
 import '../publisher/models.dart';
 import '../scorecard/models.dart';
@@ -472,6 +473,7 @@ class AdminBackend {
   Future<api.AssignedTags> handleGetAssignedTags(
     String packageName,
   ) async {
+    checkPackageVersionParams(packageName);
     await _requireAdminPermission(AdminPermission.manageAssignedTags);
     final package = await packageBackend.lookupPackage(packageName);
     if (package == null) {

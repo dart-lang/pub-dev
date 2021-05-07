@@ -12,12 +12,15 @@ import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
+import 'package:retry/retry.dart';
 
 import 'utils.dart' show contentType, jsonUtf8Encoder, retryAsync;
 import 'versions.dart' as versions;
 
 final _gzip = GZipCodec();
 final _logger = Logger('shared.storage');
+
+const _retryStatusCodes = <int>{502, 503, 504};
 
 /// Additional methods on buckets.
 extension BucketExt on Bucket {
@@ -48,15 +51,25 @@ Future<Bucket> getOrCreateBucket(Storage storage, String name) async {
 /// Returns `true` if the object was deleted by this operation, `false` if it
 /// didn't exist at the time of the operation.
 Future<bool> deleteFromBucket(Bucket bucket, String objectName) async {
-  try {
-    await bucket.delete(objectName);
-    return true;
-  } on DetailedApiRequestError catch (e) {
-    if (e.status != 404) {
-      rethrow;
+  Future<bool> delete() async {
+    try {
+      await bucket.delete(objectName);
+      return true;
+    } on DetailedApiRequestError catch (e) {
+      if (e.status != 404) {
+        rethrow;
+      }
+      return false;
     }
-    return false;
   }
+
+  return await retry(
+    delete,
+    delayFactor: Duration(seconds: 10),
+    maxAttempts: 3,
+    retryIf: (e) =>
+        e is DetailedApiRequestError && _retryStatusCodes.contains(e.status),
+  );
 }
 
 /// Deletes a [folder] in a [bucket], recursively listing all of its subfolders.
@@ -73,9 +86,17 @@ Future<int> deleteBucketFolderRecursively(
   var count = 0;
   Page<BucketEntry> page;
   while (page == null || !page.isLast) {
-    page = page == null
-        ? await bucket.page(prefix: folder, delimiter: '', pageSize: 100)
-        : await page.next(pageSize: 100);
+    page = await retry(
+      () async {
+        return page == null
+            ? await bucket.page(prefix: folder, delimiter: '', pageSize: 100)
+            : await page.next(pageSize: 100);
+      },
+      delayFactor: Duration(seconds: 10),
+      maxAttempts: 3,
+      retryIf: (e) =>
+          e is DetailedApiRequestError && _retryStatusCodes.contains(e.status),
+    );
     final futures = <Future>[];
     final pool = Pool(concurrency ?? 1);
     for (final entry in page.items) {
@@ -104,7 +125,7 @@ Future uploadWithRetry(Bucket bucket, String objectName, int length,
     description: 'Upload to $objectName',
     shouldRetryOnError: (e) {
       if (e is DetailedApiRequestError) {
-        return e.status == 502 || e.status == 503 || e.status == 504;
+        return _retryStatusCodes.contains(e.status);
       }
       return false;
     },

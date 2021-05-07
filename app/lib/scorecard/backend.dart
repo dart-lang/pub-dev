@@ -366,6 +366,7 @@ class PackageStatus {
   final bool isLegacy;
   final bool usesFlutter;
   final bool usesPreviewSdk;
+  final bool isPublishedByDartDev;
 
   PackageStatus._({
     this.exists,
@@ -377,6 +378,7 @@ class PackageStatus {
     this.isLegacy = false,
     this.usesFlutter = false,
     this.usesPreviewSdk = false,
+    this.isPublishedByDartDev = false,
   });
 
   factory PackageStatus.fromModels(
@@ -399,6 +401,8 @@ class PackageStatus {
       isLegacy: pv.pubspec.supportsOnlyLegacySdk,
       usesFlutter: pv.pubspec.usesFlutter,
       usesPreviewSdk: pv.pubspec.isPreviewForCurrentSdk(currentSdkVersion),
+      isPublishedByDartDev:
+          p.publisherId != null && isDartDevPublisher(p.publisherId),
     );
   }
 }

@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:meta/meta.dart';
 
 part 'page_data.g.dart';
 
@@ -18,9 +17,9 @@ final pageDataJsonCodec = json.fuse(utf8).fuse(base64);
 /// using [pageDataJsonCodec].
 @JsonSerializable(includeIfNull: false)
 class PageData {
-  final String consentId;
-  final PkgData pkgData;
-  final PublisherData publisher;
+  final String? consentId;
+  final PkgData? pkgData;
+  final PublisherData? publisher;
 
   PageData({
     this.consentId,
@@ -47,15 +46,15 @@ class PkgData {
 
   /// PublisherId of publisher that owns this package, `null` if the package
   /// isn't owned by a publisher.
-  final String publisherId;
+  final String? publisherId;
   final bool isDiscontinued;
 
   PkgData({
-    @required this.package,
-    @required this.version,
-    @required this.publisherId,
-    @required this.isDiscontinued,
-    @required this.likes,
+    required this.package,
+    required this.version,
+    required this.publisherId,
+    required this.isDiscontinued,
+    required this.likes,
   });
 
   factory PkgData.fromJson(Map<String, dynamic> json) =>
@@ -70,7 +69,7 @@ class PublisherData {
   final String publisherId;
 
   PublisherData({
-    @required this.publisherId,
+    required this.publisherId,
   });
 
   factory PublisherData.fromJson(Map<String, dynamic> json) =>

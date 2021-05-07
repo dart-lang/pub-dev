@@ -399,7 +399,19 @@ MIT'''),
             'package': 'latlong',
             'score': closeTo(0.71, 0.01),
           },
-        ]
+        ],
+        'highlightedHit': {'package': 'haversine'},
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {
+            'package': 'great_circle_distance',
+            'score': closeTo(0.72, 0.01),
+          },
+          {
+            'package': 'latlong',
+            'score': closeTo(0.71, 0.01),
+          },
+        ],
       });
     });
 
@@ -415,7 +427,14 @@ MIT'''),
             'package': 'haversine',
             'score': closeTo(0.64, 0.01),
           },
-        ]
+        ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {
+            'package': 'haversine',
+            'score': closeTo(0.64, 0.01),
+          },
+        ],
       });
     });
   });

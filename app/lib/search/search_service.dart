@@ -618,6 +618,9 @@ class PackageSearchResult {
   final DateTime timestamp;
   final int totalCount;
   final List<PackageScore> packages;
+  final PackageHit highlightedHit;
+  final List<SdkLibraryHit> sdkLibraryHits;
+  final List<PackageHit> packageHits;
 
   /// An optional message from the search service / client library, in case
   /// the query was not processed entirely.
@@ -627,13 +630,21 @@ class PackageSearchResult {
     @required this.timestamp,
     this.totalCount,
     List<PackageScore> packages,
+    this.highlightedHit,
+    List<SdkLibraryHit> sdkLibraryHits,
+    List<PackageHit> packageHits,
     this.message,
-  }) : packages = packages ?? [];
+  })  : packages = packages ?? <PackageScore>[],
+        sdkLibraryHits = sdkLibraryHits ?? <SdkLibraryHit>[],
+        packageHits = packageHits ?? <PackageHit>[];
 
   PackageSearchResult.empty({this.message})
       : timestamp = DateTime.now().toUtc(),
         totalCount = 0,
-        packages = [];
+        packages = <PackageScore>[],
+        highlightedHit = null,
+        sdkLibraryHits = <SdkLibraryHit>[],
+        packageHits = <PackageHit>[];
 
   factory PackageSearchResult.fromJson(Map<String, dynamic> json) =>
       _$PackageSearchResultFromJson(json);
@@ -643,6 +654,7 @@ class PackageSearchResult {
   Map<String, dynamic> toJson() => _$PackageSearchResultToJson(this);
 }
 
+/// TODO: remove after all running instances are using only [PackageHit].
 @JsonSerializable()
 class PackageScore {
   final String package;
@@ -696,6 +708,50 @@ class PackageScore {
   bool get isExternal => url != null && version != null && description != null;
 
   Map<String, dynamic> toJson() => _$PackageScoreToJson(this);
+}
+
+@JsonSerializable(includeIfNull: false)
+class SdkLibraryHit {
+  final String sdk;
+  final String version;
+  final String library;
+  final String description;
+  final String url;
+  final double score;
+  final List<ApiPageRef> apiPages;
+
+  SdkLibraryHit({
+    @required this.sdk,
+    @required this.version,
+    @required this.library,
+    @required this.description,
+    @required this.url,
+    @required this.score,
+    @required this.apiPages,
+  });
+
+  factory SdkLibraryHit.fromJson(Map<String, dynamic> json) =>
+      _$SdkLibraryHitFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SdkLibraryHitToJson(this);
+}
+
+@JsonSerializable(includeIfNull: false)
+class PackageHit {
+  final String package;
+  final double score;
+  final List<ApiPageRef> apiPages;
+
+  PackageHit({
+    @required this.package,
+    @required this.score,
+    @required this.apiPages,
+  });
+
+  factory PackageHit.fromJson(Map<String, dynamic> json) =>
+      _$PackageHitFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PackageHitToJson(this);
 }
 
 @JsonSerializable()

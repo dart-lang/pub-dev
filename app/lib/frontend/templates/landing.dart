@@ -20,8 +20,9 @@ String renderLandingPage({
   List<PkgOfWeekVideo> topPoWVideos,
 }) {
   bool isNotEmptyList(List l) => l != null && l.isNotEmpty;
-  String renderMiniListIf(bool cond, List<PackageView> packages) =>
-      cond ? renderMiniList(packages) : null;
+  String renderMiniListIf(
+          bool cond, String sectionTag, List<PackageView> packages) =>
+      cond ? _renderMiniList(sectionTag, packages) : null;
 
   final hasFF = isNotEmptyList(ffPackages);
   final hasMostPopular = isNotEmptyList(mostPopularPackages);
@@ -30,16 +31,20 @@ String renderLandingPage({
   final hasPoW = isNotEmptyList(topPoWVideos);
   final values = {
     'has_ff': hasFF,
-    'ff_mini_list_html': renderMiniListIf(hasFF, ffPackages),
+    'ff_mini_list_html':
+        renderMiniListIf(hasFF, 'flutter-favorites', ffPackages),
     'ff_view_all_url': '/flutter/favorites',
     'has_mp': hasMostPopular,
-    'mp_mini_list_html': renderMiniListIf(hasMostPopular, mostPopularPackages),
+    'mp_mini_list_html':
+        renderMiniListIf(hasMostPopular, 'most-popular', mostPopularPackages),
     'mp_view_all_url': urls.searchUrl(order: urls.SearchOrder.popularity),
     'has_tf': hasTopFlutter,
-    'tf_mini_list_html': renderMiniListIf(hasTopFlutter, topFlutterPackages),
+    'tf_mini_list_html':
+        renderMiniListIf(hasTopFlutter, 'top-flutter', topFlutterPackages),
     'tf_view_all_url': urls.searchUrl(sdk: SdkTagValue.flutter),
     'has_td': hasTopDart,
-    'td_mini_list_html': renderMiniListIf(hasTopDart, topDartPackages),
+    'td_mini_list_html':
+        renderMiniListIf(hasTopDart, 'top-dart', topDartPackages),
     'td_view_all_url': urls.searchUrl(sdk: SdkTagValue.dart),
     'has_pow': hasPoW,
     'pow_mini_list_html': hasPoW ? _renderPoW(topPoWVideos) : null,
@@ -68,8 +73,9 @@ String _renderPoW(List<PkgOfWeekVideo> videos) {
 }
 
 /// Renders the `views/pkg/mini_list.mustache` template.
-String renderMiniList(List<PackageView> packages) {
+String _renderMiniList(String sectionTag, List<PackageView> packages) {
   final values = {
+    'section_tag': sectionTag,
     'packages': packages.map((package) {
       return {
         'name': package.name,

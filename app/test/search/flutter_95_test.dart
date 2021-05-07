@@ -38,6 +38,13 @@ void main() {
             'score': 1.0,
           },
         ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {
+            'package': 'flutter95',
+            'score': 1.0,
+          },
+        ],
       });
     });
   });

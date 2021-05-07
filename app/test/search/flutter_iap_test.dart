@@ -61,6 +61,13 @@ void main() {
             'score': 1.0,
           },
         ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {
+            'package': 'flutter_iap',
+            'score': 1.0,
+          },
+        ],
       });
     });
 
@@ -77,6 +84,9 @@ void main() {
             'score': 1.0,
           },
         ],
+        'highlightedHit': {'package': 'flutter_iap'},
+        'sdkLibraryHits': [],
+        'packageHits': [],
       });
     });
   });

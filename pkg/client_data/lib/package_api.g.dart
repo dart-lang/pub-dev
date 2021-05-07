@@ -9,7 +9,7 @@ part of 'package_api.dart';
 UploadInfo _$UploadInfoFromJson(Map<String, dynamic> json) {
   return UploadInfo(
     url: json['url'] as String,
-    fields: (json['fields'] as Map<String, dynamic>)?.map(
+    fields: (json['fields'] as Map<String, dynamic>?)?.map(
       (k, e) => MapEntry(k, e as String),
     ),
   );
@@ -23,9 +23,9 @@ Map<String, dynamic> _$UploadInfoToJson(UploadInfo instance) =>
 
 PkgOptions _$PkgOptionsFromJson(Map<String, dynamic> json) {
   return PkgOptions(
-    isDiscontinued: json['isDiscontinued'] as bool,
-    replacedBy: json['replacedBy'] as String,
-    isUnlisted: json['isUnlisted'] as bool,
+    isDiscontinued: json['isDiscontinued'] as bool?,
+    replacedBy: json['replacedBy'] as String?,
+    isUnlisted: json['isUnlisted'] as bool?,
   );
 }
 
@@ -38,7 +38,7 @@ Map<String, dynamic> _$PkgOptionsToJson(PkgOptions instance) =>
 
 PackagePublisherInfo _$PackagePublisherInfoFromJson(Map<String, dynamic> json) {
   return PackagePublisherInfo(
-    publisherId: json['publisherId'] as String,
+    publisherId: json['publisherId'] as String?,
   );
 }
 
@@ -50,9 +50,7 @@ Map<String, dynamic> _$PackagePublisherInfoToJson(
 
 SuccessMessage _$SuccessMessageFromJson(Map<String, dynamic> json) {
   return SuccessMessage(
-    success: json['success'] == null
-        ? null
-        : Message.fromJson(json['success'] as Map<String, dynamic>),
+    success: Message.fromJson(json['success'] as Map<String, dynamic>),
   );
 }
 
@@ -74,20 +72,19 @@ Map<String, dynamic> _$MessageToJson(Message instance) => <String, dynamic>{
 PackageData _$PackageDataFromJson(Map<String, dynamic> json) {
   return PackageData(
     name: json['name'] as String,
-    isDiscontinued: json['isDiscontinued'] as bool,
-    replacedBy: json['replacedBy'] as String,
-    latest: json['latest'] == null
-        ? null
-        : VersionInfo.fromJson(json['latest'] as Map<String, dynamic>),
-    versions: (json['versions'] as List)
-        ?.map((e) =>
-            e == null ? null : VersionInfo.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
+    isDiscontinued: json['isDiscontinued'] as bool?,
+    replacedBy: json['replacedBy'] as String?,
+    latest: VersionInfo.fromJson(json['latest'] as Map<String, dynamic>),
+    versions: (json['versions'] as List<dynamic>)
+        .map((e) => VersionInfo.fromJson(e as Map<String, dynamic>))
+        .toList(),
   );
 }
 
 Map<String, dynamic> _$PackageDataToJson(PackageData instance) {
-  final val = <String, dynamic>{};
+  final val = <String, dynamic>{
+    'name': instance.name,
+  };
 
   void writeNotNull(String key, dynamic value) {
     if (value != null) {
@@ -95,11 +92,10 @@ Map<String, dynamic> _$PackageDataToJson(PackageData instance) {
     }
   }
 
-  writeNotNull('name', instance.name);
   writeNotNull('isDiscontinued', instance.isDiscontinued);
   writeNotNull('replacedBy', instance.replacedBy);
-  writeNotNull('latest', instance.latest);
-  writeNotNull('versions', instance.versions);
+  val['latest'] = instance.latest;
+  val['versions'] = instance.versions;
   return val;
 }
 
@@ -107,7 +103,7 @@ VersionInfo _$VersionInfoFromJson(Map<String, dynamic> json) {
   return VersionInfo(
     version: json['version'] as String,
     pubspec: json['pubspec'] as Map<String, dynamic>,
-    archiveUrl: json['archive_url'] as String,
+    archiveUrl: json['archive_url'] as String?,
     published: json['published'] == null
         ? null
         : DateTime.parse(json['published'] as String),
@@ -124,10 +120,10 @@ Map<String, dynamic> _$VersionInfoToJson(VersionInfo instance) =>
 
 VersionScore _$VersionScoreFromJson(Map<String, dynamic> json) {
   return VersionScore(
-    grantedPoints: json['grantedPoints'] as int,
-    maxPoints: json['maxPoints'] as int,
-    likeCount: json['likeCount'] as int,
-    popularityScore: (json['popularityScore'] as num)?.toDouble(),
+    grantedPoints: json['grantedPoints'] as int?,
+    maxPoints: json['maxPoints'] as int?,
+    likeCount: json['likeCount'] as int?,
+    popularityScore: (json['popularityScore'] as num?)?.toDouble(),
     lastUpdated: json['lastUpdated'] == null
         ? null
         : DateTime.parse(json['lastUpdated'] as String),

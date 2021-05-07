@@ -51,7 +51,8 @@ class _PanaRunner implements PanaRunner {
         try {
           final PackageAnalyzer analyzer =
               PackageAnalyzer(toolEnv, urlChecker: _urlChecker);
-          final isInternal = internalPackageNames.contains(package);
+          final isInternal = internalPackageNames.contains(package) ||
+              packageStatus.isPublishedByDartDev;
           return await analyzer.inspectPackage(
             package,
             version: version,

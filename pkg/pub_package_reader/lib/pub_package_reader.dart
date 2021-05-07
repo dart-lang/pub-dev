@@ -4,16 +4,17 @@
 
 import 'dart:convert';
 
-import 'package:meta/meta.dart';
-import 'package:pub_package_reader/src/yaml_utils.dart';
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart' show YamlException, loadYaml;
 import 'package:logging/logging.dart';
 
+import 'src/archive_surface.dart';
 import 'src/file_names.dart';
 import 'src/names.dart';
 import 'src/tar_utils.dart';
+import 'src/yaml_utils.dart';
 
 final _logger = Logger('pub_package_reader');
 
@@ -31,19 +32,19 @@ class ArchiveIssue {
 /// The observed / extracted information of a package archive.
 class PackageSummary {
   final List<ArchiveIssue> issues;
-  final String pubspecContent;
-  final String readmePath;
-  final String readmeContent;
-  final String changelogPath;
-  final String changelogContent;
-  final String examplePath;
-  final String exampleContent;
-  final String licensePath;
-  final String licenseContent;
-  final List<String> libraries;
+  final String? pubspecContent;
+  final String? readmePath;
+  final String? readmeContent;
+  final String? changelogPath;
+  final String? changelogContent;
+  final String? examplePath;
+  final String? exampleContent;
+  final String? licensePath;
+  final String? licenseContent;
+  final List<String>? libraries;
 
   PackageSummary({
-    this.issues,
+    List<ArchiveIssue>? issues,
     this.pubspecContent,
     this.readmePath,
     this.readmeContent,
@@ -54,19 +55,62 @@ class PackageSummary {
     this.licensePath,
     this.licenseContent,
     this.libraries,
-  });
+  }) : issues = issues ?? <ArchiveIssue>[];
 
-  bool get hasIssues => issues != null && issues.isNotEmpty;
+  factory PackageSummary.fail(ArchiveIssue issue) =>
+      PackageSummary(issues: [issue]);
+
+  bool get hasIssues => issues.isNotEmpty;
 }
 
 /// Observe the .tar.gz archive on [archivePath] and return the results.
 Future<PackageSummary> summarizePackageArchive(
   String archivePath, {
-  @required int maxContentLength,
+
+  /// The maximum length of the extracted content text.
+  int maxContentLength = 128 * 1024,
+
+  /// The maximum file size of the archive (gzipped or compressed) and
+  /// the maximum total size of the files inside the archive.
+  int maxArchiveSize = 100 * 1024 * 1024,
+
+  /// The maximum number of files in the archive.
+  /// TODO: set this lower once we scan the existing archives
+  int maxFileCount = 64 * 1024,
   bool useNative = false,
 }) async {
   final issues = <ArchiveIssue>[];
-  final tar = await TarArchive.scan(archivePath, useNative: useNative);
+
+  // Run scans before tar parsing...
+  issues.addAll(
+      await scanArchiveSurface(archivePath, maxArchiveSize: maxArchiveSize)
+          .toList());
+  if (issues.isNotEmpty) {
+    return PackageSummary(issues: issues);
+  }
+
+  TarArchive tar;
+  try {
+    tar = await TarArchive.scan(
+      archivePath,
+      useNative: useNative,
+      maxFileCount: maxFileCount,
+      maxTotalLengthBytes: maxArchiveSize,
+    );
+  } catch (e, st) {
+    _logger.info('Failed to scan tar archive.', e, st);
+    return PackageSummary.fail(
+        ArchiveIssue('Failed to scan tar archive. ($e)'));
+  }
+
+  // symlinks check
+  final brokenSymlinks = tar.brokenSymlinks();
+  if (brokenSymlinks.isNotEmpty) {
+    final from = brokenSymlinks.keys.first;
+    final to = brokenSymlinks[from];
+    return PackageSummary.fail(ArchiveIssue(
+        'Package archive contains a broken symlink: `$from` -> `$to`.'));
+  }
 
   // processing pubspec.yaml
   final pubspecPath = tar.searchForFile(['pubspec.yaml']);
@@ -93,7 +137,7 @@ Future<PackageSummary> summarizePackageArchive(
     return PackageSummary(issues: issues);
   }
 
-  Pubspec pubspec;
+  Pubspec? pubspec;
   try {
     pubspec = Pubspec.parse(pubspecContent);
   } on YamlException catch (e) {
@@ -120,13 +164,13 @@ Future<PackageSummary> summarizePackageArchive(
     lowerCaseFiles.putIfAbsent(lower, () => <String>[]).add(file);
   }
   final fileNameCollisions =
-      lowerCaseFiles.values.firstWhere((l) => l.length > 1, orElse: () => null);
+      lowerCaseFiles.values.firstWhereOrNull((l) => l.length > 1);
   if (fileNameCollisions != null) {
     issues.add(ArchiveIssue(
         'Filename collision on case-preserving file systems: ${fileNameCollisions.join(' vs. ')}.'));
   }
 
-  if (pubspec.name == null || pubspec.name.trim().isEmpty) {
+  if (pubspec.name.trim().isEmpty) {
     issues.add(ArchiveIssue('pubspec.yaml is missing `name`.'));
     return PackageSummary(issues: issues);
   }
@@ -137,39 +181,39 @@ Future<PackageSummary> summarizePackageArchive(
 
   final package = pubspec.name;
 
-  Future<String> extractContent(String contentPath) async {
+  Future<String?> extractContent(String? contentPath) async {
     if (contentPath == null) return null;
     final content =
         await tar.readContentAsString(contentPath, maxLength: maxContentLength);
-    if (content != null && content.trim().isEmpty) {
+    if (content.trim().isEmpty) {
       return null;
     }
-    if (content != null && utf8.encode(content).length > maxContentLength) {
+    if (utf8.encode(content).length > maxContentLength) {
       issues.add(ArchiveIssue(
           '`$contentPath` exceeds the maximum content length ($maxContentLength bytes).'));
     }
     return content;
   }
 
-  String readmePath = tar.searchForFile(readmeFileNames);
+  String? readmePath = tar.searchForFile(readmeFileNames);
   final readmeContent = await extractContent(readmePath);
   if (readmeContent == null) {
     readmePath = null;
   }
 
-  String changelogPath = tar.searchForFile(changelogFileNames);
+  String? changelogPath = tar.searchForFile(changelogFileNames);
   final changelogContent = await extractContent(changelogPath);
   if (changelogContent == null) {
     changelogPath = null;
   }
 
-  String examplePath = tar.searchForFile(exampleFileCandidates(package));
+  String? examplePath = tar.searchForFile(exampleFileCandidates(package));
   final exampleContent = await extractContent(examplePath);
   if (exampleContent == null) {
     examplePath = null;
   }
 
-  String licensePath = tar.searchForFile(licenseFileNames);
+  String? licensePath = tar.searchForFile(licenseFileNames);
   final licenseContent = await extractContent(licensePath);
   if (licenseContent == null) {
     licensePath = null;
@@ -249,7 +293,7 @@ Iterable<ArchiveIssue> validatePackageName(String name) sync* {
 }
 
 /// Sanity checks for the package's version.
-Iterable<ArchiveIssue> validatePackageVersion(Version version) sync* {
+Iterable<ArchiveIssue> validatePackageVersion(Version? version) sync* {
   if (version.toString().length > 64) {
     yield ArchiveIssue('Package version must not exceed 64 characters. '
         '(Please file an issue if you think you have a good reason for a longer version.)');
@@ -270,7 +314,7 @@ String reducePackageName(String name) =>
     // we allow only `_` as part of the name.
     name.replaceAll('_', '').toLowerCase();
 
-Iterable<ArchiveIssue> syntaxCheckUrl(String url, String name) sync* {
+Iterable<ArchiveIssue> syntaxCheckUrl(String? url, String name) sync* {
   if (url == null) {
     return;
   }
@@ -284,8 +328,7 @@ Iterable<ArchiveIssue> syntaxCheckUrl(String url, String name) sync* {
     yield ArchiveIssue(
         'Use http:// or https:// URL schemes for $name URL: $url');
   }
-  if (uri.host == null ||
-      uri.host.isEmpty ||
+  if (uri.host.isEmpty ||
       !uri.host.contains('.') ||
       invalidHostNames.contains(uri.host)) {
     final titleCaseName = name[0].toUpperCase() + name.substring(1);
@@ -334,13 +377,13 @@ Iterable<ArchiveIssue> forbidGitDependencies(Pubspec pubspec) sync* {
     if (dep.hosted == null) {
       continue;
     }
-    if (dep.hosted.url != null) {
+    if (dep.hosted!.url != null) {
       yield ArchiveIssue(
         'Package dependency $name must be hosted on the default pub '
         'repository, and cannot have an explicit "url" specified',
       );
     }
-    if (dep.hosted.name != name) {
+    if (dep.hosted!.name != name) {
       yield ArchiveIssue(
         'Package dependency $name depends on a package with a different name',
       );
@@ -351,8 +394,8 @@ Iterable<ArchiveIssue> forbidGitDependencies(Pubspec pubspec) sync* {
 /// Check wether the pubspecContent can be converted to JSON
 Iterable<ArchiveIssue> checkValidJson(String pubspecContent) sync* {
   try {
-    final map = loadYaml(pubspecContent) as Map;
-    json.decode(json.encode(map)) as Map<String, dynamic>;
+    final map = loadYaml(pubspecContent) as Map?;
+    json.decode(json.encode(map)) as Map<String, dynamic>?;
   } on JsonUnsupportedObjectError catch (_) {
     yield ArchiveIssue(
         'pubspec.yaml contains values that can\'t be converted to JSON.');
@@ -364,10 +407,10 @@ Iterable<ArchiveIssue> checkValidJson(String pubspecContent) sync* {
 /// Validate that the package does not have a lower dependency on a pre-release
 /// Dart SDK, which is only allowed if the package itself is a pre-release.
 Iterable<ArchiveIssue> forbidPreReleaseSdk(Pubspec pubspec) sync* {
-  if (pubspec.version.isPreRelease) return;
-  final sdkConstraint = pubspec.environment['sdk'];
+  if (pubspec.version!.isPreRelease) return;
+  final sdkConstraint = pubspec.environment!['sdk'];
   if (sdkConstraint is VersionRange) {
-    if (sdkConstraint.min != null && sdkConstraint.min.isPreRelease) {
+    if (sdkConstraint.min != null && sdkConstraint.min!.isPreRelease) {
       yield ArchiveIssue(
           'Packages with an SDK constraint on a pre-release of the Dart SDK '
           'should themselves be published as a pre-release version. ');
@@ -383,10 +426,10 @@ const _pluginDocsUrl =
 Iterable<ArchiveIssue> forbidConflictingFlutterPluginSchemes(
   Pubspec pubspec,
 ) sync* {
-  if (pubspec.flutter is! Map || pubspec.flutter['plugin'] is! Map) {
+  if (pubspec.flutter is! Map || pubspec.flutter!['plugin'] is! Map) {
     return;
   }
-  final plugin = pubspec.flutter['plugin'] as Map;
+  final plugin = pubspec.flutter!['plugin'] as Map;
 
   // Determine if this uses the old format by checking if `flutter.plugin`
   // contains any of the following keys.
@@ -410,8 +453,8 @@ Iterable<ArchiveIssue> forbidConflictingFlutterPluginSchemes(
 
   if (usesNewPluginFormat &&
       (pubspec.environment == null ||
-          pubspec.environment['flutter'] == null ||
-          pubspec.environment['flutter'].allowsAny(VersionRange(
+          pubspec.environment!['flutter'] == null ||
+          pubspec.environment!['flutter']!.allowsAny(VersionRange(
             min: Version.parse('0.0.0'),
             max: Version.parse('1.10.0'),
             includeMin: true,
@@ -432,10 +475,10 @@ Iterable<ArchiveIssue> requireIosFolderOrFlutter2_20(
   Pubspec pubspec,
   List<String> files,
 ) sync* {
-  if (pubspec.flutter is! Map || pubspec.flutter['plugin'] is! Map) {
+  if (pubspec.flutter is! Map || pubspec.flutter!['plugin'] is! Map) {
     return;
   }
-  final plugin = pubspec.flutter['plugin'] as Map;
+  final plugin = pubspec.flutter!['plugin'] as Map;
 
   // Determine if this uses the new format by check if the:
   // `flutter.plugin.platforms` keys is defined.
@@ -443,8 +486,8 @@ Iterable<ArchiveIssue> requireIosFolderOrFlutter2_20(
 
   if (usesNewPluginFormat &&
       (pubspec.environment == null ||
-          pubspec.environment['flutter'] == null ||
-          pubspec.environment['flutter'].allowsAny(VersionRange(
+          pubspec.environment!['flutter'] == null ||
+          pubspec.environment!['flutter']!.allowsAny(VersionRange(
             min: Version.parse('0.0.0'),
             max: Version.parse('1.20.0'),
             includeMin: true,
@@ -460,7 +503,7 @@ Iterable<ArchiveIssue> requireIosFolderOrFlutter2_20(
 }
 
 Iterable<ArchiveIssue> requireNonEmptyLicense(
-    String path, String content) sync* {
+    String? path, String? content) sync* {
   if (path == null) {
     yield ArchiveIssue('LICENSE file not found.');
     return;

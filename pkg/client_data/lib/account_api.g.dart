@@ -8,7 +8,7 @@ part of 'account_api.dart';
 
 ClientSessionRequest _$ClientSessionRequestFromJson(Map<String, dynamic> json) {
   return ClientSessionRequest(
-    accessToken: json['accessToken'] as String,
+    accessToken: json['accessToken'] as String?,
   );
 }
 
@@ -20,7 +20,7 @@ Map<String, dynamic> _$ClientSessionRequestToJson(
 
 ClientSessionStatus _$ClientSessionStatusFromJson(Map<String, dynamic> json) {
   return ClientSessionStatus(
-    changed: json['changed'] as bool,
+    changed: json['changed'] as bool?,
     expires: json['expires'] == null
         ? null
         : DateTime.parse(json['expires'] as String),
@@ -37,11 +37,9 @@ Map<String, dynamic> _$ClientSessionStatusToJson(
 LikedPackagesRepsonse _$LikedPackagesRepsonseFromJson(
     Map<String, dynamic> json) {
   return LikedPackagesRepsonse(
-    likedPackages: (json['likedPackages'] as List)
-        ?.map((e) => e == null
-            ? null
-            : PackageLikeResponse.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
+    likedPackages: (json['likedPackages'] as List<dynamic>?)
+        ?.map((e) => PackageLikeResponse.fromJson(e as Map<String, dynamic>))
+        .toList(),
   );
 }
 
@@ -53,8 +51,8 @@ Map<String, dynamic> _$LikedPackagesRepsonseToJson(
 
 PackageLikeResponse _$PackageLikeResponseFromJson(Map<String, dynamic> json) {
   return PackageLikeResponse(
-    package: json['package'] as String,
-    liked: json['liked'] as bool,
+    package: json['package'] as String?,
+    liked: json['liked'] as bool?,
     created: json['created'] == null
         ? null
         : DateTime.parse(json['created'] as String),
@@ -71,8 +69,8 @@ Map<String, dynamic> _$PackageLikeResponseToJson(
 
 PackageLikesCount _$PackageLikesCountFromJson(Map<String, dynamic> json) {
   return PackageLikesCount(
-    package: json['package'] as String,
-    likes: json['likes'] as int,
+    package: json['package'] as String?,
+    likes: json['likes'] as int?,
   );
 }
 
@@ -84,7 +82,7 @@ Map<String, dynamic> _$PackageLikesCountToJson(PackageLikesCount instance) =>
 
 AccountPkgOptions _$AccountPkgOptionsFromJson(Map<String, dynamic> json) {
   return AccountPkgOptions(
-    isAdmin: json['isAdmin'] as bool,
+    isAdmin: json['isAdmin'] as bool?,
   );
 }
 
@@ -96,7 +94,7 @@ Map<String, dynamic> _$AccountPkgOptionsToJson(AccountPkgOptions instance) =>
 AccountPublisherOptions _$AccountPublisherOptionsFromJson(
     Map<String, dynamic> json) {
   return AccountPublisherOptions(
-    isAdmin: json['isAdmin'] as bool,
+    isAdmin: json['isAdmin'] as bool?,
   );
 }
 
@@ -132,14 +130,12 @@ Map<String, dynamic> _$ConsentResultToJson(ConsentResult instance) =>
 InviteStatus _$InviteStatusFromJson(Map<String, dynamic> json) {
   return InviteStatus(
     emailSent: json['emailSent'] as bool,
-    nextNotification: json['nextNotification'] == null
-        ? null
-        : DateTime.parse(json['nextNotification'] as String),
+    nextNotification: DateTime.parse(json['nextNotification'] as String),
   );
 }
 
 Map<String, dynamic> _$InviteStatusToJson(InviteStatus instance) =>
     <String, dynamic>{
       'emailSent': instance.emailSent,
-      'nextNotification': instance.nextNotification?.toIso8601String(),
+      'nextNotification': instance.nextNotification.toIso8601String(),
     };

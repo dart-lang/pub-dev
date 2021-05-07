@@ -84,6 +84,18 @@ PackageSearchResult _$PackageSearchResultFromJson(Map<String, dynamic> json) {
         ?.map((e) =>
             e == null ? null : PackageScore.fromJson(e as Map<String, dynamic>))
         ?.toList(),
+    highlightedHit: json['highlightedHit'] == null
+        ? null
+        : PackageHit.fromJson(json['highlightedHit'] as Map<String, dynamic>),
+    sdkLibraryHits: (json['sdkLibraryHits'] as List)
+        ?.map((e) => e == null
+            ? null
+            : SdkLibraryHit.fromJson(e as Map<String, dynamic>))
+        ?.toList(),
+    packageHits: (json['packageHits'] as List)
+        ?.map((e) =>
+            e == null ? null : PackageHit.fromJson(e as Map<String, dynamic>))
+        ?.toList(),
     message: json['message'] as String,
   );
 }
@@ -100,6 +112,9 @@ Map<String, dynamic> _$PackageSearchResultToJson(PackageSearchResult instance) {
   writeNotNull('timestamp', instance.timestamp?.toIso8601String());
   writeNotNull('totalCount', instance.totalCount);
   writeNotNull('packages', instance.packages);
+  writeNotNull('highlightedHit', instance.highlightedHit);
+  writeNotNull('sdkLibraryHits', instance.sdkLibraryHits);
+  writeNotNull('packageHits', instance.packageHits);
   writeNotNull('message', instance.message);
   return val;
 }
@@ -133,6 +148,66 @@ Map<String, dynamic> _$PackageScoreToJson(PackageScore instance) {
   writeNotNull('url', instance.url);
   writeNotNull('version', instance.version);
   writeNotNull('description', instance.description);
+  writeNotNull('apiPages', instance.apiPages);
+  return val;
+}
+
+SdkLibraryHit _$SdkLibraryHitFromJson(Map<String, dynamic> json) {
+  return SdkLibraryHit(
+    sdk: json['sdk'] as String,
+    version: json['version'] as String,
+    library: json['library'] as String,
+    description: json['description'] as String,
+    url: json['url'] as String,
+    score: (json['score'] as num)?.toDouble(),
+    apiPages: (json['apiPages'] as List)
+        ?.map((e) =>
+            e == null ? null : ApiPageRef.fromJson(e as Map<String, dynamic>))
+        ?.toList(),
+  );
+}
+
+Map<String, dynamic> _$SdkLibraryHitToJson(SdkLibraryHit instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('sdk', instance.sdk);
+  writeNotNull('version', instance.version);
+  writeNotNull('library', instance.library);
+  writeNotNull('description', instance.description);
+  writeNotNull('url', instance.url);
+  writeNotNull('score', instance.score);
+  writeNotNull('apiPages', instance.apiPages);
+  return val;
+}
+
+PackageHit _$PackageHitFromJson(Map<String, dynamic> json) {
+  return PackageHit(
+    package: json['package'] as String,
+    score: (json['score'] as num)?.toDouble(),
+    apiPages: (json['apiPages'] as List)
+        ?.map((e) =>
+            e == null ? null : ApiPageRef.fromJson(e as Map<String, dynamic>))
+        ?.toList(),
+  );
+}
+
+Map<String, dynamic> _$PackageHitToJson(PackageHit instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('package', instance.package);
+  writeNotNull('score', instance.score);
   writeNotNull('apiPages', instance.apiPages);
   return val;
 }

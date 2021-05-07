@@ -22,6 +22,9 @@ import 'models.dart';
 
 final _logger = Logger('pub.publisher.backend');
 
+/// Sanity check to limit publisherId length.
+const maxPublisherIdLength = 64;
+
 /// Sets the publisher backend service.
 void registerPublisherBackend(PublisherBackend backend) =>
     ss.register(#_publisherBackend, backend);
@@ -38,7 +41,7 @@ class PublisherBackend {
 
   /// Loads a publisher (or returns null if it does not exists).
   Future<Publisher> getPublisher(String publisherId) async {
-    ArgumentError.checkNotNull(publisherId, 'publisherId');
+    checkPublisherIdParam(publisherId);
     final pKey = _db.emptyKey.append(Publisher, id: publisherId);
     return await _db.lookupValue<Publisher>(pKey, orElse: () => null);
   }
@@ -98,7 +101,7 @@ class PublisherBackend {
   /// Loads the [PublisherMember] instance for [userId] (or returns null if it does not exists).
   Future<PublisherMember> getPublisherMember(
       String publisherId, String userId) async {
-    ArgumentError.checkNotNull(publisherId, 'publisherId');
+    checkPublisherIdParam(publisherId);
     ArgumentError.checkNotNull(userId, 'userId');
     final mKey = _db.emptyKey
         .append(Publisher, id: publisherId)
@@ -108,6 +111,7 @@ class PublisherBackend {
 
   /// Whether the User [userId] has admin permissions on the publisher.
   Future<bool> isMemberAdmin(String publisherId, String userId) async {
+    checkPublisherIdParam(publisherId);
     ArgumentError.checkNotNull(publisherId, 'publisherId');
     if (userId == null) return false;
     final member = await getPublisherMember(publisherId, userId);
@@ -120,6 +124,7 @@ class PublisherBackend {
     String publisherId,
     api.CreatePublisherRequest body,
   ) async {
+    checkPublisherIdParam(publisherId);
     final user = await requireAuthenticatedUser();
     // Sanity check that domains are:
     //  - lowercase (because we want that in pub.dev)
@@ -133,7 +138,7 @@ class PublisherBackend {
     InvalidInputException.checkStringLength(
       publisherId,
       'publisherId',
-      maximum: 64, // Some upper limit for sanity.
+      maximum: maxPublisherIdLength, // Some upper limit for sanity.
     );
     InvalidInputException.checkNotNull(body.accessToken, 'accessToken');
     InvalidInputException.checkStringLength(
@@ -207,6 +212,7 @@ class PublisherBackend {
 
   /// Gets the publisher data
   Future<api.PublisherInfo> getPublisherInfo(String publisherId) async {
+    checkPublisherIdParam(publisherId);
     final p = await getPublisher(publisherId);
     if (p == null) {
       throw NotFoundException('Publisher $publisherId does not exists.');
@@ -219,6 +225,7 @@ class PublisherBackend {
   /// Handles: `PUT /api/publishers/<publisherId>`
   Future<api.PublisherInfo> updatePublisher(
       String publisherId, api.UpdatePublisherRequest update) async {
+    checkPublisherIdParam(publisherId);
     if (update.description != null) {
       // limit length, if not null
       InvalidInputException.checkStringLength(
@@ -301,6 +308,7 @@ class PublisherBackend {
 
   /// Updates the contact email field of the publisher.
   Future updateContactEmail(String publisherId, String contactEmail) async {
+    checkPublisherIdParam(publisherId);
     final activeUser = await requireAuthenticatedUser();
     await requirePublisherAdmin(publisherId, activeUser.userId);
     InvalidInputException.check(
@@ -323,6 +331,7 @@ class PublisherBackend {
   /// Invites a user to become a publisher admin.
   Future<account_api.InviteStatus> invitePublisherMember(
       String publisherId, api.InviteMemberRequest invite) async {
+    checkPublisherIdParam(publisherId);
     final activeUser = await requireAuthenticatedUser();
     final p = await requirePublisherAdmin(publisherId, activeUser.userId);
     InvalidInputException.checkNotNull(invite.email, 'email');
@@ -354,6 +363,7 @@ class PublisherBackend {
   Future<List<api.PublisherMember>> listPublisherMembers(
     String publisherId,
   ) async {
+    checkPublisherIdParam(publisherId);
     final key = _db.emptyKey.append(Publisher, id: publisherId);
     // TODO: add caching
     final query = _db.query<PublisherMember>(ancestorKey: key);
@@ -370,6 +380,7 @@ class PublisherBackend {
   Future<api.PublisherMembers> handleListPublisherMembers(
     String publisherId,
   ) async {
+    checkPublisherIdParam(publisherId);
     final user = await requireAuthenticatedUser();
     await requirePublisherAdmin(publisherId, user.userId);
     return api.PublisherMembers(
@@ -380,6 +391,7 @@ class PublisherBackend {
   /// The list of email addresses of the members with admin roles. The list
   /// should be used to notify admins on upload events.
   Future<List<String>> getAdminMemberEmails(String publisherId) async {
+    checkPublisherIdParam(publisherId);
     final key = _db.emptyKey.append(Publisher, id: publisherId);
     final query = _db.query<PublisherMember>(ancestorKey: key);
     final userIds = await query.run().map((m) => m.userId).toList();
@@ -389,6 +401,7 @@ class PublisherBackend {
   /// Returns the membership info of a user.
   Future<api.PublisherMember> publisherMemberInfo(
       String publisherId, String userId) async {
+    checkPublisherIdParam(publisherId);
     final user = await requireAuthenticatedUser();
     final p = await requirePublisherAdmin(publisherId, user.userId);
     final key = p.key.append(PublisherMember, id: userId);
@@ -405,6 +418,7 @@ class PublisherBackend {
     String userId,
     api.UpdatePublisherMemberRequest update,
   ) async {
+    checkPublisherIdParam(publisherId);
     final user = await requireAuthenticatedUser();
     final p = await requirePublisherAdmin(publisherId, user.userId);
     final key = p.key.append(PublisherMember, id: userId);
@@ -436,6 +450,7 @@ class PublisherBackend {
 
   /// Deletes a publisher's member.
   Future<void> deletePublisherMember(String publisherId, String userId) async {
+    checkPublisherIdParam(publisherId);
     final user = await requireAuthenticatedUser();
     final p = await requirePublisherAdmin(publisherId, user.userId);
     if (userId == user.userId) {
@@ -460,6 +475,7 @@ class PublisherBackend {
   /// A callback from consent backend, when a consent is granted.
   /// Note: this will be retried when transaction fails due race conditions.
   Future<void> inviteConsentGranted(String publisherId, String userId) async {
+    checkPublisherIdParam(publisherId);
     final user = await accountBackend.lookupUserById(userId);
     await withRetryTransaction(_db, (tx) async {
       final key = _db.emptyKey
@@ -536,3 +552,14 @@ Future purgePublisherCache({String publisherId}) async {
 }
 
 String _publisherWebsite(String domain) => 'https://$domain/';
+
+/// Verify that the [publisherId] parameter looks as acceptable input.
+void checkPublisherIdParam(String publisherId) {
+  InvalidInputException.checkNotNull(publisherId, 'package');
+  InvalidInputException.check(
+      publisherId.trim() == publisherId, 'Invalid publisherId.');
+  InvalidInputException.check(
+      publisherId.contains('.'), 'Invalid publisherId.');
+  InvalidInputException.checkStringLength(publisherId, 'publisherId',
+      minimum: 3, maximum: 64);
+}

@@ -8,11 +8,21 @@ import 'package:test/test.dart';
 
 import 'package:fake_gcloud/mem_datastore.dart';
 
+final _longString = '0123456789abcdef' * 100; // 1600 bytes
+final _shortOf1M = '0123456789abcdef' * (65536 - 1);
+
 void main() {
   test('empty lookup', () async {
     final db = DatastoreDB(MemDatastore());
     final list = await db.lookup([db.emptyKey.append(Sample, id: 'x')]);
     expect(list, [null]);
+  });
+
+  test('too long empty lookup', () async {
+    final db = DatastoreDB(MemDatastore());
+    await expectLater(
+        () => db.lookup([db.emptyKey.append(Sample, id: _longString)]),
+        throwsA(isA<DatastoreError>()));
   });
 
   test('transaction with rollback', () async {
@@ -97,8 +107,17 @@ void main() {
   });
 
   group('property lengths', () {
-    final longString = '0123456789abcdef' * 100; // 1600 bytes
-    final shortOf1M = '0123456789abcdef' * (65536 - 1);
+    test('key element over 1500 bytes fails', () async {
+      final db = DatastoreDB(MemDatastore());
+      final rs = db.commit(
+        inserts: [
+          Sample()
+            ..parentKey = db.emptyKey
+            ..id = _longString
+        ],
+      );
+      await expectLater(rs, throwsA(isA<DatastoreError>()));
+    });
 
     test('indexed property over 1500 bytes fails', () async {
       final db = DatastoreDB(MemDatastore());
@@ -107,7 +126,7 @@ void main() {
           Sample()
             ..parentKey = db.emptyKey
             ..id = 'x'
-            ..type = longString,
+            ..type = _longString,
         ],
       );
       await expectLater(rs, throwsA(isA<DatastoreError>()));
@@ -120,11 +139,11 @@ void main() {
           Sample()
             ..parentKey = db.emptyKey
             ..id = 'x'
-            ..content = longString,
+            ..content = _longString,
           Sample()
             ..parentKey = db.emptyKey
             ..id = 'x'
-            ..content = shortOf1M,
+            ..content = _shortOf1M,
         ],
       );
     });
@@ -137,7 +156,7 @@ void main() {
             ..parentKey = db.emptyKey
             ..id = 'x'
             ..type = '0123456789abcdefghijklmonop' // pushes over 1M
-            ..content = shortOf1M,
+            ..content = _shortOf1M,
         ],
       );
       await expectLater(rs, throwsA(isA<DatastoreError>()));

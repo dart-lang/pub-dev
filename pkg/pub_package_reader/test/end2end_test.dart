@@ -12,7 +12,7 @@ import 'package:pub_package_reader/pub_package_reader.dart';
 
 void main() {
   group('end2end', () {
-    Directory tempDir;
+    late Directory tempDir;
 
     setUpAll(() async {
       tempDir = await Directory.systemTemp.createTemp();
@@ -33,7 +33,7 @@ void main() {
     Future<void> expandWithBytes(String path, List<int> bytes) async {
       final compressed = await File(path).readAsBytes();
       final uncompressed = gzip.decode(compressed);
-      await File(path).writeAsBytes([...uncompressed, ...bytes]);
+      await File(path).writeAsBytes(gzip.encode([...uncompressed, ...bytes]));
     }
 
     test('pana 0.12.19', () async {
@@ -52,18 +52,17 @@ void main() {
       }
 
       final path = await download('pana', '0.12.19');
-      verify(await summarizePackageArchive(path, maxContentLength: 128 * 1024));
-      verify(await summarizePackageArchive(path,
-          maxContentLength: 128 * 1024, useNative: true));
+      verify(await summarizePackageArchive(path));
+      verify(await summarizePackageArchive(path, useNative: true));
 
       await expandWithBytes(path, <int>[1]);
-      await expectLater(
-          () => summarizePackageArchive(path, maxContentLength: 128 * 1024),
-          throwsA(isA<Exception>()));
-      await expectLater(
-          () => summarizePackageArchive(path,
-              maxContentLength: 128 * 1024, useNative: true),
-          throwsA(isA<Exception>()));
+      verify(await summarizePackageArchive(path));
+      expect(
+          (await summarizePackageArchive(path, useNative: true))
+              .issues
+              .single
+              .message,
+          'Failed to scan tar archive. (FormatException: Illegal content after the end of the tar archive.)');
     });
 
     test('maxContentLength', () async {
@@ -78,13 +77,14 @@ void main() {
           maxContentLength: 16, useNative: true));
 
       await expandWithBytes(path, <int>[1]);
-      await expectLater(
-          () => summarizePackageArchive(path, maxContentLength: 16),
-          throwsA(isA<Exception>()));
-      await expectLater(
-          () => summarizePackageArchive(path,
-              maxContentLength: 16, useNative: true),
-          throwsA(isA<Exception>()));
+      verify(await summarizePackageArchive(path, maxContentLength: 16));
+      expect(
+          (await summarizePackageArchive(path,
+                  maxContentLength: 16, useNative: true))
+              .issues
+              .single
+              .message,
+          'Failed to scan tar archive. (FormatException: Illegal content after the end of the tar archive.)');
     });
   });
 }

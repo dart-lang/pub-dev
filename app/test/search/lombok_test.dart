@@ -34,6 +34,13 @@ void main() {
             'score': closeTo(0.63, 0.01),
           },
         ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {
+            'package': 'lombok',
+            'score': closeTo(0.63, 0.01),
+          },
+        ],
       });
     });
   });

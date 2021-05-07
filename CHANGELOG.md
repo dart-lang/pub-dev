@@ -2,9 +2,19 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bumped runtimeVersion to `2021.04.22`.
+ * NOTE: search API started to emit `PackageHit` and `SdkLibraryHit`.
+
+## `20210506t120400-all`
+ * Bumped runtimeVersion to `2021.05.03`.
+ * Upgraded stable Flutter analysis SDK to `2.0.6`.
+ * Upgraded preview Flutter analysis SDK to `2.2.0-10.2.pre`.
+ * NOTE: `DartdocEntry` status files are no longer stored in the Bucket,
+          only in Datastore's `DartdocRun` entity.
+
+## `20210428t105500-all`
+ * Bumped runtimeVersion to `2021.04.27`.
  * Upgraded stable Dart analysis SDK to `2.12.4`.
- * Upgraded preview Dart analysis SDK to `2.13.0-211.6.beta`.
+ * Upgraded preview Dart analysis SDK to `2.13.0-211.13.beta`.
  * Upgraded stable Flutter analysis SDK to `2.0.5`.
  * Upgraded preview Flutter analysis SDK to `2.2.0-10.1.pre`.
  * Upgraded pana to `0.16.0`.

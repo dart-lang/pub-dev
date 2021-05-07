@@ -13,8 +13,6 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-import 'package:pana/pana.dart' show runProc;
-import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -460,6 +458,7 @@ class PackageBackend {
 
   /// Returns the publisher info of a given package.
   Future<api.PackagePublisherInfo> getPublisherInfo(String packageName) async {
+    checkPackageVersionParams(packageName);
     final key = db.emptyKey.append(Package, id: packageName);
     final package = (await db.lookup<Package>([key])).single;
     if (package == null) {
@@ -471,6 +470,7 @@ class PackageBackend {
   /// Returns the number of likes of a given package.
   Future<account_api.PackageLikesCount> getPackageLikesCount(
       String packageName) async {
+    checkPackageVersionParams(packageName);
     final key = db.emptyKey.append(Package, id: packageName);
     final package = await db.lookupValue<Package>(key, orElse: () => null);
     if (package == null) {
@@ -572,7 +572,7 @@ class PackageBackend {
   /// Throws [NotFoundException] when the version is missing.
   Future<api.VersionInfo> lookupVersion(
       Uri baseUri, String package, String version) async {
-    InvalidInputException.checkSemanticVersion(version);
+    checkPackageVersionParams(package, version);
     final canonicalVersion = canonicalizeVersion(version);
     InvalidInputException.checkSemanticVersion(canonicalVersion);
 
@@ -667,11 +667,27 @@ class PackageBackend {
       }
       await _saveTarballToFS(_storage.readTempObject(guid), filename);
       _logger.info('Examining tarball content ($guid).');
-      await _verifyTarball(filename);
-      final archive = await summarizePackageArchive(filename,
-          maxContentLength: maxAssetContentLength);
+      final archive = await summarizePackageArchive(
+        filename,
+        maxContentLength: maxAssetContentLength,
+        maxArchiveSize: UploadSignerService.maxUploadSize,
+        useNative: true,
+      );
       if (archive.hasIssues) {
         throw PackageRejectedException(archive.issues.first.message);
+      }
+
+      // TODO: remove this after we are confident in the native (package:tar-based) checks above.
+      final oldSummary = await summarizePackageArchive(
+        filename,
+        maxContentLength: maxAssetContentLength,
+        maxArchiveSize: UploadSignerService.maxUploadSize,
+        useNative: false,
+      );
+      if (oldSummary.hasIssues) {
+        _logger.shout(
+            'Only old tar parsing exposed archive issue: ${oldSummary.issues.first.message}');
+        throw PackageRejectedException(oldSummary.issues.first.message);
       }
 
       final pubspec = Pubspec.fromYaml(archive.pubspecContent);
@@ -1127,53 +1143,6 @@ Future _saveTarballToFS(Stream<List<int>> data, String filename) async {
   _logger.info('Finished streaming tarball to FS.');
 }
 
-Future<void> _verifyTarball(String filename) async {
-  final file = File(filename);
-  // Some platforms may not be able to create an archive, only an empty file.
-  final fileSize = await file.length();
-  if (fileSize == 0) {
-    throw PackageRejectedException.archiveEmpty();
-  }
-  await verifyTarGzSymlinks(filename);
-}
-
-// Throws [PackageRejectedException] if the archive is not readable or if there
-// is any symlink in the archive.
-@visibleForTesting
-Future<void> verifyTarGzSymlinks(String filename) async {
-  Future<List<String>> listFiles(bool verbose) async {
-    final pr = await runProc(
-      ['tar', verbose ? '-tvf' : '-tf', filename],
-    );
-    if (pr.exitCode != 0) {
-      _logger.info('Rejecting package: tar returned with ${pr.exitCode}\n'
-          '${pr.stdout}\n${pr.stderr}');
-      throw PackageRejectedException.invalidTarGz();
-    }
-    return pr.stdout.toString().split('\n');
-  }
-
-  final fileNames = (await listFiles(false)).toSet();
-  final verboseLines = await listFiles(true);
-  // Check if the file has any symlink.
-  for (final line in verboseLines) {
-    if (line.startsWith('l')) {
-      // report only the source path
-      // if output is non-standard for any reason, this reports the full line
-      final parts = line.split(' -> ');
-      final source = parts.first.split(' ').last;
-      final target = parts.last;
-      if (p.isAbsolute(target)) {
-        throw PackageRejectedException.brokenSymlink(source, target);
-      }
-      final resolvedPath = p.normalize(Uri(path: source).resolve(target).path);
-      if (!fileNames.contains(resolvedPath)) {
-        throw PackageRejectedException.brokenSymlink(source, target);
-      }
-    }
-  }
-}
-
 class _UploadEntities {
   final PackageVersion packageVersion;
   final PackageVersionInfo packageVersionInfo;
@@ -1410,5 +1379,22 @@ class TarballStorageNamer {
   String tarballObjectUrl(String package, String version) {
     final object = tarballObjectName(package, Uri.encodeComponent(version));
     return '$storageBaseUrl/$bucket/$object';
+  }
+}
+
+/// Verify that the [package] and the optional [version] parameter looks as acceptable input.
+void checkPackageVersionParams(String package, [String version]) {
+  InvalidInputException.checkNotNull(package, 'package');
+  InvalidInputException.check(
+      package.trim() == package, 'Invalid package name.');
+  InvalidInputException.checkStringLength(package, 'package',
+      minimum: 1, maximum: 64);
+  if (version != null) {
+    InvalidInputException.check(version.trim() == version, 'Invalid version.');
+    InvalidInputException.checkStringLength(version, 'version',
+        minimum: 1, maximum: 64);
+    if (version != 'latest') {
+      InvalidInputException.checkSemanticVersion(version);
+    }
   }
 }

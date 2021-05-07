@@ -102,8 +102,8 @@ void main() {
     testWithProfile(
       '/packages/oxygen/versions/xyz - bad version',
       fn: () async {
-        await expectNotFoundResponse(
-            await issueGet('/packages/oxygen/versions/xyz'));
+        final rs = await issueGet('/packages/oxygen/versions/xyz');
+        expect(rs.statusCode, 400);
       },
     );
 

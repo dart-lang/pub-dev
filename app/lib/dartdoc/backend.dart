@@ -33,7 +33,7 @@ import 'storage_path.dart' as storage_path;
 final Logger _logger = Logger('pub.dartdoc.backend');
 
 final int _concurrentUploads = 8;
-final int _concurrentDeletes = 8;
+final int _concurrentDeletes = 4;
 
 /// Sets the dartdoc backend.
 void registerDartdocBackend(DartdocBackend backend) =>
@@ -96,7 +96,6 @@ class DartdocBackend {
     DartdocEntry oldEntry, {
     @required bool isLatest,
   }) async {
-    final newEntry = oldEntry.replace(isLatest: isLatest);
     await withRetryTransaction(_db, (tx) async {
       final oldRun = await tx.lookupOrNull<DartdocRun>(
           _db.emptyKey.append(DartdocRun, id: oldEntry.uuid));
@@ -110,7 +109,6 @@ class DartdocBackend {
       oldRun.wasLatestStable = isLatest;
       tx.insert(oldRun);
     });
-    await _storage.writeBytes(newEntry.entryObjectName, newEntry.asBytes());
   }
 
   /// Uploads a directory to the storage bucket.
@@ -127,10 +125,6 @@ class DartdocBackend {
     await withRetryTransaction(_db, (tx) async {
       tx.insert(run);
     });
-
-    // upload is in progress
-    await uploadBytesWithRetry(
-        _storage, entry.inProgressObjectName, entry.asBytes());
 
     // upload all files
     final dir = Directory(dirPath);
@@ -177,13 +171,6 @@ class DartdocBackend {
         tx.insert(r);
       }
     });
-
-    await uploadBytesWithRetry(
-        _storage, entry.entryObjectName, entry.asBytes());
-
-    // there is a small chance that the process is interrupted before this gets
-    // deleted, but the [removeObsolete] should be able to validate it.
-    await deleteFromBucket(_storage, entry.inProgressObjectName);
 
     await Future.wait([
       cache.dartdocEntry(entry.packageName, entry.packageVersion).purge(),
@@ -368,8 +355,7 @@ class DartdocBackend {
   }
 
   /// Removes incomplete uploads and old outputs from the bucket.
-  Future<void> _removeObsolete(String package, String version,
-      {int concurrency}) async {
+  Future<void> _removeObsolete(String package, String version) async {
     final completedList =
         await _listEntries(storage_path.entryPrefix(package, version));
     final inProgressList =
@@ -384,7 +370,7 @@ class DartdocBackend {
 
     // delete everything else
     for (var entry in deleteEntries) {
-      await _deleteAll(entry, concurrency: concurrency);
+      await _deleteAll(entry);
     }
   }
 
@@ -424,7 +410,7 @@ class DartdocBackend {
     return null;
   }
 
-  Future<void> _deleteAll(DartdocEntry entry, {int concurrency}) async {
+  Future<void> _deleteAll(DartdocEntry entry) async {
     await withRetryTransaction(_db, (tx) async {
       final r = await tx.lookupValue<DartdocRun>(
         _db.emptyKey.append(DartdocRun, id: entry.uuid),
@@ -436,7 +422,7 @@ class DartdocBackend {
       }
     });
 
-    await _deleteAllWithPrefix(entry.contentPrefix, concurrency: concurrency);
+    await _deleteAllWithPrefix(entry.contentPrefix);
     await deleteFromBucket(_storage, entry.entryObjectName);
     await deleteFromBucket(_storage, entry.inProgressObjectName);
     await withRetryTransaction(_db, (tx) async {

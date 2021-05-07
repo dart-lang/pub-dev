@@ -108,7 +108,7 @@ void main() {
 
     testWithProfile('/packages/flutter/versions/* - redirect', fn: () async {
       await expectRedirectResponse(
-        await issueGet('/packages/flutter/versions/0.20'),
+        await issueGet('/packages/flutter/versions/0.20.0'),
         'https://api.flutter.dev/',
       );
     });

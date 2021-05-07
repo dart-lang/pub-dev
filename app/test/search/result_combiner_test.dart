@@ -53,6 +53,10 @@ void main() {
         'packages': [
           {'package': 'stringutils', 'score': 0.4},
         ],
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {'package': 'stringutils', 'score': 0.4},
+        ],
       });
     });
 
@@ -63,6 +67,10 @@ void main() {
         'timestamp': isNotNull,
         'totalCount': 1,
         'packages': [
+          {'package': 'stringutils', 'score': closeTo(0.8, 0.01)},
+        ],
+        'sdkLibraryHits': [],
+        'packageHits': [
           {'package': 'stringutils', 'score': closeTo(0.8, 0.01)},
         ],
       });
@@ -92,6 +100,27 @@ void main() {
           },
           {'package': 'stringutils', 'score': closeTo(0.59, 0.01)},
         ],
+        'sdkLibraryHits': [
+          {
+            'sdk': 'dart',
+            'library': 'dart:core',
+            'description': 'Dart core utils',
+            'url':
+                'https://api.dartlang.org/stable/2.0.0/dart-core/String-class.html',
+            'score': closeTo(0.69, 0.01),
+            'apiPages': [
+              {
+                'title': null,
+                'path': 'dart-core/String-class.html',
+                'url':
+                    'https://api.dartlang.org/stable/2.0.0/dart-core/String-class.html'
+              }
+            ]
+          }
+        ],
+        'packageHits': [
+          {'package': 'stringutils', 'score': closeTo(0.59, 0.01)}
+        ],
       });
     });
 
@@ -119,6 +148,26 @@ void main() {
             ],
           },
         ],
+        'highlightedHit': {'package': 'stringutils'},
+        'sdkLibraryHits': [
+          {
+            'sdk': 'dart',
+            'library': 'dart:core',
+            'description': 'Dart core utils',
+            'url':
+                'https://api.dartlang.org/stable/2.0.0/dart-core/String-class.html',
+            'score': closeTo(0.69, 0.01),
+            'apiPages': [
+              {
+                'title': null,
+                'path': 'dart-core/String-class.html',
+                'url':
+                    'https://api.dartlang.org/stable/2.0.0/dart-core/String-class.html'
+              }
+            ]
+          }
+        ],
+        'packageHits': [],
       });
     });
   });

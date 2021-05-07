@@ -4,7 +4,14 @@
 
 final _none = <String>["'none'"];
 
-final defaultContentSecurityPolicyMap = <String, List<String>>{
+/// Content Security Policy (CSP) is an added layer of security that helps to
+/// detect and mitigate certain types of attacks, including Cross Site Scripting
+/// (XSS) and data injection attacks.
+///
+/// https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
+final defaultContentSecurityPolicySerialized = _serializeCSP(null);
+
+final _defaultContentSecurityPolicyMap = <String, List<String>>{
   'default-src': <String>[
     "'self'",
     'https:',
@@ -49,3 +56,17 @@ final defaultContentSecurityPolicyMap = <String, List<String>>{
     'https://tagmanager.google.com',
   ],
 };
+
+/// Returns the serialized string of the CSP header.
+String _serializeCSP(Map<String, String> extraValues) {
+  final keys = <String>{
+    ..._defaultContentSecurityPolicyMap.keys,
+    if (extraValues != null) ...extraValues.keys,
+  };
+  return keys.map((key) {
+    final list = _defaultContentSecurityPolicyMap[key];
+    final extra = extraValues == null ? null : extraValues[key];
+    final extraStr = (extra == null || extra.trim().isEmpty) ? '' : ' $extra';
+    return '$key ${list.join(' ')}$extraStr';
+  }).join(';');
+}

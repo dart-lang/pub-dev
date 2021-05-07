@@ -63,6 +63,9 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
             'score': 1.0,
           },
         ],
+        'highlightedHit': {'package': 'travis'},
+        'sdkLibraryHits': [],
+        'packageHits': [],
       });
     });
   });
