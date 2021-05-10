@@ -370,10 +370,12 @@ class _ConnectionRefreshingCacheProvider<T> implements CacheProvider<T> {
       return await _delegate
           .get(key)
           .timeout(_defaultCacheReadTimeout, onTimeout: () => null);
+    } on IntermittentCacheException catch (e) {
+      _log.info('Redis access failed.', e);
     } catch (e, st) {
       _log.warning('Redis access failed.', e, st);
-      return null;
     }
+    return null;
   }
 
   @override
