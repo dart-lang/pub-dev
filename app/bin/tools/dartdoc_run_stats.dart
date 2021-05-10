@@ -21,34 +21,45 @@ final _mb = 1024 * 1024;
 
 Future<void> main(List<String> args) async {
   final ArgParser parser = ArgParser()
-    ..addOption('output', help: 'The report output file (or stdout otherwise)');
-  final ArgResults argv = parser.parse(args);
+    ..addOption('output', help: 'The report output file (or stdout otherwise)')
+    ..addOption('runtime-version',
+        help: 'Specify runtimeVersion of use `all`.',
+        defaultsTo: runtimeVersion);
+  final argv = parser.parse(args);
+  final rv = argv['runtime-version'];
 
   final durations = <String, DartdocEntry>{};
   final archives = <String, DartdocEntry>{};
   final totals = <String, DartdocEntry>{};
 
   await withToolRuntime(() async {
-    final query = dbService.query<DartdocRun>()
-      ..filter('runtimeVersion =', runtimeVersion);
+    final query = dbService.query<DartdocRun>();
+    if (rv != 'all') {
+      query.filter('runtimeVersion =', rv);
+    }
     var scanned = 0;
     await for (final dr in query.run()) {
       final entry = dr.entry;
 
-      final prevDuration = durations[dr.package];
-      if (prevDuration == null ||
-          prevDuration.runDuration < entry.runDuration) {
-        durations[dr.package] = entry;
+      if (entry.runDuration != null) {
+        final prevDuration = durations[dr.package];
+        if (prevDuration == null ||
+            prevDuration.runDuration < entry.runDuration) {
+          durations[dr.package] = entry;
+        }
       }
 
-      final prevArchive = archives[dr.package];
-      if (prevArchive == null || prevArchive.archiveSize < entry.archiveSize) {
-        archives[dr.package] = entry;
-      }
+      if (entry.archiveSize != null && entry.totalSize != null) {
+        final prevArchive = archives[dr.package];
+        if (prevArchive == null ||
+            prevArchive.archiveSize < entry.archiveSize) {
+          archives[dr.package] = entry;
+        }
 
-      final prevTotal = totals[dr.package];
-      if (prevTotal == null || prevTotal.totalSize < entry.totalSize) {
-        totals[dr.package] = entry;
+        final prevTotal = totals[dr.package];
+        if (prevTotal == null || prevTotal.totalSize < entry.totalSize) {
+          totals[dr.package] = entry;
+        }
       }
 
       scanned++;
@@ -109,22 +120,10 @@ Future<void> main(List<String> args) async {
       'dart-version': sum(topDurations.take(1000), (e) => e.sdkVersion),
       'flutter-version': sum(topDurations.take(1000), (e) => e.flutterVersion),
     },
-    'archive-100': {
-      '10MB': buckets(topArchives.take(100), (e) => e.archiveSize ~/ _mb, 10),
-      '100MB': buckets(topArchives.take(100), (e) => e.archiveSize ~/ _mb, 100),
-    },
-    'archive-500': {
-      '10MB': buckets(topArchives.take(500), (e) => e.archiveSize ~/ _mb, 10),
-      '100MB': buckets(topArchives.take(500), (e) => e.archiveSize ~/ _mb, 100),
-    },
-    'total-100': {
-      '10MB': buckets(topTotals.take(100), (e) => e.totalSize ~/ _mb, 10),
-      '100MB': buckets(topTotals.take(100), (e) => e.totalSize ~/ _mb, 100),
-    },
-    'total-500': {
-      '10MB': buckets(topTotals.take(500), (e) => e.totalSize ~/ _mb, 10),
-      '100MB': buckets(topTotals.take(500), (e) => e.totalSize ~/ _mb, 100),
-    },
+    'archive-1MB': buckets(topArchives, (e) => e.archiveSize ~/ _mb),
+    'archive-10MB': buckets(topArchives, (e) => e.archiveSize ~/ _mb, 10),
+    'total-1MB': buckets(topTotals, (e) => e.totalSize ~/ _mb),
+    'total-10MB': buckets(topTotals, (e) => e.totalSize ~/ _mb, 10),
   };
 
   final json = JsonEncoder.withIndent('  ').convert(report);
