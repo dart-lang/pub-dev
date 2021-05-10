@@ -2,6 +2,8 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bumped runtimeVersion to `2021.05.10`.
+ * Upgraded preview Dart analysis SDK to `2.13.0-211.14.beta`.
  * NOTE: search API started to emit `PackageHit` and `SdkLibraryHit`.
 
 ## `20210506t120400-all`
