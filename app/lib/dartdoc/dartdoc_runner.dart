@@ -404,7 +404,7 @@ class DartdocJobProcessor extends JobProcessor {
       }
       if (abortMessage == null && dartdocResult != null) {
         final output =
-            _mergeOutput(dartdocResult.processResult, compressStdout: true);
+            _mergeOutput(dartdocResult.processResult, compress: true);
         abortMessage = '`dartdoc` failed with:\n\n```\n$output\n```';
       }
       abortMessage ??= '`dartdoc` failed with unknown reason.';
@@ -445,7 +445,7 @@ class DartdocJobProcessor extends JobProcessor {
       final message = pr.stderr.toString() ?? '';
       final isUserProblem = message.contains('version solving failed') ||
           message.contains('Git error.');
-      final output = _mergeOutput(pr, compressStdout: true);
+      final output = _mergeOutput(pr, compress: true);
       if (!isUserProblem) {
         logger.warning('Error while running pub upgrade for $job.\n$output');
       }
@@ -525,7 +525,7 @@ class DartdocJobProcessor extends JobProcessor {
           _isKnownFailurePattern(_mergeOutput(r.processResult))) {
         logger.info('Error while running dartdoc for $job (see log.txt).');
       } else {
-        final output = _mergeOutput(r.processResult, compressStdout: true);
+        final output = _mergeOutput(r.processResult, compress: true);
         logger.warning('Error while running dartdoc for $job.\n$output');
       }
     }
@@ -655,19 +655,24 @@ bool _isKnownFailurePattern(String output) {
 }
 
 /// Merges the stdout and stderr of [ProcessResult] into a single String, which
-/// can be used in log messages. For long output, set [compressStdout] to true,
-/// keeping only the beginning and the end of stdout.
-String _mergeOutput(ProcessResult pr, {bool compressStdout = false}) {
-  String stdout = pr.stdout.toString();
-  if (compressStdout) {
-    final list = stdout.split('\n');
-    if (list.length > 50) {
-      stdout = list.take(20).join('\n') +
-          '\n[...]\n' +
-          list.skip(list.length - 20).join('\n');
+/// can be used in log messages. For long output, set [compress] to true,
+/// keeping only the beginning and the end of stdout/stderr.
+String _mergeOutput(ProcessResult pr, {bool compress = false}) {
+  String doCompress(String input) {
+    if (compress) {
+      final list = input.split('\n');
+      if (list.length > 50) {
+        return list.take(20).join('\n') +
+            '\n[...]\n' +
+            list.skip(list.length - 20).join('\n');
+      }
     }
+    return input;
   }
-  return 'exitCode: ${pr.exitCode}\nstdout: $stdout\nstderr: ${pr.stderr}\n';
+
+  final stdout = doCompress(pr.stdout.toString());
+  final stderr = doCompress(pr.stderr.toString());
+  return 'exitCode: ${pr.exitCode}\nstdout: $stdout\nstderr: $stderr\n';
 }
 
 DartdocReport _emptyReport() => DartdocReport(
