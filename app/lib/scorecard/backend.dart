@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:pool/pool.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../package/models.dart' show Package, PackageVersion;
@@ -36,7 +37,13 @@ final _fallbackMinimumAge = const Duration(hours: 4);
 ///
 /// The Datastore limit is 1000, but that caused resource constraint issues
 /// https://github.com/dart-lang/pub-dev/issues/4040
-const _batchLookupMaxKeyCount = 100;
+///
+/// Another issue was if the total size of the reports got too long
+/// https://github.com/dart-lang/pub-dev/issues/4780
+const _batchLookupMaxKeyCount = 10;
+
+/// The concurrent request for the batch lookup.
+const _batchLookupConcurrency = 4;
 
 /// Sets the active scorecard backend.
 void registerScoreCardBackend(ScoreCardBackend backend) =>
@@ -188,7 +195,8 @@ class ScoreCardBackend {
     @required String reportType,
     String runtimeVersion,
   }) async {
-    final results = <ReportData>[];
+    final pool = Pool(_batchLookupConcurrency);
+    final futures = <Future<List<ReportData>>>[];
     for (var start = 0;
         start < versions.length;
         start += _batchLookupMaxKeyCount) {
@@ -199,9 +207,18 @@ class ScoreCardBackend {
               scoreCardKey(packageName, v, runtimeVersion: runtimeVersion)
                   .append(ScoreCardReport, id: reportType))
           .toList();
-      final items = await _db.lookup<ScoreCardReport>(keys);
-      results.addAll(items.map((item) => item?.reportData));
+      final f = pool.withResource(() async {
+        final items = await _db.lookup<ScoreCardReport>(keys);
+        return items.map((item) => item?.reportData).toList();
+      });
+      futures.add(f);
     }
+    final lists = await Future.wait(futures);
+    final results = lists.fold<List<ReportData>>(
+      <ReportData>[],
+      (r, list) => r..addAll(list),
+    );
+    await pool.close();
     return results;
   }
 
