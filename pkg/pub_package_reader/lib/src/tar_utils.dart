@@ -238,7 +238,7 @@ class _PkgTarArchive extends TarArchive {
         final builder = BytesBuilder();
         await for (final chunk in reader.current.contents) {
           builder.add(chunk);
-          if (builder.length >= maxLength) break;
+          if (maxLength > 0 && builder.length >= maxLength) break;
         }
         String content = utf8.decode(builder.toBytes(), allowMalformed: true);
         if (maxLength > 0 && content.length > maxLength) {
