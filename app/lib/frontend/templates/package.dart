@@ -114,10 +114,10 @@ String _renderInstallTab(PackageVersion selectedVersion, List<String> tags) {
     editorSupportedToolHtml = '<code>dart pub get</code>';
   }
 
+  final bool isDevDependency = devDependencyPackages.contains(packageName);
   return templateCache.renderTemplate('pkg/install_tab', {
-    'dependencies_key': devDependencyPackages.contains(packageName)
-        ? 'dev_dependencies'
-        : 'dependencies',
+    'dependencies_key': isDevDependency ? 'dev_dependencies' : 'dependencies',
+    'pub_add_arguments': isDevDependency ? '--dev' : '',
     'use_as_an_executable': hasExecutables,
     'use_as_a_library': !hasExecutables || importExamples.isNotEmpty,
     'package': packageName,

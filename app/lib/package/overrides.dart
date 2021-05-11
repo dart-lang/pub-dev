@@ -65,6 +65,8 @@ const devDependencyPackages = <String>{
   'build_test',
   'build_verify',
   'build_web_compilers',
+  'flutter_lints',
+  'lints',
   'test',
   'test_descriptor',
   'test_process',
