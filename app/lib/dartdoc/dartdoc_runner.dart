@@ -170,8 +170,9 @@ class _DartdocRunner implements DartdocRunner {
       'PUB_HOSTED_URL': activeConfiguration.primaryApiUri.toString(),
       if (flutterRoot != null) 'FLUTTER_ROOT': flutterRoot,
     };
+    final dartCmd = p.join(toolEnv.dartSdkDir, 'bin', 'dart');
     final pr = await runProc(
-      ['dart', 'bin/pub_dartdoc.dart', ...args],
+      [dartCmd, 'bin/pub_dartdoc.dart', ...args],
       environment: environment,
       workingDirectory: resolvePubDartdocDirPath(),
       timeout: useLongerTimeout ? _packageTimeoutExtended : _packageTimeout,
