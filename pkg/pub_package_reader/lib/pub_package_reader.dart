@@ -27,6 +27,8 @@ class ArchiveIssue {
 
   @override
   String toString() => message;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{'message': message};
 }
 
 /// The observed / extracted information of a package archive.
@@ -61,6 +63,20 @@ class PackageSummary {
       PackageSummary(issues: [issue]);
 
   bool get hasIssues => issues.isNotEmpty;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'issues': issues.map((i) => i.toJson()).toList(),
+        'pubspec': pubspecContent,
+        'readmePath': readmePath,
+        'readmeContent': readmeContent,
+        'changelogPath': changelogPath,
+        'changelogContent': changelogContent,
+        'examplePath': examplePath,
+        'exampleContent': exampleContent,
+        'licensePath': licensePath,
+        'licenseContent': licenseContent,
+        'libraries': libraries,
+      };
 }
 
 /// Observe the .tar.gz archive on [archivePath] and return the results.
