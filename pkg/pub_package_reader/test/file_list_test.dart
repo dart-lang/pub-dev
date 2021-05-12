@@ -36,14 +36,8 @@ void main() {
           symlinks: {from: to},
         );
 
-        Future<void> verify(bool useNative) async {
-          final summary = await summarizePackageArchive(archiveFile.path,
-              useNative: useNative);
-          expect(summary.hasIssues, isFalse);
-        }
-
-        await verify(false);
-        await verify(true);
+        final summary = await summarizePackageArchive(archiveFile.path);
+        expect(summary.hasIssues, isFalse);
       });
     }
 
@@ -55,15 +49,9 @@ void main() {
           symlinks: {from: to},
         );
 
-        Future<void> verify(bool useNative) async {
-          final summary = await summarizePackageArchive(archiveFile.path,
-              useNative: useNative);
-          expect(summary.issues.single.message,
-              'Package archive contains a broken symlink: `$from` -> `$to`.');
-        }
-
-        await verify(false);
-        await verify(true);
+        final summary = await summarizePackageArchive(archiveFile.path);
+        expect(summary.issues.single.message,
+            'Package archive contains a broken symlink: `$from` -> `$to`.');
       });
     }
 
@@ -94,15 +82,9 @@ void main() {
         symlinks: {'README.md': 'CHANGELOG.md'},
       );
 
-      Future<void> verify(bool useNative) async {
-        final summary = await summarizePackageArchive(archiveFile.path,
-            useNative: useNative);
-        expect(summary.issues.single.message,
-            'Failed to scan tar archive. (Exception: Duplicate tar entry: `README.md`.)');
-      }
-
-      await verify(false);
-      await verify(true);
+      final summary = await summarizePackageArchive(archiveFile.path);
+      expect(summary.issues.single.message,
+          'Failed to scan tar archive. (Exception: Duplicate tar entry: `README.md`.)');
     });
   });
 }

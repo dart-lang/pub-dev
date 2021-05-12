@@ -53,15 +53,9 @@ void main() {
 
       final path = await download('pana', '0.12.19');
       verify(await summarizePackageArchive(path));
-      verify(await summarizePackageArchive(path, useNative: true));
 
       await expandWithBytes(path, <int>[1]);
-      verify(await summarizePackageArchive(path));
-      expect(
-          (await summarizePackageArchive(path, useNative: true))
-              .issues
-              .single
-              .message,
+      expect((await summarizePackageArchive(path)).issues.single.message,
           'Failed to scan tar archive. (FormatException: Illegal content after the end of the tar archive.)');
     });
 
@@ -73,14 +67,10 @@ void main() {
 
       final path = await download('pana', '0.12.19');
       verify(await summarizePackageArchive(path, maxContentLength: 16));
-      verify(await summarizePackageArchive(path,
-          maxContentLength: 16, useNative: true));
 
       await expandWithBytes(path, <int>[1]);
-      verify(await summarizePackageArchive(path, maxContentLength: 16));
       expect(
-          (await summarizePackageArchive(path,
-                  maxContentLength: 16, useNative: true))
+          (await summarizePackageArchive(path, maxContentLength: 16))
               .issues
               .single
               .message,

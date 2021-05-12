@@ -44,28 +44,17 @@ void main() {
 
     test('file has garbage bytes', () async {
       await archiveFile.writeAsBytes(<int>[1, 2, 3, 4, 5, 6, 7]);
-      final s1 = await summarizePackageArchive(archiveFile.path);
-      expect(s1.issues, isNotEmpty);
-      expect(s1.issues.single.message,
-          'gzip decoder failed: FormatException: Filter error, bad data.');
-
-      final s2 =
-          await summarizePackageArchive(archiveFile.path, useNative: true);
-      expect(s2.issues, isNotEmpty);
-      expect(s2.issues.single.message,
+      final summary = await summarizePackageArchive(archiveFile.path);
+      expect(summary.issues, isNotEmpty);
+      expect(summary.issues.single.message,
           'gzip decoder failed: FormatException: Filter error, bad data.');
     });
 
     test('file has garbage gzip-encoded bytes', () async {
       await archiveFile.writeAsBytes(gzip.encode(<int>[1, 2, 3, 4, 5, 6, 7]));
-      final s1 = await summarizePackageArchive(archiveFile.path);
-      expect(s1.issues, isNotEmpty);
-      expect(s1.issues.single.message, 'pubspec.yaml is missing.');
-
-      final s2 =
-          await summarizePackageArchive(archiveFile.path, useNative: true);
-      expect(s2.issues, isNotEmpty);
-      expect(s2.issues.single.message,
+      final summary = await summarizePackageArchive(archiveFile.path);
+      expect(summary.issues, isNotEmpty);
+      expect(summary.issues.single.message,
           'Failed to scan tar archive. (FormatException: Invalid header: Unexpected end of file)');
     });
 
