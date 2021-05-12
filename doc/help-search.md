@@ -1,6 +1,8 @@
 # Search
 
-`pub.dev` supports the following search expressions:
+## Query expressions
+
+`pub.dev` supports the following search query expressions:
 
   - `"exact phrase"`: By default, when you perform a search, the results include
     packages with similar phrases. When a phrase is inside quotes, you'll see
@@ -18,7 +20,7 @@
   - `email:user@example.com`: Search for packages where either the author or the
     uploader has the specified email address.
 
-## Search filters
+## Filters
 
 The search UI also supports filters:
 
@@ -31,7 +33,7 @@ The search UI also supports filters:
   - To use platform filters for alpha platforms (e.g. Flutter Desktop), use
     the Advanced option on the far right of the search bar.
 
-## Search ranking
+## Ranking
 
 Default listings use a composite of the three scores to sort packages. The
 ranking is based on the composite score, and if applicable, the platform

@@ -52,7 +52,7 @@ class PublicPagesScript {
         'additional checks in the future');
 
     _contains(await _pubClient.getContent('/help/search'),
-        'supports the following search expressions');
+        'supports the following search query expressions');
 
     _contains(await _pubClient.getContent('/help/publishing'),
         'It also allows you to share your packages with the world.');
