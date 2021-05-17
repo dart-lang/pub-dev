@@ -671,23 +671,9 @@ class PackageBackend {
         filename,
         maxContentLength: maxAssetContentLength,
         maxArchiveSize: UploadSignerService.maxUploadSize,
-        useNative: true,
       );
       if (archive.hasIssues) {
         throw PackageRejectedException(archive.issues.first.message);
-      }
-
-      // TODO: remove this after we are confident in the native (package:tar-based) checks above.
-      final oldSummary = await summarizePackageArchive(
-        filename,
-        maxContentLength: maxAssetContentLength,
-        maxArchiveSize: UploadSignerService.maxUploadSize,
-        useNative: false,
-      );
-      if (oldSummary.hasIssues) {
-        _logger.shout(
-            'Only old tar parsing exposed archive issue: ${oldSummary.issues.first.message}');
-        throw PackageRejectedException(oldSummary.issues.first.message);
       }
 
       final pubspec = Pubspec.fromYaml(archive.pubspecContent);

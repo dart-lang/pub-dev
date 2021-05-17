@@ -77,7 +77,6 @@ Future<PackageSummary> summarizePackageArchive(
   /// The maximum number of files in the archive.
   /// TODO: set this lower once we scan the existing archives
   int maxFileCount = 64 * 1024,
-  bool useNative = false,
 }) async {
   final issues = <ArchiveIssue>[];
 
@@ -93,7 +92,6 @@ Future<PackageSummary> summarizePackageArchive(
   try {
     tar = await TarArchive.scan(
       archivePath,
-      useNative: useNative,
       maxFileCount: maxFileCount,
       maxTotalLengthBytes: maxArchiveSize,
     );

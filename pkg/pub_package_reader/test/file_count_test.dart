@@ -40,23 +40,16 @@ void main() {
 
     test('below the limit', () async {
       await _writeWithFiles(1024);
-      final s1 = await summarizePackageArchive(archiveFile.path,
-          maxFileCount: 1024, useNative: false);
-      expect(s1.hasIssues, isFalse);
-      final s2 = await summarizePackageArchive(archiveFile.path,
-          maxFileCount: 1024, useNative: true);
-      expect(s2.hasIssues, isFalse);
+      final summary =
+          await summarizePackageArchive(archiveFile.path, maxFileCount: 1024);
+      expect(summary.hasIssues, isFalse);
     });
 
     test('above the limit', () async {
       await _writeWithFiles(1025);
-      final s1 = await summarizePackageArchive(archiveFile.path,
-          maxFileCount: 1024, useNative: false);
-      expect(s1.issues.single.message,
-          'Failed to scan tar archive. (Exception: Maximum file count reached: 1024.)');
-      final s2 = await summarizePackageArchive(archiveFile.path,
-          maxFileCount: 1024, useNative: true);
-      expect(s2.issues.single.message,
+      final summary =
+          await summarizePackageArchive(archiveFile.path, maxFileCount: 1024);
+      expect(summary.issues.single.message,
           'Failed to scan tar archive. (Exception: Maximum file count reached: 1024.)');
     });
   });
