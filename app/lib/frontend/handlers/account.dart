@@ -225,7 +225,7 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
   final html = renderAccountPackagesPage(
     user: await accountBackend.lookupUserById(userSessionData.userId),
     userSessionData: userSessionData,
-    packages: searchResult.packages,
+    searchResultPage: searchResult,
     pageLinks: links,
     searchForm: searchForm,
     totalCount: totalCount,

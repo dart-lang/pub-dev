@@ -85,7 +85,7 @@ Future<shelf.Response> publisherPackagesPageHandler(
 
   final html = renderPublisherPackagesPage(
     publisher: publisher,
-    packages: searchResult.packages,
+    searchResultPage: searchResult,
     pageLinks: links,
     searchForm: searchForm,
     totalCount: totalCount,

@@ -91,7 +91,7 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
   final links = PageLinks(searchForm, totalCount);
   final result = htmlResponse(
     renderPkgIndexPage(
-      searchResult.packages,
+      searchResult,
       links,
       sdk: sdk,
       searchForm: searchForm,
