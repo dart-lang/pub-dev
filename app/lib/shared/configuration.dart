@@ -2,11 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert' show json;
 import 'dart:io';
 
 import 'package:collection/collection.dart' show UnmodifiableSetView;
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
+import 'package:yaml/yaml.dart';
+
+part 'configuration.g.dart';
 
 final _configurationKey = #_active_configuration;
 
@@ -38,6 +43,12 @@ const _fakeSiteAudience = 'fake-site-audience';
 /// The configuration define the location of the Datastore with the
 /// package metadata and the Cloud Storage bucket for the actual package
 /// tar files.
+@JsonSerializable(
+  anyMap: true,
+  explicitToJson: true,
+  checked: true,
+  disallowUnrecognizedKeys: true,
+)
 class Configuration {
   /// The name of the Cloud Storage bucket to use for uploaded package content.
   final String packageBucketName;
@@ -130,12 +141,21 @@ class Configuration {
   /// The identifier of admins.
   final List<AdminId> admins;
 
+  factory Configuration.fromYamlFile(final String path) {
+    final file = File(path);
+    final content = file.readAsStringSync();
+    final map =
+        json.decode(json.encode(loadYaml(content))) as Map<String, dynamic>;
+    return Configuration.fromJson(map);
+  }
+
   /// Create a configuration for production deployment.
   ///
   /// This will use the Datastore from the cloud project and the Cloud Storage
   /// bucket 'pub-packages'. The credentials for accessing the Cloud
   /// Storage is retrieved from the Datastore.
-  factory Configuration._prod() {
+  @visibleForTesting
+  factory Configuration.prod() {
     final projectId = 'dartlang-pub';
     return Configuration(
       projectId: projectId,
@@ -180,7 +200,8 @@ class Configuration {
   }
 
   /// Create a configuration for development/staging deployment.
-  factory Configuration._dev() {
+  @visibleForTesting
+  factory Configuration.staging() {
     final projectId = 'dartlang-pub-dev';
     return Configuration(
       projectId: projectId,
@@ -254,11 +275,17 @@ class Configuration {
   /// Create a configuration based on the environment variables.
   factory Configuration.fromEnv(EnvConfig env) {
     if (env.gcloudProject == 'dartlang-pub') {
-      return Configuration._prod();
+      return Configuration.prod();
     } else if (env.gcloudProject == 'dartlang-pub-dev') {
-      return Configuration._dev();
+      return Configuration.staging();
+    } else if (env.configPath?.isEmpty ?? true) {
+      throw Exception(
+          'Unknown project id: ${env.gcloudProject}. Please setup env var GCLOUD_PROJECT or PUB_SERVER_CONFIG');
+    } else if (File(env.configPath).existsSync()) {
+      return Configuration.fromYamlFile(env.configPath);
     } else {
-      throw Exception('Unknown project id: ${env.gcloudProject}');
+      throw Exception(
+          'File ${env.configPath} doesnt exist. Please ensure PUB_SERVER_CONFIG env is pointing to the existing config');
     }
   }
 
@@ -327,6 +354,10 @@ class Configuration {
       ],
     );
   }
+
+  factory Configuration.fromJson(Map<String, dynamic> json) =>
+      _$ConfigurationFromJson(json);
+  Map<String, dynamic> toJson() => _$ConfigurationToJson(this);
 }
 
 /// Configuration from the environment variables.
@@ -353,6 +384,9 @@ class EnvConfig {
   final int frontendCount;
   final int workerCount;
 
+  // Config Path points to configuratio file
+  final String configPath;
+
   EnvConfig._(
     this.gaeService,
     this.gaeVersion,
@@ -365,6 +399,7 @@ class EnvConfig {
     this.previewFlutterSdkDir,
     this.frontendCount,
     this.workerCount,
+    this.configPath,
   );
 
   factory EnvConfig._detect() {
@@ -384,6 +419,7 @@ class EnvConfig {
       Platform.environment['TOOL_PREVIEW_FLUTTER_SDK'],
       frontendCount,
       workerCount,
+      Platform.environment['PUB_SERVER_CONFIG'],
     );
   }
 
@@ -395,6 +431,12 @@ class EnvConfig {
 final EnvConfig envConfig = EnvConfig._detect();
 
 /// Data structure to describe an admin user.
+@JsonSerializable(
+  anyMap: true,
+  explicitToJson: true,
+  checked: true,
+  disallowUnrecognizedKeys: true,
+)
 class AdminId {
   final String oauthUserId;
   final String email;
@@ -408,6 +450,10 @@ class AdminId {
     @required this.email,
     @required Iterable<AdminPermission> permissions,
   }) : permissions = UnmodifiableSetView(Set.from(permissions));
+
+  factory AdminId.fromJson(Map<String, dynamic> json) =>
+      _$AdminIdFromJson(json);
+  Map<String, dynamic> toJson() => _$AdminIdToJson(this);
 }
 
 /// Permission that can be granted to administrators.
