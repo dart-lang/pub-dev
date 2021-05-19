@@ -180,7 +180,7 @@ String renderTags({
       'title': 'Analysis should be ready soon.',
     });
   }
-  if (!package.isExternal && tagValues.isEmpty && tagBadges.isEmpty) {
+  if (tagValues.isEmpty && tagBadges.isEmpty) {
     tagValues.add({
       'status': 'unidentified',
       'text': '[unidentified]',

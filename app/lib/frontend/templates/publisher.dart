@@ -7,7 +7,7 @@ import 'package:client_data/page_data.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_dev/shared/markdown.dart';
 
-import '../../package/models.dart' show PackageView;
+import '../../package/search_adapter.dart' show SearchResultPage;
 import '../../publisher/models.dart' show Publisher, PublisherSummary;
 import '../../search/search_form.dart' show SearchForm;
 import '../../shared/urls.dart' as urls;
@@ -78,7 +78,7 @@ String _shortDescriptionHtml(Publisher publisher) {
 /// Renders the search results on the publisher's packages page.
 String renderPublisherPackagesPage({
   @required Publisher publisher,
-  @required List<PackageView> packages,
+  @required SearchResultPage searchResultPage,
   @required String messageFromBackend,
   @required PageLinks pageLinks,
   @required SearchForm searchForm,
@@ -91,9 +91,8 @@ String renderPublisherPackagesPage({
     title += ' | Page ${pageLinks.currentPage}';
   }
 
-  final packageListHtml = packages.isEmpty
-      ? ''
-      : renderPackageList(packages, searchForm: searchForm);
+  final packageListHtml =
+      searchResultPage.hasNoHit ? '' : renderPackageList(searchResultPage);
   final paginationHtml = renderPagination(pageLinks);
 
   final tabContent = [
@@ -134,7 +133,7 @@ String renderPublisherPackagesPage({
     searchForm: searchForm,
     canonicalUrl: searchForm.toSearchLink(),
     // index only the first page, if it has packages displayed without search query
-    noIndex: packages.isEmpty || isSearch || pageLinks.currentPage > 1,
+    noIndex: searchResultPage.hasNoHit || isSearch || pageLinks.currentPage > 1,
     mainClasses: [wideHeaderDetailPageClassName],
   );
 }

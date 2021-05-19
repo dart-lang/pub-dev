@@ -79,8 +79,23 @@ class SearchAdapter {
   /// provide package names and perform search in that set.
   Future<SearchResultPage> search(SearchForm form) async {
     final result = await _searchOrFallback(form, true);
-    return SearchResultPage(form, result.totalCount,
-        await getPackageViews(result.packages), result.message);
+    final views = await _getPackageViewsFromHits(
+      [
+        if (result.highlightedHit != null) result.highlightedHit,
+        if (result.packageHits != null) ...result.packageHits,
+      ],
+    );
+    return SearchResultPage(
+      form,
+      result.totalCount,
+      highlightedHit: result.highlightedHit == null
+          ? null
+          : views[result.highlightedHit.package],
+      sdkLibraryHits: result.sdkLibraryHits ?? [],
+      packageHits:
+          result.packageHits?.map((h) => views[h.package])?.toList() ?? [],
+      message: result.message,
+    );
   }
 
   Future<PackageSearchResult> _searchOrFallback(
@@ -131,6 +146,10 @@ class SearchAdapter {
     return PackageSearchResult(
         timestamp: DateTime.now().toUtc(),
         packages: scores,
+        packageHits: scores
+            .map((s) => PackageHit(
+                package: s.package, score: s.score, apiPages: s.apiPages))
+            .toList(),
         totalCount: totalCount,
         message:
             'Search is temporarily impaired, filtering and ranking may be incorrect.');
@@ -171,36 +190,23 @@ class SearchAdapter {
     return await Future.wait(futures);
   }
 
-  Future<List<PackageView>> getPackageViews(List<PackageScore> packages) async {
-    final packageNames =
-        packages.where((ps) => !ps.isExternal).map((ps) => ps.package).toList();
-    final pubPackages = <String, PackageView>{};
-    for (final view in await _getPackageViews(packageNames)) {
-      // The package may have been deleted, but the index still has it.
-      if (view == null) continue;
-      pubPackages[view.name] = view;
+  Future<Map<String, PackageView>> _getPackageViewsFromHits(
+      List<PackageHit> hits) async {
+    final results = <String, PackageView>{};
+    final futures = <Future>[];
+    for (final hit in hits) {
+      final f = _pool.withResource(() async {
+        final view = await _getPackageView(hit.package);
+        if (view == null) {
+          // The package may have been deleted, but the index still has it.
+          return;
+        }
+        results[hit.package] = view.change(apiPages: hit.apiPages);
+      });
+      futures.add(f);
     }
-
-    return packages
-        .map((ps) {
-          if (pubPackages.containsKey(ps.package)) {
-            final view = pubPackages[ps.package];
-            return view.change(apiPages: ps.apiPages);
-          }
-          if (ps.isExternal) {
-            return PackageView(
-              isExternal: true,
-              url: ps.url,
-              version: ps.version,
-              name: ps.package,
-              ellipsizedDescription: ps.description,
-              apiPages: ps.apiPages,
-            );
-          }
-          return null;
-        })
-        .where((pv) => pv != null)
-        .toList();
+    await Future.wait(futures);
+    return results;
   }
 
   Future<void> close() async {
@@ -216,15 +222,34 @@ class SearchResultPage {
   /// The total number of results available for the search.
   final int totalCount;
 
-  /// The packages found by the search.
-  final List<PackageView> packages;
+  final PackageView highlightedHit;
+
+  final List<SdkLibraryHit> sdkLibraryHits;
+
+  /// The current list of packages on the page.
+  final List<PackageView> packageHits;
 
   /// An optional message from the search service / client library, in case
   /// the query was not processed entirely.
   final String message;
 
-  SearchResultPage(this.form, this.totalCount, this.packages, this.message);
+  SearchResultPage(
+    this.form,
+    this.totalCount, {
+    this.highlightedHit,
+    List<SdkLibraryHit> sdkLibraryHits,
+    List<PackageView> packageHits,
+    this.message,
+  })  : sdkLibraryHits = sdkLibraryHits ?? <SdkLibraryHit>[],
+        packageHits = packageHits ?? <PackageView>[];
 
-  factory SearchResultPage.empty(SearchForm form, {String message}) =>
-      SearchResultPage(form, 0, [], message);
+  SearchResultPage.empty(this.form, {this.message})
+      : totalCount = 0,
+        highlightedHit = null,
+        sdkLibraryHits = <SdkLibraryHit>[],
+        packageHits = [];
+
+  bool get hasNoHit =>
+      highlightedHit == null && sdkLibraryHits.isEmpty && packageHits.isEmpty;
+  bool get hasHit => !hasNoHit;
 }

@@ -43,8 +43,6 @@ Map<String, dynamic> _$ReleaseToJson(Release instance) => <String, dynamic>{
 
 PackageView _$PackageViewFromJson(Map<String, dynamic> json) {
   return PackageView(
-    isExternal: json['isExternal'] as bool,
-    url: json['url'] as String,
     name: json['name'] as String,
     version: json['version'] as String,
     prereleaseVersion: json['prereleaseVersion'] as String,
@@ -80,8 +78,6 @@ Map<String, dynamic> _$PackageViewToJson(PackageView instance) {
     }
   }
 
-  writeNotNull('isExternal', instance.isExternal);
-  writeNotNull('url', instance.url);
   writeNotNull('name', instance.name);
   writeNotNull('version', instance.version);
   writeNotNull('prereleaseVersion', instance.prereleaseVersion);

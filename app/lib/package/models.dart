@@ -650,8 +650,6 @@ class QualifiedVersionKey {
 /// display-only uses.
 @JsonSerializable(includeIfNull: false)
 class PackageView extends Object with FlagMixin {
-  final bool isExternal;
-  final String url;
   final String name;
   final String version;
 
@@ -687,8 +685,6 @@ class PackageView extends Object with FlagMixin {
   final List<ApiPageRef> apiPages;
 
   PackageView({
-    this.isExternal = false,
-    this.url,
     this.name,
     this.version,
     this.prereleaseVersion,
@@ -760,8 +756,6 @@ class PackageView extends Object with FlagMixin {
 
   PackageView change({List<ApiPageRef> apiPages}) {
     return PackageView(
-      isExternal: isExternal,
-      url: url,
       name: name,
       version: version,
       prereleaseVersion: prereleaseVersion,

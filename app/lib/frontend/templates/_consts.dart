@@ -9,23 +9,28 @@ import '../../shared/tags.dart' show SdkTagValue;
 class SdkDict {
   final String topSdkPackages;
   final String searchPackagesLabel;
+  final String libraryTypeLabel;
 
   const SdkDict({
     @required this.topSdkPackages,
     @required this.searchPackagesLabel,
+    @required this.libraryTypeLabel,
   });
 
   const SdkDict.any()
       : topSdkPackages = 'Top packages',
-        searchPackagesLabel = 'Search packages';
+        searchPackagesLabel = 'Search packages',
+        libraryTypeLabel = 'SDK library';
 
   const SdkDict.dart()
       : topSdkPackages = 'Top Dart packages',
-        searchPackagesLabel = 'Search Dart packages';
+        searchPackagesLabel = 'Search Dart packages',
+        libraryTypeLabel = 'Dart SDK library';
 
   const SdkDict.flutter()
       : topSdkPackages = 'Top Flutter packages',
-        searchPackagesLabel = 'Search Flutter packages';
+        searchPackagesLabel = 'Search Flutter packages',
+        libraryTypeLabel = 'Flutter SDK library';
 }
 
 /// Returns the dictionary spec for [sdk].

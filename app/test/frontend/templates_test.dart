@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:html/parser.dart';
 import 'package:pana/pana.dart' hide ReportStatus;
+import 'package:pub_dev/package/search_adapter.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:xml/xml.dart' as xml;
@@ -493,24 +494,29 @@ void main() {
     });
 
     scopedTest('package index page', () {
+      final searchForm = SearchForm.parse();
       final String html = renderPkgIndexPage(
-        [
-          PackageView.fromModel(
-            package: foobarPackage,
-            version: foobarStablePV,
-            scoreCard: ScoreCardData(),
-          ),
-          PackageView.fromModel(
-            package: foobarPackage,
-            version: flutterPackageVersion,
-            scoreCard: ScoreCardData(
-              derivedTags: ['sdk:flutter', 'platform:android'],
-              reportTypes: ['pana'],
+        SearchResultPage(
+          searchForm,
+          2,
+          packageHits: [
+            PackageView.fromModel(
+              package: foobarPackage,
+              version: foobarStablePV,
+              scoreCard: ScoreCardData(),
             ),
-          ),
-        ],
+            PackageView.fromModel(
+              package: foobarPackage,
+              version: flutterPackageVersion,
+              scoreCard: ScoreCardData(
+                derivedTags: ['sdk:flutter', 'platform:android'],
+                reportTypes: ['pana'],
+              ),
+            ),
+          ],
+        ),
         PageLinks.empty(),
-        searchForm: SearchForm.parse(),
+        searchForm: searchForm,
       );
       expectGoldenFile(html, 'pkg_index_page.html');
     });
@@ -519,25 +525,29 @@ void main() {
       final searchForm =
           SearchForm.parse(query: 'foobar', order: SearchOrder.top);
       final String html = renderPkgIndexPage(
-        [
-          PackageView.fromModel(
-            package: foobarPackage,
-            version: foobarStablePV,
-            scoreCard: ScoreCardData(),
-            apiPages: [
-              ApiPageRef(path: 'some/some-library.html'),
-              ApiPageRef(title: 'Class X', path: 'some/x-class.html'),
-            ],
-          ),
-          PackageView.fromModel(
-            package: foobarPackage,
-            version: flutterPackageVersion,
-            scoreCard: ScoreCardData(
-              derivedTags: ['sdk:flutter', 'platform:android'],
-              reportTypes: ['pana'],
+        SearchResultPage(
+          searchForm,
+          2,
+          packageHits: [
+            PackageView.fromModel(
+              package: foobarPackage,
+              version: foobarStablePV,
+              scoreCard: ScoreCardData(),
+              apiPages: [
+                ApiPageRef(path: 'some/some-library.html'),
+                ApiPageRef(title: 'Class X', path: 'some/x-class.html'),
+              ],
             ),
-          ),
-        ],
+            PackageView.fromModel(
+              package: foobarPackage,
+              version: flutterPackageVersion,
+              scoreCard: ScoreCardData(
+                derivedTags: ['sdk:flutter', 'platform:android'],
+                reportTypes: ['pana'],
+              ),
+            ),
+          ],
+        ),
         PageLinks(searchForm, 50),
         searchForm: searchForm,
         totalCount: 2,
@@ -601,27 +611,31 @@ void main() {
               'We develop full-stack in Dart, and happy about it.'
           ..websiteUrl = 'https://example.com/'
           ..created = DateTime(2019, 09, 13),
-        packages: [
-          PackageView(
-            name: 'super_package',
-            version: '1.0.0',
-            previewVersion: '1.4.0',
-            prereleaseVersion: '1.5.0-dev',
-            ellipsizedDescription: 'A great web UI library.',
-            created: DateTime.utc(2019, 01, 03),
-            updated: DateTime.utc(2019, 01, 03),
-            tags: ['sdk:dart', 'runtime:web'],
-          ),
-          PackageView(
-            name: 'another_package',
-            version: '2.0.0',
-            prereleaseVersion: '3.0.0-beta2',
-            ellipsizedDescription: 'Camera plugin.',
-            created: DateTime.utc(2019, 03, 30),
-            updated: DateTime.utc(2019, 03, 30),
-            tags: ['sdk:flutter', 'platform:android'],
-          ),
-        ],
+        searchResultPage: SearchResultPage(
+          searchForm,
+          2,
+          packageHits: [
+            PackageView(
+              name: 'super_package',
+              version: '1.0.0',
+              previewVersion: '1.4.0',
+              prereleaseVersion: '1.5.0-dev',
+              ellipsizedDescription: 'A great web UI library.',
+              created: DateTime.utc(2019, 01, 03),
+              updated: DateTime.utc(2019, 01, 03),
+              tags: ['sdk:dart', 'runtime:web'],
+            ),
+            PackageView(
+              name: 'another_package',
+              version: '2.0.0',
+              prereleaseVersion: '3.0.0-beta2',
+              ellipsizedDescription: 'Camera plugin.',
+              created: DateTime.utc(2019, 03, 30),
+              updated: DateTime.utc(2019, 03, 30),
+              tags: ['sdk:flutter', 'platform:android'],
+            ),
+          ],
+        ),
         totalCount: 2,
         searchForm: searchForm,
         pageLinks: PageLinks(searchForm, 10),
@@ -637,25 +651,29 @@ void main() {
       final String html = renderAccountPackagesPage(
         user: hansUser,
         userSessionData: hansUserSessionData,
-        packages: [
-          PackageView(
-            name: 'super_package',
-            version: '1.0.0',
-            ellipsizedDescription: 'A great web UI library.',
-            created: DateTime.utc(2019, 01, 03),
-            updated: DateTime.utc(2019, 01, 03),
-            tags: ['sdk:dart', 'runtime:web'],
-          ),
-          PackageView(
-            name: 'another_package',
-            version: '2.0.0',
-            prereleaseVersion: '3.0.0-beta2',
-            ellipsizedDescription: 'Camera plugin.',
-            created: DateTime.utc(2019, 03, 30),
-            updated: DateTime.utc(2019, 03, 30),
-            tags: ['sdk:flutter', 'platform:android'],
-          ),
-        ],
+        searchResultPage: SearchResultPage(
+          searchForm,
+          2,
+          packageHits: [
+            PackageView(
+              name: 'super_package',
+              version: '1.0.0',
+              ellipsizedDescription: 'A great web UI library.',
+              created: DateTime.utc(2019, 01, 03),
+              updated: DateTime.utc(2019, 01, 03),
+              tags: ['sdk:dart', 'runtime:web'],
+            ),
+            PackageView(
+              name: 'another_package',
+              version: '2.0.0',
+              prereleaseVersion: '3.0.0-beta2',
+              ellipsizedDescription: 'Camera plugin.',
+              created: DateTime.utc(2019, 03, 30),
+              updated: DateTime.utc(2019, 03, 30),
+              tags: ['sdk:flutter', 'platform:android'],
+            ),
+          ],
+        ),
         pageLinks: PageLinks(searchForm, 10),
         searchForm: searchForm,
         totalCount: 2,

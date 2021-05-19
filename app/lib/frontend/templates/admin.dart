@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'package:meta/meta.dart';
 
 import '../../account/models.dart' show LikeData, User, UserSessionData;
-import '../../package/models.dart' show PackageView;
+import '../../package/search_adapter.dart' show SearchResultPage;
 import '../../publisher/models.dart' show PublisherSummary;
 import '../../search/search_form.dart' show SearchForm;
 import '../../shared/urls.dart' as urls;
@@ -34,7 +34,7 @@ String renderAuthorizedPage() {
 String renderAccountPackagesPage({
   @required User user,
   @required UserSessionData userSessionData,
-  @required List<PackageView> packages,
+  @required SearchResultPage searchResultPage,
   @required String messageFromBackend,
   @required PageLinks pageLinks,
   @required SearchForm searchForm,
@@ -46,12 +46,8 @@ String renderAccountPackagesPage({
     title += ' | Page ${pageLinks.currentPage}';
   }
 
-  final packageListHtml = packages.isEmpty
-      ? ''
-      : renderPackageList(
-          packages,
-          searchForm: searchForm,
-        );
+  final packageListHtml =
+      searchResultPage.hasNoHit ? '' : renderPackageList(searchResultPage);
   final paginationHtml = renderPagination(pageLinks);
 
   final tabContent = [
