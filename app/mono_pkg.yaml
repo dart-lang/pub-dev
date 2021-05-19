@@ -19,3 +19,4 @@ stages:
 cache:
   directories:
     - ".dart_tool/pub-test-profile"
+    - ".dart_tool/pub-search-data"

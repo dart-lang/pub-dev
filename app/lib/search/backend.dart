@@ -8,7 +8,6 @@ import 'dart:math';
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
-import 'package:json_annotation/json_annotation.dart';
 import 'package:logging/logging.dart';
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
@@ -27,10 +26,9 @@ import '../shared/storage.dart';
 import '../shared/tags.dart';
 import '../shared/versions.dart' as versions;
 
+import 'models.dart';
 import 'search_service.dart';
 import 'text_utils.dart';
-
-part 'backend.g.dart';
 
 final Logger _logger = Logger('pub.search.backend');
 
@@ -384,36 +382,4 @@ class SnapshotStorage {
     _snapshotWriteTimer = null;
     _storage.close();
   }
-}
-
-@JsonSerializable()
-class SearchSnapshot {
-  @JsonKey(nullable: false)
-  DateTime updated;
-
-  @JsonKey(nullable: false)
-  Map<String, PackageDocument> documents;
-
-  SearchSnapshot._(this.updated, this.documents);
-
-  factory SearchSnapshot() => SearchSnapshot._(DateTime.now().toUtc(), {});
-
-  factory SearchSnapshot.fromJson(Map<String, dynamic> json) =>
-      _$SearchSnapshotFromJson(json);
-
-  void add(PackageDocument doc) {
-    updated = DateTime.now().toUtc();
-    documents[doc.package] = doc;
-  }
-
-  void addAll(Iterable<PackageDocument> docs) {
-    docs.forEach(add);
-  }
-
-  void remove(String packageName) {
-    updated = DateTime.now().toUtc();
-    documents.remove(packageName);
-  }
-
-  Map<String, dynamic> toJson() => _$SearchSnapshotToJson(this);
 }
