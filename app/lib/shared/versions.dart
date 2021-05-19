@@ -63,7 +63,7 @@ final String panaVersion = pana.packageVersion;
 final Version semanticPanaVersion = Version.parse(panaVersion);
 
 // keep in-sync with pkg/pub_dartdoc/pubspec.yaml
-final String dartdocVersion = '0.42.0';
+final String dartdocVersion = '0.43.0';
 final Version semanticDartdocVersion = Version.parse(dartdocVersion);
 
 // Version that control the dartdoc serving.
