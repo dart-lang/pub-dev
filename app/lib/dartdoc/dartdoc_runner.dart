@@ -12,6 +12,7 @@ import 'package:pana/pana.dart' hide Pubspec, ReportStatus;
 import 'package:path/path.dart' as p;
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
+import 'package:tar/tar.dart';
 
 import '../frontend/static_files.dart';
 import '../job/backend.dart';
@@ -598,14 +599,32 @@ class DartdocJobProcessor extends JobProcessor {
 
   Future<void> _tar(String tmpDir, String tarDir, String outputDir,
       StringBuffer logFileOutput) async {
-    logFileOutput.write('Running tar:\n');
-    final File tmpTar = File(p.join(tmpDir, _archiveFilePath));
-    final pr = await runProc(
-      ['tar', '-czf', tmpTar.path, '.'],
-      workingDirectory: tarDir,
-    );
+    logFileOutput.write('Creating package archive...\n');
+    final sw = Stopwatch()..start();
+
+    Stream<TarEntry> _list() async* {
+      final dir = Directory(tarDir);
+      await for (final entry in dir.list(recursive: true)) {
+        if (entry is File) {
+          final data = await entry.readAsBytes();
+          yield TarEntry.data(
+            TarHeader(
+              name: p.relative(entry.path, from: dir.path),
+              size: data.length,
+            ),
+            data,
+          );
+        }
+      }
+    }
+
+    final tmpTar = File(p.join(tmpDir, _archiveFilePath));
+    await _list()
+        .transform(tarWriter)
+        .transform(gzip.encoder)
+        .pipe(tmpTar.openWrite());
     await tmpTar.rename(p.join(outputDir, _archiveFilePath));
-    _appendLog(logFileOutput, pr);
+    logFileOutput.write('Created package archive in ${sw.elapsed}.\n');
   }
 
   Future<PubDartdocData> _loadPubDartdocData(
