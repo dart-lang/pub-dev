@@ -125,7 +125,7 @@ void main() {
       final consentId = await inviteContact();
 
       await withPubApiClient(
-          bearerToken: adminAtPubDevAuthToken,
+          bearerToken: userAtPubDevAuthToken,
           fn: (client) async {
             final rs = await client.resolveConsent(
                 consentId, account_api.ConsentResult(granted: true));
@@ -136,14 +136,14 @@ void main() {
       final r = records.firstWhere(
           (e) => e.kind == AuditLogRecordKind.publisherContactInviteAccepted);
       expect(r.summary,
-          '`admin@pub.dev` accepted `info@example.com` to be contact email for publisher `example.com`.');
+          '`user@pub.dev` accepted `info@example.com` to be contact email for publisher `example.com`.');
     });
 
     testWithProfile('Publisher contact rejected', fn: () async {
       final consentId = await inviteContact();
 
       await withPubApiClient(
-          bearerToken: adminAtPubDevAuthToken,
+          bearerToken: userAtPubDevAuthToken,
           fn: (client) async {
             final rs = await client.resolveConsent(
                 consentId, account_api.ConsentResult(granted: false));
@@ -154,7 +154,7 @@ void main() {
       final r = records.firstWhere(
           (e) => e.kind == AuditLogRecordKind.publisherContactInviteRejected);
       expect(r.summary,
-          '`admin@pub.dev` rejected contact invite of `info@example.com` for publisher `example.com`.');
+          '`user@pub.dev` rejected contact invite of `info@example.com` for publisher `example.com`.');
     });
 
     testWithProfile('Publisher contact expired', fn: () async {

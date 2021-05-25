@@ -307,10 +307,16 @@ class PublisherBackend {
   }
 
   /// Updates the contact email field of the publisher.
-  Future updateContactEmail(String publisherId, String contactEmail) async {
+  Future updateContactEmail(
+    String publisherId,
+    String contactEmail, {
+    bool fromConsentFlow = false,
+  }) async {
     checkPublisherIdParam(publisherId);
     final activeUser = await requireAuthenticatedUser();
-    await requirePublisherAdmin(publisherId, activeUser.userId);
+    if (!fromConsentFlow) {
+      await requirePublisherAdmin(publisherId, activeUser.userId);
+    }
     InvalidInputException.check(
         isValidEmail(contactEmail), 'Invalid email: `$contactEmail`');
 

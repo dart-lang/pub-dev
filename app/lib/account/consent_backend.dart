@@ -371,7 +371,11 @@ class _PublisherContactAction extends ConsentAction {
   Future<void> onAccept(Consent consent) async {
     final publisherId = consent.args[0];
     final contactEmail = consent.args[1];
-    await publisherBackend.updateContactEmail(publisherId, contactEmail);
+    await publisherBackend.updateContactEmail(
+      publisherId,
+      contactEmail,
+      fromConsentFlow: true,
+    );
   }
 
   @override
