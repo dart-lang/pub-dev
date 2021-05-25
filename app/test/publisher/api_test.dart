@@ -228,12 +228,12 @@ void main() {
         ),
       );
 
-      testWithProfile('Not registered user e-mail', fn: () async {
+      Future<void> _updateWithInvite(String newContactEmail) async {
         final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final orig = await client.publisherInfo('example.com');
         final rs = await client.updatePublisher(
           'example.com',
-          UpdatePublisherRequest(contactEmail: 'not-registered@example.com'),
+          UpdatePublisherRequest(contactEmail: newContactEmail),
         );
         expect(rs.contactEmail, orig.contactEmail);
 
@@ -244,7 +244,7 @@ void main() {
         // email is sent
         expect(fakeEmailSender.sentMessages.length, 1);
         final email = fakeEmailSender.sentMessages.first;
-        expect(email.recipients.single.email, 'not-registered@example.com');
+        expect(email.recipients.single.email, newContactEmail);
         final consentId = email.bodyText
             .split('\n')
             .firstWhere((s) => s.contains('https://pub.dev/consent'))
@@ -259,21 +259,19 @@ void main() {
 
         // check updated value
         final updated = await client.publisherInfo('example.com');
-        expect(updated.contactEmail, 'not-registered@example.com');
+        expect(updated.contactEmail, newContactEmail);
+      }
 
+      testWithProfile('Not registered user e-mail', fn: () async {
+        final newContactEmail = 'not-registered@example.com';
+        await _updateWithInvite(newContactEmail);
         // no User entity created
-        final users = await accountBackend
-            .lookupUsersByEmail('not-registered@example.com');
+        final users = await accountBackend.lookupUsersByEmail(newContactEmail);
         expect(users, isEmpty);
       });
 
       testWithProfile('User is not a member', fn: () async {
-        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
-        final rs = client.updatePublisher(
-          'example.com',
-          UpdatePublisherRequest(contactEmail: 'user@pub.dev'),
-        );
-        await expectApiException(rs, status: 400, code: 'InvalidInput');
+        await _updateWithInvite('user@pub.dev');
       });
 
       testWithProfile('User is not admin', fn: () async {
@@ -282,12 +280,7 @@ void main() {
         await dbService.commit(inserts: [
           publisherMember(user.userId, 'not-admin'),
         ]);
-        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
-        final rs = client.updatePublisher(
-          'example.com',
-          UpdatePublisherRequest(contactEmail: user.email),
-        );
-        await expectApiException(rs, status: 400, code: 'InvalidInput');
+        await _updateWithInvite(user.email);
       });
 
       testWithProfile('OK', fn: () async {

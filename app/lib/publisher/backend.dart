@@ -273,13 +273,6 @@ class PublisherBackend {
               break;
             }
           }
-
-          if (!contactEmailMatchedAdmin) {
-            InvalidInputException.check(
-              user.email == update.contactEmail,
-              'The contact email is a registered user, but not member of the publisher.',
-            );
-          }
         }
 
         if (!contactEmailMatchedAdmin) {
@@ -306,11 +299,11 @@ class PublisherBackend {
     return _asPublisherInfo(p);
   }
 
-  /// Updates the contact email field of the publisher.
-  Future updateContactEmail(String publisherId, String contactEmail) async {
+  /// Updates the contact email field of the publisher using a verified e-mail.
+  Future updateContactWithVerifiedEmail(
+      String publisherId, String contactEmail) async {
     checkPublisherIdParam(publisherId);
     final activeUser = await requireAuthenticatedUser();
-    await requirePublisherAdmin(publisherId, activeUser.userId);
     InvalidInputException.check(
         isValidEmail(contactEmail), 'Invalid email: `$contactEmail`');
 
