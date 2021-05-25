@@ -12,7 +12,7 @@ targets:
       - 'lib/package/models.dart'
       - 'lib/publisher/models.dart'
       - 'lib/scorecard/models.dart'
-      - 'lib/search/backend.dart'
+      - 'lib/search/models.dart'
       - 'lib/search/search_service.dart'
       - 'lib/shared/*.dart'
       - 'lib/tool/test_profile/models.dart'
