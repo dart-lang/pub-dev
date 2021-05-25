@@ -49,8 +49,8 @@ void main() {
 
     test('bad version', () {
       testUri('/documentation/pkg//', 'pkg');
-      testUri('/documentation/pkg/first-release/', 'pkg');
-      testUri('/documentation/pkg/1.2.3.4.5.6/', 'pkg');
+      testUri('/documentation/pkg/first-release/', null);
+      testUri('/documentation/pkg/1.2.3.4.5.6/', null);
     });
 
     test('version without path', () {
@@ -77,17 +77,10 @@ void main() {
       );
     });
 
-    testWithProfile('/documentation/flutter/version redirect', fn: () async {
+    testWithProfile('/documentation/flutter/latest redirect', fn: () async {
       await expectRedirectResponse(
-        await issueGet('/documentation/flutter/version'),
+        await issueGet('/documentation/flutter/latest'),
         'https://api.flutter.dev/',
-      );
-    });
-
-    testWithProfile('/documentation/foobar_pkg/bar redirect', fn: () async {
-      await expectRedirectResponse(
-        await issueGet('/documentation/oxygen/bar'),
-        '/documentation/oxygen/latest/',
       );
     });
 
@@ -96,22 +89,32 @@ void main() {
           '/documentation/oxygen/latest/');
     });
 
-    testWithProfile('/documentation/oxygen - no entry redirect', fn: () async {
-      await expectRedirectResponse(await issueGet('/documentation/oxygen/'),
-          '/documentation/oxygen/latest/');
-    });
+    testWithProfile(
+      '/documentation/oxygen - latest redirect',
+      fn: () async {
+        await expectRedirectResponse(await issueGet('/documentation/oxygen/'),
+            '/documentation/oxygen/latest/');
+      },
+      processJobsWithFakeRunners: true,
+    );
 
-    testWithProfile('/d/oxygen/latest/ redirect', fn: () async {
-      await expectRedirectResponse(
-          await issueGet('/documentation/oxygen/latest/'),
-          '/packages/oxygen/versions');
-    });
+    testWithProfile(
+      '/documentation/oxygen/wrong/',
+      fn: () async {
+        await expectNotFoundResponse(
+            await issueGet('/documentation/oxygen/wrong/'));
+      },
+      processJobsWithFakeRunners: true,
+    );
 
-    testWithProfile('/d/oxygen/latest/unknown.html redirect', fn: () async {
-      await expectRedirectResponse(
-          await issueGet('/documentation/oxygen/latest/unknown.html'),
-          '/packages/oxygen/versions');
-    });
+    testWithProfile(
+      '/documentation/oxygen/latest/unknown.html',
+      fn: () async {
+        await expectNotFoundResponse(
+            await issueGet('/documentation/oxygen/latest/unknown.html'));
+      },
+      processJobsWithFakeRunners: true,
+    );
 
     testWithProfile('withheld package gets rejected', fn: () async {
       final pkg = await packageBackend.lookupPackage('oxygen');

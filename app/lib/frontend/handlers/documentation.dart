@@ -45,7 +45,7 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   final entry =
       await dartdocBackend.getEntry(docFilePath.package, docFilePath.version);
   if (entry == null) {
-    return redirectResponse(pkgVersionsUrl(docFilePath.package));
+    return notFoundHandler(request);
   }
   if (entry.isLatest == true && docFilePath.version != 'latest') {
     final version = await packageBackend.getLatestVersion(entry.packageName);
@@ -129,9 +129,12 @@ DocFilePath parseRequestUri(Uri uri) {
   }
 
   final String version = uri.pathSegments[2];
+  if (version.trim().isEmpty) {
+    return DocFilePath(package, null, null);
+  }
   // reject empty or invalid version names
   if (!_isValidVersion(version)) {
-    return DocFilePath(package, null, null);
+    return null;
   }
   if (segmentCount == 3) {
     return DocFilePath(package, version, null);
