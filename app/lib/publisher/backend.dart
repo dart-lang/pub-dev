@@ -273,13 +273,6 @@ class PublisherBackend {
               break;
             }
           }
-
-          if (!contactEmailMatchedAdmin) {
-            InvalidInputException.check(
-              user.email == update.contactEmail,
-              'The contact email is a registered user, but not member of the publisher.',
-            );
-          }
         }
 
         if (!contactEmailMatchedAdmin) {
