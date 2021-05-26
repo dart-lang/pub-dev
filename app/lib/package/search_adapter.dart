@@ -54,13 +54,11 @@ class SearchAdapter {
       ttl: Duration(hours: 6),
       updateCacheAfter: Duration(hours: 1),
     );
-    if (searchResults?.packages == null) {
+    if (searchResults == null || searchResults.isEmpty) {
       return <PackageView>[];
     }
-    final availablePackages = searchResults.packages
-        .where((e) => !e.isExternal)
-        .map((ps) => ps.package)
-        .toList();
+    final availablePackages =
+        searchResults.allPackageHits.map((ps) => ps.package).toList();
     final packages = <String>[];
     for (var i = 0; i < count && availablePackages.isNotEmpty; i++) {
       // The first item should come from the top results.
@@ -129,27 +127,23 @@ class SearchAdapter {
     final names =
         await nameTracker.getPackageNames().timeout(Duration(seconds: 5));
     final text = (form.query ?? '').trim().toLowerCase();
-    List<PackageScore> scores =
+    List<PackageHit> packageHits =
         names.where((s) => s.contains(text)).map((pkgName) {
       if (pkgName == text) {
-        return PackageScore(package: pkgName, score: 1.0);
+        return PackageHit(package: pkgName, score: 1.0);
       } else if (pkgName.startsWith(text)) {
-        return PackageScore(package: pkgName, score: 0.75);
+        return PackageHit(package: pkgName, score: 0.75);
       } else {
-        return PackageScore(package: pkgName, score: 0.5);
+        return PackageHit(package: pkgName, score: 0.5);
       }
     }).toList();
-    scores.sort((a, b) => -a.score.compareTo(b.score));
+    packageHits.sort((a, b) => -a.score.compareTo(b.score));
 
-    final totalCount = scores.length;
-    scores = scores.skip(form.offset).take(form.pageSize).toList();
+    final totalCount = packageHits.length;
+    packageHits = packageHits.skip(form.offset).take(form.pageSize).toList();
     return PackageSearchResult(
         timestamp: DateTime.now().toUtc(),
-        packages: scores,
-        packageHits: scores
-            .map((s) => PackageHit(
-                package: s.package, score: s.score, apiPages: s.apiPages))
-            .toList(),
+        packageHits: packageHits,
         totalCount: totalCount,
         message:
             'Search is temporarily impaired, filtering and ranking may be incorrect.');

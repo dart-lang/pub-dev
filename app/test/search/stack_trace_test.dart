@@ -35,12 +35,6 @@ void main() {
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
-        'packages': [
-          {
-            'package': 'stack_trace',
-            'score': 1.0,
-          },
-        ],
         'sdkLibraryHits': [],
         'packageHits': [
           {

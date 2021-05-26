@@ -46,12 +46,6 @@ void main() {
         await expectJsonResponse(await issueGet('/search?q=pkg_foo'), body: {
           'timestamp': isNotNull,
           'totalCount': 1,
-          'packages': [
-            {
-              'package': 'pkg_foo',
-              'score': closeTo(0.51, 0.01),
-            }
-          ],
           'highlightedHit': {'package': 'pkg_foo'},
           'sdkLibraryHits': [],
           'packageHits': [],
@@ -63,12 +57,6 @@ void main() {
         await expectJsonResponse(await issueGet('/search?q=json'), body: {
           'timestamp': isNotNull,
           'totalCount': 1,
-          'packages': [
-            {
-              'package': 'pkg_foo',
-              'score': closeTo(0.45, 0.01),
-            }
-          ],
           'sdkLibraryHits': [],
           'packageHits': [
             {
@@ -85,12 +73,6 @@ void main() {
             body: {
               'timestamp': isNotNull,
               'totalCount': 1,
-              'packages': [
-                {
-                  'package': 'pkg_foo',
-                  'score': closeTo(0.45, 0.01),
-                }
-              ],
               'sdkLibraryHits': [],
               'packageHits': [
                 {
@@ -106,12 +88,6 @@ void main() {
         await expectJsonResponse(await issueGet('/search?q=package:pk'), body: {
           'timestamp': isNotNull,
           'totalCount': 1,
-          'packages': [
-            {
-              'package': 'pkg_foo',
-              'score': closeTo(0.51, 0.01),
-            }
-          ],
           'sdkLibraryHits': [],
           'packageHits': [
             {
@@ -128,7 +104,6 @@ void main() {
             body: {
               'timestamp': isNotNull,
               'totalCount': 0,
-              'packages': [],
               'sdkLibraryHits': [],
               'packageHits': [],
             });

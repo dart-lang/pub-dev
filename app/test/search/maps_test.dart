@@ -26,10 +26,6 @@ void main() {
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 2,
-        'packages': [
-          {'package': 'maps', 'score': 1.0},
-          {'package': 'map', 'score': 1.0},
-        ],
         'highlightedHit': {'package': 'maps'},
         'sdkLibraryHits': [],
         'packageHits': [
@@ -44,10 +40,6 @@ void main() {
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 2,
-        'packages': [
-          {'package': 'maps', 'score': 1.0},
-          {'package': 'map', 'score': 1.0},
-        ],
         'highlightedHit': {'package': 'map'},
         'sdkLibraryHits': [],
         'packageHits': [

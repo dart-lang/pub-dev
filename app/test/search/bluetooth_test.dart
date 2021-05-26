@@ -37,12 +37,6 @@ void main() {
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
-        'packages': [
-          {
-            'package': 'flutter_blue',
-            'score': closeTo(0.89, 0.01),
-          },
-        ],
         'sdkLibraryHits': [],
         'packageHits': [
           {

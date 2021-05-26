@@ -55,12 +55,6 @@ void main() {
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
-        'packages': [
-          {
-            'package': 'flutter_iap',
-            'score': 1.0,
-          },
-        ],
         'sdkLibraryHits': [],
         'packageHits': [
           {
@@ -78,12 +72,6 @@ void main() {
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
-        'packages': [
-          {
-            'package': 'flutter_iap',
-            'score': 1.0,
-          },
-        ],
         'highlightedHit': {'package': 'flutter_iap'},
         'sdkLibraryHits': [],
         'packageHits': [],

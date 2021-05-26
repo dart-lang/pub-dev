@@ -234,7 +234,7 @@ class InMemoryPackageIndex implements PackageIndex {
             apiPages: null,
           );
 
-    List<PackageScore> results;
+    List<PackageHit> packageHits;
     switch (query.order ?? SearchOrder.top) {
       case SearchOrder.top:
         final hasSpecificScope = query.sdk != null;
@@ -255,39 +255,38 @@ class InMemoryPackageIndex implements PackageIndex {
           map[matchingPackage.package] = maxValue;
           overallScore = Score(map);
         }
-        results = _rankWithValues(overallScore.getValues());
+        packageHits = _rankWithValues(overallScore.getValues());
         break;
       case SearchOrder.text:
         final score = textResults?.pkgScore ?? Score.empty();
-        results = _rankWithValues(score.getValues());
+        packageHits = _rankWithValues(score.getValues());
         break;
       case SearchOrder.created:
-        results = _rankWithComparator(packages, _compareCreated);
+        packageHits = _rankWithComparator(packages, _compareCreated);
         break;
       case SearchOrder.updated:
-        results = _rankWithComparator(packages, _compareUpdated);
+        packageHits = _rankWithComparator(packages, _compareUpdated);
         break;
       case SearchOrder.popularity:
-        results = _rankWithValues(getPopularityScore(packages));
+        packageHits = _rankWithValues(getPopularityScore(packages));
         break;
       case SearchOrder.like:
-        results = _rankWithValues(getLikeScore(packages));
+        packageHits = _rankWithValues(getLikeScore(packages));
         break;
       case SearchOrder.points:
-        results = _rankWithValues(getPubPoints(packages));
+        packageHits = _rankWithValues(getPubPoints(packages));
         break;
     }
 
-    //
-
     // bound by offset and limit (or randomize items)
-    final totalCount = results.length;
-    results = boundedList(results, offset: query.offset, limit: query.limit);
+    final totalCount = packageHits.length;
+    packageHits =
+        boundedList(packageHits, offset: query.offset, limit: query.limit);
 
     if (textResults != null &&
         textResults.topApiPages != null &&
         textResults.topApiPages.isNotEmpty) {
-      results = results.map((ps) {
+      packageHits = packageHits.map((ps) {
         final apiPages = textResults.topApiPages[ps.package]
             // TODO: extract title for the page
             ?.map((String page) => ApiPageRef(path: page))
@@ -296,9 +295,10 @@ class InMemoryPackageIndex implements PackageIndex {
       }).toList();
     }
 
+    // TODO: remove once SDKs are indexed separately
     List<SdkLibraryHit> sdkLibraryHits;
     if (_isSdkIndex) {
-      sdkLibraryHits = results.map((ps) {
+      sdkLibraryHits = packageHits.map((ps) {
         String url = _urlPrefix;
         final doc = _packages[ps.package];
         final description = doc.description ?? ps.package;
@@ -322,36 +322,20 @@ class InMemoryPackageIndex implements PackageIndex {
           apiPages: apiPages,
         );
       }).toList();
+      packageHits.clear();
+    }
 
-      // TODO: remove once nothing uses [PackageScore]
-      results = sdkLibraryHits
-          .map((h) => PackageScore(
-                package: h.library,
-                version: h.version,
-                description: h.description,
-                url: h.url,
-                score: h.score,
-                apiPages: h.apiPages,
-              ))
-          .toList();
+    // remove highlighted hit from package hit list
+    if (highlightedHit != null) {
+      packageHits.removeWhere((hit) => hit.package == highlightedHit.package);
     }
 
     return PackageSearchResult(
       timestamp: DateTime.now().toUtc(),
       totalCount: totalCount,
-      packages: results,
       highlightedHit: highlightedHit,
       sdkLibraryHits: sdkLibraryHits,
-      packageHits: results
-          // TODO: remove the `where` condition after [PackageScore] is no longer used.
-          .where((ps) =>
-              highlightedHit == null || highlightedHit.package != ps.package)
-          .map((ps) => PackageHit(
-                package: ps.package,
-                score: ps.score,
-                apiPages: ps.apiPages,
-              ))
-          .toList(),
+      packageHits: packageHits,
     );
   }
 
@@ -494,9 +478,9 @@ class InMemoryPackageIndex implements PackageIndex {
     return null;
   }
 
-  List<PackageScore> _rankWithValues(Map<String, double> values) {
+  List<PackageHit> _rankWithValues(Map<String, double> values) {
     final list = values.entries
-        .map((e) => PackageScore(package: e.key, score: e.value))
+        .map((e) => PackageHit(package: e.key, score: e.value))
         .toList();
     list.sort((a, b) {
       final int scoreCompare = -a.score.compareTo(b.score);
@@ -507,10 +491,10 @@ class InMemoryPackageIndex implements PackageIndex {
     return list;
   }
 
-  List<PackageScore> _rankWithComparator(Set<String> packages,
+  List<PackageHit> _rankWithComparator(Set<String> packages,
       int Function(PackageDocument a, PackageDocument b) compare) {
-    final List<PackageScore> list = packages
-        .map((package) => PackageScore(package: _packages[package].package))
+    final list = packages
+        .map((package) => PackageHit(package: _packages[package].package))
         .toList();
     list.sort((a, b) => compare(_packages[a.package], _packages[b.package]));
     return list;

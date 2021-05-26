@@ -80,10 +80,6 @@ PackageSearchResult _$PackageSearchResultFromJson(Map<String, dynamic> json) {
         ? null
         : DateTime.parse(json['timestamp'] as String),
     totalCount: json['totalCount'] as int,
-    packages: (json['packages'] as List)
-        ?.map((e) =>
-            e == null ? null : PackageScore.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
     highlightedHit: json['highlightedHit'] == null
         ? null
         : PackageHit.fromJson(json['highlightedHit'] as Map<String, dynamic>),
@@ -111,44 +107,10 @@ Map<String, dynamic> _$PackageSearchResultToJson(PackageSearchResult instance) {
 
   writeNotNull('timestamp', instance.timestamp?.toIso8601String());
   writeNotNull('totalCount', instance.totalCount);
-  writeNotNull('packages', instance.packages);
   writeNotNull('highlightedHit', instance.highlightedHit);
   writeNotNull('sdkLibraryHits', instance.sdkLibraryHits);
   writeNotNull('packageHits', instance.packageHits);
   writeNotNull('message', instance.message);
-  return val;
-}
-
-PackageScore _$PackageScoreFromJson(Map<String, dynamic> json) {
-  return PackageScore(
-    package: json['package'] as String,
-    score: (json['score'] as num)?.toDouble(),
-    url: json['url'] as String,
-    version: json['version'] as String,
-    description: json['description'] as String,
-    apiPages: (json['apiPages'] as List)
-        ?.map((e) =>
-            e == null ? null : ApiPageRef.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
-  );
-}
-
-Map<String, dynamic> _$PackageScoreToJson(PackageScore instance) {
-  final val = <String, dynamic>{
-    'package': instance.package,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('score', instance.score);
-  writeNotNull('url', instance.url);
-  writeNotNull('version', instance.version);
-  writeNotNull('description', instance.description);
-  writeNotNull('apiPages', instance.apiPages);
   return val;
 }
 
