@@ -2,6 +2,8 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bumped runtimeVersion to `2021.05.26`.
+ * Upgraded dartdoc to `0.44.0`.
 
 ## `20210526t104100-all`
  * Bumped runtimeVersion to `2021.05.25`.
