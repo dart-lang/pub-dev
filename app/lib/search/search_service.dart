@@ -330,11 +330,21 @@ class ServiceSearchQuery {
     return map;
   }
 
-  bool get hasQuery => query != null && query.isNotEmpty;
-  bool get hasFreeTextComponent =>
-      hasQuery && parsedQuery.text != null && parsedQuery.text.isNotEmpty;
-  bool get isNaturalOrder =>
+  bool get _hasQuery => query != null && query.isNotEmpty;
+  bool get _hasOnlyFreeText => _hasQuery && parsedQuery.hasOnlyFreeText;
+  bool get _isNaturalOrder =>
       order == null || order == SearchOrder.top || order == SearchOrder.text;
+  bool get _hasNoOwnershipScope =>
+      publisherId == null && uploaderOrPublishers == null;
+
+  bool get includeSdkResults =>
+      offset == 0 &&
+      _hasOnlyFreeText &&
+      _isNaturalOrder &&
+      _hasNoOwnershipScope;
+
+  bool get considerHighlightedHit => _hasOnlyFreeText && _hasNoOwnershipScope;
+  bool get includeHighlightedHit => considerHighlightedHit && offset == 0;
 
   String get sdk {
     final values = tagsPredicate._values.entries
@@ -409,6 +419,7 @@ class TagsPredicate {
   /// (e.g. "My packages").
   factory TagsPredicate.allPackages() => TagsPredicate();
 
+  bool get isEmpty => _values.isEmpty;
   bool get isNotEmpty => _values.isNotEmpty;
 
   bool isRequiredTag(String tag) => _values[tag] == true;
@@ -611,6 +622,15 @@ class ParsedQueryText {
 
   bool get hasAnyDependency =>
       refDependencies.isNotEmpty || allDependencies.isNotEmpty;
+
+  bool get hasOnlyFreeText =>
+      text != null &&
+      text.isNotEmpty &&
+      packagePrefix == null &&
+      !hasAnyDependency &&
+      publisher == null &&
+      emails.isEmpty &&
+      tagsPredicate.isEmpty;
 }
 
 @JsonSerializable(includeIfNull: false)

@@ -213,6 +213,23 @@ class InMemoryPackageIndex implements PackageIndex {
       });
     }
 
+    PackageHit highlightedHit;
+    if (query.considerHighlightedHit) {
+      final queryText = query.parsedQuery.text;
+      final matchingPackage =
+          _packages[queryText] ?? _packages[queryText.toLowerCase()];
+
+      if (matchingPackage != null) {
+        // Remove higlighted package from the final packages set.
+        packages.remove(matchingPackage.package);
+
+        // higlight only if we are on the first page
+        if (query.includeHighlightedHit) {
+          highlightedHit = PackageHit(package: matchingPackage.package);
+        }
+      }
+    }
+
     // do text matching
     final textResults = _searchText(packages, query.parsedQuery.text);
 
@@ -221,18 +238,6 @@ class InMemoryPackageIndex implements PackageIndex {
       final keys = textResults.pkgScore.getKeys();
       packages.removeWhere((x) => !keys.contains(x));
     }
-
-    final queryText = query.parsedQuery?.text;
-    final matchingPackage = queryText == null
-        ? null
-        : (_packages[queryText] ?? _packages[queryText.toLowerCase()]);
-    final highlightedHit = matchingPackage == null
-        ? null
-        : PackageHit(
-            package: matchingPackage.package,
-            score: null,
-            apiPages: null,
-          );
 
     List<PackageHit> packageHits;
     switch (query.order ?? SearchOrder.top) {
@@ -243,18 +248,7 @@ class InMemoryPackageIndex implements PackageIndex {
           if (textResults != null) textResults.pkgScore,
           if (hasSpecificScope) Score(_scopeSpecificityScore(query, packages)),
         ];
-        Score overallScore = Score.multiply(scores);
-        // If there is an exact match for a package name, promote it to the top position.
-        if (matchingPackage != null &&
-            matchingPackage.grantedPoints != null &&
-            matchingPackage.grantedPoints > 0 &&
-            packages.contains(matchingPackage.package)) {
-          final double maxValue = overallScore.getMaxValue();
-          final map = Map<String, double>.from(
-              overallScore.map((key, value) => value * 0.99).getValues());
-          map[matchingPackage.package] = maxValue;
-          overallScore = Score(map);
-        }
+        final overallScore = Score.multiply(scores);
         packageHits = _rankWithValues(overallScore.getValues());
         break;
       case SearchOrder.text:
@@ -279,7 +273,7 @@ class InMemoryPackageIndex implements PackageIndex {
     }
 
     // bound by offset and limit (or randomize items)
-    final totalCount = packageHits.length;
+    final totalCount = packageHits.length + (highlightedHit == null ? 0 : 1);
     packageHits =
         boundedList(packageHits, offset: query.offset, limit: query.limit);
 
@@ -323,11 +317,6 @@ class InMemoryPackageIndex implements PackageIndex {
         );
       }).toList();
       packageHits.clear();
-    }
-
-    // remove highlighted hit from package hit list
-    if (highlightedHit != null) {
-      packageHits.removeWhere((hit) => hit.package == highlightedHit.package);
     }
 
     return PackageSearchResult(

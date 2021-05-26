@@ -20,9 +20,7 @@ class SearchResultCombiner {
   });
 
   Future<PackageSearchResult> search(ServiceSearchQuery query) async {
-    final includeSdkResults =
-        query.offset == 0 && query.hasFreeTextComponent && query.isNaturalOrder;
-    if (!includeSdkResults) {
+    if (!query.includeSdkResults) {
       return primaryIndex.search(query);
     }
 

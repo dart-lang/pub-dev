@@ -318,6 +318,12 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           {'package': 'async', 'score': closeTo(0.70, 0.01)},
         ],
       });
+
+      // do not highlight package if otherwise exact match is in the query
+      final rs2 = await index
+          .search(ServiceSearchQuery.parse(query: 'http dependency:test'));
+      expect(rs2.highlightedHit, isNull);
+      expect(rs2.totalCount, 1);
     });
 
     test('filter by foo as direct/dev dependency', () async {
@@ -345,6 +351,12 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           {'package': 'chrome_net', 'score': closeTo(0.54, 0.01)},
         ],
       });
+
+      // do not highlight package if otherwise exact match is in the query
+      final rs2 = await index
+          .search(ServiceSearchQuery.parse(query: 'http dependency*:foo'));
+      expect(rs2.highlightedHit, isNull);
+      expect(rs2.totalCount, 2);
     });
 
     test('filter by text and dependency', () async {
@@ -395,6 +407,12 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           {'package': 'async', 'score': closeTo(0.70, 0.01)},
         ],
       });
+
+      // do not highlight package if otherwise exact match is in the query
+      final rs2 = await index
+          .search(ServiceSearchQuery.parse(query: 'async publisher:dart.dev'));
+      expect(rs2.highlightedHit, isNull);
+      expect(rs2.totalCount, 1);
     });
 
     test('no results via owners', () async {
@@ -419,6 +437,12 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           {'package': 'async', 'score': closeTo(0.70, 0.01)},
         ],
       });
+
+      // do not highlight package if otherwise exact match is in the query
+      final rs2 = await index.search(ServiceSearchQuery.parse(
+          query: 'async', uploaderOrPublishers: ['dart.dev']));
+      expect(rs2.highlightedHit, isNull);
+      expect(rs2.totalCount, 1);
     });
 
     test('filter by multiple owners', () async {
@@ -461,6 +485,12 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           {'package': 'async', 'score': closeTo(0.70, 0.01)},
         ],
       });
+
+      // do not highlight package if otherwise exact match is in the query
+      final rs2 = await index.search(
+          ServiceSearchQuery.parse(query: 'http email:user1@example.com'));
+      expect(rs2.highlightedHit, isNull);
+      expect(rs2.totalCount, 1);
     });
 
     test('multiword query: implicit AND', () async {
