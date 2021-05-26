@@ -57,12 +57,6 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
-        'packages': [
-          {
-            'package': 'travis',
-            'score': 1.0,
-          },
-        ],
         'highlightedHit': {'package': 'travis'},
         'sdkLibraryHits': [],
         'packageHits': [],

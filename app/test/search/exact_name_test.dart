@@ -45,12 +45,6 @@ void main() {
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
-        'packages': [
-          {
-            'package': 'build_config',
-            'score': 1.0,
-          },
-        ],
         'highlightedHit': {'package': 'build_config'},
         'sdkLibraryHits': [],
         'packageHits': [

@@ -27,28 +27,12 @@ class SearchResultCombiner {
     }
 
     final primaryResult = await primaryIndex.search(query);
-    final threshold = primaryResult.packages.isEmpty
-        ? 0.0
-        : (primaryResult.packages.first.score ?? 0.0) / 2;
-
     final dartSdkResult = await dartSdkIndex
         .search(query.change(order: SearchOrder.text, offset: 0, limit: 2));
-
-    final hits = List<PackageScore>.from(primaryResult.packages);
-    PackageScore exactNameHit;
-    if (hits.isNotEmpty && query.parsedQuery.text == hits.first.package) {
-      exactNameHit = hits.removeAt(0);
-    }
-    final allPackages = <PackageScore>[
-      if (exactNameHit != null) exactNameHit,
-      ...dartSdkResult.packages.where((ps) => ps.score >= threshold),
-      ...hits,
-    ];
 
     return PackageSearchResult(
       timestamp: primaryResult.timestamp,
       totalCount: primaryResult.totalCount,
-      packages: allPackages,
       highlightedHit: primaryResult.highlightedHit,
       packageHits: primaryResult.packageHits,
       sdkLibraryHits: dartSdkResult.sdkLibraryHits,

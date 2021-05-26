@@ -28,12 +28,6 @@ void main() {
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
-        'packages': [
-          {
-            'package': 'lombok',
-            'score': closeTo(0.63, 0.01),
-          },
-        ],
         'sdkLibraryHits': [],
         'packageHits': [
           {

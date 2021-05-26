@@ -32,12 +32,6 @@ Add _In-App Payments_ to your Flutter app with this plugin.''')));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
-        'packages': [
-          {
-            'package': 'flutter_iap',
-            'score': closeTo(0.73, 0.01),
-          },
-        ],
         'sdkLibraryHits': [],
         'packageHits': [
           {
@@ -55,12 +49,6 @@ Add _In-App Payments_ to your Flutter app with this plugin.''')));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
-        'packages': [
-          {
-            'package': 'flutter_iap',
-            'score': closeTo(0.41, 0.01),
-          },
-        ],
         'sdkLibraryHits': [],
         'packageHits': [
           {

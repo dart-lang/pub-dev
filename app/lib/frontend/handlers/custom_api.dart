@@ -113,7 +113,7 @@ Future<shelf.Response> apiPackageNameCompletionDataHandler(
     );
 
     return gzip.encode(jsonUtf8Encoder.convert({
-      'packages': rs.packages.map((p) => p.package).toList(),
+      'packages': rs.allPackageHits.map((p) => p.package).toList(),
     }));
   });
 
@@ -275,7 +275,8 @@ Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
     tagsPredicate: TagsPredicate.regularSearch(),
   );
   final sr = await searchClient.search(searchForm.toServiceQuery());
-  final packages = sr.packages.map((ps) => {'package': ps.package}).toList();
+  final packages =
+      sr.allPackageHits.map((ps) => {'package': ps.package}).toList();
   final hasNextPage = sr.totalCount > searchForm.pageSize + searchForm.offset;
   final result = <String, dynamic>{
     'packages': packages,

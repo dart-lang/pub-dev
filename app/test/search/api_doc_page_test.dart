@@ -56,20 +56,6 @@ void main() {
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 2,
-        'packages': [
-          {
-            'package': 'foo',
-            'score': 1.0, // finds package name
-          },
-          {
-            'package': 'other_with_api',
-            'score': closeTo(0.695, 0.001), // finds foo method
-            'apiPages': [
-              {'title': null, 'path': 'main.html'},
-            ],
-          },
-          // should not contain `other_without_api`
-        ],
         'highlightedHit': {'package': 'foo'}, // finds package name
         'sdkLibraryHits': [],
         'packageHits': [
@@ -91,16 +77,6 @@ void main() {
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
-        'packages': [
-          {
-            'package': 'other_with_api',
-            'score': closeTo(0.26, 0.01), // find serveWebPages
-            'apiPages': [
-              {'title': null, 'path': 'serve.html'},
-            ],
-          },
-          // should not contain `other_without_api`
-        ],
         'sdkLibraryHits': [],
         'packageHits': [
           {
@@ -122,16 +98,6 @@ void main() {
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
-        'packages': [
-          {
-            'package': 'foo',
-            'score': closeTo(0.072, 0.001), // find WebPageGenerator
-            'apiPages': [
-              {'title': null, 'path': 'generator.html'},
-            ],
-          },
-          // should not contain `other_without_api`
-        ],
         'sdkLibraryHits': [],
         'packageHits': [
           {
@@ -152,17 +118,6 @@ void main() {
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
-        'packages': [
-          {
-            'package': 'foo',
-            'score': closeTo(0.025, 0.001), // find WebPageGenerator
-            'apiPages': [
-              {'title': null, 'path': 'generator.html'},
-            ],
-          },
-          // should contain 'other_with_api' finding `serveWebPages`
-          // should not contain `other_without_api`
-        ],
         'sdkLibraryHits': [],
         'packageHits': [
           {
@@ -185,15 +140,6 @@ void main() {
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
-        'packages': [
-          {
-            'package': 'foo',
-            'score': closeTo(0.157, 0.001),
-            'apiPages': [
-              {'title': null, 'path': 'generator.html'},
-            ],
-          },
-        ],
         'sdkLibraryHits': [],
         'packageHits': [
           {

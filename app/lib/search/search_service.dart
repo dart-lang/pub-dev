@@ -617,7 +617,6 @@ class ParsedQueryText {
 class PackageSearchResult {
   final DateTime timestamp;
   final int totalCount;
-  final List<PackageScore> packages;
   final PackageHit highlightedHit;
   final List<SdkLibraryHit> sdkLibraryHits;
   final List<PackageHit> packageHits;
@@ -629,19 +628,16 @@ class PackageSearchResult {
   PackageSearchResult({
     @required this.timestamp,
     this.totalCount,
-    List<PackageScore> packages,
     this.highlightedHit,
     List<SdkLibraryHit> sdkLibraryHits,
     List<PackageHit> packageHits,
     this.message,
-  })  : packages = packages ?? <PackageScore>[],
-        sdkLibraryHits = sdkLibraryHits ?? <SdkLibraryHit>[],
+  })  : sdkLibraryHits = sdkLibraryHits ?? <SdkLibraryHit>[],
         packageHits = packageHits ?? <PackageHit>[];
 
   PackageSearchResult.empty({this.message})
       : timestamp = DateTime.now().toUtc(),
         totalCount = 0,
-        packages = <PackageScore>[],
         highlightedHit = null,
         sdkLibraryHits = <SdkLibraryHit>[],
         packageHits = <PackageHit>[];
@@ -652,62 +648,15 @@ class PackageSearchResult {
   Duration get age => DateTime.now().difference(timestamp);
 
   Map<String, dynamic> toJson() => _$PackageSearchResultToJson(this);
-}
 
-/// TODO: remove after all running instances are using only [PackageHit].
-@JsonSerializable()
-class PackageScore {
-  final String package;
-
-  @JsonKey(includeIfNull: false)
-  final double score;
-
-  @JsonKey(includeIfNull: false)
-  final String url;
-
-  @JsonKey(includeIfNull: false)
-  final String version;
-
-  @JsonKey(includeIfNull: false)
-  final String description;
-
-  @JsonKey(includeIfNull: false)
-  final List<ApiPageRef> apiPages;
-
-  PackageScore({
-    this.package,
-    this.score,
-    this.url,
-    this.version,
-    this.description,
-    this.apiPages,
-  });
-
-  factory PackageScore.fromJson(Map<String, dynamic> json) =>
-      _$PackageScoreFromJson(json);
-
-  PackageScore change({
-    double score,
-    String url,
-    String version,
-    String description,
-    List<ApiPageRef> apiPages,
-  }) {
-    return PackageScore(
-      package: package,
-      score: score ?? this.score,
-      url: url ?? this.url,
-      version: version ?? this.version,
-      description: description ?? this.description,
-      apiPages: apiPages ?? this.apiPages,
-    );
+  /// Lists all package hits, including the highlighted hit (if there is any).
+  Iterable<PackageHit> get allPackageHits sync* {
+    if (highlightedHit != null) yield highlightedHit;
+    if (packageHits.isNotEmpty) yield* packageHits;
   }
 
-  PackageScore onlyPackageName() => PackageScore(package: package);
-
-  bool get isExternal => url != null && version != null && description != null;
-
-  Map<String, dynamic> toJson() => _$PackageScoreToJson(this);
+  bool get isEmpty =>
+      highlightedHit == null && packageHits.isEmpty && sdkLibraryHits.isEmpty;
 }
 
 @JsonSerializable(includeIfNull: false)
@@ -744,14 +693,22 @@ class PackageHit {
 
   PackageHit({
     @required this.package,
-    @required this.score,
-    @required this.apiPages,
+    this.score,
+    this.apiPages,
   });
 
   factory PackageHit.fromJson(Map<String, dynamic> json) =>
       _$PackageHitFromJson(json);
 
   Map<String, dynamic> toJson() => _$PackageHitToJson(this);
+
+  PackageHit change({List<ApiPageRef> apiPages}) {
+    return PackageHit(
+      package: package,
+      score: score,
+      apiPages: apiPages ?? this.apiPages,
+    );
+  }
 }
 
 @JsonSerializable()

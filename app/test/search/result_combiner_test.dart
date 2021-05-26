@@ -50,9 +50,6 @@ void main() {
       expect(json.decode(json.encode(results.toJson())), {
         'timestamp': isNotNull,
         'totalCount': 1,
-        'packages': [
-          {'package': 'stringutils', 'score': 0.4},
-        ],
         'sdkLibraryHits': [],
         'packageHits': [
           {'package': 'stringutils', 'score': 0.4},
@@ -66,9 +63,6 @@ void main() {
       expect(json.decode(json.encode(results.toJson())), {
         'timestamp': isNotNull,
         'totalCount': 1,
-        'packages': [
-          {'package': 'stringutils', 'score': closeTo(0.8, 0.01)},
-        ],
         'sdkLibraryHits': [],
         'packageHits': [
           {'package': 'stringutils', 'score': closeTo(0.8, 0.01)},
@@ -82,24 +76,6 @@ void main() {
       expect(json.decode(json.encode(results.toJson())), {
         'timestamp': isNotNull,
         'totalCount': 1,
-        'packages': [
-          {
-            'package': 'dart:core',
-            'score': closeTo(0.69, 0.01),
-            'url':
-                'https://api.dartlang.org/stable/2.0.0/dart-core/String-class.html',
-            'description': 'Dart core utils',
-            'apiPages': [
-              {
-                'title': null,
-                'path': 'dart-core/String-class.html',
-                'url':
-                    'https://api.dartlang.org/stable/2.0.0/dart-core/String-class.html'
-              },
-            ],
-          },
-          {'package': 'stringutils', 'score': closeTo(0.59, 0.01)},
-        ],
         'sdkLibraryHits': [
           {
             'sdk': 'dart',
@@ -130,24 +106,6 @@ void main() {
       expect(json.decode(json.encode(results.toJson())), {
         'timestamp': isNotNull,
         'totalCount': 1,
-        'packages': [
-          {'package': 'stringutils', 'score': closeTo(0.80, 0.01)},
-          {
-            'package': 'dart:core',
-            'score': closeTo(0.69, 0.01),
-            'url':
-                'https://api.dartlang.org/stable/2.0.0/dart-core/String-class.html',
-            'description': 'Dart core utils',
-            'apiPages': [
-              {
-                'title': null,
-                'path': 'dart-core/String-class.html',
-                'url':
-                    'https://api.dartlang.org/stable/2.0.0/dart-core/String-class.html'
-              },
-            ],
-          },
-        ],
         'highlightedHit': {'package': 'stringutils'},
         'sdkLibraryHits': [
           {

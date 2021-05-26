@@ -4,6 +4,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Bumped runtimeVersion to `2021.05.26`.
  * Upgraded dartdoc to `0.44.0`.
+ * NOTE: Removed `packages` and `PackageScore` from search results.
 
 ## `20210526t104100-all`
  * Bumped runtimeVersion to `2021.05.25`.

@@ -53,13 +53,6 @@ Recent versions (0.3.x and 0.4.x) of this plugin require [extensible codec funct
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
-        'packages': [
-          {
-            'package': 'currency_cloud',
-            'score': closeTo(0.79, 0.01),
-          },
-          // cloud_firestore should not show up
-        ],
         'sdkLibraryHits': [],
         'packageHits': [
           {

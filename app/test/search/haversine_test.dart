@@ -383,23 +383,6 @@ MIT'''),
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 3,
-        'packages': [
-          {
-            // should be the top
-            'package': 'haversine',
-            'score': 1.0,
-          },
-          {
-            // should be present
-            'package': 'great_circle_distance',
-            'score': closeTo(0.72, 0.01),
-          },
-          {
-            // should be present
-            'package': 'latlong',
-            'score': closeTo(0.71, 0.01),
-          },
-        ],
         'highlightedHit': {'package': 'haversine'},
         'sdkLibraryHits': [],
         'packageHits': [
@@ -422,12 +405,6 @@ MIT'''),
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
-        'packages': [
-          {
-            'package': 'haversine',
-            'score': closeTo(0.64, 0.01),
-          },
-        ],
         'sdkLibraryHits': [],
         'packageHits': [
           {
