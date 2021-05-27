@@ -155,13 +155,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.4"
-  chunked_stream:
-    dependency: transitive
-    description:
-      name: chunked_stream
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.4.1"
   cli_util:
     dependency: transitive
     description:
@@ -679,7 +672,7 @@ packages:
       name: tar
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.2"
+    version: "0.4.0"
   term_glyph:
     dependency: transitive
     description:
