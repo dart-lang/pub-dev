@@ -13,7 +13,7 @@ dependencies:
   client_data:
     path: ../pkg/client_data
   convert: '^3.0.0'
-  crypto: '^2.0.2'
+  crypto: '^3.0.0'
   fake_gcloud:
     path: ../pkg/fake_gcloud
   gcloud: '^0.7.3'
@@ -70,5 +70,6 @@ dev_dependencies:
 
 dependency_overrides:
   convert: ^3.0.0 # neat_cache
+  crypto: '^3.0.0' # grpc, appengine
   logging: ^1.0.0 # several dependencies
   tar: 0.4.0 # pana
