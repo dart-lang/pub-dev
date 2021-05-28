@@ -107,52 +107,43 @@ void main() {
       );
     });
 
-    testWithServices('/flutter/packages', () async {
-      await expectHtmlResponse(
-        await issueGet('/flutter/packages'),
-        present: [
-// TODO: fix, package should be present on the page.
-//          '/packages/helium',
-        ],
-        absent: [
-          '/packages/hydrogen',
-          'hydrogen is a Dart package',
-          '/packages/http',
-          '/packages/event_bus',
-          'lightweight library for parsing',
-        ],
-      );
-    });
-
-    testWithServices('/flutter/packages&page=2', () async {
-      for (int i = 0; i < 15; i++) {
-        final bundle = generateBundle(
-          'pkg$i',
-          ['1.0.0'],
-          pubspecExtraContent: '''
-flutter:
-  plugin:
-    class: SomeClass
-''',
+    testWithProfile(
+      '/flutter/packages',
+      fn: () async {
+        await expectHtmlResponse(
+          await issueGet('/flutter/packages'),
+          present: [
+            '/packages/flutter_titanium',
+          ],
+          absent: [
+            '/packages/oxygen',
+            '/packages/neon',
+          ],
         );
-        await dbService.commit(inserts: [
-          bundle.package,
-          ...bundle.versions,
-          ...bundle.infos,
-          ...bundle.assets,
-        ]);
-      }
-      await indexUpdater.updateAllPackages();
+      },
+      processJobsWithFakeRunners: true,
+    );
 
-      final names = ['pkg0', 'pkg3', 'pkg10'];
-      final list = await packageBackend.latestPackageVersions(offset: 10);
-      expect(list.map((p) => p.package).toList(), containsAll(names));
-
-      await expectHtmlResponse(
-        await issueGet('/packages?page=2'),
-        present: names.map((name) => '/packages/$name').toList(),
-      );
-    });
+    testWithProfile(
+      '/flutter/packages?page=2',
+      testProfile: TestProfile(
+        packages: List<TestPackage>.generate(
+          15,
+          (i) => TestPackage(
+            name: 'flutter_pkg$i',
+          ),
+        ),
+        defaultUser: 'admin@pub.dev',
+      ),
+      fn: () async {
+        final names = ['flutter_pkg2', 'flutter_pkg4', 'flutter_pkg10'];
+        await expectHtmlResponse(
+          await issueGet('/flutter/packages?page=2'),
+          present: names.map((name) => '/packages/$name').toList(),
+        );
+      },
+      processJobsWithFakeRunners: true,
+    );
 
     testWithServices('/flutter/favorites: link to 2nd page', () async {
       for (int i = 0; i < 15; i++) {
