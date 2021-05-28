@@ -11,6 +11,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
    * `package:tar` to `0.4.0`
  * NOTE: Removed `packages` and `PackageScore` from search results.
  * NOTE: `gc-dartdoc-storage-bucket` logs the total number of entries deleted.
+ * NOTE: Started to store report data on `ScoreCard` entities too.
 
 ## `20210526t104100-all`
  * Bumped runtimeVersion to `2021.05.25`.
