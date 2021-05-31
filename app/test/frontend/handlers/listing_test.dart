@@ -6,7 +6,6 @@ import 'package:gcloud/db.dart';
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
 
-import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/search/search_client.dart';
