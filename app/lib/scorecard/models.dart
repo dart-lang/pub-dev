@@ -8,7 +8,6 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/models.dart'
     show LicenseFile, PanaRuntimeInfo, Report, ReportSection;
-import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../dartdoc/models.dart';
