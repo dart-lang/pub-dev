@@ -314,7 +314,7 @@ class ScoreCardBackend {
         final size = scr.reportJsonGz.length;
         if (size > _reportSizeDropThreshold) {
           // TODO: replace it with meaningful content
-          _logger.shout(
+          _logger.reportError(
               '${scr.reportType} report exceeded size threshold ($size > $_reportSizeWarnThreshold)');
           continue;
         }

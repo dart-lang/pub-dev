@@ -339,3 +339,9 @@ Map<String, String> cloudTraceHeaders() {
   if (context?.traceId == null) return null;
   return {_cloudTraceContextHeader: context.traceId};
 }
+
+extension CustomException on Logger {
+  /// Reports an error [message] with the current stacktrace.
+  void reportError(String message) =>
+      shout(message, Exception(message), StackTrace.current);
+}
