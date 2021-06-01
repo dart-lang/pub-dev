@@ -135,7 +135,8 @@ Future<BackfillStat> backfillPackageVersion({
 Future<PackageSummary> _parseArchive(
     http.Client httpClient, String package, String version) async {
   final fn = '$package-$version.tar.gz';
-  final uri = 'https://storage.googleapis.com/pub-packages/packages/$fn';
+  final uri =
+      Uri.parse('https://storage.googleapis.com/pub-packages/packages/$fn');
   final rs = await httpClient.get(uri);
   if (rs.statusCode != 200) {
     throw Exception('Unable to download: $uri');

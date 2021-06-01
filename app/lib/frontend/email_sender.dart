@@ -98,7 +98,8 @@ Address _toAddress(EmailAddress input) =>
 /// [3]: https://developers.google.com/identity/protocols/oauth2/service-account
 /// [4]: https://cloud.google.com/iam/docs/reference/credentials/rest/v1/projects.serviceAccounts/signJwt
 class _GmailSmtpRelay implements EmailSender {
-  static const _googleOauth2TokenUrl = 'https://oauth2.googleapis.com/token';
+  static final _googleOauth2TokenUrl =
+      Uri.parse('https://oauth2.googleapis.com/token');
   static const _scopes = ['https://mail.google.com/'];
 
   final String _serviceAccountEmail;
@@ -162,7 +163,7 @@ class _GmailSmtpRelay implements EmailSender {
   /// [_serviceAccountEmail] configured for _domain-wide delegation_ following:
   /// https://developers.google.com/identity/protocols/oauth2/service-account
   Future<String> _createAccessToken() async {
-    final iam = iam_credentials.IamcredentialsApi(_authClient);
+    final iam = iam_credentials.IAMCredentialsApi(_authClient);
     final iat = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000 - 20;
     iam_credentials.SignJwtResponse jwtResponse;
     try {

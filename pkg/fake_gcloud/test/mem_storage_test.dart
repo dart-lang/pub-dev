@@ -38,7 +38,7 @@ void main() {
     await bucket.writeBytes('a/b/c.txt', [0]);
     await bucket.writeBytes('a/b-local.txt', [0]);
 
-    Future<List<String>> list(String prefix, {String delimiter}) async {
+    Future<List<String>> list(String? prefix, {String? delimiter}) async {
       final r = await bucket
           .list(prefix: prefix, delimiter: delimiter)
           .map((e) => e.name)

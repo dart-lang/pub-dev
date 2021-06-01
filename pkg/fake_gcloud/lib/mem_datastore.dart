@@ -37,15 +37,13 @@ class MemDatastore implements Datastore {
   }
 
   @override
-  Future<CommitResult> commit(
-      {List<Entity> inserts,
-      List<Entity> autoIdInserts,
-      List<Key> deletes,
-      Transaction transaction}) async {
-    inserts ??= <Entity>[];
-    deletes ??= <Key>[];
-
-    if (autoIdInserts != null && autoIdInserts.isNotEmpty) {
+  Future<CommitResult> commit({
+    List<Entity> inserts = const [],
+    List<Entity> autoIdInserts = const [],
+    List<Key> deletes = const [],
+    Transaction? transaction,
+  }) async {
+    if (autoIdInserts.isNotEmpty) {
       throw UnimplementedError(
           'fake_gcloud.Datastore.autoIdInserts is not implemented.');
     }
@@ -64,8 +62,8 @@ class MemDatastore implements Datastore {
       }
     }
 
-    inserts?.forEach(_checkProperties);
-    autoIdInserts?.forEach(_checkProperties);
+    inserts.forEach(_checkProperties);
+    autoIdInserts.forEach(_checkProperties);
 
     // TODO: check serializability.
     // We need to track the keys that have been mutated since the Transaction
@@ -116,10 +114,11 @@ class MemDatastore implements Datastore {
 
     // properties
     for (final p in entity.properties.entries) {
-      final length = _propertyLength(p.value);
+      if (p.value == null) continue;
+      final length = _propertyLength(p.value!);
       overallLength += length;
 
-      final indexed = entity.unIndexedProperties == null ||
+      final indexed = entity.unIndexedProperties.isEmpty ||
           !entity.unIndexedProperties.contains(p.key);
 
       if (length > _maxPropertyLength) {
@@ -147,7 +146,8 @@ class MemDatastore implements Datastore {
   }
 
   @override
-  Future<List<Entity>> lookup(List<Key> keys, {Transaction transaction}) async {
+  Future<List<Entity?>> lookup(List<Key> keys,
+      {Transaction? transaction}) async {
     if (keys.any((k) => k.elements.any((e) => e.id == null))) {
       throw ArgumentError('Key contains null.');
     }
@@ -178,23 +178,25 @@ class MemDatastore implements Datastore {
   }
 
   @override
-  Future<Page<Entity>> query(Query query,
-      {Partition partition, Transaction transaction}) async {
+  Future<Page<Entity>> query(
+    Query query, {
+    Partition partition = Partition.DEFAULT,
+    Transaction? transaction,
+  }) async {
     List<Entity> items = _entities.values
         .where((e) => e.key.elements.last.kind == query.kind)
         .where(
       (e) {
         if (query.ancestorKey == null) {
           return true;
-        }
-        if (query.ancestorKey.partition != e.key.partition) {
+        } else if (query.ancestorKey!.partition != e.key.partition) {
+          return false;
+        } else if (query.ancestorKey!.elements.length !=
+            e.key.elements.length - 1) {
           return false;
         }
-        if (query.ancestorKey.elements.length != e.key.elements.length - 1) {
-          return false;
-        }
-        for (int i = 0; i < query.ancestorKey.elements.length; i++) {
-          if (query.ancestorKey.elements[i] != e.key.elements[i]) {
+        for (int i = 0; i < query.ancestorKey!.elements.length; i++) {
+          if (query.ancestorKey!.elements[i] != e.key.elements[i]) {
             return false;
           }
         }
@@ -202,10 +204,10 @@ class MemDatastore implements Datastore {
       },
     ).where(
       (e) {
-        if (query.filters == null || query.filters.isEmpty) {
+        if (query.filters == null || query.filters!.isEmpty) {
           return true;
         }
-        return query.filters.every((f) {
+        return query.filters!.every((f) {
           final v = _getValue(e, f.name);
           if (v == null) return false;
           final c = _compare(v, f.value);
@@ -226,9 +228,9 @@ class MemDatastore implements Datastore {
         });
       },
     ).toList();
-    if (query.orders != null && query.orders.isNotEmpty) {
+    if (query.orders != null && query.orders!.isNotEmpty) {
       items.sort((a, b) {
-        for (Order o in query.orders) {
+        for (Order o in query.orders!) {
           final ap = _getValue(a, o.propertyName);
           final bp = _getValue(b, o.propertyName);
           final c = _compare(ap, bp);
@@ -242,10 +244,10 @@ class MemDatastore implements Datastore {
         return 0;
       });
     }
-    if (query.offset != null && query.offset > 0) {
-      items = items.skip(query.offset).toList();
+    if (query.offset != null && query.offset! > 0) {
+      items = items.skip(query.offset!).toList();
     }
-    if (query.limit != null && query.limit < items.length) {
+    if (query.limit != null && query.limit! < items.length) {
       items = items.sublist(0, query.limit);
     }
     return _Page(items, 0, 100);
@@ -285,7 +287,7 @@ class MemDatastore implements Datastore {
     }
   }
 
-  dynamic _encodeValue(Object value) {
+  dynamic _encodeValue(Object? value) {
     if (value == null) return null;
     if (value is String || value is int || value is double || value is bool) {
       return value;
@@ -308,7 +310,7 @@ class MemDatastore implements Datastore {
     throw UnimplementedError('Unhandled type: ${value.runtimeType} ($value).');
   }
 
-  dynamic _decodeValue(Object value) {
+  dynamic _decodeValue(Object? value) {
     if (value == null) return null;
     if (value is String || value is int || value is double || value is bool) {
       return value;
@@ -335,7 +337,7 @@ class MemDatastore implements Datastore {
 
   Map<String, dynamic> _encodeKey(Key key) {
     return {
-      'partition': key.partition?.namespace,
+      'partition': key.partition.namespace,
       'elements': key.elements
           .map((e) => {
                 'kind': e.kind,
@@ -346,7 +348,7 @@ class MemDatastore implements Datastore {
   }
 
   Key _decodeKey(Map<String, dynamic> map) {
-    final partition = map['partition'] as String;
+    final partition = map['partition'] as String?;
     final elements = (map['elements'] as List)
         .cast<Map<String, dynamic>>()
         .map((e) => KeyElement(e['kind'] as String, e['id']))
@@ -361,7 +363,7 @@ class MemDatastore implements Datastore {
       'key': _encodeKey(entity.key),
       'props': entity.properties
           .map((key, value) => MapEntry(key, _encodeValue(value))),
-      'unindexed': entity.unIndexedProperties?.toList(),
+      'unindexed': entity.unIndexedProperties.toList(),
     };
   }
 
@@ -371,7 +373,7 @@ class MemDatastore implements Datastore {
     final props = (json['props'] as Map<String, dynamic>)
         .map((k, v) => MapEntry(k, _decodeValue(v)));
     final unindexed = (json['unindexed'] as List).cast<String>();
-    return Entity(key, props, unIndexedProperties: unindexed?.toSet());
+    return Entity(key, props, unIndexedProperties: unindexed.toSet());
   }
 }
 
@@ -391,7 +393,7 @@ class _Page implements Page<Entity> {
   bool get isLast => _offset + _pageSize > _items.length;
 
   @override
-  Future<Page<Entity>> next({int pageSize}) async {
+  Future<Page<Entity>> next({int? pageSize}) async {
     return _Page(_items, _offset + _pageSize, pageSize ?? _pageSize);
   }
 }

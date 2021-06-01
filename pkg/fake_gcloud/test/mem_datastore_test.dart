@@ -37,7 +37,7 @@ void main() {
       final entry =
           (await tx.lookup<Sample>([db.emptyKey.append(Sample, id: 'x')]))
               .single;
-      entry.count = 2;
+      entry!.count = 2;
       tx.queueMutations(inserts: [entry]);
       await tx.rollback();
     });
@@ -297,14 +297,14 @@ void main() {
 @Kind(name: 'Sample', idType: IdType.String)
 class Sample extends Model {
   @StringProperty()
-  String type;
+  String? type;
 
   @DateTimeProperty()
-  DateTime updated;
+  DateTime? updated;
 
   @IntProperty()
-  int count;
+  int? count;
 
   @StringProperty(indexed: false)
-  String content;
+  String? content;
 }

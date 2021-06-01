@@ -105,14 +105,14 @@ class _PkgOfWeekVideoFetcher {
     if (apiKey == null || apiKey.isEmpty) return <PkgOfWeekVideo>[];
 
     final apiClient = clientViaApiKey(apiKey);
-    final youtube = YoutubeApi(apiClient);
+    final youtube = YouTubeApi(apiClient);
 
     try {
       final videos = <PkgOfWeekVideo>[];
       String nextPageToken;
       for (var check = true; check && videos.length < 50;) {
         final rs = await youtube.playlistItems.list(
-          'snippet,contentDetails',
+          ['snippet', 'contentDetails'],
           playlistId: powPlaylistId,
         );
         videos.addAll(rs.items.map(

@@ -16,8 +16,8 @@ part 'flutter_archive.g.dart';
 /// - https://github.com/flutter/flutter/wiki/Flutter-build-release-channels
 Future<FlutterArchive> fetchFlutterArchive() async {
   final client = Client();
-  final rs = await client.get(
-      'https://storage.googleapis.com/flutter_infra/releases/releases_linux.json');
+  final rs = await client.get(Uri.parse(
+      'https://storage.googleapis.com/flutter_infra/releases/releases_linux.json'));
   client.close();
   return FlutterArchive.fromJson(json.decode(rs.body) as Map<String, dynamic>);
 }

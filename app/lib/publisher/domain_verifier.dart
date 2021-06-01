@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:googleapis_auth/auth.dart' as auth;
+import 'package:googleapis_auth/googleapis_auth.dart' as auth;
 import 'package:googleapis/webmasters/v3.dart' as wmx;
 import 'package:http/http.dart' as http;
 import 'package:retry/retry.dart' show retry;
@@ -38,7 +38,7 @@ class DomainVerifier {
           DateTime.now().toUtc().add(Duration(minutes: 20)), // avoid refresh
         ),
         null,
-        [wmx.WebmastersApi.WebmastersReadonlyScope],
+        [wmx.WebmastersApi.webmastersReadonlyScope],
       ),
     );
     try {

@@ -62,8 +62,8 @@ class _PubDevImportSource implements ImportSource {
     final file = File(p.join(archiveCachePath, archiveName));
     // download package archive if not already in the cache
     if (!await file.exists()) {
-      final rs = await _client.get(
-          '${urls.siteRoot}${urls.pkgArchiveDownloadUrl(package, version)}');
+      final rs = await _client.get(Uri.parse(
+          '${urls.siteRoot}${urls.pkgArchiveDownloadUrl(package, version)}'));
       await file.parent.create(recursive: true);
       await file.writeAsBytes(rs.bodyBytes);
     }

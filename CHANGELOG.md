@@ -8,6 +8,10 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded pana to `0.17.1`.
  * Upgraded dartdoc to `0.44.0`.
  * Upgraded package dependencies, including:
+   * `package:appengine` to `0.13.0`
+   * `package:gcloud` to `0.8.0`
+   * `package:googleapis` to `3.0.0`
+   * `package:http` to `0.13.0`
    * `package:mailer` to `5.0.0`
    * `package:tar` to `0.4.0`
  * NOTE: Removed `packages` and `PackageScore` from search results.
