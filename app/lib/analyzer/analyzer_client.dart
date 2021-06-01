@@ -31,13 +31,21 @@ class AnalyzerClient {
     if (card == null) {
       return AnalysisView();
     }
-    final reports = await scoreCardBackend.loadReports(
-      package,
-      version,
-      runtimeVersion: card.runtimeVersion,
-    );
-    final panaReport = reports[ReportType.pana] as PanaReport;
-    final dartdocReport = reports[ReportType.dartdoc] as DartdocReport;
+    var dartdocReport = card.dartdocReport;
+    var panaReport = card.panaReport;
+    // TODO: remove this part once we store reports only on the card
+    if (dartdocReport == null &&
+        panaReport == null &&
+        card.reportTypes != null &&
+        card.reportTypes.isNotEmpty) {
+      final reports = await scoreCardBackend.loadReports(
+        package,
+        version,
+        runtimeVersion: card.runtimeVersion,
+      );
+      panaReport = reports[ReportType.pana] as PanaReport;
+      dartdocReport = reports[ReportType.dartdoc] as DartdocReport;
+    }
     return AnalysisView._(card, panaReport, dartdocReport);
   }
 

@@ -28,6 +28,12 @@ ScoreCardData _$ScoreCardDataFromJson(Map<String, dynamic> json) {
     flags: (json['flags'] as List)?.map((e) => e as String)?.toList(),
     reportTypes:
         (json['reportTypes'] as List)?.map((e) => e as String)?.toList(),
+    dartdocReport: json['dartdocReport'] == null
+        ? null
+        : DartdocReport.fromJson(json['dartdocReport'] as Map<String, dynamic>),
+    panaReport: json['panaReport'] == null
+        ? null
+        : PanaReport.fromJson(json['panaReport'] as Map<String, dynamic>),
   );
 }
 
@@ -46,6 +52,8 @@ Map<String, dynamic> _$ScoreCardDataToJson(ScoreCardData instance) =>
       'derivedTags': instance.derivedTags,
       'flags': instance.flags,
       'reportTypes': instance.reportTypes,
+      'dartdocReport': instance.dartdocReport,
+      'panaReport': instance.panaReport,
     };
 
 PanaReport _$PanaReportFromJson(Map<String, dynamic> json) {

@@ -95,6 +95,14 @@ class ScoreCard extends db.ExpandoModel<String> {
   @CompatibleStringListProperty()
   List<String> reportTypes = <String>[];
 
+  /// Compressed, json-encoded content of [PanaReport].
+  @db.BlobProperty()
+  List<int> panaReportJsonGz;
+
+  /// Compressed, json-encoded content of [DartdocReport].
+  @db.BlobProperty()
+  List<int> dartdocReportJsonGz;
+
   ScoreCard();
 
   ScoreCard.init({
@@ -123,6 +131,8 @@ class ScoreCard extends db.ExpandoModel<String> {
         derivedTags: derivedTags,
         flags: flags,
         reportTypes: reportTypes,
+        dartdocReport: DartdocReport.fromBytes(dartdocReportJsonGz),
+        panaReport: PanaReport.fromBytes(panaReportJsonGz),
       );
 
   Version get semanticRuntimeVersion => Version.parse(runtimeVersion);
@@ -197,12 +207,6 @@ class ScoreCardReport extends db.ExpandoModel<String> {
     reportJson = reportData.toJson();
   }
 
-  Map<String, dynamic> get reportJson {
-    if (reportJsonGz == null) return null;
-    return utf8JsonDecoder.convert(_gzipCodec.decode(reportJsonGz))
-        as Map<String, dynamic>;
-  }
-
   set reportJson(Map<String, dynamic> map) {
     if (map == null) {
       reportJsonGz = null;
@@ -214,9 +218,9 @@ class ScoreCardReport extends db.ExpandoModel<String> {
   ReportData get reportData {
     switch (reportType) {
       case ReportType.pana:
-        return PanaReport.fromJson(reportJson);
+        return PanaReport.fromBytes(reportJsonGz);
       case ReportType.dartdoc:
-        return DartdocReport.fromJson(reportJson);
+        return DartdocReport.fromBytes(reportJsonGz);
     }
     throw Exception('Unknown report type: $reportType');
   }
@@ -269,6 +273,9 @@ class ScoreCardData extends Object with FlagMixin {
   /// The report types that are already done for the ScoreCard.
   final List<String> reportTypes;
 
+  final DartdocReport dartdocReport;
+  final PanaReport panaReport;
+
   ScoreCardData({
     this.packageName,
     this.packageVersion,
@@ -282,6 +289,8 @@ class ScoreCardData extends Object with FlagMixin {
     this.derivedTags,
     this.flags,
     this.reportTypes,
+    this.dartdocReport,
+    this.panaReport,
   });
 
   factory ScoreCardData.fromJson(Map<String, dynamic> json) =>
@@ -350,6 +359,13 @@ class PanaReport implements ReportData {
   factory PanaReport.fromJson(Map<String, dynamic> json) =>
       _$PanaReportFromJson(json);
 
+  static PanaReport fromBytes(List<int> bytes) {
+    if (bytes == null) return null;
+    final map = utf8JsonDecoder.convert(_gzipCodec.decode(bytes))
+        as Map<String, dynamic>;
+    return PanaReport.fromJson(map);
+  }
+
   @override
   Map<String, dynamic> toJson() => _$PanaReportToJson(this);
 }
@@ -376,6 +392,13 @@ class DartdocReport implements ReportData {
 
   factory DartdocReport.fromJson(Map<String, dynamic> json) =>
       _$DartdocReportFromJson(json);
+
+  static DartdocReport fromBytes(List<int> bytes) {
+    if (bytes == null) return null;
+    final map = utf8JsonDecoder.convert(_gzipCodec.decode(bytes))
+        as Map<String, dynamic>;
+    return DartdocReport.fromJson(map);
+  }
 
   @override
   Map<String, dynamic> toJson() => _$DartdocReportToJson(this);

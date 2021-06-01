@@ -27,6 +27,8 @@ export 'models.dart';
 final _logger = Logger('pub.scorecard.backend');
 
 final Duration _deleteThreshold = const Duration(days: 182);
+final _reportSizeWarnThreshold = 16 * 1024;
+final _reportSizeDropThreshold = 32 * 1024;
 
 /// The minimum age of the [PackageVersion] which will trigger a fallback to
 /// older scorecards. Below this age we only display the current [ScoreCard].
@@ -82,7 +84,8 @@ class ScoreCardBackend {
     }
 
     final key = scoreCardKey(packageName, packageVersion);
-    final current = (await _db.lookup<ScoreCard>([key])).single?.toData();
+    final current =
+        (await _db.lookupValue<ScoreCard>(key, orElse: () => null))?.toData();
     if (current != null) {
       // only full cards will be stored in cache
       if (current.isCurrent && current.hasReports(ReportType.values)) {
@@ -164,8 +167,7 @@ class ScoreCardBackend {
     await _updateScoreCard(packageName, packageVersion);
   }
 
-  /// Load and deserialize the reports for the given package and version.
-  Future<Map<String, ReportData>> loadReports(
+  Future<List<ScoreCardReport>> _loadReports(
     String packageName,
     String packageVersion, {
     List<String> reportTypes,
@@ -174,18 +176,31 @@ class ScoreCardBackend {
     reportTypes ??= [ReportType.pana, ReportType.dartdoc];
     final key = scoreCardKey(packageName, packageVersion,
         runtimeVersion: runtimeVersion);
-
-    final list = await _db.lookup(reportTypes
+    return await _db.lookup<ScoreCardReport>(reportTypes
         .map((type) => key.append(ScoreCardReport, id: type))
         .toList());
+  }
 
+  Map<String, ReportData> _extractReportData(List<ScoreCardReport> items) {
     final result = <String, ReportData>{};
-    for (db.Model model in list) {
+    for (db.Model model in items) {
       if (model == null) continue;
       final report = model as ScoreCardReport;
       result[report.reportType] = report.reportData;
     }
     return result;
+  }
+
+  /// Load and deserialize the reports for the given package and version.
+  Future<Map<String, ReportData>> loadReports(
+    String packageName,
+    String packageVersion, {
+    List<String> reportTypes,
+    String runtimeVersion,
+  }) async {
+    final list = await _loadReports(packageName, packageVersion,
+        reportTypes: reportTypes, runtimeVersion: runtimeVersion);
+    return _extractReportData(list);
   }
 
   /// Load and deserialize a specific report type for the given package's versions.
@@ -250,7 +265,8 @@ class ScoreCardBackend {
     final currentSdkVersion = await getDartSdkVersion();
     final status = PackageStatus.fromModels(
         package, version, currentSdkVersion.semanticVersion);
-    final reports = await loadReports(packageName, packageVersion);
+    final reportEntities = await _loadReports(packageName, packageVersion);
+    final reports = _extractReportData(reportEntities);
 
     await db.withRetryTransaction(_db, (tx) async {
       var scoreCard = await tx.lookupValue<ScoreCard>(key, orElse: () => null);
@@ -291,6 +307,31 @@ class ScoreCardBackend {
         panaReport: reports[ReportType.pana] as PanaReport,
         dartdocReport: reports[ReportType.dartdoc] as DartdocReport,
       );
+
+      // store compressed report on the ScoreCard entity too
+      for (final scr in reportEntities) {
+        if (scr == null || scr.reportJsonGz == null) continue;
+        final size = scr.reportJsonGz.length;
+        if (size > _reportSizeDropThreshold) {
+          // TODO: replace it with meaningful content
+          _logger.reportError(
+              '${scr.reportType} report exceeded size threshold ($size > $_reportSizeWarnThreshold)');
+          continue;
+        }
+
+        if (size > _reportSizeWarnThreshold) {
+          _logger.warning(
+              '${scr.reportType} report exceeded size threshold ($size > $_reportSizeWarnThreshold)');
+        }
+        switch (scr.reportType) {
+          case ReportType.dartdoc:
+            scoreCard.dartdocReportJsonGz = scr.reportJsonGz;
+            break;
+          case ReportType.pana:
+            scoreCard.panaReportJsonGz = scr.reportJsonGz;
+            break;
+        }
+      }
 
       tx.insert(scoreCard);
     });
