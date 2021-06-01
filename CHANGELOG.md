@@ -10,6 +10,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
    * `package:mailer` to `5.0.0`
    * `package:tar` to `0.4.0`
  * NOTE: Removed `packages` and `PackageScore` from search results.
+ * NOTE: `gc-dartdoc-storage-bucket` logs the total number of entries deleted.
 
 ## `20210526t104100-all`
  * Bumped runtimeVersion to `2021.05.25`.

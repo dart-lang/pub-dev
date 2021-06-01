@@ -348,14 +348,16 @@ class DartdocBackend {
   Future<void> gcStorageBucket() async {
     final query = _db.query<DartdocRun>()
       ..filter('created >', DateTime.now().toUtc().subtract(Duration(days: 2)));
+    var total = 0;
     await for (final r in query.run()) {
       if (r.runtimeVersion != shared_versions.runtimeVersion) continue;
-      await _removeObsolete(r.package, r.version);
+      total += await _removeObsolete(r.package, r.version);
     }
+    _logger.info('gc-dartdoc-storage-bucket cleared $total entries.');
   }
 
   /// Removes incomplete uploads and old outputs from the bucket.
-  Future<void> _removeObsolete(String package, String version) async {
+  Future<int> _removeObsolete(String package, String version) async {
     final completedList =
         await _listEntries(storage_path.entryPrefix(package, version));
     final inProgressList =
@@ -372,6 +374,7 @@ class DartdocBackend {
     for (var entry in deleteEntries) {
       await _deleteAll(entry);
     }
+    return deleteEntries.length;
   }
 
   Future<List<DartdocEntry>> _listEntries(String prefix) async {
