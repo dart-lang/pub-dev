@@ -47,8 +47,8 @@ Future<DartSdkVersion> getDartSdkVersion() async {
 Future<DartSdkVersion> _fetchDartSdkVersion() async {
   final client = httpRetryClient();
   try {
-    final rs = await client.get(
-        'https://storage.googleapis.com/dart-archive/channels/stable/release/latest/VERSION');
+    final rs = await client.get(Uri.parse(
+        'https://storage.googleapis.com/dart-archive/channels/stable/release/latest/VERSION'));
     if (rs.statusCode != 200) {
       throw AssertionError('Expected OK status code, got: ${rs.statusCode}.');
     }

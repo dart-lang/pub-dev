@@ -89,7 +89,8 @@ class FakeServerCommand extends Command {
     );
 
     Future<shelf.Response> _updateUpstream(int port) async {
-      final rs = await post('http://localhost:$port/fake-update-all');
+      final rs =
+          await post(Uri.parse('http://localhost:$port/fake-update-all'));
       if (rs.statusCode == 200) {
         return shelf.Response.ok('OK');
       } else {

@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart';
 import 'package:gcloud/storage.dart';
-import 'package:meta/meta.dart';
 import 'package:logging/logging.dart';
 
 final _logger = Logger('mem_storage');
@@ -11,7 +10,7 @@ final _logger = Logger('mem_storage');
 class MemStorage implements Storage {
   final _buckets = <String, _Bucket>{};
 
-  MemStorage({List<String> buckets}) {
+  MemStorage({List<String>? buckets}) {
     buckets?.forEach((name) {
       _buckets[name] = _Bucket(name);
     });
@@ -19,7 +18,7 @@ class MemStorage implements Storage {
 
   @override
   Future<void> createBucket(String bucketName,
-      {PredefinedAcl predefinedAcl, Acl acl}) async {
+      {PredefinedAcl? predefinedAcl, Acl? acl}) async {
     _buckets.putIfAbsent(bucketName, () => _Bucket(bucketName));
   }
 
@@ -30,8 +29,8 @@ class MemStorage implements Storage {
 
   @override
   Bucket bucket(String bucketName,
-      {PredefinedAcl defaultPredefinedObjectAcl, Acl defaultObjectAcl}) {
-    return _buckets[bucketName];
+      {PredefinedAcl? defaultPredefinedObjectAcl, Acl? defaultObjectAcl}) {
+    return _buckets[bucketName]!;
   }
 
   @override
@@ -132,10 +131,10 @@ class _File implements ObjectInfo {
   final ObjectMetadata metadata;
 
   _File({
-    @required this.bucketName,
-    @required this.name,
-    @required this.content,
-    DateTime updated,
+    required this.bucketName,
+    required this.name,
+    required this.content,
+    DateTime? updated,
   })  : // TODO: use a real CRC32 check
         crc32CChecksum = content.fold<int>(0, (a, b) => a + b) & 0xffffffff,
         updated = updated ?? DateTime.now().toUtc(),
@@ -176,11 +175,11 @@ class _Bucket implements Bucket {
 
   @override
   StreamSink<List<int>> write(String objectName,
-      {int length,
-      ObjectMetadata metadata,
-      Acl acl,
-      PredefinedAcl predefinedAcl,
-      String contentType}) {
+      {int? length,
+      ObjectMetadata? metadata,
+      Acl? acl,
+      PredefinedAcl? predefinedAcl,
+      String? contentType}) {
     _validateObjectName(objectName);
     _logger.info('Writing stream to: $objectName');
     // ignore: close_sinks
@@ -201,10 +200,10 @@ class _Bucket implements Bucket {
 
   @override
   Future<ObjectInfo> writeBytes(String name, List<int> bytes,
-      {ObjectMetadata metadata,
-      Acl acl,
-      PredefinedAcl predefinedAcl,
-      String contentType}) async {
+      {ObjectMetadata? metadata,
+      Acl? acl,
+      PredefinedAcl? predefinedAcl,
+      String? contentType}) async {
     _validateObjectName(name);
     final sink = write(
       name,
@@ -215,7 +214,7 @@ class _Bucket implements Bucket {
     );
     sink.add(bytes);
     await sink.close();
-    return _files[name];
+    return _files[name]!;
   }
 
   @override
@@ -236,15 +235,15 @@ class _Bucket implements Bucket {
   }
 
   @override
-  Stream<List<int>> read(String objectName, {int offset, int length}) async* {
+  Stream<List<int>> read(String objectName, {int? offset, int? length}) async* {
     _validateObjectName(objectName);
     _logger.info('read request for $objectName');
     final file = _files[objectName];
-    yield file.content;
+    yield file!.content;
   }
 
   @override
-  Stream<BucketEntry> list({String prefix, String delimiter}) async* {
+  Stream<BucketEntry> list({String? prefix, String? delimiter}) async* {
     _validateObjectName(prefix, allowNull: true);
     prefix ??= '';
     delimiter ??= '/';
@@ -254,12 +253,12 @@ class _Bucket implements Bucket {
     for (String name in _files.keys) {
       bool matchesPrefix() {
         // without prefix, return everything
-        if (prefix.isEmpty) return true;
+        if (prefix!.isEmpty) return true;
         // exclude everything that does not match the prefix
         if (!name.startsWith(prefix)) return false;
         // prefix does not end with directory separator, only files are matched
         if (!isDirPrefix &&
-            delimiter.isNotEmpty &&
+            delimiter!.isNotEmpty &&
             name.substring(prefix.length).contains(delimiter)) {
           return false;
         }
@@ -295,7 +294,7 @@ class _Bucket implements Bucket {
 
   @override
   Future<Page<BucketEntry>> page(
-      {String prefix, String delimiter, int pageSize = 50}) async {
+      {String? prefix, String? delimiter, int pageSize = 50}) async {
     final entries = await list(prefix: prefix, delimiter: delimiter).toList();
     entries.sort((a, b) => a.name.compareTo(b.name));
     return _Page<BucketEntry>(entries, pageSize, 0);
@@ -335,8 +334,8 @@ class _Page<T> implements Page<T> {
   List<T> get items => _pageItems;
 
   @override
-  Future<Page<T>> next({int pageSize}) async {
-    if (isLast) return null;
+  Future<Page<T>> next({int? pageSize}) async {
+    if (isLast) return Future.value(null);
     return _Page(_allItems, _pageSize, _pageNum + 1);
   }
 
@@ -346,11 +345,11 @@ class _Page<T> implements Page<T> {
         isLast = _allItems.length <= _pageSize * (_pageNum + 1);
 }
 
-void _validateObjectName(String objectName, {bool allowNull = false}) {
+void _validateObjectName(String? objectName, {bool allowNull = false}) {
   if (allowNull && objectName == null) {
     return;
   }
-  if (objectName.startsWith('/')) {
+  if (objectName!.startsWith('/')) {
     throw Exception('ObjectName must not start with / ($objectName)');
   }
 }

@@ -72,8 +72,8 @@ Future<List<ResolvedVersion>> resolveVersions(
       final package = parts.first;
       final version = parts.last;
 
-      final rs = await client
-          .get('${urls.siteRoot}/api/packages/$package/versions/$version');
+      final rs = await client.get(Uri.parse(
+          '${urls.siteRoot}/api/packages/$package/versions/$version'));
       final map = json.decode(rs.body) as Map<String, dynamic>;
       final info = package_api.VersionInfo.fromJson(map);
 

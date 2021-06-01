@@ -18,7 +18,7 @@ void main() {
 
   group('dartdoc assets', () {
     Future<void> checkAsset(String url, String path) async {
-      final rs = await http.get(url);
+      final rs = await http.get(Uri.parse(url));
       expect(rs.statusCode, 200);
       final staticContent = staticFileCache.getFile(path);
       expect(staticContent.bytes.length, rs.bodyBytes.length);

@@ -60,7 +60,7 @@ class SearchClient {
 
     Future<PackageSearchResult> searchFn() async {
       final response = await _httpClient
-          .get(serviceUrl, headers: cloudTraceHeaders())
+          .get(Uri.parse(serviceUrl), headers: cloudTraceHeaders())
           .timeout(Duration(seconds: 5));
       if (response.statusCode == searchIndexNotReadyCode) {
         // Search request before the service initialization completed.
