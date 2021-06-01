@@ -44,8 +44,8 @@ RUN dart /project/tool/pub_get_offline.dart /project/app
 RUN /project/app/script/setup-dart.sh /tool/stable https://storage.googleapis.com/dart-archive/channels/stable/raw/2.13.1/sdk/dartsdk-linux-x64-release.zip
 RUN /project/app/script/setup-dart.sh /tool/preview https://storage.googleapis.com/dart-archive/channels/stable/raw/2.13.1/sdk/dartsdk-linux-x64-release.zip
 
-RUN /project/app/script/setup-flutter.sh /tool/stable 2.2.0
-RUN /project/app/script/setup-flutter.sh /tool/preview 2.2.0
+RUN /project/app/script/setup-flutter.sh /tool/stable 2.2.1
+RUN /project/app/script/setup-flutter.sh /tool/preview 2.2.1
 
 # Clear out any arguments the base images might have set
 CMD []
