@@ -154,7 +154,7 @@ packages:
       name: crypto
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.1.5"
+    version: "3.0.1"
   dart_style:
     dependency: transitive
     description:
@@ -196,7 +196,7 @@ packages:
       name: http
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.12.2"
+    version: "0.13.3"
   http_methods:
     dependency: "direct main"
     description:
@@ -212,7 +212,7 @@ packages:
     source: hosted
     version: "2.2.0"
   http_parser:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: http_parser
       url: "https://pub.dartlang.org"
@@ -455,7 +455,7 @@ packages:
       name: uuid
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.2.2"
+    version: "3.0.4"
   vm_service:
     dependency: transitive
     description:
