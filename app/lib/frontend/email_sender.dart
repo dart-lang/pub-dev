@@ -172,7 +172,7 @@ class _GmailSmtpRelay implements EmailSender {
               ..payload = json.encode({
                 'iss': _serviceAccountEmail,
                 'scope': _scopes.join(' '),
-                'aud': _googleOauth2TokenUrl,
+                'aud': _googleOauth2TokenUrl.toString(),
                 'exp': iat + 3600,
                 'iat': iat,
                 'sub': _impersonatedGSuiteUser,
