@@ -20,10 +20,8 @@
     "reportTypes": [
       "pana"
     ],
-    "overallScore": 0.9395473064735175
-  },
-  "reports": {
-    "pana": {
+    "overallScore": 0.9395473064735175,
+    "panaReport": {
       "timestamp": "2018-11-16T13:46:22.548220Z",
       "panaRuntimeInfo": {
         "panaVersion": "0.12.6",

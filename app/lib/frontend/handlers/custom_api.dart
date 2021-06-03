@@ -219,15 +219,6 @@ Future<shelf.Response> apiPackageMetricsHandler(
     'score': score?.toJson(),
     'scorecard': data.toJson(),
   };
-  if (request.requestedUri.queryParameters.containsKey('reports')) {
-    final reports = await scoreCardBackend.loadReports(
-      packageName,
-      data.packageVersion,
-      runtimeVersion: data.runtimeVersion,
-    );
-    result['reports'] =
-        reports.map((k, report) => MapEntry(k, report.toJson()));
-  }
   return jsonResponse(result);
 }
 

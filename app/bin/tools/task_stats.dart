@@ -13,7 +13,6 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:pool/pool.dart';
 
-import 'package:pub_dev/dartdoc/dartdoc_client.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/service/entrypoint/tools.dart';
@@ -59,30 +58,13 @@ Future main(List<String> args) async {
   exit(0);
 }
 
-Future<String> _analyzerStatus(String package, String version) async {
-  final reports = await scoreCardBackend
-      .loadReports(package, version, reportTypes: [ReportType.pana]);
-  final panaReport = reports[ReportType.pana];
-  return panaReport?.reportStatus ?? 'awaiting';
-}
-
-Future<String> _dartdocStatus(String package, String version) async {
-  final list = await dartdocClient.getEntries(package, [version]);
-  final entry = list.single;
-  if (entry == null) return 'awaiting';
-  return entry.hasContent ? 'success' : 'failure';
-}
-
 Future<_Stat> _getStat(String package, String version) async {
-  final List<String> statusList = await Future.wait([
-    _analyzerStatus(package, version),
-    _dartdocStatus(package, version),
-  ]);
+  final card = await scoreCardBackend.getScoreCardData(package, version);
   return _Stat(
     package: package,
     version: version,
-    analyzer: statusList[0],
-    dartdoc: statusList[1],
+    analyzer: card?.panaReport?.reportStatus ?? 'awaiting',
+    dartdoc: card?.dartdocReport?.reportStatus ?? 'awaiting',
   );
 }
 

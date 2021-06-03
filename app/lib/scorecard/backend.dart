@@ -191,18 +191,6 @@ class ScoreCardBackend {
     return result;
   }
 
-  /// Load and deserialize the reports for the given package and version.
-  Future<Map<String, ReportData>> loadReports(
-    String packageName,
-    String packageVersion, {
-    List<String> reportTypes,
-    String runtimeVersion,
-  }) async {
-    final list = await _loadReports(packageName, packageVersion,
-        reportTypes: reportTypes, runtimeVersion: runtimeVersion);
-    return _extractReportData(list);
-  }
-
   /// Load and deserialize a specific report type for the given package's versions.
   Future<List<ReportData>> loadReportForAllVersions(
     String packageName,

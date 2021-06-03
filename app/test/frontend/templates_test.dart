@@ -172,40 +172,40 @@ void main() {
           versionInfo: foobarStablePvInfo,
           asset: assetKind == null ? null : foobarAssets[assetKind],
           analysis: AnalysisView(
-            card: ScoreCardData(
+            ScoreCardData(
               reportTypes: ['pana', 'dartdoc'],
-            ),
-            panaReport: PanaReport(
-                timestamp: DateTime(2018, 02, 05),
-                panaRuntimeInfo: _panaRuntimeInfo,
+              panaReport: PanaReport(
+                  timestamp: DateTime(2018, 02, 05),
+                  panaRuntimeInfo: _panaRuntimeInfo,
+                  reportStatus: ReportStatus.success,
+                  derivedTags: null,
+                  allDependencies: ['quiver', 'http'],
+                  licenseFile: LicenseFile('LICENSE.txt', 'BSD'),
+                  report: Report(sections: <ReportSection>[]),
+                  flags: null),
+              dartdocReport: DartdocReport(
                 reportStatus: ReportStatus.success,
-                derivedTags: null,
-                allDependencies: ['quiver', 'http'],
-                licenseFile: LicenseFile('LICENSE.txt', 'BSD'),
-                report: Report(sections: <ReportSection>[]),
-                flags: null),
-            dartdocReport: DartdocReport(
-              reportStatus: ReportStatus.success,
-              dartdocEntry: DartdocEntry(
-                uuid: '1234-5678-dartdocentry-90ab',
-                packageName: foobarPkgName,
-                packageVersion: foobarStableVersion,
-                isLatest: true,
-                isObsolete: false,
-                usesFlutter: false,
-                runtimeVersion: runtimeVersion,
-                sdkVersion: _panaRuntimeInfo.sdkVersion,
-                dartdocVersion: dartdocVersion,
-                flutterVersion: null,
-                timestamp: DateTime(2018, 02, 05),
-                runDuration: Duration(seconds: 33),
-                depsResolved: true,
-                hasContent: true,
-                archiveSize: 101023,
-                totalSize: 203045,
+                dartdocEntry: DartdocEntry(
+                  uuid: '1234-5678-dartdocentry-90ab',
+                  packageName: foobarPkgName,
+                  packageVersion: foobarStableVersion,
+                  isLatest: true,
+                  isObsolete: false,
+                  usesFlutter: false,
+                  runtimeVersion: runtimeVersion,
+                  sdkVersion: _panaRuntimeInfo.sdkVersion,
+                  dartdocVersion: dartdocVersion,
+                  flutterVersion: null,
+                  timestamp: DateTime(2018, 02, 05),
+                  runDuration: Duration(seconds: 33),
+                  depsResolved: true,
+                  hasContent: true,
+                  archiveSize: 101023,
+                  totalSize: 203045,
+                ),
+                documentationSection:
+                    documentationCoverageSection(documented: 17, total: 17),
               ),
-              documentationSection:
-                  documentationCoverageSection(documented: 17, total: 17),
             ),
           ),
           isAdmin: true,
@@ -248,17 +248,19 @@ void main() {
         versionInfo: foobarDevPvInfo,
         asset: null,
         analysis: AnalysisView(
-          card: ScoreCardData(reportTypes: ['pana']),
-          panaReport: PanaReport(
-              timestamp: DateTime(2018, 02, 05),
-              panaRuntimeInfo: _panaRuntimeInfo,
-              reportStatus: ReportStatus.success,
-              derivedTags: null,
-              allDependencies: ['quiver', 'http'],
-              licenseFile: LicenseFile('LICENSE.txt', 'BSD'),
-              report: Report(sections: <ReportSection>[]),
-              flags: null),
-          dartdocReport: null,
+          ScoreCardData(
+            reportTypes: ['pana'],
+            panaReport: PanaReport(
+                timestamp: DateTime(2018, 02, 05),
+                panaRuntimeInfo: _panaRuntimeInfo,
+                reportStatus: ReportStatus.success,
+                derivedTags: null,
+                allDependencies: ['quiver', 'http'],
+                licenseFile: LicenseFile('LICENSE.txt', 'BSD'),
+                report: Report(sections: <ReportSection>[]),
+                flags: null),
+            dartdocReport: null,
+          ),
         ),
         isAdmin: true,
       ));
@@ -274,21 +276,21 @@ void main() {
         versionInfo: foobarStablePvInfo,
         asset: foobarAssets[AssetKind.readme],
         analysis: AnalysisView(
-          card: ScoreCardData(
+          ScoreCardData(
             popularityScore: 0.3,
             derivedTags: ['sdk:flutter', 'platform:android'],
             flags: [PackageFlags.usesFlutter],
             reportTypes: ['pana'],
+            panaReport: PanaReport(
+                timestamp: DateTime(2018, 02, 05),
+                panaRuntimeInfo: _panaRuntimeInfo,
+                reportStatus: ReportStatus.success,
+                derivedTags: ['sdk:flutter', 'platform:android'],
+                allDependencies: null,
+                licenseFile: null,
+                report: Report(sections: <ReportSection>[]),
+                flags: null),
           ),
-          panaReport: PanaReport(
-              timestamp: DateTime(2018, 02, 05),
-              panaRuntimeInfo: _panaRuntimeInfo,
-              reportStatus: ReportStatus.success,
-              derivedTags: ['sdk:flutter', 'platform:android'],
-              allDependencies: null,
-              licenseFile: null,
-              report: Report(sections: <ReportSection>[]),
-              flags: null),
         ),
         isAdmin: true,
       ));
@@ -304,7 +306,7 @@ void main() {
         versionInfo: foobarStablePvInfo,
         asset: foobarAssets[AssetKind.readme],
         analysis: AnalysisView(
-          card: ScoreCardData(
+          ScoreCardData(
             flags: [PackageFlags.isObsolete],
             updated: DateTime(2018, 02, 05),
           ),
@@ -324,7 +326,7 @@ void main() {
         versionInfo: foobarStablePvInfo,
         asset: foobarAssets[AssetKind.readme],
         analysis: AnalysisView(
-          card: ScoreCardData(
+          ScoreCardData(
             flags: [PackageFlags.isDiscontinued],
             updated: DateTime(2018, 02, 05),
           ),
@@ -347,7 +349,7 @@ void main() {
         versionInfo: foobarStablePvInfo,
         asset: foobarAssets[AssetKind.readme],
         analysis: AnalysisView(
-          card: ScoreCardData(
+          ScoreCardData(
             popularityScore: 0.5,
             flags: [PackageFlags.isLegacy],
           ),
@@ -385,10 +387,7 @@ void main() {
       final map = json.decode(content) as Map<String, dynamic>;
       final card =
           ScoreCardData.fromJson(map['scorecard'] as Map<String, dynamic>);
-      final reports = map['reports'] as Map<String, dynamic>;
-      final panaReport =
-          PanaReport.fromJson(reports['pana'] as Map<String, dynamic>);
-      final view = AnalysisView(card: card, panaReport: panaReport);
+      final view = AnalysisView(card);
       final String html = renderAnalysisTab(
         'http',
         '>=1.23.0-dev.0.0 <2.0.0',
@@ -404,19 +403,17 @@ void main() {
         popularityScore: 0.2323232,
         derivedTags: ['sdk:dart', 'runtime:web'],
         reportTypes: ['pana'],
-      );
-      final analysisView = AnalysisView(
-        card: card,
         panaReport: PanaReport(
             timestamp: DateTime.utc(2017, 10, 26, 14, 03, 06),
             panaRuntimeInfo: _panaRuntimeInfo,
             reportStatus: ReportStatus.failed,
-            derivedTags: card.derivedTags,
+            derivedTags: ['sdk:dart', 'runtime:web'],
             allDependencies: ['http', 'async'],
             licenseFile: null,
             report: Report(sections: <ReportSection>[]),
             flags: null),
       );
+      final analysisView = AnalysisView(card);
       final String html = renderAnalysisTab(
         'pkg_foo',
         '>=1.25.0-dev.9.0 <2.0.0',
@@ -433,18 +430,18 @@ void main() {
         null,
         ScoreCardData(),
         AnalysisView(
-          card: ScoreCardData(
+          ScoreCardData(
             reportTypes: ['pana'],
-          ),
-          panaReport: PanaReport(
-            timestamp: DateTime(2017, 12, 18, 14, 26, 00),
-            panaRuntimeInfo: _panaRuntimeInfo,
-            reportStatus: ReportStatus.aborted,
-            derivedTags: null,
-            allDependencies: null,
-            licenseFile: null,
-            report: Report(sections: <ReportSection>[]),
-            flags: null,
+            panaReport: PanaReport(
+              timestamp: DateTime(2017, 12, 18, 14, 26, 00),
+              panaRuntimeInfo: _panaRuntimeInfo,
+              reportStatus: ReportStatus.aborted,
+              derivedTags: null,
+              allDependencies: null,
+              licenseFile: null,
+              report: Report(sections: <ReportSection>[]),
+              flags: null,
+            ),
           ),
         ),
         likeCount: 1000000,
@@ -459,7 +456,7 @@ void main() {
         null,
         ScoreCardData(flags: [PackageFlags.isObsolete]),
         AnalysisView(
-          card: ScoreCardData(
+          ScoreCardData(
             flags: [PackageFlags.isObsolete],
             updated: DateTime(2017, 12, 18, 14, 26, 00),
           ),
@@ -478,7 +475,7 @@ void main() {
           versionInfo: foobarStablePvInfo,
           asset: null,
           analysis: AnalysisView(
-            card: ScoreCardData(
+            ScoreCardData(
               flags: [PackageFlags.isObsolete],
               updated: DateTime(2018, 02, 05),
             ),
@@ -565,7 +562,7 @@ void main() {
           versionInfo: foobarStablePvInfo,
           asset: null,
           analysis: AnalysisView(
-            card: ScoreCardData(
+            ScoreCardData(
               derivedTags: ['sdk:dart', 'sdk:flutter'],
               popularityScore: 0.2,
             ),
