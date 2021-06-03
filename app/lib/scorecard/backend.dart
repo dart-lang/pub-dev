@@ -320,25 +320,37 @@ class ScoreCardBackend {
       return false;
     }
 
-    // checking existing report
-    final key = scoreCardKey(pv.package, pv.version)
-        .append(ScoreCardReport, id: reportType);
-    final list = await _db.lookup([key]);
-    final report = list.single as ScoreCardReport;
-    if (report == null) {
-      return true;
+    // checking existing card
+    final key = scoreCardKey(pv.package, pv.version);
+    final card = await _db.lookupValue<ScoreCard>(key, orElse: () => null);
+    if (card == null) return true;
+
+    bool checkUpdatedAndStatus(DateTime updated, String reportStatus) {
+      // checking existence
+      if (updated == null) {
+        return true;
+      }
+      // checking freshness
+      if (updatedAfter != null && updatedAfter.isAfter(updated)) {
+        return true;
+      }
+      // checking age
+      final age = DateTime.now().toUtc().difference(updated);
+      final isSuccess = reportStatus == ReportStatus.success;
+      final ageThreshold = isSuccess ? successThreshold : failureThreshold;
+      return age > ageThreshold;
     }
 
-    // checking freshness
-    if (updatedAfter != null && updatedAfter.isAfter(report.updated)) {
-      return true;
+    final data = card.toData();
+    if (reportType == ReportType.pana) {
+      return checkUpdatedAndStatus(
+          data.panaReport?.timestamp, data.panaReport?.reportStatus);
+    } else if (reportType == ReportType.dartdoc) {
+      return checkUpdatedAndStatus(
+          data.dartdocReport?.timestamp, data.dartdocReport?.reportStatus);
+    } else {
+      throw AssertionError('Unknown report type: $reportType.');
     }
-
-    // checking age
-    final age = DateTime.now().toUtc().difference(report.updated);
-    final isSuccess = report.reportStatus == ReportStatus.success;
-    final ageThreshold = isSuccess ? successThreshold : failureThreshold;
-    return age > ageThreshold;
   }
 }
 

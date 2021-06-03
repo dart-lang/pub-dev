@@ -103,6 +103,9 @@ Map<String, dynamic> _$PanaReportToJson(PanaReport instance) {
 
 DartdocReport _$DartdocReportFromJson(Map<String, dynamic> json) {
   return DartdocReport(
+    timestamp: json['timestamp'] == null
+        ? null
+        : DateTime.parse(json['timestamp'] as String),
     reportStatus: json['reportStatus'] as String,
     dartdocEntry: json['dartdocEntry'] == null
         ? null
@@ -116,6 +119,7 @@ DartdocReport _$DartdocReportFromJson(Map<String, dynamic> json) {
 
 Map<String, dynamic> _$DartdocReportToJson(DartdocReport instance) =>
     <String, dynamic>{
+      'timestamp': instance.timestamp?.toIso8601String(),
       'reportStatus': instance.reportStatus,
       'dartdocEntry': instance.dartdocEntry,
       'documentationSection': instance.documentationSection,

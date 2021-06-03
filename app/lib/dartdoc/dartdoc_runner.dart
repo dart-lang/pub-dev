@@ -415,6 +415,7 @@ class DartdocJobProcessor extends JobProcessor {
     await _storeScoreCard(
         job,
         DartdocReport(
+          timestamp: DateTime.now().toUtc(),
           reportStatus: reportStatus,
           dartdocEntry: entry,
           documentationSection: documentationSection,
@@ -697,6 +698,7 @@ String _mergeOutput(ProcessResult pr, {bool compress = false}) {
 }
 
 DartdocReport _emptyReport() => DartdocReport(
+      timestamp: DateTime.now().toUtc(),
       reportStatus: ReportStatus.aborted,
       dartdocEntry: null,
       // TODO: add meaningful message for missing documentation on dartdoc

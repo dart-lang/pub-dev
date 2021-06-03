@@ -184,6 +184,7 @@ void main() {
                   report: Report(sections: <ReportSection>[]),
                   flags: null),
               dartdocReport: DartdocReport(
+                timestamp: DateTime(2018, 02, 05),
                 reportStatus: ReportStatus.success,
                 dartdocEntry: DartdocEntry(
                   uuid: '1234-5678-dartdocentry-90ab',

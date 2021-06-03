@@ -58,7 +58,7 @@ class ScoreCard extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)
   String runtimeVersion;
 
-  @db.DateTimeProperty()
+  @db.DateTimeProperty(required: true)
   DateTime updated;
 
   @db.DateTimeProperty(required: true)
@@ -386,6 +386,8 @@ class DartdocReport implements ReportData {
   @override
   String get reportType => ReportType.dartdoc;
 
+  final DateTime timestamp;
+
   @override
   final String reportStatus;
 
@@ -396,6 +398,7 @@ class DartdocReport implements ReportData {
   final ReportSection documentationSection;
 
   DartdocReport({
+    @required this.timestamp,
     @required this.reportStatus,
     @required this.dartdocEntry,
     @required this.documentationSection,
