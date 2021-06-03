@@ -148,17 +148,26 @@ class ScoreCard extends db.ExpandoModel<String> {
     flags?.remove(flag);
   }
 
-  void updateFromReports({
+  void updateReports({
     PanaReport panaReport,
     DartdocReport dartdocReport,
   }) {
-    derivedTags = panaReport?.derivedTags ?? <String>[];
+    if (panaReport != null) {
+      panaReportJsonGz = panaReport.toBytes();
+    } else if (panaReportJsonGz != null && panaReportJsonGz.isNotEmpty) {
+      panaReport = PanaReport.fromBytes(panaReportJsonGz);
+    }
+    if (dartdocReport != null) {
+      dartdocReportJsonGz = dartdocReport.toBytes();
+    } else if (dartdocReportJsonGz != null && dartdocReportJsonGz.isNotEmpty) {
+      dartdocReport = DartdocReport.fromBytes(dartdocReportJsonGz);
+    }
+
+    derivedTags = panaReport?.derivedTags ?? derivedTags ?? <String>[];
     reportTypes = [
-      panaReport == null ? null : ReportType.pana,
-      dartdocReport == null ? null : ReportType.dartdoc,
-    ]
-      ..removeWhere((type) => type == null)
-      ..sort();
+      if (panaReport != null) ReportType.pana,
+      if (dartdocReport != null) ReportType.dartdoc,
+    ];
     panaReport?.flags?.forEach(addFlag);
     final report =
         joinReport(panaReport: panaReport, dartdocReport: dartdocReport);
@@ -368,6 +377,8 @@ class PanaReport implements ReportData {
 
   @override
   Map<String, dynamic> toJson() => _$PanaReportToJson(this);
+
+  List<int> toBytes() => _gzipCodec.encode(jsonUtf8Encoder.convert(toJson()));
 }
 
 @JsonSerializable()
@@ -402,6 +413,8 @@ class DartdocReport implements ReportData {
 
   @override
   Map<String, dynamic> toJson() => _$DartdocReportToJson(this);
+
+  List<int> toBytes() => _gzipCodec.encode(jsonUtf8Encoder.convert(toJson()));
 }
 
 Report joinReport({PanaReport panaReport, DartdocReport dartdocReport}) {

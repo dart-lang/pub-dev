@@ -428,8 +428,9 @@ class DartdocJobProcessor extends JobProcessor {
   }
 
   Future _storeScoreCard(Job job, DartdocReport report) async {
-    await scoreCardBackend.updateReportAndCard(
-        job.packageName, job.packageVersion, report);
+    await scoreCardBackend.updateReportOnCard(
+        job.packageName, job.packageVersion,
+        dartdocReport: report);
   }
 
   Future<String> _resolveDependencies(

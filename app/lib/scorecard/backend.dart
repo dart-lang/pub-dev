@@ -133,61 +133,99 @@ class ScoreCardBackend {
     return fallbackCard;
   }
 
-  /// Creates or updates a [ScoreCardReport] entry with the report's [data].
-  /// The [data] will be converted to json and stored as a byte in the report
-  /// entry.
-  ///
-  /// Also updates the [ScoreCard] entry.
-  Future<void> updateReportAndCard(
-      String packageName, String packageVersion, ReportData data) async {
-    final key = scoreCardKey(packageName, packageVersion)
-        .append(ScoreCardReport, id: data.reportType);
-    await db.withRetryTransaction(_db, (tx) async {
-      var report =
-          await tx.lookupValue<ScoreCardReport>(key, orElse: () => null);
-      if (report != null) {
-        _logger.info(
-            'Updating report: $packageName $packageVersion ${data.reportType}.');
-        report
-          ..updated = DateTime.now().toUtc()
-          ..reportStatus = data.reportStatus
-          ..reportJson = data.toJson();
-      } else {
-        _logger.info(
-            'Creating new report: $packageName $packageVersion ${data.reportType}.');
-        report = ScoreCardReport.init(
-          packageName: packageName,
-          packageVersion: packageVersion,
-          reportData: data,
-        );
-      }
-      tx.insert(report);
-    });
-    await _updateScoreCard(packageName, packageVersion);
-  }
-
-  Future<List<ScoreCardReport>> _loadReports(
+  /// Creates or updates a [ScoreCard] entry with the provided [panaReport] and/or [dartdocReport].
+  /// The report data will be converted to json+gzip and stored as a bytes in the [ScoreCard] entry.
+  Future<void> updateReportOnCard(
     String packageName,
     String packageVersion, {
-    List<String> reportTypes,
-    String runtimeVersion,
+    PanaReport panaReport,
+    DartdocReport dartdocReport,
   }) async {
-    reportTypes ??= [ReportType.pana, ReportType.dartdoc];
-    final key = scoreCardKey(packageName, packageVersion,
-        runtimeVersion: runtimeVersion);
-    return await _db.lookup<ScoreCardReport>(reportTypes
-        .map((type) => key.append(ScoreCardReport, id: type))
-        .toList());
-  }
-
-  Map<String, ReportData> _extractReportData(List<ScoreCardReport> items) {
-    final result = <String, ReportData>{};
-    for (db.Model model in items) {
-      if (model == null) continue;
-      final report = model as ScoreCardReport;
-      result[report.reportType] = report.reportData;
+    final key = scoreCardKey(packageName, packageVersion);
+    final pAndPv = await _db.lookup([key.parent, key.parent.parent]);
+    final version = pAndPv[0] as PackageVersion;
+    final package = pAndPv[1] as Package;
+    if (package == null || version == null) {
+      throw Exception('Unable to lookup $packageName $packageVersion.');
     }
-    return result;
+
+    final currentSdkVersion = await getDartSdkVersion();
+    final status = PackageStatus.fromModels(
+        package, version, currentSdkVersion.semanticVersion);
+
+    await db.withRetryTransaction(_db, (tx) async {
+      var scoreCard = await tx.lookupValue<ScoreCard>(key, orElse: () => null);
+
+      if (scoreCard == null) {
+        _logger.info('Creating new ScoreCard $packageName $packageVersion.');
+        scoreCard = ScoreCard.init(
+          packageName: packageName,
+          packageVersion: packageVersion,
+          packageCreated: package.created,
+          packageVersionCreated: version.created,
+        );
+      } else {
+        _logger.info('Updating ScoreCard $packageName $packageVersion.');
+        scoreCard.updated = DateTime.now().toUtc();
+      }
+
+      scoreCard.flags.clear();
+      if (package.isDiscontinued) {
+        scoreCard.addFlag(PackageFlags.isDiscontinued);
+      }
+      if (status.isLatestStable) {
+        scoreCard.addFlag(PackageFlags.isLatestStable);
+      }
+      if (status.isLegacy) {
+        scoreCard.addFlag(PackageFlags.isLegacy);
+      }
+      if (status.isObsolete) {
+        scoreCard.addFlag(PackageFlags.isObsolete);
+      }
+      if (version.pubspec.usesFlutter) {
+        scoreCard.addFlag(PackageFlags.usesFlutter);
+      }
+
+      scoreCard.popularityScore = popularityStorage.lookup(packageName) ?? 0.0;
+
+      scoreCard.updateReports(
+        panaReport: panaReport,
+        dartdocReport: dartdocReport,
+      );
+
+      bool sizeCheck(String reportType, List<int> bytes) {
+        if (bytes == null || bytes.isEmpty) return false;
+        final size = bytes.length;
+        if (size > _reportSizeDropThreshold) {
+          _logger.reportError(
+              '$reportType report exceeded size threshold ($size > $_reportSizeWarnThreshold)');
+          return true;
+        } else if (size > _reportSizeWarnThreshold) {
+          _logger.warning(
+              '$reportType report exceeded size threshold ($size > $_reportSizeWarnThreshold)');
+        }
+        return false;
+      }
+
+      if (sizeCheck(ReportType.pana, scoreCard.panaReportJsonGz)) {
+        // TODO: replace with something meaningful
+        scoreCard.panaReportJsonGz = <int>[];
+      }
+      if (sizeCheck(ReportType.dartdoc, scoreCard.dartdocReportJsonGz)) {
+        // TODO: replace with something meaningful
+        scoreCard.dartdocReportJsonGz = <int>[];
+      }
+
+      tx.insert(scoreCard);
+    });
+
+    final isLatest = package.latestVersion == version.version;
+    await Future.wait([
+      cache.scoreCardData(packageName, packageVersion).purge(),
+      cache.uiPackagePage(packageName, packageVersion).purge(),
+      if (isLatest) cache.uiPackagePage(packageName, null).purge(),
+      if (isLatest) cache.packageView(packageName).purge(),
+    ]);
   }
 
   /// Load and deserialize a [ScoreCardData] for the given package's versions.
@@ -233,101 +271,6 @@ class ScoreCardBackend {
       card.updated = DateTime.now().toUtc();
       tx.insert(card);
     });
-  }
-
-  /// Updates the [ScoreCard] entry, reading both the package and version data,
-  /// alongside the data from reports, and compiles a new summary of them.
-  Future<void> _updateScoreCard(
-      String packageName, String packageVersion) async {
-    final key = scoreCardKey(packageName, packageVersion);
-    final pAndPv = await _db.lookup([key.parent, key.parent.parent]);
-    final version = pAndPv[0] as PackageVersion;
-    final package = pAndPv[1] as Package;
-    if (package == null || version == null) {
-      throw Exception('Unable to lookup $packageName $packageVersion.');
-    }
-
-    final currentSdkVersion = await getDartSdkVersion();
-    final status = PackageStatus.fromModels(
-        package, version, currentSdkVersion.semanticVersion);
-    final reportEntities = await _loadReports(packageName, packageVersion);
-    final reports = _extractReportData(reportEntities);
-
-    await db.withRetryTransaction(_db, (tx) async {
-      var scoreCard = await tx.lookupValue<ScoreCard>(key, orElse: () => null);
-
-      if (scoreCard == null) {
-        _logger.info('Creating new ScoreCard $packageName $packageVersion.');
-        scoreCard = ScoreCard.init(
-          packageName: packageName,
-          packageVersion: packageVersion,
-          packageCreated: package.created,
-          packageVersionCreated: version.created,
-        );
-      } else {
-        _logger.info('Updating ScoreCard $packageName $packageVersion.');
-        scoreCard.updated = DateTime.now().toUtc();
-      }
-
-      scoreCard.flags.clear();
-      if (package.isDiscontinued) {
-        scoreCard.addFlag(PackageFlags.isDiscontinued);
-      }
-      if (status.isLatestStable) {
-        scoreCard.addFlag(PackageFlags.isLatestStable);
-      }
-      if (status.isLegacy) {
-        scoreCard.addFlag(PackageFlags.isLegacy);
-      }
-      if (status.isObsolete) {
-        scoreCard.addFlag(PackageFlags.isObsolete);
-      }
-      if (version.pubspec.usesFlutter) {
-        scoreCard.addFlag(PackageFlags.usesFlutter);
-      }
-
-      scoreCard.popularityScore = popularityStorage.lookup(packageName) ?? 0.0;
-
-      scoreCard.updateFromReports(
-        panaReport: reports[ReportType.pana] as PanaReport,
-        dartdocReport: reports[ReportType.dartdoc] as DartdocReport,
-      );
-
-      // store compressed report on the ScoreCard entity too
-      for (final scr in reportEntities) {
-        if (scr == null || scr.reportJsonGz == null) continue;
-        final size = scr.reportJsonGz.length;
-        if (size > _reportSizeDropThreshold) {
-          // TODO: replace it with meaningful content
-          _logger.reportError(
-              '${scr.reportType} report exceeded size threshold ($size > $_reportSizeWarnThreshold)');
-          continue;
-        }
-
-        if (size > _reportSizeWarnThreshold) {
-          _logger.warning(
-              '${scr.reportType} report exceeded size threshold ($size > $_reportSizeWarnThreshold)');
-        }
-        switch (scr.reportType) {
-          case ReportType.dartdoc:
-            scoreCard.dartdocReportJsonGz = scr.reportJsonGz;
-            break;
-          case ReportType.pana:
-            scoreCard.panaReportJsonGz = scr.reportJsonGz;
-            break;
-        }
-      }
-
-      tx.insert(scoreCard);
-    });
-
-    final isLatest = package.latestVersion == version.version;
-    await Future.wait([
-      cache.scoreCardData(packageName, packageVersion).purge(),
-      cache.uiPackagePage(packageName, packageVersion).purge(),
-      if (isLatest) cache.uiPackagePage(packageName, null).purge(),
-      if (isLatest) cache.packageView(packageName).purge(),
-    ]);
   }
 
   /// Deletes the old entries that predate [versions.gcBeforeRuntimeVersion].
