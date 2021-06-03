@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -191,15 +190,14 @@ class ScoreCardBackend {
     return result;
   }
 
-  /// Load and deserialize a specific report type for the given package's versions.
-  Future<List<ReportData>> loadReportForAllVersions(
+  /// Load and deserialize a [ScoreCardData] for the given package's versions.
+  Future<List<ScoreCardData>> getScoreCardDataForAllVersions(
     String packageName,
     Iterable<String> versions, {
-    @required String reportType,
     String runtimeVersion,
   }) async {
     final pool = Pool(_batchLookupConcurrency);
-    final futures = <Future<List<ReportData>>>[];
+    final futures = <Future<List<ScoreCardData>>>[];
     for (var start = 0;
         start < versions.length;
         start += _batchLookupMaxKeyCount) {
@@ -207,18 +205,17 @@ class ScoreCardBackend {
           .skip(start)
           .take(_batchLookupMaxKeyCount)
           .map((v) =>
-              scoreCardKey(packageName, v, runtimeVersion: runtimeVersion)
-                  .append(ScoreCardReport, id: reportType))
+              scoreCardKey(packageName, v, runtimeVersion: runtimeVersion))
           .toList();
       final f = pool.withResource(() async {
-        final items = await _db.lookup<ScoreCardReport>(keys);
-        return items.map((item) => item?.reportData).toList();
+        final items = await _db.lookup<ScoreCard>(keys);
+        return items.map((item) => item?.toData()).toList();
       });
       futures.add(f);
     }
     final lists = await Future.wait(futures);
-    final results = lists.fold<List<ReportData>>(
-      <ReportData>[],
+    final results = lists.fold<List<ScoreCardData>>(
+      <ScoreCardData>[],
       (r, list) => r..addAll(list),
     );
     await pool.close();
