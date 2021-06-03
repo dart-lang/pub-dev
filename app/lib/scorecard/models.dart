@@ -177,62 +177,11 @@ class ScoreCard extends db.ExpandoModel<String> {
 }
 
 /// Detail of a specific report for a given PackageVersion.
+///
+/// TODO: Remove this class after `2021.06.01` is no longer an accepted runtimeVersion.
 @db.Kind(name: 'ScoreCardReport', idType: db.IdType.String)
 class ScoreCardReport extends db.ExpandoModel<String> {
-  @db.StringProperty(required: true)
-  String packageName;
-
-  @db.StringProperty(required: true)
-  String packageVersion;
-
-  @db.StringProperty(required: true)
-  String runtimeVersion;
-
-  @db.StringProperty(required: true)
-  String reportType;
-
-  @db.DateTimeProperty()
-  DateTime updated;
-
-  @db.StringProperty(required: true)
-  String reportStatus;
-
-  @db.BlobProperty()
-  List<int> reportJsonGz;
-
   ScoreCardReport();
-
-  ScoreCardReport.init({
-    @required this.packageName,
-    @required this.packageVersion,
-    @required ReportData reportData,
-  }) {
-    runtimeVersion = versions.runtimeVersion;
-    parentKey = scoreCardKey(packageName, packageVersion);
-    reportType = reportData.reportType;
-    reportStatus = reportData.reportStatus;
-    id = reportType;
-    updated = DateTime.now().toUtc();
-    reportJson = reportData.toJson();
-  }
-
-  set reportJson(Map<String, dynamic> map) {
-    if (map == null) {
-      reportJsonGz = null;
-    } else {
-      reportJsonGz = _gzipCodec.encode(jsonUtf8Encoder.convert(map));
-    }
-  }
-
-  ReportData get reportData {
-    switch (reportType) {
-      case ReportType.pana:
-        return PanaReport.fromBytes(reportJsonGz);
-      case ReportType.dartdoc:
-        return DartdocReport.fromBytes(reportJsonGz);
-    }
-    throw Exception('Unknown report type: $reportType');
-  }
 }
 
 abstract class FlagMixin {
