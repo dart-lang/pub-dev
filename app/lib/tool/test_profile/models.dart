@@ -59,6 +59,7 @@ class TestPackage {
   final bool isDiscontinued;
   final String replacedBy;
   final bool isUnlisted;
+  final bool isFlutterFavorite;
 
   TestPackage({
     this.name,
@@ -68,6 +69,7 @@ class TestPackage {
     this.isDiscontinued,
     this.replacedBy,
     this.isUnlisted,
+    this.isFlutterFavorite,
   });
 
   factory TestPackage.fromJson(Map<String, dynamic> json) =>
@@ -84,6 +86,10 @@ class TestPackage {
       uploaders: uploaders ?? this.uploaders,
       publisher: publisher,
       versions: versions ?? this.versions,
+      replacedBy: replacedBy,
+      isDiscontinued: isDiscontinued,
+      isUnlisted: isUnlisted,
+      isFlutterFavorite: isFlutterFavorite,
     );
   }
 }

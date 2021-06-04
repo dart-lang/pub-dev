@@ -130,10 +130,6 @@ Future<void> _populateDefaultData() async {
     ...helium.versions,
     ...helium.infos,
     ...helium.assets,
-    lithium.package,
-    ...lithium.versions,
-    ...lithium.infos,
-    ...lithium.assets,
     exampleComPublisher,
     exampleComHansAdmin,
   ]);
@@ -141,7 +137,6 @@ Future<void> _populateDefaultData() async {
   popularityStorage.updateValues({
     hydrogen.package.name: 0.8,
     helium.package.name: 1.0,
-    lithium.package.name: 0.7,
   });
 
   await scoreCardBackend.updateReportAndCard(

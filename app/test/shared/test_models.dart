@@ -56,10 +56,11 @@ final userAtPubDevAuthToken = 'user-at-pub-dot-dev';
 final unauthorizedAtPubDevAuthToken = 'unauthorized-at-pub-dot-dev';
 
 // regular package
-final hydrogen = generateBundle('hydrogen', generateVersions(13, increment: 9));
+final hydrogen =
+    _generateBundle('hydrogen', generateVersions(13, increment: 9));
 
 // Flutter plugin
-final helium = generateBundle(
+final helium = _generateBundle(
   'helium',
   generateVersions(16, increment: 7),
   pubspecExtraContent: '''
@@ -67,13 +68,6 @@ flutter:
   plugin:
     class: SomeClass
 ''',
-);
-
-// Regular package with dev releases.
-final lithium = generateBundle(
-  'lithium',
-  generateVersions(19, increment: 27, devOffset: 5),
-  publisherId: exampleComPublisher.publisherId,
 );
 
 final foobarPkgName = 'foobar_pkg';
@@ -387,7 +381,7 @@ Iterable<String> generateVersions(
   }
 }
 
-PkgBundle generateBundle(
+PkgBundle _generateBundle(
   String name,
   Iterable<String> versionValues, {
   String description,
