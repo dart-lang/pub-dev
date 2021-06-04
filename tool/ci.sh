@@ -1,5 +1,5 @@
 #!/bin/bash
-# Created with package:mono_repo v4.0.0
+# Created with package:mono_repo v4.1.0
 
 # Support built in commands on windows out of the box.
 # When it is a flutter repo (check the pubspec.yaml for "sdk: flutter")
@@ -16,7 +16,7 @@ function pub() {
     if [[ $TRAVIS_OS_NAME == "windows" ]]; then
       command pub.bat "$@"
     else
-      command pub "$@"
+      command dart pub "$@"
     fi
   fi
 }
@@ -58,11 +58,11 @@ for PKG in ${PKGS}; do
     exit 64
   fi
 
-  pub get --no-precompile || EXIT_CODE=$?
+  dart pub get || EXIT_CODE=$?
 
   if [[ ${EXIT_CODE} -ne 0 ]]; then
-    echo -e "\033[31mPKG: ${PKG}; 'pub get' - FAILED  (${EXIT_CODE})\033[0m"
-    FAILURES+=("${PKG}; 'pub get'")
+    echo -e "\033[31mPKG: ${PKG}; 'dart pub get' - FAILED  (${EXIT_CODE})\033[0m"
+    FAILURES+=("${PKG}; 'dart pub get'")
   else
     for TASK in "$@"; do
       EXIT_CODE=0
@@ -74,60 +74,60 @@ for PKG in ${PKGS}; do
         ./build.sh || EXIT_CODE=$?
         ;;
       dartanalyzer_0)
-        echo 'dartanalyzer --fatal-infos --fatal-warnings .'
-        dartanalyzer --fatal-infos --fatal-warnings . || EXIT_CODE=$?
+        echo 'dart analyze --fatal-infos --fatal-warnings .'
+        dart analyze --fatal-infos --fatal-warnings . || EXIT_CODE=$?
         ;;
       dartanalyzer_1)
-        echo 'dartanalyzer --fatal-infos --fatal-warnings bin/ lib/'
-        dartanalyzer --fatal-infos --fatal-warnings bin/ lib/ || EXIT_CODE=$?
+        echo 'dart analyze --fatal-infos --fatal-warnings bin/ lib/'
+        dart analyze --fatal-infos --fatal-warnings bin/ lib/ || EXIT_CODE=$?
         ;;
       dartfmt)
-        echo 'dartfmt -n --set-exit-if-changed .'
-        dartfmt -n --set-exit-if-changed . || EXIT_CODE=$?
+        echo 'dart format --output=none --set-exit-if-changed .'
+        dart format --output=none --set-exit-if-changed . || EXIT_CODE=$?
         ;;
       test_00)
-        echo 'pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '0~7p'`'
-        pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '0~7p'` || EXIT_CODE=$?
+        echo 'dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '0~7p'`'
+        dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '0~7p'` || EXIT_CODE=$?
         ;;
       test_01)
-        echo 'pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '1~7p'`'
-        pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '1~7p'` || EXIT_CODE=$?
+        echo 'dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '1~7p'`'
+        dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '1~7p'` || EXIT_CODE=$?
         ;;
       test_02)
-        echo 'pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '2~7p'`'
-        pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '2~7p'` || EXIT_CODE=$?
+        echo 'dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '2~7p'`'
+        dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '2~7p'` || EXIT_CODE=$?
         ;;
       test_03)
-        echo 'pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '3~7p'`'
-        pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '3~7p'` || EXIT_CODE=$?
+        echo 'dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '3~7p'`'
+        dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '3~7p'` || EXIT_CODE=$?
         ;;
       test_04)
-        echo 'pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '4~7p'`'
-        pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '4~7p'` || EXIT_CODE=$?
+        echo 'dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '4~7p'`'
+        dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '4~7p'` || EXIT_CODE=$?
         ;;
       test_05)
-        echo 'pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '5~7p'`'
-        pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '5~7p'` || EXIT_CODE=$?
+        echo 'dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '5~7p'`'
+        dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '5~7p'` || EXIT_CODE=$?
         ;;
       test_06)
-        echo 'pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '6~7p'`'
-        pub run test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '6~7p'` || EXIT_CODE=$?
+        echo 'dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '6~7p'`'
+        dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '6~7p'` || EXIT_CODE=$?
         ;;
       test_07)
-        echo 'pub run test --run-skipped'
-        pub run test --run-skipped || EXIT_CODE=$?
+        echo 'dart test --run-skipped'
+        dart test --run-skipped || EXIT_CODE=$?
         ;;
       test_08)
-        echo 'pub run test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '0~3p'`'
-        pub run test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '0~3p'` || EXIT_CODE=$?
+        echo 'dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '0~3p'`'
+        dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '0~3p'` || EXIT_CODE=$?
         ;;
       test_09)
-        echo 'pub run test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '1~3p'`'
-        pub run test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '1~3p'` || EXIT_CODE=$?
+        echo 'dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '1~3p'`'
+        dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '1~3p'` || EXIT_CODE=$?
         ;;
       test_10)
-        echo 'pub run test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '2~3p'`'
-        pub run test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '2~3p'` || EXIT_CODE=$?
+        echo 'dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '2~3p'`'
+        dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '2~3p'` || EXIT_CODE=$?
         ;;
       *)
         echo -e "\033[31mUnknown TASK '${TASK}' - TERMINATING JOB\033[0m"
