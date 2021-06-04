@@ -199,7 +199,7 @@ jobs:
         working-directory: pkg/web_css
         run: dart analyze --fatal-infos --fatal-warnings .
   job_003:
-    name: "smoke_test; PKG: pkg/pub_integration; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos --fatal-warnings bin/ lib/`"
+    name: "smoke_test; PKG: pkg/pub_integration; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -226,10 +226,10 @@ jobs:
         if: "always() && steps.pkg_pub_integration_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_integration
         run: "dart format --output=none --set-exit-if-changed ."
-      - name: "pkg/pub_integration; dart analyze --fatal-infos --fatal-warnings bin/ lib/"
+      - name: "pkg/pub_integration; dart analyze --fatal-infos"
         if: "always() && steps.pkg_pub_integration_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_integration
-        run: dart analyze --fatal-infos --fatal-warnings bin/ lib/
+        run: dart analyze --fatal-infos
   job_004:
     name: "build; PKG: pkg/web_app; `./build.sh`"
     runs-on: ubuntu-latest

@@ -6,7 +6,7 @@ stages:
   - smoke_test:
     - group:
         - dartfmt
-        - dartanalyzer: --fatal-infos --fatal-warnings bin/ lib/
+        - dartanalyzer: --fatal-infos
   - unit_test:
       - test: --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '0~3p'`
       - test: --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '1~3p'`

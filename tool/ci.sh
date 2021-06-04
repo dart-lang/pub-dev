@@ -78,8 +78,8 @@ for PKG in ${PKGS}; do
         dart analyze --fatal-infos --fatal-warnings . || EXIT_CODE=$?
         ;;
       dartanalyzer_1)
-        echo 'dart analyze --fatal-infos --fatal-warnings bin/ lib/'
-        dart analyze --fatal-infos --fatal-warnings bin/ lib/ || EXIT_CODE=$?
+        echo 'dart analyze --fatal-infos'
+        dart analyze --fatal-infos || EXIT_CODE=$?
         ;;
       dartfmt)
         echo 'dart format --output=none --set-exit-if-changed .'
