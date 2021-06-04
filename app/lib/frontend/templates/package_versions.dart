@@ -116,6 +116,7 @@ String renderVersionTableRow(PackageVersion version, String downloadUrl) {
     'package': version.package,
     'version': version.version,
     'version_url': urls.pkgPageUrl(version.package, version: version.version),
+    'has_opted_into_null_safety': version.pubspec.hasOptedIntoNullSafety,
     'has_sdk': minSdkVersion != null,
     'sdk': minSdkVersion == null
         ? null

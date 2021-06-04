@@ -28,6 +28,11 @@
     margin-left: 4px;
     margin-right: 4px;
   }
+
+  &.maybe {
+    color: #aaa;
+    border-color: #aaa;
+  }
 }
 
 .package-vp-icon {
@@ -46,6 +51,14 @@
     border-bottom: 1px solid #c8c8ca;
     padding: 8px 4px;
     text-align: left;
+
+    &.badge {
+      width: 100px;
+
+      @media (max-width: $device-mobile-max-width) {
+        display: none;
+      }
+    }
 
     &.sdk {
       white-space: nowrap;
