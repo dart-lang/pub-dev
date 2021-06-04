@@ -74,8 +74,8 @@ for PKG in ${PKGS}; do
         ./build.sh || EXIT_CODE=$?
         ;;
       dartanalyzer_0)
-        echo 'dart analyze --fatal-infos --fatal-warnings .'
-        dart analyze --fatal-infos --fatal-warnings . || EXIT_CODE=$?
+        echo 'dart analyze --fatal-infos  .'
+        dart analyze --fatal-infos  . || EXIT_CODE=$?
         ;;
       dartanalyzer_1)
         echo 'dart analyze --fatal-infos'

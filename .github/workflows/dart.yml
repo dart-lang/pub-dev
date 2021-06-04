@@ -37,7 +37,7 @@ jobs:
       - name: mono_repo self validate
         run: dart pub global run mono_repo generate --validate
   job_002:
-    name: "smoke_test; PKGS: app, pkg/_popularity, pkg/api_builder, pkg/client_data, pkg/fake_gcloud, pkg/pub_dartdoc, pkg/pub_dartdoc_data, pkg/pub_package_reader, pkg/pub_validations, pkg/web_app, pkg/web_css; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos --fatal-warnings .`"
+    name: "smoke_test; PKGS: app, pkg/_popularity, pkg/api_builder, pkg/client_data, pkg/fake_gcloud, pkg/pub_dartdoc, pkg/pub_dartdoc_data, pkg/pub_package_reader, pkg/pub_validations, pkg/web_app, pkg/web_css; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos  .`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -64,10 +64,10 @@ jobs:
         if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
         run: "dart format --output=none --set-exit-if-changed ."
-      - name: "app; dart analyze --fatal-infos --fatal-warnings ."
+      - name: "app; dart analyze --fatal-infos  ."
         if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
-        run: dart analyze --fatal-infos --fatal-warnings .
+        run: dart analyze --fatal-infos  .
       - id: pkg__popularity_pub_get
         name: pkg/_popularity; pub get
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -77,10 +77,10 @@ jobs:
         if: "always() && steps.pkg__popularity_pub_get.conclusion == 'success'"
         working-directory: pkg/_popularity
         run: "dart format --output=none --set-exit-if-changed ."
-      - name: "pkg/_popularity; dart analyze --fatal-infos --fatal-warnings ."
+      - name: "pkg/_popularity; dart analyze --fatal-infos  ."
         if: "always() && steps.pkg__popularity_pub_get.conclusion == 'success'"
         working-directory: pkg/_popularity
-        run: dart analyze --fatal-infos --fatal-warnings .
+        run: dart analyze --fatal-infos  .
       - id: pkg_api_builder_pub_get
         name: pkg/api_builder; pub get
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -90,10 +90,10 @@ jobs:
         if: "always() && steps.pkg_api_builder_pub_get.conclusion == 'success'"
         working-directory: pkg/api_builder
         run: "dart format --output=none --set-exit-if-changed ."
-      - name: "pkg/api_builder; dart analyze --fatal-infos --fatal-warnings ."
+      - name: "pkg/api_builder; dart analyze --fatal-infos  ."
         if: "always() && steps.pkg_api_builder_pub_get.conclusion == 'success'"
         working-directory: pkg/api_builder
-        run: dart analyze --fatal-infos --fatal-warnings .
+        run: dart analyze --fatal-infos  .
       - id: pkg_client_data_pub_get
         name: pkg/client_data; pub get
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -103,10 +103,10 @@ jobs:
         if: "always() && steps.pkg_client_data_pub_get.conclusion == 'success'"
         working-directory: pkg/client_data
         run: "dart format --output=none --set-exit-if-changed ."
-      - name: "pkg/client_data; dart analyze --fatal-infos --fatal-warnings ."
+      - name: "pkg/client_data; dart analyze --fatal-infos  ."
         if: "always() && steps.pkg_client_data_pub_get.conclusion == 'success'"
         working-directory: pkg/client_data
-        run: dart analyze --fatal-infos --fatal-warnings .
+        run: dart analyze --fatal-infos  .
       - id: pkg_fake_gcloud_pub_get
         name: pkg/fake_gcloud; pub get
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -116,10 +116,10 @@ jobs:
         if: "always() && steps.pkg_fake_gcloud_pub_get.conclusion == 'success'"
         working-directory: pkg/fake_gcloud
         run: "dart format --output=none --set-exit-if-changed ."
-      - name: "pkg/fake_gcloud; dart analyze --fatal-infos --fatal-warnings ."
+      - name: "pkg/fake_gcloud; dart analyze --fatal-infos  ."
         if: "always() && steps.pkg_fake_gcloud_pub_get.conclusion == 'success'"
         working-directory: pkg/fake_gcloud
-        run: dart analyze --fatal-infos --fatal-warnings .
+        run: dart analyze --fatal-infos  .
       - id: pkg_pub_dartdoc_pub_get
         name: pkg/pub_dartdoc; pub get
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -129,10 +129,10 @@ jobs:
         if: "always() && steps.pkg_pub_dartdoc_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_dartdoc
         run: "dart format --output=none --set-exit-if-changed ."
-      - name: "pkg/pub_dartdoc; dart analyze --fatal-infos --fatal-warnings ."
+      - name: "pkg/pub_dartdoc; dart analyze --fatal-infos  ."
         if: "always() && steps.pkg_pub_dartdoc_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_dartdoc
-        run: dart analyze --fatal-infos --fatal-warnings .
+        run: dart analyze --fatal-infos  .
       - id: pkg_pub_dartdoc_data_pub_get
         name: pkg/pub_dartdoc_data; pub get
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -142,10 +142,10 @@ jobs:
         if: "always() && steps.pkg_pub_dartdoc_data_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_dartdoc_data
         run: "dart format --output=none --set-exit-if-changed ."
-      - name: "pkg/pub_dartdoc_data; dart analyze --fatal-infos --fatal-warnings ."
+      - name: "pkg/pub_dartdoc_data; dart analyze --fatal-infos  ."
         if: "always() && steps.pkg_pub_dartdoc_data_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_dartdoc_data
-        run: dart analyze --fatal-infos --fatal-warnings .
+        run: dart analyze --fatal-infos  .
       - id: pkg_pub_package_reader_pub_get
         name: pkg/pub_package_reader; pub get
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -155,10 +155,10 @@ jobs:
         if: "always() && steps.pkg_pub_package_reader_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_package_reader
         run: "dart format --output=none --set-exit-if-changed ."
-      - name: "pkg/pub_package_reader; dart analyze --fatal-infos --fatal-warnings ."
+      - name: "pkg/pub_package_reader; dart analyze --fatal-infos  ."
         if: "always() && steps.pkg_pub_package_reader_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_package_reader
-        run: dart analyze --fatal-infos --fatal-warnings .
+        run: dart analyze --fatal-infos  .
       - id: pkg_pub_validations_pub_get
         name: pkg/pub_validations; pub get
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -168,10 +168,10 @@ jobs:
         if: "always() && steps.pkg_pub_validations_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_validations
         run: "dart format --output=none --set-exit-if-changed ."
-      - name: "pkg/pub_validations; dart analyze --fatal-infos --fatal-warnings ."
+      - name: "pkg/pub_validations; dart analyze --fatal-infos  ."
         if: "always() && steps.pkg_pub_validations_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_validations
-        run: dart analyze --fatal-infos --fatal-warnings .
+        run: dart analyze --fatal-infos  .
       - id: pkg_web_app_pub_get
         name: pkg/web_app; pub get
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -181,10 +181,10 @@ jobs:
         if: "always() && steps.pkg_web_app_pub_get.conclusion == 'success'"
         working-directory: pkg/web_app
         run: "dart format --output=none --set-exit-if-changed ."
-      - name: "pkg/web_app; dart analyze --fatal-infos --fatal-warnings ."
+      - name: "pkg/web_app; dart analyze --fatal-infos  ."
         if: "always() && steps.pkg_web_app_pub_get.conclusion == 'success'"
         working-directory: pkg/web_app
-        run: dart analyze --fatal-infos --fatal-warnings .
+        run: dart analyze --fatal-infos  .
       - id: pkg_web_css_pub_get
         name: pkg/web_css; pub get
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -194,10 +194,10 @@ jobs:
         if: "always() && steps.pkg_web_css_pub_get.conclusion == 'success'"
         working-directory: pkg/web_css
         run: "dart format --output=none --set-exit-if-changed ."
-      - name: "pkg/web_css; dart analyze --fatal-infos --fatal-warnings ."
+      - name: "pkg/web_css; dart analyze --fatal-infos  ."
         if: "always() && steps.pkg_web_css_pub_get.conclusion == 'success'"
         working-directory: pkg/web_css
-        run: dart analyze --fatal-infos --fatal-warnings .
+        run: dart analyze --fatal-infos  .
   job_003:
     name: "smoke_test; PKG: pkg/pub_integration; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos`"
     runs-on: ubuntu-latest
