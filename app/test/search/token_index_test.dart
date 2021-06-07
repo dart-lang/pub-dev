@@ -126,5 +126,11 @@ void main() {
         'a': 100.0,
       });
     });
+
+    test('top', () {
+      expect(score.top(1).getValues(), {'a': 100.0});
+      expect(score.top(2).getValues(), {'a': 100.0, 'c': 55.0});
+      expect(score.top(2, minValue: 60).getValues(), {'a': 100.0});
+    });
   });
 }

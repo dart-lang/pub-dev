@@ -2,15 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
-import 'package:pub_dev/shared/versions.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dev/search/models.dart';
+import 'package:pub_dev/search/sdk_mem_index.dart';
+import 'package:pub_dev/shared/versions.dart';
 
 final _indexTypes = <String>{
   'class',
@@ -114,6 +116,39 @@ void main() {
 
       // making sure we don't miss any new attribute
       expect(index.toJsonText(), textContent.trim());
+
+      // parsing into SDK index
+      final sdkMemIndex = SdkMemIndex.flutter();
+      await sdkMemIndex.addDartdocIndex(index);
+      final rs = await sdkMemIndex.search('StatelessWidget');
+      expect(json.decode(json.encode(rs)), [
+        {
+          'sdk': 'flutter',
+          'library': 'widgets',
+          'url': 'https://api.flutter.dev/flutter',
+          'score': closeTo(0.98, 0.01),
+          'apiPages': [
+            {
+              'title': null,
+              'path': 'widgets/StatelessWidget/StatelessWidget.html',
+              'url':
+                  'https://api.flutter.dev/widgets/StatelessWidget/StatelessWidget.html'
+            },
+            {
+              'title': null,
+              'path': 'widgets/StatelessWidget-class.html',
+              'url':
+                  'https://api.flutter.dev/widgets/StatelessWidget-class.html'
+            },
+            {
+              'title': null,
+              'path': 'widgets/StatelessWidget/build.html',
+              'url':
+                  'https://api.flutter.dev/widgets/StatelessWidget/build.html'
+            },
+          ],
+        },
+      ]);
     });
   });
 }

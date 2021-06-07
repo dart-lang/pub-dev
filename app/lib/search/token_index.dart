@@ -15,6 +15,8 @@ class Score {
   Score(this._values);
   Score.empty() : _values = <String, double>{};
 
+  bool get isEmpty => _values.isEmpty;
+
   Set<String> getKeys({bool Function(String key) where}) =>
       _values.keys.where((e) => where == null || where(e)).toSet();
   double getMaxValue() => _values.values.fold(0.0, math.max);
@@ -97,6 +99,15 @@ class Score {
       result[key] = f(key, _values[key]);
     }
     return Score(result);
+  }
+
+  /// Returns a new [Score] object with the top [count] entry.
+  Score top(int count, {double minValue}) {
+    final entries = _values.entries
+        .where((e) => minValue == null || e.value >= minValue)
+        .toList();
+    entries.sort((a, b) => -a.value.compareTo(b.value));
+    return Score(Map.fromEntries(entries.take(count)));
   }
 }
 
