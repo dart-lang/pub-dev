@@ -100,42 +100,6 @@ void main() {
     });
   });
 
-  group('EmailAddress.parse', () {
-    void validateParse(String input, String name, String email) {
-      final parsed = EmailAddress.parse(input);
-      expect(parsed.name, name);
-      expect(parsed.email, email);
-    }
-
-    test('empty', () {
-      validateParse('', null, null);
-    });
-
-    test('John Doe', () {
-      validateParse('John Doe', 'John Doe', null);
-      validateParse('<John Doe>', '<John Doe>', null);
-      validateParse('John <Doe>', 'John <Doe>', null);
-      validateParse('<John> <Doe>', '<John> <Doe>', null);
-    });
-
-    test('John Doe <email>', () {
-      validateParse('John Doe <john.doe@example.com>', 'John Doe',
-          'john.doe@example.com');
-    });
-
-    test('John Doe inline email', () {
-      validateParse(
-          'John Doe john.doe@example.com', 'John Doe', 'john.doe@example.com');
-      validateParse(
-          'John john.doe@example.com Doe', 'John Doe', 'john.doe@example.com');
-    });
-
-    test('email only', () {
-      validateParse('john.doe@example.com', null, 'john.doe@example.com');
-      validateParse('<john.doe@example.com>', null, 'john.doe@example.com');
-    });
-  });
-
   group('EmailAddress format', () {
     test('empty', () {
       expect(EmailAddress(null, null).toString(), null);
