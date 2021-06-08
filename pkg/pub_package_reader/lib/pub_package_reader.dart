@@ -153,6 +153,7 @@ Future<PackageSummary> summarizePackageArchive(
   }
   issues.addAll(checkValidJson(pubspecContent));
   issues.addAll(checkAuthors(pubspecContent));
+  issues.addAll(checkSdkVersionRange(pubspec));
   // Check whether the files can be extracted on case-preserving file systems
   // (e.g. on Windows). We can't allow two files with the same case-insensitive
   // name.
@@ -304,6 +305,27 @@ Iterable<ArchiveIssue> checkAuthors(String pubspecContent) sync* {
   if (map is Map && map.containsKey('author') && map.containsKey('authors')) {
     yield ArchiveIssue(
         'Do not specify both `author` and `authors` in `pubspec.yaml`.');
+  }
+}
+
+final _preDart3 = VersionConstraint.parse('<3.0.0');
+final _firstDart3Pre = Version.parse('3.0.0').firstPreRelease;
+
+/// Checks if the version range is acceptable by current SDKs.
+Iterable<ArchiveIssue> checkSdkVersionRange(Pubspec pubspec) sync* {
+  final sdk = pubspec.environment?['sdk'];
+  if (sdk == null) return;
+  // We still allow pubspec without SDK constraints.
+  if (sdk.isAny) return;
+
+  // No known version exists.
+  if (sdk.intersect(_preDart3).isEmpty) {
+    yield ArchiveIssue('SDK constraint is outside of current Dart SDKs.');
+  }
+
+  // Dart 3 version accepted with valid upper constraint.
+  if (sdk is VersionRange && sdk.max != null && sdk.allows(_firstDart3Pre)) {
+    yield ArchiveIssue('SDK constraint accepts Dart 3.');
   }
 }
 
