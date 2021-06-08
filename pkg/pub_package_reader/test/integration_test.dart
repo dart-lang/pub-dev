@@ -37,6 +37,8 @@ void main() {
           'pubspec.yaml': '''
 name: mypkg
 version: 1.0.0
+environment:
+  sdk: '>=2.10.0 <3.0.0'
 ''',
           'LICENSE': 'All rights reserved...',
         }),
