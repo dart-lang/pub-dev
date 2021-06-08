@@ -13,8 +13,6 @@ import '../../package/model_properties.dart';
 import '../../package/models.dart';
 import '../../package/overrides.dart'
     show devDependencyPackages, redirectPackageUrls;
-import '../../search/search_form.dart';
-import '../../shared/email.dart' show EmailAddress;
 import '../../shared/handlers.dart';
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
@@ -201,11 +199,6 @@ String renderPkgInfoBox(PackagePageData data) {
     'publisher_link': package.publisherId == null
         ? null
         : urls.publisherUrl(package.publisherId),
-    'uploaders_title':
-        data.uploaderEmails.length > 1 ? 'Uploaders' : 'Uploader',
-    'uploaders_html': data.uploaderEmails.isEmpty
-        ? null
-        : _getAuthorsHtml(data.uploaderEmails),
     'license_html': _renderLicense(data),
     'dependencies_html': _renderDependencyList(data.version.pubspec),
     'search_deps_link': urls.searchUrl(q: 'dependency:${package.name}'),
@@ -519,25 +512,6 @@ Tab _scoreTab(PackagePageData data) {
       likeCount: data.package.likes,
     ),
   );
-}
-
-String _getAuthorsHtml(List<String> authors) {
-  return (authors ?? const []).map((String value) {
-    final EmailAddress author = EmailAddress.parse(value);
-    final escapedName = htmlEscape.convert(author.name ?? author.email);
-    if (author.email != null) {
-      final escapedEmail = htmlAttrEscape.convert(author.email);
-      final emailSearchUrl = htmlAttrEscape.convert(
-          SearchForm.parse(query: 'email:${author.email}').toSearchLink());
-      final text =
-          '<a href="$emailSearchUrl" title="Search packages from $escapedName" rel="nofollow">'
-          '$escapedEmail'
-          '</a>';
-      return '<span class="author">$text</span>';
-    } else {
-      return '<span class="author">$escapedName</span>';
-    }
-  }).join('<br/>');
 }
 
 String renderPackageSchemaOrgHtml(PackagePageData data) {

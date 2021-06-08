@@ -87,9 +87,9 @@ class PublishingScript {
       // add/remove uploader
       await _pubToolClient!.addUploader(_dummyDir.path, invitedEmail);
       await inviteCompleterFn();
-      await _verifyDummyPkg(matchInvited: true);
+      await _verifyDummyPkg();
       await _pubToolClient!.removeUploader(_dummyDir.path, invitedEmail);
-      await _verifyDummyPkg(matchInvited: false);
+      await _verifyDummyPkg();
 
       if (expectLiveSite) {
         await _verifyDummyDocumentation();
@@ -131,7 +131,7 @@ class PublishingScript {
     await _pubToolClient!.runProc('dart', [file], workingDirectory: dir.path);
   }
 
-  Future<void> _verifyDummyPkg({bool? matchInvited}) async {
+  Future<void> _verifyDummyPkg() async {
     final dv = await _pubHttpClient.getLatestVersionName('_dummy_pkg');
     if (dv != _newDummyVersion) {
       throw Exception(
@@ -147,16 +147,6 @@ class PublishingScript {
       if (pageHtml.contains('developer@example.com')) {
         throw Exception(
             'pubspec author field must not be found on package page.');
-      }
-      if (matchInvited != null) {
-        final found = pageHtml.contains(invitedEmail);
-        if (matchInvited && !found) {
-          throw Exception('Invited email is not to be found on package page.');
-        }
-        if (!matchInvited && found) {
-          throw Exception(
-              'Invited email is still to be found on package page.');
-        }
       }
     }
   }

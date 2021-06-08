@@ -10,7 +10,6 @@ import 'urls.dart';
 
 const pubDartlangOrgEmail = 'noreply@pub.dev';
 final _lenientEmailRegExp = RegExp(r'^\S+@\S+\.\S+$');
-final _nameEmailRegExp = RegExp(r'^(.*)<(.+@.+)>$');
 
 /// Strict regular expression used in <input type="email" />
 /// https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address
@@ -28,35 +27,6 @@ class EmailAddress {
   final String email;
 
   EmailAddress(this.name, this.email);
-
-  factory EmailAddress.parse(String value) {
-    value = value.trim();
-    String name = value;
-    String email;
-
-    final match = _nameEmailRegExp.matchAsPrefix(value);
-    if (match != null) {
-      name = match.group(1).trim();
-      email = match.group(2).trim();
-    } else if (value.contains('@')) {
-      final List<String> parts = value.split(' ');
-      for (int i = 0; i < parts.length; i++) {
-        if (looksLikeEmail(parts[i])) {
-          email = parts[i];
-          parts.removeAt(i);
-          name = parts.join(' ').trim();
-          break;
-        }
-      }
-    }
-    if (name != null && name.isEmpty) {
-      name = null;
-    }
-    if (!looksLikeEmail(email)) {
-      email = null;
-    }
-    return EmailAddress(name, email);
-  }
 
   bool get isEmpty => name == null && email == null;
 
