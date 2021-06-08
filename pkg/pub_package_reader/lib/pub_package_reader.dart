@@ -314,9 +314,17 @@ final _firstDart3Pre = Version.parse('3.0.0').firstPreRelease;
 /// Checks if the version range is acceptable by current SDKs.
 Iterable<ArchiveIssue> checkSdkVersionRange(Pubspec pubspec) sync* {
   final sdk = pubspec.environment?['sdk'];
-  if (sdk == null) return;
-  // We still allow pubspec without SDK constraints.
-  if (sdk.isAny) return;
+  if (sdk == null ||
+      sdk.isAny ||
+      sdk is! VersionRange ||
+      sdk.min == null ||
+      sdk.min!.isAny ||
+      sdk.max == null ||
+      sdk.max!.isAny) {
+    yield ArchiveIssue(
+        'Dart SDK constraint with min and max range must be specified.');
+    return;
+  }
 
   // No known version exists.
   if (sdk.intersect(_preDart3).isEmpty) {
@@ -325,7 +333,8 @@ Iterable<ArchiveIssue> checkSdkVersionRange(Pubspec pubspec) sync* {
 
   // Dart 3 version accepted with valid upper constraint.
   if (sdk is VersionRange && sdk.max != null && sdk.allows(_firstDart3Pre)) {
-    yield ArchiveIssue('The SDK constraint allows Dart 3.0.0, this is not allowed because Dart 3 does not exist.');
+    yield ArchiveIssue(
+        'The SDK constraint allows Dart 3.0.0, this is not allowed because Dart 3 does not exist.');
   }
 }
 

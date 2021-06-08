@@ -61,42 +61,45 @@ void main() {
 
   group('sdk version range', () {
     test('accepted ranges', () {
-      void isAccepted(String? range) {
+      void isAccepted(String range) {
         expect(
           checkSdkVersionRange(Pubspec.fromJson({
             'name': 'x',
-            if (range != null) 'environment': {'sdk': range},
+            'environment': {'sdk': range},
           })),
           isEmpty,
           reason: range,
         );
       }
 
-      isAccepted(null);
-      isAccepted('any');
-      isAccepted('>=0.0.0');
-      isAccepted('>=1.0.0');
+      isAccepted('>=1.0.0 <2.0.0');
+      isAccepted('>=1.0.0 <2.0.0-0');
       isAccepted('>=1.0.0 <3.0.0');
       isAccepted('>=1.0.0 <3.0.0-0');
-      isAccepted('>=2.0.0');
       isAccepted('>=2.0.0 <3.0.0');
       isAccepted('>=2.0.0 <3.0.0-0');
-      isAccepted('<3.0.0');
-      isAccepted('<3.0.0-0');
+      isAccepted('>=2.2.0 <2.11.0');
     });
 
     test('rejected ranges', () {
-      void isRejected(String range) {
+      void isRejected(String? range) {
         expect(
           checkSdkVersionRange(Pubspec.fromJson({
             'name': 'x',
-            'environment': {'sdk': range},
+            if (range != null) 'environment': {'sdk': range},
           })),
           isNotEmpty,
           reason: range,
         );
       }
 
+      isRejected(null);
+      isRejected('any');
+      isRejected('>=0.0.0');
+      isRejected('>=1.0.0');
+      isRejected('>=2.0.0');
+      isRejected('<3.0.0');
+      isRejected('<3.0.0-0');
       isRejected('>=2.12.0 <3.0.1');
       isRejected('>=3.0.0');
       isRejected('>=3.0.0-0');
