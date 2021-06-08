@@ -2,19 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:gcloud/db.dart';
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/search/search_client.dart';
-import 'package:pub_dev/search/updater.dart';
-import 'package:pub_dev/shared/tags.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 
 import '../../shared/handlers_test_utils.dart';
-import '../../shared/test_models.dart';
 import '../../shared/test_services.dart';
 
 import '_utils.dart';
@@ -124,12 +120,13 @@ void main() {
     );
 
     testWithProfile(
-      '/flutter/packages?page=2',
+      'Flutter listings',
       testProfile: TestProfile(
         packages: List<TestPackage>.generate(
           15,
           (i) => TestPackage(
             name: 'flutter_pkg$i',
+            isFlutterFavorite: true,
           ),
         ),
         defaultUser: 'admin@pub.dev',
@@ -140,32 +137,14 @@ void main() {
           await issueGet('/flutter/packages?page=2'),
           present: names.map((name) => '/packages/$name').toList(),
         );
+
+        await expectHtmlResponse(
+          await issueGet('/flutter/favorites'),
+          present: ['/flutter/favorites?page=2'],
+        );
       },
       processJobsWithFakeRunners: true,
     );
-
-    testWithServices('/flutter/favorites: link to 2nd page', () async {
-      for (int i = 0; i < 15; i++) {
-        final bundle = generateBundle(
-          'pkg$i',
-          ['1.0.0'],
-        );
-        bundle.package.assignedTags ??= <String>[];
-        bundle.package.assignedTags.add(PackageTags.isFlutterFavorite);
-        await dbService.commit(inserts: [
-          bundle.package,
-          ...bundle.versions,
-          ...bundle.infos,
-          ...bundle.assets,
-        ]);
-      }
-      await indexUpdater.updateAllPackages();
-
-      await expectHtmlResponse(
-        await issueGet('/flutter/favorites'),
-        present: ['/flutter/favorites?page=2'],
-      );
-    });
   });
 
   group('Rejected queries', () {

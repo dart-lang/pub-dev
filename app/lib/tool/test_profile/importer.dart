@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:client_data/admin_api.dart';
 import 'package:meta/meta.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:client_data/package_api.dart';
 import 'package:client_data/publisher_api.dart';
 
+import '../../shared/tags.dart';
 import '../utils/pub_api_client.dart';
 
 import 'import_source.dart';
@@ -20,6 +22,7 @@ Future<void> importProfile({
   @required TestProfile profile,
   @required ImportSource source,
   String pubHostedUrl,
+  String adminUserEmail,
 }) async {
   final resolvedVersions = await source.resolveVersions(profile);
   resolvedVersions.sort();
@@ -113,6 +116,21 @@ Future<void> importProfile({
             ));
       },
     );
+
+    if (testPackage.isFlutterFavorite ?? false) {
+      await withPubApiClient(
+        bearerToken: _fakeToken(adminUserEmail ?? activeEmail),
+        pubHostedUrl: pubHostedUrl,
+        fn: (client) async {
+          await client.adminPostAssignedTags(
+            packageName,
+            PatchAssignedTags(
+              assignedTagsAdded: [PackageTags.isFlutterFavorite],
+            ),
+          );
+        },
+      );
+    }
   }
 
   // create likes

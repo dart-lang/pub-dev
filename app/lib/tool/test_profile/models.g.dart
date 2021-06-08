@@ -52,6 +52,7 @@ TestPackage _$TestPackageFromJson(Map<String, dynamic> json) {
     isDiscontinued: json['isDiscontinued'] as bool,
     replacedBy: json['replacedBy'] as String,
     isUnlisted: json['isUnlisted'] as bool,
+    isFlutterFavorite: json['isFlutterFavorite'] as bool,
   );
 }
 
@@ -71,6 +72,7 @@ Map<String, dynamic> _$TestPackageToJson(TestPackage instance) {
   writeNotNull('isDiscontinued', instance.isDiscontinued);
   writeNotNull('replacedBy', instance.replacedBy);
   writeNotNull('isUnlisted', instance.isUnlisted);
+  writeNotNull('isFlutterFavorite', instance.isFlutterFavorite);
   return val;
 }
 
