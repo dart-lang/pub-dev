@@ -332,7 +332,7 @@ Iterable<ArchiveIssue> checkSdkVersionRange(Pubspec pubspec) sync* {
   }
 
   // Dart 3 version accepted with valid upper constraint.
-  if (sdk is VersionRange && sdk.max != null && sdk.allows(_firstDart3Pre)) {
+  if (sdk.allows(_firstDart3Pre)) {
     yield ArchiveIssue(
         'The SDK constraint allows Dart 3.0.0, this is not allowed because Dart 3 does not exist.');
   }
