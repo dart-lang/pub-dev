@@ -104,12 +104,11 @@ class Pubspec {
     return _asString(environment['sdk']);
   }
 
+  SdkConstraintStatus get _sdkConstraintStatus =>
+      SdkConstraintStatus.fromSdkVersion(_inner.environment['sdk'], name);
+
   // TODO: migrate uses to SdkConstraintStatus.isDart2Compatible
-  bool get supportsOnlyLegacySdk {
-    final s =
-        SdkConstraintStatus.fromSdkVersion(_inner.environment['sdk'], name);
-    return !s.isDart2Compatible;
-  }
+  bool get supportsOnlyLegacySdk => !_sdkConstraintStatus.isDart2Compatible;
 
   /// Whether the pubspec file contains a flutter.plugin entry.
   bool get hasFlutterPlugin {
@@ -140,6 +139,9 @@ class Pubspec {
 
   /// Whether the package uses Flutter in any way.
   bool get usesFlutter => dependsOnFlutter || hasFlutterPlugin;
+
+  bool get hasOptedIntoNullSafety =>
+      _sdkConstraintStatus.hasOptedIntoNullSafety;
 
   void _load() {
     if (_json == null) {

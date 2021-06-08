@@ -4,6 +4,11 @@
 
 <tr data-version="{{version}}">
   <td class="version"><a href="{{& version_url}}">{{version}}</a></td>
+  <td class="badge">
+    {{#has_opted_into_null_safety}}
+      <span class="package-badge" title="Package version is opted into null safety.">Null safety</span>
+    {{/has_opted_into_null_safety}}
+  </td>
   <td class="sdk">
     {{#has_sdk}}
       {{ sdk.major }}.{{ sdk.minor }}

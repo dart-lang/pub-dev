@@ -47,6 +47,14 @@
     padding: 8px 4px;
     text-align: left;
 
+    &.badge {
+      width: 100px;
+
+      @media (max-width: $device-mobile-max-width) {
+        display: none;
+      }
+    }
+
     &.sdk {
       white-space: nowrap;
       width: 80px;
