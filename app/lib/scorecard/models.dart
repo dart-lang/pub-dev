@@ -58,7 +58,7 @@ class ScoreCard extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)
   String runtimeVersion;
 
-  @db.DateTimeProperty()
+  @db.DateTimeProperty(required: true)
   DateTime updated;
 
   @db.DateTimeProperty(required: true)
@@ -148,17 +148,26 @@ class ScoreCard extends db.ExpandoModel<String> {
     flags?.remove(flag);
   }
 
-  void updateFromReports({
+  void updateReports({
     PanaReport panaReport,
     DartdocReport dartdocReport,
   }) {
-    derivedTags = panaReport?.derivedTags ?? <String>[];
+    if (panaReport != null) {
+      panaReportJsonGz = panaReport.toBytes();
+    } else if (panaReportJsonGz != null && panaReportJsonGz.isNotEmpty) {
+      panaReport = PanaReport.fromBytes(panaReportJsonGz);
+    }
+    if (dartdocReport != null) {
+      dartdocReportJsonGz = dartdocReport.toBytes();
+    } else if (dartdocReportJsonGz != null && dartdocReportJsonGz.isNotEmpty) {
+      dartdocReport = DartdocReport.fromBytes(dartdocReportJsonGz);
+    }
+
+    derivedTags = panaReport?.derivedTags ?? derivedTags ?? <String>[];
     reportTypes = [
-      panaReport == null ? null : ReportType.pana,
-      dartdocReport == null ? null : ReportType.dartdoc,
-    ]
-      ..removeWhere((type) => type == null)
-      ..sort();
+      if (panaReport != null) ReportType.pana,
+      if (dartdocReport != null) ReportType.dartdoc,
+    ];
     panaReport?.flags?.forEach(addFlag);
     final report =
         joinReport(panaReport: panaReport, dartdocReport: dartdocReport);
@@ -168,62 +177,11 @@ class ScoreCard extends db.ExpandoModel<String> {
 }
 
 /// Detail of a specific report for a given PackageVersion.
+///
+/// TODO: Remove this class after `2021.06.01` is no longer an accepted runtimeVersion.
 @db.Kind(name: 'ScoreCardReport', idType: db.IdType.String)
 class ScoreCardReport extends db.ExpandoModel<String> {
-  @db.StringProperty(required: true)
-  String packageName;
-
-  @db.StringProperty(required: true)
-  String packageVersion;
-
-  @db.StringProperty(required: true)
-  String runtimeVersion;
-
-  @db.StringProperty(required: true)
-  String reportType;
-
-  @db.DateTimeProperty()
-  DateTime updated;
-
-  @db.StringProperty(required: true)
-  String reportStatus;
-
-  @db.BlobProperty()
-  List<int> reportJsonGz;
-
   ScoreCardReport();
-
-  ScoreCardReport.init({
-    @required this.packageName,
-    @required this.packageVersion,
-    @required ReportData reportData,
-  }) {
-    runtimeVersion = versions.runtimeVersion;
-    parentKey = scoreCardKey(packageName, packageVersion);
-    reportType = reportData.reportType;
-    reportStatus = reportData.reportStatus;
-    id = reportType;
-    updated = DateTime.now().toUtc();
-    reportJson = reportData.toJson();
-  }
-
-  set reportJson(Map<String, dynamic> map) {
-    if (map == null) {
-      reportJsonGz = null;
-    } else {
-      reportJsonGz = _gzipCodec.encode(jsonUtf8Encoder.convert(map));
-    }
-  }
-
-  ReportData get reportData {
-    switch (reportType) {
-      case ReportType.pana:
-        return PanaReport.fromBytes(reportJsonGz);
-      case ReportType.dartdoc:
-        return DartdocReport.fromBytes(reportJsonGz);
-    }
-    throw Exception('Unknown report type: $reportType');
-  }
 }
 
 abstract class FlagMixin {
@@ -368,12 +326,16 @@ class PanaReport implements ReportData {
 
   @override
   Map<String, dynamic> toJson() => _$PanaReportToJson(this);
+
+  List<int> toBytes() => _gzipCodec.encode(jsonUtf8Encoder.convert(toJson()));
 }
 
 @JsonSerializable()
 class DartdocReport implements ReportData {
   @override
   String get reportType => ReportType.dartdoc;
+
+  final DateTime timestamp;
 
   @override
   final String reportStatus;
@@ -385,6 +347,7 @@ class DartdocReport implements ReportData {
   final ReportSection documentationSection;
 
   DartdocReport({
+    @required this.timestamp,
     @required this.reportStatus,
     @required this.dartdocEntry,
     @required this.documentationSection,
@@ -402,6 +365,8 @@ class DartdocReport implements ReportData {
 
   @override
   Map<String, dynamic> toJson() => _$DartdocReportToJson(this);
+
+  List<int> toBytes() => _gzipCodec.encode(jsonUtf8Encoder.convert(toJson()));
 }
 
 Report joinReport({PanaReport panaReport, DartdocReport dartdocReport}) {

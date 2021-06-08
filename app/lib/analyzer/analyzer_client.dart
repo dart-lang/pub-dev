@@ -31,22 +31,7 @@ class AnalyzerClient {
     if (card == null) {
       return AnalysisView();
     }
-    var dartdocReport = card.dartdocReport;
-    var panaReport = card.panaReport;
-    // TODO: remove this part once we store reports only on the card
-    if (dartdocReport == null &&
-        panaReport == null &&
-        card.reportTypes != null &&
-        card.reportTypes.isNotEmpty) {
-      final reports = await scoreCardBackend.loadReports(
-        package,
-        version,
-        runtimeVersion: card.runtimeVersion,
-      );
-      panaReport = reports[ReportType.pana] as PanaReport;
-      dartdocReport = reports[ReportType.dartdoc] as DartdocReport;
-    }
-    return AnalysisView._(card, panaReport, dartdocReport);
+    return AnalysisView(card);
   }
 
   Future<void> triggerAnalysis(
@@ -70,18 +55,12 @@ class AnalyzerClient {
 
 class AnalysisView {
   final ScoreCardData _card;
-  final PanaReport _pana;
-  final DartdocReport _dartdoc;
   Report _report;
 
-  AnalysisView._(this._card, this._pana, this._dartdoc);
+  AnalysisView([this._card]);
 
-  factory AnalysisView({
-    ScoreCardData card,
-    PanaReport panaReport,
-    DartdocReport dartdocReport,
-  }) =>
-      AnalysisView._(card, panaReport, dartdocReport);
+  PanaReport get _pana => _card?.panaReport;
+  DartdocReport get _dartdoc => card?.dartdocReport;
 
   PanaRuntimeInfo get panaRuntimeInfo => _pana?.panaRuntimeInfo;
 

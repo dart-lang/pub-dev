@@ -22,15 +22,15 @@ void main() {
       );
       await JobMaintenance(dbService, jobProcessor).scanUpdateAndRunOnce();
 
-      final reports = await scoreCardBackend.loadReportForAllVersions(
+      final cards = await scoreCardBackend.getScoreCardDataForAllVersions(
         'oxygen',
         ['1.0.0', '1.2.0', '2.0.0-nonexisting'],
-        reportType: ReportType.dartdoc,
       );
+      final reports = cards.map((c) => c?.dartdocReport).toList();
 
       expect(reports.first, isNotNull);
       expect(reports.last, isNull);
-      final report = reports[1] as DartdocReport;
+      final report = reports[1];
       expect(report.dartdocEntry, isNotNull);
       expect(report.dartdocEntry.totalSize, 440);
       expect(report.documentationSection.grantedPoints, 10);

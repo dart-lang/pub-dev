@@ -415,6 +415,7 @@ class DartdocJobProcessor extends JobProcessor {
     await _storeScoreCard(
         job,
         DartdocReport(
+          timestamp: DateTime.now().toUtc(),
           reportStatus: reportStatus,
           dartdocEntry: entry,
           documentationSection: documentationSection,
@@ -428,8 +429,9 @@ class DartdocJobProcessor extends JobProcessor {
   }
 
   Future _storeScoreCard(Job job, DartdocReport report) async {
-    await scoreCardBackend.updateReportAndCard(
-        job.packageName, job.packageVersion, report);
+    await scoreCardBackend.updateReportOnCard(
+        job.packageName, job.packageVersion,
+        dartdocReport: report);
   }
 
   Future<String> _resolveDependencies(
@@ -696,6 +698,7 @@ String _mergeOutput(ProcessResult pr, {bool compress = false}) {
 }
 
 DartdocReport _emptyReport() => DartdocReport(
+      timestamp: DateTime.now().toUtc(),
       reportStatus: ReportStatus.aborted,
       dartdocEntry: null,
       // TODO: add meaningful message for missing documentation on dartdoc

@@ -215,17 +215,16 @@ class DartdocBackend {
           versions.where((v) => !entries.containsKey(v)).toList();
       if (queryVersions.isEmpty) break;
 
-      final reports = await scoreCardBackend.loadReportForAllVersions(
+      final cards = await scoreCardBackend.getScoreCardDataForAllVersions(
         package,
         queryVersions,
-        reportType: ReportType.dartdoc,
         runtimeVersion: rv,
       );
       for (var i = 0; i < queryVersions.length; i++) {
-        final r = reports[i];
+        final r = cards[i];
         if (r != null) {
           final version = queryVersions[i];
-          final entry = (r as DartdocReport).dartdocEntry;
+          final entry = r.dartdocReport?.dartdocEntry;
           if (entry != null) {
             entries[version] = entry;
             cacheUpdateFutures.add(pool.withResource(

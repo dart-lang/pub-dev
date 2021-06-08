@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -134,126 +133,14 @@ class ScoreCardBackend {
     return fallbackCard;
   }
 
-  /// Creates or updates a [ScoreCardReport] entry with the report's [data].
-  /// The [data] will be converted to json and stored as a byte in the report
-  /// entry.
-  ///
-  /// Also updates the [ScoreCard] entry.
-  Future<void> updateReportAndCard(
-      String packageName, String packageVersion, ReportData data) async {
-    final key = scoreCardKey(packageName, packageVersion)
-        .append(ScoreCardReport, id: data.reportType);
-    await db.withRetryTransaction(_db, (tx) async {
-      var report =
-          await tx.lookupValue<ScoreCardReport>(key, orElse: () => null);
-      if (report != null) {
-        _logger.info(
-            'Updating report: $packageName $packageVersion ${data.reportType}.');
-        report
-          ..updated = DateTime.now().toUtc()
-          ..reportStatus = data.reportStatus
-          ..reportJson = data.toJson();
-      } else {
-        _logger.info(
-            'Creating new report: $packageName $packageVersion ${data.reportType}.');
-        report = ScoreCardReport.init(
-          packageName: packageName,
-          packageVersion: packageVersion,
-          reportData: data,
-        );
-      }
-      tx.insert(report);
-    });
-    await _updateScoreCard(packageName, packageVersion);
-  }
-
-  Future<List<ScoreCardReport>> _loadReports(
+  /// Creates or updates a [ScoreCard] entry with the provided [panaReport] and/or [dartdocReport].
+  /// The report data will be converted to json+gzip and stored as a bytes in the [ScoreCard] entry.
+  Future<void> updateReportOnCard(
     String packageName,
     String packageVersion, {
-    List<String> reportTypes,
-    String runtimeVersion,
+    PanaReport panaReport,
+    DartdocReport dartdocReport,
   }) async {
-    reportTypes ??= [ReportType.pana, ReportType.dartdoc];
-    final key = scoreCardKey(packageName, packageVersion,
-        runtimeVersion: runtimeVersion);
-    return await _db.lookup<ScoreCardReport>(reportTypes
-        .map((type) => key.append(ScoreCardReport, id: type))
-        .toList());
-  }
-
-  Map<String, ReportData> _extractReportData(List<ScoreCardReport> items) {
-    final result = <String, ReportData>{};
-    for (db.Model model in items) {
-      if (model == null) continue;
-      final report = model as ScoreCardReport;
-      result[report.reportType] = report.reportData;
-    }
-    return result;
-  }
-
-  /// Load and deserialize the reports for the given package and version.
-  Future<Map<String, ReportData>> loadReports(
-    String packageName,
-    String packageVersion, {
-    List<String> reportTypes,
-    String runtimeVersion,
-  }) async {
-    final list = await _loadReports(packageName, packageVersion,
-        reportTypes: reportTypes, runtimeVersion: runtimeVersion);
-    return _extractReportData(list);
-  }
-
-  /// Load and deserialize a specific report type for the given package's versions.
-  Future<List<ReportData>> loadReportForAllVersions(
-    String packageName,
-    Iterable<String> versions, {
-    @required String reportType,
-    String runtimeVersion,
-  }) async {
-    final pool = Pool(_batchLookupConcurrency);
-    final futures = <Future<List<ReportData>>>[];
-    for (var start = 0;
-        start < versions.length;
-        start += _batchLookupMaxKeyCount) {
-      final keys = versions
-          .skip(start)
-          .take(_batchLookupMaxKeyCount)
-          .map((v) =>
-              scoreCardKey(packageName, v, runtimeVersion: runtimeVersion)
-                  .append(ScoreCardReport, id: reportType))
-          .toList();
-      final f = pool.withResource(() async {
-        final items = await _db.lookup<ScoreCardReport>(keys);
-        return items.map((item) => item?.reportData).toList();
-      });
-      futures.add(f);
-    }
-    final lists = await Future.wait(futures);
-    final results = lists.fold<List<ReportData>>(
-      <ReportData>[],
-      (r, list) => r..addAll(list),
-    );
-    await pool.close();
-    return results;
-  }
-
-  /// Updates the `updated` field of the [ScoreCard] entry, forcing search
-  /// indexes to pick it up and update their index.
-  Future<void> markScoreCardUpdated(
-      String packageName, String packageVersion) async {
-    final key = scoreCardKey(packageName, packageVersion);
-    await db.withRetryTransaction(_db, (tx) async {
-      final card = await tx.lookupValue<ScoreCard>(key, orElse: () => null);
-      if (card == null) return;
-      card.updated = DateTime.now().toUtc();
-      tx.insert(card);
-    });
-  }
-
-  /// Updates the [ScoreCard] entry, reading both the package and version data,
-  /// alongside the data from reports, and compiles a new summary of them.
-  Future<void> _updateScoreCard(
-      String packageName, String packageVersion) async {
     final key = scoreCardKey(packageName, packageVersion);
     final pAndPv = await _db.lookup([key.parent, key.parent.parent]);
     final version = pAndPv[0] as PackageVersion;
@@ -265,8 +152,6 @@ class ScoreCardBackend {
     final currentSdkVersion = await getDartSdkVersion();
     final status = PackageStatus.fromModels(
         package, version, currentSdkVersion.semanticVersion);
-    final reportEntities = await _loadReports(packageName, packageVersion);
-    final reports = _extractReportData(reportEntities);
 
     await db.withRetryTransaction(_db, (tx) async {
       var scoreCard = await tx.lookupValue<ScoreCard>(key, orElse: () => null);
@@ -303,34 +188,32 @@ class ScoreCardBackend {
 
       scoreCard.popularityScore = popularityStorage.lookup(packageName) ?? 0.0;
 
-      scoreCard.updateFromReports(
-        panaReport: reports[ReportType.pana] as PanaReport,
-        dartdocReport: reports[ReportType.dartdoc] as DartdocReport,
+      scoreCard.updateReports(
+        panaReport: panaReport,
+        dartdocReport: dartdocReport,
       );
 
-      // store compressed report on the ScoreCard entity too
-      for (final scr in reportEntities) {
-        if (scr == null || scr.reportJsonGz == null) continue;
-        final size = scr.reportJsonGz.length;
+      bool sizeCheck(String reportType, List<int> bytes) {
+        if (bytes == null || bytes.isEmpty) return false;
+        final size = bytes.length;
         if (size > _reportSizeDropThreshold) {
-          // TODO: replace it with meaningful content
           _logger.reportError(
-              '${scr.reportType} report exceeded size threshold ($size > $_reportSizeWarnThreshold)');
-          continue;
-        }
-
-        if (size > _reportSizeWarnThreshold) {
+              '$reportType report exceeded size threshold ($size > $_reportSizeWarnThreshold)');
+          return true;
+        } else if (size > _reportSizeWarnThreshold) {
           _logger.warning(
-              '${scr.reportType} report exceeded size threshold ($size > $_reportSizeWarnThreshold)');
+              '$reportType report exceeded size threshold ($size > $_reportSizeWarnThreshold)');
         }
-        switch (scr.reportType) {
-          case ReportType.dartdoc:
-            scoreCard.dartdocReportJsonGz = scr.reportJsonGz;
-            break;
-          case ReportType.pana:
-            scoreCard.panaReportJsonGz = scr.reportJsonGz;
-            break;
-        }
+        return false;
+      }
+
+      if (sizeCheck(ReportType.pana, scoreCard.panaReportJsonGz)) {
+        // TODO: replace with something meaningful
+        scoreCard.panaReportJsonGz = <int>[];
+      }
+      if (sizeCheck(ReportType.dartdoc, scoreCard.dartdocReportJsonGz)) {
+        // TODO: replace with something meaningful
+        scoreCard.dartdocReportJsonGz = <int>[];
       }
 
       tx.insert(scoreCard);
@@ -343,6 +226,51 @@ class ScoreCardBackend {
       if (isLatest) cache.uiPackagePage(packageName, null).purge(),
       if (isLatest) cache.packageView(packageName).purge(),
     ]);
+  }
+
+  /// Load and deserialize a [ScoreCardData] for the given package's versions.
+  Future<List<ScoreCardData>> getScoreCardDataForAllVersions(
+    String packageName,
+    Iterable<String> versions, {
+    String runtimeVersion,
+  }) async {
+    final pool = Pool(_batchLookupConcurrency);
+    final futures = <Future<List<ScoreCardData>>>[];
+    for (var start = 0;
+        start < versions.length;
+        start += _batchLookupMaxKeyCount) {
+      final keys = versions
+          .skip(start)
+          .take(_batchLookupMaxKeyCount)
+          .map((v) =>
+              scoreCardKey(packageName, v, runtimeVersion: runtimeVersion))
+          .toList();
+      final f = pool.withResource(() async {
+        final items = await _db.lookup<ScoreCard>(keys);
+        return items.map((item) => item?.toData()).toList();
+      });
+      futures.add(f);
+    }
+    final lists = await Future.wait(futures);
+    final results = lists.fold<List<ScoreCardData>>(
+      <ScoreCardData>[],
+      (r, list) => r..addAll(list),
+    );
+    await pool.close();
+    return results;
+  }
+
+  /// Updates the `updated` field of the [ScoreCard] entry, forcing search
+  /// indexes to pick it up and update their index.
+  Future<void> markScoreCardUpdated(
+      String packageName, String packageVersion) async {
+    final key = scoreCardKey(packageName, packageVersion);
+    await db.withRetryTransaction(_db, (tx) async {
+      final card = await tx.lookupValue<ScoreCard>(key, orElse: () => null);
+      if (card == null) return;
+      card.updated = DateTime.now().toUtc();
+      tx.insert(card);
+    });
   }
 
   /// Deletes the old entries that predate [versions.gcBeforeRuntimeVersion].
@@ -392,25 +320,37 @@ class ScoreCardBackend {
       return false;
     }
 
-    // checking existing report
-    final key = scoreCardKey(pv.package, pv.version)
-        .append(ScoreCardReport, id: reportType);
-    final list = await _db.lookup([key]);
-    final report = list.single as ScoreCardReport;
-    if (report == null) {
-      return true;
+    // checking existing card
+    final key = scoreCardKey(pv.package, pv.version);
+    final card = await _db.lookupValue<ScoreCard>(key, orElse: () => null);
+    if (card == null) return true;
+
+    bool checkUpdatedAndStatus(DateTime updated, String reportStatus) {
+      // checking existence
+      if (updated == null) {
+        return true;
+      }
+      // checking freshness
+      if (updatedAfter != null && updatedAfter.isAfter(updated)) {
+        return true;
+      }
+      // checking age
+      final age = DateTime.now().toUtc().difference(updated);
+      final isSuccess = reportStatus == ReportStatus.success;
+      final ageThreshold = isSuccess ? successThreshold : failureThreshold;
+      return age > ageThreshold;
     }
 
-    // checking freshness
-    if (updatedAfter != null && updatedAfter.isAfter(report.updated)) {
-      return true;
+    final data = card.toData();
+    if (reportType == ReportType.pana) {
+      return checkUpdatedAndStatus(
+          data.panaReport?.timestamp, data.panaReport?.reportStatus);
+    } else if (reportType == ReportType.dartdoc) {
+      return checkUpdatedAndStatus(
+          data.dartdocReport?.timestamp, data.dartdocReport?.reportStatus);
+    } else {
+      throw AssertionError('Unknown report type: $reportType.');
     }
-
-    // checking age
-    final age = DateTime.now().toUtc().difference(report.updated);
-    final isSuccess = report.reportStatus == ReportStatus.success;
-    final ageThreshold = isSuccess ? successThreshold : failureThreshold;
-    return age > ageThreshold;
   }
 }
 

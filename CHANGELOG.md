@@ -2,6 +2,8 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bumped runtimeVersion to `2021.06.03`.
+ * NOTE: Stopped creating `ScoreCardReport` entities.
 
 ## `20210603t155700-all`
  * Bumped runtimeVersion to `2021.06.01`.

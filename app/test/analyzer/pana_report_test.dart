@@ -13,15 +13,15 @@ void main() {
     testWithProfile('write and read pana reports', fn: () async {
       await processJobsWithFakePanaRunner();
 
-      final reports = await scoreCardBackend.loadReportForAllVersions(
+      final cards = await scoreCardBackend.getScoreCardDataForAllVersions(
         'oxygen',
         ['1.0.0', '1.2.0', '2.0.0-nonexisting'],
-        reportType: ReportType.pana,
       );
+      final reports = cards.map((c) => c?.panaReport).toList();
 
       expect(reports.first, isNotNull);
       expect(reports.last, isNull);
-      final report = reports[1] as PanaReport;
+      final report = reports[1];
       expect(report.derivedTags, [
         'sdk:dart',
         'runtime:native-aot',
