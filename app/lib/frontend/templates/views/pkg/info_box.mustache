@@ -13,15 +13,15 @@
 
 <h3 class="title">Publisher</h3>
 <p>
-  {{#publisher_id}}
+  {{#has_publisher}}
   <a href="{{& publisher_link}}"><img
           class="-pub-publisher-shield"
           title="Published by a pub.dev verified publisher"
           src="{{{static_assets.img__verified-publisher-blue_svg}}}" />{{publisher_id}}</a>
-  {{/publisher_id}}
-  {{^publisher_id}}
+  {{/has_publisher}}
+  {{^has_publisher}}
   Unknown
-  {{/publisher_id}}
+  {{/has_publisher}}
 </p>
 
 <h3 class="title pkg-infobox-metadata">Metadata</h3>

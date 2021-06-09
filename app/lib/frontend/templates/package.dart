@@ -195,6 +195,7 @@ String renderPkgInfoBox(PackagePageData data) {
     'replaced_by': package.replacedBy,
     'replaced_by_link':
         package.replacedBy == null ? null : urls.pkgPageUrl(package.replacedBy),
+    'has_publisher': package.publisherId != null,
     'publisher_id': package.publisherId,
     'publisher_link': package.publisherId == null
         ? null
