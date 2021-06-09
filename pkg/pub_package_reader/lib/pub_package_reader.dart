@@ -328,7 +328,7 @@ Iterable<ArchiveIssue> checkSdkVersionRange(Pubspec pubspec) sync* {
 
   // No known version exists.
   if (sdk.intersect(_preDart3).isEmpty) {
-    yield ArchiveIssue('SDK constraint is outside of current Dart SDKs.');
+    yield ArchiveIssue('SDK constraint does not allow any known Dart SDK.');
   }
 
   // Dart 3 version accepted with valid upper constraint.
