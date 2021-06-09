@@ -85,6 +85,8 @@ class TemplateCache {
           '[strict-template-failed] Strict template rendering failed for $template',
           e,
           st);
+      // Fail in tests, allow operations in production.
+      assert(false);
     }
     // fallback: lenient rendering
     return _getTemplate(template, false).renderString(data);
