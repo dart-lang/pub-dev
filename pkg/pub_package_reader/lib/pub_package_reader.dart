@@ -153,6 +153,7 @@ Future<PackageSummary> summarizePackageArchive(
   }
   issues.addAll(checkValidJson(pubspecContent));
   issues.addAll(checkAuthors(pubspecContent));
+  issues.addAll(checkSdkVersionRange(pubspec));
   // Check whether the files can be extracted on case-preserving file systems
   // (e.g. on Windows). We can't allow two files with the same case-insensitive
   // name.
@@ -304,6 +305,36 @@ Iterable<ArchiveIssue> checkAuthors(String pubspecContent) sync* {
   if (map is Map && map.containsKey('author') && map.containsKey('authors')) {
     yield ArchiveIssue(
         'Do not specify both `author` and `authors` in `pubspec.yaml`.');
+  }
+}
+
+final _preDart3 = VersionConstraint.parse('<3.0.0');
+final _firstDart3Pre = Version.parse('3.0.0').firstPreRelease;
+
+/// Checks if the version range is acceptable by current SDKs.
+Iterable<ArchiveIssue> checkSdkVersionRange(Pubspec pubspec) sync* {
+  final sdk = pubspec.environment?['sdk'];
+  if (sdk == null ||
+      sdk.isAny ||
+      sdk is! VersionRange ||
+      sdk.min == null ||
+      sdk.min!.isAny ||
+      sdk.max == null ||
+      sdk.max!.isAny) {
+    yield ArchiveIssue(
+        'Dart SDK constraint with min and max range must be specified.');
+    return;
+  }
+
+  // No known version exists.
+  if (sdk.intersect(_preDart3).isEmpty) {
+    yield ArchiveIssue('SDK constraint does not allow any known Dart SDK.');
+  }
+
+  // Dart 3 version accepted with valid upper constraint.
+  if (sdk.allows(_firstDart3Pre)) {
+    yield ArchiveIssue(
+        'The SDK constraint allows Dart 3.0.0, this is not allowed because Dart 3 does not exist.');
   }
 }
 

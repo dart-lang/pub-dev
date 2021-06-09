@@ -252,6 +252,8 @@ version: $version
 author: Hans Juergen <hans@juergen.com>
 homepage: http://hans.juergen.com
 description: 'my package description'
+environment:
+  sdk: '>=2.10.0 <3.0.0'
 
 dependencies:
   gcloud: any
