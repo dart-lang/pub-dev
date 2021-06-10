@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:pub_dev/search/flutter_sdk_mem_index.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dev/search/backend.dart';
@@ -36,6 +37,7 @@ void main() {
         registerSearchBackend(MockSearchBackend());
         registerPackageIndex(InMemoryPackageIndex());
         registerDartSdkIndex(InMemoryPackageIndex());
+        registerFlutterSdkMemIndex(FlutterSdkMemIndex());
         await packageIndex
             .addPackage(await searchBackend.loadDocument('pkg_foo'));
         await packageIndex.markReady();
