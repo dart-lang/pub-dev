@@ -53,6 +53,7 @@ class FakePubServerProcess {
           '--enable-vm-service=${coverageConfig.vmPort}',
           '--disable-service-auth-codes',
         ],
+        '--enable-asserts',
         'bin/fake_server.dart',
         'run',
         '--port=$port',

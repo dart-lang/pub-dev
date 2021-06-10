@@ -138,7 +138,16 @@ class PublishingScript {
           'Expected version does not match: $dv != $_newDummyVersion');
     }
 
-    for (final tab in [null, 'changelog', 'license', 'pubspec']) {
+    final tabs = [
+      null,
+      'changelog',
+      'example',
+      'license',
+      'pubspec',
+      'score',
+      'versions',
+    ];
+    for (final tab in tabs) {
       final pageHtml =
           (await _pubHttpClient.getLatestVersionPage('_dummy_pkg', tab: tab))!;
       if (!pageHtml.contains(_newDummyVersion!)) {
