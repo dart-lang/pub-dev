@@ -19,7 +19,7 @@
     </div>
     <p class="packages-description">{{desc}}</p>
     {{#is_external}}
-    <p class="packages-metadata">v {{version}} • {{external_type}}</p>
+    <p class="packages-metadata">{{#version}}v {{ version }} • {{/version}}{{ external_type }}</p>
     {{/is_external}}
     {{^is_external}}
     <p class="packages-metadata">

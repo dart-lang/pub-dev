@@ -36,6 +36,7 @@ import '../publisher/backend.dart';
 import '../publisher/domain_verifier.dart';
 import '../scorecard/backend.dart';
 import '../search/backend.dart';
+import '../search/flutter_sdk_mem_index.dart';
 import '../search/mem_index.dart';
 import '../search/search_client.dart';
 import '../search/updater.dart';
@@ -162,6 +163,7 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
     registerDartdocClient(DartdocClient());
     registerDartSdkIndex(InMemoryPackageIndex.sdk(
         urlPrefix: dartSdkMainUrl(toolStableDartSdkVersion)));
+    registerFlutterSdkMemIndex(FlutterSdkMemIndex());
     registerJobBackend(JobBackend(dbService));
     registerNameTracker(NameTracker(dbService));
     registerPackageIndex(InMemoryPackageIndex());
@@ -197,6 +199,7 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
     registerScopeExitCallback(indexUpdater.close);
     registerScopeExitCallback(authProvider.close);
     registerScopeExitCallback(dartdocClient.close);
+    registerScopeExitCallback(flutterSdkMemIndex.close);
     registerScopeExitCallback(popularityStorage.close);
     registerScopeExitCallback(searchClient.close);
     registerScopeExitCallback(searchAdapter.close);

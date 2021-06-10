@@ -13,6 +13,7 @@ import '../shared/configuration.dart';
 import '../shared/handlers.dart';
 
 import 'backend.dart';
+import 'flutter_sdk_mem_index.dart';
 import 'result_combiner.dart';
 import 'search_service.dart';
 
@@ -68,7 +69,10 @@ Future<shelf.Response> _searchHandler(shelf.Request request) async {
   final Stopwatch sw = Stopwatch()..start();
   final query = ServiceSearchQuery.fromServiceUrl(request.requestedUri);
   final combiner = SearchResultCombiner(
-      primaryIndex: packageIndex, dartSdkIndex: dartSdkIndex);
+    primaryIndex: packageIndex,
+    dartSdkIndex: dartSdkIndex,
+    flutterSdkMemIndex: flutterSdkMemIndex,
+  );
   final result = await combiner.search(query);
   final Duration elapsed = sw.elapsed;
   if (elapsed > _slowSearchThreshold) {

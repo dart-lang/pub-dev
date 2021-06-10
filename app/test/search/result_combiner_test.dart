@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:test/test.dart';
 
+import 'package:pub_dev/search/flutter_sdk_mem_index.dart';
 import 'package:pub_dev/search/mem_index.dart';
 import 'package:pub_dev/search/result_combiner.dart';
 import 'package:pub_dev/search/search_service.dart';
@@ -15,8 +16,12 @@ void main() {
     final primaryIndex = InMemoryPackageIndex();
     final dartSdkIndex = InMemoryPackageIndex.sdk(
         urlPrefix: 'https://api.dartlang.org/stable/2.0.0');
+    final flutterSdkMemIndex = FlutterSdkMemIndex();
     final combiner = SearchResultCombiner(
-        primaryIndex: primaryIndex, dartSdkIndex: dartSdkIndex);
+      primaryIndex: primaryIndex,
+      dartSdkIndex: dartSdkIndex,
+      flutterSdkMemIndex: flutterSdkMemIndex,
+    );
 
     setUpAll(() async {
       await primaryIndex.addPackage(PackageDocument(
