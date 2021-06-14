@@ -14,7 +14,14 @@ if [ "$PROJECT_ID" = 'dartlang-pub' ]; then
     echo 'TAG_NAME must be specified';
     exit 1;
   fi
-  APP_VERSION="$TAG_NAME"
+
+  if [[ "$TAG_NAME" != *-all ]]; then
+    echo 'This script is only intended for use on staging-<name> branches'
+    exit 1;
+  fi
+
+  # Remove the -all suffix to create a version name.
+  APP_VERSION="${TAG_NAME%-all}"
 else
   # Use BRANCH_NAME as appengine version
   if [ -z "$BRANCH_NAME" ]; then
