@@ -67,7 +67,7 @@ void main() {
             'sdk': 'dart',
             'version': '',
             'library': 'dart:async',
-            'url': 'https://api.dart.dev/x/',
+            'url': 'https://api.dart.dev/x/dart-async/dart-async-library.html',
             'score': closeTo(0.98, 0.01),
             'apiPages': [
               {
@@ -102,7 +102,7 @@ void main() {
             'sdk': 'dart',
             'version': '',
             'library': 'dart:async',
-            'url': 'https://api.dart.dev/x/',
+            'url': 'https://api.dart.dev/x/dart-async/dart-async-library.html',
             'score': closeTo(0.08, 0.01),
             'apiPages': [
               {
@@ -126,7 +126,7 @@ void main() {
             'sdk': 'dart',
             'version': '',
             'library': 'dart:async',
-            'url': 'https://api.dart.dev/x/',
+            'url': 'https://api.dart.dev/x/dart-async/dart-async-library.html',
             'score': closeTo(0.98, 0.01),
             'apiPages': [
               {

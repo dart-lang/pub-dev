@@ -125,26 +125,26 @@ void main() {
         {
           'sdk': 'flutter',
           'library': 'widgets',
-          'url': 'https://api.flutter.dev/flutter',
+          'url': 'https://api.flutter.dev/flutter/widgets/widgets-library.html',
           'score': closeTo(0.98, 0.01),
           'apiPages': [
             {
               'title': null,
               'path': 'widgets/StatelessWidget/StatelessWidget.html',
               'url':
-                  'https://api.flutter.dev/widgets/StatelessWidget/StatelessWidget.html'
+                  'https://api.flutter.dev/flutter/widgets/StatelessWidget/StatelessWidget.html'
             },
             {
               'title': null,
               'path': 'widgets/StatelessWidget-class.html',
               'url':
-                  'https://api.flutter.dev/widgets/StatelessWidget-class.html'
+                  'https://api.flutter.dev/flutter/widgets/StatelessWidget-class.html'
             },
             {
               'title': null,
               'path': 'widgets/StatelessWidget/build.html',
               'url':
-                  'https://api.flutter.dev/widgets/StatelessWidget/build.html'
+                  'https://api.flutter.dev/flutter/widgets/StatelessWidget/build.html'
             },
           ],
         },

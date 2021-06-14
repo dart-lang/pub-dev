@@ -8,6 +8,7 @@ import 'dart:isolate';
 import 'package:args/command_runner.dart';
 import 'package:logging/logging.dart';
 
+import '../../search/flutter_sdk_mem_index.dart';
 import '../../search/handlers.dart';
 import '../../search/updater.dart';
 import '../../shared/configuration.dart';
@@ -62,6 +63,7 @@ Future _main(FrontendEntryMessage message) async {
 
     // Don't block on init, we need to serve liveliness and readiness checks.
     scheduleMicrotask(() async {
+      await flutterSdkMemIndex.start();
       try {
         await indexUpdater.init();
       } catch (e, st) {
