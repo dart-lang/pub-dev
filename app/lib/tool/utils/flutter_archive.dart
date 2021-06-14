@@ -17,7 +17,7 @@ part 'flutter_archive.g.dart';
 Future<FlutterArchive> fetchFlutterArchive() async {
   final client = Client();
   final rs = await client.get(Uri.parse(
-      'https://storage.googleapis.com/flutter_infra/releases/releases_linux.json'));
+      'https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json'));
   client.close();
   return FlutterArchive.fromJson(json.decode(rs.body) as Map<String, dynamic>);
 }
