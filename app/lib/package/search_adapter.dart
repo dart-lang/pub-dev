@@ -90,8 +90,11 @@ class SearchAdapter {
           ? null
           : views[result.highlightedHit.package],
       sdkLibraryHits: result.sdkLibraryHits ?? [],
-      packageHits:
-          result.packageHits?.map((h) => views[h.package])?.toList() ?? [],
+      packageHits: result.packageHits
+              ?.map((h) => views[h.package])
+              ?.where((v) => v != null)
+              ?.toList() ??
+          <PackageView>[],
       message: result.message,
     );
   }
