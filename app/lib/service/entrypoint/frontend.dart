@@ -28,7 +28,6 @@ import '../../shared/popularity_storage.dart';
 import '../../shared/storage.dart';
 import '../services.dart';
 
-import '_cronjobs.dart' show CronJobs;
 import '_isolate.dart';
 
 final Logger _logger = Logger('pub');
@@ -63,10 +62,6 @@ Future _main(FrontendEntryMessage message) async {
 
   await updateLocalBuiltFilesIfNeeded();
   await withServices(() async {
-    final cron = CronJobs(await getOrCreateBucket(
-      storageService,
-      activeConfiguration.backupSnapshotBucketName,
-    ));
     final appHandler = createAppHandler();
 
     if (envConfig.isRunningLocally) {
@@ -77,8 +72,7 @@ Future _main(FrontendEntryMessage message) async {
     await announcementBackend.start();
     await youtubeBackend.start();
 
-    await runHandler(_logger, appHandler,
-        sanitize: true, cronHandler: cron.handler);
+    await runHandler(_logger, appHandler, sanitize: true);
   });
 }
 

@@ -9,7 +9,6 @@ searchServicePrefix: https://search-dot-dartlang-pub.appspot.com
 dartdocStorageBucketName: dartlang-pub--dartdoc-storage
 popularityDumpBucketName: dartlang-pub--popularity
 searchSnapshotBucketName: dartlang-pub--search-snapshot
-backupSnapshotBucketName: dartlang-pub--backup-snapshots
 storageBaseUrl: https://storage.googleapis.com/
 pubClientAudience: 818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.googleusercontent.com
 pubSiteAudience: 818368855108-e8skaopm5ih5nbb82vhh66k7ft5o7dn3.apps.googleusercontent.com

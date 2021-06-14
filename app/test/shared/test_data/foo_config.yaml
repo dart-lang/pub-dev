@@ -3,7 +3,6 @@ packageBucketName: foo
 dartdocStorageBucketName: foo
 popularityDumpBucketName: foo
 searchSnapshotBucketName: foo
-backupSnapshotBucketName: foo
 searchServicePrefix: 'https://search-dot-dartlang-pub-dev.appspot.com'
 storageBaseUrl: 'https://storage.googleapis.com/'
 pubClientAudience: _pubClientAudience
