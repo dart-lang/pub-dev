@@ -3,6 +3,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Bumped runtimeVersion to `2021.06.14`.
+ * Upgraded runtime Dart SDK to `2.13.3`.
  * Upgraded stable Dart analysis SDK to `2.13.3`.
  * Upgraded preview Dart analysis SDK to `2.13.3`.
  * Upgraded stable Flutter analysis SDK to `2.2.2`.
