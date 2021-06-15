@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:meta/meta.dart';
 
+import 'dart_sdk_mem_index.dart';
 import 'flutter_sdk_mem_index.dart';
 import 'search_service.dart';
 
@@ -13,12 +14,12 @@ import 'search_service.dart';
 /// SDK index.
 class SearchResultCombiner {
   final PackageIndex primaryIndex;
-  final PackageIndex dartSdkIndex;
+  final DartSdkMemIndex dartSdkMemIndex;
   final FlutterSdkMemIndex flutterSdkMemIndex;
 
   SearchResultCombiner({
     @required this.primaryIndex,
-    @required this.dartSdkIndex,
+    @required this.dartSdkMemIndex,
     @required this.flutterSdkMemIndex,
   });
 
@@ -28,12 +29,11 @@ class SearchResultCombiner {
     }
 
     final primaryResult = await primaryIndex.search(query);
-    final dartSdkResult = await dartSdkIndex
-        .search(query.change(order: SearchOrder.text, offset: 0, limit: 2));
+    final dartSdkResults = await dartSdkMemIndex.search(query.query, limit: 2);
     final flutterSdkResults =
         await flutterSdkMemIndex.search(query.query, limit: 2);
     final sdkLibraryHits = [
-      if (dartSdkResult.sdkLibraryHits != null) ...dartSdkResult.sdkLibraryHits,
+      ...dartSdkResults,
       ...flutterSdkResults,
     ];
     sdkLibraryHits.sort((a, b) => -a.score.compareTo(b.score));

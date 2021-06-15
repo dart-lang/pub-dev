@@ -7,6 +7,7 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
+import 'package:pub_dev/search/dart_sdk_mem_index.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../shared/configuration.dart';
@@ -70,7 +71,7 @@ Future<shelf.Response> _searchHandler(shelf.Request request) async {
   final query = ServiceSearchQuery.fromServiceUrl(request.requestedUri);
   final combiner = SearchResultCombiner(
     primaryIndex: packageIndex,
-    dartSdkIndex: dartSdkIndex,
+    dartSdkMemIndex: dartSdkMemIndex,
     flutterSdkMemIndex: flutterSdkMemIndex,
   );
   final result = await combiner.search(query);

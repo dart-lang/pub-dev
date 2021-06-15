@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:pub_dev/search/dart_sdk_mem_index.dart';
+import 'package:pub_dev/search/models.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dev/search/flutter_sdk_mem_index.dart';
@@ -14,12 +16,11 @@ import 'package:pub_dev/search/search_service.dart';
 void main() {
   group('ResultCombiner', () {
     final primaryIndex = InMemoryPackageIndex();
-    final dartSdkIndex = InMemoryPackageIndex.sdk(
-        urlPrefix: 'https://api.dartlang.org/stable/2.0.0');
+    final dartSdkMemIndex = DartSdkMemIndex();
     final flutterSdkMemIndex = FlutterSdkMemIndex();
     final combiner = SearchResultCombiner(
       primaryIndex: primaryIndex,
-      dartSdkIndex: dartSdkIndex,
+      dartSdkMemIndex: dartSdkMemIndex,
       flutterSdkMemIndex: flutterSdkMemIndex,
     );
 
@@ -34,19 +35,48 @@ void main() {
         maxPoints: 110,
         uploaderEmails: ['foo@example.com'],
       ));
-      await dartSdkIndex.addPackage(PackageDocument(
-        package: 'dart:core',
-        description: 'Dart core utils',
-        apiDocPages: [
-          ApiDocPage(
-            relativePath: 'dart-core/String-class.html',
-            symbols: ['String', 'substring', 'stringutils'],
-          )
-        ],
-      ));
-
+      dartSdkMemIndex.setDartdocIndex(
+        DartdocIndex.fromJsonList([
+          {
+            'name': 'dart:core',
+            'qualifiedName': 'dart:core',
+            'href': 'dart-core/dart-core-library.html',
+            'type': 'library',
+            'overriddenDepth': 0,
+            'packageName': 'Dart'
+          },
+          {
+            'name': 'String',
+            'qualifiedName': 'dart:core.String',
+            'href': 'dart-core/String-class.html',
+            'type': 'class',
+            'overriddenDepth': 0,
+            'packageName': 'Dart',
+            'enclosedBy': {'name': 'dart:core', 'type': 'library'}
+          },
+          {
+            'name': 'substring',
+            'qualifiedName': 'dart:core.String.substring',
+            'href': 'dart-core/String/substring.html',
+            'type': 'method',
+            'overriddenDepth': 0,
+            'packageName': 'Dart',
+            'enclosedBy': {'name': 'String', 'type': 'class'}
+          },
+          {
+            // fake method for checking the package name matches
+            'name': 'stringutils',
+            'qualifiedName': 'dart:core.String.stringutils',
+            'href': 'dart-core/String/stringutils.html',
+            'type': 'method',
+            'overriddenDepth': 0,
+            'packageName': 'Dart',
+            'enclosedBy': {'name': 'String', 'type': 'class'}
+          },
+        ]),
+        version: '2.0.0',
+      );
       await primaryIndex.markReady();
-      await dartSdkIndex.markReady();
     });
 
     test('non-text ranking', () async {
@@ -84,20 +114,20 @@ void main() {
         'sdkLibraryHits': [
           {
             'sdk': 'dart',
+            'version': '2.0.0',
             'library': 'dart:core',
-            'description': 'Dart core utils',
             'url':
-                'https://api.dartlang.org/stable/2.0.0/dart-core/String-class.html',
-            'score': closeTo(0.69, 0.01),
+                'https://api.dart.dev/stable/2.0.0/dart-core/dart-core-library.html',
+            'score': closeTo(0.98, 0.01),
             'apiPages': [
               {
                 'title': null,
-                'path': 'dart-core/String-class.html',
+                'path': 'dart-core/String/substring.html',
                 'url':
-                    'https://api.dartlang.org/stable/2.0.0/dart-core/String-class.html'
+                    'https://api.dart.dev/stable/2.0.0/dart-core/String/substring.html'
               }
             ]
-          }
+          },
         ],
         'packageHits': [
           {'package': 'stringutils', 'score': closeTo(0.59, 0.01)}
@@ -115,20 +145,20 @@ void main() {
         'sdkLibraryHits': [
           {
             'sdk': 'dart',
+            'version': '2.0.0',
             'library': 'dart:core',
-            'description': 'Dart core utils',
             'url':
-                'https://api.dartlang.org/stable/2.0.0/dart-core/String-class.html',
-            'score': closeTo(0.69, 0.01),
+                'https://api.dart.dev/stable/2.0.0/dart-core/dart-core-library.html',
+            'score': closeTo(0.98, 0.01),
             'apiPages': [
               {
                 'title': null,
-                'path': 'dart-core/String-class.html',
+                'path': 'dart-core/String/stringutils.html',
                 'url':
-                    'https://api.dartlang.org/stable/2.0.0/dart-core/String-class.html'
+                    'https://api.dart.dev/stable/2.0.0/dart-core/String/stringutils.html'
               }
             ]
-          }
+          },
         ],
         'packageHits': [],
       });
