@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:args/command_runner.dart';
 import 'package:gcloud/service_scope.dart';
-import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_dev/service/youtube/backend.dart';
@@ -25,7 +24,6 @@ import '../../shared/configuration.dart';
 import '../../shared/datastore.dart' as db;
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
-import '../../shared/storage.dart';
 import '../services.dart';
 
 import '_isolate.dart';
