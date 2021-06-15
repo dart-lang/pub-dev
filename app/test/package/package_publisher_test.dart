@@ -138,7 +138,6 @@ void main() {
     }
 
     _testNoPackage((client) async {
-      await _setup();
       return client.setPackagePublisher(
         'no_package',
         PackagePublisherInfo(publisherId: 'no-domain.net'),
@@ -146,10 +145,16 @@ void main() {
     });
 
     _testNoPublisher((client) async {
-      await _setup();
       return client.setPackagePublisher(
-        hydrogen.packageName,
+        'oxygen',
         PackagePublisherInfo(publisherId: 'no-domain.net'),
+      );
+    });
+
+    _testNoActiveUser((client) async {
+      return client.setPackagePublisher(
+        'oxygen',
+        PackagePublisherInfo(publisherId: 'example.com'),
       );
     });
 
@@ -196,8 +201,11 @@ void main() {
     }
 
     _testNoPackage((client) async {
-      await _setupPackage();
       return client.removePackagePublisher('no_package');
+    });
+
+    _testNoActiveUser((client) async {
+      return client.removePackagePublisher('oxygen');
     });
 
     _testPublisherAdminAuthIssues(exampleComPublisher.key, (client) async {
@@ -205,22 +213,21 @@ void main() {
       return client.removePackagePublisher(hydrogen.packageName);
     });
 
-    testWithServices('successful', () async {
-      await _setupPackage();
-      final client = createPubApiClient(authToken: hansUser.userId);
-      final rs = client.removePackagePublisher(hydrogen.packageName);
+    testWithProfile('successful', fn: () async {
+      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final rs = client.removePackagePublisher('neon');
       await expectApiException(rs, status: 501);
 //  Code commented out while we decide if this feature is something we want to
 //  support going forward.
 //
-//      final rs = await client.removePackagePublisher(hydrogen.packageName);
+//      final rs = await client.removePackagePublisher('neon');
 //      expect(_json(rs.toJson()), {'publisherId': null});
 //
-//      final p = await packageBackend.lookupPackage('hydrogen');
+//      final p = await packageBackend.lookupPackage('neon');
 //      expect(p.publisherId, isNull);
-//      expect(p.uploaders, [hansUser.userId]);
+//      expect(p.uploaders, isNotEmpty);
 //
-//      final info = await client.getPackagePublisher('hydrogen');
+//      final info = await client.getPackagePublisher('neon');
 //      expect(_json(info.toJson()), _json(rs.toJson()));
     });
   });
@@ -230,15 +237,6 @@ dynamic _json(value) => json.decode(json.encode(value));
 
 void _testPublisherAdminAuthIssues(
     Key publisherKey, Future<void> Function(PubApiClient client) fn) {
-  testWithServices('No active user (${publisherKey.id})', () async {
-    final client = createPubApiClient();
-    final rs = fn(client);
-    await expectApiException(rs,
-        status: 401,
-        code: 'MissingAuthentication',
-        message: 'please add `authorization` header');
-  });
-
   testWithServices(
       'Active user is not a member of publisher (${publisherKey.id})',
       () async {
@@ -264,17 +262,28 @@ void _testPublisherAdminAuthIssues(
   });
 }
 
+void _testNoActiveUser(Future Function(PubApiClient client) fn) {
+  testWithProfile('No active user', fn: () async {
+    final client = createPubApiClient();
+    final rs = fn(client);
+    await expectApiException(rs,
+        status: 401,
+        code: 'MissingAuthentication',
+        message: 'please add `authorization` header');
+  });
+}
+
 void _testNoPackage(Future Function(PubApiClient client) fn) {
-  testWithServices('No package with given name', () async {
-    final client = createPubApiClient(authToken: hansUser.userId);
+  testWithProfile('No package with given name', fn: () async {
+    final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
     final rs = fn(client);
     await expectApiException(rs, status: 404, code: 'NotFound');
   });
 }
 
 void _testNoPublisher(Future Function(PubApiClient client) fn) {
-  testWithServices('No publisher with given id', () async {
-    final client = createPubApiClient(authToken: hansUser.userId);
+  testWithProfile('No publisher with given id', fn: () async {
+    final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
     final rs = fn(client);
     await expectApiException(rs, status: 404, code: 'NotFound');
   });
