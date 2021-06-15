@@ -4,6 +4,7 @@
 
 import 'package:meta/meta.dart';
 
+import '../shared/versions.dart' show toolStableDartSdkVersion;
 import 'models.dart';
 import 'search_service.dart';
 import 'token_index.dart';
@@ -24,10 +25,23 @@ class SdkMemIndex {
         _version = version,
         _baseUri = baseUri;
 
-  SdkMemIndex.flutter()
-      : _sdk = 'flutter',
-        _version = null,
-        _baseUri = Uri.parse('https://api.flutter.dev/flutter/');
+  factory SdkMemIndex.dart({String version}) {
+    version ??= toolStableDartSdkVersion;
+    return SdkMemIndex(
+        sdk: 'dart',
+        version: version,
+        baseUri: Uri.parse('https://api.dart.dev/stable/$version/'));
+  }
+
+  factory SdkMemIndex.flutter() {
+    return SdkMemIndex(
+      sdk: 'flutter',
+      version: null,
+      baseUri: Uri.parse('https://api.flutter.dev/flutter/'),
+    );
+  }
+
+  Uri get baseUri => _baseUri;
 
   Future<void> addDartdocIndex(
     DartdocIndex index, {

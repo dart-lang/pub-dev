@@ -36,6 +36,7 @@ import '../publisher/backend.dart';
 import '../publisher/domain_verifier.dart';
 import '../scorecard/backend.dart';
 import '../search/backend.dart';
+import '../search/dart_sdk_mem_index.dart';
 import '../search/flutter_sdk_mem_index.dart';
 import '../search/mem_index.dart';
 import '../search/search_client.dart';
@@ -45,8 +46,6 @@ import '../shared/datastore.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/redis_cache.dart' show setupCache;
 import '../shared/storage.dart';
-import '../shared/urls.dart';
-import '../shared/versions.dart';
 import '../tool/utils/http.dart';
 
 import 'announcement/backend.dart';
@@ -161,8 +160,7 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
       ),
     );
     registerDartdocClient(DartdocClient());
-    registerDartSdkIndex(InMemoryPackageIndex.sdk(
-        urlPrefix: dartSdkMainUrl(toolStableDartSdkVersion)));
+    registerDartSdkMemIndex(DartSdkMemIndex());
     registerFlutterSdkMemIndex(FlutterSdkMemIndex());
     registerJobBackend(JobBackend(dbService));
     registerNameTracker(NameTracker(dbService));
@@ -199,6 +197,7 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
     registerScopeExitCallback(indexUpdater.close);
     registerScopeExitCallback(authProvider.close);
     registerScopeExitCallback(dartdocClient.close);
+    registerScopeExitCallback(dartSdkMemIndex.close);
     registerScopeExitCallback(flutterSdkMemIndex.close);
     registerScopeExitCallback(popularityStorage.close);
     registerScopeExitCallback(searchClient.close);

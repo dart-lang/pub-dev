@@ -17,7 +17,6 @@ import 'package:pub_dev/fake/backend/fake_popularity.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/scorecard/backend.dart';
-import 'package:pub_dev/search/backend.dart';
 import 'package:pub_dev/search/handlers.dart';
 import 'package:pub_dev/search/updater.dart';
 import 'package:pub_dev/shared/integrity.dart';
@@ -87,7 +86,6 @@ void testWithServices(
         if (!omitData) {
           await _populateDefaultData();
         }
-        await dartSdkIndex.markReady();
         await indexUpdater.updateAllPackages();
 
         registerSearchClient(SearchClient(

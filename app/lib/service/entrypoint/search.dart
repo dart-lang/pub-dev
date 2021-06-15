@@ -8,6 +8,7 @@ import 'dart:isolate';
 import 'package:args/command_runner.dart';
 import 'package:logging/logging.dart';
 
+import '../../search/dart_sdk_mem_index.dart';
 import '../../search/flutter_sdk_mem_index.dart';
 import '../../search/handlers.dart';
 import '../../search/updater.dart';
@@ -59,10 +60,9 @@ Future _main(FrontendEntryMessage message) async {
     final ReceivePort taskReceivePort = ReceivePort();
     registerTaskSendPort(taskReceivePort.sendPort);
 
-    indexUpdater.initDartSdkIndex();
-
     // Don't block on init, we need to serve liveliness and readiness checks.
     scheduleMicrotask(() async {
+      await dartSdkMemIndex.start();
       await flutterSdkMemIndex.start();
       try {
         await indexUpdater.init();

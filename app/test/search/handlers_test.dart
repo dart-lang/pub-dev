@@ -4,10 +4,11 @@
 
 import 'dart:async';
 
-import 'package:pub_dev/search/flutter_sdk_mem_index.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dev/search/backend.dart';
+import 'package:pub_dev/search/dart_sdk_mem_index.dart';
+import 'package:pub_dev/search/flutter_sdk_mem_index.dart';
 import 'package:pub_dev/search/mem_index.dart';
 import 'package:pub_dev/search/search_service.dart';
 
@@ -36,7 +37,7 @@ void main() {
       Future<void> setUpInServiceScope() async {
         registerSearchBackend(MockSearchBackend());
         registerPackageIndex(InMemoryPackageIndex());
-        registerDartSdkIndex(InMemoryPackageIndex());
+        registerDartSdkMemIndex(DartSdkMemIndex());
         registerFlutterSdkMemIndex(FlutterSdkMemIndex());
         await packageIndex
             .addPackage(await searchBackend.loadDocument('pkg_foo'));

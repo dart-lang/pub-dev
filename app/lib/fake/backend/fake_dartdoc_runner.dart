@@ -28,24 +28,6 @@ Future<void> processJobsWithFakeDartdocRunner() async {
 /// Generates dartdoc content and results based on a deterministic random seed.
 class FakeDartdocRunner implements DartdocRunner {
   @override
-  Future<DartdocRunnerResult> generateSdkDocs({
-    @required String outputDir,
-  }) async {
-    final file = File(p.join(outputDir, 'pub-data.json'));
-    final pubData = PubDartdocData(
-      coverage: Coverage(documented: 1000, total: 1000),
-      apiElements: [
-        // TODO: add fake Dart SDK library elements.
-      ],
-    );
-    await file.writeAsString(json.encode(pubData.toJson()));
-    return DartdocRunnerResult(
-      args: ['fake_dartdoc', '--sdk'],
-      processResult: ProcessResult(0, 0, 'OK', ''),
-    );
-  }
-
-  @override
   Future<void> downloadAndExtract({
     @required String package,
     @required String version,

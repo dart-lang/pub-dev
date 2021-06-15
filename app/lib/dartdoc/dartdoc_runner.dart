@@ -24,7 +24,7 @@ import '../scorecard/models.dart';
 import '../shared/configuration.dart';
 import '../shared/tool_env.dart';
 import '../shared/urls.dart';
-import '../shared/utils.dart' show createUuid, withTempDirectory;
+import '../shared/utils.dart' show createUuid;
 import '../shared/versions.dart' as versions;
 
 import 'backend.dart';
@@ -40,15 +40,10 @@ const _buildLogFilePath = 'log.txt';
 const _packageTimeout = Duration(minutes: 10);
 final _packageTimeoutExtended = _packageTimeout * 2;
 const _pubDataFileName = 'pub-data.json';
-const _sdkTimeout = Duration(minutes: 20);
 final Duration _twoYears = const Duration(days: 2 * 365);
 
 /// Generic interface to run dartdoc for SDK- and package-documentation.
 abstract class DartdocRunner {
-  Future<DartdocRunnerResult> generateSdkDocs({
-    @required String outputDir,
-  });
-
   Future<void> downloadAndExtract({
     @required String package,
     @required String version,
@@ -93,28 +88,6 @@ class _DartdocRunner implements DartdocRunner {
       workingDirectory: resolvePubDartdocDirPath(),
     );
     _initialized = true;
-  }
-
-  @override
-  Future<DartdocRunnerResult> generateSdkDocs({
-    @required String outputDir,
-  }) async {
-    await _initializeIfNeeded();
-    final args = [
-      '--sdk-docs',
-      '--output',
-      outputDir,
-      '--no-validate-links',
-    ];
-    if (envConfig.stableDartSdkDir != null) {
-      args.addAll(['--sdk-dir', envConfig.stableDartSdkDir]);
-    }
-    final pr = await runProc(
-      ['dart', 'bin/pub_dartdoc.dart', ...args],
-      workingDirectory: resolvePubDartdocDirPath(),
-      timeout: _sdkTimeout,
-    );
-    return DartdocRunnerResult(args: args, processResult: pr);
   }
 
   @override
@@ -193,37 +166,6 @@ class DartdocJobProcessor extends JobProcessor {
           service: JobService.dartdoc,
           aliveCallback: aliveCallback,
         );
-
-  /// Uses the tool environment's SDK (the one that is used for analysis too) to
-  /// generate dartdoc documentation and extracted data file for SDK API indexing.
-  /// Only the extracted data file will be used and uploaded.
-  Future<void> generateDocsForSdk() async {
-    if (await dartdocBackend.hasValidDartSdkDartdocData()) return;
-    try {
-      await withTempDirectory((dir) async {
-        final outputDir = dir.resolveSymbolicLinksSync();
-        final result = await _runner.generateSdkDocs(outputDir: outputDir);
-        final pr = result.processResult;
-        final pubDataFile = File(p.join(outputDir, _pubDataFileName));
-        final hasPubData = await pubDataFile.exists();
-        final isOk = pr.exitCode == 0 && hasPubData;
-        if (!isOk) {
-          _logger.warning(
-              'Error while generating SDK docs.\n\n${pr.stdout}\n\n${pr.stderr}');
-          throw Exception(
-              'Error while generating SDK docs (hasPubData: $hasPubData).');
-        }
-
-        // prevent close races updating the same content in close succession
-        if (await dartdocBackend.hasValidDartSdkDartdocData()) return;
-
-        // upload only the pub dartdoc data file
-        await dartdocBackend.uploadDartSdkDartdocData(pubDataFile);
-      });
-    } catch (e, st) {
-      _logger.warning('Error while generating SDK docs.', e, st);
-    }
-  }
 
   @override
   Future<bool> shouldProcess(PackageVersion pv, DateTime updated) {

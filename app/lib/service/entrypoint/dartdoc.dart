@@ -72,8 +72,6 @@ Future _workerMain(WorkerEntryMessage message) async {
     final jobProcessor = DartdocJobProcessor(
       aliveCallback: () => message.aliveSendPort.send(null),
     );
-    await jobProcessor.generateDocsForSdk();
-
     final jobMaintenance = JobMaintenance(dbService, jobProcessor);
 
     Timer.periodic(const Duration(minutes: 15), (_) async {

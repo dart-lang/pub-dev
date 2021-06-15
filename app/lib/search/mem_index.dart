@@ -8,7 +8,6 @@ import 'dart:math' as math;
 
 import 'package:meta/meta.dart';
 import 'package:logging/logging.dart';
-import 'package:path/path.dart' as p;
 
 import '../shared/utils.dart' show boundedList;
 
@@ -21,8 +20,6 @@ final _logger = Logger('search.mem_index');
 final _textSearchTimeout = Duration(milliseconds: 500);
 
 class InMemoryPackageIndex implements PackageIndex {
-  final bool _isSdkIndex;
-  final String _urlPrefix;
   final Map<String, PackageDocument> _packages = <String, PackageDocument>{};
   final _packageNameIndex = _PackageNameIndex();
   final TokenIndex _descrIndex = TokenIndex();
@@ -38,14 +35,7 @@ class InMemoryPackageIndex implements PackageIndex {
   InMemoryPackageIndex({
     math.Random random,
     @visibleForTesting bool alwaysUpdateLikeScores = false,
-  })  : _alwaysUpdateLikeScores = alwaysUpdateLikeScores,
-        _isSdkIndex = false,
-        _urlPrefix = null;
-
-  InMemoryPackageIndex.sdk({@required String urlPrefix})
-      : _isSdkIndex = true,
-        _alwaysUpdateLikeScores = false,
-        _urlPrefix = urlPrefix;
+  }) : _alwaysUpdateLikeScores = alwaysUpdateLikeScores;
 
   @override
   Future<IndexInfo> indexInfo() async {
@@ -289,41 +279,10 @@ class InMemoryPackageIndex implements PackageIndex {
       }).toList();
     }
 
-    // TODO: remove once SDKs are indexed separately
-    List<SdkLibraryHit> sdkLibraryHits;
-    if (_isSdkIndex) {
-      sdkLibraryHits = packageHits.map((ps) {
-        String url = _urlPrefix;
-        final doc = _packages[ps.package];
-        final description = doc.description ?? ps.package;
-        if (doc.apiDocPages != null && doc.apiDocPages.isNotEmpty) {
-          final libPage = doc.apiDocPages.firstWhere(
-            (dp) => dp.relativePath.endsWith('-library.html'),
-            orElse: () => doc.apiDocPages.first,
-          );
-          url = p.join(_urlPrefix, libPage.relativePath);
-        }
-        final apiPages = ps.apiPages
-            ?.map((ref) => ref.change(url: p.join(_urlPrefix, ref.path)))
-            ?.toList();
-        return SdkLibraryHit(
-          sdk: 'dart',
-          version: doc.version,
-          library: ps.package,
-          description: description,
-          url: url,
-          score: ps.score,
-          apiPages: apiPages,
-        );
-      }).toList();
-      packageHits.clear();
-    }
-
     return PackageSearchResult(
       timestamp: DateTime.now().toUtc(),
       totalCount: totalCount,
       highlightedHit: highlightedHit,
-      sdkLibraryHits: sdkLibraryHits,
       packageHits: packageHits,
     );
   }

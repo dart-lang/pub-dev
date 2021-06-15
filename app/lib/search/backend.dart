@@ -24,7 +24,6 @@ import '../shared/exceptions.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/storage.dart';
 import '../shared/tags.dart';
-import '../shared/versions.dart' as versions;
 
 import 'models.dart';
 import 'search_service.dart';
@@ -46,13 +45,6 @@ void registerSnapshotStorage(SnapshotStorage storage) =>
 /// The active snapshot storage
 SnapshotStorage get snapshotStorage =>
     ss.lookup(#_snapshotStorage) as SnapshotStorage;
-
-/// The [PackageIndex] for Dart SDK API.
-PackageIndex get dartSdkIndex => ss.lookup(#_dartSdkIndex) as PackageIndex;
-
-/// Register a new [PackageIndex] for Dart SDK API.
-void registerDartSdkIndex(PackageIndex index) =>
-    ss.register(#_dartSdkIndex, index);
 
 /// The [PackageIndex] registered in the current service scope.
 PackageIndex get packageIndex =>
@@ -267,45 +259,6 @@ List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
   }).toList();
   results.sort((a, b) => a.relativePath.compareTo(b.relativePath));
   return results;
-}
-
-/// Splits the flat SDK data into per-library data (in the same data format).
-List<PubDartdocData> splitLibraries(PubDartdocData data) {
-  final librariesMap = <String, List<ApiElement>>{};
-  final rootMap = <String, String>{};
-  data.apiElements?.forEach((elem) {
-    String library;
-    if (elem.parent == null && elem.kind != 'library') {
-      // keep only top-level libraries
-      return;
-    } else if (elem.parent == null) {
-      library = elem.name;
-    } else {
-      library = rootMap[elem.parent] ?? elem.parent;
-      rootMap[elem.qualifiedName] = library;
-    }
-    librariesMap.putIfAbsent(library, () => <ApiElement>[]).add(elem);
-  });
-  return librariesMap.values
-      .map((list) => PubDartdocData(
-            coverage: Coverage(total: list.length, documented: list.length),
-            apiElements: list,
-          ))
-      .toList();
-}
-
-/// Creates the index-related data structure for an SDK library.
-PackageDocument createSdkDocument(PubDartdocData lib) {
-  final apiDocPages = apiDocPagesFromPubData(lib);
-  final package = lib.apiElements.first.name;
-  final documentation = lib.apiElements.first.documentation ?? '';
-  final description = documentation.split('\n\n').first.trim();
-  return PackageDocument(
-    package: package,
-    version: versions.toolStableDartSdkVersion,
-    description: description,
-    apiDocPages: apiDocPages,
-  );
 }
 
 class SnapshotStorage {
