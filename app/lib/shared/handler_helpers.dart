@@ -35,22 +35,10 @@ Future<void> runHandler(
   Logger logger,
   shelf.Handler handler, {
   bool sanitize = false,
-  shelf.Handler cronHandler,
   int port = 8080,
 }) async {
   handler = wrapHandler(logger, handler, sanitize: sanitize);
   await runAppEngine((HttpRequest request) {
-    // If request origins from the appengine cron scheduler, and we have a
-    // cron handler we call that.
-    if (request?.headers['X-Appengine-Cron']?.contains('true') == true &&
-        cronHandler != null) {
-      // The load-balancer ensures that X-Appengine-Cron: true, is only present
-      // on requests from the AppEngine Cron scheduler. So we do not need all
-      // the validating wrappers `handler` is wrapped with. Indeed, this request
-      // arrives over HTTP, so if we were to redirect to HTTPS it would fail.
-      shelf_io.handleRequest(request, cronHandler);
-      return;
-    }
     shelf_io.handleRequest(request, handler);
   }, shared: true, port: port);
 }

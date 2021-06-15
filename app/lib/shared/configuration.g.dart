@@ -15,7 +15,6 @@ Configuration _$ConfigurationFromJson(Map json) {
       'dartdocStorageBucketName',
       'popularityDumpBucketName',
       'searchSnapshotBucketName',
-      'backupSnapshotBucketName',
       'storageBaseUrl',
       'pubClientAudience',
       'pubSiteAudience',
@@ -39,8 +38,6 @@ Configuration _$ConfigurationFromJson(Map json) {
           $checkedConvert(json, 'popularityDumpBucketName', (v) => v as String),
       searchSnapshotBucketName:
           $checkedConvert(json, 'searchSnapshotBucketName', (v) => v as String),
-      backupSnapshotBucketName:
-          $checkedConvert(json, 'backupSnapshotBucketName', (v) => v as String),
       searchServicePrefix:
           $checkedConvert(json, 'searchServicePrefix', (v) => v as String),
       storageBaseUrl:
@@ -86,7 +83,6 @@ Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
       'dartdocStorageBucketName': instance.dartdocStorageBucketName,
       'popularityDumpBucketName': instance.popularityDumpBucketName,
       'searchSnapshotBucketName': instance.searchSnapshotBucketName,
-      'backupSnapshotBucketName': instance.backupSnapshotBucketName,
       'storageBaseUrl': instance.storageBaseUrl,
       'pubClientAudience': instance.pubClientAudience,
       'pubSiteAudience': instance.pubSiteAudience,

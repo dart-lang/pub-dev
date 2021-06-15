@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:args/command_runner.dart';
 import 'package:gcloud/service_scope.dart';
-import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_dev/service/youtube/backend.dart';
@@ -25,10 +24,8 @@ import '../../shared/configuration.dart';
 import '../../shared/datastore.dart' as db;
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
-import '../../shared/storage.dart';
 import '../services.dart';
 
-import '_cronjobs.dart' show CronJobs;
 import '_isolate.dart';
 
 final Logger _logger = Logger('pub');
@@ -63,10 +60,6 @@ Future _main(FrontendEntryMessage message) async {
 
   await updateLocalBuiltFilesIfNeeded();
   await withServices(() async {
-    final cron = CronJobs(await getOrCreateBucket(
-      storageService,
-      activeConfiguration.backupSnapshotBucketName,
-    ));
     final appHandler = createAppHandler();
 
     if (envConfig.isRunningLocally) {
@@ -77,8 +70,7 @@ Future _main(FrontendEntryMessage message) async {
     await announcementBackend.start();
     await youtubeBackend.start();
 
-    await runHandler(_logger, appHandler,
-        sanitize: true, cronHandler: cron.handler);
+    await runHandler(_logger, appHandler, sanitize: true);
   });
 }
 
