@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:gcloud/db.dart';
 import 'package:pana/models.dart' hide ReportStatus;
+import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -494,7 +495,10 @@ PkgBundle _generateBundle(
 PanaReport generatePanaReport({List<String> derivedTags}) {
   return PanaReport(
     timestamp: DateTime.now(),
-    panaRuntimeInfo: PanaRuntimeInfo(),
+    panaRuntimeInfo: PanaRuntimeInfo(
+      sdkVersion: '2.12.0',
+      panaVersion: panaVersion,
+    ),
     reportStatus: ReportStatus.success,
     derivedTags: derivedTags ?? <String>[],
     allDependencies: null,
