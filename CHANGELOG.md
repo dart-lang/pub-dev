@@ -9,7 +9,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded preview Dart analysis SDK to `2.13.3`.
  * Upgraded stable Flutter analysis SDK to `2.2.2`.
  * Upgraded preview Flutter analysis SDK to `2.2.2`.
- * Upgraded pana to `0.18.1`.
+ * Upgraded pana to `0.18.2`.
  * NOTE: Stopped creating and using dartdoc data for Dart SDK.
 
 ## `20210610t211000-all`
