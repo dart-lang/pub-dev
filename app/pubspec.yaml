@@ -45,7 +45,7 @@ dependencies:
   watcher: ^1.0.0
   yaml: '^3.0.0'
   # pana version to be pinned
-  pana: '0.17.1'
+  pana: '0.18.2'
   # 3rd-party packages with pinned versions
   buffer: '1.1.0'
   mailer: '5.0.0'
@@ -69,8 +69,10 @@ dev_dependencies:
   xml: ^5.0.0
 
 dependency_overrides:
+  analyzer: ^1.0.0 # build tools
   convert: ^3.0.0 # neat_cache
-  gcloud: ^0.8.0 # appengine
   http_parser: ^3.0.0 # shelf
+  io: ^0.3.0 # build_runner
+  json_annotation: '^3.0.0' # neat_periodic_task
   logging: ^1.0.0 # several dependencies
-  tar: 0.4.0 # pana
+  pubspec_parse: ^0.1.4 # build_runner

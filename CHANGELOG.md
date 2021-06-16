@@ -3,12 +3,13 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Redeploy `cron.yaml` as we have stopped backups through this mechanism.
- * Bumped runtimeVersion to `2021.06.14`.
+ * Bumped runtimeVersion to `2021.06.16`.
  * Upgraded runtime Dart SDK to `2.13.3`.
  * Upgraded stable Dart analysis SDK to `2.13.3`.
  * Upgraded preview Dart analysis SDK to `2.13.3`.
  * Upgraded stable Flutter analysis SDK to `2.2.2`.
  * Upgraded preview Flutter analysis SDK to `2.2.2`.
+ * Upgraded pana to `0.18.2`.
  * NOTE: Stopped creating and using dartdoc data for Dart SDK.
 
 ## `20210610t211000-all`

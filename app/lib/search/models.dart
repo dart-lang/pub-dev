@@ -12,10 +12,7 @@ part 'models.g.dart';
 
 @JsonSerializable()
 class SearchSnapshot {
-  @JsonKey(nullable: false)
   DateTime updated;
-
-  @JsonKey(nullable: false)
   Map<String, PackageDocument> documents;
 
   SearchSnapshot._(this.updated, this.documents);
