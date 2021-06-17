@@ -537,7 +537,7 @@ class AdminBackend {
     String packageName,
   ) async {
     checkPackageVersionParams(packageName);
-    await _requireAdminPermission(AdminPermission.managePackageUploaders);
+    await _requireAdminPermission(AdminPermission.managePackageOwnership);
     final package = await packageBackend.lookupPackage(packageName);
     if (package == null) {
       throw NotFoundException.resource(packageName);

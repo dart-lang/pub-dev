@@ -187,7 +187,7 @@ class Configuration {
           permissions: {
             AdminPermission.listUsers,
             AdminPermission.removeUsers,
-            AdminPermission.managePackageUploaders,
+            AdminPermission.managePackageOwnership,
           },
         ),
         AdminId(
@@ -467,5 +467,5 @@ enum AdminPermission {
   removePackage,
 
   /// Permission to get/set the uploaders of a package.
-  managePackageUploaders,
+  managePackageOwnership,
 }
