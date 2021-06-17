@@ -9,7 +9,7 @@ final _attributeEscape = HtmlEscape(HtmlEscapeMode.attribute);
 /// The DOM context to use while constructing nodes.
 ///
 /// Override this in browser.
-DomContext dom = StringDomContext();
+DomContext dom = _StringDomContext();
 
 /// Opaque entity for DOM nodes.
 abstract class Node {}
@@ -63,7 +63,7 @@ extension DomContextExt on DomContext {
 }
 
 /// Uses DOM nodes to emit escaped HTML string.
-class StringDomContext extends DomContext {
+class _StringDomContext extends DomContext {
   @override
   Node fragment(Iterable<Node> children) => _StringNodeList(children);
 
