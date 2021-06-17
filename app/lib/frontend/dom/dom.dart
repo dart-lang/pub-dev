@@ -42,35 +42,57 @@ void _verifyAttributeKeys(Iterable<String> keys) {
   }
 }
 
-extension DomContextExt on DomContext {
-  Node div({
-    String id,
-    Iterable<String> classes,
-    Map<String, String> attributes,
-    Iterable<Node> children,
-  }) =>
-      element(
-        'div',
-        id: id,
-        classes: classes,
-        attributes: attributes,
-        children: children,
-      );
+/// Creates a DOM fragment from the list of [children] nodes using the default [DomContext].
+Node fragment(Iterable<Node> children) => dom.fragment(children);
 
-  Node span({
-    String id,
-    Iterable<String> classes,
-    Map<String, String> attributes,
-    Iterable<Node> children,
-  }) =>
-      element(
-        'span',
-        id: id,
-        classes: classes,
-        attributes: attributes,
-        children: children,
-      );
-}
+/// Creates a DOM Element using the default [DomContext].
+Node element(
+  String tag, {
+  String id,
+  Iterable<String> classes,
+  Map<String, String> attributes,
+  Iterable<Node> children,
+}) =>
+    dom.element(
+      tag,
+      id: id,
+      classes: classes,
+      attributes: attributes,
+      children: children,
+    );
+
+/// Creates a DOM Text node using the default [DomContext].
+Node text(String value) => dom.text(value);
+
+/// Creates a `<div>` Element using the default [DomContext].
+Node div({
+  String id,
+  Iterable<String> classes,
+  Map<String, String> attributes,
+  Iterable<Node> children,
+}) =>
+    dom.element(
+      'div',
+      id: id,
+      classes: classes,
+      attributes: attributes,
+      children: children,
+    );
+
+/// Creates a `<span>` Element using the default [DomContext].
+Node span({
+  String id,
+  Iterable<String> classes,
+  Map<String, String> attributes,
+  Iterable<Node> children,
+}) =>
+    dom.element(
+      'span',
+      id: id,
+      classes: classes,
+      attributes: attributes,
+      children: children,
+    );
 
 /// Uses DOM nodes to emit escaped HTML string.
 class _StringDomContext extends DomContext {
