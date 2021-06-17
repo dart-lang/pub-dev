@@ -17,7 +17,20 @@ void main() {
           '<div class="c1 c2"></div>');
     });
 
-    test('escaped attribute', () {
+    test('invalid attribute key', () {
+      void invalid(String key) {
+        expect(() => dom.element('div', attributes: {key: 'value'}),
+            throwsA(isA<FormatException>()));
+      }
+
+      invalid('');
+      invalid('-');
+      invalid('a-');
+      invalid('1');
+      invalid('A');
+    });
+
+    test('escaped attribute value', () {
       expect(dom.element('div', attributes: {'title': '\'@&%"'}).toString(),
           '<div title="\'@&amp;%&quot;"></div>');
     });

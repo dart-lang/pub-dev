@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 final _attributeEscape = HtmlEscape(HtmlEscapeMode.attribute);
+final _attributeRegExp = RegExp(r'^[a-z](?:[a-z0-9\-\_]*[a-z0-9]+)?$');
 
 /// The DOM context to use while constructing nodes.
 ///
@@ -30,6 +31,15 @@ abstract class DomContext {
 
   /// Creates a DOM Text node.
   Node text(String value);
+}
+
+void _verifyAttributeKeys(Iterable<String> keys) {
+  if (keys == null) return;
+  for (final key in keys) {
+    if (_attributeRegExp.matchAsPrefix(key) == null) {
+      throw FormatException('Invalid attribute key "$key".');
+    }
+  }
 }
 
 extension DomContextExt on DomContext {
@@ -74,8 +84,11 @@ class _StringDomContext extends DomContext {
     Iterable<String> classes,
     Map<String, String> attributes,
     Iterable<Node> children,
-  }) =>
-      _StringElement(tag, _mergeAttributes(id, classes, attributes), children);
+  }) {
+    _verifyAttributeKeys(attributes?.keys);
+    return _StringElement(
+        tag, _mergeAttributes(id, classes, attributes), children);
+  }
 
   @override
   Node text(String value) => _StringText(value);
@@ -125,7 +138,7 @@ class _StringElement extends _StringNode {
   final List<_StringNode> _children;
 
   _StringElement(this.tag, this.attributes, Iterable<Node> children)
-      : _children = children.cast<_StringNode>().toList();
+      : _children = children?.cast<_StringNode>()?.toList();
 
   @override
   void writeHtml(StringSink sink) {
