@@ -106,14 +106,15 @@ abstract class _StringNode extends Node {
 }
 
 class _StringNodeList extends _StringNode {
-  final List<Node> _children;
+  final List<_StringNode> _children;
 
-  _StringNodeList(Iterable<Node> children) : _children = children.toList();
+  _StringNodeList(Iterable<Node> children)
+      : _children = children.cast<_StringNode>().toList();
 
   @override
   void writeHtml(StringSink sink) {
     for (final node in _children) {
-      (node as _StringNode).writeHtml(sink);
+      node.writeHtml(sink);
     }
   }
 }
@@ -121,10 +122,10 @@ class _StringNodeList extends _StringNode {
 class _StringElement extends _StringNode {
   final String tag;
   final Map<String, String> attributes;
-  final List<Node> _children;
+  final List<_StringNode> _children;
 
   _StringElement(this.tag, this.attributes, Iterable<Node> children)
-      : _children = children.toList();
+      : _children = children.cast<_StringNode>().toList();
 
   @override
   void writeHtml(StringSink sink) {
@@ -138,7 +139,7 @@ class _StringElement extends _StringNode {
     if (hasChildren) {
       sink.write('>');
       for (final child in _children) {
-        (child as _StringNode).writeHtml(sink);
+        child.writeHtml(sink);
       }
       sink.write('</$tag>');
     } else {
