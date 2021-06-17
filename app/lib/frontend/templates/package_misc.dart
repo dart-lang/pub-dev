@@ -8,6 +8,7 @@ import '../../package/models.dart';
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
+import '../dom/dom.dart' as d;
 import '../static_files.dart';
 
 import '_cache.dart';
@@ -207,14 +208,26 @@ String renderLabeledScores(PackageView view, {String version}) {
   });
 }
 
-/// Renders the `views/pkg/labeled_score.mustache` template.
 String _renderLabeledScore(String label, int value, String sign) {
-  return templateCache.renderTemplate('pkg/labeled_score', {
-    'label': label,
-    'has_value': value != null,
-    'value': value ?? '--',
-    'sign': sign,
-  });
+  return d.fragment([
+    d.div(
+      classes: ['packages-score-value', if (value != null) '-has-value'],
+      children: [
+        d.span(
+          classes: ['packages-score-value-number'],
+          children: [d.text(value?.toString() ?? '--')],
+        ),
+        d.span(
+          classes: ['packages-score-value-sign'],
+          children: [d.text(sign)],
+        ),
+      ],
+    ),
+    d.div(
+      classes: ['packages-score-label'],
+      children: [d.text(label)],
+    ),
+  ]).toString();
 }
 
 /// Formats the score from [0.0 - 1.0] range to [0 - 100] or '--'.
