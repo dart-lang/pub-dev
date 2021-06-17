@@ -16,8 +16,6 @@ import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
 import 'package:retry/retry.dart';
 
-import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
-
 import '../dartdoc/models.dart' show DartdocEntry;
 import '../package/backend.dart';
 import '../package/models.dart' show Package, PackageVersion;
