@@ -3,4 +3,6 @@
 targets:
   pub_dartdoc_data:
     sources:
+      - '$package$'
+      - 'lib/$lib$'
       - 'lib/pub_dartdoc_data.dart'

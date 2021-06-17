@@ -3,6 +3,8 @@
 targets:
   pub_dev:
     sources:
+      - '$package$'
+      - 'lib/$lib$'
       - 'lib/account/models.dart'
       - 'lib/dartdoc/models.dart'
       - 'lib/frontend/templates/views/**/*.dart'
