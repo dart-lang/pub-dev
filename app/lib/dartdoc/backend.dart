@@ -52,23 +52,6 @@ class DartdocBackend {
       : _sdkStorage =
             VersionedJsonStorage(_storage, storage_path.dartSdkDartdocPrefix());
 
-  /// Whether the storage bucket has a usable extracted data file.
-  /// Only the existence of the file is checked.
-  // TODO: decide whether we should re-generate the file after a certain age
-  Future<bool> hasValidDartSdkDartdocData() => _sdkStorage.hasCurrentData();
-
-  /// Upload the generated dartdoc data file for the Dart SDK to the storage bucket.
-  Future<void> uploadDartSdkDartdocData(File file) async {
-    final map = json.decode(await file.readAsString()) as Map<String, dynamic>;
-    await _sdkStorage.uploadDataAsJsonMap(map);
-  }
-
-  /// Read the generated dartdoc data file for the Dart SDK.
-  Future<PubDartdocData> getDartSdkDartdocData() async {
-    final map = await _sdkStorage.getContentAsJsonMap();
-    return PubDartdocData.fromJson(map);
-  }
-
   /// Deletes old data files in SDK storage (for old runtimes that are more than
   /// half a year old).
   Future<void> deleteOldData() async {
