@@ -17,15 +17,15 @@ abstract class Node {}
 /// Factory class to create DOM [Node]s.
 abstract class DomContext {
   /// Creates a DOM fragment from the list of [children] nodes.
-  Node fragment(List<Node> children);
+  Node fragment(Iterable<Node> children);
 
   /// Creates a DOM Element.
   Node element(
     String tag, {
     String id,
-    List<String> classes,
+    Iterable<String> classes,
     Map<String, String> attributes,
-    List<Node> children,
+    Iterable<Node> children,
   });
 
   /// Creates a DOM Text node.
@@ -35,9 +35,9 @@ abstract class DomContext {
 extension DomContextExt on DomContext {
   Node div({
     String id,
-    List<String> classes,
+    Iterable<String> classes,
     Map<String, String> attributes,
-    List<Node> children,
+    Iterable<Node> children,
   }) =>
       element(
         'div',
@@ -49,9 +49,9 @@ extension DomContextExt on DomContext {
 
   Node span({
     String id,
-    List<String> classes,
+    Iterable<String> classes,
     Map<String, String> attributes,
-    List<Node> children,
+    Iterable<Node> children,
   }) =>
       element(
         'span',
@@ -65,15 +65,15 @@ extension DomContextExt on DomContext {
 /// Uses DOM nodes to emit escaped HTML string.
 class StringDomContext extends DomContext {
   @override
-  Node fragment(List<Node> children) => _StringNodeList(children);
+  Node fragment(Iterable<Node> children) => _StringNodeList(children);
 
   @override
   Node element(
     String tag, {
     String id,
-    List<String> classes,
+    Iterable<String> classes,
     Map<String, String> attributes,
-    List<Node> children,
+    Iterable<Node> children,
   }) =>
       _StringElement(tag, _mergeAttributes(id, classes, attributes), children);
 
@@ -82,7 +82,7 @@ class StringDomContext extends DomContext {
 }
 
 Map<String, String> _mergeAttributes(
-    String id, List<String> classes, Map<String, String> attributes) {
+    String id, Iterable<String> classes, Map<String, String> attributes) {
   final hasClasses = classes != null && classes.isNotEmpty;
   final hasAttributes =
       id != null || hasClasses || (attributes != null && attributes.isNotEmpty);
@@ -106,13 +106,13 @@ abstract class _StringNode extends Node {
 }
 
 class _StringNodeList extends _StringNode {
-  final List<Node> children;
+  final List<Node> _children;
 
-  _StringNodeList(this.children);
+  _StringNodeList(Iterable<Node> children) : _children = children.toList();
 
   @override
   void writeHtml(StringSink sink) {
-    for (final node in children) {
+    for (final node in _children) {
       (node as _StringNode).writeHtml(sink);
     }
   }
@@ -121,9 +121,10 @@ class _StringNodeList extends _StringNode {
 class _StringElement extends _StringNode {
   final String tag;
   final Map<String, String> attributes;
-  final List<Node> children;
+  final List<Node> _children;
 
-  _StringElement(this.tag, this.attributes, this.children);
+  _StringElement(this.tag, this.attributes, Iterable<Node> children)
+      : _children = children.toList();
 
   @override
   void writeHtml(StringSink sink) {
@@ -133,10 +134,10 @@ class _StringElement extends _StringNode {
         sink.write(' ${e.key}="${_attributeEscape.convert(e.value)}"');
       }
     }
-    final hasChildren = children != null && children.isNotEmpty;
+    final hasChildren = _children != null && _children.isNotEmpty;
     if (hasChildren) {
       sink.write('>');
-      for (final child in children) {
+      for (final child in _children) {
         (child as _StringNode).writeHtml(sink);
       }
       sink.write('</$tag>');
