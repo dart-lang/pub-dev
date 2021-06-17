@@ -35,7 +35,7 @@ void main() {
     expect(urls, contains('/packages/<package>'));
     expect(urls, contains('/packages/<package>/versions/<version>'));
     expect(urls, contains('/api/packages/<package>'));
-    expect(urls, hasLength(35));
+    expect(urls, hasLength(36));
   });
 
   testWithProfile(
