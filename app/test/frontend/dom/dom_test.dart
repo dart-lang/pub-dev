@@ -1,0 +1,52 @@
+// Copyright (c) 2010, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:test/test.dart';
+
+import 'package:pub_dev/frontend/dom/dom.dart';
+
+void main() {
+  group('Element', () {
+    test('id', () {
+      expect(dom.element('div', id: 'x1').toString(), '<div id="x1"></div>');
+    });
+
+    test('classes', () {
+      expect(dom.element('div', classes: ['c1', 'c2']).toString(),
+          '<div class="c1 c2"></div>');
+    });
+
+    test('escaped attribute', () {
+      expect(dom.element('div', attributes: {'title': '\'@&%"'}).toString(),
+          '<div title="\'@&amp;%&quot;"></div>');
+    });
+
+    test('children', () {
+      expect(
+          dom.element(
+            'div',
+            children: [dom.element('header'), dom.element('footer')],
+          ).toString(),
+          '<div><header></header><footer></footer></div>');
+    });
+
+    test('escaped text', () {
+      expect(
+          dom.element(
+            'div',
+            children: [dom.text('\'&%/"<>abcd12')],
+          ).toString(),
+          '<div>&#39;&amp;%&#47;&quot;&lt;&gt;abcd12</div>');
+    });
+
+    test('fragment', () {
+      expect(
+          dom.fragment([
+            dom.element('div'),
+            dom.element('span'),
+          ]).toString(),
+          '<div></div><span></span>');
+    });
+  });
+}
