@@ -184,7 +184,11 @@ class Configuration {
         AdminId(
           email: 'pub-admin-service@dartlang-pub.iam.gserviceaccount.com',
           oauthUserId: '114536496314409930448',
-          permissions: {AdminPermission.listUsers, AdminPermission.removeUsers},
+          permissions: {
+            AdminPermission.listUsers,
+            AdminPermission.removeUsers,
+            AdminPermission.managePackageOwnership,
+          },
         ),
         AdminId(
           email: 'pub-moderation-admin@dartlang-pub.iam.gserviceaccount.com',
@@ -461,4 +465,7 @@ enum AdminPermission {
 
   /// Permission to remove a package.
   removePackage,
+
+  /// Permission to get/set the uploaders of a package.
+  managePackageOwnership,
 }

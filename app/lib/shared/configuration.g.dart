@@ -160,4 +160,5 @@ const _$AdminPermissionEnumMap = {
   AdminPermission.removeUsers: 'removeUsers',
   AdminPermission.manageAssignedTags: 'manageAssignedTags',
   AdminPermission.removePackage: 'removePackage',
+  AdminPermission.managePackageOwnership: 'managePackageOwnership',
 };

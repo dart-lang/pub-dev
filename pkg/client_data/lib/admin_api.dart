@@ -85,3 +85,15 @@ class PatchAssignedTags {
       _$PatchAssignedTagsFromJson(json);
   Map<String, dynamic> toJson() => _$PatchAssignedTagsToJson(this);
 }
+
+@JsonSerializable()
+class PackageUploaders {
+  final List<AdminUserEntry> uploaders;
+
+  PackageUploaders({required this.uploaders});
+
+  factory PackageUploaders.fromJson(Map<String, dynamic> json) =>
+      _$PackageUploadersFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PackageUploadersToJson(this);
+}

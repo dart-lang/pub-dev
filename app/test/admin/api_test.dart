@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:client_data/admin_api.dart';
 import 'package:gcloud/db.dart';
+import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -411,6 +412,39 @@ void main() {
         );
         final r6 = await client.adminGetAssignedTags('oxygen');
         expect(r6.assignedTags, isNot(contains('is:featured')));
+      });
+    });
+
+    group('package uploaders', () {
+      setupTestsWithCallerAuthorizationIssues(
+          (client) => client.adminGetPackageUploaders('oxygen'));
+
+      testWithProfile('missing package', fn: () async {
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+        final rs = client.adminGetPackageUploaders('missing_package');
+        await expectLater(
+            rs,
+            throwsA(isA<RequestException>().having((e) => e.bodyAsString(),
+                'body', contains('Could not find `missing_package`.'))));
+      });
+
+      testWithProfile('invalid package with publisher', fn: () async {
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+        final rs = client.adminGetPackageUploaders('neon');
+        await expectLater(
+            rs,
+            throwsA(isA<RequestException>().having((e) => e.bodyAsString(),
+                'body', contains('Package must not be under a publisher.'))));
+      });
+
+      testWithProfile('reading uploaders', fn: () async {
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+        final rs = await client.adminGetPackageUploaders('oxygen');
+        expect(rs.uploaders.single.toJson(), {
+          'userId': isNotNull,
+          'oauthUserId': null,
+          'email': 'admin@pub.dev',
+        });
       });
     });
   });

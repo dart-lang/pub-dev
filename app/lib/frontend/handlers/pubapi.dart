@@ -448,6 +448,13 @@ class PubApi {
     PatchAssignedTags body,
   ) =>
       adminBackend.handlePostAssignedTags(package, body);
+
+  @EndPoint.get('/api/admin/packages/<package>/uploaders')
+  Future<PackageUploaders> adminGetPackageUploaders(
+    Request request,
+    String package,
+  ) =>
+      adminBackend.handleGetPackageUploaders(package);
 }
 
 /// Replaces the requested uri with the primary API uri.

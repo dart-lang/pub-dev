@@ -67,3 +67,16 @@ Map<String, dynamic> _$PatchAssignedTagsToJson(PatchAssignedTags instance) =>
       'assignedTagsAdded': instance.assignedTagsAdded,
       'assignedTagsRemoved': instance.assignedTagsRemoved,
     };
+
+PackageUploaders _$PackageUploadersFromJson(Map<String, dynamic> json) {
+  return PackageUploaders(
+    uploaders: (json['uploaders'] as List<dynamic>)
+        .map((e) => AdminUserEntry.fromJson(e as Map<String, dynamic>))
+        .toList(),
+  );
+}
+
+Map<String, dynamic> _$PackageUploadersToJson(PackageUploaders instance) =>
+    <String, dynamic>{
+      'uploaders': instance.uploaders,
+    };

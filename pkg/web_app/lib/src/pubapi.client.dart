@@ -410,4 +410,11 @@ class PubApiClient {
       body: payload.toJson(),
     ));
   }
+
+  Future<_i6.PackageUploaders> adminGetPackageUploaders(String package) async {
+    return _i6.PackageUploaders.fromJson(await _client.requestJson(
+      verb: 'get',
+      path: '/api/admin/packages/$package/uploaders',
+    ));
+  }
 }

@@ -529,4 +529,27 @@ class AdminBackend {
       );
     });
   }
+
+  /// Handles GET '/api/admin/packages/<package>/uploaders'
+  ///
+  /// Returns the list of uploaders for a package.
+  Future<api.PackageUploaders> handleGetPackageUploaders(
+    String packageName,
+  ) async {
+    checkPackageVersionParams(packageName);
+    await _requireAdminPermission(AdminPermission.managePackageOwnership);
+    final package = await packageBackend.lookupPackage(packageName);
+    if (package == null) {
+      throw NotFoundException.resource(packageName);
+    }
+    InvalidInputException.check(
+        package.publisherId == null, 'Package must not be under a publisher.');
+
+    final uploaders = <api.AdminUserEntry>[];
+    for (final userId in package.uploaders) {
+      final email = await accountBackend.getEmailOfUserId(userId);
+      uploaders.add(api.AdminUserEntry(userId: userId, email: email));
+    }
+    return api.PackageUploaders(uploaders: uploaders);
+  }
 }
