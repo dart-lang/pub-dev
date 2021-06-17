@@ -155,18 +155,18 @@ class _StringNodeList extends _StringNode {
 }
 
 class _StringElement extends _StringNode {
-  final String tag;
-  final Map<String, String> attributes;
+  final String _tag;
+  final Map<String, String> _attributes;
   final List<_StringNode> _children;
 
-  _StringElement(this.tag, this.attributes, Iterable<Node> children)
+  _StringElement(this._tag, this._attributes, Iterable<Node> children)
       : _children = children?.cast<_StringNode>()?.toList();
 
   @override
   void writeHtml(StringSink sink) {
-    sink.write('<$tag');
-    if (attributes != null) {
-      for (final e in attributes.entries) {
+    sink.write('<$_tag');
+    if (_attributes != null) {
+      for (final e in _attributes.entries) {
         sink.write(' ${e.key}="${_attributeEscape.convert(e.value)}"');
       }
     }
@@ -176,22 +176,22 @@ class _StringElement extends _StringNode {
       for (final child in _children) {
         child.writeHtml(sink);
       }
-      sink.write('</$tag>');
+      sink.write('</$_tag>');
     } else {
       // TODO: implement self-closing elements
       // TODO: implement non-closing elements
-      sink.write('></$tag>');
+      sink.write('></$_tag>');
     }
   }
 }
 
 class _StringText extends _StringNode {
-  final String value;
+  final String _value;
 
-  _StringText(this.value);
+  _StringText(this._value);
 
   @override
   void writeHtml(StringSink sink) {
-    sink.write(htmlEscape.convert(value));
+    sink.write(htmlEscape.convert(_value));
   }
 }
