@@ -6,6 +6,7 @@ import 'dart:convert';
 
 final _attributeEscape = HtmlEscape(HtmlEscapeMode.attribute);
 final _attributeRegExp = RegExp(r'^[a-z](?:[a-z0-9\-\_]*[a-z0-9]+)?$');
+final _elementRegExp = _attributeRegExp;
 
 /// The DOM context to use while constructing nodes.
 ///
@@ -31,6 +32,12 @@ abstract class DomContext {
 
   /// Creates a DOM Text node.
   Node text(String value);
+}
+
+void _verifyElementTag(String tag) {
+  if (_elementRegExp.matchAsPrefix(tag) == null) {
+    throw FormatException('Invalid element tag "$tag".');
+  }
 }
 
 void _verifyAttributeKeys(Iterable<String> keys) {
@@ -107,6 +114,7 @@ class _StringDomContext extends DomContext {
     Map<String, String> attributes,
     Iterable<Node> children,
   }) {
+    _verifyElementTag(tag);
     _verifyAttributeKeys(attributes?.keys);
     return _StringElement(
         tag, _mergeAttributes(id, classes, attributes), children);

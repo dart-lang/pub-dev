@@ -8,6 +8,18 @@ import 'package:pub_dev/frontend/dom/dom.dart';
 
 void main() {
   group('Element', () {
+    test('invalid tag', () {
+      void invalid(String tag) {
+        expect(() => dom.element(tag), throwsA(isA<FormatException>()));
+      }
+
+      invalid('');
+      invalid('-');
+      invalid('a-');
+      invalid('1');
+      invalid('A');
+    });
+
     test('id', () {
       expect(dom.element('div', id: 'x1').toString(), '<div id="x1"></div>');
     });
