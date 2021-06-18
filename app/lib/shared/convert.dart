@@ -1,5 +1,10 @@
+// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// @dart=2.12
+
 import 'dart:convert';
-import 'package:meta/meta.dart' show required;
 
 /// Utility to wrapping a function as a [Converter].
 ///
@@ -15,26 +20,26 @@ class _WrapAsConverter<S, T> extends Converter<S, T> {
 ///
 /// The [_WrapAsCodec] class creates a [Codec] that can encode `S` as a `T`.
 /// And decode an `T` into an `S`.
-class _WrapAsCodec<S, T> extends Codec<S, T> {
-  final Converter<S, T> _encoder;
-  final Converter<T, S> _decoder;
+class _WrapAsCodec<S, T> extends Codec<S?, T?> {
+  final Converter<S?, T?> _encoder;
+  final Converter<T?, S?> _decoder;
 
   _WrapAsCodec({
-    @required T Function(S) encode,
-    @required S Function(T) decode,
+    required T? Function(S?) encode,
+    required S? Function(T?) decode,
   })  : _encoder = _WrapAsConverter(encode),
         _decoder = _WrapAsConverter(decode);
 
   @override
-  Converter<S, T> get encoder => _encoder;
+  Converter<S?, T?> get encoder => _encoder;
   @override
-  Converter<T, S> get decoder => _decoder;
+  Converter<T?, S?> get decoder => _decoder;
 }
 
 /// Wrap [encode] and [decode] functions as [Codec] that can encode `S` as `T`.
-Codec<S, T> wrapAsCodec<S, T>({
-  @required T Function(S) encode,
-  @required S Function(T) decode,
+Codec<S?, T?> wrapAsCodec<S, T>({
+  required T? Function(S?) encode,
+  required S? Function(T?) decode,
 }) =>
     _WrapAsCodec(
       encode: encode,

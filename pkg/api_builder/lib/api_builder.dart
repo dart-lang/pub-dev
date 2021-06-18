@@ -1,11 +1,14 @@
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// @dart=2.12
+
 import 'dart:convert';
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:shelf/shelf.dart' as shelf;
-import 'package:meta/meta.dart';
 import 'package:logging/logging.dart' show Logger;
 import 'package:uuid/uuid.dart' show Uuid;
-
-export 'package:shelf_router/shelf_router.dart' show Router;
-export 'package:shelf/shelf.dart' show Request, Response;
 
 final _log = Logger('api_builder');
 
@@ -54,9 +57,9 @@ class ApiResponseException implements Exception {
   final String message;
 
   ApiResponseException({
-    @required this.status,
-    @required this.code,
-    @required this.message,
+    required this.status,
+    required this.code,
+    required this.message,
   });
 
   shelf.Response asApiResponse() => shelf.Response(status,

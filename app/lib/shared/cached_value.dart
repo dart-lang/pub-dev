@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 import 'dart:async';
 
 import 'package:logging/logging.dart';
@@ -39,17 +41,17 @@ class CachedValue<T> {
   final Duration _interval;
   final Duration _timeout;
   DateTime _lastUpdated = DateTime.now();
-  Timer _timer;
-  T _value;
-  Completer _ongoingCompleter;
+  Timer? _timer;
+  T? _value;
+  Completer? _ongoingCompleter;
   bool _closing = false;
 
   CachedValue({
-    @required String name,
-    @required Duration maxAge,
-    @required Duration interval,
-    @required UpdateFn<T> updateFn,
-    Duration timeout,
+    required String name,
+    required Duration maxAge,
+    required Duration interval,
+    required UpdateFn<T> updateFn,
+    Duration? timeout,
   })  : _name = name,
         _maxAge = maxAge,
         _interval = interval,
@@ -61,7 +63,7 @@ class CachedValue<T> {
   bool get isAvailable => _value != null && age <= _maxAge;
 
   /// The cached value, may be null.
-  T get value => _value;
+  T? get value => _value;
 
   @visibleForTesting
   void setValue(T v) {
@@ -80,7 +82,7 @@ class CachedValue<T> {
 
   Future<void> _update() async {
     if (_ongoingCompleter != null) {
-      await _ongoingCompleter.future;
+      await _ongoingCompleter!.future;
       return;
     }
     if (_closing) return;
@@ -101,7 +103,7 @@ class CachedValue<T> {
     } finally {
       final c = _ongoingCompleter;
       _ongoingCompleter = null;
-      c.complete();
+      c?.complete();
     }
   }
 
@@ -128,7 +130,7 @@ class CachedValue<T> {
     _timer?.cancel();
     _timer = null;
     if (_ongoingCompleter != null) {
-      await _ongoingCompleter.future;
+      await _ongoingCompleter!.future;
     }
   }
 }

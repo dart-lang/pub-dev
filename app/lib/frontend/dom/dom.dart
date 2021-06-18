@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 import 'dart:convert';
 
 final _attributeEscape = HtmlEscape(HtmlEscapeMode.attribute);
@@ -24,10 +26,10 @@ abstract class DomContext {
   /// Creates a DOM Element.
   Node element(
     String tag, {
-    String id,
-    Iterable<String> classes,
-    Map<String, String> attributes,
-    Iterable<Node> children,
+    String? id,
+    Iterable<String>? classes,
+    Map<String, String>? attributes,
+    Iterable<Node>? children,
   });
 
   /// Creates a DOM Text node.
@@ -40,7 +42,7 @@ void _verifyElementTag(String tag) {
   }
 }
 
-void _verifyAttributeKeys(Iterable<String> keys) {
+void _verifyAttributeKeys(Iterable<String>? keys) {
   if (keys == null) return;
   for (final key in keys) {
     if (_attributeRegExp.matchAsPrefix(key) == null) {
@@ -55,10 +57,10 @@ Node fragment(Iterable<Node> children) => dom.fragment(children);
 /// Creates a DOM Element using the default [DomContext].
 Node element(
   String tag, {
-  String id,
-  Iterable<String> classes,
-  Map<String, String> attributes,
-  Iterable<Node> children,
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
 }) =>
     dom.element(
       tag,
@@ -73,10 +75,10 @@ Node text(String value) => dom.text(value);
 
 /// Creates a `<div>` Element using the default [DomContext].
 Node div({
-  String id,
-  Iterable<String> classes,
-  Map<String, String> attributes,
-  Iterable<Node> children,
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
 }) =>
     dom.element(
       'div',
@@ -88,10 +90,10 @@ Node div({
 
 /// Creates a `<span>` Element using the default [DomContext].
 Node span({
-  String id,
-  Iterable<String> classes,
-  Map<String, String> attributes,
-  Iterable<Node> children,
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
 }) =>
     dom.element(
       'span',
@@ -109,10 +111,10 @@ class _StringDomContext extends DomContext {
   @override
   Node element(
     String tag, {
-    String id,
-    Iterable<String> classes,
-    Map<String, String> attributes,
-    Iterable<Node> children,
+    String? id,
+    Iterable<String>? classes,
+    Map<String, String>? attributes,
+    Iterable<Node>? children,
   }) {
     _verifyElementTag(tag);
     _verifyAttributeKeys(attributes?.keys);
@@ -124,15 +126,15 @@ class _StringDomContext extends DomContext {
   Node text(String value) => _StringText(value);
 }
 
-Map<String, String> _mergeAttributes(
-    String id, Iterable<String> classes, Map<String, String> attributes) {
+Map<String, String>? _mergeAttributes(
+    String? id, Iterable<String>? classes, Map<String, String>? attributes) {
   final hasClasses = classes != null && classes.isNotEmpty;
   final hasAttributes =
       id != null || hasClasses || (attributes != null && attributes.isNotEmpty);
   if (!hasAttributes) return null;
   return <String, String>{
     if (id != null) 'id': id,
-    if (hasClasses) 'class': classes.join(' '),
+    if (hasClasses) 'class': classes!.join(' '),
     if (attributes != null) ...attributes,
   };
 }
@@ -164,24 +166,24 @@ class _StringNodeList extends _StringNode {
 
 class _StringElement extends _StringNode {
   final String _tag;
-  final Map<String, String> _attributes;
-  final List<_StringNode> _children;
+  final Map<String, String>? _attributes;
+  final List<_StringNode>? _children;
 
-  _StringElement(this._tag, this._attributes, Iterable<Node> children)
-      : _children = children?.cast<_StringNode>()?.toList();
+  _StringElement(this._tag, this._attributes, Iterable<Node>? children)
+      : _children = children?.cast<_StringNode>().toList();
 
   @override
   void writeHtml(StringSink sink) {
     sink.write('<$_tag');
     if (_attributes != null) {
-      for (final e in _attributes.entries) {
+      for (final e in _attributes!.entries) {
         sink.write(' ${e.key}="${_attributeEscape.convert(e.value)}"');
       }
     }
-    final hasChildren = _children != null && _children.isNotEmpty;
+    final hasChildren = _children != null && _children!.isNotEmpty;
     if (hasChildren) {
       sink.write('>');
-      for (final child in _children) {
+      for (final child in _children!) {
         child.writeHtml(sink);
       }
       sink.write('</$_tag>');

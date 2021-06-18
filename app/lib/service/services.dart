@@ -43,6 +43,7 @@ import '../search/search_client.dart';
 import '../search/updater.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
+import '../shared/env_config.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/redis_cache.dart' show setupCache;
 import '../shared/storage.dart';

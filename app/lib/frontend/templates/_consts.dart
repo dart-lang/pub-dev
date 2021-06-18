@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/meta.dart';
+// @dart=2.12
 
 import '../../shared/tags.dart' show SdkTagValue;
 
@@ -12,9 +12,9 @@ class SdkDict {
   final String libraryTypeLabel;
 
   const SdkDict({
-    @required this.topSdkPackages,
-    @required this.searchPackagesLabel,
-    @required this.libraryTypeLabel,
+    required this.topSdkPackages,
+    required this.searchPackagesLabel,
+    required this.libraryTypeLabel,
   });
 
   const SdkDict.any()
@@ -53,7 +53,11 @@ class SortDict {
   final String label;
   final String tooltip;
 
-  const SortDict({this.id, this.label, this.tooltip});
+  const SortDict({
+    required this.id,
+    required this.label,
+    required this.tooltip,
+  });
 }
 
 final _sortDicts = const <SortDict>[

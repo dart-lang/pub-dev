@@ -70,7 +70,9 @@ class FakeStorageServer {
 
       final formData = <String, String>{};
       final transformer = MimeMultipartTransformer(contentHeader['boundary']);
-      await for (final m in request.read().transform(transformer)) {
+      // The map below makes the runtime type checker happy.
+      final stream = request.read().map((a) => a).transform(transformer);
+      await for (final m in stream) {
         final disposition = _parse(m.headers['content-disposition']);
         final name = disposition['name'];
         final data = await readAsBytes(m);

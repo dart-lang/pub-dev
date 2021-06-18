@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -25,7 +27,7 @@ const _retryStatusCodes = <int>{502, 503, 504};
 /// Additional methods on buckets.
 extension BucketExt on Bucket {
   /// Returns an [ObjectInfo] if [name] exists, `null` otherwise.
-  Future<ObjectInfo> tryInfo(String name) async {
+  Future<ObjectInfo?> tryInfo(String name) async {
     try {
       return await info(name);
     } on DetailedApiRequestError catch (e) {
@@ -78,13 +80,13 @@ Future<bool> deleteFromBucket(Bucket bucket, String objectName) async {
 Future<int> deleteBucketFolderRecursively(
   Bucket bucket,
   String folder, {
-  int concurrency,
+  int? concurrency,
 }) async {
   if (!folder.endsWith('/')) {
     throw ArgumentError('Folder path must end with `/`: "$folder"');
   }
   var count = 0;
-  Page<BucketEntry> page;
+  Page<BucketEntry>? page;
   while (page == null || !page.isLast) {
     page = await retry(
       () async {
@@ -99,7 +101,7 @@ Future<int> deleteBucketFolderRecursively(
     );
     final futures = <Future>[];
     final pool = Pool(concurrency ?? 1);
-    for (final entry in page.items) {
+    for (final entry in page!.items) {
       final f = pool.withResource(() async {
         final deleted = await deleteFromBucket(bucket, entry.name);
         if (deleted) count++;
@@ -145,7 +147,7 @@ class VersionedJsonStorage {
   final Bucket _bucket;
   final String _prefix;
   final String _extension = '.json.gz';
-  Timer _oldGcTimer;
+  Timer? _oldGcTimer;
 
   VersionedJsonStorage(Bucket bucket, String prefix)
       : _bucket = bucket,
@@ -156,7 +158,7 @@ class VersionedJsonStorage {
   }
 
   /// Whether the storage bucket has a data file for the current runtime version.
-  Future<bool> hasCurrentData({Duration maxAge}) async {
+  Future<bool> hasCurrentData({Duration? maxAge}) async {
     final info = await _bucket.tryInfo(_objectName());
     if (info == null) {
       return false;
@@ -180,7 +182,7 @@ class VersionedJsonStorage {
   }
 
   /// Gets the content of the data file decoded as JSON Map.
-  Future<Map<String, dynamic>> getContentAsJsonMap([String version]) async {
+  Future<Map<String, dynamic>> getContentAsJsonMap([String? version]) async {
     version ??= versions.runtimeVersion;
     final objectName = _objectName(version);
     _logger.info('Loading snapshot: $objectName');
@@ -195,7 +197,7 @@ class VersionedJsonStorage {
 
   /// Returns the latest version of the data file matching the current version
   /// or created earlier.
-  Future<String> detectLatestVersion() async {
+  Future<String?> detectLatestVersion() async {
     final currentPath = _objectName();
     final list = await _bucket
         .list(prefix: _prefix)
@@ -220,7 +222,7 @@ class VersionedJsonStorage {
   /// When [minAgeThreshold] is specified, only older files will be deleted. The
   /// process assumes that if an old runtimeVersion is still active, it will
   /// update it periodically, and a cleanup should preserve such files.
-  Future<void> deleteOldData({Duration minAgeThreshold}) async {
+  Future<void> deleteOldData({Duration? minAgeThreshold}) async {
     await for (BucketEntry entry in _bucket.list(prefix: _prefix)) {
       if (entry.isDirectory) {
         continue;
@@ -242,10 +244,10 @@ class VersionedJsonStorage {
     }
   }
 
-  String getBucketUri([String version]) =>
+  String getBucketUri([String? version]) =>
       bucketUri(_bucket, _objectName(version ?? versions.runtimeVersion));
 
-  String _objectName([String version]) {
+  String _objectName([String? version]) {
     version ??= versions.runtimeVersion;
     return '$_prefix$version$_extension';
   }

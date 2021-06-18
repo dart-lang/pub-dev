@@ -8,6 +8,7 @@ import 'package:client_data/admin_api.dart';
 import 'package:client_data/package_api.dart';
 import 'package:client_data/publisher_api.dart';
 import 'package:shelf/shelf.dart';
+import 'package:shelf_router/shelf_router.dart';
 
 import '../../account/consent_backend.dart';
 import '../../admin/backend.dart';

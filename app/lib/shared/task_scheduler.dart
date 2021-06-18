@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 import 'dart:async';
 
 import 'package:logging/logging.dart';
 
-import 'package:pub_dev/package/overrides.dart';
+import '../package/overrides.dart';
 import 'utils.dart';
 
 final Logger _logger = Logger('pub.scheduler');
@@ -48,7 +50,7 @@ class TaskScheduler {
   final bool randomize;
   final LastNTracker<String> _statusTracker = LastNTracker();
   final LastNTracker<num> _latencyTracker = LastNTracker();
-  List<List<Task>> _queues;
+  late List<List<Task>> _queues;
   bool _needsShuffle = false;
 
   TaskScheduler(this.taskRunner, this.sources, {this.randomize = false}) {
@@ -119,7 +121,7 @@ class TaskScheduler {
     _needsShuffle = false;
   }
 
-  Task _pickFirstTask() {
+  Task? _pickFirstTask() {
     for (List<Task> queue in _queues) {
       if (queue.isEmpty) continue;
       return queue.removeLast();

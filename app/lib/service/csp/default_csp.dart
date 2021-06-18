@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 final _none = <String>["'none'"];
 
 /// Content Security Policy (CSP) is an added layer of security that helps to
@@ -58,7 +60,7 @@ final _defaultContentSecurityPolicyMap = <String, List<String>>{
 };
 
 /// Returns the serialized string of the CSP header.
-String _serializeCSP(Map<String, String> extraValues) {
+String _serializeCSP(Map<String, String>? extraValues) {
   final keys = <String>{
     ..._defaultContentSecurityPolicyMap.keys,
     if (extraValues != null) ...extraValues.keys,
@@ -67,6 +69,6 @@ String _serializeCSP(Map<String, String> extraValues) {
     final list = _defaultContentSecurityPolicyMap[key];
     final extra = extraValues == null ? null : extraValues[key];
     final extraStr = (extra == null || extra.trim().isEmpty) ? '' : ' $extra';
-    return '$key ${list.join(' ')}$extraStr';
+    return '$key ${list!.join(' ')}$extraStr';
   }).join(';');
 }

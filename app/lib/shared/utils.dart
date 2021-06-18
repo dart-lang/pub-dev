@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 library pub_dartlang_org.utils;
 
 import 'dart:async';
@@ -13,14 +15,13 @@ import 'dart:math';
 import 'package:appengine/appengine.dart';
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 // ignore: implementation_imports
 import 'package:mime/src/default_extension_map.dart' as mime;
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:stream_transform/stream_transform.dart';
 
-import 'configuration.dart' show envConfig;
+import 'env_config.dart';
 
 export 'package:pana/pana.dart' show exampleFileCandidates;
 
@@ -54,7 +55,7 @@ Future<T> withTempDirectory<T>(Future<T> Function(Directory dir) func,
 }
 
 /// Returns null if version is invalid or cannot be normalized.
-String canonicalizeVersion(String version) {
+String? canonicalizeVersion(String? version) {
   if (version == null || version.trim().isEmpty) {
     return null;
   }
@@ -66,11 +67,8 @@ String canonicalizeVersion(String version) {
   } on FormatException catch (_) {
     return null;
   }
-  final pre = v.preRelease != null && v.preRelease.isNotEmpty
-      ? v.preRelease.join('.')
-      : null;
-  final build =
-      v.build != null && v.build.isNotEmpty ? v.build.join('.') : null;
+  final pre = v.preRelease.isNotEmpty ? v.preRelease.join('.') : null;
+  final build = v.build.isNotEmpty ? v.build.join('.') : null;
 
   final canonicalVersion =
       semver.Version(v.major, v.minor, v.patch, pre: pre, build: build);
@@ -127,7 +125,7 @@ Stream<T> randomizeStream<T>(
   Stream<T> stream, {
   Duration duration = const Duration(minutes: 1),
   int maxPositionDiff = 1000,
-  Random random,
+  Random? random,
 }) {
   random ??= Random.secure();
   final Stream trigger = Stream.periodic(duration);
@@ -154,9 +152,9 @@ class LastNTracker<T extends Comparable<T>> {
     if (_lastItems.length > _n) _lastItems.removeFirst();
   }
 
-  T get median => _getP(0.5);
-  T get p90 => _getP(0.9);
-  T get p99 => _getP(0.99);
+  T? get median => _getP(0.5);
+  T? get p90 => _getP(0.9);
+  T? get p99 => _getP(0.99);
 
   Map<T, int> toCounts() {
     return _lastItems.fold<Map<T, int>>({}, (Map<T, int> m, T item) {
@@ -171,7 +169,7 @@ class LastNTracker<T extends Comparable<T>> {
     return sum / _lastItems.length;
   }
 
-  T _getP(double p) {
+  T? _getP(double p) {
     if (_lastItems.isEmpty) return null;
     final List<T> list = List.from(_lastItems);
     list.sort();
@@ -211,8 +209,7 @@ String contentType(String name) {
 }
 
 /// Returns a subset of the list, bounded by [offset] and [limit].
-List<T> boundedList<T>(List<T> list, {int offset, int limit}) {
-  if (list == null) return null;
+List<T> boundedList<T>(List<T> list, {int? offset, int? limit}) {
   Iterable<T> iterable = list;
   if (offset != null && offset > 0) {
     if (offset >= list.length) {
@@ -232,7 +229,7 @@ List<T> boundedList<T>(List<T> list, {int offset, int limit}) {
 Future<R> retryAsync<R>(
   Future<R> Function() body, {
   int maxAttempt = 3,
-  bool Function(Object) shouldRetryOnError,
+  bool Function(Object)? shouldRetryOnError,
   String description = 'Async operation',
   Duration sleep = const Duration(seconds: 1),
 }) async {
@@ -253,11 +250,11 @@ Future<R> retryAsync<R>(
 
 /// Builds the Set-Cookie HTTP header value.
 String buildSetCookieValue({
-  @required String name,
-  @required String value,
-  @required DateTime expires,
+  required String name,
+  required String value,
+  required DateTime expires,
 }) {
-  if (value == null || value == '') {
+  if (value.isEmpty) {
     value = '""';
   }
   return [
@@ -282,7 +279,7 @@ String buildSetCookieValue({
 /// Parses the Cookie HTTP header and returns a map of the values.
 ///
 /// This always return a non-null [Map], even if the [cookieHeader] is empty.
-Map<String, String> parseCookieHeader(String cookieHeader) {
+Map<String, String> parseCookieHeader(String? cookieHeader) {
   if (cookieHeader == null || cookieHeader.isEmpty) {
     return <String, String>{};
   }
@@ -312,7 +309,7 @@ Map<String, String> parseCookieHeader(String cookieHeader) {
 /// `255` inclusive.
 ///
 /// If [bytes] is not provided, it is generated using `Random.secure`.
-String createUuid([List<int> bytes]) {
+String createUuid([List<int>? bytes]) {
   bytes ??= List<int>.generate(16, (_) => _random.nextInt(256));
   if (bytes.length != 16) {
     throw ArgumentError('16 bytes expected, got: ${bytes.length}');
@@ -335,9 +332,14 @@ String createUuid([List<int> bytes]) {
 /// Returns a header map when appengine context's is active and traceId is set.
 ///
 /// Returns `null` otherwise.
-Map<String, String> cloudTraceHeaders() {
-  if (context?.traceId == null) return null;
-  return {_cloudTraceContextHeader: context.traceId};
+Map<String, String>? cloudTraceHeaders() {
+  // TODO: remove this once `context` gets fixed to nullable.
+  try {
+    if (context.traceId == null) return null;
+    return {_cloudTraceContextHeader: context.traceId!};
+  } catch (_) {
+    // no-op
+  }
 }
 
 extension CustomException on Logger {

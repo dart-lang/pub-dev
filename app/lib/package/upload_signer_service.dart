@@ -18,6 +18,7 @@ import 'package:http/http.dart' as http;
 import 'package:client_data/package_api.dart';
 
 import '../shared/configuration.dart';
+import '../shared/env_config.dart';
 import '../shared/utils.dart' show jsonUtf8Encoder;
 
 /// The registered [UploadSignerService] object.

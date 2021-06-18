@@ -2,15 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 import 'dart:async';
 import 'dart:io';
 
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 import 'package:pana/pana.dart';
 import 'package:pool/pool.dart';
 
-import 'configuration.dart';
+import 'env_config.dart';
 
 final _logger = Logger('tool_env');
 
@@ -39,25 +40,25 @@ final _toolEnvTempDir = Directory.systemTemp.createTempSync('tool-env');
 /// Forcing callback processing into a single thread.
 final _pool = Pool(1);
 
-_ToolEnvRef _current;
+_ToolEnvRef? _current;
 
 /// Calls [fn] with the [ToolEnvironment], handling the lifecycle of the local
 /// pub cache.
 Future<R> withToolEnv<R>({
-  @required bool usesPreviewSdk,
-  @required Future<R> Function(ToolEnvironment toolEnv) fn,
+  required bool usesPreviewSdk,
+  required Future<R> Function(ToolEnvironment toolEnv) fn,
 }) async {
   return await _pool.withResource(() async {
-    if (_current != null && !_current._isAvailable) {
+    if (_current != null && !_current!._isAvailable) {
       await _current?._cleanup();
       _current = null;
     }
     _current ??= await _createToolEnvRef();
-    _current._started++;
+    _current!._started++;
     try {
-      return await fn(usesPreviewSdk ? _current.preview : _current.stable);
+      return await fn(usesPreviewSdk ? _current!.preview : _current!.stable);
     } finally {
-      await _current._checkSizeLimit();
+      await _current!._checkSizeLimit();
     }
   });
 }
@@ -105,7 +106,8 @@ Future<_ToolEnvRef> _createToolEnvRef() async {
     pubCacheDir: resolvedDirName,
     environment: {
       'CI': 'true',
-      'FLUTTER_ROOT': envConfig.stableFlutterSdkDir,
+      if (envConfig.stableFlutterSdkDir != null)
+        'FLUTTER_ROOT': envConfig.stableFlutterSdkDir!,
     },
   );
   final previewToolEnv = await ToolEnvironment.create(
@@ -114,7 +116,8 @@ Future<_ToolEnvRef> _createToolEnvRef() async {
     pubCacheDir: resolvedDirName,
     environment: {
       'CI': 'true',
-      'FLUTTER_ROOT': envConfig.previewFlutterSdkDir,
+      if (envConfig.previewFlutterSdkDir != null)
+        'FLUTTER_ROOT': envConfig.previewFlutterSdkDir!,
     },
   );
 
@@ -130,7 +133,7 @@ Future<_ToolEnvRef> _createToolEnvRef() async {
   return _ToolEnvRef(cacheDir, stableToolEnv, previewToolEnv);
 }
 
-Future<void> _gitGc(String path) async {
+Future<void> _gitGc(String? path) async {
   if (path != null &&
       Directory(path).existsSync() &&
       Directory('$path/.git').existsSync()) {

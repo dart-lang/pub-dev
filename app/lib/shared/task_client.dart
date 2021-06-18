@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 import 'dart:isolate';
 
 import 'task_scheduler.dart' show Task, TaskScheduler;
@@ -10,7 +12,7 @@ final _taskSendPorts = <SendPort>[];
 int _taskSendIndex = 0;
 
 // Temporary queue until the isolate comes online.
-final List<Task> _taskQueue = [];
+final _taskQueue = <Task>[];
 
 void registerTaskSendPort(SendPort taskSendPort) {
   _taskSendPorts.add(taskSendPort);

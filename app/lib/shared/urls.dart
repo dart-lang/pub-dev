@@ -5,9 +5,7 @@
 import 'package:path/path.dart' as p;
 
 import '../package/overrides.dart';
-import '../search/search_form.dart' show SearchForm, SearchOrder;
-
-export '../search/search_service.dart' show SearchOrder;
+import '../search/search_form.dart' show SearchForm;
 
 const primaryHost = 'pub.dev';
 const legacyHost = 'pub.dartlang.org';
@@ -154,14 +152,12 @@ String searchUrl({
   List<String> platforms,
   String q,
   int page,
-  SearchOrder order,
 }) {
   final query = SearchForm.parse(
     sdk: sdk,
     runtimes: runtimes,
     platforms: platforms,
     query: q,
-    order: order,
   );
   return query.toSearchLink(page: page);
 }
