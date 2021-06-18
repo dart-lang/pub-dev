@@ -1,5 +1,5 @@
 #!/bin/bash
-# Created with package:mono_repo v4.1.0
+# Created with package:mono_repo v5.0.0
 
 # Support built in commands on windows out of the box.
 # When it is a flutter repo (check the pubspec.yaml for "sdk: flutter")
@@ -7,31 +7,29 @@
 # This assumes that the Flutter SDK has been installed in a previous step.
 function pub() {
   if grep -Fq "sdk: flutter" "${PWD}/pubspec.yaml"; then
-    if [[ $TRAVIS_OS_NAME == "windows" ]]; then
-      command flutter.bat pub "$@"
-    else
-      command flutter pub "$@"
-    fi
+    command flutter pub "$@"
   else
-    if [[ $TRAVIS_OS_NAME == "windows" ]]; then
-      command pub.bat "$@"
-    else
-      command dart pub "$@"
-    fi
+    command dart pub "$@"
   fi
 }
-function dartfmt() {
-  if [[ $TRAVIS_OS_NAME == "windows" ]]; then
-    command dartfmt.bat "$@"
+# When it is a flutter repo (check the pubspec.yaml for "sdk: flutter")
+# then "flutter" is called instead of "pub".
+# This assumes that the Flutter SDK has been installed in a previous step.
+function format() {
+  if grep -Fq "sdk: flutter" "${PWD}/pubspec.yaml"; then
+    command flutter format "$@"
   else
-    command dartfmt "$@"
+    command dart format "$@"
   fi
 }
-function dartanalyzer() {
-  if [[ $TRAVIS_OS_NAME == "windows" ]]; then
-    command dartanalyzer.bat "$@"
+# When it is a flutter repo (check the pubspec.yaml for "sdk: flutter")
+# then "flutter" is called instead of "pub".
+# This assumes that the Flutter SDK has been installed in a previous step.
+function analyze() {
+  if grep -Fq "sdk: flutter" "${PWD}/pubspec.yaml"; then
+    command flutter analyze "$@"
   else
-    command dartanalyzer "$@"
+    command dart analyze "$@"
   fi
 }
 
@@ -69,23 +67,23 @@ for PKG in ${PKGS}; do
       echo
       echo -e "\033[1mPKG: ${PKG}; TASK: ${TASK}\033[22m"
       case ${TASK} in
+      analyze_0)
+        echo 'dart analyze --fatal-infos  .'
+        dart analyze --fatal-infos  . || EXIT_CODE=$?
+        ;;
+      analyze_1)
+        echo 'dart analyze --fatal-infos bin/'
+        dart analyze --fatal-infos bin/ || EXIT_CODE=$?
+        ;;
+      analyze_2)
+        echo 'dart analyze --fatal-infos lib/'
+        dart analyze --fatal-infos lib/ || EXIT_CODE=$?
+        ;;
       command)
         echo './build.sh'
         ./build.sh || EXIT_CODE=$?
         ;;
-      dartanalyzer_0)
-        echo 'dart analyze --fatal-infos  .'
-        dart analyze --fatal-infos  . || EXIT_CODE=$?
-        ;;
-      dartanalyzer_1)
-        echo 'dart analyze --fatal-infos bin/'
-        dart analyze --fatal-infos bin/ || EXIT_CODE=$?
-        ;;
-      dartanalyzer_2)
-        echo 'dart analyze --fatal-infos lib/'
-        dart analyze --fatal-infos lib/ || EXIT_CODE=$?
-        ;;
-      dartfmt)
+      format)
         echo 'dart format --output=none --set-exit-if-changed .'
         dart format --output=none --set-exit-if-changed . || EXIT_CODE=$?
         ;;
