@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 /// This library defines all exceptions that can be handled gracefully when
 /// thrown in HTTP handlers in this application.
 ///
@@ -58,7 +60,6 @@ class InvalidInputException extends ResponseException {
   /// Check [condition] and throw [InvalidInputException] with [message] if
   /// [condition] is `false`.
   static void check(bool condition, String message) {
-    assert(message != null, '"message" must not be `null`');
     if (!condition) {
       throw InvalidInputException._(message);
     }
@@ -66,53 +67,51 @@ class InvalidInputException extends ResponseException {
 
   /// A variant of [check] with lazy message construction.
   static void _check(bool condition, String Function() message) {
-    assert(message != null, '"message" creator must not be `null`');
-    assert(message() != null, '"message()" creator must not return `null`');
     if (!condition) {
       throw InvalidInputException._(message());
     }
   }
 
   /// Throw [InvalidInputException] if [value] is not `null`.
-  static void checkNull(dynamic value, String name) {
+  static void checkNull(dynamic value, String? name) {
     assert(name != null, '"name" must be `null`');
     _check(value == null, () => '"$name" must be `null`');
   }
 
   /// Throw [InvalidInputException] if [value] is `null`.
-  static void checkNotNull(dynamic value, String name) {
+  static void checkNotNull(dynamic value, String? name) {
     assert(name != null, '"name" must not be `null`');
     _check(value != null, () => '"$name" cannot be `null`');
   }
 
   /// Throw [InvalidInputException] if [value] doesn't match [regExp].
-  static void checkMatchPattern(String value, String name, RegExp regExp) {
+  static void checkMatchPattern(String value, String? name, RegExp? regExp) {
     assert(name != null, '"name" must not be `null`');
     assert(regExp != null, '"pattern" must not be `null`');
-    _check(regExp.hasMatch(value), () => '"$name" must match $regExp');
+    _check(regExp!.hasMatch(value), () => '"$name" must match $regExp');
   }
 
   /// Throw [InvalidInputException] if [value] is not one of [values].
-  static void checkAnyOf<T>(T value, String name, Iterable<T> values) {
+  static void checkAnyOf<T>(T value, String? name, Iterable<T>? values) {
     assert(name != null, '"name" must not be `null`');
     assert(values != null, '"values" must not be `null`');
-    _check(values.contains(value),
+    _check(values!.contains(value),
         () => '"$name" must be any of ${values.join(', ')}');
   }
 
   /// Throw [InvalidInputException] if [value] is less than [minimum] or greater
   /// than [maximum].
   static void checkRange<T extends num>(
-    T value,
-    String name, {
-    T minimum,
-    T maximum,
+    T? value,
+    String? name, {
+    T? minimum,
+    T? maximum,
   }) {
     _check(value != null, () => '"$name" cannot be `null`');
     assert(name != null, '"name" must not be `null`');
-    _check((minimum == null || value >= minimum),
+    _check((minimum == null || value! >= minimum),
         () => '"$name" must be greater than $minimum');
-    _check((maximum == null || value <= maximum),
+    _check((maximum == null || value! <= maximum),
         () => '"$name" must be less than $maximum');
   }
 
@@ -121,32 +120,32 @@ class InvalidInputException extends ResponseException {
   ///
   /// This also throws if [value] is `null`.
   static void checkStringLength(
-    String value,
-    String name, {
-    int minimum,
-    int maximum,
+    String? value,
+    String? name, {
+    int? minimum,
+    int? maximum,
   }) {
     _check(value != null, () => '"$name" cannot be `null`');
     assert(name != null, '"name" must not be `null`');
     assert(name != null, '"name" must not be `null`');
-    _check((minimum == null || value.length >= minimum),
+    _check((minimum == null || value!.length >= minimum),
         () => '"$name" must be longer than $minimum charaters');
-    _check((maximum == null || value.length <= maximum),
+    _check((maximum == null || value!.length <= maximum),
         () => '"$name" must be less than $maximum charaters');
   }
 
   /// Throw [InvalidInputException] if [value] is shorter than [minimum] or
   /// longer than [maximum].
   static void checkLength<T>(
-    Iterable<T> value,
-    String name, {
-    int minimum,
-    int maximum,
+    Iterable<T>? value,
+    String? name, {
+    int? minimum,
+    int? maximum,
   }) {
     _check(value != null, () => '"$name" cannot be `null`');
     assert(name != null, '"name" must not be `null`');
     assert(name != null, '"name" must not be `null`');
-    final length = value.length;
+    final length = value!.length;
     _check((minimum == null || length >= minimum),
         () => '"$name" must be longer than $minimum');
     _check((maximum == null || length <= maximum),
@@ -155,7 +154,7 @@ class InvalidInputException extends ResponseException {
 
   static final _ulidPattern = RegExp(r'^[a-zA-Z0-9]*$');
 
-  static void checkUlid(String value, String name) {
+  static void checkUlid(String value, String? name) {
     assert(name != null, '"name" must not beq `null`');
     _check(_ulidPattern.hasMatch(value), () => '"$name" is not a valid ulid.');
   }
@@ -424,7 +423,7 @@ class RemovedPackageException extends NotFoundException {
 
 /// Thrown when API endpoint is not implemented.
 class NotImplementedException extends ResponseException {
-  NotImplementedException([String message])
+  NotImplementedException([String? message])
       : super._(
             501, 'NotImplemented', message ?? 'API endpoint not implemented.');
 }

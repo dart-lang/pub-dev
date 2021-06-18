@@ -22,6 +22,7 @@ import '../package/models.dart';
 import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
 import '../shared/configuration.dart';
+import '../shared/env_config.dart';
 import '../shared/tool_env.dart';
 import '../shared/urls.dart';
 import '../shared/utils.dart' show createUuid;

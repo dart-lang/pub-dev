@@ -10,7 +10,7 @@ import 'package:logging/logging.dart';
 import 'package:pub_dev/search/dart_sdk_mem_index.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
-import '../shared/configuration.dart';
+import '../shared/env_config.dart';
 import '../shared/handlers.dart';
 
 import 'backend.dart';

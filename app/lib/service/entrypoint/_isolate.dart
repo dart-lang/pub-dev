@@ -13,7 +13,7 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 
-import '../../shared/configuration.dart';
+import '../../shared/env_config.dart';
 import '../../shared/scheduler_stats.dart';
 import '../../tool/utils/event_loop_tracker.dart';
 

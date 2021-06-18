@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -28,7 +30,7 @@ PopularityStorage get popularityStorage =>
 
 class PopularityStorage {
   final Bucket bucket;
-  CachedValue<_PopularityData> _popularity;
+  late CachedValue<_PopularityData> _popularity;
 
   PopularityStorage(this.bucket) {
     _popularity = CachedValue<_PopularityData>(
@@ -40,11 +42,11 @@ class PopularityStorage {
   }
 
   DateTime get lastFetched => _popularity.lastUpdated;
-  String get dateRange => _popularity.value?.dateRange;
-  int get count => _popularity.value?.values?.length ?? 0;
+  String? get dateRange => _popularity.value?.dateRange;
+  int get count => _popularity.value?.values.length ?? 0;
 
   double lookup(String package) =>
-      _popularity.isAvailable ? _popularity.value.values[package] : 0.0;
+      _popularity.isAvailable ? _popularity.value!.values[package] ?? 0.0 : 0.0;
 
   Future<void> start() async {
     await _popularity.start();
@@ -103,13 +105,13 @@ class _PopularityLoader {
 
 class _PopularityData {
   final Map<String, double> values;
-  final DateTime first;
-  final DateTime last;
+  final DateTime? first;
+  final DateTime? last;
 
   _PopularityData({
-    @required this.values,
-    @required this.first,
-    @required this.last,
+    required this.values,
+    required this.first,
+    required this.last,
   });
 
   String get dateRange =>

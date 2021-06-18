@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis_auth/googleapis_auth.dart' as auth;
 import 'package:googleapis/webmasters/v3.dart' as wmx;
@@ -49,17 +51,16 @@ class DomainVerifier {
         maxDelay: Duration(milliseconds: 500),
         retryIf: (e) => e is! auth.AccessDeniedException,
       );
-      if (sites == null || sites.siteEntry == null) {
+      if (sites.siteEntry == null) {
         return false;
       }
       // Determine if the user is in fact owner of the domain in question.
       // Note. domains are prefixed 'sc-domain:' and 'siteOwner' is the only
       //       permission that ensures the user actually did DNS verification.
-      return sites.siteEntry.any(
+      return sites.siteEntry!.any(
         (s) =>
-            s != null &&
             s.siteUrl != null &&
-            s.siteUrl.toLowerCase() == 'sc-domain:$domain' &&
+            s.siteUrl!.toLowerCase() == 'sc-domain:$domain' &&
             s.permissionLevel == 'siteOwner', // must be 'siteOwner'!
       );
     } on auth.AccessDeniedException {

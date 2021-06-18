@@ -12,7 +12,7 @@ import '../../search/dart_sdk_mem_index.dart';
 import '../../search/flutter_sdk_mem_index.dart';
 import '../../search/handlers.dart';
 import '../../search/updater.dart';
-import '../../shared/configuration.dart';
+import '../../shared/env_config.dart';
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
 import '../../shared/scheduler_stats.dart';

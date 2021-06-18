@@ -16,8 +16,8 @@ import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/service/entrypoint/tools.dart';
 import 'package:pub_dev/service/secret/models.dart';
-import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/shared/env_config.dart';
 import 'package:pub_dev/tool/neat_task/datastore_status_provider.dart';
 
 final _argParser = ArgParser()

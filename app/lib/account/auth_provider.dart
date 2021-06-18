@@ -2,22 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/meta.dart';
+// @dart=2.12
 
 class AuthResult {
-  final String oauthUserId;
-  final String email;
+  final String? oauthUserId;
+  final String? email;
 
   AuthResult(this.oauthUserId, this.email);
 }
 
 class AccountProfile {
-  final String name;
-  final String imageUrl;
+  final String? name;
+  final String? imageUrl;
 
   AccountProfile({
-    @required this.name,
-    @required this.imageUrl,
+    required this.name,
+    required this.imageUrl,
   });
 }
 
@@ -27,7 +27,7 @@ abstract class AuthProvider {
   ///
   /// Returns null on any error, or if the token is expired, or the user is not
   /// verified.
-  Future<AuthResult> tryAuthenticate(String token);
+  Future<AuthResult?> tryAuthenticate(String token);
 
   /// Returns the profile information of a given access token.
   Future<AccountProfile> getAccountProfile(String accessToken);

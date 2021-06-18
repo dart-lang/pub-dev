@@ -71,7 +71,8 @@ Future<shelf.Response> updateSessionHandler(
       changed: true,
       expires: newSession.expires,
     ).toJson(),
-    headers: session_cookie.createSessionCookie(newSession),
+    headers: session_cookie.createSessionCookie(
+        newSession.sessionId, newSession.expires),
   );
 }
 

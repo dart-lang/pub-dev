@@ -12,7 +12,7 @@ import 'package:path/path.dart' as p;
 
 import 'package:client_data/package_api.dart' as package_api;
 
-import '../../shared/configuration.dart';
+import '../../shared/env_config.dart';
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart';
 

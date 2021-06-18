@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../../package/models.dart' show PackageView;
+import '../../search/search_form.dart';
 import '../../service/youtube/backend.dart' show PkgOfWeekVideo;
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
@@ -37,7 +38,8 @@ String renderLandingPage({
     'has_mp': hasMostPopular,
     'mp_mini_list_html':
         renderMiniListIf(hasMostPopular, 'most-popular', mostPopularPackages),
-    'mp_view_all_url': urls.searchUrl(order: urls.SearchOrder.popularity),
+    'mp_view_all_url':
+        SearchForm.parse(order: SearchOrder.popularity).toSearchLink(),
     'has_tf': hasTopFlutter,
     'tf_mini_list_html':
         renderMiniListIf(hasTopFlutter, 'top-flutter', topFlutterPackages),

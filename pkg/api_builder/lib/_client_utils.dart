@@ -1,20 +1,25 @@
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// @dart=2.12
+
 /// Utilities for use in generated client code.
 library client_utils;
 
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:meta/meta.dart';
 import 'package:http/http.dart' as http;
 
 class RequestException implements Exception {
   final int status;
   final Map<String, String> headers;
-  final List<int> body;
+  final List<int>? body;
 
   RequestException(this.status, this.headers, [this.body]);
 
-  String bodyAsString() => utf8.decode(body);
+  String bodyAsString() => utf8.decode(body!);
 
   Map<String, dynamic> bodyAsJson() =>
       json.decode(bodyAsString()) as Map<String, dynamic>;
@@ -25,9 +30,9 @@ class RequestException implements Exception {
 
 class Client {
   final String _baseUrl;
-  final http.Client _client;
+  final http.Client? _client;
 
-  Client(String baseUrl, {http.Client client})
+  Client(String baseUrl, {http.Client? client})
       : _baseUrl = baseUrl,
         _client = client {
     ArgumentError.checkNotNull(_baseUrl, 'baseUrl');
@@ -35,7 +40,7 @@ class Client {
 
   Future<T> _withClient<T>(FutureOr<T> Function(http.Client) fn) async {
     if (_client != null) {
-      return fn(_client);
+      return fn(_client!);
     }
     final client = http.Client();
     try {
@@ -46,10 +51,10 @@ class Client {
   }
 
   Future<Map<String, dynamic>> requestJson({
-    @required String verb,
-    @required String path,
-    Map<String, String> query,
-    Map<String, dynamic> body,
+    required String verb,
+    required String path,
+    Map<String, String>? query,
+    Map<String, dynamic>? body,
   }) =>
       _withClient((client) async {
         final u = Uri.parse(_baseUrl + path).replace(queryParameters: query);
@@ -66,10 +71,10 @@ class Client {
       });
 
   Future<List<int>> requestBytes({
-    @required String verb,
-    @required String path,
-    Map<String, String> query,
-    Map<String, dynamic> body,
+    required String verb,
+    required String path,
+    Map<String, String>? query,
+    Map<String, dynamic>? body,
   }) =>
       _withClient((client) async {
         final u = Uri.parse(_baseUrl + path).replace(queryParameters: query);
@@ -91,7 +96,7 @@ Future<http.Response> sendRequest(
   http.Client client,
   String verb,
   String url, [
-  Map<String, dynamic> body,
+  Map<String, dynamic>? body,
 ]) async {
   final req = http.Request(verb, Uri.parse(url));
   if (body != null) {

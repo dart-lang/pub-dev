@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 import 'package:logging/logging.dart';
 
 extension LoggerExt on Logger {
@@ -13,7 +15,7 @@ extension LoggerExt on Logger {
   ///
   /// [code] should be a hardcoded string to keep dimensionality manageable.
   void pubNoticeWarning(String code, String message,
-      [Object error, StackTrace st]) {
+      [Object? error, StackTrace? st]) {
     warning('[pub-notice:$code] $message', error, st);
   }
 
@@ -25,7 +27,7 @@ extension LoggerExt on Logger {
   ///
   /// [code] should be a hardcoded string to keep dimensionality manageable.
   void pubNoticeShout(String code, String message,
-      [Object error, StackTrace st]) {
+      [Object? error, StackTrace? st]) {
     shout('[pub-notice:$code] $message', error, st);
   }
 }

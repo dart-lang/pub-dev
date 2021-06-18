@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 import 'package:pub_package_reader/pub_package_reader.dart'
     show reducePackageName;
 
@@ -78,7 +80,7 @@ const _issueTrackerUrlOverrides = <String, String>{
       'https://github.com/flutter/flutter/issues',
 };
 
-String overrideIssueTrackerUrl(String url) {
+String? overrideIssueTrackerUrl(String? url) {
   if (url == null) {
     return null;
   }
@@ -97,7 +99,7 @@ bool matchesReservedPackageName(String name) =>
 /// Whether the [publisherId] is part of dart.dev.
 /// Packages under dart.dev are considered 'internal', and allowed to have homepage
 /// URLs pointing to e.g. dart.dev.
-bool isDartDevPublisher(String publisherId) {
+bool isDartDevPublisher(String? publisherId) {
   if (publisherId == null) return false;
   if (publisherId == 'dart.dev') return true;
   if (publisherId.endsWith('.dart.dev')) return true;

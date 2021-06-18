@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -17,8 +19,8 @@ final _logger = Logger('pub.static_files');
 const String _defaultStaticPath = '/static';
 const _staticRootPaths = <String>['favicon.ico', 'robots.txt'];
 
-StaticFileCache _cache;
-StaticUrls _staticUrls;
+StaticFileCache? _cache;
+StaticUrls? _staticUrls;
 
 /// The static file cache. If no cache was registered before the first access,
 /// the default instance will be created.
@@ -97,7 +99,7 @@ class StaticFileCache {
   /// Returns the keys that are accepted as requests paths.
   Iterable<String> get keys => _files.keys;
 
-  void _addDirectory(Directory contentDir, {Directory baseDir}) {
+  void _addDirectory(Directory contentDir, {Directory? baseDir}) {
     baseDir ??= contentDir;
     contentDir
         .listSync(recursive: true)
@@ -105,7 +107,7 @@ class StaticFileCache {
         .map((file) => file.absolute)
         .map(
       (File file) {
-        final relativePath = path.relative(file.path, from: baseDir.path);
+        final relativePath = path.relative(file.path, from: baseDir!.path);
         String contentType = mime.lookupMimeType(file.path) ?? 'octet/binary';
         if (relativePath == 'osd.xml') {
           contentType = 'application/opensearchdescription+xml';
@@ -130,7 +132,7 @@ class StaticFileCache {
 
   bool hasFile(String requestPath) => _files.containsKey(requestPath);
 
-  StaticFile getFile(String requestPath) => _files[requestPath];
+  StaticFile? getFile(String requestPath) => _files[requestPath];
 }
 
 /// Stores the content and metadata of a statically served file.
@@ -165,8 +167,8 @@ class StaticUrls {
   final String reportMissingIconYellow;
   final String reportOKIconGreen;
   final String gtmJs;
-  Map _versionsTableIcons;
-  Map<String, String> _assets;
+  Map? _versionsTableIcons;
+  Map<String, String>? _assets;
 
   StaticUrls._()
       : smallDartFavicon = _getCacheableStaticUrl('/favicon.ico'),
@@ -220,10 +222,10 @@ class StaticUrls {
             ? requestPath.substring(_defaultStaticPath.length + 1)
             : requestPath;
         final key = hashedFile.replaceAll('/', '__').replaceAll('.', '_');
-        _assets[key] = _getCacheableStaticUrl(requestPath);
+        _assets![key] = _getCacheableStaticUrl(requestPath);
       }
     }
-    return _assets;
+    return _assets!;
   }
 }
 
@@ -238,7 +240,7 @@ String _getCacheableStaticUrl(String requestPath) {
 }
 
 Future<DateTime> _detectLastModified(Directory dir) async {
-  DateTime lastModified;
+  DateTime? lastModified;
   await for (FileSystemEntity fse in dir.list(recursive: true)) {
     if (fse is File) {
       final lm = await fse.lastModified();
@@ -282,7 +284,7 @@ Future updateLocalBuiltFilesIfNeeded() async {
       scriptJsExists ? await scriptJs.lastModified() : null;
   _logger.info(
       'pkg/web_app build status: source: $webAppLastModified, target: $scriptJsLastModified');
-  if (!scriptJsExists || (scriptJsLastModified.isBefore(webAppLastModified))) {
+  if (!scriptJsExists || (scriptJsLastModified!.isBefore(webAppLastModified))) {
     await scriptJs.parent.create(recursive: true);
     await updateWebAppBuild();
   }
@@ -295,7 +297,7 @@ Future updateLocalBuiltFilesIfNeeded() async {
       styleCssExists ? await styleCss.lastModified() : null;
   _logger.info(
       'pkg/web_css build status: source: $webCssLastModified, target: $styleCssLastModified');
-  if (!styleCssExists || (styleCssLastModified.isBefore(webCssLastModified))) {
+  if (!styleCssExists || (styleCssLastModified!.isBefore(webCssLastModified))) {
     await updateWebCssBuild();
   }
 }

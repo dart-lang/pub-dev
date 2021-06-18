@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 /// Tag prefixes that are allowed.
 ///
 /// Whether a tag is assigned by pub-administrator, package owner, or derived
@@ -62,8 +64,8 @@ abstract class SdkTagValue {
   static const String flutter = 'flutter';
   static const String any = 'any';
 
-  static bool isAny(String value) => value == null || value == any;
-  static bool isNotAny(String value) => !isAny(value);
+  static bool isAny(String? value) => value == null || value == any;
+  static bool isNotAny(String? value) => !isAny(value);
 }
 
 /// Collection of Dart SDK runtime tags (with prefix and value).
@@ -92,7 +94,7 @@ abstract class DartSdkRuntime {
   /// Decodes the human-readable [values] and returns [DartSdkRuntime] tag values.
   ///
   /// The decoding may change the value, omit values, or emit more values.
-  static List<String> decodeQueryValues(List<String> values) {
+  static List<String>? decodeQueryValues(List<String>? values) {
     if (values == null) return null;
     final set = values.toSet();
     DartSdkRuntime._decodeMap.forEach((key, values) {
@@ -105,7 +107,7 @@ abstract class DartSdkRuntime {
   /// will be used in links.
   ///
   /// The encoding may change the value, omit values, or emit more values.
-  static List<String> encodeRuntimeTags(List<String> values) {
+  static List<String>? encodeRuntimeTags(List<String>? values) {
     if (values == null) return null;
 
     final set = values.toSet();

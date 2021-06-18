@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 import 'package:http/http.dart' as http;
 import 'package:http_retry/http_retry.dart';
-import 'package:meta/meta.dart';
 
 final _transientStatusCodes = {
   // See: https://cloud.google.com/storage/docs/xml-api/reference-status
@@ -15,8 +16,8 @@ final _transientStatusCodes = {
 
 /// Creates a HTTP client that retries transient status codes.
 http.Client httpRetryClient({
-  http.Client innerClient,
-  int retries,
+  http.Client? innerClient,
+  int? retries,
 }) {
   return RetryClient(
     innerClient ?? http.Client(),
@@ -31,8 +32,8 @@ http.Client httpRetryClient({
 /// Returns an [http.Client] which sends a `Bearer` token as `Authorization`
 /// header for each request.
 http.Client httpClientWithAuthorization({
-  @required Future<String> Function() tokenProvider,
-  http.Client client,
+  required Future<String> Function() tokenProvider,
+  http.Client? client,
 }) {
   return _AuthenticatedClient(
     tokenProvider,
@@ -44,7 +45,7 @@ http.Client httpClientWithAuthorization({
 /// An [http.Client] which sends a `Bearer` token as `Authorization` header for
 /// each request.
 class _AuthenticatedClient extends http.BaseClient {
-  final Future<String> Function() _tokenProvider;
+  final Future<String?> Function() _tokenProvider;
   final http.Client _client;
   final bool _closeInnerClient;
 
