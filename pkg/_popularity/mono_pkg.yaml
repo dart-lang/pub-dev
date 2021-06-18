@@ -5,7 +5,7 @@ dart:
 stages:
   - smoke_test:
     - group:
-        - dartfmt
-        - dartanalyzer: --fatal-infos  .
+        - format
+        - analyze: --fatal-infos  .
   - unit_test:
     - test: --run-skipped

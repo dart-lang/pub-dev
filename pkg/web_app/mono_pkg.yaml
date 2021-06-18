@@ -5,8 +5,8 @@ dart:
 stages:
   - smoke_test:
     - group:
-        - dartfmt
-        - dartanalyzer: --fatal-infos  .
+        - format
+        - analyze: --fatal-infos  .
   - build:
     - command: ./build.sh
   - unit_test:

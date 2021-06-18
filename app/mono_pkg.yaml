@@ -5,8 +5,8 @@ dart:
 stages:
   - smoke_test:
     - group:
-        - dartfmt
-        - dartanalyzer: --fatal-infos  .
+        - format
+        - analyze: --fatal-infos  .
   - unit_test:
     - test: --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '0~7p'`
     - test: --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '1~7p'`
