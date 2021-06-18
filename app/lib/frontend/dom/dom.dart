@@ -134,7 +134,7 @@ Map<String, String>? _mergeAttributes(
   if (!hasAttributes) return null;
   return <String, String>{
     if (id != null) 'id': id,
-    if (hasClasses) 'class': classes!.join(' '),
+    if (classes != null && classes.isNotEmpty) 'class': classes!.join(' '),
     if (attributes != null) ...attributes,
   };
 }
