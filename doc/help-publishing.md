@@ -20,7 +20,7 @@ Packages can be published with either a [verified
 publisher](https://dart.dev/tools/pub/verified-publishers) or with
 [uploaders](https://dart.dev/tools/pub/cmd/pub-uploader). 
 
-If are an uploader on one or more packages, you can use the **My pub.dev > My
+If you are an uploader on one or more packages, you can use the **My pub.dev > My
 packages** to view a list of those packages. 
 
 If you are a member of a publisher, you can use the **My pub.dev > My
