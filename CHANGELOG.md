@@ -3,6 +3,10 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20210622t160400-all`
+ * Bumped runtimeVersion to `2021.06.21`.
+ * Upgraded preview Dart analysis SDK to `2.14.0-188.3.beta`
+
 ## `20210617t110000-all`
  * Redeploy `cron.yaml` as we have stopped backups through this mechanism.
  * Bumped runtimeVersion to `2021.06.16`.
