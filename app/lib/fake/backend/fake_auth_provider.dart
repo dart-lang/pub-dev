@@ -20,7 +20,7 @@ class FakeAuthProvider implements AuthProvider {
   Future<void> close() async {}
 
   @override
-  Future<AuthResult> tryAuthenticate(String accessToken) async {
+  Future<AuthResult?> tryAuthenticate(String? accessToken) async {
     if (accessToken == null || !accessToken.contains('-at-')) return null;
     final email = accessToken.replaceAll('-at-', '@').replaceAll('-dot-', '.');
     final id = email.replaceAll('@', '-').replaceAll('.', '-');
@@ -28,7 +28,7 @@ class FakeAuthProvider implements AuthProvider {
   }
 
   @override
-  Future<AccountProfile> getAccountProfile(String accessToken) async {
+  Future<AccountProfile?> getAccountProfile(String? accessToken) async {
     if (accessToken == null || !accessToken.contains('-at-')) return null;
     final email = accessToken.replaceAll('-dot-', '.').replaceAll('-at-', '@');
 

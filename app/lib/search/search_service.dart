@@ -7,7 +7,6 @@ import 'dart:math' show max;
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 
 import '../shared/tags.dart';
 
@@ -38,14 +37,14 @@ final _logger = Logger('search.search_service');
 class IndexInfo {
   final bool isReady;
   final int packageCount;
-  final DateTime lastUpdated;
+  final DateTime? lastUpdated;
   final List<String> updatedPackages;
 
   IndexInfo({
-    @required this.isReady,
-    @required this.packageCount,
-    @required this.lastUpdated,
-    @required this.updatedPackages,
+    required this.isReady,
+    required this.packageCount,
+    required this.lastUpdated,
+    required this.updatedPackages,
   });
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -53,7 +52,7 @@ class IndexInfo {
         'packageCount': packageCount,
         'lastUpdated': lastUpdated?.toIso8601String(),
         if (lastUpdated != null)
-          'lastUpdateDelta': DateTime.now().difference(lastUpdated).toString(),
+          'lastUpdateDelta': DateTime.now().difference(lastUpdated!).toString(),
         'updatedPackages': updatedPackages,
       };
 }
@@ -81,41 +80,41 @@ abstract class PackageIndex {
 @JsonSerializable()
 class PackageDocument {
   final String package;
-  final String version;
-  final String description;
-  final DateTime created;
-  final DateTime updated;
-  final String readme;
+  final String? version;
+  final String? description;
+  final DateTime? created;
+  final DateTime? updated;
+  final String? readme;
 
   final List<String> tags;
 
-  final double popularity;
-  final int likeCount;
+  final double? popularity;
+  final int? likeCount;
 
-  final int grantedPoints;
-  final int maxPoints;
+  final int? grantedPoints;
+  final int? maxPoints;
 
   final Map<String, String> dependencies;
 
   /// The publisher id of the package
-  final String publisherId;
+  final String? publisherId;
 
   /// The current uploader emails of the package.
-  final List<String> uploaderEmails;
+  final List<String>? uploaderEmails;
 
-  final List<ApiDocPage> apiDocPages;
+  final List<ApiDocPage>? apiDocPages;
 
   /// The creation timestamp of this document.
   final DateTime timestamp;
 
   PackageDocument({
-    this.package,
+    required this.package,
     this.version,
     this.description,
     this.created,
     this.updated,
     this.readme = '',
-    List<String> tags,
+    List<String>? tags,
     this.popularity = 0,
     this.likeCount = 0,
     this.grantedPoints = 0,
@@ -124,7 +123,7 @@ class PackageDocument {
     this.publisherId,
     this.uploaderEmails = const [],
     this.apiDocPages = const [],
-    DateTime timestamp,
+    DateTime? timestamp,
   })  : tags = tags ?? const <String>[],
         timestamp = timestamp ?? DateTime.now();
 
@@ -138,10 +137,14 @@ class PackageDocument {
 @JsonSerializable()
 class ApiDocPage {
   final String relativePath;
-  final List<String> symbols;
-  final List<String> textBlocks;
+  final List<String>? symbols;
+  final List<String>? textBlocks;
 
-  ApiDocPage({this.relativePath, this.symbols, this.textBlocks});
+  ApiDocPage({
+    required this.relativePath,
+    this.symbols,
+    this.textBlocks,
+  });
 
   factory ApiDocPage.fromJson(Map<String, dynamic> json) =>
       _$ApiDocPageFromJson(json);
@@ -176,7 +179,7 @@ enum SearchOrder {
 }
 
 /// Returns null if [value] is not a recognized search order.
-SearchOrder parseSearchOrder(String value) {
+SearchOrder? parseSearchOrder(String? value) {
   if (value == null) {
     return null;
   }
@@ -199,7 +202,7 @@ SearchOrder parseSearchOrder(String value) {
   return null;
 }
 
-String serializeSearchOrder(SearchOrder order) {
+String? serializeSearchOrder(SearchOrder? order) {
   if (order == null) return null;
   return order.toString().split('.').last;
 }
@@ -218,12 +221,12 @@ final RegExp _allDependencyRegExp =
 final _tagRegExp =
     RegExp(r'([\+|\-]?[a-z0-9]+:[a-z0-9\-_\.]+)', caseSensitive: false);
 
-String _stringToNull(String v) => (v == null || v.isEmpty) ? null : v;
-List<String> _listToNull(List<String> list) =>
+String? _stringToNull(String? v) => (v == null || v.isEmpty) ? null : v;
+List<String>? _listToNull(List<String>? list) =>
     (list == null || list.isEmpty) ? null : list;
 
 class ServiceSearchQuery {
-  final String query;
+  final String? query;
   final ParsedQueryText parsedQuery;
   final TagsPredicate tagsPredicate;
 
@@ -232,18 +235,18 @@ class ServiceSearchQuery {
   ///
   /// Values of this list can be email addresses (usually a single on) or
   /// publisher ids (may be multiple).
-  final List<String> uploaderOrPublishers;
+  final List<String>? uploaderOrPublishers;
 
-  final String publisherId;
-  final SearchOrder order;
-  final int offset;
-  final int limit;
+  final String? publisherId;
+  final SearchOrder? order;
+  final int? offset;
+  final int? limit;
 
   ServiceSearchQuery._({
     this.query,
-    TagsPredicate tagsPredicate,
-    List<String> uploaderOrPublishers,
-    String publisherId,
+    TagsPredicate? tagsPredicate,
+    List<String>? uploaderOrPublishers,
+    String? publisherId,
     this.order,
     this.offset,
     this.limit,
@@ -253,13 +256,13 @@ class ServiceSearchQuery {
         publisherId = _stringToNull(publisherId);
 
   factory ServiceSearchQuery.parse({
-    String query,
-    TagsPredicate tagsPredicate,
-    List<String> uploaderOrPublishers,
-    String publisherId,
-    SearchOrder order,
+    String? query,
+    TagsPredicate? tagsPredicate,
+    List<String>? uploaderOrPublishers,
+    String? publisherId,
+    SearchOrder? order,
     int offset = 0,
-    int limit = 10,
+    int? limit = 10,
   }) {
     final q = _stringToNull(query?.trim());
     return ServiceSearchQuery._(
@@ -279,8 +282,8 @@ class ServiceSearchQuery {
         TagsPredicate.parseQueryValues(uri.queryParametersAll['tags']);
     final uploaderOrPublishers = uri.queryParametersAll['uploaderOrPublishers'];
     final publisherId = uri.queryParameters['publisherId'];
-    final String orderValue = uri.queryParameters['order'];
-    final SearchOrder order = parseSearchOrder(orderValue);
+    final String? orderValue = uri.queryParameters['order'];
+    final SearchOrder? order = parseSearchOrder(orderValue);
 
     final offset = int.tryParse(uri.queryParameters['offset'] ?? '0') ?? 0;
     final limit = int.tryParse(uri.queryParameters['limit'] ?? '0') ?? 0;
@@ -297,13 +300,13 @@ class ServiceSearchQuery {
   }
 
   ServiceSearchQuery change({
-    String query,
-    TagsPredicate tagsPredicate,
-    List<String> uploaderOrPublishers,
-    String publisherId,
-    SearchOrder order,
-    int offset,
-    int limit,
+    String? query,
+    TagsPredicate? tagsPredicate,
+    List<String>? uploaderOrPublishers,
+    String? publisherId,
+    SearchOrder? order,
+    int? offset,
+    int? limit,
   }) {
     return ServiceSearchQuery._(
       query: query ?? this.query,
@@ -330,7 +333,7 @@ class ServiceSearchQuery {
     return map;
   }
 
-  bool get _hasQuery => query != null && query.isNotEmpty;
+  bool get _hasQuery => query != null && query!.isNotEmpty;
   bool get _hasOnlyFreeText => _hasQuery && parsedQuery.hasOnlyFreeText;
   bool get _isNaturalOrder =>
       order == null || order == SearchOrder.top || order == SearchOrder.text;
@@ -346,10 +349,10 @@ class ServiceSearchQuery {
   bool get considerHighlightedHit => _hasOnlyFreeText && _hasNoOwnershipScope;
   bool get includeHighlightedHit => considerHighlightedHit && offset == 0;
 
-  String get sdk {
+  String? get sdk {
     final values = tagsPredicate._values.entries
-        .where((e) => e.key.startsWith('sdk:') && e.value == true)
-        .map((e) => e.key.split(':')[1]);
+        .where((e) => e.key!.startsWith('sdk:') && e.value == true)
+        .map((e) => e.key!.split(':')[1]);
     return values.isEmpty ? null : values.first;
   }
 
@@ -357,7 +360,7 @@ class ServiceSearchQuery {
   QueryValidity evaluateValidity() {
     // Block search on unreasonably long search queries (when the free-form
     // text part is longer than one would enter via the search input field).
-    final queryLength = parsedQuery?.text?.length ?? 0;
+    final queryLength = parsedQuery.text?.length ?? 0;
     if (queryLength > _maxQueryLength) {
       return QueryValidity.reject(rejectReason: 'Query too long.');
     }
@@ -377,10 +380,10 @@ class ServiceSearchQuery {
 }
 
 class QueryValidity {
-  final String rejectReason;
+  final String? rejectReason;
 
   QueryValidity.accept() : rejectReason = null;
-  QueryValidity.reject({@required this.rejectReason});
+  QueryValidity.reject({required this.rejectReason});
 
   bool get isRejected => rejectReason != null;
 }
@@ -388,9 +391,9 @@ class QueryValidity {
 /// Filter conditions on tags.
 class TagsPredicate {
   /// tag -> {true = required | false = prohibited}
-  final _values = <String, bool>{};
+  final _values = <String?, bool>{};
 
-  TagsPredicate({List<String> requiredTags, List<String> prohibitedTags}) {
+  TagsPredicate({List<String>? requiredTags, List<String>? prohibitedTags}) {
     requiredTags?.forEach((tag) => _values[tag] = true);
     prohibitedTags?.forEach((tag) => _values[tag] = false);
   }
@@ -405,7 +408,7 @@ class TagsPredicate {
         ],
       );
 
-  factory TagsPredicate.advertisement({List<String> requiredTags}) =>
+  factory TagsPredicate.advertisement({List<String>? requiredTags}) =>
       TagsPredicate(
         prohibitedTags: [
           PackageTags.isDiscontinued,
@@ -427,11 +430,11 @@ class TagsPredicate {
   bool hasTag(String tag) => _values.containsKey(tag);
 
   /// Parses [values] passed via Uri.queryParameters
-  factory TagsPredicate.parseQueryValues(List<String> values) {
+  factory TagsPredicate.parseQueryValues(List<String?>? values) {
     final p = TagsPredicate();
-    for (String tag in values ?? const <String>[]) {
+    for (String? tag in values ?? const <String>[]) {
       bool required = true;
-      if (tag.startsWith('-')) {
+      if (tag!.startsWith('-')) {
         tag = tag.substring(1);
         required = false;
       } else if (tag.startsWith('+')) {
@@ -449,8 +452,8 @@ class TagsPredicate {
   /// Returns the list of tags that override the current tag predicates.
   ///
   /// Returns an empty list when no tags overrides an existing value.
-  List<String> _getConflictingTags(TagsPredicate other) {
-    final tags = <String>[];
+  List<String?> _getConflictingTags(TagsPredicate other) {
+    final tags = <String?>[];
     for (final e in other._values.entries) {
       if (_values.containsKey(e.key) &&
           _values[e.key] != other._values[e.key]) {
@@ -494,7 +497,7 @@ class TagsPredicate {
   TagsPredicate removePrefix(String prefix) {
     final p = TagsPredicate();
     _values.entries.forEach((e) {
-      if (!e.key.startsWith(prefix)) {
+      if (!e.key!.startsWith(prefix)) {
         p._values[e.key] = e.value;
       }
     });
@@ -504,10 +507,9 @@ class TagsPredicate {
   /// Evaluate this predicate against the list of supplied [tags].
   /// Returns true if the predicate matches the [tags], false otherwise.
   bool matches(List<String> tags) {
-    tags ??= const <String>[];
-    for (String tag in _values.keys) {
+    for (String? tag in _values.keys) {
       final present = tags.contains(tag);
-      final required = _values[tag];
+      final required = _values[tag]!;
       if (required && !present) return false;
       if (!required && present) return false;
     }
@@ -515,7 +517,7 @@ class TagsPredicate {
   }
 
   /// Returns the list of tag values that can be passed to search service URL.
-  List<String> toQueryParameters() {
+  List<String?> toQueryParameters() {
     return _values.entries.map((e) => e.value ? e.key : '-${e.key}').toList();
   }
 
@@ -524,7 +526,7 @@ class TagsPredicate {
   Map<String, String> asSearchLinkParams() {
     final runtimeTagParts = tagPartsWithPrefix('runtime', value: true);
     final params = <String, String>{
-      'runtime': DartSdkRuntime.encodeRuntimeTags(runtimeTagParts).join(' '),
+      'runtime': DartSdkRuntime.encodeRuntimeTags(runtimeTagParts)!.join(' '),
       'platform': tagPartsWithPrefix('platform', value: true).join(' '),
     };
     params.removeWhere((k, v) => v.isEmpty);
@@ -532,18 +534,18 @@ class TagsPredicate {
   }
 
   /// Returns the second part of the tags matching [prefix] and [value].
-  List<String> tagPartsWithPrefix(String prefix, {bool value}) {
+  List<String> tagPartsWithPrefix(String prefix, {bool? value}) {
     return _values.keys
         .where((k) =>
-            k.startsWith('$prefix:') && (value == null || _values[k] == value))
-        .map((k) => k.substring(prefix.length + 1))
+            k!.startsWith('$prefix:') && (value == null || _values[k] == value))
+        .map((k) => k!.substring(prefix.length + 1))
         .toList();
   }
 }
 
 class ParsedQueryText {
-  final String text;
-  final String packagePrefix;
+  final String? text;
+  final String? packagePrefix;
 
   /// Dependency match for direct or dev dependency.
   final List<String> refDependencies;
@@ -552,7 +554,7 @@ class ParsedQueryText {
   final List<String> allDependencies;
 
   /// Match the publisher of the package.
-  final String publisher;
+  final String? publisher;
 
   /// Match uploader emails.
   final List<String> emails;
@@ -570,24 +572,25 @@ class ParsedQueryText {
     this.tagsPredicate,
   );
 
-  factory ParsedQueryText.parse(String q) {
-    String queryText = q ?? '';
+  factory ParsedQueryText.parse(String? q) {
+    String? queryText = q ?? '';
     queryText = ' $queryText ';
-    String packagePrefix;
-    final Match pkgMatch = _packageRegexp.firstMatch(queryText);
+    String? packagePrefix;
+    final Match? pkgMatch = _packageRegexp.firstMatch(queryText);
     if (pkgMatch != null) {
       packagePrefix = pkgMatch.group(1);
       queryText = queryText.replaceFirst(_packageRegexp, ' ');
     }
 
-    List<String> extractRegExp(RegExp regExp, {bool Function(String) where}) {
+    List<String> extractRegExp(RegExp regExp, {bool Function(String?)? where}) {
       final values = regExp
-          .allMatches(queryText)
+          .allMatches(queryText!)
           .map((Match m) => m.group(1))
           .where((s) => where == null || where(s))
+          .cast<String>()
           .toList();
       if (values.isNotEmpty) {
-        queryText = queryText.replaceAll(regExp, ' ');
+        queryText = queryText!.replaceAll(regExp, ' ');
       }
       return values;
     }
@@ -600,12 +603,12 @@ class ParsedQueryText {
 
     final tagValues = extractRegExp(
       _tagRegExp,
-      where: (tag) => _detectedTagPrefixes.any((p) => tag.startsWith(p)),
+      where: (tag) => _detectedTagPrefixes.any((p) => tag!.startsWith(p)),
     );
     final tagsPredicate = TagsPredicate.parseQueryValues(tagValues);
 
-    queryText = queryText.replaceAll(_whitespacesRegExp, ' ').trim();
-    if (queryText.isEmpty) {
+    queryText = queryText!.replaceAll(_whitespacesRegExp, ' ').trim();
+    if (queryText!.isEmpty) {
       queryText = null;
     }
 
@@ -625,7 +628,7 @@ class ParsedQueryText {
 
   bool get hasOnlyFreeText =>
       text != null &&
-      text.isNotEmpty &&
+      text!.isNotEmpty &&
       packagePrefix == null &&
       !hasAnyDependency &&
       publisher == null &&
@@ -635,22 +638,22 @@ class ParsedQueryText {
 
 @JsonSerializable(includeIfNull: false)
 class PackageSearchResult {
-  final DateTime timestamp;
+  final DateTime? timestamp;
   final int totalCount;
-  final PackageHit highlightedHit;
+  final PackageHit? highlightedHit;
   final List<SdkLibraryHit> sdkLibraryHits;
   final List<PackageHit> packageHits;
 
   /// An optional message from the search service / client library, in case
   /// the query was not processed entirely.
-  final String message;
+  final String? message;
 
   PackageSearchResult({
-    @required this.timestamp,
-    this.totalCount,
+    required this.timestamp,
+    required this.totalCount,
     this.highlightedHit,
-    List<SdkLibraryHit> sdkLibraryHits,
-    List<PackageHit> packageHits,
+    List<SdkLibraryHit>? sdkLibraryHits,
+    List<PackageHit>? packageHits,
     this.message,
   })  : sdkLibraryHits = sdkLibraryHits ?? <SdkLibraryHit>[],
         packageHits = packageHits ?? <PackageHit>[];
@@ -665,13 +668,13 @@ class PackageSearchResult {
   factory PackageSearchResult.fromJson(Map<String, dynamic> json) =>
       _$PackageSearchResultFromJson(json);
 
-  Duration get age => DateTime.now().difference(timestamp);
+  Duration get age => DateTime.now().difference(timestamp!);
 
   Map<String, dynamic> toJson() => _$PackageSearchResultToJson(this);
 
   /// Lists all package hits, including the highlighted hit (if there is any).
   Iterable<PackageHit> get allPackageHits sync* {
-    if (highlightedHit != null) yield highlightedHit;
+    if (highlightedHit != null) yield highlightedHit!;
     if (packageHits.isNotEmpty) yield* packageHits;
   }
 
@@ -681,22 +684,22 @@ class PackageSearchResult {
 
 @JsonSerializable(includeIfNull: false)
 class SdkLibraryHit {
-  final String sdk;
-  final String version;
-  final String library;
-  final String description;
-  final String url;
+  final String? sdk;
+  final String? version;
+  final String? library;
+  final String? description;
+  final String? url;
   final double score;
-  final List<ApiPageRef> apiPages;
+  final List<ApiPageRef>? apiPages;
 
   SdkLibraryHit({
-    @required this.sdk,
-    @required this.version,
-    @required this.library,
-    @required this.description,
-    @required this.url,
-    @required this.score,
-    @required this.apiPages,
+    required this.sdk,
+    required this.version,
+    required this.library,
+    required this.description,
+    required this.url,
+    required this.score,
+    required this.apiPages,
   });
 
   factory SdkLibraryHit.fromJson(Map<String, dynamic> json) =>
@@ -708,11 +711,11 @@ class SdkLibraryHit {
 @JsonSerializable(includeIfNull: false)
 class PackageHit {
   final String package;
-  final double score;
-  final List<ApiPageRef> apiPages;
+  final double? score;
+  final List<ApiPageRef>? apiPages;
 
   PackageHit({
-    @required this.package,
+    required this.package,
     this.score,
     this.apiPages,
   });
@@ -722,7 +725,7 @@ class PackageHit {
 
   Map<String, dynamic> toJson() => _$PackageHitToJson(this);
 
-  PackageHit change({List<ApiPageRef> apiPages}) {
+  PackageHit change({List<ApiPageRef>? apiPages}) {
     return PackageHit(
       package: package,
       score: score,
@@ -733,18 +736,18 @@ class PackageHit {
 
 @JsonSerializable()
 class ApiPageRef {
-  final String title;
-  final String path;
+  final String? title;
+  final String? path;
 
   @JsonKey(includeIfNull: false)
-  final String url;
+  final String? url;
 
   ApiPageRef({this.title, this.path, this.url});
 
   factory ApiPageRef.fromJson(Map<String, dynamic> json) =>
       _$ApiPageRefFromJson(json);
 
-  ApiPageRef change({String title, String url}) {
+  ApiPageRef change({String? title, String? url}) {
     return ApiPageRef(
       title: title ?? this.title,
       path: path,

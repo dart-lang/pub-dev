@@ -28,7 +28,7 @@ final _helpPublishingMarkdown = _readDocContent('help-publishing.md');
 
 /// Renders the `views/account/unauthenticated.mustache` template for the pages
 /// where the real content is only provided for logged-in users.
-String renderUnauthenticatedPage({String messageMarkdown}) {
+String renderUnauthenticatedPage({String? messageMarkdown}) {
   messageMarkdown ??= 'You need to be logged in to view this page.';
   final content = templateCache.renderTemplate('account/unauthenticated', {
     'message_html': markdownToHtml(messageMarkdown),
@@ -43,7 +43,7 @@ String renderUnauthenticatedPage({String messageMarkdown}) {
 
 /// Renders the `views/account/unauthorized.mustache` template for the pages
 /// where the real content is only provided for authorized users.
-String renderUnauthorizedPage({String messageMarkdown}) {
+String renderUnauthorizedPage({String? messageMarkdown}) {
   messageMarkdown ??= 'You have insufficient permissions to view this page.';
   final content = templateCache.renderTemplate('account/unauthorized', {
     'message_html': markdownToHtml(messageMarkdown),
@@ -136,9 +136,9 @@ String renderSecurityPage() {
 
 /// Renders the `views/page/standalone.mustache` template.
 String _renderStandalonePageContent({
-  String contentHtml,
-  String contentMarkdown,
-  String sideImageUrl,
+  String? contentHtml,
+  String? contentMarkdown,
+  String? sideImageUrl,
 }) {
   ArgumentError.checkNotNull(contentHtml ?? contentMarkdown);
   if (contentHtml != null && contentMarkdown != null) {

@@ -12,22 +12,22 @@ DartdocEntry _$DartdocEntryFromJson(Map<String, dynamic> json) {
     packageName: json['packageName'] as String,
     packageVersion: json['packageVersion'] as String,
     isLatest: json['isLatest'] as bool,
-    isObsolete: json['isObsolete'] as bool,
-    usesFlutter: json['usesFlutter'] as bool,
+    isObsolete: json['isObsolete'] as bool?,
+    usesFlutter: json['usesFlutter'] as bool?,
     runtimeVersion: json['runtimeVersion'] as String,
-    sdkVersion: json['sdkVersion'] as String,
-    dartdocVersion: json['dartdocVersion'] as String,
-    flutterVersion: json['flutterVersion'] as String,
+    sdkVersion: json['sdkVersion'] as String?,
+    dartdocVersion: json['dartdocVersion'] as String?,
+    flutterVersion: json['flutterVersion'] as String?,
     timestamp: json['timestamp'] == null
         ? null
         : DateTime.parse(json['timestamp'] as String),
     runDuration: json['runDuration'] == null
         ? null
         : Duration(microseconds: json['runDuration'] as int),
-    depsResolved: json['depsResolved'] as bool,
+    depsResolved: json['depsResolved'] as bool?,
     hasContent: json['hasContent'] as bool,
-    archiveSize: json['archiveSize'] as int,
-    totalSize: json['totalSize'] as int,
+    archiveSize: json['archiveSize'] as int?,
+    totalSize: json['totalSize'] as int?,
   );
 }
 
@@ -53,14 +53,12 @@ Map<String, dynamic> _$DartdocEntryToJson(DartdocEntry instance) =>
 
 FileInfo _$FileInfoFromJson(Map<String, dynamic> json) {
   return FileInfo(
-    lastModified: json['lastModified'] == null
-        ? null
-        : DateTime.parse(json['lastModified'] as String),
+    lastModified: DateTime.parse(json['lastModified'] as String),
     etag: json['etag'] as String,
   );
 }
 
 Map<String, dynamic> _$FileInfoToJson(FileInfo instance) => <String, dynamic>{
-      'lastModified': instance.lastModified?.toIso8601String(),
+      'lastModified': instance.lastModified.toIso8601String(),
       'etag': instance.etag,
     };

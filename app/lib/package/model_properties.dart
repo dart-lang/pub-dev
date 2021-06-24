@@ -27,8 +27,8 @@ Map<String, dynamic> _loadYaml(String yamlString) {
 class Pubspec {
   final pubspek.Pubspec _inner;
   final String jsonString;
-  Map<String, dynamic> _json;
-  String _canonicalVersion;
+  Map<String, dynamic>? _json;
+  String? _canonicalVersion;
 
   Pubspec._(this._inner, this.jsonString);
 
@@ -44,7 +44,7 @@ class Pubspec {
 
   Map<String, dynamic> get asJson {
     _load();
-    return _json;
+    return _json!;
   }
 
   String get name => _inner.name;
@@ -58,7 +58,7 @@ class Pubspec {
             'Unable to canonicalize the version: $nonCanonicalVersion');
       }
     }
-    return _canonicalVersion;
+    return _canonicalVersion!;
   }
 
   Iterable<String> get dependencyNames => _inner.dependencies.keys;
@@ -66,19 +66,19 @@ class Pubspec {
 
   Iterable<String> get devDependencies => _inner.devDependencies.keys;
 
-  String get documentation => _inner.documentation;
+  String? get documentation => _inner.documentation;
 
-  String get homepage => _inner.homepage;
+  String? get homepage => _inner.homepage;
 
-  String get repository => _inner.repository?.toString();
+  String? get repository => _inner.repository?.toString();
 
-  String get issueTracker => _inner.issueTracker?.toString();
+  String? get issueTracker => _inner.issueTracker?.toString();
 
-  String get description => _inner.description;
+  String? get description => _inner.description;
 
-  Map<String, dynamic> get executables {
+  Map<String, dynamic>? get executables {
     _load();
-    final map = _json['executables'];
+    final map = _json!['executables'];
     return map is Map<String, dynamic> ? map : null;
   }
 
@@ -86,9 +86,9 @@ class Pubspec {
   ///
   /// Returns null if the constraint is missing or does not follow the
   /// `>=<version>` pattern.
-  MinSdkVersion get minSdkVersion {
+  MinSdkVersion? get minSdkVersion {
     _load();
-    return MinSdkVersion.tryParse(_inner.environment['sdk']);
+    return MinSdkVersion.tryParse(_inner.environment?['sdk']);
   }
 
   /// True if the min Dart SDK version constraint is higher than the current SDK.
@@ -97,15 +97,15 @@ class Pubspec {
     return msv != null && msv.value.compareTo(currentSdkVersion) > 0;
   }
 
-  String get sdkConstraint {
+  String? get sdkConstraint {
     _load();
-    final environment = _json['environment'];
+    final environment = _json!['environment'];
     if (environment == null || environment is! Map) return null;
     return _asString(environment['sdk']);
   }
 
   SdkConstraintStatus get _sdkConstraintStatus =>
-      SdkConstraintStatus.fromSdkVersion(_inner.environment['sdk'], name);
+      SdkConstraintStatus.fromSdkVersion(_inner.environment?['sdk'], name);
 
   // TODO: migrate uses to SdkConstraintStatus.isDart2Compatible
   bool get supportsOnlyLegacySdk => !_sdkConstraintStatus.isDart2Compatible;
@@ -113,7 +113,7 @@ class Pubspec {
   /// Whether the pubspec file contains a flutter.plugin entry.
   bool get hasFlutterPlugin {
     _load();
-    final flutter = _json['flutter'];
+    final flutter = _json!['flutter'];
     if (flutter == null || flutter is! Map) return false;
     final plugin = flutter['plugin'];
     return plugin != null && plugin is Map;
@@ -122,15 +122,15 @@ class Pubspec {
   /// Whether the package has a dependency on flutter.
   bool get dependsOnFlutter {
     _load();
-    final dependencies = _json['dependencies'];
+    final dependencies = _json!['dependencies'];
     if (dependencies == null || dependencies is! Map) return false;
-    return (dependencies as Map).containsKey('flutter');
+    return dependencies.containsKey('flutter');
   }
 
   /// Whether the package has a dependency on flutter and it refers to the SDK.
   bool get dependsOnFlutterSdk {
     _load();
-    final dependencies = _json['dependencies'];
+    final dependencies = _json!['dependencies'];
     if (dependencies == null || dependencies is! Map) return false;
     final flutter = dependencies['flutter'];
     if (flutter == null || flutter is! Map) return false;
@@ -144,38 +144,32 @@ class Pubspec {
       _sdkConstraintStatus.hasOptedIntoNullSafety;
 
   void _load() {
-    if (_json == null) {
-      if (jsonString != null) {
-        _json = _loadYaml(jsonString);
-      } else {
-        _json = const {};
-      }
-    }
+    _json ??= _loadYaml(jsonString);
   }
 
-  String _asString(obj) {
+  String? _asString(obj) {
     if (obj == null) return null;
     if (obj is! String) {
       throw Exception('Expected a String value in pubspec.yaml.');
     }
-    return obj as String;
+    return obj;
   }
 }
 
 class MinSdkVersion {
   final Version value;
-  final String channel;
+  final String? channel;
 
   MinSdkVersion(this.value, this.channel);
 
-  static MinSdkVersion tryParse(VersionConstraint constraint) {
+  static MinSdkVersion? tryParse(VersionConstraint? constraint) {
     if (constraint == null || constraint is! VersionRange) {
       return null;
     }
-    final min = (constraint as VersionRange).min;
+    final min = constraint.min;
     if (min != null && !min.isAny && !min.isEmpty) {
       final str = min.toString();
-      String channel;
+      String? channel;
       if (str.endsWith('.dev')) {
         channel = 'dev';
       } else if (str.endsWith('.beta')) {
@@ -193,15 +187,16 @@ class MinSdkVersion {
 }
 
 class PubspecProperty extends StringProperty {
-  const PubspecProperty({String propertyName, bool required = false})
+  const PubspecProperty({String? propertyName, bool required = false})
       : super(propertyName: propertyName, required: required, indexed: false);
 
   @override
-  bool validate(ModelDB db, Object value) =>
+  bool validate(ModelDB db, Object? value) =>
       (!required || value != null) && (value == null || value is Pubspec);
 
   @override
-  String encodeValue(ModelDB db, Object pubspec, {bool forComparison = false}) {
+  String? encodeValue(ModelDB db, Object? pubspec,
+      {bool forComparison = false}) {
     if (pubspec is Pubspec) {
       return pubspec.jsonString;
     }
@@ -209,7 +204,7 @@ class PubspecProperty extends StringProperty {
   }
 
   @override
-  Object decodePrimitiveValue(ModelDB db, Object value) {
+  Object? decodePrimitiveValue(ModelDB db, Object? value) {
     if (value is String) {
       return Pubspec(value);
     }

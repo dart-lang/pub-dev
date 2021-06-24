@@ -12,14 +12,14 @@ import 'datastore.dart';
 /// Utility class to merge user data.
 /// Specifically for the case where a two [User] entities exists with the same [User.oauthUserId].
 class UserMerger {
-  final DatastoreDB _db;
-  final int _concurrency;
+  final DatastoreDB? _db;
+  final int? _concurrency;
   final bool _omitEmailCheck;
 
   UserMerger({
-    DatastoreDB db,
-    int concurrency = 1,
-    bool omitEmailCheck,
+    DatastoreDB? db,
+    int? concurrency = 1,
+    bool? omitEmailCheck,
   })  : _db = db,
         _concurrency = concurrency,
         _omitEmailCheck = omitEmailCheck ?? false;
@@ -27,36 +27,35 @@ class UserMerger {
   /// Fixes all OAuthUserID issues.
   Future<void> fixAll() async {
     final ids = await scanOauthUserIdsWithProblems();
-    for (String id in ids) {
+    for (String? id in ids) {
       await fixOAuthUserID(id);
     }
   }
 
   /// Returns the OAuth userIds that have more than one User.
-  Future<List<String>> scanOauthUserIdsWithProblems() async {
+  Future<List<String?>> scanOauthUserIdsWithProblems() async {
     print('Scanning Users...');
-    final query = _db.query<User>();
+    final query = _db!.query<User>();
     final counts = <String, int>{};
     await for (final user in query.run()) {
       if (user.oauthUserId == null) continue;
-      counts[user.oauthUserId] ??= 0;
-      counts[user.oauthUserId]++;
+      counts[user.oauthUserId!] = (counts[user.oauthUserId!] ?? 0) + 1;
     }
-    final result = counts.keys.where((k) => counts[k] > 1).toList();
+    final result = counts.keys.where((k) => counts[k]! > 1).toList();
     print('$result OAuthUserID with more than one User.');
     return result;
   }
 
   /// Runs user merging on the [oauthUserId] for each non-primary [User].
-  Future<void> fixOAuthUserID(String oauthUserId) async {
+  Future<void> fixOAuthUserID(String? oauthUserId) async {
     print('Fixing OAuthUserID=$oauthUserId');
 
-    final query = _db.query<User>()..filter('oauthUserId =', oauthUserId);
+    final query = _db!.query<User>()..filter('oauthUserId =', oauthUserId);
     final users = await query.run().toList();
     print('Users: ${users.map((u) => u.userId).join(', ')}');
 
-    final mapping = await _db.lookupValue<OAuthUserID>(
-        _db.emptyKey.append(OAuthUserID, id: oauthUserId));
+    final mapping = await _db!.lookupValue<OAuthUserID>(
+        _db!.emptyKey.append(OAuthUserID, id: oauthUserId));
     print('Primary User: ${mapping.userId}');
     if (!users.any((u) => u.userId == mapping.userId)) {
       throw StateError('Primary User is missing!');
@@ -82,14 +81,14 @@ class UserMerger {
   }
 
   /// Migrates data for User merge.
-  Future<void> mergeUser(String fromUserId, String toUserId) async {
+  Future<void> mergeUser(String? fromUserId, String? toUserId) async {
     print('Merging User: $fromUserId -> $toUserId');
 
     // Package
     await _processConcurrently(
-      _db.query<Package>()..filter('uploaders =', fromUserId),
+      _db!.query<Package>()..filter('uploaders =', fromUserId),
       (Package m) async {
-        await withRetryTransaction(_db, (tx) async {
+        await withRetryTransaction(_db!, (tx) async {
           final p = await tx.lookupValue<Package>(m.key);
           if (p.containsUploader(fromUserId)) {
             p.removeUploader(fromUserId);
@@ -102,9 +101,9 @@ class UserMerger {
 
     // PackageVersion
     await _processConcurrently(
-      _db.query<PackageVersion>()..filter('uploader =', fromUserId),
+      _db!.query<PackageVersion>()..filter('uploader =', fromUserId),
       (PackageVersion m) async {
-        await withRetryTransaction(_db, (tx) async {
+        await withRetryTransaction(_db!, (tx) async {
           final pv = await tx.lookupValue<PackageVersion>(m.key);
           if (pv.uploader == fromUserId) {
             pv.uploader = toUserId;
@@ -115,11 +114,11 @@ class UserMerger {
     );
 
     // UserSession
-    final fromUserKey = _db.emptyKey.append(User, id: fromUserId);
+    final fromUserKey = _db!.emptyKey.append(User, id: fromUserId);
     await _processConcurrently(
-      _db.query<UserSession>()..filter('userId =', fromUserId),
+      _db!.query<UserSession>()..filter('userId =', fromUserId),
       (UserSession m) async {
-        await withRetryTransaction(_db, (tx) async {
+        await withRetryTransaction(_db!, (tx) async {
           final session = await tx.lookupValue<UserSession>(m.key);
           if (session.userId == fromUserId) {
             session.userId = toUserId;
@@ -131,12 +130,12 @@ class UserMerger {
 
     // Consent's fromUserId attribute
     await _processConcurrently(
-      _db.query<Consent>()..filter('fromUserId =', fromUserId),
+      _db!.query<Consent>()..filter('fromUserId =', fromUserId),
       (Consent m) async {
-        if (m?.parentKey?.id != null) {
+        if (m.parentKey?.id != null) {
           throw StateError('Old Consent entity: ${m.consentId}.');
         }
-        await withRetryTransaction(_db, (tx) async {
+        await withRetryTransaction(_db!, (tx) async {
           final consent = await tx.lookupValue<Consent>(m.key);
           if (consent.fromUserId == fromUserId) {
             consent.fromUserId = toUserId;
@@ -148,21 +147,21 @@ class UserMerger {
 
     // PublisherMember
     await _processConcurrently(
-      _db.query<PublisherMember>()..filter('userId =', fromUserId),
+      _db!.query<PublisherMember>()..filter('userId =', fromUserId),
       (PublisherMember m) async {
-        await withRetryTransaction(_db, (tx) async {
+        await withRetryTransaction(_db!, (tx) async {
           tx.queueMutations(
               inserts: [m.changeParentUserId(toUserId)], deletes: [m.key]);
         });
       },
     );
 
-    await _db.commit(deletes: [fromUserKey]);
+    await _db!.commit(deletes: [fromUserKey]);
   }
 
   Future<void> _processConcurrently<T extends Model>(
       Query<T> query, Future<void> Function(T) fn) async {
-    final pool = Pool(_concurrency);
+    final pool = Pool(_concurrency!);
     final futures = <Future>[];
     await for (final m in query.run()) {
       final f = pool.withResource(() => fn(m));

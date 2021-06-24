@@ -13,7 +13,6 @@ import '../scorecard/models.dart';
 import '../shared/versions.dart' show runtimeVersion;
 
 export 'package:pana/pana.dart' show LicenseFile;
-export '../scorecard/models.dart' show ReportExt;
 
 /// Sets the analyzer client.
 void registerAnalyzerClient(AnalyzerClient client) =>
@@ -36,7 +35,7 @@ class AnalyzerClient {
 
   Future<void> triggerAnalysis(
     String package,
-    String version,
+    String? version,
     Set<String> dependentPackages, {
     bool isHighPriority = false,
   }) async {
@@ -54,31 +53,30 @@ class AnalyzerClient {
 }
 
 class AnalysisView {
-  final ScoreCardData _card;
-  Report _report;
+  final ScoreCardData? _card;
+  Report? _report;
 
   AnalysisView([this._card]);
 
-  PanaReport get _pana => _card?.panaReport;
-  DartdocReport get _dartdoc => card?.dartdocReport;
+  PanaReport? get _pana => _card?.panaReport;
+  DartdocReport? get _dartdoc => card?.dartdocReport;
 
-  PanaRuntimeInfo get panaRuntimeInfo => _pana?.panaRuntimeInfo;
+  PanaRuntimeInfo? get panaRuntimeInfo => _pana?.panaRuntimeInfo;
 
   bool get isLatestRuntimeVersion => _card?.runtimeVersion == runtimeVersion;
 
   bool get hasAnalysisData => _card != null;
-  ScoreCardData get card => _card;
-  bool get hasApiDocs =>
-      _dartdoc != null && _dartdoc.reportStatus == ReportStatus.success;
+  ScoreCardData? get card => _card;
+  bool get hasApiDocs => _dartdoc?.reportStatus == ReportStatus.success;
 
-  DateTime get timestamp => _pana?.timestamp;
+  DateTime? get timestamp => _pana?.timestamp;
 
-  Report get report =>
+  Report? get report =>
       _report ??= joinReport(panaReport: _pana, dartdocReport: _dartdoc);
 
   List<String> get derivedTags => _card?.derivedTags ?? const <String>[];
 
-  LicenseFile get licenseFile => _pana?.licenseFile;
+  LicenseFile? get licenseFile => _pana?.licenseFile;
 
-  List<String> get allDependencies => _pana?.allDependencies;
+  List<String>? get allDependencies => _pana?.allDependencies;
 }

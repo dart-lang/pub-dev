@@ -31,6 +31,15 @@ import 'utils.dart' show fileAnIssueContent, parseCookieHeader;
 // However, we should still emit it on other domains e.g. on pub.dartlang.org.
 const _hstsDuration = Duration(days: 365);
 
+// TODO: remove after appengine gets fixed
+ClientContext? get _appengineContext {
+  try {
+    return context;
+  } catch (_) {
+    return null;
+  }
+}
+
 Future<void> runHandler(
   Logger logger,
   shelf.Handler handler, {
@@ -171,7 +180,7 @@ shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
       if (shouldLog) {
         logger.info('Caught response exception: $e');
       }
-      final content = markdownToHtml('# Error `${e.code}`\n\n${e.message}\n');
+      final content = markdownToHtml('# Error `${e.code}`\n\n${e.message}\n')!;
       return htmlResponse(
         renderLayoutPage(
           PageType.package,
@@ -185,9 +194,9 @@ shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
       logger.severe('Request handler failed', error, Trace.from(st));
 
       final title = 'Pub is not feeling well';
-      Map<String, String> debugHeaders;
-      if (context.traceId != null) {
-        debugHeaders = {'package-site-request-id': context.traceId};
+      Map<String, String>? debugHeaders;
+      if (_appengineContext?.traceId != null) {
+        debugHeaders = {'package-site-request-id': _appengineContext!.traceId!};
       }
       final markdownText = '''# $title
 
@@ -198,13 +207,13 @@ $fileAnIssueContent
 Add these details to help us fix the issue:
 ````
 Requested URL: ${request.requestedUri}
-Request ID: ${context.traceId}
+Request ID: ${_appengineContext?.traceId}
 ````
       ''';
 
       final content = renderLayoutPage(
         PageType.package,
-        markdownToHtml(markdownText),
+        markdownToHtml(markdownText)!,
         title: title,
         noIndex: true,
       );
@@ -235,7 +244,7 @@ shelf.Handler _userAuthWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
     final authorization = request.headers['authorization'];
     if (authorization != null) {
-      String accessToken;
+      String? accessToken;
       final parts = authorization.split(' ');
       if (parts.length == 2 && parts.first.trim().toLowerCase() == 'bearer') {
         accessToken = parts.last.trim();
@@ -265,7 +274,9 @@ shelf.Handler _userSessionWrapper(Logger logger, shelf.Handler handler) {
       final cookieString = request.headers[HttpHeaders.cookieHeader];
       final sessionData =
           await accountBackend.parseAndLookupSessionCookie(cookieString);
-      registerUserSessionData(sessionData);
+      if (sessionData != null) {
+        registerUserSessionData(sessionData);
+      }
     }
     shelf.Response rs = await handler(request);
     if (userSessionData != null) {
@@ -282,15 +293,16 @@ shelf.Handler _userSessionWrapper(Logger logger, shelf.Handler handler) {
 /// - adds Strict-Transport-Security response header (HSTS)
 shelf.Handler _httpsWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
-    if (context != null &&
-        context.isProductionEnvironment &&
+    if (_appengineContext != null &&
+        _appengineContext!.isProductionEnvironment &&
         request.requestedUri.scheme != 'https') {
       final secureUri = request.requestedUri.replace(scheme: 'https');
       return shelf.Response.seeOther(secureUri);
     }
 
     shelf.Response rs = await handler(request);
-    if (context != null && context.isProductionEnvironment) {
+    if (_appengineContext != null &&
+        _appengineContext!.isProductionEnvironment) {
       rs = rs.change(headers: {
         'strict-transport-security':
             'max-age=${_hstsDuration.inSeconds}; preload',

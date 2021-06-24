@@ -25,10 +25,10 @@ Future<FlutterArchive> fetchFlutterArchive() async {
 /// The latest released versions on all Flutter release channels.
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
 class FlutterArchive {
-  final String baseUrl;
+  final String? baseUrl;
   @JsonKey(name: 'current_release')
-  final FlutterCurrentRelease currentRelease;
-  final List<FlutterRelease> releases;
+  final FlutterCurrentRelease? currentRelease;
+  final List<FlutterRelease>? releases;
 
   FlutterArchive({this.baseUrl, this.currentRelease, this.releases});
 
@@ -41,9 +41,9 @@ class FlutterArchive {
 /// The hashes of the current Flutter releases on the different channels.
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
 class FlutterCurrentRelease {
-  final String beta;
-  final String dev;
-  final String stable;
+  final String? beta;
+  final String? dev;
+  final String? stable;
 
   FlutterCurrentRelease({this.beta, this.dev, this.stable});
 
@@ -56,13 +56,13 @@ class FlutterCurrentRelease {
 /// A single release for Flutter.
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
 class FlutterRelease {
-  final String hash;
-  final String channel;
-  final String version;
+  final String? hash;
+  final String? channel;
+  final String? version;
   @JsonKey(name: 'release_date')
-  final DateTime releaseDate;
-  final String archive;
-  final String sha256;
+  final DateTime? releaseDate;
+  final String? archive;
+  final String? sha256;
 
   FlutterRelease({
     this.hash,

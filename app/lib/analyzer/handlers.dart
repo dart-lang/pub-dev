@@ -11,7 +11,7 @@ import '../shared/handlers.dart';
 /// Handlers for the analyzer service.
 Future<shelf.Response> analyzerServiceHandler(shelf.Request request) async {
   final path = request.requestedUri.path;
-  final shelf.Handler handler = {
+  final handler = {
     '/debug': _debugHandler,
     '/liveness_check': (_) => htmlResponse('OK'),
     '/readiness_check': (_) => htmlResponse('OK'),
@@ -19,7 +19,7 @@ Future<shelf.Response> analyzerServiceHandler(shelf.Request request) async {
   }[path];
 
   if (handler != null) {
-    return await handler(request);
+    return handler(request);
   } else {
     return notFoundHandler(request);
   }

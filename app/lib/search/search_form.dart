@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/meta.dart';
-
 import '../shared/tags.dart';
 import '../shared/urls.dart';
 
@@ -13,7 +11,7 @@ export 'search_service.dart' show SearchOrder, TagsPredicate;
 
 /// The <form> data from the app frontend.
 class SearchForm {
-  final String query;
+  final String? query;
   final ParsedQueryText parsedQuery;
 
   final TagsPredicate tagsPredicate;
@@ -23,32 +21,32 @@ class SearchForm {
   ///
   /// Values of this list can be email addresses (usually a single on) or
   /// publisher ids (may be multiple).
-  final List<String> uploaderOrPublishers;
+  final List<String>? uploaderOrPublishers;
 
-  final String publisherId;
-  final SearchOrder order;
+  final String? publisherId;
+  final SearchOrder? order;
 
   /// The visible index of the current page (and offset position).
   /// Starts with 1.
-  final int currentPage;
+  final int? currentPage;
 
   /// The number of search results per page.
-  final int pageSize;
+  final int? pageSize;
 
   /// True, if packages with is:discontinued tag should be included.
-  final bool includeDiscontinued;
+  final bool? includeDiscontinued;
 
   /// True, if packages with is:unlisted tag should be included.
-  final bool includeUnlisted;
+  final bool? includeUnlisted;
 
   /// True, if null safe package should be listed.
-  final bool nullSafe;
+  final bool? nullSafe;
 
   SearchForm._({
     this.query,
-    TagsPredicate tagsPredicate,
-    List<String> uploaderOrPublishers,
-    String publisherId,
+    TagsPredicate? tagsPredicate,
+    List<String>? uploaderOrPublishers,
+    String? publisherId,
     this.order,
     this.currentPage,
     this.pageSize,
@@ -61,16 +59,16 @@ class SearchForm {
         publisherId = _stringToNull(publisherId);
 
   factory SearchForm.parse({
-    String query,
-    String sdk,
-    List<String> runtimes,
-    List<String> platforms,
-    TagsPredicate tagsPredicate,
-    List<String> uploaderOrPublishers,
-    String publisherId,
-    SearchOrder order,
-    int currentPage,
-    int pageSize,
+    String? query,
+    String? sdk,
+    List<String>? runtimes,
+    List<String>? platforms,
+    TagsPredicate? tagsPredicate,
+    List<String>? uploaderOrPublishers,
+    String? publisherId,
+    SearchOrder? order,
+    int? currentPage,
+    int? pageSize,
     bool includeDiscontinued = false,
     bool includeUnlisted = false,
     bool nullSafe = false,
@@ -85,11 +83,11 @@ class SearchForm {
     }
     DartSdkRuntime.decodeQueryValues(runtimes)
         ?.map((v) => 'runtime:$v')
-        ?.forEach(requiredTags.add);
+        .forEach(requiredTags.add);
     platforms
         ?.where((v) => v.isNotEmpty)
-        ?.map((v) => 'platform:$v')
-        ?.forEach(requiredTags.add);
+        .map((v) => 'platform:$v')
+        .forEach(requiredTags.add);
     if (requiredTags.isNotEmpty) {
       tagsPredicate = tagsPredicate
           .appendPredicate(TagsPredicate(requiredTags: requiredTags));
@@ -109,17 +107,17 @@ class SearchForm {
   }
 
   SearchForm change({
-    String query,
-    String sdk,
-    TagsPredicate tagsPredicate,
-    List<String> uploaderOrPublishers,
-    String publisherId,
-    SearchOrder order,
-    int currentPage,
-    int pageSize,
+    String? query,
+    String? sdk,
+    TagsPredicate? tagsPredicate,
+    List<String>? uploaderOrPublishers,
+    String? publisherId,
+    SearchOrder? order,
+    int? currentPage,
+    int? pageSize,
   }) {
     if (sdk != null) {
-      tagsPredicate ??= this.tagsPredicate ?? TagsPredicate();
+      tagsPredicate ??= this.tagsPredicate;
       if (!tagsPredicate.isRequiredTag('sdk:$sdk')) {
         tagsPredicate = tagsPredicate
             .removePrefix('sdk:')
@@ -152,11 +150,11 @@ class SearchForm {
 
   ServiceSearchQuery toServiceQuery() {
     var tagsPredicate = this.tagsPredicate;
-    if (includeDiscontinued &&
+    if (includeDiscontinued! &&
         tagsPredicate.isProhibitedTag(PackageTags.isDiscontinued)) {
       tagsPredicate = tagsPredicate.withoutTag(PackageTags.isDiscontinued);
     }
-    if (includeUnlisted &&
+    if (includeUnlisted! &&
         tagsPredicate.isProhibitedTag(PackageTags.isUnlisted)) {
       tagsPredicate = tagsPredicate.withoutTag(PackageTags.isUnlisted);
     }
@@ -164,17 +162,16 @@ class SearchForm {
     // `is:legacy` override.
     if (tagsPredicate.isProhibitedTag(PackageVersionTags.isLegacy) &&
         hasQuery &&
-        query.contains(PackageVersionTags.isLegacy)) {
+        query!.contains(PackageVersionTags.isLegacy)) {
       final parsed = ParsedQueryText.parse(query);
-      if (parsed.tagsPredicate != null &&
-          parsed.tagsPredicate.isRequiredTag(PackageVersionTags.isLegacy)) {
+      if (parsed.tagsPredicate.isRequiredTag(PackageVersionTags.isLegacy)) {
         tagsPredicate = tagsPredicate
             .withoutTag(PackageVersionTags.isLegacy)
             .appendPredicate(
                 TagsPredicate(requiredTags: [PackageVersionTags.isLegacy]));
       }
     }
-    if (nullSafe) {
+    if (nullSafe!) {
       tagsPredicate =
           tagsPredicate.appendPredicate(TagsPredicate(requiredTags: [
         PackageTags.convertToPrereleaseTag(PackageVersionTags.isNullSafe),
@@ -191,12 +188,12 @@ class SearchForm {
     );
   }
 
-  bool get hasQuery => query != null && query.isNotEmpty;
+  bool get hasQuery => query != null && query!.isNotEmpty;
 
   /// The zero-indexed offset for the search results.
-  int get offset => (currentPage - 1) * pageSize;
+  int get offset => (currentPage! - 1) * pageSize!;
 
-  String get sdk {
+  String? get sdk {
     final values = tagsPredicate.tagPartsWithPrefix('sdk', value: true);
     return values.isEmpty ? null : values.first;
   }
@@ -215,10 +212,10 @@ class SearchForm {
     if (isFlutterFavorite) {
       path = '/flutter/favorites';
     }
-    if (publisherId != null && publisherId.isNotEmpty) {
+    if (publisherId != null && publisherId!.isNotEmpty) {
       path = '/publishers/$publisherId/packages';
     }
-    if (uploaderOrPublishers != null && uploaderOrPublishers.isNotEmpty) {
+    if (uploaderOrPublishers != null && uploaderOrPublishers!.isNotEmpty) {
       path = myPackagesUrl();
     }
     return path;
@@ -226,10 +223,10 @@ class SearchForm {
 
   /// Converts the query to a user-facing link that (after frontend parsing) will
   /// re-create an identical search query object.
-  String toSearchLink({int page}) {
+  String toSearchLink({int? page}) {
     page ??= currentPage;
     final params = <String, dynamic>{};
-    if (query != null && query.isNotEmpty) {
+    if (query != null && query!.isNotEmpty) {
       params['q'] = query;
     }
     params.addAll(tagsPredicate.asSearchLinkParams());
@@ -237,13 +234,13 @@ class SearchForm {
       final String paramName = 'sort';
       params[paramName] = serializeSearchOrder(order);
     }
-    if (includeDiscontinued) {
+    if (includeDiscontinued!) {
       params['discontinued'] = '1';
     }
-    if (includeUnlisted) {
+    if (includeUnlisted!) {
       params['unlisted'] = '1';
     }
-    if (nullSafe) {
+    if (nullSafe!) {
       params['null-safe'] = '1';
     }
     if (page != null && page > 1) {
@@ -261,23 +258,23 @@ class SearchForm {
 /// we use in the search service backend.
 SearchForm parseFrontendSearchForm(
   Map<String, String> queryParameters, {
-  String platform,
-  String sdk,
-  List<String> uploaderOrPublishers,
-  String publisherId,
-  @required TagsPredicate tagsPredicate,
+  String? platform,
+  String? sdk,
+  List<String>? uploaderOrPublishers,
+  String? publisherId,
+  required TagsPredicate tagsPredicate,
 }) {
   final currentPage = extractPageFromUrlParameters(queryParameters);
   final String queryText = queryParameters['q'] ?? '';
-  final String sortParam = queryParameters['sort'];
-  final SearchOrder sortOrder = parseSearchOrder(sortParam);
-  List<String> runtimes;
+  final String? sortParam = queryParameters['sort'];
+  final SearchOrder? sortOrder = parseSearchOrder(sortParam);
+  List<String>? runtimes;
   if (queryParameters.containsKey('runtime')) {
-    runtimes = queryParameters['runtime'].split(' ');
+    runtimes = queryParameters['runtime']!.split(' ');
   }
-  List<String> platforms;
+  List<String>? platforms;
   if (queryParameters.containsKey('platform')) {
-    platforms = queryParameters['platform'].split(' ');
+    platforms = queryParameters['platform']!.split(' ');
   }
   return SearchForm.parse(
     query: queryText,
@@ -296,6 +293,6 @@ SearchForm parseFrontendSearchForm(
   );
 }
 
-String _stringToNull(String v) => (v == null || v.isEmpty) ? null : v;
-List<String> _listToNull(List<String> list) =>
+String? _stringToNull(String? v) => (v == null || v.isEmpty) ? null : v;
+List<String>? _listToNull(List<String>? list) =>
     (list == null || list.isEmpty) ? null : list;

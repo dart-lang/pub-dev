@@ -30,20 +30,20 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   }
   checkPackageVersionParams(docFilePath.package, docFilePath.version);
   if (redirectPackageUrls.containsKey(docFilePath.package)) {
-    return redirectResponse(redirectPackageUrls[docFilePath.package]);
+    return redirectResponse(redirectPackageUrls[docFilePath.package]!);
   }
   if (!await packageBackend.isPackageVisible(docFilePath.package)) {
     return notFoundHandler(request);
   }
-  if (docFilePath.package != null && docFilePath.version == null) {
+  if (docFilePath.version == null) {
     return redirectResponse(pkgDocUrl(docFilePath.package, isLatest: true));
   }
   if (docFilePath.path == null) {
     return redirectResponse('${request.requestedUri}/');
   }
-  final String requestMethod = request.method?.toUpperCase();
+  final String requestMethod = request.method.toUpperCase();
   final entry =
-      await dartdocBackend.getEntry(docFilePath.package, docFilePath.version);
+      await dartdocBackend.getEntry(docFilePath.package, docFilePath.version!);
   if (entry == null) {
     return notFoundHandler(request);
   }
@@ -55,10 +55,10 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
     }
   }
   if (requestMethod == 'HEAD') {
-    if (!entry.hasContent && docFilePath.path.endsWith('.html')) {
+    if (!entry.hasContent && docFilePath.path!.endsWith('.html')) {
       return notFoundHandler(request);
     }
-    final info = await dartdocBackend.getFileInfo(entry, docFilePath.path);
+    final info = await dartdocBackend.getFileInfo(entry, docFilePath.path!);
     if (info == null) {
       return notFoundHandler(request);
     }
@@ -66,7 +66,7 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
     return htmlResponse('');
   }
   if (requestMethod == 'GET') {
-    if (!entry.hasContent && docFilePath.path.endsWith('.html')) {
+    if (!entry.hasContent && docFilePath.path!.endsWith('.html')) {
       final logTxtUrl = pkgDocUrl(docFilePath.package,
           version: docFilePath.version, relativePath: 'log.txt');
       final versionsUrl = pkgVersionsUrl(docFilePath.package);
@@ -77,26 +77,21 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
               '- Check [other versions]($versionsUrl) of the same package.\n');
       return htmlResponse(content, status: 404);
     }
-    final info = await dartdocBackend.getFileInfo(entry, docFilePath.path);
+    final info = await dartdocBackend.getFileInfo(entry, docFilePath.path!);
     if (info == null) {
       return notFoundHandler(request);
     }
     if (isNotModified(request, info.lastModified, info.etag)) {
       return shelf.Response.notModified();
     }
-    final stream = dartdocBackend.readContent(entry, docFilePath.path);
+    final stream = dartdocBackend.readContent(entry, docFilePath.path!);
     final headers = {
-      HttpHeaders.contentTypeHeader: contentType(docFilePath.path),
+      HttpHeaders.contentTypeHeader: contentType(docFilePath.path!),
       HttpHeaders.cacheControlHeader:
           'private, max-age=${staticShortCache.inSeconds}',
+      HttpHeaders.lastModifiedHeader: formatHttpDate(info.lastModified),
+      HttpHeaders.etagHeader: info.etag,
     };
-    if (info.lastModified != null) {
-      headers[HttpHeaders.lastModifiedHeader] =
-          formatHttpDate(info.lastModified);
-    }
-    if (info.etag != null) {
-      headers[HttpHeaders.etagHeader] = info.etag;
-    }
     return shelf.Response(HttpStatus.ok, body: stream, headers: headers);
   }
   return notFoundHandler(request);
@@ -106,15 +101,15 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
 /// [package] is always set, [version] or [path] may be missing.
 class DocFilePath {
   final String package;
-  final String version;
-  final String path;
+  final String? version;
+  final String? path;
 
   DocFilePath(this.package, this.version, this.path);
 }
 
 /// Parses the /documentation/<package>/<version>/<path with many levels> URL
 /// and returns the parsed structure.
-DocFilePath parseRequestUri(Uri uri) {
+DocFilePath? parseRequestUri(Uri uri) {
   final int segmentCount = uri.pathSegments.length;
   if (segmentCount < 2) return null;
   if (uri.pathSegments[0] != 'documentation') return null;

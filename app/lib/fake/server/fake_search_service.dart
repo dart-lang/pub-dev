@@ -9,7 +9,6 @@ import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
 
@@ -30,7 +29,7 @@ class FakeSearchService {
 
   Future<void> run({
     int port = 8082,
-    @required Configuration configuration,
+    required Configuration configuration,
   }) async {
     await withFakeServices(
         configuration: configuration,
@@ -40,7 +39,7 @@ class FakeSearchService {
           final handler = wrapHandler(_logger, searchServiceHandler);
           final server = await IOServer.bind('localhost', port);
           serveRequests(server.server, (request) async {
-            return await ss.fork(() async {
+            return (await ss.fork(() async {
               if (request.requestedUri.path == '/fake-update-all') {
                 _logger.info('Triggered update all...');
                 // ignore: invalid_use_of_visible_for_testing_member
@@ -49,7 +48,7 @@ class FakeSearchService {
                 return shelf.Response.ok('');
               }
               return await handler(request);
-            }) as shelf.Response;
+            }) as shelf.Response?)!;
           });
           _logger.info('running on port $port');
 

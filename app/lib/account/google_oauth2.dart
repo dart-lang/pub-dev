@@ -22,8 +22,8 @@ final _tokenInfoEndPoint = Uri.parse('https://oauth2.googleapis.com/tokeninfo');
 /// Provides OAuth2-based authentication through Google accounts.
 class GoogleOauth2AuthProvider extends AuthProvider {
   final List<String> _trustedAudiences;
-  http.Client _httpClient;
-  oauth2_v2.Oauth2Api _oauthApi;
+  late http.Client _httpClient;
+  late oauth2_v2.Oauth2Api _oauthApi;
 
   GoogleOauth2AuthProvider(this._trustedAudiences) {
     _httpClient = http.Client();
@@ -32,12 +32,12 @@ class GoogleOauth2AuthProvider extends AuthProvider {
 
   /// Authenticate [token] as `access_token` or `id_token`.
   @override
-  Future<AuthResult> tryAuthenticate(String token) async {
+  Future<AuthResult?> tryAuthenticate(String? token) async {
     if (token == null || token.isEmpty) {
       return null;
     }
 
-    AuthResult result;
+    AuthResult? result;
     // Note: it might be overkill to try both authentication flows. But once
     //       we've migrated the pub client to authenticate using id_tokens
     //       the implications of accidentally breaking access_token
@@ -67,11 +67,11 @@ class GoogleOauth2AuthProvider extends AuthProvider {
   }
 
   /// Authenticate with oauth2 [accessToken].
-  Future<AuthResult> _tryAuthenticateAccessToken(String accessToken) async {
+  Future<AuthResult?> _tryAuthenticateAccessToken(String? accessToken) async {
     oauth2_v2.Tokeninfo info;
     try {
       info = await _oauthApi.tokeninfo(accessToken: accessToken);
-      if (info == null) {
+      if (info.userId == null) {
         return null;
       }
 
@@ -82,18 +82,18 @@ class GoogleOauth2AuthProvider extends AuthProvider {
       }
 
       if (info.expiresIn == null ||
-          info.expiresIn <= 0 ||
+          info.expiresIn! <= 0 ||
           info.userId == null ||
-          info.userId.isEmpty ||
+          info.userId!.isEmpty ||
           info.verifiedEmail != true ||
           info.email == null ||
-          info.email.isEmpty ||
+          info.email!.isEmpty ||
           !looksLikeEmail(info.email)) {
         _logger.warning('OAuth2 token info invalid: ${info.toJson()}');
         return null;
       }
 
-      return AuthResult(info.userId, info.email.toLowerCase());
+      return AuthResult(info.userId, info.email!.toLowerCase());
     } on oauth2_v2.ApiRequestError catch (e) {
       _logger.info('Access denied for OAuth2 access token.', e);
     } catch (e, st) {
@@ -103,7 +103,7 @@ class GoogleOauth2AuthProvider extends AuthProvider {
   }
 
   /// Authenticate with openid-connect `id_token`.
-  Future<AuthResult> _tryAuthenticateJwt(String jwt) async {
+  Future<AuthResult?> _tryAuthenticateJwt(String jwt) async {
     // Hit the token-info end-point documented at:
     // https://developers.google.com/identity/sign-in/web/backend-auth
     // Note: ideally, we would verify these JWTs locally, but unfortunately
@@ -158,7 +158,7 @@ class GoogleOauth2AuthProvider extends AuthProvider {
       _logger.warning('JWT rejected, aud missing');
       return null; // missing audience
     }
-    if (!_trustedAudiences.contains(aud as String)) {
+    if (!_trustedAudiences.contains(aud)) {
       _logger.warning('JWT rejected, aud = "$aud"');
       return null; // Not trusted audience
     }
@@ -179,11 +179,12 @@ class GoogleOauth2AuthProvider extends AuthProvider {
       _logger.warning('JWT rejected, email_verified = "$emailVerified"');
       return null; // missing email (probably missing 'email' scope)
     }
-    return AuthResult(sub as String, email as String);
+    return AuthResult(sub, email);
   }
 
   @override
-  Future<AccountProfile> getAccountProfile(String accessToken) async {
+  Future<AccountProfile?> getAccountProfile(String? accessToken) async {
+    if (accessToken == null) return null;
     final client = httpRetryClient(innerClient: http.Client());
     final authClient = auth.authenticatedClient(
         client,

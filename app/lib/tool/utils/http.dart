@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.12
-
 import 'package:http/http.dart' as http;
 import 'package:http_retry/http_retry.dart';
 
@@ -32,7 +30,7 @@ http.Client httpRetryClient({
 /// Returns an [http.Client] which sends a `Bearer` token as `Authorization`
 /// header for each request.
 http.Client httpClientWithAuthorization({
-  required Future<String> Function() tokenProvider,
+  required Future<String?> Function() tokenProvider,
   http.Client? client,
 }) {
   return _AuthenticatedClient(

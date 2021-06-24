@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/meta.dart';
-import 'package:pana/models.dart'
-    show PanaRuntimeInfo, Report, ReportSection, ReportStatus;
+import 'package:pana/models.dart' show PanaRuntimeInfo, Report, ReportStatus;
 
 import '../../analyzer/analyzer_client.dart';
 import '../../scorecard/models.dart' hide ReportStatus;
@@ -19,11 +17,11 @@ import 'package_misc.dart';
 
 /// Renders the `views/pkg/analysis/tab.mustache` template.
 String renderAnalysisTab(
-  String package,
-  String sdkConstraint,
-  ScoreCardData card,
-  AnalysisView analysis, {
-  @required int likeCount,
+  String? package,
+  String? sdkConstraint,
+  ScoreCardData? card,
+  AnalysisView? analysis, {
+  required int? likeCount,
 }) {
   if (card == null || analysis == null || !analysis.hasAnalysisData) {
     return '<i>Awaiting analysis to complete.</i>';
@@ -38,10 +36,10 @@ String renderAnalysisTab(
     'show_legacy': card.isLegacy,
     'show_awaiting': showAwaiting,
     'show_analysis': !card.isSkipped && !showAwaiting,
-    'analysis_tab_url': urls.pkgScoreUrl(package),
+    'analysis_tab_url': urls.pkgScoreUrl(package!),
     'date_completed': analysis.timestamp == null
         ? null
-        : shortDateFormat.format(analysis.timestamp),
+        : shortDateFormat.format(analysis.timestamp!),
     'granted_points': report?.grantedPoints ?? 0,
     'max_points': report?.maxPoints ?? 0,
     'report_html': _renderReport(report),
@@ -57,10 +55,10 @@ String renderAnalysisTab(
 }
 
 /// Renders the `views/pkg/analysis/report.mustache` template.
-String _renderReport(Report report) {
+String? _renderReport(Report? report) {
   if (report?.sections == null) return null;
 
-  String renderSummary(String summary) {
+  String? renderSummary(String summary) {
     final updated = summary.split('\n').map((line) {
       if (!line.startsWith('### ')) return line;
       return line
@@ -81,33 +79,23 @@ String _renderReport(Report report) {
   }
 
   return templateCache.renderTemplate('pkg/analysis/report', {
-    'sections': report.sections.map((s) {
-      final color = s.status ?? _classify(s);
+    'sections': report!.sections.map((s) {
+      final status = s.status;
       return {
         'title': s.title,
         'grantedPoints': s.grantedPoints,
         'maxPoints': s.maxPoints,
         'summary_html': renderSummary(s.summary),
         'event-id': 'toggle-report-section-${s.id}',
-        'is_green': color == ReportStatus.passed,
-        'is_yellow': color == ReportStatus.partial,
-        'is_red': color == ReportStatus.failed,
+        'is_green': status == ReportStatus.passed,
+        'is_yellow': status == ReportStatus.partial,
+        'is_red': status == ReportStatus.failed,
       };
     }),
   });
 }
 
-ReportStatus _classify(ReportSection s) {
-  if (s.grantedPoints == s.maxPoints) {
-    return ReportStatus.passed;
-  } else if (s.grantedPoints > 0) {
-    return ReportStatus.partial;
-  } else {
-    return ReportStatus.failed;
-  }
-}
-
-String _renderLikeKeyFigure(int likeCount) {
+String _renderLikeKeyFigure(int? likeCount) {
   // TODO: implement k/m supplemental for values larger than 1000
   return _renderKeyFigure(
     value: '$likeCount',
@@ -116,7 +104,7 @@ String _renderLikeKeyFigure(int likeCount) {
   );
 }
 
-String _renderPopularityKeyFigure(double popularity) {
+String _renderPopularityKeyFigure(double? popularity) {
   return _renderKeyFigure(
     value: formatScore(popularity),
     supplemental: '%',
@@ -124,7 +112,7 @@ String _renderPopularityKeyFigure(double popularity) {
   );
 }
 
-String _renderPubPointsKeyFigure(Report report) {
+String _renderPubPointsKeyFigure(Report? report) {
   if (report == null) {
     return _renderKeyFigure(
       value: '',
@@ -147,9 +135,9 @@ String _renderPubPointsKeyFigure(Report report) {
 
 /// Renders the `views/pkg/analysis/key_figure.mustache` template.
 String _renderKeyFigure({
-  @required String value,
-  @required String supplemental,
-  @required String label,
+  required String value,
+  required String supplemental,
+  required String label,
 }) {
   return templateCache.renderTemplate('pkg/analysis/key_figure', {
     'value': value,
@@ -158,7 +146,7 @@ String _renderKeyFigure({
   });
 }
 
-String _renderToolEnvInfo(PanaRuntimeInfo info, bool usesFlutter) {
+String? _renderToolEnvInfo(PanaRuntimeInfo? info, bool usesFlutter) {
   if (info == null) return null;
   return templateCache.renderTemplate('pkg/analysis/tool_env_info', {
     'tools': [
@@ -170,13 +158,13 @@ String _renderToolEnvInfo(PanaRuntimeInfo info, bool usesFlutter) {
       if (usesFlutter)
         {
           'name': 'Flutter',
-          'version': info.flutterVersions['frameworkVersion'],
+          'version': info.flutterVersions!['frameworkVersion'],
           'last': false,
         },
       {
         'name': 'Dart',
         'version': usesFlutter
-            ? info.flutterVersions['dartSdkVersion']
+            ? info.flutterVersions!['dartSdkVersion']
             : info.sdkVersion,
         'last': true,
       },

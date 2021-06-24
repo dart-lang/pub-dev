@@ -53,62 +53,62 @@ enum JobStatus {
 @Kind(name: 'Job', idType: IdType.String)
 class Job extends ExpandoModel<String> {
   @StringProperty()
-  String runtimeVersion;
+  String? runtimeVersion;
 
   @JobServiceProperty()
-  JobService service;
+  JobService? service;
 
   @StringProperty()
-  String packageName;
+  String? packageName;
 
   @StringProperty(indexed: false)
-  String packageVersion;
+  String? packageVersion;
 
   @DateTimeProperty(indexed: false)
-  DateTime packageVersionUpdated;
+  DateTime? packageVersionUpdated;
 
   @BoolProperty(indexed: false)
-  bool isLatestStable;
+  bool isLatestStable = false;
 
   @BoolProperty(indexed: false)
-  bool isLatestPrerelease;
+  bool isLatestPrerelease = false;
 
   @BoolProperty(indexed: false)
-  bool isLatestPreview;
+  bool isLatestPreview = false;
 
   @JobStateProperty()
-  JobState state;
+  JobState? state;
 
   @DateTimeProperty()
-  DateTime lockedUntil;
+  DateTime? lockedUntil;
 
   // fields for state = available
 
   @IntProperty()
-  int priority;
+  int priority = 0;
 
   // fields for state = processing
 
   @StringProperty(indexed: false)
-  String processingKey;
+  String? processingKey;
 
   // fields for state = idle
 
   @JobStatusProperty()
-  JobStatus lastStatus;
+  JobStatus? lastStatus;
 
   @IntProperty(indexed: false)
-  int lastRunDurationInSeconds;
+  int? lastRunDurationInSeconds;
 
   @IntProperty(indexed: false)
-  int errorCount;
+  int errorCount = 0;
 
   bool get isLatest => isLatestStable || isLatestPrerelease || isLatestPreview;
 
   @override
   String toString() => '$packageName $packageVersion';
 
-  void updatePriority(double popularity, {int fixPriority}) {
+  void updatePriority(double popularity, {int? fixPriority}) {
     if (fixPriority != null) {
       priority = fixPriority;
       return;
@@ -117,13 +117,12 @@ class Job extends ExpandoModel<String> {
 
     // newer versions first
     final now = DateTime.now().toUtc();
-    final age = now.difference(packageVersionUpdated).abs();
+    final age = now.difference(packageVersionUpdated!).abs();
     priority += age.inDays;
 
     // popular packages first - except fresh uploads which are not pushed back
     // based on their popularity.
     if (age.inHours >= 8) {
-      popularity ??= 0.0;
       popularity = math.max(0.0, math.min(1.0, popularity));
       priority += ((1 - popularity) * 2000).round();
     }
@@ -133,7 +132,7 @@ class Job extends ExpandoModel<String> {
       priority += 100000;
 
       // pre-release versions get pushed back even further
-      final parsed = Version.parse(packageVersion);
+      final parsed = Version.parse(packageVersion!);
       if (parsed.isPreRelease) {
         priority += 100000;
       }
@@ -145,15 +144,15 @@ class Job extends ExpandoModel<String> {
 }
 
 class JobServiceProperty extends StringProperty {
-  const JobServiceProperty({String propertyName, bool required = false})
+  const JobServiceProperty({String? propertyName, bool required = false})
       : super(propertyName: propertyName, required: required, indexed: true);
 
   @override
-  bool validate(ModelDB db, Object value) =>
+  bool validate(ModelDB db, Object? value) =>
       (!required || value != null) && (value == null || value is JobService);
 
   @override
-  String encodeValue(ModelDB db, Object value, {bool forComparison = false}) {
+  String? encodeValue(ModelDB db, Object? value, {bool forComparison = false}) {
     if (value == null) return null;
     if (value is JobService) {
       return jobServiceAsString(value);
@@ -163,7 +162,7 @@ class JobServiceProperty extends StringProperty {
   }
 
   @override
-  Object decodePrimitiveValue(ModelDB db, Object value) {
+  Object? decodePrimitiveValue(ModelDB db, Object? value) {
     if (value == null) return null;
     return JobService.values
         .firstWhere((js) => jobServiceAsString(js) == value);
@@ -171,15 +170,15 @@ class JobServiceProperty extends StringProperty {
 }
 
 class JobStateProperty extends StringProperty {
-  const JobStateProperty({String propertyName, bool required = false})
+  const JobStateProperty({String? propertyName, bool required = false})
       : super(propertyName: propertyName, required: required, indexed: true);
 
   @override
-  bool validate(ModelDB db, Object value) =>
+  bool validate(ModelDB db, Object? value) =>
       (!required || value != null) && (value == null || value is JobState);
 
   @override
-  String encodeValue(ModelDB db, Object value, {bool forComparison = false}) {
+  String? encodeValue(ModelDB db, Object? value, {bool forComparison = false}) {
     if (value == null) return null;
     if (value is JobState) {
       return jobStateAsString(value);
@@ -189,22 +188,22 @@ class JobStateProperty extends StringProperty {
   }
 
   @override
-  Object decodePrimitiveValue(ModelDB db, Object value) {
+  Object? decodePrimitiveValue(ModelDB db, Object? value) {
     if (value == null) return null;
     return JobState.values.firstWhere((js) => jobStateAsString(js) == value);
   }
 }
 
 class JobStatusProperty extends StringProperty {
-  const JobStatusProperty({String propertyName, bool required = false})
+  const JobStatusProperty({String? propertyName, bool required = false})
       : super(propertyName: propertyName, required: required, indexed: true);
 
   @override
-  bool validate(ModelDB db, Object value) =>
+  bool validate(ModelDB db, Object? value) =>
       (!required || value != null) && (value == null || value is JobStatus);
 
   @override
-  String encodeValue(ModelDB db, Object value, {bool forComparison = false}) {
+  String? encodeValue(ModelDB db, Object? value, {bool forComparison = false}) {
     if (value == null) return null;
     if (value is JobStatus) {
       return jobStatusAsString(value);
@@ -214,7 +213,7 @@ class JobStatusProperty extends StringProperty {
   }
 
   @override
-  Object decodePrimitiveValue(ModelDB db, Object value) {
+  Object? decodePrimitiveValue(ModelDB db, Object? value) {
     if (value == null) return null;
     return JobStatus.values.firstWhere((js) => jobStatusAsString(js) == value);
   }

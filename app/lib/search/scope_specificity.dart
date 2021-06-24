@@ -9,10 +9,10 @@ import '../shared/tags.dart';
 ///
 /// Scores are biased towards more specific packages (e.g. if somebody is
 /// filtering for Flutter, we prefer Flutter-specific packages vs. generic packages).
-double scoreScopeSpecificity(String sdk, List<String> tags) {
+double scoreScopeSpecificity(String? sdk, List<String>? tags) {
   if (sdk == null || sdk.isEmpty) return 1.0;
 
-  final sdkCount = tags?.where((t) => t.startsWith('sdk:'))?.length ?? 0;
+  final sdkCount = tags?.where((t) => t.startsWith('sdk:')).length ?? 0;
 
   if (sdk == SdkTagValue.flutter) {
     /// Heavy bias towards a single platform: ['a'] >> ['a', 'b'] >> ['a', 'b', 'c'].

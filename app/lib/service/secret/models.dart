@@ -9,7 +9,7 @@ import '../../shared/datastore.dart' as db;
 @db.Kind(name: 'Secret', idType: db.IdType.String)
 class Secret extends db.Model {
   @db.StringProperty(required: true)
-  String value;
+  String? value;
 }
 
 /// Identifiers of the [Secret] keys.

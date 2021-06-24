@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:meta/meta.dart';
 import 'package:neat_periodic_task/neat_periodic_task.dart';
 
 import '../../account/backend.dart';
@@ -127,9 +126,9 @@ void _setupJobCleanupPeriodicTasks() {
 }
 
 void _daily({
-  @required String name,
-  @required bool isRuntimeVersioned,
-  @required NeatPeriodicTask task,
+  required String name,
+  required bool isRuntimeVersioned,
+  required NeatPeriodicTask task,
 }) {
   final scheduler = NeatPeriodicTaskScheduler(
     name: name,
@@ -145,9 +144,9 @@ void _daily({
 }
 
 void _weekly({
-  @required String name,
-  @required bool isRuntimeVersioned,
-  @required NeatPeriodicTask task,
+  required String name,
+  required bool isRuntimeVersioned,
+  required NeatPeriodicTask task,
 }) {
   final scheduler = NeatPeriodicTaskScheduler(
     name: name,

@@ -37,6 +37,20 @@ const jsonResponseHeaders = <String, String>{
 final _logger = Logger('pub.shared.handler');
 final _prettyJson = JsonUtf8Encoder('  ');
 
+extension ResponseExt on shelf.Response {
+  bool get isRouteFound => !isRouteNotFound;
+  bool get isRouteNotFound {
+    if (statusCode == 9999) return true;
+    if (statusCode != 404) return false;
+    if (headers.length != 1) return false;
+    if (headers.keys.single != 'content-length') return false;
+    if (headers['content-length'] != '9') return false;
+    return true;
+  }
+}
+
+shelf.Response routeNotFound() => shelf.Response(9999);
+
 shelf.Response redirectResponse(String url) => shelf.Response.seeOther(url);
 
 shelf.Response redirectToSearch(String query) {
@@ -47,7 +61,7 @@ shelf.Response jsonResponse(
   Map map, {
   int status = 200,
   bool indentJson = false,
-  Map<String, String> headers,
+  Map<String, String>? headers,
 }) {
   final body = (indentJson || requestContext.indentJson)
       ? _prettyJson.convert(map)
@@ -65,7 +79,7 @@ shelf.Response jsonResponse(
 shelf.Response htmlResponse(
   String content, {
   int status = 200,
-  Map<String, String> headers,
+  Map<String, String>? headers,
   bool noReferrer = false,
 }) {
   headers ??= <String, String>{};
@@ -86,7 +100,7 @@ shelf.Response rejectRobotsHandler(shelf.Request request) =>
     shelf.Response.ok('User-agent: *\nDisallow: /\n');
 
 /// Combines a response for /debug requests
-shelf.Response debugResponse([Map<String, dynamic> data]) {
+shelf.Response debugResponse([Map<String, dynamic>? data]) {
   final map = <String, dynamic>{
     'env': {
       'GAE_VERSION': Platform.environment['GAE_VERSION'],
@@ -120,27 +134,27 @@ shelf.Response debugResponse([Map<String, dynamic> data]) {
   if (data != null) {
     map.addAll(data);
   }
-  if (popularityStorage != null) {
-    map['popularity'] = {
-      'fetched': popularityStorage.lastFetched?.toIso8601String(),
-      'count': popularityStorage.count,
-      'dateRange': popularityStorage.dateRange,
-    };
-  }
+  map['popularity'] = {
+    'fetched': popularityStorage.lastFetched?.toIso8601String(),
+    'count': popularityStorage.count,
+    'dateRange': popularityStorage.dateRange,
+  };
   return jsonResponse(map, indentJson: true);
 }
 
-bool isNotModified(shelf.Request request, DateTime lastModified, String etag) {
-  DateTime ifModifiedSince;
+bool isNotModified(
+    shelf.Request request, DateTime? lastModified, String? etag) {
+  DateTime? ifModifiedSince;
   try {
     ifModifiedSince = request.ifModifiedSince;
   } on FormatException {
     _logger.info('invalid If-Modified-Since header');
     return false;
   }
-  if (ifModifiedSince != null &&
+  // TODO: use only `ifModifiedSince` after the null-safety migration
+  if (request.ifModifiedSince != null &&
       lastModified != null &&
-      !lastModified.isAfter(ifModifiedSince)) {
+      !lastModified.isAfter(ifModifiedSince!)) {
     return true;
   }
 

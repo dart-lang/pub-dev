@@ -42,13 +42,13 @@ class DartSdkMemIndex {
     await _index.close();
   }
 
-  Future<List<SdkLibraryHit>> search(String query, {int limit}) async {
+  Future<List<SdkLibraryHit>> search(String query, {int? limit}) async {
     if (!_index.isAvailable) return <SdkLibraryHit>[];
-    return await _index.value.search(query, limit: limit);
+    return await _index.value!.search(query, limit: limit);
   }
 
   @visibleForTesting
-  void setDartdocIndex(DartdocIndex index, {String version}) {
+  void setDartdocIndex(DartdocIndex index, {String? version}) {
     final smi = SdkMemIndex.dart(version: version);
     smi.addDartdocIndex(index);
     // ignore: invalid_use_of_visible_for_testing_member
@@ -56,7 +56,7 @@ class DartSdkMemIndex {
   }
 }
 
-Future<SdkMemIndex> _createDartSdkMemIndex() async {
+Future<SdkMemIndex?> _createDartSdkMemIndex() async {
   try {
     return await retry(
       () async {

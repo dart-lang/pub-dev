@@ -16,7 +16,7 @@ Future scoped(Function() func) {
   });
 }
 
-void scopedTest(String name, Function() func, {Timeout timeout}) {
+void scopedTest(String name, Function() func, {Timeout? timeout}) {
   test(name, () {
     return fork(() async {
       // double fork to allow further override

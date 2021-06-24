@@ -8,7 +8,7 @@ part of 'search_tabs.dart';
 
 Map<String, dynamic> _$SearchTabsToJson(SearchTabs instance) =>
     <String, dynamic>{
-      'tabs': instance.tabs?.map((e) => e?.toJson())?.toList(),
+      'tabs': instance.tabs?.map((e) => e.toJson()).toList(),
     };
 
 Map<String, dynamic> _$SearchTabToJson(SearchTab instance) => <String, dynamic>{

@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:meta/meta.dart';
-import 'package:neat_cache/neat_cache.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
@@ -16,6 +15,7 @@ import '../../package/overrides.dart';
 import '../../publisher/backend.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
+import '../../shared/redis_cache_wrapper.dart';
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart';
 import '../../tool/utils/dart_sdk_version.dart';
@@ -51,8 +51,8 @@ Future<shelf.Response> packageShowHandlerJson(
   final versions = await packageBackend.versionsOfPackage(packageName);
   sortPackageVersionsDesc(versions, decreasing: false);
 
-  final uploaderEmails =
-      await accountBackend.getEmailsOfUserIds(package.uploaders);
+  final uploaderEmails = await accountBackend
+      .getEmailsOfUserIds(package.uploaders as List<String>);
 
   final json = {
     'name': package.name,
@@ -80,7 +80,7 @@ Future<shelf.Response> packageVersionsListHandler(
       sortPackageVersionsDesc(versions);
       final versionDownloadUrls =
           await Future.wait(versions.map((PackageVersion version) {
-        return packageBackend.downloadUrl(packageName, version.version);
+        return packageBackend.downloadUrl(packageName, version.version!);
       }).toList());
 
       final dartSdkVersion = await getDartSdkVersion();
@@ -95,7 +95,7 @@ Future<shelf.Response> packageVersionsListHandler(
 /// Handles requests for /packages/<package>/versions/<version>/changelog
 Future<shelf.Response> packageChangelogHandler(
     shelf.Request request, String packageName,
-    {String versionName}) async {
+    {String? versionName}) async {
   return await _handlePackagePage(
     request: request,
     packageName: packageName,
@@ -116,7 +116,7 @@ Future<shelf.Response> packageChangelogHandler(
 /// Handles requests for /packages/<package>/versions/<version>/example
 Future<shelf.Response> packageExampleHandler(
     shelf.Request request, String packageName,
-    {String versionName}) async {
+    {String? versionName}) async {
   return await _handlePackagePage(
     request: request,
     packageName: packageName,
@@ -137,7 +137,7 @@ Future<shelf.Response> packageExampleHandler(
 /// Handles requests for /packages/<package>/versions/<version>/install
 Future<shelf.Response> packageInstallHandler(
     shelf.Request request, String packageName,
-    {String versionName}) async {
+    {String? versionName}) async {
   return await _handlePackagePage(
     request: request,
     packageName: packageName,
@@ -152,7 +152,7 @@ Future<shelf.Response> packageInstallHandler(
 /// Handles requests for /packages/<package>/versions/<version>/license
 Future<shelf.Response> packageLicenseHandler(
     shelf.Request request, String packageName,
-    {String versionName}) async {
+    {String? versionName}) async {
   return await _handlePackagePage(
     request: request,
     packageName: packageName,
@@ -167,7 +167,7 @@ Future<shelf.Response> packageLicenseHandler(
 /// Handles requests for /packages/<package>/versions/<version>/pubspec
 Future<shelf.Response> packagePubspecHandler(
     shelf.Request request, String packageName,
-    {String versionName}) async {
+    {String? versionName}) async {
   return await _handlePackagePage(
     request: request,
     packageName: packageName,
@@ -182,7 +182,7 @@ Future<shelf.Response> packagePubspecHandler(
 /// Handles requests for /packages/<package>/versions/<version>/score
 Future<shelf.Response> packageScoreHandler(
     shelf.Request request, String packageName,
-    {String versionName}) async {
+    {String? versionName}) async {
   return await _handlePackagePage(
     request: request,
     packageName: packageName,
@@ -197,7 +197,7 @@ Future<shelf.Response> packageScoreHandler(
 /// Handles requests for /packages/<package>/versions/<version>
 Future<shelf.Response> packageVersionHandlerHtml(
     shelf.Request request, String packageName,
-    {String versionName}) async {
+    {String? versionName}) async {
   return await _handlePackagePage(
     request: request,
     packageName: packageName,
@@ -209,19 +209,19 @@ Future<shelf.Response> packageVersionHandlerHtml(
 }
 
 Future<shelf.Response> _handlePackagePage({
-  @required shelf.Request request,
-  @required String packageName,
-  @required String versionName,
-  @required String assetKind,
-  @required FutureOr Function(PackagePageData data) renderFn,
-  Entry<String> cacheEntry,
+  required shelf.Request request,
+  required String packageName,
+  required String? versionName,
+  required String? assetKind,
+  required FutureOr Function(PackagePageData data) renderFn,
+  Entry<String>? cacheEntry,
 }) async {
   checkPackageVersionParams(packageName, versionName);
   if (redirectPackageUrls.containsKey(packageName)) {
-    return redirectResponse(redirectPackageUrls[packageName]);
+    return redirectResponse(redirectPackageUrls[packageName]!);
   }
   final Stopwatch sw = Stopwatch()..start();
-  String cachedPage;
+  String? cachedPage;
   if (requestContext.uiCacheEnabled && cacheEntry != null) {
     cachedPage = await cacheEntry.get();
   }
@@ -231,7 +231,7 @@ Future<shelf.Response> _handlePackagePage({
     final data = await loadPackagePageData(packageName, versionName, assetKind);
     _packageDataLoadLatencyTracker.add(serviceSw.elapsed);
     if (data.package == null ||
-        data.package.isNotVisible ||
+        data.package!.isNotVisible ||
         data.version == null) {
       if (data.moderatedPackage != null) {
         final content = renderModeratedPackagePage(packageName);
@@ -268,13 +268,13 @@ Future<shelf.Response> packageAdminHandler(
       if (userSessionData == null) {
         return htmlResponse(renderUnauthenticatedPage());
       }
-      if (!data.isAdmin) {
+      if (!data.isAdmin!) {
         return htmlResponse(renderUnauthorizedPage());
       }
-      final page =
-          await publisherBackend.listPublishersForUser(userSessionData.userId);
+      final page = await publisherBackend
+          .listPublishersForUser(userSessionData!.userId!);
       return renderPkgAdminPage(
-          data, page.publishers.map((p) => p.publisherId).toList());
+          data, page.publishers!.map((p) => p.publisherId).toList());
     },
   );
 }
@@ -282,8 +282,8 @@ Future<shelf.Response> packageAdminHandler(
 @visibleForTesting
 Future<PackagePageData> loadPackagePageData(
   String packageName,
-  String versionName,
-  String assetKind,
+  String? versionName,
+  String? assetKind,
 ) async {
   final package = await packageBackend.lookupPackage(packageName);
   if (package == null || package.isNotVisible) {
@@ -298,12 +298,12 @@ Future<PackagePageData> loadPackagePageData(
   final bool isLiked = (userSessionData == null)
       ? false
       : await accountBackend.getPackageLikeStatus(
-              userSessionData.userId, package.name) !=
+              userSessionData!.userId!, package.name!) !=
           null;
 
   versionName ??= package.latestVersion;
   final selectedVersion =
-      await packageBackend.lookupPackageVersion(packageName, versionName);
+      await packageBackend.lookupPackageVersion(packageName, versionName!);
   if (selectedVersion == null) {
     return PackagePageData.missing(
       package: package,
@@ -326,10 +326,10 @@ Future<PackagePageData> loadPackagePageData(
           packageName, versionName, assetKind);
 
   final analysisView = await analyzerClient.getAnalysisView(
-      selectedVersion.package, selectedVersion.version);
+      selectedVersion.package, selectedVersion.version!);
 
-  final uploaderEmails =
-      await accountBackend.getEmailsOfUserIds(package.uploaders);
+  final uploaderEmails = await accountBackend
+      .getEmailsOfUserIds(package.uploaders as List<String>);
 
   final isAdmin =
       await packageBackend.isPackageAdmin(package, userSessionData?.userId);

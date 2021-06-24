@@ -29,14 +29,14 @@ NameTracker get nameTracker => ss.lookup(#_name_tracker) as NameTracker;
 /// iterating over Datastore entries.
 /// TODO: support remove and re-scan package names every day or so.
 class NameTracker {
-  final DatastoreDB _db;
+  final DatastoreDB? _db;
   final Set<String> _names = <String>{};
 
   /// Names that are reserved due to moderated packages having these names.
   final Set<String> _reservedNames = <String>{};
   final Set<String> _reducedNames = <String>{};
   final _firstScanCompleter = Completer();
-  _NameTrackerUpdater _updater;
+  _NameTrackerUpdater? _updater;
 
   NameTracker(this._db);
 
@@ -95,12 +95,12 @@ class NameTracker {
   /// Scans the Datastore and populates the tracker.
   @visibleForTesting
   Future<void> scanDatastore() async {
-    await for (final p in _db.query<Package>().run()) {
-      add(p.name);
+    await for (final p in _db!.query<Package>().run()) {
+      add(p.name!);
     }
 
-    await for (ModeratedPackage p in _db.query<ModeratedPackage>().run()) {
-      addReservedName(p.name);
+    await for (ModeratedPackage p in _db!.query<ModeratedPackage>().run()) {
+      addReservedName(p.name!);
     }
     if (!_firstScanCompleter.isCompleted) {
       _firstScanCompleter.complete();
@@ -113,8 +113,8 @@ class NameTracker {
     if (_updater != null) {
       throw StateError('Already tracking datastore.');
     }
-    _updater = _NameTrackerUpdater(_db);
-    _updater.startNameTrackerUpdates();
+    _updater = _NameTrackerUpdater(_db!);
+    _updater!.startNameTrackerUpdates();
   }
 
   /// Stops tracking the datastore.
@@ -127,9 +127,9 @@ class NameTracker {
 /// Updates [nameTracker] by polling the Datastore periodically.
 class _NameTrackerUpdater {
   final DatastoreDB _db;
-  DateTime _lastTs;
-  Completer _sleepCompleter;
-  Timer _sleepTimer;
+  DateTime? _lastTs;
+  Completer? _sleepCompleter;
+  Timer? _sleepTimer;
   bool _stopped = false;
 
   _NameTrackerUpdater(this._db);
@@ -171,12 +171,12 @@ class _NameTrackerUpdater {
     if (_stopped) return;
     _sleepCompleter = Completer();
     _sleepTimer = Timer(_pollingInterval, () {
-      if (_sleepCompleter != null && !_sleepCompleter.isCompleted) {
-        _sleepCompleter.complete();
+      if (_sleepCompleter != null && !_sleepCompleter!.isCompleted) {
+        _sleepCompleter!.complete();
       }
     });
-    await _sleepCompleter.future;
-    _sleepTimer.cancel();
+    await _sleepCompleter!.future;
+    _sleepTimer?.cancel();
     _sleepCompleter = null;
     _sleepTimer = null;
   }
@@ -189,7 +189,7 @@ class _NameTrackerUpdater {
     }
     await for (Package p in query.run()) {
       if (_stopped) return;
-      nameTracker.add(p.name);
+      nameTracker.add(p.name!);
     }
 
     final moderatedPkgQuery = _db.query<ModeratedPackage>()..order('moderated');
@@ -199,7 +199,7 @@ class _NameTrackerUpdater {
 
     await for (ModeratedPackage p in moderatedPkgQuery.run()) {
       if (_stopped) return;
-      nameTracker.addReservedName(p.name);
+      nameTracker.addReservedName(p.name!);
     }
 
     _lastTs = now.subtract(const Duration(hours: 1));
@@ -207,8 +207,8 @@ class _NameTrackerUpdater {
 
   void stop() {
     _stopped = true;
-    if (_sleepCompleter != null && !_sleepCompleter.isCompleted) {
-      _sleepCompleter.complete();
+    if (_sleepCompleter != null && !_sleepCompleter!.isCompleted) {
+      _sleepCompleter!.complete();
     }
     _sleepTimer?.cancel();
   }

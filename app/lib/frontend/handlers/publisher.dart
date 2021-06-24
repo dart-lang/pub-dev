@@ -33,14 +33,14 @@ Future<shelf.Response> publisherListHandler(shelf.Request request) async {
   if (requestContext.uiCacheEnabled) {
     final content = await cache.uiPublisherListPage().get(() async {
       final page = await publisherBackend.listPublishers();
-      return renderPublisherListPage(page.publishers);
+      return renderPublisherListPage(page.publishers!);
     });
-    return htmlResponse(content);
+    return htmlResponse(content!);
   }
 
   // no caching for logged-in user
   final page = await publisherBackend.listPublishers();
-  final content = renderPublisherListPage(page.publishers);
+  final content = renderPublisherListPage(page.publishers!);
   return htmlResponse(content);
 }
 
@@ -114,7 +114,7 @@ Future<shelf.Response> publisherAdminPageHandler(
   }
   final isAdmin = await publisherBackend.isMemberAdmin(
     publisherId,
-    userSessionData.userId,
+    userSessionData!.userId,
   );
   if (!isAdmin) {
     return htmlResponse(renderUnauthorizedPage());

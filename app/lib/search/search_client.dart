@@ -32,7 +32,7 @@ class SearchClient {
   /// The HTTP client used for making calls to our search service.
   final http.Client _httpClient;
 
-  SearchClient([http.Client client])
+  SearchClient([http.Client? client])
       : _httpClient = client ?? httpRetryClient(retries: 3);
 
   /// Calls the search service (or uses cache) to serve the [query].
@@ -42,8 +42,8 @@ class SearchClient {
   /// search service and update the cached value.
   Future<PackageSearchResult> search(
     ServiceSearchQuery query, {
-    Duration ttl,
-    Duration updateCacheAfter,
+    Duration? ttl,
+    Duration? updateCacheAfter,
     bool skipCache = false,
   }) async {
     // check validity first
@@ -58,7 +58,7 @@ class SearchClient {
     final serviceUrlParams = Uri(queryParameters: query.toUriQueryParameters());
     final String serviceUrl = '$httpHostPort/search$serviceUrlParams';
 
-    Future<PackageSearchResult> searchFn() async {
+    Future<PackageSearchResult?> searchFn() async {
       final response = await _httpClient
           .get(Uri.parse(serviceUrl), headers: cloudTraceHeaders())
           .timeout(Duration(seconds: 5));
@@ -78,7 +78,7 @@ class SearchClient {
       return result;
     }
 
-    PackageSearchResult result;
+    PackageSearchResult? result;
 
     if (skipCache) {
       result = await searchFn();
@@ -87,7 +87,8 @@ class SearchClient {
       result = await cacheEntry.get(searchFn);
 
       if (updateCacheAfter != null &&
-          result?.timestamp != null &&
+          result != null &&
+          result.timestamp != null &&
           result.age > updateCacheAfter) {
         _logger.info('Updating stale cache entry.');
         final value = await searchFn();
@@ -104,7 +105,7 @@ class SearchClient {
   }
 
   /// Search service maintains a separate index in each of the running instances.
-  /// This method will update the [ScoreCard] entry of the package, and it will
+  /// This method will update the ScoreCard entry of the package, and it will
   /// be picked up by each search index individually, within a few minutes.
   Future<void> triggerReindex(String package, String version) async {
     await scoreCardBackend.markScoreCardUpdated(package, version);

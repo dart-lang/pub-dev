@@ -50,14 +50,14 @@ class FakeServerCommand extends Command {
 
   @override
   Future<void> run() async {
-    final port = int.parse(argResults['port'] as String);
-    final storagePort = int.parse(argResults['storage-port'] as String);
-    final searchPort = int.parse(argResults['search-port'] as String);
-    final analyzerPort = int.parse(argResults['analyzer-port'] as String);
-    final dartdocPort = int.parse(argResults['dartdoc-port'] as String);
-    final readOnly = argResults['read-only'] == true;
-    final dataFile = argResults['data-file'] as String;
-    final watch = argResults['watch'] == true;
+    final port = int.parse(argResults!['port'] as String);
+    final storagePort = int.parse(argResults!['storage-port'] as String);
+    final searchPort = int.parse(argResults!['search-port'] as String);
+    final analyzerPort = int.parse(argResults!['analyzer-port'] as String);
+    final dartdocPort = int.parse(argResults!['dartdoc-port'] as String);
+    final readOnly = argResults!['read-only'] == true;
+    final dataFile = argResults!['data-file'] as String?;
+    final watch = argResults!['watch'] == true;
 
     Logger.root.onRecord.listen((r) {
       print([
@@ -116,7 +116,7 @@ class FakeServerCommand extends Command {
       if (rq.requestedUri.path == '/fake-update-search') {
         return await _updateUpstream(searchPort);
       }
-      return null;
+      return shelf.Response.notFound('Not Found.');
     }
 
     await updateLocalBuiltFilesIfNeeded();

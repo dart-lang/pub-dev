@@ -4,8 +4,6 @@
 
 import 'dart:math';
 
-import 'package:meta/meta.dart';
-
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/package/search_adapter.dart';
 import 'package:pub_dev/shared/markdown.dart';
@@ -38,7 +36,7 @@ String renderPackageList(SearchResultPage searchResultPage) {
   return templateCache.renderTemplate('pkg/package_list', {
     'packages': [
       if (searchResultPage.highlightedHit != null)
-        _packageHitData(searchResultPage.highlightedHit),
+        _packageHitData(searchResultPage.highlightedHit!),
       ...searchResultPage.sdkLibraryHits.map(_sdkLibraryHitData),
       ...searchResultPage.packageHits.map(_packageHitData),
     ],
@@ -51,12 +49,12 @@ Map<String, dynamic> _packageHitData(PackageView view) {
       ?.map((page) => {
             'title': page.title ?? page.path,
             'href': page.url ??
-                urls.pkgDocUrl(view.name,
+                urls.pkgDocUrl(view.name!,
                     isLatest: true, relativePath: page.path),
           })
-      ?.toList();
+      .toList();
   final hasApiPages = apiPages != null && apiPages.isNotEmpty;
-  final hasMoreThanOneApiPages = hasApiPages && apiPages.length > 1;
+  final hasMoreThanOneApiPages = hasApiPages && apiPages!.length > 1;
   final flutterFavoriteBadgeHtml =
       view.tags.contains(PackageTags.isFlutterFavorite)
           ? renderFlutterFavoriteBadge()
@@ -64,47 +62,47 @@ Map<String, dynamic> _packageHitData(PackageView view) {
   final isNullSafe = view.tags.contains(PackageVersionTags.isNullSafe);
   final nullSafeBadgeHtml = isNullSafe ? renderNullSafeBadge() : null;
   return <String, dynamic>{
-    'url': urls.pkgPageUrl(view.name),
+    'url': urls.pkgPageUrl(view.name!),
     'name': view.name,
     'is_external': false,
     'version': view.version,
     'show_prerelease_version': view.prereleaseVersion != null,
     'prerelease_version': view.prereleaseVersion,
     'prerelease_version_url':
-        urls.pkgPageUrl(view.name, version: view.prereleaseVersion),
+        urls.pkgPageUrl(view.name!, version: view.prereleaseVersion),
     'show_preview_version': view.previewVersion != null,
     'preview_version': view.previewVersion,
     'preview_version_url':
-        urls.pkgPageUrl(view.name, version: view.previewVersion),
+        urls.pkgPageUrl(view.name!, version: view.previewVersion),
     'is_new': addedXAgo != null,
     'added_x_ago': addedXAgo,
     'last_uploaded':
-        view.updated == null ? null : shortDateFormat.format(view.updated),
+        view.updated == null ? null : shortDateFormat.format(view.updated!),
     'desc': view.ellipsizedDescription,
     'flutter_favorite_badge_html': flutterFavoriteBadgeHtml,
     'null_safe_badge_html': nullSafeBadgeHtml,
     'publisher_id': view.publisherId,
     'publisher_url':
-        view.publisherId == null ? null : urls.publisherUrl(view.publisherId),
+        view.publisherId == null ? null : urls.publisherUrl(view.publisherId!),
     'tags_html': renderTags(package: view),
     'labeled_scores_html': renderLabeledScores(view),
     'has_api_pages': hasApiPages,
     'has_more_api_pages': hasMoreThanOneApiPages,
-    'first_api_page': hasApiPages ? apiPages.first : null,
-    'remaining_api_pages': hasApiPages ? apiPages.skip(1).toList() : null,
+    'first_api_page': hasApiPages ? apiPages!.first : null,
+    'remaining_api_pages': hasApiPages ? apiPages!.skip(1).toList() : null,
   };
 }
 
 Map<String, dynamic> _sdkLibraryHitData(SdkLibraryHit hit) {
-  final sdkDict = getSdkDict(hit.sdk);
+  final sdkDict = getSdkDict(hit.sdk!);
   final apiPages = hit.apiPages
       ?.map((page) => {
             'title': page.title ?? page.path,
             'href': page.url,
           })
-      ?.toList();
+      .toList();
   final hasApiPages = apiPages != null && apiPages.isNotEmpty;
-  final hasMoreThanOneApiPages = hasApiPages && apiPages.length > 1;
+  final hasMoreThanOneApiPages = hasApiPages && apiPages!.length > 1;
   return <String, dynamic>{
     'url': hit.url,
     'name': hit.library,
@@ -123,12 +121,12 @@ Map<String, dynamic> _sdkLibraryHitData(SdkLibraryHit hit) {
     'labeled_scores_html': null,
     'has_api_pages': hasApiPages,
     'has_more_api_pages': hasMoreThanOneApiPages,
-    'first_api_page': hasApiPages ? apiPages.first : null,
-    'remaining_api_pages': hasApiPages ? apiPages.skip(1).toList() : null,
+    'first_api_page': hasApiPages ? apiPages!.first : null,
+    'remaining_api_pages': hasApiPages ? apiPages!.skip(1).toList() : null,
   };
 }
 
-String _renderXAgo(DateTime value) {
+String? _renderXAgo(DateTime? value) {
   if (value == null) return null;
   final age = DateTime.now().difference(value);
   if (age.inDays > 30) return null;
@@ -141,11 +139,11 @@ String _renderXAgo(DateTime value) {
 String renderMyLikedPackagesList(List<LikeData> likes) {
   final packagesJson = [];
   for (final like in likes) {
-    final package = like.package;
+    final package = like.package!;
     packagesJson.add({
       'url': urls.pkgPageUrl(package),
       'name': package,
-      'liked_date': shortDateFormat.format(like.created),
+      'liked_date': shortDateFormat.format(like.created!),
     });
   }
   return templateCache
@@ -156,18 +154,18 @@ String renderMyLikedPackagesList(List<LikeData> likes) {
 String renderPkgIndexPage(
   SearchResultPage searchResultPage,
   PageLinks links, {
-  String sdk,
-  String title,
-  SearchForm searchForm,
-  int totalCount,
-  String searchPlaceholder,
-  String messageFromBackend,
+  String? sdk,
+  String? title,
+  required SearchForm searchForm,
+  int? totalCount,
+  String? searchPlaceholder,
+  String? messageFromBackend,
 }) {
   final topPackages = getSdkDict(sdk).topSdkPackages;
-  final isSearch = searchForm != null && searchForm.hasQuery;
-  final includeDiscontinued = searchForm?.includeDiscontinued ?? false;
-  final includeUnlisted = searchForm?.includeUnlisted ?? false;
-  final nullSafe = searchForm?.nullSafe ?? false;
+  final isSearch = searchForm.hasQuery;
+  final includeDiscontinued = searchForm.includeDiscontinued ?? false;
+  final includeUnlisted = searchForm.includeUnlisted ?? false;
+  final nullSafe = searchForm.nullSafe ?? false;
   final subSdkLayout = _calculateLayout(searchForm);
   final hasActiveAdvanced = includeDiscontinued || includeUnlisted || nullSafe;
   final values = {
@@ -216,19 +214,19 @@ String renderPkgIndexPage(
 
 /// Renders the `views/shared/listing_info.mustache` template.
 String renderListingInfo({
-  @required SearchForm searchForm,
-  @required int totalCount,
-  String title,
-  String ownedBy,
-  @required String messageFromBackend,
+  required SearchForm searchForm,
+  required int? totalCount,
+  String? title,
+  String? ownedBy,
+  required String? messageFromBackend,
 }) {
-  final isSearch = searchForm != null && searchForm.hasQuery;
+  final isSearch = searchForm.hasQuery;
   return templateCache.renderTemplate('shared/listing_info', {
     'sort_control_html': renderSortControl(searchForm),
     'total_count': totalCount,
     'package_or_packages': totalCount == 1 ? 'package' : 'packages',
     'has_search_query': isSearch,
-    'search_query': searchForm?.query,
+    'search_query': searchForm.query,
     'has_owned_by': ownedBy != null,
     'owned_by': ownedBy,
     'has_message_from_backend': messageFromBackend != null,
@@ -236,10 +234,10 @@ String renderListingInfo({
   });
 }
 
-String _subSdkLabel(SearchForm sq) {
-  if (sq?.sdk == SdkTagValue.dart) {
+String? _subSdkLabel(SearchForm sq) {
+  if (sq.sdk == SdkTagValue.dart) {
     return 'Runtime';
-  } else if (sq?.sdk == SdkTagValue.flutter) {
+  } else if (sq.sdk == SdkTagValue.flutter) {
     return 'Platform';
   } else {
     return null;
@@ -248,9 +246,9 @@ String _subSdkLabel(SearchForm sq) {
 
 /// Renders the `views/shared/sort_control.mustache` template.
 String renderSortControl(SearchForm form) {
-  final isSearch = form != null && form.hasQuery;
+  final isSearch = form.hasQuery;
   final options = getSortDicts(isSearch);
-  final selectedValue = serializeSearchOrder(form?.order) ??
+  final selectedValue = serializeSearchOrder(form.order) ??
       (isSearch ? 'search_relevance' : 'listing_relevance');
   final selectedOption = options.firstWhere(
     (o) => o.id == selectedValue,
@@ -280,26 +278,26 @@ class PageLinks {
       : searchForm = SearchForm.parse(),
         count = 1;
 
-  int get leftmostPage => max(currentPage - maxPageLinks ~/ 2, 1);
+  int get leftmostPage => max(currentPage! - maxPageLinks ~/ 2, 1);
 
-  int get currentPage => searchForm.currentPage;
+  int? get currentPage => searchForm.currentPage;
 
   int get rightmostPage {
-    final int fromSymmetry = currentPage + maxPageLinks ~/ 2;
-    final int fromCount = 1 + ((count - 1) ~/ searchForm.pageSize);
-    return min(fromSymmetry, max(currentPage, fromCount));
+    final int fromSymmetry = currentPage! + maxPageLinks ~/ 2;
+    final int fromCount = 1 + ((count - 1) ~/ searchForm.pageSize!);
+    return min(fromSymmetry, max(currentPage!, fromCount));
   }
 
   List<Map> hrefPatterns() {
     final List<Map> results = [];
 
-    final bool hasPrevious = currentPage > 1;
+    final bool hasPrevious = currentPage! > 1;
     results.add({
       'active': false,
       'disabled': !hasPrevious,
       'render_link': hasPrevious,
       'href': htmlAttrEscape
-          .convert(searchForm.toSearchLink(page: currentPage - 1)),
+          .convert(searchForm.toSearchLink(page: currentPage! - 1)),
       'text': '&laquo;',
       'rel_prev': true,
       'rel_next': false,
@@ -318,13 +316,13 @@ class PageLinks {
       });
     }
 
-    final bool hasNext = currentPage < rightmostPage;
+    final bool hasNext = currentPage! < rightmostPage;
     results.add({
       'active': false,
       'disabled': !hasNext,
       'render_link': hasNext,
       'href': htmlAttrEscape
-          .convert(searchForm.toSearchLink(page: currentPage + 1)),
+          .convert(searchForm.toSearchLink(page: currentPage! + 1)),
       'text': '&raquo;',
       'rel_prev': false,
       'rel_next': true,
@@ -337,9 +335,9 @@ class PageLinks {
   }
 }
 
-String _renderFilterButtons({
-  @required SearchForm searchForm,
-  @required List<_FilterOption> options,
+String? _renderFilterButtons({
+  required SearchForm searchForm,
+  required List<_FilterOption>? options,
 }) {
   if (options == null || options.isEmpty) return null;
   final tp = searchForm.tagsPredicate;
@@ -371,22 +369,22 @@ String _renderFilterButtons({
 /// to display them only when the user has already opted-in to get them
 /// displayed.
 _SubSdkLayout _calculateLayout(SearchForm searchForm) {
-  List<_FilterOption> options;
+  List<_FilterOption>? options;
 
   _FilterOption option({
-    @required String label,
-    @required String tag,
-    @required String title,
+    required String label,
+    required String tag,
+    required String title,
   }) {
     return _FilterOption(
       label: label,
       tag: tag,
       title: title,
-      isActive: searchForm?.tagsPredicate?.isRequiredTag(tag) ?? false,
+      isActive: searchForm.tagsPredicate.isRequiredTag(tag),
     );
   }
 
-  final sdk = searchForm?.sdk;
+  final sdk = searchForm.sdk;
   if (sdk == SdkTagValue.dart) {
     options = [
       option(
@@ -440,13 +438,13 @@ _SubSdkLayout _calculateLayout(SearchForm searchForm) {
 }
 
 class _SubSdkLayout {
-  final List<_FilterOption> options;
+  final List<_FilterOption>? options;
 
   _SubSdkLayout({
-    @required this.options,
+    required this.options,
   });
 
-  bool get hasOptions => options != null && options.isNotEmpty;
+  bool get hasOptions => options != null && options!.isNotEmpty;
 }
 
 class _FilterOption {
@@ -456,9 +454,9 @@ class _FilterOption {
   final bool isActive;
 
   _FilterOption({
-    @required this.label,
-    @required this.tag,
-    @required this.title,
-    @required this.isActive,
+    required this.label,
+    required this.tag,
+    required this.title,
+    required this.isActive,
   });
 }

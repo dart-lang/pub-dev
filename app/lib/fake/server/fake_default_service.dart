@@ -9,7 +9,6 @@ import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
 
@@ -28,13 +27,13 @@ class FakePubServer {
   final MemStorage _storage;
   final bool _watch;
 
-  FakePubServer(this._datastore, this._storage, {bool watch})
+  FakePubServer(this._datastore, this._storage, {bool? watch})
       : _watch = watch ?? false;
 
   Future<void> run({
-    @required int port,
-    @required Configuration configuration,
-    shelf.Handler extraHandler,
+    required int port,
+    required Configuration configuration,
+    required shelf.Handler extraHandler,
   }) async {
     await withFakeServices(
         configuration: configuration,
@@ -53,9 +52,11 @@ class FakePubServer {
 
           final server = await IOServer.bind('localhost', port);
           serveRequests(server.server, (request) async {
-            return await ss.fork(() async {
-              return await extraHandler(request) ?? await handler(request);
-            }) as shelf.Response;
+            return (await ss.fork(() async {
+              final rs = await extraHandler(request);
+              if (rs.statusCode != 404) return rs;
+              return await handler(request);
+            }) as shelf.Response?)!;
           });
           _logger.info('running on port $port');
 

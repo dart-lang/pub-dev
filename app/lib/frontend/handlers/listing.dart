@@ -74,10 +74,10 @@ Future<shelf.Response> webPackagesHandlerHtml(shelf.Request request) async {
 /// - /flutter/packages
 Future<shelf.Response> _packagesHandlerHtmlCore(
   shelf.Request request, {
-  String sdk,
-  String title,
-  TagsPredicate tagsPredicate,
-  String searchPlaceholder,
+  String? sdk,
+  String? title,
+  TagsPredicate? tagsPredicate,
+  String? searchPlaceholder,
 }) async {
   final searchForm = parseFrontendSearchForm(
     request.requestedUri.queryParameters,
@@ -129,7 +129,7 @@ Future<shelf.Response> _packagesHandlerJson(
   final pkgPage =
       await packageBackend.latestPackages(offset: offset, limit: pageSize);
 
-  Uri nextPageUrl;
+  Uri? nextPageUrl;
   if (!pkgPage.isLast) {
     nextPageUrl =
         request.requestedUri.resolve('/packages.json?page=${page + 1}');
@@ -138,7 +138,7 @@ Future<shelf.Response> _packagesHandlerJson(
   String toUrl(Package package) {
     final postfix = dotJsonResponse ? '.json' : '';
     return request.requestedUri
-        .resolve('/packages/${Uri.encodeComponent(package.name)}$postfix')
+        .resolve('/packages/${Uri.encodeComponent(package.name!)}$postfix')
         .toString();
   }
 

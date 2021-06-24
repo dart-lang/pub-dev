@@ -73,8 +73,8 @@ class AssignedTags {
 /// Admin API request to mutate list of assigned tags.
 @JsonSerializable()
 class PatchAssignedTags {
-  final List<String>? assignedTagsAdded;
-  final List<String>? assignedTagsRemoved;
+  final List<String> assignedTagsAdded;
+  final List<String> assignedTagsRemoved;
 
   // json_serializable boiler-plate
   PatchAssignedTags({

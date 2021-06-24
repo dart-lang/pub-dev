@@ -14,7 +14,6 @@ import 'landing.dart';
 import 'listing.dart';
 import 'misc.dart';
 import 'package.dart';
-import 'pubapi.dart' show PubApi;
 import 'publisher.dart';
 
 part 'routes.g.dart';
@@ -22,9 +21,6 @@ part 'routes.g.dart';
 /// The main routes that are processed by the pub site's frontend.
 class PubSiteService {
   Router get router => _$PubSiteServiceRouter(this);
-
-  @Route.mount('/')
-  Router get _api => PubApi().router;
 
   // ****
   // **** AppEngine health checks

@@ -30,15 +30,15 @@ typedef AliveCallback = FutureOr Function();
 abstract class JobProcessor {
   final JobService service;
   final String _serviceAsString;
-  final AliveCallback _aliveCallback;
+  final AliveCallback? _aliveCallback;
   final _trackers = <String, DurationTracker>{};
 
   JobProcessor({
-    @required this.service,
+    required this.service,
 
     /// [JobProcessor] calls this to indicate that it is still alive and working.
     /// It is expected to be called between jobs.
-    AliveCallback aliveCallback,
+    AliveCallback? aliveCallback,
   })  : _serviceAsString = jobServiceAsString(service),
         _aliveCallback = aliveCallback;
 
@@ -51,7 +51,7 @@ abstract class JobProcessor {
     int sleepSeconds = 0;
     for (;;) {
       final status = await _runOneJob();
-      if (_aliveCallback != null) await _aliveCallback();
+      if (_aliveCallback != null) await _aliveCallback!();
       final wasProcessing =
           status == JobStatus.success || status == JobStatus.skipped;
       sleepSeconds = wasProcessing ? 0 : math.min(sleepSeconds + 1, 60);
@@ -163,7 +163,7 @@ class JobMaintenance {
   Future<void> syncDatastoreHistory() async {
     final packages = <String, Package>{};
     await for (final p in _db.query<Package>().run()) {
-      packages[p.name] = p;
+      packages[p.name!] = p;
     }
     final packageNames = packages.keys.toList()..shuffle();
 
@@ -174,15 +174,15 @@ class JobMaintenance {
         final releases = await packageBackend.latestReleases(p);
         final isLatestStable = releases.stable.version == pv.version;
         final isLatestPrerelease = releases.showPrerelease &&
-            releases.prerelease.version == pv.version;
+            releases.prerelease!.version == pv.version;
         final isLatestPreview =
-            releases.showPreview && releases.preview.version == pv.version;
+            releases.showPreview && releases.preview!.version == pv.version;
         if (isLatestStable && skipLatestStable) return;
-        final shouldProcess = await _processor.shouldProcess(pv, pv.created);
+        final shouldProcess = await _processor.shouldProcess(pv, pv.created!);
         await jobBackend.createOrUpdate(
           service: _processor.service,
           package: pv.package,
-          version: pv.version,
+          version: pv.version!,
           isLatestStable: isLatestStable,
           isLatestPrerelease: isLatestPrerelease,
           isLatestPreview: isLatestPreview,
@@ -202,8 +202,8 @@ class JobMaintenance {
       final pool = Pool(4);
       final futures = <Future>[];
       for (final package in packageNames) {
-        final p = packages[package];
-        final pv = await _db.lookupValue<PackageVersion>(p.latestVersionKey);
+        final p = packages[package]!;
+        final pv = await _db.lookupValue<PackageVersion>(p.latestVersionKey!);
         final f = pool.withResource(() => updateJob(pv, false));
         futures.add(f);
       }

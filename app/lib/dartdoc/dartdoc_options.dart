@@ -13,7 +13,7 @@
 ///
 /// Discussion on the enabled options:
 /// https://github.com/dart-lang/pub-dev/issues/4521#issuecomment-779821098
-Map<String, dynamic> customizeDartdocOptions(Map<String, dynamic> original) {
+Map<String, dynamic> customizeDartdocOptions(Map<String, dynamic>? original) {
   final passThroughOptions = <String, dynamic>{};
   if (original != null &&
       original.containsKey('dartdoc') &&

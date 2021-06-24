@@ -8,7 +8,7 @@ part 'search_tabs.g.dart';
 
 @JsonSerializable(createFactory: false, explicitToJson: true)
 class SearchTabs {
-  final List<SearchTab> tabs;
+  final List<SearchTab>? tabs;
 
   SearchTabs({this.tabs});
 
@@ -17,10 +17,10 @@ class SearchTabs {
 
 @JsonSerializable(createFactory: false, explicitToJson: true)
 class SearchTab {
-  final bool active;
-  final String href;
-  final String title;
-  final String text;
+  final bool? active;
+  final String? href;
+  final String? title;
+  final String? text;
 
   SearchTab({
     this.active,

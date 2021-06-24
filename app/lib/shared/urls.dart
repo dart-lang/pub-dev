@@ -57,9 +57,9 @@ const _pkgPageTabSegments = <PkgPageTab, String>{
 
 String pkgPageUrl(
   String package, {
-  String version,
+  String? version,
   bool includeHost = false,
-  PkgPageTab pkgPageTab,
+  PkgPageTab? pkgPageTab,
 }) {
   final subPageSegment = _pkgPageTabSegments[pkgPageTab ?? PkgPageTab.readme];
   final segments = <String>[
@@ -72,31 +72,31 @@ String pkgPageUrl(
   return baseUri.resolveUri(Uri(pathSegments: segments)).toString();
 }
 
-String pkgReadmeUrl(String package, {String version}) =>
+String pkgReadmeUrl(String package, {String? version}) =>
     pkgPageUrl(package, version: version);
 
-String pkgChangelogUrl(String package, {String version}) =>
+String pkgChangelogUrl(String package, {String? version}) =>
     pkgPageUrl(package, version: version, pkgPageTab: PkgPageTab.changelog);
 
-String pkgExampleUrl(String package, {String version}) =>
+String pkgExampleUrl(String package, {String? version}) =>
     pkgPageUrl(package, version: version, pkgPageTab: PkgPageTab.example);
 
-String pkgLicenseUrl(String package, {String version}) =>
+String pkgLicenseUrl(String package, {String? version}) =>
     pkgPageUrl(package, version: version, pkgPageTab: PkgPageTab.license);
 
-String pkgInstallUrl(String package, {String version}) =>
+String pkgInstallUrl(String package, {String? version}) =>
     pkgPageUrl(package, version: version, pkgPageTab: PkgPageTab.install);
 
 String pkgVersionsUrl(String package) =>
     pkgPageUrl(package, pkgPageTab: PkgPageTab.versions);
 
-String pkgScoreUrl(String package, {String version}) =>
+String pkgScoreUrl(String package, {String? version}) =>
     pkgPageUrl(package, version: version, pkgPageTab: PkgPageTab.score);
 
 String pkgAdminUrl(String package) =>
     pkgPageUrl(package, pkgPageTab: PkgPageTab.admin);
 
-String pkgArchiveDownloadUrl(String package, String version, {Uri baseUri}) {
+String pkgArchiveDownloadUrl(String package, String version, {Uri? baseUri}) {
   final path =
       '/packages/${Uri.encodeComponent(package)}/versions/${Uri.encodeComponent(version)}.tar.gz';
   if (baseUri == null) {
@@ -108,9 +108,9 @@ String pkgArchiveDownloadUrl(String package, String version, {Uri baseUri}) {
 
 String pkgDocUrl(
   String package, {
-  String version,
+  String? version,
   bool includeHost = false,
-  String relativePath,
+  String? relativePath,
   bool omitTrailingSlash = false,
   bool isLatest = false,
 }) {
@@ -147,11 +147,11 @@ String publisherAdminUrl(String publisherId) =>
     publisherUrl(publisherId) + '/admin';
 
 String searchUrl({
-  String sdk,
-  List<String> runtimes,
-  List<String> platforms,
-  String q,
-  int page,
+  String? sdk,
+  List<String>? runtimes,
+  List<String>? platforms,
+  String? q,
+  int? page,
 }) {
   final query = SearchForm.parse(
     sdk: sdk,
@@ -170,7 +170,7 @@ String dartSdkMainUrl(String version) {
 }
 
 /// Parses GitHub and GitLab urls, and returns the root of the repository.
-String inferRepositoryUrl(String baseUrl) {
+String? inferRepositoryUrl(String? baseUrl) {
   if (baseUrl == null) {
     return null;
   }
@@ -196,7 +196,7 @@ String inferRepositoryUrl(String baseUrl) {
 }
 
 /// Parses GitHub and GitLab urls, and returns the issue tracker of the repository.
-String inferIssueTrackerUrl(String baseUrl) {
+String? inferIssueTrackerUrl(String? baseUrl) {
   if (baseUrl == null) {
     return null;
   }
@@ -227,8 +227,8 @@ String inferIssueTrackerUrl(String baseUrl) {
 }
 
 /// Infer base URL that can be used to link files from.
-String inferBaseUrl({String homepageUrl, String repositoryUrl}) {
-  String baseUrl = repositoryUrl ?? homepageUrl;
+String? inferBaseUrl({String? homepageUrl, String? repositoryUrl}) {
+  var baseUrl = repositoryUrl ?? homepageUrl;
   if (baseUrl == null) return null;
 
   // In a few cases people specify only a deep repository URL for their
@@ -249,11 +249,11 @@ String inferBaseUrl({String homepageUrl, String repositoryUrl}) {
     'https://www.gitlab.com/': 'https://gitlab.com/',
   };
   for (final prefix in prefixReplacements.keys) {
-    if (baseUrl.startsWith(prefix)) {
-      baseUrl = baseUrl.replaceFirst(prefix, prefixReplacements[prefix]);
+    if (baseUrl!.startsWith(prefix)) {
+      baseUrl = baseUrl.replaceFirst(prefix, prefixReplacements[prefix]!);
     }
   }
-  if ((baseUrl.startsWith('https://github.com/') ||
+  if ((baseUrl!.startsWith('https://github.com/') ||
           baseUrl.startsWith('https://gitlab.com/')) &&
       baseUrl.endsWith('.git')) {
     baseUrl = baseUrl.substring(0, baseUrl.length - 4);
@@ -263,7 +263,7 @@ String inferBaseUrl({String homepageUrl, String repositoryUrl}) {
 }
 
 /// Infer the hosting/service provider for a given URL.
-String inferServiceProviderName(String url) {
+String? inferServiceProviderName(String? url) {
   if (url == null) {
     return null;
   }
@@ -280,9 +280,9 @@ String inferServiceProviderName(String url) {
 String consentUrl(String consentId) => '$siteRoot/consent?id=$consentId';
 
 /// Return true if the user-provided `documentation` URL should not be shown.
-bool hideUserProvidedDocUrl(String url) {
+bool hideUserProvidedDocUrl(String? url) {
   if (url == null || url.isEmpty) return true;
-  final uri = Uri.parse(url);
+  final uri = Uri.tryParse(url);
   if (uri == null) return true;
   if (uri.scheme != 'http' && uri.scheme != 'https') return true;
   final host = uri.host.toLowerCase();
@@ -296,7 +296,7 @@ bool hideUserProvidedDocUrl(String url) {
 /// website.
 /// - https:// prefixes are stripped down
 /// - TODO: consider stripping long URLs
-String displayableUrl(String url) {
+String? displayableUrl(String? url) {
   if (url == null) {
     return null;
   }
@@ -313,7 +313,7 @@ String createPublisherUrl() => '/create-publisher';
 
 /// Parses [url] and returns the [Uri] object only if the result Uri is valid
 /// (e.g. is relative or has recognized scheme).
-Uri parseValidUrl(String url) {
+Uri? parseValidUrl(String? url) {
   if (url == null || url.isEmpty) return null;
   final uri = Uri.tryParse(url);
   if (uri == null || uri.isInvalid) return null;

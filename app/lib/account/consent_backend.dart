@@ -5,7 +5,6 @@
 import 'package:client_data/account_api.dart' as api;
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
 import '../audit/models.dart';
@@ -58,15 +57,15 @@ class ConsentBackend {
   Future<api.Consent> getConsent(String consentId, User user) async {
     InvalidInputException.checkUlid(consentId, 'consentId');
     final c = await _lookupAndCheck(consentId, user);
-    final action = _actions[c.kind];
+    final action = _actions[c.kind]!;
     final invitingUserEmail =
-        await accountBackend.getEmailOfUserId(c.fromUserId);
+        (await accountBackend.getEmailOfUserId(c.fromUserId!))!;
     return api.Consent(
-      titleText: action.renderInviteTitleText(invitingUserEmail, c.args),
+      titleText: action.renderInviteTitleText(invitingUserEmail, c.args!),
       descriptionHtml: action.renderInviteHtml(
         invitingUserEmail: invitingUserEmail,
-        args: c.args,
-        currentUserEmail: user.email,
+        args: c.args!,
+        currentUserEmail: user.email!,
       ),
     );
   }
@@ -98,10 +97,10 @@ class ConsentBackend {
   /// - if it already exists, re-send the notification, or
   /// - if it was sent recently, do nothing.
   Future<api.InviteStatus> _invite({
-    @required String email,
-    @required String kind,
-    @required List<String> args,
-    @required AuditLogRecord auditLogRecord,
+    required String email,
+    required String kind,
+    required List<String> args,
+    required AuditLogRecord auditLogRecord,
   }) async {
     return retry(() async {
       final activeUser = await requireAuthenticatedUser();
@@ -121,7 +120,7 @@ class ConsentBackend {
           await _delete(old, (a) => a.onExpire(old));
         } else if (old.shouldNotify()) {
           // non-expired entries just re-send the notification
-          return await _sendNotification(activeUser.email, old);
+          return await _sendNotification(activeUser.email!, old);
         } else {
           return api.InviteStatus(
               emailSent: false, nextNotification: old.nextNotification);
@@ -138,14 +137,14 @@ class ConsentBackend {
         consent,
         auditLogRecord,
       ]);
-      return await _sendNotification(activeUser.email, consent);
+      return await _sendNotification(activeUser.email!, consent);
     });
   }
 
   /// Invites a new uploader to the package.
   Future<api.InviteStatus> invitePackageUploader({
-    @required String packageName,
-    @required String uploaderEmail,
+    required String packageName,
+    required String uploaderEmail,
   }) async {
     final user = await requireAuthenticatedUser();
     return await _invite(
@@ -162,8 +161,8 @@ class ConsentBackend {
 
   /// Invites a new contact email for the publisher.
   Future<api.InviteStatus> invitePublisherContact({
-    @required String publisherId,
-    @required String contactEmail,
+    required String publisherId,
+    required String contactEmail,
   }) async {
     final user = await requireAuthenticatedUser();
     return await _invite(
@@ -176,8 +175,8 @@ class ConsentBackend {
 
   /// Invites a new member for the publisher.
   Future<api.InviteStatus> invitePublisherMember({
-    @required String publisherId,
-    @required String invitedUserEmail,
+    required String publisherId,
+    required String invitedUserEmail,
   }) async {
     final user = await requireAuthenticatedUser();
     return await _invite(
@@ -191,12 +190,12 @@ class ConsentBackend {
 
   Future<api.InviteStatus> _sendNotification(
       String activeUserEmail, Consent consent) async {
-    final invitedEmail = consent.email;
-    final action = _actions[consent.kind];
+    final invitedEmail = consent.email!;
+    final action = _actions[consent.kind]!;
     await emailSender.sendMessage(createInviteEmail(
       invitedEmail: invitedEmail,
-      subject: action.renderEmailSubject(consent.args),
-      inviteText: action.renderInviteText(activeUserEmail, consent.args),
+      subject: action.renderEmailSubject(consent.args!),
+      inviteText: action.renderInviteText(activeUserEmail, consent.args!),
       consentUrl: consentUrl(consent.consentId),
     ));
     return await withRetryTransaction(_db, (tx) async {
@@ -226,11 +225,11 @@ class ConsentBackend {
   /// Returns the [Consent] for [consentId] and checks if it is for [user].
   Future<Consent> _lookupAndCheck(String consentId, User user) async {
     final key = _db.emptyKey.append(Consent, id: consentId);
-    final c = await _db.lookupValue<Consent>(key, orElse: () => null);
+    final c = await _db.lookupOrNull<Consent>(key);
     if (c == null) {
       throw NotFoundException.resource('consent: $consentId');
     }
-    final action = _actions[c.kind];
+    final action = _actions[c.kind]!;
     if (!action.permitConfirmationWithOtherEmail && c.email != null) {
       InvalidInputException.check(c.email == user.email,
           'This invitation is not for the user account currently logged in.');
@@ -262,7 +261,7 @@ abstract class ConsentAction {
   Future<void> onAccept(Consent consent);
 
   /// Callback on rejecting the consent.
-  Future<void> onReject(Consent consent, User user);
+  Future<void> onReject(Consent consent, User? user);
 
   /// Callback on timeout of the consent.
   Future<void> onExpire(Consent consent);
@@ -290,9 +289,9 @@ abstract class ConsentAction {
   ///
   /// If the current session is unauthenticated, [currentUserEmail] will be null.
   String renderInviteHtml({
-    @required String invitingUserEmail,
-    @required List<String> args,
-    @required String currentUserEmail,
+    required String invitingUserEmail,
+    required List<String> args,
+    required String currentUserEmail,
   });
 }
 
@@ -300,9 +299,9 @@ abstract class ConsentAction {
 class _PackageUploaderAction extends ConsentAction {
   @override
   Future<void> onAccept(Consent consent) async {
-    final packageName = consent.args[0];
+    final packageName = consent.args![0];
     final fromUserEmail =
-        await accountBackend.getEmailOfUserId(consent.fromUserId);
+        (await accountBackend.getEmailOfUserId(consent.fromUserId!))!;
     final currentUser = await requireAuthenticatedUser();
     if (currentUser.email != consent.email) {
       throw NotAcceptableException(
@@ -314,13 +313,13 @@ class _PackageUploaderAction extends ConsentAction {
   }
 
   @override
-  Future<void> onReject(Consent consent, User user) async {
-    final packageName = consent.args[0];
+  Future<void> onReject(Consent consent, User? user) async {
+    final packageName = consent.args![0];
     await dbService.commit(inserts: [
       AuditLogRecord.uploaderInviteRejected(
-        fromUserId: consent.fromUserId,
+        fromUserId: consent.fromUserId!,
         package: packageName,
-        uploaderEmail: user?.email ?? consent.email,
+        uploaderEmail: user?.email ?? consent.email!,
         userId: user?.userId,
       ),
     ]);
@@ -328,12 +327,12 @@ class _PackageUploaderAction extends ConsentAction {
 
   @override
   Future<void> onExpire(Consent consent) async {
-    final packageName = consent.args[0];
+    final packageName = consent.args![0];
     await dbService.commit(inserts: [
       AuditLogRecord.uploaderInviteExpired(
-        fromUserId: consent.fromUserId,
+        fromUserId: consent.fromUserId!,
         package: packageName,
-        uploaderEmail: consent.email,
+        uploaderEmail: consent.email!,
       ),
     ]);
   }
@@ -352,9 +351,9 @@ class _PackageUploaderAction extends ConsentAction {
 
   @override
   String renderInviteHtml({
-    @required String invitingUserEmail,
-    @required List<String> args,
-    @required String currentUserEmail,
+    required String invitingUserEmail,
+    required List<String> args,
+    required String currentUserEmail,
   }) {
     final packageName = args[0];
     return renderPackageUploaderInvite(
@@ -369,20 +368,20 @@ class _PackageUploaderAction extends ConsentAction {
 class _PublisherContactAction extends ConsentAction {
   @override
   Future<void> onAccept(Consent consent) async {
-    final publisherId = consent.args[0];
-    final contactEmail = consent.args[1];
+    final publisherId = consent.args![0];
+    final contactEmail = consent.args![1];
     await publisherBackend.updateContactWithVerifiedEmail(
         publisherId, contactEmail);
   }
 
   @override
-  Future<void> onReject(Consent consent, User user) async {
-    final publisherId = consent.args[0];
+  Future<void> onReject(Consent consent, User? user) async {
+    final publisherId = consent.args![0];
     await dbService.commit(inserts: [
       AuditLogRecord.publisherContactInviteRejected(
-        fromUserId: consent.fromUserId,
+        fromUserId: consent.fromUserId!,
         publisherId: publisherId,
-        contactEmail: consent.email,
+        contactEmail: consent.email!,
         userEmail: user?.email,
         userId: user?.userId,
       ),
@@ -391,12 +390,12 @@ class _PublisherContactAction extends ConsentAction {
 
   @override
   Future<void> onExpire(Consent consent) async {
-    final publisherId = consent.args[0];
+    final publisherId = consent.args![0];
     await dbService.commit(inserts: [
       AuditLogRecord.publisherContactInviteExpired(
-        fromUserId: consent.fromUserId,
+        fromUserId: consent.fromUserId!,
         publisherId: publisherId,
-        contactEmail: consent.email,
+        contactEmail: consent.email!,
       ),
     ]);
   }
@@ -424,9 +423,9 @@ class _PublisherContactAction extends ConsentAction {
 
   @override
   String renderInviteHtml({
-    @required String invitingUserEmail,
-    @required List<String> args,
-    @required String currentUserEmail,
+    required String invitingUserEmail,
+    required List<String> args,
+    required String currentUserEmail,
   }) {
     final publisherId = args[0];
     final contactEmail = args[1];
@@ -442,23 +441,23 @@ class _PublisherContactAction extends ConsentAction {
 class _PublisherMemberAction extends ConsentAction {
   @override
   Future<void> onAccept(Consent consent) async {
-    final publisherId = consent.args[0];
+    final publisherId = consent.args![0];
     final currentUser = await requireAuthenticatedUser();
     if (consent.email != currentUser.email) {
       throw NotAcceptableException('Consent is not for the current user.');
     }
     await publisherBackend.inviteConsentGranted(
-        publisherId, currentUser.userId);
+        publisherId, currentUser.userId!);
   }
 
   @override
-  Future<void> onReject(Consent consent, User user) async {
-    final publisherId = consent.args[0];
+  Future<void> onReject(Consent consent, User? user) async {
+    final publisherId = consent.args![0];
     await dbService.commit(inserts: [
       AuditLogRecord.publisherMemberInviteRejected(
-        fromUserId: consent.fromUserId,
+        fromUserId: consent.fromUserId!,
         publisherId: publisherId,
-        memberEmail: user?.email ?? consent.email,
+        memberEmail: user?.email ?? consent.email!,
         userId: user?.userId,
       ),
     ]);
@@ -466,12 +465,12 @@ class _PublisherMemberAction extends ConsentAction {
 
   @override
   Future<void> onExpire(Consent consent) async {
-    final publisherId = consent.args[0];
+    final publisherId = consent.args![0];
     await dbService.commit(inserts: [
       AuditLogRecord.publisherMemberInviteExpired(
-        fromUserId: consent.fromUserId,
+        fromUserId: consent.fromUserId!,
         publisherId: publisherId,
-        memberEmail: consent.email,
+        memberEmail: consent.email!,
       ),
     ]);
   }
@@ -490,9 +489,9 @@ class _PublisherMemberAction extends ConsentAction {
 
   @override
   String renderInviteHtml({
-    @required String invitingUserEmail,
-    @required List<String> args,
-    @required String currentUserEmail,
+    required String invitingUserEmail,
+    required List<String> args,
+    required String currentUserEmail,
   }) {
     final publisherId = args[0];
     return renderPublisherMemberInvite(

@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/fake/backend/fake_dartdoc_runner.dart';
@@ -38,10 +37,10 @@ import 'test_models.dart';
 /// with [testProfile] data.
 void testWithProfile(
   String name, {
-  TestProfile testProfile,
-  ImportSource importSource,
-  @required Future<void> Function() fn,
-  Timeout timeout,
+  TestProfile? testProfile,
+  ImportSource? importSource,
+  required Future<void> Function() fn,
+  Timeout? timeout,
   bool processJobsWithFakeRunners = false,
 }) {
   testWithServices(
@@ -77,7 +76,7 @@ void testWithServices(
   String name,
   Future<void> Function() fn, {
   bool omitData = false,
-  Timeout timeout,
+  Timeout? timeout,
 }) {
   scopedTest(name, () async {
     _setupLogging();
@@ -133,19 +132,19 @@ Future<void> _populateDefaultData() async {
   ]);
 
   popularityStorage.updateValues({
-    hydrogen.package.name: 0.8,
-    helium.package.name: 1.0,
+    hydrogen.package.name!: 0.8,
+    helium.package.name!: 1.0,
   });
 
   await scoreCardBackend.updateReportOnCard(
-    helium.package.name,
-    helium.package.latestVersion,
+    helium.package.name!,
+    helium.package.latestVersion!,
     panaReport: generatePanaReport(derivedTags: ['sdk:flutter']),
   );
 }
 
 /// Creates local, non-HTTP-based API client with [authToken].
-PubApiClient createPubApiClient({String authToken}) =>
+PubApiClient createPubApiClient({String? authToken}) =>
     createLocalPubApiClient(authToken: authToken);
 
 bool _loggingDone = false;

@@ -12,8 +12,8 @@ part 'models.g.dart';
 
 @JsonSerializable()
 class SearchSnapshot {
-  DateTime updated;
-  Map<String, PackageDocument> documents;
+  DateTime? updated;
+  Map<String, PackageDocument>? documents;
 
   SearchSnapshot._(this.updated, this.documents);
 
@@ -24,12 +24,12 @@ class SearchSnapshot {
 
   void add(PackageDocument doc) {
     updated = DateTime.now().toUtc();
-    documents[doc.package] = doc;
+    documents![doc.package] = doc;
   }
 
   void remove(String packageName) {
     updated = DateTime.now().toUtc();
-    documents.remove(packageName);
+    documents!.remove(packageName);
   }
 
   Map<String, dynamic> toJson() => _$SearchSnapshotToJson(this);
@@ -60,15 +60,15 @@ class DartdocIndexEntry {
   final String name;
   final String qualifiedName;
   final String href;
-  final String type;
-  final int overriddenDepth;
-  final String packageName;
-  final DartdocIndexEntryEnclosedBy enclosedBy;
+  final String? type;
+  final int? overriddenDepth;
+  final String? packageName;
+  final DartdocIndexEntryEnclosedBy? enclosedBy;
 
   DartdocIndexEntry({
-    this.name,
-    this.qualifiedName,
-    this.href,
+    required this.name,
+    required this.qualifiedName,
+    required this.href,
     this.type,
     this.overriddenDepth,
     this.packageName,
@@ -83,8 +83,8 @@ class DartdocIndexEntry {
 
 @JsonSerializable(includeIfNull: false)
 class DartdocIndexEntryEnclosedBy {
-  final String name;
-  final String type;
+  final String? name;
+  final String? type;
 
   DartdocIndexEntryEnclosedBy({
     this.name,

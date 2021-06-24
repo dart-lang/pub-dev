@@ -1,3 +1,7 @@
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'package:code_builder/code_builder.dart' as code;
 import 'package:code_builder/code_builder.dart' show Code;
 import 'package:analyzer/dart/element/element.dart'
@@ -10,7 +14,7 @@ import 'package:source_gen/source_gen.dart' as g;
 import 'shared.dart' show EndPointGenerator, Handler;
 
 code.Reference _referToType(DartType type) =>
-    code.refer(type.element.name, type.element.source.uri.toString());
+    code.refer(type.element!.name!, type.element!.source!.uri.toString());
 
 final _responseType = g.TypeChecker.fromRuntime(shelf.Response);
 
@@ -37,7 +41,10 @@ class ClientLibraryGenerator extends EndPointGenerator {
               _buildClientClass(cls.key, cls.value),
           ]))
         .accept(
-          code.DartEmitter(code.Allocator.simplePrefixing(), true),
+          code.DartEmitter(
+            allocator: code.Allocator.simplePrefixing(),
+            orderDirectives: true,
+          ),
         )
         .toString();
   }
@@ -76,7 +83,7 @@ code.Class _buildClientClass(
             (b) => b
               ..name = 'client'
               ..named = true
-              ..type = code.refer('Client', 'package:http/http.dart'),
+              ..type = code.refer('Client?', 'package:http/http.dart'),
           ))
           ..initializers.add(
             code
@@ -110,11 +117,12 @@ code.Method _buildClientMethod(
       .allMatches(h.route)
       .map((m) => m[2])
       .where((p) => p != null)
+      .cast<String>()
       .toList();
   // Create a url pattern that embeds parameters above
   final urlPattern = h.route.replaceAllMapped(
     _parser,
-    (m) => m[2] != null ? '${m[1]}\$${m[2]}' : m[1],
+    (m) => m[2] != null ? '${m[1]}\$${m[2]}' : m[1]!,
   );
 
   // Check the return value of the method.
@@ -158,7 +166,7 @@ code.Method _buildClientMethod(
           code.Parameter(
             (b) => b
               ..name = 'payload'
-              ..type = _referToType(h.payloadType),
+              ..type = _referToType(h.payloadType!),
           )
       ])
       ..optionalParameters.addAll([
@@ -166,7 +174,7 @@ code.Method _buildClientMethod(
           code.Parameter(
             (b) => b
               ..name = param.name
-              ..type = code.refer('String')
+              ..type = code.refer('String?')
               ..named = true,
           )
       ])

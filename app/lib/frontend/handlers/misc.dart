@@ -118,7 +118,7 @@ Future<shelf.Response> sitemapPublishersTxtHandler(
   final content = await cache.sitemap(uri.toString()).get(() async {
     final page = await publisherBackend.listPublishers();
 
-    return page.publishers
+    return page.publishers!
         .map((p) => urls.publisherUrl(p.publisherId))
         .map((s) => uri.replace(path: s).toString())
         .join('\n');
@@ -131,12 +131,12 @@ Future<shelf.Response> sitemapPublishersTxtHandler(
 Future<shelf.Response> staticsHandler(shelf.Request request) async {
   // Simplifies all of '.', '..', '//'!
   final String normalized = path.normalize(request.requestedUri.path);
-  final StaticFile staticFile = staticFileCache.getFile(normalized);
+  final StaticFile? staticFile = staticFileCache.getFile(normalized);
   if (staticFile != null) {
     if (isNotModified(request, staticFile.lastModified, staticFile.etag)) {
       return shelf.Response.notModified();
     }
-    final String hash = request.requestedUri.queryParameters['hash'];
+    final String? hash = request.requestedUri.queryParameters['hash'];
     final headers = <String, String>{
       HttpHeaders.contentTypeHeader: staticFile.contentType,
       HttpHeaders.contentLengthHeader: staticFile.bytes.length.toString(),

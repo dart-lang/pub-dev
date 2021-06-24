@@ -53,11 +53,11 @@ Map<String, dynamic> _$AssignedTagsToJson(AssignedTags instance) =>
 
 PatchAssignedTags _$PatchAssignedTagsFromJson(Map<String, dynamic> json) {
   return PatchAssignedTags(
-    assignedTagsAdded: (json['assignedTagsAdded'] as List<dynamic>?)
-        ?.map((e) => e as String)
+    assignedTagsAdded: (json['assignedTagsAdded'] as List<dynamic>)
+        .map((e) => e as String)
         .toList(),
-    assignedTagsRemoved: (json['assignedTagsRemoved'] as List<dynamic>?)
-        ?.map((e) => e as String)
+    assignedTagsRemoved: (json['assignedTagsRemoved'] as List<dynamic>)
+        .map((e) => e as String)
         .toList(),
   );
 }

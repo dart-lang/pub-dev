@@ -4,7 +4,6 @@
 
 import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as m;
-import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' show getRepositoryUrl;
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
@@ -38,10 +37,10 @@ const _whitelistedClassNames = <String>[
 /// Setting [inlineOnly] not only restricts the processed rules to inline syntax,
 /// but it also restricts the accepted output elements to bold and italics
 /// formatting.
-String markdownToHtml(
-  String text, {
-  String baseUrl,
-  String baseDir,
+String? markdownToHtml(
+  String? text, {
+  String? baseUrl,
+  String? baseDir,
   bool isChangelog = false,
   bool inlineOnly = false,
   bool disableHashIds = false,
@@ -59,7 +58,6 @@ String markdownToHtml(
 
 /// Parses markdown [source].
 List<m.Node> _parseMarkdownSource(String source, bool inlineOnly) {
-  if (source == null) return null;
   final document = m.Document(
       extensionSet: m.ExtensionSet.gitHubWeb,
       blockSyntaxes: m.ExtensionSet.gitHubWeb.blockSyntaxes);
@@ -73,8 +71,8 @@ List<m.Node> _parseMarkdownSource(String source, bool inlineOnly) {
 /// Rewrites relative URLs, re-basing them on [baseUrl].
 List<m.Node> _rewriteRelativeUrls(
   List<m.Node> nodes, {
-  String baseUrl,
-  String baseDir,
+  String? baseUrl,
+  String? baseDir,
 }) {
   final sanitizedBaseUrl = _pruneBaseUrl(baseUrl);
   final urlRewriter = _RelativeUrlRewriter(sanitizedBaseUrl, baseDir);
@@ -86,8 +84,8 @@ List<m.Node> _rewriteRelativeUrls(
 /// Adds hash link HTML to header blocks.
 String _renderSafeHtml(
   List<m.Node> nodes, {
-  @required bool inlineOnly,
-  @required bool disableHashIds,
+  required bool inlineOnly,
+  required bool disableHashIds,
 }) {
   // Filter unsafe urls on some of the elements.
   nodes.forEach((node) => node.accept(_UnsafeUrlFilter()));
@@ -127,13 +125,13 @@ String _renderSafeHtml(
   return inlineOnly ? html : '$html\n';
 }
 
-void _keepOnlyInlineElements(List<m.Node> nodes) {
+void _keepOnlyInlineElements(List<m.Node>? nodes) {
   if (nodes == null) return;
   for (var i = nodes.length - 1; i >= 0; i--) {
     final node = nodes[i];
     if (node is! m.Element) continue;
 
-    final elem = node as m.Element;
+    final elem = node;
     _keepOnlyInlineElements(elem.children);
     if (!_safeInlineTags.contains(elem.tag)) {
       nodes.replaceRange(i, i + 1, [m.Text(elem.textContent)]);
@@ -155,14 +153,14 @@ class _HashLink implements m.NodeVisitor {
     final isHeaderWithHash = element.generatedId != null &&
         _structuralHeaderTags.contains(element.tag);
     if (isHeaderWithHash) {
-      _addHashLink(element, element.generatedId);
+      _addHashLink(element, element.generatedId!);
     }
   }
 
   void _addHashLink(m.Element element, String id) {
     final currentClasses = element.attributes['class'] ?? '';
     element.attributes['class'] = '$currentClasses hash-header'.trim();
-    element.children.addAll([
+    element.children!.addAll([
       m.Text(' '),
       m.Element('a', [m.Text('#')])
         ..attributes['href'] = '#$id'
@@ -207,8 +205,8 @@ class _UnsafeUrlFilter implements m.NodeVisitor {
 
 /// Rewrites relative URLs with the provided [baseUrl]
 class _RelativeUrlRewriter implements m.NodeVisitor {
-  final String baseUrl;
-  final String baseDir;
+  final String? baseUrl;
+  final String? baseDir;
   final _elementsToRemove = <m.Element>{};
   _RelativeUrlRewriter(this.baseUrl, this.baseDir);
 
@@ -228,16 +226,16 @@ class _RelativeUrlRewriter implements m.NodeVisitor {
     }
     // remove children that are marked to be removed
     if (element.children != null &&
-        element.children.isNotEmpty &&
+        element.children!.isNotEmpty &&
         _elementsToRemove.isNotEmpty) {
       for (final r in _elementsToRemove.toList()) {
-        final index = element.children.indexOf(r);
+        final index = element.children!.indexOf(r);
         if (index == -1) continue;
 
-        if (r.children != null && r.children.isNotEmpty) {
-          element.children.insertAll(index, r.children);
+        if (r.children != null && r.children!.isNotEmpty) {
+          element.children!.insertAll(index, r.children!);
         }
-        element.children.remove(r);
+        element.children!.remove(r);
         _elementsToRemove.remove(r);
       }
     }
@@ -253,7 +251,7 @@ class _RelativeUrlRewriter implements m.NodeVisitor {
     }
   }
 
-  String _rewriteUrl(String url, {bool raw = false}) {
+  String? _rewriteUrl(String? url, {bool raw = false}) {
     if (url == null || url.startsWith('#')) {
       return url;
     }
@@ -294,12 +292,12 @@ class _RelativeUrlRewriter implements m.NodeVisitor {
     final uri = Uri.parse(url);
     final linkPath = uri.path;
     final linkFragment = uri.fragment;
-    if (linkPath == null || linkPath.isEmpty) {
+    if (linkPath.isEmpty) {
       return url;
     }
     String newUrl;
     if (linkPath.startsWith('/')) {
-      newUrl = Uri.parse(baseUrl).replace(path: linkPath).toString();
+      newUrl = Uri.parse(baseUrl!).replace(path: linkPath).toString();
     } else {
       final adjustedLinkPath = p.normalize(p.join(baseDir ?? '.', linkPath));
       final repoUrl = getRepositoryUrl(baseUrl, adjustedLinkPath);
@@ -308,7 +306,7 @@ class _RelativeUrlRewriter implements m.NodeVisitor {
       }
       newUrl = repoUrl;
     }
-    if (linkFragment != null && linkFragment.isNotEmpty) {
+    if (linkFragment.isNotEmpty) {
       newUrl = '$newUrl#$linkFragment';
     }
     return newUrl;
@@ -316,14 +314,14 @@ class _RelativeUrlRewriter implements m.NodeVisitor {
 }
 
 /// Returns null if the [url] looks invalid.
-String _pruneBaseUrl(String url) {
+String? _pruneBaseUrl(String? url) {
   if (url == null) return null;
   try {
     final Uri uri = Uri.parse(url);
     if (uri.scheme != 'http' && uri.scheme != 'https') {
       return null;
     }
-    if (uri.host == null || uri.host.isEmpty || !uri.host.contains('.')) {
+    if (uri.host.isEmpty || !uri.host.contains('.')) {
       return null;
     }
     return uri.toString();
@@ -349,8 +347,8 @@ String _pruneBaseUrl(String url) {
 ///   </div>
 /// </div>
 Iterable<m.Node> _groupChangelogNodes(List<m.Node> nodes) sync* {
-  m.Element lastContentDiv;
-  String firstHeaderTag;
+  m.Element? lastContentDiv;
+  String? firstHeaderTag;
   for (final node in nodes) {
     final nodeTag = node is m.Element ? node.tag : null;
     final isNewHeaderTag = firstHeaderTag == null &&
@@ -360,9 +358,9 @@ Iterable<m.Node> _groupChangelogNodes(List<m.Node> nodes) sync* {
         firstHeaderTag != null && nodeTag == firstHeaderTag;
     final version = (node is m.Element &&
             (isNewHeaderTag || matchesFirstHeaderTag) &&
-            node.children.isNotEmpty &&
-            node.children.first is m.Text)
-        ? _extractVersion(node.children.first.textContent)
+            node.children!.isNotEmpty &&
+            node.children!.first is m.Text)
+        ? _extractVersion(node.children!.first.textContent)
         : null;
     if (version != null) {
       firstHeaderTag ??= nodeTag;
@@ -379,7 +377,7 @@ Iterable<m.Node> _groupChangelogNodes(List<m.Node> nodes) sync* {
       ])
         ..attributes['class'] = 'changelog-entry';
     } else if (lastContentDiv != null) {
-      lastContentDiv.children.add(node);
+      lastContentDiv.children!.add(node);
     } else {
       yield node;
     }
@@ -387,7 +385,7 @@ Iterable<m.Node> _groupChangelogNodes(List<m.Node> nodes) sync* {
 }
 
 /// Returns the extracted version (if it is a specific version, not `any` or empty).
-Version _extractVersion(String text) {
+Version? _extractVersion(String? text) {
   if (text == null || text.isEmpty) return null;
   text = text.trim();
   if (text.startsWith('v')) {

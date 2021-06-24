@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.12
-
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis_auth/googleapis_auth.dart' as auth;
 import 'package:googleapis/webmasters/v3.dart' as wmx;

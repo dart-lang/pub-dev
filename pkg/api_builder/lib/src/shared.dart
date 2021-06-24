@@ -1,7 +1,12 @@
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'package:analyzer/dart/element/element.dart'
     show ClassElement, ExecutableElement, ParameterElement;
 import 'package:analyzer/dart/element/type.dart' show DartType;
 import 'package:build/build.dart' show BuildStep, log;
+import 'package:collection/collection.dart';
 import 'package:http_methods/http_methods.dart' show isHttpMethod;
 import 'package:source_gen/source_gen.dart' as g;
 
@@ -20,12 +25,9 @@ class Handler {
   /// If this handler has a payload
   bool get hasPayload => payloadType != null;
 
-  DartType get payloadType => element.parameters
+  DartType? get payloadType => element.parameters
       .skip(1)
-      .lastWhere(
-        (p) => p.isPositional && !p.type.isDartCoreString,
-        orElse: () => null,
-      )
+      .lastWhereOrNull((p) => p.isPositional && !p.type.isDartCoreString)
       ?.type;
 
   /// List of parameters from the route.
@@ -47,14 +49,14 @@ List<ExecutableElement> _getAnnotatedElementsOrderBySourceOffset(
   return <ExecutableElement>[
     ...cls.methods.where(_endPointType.hasAnnotationOfExact),
     ...cls.accessors.where(_endPointType.hasAnnotationOfExact)
-  ]..sort((a, b) => (a.nameOffset ?? -1).compareTo(b.nameOffset ?? -1));
+  ]..sort((a, b) => (a.nameOffset).compareTo(b.nameOffset));
 }
 
 abstract class EndPointGenerator extends g.Generator {
   Future<String> generateForClasses(Map<ClassElement, List<Handler>> classes);
 
   @override
-  Future<String> generate(g.LibraryReader library, BuildStep step) async {
+  Future<String?> generate(g.LibraryReader library, BuildStep step) async {
     // Create a map from ClassElement to list of annotated elements sorted by
     // offset in source code, this is not type checked yet.
     final classes = <ClassElement, List<Handler>>{};
@@ -67,8 +69,8 @@ abstract class EndPointGenerator extends g.Generator {
 
       classes[cls] = elements
           .map((e) => _endPointType.annotationsOfExact(e).map((a) => Handler(
-                a.getField('verb').toStringValue(),
-                a.getField('route').toStringValue(),
+                a.getField('verb')!.toStringValue()!,
+                a.getField('route')!.toStringValue()!,
                 e,
               )))
           .expand((i) => i)

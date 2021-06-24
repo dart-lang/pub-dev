@@ -4,8 +4,6 @@
 
 import 'dart:convert';
 
-import 'package:meta/meta.dart';
-
 import '../account/models.dart';
 import '../shared/datastore.dart' as db;
 import '../shared/utils.dart' show createUuid;
@@ -16,7 +14,7 @@ final _defaultExpires = Duration(days: 61);
 @db.Kind(name: 'AuditLogRecord', idType: db.IdType.String)
 class AuditLogRecord extends db.ExpandoModel<String> {
   @db.DateTimeProperty(required: true)
-  DateTime created;
+  DateTime? created;
 
   /// [DateTime] after which a background tasks should delete this entity.
   ///
@@ -24,20 +22,20 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   /// shouldn't expire anytime soon.
   /// NOTE(year 9998): Migrate expiry date even further in the future.
   @db.DateTimeProperty(required: true)
-  DateTime expires;
+  DateTime? expires;
 
   /// String identifying the kind of event recorded.
   ///
   /// Allowed values are documented in [AuditLogRecordKind].
   @db.StringProperty(required: true)
-  String kind;
+  String? kind;
 
   /// [User.userId] of the user who initiated / authorized the recorded action.
   ///
   /// This is a UUIDv4. If the user has been deleted, it is possible that this
   /// property may not match any [User] entity.
   @db.StringProperty(required: true)
-  String agent;
+  String? agent;
 
   /// Textual summary of the action that was performed in **markdown**.
   ///
@@ -54,11 +52,11 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   ///
   /// This can only use simple markdown formatting no block structures.
   @db.StringProperty(required: true, indexed: false)
-  String summary;
+  String? summary;
 
   /// A free-form Map of data about the event's details.
   @db.StringProperty(required: true, indexed: false)
-  String dataJson;
+  String? dataJson;
 
   /// List of [User.userId] for the users involved in this record.
   ///
@@ -70,7 +68,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   /// **NOT** intended for consumption or presentation by other means. It's only here
   /// to make it easy to find [AuditLogRecord]s relevant for a specific user.
   @db.StringListProperty()
-  List<String> users;
+  List<String>? users;
 
   /// List of packages involved in this record.
   ///
@@ -81,7 +79,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   /// **NOT** intended for consumption or presentation by other means. It's only here
   /// to make it easy to find [AuditLogRecord]s relevant for a specific package.
   @db.StringListProperty()
-  List<String> packages;
+  List<String>? packages;
 
   /// List of package versions involved in this record.
   ///
@@ -92,7 +90,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   /// **NOT** intended for consumption or presentation by other means. It's only here
   /// to make it easy to find [AuditLogRecord]s relevant for a specific package version.
   @db.StringListProperty()
-  List<String> packageVersions;
+  List<String>? packageVersions;
 
   /// List of publishers involved in this record.
   ///
@@ -103,11 +101,11 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   /// **NOT** intended for consumption or presentation by other means. It's only here
   /// to make it easy to find [AuditLogRecord]s relevant for a specific publisher.
   @db.StringListProperty()
-  List<String> publishers;
+  List<String>? publishers;
 
   AuditLogRecord();
 
-  bool get isExpired => DateTime.now().isAfter(expires);
+  bool get isExpired => DateTime.now().isAfter(expires!);
   bool get isNotExpired => !isExpired;
 
   /// Init log record with default id and timestamps
@@ -118,16 +116,16 @@ class AuditLogRecord extends db.ExpandoModel<String> {
     expires = now.add(_defaultExpires);
   }
 
-  Map<String, dynamic> get data =>
-      dataJson == null ? null : json.decode(dataJson) as Map<String, dynamic>;
-  set data(Map<String, dynamic> value) {
-    dataJson = json.encode(value);
+  Map<String, dynamic>? get data =>
+      dataJson == null ? null : json.decode(dataJson!) as Map<String, dynamic>;
+  set data(Map<String, dynamic>? value) {
+    dataJson = value == null ? null : json.encode(value);
   }
 
   factory AuditLogRecord.packageOptionsUpdated({
-    @required String package,
-    @required User user,
-    @required List<String> options,
+    required String package,
+    required User user,
+    required List<String> options,
   }) {
     final optionsStr = options.map((o) => '`$o`').join(', ');
     return AuditLogRecord._init()
@@ -139,17 +137,17 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'user': user.email,
         'options': options,
       }
-      ..users = [user.userId]
+      ..users = [user.userId!]
       ..packages = [package]
       ..packageVersions = []
       ..publishers = [];
   }
 
   factory AuditLogRecord.packagePublished({
-    @required User uploader,
-    @required String package,
-    @required String version,
-    @required DateTime created,
+    required User uploader,
+    required String package,
+    required String version,
+    required DateTime created,
   }) {
     final summary = 'Package `$package` '
         'version `$version` '
@@ -167,17 +165,17 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'version': version,
         'email': uploader.email,
       }
-      ..users = [uploader.userId]
+      ..users = [uploader.userId!]
       ..packages = [package]
       ..packageVersions = ['$package/$version']
       ..publishers = [];
   }
 
   factory AuditLogRecord.packageTransferred({
-    @required User user,
-    @required String package,
-    @required String fromPublisherId,
-    @required String toPublisherId,
+    required User user,
+    required String package,
+    required String? fromPublisherId,
+    required String toPublisherId,
   }) {
     return AuditLogRecord._init()
       ..kind = AuditLogRecordKind.packageTransferred
@@ -194,7 +192,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'toPublisherId': toPublisherId,
         'user': user.email,
       }
-      ..users = [user.userId]
+      ..users = [user.userId!]
       ..packages = [package]
       ..packageVersions = []
       ..publishers = [
@@ -204,9 +202,9 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   }
 
   factory AuditLogRecord.publisherContactInviteAccepted({
-    @required User user,
-    @required String publisherId,
-    @required String contactEmail,
+    required User user,
+    required String publisherId,
+    required String contactEmail,
   }) {
     return AuditLogRecord._init()
       ..kind = AuditLogRecordKind.publisherContactInviteAccepted
@@ -220,16 +218,16 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'contactEmail': contactEmail,
         'user': user.email,
       }
-      ..users = [user.userId]
+      ..users = [user.userId!]
       ..packages = []
       ..packageVersions = []
       ..publishers = [publisherId];
   }
 
   factory AuditLogRecord.publisherContactInvited({
-    @required User user,
-    @required String publisherId,
-    @required String contactEmail,
+    required User user,
+    required String publisherId,
+    required String contactEmail,
   }) {
     return AuditLogRecord._init()
       ..kind = AuditLogRecordKind.publisherContactInvited
@@ -243,16 +241,16 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'contactEmail': contactEmail,
         'user': user.email,
       }
-      ..users = [user.userId]
+      ..users = [user.userId!]
       ..packages = []
       ..packageVersions = []
       ..publishers = [publisherId];
   }
 
   factory AuditLogRecord.publisherContactInviteExpired({
-    @required String fromUserId,
-    @required String publisherId,
-    @required String contactEmail,
+    required String fromUserId,
+    required String publisherId,
+    required String contactEmail,
   }) {
     return AuditLogRecord._init()
       ..kind = AuditLogRecordKind.publisherContactInviteExpired
@@ -271,13 +269,13 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   }
 
   factory AuditLogRecord.publisherContactInviteRejected({
-    @required String fromUserId,
-    @required String publisherId,
-    @required String contactEmail,
+    required String fromUserId,
+    required String publisherId,
+    required String contactEmail,
 
     /// Optional, in the future we may allow invite rejection without sign-in.
-    @required String userId,
-    @required String userEmail,
+    required String? userId,
+    required String? userEmail,
   }) {
     final summary = (userEmail == null || userEmail == contactEmail)
         ? '`$contactEmail` rejected contact invite for publisher `$publisherId`.'
@@ -300,8 +298,8 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   }
 
   factory AuditLogRecord.publisherCreated({
-    @required User user,
-    @required String publisherId,
+    required User user,
+    required String publisherId,
   }) {
     return AuditLogRecord._init()
       ..kind = AuditLogRecordKind.publisherCreated
@@ -311,16 +309,16 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'publisherId': publisherId,
         'user': user.email,
       }
-      ..users = [user.userId]
+      ..users = [user.userId!]
       ..packages = []
       ..packageVersions = []
       ..publishers = [publisherId];
   }
 
   factory AuditLogRecord.publisherMemberInvited({
-    @required User user,
-    @required String publisherId,
-    @required String memberEmail,
+    required User user,
+    required String publisherId,
+    required String memberEmail,
   }) {
     return AuditLogRecord._init()
       ..kind = AuditLogRecordKind.publisherMemberInvited
@@ -334,15 +332,15 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'memberEmail': memberEmail,
         'user': user.email,
       }
-      ..users = [user.userId]
+      ..users = [user.userId!]
       ..packages = []
       ..packageVersions = []
       ..publishers = [publisherId];
   }
 
   factory AuditLogRecord.publisherMemberInviteAccepted({
-    @required User user,
-    @required String publisherId,
+    required User user,
+    required String publisherId,
   }) {
     return AuditLogRecord._init()
       ..kind = AuditLogRecordKind.publisherMemberInviteAccepted
@@ -353,16 +351,16 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'publisherId': publisherId,
         'user': user.email,
       }
-      ..users = [user.userId]
+      ..users = [user.userId!]
       ..packages = []
       ..packageVersions = []
       ..publishers = [publisherId];
   }
 
   factory AuditLogRecord.publisherMemberInviteExpired({
-    @required String fromUserId,
-    @required String publisherId,
-    @required String memberEmail,
+    required String fromUserId,
+    required String publisherId,
+    required String memberEmail,
   }) {
     return AuditLogRecord._init()
       ..kind = AuditLogRecordKind.publisherMemberInviteExpired
@@ -381,12 +379,12 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   }
 
   factory AuditLogRecord.publisherMemberInviteRejected({
-    @required String fromUserId,
-    @required String publisherId,
-    @required String memberEmail,
+    required String fromUserId,
+    required String publisherId,
+    required String memberEmail,
 
     /// Optional, in the future we may allow invite rejection without sign-in.
-    @required String userId,
+    required String? userId,
   }) {
     return AuditLogRecord._init()
       ..kind = AuditLogRecordKind.publisherMemberInviteRejected
@@ -406,9 +404,9 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   }
 
   factory AuditLogRecord.publisherMemberRemoved({
-    @required User activeUser,
-    @required String publisherId,
-    @required User memberToRemove,
+    required User activeUser,
+    required String publisherId,
+    required User memberToRemove,
   }) {
     return AuditLogRecord._init()
       ..kind = AuditLogRecordKind.publisherMemberRemoved
@@ -422,15 +420,15 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'memberEmail': memberToRemove.email,
         'user': activeUser.email,
       }
-      ..users = [activeUser.userId, memberToRemove.userId]
+      ..users = [activeUser.userId!, memberToRemove.userId!]
       ..packages = []
       ..packageVersions = []
       ..publishers = [publisherId];
   }
 
   factory AuditLogRecord.publisherUpdated({
-    @required User user,
-    @required String publisherId,
+    required User user,
+    required String publisherId,
   }) {
     return AuditLogRecord._init()
       ..kind = AuditLogRecordKind.publisherUpdated
@@ -440,16 +438,16 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'publisherId': publisherId,
         'user': user.email,
       }
-      ..users = [user.userId]
+      ..users = [user.userId!]
       ..packages = []
       ..packageVersions = []
       ..publishers = [publisherId];
   }
 
   factory AuditLogRecord.uploaderAdded({
-    @required User activeUser,
-    @required String package,
-    @required User uploaderUser,
+    required User activeUser,
+    required String package,
+    required User uploaderUser,
   }) {
     return AuditLogRecord._init()
       ..kind = AuditLogRecordKind.uploaderAdded
@@ -463,16 +461,16 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'uploaderEmail': uploaderUser.email,
         'user': activeUser.email,
       }
-      ..users = [activeUser.userId, uploaderUser.userId]
+      ..users = [activeUser.userId!, uploaderUser.userId!]
       ..packages = [package]
       ..packageVersions = []
       ..publishers = [];
   }
 
   factory AuditLogRecord.uploaderInvited({
-    @required User user,
-    @required String package,
-    @required String uploaderEmail,
+    required User user,
+    required String package,
+    required String uploaderEmail,
   }) {
     return AuditLogRecord._init()
       ..kind = AuditLogRecordKind.uploaderInvited
@@ -486,15 +484,15 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'uploaderEmail': uploaderEmail,
         'user': user.email,
       }
-      ..users = [user.userId]
+      ..users = [user.userId!]
       ..packages = [package]
       ..packageVersions = []
       ..publishers = [];
   }
 
   factory AuditLogRecord.uploaderInviteAccepted({
-    @required User user,
-    @required String package,
+    required User user,
+    required String package,
   }) {
     return AuditLogRecord._init()
       ..kind = AuditLogRecordKind.uploaderInviteAccepted
@@ -506,16 +504,16 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'package': package,
         'user': user.email,
       }
-      ..users = [user.userId]
+      ..users = [user.userId!]
       ..packages = [package]
       ..packageVersions = []
       ..publishers = [];
   }
 
   factory AuditLogRecord.uploaderInviteExpired({
-    @required String fromUserId,
-    @required String package,
-    @required String uploaderEmail,
+    required String fromUserId,
+    required String package,
+    required String uploaderEmail,
   }) {
     return AuditLogRecord._init()
       ..kind = AuditLogRecordKind.uploaderInviteExpired
@@ -534,12 +532,12 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   }
 
   factory AuditLogRecord.uploaderInviteRejected({
-    @required String fromUserId,
-    @required String package,
-    @required String uploaderEmail,
+    required String fromUserId,
+    required String package,
+    required String uploaderEmail,
 
     /// Optional, in the future we may allow invite rejection without sign-in.
-    @required String userId,
+    required String? userId,
   }) {
     return AuditLogRecord._init()
       ..kind = AuditLogRecordKind.uploaderInviteRejected
@@ -559,9 +557,9 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   }
 
   factory AuditLogRecord.uploaderRemoved({
-    @required User activeUser,
-    @required String package,
-    @required User uploaderUser,
+    required User activeUser,
+    required String package,
+    required User uploaderUser,
   }) {
     return AuditLogRecord._init()
       ..kind = AuditLogRecordKind.uploaderRemoved
@@ -575,7 +573,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'uploaderEmail': uploaderUser.email,
         'user': activeUser.email,
       }
-      ..users = [activeUser.userId, uploaderUser.userId]
+      ..users = [activeUser.userId!, uploaderUser.userId!]
       ..packages = [package]
       ..packageVersions = []
       ..publishers = [];

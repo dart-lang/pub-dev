@@ -33,19 +33,19 @@ class TransactionWrapper {
   TransactionWrapper._(this._tx);
 
   /// See [Transaction.lookup].
-  Future<List<T>> lookup<T extends Model>(List<Key> keys) =>
+  Future<List<T?>> lookup<T extends Model>(List<Key> keys) =>
       _tx.lookup<T>(keys);
 
   /// [lookupValue] or return `null`.
-  Future<T> lookupOrNull<T extends Model>(Key key) =>
-      _tx.lookupValue<T>(key, orElse: () => null);
+  Future<T?> lookupOrNull<T extends Model>(Key key) async =>
+      (await _tx.lookup<T>([key])).single;
 
   /// See [Transaction.lookupValue].
-  Future<T> lookupValue<T extends Model>(Key key, {T Function() orElse}) =>
+  Future<T> lookupValue<T extends Model>(Key key, {T Function()? orElse}) =>
       _tx.lookupValue<T>(key, orElse: orElse);
 
   /// See [Transaction.query].
-  Query<T> query<T extends Model>(Key ancestorKey, {Partition partition}) =>
+  Query<T> query<T extends Model>(Key ancestorKey, {Partition? partition}) =>
       _tx.query<T>(ancestorKey, partition: partition);
 
   /// Insert [entity] in this transaction.
@@ -55,17 +55,21 @@ class TransactionWrapper {
   void delete(Key key) => queueMutations(deletes: [key]);
 
   /// See [Transaction.queueMutations].
-  void queueMutations({List<Model> inserts, List<Key> deletes}) {
+  void queueMutations({List<Model>? inserts, List<Key>? deletes}) {
     _mutated = true;
     _tx.queueMutations(inserts: inserts, deletes: deletes);
   }
 }
 
 extension DatastoreDBExt on DatastoreDB {
+  /// [lookupValue] or return `null`.
+  Future<T?> lookupOrNull<T extends Model>(Key key) async =>
+      (await lookup<T>([key])).single;
+
   // Deletes the entries that are returned from the [query].
   Future<void> deleteWithQuery<T extends Model>(
     Query<T> query, {
-    bool Function(T model) where,
+    bool Function(T model)? where,
   }) async {
     final deletes = <Key>[];
     final stream = query.run().where((model) => where == null || where(model));

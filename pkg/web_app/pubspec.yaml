@@ -18,6 +18,3 @@ dependencies:
 
 dev_dependencies:
   test: ^1.16.5
-
-dependency_overrides:
-  http: ^0.12.0 # shelf/api_builder

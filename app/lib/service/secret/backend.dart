@@ -26,12 +26,12 @@ class SecretBackend {
   /// Loads the Secret value from the Datastore.
   /// Returns null if no Secret entity is found.
   /// Throws InvalidInputException if the [id] is no valid.
-  Future<String> lookup(String id) async {
+  Future<String?> lookup(String id) async {
     if (!SecretKey.isValid(id)) {
       throw ArgumentError.value(id, 'id', 'invalid secret key identifier');
     }
     final key = _db.emptyKey.append(Secret, id: id);
-    final secret = await _db.lookupValue<Secret>(key, orElse: () => null);
+    final secret = await _db.lookupOrNull<Secret>(key);
     return secret?.value;
   }
 
@@ -43,7 +43,7 @@ class SecretBackend {
     }
     final key = _db.emptyKey.append(Secret, id: id);
     await withRetryTransaction(_db, (tx) async {
-      final secret = await tx.lookupValue<Secret>(key, orElse: () => null);
+      final secret = await tx.lookupOrNull<Secret>(key);
       if (secret == null) {
         tx.insert(Secret()
           ..parentKey = dbService.emptyKey
@@ -61,7 +61,7 @@ class SecretBackend {
   ///
   /// WARNING: Do not use this method for sensitive data, as it will be put in
   ///          redis too.
-  Future<String> getCachedValue(String id) async {
+  Future<String?> getCachedValue(String id) async {
     return await cache.secretValue(id).get(() => lookup(id));
   }
 }

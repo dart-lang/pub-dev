@@ -11,12 +11,9 @@ SearchSnapshot _$SearchSnapshotFromJson(Map<String, dynamic> json) {
     ..updated = json['updated'] == null
         ? null
         : DateTime.parse(json['updated'] as String)
-    ..documents = (json['documents'] as Map<String, dynamic>)?.map(
-      (k, e) => MapEntry(
-          k,
-          e == null
-              ? null
-              : PackageDocument.fromJson(e as Map<String, dynamic>)),
+    ..documents = (json['documents'] as Map<String, dynamic>?)?.map(
+      (k, e) =>
+          MapEntry(k, PackageDocument.fromJson(e as Map<String, dynamic>)),
     );
 }
 
@@ -31,9 +28,9 @@ DartdocIndexEntry _$DartdocIndexEntryFromJson(Map<String, dynamic> json) {
     name: json['name'] as String,
     qualifiedName: json['qualifiedName'] as String,
     href: json['href'] as String,
-    type: json['type'] as String,
-    overriddenDepth: json['overriddenDepth'] as int,
-    packageName: json['packageName'] as String,
+    type: json['type'] as String?,
+    overriddenDepth: json['overriddenDepth'] as int?,
+    packageName: json['packageName'] as String?,
     enclosedBy: json['enclosedBy'] == null
         ? null
         : DartdocIndexEntryEnclosedBy.fromJson(
@@ -42,7 +39,11 @@ DartdocIndexEntry _$DartdocIndexEntryFromJson(Map<String, dynamic> json) {
 }
 
 Map<String, dynamic> _$DartdocIndexEntryToJson(DartdocIndexEntry instance) {
-  final val = <String, dynamic>{};
+  final val = <String, dynamic>{
+    'name': instance.name,
+    'qualifiedName': instance.qualifiedName,
+    'href': instance.href,
+  };
 
   void writeNotNull(String key, dynamic value) {
     if (value != null) {
@@ -50,9 +51,6 @@ Map<String, dynamic> _$DartdocIndexEntryToJson(DartdocIndexEntry instance) {
     }
   }
 
-  writeNotNull('name', instance.name);
-  writeNotNull('qualifiedName', instance.qualifiedName);
-  writeNotNull('href', instance.href);
   writeNotNull('type', instance.type);
   writeNotNull('overriddenDepth', instance.overriddenDepth);
   writeNotNull('packageName', instance.packageName);
@@ -63,8 +61,8 @@ Map<String, dynamic> _$DartdocIndexEntryToJson(DartdocIndexEntry instance) {
 DartdocIndexEntryEnclosedBy _$DartdocIndexEntryEnclosedByFromJson(
     Map<String, dynamic> json) {
   return DartdocIndexEntryEnclosedBy(
-    name: json['name'] as String,
-    type: json['type'] as String,
+    name: json['name'] as String?,
+    type: json['type'] as String?,
   );
 }
 

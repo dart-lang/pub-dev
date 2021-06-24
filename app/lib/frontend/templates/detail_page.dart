@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:intl/intl.dart';
-import 'package:meta/meta.dart';
 
 import '_cache.dart';
 
@@ -15,14 +14,14 @@ final wideHeaderDetailPageClassName = '-wide-header-detail-page';
 ///
 /// The like button in the header will not be displayed when [isLiked] is null.
 String renderDetailHeader({
-  String title,
-  String titleHtml,
-  String imageUrl,
-  int packageLikes,
-  bool isLiked,
+  String? title,
+  String? titleHtml,
+  String? imageUrl,
+  int? packageLikes,
+  bool? isLiked,
   bool isFlutterFavorite = false,
-  String metadataHtml,
-  String tagsHtml,
+  String? metadataHtml,
+  String? tagsHtml,
 
   /// Set true for more whitespace in the header.
   bool isLoose = false,
@@ -34,7 +33,7 @@ String renderDetailHeader({
   }
   return templateCache.renderTemplate('shared/detail/header', {
     'is_loose': isLoose,
-    'title_html': titleHtml ?? htmlEscape.convert(title),
+    'title_html': titleHtml ?? htmlEscape.convert(title!),
     'metadata_html': metadataHtml,
     'tags_html': tagsHtml,
     'like_count': _formatPackageLikes(packageLikes),
@@ -48,18 +47,18 @@ String renderDetailHeader({
 }
 
 // keep in-sync with pkg/web_app/lib/src/likes.dart
-String _formatPackageLikes(int likesCount) {
+String? _formatPackageLikes(int? likesCount) {
   if (likesCount == null) return null;
   return NumberFormat.compact().format(likesCount);
 }
 
 /// Renders the `shared/detail/page.mustache` template
 String renderDetailPage({
-  @required String headerHtml,
-  @required List<Tab> tabs,
-  @required String infoBoxHtml,
-  String infoBoxLead,
-  String footerHtml,
+  required String headerHtml,
+  required List<Tab> tabs,
+  required String? infoBoxHtml,
+  String? infoBoxLead,
+  String? footerHtml,
 }) {
   return templateCache.renderTemplate('shared/detail/page', {
     'header_html': headerHtml,
@@ -88,27 +87,27 @@ String renderDetailTabs(List<Tab> tabs) {
 class Tab {
   final String id;
   final String titleHtml;
-  final String contentHtml;
+  final String? contentHtml;
   final bool isMarkdown;
   final bool hasHref;
   bool isActive = false;
 
   Tab.withContent({
-    @required this.id,
-    String title,
-    String titleHtml,
-    @required this.contentHtml,
+    required this.id,
+    String? title,
+    String? titleHtml,
+    required this.contentHtml,
     this.isMarkdown = false,
     this.hasHref = false,
-  }) : titleHtml = titleHtml ?? htmlEscape.convert(title);
+  }) : titleHtml = titleHtml ?? htmlEscape.convert(title!);
 
   Tab.withLink({
-    @required this.id,
-    String title,
-    String titleHtml,
-    @required String href,
+    required this.id,
+    String? title,
+    String? titleHtml,
+    required String href,
   })  : titleHtml =
-            '<a href="$href">${titleHtml ?? htmlEscape.convert(title)}</a>',
+            '<a href="$href">${titleHtml ?? htmlEscape.convert(title!)}</a>',
         contentHtml = null,
         isMarkdown = false,
         hasHref = true;

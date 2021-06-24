@@ -17,8 +17,8 @@ import '../../tool/utils/http.dart';
 ///
 /// If [handler] is not specified, it will use the default frontend handler.
 http.Client httpClientToShelfHandler({
-  shelf.Handler handler,
-  String authToken,
+  shelf.Handler? handler,
+  String? authToken,
 }) {
   handler ??= createAppHandler();
   handler = wrapHandler(
@@ -49,7 +49,7 @@ http_testing.MockClientHandler _wrapShelfHandler(shelf.Handler handler) {
       url: Uri(path: _removeLeadingSlashes(rq.url.path), query: rq.url.query),
       handlerPath: '',
     );
-    shelf.Response rs;
+    late shelf.Response rs;
     // Need to fork a service scope to create a separate RequestContext in the
     // search service handler.
     await fork(() async {

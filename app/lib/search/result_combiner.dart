@@ -4,8 +4,6 @@
 
 import 'dart:async';
 
-import 'package:meta/meta.dart';
-
 import 'dart_sdk_mem_index.dart';
 import 'flutter_sdk_mem_index.dart';
 import 'search_service.dart';
@@ -18,9 +16,9 @@ class SearchResultCombiner {
   final FlutterSdkMemIndex flutterSdkMemIndex;
 
   SearchResultCombiner({
-    @required this.primaryIndex,
-    @required this.dartSdkMemIndex,
-    @required this.flutterSdkMemIndex,
+    required this.primaryIndex,
+    required this.dartSdkMemIndex,
+    required this.flutterSdkMemIndex,
   });
 
   Future<PackageSearchResult> search(ServiceSearchQuery query) async {
@@ -29,9 +27,9 @@ class SearchResultCombiner {
     }
 
     final primaryResult = await primaryIndex.search(query);
-    final dartSdkResults = await dartSdkMemIndex.search(query.query, limit: 2);
+    final dartSdkResults = await dartSdkMemIndex.search(query.query!, limit: 2);
     final flutterSdkResults =
-        await flutterSdkMemIndex.search(query.query, limit: 2);
+        await flutterSdkMemIndex.search(query.query!, limit: 2);
     final sdkLibraryHits = [
       ...dartSdkResults,
       ...flutterSdkResults,

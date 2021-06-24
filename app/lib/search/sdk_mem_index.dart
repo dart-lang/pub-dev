@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/meta.dart';
-
 import '../shared/versions.dart' show toolStableDartSdkVersion;
 import 'models.dart';
 import 'search_service.dart';
@@ -12,20 +10,20 @@ import 'token_index.dart';
 /// In-memory index for SDK library search queries.
 class SdkMemIndex {
   final String _sdk;
-  final String _version;
+  final String? _version;
   final Uri _baseUri;
   final _tokensPerLibrary = <String, TokenIndex>{};
   final _baseUriPerLibrary = <String, String>{};
 
   SdkMemIndex({
-    @required String sdk,
-    @required String version,
-    @required Uri baseUri,
+    required String sdk,
+    required String? version,
+    required Uri baseUri,
   })  : _sdk = sdk,
         _version = version,
         _baseUri = baseUri;
 
-  factory SdkMemIndex.dart({String version}) {
+  factory SdkMemIndex.dart({String? version}) {
     version ??= toolStableDartSdkVersion;
     return SdkMemIndex(
         sdk: 'dart',
@@ -45,7 +43,7 @@ class SdkMemIndex {
 
   Future<void> addDartdocIndex(
     DartdocIndex index, {
-    Set<String> allowedLibraries,
+    Set<String>? allowedLibraries,
   }) async {
     for (final f in index.entries) {
       final library = f.qualifiedName.split('.').first;
@@ -66,7 +64,7 @@ class SdkMemIndex {
 
   Future<List<SdkLibraryHit>> search(
     String query, {
-    int limit,
+    int? limit,
   }) async {
     limit ??= 2;
     final words = query.split(' ').where((e) => e.isNotEmpty).toList();
@@ -74,7 +72,7 @@ class SdkMemIndex {
 
     final hits = <_Hit>[];
     for (final library in _tokensPerLibrary.keys) {
-      final tokens = _tokensPerLibrary[library];
+      final tokens = _tokensPerLibrary[library]!;
       final rs = tokens.searchWords(words).top(3, minValue: 0.05);
       if (rs.isEmpty) continue;
 

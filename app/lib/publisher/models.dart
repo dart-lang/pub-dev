@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:meta/meta.dart';
 
 import '../shared/datastore.dart' as db;
 
@@ -13,29 +12,29 @@ part 'models.g.dart';
 @db.Kind(name: 'Publisher', idType: db.IdType.String)
 class Publisher extends db.ExpandoModel<String> {
   /// The associated domain name of the publisher.
-  String get publisherId => id;
+  String? get publisherId => id;
 
   /// Markdown formatted description of the publisher.
   ///
   /// Limited to 64 KB in length.
   @db.StringProperty()
-  String description;
+  String? description;
 
   @db.StringProperty()
-  String websiteUrl;
+  String? websiteUrl;
 
   /// The email address which other users can use to contact the publisher.
   ///
   /// This may be `null` if the publisher [isAbandoned] and the [Publisher]
   /// entity is retained for audit purposes.
   @db.StringProperty()
-  String contactEmail;
+  String? contactEmail;
 
   @db.DateTimeProperty(required: true)
-  DateTime created;
+  DateTime? created;
 
   @db.DateTimeProperty(required: true)
-  DateTime updated;
+  DateTime? updated;
 
   /// [isAbandoned] is set when a [Publisher] is abandoned (all of its members left).
   /// When this happens possible user-data such as [contactEmail] are purged.
@@ -46,37 +45,37 @@ class Publisher extends db.ExpandoModel<String> {
   /// (A) who uploaded a package, and,
   /// (B) who granted the permissions that allowed said package to be uploaded.
   @db.BoolProperty(required: true)
-  bool isAbandoned;
+  bool? isAbandoned;
 
   /// Whether the publisher has a displayable description.
-  bool get hasDescription => description != null && description.isNotEmpty;
+  bool get hasDescription => description != null && description!.isNotEmpty;
 
   /// Whether the publisher has a displayable contact email.
-  bool get hasContactEmail => contactEmail != null && contactEmail.isNotEmpty;
+  bool get hasContactEmail => contactEmail != null && contactEmail!.isNotEmpty;
 }
 
 /// Derived publisher data.
 @db.Kind(name: 'PublisherInfo', idType: db.IdType.String)
 class PublisherInfo extends db.ExpandoModel<String> {
   /// The associated domain name of the publisher.
-  String get publisherId => id;
+  String? get publisherId => id;
 
   @db.DateTimeProperty()
-  DateTime updated;
+  DateTime? updated;
 
   /// List of packages that are associated with this publisher.
   @db.StringListProperty()
-  List<String> packages;
+  List<String>? packages;
 
   /// List of userIds that are administrators of this publisher.
   /// (their email address is public information)
   @db.StringListProperty()
-  List<String> admins;
+  List<String>? admins;
 
   /// List of userIds that are public members of this publisher.
   /// (their email address is public information)
   @db.StringListProperty()
-  List<String> publicMembers;
+  List<String>? publicMembers;
 }
 
 /// Values for [PublisherMember.role]
@@ -92,28 +91,28 @@ abstract class PublisherMemberRole {
 @db.Kind(name: 'PublisherMember', idType: db.IdType.String)
 class PublisherMember extends db.ExpandoModel<String> {
   /// The key of the publisher.
-  db.Key get publisherKey => parentKey;
+  db.Key? get publisherKey => parentKey;
 
   /// The associated domain name of the publisher.
-  String get publisherId => publisherKey.id as String;
+  String get publisherId => publisherKey!.id as String;
 
   /// The userId of the member.
   @db.StringProperty(required: true)
-  String userId;
+  String? userId;
 
   @db.DateTimeProperty(required: true)
-  DateTime created;
+  DateTime? created;
 
   @db.DateTimeProperty(required: true)
-  DateTime updated;
+  DateTime? updated;
 
   /// One of [PublisherMemberRole].
   @db.StringProperty(required: true)
-  String role;
+  String? role;
 
   /// Returns a new [PublisherMember] object with a new parent.
   /// Should be used only for merging users.
-  PublisherMember changeParentUserId(String userId) {
+  PublisherMember changeParentUserId(String? userId) {
     return PublisherMember()
       ..parentKey = parentKey
       ..id = userId
@@ -126,10 +125,10 @@ class PublisherMember extends db.ExpandoModel<String> {
 
 @JsonSerializable()
 class PublisherPage {
-  final List<PublisherSummary> publishers;
+  final List<PublisherSummary>? publishers;
 
   PublisherPage({
-    @required this.publishers,
+    required this.publishers,
   });
 
   factory PublisherPage.fromJson(Map<String, dynamic> json) =>
@@ -143,8 +142,8 @@ class PublisherSummary {
   final DateTime created;
 
   PublisherSummary({
-    @required this.publisherId,
-    @required this.created,
+    required this.publisherId,
+    required this.created,
   });
 
   factory PublisherSummary.fromJson(Map<String, dynamic> json) =>

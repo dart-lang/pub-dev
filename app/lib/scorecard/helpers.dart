@@ -11,7 +11,7 @@ import 'models.dart';
 db.Key<String> scoreCardKey(
   String packageName,
   String packageVersion, {
-  String runtimeVersion,
+  String? runtimeVersion,
 }) {
   runtimeVersion ??= versions.runtimeVersion;
   return db.dbService.emptyKey

@@ -28,7 +28,7 @@ class DatastoreHeadTaskSource implements TaskSource {
   final Duration _window;
   final Duration _sleep;
   final TaskSourceModel _model;
-  DateTime _lastTs;
+  DateTime? _lastTs;
 
   DatastoreHeadTaskSource(
     this._db,
@@ -38,10 +38,10 @@ class DatastoreHeadTaskSource implements TaskSource {
     bool skipHistory = false,
 
     /// Tolerance window for eventually consistency in Datastore.
-    Duration window,
+    Duration? window,
 
     /// Inactivity duration between two polls.
-    Duration sleep,
+    Duration? sleep,
   })  : _window = window ?? _defaultWindow,
         _sleep = sleep ?? _defaultSleep,
         _lastTs = skipHistory
@@ -73,7 +73,7 @@ class DatastoreHeadTaskSource implements TaskSource {
   }
 
   Stream<Task> _poll<M extends Model>(
-      String field, FutureOr<Task> Function(M model) modelToTask) async* {
+      String field, FutureOr<Task?> Function(M model) modelToTask) async* {
     final Query q = _db.query<M>();
     if (_lastTs != null) {
       q.filter('$field >=', _lastTs);
@@ -88,15 +88,15 @@ class DatastoreHeadTaskSource implements TaskSource {
 
   Future<Task> _packageToTask(Package p) async {
     final releases = await packageBackend.latestReleases(p);
-    return Task(p.name, releases.stable.version, p.updated);
+    return Task(p.name!, releases.stable.version, p.updated!);
   }
 
   Task _versionToTask(PackageVersion pv) =>
-      Task(pv.package, pv.version, pv.created);
+      Task(pv.package, pv.version!, pv.created!);
 
-  Task _scoreCardToTask(ScoreCard s) {
+  Task? _scoreCardToTask(ScoreCard s) {
     if (s.runtimeVersion == runtimeVersion) {
-      return Task(s.packageName, s.packageVersion, s.updated);
+      return Task(s.packageName!, s.packageVersion!, s.updated!);
     } else {
       return null;
     }
@@ -122,19 +122,19 @@ abstract class DatastoreHistoryTaskSource implements TaskSource {
         final Query packageQuery = _db.query<Package>()..order('-updated');
         await for (final p in packageQuery.run().cast<Package>()) {
           final releases = await packageBackend.latestReleases(p);
-          if (await requiresUpdate(p.name, releases.stable.version,
+          if (await requiresUpdate(p.name!, releases.stable.version,
               retryFailed: true)) {
-            yield Task(p.name, releases.stable.version, p.updated);
+            yield Task(p.name!, releases.stable.version, p.updated!);
           }
 
           if (releases.showPrerelease &&
-              await requiresUpdate(p.name, releases.prerelease.version)) {
-            yield Task(p.name, releases.prerelease.version, p.updated);
+              await requiresUpdate(p.name!, releases.prerelease!.version)) {
+            yield Task(p.name!, releases.prerelease!.version, p.updated!);
           }
 
           if (releases.showPreview &&
-              await requiresUpdate(p.name, releases.preview.version)) {
-            yield Task(p.name, releases.preview.version, p.updated);
+              await requiresUpdate(p.name!, releases.preview!.version)) {
+            yield Task(p.name!, releases.preview!.version, p.updated!);
           }
         }
 
@@ -144,8 +144,8 @@ abstract class DatastoreHistoryTaskSource implements TaskSource {
           ..order('-created');
         await for (PackageVersion pv
             in versionQuery.run().cast<PackageVersion>()) {
-          if (await requiresUpdate(pv.package, pv.version)) {
-            yield Task(pv.package, pv.version, pv.created);
+          if (await requiresUpdate(pv.package, pv.version!)) {
+            yield Task(pv.package, pv.version!, pv.created!);
           }
         }
       } catch (e, st) {

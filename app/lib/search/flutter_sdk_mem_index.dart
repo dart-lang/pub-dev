@@ -65,13 +65,13 @@ class FlutterSdkMemIndex {
     await _index.close();
   }
 
-  Future<List<SdkLibraryHit>> search(String query, {int limit}) async {
+  Future<List<SdkLibraryHit>> search(String query, {int? limit}) async {
     if (!_index.isAvailable) return <SdkLibraryHit>[];
-    return await _index.value.search(query, limit: limit);
+    return await _index.value!.search(query, limit: limit);
   }
 }
 
-Future<SdkMemIndex> _createFlutterSdkMemIndex() async {
+Future<SdkMemIndex?> _createFlutterSdkMemIndex() async {
   try {
     return await retry(
       () async {

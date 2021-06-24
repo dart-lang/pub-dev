@@ -15,9 +15,9 @@ void main() {
     expect(config.packageBucketName, expectedValue);
     expect(config.dartdocStorageBucketName, expectedValue);
     expect(config.popularityDumpBucketName, expectedValue);
-    expect(config.admins[0].email, 'foo@foo.foo');
-    expect(config.admins[0].oauthUserId, '42');
-    expect(config.admins[0].permissions.contains(AdminPermission.listUsers),
+    expect(config.admins![0].email, 'foo@foo.foo');
+    expect(config.admins![0].oauthUserId, '42');
+    expect(config.admins![0].permissions.contains(AdminPermission.listUsers),
         isTrue);
   });
 

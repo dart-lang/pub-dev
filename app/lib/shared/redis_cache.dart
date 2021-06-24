@@ -9,8 +9,10 @@ import 'dart:math';
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:neat_cache/cache_provider.dart';
-import 'package:neat_cache/neat_cache.dart';
+// ignore: import_of_legacy_library_into_null_safe
+import 'package:neat_cache/neat_cache.dart' as nc;
 
 import 'package:client_data/package_api.dart' show VersionScore;
 
@@ -22,6 +24,7 @@ import '../scorecard/models.dart' show ScoreCardData;
 import '../search/search_service.dart' show PackageSearchResult;
 import '../service/secret/backend.dart';
 import 'convert.dart';
+import 'redis_cache_wrapper.dart';
 import 'versions.dart';
 
 final Logger _log = Logger('rediscache');
@@ -30,86 +33,86 @@ final _defaultCacheReadTimeout = Duration(milliseconds: 300);
 final _defaultCacheWriteTimeout = Duration(milliseconds: 1000);
 
 class CachePatterns {
-  final Cache<List<int>> _cache;
-  CachePatterns._(Cache<List<int>> cache)
-      : _cache = cache
+  final CacheWrapper<List<int>?> _cache;
+  CachePatterns._(nc.Cache<List<int>?> cache)
+      : _cache = CacheWrapper(cache
             .withPrefix('rv-$runtimeVersion')
-            .withTTL(Duration(minutes: 10));
+            .withTTL(Duration(minutes: 10)));
 
   // NOTE: This class should only contain methods that return Entry<T>, as well
   //       configuration options like prefix and TTL.
 
   /// Cache for [UserSessionData].
-  Entry<UserSessionData> userSessionData(String sessionId) => _cache
+  Entry<UserSessionData?> userSessionData(String sessionId) => _cache
       .withPrefix('account-usersession')
       .withTTL(Duration(hours: 24))
       .withCodec(utf8)
       .withCodec(json)
       .withCodec(wrapAsCodec(
-        encode: (UserSessionData data) => data.toJson(),
+        encode: (UserSessionData? data) => data!.toJson(),
         decode: (d) => UserSessionData.fromJson(d as Map<String, dynamic>),
       ))[sessionId];
 
   /// Cache for [DartdocEntry] objects.
-  Entry<DartdocEntry> dartdocEntry(String package, String version) => _cache
+  Entry<DartdocEntry?> dartdocEntry(String package, String version) => _cache
       .withPrefix('dartdoc-entry')
       .withTTL(Duration(hours: 24))
       .withCodec(wrapAsCodec(
-        encode: (DartdocEntry entry) => entry.asBytes(),
-        decode: (data) => DartdocEntry.fromBytes(data),
+        encode: (DartdocEntry? entry) => entry!.asBytes(),
+        decode: (data) => DartdocEntry.fromBytes(data!),
       ))['$package-$version'];
 
   /// Cache for [FileInfo] objects used by dartdoc.
-  Entry<FileInfo> dartdocFileInfo(String objectName) => _cache
+  Entry<FileInfo?> dartdocFileInfo(String objectName) => _cache
       .withPrefix('dartdoc-fileinfo')
       .withTTL(Duration(minutes: 60))
       .withCodec(wrapAsCodec(
-        encode: (FileInfo info) => info.asBytes(),
-        decode: (data) => FileInfo.fromBytes(data),
+        encode: (FileInfo? info) => info!.asBytes(),
+        decode: (data) => FileInfo.fromBytes(data!),
       ))[objectName];
 
   /// Cache for API summaries used by dartdoc.
-  Entry<Map<String, dynamic>> dartdocApiSummary(String package) => _cache
+  Entry<Map<String, dynamic>?> dartdocApiSummary(String package) => _cache
       .withPrefix('dartdoc-apisummary')
       .withTTL(Duration(minutes: 60))
       .withCodec(utf8)
       .withCodec(json)
       .withCodec(wrapAsCodec(
-        encode: (map) => map,
-        decode: (obj) => obj as Map<String, dynamic>,
+        encode: (dynamic map) => map,
+        decode: (obj) => obj as Map<String, dynamic>?,
       ))[package];
 
-  Entry<String> uiPackagePage(String package, String version) => _cache
+  Entry<String> uiPackagePage(String package, String? version) => _cache
       .withPrefix('ui-packagepage')
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8)['$package-$version'];
 
-  Entry<String> uiPackageChangelog(String package, String version) => _cache
+  Entry<String> uiPackageChangelog(String package, String? version) => _cache
       .withPrefix('ui-package-changelog')
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8)['$package-$version'];
 
-  Entry<String> uiPackageExample(String package, String version) => _cache
+  Entry<String> uiPackageExample(String package, String? version) => _cache
       .withPrefix('ui-package-example')
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8)['$package-$version'];
 
-  Entry<String> uiPackageInstall(String package, String version) => _cache
+  Entry<String> uiPackageInstall(String package, String? version) => _cache
       .withPrefix('ui-package-install')
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8)['$package-$version'];
 
-  Entry<String> uiPackageLicense(String package, String version) => _cache
+  Entry<String> uiPackageLicense(String package, String? version) => _cache
       .withPrefix('ui-package-license')
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8)['$package-$version'];
 
-  Entry<String> uiPackagePubspec(String package, String version) => _cache
+  Entry<String> uiPackagePubspec(String package, String? version) => _cache
       .withPrefix('ui-package-pubspec')
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8)['$package-$version'];
 
-  Entry<String> uiPackageScore(String package, String version) => _cache
+  Entry<String> uiPackageScore(String package, String? version) => _cache
       .withPrefix('ui-package-score')
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8)['$package-$version'];
@@ -135,27 +138,27 @@ class CachePatterns {
       .withTTL(Duration(minutes: 60))
       .withCodec(utf8)[publisherId];
 
-  Entry<bool> packageVisible(String package) => _cache
+  Entry<bool?> packageVisible(String package) => _cache
       .withPrefix('package-visible')
       .withTTL(Duration(days: 7))
       .withCodec(utf8)
       .withCodec(json)
       .withCodec(wrapAsCodec(
-        encode: (bool value) => value,
-        decode: (d) => d as bool,
+        encode: (bool? value) => value,
+        decode: (d) => d as bool?,
       ))[package];
 
-  Entry<List<int>> packageData(String package) => _cache
+  Entry<List<int>?> packageData(String package) => _cache
       .withPrefix('api-package-data-by-uri')
       .withTTL(Duration(minutes: 10))['$package'];
 
-  Entry<VersionScore> versionScore(String package, String version) => _cache
+  Entry<VersionScore?> versionScore(String package, String? version) => _cache
       .withPrefix('api-version-score')
       .withTTL(Duration(minutes: 60))
       .withCodec(utf8)
       .withCodec(json)
       .withCodec(wrapAsCodec(
-        encode: (d) => d.toJson(),
+        encode: (dynamic d) => d.toJson(),
         decode: (d) => VersionScore.fromJson(d as Map<String, dynamic>),
       ))['$package-$version'];
 
@@ -164,27 +167,27 @@ class CachePatterns {
       .withTTL(Duration(minutes: 60))
       .withCodec(utf8)[package];
 
-  Entry<PackageView> packageView(String package) => _cache
+  Entry<PackageView?> packageView(String package) => _cache
       .withPrefix('package-view')
       .withTTL(Duration(minutes: 60))
       .withCodec(utf8)
       .withCodec(json)
       .withCodec(wrapAsCodec(
-        encode: (PackageView pv) => pv.toJson(),
+        encode: (PackageView? pv) => pv!.toJson(),
         decode: (d) => PackageView.fromJson(d as Map<String, dynamic>),
       ))[package];
 
-  Entry<Map<String, dynamic>> apiPackagesListPage(int page) => _cache
+  Entry<Map<String, dynamic>?> apiPackagesListPage(int page) => _cache
       .withPrefix('api-packages-list')
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8)
       .withCodec(json)
       .withCodec(wrapAsCodec(
-        encode: (map) => map,
-        decode: (obj) => obj as Map<String, dynamic>,
+        encode: (dynamic map) => map,
+        decode: (obj) => obj as Map<String, dynamic>?,
       ))['$page'];
 
-  Entry<PackageSearchResult> packageSearchResult(String url, {Duration ttl}) {
+  Entry<PackageSearchResult?> packageSearchResult(String url, {Duration? ttl}) {
     ttl ??= const Duration(minutes: 1);
     return _cache
         .withPrefix('search-result')
@@ -192,29 +195,29 @@ class CachePatterns {
         .withCodec(utf8)
         .withCodec(json)
         .withCodec(wrapAsCodec(
-          encode: (PackageSearchResult r) => r.toJson(),
+          encode: (PackageSearchResult? r) => r!.toJson(),
           decode: (d) =>
               PackageSearchResult.fromJson(d as Map<String, dynamic>),
         ))[url];
   }
 
-  Entry<ScoreCardData> scoreCardData(String package, String version) => _cache
+  Entry<ScoreCardData?> scoreCardData(String package, String version) => _cache
       .withPrefix('scorecarddata')
       .withCodec(utf8)
       .withCodec(json)
       .withCodec(wrapAsCodec(
-        encode: (ScoreCardData d) => d.toJson(),
+        encode: (ScoreCardData? d) => d!.toJson(),
         decode: (d) => ScoreCardData.fromJson(d as Map<String, dynamic>),
       ))['$package-$version'];
 
-  Entry<List<LikeData>> userPackageLikes(String userId) => _cache
+  Entry<List<LikeData>?> userPackageLikes(String userId) => _cache
       .withPrefix('user-package-likes')
       .withTTL(Duration(minutes: 60))
       .withCodec(utf8)
       .withCodec(json)
       .withCodec(wrapAsCodec(
-        encode: (List<LikeData> l) =>
-            l.map((LikeData l) => l.toJson()).toList(),
+        encode: (List<LikeData>? l) =>
+            l!.map((LikeData l) => l.toJson()).toList(),
         decode: (d) => (d as List)
             .map((d) => LikeData.fromJson(d as Map<String, dynamic>))
             .toList(),
@@ -230,19 +233,19 @@ class CachePatterns {
       .withTTL(Duration(hours: 12))
       .withCodec(utf8)[requestedUri];
 
-  Entry<List<int>> packageNameCompletitionDataJsonGz() => _cache
+  Entry<List<int>?> packageNameCompletitionDataJsonGz() => _cache
       .withPrefix('api-package-name-completition-data-json-gz')
       .withTTL(Duration(hours: 8))['-'];
 
-  Entry<PublisherPage> allPublishersPage() => publisherPage('-');
+  Entry<PublisherPage?> allPublishersPage() => publisherPage('-');
 
-  Entry<PublisherPage> publisherPage(String userId) => _cache
+  Entry<PublisherPage?> publisherPage(String userId) => _cache
       .withPrefix('publisher-page')
       .withTTL(Duration(hours: 4))
       .withCodec(utf8)
       .withCodec(json)
       .withCodec(wrapAsCodec(
-        encode: (PublisherPage list) => list.toJson(),
+        encode: (PublisherPage? list) => list!.toJson(),
         decode: (data) => PublisherPage.fromJson(data as Map<String, dynamic>),
       ))['$userId'];
 
@@ -252,19 +255,20 @@ class CachePatterns {
       .withCodec(utf8)['/'];
 
   /// Stores the flag that latest version of packages have been scanned for job entities.
-  Entry<bool> jobHistoryLatestScanned(String service) =>
+  Entry<bool?> jobHistoryLatestScanned(String service) =>
       jobHistoryPackageScanned(service, '');
 
   /// Stores the flag that a [package]'s versions have been scanned for job entities.
-  Entry<bool> jobHistoryPackageScanned(String service, String package) => _cache
-      .withPrefix('job-history-package-scanned')
-      .withTTL(Duration(days: 7))
-      .withCodec(utf8)
-      .withCodec(json)
-      .withCodec(wrapAsCodec(
-        encode: (bool value) => value,
-        decode: (d) => d as bool,
-      ))['$service/$package'];
+  Entry<bool?> jobHistoryPackageScanned(String service, String package) =>
+      _cache
+          .withPrefix('job-history-package-scanned')
+          .withTTL(Duration(days: 7))
+          .withCodec(utf8)
+          .withCodec(json)
+          .withCodec(wrapAsCodec(
+            encode: (bool? value) => value,
+            decode: (d) => d as bool?,
+          ))['$service/$package'];
 }
 
 /// The active cache.
@@ -273,8 +277,8 @@ CachePatterns get cache => ss.lookup(#_cache) as CachePatterns;
 void _registerCache(CachePatterns cache) => ss.register(#_cache, cache);
 
 final _delayedCachePurgerKey = #_delayedCachePurger;
-_DelayedCachePurger get _delayedCachePurger =>
-    ss.lookup(_delayedCachePurgerKey) as _DelayedCachePurger;
+_DelayedCachePurger? get _delayedCachePurger =>
+    ss.lookup(_delayedCachePurgerKey) as _DelayedCachePurger?;
 void _registerDelayedCachePurgerKey(_DelayedCachePurger value) =>
     ss.register(_delayedCachePurgerKey, value);
 
@@ -307,13 +311,14 @@ Future _registerRedisCache() async {
 
   // Create and register a cache
   final cacheProvider = await _ConnectionRefreshingCacheProvider.connect(
-      () async => Cache.redisCacheProvider(connectionString));
-  _registerCache(CachePatterns._(Cache(cacheProvider)));
+      () async => nc.Cache.redisCacheProvider(connectionString));
+  _registerCache(CachePatterns._(nc.Cache(cacheProvider)));
   ss.registerScopeExitCallback(() async => cacheProvider.close());
 }
 
 Future _registerInmemoryCache() async {
-  _registerCache(CachePatterns._(Cache(Cache.inMemoryCacheProvider(4096))));
+  _registerCache(
+      CachePatterns._(nc.Cache(nc.Cache.inMemoryCacheProvider(4096))));
 }
 
 /// Creates a [CacheProvider] when called.
@@ -322,10 +327,10 @@ typedef _CacheProviderFn<T> = Future<CacheProvider<T>> Function();
 /// The redis client uses a single connection for a long period. To make sure we
 /// don't accumulate objects around a single connection accidentally, this cache
 /// provider will reconnect to redis ~every hour.
-class _ConnectionRefreshingCacheProvider<T> implements CacheProvider<T> {
+class _ConnectionRefreshingCacheProvider<T> implements CacheProvider<T?> {
   final _CacheProviderFn<T> _fn;
-  CacheProvider<T> _delegate;
-  Timer _timer;
+  CacheProvider<T?> _delegate;
+  late Timer _timer;
   bool _isClosed = false;
 
   _ConnectionRefreshingCacheProvider._(this._fn, this._delegate) {
@@ -365,7 +370,7 @@ class _ConnectionRefreshingCacheProvider<T> implements CacheProvider<T> {
   }
 
   @override
-  Future<T> get(String key) async {
+  Future<T?> get(String key) async {
     try {
       return await _delegate
           .get(key)
@@ -384,7 +389,7 @@ class _ConnectionRefreshingCacheProvider<T> implements CacheProvider<T> {
       .timeout(_defaultCacheWriteTimeout, onTimeout: () => null);
 
   @override
-  Future<void> set(String key, T value, [Duration ttl]) => _delegate
+  Future<void> set(String key, T? value, [Duration? ttl]) => _delegate
       .set(key, value, ttl)
       .timeout(_defaultCacheWriteTimeout, onTimeout: () => null);
 }
@@ -394,17 +399,17 @@ extension EntryPurgeExt on Entry {
   /// entries that are then fetched via query, the cache may store the old values.
   /// Running a repeated purge after a reasonable delay will make sure that the
   /// cache won't store the old values for too long.
-  Future purgeAndRepeat({int retries = 0, Duration delay}) async {
+  Future purgeAndRepeat({int retries = 0, Duration? delay}) async {
     await purge(retries: retries);
-    _delayedCachePurger.add(this, delay);
+    _delayedCachePurger!.add(this, delay);
   }
 }
 
 class _DelayedCachePurger {
   final _entries = <_DelayedPurge>[];
-  Timer _timer;
+  Timer? _timer;
 
-  void add(Entry cacheEntry, Duration delay) {
+  void add(Entry cacheEntry, Duration? delay) {
     final entry = _DelayedPurge(cacheEntry, delay);
     _entries.add(entry);
     _timer ??= Timer.periodic(Duration(seconds: 20), (timer) {
@@ -434,6 +439,6 @@ class _DelayedPurge {
   final Entry entry;
   final DateTime time;
 
-  _DelayedPurge(this.entry, Duration delay)
+  _DelayedPurge(this.entry, Duration? delay)
       : time = DateTime.now().add(delay ?? Duration(seconds: 30));
 }

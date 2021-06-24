@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:meta/meta.dart';
 import 'package:ulid/ulid.dart';
 
 import '../frontend/static_files.dart';
@@ -16,7 +15,7 @@ part 'models.g.dart';
 class User extends db.ExpandoModel<String> {
   /// Same as [id].
   /// A random UUID id.
-  String get userId => id;
+  String? get userId => id;
 
   /// The Google OAuth2 ID of the [User].
   ///
@@ -24,17 +23,17 @@ class User extends db.ExpandoModel<String> {
   /// tracking authentications, or if the user [isDeleted] and the [User] entity
   /// is retained for audit purposes.
   @db.StringProperty()
-  String oauthUserId;
+  String? oauthUserId;
 
   @db.StringProperty()
-  String email;
+  String? email;
 
   /// [DateTime] the [User] entity was created.
   ///
   /// This may be `null` if the user [isDeleted] and the [User] entity is
   /// retained for audit purposes.
   @db.DateTimeProperty()
-  DateTime created;
+  DateTime? created;
 
   /// [isDeleted] is set when a user account is deleted.
   /// When this happens user-data such as preferences are purged.
@@ -45,25 +44,25 @@ class User extends db.ExpandoModel<String> {
   /// (A) who uploaded a package, and,
   /// (B) who granted the permissions that allowed said package to be uploaded.
   @db.BoolProperty(required: true)
-  bool isDeleted;
+  bool isDeleted = false;
 
   /// [isBlocked] is set when a user account is blocked (is on administrative hold).
   /// When this happens user-data is preserved, but the user should not be able
   /// to perform any action.
   @db.BoolProperty(required: true)
-  bool isBlocked;
+  bool isBlocked = false;
 }
 
 /// Maps Oauth user_id to User.id
 @db.Kind(name: 'OAuthUserID', idType: db.IdType.String)
 class OAuthUserID extends db.ExpandoModel<String> {
   /// Same as [id].
-  String get oauthUserId => id;
+  String? get oauthUserId => id;
 
   @db.ModelKeyProperty(required: true)
-  db.Key userIdKey;
+  db.Key? userIdKey;
 
-  String get userId => userIdKey.id as String;
+  String get userId => userIdKey!.id as String;
 }
 
 /// Data model for [Like] entities.
@@ -76,23 +75,23 @@ class OAuthUserID extends db.ExpandoModel<String> {
 /// When a user unlikes a package the [Like] entity is deleted
 @db.Kind(name: 'Like', idType: db.IdType.String)
 class Like extends db.ExpandoModel<String> {
-  String get userId => parentKey.id as String;
-  String get package => id;
+  String? get userId => parentKey!.id as String?;
+  String? get package => id;
 
   @db.DateTimeProperty()
-  DateTime created;
+  DateTime? created;
 
   /// Same as [id]. This is added to enable filtering on queries.
   @db.StringProperty()
-  String packageName;
+  String? packageName;
 }
 
 /// The cacheable version of [Like].
 @JsonSerializable()
 class LikeData {
-  final String userId;
-  final String package;
-  final DateTime created;
+  final String? userId;
+  final String? package;
+  final DateTime? created;
 
   LikeData({this.userId, this.package, this.created});
 
@@ -115,29 +114,29 @@ class LikeData {
 class UserSession extends db.ExpandoModel<String> {
   /// Same as [id].
   /// This is a v4 (random) UUID String.
-  String get sessionId => id;
+  String get sessionId => id as String;
 
   @db.StringProperty(required: true)
-  String userId;
+  String? userId;
 
   @db.StringProperty(required: true)
-  String email;
+  String? email;
 
   /// The name of the user given by the authentication provider.
   /// May be null, or could contain any arbitrary text.
   @db.StringProperty()
-  String name;
+  String? name;
 
   @db.StringProperty()
-  String imageUrl;
+  String? imageUrl;
 
   @db.DateTimeProperty(required: true)
-  DateTime created;
+  DateTime? created;
 
   @db.DateTimeProperty(required: true)
-  DateTime expires;
+  DateTime? expires;
 
-  bool isExpired() => DateTime.now().isAfter(expires);
+  bool isExpired() => DateTime.now().isAfter(expires!);
 }
 
 /// Pattern for detecting profile image parameters as specified in [1].
@@ -154,16 +153,16 @@ class UserSessionData {
   final String sessionId;
 
   /// The v4 (random) UUID String of the [User] that has this session.
-  final String userId;
+  final String? userId;
 
   /// The email address of the [User].
-  final String email;
+  final String? email;
 
   /// The name of the [User] (may be null, or any arbitrary text).
-  final String name;
+  final String? name;
 
   /// The image URL of the user's profile picture (may be null).
-  final String imageUrl;
+  final String? imageUrl;
 
   /// The time when the session was created.
   final DateTime created;
@@ -172,13 +171,13 @@ class UserSessionData {
   final DateTime expires;
 
   UserSessionData({
-    this.sessionId,
+    required this.sessionId,
     this.userId,
     this.email,
     this.name,
     this.imageUrl,
-    this.created,
-    this.expires,
+    required this.created,
+    required this.expires,
   });
 
   factory UserSessionData.fromModel(UserSession session) {
@@ -188,8 +187,8 @@ class UserSessionData {
       email: session.email,
       name: session.name,
       imageUrl: session.imageUrl,
-      created: session.created,
-      expires: session.expires,
+      created: session.created!,
+      expires: session.expires!,
     );
   }
 
@@ -208,7 +207,7 @@ class UserSessionData {
     final imageSize = layoutSize * 2;
 
     // Strip existing options from the imageUrl if there is any
-    var u = imageUrl;
+    var u = imageUrl!;
     if (u.contains('=') && _imgParamPattern.hasMatch(u)) {
       u = u.substring(0, u.lastIndexOf('='));
     }
@@ -219,7 +218,7 @@ class UserSessionData {
 /// Derived data for [User] for fast lookup.
 @db.Kind(name: 'UserInfo', idType: db.IdType.String)
 class UserInfo extends db.ExpandoModel<String> {
-  String get userId => id;
+  String? get userId => id;
 
   @db.StringListProperty()
   List<String> packages = <String>[];
@@ -228,7 +227,7 @@ class UserInfo extends db.ExpandoModel<String> {
   List<String> publishers = <String>[];
 
   @db.DateTimeProperty()
-  DateTime updated;
+  DateTime? updated;
 }
 
 /// An active consent request sent to a recipient.
@@ -240,41 +239,41 @@ class Consent extends db.Model {
 
   /// The email that this consent is for.
   @db.StringProperty(required: true)
-  String email;
+  String? email;
 
   /// A [Uri.path]-like concatenation of identifiers from [kind] and [args].
   /// It should be used to query the Datastore for duplicate detection.
   @db.StringProperty()
-  String dedupId;
+  String? dedupId;
 
   @db.StringProperty()
-  String kind;
+  String? kind;
 
   @db.StringListProperty()
-  List<String> args;
+  List<String>? args;
 
   @db.StringProperty()
-  String fromUserId;
+  String? fromUserId;
 
   @db.DateTimeProperty()
-  DateTime created;
+  DateTime? created;
 
   @db.DateTimeProperty()
-  DateTime expires;
+  DateTime? expires;
 
   @db.DateTimeProperty()
-  DateTime lastNotified;
+  DateTime? lastNotified;
 
   @db.IntProperty()
-  int notificationCount;
+  int notificationCount = 0;
 
   Consent();
 
   Consent.init({
-    @required this.fromUserId,
-    @required this.email,
-    @required this.kind,
-    @required this.args,
+    required this.fromUserId,
+    required this.email,
+    required this.kind,
+    required this.args,
     Duration timeout = const Duration(days: 7),
   }) {
     id = Ulid().toString();
@@ -282,18 +281,17 @@ class Consent extends db.Model {
       fromUserId: fromUserId,
       email: email,
       kind: kind,
-      args: args,
+      args: args!,
     );
     created = DateTime.now().toUtc();
-    notificationCount = 0;
-    expires = created.add(timeout);
+    expires = created!.add(timeout);
   }
 
-  bool isExpired() => DateTime.now().toUtc().isAfter(expires);
+  bool isExpired() => DateTime.now().toUtc().isAfter(expires!);
 
   /// The timestamp when the next notification could be sent out.
   DateTime get nextNotification =>
-      (lastNotified ?? created).add(Duration(minutes: 1 << notificationCount));
+      (lastNotified ?? created)!.add(Duration(minutes: 1 << notificationCount));
 
   /// Whether a new notification should be sent.
   bool shouldNotify() =>
@@ -303,12 +301,13 @@ class Consent extends db.Model {
 
 /// Calculates the dedupId of a consent request.
 String consentDedupId({
-  @required String fromUserId,
-  @required String email,
-  @required String kind,
-  @required List<String> args,
+  required String? fromUserId,
+  required String? email,
+  required String? kind,
+  required List<String> args,
 }) =>
     [fromUserId, email, kind, ...args]
         .where((s) => s != null)
+        .whereType<String>()
         .map(Uri.encodeComponent)
         .join('/');

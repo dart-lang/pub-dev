@@ -12,7 +12,7 @@ import '../shared/urls.dart' as urls;
 /// Handlers for the dartdoc service.
 Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
   final path = request.requestedUri.path;
-  final shelf.Handler handler = {
+  final handler = {
     '/debug': _debugHandler,
     '/liveness_check': (_) => htmlResponse('OK'),
     '/readiness_check': (_) => htmlResponse('OK'),
@@ -26,7 +26,7 @@ Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
   }
 
   if (handler != null) {
-    return await handler(request);
+    return handler(request);
   } else {
     return notFoundHandler(request);
   }
