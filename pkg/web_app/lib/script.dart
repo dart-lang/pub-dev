@@ -5,7 +5,7 @@
 // @dart=2.9
 
 import 'dart:html';
-import 'package:mdc_web/mdc_web.dart' as mdc;
+import 'package:mdc_web/mdc_web.dart' as mdc show autoInit;
 import 'src/account.dart';
 import 'src/dartdoc_status.dart';
 import 'src/foldable.dart';

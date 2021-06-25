@@ -7,7 +7,7 @@ import 'dart:html';
 
 import 'package:intl/intl.dart';
 // ignore: import_of_legacy_library_into_null_safe
-import 'package:mdc_web/mdc_web.dart';
+import 'package:mdc_web/mdc_web.dart' show MDCIconButtonToggle;
 
 import 'account.dart';
 import 'page_data.dart';
