@@ -94,7 +94,7 @@ void _initFailed() {
 }
 
 void _signInNotAvailable() {
-  document.getElementById('-account-login')?.onClick?.listen((_) async {
+  document.getElementById('-account-login')?.onClick.listen((_) async {
     await modalMessage(
         'Sign in is not available',
         markdown(
@@ -116,11 +116,11 @@ void _initWidgets() {
   document
       .getElementById('-account-login')
       ?.onClick
-      ?.listen((_) => authenticationProxy.trySignIn());
+      .listen((_) => authenticationProxy.trySignIn());
   document
       .getElementById('-account-logout')
       ?.onClick
-      ?.listen((_) => authenticationProxy.signOut());
+      .listen((_) => authenticationProxy.signOut());
   _pkgAdminWidget.init();
   _createPublisherWidget.init();
   _publisherAdminWidget.init();
@@ -132,7 +132,7 @@ Future _updateSession() async {
   if (!authenticationProxy.isSignedIn()) {
     final st1 = ClientSessionStatus.fromBytes(
         await unauthenticatedClient.invalidateSession());
-    if (st1.changed) {
+    if (st1.changed == true) {
       final st2 = ClientSessionStatus.fromBytes(
         await unauthenticatedClient.invalidateSession(),
       );
@@ -140,7 +140,7 @@ Future _updateSession() async {
       // If signing out a second time changes something, then clearly sign-out
       // isn't clearing the cookie and session correctly. We should not reload
       // to avoid degrading into a reload loop.
-      if (!st2.changed) {
+      if (st2.changed == false) {
         window.location.reload();
         return;
       }
@@ -149,7 +149,7 @@ Future _updateSession() async {
     final body = ClientSessionRequest(
         accessToken: await authenticationProxy.accessToken());
     final st1 = ClientSessionStatus.fromBytes(await client.updateSession(body));
-    if (st1.changed) {
+    if (st1.changed == true) {
       final st2 =
           ClientSessionStatus.fromBytes(await client.updateSession(body));
       // If creating the session a second time changed anything then maybe the
@@ -157,7 +157,7 @@ Future _updateSession() async {
       // into an infinite reload loop. We could show a message, but we have no
       // way of preventing this message from poping up on all pages, so it's
       // probably best to ignore this case.
-      if (!st2.changed) {
+      if (st2.changed == false) {
         window.location.reload();
         return;
       } else {
@@ -169,47 +169,47 @@ Future _updateSession() async {
 
 /// Active on /packages/<package>/admin page.
 class _PkgAdminWidget {
-  SelectElement _setPublisherInput;
-  Element _setPublisherButton;
-  InputElement _discontinuedCheckbox;
-  InputElement _replacedByInput;
-  Element _replacedByButton;
-  InputElement _unlistedCheckbox;
-  Element _inviteUploaderButton;
-  Element _inviteUploaderContent;
-  InputElement _inviteUploaderInput;
+  SelectElement? _setPublisherInput;
+  Element? _setPublisherButton;
+  InputElement? _discontinuedCheckbox;
+  InputElement? _replacedByInput;
+  Element? _replacedByButton;
+  InputElement? _unlistedCheckbox;
+  Element? _inviteUploaderButton;
+  Element? _inviteUploaderContent;
+  InputElement? _inviteUploaderInput;
 
   void init() {
     if (!pageData.isPackagePage) return;
     _setPublisherInput =
-        document.getElementById('-admin-set-publisher-input') as SelectElement;
+        document.getElementById('-admin-set-publisher-input') as SelectElement?;
     _setPublisherButton =
         document.getElementById('-admin-set-publisher-button');
-    _setPublisherButton?.onClick?.listen((_) => _setPublisher());
+    _setPublisherButton?.onClick.listen((_) => _setPublisher());
     _discontinuedCheckbox = document
-        .getElementById('-admin-is-discontinued-checkbox') as InputElement;
-    _discontinuedCheckbox?.onChange?.listen((_) => _toogleDiscontinued());
+        .getElementById('-admin-is-discontinued-checkbox') as InputElement?;
+    _discontinuedCheckbox?.onChange.listen((_) => _toogleDiscontinued());
     _replacedByInput =
-        document.getElementById('-package-replaced-by') as InputElement;
+        document.getElementById('-package-replaced-by') as InputElement?;
     _replacedByButton = document.getElementById('-package-replaced-by-button');
-    _replacedByButton?.onClick?.listen((_) => _updateReplacedBy());
+    _replacedByButton?.onClick.listen((_) => _updateReplacedBy());
     _unlistedCheckbox =
-        document.getElementById('-admin-is-unlisted-checkbox') as InputElement;
-    _unlistedCheckbox?.onChange?.listen((_) => _toggleUnlisted());
+        document.getElementById('-admin-is-unlisted-checkbox') as InputElement?;
+    _unlistedCheckbox?.onChange.listen((_) => _toggleUnlisted());
     _inviteUploaderButton =
         document.getElementById('-pkg-admin-invite-uploader-button');
     _inviteUploaderContent =
         document.getElementById('-pkg-admin-invite-uploader-content');
-    _inviteUploaderButton?.onClick?.listen((_) => _inviteUploader());
+    _inviteUploaderButton?.onClick.listen((_) => _inviteUploader());
     _inviteUploaderInput = document
-        .getElementById('-pkg-admin-invite-uploader-input') as InputElement;
+        .getElementById('-pkg-admin-invite-uploader-input') as InputElement?;
     if (_inviteUploaderContent != null) {
-      _inviteUploaderContent.remove();
-      _inviteUploaderContent.classes.remove('modal-content-hidden');
+      _inviteUploaderContent!.remove();
+      _inviteUploaderContent!.classes.remove('modal-content-hidden');
     }
     for (final btn
         in document.querySelectorAll('.-pub-remove-uploader-button')) {
-      btn.onClick.listen((_) => _removeUploader(btn.dataset['email']));
+      btn.onClick.listen((_) => _removeUploader(btn.dataset['email']!));
     }
   }
 
@@ -218,13 +218,13 @@ class _PkgAdminWidget {
       titleText: 'Invite new uploader',
       isQuestion: true,
       okButtonText: 'Invite',
-      content: _inviteUploaderContent,
+      content: _inviteUploaderContent!,
       onExecute: () => _doInviteUploader(),
     );
   }
 
   Future<bool> _doInviteUploader() async {
-    final email = _inviteUploaderInput.value.trim();
+    final email = _inviteUploaderInput!.value!.trim();
     if (email.isEmpty || !email.contains('@') || !email.contains('.')) {
       await modalMessage(
           'Input validation', text('Please specify a valid e-mail.'));
@@ -234,11 +234,11 @@ class _PkgAdminWidget {
     await rpc(
       fn: () async {
         await client.invitePackageUploader(
-            pageData.pkgData.package, InviteUploaderRequest(email: email));
+            pageData.pkgData!.package, InviteUploaderRequest(email: email));
       },
       successMessage: markdown('`$email` was invited.'),
       onSuccess: (_) {
-        _inviteUploaderInput.value = '';
+        _inviteUploaderInput!.value = '';
       },
     );
     return true;
@@ -249,7 +249,7 @@ class _PkgAdminWidget {
       confirmQuestion: markdown(
           'Are you sure you want to remove uploader `$email` from this package?'),
       fn: () async {
-        await client.removeUploader(pageData.pkgData.package, email);
+        await client.removeUploader(pageData.pkgData!.package, email);
       },
       successMessage: markdown(
           'Uploader `$email` removed from this package. The page will reload.'),
@@ -258,13 +258,13 @@ class _PkgAdminWidget {
   }
 
   Future<void> _toogleDiscontinued() async {
-    final oldValue = _discontinuedCheckbox.defaultChecked;
+    final oldValue = _discontinuedCheckbox!.defaultChecked ?? false;
     final newValue = await rpc(
       confirmQuestion: text(
           'Are you sure you want change the "discontinued" status of the package?'),
       fn: () async {
         final rs = await client.setPackageOptions(
-            pageData.pkgData.package,
+            pageData.pkgData!.package,
             PkgOptions(
               isDiscontinued: !oldValue,
             ));
@@ -276,7 +276,7 @@ class _PkgAdminWidget {
       onError: (err) => null,
     );
     if (newValue == null || newValue == oldValue) {
-      _discontinuedCheckbox.checked = oldValue;
+      _discontinuedCheckbox!.checked = oldValue;
     }
   }
 
@@ -286,7 +286,7 @@ class _PkgAdminWidget {
           'Are you sure you want change the "suggested replacement" field of the package?'),
       fn: () async {
         final rs = await client.setPackageOptions(
-            pageData.pkgData.package,
+            pageData.pkgData!.package,
             PkgOptions(
               isDiscontinued: true,
               replacedBy: _replacedByInput?.value,
@@ -300,13 +300,13 @@ class _PkgAdminWidget {
   }
 
   Future<void> _toggleUnlisted() async {
-    final oldValue = _unlistedCheckbox.defaultChecked;
+    final oldValue = _unlistedCheckbox!.defaultChecked ?? false;
     final newValue = await rpc(
       confirmQuestion: text(
           'Are you sure you want change the "unlisted" status of the package?'),
       fn: () async {
         final rs = await client.setPackageOptions(
-            pageData.pkgData.package,
+            pageData.pkgData!.package,
             PkgOptions(
               isUnlisted: !oldValue,
             ));
@@ -316,15 +316,15 @@ class _PkgAdminWidget {
       onError: (err) => null,
     );
     if (newValue == null) {
-      _unlistedCheckbox.checked = oldValue;
+      _unlistedCheckbox!.checked = oldValue;
     } else {
-      _unlistedCheckbox.defaultChecked = newValue;
-      _unlistedCheckbox.checked = newValue;
+      _unlistedCheckbox!.defaultChecked = newValue;
+      _unlistedCheckbox!.checked = newValue;
     }
   }
 
   Future<void> _setPublisher() async {
-    final publisherId = _setPublisherInput.value.trim();
+    final publisherId = _setPublisherInput?.value?.trim() ?? '';
     if (publisherId.isEmpty) {
       await modalMessage(
         'Input validation',
@@ -338,7 +338,7 @@ class _PkgAdminWidget {
           'Are you sure you want to transfer the package to publisher `$publisherId`?'),
       fn: () async {
         final payload = PackagePublisherInfo(publisherId: publisherId);
-        await client.setPackagePublisher(pageData.pkgData.package, payload);
+        await client.setPackagePublisher(pageData.pkgData!.package, payload);
       },
       successMessage: text(
           'Transfer completed. Caches and search index will update in the next 15-20 minutes. The page will reload.'),
@@ -349,14 +349,15 @@ class _PkgAdminWidget {
 
 /// Active on the /create-publisher page.
 class _CreatePublisherWidget {
-  Element _publisherIdInput;
-  Element _createButton;
+  Element? _publisherIdInput;
+  Element? _createButton;
 
   void init() {
     _publisherIdInput = document.getElementById('-publisher-id');
     _createButton = document.getElementById('-admin-create-publisher');
-    _createButton?.onClick?.listen((_) {
-      final publisherId = (_publisherIdInput as InputElement).value.trim();
+    _createButton?.onClick.listen((_) {
+      final publisherId =
+          (_publisherIdInput as InputElement).value?.trim() ?? '';
       _triggerCreate(publisherId);
     });
   }
@@ -380,7 +381,7 @@ class _CreatePublisherWidget {
             'https://www.googleapis.com/auth/webmasters.readonly';
         final payload = CreatePublisherRequest(
           accessToken:
-              await authenticationProxy.accessToken(extraScope: extraScope),
+              (await authenticationProxy.accessToken(extraScope: extraScope))!,
         );
         await client.createPublisher(publisherId, payload);
       },
@@ -394,14 +395,14 @@ class _CreatePublisherWidget {
 
 /// Active on the /publishers/<publisherId>/admin page.
 class _PublisherAdminWidget {
-  Element _updateButton;
-  TextAreaElement _descriptionTextArea;
-  InputElement _websiteUrlInput;
-  InputElement _contactEmailInput;
-  InputElement _inviteMemberInput;
-  Element _addMemberButton;
-  Element _addMemberContent;
-  String _originalContactEmail;
+  Element? _updateButton;
+  TextAreaElement? _descriptionTextArea;
+  InputElement? _websiteUrlInput;
+  InputElement? _contactEmailInput;
+  InputElement? _inviteMemberInput;
+  Element? _addMemberButton;
+  Element? _addMemberContent;
+  String? _originalContactEmail;
 
   void init() {
     if (!pageData.isPublisherPage) return;
@@ -417,36 +418,36 @@ class _PublisherAdminWidget {
     _addMemberButton = document.getElementById('-admin-add-member-button');
     _addMemberContent = document.getElementById('-admin-add-member-content');
     _originalContactEmail = _contactEmailInput?.value;
-    _updateButton?.onClick?.listen((_) => _updatePublisher());
-    _addMemberButton?.onClick?.listen((_) => _addMember());
+    _updateButton?.onClick.listen((_) => _updatePublisher());
+    _addMemberButton?.onClick.listen((_) => _addMember());
     if (_addMemberContent != null) {
-      _addMemberContent.remove();
-      _addMemberContent.classes.remove('modal-content-hidden');
+      _addMemberContent!.remove();
+      _addMemberContent!.classes.remove('modal-content-hidden');
     }
     for (final btn in document.querySelectorAll('.-pub-remove-user-button')) {
       btn.onClick.listen((_) => _removeMember(
-            btn.dataset['user-id'],
-            btn.dataset['email'],
+            btn.dataset['user-id']!,
+            btn.dataset['email']!,
           ));
     }
   }
 
   Future<void> _updatePublisher() async {
-    String confirmQuestion;
-    if (_originalContactEmail != _contactEmailInput.value) {
+    String? confirmQuestion;
+    if (_originalContactEmail != _contactEmailInput!.value) {
       confirmQuestion = 'You are changing the contact email of the publisher. '
           'Changing it to an admin member email happens immediately, for other '
           'addresses we will send a confirmation request.';
     }
     await rpc(
-      confirmQuestion: text(confirmQuestion),
+      confirmQuestion: confirmQuestion == null ? null : text(confirmQuestion),
       fn: () async {
         final payload = UpdatePublisherRequest(
-          description: _descriptionTextArea.value,
-          websiteUrl: _websiteUrlInput.value,
-          contactEmail: _contactEmailInput.value,
+          description: _descriptionTextArea!.value,
+          websiteUrl: _websiteUrlInput!.value,
+          contactEmail: _contactEmailInput!.value,
         );
-        await client.updatePublisher(pageData.publisher.publisherId, payload);
+        await client.updatePublisher(pageData.publisher!.publisherId, payload);
       },
       successMessage: text('Publisher was updated. The page will reload.'),
       onSuccess: (_) => window.location.reload(),
@@ -458,13 +459,13 @@ class _PublisherAdminWidget {
       titleText: 'Invite new member',
       isQuestion: true,
       okButtonText: 'Add',
-      content: _addMemberContent,
+      content: _addMemberContent!,
       onExecute: () => _inviteMember(),
     );
   }
 
   Future<bool> _inviteMember() async {
-    final email = _inviteMemberInput.value.trim();
+    final email = _inviteMemberInput!.value!.trim();
     if (email.isEmpty || !email.contains('@') || !email.contains('.')) {
       await modalMessage(
           'Input validation', text('Please specify a valid e-mail.'));
@@ -474,11 +475,11 @@ class _PublisherAdminWidget {
     await rpc(
       fn: () async {
         await client.invitePublisherMember(
-            pageData.publisher.publisherId, InviteMemberRequest(email: email));
+            pageData.publisher!.publisherId, InviteMemberRequest(email: email));
       },
       successMessage: markdown('`$email` was invited.'),
       onSuccess: (_) {
-        _inviteMemberInput.value = '';
+        _inviteMemberInput!.value = '';
       },
     );
     return true;
@@ -490,7 +491,7 @@ class _PublisherAdminWidget {
           'Are you sure you want to remove `$email` from this publisher?'),
       fn: () async {
         await client.removePublisherMember(
-            pageData.publisher.publisherId, userId);
+            pageData.publisher!.publisherId, userId);
       },
       successMessage: markdown(
           '`$email` removed from this publisher. The page will reload.'),
@@ -500,24 +501,24 @@ class _PublisherAdminWidget {
 }
 
 class _ConsentWidget {
-  Element _buttons;
+  Element? _buttons;
 
   void init() {
     if (!pageData.isConsentPage) return;
     _buttons = document.getElementById('-admin-consent-buttons');
     document
         .getElementById('-admin-consent-accept-button')
-        .onClick
+        ?.onClick
         .listen((_) => _accept());
     document
         .getElementById('-admin-consent-reject-button')
-        .onClick
+        ?.onClick
         .listen((_) => _reject());
   }
 
   void _updateButtons(bool granted) {
     final text = granted ? 'Consent accepted.' : 'Consent rejected.';
-    _buttons.replaceWith(Element.p()..text = text);
+    _buttons!.replaceWith(Element.p()..text = text);
   }
 
   Future<void> _accept() async {
@@ -525,7 +526,7 @@ class _ConsentWidget {
       confirmQuestion: text('Are you sure you want to accept?'),
       fn: () async {
         final rs = await client.resolveConsent(
-            pageData.consentId, ConsentResult(granted: true));
+            pageData.consentId!, ConsentResult(granted: true));
         return rs.granted;
       },
       successMessage: text('Consent accepted.'),
@@ -538,7 +539,7 @@ class _ConsentWidget {
       confirmQuestion: text('Are you sure you want to reject?'),
       fn: () async {
         final rs = await client.resolveConsent(
-            pageData.consentId, ConsentResult(granted: false));
+            pageData.consentId!, ConsentResult(granted: false));
         return rs.granted;
       },
       successMessage: text('Consent rejected.'),

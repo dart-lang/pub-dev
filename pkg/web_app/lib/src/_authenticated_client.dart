@@ -7,13 +7,13 @@ import 'package:http/http.dart';
 
 /// Creates an authenticated [Client] that calls [getToken] to obtain an
 /// bearer-token to use in the `Authorization: Bearer <token>` header.
-Client createAuthenticatedClient(Future<String> Function() getToken) {
+Client createAuthenticatedClient(Future<String?> Function() getToken) {
   return _AuthenticatedClient(getToken);
 }
 
 /// An [Client] which sends a `Bearer` token as `Authorization` header for each request.
 class _AuthenticatedClient extends BrowserClient {
-  final Future<String> Function() _getToken;
+  final Future<String?> Function() _getToken;
   final _client = BrowserClient();
   _AuthenticatedClient(this._getToken);
 
@@ -44,16 +44,13 @@ class _AuthenticatedClient extends BrowserClient {
 class _RequestImpl extends BaseRequest {
   final Stream<List<int>> _stream;
 
-  _RequestImpl(String method, Uri url, [Stream<List<int>> stream])
+  _RequestImpl(String method, Uri url, [Stream<List<int>>? stream])
       : _stream = stream ?? Stream.fromIterable([]),
         super(method, url);
 
   @override
   ByteStream finalize() {
     super.finalize();
-    if (_stream == null) {
-      return null;
-    }
     return ByteStream(_stream);
   }
 }

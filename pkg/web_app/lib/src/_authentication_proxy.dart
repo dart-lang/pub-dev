@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:html';
 
 import 'package:js/js.dart';
-import 'package:meta/meta.dart';
 
 import '_dom_helper.dart';
 import 'google_auth_js.dart';
@@ -19,28 +18,28 @@ abstract class AuthenticationProxy {
   bool isSignedIn();
   Future<bool> trySignIn();
   Future<void> signOut();
-  Future<String> accessToken({String extraScope});
-  Future<String> idToken();
+  Future<String?> accessToken({String? extraScope});
+  Future<String?> idToken();
 }
 
 final _authProxyReadyCompleter = Completer();
-AuthenticationProxy _proxy;
-AuthenticationProxy get authenticationProxy => _proxy;
+AuthenticationProxy? _proxy;
+AuthenticationProxy get authenticationProxy => _proxy!;
 
 Future<void> get authProxyReady => _authProxyReadyCompleter.future;
 
 /// Initializes [authenticationProxy] with Google auth.
 void setupGoogleAuthenticationProxy({
-  OnUpdatedFn onUpdated,
+  OnUpdatedFn? onUpdated,
 }) {
   _proxy = _GoogleAuthenticationProxy();
   if (!_authProxyReadyCompleter.isCompleted) {
     _authProxyReadyCompleter.complete();
   }
   if (onUpdated != null) {
-    String lastId;
+    String? lastId;
     getAuthInstance().currentUser.listen(allowInterop((user) {
-      final currentId = user?.getId();
+      final currentId = user.getId();
       if (currentId == lastId) return;
       lastId = currentId;
       onUpdated();
@@ -52,7 +51,7 @@ void setupGoogleAuthenticationProxy({
 /// Initializes [authenticationProxy] with fake account and fixed tokens stored
 /// in the browser's local storage.
 void setupFakeTokenAuthenticationProxy({
-  @required OnUpdatedFn onUpdated,
+  required OnUpdatedFn onUpdated,
 }) {
   if (_proxy is _GoogleAuthenticationProxy) {
     throw StateError('Authenticated user is already initialized.');
@@ -84,7 +83,7 @@ class _GoogleAuthenticationProxy implements AuthenticationProxy {
   }
 
   @override
-  Future<String> accessToken({String extraScope}) async {
+  Future<String?> accessToken({String? extraScope}) async {
     var user = _user();
     if (user == null || !user.isSignedIn()) return null;
 
@@ -96,24 +95,24 @@ class _GoogleAuthenticationProxy implements AuthenticationProxy {
     }
 
     final authResponse = user.getAuthResponse(true);
-    return authResponse.access_token;
+    return authResponse?.access_token;
   }
 
   @override
-  Future<String> idToken() async {
+  Future<String?> idToken() async {
     final user = _user();
     if (user == null || !user.isSignedIn()) return null;
     var authResponse = user.getAuthResponse(true);
 
     if (authResponse == null ||
         authResponse.expires_at == null ||
-        DateTime.now().millisecondsSinceEpoch > authResponse.expires_at) {
+        DateTime.now().millisecondsSinceEpoch > authResponse.expires_at!) {
       authResponse = await promiseAsFuture(user.reloadAuthResponse());
     }
 
     if (authResponse == null ||
         authResponse.expires_at == null ||
-        DateTime.now().millisecondsSinceEpoch > authResponse.expires_at) {
+        DateTime.now().millisecondsSinceEpoch > authResponse.expires_at!) {
       throw StateError(
           'Unable to get response object from the user\'s auth session.');
     }
@@ -121,14 +120,14 @@ class _GoogleAuthenticationProxy implements AuthenticationProxy {
     return authResponse.id_token;
   }
 
-  GoogleUser _user() => getAuthInstance().currentUser.get();
+  GoogleUser? _user() => getAuthInstance().currentUser.get();
 }
 
 class _FakeAuthenticationProxy implements AuthenticationProxy {
   static const _accessTokenKey = '-pub-fake-access-token';
   static const _idTokenKey = '-pub-fake-id-token';
 
-  void _updateTokens(String accessToken, String idToken) {
+  void _updateTokens(String? accessToken, String? idToken) {
     if (_accessToken == accessToken && _idToken == idToken) {
       // no-op
     } else {
@@ -153,11 +152,11 @@ class _FakeAuthenticationProxy implements AuthenticationProxy {
 
   _FakeAuthenticationProxy(this._onUpdatedFn);
 
-  String get _accessToken => window.localStorage[_accessTokenKey];
-  String get _idToken => window.localStorage[_idTokenKey];
+  String? get _accessToken => window.localStorage[_accessTokenKey];
+  String? get _idToken => window.localStorage[_idTokenKey];
 
   @override
-  bool isSignedIn() => _accessToken != null && _accessToken.isNotEmpty;
+  bool isSignedIn() => _accessToken != null && _accessToken!.isNotEmpty;
 
   @override
   Future<bool> trySignIn() async {
@@ -170,7 +169,7 @@ class _FakeAuthenticationProxy implements AuthenticationProxy {
       isQuestion: true,
     );
     if (ok) {
-      final token = input.value.trim();
+      final token = input.value?.trim();
       // TODO: consider shortcut for email -> fake token conversion
       _updateTokens(token, token);
     }
@@ -183,8 +182,8 @@ class _FakeAuthenticationProxy implements AuthenticationProxy {
   }
 
   @override
-  Future<String> accessToken({String extraScope}) async => _accessToken;
+  Future<String?> accessToken({String? extraScope}) async => _accessToken;
 
   @override
-  Future<String> idToken() async => _idToken;
+  Future<String?> idToken() async => _idToken;
 }

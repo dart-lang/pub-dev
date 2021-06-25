@@ -6,7 +6,7 @@ import 'dart:html';
 
 import 'package:client_data/page_data.dart';
 
-PageData _data;
+PageData? _data;
 
 /// The server-provided config/data for the current page.
 ///
@@ -16,11 +16,11 @@ PageData get pageData {
   return _data ??= _extractData() ?? PageData();
 }
 
-PageData _extractData() {
-  final meta = document.head.querySelector('meta[name="pub-page-data"]');
+PageData? _extractData() {
+  final meta = document.head?.querySelector('meta[name="pub-page-data"]');
   if (meta != null) {
     try {
-      final text = meta.attributes['content'];
+      final text = meta.attributes['content']!;
       final map = pageDataJsonCodec.decode(text) as Map<String, dynamic>;
       print(map);
       return PageData.fromJson(map);

@@ -15,28 +15,28 @@ void _setEventForMobileNav() {
   final mask = document.querySelector('.site-header-mask');
   final nav = document.querySelector('.site-header-nav');
 
-  final allElems = [nav, mask].where((e) => e != null).toList();
+  final allElems = [nav, mask].where((e) => e != null).cast<Element>().toList();
 
-  hamburger.onClick.listen((_) {
+  hamburger?.onClick.listen((_) {
     // This opacity hack enables smooth initialization, otherwise users would
     // see a rendering glitch with the content animating at the start.
-    nav?.style?.opacity = '1';
+    nav?.style.opacity = '1';
     allElems.forEach((e) => e.classes.add('-show'));
   });
 
-  mask.onClick.listen((_) {
+  mask?.onClick.listen((_) {
     allElems.forEach((e) => e.classes.remove('-show'));
   });
 }
 
 void _setEventForDetailMetadataToggle() {
   // Stored x,y coordinate of the scroll position at the time of the opening of metadata.
-  int origX, origY;
+  int? origX, origY;
 
   document.querySelectorAll('.detail-metadata-toggle').forEach((e) {
     e.onClick.listen((_) async {
-      document.querySelector('.detail-wrapper')?.classes?.toggle('-active');
-      document.querySelector('.detail-metadata')?.classes?.toggle('-active');
+      document.querySelector('.detail-wrapper')?.classes.toggle('-active');
+      document.querySelector('.detail-metadata')?.classes.toggle('-active');
       await window.animationFrame;
       if (origX == null) {
         // store scroll position and scroll to the top

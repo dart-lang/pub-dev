@@ -19,6 +19,7 @@ void _setEventForFoldable() {
 
     final content = foldable.querySelector('.foldable-content');
     final scrollContainer = _parentWithClass(h, 'scroll-container');
+    if (content == null) continue;
 
     h.onClick.listen((e) async {
       // Toggle state.
@@ -57,7 +58,7 @@ void _setEventForFoldable() {
         /// entire content in the view, aligning it at the bottom of the visible
         /// scroll view.
         final outsideViewDiff =
-            boundingRect.top + boundingRect.height - scrollContainerHeight;
+            boundingRect.top + boundingRect.height - scrollContainerHeight!;
 
         /// Limit the maximum scrolling to the screen height minus the button
         /// component's height, in order to make sure it will be still visible
@@ -71,7 +72,7 @@ void _setEventForFoldable() {
       /// Do not scroll if the difference is small, otherwise scroll in small
       /// steps synchronized to the animation frames.
       if (scrollDiff > 8) {
-        final originalScrollTop = scrollContainer.scrollTop;
+        final originalScrollTop = scrollContainer!.scrollTop;
         final maxSteps = 20;
         for (var i = 1; i <= maxSteps; i++) {
           if (i > 1) await window.animationFrame;
@@ -87,7 +88,7 @@ void _setEventForFoldable() {
   }
 }
 
-Element _parentWithClass(Element elem, String className) {
+Element? _parentWithClass(Element? elem, String className) {
   while (elem != null) {
     if (elem.classes.contains(className)) return elem;
     elem = elem.parent;

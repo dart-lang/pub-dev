@@ -10,7 +10,7 @@ void setupHoverable() {
   _setEventForPreCodeCopyToClipboard();
 }
 
-Element _activeHover;
+Element? _activeHover;
 
 /// Elements with the `hoverable` class provide hover tooltip for both desktop
 /// browsers and touchscreen devices:
@@ -21,7 +21,7 @@ Element _activeHover;
 ///
 ///  Their `:hover` and `.hover` style must match to have the same effect.
 void _setEventForHoverable() {
-  document.body.onClick.listen(deactivateHover);
+  document.body!.onClick.listen(deactivateHover);
   for (Element h in document.querySelectorAll('.hoverable')) {
     registerHoverable(h);
   }
@@ -30,7 +30,7 @@ void _setEventForHoverable() {
 /// Deactivates the active hover (hiding the hovering panel).
 void deactivateHover(_) {
   if (_activeHover != null) {
-    _activeHover.classes.remove('hover');
+    _activeHover!.classes.remove('hover');
     _activeHover = null;
   }
 }
@@ -41,7 +41,7 @@ void registerHoverable(Element h) {
     if (h != _activeHover) {
       deactivateHover(e);
       _activeHover = h;
-      _activeHover.classes.add('hover');
+      _activeHover!.classes.add('hover');
       e.stopPropagation();
     }
   });
@@ -85,7 +85,7 @@ Future<void> _animateCopyFeedback(Element feedback) async {
 void _copyToClipboard(String text) {
   final ta = TextAreaElement();
   ta.value = text;
-  document.body.append(ta);
+  document.body!.append(ta);
   ta.select();
   document.execCommand('copy');
   ta.remove();
@@ -108,7 +108,7 @@ void _setEventForPreCodeCopyToClipboard() {
     container.append(feedback);
 
     button.onClick.listen((_) async {
-      final text = pre.dataset['textToCopy']?.trim() ?? pre.text.trim();
+      final text = pre.dataset['textToCopy']?.trim() ?? pre.text!.trim();
       _copyToClipboard(text);
       await _animateCopyFeedback(feedback);
     });

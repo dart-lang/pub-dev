@@ -26,7 +26,7 @@ void _guardReportIssue() {
 
 void _fixIssueLinks() {
   for (AnchorElement bugLink in document.querySelectorAll('a.github_issue')) {
-    var url = Uri.parse(bugLink.href);
+    var url = Uri.parse(bugLink.href!);
     final lines = <String>[
       'URL: ${window.location.href}',
       '',

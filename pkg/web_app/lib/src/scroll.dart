@@ -4,6 +4,8 @@
 
 import 'dart:html';
 
+import 'package:collection/collection.dart';
+
 void setupScroll() {
   _setEventForAnchorScroll();
   window.onHashChange.listen((_) {
@@ -13,7 +15,7 @@ void setupScroll() {
 }
 
 void _scrollToHash() {
-  final String hash = window.location.hash ?? '';
+  final String hash = window.location.hash;
   if (hash.isNotEmpty) {
     final id = hash.startsWith('#') ? hash.substring(1) : hash;
     final list =
@@ -22,8 +24,7 @@ void _scrollToHash() {
       return;
     }
     // if there is an element on the current tab, scroll to it
-    final firstVisible =
-        list.firstWhere((e) => e.offsetHeight > 0, orElse: () => null);
+    final firstVisible = list.firstWhereOrNull((e) => e.offsetHeight > 0);
     if (firstVisible != null) {
       _scrollTo(firstVisible);
       return;
@@ -34,9 +35,9 @@ void _scrollToHash() {
 }
 
 void _setEventForAnchorScroll() {
-  document.body.onClick.listen((e) {
+  document.body!.onClick.listen((e) {
     // locate the <a> tag
-    Element target = e.target as Element;
+    var target = e.target as Element?;
     while (target != null &&
         target.tagName.toLowerCase() != 'a' &&
         target.tagName.toLowerCase() != 'body') {
@@ -45,8 +46,8 @@ void _setEventForAnchorScroll() {
     if (target is AnchorElement &&
         target.getAttribute('href') == target.hash &&
         target.hash != null &&
-        target.hash.isNotEmpty) {
-      final Element elem = document.querySelector(target.hash);
+        target.hash!.isNotEmpty) {
+      final elem = document.querySelector(target.hash!);
       if (elem != null) {
         window.history.pushState({}, document.title, target.hash);
         e.preventDefault();
