@@ -38,7 +38,7 @@ class TransactionWrapper {
 
   /// [lookupValue] or return `null`.
   Future<T?> lookupOrNull<T extends Model>(Key key) async =>
-      (await _tx.lookup<T>([key])).single;
+      await _tx.lookupOrNull<T>(key);
 
   /// See [Transaction.lookupValue].
   Future<T> lookupValue<T extends Model>(Key key, {T Function()? orElse}) =>
@@ -64,7 +64,7 @@ class TransactionWrapper {
 extension DatastoreDBExt on DatastoreDB {
   /// [lookupValue] or return `null`.
   Future<T?> lookupOrNull<T extends Model>(Key key) async =>
-      (await lookup<T>([key])).single;
+      await lookupOrNull<T>(key);
 
   // Deletes the entries that are returned from the [query].
   Future<void> deleteWithQuery<T extends Model>(
