@@ -62,10 +62,6 @@ class TransactionWrapper {
 }
 
 extension DatastoreDBExt on DatastoreDB {
-  /// [lookupValue] or return `null`.
-  Future<T?> lookupOrNull<T extends Model>(Key key) async =>
-      await lookupOrNull<T>(key);
-
   // Deletes the entries that are returned from the [query].
   Future<void> deleteWithQuery<T extends Model>(
     Query<T> query, {
