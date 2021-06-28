@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:html';
 
 import 'package:intl/intl.dart';
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:mdc_web/mdc_web.dart' show MDCIconButtonToggle;
 
 import 'account.dart';
@@ -60,7 +59,7 @@ void setupLikes() {
 
   iconButtonToggle.listen(MDCIconButtonToggle.changeEvent, (Event e) {
     likeButton.blur();
-    if (iconButtonToggle.on) {
+    if (iconButtonToggle.on ?? false) {
       // The button has shifted to on.
       likesDelta++;
       likes!.innerText = likesString();

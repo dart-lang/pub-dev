@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:html';
 
 import 'package:markdown/markdown.dart' as md;
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:mdc_web/mdc_web.dart' show MDCDialog;
 
 import 'pubapi.client.dart';
