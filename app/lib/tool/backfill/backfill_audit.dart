@@ -15,7 +15,7 @@ final _logger = Logger('backfill_audit');
 /// Backfills [AuditLogRecord] entities for events that predate our code
 /// creating these entities:
 /// - [AuditLogRecordKind.packagePublished]
-Future<int> backfillAuditAll(int concurrency, bool dryRun) async {
+Future<int> backfillAuditAll(int concurrency, bool? dryRun) async {
   final pool = Pool(concurrency);
   final futures = <Future<int>>[];
   await for (final p in dbService.query<Package>().run()) {
@@ -29,7 +29,7 @@ Future<int> backfillAuditAll(int concurrency, bool dryRun) async {
 /// Backfills [AuditLogRecord] entities for events that predate our code
 /// creating these entities:
 /// - [AuditLogRecordKind.packagePublished]
-Future<int> backfillAudit(String package, bool dryRun) async {
+Future<int> backfillAudit(String? package, bool? dryRun) async {
   _logger.info('Checking audit records in: $package');
   final recordQuery = dbService.query<AuditLogRecord>()
     ..filter('packages =', package);
@@ -41,20 +41,20 @@ Future<int> backfillAudit(String package, bool dryRun) async {
   await for (final pv in query.run()) {
     final hasUploaded = records.any((r) =>
         r.kind == AuditLogRecordKind.packagePublished &&
-        r.packageVersions.contains(pv.qualifiedVersionKey.qualifiedVersion));
+        r.packageVersions!.contains(pv.qualifiedVersionKey.qualifiedVersion));
     if (!hasUploaded) {
       _logger.info('Backfill audit for ${pv.qualifiedVersionKey}.');
       count++;
-      if (dryRun) continue;
+      if (dryRun!) continue;
 
-      final uploader = await accountBackend.lookupUserById(pv.uploader);
+      final uploader = await accountBackend.lookupUserById(pv.uploader!);
       await dbService.commit(
         inserts: [
           AuditLogRecord.packagePublished(
-            uploader: uploader,
+            uploader: uploader!,
             package: pv.package,
-            version: pv.version,
-            created: pv.created,
+            version: pv.version!,
+            created: pv.created!,
           ),
         ],
       );

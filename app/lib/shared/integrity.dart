@@ -21,22 +21,22 @@ class IntegrityChecker {
   final int _concurrency;
   final _problems = <String>[];
 
-  final _userToOauth = <String, String>{};
-  final _oauthToUser = <String, String>{};
-  final _emailToUser = <String, List<String>>{};
-  final _deletedUsers = <String>{};
-  final _invalidUsers = <String>{};
-  final _userToLikes = <String, List<String>>{};
-  final _packages = <String>{};
-  final _packageReplacedBys = <String, String>{};
-  final _packagesWithVersion = <String>{};
-  final _moderatedPackages = <String>{};
-  final _publishers = <String>{};
-  final _publishersAbandoned = <String>{};
+  final _userToOauth = <String?, String?>{};
+  final _oauthToUser = <String?, String?>{};
+  final _emailToUser = <String?, List<String?>>{};
+  final _deletedUsers = <String?>{};
+  final _invalidUsers = <String?>{};
+  final _userToLikes = <String?, List<String?>>{};
+  final _packages = <String?>{};
+  final _packageReplacedBys = <String?, String?>{};
+  final _packagesWithVersion = <String?>{};
+  final _moderatedPackages = <String?>{};
+  final _publishers = <String?>{};
+  final _publishersAbandoned = <String?>{};
   int _packageChecked = 0;
   int _versionChecked = 0;
 
-  IntegrityChecker(this._db, {int concurrency})
+  IntegrityChecker(this._db, {int? concurrency})
       : _concurrency = concurrency ?? 1;
 
   /// Runs integrity checks, and reports the list of problems.
@@ -57,19 +57,19 @@ class IntegrityChecker {
     await for (User user in _db.query<User>().run()) {
       _userToOauth[user.userId] = user.oauthUserId;
       if (user.email == null ||
-          user.email.isEmpty ||
+          user.email!.isEmpty ||
           !looksLikeEmail(user.email)) {
         _problems.add('User(${user.userId}) has invalid email: ${user.email}');
         _invalidUsers.add(user.userId);
       }
-      if (user.email != null && user.email.isNotEmpty) {
+      if (user.email != null && user.email!.isNotEmpty) {
         _emailToUser.putIfAbsent(user.email, () => []).add(user.userId);
       }
-      if (user.isDeleted == null || user.isDeleted is! bool) {
+      if (user.isDeleted is! bool) {
         _problems.add(
             'User(${user.userId}) has a `isDeleted` property which is not a bool.');
       }
-      if (user.isBlocked == null || user.isBlocked is! bool) {
+      if (user.isBlocked is! bool) {
         _problems.add(
             'User(${user.userId}) has a `isBlocked` property which is not a bool.');
       }
@@ -102,14 +102,14 @@ class IntegrityChecker {
   Future<void> _checkOAuthUserIDs() async {
     _logger.info('Scanning OAuthUserIDs...');
     await for (OAuthUserID mapping in _db.query<OAuthUserID>().run()) {
-      if (mapping.userIdKey == null || mapping.userId == null) {
+      if (mapping.userIdKey == null) {
         _problems
             .add('OAuthUserID(${mapping.oauthUserId}) has invalid userId.');
       }
       _oauthToUser[mapping.oauthUserId] = mapping.userId;
     }
 
-    for (String userId in _userToOauth.keys) {
+    for (String? userId in _userToOauth.keys) {
       final oauthUserId = _userToOauth[userId];
       // Migrated users without login are OK.
       if (oauthUserId == null) {
@@ -125,7 +125,7 @@ class IntegrityChecker {
       }
     }
 
-    for (String oauthUserId in _oauthToUser.keys) {
+    for (String? oauthUserId in _oauthToUser.keys) {
       final userId = _oauthToUser[oauthUserId];
       if (userId == null) {
         _problems.add('OAuthUserID($oauthUserId) has no user.');
@@ -147,7 +147,7 @@ class IntegrityChecker {
       _publishers.add(p.publisherId);
       final members =
           await _db.query<PublisherMember>(ancestorKey: p.key).run().toList();
-      if (p.isAbandoned) {
+      if (p.isAbandoned!) {
         _publishersAbandoned.add(p.publisherId);
         if (members.isNotEmpty) {
           _problems.add('Publisher(${p.publisherId}) is marked as abandoned, '
@@ -219,7 +219,7 @@ class IntegrityChecker {
       }
     }
     // empty uploaders
-    if (p.uploaders == null || p.uploaders.isEmpty) {
+    if (p.uploaders == null || p.uploaders!.isEmpty) {
       // no publisher
       if (p.publisherId == null && !p.isDiscontinued) {
         _problems.add(
@@ -249,23 +249,23 @@ class IntegrityChecker {
       _problems.add(
           'Package(${p.name}) has an `assignedTags` property which contains duplicates.');
     }
-    if (p.likes == null || p.likes is! int || p.likes < 0) {
+    if (p.likes is! int || p.likes < 0) {
       _problems.add(
           'Package(${p.name}) has a `likes` property which is not a non-negative integer.');
     }
-    if (p.isDiscontinued == null || p.isDiscontinued is! bool) {
+    if (p.isDiscontinued is! bool) {
       _problems.add(
           'Package(${p.name}) has a `isDiscontinued` property which is not a bool.');
     }
-    if (p.isUnlisted == null || p.isUnlisted is! bool) {
+    if (p.isUnlisted is! bool) {
       _problems.add(
           'Package(${p.name}) has a `isUnlisted` property which is not a bool.');
     }
-    if (p.isWithheld == null || p.isWithheld is! bool) {
+    if (p.isWithheld is! bool) {
       _problems.add(
           'Package(${p.name}) has a `isWithheld` property which is not a bool.');
     }
-    for (String userId in p.uploaders) {
+    for (String? userId in p.uploaders!) {
       if (!_userToOauth.containsKey(userId)) {
         _problems.add('Package(${p.name}) has uploader without User: $userId');
       }
@@ -301,14 +301,14 @@ class IntegrityChecker {
           'Package(${p.name}) has a `latestVersionKey` property which is null.');
     } else if (!versionKeys.contains(p.latestVersionKey)) {
       _problems.add(
-          'Package(${p.name}) has missing latestVersionKey: ${p.latestVersionKey.id}');
+          'Package(${p.name}) has missing latestVersionKey: ${p.latestVersionKey!.id}');
     }
     if (p.latestPrereleaseVersionKey == null) {
       _problems.add(
           'Package(${p.name}) has a `latestPrereleaseVersionKey` property which is null.');
     } else if (!versionKeys.contains(p.latestPrereleaseVersionKey)) {
       _problems.add(
-          'Package(${p.name}) has missing latestPrereleaseVersionKey: ${p.latestPrereleaseVersionKey.id}');
+          'Package(${p.name}) has missing latestPrereleaseVersionKey: ${p.latestPrereleaseVersionKey!.id}');
     }
 
     // Checking if PackageVersionInfo is referenced by a PackageVersion entity.
@@ -334,10 +334,8 @@ class IntegrityChecker {
         _problems.add(
             'PackageVersionInfo($key) has a `libraryCount` property which is null.');
       }
-      if (pvi.assets != null) {
-        for (final kind in pvi.assets) {
-          referencedAssetIds.add(key.assetId(kind));
-        }
+      for (final kind in pvi.assets) {
+        referencedAssetIds.add(key.assetId(kind));
       }
     }
     for (QualifiedVersionKey key in qualifiedVersionKeys) {
@@ -349,11 +347,11 @@ class IntegrityChecker {
     // Checking if PackageVersionAsset is referenced by a PackageVersion entity.
     final pvaQuery = _db.query<PackageVersionAsset>()
       ..filter('package =', p.name);
-    final foundAssetIds = <String>{};
+    final foundAssetIds = <String?>{};
     await for (PackageVersionAsset pva in pvaQuery.run()) {
       final key = pva.qualifiedVersionKey;
       if (pva.id !=
-          Uri(pathSegments: [pva.package, pva.version, pva.kind]).path) {
+          Uri(pathSegments: [pva.package!, pva.version!, pva.kind!]).path) {
         _problems.add('PackageVersionAsset(${pva.id}) uses old id format.');
         continue;
       }
@@ -412,11 +410,11 @@ class IntegrityChecker {
     if (pv.created == null) {
       _problems.add(
           'PackageVersion(${pv.qualifiedVersionKey}) has no `created` property.');
-    } else if (pv.created.isAfter(DateTime.now().add(Duration(minutes: 15)))) {
+    } else if (pv.created!.isAfter(DateTime.now().add(Duration(minutes: 15)))) {
       // Can't be published in the future (+15 min to allow for clock drift)
       _problems.add(
           'PackageVersion(${pv.qualifiedVersionKey}) has `created` > now().');
-    } else if (pv.created.isBefore(DateTime(2011))) {
+    } else if (pv.created!.isBefore(DateTime(2011))) {
       // Can't be published before Dart was published in 2011
       _problems.add(
           'PackageVersion(${pv.qualifiedVersionKey}) has `created` < 2011.');
@@ -442,7 +440,7 @@ class IntegrityChecker {
       }
 
       _userToLikes.update(like.userId, (l) => l..add(like.package),
-          ifAbsent: () => <String>[]);
+          ifAbsent: () => <String?>[]);
     }
 
     _userToLikes.keys
@@ -453,8 +451,8 @@ class IntegrityChecker {
     });
 
     _userToLikes.keys.forEach((user) {
-      _userToLikes[user]
-          .where((String package) => !_packages.contains(package))
+      _userToLikes[user]!
+          .where((String? package) => !_packages.contains(package))
           .forEach((package) {
         _problems.add('User $user likes missing package $package');
       });

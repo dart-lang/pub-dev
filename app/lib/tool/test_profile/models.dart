@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart' as yaml;
 
 part 'models.g.dart';
@@ -19,12 +18,12 @@ class TestProfile {
   final List<TestUser> users;
 
   /// The email address of the default user.
-  final String defaultUser;
+  final String? defaultUser;
 
   TestProfile({
-    @required List<TestPackage> packages,
-    List<TestPublisher> publishers,
-    List<TestUser> users,
+    required List<TestPackage>? packages,
+    List<TestPublisher>? publishers,
+    List<TestUser>? users,
     this.defaultUser,
   })  : packages = packages ?? <TestPackage>[],
         publishers = publishers ?? <TestPublisher>[],
@@ -53,16 +52,16 @@ class TestProfile {
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
 class TestPackage {
   final String name;
-  final List<String> uploaders;
-  final String publisher;
-  final List<String> versions;
-  final bool isDiscontinued;
-  final String replacedBy;
-  final bool isUnlisted;
-  final bool isFlutterFavorite;
+  final List<String>? uploaders;
+  final String? publisher;
+  final List<String>? versions;
+  final bool? isDiscontinued;
+  final String? replacedBy;
+  final bool? isUnlisted;
+  final bool? isFlutterFavorite;
 
   TestPackage({
-    this.name,
+    required this.name,
     this.uploaders,
     this.publisher,
     this.versions,
@@ -78,8 +77,8 @@ class TestPackage {
   Map<String, dynamic> toJson() => _$TestPackageToJson(this);
 
   TestPackage change({
-    List<String> uploaders,
-    List<String> versions,
+    List<String>? uploaders,
+    List<String>? versions,
   }) {
     return TestPackage(
       name: name,
@@ -100,8 +99,8 @@ class TestPublisher {
   final List<TestMember> members;
 
   TestPublisher({
-    @required this.name,
-    @required List<TestMember> members,
+    required this.name,
+    required List<TestMember>? members,
   }) : members = members ?? <TestMember>[];
 
   factory TestPublisher.fromJson(Map<String, dynamic> json) =>
@@ -116,8 +115,8 @@ class TestMember {
   final String role;
 
   TestMember({
-    @required this.email,
-    @required this.role,
+    required this.email,
+    required this.role,
   });
 
   factory TestMember.fromJson(Map<String, dynamic> json) =>
@@ -134,8 +133,8 @@ class TestUser {
   final List<String> likes;
 
   TestUser({
-    @required this.email,
-    @required List<String> likes,
+    required this.email,
+    required List<String>? likes,
   }) : likes = likes ?? <String>[];
 
   factory TestUser.fromJson(Map<String, dynamic> json) =>
@@ -148,12 +147,12 @@ class TestUser {
 class ResolvedVersion implements Comparable<ResolvedVersion> {
   final String package;
   final String version;
-  final DateTime created;
+  final DateTime? created;
 
   ResolvedVersion({
-    @required this.package,
-    @required this.version,
-    @required this.created,
+    required this.package,
+    required this.version,
+    required this.created,
   });
 
   factory ResolvedVersion.fromJson(Map<String, dynamic> json) =>
@@ -162,5 +161,5 @@ class ResolvedVersion implements Comparable<ResolvedVersion> {
   Map<String, dynamic> toJson() => _$ResolvedVersionToJson(this);
 
   @override
-  int compareTo(ResolvedVersion other) => created.compareTo(other.created);
+  int compareTo(ResolvedVersion other) => created!.compareTo(other.created!);
 }

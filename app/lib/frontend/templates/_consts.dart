@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.12
-
 import '../../shared/tags.dart' show SdkTagValue;
 
 class SdkDict {
@@ -34,7 +32,7 @@ class SdkDict {
 }
 
 /// Returns the dictionary spec for [sdk].
-SdkDict getSdkDict(String sdk) {
+SdkDict getSdkDict(String? sdk) {
   if (sdk == SdkTagValue.dart) {
     return SdkDict.dart();
   } else if (sdk == SdkTagValue.flutter) {

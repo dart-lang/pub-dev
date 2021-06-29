@@ -2,35 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/meta.dart';
-
 import 'models.dart';
 
 /// Creates a new TestProfile with the missing entities (e.g. users or publishers)
 /// created.
 TestProfile normalize(
   TestProfile profile, {
-  List<ResolvedVersion> resolvedVersions,
+  List<ResolvedVersion>? resolvedVersions,
 }) {
   final users = <String, TestUser>{};
   final publishers = <String, TestPublisher>{};
   final packages = <String, TestPackage>{};
 
-  profile.users?.forEach((user) {
+  profile.users.forEach((user) {
     users[user.email] = user;
   });
   if (profile.defaultUser != null) {
-    _createUserIfNeeded(users, profile.defaultUser);
+    _createUserIfNeeded(users, profile.defaultUser!);
   }
 
-  profile.publishers?.forEach((publisher) {
+  profile.publishers.forEach((publisher) {
     publishers[publisher.name] = publisher;
-    publisher.members?.forEach((member) {
+    publisher.members.forEach((member) {
       _createUserIfNeeded(users, member.email);
     });
   });
 
-  profile.packages?.forEach((package) {
+  profile.packages.forEach((package) {
     packages[package.name] = package;
     package.uploaders?.forEach((uploader) {
       _createUserIfNeeded(users, uploader);
@@ -65,10 +63,10 @@ TestProfile normalize(
     if (package.publisher != null) {
       _createPublisherIfNeeded(
         publishers,
-        package.publisher,
+        package.publisher!,
         memberEmail: defaultUser,
       );
-    } else if (package.uploaders == null || package.uploaders.isEmpty) {
+    } else if (package.uploaders == null || package.uploaders!.isEmpty) {
       packages[package.name] = package.change(uploaders: [defaultUser]);
     }
   });
@@ -94,7 +92,7 @@ TestUser _createUserIfNeeded(Map<String, TestUser> users, String email) {
 TestPublisher _createPublisherIfNeeded(
   Map<String, TestPublisher> publishers,
   String publisherId, {
-  @required String memberEmail,
+  required String memberEmail,
 }) {
   return publishers.putIfAbsent(publisherId, () {
     return TestPublisher(

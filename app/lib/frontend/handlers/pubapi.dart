@@ -114,7 +114,7 @@ class PubApi {
   ///     }
   @EndPoint.get('/api/packages/versions/newUploadFinish')
   Future<SuccessMessage> packageUploadCallback(Request request) async {
-    final uploadId = request.requestedUri.queryParameters['upload_id'];
+    final uploadId = request.requestedUri.queryParameters['upload_id']!;
     await packageBackend.publishUploadedBlob(uploadId);
     return SuccessMessage(
         success: Message(message: 'Successfully uploaded package.'));
@@ -140,14 +140,14 @@ class PubApi {
   ///     [400 Client Error]
   @EndPoint.post('/api/packages/<package>/uploaders')
   Future<SuccessMessage> addUploader(Request request, String package) async {
-    String email;
+    String? email;
     try {
       final body = await request.readAsString();
       final params = Uri.splitQueryString(body);
       email = params['email'];
     } on FormatException catch (_) {}
     InvalidInputException.checkNotNull(email, 'email');
-    return await packageBackend.addUploader(package, email);
+    return await packageBackend.addUploader(package, email!);
   }
 
   /// Removing an existing uploader.
@@ -405,9 +405,9 @@ class PubApi {
   @EndPoint.get('/api/admin/users')
   Future<AdminListUsersResponse> adminListUsers(
     Request request, {
-    String email, // Filter by email
-    String ouid, // Filter by OAuthUserID
-    String ct, // continuationToken
+    String? email, // Filter by email
+    String? ouid, // Filter by OAuthUserID
+    String? ct, // continuationToken
   }) {
     return adminBackend.listUsers(
       email: email,
@@ -464,7 +464,7 @@ class PubApi {
 /// that we return in the response. Such generated URLs may end up in our cache,
 /// and it is critical that we only cache the values with the proper URLs.
 Uri _replaceHost(Uri requestedUri) {
-  return activeConfiguration.primaryApiUri.replace(
+  return activeConfiguration.primaryApiUri!.replace(
     path: requestedUri.path,
     queryParameters: requestedUri.queryParameters.isEmpty
         ? null

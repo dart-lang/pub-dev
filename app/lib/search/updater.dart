@@ -8,7 +8,6 @@ import 'dart:math';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-import 'package:pub_dev/search/search_service.dart';
 
 import '../package/models.dart' show Package;
 import '../shared/datastore.dart';
@@ -18,6 +17,7 @@ import '../shared/task_scheduler.dart';
 import '../shared/task_sources.dart';
 
 import 'backend.dart';
+import 'search_service.dart';
 
 final Logger _logger = Logger('pub.search.updater');
 
@@ -31,7 +31,7 @@ IndexUpdater get indexUpdater => ss.lookup(#_indexUpdater) as IndexUpdater;
 class IndexUpdater implements TaskRunner {
   final DatastoreDB _db;
   final PackageIndex _packageIndex;
-  Timer _statsTimer;
+  Timer? _statsTimer;
 
   IndexUpdater(this._db, this._packageIndex);
 
@@ -62,10 +62,10 @@ class IndexUpdater implements TaskRunner {
   Future<void> updateAllPackages() async {
     await for (final p in _db.query<Package>().run()) {
       try {
-        final doc = await searchBackend.loadDocument(p.name);
+        final doc = await searchBackend.loadDocument(p.name!);
         await _packageIndex.addPackage(doc);
       } on RemovedPackageException catch (_) {
-        await _packageIndex.removePackage(p.name);
+        await _packageIndex.removePackage(p.name!);
       }
     }
     await _packageIndex.markReady();
@@ -93,8 +93,7 @@ class IndexUpdater implements TaskRunner {
   }
 
   /// Starts the scheduler to update the package index.
-  void runScheduler({Stream<Task> manualTriggerTasks}) {
-    manualTriggerTasks ??= Stream<Task>.empty();
+  void runScheduler({required Stream<Task> manualTriggerTasks}) {
     final scheduler = TaskScheduler(
       this,
       [
@@ -170,7 +169,7 @@ class _PeriodicUpdateTaskSource implements TaskSource {
             final updatePeriodHours = max(24, min(ageInMonths, 7 * 24));
             return now.difference(pd.timestamp).inHours >= updatePeriodHours;
           })
-          .map((pd) => Task(pd.package, pd.version, now))
+          .map((pd) => Task(pd.package, pd.version!, now))
           .toList();
       _logger
           .info('Periodic scheduler found ${tasks.length} packages to update.');

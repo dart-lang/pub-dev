@@ -5,7 +5,6 @@
 import 'dart:io';
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:meta/meta.dart';
 import 'package:pana/models.dart'
     show LicenseFile, PanaRuntimeInfo, Report, ReportSection;
 import 'package:pub_semver/pub_semver.dart';
@@ -50,36 +49,36 @@ abstract class ReportStatus {
 @db.Kind(name: 'ScoreCard', idType: db.IdType.String)
 class ScoreCard extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)
-  String packageName;
+  String? packageName;
 
   @db.StringProperty(required: true)
-  String packageVersion;
+  String? packageVersion;
 
   @db.StringProperty(required: true)
-  String runtimeVersion;
+  String? runtimeVersion;
 
   @db.DateTimeProperty(required: true)
-  DateTime updated;
+  DateTime? updated;
 
   @db.DateTimeProperty(required: true)
-  DateTime packageCreated;
+  DateTime? packageCreated;
 
   @db.DateTimeProperty(required: true)
-  DateTime packageVersionCreated;
+  DateTime? packageVersionCreated;
 
   /// Granted score from pana and dartdoc analysis.
   @db.IntProperty()
-  int grantedPubPoints;
+  int? grantedPubPoints;
 
   /// Max score from pana and dartdoc analysis.
   /// `null` if report is not ready yet.
   /// `0` if analysis was not running
   @db.IntProperty()
-  int maxPubPoints;
+  int? maxPubPoints;
 
   /// Score for package popularity (0.0 - 1.0).
   @db.DoubleProperty()
-  double popularityScore;
+  double? popularityScore;
 
   /// List of tags computed by `pana` or other analyzer.
   @db.StringListProperty()
@@ -97,34 +96,34 @@ class ScoreCard extends db.ExpandoModel<String> {
 
   /// Compressed, json-encoded content of [PanaReport].
   @db.BlobProperty()
-  List<int> panaReportJsonGz;
+  List<int>? panaReportJsonGz;
 
   /// Compressed, json-encoded content of [DartdocReport].
   @db.BlobProperty()
-  List<int> dartdocReportJsonGz;
+  List<int>? dartdocReportJsonGz;
 
   ScoreCard();
 
   ScoreCard.init({
-    @required this.packageName,
-    @required this.packageVersion,
-    @required this.packageCreated,
-    @required this.packageVersionCreated,
+    required this.packageName,
+    required this.packageVersion,
+    required this.packageCreated,
+    required this.packageVersionCreated,
   }) {
     runtimeVersion = versions.runtimeVersion;
-    final key = scoreCardKey(packageName, packageVersion);
+    final key = scoreCardKey(packageName!, packageVersion!);
     parentKey = key.parent;
     id = key.id;
     updated = DateTime.now().toUtc();
   }
 
   ScoreCardData toData() => ScoreCardData(
-        packageName: packageName,
-        packageVersion: packageVersion,
-        runtimeVersion: runtimeVersion,
-        updated: updated,
-        packageCreated: packageCreated,
-        packageVersionCreated: packageVersionCreated,
+        packageName: packageName!,
+        packageVersion: packageVersion!,
+        runtimeVersion: runtimeVersion!,
+        updated: updated!,
+        packageCreated: packageCreated!,
+        packageVersionCreated: packageVersionCreated!,
         grantedPubPoints: grantedPubPoints,
         maxPubPoints: maxPubPoints,
         popularityScore: popularityScore,
@@ -135,35 +134,34 @@ class ScoreCard extends db.ExpandoModel<String> {
         panaReport: PanaReport.fromBytes(panaReportJsonGz),
       );
 
-  Version get semanticRuntimeVersion => Version.parse(runtimeVersion);
+  Version get semanticRuntimeVersion => Version.parse(runtimeVersion!);
 
   void addFlag(String flag) {
-    flags ??= <String>[];
     if (!flags.contains(flag)) {
       flags.add(flag);
     }
   }
 
   void removeFlag(String flag) {
-    flags?.remove(flag);
+    flags.remove(flag);
   }
 
   void updateReports({
-    PanaReport panaReport,
-    DartdocReport dartdocReport,
+    PanaReport? panaReport,
+    DartdocReport? dartdocReport,
   }) {
     if (panaReport != null) {
       panaReportJsonGz = panaReport.toBytes();
-    } else if (panaReportJsonGz != null && panaReportJsonGz.isNotEmpty) {
+    } else if (panaReportJsonGz != null && panaReportJsonGz!.isNotEmpty) {
       panaReport = PanaReport.fromBytes(panaReportJsonGz);
     }
     if (dartdocReport != null) {
       dartdocReportJsonGz = dartdocReport.toBytes();
-    } else if (dartdocReportJsonGz != null && dartdocReportJsonGz.isNotEmpty) {
+    } else if (dartdocReportJsonGz != null && dartdocReportJsonGz!.isNotEmpty) {
       dartdocReport = DartdocReport.fromBytes(dartdocReportJsonGz);
     }
 
-    derivedTags = panaReport?.derivedTags ?? derivedTags ?? <String>[];
+    derivedTags = panaReport?.derivedTags ?? derivedTags;
     reportTypes = [
       if (panaReport != null) ReportType.pana,
       if (dartdocReport != null) ReportType.dartdoc,
@@ -185,54 +183,54 @@ class ScoreCardReport extends db.ExpandoModel<String> {
 }
 
 abstract class FlagMixin {
-  List<String> get flags;
+  List<String>? get flags;
 
   bool get isDiscontinued =>
-      flags != null && flags.contains(PackageFlags.isDiscontinued);
+      flags != null && flags!.contains(PackageFlags.isDiscontinued);
 
-  bool get isLegacy => flags != null && flags.contains(PackageFlags.isLegacy);
+  bool get isLegacy => flags != null && flags!.contains(PackageFlags.isLegacy);
 
   bool get isObsolete =>
-      flags != null && flags.contains(PackageFlags.isObsolete);
+      flags != null && flags!.contains(PackageFlags.isObsolete);
 
   bool get isSkipped => isDiscontinued || isLegacy || isObsolete;
 
   bool get usesFlutter =>
-      flags != null && flags.contains(PackageFlags.usesFlutter);
+      flags != null && flags!.contains(PackageFlags.usesFlutter);
 }
 
 @JsonSerializable()
 class ScoreCardData extends Object with FlagMixin {
-  final String packageName;
-  final String packageVersion;
-  final String runtimeVersion;
-  final DateTime updated;
-  final DateTime packageCreated;
-  final DateTime packageVersionCreated;
+  final String? packageName;
+  final String? packageVersion;
+  final String? runtimeVersion;
+  final DateTime? updated;
+  final DateTime? packageCreated;
+  final DateTime? packageVersionCreated;
 
   /// Granted score from pana and dartdoc analysis.
-  final int grantedPubPoints;
+  final int? grantedPubPoints;
 
   /// Max score from pana and dartdoc analysis.
   /// `null` if report is not ready yet.
   /// `0` if analysis was not running
-  final int maxPubPoints;
+  final int? maxPubPoints;
 
   /// Score for package popularity (0.0 - 1.0).
-  final double popularityScore;
+  final double? popularityScore;
 
   /// List of tags computed by `pana` or other analyzer.
-  final List<String> derivedTags;
+  final List<String>? derivedTags;
 
   /// The flags for the package, version or analysis.
   @override
-  final List<String> flags;
+  final List<String>? flags;
 
   /// The report types that are already done for the ScoreCard.
-  final List<String> reportTypes;
+  final List<String>? reportTypes;
 
-  final DartdocReport dartdocReport;
-  final PanaReport panaReport;
+  final DartdocReport? dartdocReport;
+  final PanaReport? panaReport;
 
   ScoreCardData({
     this.packageName,
@@ -254,7 +252,7 @@ class ScoreCardData extends Object with FlagMixin {
   factory ScoreCardData.fromJson(Map<String, dynamic> json) =>
       _$ScoreCardDataFromJson(json);
 
-  bool get isNew => DateTime.now().difference(packageCreated).inDays <= 30;
+  bool get isNew => DateTime.now().difference(packageCreated!).inDays <= 30;
 
   bool get isCurrent => runtimeVersion == versions.runtimeVersion;
 
@@ -262,15 +260,15 @@ class ScoreCardData extends Object with FlagMixin {
 
   /// Whether the data has all the required report types.
   bool hasReports(List<String> requiredTypes) {
-    if (requiredTypes == null || requiredTypes.isEmpty) return true;
-    if (reportTypes == null || reportTypes.isEmpty) return false;
-    return requiredTypes.every(reportTypes.contains);
+    if (requiredTypes.isEmpty) return true;
+    if (reportTypes == null || reportTypes!.isEmpty) return false;
+    return requiredTypes.every(reportTypes!.contains);
   }
 }
 
 abstract class ReportData {
   String get reportType;
-  String get reportStatus;
+  String? get reportStatus;
   Map<String, dynamic> toJson();
 }
 
@@ -279,45 +277,45 @@ class PanaReport implements ReportData {
   @override
   String get reportType => ReportType.pana;
 
-  final DateTime timestamp;
+  final DateTime? timestamp;
 
-  final PanaRuntimeInfo panaRuntimeInfo;
+  final PanaRuntimeInfo? panaRuntimeInfo;
 
   @override
-  final String reportStatus;
+  final String? reportStatus;
 
   /// List of tags computed by `pana`.
-  final List<String> derivedTags;
+  final List<String>? derivedTags;
 
   /// The list of packages that the current one depends on either directly or
   /// transitively.
-  final List<String> allDependencies;
+  final List<String>? allDependencies;
 
-  final LicenseFile licenseFile;
+  final LicenseFile? licenseFile;
 
   @JsonKey(includeIfNull: false)
-  final Report report;
+  final Report? report;
 
   /// The flags for the package, version or analysis.
   /// Example values: entries from [PackageFlags].
   @JsonKey(includeIfNull: false)
-  List<String> flags = <String>[];
+  List<String>? flags = <String>[];
 
   PanaReport({
-    @required this.timestamp,
-    @required this.panaRuntimeInfo,
-    @required this.reportStatus,
-    @required this.derivedTags,
-    @required this.allDependencies,
-    @required this.licenseFile,
-    @required this.report,
-    @required this.flags,
+    required this.timestamp,
+    required this.panaRuntimeInfo,
+    required this.reportStatus,
+    required this.derivedTags,
+    required this.allDependencies,
+    required this.licenseFile,
+    required this.report,
+    required this.flags,
   });
 
   factory PanaReport.fromJson(Map<String, dynamic> json) =>
       _$PanaReportFromJson(json);
 
-  static PanaReport fromBytes(List<int> bytes) {
+  static PanaReport? fromBytes(List<int>? bytes) {
     if (bytes == null) return null;
     final map = utf8JsonDecoder.convert(_gzipCodec.decode(bytes))
         as Map<String, dynamic>;
@@ -335,28 +333,28 @@ class DartdocReport implements ReportData {
   @override
   String get reportType => ReportType.dartdoc;
 
-  final DateTime timestamp;
+  final DateTime? timestamp;
 
   @override
-  final String reportStatus;
+  final String? reportStatus;
 
   /// The latest dartdoc entry's UUID.
-  final DartdocEntry dartdocEntry;
+  final DartdocEntry? dartdocEntry;
 
   /// The dartdoc part of the documentation report section.
-  final ReportSection documentationSection;
+  final ReportSection? documentationSection;
 
   DartdocReport({
-    @required this.timestamp,
-    @required this.reportStatus,
-    @required this.dartdocEntry,
-    @required this.documentationSection,
+    required this.timestamp,
+    required this.reportStatus,
+    required this.dartdocEntry,
+    required this.documentationSection,
   });
 
   factory DartdocReport.fromJson(Map<String, dynamic> json) =>
       _$DartdocReportFromJson(json);
 
-  static DartdocReport fromBytes(List<int> bytes) {
+  static DartdocReport? fromBytes(List<int>? bytes) {
     if (bytes == null) return null;
     final map = utf8JsonDecoder.convert(_gzipCodec.decode(bytes))
         as Map<String, dynamic>;
@@ -369,18 +367,10 @@ class DartdocReport implements ReportData {
   List<int> toBytes() => _gzipCodec.encode(jsonUtf8Encoder.convert(toJson()));
 }
 
-Report joinReport({PanaReport panaReport, DartdocReport dartdocReport}) {
+Report? joinReport({PanaReport? panaReport, DartdocReport? dartdocReport}) {
   var report = panaReport?.report;
   if (report != null && dartdocReport?.documentationSection != null) {
-    report = report.joinSection(dartdocReport.documentationSection);
+    report = report.joinSection(dartdocReport!.documentationSection!);
   }
   return report;
-}
-
-extension ReportExt on Report {
-  int get grantedPoints =>
-      sections.fold<int>(0, (sum, section) => sum + section.grantedPoints);
-
-  int get maxPoints =>
-      sections.fold<int>(0, (sum, section) => sum + section.maxPoints);
 }

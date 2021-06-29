@@ -21,7 +21,7 @@ export 'package:api_builder/_client_utils.dart' show RequestException;
 /// structure result in a method that returns the response body
 /// as bytes
 class PubApiClient {
-  PubApiClient(String baseUrl, {_i1.Client client})
+  PubApiClient(String baseUrl, {_i1.Client? client})
       : _client = _i2.Client(baseUrl, client: client);
 
   final _i2.Client _client;
@@ -359,7 +359,7 @@ class PubApiClient {
   }
 
   Future<_i6.AdminListUsersResponse> adminListUsers(
-      {String email, String ouid, String ct}) async {
+      {String? email, String? ouid, String? ct}) async {
     return _i6.AdminListUsersResponse.fromJson(await _client.requestJson(
       verb: 'get',
       path: '/api/admin/users',

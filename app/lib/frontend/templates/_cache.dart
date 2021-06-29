@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:logging/logging.dart';
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:mustache/mustache.dart' as mustache;
 import 'package:path/path.dart' as path;
 
@@ -55,13 +56,13 @@ class TemplateCache {
 
   mustache.Template _getTemplate(String name, bool strict) {
     final templates = strict ? _strictTemplates : _lenientTemplates;
-    mustache.Template parsedTemplate;
+    mustache.Template? parsedTemplate;
     if (requestContext.isExperimental) {
       final dirName = path.dirname(name);
       final expFileName = '${path.basename(name)}_experimental';
       final expTemplate =
           dirName == '.' ? expFileName : path.join(dirName, expFileName);
-      parsedTemplate = templates[expTemplate];
+      parsedTemplate = templates[expTemplate]!;
     }
     parsedTemplate ??= templates[name];
     if (parsedTemplate == null) {
@@ -71,7 +72,7 @@ class TemplateCache {
   }
 
   /// Renders [template] with given [values].
-  String renderTemplate(String template, Map<String, Object> values) {
+  String renderTemplate(String template, Map<String, dynamic> values) {
     final data = {
       'is_experimental': requestContext.isExperimental,
       'static_assets': staticUrls.assets,

@@ -19,7 +19,7 @@ const _defaultMaxAge = Duration(hours: 1);
 const _failedFetchCacheDuration = Duration(minutes: 5);
 
 /// The locally cached last fetch.
-DartSdkVersion _cached;
+DartSdkVersion? _cached;
 
 /// Describes the latest stable version of the Dart SDK.
 class DartSdkVersion {
@@ -28,7 +28,7 @@ class DartSdkVersion {
   final DateTime published;
   final DateTime expires;
 
-  DartSdkVersion(this.version, this.published, {DateTime expires})
+  DartSdkVersion(this.version, this.published, {DateTime? expires})
       : semanticVersion = Version.parse(version),
         expires = expires ?? DateTime.now().add(_defaultMaxAge);
 
@@ -37,8 +37,8 @@ class DartSdkVersion {
 
 /// Gets the latest Dart SDK version information (value may be cached).
 Future<DartSdkVersion> getDartSdkVersion() async {
-  if (_cached != null && !_cached.isExpired) {
-    return _cached;
+  if (_cached != null && !_cached!.isExpired) {
+    return _cached!;
   }
   return _fetchDartSdkVersion();
 }

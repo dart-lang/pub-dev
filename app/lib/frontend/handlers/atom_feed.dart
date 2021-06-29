@@ -40,31 +40,29 @@ Future<shelf.Response> atomFeedHandler(shelf.Request request) async {
 class FeedEntry {
   final String id;
   final String title;
-  final DateTime updated;
-  final String publisherId;
-  final String content;
+  final DateTime? updated;
+  final String? publisherId;
+  final String? content;
   final String alternateUrl;
-  final String alternateTitle;
+  final String? alternateTitle;
 
   FeedEntry(this.id, this.title, this.updated, this.publisherId, this.content,
       this.alternateUrl, this.alternateTitle);
 
   void writeToXmlBuffer(StringBuffer buffer) {
-    final escape = htmlEscape.convert;
-
     var authorTags = '';
     if (publisherId != null) {
-      final escapedAuthors = escape(publisherId);
+      final escapedAuthors = htmlEscape.convert(publisherId!);
       authorTags = '<author><name>$escapedAuthors</name></author>';
     }
 
     buffer.writeln('''
         <entry>
-          <id>urn:uuid:${escape(id)}</id>
-          <title>${escape(title)}</title>
-          <updated>${updated.toIso8601String()}</updated>
+          <id>urn:uuid:${htmlEscape.convert(id)}</id>
+          <title>${htmlEscape.convert(title)}</title>
+          <updated>${updated!.toIso8601String()}</updated>
           $authorTags
-          <content type="html">${escape(content)}</content>
+          <content type="html">${htmlEscape.convert(content ?? '')}</content>
           <link href="$alternateUrl"
                 rel="alternate"
                 title="$alternateTitle" />
@@ -134,7 +132,7 @@ class Feed {
 Feed _feedFromPackageVersions(
   Uri requestedUri,
   List<PackageVersion> versions,
-  List<PackageVersionAsset> assets,
+  List<PackageVersionAsset?> assets,
 ) {
   final entries = <FeedEntry>[];
   for (var i = 0; i < versions.length; i++) {
@@ -151,11 +149,11 @@ Feed _feedFromPackageVersions(
     final id = createUuid(hash.bytes.sublist(0, 16));
     final title = 'v${version.version} of ${version.package}';
 
-    var content = 'No README Found';
+    String? content = 'No README Found';
     if (asset != null) {
       content = asset.textContent;
-      if (asset.path.endsWith('.md')) {
-        content = md.markdownToHtml(content);
+      if (asset.path!.endsWith('.md')) {
+        content = md.markdownToHtml(content!);
       }
     }
 

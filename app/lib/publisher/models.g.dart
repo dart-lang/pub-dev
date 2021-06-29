@@ -8,11 +8,9 @@ part of 'models.dart';
 
 PublisherPage _$PublisherPageFromJson(Map<String, dynamic> json) {
   return PublisherPage(
-    publishers: (json['publishers'] as List)
-        ?.map((e) => e == null
-            ? null
-            : PublisherSummary.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
+    publishers: (json['publishers'] as List<dynamic>?)
+        ?.map((e) => PublisherSummary.fromJson(e as Map<String, dynamic>))
+        .toList(),
   );
 }
 
@@ -24,14 +22,12 @@ Map<String, dynamic> _$PublisherPageToJson(PublisherPage instance) =>
 PublisherSummary _$PublisherSummaryFromJson(Map<String, dynamic> json) {
   return PublisherSummary(
     publisherId: json['publisherId'] as String,
-    created: json['created'] == null
-        ? null
-        : DateTime.parse(json['created'] as String),
+    created: DateTime.parse(json['created'] as String),
   );
 }
 
 Map<String, dynamic> _$PublisherSummaryToJson(PublisherSummary instance) =>
     <String, dynamic>{
       'publisherId': instance.publisherId,
-      'created': instance.created?.toIso8601String(),
+      'created': instance.created.toIso8601String(),
     };

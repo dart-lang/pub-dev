@@ -8,25 +8,25 @@ part of 'models.dart';
 
 TestProfile _$TestProfileFromJson(Map<String, dynamic> json) {
   return TestProfile(
-    packages: (json['packages'] as List)
-        ?.map((e) =>
-            e == null ? null : TestPackage.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
-    publishers: (json['publishers'] as List)
-        ?.map((e) => e == null
-            ? null
-            : TestPublisher.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
-    users: (json['users'] as List)
-        ?.map((e) =>
-            e == null ? null : TestUser.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
-    defaultUser: json['defaultUser'] as String,
+    packages: (json['packages'] as List<dynamic>?)
+        ?.map((e) => TestPackage.fromJson(e as Map<String, dynamic>))
+        .toList(),
+    publishers: (json['publishers'] as List<dynamic>?)
+        ?.map((e) => TestPublisher.fromJson(e as Map<String, dynamic>))
+        .toList(),
+    users: (json['users'] as List<dynamic>?)
+        ?.map((e) => TestUser.fromJson(e as Map<String, dynamic>))
+        .toList(),
+    defaultUser: json['defaultUser'] as String?,
   );
 }
 
 Map<String, dynamic> _$TestProfileToJson(TestProfile instance) {
-  final val = <String, dynamic>{};
+  final val = <String, dynamic>{
+    'packages': instance.packages.map((e) => e.toJson()).toList(),
+    'publishers': instance.publishers.map((e) => e.toJson()).toList(),
+    'users': instance.users.map((e) => e.toJson()).toList(),
+  };
 
   void writeNotNull(String key, dynamic value) {
     if (value != null) {
@@ -34,11 +34,6 @@ Map<String, dynamic> _$TestProfileToJson(TestProfile instance) {
     }
   }
 
-  writeNotNull(
-      'packages', instance.packages?.map((e) => e?.toJson())?.toList());
-  writeNotNull(
-      'publishers', instance.publishers?.map((e) => e?.toJson())?.toList());
-  writeNotNull('users', instance.users?.map((e) => e?.toJson())?.toList());
   writeNotNull('defaultUser', instance.defaultUser);
   return val;
 }
@@ -46,18 +41,22 @@ Map<String, dynamic> _$TestProfileToJson(TestProfile instance) {
 TestPackage _$TestPackageFromJson(Map<String, dynamic> json) {
   return TestPackage(
     name: json['name'] as String,
-    uploaders: (json['uploaders'] as List)?.map((e) => e as String)?.toList(),
-    publisher: json['publisher'] as String,
-    versions: (json['versions'] as List)?.map((e) => e as String)?.toList(),
-    isDiscontinued: json['isDiscontinued'] as bool,
-    replacedBy: json['replacedBy'] as String,
-    isUnlisted: json['isUnlisted'] as bool,
-    isFlutterFavorite: json['isFlutterFavorite'] as bool,
+    uploaders:
+        (json['uploaders'] as List<dynamic>?)?.map((e) => e as String).toList(),
+    publisher: json['publisher'] as String?,
+    versions:
+        (json['versions'] as List<dynamic>?)?.map((e) => e as String).toList(),
+    isDiscontinued: json['isDiscontinued'] as bool?,
+    replacedBy: json['replacedBy'] as String?,
+    isUnlisted: json['isUnlisted'] as bool?,
+    isFlutterFavorite: json['isFlutterFavorite'] as bool?,
   );
 }
 
 Map<String, dynamic> _$TestPackageToJson(TestPackage instance) {
-  final val = <String, dynamic>{};
+  final val = <String, dynamic>{
+    'name': instance.name,
+  };
 
   void writeNotNull(String key, dynamic value) {
     if (value != null) {
@@ -65,7 +64,6 @@ Map<String, dynamic> _$TestPackageToJson(TestPackage instance) {
     }
   }
 
-  writeNotNull('name', instance.name);
   writeNotNull('uploaders', instance.uploaders);
   writeNotNull('publisher', instance.publisher);
   writeNotNull('versions', instance.versions);
@@ -79,26 +77,17 @@ Map<String, dynamic> _$TestPackageToJson(TestPackage instance) {
 TestPublisher _$TestPublisherFromJson(Map<String, dynamic> json) {
   return TestPublisher(
     name: json['name'] as String,
-    members: (json['members'] as List)
-        ?.map((e) =>
-            e == null ? null : TestMember.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
+    members: (json['members'] as List<dynamic>?)
+        ?.map((e) => TestMember.fromJson(e as Map<String, dynamic>))
+        .toList(),
   );
 }
 
-Map<String, dynamic> _$TestPublisherToJson(TestPublisher instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('name', instance.name);
-  writeNotNull('members', instance.members?.map((e) => e?.toJson())?.toList());
-  return val;
-}
+Map<String, dynamic> _$TestPublisherToJson(TestPublisher instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      'members': instance.members.map((e) => e.toJson()).toList(),
+    };
 
 TestMember _$TestMemberFromJson(Map<String, dynamic> json) {
   return TestMember(
@@ -107,40 +96,23 @@ TestMember _$TestMemberFromJson(Map<String, dynamic> json) {
   );
 }
 
-Map<String, dynamic> _$TestMemberToJson(TestMember instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('email', instance.email);
-  writeNotNull('role', instance.role);
-  return val;
-}
+Map<String, dynamic> _$TestMemberToJson(TestMember instance) =>
+    <String, dynamic>{
+      'email': instance.email,
+      'role': instance.role,
+    };
 
 TestUser _$TestUserFromJson(Map<String, dynamic> json) {
   return TestUser(
     email: json['email'] as String,
-    likes: (json['likes'] as List)?.map((e) => e as String)?.toList(),
+    likes: (json['likes'] as List<dynamic>?)?.map((e) => e as String).toList(),
   );
 }
 
-Map<String, dynamic> _$TestUserToJson(TestUser instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('email', instance.email);
-  writeNotNull('likes', instance.likes);
-  return val;
-}
+Map<String, dynamic> _$TestUserToJson(TestUser instance) => <String, dynamic>{
+      'email': instance.email,
+      'likes': instance.likes,
+    };
 
 ResolvedVersion _$ResolvedVersionFromJson(Map<String, dynamic> json) {
   return ResolvedVersion(
@@ -153,7 +125,10 @@ ResolvedVersion _$ResolvedVersionFromJson(Map<String, dynamic> json) {
 }
 
 Map<String, dynamic> _$ResolvedVersionToJson(ResolvedVersion instance) {
-  final val = <String, dynamic>{};
+  final val = <String, dynamic>{
+    'package': instance.package,
+    'version': instance.version,
+  };
 
   void writeNotNull(String key, dynamic value) {
     if (value != null) {
@@ -161,8 +136,6 @@ Map<String, dynamic> _$ResolvedVersionToJson(ResolvedVersion instance) {
     }
   }
 
-  writeNotNull('package', instance.package);
-  writeNotNull('version', instance.version);
   writeNotNull('created', instance.created?.toIso8601String());
   return val;
 }

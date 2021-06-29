@@ -19,7 +19,7 @@ final _configurationKey = #_active_configuration;
 
 /// Gets the active configuration.
 Configuration get activeConfiguration {
-  Configuration config = ss.lookup(_configurationKey) as Configuration;
+  Configuration? config = ss.lookup(_configurationKey) as Configuration?;
   if (config == null) {
     config = Configuration.fromEnv(envConfig);
     ss.register(_configurationKey, config);
@@ -53,7 +53,7 @@ const _fakeSiteAudience = 'fake-site-audience';
 )
 class Configuration {
   /// The name of the Cloud Storage bucket to use for uploaded package content.
-  final String packageBucketName;
+  final String? packageBucketName;
 
   /// The Cloud project Id. This is only required when using Apiary to access
   /// Datastore and/or Cloud Storage
@@ -63,25 +63,25 @@ class Configuration {
   final String searchServicePrefix;
 
   /// The name of the Cloud Storage bucket to use for dartdoc generated output.
-  final String dartdocStorageBucketName;
+  final String? dartdocStorageBucketName;
 
   /// The name of the Cloud Storage bucket to use for popularity data dumps.
-  final String popularityDumpBucketName;
+  final String? popularityDumpBucketName;
 
   /// The name of the Cloud Storage bucket to use for search snapshots.
-  final String searchSnapshotBucketName;
+  final String? searchSnapshotBucketName;
 
   // The scheme://host:port prefix for storage URLs.
-  final String storageBaseUrl;
+  final String? storageBaseUrl;
 
   /// The OAuth audience (`client_id`) that the `pub` client uses.
-  final String pubClientAudience;
+  final String? pubClientAudience;
 
   /// The OAuth audience (`client_id`) that the pub site uses.
-  final String pubSiteAudience;
+  final String? pubSiteAudience;
 
   /// The OAuth audience (`client_id`) that admin accounts use.
-  final String adminAudience;
+  final String? adminAudience;
 
   /// Email of the service account which has domain-wide delegation for the
   /// GSuite account used to send emails.
@@ -101,7 +101,7 @@ class Configuration {
   ///  https://developers.google.com/identity/protocols/oauth2/service-account
   ///
   /// **Optional**, if omitted email sending is disabled.
-  final String gmailRelayServiceAccount;
+  final String? gmailRelayServiceAccount;
 
   /// Email of the GSuite user account to impersonate when sending emails
   /// through the gmail SMTP relay.
@@ -112,7 +112,7 @@ class Configuration {
   /// https://support.google.com/a/answer/176600?hl=en
   ///
   /// **Optional**, if omitted email sending is disabled.
-  final String gmailRelayImpersonatedGSuiteUser;
+  final String? gmailRelayImpersonatedGSuiteUser;
 
   /// The email of the service account which has access rights to sign upload
   /// requests. The current service must be able to impersonate this account.
@@ -121,24 +121,24 @@ class Configuration {
   /// - iam.serviceAccounts.signBlob
   ///
   /// https://cloud.google.com/iam/docs/reference/credentials/rest/v1/projects.serviceAccounts/signBlob
-  final String uploadSignerServiceAccount;
+  final String? uploadSignerServiceAccount;
 
   /// Whether indexing of the content by robots should be blocked.
   final bool blockRobots;
 
   /// The list of hostnames which are considered production hosts (e.g. which
   /// are not limited in the cache use).
-  final List<String> productionHosts;
+  final List<String>? productionHosts;
 
   /// The base URI to use for API endpoints.
   /// Also used as PUB_HOSTED_URL in analyzer and dartdoc.
-  final Uri primaryApiUri;
+  final Uri? primaryApiUri;
 
   /// The base URI to use for HTML content.
   final Uri primarySiteUri;
 
   /// The identifier of admins.
-  final List<AdminId> admins;
+  final List<AdminId>? admins;
 
   factory Configuration.fromYamlFile(final String path) {
     final file = File(path);
@@ -252,24 +252,24 @@ class Configuration {
   }
 
   Configuration({
-    @required this.projectId,
-    @required this.packageBucketName,
-    @required this.dartdocStorageBucketName,
-    @required this.popularityDumpBucketName,
-    @required this.searchSnapshotBucketName,
-    @required this.searchServicePrefix,
-    @required this.storageBaseUrl,
-    @required this.pubClientAudience,
-    @required this.pubSiteAudience,
-    @required this.adminAudience,
-    @required this.gmailRelayServiceAccount,
-    @required this.gmailRelayImpersonatedGSuiteUser,
-    @required this.uploadSignerServiceAccount,
-    @required this.blockRobots,
-    @required this.productionHosts,
-    @required this.primaryApiUri,
-    @required this.primarySiteUri,
-    @required this.admins,
+    required this.projectId,
+    required this.packageBucketName,
+    required this.dartdocStorageBucketName,
+    required this.popularityDumpBucketName,
+    required this.searchSnapshotBucketName,
+    required this.searchServicePrefix,
+    required this.storageBaseUrl,
+    required this.pubClientAudience,
+    required this.pubSiteAudience,
+    required this.adminAudience,
+    required this.gmailRelayServiceAccount,
+    required this.gmailRelayImpersonatedGSuiteUser,
+    required this.uploadSignerServiceAccount,
+    required this.blockRobots,
+    required this.productionHosts,
+    required this.primaryApiUri,
+    required this.primarySiteUri,
+    required this.admins,
   });
 
   /// Create a configuration based on the environment variables.
@@ -281,8 +281,8 @@ class Configuration {
     } else if (env.configPath?.isEmpty ?? true) {
       throw Exception(
           'Unknown project id: ${env.gcloudProject}. Please setup env var GCLOUD_PROJECT or PUB_SERVER_CONFIG');
-    } else if (File(env.configPath).existsSync()) {
-      return Configuration.fromYamlFile(env.configPath);
+    } else if (File(env.configPath!).existsSync()) {
+      return Configuration.fromYamlFile(env.configPath!);
     } else {
       throw Exception(
           'File ${env.configPath} doesnt exist. Please ensure PUB_SERVER_CONFIG env is pointing to the existing config');
@@ -291,9 +291,9 @@ class Configuration {
 
   /// Configuration for pkg/fake_pub_server.
   factory Configuration.fakePubServer({
-    @required int frontendPort,
-    @required int searchPort,
-    @required String storageBaseUrl,
+    required int frontendPort,
+    required int searchPort,
+    required String storageBaseUrl,
   }) {
     return Configuration(
       projectId: 'dartlang-pub-fake',
@@ -324,7 +324,7 @@ class Configuration {
   }
 
   /// Configuration for tests.
-  factory Configuration.test({String storageBaseUrl}) {
+  factory Configuration.test({String? storageBaseUrl}) {
     return Configuration(
       projectId: 'dartlang-pub-test',
       packageBucketName: 'fake-bucket-pub',
@@ -366,17 +366,17 @@ class Configuration {
   disallowUnrecognizedKeys: true,
 )
 class AdminId {
-  final String oauthUserId;
-  final String email;
+  final String? oauthUserId;
+  final String? email;
 
   /// A set of strings that determine what operations the administrator is
   /// permitted to perform.
   final Set<AdminPermission> permissions;
 
   AdminId({
-    @required this.oauthUserId,
-    @required this.email,
-    @required Iterable<AdminPermission> permissions,
+    required this.oauthUserId,
+    required this.email,
+    required Iterable<AdminPermission?> permissions,
   }) : permissions = UnmodifiableSetView(Set.from(permissions));
 
   factory AdminId.fromJson(Map<String, dynamic> json) =>

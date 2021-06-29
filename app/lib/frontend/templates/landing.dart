@@ -14,16 +14,16 @@ import 'layout.dart';
 
 /// Renders the `views/page/landing.mustache` template.
 String renderLandingPage({
-  List<PackageView> ffPackages,
-  List<PackageView> mostPopularPackages,
-  List<PackageView> topFlutterPackages,
-  List<PackageView> topDartPackages,
-  List<PkgOfWeekVideo> topPoWVideos,
+  List<PackageView>? ffPackages,
+  List<PackageView>? mostPopularPackages,
+  List<PackageView>? topFlutterPackages,
+  List<PackageView>? topDartPackages,
+  List<PkgOfWeekVideo>? topPoWVideos,
 }) {
-  bool isNotEmptyList(List l) => l != null && l.isNotEmpty;
-  String renderMiniListIf(
-          bool cond, String sectionTag, List<PackageView> packages) =>
-      cond ? _renderMiniList(sectionTag, packages) : null;
+  bool isNotEmptyList(List? l) => l != null && l.isNotEmpty;
+  String? renderMiniListIf(
+          bool cond, String sectionTag, List<PackageView>? packages) =>
+      cond ? _renderMiniList(sectionTag, packages!) : null;
 
   final hasFF = isNotEmptyList(ffPackages);
   final hasMostPopular = isNotEmptyList(mostPopularPackages);
@@ -49,7 +49,7 @@ String renderLandingPage({
         renderMiniListIf(hasTopDart, 'top-dart', topDartPackages),
     'td_view_all_url': urls.searchUrl(sdk: SdkTagValue.dart),
     'has_pow': hasPoW,
-    'pow_mini_list_html': hasPoW ? _renderPoW(topPoWVideos) : null,
+    'pow_mini_list_html': hasPoW ? _renderPoW(topPoWVideos!) : null,
   };
   final content = templateCache.renderTemplate('landing/page', values);
   return renderLayoutPage(
@@ -82,7 +82,7 @@ String _renderMiniList(String sectionTag, List<PackageView> packages) {
       return {
         'name': package.name,
         'publisher_id': package.publisherId,
-        'package_url': urls.pkgPageUrl(package.name),
+        'package_url': urls.pkgPageUrl(package.name!),
         'ellipsized_description': package.ellipsizedDescription,
       };
     }).toList(),

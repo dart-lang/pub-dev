@@ -13,6 +13,7 @@ void updateDartdocStatus() {
       .querySelectorAll('.version-table')
       .map((e) => e.dataset['package'])
       .where((s) => s != null && s.isNotEmpty)
+      .cast<String>()
       .toSet()
       .toList();
 
@@ -44,7 +45,7 @@ void updateDartdocStatus() {
             (row) {
               final docCol = row.querySelector('.documentation');
               if (docCol == null) return;
-              final docLink = docCol.querySelector('a') as AnchorElement;
+              final docLink = docCol.querySelector('a') as AnchorElement?;
               if (docLink == null) return;
               if (status == 'awaiting') {
                 docCol.dataset[_hasDocumentationAttr] = '...';
@@ -53,10 +54,10 @@ void updateDartdocStatus() {
                 docCol.dataset[_hasDocumentationAttr] = '1';
               } else {
                 docCol.dataset[_hasDocumentationAttr] = '0';
-                docLink.href += 'log.txt';
+                docLink.href = '${docLink.href}log.txt';
                 final img = docLink.querySelector('img.version-table-icon');
                 if (img != null && img.dataset.containsKey('failed-icon')) {
-                  img.setAttribute('src', img.dataset['failed-icon']);
+                  img.setAttribute('src', img.dataset['failed-icon']!);
                 } else {
                   docLink.text = 'failed';
                 }
@@ -70,7 +71,7 @@ void updateDartdocStatus() {
       for (Element table in tables) {
         table.querySelectorAll('td.documentation').forEach((docCol) {
           if (docCol.dataset[_hasDocumentationAttr] == '-') {
-            final docLink = docCol.querySelector('a') as AnchorElement;
+            final docLink = docCol.querySelector('a') as AnchorElement?;
             if (docLink != null) {
               docLink.remove();
             }

@@ -16,7 +16,7 @@ Future<void> generateFakePopularityValues() async {
   await for (final p in query.run()) {
     final r = math.Random(p.name.hashCode.abs());
     final value = (math.min(p.likes * p.likes, 50) + r.nextInt(50)) / 100;
-    values[p.name] = value;
+    values[p.name!] = value;
   }
   // ignore: invalid_use_of_visible_for_testing_member
   popularityStorage.updateValues(values);

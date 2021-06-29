@@ -34,7 +34,7 @@ Future<shelf.Response> updateSessionHandler(
   final user = await requireAuthenticatedUser();
 
   InvalidInputException.checkNotNull(body.accessToken, 'accessToken');
-  await accountBackend.verifyAccessTokenOwnership(body.accessToken, user);
+  await accountBackend.verifyAccessTokenOwnership(body.accessToken!, user);
 
   // Only allow creation of sessions on the primary site host.
   // Exposing session on other domains is a security concern.
@@ -62,8 +62,8 @@ Future<shelf.Response> updateSessionHandler(
 
   final profile = await authProvider.getAccountProfile(body.accessToken);
   final newSession = await accountBackend.createNewSession(
-    name: profile.name,
-    imageUrl: profile.imageUrl,
+    name: profile!.name!,
+    imageUrl: profile.imageUrl!,
   );
 
   return jsonResponse(
@@ -85,7 +85,7 @@ Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
   // Invalidate the server-side sessionId, in case the user signed out because
   // the local cookie store was compromised.
   if (hasUserSession) {
-    await accountBackend.invalidateSession(sessionData.sessionId);
+    await accountBackend.invalidateSession(sessionData!.sessionId);
   }
   return jsonResponse(
     ClientSessionStatus(
@@ -99,7 +99,7 @@ Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
 
 /// Handles GET /consent?id=<consentId>
 Future<shelf.Response> consentPageHandler(
-    shelf.Request request, String consentId) async {
+    shelf.Request request, String? consentId) async {
   if (userSessionData == null) {
     return htmlResponse(renderUnauthenticatedPage());
   }
@@ -109,8 +109,8 @@ Future<shelf.Response> consentPageHandler(
     throw NotFoundException('Missing consent id.');
   }
 
-  final user = await accountBackend.lookupUserById(userSessionData.userId);
-  final consent = await consentBackend.getConsent(consentId, user);
+  final user = await accountBackend.lookupUserById(userSessionData!.userId!);
+  final consent = await consentBackend.getConsent(consentId, user!);
   // If consent does not exists (or does not belong to the user), the `getConsent`
   // call above will throw, and the generic error page will be shown.
   // TODO: handle missing/expired consent gracefully
@@ -161,7 +161,7 @@ Future<PackageLikeResponse> getLikePackageHandler(
     throw NotFoundException.resource(package);
   }
 
-  final like = await accountBackend.getPackageLikeStatus(user.userId, package);
+  final like = await accountBackend.getPackageLikeStatus(user.userId!, package);
   return PackageLikeResponse(
     liked: like != null,
     package: package,
@@ -192,7 +192,7 @@ Future<AccountPublisherOptions> accountPublisherOptionsHandler(
   checkPublisherIdParam(publisherId);
   final user = await requireAuthenticatedUser();
   final member =
-      await publisherBackend.getPublisherMember(publisherId, user.userId);
+      await publisherBackend.getPublisherMember(publisherId, user.userId!);
   final isAdmin = member != null && member.role == PublisherMemberRole.admin;
   return AccountPublisherOptions(isAdmin: isAdmin);
 }
@@ -209,12 +209,12 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
   }
 
   final page =
-      await publisherBackend.listPublishersForUser(userSessionData.userId);
+      await publisherBackend.listPublishersForUser(userSessionData!.userId!);
   final searchForm = parseFrontendSearchForm(
     request.requestedUri.queryParameters,
     uploaderOrPublishers: [
-      userSessionData.email,
-      ...page.publishers.map((p) => p.publisherId),
+      userSessionData!.email!,
+      ...page.publishers!.map((p) => p.publisherId),
     ],
     tagsPredicate: TagsPredicate.allPackages(),
   );
@@ -224,8 +224,8 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
   final links = PageLinks(searchForm, totalCount);
 
   final html = renderAccountPackagesPage(
-    user: await accountBackend.lookupUserById(userSessionData.userId),
-    userSessionData: userSessionData,
+    user: (await accountBackend.lookupUserById(userSessionData!.userId!))!,
+    userSessionData: userSessionData!,
     searchResultPage: searchResult,
     pageLinks: links,
     searchForm: searchForm,
@@ -242,11 +242,11 @@ Future<shelf.Response> accountMyLikedPackagesPageHandler(
     return htmlResponse(renderUnauthenticatedPage());
   }
 
-  final user = await accountBackend.lookupUserById(userSessionData.userId);
+  final user = (await accountBackend.lookupUserById(userSessionData!.userId!))!;
   final likes = await accountBackend.listPackageLikes(user);
   final html = renderMyLikedPackagesPage(
     user: user,
-    userSessionData: userSessionData,
+    userSessionData: userSessionData!,
     likes: likes,
   );
   return htmlResponse(html);
@@ -260,11 +260,11 @@ Future<shelf.Response> accountPublishersPageHandler(
   }
 
   final page =
-      await publisherBackend.listPublishersForUser(userSessionData.userId);
+      await publisherBackend.listPublishersForUser(userSessionData!.userId!);
   final content = renderAccountPublishersPage(
-    user: await accountBackend.lookupUserById(userSessionData.userId),
-    userSessionData: userSessionData,
-    publishers: page.publishers,
+    user: (await accountBackend.lookupUserById(userSessionData!.userId!))!,
+    userSessionData: userSessionData!,
+    publishers: page.publishers!,
   );
   return htmlResponse(content);
 }

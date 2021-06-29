@@ -19,10 +19,10 @@ import 'normalizer.dart';
 /// Imports [profile] data into the Datastore.
 @visibleForTesting
 Future<void> importProfile({
-  @required TestProfile profile,
-  @required ImportSource source,
-  String pubHostedUrl,
-  String adminUserEmail,
+  required TestProfile profile,
+  required ImportSource source,
+  String? pubHostedUrl,
+  String? adminUserEmail,
 }) async {
   final resolvedVersions = await source.resolveVersions(profile);
   resolvedVersions.sort();
@@ -31,7 +31,7 @@ Future<void> importProfile({
   profile = normalize(profile, resolvedVersions: resolvedVersions);
 
   if (profile.packages
-      .any((p) => p.uploaders != null && p.uploaders.length > 1)) {
+      .any((p) => p.uploaders != null && p.uploaders!.length > 1)) {
     throw UnimplementedError('More than one uploader is not implemented.');
   }
 
@@ -74,7 +74,7 @@ Future<void> importProfile({
         final uploadInfo = await client.getPackageUploadUrl();
 
         final request = http.MultipartRequest('POST', Uri.parse(uploadInfo.url))
-          ..fields.addAll(uploadInfo.fields)
+          ..fields.addAll(uploadInfo.fields!)
           ..files.add(http.MultipartFile.fromBytes('file', bytes))
           ..followRedirects = false;
         final uploadRs = await request.send();
@@ -84,9 +84,9 @@ Future<void> importProfile({
         }
 
         final callbackUri =
-            Uri.parse(uploadInfo.fields['success_action_redirect']);
+            Uri.parse(uploadInfo.fields!['success_action_redirect']!);
         await client
-            .finishPackageUpload(callbackUri.queryParameters['upload_id']);
+            .finishPackageUpload(callbackUri.queryParameters['upload_id']!);
       },
     );
   }
@@ -95,7 +95,7 @@ Future<void> importProfile({
     final activeEmail = lastActiveUploaderEmails[packageName];
 
     await withPubApiClient(
-      bearerToken: _fakeToken(activeEmail),
+      bearerToken: _fakeToken(activeEmail!),
       pubHostedUrl: pubHostedUrl,
       fn: (client) async {
         // update publisher
@@ -142,7 +142,7 @@ Future<void> importProfile({
         // creates user
         await client.listPackageLikes();
 
-        if (u.likes != null && u.likes.isNotEmpty) {
+        if (u.likes.isNotEmpty) {
           for (final p in u.likes) {
             await client.likePackage(p);
           }
@@ -158,7 +158,7 @@ List<String> _potentialActiveEmails(TestProfile profile, String packageName) {
   final testPackage = profile.packages.firstWhere((p) => p.name == packageName);
 
   // uploaders
-  if (testPackage.publisher == null) return testPackage.uploaders;
+  if (testPackage.publisher == null) return testPackage.uploaders!;
 
   // publisher
   final members = profile.publishers

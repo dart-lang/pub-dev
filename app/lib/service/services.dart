@@ -10,7 +10,6 @@ import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
-import 'package:meta/meta.dart';
 import 'package:pub_dev/fake/server/fake_storage_server.dart';
 import 'package:pub_dev/service/youtube/backend.dart';
 
@@ -78,9 +77,9 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
       // register services with external dependencies
       registerAuthProvider(GoogleOauth2AuthProvider(
         <String>[
-          activeConfiguration.pubClientAudience,
-          activeConfiguration.pubSiteAudience,
-          activeConfiguration.adminAudience,
+          activeConfiguration.pubClientAudience!,
+          activeConfiguration.pubSiteAudience!,
+          activeConfiguration.adminAudience!,
         ],
       ));
       registerDomainVerifier(DomainVerifier());
@@ -88,8 +87,8 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
         activeConfiguration.gmailRelayServiceAccount != null &&
                 activeConfiguration.gmailRelayImpersonatedGSuiteUser != null
             ? createGmailRelaySender(
-                activeConfiguration.gmailRelayServiceAccount,
-                activeConfiguration.gmailRelayImpersonatedGSuiteUser,
+                activeConfiguration.gmailRelayServiceAccount!,
+                activeConfiguration.gmailRelayImpersonatedGSuiteUser!,
                 authClient,
               )
             : loggingEmailSender,
@@ -103,10 +102,10 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
 
 /// Run [fn] with services.
 Future<void> withFakeServices({
-  @required FutureOr<void> Function() fn,
-  Configuration configuration,
-  MemDatastore datastore,
-  MemStorage storage,
+  required FutureOr<void> Function() fn,
+  Configuration? configuration,
+  MemDatastore? datastore,
+  MemStorage? storage,
 }) async {
   if (Zone.current[_pubDevServicesInitializedKey] == true) {
     return await fork(() async => await fn());
@@ -117,8 +116,8 @@ Future<void> withFakeServices({
   datastore ??= MemDatastore();
   storage ??= MemStorage();
   return await fork(() async {
-    registerDbService(DatastoreDB(datastore));
-    registerStorageService(storage);
+    registerDbService(DatastoreDB(datastore!));
+    registerStorageService(storage!);
     if (configuration == null) {
       // start storage server
       final storageServer = FakeStorageServer(storage);
@@ -129,13 +128,14 @@ Future<void> withFakeServices({
       configuration = Configuration.test(
           storageBaseUrl: 'http://localhost:${storageServer.port}');
     }
-    registerActiveConfiguration(configuration);
+    registerActiveConfiguration(configuration!);
 
     // register fake services that would have external dependencies
     registerAuthProvider(FakeAuthProvider());
     registerDomainVerifier(FakeDomainVerifier());
     registerEmailSender(FakeEmailSender());
-    registerUploadSigner(FakeUploadSignerService(configuration.storageBaseUrl));
+    registerUploadSigner(
+        FakeUploadSignerService(configuration!.storageBaseUrl!));
     return await _withPubServices(() async {
       await youtubeBackend.start();
       return await fn();
@@ -157,7 +157,7 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
       DartdocBackend(
         dbService,
         await getOrCreateBucket(
-            storageService, activeConfiguration.dartdocStorageBucketName),
+            storageService, activeConfiguration.dartdocStorageBucketName!),
       ),
     );
     registerDartdocClient(DartdocClient());
@@ -169,7 +169,7 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
     registerIndexUpdater(IndexUpdater(dbService, packageIndex));
     registerPopularityStorage(
       PopularityStorage(await getOrCreateBucket(
-          storageService, activeConfiguration.popularityDumpBucketName)),
+          storageService, activeConfiguration.popularityDumpBucketName!)),
     );
     registerPublisherBackend(PublisherBackend(dbService));
     registerScoreCardBackend(ScoreCardBackend(dbService));
@@ -178,12 +178,12 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
     registerSearchAdapter(SearchAdapter());
     registerSecretBackend(SecretBackend(dbService));
     registerSnapshotStorage(SnapshotStorage(await getOrCreateBucket(
-        storageService, activeConfiguration.searchSnapshotBucketName)));
+        storageService, activeConfiguration.searchSnapshotBucketName!)));
     registerTarballStorage(
       TarballStorage(
           storageService,
           await getOrCreateBucket(
-              storageService, activeConfiguration.packageBucketName),
+              storageService, activeConfiguration.packageBucketName!),
           null),
     );
     registerYoutubeBackend(YoutubeBackend());

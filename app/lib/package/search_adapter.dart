@@ -39,9 +39,9 @@ class SearchAdapter {
   /// Uses long-term caching and local randomized selection.
   /// Returns empty list when search is not available or doesn't yield results.
   Future<List<PackageView>> topFeatured({
-    List<String> requiredTags,
+    List<String>? requiredTags,
     int count = 6,
-    SearchOrder order,
+    SearchOrder? order,
   }) async {
     final form = SearchForm.parse(
       pageSize: 100,
@@ -67,7 +67,7 @@ class SearchAdapter {
           : _random.nextInt(availablePackages.length);
       packages.add(availablePackages.removeAt(index));
     }
-    return await _getPackageViews(packages);
+    return (await _getPackageViews(packages)).cast<PackageView>();
   }
 
   /// Performs search using the `search` service and lookup package info and
@@ -79,33 +79,33 @@ class SearchAdapter {
     final result = await _searchOrFallback(form, true);
     final views = await _getPackageViewsFromHits(
       [
-        if (result.highlightedHit != null) result.highlightedHit,
-        if (result.packageHits != null) ...result.packageHits,
+        if (result?.highlightedHit != null) result!.highlightedHit!,
+        if (result?.packageHits != null) ...result!.packageHits,
       ],
     );
     return SearchResultPage(
       form,
-      result.totalCount,
+      result!.totalCount,
       highlightedHit: result.highlightedHit == null
           ? null
-          : views[result.highlightedHit.package],
-      sdkLibraryHits: result.sdkLibraryHits ?? [],
+          : views[result.highlightedHit!.package],
+      sdkLibraryHits: result.sdkLibraryHits,
       packageHits: result.packageHits
-              ?.map((h) => views[h.package])
-              ?.where((v) => v != null)
-              ?.toList() ??
-          <PackageView>[],
+          .map((h) => views[h.package])
+          .where((v) => v != null)
+          .cast<PackageView>()
+          .toList(),
       message: result.message,
     );
   }
 
-  Future<PackageSearchResult> _searchOrFallback(
+  Future<PackageSearchResult?> _searchOrFallback(
     SearchForm searchForm,
     bool fallbackToNames, {
-    Duration ttl,
-    Duration updateCacheAfter,
+    Duration? ttl,
+    Duration? updateCacheAfter,
   }) async {
-    PackageSearchResult result;
+    PackageSearchResult? result;
     try {
       result = await searchClient.search(searchForm.toServiceQuery(),
           ttl: ttl, updateCacheAfter: updateCacheAfter);
@@ -140,10 +140,11 @@ class SearchAdapter {
         return PackageHit(package: pkgName, score: 0.5);
       }
     }).toList();
-    packageHits.sort((a, b) => -a.score.compareTo(b.score));
+    packageHits.sort((a, b) => -a.score!.compareTo(b.score!));
 
     final totalCount = packageHits.length;
-    packageHits = packageHits.skip(form.offset).take(form.pageSize).toList();
+    packageHits =
+        packageHits.skip(form.offset).take(form.pageSize ?? 10).toList();
     return PackageSearchResult(
         timestamp: DateTime.now().toUtc(),
         packageHits: packageHits,
@@ -155,7 +156,7 @@ class SearchAdapter {
   /// Returns the [PackageView] instance for [package] on its latest stable version.
   ///
   /// Returns null if the package does not exists.
-  Future<PackageView> _getPackageView(String package) async {
+  Future<PackageView?> _getPackageView(String package) async {
     return await cache.packageView(package).get(() async {
       final p = await packageBackend.lookupPackage(package);
       if (p == null) {
@@ -179,8 +180,8 @@ class SearchAdapter {
   /// the latest stable version.
   ///
   /// If the package does not exist, it will return null in the given index.
-  Future<List<PackageView>> _getPackageViews(List<String> packages) async {
-    final futures = <Future<PackageView>>[];
+  Future<List<PackageView?>> _getPackageViews(List<String> packages) async {
+    final futures = <Future<PackageView?>>[];
     for (final p in packages) {
       futures.add(_pool.withResource(() async => _getPackageView(p)));
     }
@@ -219,7 +220,7 @@ class SearchResultPage {
   /// The total number of results available for the search.
   final int totalCount;
 
-  final PackageView highlightedHit;
+  final PackageView? highlightedHit;
 
   final List<SdkLibraryHit> sdkLibraryHits;
 
@@ -228,14 +229,14 @@ class SearchResultPage {
 
   /// An optional message from the search service / client library, in case
   /// the query was not processed entirely.
-  final String message;
+  final String? message;
 
   SearchResultPage(
     this.form,
     this.totalCount, {
     this.highlightedHit,
-    List<SdkLibraryHit> sdkLibraryHits,
-    List<PackageView> packageHits,
+    List<SdkLibraryHit>? sdkLibraryHits,
+    List<PackageView>? packageHits,
     this.message,
   })  : sdkLibraryHits = sdkLibraryHits ?? <SdkLibraryHit>[],
         packageHits = packageHits ?? <PackageView>[];

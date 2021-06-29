@@ -119,7 +119,7 @@ class _ServiceAccountBasedUploadSigner extends UploadSignerService {
     if (envConfig.gcloudKey == null) {
       throw Exception('Missing GCLOUD_* environments for package:appengine');
     }
-    final path = envConfig.gcloudKey;
+    final path = envConfig.gcloudKey!;
     final content = File(path).readAsStringSync();
     final account = auth.ServiceAccountCredentials.fromJson(content);
     return _ServiceAccountBasedUploadSigner._(

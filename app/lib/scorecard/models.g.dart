@@ -8,9 +8,9 @@ part of 'models.dart';
 
 ScoreCardData _$ScoreCardDataFromJson(Map<String, dynamic> json) {
   return ScoreCardData(
-    packageName: json['packageName'] as String,
-    packageVersion: json['packageVersion'] as String,
-    runtimeVersion: json['runtimeVersion'] as String,
+    packageName: json['packageName'] as String?,
+    packageVersion: json['packageVersion'] as String?,
+    runtimeVersion: json['runtimeVersion'] as String?,
     updated: json['updated'] == null
         ? null
         : DateTime.parse(json['updated'] as String),
@@ -20,14 +20,16 @@ ScoreCardData _$ScoreCardDataFromJson(Map<String, dynamic> json) {
     packageVersionCreated: json['packageVersionCreated'] == null
         ? null
         : DateTime.parse(json['packageVersionCreated'] as String),
-    grantedPubPoints: json['grantedPubPoints'] as int,
-    maxPubPoints: json['maxPubPoints'] as int,
-    popularityScore: (json['popularityScore'] as num)?.toDouble(),
-    derivedTags:
-        (json['derivedTags'] as List)?.map((e) => e as String)?.toList(),
-    flags: (json['flags'] as List)?.map((e) => e as String)?.toList(),
-    reportTypes:
-        (json['reportTypes'] as List)?.map((e) => e as String)?.toList(),
+    grantedPubPoints: json['grantedPubPoints'] as int?,
+    maxPubPoints: json['maxPubPoints'] as int?,
+    popularityScore: (json['popularityScore'] as num?)?.toDouble(),
+    derivedTags: (json['derivedTags'] as List<dynamic>?)
+        ?.map((e) => e as String)
+        .toList(),
+    flags: (json['flags'] as List<dynamic>?)?.map((e) => e as String).toList(),
+    reportTypes: (json['reportTypes'] as List<dynamic>?)
+        ?.map((e) => e as String)
+        .toList(),
     dartdocReport: json['dartdocReport'] == null
         ? null
         : DartdocReport.fromJson(json['dartdocReport'] as Map<String, dynamic>),
@@ -65,18 +67,20 @@ PanaReport _$PanaReportFromJson(Map<String, dynamic> json) {
         ? null
         : PanaRuntimeInfo.fromJson(
             json['panaRuntimeInfo'] as Map<String, dynamic>),
-    reportStatus: json['reportStatus'] as String,
-    derivedTags:
-        (json['derivedTags'] as List)?.map((e) => e as String)?.toList(),
-    allDependencies:
-        (json['allDependencies'] as List)?.map((e) => e as String)?.toList(),
+    reportStatus: json['reportStatus'] as String?,
+    derivedTags: (json['derivedTags'] as List<dynamic>?)
+        ?.map((e) => e as String)
+        .toList(),
+    allDependencies: (json['allDependencies'] as List<dynamic>?)
+        ?.map((e) => e as String)
+        .toList(),
     licenseFile: json['licenseFile'] == null
         ? null
         : LicenseFile.fromJson(json['licenseFile'] as Map<String, dynamic>),
     report: json['report'] == null
         ? null
         : Report.fromJson(json['report'] as Map<String, dynamic>),
-    flags: (json['flags'] as List)?.map((e) => e as String)?.toList(),
+    flags: (json['flags'] as List<dynamic>?)?.map((e) => e as String).toList(),
   );
 }
 
@@ -106,7 +110,7 @@ DartdocReport _$DartdocReportFromJson(Map<String, dynamic> json) {
     timestamp: json['timestamp'] == null
         ? null
         : DateTime.parse(json['timestamp'] as String),
-    reportStatus: json['reportStatus'] as String,
+    reportStatus: json['reportStatus'] as String?,
     dartdocEntry: json['dartdocEntry'] == null
         ? null
         : DartdocEntry.fromJson(json['dartdocEntry'] as Map<String, dynamic>),

@@ -2,22 +2,20 @@ name: web_app
 publish_to: none
 
 environment:
-  sdk: '>=2.6.0 <3.0.0'
+  sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
-  mdc_web: ^0.4.1+1
   api_builder:
     path: ../api_builder
   client_data:
     path: ../client_data
+  collection: ^1.0.0
   http: ^0.13.0
   js: ^0.6.1
   markdown: ^4.0.0
+  mdc_web: ^0.6.0
   meta: ^1.3.0
   intl: ^0.17.0
 
 dev_dependencies:
   test: ^1.16.5
-
-dependency_overrides:
-  http: ^0.12.0 # shelf/api_builder

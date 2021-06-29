@@ -11,6 +11,7 @@ import '../shared/handlers.dart';
 import '../shared/urls.dart';
 
 import 'handlers/misc.dart';
+import 'handlers/pubapi.dart';
 import 'handlers/redirects.dart';
 import 'handlers/routes.dart';
 
@@ -30,6 +31,7 @@ shelf.Handler createAppHandler() {
   final legacyDartdocHandler = LegacyDartdocService().router;
   final pubDartlangOrgHandler = PubDartlangOrgService().router;
   final apiPubDevHandler = ApiPubDevService().router;
+  final pubApiHandler = PubApi().router;
   final pubSiteHandler = PubSiteService().router;
   return (shelf.Request request) async {
     _logPubHeaders(request);
@@ -42,14 +44,13 @@ shelf.Handler createAppHandler() {
 
     // keeping for future use
     if (host == 'api.pub.dev') {
-      final rs = await apiPubDevHandler(request);
-      return rs ?? notFoundHandler(request);
+      return await apiPubDevHandler(request);
     }
 
     // do pub.dartlang.org-only routes
     if (host == legacyHost) {
       final rs = await pubDartlangOrgHandler(request);
-      if (rs != null) {
+      if (rs.isRouteFound) {
         return rs;
       }
       if (_shouldRedirectToPubDev(request.requestedUri.path)) {
@@ -64,8 +65,13 @@ shelf.Handler createAppHandler() {
           request.requestedUri.replace(host: primaryHost).toString());
     }
 
+    final rs = await pubApiHandler(request);
+    if (rs.isRouteFound) {
+      return rs;
+    }
+
     final res = await pubSiteHandler(request);
-    if (res != null) {
+    if (res.isRouteFound) {
       return res;
     }
 

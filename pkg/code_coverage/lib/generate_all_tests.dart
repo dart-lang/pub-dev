@@ -45,7 +45,9 @@ String _generateTestContent(List<String> files) {
     calls.add("  group('$file', $alias.main);");
   }
 
-  return '''import 'package:test/test.dart';
+  return '''
+// @dart=2.9
+import 'package:test/test.dart';
 
 ${imports.join('\n')}
 

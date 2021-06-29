@@ -13,15 +13,16 @@ import 'package:shelf/shelf_io.dart';
 import 'package:mime/mime.dart';
 
 import 'package:fake_gcloud/mem_storage.dart';
+import '../../shared/storage.dart' show BucketExt;
 
 final _logger = Logger('storage');
 
 class FakeStorageServer {
   final MemStorage _storage;
-  IOServer _server;
+  IOServer? _server;
   FakeStorageServer(this._storage);
 
-  int get port => _server?.server?.port;
+  int? get port => _server?.server.port;
 
   Future<void> run({int port = 8081}) async {
     await start(port: port);
@@ -29,17 +30,17 @@ class FakeStorageServer {
     await close();
   }
 
-  Future<void> start({int port}) async {
+  Future<void> start({int? port}) async {
     if (_server != null) {
       throw StateError('Server is already running.');
     }
     _server = await IOServer.bind('localhost', port ?? 0);
-    serveRequests(_server.server, _handler);
+    serveRequests(_server!.server, _handler);
     _logger.info('Storage _server running on port ${this.port}');
   }
 
   Future<void> close() async {
-    await _server.close();
+    await _server!.close();
     _server = null;
   }
 
@@ -53,7 +54,7 @@ class FakeStorageServer {
       final bucketName = segments.first;
       final objectName = segments.skip(1).join('/');
       final bucket = _storage.bucket(bucketName);
-      final exists = await bucket.info(objectName);
+      final exists = await bucket.tryInfo(objectName);
       if (exists == null) {
         return Response.notFound('404 Not Found');
       }
@@ -69,12 +70,12 @@ class FakeStorageServer {
       String objectName = segments.skip(1).join('/');
 
       final formData = <String, String>{};
-      final transformer = MimeMultipartTransformer(contentHeader['boundary']);
+      final transformer = MimeMultipartTransformer(contentHeader['boundary']!);
       // The map below makes the runtime type checker happy.
       final stream = request.read().map((a) => a).transform(transformer);
       await for (final m in stream) {
         final disposition = _parse(m.headers['content-disposition']);
-        final name = disposition['name'];
+        final name = disposition['name']!;
         final data = await readAsBytes(m);
         if (name == 'file') {
           final key = formData['key'];
@@ -90,13 +91,13 @@ class FakeStorageServer {
         }
       }
 
-      return Response.seeOther(formData['success_action_redirect']);
+      return Response.seeOther(formData['success_action_redirect']!);
     }
     return Response.notFound('404 Not Found');
   }
 }
 
-Map<String, String> _parse(String value) {
+Map<String, String> _parse(String? value) {
   final result = <String, String>{};
   if (value == null || value.isEmpty) {
     return result;

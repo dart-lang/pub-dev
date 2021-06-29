@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:html';
 
 import 'package:intl/intl.dart';
-import 'package:mdc_web/mdc_web.dart';
+import 'package:mdc_web/mdc_web.dart' show MDCIconButtonToggle;
 
 import 'account.dart';
 import 'page_data.dart';
@@ -20,10 +20,10 @@ void _enqueue(Future<void> Function() task) {
 
 void setupLikesList() {
   document.querySelectorAll('.-pub-like-button').forEach((likeButton) {
-    final package = likeButton.dataset['package'];
+    final package = likeButton.dataset['package']!;
 
     likeButton.onClick.listen((Event e) {
-      final text = likeButton.querySelector('.-pub-like-button-text');
+      final text = likeButton.querySelector('.-pub-like-button-text')!;
       final img =
           likeButton.querySelector('.-pub-like-button-img') as ImageElement;
       if (text.innerText == 'LIKE') {
@@ -42,7 +42,7 @@ void setupLikesList() {
 void setupLikes() {
   final likes = document.querySelector('#likes-count');
   final likeButton =
-      document.querySelector('#-pub-like-icon-button') as ButtonElement;
+      document.querySelector('#-pub-like-icon-button') as ButtonElement?;
 
   // If `likeButton` is not on this page we assume the page doesn't display a
   // `like package` button.
@@ -53,22 +53,22 @@ void setupLikes() {
 
   // keep in-sync with app/lib/frontend/templates/detail_page.dart
   String likesString() {
-    final likesCount = pageData.pkgData.likes + likesDelta;
+    final likesCount = pageData.pkgData!.likes + likesDelta;
     return NumberFormat.compact().format(likesCount);
   }
 
   iconButtonToggle.listen(MDCIconButtonToggle.changeEvent, (Event e) {
     likeButton.blur();
-    if (iconButtonToggle.on) {
+    if (iconButtonToggle.on ?? false) {
       // The button has shifted to on.
       likesDelta++;
-      likes.innerText = likesString();
-      _enqueue(() => client.likePackage(pageData.pkgData.package));
+      likes!.innerText = likesString();
+      _enqueue(() => client.likePackage(pageData.pkgData!.package));
     } else {
       // The button has shifted to off.
       likesDelta--;
-      likes.innerText = likesString();
-      _enqueue(() => client.unlikePackage(pageData.pkgData.package));
+      likes!.innerText = likesString();
+      _enqueue(() => client.unlikePackage(pageData.pkgData!.package));
     }
   });
 }

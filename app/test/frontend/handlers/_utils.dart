@@ -27,7 +27,7 @@ void tScopedTest(String name, Future<void> Function() func) {
   });
 }
 
-Future<shelf.Response> issueGet(String path, {String host}) async {
+Future<shelf.Response> issueGet(String path, {String? host}) async {
   final uri = host == null ? '$siteRoot$path' : 'https://$host$path';
   final request = shelf.Request('GET', Uri.parse(uri));
   final handler = createAppHandler();

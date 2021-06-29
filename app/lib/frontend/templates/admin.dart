@@ -4,8 +4,6 @@
 
 import 'dart:convert';
 
-import 'package:meta/meta.dart';
-
 import '../../account/models.dart' show LikeData, User, UserSessionData;
 import '../../package/search_adapter.dart' show SearchResultPage;
 import '../../publisher/models.dart' show PublisherSummary;
@@ -32,17 +30,17 @@ String renderAuthorizedPage() {
 
 /// Renders the search results on the current user's packages page.
 String renderAccountPackagesPage({
-  @required User user,
-  @required UserSessionData userSessionData,
-  @required SearchResultPage searchResultPage,
-  @required String messageFromBackend,
-  @required PageLinks pageLinks,
-  @required SearchForm searchForm,
-  @required int totalCount,
+  required User user,
+  required UserSessionData userSessionData,
+  required SearchResultPage searchResultPage,
+  required String? messageFromBackend,
+  required PageLinks pageLinks,
+  required SearchForm searchForm,
+  required int totalCount,
 }) {
   final isSearch = searchForm.hasQuery;
   String title = 'My packages';
-  if (isSearch && pageLinks.currentPage > 1) {
+  if (isSearch && pageLinks.currentPage! > 1) {
     title += ' | Page ${pageLinks.currentPage}';
   }
 
@@ -83,9 +81,9 @@ String renderAccountPackagesPage({
 
 /// Renders the current user's liked packages page.
 String renderMyLikedPackagesPage({
-  @required User user,
-  @required UserSessionData userSessionData,
-  @required List<LikeData> likes,
+  required User user,
+  required UserSessionData userSessionData,
+  required List<LikeData> likes,
 }) {
   final likedPackagesListHtml = renderMyLikedPackagesList(likes);
 
@@ -121,9 +119,9 @@ String renderMyLikedPackagesPage({
 
 /// Renders the current user's publishers page.
 String renderAccountPublishersPage({
-  @required User user,
-  @required UserSessionData userSessionData,
-  @required List<PublisherSummary> publishers,
+  required User user,
+  required UserSessionData userSessionData,
+  required List<PublisherSummary> publishers,
 }) {
   final publisherListHtml = renderPublisherList(publishers, isGlobal: false);
 
@@ -161,11 +159,11 @@ Tab _myPublishersLink() => Tab.withLink(
     id: 'publishers', title: 'My publishers', href: urls.myPublishersUrl());
 
 String _accountDetailHeader(User user, UserSessionData userSessionData) {
-  final shortJoined = shortDateFormat.format(user.created);
+  final shortJoined = shortDateFormat.format(user.created!);
   return renderDetailHeader(
     title: userSessionData.name,
     imageUrl: userSessionData.imageUrlOfSize(200),
-    metadataHtml: '<p>${htmlEscape.convert(user.email)}</p>'
+    metadataHtml: '<p>${htmlEscape.convert(user.email!)}</p>'
         '<p>${htmlEscape.convert('Joined on $shortJoined')}</p>',
   );
 }

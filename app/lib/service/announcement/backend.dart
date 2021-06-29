@@ -47,7 +47,7 @@ class AnnouncementBackend {
   /// Returns the current announcement in sanitized HTML (if it is loaded).
   ///
   /// May be `null` if there is nothing to display.
-  String getAnnouncementHtml() {
+  String? getAnnouncementHtml() {
     return _announcementHtml.isAvailable ? _announcementHtml.value : null;
   }
 }

@@ -62,13 +62,13 @@ Future<void> _checkHosts() async {
   }
 }
 
-Future<void> _checkUrls({HttpClient client}) async {
+Future<void> _checkUrls({HttpClient? client}) async {
   for (final uri in uris) {
     await _checkUrlGetContent(uri, client: client);
   }
 }
 
-Future<void> _checkUrlGetContent(Uri uri, {HttpClient client}) async {
+Future<void> _checkUrlGetContent(Uri uri, {HttpClient? client}) async {
   final closeClient = client == null;
   client ??= HttpClient();
   final rq = await client.getUrl(uri);

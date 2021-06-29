@@ -4,7 +4,6 @@
 
 import 'package:client_data/publisher_api.dart' as api;
 import 'package:client_data/page_data.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_dev/shared/markdown.dart';
 
 import '../../package/search_adapter.dart' show SearchResultPage;
@@ -31,7 +30,7 @@ String renderCreatePublisherPage() {
 
 /// Renders the `views/publisher/publisher_list.mustache` template
 String renderPublisherList(List<PublisherSummary> publishers,
-    {@required bool isGlobal}) {
+    {required bool isGlobal}) {
   final noPublisherHtml = isGlobal
       ? 'No publisher has been registered.'
       : 'You are not a member of any <a href="https://dart.dev/tools/pub/verified-publishers" target="_blank" rel="noreferrer">verified publishers</a>.';
@@ -66,9 +65,9 @@ String renderPublisherListPage(List<PublisherSummary> publishers) {
 }
 
 /// Returns the formatted short description of the publisher description.
-String _shortDescriptionHtml(Publisher publisher) {
+String? _shortDescriptionHtml(Publisher publisher) {
   if (!publisher.hasDescription) '';
-  String description = publisher.description;
+  String? description = publisher.description;
   if (description != null && description.length > 1010) {
     description = description.substring(0, 1000) + '[...]';
   }
@@ -77,17 +76,17 @@ String _shortDescriptionHtml(Publisher publisher) {
 
 /// Renders the search results on the publisher's packages page.
 String renderPublisherPackagesPage({
-  @required Publisher publisher,
-  @required SearchResultPage searchResultPage,
-  @required String messageFromBackend,
-  @required PageLinks pageLinks,
-  @required SearchForm searchForm,
-  @required int totalCount,
-  @required bool isAdmin,
+  required Publisher publisher,
+  required SearchResultPage searchResultPage,
+  required String? messageFromBackend,
+  required PageLinks pageLinks,
+  required SearchForm searchForm,
+  required int totalCount,
+  required bool isAdmin,
 }) {
   final isSearch = searchForm.hasQuery;
   String title = 'Packages of publisher ${publisher.publisherId}';
-  if (isSearch && pageLinks.currentPage > 1) {
+  if (isSearch && pageLinks.currentPage! > 1) {
     title += ' | Page ${pageLinks.currentPage}';
   }
 
@@ -112,7 +111,7 @@ String renderPublisherPackagesPage({
       title: 'Packages',
       contentHtml: tabContent,
     ),
-    if (isAdmin) _adminLinkTab(publisher.publisherId),
+    if (isAdmin) _adminLinkTab(publisher.publisherId!),
   ];
 
   final mainContent = renderDetailPage(
@@ -126,22 +125,23 @@ String renderPublisherPackagesPage({
     title: title,
     pageData: PageData(
       publisher: PublisherData(
-        publisherId: publisher.publisherId,
+        publisherId: publisher.publisherId!,
       ),
     ),
     publisherId: publisher.publisherId,
     searchForm: searchForm,
     canonicalUrl: searchForm.toSearchLink(),
     // index only the first page, if it has packages displayed without search query
-    noIndex: searchResultPage.hasNoHit || isSearch || pageLinks.currentPage > 1,
+    noIndex:
+        searchResultPage.hasNoHit || isSearch || pageLinks.currentPage! > 1,
     mainClasses: [wideHeaderDetailPageClassName],
   );
 }
 
 /// Renders the `views/publisher/admin_page.mustache` template.
 String renderPublisherAdminPage({
-  @required Publisher publisher,
-  @required List<api.PublisherMember> members,
+  required Publisher publisher,
+  required List<api.PublisherMember> members,
 }) {
   final String adminContent =
       templateCache.renderTemplate('publisher/admin_page', {
@@ -158,7 +158,7 @@ String renderPublisherAdminPage({
         .toList(),
   });
   final tabs = <Tab>[
-    _packagesLinkTab(publisher.publisherId),
+    _packagesLinkTab(publisher.publisherId!),
     Tab.withContent(
       id: 'admin',
       title: 'Admin',
@@ -177,10 +177,10 @@ String renderPublisherAdminPage({
     title: 'Publisher: ${publisher.publisherId}',
     pageData: PageData(
       publisher: PublisherData(
-        publisherId: publisher.publisherId,
+        publisherId: publisher.publisherId!,
       ),
     ),
-    canonicalUrl: urls.publisherAdminUrl(publisher.publisherId),
+    canonicalUrl: urls.publisherAdminUrl(publisher.publisherId!),
     noIndex: true,
     mainClasses: [wideHeaderDetailPageClassName],
   );
@@ -192,7 +192,7 @@ String _renderDetailHeader(Publisher publisher) {
   final metadataHtml = templateCache.renderTemplate(
     'publisher/header_metadata',
     {
-      'short_created': shortDateFormat.format(publisher.created),
+      'short_created': shortDateFormat.format(publisher.created!),
       'has_description': publisher.hasDescription,
       'description_html': _shortDescriptionHtml(publisher),
       'has_contact_email': publisher.hasContactEmail,

@@ -46,7 +46,7 @@ Map<String, String> createSessionCookie(String sessionId, DateTime expires) {
 /// Parse [cookieString] and return `sessionId` or `null`.
 ///
 /// The [cookieString] is the value of the `cookie:` request header.
-String parseSessionCookie(String cookieString) {
+String? parseSessionCookie(String? cookieString) {
   final sessionId = parseCookieHeader(cookieString)['$_pubSessionCookieName'];
   // An empty sessionId cookie is the result of reseting the cookie.
   // Browser usually won't send this, but let's make sure we handle the case.

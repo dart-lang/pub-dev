@@ -90,10 +90,10 @@ abstract class GoogleAuthCurrentUser {
 @JS()
 abstract class GoogleUser {
   /// The external id of the user.
-  external String getId();
+  external String? getId();
 
   /// Get the response object from the user's auth session.
-  external AuthResponse getAuthResponse(bool includeAuthorizationData);
+  external AuthResponse? getAuthResponse(bool includeAuthorizationData);
 
   /// Forces a refresh of the access token, and then returns a Promise for the
   /// new AuthResponse.
@@ -132,16 +132,16 @@ abstract class GoogleUser {
 @JS()
 abstract class AuthResponse {
   /// The access token to use for requests to googleapis.
-  external String get access_token; // ignore: non_constant_identifier_names
+  external String? get access_token; // ignore: non_constant_identifier_names
 
   /// The openid-connect ID token for authenticating requests pub.dev
-  external String get id_token; // ignore: non_constant_identifier_names
+  external String? get id_token; // ignore: non_constant_identifier_names
 
   /// The scopes granted in the Access Token.
-  external String get scope; // ignore: non_constant_identifier_names
+  external String? get scope; // ignore: non_constant_identifier_names
 
   /// The timestamp at which the Access Token will expire.
-  external int get expires_at; // ignore: non_constant_identifier_names
+  external int? get expires_at; // ignore: non_constant_identifier_names
 }
 
 /// The basic profile data of the user.

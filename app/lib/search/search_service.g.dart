@@ -9,30 +9,28 @@ part of 'search_service.dart';
 PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) {
   return PackageDocument(
     package: json['package'] as String,
-    version: json['version'] as String,
-    description: json['description'] as String,
+    version: json['version'] as String?,
+    description: json['description'] as String?,
     created: json['created'] == null
         ? null
         : DateTime.parse(json['created'] as String),
     updated: json['updated'] == null
         ? null
         : DateTime.parse(json['updated'] as String),
-    readme: json['readme'] as String,
-    tags: (json['tags'] as List)?.map((e) => e as String)?.toList(),
-    popularity: (json['popularity'] as num)?.toDouble(),
-    likeCount: json['likeCount'] as int,
-    grantedPoints: json['grantedPoints'] as int,
-    maxPoints: json['maxPoints'] as int,
-    dependencies: (json['dependencies'] as Map<String, dynamic>)?.map(
-      (k, e) => MapEntry(k, e as String),
-    ),
-    publisherId: json['publisherId'] as String,
-    uploaderEmails:
-        (json['uploaderEmails'] as List)?.map((e) => e as String)?.toList(),
-    apiDocPages: (json['apiDocPages'] as List)
-        ?.map((e) =>
-            e == null ? null : ApiDocPage.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
+    readme: json['readme'] as String?,
+    tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
+    popularity: (json['popularity'] as num?)?.toDouble(),
+    likeCount: json['likeCount'] as int?,
+    grantedPoints: json['grantedPoints'] as int?,
+    maxPoints: json['maxPoints'] as int?,
+    dependencies: Map<String, String>.from(json['dependencies'] as Map),
+    publisherId: json['publisherId'] as String?,
+    uploaderEmails: (json['uploaderEmails'] as List<dynamic>?)
+        ?.map((e) => e as String)
+        .toList(),
+    apiDocPages: (json['apiDocPages'] as List<dynamic>?)
+        ?.map((e) => ApiDocPage.fromJson(e as Map<String, dynamic>))
+        .toList(),
     timestamp: json['timestamp'] == null
         ? null
         : DateTime.parse(json['timestamp'] as String),
@@ -56,14 +54,17 @@ Map<String, dynamic> _$PackageDocumentToJson(PackageDocument instance) =>
       'publisherId': instance.publisherId,
       'uploaderEmails': instance.uploaderEmails,
       'apiDocPages': instance.apiDocPages,
-      'timestamp': instance.timestamp?.toIso8601String(),
+      'timestamp': instance.timestamp.toIso8601String(),
     };
 
 ApiDocPage _$ApiDocPageFromJson(Map<String, dynamic> json) {
   return ApiDocPage(
     relativePath: json['relativePath'] as String,
-    symbols: (json['symbols'] as List)?.map((e) => e as String)?.toList(),
-    textBlocks: (json['textBlocks'] as List)?.map((e) => e as String)?.toList(),
+    symbols:
+        (json['symbols'] as List<dynamic>?)?.map((e) => e as String).toList(),
+    textBlocks: (json['textBlocks'] as List<dynamic>?)
+        ?.map((e) => e as String)
+        .toList(),
   );
 }
 
@@ -83,16 +84,13 @@ PackageSearchResult _$PackageSearchResultFromJson(Map<String, dynamic> json) {
     highlightedHit: json['highlightedHit'] == null
         ? null
         : PackageHit.fromJson(json['highlightedHit'] as Map<String, dynamic>),
-    sdkLibraryHits: (json['sdkLibraryHits'] as List)
-        ?.map((e) => e == null
-            ? null
-            : SdkLibraryHit.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
-    packageHits: (json['packageHits'] as List)
-        ?.map((e) =>
-            e == null ? null : PackageHit.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
-    message: json['message'] as String,
+    sdkLibraryHits: (json['sdkLibraryHits'] as List<dynamic>?)
+        ?.map((e) => SdkLibraryHit.fromJson(e as Map<String, dynamic>))
+        .toList(),
+    packageHits: (json['packageHits'] as List<dynamic>?)
+        ?.map((e) => PackageHit.fromJson(e as Map<String, dynamic>))
+        .toList(),
+    message: json['message'] as String?,
   );
 }
 
@@ -106,26 +104,25 @@ Map<String, dynamic> _$PackageSearchResultToJson(PackageSearchResult instance) {
   }
 
   writeNotNull('timestamp', instance.timestamp?.toIso8601String());
-  writeNotNull('totalCount', instance.totalCount);
+  val['totalCount'] = instance.totalCount;
   writeNotNull('highlightedHit', instance.highlightedHit);
-  writeNotNull('sdkLibraryHits', instance.sdkLibraryHits);
-  writeNotNull('packageHits', instance.packageHits);
+  val['sdkLibraryHits'] = instance.sdkLibraryHits;
+  val['packageHits'] = instance.packageHits;
   writeNotNull('message', instance.message);
   return val;
 }
 
 SdkLibraryHit _$SdkLibraryHitFromJson(Map<String, dynamic> json) {
   return SdkLibraryHit(
-    sdk: json['sdk'] as String,
-    version: json['version'] as String,
-    library: json['library'] as String,
-    description: json['description'] as String,
-    url: json['url'] as String,
-    score: (json['score'] as num)?.toDouble(),
-    apiPages: (json['apiPages'] as List)
-        ?.map((e) =>
-            e == null ? null : ApiPageRef.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
+    sdk: json['sdk'] as String?,
+    version: json['version'] as String?,
+    library: json['library'] as String?,
+    description: json['description'] as String?,
+    url: json['url'] as String?,
+    score: (json['score'] as num).toDouble(),
+    apiPages: (json['apiPages'] as List<dynamic>?)
+        ?.map((e) => ApiPageRef.fromJson(e as Map<String, dynamic>))
+        .toList(),
   );
 }
 
@@ -143,7 +140,7 @@ Map<String, dynamic> _$SdkLibraryHitToJson(SdkLibraryHit instance) {
   writeNotNull('library', instance.library);
   writeNotNull('description', instance.description);
   writeNotNull('url', instance.url);
-  writeNotNull('score', instance.score);
+  val['score'] = instance.score;
   writeNotNull('apiPages', instance.apiPages);
   return val;
 }
@@ -151,16 +148,17 @@ Map<String, dynamic> _$SdkLibraryHitToJson(SdkLibraryHit instance) {
 PackageHit _$PackageHitFromJson(Map<String, dynamic> json) {
   return PackageHit(
     package: json['package'] as String,
-    score: (json['score'] as num)?.toDouble(),
-    apiPages: (json['apiPages'] as List)
-        ?.map((e) =>
-            e == null ? null : ApiPageRef.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
+    score: (json['score'] as num?)?.toDouble(),
+    apiPages: (json['apiPages'] as List<dynamic>?)
+        ?.map((e) => ApiPageRef.fromJson(e as Map<String, dynamic>))
+        .toList(),
   );
 }
 
 Map<String, dynamic> _$PackageHitToJson(PackageHit instance) {
-  final val = <String, dynamic>{};
+  final val = <String, dynamic>{
+    'package': instance.package,
+  };
 
   void writeNotNull(String key, dynamic value) {
     if (value != null) {
@@ -168,7 +166,6 @@ Map<String, dynamic> _$PackageHitToJson(PackageHit instance) {
     }
   }
 
-  writeNotNull('package', instance.package);
   writeNotNull('score', instance.score);
   writeNotNull('apiPages', instance.apiPages);
   return val;
@@ -176,9 +173,9 @@ Map<String, dynamic> _$PackageHitToJson(PackageHit instance) {
 
 ApiPageRef _$ApiPageRefFromJson(Map<String, dynamic> json) {
   return ApiPageRef(
-    title: json['title'] as String,
-    path: json['path'] as String,
-    url: json['url'] as String,
+    title: json['title'] as String?,
+    path: json['path'] as String?,
+    url: json['url'] as String?,
   );
 }
 

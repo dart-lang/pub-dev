@@ -43,7 +43,7 @@ Future<shelf.Response> apiDocumentationHandler(
   }
 
   versions.sort((a, b) => a.semanticVersion.compareTo(b.semanticVersion));
-  String latestStableVersion = versions.last.version;
+  String? latestStableVersion = versions.last.version;
   for (int i = versions.length - 1; i >= 0; i--) {
     if (!versions[i].semanticVersion.isPreRelease) {
       latestStableVersion = versions[i].version;
@@ -52,7 +52,7 @@ Future<shelf.Response> apiDocumentationHandler(
   }
 
   final dartdocEntries = await dartdocBackend.getEntriesForVersions(
-      package, versions.map((pv) => pv.version).toList());
+      package, versions.map((pv) => pv.version).toList() as List<String>);
 
   final versionsData = [];
   for (int i = 0; i < versions.length; i++) {
@@ -149,14 +149,14 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
 
     final uri = activeConfiguration.primaryApiUri;
     for (var version in pageVersions) {
-      final versionString = Uri.encodeComponent(version.version);
+      final versionString = Uri.encodeComponent(version.version!);
       final packageString = Uri.encodeComponent(version.package);
 
       final apiArchiveUrl = urls.pkgArchiveDownloadUrl(
-          version.package, version.version,
+          version.package, version.version!,
           baseUri: uri);
       final apiPackageUrl =
-          uri.resolve('/api/packages/$packageString').toString();
+          uri!.resolve('/api/packages/$packageString').toString();
       final apiPackageVersionUrl = uri
           .resolve('/api/packages/$packageString/versions/$versionString')
           .toString();
@@ -165,7 +165,7 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
         'name': version.package,
         'latest': {
           'version': version.version,
-          'pubspec': version.pubspec.asJson,
+          'pubspec': version.pubspec!.asJson,
 
           // TODO: We should get rid of these:
           'archive_url': apiArchiveUrl,
@@ -188,18 +188,18 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
     };
 
     if (!pkgPage.isLast) {
-      json['next_url'] = '${uri.resolve('/api/packages?page=${page + 1}')}';
+      json['next_url'] = '${uri!.resolve('/api/packages?page=${page + 1}')}';
     } else {
       // Set the last page in cache, if not already there with a lower number.
       final lastPage = await lastPageCacheEntry.get();
-      if (lastPage == null || lastPage['page'] as int > page) {
+      if (lastPage == null || (lastPage['page'] as int) > page) {
         await lastPageCacheEntry.set({'page': page});
       }
     }
     return json;
   });
 
-  return jsonResponse(data);
+  return jsonResponse(data!);
 }
 
 /// Handles requests for
@@ -216,7 +216,7 @@ Future<shelf.Response> apiPackageMetricsHandler(
   }
   final score = await packageVersionScoreHandler(request, packageName);
   final result = {
-    'score': score?.toJson(),
+    'score': score.toJson(),
     'scorecard': data.toJson(),
   };
   return jsonResponse(result);
@@ -227,9 +227,9 @@ Future<shelf.Response> apiPackageMetricsHandler(
 /// - /api/packages/<package>/versions/<version>/score
 Future<VersionScore> packageVersionScoreHandler(
     shelf.Request request, String package,
-    {String version}) async {
+    {String? version}) async {
   checkPackageVersionParams(package, version);
-  return await cache.versionScore(package, version).get(() async {
+  return (await cache.versionScore(package, version).get(() async {
     final pkg = await packageBackend.lookupPackage(package);
     if (pkg == null) {
       throw NotFoundException.resource('package "$package"');
@@ -246,7 +246,7 @@ Future<VersionScore> packageVersionScoreHandler(
       }
     }
 
-    if (card != null && card.updated.isAfter(updated)) {
+    if (card != null && card.updated!.isAfter(updated!)) {
       updated = card.updated;
     }
     return VersionScore(
@@ -256,7 +256,7 @@ Future<VersionScore> packageVersionScoreHandler(
       popularityScore: card?.popularityScore,
       lastUpdated: updated,
     );
-  });
+  }))!;
 }
 
 /// Handles requests for /api/search
@@ -268,7 +268,7 @@ Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
   final sr = await searchClient.search(searchForm.toServiceQuery());
   final packages =
       sr.allPackageHits.map((ps) => {'package': ps.package}).toList();
-  final hasNextPage = sr.totalCount > searchForm.pageSize + searchForm.offset;
+  final hasNextPage = sr.totalCount > searchForm.pageSize! + searchForm.offset;
   final result = <String, dynamic>{
     'packages': packages,
     if (sr.message != null) 'message': sr.message,
@@ -276,7 +276,7 @@ Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
   if (hasNextPage) {
     final newParams =
         Map<String, dynamic>.from(request.requestedUri.queryParameters);
-    newParams['page'] = (searchForm.currentPage + 1).toString();
+    newParams['page'] = (searchForm.currentPage! + 1).toString();
     final nextPageUrl =
         request.requestedUri.replace(queryParameters: newParams).toString();
     result['next'] = nextPageUrl;

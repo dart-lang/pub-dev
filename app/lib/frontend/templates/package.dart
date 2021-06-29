@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:client_data/page_data.dart';
-import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' show getRepositoryUrl, LicenseNames;
 import 'package:pubspec_parse/pubspec_parse.dart' show HostedDependency;
 
@@ -27,13 +26,13 @@ import 'misc.dart';
 import 'package_analysis.dart';
 import 'package_misc.dart';
 
-String _renderLicense(PackagePageData data) {
-  if (data.versionInfo != null && data.versionInfo.hasLicense) {
+String? _renderLicense(PackagePageData data) {
+  if (data.versionInfo != null && data.versionInfo!.hasLicense) {
     final license =
         data.analysis?.licenseFile?.shortFormatted ?? LicenseNames.unknown;
     final url = urls.pkgLicenseUrl(
-      data.package.name,
-      version: data.isLatestStable ? null : data.version.version,
+      data.package!.name!,
+      version: data.isLatestStable ? null : data.version!.version,
     );
     final fileName = data.analysis?.licenseFile?.path ?? 'LICENSE';
 
@@ -48,7 +47,7 @@ String _renderLicense(PackagePageData data) {
   return null;
 }
 
-String _renderDependencyList(Pubspec pubspec) {
+String? _renderDependencyList(Pubspec? pubspec) {
   if (pubspec == null) return null;
   final dependencies = pubspec.dependencies;
   final packages = dependencies.keys.toList()..sort();
@@ -56,7 +55,7 @@ String _renderDependencyList(Pubspec pubspec) {
   return packages.map((p) {
     final dep = dependencies[p];
     var href = redirectPackageUrls[p];
-    String constraint;
+    String? constraint;
     if (href == null && dep is HostedDependency) {
       href = urls.pkgPageUrl(p);
       constraint = dep.version.toString();
@@ -68,11 +67,11 @@ String _renderDependencyList(Pubspec pubspec) {
   }).join(', ');
 }
 
-String _renderInstallTab(PackageVersion selectedVersion, List<String> tags) {
+String _renderInstallTab(PackageVersion selectedVersion, List<String>? tags) {
   final packageName = selectedVersion.package;
-  final isFlutterPackage = selectedVersion.pubspec.usesFlutter;
+  final isFlutterPackage = selectedVersion.pubspec!.usesFlutter;
   List importExamples;
-  if (selectedVersion.libraries.contains('$packageName.dart')) {
+  if (selectedVersion.libraries!.contains('$packageName.dart')) {
     importExamples = [
       {
         'package': packageName,
@@ -80,15 +79,15 @@ String _renderInstallTab(PackageVersion selectedVersion, List<String> tags) {
       },
     ];
   } else {
-    importExamples = selectedVersion.libraries.map((library) {
+    importExamples = selectedVersion.libraries!.map((library) {
       return {
-        'package': selectedVersion.packageKey.id,
+        'package': selectedVersion.packageKey!.id,
         'library': library,
       };
     }).toList();
   }
 
-  final executables = selectedVersion.pubspec.executables?.keys?.toList();
+  final executables = selectedVersion.pubspec!.executables?.keys.toList();
   executables?.sort();
   final hasExecutables = executables != null && executables.isNotEmpty;
 
@@ -133,23 +132,23 @@ String _renderInstallTab(PackageVersion selectedVersion, List<String> tags) {
 /// Renders the right-side info box (quick summary of the package, mostly coming
 /// from pubspec.yaml).
 String renderPkgInfoBox(PackagePageData data) {
-  final package = data.package;
-  final packageLinks = data.version.packageLinks;
+  final package = data.package!;
+  final packageLinks = data.version!.packageLinks;
 
-  String documentationUrl = packageLinks.documentationUrl;
+  String? documentationUrl = packageLinks.documentationUrl;
   if (urls.hideUserProvidedDocUrl(documentationUrl)) {
     documentationUrl = null;
   }
   final dartdocsUrl = urls.pkgDocUrl(
-    package.name,
-    version: data.version.version,
+    package.name!,
+    version: data.version!.version,
     isLatest: data.isLatestStable,
   );
 
   final metaLinks = <Map<String, dynamic>>[];
   final docLinks = <Map<String, dynamic>>[];
   void addLink(
-    String href,
+    String? href,
     String label, {
     bool detectServiceProvider = false,
     bool documentation = false,
@@ -182,30 +181,31 @@ String renderPkgInfoBox(PackagePageData data) {
       detectServiceProvider: true);
   addLink(packageLinks.issueTrackerUrl, 'View/report issues');
   addLink(documentationUrl, 'Documentation', documentation: true);
-  if (data.analysis.hasApiDocs) {
+  if (data.analysis!.hasApiDocs) {
     addLink(dartdocsUrl, 'API reference', documentation: true);
   }
 
   return templateCache.renderTemplate('pkg/info_box', {
     'name': package.name,
-    'description': data.version.pubspec.description,
+    'description': data.version!.pubspec!.description,
     'meta_links': metaLinks,
     'has_doc_links': docLinks.isNotEmpty,
     'doc_links': docLinks,
     'replaced_by': package.replacedBy,
-    'replaced_by_link':
-        package.replacedBy == null ? null : urls.pkgPageUrl(package.replacedBy),
+    'replaced_by_link': package.replacedBy == null
+        ? null
+        : urls.pkgPageUrl(package.replacedBy!),
     'has_publisher': package.publisherId != null,
     'publisher_id': package.publisherId,
     'publisher_link': package.publisherId == null
         ? null
-        : urls.publisherUrl(package.publisherId),
+        : urls.publisherUrl(package.publisherId!),
     'license_html': _renderLicense(data),
-    'dependencies_html': _renderDependencyList(data.version.pubspec),
+    'dependencies_html': _renderDependencyList(data.version!.pubspec),
     'search_deps_link': urls.searchUrl(q: 'dependency:${package.name}'),
     'labeled_scores_html': renderLabeledScores(
       data.toPackageView(),
-      version: data.isLatestStable ? null : data.version.version,
+      version: data.isLatestStable ? null : data.version!.version,
     ),
   });
 }
@@ -213,9 +213,9 @@ String renderPkgInfoBox(PackagePageData data) {
 /// Renders the `views/pkg/header.mustache` template for header metadata and
 /// wraps it with content-header.
 String renderPkgHeader(PackagePageData data) {
-  final package = data.package;
-  final showPrereleaseVersion = data.latestReleases.showPrerelease;
-  final showPreviewVersion = data.latestReleases.showPreview;
+  final package = data.package!;
+  final showPrereleaseVersion = data.latestReleases!.showPrerelease;
+  final showPreviewVersion = data.latestReleases!.showPreview;
   final bool showUpdated =
       !data.isLatestStable || showPrereleaseVersion || showPreviewVersion;
 
@@ -227,28 +227,29 @@ String renderPkgHeader(PackagePageData data) {
     'publisher_id': package.publisherId,
     'publisher_url': package.publisherId == null
         ? null
-        : urls.publisherUrl(package.publisherId),
+        : urls.publisherUrl(package.publisherId!),
     'null_safe_badge_html': nullSafeBadgeHtml,
     'latest': {
       'show_updated': showUpdated,
       'show_prerelease_version': showPrereleaseVersion,
       'show_preview_version': showPreviewVersion,
-      'stable_url': urls.pkgPageUrl(package.name),
-      'stable_version': data.latestReleases.stable.version,
+      'stable_url': urls.pkgPageUrl(package.name!),
+      'stable_version': data.latestReleases!.stable.version,
       'prerelease_url': showPrereleaseVersion
-          ? urls.pkgPageUrl(package.name,
-              version: data.latestReleases.prerelease.version)
+          ? urls.pkgPageUrl(package.name!,
+              version: data.latestReleases!.prerelease!.version)
           : null,
-      'prerelease_version':
-          showPrereleaseVersion ? data.latestReleases.prerelease.version : null,
+      'prerelease_version': showPrereleaseVersion
+          ? data.latestReleases!.prerelease!.version
+          : null,
       'preview_url': showPreviewVersion
-          ? urls.pkgPageUrl(package.name,
-              version: data.latestReleases.preview.version)
+          ? urls.pkgPageUrl(package.name!,
+              version: data.latestReleases!.preview!.version)
           : null,
       'preview_version':
-          showPreviewVersion ? data.latestReleases.preview.version : null,
+          showPreviewVersion ? data.latestReleases!.preview!.version : null,
     },
-    'short_created': data.version.shortCreated,
+    'short_created': data.version!.shortCreated,
   });
   final pkgView = data.toPackageView();
   return renderDetailHeader(
@@ -260,7 +261,7 @@ String renderPkgHeader(PackagePageData data) {
     metadataHtml: metadataHtml,
     tagsHtml: renderTags(
       package: pkgView,
-      version: data.isLatestStable ? null : data.version.version,
+      version: data.isLatestStable ? null : data.version!.version,
     ),
     isLoose: true,
   );
@@ -268,8 +269,8 @@ String renderPkgHeader(PackagePageData data) {
 
 String _renderPkgTitleContent(PackagePageData data) {
   return templateCache.renderTemplate('pkg/title_content', {
-    'package': data.package.name,
-    'version': data.version.version,
+    'package': data.package!.name,
+    'version': data.version!.version,
   });
 }
 
@@ -358,52 +359,52 @@ String renderPkgScorePage(PackagePageData data) {
 }
 
 String _renderPkgPage({
-  @required PackagePageData data,
-  @required List<Tab> tabs,
-  @required urls.PkgPageTab pkgPageTab,
+  required PackagePageData data,
+  required List<Tab> tabs,
+  required urls.PkgPageTab pkgPageTab,
 }) {
   final card = data.analysis?.card;
 
   final content = renderDetailPage(
     headerHtml: renderPkgHeader(data),
     tabs: tabs,
-    infoBoxLead: data.version.ellipsizedDescription,
+    infoBoxLead: data.version!.ellipsizedDescription,
     infoBoxHtml: renderPkgInfoBox(data),
     footerHtml: renderPackageSchemaOrgHtml(data),
   );
 
-  final isFlutterPackage = data.version.pubspec.usesFlutter;
+  final isFlutterPackage = data.version!.pubspec!.usesFlutter;
   final packageAndVersion = data.isLatestStable
-      ? data.package.name
-      : '${data.package.name} ${data.version.version}';
+      ? data.package!.name
+      : '${data.package!.name} ${data.version!.version}';
   final pageTitle =
       '$packageAndVersion | ${isFlutterPackage ? 'Flutter' : 'Dart'} Package';
   final canonicalUrl = urls.pkgPageUrl(
-    data.package.name,
-    version: data.isLatestStable ? null : data.version.version,
+    data.package!.name!,
+    version: data.isLatestStable ? null : data.version!.version,
     includeHost: true,
     pkgPageTab: pkgPageTab,
   );
   final noIndex = (card?.isSkipped ?? false) ||
       (card?.grantedPubPoints == 0) ||
-      data.package.isExcludedInRobots;
+      data.package!.isExcludedInRobots;
   return renderLayoutPage(
     PageType.package,
     content,
     title: pageTitle,
-    pageDescription: data.version.ellipsizedDescription,
+    pageDescription: data.version!.ellipsizedDescription,
     faviconUrl: isFlutterPackage ? staticUrls.flutterLogo32x32 : null,
     canonicalUrl: canonicalUrl,
     noIndex: noIndex,
-    pageData: pkgPageData(data.package, data.version),
+    pageData: pkgPageData(data.package!, data.version!),
   );
 }
 
 PageData pkgPageData(Package package, PackageVersion selectedVersion) {
   return PageData(
     pkgData: PkgData(
-        package: package.name,
-        version: selectedVersion.version,
+        package: package.name!,
+        version: selectedVersion.version!,
         publisherId: package.publisherId,
         isDiscontinued: package.isDiscontinued,
         likes: package.likes),
@@ -411,11 +412,11 @@ PageData pkgPageData(Package package, PackageVersion selectedVersion) {
 }
 
 Tab _readmeTab(PackagePageData data) {
-  final baseUrl = data.version.packageLinks.baseUrl;
+  final baseUrl = data.version!.packageLinks.baseUrl;
   final content = data.hasReadme &&
           data.asset != null &&
-          data.asset.kind == AssetKind.readme
-      ? renderFile(data.asset.toFileObject(), baseUrl)
+          data.asset!.kind == AssetKind.readme
+      ? renderFile(data.asset!.toFileObject(), baseUrl!)
       : '';
   return Tab.withContent(
     id: 'readme',
@@ -425,12 +426,12 @@ Tab _readmeTab(PackagePageData data) {
   );
 }
 
-Tab _changelogTab(PackagePageData data) {
+Tab? _changelogTab(PackagePageData data) {
   if (!data.hasChangelog) return null;
   if (data.asset?.kind != AssetKind.changelog) return null;
-  final baseUrl = data.version.packageLinks.baseUrl;
+  final baseUrl = data.version!.packageLinks.baseUrl!;
   final content = renderFile(
-    data.asset.toFileObject(),
+    data.asset!.toFileObject(),
     baseUrl,
     isChangelog: true,
   );
@@ -442,23 +443,20 @@ Tab _changelogTab(PackagePageData data) {
   );
 }
 
-Tab _exampleTab(PackagePageData data) {
+Tab? _exampleTab(PackagePageData data) {
   if (!data.hasExample) return null;
   if (data.asset?.kind != AssetKind.example) return null;
-  final baseUrl = data.version.packageLinks.baseUrl;
+  final baseUrl = data.version!.packageLinks.baseUrl!;
 
-  String renderedExample;
-  final exampleFilename = data.asset.path;
-  renderedExample = renderFile(data.asset.toFileObject(), baseUrl);
-  if (renderedExample != null) {
-    final url = getRepositoryUrl(baseUrl, exampleFilename);
-    final escapedName = htmlEscape.convert(exampleFilename);
-    final link = url == null
-        ? escapedName
-        : '<a href="$url" target="_blank" rel="noopener noreferrer nofollow">$escapedName</a>';
-    renderedExample = '<p style="font-family: monospace"><b>$link</b></p>\n'
-        '$renderedExample';
-  }
+  final exampleFilename = data.asset!.path;
+  var renderedExample = renderFile(data.asset!.toFileObject(), baseUrl);
+  final url = getRepositoryUrl(baseUrl, exampleFilename!);
+  final escapedName = htmlEscape.convert(exampleFilename);
+  final link = url == null
+      ? escapedName
+      : '<a href="$url" target="_blank" rel="noopener noreferrer nofollow">$escapedName</a>';
+  renderedExample = '<p style="font-family: monospace"><b>$link</b></p>\n'
+      '$renderedExample';
 
   return Tab.withContent(
     id: 'example',
@@ -472,14 +470,15 @@ Tab _installTab(PackagePageData data) {
   return Tab.withContent(
     id: 'installing',
     title: 'Installing',
-    contentHtml: _renderInstallTab(data.version, data.analysis?.derivedTags),
+    contentHtml: _renderInstallTab(data.version!, data.analysis?.derivedTags),
     isMarkdown: true,
   );
 }
 
 Tab _licenseTab(PackagePageData data) {
   final licenseAsHtml = data.hasLicense
-      ? renderFile(data.asset.toFileObject(), data.version.packageLinks.baseUrl)
+      ? renderFile(
+          data.asset!.toFileObject(), data.version!.packageLinks.baseUrl!)
       : 'No license file found.';
   final contentHtml = '<h2>License</h2>\n$licenseAsHtml';
   return Tab.withContent(
@@ -492,7 +491,8 @@ Tab _licenseTab(PackagePageData data) {
 
 Tab _pubspecTab(PackagePageData data) {
   final contentHtml = data.hasPubspec
-      ? renderFile(data.asset.toFileObject(), data.version.packageLinks.baseUrl)
+      ? renderFile(
+          data.asset!.toFileObject(), data.version!.packageLinks.baseUrl!)
       : 'No license file found.';
   return Tab.withContent(
     id: 'pubspec',
@@ -506,27 +506,27 @@ Tab _scoreTab(PackagePageData data) {
     id: 'analysis',
     title: 'Scores',
     contentHtml: renderAnalysisTab(
-      data.package.name,
-      data.version.pubspec.sdkConstraint,
+      data.package!.name,
+      data.version!.pubspec!.sdkConstraint,
       data.analysis?.card,
       data.analysis,
-      likeCount: data.package.likes,
+      likeCount: data.package!.likes,
     ),
   );
 }
 
 String renderPackageSchemaOrgHtml(PackagePageData data) {
-  final p = data.package;
-  final pv = data.version;
+  final p = data.package!;
+  final pv = data.version!;
   final Map map = {
     '@context': 'http://schema.org',
     '@type': 'SoftwareSourceCode',
     'name': p.name,
     'version': pv.version,
-    'description': '${p.name} - ${pv.pubspec.description}',
-    'url': urls.pkgPageUrl(p.name, includeHost: true),
-    'dateCreated': p.created.toIso8601String(),
-    'dateModified': pv.created.toIso8601String(),
+    'description': '${p.name} - ${pv.pubspec!.description}',
+    'url': urls.pkgPageUrl(p.name!, includeHost: true),
+    'dateCreated': p.created!.toIso8601String(),
+    'dateModified': pv.created!.toIso8601String(),
     'programmingLanguage': 'Dart',
     'image':
         '${urls.siteRoot}${staticUrls.staticPath}/img/pub-dev-icon-cover-image.png'
@@ -543,53 +543,53 @@ String renderPackageSchemaOrgHtml(PackagePageData data) {
 ///
 /// Unspecified tab content will be filled with links to the corresponding page.
 List<Tab> buildPackageTabs({
-  @required PackagePageData data,
-  Tab readmeTab,
-  Tab changelogTab,
-  Tab exampleTab,
-  Tab installingTab,
-  Tab licenseTab,
-  Tab pubspecTab,
-  Tab versionsTab,
-  Tab scoreTab,
-  Tab adminTab,
+  required PackagePageData data,
+  Tab? readmeTab,
+  Tab? changelogTab,
+  Tab? exampleTab,
+  Tab? installingTab,
+  Tab? licenseTab,
+  Tab? pubspecTab,
+  Tab? versionsTab,
+  Tab? scoreTab,
+  Tab? adminTab,
 }) {
-  final package = data.package;
-  final linkVersion = data.isLatestStable ? null : data.version.version;
+  final package = data.package!;
+  final linkVersion = data.isLatestStable ? null : data.version!.version;
   readmeTab ??= Tab.withLink(
     id: 'readme',
     title: 'Readme',
-    href: urls.pkgReadmeUrl(package.name, version: linkVersion),
+    href: urls.pkgReadmeUrl(package.name!, version: linkVersion),
   );
   changelogTab ??= Tab.withLink(
     id: 'changelog',
     title: 'Changelog',
-    href: urls.pkgChangelogUrl(package.name, version: linkVersion),
+    href: urls.pkgChangelogUrl(package.name!, version: linkVersion),
   );
   exampleTab ??= Tab.withLink(
     id: 'example',
     title: 'Example',
-    href: urls.pkgExampleUrl(package.name, version: linkVersion),
+    href: urls.pkgExampleUrl(package.name!, version: linkVersion),
   );
   installingTab ??= Tab.withLink(
     id: 'installing',
     title: 'Installing',
-    href: urls.pkgInstallUrl(package.name, version: linkVersion),
+    href: urls.pkgInstallUrl(package.name!, version: linkVersion),
   );
   versionsTab ??= Tab.withLink(
     id: 'versions',
     title: 'Versions',
-    href: urls.pkgVersionsUrl(package.name),
+    href: urls.pkgVersionsUrl(package.name!),
   );
   scoreTab ??= Tab.withLink(
     id: 'analysis',
     title: 'Scores',
-    href: urls.pkgScoreUrl(package.name, version: linkVersion),
+    href: urls.pkgScoreUrl(package.name!, version: linkVersion),
   );
   adminTab ??= Tab.withLink(
     id: 'admin',
     title: 'Admin',
-    href: urls.pkgAdminUrl(package.name),
+    href: urls.pkgAdminUrl(package.name!),
   );
   return <Tab>[
     readmeTab,
@@ -600,7 +600,7 @@ List<Tab> buildPackageTabs({
     if (pubspecTab != null) pubspecTab,
     versionsTab,
     scoreTab,
-    if (data.isAdmin) adminTab,
+    if (data.isAdmin!) adminTab,
   ];
 }
 

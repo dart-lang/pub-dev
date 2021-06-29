@@ -55,7 +55,7 @@ class YoutubeBackend {
   /// - Random seed changes hourly.
   List<PkgOfWeekVideo> getTopPackageOfWeekVideos({
     int count = 4,
-    math.Random random,
+    math.Random? random,
   }) {
     if (!_packageOfWeekVideoList.isAvailable) {
       return const <PkgOfWeekVideo>[];
@@ -63,7 +63,8 @@ class YoutubeBackend {
     final now = DateTime.now().toUtc();
     random ??= math.Random(
         now.year * 1000 + now.month * 100 + now.day * 10 + now.hour);
-    final selectable = List<PkgOfWeekVideo>.from(_packageOfWeekVideoList.value);
+    final selectable =
+        List<PkgOfWeekVideo>.from(_packageOfWeekVideoList.value!);
     final selected = <PkgOfWeekVideo>[];
     while (selected.length < count && selectable.isNotEmpty) {
       if (selected.isEmpty) {
@@ -109,18 +110,19 @@ class _PkgOfWeekVideoFetcher {
 
     try {
       final videos = <PkgOfWeekVideo>[];
-      String nextPageToken;
+      String? nextPageToken;
       for (var check = true; check && videos.length < 50;) {
         final rs = await youtube.playlistItems.list(
           ['snippet', 'contentDetails'],
           playlistId: powPlaylistId,
         );
-        videos.addAll(rs.items.map(
+        videos.addAll(rs.items!.map(
           (i) => PkgOfWeekVideo(
-            videoId: i.contentDetails.videoId,
-            title: i.snippet.title,
-            description: (i.snippet.description ?? '').trim().split('\n').first,
-            thumbnailUrl: i.snippet.thumbnails.high.url,
+            videoId: i.contentDetails!.videoId!,
+            title: i.snippet!.title!,
+            description:
+                (i.snippet?.description ?? '').trim().split('\n').first,
+            thumbnailUrl: i.snippet!.thumbnails!.high!.url!,
           ),
         ));
         // next page
@@ -141,10 +143,10 @@ class PkgOfWeekVideo {
   final String thumbnailUrl;
 
   PkgOfWeekVideo({
-    @required this.videoId,
-    @required this.title,
-    @required this.description,
-    @required this.thumbnailUrl,
+    required this.videoId,
+    required this.title,
+    required this.description,
+    required this.thumbnailUrl,
   });
 
   String get videoUrl => Uri(

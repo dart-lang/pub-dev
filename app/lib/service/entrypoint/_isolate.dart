@@ -9,7 +9,6 @@ import 'dart:math';
 
 import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 
@@ -26,16 +25,16 @@ class FrontendEntryMessage {
   final SendPort protocolSendPort;
 
   FrontendEntryMessage({
-    @required this.frontendIndex,
-    @required this.protocolSendPort,
+    required this.frontendIndex,
+    required this.protocolSendPort,
   });
 }
 
 class FrontendProtocolMessage {
-  final SendPort statsConsumerPort;
+  final SendPort? statsConsumerPort;
 
   FrontendProtocolMessage({
-    @required this.statsConsumerPort,
+    this.statsConsumerPort,
   });
 }
 
@@ -46,20 +45,20 @@ class WorkerEntryMessage {
   final SendPort aliveSendPort;
 
   WorkerEntryMessage({
-    @required this.workerIndex,
-    @required this.protocolSendPort,
-    @required this.statsSendPort,
-    @required this.aliveSendPort,
+    required this.workerIndex,
+    required this.protocolSendPort,
+    required this.statsSendPort,
+    required this.aliveSendPort,
   });
 }
 
 class WorkerProtocolMessage {}
 
 Future startIsolates({
-  @required Logger logger,
-  Future<void> Function(FrontendEntryMessage message) frontendEntryPoint,
-  Future<void> Function(WorkerEntryMessage message) workerEntryPoint,
-  Duration deadWorkerTimeout,
+  required Logger logger,
+  Future<void> Function(FrontendEntryMessage message)? frontendEntryPoint,
+  Future<void> Function(WorkerEntryMessage message)? workerEntryPoint,
+  Duration? deadWorkerTimeout,
 }) async {
   await withServices(() async {
     if (!envConfig.isRunningLocally) {
@@ -107,13 +106,13 @@ Future startIsolates({
       final protocolMessage = (await protocolReceivePort.take(1).toList())
           .single as FrontendProtocolMessage;
       if (protocolMessage.statsConsumerPort != null) {
-        statConsumerPorts.add(protocolMessage.statsConsumerPort);
+        statConsumerPorts.add(protocolMessage.statsConsumerPort!);
       }
       logger.info('Frontend isolate #$frontendIndex started.');
       lastStarted = DateTime.now();
 
-      StreamSubscription errorSubscription;
-      StreamSubscription exitSubscription;
+      StreamSubscription? errorSubscription;
+      StreamSubscription? exitSubscription;
 
       Future<void> close() async {
         if (protocolMessage.statsConsumerPort != null) {
@@ -196,7 +195,7 @@ Future startIsolates({
       // read WorkerProtocolMessage
       (await protocolReceivePort.take(1).toList()).single;
       final statsSubscription =
-          statsReceivePort?.cast<Map>()?.listen((Map stats) {
+          statsReceivePort.cast<Map>().listen((Map stats) {
         updateLatestStats(stats);
         for (SendPort sp in statConsumerPorts) {
           sp.send(stats);
@@ -204,7 +203,7 @@ Future startIsolates({
       });
       logger.info('Worker isolate #$workerIndex started.');
 
-      Timer autoKillTimer;
+      Timer? autoKillTimer;
       void resetAutoKillTimer() {
         if (deadWorkerTimeout == null) return;
         autoKillTimer?.cancel();
@@ -225,12 +224,12 @@ Future startIsolates({
         resetAutoKillTimer();
       });
 
-      StreamSubscription errorSubscription;
+      StreamSubscription? errorSubscription;
 
       Future<void> close() async {
-        await aliveSubscription?.cancel();
+        await aliveSubscription.cancel();
         autoKillTimer?.cancel();
-        await statsSubscription?.cancel();
+        await statsSubscription.cancel();
         await errorSubscription?.cancel();
         errorReceivePort.close();
         protocolReceivePort.close();

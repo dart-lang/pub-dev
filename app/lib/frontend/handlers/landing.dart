@@ -38,7 +38,7 @@ Future<shelf.Response> webLandingHandler(shelf.Request request) async {
 
 /// Handles requests for /
 Future<shelf.Response> indexLandingHandler(shelf.Request request) async {
-  final String queryText = request.requestedUri.queryParameters['q']?.trim();
+  final String? queryText = request.requestedUri.queryParameters['q']?.trim();
   if (queryText != null) {
     final String path = request.requestedUri.path;
     final String separator = path.endsWith('/') ? '' : '/';
@@ -74,7 +74,7 @@ Future<shelf.Response> indexLandingHandler(shelf.Request request) async {
   }
 
   if (requestContext.uiCacheEnabled) {
-    return htmlResponse(await cache.uiIndexPage().get(_render));
+    return htmlResponse((await cache.uiIndexPage().get(_render))!);
   }
   return htmlResponse(await _render());
 }

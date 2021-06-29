@@ -64,8 +64,8 @@ Message _toMessage(EmailMessage input) {
     ..text = input.bodyText;
 }
 
-Address _toAddress(EmailAddress input) =>
-    input == null ? null : Address(input.email, input.name);
+Address? _toAddress(EmailAddress? input) =>
+    input == null ? null : Address(input.email!, input.name);
 
 /// Send emails through the gmail SMTP relay.
 ///
@@ -107,7 +107,7 @@ class _GmailSmtpRelay implements EmailSender {
   final http.Client _authClient;
 
   DateTime _accessTokenRefreshed = DateTime(0);
-  Future<String> _accessToken;
+  Future<String>? _accessToken;
 
   _GmailSmtpRelay(
     this._serviceAccountEmail,
@@ -156,7 +156,7 @@ class _GmailSmtpRelay implements EmailSender {
 
     // For documentation see:
     // https://support.google.com/a/answer/176600?hl=en
-    return gmailRelaySaslXoauth2(_impersonatedGSuiteUser, await _accessToken);
+    return gmailRelaySaslXoauth2(_impersonatedGSuiteUser, await _accessToken!);
   }
 
   /// Create an access_token for [_impersonatedGSuiteUser] using the

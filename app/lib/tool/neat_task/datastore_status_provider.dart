@@ -4,7 +4,6 @@
 
 import 'dart:convert';
 
-import 'package:meta/meta.dart';
 import 'package:neat_periodic_task/neat_periodic_task.dart';
 import 'package:ulid/ulid.dart';
 
@@ -18,7 +17,7 @@ import '../../shared/versions.dart' as versions show runtimeVersion;
 class NeatTaskStatus extends db.ExpandoModel<String> {
   /// The name of the task.
   @db.StringProperty()
-  String name;
+  String? name;
 
   /// The runtimeVersion of the task.
   /// Tasks the work on non-versioned data should use '-' as a value.
@@ -26,20 +25,21 @@ class NeatTaskStatus extends db.ExpandoModel<String> {
   /// TODO: cleanup entities without scope or name
   /// TODO: make scope and name required: true
   @db.StringProperty()
-  String runtimeVersion;
+  String? runtimeVersion;
 
   @db.StringProperty(required: true, indexed: false)
-  String etag;
+  String? etag;
 
   @db.StringProperty(required: true, indexed: false)
-  String statusBase64;
+  String? statusBase64;
 
   @db.DateTimeProperty()
-  DateTime updated;
+  DateTime? updated;
 
   NeatTaskStatus();
 
-  NeatTaskStatus.init(this.name, {@required bool isRuntimeVersioned}) {
+  NeatTaskStatus.init(String name, {required bool isRuntimeVersioned}) {
+    this.name = name;
     runtimeVersion =
         _runtimeVersion(name, isRuntimeVersioned: isRuntimeVersioned);
     id = _compositeId(name, isRuntimeVersioned: isRuntimeVersioned);
@@ -47,11 +47,11 @@ class NeatTaskStatus extends db.ExpandoModel<String> {
   }
 }
 
-String _runtimeVersion(String name, {@required bool isRuntimeVersioned}) {
+String _runtimeVersion(String name, {required bool isRuntimeVersioned}) {
   return isRuntimeVersioned ? versions.runtimeVersion : '-';
 }
 
-String _compositeId(String name, {@required bool isRuntimeVersioned}) {
+String _compositeId(String name, {required bool isRuntimeVersioned}) {
   final runtimeVersion =
       _runtimeVersion(name, isRuntimeVersioned: isRuntimeVersioned);
   return '$runtimeVersion/$name';
@@ -64,7 +64,7 @@ class DatastoreStatusProvider extends NeatStatusProvider {
   final String _name;
   final bool _isRuntimeVersioned;
   final String _id;
-  String _etag;
+  String? _etag;
 
   DatastoreStatusProvider._(this._db, this._name, this._isRuntimeVersioned)
       : _id = _compositeId(_name, isRuntimeVersioned: _isRuntimeVersioned);
@@ -72,7 +72,7 @@ class DatastoreStatusProvider extends NeatStatusProvider {
   static NeatStatusProvider create(
     db.DatastoreDB db,
     String name, {
-    @required bool isRuntimeVersioned,
+    required bool isRuntimeVersioned,
   }) {
     return NeatStatusProvider.withRetry(
         DatastoreStatusProvider._(db, name, isRuntimeVersioned));
@@ -82,7 +82,7 @@ class DatastoreStatusProvider extends NeatStatusProvider {
   Future<List<int>> get() async {
     final key = _db.emptyKey.append(NeatTaskStatus, id: _id);
 
-    var e = await _db.lookupValue<NeatTaskStatus>(key, orElse: () => null);
+    var e = await _db.lookupOrNull<NeatTaskStatus>(key);
     if (e == null) {
       await db.withRetryTransaction(_db, (tx) async {
         final status = await tx.lookupOrNull<NeatTaskStatus>(key);
@@ -95,14 +95,14 @@ class DatastoreStatusProvider extends NeatStatusProvider {
               ..etag = Ulid().toCanonical()
               ..statusBase64 = base64.encode(<int>[]));
       });
-      e ??= await _db.lookupValue<NeatTaskStatus>(key, orElse: () => null);
+      e ??= await _db.lookupOrNull<NeatTaskStatus>(key);
     }
-    _etag = e.etag;
-    return base64.decode(e.statusBase64);
+    _etag = e!.etag;
+    return base64.decode(e!.statusBase64!);
   }
 
   @override
-  Future<bool> set(List<int> status) async {
+  Future<bool> set(List<int>? status) async {
     final key = _db.emptyKey.append(NeatTaskStatus, id: _id);
     final newEtag = await db.withRetryTransaction(_db, (tx) async {
       var e = await tx.lookupOrNull<NeatTaskStatus>(key);
@@ -138,7 +138,7 @@ Future<void> deleteOldNeatTaskStatuses(
     // TODO: once a month passed after the release of this feature, delete these too.
     if (status.updated == null) return false;
 
-    final diff = now.difference(status.updated);
+    final diff = now.difference(status.updated!);
     return diff > maxAge;
   });
 }

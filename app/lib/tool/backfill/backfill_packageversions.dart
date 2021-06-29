@@ -39,8 +39,8 @@ typedef ArchiveResolver = Future<PackageSummary> Function(
 
 /// Ensures a matching [PackageVersionInfo] entity exists for each [PackageVersion].
 Future<BackfillStat> backfillAllVersionsOfPackage(
-  String package, {
-  @visibleForTesting ArchiveResolver archiveResolver,
+  String? package, {
+  @visibleForTesting ArchiveResolver? archiveResolver,
 }) async {
   _logger.info('Backfill PackageVersion[Pubspec|Info|Asset(s)] in: $package');
 
@@ -50,12 +50,12 @@ Future<BackfillStat> backfillAllVersionsOfPackage(
   final httpClient = http.Client();
   archiveResolver ??= (p, v) => _parseArchive(httpClient, p, v);
   await for (PackageVersion pv in query.run()) {
-    final archive = await archiveResolver(pv.package, pv.version);
+    final archive = await archiveResolver(pv.package, pv.version!);
     final stat = await backfillPackageVersion(
       package: pv.package,
       version: pv.version,
       archive: archive,
-      versionCreated: pv.created,
+      versionCreated: pv.created!,
     );
     stats.add(stat);
   }
@@ -64,10 +64,10 @@ Future<BackfillStat> backfillAllVersionsOfPackage(
 }
 
 Future<BackfillStat> backfillPackageVersion({
-  @required String package,
-  @required String version,
-  @required PackageSummary archive,
-  @required DateTime versionCreated,
+  required String? package,
+  required String? version,
+  required PackageSummary archive,
+  required DateTime versionCreated,
 }) async {
   _logger.info(
       'Backfill PackageVersion[Pubspec|Info|Asset(s)] in: $package/$version');
@@ -86,11 +86,8 @@ Future<BackfillStat> backfillPackageVersion({
       await existingAssetQuery.run().map((a) => a.key).toList();
 
   return await withRetryTransaction(dbService, (tx) async {
-    final pvInfo = await tx.lookupValue<PackageVersionInfo>(
-      dbService.emptyKey
-          .append(PackageVersionInfo, id: derived.packageVersionInfo.id),
-      orElse: () => null,
-    );
+    final pvInfo = await tx.lookupOrNull<PackageVersionInfo>(dbService.emptyKey
+        .append(PackageVersionInfo, id: derived.packageVersionInfo.id));
     final pvAssets = await tx.lookup<PackageVersionAsset>(existingAssetKeys);
 
     final inserts = <Model>[];
@@ -105,7 +102,7 @@ Future<BackfillStat> backfillPackageVersion({
     // insert of update derived assets
     for (final derivedAsset in derived.assets) {
       final pvAsset = pvAssets.firstWhere(
-          (a) => a.assetId == derivedAsset.assetId,
+          (a) => a!.assetId == derivedAsset.assetId,
           orElse: () => null);
       if (pvAsset == null) {
         inserts.add(derivedAsset);
@@ -117,8 +114,8 @@ Future<BackfillStat> backfillPackageVersion({
     // remove assets that are no longer derived
     deletes.addAll(pvAssets
         .where(
-            (asset) => !derived.assets.any((e) => e.assetId == asset.assetId))
-        .map((a) => a.key));
+            (asset) => !derived.assets.any((e) => e.assetId == asset!.assetId))
+        .map((a) => a!.key));
 
     if (inserts.isNotEmpty || deletes.isNotEmpty) {
       tx.queueMutations(inserts: inserts, deletes: deletes);
@@ -133,7 +130,7 @@ Future<BackfillStat> backfillPackageVersion({
 }
 
 Future<PackageSummary> _parseArchive(
-    http.Client httpClient, String package, String version) async {
+    http.Client httpClient, String? package, String? version) async {
   final fn = '$package-$version.tar.gz';
   final uri =
       Uri.parse('https://storage.googleapis.com/pub-packages/packages/$fn');
@@ -160,10 +157,10 @@ class BackfillStat {
   final int pvAssetDeletedCount;
 
   BackfillStat({
-    @required this.versionCount,
-    @required this.pvInfoCount,
-    @required this.pvAssetUpdatedCount,
-    @required this.pvAssetDeletedCount,
+    required this.versionCount,
+    required this.pvInfoCount,
+    required this.pvAssetUpdatedCount,
+    required this.pvAssetDeletedCount,
   });
 
   BackfillStat operator +(BackfillStat other) => BackfillStat(

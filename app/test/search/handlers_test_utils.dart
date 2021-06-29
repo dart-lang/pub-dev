@@ -15,7 +15,7 @@ Future<shelf.Response> issueGet(String path) async {
   return searchServiceHandler(request);
 }
 
-Future<shelf.Response> issuePost(String path, {Map body}) async {
+Future<shelf.Response> issuePost(String path, {Map? body}) async {
   final uri = 'https://search-dot-dartlang-pub.appspot.com$path';
   final encodedBody = body == null ? null : json.encode(body);
   final request = shelf.Request('POST', Uri.parse(uri), body: encodedBody);

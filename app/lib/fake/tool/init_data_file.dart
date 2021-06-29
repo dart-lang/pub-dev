@@ -48,10 +48,10 @@ class FakeInitDataFileCommand extends Command {
       ].where((e) => e != null).join(' '));
     });
 
-    final analyze = argResults['analyze'] as bool;
-    final dataFile = argResults['data-file'] as String;
+    final analyze = argResults!['analyze'] as bool?;
+    final dataFile = argResults!['data-file'] as String;
     final profile = TestProfile.fromYaml(
-      await File(argResults['test-profile'] as String).readAsString(),
+      await File(argResults!['test-profile'] as String).readAsString(),
     );
 
     final archiveCachePath = p.join(
@@ -73,7 +73,7 @@ class FakeInitDataFileCommand extends Command {
             source: ImportSource.fromPubDev(archiveCachePath: archiveCachePath),
           );
 
-          if (analyze) {
+          if (analyze!) {
             await _analyze();
           }
         });

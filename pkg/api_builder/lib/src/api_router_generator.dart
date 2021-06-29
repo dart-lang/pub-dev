@@ -1,6 +1,9 @@
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'package:code_builder/code_builder.dart' as code;
 import 'package:code_builder/code_builder.dart' show Code;
-import 'package:meta/meta.dart';
 import 'package:source_gen/source_gen.dart' as g;
 import 'package:analyzer/dart/element/element.dart' show ClassElement;
 import 'package:analyzer/dart/element/type.dart' show ParameterizedType;
@@ -21,7 +24,10 @@ class ApiRouterGenerator extends EndPointGenerator {
           handlers: e.value,
         ));
     return code.Library((b) => b.body.addAll(methods))
-        .accept(code.DartEmitter(code.Allocator.simplePrefixing(), true))
+        .accept(code.DartEmitter(
+          allocator: code.Allocator.simplePrefixing(),
+          orderDirectives: true,
+        ))
         .toString();
   }
 }
@@ -29,8 +35,8 @@ class ApiRouterGenerator extends EndPointGenerator {
 /// Generate a `_$<className>Router(<className> service)` method that returns a
 /// `shelf_router.Router` configured based on annotated handlers.
 code.Method _buildRouterMethod({
-  @required ClassElement classElement,
-  @required List<Handler> handlers,
+  required ClassElement classElement,
+  required List<Handler> handlers,
 }) =>
     code.Method(
       (b) => b
@@ -55,9 +61,9 @@ code.Method _buildRouterMethod({
 
 /// Generate the code statement that adds [handler] from [service] to [router].
 code.Code _buildAddHandlerCode({
-  @required code.Reference router,
-  @required code.Reference service,
-  @required Handler handler,
+  required code.Reference router,
+  required code.Reference service,
+  required Handler handler,
 }) {
   // Check the return value of the method.
   var returnType = handler.element.returnType;
@@ -97,7 +103,7 @@ code.Code _buildAddHandlerCode({
           for (final param in handler.routeParameters) Code('$param,'),
           if (handler.hasPayload)
             Code(
-                'await \$utilities.decodeJson<${handler.payloadType.element.name}>(request, (o) => ${handler.payloadType.element.name}.fromJson(o)),'),
+                'await \$utilities.decodeJson<${handler.payloadType!.element!.name}>(request, (o) => ${handler.payloadType!.element!.name}.fromJson(o)),'),
           for (final param in handler.queryParameters)
             Code(
               '${param.name}: '

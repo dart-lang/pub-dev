@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:gcloud/db.dart';
 import 'package:pana/models.dart' hide ReportStatus;
 import 'package:pub_dev/shared/versions.dart';
@@ -92,7 +93,7 @@ final hansUserSessionData = UserSessionData(
   email: hansUser.email,
   name: 'Hans Juergen',
   imageUrl: 'https://juergen.com/hans.jpg',
-  created: hansUser.created,
+  created: hansUser.created!,
   expires: DateTime.now().add(Duration(days: 7)),
 );
 final joeUser = User()
@@ -115,7 +116,7 @@ Package _createFoobarPackage() {
     ..name = foobarPkgName
     ..created = DateTime.utc(2014)
     ..updated = DateTime.utc(2015)
-    ..uploaders = [hansUser.userId]
+    ..uploaders = [hansUser.userId!]
     ..latestPublished = DateTime.utc(2015)
     ..latestVersionKey = foobarStablePVKey
     ..latestPrereleasePublished = DateTime.utc(2015)
@@ -146,12 +147,12 @@ final foobarStablePV = PackageVersion()
   ..pubspec = Pubspec.fromYaml(foobarStablePubspec);
 
 final foobarStablePvInfo = PackageVersionInfo()
-  ..parentKey = foobarStablePV.parentKey.parent
+  ..parentKey = foobarStablePV.parentKey!.parent
   ..initFromKey(foobarStablePV.qualifiedVersionKey)
   ..versionCreated = foobarStablePV.created
   ..updated = foobarStablePV.created
   ..libraries = foobarStablePV.libraries
-  ..libraryCount = foobarStablePV.libraries.length
+  ..libraryCount = foobarStablePV.libraries!.length
   ..assets = [
     AssetKind.readme,
     AssetKind.changelog,
@@ -159,12 +160,12 @@ final foobarStablePvInfo = PackageVersionInfo()
   ];
 
 final foobarDevPvInfo = PackageVersionInfo()
-  ..parentKey = foobarDevPV.parentKey.parent
+  ..parentKey = foobarDevPV.parentKey!.parent
   ..initFromKey(foobarDevPV.qualifiedVersionKey)
   ..versionCreated = foobarDevPV.created
   ..updated = foobarDevPV.created
   ..libraries = foobarDevPV.libraries
-  ..libraryCount = foobarDevPV.libraries.length
+  ..libraryCount = foobarDevPV.libraries!.length
   ..assets = [];
 
 final foobarAssets = {
@@ -260,14 +261,14 @@ dependencies:
   gcloud: any
 ''';
 
-PackageVersionInfo _pvToInfo(PackageVersion pv, {List<String> assets}) {
+PackageVersionInfo _pvToInfo(PackageVersion pv, {List<String>? assets}) {
   return PackageVersionInfo()
-    ..parentKey = pv.parentKey.parent
+    ..parentKey = pv.parentKey!.parent
     ..initFromKey(pv.qualifiedVersionKey)
     ..versionCreated = pv.created
     ..updated = pv.created
     ..libraries = pv.libraries
-    ..libraryCount = pv.libraries.length
+    ..libraryCount = pv.libraries!.length
     ..assets = assets ??
         <String>[
           AssetKind.readme,
@@ -291,7 +292,8 @@ Publisher publisher(String domain) => Publisher()
 final exampleComHansAdmin =
     publisherMember(hansUser.userId, PublisherMemberRole.admin);
 
-PublisherMember publisherMember(String userId, String role, {Key parentKey}) =>
+PublisherMember publisherMember(String? userId, String role,
+        {Key? parentKey}) =>
     PublisherMember()
       ..parentKey = parentKey ?? exampleComPublisher.key
       ..id = userId
@@ -303,7 +305,7 @@ PublisherMember publisherMember(String userId, String role, {Key parentKey}) =>
 class PkgBundle {
   final Package package;
   final List<PackageVersion> versions;
-  final PackageVersion latestStableVersion;
+  final PackageVersion? latestStableVersion;
   final List<PackageVersionInfo> infos;
   final List<PackageVersionAsset> assets;
 
@@ -324,14 +326,12 @@ class PkgBundle {
     List<PackageVersionInfo> infos,
     List<PackageVersionAsset> assets,
   ) {
-    versions.sort((a, b) => a.created.compareTo(b.created));
-    final latestStableVersion = versions.lastWhere(
+    versions.sort((a, b) => a.created!.compareTo(b.created!));
+    final latestStableVersion = versions.lastWhereOrNull(
       (pv) => !pv.semanticVersion.isPreRelease,
-      orElse: () => null,
     );
-    final latestDevVersion = versions.lastWhere(
+    final latestDevVersion = versions.lastWhereOrNull(
       (pv) => pv.semanticVersion.isPreRelease,
-      orElse: () => null,
     );
 
     package.created ??= versions.first.created;
@@ -350,14 +350,14 @@ class PkgBundle {
     );
   }
 
-  String get packageName => package.name;
+  String? get packageName => package.name;
   Key get packageKey => package.key;
-  String get latestVersion => package.latestVersion;
+  String? get latestVersion => package.latestVersion;
 }
 
 Iterable<String> generateVersions(
   int count, {
-  String start,
+  String? start,
   int devOffset = 0,
   int increment = 1,
   int partThreshold = 10,
@@ -387,12 +387,12 @@ Iterable<String> generateVersions(
 PkgBundle _generateBundle(
   String name,
   Iterable<String> versionValues, {
-  String description,
-  String homepage,
-  List<User> uploaders,
-  String publisherId,
+  String? description,
+  String? homepage,
+  List<User>? uploaders,
+  String? publisherId,
   String sdkConstraint = '>=2.4.0 <3.0.0',
-  String pubspecExtraContent,
+  String? pubspecExtraContent,
 }) {
   description ??= '$name is a Dart package';
   uploaders ??= <User>[hansUser];
@@ -408,8 +408,9 @@ PkgBundle _generateBundle(
     ..isWithheld = false
     ..assignedTags = []
     ..publisherId = publisherId
-    ..uploaders =
-        publisherId != null ? [] : uploaders.map((u) => u.userId).toList();
+    ..uploaders = publisherId != null
+        ? []
+        : uploaders.map((u) => u.userId).toList() as List<String>?;
 
   DateTime ts = DateTime(2014);
   final versions = <PackageVersion>[];
@@ -435,7 +436,7 @@ PkgBundle _generateBundle(
         ? null
         : '## $versionValue\n\n'
             '- Bug fix #1${hash % 10}.';
-    final String example = (hash % 9 == 0)
+    final String? example = (hash % 9 == 0)
         ? null
         : 'import \'package:$name\';\n\n'
             'main() {}';
@@ -492,7 +493,7 @@ PkgBundle _generateBundle(
   return PkgBundle(package, versions, infos, assets);
 }
 
-PanaReport generatePanaReport({List<String> derivedTags}) {
+PanaReport generatePanaReport({List<String>? derivedTags}) {
   return PanaReport(
     timestamp: DateTime.now(),
     panaRuntimeInfo: PanaRuntimeInfo(

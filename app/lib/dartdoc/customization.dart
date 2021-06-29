@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart' as html_parser;
 
@@ -32,8 +33,8 @@ class DartdocCustomizer {
 
   Future<bool> customizeFile(File file) async {
     final String oldContent = await file.readAsString();
-    final String newContent = customizeHtml(oldContent);
-    if (newContent != null && oldContent != newContent) {
+    final newContent = customizeHtml(oldContent);
+    if (oldContent != newContent) {
       await file.writeAsString(newContent);
       return true;
     } else {
@@ -43,45 +44,47 @@ class DartdocCustomizer {
 
   String customizeHtml(String html) {
     final doc = html_parser.parse(html);
-    final canonical = doc.head.getElementsByTagName('link').firstWhere(
-          (elem) => elem.attributes['rel'] == 'canonical',
-          orElse: () => null,
-        );
+    final head = doc.head!;
+    final body = doc.body!;
+    final canonical = head
+        .getElementsByTagName('link')
+        .firstWhereOrNull((elem) => elem.attributes['rel'] == 'canonical');
     _stripCanonicalUrl(canonical);
-    _addAlternateUrl(doc.head, canonical);
-    _addAnalyticsTracker(doc.head, doc.body);
-    _addGithubMarkdownStyle(doc.head, doc.body);
+    _addAlternateUrl(head, canonical);
+    _addAnalyticsTracker(head, body);
+    _addGithubMarkdownStyle(head, body);
     final docRoot = isLatestStable
         ? pkgDocUrl(packageName, isLatest: true)
         : pkgDocUrl(packageName, version: packageVersion);
-    final breadcrumbs = doc.body.querySelector('.breadcrumbs');
-    final breadcrumbsDepth = breadcrumbs?.children?.length ?? 0;
+    final breadcrumbs = body.querySelector('.breadcrumbs');
+    final breadcrumbsDepth = breadcrumbs?.children.length ?? 0;
     if (breadcrumbs != null) {
       _addPubSiteLogo(breadcrumbs);
       _addPubPackageLink(breadcrumbs);
       _updateIndexLinkToCanonicalRoot(breadcrumbs, docRoot);
     }
-    final sidebarBreadcrumbs = doc.body.querySelector('.sidebar .breadcrumbs');
+    final sidebarBreadcrumbs = body.querySelector('.sidebar .breadcrumbs');
     if (sidebarBreadcrumbs != null) {
       _addPubPackageLink(sidebarBreadcrumbs, level: 2);
       _updateIndexLinkToCanonicalRoot(sidebarBreadcrumbs, docRoot);
     }
     if (!isLatestStable || breadcrumbsDepth > 3) {
-      _addMetaNoIndex(doc.head);
+      _addMetaNoIndex(head);
     }
-    _updateLinks(doc.body);
+    _updateLinks(body);
     return doc.outerHtml;
   }
 
-  void _stripCanonicalUrl(Element elem) {
+  void _stripCanonicalUrl(Element? elem) {
     if (elem == null) return;
-    String href = elem.attributes['href'];
+    var href = elem.attributes['href'];
     if (href != null && href.endsWith('/index.html')) {
       href = href.substring(0, href.length - 'index.html'.length);
+      elem.attributes['href'] = href;
     }
   }
 
-  void _addAlternateUrl(Element head, Element canonical) {
+  void _addAlternateUrl(Element head, Element? canonical) {
     if (isLatestStable) return;
 
     final link = Element.tag('link');
@@ -186,7 +189,7 @@ class DartdocCustomizer {
       ..attributes['src'] = staticUrls.dartLogoSvg
       ..attributes['style'] = 'height: 30px; margin-right: 1em;';
     logoLink.append(imgRef);
-    parent.insertBefore(logoLink, breadcrumbs);
+    parent!.insertBefore(logoLink, breadcrumbs);
   }
 
   void _addPubPackageLink(Element breadcrumbs, {int level = 1}) {
@@ -208,7 +211,7 @@ class DartdocCustomizer {
     } else if (breadcrumbs.children.isNotEmpty) {
       // we are inside
       final firstLink = breadcrumbs.querySelector('a');
-      firstLink.text = 'documentation';
+      firstLink!.text = 'documentation';
 
       final lead = Element.tag('li');
       final leadLink = Element.tag('a');

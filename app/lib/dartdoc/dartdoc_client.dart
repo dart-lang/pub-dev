@@ -23,9 +23,9 @@ DartdocClient get dartdocClient => ss.lookup(#_dartdocClient) as DartdocClient;
 
 /// Client methods that access the dartdoc service.
 class DartdocClient {
-  Future<List<DartdocEntry>> getEntries(
+  Future<List<DartdocEntry?>> getEntries(
       String package, List<String> versions) async {
-    final resultFutures = <Future<DartdocEntry>>[];
+    final resultFutures = <Future<DartdocEntry?>>[];
     final pool = Pool(4); // concurrent requests
     for (String version in versions) {
       final future = pool.withResource(() => getEntry(package, version));
@@ -36,10 +36,10 @@ class DartdocClient {
 
   Future<void> triggerDartdoc(
     String package,
-    String version, {
-    Set<String> dependentPackages,
+    String? version, {
+    Set<String>? dependentPackages,
     bool isHighPriority = false,
-    bool shouldProcess,
+    bool? shouldProcess,
   }) async {
     await jobBackend.trigger(
       JobService.dartdoc,
@@ -60,9 +60,9 @@ class DartdocClient {
     // no-op
   }
 
-  Future<String> getTextContent(
+  Future<String?> getTextContent(
       String package, String version, String relativePath,
-      {Duration timeout}) async {
+      {required Duration timeout}) async {
     try {
       final entry =
           await dartdocBackend.getEntry(package, version).timeout(timeout);
@@ -79,7 +79,7 @@ class DartdocClient {
     return null;
   }
 
-  Future<DartdocEntry> getEntry(String package, String version) async {
+  Future<DartdocEntry?> getEntry(String package, String version) async {
     return await dartdocBackend.getEntry(package, version);
   }
 }

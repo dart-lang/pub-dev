@@ -19,7 +19,7 @@ Future<T> withTempDirectory<T>(Future<T> Function(String temp) func) async {
   }
 }
 
-Future<List<int>> packageArchiveBytes({String pubspecContent}) async {
+Future<List<int>> packageArchiveBytes({String? pubspecContent}) async {
   return await withTempDirectory((String tmp) async {
     final readme = File('$tmp/README.md');
     final changelog = File('$tmp/CHANGELOG.md');

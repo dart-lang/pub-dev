@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.12
-
 final _none = <String>["'none'"];
 
 /// Content Security Policy (CSP) is an added layer of security that helps to

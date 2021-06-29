@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.12
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -41,7 +39,7 @@ class PopularityStorage {
     );
   }
 
-  DateTime get lastFetched => _popularity.lastUpdated;
+  DateTime? get lastFetched => _popularity.lastUpdated;
   String? get dateRange => _popularity.value?.dateRange;
   int get count => _popularity.value?.values.length ?? 0;
 

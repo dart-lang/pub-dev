@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/meta.dart';
-
 import '../../package/models.dart';
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
@@ -31,9 +29,9 @@ String renderNullSafeBadge() {
 
 /// Renders the package badge using the pkg/badge template.
 String _renderPackageBadge({
-  @required String label,
-  String title,
-  String icon,
+  required String label,
+  String? title,
+  String? icon,
 }) {
   return templateCache.renderTemplate('pkg/badge', {
     'label': label,
@@ -44,8 +42,8 @@ String _renderPackageBadge({
 
 /// Renders the tags using the pkg/tags template.
 String renderTags({
-  @required PackageView package,
-  String version,
+  required PackageView package,
+  String? version,
 }) {
   final tags = package.tags;
   final sdkTags = tags.where((s) => s.startsWith('sdk:')).toSet().toList();
@@ -173,7 +171,7 @@ String renderTags({
       ],
     });
   }
-  if (tagBadges.isEmpty && package.isAwaiting) {
+  if (tagBadges.isEmpty && package.isAwaiting!) {
     tagValues.add({
       'status': 'missing',
       'text': '[awaiting]',
@@ -187,7 +185,7 @@ String renderTags({
       'text': '[unidentified]',
       'title': 'Check the scores tab for further details.',
       'has_href': true,
-      'href': urls.pkgScoreUrl(package.name, version: version),
+      'href': urls.pkgScoreUrl(package.name!, version: version),
     });
   }
   return templateCache.renderTemplate('pkg/tags', {
@@ -197,9 +195,9 @@ String renderTags({
 }
 
 /// Renders the `views/pkg/labeled_scores.mustache` template.
-String renderLabeledScores(PackageView view, {String version}) {
+String renderLabeledScores(PackageView view, {String? version}) {
   return templateCache.renderTemplate('pkg/labeled_scores', {
-    'pkg_score_url': urls.pkgScoreUrl(view.name, version: version),
+    'pkg_score_url': urls.pkgScoreUrl(view.name!, version: version),
     'like_score_html': _renderLabeledScore('likes', view.likes, ''),
     'pub_points_html':
         _renderLabeledScore('pub points', view.grantedPubPoints, ''),
@@ -208,7 +206,7 @@ String renderLabeledScores(PackageView view, {String version}) {
   });
 }
 
-String _renderLabeledScore(String label, int value, String sign) {
+String _renderLabeledScore(String label, int? value, String sign) {
   return d.fragment([
     d.div(
       classes: ['packages-score-value', if (value != null) '-has-value'],
@@ -231,7 +229,7 @@ String _renderLabeledScore(String label, int value, String sign) {
 }
 
 /// Formats the score from [0.0 - 1.0] range to [0 - 100] or '--'.
-String formatScore(double value) {
+String formatScore(double? value) {
   if (value == null) return '--';
   if (value <= 0.0) return '0';
   if (value >= 1.0) return '100';

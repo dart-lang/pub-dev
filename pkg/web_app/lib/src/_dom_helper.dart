@@ -7,34 +7,33 @@ import 'dart:html';
 
 import 'package:markdown/markdown.dart' as md;
 import 'package:mdc_web/mdc_web.dart' show MDCDialog;
-import 'package:meta/meta.dart';
 
 import 'pubapi.client.dart';
 
 /// Wraps asynchronous server calls with an optional confirm window, a spinner,
 /// error- and success handling.
-Future<R> rpc<R>({
+Future<R?> rpc<R>({
   /// The optional confirmation question to ask before initiating the RPC.
   /// When confirmation is missing, the method returns `null`.
-  Element confirmQuestion,
+  Element? confirmQuestion,
 
   /// The async RPC call. If this throws, the error will be displayed as a modal
   /// popup, and then it will be re-thrown (or `onError` will be called).
-  Future<R> Function() fn,
+  Future<R> Function()? fn,
 
   /// Message to show when the RPC returns without exceptions.
-  @required Element successMessage,
+  required Element successMessage,
 
   /// Callback that will be called with the value of the RPC call, when it was
   /// successful.
-  FutureOr Function(R value) onSuccess,
+  FutureOr Function(R value)? onSuccess,
 
   /// Callback that will be called with the error object, when executing
   /// `fn` was not successful. The return value of this callback will be used
   /// to return from the method.
   ///
   /// If not specified, the error will be thrown instead.
-  FutureOr<R> Function(dynamic error) onError,
+  FutureOr<R> Function(dynamic error)? onError,
 }) async {
   if (confirmQuestion != null && !await modalConfirm(confirmQuestion)) {
     return null;
@@ -49,7 +48,7 @@ Future<R> rpc<R>({
   final inputs = document
       .querySelectorAll('input')
       .cast<InputElement>()
-      .where((e) => !e.disabled)
+      .where((e) => e.disabled != true)
       .toList();
   final buttons = document
       .querySelectorAll('button')
@@ -60,17 +59,17 @@ Future<R> rpc<R>({
   inputs.forEach((e) => e.disabled = true);
 
   final spinner = _createSpinner();
-  document.body.append(spinner);
-  R result;
-  dynamic error;
-  String errorMessage;
+  document.body!.append(spinner);
+  R? result;
+  Exception? error;
+  String? errorMessage;
   try {
-    result = await fn();
+    result = await fn!();
   } on RequestException catch (e) {
     error = e;
     errorMessage = _requestExceptionMessage(e) ?? 'Unexpected error: $e';
   } catch (e) {
-    error = e;
+    error = Exception('Unexpected error: $e');
     errorMessage = 'Unexpected error: $e';
   } finally {
     spinner.remove();
@@ -80,7 +79,7 @@ Future<R> rpc<R>({
   }
 
   if (error != null) {
-    await modalMessage('Error', markdown(errorMessage));
+    await modalMessage('Error', markdown(errorMessage!));
     if (onError != null) {
       return await onError(error);
     } else {
@@ -90,15 +89,15 @@ Future<R> rpc<R>({
 
   await modalMessage('Success', successMessage);
   if (onSuccess != null) {
-    await onSuccess(result);
+    await onSuccess(result!);
   }
   return result;
 }
 
-String _requestExceptionMessage(RequestException e) {
+String? _requestExceptionMessage(RequestException e) {
   try {
     final map = e.bodyAsJson();
-    String message;
+    String? message;
 
     if (map['error'] is Map) {
       final errorMap = map['error'] as Map;
@@ -148,17 +147,17 @@ Future<bool> modalConfirm(Element content) async {
 ///
 /// Returns true if "OK" was pressed, false otherwise.
 Future<bool> modalWindow({
-  @required String titleText,
-  @required Element content,
-  @required bool isQuestion,
-  String cancelButtonText,
-  String okButtonText,
+  required String titleText,
+  required Element content,
+  required bool isQuestion,
+  String? cancelButtonText,
+  String? okButtonText,
 
   /// If specified, this callback function will be called on "OK" button clicks,
   /// and the dialog window will be kept open. Returns with the success status
   /// of the operation, and if `true`, the dialog will be closed, otherwise the
   /// dialog is kept open (e.g. the user may update the form).
-  FutureOr<bool> Function() onExecute,
+  FutureOr<bool> Function()? onExecute,
 }) async {
   final c = Completer<bool>();
   final root = _buildDialog(
@@ -174,7 +173,7 @@ Future<bool> modalWindow({
     cancelButtonText: cancelButtonText,
     okButtonText: okButtonText,
   );
-  document.body.append(root);
+  document.body!.append(root);
   final dialog = MDCDialog(root);
   try {
     dialog.open();
@@ -188,15 +187,15 @@ Future<bool> modalWindow({
 }
 
 Element _buildDialog({
-  @required String titleText,
-  @required Element content,
-  @required bool isQuestion,
-  String cancelButtonText,
-  String okButtonText,
+  required String titleText,
+  required Element content,
+  required bool isQuestion,
+  String? cancelButtonText,
+  String? okButtonText,
 
   /// The callback will be called with `true` when "OK" was clicked, and `false`
   /// when "Cancel" was clicked.
-  @required Function(bool) closing,
+  required Function(bool) closing,
 }) =>
     Element.div()
       ..classes.add('mdc-dialog')

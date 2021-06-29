@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:client_data/page_data.dart';
-import 'package:meta/meta.dart';
 
 import '../../account/backend.dart';
 import '../../search/search_form.dart';
@@ -37,20 +36,20 @@ enum PageType {
 String renderLayoutPage(
   PageType type,
   String contentHtml, {
-  @required String title,
-  String pageDescription,
-  String faviconUrl,
+  required String title,
+  String? pageDescription,
+  String? faviconUrl,
 
   /// The canonical content link that will be put in the header.
   /// https://support.google.com/webmasters/answer/139066?hl=en
-  String canonicalUrl,
-  String sdk,
-  String publisherId,
-  SearchForm searchForm,
+  String? canonicalUrl,
+  String? sdk,
+  String? publisherId,
+  SearchForm? searchForm,
   bool noIndex = false,
-  PageData pageData,
-  String searchPlaceHolder,
-  List<String> mainClasses,
+  PageData? pageData,
+  String? searchPlaceHolder,
+  List<String>? mainClasses,
 }) {
   // normalize canonical URL
   if (canonicalUrl != null && canonicalUrl.startsWith('/')) {
@@ -113,10 +112,10 @@ String _renderSiteHeader(PageType pageType) {
   final userSession = userSessionData == null
       ? null
       : {
-          'email': userSessionData.email,
-          'has_name': userSessionData.name != null,
-          'name': userSessionData.name,
-          'image_url': userSessionData.imageUrlOfSize(30),
+          'email': userSessionData!.email,
+          'has_name': userSessionData!.name != null,
+          'name': userSessionData!.name,
+          'image_url': userSessionData!.imageUrlOfSize(30),
         };
 
   final showHeaderSearch =
@@ -136,10 +135,10 @@ String _renderSiteHeader(PageType pageType) {
 }
 
 String _renderSearchBanner({
-  @required PageType type,
-  @required String publisherId,
-  @required SearchForm searchForm,
-  String searchPlaceholder,
+  required PageType type,
+  required String? publisherId,
+  required SearchForm? searchForm,
+  String? searchPlaceholder,
 }) {
   final sdk = searchForm?.sdk ?? SdkTagValue.any;
   final queryText = searchForm?.query;
@@ -164,8 +163,9 @@ String _renderSearchBanner({
   } else {
     searchFormUrl = SearchForm.parse().toSearchFormPath();
   }
-  final searchSort =
-      searchForm?.order == null ? null : serializeSearchOrder(searchForm.order);
+  final searchSort = searchForm?.order == null
+      ? null
+      : serializeSearchOrder(searchForm!.order);
   final hiddenInputs = includePreferencesAsHiddenFields
       ? (searchForm ?? SearchForm.parse())
           .tagsPredicate
@@ -192,7 +192,7 @@ String _renderSearchBanner({
 }
 
 String renderSdkTabs({
-  SearchForm searchForm,
+  SearchForm? searchForm,
 }) {
   final isff = searchForm?.isFlutterFavorite ?? false;
   final currentSdk = isff ? null : searchForm?.sdk ?? SdkTagValue.any;

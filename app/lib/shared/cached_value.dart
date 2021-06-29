@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.12
-
 import 'dart:async';
 
 import 'package:logging/logging.dart';
@@ -13,7 +11,7 @@ import 'monitoring.dart';
 
 final _logger = Logger('cached_value');
 
-typedef UpdateFn<T> = Future<T> Function();
+typedef UpdateFn<T> = Future<T?> Function();
 
 /// Wraps a locally cached value that is periodically updated, and can be accessed synchronously.
 ///

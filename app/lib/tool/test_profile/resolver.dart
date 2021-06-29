@@ -38,10 +38,10 @@ Future<List<ResolvedVersion>> resolveVersions(
     );
 
     for (final package in profile.packages) {
-      final versions = package.versions == null || package.versions.isEmpty
+      final versions = package.versions == null || package.versions!.isEmpty
           ? <String>['any']
           : package.versions;
-      for (final version in versions) {
+      for (final version in versions!) {
         final dummyDir = Directory(p.join(temp.path, 'dummy'));
         await dummyDir.create();
 
@@ -90,7 +90,7 @@ Future<List<ResolvedVersion>> resolveVersions(
 String _generateDummyPubspec(
   String package,
   String version, {
-  String minSdkVersion,
+  String? minSdkVersion,
 }) {
   minSdkVersion ??= Platform.version.split(' ').first;
   return json.encode(

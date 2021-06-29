@@ -10,7 +10,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
 Future expectApiException(Future future,
-    {int status, String code, String message}) async {
+    {int? status, String? code, String? message}) async {
   await expectLater(
       future,
       throwsA(isA<RequestException>()
@@ -43,7 +43,7 @@ Future expectYamlResponse(shelf.Response response, {status = 200, body}) async {
 }
 
 Future expectRedirectResponse(shelf.Response response, String url) async {
-  expect(response.statusCode, 303);
+  expect(response.statusCode, 303, reason: url);
   expect(response.headers['location'], url);
   expect(await response.readAsString(), '');
 }

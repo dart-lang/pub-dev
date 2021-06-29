@@ -4,7 +4,6 @@
 
 import 'dart:math';
 
-import 'package:meta/meta.dart';
 import 'package:pana/pana.dart';
 // ignore: implementation_imports
 import 'package:pana/src/create_report.dart';
@@ -30,9 +29,9 @@ Future<void> processJobsWithFakePanaRunner() async {
 class FakePanaRunner implements PanaRunner {
   @override
   Future<Summary> analyze({
-    @required String package,
-    @required String version,
-    @required PackageStatus packageStatus,
+    required String package,
+    required String version,
+    required PackageStatus packageStatus,
   }) async {
     final random = Random('$package/$version'.hashCode);
     final layoutPoints = random.nextInt(30);

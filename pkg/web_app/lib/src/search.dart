@@ -43,14 +43,14 @@ void _setEventForKeyboardShortcut() {
 }
 
 void _setEventForSearchInput() {
-  final q = document.querySelector('input[name="q"]') as InputElement;
+  final q = document.querySelector('input[name="q"]') as InputElement?;
   if (q == null) return null;
-  final List<Element> anchors = document.querySelectorAll('.list-filters > a');
+  final anchors = document.querySelectorAll('.list-filters > a');
   q.onChange.listen((_) {
-    final String newSearchQuery = q.value.trim();
-    for (Element a in anchors) {
-      final String oldHref = a.getAttribute('href');
-      final Uri oldUri = Uri.parse(oldHref);
+    final newSearchQuery = q.value!.trim();
+    for (final a in anchors) {
+      final oldHref = a.getAttribute('href')!;
+      final oldUri = Uri.parse(oldHref);
       final params = Map<String, String>.from(oldUri.queryParameters);
       params['q'] = newSearchQuery;
       final String newHref = oldUri.replace(queryParameters: params).toString();
@@ -65,7 +65,7 @@ void _setEventForFiltersToggle() {
       document
           .querySelectorAll('.search-filters-btn-wrapper')
           .forEach((e) => e.classes.toggle('-active'));
-      document.querySelector('.search-controls')?.classes?.toggle('-active');
+      document.querySelector('.search-controls')?.classes.toggle('-active');
     });
   });
 }
@@ -81,13 +81,12 @@ void _setEventForSortControl() {
 
 /// Updates the form's `sort` field and submits the form.
 /// When [value] is `null`, the `sort` field will be removed.
-void _updateSortField(String value) {
+void _updateSortField(String? value) {
   final queryText = document.querySelector('input[name="q"]') as InputElement;
-  InputElement sortInput =
-      document.querySelector('input[name="sort"]') as InputElement;
+  var sortInput = document.querySelector('input[name="sort"]') as InputElement?;
   if (sortInput == null) {
     sortInput = InputElement(type: 'hidden')..name = 'sort';
-    queryText.parent.append(sortInput);
+    queryText.parent!.append(sortInput);
   }
   if (value == null) {
     sortInput.remove();
@@ -96,12 +95,12 @@ void _updateSortField(String value) {
   }
 
   // Removes the q= part from the URL
-  if (queryText.value.isEmpty) {
+  if (queryText.value!.isEmpty) {
     queryText.name = '';
   }
 
   // TODO: instead of submitting, compose the URL here (also removing the single `?`)
-  queryText.form.submit();
+  queryText.form!.submit();
 }
 
 void _setEventForCheckboxChanges() {
@@ -115,15 +114,15 @@ void _setEventForCheckboxChanges() {
 
 void _setEventForHiddenCheckboxField(
     String hiddenFieldId, String visibleCheckboxId) {
-  final hiddenField = document.getElementById(hiddenFieldId) as InputElement;
+  final hiddenField = document.getElementById(hiddenFieldId) as InputElement?;
   final visibleCheckbox =
-      document.getElementById(visibleCheckboxId) as CheckboxInputElement;
+      document.getElementById(visibleCheckboxId) as CheckboxInputElement?;
   if (hiddenField != null && visibleCheckbox != null) {
     final formElement = hiddenField.form;
     visibleCheckbox.onChange.listen((_) {
-      hiddenField.disabled = !visibleCheckbox.checked;
+      hiddenField.disabled = !(visibleCheckbox.checked!);
       // TODO: instead of submitting, compose the URL here (also removing the single `?`)
-      formElement.submit();
+      formElement!.submit();
     });
   }
 }

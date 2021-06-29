@@ -10,11 +10,11 @@ class CompatibleListProperty<T> extends Property {
   final PrimitiveProperty subProperty;
 
   const CompatibleListProperty(this.subProperty,
-      {String propertyName, bool indexed = true})
+      {String? propertyName, bool indexed = true})
       : super(propertyName: propertyName, required: true, indexed: indexed);
 
   @override
-  bool validate(ModelDB db, Object value) {
+  bool validate(ModelDB db, Object? value) {
     if (!super.validate(db, value) || value is! List) return false;
 
     for (var entry in value) {
@@ -24,7 +24,7 @@ class CompatibleListProperty<T> extends Property {
   }
 
   @override
-  Object encodeValue(ModelDB db, Object value, {bool forComparison = false}) {
+  Object? encodeValue(ModelDB db, Object? value, {bool forComparison = false}) {
     if (forComparison) {
       return subProperty.encodeValue(db, value, forComparison: true);
     }
@@ -41,12 +41,12 @@ class CompatibleListProperty<T> extends Property {
   }
 
   @override
-  List<T> decodePrimitiveValue(ModelDB db, Object value) {
+  List<T> decodePrimitiveValue(ModelDB db, Object? value) {
     if (value == null) return <T>[];
     if (value is! List) {
       return [subProperty.decodePrimitiveValue(db, value)].cast<T>();
     }
-    return (value as List)
+    return value
         .map((entry) => subProperty.decodePrimitiveValue(db, entry))
         .cast<T>()
         .toList();
@@ -56,7 +56,8 @@ class CompatibleListProperty<T> extends Property {
 /// Similar to [StringListProperty] but one which is fully compatible with
 /// python's 'db' implementation.
 class CompatibleStringListProperty extends CompatibleListProperty<String> {
-  const CompatibleStringListProperty({String propertyName, bool indexed = true})
+  const CompatibleStringListProperty(
+      {String? propertyName, bool indexed = true})
       : super(const StringProperty(required: true),
             propertyName: propertyName, indexed: indexed);
 }
