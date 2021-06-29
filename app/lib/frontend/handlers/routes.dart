@@ -225,6 +225,10 @@ class PubSiteService {
   @Route.get('/help')
   Future<Response> helpPage(Request request) => helpPageHandler(request);
 
+  /// Renders the help page for API
+  @Route.get('/help/api')
+  Future<Response> helpApiPage(Request request) => helpApiPageHandler(request);
+
   /// Renders the help page for scoring
   @Route.get('/help/scoring')
   Future<Response> helpPageScoring(Request request) =>

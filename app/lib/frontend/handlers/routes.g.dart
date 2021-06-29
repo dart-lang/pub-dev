@@ -63,6 +63,7 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
       service.publisherActivityLogPage);
   router.add('GET', r'/feed.atom', service.atomFeed);
   router.add('GET', r'/help', service.helpPage);
+  router.add('GET', r'/help/api', service.helpApiPage);
   router.add('GET', r'/help/scoring', service.helpPageScoring);
   router.add('GET', r'/help/search', service.helpPageSearch);
   router.add('GET', r'/help/publishing', service.helpPagePublishing);

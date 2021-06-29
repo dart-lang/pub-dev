@@ -25,6 +25,11 @@ Future<shelf.Response> helpPageHandler(shelf.Request request) async {
   return htmlResponse(renderHelpPage());
 }
 
+/// Handles requests for /help/api
+Future<shelf.Response> helpApiPageHandler(shelf.Request request) async {
+  return htmlResponse(renderHelpApiPage());
+}
+
 /// Handles requests for /help/scoring
 Future<shelf.Response> helpPageScoringHandler(shelf.Request request) async {
   return htmlResponse(renderHelpScoringPage());
