@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import '../shared/tags.dart';
 import 'dart_sdk_mem_index.dart';
 import 'flutter_sdk_mem_index.dart';
 import 'search_service.dart';
@@ -27,12 +28,12 @@ class SearchResultCombiner {
     }
 
     final primaryResult = await primaryIndex.search(query);
-    final dartSdkResults = await dartSdkMemIndex.search(query.query!, limit: 2);
-    final flutterSdkResults =
-        await flutterSdkMemIndex.search(query.query!, limit: 2);
+    final queryFlutterSdk =
+        SdkTagValue.isAny(query.sdk) || query.sdk == SdkTagValue.flutter;
     final sdkLibraryHits = [
-      ...dartSdkResults,
-      ...flutterSdkResults,
+      ...await dartSdkMemIndex.search(query.query!, limit: 2),
+      if (queryFlutterSdk)
+        ...await flutterSdkMemIndex.search(query.query!, limit: 2),
     ];
     sdkLibraryHits.sort((a, b) => -a.score.compareTo(b.score));
 

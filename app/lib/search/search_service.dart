@@ -339,12 +339,15 @@ class ServiceSearchQuery {
       order == null || order == SearchOrder.top || order == SearchOrder.text;
   bool get _hasNoOwnershipScope =>
       publisherId == null && uploaderOrPublishers == null;
+  bool get _isFlutterFavorite =>
+      tagsPredicate.hasTag(PackageTags.isFlutterFavorite);
 
   bool get includeSdkResults =>
       offset == 0 &&
       _hasOnlyFreeText &&
       _isNaturalOrder &&
-      _hasNoOwnershipScope;
+      _hasNoOwnershipScope &&
+      !_isFlutterFavorite;
 
   bool get considerHighlightedHit => _hasOnlyFreeText && _hasNoOwnershipScope;
   bool get includeHighlightedHit => considerHighlightedHit && offset == 0;
