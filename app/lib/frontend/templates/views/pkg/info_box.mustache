@@ -11,18 +11,15 @@
 </p>
 {{/replaced_by}}
 
+{{#has_publisher}}
 <h3 class="title">Publisher</h3>
 <p>
-  {{#has_publisher}}
   <a href="{{& publisher_link}}"><img
           class="-pub-publisher-shield"
           title="Published by a pub.dev verified publisher"
           src="{{{static_assets.img__verified-publisher-blue_svg}}}" />{{publisher_id}}</a>
-  {{/has_publisher}}
-  {{^has_publisher}}
-  Unknown
-  {{/has_publisher}}
 </p>
+{{/has_publisher}}
 
 <h3 class="title pkg-infobox-metadata">Metadata</h3>
 {{#description}}
