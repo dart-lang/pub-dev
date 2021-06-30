@@ -167,6 +167,7 @@ class StaticUrls {
   final String gtmJs;
   Map? _versionsTableIcons;
   Map<String, String>? _assets;
+  final _assetUrls = <String, String>{};
 
   StaticUrls._()
       : smallDartFavicon = _getCacheableStaticUrl('/favicon.ico'),
@@ -224,6 +225,20 @@ class StaticUrls {
       }
     }
     return _assets!;
+  }
+
+  /// Returns the hashed URL of the static resource like:
+  /// `/static/img/logo_gif => /static/img/logo.gif?hash=etag_hash`
+  String getAssetUrl(String requestPath) {
+    return _assetUrls.putIfAbsent(requestPath, () {
+      final file = staticFileCache.getFile(requestPath);
+      if (file == null) {
+        throw Exception('Static resource not found: $requestPath');
+      } else {
+        return Uri(path: requestPath, queryParameters: {'hash': file.etag})
+            .toString();
+      }
+    });
   }
 }
 

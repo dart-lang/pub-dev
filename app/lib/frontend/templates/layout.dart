@@ -205,14 +205,14 @@ String renderSdkTabs({
     }
     return SearchTab(
       text: label,
-      href: htmlAttrEscape.convert(url),
+      href: url,
       active: tabSdk == currentSdk,
       title: title,
     );
   }
 
-  final searchTabs = SearchTabs(
-    tabs: [
+  return renderSearchTabs(
+    [
       sdkTabData(
         'Dart',
         SdkTagValue.dart,
@@ -230,8 +230,6 @@ String renderSdkTabs({
       ),
     ],
   );
-  return templateCache.renderTemplate(
-      'shared/search_tabs', searchTabs.toJson());
 }
 
 final String _defaultPageDescriptionEscaped = htmlEscape.convert(
