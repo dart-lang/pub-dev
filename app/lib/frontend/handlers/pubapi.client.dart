@@ -417,4 +417,20 @@ class PubApiClient {
       path: '/api/admin/packages/$package/uploaders',
     ));
   }
+
+  Future<_i6.PackageUploaders> adminAddPackageUploader(
+      String package, String email) async {
+    return _i6.PackageUploaders.fromJson(await _client.requestJson(
+      verb: 'put',
+      path: '/api/admin/packages/$package/uploaders/$email',
+    ));
+  }
+
+  Future<_i6.PackageUploaders> adminRemovePackageUploader(
+      String package, String email) async {
+    return _i6.PackageUploaders.fromJson(await _client.requestJson(
+      verb: 'delete',
+      path: '/api/admin/packages/$package/uploaders/$email',
+    ));
+  }
 }

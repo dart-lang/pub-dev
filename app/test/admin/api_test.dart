@@ -418,34 +418,120 @@ void main() {
     });
 
     group('package uploaders', () {
-      setupTestsWithCallerAuthorizationIssues(
-          (client) => client.adminGetPackageUploaders('oxygen'));
+      void setupTestsWithPackageFailures(
+        Future Function(PubApiClient client, String package) fn,
+      ) {
+        testWithProfile('missing package', fn: () async {
+          final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+          final rs = fn(client, 'missing_package');
+          await expectLater(
+              rs,
+              throwsA(isA<RequestException>().having((e) => e.bodyAsString(),
+                  'body', contains('Could not find `missing_package`.'))));
+        });
 
-      testWithProfile('missing package', fn: () async {
-        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
-        final rs = client.adminGetPackageUploaders('missing_package');
-        await expectLater(
-            rs,
-            throwsA(isA<RequestException>().having((e) => e.bodyAsString(),
-                'body', contains('Could not find `missing_package`.'))));
+        testWithProfile('invalid package with publisher', fn: () async {
+          final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+          final rs = fn(client, 'neon');
+          await expectLater(
+              rs,
+              throwsA(isA<RequestException>().having((e) => e.bodyAsString(),
+                  'body', contains('Package must not be under a publisher.'))));
+        });
+      }
+
+      group('get', () {
+        setupTestsWithCallerAuthorizationIssues(
+            (client) => client.adminGetPackageUploaders('oxygen'));
+        setupTestsWithPackageFailures(
+            (client, package) => client.adminGetPackageUploaders(package));
+
+        testWithProfile('reading uploaders', fn: () async {
+          final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+          final rs = await client.adminGetPackageUploaders('oxygen');
+          expect(rs.uploaders.single.toJson(), {
+            'userId': isNotNull,
+            'oauthUserId': null,
+            'email': 'admin@pub.dev',
+          });
+        });
       });
 
-      testWithProfile('invalid package with publisher', fn: () async {
-        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
-        final rs = client.adminGetPackageUploaders('neon');
-        await expectLater(
-            rs,
-            throwsA(isA<RequestException>().having((e) => e.bodyAsString(),
-                'body', contains('Package must not be under a publisher.'))));
+      group('add', () {
+        setupTestsWithCallerAuthorizationIssues((client) =>
+            client.adminAddPackageUploader('oxygen', 'someuser@pub.dev'));
+        setupTestsWithPackageFailures((client, package) =>
+            client.adminAddPackageUploader(package, 'someuser@pub.dev'));
+
+        testWithProfile('adding existing uploader', fn: () async {
+          final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+          final rs =
+              await client.adminAddPackageUploader('oxygen', 'admin@pub.dev');
+          expect(rs.uploaders.single.toJson(), {
+            'userId': isNotNull,
+            'oauthUserId': null,
+            'email': 'admin@pub.dev',
+          });
+        });
+
+        testWithProfile('adding new uploader', fn: () async {
+          final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+          final rs = await client.adminAddPackageUploader(
+              'oxygen', 'someuser@pub.dev');
+          expect(rs.uploaders.map((u) => u.email).toSet(), {
+            'admin@pub.dev',
+            'someuser@pub.dev',
+          });
+        });
       });
 
-      testWithProfile('reading uploaders', fn: () async {
-        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
-        final rs = await client.adminGetPackageUploaders('oxygen');
-        expect(rs.uploaders.single.toJson(), {
-          'userId': isNotNull,
-          'oauthUserId': null,
-          'email': 'admin@pub.dev',
+      group('remove', () {
+        setupTestsWithCallerAuthorizationIssues((client) =>
+            client.adminRemovePackageUploader('oxygen', 'admin@pub.dev'));
+        setupTestsWithPackageFailures((client, package) =>
+            client.adminRemovePackageUploader(package, 'admin@pub.dev'));
+
+        testWithProfile('removing non-existing user', fn: () async {
+          final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+          final rs =
+              client.adminRemovePackageUploader('oxygen', 'someuser@pub.dev');
+          await expectLater(
+              rs,
+              throwsA(isA<RequestException>().having(
+                  (e) => e.bodyAsString(),
+                  'body',
+                  contains('No users found for email: `someuser@pub.dev`.'))));
+        });
+
+        testWithProfile('removing non-uploader user', fn: () async {
+          final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+          final rs =
+              await client.adminRemovePackageUploader('oxygen', 'user@pub.dev');
+          expect(rs.uploaders.single.toJson(), {
+            'userId': isNotNull,
+            'oauthUserId': null,
+            'email': 'admin@pub.dev',
+          });
+        });
+
+        testWithProfile('removing an uploader', fn: () async {
+          final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+          final rs = await client.adminAddPackageUploader(
+              'oxygen', 'someuser@pub.dev');
+          expect(rs.uploaders.map((u) => u.email).toSet(), {
+            'admin@pub.dev',
+            'someuser@pub.dev',
+          });
+          final rs2 = await client.adminRemovePackageUploader(
+              'oxygen', 'someuser@pub.dev');
+          expect(rs2.uploaders.single.email, 'admin@pub.dev');
+        });
+
+        testWithProfile('removing last uploader', fn: () async {
+          final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+          final rs = await client.adminRemovePackageUploader(
+              'oxygen', 'admin@pub.dev');
+          expect(rs.uploaders, isEmpty);
         });
       });
     });

@@ -11,6 +11,8 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
+import 'package:pub_dev/audit/models.dart';
+import 'package:pub_dev/shared/email.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../account/backend.dart';
@@ -551,5 +553,97 @@ class AdminBackend {
       uploaders.add(api.AdminUserEntry(userId: userId, email: email));
     }
     return api.PackageUploaders(uploaders: uploaders);
+  }
+
+  /// Handles PUT '/api/admin/packages/<package>/uploaders/<email>'
+  ///
+  /// Returns the list of uploaders for a package.
+  Future<api.PackageUploaders> handleAddPackageUploader(
+      String packageName, String email) async {
+    checkPackageVersionParams(packageName);
+    final adminUser =
+        await _requireAdminPermission(AdminPermission.managePackageOwnership);
+    final package = await packageBackend.lookupPackage(packageName);
+    if (package == null) {
+      throw NotFoundException.resource(packageName);
+    }
+
+    final uploaderEmail = email.toLowerCase();
+    InvalidInputException.check(
+        isValidEmail(uploaderEmail), 'Not a valid email: `$uploaderEmail`.');
+    final uploaderUser =
+        await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
+
+    await withRetryTransaction(_db, (tx) async {
+      final p = await tx.lookupValue<Package>(package.key);
+      InvalidInputException.check(
+          p.publisherId == null, 'Package must not be under a publisher.');
+      if (p.uploaders!.contains(uploaderUser.userId)) {
+        // do not throw if email is already added
+        return;
+      } else {
+        p.uploaders!.add(uploaderUser.userId!);
+      }
+      tx.insert(p);
+      tx.insert(AuditLogRecord.uploaderAdded(
+        activeUser: adminUser,
+        package: packageName,
+        uploaderUser: uploaderUser,
+      ));
+    });
+    return await handleGetPackageUploaders(packageName);
+  }
+
+  /// Handles DELETE '/api/admin/packages/<package>/uploaders/<email>'
+  ///
+  /// Returns the list of uploaders for a package.
+  Future<api.PackageUploaders> handleRemovePackageUploader(
+      String packageName, String email) async {
+    checkPackageVersionParams(packageName);
+    final adminUser =
+        await _requireAdminPermission(AdminPermission.managePackageOwnership);
+    final package = await packageBackend.lookupPackage(packageName);
+    if (package == null) {
+      throw NotFoundException.resource(packageName);
+    }
+
+    final uploaderEmail = email.toLowerCase();
+    InvalidInputException.check(
+        isValidEmail(uploaderEmail), 'Not a valid email: `$uploaderEmail`.');
+    final uploaderUsers =
+        await accountBackend.lookupUsersByEmail(uploaderEmail);
+    InvalidInputException.check(uploaderUsers.isNotEmpty,
+        'No users found for email: `$uploaderEmail`.');
+
+    await withRetryTransaction(_db, (tx) async {
+      final p = await tx.lookupValue<Package>(package.key);
+      InvalidInputException.check(
+          p.publisherId == null, 'Package must not be under a publisher.');
+      var removed = false;
+      for (final uploaderUser in uploaderUsers) {
+        final r = p.uploaders!.remove(uploaderUser.userId);
+        if (r) {
+          removed = true;
+          tx.insert(AuditLogRecord.uploaderRemoved(
+            activeUser: adminUser,
+            package: packageName,
+            uploaderUser: uploaderUser,
+          ));
+        }
+      }
+      if (removed) {
+        if (p.uploaders!.isEmpty) {
+          p.isDiscontinued = true;
+          tx.insert(AuditLogRecord.packageOptionsUpdated(
+            package: packageName,
+            user: adminUser,
+            options: ['discontinued'],
+          ));
+        }
+        p.updated = DateTime.now().toUtc();
+        tx.insert(p);
+      }
+    });
+    return await handleGetPackageUploaders(packageName);
   }
 }
