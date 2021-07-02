@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as m;
+import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' show getRepositoryUrl;
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
@@ -58,9 +60,7 @@ String? markdownToHtml(
 
 /// Parses markdown [source].
 List<m.Node> _parseMarkdownSource(String source, bool inlineOnly) {
-  final document = m.Document(
-      extensionSet: m.ExtensionSet.gitHubWeb,
-      blockSyntaxes: m.ExtensionSet.gitHubWeb.blockSyntaxes);
+  final document = m.Document(extensionSet: m.ExtensionSet.gitHubWeb);
   if (inlineOnly) {
     return document.parseInline(source);
   }
@@ -398,5 +398,88 @@ Version? _extractVersion(String? text) {
     return v;
   } on FormatException catch (_) {
     return null;
+  }
+}
+
+class ScreenshotImage {
+  final String url;
+  final String? title;
+
+  ScreenshotImage(this.url, {this.title});
+
+  @visibleForTesting
+  Map<String, dynamic> toJson() => {
+        'url': url,
+        if (title != null) 'title': title,
+      };
+}
+
+@visibleForTesting
+List<ScreenshotImage> extractScreenshotImages(String markdownSource) {
+  final visitor = _ScreenshotImageVisitor();
+  final nodes = _parseMarkdownSource(markdownSource, false);
+  nodes.forEach((node) => node.accept(visitor));
+  return visitor.images;
+}
+
+/// Finds screenshot images.
+///
+/// When images are embedded in markdown, we could say that it is a screenshot image, if:
+/// - (1) the image is also a link to the image, or
+/// - (2) the image has an alt-text that includes the word "screenshot", or
+/// - (3) the image has a custom data-property only recognized by pub.dev.
+class _ScreenshotImageVisitor implements m.NodeVisitor {
+  final _srcs = <String>{};
+  final images = <ScreenshotImage>[];
+
+  @override
+  void visitText(m.Text text) {}
+
+  @override
+  bool visitElementBefore(m.Element element) => true;
+
+  @override
+  void visitElementAfter(m.Element element) {
+    // (1) the image is also a link to the image, or
+    if (element.tag == 'a' &&
+        element.attributes.containsKey('href') &&
+        element.attributes['href']!.isNotEmpty &&
+        element.children != null &&
+        element.children!.isNotEmpty) {
+      final imgChild = element.children!
+          .whereType<m.Element>()
+          .firstWhereOrNull((e) =>
+              e.tag == 'img' &&
+              e.attributes['src'] == element.attributes['href']);
+      if (imgChild != null) {
+        final src = imgChild.attributes['src']!;
+        _add(src, imgChild.attributes['alt'] ?? element.attributes['title']);
+      }
+    }
+
+    // the image has an alt-text that includes the word "screenshot", or
+    if (element.tag == 'img' &&
+        element.attributes.containsKey('src') &&
+        element.attributes.containsKey('alt') &&
+        element.attributes['alt']!.toLowerCase().contains('screenshot')) {
+      _add(element.attributes['src']!, element.attributes['alt']);
+    }
+
+    // the image has a custom data-property only recognized by pub.dev.
+    if (element.tag == 'img' &&
+        element.attributes.containsKey('src') &&
+        element.attributes.containsKey('data-pub-role') &&
+        element.attributes['data-pub-role']!
+            .split(' ')
+            .contains('screenshot')) {
+      _add(element.attributes['src']!, element.attributes['alt']);
+    }
+  }
+
+  void _add(String src, String? title) {
+    src = src.trim();
+    if (src.isEmpty) return;
+    if (!_srcs.add(src)) return;
+    images.add(ScreenshotImage(src, title: title?.trim()));
   }
 }
