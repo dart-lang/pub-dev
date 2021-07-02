@@ -53,9 +53,9 @@ final defaultTestProfile = TestProfile(
   ],
 );
 
-final adminAtPubDevAuthToken = 'admin-at-pub-dot-dev';
-final userAtPubDevAuthToken = 'user-at-pub-dot-dev';
-final unauthorizedAtPubDevAuthToken = 'unauthorized-at-pub-dot-dev';
+const adminAtPubDevAuthToken = 'admin-at-pub-dot-dev';
+const userAtPubDevAuthToken = 'user-at-pub-dot-dev';
+const unauthorizedAtPubDevAuthToken = 'unauthorized-at-pub-dot-dev';
 
 // regular package
 final hydrogen =
