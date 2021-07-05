@@ -5,8 +5,7 @@
 import 'dart:io';
 
 import 'package:logging/logging.dart';
-// ignore: import_of_legacy_library_into_null_safe
-import 'package:mustache/mustache.dart' as mustache;
+import 'package:mustache_template/mustache_template.dart' as mustache;
 import 'package:path/path.dart' as path;
 
 import '../request_context.dart';
