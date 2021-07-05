@@ -358,7 +358,7 @@ String? _renderFilterButtons({
           ),
           active: option.isActive,
         )),
-  );
+  ).toString();
 }
 
 /// `Linux`, `macOS`, `Windows` platforms are not yet stable, and we want

@@ -229,7 +229,7 @@ String renderSdkTabs({
         'Packages compatible with the any SDK',
       ),
     ],
-  );
+  ).toString();
 }
 
 final String _defaultPageDescriptionEscaped = htmlEscape.convert(

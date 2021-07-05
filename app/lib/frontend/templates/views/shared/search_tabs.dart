@@ -19,7 +19,7 @@ class SearchTab {
   });
 }
 
-String renderSearchTabs(Iterable<SearchTab> tabs) {
+d.Node renderSearchTabs(Iterable<SearchTab> tabs) {
   return d.div(
     classes: ['list-filters'],
     children: tabs.map(
@@ -40,5 +40,5 @@ String renderSearchTabs(Iterable<SearchTab> tabs) {
         ],
       ),
     ),
-  ).toString();
+  );
 }
