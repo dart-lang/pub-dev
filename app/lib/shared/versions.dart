@@ -21,7 +21,7 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 /// Make sure that at least two versions are kept here as the next candidates
 /// when the version switch happens.
 const acceptedRuntimeVersions = <String>[
-  '2021.06.24', // The current [runtimeVersion].
+  '2021.07.01', // The current [runtimeVersion].
   '2021.06.21',
   '2021.06.16',
 ];
@@ -53,10 +53,10 @@ bool shouldGCVersion(String version) =>
 
 // keep in-sync with SDK version in .mono_repo.yml and Dockerfile
 final String runtimeSdkVersion = '2.13.3';
-final String toolStableDartSdkVersion = '2.13.3';
-final String toolStableFlutterSdkVersion = '2.2.2';
-final String toolPreviewDartSdkVersion = '2.14.0-188.3.beta';
-final String toolPreviewFlutterSdkVersion = '2.2.2';
+final String toolStableDartSdkVersion = '2.13.4';
+final String toolStableFlutterSdkVersion = '2.2.3';
+final String toolPreviewDartSdkVersion = '2.14.0-188.5.beta';
+final String toolPreviewFlutterSdkVersion = '2.3.0-24.1.pre';
 
 // Value comes from package:pana.
 final String panaVersion = pana.packageVersion;
