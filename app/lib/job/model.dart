@@ -101,6 +101,9 @@ class Job extends ExpandoModel<String> {
   int? lastRunDurationInSeconds;
 
   @IntProperty(indexed: false)
+  int attemptCount = 0;
+
+  @IntProperty(indexed: false)
   int errorCount = 0;
 
   bool get isLatest => isLatestStable || isLatestPrerelease || isLatestPreview;
