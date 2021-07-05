@@ -71,6 +71,34 @@ Node element(
 /// Creates a DOM Text node using the default [DomContext].
 Node text(String value) => dom.text(value);
 
+/// Creates an `<a>` Element using the default [DomContext].
+Node a({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+  String? href,
+  String? rel,
+  String? title,
+}) {
+  final hasAttributes =
+      attributes != null || href != null || rel != null || title != null;
+  return dom.element(
+    'a',
+    id: id,
+    classes: classes,
+    attributes: hasAttributes
+        ? <String, String>{
+            if (href != null) 'href': href,
+            if (rel != null) 'rel': rel,
+            if (title != null) 'title': title,
+            if (attributes != null) ...attributes,
+          }
+        : null,
+    children: children,
+  );
+}
+
 /// Creates a `<div>` Element using the default [DomContext].
 Node div({
   String? id,
@@ -85,6 +113,31 @@ Node div({
       attributes: attributes,
       children: children,
     );
+
+/// Creates an `<img>` Element using the default [DomContext].
+Node img({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+  String? src,
+  String? title,
+}) {
+  final hasAttributes = attributes != null || src != null || title != null;
+  return dom.element(
+    'img',
+    id: id,
+    classes: classes,
+    attributes: hasAttributes
+        ? <String, String>{
+            if (src != null) 'src': src,
+            if (title != null) 'title': title,
+            if (attributes != null) ...attributes,
+          }
+        : null,
+    children: children,
+  );
+}
 
 /// Creates a `<span>` Element using the default [DomContext].
 Node span({
@@ -163,6 +216,23 @@ class _StringNodeList extends _StringNode {
 }
 
 class _StringElement extends _StringNode {
+  static const _selfClosing = <String>{
+    'area',
+    'base',
+    'br',
+    'col',
+    'embed',
+    'hr',
+    'img',
+    'input',
+    'link',
+    'meta',
+    'param',
+    'source',
+    'track',
+    'wbr',
+  };
+
   final String _tag;
   final Map<String, String>? _attributes;
   final List<_StringNode>? _children;
@@ -185,9 +255,9 @@ class _StringElement extends _StringNode {
         child.writeHtml(sink);
       }
       sink.write('</$_tag>');
+    } else if (_selfClosing.contains(_tag)) {
+      sink.write('/>');
     } else {
-      // TODO: implement self-closing elements
-      // TODO: implement non-closing elements
       sink.write('></$_tag>');
     }
   }

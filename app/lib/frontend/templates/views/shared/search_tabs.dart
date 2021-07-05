@@ -2,32 +2,43 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:json_annotation/json_annotation.dart';
+import '../../../dom/dom.dart' as d;
+import '../../../static_files.dart';
 
-part 'search_tabs.g.dart';
-
-@JsonSerializable(createFactory: false, explicitToJson: true)
-class SearchTabs {
-  final List<SearchTab>? tabs;
-
-  SearchTabs({this.tabs});
-
-  Map<String, dynamic> toJson() => _$SearchTabsToJson(this);
-}
-
-@JsonSerializable(createFactory: false, explicitToJson: true)
 class SearchTab {
-  final bool? active;
-  final String? href;
-  final String? title;
-  final String? text;
+  final bool active;
+  final String href;
+  final String title;
+  final String text;
 
   SearchTab({
-    this.active,
-    this.href,
-    this.title,
-    this.text,
+    required this.active,
+    required this.href,
+    required this.title,
+    required this.text,
   });
+}
 
-  Map<String, dynamic> toJson() => _$SearchTabToJson(this);
+d.Node renderSearchTabs(Iterable<SearchTab> tabs) {
+  return d.div(
+    classes: ['list-filters'],
+    children: tabs.map(
+      (tab) => d.a(
+        classes: [
+          'filter',
+          if (tab.active) '-active',
+        ],
+        href: tab.href,
+        title: tab.title,
+        children: [
+          if (tab.active)
+            d.img(
+              classes: ['filter-icon'],
+              src: staticUrls.getAssetUrl('/static/img/checkmark-icon.svg'),
+            ),
+          d.text(tab.text),
+        ],
+      ),
+    ),
+  );
 }

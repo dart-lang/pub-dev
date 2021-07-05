@@ -345,24 +345,20 @@ String? _renderFilterButtons({
     return searchForm.change(tagsPredicate: tagsPredicate).toSearchLink();
   }
 
-  final searchTabs = SearchTabs(
-    tabs: options
-        .map((option) => SearchTab(
-              title: option.title,
-              text: option.label,
-              href: htmlAttrEscape.convert(searchWithTagsLink(
-                tp.isRequiredTag(option.tag)
-                    ? tp.withoutTag(option.tag)
-                    : tp.appendPredicate(TagsPredicate(
-                        requiredTags: [option.tag],
-                      )),
-              )),
-              active: option.isActive,
-            ))
-        .toList(),
-  );
-  return templateCache.renderTemplate(
-      'shared/search_tabs', searchTabs.toJson());
+  return renderSearchTabs(
+    options.map((option) => SearchTab(
+          title: option.title,
+          text: option.label,
+          href: searchWithTagsLink(
+            tp.isRequiredTag(option.tag)
+                ? tp.withoutTag(option.tag)
+                : tp.appendPredicate(TagsPredicate(
+                    requiredTags: [option.tag],
+                  )),
+          ),
+          active: option.isActive,
+        )),
+  ).toString();
 }
 
 /// `Linux`, `macOS`, `Windows` platforms are not yet stable, and we want
