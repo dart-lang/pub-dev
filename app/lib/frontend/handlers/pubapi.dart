@@ -456,6 +456,16 @@ class PubApi {
     String package,
   ) =>
       adminBackend.handleGetPackageUploaders(package);
+
+  @EndPoint.put('/api/admin/packages/<package>/uploaders/<email>')
+  Future<PackageUploaders> adminAddPackageUploader(
+          Request request, String package, String email) =>
+      adminBackend.handleAddPackageUploader(package, email);
+
+  @EndPoint.delete('/api/admin/packages/<package>/uploaders/<email>')
+  Future<PackageUploaders> adminRemovePackageUploader(
+          Request request, String package, String email) =>
+      adminBackend.handleRemovePackageUploader(package, email);
 }
 
 /// Replaces the requested uri with the primary API uri.

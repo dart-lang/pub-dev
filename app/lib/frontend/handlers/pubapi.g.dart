@@ -747,5 +747,35 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
+  router.add('PUT', r'/api/admin/packages/<package>/uploaders/<email>',
+      (Request request, String package, String email) async {
+    try {
+      final _$result = await service.adminAddPackageUploader(
+        request,
+        package,
+        email,
+      );
+      return $utilities.jsonResponse(_$result.toJson());
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
+  router.add('DELETE', r'/api/admin/packages/<package>/uploaders/<email>',
+      (Request request, String package, String email) async {
+    try {
+      final _$result = await service.adminRemovePackageUploader(
+        request,
+        package,
+        email,
+      );
+      return $utilities.jsonResponse(_$result.toJson());
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
   return router;
 }
