@@ -148,6 +148,13 @@ String _renderKeyFigure({
 
 String? _renderToolEnvInfo(PanaRuntimeInfo? info, bool usesFlutter) {
   if (info == null) return null;
+  final flutterVersions = info.flutterVersions;
+  final flutterVersion = usesFlutter && flutterVersions != null
+      ? flutterVersions['frameworkVersion']
+      : null;
+  final flutterDartVersion = usesFlutter && flutterVersions != null
+      ? flutterVersions['dartSdkVersion']
+      : null;
   return templateCache.renderTemplate('pkg/analysis/tool_env_info', {
     'tools': [
       {
@@ -155,17 +162,15 @@ String? _renderToolEnvInfo(PanaRuntimeInfo? info, bool usesFlutter) {
         'version': info.panaVersion,
         'last': false,
       },
-      if (usesFlutter)
+      if (flutterVersion != null)
         {
           'name': 'Flutter',
-          'version': info.flutterVersions!['frameworkVersion'],
+          'version': flutterVersion,
           'last': false,
         },
       {
         'name': 'Dart',
-        'version': usesFlutter
-            ? info.flutterVersions!['dartSdkVersion']
-            : info.sdkVersion,
+        'version': flutterDartVersion ?? info.sdkVersion,
         'last': true,
       },
     ],
