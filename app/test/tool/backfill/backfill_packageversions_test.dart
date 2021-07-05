@@ -4,125 +4,101 @@
 
 // @dart=2.9
 
+import 'dart:io';
+
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
+import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/shared/utils.dart';
 import 'package:pub_dev/tool/backfill/backfill_packageversions.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 
-import '../../shared/test_models.dart';
 import '../../shared/test_services.dart';
 
 void main() {
   group('normalization tests', () {
     Future<PackageSummary> _archive(String package, String version) async {
-      return PackageSummary(
-        pubspecContent: 'name: $package\nversion: $version\n',
-        libraries: ['$package.dart'],
-        readmePath: 'README.md',
-        readmeContent: '# $package\n\nA dart package',
-      );
-    }
-
-    Future<void> _updateModels() async {
-      // Entries in the test were not extracted the same way we are doing here.
-      // TODO: make sure test entries follow the same pattern and remove this method.
-      final stat = await backfillAllVersionsOfPackage(
-        'hydrogen',
-        archiveResolver: _archive,
-      );
-      expect(
-        stat.toJson(),
-        {
-          'versionCount': 13,
-          'pvInfoCount': 13,
-          'pvAssetUpdatedCount': 26,
-          // TODO: fix test models and don't delete here
-          'pvAssetDeletedCount': 22,
-        },
-      );
-    }
-
-    testWithServices('second time no update', () async {
-      await _updateModels();
-      // second time there should be no update
-      final stats = await backfillAllVersionsOfPackage(
-        'hydrogen',
-        archiveResolver: _archive,
-      );
-      expect(
-        stats.toJson(),
-        {
-          'versionCount': 13,
-          'pvInfoCount': 0,
-          'pvAssetUpdatedCount': 0,
-          'pvAssetDeletedCount': 0,
-        },
-      );
-      final query = dbService.query<PackageVersionAsset>()
-        ..filter('package =', 'hydrogen');
-      final assets = await query.run().toList();
-      assets.sort((a, b) => a.assetId.compareTo(b.assetId));
-      final summary = assets.take(4).fold(
-          {},
-          (map, a) => {
-                ...map,
-                a.assetId: {
-                  'path': a.path,
-                  'length': a.textContent.length,
-                }
-              });
-      expect(summary, {
-        'hydrogen/1.0.0/pubspec': {'path': 'pubspec.yaml', 'length': 30},
-        'hydrogen/1.0.0/readme': {'path': 'README.md', 'length': 26},
-        'hydrogen/1.0.9/pubspec': {'path': 'pubspec.yaml', 'length': 30},
-        'hydrogen/1.0.9/readme': {'path': 'README.md', 'length': 26},
+      return await withTempDirectory((dir) async {
+        final file = File('${dir.path}/archive.tar.gz');
+        final stream = packageBackend.download(package, version);
+        await stream.pipe(file.openWrite());
+        return await summarizePackageArchive(file.path);
       });
-    });
+    }
 
-    testWithServices('info missing', () async {
-      await _updateModels();
-      final lastId =
-          hydrogen.versions.last.qualifiedVersionKey.qualifiedVersion;
-      await dbService.commit(deletes: [
-        dbService.emptyKey.append(PackageVersionInfo, id: lastId),
-      ]);
-      final stats = await backfillAllVersionsOfPackage(
-        'hydrogen',
-        archiveResolver: _archive,
-      );
-      expect(
-        stats.toJson(),
-        {
-          'versionCount': 13,
-          'pvInfoCount': 1,
-          'pvAssetUpdatedCount': 0,
-          'pvAssetDeletedCount': 0,
-        },
-      );
-    });
+    testWithProfile(
+      'No updated needed',
+      fn: () async {
+        final readme = await packageBackend.lookupPackageVersionAsset(
+          'oxygen',
+          '1.2.0',
+          AssetKind.readme,
+        );
+        final stat = await backfillAllVersionsOfPackage(
+          'oxygen',
+          archiveResolver: _archive,
+        );
+        expect(
+          stat.toJson(),
+          {
+            'versionCount': 3,
+            'pvInfoCount': 0,
+            'pvAssetUpdatedCount': 0,
+            'pvAssetDeletedCount': 0
+          },
+        );
+        final readme2 = await packageBackend.lookupPackageVersionAsset(
+          'oxygen',
+          '1.2.0',
+          AssetKind.readme,
+        );
+        expect(readme2.textContent, readme.textContent);
+      },
+    );
 
-    testWithServices('asset missing', () async {
-      await _updateModels();
-      final lastId =
-          hydrogen.versions.last.qualifiedVersionKey.qualifiedVersion;
-      await dbService.commit(deletes: [
-        dbService.emptyKey.append(PackageVersionAsset, id: '$lastId/readme')
-      ]);
-      final stats = await backfillAllVersionsOfPackage(
-        'hydrogen',
-        archiveResolver: _archive,
-      );
-      expect(
-        stats.toJson(),
-        {
-          'versionCount': 13,
-          'pvInfoCount': 0,
-          'pvAssetUpdatedCount': 1,
-          'pvAssetDeletedCount': 0,
-        },
-      );
-    });
+    testWithProfile(
+      'Create info and change assets',
+      fn: () async {
+        final info =
+            await packageBackend.lookupPackageVersionInfo('oxygen', '1.2.0');
+
+        final readme = await packageBackend.lookupPackageVersionAsset(
+          'oxygen',
+          '1.2.0',
+          AssetKind.readme,
+        );
+        await dbService.commit(deletes: [info.key, readme.key]);
+
+        final stat = await backfillAllVersionsOfPackage(
+          'oxygen',
+          archiveResolver: _archive,
+        );
+
+        expect(
+          stat.toJson(),
+          {
+            'versionCount': 3,
+            'pvInfoCount': 1,
+            'pvAssetUpdatedCount': 1,
+            'pvAssetDeletedCount': 0
+          },
+        );
+
+        final info2 =
+            await packageBackend.lookupPackageVersionInfo('oxygen', '1.2.0');
+        expect(info2.versionCreated, info.versionCreated);
+        expect(info2.assetCount, info.assetCount);
+        expect(info2.assets, info.assets);
+
+        final readme2 = await packageBackend.lookupPackageVersionAsset(
+          'oxygen',
+          '1.2.0',
+          AssetKind.readme,
+        );
+        expect(readme2.textContent, readme.textContent);
+      },
+    );
   });
 }
