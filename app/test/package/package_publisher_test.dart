@@ -7,6 +7,7 @@
 import 'dart:convert';
 
 import 'package:gcloud/db.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import 'package:client_data/package_api.dart';
@@ -17,6 +18,7 @@ import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/shared/exceptions.dart';
+import 'package:pub_dev/tool/test_profile/models.dart';
 
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
@@ -43,14 +45,20 @@ void main() {
         ));
 
     _testNoPublisher((client) => client.setPackagePublisher(
-          hydrogen.packageName,
+          'oxygen',
           PackagePublisherInfo(publisherId: 'no-domain.net'),
         ));
 
-    _testPublisherAdminAuthIssues(
-      exampleComPublisher.key,
-      (client) => client.setPackagePublisher(
-        hydrogen.packageName,
+    _testUserNotMemberOfPublisher(
+      fn: (client) => client.setPackagePublisher(
+        'oxygen',
+        PackagePublisherInfo(publisherId: 'example.com'),
+      ),
+    );
+
+    _testUserNotAdminOfPublisher(
+      fn: (client) => client.setPackagePublisher(
+        'oxygen',
         PackagePublisherInfo(publisherId: 'example.com'),
       ),
     );
@@ -114,7 +122,7 @@ void main() {
       );
       await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
         final tarball = await packageArchiveBytes(
-            pubspecContent: generatePubspecYaml('hydrogen', '3.0.0'));
+            pubspecContent: generatePubspecYaml('oxygen', '3.0.0'));
         final pv = await packageBackend.upload(Stream.fromIterable([tarball]));
         expect(pv.version.toString(), '3.0.0');
       });
@@ -122,22 +130,13 @@ void main() {
   });
 
   group('Move between publishers', () {
-    final otherComPublisher = publisher('other.com');
-    Future<void> _setup({bool addHans = true}) async {
-      final p = await packageBackend.lookupPackage(hydrogen.packageName);
-      p.publisherId = otherComPublisher.publisherId;
-      p.uploaders = [];
-      final hansMember = publisherMember(hansUser.userId, 'admin',
-          parentKey: otherComPublisher.key);
-      final otherMember = publisherMember(testUserA.userId, 'admin',
-          parentKey: otherComPublisher.key);
-      await dbService.commit(inserts: [
-        p,
-        otherComPublisher,
-        if (addHans) hansMember,
-        otherMember,
-      ]);
-    }
+    TestProfile _profile() => TestProfile(
+          packages: [
+            TestPackage(name: 'one', publisher: 'verified.com'),
+            TestPackage(name: 'two', publisher: 'example.com'),
+          ],
+          defaultUser: 'admin@pub.dev',
+        );
 
     _testNoPackage((client) async {
       return client.setPackagePublisher(
@@ -148,60 +147,52 @@ void main() {
 
     _testNoPublisher((client) async {
       return client.setPackagePublisher(
-        'oxygen',
+        'one',
         PackagePublisherInfo(publisherId: 'no-domain.net'),
       );
     });
 
     _testNoActiveUser((client) async {
       return client.setPackagePublisher(
-        'oxygen',
+        'one',
         PackagePublisherInfo(publisherId: 'example.com'),
       );
     });
 
-    _testPublisherAdminAuthIssues(exampleComPublisher.key, (client) async {
-      await _setup();
-      return client.setPackagePublisher(
-        hydrogen.packageName,
+    _testUserNotMemberOfPublisher(
+      testProfile: _profile(),
+      fn: (client) async => client.setPackagePublisher(
+        'one',
         PackagePublisherInfo(publisherId: 'example.com'),
-      );
-    });
+      ),
+    );
 
-    _testPublisherAdminAuthIssues(otherComPublisher.key, (client) async {
-      await _setup(addHans: false);
-      return client.setPackagePublisher(
-        hydrogen.packageName,
+    _testUserNotAdminOfPublisher(
+      testProfile: _profile(),
+      fn: (client) async => client.setPackagePublisher(
+        'one',
         PackagePublisherInfo(publisherId: 'example.com'),
-      );
-    });
+      ),
+    );
 
-    testWithServices('successful', () async {
-      await _setup();
-      final client = createPubApiClient(authToken: hansUser.userId);
+    testWithProfile('successful', testProfile: _profile(), fn: () async {
+      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
       final rs = await client.setPackagePublisher(
-        hydrogen.packageName,
+        'one',
         PackagePublisherInfo(publisherId: 'example.com'),
       );
       expect(_json(rs.toJson()), {'publisherId': 'example.com'});
 
-      final p = await packageBackend.lookupPackage('hydrogen');
+      final p = await packageBackend.lookupPackage('one');
       expect(p.publisherId, 'example.com');
       expect(p.uploaders, []);
 
-      final info = await client.getPackagePublisher('hydrogen');
+      final info = await client.getPackagePublisher('one');
       expect(_json(info.toJson()), _json(rs.toJson()));
     });
   });
 
   group('Delete publisher', () {
-    Future<void> _setupPackage() async {
-      final p = await packageBackend.lookupPackage(hydrogen.packageName);
-      p.publisherId = 'example.com';
-      p.uploaders = [];
-      await dbService.commit(inserts: [p]);
-    }
-
     _testNoPackage((client) async {
       return client.removePackagePublisher('no_package');
     });
@@ -210,10 +201,13 @@ void main() {
       return client.removePackagePublisher('oxygen');
     });
 
-    _testPublisherAdminAuthIssues(exampleComPublisher.key, (client) async {
-      await _setupPackage();
-      return client.removePackagePublisher(hydrogen.packageName);
-    });
+    _testUserNotMemberOfPublisher(
+      fn: (client) => client.removePackagePublisher('neon'),
+    );
+
+    _testUserNotAdminOfPublisher(
+      fn: (client) => client.removePackagePublisher('neon'),
+    );
 
     testWithProfile('successful', fn: () async {
       final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
@@ -237,28 +231,40 @@ void main() {
 
 dynamic _json(value) => json.decode(json.encode(value));
 
-void _testPublisherAdminAuthIssues(
-    Key publisherKey, Future<void> Function(PubApiClient client) fn) {
-  testWithServices(
-      'Active user is not a member of publisher (${publisherKey.id})',
-      () async {
-    await dbService.commit(inserts: [
-      publisherMember(joeUser.userId, 'admin', parentKey: publisherKey)
-    ], deletes: [
-      publisherKey.append(PublisherMember, id: hansUser.userId)
-    ]);
-    final client = createPubApiClient(authToken: hansUser.userId);
+void _testUserNotMemberOfPublisher({
+  @required Future<void> Function(PubApiClient client) fn,
+  String authToken = 'other-at-pub-dot-dev',
+  TestProfile testProfile,
+}) {
+  testWithProfile('Active user is not a member of publisher',
+      testProfile: testProfile, fn: () async {
+    final client = createPubApiClient(authToken: authToken);
     final rs = fn(client);
     await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
   });
+}
 
-  testWithServices(
-      'Active user is not an admin of the publisher (${publisherKey.id})',
-      () async {
-    await dbService.commit(inserts: [
-      publisherMember(hansUser.userId, 'non-admin', parentKey: publisherKey),
-    ]);
-    final client = createPubApiClient(authToken: hansUser.userId);
+void _testUserNotAdminOfPublisher({
+  @required Future<void> Function(PubApiClient client) fn,
+  String authToken = adminAtPubDevAuthToken,
+  TestProfile testProfile,
+}) {
+  testWithProfile('Active user is not admin of publisher',
+      testProfile: testProfile, fn: () async {
+    await accountBackend.withBearerToken(authToken, () async {
+      final user = await requireAuthenticatedUser();
+      final members = await dbService
+          .query<PublisherMember>()
+          .run()
+          .where((e) => e.userId == user.userId)
+          .toList();
+      expect(members, isNotEmpty);
+      for (final m in members) {
+        m.role = 'non-admin';
+      }
+      await dbService.commit(inserts: members);
+    });
+    final client = createPubApiClient(authToken: authToken);
     final rs = fn(client);
     await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
   });
