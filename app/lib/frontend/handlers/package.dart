@@ -215,6 +215,7 @@ Future<shelf.Response> _handlePackagePage({
   required String? assetKind,
   required FutureOr Function(PackagePageData data) renderFn,
   Entry<String>? cacheEntry,
+  bool loadUploaderEmails = false,
 }) async {
   checkPackageVersionParams(packageName, versionName);
   if (redirectPackageUrls.containsKey(packageName)) {
@@ -228,7 +229,12 @@ Future<shelf.Response> _handlePackagePage({
 
   if (cachedPage == null) {
     final serviceSw = Stopwatch()..start();
-    final data = await loadPackagePageData(packageName, versionName, assetKind);
+    final data = await loadPackagePageData(
+      packageName,
+      versionName,
+      assetKind,
+      loadUploaderEmails: loadUploaderEmails,
+    );
     _packageDataLoadLatencyTracker.add(serviceSw.elapsed);
     if (data.package == null ||
         data.package!.isNotVisible ||
@@ -264,6 +270,7 @@ Future<shelf.Response> packageAdminHandler(
     packageName: packageName,
     versionName: null,
     assetKind: null,
+    loadUploaderEmails: true,
     renderFn: (data) async {
       if (userSessionData == null) {
         return htmlResponse(renderUnauthenticatedPage());
@@ -283,8 +290,9 @@ Future<shelf.Response> packageAdminHandler(
 Future<PackagePageData> loadPackagePageData(
   String packageName,
   String? versionName,
-  String? assetKind,
-) async {
+  String? assetKind, {
+  bool loadUploaderEmails = false,
+}) async {
   final package = await packageBackend.lookupPackage(packageName);
   if (package == null || package.isNotVisible) {
     final moderated = await packageBackend.lookupModeratedPackage(packageName);
@@ -328,8 +336,9 @@ Future<PackagePageData> loadPackagePageData(
   final analysisView = await analyzerClient.getAnalysisView(
       selectedVersion.package, selectedVersion.version!);
 
-  final uploaderEmails = await accountBackend
-      .getEmailsOfUserIds(package.uploaders as List<String>);
+  final uploaderEmails = loadUploaderEmails
+      ? await accountBackend.getEmailsOfUserIds(package.uploaders ?? <String>[])
+      : null;
 
   final isAdmin =
       await packageBackend.isPackageAdmin(package, userSessionData?.userId);
