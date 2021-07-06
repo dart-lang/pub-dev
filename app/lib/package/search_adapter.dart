@@ -13,9 +13,7 @@ import '../scorecard/backend.dart';
 import '../search/search_client.dart';
 import '../search/search_form.dart';
 import '../search/search_service.dart';
-import '../shared/redis_cache.dart' show cache;
 
-import 'backend.dart';
 import 'models.dart';
 import 'name_tracker.dart';
 
@@ -153,29 +151,6 @@ class SearchAdapter {
             'Search is temporarily impaired, filtering and ranking may be incorrect.');
   }
 
-  /// Returns the [PackageView] instance for [package] on its latest stable version.
-  ///
-  /// Returns null if the package does not exists.
-  Future<PackageView?> _getPackageView(String package) async {
-    return await cache.packageView(package).get(() async {
-      final p = await packageBackend.lookupPackage(package);
-      if (p == null) {
-        _logger.warning('Package lookup failed for "$package".');
-        return null;
-      }
-
-      final releases = await packageBackend.latestReleases(p);
-      final version = releases.stable.version;
-      final pvFuture = packageBackend.lookupPackageVersion(package, version);
-      final cardFuture = scoreCardBackend.getScoreCardData(package, version);
-      await Future.wait([pvFuture, cardFuture]);
-
-      final pv = await pvFuture;
-      final card = await cardFuture;
-      return PackageView.fromModel(package: p, version: pv, scoreCard: card);
-    });
-  }
-
   /// Returns the [PackageView] instance for each package in [packages], using
   /// the latest stable version.
   ///
@@ -183,7 +158,8 @@ class SearchAdapter {
   Future<List<PackageView?>> _getPackageViews(List<String> packages) async {
     final futures = <Future<PackageView?>>[];
     for (final p in packages) {
-      futures.add(_pool.withResource(() async => _getPackageView(p)));
+      futures.add(
+          _pool.withResource(() async => scoreCardBackend.getPackageView(p)));
     }
     return await Future.wait(futures);
   }
@@ -194,7 +170,7 @@ class SearchAdapter {
     final futures = <Future>[];
     for (final hit in hits) {
       final f = _pool.withResource(() async {
-        final view = await _getPackageView(hit.package);
+        final view = await scoreCardBackend.getPackageView(hit.package);
         if (view == null) {
           // The package may have been deleted, but the index still has it.
           return;

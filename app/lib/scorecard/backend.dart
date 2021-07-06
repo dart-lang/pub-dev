@@ -10,7 +10,8 @@ import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-import '../package/models.dart' show Package, PackageVersion;
+import '../package/backend.dart';
+import '../package/models.dart' show Package, PackageVersion, PackageView;
 import '../package/overrides.dart';
 import '../shared/datastore.dart' as db;
 import '../shared/popularity_storage.dart';
@@ -57,6 +58,29 @@ ScoreCardBackend get scoreCardBackend =>
 class ScoreCardBackend {
   final db.DatastoreDB _db;
   ScoreCardBackend(this._db);
+
+  /// Returns the [PackageView] instance for [package] on its latest stable version.
+  ///
+  /// Returns null if the package does not exists.
+  Future<PackageView?> getPackageView(String package) async {
+    return await cache.packageView(package).get(() async {
+      final p = await packageBackend.lookupPackage(package);
+      if (p == null) {
+        _logger.warning('Package lookup failed for "$package".');
+        return null;
+      }
+
+      final releases = await packageBackend.latestReleases(p);
+      final version = releases.stable.version;
+      final pvFuture = packageBackend.lookupPackageVersion(package, version);
+      final cardFuture = scoreCardBackend.getScoreCardData(package, version);
+      await Future.wait([pvFuture, cardFuture]);
+
+      final pv = await pvFuture;
+      final card = await cardFuture;
+      return PackageView.fromModel(package: p, version: pv, scoreCard: card);
+    });
+  }
 
   /// Returns the [ScoreCardData] for the given package and version.
   Future<ScoreCardData?> getScoreCardData(
