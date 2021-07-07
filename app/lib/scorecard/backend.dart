@@ -272,7 +272,7 @@ class ScoreCardBackend {
     }
     final lists = await Future.wait(futures);
     final results = lists.fold<List<ScoreCardData?>>(
-      <ScoreCardData>[],
+      <ScoreCardData?>[],
       (r, list) => r..addAll(list),
     );
     await pool.close();

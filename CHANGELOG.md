@@ -9,6 +9,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded preview Dart analysis SDK to `2.14.0-188.5.beta`
  * Upgraded preview Flutter analysis SDK to `2.3.0-24.1.pre`.
  * Upgraded dartdoc to `1.0.0`.
+ * NOTE: `app/bin/server.dart` is migrated to null-safety.
 
 ## `20210622t160400-all`
  * Bumped runtimeVersion to `2021.06.21`.
