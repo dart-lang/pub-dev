@@ -203,6 +203,22 @@ class DartdocJobProcessor extends JobProcessor {
       return JobStatus.skipped;
     }
 
+    // Detect silent errors or timeouts and make sure we unblock the seemingly
+    // neverending 'awaiting' statuses.
+    if (job.attemptCount > 1) {
+      final currentCard = await scoreCardBackend.getScoreCardData(
+        job.packageName!,
+        job.packageVersion!,
+        onlyCurrent: true,
+      );
+      if (currentCard?.dartdocReport == null) {
+        // These package versions are worth investigating, but we don't need
+        // alerts on them.
+        _logger.warning('Missing dartdoc report when error was present: $job.');
+        await _storeScoreCard(job, _emptyReport());
+      }
+    }
+
     final logger =
         Logger('pub.dartdoc.runner/${job.packageName}/${job.packageVersion}');
     final tempDir =
