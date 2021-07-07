@@ -9,11 +9,11 @@ import 'dart:io';
 
 import 'package:html/parser.dart';
 import 'package:pana/pana.dart' hide ReportStatus;
-import 'package:pub_dev/package/search_adapter.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:xml/xml.dart' as xml;
 
+import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/analyzer/analyzer_client.dart';
 import 'package:pub_dev/dartdoc/models.dart';
@@ -30,8 +30,12 @@ import 'package:pub_dev/frontend/templates/package_admin.dart';
 import 'package:pub_dev/frontend/templates/package_analysis.dart';
 import 'package:pub_dev/frontend/templates/package_versions.dart';
 import 'package:pub_dev/frontend/templates/publisher.dart';
+import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/package/search_adapter.dart';
+import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/publisher/models.dart';
+import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/scorecard/models.dart';
 import 'package:pub_dev/search/search_form.dart';
 import 'package:pub_dev/search/search_service.dart';
@@ -118,53 +122,25 @@ void main() {
       expect(xmlContent.split('\n'), golden.split('\n'));
     }
 
-    scopedTest('landing page', () {
-      final String html = renderLandingPage(ffPackages: [
-        PackageView.fromModel(
-          package: foobarPackage,
-          version: foobarStablePV,
-          scoreCard: ScoreCardData(
-            derivedTags: [
-              'sdk:flutter',
-              'platform:android',
-              'is:flutter-favorite',
-            ],
-            reportTypes: ['pana'],
-          ),
-        ),
-      ], mostPopularPackages: [
-        PackageView.fromModel(
-          package: foobarPackage,
-          version: foobarStablePV,
-          scoreCard: ScoreCardData(
-            derivedTags: [
-              'sdk:flutter',
-              'platform:android',
-              'is:flutter-favorite',
-            ],
-            reportTypes: ['pana'],
-          ),
-        ),
-        PackageView.fromModel(
-          package: helium.package,
-          version: helium.latestStableVersion,
-          scoreCard: ScoreCardData(
-            derivedTags: [
-              'sdk:dart',
-              'runtime:native',
-            ],
-            reportTypes: ['pana'],
-          ),
-        ),
-      ], topPoWVideos: [
-        PkgOfWeekVideo(
-            videoId: 'video-id',
-            title: 'POW Title',
-            description: 'POW description',
-            thumbnailUrl: 'http://youtube.com/image/thumbnail?i=123&s=4'),
-      ]);
-      expectGoldenFile(html, 'landing_page.html');
-    });
+    testWithProfile(
+      'landing page',
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final html = renderLandingPage(ffPackages: [
+          await scoreCardBackend.getPackageView('flutter_titanium'),
+        ], mostPopularPackages: [
+          await scoreCardBackend.getPackageView('neon'),
+          await scoreCardBackend.getPackageView('oxygen'),
+        ], topPoWVideos: [
+          PkgOfWeekVideo(
+              videoId: 'video-id',
+              title: 'POW Title',
+              description: 'POW description',
+              thumbnailUrl: 'http://youtube.com/image/thumbnail?i=123&s=4'),
+        ]);
+        expectGoldenFile(html, 'landing_page.html');
+      },
+    );
 
     PackagePageData foobarPageDataFn({String assetKind}) => PackagePageData(
           package: foobarPackage,
@@ -363,19 +339,15 @@ void main() {
       expectGoldenFile(html, 'pkg_show_page_legacy.html');
     });
 
-    testWithProfile(
-      'package show page with publisher',
-      processJobsWithFakeRunners: true,
-      fn: () async {
-        final data =
-            await loadPackagePageData('neon', '1.0.0', AssetKind.readme);
-        final html = renderPkgShowPage(data);
-        expectGoldenFile(html, 'pkg_show_page_publisher.html', timestamps: {
-          'published': data.package.created,
-          'updated': data.package.lastVersionPublished,
-        });
-      },
-    );
+    // package analysis was intentionally left out for this template
+    testWithProfile('package show page with publisher', fn: () async {
+      final data = await loadPackagePageData('neon', '1.0.0', AssetKind.readme);
+      final html = renderPkgShowPage(data);
+      expectGoldenFile(html, 'pkg_show_page_publisher.html', timestamps: {
+        'published': data.package.created,
+        'updated': data.package.lastVersionPublished,
+      });
+    });
 
     scopedTest('no content for analysis tab', () async {
       // no content
@@ -493,97 +465,89 @@ void main() {
       expectGoldenFile(html, 'pkg_admin_page_outdated.html');
     });
 
-    scopedTest('package index page', () {
-      final searchForm = SearchForm.parse();
-      final String html = renderPkgIndexPage(
-        SearchResultPage(
-          searchForm,
-          2,
-          packageHits: [
-            PackageView.fromModel(
-              package: foobarPackage,
-              version: foobarStablePV,
-              scoreCard: ScoreCardData(),
-            ),
-            PackageView.fromModel(
-              package: foobarPackage,
-              version: flutterPackageVersion,
-              scoreCard: ScoreCardData(
-                derivedTags: ['sdk:flutter', 'platform:android'],
-                reportTypes: ['pana'],
-              ),
-            ),
-          ],
-        ),
-        PageLinks.empty(),
-        searchForm: searchForm,
-      );
-      expectGoldenFile(html, 'pkg_index_page.html');
-    });
-
-    scopedTest('package index page with search', () {
-      final searchForm =
-          SearchForm.parse(query: 'foobar', order: SearchOrder.top);
-      final String html = renderPkgIndexPage(
-        SearchResultPage(
-          searchForm,
-          2,
-          packageHits: [
-            PackageView.fromModel(
-              package: foobarPackage,
-              version: foobarStablePV,
-              scoreCard: ScoreCardData(),
-              apiPages: [
-                ApiPageRef(path: 'some/some-library.html'),
-                ApiPageRef(title: 'Class X', path: 'some/x-class.html'),
-              ],
-            ),
-            PackageView.fromModel(
-              package: foobarPackage,
-              version: flutterPackageVersion,
-              scoreCard: ScoreCardData(
-                derivedTags: ['sdk:flutter', 'platform:android'],
-                reportTypes: ['pana'],
-              ),
-            ),
-          ],
-        ),
-        PageLinks(searchForm, 50),
-        searchForm: searchForm,
-        totalCount: 2,
-      );
-      expectGoldenFile(html, 'search_page.html');
-    });
-
-    scopedTest('package versions page', () {
-      final String html = renderPkgVersionsPage(
-        PackagePageData(
-          package: foobarPackage,
-          isLiked: false,
-          uploaderEmails: foobarUploaderEmails,
-          version: foobarStablePV,
-          versionInfo: foobarStablePvInfo,
-          asset: null,
-          analysis: AnalysisView(
-            ScoreCardData(
-              derivedTags: ['sdk:dart', 'sdk:flutter'],
-              popularityScore: 0.2,
-            ),
+    testWithProfile(
+      'package index page',
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final searchForm = SearchForm.parse();
+        final oxygen = await scoreCardBackend.getPackageView('oxygen');
+        final titanium =
+            await scoreCardBackend.getPackageView('flutter_titanium');
+        final String html = renderPkgIndexPage(
+          SearchResultPage(
+            searchForm,
+            2,
+            packageHits: [oxygen, titanium],
           ),
-          isAdmin: false,
-        ),
-        [
-          foobarStablePV,
-          foobarDevPV,
-        ],
-        [
-          Uri.parse('https://pub.dartlang.org/mock-download-uri.tar.gz'),
-          Uri.parse('https://pub.dartlang.org/mock-download-uri.tar.gz'),
-        ],
-        dartSdkVersion: Version(2, 10, 0),
-      );
-      expectGoldenFile(html, 'pkg_versions_page.html');
-    });
+          PageLinks.empty(),
+          searchForm: searchForm,
+        );
+        expectGoldenFile(html, 'pkg_index_page.html', timestamps: {
+          'oxygen-created': oxygen.created,
+          'oxygen-updated': oxygen.updated,
+          'titanium-created': titanium.created,
+          'titanium-updated': titanium.updated,
+        });
+      },
+    );
+
+    testWithProfile(
+      'package index page with search',
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final searchForm =
+            SearchForm.parse(query: 'foobar', order: SearchOrder.top);
+        final oxygen = await scoreCardBackend.getPackageView('oxygen');
+        final titanium =
+            await scoreCardBackend.getPackageView('flutter_titanium');
+        final String html = renderPkgIndexPage(
+          SearchResultPage(
+            searchForm,
+            2,
+            packageHits: [
+              oxygen.change(
+                apiPages: [
+                  ApiPageRef(path: 'some/some-library.html'),
+                  ApiPageRef(title: 'Class X', path: 'some/x-class.html'),
+                ],
+              ),
+              titanium,
+            ],
+          ),
+          PageLinks(searchForm, 50),
+          searchForm: searchForm,
+          totalCount: 2,
+        );
+        expectGoldenFile(html, 'search_page.html', timestamps: {
+          'oxygen-created': oxygen.created,
+          'oxygen-updated': oxygen.updated,
+          'titanium-created': titanium.created,
+          'titanium-updated': titanium.updated,
+        });
+      },
+    );
+
+    testWithProfile(
+      'package versions page',
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final data = await loadPackagePageData('oxygen', '1.2.0', null);
+        final versions = await packageBackend.versionsOfPackage('oxygen');
+        final html = renderPkgVersionsPage(
+          data,
+          versions,
+          versions
+              .map((v) => Uri.parse(
+                  'https://pub.dev/download-url/${v.package}/${v.version}'))
+              .toList(),
+          dartSdkVersion: Version.parse(runtimeSdkVersion),
+        );
+        expectGoldenFile(html, 'pkg_versions_page.html', timestamps: {
+          'version-created': data.version.created,
+          'package-created': data.package.created,
+        });
+      },
+    );
 
     scopedTest('publisher list page', () {
       final html = renderPublisherListPage(
@@ -601,115 +565,122 @@ void main() {
       expectGoldenFile(html, 'publisher_list_page.html');
     });
 
-    scopedTest('publisher packages page', () {
-      final searchForm = SearchForm.parse(publisherId: 'example.com');
-      final html = renderPublisherPackagesPage(
-        publisher: Publisher()
-          ..id = 'example.com'
-          ..contactEmail = 'hello@example.com'
-          ..description = 'This is our little software developer shop.\n\n'
-              'We develop full-stack in Dart, and happy about it.'
-          ..websiteUrl = 'https://example.com/'
-          ..created = DateTime(2019, 09, 13),
-        searchResultPage: SearchResultPage(
-          searchForm,
-          2,
-          packageHits: [
-            PackageView(
-              name: 'super_package',
-              version: '1.0.0',
-              previewVersion: '1.4.0',
-              prereleaseVersion: '1.5.0-dev',
-              ellipsizedDescription: 'A great web UI library.',
-              created: DateTime.utc(2019, 01, 03),
-              updated: DateTime.utc(2019, 01, 03),
-              tags: ['sdk:dart', 'runtime:web'],
-            ),
-            PackageView(
-              name: 'another_package',
-              version: '2.0.0',
-              prereleaseVersion: '3.0.0-beta2',
-              ellipsizedDescription: 'Camera plugin.',
-              created: DateTime.utc(2019, 03, 30),
-              updated: DateTime.utc(2019, 03, 30),
-              tags: ['sdk:flutter', 'platform:android'],
-            ),
-          ],
-        ),
-        totalCount: 2,
-        searchForm: searchForm,
-        pageLinks: PageLinks(searchForm, 10),
-        isAdmin: true,
-        messageFromBackend: null,
-      );
-      expectGoldenFile(html, 'publisher_packages_page.html');
-    });
-
-    scopedTest('/my-packages page', () {
-      final searchForm =
-          SearchForm.parse(uploaderOrPublishers: [hansUser.email]);
-      final String html = renderAccountPackagesPage(
-        user: hansUser,
-        userSessionData: hansUserSessionData,
-        searchResultPage: SearchResultPage(
-          searchForm,
-          2,
-          packageHits: [
-            PackageView(
-              name: 'super_package',
-              version: '1.0.0',
-              ellipsizedDescription: 'A great web UI library.',
-              created: DateTime.utc(2019, 01, 03),
-              updated: DateTime.utc(2019, 01, 03),
-              tags: ['sdk:dart', 'runtime:web'],
-            ),
-            PackageView(
-              name: 'another_package',
-              version: '2.0.0',
-              prereleaseVersion: '3.0.0-beta2',
-              ellipsizedDescription: 'Camera plugin.',
-              created: DateTime.utc(2019, 03, 30),
-              updated: DateTime.utc(2019, 03, 30),
-              tags: ['sdk:flutter', 'platform:android'],
-            ),
-          ],
-        ),
-        pageLinks: PageLinks(searchForm, 10),
-        searchForm: searchForm,
-        totalCount: 2,
-        messageFromBackend: null,
-      );
-      expectGoldenFile(html, 'my_packages.html');
-    });
-
-    scopedTest('/my-liked-packages page', () {
-      final String html = renderMyLikedPackagesPage(
-        user: hansUser,
-        userSessionData: hansUserSessionData,
-        likes: [
-          LikeData(
-              package: 'super_package',
-              created: DateTime.fromMillisecondsSinceEpoch(1574423824000)),
-          LikeData(
-              package: 'another_package',
-              created: DateTime.fromMillisecondsSinceEpoch(1574423824000))
-        ],
-      );
-      expectGoldenFile(html, 'my_liked_packages.html');
-    });
-
-    scopedTest('/my-publishers page', () {
-      final String html = renderAccountPublishersPage(
-        user: hansUser,
-        userSessionData: hansUserSessionData,
-        publishers: [
-          PublisherSummary(
-            publisherId: exampleComPublisher.publisherId,
-            created: exampleComPublisher.created,
+    testWithProfile(
+      'publisher packages page',
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final searchForm = SearchForm.parse(publisherId: 'example.com');
+        final publisher = await publisherBackend.getPublisher('example.com');
+        final neon = await scoreCardBackend.getPackageView('neon');
+        final titanium =
+            await scoreCardBackend.getPackageView('flutter_titanium');
+        final html = renderPublisherPackagesPage(
+          publisher: publisher,
+          searchResultPage: SearchResultPage(
+            searchForm,
+            2,
+            packageHits: [neon, titanium],
           ),
-        ],
-      );
-      expectGoldenFile(html, 'my_publishers.html');
+          totalCount: 2,
+          searchForm: searchForm,
+          pageLinks: PageLinks(searchForm, 10),
+          isAdmin: true,
+          messageFromBackend: null,
+        );
+        expectGoldenFile(html, 'publisher_packages_page.html', timestamps: {
+          'neon-created': neon.created,
+          'neon-updated': neon.updated,
+          'titanium-created': titanium.created,
+          'titanium-updated': titanium.updated,
+          'publisher-created': publisher.created,
+          'publisher-updated': publisher.updated,
+        });
+      },
+    );
+
+    testWithProfile(
+      '/my-packages page',
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final oxygen = await scoreCardBackend.getPackageView('oxygen');
+        final neon = await scoreCardBackend.getPackageView('neon');
+        await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
+          final user = await requireAuthenticatedUser();
+          final session = await accountBackend.createNewSession(
+            name: 'Pub User',
+            imageUrl: 'pub.dev/user-img-url.png',
+          );
+          final searchForm =
+              SearchForm.parse(uploaderOrPublishers: [user.email]);
+          final String html = renderAccountPackagesPage(
+            user: user,
+            userSessionData: session,
+            searchResultPage: SearchResultPage(
+              searchForm,
+              2,
+              packageHits: [oxygen, neon],
+            ),
+            pageLinks: PageLinks(searchForm, 10),
+            searchForm: searchForm,
+            totalCount: 2,
+            messageFromBackend: null,
+          );
+          expectGoldenFile(html, 'my_packages.html', timestamps: {
+            'oxygen-created': oxygen.created,
+            'oxygen-updated': oxygen.updated,
+            'neon-created': neon.created,
+            'neon-updated': neon.updated,
+          });
+        });
+      },
+    );
+
+    testWithProfile('/my-liked-packages page', fn: () async {
+      await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
+        final user = await requireAuthenticatedUser();
+        final session = await accountBackend.createNewSession(
+          name: 'Pub User',
+          imageUrl: 'pub.dev/user-img-url.png',
+        );
+        final html = renderMyLikedPackagesPage(
+          user: user,
+          userSessionData: session,
+          likes: [
+            LikeData(
+                package: 'super_package',
+                created: DateTime.fromMillisecondsSinceEpoch(1574423824000)),
+            LikeData(
+                package: 'another_package',
+                created: DateTime.fromMillisecondsSinceEpoch(1574423824000))
+          ],
+        );
+        expectGoldenFile(html, 'my_liked_packages.html', timestamps: {
+          'user-created': user.created,
+        });
+      });
+    });
+
+    testWithProfile('/my-publishers page', fn: () async {
+      await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
+        final user = await requireAuthenticatedUser();
+        final session = await accountBackend.createNewSession(
+          name: 'Pub User',
+          imageUrl: 'pub.dev/user-img-url.png',
+        );
+        final html = renderAccountPublishersPage(
+          user: user,
+          userSessionData: session,
+          publishers: [
+            PublisherSummary(
+              publisherId: 'example.com',
+              created: DateTime(2021, 07, 01, 16, 05),
+            ),
+          ],
+        );
+        expectGoldenFile(html, 'my_publishers.html', timestamps: {
+          'user-created': user.created,
+        });
+      });
     });
 
     scopedTest('authorized page', () {
