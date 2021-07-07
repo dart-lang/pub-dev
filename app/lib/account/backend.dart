@@ -112,7 +112,7 @@ class AccountBackend {
   /// Uses in-memory cache to store entries locally for up to 10 minutes.
   Future<String?> getEmailOfUserId(String userId) async {
     final entry = _emailCache[userId];
-    var email = await entry.get() as String?;
+    var email = await entry.get();
     if (email != null) {
       return email;
     }

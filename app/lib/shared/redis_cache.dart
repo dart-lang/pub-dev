@@ -9,10 +9,8 @@ import 'dart:math';
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:neat_cache/cache_provider.dart';
-// ignore: import_of_legacy_library_into_null_safe
-import 'package:neat_cache/neat_cache.dart' as nc;
+import 'package:neat_cache/neat_cache.dart';
 
 import 'package:client_data/package_api.dart' show VersionScore;
 
@@ -24,7 +22,6 @@ import '../scorecard/models.dart' show ScoreCardData;
 import '../search/search_service.dart' show PackageSearchResult;
 import '../service/secret/backend.dart';
 import 'convert.dart';
-import 'redis_cache_wrapper.dart';
 import 'versions.dart';
 
 final Logger _log = Logger('rediscache');
@@ -33,11 +30,11 @@ final _defaultCacheReadTimeout = Duration(milliseconds: 300);
 final _defaultCacheWriteTimeout = Duration(milliseconds: 1000);
 
 class CachePatterns {
-  final CacheWrapper<List<int>?> _cache;
-  CachePatterns._(nc.Cache<List<int>?> cache)
-      : _cache = CacheWrapper(cache
+  final Cache<List<int>?> _cache;
+  CachePatterns._(Cache<List<int>?> cache)
+      : _cache = cache
             .withPrefix('rv-$runtimeVersion')
-            .withTTL(Duration(minutes: 10)));
+            .withTTL(Duration(minutes: 10));
 
   // NOTE: This class should only contain methods that return Entry<T>, as well
   //       configuration options like prefix and TTL.
@@ -308,17 +305,17 @@ Future _registerRedisCache() async {
   if (connectionString == null || connectionString.isEmpty) {
     throw Exception('Secret ${SecretKey.redisConnectionString} is missing');
   }
+  final connectionUri = Uri.parse(connectionString);
 
   // Create and register a cache
   final cacheProvider = await _ConnectionRefreshingCacheProvider.connect(
-      () async => nc.Cache.redisCacheProvider(connectionString));
-  _registerCache(CachePatterns._(nc.Cache(cacheProvider)));
+      () async => Cache.redisCacheProvider(connectionUri));
+  _registerCache(CachePatterns._(Cache(cacheProvider)));
   ss.registerScopeExitCallback(() async => cacheProvider.close());
 }
 
 Future _registerInmemoryCache() async {
-  _registerCache(
-      CachePatterns._(nc.Cache(nc.Cache.inMemoryCacheProvider(4096))));
+  _registerCache(CachePatterns._(Cache(Cache.inMemoryCacheProvider(4096))));
 }
 
 /// Creates a [CacheProvider] when called.

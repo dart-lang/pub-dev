@@ -6,7 +6,6 @@ environment:
 dependencies:
   _popularity:
     path: ../pkg/_popularity
-  neat_cache: ^1.0.0
   appengine: '^0.13.0'
   args: '^2.0.0'
   basics: ^0.6.0
@@ -29,6 +28,7 @@ dependencies:
   meta: ^1.1.2
   mime: '>=0.9.3 <2.0.0'
   mustache_template: ^2.0.0
+  neat_cache: ^2.0.0
   neat_periodic_task: ^2.0.0
   path: '^1.8.0'
   pool: '^1.5.0'
@@ -68,7 +68,3 @@ dev_dependencies:
   source_gen: '^1.0.0'
   test: ^1.16.5
   xml: ^5.0.0
-
-dependency_overrides:
-  convert: ^3.0.0 # neat_cache
-  logging: ^1.0.0 # neat_cache

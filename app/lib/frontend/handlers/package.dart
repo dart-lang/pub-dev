@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:meta/meta.dart';
+import 'package:neat_cache/neat_cache.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
@@ -15,7 +16,6 @@ import '../../package/overrides.dart';
 import '../../publisher/backend.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
-import '../../shared/redis_cache_wrapper.dart';
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart';
 import '../../tool/utils/dart_sdk_version.dart';
