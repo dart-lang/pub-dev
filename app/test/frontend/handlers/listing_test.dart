@@ -40,7 +40,6 @@ void main() {
         await issueGet('/packages/oxygen.json'),
         body: {
           'name': 'oxygen',
-          'uploaders': ['admin@pub.dev'],
           'versions': ['2.0.0-dev', '1.0.0', '1.2.0']
         },
       );
