@@ -6,8 +6,6 @@ import 'dart:convert';
 
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:gcloud/db.dart';
-import 'package:pana/models.dart' hide ReportStatus;
-import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -15,7 +13,6 @@ import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/package/model_properties.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/publisher/models.dart';
-import 'package:pub_dev/scorecard/models.dart';
 
 final defaultTestProfile = TestProfile(
   defaultUser: 'admin@pub.dev',
@@ -57,10 +54,6 @@ const adminAtPubDevAuthToken = 'admin-at-pub-dot-dev';
 const userAtPubDevAuthToken = 'user-at-pub-dot-dev';
 const unauthorizedAtPubDevAuthToken = 'unauthorized-at-pub-dot-dev';
 
-// regular package
-final hydrogen =
-    _generateBundle('hydrogen', generateVersions(13, increment: 9));
-
 // Flutter plugin
 final helium = _generateBundle(
   'helium',
@@ -99,12 +92,6 @@ final hansUserSessionData = UserSessionData(
 final joeUser = User()
   ..id = 'joe-at-example-dot-com'
   ..email = 'joe@example.com'
-  ..created = DateTime(2019, 01, 01)
-  ..isBlocked = false
-  ..isDeleted = false;
-final testUserA = User()
-  ..id = 'a-example-com'
-  ..email = 'a@example.com'
   ..created = DateTime(2019, 01, 01)
   ..isBlocked = false
   ..isDeleted = false;
@@ -288,9 +275,6 @@ Publisher publisher(String domain) => Publisher()
   ..created = DateTime(2019, 07, 15)
   ..updated = DateTime(2019, 07, 16)
   ..isAbandoned = false;
-
-final exampleComHansAdmin =
-    publisherMember(hansUser.userId, PublisherMemberRole.admin);
 
 PublisherMember publisherMember(String? userId, String role,
         {Key? parentKey}) =>
@@ -491,20 +475,4 @@ PkgBundle _generateBundle(
   }
 
   return PkgBundle(package, versions, infos, assets);
-}
-
-PanaReport generatePanaReport({List<String>? derivedTags}) {
-  return PanaReport(
-    timestamp: DateTime.now(),
-    panaRuntimeInfo: PanaRuntimeInfo(
-      sdkVersion: '2.12.0',
-      panaVersion: panaVersion,
-    ),
-    reportStatus: ReportStatus.success,
-    derivedTags: derivedTags ?? <String>[],
-    allDependencies: null,
-    licenseFile: null,
-    flags: null,
-    report: Report(sections: <ReportSection>[]),
-  );
 }
