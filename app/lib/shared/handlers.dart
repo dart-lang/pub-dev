@@ -37,20 +37,6 @@ const jsonResponseHeaders = <String, String>{
 final _logger = Logger('pub.shared.handler');
 final _prettyJson = JsonUtf8Encoder('  ');
 
-extension ResponseExt on shelf.Response {
-  bool get isRouteFound => !isRouteNotFound;
-  bool get isRouteNotFound {
-    if (statusCode == 9999) return true;
-    if (statusCode != 404) return false;
-    if (headers.length != 1) return false;
-    if (headers.keys.single != 'content-length') return false;
-    if (headers['content-length'] != '9') return false;
-    return true;
-  }
-}
-
-shelf.Response routeNotFound() => shelf.Response(9999);
-
 shelf.Response redirectResponse(String url) => shelf.Response.seeOther(url);
 
 shelf.Response redirectToSearch(String query) {
