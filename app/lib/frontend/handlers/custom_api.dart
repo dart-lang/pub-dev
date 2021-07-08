@@ -52,7 +52,7 @@ Future<shelf.Response> apiDocumentationHandler(
   }
 
   final dartdocEntries = await dartdocBackend.getEntriesForVersions(
-      package, versions.map((pv) => pv.version).toList() as List<String>);
+      package, versions.map((pv) => pv.version!).toList());
 
   final versionsData = [];
   for (int i = 0; i < versions.length; i++) {
