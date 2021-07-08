@@ -101,7 +101,7 @@ class Job extends ExpandoModel<String> {
   int? lastRunDurationInSeconds;
 
   @IntProperty(indexed: false)
-  int attemptCount = 0;
+  int? attemptCount = 0;
 
   @IntProperty(indexed: false)
   int errorCount = 0;

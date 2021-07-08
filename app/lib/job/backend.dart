@@ -207,7 +207,7 @@ class JobBackend {
         final now = DateTime.now().toUtc();
         selected!
           ..state = JobState.processing
-          ..attemptCount = selected.attemptCount + 1
+          ..attemptCount = (selected.attemptCount ?? 0) + 1
           ..processingKey = createUuid()
           ..lockedUntil = now.add(_defaultLockDuration);
         tx.insert(selected);
