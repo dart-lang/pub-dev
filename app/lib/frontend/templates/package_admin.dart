@@ -14,6 +14,7 @@ import 'package.dart';
 String renderPkgAdminPage(
   PackagePageData data,
   List<String?> userPublishers,
+  List<String?> uploaderEmails,
 ) {
   final showUploaderAdmin = data.package!.publisherId == null;
   final tabs = buildPackageTabs(
@@ -38,8 +39,7 @@ String renderPkgAdminPage(
             .toList(),
         'create_publisher_url': urls.createPublisherUrl(),
         'show_uploader_admin': showUploaderAdmin,
-        'uploader_emails':
-            data.uploaderEmails?.map((e) => {'email': e}).toList(),
+        'uploader_emails': uploaderEmails.map((e) => {'email': e}).toList(),
       }),
     ),
   );

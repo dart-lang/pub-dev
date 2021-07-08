@@ -145,7 +145,6 @@ void main() {
     PackagePageData foobarPageDataFn({String assetKind}) => PackagePageData(
           package: foobarPackage,
           isLiked: false,
-          uploaderEmails: foobarUploaderEmails,
           version: foobarStablePV,
           versionInfo: foobarStablePvInfo,
           asset: assetKind == null ? null : foobarAssets[assetKind],
@@ -222,7 +221,6 @@ void main() {
       final String html = renderPkgShowPage(PackagePageData(
         package: foobarPackage,
         isLiked: false,
-        uploaderEmails: foobarUploaderEmails,
         version: foobarDevPV,
         versionInfo: foobarDevPvInfo,
         asset: null,
@@ -250,7 +248,6 @@ void main() {
       final String html = renderPkgShowPage(PackagePageData(
         package: foobarPackage,
         isLiked: false,
-        uploaderEmails: foobarUploaderEmails,
         version: flutterPackageVersion,
         versionInfo: foobarStablePvInfo,
         asset: foobarAssets[AssetKind.readme],
@@ -280,7 +277,6 @@ void main() {
       final String html = renderPkgShowPage(PackagePageData(
         package: foobarPackage,
         isLiked: false,
-        uploaderEmails: foobarUploaderEmails,
         version: foobarStablePV,
         versionInfo: foobarStablePvInfo,
         asset: foobarAssets[AssetKind.readme],
@@ -300,7 +296,6 @@ void main() {
       final String html = renderPkgShowPage(PackagePageData(
         package: discontinuedPackage,
         isLiked: false,
-        uploaderEmails: foobarUploaderEmails,
         version: foobarStablePV,
         versionInfo: foobarStablePvInfo,
         asset: foobarAssets[AssetKind.readme],
@@ -320,10 +315,6 @@ void main() {
       final String html = renderPkgShowPage(PackagePageData(
         package: foobarPackage,
         isLiked: false,
-        uploaderEmails: <String>[
-          hansUser.email,
-          joeUser.email,
-        ],
         version: foobarStablePV,
         versionInfo: foobarStablePvInfo,
         asset: foobarAssets[AssetKind.readme],
@@ -445,7 +436,6 @@ void main() {
       final String html = renderPkgAdminPage(
         PackagePageData(
           package: foobarPackage,
-          uploaderEmails: foobarUploaderEmails,
           version: foobarStablePV,
           versionInfo: foobarStablePvInfo,
           asset: null,
@@ -461,6 +451,7 @@ void main() {
         [
           'example.com',
         ],
+        foobarUploaderEmails,
       );
       expectGoldenFile(html, 'pkg_admin_page_outdated.html');
     });
