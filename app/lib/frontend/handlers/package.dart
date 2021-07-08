@@ -51,12 +51,8 @@ Future<shelf.Response> packageShowHandlerJson(
   final versions = await packageBackend.versionsOfPackage(packageName);
   sortPackageVersionsDesc(versions, decreasing: false);
 
-  final uploaderEmails = await accountBackend
-      .getEmailsOfUserIds(package.uploaders as List<String>);
-
   final json = {
     'name': package.name,
-    'uploaders': uploaderEmails,
     'versions':
         versions.map((packageVersion) => packageVersion.version).toList(),
   };
