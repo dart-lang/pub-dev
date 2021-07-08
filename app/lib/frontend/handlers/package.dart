@@ -273,8 +273,13 @@ Future<shelf.Response> packageAdminHandler(
       }
       final page = await publisherBackend
           .listPublishersForUser(userSessionData!.userId!);
+      final uploaderEmails = await accountBackend
+          .getEmailsOfUserIds(data.package!.uploaders ?? <String>[]);
       return renderPkgAdminPage(
-          data, page.publishers!.map((p) => p.publisherId).toList());
+        data,
+        page.publishers!.map((p) => p.publisherId).toList(),
+        uploaderEmails,
+      );
     },
   );
 }
@@ -328,9 +333,6 @@ Future<PackagePageData> loadPackagePageData(
   final analysisView = await analyzerClient.getAnalysisView(
       selectedVersion.package, selectedVersion.version!);
 
-  final uploaderEmails = await accountBackend
-      .getEmailsOfUserIds(package.uploaders as List<String>);
-
   final isAdmin =
       await packageBackend.isPackageAdmin(package, userSessionData?.userId);
 
@@ -341,7 +343,6 @@ Future<PackagePageData> loadPackagePageData(
     versionInfo: versionInfo,
     asset: asset,
     analysis: analysisView,
-    uploaderEmails: uploaderEmails,
     isAdmin: isAdmin,
     isLiked: isLiked,
   );

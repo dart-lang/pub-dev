@@ -846,7 +846,6 @@ class PackagePageData {
   final PackageVersionInfo? versionInfo;
   final PackageVersionAsset? asset;
   final AnalysisView? analysis;
-  final List<String?>? uploaderEmails;
   final bool? isAdmin;
   final bool? isLiked;
   PackageView? _view;
@@ -858,7 +857,6 @@ class PackagePageData {
     required this.versionInfo,
     required this.asset,
     required this.analysis,
-    required this.uploaderEmails,
     required this.isAdmin,
     required this.isLiked,
   })  : latestReleases = latestReleases ?? package!.latestReleases,
@@ -872,7 +870,6 @@ class PackagePageData {
         versionInfo = null,
         asset = null,
         analysis = null,
-        uploaderEmails = null,
         isAdmin = null,
         isLiked = null;
 
