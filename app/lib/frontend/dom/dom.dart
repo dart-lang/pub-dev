@@ -139,6 +139,21 @@ Node img({
   );
 }
 
+/// Creates a `<li>` Element using the default [DomContext].
+Node li({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+}) =>
+    dom.element(
+      'li',
+      id: id,
+      classes: classes,
+      attributes: attributes,
+      children: children,
+    );
+
 /// Creates a `<span>` Element using the default [DomContext].
 Node span({
   String? id,
@@ -148,6 +163,21 @@ Node span({
 }) =>
     dom.element(
       'span',
+      id: id,
+      classes: classes,
+      attributes: attributes,
+      children: children,
+    );
+
+/// Creates a `<ul>` Element using the default [DomContext].
+Node ul({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+}) =>
+    dom.element(
+      'ul',
       id: id,
       classes: classes,
       attributes: attributes,

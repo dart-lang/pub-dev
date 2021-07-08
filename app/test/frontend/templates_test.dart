@@ -682,25 +682,28 @@ void main() {
       expectGoldenFile(html, 'error_page.html');
     });
 
-    scopedTest('pagination: single page', () {
-      final String html = renderPagination(PageLinks.empty());
+    test('pagination: single page', () {
+      final html = renderPagination(PageLinks.empty()).toString();
       expectGoldenFile(html, 'pagination_single.html', isFragment: true);
     });
 
-    scopedTest('pagination: in the middle', () {
-      final String html =
-          renderPagination(PageLinks(SearchForm.parse(currentPage: 10), 299));
+    test('pagination: in the middle', () {
+      final html =
+          renderPagination(PageLinks(SearchForm.parse(currentPage: 10), 299))
+              .toString();
       expectGoldenFile(html, 'pagination_middle.html', isFragment: true);
     });
 
-    scopedTest('pagination: at first page', () {
-      final String html = renderPagination(PageLinks(SearchForm.parse(), 600));
+    test('pagination: at first page', () {
+      final html =
+          renderPagination(PageLinks(SearchForm.parse(), 600)).toString();
       expectGoldenFile(html, 'pagination_first.html', isFragment: true);
     });
 
-    scopedTest('pagination: at last page', () {
-      final String html =
-          renderPagination(PageLinks(SearchForm.parse(currentPage: 10), 91));
+    test('pagination: at last page', () {
+      final html =
+          renderPagination(PageLinks(SearchForm.parse(currentPage: 10), 91))
+              .toString();
       expectGoldenFile(html, 'pagination_last.html', isFragment: true);
     });
 

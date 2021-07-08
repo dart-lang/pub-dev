@@ -46,7 +46,7 @@ String renderAccountPackagesPage({
 
   final packageListHtml =
       searchResultPage.hasNoHit ? '' : renderPackageList(searchResultPage);
-  final paginationHtml = renderPagination(pageLinks);
+  final paginationHtml = renderPagination(pageLinks).toString();
 
   final tabContent = [
     renderListingInfo(

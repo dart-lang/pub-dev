@@ -17,19 +17,13 @@ import '../../shared/urls.dart' as urls;
 
 import '_cache.dart';
 import '_consts.dart';
-import '_utils.dart';
 import 'layout.dart';
 import 'package_misc.dart';
 
+import 'views/shared/pagination.dart';
 import 'views/shared/search_tabs.dart';
 
-/// Renders the `views/shared/pagination.mustache` template.
-String renderPagination(PageLinks pageLinks) {
-  final values = {
-    'page_links': pageLinks.hrefPatterns(),
-  };
-  return templateCache.renderTemplate('shared/pagination', values);
-}
+export 'views/shared/pagination.dart';
 
 /// Renders the `views/pkg/package_list.mustache` template.
 String renderPackageList(SearchResultPage searchResultPage) {
@@ -184,7 +178,7 @@ String renderPkgIndexPage(
     ),
     'package_list_html': renderPackageList(searchResultPage),
     'has_packages': searchResultPage.hasHit,
-    'pagination': renderPagination(links),
+    'pagination': renderPagination(links).toString(),
     'include_discontinued': includeDiscontinued,
     'include_unlisted': includeUnlisted,
     'null_safe': nullSafe,
@@ -286,52 +280,6 @@ class PageLinks {
     final int fromSymmetry = currentPage! + maxPageLinks ~/ 2;
     final int fromCount = 1 + ((count - 1) ~/ searchForm.pageSize!);
     return min(fromSymmetry, max(currentPage!, fromCount));
-  }
-
-  List<Map> hrefPatterns() {
-    final List<Map> results = [];
-
-    final bool hasPrevious = currentPage! > 1;
-    results.add({
-      'active': false,
-      'disabled': !hasPrevious,
-      'render_link': hasPrevious,
-      'href': htmlAttrEscape
-          .convert(searchForm.toSearchLink(page: currentPage! - 1)),
-      'text': '&laquo;',
-      'rel_prev': true,
-      'rel_next': false,
-    });
-
-    for (int page = leftmostPage; page <= rightmostPage; page++) {
-      final bool isCurrent = page == currentPage;
-      results.add({
-        'active': isCurrent,
-        'disabled': false,
-        'render_link': !isCurrent,
-        'href': htmlAttrEscape.convert(searchForm.toSearchLink(page: page)),
-        'text': '$page',
-        'rel_prev': currentPage == page + 1,
-        'rel_next': currentPage == page - 1,
-      });
-    }
-
-    final bool hasNext = currentPage! < rightmostPage;
-    results.add({
-      'active': false,
-      'disabled': !hasNext,
-      'render_link': hasNext,
-      'href': htmlAttrEscape
-          .convert(searchForm.toSearchLink(page: currentPage! + 1)),
-      'text': '&raquo;',
-      'rel_prev': false,
-      'rel_next': true,
-    });
-
-    // should not happen
-    assert(!results
-        .any((map) => map['disabled'] == true && map['active'] == true));
-    return results;
   }
 }
 
