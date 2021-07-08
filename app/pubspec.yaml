@@ -39,7 +39,7 @@ dependencies:
   pub_semver: '^2.0.0'
   pubspec_parse: ^1.0.0
   shelf: '^1.0.0'
-  shelf_router: ^1.0.0
+  shelf_router: ^1.1.0
   stack_trace: ^1.10.0
   stream_transform: ^2.0.0
   watcher: ^1.0.0

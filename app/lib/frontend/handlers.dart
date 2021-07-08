@@ -6,6 +6,7 @@ library pub_dartlang_org.handlers;
 
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
+import 'package:shelf_router/shelf_router.dart';
 
 import '../shared/handlers.dart';
 import '../shared/urls.dart';
@@ -50,7 +51,7 @@ shelf.Handler createAppHandler() {
     // do pub.dartlang.org-only routes
     if (host == legacyHost) {
       final rs = await pubDartlangOrgHandler(request);
-      if (rs.isRouteFound) {
+      if (rs != Router.routeNotFound) {
         return rs;
       }
       if (_shouldRedirectToPubDev(request.requestedUri.path)) {
@@ -66,12 +67,12 @@ shelf.Handler createAppHandler() {
     }
 
     final rs = await pubApiHandler(request);
-    if (rs.isRouteFound) {
+    if (rs != Router.routeNotFound) {
       return rs;
     }
 
     final res = await pubSiteHandler(request);
-    if (res.isRouteFound) {
+    if (res != Router.routeNotFound) {
       return res;
     }
 
