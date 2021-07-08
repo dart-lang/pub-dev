@@ -205,7 +205,7 @@ class DartdocJobProcessor extends JobProcessor {
 
     // Detect silent errors or timeouts and make sure we unblock the seemingly
     // neverending 'awaiting' statuses.
-    if (job.attemptCount > 1) {
+    if ((job.attemptCount ?? 0) > 1) {
       final currentCard = await scoreCardBackend.getScoreCardData(
         job.packageName!,
         job.packageVersion!,
