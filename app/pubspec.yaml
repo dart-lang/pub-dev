@@ -48,7 +48,7 @@ dependencies:
   pana: '0.18.2'
   # 3rd-party packages with pinned versions
   buffer: '1.1.0'
-  mailer: '5.0.0'
+  mailer: '5.0.1'
   sanitize_html: ^2.0.0
   ulid: '2.0.0'
   tar: '0.4.0'
