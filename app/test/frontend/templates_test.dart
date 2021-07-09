@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -56,7 +54,7 @@ void main() {
   setUpAll(() => updateLocalBuiltFilesIfNeeded());
 
   group('templates', () {
-    StaticFileCache oldCache;
+    late StaticFileCache oldCache;
 
     setUpAll(() {
       final properCache = StaticFileCache.withDefaults();
@@ -78,7 +76,7 @@ void main() {
       String content,
       String fileName, {
       bool isFragment = false,
-      Map<String, DateTime> timestamps,
+      Map<String, DateTime?>? timestamps,
     }) {
       // Making sure it is valid HTML
       final htmlParser = HtmlParser(content, strict: true);
@@ -127,10 +125,10 @@ void main() {
       processJobsWithFakeRunners: true,
       fn: () async {
         final html = renderLandingPage(ffPackages: [
-          await scoreCardBackend.getPackageView('flutter_titanium'),
+          (await scoreCardBackend.getPackageView('flutter_titanium'))!,
         ], mostPopularPackages: [
-          await scoreCardBackend.getPackageView('neon'),
-          await scoreCardBackend.getPackageView('oxygen'),
+          (await scoreCardBackend.getPackageView('neon'))!,
+          (await scoreCardBackend.getPackageView('oxygen'))!,
         ], topPoWVideos: [
           PkgOfWeekVideo(
               videoId: 'video-id',
@@ -142,7 +140,7 @@ void main() {
       },
     );
 
-    PackagePageData foobarPageDataFn({String assetKind}) => PackagePageData(
+    PackagePageData foobarPageDataFn({String? assetKind}) => PackagePageData(
           package: foobarPackage,
           isLiked: false,
           version: foobarStablePV,
@@ -335,8 +333,8 @@ void main() {
       final data = await loadPackagePageData('neon', '1.0.0', AssetKind.readme);
       final html = renderPkgShowPage(data);
       expectGoldenFile(html, 'pkg_show_page_publisher.html', timestamps: {
-        'published': data.package.created,
-        'updated': data.package.lastVersionPublished,
+        'published': data.package!.created,
+        'updated': data.package!.lastVersionPublished,
       });
     });
 
@@ -461,9 +459,9 @@ void main() {
       processJobsWithFakeRunners: true,
       fn: () async {
         final searchForm = SearchForm.parse();
-        final oxygen = await scoreCardBackend.getPackageView('oxygen');
+        final oxygen = (await scoreCardBackend.getPackageView('oxygen'))!;
         final titanium =
-            await scoreCardBackend.getPackageView('flutter_titanium');
+            (await scoreCardBackend.getPackageView('flutter_titanium'))!;
         final String html = renderPkgIndexPage(
           SearchResultPage(
             searchForm,
@@ -488,9 +486,9 @@ void main() {
       fn: () async {
         final searchForm =
             SearchForm.parse(query: 'foobar', order: SearchOrder.top);
-        final oxygen = await scoreCardBackend.getPackageView('oxygen');
+        final oxygen = (await scoreCardBackend.getPackageView('oxygen'))!;
         final titanium =
-            await scoreCardBackend.getPackageView('flutter_titanium');
+            (await scoreCardBackend.getPackageView('flutter_titanium'))!;
         final String html = renderPkgIndexPage(
           SearchResultPage(
             searchForm,
@@ -534,8 +532,8 @@ void main() {
           dartSdkVersion: Version.parse(runtimeSdkVersion),
         );
         expectGoldenFile(html, 'pkg_versions_page.html', timestamps: {
-          'version-created': data.version.created,
-          'package-created': data.package.created,
+          'version-created': data.version!.created,
+          'package-created': data.package!.created,
         });
       },
     );
@@ -561,10 +559,10 @@ void main() {
       processJobsWithFakeRunners: true,
       fn: () async {
         final searchForm = SearchForm.parse(publisherId: 'example.com');
-        final publisher = await publisherBackend.getPublisher('example.com');
-        final neon = await scoreCardBackend.getPackageView('neon');
+        final publisher = (await publisherBackend.getPublisher('example.com'))!;
+        final neon = (await scoreCardBackend.getPackageView('neon'))!;
         final titanium =
-            await scoreCardBackend.getPackageView('flutter_titanium');
+            (await scoreCardBackend.getPackageView('flutter_titanium'))!;
         final html = renderPublisherPackagesPage(
           publisher: publisher,
           searchResultPage: SearchResultPage(
@@ -602,14 +600,14 @@ void main() {
             imageUrl: 'pub.dev/user-img-url.png',
           );
           final searchForm =
-              SearchForm.parse(uploaderOrPublishers: [user.email]);
+              SearchForm.parse(uploaderOrPublishers: [user.email!]);
           final String html = renderAccountPackagesPage(
             user: user,
             userSessionData: session,
             searchResultPage: SearchResultPage(
               searchForm,
               2,
-              packageHits: [oxygen, neon],
+              packageHits: [oxygen!, neon!],
             ),
             pageLinks: PageLinks(searchForm, 10),
             searchForm: searchForm,

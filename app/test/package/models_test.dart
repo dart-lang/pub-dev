@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
@@ -49,7 +47,7 @@ void main() {
 
         // verify date
         expect(ps._p.lastVersionPublished, isNotNull);
-        expect(ps._p.lastVersionPublished.isAfter(ps._p.created), isTrue);
+        expect(ps._p.lastVersionPublished!.isAfter(ps._p.created!), isTrue);
       });
 
       test('preview', () {
@@ -139,8 +137,8 @@ version: 1.0.9
 
   group('MinSdkVersion', () {
     test('dev only', () {
-      final msd =
-          MinSdkVersion.tryParse(VersionConstraint.parse('>=2.12.0-0 <2.12.0'));
+      final msd = MinSdkVersion.tryParse(
+          VersionConstraint.parse('>=2.12.0-0 <2.12.0'))!;
       expect(msd.major, 2);
       expect(msd.minor, 12);
       expect(msd.channel, 'dev');
@@ -148,7 +146,7 @@ version: 1.0.9
 
     test('dev', () {
       final msd = MinSdkVersion.tryParse(
-          VersionConstraint.parse('>=2.12.0-29.10.dev <3.0.0'));
+          VersionConstraint.parse('>=2.12.0-29.10.dev <3.0.0'))!;
       expect(msd.major, 2);
       expect(msd.minor, 12);
       expect(msd.channel, 'dev');
@@ -156,7 +154,7 @@ version: 1.0.9
 
     test('beta', () {
       final msd = MinSdkVersion.tryParse(
-          VersionConstraint.parse('>=2.12.0-29.10.beta <3.0.0'));
+          VersionConstraint.parse('>=2.12.0-29.10.beta <3.0.0'))!;
       expect(msd.major, 2);
       expect(msd.minor, 12);
       expect(msd.channel, 'beta');
@@ -164,7 +162,7 @@ version: 1.0.9
 
     test('stable', () {
       final msd =
-          MinSdkVersion.tryParse(VersionConstraint.parse('>=2.12.0 <3.0.0'));
+          MinSdkVersion.tryParse(VersionConstraint.parse('>=2.12.0 <3.0.0'))!;
       expect(msd.major, 2);
       expect(msd.minor, 12);
       expect(msd.channel, isNull);
@@ -199,7 +197,7 @@ class _PublishSequence {
       ..parentKey = _p.key
       ..id = version
       ..version = version
-      ..created = _p.created.add(Duration(minutes: _counter++))
+      ..created = _p.created!.add(Duration(minutes: _counter++))
       ..pubspec = Pubspec.fromJson({
         'name': foobarPkgName,
         'version': version,
@@ -212,8 +210,8 @@ class _PublishSequence {
 
   void verify(
     String stable, {
-    String preview,
-    String prerelease,
+    String? preview,
+    String? prerelease,
     bool showPrerelease = false,
     bool showPreview = false,
   }) {

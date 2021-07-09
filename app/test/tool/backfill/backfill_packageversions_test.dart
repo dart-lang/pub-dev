@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:io';
 
 import 'package:gcloud/db.dart';
@@ -31,11 +29,11 @@ void main() {
     testWithProfile(
       'No updated needed',
       fn: () async {
-        final readme = await packageBackend.lookupPackageVersionAsset(
+        final readme = (await packageBackend.lookupPackageVersionAsset(
           'oxygen',
           '1.2.0',
           AssetKind.readme,
-        );
+        ))!;
         final stat = await backfillAllVersionsOfPackage(
           'oxygen',
           archiveResolver: _archive,
@@ -49,11 +47,11 @@ void main() {
             'pvAssetDeletedCount': 0
           },
         );
-        final readme2 = await packageBackend.lookupPackageVersionAsset(
+        final readme2 = (await packageBackend.lookupPackageVersionAsset(
           'oxygen',
           '1.2.0',
           AssetKind.readme,
-        );
+        ))!;
         expect(readme2.textContent, readme.textContent);
       },
     );
@@ -62,13 +60,13 @@ void main() {
       'Create info and change assets',
       fn: () async {
         final info =
-            await packageBackend.lookupPackageVersionInfo('oxygen', '1.2.0');
+            (await packageBackend.lookupPackageVersionInfo('oxygen', '1.2.0'))!;
 
-        final readme = await packageBackend.lookupPackageVersionAsset(
+        final readme = (await packageBackend.lookupPackageVersionAsset(
           'oxygen',
           '1.2.0',
           AssetKind.readme,
-        );
+        ))!;
         await dbService.commit(deletes: [info.key, readme.key]);
 
         final stat = await backfillAllVersionsOfPackage(
@@ -87,16 +85,16 @@ void main() {
         );
 
         final info2 =
-            await packageBackend.lookupPackageVersionInfo('oxygen', '1.2.0');
+            (await packageBackend.lookupPackageVersionInfo('oxygen', '1.2.0'))!;
         expect(info2.versionCreated, info.versionCreated);
         expect(info2.assetCount, info.assetCount);
         expect(info2.assets, info.assets);
 
-        final readme2 = await packageBackend.lookupPackageVersionAsset(
+        final readme2 = (await packageBackend.lookupPackageVersionAsset(
           'oxygen',
           '1.2.0',
           AssetKind.readme,
-        );
+        ))!;
         expect(readme2.textContent, readme.textContent);
       },
     );

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:async';
 
 import 'package:pub_dev/account/models.dart';
@@ -15,15 +13,15 @@ import 'package:pub_dev/shared/datastore.dart';
 Future main(List<String> args) async {
   int count = 0;
   await withToolRuntime(() async {
-    final bad = <String>{};
-    final good = <String>{};
+    final bad = <String?>{};
+    final good = <String?>{};
     final query = dbService.query<User>();
     await for (User user in query.run()) {
       count++;
       if (count % 100 == 0) {
         print(count);
       }
-      if (user.email != user.email.toLowerCase()) {
+      if (user.email != user.email!.toLowerCase()) {
         bad.add(user.email);
         print('BAD: ${user.userId} ${user.email}');
       } else {
@@ -31,7 +29,7 @@ Future main(List<String> args) async {
       }
     }
 
-    final intersect = bad.where((s) => good.contains(s.toLowerCase())).length;
+    final intersect = bad.where((s) => good.contains(s!.toLowerCase())).length;
     print('$count User entity checked.');
     print('${bad.length} bad, ${good.length} good, $intersect intersect');
   });

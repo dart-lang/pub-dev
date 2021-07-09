@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:convert';
 
 import 'package:pub_dev/search/models.dart';
@@ -13,7 +11,7 @@ import 'package:pub_dev/search/sdk_mem_index.dart';
 
 void main() {
   group('SdkMemIndex', () {
-    SdkMemIndex index;
+    late SdkMemIndex index;
 
     setUpAll(() async {
       index = SdkMemIndex(

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:async';
 import 'dart:io';
 
@@ -27,11 +25,11 @@ Future main(List<String> args) async {
   final publisherId = args.single;
 
   await withToolRuntime(() async {
-    final publisher = await publisherBackend.getPublisher(publisherId);
+    final publisher = (await publisherBackend.getPublisher(publisherId))!;
     final members = await publisherBackend.listPublisherMembers(publisherId);
 
     print('Publisher:    ${publisher.publisherId}');
-    print('Description:  ${publisher.description.replaceAll('\n', ' ')}');
+    print('Description:  ${publisher.description!.replaceAll('\n', ' ')}');
     print('Website:      ${publisher.websiteUrl}');
     print('Contact:      ${publisher.contactEmail}');
     print('Created on:   ${publisher.created}');

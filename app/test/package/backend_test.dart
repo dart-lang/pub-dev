@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 @Timeout(Duration(seconds: 15))
 library pub_dartlang_org.backend_test;
 
@@ -37,7 +35,7 @@ void main() {
       });
 
       testWithProfile('default packages with withheld', fn: () async {
-        final pkg = await packageBackend.lookupPackage('oxygen');
+        final pkg = (await packageBackend.lookupPackage('oxygen'))!;
         await dbService.commit(inserts: [pkg..isWithheld = true]);
         final page = await packageBackend.latestPackages();
         expect(page.packages.map((p) => p.name), [
@@ -47,7 +45,7 @@ void main() {
       });
 
       testWithProfile('default packages, extra earlier', fn: () async {
-        final h = await packageBackend.lookupPackage('oxygen');
+        final h = (await packageBackend.lookupPackage('oxygen'))!;
         h.updated = DateTime(2010);
         h.lastVersionPublished = DateTime(2010);
         await dbService.commit(inserts: [h]);
@@ -56,7 +54,7 @@ void main() {
       });
 
       testWithProfile('default packages, extra later', fn: () async {
-        final h = await packageBackend.lookupPackage('neon');
+        final h = (await packageBackend.lookupPackage('neon'))!;
         h.updated = DateTime(2030);
         h.lastVersionPublished = DateTime(2030);
         await dbService.commit(inserts: [h]);
@@ -92,7 +90,7 @@ void main() {
 
     group('Backend.lookupPackage', () {
       testWithProfile('exists', fn: () async {
-        final p = await packageBackend.lookupPackage('oxygen');
+        final p = (await packageBackend.lookupPackage('oxygen'))!;
         expect(p, isNotNull);
         expect(p.name, 'oxygen');
         expect(p.latestVersion, isNotNull);
@@ -106,9 +104,9 @@ void main() {
 
     group('Backend.lookupPackageVersion', () {
       testWithProfile('exists', fn: () async {
-        final p = await packageBackend.lookupPackage('oxygen');
-        final pv = await packageBackend.lookupPackageVersion(
-            'oxygen', p.latestVersion);
+        final p = (await packageBackend.lookupPackage('oxygen'))!;
+        final pv = (await packageBackend.lookupPackageVersion(
+            'oxygen', p.latestVersion!))!;
         expect(pv, isNotNull);
         expect(pv.package, 'oxygen');
         expect(pv.version, p.latestVersion);
@@ -130,8 +128,8 @@ void main() {
     group('Backend.lookupLatestVersions', () {
       testWithProfile('two packages', fn: () async {
         final list = await packageBackend.lookupLatestVersions([
-          await packageBackend.lookupPackage('oxygen'),
-          await packageBackend.lookupPackage('neon'),
+          (await packageBackend.lookupPackage('oxygen'))!,
+          (await packageBackend.lookupPackage('neon'))!,
         ]);
         expect(list.map((pv) => pv.qualifiedVersionKey.toString()),
             ['oxygen/1.2.0', 'neon/1.0.0']);
@@ -202,8 +200,9 @@ void main() {
         await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
           Future<void> verify(String email) async {
             await packageBackend.addUploader('oxygen', email);
-            final p = await packageBackend.lookupPackage('oxygen');
-            final emails = await accountBackend.getEmailsOfUserIds(p.uploaders);
+            final p = (await packageBackend.lookupPackage('oxygen'))!;
+            final emails =
+                await accountBackend.getEmailsOfUserIds(p.uploaders!);
             expect(emails.toSet(), {'admin@pub.dev'});
           }
 
@@ -225,7 +224,7 @@ void main() {
                       "They'll be added as an uploader after they accept the invitation.")));
 
           // uploaders do not change yet
-          final p = await packageBackend.lookupPackage('oxygen');
+          final p = (await packageBackend.lookupPackage('oxygen'))!;
           expect(p.uploaders, hasLength(1));
 
           expect(fakeEmailSender.sentMessages, hasLength(1));
@@ -283,8 +282,9 @@ void main() {
                 rs,
                 throwsA(isA<InvalidInputException>().having((e) => '$e', 'text',
                     'InvalidInput(400): `${email.toLowerCase()}` is already an uploader.')));
-            final p = await packageBackend.lookupPackage('oxygen');
-            final emails = await accountBackend.getEmailsOfUserIds(p.uploaders);
+            final p = (await packageBackend.lookupPackage('oxygen'))!;
+            final emails =
+                await accountBackend.getEmailsOfUserIds(p.uploaders!);
             expect(emails.toSet(), {'admin@pub.dev'});
           }
 
@@ -301,7 +301,7 @@ void main() {
           expect(rs.emailSent, isTrue);
 
           // uploaders do not change yet
-          final p = await packageBackend.lookupPackage('oxygen');
+          final p = (await packageBackend.lookupPackage('oxygen'))!;
           expect(p.uploaders, hasLength(1));
 
           expect(fakeEmailSender.sentMessages, hasLength(1));
@@ -319,7 +319,7 @@ void main() {
 
     group('GCloudRepository.removeUploader', () {
       testWithProfile('not logged in', fn: () async {
-        final rs = packageBackend.removeUploader('oxygen', hansUser.email);
+        final rs = packageBackend.removeUploader('oxygen', hansUser.email!);
         await expectLater(rs, throwsA(isA<AuthenticationException>()));
       });
 
@@ -360,7 +360,7 @@ void main() {
 
       testWithProfile('cannot remove self', fn: () async {
         // adding extra uploader for the scope of this test
-        final pkg = await packageBackend.lookupPackage('oxygen');
+        final pkg = (await packageBackend.lookupPackage('oxygen'))!;
         final user =
             await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
         pkg.addUploader(user.userId);
@@ -377,14 +377,14 @@ void main() {
 
       testWithProfile('successful1', fn: () async {
         // adding extra uploader for the scope of this test
-        final pkg = await packageBackend.lookupPackage('oxygen');
+        final pkg = (await packageBackend.lookupPackage('oxygen'))!;
         final user =
             await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
         pkg.addUploader(user.userId);
         await dbService.commit(inserts: [pkg]);
 
         // verify before change
-        final pkg2 = await packageBackend.lookupPackage('oxygen');
+        final pkg2 = (await packageBackend.lookupPackage('oxygen'))!;
         expect(pkg2.uploaders, contains(user.userId));
 
         await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
@@ -392,7 +392,7 @@ void main() {
         });
 
         // verify after change
-        final pkg3 = await packageBackend.lookupPackage('oxygen');
+        final pkg3 = (await packageBackend.lookupPackage('oxygen'))!;
         expect(pkg3.uploaders, isNot(contains(user.userId)));
 
         // check audit log record
@@ -459,7 +459,7 @@ void main() {
         await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
           await packageBackend.updateOptions(
               'oxygen', PkgOptions(isDiscontinued: true));
-          final p = await packageBackend.lookupPackage('oxygen');
+          final p = (await packageBackend.lookupPackage('oxygen'))!;
           expect(p.isDiscontinued, isTrue);
           expect(p.replacedBy, isNull);
           expect(p.isUnlisted, isFalse);
@@ -529,14 +529,14 @@ void main() {
         await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
           await packageBackend.updateOptions(
               'oxygen', PkgOptions(isDiscontinued: true, replacedBy: 'neon'));
-          final p = await packageBackend.lookupPackage('oxygen');
+          final p = (await packageBackend.lookupPackage('oxygen'))!;
           expect(p.isDiscontinued, isTrue);
           expect(p.replacedBy, 'neon');
           expect(p.isUnlisted, isFalse);
 
           await packageBackend.updateOptions(
               'oxygen', PkgOptions(isDiscontinued: true));
-          final p1 = await packageBackend.lookupPackage('oxygen');
+          final p1 = (await packageBackend.lookupPackage('oxygen'))!;
           expect(p1.isDiscontinued, isTrue);
           expect(p1.replacedBy, isNull);
           expect(p1.isUnlisted, isFalse);
@@ -550,7 +550,7 @@ void main() {
 
           await packageBackend.updateOptions(
               'oxygen', PkgOptions(isDiscontinued: false));
-          final p2 = await packageBackend.lookupPackage('oxygen');
+          final p2 = (await packageBackend.lookupPackage('oxygen'))!;
           expect(p2.isDiscontinued, isFalse);
           expect(p2.replacedBy, isNull);
           expect(p2.isUnlisted, isFalse);
@@ -561,7 +561,7 @@ void main() {
         await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
           await packageBackend.updateOptions(
               'oxygen', PkgOptions(isUnlisted: true));
-          final p = await packageBackend.lookupPackage('oxygen');
+          final p = (await packageBackend.lookupPackage('oxygen'))!;
           expect(p.isDiscontinued, isFalse);
           expect(p.replacedBy, isNull);
           expect(p.isUnlisted, isTrue);

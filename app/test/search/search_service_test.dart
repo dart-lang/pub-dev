@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'package:test/test.dart';
 
 import 'package:pub_dev/search/search_form.dart';
@@ -13,9 +11,9 @@ void main() {
   group('SearchOrder enum', () {
     test('serialization', () {
       for (var value in SearchOrder.values) {
-        final String serialized = serializeSearchOrder(value);
+        final String? serialized = serializeSearchOrder(value);
         expect(serialized, isNotEmpty);
-        final SearchOrder deserialized = parseSearchOrder(serialized);
+        final SearchOrder? deserialized = parseSearchOrder(serialized);
         expect(deserialized, value);
       }
     });

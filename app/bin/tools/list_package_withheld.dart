@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:async';
 
 import 'package:args/args.dart';
@@ -19,7 +17,7 @@ final _argParser = ArgParser()
 Future main(List<String> args) async {
   final argv = _argParser.parse(args);
 
-  if (argv['help'] as bool == true) {
+  if (argv['help'] as bool) {
     print('List packages that are with-held.');
     print(_argParser.usage);
     return;

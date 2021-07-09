@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
@@ -41,16 +39,16 @@ void main() {
     final admin =
         await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
     final user = await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
-    final pkg1 = await packageBackend.lookupPackage('oxygen');
+    final pkg1 = (await packageBackend.lookupPackage('oxygen'))!;
     expect(pkg1.uploaders, [admin.userId]);
 
     await _corruptAndFix();
 
-    final pkg = await packageBackend.lookupPackage('oxygen');
+    final pkg = (await packageBackend.lookupPackage('oxygen'))!;
     expect(pkg.uploaders, [user.userId]);
 
-    final pv =
-        await packageBackend.lookupPackageVersion(pkg.name, pkg.latestVersion);
+    final pv = (await packageBackend.lookupPackageVersion(
+        pkg.name!, pkg.latestVersion!))!;
     expect(pv.uploader, user.userId);
   });
 
@@ -81,8 +79,8 @@ void main() {
       dbService.emptyKey.append(UserSession, id: 'target'),
       dbService.emptyKey.append(UserSession, id: 'control'),
     ]);
-    expect(list[0].userId, user.userId);
-    expect(list[1].userId, control.userId);
+    expect(list[0]!.userId, user.userId);
+    expect(list[1]!.userId, control.userId);
   });
 
   testWithProfile('new consent', fn: () async {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'package:test/test.dart';
 
 import '../shared/handlers_test_utils.dart';
@@ -55,7 +53,7 @@ void main() {
     testWithProfile('List package likes', fn: () async {
       final client = createPubApiClient(authToken: userAtPubDevAuthToken);
       final rs = await client.listPackageLikes();
-      expect(rs.likedPackages.isEmpty, true);
+      expect(rs.likedPackages!.isEmpty, true);
 
       final rs2 = await client.likePackage(pkg1);
       expect(rs2.package, pkg1);
@@ -66,17 +64,17 @@ void main() {
       expect(rs3.liked, true);
 
       final rs4 = await client.listPackageLikes();
-      expect(rs4.likedPackages.length, 2);
-      expect(rs4.likedPackages.map((e) => e.package), contains(pkg1));
-      expect(rs4.likedPackages.map((e) => e.package), contains(pkg2));
-      expect(rs4.likedPackages[0].liked, true);
-      expect(rs4.likedPackages[1].liked, true);
+      expect(rs4.likedPackages!.length, 2);
+      expect(rs4.likedPackages!.map((e) => e.package), contains(pkg1));
+      expect(rs4.likedPackages!.map((e) => e.package), contains(pkg2));
+      expect(rs4.likedPackages![0].liked, true);
+      expect(rs4.likedPackages![1].liked, true);
     });
 
     testWithProfile('Unlike package', fn: () async {
       final client = createPubApiClient(authToken: userAtPubDevAuthToken);
       final rs = await client.listPackageLikes();
-      expect(rs.likedPackages.isEmpty, true);
+      expect(rs.likedPackages!.isEmpty, true);
 
       final rs2 = await client.likePackage(pkg1);
       expect(rs2.package, pkg1);
@@ -87,9 +85,9 @@ void main() {
       expect(rs3.liked, true);
 
       final rs4 = await client.listPackageLikes();
-      expect(rs4.likedPackages.length, 2);
-      expect(rs4.likedPackages[0].liked, true);
-      expect(rs4.likedPackages[1].liked, true);
+      expect(rs4.likedPackages!.length, 2);
+      expect(rs4.likedPackages![0].liked, true);
+      expect(rs4.likedPackages![1].liked, true);
 
       await client.unlikePackage(pkg1);
 
@@ -98,8 +96,8 @@ void main() {
       expect(rs5.liked, false);
 
       final rs6 = await client.listPackageLikes();
-      expect(rs6.likedPackages.length, 1);
-      expect(rs6.likedPackages[0].package, pkg2);
+      expect(rs6.likedPackages!.length, 1);
+      expect(rs6.likedPackages![0].package, pkg2);
     });
 
     testWithProfile('Unlike non-existing package', fn: () async {
@@ -114,17 +112,17 @@ void main() {
       final client2 = createPubApiClient(authToken: adminAtPubDevAuthToken);
 
       final rs = await client.listPackageLikes();
-      expect(rs.likedPackages.isEmpty, true);
+      expect(rs.likedPackages!.isEmpty, true);
 
       final rs1 = await client2.listPackageLikes();
-      expect(rs1.likedPackages.isEmpty, true);
+      expect(rs1.likedPackages!.isEmpty, true);
 
       final rs2 = await client.likePackage(pkg1);
       expect(rs2.package, pkg1);
       expect(rs2.liked, true);
 
       final rs3 = await client2.listPackageLikes();
-      expect(rs3.likedPackages.isEmpty, true);
+      expect(rs3.likedPackages!.isEmpty, true);
     });
 
     testWithProfile('Package likes property is incremented/decremented.',

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'package:appengine/appengine.dart';
 import 'package:args/args.dart';
 import 'package:pool/pool.dart';
@@ -20,12 +18,8 @@ final _argParser = ArgParser()
 
 Future main(List<String> args) async {
   final argv = _argParser.parse(args);
-  if (argv['help'] as bool == true) {
+  if (argv['help'] as bool) {
     print('Usage: dart backfill_package_fields.dart');
-    print('Ensures Package.likes is set to an integer.');
-    print('Ensures Package.isDiscontinued is set to a bool.');
-    print('Ensures Package.isUnlisted is set to a bool.');
-    print('Ensures Package.isWithheld is set to a bool.');
     print('Ensures Package.assignedTags is a list.');
     print('Ensures Package.latestPublished is a DateTime.');
     print('Ensures Package.latestPrereleasePublished is a DateTime.');
@@ -52,11 +46,7 @@ Future main(List<String> args) async {
 }
 
 Future<void> _backfillPackageFields(Package p) async {
-  if (p.likes != null &&
-      p.isDiscontinued != null &&
-      p.isUnlisted != null &&
-      p.isWithheld != null &&
-      p.assignedTags != null &&
+  if (p.assignedTags != null &&
       p.latestPublished != null &&
       p.latestPrereleasePublished != null &&
       p.lastVersionPublished != null) {
@@ -65,19 +55,15 @@ Future<void> _backfillPackageFields(Package p) async {
   print('Backfilling properties on package ${p.name}');
   final currentDartSdk = await getDartSdkVersion();
   final latestVersion =
-      await dbService.lookupValue<PackageVersion>(p.latestVersionKey);
-  final latestPrereleaseVersion =
-      await dbService.lookupValue<PackageVersion>(p.latestPrereleaseVersionKey);
+      await dbService.lookupValue<PackageVersion>(p.latestVersionKey!);
+  final latestPrereleaseVersion = await dbService
+      .lookupValue<PackageVersion>(p.latestPrereleaseVersionKey!);
   try {
     await withRetryTransaction(dbService, (tx) async {
-      final package = await tx.lookupValue<Package>(p.key, orElse: () => null);
+      final package = await tx.lookupOrNull<Package>(p.key);
       if (package == null) {
         return;
       }
-      package.likes ??= 0;
-      package.isDiscontinued ??= false;
-      package.isUnlisted ??= false;
-      package.isWithheld ??= false;
       package.assignedTags ??= [];
       package.latestPublished ??= latestVersion.created;
       package.latestPrereleasePublished ??= latestPrereleaseVersion.created;

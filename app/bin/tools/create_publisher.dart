@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:async';
 
 import 'package:args/args.dart';
@@ -25,15 +23,15 @@ final _argParser = ArgParser()
 Future main(List<String> args) async {
   final argv = _argParser.parse(args);
 
-  if (argv['help'] as bool == true) {
+  if (argv['help'] as bool) {
     print('Create a publisher using admin rights.');
     print(_argParser.usage);
     return;
   }
 
-  final publisherId = argv['publisher'] as String;
-  final userEmail = argv['member'] as String;
-  final adminEmail = argv['admin'] as String;
+  final publisherId = argv['publisher'] as String?;
+  final userEmail = argv['member'] as String?;
+  final adminEmail = argv['admin'] as String?;
   if (publisherId == null || userEmail == null || adminEmail == null) {
     print('--publisher, --member and --admin is required!');
     print(_argParser.usage);
@@ -65,11 +63,11 @@ Future main(List<String> args) async {
     final now = DateTime.now().toUtc();
     await withRetryTransaction(dbService, (tx) async {
       final key = dbService.emptyKey.append(Publisher, id: publisherId);
-      final p = await tx.lookupValue<Publisher>(key, orElse: () => null);
+      final p = await tx.lookupOrNull<Publisher>(key);
       if (p != null) {
         // Check that publisher is the same as what we would create.
-        if (p.created.isBefore(now.subtract(Duration(minutes: 10))) ||
-            p.updated.isBefore(now.subtract(Duration(minutes: 10))) ||
+        if (p.created!.isBefore(now.subtract(Duration(minutes: 10))) ||
+            p.updated!.isBefore(now.subtract(Duration(minutes: 10))) ||
             p.contactEmail != user.email ||
             p.description != '' ||
             p.websiteUrl != _publisherWebsite(publisherId)) {

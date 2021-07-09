@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'package:test/test.dart';
 import 'package:xml/xml.dart';
 
@@ -52,7 +50,7 @@ void main() {
           '        </entry>');
       expect(neonExpr.hasMatch(entries[2].toXmlString(indent: '  ')), isTrue);
 
-      entries.forEach((e) => e.parent.children.remove(e));
+      entries.forEach((e) => e.parent!.children.remove(e));
 
       final restExp = RegExp('<feed xmlns="http://www.w3.org/2005/Atom">\n'
           '        <id>https://pub.dev/feed.atom</id>\n'

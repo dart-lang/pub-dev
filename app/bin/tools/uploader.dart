@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:async';
 import 'dart:io';
 
@@ -28,7 +26,7 @@ Future main(List<String> arguments) async {
 
   final String command = arguments[0];
   final String package = arguments[1];
-  final String uploader = arguments.length == 3 ? arguments[2] : null;
+  final String? uploader = arguments.length == 3 ? arguments[2] : null;
 
   await withToolRuntime(() async {
     if (command == 'list') {
@@ -47,30 +45,28 @@ Future main(List<String> arguments) async {
 
 Future listUploaders(String packageName) async {
   return withRetryTransaction(dbService, (tx) async {
-    final package = await tx.lookupValue<Package>(
-        dbService.emptyKey.append(Package, id: packageName),
-        orElse: () => null);
+    final package = await tx.lookupOrNull<Package>(
+        dbService.emptyKey.append(Package, id: packageName));
     if (package == null) {
       throw Exception('Package $packageName does not exist.');
     }
     final uploaderEmails =
-        await accountBackend.getEmailsOfUserIds(package.uploaders);
+        await accountBackend.getEmailsOfUserIds(package.uploaders!);
     print('Current uploaders: $uploaderEmails');
   });
 }
 
-Future addUploader(String packageName, String uploaderEmail) async {
+Future addUploader(String packageName, String? uploaderEmail) async {
   return withRetryTransaction(dbService, (tx) async {
-    final package = await tx.lookupValue<Package>(
-        dbService.emptyKey.append(Package, id: packageName),
-        orElse: () => null);
+    final package = await tx.lookupOrNull<Package>(
+        dbService.emptyKey.append(Package, id: packageName));
     if (package == null) {
       throw Exception('Package $packageName does not exist.');
     }
     final uploaderEmails =
-        await accountBackend.getEmailsOfUserIds(package.uploaders);
+        await accountBackend.getEmailsOfUserIds(package.uploaders!);
     print('Current uploaders: $uploaderEmails');
-    final user = await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
+    final user = await accountBackend.lookupOrCreateUserByEmail(uploaderEmail!);
     if (package.containsUploader(user.userId)) {
       throw Exception('Uploader $uploaderEmail already exists');
     }
@@ -88,19 +84,18 @@ Future addUploader(String packageName, String uploaderEmail) async {
   });
 }
 
-Future removeUploader(String packageName, String uploaderEmail) async {
+Future removeUploader(String packageName, String? uploaderEmail) async {
   return withRetryTransaction(dbService, (tx) async {
-    final package = await tx.lookupValue<Package>(
-        dbService.emptyKey.append(Package, id: packageName),
-        orElse: () => null);
+    final package = await tx.lookupOrNull<Package>(
+        dbService.emptyKey.append(Package, id: packageName));
     if (package == null) {
       throw Exception('Package $packageName does not exist.');
     }
 
     final uploaderEmails =
-        await accountBackend.getEmailsOfUserIds(package.uploaders);
+        await accountBackend.getEmailsOfUserIds(package.uploaders!);
     print('Current uploaders: $uploaderEmails');
-    final user = await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
+    final user = await accountBackend.lookupOrCreateUserByEmail(uploaderEmail!);
     if (!package.containsUploader(user.userId)) {
       throw Exception('Uploader $uploaderEmail does not exist');
     }

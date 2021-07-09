@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'package:test/test.dart';
 
 import 'package:pub_dev/shared/markdown.dart';
@@ -21,7 +19,7 @@ void main() {
   });
 
   group('inline only', () {
-    String inline(String source) => markdownToHtml(source, inlineOnly: true);
+    String? inline(String source) => markdownToHtml(source, inlineOnly: true);
 
     test('empty lines', () {
       expect(inline('abcd\nefg'), 'abcd\nefg');
@@ -360,7 +358,7 @@ void main() {
 # 1.0.0
  * Take care to feed lion before releasing mice.''',
         isChangelog: true,
-      );
+      )!;
       final lines = output.split('\n');
 
       // Only 2.1.0, 2.0.0 and 1.0.0 should be recognized as versions.

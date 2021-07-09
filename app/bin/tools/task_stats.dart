@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 /// Creates a report about analysis and dartdoc task failures.
 /// Example use:
 ///   dart bin/tools/task_stats.dart --output report.json
@@ -39,7 +37,7 @@ Future main(List<String> args) async {
       ..filter('updated >=', updatedAfter);
     await for (Package p in query.run()) {
       statFutures
-          .add(pool.withResource(() => _getStat(p.name, p.latestVersion)));
+          .add(pool.withResource(() => _getStat(p.name!, p.latestVersion)));
     }
 
     final stats = await Future.wait(statFutures);
@@ -60,7 +58,7 @@ Future main(List<String> args) async {
   exit(0);
 }
 
-Future<_Stat> _getStat(String package, String version) async {
+Future<_Stat> _getStat(String package, String? version) async {
   final card = await scoreCardBackend.getScoreCardData(package, version);
   return _Stat(
     package: package,
@@ -71,30 +69,30 @@ Future<_Stat> _getStat(String package, String version) async {
 }
 
 class _Stat {
-  final String package;
-  final String version;
-  final String analyzer;
-  final String dartdoc;
+  final String? package;
+  final String? version;
+  final String? analyzer;
+  final String? dartdoc;
 
   _Stat({this.package, this.version, this.analyzer, this.dartdoc});
 }
 
-Map<String, List<String>> _groupBy(
-    List<_Stat> stats, String Function(_Stat stat) keyFn) {
-  final result = <String, List<String>>{};
+Map<String?, List<String?>> _groupBy(
+    List<_Stat> stats, String? Function(_Stat stat) keyFn) {
+  final result = <String?, List<String?>>{};
   for (_Stat stat in stats) {
-    final String key = keyFn(stat);
+    final String? key = keyFn(stat);
     result.putIfAbsent(key, () => []).add(stat.package);
   }
   result.values.forEach((list) => list.sort());
   return result;
 }
 
-Map _summarize(List<_Stat> stats, String Function(_Stat stat) keyFn) {
+Map _summarize(List<_Stat> stats, String? Function(_Stat stat) keyFn) {
   final values = _groupBy(stats, keyFn);
-  final counts = <String, int>{};
-  for (String key in values.keys) {
-    counts[key] = values[key].length;
+  final counts = <String?, int>{};
+  for (String? key in values.keys) {
+    counts[key] = values[key]!.length;
   }
   values.remove('success');
   return {

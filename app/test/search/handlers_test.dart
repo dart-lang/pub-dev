@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:async';
 
 import 'package:test/test.dart';
@@ -13,6 +11,7 @@ import 'package:pub_dev/search/dart_sdk_mem_index.dart';
 import 'package:pub_dev/search/flutter_sdk_mem_index.dart';
 import 'package:pub_dev/search/mem_index.dart';
 import 'package:pub_dev/search/search_service.dart';
+import 'package:pub_dev/shared/exceptions.dart';
 
 import '../shared/handlers_test_utils.dart';
 import '../shared/utils.dart';
@@ -124,7 +123,7 @@ class MockSearchBackend implements SearchBackend {
   Future<PackageDocument> loadDocument(String packageName,
       {bool requireAnalysis = false}) async {
     if (!packages.contains(packageName)) {
-      return null;
+      throw RemovedPackageException();
     }
     return PackageDocument(
       package: packageName,

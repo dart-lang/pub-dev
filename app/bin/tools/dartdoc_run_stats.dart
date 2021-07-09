@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 /// Creates a report about [DartdocRun] entries.
 /// Example use:
 ///   dart bin/tools/dartdoc_run_stats.dart --output report.json
@@ -30,9 +28,9 @@ Future<void> main(List<String> args) async {
   final argv = parser.parse(args);
   final rv = argv['runtime-version'];
 
-  final durations = <String, DartdocEntry>{};
-  final archives = <String, DartdocEntry>{};
-  final totals = <String, DartdocEntry>{};
+  final durations = <String?, DartdocEntry>{};
+  final archives = <String?, DartdocEntry>{};
+  final totals = <String?, DartdocEntry>{};
 
   await withToolRuntime(() async {
     final query = dbService.query<DartdocRun>();
@@ -41,12 +39,12 @@ Future<void> main(List<String> args) async {
     }
     var scanned = 0;
     await for (final dr in query.run()) {
-      final entry = dr.entry;
+      final entry = dr.entry!;
 
       if (entry.runDuration != null) {
         final prevDuration = durations[dr.package];
         if (prevDuration == null ||
-            prevDuration.runDuration < entry.runDuration) {
+            prevDuration.runDuration! < entry.runDuration!) {
           durations[dr.package] = entry;
         }
       }
@@ -54,12 +52,12 @@ Future<void> main(List<String> args) async {
       if (entry.archiveSize != null && entry.totalSize != null) {
         final prevArchive = archives[dr.package];
         if (prevArchive == null ||
-            prevArchive.archiveSize < entry.archiveSize) {
+            prevArchive.archiveSize! < entry.archiveSize!) {
           archives[dr.package] = entry;
         }
 
         final prevTotal = totals[dr.package];
-        if (prevTotal == null || prevTotal.totalSize < entry.totalSize) {
+        if (prevTotal == null || prevTotal.totalSize! < entry.totalSize!) {
           totals[dr.package] = entry;
         }
       }
@@ -72,20 +70,20 @@ Future<void> main(List<String> args) async {
   });
 
   final topDurations = durations.values.toList()
-    ..sort((a, b) => -a.runDuration.compareTo(b.runDuration));
+    ..sort((a, b) => -a.runDuration!.compareTo(b.runDuration!));
   final topArchives = archives.values.toList()
-    ..sort((a, b) => -a.archiveSize.compareTo(b.archiveSize));
+    ..sort((a, b) => -a.archiveSize!.compareTo(b.archiveSize!));
   final topTotals = totals.values.toList()
-    ..sort((a, b) => -a.totalSize.compareTo(b.totalSize));
+    ..sort((a, b) => -a.totalSize!.compareTo(b.totalSize!));
 
   final topSeconds = <String, int>{};
   for (final e in topDurations.take(100)) {
-    topSeconds[e.packageName] = e.runDuration.inSeconds;
+    topSeconds[e.packageName] = e.runDuration!.inSeconds;
   }
 
   Map<String, int> sum(
     Iterable<DartdocEntry> entries,
-    String Function(DartdocEntry e) keyFn,
+    String? Function(DartdocEntry e) keyFn,
   ) {
     final counts = <String, int>{};
     for (final e in topDurations) {
@@ -113,19 +111,20 @@ Future<void> main(List<String> args) async {
   final report = <String, dynamic>{
     'slowest-100': {
       'seconds': topSeconds,
-      'usesFlutter': topDurations.take(100).where((e) => e.usesFlutter).length,
+      'usesFlutter': topDurations.take(100).where((e) => e.usesFlutter!).length,
       'dart-version': sum(topDurations.take(100), (e) => e.sdkVersion),
       'flutter-version': sum(topDurations.take(100), (e) => e.flutterVersion),
     },
     'slowest-1k': {
-      'usesFlutter': topDurations.take(1000).where((e) => e.usesFlutter).length,
+      'usesFlutter':
+          topDurations.take(1000).where((e) => e.usesFlutter!).length,
       'dart-version': sum(topDurations.take(1000), (e) => e.sdkVersion),
       'flutter-version': sum(topDurations.take(1000), (e) => e.flutterVersion),
     },
-    'archive-1MB': buckets(topArchives, (e) => e.archiveSize ~/ _mb),
-    'archive-10MB': buckets(topArchives, (e) => e.archiveSize ~/ _mb, 10),
-    'total-1MB': buckets(topTotals, (e) => e.totalSize ~/ _mb),
-    'total-10MB': buckets(topTotals, (e) => e.totalSize ~/ _mb, 10),
+    'archive-1MB': buckets(topArchives, (e) => e.archiveSize! ~/ _mb),
+    'archive-10MB': buckets(topArchives, (e) => e.archiveSize! ~/ _mb, 10),
+    'total-1MB': buckets(topTotals, (e) => e.totalSize! ~/ _mb),
+    'total-10MB': buckets(topTotals, (e) => e.totalSize! ~/ _mb, 10),
   };
 
   final json = JsonEncoder.withIndent('  ').convert(report);

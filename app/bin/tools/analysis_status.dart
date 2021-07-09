@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:async';
 
 import 'package:pool/pool.dart';
@@ -35,7 +33,7 @@ Future main(List<String> args) async {
       int done = 0;
       await for (Package p in dbService.query<Package>().run()) {
         final f = pool.withResource(() async {
-          if (await _isAnalysisDone(p.name, p.latestVersion)) {
+          if (await _isAnalysisDone(p.name!, p.latestVersion!)) {
             done++;
           }
           count++;

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:async';
 import 'dart:io';
 
@@ -24,11 +22,11 @@ final _argParser = ArgParser()
 /// Sets the private key value.
 Future main(List<String> args) async {
   final argv = _argParser.parse(args);
-  final withheldStatus = _parseValue(argv['update'] as String);
-  final withheldReason = argv['reason'] as String;
-  final lookupKey = argv['lookup'] as String;
+  final withheldStatus = _parseValue(argv['update'] as String?);
+  final withheldReason = argv['reason'] as String?;
+  final lookupKey = argv['lookup'] as String?;
 
-  if (argv['help'] as bool == true || lookupKey == null) {
+  if (argv['help'] as bool || lookupKey == null) {
     print(
         'Usage: dart set_package_withheld.dart --lookup package [pkg1] [pkg2] -- list status of packages');
     print(
@@ -47,17 +45,17 @@ Future main(List<String> args) async {
     print('Scanning packages...');
     final packages = <String, Package>{};
 
-    Future<void> loadPackages(String name, String value) async {
+    Future<void> loadPackages(String name, String? value) async {
       final query = dbService.query<Package>()..filter('$name =', value);
       await for (final p in query.run()) {
-        packages[p.name] = p;
+        packages[p.name!] = p;
       }
     }
 
     if (lookupKey == 'package') {
       for (final name in argv.rest) {
-        final p = await packageBackend.lookupPackage(name);
-        packages[p.name] = p;
+        final p = (await packageBackend.lookupPackage(name))!;
+        packages[p.name!] = p;
       }
     } else if (lookupKey == 'publisher') {
       for (final publisherId in argv.rest) {
@@ -84,16 +82,16 @@ Future main(List<String> args) async {
     print('Found ${packages.length} packages.');
     final orderedNames = packages.keys.toList()..sort();
     for (final name in orderedNames) {
-      final p = packages[name];
-      print('${p.name.padRight(40)} - ${p.isWithheld}');
+      final p = packages[name]!;
+      print('${p.name!.padRight(40)} - ${p.isWithheld}');
     }
 
     if (withheldStatus != null) {
       print('Are you sure you want to do that? Type `y` or `yes`:');
-      final confirm = stdin.readLineSync();
+      final confirm = stdin.readLineSync()!;
       if (confirm.toLowerCase() == 'y' || confirm.toLowerCase() == 'yes') {
         for (final name in orderedNames) {
-          final p = packages[name];
+          final p = packages[name]!;
           await _updateStatus(p, withheldStatus, withheldReason);
         }
       } else {
@@ -103,9 +101,9 @@ Future main(List<String> args) async {
   });
 }
 
-Future<void> _updateStatus(Package pkg, bool status, String reason) async {
+Future<void> _updateStatus(Package pkg, bool status, String? reason) async {
   if (pkg.isWithheld == status) return;
-  print('Updating ${pkg.name.padRight(40)} - ${pkg.isWithheld} -> $status');
+  print('Updating ${pkg.name!.padRight(40)} - ${pkg.isWithheld} -> $status');
   await withRetryTransaction(dbService, (tx) async {
     final p = await tx.lookupValue<Package>(pkg.key);
     p.isWithheld = status;
@@ -113,10 +111,10 @@ Future<void> _updateStatus(Package pkg, bool status, String reason) async {
     p.updated = DateTime.now().toUtc();
     tx.insert(p);
   });
-  await purgePackageCache(pkg.name);
+  await purgePackageCache(pkg.name!);
 }
 
-bool _parseValue(String value) {
+bool? _parseValue(String? value) {
   if (value == null) return null;
   if (value == 'true') return true;
   if (value == 'false') return false;

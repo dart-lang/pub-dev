@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:convert';
 
 import 'package:test/test.dart';
@@ -13,7 +11,7 @@ import 'package:pub_dev/search/search_service.dart';
 
 void main() {
   group('without content', () {
-    InMemoryPackageIndex index;
+    late InMemoryPackageIndex index;
 
     setUpAll(() async {
       index = InMemoryPackageIndex();
@@ -39,7 +37,7 @@ void main() {
   });
 
   group('with content', () {
-    InMemoryPackageIndex index;
+    late InMemoryPackageIndex index;
 
     setUpAll(() async {
       index = InMemoryPackageIndex();
