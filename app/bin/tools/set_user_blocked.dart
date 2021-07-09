@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:async';
 
 import 'package:pub_dev/account/backend.dart';
@@ -42,12 +40,12 @@ Future main(List<String> args) async {
         print('isBlocked: ${user.isBlocked}');
         return;
       }
-      await accountBackend.updateBlockedFlag(user.userId, blockedStatus);
+      await accountBackend.updateBlockedFlag(user.userId!, blockedStatus);
     }
   });
 }
 
-bool _parseValue(String value) {
+bool? _parseValue(String? value) {
   if (value == null) return null;
   if (value == 'true') return true;
   if (value == 'false') return false;

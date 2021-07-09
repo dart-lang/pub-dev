@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:io';
 
 import 'package:html/dom.dart';
@@ -29,12 +27,12 @@ void main() {
 
       // Matching logo URLs with static files settings.
       // If this fails, update the hard-coded customization URL to match it.
-      final logoElem = doc.documentElement.getElementsByTagName('img').first;
+      final logoElem = doc.documentElement!.getElementsByTagName('img').first;
       expect(
-          logoElem.attributes['src'].endsWith(staticUrls.dartLogoSvg), isTrue);
+          logoElem.attributes['src']!.endsWith(staticUrls.dartLogoSvg), isTrue);
 
       // Pretty printing output using XML formatter.
-      final xmlRoot = _toXml(doc.documentElement);
+      final xmlRoot = _toXml(doc.documentElement!);
       content = xmlRoot.toXmlString(pretty: true, indent: '  ') + '\n';
     }
     if (_regenerateGoldens) {
@@ -58,8 +56,8 @@ void main() {
       final outputName = '$path.out.html';
       final diffName = '$path.latest.diff';
       final html = File('$goldenDir/$inputName').readAsStringSync();
-      final prevResult = prevCustomizer.customizeHtml(html) ?? html;
-      final latestResult = latestCustomizer.customizeHtml(html) ?? html;
+      final prevResult = prevCustomizer.customizeHtml(html);
+      final latestResult = latestCustomizer.customizeHtml(html);
       expectGoldenFile(prevResult, outputName);
       expectGoldenFile(_miniDiff(prevResult, latestResult), diffName);
 
@@ -138,7 +136,7 @@ String _miniDiff(String text1, String text2) {
 }
 
 XmlElement _toXml(Element node) {
-  final xn = XmlElement(XmlName(node.localName));
+  final xn = XmlElement(XmlName(node.localName!));
   node.attributes.forEach((k, v) {
     xn.attributes.add(XmlAttribute(XmlName(k.toString()), v));
   });
@@ -148,7 +146,7 @@ XmlElement _toXml(Element node) {
     } else if (child is Text) {
       xn.children.add(XmlText(child.text));
     } else if (child is Comment) {
-      xn.children.add(XmlComment(child.text));
+      xn.children.add(XmlComment(child.text!));
     } else {
       throw Exception('Unhandled HTML node: $child');
     }
@@ -158,6 +156,6 @@ XmlElement _toXml(Element node) {
 
 String _htmlToXml(String html) {
   final doc = HtmlParser(html, strict: true).parse();
-  final xmlRoot = _toXml(doc.documentElement);
+  final xmlRoot = _toXml(doc.documentElement!);
   return xmlRoot.toXmlString(pretty: true, indent: '  ') + '\n';
 }

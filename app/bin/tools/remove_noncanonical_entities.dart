@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:async';
 
 import 'package:args/args.dart';
@@ -22,7 +20,7 @@ final _argParser = ArgParser()
 /// For when to run this.
 Future main(List<String> args) async {
   final argv = _argParser.parse(args);
-  if (argv['help'] as bool == true) {
+  if (argv['help'] as bool) {
     print('Usage: dart remove_noncanonical_entities.dart');
     print('Deletes PackageVersionAsset entities with non-canonical versions.');
     print('Deletes PackageVersionInfo entities with non-canonical versions.');
@@ -32,7 +30,7 @@ Future main(List<String> args) async {
     return;
   }
 
-  final dryRun = argv['dry-run'] as bool;
+  final dryRun = argv['dry-run'] as bool?;
 
   await withToolRuntime(() async {
     await _deleteWithQuery<PackageVersionAsset>(
@@ -50,7 +48,7 @@ Future main(List<String> args) async {
 }
 
 Future<void> _deleteWithQuery<T>(Query query,
-    {bool Function(T item) where, bool dryRun}) async {
+    {bool Function(T item)? where, bool? dryRun}) async {
   print('Running query for $T...');
   final deletes = <Key>[];
   await for (Model m in query.run()) {
@@ -58,13 +56,13 @@ Future<void> _deleteWithQuery<T>(Query query,
     if (shouldDelete) {
       deletes.add(m.key);
       if (deletes.length >= 500) {
-        await _commit(deletes, dryRun);
+        await _commit(deletes, dryRun!);
         deletes.clear();
       }
     }
   }
   if (deletes.isNotEmpty) {
-    await _commit(deletes, dryRun);
+    await _commit(deletes, dryRun!);
   }
 }
 

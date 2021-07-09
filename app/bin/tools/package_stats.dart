@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 /// Reads the latest stable version of packages and creates a JSON report.
 /// Example use:
 ///   dart bin/tools/package_stats.dart --output report.json
@@ -28,8 +26,8 @@ Future main(List<String> args) async {
   int totalCount = 0;
   int flutterCount = 0;
 
-  final List<String> flutterPlugins = [];
-  final List<String> flutterSdks = [];
+  final List<String?> flutterPlugins = [];
+  final List<String?> flutterSdks = [];
 
   final homepageScheme = _Counter();
   final licenseNames = _Counter();
@@ -44,8 +42,8 @@ Future main(List<String> args) async {
       }
 
       final latest =
-          await dbService.lookupValue<PackageVersion>(p.latestVersionKey);
-      final pubspec = latest.pubspec;
+          await dbService.lookupValue<PackageVersion>(p.latestVersionKey!);
+      final pubspec = latest.pubspec!;
 
       if (pubspec.hasFlutterPlugin) {
         flutterPlugins.add(p.name);
@@ -74,7 +72,7 @@ Future main(List<String> args) async {
       }
 
       final analysis =
-          await analyzerClient.getAnalysisView(p.name, p.latestVersion);
+          await analyzerClient.getAnalysisView(p.name!, p.latestVersion!);
       licenseNames.increment(analysis.licenseFile ?? 'none');
       grantedPoints.increment(analysis.report?.grantedPoints ?? 0);
     }
@@ -120,20 +118,20 @@ class _Counter {
     _values[strKey] = (_values[strKey] ?? 0) + amount;
   }
 
-  Map<String, int> sortedByCounts() {
+  Map<String, int?> sortedByCounts() {
     final keys = _values.keys.toList();
-    keys.sort((a, b) => -_values[a].compareTo(_values[b]));
-    final result = <String, int>{};
+    keys.sort((a, b) => -_values[a]!.compareTo(_values[b]!));
+    final result = <String, int?>{};
     for (String key in keys) {
       result[key] = _values[key];
     }
     return result;
   }
 
-  Map<String, int> sortedByKeysAsInt() {
+  Map<String, int?> sortedByKeysAsInt() {
     final keys = _values.keys.map(int.parse).toList();
     keys.sort((a, b) => a.compareTo(b));
-    final result = <String, int>{};
+    final result = <String, int?>{};
     for (int key in keys) {
       final strKey = key.toString();
       result[strKey] = _values[strKey];

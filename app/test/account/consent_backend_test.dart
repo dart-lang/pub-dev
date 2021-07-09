@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
@@ -20,7 +18,7 @@ import '../shared/test_services.dart';
 
 void main() {
   group('Uploader invite', () {
-    Future<String> inviteUploader() async {
+    Future<String?> inviteUploader() async {
       await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
         final status = await consentBackend.invitePackageUploader(
           uploaderEmail: 'user@pub.dev',
@@ -29,7 +27,7 @@ void main() {
         expect(status.emailSent, isTrue);
       });
 
-      String consentId;
+      String? consentId;
       await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
         final consentRow = await dbService.query<Consent>().run().single;
         final consent = await consentBackend.getConsent(
@@ -54,7 +52,7 @@ void main() {
           bearerToken: userAtPubDevAuthToken,
           fn: (client) async {
             final rs = await client.resolveConsent(
-                consentId, account_api.ConsentResult(granted: true));
+                consentId!, account_api.ConsentResult(granted: true));
             expect(rs.granted, true);
           });
 
@@ -72,7 +70,7 @@ void main() {
           bearerToken: userAtPubDevAuthToken,
           fn: (client) async {
             final rs = await client.resolveConsent(
-                consentId, account_api.ConsentResult(granted: false));
+                consentId!, account_api.ConsentResult(granted: false));
             expect(rs.granted, false);
           });
 
@@ -96,16 +94,16 @@ void main() {
   });
 
   group('Publisher contact', () {
-    Future<String> inviteContact() async {
+    Future<String?> inviteContact() async {
       await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
         final status = await consentBackend.invitePublisherContact(
-          publisherId: exampleComPublisher.publisherId,
+          publisherId: 'example.com',
           contactEmail: 'info@example.com',
         );
         expect(status.emailSent, isTrue);
       });
 
-      String consentId;
+      String? consentId;
       await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
         final consentRow = await dbService.query<Consent>().run().single;
         final consent = await consentBackend.getConsent(
@@ -130,7 +128,7 @@ void main() {
           bearerToken: userAtPubDevAuthToken,
           fn: (client) async {
             final rs = await client.resolveConsent(
-                consentId, account_api.ConsentResult(granted: true));
+                consentId!, account_api.ConsentResult(granted: true));
             expect(rs.granted, true);
           });
 
@@ -148,7 +146,7 @@ void main() {
           bearerToken: userAtPubDevAuthToken,
           fn: (client) async {
             final rs = await client.resolveConsent(
-                consentId, account_api.ConsentResult(granted: false));
+                consentId!, account_api.ConsentResult(granted: false));
             expect(rs.granted, false);
           });
 
@@ -172,16 +170,16 @@ void main() {
   });
 
   group('Publisher member', () {
-    Future<String> inviteMember() async {
+    Future<String?> inviteMember() async {
       await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
         final status = await consentBackend.invitePublisherMember(
-          publisherId: exampleComPublisher.publisherId,
+          publisherId: 'example.com',
           invitedUserEmail: 'user@pub.dev',
         );
         expect(status.emailSent, isTrue);
       });
 
-      String consentId;
+      String? consentId;
       await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
         final consentRow = await dbService.query<Consent>().run().single;
         final consent = await consentBackend.getConsent(
@@ -208,7 +206,7 @@ void main() {
           bearerToken: userAtPubDevAuthToken,
           fn: (client) async {
             final rs = await client.resolveConsent(
-                consentId, account_api.ConsentResult(granted: true));
+                consentId!, account_api.ConsentResult(granted: true));
             expect(rs.granted, true);
           });
 
@@ -226,7 +224,7 @@ void main() {
           bearerToken: userAtPubDevAuthToken,
           fn: (client) async {
             final rs = await client.resolveConsent(
-                consentId, account_api.ConsentResult(granted: false));
+                consentId!, account_api.ConsentResult(granted: false));
             expect(rs.granted, false);
           });
 
@@ -250,7 +248,7 @@ void main() {
   });
 }
 
-Future<void> _expireConsent(String consentId) async {
+Future<void> _expireConsent(String? consentId) async {
   final consent = await dbService
       .lookupValue<Consent>(dbService.emptyKey.append(Consent, id: consentId));
   consent.expires = consent.created;

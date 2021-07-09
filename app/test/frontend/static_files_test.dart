@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 @Tags(['presubmit-only'])
 
 import 'dart:async';
@@ -22,7 +20,7 @@ void main() {
     Future<void> checkAsset(String url, String path) async {
       final rs = await http.get(Uri.parse(url));
       expect(rs.statusCode, 200);
-      final staticContent = staticFileCache.getFile(path);
+      final staticContent = staticFileCache.getFile(path)!;
       expect(staticContent.bytes.length, rs.bodyBytes.length);
       final staticHash = crypto.sha256.convert(staticContent.bytes).toString();
       final dartdocHash = crypto.sha256.convert(rs.bodyBytes).toString();
@@ -53,7 +51,7 @@ void main() {
   });
 
   group('default content', () {
-    StaticFileCache cache;
+    late StaticFileCache cache;
 
     setUpAll(() async {
       await updateLocalBuiltFilesIfNeeded();
@@ -69,23 +67,23 @@ void main() {
 
     for (String file in files) {
       test('$file exists', () {
-        final f = cache.getFile(file);
+        final f = cache.getFile(file)!;
         expect(f, isNotNull);
         expect(f.etag.contains('mocked_hash_'), isFalse);
       });
     }
 
     test('proper hash in css content', () async {
-      final css = cache.getFile('/static/css/style.css');
+      final css = cache.getFile('/static/css/style.css')!;
       for (Match m
           in RegExp('url\\("(.*?)"\\);').allMatches(css.contentAsString)) {
-        final matched = m.group(1);
+        final matched = m.group(1)!;
         if (matched.contains('data:image')) continue;
         final uri = Uri.parse(matched);
         final absPath =
             Uri.parse('/static/css/style.css').resolve(uri.path).toString();
         final hash = uri.queryParameters['hash'] ?? '_no_hash_';
-        final expectedHash = cache.getFile(absPath).etag;
+        final expectedHash = cache.getFile(absPath)!.etag;
         if (hash != expectedHash) {
           throw Exception('$absPath must use hash $expectedHash');
         }

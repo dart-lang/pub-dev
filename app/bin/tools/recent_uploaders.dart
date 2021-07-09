@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 /// Creates a report about recent uploaders.
 
 import 'dart:async';
@@ -26,8 +24,8 @@ Future main(List<String> args) async {
   final argv = parser.parse(args);
   final maxAgeDays = int.parse(argv['max-age'] as String);
 
-  final byUploaders = <String, List<String>>{};
-  final byPublishers = <String, List<String>>{};
+  final byUploaders = <String?, List<String?>>{};
+  final byPublishers = <String?, List<String?>>{};
 
   final pool = Pool(10);
 
@@ -39,12 +37,14 @@ Future main(List<String> args) async {
     await for (final p in query.run()) {
       Future<void> process() async {
         if (p.publisherId != null) {
-          byPublishers.putIfAbsent(p.publisherId, () => <String>[]).add(p.name);
+          byPublishers
+              .putIfAbsent(p.publisherId, () => <String?>[])
+              .add(p.name);
         } else {
           final uploaderEmails =
-              await accountBackend.getEmailsOfUserIds(p.uploaders);
+              await accountBackend.getEmailsOfUserIds(p.uploaders!);
           uploaderEmails.forEach((email) {
-            byUploaders.putIfAbsent(email, () => <String>[]).add(p.name);
+            byUploaders.putIfAbsent(email, () => <String?>[]).add(p.name);
           });
         }
       }
@@ -55,12 +55,13 @@ Future main(List<String> args) async {
   });
   await pool.close();
 
-  Map<String, List<String>> sortByCountAndTrim(Map<String, List<String>> map) {
+  Map<String?, List<String?>> sortByCountAndTrim(
+      Map<String?, List<String?>> map) {
     final keys = map.keys.toList();
-    keys.sort((a, b) => -map[a].length.compareTo(map[b].length));
-    final mapped = <String, List<String>>{};
+    keys.sort((a, b) => -map[a]!.length.compareTo(map[b]!.length));
+    final Map<String?, List<String?>> mapped = <String?, List<String>>{};
     for (final key in keys) {
-      mapped[key] = map[key].take(3).toList();
+      mapped[key] = map[key]!.take(3).toList();
     }
     return mapped;
   }

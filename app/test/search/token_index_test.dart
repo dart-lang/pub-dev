@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'package:test/test.dart';
 
 import 'package:pub_dev/search/token_index.dart';
@@ -103,13 +101,13 @@ void main() {
           match.keys
               .where((k) => k != 'location')
               .map((k) => match[k])
-              .every((v) => v < locationValue),
+              .every((v) => v! < locationValue!),
           isTrue);
     });
   });
 
   group('Score', () {
-    Score score;
+    late Score score;
     setUp(() {
       score = Score({'a': 100.0, 'b': 30.0, 'c': 55.0});
     });

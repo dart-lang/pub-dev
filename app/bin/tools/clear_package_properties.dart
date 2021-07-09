@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:async';
 import 'dart:convert';
 
@@ -23,13 +21,13 @@ final _argParser = ArgParser()
   ..addFlag('verbose', abbr: 'v', help: 'Print all changes.')
   ..addFlag('help', abbr: 'h', defaultsTo: false, help: 'Show help.');
 
-bool _isDryRun = false;
-bool _isVerbose = false;
+bool? _isDryRun = false;
+bool? _isVerbose = false;
 final _removedCount = <String, int>{};
 
 Future main(List<String> args) async {
   final argv = _argParser.parse(args);
-  if (argv['help'] as bool == true) {
+  if (argv['help'] as bool) {
     print('Usage: dart clear_package_properties.dart');
     print('Deletes unmapped properties from the following entry types: '
         'Package, PackageVersion, '
@@ -38,15 +36,15 @@ Future main(List<String> args) async {
     return;
   }
 
-  _isDryRun = argv['dry-run'] as bool;
-  _isVerbose = argv['verbose'] as bool;
+  _isDryRun = argv['dry-run'] as bool?;
+  _isVerbose = argv['verbose'] as bool?;
   final concurrency = int.parse(argv['concurrency'] as String);
-  final package = argv['package'] as String;
+  final package = argv['package'] as String?;
   await withToolRuntime(() async {
     if (package != null) {
       final p = (await dbService.lookup<Package>(
               [dbService.emptyKey.append(Package, id: package)]))
-          .single;
+          .single!;
       await _processPackage(p);
     } else {
       final pool = Pool(concurrency);
@@ -95,7 +93,7 @@ Future _clearAdditionalProperties<T extends ExpandoModel>(T model) async {
   }
   final props = model.additionalProperties.keys.toList();
   props.sort();
-  if (_isVerbose) {
+  if (_isVerbose!) {
     print('Clearing ${_key(model.key)} of ${props.join(', ')}');
   }
 
@@ -104,7 +102,7 @@ Future _clearAdditionalProperties<T extends ExpandoModel>(T model) async {
     _removedCount[statKey] = (_removedCount[statKey] ?? 0) + 1;
   }
 
-  if (_isDryRun) return;
+  if (_isDryRun!) return;
   await withRetryTransaction(dbService, (tx) async {
     final entry = await tx.lookupValue<T>(model.key);
     entry.additionalProperties.clear();
@@ -114,8 +112,8 @@ Future _clearAdditionalProperties<T extends ExpandoModel>(T model) async {
 
 String _key(Key key) {
   final sb = StringBuffer();
-  if (key.parent != null && key.parent.id != null) {
-    sb.write(_key(key.parent));
+  if (key.parent != null && key.parent!.id != null) {
+    sb.write(_key(key.parent!));
     sb.write('/');
   }
   sb.write(key.type);

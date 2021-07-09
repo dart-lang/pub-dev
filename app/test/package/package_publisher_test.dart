@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:convert';
 
 import 'package:gcloud/db.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import 'package:client_data/package_api.dart';
@@ -81,7 +78,7 @@ void main() {
       );
       expect(_json(rs.toJson()), {'publisherId': 'example.com'});
 
-      final p = await packageBackend.lookupPackage('oxygen');
+      final p = (await packageBackend.lookupPackage('oxygen'))!;
       expect(p.publisherId, 'example.com');
       expect(p.uploaders, []);
 
@@ -183,7 +180,7 @@ void main() {
       );
       expect(_json(rs.toJson()), {'publisherId': 'example.com'});
 
-      final p = await packageBackend.lookupPackage('one');
+      final p = (await packageBackend.lookupPackage('one'))!;
       expect(p.publisherId, 'example.com');
       expect(p.uploaders, []);
 
@@ -232,9 +229,9 @@ void main() {
 dynamic _json(value) => json.decode(json.encode(value));
 
 void _testUserNotMemberOfPublisher({
-  @required Future<void> Function(PubApiClient client) fn,
+  required Future<void> Function(PubApiClient client) fn,
   String authToken = 'other-at-pub-dot-dev',
-  TestProfile testProfile,
+  TestProfile? testProfile,
 }) {
   testWithProfile('Active user is not a member of publisher',
       testProfile: testProfile, fn: () async {
@@ -245,9 +242,9 @@ void _testUserNotMemberOfPublisher({
 }
 
 void _testUserNotAdminOfPublisher({
-  @required Future<void> Function(PubApiClient client) fn,
+  required Future<void> Function(PubApiClient client) fn,
   String authToken = adminAtPubDevAuthToken,
-  TestProfile testProfile,
+  TestProfile? testProfile,
 }) {
   testWithProfile('Active user is not admin of publisher',
       testProfile: testProfile, fn: () async {

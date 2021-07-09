@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:convert';
 import 'dart:math' as math;
 
@@ -52,7 +50,7 @@ every 10-20 seconds, continuously printing the stats.
 }
 
 Future<_Sample> _sample({
-  SearchForm form,
+  SearchForm? form,
   int maxAttempts = 20,
   int maxItems = 3,
 }) async {
@@ -86,21 +84,21 @@ Future<_Item> _singleItem(SearchForm form) async {
   if (rs.statusCode == 200) {
     final body = json.decode(rs.body) as Map<String, dynamic>;
     final gae = body['gae'] as Map<String, dynamic>;
-    final version = gae['version'] as String;
-    final instanceHash = gae['instanceHash'] as String;
+    final version = gae['version'] as String?;
+    final instanceHash = gae['instanceHash'] as String?;
     final index = body['index'] as Map<String, dynamic>;
     final updatedPackages = (index['updatedPackages'] as List).cast<String>();
     final lastUpdated = DateTime.parse(index['lastUpdated'] as String);
 
     final packagesList =
         (body['packages'] as List).cast<Map<String, dynamic>>();
-    final packages = <String>[];
-    final scores = <String, double>{};
+    final packages = <String?>[];
+    final scores = <String?, double?>{};
 
     for (final map in packagesList) {
-      final package = map['package'] as String;
+      final package = map['package'] as String?;
       packages.add(package);
-      scores[package] = map['score'] as double;
+      scores[package] = map['score'] as double?;
     }
 
     return _Item(
@@ -118,30 +116,30 @@ Future<_Item> _singleItem(SearchForm form) async {
 }
 
 class _Sample {
-  final List<_Item> items;
-  _Diff _diff;
+  final List<_Item>? items;
+  _Diff? _diff;
 
   _Sample({
     this.items,
   });
 
-  int get length => items.length;
-  _Item get first => items.first;
-  _Item get last => items.last;
+  int get length => items!.length;
+  _Item get first => items!.first;
+  _Item get last => items!.last;
 
-  _Diff get diff => _diff ??= _Diff.fromItems(items);
+  _Diff get diff => _diff ??= _Diff.fromItems(items!);
 }
 
 class _Item {
-  final SearchForm form;
+  final SearchForm? form;
 
-  final String version;
-  final String instanceHash;
-  final List<String> updatedPackages;
-  final Duration indexUpdated;
+  final String? version;
+  final String? instanceHash;
+  final List<String>? updatedPackages;
+  final Duration? indexUpdated;
 
-  final List<String> packages;
-  final Map<String, double> scores;
+  final List<String?>? packages;
+  final Map<String?, double?>? scores;
 
   _Item({
     this.form,
@@ -153,7 +151,7 @@ class _Item {
     this.scores,
   });
 
-  double get scoreSum => scores.values.fold(0.0, (sum, e) => sum + (e ?? 0.0));
+  double get scoreSum => scores!.values.fold(0.0, (sum, e) => sum + (e ?? 0.0));
 }
 
 double _scoreDiffPct(double a, double b) {
@@ -165,11 +163,11 @@ double _scoreDiffPct(double a, double b) {
 }
 
 class _Diff {
-  final bool hasObservableDifference;
-  final double packagesCount;
-  final double scoreDiffPct;
-  final double updatedCount;
-  final Duration updatedDuration;
+  final bool? hasObservableDifference;
+  final double? packagesCount;
+  final double? scoreDiffPct;
+  final double? updatedCount;
+  final Duration? updatedDuration;
 
   _Diff({
     this.hasObservableDifference,
@@ -180,7 +178,7 @@ class _Diff {
   });
 
   factory _Diff.fromItems(List<_Item> items) {
-    final packagesJoined = items.map((i) => i.packages.join(',')).toSet();
+    final packagesJoined = items.map((i) => i.packages!.join(',')).toSet();
 
     final updatedCounts = <int>[];
     final packagesCounts = <int>[];
@@ -191,24 +189,24 @@ class _Diff {
       for (var j = i + 1; j < items.length; j++) {
         final item = items[i];
         final other = items[j];
-        final updatedShared = item.updatedPackages
+        final updatedShared = item.updatedPackages!
             .toSet()
-            .intersection(other.updatedPackages.toSet());
+            .intersection(other.updatedPackages!.toSet());
         final allUpdated = <String>{
-          ...item.updatedPackages,
-          ...other.updatedPackages
+          ...item.updatedPackages!,
+          ...other.updatedPackages!
         };
         updatedCounts.add(allUpdated.length - updatedShared.length);
 
         final pkgShared =
-            item.packages.toSet().intersection(other.packages.toSet());
-        final allPackages = <String>{...item.packages, ...other.packages};
+            item.packages!.toSet().intersection(other.packages!.toSet());
+        final allPackages = <String?>{...item.packages!, ...other.packages!};
         packagesCounts.add(allPackages.length - pkgShared.length);
 
         final scoreDiffPct = _scoreDiffPct(item.scoreSum, other.scoreSum);
         scoreDiffPcts.add(scoreDiffPct);
 
-        final updatedDiff = (item.indexUpdated - other.indexUpdated).abs();
+        final updatedDiff = (item.indexUpdated! - other.indexUpdated!).abs();
         updatedDiffs.add(updatedDiff);
       }
     }
@@ -217,16 +215,16 @@ class _Diff {
       hasObservableDifference: packagesJoined.length > 1,
       packagesCount:
           packagesCounts.fold<int>(0, (sum, v) => sum + v) / items.length,
-      scoreDiffPct: scoreDiffPcts.fold(0.0, (mv, d) => mv > d ? mv : d),
+      scoreDiffPct: scoreDiffPcts.fold<double>(0.0, (mv, d) => mv > d ? mv : d),
       updatedCount:
           updatedCounts.fold<int>(0, (sum, v) => sum + v) / items.length,
-      updatedDuration:
-          updatedDiffs.fold(Duration.zero, (mv, d) => mv > d ? mv : d),
+      updatedDuration: updatedDiffs.fold<Duration>(
+          Duration.zero, (mv, d) => mv > d ? mv : d),
     );
   }
 
   bool get hasDrift =>
-      hasObservableDifference || packagesCount > 0.0 || scoreDiffPct > 0.0;
+      hasObservableDifference! || packagesCount! > 0.0 || scoreDiffPct! > 0.0;
 
   Map<String, dynamic> toJson() => {
         'observable': hasObservableDifference,
@@ -249,15 +247,15 @@ class _FormWithSummary {
       (10000 * drifted / math.max(1, length)).round() / 100.0;
 
   double get sumPkgCount =>
-      _diffs.map((d) => d.packagesCount).fold<double>(0.0, (a, b) => a + b);
+      _diffs.map((d) => d.packagesCount).fold<double>(0.0, (a, b) => a + b!);
   double get sumScoreDiffPct =>
-      _diffs.map((d) => d.scoreDiffPct).fold<double>(0.0, (a, b) => a + b);
+      _diffs.map((d) => d.scoreDiffPct).fold<double>(0.0, (a, b) => a + b!);
   double get sumUpdatedCount =>
-      _diffs.map((d) => d.updatedCount).fold<double>(0.0, (a, b) => a + b);
+      _diffs.map((d) => d.updatedCount).fold<double>(0.0, (a, b) => a + b!);
   double get avgUpdatedCount => sumUpdatedCount / math.max(1, length);
   Duration get sumUpdatedDuration => _diffs
       .map((d) => d.updatedDuration)
-      .fold<Duration>(Duration.zero, (a, b) => a + b);
+      .fold<Duration>(Duration.zero, (a, b) => a + b!);
   Duration get avgUpdatedDuration => sumUpdatedDuration ~/ math.max(1, length);
 
   @override

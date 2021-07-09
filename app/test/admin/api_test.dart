@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:convert';
 
 import 'package:client_data/admin_api.dart';
@@ -169,21 +167,20 @@ void main() {
         final userClient = createPubApiClient(authToken: userAtPubDevAuthToken);
         await userClient.likePackage('oxygen');
 
-        Key likeKey;
+        late Key likeKey;
         await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
           final user = await requireAuthenticatedUser();
           likeKey = dbService.emptyKey
               .append(User, id: user.userId)
               .append(Like, id: 'oxygen');
-          final like =
-              await dbService.lookupValue<Like>(likeKey, orElse: () => null);
+          final like = await dbService.lookupOrNull<Like>(likeKey);
           expect(like, isNotNull);
         });
 
         final moderatedPkgKey =
             dbService.emptyKey.append(ModeratedPackage, id: 'oxygen');
-        ModeratedPackage moderatedPkg = await dbService
-            .lookupValue<ModeratedPackage>(moderatedPkgKey, orElse: () => null);
+        var moderatedPkg =
+            await dbService.lookupOrNull<ModeratedPackage>(moderatedPkgKey);
         expect(moderatedPkg, isNull);
 
         final timeBeforeRemoval = DateTime.now().toUtc();
@@ -191,15 +188,13 @@ void main() {
 
         expect(utf8.decode(rs), '{"status":"OK"}');
 
-        final pkgAfterRemoval =
-            await dbService.lookupValue<Package>(pkgKey, orElse: () => null);
+        final pkgAfterRemoval = await dbService.lookupOrNull<Package>(pkgKey);
         expect(pkgAfterRemoval, isNull);
 
         final versionsAfterRemoval = await versionsQuery.run().toList();
         expect(versionsAfterRemoval, isEmpty);
 
-        final likeAfterRemoval =
-            await dbService.lookupValue<Like>(likeKey, orElse: () => null);
+        final likeAfterRemoval = await dbService.lookupOrNull<Like>(likeKey);
         expect(likeAfterRemoval, isNull);
 
         moderatedPkg =
@@ -233,21 +228,20 @@ void main() {
         final userClient = createPubApiClient(authToken: userAtPubDevAuthToken);
         await userClient.likePackage('oxygen');
 
-        Key likeKey;
+        late Key likeKey;
         await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
           final user = await requireAuthenticatedUser();
           likeKey = dbService.emptyKey
               .append(User, id: user.userId)
               .append(Like, id: 'oxygen');
-          final like =
-              await dbService.lookupValue<Like>(likeKey, orElse: () => null);
+          final like = await dbService.lookupOrNull<Like>(likeKey);
           expect(like, isNotNull);
         });
 
         final moderatedPkgKey =
             dbService.emptyKey.append(ModeratedPackage, id: 'oxygen');
-        ModeratedPackage moderatedPkg = await dbService
-            .lookupValue<ModeratedPackage>(moderatedPkgKey, orElse: () => null);
+        var moderatedPkg =
+            await dbService.lookupOrNull<ModeratedPackage>(moderatedPkgKey);
         expect(moderatedPkg, isNull);
 
         final timeBeforeRemoval = DateTime.now().toUtc();
@@ -256,12 +250,11 @@ void main() {
 
         expect(utf8.decode(rs), '{"status":"OK"}');
 
-        final pkgAfterRemoval =
-            await dbService.lookupValue<Package>(pkgKey, orElse: () => null);
+        final pkgAfterRemoval = await dbService.lookupOrNull<Package>(pkgKey);
         expect(pkgAfterRemoval, isNotNull);
-        expect(Version.parse(pkgAfterRemoval.latestVersion),
+        expect(Version.parse(pkgAfterRemoval!.latestVersion!),
             lessThan(Version.parse(removeVersion)));
-        expect(pkgAfterRemoval.updated.isAfter(timeBeforeRemoval), isTrue);
+        expect(pkgAfterRemoval.updated!.isAfter(timeBeforeRemoval), isTrue);
 
         final versionsAfterRemoval = await versionsQuery.run().toList();
         final missingVersion = versions
@@ -272,12 +265,11 @@ void main() {
         expect(versionsAfterRemoval, hasLength(versions.length - 1));
         expect(missingVersion, removeVersion);
 
-        final likeAfterRemoval =
-            await dbService.lookupValue<Like>(likeKey, orElse: () => null);
+        final likeAfterRemoval = await dbService.lookupOrNull<Like>(likeKey);
         expect(likeAfterRemoval, isNotNull);
 
-        moderatedPkg = await dbService
-            .lookupValue<ModeratedPackage>(moderatedPkgKey, orElse: () => null);
+        moderatedPkg =
+            await dbService.lookupOrNull<ModeratedPackage>(moderatedPkgKey);
         expect(moderatedPkg, isNull);
       });
     });
@@ -286,7 +278,7 @@ void main() {
       setupTestsWithCallerAuthorizationIssues((client) async {
         final user =
             await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
-        await client.adminRemoveUser(user.userId);
+        await client.adminRemoveUser(user.userId!);
       });
 
       testWithProfile(
@@ -297,16 +289,16 @@ void main() {
           final user =
               await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
 
-          final rs = await client.adminRemoveUser(user.userId);
+          final rs = await client.adminRemoveUser(user.userId!);
           expect(utf8.decode(rs), '{"status":"OK"}');
 
           final oxygen = await packageBackend.lookupPackage('oxygen');
-          expect(oxygen.publisherId, isNull);
+          expect(oxygen!.publisherId, isNull);
           expect(oxygen.uploaders, []);
           expect(oxygen.isDiscontinued, true);
 
           final publisher = await publisherBackend.getPublisher('example.com');
-          expect(publisher.contactEmail, isNull);
+          expect(publisher!.contactEmail, isNull);
           expect(publisher.isAbandoned, isTrue);
 
           final members = await dbService
@@ -332,16 +324,15 @@ void main() {
             .append(User, id: user.userId)
             .append(Like, id: 'oxygen');
 
-        Like like =
-            await dbService.lookupValue<Like>(likeKey, orElse: () => null);
+        Like? like = await dbService.lookupOrNull<Like>(likeKey);
         expect(like, isNotNull);
 
-        await client.adminRemoveUser(user.userId);
+        await client.adminRemoveUser(user.userId!);
 
         final r3 = await client.getPackageLikes('oxygen');
         expect(r3.likes, 0);
 
-        like = await dbService.lookupValue<Like>(likeKey, orElse: () => null);
+        like = await dbService.lookupOrNull<Like>(likeKey);
         expect(like, null);
       });
 

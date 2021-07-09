@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:io';
 
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
@@ -104,11 +103,11 @@ void main() {
   test('Flutter is using a released version from any channel.', () async {
     final flutterArchive = await fetchFlutterArchive();
     expect(
-        flutterArchive.releases
+        flutterArchive.releases!
             .any((fr) => fr.version == toolStableFlutterSdkVersion),
         isTrue);
     expect(
-        flutterArchive.releases
+        flutterArchive.releases!
             .any((fr) => fr.version == toolPreviewFlutterSdkVersion),
         isTrue);
   });
@@ -117,11 +116,9 @@ void main() {
     'Flutter is using the latest stable',
     () async {
       final flutterArchive = await fetchFlutterArchive();
-      final currentStable = flutterArchive.releases.firstWhere(
-        (r) => r.hash == flutterArchive.currentRelease.stable,
-        orElse: () => null,
-      );
-      assert(currentStable != null, 'Expected current stable to exist');
+      final currentStable = flutterArchive.releases!.firstWhereOrNull(
+        (r) => r.hash == flutterArchive.currentRelease!.stable,
+      )!;
       expect(
         toolStableFlutterSdkVersion,
         equals(currentStable.version),

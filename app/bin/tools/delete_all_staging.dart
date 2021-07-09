@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:async';
 
 import 'package:args/args.dart';
@@ -37,7 +35,7 @@ Future main(List<String> args) async {
   }
 
   final argv = _argParser.parse(args);
-  if (argv['help'] as bool == true) {
+  if (argv['help'] as bool) {
     print('Usage: dart delete_all_staging.dart');
     print('Deletes every (used) entity on staging.');
     print(_argParser.usage);
@@ -45,7 +43,7 @@ Future main(List<String> args) async {
   }
 
   final concurrency = int.parse(argv['concurrency'] as String);
-  final dryRun = argv['dry-run'] as bool;
+  final dryRun = argv['dry-run'] as bool?;
 
   await withToolRuntime(() async {
     final entities = <Query, int>{
@@ -131,7 +129,7 @@ Future<void> _batchedQuery<T extends Model>(
 int _estimateSize(Model m) {
   var size = 1024;
   final entity = dbService.modelDB.toDatastoreEntity(m);
-  entity.properties?.forEach((k, v) {
+  entity.properties.forEach((k, v) {
     size += 128;
     size += k.toString().length;
     if (v == null || v is num || v is bool) {
@@ -147,10 +145,10 @@ int _estimateSize(Model m) {
   return size;
 }
 
-Future<void> _commit(List<Key> keys, bool dryRun) async {
+Future<void> _commit(List<Key> keys, bool? dryRun) async {
   if (keys.isEmpty) return;
   final first = keys.first;
-  final label = dryRun ? 'NOT deleting' : 'Deleting';
+  final label = dryRun! ? 'NOT deleting' : 'Deleting';
   print('$label ${keys.length} of ${first.type} (e.g. ${first.id})');
   if (!dryRun) {
     await dbService.commit(deletes: keys);

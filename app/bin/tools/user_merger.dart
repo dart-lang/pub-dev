@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'package:args/args.dart';
 
 import 'package:pub_dev/service/entrypoint/tools.dart';
@@ -16,18 +14,18 @@ final _argParser = ArgParser()
   ..addOption('oauth-user-id', help: 'The specific OAuthUserId object to fix.')
   ..addFlag('help', abbr: 'h', defaultsTo: false, help: 'Show help.');
 
-int concurrency;
+int? concurrency;
 
 Future main(List<String> args) async {
   final argv = _argParser.parse(args);
-  if (argv['help'] as bool == true) {
+  if (argv['help'] as bool) {
     print('Usage: dart user_merger.dart --oauth-user-id <id>');
     print(_argParser.usage);
     return;
   }
 
   concurrency = int.parse(argv['concurrency'] as String);
-  final oauthUserId = argv['oauth-user-id'] as String;
+  final oauthUserId = argv['oauth-user-id'] as String?;
 
   await withToolRuntime(() async {
     final userMerger = UserMerger(db: dbService, concurrency: concurrency);

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:async';
 
 import 'package:args/args.dart';
@@ -19,7 +17,7 @@ final _argParser = ArgParser()
 
 Future main(List<String> args) async {
   final argv = _argParser.parse(args);
-  if (argv['help'] as bool == true) {
+  if (argv['help'] as bool) {
     print('Usage: dart update_package_versions.dart');
     print('Ensures Package.latestVersion is up-to-date.');
     print('Ensures Package.latestPreviewVersion is up-to-date.');
@@ -29,7 +27,7 @@ Future main(List<String> args) async {
   }
 
   final concurrency = int.parse(argv['concurrency'] as String);
-  final package = argv['package'] as String;
+  final package = argv['package'] as String?;
 
   await withToolRuntime(() async {
     if (package != null) {

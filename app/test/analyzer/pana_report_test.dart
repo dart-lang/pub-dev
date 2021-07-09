@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'package:pub_dev/fake/backend/fake_pana_runner.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:test/test.dart';
@@ -23,16 +21,16 @@ void main() {
 
       expect(reports.first, isNotNull);
       expect(reports.last, isNull);
-      final report = reports[1];
+      final report = reports[1]!;
       expect(report.derivedTags, [
         'sdk:dart',
         'runtime:native-aot',
         'runtime:native-jit',
         'runtime:web',
       ]);
-      expect(report.report.grantedPoints, 33);
-      expect(report.report.maxPoints, 60);
-      expect(report.report.sections.first.summary,
+      expect(report.report!.grantedPoints, 33);
+      expect(report.report!.maxPoints, 60);
+      expect(report.report!.sections.first.summary,
           contains('8/30 points: Package layout'));
     });
   });

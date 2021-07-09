@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'package:appengine/appengine.dart';
 import 'package:args/args.dart';
 import 'package:pool/pool.dart';
@@ -19,7 +17,7 @@ final _argParser = ArgParser()
 
 Future main(List<String> args) async {
   final argv = _argParser.parse(args);
-  if (argv['help'] as bool == true) {
+  if (argv['help'] as bool) {
     print('Usage: dart set_unlisted_false_for_all_discontinued_packages.dart');
     print('Unsets Package.isUnlisted when Package.isDiscontinued is set.');
     print(_argParser.usage);
@@ -50,7 +48,7 @@ Future<void> _migrate(Package p) async {
   print('Updating isUnlisted=false on package ${p.name}');
   try {
     await withRetryTransaction(dbService, (tx) async {
-      final package = await tx.lookupValue<Package>(p.key, orElse: () => null);
+      final package = await tx.lookupOrNull<Package>(p.key);
       if (package == null) {
         return;
       }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:io';
 
 import 'package:test/test.dart';
@@ -93,6 +91,6 @@ Iterable<String> _parseGetRoutes() sync* {
   ];
   for (final file in files) {
     final content = File(file).readAsStringSync();
-    yield* exp.allMatches(content).map((m) => m.group(1));
+    yield* exp.allMatches(content).map((m) => m.group(1)!);
   }
 }

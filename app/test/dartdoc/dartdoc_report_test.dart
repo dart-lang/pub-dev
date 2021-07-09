@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'package:pub_dev/dartdoc/backend.dart';
 import 'package:pub_dev/dartdoc/dartdoc_runner.dart';
 import 'package:pub_dev/fake/backend/fake_dartdoc_runner.dart';
@@ -32,13 +30,13 @@ void main() {
 
       expect(reports.first, isNotNull);
       expect(reports.last, isNull);
-      final report = reports[1];
+      final report = reports[1]!;
       expect(report.dartdocEntry, isNotNull);
-      expect(report.dartdocEntry.totalSize, 440);
-      expect(report.documentationSection.grantedPoints, 10);
-      expect(report.documentationSection.maxPoints, 10);
+      expect(report.dartdocEntry!.totalSize, 440);
+      expect(report.documentationSection!.grantedPoints, 10);
+      expect(report.documentationSection!.maxPoints, 10);
       expect(
-          report.documentationSection.summary,
+          report.documentationSection!.summary,
           contains(
               '17 out of 20 API elements (85.0 %) have documentation comments.'));
 
@@ -49,7 +47,7 @@ void main() {
 
       expect(entries.first, isNotNull);
       expect(entries.last, isNull);
-      expect(entries[1].totalSize, 440);
+      expect(entries[1]!.totalSize, 440);
     });
   });
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:async';
 
 import 'package:appengine/appengine.dart';
@@ -21,7 +19,7 @@ final _argParser = ArgParser()
 
 Future main(List<String> args) async {
   final argv = _argParser.parse(args);
-  if (argv['help'] as bool == true) {
+  if (argv['help'] as bool) {
     print('Usage: dart backfill_users.dart');
     print('Ensures User.isBlocked is set to false by default.');
     print('Ensures User.isDeleted is set to false by default.');
@@ -47,7 +45,9 @@ Future main(List<String> args) async {
 }
 
 Future _backfillUser(User user) async {
-  if (user.isDeleted != null && user.isBlocked != null) {
+  // TODO: update condition with backfillable fields
+  // ignore: unnecessary_null_comparison
+  if (user != null) {
     // no need to update
     return;
   }
@@ -55,8 +55,7 @@ Future _backfillUser(User user) async {
 
   await withRetryTransaction(dbService, (tx) async {
     final u = await dbService.lookupValue<User>(user.key);
-    u.isBlocked ??= false;
-    u.isDeleted ??= false;
+    // TODO: do backfill.
     tx.insert(u);
   });
 }

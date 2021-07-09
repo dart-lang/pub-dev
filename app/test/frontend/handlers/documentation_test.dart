@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
@@ -17,13 +15,14 @@ import '../../shared/test_services.dart';
 
 void main() {
   group('path parsing', () {
-    void testUri(String rqPath, String package, [String version, String path]) {
+    void testUri(String rqPath, String? package,
+        [String? version, String? path]) {
       final p = parseRequestUri(Uri.parse('$siteRoot$rqPath'));
       if (package == null) {
         expect(p, isNull);
       } else {
         expect(p, isNotNull);
-        expect(p.package, package);
+        expect(p!.package, package);
         expect(p.version, version);
         expect(p.path, path);
       }
@@ -120,7 +119,7 @@ void main() {
 
     testWithProfile('withheld package gets rejected', fn: () async {
       final pkg = await packageBackend.lookupPackage('oxygen');
-      await dbService.commit(inserts: [pkg..isWithheld = true]);
+      await dbService.commit(inserts: [pkg!..isWithheld = true]);
       await expectNotFoundResponse(
           await issueGet('/documentation/oxygen/latest/'));
     });

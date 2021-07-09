@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
+import 'package:http/testing.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dev/frontend/static_files.dart';
@@ -36,7 +35,8 @@ void main() {
     });
 
     testWithProfile('/ without a working search service', fn: () async {
-      registerSearchClient(null);
+      registerSearchClient(
+          SearchClient(MockClient((_) async => throw Exception())));
       final rs = await issueGet('/');
       await expectHtmlResponse(
         rs,

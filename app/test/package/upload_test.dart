@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:async';
 
 import 'package:gcloud/db.dart';
@@ -110,19 +108,19 @@ void main() {
 
           final pkgKey =
               dbService.emptyKey.append(Package, id: version.package);
-          final package = (await dbService.lookup<Package>([pkgKey])).single;
+          final package = (await dbService.lookup<Package>([pkgKey])).single!;
           expect(package.name, 'new_package');
           expect(package.latestVersion, '1.2.3');
           expect(package.uploaders, [user.userId]);
           expect(package.publisherId, isNull);
-          expect(package.created.compareTo(dateBeforeTest) >= 0, isTrue);
-          expect(package.updated.compareTo(dateBeforeTest) >= 0, isTrue);
+          expect(package.created!.compareTo(dateBeforeTest) >= 0, isTrue);
+          expect(package.updated!.compareTo(dateBeforeTest) >= 0, isTrue);
 
           final pvKey = package.latestVersionKey;
-          final pv = (await dbService.lookup<PackageVersion>([pvKey])).single;
+          final pv = (await dbService.lookup<PackageVersion>([pvKey!])).single!;
           expect(pv.packageKey, package.key);
-          expect(pv.created.compareTo(dateBeforeTest) >= 0, isTrue);
-          expect(pv.pubspec.asJson, loadYaml(pubspecContent));
+          expect(pv.created!.compareTo(dateBeforeTest) >= 0, isTrue);
+          expect(pv.pubspec!.asJson, loadYaml(pubspecContent));
           expect(pv.libraries, ['test_library.dart']);
           expect(pv.uploader, user.userId);
           expect(pv.publisherId, isNull);
@@ -141,7 +139,7 @@ void main() {
           final publishedAudit = audits.first;
           expect(publishedAudit.kind, AuditLogRecordKind.packagePublished);
           expect(publishedAudit.created, isNotNull);
-          expect(publishedAudit.expires.year, greaterThan(9998));
+          expect(publishedAudit.expires!.year, greaterThan(9998));
           expect(publishedAudit.agent, user.userId);
           expect(publishedAudit.users, [user.userId]);
           expect(publishedAudit.packages, ['new_package']);
@@ -186,19 +184,19 @@ void main() {
 
           final pkgKey =
               dbService.emptyKey.append(Package, id: version.package);
-          final package = (await dbService.lookup<Package>([pkgKey])).single;
+          final package = (await dbService.lookup<Package>([pkgKey])).single!;
           expect(package.name, 'neon');
           expect(package.latestVersion, '7.0.0');
           expect(package.publisherId, 'example.com');
           expect(package.uploaders, []);
-          expect(package.created.compareTo(dateBeforeTest) < 0, isTrue);
-          expect(package.updated.compareTo(dateBeforeTest) >= 0, isTrue);
+          expect(package.created!.compareTo(dateBeforeTest) < 0, isTrue);
+          expect(package.updated!.compareTo(dateBeforeTest) >= 0, isTrue);
 
           final pvKey = package.latestVersionKey;
-          final pv = (await dbService.lookup<PackageVersion>([pvKey])).single;
+          final pv = (await dbService.lookup<PackageVersion>([pvKey!])).single!;
           expect(pv.packageKey, package.key);
-          expect(pv.created.compareTo(dateBeforeTest) >= 0, isTrue);
-          expect(pv.pubspec.asJson, loadYaml(pubspecContent));
+          expect(pv.created!.compareTo(dateBeforeTest) >= 0, isTrue);
+          expect(pv.pubspec!.asJson, loadYaml(pubspecContent));
           expect(pv.libraries, ['test_library.dart']);
           expect(pv.uploader, user.userId);
           expect(pv.publisherId, 'example.com');
@@ -322,7 +320,7 @@ void main() {
       });
 
       // Returns the error message as String or null if it succeeded.
-      Future<String> fn(String name) async {
+      Future<String?> fn(String name) async {
         final pubspecContent = generatePubspecYaml(name, '0.2.0');
         try {
           final tarball =

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'package:args/args.dart';
 import 'package:logging/logging.dart';
 
@@ -18,7 +16,7 @@ final _argParser = ArgParser()
 
 Future main(List<String> args) async {
   final argv = _argParser.parse(args);
-  if (argv['help'] as bool == true) {
+  if (argv['help'] as bool) {
     print('Usage: dart check_integrity.dart');
     print(
         'Checks the integrity of the Datastore entries (e.g. all references are valid).');
