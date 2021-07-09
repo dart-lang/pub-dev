@@ -97,7 +97,7 @@ void main() {
     Future<String?> inviteContact() async {
       await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
         final status = await consentBackend.invitePublisherContact(
-          publisherId: exampleComPublisher.publisherId!,
+          publisherId: 'example.com',
           contactEmail: 'info@example.com',
         );
         expect(status.emailSent, isTrue);
@@ -173,7 +173,7 @@ void main() {
     Future<String?> inviteMember() async {
       await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
         final status = await consentBackend.invitePublisherMember(
-          publisherId: exampleComPublisher.publisherId!,
+          publisherId: 'example.com',
           invitedUserEmail: 'user@pub.dev',
         );
         expect(status.emailSent, isTrue);

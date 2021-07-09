@@ -2,12 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
-import 'package:collection/collection.dart' show IterableExtension;
 import 'package:gcloud/db.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
-import 'package:pub_semver/pub_semver.dart';
 
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/package/model_properties.dart';
@@ -54,17 +50,6 @@ const adminAtPubDevAuthToken = 'admin-at-pub-dot-dev';
 const userAtPubDevAuthToken = 'user-at-pub-dot-dev';
 const unauthorizedAtPubDevAuthToken = 'unauthorized-at-pub-dot-dev';
 
-// Flutter plugin
-final helium = _generateBundle(
-  'helium',
-  generateVersions(16, increment: 7),
-  pubspecExtraContent: '''
-flutter:
-  plugin:
-    class: SomeClass
-''',
-);
-
 final foobarPkgName = 'foobar_pkg';
 final foobarPkgKey =
     Key.emptyKey(Partition(null)).append(Package, id: foobarPkgName);
@@ -74,25 +59,10 @@ final foobarStablePVKey =
     foobarPkgKey.append(PackageVersion, id: foobarStableVersion);
 final foobarDevPVKey = foobarPkgKey.append(PackageVersion, id: '0.2.0-dev');
 
-final hansUser = User()
+final _hansUser = User()
   ..id = 'hans-at-juergen-dot-com'
   ..email = 'hans@juergen.com'
   ..created = DateTime.utc(2014)
-  ..isBlocked = false
-  ..isDeleted = false;
-final hansUserSessionData = UserSessionData(
-  userId: hansUser.userId,
-  sessionId: 'hans-at-juergen-dot-com--session',
-  email: hansUser.email,
-  name: 'Hans Juergen',
-  imageUrl: 'https://juergen.com/hans.jpg',
-  created: hansUser.created!,
-  expires: DateTime.now().add(Duration(days: 7)),
-);
-final joeUser = User()
-  ..id = 'joe-at-example-dot-com'
-  ..email = 'joe@example.com'
-  ..created = DateTime(2019, 01, 01)
   ..isBlocked = false
   ..isDeleted = false;
 
@@ -103,7 +73,7 @@ Package _createFoobarPackage() {
     ..name = foobarPkgName
     ..created = DateTime.utc(2014)
     ..updated = DateTime.utc(2015)
-    ..uploaders = [hansUser.userId!]
+    ..uploaders = [_hansUser.userId!]
     ..latestPublished = DateTime.utc(2015)
     ..latestVersionKey = foobarStablePVKey
     ..latestPrereleasePublished = DateTime.utc(2015)
@@ -117,7 +87,7 @@ Package _createFoobarPackage() {
 }
 
 final foobarPackage = _createFoobarPackage();
-final foobarUploaderEmails = [hansUser.email];
+final foobarUploaderEmails = [_hansUser.email];
 
 final Package discontinuedPackage = _createFoobarPackage()
   ..isDiscontinued = true
@@ -129,7 +99,7 @@ final foobarStablePV = PackageVersion()
   ..version = foobarStableVersion
   ..packageKey = foobarPkgKey
   ..created = DateTime.utc(2014)
-  ..uploader = hansUser.userId
+  ..uploader = _hansUser.userId
   ..libraries = ['foolib.dart']
   ..pubspec = Pubspec.fromYaml(foobarStablePubspec);
 
@@ -248,25 +218,9 @@ dependencies:
   gcloud: any
 ''';
 
-PackageVersionInfo _pvToInfo(PackageVersion pv, {List<String>? assets}) {
-  return PackageVersionInfo()
-    ..parentKey = pv.parentKey!.parent
-    ..initFromKey(pv.qualifiedVersionKey)
-    ..versionCreated = pv.created
-    ..updated = pv.created
-    ..libraries = pv.libraries
-    ..libraryCount = pv.libraries!.length
-    ..assets = assets ??
-        <String>[
-          AssetKind.readme,
-          AssetKind.changelog,
-          AssetKind.example,
-        ];
-}
+final _exampleComPublisher = _publisher('example.com');
 
-final exampleComPublisher = publisher('example.com');
-
-Publisher publisher(String domain) => Publisher()
+Publisher _publisher(String domain) => Publisher()
   ..parentKey = Key.emptyKey(Partition(null))
   ..id = domain
   ..description = 'This is us!'
@@ -279,200 +233,9 @@ Publisher publisher(String domain) => Publisher()
 PublisherMember publisherMember(String? userId, String role,
         {Key? parentKey}) =>
     PublisherMember()
-      ..parentKey = parentKey ?? exampleComPublisher.key
+      ..parentKey = parentKey ?? _exampleComPublisher.key
       ..id = userId
       ..userId = userId
       ..created = DateTime(2019, 07, 16)
       ..updated = DateTime(2019, 07, 16)
       ..role = role;
-
-class PkgBundle {
-  final Package package;
-  final List<PackageVersion> versions;
-  final PackageVersion? latestStableVersion;
-  final List<PackageVersionInfo> infos;
-  final List<PackageVersionAsset> assets;
-
-  PkgBundle._(
-    this.package,
-    this.versions,
-    this.latestStableVersion,
-    this.infos,
-    this.assets,
-  ) {
-    assert(package.latestVersionKey != null);
-    assert(package.latestPrereleaseVersionKey != null);
-  }
-
-  factory PkgBundle(
-    Package package,
-    List<PackageVersion> versions,
-    List<PackageVersionInfo> infos,
-    List<PackageVersionAsset> assets,
-  ) {
-    versions.sort((a, b) => a.created!.compareTo(b.created!));
-    final latestStableVersion = versions.lastWhereOrNull(
-      (pv) => !pv.semanticVersion.isPreRelease,
-    );
-    final latestDevVersion = versions.lastWhereOrNull(
-      (pv) => pv.semanticVersion.isPreRelease,
-    );
-
-    package.created ??= versions.first.created;
-    package.updated ??= versions.last.created;
-    package.latestVersionKey ??=
-        latestStableVersion?.key ?? latestDevVersion?.key;
-    package.latestPrereleaseVersionKey ??=
-        latestDevVersion?.key ?? package.latestVersionKey;
-
-    return PkgBundle._(
-      package,
-      versions,
-      latestStableVersion,
-      infos,
-      assets,
-    );
-  }
-
-  String? get packageName => package.name;
-  Key get packageKey => package.key;
-  String? get latestVersion => package.latestVersion;
-}
-
-Iterable<String> generateVersions(
-  int count, {
-  String? start,
-  int devOffset = 0,
-  int increment = 1,
-  int partThreshold = 10,
-}) sync* {
-  int devCounter = 0;
-  Version version = Version.parse(start ?? '1.0.0');
-  for (int i = 0; i < count; i++) {
-    yield version.toString();
-    final isPre = devOffset != 0 && (i % devOffset == devOffset - 1);
-    int major = version.major;
-    int minor = version.minor;
-    int patch = version.patch + increment;
-    if (patch >= partThreshold) {
-      minor += patch ~/ partThreshold;
-      patch = patch % partThreshold;
-    }
-    if (minor >= partThreshold) {
-      major += minor ~/ partThreshold;
-      minor = minor % partThreshold;
-    }
-
-    version =
-        Version(major, minor, patch, pre: isPre ? 'dev${devCounter++}' : null);
-  }
-}
-
-PkgBundle _generateBundle(
-  String name,
-  Iterable<String> versionValues, {
-  String? description,
-  String? homepage,
-  List<User>? uploaders,
-  String? publisherId,
-  String sdkConstraint = '>=2.4.0 <3.0.0',
-  String? pubspecExtraContent,
-}) {
-  description ??= '$name is a Dart package';
-  uploaders ??= <User>[hansUser];
-  homepage ??= 'https://example.com/$name';
-
-  final package = Package()
-    ..parentKey = Key.emptyKey(Partition(null))
-    ..id = name
-    ..name = name
-    ..likes = 0
-    ..isDiscontinued = false
-    ..isUnlisted = false
-    ..isWithheld = false
-    ..assignedTags = []
-    ..publisherId = publisherId
-    ..uploaders = publisherId != null
-        ? []
-        : uploaders.map((u) => u.userId).toList() as List<String>?;
-
-  DateTime ts = DateTime(2014);
-  final versions = <PackageVersion>[];
-  final infos = <PackageVersionInfo>[];
-  final assets = <PackageVersionAsset>[];
-  for (String versionValue in versionValues) {
-    final hash = (name.hashCode + versionValue.hashCode).abs();
-    ts = ts.add(Duration(hours: hash % 177, minutes: hash % 60));
-
-    final uploader = uploaders[hash % uploaders.length];
-
-    final pubspec = 'name: $name\n'
-        'version: $versionValue\n'
-        'description: ${json.encode(description)}\n'
-        'author: ${uploader.email}\n'
-        'homepage: $homepage\n'
-        'environment:\n'
-        '  sdk: "$sdkConstraint"\n'
-        '${pubspecExtraContent ?? ''}';
-
-    final readme = (hash % 99 == 0) ? null : '# $name\n\n$description\n\n';
-    final changelog = (hash % 17 == 0)
-        ? null
-        : '## $versionValue\n\n'
-            '- Bug fix #1${hash % 10}.';
-    final String? example = (hash % 9 == 0)
-        ? null
-        : 'import \'package:$name\';\n\n'
-            'main() {}';
-
-    final version = PackageVersion()
-      ..parentKey = package.key
-      ..packageKey = package.key
-      ..id = versionValue
-      ..version = versionValue
-      ..created = ts
-      ..pubspec = Pubspec.fromYaml(pubspec)
-      ..libraries = ['lib/$name.dart']
-      ..uploader = uploader.userId
-      ..publisherId = publisherId;
-    package.updateVersion(version, dartSdkVersion: Version(2, 10, 4));
-    versions.add(version);
-    infos.add(_pvToInfo(version, assets: [
-      if (readme != null) AssetKind.readme,
-      if (changelog != null) AssetKind.changelog,
-      if (example != null) AssetKind.example,
-    ]));
-    if (readme != null) {
-      assets.add(PackageVersionAsset.init(
-        package: name,
-        version: versionValue,
-        kind: AssetKind.readme,
-        versionCreated: ts,
-        path: 'README.md',
-        textContent: readme,
-      ));
-    }
-    if (changelog != null) {
-      assets.add(PackageVersionAsset.init(
-        package: name,
-        version: versionValue,
-        kind: AssetKind.changelog,
-        versionCreated: ts,
-        path: 'CHANGELOG.md',
-        textContent: changelog,
-      ));
-    }
-    if (example != null) {
-      assets.add(PackageVersionAsset.init(
-        package: name,
-        version: versionValue,
-        kind: AssetKind.example,
-        versionCreated: ts,
-        path: 'example/example.dart',
-        textContent: example,
-      ));
-    }
-  }
-
-  return PkgBundle(package, versions, infos, assets);
-}

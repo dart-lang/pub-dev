@@ -319,7 +319,7 @@ void main() {
 
     group('GCloudRepository.removeUploader', () {
       testWithProfile('not logged in', fn: () async {
-        final rs = packageBackend.removeUploader('oxygen', hansUser.email!);
+        final rs = packageBackend.removeUploader('oxygen', 'admin@pub.dev');
         await expectLater(rs, throwsA(isA<AuthenticationException>()));
       });
 
