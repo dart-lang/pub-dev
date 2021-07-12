@@ -416,7 +416,7 @@ Tab _readmeTab(PackagePageData data) {
   final content = data.hasReadme &&
           data.asset != null &&
           data.asset!.kind == AssetKind.readme
-      ? renderFile(data.asset!.toFileObject(), baseUrl!)
+      ? renderFile(data.asset!.toFileObject(), baseUrl: baseUrl)
       : '';
   return Tab.withContent(
     id: 'readme',
@@ -429,10 +429,9 @@ Tab _readmeTab(PackagePageData data) {
 Tab? _changelogTab(PackagePageData data) {
   if (!data.hasChangelog) return null;
   if (data.asset?.kind != AssetKind.changelog) return null;
-  final baseUrl = data.version!.packageLinks.baseUrl!;
   final content = renderFile(
     data.asset!.toFileObject(),
-    baseUrl,
+    baseUrl: data.version!.packageLinks.baseUrl,
     isChangelog: true,
   );
   return Tab.withContent(
@@ -446,10 +445,11 @@ Tab? _changelogTab(PackagePageData data) {
 Tab? _exampleTab(PackagePageData data) {
   if (!data.hasExample) return null;
   if (data.asset?.kind != AssetKind.example) return null;
-  final baseUrl = data.version!.packageLinks.baseUrl!;
+  final baseUrl = data.version!.packageLinks.baseUrl;
 
   final exampleFilename = data.asset!.path;
-  var renderedExample = renderFile(data.asset!.toFileObject(), baseUrl);
+  var renderedExample =
+      renderFile(data.asset!.toFileObject(), baseUrl: baseUrl);
   final url = getRepositoryUrl(baseUrl, exampleFilename!);
   final escapedName = htmlEscape.convert(exampleFilename);
   final link = url == null
@@ -478,7 +478,9 @@ Tab _installTab(PackagePageData data) {
 Tab _licenseTab(PackagePageData data) {
   final licenseAsHtml = data.hasLicense
       ? renderFile(
-          data.asset!.toFileObject(), data.version!.packageLinks.baseUrl!)
+          data.asset!.toFileObject(),
+          baseUrl: data.version!.packageLinks.baseUrl,
+        )
       : 'No license file found.';
   final contentHtml = '<h2>License</h2>\n$licenseAsHtml';
   return Tab.withContent(
@@ -492,7 +494,9 @@ Tab _licenseTab(PackagePageData data) {
 Tab _pubspecTab(PackagePageData data) {
   final contentHtml = data.hasPubspec
       ? renderFile(
-          data.asset!.toFileObject(), data.version!.packageLinks.baseUrl!)
+          data.asset!.toFileObject(),
+          baseUrl: data.version!.packageLinks.baseUrl,
+        )
       : 'No license file found.';
   return Tab.withContent(
     id: 'pubspec',

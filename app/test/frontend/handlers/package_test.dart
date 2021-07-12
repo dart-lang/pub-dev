@@ -7,6 +7,7 @@ import 'package:test/test.dart';
 
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/tool/test_profile/models.dart';
 
 import '../../shared/handlers_test_utils.dart';
 import '../../shared/test_services.dart';
@@ -117,6 +118,37 @@ void main() {
             '<li class="tab-button -active" data-name="-admin-tab-" role="button">',
           ],
         );
+      },
+    );
+
+    testWithProfile(
+      'package pages without homepage',
+      testProfile: TestProfile(
+        packages: [
+          TestPackage(name: 'pkg', versions: ['1.0.0-nohomepage']),
+        ],
+        defaultUser: 'admin@pub.dev',
+      ),
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final urls = [
+          '/packages/pkg',
+          '/packages/pkg/changelog',
+          '/packages/pkg/example',
+          '/packages/pkg/versions',
+          '/packages/pkg/pubspec',
+          '/packages/pkg/license',
+          '/packages/pkg/score',
+        ];
+        for (final url in urls) {
+          await expectHtmlResponse(
+            await issueGet(url),
+            present: [],
+            absent: [
+              'Homepage',
+            ],
+          );
+        }
       },
     );
   });
