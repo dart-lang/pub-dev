@@ -259,7 +259,13 @@ void main() {
 
     testWithProfile('package show page with discontinued version',
         testProfile: TestProfile(
-          packages: [TestPackage(name: 'pkg', isDiscontinued: true)],
+          packages: [
+            TestPackage(
+              name: 'pkg',
+              versions: ['1.0.0'],
+              isDiscontinued: true,
+            ),
+          ],
           defaultUser: 'admin@pub.dev',
         ),
         processJobsWithFakeRunners: true, fn: () async {
