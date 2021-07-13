@@ -12,6 +12,7 @@ var selected = [
   'c.js',
   'css.js',
   'dart.js',
+  'diff.js',
   'java.js',
   'javascript.js',
   'json.js',
