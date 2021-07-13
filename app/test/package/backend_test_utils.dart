@@ -19,7 +19,7 @@ Future<T> withTempDirectory<T>(Future<T> Function(String temp) func) async {
   }
 }
 
-Future<List<int>> packageArchiveBytes({String? pubspecContent}) async {
+Future<List<int>> packageArchiveBytes({required String pubspecContent}) async {
   return await withTempDirectory((String tmp) async {
     final readme = File('$tmp/README.md');
     final changelog = File('$tmp/CHANGELOG.md');
@@ -28,7 +28,7 @@ Future<List<int>> packageArchiveBytes({String? pubspecContent}) async {
 
     await readme.writeAsString(foobarReadmeContent);
     await changelog.writeAsString(foobarChangelogContent);
-    await pubspec.writeAsString(pubspecContent ?? foobarStablePubspec);
+    await pubspec.writeAsString(pubspecContent);
     await license.writeAsString('BSD LICENSE 2.0');
 
     await Directory('$tmp/lib').create();

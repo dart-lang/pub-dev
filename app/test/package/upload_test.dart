@@ -235,7 +235,7 @@ void main() {
 
     group('packageBackend.upload', () {
       testWithProfile('not logged in', fn: () async {
-        final tarball = await packageArchiveBytes();
+        final tarball = await packageArchiveBytes(pubspecContent: '');
         final rs = packageBackend.upload(Stream.fromIterable([tarball]));
         await expectLater(rs, throwsA(isA<AuthenticationException>()));
       });
@@ -255,7 +255,7 @@ void main() {
         await dbService.commit(inserts: [user..isBlocked = true]);
         await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
           final tarball = await packageArchiveBytes(
-              pubspecContent: generatePubspecYaml(foobarPkgName, '1.2.3'));
+              pubspecContent: generatePubspecYaml('pkg', '1.2.3'));
           final rs = packageBackend.upload(Stream.fromIterable([tarball]));
           await expectLater(rs, throwsA(isA<AuthorizationException>()));
         });
