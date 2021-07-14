@@ -61,7 +61,7 @@ class TemplateCache {
       final expFileName = '${path.basename(name)}_experimental';
       final expTemplate =
           dirName == '.' ? expFileName : path.join(dirName, expFileName);
-      parsedTemplate = templates[expTemplate]!;
+      parsedTemplate = templates[expTemplate];
     }
     parsedTemplate ??= templates[name];
     if (parsedTemplate == null) {
