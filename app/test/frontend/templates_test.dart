@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:html/parser.dart';
@@ -14,7 +13,6 @@ import 'package:xml/xml.dart' as xml;
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/analyzer/analyzer_client.dart';
-import 'package:pub_dev/dartdoc/models.dart';
 import 'package:pub_dev/frontend/handlers/package.dart'
     show loadPackagePageData;
 import 'package:pub_dev/frontend/static_files.dart';
@@ -40,6 +38,7 @@ import 'package:pub_dev/search/search_service.dart';
 import 'package:pub_dev/service/youtube/backend.dart';
 import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/shared/utils.dart' show shortDateFormat;
+import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:pub_validations/html/html_validation.dart';
 
 import '../shared/test_models.dart';
@@ -140,136 +139,104 @@ void main() {
       },
     );
 
-    PackagePageData foobarPageDataFn({String? assetKind}) => PackagePageData(
-          package: foobarPackage,
-          isLiked: false,
-          version: foobarStablePV,
-          versionInfo: foobarStablePvInfo,
-          asset: assetKind == null ? null : foobarAssets[assetKind],
-          analysis: AnalysisView(
-            ScoreCardData(
-              reportTypes: ['pana', 'dartdoc'],
-              panaReport: PanaReport(
-                  timestamp: DateTime(2018, 02, 05),
-                  panaRuntimeInfo: _panaRuntimeInfo,
-                  reportStatus: ReportStatus.success,
-                  derivedTags: null,
-                  allDependencies: ['quiver', 'http'],
-                  licenseFile: LicenseFile('LICENSE.txt', 'BSD'),
-                  report: Report(sections: <ReportSection>[]),
-                  flags: null),
-              dartdocReport: DartdocReport(
-                timestamp: DateTime(2018, 02, 05),
-                reportStatus: ReportStatus.success,
-                dartdocEntry: DartdocEntry(
-                  uuid: '1234-5678-dartdocentry-90ab',
-                  packageName: foobarPkgName,
-                  packageVersion: foobarStableVersion,
-                  isLatest: true,
-                  isObsolete: false,
-                  usesFlutter: false,
-                  runtimeVersion: runtimeVersion,
-                  sdkVersion: _panaRuntimeInfo.sdkVersion,
-                  dartdocVersion: dartdocVersion,
-                  flutterVersion: null,
-                  timestamp: DateTime(2018, 02, 05),
-                  runDuration: Duration(seconds: 33),
-                  depsResolved: true,
-                  hasContent: true,
-                  archiveSize: 101023,
-                  totalSize: 203045,
-                ),
-                documentationSection:
-                    documentationCoverageSection(documented: 17, total: 17),
-              ),
-            ),
-          ),
-          isAdmin: true,
+    testWithProfile(
+      'package show page',
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final data = await accountBackend.withBearerToken(
+          adminAtPubDevAuthToken,
+          () => loadPackagePageData('oxygen', '1.2.0', AssetKind.readme),
         );
+        final html = renderPkgShowPage(data);
+        expectGoldenFile(html, 'pkg_show_page.html', timestamps: {
+          'published': data.package!.created,
+          'updated': data.version!.created,
+        });
+      },
+    );
 
-    scopedTest('package show page', () {
-      final String html =
-          renderPkgShowPage(foobarPageDataFn(assetKind: AssetKind.readme));
-      expectGoldenFile(html, 'pkg_show_page.html');
+    testWithProfile(
+      'package changelog page',
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final data =
+            await loadPackagePageData('oxygen', '1.2.0', AssetKind.changelog);
+        final html = renderPkgChangelogPage(data);
+        expectGoldenFile(html, 'pkg_changelog_page.html', timestamps: {
+          'published': data.package!.created,
+          'updated': data.version!.created,
+        });
+      },
+    );
+
+    testWithProfile(
+      'package example page',
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final data =
+            await loadPackagePageData('oxygen', '1.2.0', AssetKind.example);
+        final html = renderPkgExamplePage(data);
+        expectGoldenFile(html, 'pkg_example_page.html', timestamps: {
+          'published': data.package!.created,
+          'updated': data.version!.created,
+        });
+      },
+    );
+
+    testWithProfile(
+      'package install page',
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final data = await loadPackagePageData('oxygen', '1.2.0', null);
+        final html = renderPkgInstallPage(data);
+        expectGoldenFile(html, 'pkg_install_page.html', timestamps: {
+          'published': data.package!.created,
+          'updated': data.version!.created,
+        });
+      },
+    );
+
+    testWithProfile('package score page', processJobsWithFakeRunners: true,
+        fn: () async {
+      final data = await loadPackagePageData('oxygen', '1.2.0', null);
+      final html = renderPkgScorePage(data);
+      expectGoldenFile(html, 'pkg_score_page.html', timestamps: {
+        'published': data.package!.created,
+        'updated': data.version!.created,
+      });
     });
 
-    scopedTest('package changelog page', () {
-      final String html = renderPkgChangelogPage(
-          foobarPageDataFn(assetKind: AssetKind.changelog));
-      expectGoldenFile(html, 'pkg_changelog_page.html');
-    });
+    testWithProfile(
+      'package show page - with version',
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final data =
+            await loadPackagePageData('oxygen', '1.2.0', AssetKind.readme);
+        final html = renderPkgShowPage(data);
+        expectGoldenFile(html, 'pkg_show_version_page.html', timestamps: {
+          'published': data.package!.created,
+          'updated': data.version!.created,
+        });
+      },
+    );
 
-    scopedTest('package example page', () {
-      final String html =
-          renderPkgExamplePage(foobarPageDataFn(assetKind: AssetKind.example));
-      expectGoldenFile(html, 'pkg_example_page.html');
-    });
-
-    scopedTest('package install page', () {
-      final String html = renderPkgInstallPage(foobarPageDataFn());
-      expectGoldenFile(html, 'pkg_install_page.html');
-    });
-
-    scopedTest('package score page', () {
-      final String html = renderPkgScorePage(foobarPageDataFn());
-      expectGoldenFile(html, 'pkg_score_page.html');
-    });
-
-    scopedTest('package show page - with version', () {
-      final String html = renderPkgShowPage(PackagePageData(
-        package: foobarPackage,
-        isLiked: false,
-        version: foobarDevPV,
-        versionInfo: foobarDevPvInfo,
-        asset: null,
-        analysis: AnalysisView(
-          ScoreCardData(
-            reportTypes: ['pana'],
-            panaReport: PanaReport(
-                timestamp: DateTime(2018, 02, 05),
-                panaRuntimeInfo: _panaRuntimeInfo,
-                reportStatus: ReportStatus.success,
-                derivedTags: null,
-                allDependencies: ['quiver', 'http'],
-                licenseFile: LicenseFile('LICENSE.txt', 'BSD'),
-                report: Report(sections: <ReportSection>[]),
-                flags: null),
-            dartdocReport: null,
-          ),
-        ),
-        isAdmin: true,
-      ));
-      expectGoldenFile(html, 'pkg_show_version_page.html');
-    });
-
-    scopedTest('package show page with flutter_plugin', () {
-      final String html = renderPkgShowPage(PackagePageData(
-        package: foobarPackage,
-        isLiked: false,
-        version: flutterPackageVersion,
-        versionInfo: foobarStablePvInfo,
-        asset: foobarAssets[AssetKind.readme],
-        analysis: AnalysisView(
-          ScoreCardData(
-            popularityScore: 0.3,
-            derivedTags: ['sdk:flutter', 'platform:android'],
-            flags: [PackageFlags.usesFlutter],
-            reportTypes: ['pana'],
-            panaReport: PanaReport(
-                timestamp: DateTime(2018, 02, 05),
-                panaRuntimeInfo: _panaRuntimeInfo,
-                reportStatus: ReportStatus.success,
-                derivedTags: ['sdk:flutter', 'platform:android'],
-                allDependencies: null,
-                licenseFile: null,
-                report: Report(sections: <ReportSection>[]),
-                flags: null),
-          ),
-        ),
-        isAdmin: true,
-      ));
-      expectGoldenFile(html, 'pkg_show_page_flutter_plugin.html');
-    });
+    testWithProfile(
+      'package show page with flutter_plugin',
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final data = await accountBackend.withBearerToken(
+          adminAtPubDevAuthToken,
+          () => loadPackagePageData(
+              'flutter_titanium', '1.10.0', AssetKind.readme),
+        );
+        final html = renderPkgShowPage(data);
+        expectGoldenFile(html, 'pkg_show_page_flutter_plugin.html',
+            timestamps: {
+              'published': data.package!.created,
+              'updated': data.version!.created,
+            });
+      },
+    );
 
     scopedTest('package show page with outdated version', () {
       final String html = renderPkgShowPage(PackagePageData(
@@ -290,23 +257,24 @@ void main() {
       expectGoldenFile(html, 'pkg_show_page_outdated.html');
     });
 
-    scopedTest('package show page with discontinued version', () {
-      final String html = renderPkgShowPage(PackagePageData(
-        package: discontinuedPackage,
-        isLiked: false,
-        version: foobarStablePV,
-        versionInfo: foobarStablePvInfo,
-        asset: foobarAssets[AssetKind.readme],
-        analysis: AnalysisView(
-          ScoreCardData(
-            flags: [PackageFlags.isDiscontinued],
-            updated: DateTime(2018, 02, 05),
-          ),
+    testWithProfile('package show page with discontinued version',
+        testProfile: TestProfile(
+          packages: [
+            TestPackage(
+              name: 'pkg',
+              versions: ['1.0.0'],
+              isDiscontinued: true,
+            ),
+          ],
+          defaultUser: 'admin@pub.dev',
         ),
-        isAdmin: false,
-      ));
-
-      expectGoldenFile(html, 'pkg_show_page_discontinued.html');
+        processJobsWithFakeRunners: true, fn: () async {
+      final data = await loadPackagePageData('pkg', '1.0.0', AssetKind.readme);
+      final html = renderPkgShowPage(data);
+      expectGoldenFile(html, 'pkg_show_page_discontinued.html', timestamps: {
+        'published': data.package!.created,
+        'updated': data.version!.created,
+      });
     });
 
     scopedTest('package show page with legacy version', () {
@@ -342,50 +310,6 @@ void main() {
       // no content
       expect(renderAnalysisTab('pkg_foo', null, null, null, likeCount: 4),
           '<i>Awaiting analysis to complete.</i>');
-    });
-
-    scopedTest('analysis tab: http', () async {
-      // stored analysis of http
-      final String content =
-          await File('$goldenDir/analysis_tab_http.json').readAsString();
-      final map = json.decode(content) as Map<String, dynamic>;
-      final card =
-          ScoreCardData.fromJson(map['scorecard'] as Map<String, dynamic>);
-      final view = AnalysisView(card);
-      final String html = renderAnalysisTab(
-        'http',
-        '>=1.23.0-dev.0.0 <2.0.0',
-        card,
-        view,
-        likeCount: 0,
-      );
-      expectGoldenFile(html, 'analysis_tab_http.html', isFragment: true);
-    });
-
-    scopedTest('mock analysis tab', () async {
-      final card = ScoreCardData(
-        popularityScore: 0.2323232,
-        derivedTags: ['sdk:dart', 'runtime:web'],
-        reportTypes: ['pana'],
-        panaReport: PanaReport(
-            timestamp: DateTime.utc(2017, 10, 26, 14, 03, 06),
-            panaRuntimeInfo: _panaRuntimeInfo,
-            reportStatus: ReportStatus.failed,
-            derivedTags: ['sdk:dart', 'runtime:web'],
-            allDependencies: ['http', 'async'],
-            licenseFile: null,
-            report: Report(sections: <ReportSection>[]),
-            flags: null),
-      );
-      final analysisView = AnalysisView(card);
-      final String html = renderAnalysisTab(
-        'pkg_foo',
-        '>=1.25.0-dev.9.0 <2.0.0',
-        card,
-        analysisView,
-        likeCount: 2000,
-      );
-      expectGoldenFile(html, 'analysis_tab_mock.html', isFragment: true);
     });
 
     scopedTest('aborted analysis tab', () async {
@@ -430,29 +354,22 @@ void main() {
       expectGoldenFile(html, 'analysis_tab_outdated.html', isFragment: true);
     });
 
-    scopedTest('package admin page with outdated version', () {
-      final String html = renderPkgAdminPage(
-        PackagePageData(
-          package: foobarPackage,
-          version: foobarStablePV,
-          versionInfo: foobarStablePvInfo,
-          asset: null,
-          analysis: AnalysisView(
-            ScoreCardData(
-              flags: [PackageFlags.isObsolete],
-              updated: DateTime(2018, 02, 05),
-            ),
-          ),
-          isLiked: false,
-          isAdmin: true,
-        ),
-        [
-          'example.com',
-        ],
-        foobarUploaderEmails,
-      );
-      expectGoldenFile(html, 'pkg_admin_page_outdated.html');
-    });
+    testWithProfile(
+      'package admin page',
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final data = await accountBackend.withBearerToken(
+          adminAtPubDevAuthToken,
+          () => loadPackagePageData('oxygen', '1.2.0', AssetKind.readme),
+        );
+        final html = renderPkgAdminPage(
+          data,
+          ['example.com'],
+          ['admin@pub.dev'],
+        );
+        expectGoldenFile(html, 'pkg_admin_page.html');
+      },
+    );
 
     testWithProfile(
       'package index page',
@@ -723,35 +640,35 @@ void main() {
   });
 
   group('PageLinks', () {
-    scopedTest('empty', () {
+    test('empty', () {
       final links = PageLinks.empty();
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 1);
     });
 
-    scopedTest('one', () {
+    test('one', () {
       final links = PageLinks(SearchForm.parse(), 1);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 1);
     });
 
-    scopedTest('PageLinks.RESULTS_PER_PAGE - 1', () {
+    test('PageLinks.RESULTS_PER_PAGE - 1', () {
       final links = PageLinks(SearchForm.parse(), resultsPerPage - 1);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 1);
     });
 
-    scopedTest('PageLinks.RESULTS_PER_PAGE', () {
+    test('PageLinks.RESULTS_PER_PAGE', () {
       final links = PageLinks(SearchForm.parse(), resultsPerPage);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 1);
     });
 
-    scopedTest('PageLinks.RESULTS_PER_PAGE + 1', () {
+    test('PageLinks.RESULTS_PER_PAGE + 1', () {
       final links = PageLinks(SearchForm.parse(), resultsPerPage + 1);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
@@ -760,7 +677,7 @@ void main() {
 
     final int page2Offset = resultsPerPage;
 
-    scopedTest('page=2 + one item', () {
+    test('page=2 + one item', () {
       final links =
           PageLinks(SearchForm.parse(currentPage: 2), page2Offset + 1);
       expect(links.currentPage, 2);
@@ -768,7 +685,7 @@ void main() {
       expect(links.rightmostPage, 2);
     });
 
-    scopedTest('page=2 + PageLinks.RESULTS_PER_PAGE - 1', () {
+    test('page=2 + PageLinks.RESULTS_PER_PAGE - 1', () {
       final links = PageLinks(
           SearchForm.parse(currentPage: 2), page2Offset + resultsPerPage - 1);
       expect(links.currentPage, 2);
@@ -776,7 +693,7 @@ void main() {
       expect(links.rightmostPage, 2);
     });
 
-    scopedTest('page=2 + PageLinks.RESULTS_PER_PAGE', () {
+    test('page=2 + PageLinks.RESULTS_PER_PAGE', () {
       final links = PageLinks(
           SearchForm.parse(currentPage: 2), page2Offset + resultsPerPage);
       expect(links.currentPage, 2);
@@ -784,7 +701,7 @@ void main() {
       expect(links.rightmostPage, 2);
     });
 
-    scopedTest('page=2 + PageLinks.RESULTS_PER_PAGE + 1', () {
+    test('page=2 + PageLinks.RESULTS_PER_PAGE + 1', () {
       final links = PageLinks(
           SearchForm.parse(currentPage: 2), page2Offset + resultsPerPage + 1);
       expect(links.currentPage, 2);
@@ -792,7 +709,7 @@ void main() {
       expect(links.rightmostPage, 3);
     });
 
-    scopedTest('deep in the middle', () {
+    test('deep in the middle', () {
       final links = PageLinks(SearchForm.parse(currentPage: 21), 600);
       expect(links.currentPage, 21);
       expect(links.leftmostPage, 16);

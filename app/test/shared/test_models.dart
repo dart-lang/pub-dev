@@ -51,13 +51,13 @@ const userAtPubDevAuthToken = 'user-at-pub-dot-dev';
 const unauthorizedAtPubDevAuthToken = 'unauthorized-at-pub-dot-dev';
 
 final foobarPkgName = 'foobar_pkg';
-final foobarPkgKey =
+final _foobarPkgKey =
     Key.emptyKey(Partition(null)).append(Package, id: foobarPkgName);
 
-final foobarStableVersion = '0.1.1+5';
-final foobarStablePVKey =
-    foobarPkgKey.append(PackageVersion, id: foobarStableVersion);
-final foobarDevPVKey = foobarPkgKey.append(PackageVersion, id: '0.2.0-dev');
+final _foobarStableVersion = '0.1.1+5';
+final _foobarStablePVKey =
+    _foobarPkgKey.append(PackageVersion, id: _foobarStableVersion);
+final _foobarDevPVKey = _foobarPkgKey.append(PackageVersion, id: '0.2.0-dev');
 
 final _hansUser = User()
   ..id = 'hans-at-juergen-dot-com'
@@ -68,16 +68,16 @@ final _hansUser = User()
 
 Package _createFoobarPackage() {
   return Package()
-    ..parentKey = foobarPkgKey.parent
+    ..parentKey = _foobarPkgKey.parent
     ..id = foobarPkgName
     ..name = foobarPkgName
     ..created = DateTime.utc(2014)
     ..updated = DateTime.utc(2015)
     ..uploaders = [_hansUser.userId!]
     ..latestPublished = DateTime.utc(2015)
-    ..latestVersionKey = foobarStablePVKey
+    ..latestVersionKey = _foobarStablePVKey
     ..latestPrereleasePublished = DateTime.utc(2015)
-    ..latestPrereleaseVersionKey = foobarDevPVKey
+    ..latestPrereleaseVersionKey = _foobarDevPVKey
     ..lastVersionPublished = DateTime.utc(2015)
     ..likes = 0
     ..isDiscontinued = false
@@ -89,19 +89,15 @@ Package _createFoobarPackage() {
 final foobarPackage = _createFoobarPackage();
 final foobarUploaderEmails = [_hansUser.email];
 
-final Package discontinuedPackage = _createFoobarPackage()
-  ..isDiscontinued = true
-  ..replacedBy = 'helium';
-
 final foobarStablePV = PackageVersion()
-  ..parentKey = foobarStablePVKey.parent
-  ..id = foobarStableVersion
-  ..version = foobarStableVersion
-  ..packageKey = foobarPkgKey
+  ..parentKey = _foobarStablePVKey.parent
+  ..id = _foobarStableVersion
+  ..version = _foobarStableVersion
+  ..packageKey = _foobarPkgKey
   ..created = DateTime.utc(2014)
   ..uploader = _hansUser.userId
   ..libraries = ['foolib.dart']
-  ..pubspec = Pubspec.fromYaml(foobarStablePubspec);
+  ..pubspec = Pubspec.fromYaml(_foobarStablePubspec);
 
 final foobarStablePvInfo = PackageVersionInfo()
   ..parentKey = foobarStablePV.parentKey!.parent
@@ -116,19 +112,10 @@ final foobarStablePvInfo = PackageVersionInfo()
     AssetKind.example,
   ];
 
-final foobarDevPvInfo = PackageVersionInfo()
-  ..parentKey = foobarDevPV.parentKey!.parent
-  ..initFromKey(foobarDevPV.qualifiedVersionKey)
-  ..versionCreated = foobarDevPV.created
-  ..updated = foobarDevPV.created
-  ..libraries = foobarDevPV.libraries
-  ..libraryCount = foobarDevPV.libraries!.length
-  ..assets = [];
-
 final foobarAssets = {
   AssetKind.readme: PackageVersionAsset.init(
     package: foobarPkgName,
-    version: foobarStableVersion,
+    version: _foobarStableVersion,
     kind: AssetKind.readme,
     versionCreated: foobarStablePV.created,
     path: 'README.md',
@@ -136,7 +123,7 @@ final foobarAssets = {
   ),
   AssetKind.changelog: PackageVersionAsset.init(
     package: foobarPkgName,
-    version: foobarStableVersion,
+    version: _foobarStableVersion,
     kind: AssetKind.changelog,
     versionCreated: foobarStablePV.created,
     path: 'CHANGELOG.md',
@@ -144,38 +131,13 @@ final foobarAssets = {
   ),
   AssetKind.example: PackageVersionAsset.init(
     package: foobarPkgName,
-    version: foobarStableVersion,
+    version: _foobarStableVersion,
     kind: AssetKind.example,
     versionCreated: foobarStablePV.created,
     path: 'example/lib/main.dart',
     textContent: foobarExampleContent,
   ),
 };
-
-final PackageVersion flutterPackageVersion =
-    _clonePackageVersion(foobarStablePV)
-      ..created = DateTime.utc(2015)
-      ..pubspec = Pubspec.fromYaml(foobarStablePubspec +
-          '''
-flutter:
-  plugin:
-    class: SomeClass
-  ''');
-
-final PackageVersion foobarDevPV = _clonePackageVersion(foobarStablePV)
-  ..id = foobarDevPVKey.id
-  ..version = foobarDevPVKey.id;
-
-PackageVersion _clonePackageVersion(PackageVersion original) => PackageVersion()
-  ..parentKey = original.parentKey
-  ..id = original.id
-  ..version = original.version
-  ..packageKey = original.packageKey
-  ..created = original.created
-  ..publisherId = original.publisherId
-  ..uploader = original.uploader
-  ..libraries = original.libraries
-  ..pubspec = original.pubspec;
 
 final String foobarReadmeContent = '''
 Test Package
@@ -203,7 +165,7 @@ main() {
 }
 ''';
 
-final foobarStablePubspec = generatePubspecYaml('foobar_pkg', '0.1.1+5');
+final _foobarStablePubspec = generatePubspecYaml('foobar_pkg', '0.1.1+5');
 
 String generatePubspecYaml(String name, String version) => '''
 name: $name
