@@ -367,7 +367,10 @@ void main() {
           ['example.com'],
           ['admin@pub.dev'],
         );
-        expectGoldenFile(html, 'pkg_admin_page.html');
+        expectGoldenFile(html, 'pkg_admin_page.html', timestamps: {
+          'published': data.package!.created,
+          'updated': data.version!.created,
+        });
       },
     );
 
