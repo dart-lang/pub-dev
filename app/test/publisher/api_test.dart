@@ -278,7 +278,7 @@ void main() {
         final user =
             await accountBackend.lookupOrCreateUserByEmail('other@pub.dev');
         await dbService.commit(inserts: [
-          publisherMember(user.userId, 'not-admin'),
+          publisherMember(user.userId, 'example.com', 'not-admin'),
         ]);
         await _updateWithInvite(user.email);
       });
@@ -287,7 +287,7 @@ void main() {
         final user =
             await accountBackend.lookupOrCreateUserByEmail('other@pub.dev');
         await dbService.commit(inserts: [
-          publisherMember(user.userId, 'admin'),
+          publisherMember(user.userId, 'example.com', 'admin'),
         ]);
         final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = await client.updatePublisher(
@@ -310,7 +310,7 @@ void main() {
         final user =
             await accountBackend.lookupOrCreateUserByEmail('other@pub.dev');
         await dbService.commit(inserts: [
-          publisherMember(user.userId, 'admin'),
+          publisherMember(user.userId, 'example.com', 'admin'),
         ]);
         final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = await client.updatePublisher(
@@ -367,7 +367,8 @@ void main() {
         final user =
             await accountBackend.lookupOrCreateUserByEmail('other@pub.dev');
         await dbService.commit(inserts: [
-          publisherMember(user.userId, PublisherMemberRole.admin),
+          publisherMember(
+              user.userId, 'example.com', PublisherMemberRole.admin),
         ]);
         final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = client.invitePublisherMember(
@@ -657,7 +658,8 @@ void main() {
         final user =
             await accountBackend.lookupOrCreateUserByEmail('other@pub.dev');
         await dbService.commit(inserts: [
-          publisherMember(user.userId, PublisherMemberRole.admin),
+          publisherMember(
+              user.userId, 'example.com', PublisherMemberRole.admin),
         ]);
         final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = client.updatePublisherMember(
@@ -673,7 +675,7 @@ void main() {
         final user =
             await accountBackend.lookupOrCreateUserByEmail('other@pub.dev');
         await dbService.commit(inserts: [
-          publisherMember(user.userId, 'someotherrole'),
+          publisherMember(user.userId, 'example.com', 'someotherrole'),
         ]);
         final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = await client.updatePublisherMember(
@@ -734,7 +736,8 @@ void main() {
         final user =
             await accountBackend.lookupOrCreateUserByEmail('other@pub.dev');
         await dbService.commit(inserts: [
-          publisherMember(user.userId, PublisherMemberRole.admin),
+          publisherMember(
+              user.userId, 'example.com', PublisherMemberRole.admin),
         ]);
         final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs =
@@ -769,7 +772,7 @@ void _testAdminAuthIssues(Future Function(PubApiClient client) fn) {
   testWithProfile('Active user is not an admin yet', fn: () async {
     final user = await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
     await dbService.commit(inserts: [
-      publisherMember(user.userId, 'non-admin'),
+      publisherMember(user.userId, 'example.com', 'non-admin'),
     ]);
     final client = createPubApiClient(authToken: userAtPubDevAuthToken);
     final rs = fn(client);

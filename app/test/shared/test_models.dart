@@ -180,22 +180,11 @@ dependencies:
   gcloud: any
 ''';
 
-final _exampleComPublisher = _publisher('example.com');
-
-Publisher _publisher(String domain) => Publisher()
-  ..parentKey = Key.emptyKey(Partition(null))
-  ..id = domain
-  ..description = 'This is us!'
-  ..websiteUrl = 'https://$domain/'
-  ..contactEmail = 'contact@$domain'
-  ..created = DateTime(2019, 07, 15)
-  ..updated = DateTime(2019, 07, 16)
-  ..isAbandoned = false;
-
-PublisherMember publisherMember(String? userId, String role,
-        {Key? parentKey}) =>
+PublisherMember publisherMember(
+        String? userId, String publisherId, String role) =>
     PublisherMember()
-      ..parentKey = parentKey ?? _exampleComPublisher.key
+      ..parentKey =
+          Key.emptyKey(Partition(null)).append(Publisher, id: publisherId)
       ..id = userId
       ..userId = userId
       ..created = DateTime(2019, 07, 16)
