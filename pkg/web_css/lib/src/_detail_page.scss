@@ -320,9 +320,11 @@ $detail-tabs-tablet-width: calc(100% - 240px);
     }
   }
 
-  /* Render admin tab with red. */
-  > .tab-button[data-name="-admin-tab-"],
-  > .tab-link[data-name="-admin-tab-"] > a {
+  /* Render admin tabs with red. */
+  > .tab-button.detail-tab-admin-title,
+  > .tab-link.detail-tab-admin-title > a,
+  > .tab-button.detail-tab-activity-log-title,
+  > .tab-link.detail-tab-activity-log-title > a {
     color: $detail-tab-admin-color;
     position: relative;
     padding-right: 9px;
@@ -352,7 +354,8 @@ $detail-tabs-tablet-width: calc(100% - 240px);
       width: 12px;
     }
   }
-  > .tab-button.-active[data-name="-admin-tab-"] {
+  > .tab-button.detail-tab-admin-title,
+  > .tab-button.detail-tab-activity-log-title {
     border-bottom-color: $detail-tab-admin-color;
   }
 }

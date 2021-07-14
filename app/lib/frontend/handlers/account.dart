@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:client_data/account_api.dart';
+import 'package:pub_dev/audit/backend.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
@@ -265,6 +266,22 @@ Future<shelf.Response> accountPublishersPageHandler(
     user: (await accountBackend.lookupUserById(userSessionData!.userId!))!,
     userSessionData: userSessionData!,
     publishers: page.publishers!,
+  );
+  return htmlResponse(content);
+}
+
+/// Handles requests for GET /my-activity-log
+Future<shelf.Response> accountMyActivityLogPageHandler(
+    shelf.Request request) async {
+  if (userSessionData == null) {
+    return htmlResponse(renderUnauthenticatedPage());
+  }
+  final activities =
+      await auditBackend.listRecordsForUserId(userSessionData!.userId!);
+  final content = renderAccountMyActivityPage(
+    user: (await accountBackend.lookupUserById(userSessionData!.userId!))!,
+    userSessionData: userSessionData!,
+    activities: activities,
   );
   return htmlResponse(content);
 }

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:pub_dev/audit/backend.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
@@ -123,5 +124,33 @@ Future<shelf.Response> publisherAdminPageHandler(
   return htmlResponse(renderPublisherAdminPage(
     publisher: publisher,
     members: await publisherBackend.listPublisherMembers(publisherId),
+  ));
+}
+
+/// Handles requests for GET /publishers/<publisherId>/activity-log
+Future<shelf.Response> publisherActivityLogPageHandler(
+    shelf.Request request, String publisherId) async {
+  final publisher = await publisherBackend.getPublisher(publisherId);
+  if (publisher == null) {
+    // We may introduce search for publishers (e.g. somebody just mistyped a
+    // domain name), but now we just have a formatted error page.
+    return formattedNotFoundHandler(request);
+  }
+
+  if (userSessionData == null) {
+    return htmlResponse(renderUnauthenticatedPage());
+  }
+  final isAdmin = await publisherBackend.isMemberAdmin(
+    publisherId,
+    userSessionData!.userId,
+  );
+  if (!isAdmin) {
+    return htmlResponse(renderUnauthorizedPage());
+  }
+
+  final activities = await auditBackend.listRecordsForPublisher(publisherId);
+  return htmlResponse(renderPublisherActivityLogPage(
+    publisher: publisher,
+    activities: activities,
   ));
 }

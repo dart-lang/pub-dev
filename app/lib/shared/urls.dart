@@ -41,6 +41,7 @@ enum PkgPageTab {
   versions,
   score,
   admin,
+  activityLog,
 }
 
 const _pkgPageTabSegments = <PkgPageTab, String>{
@@ -53,6 +54,7 @@ const _pkgPageTabSegments = <PkgPageTab, String>{
   PkgPageTab.versions: 'versions',
   PkgPageTab.score: 'score',
   PkgPageTab.admin: 'admin',
+  PkgPageTab.activityLog: 'activity-log',
 };
 
 String pkgPageUrl(
@@ -95,6 +97,8 @@ String pkgScoreUrl(String package, {String? version}) =>
 
 String pkgAdminUrl(String package) =>
     pkgPageUrl(package, pkgPageTab: PkgPageTab.admin);
+String pkgActivityLogUrl(String package) =>
+    pkgPageUrl(package, pkgPageTab: PkgPageTab.activityLog);
 
 String pkgArchiveDownloadUrl(String package, String version, {Uri? baseUri}) {
   final path =
@@ -145,6 +149,9 @@ String publisherPackagesUrl(String publisherId) =>
 
 String publisherAdminUrl(String publisherId) =>
     publisherUrl(publisherId) + '/admin';
+
+String publisherActivityLogUrl(String publisherId) =>
+    publisherUrl(publisherId) + '/activity-log';
 
 String searchUrl({
   String? sdk,
@@ -309,6 +316,7 @@ String? displayableUrl(String? url) {
 String myPackagesUrl() => '/my-packages';
 String myLikedPackagesUrl() => '/my-liked-packages';
 String myPublishersUrl() => '/my-publishers';
+String myActivityLogUrl() => '/my-activity-log';
 String createPublisherUrl() => '/create-publisher';
 
 /// Parses [url] and returns the [Uri] object only if the result Uri is valid

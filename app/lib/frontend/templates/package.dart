@@ -8,6 +8,7 @@ import 'package:client_data/page_data.dart';
 import 'package:pana/pana.dart' show getRepositoryUrl, LicenseNames;
 import 'package:pubspec_parse/pubspec_parse.dart' show HostedDependency;
 
+import '../../frontend/request_context.dart';
 import '../../package/model_properties.dart';
 import '../../package/models.dart';
 import '../../package/overrides.dart'
@@ -557,6 +558,7 @@ List<Tab> buildPackageTabs({
   Tab? versionsTab,
   Tab? scoreTab,
   Tab? adminTab,
+  Tab? activityLogTab,
 }) {
   final package = data.package!;
   final linkVersion = data.isLatestStable ? null : data.version!.version;
@@ -595,6 +597,11 @@ List<Tab> buildPackageTabs({
     title: 'Admin',
     href: urls.pkgAdminUrl(package.name!),
   );
+  activityLogTab ??= Tab.withLink(
+    id: 'activity-log',
+    title: 'Activity log',
+    href: urls.pkgActivityLogUrl(package.name!),
+  );
   return <Tab>[
     readmeTab,
     if (data.hasChangelog) changelogTab,
@@ -605,6 +612,7 @@ List<Tab> buildPackageTabs({
     versionsTab,
     scoreTab,
     if (data.isAdmin!) adminTab,
+    if (data.isAdmin! && requestContext.displayActivityLog) activityLogTab,
   ];
 }
 

@@ -4,11 +4,14 @@
 
 import 'package:client_data/publisher_api.dart' as api;
 import 'package:client_data/page_data.dart';
-import 'package:pub_dev/shared/markdown.dart';
 
+import '../../audit/models.dart';
+import '../../frontend/request_context.dart';
+import '../../frontend/templates/views/account/activity_log_table.dart';
 import '../../package/search_adapter.dart' show SearchResultPage;
 import '../../publisher/models.dart' show Publisher, PublisherSummary;
 import '../../search/search_form.dart' show SearchForm;
+import '../../shared/markdown.dart';
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart' show shortDateFormat;
 
@@ -112,6 +115,8 @@ String renderPublisherPackagesPage({
       contentHtml: tabContent,
     ),
     if (isAdmin) _adminLinkTab(publisher.publisherId!),
+    if (isAdmin && requestContext.displayActivityLog)
+      _activityLogLinkTab(publisher.publisherId!),
   ];
 
   final mainContent = renderDetailPage(
@@ -164,6 +169,8 @@ String renderPublisherAdminPage({
       title: 'Admin',
       contentHtml: adminContent,
     ),
+    if (requestContext.displayActivityLog)
+      _activityLogLinkTab(publisher.publisherId!),
   ];
 
   final content = renderDetailPage(
@@ -181,6 +188,46 @@ String renderPublisherAdminPage({
       ),
     ),
     canonicalUrl: urls.publisherAdminUrl(publisher.publisherId!),
+    noIndex: true,
+    mainClasses: [wideHeaderDetailPageClassName],
+  );
+}
+
+/// Renders the publisher's activity log page.
+String renderPublisherActivityLogPage({
+  required Publisher publisher,
+  required Iterable<AuditLogRecord> activities,
+}) {
+  final activityLogNode = renderActivityLog(
+    activities: activities,
+    forCategory: 'publisher',
+    forEntity: publisher.publisherId!,
+  );
+  final tabs = <Tab>[
+    _packagesLinkTab(publisher.publisherId!),
+    _adminLinkTab(publisher.publisherId!),
+    Tab.withContent(
+      id: 'activity-log',
+      title: 'Activity log',
+      contentHtml: activityLogNode.toString(),
+    ),
+  ];
+
+  final content = renderDetailPage(
+    headerHtml: _renderDetailHeader(publisher),
+    tabs: tabs,
+    infoBoxHtml: null,
+  );
+  return renderLayoutPage(
+    PageType.publisher,
+    content,
+    title: 'Publisher: ${publisher.publisherId}',
+    pageData: PageData(
+      publisher: PublisherData(
+        publisherId: publisher.publisherId!,
+      ),
+    ),
+    canonicalUrl: urls.publisherActivityLogUrl(publisher.publisherId!),
     noIndex: true,
     mainClasses: [wideHeaderDetailPageClassName],
   );
@@ -219,4 +266,10 @@ Tab _adminLinkTab(String publisherId) => Tab.withLink(
       id: 'admin',
       title: 'Admin',
       href: urls.publisherAdminUrl(publisherId),
+    );
+
+Tab _activityLogLinkTab(String publisherId) => Tab.withLink(
+      id: 'activity-log',
+      title: 'Activity log',
+      href: urls.publisherActivityLogUrl(publisherId),
     );

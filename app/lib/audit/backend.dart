@@ -20,6 +20,16 @@ class AuditBackend {
   final DatastoreDB _db;
   AuditBackend(this._db);
 
+  /// Lists audit log records for [userId] in reverse chronological order.
+  ///
+  /// TODO: implement paging (and log index)
+  Future<List<AuditLogRecord>> listRecordsForUserId(String userId) async {
+    final query = _db.query<AuditLogRecord>()..filter('users =', userId);
+    final records = await query.run().where((r) => r.isNotExpired).toList();
+    records.sort((a, b) => -a.created!.compareTo(b.created!));
+    return records;
+  }
+
   /// Lists audit log records for [package] in reverse chronological order.
   ///
   /// TODO: implement paging (and log index)

@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/frontend/templates/views/account/activity_log_table.dart';
+
+import '../../audit/models.dart';
 import '../../package/models.dart';
 import '../../shared/urls.dart' as urls;
 
@@ -51,6 +54,38 @@ String renderPkgAdminPage(
     infoBoxHtml: renderPkgInfoBox(data),
   );
 
+  return renderLayoutPage(
+    PageType.package,
+    content,
+    title: '${data.package!.name} package - Admin',
+    pageData: pkgPageData(data.package!, data.version!),
+    noIndex: true,
+  );
+}
+
+String renderPkgActivityLogPage(
+  PackagePageData data,
+  List<AuditLogRecord> activities,
+) {
+  final activityLogNode = renderActivityLog(
+    activities: activities,
+    forCategory: 'package',
+    forEntity: data.package!.name!,
+  );
+  final tabs = buildPackageTabs(
+    data: data,
+    activityLogTab: Tab.withContent(
+      id: 'activity-log',
+      title: 'Activity Log',
+      contentHtml: activityLogNode.toString(),
+    ),
+  );
+  final content = renderDetailPage(
+    headerHtml: renderPkgHeader(data),
+    tabs: tabs,
+    infoBoxLead: data.version!.ellipsizedDescription,
+    infoBoxHtml: renderPkgInfoBox(data),
+  );
   return renderLayoutPage(
     PageType.package,
     content,

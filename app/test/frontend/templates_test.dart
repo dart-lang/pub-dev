@@ -13,6 +13,8 @@ import 'package:xml/xml.dart' as xml;
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/analyzer/analyzer_client.dart';
+import 'package:pub_dev/audit/backend.dart';
+import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/frontend/handlers/package.dart'
     show loadPackagePageData;
 import 'package:pub_dev/frontend/static_files.dart';
@@ -354,6 +356,25 @@ void main() {
     );
 
     testWithProfile(
+      'package activity log page',
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final data = await accountBackend.withBearerToken(
+          adminAtPubDevAuthToken,
+          () => loadPackagePageData('oxygen', '1.2.0', null),
+        );
+        final activities = await auditBackend.listRecordsForPackage('oxygen');
+        expect(activities, isNotEmpty);
+        final html = renderPkgActivityLogPage(data, activities);
+        expectGoldenFile(html, 'pkg_activity_log_page.html', timestamps: {
+          'published': data.package!.created,
+          'updated': data.version!.created,
+          ..._activityLogTimestamps(activities),
+        });
+      },
+    );
+
+    testWithProfile(
       'package index page',
       processJobsWithFakeRunners: true,
       fn: () async {
@@ -487,6 +508,26 @@ void main() {
     );
 
     testWithProfile(
+      'publisher activity log page',
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final publisher = (await publisherBackend.getPublisher('example.com'))!;
+        final activities =
+            await auditBackend.listRecordsForPublisher('example.com');
+        expect(activities, isNotEmpty);
+        final html = renderPublisherActivityLogPage(
+          publisher: publisher,
+          activities: activities,
+        );
+        expectGoldenFile(html, 'publisher_activity_log_page.html', timestamps: {
+          'publisher-created': publisher.created,
+          'publisher-updated': publisher.updated,
+          ..._activityLogTimestamps(activities),
+        });
+      },
+    );
+
+    testWithProfile(
       '/my-packages page',
       processJobsWithFakeRunners: true,
       fn: () async {
@@ -567,6 +608,28 @@ void main() {
         );
         expectGoldenFile(html, 'my_publishers.html', timestamps: {
           'user-created': user.created,
+        });
+      });
+    });
+
+    testWithProfile('/my-activity-log page', fn: () async {
+      await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        final user = await requireAuthenticatedUser();
+        final session = await accountBackend.createNewSession(
+          name: 'Pub User',
+          imageUrl: 'pub.dev/user-img-url.png',
+        );
+        final activities =
+            await auditBackend.listRecordsForUserId(user.userId!);
+        expect(activities, isNotEmpty);
+        final html = renderAccountMyActivityPage(
+          user: user,
+          userSessionData: session,
+          activities: activities,
+        );
+        expectGoldenFile(html, 'my_activity_log_page.html', timestamps: {
+          'user-created': user.created,
+          ..._activityLogTimestamps(activities),
         });
       });
     });
@@ -705,3 +768,12 @@ final _panaRuntimeInfo = PanaRuntimeInfo(
   flutterVersions: {'frameworkVersion': '0.0.18'},
   sdkVersion: '2.0.0-dev.7.0',
 );
+
+Map<String, DateTime> _activityLogTimestamps(List<AuditLogRecord> activities) {
+  final map = <String, DateTime>{};
+  for (final record in activities) {
+    final index = map.length;
+    map['activity-$index'] = record.created!;
+  }
+  return map;
+}

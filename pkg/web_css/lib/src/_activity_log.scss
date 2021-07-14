@@ -1,0 +1,28 @@
+/* Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+   for details. All rights reserved. Use of this source code is governed by a
+   BSD-style license that can be found in the LICENSE file. */
+
+.activity-log-table {
+  width: 100%;
+  border-spacing: 0;
+
+  td, th {
+    border-bottom: 1px solid #c8c8ca;
+    padding: 8px 4px;
+    text-align: left;
+
+    &.date {
+      white-space: nowrap;
+      width: 100px;
+    }
+  }
+
+  > thead > tr > th {
+    font-size: 16px;
+    font-weight: 400;
+  }
+
+  > tbody {
+    font-size: 14px;
+  }
+}

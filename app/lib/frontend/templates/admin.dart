@@ -4,6 +4,10 @@
 
 import 'dart:convert';
 
+import 'package:pub_dev/audit/models.dart';
+import 'package:pub_dev/frontend/request_context.dart';
+import 'package:pub_dev/frontend/templates/views/account/activity_log_table.dart';
+
 import '../../account/models.dart' show LikeData, User, UserSessionData;
 import '../../package/search_adapter.dart' show SearchResultPage;
 import '../../publisher/models.dart' show PublisherSummary;
@@ -65,6 +69,7 @@ String renderAccountPackagesPage({
           id: 'packages', title: 'My packages', contentHtml: tabContent),
       _myLikedPackagesLink(),
       _myPublishersLink(),
+      if (requestContext.displayActivityLog) _myActivityLogLink(),
     ],
     infoBoxHtml: null,
   );
@@ -104,6 +109,7 @@ String renderMyLikedPackagesPage({
           title: 'My liked packages',
           contentHtml: tabContent),
       _myPublishersLink(),
+      if (requestContext.displayActivityLog) _myActivityLogLink(),
     ],
     infoBoxHtml: null,
   );
@@ -134,6 +140,7 @@ String renderAccountPublishersPage({
           id: 'publishers',
           title: 'My publishers',
           contentHtml: publisherListHtml),
+      if (requestContext.displayActivityLog) _myActivityLogLink(),
     ],
     infoBoxHtml: null,
   );
@@ -142,6 +149,41 @@ String renderAccountPublishersPage({
     PageType.account,
     content,
     title: 'My publishers',
+    noIndex: true,
+    mainClasses: [wideHeaderDetailPageClassName],
+  );
+}
+
+/// Renders the current user's activity page.
+String renderAccountMyActivityPage({
+  required User user,
+  required UserSessionData userSessionData,
+  required List<AuditLogRecord> activities,
+}) {
+  final activityLogNode = renderActivityLog(
+    activities: activities,
+    forCategory: 'you',
+  );
+
+  final content = renderDetailPage(
+    headerHtml: _accountDetailHeader(user, userSessionData),
+    tabs: [
+      _myPackagesLink(),
+      _myLikedPackagesLink(),
+      _myPublishersLink(),
+      Tab.withContent(
+        id: 'activity-log',
+        title: 'My activity log',
+        contentHtml: activityLogNode.toString(),
+      ),
+    ],
+    infoBoxHtml: null,
+  );
+
+  return renderLayoutPage(
+    PageType.account,
+    content,
+    title: 'My activity log',
     noIndex: true,
     mainClasses: [wideHeaderDetailPageClassName],
   );
@@ -157,6 +199,11 @@ Tab _myLikedPackagesLink() => Tab.withLink(
 
 Tab _myPublishersLink() => Tab.withLink(
     id: 'publishers', title: 'My publishers', href: urls.myPublishersUrl());
+
+Tab _myActivityLogLink() => Tab.withLink(
+    id: 'activity-log',
+    title: 'My activity log',
+    href: urls.myActivityLogUrl());
 
 String _accountDetailHeader(User user, UserSessionData userSessionData) {
   final shortJoined = shortDateFormat.format(user.created!);

@@ -34,6 +34,8 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add(
       'GET', r'/packages/<package>/versions/<version>', service.packageVersion);
   router.add('GET', r'/packages/<package>/admin', service.packageAdmin);
+  router.add(
+      'GET', r'/packages/<package>/activity-log', service.packageActivityLog);
   router.add('GET', r'/packages/<package>/changelog', service.packageChangelog);
   router.add('GET', r'/packages/<package>/example', service.packageExample);
   router.add('GET', r'/packages/<package>/install', service.packageInstall);
@@ -57,6 +59,8 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
       service.publisherPackagesPage);
   router.add(
       'GET', r'/publishers/<publisherId>/admin', service.publisherAdminPage);
+  router.add('GET', r'/publishers/<publisherId>/activity-log',
+      service.publisherActivityLogPage);
   router.add('GET', r'/feed.atom', service.atomFeed);
   router.add('GET', r'/help', service.helpPage);
   router.add('GET', r'/help/scoring', service.helpPageScoring);
@@ -73,6 +77,7 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add('GET', r'/my-packages', service.accountPackagesPage);
   router.add('GET', r'/my-liked-packages', service.accountMyLikedPackagesPage);
   router.add('GET', r'/my-publishers', service.accountPublishersPage);
+  router.add('GET', r'/my-activity-log', service.accountMyActivityLogPage);
   router.add('GET', r'/authorized', service.authorizationConfirmed);
   router.add('GET', r'/consent', service.consentPage);
   return router;
