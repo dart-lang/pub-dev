@@ -12,7 +12,7 @@ dependencies:
   pub_semver: ^2.0.0
   pub_validations:
     path: ../pub_validations
-  puppeteer: ^2.0.0
+  puppeteer: 2.0.0
 
 dev_dependencies:
   coverage: any # test already depends on it
