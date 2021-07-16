@@ -238,25 +238,6 @@ void main() {
       },
     );
 
-    scopedTest('package show page with outdated version', () {
-      final String html = renderPkgShowPage(PackagePageData(
-        package: foobarPackage,
-        isLiked: false,
-        version: foobarStablePV,
-        versionInfo: foobarStablePvInfo,
-        asset: foobarAssets[AssetKind.readme],
-        analysis: AnalysisView(
-          ScoreCardData(
-            flags: [PackageFlags.isObsolete],
-            updated: DateTime(2018, 02, 05),
-          ),
-        ),
-        isAdmin: false,
-      ));
-
-      expectGoldenFile(html, 'pkg_show_page_outdated.html');
-    });
-
     testWithProfile('package show page with discontinued version',
         testProfile: TestProfile(
           packages: [
@@ -277,24 +258,24 @@ void main() {
       });
     });
 
-    scopedTest('package show page with legacy version', () {
-      final String html = renderPkgShowPage(PackagePageData(
-        package: foobarPackage,
-        isLiked: false,
-        version: foobarStablePV,
-        versionInfo: foobarStablePvInfo,
-        asset: foobarAssets[AssetKind.readme],
-        analysis: AnalysisView(
-          ScoreCardData(
-            popularityScore: 0.5,
-            flags: [PackageFlags.isLegacy],
-          ),
-        ),
-        isAdmin: false,
-      ));
-
-      expectGoldenFile(html, 'pkg_show_page_legacy.html');
-    });
+    testWithProfile(
+      'package show page with legacy version',
+      testProfile: TestProfile(
+        packages: [
+          TestPackage(name: 'pkg', versions: ['1.0.0-legacy']),
+        ],
+        defaultUser: 'admin@pub.dev',
+      ),
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final data = await loadPackagePageData('pkg', '1.0.0-legacy', null);
+        final html = renderPkgScorePage(data);
+        expectGoldenFile(html, 'pkg_show_page_legacy.html', timestamps: {
+          'published': data.package!.created,
+          'updated': data.version!.created,
+        });
+      },
+    );
 
     // package analysis was intentionally left out for this template
     testWithProfile('package show page with publisher', fn: () async {
@@ -313,25 +294,24 @@ void main() {
     });
 
     scopedTest('aborted analysis tab', () async {
-      final String html = renderAnalysisTab(
+      final card = ScoreCardData(
+        reportTypes: ['pana'],
+        panaReport: PanaReport(
+          timestamp: DateTime(2017, 12, 18, 14, 26, 00),
+          panaRuntimeInfo: _panaRuntimeInfo,
+          reportStatus: ReportStatus.aborted,
+          derivedTags: null,
+          allDependencies: null,
+          licenseFile: null,
+          report: Report(sections: <ReportSection>[]),
+          flags: null,
+        ),
+      );
+      final html = renderAnalysisTab(
         'pkg_foo',
         null,
-        ScoreCardData(),
-        AnalysisView(
-          ScoreCardData(
-            reportTypes: ['pana'],
-            panaReport: PanaReport(
-              timestamp: DateTime(2017, 12, 18, 14, 26, 00),
-              panaRuntimeInfo: _panaRuntimeInfo,
-              reportStatus: ReportStatus.aborted,
-              derivedTags: null,
-              allDependencies: null,
-              licenseFile: null,
-              report: Report(sections: <ReportSection>[]),
-              flags: null,
-            ),
-          ),
-        ),
+        card,
+        AnalysisView(card),
         likeCount: 1000000,
       );
 
@@ -339,16 +319,15 @@ void main() {
     });
 
     scopedTest('outdated analysis tab', () async {
+      final card = ScoreCardData(
+        flags: [PackageFlags.isObsolete],
+        updated: DateTime(2017, 12, 18, 14, 26, 00),
+      );
       final String html = renderAnalysisTab(
         'pkg_foo',
         null,
-        ScoreCardData(flags: [PackageFlags.isObsolete]),
-        AnalysisView(
-          ScoreCardData(
-            flags: [PackageFlags.isObsolete],
-            updated: DateTime(2017, 12, 18, 14, 26, 00),
-          ),
-        ),
+        card,
+        AnalysisView(card),
         likeCount: 1111,
       );
       expectGoldenFile(html, 'analysis_tab_outdated.html', isFragment: true);

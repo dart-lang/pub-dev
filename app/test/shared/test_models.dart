@@ -3,12 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:gcloud/db.dart';
-import 'package:pub_dev/tool/test_profile/models.dart';
 
-import 'package:pub_dev/account/models.dart';
-import 'package:pub_dev/package/model_properties.dart';
-import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/publisher/models.dart';
+import 'package:pub_dev/tool/test_profile/models.dart';
 
 final defaultTestProfile = TestProfile(
   defaultUser: 'admin@pub.dev',
@@ -50,95 +47,6 @@ const adminAtPubDevAuthToken = 'admin-at-pub-dot-dev';
 const userAtPubDevAuthToken = 'user-at-pub-dot-dev';
 const unauthorizedAtPubDevAuthToken = 'unauthorized-at-pub-dot-dev';
 
-final foobarPkgName = 'foobar_pkg';
-final _foobarPkgKey =
-    Key.emptyKey(Partition(null)).append(Package, id: foobarPkgName);
-
-final _foobarStableVersion = '0.1.1+5';
-final _foobarStablePVKey =
-    _foobarPkgKey.append(PackageVersion, id: _foobarStableVersion);
-final _foobarDevPVKey = _foobarPkgKey.append(PackageVersion, id: '0.2.0-dev');
-
-final _hansUser = User()
-  ..id = 'hans-at-juergen-dot-com'
-  ..email = 'hans@juergen.com'
-  ..created = DateTime.utc(2014)
-  ..isBlocked = false
-  ..isDeleted = false;
-
-Package _createFoobarPackage() {
-  return Package()
-    ..parentKey = _foobarPkgKey.parent
-    ..id = foobarPkgName
-    ..name = foobarPkgName
-    ..created = DateTime.utc(2014)
-    ..updated = DateTime.utc(2015)
-    ..uploaders = [_hansUser.userId!]
-    ..latestPublished = DateTime.utc(2015)
-    ..latestVersionKey = _foobarStablePVKey
-    ..latestPrereleasePublished = DateTime.utc(2015)
-    ..latestPrereleaseVersionKey = _foobarDevPVKey
-    ..lastVersionPublished = DateTime.utc(2015)
-    ..likes = 0
-    ..isDiscontinued = false
-    ..isUnlisted = false
-    ..isWithheld = false
-    ..assignedTags = [];
-}
-
-final foobarPackage = _createFoobarPackage();
-final foobarUploaderEmails = [_hansUser.email];
-
-final foobarStablePV = PackageVersion()
-  ..parentKey = _foobarStablePVKey.parent
-  ..id = _foobarStableVersion
-  ..version = _foobarStableVersion
-  ..packageKey = _foobarPkgKey
-  ..created = DateTime.utc(2014)
-  ..uploader = _hansUser.userId
-  ..libraries = ['foolib.dart']
-  ..pubspec = Pubspec.fromYaml(_foobarStablePubspec);
-
-final foobarStablePvInfo = PackageVersionInfo()
-  ..parentKey = foobarStablePV.parentKey!.parent
-  ..initFromKey(foobarStablePV.qualifiedVersionKey)
-  ..versionCreated = foobarStablePV.created
-  ..updated = foobarStablePV.created
-  ..libraries = foobarStablePV.libraries
-  ..libraryCount = foobarStablePV.libraries!.length
-  ..assets = [
-    AssetKind.readme,
-    AssetKind.changelog,
-    AssetKind.example,
-  ];
-
-final foobarAssets = {
-  AssetKind.readme: PackageVersionAsset.init(
-    package: foobarPkgName,
-    version: _foobarStableVersion,
-    kind: AssetKind.readme,
-    versionCreated: foobarStablePV.created,
-    path: 'README.md',
-    textContent: foobarReadmeContent,
-  ),
-  AssetKind.changelog: PackageVersionAsset.init(
-    package: foobarPkgName,
-    version: _foobarStableVersion,
-    kind: AssetKind.changelog,
-    versionCreated: foobarStablePV.created,
-    path: 'CHANGELOG.md',
-    textContent: foobarChangelogContent,
-  ),
-  AssetKind.example: PackageVersionAsset.init(
-    package: foobarPkgName,
-    version: _foobarStableVersion,
-    kind: AssetKind.example,
-    versionCreated: foobarStablePV.created,
-    path: 'example/lib/main.dart',
-    textContent: foobarExampleContent,
-  ),
-};
-
 final String foobarReadmeContent = '''
 Test Package
 ============
@@ -158,14 +66,6 @@ Changelog
 0.1.1 - test package
 
 ''';
-
-final String foobarExampleContent = '''
-main() {
-  print('Hello world!');
-}
-''';
-
-final _foobarStablePubspec = generatePubspecYaml('foobar_pkg', '0.1.1+5');
 
 String generatePubspecYaml(String name, String version) => '''
 name: $name
