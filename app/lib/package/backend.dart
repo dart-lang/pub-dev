@@ -784,6 +784,7 @@ class PackageBackend {
           package: newVersion.package,
           version: newVersion.version!,
           created: newVersion.created!,
+          publisherId: package!.publisherId,
         ),
       ];
 

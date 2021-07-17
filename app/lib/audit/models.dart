@@ -148,6 +148,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
     required String package,
     required String version,
     required DateTime created,
+    String? publisherId,
   }) {
     final summary = 'Package `$package` '
         'version `$version` '
@@ -168,7 +169,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..users = [uploader.userId!]
       ..packages = [package]
       ..packageVersions = ['$package/$version']
-      ..publishers = [];
+      ..publishers = [if (publisherId != null) publisherId];
   }
 
   factory AuditLogRecord.packageTransferred({
