@@ -44,7 +44,7 @@ d.Node _renderActivityLogTable(Iterable<AuditLogRecord> activities) {
                 d.div(classes: [
                   'markdown-body'
                 ], children: [
-                  d.safeHtml(markdownToHtml(a.summary!)!),
+                  d.rawUnsafeHtml(markdownToHtml(a.summary!)!),
                 ]),
               ],
             ),
