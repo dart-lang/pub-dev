@@ -33,8 +33,8 @@ abstract class DomContext {
   /// Creates a DOM Text node.
   Node text(String value);
 
-  /// Creates a DOM node with raw unsafe HTML content.
-  Node rawUnsafeHtml(String value);
+  /// Creates a DOM node with unsafe raw HTML content.
+  Node unsafeRawHtml(String value);
 }
 
 void _verifyElementTag(String tag) {
@@ -74,8 +74,8 @@ Node element(
 /// Creates a DOM Text node using the default [DomContext].
 Node text(String value) => dom.text(value);
 
-/// Creates a DOM node with raw unsafe HTML content using the default [DomContext].
-Node rawUnsafeHtml(String value) => dom.rawUnsafeHtml(value);
+/// Creates a DOM node with unsafe raw HTML content using the default [DomContext].
+Node unsafeRawHtml(String value) => dom.unsafeRawHtml(value);
 
 /// Creates an `<a>` Element using the default [DomContext].
 Node a({
@@ -307,7 +307,7 @@ class _StringDomContext extends DomContext {
   Node text(String value) => _StringText(value);
 
   @override
-  Node rawUnsafeHtml(String value) => _StringRawUnsafeHtml(value);
+  Node unsafeRawHtml(String value) => _StringRawUnsafeHtml(value);
 }
 
 Map<String, String>? _mergeAttributes(
