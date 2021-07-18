@@ -9,8 +9,6 @@ import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/model_properties.dart';
 import 'package:pub_dev/shared/datastore.dart';
 
-import '../shared/test_models.dart';
-
 void main() {
   group('models', () {
     group('Package', () {
@@ -187,8 +185,8 @@ class _PublishSequence {
 
   final _p = Package()
     ..parentKey = Key.emptyKey(Partition(null))
-    ..id = foobarPkgName
-    ..name = foobarPkgName
+    ..id = 'pkg'
+    ..name = 'pkg'
     ..created = DateTime(2021, 01, 29);
 
   void publish(String version, {int sdk = 0}) {
@@ -199,7 +197,7 @@ class _PublishSequence {
       ..version = version
       ..created = _p.created!.add(Duration(minutes: _counter++))
       ..pubspec = Pubspec.fromJson({
-        'name': foobarPkgName,
+        'name': 'pkg',
         'version': version,
         'environment': {
           'sdk': '>=$minSdk <3.0.0',
