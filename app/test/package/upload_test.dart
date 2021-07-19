@@ -136,7 +136,7 @@ void main() {
 
           final audits = await auditBackend.listRecordsForPackageVersion(
               'new_package', '1.2.3');
-          final publishedAudit = audits.first;
+          final publishedAudit = audits.records.first;
           expect(publishedAudit.kind, AuditLogRecordKind.packagePublished);
           expect(publishedAudit.created, isNotNull);
           expect(publishedAudit.expires!.year, greaterThan(9998));
@@ -210,7 +210,7 @@ void main() {
 
           final audits =
               await auditBackend.listRecordsForPackageVersion('neon', '7.0.0');
-          final publishedAudit = audits.first;
+          final publishedAudit = audits.records.first;
           expect(publishedAudit.kind, AuditLogRecordKind.packagePublished);
           expect(publishedAudit.summary,
               'Package `neon` version `7.0.0` was published by `admin@pub.dev`.');

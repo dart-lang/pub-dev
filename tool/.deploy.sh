@@ -45,6 +45,9 @@ fi
 # Disable interactive gcloud prompts
 export CLOUDSDK_CORE_DISABLE_PROMPTS=1
 
+echo "### Deploying index.yaml"
+time -p gcloud --project "$PROJECT_ID" app deploy index.yaml
+
 # This script will build image:
 IMAGE="gcr.io/$PROJECT_ID/pub-dev-$APP_VERSION-image"
 

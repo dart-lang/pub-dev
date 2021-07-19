@@ -9,7 +9,8 @@ import 'package:pub_dev/shared/utils.dart';
 import '../../../dom/dom.dart' as d;
 
 d.Node renderActivityLog({
-  required Iterable<AuditLogRecord> activities,
+  required String baseUrl,
+  required AuditLogRecordPage activities,
   required String forCategory,
   String? forEntity,
 }) {
@@ -21,10 +22,12 @@ d.Node renderActivityLog({
       d.text('Events other than package publication expire after 2 months.'),
     ]),
     _renderActivityLogTable(activities),
+    if (activities.hasNextPage)
+      _renderNextPage(baseUrl, activities.nextTimestamp!),
   ]);
 }
 
-d.Node _renderActivityLogTable(Iterable<AuditLogRecord> activities) {
+d.Node _renderActivityLogTable(AuditLogRecordPage activities) {
   return d.table(
     classes: ['activity-log-table'],
     head: [
@@ -33,22 +36,40 @@ d.Node _renderActivityLogTable(Iterable<AuditLogRecord> activities) {
         d.th(classes: ['summary'], children: [d.text('Summary')]),
       ]),
     ],
-    body: activities.map((a) => d.tr(
-          children: [
-            d.td(
-                classes: ['date'],
-                children: [d.text(shortDateFormat.format(a.created!))]),
-            d.td(
-              classes: ['summary'],
-              children: [
-                d.div(classes: [
-                  'markdown-body'
-                ], children: [
-                  d.unsafeRawHtml(markdownToHtml(a.summary!)!),
-                ]),
-              ],
-            ),
-          ],
-        )),
+    body: activities.records.map(
+      (a) => d.tr(
+        children: [
+          d.td(
+              classes: ['date'],
+              children: [d.text(shortDateFormat.format(a.created!))]),
+          d.td(
+            classes: ['summary'],
+            children: [
+              d.div(classes: [
+                'markdown-body'
+              ], children: [
+                d.unsafeRawHtml(markdownToHtml(a.summary!)!),
+              ]),
+            ],
+          ),
+        ],
+      ),
+    ),
   );
+}
+
+d.Node _renderNextPage(String baseUrl, DateTime last) {
+  final nextUri = Uri.parse(baseUrl).replace(
+    queryParameters: {
+      'before': last.toIso8601String(),
+    },
+  );
+  return d.p(children: [
+    d.a(
+      href: nextUri.toString(),
+      children: [
+        d.text('More...'),
+      ],
+    ),
+  ]);
 }

@@ -276,8 +276,10 @@ Future<shelf.Response> accountMyActivityLogPageHandler(
   if (userSessionData == null) {
     return htmlResponse(renderUnauthenticatedPage());
   }
-  final activities =
-      await auditBackend.listRecordsForUserId(userSessionData!.userId!);
+  final activities = await auditBackend.listRecordsForUserId(
+    userSessionData!.userId!,
+    before: request.before,
+  );
   final content = renderAccountMyActivityPage(
     user: (await accountBackend.lookupUserById(userSessionData!.userId!))!,
     userSessionData: userSessionData!,

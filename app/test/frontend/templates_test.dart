@@ -364,7 +364,7 @@ void main() {
           () => loadPackagePageData('oxygen', '1.2.0', null),
         );
         final activities = await auditBackend.listRecordsForPackage('oxygen');
-        expect(activities, isNotEmpty);
+        expect(activities.records, isNotEmpty);
         final html = renderPkgActivityLogPage(data, activities);
         expectGoldenFile(html, 'pkg_activity_log_page.html', timestamps: {
           'published': data.package!.created,
@@ -514,7 +514,7 @@ void main() {
         final publisher = (await publisherBackend.getPublisher('example.com'))!;
         final activities =
             await auditBackend.listRecordsForPublisher('example.com');
-        expect(activities, isNotEmpty);
+        expect(activities.records, isNotEmpty);
         final html = renderPublisherActivityLogPage(
           publisher: publisher,
           activities: activities,
@@ -621,7 +621,7 @@ void main() {
         );
         final activities =
             await auditBackend.listRecordsForUserId(user.userId!);
-        expect(activities, isNotEmpty);
+        expect(activities.records, isNotEmpty);
         final html = renderAccountMyActivityPage(
           user: user,
           userSessionData: session,
@@ -769,9 +769,9 @@ final _panaRuntimeInfo = PanaRuntimeInfo(
   sdkVersion: '2.0.0-dev.7.0',
 );
 
-Map<String, DateTime> _activityLogTimestamps(List<AuditLogRecord> activities) {
+Map<String, DateTime> _activityLogTimestamps(AuditLogRecordPage page) {
   final map = <String, DateTime>{};
-  for (final record in activities) {
+  for (final record in page.records) {
     final index = map.length;
     map['activity-$index'] = record.created!;
   }

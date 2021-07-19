@@ -296,7 +296,10 @@ Future<shelf.Response> packageActivityLogHandler(
       if (!data.isAdmin!) {
         return htmlResponse(renderUnauthorizedPage());
       }
-      final activities = await auditBackend.listRecordsForPackage(packageName);
+      final activities = await auditBackend.listRecordsForPackage(
+        packageName,
+        before: request.before,
+      );
       return renderPkgActivityLogPage(data, activities);
     },
   );

@@ -87,8 +87,9 @@ void main() {
 
       final auditLogs =
           await auditBackend.listRecordsForPublisher('example.com');
-      expect(auditLogs.first.kind, AuditLogRecordKind.packageTransferred);
-      expect(auditLogs.first.summary,
+      expect(
+          auditLogs.records.first.kind, AuditLogRecordKind.packageTransferred);
+      expect(auditLogs.records.first.summary,
           'Package `oxygen` was transferred to publisher `example.com` by `admin@pub.dev`.');
     });
   });

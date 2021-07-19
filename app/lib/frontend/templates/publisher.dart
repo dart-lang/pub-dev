@@ -196,9 +196,10 @@ String renderPublisherAdminPage({
 /// Renders the publisher's activity log page.
 String renderPublisherActivityLogPage({
   required Publisher publisher,
-  required Iterable<AuditLogRecord> activities,
+  required AuditLogRecordPage activities,
 }) {
   final activityLogNode = renderActivityLog(
+    baseUrl: urls.publisherActivityLogUrl(publisher.publisherId!),
     activities: activities,
     forCategory: 'publisher',
     forEntity: publisher.publisherId!,

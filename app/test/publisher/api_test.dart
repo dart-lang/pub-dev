@@ -72,9 +72,8 @@ void main() {
         });
 
         // check audit log record
-        final records =
-            await auditBackend.listRecordsForPublisher('verified.com');
-        final r = records
+        final page = await auditBackend.listRecordsForPublisher('verified.com');
+        final r = page.records
             .firstWhere((r) => r.kind == AuditLogRecordKind.publisherCreated);
         expect(r.summary, '`admin@pub.dev` created publisher `verified.com`.');
       });
@@ -126,9 +125,8 @@ void main() {
         expect(info.toJson(), rs.toJson());
 
         // check audit log record
-        final records =
-            await auditBackend.listRecordsForPublisher('example.com');
-        final r = records
+        final page = await auditBackend.listRecordsForPublisher('example.com');
+        final r = page.records
             .firstWhere((r) => r.kind == AuditLogRecordKind.publisherUpdated);
         expect(r.summary, '`admin@pub.dev` updated publisher `example.com`.');
       });
@@ -747,9 +745,8 @@ void main() {
         final updated = client.publisherMemberInfo('example.com', user.userId!);
         await expectApiException(updated, status: 404, code: 'NotFound');
         // check audit log
-        final records =
-            await auditBackend.listRecordsForPublisher('example.com');
-        final r = records.firstWhere(
+        final page = await auditBackend.listRecordsForPublisher('example.com');
+        final r = page.records.firstWhere(
             (r) => r.kind == AuditLogRecordKind.publisherMemberRemoved);
         expect(r.summary,
             '`admin@pub.dev` removed `other@pub.dev` from publisher `example.com`.');

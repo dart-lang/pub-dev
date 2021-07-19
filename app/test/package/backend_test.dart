@@ -396,8 +396,8 @@ void main() {
         expect(pkg3.uploaders, isNot(contains(user.userId)));
 
         // check audit log record
-        final records = await auditBackend.listRecordsForPackage('oxygen');
-        final r = records
+        final page = await auditBackend.listRecordsForPackage('oxygen');
+        final r = page.records
             .firstWhere((r) => r.kind == AuditLogRecordKind.uploaderRemoved);
         expect(r.summary,
             '`admin@pub.dev` removed `user@pub.dev` from the uploaders of package `oxygen`.');
@@ -542,8 +542,8 @@ void main() {
           expect(p1.isUnlisted, isFalse);
 
           // check audit log record
-          final records = await auditBackend.listRecordsForPackage('oxygen');
-          final r = records.firstWhere(
+          final page = await auditBackend.listRecordsForPackage('oxygen');
+          final r = page.records.firstWhere(
               (r) => r.kind == AuditLogRecordKind.packageOptionsUpdated);
           expect(r.summary,
               '`admin@pub.dev` updated `replacedBy` of package `oxygen`.');

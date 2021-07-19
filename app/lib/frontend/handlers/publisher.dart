@@ -148,7 +148,10 @@ Future<shelf.Response> publisherActivityLogPageHandler(
     return htmlResponse(renderUnauthorizedPage());
   }
 
-  final activities = await auditBackend.listRecordsForPublisher(publisherId);
+  final activities = await auditBackend.listRecordsForPublisher(
+    publisherId,
+    before: request.before,
+  );
   return htmlResponse(renderPublisherActivityLogPage(
     publisher: publisher,
     activities: activities,
