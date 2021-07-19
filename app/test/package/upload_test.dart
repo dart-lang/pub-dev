@@ -213,7 +213,7 @@ void main() {
           final publishedAudit = audits.first;
           expect(publishedAudit.kind, AuditLogRecordKind.packagePublished);
           expect(publishedAudit.summary,
-              'Package `neon` version `7.0.0` was published by `admin@pub.dev`.');
+              'Package `neon` version `7.0.0` was published by `admin@pub.dev` (publisher `example.com`).');
           expect(publishedAudit.publishers, ['example.com']);
 
           final assets = await dbService

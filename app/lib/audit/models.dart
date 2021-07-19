@@ -150,10 +150,12 @@ class AuditLogRecord extends db.ExpandoModel<String> {
     required DateTime created,
     String? publisherId,
   }) {
-    final summary = 'Package `$package` '
-        'version `$version` '
-        'was published '
-        'by `${uploader.email}`.';
+    final summary = [
+      'Package `$package` version `$version` ',
+      'was published by `${uploader.email}`',
+      if (publisherId != null) ' (publisher `$publisherId`)',
+      '.',
+    ].join();
     return AuditLogRecord()
       ..id = createUuid()
       ..created = created
@@ -165,6 +167,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'package': package,
         'version': version,
         'email': uploader.email,
+        if (publisherId != null) 'publisherId': publisherId,
       }
       ..users = [uploader.userId!]
       ..packages = [package]
