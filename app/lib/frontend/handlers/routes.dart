@@ -119,6 +119,10 @@ class PubSiteService {
   Future<Response> packageAdmin(Request request, String package) =>
       packageAdminHandler(request, package);
 
+  @Route.get('/packages/<package>/activity-log')
+  Future<Response> packageActivityLog(Request request, String package) =>
+      packageActivityLogHandler(request, package);
+
   @Route.get('/packages/<package>/changelog')
   Future<Response> packageChangelog(Request request, String package) =>
       packageChangelogHandler(request, package);
@@ -203,6 +207,12 @@ class PubSiteService {
   Future<Response> publisherAdminPage(Request request, String publisherId) =>
       publisherAdminPageHandler(request, publisherId);
 
+  /// Renders the publisher's activity log page.
+  @Route.get('/publishers/<publisherId>/activity-log')
+  Future<Response> publisherActivityLogPage(
+          Request request, String publisherId) =>
+      publisherActivityLogPageHandler(request, publisherId);
+
   // ****
   // **** Site content and metadata
   // ****
@@ -279,6 +289,11 @@ class PubSiteService {
   @Route.get('/my-publishers')
   Future<Response> accountPublishersPage(Request request) async =>
       accountPublishersPageHandler(request);
+
+  /// List of the current user's activity log.
+  @Route.get('/my-activity-log')
+  Future<Response> accountMyActivityLogPage(Request request) async =>
+      accountMyActivityLogPageHandler(request);
 
   /// Renders the authorization confirmed page.
   @Route.get('/authorized')

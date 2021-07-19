@@ -14,6 +14,7 @@ import '../../shared/configuration.dart';
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
+import '../request_context.dart';
 import '../static_files.dart';
 
 import '_cache.dart';
@@ -130,6 +131,8 @@ String _renderSiteHeader(PageType pageType) {
     'my_packages_url': urls.myPackagesUrl(),
     'my_liked_packages_url': urls.myLikedPackagesUrl(),
     'my_publishers_url': urls.myPublishersUrl(),
+    'display_activity_log': requestContext.displayActivityLog,
+    'my_activity_log_url': urls.myActivityLogUrl(),
     'create_publisher_url': urls.createPublisherUrl(),
   });
 }

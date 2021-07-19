@@ -10,6 +10,7 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
 import '../../analyzer/analyzer_client.dart';
+import '../../audit/backend.dart';
 import '../../package/backend.dart';
 import '../../package/models.dart';
 import '../../package/overrides.dart';
@@ -276,6 +277,27 @@ Future<shelf.Response> packageAdminHandler(
         page.publishers!.map((p) => p.publisherId).toList(),
         uploaderEmails,
       );
+    },
+  );
+}
+
+/// Handles requests for /packages/<package>/activity-log
+Future<shelf.Response> packageActivityLogHandler(
+    shelf.Request request, String packageName) async {
+  return _handlePackagePage(
+    request: request,
+    packageName: packageName,
+    versionName: null,
+    assetKind: null,
+    renderFn: (data) async {
+      if (userSessionData == null) {
+        return htmlResponse(renderUnauthenticatedPage());
+      }
+      if (!data.isAdmin!) {
+        return htmlResponse(renderUnauthorizedPage());
+      }
+      final activities = await auditBackend.listRecordsForPackage(packageName);
+      return renderPkgActivityLogPage(data, activities);
     },
   );
 }

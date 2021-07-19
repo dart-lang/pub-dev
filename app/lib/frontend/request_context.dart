@@ -27,6 +27,9 @@ class RequestContext {
   /// pollution by visually changing the site).
   final bool uiCacheEnabled;
 
+  /// Whether to display the activity log buttons, tabs and links on the UI.
+  bool get displayActivityLog => isExperimental;
+
   const RequestContext({
     this.indentJson = false,
     this.isExperimental = false,

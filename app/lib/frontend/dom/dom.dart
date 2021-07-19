@@ -32,6 +32,9 @@ abstract class DomContext {
 
   /// Creates a DOM Text node.
   Node text(String value);
+
+  /// Creates a DOM node with unsafe raw HTML content.
+  Node unsafeRawHtml(String value);
 }
 
 void _verifyElementTag(String tag) {
@@ -71,6 +74,9 @@ Node element(
 /// Creates a DOM Text node using the default [DomContext].
 Node text(String value) => dom.text(value);
 
+/// Creates a DOM node with unsafe raw HTML content using the default [DomContext].
+Node unsafeRawHtml(String value) => dom.unsafeRawHtml(value);
+
 /// Creates an `<a>` Element using the default [DomContext].
 Node a({
   String? id,
@@ -98,6 +104,21 @@ Node a({
     children: children,
   );
 }
+
+/// Creates a `<code>` Element using the default [DomContext].
+Node code({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+}) =>
+    dom.element(
+      'code',
+      id: id,
+      classes: classes,
+      attributes: attributes,
+      children: children,
+    );
 
 /// Creates a `<div>` Element using the default [DomContext].
 Node div({
@@ -154,6 +175,21 @@ Node li({
       children: children,
     );
 
+/// Creates a `<p>` Element using the default [DomContext].
+Node p({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+}) =>
+    dom.element(
+      'p',
+      id: id,
+      classes: classes,
+      attributes: attributes,
+      children: children,
+    );
+
 /// Creates a `<span>` Element using the default [DomContext].
 Node span({
   String? id,
@@ -163,6 +199,70 @@ Node span({
 }) =>
     dom.element(
       'span',
+      id: id,
+      classes: classes,
+      attributes: attributes,
+      children: children,
+    );
+
+/// Creates a `<table>` Element using the default [DomContext].
+Node table({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? head,
+  Iterable<Node>? body,
+}) =>
+    dom.element(
+      'table',
+      id: id,
+      classes: classes,
+      attributes: attributes,
+      children: [
+        if (head != null) dom.element('thead', children: head),
+        if (body != null) dom.element('tbody', children: body),
+      ],
+    );
+
+/// Creates a `<td>` Element using the default [DomContext].
+Node td({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+}) =>
+    dom.element(
+      'td',
+      id: id,
+      classes: classes,
+      attributes: attributes,
+      children: children,
+    );
+
+/// Creates a `<th>` Element using the default [DomContext].
+Node th({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+}) =>
+    dom.element(
+      'td',
+      id: id,
+      classes: classes,
+      attributes: attributes,
+      children: children,
+    );
+
+/// Creates a `<tr>` Element using the default [DomContext].
+Node tr({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+}) =>
+    dom.element(
+      'tr',
       id: id,
       classes: classes,
       attributes: attributes,
@@ -205,6 +305,9 @@ class _StringDomContext extends DomContext {
 
   @override
   Node text(String value) => _StringText(value);
+
+  @override
+  Node unsafeRawHtml(String value) => _StringRawUnsafeHtml(value);
 }
 
 Map<String, String>? _mergeAttributes(
@@ -301,5 +404,16 @@ class _StringText extends _StringNode {
   @override
   void writeHtml(StringSink sink) {
     sink.write(htmlEscape.convert(_value));
+  }
+}
+
+class _StringRawUnsafeHtml extends _StringNode {
+  final String _value;
+
+  _StringRawUnsafeHtml(this._value);
+
+  @override
+  void writeHtml(StringSink sink) {
+    sink.write(_value);
   }
 }
