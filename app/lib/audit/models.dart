@@ -11,6 +11,16 @@ import '../shared/utils.dart' show createUuid;
 final _expiresInFarFuture = DateTime.utc(9999, 12, 31, 23, 59, 59);
 final _defaultExpires = Duration(days: 61);
 
+/// A single page of log records.
+class AuditLogRecordPage {
+  final List<AuditLogRecord> records;
+  final DateTime? nextTimestamp;
+
+  AuditLogRecordPage(this.records, this.nextTimestamp);
+
+  bool get hasNextPage => nextTimestamp != null;
+}
+
 @db.Kind(name: 'AuditLogRecord', idType: db.IdType.String)
 class AuditLogRecord extends db.ExpandoModel<String> {
   @db.DateTimeProperty(required: true)

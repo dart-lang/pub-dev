@@ -158,9 +158,10 @@ String renderAccountPublishersPage({
 String renderAccountMyActivityPage({
   required User user,
   required UserSessionData userSessionData,
-  required List<AuditLogRecord> activities,
+  required AuditLogRecordPage activities,
 }) {
   final activityLogNode = renderActivityLog(
+    baseUrl: urls.myActivityLogUrl(),
     activities: activities,
     forCategory: 'you',
   );

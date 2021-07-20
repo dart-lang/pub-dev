@@ -19,7 +19,7 @@ import '../templates/listing.dart' show PageLinks;
 import '../templates/misc.dart';
 import '../templates/publisher.dart';
 
-import 'misc.dart' show formattedNotFoundHandler;
+import 'misc.dart' show formattedNotFoundHandler, formattedInvalidInputResponse;
 
 /// Handles requests for GET /create-publisher
 Future<shelf.Response> createPublisherPageHandler(shelf.Request request) async {
@@ -148,7 +148,15 @@ Future<shelf.Response> publisherActivityLogPageHandler(
     return htmlResponse(renderUnauthorizedPage());
   }
 
-  final activities = await auditBackend.listRecordsForPublisher(publisherId);
+  final before = auditBackend.parseBeforeQueryParameter(
+      request.requestedUri.queryParameters['before']);
+  if (before == null) {
+    return formattedInvalidInputResponse(request);
+  }
+  final activities = await auditBackend.listRecordsForPublisher(
+    publisherId,
+    before: before,
+  );
   return htmlResponse(renderPublisherActivityLogPage(
     publisher: publisher,
     activities: activities,

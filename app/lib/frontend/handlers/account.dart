@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:client_data/account_api.dart';
 import 'package:pub_dev/audit/backend.dart';
+import 'package:pub_dev/frontend/handlers/misc.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
@@ -276,8 +277,15 @@ Future<shelf.Response> accountMyActivityLogPageHandler(
   if (userSessionData == null) {
     return htmlResponse(renderUnauthenticatedPage());
   }
-  final activities =
-      await auditBackend.listRecordsForUserId(userSessionData!.userId!);
+  final before = auditBackend.parseBeforeQueryParameter(
+      request.requestedUri.queryParameters['before']);
+  if (before == null) {
+    return formattedInvalidInputResponse(request);
+  }
+  final activities = await auditBackend.listRecordsForUserId(
+    userSessionData!.userId!,
+    before: before,
+  );
   final content = renderAccountMyActivityPage(
     user: (await accountBackend.lookupUserById(userSessionData!.userId!))!,
     userSessionData: userSessionData!,

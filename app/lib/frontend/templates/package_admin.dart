@@ -65,9 +65,10 @@ String renderPkgAdminPage(
 
 String renderPkgActivityLogPage(
   PackagePageData data,
-  List<AuditLogRecord> activities,
+  AuditLogRecordPage activities,
 ) {
   final activityLogNode = renderActivityLog(
+    baseUrl: urls.pkgActivityLogUrl(data.package!.name!),
     activities: activities,
     forCategory: 'package',
     forEntity: data.package!.name!,

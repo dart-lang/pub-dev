@@ -27,7 +27,7 @@ import '../templates/package.dart';
 import '../templates/package_admin.dart';
 import '../templates/package_versions.dart';
 
-import 'misc.dart' show formattedNotFoundHandler;
+import 'misc.dart' show formattedNotFoundHandler, formattedInvalidInputResponse;
 
 // Non-revealing metrics to monitor the search service behavior from outside.
 final _packageDataLoadLatencyTracker = DurationTracker();
@@ -296,7 +296,15 @@ Future<shelf.Response> packageActivityLogHandler(
       if (!data.isAdmin!) {
         return htmlResponse(renderUnauthorizedPage());
       }
-      final activities = await auditBackend.listRecordsForPackage(packageName);
+      final before = auditBackend.parseBeforeQueryParameter(
+          request.requestedUri.queryParameters['before']);
+      if (before == null) {
+        return formattedInvalidInputResponse(request);
+      }
+      final activities = await auditBackend.listRecordsForPackage(
+        packageName,
+        before: before,
+      );
       return renderPkgActivityLogPage(data, activities);
     },
   );

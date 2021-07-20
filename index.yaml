@@ -1,9 +1,27 @@
 indexes:
 
-- kind: Package
+- kind: AuditLogRecord
   properties:
-  - name: detectedTypes
-  - name: updated
+  - name: users
+  - name: created
+    direction: desc
+
+- kind: AuditLogRecord
+  properties:
+  - name: packages
+  - name: created
+    direction: desc
+
+- kind: AuditLogRecord
+  properties:
+  - name: packageVersions
+  - name: created
+    direction: desc
+
+- kind: AuditLogRecord
+  properties:
+  - name: publishers
+  - name: created
     direction: desc
 
 - kind: Like

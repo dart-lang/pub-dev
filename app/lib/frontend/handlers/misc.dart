@@ -179,15 +179,27 @@ Future<shelf.Response> experimentalHandler(shelf.Request request) async {
   });
 }
 
-Future<shelf.Response> formattedNotFoundHandler(shelf.Request request) async {
-  final message =
-      'You\'ve stumbled onto a page (`${request.requestedUri.path}`) that doesn\'t exist. '
+String _notFoundMessage(Uri requestedUri) {
+  return 'You\'ve stumbled onto a page (`${requestedUri.path}`) that doesn\'t exist. '
       'Luckily you have several options:\n\n'
       '- Use the search box above, which will list packages that match your query.\n'
       '- Visit the [packages](/packages) page and start browsing.\n'
       '- Pick one of the top packages, listed on the [home page](/).\n';
+}
+
+/// Renders a formatted response when the request points to a missing or invalid path.
+shelf.Response formattedNotFoundHandler(shelf.Request request) {
   return htmlResponse(
-    renderErrorPage(default404NotFound, message),
+    renderErrorPage(default404NotFound, _notFoundMessage(request.requestedUri)),
     status: 404,
+  );
+}
+
+/// Renders a formatted response when the request contains invalid (e.g. badly formatted)
+/// parameters.
+shelf.Response formattedInvalidInputResponse(shelf.Request request) {
+  return htmlResponse(
+    renderErrorPage(default404NotFound, _notFoundMessage(request.requestedUri)),
+    status: 400,
   );
 }
