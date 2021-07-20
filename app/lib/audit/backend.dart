@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:shelf/shelf.dart' as shelf;
 
 import '../shared/datastore.dart';
 
@@ -93,10 +92,15 @@ class AuditBackend {
       where: (r) => r.isExpired,
     );
   }
-}
 
-extension RequestHeaderBeforeExt on shelf.Request {
-  DateTime? get before => requestedUri.queryParameters.containsKey('before')
-      ? DateTime.tryParse(requestedUri.queryParameters['before']!)
-      : null;
+  /// Parses the `before` query parameter and returns the parsed timestamp.
+  ///
+  /// Returns a timestamp slightly into the future if the parameter is missing.
+  /// Returns null if the query parameter is invalid.
+  DateTime? parseBeforeQueryParameter(String? param) {
+    if (param == null) {
+      return DateTime.now().add(const Duration(minutes: 5));
+    }
+    return DateTime.tryParse(param);
+  }
 }

@@ -148,9 +148,14 @@ Future<shelf.Response> publisherActivityLogPageHandler(
     return htmlResponse(renderUnauthorizedPage());
   }
 
+  final before = auditBackend.parseBeforeQueryParameter(
+      request.requestedUri.queryParameters['before']);
+  if (before == null) {
+    return formattedNotFoundHandler(request);
+  }
   final activities = await auditBackend.listRecordsForPublisher(
     publisherId,
-    before: request.before,
+    before: before,
   );
   return htmlResponse(renderPublisherActivityLogPage(
     publisher: publisher,

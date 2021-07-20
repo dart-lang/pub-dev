@@ -296,9 +296,14 @@ Future<shelf.Response> packageActivityLogHandler(
       if (!data.isAdmin!) {
         return htmlResponse(renderUnauthorizedPage());
       }
+      final before = auditBackend.parseBeforeQueryParameter(
+          request.requestedUri.queryParameters['before']);
+      if (before == null) {
+        return formattedNotFoundHandler(request);
+      }
       final activities = await auditBackend.listRecordsForPackage(
         packageName,
-        before: request.before,
+        before: before,
       );
       return renderPkgActivityLogPage(data, activities);
     },
