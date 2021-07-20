@@ -27,7 +27,7 @@ import '../templates/package.dart';
 import '../templates/package_admin.dart';
 import '../templates/package_versions.dart';
 
-import 'misc.dart' show formattedNotFoundHandler;
+import 'misc.dart' show formattedNotFoundHandler, formattedInvalidInputResponse;
 
 // Non-revealing metrics to monitor the search service behavior from outside.
 final _packageDataLoadLatencyTracker = DurationTracker();
@@ -299,7 +299,7 @@ Future<shelf.Response> packageActivityLogHandler(
       final before = auditBackend.parseBeforeQueryParameter(
           request.requestedUri.queryParameters['before']);
       if (before == null) {
-        return formattedNotFoundHandler(request);
+        return formattedInvalidInputResponse(request);
       }
       final activities = await auditBackend.listRecordsForPackage(
         packageName,

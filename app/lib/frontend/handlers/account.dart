@@ -280,7 +280,7 @@ Future<shelf.Response> accountMyActivityLogPageHandler(
   final before = auditBackend.parseBeforeQueryParameter(
       request.requestedUri.queryParameters['before']);
   if (before == null) {
-    return formattedNotFoundHandler(request);
+    return formattedInvalidInputResponse(request);
   }
   final activities = await auditBackend.listRecordsForUserId(
     userSessionData!.userId!,
