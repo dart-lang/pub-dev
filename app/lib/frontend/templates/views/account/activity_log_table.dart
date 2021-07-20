@@ -58,11 +58,9 @@ d.Node _renderActivityLogTable(AuditLogRecordPage activities) {
   );
 }
 
-d.Node _renderNextPage(String baseUrl, DateTime last) {
+d.Node _renderNextPage(String baseUrl, String nextTimestamp) {
   final nextUri = Uri.parse(baseUrl).replace(
-    queryParameters: {
-      'before': last.toIso8601String(),
-    },
+    queryParameters: {'before': nextTimestamp},
   );
   return d.p(children: [
     d.a(

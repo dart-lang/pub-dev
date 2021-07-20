@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:meta/meta.dart';
 
 import '../shared/datastore.dart';
 
@@ -10,6 +11,8 @@ import 'models.dart';
 
 /// The maximum number of entities to be loaded from Datastore in one batch.
 const _maxAuditLogBatchSize = 1000;
+
+final _shortBeforeFormat = RegExp(r'^([0-9]{4})-([0-9]{2})-([0-9]{2})$');
 
 /// Sets the audit backend service.
 void registerAuditBackend(AuditBackend backend) =>
@@ -43,9 +46,13 @@ class AuditBackend {
     //       the next page.
     final records = await query.run().toList();
     if (records.length == _maxAuditLogBatchSize) {
+      final nextDisplayed = records.last.created!;
+      final remainingRecords = records.take(_maxAuditLogBatchSize - 1).toList();
+      final lastDisplayed = remainingRecords.last.created!;
       return AuditLogRecordPage(
-          records.take(_maxAuditLogBatchSize - 1).toList(),
-          records.last.created);
+        remainingRecords,
+        nextTimestamp(lastDisplayed, nextDisplayed),
+      );
     } else {
       return AuditLogRecordPage(records, null);
     }
@@ -93,14 +100,34 @@ class AuditBackend {
     );
   }
 
+  @visibleForTesting
+  String nextTimestamp(DateTime last, DateTime next) {
+    final nextDayStart =
+        DateTime.utc(next.year, next.month, next.day).add(Duration(days: 1));
+    return nextDayStart.isBefore(last) && nextDayStart.isAfter(next)
+        ? nextDayStart.toIso8601String().split('T').first
+        : next.toIso8601String();
+  }
+
   /// Parses the `before` query parameter and returns the parsed timestamp.
   ///
   /// Returns a timestamp slightly into the future if the parameter is missing.
   /// Returns null if the query parameter is invalid.
   DateTime? parseBeforeQueryParameter(String? param) {
+    final now = DateTime.now().toUtc();
     if (param == null) {
-      return DateTime.now().add(const Duration(minutes: 5));
+      return now.add(const Duration(minutes: 5));
     }
-    return DateTime.tryParse(param);
+    if (param.length == 10) {
+      final m = _shortBeforeFormat.matchAsPrefix(param);
+      if (m != null) {
+        final parsed = DateTime.utc(int.parse(m.group(1)!),
+            int.parse(m.group(2)!), int.parse(m.group(3)!));
+        if (parsed.year > 2000 && parsed.year <= now.year) {
+          return parsed;
+        }
+      }
+    }
+    return DateTime.tryParse(param)?.toUtc();
   }
 }
