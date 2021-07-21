@@ -102,14 +102,3 @@ List<SortDict> getSortDicts(bool isSearch) {
     ..._sortDicts.where((d) => d.id != removeId),
   ];
 }
-
-SortDict getSortDict(String sort) {
-  return _sortDicts.firstWhere(
-    (d) => d.id == sort,
-    orElse: () => SortDict(
-      id: sort,
-      label: sort,
-      tooltip: 'Packages are sort by $sort.',
-    ),
-  );
-}

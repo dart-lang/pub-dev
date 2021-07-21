@@ -425,7 +425,6 @@ void main() {
           ),
           PageLinks(searchForm, 50),
           searchForm: searchForm,
-          totalCount: 2,
         );
         expectGoldenFile(html, 'search_page.html', timestamps: {
           'oxygen-created': oxygen.created,

@@ -95,7 +95,6 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
       links,
       sdk: sdk,
       searchForm: searchForm,
-      totalCount: totalCount,
       title: title,
       searchPlaceholder: searchPlaceholder,
       messageFromBackend: searchResult.message,
