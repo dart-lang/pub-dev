@@ -14,7 +14,7 @@ final _defaultExpires = Duration(days: 61);
 /// A single page of log records.
 class AuditLogRecordPage {
   final List<AuditLogRecord> records;
-  final DateTime? nextTimestamp;
+  final String? nextTimestamp;
 
   AuditLogRecordPage(this.records, this.nextTimestamp);
 

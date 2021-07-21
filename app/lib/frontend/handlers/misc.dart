@@ -194,12 +194,3 @@ shelf.Response formattedNotFoundHandler(shelf.Request request) {
     status: 404,
   );
 }
-
-/// Renders a formatted response when the request contains invalid (e.g. badly formatted)
-/// parameters.
-shelf.Response formattedInvalidInputResponse(shelf.Request request) {
-  return htmlResponse(
-    renderErrorPage(default404NotFound, _notFoundMessage(request.requestedUri)),
-    status: 400,
-  );
-}
