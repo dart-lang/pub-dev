@@ -4,6 +4,7 @@
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:meta/meta.dart';
+import 'package:pub_dev/shared/exceptions.dart';
 
 import '../shared/datastore.dart';
 
@@ -112,8 +113,8 @@ class AuditBackend {
   /// Parses the `before` query parameter and returns the parsed timestamp.
   ///
   /// Returns a timestamp slightly into the future if the parameter is missing.
-  /// Returns null if the query parameter is invalid.
-  DateTime? parseBeforeQueryParameter(String? param) {
+  /// Throws [InvalidInputException] if the query parameter is invalid.
+  DateTime parseBeforeQueryParameter(String? param) {
     final now = DateTime.now().toUtc();
     if (param == null) {
       return now.add(const Duration(minutes: 5));
@@ -123,11 +124,15 @@ class AuditBackend {
       if (m != null) {
         final parsed = DateTime.utc(int.parse(m.group(1)!),
             int.parse(m.group(2)!), int.parse(m.group(3)!));
-        if (parsed.year > 2000 && parsed.year <= now.year) {
-          return parsed;
-        }
+        InvalidInputException.check(
+            parsed.year >= 2000, '`before` is too far in the past.');
+        InvalidInputException.check(
+            parsed.isBefore(now), '`before` is in the future.');
+        return parsed;
       }
     }
-    return DateTime.tryParse(param)?.toUtc();
+    final parsed = DateTime.tryParse(param)?.toUtc();
+    InvalidInputException.check(parsed != null, 'Unable to parse `before`.');
+    return parsed!;
   }
 }

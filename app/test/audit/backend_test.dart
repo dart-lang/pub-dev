@@ -25,7 +25,7 @@ void main() {
       final t2 = t1.subtract(Duration(days: 2));
       final param = backend.nextTimestamp(t1, t2);
       expect(param, hasLength(10));
-      final parsed = backend.parseBeforeQueryParameter(param)!;
+      final parsed = backend.parseBeforeQueryParameter(param);
       expect(t2.isBefore(parsed), true);
       expect(t1.isAfter(parsed), true);
     });

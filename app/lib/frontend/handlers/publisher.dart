@@ -19,7 +19,7 @@ import '../templates/listing.dart' show PageLinks;
 import '../templates/misc.dart';
 import '../templates/publisher.dart';
 
-import 'misc.dart' show formattedNotFoundHandler, formattedInvalidInputResponse;
+import 'misc.dart' show formattedNotFoundHandler;
 
 /// Handles requests for GET /create-publisher
 Future<shelf.Response> createPublisherPageHandler(shelf.Request request) async {
@@ -150,9 +150,6 @@ Future<shelf.Response> publisherActivityLogPageHandler(
 
   final before = auditBackend.parseBeforeQueryParameter(
       request.requestedUri.queryParameters['before']);
-  if (before == null) {
-    return formattedInvalidInputResponse(request);
-  }
   final activities = await auditBackend.listRecordsForPublisher(
     publisherId,
     before: before,
