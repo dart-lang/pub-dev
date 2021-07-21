@@ -152,7 +152,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   }) {
     final summary = [
       'Package `$package` version `$version`',
-      if (publisherId != null) ' owned by publisher `$publisherId`)',
+      if (publisherId != null) ' owned by publisher `$publisherId`',
       ' was published by `${uploader.email}`.',
     ].join();
     return AuditLogRecord()
