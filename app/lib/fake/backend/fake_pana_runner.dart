@@ -5,8 +5,6 @@
 import 'dart:math';
 
 import 'package:pana/pana.dart';
-// ignore: implementation_imports
-import 'package:pana/src/create_report.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../../analyzer/pana_runner.dart';
