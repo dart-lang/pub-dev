@@ -15,7 +15,7 @@ d.Node renderActivityLog({
   return d.fragment([
     d.p(children: [
       d.text('List of activities relevant to $forCategory'),
-      if (forEntity != null) d.code(children: [d.text(forEntity)]),
+      if (forEntity != null) d.code(text: forEntity),
       d.text('. '),
       d.text('Events other than package publication expire after 2 months.'),
     ]),
@@ -30,22 +30,20 @@ d.Node _renderActivityLogTable(AuditLogRecordPage activities) {
     classes: ['activity-log-table'],
     head: [
       d.tr(children: [
-        d.th(classes: ['acdate'], children: [d.text('')]),
-        d.th(classes: ['summary'], children: [d.text('Summary')]),
+        d.th(classes: ['acdate'], text: ''),
+        d.th(classes: ['summary'], text: 'Summary'),
       ]),
     ],
     body: activities.records.map(
       (a) => d.tr(
         children: [
-          d.td(
-              classes: ['date'],
-              children: [d.text(shortDateFormat.format(a.created!))]),
+          d.td(classes: ['date'], text: shortDateFormat.format(a.created!)),
           d.td(
             classes: ['summary'],
             children: [
               d.div(
                 classes: ['markdown-body'],
-                children: [d.markdown(a.summary!)],
+                child: d.markdown(a.summary!),
               ),
             ],
           ),
@@ -59,12 +57,7 @@ d.Node _renderNextPage(String baseUrl, String nextTimestamp) {
   final nextUri = Uri.parse(baseUrl).replace(
     queryParameters: {'before': nextTimestamp},
   );
-  return d.p(children: [
-    d.a(
-      href: nextUri.toString(),
-      children: [
-        d.text('More...'),
-      ],
-    ),
-  ]);
+  return d.p(
+    child: d.a(href: nextUri.toString(), text: 'More...'),
+  );
 }

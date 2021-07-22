@@ -88,6 +88,8 @@ Node a({
   Iterable<String>? classes,
   Map<String, String>? attributes,
   Iterable<Node>? children,
+  Node? child,
+  String? text,
   String? href,
   String? rel,
   String? title,
@@ -106,7 +108,7 @@ Node a({
             if (attributes != null) ...attributes,
           }
         : null,
-    children: children,
+    children: _children(children, child, text),
   );
 }
 
@@ -116,13 +118,15 @@ Node code({
   Iterable<String>? classes,
   Map<String, String>? attributes,
   Iterable<Node>? children,
+  Node? child,
+  String? text,
 }) =>
     dom.element(
       'code',
       id: id,
       classes: classes,
       attributes: attributes,
-      children: children,
+      children: _children(children, child, text),
     );
 
 /// Creates a `<div>` Element using the default [DomContext].
@@ -131,13 +135,15 @@ Node div({
   Iterable<String>? classes,
   Map<String, String>? attributes,
   Iterable<Node>? children,
+  Node? child,
+  String? text,
 }) =>
     dom.element(
       'div',
       id: id,
       classes: classes,
       attributes: attributes,
-      children: children,
+      children: _children(children, child, text),
     );
 
 /// Creates an `<img>` Element using the default [DomContext].
@@ -171,13 +177,15 @@ Node li({
   Iterable<String>? classes,
   Map<String, String>? attributes,
   Iterable<Node>? children,
+  Node? child,
+  String? text,
 }) =>
     dom.element(
       'li',
       id: id,
       classes: classes,
       attributes: attributes,
-      children: children,
+      children: _children(children, child, text),
     );
 
 /// Creates a `<p>` Element using the default [DomContext].
@@ -186,13 +194,15 @@ Node p({
   Iterable<String>? classes,
   Map<String, String>? attributes,
   Iterable<Node>? children,
+  Node? child,
+  String? text,
 }) =>
     dom.element(
       'p',
       id: id,
       classes: classes,
       attributes: attributes,
-      children: children,
+      children: _children(children, child, text),
     );
 
 /// Creates a `<span>` Element using the default [DomContext].
@@ -201,13 +211,15 @@ Node span({
   Iterable<String>? classes,
   Map<String, String>? attributes,
   Iterable<Node>? children,
+  Node? child,
+  String? text,
 }) =>
     dom.element(
       'span',
       id: id,
       classes: classes,
       attributes: attributes,
-      children: children,
+      children: _children(children, child, text),
     );
 
 /// Creates a `<table>` Element using the default [DomContext].
@@ -235,13 +247,15 @@ Node td({
   Iterable<String>? classes,
   Map<String, String>? attributes,
   Iterable<Node>? children,
+  Node? child,
+  String? text,
 }) =>
     dom.element(
       'td',
       id: id,
       classes: classes,
       attributes: attributes,
-      children: children,
+      children: _children(children, child, text),
     );
 
 /// Creates a `<th>` Element using the default [DomContext].
@@ -250,13 +264,15 @@ Node th({
   Iterable<String>? classes,
   Map<String, String>? attributes,
   Iterable<Node>? children,
+  Node? child,
+  String? text,
 }) =>
     dom.element(
       'td',
       id: id,
       classes: classes,
       attributes: attributes,
-      children: children,
+      children: _children(children, child, text),
     );
 
 /// Creates a `<tr>` Element using the default [DomContext].
@@ -288,6 +304,21 @@ Node ul({
       attributes: attributes,
       children: children,
     );
+
+Iterable<Node>? _children(Iterable<Node>? children, Node? child, String? text) {
+  if (children != null) {
+    assert(child == null);
+    assert(text == null);
+    return children;
+  } else if (child != null) {
+    assert(text == null);
+    return [child];
+  } else if (text != null) {
+    return [dom.text(text)];
+  } else {
+    return null;
+  }
+}
 
 /// Uses DOM nodes to emit escaped HTML string.
 class _StringDomContext extends DomContext {

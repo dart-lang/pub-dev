@@ -17,10 +17,7 @@ d.Node renderSortControlNode({
         attributes: {'title': selected.tooltip},
         children: [
           d.text('Sort by '),
-          d.span(
-            classes: ['sort-control-selected'],
-            children: [d.text(selected.label)],
-          ),
+          d.span(classes: ['sort-control-selected'], text: selected.label),
         ],
       ),
       d.div(
@@ -32,7 +29,7 @@ d.Node renderSortControlNode({
               if (o == selected) 'selected',
             ],
             attributes: {'data-value': o.id},
-            children: [d.text(o.label)],
+            text: o.label,
           ),
         ),
       ),
