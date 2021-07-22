@@ -307,11 +307,11 @@ Node ul({
 
 Iterable<Node>? _children(Iterable<Node>? children, Node? child, String? text) {
   if (children != null) {
-    assert(child == null);
-    assert(text == null);
+    ArgumentError.checkNotNull(child);
+    ArgumentError.checkNotNull(text);
     return children;
   } else if (child != null) {
-    assert(text == null);
+    ArgumentError.checkNotNull(text);
     return [child];
   } else if (text != null) {
     return [dom.text(text)];
