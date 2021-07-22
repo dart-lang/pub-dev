@@ -9,12 +9,12 @@ import 'package:neat_cache/neat_cache.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
-import '../../analyzer/analyzer_client.dart';
 import '../../audit/backend.dart';
 import '../../package/backend.dart';
 import '../../package/models.dart';
 import '../../package/overrides.dart';
 import '../../publisher/backend.dart';
+import '../../scorecard/backend.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../../shared/urls.dart' as urls;
@@ -353,7 +353,7 @@ Future<PackagePageData> loadPackagePageData(
       : await packageBackend.lookupPackageVersionAsset(
           packageName, versionName, assetKind);
 
-  final analysisView = await analyzerClient.getAnalysisView(
+  final scoreCard = await scoreCardBackend.getScoreCardData(
       selectedVersion.package, selectedVersion.version!);
 
   final isAdmin =
@@ -365,7 +365,7 @@ Future<PackagePageData> loadPackagePageData(
     version: selectedVersion,
     versionInfo: versionInfo,
     asset: asset,
-    analysis: analysisView,
+    scoreCard: scoreCard,
     isAdmin: isAdmin,
     isLiked: isLiked,
   );

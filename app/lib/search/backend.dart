@@ -13,12 +13,13 @@ import 'package:logging/logging.dart';
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 
 import '../account/backend.dart';
-import '../analyzer/analyzer_client.dart';
 import '../dartdoc/dartdoc_client.dart';
 import '../package/backend.dart';
 import '../package/model_properties.dart';
 import '../package/models.dart';
 import '../package/overrides.dart';
+import '../scorecard/backend.dart';
+import '../scorecard/models.dart';
 import '../shared/datastore.dart';
 import '../shared/exceptions.dart';
 import '../shared/popularity_storage.dart';
@@ -80,8 +81,8 @@ class SearchBackend {
     final readmeAsset = await packageBackend.lookupPackageVersionAsset(
         packageName, pv.version!, AssetKind.readme);
 
-    final analysisView =
-        await analyzerClient.getAnalysisView(packageName, pv.version!);
+    final scoreCard =
+        await scoreCardBackend.getScoreCardData(packageName, pv.version!);
 
     // Find tags from latest prerelease and/or preview (if there one)
     // This allows searching for tags with `<tag>-in-prerelease`.
@@ -92,8 +93,8 @@ class SearchBackend {
           await packageBackend.lookupPackageVersion(packageName, version);
       prv?.getTags().forEach(tags.add);
 
-      final pra = await analyzerClient.getAnalysisView(packageName, version);
-      pra.derivedTags.forEach(tags.add);
+      final pra = await scoreCardBackend.getScoreCardData(packageName, version);
+      pra?.panaReport?.derivedTags?.forEach(tags.add);
       return tags;
     }
 
@@ -107,7 +108,7 @@ class SearchBackend {
     final tags = <String>{
       ...p.getTags(),
       ...pv.getTags(),
-      ...analysisView.derivedTags,
+      ...scoreCard?.panaReport?.derivedTags ?? const <String>[],
       ...prereleaseTags.map(PackageTags.convertToPrereleaseTag),
       ...previewTags.map(PackageTags.convertToPrereleaseTag),
     };
@@ -147,9 +148,9 @@ class SearchBackend {
       readme: compactReadme(readmeAsset?.textContent),
       popularity: popularity,
       likeCount: p.likes,
-      grantedPoints: analysisView.report?.grantedPoints,
-      maxPoints: analysisView.report?.maxPoints ?? 0,
-      dependencies: _buildDependencies(pv.pubspec!, analysisView),
+      grantedPoints: scoreCard?.grantedPubPoints,
+      maxPoints: scoreCard?.maxPubPoints ?? 0,
+      dependencies: _buildDependencies(pv.pubspec!, scoreCard),
       publisherId: p.publisherId,
       uploaderEmails: await _buildUploaderEmails(p),
       apiDocPages: apiDocPages,
@@ -157,9 +158,9 @@ class SearchBackend {
     );
   }
 
-  Map<String, String> _buildDependencies(Pubspec pubspec, AnalysisView view) {
+  Map<String, String> _buildDependencies(Pubspec pubspec, ScoreCardData? view) {
     final Map<String, String> dependencies = <String, String>{};
-    view.allDependencies?.forEach((p) {
+    view?.panaReport?.allDependencies?.forEach((p) {
       dependencies[p] = DependencyTypes.transitive;
     });
     pubspec.devDependencies.forEach((package) {

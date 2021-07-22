@@ -4,7 +4,6 @@
 
 import 'package:pana/models.dart' show PanaRuntimeInfo, Report, ReportStatus;
 
-import '../../analyzer/analyzer_client.dart';
 import '../../scorecard/models.dart' hide ReportStatus;
 import '../../shared/markdown.dart';
 import '../../shared/urls.dart' as urls;
@@ -19,15 +18,14 @@ import 'package_misc.dart';
 String renderAnalysisTab(
   String? package,
   String? sdkConstraint,
-  ScoreCardData? card,
-  AnalysisView? analysis, {
+  ScoreCardData? card, {
   required int? likeCount,
 }) {
-  if (card == null || analysis == null || !analysis.hasAnalysisData) {
+  if (card == null) {
     return '<i>Awaiting analysis to complete.</i>';
   }
 
-  final report = analysis.report;
+  final report = card.getJoinedReport();
   final showAwaiting = !card.isSkipped && report == null;
   final Map<String, dynamic> data = {
     'package': package,
@@ -37,9 +35,9 @@ String renderAnalysisTab(
     'show_awaiting': showAwaiting,
     'show_analysis': !card.isSkipped && !showAwaiting,
     'analysis_tab_url': urls.pkgScoreUrl(package!),
-    'date_completed': analysis.timestamp == null
+    'date_completed': card.panaReport?.timestamp == null
         ? null
-        : shortDateFormat.format(analysis.timestamp!),
+        : shortDateFormat.format(card.panaReport!.timestamp!),
     'granted_points': report?.grantedPoints ?? 0,
     'max_points': report?.maxPoints ?? 0,
     'report_html': _renderReport(report),
@@ -48,7 +46,7 @@ String renderAnalysisTab(
         _renderPopularityKeyFigure(card.popularityScore),
     'pubpoints_key_figure_html': _renderPubPointsKeyFigure(report),
     'tool_env_info_html':
-        _renderToolEnvInfo(analysis.panaRuntimeInfo, card.usesFlutter),
+        _renderToolEnvInfo(card.panaReport?.panaRuntimeInfo, card.usesFlutter),
   };
 
   return templateCache.renderTemplate('pkg/analysis/tab', data);
