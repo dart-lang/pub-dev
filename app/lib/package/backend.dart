@@ -591,6 +591,7 @@ class PackageBackend {
   api.VersionInfo _toApiVersionInfo(Uri baseUri, PackageVersion pv) =>
       api.VersionInfo(
         version: pv.version!,
+        isRetracted: pv.isRetracted == true ? true : null,
         pubspec: pv.pubspec!.asJson,
         archiveUrl: urls.pkgArchiveDownloadUrl(pv.package, pv.version!,
             baseUri: baseUri),
@@ -1160,7 +1161,8 @@ Future<_UploadEntities> _createUploadEntities(
     ..created = DateTime.now().toUtc()
     ..pubspec = pubspec
     ..libraries = archive.libraries
-    ..uploader = user.userId;
+    ..uploader = user.userId
+    ..isRetracted = false;
 
   final derived = derivePackageVersionEntities(
     archive: archive,
