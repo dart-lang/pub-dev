@@ -161,15 +161,15 @@ String renderPkgIndexPage(
   final includeDiscontinued = searchForm.includeDiscontinued ?? false;
   final includeUnlisted = searchForm.includeUnlisted ?? false;
   final nullSafe = searchForm.nullSafe ?? false;
-  final subSdkLayout = _calculateLayout(searchForm);
+  final searchTabs = _calculateSearchTabs(searchForm);
   final hasActiveAdvanced = includeDiscontinued || includeUnlisted || nullSafe;
   final values = {
     'has_active_advanced': hasActiveAdvanced,
     'sdk_tabs_html': renderSdkTabs(searchForm: searchForm),
-    'has_subsdk_options': subSdkLayout.hasOptions,
+    'has_subsdk_options': searchTabs.isNotEmpty,
     'subsdk_label': _subSdkLabel(searchForm),
-    'subsdk_filter_buttons_html': _renderFilterButtons(
-        searchForm: searchForm, options: subSdkLayout.options),
+    'subsdk_filter_buttons_html':
+        searchTabs.isNotEmpty ? renderSearchTabs(searchTabs).toString() : null,
     'is_search': isSearch,
     'listing_info_html': renderListingInfo(
       searchForm: searchForm,
@@ -267,61 +267,40 @@ class PageLinks {
   }
 }
 
-String? _renderFilterButtons({
-  required SearchForm searchForm,
-  required List<_FilterOption>? options,
-}) {
-  if (options == null || options.isEmpty) return null;
-  final tp = searchForm.tagsPredicate;
-  String searchWithTagsLink(TagsPredicate tagsPredicate) {
-    return searchForm.change(tagsPredicate: tagsPredicate).toSearchLink();
-  }
-
-  return renderSearchTabs(
-    options.map((option) => SearchTab(
-          title: option.title,
-          text: option.label,
-          href: searchWithTagsLink(
-            tp.isRequiredTag(option.tag)
-                ? tp.withoutTag(option.tag)
-                : tp.appendPredicate(TagsPredicate(
-                    requiredTags: [option.tag],
-                  )),
-          ),
-          active: option.isActive,
-        )),
-  ).toString();
-}
-
 /// `Linux`, `macOS`, `Windows` platforms are not yet stable, and we want
 /// to display them only when the user has already opted-in to get them
 /// displayed.
-_SubSdkLayout _calculateLayout(SearchForm searchForm) {
-  List<_FilterOption>? options;
-
-  _FilterOption option({
+List<SearchTab> _calculateSearchTabs(SearchForm searchForm) {
+  SearchTab searchTab({
     required String label,
     required String tag,
     required String title,
   }) {
-    return _FilterOption(
-      label: label,
-      tag: tag,
+    final tp = searchForm.tagsPredicate;
+    return SearchTab(
+      text: label,
+      href: searchForm
+          .change(
+            tagsPredicate: tp.isRequiredTag(tag)
+                ? tp.withoutTag(tag)
+                : tp.appendPredicate(TagsPredicate(requiredTags: [tag])),
+          )
+          .toSearchLink(),
       title: title,
-      isActive: searchForm.tagsPredicate.isRequiredTag(tag),
+      active: searchForm.tagsPredicate.isRequiredTag(tag),
     );
   }
 
   final sdk = searchForm.sdk;
   if (sdk == SdkTagValue.dart) {
-    options = [
-      option(
+    return <SearchTab>[
+      searchTab(
         label: 'native',
         tag: DartSdkTag.runtimeNativeJit,
         title:
             'Packages compatible with Dart running on a native platform (JIT/AOT)',
       ),
-      option(
+      searchTab(
         label: 'JS',
         tag: DartSdkTag.runtimeWeb,
         title: 'Packages compatible with Dart compiled for the web',
@@ -329,62 +308,38 @@ _SubSdkLayout _calculateLayout(SearchForm searchForm) {
     ];
   }
   if (sdk == SdkTagValue.flutter) {
-    options = [
-      option(
+    return <SearchTab>[
+      searchTab(
         label: 'Android',
         tag: FlutterSdkTag.platformAndroid,
         title: 'Packages compatible with Flutter on the Android platform',
       ),
-      option(
+      searchTab(
         label: 'iOS',
         tag: FlutterSdkTag.platformIos,
         title: 'Packages compatible with Flutter on the iOS platform',
       ),
-      option(
+      searchTab(
         label: 'Web',
         tag: FlutterSdkTag.platformWeb,
         title: 'Packages compatible with Flutter on the Web platform',
       ),
-      option(
+      searchTab(
         label: 'Linux',
         tag: FlutterSdkTag.platformLinux,
         title: 'Packages compatible with Flutter on the Linux platform',
       ),
-      option(
+      searchTab(
         label: 'macOS',
         tag: FlutterSdkTag.platformMacos,
         title: 'Packages compatible with Flutter on the macOS platform',
       ),
-      option(
+      searchTab(
         label: 'Windows',
         tag: FlutterSdkTag.platformWindows,
         title: 'Packages compatible with Flutter on the Windows platform',
       ),
     ];
   }
-  return _SubSdkLayout(options: options);
-}
-
-class _SubSdkLayout {
-  final List<_FilterOption>? options;
-
-  _SubSdkLayout({
-    required this.options,
-  });
-
-  bool get hasOptions => options != null && options!.isNotEmpty;
-}
-
-class _FilterOption {
-  final String label;
-  final String tag;
-  final String title;
-  final bool isActive;
-
-  _FilterOption({
-    required this.label,
-    required this.tag,
-    required this.title,
-    required this.isActive,
-  });
+  return const <SearchTab>[];
 }
