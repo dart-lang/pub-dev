@@ -6,7 +6,6 @@ import 'dart:math';
 
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/package/search_adapter.dart';
-import 'package:pub_dev/shared/markdown.dart';
 import 'package:pub_dev/shared/utils.dart';
 
 import '../../package/models.dart';
@@ -14,14 +13,17 @@ import '../../search/search_form.dart';
 import '../../search/search_service.dart';
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
+import '../dom/dom.dart' as d;
 
 import '_cache.dart';
 import '_consts.dart';
 import 'layout.dart';
 import 'package_misc.dart';
 
+import 'views/shared/listing_info.dart';
 import 'views/shared/pagination.dart';
 import 'views/shared/search_tabs.dart';
+import 'views/shared/sort_control.dart';
 
 export 'views/shared/pagination.dart';
 
@@ -151,7 +153,6 @@ String renderPkgIndexPage(
   String? sdk,
   String? title,
   required SearchForm searchForm,
-  int? totalCount,
   String? searchPlaceholder,
   String? messageFromBackend,
 }) {
@@ -172,7 +173,7 @@ String renderPkgIndexPage(
     'is_search': isSearch,
     'listing_info_html': renderListingInfo(
       searchForm: searchForm,
-      totalCount: totalCount,
+      totalCount: searchResultPage.totalCount,
       title: title ?? topPackages,
       messageFromBackend: messageFromBackend,
     ),
@@ -209,23 +210,18 @@ String renderPkgIndexPage(
 /// Renders the `views/shared/listing_info.mustache` template.
 String renderListingInfo({
   required SearchForm searchForm,
-  required int? totalCount,
+  required int totalCount,
   String? title,
   String? ownedBy,
   required String? messageFromBackend,
 }) {
-  final isSearch = searchForm.hasQuery;
-  return templateCache.renderTemplate('shared/listing_info', {
-    'sort_control_html': renderSortControl(searchForm),
-    'total_count': totalCount,
-    'package_or_packages': totalCount == 1 ? 'package' : 'packages',
-    'has_search_query': isSearch,
-    'search_query': searchForm.query,
-    'has_owned_by': ownedBy != null,
-    'owned_by': ownedBy,
-    'has_message_from_backend': messageFromBackend != null,
-    'message_from_backend_html': markdownToHtml(messageFromBackend),
-  });
+  return renderListingInfoNode(
+    totalCount: totalCount,
+    searchQuery: searchForm.query,
+    ownedBy: ownedBy,
+    sortControlNode: _renderSortControl(searchForm),
+    messageMarkdown: messageFromBackend,
+  ).toString();
 }
 
 String? _subSdkLabel(SearchForm sq) {
@@ -238,28 +234,16 @@ String? _subSdkLabel(SearchForm sq) {
   }
 }
 
-/// Renders the `views/shared/sort_control.mustache` template.
-String renderSortControl(SearchForm form) {
+d.Node _renderSortControl(SearchForm form) {
   final isSearch = form.hasQuery;
   final options = getSortDicts(isSearch);
-  final selectedValue = serializeSearchOrder(form.order) ??
+  final sortValue = serializeSearchOrder(form.order) ??
       (isSearch ? 'search_relevance' : 'listing_relevance');
-  final selectedOption = options.firstWhere(
-    (o) => o.id == selectedValue,
+  final selected = options.firstWhere(
+    (o) => o.id == sortValue,
     orElse: () => options.first,
   );
-  final sortDict = getSortDict(selectedValue);
-  return templateCache.renderTemplate('shared/sort_control', {
-    'options': options
-        .map((d) => {
-              'value': d.id,
-              'label': d.label,
-              'selected': d.id == selectedValue,
-            })
-        .toList(),
-    'ranking_tooltip': sortDict.tooltip,
-    'selected_label': selectedOption.label,
-  });
+  return renderSortControlNode(options: options, selected: selected);
 }
 
 class PageLinks {
