@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import '../../shared/markdown.dart';
+
 final _attributeEscape = HtmlEscape(HtmlEscapeMode.attribute);
 final _attributeRegExp = RegExp(r'^[a-z](?:[a-z0-9\-\_]*[a-z0-9]+)?$');
 final _elementRegExp = _attributeRegExp;
@@ -35,6 +37,9 @@ abstract class DomContext {
 
   /// Creates a DOM node with unsafe raw HTML content.
   Node unsafeRawHtml(String value);
+
+  /// Creates a DOM node with markdown content.
+  Node markdown(String text);
 }
 
 void _verifyElementTag(String tag) {
@@ -76,6 +81,9 @@ Node text(String value) => dom.text(value);
 
 /// Creates a DOM node with unsafe raw HTML content using the default [DomContext].
 Node unsafeRawHtml(String value) => dom.unsafeRawHtml(value);
+
+/// Creates a DOM node with markdown content using the default [DomContext].
+Node markdown(String text) => dom.markdown(text);
 
 /// Creates an `<a>` Element using the default [DomContext].
 Node a({
@@ -308,6 +316,9 @@ class _StringDomContext extends DomContext {
 
   @override
   Node unsafeRawHtml(String value) => _StringRawUnsafeHtml(value);
+
+  @override
+  Node markdown(String text) => unsafeRawHtml(markdownToHtml(text)!);
 }
 
 Map<String, String>? _mergeAttributes(

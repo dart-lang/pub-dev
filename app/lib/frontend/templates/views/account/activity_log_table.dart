@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pub_dev/audit/models.dart';
-import 'package:pub_dev/shared/markdown.dart';
-import 'package:pub_dev/shared/utils.dart';
-
+import '../../../../audit/models.dart';
+import '../../../../shared/utils.dart';
 import '../../../dom/dom.dart' as d;
 
 d.Node renderActivityLog({
@@ -45,11 +43,10 @@ d.Node _renderActivityLogTable(AuditLogRecordPage activities) {
           d.td(
             classes: ['summary'],
             children: [
-              d.div(classes: [
-                'markdown-body'
-              ], children: [
-                d.unsafeRawHtml(markdownToHtml(a.summary!)!),
-              ]),
+              d.div(
+                classes: ['markdown-body'],
+                children: [d.markdown(a.summary!)],
+              ),
             ],
           ),
         ],

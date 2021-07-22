@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../../../shared/markdown.dart';
 import '../../../dom/dom.dart' as d;
 
 d.Node renderListingInfoNode({
@@ -30,8 +29,7 @@ d.Node renderListingInfoNode({
             d.text(' owned by '),
             d.code(children: [d.text(ownedBy)]),
           ],
-          if (messageMarkdown != null)
-            d.unsafeRawHtml(markdownToHtml(messageMarkdown)!),
+          if (messageMarkdown != null) d.markdown(messageMarkdown),
         ],
       ),
       sortControlNode,
