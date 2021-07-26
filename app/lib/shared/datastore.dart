@@ -6,7 +6,9 @@ import 'package:gcloud/datastore.dart' as ds;
 import 'package:gcloud/db.dart';
 import 'package:retry/retry.dart';
 import 'package:logging/logging.dart';
+
 import 'exceptions.dart';
+import 'utils.dart';
 
 export 'package:gcloud/datastore.dart' show BlobValue, DatastoreError;
 export 'package:gcloud/db.dart';
@@ -62,24 +64,31 @@ class TransactionWrapper {
 }
 
 extension DatastoreDBExt on DatastoreDB {
-  // Deletes the entries that are returned from the [query].
-  Future<void> deleteWithQuery<T extends Model>(
+  /// Deletes the entries that are returned from the [query].
+  /// Returns the number of entities deleted.
+  Future<DeleteCounts> deleteWithQuery<T extends Model>(
     Query<T> query, {
     bool Function(T model)? where,
   }) async {
     final deletes = <Key>[];
-    final stream = query.run().where((model) => where == null || where(model));
-    await for (T model in stream) {
+    var found = 0;
+    var deleted = 0;
+    await for (T model in query.run()) {
+      found++;
+      if (where != null && !where(model)) continue;
       deletes.add(model.key);
       if (deletes.length == 20) {
+        deleted += deletes.length;
         await commit(deletes: deletes);
         deletes.clear();
       }
     }
     if (deletes.isNotEmpty) {
+      deleted += deletes.length;
       await commit(deletes: deletes);
       deletes.clear();
     }
+    return DeleteCounts(found, deleted);
   }
 }
 

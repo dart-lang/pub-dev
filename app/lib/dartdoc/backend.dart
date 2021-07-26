@@ -22,6 +22,7 @@ import '../scorecard/backend.dart';
 import '../shared/datastore.dart';
 import '../shared/redis_cache.dart' show cache;
 import '../shared/storage.dart';
+import '../shared/utils.dart' show DeleteCounts;
 import '../shared/versions.dart' as shared_versions;
 
 import 'models.dart';
@@ -52,7 +53,8 @@ class DartdocBackend {
   /// Deletes old data files in SDK storage (for old runtimes that are more than
   /// half a year old).
   Future<void> deleteOldData() async {
-    await _sdkStorage.deleteOldData(minAgeThreshold: Duration(days: 182));
+    final counts = await _sdkStorage.deleteOldData();
+    _logger.info('Deleted old dartdoc SDK data: $counts.');
   }
 
   Future<List<String>> getLatestVersions(String package,
@@ -326,16 +328,17 @@ class DartdocBackend {
   Future<void> gcStorageBucket() async {
     final query = _db.query<DartdocRun>()
       ..filter('created >', DateTime.now().toUtc().subtract(Duration(days: 2)));
-    var total = 0;
+    var total = DeleteCounts.empty();
     await for (final r in query.run()) {
       if (r.runtimeVersion != shared_versions.runtimeVersion) continue;
       total += await _removeObsolete(r.package!, r.version!);
     }
-    _logger.info('gc-dartdoc-storage-bucket cleared $total entries.');
+    _logger.info(
+        'gc-dartdoc-storage-bucket cleared $total entries (${shared_versions.runtimeVersion}).');
   }
 
   /// Removes incomplete uploads and old outputs from the bucket.
-  Future<int> _removeObsolete(String package, String version) async {
+  Future<DeleteCounts> _removeObsolete(String package, String version) async {
     final completedList =
         await _listEntries(storage_path.entryPrefix(package, version));
     final inProgressList =
@@ -352,7 +355,8 @@ class DartdocBackend {
     for (var entry in deleteEntries) {
       await _deleteAll(entry);
     }
-    return deleteEntries.length;
+    return DeleteCounts(
+        completedList.length + inProgressList.length, deleteEntries.length);
   }
 
   Future<List<DartdocEntry>> _listEntries(String prefix) async {
