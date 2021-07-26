@@ -17,8 +17,8 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:watcher/watcher.dart';
 
-const _maxFileCount = 10000;
-const _maxTotalLengthBytes = 10 * 1024 * 1024;
+const _defaultMaxFileCount = 10 * 1000 * 1000; // 10 million files
+const _defaultMaxTotalLengthBytes = 2 * 1024 * 1024 * 1024; // 2 GiB
 
 /// Creates an overlay file system with binary file support on top
 /// of the input sources.
@@ -28,12 +28,20 @@ const _maxTotalLengthBytes = 10 * 1024 * 1024;
 class PubResourceProvider implements ResourceProvider {
   final ResourceProvider _defaultProvider;
   final _memoryResourceProvider = MemoryResourceProvider();
+  final int _maxFileCount;
+  final int _maxTotalLengthBytes;
   bool _isSdkDocs = false;
   String _outputPath;
   int _fileCount = 0;
   int _totalLengthBytes = 0;
 
-  PubResourceProvider(this._defaultProvider);
+  PubResourceProvider(
+    this._defaultProvider, {
+    int maxFileCount,
+    int maxTotalLengthBytes,
+  })  : _maxFileCount = maxFileCount ?? _defaultMaxFileCount,
+        _maxTotalLengthBytes =
+            maxTotalLengthBytes ?? _defaultMaxTotalLengthBytes;
 
   /// Writes in-memory files to disk.
   void writeFilesToDiskSync() {
