@@ -20,6 +20,15 @@ import 'package:watcher/watcher.dart';
 const _defaultMaxFileCount = 10 * 1000 * 1000; // 10 million files
 const _defaultMaxTotalLengthBytes = 2 * 1024 * 1024 * 1024; // 2 GiB
 
+/// Thrown when current output exceeds limits.
+class DocumentationTooBigException implements Exception {
+  final String _message;
+  DocumentationTooBigException(this._message);
+
+  @override
+  String toString() => _message;
+}
+
 /// Creates an overlay file system with binary file support on top
 /// of the input sources.
 ///
@@ -69,11 +78,11 @@ class PubResourceProvider implements ResourceProvider {
       return;
     }
     if (_fileCount > _maxFileCount) {
-      throw AssertionError(
+      throw DocumentationTooBigException(
           'Reached $_maxFileCount files in the output directory.');
     }
     if (_totalLengthBytes > _maxTotalLengthBytes) {
-      throw AssertionError(
+      throw DocumentationTooBigException(
           'Reached $_maxTotalLengthBytes bytes in the output directory.');
     }
   }

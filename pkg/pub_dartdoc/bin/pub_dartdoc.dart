@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:dartdoc/dartdoc.dart';
 import 'package:dartdoc/options.dart';
 
@@ -31,4 +33,6 @@ Future<void> main(List<String> arguments) async {
   final pubDataGenerator =
       PubDataGenerator(config.inputDir, config.resourceProvider);
   pubDataGenerator.generate(results.packageGraph, config.output);
+
+  print('Max memory use: ${ProcessInfo.maxRss}');
 }

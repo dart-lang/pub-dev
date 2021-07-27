@@ -17,7 +17,7 @@ void main() {
     }
 
     expect(() => provider.getFile('/tmp/next.txt').writeAsStringSync('next'),
-        throwsA(isA<AssertionError>()));
+        throwsA(isA<DocumentationTooBigException>()));
   });
 
   test('limit total bytes', () {
@@ -25,6 +25,6 @@ void main() {
         maxTotalLengthBytes: 1024);
     provider.getFile('/tmp/1').writeAsBytesSync(List<int>.filled(1024, 0));
     expect(() => provider.getFile('/tmp/2').writeAsBytesSync(<int>[0]),
-        throwsA(isA<AssertionError>()));
+        throwsA(isA<DocumentationTooBigException>()));
   });
 }
