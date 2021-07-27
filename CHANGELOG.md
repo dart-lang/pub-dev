@@ -9,6 +9,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * NOTE: added `PackageVersion.isRetracted`.
          TODO(deferred): make it required, add to integrity checks.
  * NOTE: added weekly (versioned) periodic task: `backfill-new-fields`.
+ * Limit `pkg/pub_dartdoc` output to 2 GiB and 10M files.
 
 ## `20210722t120000-all`
  * Bumped runtimeVersion to `2021.07.21`.

@@ -2,20 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:dartdoc/dartdoc.dart';
 import 'package:dartdoc/options.dart';
 
 import 'package:pub_dartdoc/pub_data_generator.dart';
+import 'package:pub_dartdoc/src/pub_hooks.dart';
 
 Future<void> main(List<String> arguments) async {
-  final config = await parseOptions(pubPackageMetaProvider, arguments);
+// pub hooks
+  final pubResourceProvider =
+      PubResourceProvider(pubPackageMetaProvider.resourceProvider);
+  final pubMetaProvider =
+      PubPackageMetaProvider(pubPackageMetaProvider, pubResourceProvider);
+
+  final config = await parseOptions(pubMetaProvider, arguments);
   if (config == null) {
     throw ArgumentError();
   }
 
   final packageConfigProvider = PhysicalPackageConfigProvider();
   final packageBuilder =
-      PubPackageBuilder(config, pubPackageMetaProvider, packageConfigProvider);
+      PubPackageBuilder(config, pubMetaProvider, packageConfigProvider);
   final dartdoc = config.generateDocs
       ? await Dartdoc.fromContext(config, packageBuilder)
       : await Dartdoc.withEmptyGenerator(config, packageBuilder);
@@ -24,4 +33,6 @@ Future<void> main(List<String> arguments) async {
   final pubDataGenerator =
       PubDataGenerator(config.inputDir, config.resourceProvider);
   pubDataGenerator.generate(results.packageGraph, config.output);
+
+  print('Max memory use: ${ProcessInfo.maxRss}');
 }
