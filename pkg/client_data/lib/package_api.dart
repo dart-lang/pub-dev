@@ -130,9 +130,13 @@ class PackageData {
   Map<String, dynamic> toJson() => _$PackageDataToJson(this);
 }
 
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class VersionInfo {
   final String version;
+
+  /// `true` if version is retracted.
+  /// If it is omitted, `null` or `false` the package is *not retracted*.
+  final bool? isRetracted;
 
   final Map<String, dynamic> pubspec;
 
@@ -145,6 +149,7 @@ class VersionInfo {
 
   VersionInfo({
     required this.version,
+    required this.isRetracted,
     required this.pubspec,
     required this.archiveUrl,
     required this.published,

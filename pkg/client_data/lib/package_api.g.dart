@@ -102,6 +102,7 @@ Map<String, dynamic> _$PackageDataToJson(PackageData instance) {
 VersionInfo _$VersionInfoFromJson(Map<String, dynamic> json) {
   return VersionInfo(
     version: json['version'] as String,
+    isRetracted: json['isRetracted'] as bool?,
     pubspec: json['pubspec'] as Map<String, dynamic>,
     archiveUrl: json['archive_url'] as String?,
     published: json['published'] == null
@@ -110,13 +111,23 @@ VersionInfo _$VersionInfoFromJson(Map<String, dynamic> json) {
   );
 }
 
-Map<String, dynamic> _$VersionInfoToJson(VersionInfo instance) =>
-    <String, dynamic>{
-      'version': instance.version,
-      'pubspec': instance.pubspec,
-      'archive_url': instance.archiveUrl,
-      'published': instance.published?.toIso8601String(),
-    };
+Map<String, dynamic> _$VersionInfoToJson(VersionInfo instance) {
+  final val = <String, dynamic>{
+    'version': instance.version,
+  };
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('isRetracted', instance.isRetracted);
+  val['pubspec'] = instance.pubspec;
+  writeNotNull('archive_url', instance.archiveUrl);
+  writeNotNull('published', instance.published?.toIso8601String());
+  return val;
+}
 
 VersionScore _$VersionScoreFromJson(Map<String, dynamic> json) {
   return VersionScore(

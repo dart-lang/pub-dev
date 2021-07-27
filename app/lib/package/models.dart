@@ -380,6 +380,11 @@ class PackageVersion extends db.ExpandoModel<String> {
   @db.StringProperty()
   String? publisherId;
 
+  /// Whether the version has been retracted.
+  /// TODO: make it required once the release stabilizes
+  @db.BoolProperty()
+  bool? isRetracted;
+
   // Convenience Fields:
 
   Version get semanticVersion => Version.parse(version!);

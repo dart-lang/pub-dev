@@ -14,11 +14,19 @@ import '../../package/backend.dart';
 import '../../scorecard/backend.dart';
 import '../../search/backend.dart';
 import '../../shared/datastore.dart';
+import '../../tool/backfill/backfill_new_fields.dart';
 
 import 'datastore_status_provider.dart';
 
 /// Setup the tasks that we are running in pub.dev frontend.
 void setupFrontendPeriodicTasks() {
+  // Backfills the fields that are new to the current release.
+  _weekly(
+    name: 'backfill-new-fields',
+    isRuntimeVersioned: true,
+    task: backfillNewFields,
+  );
+
   // Deletes expired audit log records.
   _daily(
     name: 'delete-expired-audit-log-records',
