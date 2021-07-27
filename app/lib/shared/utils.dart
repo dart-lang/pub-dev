@@ -345,3 +345,22 @@ extension CustomException on Logger {
   void reportError(String message) =>
       shout(message, Exception(message), StackTrace.current);
 }
+
+/// Statistics for delete + filter operations.
+class DeleteCounts {
+  /// The number of items found by the query.
+  final int found;
+
+  /// The number of items deleted by the query (matching the filter condition).
+  final int deleted;
+
+  DeleteCounts(this.found, this.deleted);
+  factory DeleteCounts.empty() => DeleteCounts(0, 0);
+
+  DeleteCounts operator +(DeleteCounts other) {
+    return DeleteCounts(found + other.found, deleted + other.deleted);
+  }
+
+  @override
+  String toString() => '$deleted/$found';
+}

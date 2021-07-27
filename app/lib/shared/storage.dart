@@ -14,7 +14,7 @@ import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
 import 'package:retry/retry.dart';
 
-import 'utils.dart' show contentType, jsonUtf8Encoder, retryAsync;
+import 'utils.dart' show contentType, jsonUtf8Encoder, retryAsync, DeleteCounts;
 import 'versions.dart' as versions;
 
 final _gzip = GZipCodec();
@@ -220,7 +220,9 @@ class VersionedJsonStorage {
   /// When [minAgeThreshold] is specified, only older files will be deleted. The
   /// process assumes that if an old runtimeVersion is still active, it will
   /// update it periodically, and a cleanup should preserve such files.
-  Future<void> deleteOldData({Duration? minAgeThreshold}) async {
+  Future<DeleteCounts> deleteOldData({Duration? minAgeThreshold}) async {
+    var found = 0;
+    var deleted = 0;
     await for (BucketEntry entry in _bucket.list(prefix: _prefix)) {
       if (entry.isDirectory) {
         continue;
@@ -232,14 +234,20 @@ class VersionedJsonStorage {
       final version = name.substring(0, name.length - _extension.length);
       final matchesPattern = version.length == 10 &&
           versions.runtimeVersionPattern.hasMatch(version);
-      if (matchesPattern && versions.shouldGCVersion(version)) {
+      if (!matchesPattern) {
+        continue;
+      }
+      found++;
+      if (versions.shouldGCVersion(version)) {
         final info = await _bucket.info(entry.name);
         final age = DateTime.now().difference(info.updated);
         if (minAgeThreshold == null || age > minAgeThreshold) {
+          deleted++;
           await deleteFromBucket(_bucket, entry.name);
         }
       }
     }
+    return DeleteCounts(found, deleted);
   }
 
   String getBucketUri([String? version]) =>

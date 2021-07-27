@@ -4,11 +4,14 @@
 
 import 'dart:convert';
 
+import 'package:logging/logging.dart';
 import 'package:neat_periodic_task/neat_periodic_task.dart';
 import 'package:ulid/ulid.dart';
 
 import '../../shared/datastore.dart' as db;
 import '../../shared/versions.dart' as versions show runtimeVersion;
+
+final _logger = Logger('datastore_neat_status_provider');
 
 /// Tracks the status of the task.
 ///
@@ -134,11 +137,14 @@ Future<void> deleteOldNeatTaskStatuses(
 }) async {
   final query = dbService.query<NeatTaskStatus>();
   final now = DateTime.now().toUtc();
-  await dbService.deleteWithQuery<NeatTaskStatus>(query, where: (status) {
-    // TODO: once a month passed after the release of this feature, delete these too.
-    if (status.updated == null) return false;
-
-    final diff = now.difference(status.updated!);
-    return diff > maxAge;
-  });
+  final count = await dbService.deleteWithQuery<NeatTaskStatus>(
+    query,
+    where: (status) {
+      if (status.updated == null) return true;
+      final diff = now.difference(status.updated!);
+      return diff > maxAge;
+    },
+  );
+  _logger.info(
+      'delete-old-neat-task-statuses cleared $count entries (${versions.runtimeVersion}).');
 }

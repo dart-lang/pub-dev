@@ -25,6 +25,7 @@ import '../shared/exceptions.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/storage.dart';
 import '../shared/tags.dart';
+import '../shared/versions.dart';
 
 import 'models.dart';
 import 'search_service.dart';
@@ -312,7 +313,10 @@ class SnapshotStorage {
   /// Deletes old data files in snapshot storage (for old runtimes that are more
   /// than half a year old).
   Future<void> deleteOldData() async {
-    await _storage.deleteOldData(minAgeThreshold: Duration(days: 182));
+    final counts =
+        await _storage.deleteOldData(minAgeThreshold: Duration(days: 182));
+    _logger.info(
+        'delete-old-search-snapshots cleared $counts entries ($runtimeVersion)');
   }
 
   Future<void> _updateSnapshotIfNeeded() async {
