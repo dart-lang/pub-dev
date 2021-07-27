@@ -16,17 +16,13 @@ d.Node renderPagination(PageLinks links) {
       // previous
       d.li(
         classes: [if (!hasPrevious) '-disabled'],
-        children: [
-          d.a(
-            href: hasPrevious
-                ? links.searchForm.toSearchLink(page: links.currentPage! - 1)
-                : null,
-            rel: 'prev',
-            children: [
-              d.span(children: [d.text('«')]),
-            ],
-          ),
-        ],
+        child: d.a(
+          href: hasPrevious
+              ? links.searchForm.toSearchLink(page: links.currentPage! - 1)
+              : null,
+          rel: 'prev',
+          child: d.span(text: '«'),
+        ),
       ),
 
       // pages
@@ -41,33 +37,24 @@ d.Node renderPagination(PageLinks links) {
         }
         return d.li(
           classes: [if (isCurrent) '-active'],
-          children: [
-            d.a(
-              href:
-                  isCurrent ? null : links.searchForm.toSearchLink(page: page),
-              rel: rel,
-              children: [
-                d.span(children: [d.text('$page')])
-              ],
-            ),
-          ],
+          child: d.a(
+            href: isCurrent ? null : links.searchForm.toSearchLink(page: page),
+            rel: rel,
+            child: d.span(text: '$page'),
+          ),
         );
       }),
 
       // next
       d.li(
         classes: [if (!hasNext) '-disabled'],
-        children: [
-          d.a(
-            href: hasNext
-                ? links.searchForm.toSearchLink(page: links.currentPage! + 1)
-                : null,
-            rel: 'next',
-            children: [
-              d.span(children: [d.text('»')]),
-            ],
-          ),
-        ],
+        child: d.a(
+          href: hasNext
+              ? links.searchForm.toSearchLink(page: links.currentPage! + 1)
+              : null,
+          rel: 'next',
+          child: d.span(text: '»'),
+        ),
       ),
     ],
   );

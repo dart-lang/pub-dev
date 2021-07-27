@@ -213,18 +213,12 @@ String _renderLabeledScore(String label, int? value, String sign) {
       children: [
         d.span(
           classes: ['packages-score-value-number'],
-          children: [d.text(value?.toString() ?? '--')],
+          text: value?.toString() ?? '--',
         ),
-        d.span(
-          classes: ['packages-score-value-sign'],
-          children: [d.text(sign)],
-        ),
+        d.span(classes: ['packages-score-value-sign'], text: sign),
       ],
     ),
-    d.div(
-      classes: ['packages-score-label'],
-      children: [d.text(label)],
-    ),
+    d.div(classes: ['packages-score-label'], text: label),
   ]).toString();
 }
 

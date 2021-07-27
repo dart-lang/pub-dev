@@ -18,16 +18,16 @@ d.Node renderListingInfoNode({
       d.div(
         classes: ['listing-info-count'],
         children: [
-          d.span(classes: ['info-identifier'], children: [d.text('Results')]),
-          d.span(classes: ['count'], children: [d.text('$totalCount')]),
+          d.span(classes: ['info-identifier'], text: 'Results'),
+          d.span(classes: ['count'], text: '$totalCount'),
           d.text(' $packageOrPackages'),
           if (searchQuery != null && searchQuery.isNotEmpty) ...[
             d.text(' for search query '),
-            d.code(children: [d.text(searchQuery)]),
+            d.code(text: searchQuery),
           ],
           if (ownedBy != null && ownedBy.isNotEmpty) ...[
             d.text(' owned by '),
-            d.code(children: [d.text(ownedBy)]),
+            d.code(text: ownedBy),
           ],
           if (messageMarkdown != null) d.markdown(messageMarkdown),
         ],
