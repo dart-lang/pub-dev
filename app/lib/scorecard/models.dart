@@ -256,6 +256,8 @@ class ScoreCardData extends Object with FlagMixin {
 
   bool get isCurrent => runtimeVersion == versions.runtimeVersion;
 
+  bool get hasApiDocs => dartdocReport?.reportStatus == ReportStatus.success;
+
   Map<String, dynamic> toJson() => _$ScoreCardDataToJson(this);
 
   /// Whether the data has all the required report types.
@@ -264,6 +266,9 @@ class ScoreCardData extends Object with FlagMixin {
     if (reportTypes == null || reportTypes!.isEmpty) return false;
     return requiredTypes.every(reportTypes!.contains);
   }
+
+  Report? getJoinedReport() =>
+      joinReport(panaReport: panaReport, dartdocReport: dartdocReport);
 }
 
 abstract class ReportData {

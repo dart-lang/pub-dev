@@ -29,13 +29,13 @@ import 'package_misc.dart';
 
 String? _renderLicense(PackagePageData data) {
   if (data.versionInfo != null && data.versionInfo!.hasLicense) {
-    final license =
-        data.analysis?.licenseFile?.shortFormatted ?? LicenseNames.unknown;
+    final licenseFile = data.scoreCard?.panaReport?.licenseFile;
+    final license = licenseFile?.shortFormatted ?? LicenseNames.unknown;
     final url = urls.pkgLicenseUrl(
       data.package!.name!,
       version: data.isLatestStable ? null : data.version!.version,
     );
-    final fileName = data.analysis?.licenseFile?.path ?? 'LICENSE';
+    final fileName = licenseFile?.path ?? 'LICENSE';
 
     final linkAndFileName =
         '<a href="$url">${htmlEscape.convert(fileName)}</a>';
@@ -182,7 +182,7 @@ String renderPkgInfoBox(PackagePageData data) {
       detectServiceProvider: true);
   addLink(packageLinks.issueTrackerUrl, 'View/report issues');
   addLink(documentationUrl, 'Documentation', documentation: true);
-  if (data.analysis!.hasApiDocs) {
+  if (data.scoreCard?.hasApiDocs ?? false) {
     addLink(dartdocsUrl, 'API reference', documentation: true);
   }
 
@@ -364,7 +364,7 @@ String _renderPkgPage({
   required List<Tab> tabs,
   required urls.PkgPageTab pkgPageTab,
 }) {
-  final card = data.analysis?.card;
+  final card = data.scoreCard;
 
   final content = renderDetailPage(
     headerHtml: renderPkgHeader(data),
@@ -471,7 +471,8 @@ Tab _installTab(PackagePageData data) {
   return Tab.withContent(
     id: 'installing',
     title: 'Installing',
-    contentHtml: _renderInstallTab(data.version!, data.analysis?.derivedTags),
+    contentHtml: _renderInstallTab(
+        data.version!, data.scoreCard?.panaReport?.derivedTags),
     isMarkdown: true,
   );
 }
@@ -513,8 +514,7 @@ Tab _scoreTab(PackagePageData data) {
     contentHtml: renderAnalysisTab(
       data.package!.name,
       data.version!.pubspec!.sdkConstraint,
-      data.analysis?.card,
-      data.analysis,
+      data.scoreCard,
       likeCount: data.package!.likes,
     ),
   );
@@ -536,7 +536,7 @@ String renderPackageSchemaOrgHtml(PackagePageData data) {
     'image':
         '${urls.siteRoot}${staticUrls.staticPath}/img/pub-dev-icon-cover-image.png'
   };
-  final licenseFileUrl = data.analysis?.licenseFile?.url;
+  final licenseFileUrl = data.scoreCard?.panaReport?.licenseFile?.url;
   if (licenseFileUrl != null) {
     map['license'] = licenseFileUrl;
   }

@@ -10,7 +10,6 @@ import 'dart:math';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-import '../analyzer/analyzer_client.dart' show AnalysisView;
 import '../package/model_properties.dart';
 import '../scorecard/models.dart';
 import '../search/search_service.dart' show ApiPageRef;
@@ -845,7 +844,7 @@ class PackagePageData {
   final PackageVersion? version;
   final PackageVersionInfo? versionInfo;
   final PackageVersionAsset? asset;
-  final AnalysisView? analysis;
+  final ScoreCardData? scoreCard;
   final bool? isAdmin;
   final bool? isLiked;
   PackageView? _view;
@@ -856,7 +855,7 @@ class PackagePageData {
     required this.version,
     required this.versionInfo,
     required this.asset,
-    required this.analysis,
+    required this.scoreCard,
     required this.isAdmin,
     required this.isLiked,
   })  : latestReleases = latestReleases ?? package!.latestReleases,
@@ -869,7 +868,7 @@ class PackagePageData {
   })  : version = null,
         versionInfo = null,
         asset = null,
-        analysis = null,
+        scoreCard = null,
         isAdmin = null,
         isLiked = null;
 
@@ -885,7 +884,7 @@ class PackagePageData {
     return _view ??= PackageView.fromModel(
       package: package!,
       version: version,
-      scoreCard: analysis?.card,
+      scoreCard: scoreCard,
     );
   }
 }

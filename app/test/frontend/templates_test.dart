@@ -12,7 +12,6 @@ import 'package:xml/xml.dart' as xml;
 
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
-import 'package:pub_dev/analyzer/analyzer_client.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/frontend/handlers/package.dart'
@@ -291,7 +290,7 @@ void main() {
 
     scopedTest('no content for analysis tab', () async {
       // no content
-      expect(renderAnalysisTab('pkg_foo', null, null, null, likeCount: 4),
+      expect(renderAnalysisTab('pkg_foo', null, null, likeCount: 4),
           '<i>Awaiting analysis to complete.</i>');
     });
 
@@ -313,7 +312,6 @@ void main() {
         'pkg_foo',
         null,
         card,
-        AnalysisView(card),
         likeCount: 1000000,
       );
 
@@ -329,7 +327,6 @@ void main() {
         'pkg_foo',
         null,
         card,
-        AnalysisView(card),
         likeCount: 1111,
       );
       expectGoldenFile(html, 'analysis_tab_outdated.html', isFragment: true);

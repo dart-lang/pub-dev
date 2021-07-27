@@ -6,8 +6,8 @@ import 'dart:async';
 
 import 'package:pool/pool.dart';
 
-import 'package:pub_dev/analyzer/analyzer_client.dart';
 import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/service/entrypoint/tools.dart';
 import 'package:pub_dev/shared/datastore.dart';
 
@@ -54,7 +54,8 @@ Future main(List<String> args) async {
 }
 
 Future<bool> _isAnalysisDone(String package, String version) async {
-  final view = await analyzerClient.getAnalysisView(package, version);
-  print('$package $version: ${view.isLatestRuntimeVersion}');
-  return view.isLatestRuntimeVersion;
+  final view = await scoreCardBackend.getScoreCardData(package, version);
+  final isLatestRuntimeVersion = view?.isCurrent ?? false;
+  print('$package $version: $isLatestRuntimeVersion');
+  return isLatestRuntimeVersion;
 }
