@@ -308,7 +308,7 @@ Node ul({
 Iterable<Node>? _children(Iterable<Node>? children, Node? child, String? text) {
   if (children != null) {
     if (child != null) {
-      throw ArgumentError('`child` is not null');
+      throw ArgumentError('Only one of `child`, `children` or `text` may be specified');
     }
     if (text != null) {
       throw ArgumentError('`text` is not null');
