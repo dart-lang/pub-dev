@@ -6,7 +6,6 @@ import 'package:client_data/publisher_api.dart' as api;
 import 'package:client_data/page_data.dart';
 
 import '../../audit/models.dart';
-import '../../frontend/request_context.dart';
 import '../../frontend/templates/views/account/activity_log_table.dart';
 import '../../package/search_adapter.dart' show SearchResultPage;
 import '../../publisher/models.dart' show Publisher, PublisherSummary;
@@ -115,8 +114,7 @@ String renderPublisherPackagesPage({
       contentHtml: tabContent,
     ),
     if (isAdmin) _adminLinkTab(publisher.publisherId!),
-    if (isAdmin && requestContext.displayActivityLog)
-      _activityLogLinkTab(publisher.publisherId!),
+    if (isAdmin) _activityLogLinkTab(publisher.publisherId!),
   ];
 
   final mainContent = renderDetailPage(
@@ -169,8 +167,7 @@ String renderPublisherAdminPage({
       title: 'Admin',
       contentHtml: adminContent,
     ),
-    if (requestContext.displayActivityLog)
-      _activityLogLinkTab(publisher.publisherId!),
+    _activityLogLinkTab(publisher.publisherId!),
   ];
 
   final content = renderDetailPage(

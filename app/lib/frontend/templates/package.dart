@@ -8,7 +8,6 @@ import 'package:client_data/page_data.dart';
 import 'package:pana/pana.dart' show getRepositoryUrl, LicenseNames;
 import 'package:pubspec_parse/pubspec_parse.dart' show HostedDependency;
 
-import '../../frontend/request_context.dart';
 import '../../package/model_properties.dart';
 import '../../package/models.dart';
 import '../../package/overrides.dart'
@@ -612,7 +611,7 @@ List<Tab> buildPackageTabs({
     versionsTab,
     scoreTab,
     if (data.isAdmin!) adminTab,
-    if (data.isAdmin! && requestContext.displayActivityLog) activityLogTab,
+    if (data.isAdmin!) activityLogTab,
   ];
 }
 

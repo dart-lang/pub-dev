@@ -4,11 +4,9 @@
 
 import 'dart:convert';
 
-import 'package:pub_dev/audit/models.dart';
-import 'package:pub_dev/frontend/request_context.dart';
-import 'package:pub_dev/frontend/templates/views/account/activity_log_table.dart';
-
 import '../../account/models.dart' show LikeData, User, UserSessionData;
+import '../../audit/models.dart';
+import '../../frontend/templates/views/account/activity_log_table.dart';
 import '../../package/search_adapter.dart' show SearchResultPage;
 import '../../publisher/models.dart' show PublisherSummary;
 import '../../search/search_form.dart' show SearchForm;
@@ -69,7 +67,7 @@ String renderAccountPackagesPage({
           id: 'packages', title: 'My packages', contentHtml: tabContent),
       _myLikedPackagesLink(),
       _myPublishersLink(),
-      if (requestContext.displayActivityLog) _myActivityLogLink(),
+      _myActivityLogLink(),
     ],
     infoBoxHtml: null,
   );
@@ -109,7 +107,7 @@ String renderMyLikedPackagesPage({
           title: 'My liked packages',
           contentHtml: tabContent),
       _myPublishersLink(),
-      if (requestContext.displayActivityLog) _myActivityLogLink(),
+      _myActivityLogLink(),
     ],
     infoBoxHtml: null,
   );
@@ -140,7 +138,7 @@ String renderAccountPublishersPage({
           id: 'publishers',
           title: 'My publishers',
           contentHtml: publisherListHtml),
-      if (requestContext.displayActivityLog) _myActivityLogLink(),
+      _myActivityLogLink(),
     ],
     infoBoxHtml: null,
   );
