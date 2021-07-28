@@ -41,7 +41,7 @@ void main() {
       await expectHtmlResponse(
         rs,
         present: [
-          'Find and use packages to build',
+          'The official package repository for',
         ],
         absent: [
           '/packages/neon',
