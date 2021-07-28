@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:gcloud/datastore.dart' as ds;
 import 'package:gcloud/db.dart';
 import 'package:retry/retry.dart';
@@ -68,24 +70,37 @@ extension DatastoreDBExt on DatastoreDB {
   /// Returns the number of entities deleted.
   Future<DeleteCounts> deleteWithQuery<T extends Model>(
     Query<T> query, {
-    bool Function(T model)? where,
+    FutureOr<bool> Function(T model)? where,
+    void Function(List<T> values)? beforeDelete,
+    bool dryRun = false,
   }) async {
-    final deletes = <Key>[];
+    final deletes = <T>[];
     var found = 0;
     var deleted = 0;
     await for (T model in query.run()) {
       found++;
-      if (where != null && !where(model)) continue;
-      deletes.add(model.key);
-      if (deletes.length == 20) {
-        deleted += deletes.length;
-        await commit(deletes: deletes);
-        deletes.clear();
+      if (where == null || await where(model)) {
+        deletes.add(model);
+        if (deletes.length == 20) {
+          if (beforeDelete != null) {
+            beforeDelete(deletes);
+          }
+          if (!dryRun) {
+            await commit(deletes: deletes.map((m) => m.key).toList());
+          }
+          deleted += deletes.length;
+          deletes.clear();
+        }
       }
     }
     if (deletes.isNotEmpty) {
+      if (beforeDelete != null) {
+        beforeDelete(deletes);
+      }
+      if (!dryRun) {
+        await commit(deletes: deletes.map((m) => m.key).toList());
+      }
       deleted += deletes.length;
-      await commit(deletes: deletes);
       deletes.clear();
     }
     return DeleteCounts(found, deleted);
