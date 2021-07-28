@@ -29,6 +29,7 @@ import '../shared/versions.dart' as versions;
 
 import 'backend.dart';
 import 'customization.dart';
+import 'customizer_config_provider.dart';
 import 'dartdoc_options.dart';
 import 'models.dart';
 
@@ -292,9 +293,11 @@ class DartdocJobProcessor extends JobProcessor {
 
           if (hasContent) {
             try {
-              await DartdocCustomizer(
-                      job.packageName!, job.packageVersion!, job.isLatestStable)
-                  .customizeDir(outputDir);
+              await DartdocCustomizer(customizerConfig(
+                packageName: job.packageName!,
+                packageVersion: job.packageVersion!,
+                isLatestStable: job.isLatestStable,
+              )).customizeDir(outputDir);
               logFileOutput.write('Content customization completed.\n\n');
             } catch (e, st) {
               // Do not block on customization failure.

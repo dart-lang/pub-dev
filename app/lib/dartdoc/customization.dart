@@ -9,15 +9,37 @@ import 'package:collection/collection.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart' as html_parser;
 
-import '../frontend/static_files.dart';
-import '../shared/urls.dart';
-
-class DartdocCustomizer {
+class DartdocCustomizerConfig {
   final String packageName;
   final String packageVersion;
   final bool isLatestStable;
+  final String docRootUrl;
+  final String latestStableDocumentationUrl;
+  final String pubPackagePageUrl;
+  final String dartLogoSvgUrl;
+  final String githubMarkdownCssUrl;
+  final String gtmJsUrl;
+  final List<String> trustedTargetHosts;
+  final List<String> trustedUrlSchemes;
 
-  DartdocCustomizer(this.packageName, this.packageVersion, this.isLatestStable);
+  DartdocCustomizerConfig({
+    required this.packageName,
+    required this.packageVersion,
+    required this.isLatestStable,
+    required this.docRootUrl,
+    required this.latestStableDocumentationUrl,
+    required this.pubPackagePageUrl,
+    required this.dartLogoSvgUrl,
+    required this.githubMarkdownCssUrl,
+    required this.gtmJsUrl,
+    required this.trustedTargetHosts,
+    required this.trustedUrlSchemes,
+  });
+}
+
+class DartdocCustomizer {
+  final DartdocCustomizerConfig config;
+  DartdocCustomizer(this.config);
 
   Future<bool> customizeDir(String path) async {
     bool changed = false;
@@ -53,22 +75,19 @@ class DartdocCustomizer {
     _addAlternateUrl(head, canonical);
     _addAnalyticsTracker(head, body);
     _addGithubMarkdownStyle(head, body);
-    final docRoot = isLatestStable
-        ? pkgDocUrl(packageName, isLatest: true)
-        : pkgDocUrl(packageName, version: packageVersion);
     final breadcrumbs = body.querySelector('.breadcrumbs');
     final breadcrumbsDepth = breadcrumbs?.children.length ?? 0;
     if (breadcrumbs != null) {
       _addPubSiteLogo(breadcrumbs);
       _addPubPackageLink(breadcrumbs);
-      _updateIndexLinkToCanonicalRoot(breadcrumbs, docRoot);
+      _updateIndexLinkToCanonicalRoot(breadcrumbs);
     }
     final sidebarBreadcrumbs = body.querySelector('.sidebar .breadcrumbs');
     if (sidebarBreadcrumbs != null) {
       _addPubPackageLink(sidebarBreadcrumbs, level: 2);
-      _updateIndexLinkToCanonicalRoot(sidebarBreadcrumbs, docRoot);
+      _updateIndexLinkToCanonicalRoot(sidebarBreadcrumbs);
     }
-    if (!isLatestStable || breadcrumbsDepth > 3) {
+    if (!config.isLatestStable || breadcrumbsDepth > 3) {
       _addMetaNoIndex(head);
     }
     _updateLinks(body);
@@ -85,11 +104,11 @@ class DartdocCustomizer {
   }
 
   void _addAlternateUrl(Element head, Element? canonical) {
-    if (isLatestStable) return;
+    if (config.isLatestStable) return;
 
     final link = Element.tag('link');
     link.attributes['rel'] = 'alternate';
-    link.attributes['href'] = pkgDocUrl(packageName, isLatest: true);
+    link.attributes['href'] = config.latestStableDocumentationUrl;
 
     if (canonical == null) {
       head.append(link);
@@ -112,10 +131,12 @@ class DartdocCustomizer {
     for (final a in body.querySelectorAll('a')) {
       final href = a.attributes['href'];
       final uri = href == null ? null : Uri.tryParse(href);
-      if (uri == null || uri.isInvalid) {
+      if (uri == null ||
+          (uri.hasScheme && !config.trustedUrlSchemes.contains(uri.scheme))) {
         // Unable to parse the uri, better to remove the `href` attribute.
         a.attributes.remove('href');
-      } else if (uri.shouldIndicateUgc) {
+      } else if (uri.host.isNotEmpty &&
+          !config.trustedTargetHosts.contains(uri.host)) {
         a.attributes['rel'] = 'ugc';
       }
     }
@@ -137,7 +158,7 @@ class DartdocCustomizer {
       final linkElement = Element.tag('link')
         ..attributes['rel'] = 'stylesheet'
         ..attributes['type'] = 'text/css'
-        ..attributes['href'] = staticUrls.githubMarkdownCss;
+        ..attributes['href'] = config.githubMarkdownCssUrl;
       head.insertBefore(linkElement, firstLink);
     }
   }
@@ -157,7 +178,7 @@ class DartdocCustomizer {
     );
     head.insertBefore(
       Element.tag('script')
-        ..attributes['src'] = staticUrls.gtmJs
+        ..attributes['src'] = config.gtmJsUrl
         ..text = '',
       firstHeadChild,
     );
@@ -186,21 +207,19 @@ class DartdocCustomizer {
       ..className = 'hidden-xs'
       ..attributes['href'] = '/';
     final imgRef = Element.tag('img')
-      ..attributes['src'] = staticUrls.dartLogoSvg
+      ..attributes['src'] = config.dartLogoSvgUrl
       ..attributes['style'] = 'height: 30px; margin-right: 1em;';
     logoLink.append(imgRef);
     parent!.insertBefore(logoLink, breadcrumbs);
   }
 
   void _addPubPackageLink(Element breadcrumbs, {int level = 1}) {
-    final pubPackageLink = pkgPageUrl(packageName,
-        version: isLatestStable ? null : packageVersion);
-    final pubPackageText = '$packageName package';
+    final pubPackageText = '${config.packageName} package';
     if (breadcrumbs.children.length == 1) {
       // we are on the index page
       final newItem = Element.tag('li');
       newItem.append(Element.tag('a')
-        ..attributes['href'] = pubPackageLink
+        ..attributes['href'] = config.pubPackagePageUrl
         ..text = pubPackageText);
       breadcrumbs.children.first.replaceWith(newItem);
 
@@ -215,7 +234,7 @@ class DartdocCustomizer {
 
       final lead = Element.tag('li');
       final leadLink = Element.tag('a');
-      leadLink.attributes['href'] = pubPackageLink;
+      leadLink.attributes['href'] = config.pubPackagePageUrl;
       leadLink.text = pubPackageText;
       lead.append(leadLink);
 
@@ -223,10 +242,10 @@ class DartdocCustomizer {
     }
   }
 
-  void _updateIndexLinkToCanonicalRoot(Element breadcrumbs, String docRoot) {
+  void _updateIndexLinkToCanonicalRoot(Element breadcrumbs) {
     breadcrumbs
         .querySelectorAll('a')
         .where((e) => e.attributes['href'] == 'index.html')
-        .forEach((e) => e.attributes['href'] = docRoot);
+        .forEach((e) => e.attributes['href'] = config.docRootUrl);
   }
 }

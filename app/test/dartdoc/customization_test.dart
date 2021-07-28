@@ -10,6 +10,7 @@ import 'package:test/test.dart';
 import 'package:xml/xml.dart';
 
 import 'package:pub_dev/dartdoc/customization.dart';
+import 'package:pub_dev/dartdoc/customizer_config_provider.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_validations/html/html_validation.dart';
 
@@ -48,8 +49,16 @@ void main() {
 
   void expectMatch(String package, String version, String name) {
     test('Match $package $version $name', () {
-      final prevCustomizer = DartdocCustomizer(package, version, false);
-      final latestCustomizer = DartdocCustomizer(package, version, true);
+      final prevCustomizer = DartdocCustomizer(customizerConfig(
+        packageName: package,
+        packageVersion: version,
+        isLatestStable: false,
+      ));
+      final latestCustomizer = DartdocCustomizer(customizerConfig(
+        packageName: package,
+        packageVersion: version,
+        isLatestStable: true,
+      ));
 
       final path = '${package}_${version}_$name';
       final inputName = '$path.html';
