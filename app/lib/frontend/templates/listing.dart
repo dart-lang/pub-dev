@@ -53,10 +53,11 @@ Map<String, dynamic> _packageHitData(PackageView view) {
   final hasMoreThanOneApiPages = hasApiPages && apiPages!.length > 1;
   final flutterFavoriteBadgeHtml =
       view.tags.contains(PackageTags.isFlutterFavorite)
-          ? renderFlutterFavoriteBadge()
+          ? renderFlutterFavoriteBadgeNode().toString()
           : null;
   final isNullSafe = view.tags.contains(PackageVersionTags.isNullSafe);
-  final nullSafeBadgeHtml = isNullSafe ? renderNullSafeBadge() : null;
+  final nullSafeBadgeHtml =
+      isNullSafe ? renderNullSafeBadgeNode().toString() : null;
   return <String, dynamic>{
     'url': urls.pkgPageUrl(view.name!),
     'name': view.name,
