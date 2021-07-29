@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:client_data/page_data.dart';
 import 'package:pana/pana.dart' show getRepositoryUrl, LicenseNames;
+import 'package:pub_dev/frontend/templates/views/pkg/title_content.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' show HostedDependency;
 
 import '../../package/model_properties.dart';
@@ -254,7 +255,10 @@ String renderPkgHeader(PackagePageData data) {
   });
   final pkgView = data.toPackageView();
   return renderDetailHeader(
-    titleHtml: _renderPkgTitleContent(data),
+    titleHtml: renderTitleContentNode(
+      package: package.name!,
+      version: data.version!.version!,
+    ).toString(),
     packageLikes: package.likes,
     isLiked: data.isLiked,
     isFlutterFavorite:
@@ -266,13 +270,6 @@ String renderPkgHeader(PackagePageData data) {
     ),
     isLoose: true,
   );
-}
-
-String _renderPkgTitleContent(PackagePageData data) {
-  return templateCache.renderTemplate('pkg/title_content', {
-    'package': data.package!.name,
-    'version': data.version!.version,
-  });
 }
 
 /// Renders the package detail page.
