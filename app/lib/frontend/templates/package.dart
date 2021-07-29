@@ -6,7 +6,6 @@ import 'dart:convert';
 
 import 'package:client_data/page_data.dart';
 import 'package:pana/pana.dart' show getRepositoryUrl, LicenseNames;
-import 'package:pub_dev/frontend/templates/views/pkg/title_content.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' show HostedDependency;
 
 import '../../package/model_properties.dart';
@@ -26,6 +25,7 @@ import 'layout.dart';
 import 'misc.dart';
 import 'package_analysis.dart';
 import 'package_misc.dart';
+import 'views/pkg/title_content.dart';
 
 String? _renderLicense(PackagePageData data) {
   if (data.versionInfo != null && data.versionInfo!.hasLicense) {
