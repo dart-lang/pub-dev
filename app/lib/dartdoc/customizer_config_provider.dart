@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dartdoc_data/pub_dartdoc_config.dart';
+
 import '../frontend/static_files.dart';
 import '../shared/urls.dart';
-
-import 'customization.dart';
 
 /// Returns the customizer config, extended with the current runtime's data.
 DartdocCustomizerConfig customizerConfig({

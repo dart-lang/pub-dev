@@ -8,6 +8,7 @@ import 'dart:math';
 
 import 'package:pana/pana.dart' show ToolEnvironment;
 import 'package:path/path.dart' as p;
+import 'package:pub_dartdoc_data/pub_dartdoc_config.dart';
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 
 import '../../dartdoc/dartdoc_runner.dart';
@@ -55,6 +56,7 @@ class FakeDartdocRunner implements DartdocRunner {
     required ToolEnvironment toolEnv,
     required bool useLongerTimeout,
     required String outputDir,
+    required DartdocCustomizerConfig customizerConfig,
   }) async {
     final random = Random('$package/$version'.hashCode);
 

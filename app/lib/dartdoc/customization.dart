@@ -9,33 +9,7 @@ import 'package:collection/collection.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart' as html_parser;
 
-class DartdocCustomizerConfig {
-  final String packageName;
-  final String packageVersion;
-  final bool isLatestStable;
-  final String docRootUrl;
-  final String latestStableDocumentationUrl;
-  final String pubPackagePageUrl;
-  final String dartLogoSvgUrl;
-  final String githubMarkdownCssUrl;
-  final String gtmJsUrl;
-  final List<String> trustedTargetHosts;
-  final List<String> trustedUrlSchemes;
-
-  DartdocCustomizerConfig({
-    required this.packageName,
-    required this.packageVersion,
-    required this.isLatestStable,
-    required this.docRootUrl,
-    required this.latestStableDocumentationUrl,
-    required this.pubPackagePageUrl,
-    required this.dartLogoSvgUrl,
-    required this.githubMarkdownCssUrl,
-    required this.gtmJsUrl,
-    required this.trustedTargetHosts,
-    required this.trustedUrlSchemes,
-  });
-}
+import 'package:pub_dartdoc_data/pub_dartdoc_config.dart';
 
 class DartdocCustomizer {
   final DartdocCustomizerConfig config;

@@ -10,6 +10,7 @@ import 'package:logging/logging.dart';
 import 'package:pana/pana.dart' hide Pubspec, ReportStatus;
 import 'package:pana/pana.dart' as pana show ReportStatus;
 import 'package:path/path.dart' as p;
+import 'package:pub_dartdoc_data/pub_dartdoc_config.dart';
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 import 'package:tar/tar.dart';
@@ -67,6 +68,7 @@ abstract class DartdocRunner {
     required ToolEnvironment toolEnv,
     required bool useLongerTimeout,
     required String outputDir,
+    required DartdocCustomizerConfig customizerConfig,
   });
 }
 
@@ -125,8 +127,10 @@ class _DartdocRunner implements DartdocRunner {
     required ToolEnvironment toolEnv,
     required bool useLongerTimeout,
     required String outputDir,
+    required DartdocCustomizerConfig customizerConfig,
   }) async {
     await _initializeIfNeeded();
+    customizerConfig.writeToDirectorySync(pkgPath);
     final args = [
       '--input',
       pkgPath,
@@ -477,6 +481,11 @@ class DartdocJobProcessor extends JobProcessor {
         toolEnv: toolEnv,
         useLongerTimeout: job.isLatest,
         outputDir: outputDir,
+        customizerConfig: customizerConfig(
+          packageName: job.packageName!,
+          packageVersion: job.packageVersion!,
+          isLatestStable: job.isLatestStable,
+        ),
       );
       logFileOutput.writeln('Running: pub_dartdoc ${result.args.join(' ')}');
       final pr = result.processResult;

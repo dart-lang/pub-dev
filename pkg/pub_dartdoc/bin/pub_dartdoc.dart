@@ -9,6 +9,7 @@ import 'package:dartdoc/options.dart';
 
 import 'package:pub_dartdoc/pub_data_generator.dart';
 import 'package:pub_dartdoc/src/pub_hooks.dart';
+import 'package:pub_dartdoc_data/pub_dartdoc_config.dart';
 
 Future<void> main(List<String> arguments) async {
 // pub hooks
@@ -21,6 +22,11 @@ Future<void> main(List<String> arguments) async {
   if (config == null) {
     throw ArgumentError();
   }
+
+  final customizerConfig =
+      DartdocCustomizerConfig.tryReadFromDirectorySync(config.inputDir);
+  // placeholder for customizer processing
+  print(customizerConfig?.toJson());
 
   final packageConfigProvider = PhysicalPackageConfigProvider();
   final packageBuilder =

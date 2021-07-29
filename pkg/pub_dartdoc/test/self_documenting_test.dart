@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
+import 'package:pub_dartdoc_data/pub_dartdoc_config.dart';
 import 'package:test/test.dart';
 
 final _regenerateGoldens = false;
@@ -17,16 +18,23 @@ void main() {
     ProcessResult pr;
 
     setUpAll(() async {
+      final inputDir = Directory.current.path;
       tempDir = await Directory.systemTemp.createTemp();
+      final customizerConfig = DartdocCustomizerConfig.test(
+          packageName: 'pub_dartdoc',
+          packageVersion: '1.0.0',
+          isLatestStable: true);
+      customizerConfig.writeToDirectorySync(inputDir);
       pr = await Process.run('dart', [
         'pub',
         'run',
         'pub_dartdoc',
         '--input',
-        Directory.current.path,
+        inputDir,
         '--output',
         tempDir.path,
       ]);
+      customizerConfig.deleteFromDirectorySync(inputDir);
     });
 
     tearDownAll(() async {
@@ -37,6 +45,11 @@ void main() {
 
     test('successfull process', () {
       expect(pr.exitCode, 0);
+    });
+
+    /// TODO: replace this with customization check after it is moved over.
+    test('process prints customizer config', () {
+      expect(pr.stdout.toString(), contains('latestStableDocumentationUrl'));
     });
 
     test('process uses reasonable memory', () {

@@ -5,4 +5,5 @@ targets:
     sources:
       - '$package$'
       - 'lib/$lib$'
+      - 'lib/pub_dartdoc_config.dart'
       - 'lib/pub_dartdoc_data.dart'
