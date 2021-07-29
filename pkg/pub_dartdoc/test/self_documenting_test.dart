@@ -14,9 +14,11 @@ void main() {
   Directory tempDir;
 
   group('generate documentation on self', () {
+    ProcessResult pr;
+
     setUpAll(() async {
       tempDir = await Directory.systemTemp.createTemp();
-      final pr = await Process.run('dart', [
+      pr = await Process.run('dart', [
         'pub',
         'run',
         'pub_dartdoc',
@@ -25,13 +27,36 @@ void main() {
         '--output',
         tempDir.path,
       ]);
-      expect(pr.exitCode, 0);
     });
 
     tearDownAll(() async {
       if (tempDir != null) {
         await tempDir.delete(recursive: true);
       }
+    });
+
+    test('successfull process', () {
+      expect(pr.exitCode, 0);
+    });
+
+    test('process uses reasonable memory', () {
+      final lines = pr.stdout.toString().split('\n');
+      final memUseStr = lines.reversed
+          .firstWhere((line) => line.startsWith('Max memory use:'))
+          .split(':')
+          .last;
+      final memUse = int.parse(memUseStr);
+
+      // Last 3 measurements:
+      // 1964208128
+      // 1959505920
+      // 1964068864
+      final maxMemUse = 1.9;
+      expect(memUse, lessThan(maxMemUse * 1024 * 1024 * 1024));
+
+      // Sanity check for the test.
+      // Min memory use: 80% of max.
+      expect(memUse, greaterThan(maxMemUse * 0.8 * 1024 * 1024 * 1024));
     });
 
     test('has content', () async {
