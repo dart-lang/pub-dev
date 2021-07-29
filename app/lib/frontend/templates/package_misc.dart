@@ -10,34 +10,22 @@ import '../dom/dom.dart' as d;
 import '../static_files.dart';
 
 import '_cache.dart';
+import 'views/pkg/badge.dart';
 
 /// Renders the Flutter Favorite badge, used by package listing.
-String renderFlutterFavoriteBadge() {
-  return _renderPackageBadge(
+d.Node renderFlutterFavoriteBadgeNode() {
+  return renderPackageBadgeNode(
     label: 'Flutter Favorite',
-    icon: staticUrls.flutterLogo32x32,
+    iconUrl: staticUrls.flutterLogo32x32,
   );
 }
 
 /// Renders the null-safe badge used by package listing and package page.
-String renderNullSafeBadge() {
-  return _renderPackageBadge(
+d.Node renderNullSafeBadgeNode() {
+  return renderPackageBadgeNode(
     label: 'Null safety',
     title: 'Supports the null safety language feature.',
   );
-}
-
-/// Renders the package badge using the pkg/badge template.
-String _renderPackageBadge({
-  required String label,
-  String? title,
-  String? icon,
-}) {
-  return templateCache.renderTemplate('pkg/badge', {
-    'label': label,
-    'title': title,
-    'icon': icon,
-  });
 }
 
 /// Renders the tags using the pkg/tags template.
