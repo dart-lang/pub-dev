@@ -32,6 +32,16 @@ Map<String, dynamic> _$PkgOptionsToJson(PkgOptions instance) =>
       'isUnlisted': instance.isUnlisted,
     };
 
+VersionOptions _$VersionOptionsFromJson(Map<String, dynamic> json) =>
+    VersionOptions(
+      isRetracted: json['isRetracted'] as bool?,
+    );
+
+Map<String, dynamic> _$VersionOptionsToJson(VersionOptions instance) =>
+    <String, dynamic>{
+      'isRetracted': instance.isRetracted,
+    };
+
 PackagePublisherInfo _$PackagePublisherInfoFromJson(
         Map<String, dynamic> json) =>
     PackagePublisherInfo(

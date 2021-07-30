@@ -347,6 +347,16 @@ class PubApi {
           Request request, String package, PkgOptions body) =>
       putPackageOptionsHandler(request, package, body);
 
+  @EndPoint.get('/api/packages/<package>/versions/<version>/options')
+  Future<VersionOptions> getVersionOptions(
+          Request request, String package, String version) =>
+      getVersionOptionsHandler(request, package, version);
+
+  @EndPoint.put('/api/packages/<package>/versions/<version>/options')
+  Future<VersionOptions> setVersionOptions(Request request, String package,
+          String version, VersionOptions body) =>
+      putVersionOptionsHandler(request, package, version, body);
+
   @EndPoint.get('/api/packages/<package>/publisher')
   Future<PackagePublisherInfo> getPackagePublisher(
     Request request,

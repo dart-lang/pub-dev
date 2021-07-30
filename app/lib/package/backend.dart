@@ -242,6 +242,32 @@ class PackageBackend {
     return await query.run().toList();
   }
 
+  /// List the versions of [package] that are published in the last N [days].
+  Future<List<PackageVersion>> _listVersionsFromPastDays(
+    String package, {
+    required int days,
+    bool Function(PackageVersion pv)? where,
+  }) async {
+    final packageKey = db.emptyKey.append(Package, id: package);
+    final query = db.query<PackageVersion>(ancestorKey: packageKey)
+      ..filter(
+          'created >=', DateTime.now().toUtc().subtract(Duration(days: days)));
+    return await query.run().where((pv) => where == null || where(pv)).toList();
+  }
+
+  /// List retractable versions.
+  Future<List<PackageVersion>> listRetractableVersions(String package) async {
+    return await _listVersionsFromPastDays(package,
+        days: 7, where: (pv) => pv.canBeRetracted);
+  }
+
+  /// List versions that are retracted and the retraction is recent, it can be undone.
+  Future<List<PackageVersion>> listRecentlyRetractedVersions(
+      String package) async {
+    return await _listVersionsFromPastDays(package,
+        days: 14, where: (pv) => pv.canUndoRetracted);
+  }
+
   /// Get a [Uri] which can be used to download a tarball of the pub package.
   Future<Uri> downloadUrl(String package, String version) async {
     InvalidInputException.checkSemanticVersion(version);

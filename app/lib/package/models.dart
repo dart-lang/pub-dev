@@ -385,6 +385,10 @@ class PackageVersion extends db.ExpandoModel<String> {
   @db.BoolProperty()
   bool? isRetracted;
 
+  /// The timestamp when the version was retracted.
+  @db.DateTimeProperty()
+  DateTime? retracted;
+
   // Convenience Fields:
 
   Version get semanticVersion => Version.parse(version!);
@@ -422,6 +426,16 @@ class PackageVersion extends db.ExpandoModel<String> {
       if (pubspec!.supportsOnlyLegacySdk) PackageVersionTags.isLegacy,
     ];
   }
+
+  bool get canBeRetracted =>
+      isRetracted != true &&
+      created!
+          .isAfter(DateTime.now().toUtc().subtract(const Duration(days: 7)));
+
+  bool get canUndoRetracted =>
+      isRetracted == true &&
+      retracted!
+          .isAfter(DateTime.now().toUtc().subtract(const Duration(days: 7)));
 }
 
 /// A derived entity that holds derived/cleaned content of [PackageVersion].
