@@ -64,13 +64,15 @@ Node element(
   Iterable<String>? classes,
   Map<String, String>? attributes,
   Iterable<Node>? children,
+  Node? child,
+  String? text,
 }) =>
     dom.element(
       tag,
       id: id,
       classes: classes,
       attributes: attributes,
-      children: children,
+      children: _children(children, child, text),
     );
 
 /// Creates a DOM Text node using the default [DomContext].
@@ -92,10 +94,14 @@ Node a({
   String? text,
   String? href,
   String? rel,
+  String? target,
   String? title,
 }) {
-  final hasAttributes =
-      attributes != null || href != null || rel != null || title != null;
+  final hasAttributes = attributes != null ||
+      href != null ||
+      rel != null ||
+      target != null ||
+      title != null;
   return dom.element(
     'a',
     id: id,
@@ -104,6 +110,7 @@ Node a({
         ? <String, String>{
             if (href != null) 'href': href,
             if (rel != null) 'rel': rel,
+            if (target != null) 'target': target,
             if (title != null) 'title': title,
             if (attributes != null) ...attributes,
           }
