@@ -284,6 +284,23 @@ class PubApiClient {
     ));
   }
 
+  Future<_i3.VersionOptions> getVersionOptions(
+      String package, String version) async {
+    return _i3.VersionOptions.fromJson(await _client.requestJson(
+      verb: 'get',
+      path: '/api/packages/$package/versions/$version/options',
+    ));
+  }
+
+  Future<_i3.VersionOptions> setVersionOptions(
+      String package, String version, _i3.VersionOptions payload) async {
+    return _i3.VersionOptions.fromJson(await _client.requestJson(
+      verb: 'put',
+      path: '/api/packages/$package/versions/$version/options',
+      body: payload.toJson(),
+    ));
+  }
+
   Future<_i3.PackagePublisherInfo> getPackagePublisher(String package) async {
     return _i3.PackagePublisherInfo.fromJson(await _client.requestJson(
       verb: 'get',
