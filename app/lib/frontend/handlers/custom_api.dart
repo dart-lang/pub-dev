@@ -333,6 +333,6 @@ Future<VersionOptions> putVersionOptionsHandler(
   String version,
   VersionOptions options,
 ) async {
-  // TODO: implement
-  throw UnimplementedError();
+  await packageBackend.updatePackageVersionOptions(package, version, options);
+  return await getVersionOptionsHandler(request, package, version);
 }

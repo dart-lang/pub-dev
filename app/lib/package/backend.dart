@@ -445,6 +445,55 @@ class PackageBackend {
         version: latestVersion);
   }
 
+  /// Updates [options] on [package]/[version], assuming the current user
+  /// has proper rights, and the option change is allowed.
+  Future<void> updatePackageVersionOptions(
+    String package,
+    String version,
+    api.VersionOptions options,
+  ) async {
+    final user = await requireAuthenticatedUser();
+
+    final pkgKey = db.emptyKey.append(Package, id: package);
+    final versionKey = pkgKey.append(PackageVersion, id: version);
+    await withRetryTransaction(db, (tx) async {
+      final p = await tx.lookupOrNull<Package>(pkgKey);
+      if (p == null) {
+        throw NotFoundException.resource(package);
+      }
+      // Check that the user is admin for this package.
+      await checkPackageAdmin(p, user.userId);
+
+      final pv = await tx.lookupOrNull<PackageVersion>(versionKey);
+      if (pv == null) {
+        throw NotFoundException.resource(package);
+      }
+
+      bool hasChanged = false;
+      if (options.isRetracted != null &&
+          options.isRetracted != pv.isRetracted) {
+        if (options.isRetracted!) {
+          InvalidInputException.check(pv.canBeRetracted,
+              'Can\'t retract package "$package" version "$version".');
+          pv.isRetracted = true;
+          pv.retracted = DateTime.now().toUtc();
+        } else {
+          InvalidInputException.check(pv.canUndoRetracted,
+              'Can\'t undo retraction of package "$package" version "$version".');
+          pv.isRetracted = false;
+          pv.retracted = null;
+        }
+        hasChanged = true;
+      }
+
+      if (hasChanged) {
+        p.updated = DateTime.now().toUtc();
+        tx.insert(p);
+        tx.insert(pv);
+      }
+    });
+  }
+
   /// Whether [userId] is a package admin (through direct uploaders list or
   /// publisher admin).
   ///
