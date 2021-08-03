@@ -48,7 +48,7 @@ String renderAccountPackagesPage({
 
   final packageListHtml =
       searchResultPage.hasNoHit ? '' : renderPackageList(searchResultPage);
-  final paginationHtml = renderPagination(pageLinks).toString();
+  final paginationHtml = paginationNode(pageLinks).toString();
 
   final tabContent = [
     renderListingInfo(
@@ -158,7 +158,7 @@ String renderAccountMyActivityPage({
   required UserSessionData userSessionData,
   required AuditLogRecordPage activities,
 }) {
-  final activityLogNode = renderActivityLog(
+  final activityLog = activityLogNode(
     baseUrl: urls.myActivityLogUrl(),
     activities: activities,
     forCategory: 'you',
@@ -173,7 +173,7 @@ String renderAccountMyActivityPage({
       Tab.withContent(
         id: 'activity-log',
         title: 'My activity log',
-        contentHtml: activityLogNode.toString(),
+        contentHtml: activityLog.toString(),
       ),
     ],
     infoBoxHtml: null,

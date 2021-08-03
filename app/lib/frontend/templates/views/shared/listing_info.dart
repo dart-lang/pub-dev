@@ -4,7 +4,7 @@
 
 import '../../../dom/dom.dart' as d;
 
-d.Node renderListingInfoNode({
+d.Node listingInfoNode({
   required int totalCount,
   required String? searchQuery,
   required String? ownedBy,

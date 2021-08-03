@@ -640,26 +640,26 @@ void main() {
     });
 
     test('pagination: single page', () {
-      final html = renderPagination(PageLinks.empty()).toString();
+      final html = paginationNode(PageLinks.empty()).toString();
       expectGoldenFile(html, 'pagination_single.html', isFragment: true);
     });
 
     test('pagination: in the middle', () {
       final html =
-          renderPagination(PageLinks(SearchForm.parse(currentPage: 10), 299))
+          paginationNode(PageLinks(SearchForm.parse(currentPage: 10), 299))
               .toString();
       expectGoldenFile(html, 'pagination_middle.html', isFragment: true);
     });
 
     test('pagination: at first page', () {
       final html =
-          renderPagination(PageLinks(SearchForm.parse(), 600)).toString();
+          paginationNode(PageLinks(SearchForm.parse(), 600)).toString();
       expectGoldenFile(html, 'pagination_first.html', isFragment: true);
     });
 
     test('pagination: at last page', () {
       final html =
-          renderPagination(PageLinks(SearchForm.parse(currentPage: 10), 91))
+          paginationNode(PageLinks(SearchForm.parse(currentPage: 10), 91))
               .toString();
       expectGoldenFile(html, 'pagination_last.html', isFragment: true);
     });

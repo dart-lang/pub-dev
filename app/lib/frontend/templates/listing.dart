@@ -53,11 +53,10 @@ Map<String, dynamic> _packageHitData(PackageView view) {
   final hasMoreThanOneApiPages = hasApiPages && apiPages!.length > 1;
   final flutterFavoriteBadgeHtml =
       view.tags.contains(PackageTags.isFlutterFavorite)
-          ? renderFlutterFavoriteBadgeNode().toString()
+          ? flutterFavoriteBadgeNode().toString()
           : null;
   final isNullSafe = view.tags.contains(PackageVersionTags.isNullSafe);
-  final nullSafeBadgeHtml =
-      isNullSafe ? renderNullSafeBadgeNode().toString() : null;
+  final nullSafeBadgeHtml = isNullSafe ? nullSafeBadgeNode().toString() : null;
   return <String, dynamic>{
     'url': urls.pkgPageUrl(view.name!),
     'name': view.name,
@@ -170,7 +169,7 @@ String renderPkgIndexPage(
     'has_subsdk_options': searchTabs.isNotEmpty,
     'subsdk_label': _subSdkLabel(searchForm),
     'subsdk_filter_buttons_html':
-        searchTabs.isNotEmpty ? renderSearchTabs(searchTabs).toString() : null,
+        searchTabs.isNotEmpty ? searchTabsNode(searchTabs).toString() : null,
     'is_search': isSearch,
     'listing_info_html': renderListingInfo(
       searchForm: searchForm,
@@ -180,7 +179,7 @@ String renderPkgIndexPage(
     ),
     'package_list_html': renderPackageList(searchResultPage),
     'has_packages': searchResultPage.hasHit,
-    'pagination': renderPagination(links).toString(),
+    'pagination': paginationNode(links).toString(),
     'include_discontinued': includeDiscontinued,
     'include_unlisted': includeUnlisted,
     'null_safe': nullSafe,
@@ -216,7 +215,7 @@ String renderListingInfo({
   String? ownedBy,
   required String? messageFromBackend,
 }) {
-  return renderListingInfoNode(
+  return listingInfoNode(
     totalCount: totalCount,
     searchQuery: searchForm.query,
     ownedBy: ownedBy,
@@ -244,7 +243,7 @@ d.Node _renderSortControl(SearchForm form) {
     (o) => o.id == sortValue,
     orElse: () => options.first,
   );
-  return renderSortControlNode(options: options, selected: selected);
+  return sortControlNode(options: options, selected: selected);
 }
 
 class PageLinks {

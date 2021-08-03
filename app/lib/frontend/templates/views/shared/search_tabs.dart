@@ -19,7 +19,7 @@ class SearchTab {
   });
 }
 
-d.Node renderSearchTabs(Iterable<SearchTab> tabs) {
+d.Node searchTabsNode(Iterable<SearchTab> tabs) {
   return d.div(
     classes: ['list-filters'],
     children: tabs.map(

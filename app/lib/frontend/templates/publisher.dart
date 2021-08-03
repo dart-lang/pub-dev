@@ -70,7 +70,7 @@ String renderPublisherPackagesPage({
 
   final packageListHtml =
       searchResultPage.hasNoHit ? '' : renderPackageList(searchResultPage);
-  final paginationHtml = renderPagination(pageLinks).toString();
+  final paginationHtml = paginationNode(pageLinks).toString();
 
   final tabContent = [
     renderListingInfo(
@@ -171,7 +171,7 @@ String renderPublisherActivityLogPage({
   required Publisher publisher,
   required AuditLogRecordPage activities,
 }) {
-  final activityLogNode = renderActivityLog(
+  final activityLog = activityLogNode(
     baseUrl: urls.publisherActivityLogUrl(publisher.publisherId),
     activities: activities,
     forCategory: 'publisher',
@@ -183,7 +183,7 @@ String renderPublisherActivityLogPage({
     Tab.withContent(
       id: 'activity-log',
       title: 'Activity log',
-      contentHtml: activityLogNode.toString(),
+      contentHtml: activityLog.toString(),
     ),
   ];
 

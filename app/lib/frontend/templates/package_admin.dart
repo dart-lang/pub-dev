@@ -67,7 +67,7 @@ String renderPkgActivityLogPage(
   PackagePageData data,
   AuditLogRecordPage activities,
 ) {
-  final activityLogNode = renderActivityLog(
+  final activityLog = activityLogNode(
     baseUrl: urls.pkgActivityLogUrl(data.package!.name!),
     activities: activities,
     forCategory: 'package',
@@ -78,7 +78,7 @@ String renderPkgActivityLogPage(
     activityLogTab: Tab.withContent(
       id: 'activity-log',
       title: 'Activity Log',
-      contentHtml: activityLogNode.toString(),
+      contentHtml: activityLog.toString(),
     ),
   );
   final content = renderDetailPage(

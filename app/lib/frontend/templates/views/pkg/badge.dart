@@ -4,7 +4,7 @@
 
 import '../../../dom/dom.dart' as d;
 
-d.Node renderPackageBadgeNode({
+d.Node packageBadgeNode({
   required String label,
   String? title,
   String? iconUrl,

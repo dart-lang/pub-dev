@@ -5,7 +5,7 @@
 import '../../../dom/dom.dart' as d;
 import '../../../templates/listing.dart';
 
-d.Node renderPagination(PageLinks links) {
+d.Node paginationNode(PageLinks links) {
   final hasPrevious = links.currentPage! > 1;
   final hasNext = links.currentPage! < links.rightmostPage;
   final pageCount = links.rightmostPage - links.leftmostPage + 1;
