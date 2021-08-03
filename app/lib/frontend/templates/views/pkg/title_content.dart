@@ -5,7 +5,7 @@
 import '../../../dom/dom.dart' as d;
 import '../../../static_files.dart';
 
-d.Node renderTitleContentNode({
+d.Node titleContentNode({
   required String package,
   required String version,
 }) {

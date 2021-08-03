@@ -255,7 +255,7 @@ String renderPkgHeader(PackagePageData data) {
   });
   final pkgView = data.toPackageView();
   return renderDetailHeader(
-    titleHtml: renderTitleContentNode(
+    titleHtml: titleContentNode(
       package: package.name!,
       version: data.version!.version!,
     ).toString(),
