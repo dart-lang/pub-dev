@@ -27,7 +27,7 @@ d.Node renderTitleContentNode({
           classes: ['pkg-page-title-copy-feedback'],
           children: [
             d.span(classes: ['code'], text: '$package: ^$version'),
-            d.text('copied to clipboard'),
+            d.text(' copied to clipboard'),
           ],
         ),
       ],
