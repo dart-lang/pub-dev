@@ -11,6 +11,7 @@ import '../static_files.dart';
 
 import '_cache.dart';
 import 'views/pkg/badge.dart';
+import 'views/pkg/labeled_scores.dart';
 
 /// Renders the Flutter Favorite badge, used by package listing.
 d.Node renderFlutterFavoriteBadgeNode() {
@@ -182,32 +183,14 @@ String renderTags({
   });
 }
 
-/// Renders the `views/pkg/labeled_scores.mustache` template.
+/// Renders the labeled scores widget (the score values in a compact layout).
 String renderLabeledScores(PackageView view, {String? version}) {
-  return templateCache.renderTemplate('pkg/labeled_scores', {
-    'pkg_score_url': urls.pkgScoreUrl(view.name!, version: version),
-    'like_score_html': _renderLabeledScore('likes', view.likes, ''),
-    'pub_points_html':
-        _renderLabeledScore('pub points', view.grantedPubPoints, ''),
-    'popularity_score_html':
-        _renderLabeledScore('popularity', view.popularity, '%'),
-  });
-}
-
-String _renderLabeledScore(String label, int? value, String sign) {
-  return d.fragment([
-    d.div(
-      classes: ['packages-score-value', if (value != null) '-has-value'],
-      children: [
-        d.span(
-          classes: ['packages-score-value-number'],
-          text: value?.toString() ?? '--',
-        ),
-        d.span(classes: ['packages-score-value-sign'], text: sign),
-      ],
-    ),
-    d.div(classes: ['packages-score-label'], text: label),
-  ]).toString();
+  return labeledScoresNode(
+    pkgScorePageUrl: urls.pkgScoreUrl(view.name!, version: version),
+    likeCount: view.likes,
+    grantedPubPoints: view.grantedPubPoints,
+    popularity: view.popularity,
+  ).toString();
 }
 
 /// Formats the score from [0.0 - 1.0] range to [0 - 100] or '--'.
