@@ -25,6 +25,7 @@ import 'layout.dart';
 import 'misc.dart';
 import 'package_analysis.dart';
 import 'package_misc.dart';
+import 'views/pkg/title_content.dart';
 
 String? _renderLicense(PackagePageData data) {
   if (data.versionInfo != null && data.versionInfo!.hasLicense) {
@@ -254,7 +255,10 @@ String renderPkgHeader(PackagePageData data) {
   });
   final pkgView = data.toPackageView();
   return renderDetailHeader(
-    titleHtml: _renderPkgTitleContent(data),
+    titleHtml: titleContentNode(
+      package: package.name!,
+      version: data.version!.version!,
+    ).toString(),
     packageLikes: package.likes,
     isLiked: data.isLiked,
     isFlutterFavorite:
@@ -266,13 +270,6 @@ String renderPkgHeader(PackagePageData data) {
     ),
     isLoose: true,
   );
-}
-
-String _renderPkgTitleContent(PackagePageData data) {
-  return templateCache.renderTemplate('pkg/title_content', {
-    'package': data.package!.name,
-    'version': data.version!.version,
-  });
 }
 
 /// Renders the package detail page.
