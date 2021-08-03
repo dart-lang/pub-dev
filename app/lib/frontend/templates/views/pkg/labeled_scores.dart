@@ -4,7 +4,7 @@
 
 import '../../../dom/dom.dart' as d;
 
-d.Node renderLabeledScoresNode({
+d.Node labeledScoresNode({
   required String pkgScorePageUrl,
   required int? likeCount,
   required int? grantedPubPoints,
@@ -16,21 +16,21 @@ d.Node renderLabeledScoresNode({
     children: [
       d.div(
         classes: ['packages-score', 'packages-score-like'],
-        child: _renderLabeledScore('likes', likeCount, ''),
+        child: _labeledScore('likes', likeCount, sign: ''),
       ),
       d.div(
         classes: ['packages-score', 'packages-score-health'],
-        child: _renderLabeledScore('pub points', grantedPubPoints, ''),
+        child: _labeledScore('pub points', grantedPubPoints, sign: ''),
       ),
       d.div(
         classes: ['packages-score', 'packages-score-popularity'],
-        child: _renderLabeledScore('popularity', popularity, '%'),
+        child: _labeledScore('popularity', popularity, sign: '%'),
       ),
     ],
   );
 }
 
-d.Node _renderLabeledScore(String label, int? value, String sign) {
+d.Node _labeledScore(String label, int? value, {required String sign}) {
   return d.fragment([
     d.div(
       classes: ['packages-score-value', if (value != null) '-has-value'],

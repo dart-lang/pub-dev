@@ -185,7 +185,7 @@ String renderTags({
 
 /// Renders the labeled scores widget (the score values in a compact layout).
 String renderLabeledScores(PackageView view, {String? version}) {
-  return renderLabeledScoresNode(
+  return labeledScoresNode(
     pkgScorePageUrl: urls.pkgScoreUrl(view.name!, version: version),
     likeCount: view.likes,
     grantedPubPoints: view.grantedPubPoints,
