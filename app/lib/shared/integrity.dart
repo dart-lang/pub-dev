@@ -20,7 +20,7 @@ class IntegrityChecker {
   final DatastoreDB _db;
   final int _concurrency;
 
-  final _userToOauth = <String, String>{};
+  final _userToOauth = <String, String?>{};
   final _oauthToUser = <String, String>{};
   final _deletedUsers = <String>{};
   final _invalidUsers = <String>{};
@@ -51,9 +51,7 @@ class IntegrityChecker {
     _logger.info('Scanning Users...');
     final gmailComEmails = <String>{};
     await for (User user in _db.query<User>().run()) {
-      if (user.oauthUserId != null) {
-        _userToOauth[user.userId!] = user.oauthUserId!;
-      }
+      _userToOauth[user.userId!] = user.oauthUserId;
       final email = user.email;
       if (email == null || email.isEmpty || !looksLikeEmail(email)) {
         yield 'User "${user.userId}" has invalid email: "${user.email}".';
