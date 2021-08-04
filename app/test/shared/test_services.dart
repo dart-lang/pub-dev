@@ -67,7 +67,7 @@ void testWithProfile(
         });
 
         // post-test integrity check
-        final problems = await IntegrityChecker(dbService).check();
+        final problems = await IntegrityChecker(dbService).check().toList();
         if (problems.isNotEmpty) {
           throw Exception(
               '${problems.length} integrity problems detected. First: ${problems.first}');
