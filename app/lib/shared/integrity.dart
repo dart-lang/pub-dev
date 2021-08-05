@@ -392,7 +392,7 @@ class IntegrityChecker {
     await for (final like in _db.query<Like>().run()) {
       if (like.packageName == null) {
         yield 'Like entity for user "${like.userId}" and package "${like.package}" has a '
-            '`packageName` property which is not at string.';
+            '`packageName` property which is not a string.';
       } else if (like.packageName != like.package) {
         yield 'Like entity for user "${like.userId}" and package "${like.package}"'
             ' has a `packageName` property which is not the same as `package`/`id`.';
