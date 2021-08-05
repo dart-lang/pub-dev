@@ -399,9 +399,10 @@ class IntegrityChecker {
       }
 
       final userId = like.userId!;
-      if (!_userToOauth.keys.contains(userId) ||
-          _deletedUsers.contains(userId)) {
-        yield 'Like entity with nonexisting or deleted user "$userId".';
+      if (!_userToOauth.keys.contains(userId)) {
+        yield 'Like entity with nonexisting user "$userId".';
+      } else if (_deletedUsers.contains(userId)) {
+         yield 'Like entity with deleted user "$userId".';
       }
 
       if (await _packageMissing(like.package!)) {
