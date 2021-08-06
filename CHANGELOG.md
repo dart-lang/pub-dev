@@ -4,6 +4,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Bumped runtimeVersion to `2021.08.04`.
  * Upgraded preview Flutter analysis SDK to `2.4.0-4.2.pre`.
+ * Upgraded dartdoc to `1.0.1`.
 
 ## `20210728t125700-all`
  * Bumped runtimeVersion to `2021.07.27`.
