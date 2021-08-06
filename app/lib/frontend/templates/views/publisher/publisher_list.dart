@@ -12,7 +12,7 @@ d.Node renderPublisherListNode({
   required bool isGlobal,
 }) {
   return d.fragment([
-    if (isGlobal) d.element('h2', text: 'Publishers'),
+    if (isGlobal) d.h2(text: 'Publishers'),
     if (publishers.isNotEmpty)
       d.div(
         classes: ['publishers', if (isGlobal) '-global'],
@@ -20,8 +20,7 @@ d.Node renderPublisherListNode({
           (p) => d.div(
             classes: ['publishers-item'],
             children: [
-              d.element(
-                'h3',
+              d.h3(
                 classes: ['publishers-item-title'],
                 child: d.a(
                   href: urls.publisherUrl(p.publisherId),
@@ -35,7 +34,7 @@ d.Node renderPublisherListNode({
       ),
     if (publishers.isEmpty)
       isGlobal ? _noPublisherGlobal() : _noPublisherLocal(),
-    d.element('h3', text: 'Want to create a new publisher?'),
+    d.h3(text: 'Want to create a new publisher?'),
     d.p(
       children: [
         d.text('Use the '),

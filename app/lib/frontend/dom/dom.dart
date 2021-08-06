@@ -153,6 +153,57 @@ Node div({
       children: _children(children, child, text),
     );
 
+/// Creates a `<h1>` Element using the default [DomContext].
+Node h1({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+  Node? child,
+  String? text,
+}) =>
+    dom.element(
+      'h1',
+      id: id,
+      classes: classes,
+      attributes: attributes,
+      children: _children(children, child, text),
+    );
+
+/// Creates a `<h1>` Element using the default [DomContext].
+Node h2({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+  Node? child,
+  String? text,
+}) =>
+    dom.element(
+      'h2',
+      id: id,
+      classes: classes,
+      attributes: attributes,
+      children: _children(children, child, text),
+    );
+
+/// Creates a `<h1>` Element using the default [DomContext].
+Node h3({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+  Node? child,
+  String? text,
+}) =>
+    dom.element(
+      'h3',
+      id: id,
+      classes: classes,
+      attributes: attributes,
+      children: _children(children, child, text),
+    );
+
 /// Creates an `<img>` Element using the default [DomContext].
 Node img({
   String? id,
