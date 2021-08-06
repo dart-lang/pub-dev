@@ -17,7 +17,7 @@ import '_cache.dart';
 import 'detail_page.dart';
 import 'layout.dart';
 import 'listing.dart';
-import 'publisher.dart' show renderPublisherList;
+import 'views/publisher/publisher_list.dart';
 
 /// Renders the `views/account/authorized.mustache` template.
 String renderAuthorizedPage() {
@@ -127,17 +127,17 @@ String renderAccountPublishersPage({
   required UserSessionData userSessionData,
   required List<PublisherSummary> publishers,
 }) {
-  final publisherListHtml = renderPublisherList(publishers, isGlobal: false);
-
+  final pln = publisherListNode(publishers: publishers, isGlobal: false);
   final content = renderDetailPage(
     headerHtml: _accountDetailHeader(user, userSessionData),
     tabs: [
       _myPackagesLink(),
       _myLikedPackagesLink(),
       Tab.withContent(
-          id: 'publishers',
-          title: 'My publishers',
-          contentHtml: publisherListHtml),
+        id: 'publishers',
+        title: 'My publishers',
+        contentHtml: pln.toString(),
+      ),
       _myActivityLogLink(),
     ],
     infoBoxHtml: null,

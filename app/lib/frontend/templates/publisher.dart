@@ -18,6 +18,7 @@ import '_cache.dart';
 import 'detail_page.dart';
 import 'layout.dart';
 import 'listing.dart';
+import 'views/publisher/publisher_list.dart';
 
 /// Renders the `views/publisher/create.mustache` template.
 String renderCreatePublisherPage() {
@@ -30,37 +31,12 @@ String renderCreatePublisherPage() {
   );
 }
 
-/// Renders the `views/publisher/publisher_list.mustache` template
-String renderPublisherList(List<PublisherSummary> publishers,
-    {required bool isGlobal}) {
-  final noPublisherHtml = isGlobal
-      ? 'No publisher has been registered.'
-      : 'You are not a member of any <a href="https://dart.dev/tools/pub/verified-publishers" target="_blank" rel="noreferrer">verified publishers</a>.';
-  return templateCache.renderTemplate('publisher/publisher_list', {
-    'is_global': isGlobal,
-    'title': isGlobal ? 'Publishers' : null,
-    'no_publisher_message_html': noPublisherHtml,
-    'has_publishers': publishers.isNotEmpty,
-    'publishers': publishers
-        .map(
-          (p) => {
-            'publisher_id': p.publisherId,
-            'url': urls.publisherUrl(p.publisherId),
-            'short_created': shortDateFormat.format(p.created),
-          },
-        )
-        .toList(),
-    'create_publisher_url': urls.createPublisherUrl(),
-  });
-}
-
-/// Renders the `views/publisher/publisher_list.mustache` template on a standard
-/// layout.
+/// Renders the global publisher list page.
 String renderPublisherListPage(List<PublisherSummary> publishers) {
-  final content = renderPublisherList(publishers, isGlobal: true);
+  final content = publisherListNode(publishers: publishers, isGlobal: true);
   return renderLayoutPage(
     PageType.listing,
-    content,
+    content.toString(),
     title: 'Publishers',
     canonicalUrl: '/publishers',
   );
