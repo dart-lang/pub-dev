@@ -33,14 +33,6 @@ void _setupGenericPeriodicTasks() {
     task: backfillNewFields,
   );
 
-  // Checks the Datastore integrity of the model objects.
-  _weekly(
-    name: 'check-datastore-integrity',
-    isRuntimeVersioned: true,
-    task: () async =>
-        await IntegrityChecker(dbService, concurrency: 2).verifyAndLogIssues(),
-  );
-
   // Deletes expired audit log records.
   _daily(
     name: 'delete-expired-audit-log-records',
@@ -83,6 +75,14 @@ void _setupGenericPeriodicTasks() {
 void setupAnalyzerPeriodicTasks() {
   _setupGenericPeriodicTasks();
   _setupJobCleanupPeriodicTasks();
+
+  // Checks the Datastore integrity of the model objects.
+  _weekly(
+    name: 'check-datastore-integrity',
+    isRuntimeVersioned: true,
+    task: () async =>
+        await IntegrityChecker(dbService, concurrency: 2).verifyAndLogIssues(),
+  );
 }
 
 /// Setup the tasks that we are running in the dartdoc service.
