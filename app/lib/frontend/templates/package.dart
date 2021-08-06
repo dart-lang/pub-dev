@@ -5,14 +5,10 @@
 import 'dart:convert';
 
 import 'package:client_data/page_data.dart';
-import 'package:pana/pana.dart' show getRepositoryUrl, LicenseNames;
-import 'package:pub_dev/frontend/templates/views/pkg/header.dart';
-import 'package:pubspec_parse/pubspec_parse.dart' show HostedDependency;
+import 'package:pana/pana.dart' show getRepositoryUrl;
 
-import '../../package/model_properties.dart';
 import '../../package/models.dart';
-import '../../package/overrides.dart'
-    show devDependencyPackages, redirectPackageUrls;
+import '../../package/overrides.dart' show devDependencyPackages;
 import '../../shared/handlers.dart';
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
@@ -26,48 +22,9 @@ import 'layout.dart';
 import 'misc.dart';
 import 'package_analysis.dart';
 import 'package_misc.dart';
+import 'views/pkg/header.dart';
+import 'views/pkg/info_box.dart';
 import 'views/pkg/title_content.dart';
-
-String? _renderLicense(PackagePageData data) {
-  if (data.versionInfo != null && data.versionInfo!.hasLicense) {
-    final licenseFile = data.scoreCard?.panaReport?.licenseFile;
-    final license = licenseFile?.shortFormatted ?? LicenseNames.unknown;
-    final url = urls.pkgLicenseUrl(
-      data.package!.name!,
-      version: data.isLatestStable ? null : data.version!.version,
-    );
-    final fileName = licenseFile?.path ?? 'LICENSE';
-
-    final linkAndFileName =
-        '<a href="$url">${htmlEscape.convert(fileName)}</a>';
-    if (license == LicenseNames.unknown) {
-      return linkAndFileName;
-    } else {
-      return '$license ($linkAndFileName)';
-    }
-  }
-  return null;
-}
-
-String? _renderDependencyList(Pubspec? pubspec) {
-  if (pubspec == null) return null;
-  final dependencies = pubspec.dependencies;
-  final packages = dependencies.keys.toList()..sort();
-  if (packages.isEmpty) return null;
-  return packages.map((p) {
-    final dep = dependencies[p];
-    var href = redirectPackageUrls[p];
-    String? constraint;
-    if (href == null && dep is HostedDependency) {
-      href = urls.pkgPageUrl(p);
-      constraint = dep.version.toString();
-    }
-    final title = constraint == null
-        ? ''
-        : ' title="${htmlAttrEscape.convert(constraint)}"';
-    return href == null ? p : '<a href="$href"$title>$p</a>';
-  }).join(', ');
-}
 
 String _renderInstallTab(PackageVersion selectedVersion, List<String>? tags) {
   final packageName = selectedVersion.package;
@@ -202,8 +159,17 @@ String renderPkgInfoBox(PackagePageData data) {
     'publisher_link': package.publisherId == null
         ? null
         : urls.publisherUrl(package.publisherId!),
-    'license_html': _renderLicense(data),
-    'dependencies_html': _renderDependencyList(data.version!.pubspec),
+    'license_html': licenseNode(
+      licenseFile: data.scoreCard?.panaReport?.licenseFile,
+      licenseUrl: data.versionInfo?.hasLicense ?? false
+          ? urls.pkgLicenseUrl(
+              data.package!.name!,
+              version: data.isLatestStable ? null : data.version!.version,
+            )
+          : null,
+    )?.toString(),
+    'dependencies_html':
+        dependencyListNode(data.version!.pubspec?.dependencies)?.toString(),
     'search_deps_link': urls.searchUrl(q: 'dependency:${package.name}'),
     'labeled_scores_html': renderLabeledScores(
       data.toPackageView(),
