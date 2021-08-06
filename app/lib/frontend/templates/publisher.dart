@@ -33,8 +33,7 @@ String renderCreatePublisherPage() {
 
 /// Renders the global publisher list page.
 String renderPublisherListPage(List<PublisherSummary> publishers) {
-  final content =
-      publisherListNode(publishers: publishers, isGlobal: true);
+  final content = publisherListNode(publishers: publishers, isGlobal: true);
   return renderLayoutPage(
     PageType.listing,
     content.toString(),
