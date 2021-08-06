@@ -127,9 +127,7 @@ String renderAccountPublishersPage({
   required UserSessionData userSessionData,
   required List<PublisherSummary> publishers,
 }) {
-  final publisherListNode =
-      renderPublisherListNode(publishers: publishers, isGlobal: false);
-
+  final pln = publisherListNode(publishers: publishers, isGlobal: false);
   final content = renderDetailPage(
     headerHtml: _accountDetailHeader(user, userSessionData),
     tabs: [
@@ -138,7 +136,7 @@ String renderAccountPublishersPage({
       Tab.withContent(
         id: 'publishers',
         title: 'My publishers',
-        contentHtml: publisherListNode.toString(),
+        contentHtml: pln.toString(),
       ),
       _myActivityLogLink(),
     ],

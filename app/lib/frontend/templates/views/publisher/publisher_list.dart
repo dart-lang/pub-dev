@@ -7,7 +7,7 @@ import '../../../../shared/urls.dart' as urls;
 import '../../../../shared/utils.dart';
 import '../../../dom/dom.dart' as d;
 
-d.Node renderPublisherListNode({
+d.Node publisherListNode({
   required List<PublisherSummary> publishers,
   required bool isGlobal,
 }) {
