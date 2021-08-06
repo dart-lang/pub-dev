@@ -340,7 +340,7 @@ Map<String, String>? cloudTraceHeaders() {
   }
 }
 
-extension CustomException on Logger {
+extension LoggerExt on Logger {
   /// Reports an error [message] with the current stacktrace.
   void reportError(String message) =>
       shout(message, Exception(message), StackTrace.current);
