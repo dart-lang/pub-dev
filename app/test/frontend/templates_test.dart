@@ -615,8 +615,7 @@ void main() {
           name: 'Pub User',
           imageUrl: 'pub.dev/user-img-url.png',
         );
-        final activities =
-            await auditBackend.listRecordsForUserId(user.userId!);
+        final activities = await auditBackend.listRecordsForUserId(user.userId);
         expect(activities.records, isNotEmpty);
         final html = renderAccountMyActivityPage(
           user: user,

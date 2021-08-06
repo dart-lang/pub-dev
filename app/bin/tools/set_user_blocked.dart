@@ -40,7 +40,7 @@ Future main(List<String> args) async {
         print('isBlocked: ${user.isBlocked}');
         return;
       }
-      await accountBackend.updateBlockedFlag(user.userId!, blockedStatus);
+      await accountBackend.updateBlockedFlag(user.userId, blockedStatus);
     }
   });
 }

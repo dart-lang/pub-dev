@@ -15,7 +15,7 @@ part 'models.g.dart';
 class User extends db.ExpandoModel<String> {
   /// Same as [id].
   /// A random UUID id.
-  String? get userId => id;
+  String get userId => id!;
 
   /// The Google OAuth2 ID of the [User].
   ///
@@ -57,7 +57,7 @@ class User extends db.ExpandoModel<String> {
 @db.Kind(name: 'OAuthUserID', idType: db.IdType.String)
 class OAuthUserID extends db.ExpandoModel<String> {
   /// Same as [id].
-  String? get oauthUserId => id;
+  String get oauthUserId => id!;
 
   @db.ModelKeyProperty(required: true)
   db.Key? userIdKey;
@@ -75,8 +75,8 @@ class OAuthUserID extends db.ExpandoModel<String> {
 /// When a user unlikes a package the [Like] entity is deleted
 @db.Kind(name: 'Like', idType: db.IdType.String)
 class Like extends db.ExpandoModel<String> {
-  String? get userId => parentKey!.id as String?;
-  String? get package => id;
+  String get userId => parentKey!.id! as String;
+  String get package => id!;
 
   @db.DateTimeProperty()
   DateTime? created;
@@ -218,7 +218,7 @@ class UserSessionData {
 /// Derived data for [User] for fast lookup.
 @db.Kind(name: 'UserInfo', idType: db.IdType.String)
 class UserInfo extends db.ExpandoModel<String> {
-  String? get userId => id;
+  String get userId => id!;
 
   @db.StringListProperty()
   List<String> packages = <String>[];

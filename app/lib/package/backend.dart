@@ -485,7 +485,7 @@ class PackageBackend {
 
     final key = db.emptyKey.append(Package, id: packageName);
     await requirePackageAdmin(packageName, user.userId);
-    await requirePublisherAdmin(request.publisherId, user.userId!);
+    await requirePublisherAdmin(request.publisherId, user.userId);
     final rs = await withRetryTransaction(db, (tx) async {
       final package = await db.lookupValue<Package>(key);
       final fromPublisherId = package.publisherId;
@@ -515,7 +515,7 @@ class PackageBackend {
     if (package.publisherId == null) {
       return _asPackagePublisherInfo(package);
     }
-    await requirePublisherAdmin(package.publisherId, user.userId!);
+    await requirePublisherAdmin(package.publisherId, user.userId);
 //  Code commented out while we decide if this feature is something we want to
 //  support going forward.
 //
@@ -857,7 +857,7 @@ class PackageBackend {
     final packageKey = db.emptyKey.append(Package, id: packageName);
     final package = await db.lookupOrNull<Package>(packageKey);
 
-    await _validatePackageUploader(packageName, package, user.userId!);
+    await _validatePackageUploader(packageName, package, user.userId);
     // Don't send invites for publisher-owned packages.
     if (package!.publisherId != null) {
       throw OperationForbiddenException.publisherOwnedPackageNoUploader(
@@ -959,14 +959,14 @@ class PackageBackend {
         throw NotFoundException.resource('package: $packageName');
       }
 
-      await _validatePackageUploader(packageName, package, user.userId!);
+      await _validatePackageUploader(packageName, package, user.userId);
 
       // Fail if the uploader we want to remove does not exist.
       final uploaderUsers =
           await accountBackend.lookupUsersById(package.uploaders!);
       final uploadersWithEmail = <User>[];
       for (final u in uploaderUsers) {
-        final email = await accountBackend.getEmailOfUserId(u!.userId!);
+        final email = await accountBackend.getEmailOfUserId(u!.userId);
         if (email == uploaderEmail) uploadersWithEmail.add(u);
       }
       if (uploadersWithEmail.isEmpty) {

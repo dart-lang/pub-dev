@@ -12,7 +12,7 @@ part 'models.g.dart';
 @db.Kind(name: 'Publisher', idType: db.IdType.String)
 class Publisher extends db.ExpandoModel<String> {
   /// The associated domain name of the publisher.
-  String? get publisherId => id;
+  String get publisherId => id!;
 
   /// Markdown formatted description of the publisher.
   ///
@@ -58,7 +58,7 @@ class Publisher extends db.ExpandoModel<String> {
 @db.Kind(name: 'PublisherInfo', idType: db.IdType.String)
 class PublisherInfo extends db.ExpandoModel<String> {
   /// The associated domain name of the publisher.
-  String? get publisherId => id;
+  String get publisherId => id!;
 
   @db.DateTimeProperty()
   DateTime? updated;
@@ -91,10 +91,10 @@ abstract class PublisherMemberRole {
 @db.Kind(name: 'PublisherMember', idType: db.IdType.String)
 class PublisherMember extends db.ExpandoModel<String> {
   /// The key of the publisher.
-  db.Key? get publisherKey => parentKey;
+  db.Key get publisherKey => parentKey!;
 
   /// The associated domain name of the publisher.
-  String get publisherId => publisherKey!.id as String;
+  String get publisherId => publisherKey.id! as String;
 
   /// The userId of the member.
   @db.StringProperty(required: true)

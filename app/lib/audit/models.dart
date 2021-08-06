@@ -147,7 +147,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'user': user.email,
         'options': options,
       }
-      ..users = [user.userId!]
+      ..users = [user.userId]
       ..packages = [package]
       ..packageVersions = []
       ..publishers = [];
@@ -178,7 +178,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'email': uploader.email,
         if (publisherId != null) 'publisherId': publisherId,
       }
-      ..users = [uploader.userId!]
+      ..users = [uploader.userId]
       ..packages = [package]
       ..packageVersions = ['$package/$version']
       ..publishers = [if (publisherId != null) publisherId];
@@ -205,7 +205,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'toPublisherId': toPublisherId,
         'user': user.email,
       }
-      ..users = [user.userId!]
+      ..users = [user.userId]
       ..packages = [package]
       ..packageVersions = []
       ..publishers = [
@@ -231,7 +231,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'contactEmail': contactEmail,
         'user': user.email,
       }
-      ..users = [user.userId!]
+      ..users = [user.userId]
       ..packages = []
       ..packageVersions = []
       ..publishers = [publisherId];
@@ -254,7 +254,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'contactEmail': contactEmail,
         'user': user.email,
       }
-      ..users = [user.userId!]
+      ..users = [user.userId]
       ..packages = []
       ..packageVersions = []
       ..publishers = [publisherId];
@@ -322,7 +322,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'publisherId': publisherId,
         'user': user.email,
       }
-      ..users = [user.userId!]
+      ..users = [user.userId]
       ..packages = []
       ..packageVersions = []
       ..publishers = [publisherId];
@@ -345,7 +345,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'memberEmail': memberEmail,
         'user': user.email,
       }
-      ..users = [user.userId!]
+      ..users = [user.userId]
       ..packages = []
       ..packageVersions = []
       ..publishers = [publisherId];
@@ -364,7 +364,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'publisherId': publisherId,
         'user': user.email,
       }
-      ..users = [user.userId!]
+      ..users = [user.userId]
       ..packages = []
       ..packageVersions = []
       ..publishers = [publisherId];
@@ -433,7 +433,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'memberEmail': memberToRemove.email,
         'user': activeUser.email,
       }
-      ..users = [activeUser.userId!, memberToRemove.userId!]
+      ..users = [activeUser.userId, memberToRemove.userId]
       ..packages = []
       ..packageVersions = []
       ..publishers = [publisherId];
@@ -451,7 +451,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'publisherId': publisherId,
         'user': user.email,
       }
-      ..users = [user.userId!]
+      ..users = [user.userId]
       ..packages = []
       ..packageVersions = []
       ..publishers = [publisherId];
@@ -474,7 +474,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'uploaderEmail': uploaderUser.email,
         'user': activeUser.email,
       }
-      ..users = [activeUser.userId!, uploaderUser.userId!]
+      ..users = [activeUser.userId, uploaderUser.userId]
       ..packages = [package]
       ..packageVersions = []
       ..publishers = [];
@@ -497,7 +497,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'uploaderEmail': uploaderEmail,
         'user': user.email,
       }
-      ..users = [user.userId!]
+      ..users = [user.userId]
       ..packages = [package]
       ..packageVersions = []
       ..publishers = [];
@@ -517,7 +517,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'package': package,
         'user': user.email,
       }
-      ..users = [user.userId!]
+      ..users = [user.userId]
       ..packages = [package]
       ..packageVersions = []
       ..publishers = [];
@@ -586,7 +586,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'uploaderEmail': uploaderUser.email,
         'user': activeUser.email,
       }
-      ..users = [activeUser.userId!, uploaderUser.userId!]
+      ..users = [activeUser.userId, uploaderUser.userId]
       ..packages = [package]
       ..packageVersions = []
       ..publishers = [];
