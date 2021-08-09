@@ -89,8 +89,8 @@ String renderPublisherPackagesPage({
       title: 'Packages',
       contentHtml: tabContent,
     ),
-    if (isAdmin) _adminLinkTab(publisher.publisherId!),
-    if (isAdmin) _activityLogLinkTab(publisher.publisherId!),
+    if (isAdmin) _adminLinkTab(publisher.publisherId),
+    if (isAdmin) _activityLogLinkTab(publisher.publisherId),
   ];
 
   final mainContent = renderDetailPage(
@@ -104,7 +104,7 @@ String renderPublisherPackagesPage({
     title: title,
     pageData: PageData(
       publisher: PublisherData(
-        publisherId: publisher.publisherId!,
+        publisherId: publisher.publisherId,
       ),
     ),
     publisherId: publisher.publisherId,
@@ -137,13 +137,13 @@ String renderPublisherAdminPage({
         .toList(),
   });
   final tabs = <Tab>[
-    _packagesLinkTab(publisher.publisherId!),
+    _packagesLinkTab(publisher.publisherId),
     Tab.withContent(
       id: 'admin',
       title: 'Admin',
       contentHtml: adminContent,
     ),
-    _activityLogLinkTab(publisher.publisherId!),
+    _activityLogLinkTab(publisher.publisherId),
   ];
 
   final content = renderDetailPage(
@@ -157,10 +157,10 @@ String renderPublisherAdminPage({
     title: 'Publisher: ${publisher.publisherId}',
     pageData: PageData(
       publisher: PublisherData(
-        publisherId: publisher.publisherId!,
+        publisherId: publisher.publisherId,
       ),
     ),
-    canonicalUrl: urls.publisherAdminUrl(publisher.publisherId!),
+    canonicalUrl: urls.publisherAdminUrl(publisher.publisherId),
     noIndex: true,
     mainClasses: [wideHeaderDetailPageClassName],
   );
@@ -172,14 +172,14 @@ String renderPublisherActivityLogPage({
   required AuditLogRecordPage activities,
 }) {
   final activityLogNode = renderActivityLog(
-    baseUrl: urls.publisherActivityLogUrl(publisher.publisherId!),
+    baseUrl: urls.publisherActivityLogUrl(publisher.publisherId),
     activities: activities,
     forCategory: 'publisher',
-    forEntity: publisher.publisherId!,
+    forEntity: publisher.publisherId,
   );
   final tabs = <Tab>[
-    _packagesLinkTab(publisher.publisherId!),
-    _adminLinkTab(publisher.publisherId!),
+    _packagesLinkTab(publisher.publisherId),
+    _adminLinkTab(publisher.publisherId),
     Tab.withContent(
       id: 'activity-log',
       title: 'Activity log',
@@ -198,10 +198,10 @@ String renderPublisherActivityLogPage({
     title: 'Publisher: ${publisher.publisherId}',
     pageData: PageData(
       publisher: PublisherData(
-        publisherId: publisher.publisherId!,
+        publisherId: publisher.publisherId,
       ),
     ),
-    canonicalUrl: urls.publisherActivityLogUrl(publisher.publisherId!),
+    canonicalUrl: urls.publisherActivityLogUrl(publisher.publisherId),
     noIndex: true,
     mainClasses: [wideHeaderDetailPageClassName],
   );

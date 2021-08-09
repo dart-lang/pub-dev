@@ -106,7 +106,7 @@ class AdminBackend {
     // set the continuation token to the correct value.
     final newContinuationToken = users.length < limit
         ? null
-        : _continuationCodec.encode(users.last.userId!);
+        : _continuationCodec.encode(users.last.userId);
     users.removeWhere((u) => u.isDeleted);
 
     return api.AdminListUsersResponse(
@@ -140,7 +140,7 @@ class AdminBackend {
     final pkgQuery = _db.query<Package>()..filter('uploaders =', user.userId);
     await for (final p in pkgQuery.run()) {
       final f = pool
-          .withResource(() => _removeUploaderFromPackage(p.key, user.userId!));
+          .withResource(() => _removeUploaderFromPackage(p.key, user.userId));
       futures.add(f);
     }
     await Future.wait(futures);
@@ -189,9 +189,9 @@ class AdminBackend {
 
   Future<void> _removeMember(User user, PublisherMember member) async {
     final seniorMember =
-        await _remainingSeniorMember(member.publisherKey!, member.userId!);
+        await _remainingSeniorMember(member.publisherKey, member.userId!);
     await withRetryTransaction(_db, (tx) async {
-      final p = await tx.lookupValue<Publisher>(member.publisherKey!);
+      final p = await tx.lookupValue<Publisher>(member.publisherKey);
       if (seniorMember == null) {
         p.isAbandoned = true;
         p.contactEmail = null;
@@ -582,7 +582,7 @@ class AdminBackend {
         // do not throw if email is already added
         return;
       } else {
-        p.uploaders!.add(uploaderUser.userId!);
+        p.uploaders!.add(uploaderUser.userId);
       }
       tx.insert(p);
       tx.insert(AuditLogRecord.uploaderAdded(

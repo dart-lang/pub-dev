@@ -177,7 +177,7 @@ class AccountBackend {
   /// Returns a list with [LikeData] of all the packages that the given
   ///  [user] likes.
   Future<List<LikeData>> listPackageLikes(User user) async {
-    return (await cache.userPackageLikes(user.userId!).get(() async {
+    return (await cache.userPackageLikes(user.userId).get(() async {
       // TODO(zarah): Introduce pagination and/or migrate this to search.
       final query = _db.query<Like>(ancestorKey: user.key)
         ..order('-created')
@@ -215,7 +215,7 @@ class AccountBackend {
       tx.queueMutations(inserts: [p, newLike]);
       return newLike;
     });
-    await purgeAccountCache(userId: user.userId!);
+    await purgeAccountCache(userId: user.userId);
     return res;
   }
 
@@ -240,7 +240,7 @@ class AccountBackend {
       p.likes--;
       tx.queueMutations(inserts: [p], deletes: [likeKey]);
     });
-    await cache.userPackageLikes(user.userId!).purge();
+    await cache.userPackageLikes(user.userId).purge();
   }
 
   /// Verifies that the access token belongs to the [owner].

@@ -51,11 +51,11 @@ class IntegrityChecker {
     _logger.info('Scanning Users...');
     final gmailComEmails = <String>{};
     await for (User user in _db.query<User>().run()) {
-      _userToOauth[user.userId!] = user.oauthUserId;
+      _userToOauth[user.userId] = user.oauthUserId;
       final email = user.email;
       if (email == null || email.isEmpty || !looksLikeEmail(email)) {
         yield 'User "${user.userId}" has invalid email: "${user.email}".';
-        _invalidUsers.add(user.userId!);
+        _invalidUsers.add(user.userId);
       }
 
       // We can have email addresses that have multiple account (also User and
@@ -77,7 +77,7 @@ class IntegrityChecker {
         yield 'User "${user.userId}" has an `isBlocked` property which is not a bool.';
       }
       if (user.isDeleted) {
-        _deletedUsers.add(user.userId!);
+        _deletedUsers.add(user.userId);
         if (user.oauthUserId != null) {
           yield 'User "${user.userId}" is deleted, but `oauthUserId` is still set.';
         }
@@ -94,7 +94,7 @@ class IntegrityChecker {
       if (mapping.userIdKey == null) {
         yield 'OAuthUserID "${mapping.oauthUserId}" has invalid `userId`.';
       } else {
-        _oauthToUser[mapping.oauthUserId!] = mapping.userId;
+        _oauthToUser[mapping.oauthUserId] = mapping.userId;
       }
     }
 
@@ -129,11 +129,11 @@ class IntegrityChecker {
   Stream<String> _checkPublishers() async* {
     _logger.info('Scanning Publishers...');
     await for (final p in _db.query<Publisher>().run()) {
-      _publishers.add(p.publisherId!);
+      _publishers.add(p.publisherId);
       final members =
           await _db.query<PublisherMember>(ancestorKey: p.key).run().toList();
       if (p.isAbandoned!) {
-        _publishersAbandoned.add(p.publisherId!);
+        _publishersAbandoned.add(p.publisherId);
         if (members.isNotEmpty) {
           yield 'Publisher "${p.publisherId}" is marked as abandoned, '
               'but has members (first: "${members.first.userId}").';
@@ -398,7 +398,7 @@ class IntegrityChecker {
             ' has a `packageName` property which is not the same as `package`/`id`.';
       }
 
-      final userId = like.userId!;
+      final userId = like.userId;
       if (!_userToOauth.keys.contains(userId)) {
         yield 'Like entity with nonexisting user "$userId".';
       }
@@ -406,7 +406,7 @@ class IntegrityChecker {
         yield 'Like entity with deleted user "$userId".';
       }
 
-      if (await _packageMissing(like.package!)) {
+      if (await _packageMissing(like.package)) {
         yield 'User "$userId" likes missing package "${like.package}".';
       }
     }

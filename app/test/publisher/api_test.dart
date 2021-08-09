@@ -407,7 +407,7 @@ void main() {
         ]);
 
         await expectApiException(
-          client.publisherMemberInfo('example.com', otherUser.userId!),
+          client.publisherMemberInfo('example.com', otherUser.userId),
           status: 404,
           code: 'NotFound',
         );
@@ -481,8 +481,7 @@ void main() {
         final rs2 = await client2.resolveConsent(
             consentId, account_api.ConsentResult(granted: true));
         expect(rs2.granted, isTrue);
-        final m =
-            await client1.publisherMemberInfo('example.com', user.userId!);
+        final m = await client1.publisherMemberInfo('example.com', user.userId);
         expect(m.toJson(), {
           'userId': user.userId,
           'role': 'admin',
@@ -537,7 +536,7 @@ void main() {
           status: 404,
           code: 'NotFound',
         );
-        final rs4 = client1.publisherMemberInfo('example.com', user.userId!);
+        final rs4 = client1.publisherMemberInfo('example.com', user.userId);
         await expectApiException(rs4, status: 404, code: 'NotFound');
       });
     });
@@ -571,7 +570,7 @@ void main() {
         (client) async {
           final user =
               await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
-          return await client.publisherMemberInfo('example.com', user.userId!);
+          return await client.publisherMemberInfo('example.com', user.userId);
         },
       );
 
@@ -579,8 +578,7 @@ void main() {
         (client) async {
           final user =
               await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
-          return await client.publisherMemberInfo(
-              'no-domain.net', user.userId!);
+          return await client.publisherMemberInfo('no-domain.net', user.userId);
         },
       );
 
@@ -594,8 +592,7 @@ void main() {
         final user =
             await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
         final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
-        final rs =
-            await client.publisherMemberInfo('example.com', user.userId!);
+        final rs = await client.publisherMemberInfo('example.com', user.userId);
         expect(rs.toJson(), {
           'userId': user.userId,
           'email': user.email,
@@ -611,7 +608,7 @@ void main() {
               await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
           return await client.updatePublisherMember(
             'example.com',
-            user.userId!,
+            user.userId,
             UpdatePublisherMemberRequest(role: 'admin'),
           );
         },
@@ -623,7 +620,7 @@ void main() {
               await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
           return await client.updatePublisherMember(
             'no-domain.net',
-            user.userId!,
+            user.userId,
             UpdatePublisherMemberRequest(role: 'admin'),
           );
         },
@@ -635,7 +632,7 @@ void main() {
         final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = client.updatePublisherMember(
             'example.com',
-            user.userId!,
+            user.userId,
             UpdatePublisherMemberRequest(
               role: 'x',
             ));
@@ -648,7 +645,7 @@ void main() {
         final user =
             await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
         final rs = client.updatePublisherMember(
-            'example.com', user.userId!, UpdatePublisherMemberRequest());
+            'example.com', user.userId, UpdatePublisherMemberRequest());
         await expectApiException(rs, status: 404, code: 'NotFound');
       });
 
@@ -662,7 +659,7 @@ void main() {
         final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = client.updatePublisherMember(
             'example.com',
-            user.userId!,
+            user.userId,
             UpdatePublisherMemberRequest(
               role: 'not-allowed-role',
             ));
@@ -678,7 +675,7 @@ void main() {
         final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = await client.updatePublisherMember(
             'example.com',
-            user.userId!,
+            user.userId,
             UpdatePublisherMemberRequest(
               role: PublisherMemberRole.admin,
             ));
@@ -689,7 +686,7 @@ void main() {
         });
         // Info request should return with the same content.
         final updated =
-            await client.publisherMemberInfo('example.com', user.userId!);
+            await client.publisherMemberInfo('example.com', user.userId);
         expect(updated.toJson(), rs.toJson());
       });
     });
@@ -699,8 +696,7 @@ void main() {
         (client) async {
           final user =
               await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
-          return await client.removePublisherMember(
-              'example.com', user.userId!);
+          return await client.removePublisherMember('example.com', user.userId);
         },
       );
 
@@ -709,7 +705,7 @@ void main() {
           final user =
               await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
           return await client.removePublisherMember(
-              'no-domain.net', user.userId!);
+              'no-domain.net', user.userId);
         },
       );
 
@@ -717,7 +713,7 @@ void main() {
         final user =
             await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
         final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
-        final rs = client.removePublisherMember('example.com', user.userId!);
+        final rs = client.removePublisherMember('example.com', user.userId);
         await expectApiException(rs, status: 409, code: 'RequestConflict');
       });
 
@@ -726,7 +722,7 @@ void main() {
             await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
         final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs =
-            await client.removePublisherMember('example.com', user.userId!);
+            await client.removePublisherMember('example.com', user.userId);
         expect(json.fuse(utf8).decode(rs), {'status': 'OK'});
       });
 
@@ -739,10 +735,10 @@ void main() {
         ]);
         final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs =
-            await client.removePublisherMember('example.com', user.userId!);
+            await client.removePublisherMember('example.com', user.userId);
         expect(json.fuse(utf8).decode(rs), {'status': 'OK'});
         // Info request should return with NotFound exception.
-        final updated = client.publisherMemberInfo('example.com', user.userId!);
+        final updated = client.publisherMemberInfo('example.com', user.userId);
         await expectApiException(updated, status: 404, code: 'NotFound');
         // check audit log
         final page = await auditBackend.listRecordsForPublisher('example.com');

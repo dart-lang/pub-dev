@@ -447,7 +447,7 @@ class _PublisherMemberAction extends ConsentAction {
       throw NotAcceptableException('Consent is not for the current user.');
     }
     await publisherBackend.inviteConsentGranted(
-        publisherId, currentUser.userId!);
+        publisherId, currentUser.userId);
   }
 
   @override

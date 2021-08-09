@@ -21,9 +21,9 @@ void main() {
     testWithProfile('Successful lookup', fn: () async {
       final user =
           await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
-      final email = await accountBackend.getEmailOfUserId(user.userId!);
+      final email = await accountBackend.getEmailOfUserId(user.userId);
       expect(email, 'user@pub.dev');
-      final u = await accountBackend.lookupUserById(user.userId!);
+      final u = await accountBackend.lookupUserById(user.userId);
       expect(u!.email, 'user@pub.dev');
       expect(u.oauthUserId, isNotNull);
       expect(u.id, user.id);
@@ -92,7 +92,7 @@ void main() {
         expect(u1.userId, hasLength(36));
         expect(u1.email, 'c@example.com');
 
-        final u2 = await accountBackend.lookupUserById(u1.userId!);
+        final u2 = await accountBackend.lookupUserById(u1.userId);
         expect(u2!.email, 'c@example.com');
         expect(u2.oauthUserId, 'c-example-com');
       });

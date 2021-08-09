@@ -55,7 +55,7 @@ class PublisherBackend {
       final publishers = await query
           .run()
           .map((p) => PublisherSummary(
-                publisherId: p.publisherId!,
+                publisherId: p.publisherId,
                 created: p.created!,
               ))
           .toList();
@@ -76,7 +76,7 @@ class PublisherBackend {
     return (await cache.publisherPage(userId).get(() async {
       final query = _db.query<PublisherMember>()..filter('userId =', userId);
       final members = await query.run().toList();
-      final publisherKeys = members.map((pm) => pm.publisherKey!).toList();
+      final publisherKeys = members.map((pm) => pm.publisherKey).toList();
       if (publisherKeys.length > 100) {
         // When this is triggered, we should split the single list of publishers
         // to pages and adjust the uses of this method:
@@ -86,11 +86,11 @@ class PublisherBackend {
         _logger.shout('A user has more than 100 publishers.');
       }
       final publishers = await _db.lookup<Publisher>(publisherKeys);
-      publishers.sort((a, b) => a!.publisherId!.compareTo(b!.publisherId!));
+      publishers.sort((a, b) => a!.publisherId.compareTo(b!.publisherId));
       return PublisherPage(
         publishers: publishers
             .map((p) => PublisherSummary(
-                  publisherId: p!.publisherId!,
+                  publisherId: p!.publisherId,
                   created: p.created!,
                 ))
             .toList(),
@@ -200,7 +200,7 @@ class PublisherBackend {
         ),
       ]);
     });
-    await purgeAccountCache(userId: user.userId!);
+    await purgeAccountCache(userId: user.userId);
     await cache.allPublishersPage().purge();
 
     // Return publisher as it was created
@@ -234,7 +234,7 @@ class PublisherBackend {
       );
     }
     final user = await requireAuthenticatedUser();
-    await requirePublisherAdmin(publisherId, user.userId!);
+    await requirePublisherAdmin(publisherId, user.userId);
     final p = await withRetryTransaction(_db, (tx) async {
       final key = _db.emptyKey.append(Publisher, id: publisherId);
       final p = await tx.lookupValue<Publisher>(key);
@@ -325,7 +325,7 @@ class PublisherBackend {
       String publisherId, api.InviteMemberRequest invite) async {
     checkPublisherIdParam(publisherId);
     final activeUser = await requireAuthenticatedUser();
-    final p = await requirePublisherAdmin(publisherId, activeUser.userId!);
+    final p = await requirePublisherAdmin(publisherId, activeUser.userId);
     InvalidInputException.checkNotNull(invite.email, 'email');
     InvalidInputException.checkStringLength(invite.email, 'email',
         maximum: 4096);
@@ -346,7 +346,7 @@ class PublisherBackend {
     }
 
     return await consentBackend.invitePublisherMember(
-      publisherId: p.publisherId!,
+      publisherId: p.publisherId,
       invitedUserEmail: invite.email,
     );
   }
@@ -374,7 +374,7 @@ class PublisherBackend {
   ) async {
     checkPublisherIdParam(publisherId);
     final user = await requireAuthenticatedUser();
-    await requirePublisherAdmin(publisherId, user.userId!);
+    await requirePublisherAdmin(publisherId, user.userId);
     return api.PublisherMembers(
       members: await listPublisherMembers(publisherId),
     );
@@ -395,7 +395,7 @@ class PublisherBackend {
       String publisherId, String userId) async {
     checkPublisherIdParam(publisherId);
     final user = await requireAuthenticatedUser();
-    final p = await requirePublisherAdmin(publisherId, user.userId!);
+    final p = await requirePublisherAdmin(publisherId, user.userId);
     final key = p.key.append(PublisherMember, id: userId);
     final pm = await _db.lookupOrNull<PublisherMember>(key);
     if (pm == null) {
@@ -412,7 +412,7 @@ class PublisherBackend {
   ) async {
     checkPublisherIdParam(publisherId);
     final user = await requireAuthenticatedUser();
-    final p = await requirePublisherAdmin(publisherId, user.userId!);
+    final p = await requirePublisherAdmin(publisherId, user.userId);
     final key = p.key.append(PublisherMember, id: userId);
     final pm = await _db.lookupOrNull<PublisherMember>(key);
     if (pm == null) {
@@ -444,7 +444,7 @@ class PublisherBackend {
   Future<void> deletePublisherMember(String publisherId, String userId) async {
     checkPublisherIdParam(publisherId);
     final user = await requireAuthenticatedUser();
-    final p = await requirePublisherAdmin(publisherId, user.userId!);
+    final p = await requirePublisherAdmin(publisherId, user.userId);
     if (userId == user.userId) {
       throw ConflictException.cantUpdateSelf();
     }

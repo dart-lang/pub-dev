@@ -162,7 +162,7 @@ Future<PackageLikeResponse> getLikePackageHandler(
     throw NotFoundException.resource(package);
   }
 
-  final like = await accountBackend.getPackageLikeStatus(user.userId!, package);
+  final like = await accountBackend.getPackageLikeStatus(user.userId, package);
   return PackageLikeResponse(
     liked: like != null,
     package: package,
@@ -193,7 +193,7 @@ Future<AccountPublisherOptions> accountPublisherOptionsHandler(
   checkPublisherIdParam(publisherId);
   final user = await requireAuthenticatedUser();
   final member =
-      await publisherBackend.getPublisherMember(publisherId, user.userId!);
+      await publisherBackend.getPublisherMember(publisherId, user.userId);
   final isAdmin = member != null && member.role == PublisherMemberRole.admin;
   return AccountPublisherOptions(isAdmin: isAdmin);
 }

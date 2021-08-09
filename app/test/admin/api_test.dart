@@ -278,7 +278,7 @@ void main() {
       setupTestsWithCallerAuthorizationIssues((client) async {
         final user =
             await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
-        await client.adminRemoveUser(user.userId!);
+        await client.adminRemoveUser(user.userId);
       });
 
       testWithProfile(
@@ -289,7 +289,7 @@ void main() {
           final user =
               await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
 
-          final rs = await client.adminRemoveUser(user.userId!);
+          final rs = await client.adminRemoveUser(user.userId);
           expect(utf8.decode(rs), '{"status":"OK"}');
 
           final oxygen = await packageBackend.lookupPackage('oxygen');
@@ -327,7 +327,7 @@ void main() {
         Like? like = await dbService.lookupOrNull<Like>(likeKey);
         expect(like, isNotNull);
 
-        await client.adminRemoveUser(user.userId!);
+        await client.adminRemoveUser(user.userId);
 
         final r3 = await client.getPackageLikes('oxygen');
         expect(r3.likes, 0);

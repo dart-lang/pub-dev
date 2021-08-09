@@ -59,10 +59,10 @@ Future main(List<String> args) async {
     final counts = await dbService.deleteWithQuery<Like>(
       dbService.query<Like>(),
       where: (like) async {
-        if (like.userId == null || await isUserIdMissing(like.userId!)) {
+        if (await isUserIdMissing(like.userId)) {
           return true;
         }
-        if (like.package == null || await isPackageMissing(like.package!)) {
+        if (await isPackageMissing(like.package)) {
           return true;
         }
         return false;
