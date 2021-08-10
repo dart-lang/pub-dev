@@ -32,6 +32,7 @@ void main() {
         maxPoints: 110,
         dependencies: {'async': 'direct', 'test': 'dev', 'foo': 'transitive'},
         uploaderEmails: ['user1@example.com'],
+        uploaderUserIds: ['user1-at-example-dot-com'],
       ));
       await index.addPackage(PackageDocument(
         package: 'async',
@@ -54,6 +55,7 @@ The delegating wrapper classes allow users to easily add functionality on top of
         dependencies: {'test': 'dev'},
         publisherId: 'dart.dev',
         uploaderEmails: ['user1@example.com'],
+        uploaderUserIds: ['user1-at-example-dot-com'],
       ));
       await index.addPackage(PackageDocument(
         package: 'chrome_net',
@@ -449,7 +451,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final PackageSearchResult result =
           await index.search(ServiceSearchQuery.parse(uploaderOrPublishers: [
         'dart.dev',
-        'user1@example.com',
+        'user1-at-example-dot-com',
       ]));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,

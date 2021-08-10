@@ -536,7 +536,7 @@ void main() {
             imageUrl: 'pub.dev/user-img-url.png',
           );
           final searchForm =
-              SearchForm.parse(uploaderOrPublishers: [user.email!]);
+              SearchForm.parse(uploaderOrPublishers: [user.userId]);
           final String html = renderAccountPackagesPage(
             user: user,
             userSessionData: session,
