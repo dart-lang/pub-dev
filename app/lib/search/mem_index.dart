@@ -187,22 +187,6 @@ class InMemoryPackageIndex implements PackageIndex {
       });
     }
 
-    // filter on email
-    if (query.parsedQuery.emails.isNotEmpty) {
-      packages.removeWhere((package) {
-        final doc = _packages[package];
-        if (doc?.uploaderEmails == null) {
-          return true;
-        }
-        for (final email in query.parsedQuery.emails) {
-          if (doc!.uploaderEmails!.contains(email)) {
-            return false;
-          }
-        }
-        return true;
-      });
-    }
-
     PackageHit? highlightedHit;
     if (query.considerHighlightedHit) {
       final queryText = query.parsedQuery.text;

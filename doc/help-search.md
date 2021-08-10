@@ -17,9 +17,6 @@
   - `dependency*:package_name`: Searches for packages that depend on
     `package_name` (as direct, dev, or transitive dependencies).
 
-  - `email:user@example.com`: Search for packages where either the author or the
-    uploader has the specified email address.
-
 ## Filters
 
 The search UI also supports filters:
