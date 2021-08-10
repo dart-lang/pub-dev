@@ -462,37 +462,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       });
     });
 
-    test('no results via email', () async {
-      final PackageSearchResult result = await index
-          .search(ServiceSearchQuery.parse(query: 'email:some@other.com'));
-      expect(json.decode(json.encode(result)), {
-        'timestamp': isNotNull,
-        'totalCount': 0,
-        'sdkLibraryHits': [],
-        'packageHits': [],
-      });
-    });
-
-    test('filter by email', () async {
-      final PackageSearchResult result = await index
-          .search(ServiceSearchQuery.parse(query: 'email:user1@example.com'));
-      expect(json.decode(json.encode(result)), {
-        'timestamp': isNotNull,
-        'totalCount': 2,
-        'sdkLibraryHits': [],
-        'packageHits': [
-          {'package': 'http', 'score': closeTo(0.96, 0.01)},
-          {'package': 'async', 'score': closeTo(0.70, 0.01)},
-        ],
-      });
-
-      // do not highlight package if otherwise exact match is in the query
-      final rs2 = await index.search(
-          ServiceSearchQuery.parse(query: 'http email:user1@example.com'));
-      expect(rs2.highlightedHit, isNull);
-      expect(rs2.totalCount, 1);
-    });
-
     test('multiword query: implicit AND', () async {
       final PackageSearchResult composable = await index.search(
           ServiceSearchQuery.parse(

@@ -212,8 +212,6 @@ final RegExp _packageRegexp =
     RegExp('package:([_a-z0-9]+)', caseSensitive: false);
 final RegExp _publisherRegexp =
     RegExp(r'publisher:([_a-z0-9\.]+)', caseSensitive: false);
-final RegExp _emailRegexp =
-    RegExp(r'email:([_a-z0-9\@\-\.\+]+)', caseSensitive: false);
 final RegExp _refDependencyRegExp =
     RegExp('dependency:([_a-z0-9]+)', caseSensitive: false);
 final RegExp _allDependencyRegExp =
@@ -559,9 +557,6 @@ class ParsedQueryText {
   /// Match the publisher of the package.
   final String? publisher;
 
-  /// Match uploader emails.
-  final List<String> emails;
-
   /// Detected tags in the user-provided query.
   TagsPredicate tagsPredicate;
 
@@ -571,7 +566,6 @@ class ParsedQueryText {
     this.refDependencies,
     this.allDependencies,
     this.publisher,
-    this.emails,
     this.tagsPredicate,
   );
 
@@ -600,7 +594,6 @@ class ParsedQueryText {
 
     final List<String> dependencies = extractRegExp(_refDependencyRegExp);
     final List<String> allDependencies = extractRegExp(_allDependencyRegExp);
-    final List<String> emails = extractRegExp(_emailRegexp);
     final allPublishers = extractRegExp(_publisherRegexp);
     final publisher = allPublishers.isEmpty ? null : allPublishers.first;
 
@@ -621,7 +614,6 @@ class ParsedQueryText {
       dependencies,
       allDependencies,
       publisher,
-      emails,
       tagsPredicate,
     );
   }
@@ -635,7 +627,6 @@ class ParsedQueryText {
       packagePrefix == null &&
       !hasAnyDependency &&
       publisher == null &&
-      emails.isEmpty &&
       tagsPredicate.isEmpty;
 }
 
