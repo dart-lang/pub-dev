@@ -6,17 +6,16 @@ part of pub_dartlang_org.appengine_repository.models;
 // JsonSerializableGenerator
 // **************************************************************************
 
-LatestReleases _$LatestReleasesFromJson(Map<String, dynamic> json) {
-  return LatestReleases(
-    stable: Release.fromJson(json['stable'] as Map<String, dynamic>),
-    prerelease: json['prerelease'] == null
-        ? null
-        : Release.fromJson(json['prerelease'] as Map<String, dynamic>),
-    preview: json['preview'] == null
-        ? null
-        : Release.fromJson(json['preview'] as Map<String, dynamic>),
-  );
-}
+LatestReleases _$LatestReleasesFromJson(Map<String, dynamic> json) =>
+    LatestReleases(
+      stable: Release.fromJson(json['stable'] as Map<String, dynamic>),
+      prerelease: json['prerelease'] == null
+          ? null
+          : Release.fromJson(json['prerelease'] as Map<String, dynamic>),
+      preview: json['preview'] == null
+          ? null
+          : Release.fromJson(json['preview'] as Map<String, dynamic>),
+    );
 
 Map<String, dynamic> _$LatestReleasesToJson(LatestReleases instance) =>
     <String, dynamic>{
@@ -25,44 +24,41 @@ Map<String, dynamic> _$LatestReleasesToJson(LatestReleases instance) =>
       'preview': instance.preview,
     };
 
-Release _$ReleaseFromJson(Map<String, dynamic> json) {
-  return Release(
-    version: json['version'] as String,
-    published: DateTime.parse(json['published'] as String),
-  );
-}
+Release _$ReleaseFromJson(Map<String, dynamic> json) => Release(
+      version: json['version'] as String,
+      published: DateTime.parse(json['published'] as String),
+    );
 
 Map<String, dynamic> _$ReleaseToJson(Release instance) => <String, dynamic>{
       'version': instance.version,
       'published': instance.published.toIso8601String(),
     };
 
-PackageView _$PackageViewFromJson(Map<String, dynamic> json) {
-  return PackageView(
-    name: json['name'] as String?,
-    version: json['version'] as String?,
-    prereleaseVersion: json['prereleaseVersion'] as String?,
-    previewVersion: json['previewVersion'] as String?,
-    ellipsizedDescription: json['ellipsizedDescription'] as String?,
-    created: json['created'] == null
-        ? null
-        : DateTime.parse(json['created'] as String),
-    updated: json['updated'] == null
-        ? null
-        : DateTime.parse(json['updated'] as String),
-    flags: (json['flags'] as List<dynamic>?)?.map((e) => e as String).toList(),
-    publisherId: json['publisherId'] as String?,
-    isAwaiting: json['isAwaiting'] as bool?,
-    likes: json['likes'] as int?,
-    grantedPubPoints: json['grantedPubPoints'] as int?,
-    maxPubPoints: json['maxPubPoints'] as int?,
-    popularity: json['popularity'] as int?,
-    tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
-    apiPages: (json['apiPages'] as List<dynamic>?)
-        ?.map((e) => ApiPageRef.fromJson(e as Map<String, dynamic>))
-        .toList(),
-  );
-}
+PackageView _$PackageViewFromJson(Map<String, dynamic> json) => PackageView(
+      name: json['name'] as String?,
+      version: json['version'] as String?,
+      prereleaseVersion: json['prereleaseVersion'] as String?,
+      previewVersion: json['previewVersion'] as String?,
+      ellipsizedDescription: json['ellipsizedDescription'] as String?,
+      created: json['created'] == null
+          ? null
+          : DateTime.parse(json['created'] as String),
+      updated: json['updated'] == null
+          ? null
+          : DateTime.parse(json['updated'] as String),
+      flags:
+          (json['flags'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      publisherId: json['publisherId'] as String?,
+      isAwaiting: json['isAwaiting'] as bool? ?? false,
+      likes: json['likes'] as int?,
+      grantedPubPoints: json['grantedPubPoints'] as int?,
+      maxPubPoints: json['maxPubPoints'] as int?,
+      popularity: json['popularity'] as int?,
+      tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      apiPages: (json['apiPages'] as List<dynamic>?)
+          ?.map((e) => ApiPageRef.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
 
 Map<String, dynamic> _$PackageViewToJson(PackageView instance) {
   final val = <String, dynamic>{};

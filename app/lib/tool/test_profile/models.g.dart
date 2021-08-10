@@ -6,20 +6,18 @@ part of 'models.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-TestProfile _$TestProfileFromJson(Map<String, dynamic> json) {
-  return TestProfile(
-    packages: (json['packages'] as List<dynamic>?)
-        ?.map((e) => TestPackage.fromJson(e as Map<String, dynamic>))
-        .toList(),
-    publishers: (json['publishers'] as List<dynamic>?)
-        ?.map((e) => TestPublisher.fromJson(e as Map<String, dynamic>))
-        .toList(),
-    users: (json['users'] as List<dynamic>?)
-        ?.map((e) => TestUser.fromJson(e as Map<String, dynamic>))
-        .toList(),
-    defaultUser: json['defaultUser'] as String?,
-  );
-}
+TestProfile _$TestProfileFromJson(Map<String, dynamic> json) => TestProfile(
+      packages: (json['packages'] as List<dynamic>?)
+          ?.map((e) => TestPackage.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      publishers: (json['publishers'] as List<dynamic>?)
+          ?.map((e) => TestPublisher.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      users: (json['users'] as List<dynamic>?)
+          ?.map((e) => TestUser.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      defaultUser: json['defaultUser'] as String?,
+    );
 
 Map<String, dynamic> _$TestProfileToJson(TestProfile instance) {
   final val = <String, dynamic>{
@@ -38,20 +36,20 @@ Map<String, dynamic> _$TestProfileToJson(TestProfile instance) {
   return val;
 }
 
-TestPackage _$TestPackageFromJson(Map<String, dynamic> json) {
-  return TestPackage(
-    name: json['name'] as String,
-    uploaders:
-        (json['uploaders'] as List<dynamic>?)?.map((e) => e as String).toList(),
-    publisher: json['publisher'] as String?,
-    versions:
-        (json['versions'] as List<dynamic>?)?.map((e) => e as String).toList(),
-    isDiscontinued: json['isDiscontinued'] as bool?,
-    replacedBy: json['replacedBy'] as String?,
-    isUnlisted: json['isUnlisted'] as bool?,
-    isFlutterFavorite: json['isFlutterFavorite'] as bool?,
-  );
-}
+TestPackage _$TestPackageFromJson(Map<String, dynamic> json) => TestPackage(
+      name: json['name'] as String,
+      uploaders: (json['uploaders'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+      publisher: json['publisher'] as String?,
+      versions: (json['versions'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+      isDiscontinued: json['isDiscontinued'] as bool?,
+      replacedBy: json['replacedBy'] as String?,
+      isUnlisted: json['isUnlisted'] as bool?,
+      isFlutterFavorite: json['isFlutterFavorite'] as bool?,
+    );
 
 Map<String, dynamic> _$TestPackageToJson(TestPackage instance) {
   final val = <String, dynamic>{
@@ -74,14 +72,13 @@ Map<String, dynamic> _$TestPackageToJson(TestPackage instance) {
   return val;
 }
 
-TestPublisher _$TestPublisherFromJson(Map<String, dynamic> json) {
-  return TestPublisher(
-    name: json['name'] as String,
-    members: (json['members'] as List<dynamic>?)
-        ?.map((e) => TestMember.fromJson(e as Map<String, dynamic>))
-        .toList(),
-  );
-}
+TestPublisher _$TestPublisherFromJson(Map<String, dynamic> json) =>
+    TestPublisher(
+      name: json['name'] as String,
+      members: (json['members'] as List<dynamic>?)
+          ?.map((e) => TestMember.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
 
 Map<String, dynamic> _$TestPublisherToJson(TestPublisher instance) =>
     <String, dynamic>{
@@ -89,12 +86,10 @@ Map<String, dynamic> _$TestPublisherToJson(TestPublisher instance) =>
       'members': instance.members.map((e) => e.toJson()).toList(),
     };
 
-TestMember _$TestMemberFromJson(Map<String, dynamic> json) {
-  return TestMember(
-    email: json['email'] as String,
-    role: json['role'] as String,
-  );
-}
+TestMember _$TestMemberFromJson(Map<String, dynamic> json) => TestMember(
+      email: json['email'] as String,
+      role: json['role'] as String,
+    );
 
 Map<String, dynamic> _$TestMemberToJson(TestMember instance) =>
     <String, dynamic>{
@@ -102,27 +97,25 @@ Map<String, dynamic> _$TestMemberToJson(TestMember instance) =>
       'role': instance.role,
     };
 
-TestUser _$TestUserFromJson(Map<String, dynamic> json) {
-  return TestUser(
-    email: json['email'] as String,
-    likes: (json['likes'] as List<dynamic>?)?.map((e) => e as String).toList(),
-  );
-}
+TestUser _$TestUserFromJson(Map<String, dynamic> json) => TestUser(
+      email: json['email'] as String,
+      likes:
+          (json['likes'] as List<dynamic>?)?.map((e) => e as String).toList(),
+    );
 
 Map<String, dynamic> _$TestUserToJson(TestUser instance) => <String, dynamic>{
       'email': instance.email,
       'likes': instance.likes,
     };
 
-ResolvedVersion _$ResolvedVersionFromJson(Map<String, dynamic> json) {
-  return ResolvedVersion(
-    package: json['package'] as String,
-    version: json['version'] as String,
-    created: json['created'] == null
-        ? null
-        : DateTime.parse(json['created'] as String),
-  );
-}
+ResolvedVersion _$ResolvedVersionFromJson(Map<String, dynamic> json) =>
+    ResolvedVersion(
+      package: json['package'] as String,
+      version: json['version'] as String,
+      created: json['created'] == null
+          ? null
+          : DateTime.parse(json['created'] as String),
+    );
 
 Map<String, dynamic> _$ResolvedVersionToJson(ResolvedVersion instance) {
   final val = <String, dynamic>{

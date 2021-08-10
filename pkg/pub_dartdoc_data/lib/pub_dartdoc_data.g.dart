@@ -6,16 +6,15 @@ part of 'pub_dartdoc_data.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-PubDartdocData _$PubDartdocDataFromJson(Map<String, dynamic> json) {
-  return PubDartdocData(
-    coverage: json['coverage'] == null
-        ? null
-        : Coverage.fromJson(json['coverage'] as Map<String, dynamic>),
-    apiElements: (json['apiElements'] as List<dynamic>?)
-        ?.map((e) => ApiElement.fromJson(e as Map<String, dynamic>))
-        .toList(),
-  );
-}
+PubDartdocData _$PubDartdocDataFromJson(Map<String, dynamic> json) =>
+    PubDartdocData(
+      coverage: json['coverage'] == null
+          ? null
+          : Coverage.fromJson(json['coverage'] as Map<String, dynamic>),
+      apiElements: (json['apiElements'] as List<dynamic>?)
+          ?.map((e) => ApiElement.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
 
 Map<String, dynamic> _$PubDartdocDataToJson(PubDartdocData instance) =>
     <String, dynamic>{
@@ -23,16 +22,14 @@ Map<String, dynamic> _$PubDartdocDataToJson(PubDartdocData instance) =>
       'apiElements': instance.apiElements,
     };
 
-ApiElement _$ApiElementFromJson(Map<String, dynamic> json) {
-  return ApiElement(
-    name: json['name'] as String,
-    kind: json['kind'] as String,
-    parent: json['parent'] as String?,
-    source: json['source'] as String?,
-    href: json['href'] as String?,
-    documentation: json['documentation'] as String?,
-  );
-}
+ApiElement _$ApiElementFromJson(Map<String, dynamic> json) => ApiElement(
+      name: json['name'] as String,
+      kind: json['kind'] as String,
+      parent: json['parent'] as String?,
+      source: json['source'] as String?,
+      href: json['href'] as String?,
+      documentation: json['documentation'] as String?,
+    );
 
 Map<String, dynamic> _$ApiElementToJson(ApiElement instance) {
   final val = <String, dynamic>{
@@ -53,12 +50,10 @@ Map<String, dynamic> _$ApiElementToJson(ApiElement instance) {
   return val;
 }
 
-Coverage _$CoverageFromJson(Map<String, dynamic> json) {
-  return Coverage(
-    total: json['total'] as int,
-    documented: json['documented'] as int,
-  );
-}
+Coverage _$CoverageFromJson(Map<String, dynamic> json) => Coverage(
+      total: json['total'] as int,
+      documented: json['documented'] as int,
+    );
 
 Map<String, dynamic> _$CoverageToJson(Coverage instance) => <String, dynamic>{
       'total': instance.total,
