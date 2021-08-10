@@ -6,6 +6,7 @@ environment:
 dependencies:
   _popularity:
     path: ../pkg/_popularity
+  analyzer: ^2.0.0
   appengine: '^0.13.0'
   args: '^2.0.0'
   basics: ^0.6.0
@@ -68,3 +69,7 @@ dev_dependencies:
   source_gen: '^1.0.0'
   test: ^1.16.5
   xml: ^5.0.0
+
+dependency_overrides:
+  # TODO: remove after the codegen toolchain is upgraded to 2.0.0
+  analyzer: ^2.0.0

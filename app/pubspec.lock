@@ -14,7 +14,7 @@ packages:
       name: _fe_analyzer_shared
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "22.0.0"
+    version: "23.0.0"
   _popularity:
     dependency: "direct main"
     description:
@@ -23,12 +23,12 @@ packages:
     source: path
     version: "0.0.0"
   analyzer:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: analyzer
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.7.2"
+    version: "2.0.0"
   api_builder:
     dependency: "direct main"
     description:
