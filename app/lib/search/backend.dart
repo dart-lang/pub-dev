@@ -13,7 +13,7 @@ import 'package:logging/logging.dart';
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 
 import '../account/backend.dart';
-import '../dartdoc/dartdoc_client.dart';
+import '../dartdoc/backend.dart';
 import '../package/backend.dart';
 import '../package/model_properties.dart';
 import '../package/models.dart';
@@ -122,7 +122,7 @@ class SearchBackend {
           PackageTags.convertToPrereleaseTag(PackageVersionTags.isNullSafe));
     }
 
-    final pubDataContent = await dartdocClient.getTextContent(
+    final pubDataContent = await dartdocBackend.getTextContent(
         packageName, 'latest', 'pub-data.json',
         timeout: const Duration(minutes: 1));
 

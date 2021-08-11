@@ -287,9 +287,28 @@ class DartdocBackend {
     return _storage.read(objectName);
   }
 
-  Future<String> getTextContent(DartdocEntry entry, String relativePath) async {
-    final stream = readContent(entry, relativePath);
-    return (await stream.transform(utf8.decoder).toList()).join();
+  /// Returns the text content of a file inside the dartdoc archive.
+  ///
+  /// Returns `null` if the file does not exists, or its content can't be parsed as String.
+  Future<String?> getTextContent(
+    String package,
+    String version,
+    String relativePath, {
+    required Duration timeout,
+  }) async {
+    try {
+      final entry =
+          await dartdocBackend.getEntry(package, version).timeout(timeout);
+      if (entry == null || !entry.hasContent) {
+        return null;
+      }
+      final stream = readContent(entry, relativePath).transform(utf8.decoder);
+      return (await stream.toList().timeout(timeout)).join();
+    } catch (e, st) {
+      _logger.info(
+          'Unable to read content for $package $version $relativePath', e, st);
+    }
+    return null;
   }
 
   /// Removes all files related to a package.

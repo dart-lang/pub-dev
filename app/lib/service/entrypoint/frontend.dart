@@ -12,10 +12,10 @@ import 'package:pub_dev/service/youtube/backend.dart';
 import 'package:stream_transform/stream_transform.dart' show RateLimit;
 import 'package:watcher/watcher.dart';
 
-import '../../analyzer/analyzer_client.dart';
 import '../../frontend/handlers.dart';
 import '../../frontend/static_files.dart';
 import '../../frontend/templates/_cache.dart';
+import '../../job/backend.dart';
 import '../../package/deps_graph.dart';
 import '../../package/name_tracker.dart';
 import '../../service/announcement/backend.dart';
@@ -114,7 +114,10 @@ Future _worker(WorkerEntryMessage message) async {
     // Updates job entries for analyzer and dartdoc.
     Future<void> triggerDependentAnalysis(
         String package, String version, Set<String> affected) async {
-      await analyzerClient.triggerAnalysis(package, version, affected);
+      await jobBackend.triggerAnalysis(package, version);
+      for (final p in affected) {
+        await jobBackend.triggerAnalysis(p, null);
+      }
       // TODO: re-enable this after we have added some stop-gaps on the frequency
       // await dartdocClient.triggerDartdoc(package, version,
       //    dependentPackages: affected);
