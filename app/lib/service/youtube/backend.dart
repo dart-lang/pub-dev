@@ -63,27 +63,32 @@ class YoutubeBackend {
     final now = DateTime.now().toUtc();
     random ??= math.Random(
         now.year * 1000 + now.month * 100 + now.day * 10 + now.hour);
-    final selectable =
-        List<PkgOfWeekVideo>.from(_packageOfWeekVideoList.value!);
-    final selected = <PkgOfWeekVideo>[];
-    while (selected.length < count && selectable.isNotEmpty) {
-      if (selected.isEmpty) {
-        selected.add(selectable.removeAt(0));
-      } else if (selected.length == 1) {
-        final s =
-            selectable.removeAt(random.nextInt(math.min(3, selectable.length)));
-        selected.add(s);
-      } else {
-        selected.add(selectable.removeAt(random.nextInt(selectable.length)));
-      }
-    }
-    return selected;
+    return selectRandomVideos(random, _packageOfWeekVideoList.value!, count);
   }
 
   /// Cancels periodic updates.
   Future<void> close() async {
     await _packageOfWeekVideoList.close();
   }
+}
+
+/// Algorithm description at [YoutubeBackend.getTopPackageOfWeekVideos].
+@visibleForTesting
+List<T> selectRandomVideos<T>(math.Random random, List<T> source, int count) {
+  final selectable = List<T>.from(source);
+  final selected = <T>[];
+  while (selected.length < count && selectable.isNotEmpty) {
+    if (selected.isEmpty) {
+      selected.add(selectable.removeAt(0));
+    } else if (selected.length == 1) {
+      final s =
+          selectable.removeAt(random.nextInt(math.min(3, selectable.length)));
+      selected.add(s);
+    } else {
+      selected.add(selectable.removeAt(random.nextInt(selectable.length)));
+    }
+  }
+  return selected;
 }
 
 class _PkgOfWeekVideoFetcher {

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:math';
 
 import 'package:test/test.dart';
 
@@ -34,5 +35,20 @@ void main() {
     expect(
         selected.map((s) => int.parse(s.videoId.substring(1))).toSet().length,
         4);
+  });
+
+  test('selectRandomVideos', () {
+    final random = Random(123);
+    final items = <int>[0, 1, 2, 3, 4, 5, 6, 7, 9, 10];
+
+    for (var i = 0; i < 1000; i++) {
+      final selected = selectRandomVideos(random, items, 4);
+
+      expect(selected.first, 0);
+      expect(selected[1], greaterThan(0));
+      expect(selected[1], lessThan(4));
+      // no duplicate values
+      expect(selected.toSet().length, selected.length);
+    }
   });
 }
