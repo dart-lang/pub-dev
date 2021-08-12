@@ -211,7 +211,7 @@ class DartdocJobProcessor extends JobProcessor {
           _emptyReport(
             title: 'Did not run dartdoc',
             description:
-                'Package version is older than two years and has newer release.',
+                'Package version is older than two years and has a newer release.',
           ));
       return JobStatus.skipped;
     }
