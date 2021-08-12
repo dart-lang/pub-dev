@@ -6,14 +6,12 @@ part of 'package_api.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-UploadInfo _$UploadInfoFromJson(Map<String, dynamic> json) {
-  return UploadInfo(
-    url: json['url'] as String,
-    fields: (json['fields'] as Map<String, dynamic>?)?.map(
-      (k, e) => MapEntry(k, e as String),
-    ),
-  );
-}
+UploadInfo _$UploadInfoFromJson(Map<String, dynamic> json) => UploadInfo(
+      url: json['url'] as String,
+      fields: (json['fields'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, e as String),
+      ),
+    );
 
 Map<String, dynamic> _$UploadInfoToJson(UploadInfo instance) =>
     <String, dynamic>{
@@ -21,13 +19,11 @@ Map<String, dynamic> _$UploadInfoToJson(UploadInfo instance) =>
       'fields': instance.fields,
     };
 
-PkgOptions _$PkgOptionsFromJson(Map<String, dynamic> json) {
-  return PkgOptions(
-    isDiscontinued: json['isDiscontinued'] as bool?,
-    replacedBy: json['replacedBy'] as String?,
-    isUnlisted: json['isUnlisted'] as bool?,
-  );
-}
+PkgOptions _$PkgOptionsFromJson(Map<String, dynamic> json) => PkgOptions(
+      isDiscontinued: json['isDiscontinued'] as bool?,
+      replacedBy: json['replacedBy'] as String?,
+      isUnlisted: json['isUnlisted'] as bool?,
+    );
 
 Map<String, dynamic> _$PkgOptionsToJson(PkgOptions instance) =>
     <String, dynamic>{
@@ -36,11 +32,11 @@ Map<String, dynamic> _$PkgOptionsToJson(PkgOptions instance) =>
       'isUnlisted': instance.isUnlisted,
     };
 
-PackagePublisherInfo _$PackagePublisherInfoFromJson(Map<String, dynamic> json) {
-  return PackagePublisherInfo(
-    publisherId: json['publisherId'] as String?,
-  );
-}
+PackagePublisherInfo _$PackagePublisherInfoFromJson(
+        Map<String, dynamic> json) =>
+    PackagePublisherInfo(
+      publisherId: json['publisherId'] as String?,
+    );
 
 Map<String, dynamic> _$PackagePublisherInfoToJson(
         PackagePublisherInfo instance) =>
@@ -48,38 +44,33 @@ Map<String, dynamic> _$PackagePublisherInfoToJson(
       'publisherId': instance.publisherId,
     };
 
-SuccessMessage _$SuccessMessageFromJson(Map<String, dynamic> json) {
-  return SuccessMessage(
-    success: Message.fromJson(json['success'] as Map<String, dynamic>),
-  );
-}
+SuccessMessage _$SuccessMessageFromJson(Map<String, dynamic> json) =>
+    SuccessMessage(
+      success: Message.fromJson(json['success'] as Map<String, dynamic>),
+    );
 
 Map<String, dynamic> _$SuccessMessageToJson(SuccessMessage instance) =>
     <String, dynamic>{
       'success': instance.success,
     };
 
-Message _$MessageFromJson(Map<String, dynamic> json) {
-  return Message(
-    message: json['message'] as String,
-  );
-}
+Message _$MessageFromJson(Map<String, dynamic> json) => Message(
+      message: json['message'] as String,
+    );
 
 Map<String, dynamic> _$MessageToJson(Message instance) => <String, dynamic>{
       'message': instance.message,
     };
 
-PackageData _$PackageDataFromJson(Map<String, dynamic> json) {
-  return PackageData(
-    name: json['name'] as String,
-    isDiscontinued: json['isDiscontinued'] as bool?,
-    replacedBy: json['replacedBy'] as String?,
-    latest: VersionInfo.fromJson(json['latest'] as Map<String, dynamic>),
-    versions: (json['versions'] as List<dynamic>)
-        .map((e) => VersionInfo.fromJson(e as Map<String, dynamic>))
-        .toList(),
-  );
-}
+PackageData _$PackageDataFromJson(Map<String, dynamic> json) => PackageData(
+      name: json['name'] as String,
+      isDiscontinued: json['isDiscontinued'] as bool?,
+      replacedBy: json['replacedBy'] as String?,
+      latest: VersionInfo.fromJson(json['latest'] as Map<String, dynamic>),
+      versions: (json['versions'] as List<dynamic>)
+          .map((e) => VersionInfo.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
 
 Map<String, dynamic> _$PackageDataToJson(PackageData instance) {
   final val = <String, dynamic>{
@@ -99,17 +90,15 @@ Map<String, dynamic> _$PackageDataToJson(PackageData instance) {
   return val;
 }
 
-VersionInfo _$VersionInfoFromJson(Map<String, dynamic> json) {
-  return VersionInfo(
-    version: json['version'] as String,
-    isRetracted: json['isRetracted'] as bool?,
-    pubspec: json['pubspec'] as Map<String, dynamic>,
-    archiveUrl: json['archive_url'] as String?,
-    published: json['published'] == null
-        ? null
-        : DateTime.parse(json['published'] as String),
-  );
-}
+VersionInfo _$VersionInfoFromJson(Map<String, dynamic> json) => VersionInfo(
+      version: json['version'] as String,
+      isRetracted: json['isRetracted'] as bool?,
+      pubspec: json['pubspec'] as Map<String, dynamic>,
+      archiveUrl: json['archive_url'] as String?,
+      published: json['published'] == null
+          ? null
+          : DateTime.parse(json['published'] as String),
+    );
 
 Map<String, dynamic> _$VersionInfoToJson(VersionInfo instance) {
   final val = <String, dynamic>{
@@ -129,17 +118,15 @@ Map<String, dynamic> _$VersionInfoToJson(VersionInfo instance) {
   return val;
 }
 
-VersionScore _$VersionScoreFromJson(Map<String, dynamic> json) {
-  return VersionScore(
-    grantedPoints: json['grantedPoints'] as int?,
-    maxPoints: json['maxPoints'] as int?,
-    likeCount: json['likeCount'] as int?,
-    popularityScore: (json['popularityScore'] as num?)?.toDouble(),
-    lastUpdated: json['lastUpdated'] == null
-        ? null
-        : DateTime.parse(json['lastUpdated'] as String),
-  );
-}
+VersionScore _$VersionScoreFromJson(Map<String, dynamic> json) => VersionScore(
+      grantedPoints: json['grantedPoints'] as int?,
+      maxPoints: json['maxPoints'] as int?,
+      likeCount: json['likeCount'] as int?,
+      popularityScore: (json['popularityScore'] as num?)?.toDouble(),
+      lastUpdated: json['lastUpdated'] == null
+          ? null
+          : DateTime.parse(json['lastUpdated'] as String),
+    );
 
 Map<String, dynamic> _$VersionScoreToJson(VersionScore instance) {
   final val = <String, dynamic>{};
@@ -159,11 +146,10 @@ Map<String, dynamic> _$VersionScoreToJson(VersionScore instance) {
 }
 
 InviteUploaderRequest _$InviteUploaderRequestFromJson(
-    Map<String, dynamic> json) {
-  return InviteUploaderRequest(
-    email: json['email'] as String,
-  );
-}
+        Map<String, dynamic> json) =>
+    InviteUploaderRequest(
+      email: json['email'] as String,
+    );
 
 Map<String, dynamic> _$InviteUploaderRequestToJson(
         InviteUploaderRequest instance) =>

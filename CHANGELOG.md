@@ -7,6 +7,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded preview Flutter analysis SDK to `2.5.0-5.1.pre`.
  * Upgraded pana to `0.19.1`.
  * Upgraded dartdoc to `1.0.2`.
+ * Upgraded `package:analyzer` to `2.0.0`.
 
 ## `20210728t125700-all`
  * Bumped runtimeVersion to `2021.07.27`.
