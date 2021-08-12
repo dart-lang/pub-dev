@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:pana/pana.dart' hide Pubspec, ReportStatus;
+import 'package:pana/pana.dart' as pana show ReportStatus;
 import 'package:path/path.dart' as p;
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
@@ -190,7 +191,13 @@ class DartdocJobProcessor extends JobProcessor {
     // We know that dartdoc will fail on this package, no reason to run it.
     if (packageStatus.isLegacy) {
       _logger.info('Package is on legacy SDK: $job.');
-      await _storeScoreCard(job, _emptyReport());
+      await _storeScoreCard(
+          job,
+          _emptyReport(
+            title: 'Did not run dartdoc',
+            description:
+                'This package is not compatible with the current analysis SDK version',
+          ));
       return JobStatus.skipped;
     }
 
@@ -200,7 +207,13 @@ class DartdocJobProcessor extends JobProcessor {
     if (packageStatus.isObsolete) {
       _logger
           .info('Package is older than two years and has newer release: $job.');
-      await _storeScoreCard(job, _emptyReport());
+      await _storeScoreCard(
+          job,
+          _emptyReport(
+            title: 'Did not run dartdoc',
+            description:
+                'Package version is older than two years and has a newer release.',
+          ));
       return JobStatus.skipped;
     }
 
@@ -216,7 +229,12 @@ class DartdocJobProcessor extends JobProcessor {
         // These package versions are worth investigating, but we don't need
         // alerts on them.
         _logger.warning('Missing dartdoc report when error was present: $job.');
-        await _storeScoreCard(job, _emptyReport());
+        await _storeScoreCard(
+            job,
+            _emptyReport(
+              title: 'Failed to run dartdoc',
+              description: 'The dartdoc process timed out.',
+            ));
       }
     }
 
@@ -656,10 +674,26 @@ String _mergeOutput(ProcessResult pr, {bool compress = false}) {
   return 'exitCode: ${pr.exitCode}\nstdout: $stdout\nstderr: $stderr\n';
 }
 
-DartdocReport _emptyReport() => DartdocReport(
-      timestamp: DateTime.now().toUtc(),
-      reportStatus: ReportStatus.aborted,
-      dartdocEntry: null,
-      // TODO: add meaningful message for missing documentation on dartdoc
-      documentationSection: null,
-    );
+DartdocReport _emptyReport({
+  required String title,
+  required String description,
+}) {
+  return DartdocReport(
+    timestamp: DateTime.now().toUtc(),
+    reportStatus: ReportStatus.aborted,
+    dartdocEntry: null,
+    documentationSection: ReportSection(
+      id: ReportSectionId.documentation,
+      title: documentationSectionTitle,
+      grantedPoints: 0,
+      maxPoints: 10,
+      summary: renderSimpleSectionSummary(
+        title: title,
+        description: description,
+        grantedPoints: 0,
+        maxPoints: 10,
+      ),
+      status: pana.ReportStatus.failed,
+    ),
+  );
+}
