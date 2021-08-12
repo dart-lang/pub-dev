@@ -9,11 +9,14 @@ import 'dart:math' as math;
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/youtube/v3.dart';
 import 'package:googleapis_auth/auth_io.dart';
+import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_dev/shared/cached_value.dart';
 import 'package:retry/retry.dart';
 
 import '../secret/backend.dart';
+
+final _logger = Logger('youtube.backend');
 
 /// The playlist ID for the Package of the Week channel.
 const powPlaylistId = 'PLjxrf2q8roU1quF6ny8oFHJ2gBdrYN_AK';
@@ -110,24 +113,33 @@ class _PkgOfWeekVideoFetcher {
 
     try {
       final videos = <PkgOfWeekVideo>[];
+      final videoIds = <String>{};
+      int pageIndex = 0;
       String? nextPageToken;
       for (var check = true; check && videos.length < 50;) {
         final rs = await youtube.playlistItems.list(
           ['snippet', 'contentDetails'],
           playlistId: powPlaylistId,
         );
-        videos.addAll(rs.items!.map(
-          (i) => PkgOfWeekVideo(
+        for (final i in rs.items!) {
+          final video = PkgOfWeekVideo(
             videoId: i.contentDetails!.videoId!,
             title: i.snippet!.title!,
             description:
                 (i.snippet?.description ?? '').trim().split('\n').first,
             thumbnailUrl: i.snippet!.thumbnails!.high!.url!,
-          ),
-        ));
+          );
+          if (videoIds.add(video.videoId)) {
+            videos.add(video);
+          } else {
+            _logger.warning(
+                'Duplicate videoId "${video.videoId}" on page $pageIndex.');
+          }
+        }
         // next page
         nextPageToken = rs.nextPageToken;
         check = nextPageToken != null && nextPageToken.isNotEmpty;
+        pageIndex++;
       }
       return videos;
     } finally {
