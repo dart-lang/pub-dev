@@ -195,7 +195,8 @@ class DartdocJobProcessor extends JobProcessor {
           job,
           _emptyReport(
             title: 'Did not run dartdoc',
-            description: 'This package is not compatible with the current analysis SDK version',
+            description:
+                'This package is not compatible with the current analysis SDK version',
           ));
       return JobStatus.skipped;
     }
