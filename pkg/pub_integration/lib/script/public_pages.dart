@@ -37,7 +37,7 @@ class PublicPagesScript {
 
   Future<void> _landingPage() async {
     final html = await _pubClient.getContent('/');
-    _contains(html, 'Find and use packages');
+    _contains(html, 'The official package repository for');
     if (expectLiveSite) {
       _contains(html, 'top packages');
       _contains(html, 'View all');
