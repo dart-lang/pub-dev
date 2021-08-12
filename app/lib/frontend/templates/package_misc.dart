@@ -14,16 +14,16 @@ import 'views/pkg/badge.dart';
 import 'views/pkg/labeled_scores.dart';
 
 /// Renders the Flutter Favorite badge, used by package listing.
-d.Node renderFlutterFavoriteBadgeNode() {
-  return renderPackageBadgeNode(
+d.Node flutterFavoriteBadgeNode() {
+  return packageBadgeNode(
     label: 'Flutter Favorite',
     iconUrl: staticUrls.flutterLogo32x32,
   );
 }
 
 /// Renders the null-safe badge used by package listing and package page.
-d.Node renderNullSafeBadgeNode() {
-  return renderPackageBadgeNode(
+d.Node nullSafeBadgeNode() {
+  return packageBadgeNode(
     label: 'Null safety',
     title: 'Supports the null safety language feature.',
   );

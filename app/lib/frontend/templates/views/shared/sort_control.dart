@@ -5,7 +5,7 @@
 import '../../../dom/dom.dart' as d;
 import '../../_consts.dart';
 
-d.Node renderSortControlNode({
+d.Node sortControlNode({
   required List<SortDict> options,
   required SortDict selected,
 }) {

@@ -212,7 +212,7 @@ String renderSdkTabs({
     );
   }
 
-  return renderSearchTabs(
+  return searchTabsNode(
     [
       sdkTabData(
         'Dart',

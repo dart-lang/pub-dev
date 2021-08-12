@@ -6,7 +6,7 @@ import '../../../../audit/models.dart';
 import '../../../../shared/utils.dart';
 import '../../../dom/dom.dart' as d;
 
-d.Node renderActivityLog({
+d.Node activityLogNode({
   required String baseUrl,
   required AuditLogRecordPage activities,
   required String forCategory,
@@ -19,13 +19,13 @@ d.Node renderActivityLog({
       d.text('. '),
       d.text('Events other than package publication expire after 2 months.'),
     ]),
-    _renderActivityLogTable(activities),
+    _activityLogTableNode(activities),
     if (activities.hasNextPage)
-      _renderNextPage(baseUrl, activities.nextTimestamp!),
+      _nextPageNode(baseUrl, activities.nextTimestamp!),
   ]);
 }
 
-d.Node _renderActivityLogTable(AuditLogRecordPage activities) {
+d.Node _activityLogTableNode(AuditLogRecordPage activities) {
   return d.table(
     classes: ['activity-log-table'],
     head: [
@@ -53,7 +53,7 @@ d.Node _renderActivityLogTable(AuditLogRecordPage activities) {
   );
 }
 
-d.Node _renderNextPage(String baseUrl, String nextTimestamp) {
+d.Node _nextPageNode(String baseUrl, String nextTimestamp) {
   final nextUri = Uri.parse(baseUrl).replace(
     queryParameters: {'before': nextTimestamp},
   );

@@ -222,8 +222,7 @@ String renderPkgHeader(PackagePageData data) {
 
   final isNullSafe =
       data.toPackageView().tags.contains(PackageVersionTags.isNullSafe);
-  final nullSafeBadgeHtml =
-      isNullSafe ? renderNullSafeBadgeNode().toString() : null;
+  final nullSafeBadgeHtml = isNullSafe ? nullSafeBadgeNode().toString() : null;
 
   final metadataHtml = templateCache.renderTemplate('pkg/header', {
     'publisher_id': package.publisherId,
