@@ -16,6 +16,9 @@ void main() {
     if (Platform.environment.containsKey('YOUTUBE_API_KEY')) {
       final videos = youtubeBackend.getTopPackageOfWeekVideos(count: 100);
       expect(videos, hasLength(greaterThan(5)));
+      // Guard against bad pagination / duplicate ids.
+      final videoIds = videos.map((e) => e.videoId).toList();
+      expect(videoIds.toSet().length, videoIds.length);
     }
   });
 
