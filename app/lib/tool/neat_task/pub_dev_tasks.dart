@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:logging/logging.dart';
 import 'package:neat_periodic_task/neat_periodic_task.dart';
 
 import '../../account/backend.dart';
@@ -17,6 +20,8 @@ import '../../shared/datastore.dart';
 import '../../tool/backfill/backfill_new_fields.dart';
 
 import 'datastore_status_provider.dart';
+
+final _logger = Logger('pub_dev_tasks');
 
 /// Setup the tasks that we are running in pub.dev frontend.
 void setupFrontendPeriodicTasks() {
@@ -144,7 +149,7 @@ void _daily({
     timeout: Duration(hours: 12),
     status: DatastoreStatusProvider.create(dbService, name,
         isRuntimeVersioned: isRuntimeVersioned),
-    task: task,
+    task: _wrapMemoryLogging(name, task),
   );
 
   ss.registerScopeExitCallback(() => scheduler.stop());
@@ -162,9 +167,30 @@ void _weekly({
     timeout: Duration(hours: 12),
     status: DatastoreStatusProvider.create(dbService, name,
         isRuntimeVersioned: isRuntimeVersioned),
-    task: task,
+    task: _wrapMemoryLogging(name, task),
   );
 
   ss.registerScopeExitCallback(() => scheduler.stop());
   scheduler.start();
+}
+
+NeatPeriodicTask _wrapMemoryLogging(String name, NeatPeriodicTask task) {
+  return () async {
+    final startMaxRssInKiB = ProcessInfo.maxRss ~/ 1024;
+    try {
+      await task();
+    } finally {
+      final endMaxRssInKiB = ProcessInfo.maxRss ~/ 1024;
+      final diffMaxRssInKiB = endMaxRssInKiB - startMaxRssInKiB;
+      final message =
+          'Periodic task $name completed with max memory use $endMaxRssInKiB ($diffMaxRssInKiB)';
+      if (diffMaxRssInKiB > 1024) {
+        // Take a notice, when the memory usage increased with more than 1 MB.
+        // Let the log message stand out a bit, we should investigate, but no need to alert on it.
+        _logger.warning(message);
+      } else {
+        _logger.info(message);
+      }
+    }
+  };
 }
