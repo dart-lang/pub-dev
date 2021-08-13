@@ -5,11 +5,11 @@ set -e
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 WEB_CSS_DIR="${SCRIPT_DIR}"
-PROJECT_DIR="$( cd ${WEB_CSS_DIR}/../.. && pwd )"
+PROJECT_DIR="$( cd "${WEB_CSS_DIR}/../.." && pwd )"
 STATIC_DIR="${PROJECT_DIR}/static"
 OUTPUT_DIR="${STATIC_DIR}/css"
 
-mkdir -p ${OUTPUT_DIR}
+mkdir -p "${OUTPUT_DIR}"
 
 # Change to web_css folder
 cd "${WEB_CSS_DIR}";
