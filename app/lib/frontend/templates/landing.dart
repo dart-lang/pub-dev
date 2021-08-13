@@ -9,8 +9,8 @@ import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
 import '_cache.dart';
-import '_utils.dart';
 import 'layout.dart';
+import 'views/landing/pow_video_list.dart';
 
 /// Renders the `views/page/landing.mustache` template.
 String renderLandingPage({
@@ -49,7 +49,8 @@ String renderLandingPage({
         renderMiniListIf(hasTopDart, 'top-dart', topDartPackages),
     'td_view_all_url': urls.searchUrl(sdk: SdkTagValue.dart),
     'has_pow': hasPoW,
-    'pow_mini_list_html': hasPoW ? _renderPoW(topPoWVideos!) : null,
+    'pow_mini_list_html':
+        hasPoW ? videoListNode(topPoWVideos!).toString() : null,
   };
   final content = templateCache.renderTemplate('landing/page', values);
   return renderLayoutPage(
@@ -59,19 +60,6 @@ String renderLandingPage({
     canonicalUrl: '/',
     mainClasses: ['landing-main'],
   );
-}
-
-String _renderPoW(List<PkgOfWeekVideo> videos) {
-  return templateCache.renderTemplate('landing/pow_video_list', {
-    'videos': videos
-        .map((v) => {
-              'video_url': htmlAttrEscape.convert(v.videoUrl),
-              'title': v.title,
-              'description': v.description,
-              'thumbnail_url': htmlAttrEscape.convert(v.thumbnailUrl),
-            })
-        .toList(),
-  });
 }
 
 /// Renders the `views/pkg/mini_list.mustache` template.
