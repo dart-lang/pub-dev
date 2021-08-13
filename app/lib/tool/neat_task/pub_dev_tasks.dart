@@ -23,8 +23,8 @@ import 'datastore_status_provider.dart';
 
 final _logger = Logger('pub_dev_tasks');
 
-/// Setup the tasks that we are running in pub.dev frontend.
-void setupFrontendPeriodicTasks() {
+/// Periodic task that are not tied to a specific service.
+void _setupGenericPeriodicTasks() {
   // Backfills the fields that are new to the current release.
   _weekly(
     name: 'backfill-new-fields',
@@ -72,6 +72,7 @@ void setupFrontendPeriodicTasks() {
 
 /// Setup the tasks that we are running in the analyzer service.
 void setupAnalyzerPeriodicTasks() {
+  _setupGenericPeriodicTasks();
   _setupJobCleanupPeriodicTasks();
 }
 
