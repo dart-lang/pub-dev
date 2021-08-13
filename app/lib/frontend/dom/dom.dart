@@ -212,8 +212,10 @@ Node img({
   Iterable<Node>? children,
   String? src,
   String? title,
+  String? alt,
 }) {
-  final hasAttributes = attributes != null || src != null || title != null;
+  final hasAttributes =
+      attributes != null || src != null || title != null || alt != null;
   return dom.element(
     'img',
     id: id,
@@ -222,6 +224,7 @@ Node img({
         ? <String, String>{
             if (src != null) 'src': src,
             if (title != null) 'title': title,
+            if (alt != null) 'alt': alt,
             if (attributes != null) ...attributes,
           }
         : null,
