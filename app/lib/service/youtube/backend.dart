@@ -120,6 +120,7 @@ class _PkgOfWeekVideoFetcher {
         final rs = await youtube.playlistItems.list(
           ['snippet', 'contentDetails'],
           playlistId: powPlaylistId,
+          pageToken: nextPageToken,
         );
         videos.addAll(rs.items!.map(
           (i) => PkgOfWeekVideo(
