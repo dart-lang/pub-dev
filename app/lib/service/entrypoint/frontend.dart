@@ -9,7 +9,6 @@ import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_dev/service/youtube/backend.dart';
-import 'package:pub_dev/tool/neat_task/pub_dev_tasks.dart';
 import 'package:stream_transform/stream_transform.dart' show RateLimit;
 import 'package:watcher/watcher.dart';
 
