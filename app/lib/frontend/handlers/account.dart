@@ -214,7 +214,9 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
   final searchForm = parseFrontendSearchForm(
     request.requestedUri.queryParameters,
     uploaderOrPublishers: [
+      // TODO: remove email after userId is populated in the search index
       userSessionData!.email!,
+      userSessionData!.userId!,
       ...page.publishers!.map((p) => p.publisherId),
     ],
     tagsPredicate: TagsPredicate.allPackages(),

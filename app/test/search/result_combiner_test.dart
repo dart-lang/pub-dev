@@ -34,6 +34,7 @@ void main() {
         grantedPoints: 110,
         maxPoints: 110,
         uploaderEmails: ['foo@example.com'],
+        uploaderUserIds: ['foo-at-example-dot-com'],
       ));
       dartSdkMemIndex.setDartdocIndex(
         DartdocIndex.fromJsonList([

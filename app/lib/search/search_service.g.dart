@@ -32,6 +32,10 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
               ?.map((e) => e as String)
               .toList() ??
           const [],
+      uploaderUserIds: (json['uploaderUserIds'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
       apiDocPages: (json['apiDocPages'] as List<dynamic>?)
               ?.map((e) => ApiDocPage.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -57,6 +61,7 @@ Map<String, dynamic> _$PackageDocumentToJson(PackageDocument instance) =>
       'dependencies': instance.dependencies,
       'publisherId': instance.publisherId,
       'uploaderEmails': instance.uploaderEmails,
+      'uploaderUserIds': instance.uploaderUserIds,
       'apiDocPages': instance.apiDocPages,
       'timestamp': instance.timestamp.toIso8601String(),
     };

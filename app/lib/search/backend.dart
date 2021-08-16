@@ -154,6 +154,7 @@ class SearchBackend {
       dependencies: _buildDependencies(pv.pubspec!, scoreCard),
       publisherId: p.publisherId,
       uploaderEmails: await _buildUploaderEmails(p),
+      uploaderUserIds: p.uploaders,
       apiDocPages: apiDocPages,
       timestamp: DateTime.now().toUtc(),
     );
@@ -206,6 +207,7 @@ class SearchBackend {
         maxPoints: 0,
         publisherId: p.publisherId,
         uploaderEmails: await _buildUploaderEmails(p),
+        uploaderUserIds: p.uploaders,
         timestamp: DateTime.now().toUtc(),
       );
     }

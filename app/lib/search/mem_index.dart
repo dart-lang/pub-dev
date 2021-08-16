@@ -171,6 +171,11 @@ class InMemoryPackageIndex implements PackageIndex {
         if (doc.publisherId != null) {
           return !query.uploaderOrPublishers!.contains(doc.publisherId);
         }
+        if (doc.uploaderUserIds != null &&
+            query.uploaderOrPublishers!.any(doc.uploaderUserIds!.contains)) {
+          return false;
+        }
+
         if (doc.uploaderEmails == null) {
           return true; // turn this into an error in the future.
         }
