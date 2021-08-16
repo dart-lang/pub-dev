@@ -20,7 +20,7 @@ d.Node packageHeaderNode({
     d.text('Published '),
     d.span(text: shortDateFormat.format(published)),
     if (publisherId != null) ..._publisher(publisherId),
-    if (isNullSafe) renderNullSafeBadgeNode(),
+    if (isNullSafe) nullSafeBadgeNode(),
     if (releases != null) ..._releases(packageName, releases),
   ]);
 }
