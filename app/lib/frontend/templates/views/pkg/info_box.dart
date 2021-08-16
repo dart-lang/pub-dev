@@ -26,19 +26,21 @@ d.Node? dependencyListNode(Map<String, pubspek.Dependency>? dependencies) {
   if (dependencies == null) return null;
   final packages = dependencies.keys.toList()..sort();
   if (packages.isEmpty) return null;
-  return d.fragment(
-    packages.expand((p) {
-      final dep = dependencies[p];
-      var href = redirectPackageUrls[p];
-      String? constraint;
-      if (href == null && dep is pubspek.HostedDependency) {
-        href = urls.pkgPageUrl(p);
-        constraint = dep.version.toString();
-      }
-      return <d.Node>[
-        d.text(', '),
-        href == null ? d.text(p) : d.a(href: href, title: constraint, text: p),
-      ];
-    }).skip(1), // skips the first comma (', ').
-  );
+  final nodes = <d.Node>[];
+  for (final p in packages) {
+    if (nodes.isNotEmpty) {
+      nodes.add(d.text(', '));
+    }
+    final dep = dependencies[p];
+    var href = redirectPackageUrls[p];
+    String? constraint;
+    if (href == null && dep is pubspek.HostedDependency) {
+      href = urls.pkgPageUrl(p);
+      constraint = dep.version.toString();
+    }
+    final node =
+        href == null ? d.text(p) : d.a(href: href, title: constraint, text: p);
+    nodes.add(node);
+  }
+  return d.fragment(nodes);
 }
