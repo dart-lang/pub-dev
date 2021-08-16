@@ -25,6 +25,7 @@ Future<void> main(List<String> args) async {
   print('Done.');
 }
 
+final timeLimit = Duration(seconds: 15);
 final urls = <String>[
   // package info
   'https://pub.dev/api/packages/http',
@@ -42,12 +43,13 @@ Future<void> _checkHosts() async {
     for (final type in [InternetAddressType.IPv4, InternetAddressType.IPv6]) {
       final typeStr = type == InternetAddressType.IPv4 ? 'IPv4' : 'IPv6';
       try {
-        final addresses = await InternetAddress.lookup(host, type: type);
+        final addresses =
+            await InternetAddress.lookup(host, type: type).timeout(timeLimit);
         final failed = <InternetAddress>[];
         for (final address in addresses) {
           try {
-            final s = await Socket.connect(address, 443);
-            await s.close();
+            final s = await Socket.connect(address, 443).timeout(timeLimit);
+            await s.close().timeout(timeLimit);
           } catch (_) {
             failed.add(address);
           }
@@ -71,9 +73,9 @@ Future<void> _checkUrls({HttpClient? client}) async {
 Future<void> _checkUrlGetContent(Uri uri, {HttpClient? client}) async {
   final closeClient = client == null;
   client ??= HttpClient();
-  final rq = await client.getUrl(uri);
-  final rs = await rq.close();
-  final bodyList = await rs.toList();
+  final rq = await client.getUrl(uri).timeout(timeLimit);
+  final rs = await rq.close().timeout(timeLimit);
+  final bodyList = await rs.toList().timeout(timeLimit);
   final bodyLength = bodyList.map((e) => e.length).reduce((a, b) => a + b);
   if (bodyLength <= 0) throw Exception('No body for $uri');
   if (rs.statusCode != 200) throw Exception('Failed to fetch $uri');
