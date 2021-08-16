@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:client_data/page_data.dart';
 import 'package:pana/pana.dart' show getRepositoryUrl, LicenseNames;
+import 'package:pub_dev/frontend/templates/views/pkg/header.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' show HostedDependency;
 
 import '../../package/model_properties.dart';
@@ -217,41 +218,19 @@ String renderPkgHeader(PackagePageData data) {
   final package = data.package!;
   final showPrereleaseVersion = data.latestReleases!.showPrerelease;
   final showPreviewVersion = data.latestReleases!.showPreview;
-  final bool showUpdated =
+  final bool showReleases =
       !data.isLatestStable || showPrereleaseVersion || showPreviewVersion;
 
   final isNullSafe =
       data.toPackageView().tags.contains(PackageVersionTags.isNullSafe);
-  final nullSafeBadgeHtml = isNullSafe ? nullSafeBadgeNode().toString() : null;
+  final metadataHtml = packageHeaderNode(
+    packageName: package.name!,
+    publisherId: package.publisherId,
+    published: data.version!.created!,
+    isNullSafe: isNullSafe,
+    releases: showReleases ? data.latestReleases : null,
+  ).toString();
 
-  final metadataHtml = templateCache.renderTemplate('pkg/header', {
-    'publisher_id': package.publisherId,
-    'publisher_url': package.publisherId == null
-        ? null
-        : urls.publisherUrl(package.publisherId!),
-    'null_safe_badge_html': nullSafeBadgeHtml,
-    'latest': {
-      'show_updated': showUpdated,
-      'show_prerelease_version': showPrereleaseVersion,
-      'show_preview_version': showPreviewVersion,
-      'stable_url': urls.pkgPageUrl(package.name!),
-      'stable_version': data.latestReleases!.stable.version,
-      'prerelease_url': showPrereleaseVersion
-          ? urls.pkgPageUrl(package.name!,
-              version: data.latestReleases!.prerelease!.version)
-          : null,
-      'prerelease_version': showPrereleaseVersion
-          ? data.latestReleases!.prerelease!.version
-          : null,
-      'preview_url': showPreviewVersion
-          ? urls.pkgPageUrl(package.name!,
-              version: data.latestReleases!.preview!.version)
-          : null,
-      'preview_version':
-          showPreviewVersion ? data.latestReleases!.preview!.version : null,
-    },
-    'short_created': data.version!.shortCreated,
-  });
   final pkgView = data.toPackageView();
   return renderDetailHeader(
     titleHtml: titleContentNode(
