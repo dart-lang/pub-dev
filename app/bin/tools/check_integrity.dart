@@ -33,7 +33,7 @@ Future main(List<String> args) async {
 
   await withToolRuntime(() async {
     final checker = IntegrityChecker(dbService, concurrency: concurrency);
-    final problems = await checker.check().toList();
+    final problems = await checker.findProblems().toList();
     print('\nProblems detected: ${problems.length}\n');
     for (String line in problems) {
       print(line);

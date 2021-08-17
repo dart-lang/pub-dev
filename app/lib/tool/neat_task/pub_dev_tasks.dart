@@ -17,6 +17,7 @@ import '../../package/backend.dart';
 import '../../scorecard/backend.dart';
 import '../../search/backend.dart';
 import '../../shared/datastore.dart';
+import '../../shared/integrity.dart';
 import '../../tool/backfill/backfill_new_fields.dart';
 
 import 'datastore_status_provider.dart';
@@ -74,6 +75,14 @@ void _setupGenericPeriodicTasks() {
 void setupAnalyzerPeriodicTasks() {
   _setupGenericPeriodicTasks();
   _setupJobCleanupPeriodicTasks();
+
+  // Checks the Datastore integrity of the model objects.
+  _weekly(
+    name: 'check-datastore-integrity',
+    isRuntimeVersioned: true,
+    task: () async =>
+        await IntegrityChecker(dbService, concurrency: 2).verifyAndLogIssues(),
+  );
 }
 
 /// Setup the tasks that we are running in the dartdoc service.

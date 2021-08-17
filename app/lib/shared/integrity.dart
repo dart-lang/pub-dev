@@ -10,6 +10,7 @@ import '../package/models.dart';
 import '../publisher/models.dart';
 import '../shared/datastore.dart';
 import '../shared/tags.dart' show allowedTagPrefixes;
+import '../shared/utils.dart' show LoggerExt;
 
 import 'email.dart' show looksLikeEmail;
 
@@ -35,8 +36,18 @@ class IntegrityChecker {
   IntegrityChecker(this._db, {int? concurrency})
       : _concurrency = concurrency ?? 1;
 
-  /// Runs integrity checks, and reports the list of problems.
-  Stream<String> check() async* {
+  /// Runs integrity checks, and reports the problems via a [Logger].
+  Future<void> verifyAndLogIssues() async {
+    var count = 0;
+    await for (final problem in findProblems()) {
+      count++;
+      _logger.reportError('[pub-integrity-problem] $problem');
+    }
+    _logger.info('Integrity check completed with $count issue(s).');
+  }
+
+  /// Runs integrity checks, and returns the list of problems.
+  Stream<String> findProblems() async* {
     yield* _checkUsers();
     yield* _checkOAuthUserIDs();
     yield* _checkPublishers();
