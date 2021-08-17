@@ -82,17 +82,13 @@ PanaReport _$PanaReportFromJson(Map<String, dynamic> json) => PanaReport(
           : Report.fromJson(json['report'] as Map<String, dynamic>),
       flags:
           (json['flags'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      urlProblems: (json['urlProblems'] as List<dynamic>?)
+          ?.map((e) => UrlProblem.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$PanaReportToJson(PanaReport instance) {
-  final val = <String, dynamic>{
-    'timestamp': instance.timestamp?.toIso8601String(),
-    'panaRuntimeInfo': instance.panaRuntimeInfo,
-    'reportStatus': instance.reportStatus,
-    'derivedTags': instance.derivedTags,
-    'allDependencies': instance.allDependencies,
-    'licenseFile': instance.licenseFile,
-  };
+  final val = <String, dynamic>{};
 
   void writeNotNull(String key, dynamic value) {
     if (value != null) {
@@ -100,8 +96,15 @@ Map<String, dynamic> _$PanaReportToJson(PanaReport instance) {
     }
   }
 
+  writeNotNull('timestamp', instance.timestamp?.toIso8601String());
+  writeNotNull('panaRuntimeInfo', instance.panaRuntimeInfo);
+  writeNotNull('reportStatus', instance.reportStatus);
+  writeNotNull('derivedTags', instance.derivedTags);
+  writeNotNull('allDependencies', instance.allDependencies);
+  writeNotNull('licenseFile', instance.licenseFile);
   writeNotNull('report', instance.report);
   writeNotNull('flags', instance.flags);
+  writeNotNull('urlProblems', instance.urlProblems);
   return val;
 }
 

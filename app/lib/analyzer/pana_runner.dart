@@ -176,5 +176,6 @@ PanaReport panaReportFromSummary(Summary? summary, {List<String>? flags}) {
     licenseFile: summary?.licenseFile,
     report: summary?.report,
     flags: flags,
+    urlProblems: summary?.urlProblems,
   );
 }

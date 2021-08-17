@@ -306,6 +306,7 @@ void main() {
           licenseFile: null,
           report: Report(sections: <ReportSection>[]),
           flags: null,
+          urlProblems: null,
         ),
       );
       final html = renderAnalysisTab(
