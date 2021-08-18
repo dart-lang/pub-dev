@@ -17,6 +17,7 @@ import '../../shared/configuration.dart';
 import '../../shared/redis_cache.dart';
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart';
+import '../dom/dom.dart' as d;
 
 /// Handles requests for /feed.atom
 Future<shelf.Response> atomFeedHandler(shelf.Request request) async {
@@ -40,7 +41,7 @@ Future<shelf.Response> atomFeedHandler(shelf.Request request) async {
 class FeedEntry {
   final String id;
   final String title;
-  final DateTime? updated;
+  final DateTime updated;
   final String? publisherId;
   final String? content;
   final String alternateUrl;
@@ -49,25 +50,30 @@ class FeedEntry {
   FeedEntry(this.id, this.title, this.updated, this.publisherId, this.content,
       this.alternateUrl, this.alternateTitle);
 
-  void writeToXmlBuffer(StringBuffer buffer) {
-    var authorTags = '';
-    if (publisherId != null) {
-      final escapedAuthors = htmlEscape.convert(publisherId!);
-      authorTags = '<author><name>$escapedAuthors</name></author>';
-    }
-
-    buffer.writeln('''
-        <entry>
-          <id>urn:uuid:${htmlEscape.convert(id)}</id>
-          <title>${htmlEscape.convert(title)}</title>
-          <updated>${updated!.toIso8601String()}</updated>
-          $authorTags
-          <content type="html">${htmlEscape.convert(content ?? '')}</content>
-          <link href="$alternateUrl"
-                rel="alternate"
-                title="$alternateTitle" />
-        </entry>
-      ''');
+  d.Node toNode() {
+    return d.element(
+      'entry',
+      children: [
+        d.element('id', text: 'urn:uuid:$id'),
+        d.element('title', text: title),
+        d.element('updated', text: updated.toIso8601String()),
+        if (publisherId != null)
+          d.element('author', child: d.element('name', text: publisherId)),
+        d.element(
+          'content',
+          attributes: {'type': 'html'},
+          text: content,
+        ),
+        d.element(
+          'link',
+          attributes: {
+            'href': alternateUrl,
+            'rel': 'alternate',
+            'title': alternateTitle ?? '',
+          },
+        ),
+      ],
+    );
   }
 }
 
@@ -99,33 +105,33 @@ class Feed {
   String toXmlDocument() {
     final buffer = StringBuffer();
     buffer.writeln('<?xml version="1.0" encoding="UTF-8"?>');
-    writeToXmlBuffer(buffer);
+    buffer.writeln(toNode().toString());
     return buffer.toString();
   }
 
-  void writeToXmlBuffer(StringBuffer buffer) {
-    final escape = htmlEscape.convert;
-
-    buffer.writeln('<feed xmlns="http://www.w3.org/2005/Atom">');
-
-    buffer.writeln('''
-        <id>$id</id>
-        <title>${escape(title)}</title>
-        <updated>${updated.toIso8601String()}</updated>
-        <author>
-          <name>${escape(author)}</name>
-        </author>
-        <link href="$alternateUrl" rel="alternate" />
-        <link href="$selfUrl" rel="self" />
-        <generator version="$generatorVersion">${escape(generator)}</generator>
-        <subtitle>${escape(subTitle)}</subtitle>
-        ''');
-
-    for (var entry in entries) {
-      entry.writeToXmlBuffer(buffer);
-    }
-
-    buffer.writeln('</feed>');
+  d.Node toNode() {
+    return d.element(
+      'feed',
+      attributes: {'xmlns': 'http://www.w3.org/2005/Atom'},
+      children: [
+        d.element('id', text: id),
+        d.element('title', text: title),
+        d.element('updated', text: updated.toIso8601String()),
+        d.element('author', child: d.element('name', text: author)),
+        d.element(
+          'link',
+          attributes: {'href': alternateUrl, 'rel': 'alternate'},
+        ),
+        d.element('link', attributes: {'href': selfUrl, 'rel': 'self'}),
+        d.element(
+          'generator',
+          attributes: {'version': generatorVersion},
+          text: generator,
+        ),
+        d.element('subtitle', text: subTitle),
+        ...entries.map((e) => e.toNode()),
+      ],
+    );
   }
 }
 
@@ -157,7 +163,7 @@ Feed _feedFromPackageVersions(
       }
     }
 
-    entries.add(FeedEntry(id, title, version.created, version.publisherId,
+    entries.add(FeedEntry(id, title, version.created!, version.publisherId,
         content, alternateUrl, alternateTitle));
   }
 
