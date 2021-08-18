@@ -55,7 +55,7 @@ bool shouldGCVersion(String version) =>
 final String runtimeSdkVersion = '2.13.4';
 final String toolStableDartSdkVersion = '2.13.4';
 final String toolStableFlutterSdkVersion = '2.2.3';
-final String toolPreviewDartSdkVersion = '2.14.0-377.4.beta';
+final String toolPreviewDartSdkVersion = '2.14.0-377.7.beta';
 final String toolPreviewFlutterSdkVersion = '2.5.0-5.1.pre';
 
 // Value comes from package:pana.
