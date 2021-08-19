@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:intl/intl.dart';
 
+import '../dom/dom.dart' as d;
 import '_cache.dart';
 
 final wideHeaderDetailPageClassName = '-wide-header-detail-page';
@@ -86,38 +87,35 @@ String renderDetailTabs(List<Tab> tabs) {
 /// Defines the header and content part of a tab.
 class Tab {
   final String id;
-  final String titleHtml;
+  final String title;
+  final String? href;
   final String? contentHtml;
   final bool isMarkdown;
-  final bool hasHref;
   bool isActive = false;
 
   Tab.withContent({
     required this.id,
-    String? title,
-    String? titleHtml,
+    required this.title,
     required this.contentHtml,
     this.isMarkdown = false,
-    this.hasHref = false,
-  }) : titleHtml = titleHtml ?? htmlEscape.convert(title!);
+  }) : href = null;
 
   Tab.withLink({
     required this.id,
-    String? title,
-    String? titleHtml,
-    required String href,
-  })  : titleHtml =
-            '<a href="$href">${titleHtml ?? htmlEscape.convert(title!)}</a>',
-        contentHtml = null,
-        isMarkdown = false,
-        hasHref = true;
+    required this.title,
+    required this.href,
+  })  : contentHtml = null,
+        isMarkdown = false;
 
   Map _toMustacheData() {
+    final isPrivate =
+        id == 'admin' || id == 'activity-log' || id.startsWith('my-');
     final titleClasses = <String>[
       'detail-tab',
       contentHtml == null ? 'tab-link' : 'tab-button',
       'detail-tab-$id-title',
       if (isActive) '-active',
+      if (isPrivate) '-private',
     ];
     final contentClasses = <String>[
       'tab-content',
@@ -125,9 +123,11 @@ class Tab {
       if (isActive) '-active',
       if (isMarkdown) 'markdown-body',
     ];
+    final titleNode =
+        href == null ? d.text(title) : d.a(href: href, text: title);
     return <String, dynamic>{
       'title_classes': titleClasses.join(' '),
-      'title_html': titleHtml,
+      'title_html': titleNode.toString(),
       'content_classes': contentClasses.join(' '),
       'content_html': contentHtml,
       'has_content': contentHtml != null,

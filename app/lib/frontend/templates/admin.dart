@@ -63,7 +63,7 @@ String renderAccountPackagesPage({
     headerHtml: _accountDetailHeader(user, userSessionData),
     tabs: [
       Tab.withContent(
-          id: 'packages', title: 'My packages', contentHtml: tabContent),
+          id: 'my-packages', title: 'My packages', contentHtml: tabContent),
       _myLikedPackagesLink(),
       _myPublishersLink(),
       _myActivityLogLink(),
@@ -102,7 +102,7 @@ String renderMyLikedPackagesPage({
     tabs: [
       _myPackagesLink(),
       Tab.withContent(
-          id: 'liked-packages',
+          id: 'my-liked-packages',
           title: 'My liked packages',
           contentHtml: tabContent),
       _myPublishersLink(),
@@ -133,7 +133,7 @@ String renderAccountPublishersPage({
       _myPackagesLink(),
       _myLikedPackagesLink(),
       Tab.withContent(
-        id: 'publishers',
+        id: 'my-publishers',
         title: 'My publishers',
         contentHtml: pln.toString(),
       ),
@@ -170,7 +170,7 @@ String renderAccountMyActivityPage({
       _myLikedPackagesLink(),
       _myPublishersLink(),
       Tab.withContent(
-        id: 'activity-log',
+        id: 'my-activity-log',
         title: 'My activity log',
         contentHtml: activityLog.toString(),
       ),
@@ -188,18 +188,18 @@ String renderAccountMyActivityPage({
 }
 
 Tab _myPackagesLink() => Tab.withLink(
-    id: 'packages', title: 'My packages', href: urls.myPackagesUrl());
+    id: 'my-packages', title: 'My packages', href: urls.myPackagesUrl());
 
 Tab _myLikedPackagesLink() => Tab.withLink(
-    id: 'liked-packages',
+    id: 'my-liked-packages',
     title: 'My liked packages',
     href: urls.myLikedPackagesUrl());
 
 Tab _myPublishersLink() => Tab.withLink(
-    id: 'publishers', title: 'My publishers', href: urls.myPublishersUrl());
+    id: 'my-publishers', title: 'My publishers', href: urls.myPublishersUrl());
 
 Tab _myActivityLogLink() => Tab.withLink(
-    id: 'activity-log',
+    id: 'my-activity-log',
     title: 'My activity log',
     href: urls.myActivityLogUrl());
 

@@ -321,10 +321,8 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   }
 
   /* Render admin tabs with red. */
-  > .tab-button.detail-tab-admin-title,
-  > .tab-link.detail-tab-admin-title > a,
-  > .tab-button.detail-tab-activity-log-title,
-  > .tab-link.detail-tab-activity-log-title > a {
+  > .tab-button.-private,
+  > .tab-link.-private > a {
     color: $detail-tab-admin-color;
     position: relative;
     padding-right: 9px;
@@ -354,8 +352,8 @@ $detail-tabs-tablet-width: calc(100% - 240px);
       width: 12px;
     }
   }
-  > .tab-button.detail-tab-admin-title,
-  > .tab-button.detail-tab-activity-log-title {
+  > .tab-button.-private,
+  > .tab-button.-private {
     border-bottom-color: $detail-tab-admin-color;
   }
 }
