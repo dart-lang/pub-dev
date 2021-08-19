@@ -6,7 +6,7 @@ import 'dart:io';
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pana/models.dart'
-    show LicenseFile, PanaRuntimeInfo, Report, ReportSection;
+    show LicenseFile, PanaRuntimeInfo, Report, ReportSection, UrlProblem;
 import 'package:pub_semver/pub_semver.dart';
 
 import '../dartdoc/models.dart';
@@ -277,7 +277,7 @@ abstract class ReportData {
   Map<String, dynamic> toJson();
 }
 
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class PanaReport implements ReportData {
   @override
   String get reportType => ReportType.pana;
@@ -298,13 +298,13 @@ class PanaReport implements ReportData {
 
   final LicenseFile? licenseFile;
 
-  @JsonKey(includeIfNull: false)
   final Report? report;
 
   /// The flags for the package, version or analysis.
   /// Example values: entries from [PackageFlags].
-  @JsonKey(includeIfNull: false)
   List<String>? flags = <String>[];
+
+  final List<UrlProblem>? urlProblems;
 
   PanaReport({
     required this.timestamp,
@@ -315,6 +315,7 @@ class PanaReport implements ReportData {
     required this.licenseFile,
     required this.report,
     required this.flags,
+    required this.urlProblems,
   });
 
   factory PanaReport.fromJson(Map<String, dynamic> json) =>

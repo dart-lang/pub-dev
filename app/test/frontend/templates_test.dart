@@ -97,6 +97,9 @@ void main() {
               .replaceAll(value.toIso8601String(), '%%$key-timestamp%%');
         }
       });
+      replacedContent = replacedContent.replaceAll(
+          'Pana <code>$panaVersion</code>,',
+          'Pana <code>%%pana-version%%</code>,');
 
       // Pretty printing output using XML parser and formatter.
       final xmlDoc = xml.XmlDocument.parse(
@@ -306,6 +309,7 @@ void main() {
           licenseFile: null,
           report: Report(sections: <ReportSection>[]),
           flags: null,
+          urlProblems: null,
         ),
       );
       final html = renderAnalysisTab(
