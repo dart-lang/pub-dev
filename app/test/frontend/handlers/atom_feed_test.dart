@@ -27,45 +27,48 @@ void main() {
       ]);
 
       final oxygenExpr = RegExp('<entry>\n'
-          '          <id>urn:uuid:a6a43bff-e1ef-4633-b5ee-e0516b655be9</id>\n'
-          '          <title>v1.2.0 of oxygen</title>\n'
-          '          <updated>(.*)</updated>\n'
-          '          \n'
-          '          <content type="html">&lt;h1>oxygen&lt;/h1>\n'
-          '&lt;p>Awesome package.&lt;/p>\n'
+          '  <id>urn:uuid:a6a43bff-e1ef-4633-b5ee-e0516b655be9</id>\n'
+          '  <title>v1.2.0 of oxygen</title>\n'
+          '  <updated>(.*)</updated>\n'
+          '  <content type="html">&lt;h1>oxygen&lt;/h1> &lt;p>Awesome package.&lt;/p>'
           '</content>\n'
-          '          <link href="https://pub.dev/packages/oxygen" rel="alternate" title="oxygen"/>\n'
-          '        </entry>');
-      expect(oxygenExpr.hasMatch(entries[0].toXmlString(indent: '  ')), isTrue);
+          '  <link href="https://pub.dev/packages/oxygen" rel="alternate" title="oxygen"/>\n'
+          '</entry>');
+      expect(
+          oxygenExpr
+              .hasMatch(entries[0].toXmlString(pretty: true, indent: '  ')),
+          isTrue);
 
       final neonExpr = RegExp('<entry>\n'
-          '          <id>urn:uuid:5f920595-c067-404a-bb19-2b0918372eb6</id>\n'
-          '          <title>v1.0.0 of neon</title>\n'
-          '          <updated>(.*)</updated>\n'
-          '          \n'
-          '          <content type="html">&lt;h1>neon&lt;/h1>\n'
-          '&lt;p>Awesome package.&lt;/p>\n'
+          '  <id>urn:uuid:5f920595-c067-404a-bb19-2b0918372eb6</id>\n'
+          '  <title>v1.0.0 of neon</title>\n'
+          '  <updated>(.*)</updated>\n'
+          '  <content type="html">&lt;h1>neon&lt;/h1> '
+          '&lt;p>Awesome package.&lt;/p>'
           '</content>\n'
-          '          <link href="https://pub.dev/packages/neon" rel="alternate" title="neon"/>\n'
-          '        </entry>');
-      expect(neonExpr.hasMatch(entries[2].toXmlString(indent: '  ')), isTrue);
+          '  <link href="https://pub.dev/packages/neon" rel="alternate" title="neon"/>\n'
+          '</entry>');
+      expect(
+          neonExpr.hasMatch(entries[2].toXmlString(pretty: true, indent: '  ')),
+          isTrue);
 
       entries.forEach((e) => e.parent!.children.remove(e));
 
       final restExp = RegExp('<feed xmlns="http://www.w3.org/2005/Atom">\n'
-          '        <id>https://pub.dev/feed.atom</id>\n'
-          '        <title>Pub Packages for Dart</title>\n'
-          '        <updated>(.*)</updated>\n'
-          '        <author>\n'
-          '          <name>Dart Team</name>\n'
-          '        </author>\n'
-          '        <link href="https://pub.dev/" rel="alternate"/>\n'
-          '        <link href="https://pub.dev/feed.atom" rel="self"/>\n'
-          '        <generator version="0.1.0">Pub Feed Generator</generator>\n'
-          '        <subtitle>Last Updated Packages</subtitle>\n'
+          '  <id>https://pub.dev/feed.atom</id>\n'
+          '  <title>Pub Packages for Dart</title>\n'
+          '  <updated>(.*)</updated>\n'
+          '  <author>\n'
+          '    <name>Dart Team</name>\n'
+          '  </author>\n'
+          '  <link href="https://pub.dev/" rel="alternate"/>\n'
+          '  <link href="https://pub.dev/feed.atom" rel="self"/>\n'
+          '  <generator version="0.1.0">Pub Feed Generator</generator>\n'
+          '  <subtitle>Last Updated Packages</subtitle>\n'
           '(\\s*)'
           '</feed>');
-      expect(restExp.hasMatch(feed.toXmlString(indent: '  ')), isTrue);
+      expect(restExp.hasMatch(feed.toXmlString(pretty: true, indent: '  ')),
+          isTrue);
     });
   });
 }
