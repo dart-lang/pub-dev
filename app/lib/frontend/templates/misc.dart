@@ -11,6 +11,8 @@ import '../static_files.dart' as static_files;
 
 import '_cache.dart';
 import 'layout.dart';
+import 'views/account/unauthenticated.dart';
+import 'views/account/unauthorized.dart';
 
 /// The content of `/doc/policy.md`
 final _policyMarkdown = _readDocContent('policy.md');
@@ -26,31 +28,21 @@ final _helpScoringMarkdown = _readDocContent('help-scoring.md');
 final _helpSearchMarkdown = _readDocContent('help-search.md');
 final _helpPublishingMarkdown = _readDocContent('help-publishing.md');
 
-/// Renders the `views/account/unauthenticated.mustache` template for the pages
-/// where the real content is only provided for logged-in users.
-String renderUnauthenticatedPage({String? messageMarkdown}) {
-  messageMarkdown ??= 'You need to be logged in to view this page.';
-  final content = templateCache.renderTemplate('account/unauthenticated', {
-    'message_html': markdownToHtml(messageMarkdown),
-  });
+/// Renders the response where the real content is only provided for logged-in users.
+String renderUnauthenticatedPage() {
   return renderLayoutPage(
     PageType.standalone,
-    content,
+    unauthenticatedNode().toString(),
     title: 'Authentication required',
     noIndex: true,
   );
 }
 
-/// Renders the `views/account/unauthorized.mustache` template for the pages
-/// where the real content is only provided for authorized users.
-String renderUnauthorizedPage({String? messageMarkdown}) {
-  messageMarkdown ??= 'You have insufficient permissions to view this page.';
-  final content = templateCache.renderTemplate('account/unauthorized', {
-    'message_html': markdownToHtml(messageMarkdown),
-  });
+/// Renders the response where the real content is only provided for authorized users.
+String renderUnauthorizedPage() {
   return renderLayoutPage(
     PageType.standalone,
-    content,
+    unauthorizedNode().toString(),
     title: 'Authorization required',
     noIndex: true,
   );

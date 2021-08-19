@@ -13,18 +13,17 @@ import '../../search/search_form.dart' show SearchForm;
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart' show shortDateFormat;
 
-import '_cache.dart';
 import 'detail_page.dart';
 import 'layout.dart';
 import 'listing.dart';
+import 'views/account/authorized.dart';
 import 'views/publisher/publisher_list.dart';
 
-/// Renders the `views/account/authorized.mustache` template.
+/// Renders the response that is displayed after pub client authorizes successfully.
 String renderAuthorizedPage() {
-  final String content = templateCache.renderTemplate('account/authorized', {});
   return renderLayoutPage(
     PageType.package,
-    content,
+    authorizedNode().toString(),
     title: 'Pub Authorized Successfully',
     noIndex: true,
   );
