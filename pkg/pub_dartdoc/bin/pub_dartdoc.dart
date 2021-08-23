@@ -34,6 +34,7 @@ Future<void> main(List<String> arguments) async {
   final pubDataGenerator =
       PubDataGenerator(config.inputDir, config.resourceProvider);
   pubDataGenerator.generate(results.packageGraph, config.output);
+  pubResourceProvider.writeFilesToDiskSync();
 
   print('Max memory use: ${ProcessInfo.maxRss}');
 }

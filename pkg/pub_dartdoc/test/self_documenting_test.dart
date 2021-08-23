@@ -23,9 +23,9 @@ void main() {
         'run',
         'pub_dartdoc',
         '--input',
-        Directory.current.path,
+        Directory.current.absolute.path,
         '--output',
-        tempDir.path,
+        tempDir.absolute.path,
       ]);
     });
 
