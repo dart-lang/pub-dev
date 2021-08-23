@@ -21,6 +21,7 @@ Future<void> main(List<String> arguments) async {
   if (config == null) {
     throw ArgumentError();
   }
+  pubResourceProvider.setConfig(output: config.output);
 
   final packageConfigProvider = PhysicalPackageConfigProvider();
   final packageBuilder =
