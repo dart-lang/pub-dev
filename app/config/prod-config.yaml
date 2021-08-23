@@ -32,13 +32,13 @@ admins:
   email: pub-admin-service@dartlang-pub.iam.gserviceaccount.com
   permissions:
   - listUsers
-  - removeUsers
   - managePackageOwnership
+  - removeUsers
 - oauthUserId: '108693445730271975989'
   email: pub-moderation-admin@dartlang-pub.iam.gserviceaccount.com
   permissions:
   - listUsers
-  - removeUsers
   - manageAssignedTags
-  - removePackage
   - managePackageOwnership
+  - removePackage
+  - removeUsers

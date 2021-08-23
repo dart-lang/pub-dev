@@ -188,8 +188,8 @@ class Configuration {
           oauthUserId: '114536496314409930448',
           permissions: {
             AdminPermission.listUsers,
-            AdminPermission.removeUsers,
             AdminPermission.managePackageOwnership,
+            AdminPermission.removeUsers,
           },
         ),
         AdminId(
@@ -389,15 +389,15 @@ enum AdminPermission {
   /// Permission to list all users.
   listUsers,
 
-  /// Permission to remove a user account (granted to wipeout).
-  removeUsers,
-
   /// Permission to get/set assigned-tags through admin API.
   manageAssignedTags,
+
+  /// Permission to get/set the uploaders of a package.
+  managePackageOwnership,
 
   /// Permission to remove a package.
   removePackage,
 
-  /// Permission to get/set the uploaders of a package.
-  managePackageOwnership,
+  /// Permission to remove a user account (granted to wipeout).
+  removeUsers,
 }

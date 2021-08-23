@@ -22,10 +22,10 @@ admins:
   email: istvan.soos@gmail.com
   permissions:
   - listUsers
-  - removeUsers
   - manageAssignedTags
-  - removePackage
   - managePackageOwnership
+  - removePackage
+  - removeUsers
 - oauthUserId: '117672289743137340098'
   email: assigned-tags-admin@dartlang-pub-dev.iam.gserviceaccount.com
   permissions:
