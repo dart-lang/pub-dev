@@ -25,6 +25,7 @@ admins:
   - removeUsers
   - manageAssignedTags
   - removePackage
+  - managePackageOwnership
 - oauthUserId: '117672289743137340098'
   email: assigned-tags-admin@dartlang-pub-dev.iam.gserviceaccount.com
   permissions:

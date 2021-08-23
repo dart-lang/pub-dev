@@ -37,8 +37,8 @@ admins:
 - oauthUserId: '108693445730271975989'
   email: pub-moderation-admin@dartlang-pub.iam.gserviceaccount.com
   permissions:
-  - manageAssignedTags
-  - removePackage
   - listUsers
   - removeUsers
+  - manageAssignedTags
+  - removePackage
   - managePackageOwnership

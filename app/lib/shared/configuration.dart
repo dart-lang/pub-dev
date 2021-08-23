@@ -195,7 +195,7 @@ class Configuration {
         AdminId(
           email: 'pub-moderation-admin@dartlang-pub.iam.gserviceaccount.com',
           oauthUserId: '108693445730271975989',
-          permissions: {AdminPermission.removePackage},
+          permissions: AdminPermission.values,
         )
       ],
     );
