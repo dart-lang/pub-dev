@@ -41,7 +41,7 @@ class IntegrityChecker {
     var count = 0;
     await for (final problem in findProblems()) {
       count++;
-      _logger.reportError('[pub-integrity-problem] $problem');
+      _logger.reportWarning('[pub-integrity-problem] $problem');
     }
     _logger.info('Integrity check completed with $count issue(s).');
   }
