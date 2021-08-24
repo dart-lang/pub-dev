@@ -194,10 +194,10 @@ NeatPeriodicTask _wrapMemoryLogging(String name, NeatPeriodicTask task) {
       final diffMaxRssInKiB = endMaxRssInKiB - startMaxRssInKiB;
       final message =
           'Periodic task $name completed with max memory use $endMaxRssInKiB ($diffMaxRssInKiB)';
-      if (diffMaxRssInKiB > 1024) {
-        // Take a notice, when the memory usage increased with more than 1 MB.
+      if (diffMaxRssInKiB > 10 * 1024) {
+        // Take a notice, when the memory usage increased with more than 10 MB.
         // Let the log message stand out a bit, we should investigate, but no need to alert on it.
-        _logger.warning(message);
+        _logger.info('[periodic-task-max-rss-warning] $message');
       } else {
         _logger.info(message);
       }
