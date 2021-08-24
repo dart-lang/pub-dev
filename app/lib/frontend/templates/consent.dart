@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:client_data/page_data.dart';
+import 'package:pub_dev/frontend/templates/views/consent/page.dart';
 
 import '../../shared/urls.dart' as urls;
+import '../dom/dom.dart' as d;
 
 import '_cache.dart';
 import 'layout.dart';
@@ -15,10 +17,10 @@ String renderConsentPage({
   required String title,
   required String descriptionHtml,
 }) {
-  final content = templateCache.renderTemplate('consent/page', {
-    'title': title,
-    'description_html': descriptionHtml,
-  });
+  final content = consentPageNode(
+    title: title,
+    description: d.unsafeRawHtml(descriptionHtml),
+  ).toString();
   return renderLayoutPage(
     PageType.standalone,
     content,
