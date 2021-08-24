@@ -4,6 +4,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Bumped runtimeVersion to `2021.08.24`.
  * Upgraded dartdoc to `2.0.0`.
+ * NOTE: increased the number of search service instances to 4 (autoscale up to 6).
 
 ## `20210819t120700-all`
  * Bumped runtimeVersion to `2021.08.17`.

@@ -93,6 +93,7 @@ shelf.Response debugResponse([Map<String, dynamic>? data]) {
       'GAE_MEMORY_MB': Platform.environment['GAE_MEMORY_MB'],
     },
     'vm': {
+      'numberOfProcessors': Platform.numberOfProcessors,
       'currentRss': ProcessInfo.currentRss,
       'maxRss': ProcessInfo.maxRss,
       'eventLoopLatencyMillis': {
