@@ -7,11 +7,9 @@ import 'dart:io' as io;
 import 'package:path/path.dart' as p;
 import 'package:pub_dev/frontend/templates/views/page/error.dart';
 
-import '../../shared/markdown.dart';
 import '../dom/dom.dart' as d;
 import '../static_files.dart' as static_files;
 
-import '_cache.dart';
 import 'layout.dart';
 import 'views/account/unauthenticated.dart';
 import 'views/account/unauthorized.dart';
