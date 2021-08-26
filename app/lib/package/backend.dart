@@ -14,15 +14,14 @@ import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
+import 'package:pub_dev/job/backend.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
 import '../account/models.dart' show User;
-import '../analyzer/analyzer_client.dart';
 import '../audit/models.dart';
-import '../dartdoc/dartdoc_client.dart';
 import '../frontend/email_sender.dart';
 import '../publisher/backend.dart';
 import '../publisher/models.dart';
@@ -416,7 +415,8 @@ class PackageBackend {
       ));
     });
     await purgePackageCache(package);
-    await analyzerClient.triggerAnalysis(package, latestVersion, <String>{});
+    await jobBackend.trigger(JobService.analyzer, package,
+        version: latestVersion);
   }
 
   /// Whether [userId] is a package admin (through direct uploaders list or
@@ -825,18 +825,16 @@ class PackageBackend {
         // Trigger analysis and dartdoc generation. Dependent packages can be left
         // out here, because the dependency graph's background polling will pick up
         // the new upload, and will trigger analysis for the dependent packages.
-        analyzerClient.triggerAnalysis(
-            newVersion.package, newVersion.version, <String>{}),
-        dartdocClient.triggerDartdoc(newVersion.package, newVersion.version),
+        jobBackend.triggerAnalysis(newVersion.package, newVersion.version),
+        jobBackend.triggerDartdoc(newVersion.package, newVersion.version),
         // Trigger a new doc generation for the previous latest stable version
         // in order to update the dartdoc entry and the canonical-urls.
         if (latestVersionChanged)
-          dartdocClient.triggerDartdoc(
-              newVersion.package, prevLatestStableVersion,
+          jobBackend.triggerDartdoc(newVersion.package, prevLatestStableVersion,
               shouldProcess: true),
         // Reset the priority of the previous pre-release version.
         if (latestPrereleaseVersionChanged)
-          dartdocClient.triggerDartdoc(
+          jobBackend.triggerDartdoc(
               newVersion.package, prevLatestPrereleaseVersion,
               shouldProcess: false),
       ]).timeout(Duration(seconds: 10));

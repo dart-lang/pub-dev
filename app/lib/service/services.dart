@@ -17,10 +17,8 @@ import '../account/backend.dart';
 import '../account/consent_backend.dart';
 import '../account/google_oauth2.dart';
 import '../admin/backend.dart';
-import '../analyzer/analyzer_client.dart';
 import '../audit/backend.dart';
 import '../dartdoc/backend.dart';
-import '../dartdoc/dartdoc_client.dart';
 import '../fake/backend/fake_auth_provider.dart';
 import '../fake/backend/fake_domain_verifier.dart';
 import '../fake/backend/fake_email_sender.dart';
@@ -149,7 +147,6 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
   return fork(() async {
     registerAccountBackend(AccountBackend(dbService));
     registerAdminBackend(AdminBackend(dbService));
-    registerAnalyzerClient(AnalyzerClient());
     registerAnnouncementBackend(AnnouncementBackend());
     registerAuditBackend(AuditBackend(dbService));
     registerConsentBackend(ConsentBackend(dbService));
@@ -160,7 +157,6 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
             storageService, activeConfiguration.dartdocStorageBucketName!),
       ),
     );
-    registerDartdocClient(DartdocClient());
     registerDartSdkMemIndex(DartSdkMemIndex());
     registerFlutterSdkMemIndex(FlutterSdkMemIndex());
     registerJobBackend(JobBackend(dbService));
@@ -197,7 +193,6 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
     registerScopeExitCallback(snapshotStorage.close);
     registerScopeExitCallback(indexUpdater.close);
     registerScopeExitCallback(authProvider.close);
-    registerScopeExitCallback(dartdocClient.close);
     registerScopeExitCallback(dartSdkMemIndex.close);
     registerScopeExitCallback(flutterSdkMemIndex.close);
     registerScopeExitCallback(popularityStorage.close);

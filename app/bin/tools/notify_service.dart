@@ -4,9 +4,8 @@
 
 import 'dart:async';
 
+import 'package:pub_dev/job/backend.dart';
 import 'package:pub_dev/service/entrypoint/tools.dart';
-import 'package:pub_dev/analyzer/analyzer_client.dart';
-import 'package:pub_dev/dartdoc/dartdoc_client.dart';
 import 'package:pub_dev/search/search_client.dart';
 
 void _printHelp() {
@@ -27,11 +26,9 @@ Future main(List<String> args) async {
   await withToolRuntime(() async {
     final String service = args[0];
     if (service == 'analyzer' && args.length == 3) {
-      await analyzerClient.triggerAnalysis(args[1], args[2], <String>{},
-          isHighPriority: true);
+      await jobBackend.triggerAnalysis(args[1], args[2], isHighPriority: true);
     } else if (service == 'dartdoc' && args.length == 3) {
-      await dartdocClient.triggerDartdoc(args[1], args[2],
-          isHighPriority: true);
+      await jobBackend.triggerDartdoc(args[1], args[2], isHighPriority: true);
     } else if (service == 'search' && args.length == 3) {
       await searchClient.triggerReindex(args[1], args[2]);
     } else {
