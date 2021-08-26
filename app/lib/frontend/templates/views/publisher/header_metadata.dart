@@ -60,7 +60,9 @@ d.Node _ref({
 
 extension on Publisher {
   String get shortDescription {
-    if (!hasDescription) '';
+    if (!hasDescription) {
+      return '';
+    }
     if (description!.length < 1010) return description!;
     return '${description!.substring(0, 1000)} [...]';
   }
