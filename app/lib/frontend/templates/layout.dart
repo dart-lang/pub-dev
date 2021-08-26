@@ -20,6 +20,7 @@ import '_cache.dart';
 import '_consts.dart';
 import '_utils.dart';
 
+import 'views/shared/search_banner.dart';
 import 'views/shared/search_tabs.dart';
 
 enum PageType {
@@ -143,8 +144,6 @@ String _renderSearchBanner({
 }) {
   final sdk = searchForm?.sdk ?? SdkTagValue.any;
   final queryText = searchForm?.query;
-  final escapedSearchQuery =
-      queryText == null ? null : htmlAttrEscape.convert(queryText);
   bool includePreferencesAsHiddenFields = false;
   if (publisherId != null) {
     searchPlaceholder ??= 'Search $publisherId packages';
@@ -168,28 +167,23 @@ String _renderSearchBanner({
       ? null
       : serializeSearchOrder(searchForm!.order);
   final hiddenInputs = includePreferencesAsHiddenFields
-      ? (searchForm ?? SearchForm.parse())
-          .tagsPredicate
-          .asSearchLinkParams()
-          .entries
-          .map((e) => {'name': e.key, 'value': e.value})
-          .toList()
+      ? (searchForm ?? SearchForm.parse()).tagsPredicate.asSearchLinkParams()
       : null;
-  return templateCache.renderTemplate('shared/search_banner', {
+  return searchBannerNode(
     // When search is active (query text has a non-empty value) users may expect
     // to scroll through the results via keyboard. We should only autofocus the
     // search field when there is no active search.
-    'autofocus': queryText == null,
-    'show_search_filters_btn': type == PageType.listing,
-    'search_form_url': searchFormUrl,
-    'search_query_placeholder': searchPlaceholder,
-    'search_query_html': escapedSearchQuery,
-    'search_sort_param': searchSort,
-    'include_discontinued': searchForm?.includeDiscontinued ?? false,
-    'include_unlisted': searchForm?.includeUnlisted ?? false,
-    'null_safe': searchForm?.nullSafe ?? false,
-    'hidden_inputs': hiddenInputs,
-  });
+    autofocus: queryText == null,
+    showSearchFiltersButton: type == PageType.listing,
+    formUrl: searchFormUrl,
+    placeholder: searchPlaceholder,
+    queryText: queryText,
+    sortParam: searchSort,
+    includeDiscontinued: searchForm?.includeDiscontinued ?? false,
+    includeUnlisted: searchForm?.includeUnlisted ?? false,
+    includeNullSafe: searchForm?.nullSafe ?? false,
+    hiddenInputs: hiddenInputs,
+  ).toString();
 }
 
 String renderSdkTabs({
