@@ -18,6 +18,7 @@ import 'package:pub_dev/frontend/handlers/package.dart'
     show loadPackagePageData;
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/frontend/templates/admin.dart';
+import 'package:pub_dev/frontend/templates/consent.dart';
 import 'package:pub_dev/frontend/templates/landing.dart';
 import 'package:pub_dev/frontend/templates/layout.dart';
 import 'package:pub_dev/frontend/templates/listing.dart';
@@ -631,6 +632,71 @@ void main() {
           ..._activityLogTimestamps(activities),
         });
       });
+    });
+
+    scopedTest('create publisher page', () {
+      final html = renderCreatePublisherPage();
+      expectGoldenFile(html, 'create_publisher_page.html');
+    });
+
+    scopedTest('consent page', () {
+      final html = renderConsentPage(
+        consentId: '1234-5678',
+        title: 'Invite for something',
+        descriptionHtml: '<b>Warning!</b> And text...',
+      );
+      expectGoldenFile(html, 'consent_page.html');
+    });
+
+    scopedTest('consent - package uploader invite (anonymous)', () {
+      final html = renderPackageUploaderInvite(
+        invitingUserEmail: 'admin@pub.dev',
+        packageName: 'example_pkg',
+        currentUserEmail: null,
+      );
+      expectGoldenFile(
+        html,
+        'consent_package_uploader_anonymous.html',
+        isFragment: true,
+      );
+    });
+
+    scopedTest('consent - package uploader invite (authenticated)', () {
+      final html = renderPackageUploaderInvite(
+        invitingUserEmail: 'admin@pub.dev',
+        packageName: 'example_pkg',
+        currentUserEmail: 'user@pub.dev',
+      );
+      expectGoldenFile(
+        html,
+        'consent_package_uploader_authenticated.html',
+        isFragment: true,
+      );
+    });
+
+    scopedTest('consent - publisher contact invite', () {
+      final html = renderPublisherContactInvite(
+        invitingUserEmail: 'admin@pub.dev',
+        contactEmail: 'hello@example.com',
+        publisherId: 'dart.dev',
+      );
+      expectGoldenFile(
+        html,
+        'consent_publisher_contact_invite.html',
+        isFragment: true,
+      );
+    });
+
+    scopedTest('consent - publisher member invite', () {
+      final html = renderPublisherMemberInvite(
+        invitingUserEmail: 'admin@pub.dev',
+        publisherId: 'dart.dev',
+      );
+      expectGoldenFile(
+        html,
+        'consent_publisher_member_invite.html',
+        isFragment: true,
+      );
     });
 
     scopedTest('authorized page', () {
