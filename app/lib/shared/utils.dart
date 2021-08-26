@@ -344,10 +344,6 @@ extension LoggerExt on Logger {
   /// Reports an error [message] with the current stacktrace.
   void reportError(String message) =>
       shout(message, Exception(message), StackTrace.current);
-
-  /// Reports a warning [message] with the current stacktrace.
-  void reportWarning(String message) =>
-      warning(message, Exception(message), StackTrace.current);
 }
 
 /// Statistics for delete + filter operations.
