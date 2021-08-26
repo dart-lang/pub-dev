@@ -5,14 +5,15 @@
 import 'dart:io' as io;
 
 import 'package:path/path.dart' as p;
+import 'package:pub_dev/frontend/templates/views/page/error.dart';
 
-import '../../shared/markdown.dart';
+import '../dom/dom.dart' as d;
 import '../static_files.dart' as static_files;
 
-import '_cache.dart';
 import 'layout.dart';
 import 'views/account/unauthenticated.dart';
 import 'views/account/unauthorized.dart';
+import 'views/page/standalone.dart';
 
 /// The content of `/doc/policy.md`
 final _policyMarkdown = _readDocContent('policy.md');
@@ -52,10 +53,10 @@ String renderUnauthorizedPage() {
 String renderHelpPage() {
   return renderLayoutPage(
     PageType.standalone,
-    _renderStandalonePageContent(
-      contentMarkdown: _helpMarkdown,
+    standalonePageNode(
+      _helpMarkdown,
       sideImageUrl: static_files.staticUrls.packagesSideImage,
-    ),
+    ).toString(),
     title: 'Help | Dart packages',
     canonicalUrl: '/help',
   );
@@ -65,10 +66,10 @@ String renderHelpPage() {
 String renderHelpScoringPage() {
   return renderLayoutPage(
     PageType.standalone,
-    _renderStandalonePageContent(
-      contentMarkdown: _helpScoringMarkdown,
+    standalonePageNode(
+      _helpScoringMarkdown,
       sideImageUrl: static_files.staticUrls.packagesSideImage,
-    ),
+    ).toString(),
     title: 'Scoring | Dart packages',
     canonicalUrl: '/help/scoring',
   );
@@ -78,10 +79,10 @@ String renderHelpScoringPage() {
 String renderHelpSearchPage() {
   return renderLayoutPage(
     PageType.standalone,
-    _renderStandalonePageContent(
-      contentMarkdown: _helpSearchMarkdown,
+    standalonePageNode(
+      _helpSearchMarkdown,
       sideImageUrl: static_files.staticUrls.packagesSideImage,
-    ),
+    ).toString(),
     title: 'Search | Dart packages',
     canonicalUrl: '/help/search',
   );
@@ -91,71 +92,46 @@ String renderHelpSearchPage() {
 String renderHelpPublishingPage() {
   return renderLayoutPage(
     PageType.standalone,
-    _renderStandalonePageContent(
-      contentMarkdown: _helpPublishingMarkdown,
+    standalonePageNode(
+      _helpPublishingMarkdown,
       sideImageUrl: static_files.staticUrls.packagesSideImage,
-    ),
+    ).toString(),
     title: 'Publishing | Dart packages',
     canonicalUrl: '/help/publishing',
   );
 }
 
 /// Loads the markdown content from `/doc`.
-String _readDocContent(String path) {
+d.Node _readDocContent(String path) {
   final fullPath = p.join(static_files.resolveDocDirPath(), path);
-  return io.File(fullPath).readAsStringSync();
+  return d.markdown(io.File(fullPath).readAsStringSync());
 }
 
 /// Renders the `/doc/policy.md` document.
 String renderPolicyPage() {
   return renderLayoutPage(
     PageType.standalone,
-    _renderStandalonePageContent(contentMarkdown: _policyMarkdown),
+    standalonePageNode(_policyMarkdown).toString(),
     title: 'Policy | Pub site',
     canonicalUrl: '/policy',
   );
 }
 
-/// Renders the `views/page/security.mustache` template.
+/// Renders the `doc/security.md` template.
 String renderSecurityPage() {
   return renderLayoutPage(
     PageType.standalone,
-    _renderStandalonePageContent(contentMarkdown: _securityMarkdown),
+    standalonePageNode(_securityMarkdown).toString(),
     title: 'Security | Pub site',
     canonicalUrl: '/security',
   );
 }
 
-/// Renders the `views/page/standalone.mustache` template.
-String _renderStandalonePageContent({
-  String? contentHtml,
-  String? contentMarkdown,
-  String? sideImageUrl,
-}) {
-  ArgumentError.checkNotNull(contentHtml ?? contentMarkdown);
-  if (contentHtml != null && contentMarkdown != null) {
-    throw ArgumentError(
-        'Only one of `contentHtml` and `contentMarkdown` must be specified.');
-  }
-
-  contentHtml ??= markdownToHtml(contentMarkdown);
-  return templateCache.renderTemplate('page/standalone', {
-    'content_html': contentHtml,
-    'has_side_image': sideImageUrl != null,
-    'side_image_url': sideImageUrl,
-  });
-}
-
-/// Renders the `views/page/error.mustache` template.
+/// Renders the error page template.
 String renderErrorPage(String title, String message) {
-  final values = {
-    'title': title,
-    'message_html': markdownToHtml(message),
-  };
-  final String content = templateCache.renderTemplate('page/error', values);
   return renderLayoutPage(
     PageType.error,
-    content,
+    errorPageNode(title: title, content: d.markdown(message)).toString(),
     title: title,
     noIndex: true,
   );

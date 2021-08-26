@@ -709,6 +709,11 @@ void main() {
       expectGoldenFile(html, 'error_page.html');
     });
 
+    scopedTest('help page', () async {
+      final html = renderHelpPage();
+      expectGoldenFile(html, 'help_page.html');
+    });
+
     test('pagination: single page', () {
       final html = paginationNode(PageLinks.empty()).toString();
       expectGoldenFile(html, 'pagination_single.html', isFragment: true);
