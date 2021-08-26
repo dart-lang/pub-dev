@@ -10,6 +10,7 @@ import '../../shared/urls.dart' as urls;
 
 import '_cache.dart';
 import 'layout.dart';
+import 'views/landing/mini_list.dart';
 import 'views/landing/pow_video_list.dart';
 
 /// Renders the `views/page/landing.mustache` template.
@@ -23,7 +24,7 @@ String renderLandingPage({
   bool isNotEmptyList(List? l) => l != null && l.isNotEmpty;
   String? renderMiniListIf(
           bool cond, String sectionTag, List<PackageView>? packages) =>
-      cond ? _renderMiniList(sectionTag, packages!) : null;
+      cond ? miniListNode(sectionTag, packages!).toString() : null;
 
   final hasFF = isNotEmptyList(ffPackages);
   final hasMostPopular = isNotEmptyList(mostPopularPackages);
@@ -60,20 +61,4 @@ String renderLandingPage({
     canonicalUrl: '/',
     mainClasses: ['landing-main'],
   );
-}
-
-/// Renders the `views/pkg/mini_list.mustache` template.
-String _renderMiniList(String sectionTag, List<PackageView> packages) {
-  final values = {
-    'section_tag': sectionTag,
-    'packages': packages.map((package) {
-      return {
-        'name': package.name,
-        'publisher_id': package.publisherId,
-        'package_url': urls.pkgPageUrl(package.name!),
-        'ellipsized_description': package.ellipsizedDescription,
-      };
-    }).toList(),
-  };
-  return templateCache.renderTemplate('landing/mini_list', values);
 }
