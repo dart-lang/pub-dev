@@ -9,9 +9,9 @@ import '../../shared/urls.dart' as urls;
 import '../dom/dom.dart' as d;
 import '../static_files.dart';
 
-import '_cache.dart';
 import 'views/pkg/badge.dart';
 import 'views/pkg/labeled_scores.dart';
+import 'views/pkg/tags.dart';
 
 /// Renders the Flutter Favorite badge, used by package listing.
 d.Node flutterFavoriteBadgeNode() {
@@ -36,151 +36,114 @@ String renderTags({
 }) {
   final tags = package.tags;
   final sdkTags = tags.where((s) => s.startsWith('sdk:')).toSet().toList();
-  final tagValues = <Map>[];
-  final tagBadges = <Map>[];
+  final simpleTags = <SimpleTag>[];
+  final badgeTags = <BadgeTag>[];
   if (package.isDiscontinued) {
-    tagValues.add({
-      'status': 'discontinued',
-      'text': 'discontinued',
-      'has_href': false,
-      'title': 'Package was discontinued.',
-    });
+    simpleTags.add(SimpleTag.discontinued());
   }
   // Display unlisted tag only for packages that are not discontinued.
   if (!package.isDiscontinued &&
       package.tags.contains(PackageTags.isUnlisted)) {
-    tagValues.add({
-      'status': 'unlisted',
-      'text': 'unlisted',
-      'has_href': false,
-      'title': 'Package is unlisted, this means that while the package is still '
-          'publicly available the author has decided that it should not appear '
-          'in search results with default search filters. This is typically '
-          'done because this package is meant to support another package, '
-          'rather than being consumed directly.',
-    });
+    simpleTags.add(SimpleTag.unlisted());
   }
   if (package.isObsolete) {
-    tagValues.add({
-      'status': 'missing',
-      'text': 'outdated',
-      'has_href': false,
-      'title': 'Package version too old, check latest stable.',
-    });
+    simpleTags.add(SimpleTag.obsolete());
   }
   if (package.isLegacy) {
-    tagValues.add({
-      'status': 'legacy',
-      'text': 'Dart 2 incompatible',
-      'has_href': false,
-      'title': 'Package does not support Dart 2.',
-    });
+    simpleTags.add(SimpleTag.legacy());
   }
   // We only display first-class platform/runtimes
   if (sdkTags.contains(SdkTag.sdkDart)) {
-    tagBadges.add({
-      'sdk': 'Dart',
-      'title': 'Packages compatible with Dart SDK',
-      'href': urls.searchUrl(sdk: SdkTagValue.dart),
-      'sub_tags': [
+    badgeTags.add(BadgeTag(
+      sdk: 'Dart',
+      title: 'Packages compatible with Dart SDK',
+      href: urls.searchUrl(sdk: SdkTagValue.dart),
+      subTags: [
         if (tags.contains(DartSdkTag.runtimeNativeJit))
-          {
-            'text': 'native',
-            'title':
+          BadgeSubTag(
+            text: 'native',
+            title:
                 'Packages compatible with Dart running on a native platform (JIT/AOT)',
-            'href': urls.searchUrl(
+            href: urls.searchUrl(
                 sdk: SdkTagValue.dart,
                 runtimes: DartSdkRuntime.encodeRuntimeTags(
                     [DartSdkRuntime.nativeJit])),
-          },
+          ),
         if (tags.contains(DartSdkTag.runtimeWeb))
-          {
-            'text': 'js',
-            'title': 'Packages compatible with Dart compiled for the web',
-            'href': urls.searchUrl(
+          BadgeSubTag(
+            text: 'js',
+            title: 'Packages compatible with Dart compiled for the web',
+            href: urls.searchUrl(
                 sdk: SdkTagValue.dart,
                 runtimes:
                     DartSdkRuntime.encodeRuntimeTags([DartSdkRuntime.web])),
-          },
+          ),
       ],
-    });
+    ));
   }
   if (sdkTags.contains(SdkTag.sdkFlutter)) {
-    tagBadges.add({
-      'sdk': 'Flutter',
-      'title': 'Packages compatible with Flutter SDK',
-      'href': urls.searchUrl(sdk: SdkTagValue.flutter),
-      'sub_tags': [
+    badgeTags.add(BadgeTag(
+      sdk: 'Flutter',
+      title: 'Packages compatible with Flutter SDK',
+      href: urls.searchUrl(sdk: SdkTagValue.flutter),
+      subTags: [
         if (tags.contains(FlutterSdkTag.platformAndroid))
-          {
-            'text': 'Android',
-            'title': 'Packages compatible with Flutter on the Android platform',
-            'href': urls.searchUrl(
+          BadgeSubTag(
+            text: 'Android',
+            title: 'Packages compatible with Flutter on the Android platform',
+            href: urls.searchUrl(
                 sdk: SdkTagValue.flutter,
                 platforms: [FlutterSdkPlatform.android]),
-          },
+          ),
         if (tags.contains(FlutterSdkTag.platformIos))
-          {
-            'text': 'iOS',
-            'title': 'Packages compatible with Flutter on the iOS platform',
-            'href': urls.searchUrl(
+          BadgeSubTag(
+            text: 'iOS',
+            title: 'Packages compatible with Flutter on the iOS platform',
+            href: urls.searchUrl(
                 sdk: SdkTagValue.flutter, platforms: [FlutterSdkPlatform.ios]),
-          },
+          ),
         if (tags.contains(FlutterSdkTag.platformLinux))
-          {
-            'text': 'Linux',
-            'title': 'Packages compatible with Flutter on the Linux platform',
-            'href': urls.searchUrl(
+          BadgeSubTag(
+            text: 'Linux',
+            title: 'Packages compatible with Flutter on the Linux platform',
+            href: urls.searchUrl(
                 sdk: SdkTagValue.flutter,
                 platforms: [FlutterSdkPlatform.linux]),
-          },
+          ),
         if (tags.contains(FlutterSdkTag.platformMacos))
-          {
-            'text': 'macOS',
-            'title': 'Packages compatible with Flutter on the macOS platform',
-            'href': urls.searchUrl(
+          BadgeSubTag(
+            text: 'macOS',
+            title: 'Packages compatible with Flutter on the macOS platform',
+            href: urls.searchUrl(
                 sdk: SdkTagValue.flutter,
                 platforms: [FlutterSdkPlatform.macos]),
-          },
+          ),
         if (tags.contains(FlutterSdkTag.platformWeb))
-          {
-            'text': 'web',
-            'title': 'Packages compatible with Flutter on the Web platform',
-            'href': urls.searchUrl(
+          BadgeSubTag(
+            text: 'web',
+            title: 'Packages compatible with Flutter on the Web platform',
+            href: urls.searchUrl(
                 sdk: SdkTagValue.flutter, platforms: [FlutterSdkPlatform.web]),
-          },
+          ),
         if (tags.contains(FlutterSdkTag.platformWindows))
-          {
-            'text': 'Windows',
-            'title': 'Packages compatible with Flutter on the Windows platform',
-            'href': urls.searchUrl(
+          BadgeSubTag(
+            text: 'Windows',
+            title: 'Packages compatible with Flutter on the Windows platform',
+            href: urls.searchUrl(
                 sdk: SdkTagValue.flutter,
                 platforms: [FlutterSdkPlatform.windows]),
-          },
+          ),
       ],
-    });
+    ));
   }
-  if (tagBadges.isEmpty && package.isAwaiting!) {
-    tagValues.add({
-      'status': 'missing',
-      'text': '[awaiting]',
-      'has_href': false,
-      'title': 'Analysis should be ready soon.',
-    });
+  if (badgeTags.isEmpty && package.isAwaiting!) {
+    simpleTags.add(SimpleTag.awaiting());
   }
-  if (tagValues.isEmpty && tagBadges.isEmpty) {
-    tagValues.add({
-      'status': 'unidentified',
-      'text': '[unidentified]',
-      'title': 'Check the scores tab for further details.',
-      'has_href': true,
-      'href': urls.pkgScoreUrl(package.name!, version: version),
-    });
+  if (simpleTags.isEmpty && badgeTags.isEmpty) {
+    simpleTags.add(SimpleTag.unidentified(
+        href: urls.pkgScoreUrl(package.name!, version: version)));
   }
-  return templateCache.renderTemplate('pkg/tags', {
-    'tags': tagValues,
-    'tag_badges': tagBadges,
-  });
+  return tagsNode(simpleTags: simpleTags, badgeTags: badgeTags).toString();
 }
 
 /// Renders the labeled scores widget (the score values in a compact layout).
