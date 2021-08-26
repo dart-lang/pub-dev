@@ -21,6 +21,7 @@ Future<void> main(List<String> arguments) async {
   if (config == null) {
     throw ArgumentError();
   }
+  pubResourceProvider.setConfig(output: config.output);
 
   final packageConfigProvider = PhysicalPackageConfigProvider();
   final packageBuilder =
@@ -33,6 +34,7 @@ Future<void> main(List<String> arguments) async {
   final pubDataGenerator =
       PubDataGenerator(config.inputDir, config.resourceProvider);
   pubDataGenerator.generate(results.packageGraph, config.output);
+  pubResourceProvider.writeFilesToDiskSync();
 
   print('Max memory use: ${ProcessInfo.maxRss}');
 }

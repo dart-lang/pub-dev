@@ -26,20 +26,19 @@ class DocumentationTooBigException implements Exception {
   DocumentationTooBigException(this._message);
 
   @override
-  String toString() => _message;
+  String toString() => 'DocumentationTooBigException: $_message';
 }
 
 /// Creates an overlay file system with binary file support on top
 /// of the input sources.
 ///
-/// TODO: Use a propr overlay in-memory filesystem with binary support,
+/// TODO: Use a proper overlay in-memory filesystem with binary support,
 ///       instead of overriding file writes in the output path.
 class PubResourceProvider implements ResourceProvider {
   final ResourceProvider _defaultProvider;
   final _memoryResourceProvider = MemoryResourceProvider();
   final int _maxFileCount;
   final int _maxTotalLengthBytes;
-  bool _isSdkDocs = false;
   String _outputPath;
   int _fileCount = 0;
   int _totalLengthBytes = 0;
@@ -73,10 +72,6 @@ class PubResourceProvider implements ResourceProvider {
   void _aboutToWriteBytes(int length) {
     _fileCount++;
     _totalLengthBytes += length;
-    if (_isSdkDocs) {
-      // do not throw on too output large file
-      return;
-    }
     if (_fileCount > _maxFileCount) {
       throw DocumentationTooBigException(
           'Reached $_maxFileCount files in the output directory.');
@@ -89,10 +84,8 @@ class PubResourceProvider implements ResourceProvider {
 
   void setConfig({
     @required String output,
-    @required bool isSdkDocs,
   }) {
     _outputPath = output;
-    _isSdkDocs = isSdkDocs;
   }
 
   bool _isOutput(String path) {
@@ -187,9 +180,6 @@ class _File implements File {
 
   @override
   void writeAsBytesSync(List<int> bytes) {
-    if (_provider._isSdkDocs && path.endsWith('.html')) {
-      // do not write file for SDK docs
-    }
     _provider._aboutToWriteBytes(bytes.length);
     _delegate.writeAsBytesSync(bytes);
   }
