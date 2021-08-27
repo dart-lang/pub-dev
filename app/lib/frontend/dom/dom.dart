@@ -112,6 +112,9 @@ Node a({
   );
 }
 
+/// Creates a `<br>` Element using the default [DomContext].
+Node br() => element('br');
+
 /// Creates a `<code>` Element using the default [DomContext].
 Node code({
   String? id,

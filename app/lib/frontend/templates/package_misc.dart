@@ -147,13 +147,13 @@ String renderTags({
 }
 
 /// Renders the labeled scores widget (the score values in a compact layout).
-String renderLabeledScores(PackageView view, {String? version}) {
+d.Node labeledScoresNodeFromPackageView(PackageView view, {String? version}) {
   return labeledScoresNode(
     pkgScorePageUrl: urls.pkgScoreUrl(view.name!, version: version),
     likeCount: view.likes,
     grantedPubPoints: view.grantedPubPoints,
     popularity: view.popularity,
-  ).toString();
+  );
 }
 
 /// Formats the score from [0.0 - 1.0] range to [0 - 100] or '--'.
