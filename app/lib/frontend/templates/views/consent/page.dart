@@ -19,11 +19,11 @@ d.Node consentPageNode({
         material.raisedButton(
           id: '-admin-consent-reject-button',
           classes: ['pub-button-cancel'],
-          text: 'Reject',
+          label: 'Reject',
         ),
         material.raisedButton(
           id: '-admin-consent-accept-button',
-          text: 'Accept',
+          label: 'Accept',
         ),
       ],
     )
