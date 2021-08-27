@@ -101,5 +101,8 @@ bool isDartDevPublisher(String? publisherId) {
   if (publisherId == null) return false;
   if (publisherId == 'dart.dev') return true;
   if (publisherId.endsWith('.dart.dev')) return true;
+  if (publisherId == 'flutter.dev') return true;
+  if (publisherId.endsWith('.flutter.dev')) return true;
+  if (publisherId.endsWith('.google.com')) return true;
   return false;
 }
