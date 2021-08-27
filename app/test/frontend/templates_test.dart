@@ -78,6 +78,7 @@ void main() {
       String fileName, {
       bool isFragment = false,
       Map<String, DateTime?>? timestamps,
+      Map<String, String>? replacements,
     }) {
       // Making sure it is valid HTML
       final htmlParser = HtmlParser(content, strict: true);
@@ -97,6 +98,9 @@ void main() {
               .replaceAll(shortDateFormat.format(value), '%%$key-date%%')
               .replaceAll(value.toIso8601String(), '%%$key-timestamp%%');
         }
+      });
+      replacements?.forEach((key, value) {
+        replacedContent = replacedContent.replaceAll(value, '%%$key%%');
       });
       replacedContent = replacedContent.replaceAll(
           'Pana <code>$panaVersion</code>,',
@@ -505,6 +509,32 @@ void main() {
           'publisher-created': publisher.created,
           'publisher-updated': publisher.updated,
         });
+      },
+    );
+
+    testWithProfile(
+      'publisher admin page',
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final publisher = (await publisherBackend.getPublisher('example.com'))!;
+        final members =
+            await publisherBackend.listPublisherMembers('example.com');
+        final html = renderPublisherAdminPage(
+          publisher: publisher,
+          members: members,
+        );
+        expectGoldenFile(
+          html,
+          'publisher_admin_page.html',
+          timestamps: {
+            'publisher-created': publisher.created,
+            'publisher-updated': publisher.updated,
+          },
+          replacements: {
+            ...Map.fromIterables(
+                members.map((m) => m.email), members.map((m) => m.userId)),
+          },
+        );
       },
     );
 
