@@ -509,6 +509,22 @@ void main() {
     );
 
     testWithProfile(
+      'publisher admin page',
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final publisher = (await publisherBackend.getPublisher('example.com'))!;
+        final html = renderPublisherAdminPage(
+          publisher: publisher,
+          members: await publisherBackend.listPublisherMembers('example.com'),
+        );
+        expectGoldenFile(html, 'publisher_admin_page.html', timestamps: {
+          'publisher-created': publisher.created,
+          'publisher-updated': publisher.updated,
+        });
+      },
+    );
+
+    testWithProfile(
       'publisher activity log page',
       processJobsWithFakeRunners: true,
       fn: () async {
