@@ -23,7 +23,7 @@ void setupLikesList() {
     final package = likeButton.dataset['package']!;
 
     likeButton.onClick.listen((Event e) {
-      final text = likeButton.querySelector('.-pub-like-button-text')!;
+      final text = likeButton.querySelector('.-pub-like-button-label')!;
       final img =
           likeButton.querySelector('.-pub-like-button-img') as ImageElement;
       if (text.innerText == 'LIKE') {
