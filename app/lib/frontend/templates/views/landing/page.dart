@@ -72,7 +72,6 @@ d.Node landingPageNode({
         content: videoListNode(topPoWVideos!),
         viewAllUrl:
             'https://www.youtube.com/playlist?list=PLjxrf2q8roU1quF6ny8oFHJ2gBdrYN_AK',
-        
         viewAllLabel: 'View playlist',
         viewAllEvent: 'package-of-the-week-playlist',
       ),
