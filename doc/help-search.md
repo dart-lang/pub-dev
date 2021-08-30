@@ -64,7 +64,7 @@ For example, if the platform filter is `platform:web`, we'll have the following 
 
 Numerical ordering is used on search requests that dp not specify text query, but
 would like to order the results by `updated`, or `created` time, and also by
-`likes`, `popularity`, or `pub score`. 
+`likes`, `popularity`, or `pub points`. 
 
 These work on the raw values, without any weights or transformation.
 
