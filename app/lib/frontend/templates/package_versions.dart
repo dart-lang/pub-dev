@@ -8,13 +8,11 @@ import 'package:pub_semver/pub_semver.dart';
 import '../../package/models.dart';
 import '../../shared/urls.dart' as urls;
 
-import '../static_files.dart';
-
 import '_cache.dart';
-import '_utils.dart';
 import 'detail_page.dart';
 import 'layout.dart';
 import 'package.dart';
+import 'views/pkg/versions/version_row.dart';
 
 /// Renders the `views/pkg/versions/index` template.
 String renderPkgVersionsPage(
@@ -109,31 +107,8 @@ String renderPkgVersionsPage(
 }
 
 String renderVersionTableRow(PackageVersion version, String downloadUrl) {
-  final minSdkVersion = version.pubspec!.minSdkVersion;
-  final versionData = {
-    'package': version.package,
-    'version': version.version,
-    'version_url': urls.pkgPageUrl(version.package, version: version.version),
-    'has_opted_into_null_safety': version.pubspec!.hasOptedIntoNullSafety,
-    'has_sdk': minSdkVersion != null,
-    'sdk': minSdkVersion == null
-        ? null
-        : {
-            'major': minSdkVersion.major,
-            'minor': minSdkVersion.minor,
-            'has_channel': minSdkVersion.channel != null,
-            'channel': minSdkVersion.channel,
-          },
-    'short_created': version.shortCreated,
-    'dartdocs_url':
-        _attr(urls.pkgDocUrl(version.package, version: version.version)),
-    'download_url': _attr(downloadUrl),
-    'icons': staticUrls.versionsTableIcons,
-  };
-  return templateCache.renderTemplate('pkg/versions/version_row', versionData);
-}
-
-String? _attr(String? value) {
-  if (value == null) return null;
-  return htmlAttrEscape.convert(value);
+  return versionRowNode(
+    version: version,
+    downloadUrl: downloadUrl,
+  ).toString();
 }
