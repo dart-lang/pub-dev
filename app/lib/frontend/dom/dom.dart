@@ -112,6 +112,23 @@ Node a({
   );
 }
 
+/// Creates a `<b>` Element using the default [DomContext].
+Node b({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+  Node? child,
+  String? text,
+}) =>
+    dom.element(
+      'b',
+      id: id,
+      classes: classes,
+      attributes: attributes,
+      children: _children(children, child, text),
+    );
+
 /// Creates a `<br>` Element using the default [DomContext].
 Node br() => element('br');
 
@@ -126,6 +143,23 @@ Node code({
 }) =>
     dom.element(
       'code',
+      id: id,
+      classes: classes,
+      attributes: attributes,
+      children: _children(children, child, text),
+    );
+
+/// Creates a `<details>` Element using the default [DomContext].
+Node details({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+  Node? child,
+  String? text,
+}) =>
+    dom.element(
+      'details',
       id: id,
       classes: classes,
       attributes: attributes,
@@ -325,6 +359,40 @@ Node span({
 }) =>
     dom.element(
       'span',
+      id: id,
+      classes: classes,
+      attributes: attributes,
+      children: _children(children, child, text),
+    );
+
+/// Creates a `<strong>` Element using the default [DomContext].
+Node strong({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+  Node? child,
+  String? text,
+}) =>
+    dom.element(
+      'strong',
+      id: id,
+      classes: classes,
+      attributes: attributes,
+      children: _children(children, child, text),
+    );
+
+/// Creates a `<summary>` Element using the default [DomContext].
+Node summary({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+  Node? child,
+  String? text,
+}) =>
+    dom.element(
+      'summary',
       id: id,
       classes: classes,
       attributes: attributes,

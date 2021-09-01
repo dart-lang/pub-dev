@@ -4,21 +4,17 @@
 
 import 'dart:math';
 
-import 'package:pub_dev/package/search_adapter.dart';
-import 'package:pub_dev/shared/utils.dart';
-
-import '../../package/models.dart';
+import '../../package/search_adapter.dart';
 import '../../search/search_form.dart';
 import '../../search/search_service.dart';
 import '../../shared/tags.dart';
-import '../../shared/urls.dart' as urls;
 import '../dom/dom.dart' as d;
 
 import '_cache.dart';
 import '_consts.dart';
 import 'layout.dart';
-import 'package_misc.dart';
 
+import 'views/pkg/package_list.dart';
 import 'views/shared/listing_info.dart';
 import 'views/shared/pagination.dart';
 import 'views/shared/search_tabs.dart';
@@ -26,108 +22,13 @@ import 'views/shared/sort_control.dart';
 
 export 'views/shared/pagination.dart';
 
-/// Renders the `views/pkg/package_list.mustache` template.
+/// Renders the list of packages template.
 String renderPackageList(SearchResultPage searchResultPage) {
-  return templateCache.renderTemplate('pkg/package_list', {
-    'packages': [
-      if (searchResultPage.highlightedHit != null)
-        _packageHitData(searchResultPage.highlightedHit!),
-      ...searchResultPage.sdkLibraryHits.map(_sdkLibraryHitData),
-      ...searchResultPage.packageHits.map(_packageHitData),
-    ],
-  });
-}
-
-Map<String, dynamic> _packageHitData(PackageView view) {
-  final addedXAgo = _renderXAgo(view.created);
-  final apiPages = view.apiPages
-      ?.map((page) => {
-            'title': page.title ?? page.path,
-            'href': page.url ??
-                urls.pkgDocUrl(view.name!,
-                    isLatest: true, relativePath: page.path),
-          })
-      .toList();
-  final hasApiPages = apiPages != null && apiPages.isNotEmpty;
-  final hasMoreThanOneApiPages = hasApiPages && apiPages!.length > 1;
-  final flutterFavoriteBadgeHtml =
-      view.tags.contains(PackageTags.isFlutterFavorite)
-          ? flutterFavoriteBadgeNode().toString()
-          : null;
-  final isNullSafe = view.tags.contains(PackageVersionTags.isNullSafe);
-  final nullSafeBadgeHtml = isNullSafe ? nullSafeBadgeNode().toString() : null;
-  return <String, dynamic>{
-    'url': urls.pkgPageUrl(view.name!),
-    'name': view.name,
-    'is_external': false,
-    'version': view.version,
-    'show_prerelease_version': view.prereleaseVersion != null,
-    'prerelease_version': view.prereleaseVersion,
-    'prerelease_version_url':
-        urls.pkgPageUrl(view.name!, version: view.prereleaseVersion),
-    'show_preview_version': view.previewVersion != null,
-    'preview_version': view.previewVersion,
-    'preview_version_url':
-        urls.pkgPageUrl(view.name!, version: view.previewVersion),
-    'is_new': addedXAgo != null,
-    'added_x_ago': addedXAgo,
-    'last_uploaded':
-        view.updated == null ? null : shortDateFormat.format(view.updated!),
-    'desc': view.ellipsizedDescription,
-    'flutter_favorite_badge_html': flutterFavoriteBadgeHtml,
-    'null_safe_badge_html': nullSafeBadgeHtml,
-    'publisher_id': view.publisherId,
-    'publisher_url':
-        view.publisherId == null ? null : urls.publisherUrl(view.publisherId!),
-    'tags_html': renderTags(package: view),
-    'labeled_scores_html': labeledScoresNodeFromPackageView(view).toString(),
-    'has_api_pages': hasApiPages,
-    'has_more_api_pages': hasMoreThanOneApiPages,
-    'first_api_page': hasApiPages ? apiPages!.first : null,
-    'remaining_api_pages': hasApiPages ? apiPages!.skip(1).toList() : null,
-  };
-}
-
-Map<String, dynamic> _sdkLibraryHitData(SdkLibraryHit hit) {
-  final sdkDict = getSdkDict(hit.sdk!);
-  final apiPages = hit.apiPages
-      ?.map((page) => {
-            'title': page.title ?? page.path,
-            'href': page.url,
-          })
-      .toList();
-  final hasApiPages = apiPages != null && apiPages.isNotEmpty;
-  final hasMoreThanOneApiPages = hasApiPages && apiPages!.length > 1;
-  return <String, dynamic>{
-    'url': hit.url,
-    'name': hit.library,
-    'is_external': true,
-    'external_type': sdkDict.libraryTypeLabel,
-    'version': hit.version,
-    'show_prerelease_version': false,
-    'show_preview_version': false,
-    'is_new': false,
-    'last_uploaded': null,
-    'desc': hit.description,
-    'flutter_favorite_badge_html': null,
-    'null_safe_badge_html': null,
-    'publisher_id': null,
-    'tags_html': null,
-    'labeled_scores_html': null,
-    'has_api_pages': hasApiPages,
-    'has_more_api_pages': hasMoreThanOneApiPages,
-    'first_api_page': hasApiPages ? apiPages!.first : null,
-    'remaining_api_pages': hasApiPages ? apiPages!.skip(1).toList() : null,
-  };
-}
-
-String? _renderXAgo(DateTime? value) {
-  if (value == null) return null;
-  final age = DateTime.now().difference(value);
-  if (age.inDays > 30) return null;
-  if (age.inDays > 1) return '${age.inDays} days ago';
-  if (age.inHours > 1) return '${age.inHours} hours ago';
-  return 'in the last hour';
+  return listOfPackagesNode(
+    highlightedHit: searchResultPage.highlightedHit,
+    sdkLibraryHits: searchResultPage.sdkLibraryHits,
+    packageHits: searchResultPage.packageHits,
+  ).toString();
 }
 
 /// Renders the `views/pkg/index.mustache` template.

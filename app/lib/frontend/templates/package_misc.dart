@@ -30,7 +30,7 @@ d.Node nullSafeBadgeNode() {
 }
 
 /// Renders the tags using the pkg/tags template.
-String renderTags({
+d.Node tagsNodeFromPackageView({
   required PackageView package,
   String? version,
 }) {
@@ -143,7 +143,7 @@ String renderTags({
     simpleTags.add(SimpleTag.unidentified(
         href: urls.pkgScoreUrl(package.name!, version: version)));
   }
-  return tagsNode(simpleTags: simpleTags, badgeTags: badgeTags).toString();
+  return tagsNode(simpleTags: simpleTags, badgeTags: badgeTags);
 }
 
 /// Renders the labeled scores widget (the score values in a compact layout).
