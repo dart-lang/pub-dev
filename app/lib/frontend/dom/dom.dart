@@ -314,6 +314,23 @@ Node p({
       children: _children(children, child, text),
     );
 
+/// Creates a `<pre>` Element using the default [DomContext].
+Node pre({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+  Node? child,
+  String? text,
+}) =>
+    dom.element(
+      'pre',
+      id: id,
+      classes: classes,
+      attributes: attributes,
+      children: _children(children, child, text),
+    );
+
 /// Creates a `<span>` Element using the default [DomContext].
 Node span({
   String? id,
@@ -325,6 +342,23 @@ Node span({
 }) =>
     dom.element(
       'span',
+      id: id,
+      classes: classes,
+      attributes: attributes,
+      children: _children(children, child, text),
+    );
+
+/// Creates a `<strong>` Element using the default [DomContext].
+Node strong({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+  Node? child,
+  String? text,
+}) =>
+    dom.element(
+      'strong',
       id: id,
       classes: classes,
       attributes: attributes,
