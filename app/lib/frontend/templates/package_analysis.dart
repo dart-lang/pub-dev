@@ -9,10 +9,12 @@ import '../../shared/markdown.dart';
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart';
 
+import '../dom/dom.dart' as d;
 import '../static_files.dart';
 
 import '_cache.dart';
 import 'package_misc.dart';
+import 'views/pkg/score_tab.dart';
 
 /// Renders the `views/pkg/analysis/tab.mustache` template.
 String renderAnalysisTab(
@@ -41,10 +43,10 @@ String renderAnalysisTab(
     'granted_points': report?.grantedPoints ?? 0,
     'max_points': report?.maxPoints ?? 0,
     'report_html': _renderReport(report),
-    'like_key_figure_html': _renderLikeKeyFigure(likeCount),
+    'like_key_figure_html': _likeKeyFigureNode(likeCount).toString(),
     'popularity_key_figure_html':
-        _renderPopularityKeyFigure(card.popularityScore),
-    'pubpoints_key_figure_html': _renderPubPointsKeyFigure(report),
+        _popularityKeyFigureNode(card.popularityScore).toString(),
+    'pubpoints_key_figure_html': _pubPointsKeyFigureNode(report).toString(),
     'tool_env_info_html':
         _renderToolEnvInfo(card.panaReport?.panaRuntimeInfo, card.usesFlutter),
   };
@@ -93,26 +95,26 @@ String? _renderReport(Report? report) {
   });
 }
 
-String _renderLikeKeyFigure(int? likeCount) {
+d.Node _likeKeyFigureNode(int? likeCount) {
   // TODO: implement k/m supplemental for values larger than 1000
-  return _renderKeyFigure(
+  return keyFigureNode(
     value: '$likeCount',
     supplemental: '',
     label: 'likes',
   );
 }
 
-String _renderPopularityKeyFigure(double? popularity) {
-  return _renderKeyFigure(
+d.Node _popularityKeyFigureNode(double? popularity) {
+  return keyFigureNode(
     value: formatScore(popularity),
     supplemental: '%',
     label: 'popularity',
   );
 }
 
-String _renderPubPointsKeyFigure(Report? report) {
+d.Node _pubPointsKeyFigureNode(Report? report) {
   if (report == null) {
-    return _renderKeyFigure(
+    return keyFigureNode(
       value: '',
       supplemental: 'awaiting',
       label: 'pub points',
@@ -124,24 +126,11 @@ String _renderPubPointsKeyFigure(Report? report) {
     grantedPoints += section.grantedPoints;
     maxPoints += section.maxPoints;
   });
-  return _renderKeyFigure(
+  return keyFigureNode(
     value: '$grantedPoints',
     supplemental: '/ $maxPoints',
     label: 'pub points',
   );
-}
-
-/// Renders the `views/pkg/analysis/key_figure.mustache` template.
-String _renderKeyFigure({
-  required String value,
-  required String supplemental,
-  required String label,
-}) {
-  return templateCache.renderTemplate('pkg/analysis/key_figure', {
-    'value': value,
-    'supplemental': supplemental,
-    'label': label,
-  });
 }
 
 String? _renderToolEnvInfo(PanaRuntimeInfo? info, bool usesFlutter) {
@@ -153,24 +142,10 @@ String? _renderToolEnvInfo(PanaRuntimeInfo? info, bool usesFlutter) {
   final flutterDartVersion = usesFlutter && flutterVersions != null
       ? flutterVersions['dartSdkVersion']
       : null;
-  return templateCache.renderTemplate('pkg/analysis/tool_env_info', {
-    'tools': [
-      {
-        'name': 'Pana',
-        'version': info.panaVersion,
-        'last': false,
-      },
-      if (flutterVersion != null)
-        {
-          'name': 'Flutter',
-          'version': flutterVersion,
-          'last': false,
-        },
-      {
-        'name': 'Dart',
-        'version': flutterDartVersion ?? info.sdkVersion,
-        'last': true,
-      },
-    ],
-  });
+  return toolEnvInfoNode([
+    ToolVersionInfo('Pana', info.panaVersion),
+    if (flutterVersion != null)
+      ToolVersionInfo('Flutter', flutterVersion.toString()),
+    ToolVersionInfo('Dart', flutterDartVersion?.toString() ?? info.sdkVersion),
+  ]).toString();
 }
