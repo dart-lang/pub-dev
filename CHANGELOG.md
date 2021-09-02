@@ -2,8 +2,8 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bumped runtimeVersion to `2021.08.27`.
- * Upgraded dependencies (e.g. `package:analyzer` to `2.1.0`).
+ * Bumped runtimeVersion to `2021.09.02`.
+ * Upgraded dependencies (e.g. `package:analyzer` to `2.2.0`).
 
 ## `20210826t165000-all`
  * Bumped runtimeVersion to `2021.08.25`.
