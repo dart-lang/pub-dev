@@ -91,9 +91,7 @@ d.Node _useAsLibrary(
     d.p(children: [
       d.text('This will add a line like this to your package\'s '
           'pubspec.yaml (and run an implicit '),
-      d.code(
-          classes: ['language-shell'],
-          text: '${flutterOnly ? 'flutter' : 'dart'} pub get'),
+      d.code(text: '${flutterOnly ? 'flutter' : 'dart'} pub get'),
       d.text('):'),
     ]),
     d.pre(
