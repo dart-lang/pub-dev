@@ -39,5 +39,6 @@ Future<void> main(List<String> arguments) async {
   print('[${DateTime.now().toIso8601String()}] Writing files...');
   pubResourceProvider.writeFilesToDiskSync();
 
-  print('[${DateTime.now().toIso8601String()}] Max memory use: ${ProcessInfo.maxRss}');
+  print(
+      '[${DateTime.now().toIso8601String()}] Max memory use: ${ProcessInfo.maxRss}');
 }
