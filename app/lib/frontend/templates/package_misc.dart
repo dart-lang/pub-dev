@@ -22,10 +22,10 @@ d.Node flutterFavoriteBadgeNode() {
 }
 
 /// Renders the null-safe badge used by package listing and package page.
-d.Node nullSafeBadgeNode() {
+d.Node nullSafeBadgeNode({String? title}) {
   return packageBadgeNode(
     label: 'Null safety',
-    title: 'Supports the null safety language feature.',
+    title: title ?? 'Supports the null safety language feature.',
   );
 }
 
