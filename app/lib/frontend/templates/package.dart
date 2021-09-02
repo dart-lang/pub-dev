@@ -182,10 +182,10 @@ String renderPkgHeader(PackagePageData data) {
     isFlutterFavorite:
         (package.assignedTags ?? []).contains(PackageTags.isFlutterFavorite),
     metadataHtml: metadataHtml,
-    tagsHtml: renderTags(
+    tagsHtml: tagsNodeFromPackageView(
       package: pkgView,
       version: data.isLatestStable ? null : data.version!.version,
-    ),
+    ).toString(),
     isLoose: true,
   );
 }
