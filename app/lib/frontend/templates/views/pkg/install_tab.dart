@@ -40,25 +40,21 @@ d.Node _useAsExecutable(String package, List<String> executables) {
     d.h2(text: 'Use this package as an executable'),
     d.h3(text: 'Install it'),
     d.p(text: 'You can install the package from the command line:'),
-    d.pre(
-      attributes: {'data-text-to-copy': 'dart pub global activate $package'},
-      child: d.code(
-        classes: ['language-shell'],
-        child: d.strong(text: 'dart pub global activate $package'),
-      ),
+    d.codeSnippet(
+      language: 'shell',
+      textToCopy: 'dart pub global activate $package',
+      child: d.strong(text: 'dart pub global activate $package'),
     ),
     d.h3(text: 'Use it'),
     d.p(text: 'The package has the following executables:'),
-    d.pre(
-      child: d.code(
-        classes: ['language-shell'],
-        children: executables.map(
-          (e) => d.fragment([
-            d.text(r'$ '),
-            d.strong(text: e),
-            d.text('\n'),
-          ]),
-        ),
+    d.codeSnippet(
+      language: 'shell',
+      children: executables.map(
+        (e) => d.fragment([
+          d.text(r'$ '),
+          d.strong(text: e),
+          d.text('\n'),
+        ]),
       ),
     ),
   ]);
@@ -94,14 +90,12 @@ d.Node _useAsLibrary(
       d.code(text: '${flutterOnly ? 'flutter' : 'dart'} pub get'),
       d.text('):'),
     ]),
-    d.pre(
-      child: d.code(
-        classes: ['language-yaml'],
-        children: [
-          d.text('$exampleDepKey:\n  '),
-          d.strong(text: '${version.package}: ^${version.version}'),
-        ],
-      ),
+    d.codeSnippet(
+      language: 'yaml',
+      children: [
+        d.text('$exampleDepKey:\n  '),
+        d.strong(text: '${version.package}: ^${version.version}'),
+      ],
     ),
     if (showEditorSupport)
       d.p(children: [
@@ -119,9 +113,10 @@ d.Node _useAsLibrary(
 d.Node _pubAddNode(String sdkLabel, String command) {
   return d.fragment([
     d.p(text: 'With $sdkLabel:'),
-    d.pre(
-      attributes: {'data-text-to-copy': command},
-      child: d.code(classes: ['language-shell'], text: ' \$ $command'),
+    d.codeSnippet(
+      language: 'shell',
+      textToCopy: command,
+      text: ' \$ $command',
     ),
   ]);
 }
@@ -136,13 +131,11 @@ d.Node _useAsImport(List<_ImportExample> importExamples) {
   return d.fragment([
     d.h3(text: 'Import it'),
     d.p(text: 'Now in your Dart code, you can use:'),
-    d.pre(
-      child: d.code(
-        classes: ['language-dart'],
-        text: importExamples
-            .map((e) => 'import \'package:${e.package}/${e.library}\';')
-            .join('\n'),
-      ),
+    d.codeSnippet(
+      language: 'dart',
+      text: importExamples
+          .map((e) => 'import \'package:${e.package}/${e.library}\';')
+          .join('\n'),
     ),
   ]);
 }
