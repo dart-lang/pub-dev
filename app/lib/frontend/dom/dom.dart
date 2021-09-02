@@ -262,6 +262,24 @@ Node h3({
       children: _children(children, child, text),
     );
 
+/// Creates an `<i>` Element using the default [DomContext].
+Node i({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+  Node? child,
+  String? text,
+}) {
+  return dom.element(
+    'i',
+    id: id,
+    classes: classes,
+    attributes: attributes,
+    children: _children(children, child, text),
+  );
+}
+
 /// Creates an `<img>` Element using the default [DomContext].
 Node img({
   String? id,
@@ -319,6 +337,23 @@ Node input({
     children: _children(children, child, text),
   );
 }
+
+/// Creates a `<label>` Element using the default [DomContext].
+Node label({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+  Node? child,
+  String? text,
+}) =>
+    dom.element(
+      'label',
+      id: id,
+      classes: classes,
+      attributes: attributes,
+      children: _children(children, child, text),
+    );
 
 /// Creates a `<li>` Element using the default [DomContext].
 Node li({

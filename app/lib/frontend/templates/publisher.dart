@@ -16,12 +16,13 @@ import '_cache.dart';
 import 'detail_page.dart';
 import 'layout.dart';
 import 'listing.dart';
+import 'views/publisher/create_page.dart';
 import 'views/publisher/header_metadata.dart';
 import 'views/publisher/publisher_list.dart';
 
-/// Renders the `views/publisher/create.mustache` template.
+/// Renders the create publisher page.
 String renderCreatePublisherPage() {
-  final String content = templateCache.renderTemplate('publisher/create', {});
+  final String content = createPublisherPageNode().toString();
   return renderLayoutPage(
     PageType.standalone,
     content,

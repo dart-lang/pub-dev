@@ -67,3 +67,31 @@ d.Node raisedButton({
     label: label,
   );
 }
+
+/// Renders a material text field.
+d.Node textField({
+  required String id,
+  required String label,
+}) {
+  return d.fragment([
+    d.label(attributes: {'for': id}, text: label),
+    d.div(
+      classes: ['mdc-text-field', 'mdc-text-field--outlined'],
+      attributes: {'data-mdc-auto-init': 'MDCTextField'},
+      children: [
+        d.input(
+          type: 'text',
+          id: id,
+          classes: ['mdc-text-field__input'],
+        ),
+        d.div(
+          classes: ['mdc-notched-outline'],
+          children: [
+            d.div(classes: ['mdc-notched-outline__leading'], text: ''),
+            d.div(classes: ['mdc-notched-outline__trailing'], text: ''),
+          ],
+        ),
+      ],
+    ),
+  ]);
+}
