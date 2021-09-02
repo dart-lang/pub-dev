@@ -97,27 +97,23 @@ Node a({
   String? target,
   String? title,
 }) {
-  final hasAttributes = attributes != null ||
-      href != null ||
-      rel != null ||
-      target != null ||
-      title != null;
   return dom.element(
     'a',
     id: id,
     classes: classes,
-    attributes: hasAttributes
-        ? <String, String>{
-            if (href != null) 'href': href,
-            if (rel != null) 'rel': rel,
-            if (target != null) 'target': target,
-            if (title != null) 'title': title,
-            if (attributes != null) ...attributes,
-          }
-        : null,
+    attributes: <String, String>{
+      if (href != null) 'href': href,
+      if (rel != null) 'rel': rel,
+      if (target != null) 'target': target,
+      if (title != null) 'title': title,
+      if (attributes != null) ...attributes,
+    },
     children: _children(children, child, text),
   );
 }
+
+/// Creates a `<br>` Element using the default [DomContext].
+Node br() => element('br');
 
 /// Creates a `<code>` Element using the default [DomContext].
 Node code({
@@ -152,6 +148,28 @@ Node div({
       attributes: attributes,
       children: _children(children, child, text),
     );
+
+/// Creates an `<form>` Element using the default [DomContext].
+Node form({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+  Node? child,
+  String? text,
+  String? action,
+}) {
+  return dom.element(
+    'form',
+    id: id,
+    classes: classes,
+    attributes: <String, String>{
+      if (action != null) 'action': action,
+      if (attributes != null) ...attributes,
+    },
+    children: _children(children, child, text),
+  );
+}
 
 /// Creates a `<h1>` Element using the default [DomContext].
 Node h1({
@@ -214,21 +232,51 @@ Node img({
   String? title,
   String? alt,
 }) {
-  final hasAttributes =
-      attributes != null || src != null || title != null || alt != null;
   return dom.element(
     'img',
     id: id,
     classes: classes,
-    attributes: hasAttributes
-        ? <String, String>{
-            if (src != null) 'src': src,
-            if (title != null) 'title': title,
-            if (alt != null) 'alt': alt,
-            if (attributes != null) ...attributes,
-          }
-        : null,
+    attributes: <String, String>{
+      if (src != null) 'src': src,
+      if (title != null) 'title': title,
+      if (alt != null) 'alt': alt,
+      if (attributes != null) ...attributes,
+    },
     children: children,
+  );
+}
+
+/// Creates an `<input>` Element using the default [DomContext].
+Node input({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+  Node? child,
+  String? text,
+  String? type,
+  String? name,
+  String? placeholder,
+  String? value,
+  String? autocomplete,
+  bool autofocus = false,
+  bool disabled = false,
+}) {
+  return dom.element(
+    'input',
+    id: id,
+    classes: classes,
+    attributes: <String, String>{
+      if (type != null) 'type': type,
+      if (name != null) 'name': name,
+      if (placeholder != null) 'placeholder': placeholder,
+      if (autocomplete != null) 'autocomplete': autocomplete,
+      if (value != null) 'value': value,
+      if (autofocus) 'autofocus': 'autofocus',
+      if (disabled) 'disabled': 'disabled',
+      if (attributes != null) ...attributes,
+    },
+    children: _children(children, child, text),
   );
 }
 

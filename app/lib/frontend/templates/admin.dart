@@ -17,6 +17,7 @@ import 'detail_page.dart';
 import 'layout.dart';
 import 'listing.dart';
 import 'views/account/authorized.dart';
+import 'views/pkg/liked_package_list.dart';
 import 'views/publisher/publisher_list.dart';
 
 /// Renders the response that is displayed after pub client authorizes successfully.
@@ -87,7 +88,7 @@ String renderMyLikedPackagesPage({
   required UserSessionData userSessionData,
   required List<LikeData> likes,
 }) {
-  final likedPackagesListHtml = renderMyLikedPackagesList(likes);
+  final likedPackagesListHtml = likedPackageListNode(likes).toString();
 
   final resultCountHtml = likes.isNotEmpty
       ? '<p>You like ${likes.length} ${likes.length == 1 ? 'package' : 'packages'}. </p>'

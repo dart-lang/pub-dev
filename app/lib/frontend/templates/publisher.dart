@@ -10,14 +10,13 @@ import '../../frontend/templates/views/account/activity_log_table.dart';
 import '../../package/search_adapter.dart' show SearchResultPage;
 import '../../publisher/models.dart' show Publisher, PublisherSummary;
 import '../../search/search_form.dart' show SearchForm;
-import '../../shared/markdown.dart';
 import '../../shared/urls.dart' as urls;
-import '../../shared/utils.dart' show shortDateFormat;
 
 import '_cache.dart';
 import 'detail_page.dart';
 import 'layout.dart';
 import 'listing.dart';
+import 'views/publisher/header_metadata.dart';
 import 'views/publisher/publisher_list.dart';
 
 /// Renders the `views/publisher/create.mustache` template.
@@ -40,16 +39,6 @@ String renderPublisherListPage(List<PublisherSummary> publishers) {
     title: 'Publishers',
     canonicalUrl: '/publishers',
   );
-}
-
-/// Returns the formatted short description of the publisher description.
-String? _shortDescriptionHtml(Publisher publisher) {
-  if (!publisher.hasDescription) '';
-  String? description = publisher.description;
-  if (description != null && description.length > 1010) {
-    description = description.substring(0, 1000) + '[...]';
-  }
-  return markdownToHtml(description, inlineOnly: true);
 }
 
 /// Renders the search results on the publisher's packages page.
@@ -208,25 +197,9 @@ String renderPublisherActivityLogPage({
 }
 
 String _renderDetailHeader(Publisher publisher) {
-  final websiteUri = urls.parseValidUrl(publisher.websiteUrl);
-  final websiteRel = (websiteUri?.shouldIndicateUgc ?? false) ? 'ugc' : null;
-  final metadataHtml = templateCache.renderTemplate(
-    'publisher/header_metadata',
-    {
-      'short_created': shortDateFormat.format(publisher.created!),
-      'has_description': publisher.hasDescription,
-      'description_html': _shortDescriptionHtml(publisher),
-      'has_contact_email': publisher.hasContactEmail,
-      'contact_email': publisher.contactEmail,
-      'has_website_url': websiteUri != null,
-      'website_url': publisher.websiteUrl,
-      'website_url_displayed': urls.displayableUrl(publisher.websiteUrl),
-      'website_url_rel': websiteRel,
-    },
-  );
   return renderDetailHeader(
     title: publisher.publisherId,
-    metadataHtml: metadataHtml,
+    metadataHtml: publisherHeaderMetadataNode(publisher).toString(),
   );
 }
 

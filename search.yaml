@@ -14,8 +14,8 @@ resources:
 #  instances: 1
 
 automatic_scaling:
-  min_num_instances: 3
-  max_num_instances: 4
+  min_num_instances: 4
+  max_num_instances: 6
 
 skip_files:
 - ^\.git/.*$

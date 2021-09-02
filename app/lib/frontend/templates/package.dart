@@ -104,8 +104,8 @@ String renderPkgInfoBox(PackagePageData data) {
     isLatest: data.isLatestStable,
   );
 
-  final metaLinks = <Map<String, dynamic>>[];
-  final docLinks = <Map<String, dynamic>>[];
+  final metaLinks = <InfoBoxLink>[];
+  final docLinks = <InfoBoxLink>[];
   void addLink(
     String? href,
     String label, {
@@ -121,11 +121,8 @@ String renderPkgInfoBox(PackagePageData data) {
         label += ' ($providerName)';
       }
     }
-    final linkData = <String, dynamic>{
-      'href': htmlAttrEscape.convert(uri.toString()),
-      'label': label,
-      'rel': uri.shouldIndicateUgc ? 'ugc' : null,
-    };
+    final linkData = InfoBoxLink(uri.toString(), label,
+        rel: uri.shouldIndicateUgc ? 'ugc' : null);
     if (documentation) {
       docLinks.add(linkData);
     } else {
@@ -144,38 +141,15 @@ String renderPkgInfoBox(PackagePageData data) {
     addLink(dartdocsUrl, 'API reference', documentation: true);
   }
 
-  return templateCache.renderTemplate('pkg/info_box', {
-    'name': package.name,
-    'description': data.version!.pubspec!.description,
-    'meta_links': metaLinks,
-    'has_doc_links': docLinks.isNotEmpty,
-    'doc_links': docLinks,
-    'replaced_by': package.replacedBy,
-    'replaced_by_link': package.replacedBy == null
-        ? null
-        : urls.pkgPageUrl(package.replacedBy!),
-    'has_publisher': package.publisherId != null,
-    'publisher_id': package.publisherId,
-    'publisher_link': package.publisherId == null
-        ? null
-        : urls.publisherUrl(package.publisherId!),
-    'license_html': licenseNode(
-      licenseFile: data.scoreCard?.panaReport?.licenseFile,
-      licenseUrl: data.versionInfo?.hasLicense ?? false
-          ? urls.pkgLicenseUrl(
-              data.package!.name!,
-              version: data.isLatestStable ? null : data.version!.version,
-            )
-          : null,
-    )?.toString(),
-    'dependencies_html':
-        dependencyListNode(data.version!.pubspec?.dependencies)?.toString(),
-    'search_deps_link': urls.searchUrl(q: 'dependency:${package.name}'),
-    'labeled_scores_html': renderLabeledScores(
+  return packageInfoBoxNode(
+    data: data,
+    metaLinks: metaLinks,
+    docLinks: docLinks,
+    labeledScores: labeledScoresNodeFromPackageView(
       data.toPackageView(),
       version: data.isLatestStable ? null : data.version!.version,
     ),
-  });
+  ).toString();
 }
 
 /// Renders the `views/pkg/header.mustache` template for header metadata and

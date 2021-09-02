@@ -2,6 +2,15 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bumped runtimeVersion to `2021.09.02`.
+ * Upgraded dependencies (e.g. `package:analyzer` to `2.2.0`).
+
+## `20210826t165000-all`
+ * Bumped runtimeVersion to `2021.08.25`.
+ * Upgraded preview Flutter analysis SDK to `2.5.0-5.2.pre`.
+ * Upgraded dartdoc to `2.0.0`.
+ * NOTE: increased the number of search service instances to 4 (autoscale up to 6).
+ * Limit `pkg/pub_dartdoc` output to 2 GiB and 10M files.
 
 ## `20210819t120700-all`
  * Bumped runtimeVersion to `2021.08.17`.

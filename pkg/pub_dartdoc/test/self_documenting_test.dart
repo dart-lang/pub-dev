@@ -23,9 +23,9 @@ void main() {
         'run',
         'pub_dartdoc',
         '--input',
-        Directory.current.path,
+        Directory.current.absolute.path,
         '--output',
-        tempDir.path,
+        tempDir.absolute.path,
       ]);
     });
 
@@ -42,7 +42,7 @@ void main() {
     test('process uses reasonable memory', () {
       final lines = pr.stdout.toString().split('\n');
       final memUseStr = lines.reversed
-          .firstWhere((line) => line.startsWith('Max memory use:'))
+          .firstWhere((line) => line.contains('Max memory use:'))
           .split(':')
           .last;
       final memUse = int.parse(memUseStr);

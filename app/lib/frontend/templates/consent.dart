@@ -4,10 +4,13 @@
 
 import 'package:client_data/page_data.dart';
 
-import '../../shared/urls.dart' as urls;
+import '../dom/dom.dart' as d;
 
-import '_cache.dart';
 import 'layout.dart';
+import 'views/consent/package_uploader_invite.dart';
+import 'views/consent/page.dart';
+import 'views/consent/publisher_contact_invite.dart';
+import 'views/consent/publisher_member_invite.dart';
 
 /// Renders the `views/consent/page.mustache` template.
 String renderConsentPage({
@@ -15,10 +18,10 @@ String renderConsentPage({
   required String title,
   required String descriptionHtml,
 }) {
-  final content = templateCache.renderTemplate('consent/page', {
-    'title': title,
-    'description_html': descriptionHtml,
-  });
+  final content = consentPageNode(
+    title: title,
+    description: d.unsafeRawHtml(descriptionHtml),
+  ).toString();
   return renderLayoutPage(
     PageType.standalone,
     content,
@@ -28,43 +31,39 @@ String renderConsentPage({
   );
 }
 
-/// Renders the `views/consent/package_uploader_invite.mustache` template.
+/// Renders the package uploader invite template.
 String renderPackageUploaderInvite({
   required String invitingUserEmail,
   required String packageName,
   required String? currentUserEmail,
 }) {
-  return templateCache.renderTemplate('consent/package_uploader_invite', {
-    'inviting_user_email': invitingUserEmail,
-    'package_name': packageName,
-    'package_url': urls.pkgPageUrl(packageName),
-    'has_current_user_email': currentUserEmail != null,
-    'current_user_email': currentUserEmail,
-  });
+  return packageUploaderInviteNode(
+    invitingUserEmail: invitingUserEmail,
+    packageName: packageName,
+    currentUserEmail: currentUserEmail,
+  ).toString();
 }
 
-/// Renders the `views/consent/publisher_member_invite.mustache` template.
+/// Renders the publisher member invite template.
 String renderPublisherMemberInvite({
   required String invitingUserEmail,
   required String publisherId,
 }) {
-  return templateCache.renderTemplate('consent/publisher_member_invite', {
-    'inviting_user_email': invitingUserEmail,
-    'publisher_id': publisherId,
-    'publisher_url': urls.publisherUrl(publisherId),
-  });
+  return publisherMemberInviteNode(
+    invitingUserEmail: invitingUserEmail,
+    publisherId: publisherId,
+  ).toString();
 }
 
-/// Renders the `views/consent/publisher_contact_invite.mustache` template.
+/// Renders the publisher contact invite template.
 String renderPublisherContactInvite({
   required String invitingUserEmail,
   required String publisherId,
   required String contactEmail,
 }) {
-  return templateCache.renderTemplate('consent/publisher_contact_invite', {
-    'inviting_user_email': invitingUserEmail,
-    'publisher_id': publisherId,
-    'publisher_url': urls.publisherUrl(publisherId),
-    'contact_email': contactEmail,
-  });
+  return publisherContactInviteNode(
+    invitingUserEmail: invitingUserEmail,
+    publisherId: publisherId,
+    contactEmail: contactEmail,
+  ).toString();
 }

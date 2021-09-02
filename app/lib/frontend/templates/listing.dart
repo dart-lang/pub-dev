@@ -4,7 +4,6 @@
 
 import 'dart:math';
 
-import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/package/search_adapter.dart';
 import 'package:pub_dev/shared/utils.dart';
 
@@ -81,7 +80,7 @@ Map<String, dynamic> _packageHitData(PackageView view) {
     'publisher_url':
         view.publisherId == null ? null : urls.publisherUrl(view.publisherId!),
     'tags_html': renderTags(package: view),
-    'labeled_scores_html': renderLabeledScores(view),
+    'labeled_scores_html': labeledScoresNodeFromPackageView(view).toString(),
     'has_api_pages': hasApiPages,
     'has_more_api_pages': hasMoreThanOneApiPages,
     'first_api_page': hasApiPages ? apiPages!.first : null,
@@ -129,21 +128,6 @@ String? _renderXAgo(DateTime? value) {
   if (age.inDays > 1) return '${age.inDays} days ago';
   if (age.inHours > 1) return '${age.inHours} hours ago';
   return 'in the last hour';
-}
-
-/// Renders the `views/pkg/liked_package_list.mustache` template.
-String renderMyLikedPackagesList(List<LikeData> likes) {
-  final packagesJson = [];
-  for (final like in likes) {
-    final package = like.package!;
-    packagesJson.add({
-      'url': urls.pkgPageUrl(package),
-      'name': package,
-      'liked_date': shortDateFormat.format(like.created!),
-    });
-  }
-  return templateCache
-      .renderTemplate('pkg/liked_package_list', {'packages': packagesJson});
 }
 
 /// Renders the `views/pkg/index.mustache` template.

@@ -18,6 +18,7 @@ import 'package:pub_dev/frontend/handlers/package.dart'
     show loadPackagePageData;
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/frontend/templates/admin.dart';
+import 'package:pub_dev/frontend/templates/consent.dart';
 import 'package:pub_dev/frontend/templates/landing.dart';
 import 'package:pub_dev/frontend/templates/layout.dart';
 import 'package:pub_dev/frontend/templates/listing.dart';
@@ -77,6 +78,7 @@ void main() {
       String fileName, {
       bool isFragment = false,
       Map<String, DateTime?>? timestamps,
+      Map<String, String>? replacements,
     }) {
       // Making sure it is valid HTML
       final htmlParser = HtmlParser(content, strict: true);
@@ -96,6 +98,9 @@ void main() {
               .replaceAll(shortDateFormat.format(value), '%%$key-date%%')
               .replaceAll(value.toIso8601String(), '%%$key-timestamp%%');
         }
+      });
+      replacements?.forEach((key, value) {
+        replacedContent = replacedContent.replaceAll(value, '%%$key%%');
       });
       replacedContent = replacedContent.replaceAll(
           'Pana <code>$panaVersion</code>,',
@@ -508,6 +513,32 @@ void main() {
     );
 
     testWithProfile(
+      'publisher admin page',
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final publisher = (await publisherBackend.getPublisher('example.com'))!;
+        final members =
+            await publisherBackend.listPublisherMembers('example.com');
+        final html = renderPublisherAdminPage(
+          publisher: publisher,
+          members: members,
+        );
+        expectGoldenFile(
+          html,
+          'publisher_admin_page.html',
+          timestamps: {
+            'publisher-created': publisher.created,
+            'publisher-updated': publisher.updated,
+          },
+          replacements: {
+            ...Map.fromIterables(
+                members.map((m) => m.email), members.map((m) => m.userId)),
+          },
+        );
+      },
+    );
+
+    testWithProfile(
       'publisher activity log page',
       processJobsWithFakeRunners: true,
       fn: () async {
@@ -633,6 +664,71 @@ void main() {
       });
     });
 
+    scopedTest('create publisher page', () {
+      final html = renderCreatePublisherPage();
+      expectGoldenFile(html, 'create_publisher_page.html');
+    });
+
+    scopedTest('consent page', () {
+      final html = renderConsentPage(
+        consentId: '1234-5678',
+        title: 'Invite for something',
+        descriptionHtml: '<b>Warning!</b> And text...',
+      );
+      expectGoldenFile(html, 'consent_page.html');
+    });
+
+    scopedTest('consent - package uploader invite (anonymous)', () {
+      final html = renderPackageUploaderInvite(
+        invitingUserEmail: 'admin@pub.dev',
+        packageName: 'example_pkg',
+        currentUserEmail: null,
+      );
+      expectGoldenFile(
+        html,
+        'consent_package_uploader_anonymous.html',
+        isFragment: true,
+      );
+    });
+
+    scopedTest('consent - package uploader invite (authenticated)', () {
+      final html = renderPackageUploaderInvite(
+        invitingUserEmail: 'admin@pub.dev',
+        packageName: 'example_pkg',
+        currentUserEmail: 'user@pub.dev',
+      );
+      expectGoldenFile(
+        html,
+        'consent_package_uploader_authenticated.html',
+        isFragment: true,
+      );
+    });
+
+    scopedTest('consent - publisher contact invite', () {
+      final html = renderPublisherContactInvite(
+        invitingUserEmail: 'admin@pub.dev',
+        contactEmail: 'hello@example.com',
+        publisherId: 'dart.dev',
+      );
+      expectGoldenFile(
+        html,
+        'consent_publisher_contact_invite.html',
+        isFragment: true,
+      );
+    });
+
+    scopedTest('consent - publisher member invite', () {
+      final html = renderPublisherMemberInvite(
+        invitingUserEmail: 'admin@pub.dev',
+        publisherId: 'dart.dev',
+      );
+      expectGoldenFile(
+        html,
+        'consent_publisher_member_invite.html',
+        isFragment: true,
+      );
+    });
+
     scopedTest('authorized page', () {
       final String html = renderAuthorizedPage();
       expectGoldenFile(html, 'authorized_page.html');
@@ -641,6 +737,11 @@ void main() {
     scopedTest('error page', () {
       final String html = renderErrorPage('error_title', 'error_message');
       expectGoldenFile(html, 'error_page.html');
+    });
+
+    scopedTest('help page', () async {
+      final html = renderHelpPage();
+      expectGoldenFile(html, 'help_page.html');
     });
 
     test('pagination: single page', () {

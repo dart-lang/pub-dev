@@ -5,7 +5,7 @@
 import 'package:path/path.dart' as p;
 
 import '../package/overrides.dart';
-import '../search/search_form.dart' show SearchForm;
+import '../search/search_form.dart' show SearchForm, SearchOrder;
 
 const primaryHost = 'pub.dev';
 const legacyHost = 'pub.dartlang.org';
@@ -168,6 +168,11 @@ String searchUrl({
   );
   return query.toSearchLink(page: page);
 }
+
+String listingByPopularity() =>
+    SearchForm.parse(order: SearchOrder.popularity).toSearchLink();
+String listingFlutterPackages() => '/flutter/packages';
+String listingDartPackages() => '/dart/packages';
 
 String dartSdkMainUrl(String version) {
   final isDev = version.contains('dev');

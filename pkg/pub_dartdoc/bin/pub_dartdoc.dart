@@ -11,7 +11,8 @@ import 'package:pub_dartdoc/pub_data_generator.dart';
 import 'package:pub_dartdoc/src/pub_hooks.dart';
 
 Future<void> main(List<String> arguments) async {
-// pub hooks
+  print('[${DateTime.now().toIso8601String()}] Starting...');
+  // pub hooks
   final pubResourceProvider =
       PubResourceProvider(pubPackageMetaProvider.resourceProvider);
   final pubMetaProvider =
@@ -21,6 +22,7 @@ Future<void> main(List<String> arguments) async {
   if (config == null) {
     throw ArgumentError();
   }
+  pubResourceProvider.setConfig(output: config.output);
 
   final packageConfigProvider = PhysicalPackageConfigProvider();
   final packageBuilder =
@@ -34,5 +36,9 @@ Future<void> main(List<String> arguments) async {
       PubDataGenerator(config.inputDir, config.resourceProvider);
   pubDataGenerator.generate(results.packageGraph, config.output);
 
-  print('Max memory use: ${ProcessInfo.maxRss}');
+  print('[${DateTime.now().toIso8601String()}] Writing files...');
+  pubResourceProvider.writeFilesToDiskSync();
+
+  print(
+      '[${DateTime.now().toIso8601String()}] Max memory use: ${ProcessInfo.maxRss}');
 }
