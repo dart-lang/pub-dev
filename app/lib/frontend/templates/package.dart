@@ -15,7 +15,6 @@ import '../../shared/urls.dart' as urls;
 
 import '../static_files.dart';
 
-import '_cache.dart';
 import '_utils.dart';
 import 'detail_page.dart';
 import 'layout.dart';
@@ -24,69 +23,8 @@ import 'package_analysis.dart';
 import 'package_misc.dart';
 import 'views/pkg/header.dart';
 import 'views/pkg/info_box.dart';
+import 'views/pkg/install_tab.dart';
 import 'views/pkg/title_content.dart';
-
-String _renderInstallTab(PackageVersion selectedVersion, List<String>? tags) {
-  final packageName = selectedVersion.package;
-  final isFlutterPackage = selectedVersion.pubspec!.usesFlutter;
-  List importExamples;
-  if (selectedVersion.libraries!.contains('$packageName.dart')) {
-    importExamples = [
-      {
-        'package': packageName,
-        'library': '$packageName.dart',
-      },
-    ];
-  } else {
-    importExamples = selectedVersion.libraries!.map((library) {
-      return {
-        'package': selectedVersion.packageKey!.id,
-        'library': library,
-      };
-    }).toList();
-  }
-
-  final executables = selectedVersion.pubspec!.executables?.keys.toList();
-  executables?.sort();
-  final hasExecutables = executables != null && executables.isNotEmpty;
-
-  final exampleVersionConstraint = '^${selectedVersion.version}';
-
-  final bool usePubGet = !isFlutterPackage ||
-      tags == null ||
-      tags.isEmpty ||
-      tags.contains(SdkTag.sdkDart);
-
-  final bool useFlutterPackagesGet =
-      isFlutterPackage || (tags != null && tags.contains(SdkTag.sdkFlutter));
-
-  String editorSupportedToolHtml;
-  if (usePubGet && useFlutterPackagesGet) {
-    editorSupportedToolHtml =
-        '<code>dart pub get</code> or <code>flutter pub get</code>';
-  } else if (useFlutterPackagesGet) {
-    editorSupportedToolHtml = '<code>flutter pub get</code>';
-  } else {
-    editorSupportedToolHtml = '<code>dart pub get</code>';
-  }
-
-  final bool isDevDependency = devDependencyPackages.contains(packageName);
-  return templateCache.renderTemplate('pkg/install_tab', {
-    'dependencies_key': isDevDependency ? 'dev_dependencies' : 'dependencies',
-    'pub_add_command': 'pub add $packageName${isDevDependency ? ' --dev' : ''}',
-    'use_as_an_executable': hasExecutables,
-    'use_as_a_library': !hasExecutables || importExamples.isNotEmpty,
-    'package': packageName,
-    'example_version_constraint': exampleVersionConstraint,
-    'has_libraries': importExamples.isNotEmpty,
-    'import_examples': importExamples,
-    'use_pub_get': usePubGet,
-    'use_flutter_packages_get': useFlutterPackagesGet,
-    'show_editor_support': usePubGet || useFlutterPackagesGet,
-    'editor_supported_tool_html': editorSupportedToolHtml,
-    'executables': executables,
-  });
-}
 
 /// Renders the right-side info box (quick summary of the package, mostly coming
 /// from pubspec.yaml).
@@ -383,11 +321,16 @@ Tab? _exampleTab(PackagePageData data) {
 }
 
 Tab _installTab(PackagePageData data) {
+  final content = installTabNode(
+    version: data.version!,
+    tags: data.scoreCard?.panaReport?.derivedTags,
+    isDevDependency: devDependencyPackages.contains(data.version!.package),
+  ).toString();
+
   return Tab.withContent(
     id: 'installing',
     title: 'Installing',
-    contentHtml: _renderInstallTab(
-        data.version!, data.scoreCard?.panaReport?.derivedTags),
+    contentHtml: content,
     isMarkdown: true,
   );
 }

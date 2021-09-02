@@ -84,6 +84,25 @@ Node unsafeRawHtml(String value) => dom.unsafeRawHtml(value);
 /// Creates a DOM node with markdown content using the default [DomContext].
 Node markdown(String text) => dom.unsafeRawHtml(markdownToHtml(text)!);
 
+/// Creates DOM elements with <pre> and <code> for HLJS and pub.dev's copy-to-clipboard.
+Node codeSnippet({
+  required String language,
+  String? textToCopy,
+  Iterable<Node>? children,
+  Node? child,
+  String? text,
+}) {
+  return pre(
+    attributes: textToCopy == null ? null : {'data-text-to-copy': textToCopy},
+    child: code(
+      classes: ['language-$language'],
+      children: children,
+      child: child,
+      text: text,
+    ),
+  );
+}
+
 /// Creates an `<a>` Element using the default [DomContext].
 Node a({
   String? id,
@@ -383,6 +402,23 @@ Node p({
 }) =>
     dom.element(
       'p',
+      id: id,
+      classes: classes,
+      attributes: attributes,
+      children: _children(children, child, text),
+    );
+
+/// Creates a `<pre>` Element using the default [DomContext].
+Node pre({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+  Node? child,
+  String? text,
+}) =>
+    dom.element(
+      'pre',
       id: id,
       classes: classes,
       attributes: attributes,
