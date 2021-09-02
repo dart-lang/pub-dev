@@ -165,8 +165,8 @@ K? _$enumDecodeNullable<K, V>(
 
 const _$AdminPermissionEnumMap = {
   AdminPermission.listUsers: 'listUsers',
-  AdminPermission.removeUsers: 'removeUsers',
   AdminPermission.manageAssignedTags: 'manageAssignedTags',
-  AdminPermission.removePackage: 'removePackage',
   AdminPermission.managePackageOwnership: 'managePackageOwnership',
+  AdminPermission.removePackage: 'removePackage',
+  AdminPermission.removeUsers: 'removeUsers',
 };
