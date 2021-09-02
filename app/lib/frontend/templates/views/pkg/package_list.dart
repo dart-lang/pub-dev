@@ -198,17 +198,13 @@ d.Node _apiPages(List<_ApiPageUrl> apiPages) {
       d.div(classes: ['packages-api-label'], text: 'API results:'),
       d.details(
         classes: ['packages-api-details', 'packages-api-links'],
-        children: [
-          d.summary(
-            child: d.a(href: apiPages.first.href, text: apiPages.first.label),
-          ),
-          ...apiPages.skip(1).map(
-                (e) => d.div(
-                  classes: ['-rest'],
-                  child: d.a(href: e.href, text: e.label),
-                ),
+        summary: [d.a(href: apiPages.first.href, text: apiPages.first.label)],
+        children: apiPages.skip(1).map(
+              (e) => d.div(
+                classes: ['-rest'],
+                child: d.a(href: e.href, text: e.label),
               ),
-        ],
+            ),
       ),
     ]);
   }

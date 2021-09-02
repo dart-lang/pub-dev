@@ -154,17 +154,23 @@ Node details({
   String? id,
   Iterable<String>? classes,
   Map<String, String>? attributes,
+  required Iterable<Node> summary,
   Iterable<Node>? children,
   Node? child,
   String? text,
-}) =>
-    dom.element(
-      'details',
-      id: id,
-      classes: classes,
-      attributes: attributes,
-      children: _children(children, child, text),
-    );
+}) {
+  final detailChildren = _children(children, child, text);
+  return dom.element(
+    'details',
+    id: id,
+    classes: classes,
+    attributes: attributes,
+    children: [
+      dom.element('summary', children: summary),
+      if (detailChildren != null) ...detailChildren,
+    ],
+  );
+}
 
 /// Creates a `<div>` Element using the default [DomContext].
 Node div({
@@ -376,23 +382,6 @@ Node strong({
 }) =>
     dom.element(
       'strong',
-      id: id,
-      classes: classes,
-      attributes: attributes,
-      children: _children(children, child, text),
-    );
-
-/// Creates a `<summary>` Element using the default [DomContext].
-Node summary({
-  String? id,
-  Iterable<String>? classes,
-  Map<String, String>? attributes,
-  Iterable<Node>? children,
-  Node? child,
-  String? text,
-}) =>
-    dom.element(
-      'summary',
       id: id,
       classes: classes,
       attributes: attributes,
