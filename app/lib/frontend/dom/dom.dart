@@ -82,7 +82,15 @@ Node text(String value) => dom.text(value);
 Node unsafeRawHtml(String value) => dom.unsafeRawHtml(value);
 
 /// Creates a DOM node with markdown content using the default [DomContext].
-Node markdown(String text) => dom.unsafeRawHtml(markdownToHtml(text)!);
+Node markdown(
+  String text, {
+  bool disableHashIds = false,
+}) {
+  return dom.unsafeRawHtml(markdownToHtml(
+    text,
+    disableHashIds: disableHashIds,
+  )!);
+}
 
 /// Creates DOM elements with <pre> and <code> for HLJS and pub.dev's copy-to-clipboard.
 Node codeSnippet({
