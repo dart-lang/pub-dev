@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
 import '../../account/models.dart' show LikeData, User, UserSessionData;
 import '../../audit/models.dart';
 import '../../frontend/templates/views/account/activity_log_table.dart';
@@ -13,6 +11,7 @@ import '../../search/search_form.dart' show SearchForm;
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart' show shortDateFormat;
 
+import '../dom/dom.dart' as d;
 import 'detail_page.dart';
 import 'layout.dart';
 import 'listing.dart';
@@ -209,7 +208,9 @@ String _accountDetailHeader(User user, UserSessionData userSessionData) {
   return renderDetailHeader(
     title: userSessionData.name,
     imageUrl: userSessionData.imageUrlOfSize(200),
-    metadataHtml: '<p>${htmlEscape.convert(user.email!)}</p>'
-        '<p>${htmlEscape.convert('Joined on $shortJoined')}</p>',
+    metadataNode: d.fragment([
+      d.p(text: user.email!),
+      d.p(text: 'Joined on $shortJoined'),
+    ]),
   );
 }

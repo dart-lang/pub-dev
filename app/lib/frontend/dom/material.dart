@@ -68,6 +68,45 @@ d.Node raisedButton({
   );
 }
 
+/// Renders a two-state material icon button
+d.Node iconButton({
+  required String id,
+  required bool isOn,
+  Map<String, String>? attributes,
+  required int iconWidth,
+  required int iconHeight,
+  required String onIconUrl,
+  required String offIconUrl,
+}) {
+  return d.element(
+    'button',
+    id: id,
+    classes: [
+      'mdc-icon-button',
+      if (isOn) 'mdc-icon-button--on',
+    ],
+    attributes: attributes,
+    children: [
+      d.img(
+        classes: ['mdc-icon-button__icon'],
+        src: offIconUrl,
+        attributes: {
+          'width': '$iconWidth',
+          'height': '$iconHeight',
+        },
+      ),
+      d.img(
+        classes: ['mdc-icon-button__icon', 'mdc-icon-button__icon--on'],
+        src: onIconUrl,
+        attributes: {
+          'width': '$iconWidth',
+          'height': '$iconHeight',
+        },
+      ),
+    ],
+  );
+}
+
 /// Renders a material text field.
 d.Node textField({
   required String id,

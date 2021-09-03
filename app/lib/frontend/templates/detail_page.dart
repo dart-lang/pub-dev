@@ -2,55 +2,44 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
-import 'package:intl/intl.dart';
-
 import '../dom/dom.dart' as d;
 import '_cache.dart';
+import 'views/shared/detail/header.dart';
 
 final wideHeaderDetailPageClassName = '-wide-header-detail-page';
 
-/// Renders the `shared/detail/header.mustache` template
+/// Renders the detail page's header template.
 ///
 /// The like button in the header will not be displayed when [isLiked] is null.
 String renderDetailHeader({
   String? title,
-  String? titleHtml,
+  d.Node? titleNode,
   String? imageUrl,
   int? packageLikes,
   bool? isLiked,
   bool isFlutterFavorite = false,
-  String? metadataHtml,
-  String? tagsHtml,
+  d.Node? metadataNode,
+  d.Node? tagsNode,
 
   /// Set true for more whitespace in the header.
   bool isLoose = false,
 }) {
-  if ((title == null && titleHtml == null) ||
-      (title != null && titleHtml != null)) {
+  if ((title == null && titleNode == null) ||
+      (title != null && titleNode != null)) {
     throw ArgumentError(
-        'Exactly one of `title` and `titleHtml` must be specified.');
+        'Exactly one of `title` and `titleNode` must be specified.');
   }
-  return templateCache.renderTemplate('shared/detail/header', {
-    'is_loose': isLoose,
-    'title_html': titleHtml ?? htmlEscape.convert(title!),
-    'metadata_html': metadataHtml,
-    'tags_html': tagsHtml,
-    'like_count': _formatPackageLikes(packageLikes),
-    'is_liked': isLiked,
-    'has_likes': isLiked != null,
-    'image_url': imageUrl,
-    'has_image_url': imageUrl != null && imageUrl.isNotEmpty,
-    'has_banners': isFlutterFavorite,
-    'is_flutter_favorite': isFlutterFavorite,
-  });
-}
 
-// keep in-sync with pkg/web_app/lib/src/likes.dart
-String? _formatPackageLikes(int? likesCount) {
-  if (likesCount == null) return null;
-  return NumberFormat.compact().format(likesCount);
+  return detailHeaderNode(
+    titleNode: titleNode ?? d.text(title!),
+    metadataNode: metadataNode,
+    tagsNode: tagsNode,
+    imageUrl: imageUrl,
+    isLoose: isLoose,
+    isLiked: isLiked == true,
+    likeCount: packageLikes,
+    isFlutterFavorite: isFlutterFavorite,
+  ).toString();
 }
 
 /// Renders the `shared/detail/page.mustache` template

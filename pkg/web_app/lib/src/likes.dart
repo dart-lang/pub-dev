@@ -51,7 +51,7 @@ void setupLikes() {
   final iconButtonToggle = MDCIconButtonToggle(likeButton);
   int likesDelta = 0;
 
-  // keep in-sync with app/lib/frontend/templates/detail_page.dart
+  // keep in-sync with app/lib/frontend/templates/views/shared/detail/header.dart
   String likesString() {
     final likesCount = pageData.pkgData!.likes + likesDelta;
     return NumberFormat.compact().format(likesCount);
