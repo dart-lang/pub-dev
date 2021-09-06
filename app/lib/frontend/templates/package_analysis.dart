@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pana/models.dart' show PanaRuntimeInfo, Report, ReportStatus;
+import 'package:pana/models.dart' show PanaRuntimeInfo, Report;
 
 import '../../scorecard/models.dart' hide ReportStatus;
-import '../../shared/markdown.dart';
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart';
 
 import '../dom/dom.dart' as d;
-import '../static_files.dart';
 
 import '_cache.dart';
 import 'package_misc.dart';
@@ -42,7 +40,8 @@ String renderAnalysisTab(
         : shortDateFormat.format(card.panaReport!.timestamp!),
     'granted_points': report?.grantedPoints ?? 0,
     'max_points': report?.maxPoints ?? 0,
-    'report_html': _renderReport(report),
+    'report_html':
+        report == null ? null : reportNode(report: report).toString(),
     'like_key_figure_html': _likeKeyFigureNode(likeCount).toString(),
     'popularity_key_figure_html':
         _popularityKeyFigureNode(card.popularityScore).toString(),
@@ -52,47 +51,6 @@ String renderAnalysisTab(
   };
 
   return templateCache.renderTemplate('pkg/analysis/tab', data);
-}
-
-/// Renders the `views/pkg/analysis/report.mustache` template.
-String? _renderReport(Report? report) {
-  if (report?.sections == null) return null;
-
-  String? renderSummary(String summary) {
-    final updated = summary.split('\n').map((line) {
-      if (!line.startsWith('### ')) return line;
-      return line
-          .replaceFirst(
-              '[*]',
-              '<img class="report-summary-icon" '
-                  'src="${staticUrls.reportOKIconGreen}" />')
-          .replaceFirst(
-              '[x]',
-              '<img class="report-summary-icon" '
-                  'src="${staticUrls.reportMissingIconRed}" />')
-          .replaceFirst(
-              '[~]',
-              '<img class="report-summary-icon" '
-                  'src="${staticUrls.reportMissingIconYellow}" />');
-    }).join('\n');
-    return markdownToHtml(updated, disableHashIds: true);
-  }
-
-  return templateCache.renderTemplate('pkg/analysis/report', {
-    'sections': report!.sections.map((s) {
-      final status = s.status;
-      return {
-        'title': s.title,
-        'grantedPoints': s.grantedPoints,
-        'maxPoints': s.maxPoints,
-        'summary_html': renderSummary(s.summary),
-        'event-id': 'toggle-report-section-${s.id}',
-        'is_green': status == ReportStatus.passed,
-        'is_yellow': status == ReportStatus.partial,
-        'is_red': status == ReportStatus.failed,
-      };
-    }),
-  });
 }
 
 d.Node _likeKeyFigureNode(int? likeCount) {
