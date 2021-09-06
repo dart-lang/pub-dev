@@ -102,9 +102,11 @@ void main() {
       replacements?.forEach((key, value) {
         replacedContent = replacedContent.replaceAll(value, '%%$key%%');
       });
-      replacedContent = replacedContent.replaceAll(
-          'Pana <code>$panaVersion</code>,',
-          'Pana <code>%%pana-version%%</code>,');
+      replacedContent = replacedContent
+          .replaceAll('Pana <code>$panaVersion</code>,',
+              'Pana <code>%%pana-version%%</code>,')
+          .replaceAll('Dart <code>$toolStableDartSdkVersion</code>',
+              'Dart <code>%%stable-dart-version%%</code>');
 
       // Pretty printing output using XML parser and formatter.
       final xmlDoc = xml.XmlDocument.parse(
