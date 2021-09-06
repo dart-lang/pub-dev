@@ -200,7 +200,7 @@ String renderPublisherActivityLogPage({
 String _renderDetailHeader(Publisher publisher) {
   return renderDetailHeader(
     title: publisher.publisherId,
-    metadataHtml: publisherHeaderMetadataNode(publisher).toString(),
+    metadataNode: publisherHeaderMetadataNode(publisher),
   );
 }
 

@@ -101,29 +101,29 @@ String renderPkgHeader(PackagePageData data) {
 
   final isNullSafe =
       data.toPackageView().tags.contains(PackageVersionTags.isNullSafe);
-  final metadataHtml = packageHeaderNode(
+  final metadataNode = packageHeaderNode(
     packageName: package.name!,
     publisherId: package.publisherId,
     published: data.version!.created!,
     isNullSafe: isNullSafe,
     releases: showReleases ? data.latestReleases : null,
-  ).toString();
+  );
 
   final pkgView = data.toPackageView();
   return renderDetailHeader(
-    titleHtml: titleContentNode(
+    titleNode: titleContentNode(
       package: package.name!,
       version: data.version!.version!,
-    ).toString(),
+    ),
     packageLikes: package.likes,
     isLiked: data.isLiked,
     isFlutterFavorite:
         (package.assignedTags ?? []).contains(PackageTags.isFlutterFavorite),
-    metadataHtml: metadataHtml,
-    tagsHtml: tagsNodeFromPackageView(
+    metadataNode: metadataNode,
+    tagsNode: tagsNodeFromPackageView(
       package: pkgView,
       version: data.isLatestStable ? null : data.version!.version,
-    ).toString(),
+    ),
     isLoose: true,
   );
 }
