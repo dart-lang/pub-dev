@@ -505,7 +505,7 @@ Node th({
   String? text,
 }) =>
     dom.element(
-      'td',
+      'th',
       id: id,
       classes: classes,
       attributes: attributes,
