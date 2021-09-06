@@ -10,10 +10,10 @@ import '../../search/search_service.dart';
 import '../../shared/tags.dart';
 import '../dom/dom.dart' as d;
 
-import '_cache.dart';
 import '_consts.dart';
 import 'layout.dart';
 
+import 'views/pkg/index.dart';
 import 'views/pkg/package_list.dart';
 import 'views/shared/listing_info.dart';
 import 'views/shared/pagination.dart';
@@ -23,12 +23,12 @@ import 'views/shared/sort_control.dart';
 export 'views/shared/pagination.dart';
 
 /// Renders the list of packages template.
-String renderPackageList(SearchResultPage searchResultPage) {
+d.Node packageList(SearchResultPage searchResultPage) {
   return listOfPackagesNode(
     highlightedHit: searchResultPage.highlightedHit,
     sdkLibraryHits: searchResultPage.sdkLibraryHits,
     packageHits: searchResultPage.packageHits,
-  ).toString();
+  );
 }
 
 /// Renders the `views/pkg/index.mustache` template.
@@ -43,33 +43,20 @@ String renderPkgIndexPage(
 }) {
   final topPackages = getSdkDict(sdk).topSdkPackages;
   final isSearch = searchForm.hasQuery;
-  final includeDiscontinued = searchForm.includeDiscontinued ?? false;
-  final includeUnlisted = searchForm.includeUnlisted ?? false;
-  final nullSafe = searchForm.nullSafe ?? false;
   final searchTabs = _calculateSearchTabs(searchForm);
-  final hasActiveAdvanced = includeDiscontinued || includeUnlisted || nullSafe;
-  final values = {
-    'has_active_advanced': hasActiveAdvanced,
-    'sdk_tabs_html': renderSdkTabs(searchForm: searchForm),
-    'has_subsdk_options': searchTabs.isNotEmpty,
-    'subsdk_label': _subSdkLabel(searchForm),
-    'subsdk_filter_buttons_html':
-        searchTabs.isNotEmpty ? searchTabsNode(searchTabs).toString() : null,
-    'is_search': isSearch,
-    'listing_info_html': renderListingInfo(
+
+  final content = packageListingNode(
+    searchForm: searchForm,
+    subSdkButtons: searchTabs.isNotEmpty ? searchTabsNode(searchTabs) : null,
+    listingInfo: listingInfo(
       searchForm: searchForm,
       totalCount: searchResultPage.totalCount,
       title: title ?? topPackages,
       messageFromBackend: messageFromBackend,
     ),
-    'package_list_html': renderPackageList(searchResultPage),
-    'has_packages': searchResultPage.hasHit,
-    'pagination': paginationNode(links).toString(),
-    'include_discontinued': includeDiscontinued,
-    'include_unlisted': includeUnlisted,
-    'null_safe': nullSafe,
-  };
-  final content = templateCache.renderTemplate('pkg/index', values);
+    packageList: packageList(searchResultPage),
+    pagination: searchResultPage.hasHit ? paginationNode(links) : null,
+  ).toString();
 
   String pageTitle = title ?? topPackages;
   if (isSearch) {
@@ -92,8 +79,8 @@ String renderPkgIndexPage(
   );
 }
 
-/// Renders the `views/shared/listing_info.mustache` template.
-String renderListingInfo({
+/// Renders the listing info of the search result.
+d.Node listingInfo({
   required SearchForm searchForm,
   required int totalCount,
   String? title,
@@ -106,17 +93,7 @@ String renderListingInfo({
     ownedBy: ownedBy,
     sortControlNode: _renderSortControl(searchForm),
     messageMarkdown: messageFromBackend,
-  ).toString();
-}
-
-String? _subSdkLabel(SearchForm sq) {
-  if (sq.sdk == SdkTagValue.dart) {
-    return 'Runtime';
-  } else if (sq.sdk == SdkTagValue.flutter) {
-    return 'Platform';
-  } else {
-    return null;
-  }
+  );
 }
 
 d.Node _renderSortControl(SearchForm form) {
@@ -152,9 +129,6 @@ class PageLinks {
   }
 }
 
-/// `Linux`, `macOS`, `Windows` platforms are not yet stable, and we want
-/// to display them only when the user has already opted-in to get them
-/// displayed.
 List<SearchTab> _calculateSearchTabs(SearchForm searchForm) {
   SearchTab searchTab({
     required String label,

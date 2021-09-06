@@ -59,16 +59,16 @@ String renderPublisherPackagesPage({
   }
 
   final packageListHtml =
-      searchResultPage.hasNoHit ? '' : renderPackageList(searchResultPage);
+      searchResultPage.hasNoHit ? '' : packageList(searchResultPage).toString();
   final paginationHtml = paginationNode(pageLinks).toString();
 
   final tabContent = [
-    renderListingInfo(
+    listingInfo(
       searchForm: searchForm,
       totalCount: totalCount,
       ownedBy: publisher.publisherId,
       messageFromBackend: messageFromBackend,
-    ),
+    ).toString(),
     packageListHtml,
     paginationHtml,
   ].join('\n');

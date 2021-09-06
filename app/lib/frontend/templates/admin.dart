@@ -46,16 +46,16 @@ String renderAccountPackagesPage({
   }
 
   final packageListHtml =
-      searchResultPage.hasNoHit ? '' : renderPackageList(searchResultPage);
+      searchResultPage.hasNoHit ? '' : packageList(searchResultPage).toString();
   final paginationHtml = paginationNode(pageLinks).toString();
 
   final tabContent = [
-    renderListingInfo(
+    listingInfo(
       searchForm: searchForm,
       totalCount: totalCount,
       ownedBy: 'you',
       messageFromBackend: messageFromBackend,
-    ),
+    ).toString(),
     packageListHtml,
     paginationHtml,
   ].join('\n');
