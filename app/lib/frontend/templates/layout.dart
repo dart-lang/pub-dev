@@ -14,6 +14,7 @@ import '../../shared/configuration.dart';
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
+import '../dom/dom.dart' as d;
 import '../static_files.dart';
 
 import '_cache.dart';
@@ -186,7 +187,7 @@ String _renderSearchBanner({
   ).toString();
 }
 
-String renderSdkTabs({
+d.Node sdkTabsNode({
   SearchForm? searchForm,
 }) {
   final isff = searchForm?.isFlutterFavorite ?? false;
@@ -224,7 +225,7 @@ String renderSdkTabs({
         'Packages compatible with the any SDK',
       ),
     ],
-  ).toString();
+  );
 }
 
 final String _defaultPageDescriptionEscaped = htmlEscape.convert(

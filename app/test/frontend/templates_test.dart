@@ -770,16 +770,16 @@ void main() {
     });
 
     scopedTest('platform tabs: list', () {
-      final String html = renderSdkTabs();
+      final html = sdkTabsNode().toString();
       expectGoldenFile(html, 'platform_tabs_list.html', isFragment: true);
     });
 
     scopedTest('platform tabs: search', () {
-      final String html = renderSdkTabs(
+      final html = sdkTabsNode(
           searchForm: SearchForm.parse(
         query: 'foo',
         sdk: 'flutter',
-      ));
+      )).toString();
       expectGoldenFile(html, 'platform_tabs_search.html', isFragment: true);
     });
   });
