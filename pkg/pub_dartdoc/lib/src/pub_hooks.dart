@@ -60,7 +60,7 @@ class PubResourceProvider implements ResourceProvider {
         } else if (c is File) {
           final file = io.File(c.path);
           file.parent.createSync(recursive: true);
-          file.writeAsBytes(c.readAsBytesSync());
+          file.writeAsBytesSync(c.readAsBytesSync());
         }
       }
     }
