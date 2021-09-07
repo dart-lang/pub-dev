@@ -111,6 +111,7 @@ d.Node iconButton({
 d.Node textField({
   required String id,
   required String label,
+  String? value,
 }) {
   return d.fragment([
     d.label(attributes: {'for': id}, text: label),
@@ -122,6 +123,7 @@ d.Node textField({
           type: 'text',
           id: id,
           classes: ['mdc-text-field__input'],
+          value: value,
         ),
         d.div(
           classes: ['mdc-notched-outline'],
@@ -133,4 +135,110 @@ d.Node textField({
       ],
     ),
   ]);
+}
+
+/// Renders a material text area.
+d.Node textArea({
+  required String id,
+  required String label,
+  required int rows,
+  required int cols,
+  int maxLength = 4096,
+  String? value,
+}) {
+  return d.fragment([
+    d.label(attributes: {'for': id}, text: label),
+    d.div(
+      classes: ['mdc-text-field', 'mdc-text-field--textarea'],
+      attributes: {'data-mdc-auto-init': 'MDCTextField'},
+      children: [
+        d.div(
+          classes: ['mdc-text-field-character-counter'],
+          text: '${value?.length ?? 0} / $maxLength',
+        ),
+        d.element(
+          'textarea',
+          id: id,
+          classes: ['mdc-text-field__input'],
+          attributes: {
+            'rows': '$rows',
+            'cols': '$cols',
+            'maxlength': '$maxLength',
+          },
+          text: value,
+        ),
+        d.div(
+          classes: ['mdc-notched-outline'],
+          children: [
+            d.div(classes: ['mdc-notched-outline__leading'], text: ''),
+            d.div(classes: ['mdc-notched-outline__trailing'], text: ''),
+          ],
+        ),
+      ],
+    ),
+  ]);
+}
+
+class DataTableColumn<T> {
+  final d.Node headerContent;
+  final List<String>? headerClasses;
+  d.Node Function(T data) renderCell;
+
+  DataTableColumn({
+    required this.headerContent,
+    this.headerClasses,
+    required this.renderCell,
+  });
+}
+
+/// Renders a material data table.
+d.Node dataTable<T>({
+  String? id,
+  String? ariaLabel,
+  required Iterable<DataTableColumn> columns,
+  required Iterable<T> entries,
+}) {
+  return d.div(
+    id: id,
+    classes: ['mdc-data-table'],
+    child: d.element(
+      'table',
+      classes: ['mdc-data-table__table'],
+      attributes: {
+        if (ariaLabel != null) 'aria-label': ariaLabel,
+      },
+      children: [
+        d.element(
+          'thead',
+          child: d.tr(
+            classes: ['mdc-data-table__header-row'],
+            children: columns.map(
+              (c) => d.th(
+                classes: [
+                  'mdc-data-table__header-cell',
+                  if (c.headerClasses != null) ...c.headerClasses!,
+                ],
+                child: c.headerContent,
+              ),
+            ),
+          ),
+        ),
+        d.element(
+          'tbody',
+          classes: ['mdc-data-table__content'],
+          children: entries.map(
+            (entry) => d.tr(
+              classes: ['mdc-data-table__row'],
+              children: columns.map(
+                (c) => d.td(
+                  classes: ['mdc-data-table__cell'],
+                  child: c.renderCell(entry),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
 }
