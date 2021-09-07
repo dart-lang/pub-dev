@@ -195,7 +195,7 @@ class DataTableColumn<T> {
 d.Node dataTable<T>({
   String? id,
   String? ariaLabel,
-  required Iterable<DataTableColumn> columns,
+  required Iterable<DataTableColumn<T>> columns,
   required Iterable<T> entries,
 }) {
   return d.div(
