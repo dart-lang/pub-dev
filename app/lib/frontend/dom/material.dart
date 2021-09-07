@@ -218,6 +218,10 @@ d.Node dataTable<T>({
                   'mdc-data-table__header-cell',
                   if (c.headerClasses != null) ...c.headerClasses!,
                 ],
+                attributes: {
+                  'role': 'columnheader',
+                  'scope': 'col',
+                },
                 child: c.headerContent,
               ),
             ),
