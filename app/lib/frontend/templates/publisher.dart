@@ -4,6 +4,7 @@
 
 import 'package:client_data/publisher_api.dart' as api;
 import 'package:client_data/page_data.dart';
+import 'package:pub_dev/frontend/templates/views/publisher/admin_page.dart';
 
 import '../../audit/models.dart';
 import '../../frontend/templates/views/account/activity_log_table.dart';
@@ -12,7 +13,6 @@ import '../../publisher/models.dart' show Publisher, PublisherSummary;
 import '../../search/search_form.dart' show SearchForm;
 import '../../shared/urls.dart' as urls;
 
-import '_cache.dart';
 import 'detail_page.dart';
 import 'layout.dart';
 import 'listing.dart';
@@ -107,25 +107,15 @@ String renderPublisherPackagesPage({
   );
 }
 
-/// Renders the `views/publisher/admin_page.mustache` template.
+/// Renders the publisher admin page.
 String renderPublisherAdminPage({
   required Publisher publisher,
   required List<api.PublisherMember> members,
 }) {
-  final String adminContent =
-      templateCache.renderTemplate('publisher/admin_page', {
-    'publisher_id': publisher.publisherId,
-    'description': publisher.description,
-    'website_url': publisher.websiteUrl,
-    'contact_email': publisher.contactEmail,
-    'member_list': members
-        .map((m) => {
-              'user_id': m.userId,
-              'email': m.email,
-              'role': m.role,
-            })
-        .toList(),
-  });
+  final adminContent = publisherAdminPageNode(
+    publisher: publisher,
+    members: members,
+  ).toString();
   final tabs = <Tab>[
     _packagesLinkTab(publisher.publisherId),
     Tab.withContent(
