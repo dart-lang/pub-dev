@@ -349,7 +349,18 @@ void main() {
       fn: () async {
         final data = await accountBackend.withBearerToken(
           adminAtPubDevAuthToken,
-          () => loadPackagePageData('oxygen', '1.2.0', AssetKind.readme),
+          () async {
+            // update session as package data loading checks that
+            final user = await requireAuthenticatedUser();
+            registerUserSessionData(UserSessionData(
+              userId: user.userId,
+              created: DateTime.now(),
+              expires: DateTime.now().add(Duration(days: 1)),
+              sessionId: 'session-1',
+            ));
+            return await loadPackagePageData(
+                'oxygen', '1.2.0', AssetKind.readme);
+          },
         );
         final html = renderPkgAdminPage(
           data,
