@@ -26,7 +26,6 @@ d.Node detailTabsNode({
         ),
       ),
     ),
-
     d.div(
       classes: ['detail-container', 'detail-body-main'],
       child: d.div(
