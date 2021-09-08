@@ -227,7 +227,7 @@
                       <div class="mdc-line-ripple"></div>
                     </div>
                     <p>
-                      <button id="-admin-set-publisher-button" class="pub-button-danger mdc-button mdc-button--raised" data-mdc-auto-init="MDCRipple">Transfer to publisher</button>
+                      <button id="-admin-set-publisher-button" class="mdc-button mdc-button--raised pub-button-danger" data-mdc-auto-init="MDCRipple">Transfer to publisher</button>
                     </p>
                     <h3>Uploaders</h3>
                     <div class="mdc-data-table">
@@ -242,7 +242,7 @@
                           <tr class="mdc-data-table__row">
                             <td class="mdc-data-table__cell">admin@pub.dev</td>
                             <td class="mdc-data-table__cell">
-                              <a class="-pub-remove-uploader-button" data-email="admin@pub.dev" title="Remove uploader">×</a>
+                              <a class="-pub-remove-uploader-button" title="Remove uploader" data-email="admin@pub.dev">×</a>
                             </td>
                           </tr>
                         </tbody>
@@ -261,7 +261,7 @@
                       <div class="-pub-form-row">
                         <label for="-pkg-admin-invite-uploader-input">Email address</label>
                         <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
-                          <input type="text" id="-pkg-admin-invite-uploader-input" class="mdc-text-field__input"/>
+                          <input id="-pkg-admin-invite-uploader-input" class="mdc-text-field__input" type="text"/>
                           <div class="mdc-notched-outline">
                             <div class="mdc-notched-outline__leading"></div>
                             <div class="mdc-notched-outline__trailing"></div>
@@ -276,12 +276,12 @@
                     A package can be marked as
                     <a href="https://dart.dev/tools/pub/publishing#discontinue">discontinued</a>
                     to inform users that the package is no longer maintained.
-                    <i>Discontinued packages</i>
+                    <em>Discontinued packages</em>
                     remain available to package users, but they don't appear in search results on pub.dev unless the user specifies advanced search options.
                   </p>
                   <div class="mdc-form-field">
                     <div class="mdc-checkbox">
-                      <input type="checkbox" class="mdc-checkbox__native-control" id="-admin-is-discontinued-checkbox"/>
+                      <input id="-admin-is-discontinued-checkbox" class="mdc-checkbox__native-control" type="checkbox"/>
                       <div class="mdc-checkbox__background">
                         <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
                           <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
@@ -295,12 +295,12 @@
                   <h3>Unlisted</h3>
                   <p>
                     A package that's marked as
-                    <i>unlisted</i>
+                    <em>unlisted</em>
                     doesn't normally appear in search results on pub.dev. Unlisted packages remain publicly available, and users can search for them using advanced search options.
                   </p>
                   <div class="mdc-form-field">
                     <div class="mdc-checkbox">
-                      <input type="checkbox" class="mdc-checkbox__native-control" id="-admin-is-unlisted-checkbox"/>
+                      <input id="-admin-is-unlisted-checkbox" class="mdc-checkbox__native-control" type="checkbox"/>
                       <div class="mdc-checkbox__background">
                         <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
                           <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>

@@ -365,7 +365,7 @@ void main() {
         final html = renderPkgAdminPage(
           data,
           ['example.com'],
-          ['admin@pub.dev'],
+          await accountBackend.lookupUsersByEmail('admin@pub.dev'),
         );
         expectGoldenFile(html, 'pkg_admin_page.html', timestamps: {
           'published': data.package!.created,
