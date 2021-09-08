@@ -5,6 +5,7 @@
 import '../dom/dom.dart' as d;
 import '_cache.dart';
 import 'views/shared/detail/header.dart';
+import 'views/shared/detail/tabs.dart';
 
 final wideHeaderDetailPageClassName = '-wide-header-detail-page';
 
@@ -69,8 +70,7 @@ String renderDetailTabs(List<Tab> tabs) {
       break;
     }
   }
-  final values = {'tabs': tabs.map((t) => t._toMustacheData()).toList()};
-  return templateCache.renderTemplate('shared/detail/tabs', values);
+  return detailTabsNode(tabs: tabs).toString();
 }
 
 /// Defines the header and content part of a tab.
@@ -96,30 +96,26 @@ class Tab {
   })  : contentHtml = null,
         isMarkdown = false;
 
-  Map _toMustacheData() {
-    final isPrivate =
-        id == 'admin' || id == 'activity-log' || id.startsWith('my-');
-    final titleClasses = <String>[
-      'detail-tab',
-      contentHtml == null ? 'tab-link' : 'tab-button',
-      'detail-tab-$id-title',
-      if (isActive) '-active',
-      if (isPrivate) '-private',
-    ];
-    final contentClasses = <String>[
-      'tab-content',
-      'detail-tab-$id-content',
-      if (isActive) '-active',
-      if (isMarkdown) 'markdown-body',
-    ];
-    final titleNode =
-        href == null ? d.text(title) : d.a(href: href, text: title);
-    return <String, dynamic>{
-      'title_classes': titleClasses.join(' '),
-      'title_html': titleNode.toString(),
-      'content_classes': contentClasses.join(' '),
-      'content_html': contentHtml,
-      'has_content': contentHtml != null,
-    };
-  }
+  bool get isPrivate =>
+      id == 'admin' || id == 'activity-log' || id.startsWith('my-');
+
+  List<String> get titleClasses => <String>[
+        'detail-tab',
+        contentHtml == null ? 'tab-link' : 'tab-button',
+        'detail-tab-$id-title',
+        if (isActive) '-active',
+        if (isPrivate) '-private',
+      ];
+
+  d.Node get titleNode =>
+      href == null ? d.text(title) : d.a(href: href, text: title);
+
+  bool get hasContent => contentHtml != null;
+
+  List<String> get contentClasses => <String>[
+        'tab-content',
+        'detail-tab-$id-content',
+        if (isActive) '-active',
+        if (isMarkdown) 'markdown-body',
+      ];
 }
