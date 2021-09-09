@@ -4,13 +4,12 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' hide ReportStatus;
-import 'package:path/path.dart' as p;
 
-import '../frontend/static_files.dart' as static_files;
 import '../job/job.dart';
 import '../package/models.dart';
 import '../package/overrides.dart';
@@ -20,11 +19,18 @@ import '../shared/configuration.dart';
 import '../shared/tool_env.dart';
 
 final Logger _logger = Logger('pub.analyzer.pana');
+String? _defaultAnalysisOptionsYaml;
 
 @visibleForTesting
-final defaultAnalysisOptionsYaml = File(p.join(static_files.resolveAppDir(),
-        'lib', 'analyzer', 'lints-core-analysis_options.1.0.0.yaml'))
-    .readAsStringSync();
+Future<String> getDefaultAnalysisOptionsYaml() async {
+  if (_defaultAnalysisOptionsYaml == null) {
+    final resource =
+        await Isolate.resolvePackageUri(Uri.parse('package:lints/core.yaml'));
+    final file = File.fromUri(resource!);
+    _defaultAnalysisOptionsYaml = await file.readAsString();
+  }
+  return _defaultAnalysisOptionsYaml!;
+}
 
 /// Generic interface to run pana for package-analysis.
 // ignore: one_member_abstracts
@@ -59,8 +65,9 @@ class _PanaRunner implements PanaRunner {
             options: InspectOptions(
               isInternal: isInternal,
               pubHostedUrl: activeConfiguration.primaryApiUri.toString(),
-              analysisOptionsYaml:
-                  packageStatus.usesFlutter ? null : defaultAnalysisOptionsYaml,
+              analysisOptionsYaml: packageStatus.usesFlutter
+                  ? null
+                  : await getDefaultAnalysisOptionsYaml(),
             ),
             logger: Logger.detached('pana/$package/$version'),
           );

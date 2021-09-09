@@ -6,8 +6,9 @@ import 'package:pub_dev/analyzer/pana_runner.dart';
 import 'package:test/test.dart';
 
 void main() {
-  test('static analysis options is available', () {
-    expect(defaultAnalysisOptionsYaml.trim(), isNotEmpty);
-    expect(defaultAnalysisOptionsYaml, contains('void_checks'));
+  test('static analysis options is available', () async {
+    final content = await getDefaultAnalysisOptionsYaml();
+    expect(content.trim(), isNotEmpty);
+    expect(content, contains('void_checks'));
   });
 }
