@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 
 void main() {
   test('static analysis options is available', () {
-    expect(pedanticAnalysisOptionsYaml.trim(), isNotEmpty);
-    expect(pedanticAnalysisOptionsYaml, contains('unawaited_futures'));
+    expect(defaultAnalysisOptionsYaml.trim(), isNotEmpty);
+    expect(defaultAnalysisOptionsYaml, contains('void_checks'));
   });
 }
