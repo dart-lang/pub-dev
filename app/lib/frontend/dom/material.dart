@@ -293,6 +293,8 @@ d.Node checkbox({
 }
 
 /// Renders a material dropdown / select component.
+/// 
+/// [options] must be a list of `<option>` elements (e.g. from [d.option()]).
 d.Node dropdown({
   required String id,
   required String label,
