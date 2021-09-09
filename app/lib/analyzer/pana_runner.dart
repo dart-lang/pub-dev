@@ -22,8 +22,8 @@ import '../shared/tool_env.dart';
 final Logger _logger = Logger('pub.analyzer.pana');
 
 @visibleForTesting
-final pedanticAnalysisOptionsYaml = File(p.join(static_files.resolveAppDir(),
-        'lib', 'analyzer', 'pedantic-analysis_options.1.8.0.yaml'))
+final defaultAnalysisOptionsYaml = File(p.join(static_files.resolveAppDir(),
+        'lib', 'analyzer', 'lints-core-analysis_options.1.0.0.yaml'))
     .readAsStringSync();
 
 /// Generic interface to run pana for package-analysis.
@@ -59,9 +59,8 @@ class _PanaRunner implements PanaRunner {
             options: InspectOptions(
               isInternal: isInternal,
               pubHostedUrl: activeConfiguration.primaryApiUri.toString(),
-              analysisOptionsYaml: packageStatus.usesFlutter
-                  ? null
-                  : pedanticAnalysisOptionsYaml,
+              analysisOptionsYaml:
+                  packageStatus.usesFlutter ? null : defaultAnalysisOptionsYaml,
             ),
             logger: Logger.detached('pana/$package/$version'),
           );
