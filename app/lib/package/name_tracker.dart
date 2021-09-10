@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
-import 'package:logging/logging.dart';
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 

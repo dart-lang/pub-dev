@@ -4,10 +4,9 @@
 
 import 'dart:convert';
 
-import 'package:test/test.dart';
-
 import 'package:pub_dev/search/mem_index.dart';
 import 'package:pub_dev/search/search_service.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('without content', () {

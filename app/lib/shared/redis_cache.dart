@@ -7,12 +7,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:client_data/package_api.dart' show VersionScore;
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
-
-import 'package:client_data/package_api.dart' show VersionScore;
 
 import '../account/models.dart' show LikeData, UserSessionData;
 import '../dartdoc/models.dart' show DartdocEntry, FileInfo;

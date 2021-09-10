@@ -4,9 +4,8 @@
 
 library pub_dartlang_org.tarball_storage_namer_test;
 
-import 'package:test/test.dart';
-
 import 'package:pub_dev/package/backend.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('tarball_storage_namer', () {

@@ -59,7 +59,7 @@ const knownGoodLowerCasePackages = [
 final blockedLowerCasePackages = knownMixedCasePackages
     .map((s) => s.toLowerCase())
     .toSet()
-      ..removeAll(knownGoodLowerCasePackages);
+  ..removeAll(knownGoodLowerCasePackages);
 
 final invalidHostNames = const <String>[
   '-',

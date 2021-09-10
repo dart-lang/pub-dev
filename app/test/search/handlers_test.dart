@@ -4,18 +4,16 @@
 
 import 'dart:async';
 
-import 'package:test/test.dart';
-
 import 'package:pub_dev/search/backend.dart';
 import 'package:pub_dev/search/dart_sdk_mem_index.dart';
 import 'package:pub_dev/search/flutter_sdk_mem_index.dart';
 import 'package:pub_dev/search/mem_index.dart';
 import 'package:pub_dev/search/search_service.dart';
 import 'package:pub_dev/shared/exceptions.dart';
+import 'package:test/test.dart';
 
 import '../shared/handlers_test_utils.dart';
 import '../shared/utils.dart';
-
 import 'handlers_test_utils.dart';
 
 void main() {

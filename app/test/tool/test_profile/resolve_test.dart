@@ -3,11 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:http/http.dart';
-import 'package:pub_dev/tool/test_profile/normalizer.dart';
-import 'package:test/test.dart';
-
 import 'package:pub_dev/tool/test_profile/models.dart';
+import 'package:pub_dev/tool/test_profile/normalizer.dart';
 import 'package:pub_dev/tool/test_profile/resolver.dart';
+import 'package:test/test.dart';
 
 void main() {
   Future<List<ResolvedVersion>> _resolve(List<TestPackage> packages) async {

@@ -8,11 +8,11 @@ import 'dart:io';
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/iamcredentials/v1.dart' as iam_credentials;
+import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 import 'package:retry/retry.dart';
-import 'package:http/http.dart' as http;
 
 import '../shared/email.dart';
 import '../shared/exceptions.dart';

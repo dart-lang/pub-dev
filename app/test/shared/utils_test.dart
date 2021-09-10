@@ -5,9 +5,8 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:test/test.dart';
-
 import 'package:pub_dev/shared/utils.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('Randomize Stream', () {

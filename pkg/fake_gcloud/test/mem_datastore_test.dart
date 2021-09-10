@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:gcloud/datastore.dart';
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
-
-import 'package:fake_gcloud/mem_datastore.dart';
 
 final _longString = '0123456789abcdef' * 100; // 1600 bytes
 final _shortOf1M = '0123456789abcdef' * (65536 - 1);

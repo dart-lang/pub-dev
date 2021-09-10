@@ -3,15 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:client_data/admin_api.dart';
-import 'package:meta/meta.dart';
-import 'package:http/http.dart' as http;
-
 import 'package:client_data/package_api.dart';
 import 'package:client_data/publisher_api.dart';
+import 'package:http/http.dart' as http;
+import 'package:meta/meta.dart';
 
 import '../../shared/tags.dart';
 import '../utils/pub_api_client.dart';
-
 import 'import_source.dart';
 import 'models.dart';
 import 'normalizer.dart';

@@ -7,12 +7,11 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
-import 'package:retry/retry.dart';
-import 'package:test/test.dart';
-
 import 'package:pub_dev/search/models.dart';
 import 'package:pub_dev/search/sdk_mem_index.dart';
 import 'package:pub_dev/shared/versions.dart';
+import 'package:retry/retry.dart';
+import 'package:test/test.dart';
 
 final _indexTypes = <String>{
   'class',

@@ -5,11 +5,10 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:pub_validations/html/html_validation.dart';
 import 'package:puppeteer/puppeteer.dart';
 // ignore: implementation_imports
 import 'package:puppeteer/src/page/page.dart' show ClientError;
-
-import 'package:pub_validations/html/html_validation.dart';
 
 /// Creates and tracks the headless Chrome environment, its temp directories and
 /// and uncaught exceptions.

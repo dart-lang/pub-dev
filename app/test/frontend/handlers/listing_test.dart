@@ -3,16 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:http/testing.dart';
-import 'package:test/test.dart';
-
-import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/frontend/static_files.dart';
+import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/search/search_client.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
+import 'package:test/test.dart';
 
 import '../../shared/handlers_test_utils.dart';
 import '../../shared/test_services.dart';
-
 import '_utils.dart';
 
 void main() {

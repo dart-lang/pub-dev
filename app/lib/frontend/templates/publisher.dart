@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:client_data/publisher_api.dart' as api;
 import 'package:client_data/page_data.dart';
+import 'package:client_data/publisher_api.dart' as api;
 import 'package:pub_dev/frontend/templates/views/publisher/admin_page.dart';
 
 import '../../audit/models.dart';
@@ -12,7 +12,6 @@ import '../../package/search_adapter.dart' show SearchResultPage;
 import '../../publisher/models.dart' show Publisher, PublisherSummary;
 import '../../search/search_form.dart' show SearchForm;
 import '../../shared/urls.dart' as urls;
-
 import 'detail_page.dart';
 import 'layout.dart';
 import 'listing.dart';

@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+
+import 'package:logging/logging.dart' show Logger;
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:shelf/shelf.dart' as shelf;
-import 'package:logging/logging.dart' show Logger;
 import 'package:uuid/uuid.dart' show Uuid;
 
 final _log = Logger('api_builder');

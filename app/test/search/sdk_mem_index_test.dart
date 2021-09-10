@@ -5,9 +5,8 @@
 import 'dart:convert';
 
 import 'package:pub_dev/search/models.dart';
-import 'package:test/test.dart';
-
 import 'package:pub_dev/search/sdk_mem_index.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('SdkMemIndex', () {

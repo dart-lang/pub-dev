@@ -3,15 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @Tags(['presubmit-only'])
-
 import 'dart:async';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:http/http.dart' as http;
-import 'package:test/test.dart';
-
 import 'package:pub_dev/frontend/static_files.dart';
+import 'package:test/test.dart';
 
 void main() {
   setUpAll(() => updateLocalBuiltFilesIfNeeded());

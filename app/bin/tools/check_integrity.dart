@@ -4,10 +4,9 @@
 
 import 'package:args/args.dart';
 import 'package:logging/logging.dart';
-
-import 'package:pub_dev/shared/integrity.dart';
 import 'package:pub_dev/service/entrypoint/tools.dart';
 import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/shared/integrity.dart';
 
 final _argParser = ArgParser()
   ..addOption('concurrency',

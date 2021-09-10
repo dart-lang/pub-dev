@@ -5,15 +5,14 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:pub_semver/pub_semver.dart';
-import 'package:test/test.dart';
-
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:pub_dev/tool/utils/dart_sdk_version.dart';
+import 'package:pub_semver/pub_semver.dart';
+import 'package:test/test.dart';
 
 import '../shared/test_services.dart';
 

@@ -4,9 +4,8 @@
 
 import 'dart:io';
 
-import 'package:test/test.dart';
-
 import 'package:pub_package_reader/pub_package_reader.dart';
+import 'package:test/test.dart';
 
 import '_tar_writer.dart';
 

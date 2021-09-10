@@ -29,6 +29,7 @@ Future<void> writeTarGzFile(
       }
     }
   }()
+      .cast<TarEntry>()
       .transform(tarWriter)
       .transform(gzip.encoder)
       .pipe(file.openWrite());

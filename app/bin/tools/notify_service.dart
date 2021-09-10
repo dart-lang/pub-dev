@@ -5,8 +5,8 @@
 import 'dart:async';
 
 import 'package:pub_dev/job/backend.dart';
-import 'package:pub_dev/service/entrypoint/tools.dart';
 import 'package:pub_dev/search/search_client.dart';
+import 'package:pub_dev/service/entrypoint/tools.dart';
 
 void _printHelp() {
   print('Notifies the auxilliary services about a new package or version.');

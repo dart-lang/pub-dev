@@ -8,13 +8,12 @@ import 'dart:async';
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
-import 'package:shelf/shelf.dart' as shelf;
-import 'package:test/test.dart';
-
 import 'package:pub_dev/frontend/handlers.dart';
 import 'package:pub_dev/shared/handler_helpers.dart';
 import 'package:pub_dev/shared/urls.dart';
 import 'package:pub_validations/html/html_validation.dart';
+import 'package:shelf/shelf.dart' as shelf;
+import 'package:test/test.dart';
 
 import '../../shared/utils.dart';
 

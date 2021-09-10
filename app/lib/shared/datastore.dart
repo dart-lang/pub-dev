@@ -6,8 +6,8 @@ import 'dart:async';
 
 import 'package:gcloud/datastore.dart' as ds;
 import 'package:gcloud/db.dart';
-import 'package:retry/retry.dart';
 import 'package:logging/logging.dart';
+import 'package:retry/retry.dart';
 
 import 'exceptions.dart';
 import 'utils.dart';

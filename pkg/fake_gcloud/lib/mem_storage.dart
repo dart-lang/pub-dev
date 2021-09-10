@@ -335,7 +335,9 @@ class _Page<T> implements Page<T> {
 
   @override
   Future<Page<T>> next({int? pageSize}) async {
-    if (isLast) return Future.value(null);
+    if (isLast) {
+      return Future.value(_Page([], _pageSize, _pageNum + 1));
+    }
     return _Page(_allItems, _pageSize, _pageNum + 1);
   }
 

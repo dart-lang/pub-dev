@@ -10,16 +10,15 @@ import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
-import 'package:shelf/shelf.dart' as shelf;
-import 'package:shelf/shelf_io.dart';
-
 import 'package:pub_dev/dartdoc/dartdoc_runner.dart';
 import 'package:pub_dev/dartdoc/handlers.dart';
 import 'package:pub_dev/fake/backend/fake_popularity.dart';
 import 'package:pub_dev/job/job.dart';
+import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/handler_helpers.dart';
-import 'package:pub_dev/service/services.dart';
+import 'package:shelf/shelf.dart' as shelf;
+import 'package:shelf/shelf_io.dart';
 
 final _logger = Logger('fake_dartdoc_service');
 

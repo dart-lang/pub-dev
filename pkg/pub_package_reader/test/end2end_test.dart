@@ -6,9 +6,8 @@ import 'dart:io';
 
 import 'package:http/http.dart';
 import 'package:path/path.dart' as p;
-import 'package:test/test.dart';
-
 import 'package:pub_package_reader/pub_package_reader.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('end2end', () {

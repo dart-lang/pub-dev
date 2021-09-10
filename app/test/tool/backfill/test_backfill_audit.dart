@@ -3,11 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:gcloud/db.dart';
-import 'package:pub_dev/package/models.dart';
-import 'package:test/test.dart';
-
 import 'package:pub_dev/audit/models.dart';
+import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/tool/backfill/backfill_audit.dart';
+import 'package:test/test.dart';
 
 import '../../shared/test_services.dart';
 

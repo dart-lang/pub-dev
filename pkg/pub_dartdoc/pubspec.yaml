@@ -1,5 +1,4 @@
 name: pub_dartdoc
-author: Dart Team <misc@dartlang.org>
 description: The customized dartdoc for pub.dartlang.org.
 environment:
   sdk: ">=2.6.0 <3.0.0"

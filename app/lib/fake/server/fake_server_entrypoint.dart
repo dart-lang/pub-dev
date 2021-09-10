@@ -5,8 +5,6 @@
 import 'package:args/command_runner.dart';
 import 'package:http/http.dart';
 import 'package:logging/logging.dart';
-import 'package:shelf/shelf.dart' as shelf;
-
 import 'package:pub_dev/fake/server/fake_analyzer_service.dart';
 import 'package:pub_dev/fake/server/fake_dartdoc_service.dart';
 import 'package:pub_dev/fake/server/fake_default_service.dart';
@@ -15,6 +13,7 @@ import 'package:pub_dev/fake/server/fake_storage_server.dart';
 import 'package:pub_dev/fake/server/local_server_state.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/shared/configuration.dart';
+import 'package:shelf/shelf.dart' as shelf;
 
 /// Entry point for fake server.
 class FakeServerCommand extends Command {

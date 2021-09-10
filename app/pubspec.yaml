@@ -1,5 +1,4 @@
 name: pub_dev
-author: Dart Team <misc@dartlang.org>
 description: The pub.dartlang.org website.
 environment:
   sdk: '>=2.12.0 <3.0.0'
@@ -45,13 +44,13 @@ dependencies:
   watcher: ^1.0.0
   yaml: '^3.0.0'
   # pana version to be pinned
-  pana: '0.20.0'
+  pana: '0.21.0'
   # 3rd-party packages with pinned versions
   buffer: '1.1.1'
   mailer: '5.0.1'
   sanitize_html: ^2.0.0
   ulid: '2.0.0'
-  tar: '0.4.0'
+  tar: '0.5.0'
   http_retry: '0.2.0'
   api_builder:
     path: ../pkg/api_builder
