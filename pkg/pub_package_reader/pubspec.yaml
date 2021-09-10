@@ -10,7 +10,7 @@ dependencies:
   pub_semver: ^2.0.0
   pubspec_parse: '>=0.1.4 <2.0.0'
   yaml: ^3.0.0
-  tar: 0.4.0
+  tar: 0.5.0
   collection: ^1.15.0-nullsafety.4
 
 dev_dependencies:
