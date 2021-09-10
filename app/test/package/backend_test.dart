@@ -7,17 +7,15 @@ library pub_dartlang_org.backend_test;
 
 import 'dart:async';
 
-import 'package:gcloud/db.dart';
-import 'package:test/test.dart';
-
 import 'package:client_data/package_api.dart';
-
+import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/exceptions.dart';
+import 'package:test/test.dart';
 
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';

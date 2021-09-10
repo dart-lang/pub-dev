@@ -5,13 +5,12 @@
 import 'dart:io';
 
 import 'package:gcloud/db.dart';
-import 'package:test/test.dart';
-
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:pub_dev/tool/backfill/backfill_packageversions.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
+import 'package:test/test.dart';
 
 import '../../shared/test_services.dart';
 

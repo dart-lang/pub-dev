@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:fake_gcloud/mem_datastore.dart';
+import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:test/test.dart';
-
-import 'package:pub_dev/audit/backend.dart';
 
 void main() {
   group('before parameter parse and format', () {

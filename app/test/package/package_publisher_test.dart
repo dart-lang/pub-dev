@@ -4,10 +4,8 @@
 
 import 'dart:convert';
 
-import 'package:gcloud/db.dart';
-import 'package:test/test.dart';
-
 import 'package:client_data/package_api.dart';
+import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
@@ -16,11 +14,11 @@ import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
+import 'package:test/test.dart';
 
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
-
 import 'backend_test_utils.dart';
 
 void main() {

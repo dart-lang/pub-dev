@@ -6,13 +6,12 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
-import 'package:puppeteer/puppeteer.dart';
-import 'package:test/test.dart';
-
 import 'package:pub_integration/script/base_setup_script.dart';
-import 'package:pub_integration/src/headless_env.dart';
 import 'package:pub_integration/src/fake_credentials.dart';
 import 'package:pub_integration/src/fake_pub_server_process.dart';
+import 'package:pub_integration/src/headless_env.dart';
+import 'package:puppeteer/puppeteer.dart';
+import 'package:test/test.dart';
 
 void main() {
   final coverageDir = Platform.environment['COVERAGE_DIR'];

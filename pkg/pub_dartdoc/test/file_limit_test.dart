@@ -3,9 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:test/test.dart';
-
 import 'package:pub_dartdoc/src/pub_hooks.dart';
+import 'package:test/test.dart';
 
 void main() {
   test('limit number of files', () {

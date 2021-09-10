@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:test/test.dart';
-
 import 'package:pub_dev/frontend/handlers/redirects.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/shared/urls.dart';
+import 'package:test/test.dart';
 
 import '../../shared/handlers_test_utils.dart';
 import '../../shared/test_services.dart';
-
 import '_utils.dart';
 
 void main() {

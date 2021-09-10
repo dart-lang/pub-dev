@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/package/model_properties.dart';
+import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
-
-import 'package:pub_dev/package/models.dart';
-import 'package:pub_dev/package/model_properties.dart';
-import 'package:pub_dev/shared/datastore.dart';
 
 void main() {
   group('models', () {

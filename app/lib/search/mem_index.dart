@@ -6,11 +6,10 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:math' as math;
 
-import 'package:meta/meta.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 
 import '../shared/utils.dart' show boundedList;
-
 import 'scope_specificity.dart';
 import 'search_service.dart';
 import 'text_utils.dart';

@@ -6,11 +6,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
-import 'package:test/test.dart';
-
 import 'package:pub_integration/pub_integration.dart';
 import 'package:pub_integration/src/fake_credentials.dart';
 import 'package:pub_integration/src/fake_pub_server_process.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('Integration test using pkg/fake_pub_server', () {

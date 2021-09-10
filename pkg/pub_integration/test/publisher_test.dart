@@ -5,11 +5,10 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:test/test.dart';
-
 import 'package:pub_integration/script/publisher.dart';
 import 'package:pub_integration/src/fake_credentials.dart';
 import 'package:pub_integration/src/fake_pub_server_process.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('publisher', () {

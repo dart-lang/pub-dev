@@ -8,14 +8,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:client_data/package_api.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/iam/v1.dart' as iam;
 import 'package:googleapis_auth/auth_io.dart' as auth;
 // ignore: implementation_imports
 import 'package:googleapis_auth/src/crypto/rsa_sign.dart';
 import 'package:http/http.dart' as http;
-
-import 'package:client_data/package_api.dart';
 
 import '../shared/configuration.dart';
 import '../shared/env_config.dart';

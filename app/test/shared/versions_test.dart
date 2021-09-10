@@ -5,12 +5,11 @@
 import 'dart:io';
 
 import 'package:collection/collection.dart' show IterableExtension;
+import 'package:pub_dev/shared/versions.dart';
+import 'package:pub_dev/tool/utils/flutter_archive.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
-
-import 'package:pub_dev/shared/versions.dart';
-import 'package:pub_dev/tool/utils/flutter_archive.dart';
 
 void main() {
   test('runtime pattern', () {

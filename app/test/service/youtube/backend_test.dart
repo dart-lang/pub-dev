@@ -5,9 +5,8 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:test/test.dart';
-
 import 'package:pub_dev/service/youtube/backend.dart';
+import 'package:test/test.dart';
 
 import '../../shared/test_services.dart';
 

@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
-import 'package:pub_dev/service/secret/backend.dart';
 import 'package:pub_dev/service/entrypoint/tools.dart';
+import 'package:pub_dev/service/secret/backend.dart';
 
 void _printHelp() {
   print('Sets the Secret value.');

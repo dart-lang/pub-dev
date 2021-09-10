@@ -7,12 +7,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:buffer/buffer.dart';
+import 'package:fake_gcloud/mem_storage.dart';
 import 'package:logging/logging.dart';
+import 'package:mime/mime.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
-import 'package:mime/mime.dart';
 
-import 'package:fake_gcloud/mem_storage.dart';
 import '../../shared/storage.dart' show BucketExt;
 
 final _logger = Logger('storage');

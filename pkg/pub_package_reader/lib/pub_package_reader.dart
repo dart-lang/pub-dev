@@ -5,10 +5,10 @@
 import 'dart:convert';
 
 import 'package:collection/collection.dart' show IterableExtension;
-import 'package:pubspec_parse/pubspec_parse.dart';
-import 'package:pub_semver/pub_semver.dart';
-import 'package:yaml/yaml.dart' show YamlException, loadYaml;
 import 'package:logging/logging.dart';
+import 'package:pub_semver/pub_semver.dart';
+import 'package:pubspec_parse/pubspec_parse.dart';
+import 'package:yaml/yaml.dart' show YamlException, loadYaml;
 
 import 'src/archive_surface.dart';
 import 'src/file_names.dart';

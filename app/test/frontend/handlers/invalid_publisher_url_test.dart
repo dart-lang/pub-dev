@@ -4,12 +4,10 @@
 
 import 'dart:io';
 
+import 'package:pub_dev/frontend/static_files.dart';
 import 'package:test/test.dart';
 
-import 'package:pub_dev/frontend/static_files.dart';
-
 import '../../shared/test_services.dart';
-
 import '_utils.dart';
 
 final _variableExp = RegExp(r'\<(.+?)\>');

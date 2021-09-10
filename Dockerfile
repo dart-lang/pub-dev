@@ -1,5 +1,5 @@
 # Keep version in-sync with .mono_repo.yml and app/lib/shared/versions.dart
-FROM google/dart-runtime-base:2.13.4
+FROM google/dart-runtime-base:2.14.1
 
 # `apt-mark hold dart` ensures that Dart is not upgraded with the other packages
 #   We want to make sure SDK upgrades are explicit.

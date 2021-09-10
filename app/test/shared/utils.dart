@@ -5,10 +5,9 @@
 import 'dart:async';
 
 import 'package:gcloud/service_scope.dart';
-import 'package:test/test.dart';
-
 import 'package:pub_dev/service/announcement/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
+import 'package:test/test.dart';
 
 Future scoped(Function() func) {
   return fork(() async {

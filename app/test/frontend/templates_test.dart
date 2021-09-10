@@ -6,10 +6,6 @@ import 'dart:io';
 
 import 'package:html/parser.dart';
 import 'package:pana/pana.dart' hide ReportStatus;
-import 'package:pub_semver/pub_semver.dart';
-import 'package:test/test.dart';
-import 'package:xml/xml.dart' as xml;
-
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
@@ -38,10 +34,13 @@ import 'package:pub_dev/scorecard/models.dart';
 import 'package:pub_dev/search/search_form.dart';
 import 'package:pub_dev/search/search_service.dart';
 import 'package:pub_dev/service/youtube/backend.dart';
-import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/shared/utils.dart' show shortDateFormat;
+import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:pub_validations/html/html_validation.dart';
+import 'package:test/test.dart';
+import 'package:xml/xml.dart' as xml;
 
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';

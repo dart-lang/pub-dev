@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:code_builder/code_builder.dart' as code;
-import 'package:code_builder/code_builder.dart' show Code;
-import 'package:source_gen/source_gen.dart' as g;
 import 'package:analyzer/dart/element/element.dart' show ClassElement;
 import 'package:analyzer/dart/element/type.dart' show ParameterizedType;
+import 'package:code_builder/code_builder.dart' as code;
+import 'package:code_builder/code_builder.dart' show Code;
 import 'package:shelf/shelf.dart' as shelf;
+import 'package:source_gen/source_gen.dart' as g;
+
 import 'shared.dart' show EndPointGenerator, Handler;
 
 // Type checkers that we need later

@@ -4,8 +4,8 @@
 
 import 'dart:convert';
 
-import 'package:json_annotation/json_annotation.dart';
 import 'package:http/http.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 part 'flutter_archive.g.dart';
 

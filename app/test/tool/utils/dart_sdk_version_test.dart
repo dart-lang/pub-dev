@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/tool/utils/dart_sdk_version.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
-
-import 'package:pub_dev/tool/utils/dart_sdk_version.dart';
 
 void main() {
   test('fetch version is valid', () async {
