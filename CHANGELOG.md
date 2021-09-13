@@ -9,6 +9,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Flutter analysis SDK to `2.5.0`.
  * Upgraded preview Flutter analysis SDK to `2.5.0`.
  * Upgraded pana to `0.21.0`.
+ * NOTE: Disabled report size trimming in `ScoreCard`.
 
 ## `20210907t091200-all`
  * Bumped runtimeVersion to `2021.09.06`.

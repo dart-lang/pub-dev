@@ -218,7 +218,9 @@ class ScoreCardBackend {
         if (size > _reportSizeDropThreshold) {
           _logger.reportError(
               '$reportType report exceeded size threshold ($size > $_reportSizeWarnThreshold)');
-          return true;
+          // Size trimming is temporarily disabled.
+          // TODO: re-enable after fixing the underlying issues with the verbose reports and package:appengine.
+          return false;
         } else if (size > _reportSizeWarnThreshold) {
           _logger.warning(
               '$reportType report exceeded size threshold ($size > $_reportSizeWarnThreshold)');
