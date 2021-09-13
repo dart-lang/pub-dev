@@ -44,7 +44,7 @@ dependencies:
   watcher: ^1.0.0
   yaml: '^3.0.0'
   # pana version to be pinned
-  pana: '0.21.0'
+  pana: '0.21.1+1'
   # 3rd-party packages with pinned versions
   buffer: '1.1.1'
   mailer: '5.0.1'
