@@ -42,6 +42,7 @@ class PubResourceProvider implements ResourceProvider {
   String _outputPath;
   int _fileCount = 0;
   int _totalLengthBytes = 0;
+  final _paths = <String>[];
 
   PubResourceProvider(
     this._defaultProvider, {
@@ -53,23 +54,18 @@ class PubResourceProvider implements ResourceProvider {
 
   /// Writes in-memory files to disk.
   void writeFilesToDiskSync() {
-    void storeFolder(Folder rs) {
-      for (final c in rs.getChildren()) {
-        if (c is Folder) {
-          storeFolder(c);
-        } else if (c is File) {
-          final file = io.File(c.path);
-          file.parent.createSync(recursive: true);
-          file.writeAsBytesSync(c.readAsBytesSync());
-        }
-      }
+    for (final path in _paths) {
+      final r = _memoryResourceProvider.getResource(path);
+      final c = r as File;
+      final file = io.File(c.path);
+      file.parent.createSync(recursive: true);
+      file.writeAsBytesSync(c.readAsBytesSync());
     }
-
-    storeFolder(_memoryResourceProvider.getFolder(_outputPath));
   }
 
   /// Checks if we have reached any file write limit before storing the bytes.
-  void _aboutToWriteBytes(int length) {
+  void _aboutToWriteBytes(String path, int length) {
+    _paths.add(path);
     _fileCount++;
     _totalLengthBytes += length;
     if (_fileCount > _maxFileCount) {
@@ -180,7 +176,7 @@ class _File implements File {
 
   @override
   void writeAsBytesSync(List<int> bytes) {
-    _provider._aboutToWriteBytes(bytes.length);
+    _provider._aboutToWriteBytes(path, bytes.length);
     _delegate.writeAsBytesSync(bytes);
   }
 
