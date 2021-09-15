@@ -8,7 +8,7 @@ import '../../../dom/dom.dart' as d;
 import '../../../static_files.dart' show staticUrls;
 import '../../layout.dart' show PageType;
 
-/// Creates the site header and navigation node. 
+/// Creates the site header and navigation node.
 d.Node siteHeaderNode({
   required PageType pageType,
   UserSessionData? userSession,
