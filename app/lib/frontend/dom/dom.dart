@@ -159,6 +159,23 @@ Node b({
 /// Creates a `<br>` Element using the default [DomContext].
 Node br() => element('br');
 
+/// Creates a `<button>` Element using the default [DomContext].
+Node button({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+  Node? child,
+  String? text,
+}) =>
+    dom.element(
+      'button',
+      id: id,
+      classes: classes,
+      attributes: attributes,
+      children: _children(children, child, text),
+    );
+
 /// Creates a `<code>` Element using the default [DomContext].
 Node code({
   String? id,
@@ -225,6 +242,7 @@ Node form({
   Node? child,
   String? text,
   String? action,
+  String? method,
 }) {
   return dom.element(
     'form',
@@ -232,6 +250,7 @@ Node form({
     classes: classes,
     attributes: <String, String>{
       if (action != null) 'action': action,
+      if (method != null) 'method': method,
       if (attributes != null) ...attributes,
     },
     children: _children(children, child, text),

@@ -197,6 +197,8 @@ class UserSessionData {
 
   Map<String, dynamic> toJson() => _$UserSessionDataToJson(this);
 
+  bool get hasName => name != null && name!.isNotEmpty;
+
   /// Set image size to NxN pixels for faster loading, see:
   /// https://developers.google.com/people/image-sizing
   String imageUrlOfSize(int layoutSize) {

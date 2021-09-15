@@ -6,7 +6,6 @@ import 'dart:convert';
 
 import 'package:client_data/page_data.dart';
 
-import '../../account/backend.dart';
 import '../../search/search_form.dart';
 import '../../search/search_service.dart';
 import '../../service/announcement/backend.dart';
@@ -23,6 +22,7 @@ import '_utils.dart';
 
 import 'views/shared/search_banner.dart';
 import 'views/shared/search_tabs.dart';
+import 'views/shared/site_header.dart';
 
 enum PageType {
   error,
@@ -93,7 +93,7 @@ String renderLayoutPage(
         : htmlEscape.convert(pageDescription),
     'title': htmlEscape.convert(title),
     'landing_blurb_html': defaultLandingBlurbHtml,
-    'site_header_html': _renderSiteHeader(type),
+    'site_header_html': siteHeaderNode(pageType: type).toString(),
     // This is not escaped as it is already escaped by the caller.
     'content_html': contentHtml,
     'include_highlight': type == PageType.package,
@@ -108,33 +108,6 @@ String renderLayoutPage(
   };
 
   return templateCache.renderTemplate('shared/layout', values);
-}
-
-String _renderSiteHeader(PageType pageType) {
-  final userSession = userSessionData == null
-      ? null
-      : {
-          'email': userSessionData!.email,
-          'has_name': userSessionData!.name != null,
-          'name': userSessionData!.name,
-          'image_url': userSessionData!.imageUrlOfSize(30),
-        };
-
-  final showHeaderSearch =
-      pageType == PageType.package || pageType == PageType.standalone;
-  return templateCache.renderTemplate('shared/site_header', {
-    'show_site_logo': pageType != PageType.landing,
-    'show_header_search': showHeaderSearch,
-    'dart_site_root': urls.dartSiteRoot,
-    'site_logo_url': staticUrls.pubDevLogo2xPng,
-    'is_logged_in': userSession != null,
-    'user_session': userSession,
-    'my_packages_url': urls.myPackagesUrl(),
-    'my_liked_packages_url': urls.myLikedPackagesUrl(),
-    'my_publishers_url': urls.myPublishersUrl(),
-    'my_activity_log_url': urls.myActivityLogUrl(),
-    'create_publisher_url': urls.createPublisherUrl(),
-  });
 }
 
 String _renderSearchBanner({
