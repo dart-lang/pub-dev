@@ -200,11 +200,119 @@
                   <li class="detail-tab tab-link detail-tab-analysis-title" role="button">
                     <a href="/packages/oxygen/score">Scores</a>
                   </li>
+                  <li class="detail-tab tab-button detail-tab-admin-title -active -private" role="button">Admin</li>
+                  <li class="detail-tab tab-link detail-tab-activity-log-title -private" role="button">
+                    <a href="/packages/oxygen/activity-log">Activity log</a>
+                  </li>
                 </ul>
               </div>
             </div>
             <div class="detail-container detail-body-main">
-              <div class="detail-tabs-content"></div>
+              <div class="detail-tabs-content">
+                <section class="tab-content detail-tab-admin-content -active">
+                  <h2>Package ownership</h2>
+                  <div>
+                    <p>You can transfer this package to a verified publisher if you are a member of the publisher. Transferring the package removes the current uploaders, so that only the members of the publisher can upload new versions.</p>
+                    <p>
+                      <strong>Upgrading to verified publishers is an irreversible operation.</strong>
+                      Packages can be transferred between publishers, but they can't be converted back to legacy uploader ownership.
+                    </p>
+                    <div class="mdc-select" data-mdc-auto-init="MDCSelect">
+                      <i class="mdc-select__dropdown-icon"></i>
+                      <select id="-admin-set-publisher-input" class="mdc-select__native-control">
+                        <option value="" disabled="disabled" selected="selected"></option>
+                        <option value="example.com">example.com</option>
+                      </select>
+                      <label class="mdc-floating-label">Select a publisher</label>
+                      <div class="mdc-line-ripple"></div>
+                    </div>
+                    <p>
+                      <button id="-admin-set-publisher-button" class="mdc-button mdc-button--raised pub-button-danger" data-mdc-auto-init="MDCRipple">Transfer to publisher</button>
+                    </p>
+                    <h3>Uploaders</h3>
+                    <div class="mdc-data-table">
+                      <table class="mdc-data-table__table" aria-label="Uploaders of package">
+                        <thead>
+                          <tr class="mdc-data-table__header-row">
+                            <th class="mdc-data-table__header-cell email-header" role="columnheader" scope="col">Email</th>
+                            <th class="mdc-data-table__header-cell icons-header" role="columnheader" scope="col"></th>
+                          </tr>
+                        </thead>
+                        <tbody class="mdc-data-table__content">
+                          <tr class="mdc-data-table__row">
+                            <td class="mdc-data-table__cell">admin@pub.dev</td>
+                            <td class="mdc-data-table__cell">
+                              <a class="-pub-remove-uploader-button" title="Remove uploader" data-email="admin@pub.dev">×</a>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <p>
+                      <button id="-pkg-admin-invite-uploader-button" class="mdc-button mdc-button--raised" data-mdc-auto-init="MDCRipple">Invite uploader</button>
+                    </p>
+                    <div id="-pkg-admin-invite-uploader-content" class="modal-content-hidden">
+                      <p>You can invite new uploader to this package. Once new uploaders accept the invitation, they have full administrative rights, with the following abilities:</p>
+                      <ul>
+                        <li>Transfer this package to a publisher</li>
+                        <li>Upload new versions of this package</li>
+                        <li>Invite and remove uploaders of this package</li>
+                      </ul>
+                      <div class="-pub-form-row">
+                        <label for="-pkg-admin-invite-uploader-input">Email address</label>
+                        <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+                          <input id="-pkg-admin-invite-uploader-input" class="mdc-text-field__input" type="text"/>
+                          <div class="mdc-notched-outline">
+                            <div class="mdc-notched-outline__leading"></div>
+                            <div class="mdc-notched-outline__trailing"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <h2>Package Options</h2>
+                  <h3>Discontinued</h3>
+                  <p>
+                    A package can be marked as
+                    <a href="https://dart.dev/tools/pub/publishing#discontinue">discontinued</a>
+                    to inform users that the package is no longer maintained.
+                    <em>Discontinued packages</em>
+                    remain available to package users, but they don't appear in search results on pub.dev unless the user specifies advanced search options.
+                  </p>
+                  <div class="mdc-form-field">
+                    <div class="mdc-checkbox">
+                      <input id="-admin-is-discontinued-checkbox" class="mdc-checkbox__native-control" type="checkbox"/>
+                      <div class="mdc-checkbox__background">
+                        <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                          <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                        </svg>
+                        <div class="mdc-checkbox__mixedmark"></div>
+                      </div>
+                      <div class="mdc-checkbox__ripple"></div>
+                    </div>
+                    <label for="-admin-is-discontinued-checkbox">Mark "discontinued"</label>
+                  </div>
+                  <h3>Unlisted</h3>
+                  <p>
+                    A package that's marked as
+                    <em>unlisted</em>
+                    doesn't normally appear in search results on pub.dev. Unlisted packages remain publicly available, and users can search for them using advanced search options.
+                  </p>
+                  <div class="mdc-form-field">
+                    <div class="mdc-checkbox">
+                      <input id="-admin-is-unlisted-checkbox" class="mdc-checkbox__native-control" type="checkbox"/>
+                      <div class="mdc-checkbox__background">
+                        <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                          <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                        </svg>
+                        <div class="mdc-checkbox__mixedmark"></div>
+                      </div>
+                      <div class="mdc-checkbox__ripple"></div>
+                    </div>
+                    <label for="-admin-is-unlisted-checkbox">Mark "unlisted"</label>
+                  </div>
+                </section>
+              </div>
             </div>
           </div>
           <aside class="detail-info-box">

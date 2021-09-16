@@ -45,12 +45,12 @@ void _verifyElementTag(String tag) {
   }
 }
 
-void _verifyAttributeKeys(Iterable<String>? keys) {
+void _verifyAttributeKeys(String tag, Iterable<String>? keys) {
   if (keys == null) return;
   for (final key in keys) {
-    if (_attributeRegExp.matchAsPrefix(key) == null) {
-      throw FormatException('Invalid attribute key "$key".');
-    }
+    if (_attributeRegExp.matchAsPrefix(key) != null) continue;
+    if (tag == 'svg' && key == 'viewBox') continue;
+    throw FormatException('Invalid attribute key "$key".');
   }
 }
 
@@ -399,6 +399,32 @@ Node li({
       children: _children(children, child, text),
     );
 
+/// Creates an `<option>` Element using the default [DomContext].
+Node option({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+  Node? child,
+  String? text,
+  String? value,
+  bool disabled = false,
+  bool selected = false,
+}) {
+  return dom.element(
+    'option',
+    id: id,
+    classes: classes,
+    attributes: <String, String>{
+      if (value != null) 'value': value,
+      if (disabled) 'disabled': 'disabled',
+      if (selected) 'selected': 'selected',
+      if (attributes != null) ...attributes,
+    },
+    children: _children(children, child, text),
+  );
+}
+
 /// Creates a `<p>` Element using the default [DomContext].
 Node p({
   String? id,
@@ -432,6 +458,24 @@ Node pre({
       attributes: attributes,
       children: _children(children, child, text),
     );
+
+/// Creates an `<select>` Element using the default [DomContext].
+Node select({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+  Node? child,
+  String? text,
+}) {
+  return dom.element(
+    'select',
+    id: id,
+    classes: classes,
+    attributes: attributes,
+    children: _children(children, child, text),
+  );
+}
 
 /// Creates a `<span>` Element using the default [DomContext].
 Node span({
@@ -586,7 +630,7 @@ class _StringDomContext extends DomContext {
     Iterable<Node>? children,
   }) {
     _verifyElementTag(tag);
-    _verifyAttributeKeys(attributes?.keys);
+    _verifyAttributeKeys(tag, attributes?.keys);
     return _StringElement(
         tag, _mergeAttributes(id, classes, attributes), children);
   }
@@ -649,6 +693,7 @@ class _StringElement extends _StringNode {
     'link',
     'meta',
     'param',
+    'path',
     'source',
     'track',
     'wbr',

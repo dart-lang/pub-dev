@@ -271,11 +271,11 @@ Future<shelf.Response> packageAdminHandler(
       final page = await publisherBackend
           .listPublishersForUser(userSessionData!.userId!);
       final uploaderEmails = await accountBackend
-          .getEmailsOfUserIds(data.package!.uploaders ?? <String>[]);
+          .lookupUsersById(data.package!.uploaders ?? <String>[]);
       return renderPkgAdminPage(
         data,
         page.publishers!.map((p) => p.publisherId).toList(),
-        uploaderEmails,
+        uploaderEmails.cast(),
       );
     },
   );

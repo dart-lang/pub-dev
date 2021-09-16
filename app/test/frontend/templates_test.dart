@@ -348,12 +348,23 @@ void main() {
       fn: () async {
         final data = await accountBackend.withBearerToken(
           adminAtPubDevAuthToken,
-          () => loadPackagePageData('oxygen', '1.2.0', AssetKind.readme),
+          () async {
+            // update session as package data loading checks that
+            final user = await requireAuthenticatedUser();
+            registerUserSessionData(UserSessionData(
+              userId: user.userId,
+              created: DateTime.now(),
+              expires: DateTime.now().add(Duration(days: 1)),
+              sessionId: 'session-1',
+            ));
+            return await loadPackagePageData(
+                'oxygen', '1.2.0', AssetKind.readme);
+          },
         );
         final html = renderPkgAdminPage(
           data,
           ['example.com'],
-          ['admin@pub.dev'],
+          await accountBackend.lookupUsersByEmail('admin@pub.dev'),
         );
         expectGoldenFile(html, 'pkg_admin_page.html', timestamps: {
           'published': data.package!.created,

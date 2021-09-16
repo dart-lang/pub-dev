@@ -2,48 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pub_dev/frontend/templates/views/account/activity_log_table.dart';
-
+import '../../account/models.dart';
 import '../../audit/models.dart';
 import '../../package/models.dart';
 import '../../shared/urls.dart' as urls;
 
-import '_cache.dart';
 import 'detail_page.dart';
 import 'layout.dart';
 import 'package.dart';
+import 'views/account/activity_log_table.dart';
+import 'views/pkg/admin_page.dart';
 
-/// Renders the `views/pkg/admin_page` template.
+/// Renders the package admin page.
 String renderPkgAdminPage(
   PackagePageData data,
-  List<String?> userPublishers,
-  List<String?> uploaderEmails,
+  List<String> userPublishers,
+  List<User> uploaderUsers,
 ) {
-  final showUploaderAdmin = data.package!.publisherId == null;
   final tabs = buildPackageTabs(
     data: data,
     adminTab: Tab.withContent(
       id: 'admin',
       title: 'Admin',
-      contentHtml: templateCache.renderTemplate('pkg/admin_page', {
-        'pkg_has_publisher': data.package!.publisherId != null,
-        'publisher_id': data.package!.publisherId,
-        'is_discontinued': data.package!.isDiscontinued,
-        'show_replaced_by': data.package!.isDiscontinued,
-        'replaced_by': data.package!.replacedBy,
-        'show_unlisted': !data.package!.isDiscontinued,
-        'is_unlisted': data.package!.isUnlisted,
-        'user_has_publisher': userPublishers.isNotEmpty,
-        'user_publishers': userPublishers
-            .map((s) => {
-                  'publisher_id': s,
-                  'selected': s == data.package!.publisherId,
-                })
-            .toList(),
-        'create_publisher_url': urls.createPublisherUrl(),
-        'show_uploader_admin': showUploaderAdmin,
-        'uploader_emails': uploaderEmails.map((e) => {'email': e}).toList(),
-      }),
+      contentHtml: packageAdminPageNode(
+        package: data.package!,
+        userPublishers: userPublishers,
+        uploaderUsers: uploaderUsers,
+      ).toString(),
     ),
   );
 

@@ -110,11 +110,11 @@ d.Node iconButton({
 /// Renders a material text field.
 d.Node textField({
   required String id,
-  required String label,
+  required String? label,
   String? value,
 }) {
   return d.fragment([
-    d.label(attributes: {'for': id}, text: label),
+    if (label != null) d.label(attributes: {'for': id}, text: label),
     d.div(
       classes: ['mdc-text-field', 'mdc-text-field--outlined'],
       attributes: {'data-mdc-auto-init': 'MDCTextField'},
@@ -244,5 +244,74 @@ d.Node dataTable<T>({
         ),
       ],
     ),
+  );
+}
+
+/// Renders a material checkbox component.
+d.Node checkbox({
+  required String id,
+  required String label,
+  required bool checked,
+}) {
+  return d.div(
+    classes: ['mdc-form-field'],
+    children: [
+      d.div(
+        classes: ['mdc-checkbox'],
+        children: [
+          d.input(
+            type: 'checkbox',
+            classes: ['mdc-checkbox__native-control'],
+            id: id,
+            attributes: {if (checked) 'checked': 'checked'},
+          ),
+          d.div(
+            classes: ['mdc-checkbox__background'],
+            children: [
+              d.element(
+                'svg',
+                classes: ['mdc-checkbox__checkmark'],
+                attributes: {'viewBox': '0 0 24 24'},
+                child: d.element(
+                  'path',
+                  classes: ['mdc-checkbox__checkmark-path'],
+                  attributes: {
+                    'fill': 'none',
+                    'd': 'M1.73,12.91 8.1,19.28 22.79,4.59',
+                  },
+                ),
+              ),
+              d.div(classes: ['mdc-checkbox__mixedmark']),
+            ],
+          ),
+          d.div(classes: ['mdc-checkbox__ripple']),
+        ],
+      ),
+      d.label(attributes: {'for': id}, text: label),
+    ],
+  );
+}
+
+/// Renders a material dropdown / select component.
+///
+/// [options] must be a list of `<option>` elements (e.g. from [d.option()]).
+d.Node dropdown({
+  required String id,
+  required String label,
+  required Iterable<d.Node> options,
+}) {
+  return d.div(
+    classes: ['mdc-select'],
+    attributes: {'data-mdc-auto-init': 'MDCSelect'},
+    children: [
+      d.i(classes: ['mdc-select__dropdown-icon']),
+      d.select(
+        id: id,
+        classes: ['mdc-select__native-control'],
+        children: options,
+      ),
+      d.label(classes: ['mdc-floating-label'], text: label),
+      d.div(classes: ['mdc-line-ripple']),
+    ],
   );
 }
