@@ -19,11 +19,11 @@ import '_utils.dart';
 import 'detail_page.dart';
 import 'layout.dart';
 import 'misc.dart';
-import 'package_analysis.dart';
 import 'package_misc.dart';
 import 'views/pkg/header.dart';
 import 'views/pkg/info_box.dart';
 import 'views/pkg/install_tab.dart';
+import 'views/pkg/score_tab.dart';
 import 'views/pkg/title_content.dart';
 
 /// Renders the right-side info box (quick summary of the package, mostly coming
@@ -369,12 +369,10 @@ Tab _scoreTab(PackagePageData data) {
   return Tab.withContent(
     id: 'analysis',
     title: 'Scores',
-    contentHtml: renderAnalysisTab(
-      data.package!.name,
-      data.version!.pubspec!.sdkConstraint,
-      data.scoreCard,
+    contentHtml: scoreTabNode(
+      card: data.scoreCard,
       likeCount: data.package!.likes,
-    ),
+    ).toString(),
   );
 }
 

@@ -21,9 +21,9 @@ import 'package:pub_dev/frontend/templates/listing.dart';
 import 'package:pub_dev/frontend/templates/misc.dart';
 import 'package:pub_dev/frontend/templates/package.dart';
 import 'package:pub_dev/frontend/templates/package_admin.dart';
-import 'package:pub_dev/frontend/templates/package_analysis.dart';
 import 'package:pub_dev/frontend/templates/package_versions.dart';
 import 'package:pub_dev/frontend/templates/publisher.dart';
+import 'package:pub_dev/frontend/templates/views/pkg/score_tab.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/search_adapter.dart';
@@ -299,7 +299,7 @@ void main() {
 
     scopedTest('no content for analysis tab', () async {
       // no content
-      expect(renderAnalysisTab('pkg_foo', null, null, likeCount: 4),
+      expect(scoreTabNode(card: null, likeCount: 4).toString(),
           '<i>Awaiting analysis to complete.</i>');
     });
 
@@ -318,27 +318,18 @@ void main() {
           urlProblems: null,
         ),
       );
-      final html = renderAnalysisTab(
-        'pkg_foo',
-        null,
-        card,
-        likeCount: 1000000,
-      );
+      final html = scoreTabNode(card: card, likeCount: 1000000).toString();
 
       expectGoldenFile(html, 'analysis_tab_aborted.html', isFragment: true);
     });
 
     scopedTest('outdated analysis tab', () async {
       final card = ScoreCardData(
+        packageName: 'pkg_foo',
         flags: [PackageFlags.isObsolete],
         updated: DateTime(2017, 12, 18, 14, 26, 00),
       );
-      final String html = renderAnalysisTab(
-        'pkg_foo',
-        null,
-        card,
-        likeCount: 1111,
-      );
+      final String html = scoreTabNode(card: card, likeCount: 1111).toString();
       expectGoldenFile(html, 'analysis_tab_outdated.html', isFragment: true);
     });
 

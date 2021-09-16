@@ -4,11 +4,84 @@
 
 import 'package:pana/models.dart';
 
+import '../../../../scorecard/models.dart' hide ReportStatus;
+import '../../../../shared/urls.dart' as urls;
+import '../../../../shared/utils.dart' show shortDateFormat;
 import '../../../dom/dom.dart' as d;
 import '../../../static_files.dart';
+import '../../package_misc.dart' show formatScore;
+
+/// Renders the score page content.
+d.Node scoreTabNode({
+  required int? likeCount,
+  required ScoreCardData? card,
+}) {
+  if (card == null) {
+    return d.i(text: 'Awaiting analysis to complete.');
+  }
+
+  final report = card.getJoinedReport();
+  final showAwaiting = !card.isSkipped && report == null;
+  final showReport = !card.isSkipped && report != null;
+  final dateCompleted = card.panaReport?.timestamp == null
+      ? ''
+      : shortDateFormat.format(card.panaReport!.timestamp!);
+
+  final toolEnvInfo = _renderToolEnvInfoNode(
+      card.panaReport?.panaRuntimeInfo, card.usesFlutter);
+  return d.fragment([
+    d.div(
+      classes: ['score-key-figures'],
+      children: [
+        _likeKeyFigureNode(likeCount),
+        _pubPointsKeyFigureNode(report),
+        _popularityKeyFigureNode(card.popularityScore),
+      ],
+    ),
+    if (card.isDiscontinued)
+      d.p(
+        classes: ['analysis-info'],
+        text: 'This package is not analyzed, because it is discontinued.',
+      ),
+    if (card.isObsolete)
+      d.p(
+        classes: ['analysis-info'],
+        children: [
+          d.text('This package version is not analyzed, because '
+              'it is more than two years old. Check the '),
+          d.a(
+            href: urls.pkgScoreUrl(card.packageName!),
+            text: 'latest stable version',
+          ),
+          d.text(' for its analysis.'),
+        ],
+      ),
+    if (card.isLegacy)
+      d.p(
+        classes: ['analysis-info'],
+        text:
+            'The package version is not analyzed, because it does not support Dart 2. '
+            'Until this is resolved, the package will receive a pub score of 0.',
+      ),
+    if (showAwaiting)
+      d.p(
+        classes: ['analysis-info'],
+        text: 'The analysis of the package has not been completed yet.',
+      ),
+    if (showReport)
+      d.p(
+        classes: ['analysis-info'],
+        text: 'We analyzed this package on $dateCompleted, '
+            'and awarded it ${report?.grantedPoints ?? 0} '
+            'pub points (of a possible ${report?.maxPoints ?? 0}):',
+      ),
+    if (report != null) _reportNode(report),
+    if (toolEnvInfo != null) toolEnvInfo,
+  ]);
+}
 
 /// Renders the report on the score page.
-d.Node reportNode({required Report report}) {
+d.Node _reportNode(Report report) {
   return d.div(
     classes: ['pkg-report'],
     children: report.sections.map(_section),
@@ -103,14 +176,31 @@ String _updatedSummary(String summary) {
   }).join('\n');
 }
 
-class ToolVersionInfo {
+d.Node? _renderToolEnvInfoNode(PanaRuntimeInfo? info, bool usesFlutter) {
+  if (info == null) return null;
+  final flutterVersions = info.flutterVersions;
+  final flutterVersion = usesFlutter && flutterVersions != null
+      ? flutterVersions['frameworkVersion']
+      : null;
+  final flutterDartVersion = usesFlutter && flutterVersions != null
+      ? flutterVersions['dartSdkVersion']
+      : null;
+  return _toolEnvInfoNode([
+    _ToolVersionInfo('Pana', info.panaVersion),
+    if (flutterVersion != null)
+      _ToolVersionInfo('Flutter', flutterVersion.toString()),
+    _ToolVersionInfo('Dart', flutterDartVersion?.toString() ?? info.sdkVersion),
+  ]);
+}
+
+class _ToolVersionInfo {
   final String name;
   final String version;
 
-  ToolVersionInfo(this.name, this.version);
+  _ToolVersionInfo(this.name, this.version);
 }
 
-d.Node toolEnvInfoNode(List<ToolVersionInfo> values) {
+d.Node _toolEnvInfoNode(List<_ToolVersionInfo> values) {
   final nodes = <d.Node>[];
   for (var i = 0; i < values.length; i++) {
     if (i > 0) nodes.add(d.text(', '));
@@ -129,7 +219,45 @@ d.Node toolEnvInfoNode(List<ToolVersionInfo> values) {
   );
 }
 
-d.Node keyFigureNode({
+d.Node _likeKeyFigureNode(int? likeCount) {
+  // TODO: implement k/m supplemental for values larger than 1000
+  return _keyFigureNode(
+    value: '$likeCount',
+    supplemental: '',
+    label: 'likes',
+  );
+}
+
+d.Node _popularityKeyFigureNode(double? popularity) {
+  return _keyFigureNode(
+    value: formatScore(popularity),
+    supplemental: '%',
+    label: 'popularity',
+  );
+}
+
+d.Node _pubPointsKeyFigureNode(Report? report) {
+  if (report == null) {
+    return _keyFigureNode(
+      value: '',
+      supplemental: 'awaiting',
+      label: 'pub points',
+    );
+  }
+  var grantedPoints = 0;
+  var maxPoints = 0;
+  report.sections.forEach((section) {
+    grantedPoints += section.grantedPoints;
+    maxPoints += section.maxPoints;
+  });
+  return _keyFigureNode(
+    value: '$grantedPoints',
+    supplemental: '/ $maxPoints',
+    label: 'pub points',
+  );
+}
+
+d.Node _keyFigureNode({
   required String value,
   required String supplemental,
   required String label,
