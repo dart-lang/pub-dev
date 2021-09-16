@@ -12,6 +12,7 @@ import '../../package/search_adapter.dart' show SearchResultPage;
 import '../../publisher/models.dart' show Publisher, PublisherSummary;
 import '../../search/search_form.dart' show SearchForm;
 import '../../shared/urls.dart' as urls;
+import '../dom/dom.dart' as d;
 import 'detail_page.dart';
 import 'layout.dart';
 import 'listing.dart';
@@ -83,9 +84,9 @@ String renderPublisherPackagesPage({
   ];
 
   final mainContent = renderDetailPage(
-    headerHtml: _renderDetailHeader(publisher),
+    headerNode: _renderDetailHeader(publisher),
     tabs: tabs,
-    infoBoxHtml: null,
+    infoBoxNode: null,
   );
 
   return renderLayoutPage(
@@ -126,9 +127,9 @@ String renderPublisherAdminPage({
   ];
 
   final content = renderDetailPage(
-    headerHtml: _renderDetailHeader(publisher),
+    headerNode: _renderDetailHeader(publisher),
     tabs: tabs,
-    infoBoxHtml: null,
+    infoBoxNode: null,
   );
   return renderLayoutPage(
     PageType.publisher,
@@ -167,9 +168,9 @@ String renderPublisherActivityLogPage({
   ];
 
   final content = renderDetailPage(
-    headerHtml: _renderDetailHeader(publisher),
+    headerNode: _renderDetailHeader(publisher),
     tabs: tabs,
-    infoBoxHtml: null,
+    infoBoxNode: null,
   );
   return renderLayoutPage(
     PageType.publisher,
@@ -186,7 +187,7 @@ String renderPublisherActivityLogPage({
   );
 }
 
-String _renderDetailHeader(Publisher publisher) {
+d.Node _renderDetailHeader(Publisher publisher) {
   return renderDetailHeader(
     title: publisher.publisherId,
     metadataNode: publisherHeaderMetadataNode(publisher),

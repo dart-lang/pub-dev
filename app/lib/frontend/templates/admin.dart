@@ -60,7 +60,7 @@ String renderAccountPackagesPage({
     paginationHtml,
   ].join('\n');
   final content = renderDetailPage(
-    headerHtml: _accountDetailHeader(user, userSessionData),
+    headerNode: _accountDetailHeader(user, userSessionData),
     tabs: [
       Tab.withContent(
           id: 'my-packages', title: 'My packages', contentHtml: tabContent),
@@ -68,7 +68,7 @@ String renderAccountPackagesPage({
       _myPublishersLink(),
       _myActivityLogLink(),
     ],
-    infoBoxHtml: null,
+    infoBoxNode: null,
   );
 
   return renderLayoutPage(
@@ -98,7 +98,7 @@ String renderMyLikedPackagesPage({
     likedPackagesListHtml,
   ].join('\n');
   final content = renderDetailPage(
-    headerHtml: _accountDetailHeader(user, userSessionData),
+    headerNode: _accountDetailHeader(user, userSessionData),
     tabs: [
       _myPackagesLink(),
       Tab.withContent(
@@ -108,7 +108,7 @@ String renderMyLikedPackagesPage({
       _myPublishersLink(),
       _myActivityLogLink(),
     ],
-    infoBoxHtml: null,
+    infoBoxNode: null,
   );
 
   return renderLayoutPage(
@@ -128,7 +128,7 @@ String renderAccountPublishersPage({
 }) {
   final pln = publisherListNode(publishers: publishers, isGlobal: false);
   final content = renderDetailPage(
-    headerHtml: _accountDetailHeader(user, userSessionData),
+    headerNode: _accountDetailHeader(user, userSessionData),
     tabs: [
       _myPackagesLink(),
       _myLikedPackagesLink(),
@@ -139,7 +139,7 @@ String renderAccountPublishersPage({
       ),
       _myActivityLogLink(),
     ],
-    infoBoxHtml: null,
+    infoBoxNode: null,
   );
 
   return renderLayoutPage(
@@ -164,7 +164,7 @@ String renderAccountMyActivityPage({
   );
 
   final content = renderDetailPage(
-    headerHtml: _accountDetailHeader(user, userSessionData),
+    headerNode: _accountDetailHeader(user, userSessionData),
     tabs: [
       _myPackagesLink(),
       _myLikedPackagesLink(),
@@ -175,7 +175,7 @@ String renderAccountMyActivityPage({
         contentHtml: activityLog.toString(),
       ),
     ],
-    infoBoxHtml: null,
+    infoBoxNode: null,
   );
 
   return renderLayoutPage(
@@ -203,7 +203,7 @@ Tab _myActivityLogLink() => Tab.withLink(
     title: 'My activity log',
     href: urls.myActivityLogUrl());
 
-String _accountDetailHeader(User user, UserSessionData userSessionData) {
+d.Node _accountDetailHeader(User user, UserSessionData userSessionData) {
   final shortJoined = shortDateFormat.format(user.created!);
   return renderDetailHeader(
     title: userSessionData.name,

@@ -459,6 +459,27 @@ Node pre({
       children: _children(children, child, text),
     );
 
+/// Creates a `<script>` Element using the default [DomContext].
+Node script({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+  Node? child,
+  String? text,
+  String? type,
+}) =>
+    dom.element(
+      'script',
+      id: id,
+      classes: classes,
+      attributes: <String, String>{
+        if (type != null) 'type': type,
+        if (attributes != null) ...attributes,
+      },
+      children: _children(children, child, text),
+    );
+
 /// Creates an `<select>` Element using the default [DomContext].
 Node select({
   String? id,

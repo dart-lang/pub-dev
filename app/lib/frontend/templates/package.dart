@@ -13,6 +13,7 @@ import '../../shared/handlers.dart';
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
+import '../dom/dom.dart' as d;
 import '../static_files.dart';
 
 import '_utils.dart';
@@ -90,9 +91,9 @@ String renderPkgInfoBox(PackagePageData data) {
   ).toString();
 }
 
-/// Renders the `views/pkg/header.mustache` template for header metadata and
+/// Renders the package header template for header metadata and
 /// wraps it with content-header.
-String renderPkgHeader(PackagePageData data) {
+d.Node renderPkgHeader(PackagePageData data) {
   final package = data.package!;
   final showPrereleaseVersion = data.latestReleases!.showPrerelease;
   final showPreviewVersion = data.latestReleases!.showPreview;
@@ -220,11 +221,11 @@ String _renderPkgPage({
   final card = data.scoreCard;
 
   final content = renderDetailPage(
-    headerHtml: renderPkgHeader(data),
+    headerNode: renderPkgHeader(data),
     tabs: tabs,
     infoBoxLead: data.version!.ellipsizedDescription,
-    infoBoxHtml: renderPkgInfoBox(data),
-    footerHtml: renderPackageSchemaOrgHtml(data),
+    infoBoxNode: renderPkgInfoBox(data),
+    footerNode: renderPackageSchemaOrgHtml(data),
   );
 
   final isFlutterPackage = data.version!.pubspec!.usesFlutter;
@@ -376,7 +377,7 @@ Tab _scoreTab(PackagePageData data) {
   );
 }
 
-String renderPackageSchemaOrgHtml(PackagePageData data) {
+d.Node renderPackageSchemaOrgHtml(PackagePageData data) {
   final p = data.package!;
   final pv = data.version!;
   final Map map = {
@@ -397,7 +398,11 @@ String renderPackageSchemaOrgHtml(PackagePageData data) {
     map['license'] = licenseFileUrl;
   }
   // TODO: add http://schema.org/codeRepository for github and gitlab links
-  return '<script type="application/ld+json">\n${json.encode(map)}\n</script>\n';
+  return d.script(
+    type: 'application/ld+json',
+    // TODO: check how this should be escaped
+    child: d.unsafeRawHtml(json.encode(map)),
+  );
 }
 
 /// Build package tabs.
