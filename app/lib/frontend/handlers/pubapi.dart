@@ -114,8 +114,9 @@ class PubApi {
   ///     }
   @EndPoint.get('/api/packages/versions/newUploadFinish')
   Future<SuccessMessage> packageUploadCallback(Request request) async {
-    final uploadId = request.requestedUri.queryParameters['upload_id']!;
-    await packageBackend.publishUploadedBlob(uploadId);
+    final uploadId = request.requestedUri.queryParameters['upload_id'];
+    InvalidInputException.checkNotNull(uploadId, 'upload_id');
+    await packageBackend.publishUploadedBlob(uploadId!);
     return SuccessMessage(
         success: Message(message: 'Successfully uploaded package.'));
   }
