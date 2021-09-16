@@ -380,7 +380,7 @@ Tab _scoreTab(PackagePageData data) {
 d.Node renderPackageSchemaOrgHtml(PackagePageData data) {
   final p = data.package!;
   final pv = data.version!;
-  final Map map = {
+  final map = <String, dynamic>{
     '@context': 'http://schema.org',
     '@type': 'SoftwareSourceCode',
     'name': p.name,
@@ -398,11 +398,7 @@ d.Node renderPackageSchemaOrgHtml(PackagePageData data) {
     map['license'] = licenseFileUrl;
   }
   // TODO: add http://schema.org/codeRepository for github and gitlab links
-  return d.script(
-    type: 'application/ld+json',
-    // TODO: check how this should be escaped
-    child: d.unsafeRawHtml(json.encode(map)),
-  );
+  return d.ldJson(map);
 }
 
 /// Build package tabs.

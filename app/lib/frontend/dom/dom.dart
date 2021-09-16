@@ -111,6 +111,15 @@ Node codeSnippet({
   );
 }
 
+/// Creates a DOM element with ld+json `<script>` content.
+Node ldJson(Map<String, dynamic> content) {
+  return script(
+    type: 'application/ld+json',
+    // TODO: check how this should be escaped
+    child: unsafeRawHtml(json.encode(content)),
+  );
+}
+
 /// Creates an `<a>` Element using the default [DomContext].
 Node a({
   String? id,
