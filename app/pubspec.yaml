@@ -22,6 +22,7 @@ dependencies:
   http_parser: ^4.0.0
   intl: '^0.17.0'
   json_annotation: '^4.0.0'
+  lints: ^1.0.0
   logging: '>=0.9.3 <2.0.0'
   markdown: ^4.0.0
   meta: ^1.1.2
