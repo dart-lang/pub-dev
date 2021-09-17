@@ -92,11 +92,11 @@ String renderPkgVersionsPage(
   );
 
   final content = renderDetailPage(
-    headerHtml: renderPkgHeader(data),
+    headerNode: renderPkgHeader(data),
     tabs: tabs,
     infoBoxLead: data.version!.ellipsizedDescription,
-    infoBoxHtml: renderPkgInfoBox(data),
-    footerHtml: renderPackageSchemaOrgHtml(data),
+    infoBoxNode: renderPkgInfoBox(data),
+    footerNode: renderPackageSchemaOrgHtml(data),
   );
 
   final canonicalUrl = urls.pkgPageUrl(data.package!.name!,

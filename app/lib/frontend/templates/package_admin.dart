@@ -33,10 +33,10 @@ String renderPkgAdminPage(
   );
 
   final content = renderDetailPage(
-    headerHtml: renderPkgHeader(data),
+    headerNode: renderPkgHeader(data),
     tabs: tabs,
     infoBoxLead: data.version!.ellipsizedDescription,
-    infoBoxHtml: renderPkgInfoBox(data),
+    infoBoxNode: renderPkgInfoBox(data),
   );
 
   return renderLayoutPage(
@@ -67,10 +67,10 @@ String renderPkgActivityLogPage(
     ),
   );
   final content = renderDetailPage(
-    headerHtml: renderPkgHeader(data),
+    headerNode: renderPkgHeader(data),
     tabs: tabs,
     infoBoxLead: data.version!.ellipsizedDescription,
-    infoBoxHtml: renderPkgInfoBox(data),
+    infoBoxNode: renderPkgInfoBox(data),
   );
   return renderLayoutPage(
     PageType.package,

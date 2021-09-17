@@ -12,7 +12,7 @@ final wideHeaderDetailPageClassName = '-wide-header-detail-page';
 /// Renders the detail page's header template.
 ///
 /// The like button in the header will not be displayed when [isLiked] is null.
-String renderDetailHeader({
+d.Node renderDetailHeader({
   String? title,
   d.Node? titleNode,
   String? imageUrl,
@@ -40,24 +40,24 @@ String renderDetailHeader({
     isLiked: isLiked == true,
     likeCount: packageLikes,
     isFlutterFavorite: isFlutterFavorite,
-  ).toString();
+  );
 }
 
 /// Renders the `shared/detail/page.mustache` template
 String renderDetailPage({
-  required String headerHtml,
+  required d.Node headerNode,
   required List<Tab> tabs,
-  required String? infoBoxHtml,
+  required String? infoBoxNode,
   String? infoBoxLead,
-  String? footerHtml,
+  d.Node? footerNode,
 }) {
   return templateCache.renderTemplate('shared/detail/page', {
-    'header_html': headerHtml,
+    'header_html': headerNode.toString(),
     'tabs_html': renderDetailTabs(tabs),
     'info_box_lead': infoBoxLead,
-    'has_info_box': infoBoxHtml != null,
-    'info_box_html': infoBoxHtml,
-    'footer_html': footerHtml,
+    'has_info_box': infoBoxNode != null,
+    'info_box_html': infoBoxNode?.toString(),
+    'footer_html': footerNode?.toString(),
   });
 }
 

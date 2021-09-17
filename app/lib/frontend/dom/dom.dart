@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:convert/convert.dart';
+
 import '../../shared/markdown.dart';
 
 final _attributeEscape = HtmlEscape(HtmlEscapeMode.attribute);
@@ -108,6 +110,22 @@ Node codeSnippet({
       child: child,
       text: text,
     ),
+  );
+}
+
+/// Creates a DOM element with ld+json `<script>` content.
+Node ldJson(Map<String, dynamic> content) {
+  final rawJson = json.encode(content);
+  final rawHtml = rawJson.replaceAllMapped(
+    // As rawJson can only contain the following characters inside of
+    // a JSON string, we can always encode them as \u00xx
+    // This ensures that html tags cannot be embedded.
+    RegExp(r'[</>]'),
+    (m) => r'\u00' + hex.encode([m[0]!.codeUnitAt(0)]),
+  );
+  return script(
+    type: 'application/ld+json',
+    child: unsafeRawHtml(rawHtml),
   );
 }
 
@@ -475,6 +493,27 @@ Node pre({
       id: id,
       classes: classes,
       attributes: attributes,
+      children: _children(children, child, text),
+    );
+
+/// Creates a `<script>` Element using the default [DomContext].
+Node script({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+  Node? child,
+  String? text,
+  String? type,
+}) =>
+    dom.element(
+      'script',
+      id: id,
+      classes: classes,
+      attributes: <String, String>{
+        if (type != null) 'type': type,
+        if (attributes != null) ...attributes,
+      },
       children: _children(children, child, text),
     );
 
