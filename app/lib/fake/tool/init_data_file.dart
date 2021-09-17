@@ -12,6 +12,8 @@ import 'package:path/path.dart' as p;
 
 import 'package:pub_dev/analyzer/pana_runner.dart';
 import 'package:pub_dev/dartdoc/dartdoc_runner.dart';
+import 'package:pub_dev/fake/backend/fake_dartdoc_runner.dart';
+import 'package:pub_dev/fake/backend/fake_pana_runner.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/job/job.dart';
 import 'package:pub_dev/service/services.dart';
@@ -33,7 +35,12 @@ class FakeInitDataFileCommand extends Command {
     argParser
       ..addOption('test-profile',
           help: 'The file to read the test profile from.')
-      ..addFlag('analyze', help: 'Analyze the packages with pana and dartdoc.')
+      ..addOption(
+        'analysis',
+        allowed: ['none', 'fake', 'real'],
+        help: 'Analyze the package with fake or real analysis.',
+        defaultsTo: 'none',
+      )
       ..addOption('data-file', help: 'The file to store the local state.');
   }
 
@@ -48,7 +55,7 @@ class FakeInitDataFileCommand extends Command {
       ].where((e) => e != null).join(' '));
     });
 
-    final analyze = argResults!['analyze'] as bool?;
+    final analysis = argResults!['analysis'] as String;
     final dataFile = argResults!['data-file'] as String;
     final profile = TestProfile.fromYaml(
       await File(argResults!['test-profile'] as String).readAsString(),
@@ -73,8 +80,11 @@ class FakeInitDataFileCommand extends Command {
             source: ImportSource.fromPubDev(archiveCachePath: archiveCachePath),
           );
 
-          if (analyze!) {
+          if (analysis == 'real') {
             await _analyze();
+          } else if (analysis == 'fake') {
+            await processJobsWithFakePanaRunner();
+            await processJobsWithFakeDartdocRunner();
           }
         });
     await state.save(dataFile);
