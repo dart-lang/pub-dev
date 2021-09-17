@@ -21,6 +21,7 @@ import '_cache.dart';
 import '_consts.dart';
 import '_utils.dart';
 
+import 'views/shared/layout.dart';
 import 'views/shared/search_banner.dart';
 import 'views/shared/search_tabs.dart';
 
@@ -76,7 +77,6 @@ String renderLayoutPage(
   final values = {
     'is_landing': type == PageType.landing,
     'pub_site_root': urls.siteRoot,
-    'dart_site_root': urls.dartSiteRoot,
     'oauth_client_id': activeConfiguration.pubSiteAudience,
     'body_class': bodyClasses.join(' '),
     'main_class': mainClasses.join(' '),
@@ -96,6 +96,7 @@ String renderLayoutPage(
     'site_header_html': _renderSiteHeader(type),
     // This is not escaped as it is already escaped by the caller.
     'content_html': contentHtml,
+    'footer_html': siteFooterNode().toString(),
     'include_highlight': type == PageType.package,
     'show_search_banner':
         type != PageType.package && type != PageType.standalone,
