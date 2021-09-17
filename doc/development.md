@@ -51,9 +51,14 @@ Using the test-profile above, the following process will:
 cd app/
 dart bin/fake_server.dart init-data-file \
   --test-profile=[the file you have created] \
-  --analyze \
+  --analysis=[ none | fake | real ] \
   --data-file=dev-data-file.jsonl
 ```
+
+`fake` analysis will use a deterministic, but random-looking
+process to create analysis results quickly, while `real`
+analysis will run `pana` and `dartdoc` the same way as the
+production server would run them.
 
 ### Using the fake server with the data file
 
