@@ -33,7 +33,7 @@ final _helpPublishingMarkdown = _readDocContent('help-publishing.md');
 String renderUnauthenticatedPage() {
   return renderLayoutPage(
     PageType.standalone,
-    unauthenticatedNode().toString(),
+    unauthenticatedNode(),
     title: 'Authentication required',
     noIndex: true,
   );
@@ -43,7 +43,7 @@ String renderUnauthenticatedPage() {
 String renderUnauthorizedPage() {
   return renderLayoutPage(
     PageType.standalone,
-    unauthorizedNode().toString(),
+    unauthorizedNode(),
     title: 'Authorization required',
     noIndex: true,
   );
@@ -56,7 +56,7 @@ String renderHelpPage() {
     standalonePageNode(
       _helpMarkdown,
       sideImageUrl: static_files.staticUrls.packagesSideImage,
-    ).toString(),
+    ),
     title: 'Help | Dart packages',
     canonicalUrl: '/help',
   );
@@ -69,7 +69,7 @@ String renderHelpScoringPage() {
     standalonePageNode(
       _helpScoringMarkdown,
       sideImageUrl: static_files.staticUrls.packagesSideImage,
-    ).toString(),
+    ),
     title: 'Scoring | Dart packages',
     canonicalUrl: '/help/scoring',
   );
@@ -82,7 +82,7 @@ String renderHelpSearchPage() {
     standalonePageNode(
       _helpSearchMarkdown,
       sideImageUrl: static_files.staticUrls.packagesSideImage,
-    ).toString(),
+    ),
     title: 'Search | Dart packages',
     canonicalUrl: '/help/search',
   );
@@ -95,7 +95,7 @@ String renderHelpPublishingPage() {
     standalonePageNode(
       _helpPublishingMarkdown,
       sideImageUrl: static_files.staticUrls.packagesSideImage,
-    ).toString(),
+    ),
     title: 'Publishing | Dart packages',
     canonicalUrl: '/help/publishing',
   );
@@ -111,7 +111,7 @@ d.Node _readDocContent(String path) {
 String renderPolicyPage() {
   return renderLayoutPage(
     PageType.standalone,
-    standalonePageNode(_policyMarkdown).toString(),
+    standalonePageNode(_policyMarkdown),
     title: 'Policy | Pub site',
     canonicalUrl: '/policy',
   );
@@ -121,7 +121,7 @@ String renderPolicyPage() {
 String renderSecurityPage() {
   return renderLayoutPage(
     PageType.standalone,
-    standalonePageNode(_securityMarkdown).toString(),
+    standalonePageNode(_securityMarkdown),
     title: 'Security | Pub site',
     canonicalUrl: '/security',
   );
@@ -131,7 +131,7 @@ String renderSecurityPage() {
 String renderErrorPage(String title, String message) {
   return renderLayoutPage(
     PageType.error,
-    errorPageNode(title: title, content: d.markdown(message)).toString(),
+    errorPageNode(title: title, content: d.markdown(message)),
     title: title,
     noIndex: true,
   );

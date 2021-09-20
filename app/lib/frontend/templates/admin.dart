@@ -23,7 +23,7 @@ import 'views/publisher/publisher_list.dart';
 String renderAuthorizedPage() {
   return renderLayoutPage(
     PageType.package,
-    authorizedNode().toString(),
+    authorizedNode(),
     title: 'Pub Authorized Successfully',
     noIndex: true,
   );

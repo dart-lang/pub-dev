@@ -21,7 +21,7 @@ String renderConsentPage({
   final content = consentPageNode(
     title: title,
     description: d.unsafeRawHtml(descriptionHtml),
-  ).toString();
+  );
   return renderLayoutPage(
     PageType.standalone,
     content,

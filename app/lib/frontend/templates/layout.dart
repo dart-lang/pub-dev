@@ -38,7 +38,7 @@ enum PageType {
 /// Renders the `views/shared/layout.mustache` template.
 String renderLayoutPage(
   PageType type,
-  String contentHtml, {
+  d.Node contentNode, {
   required String title,
   String? pageDescription,
   String? faviconUrl,
@@ -95,7 +95,7 @@ String renderLayoutPage(
     'landing_blurb_html': defaultLandingBlurbHtml,
     'site_header_html': siteHeaderNode(pageType: type).toString(),
     // This is not escaped as it is already escaped by the caller.
-    'content_html': contentHtml,
+    'content_html': contentNode.toString(),
     'footer_html': siteFooterNode().toString(),
     'include_highlight': type == PageType.package,
     'show_search_banner':
