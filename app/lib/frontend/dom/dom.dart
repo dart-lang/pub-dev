@@ -119,8 +119,10 @@ Node ldJson(Map<String, dynamic> content) {
   final rawHtml = rawJson.replaceAllMapped(
     // As rawJson can only contain the following characters inside of
     // a JSON string, we can always encode them as \u00xx
-    // This ensures that html tags cannot be embedded.
-    RegExp(r'[</>]'),
+    // This ensures that HTML tags cannot be embedded, e.g.:
+    // - <!-- to prevent HTML comments
+    // - < and </ to prevent <script> tags
+    RegExp(r'[</>!]'),
     (m) => r'\u00' + hex.encode([m[0]!.codeUnitAt(0)]),
   );
   return script(
@@ -436,6 +438,62 @@ Node li({
       children: _children(children, child, text),
     );
 
+/// Creates a `<link>` Element using the default [DomContext].
+Node link({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+  Node? child,
+  String? text,
+  String? rel,
+  String? type,
+  String? title,
+  String? href,
+}) =>
+    dom.element(
+      'link',
+      id: id,
+      classes: classes,
+      attributes: <String, String>{
+        if (rel != null) 'rel': rel,
+        if (type != null) 'type': type,
+        if (title != null) 'title': title,
+        if (href != null) 'href': href,
+        if (attributes != null) ...attributes,
+      },
+      children: _children(children, child, text),
+    );
+
+/// Creates a `<meta>` Element using the default [DomContext].
+Node meta({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+  Node? child,
+  String? text,
+  String? httpEquiv,
+  String? name,
+  String? property,
+  String? charset,
+  String? content,
+}) =>
+    dom.element(
+      'meta',
+      id: id,
+      classes: classes,
+      attributes: <String, String>{
+        if (httpEquiv != null) 'http-equiv': httpEquiv,
+        if (name != null) 'name': name,
+        if (property != null) 'property': property,
+        if (charset != null) 'charset': charset,
+        if (content != null) 'content': content,
+        if (attributes != null) ...attributes,
+      },
+      children: _children(children, child, text),
+    );
+
 /// Creates an `<option>` Element using the default [DomContext].
 Node option({
   String? id,
@@ -505,6 +563,9 @@ Node script({
   Node? child,
   String? text,
   String? type,
+  String? src,
+  bool async = false,
+  bool defer = false,
 }) =>
     dom.element(
       'script',
@@ -512,6 +573,9 @@ Node script({
       classes: classes,
       attributes: <String, String>{
         if (type != null) 'type': type,
+        if (src != null) 'src': src,
+        if (async) 'async': 'async',
+        if (defer) 'defer': 'defer',
         if (attributes != null) ...attributes,
       },
       children: _children(children, child, text),

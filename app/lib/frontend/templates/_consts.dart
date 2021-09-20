@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../../shared/tags.dart' show SdkTagValue;
+import '../dom/dom.dart' as d;
 
 class SdkDict {
   final String topSdkPackages;
@@ -42,9 +43,26 @@ SdkDict getSdkDict(String? sdk) {
   }
 }
 
-final defaultLandingBlurbHtml =
-    '<p class="text">The official package repository for <a target="_blank" rel="noopener" href="https://dart.dev/">Dart</a> and '
-    '<a target="_blank" rel="noopener" href="https://flutter.dev/">Flutter</a> apps.</p>';
+final defaultLandingBlurbNode = d.p(
+  classes: ['text'],
+  children: [
+    d.text('The official package repository for '),
+    d.a(
+      target: '_blank',
+      rel: 'noopener',
+      href: 'https://dart.dev/',
+      text: 'Dart',
+    ),
+    d.text(' and '),
+    d.a(
+      target: '_blank',
+      rel: 'noopener',
+      href: 'https://flutter.dev/',
+      text: 'Flutter',
+    ),
+    d.text(' apps.'),
+  ],
+);
 
 class SortDict {
   final String id;
