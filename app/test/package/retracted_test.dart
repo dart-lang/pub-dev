@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:test/test.dart';
-
 import 'package:client_data/package_api.dart';
-import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/shared/datastore.dart';
+import 'package:test/test.dart';
 
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
