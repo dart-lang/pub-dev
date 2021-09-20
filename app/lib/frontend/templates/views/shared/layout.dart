@@ -128,7 +128,8 @@ d.Node pageLayoutNode({
               src: staticUrls.getAssetUrl('/static/js/script.dart.js'),
               defer: true,
             ),
-            d.meta(name: 'google-signin-client_id', content: oauthClientId ?? ''),
+            d.meta(
+                name: 'google-signin-client_id', content: oauthClientId ?? ''),
             d.script(
               src: 'https://apis.google.com/js/platform.js?onload=pubAuthInit',
               defer: true,
