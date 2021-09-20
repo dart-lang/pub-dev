@@ -44,7 +44,7 @@ d.Node renderDetailHeader({
 }
 
 /// Renders the detail page template
-String renderDetailPage({
+d.Node renderDetailPage({
   required d.Node headerNode,
   required List<Tab> tabs,
   required d.Node? infoBoxNode,
@@ -65,7 +65,7 @@ String renderDetailPage({
     infoBoxNode: infoBoxNode,
     infoBoxLead: infoBoxLead,
     footerNode: footerNode,
-  ).toString();
+  );
 }
 
 /// Defines the header and content part of a tab.

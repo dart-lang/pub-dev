@@ -22,7 +22,7 @@ import 'views/publisher/publisher_list.dart';
 
 /// Renders the create publisher page.
 String renderCreatePublisherPage() {
-  final String content = createPublisherPageNode().toString();
+  final content = createPublisherPageNode();
   return renderLayoutPage(
     PageType.standalone,
     content,
@@ -36,7 +36,7 @@ String renderPublisherListPage(List<PublisherSummary> publishers) {
   final content = publisherListNode(publishers: publishers, isGlobal: true);
   return renderLayoutPage(
     PageType.listing,
-    content.toString(),
+    content,
     title: 'Publishers',
     canonicalUrl: '/publishers',
   );

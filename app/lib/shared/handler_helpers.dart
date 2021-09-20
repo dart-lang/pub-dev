@@ -13,6 +13,7 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:stack_trace/stack_trace.dart';
 
 import '../account/backend.dart';
+import '../frontend/dom/dom.dart' as d;
 import '../frontend/request_context.dart';
 import '../frontend/templates/layout.dart';
 import '../service/csp/default_csp.dart';
@@ -20,7 +21,6 @@ import '../service/csp/default_csp.dart';
 import 'configuration.dart';
 import 'exceptions.dart';
 import 'handlers.dart';
-import 'markdown.dart';
 import 'urls.dart' as urls;
 import 'utils.dart' show fileAnIssueContent, parseCookieHeader;
 
@@ -180,7 +180,7 @@ shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
       if (shouldLog) {
         logger.info('Caught response exception: $e');
       }
-      final content = markdownToHtml('# Error `${e.code}`\n\n${e.message}\n')!;
+      final content = d.markdown('# Error `${e.code}`\n\n${e.message}\n');
       return htmlResponse(
         renderLayoutPage(
           PageType.package,
@@ -213,7 +213,7 @@ Request ID: ${_appengineContext?.traceId}
 
       final content = renderLayoutPage(
         PageType.package,
-        markdownToHtml(markdownText)!,
+        d.markdown(markdownText),
         title: title,
         noIndex: true,
       );

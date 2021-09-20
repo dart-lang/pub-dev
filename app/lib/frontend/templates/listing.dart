@@ -56,7 +56,7 @@ String renderPkgIndexPage(
     ),
     packageList: packageList(searchResultPage),
     pagination: searchResultPage.hasHit ? paginationNode(links) : null,
-  ).toString();
+  );
 
   String pageTitle = title ?? topPackages;
   if (isSearch) {

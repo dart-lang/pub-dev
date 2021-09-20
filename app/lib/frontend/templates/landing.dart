@@ -22,7 +22,7 @@ String renderLandingPage({
     topFlutterPackages: topFlutterPackages,
     topDartPackages: topDartPackages,
     topPoWVideos: topPoWVideos,
-  ).toString();
+  );
   return renderLayoutPage(
     PageType.landing,
     content,
