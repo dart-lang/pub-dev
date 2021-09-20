@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:client_data/page_data.dart';
-import 'package:pub_dev/frontend/templates/_utils.dart';
 
 import '../../search/search_form.dart';
 import '../../search/search_service.dart';
