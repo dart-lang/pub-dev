@@ -29,7 +29,7 @@ import 'views/pkg/title_content.dart';
 
 /// Renders the right-side info box (quick summary of the package, mostly coming
 /// from pubspec.yaml).
-String renderPkgInfoBox(PackagePageData data) {
+d.Node renderPkgInfoBox(PackagePageData data) {
   final package = data.package!;
   final packageLinks = data.version!.packageLinks;
 
@@ -88,7 +88,7 @@ String renderPkgInfoBox(PackagePageData data) {
       data.toPackageView(),
       version: data.isLatestStable ? null : data.version!.version,
     ),
-  ).toString();
+  );
 }
 
 /// Renders the package header template for header metadata and

@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../dom/dom.dart' as d;
-import '_cache.dart';
 import 'views/shared/detail/header.dart';
+import 'views/shared/detail/page.dart';
 import 'views/shared/detail/tabs.dart';
 
 final wideHeaderDetailPageClassName = '-wide-header-detail-page';
@@ -43,26 +43,14 @@ d.Node renderDetailHeader({
   );
 }
 
-/// Renders the `shared/detail/page.mustache` template
+/// Renders the detail page template
 String renderDetailPage({
   required d.Node headerNode,
   required List<Tab> tabs,
-  required String? infoBoxNode,
+  required d.Node? infoBoxNode,
   String? infoBoxLead,
   d.Node? footerNode,
 }) {
-  return templateCache.renderTemplate('shared/detail/page', {
-    'header_html': headerNode.toString(),
-    'tabs_html': renderDetailTabs(tabs),
-    'info_box_lead': infoBoxLead,
-    'has_info_box': infoBoxNode != null,
-    'info_box_html': infoBoxNode?.toString(),
-    'footer_html': footerNode?.toString(),
-  });
-}
-
-/// Renders the `views/shared/detail/tabs.mustache` template.
-String renderDetailTabs(List<Tab> tabs) {
   // active: the first one with content
   for (Tab tab in tabs) {
     if (tab.contentHtml != null) {
@@ -70,7 +58,14 @@ String renderDetailTabs(List<Tab> tabs) {
       break;
     }
   }
-  return detailTabsNode(tabs: tabs).toString();
+  final tabsNode = detailTabsNode(tabs: tabs);
+  return detailPageNode(
+    headerNode: headerNode,
+    tabsNode: tabsNode,
+    infoBoxNode: infoBoxNode,
+    infoBoxLead: infoBoxLead,
+    footerNode: footerNode,
+  ).toString();
 }
 
 /// Defines the header and content part of a tab.
