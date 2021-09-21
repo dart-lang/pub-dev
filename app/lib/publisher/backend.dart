@@ -22,6 +22,12 @@ import 'models.dart';
 
 final _logger = Logger('pub.publisher.backend');
 
+// Sanity check that domains are:
+//  - lowercase (because we want that in pub.dev)
+//  - consist of a-z, 0-9 and dashes
+// We do not care if they end in dash, as such domains can't be verified.
+final _publisherIdRegExp = RegExp(r'^([a-z0-9-]{1,63}\.)+[a-z0-9-]{1,63}$');
+
 /// Sanity check to limit publisherId length.
 const maxPublisherIdLength = 64;
 
@@ -125,14 +131,10 @@ class PublisherBackend {
   ) async {
     checkPublisherIdParam(publisherId);
     final user = await requireAuthenticatedUser();
-    // Sanity check that domains are:
-    //  - lowercase (because we want that in pub.dev)
-    //  - consist of a-z, 0-9 and dashes
-    // We do not care if they end in dash, as such domains can't be verified.
     InvalidInputException.checkMatchPattern(
       publisherId,
       'publisherId',
-      RegExp(r'^([a-z0-9-]{1,63}\.)+[a-z0-9-]{1,63}$'),
+      _publisherIdRegExp,
     );
     InvalidInputException.checkStringLength(
       publisherId,
