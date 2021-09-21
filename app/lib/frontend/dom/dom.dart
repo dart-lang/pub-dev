@@ -4,8 +4,6 @@
 
 import 'dart:convert';
 
-import 'package:convert/convert.dart';
-
 import '../../shared/markdown.dart';
 
 final _attributeEscape = HtmlEscape(HtmlEscapeMode.attribute);
@@ -117,13 +115,14 @@ Node codeSnippet({
 Node ldJson(Map<String, dynamic> content) {
   final rawJson = json.encode(content);
   final rawHtml = rawJson.replaceAllMapped(
-    // As rawJson can only contain the following characters inside of
-    // a JSON string, we can always encode them as \u00xx
-    // This ensures that HTML tags cannot be embedded, e.g.:
-    // - <!-- to prevent HTML comments
-    // - < and </ to prevent <script> tags
-    RegExp(r'[</>!]'),
-    (m) => r'\u00' + hex.encode([m[0]!.codeUnitAt(0)]),
+    // As we want to store rawJson inside a HTML Element, it is better
+    // to escape all non-trusteded characters inside it. Non-trusted
+    // characters must include `</!>` characters.
+    RegExp(r'[^0-9a-zA-Z ,@\:\{\}\[\]\.\-"]'),
+    (m) {
+      final code = m[0]!.codeUnitAt(0);
+      return r'\u' + code.toRadixString(16).padLeft(4, '0');
+    },
   );
   return script(
     type: 'application/ld+json',

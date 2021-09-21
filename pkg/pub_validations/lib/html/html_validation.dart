@@ -82,7 +82,15 @@ void validateHtml(Node root) {
         throw AssertionError('ld+json element must not be empty.');
       }
       // trigger parsing of the content
-      json.decode(elem.text);
+      final map = json.decode(elem.text) as Map;
+      final context = map['@context'];
+      if (context is String) {
+        final isHttpOrHttps =
+            context.startsWith('http://') || context.startsWith('https://');
+        if (!isHttpOrHttps) {
+          throw AssertionError('Invalid @context value: $map');
+        }
+      }
     } else {
       final src = elem.attributes['src'];
       if (src == null || src.isEmpty) {
