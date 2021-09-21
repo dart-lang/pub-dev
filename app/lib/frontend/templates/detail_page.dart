@@ -53,7 +53,7 @@ d.Node renderDetailPage({
 }) {
   // active: the first one with content
   for (Tab tab in tabs) {
-    if (tab.contentHtml != null) {
+    if (tab.contentNode != null) {
       tab.isActive = true;
       break;
     }
@@ -73,14 +73,14 @@ class Tab {
   final String id;
   final String title;
   final String? href;
-  final String? contentHtml;
+  final d.Node? contentNode;
   final bool isMarkdown;
   bool isActive = false;
 
   Tab.withContent({
     required this.id,
     required this.title,
-    required this.contentHtml,
+    required this.contentNode,
     this.isMarkdown = false,
   }) : href = null;
 
@@ -88,7 +88,7 @@ class Tab {
     required this.id,
     required this.title,
     required this.href,
-  })  : contentHtml = null,
+  })  : contentNode = null,
         isMarkdown = false;
 
   bool get isPrivate =>
@@ -96,7 +96,7 @@ class Tab {
 
   List<String> get titleClasses => <String>[
         'detail-tab',
-        contentHtml == null ? 'tab-link' : 'tab-button',
+        contentNode == null ? 'tab-link' : 'tab-button',
         'detail-tab-$id-title',
         if (isActive) '-active',
         if (isPrivate) '-private',
@@ -105,7 +105,7 @@ class Tab {
   d.Node get titleNode =>
       href == null ? d.text(title) : d.a(href: href, text: title);
 
-  bool get hasContent => contentHtml != null;
+  bool get hasContent => contentNode != null;
 
   List<String> get contentClasses => <String>[
         'tab-content',

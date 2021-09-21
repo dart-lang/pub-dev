@@ -87,7 +87,7 @@ String renderPkgVersionsPage(
     versionsTab: Tab.withContent(
       id: 'versions',
       title: 'Versions',
-      contentHtml: d.fragment(blocks).toString(),
+      contentNode: d.fragment(blocks),
     ),
   );
 

@@ -58,26 +58,22 @@ String renderPublisherPackagesPage({
     title += ' | Page ${pageLinks.currentPage}';
   }
 
-  final packageListHtml =
-      searchResultPage.hasNoHit ? '' : packageList(searchResultPage).toString();
-  final paginationHtml = paginationNode(pageLinks).toString();
-
-  final tabContent = [
+  final tabContent = d.fragment([
     listingInfo(
       searchForm: searchForm,
       totalCount: totalCount,
       ownedBy: publisher.publisherId,
       messageFromBackend: messageFromBackend,
-    ).toString(),
-    packageListHtml,
-    paginationHtml,
-  ].join('\n');
+    ),
+    if (searchResultPage.hasHit) packageList(searchResultPage),
+    paginationNode(pageLinks),
+  ]);
 
   final tabs = <Tab>[
     Tab.withContent(
       id: 'packages',
       title: 'Packages',
-      contentHtml: tabContent,
+      contentNode: tabContent,
     ),
     if (isAdmin) _adminLinkTab(publisher.publisherId),
     if (isAdmin) _activityLogLinkTab(publisher.publisherId),
@@ -112,16 +108,15 @@ String renderPublisherAdminPage({
   required Publisher publisher,
   required List<api.PublisherMember> members,
 }) {
-  final adminContent = publisherAdminPageNode(
-    publisher: publisher,
-    members: members,
-  ).toString();
   final tabs = <Tab>[
     _packagesLinkTab(publisher.publisherId),
     Tab.withContent(
       id: 'admin',
       title: 'Admin',
-      contentHtml: adminContent,
+      contentNode: publisherAdminPageNode(
+        publisher: publisher,
+        members: members,
+      ),
     ),
     _activityLogLinkTab(publisher.publisherId),
   ];
@@ -163,7 +158,7 @@ String renderPublisherActivityLogPage({
     Tab.withContent(
       id: 'activity-log',
       title: 'Activity log',
-      contentHtml: activityLog.toString(),
+      contentNode: activityLog,
     ),
   ];
 
