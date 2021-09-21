@@ -6,15 +6,14 @@ part of package_popularity;
 // JsonSerializableGenerator
 // **************************************************************************
 
-PackagePopularity _$PackagePopularityFromJson(Map<String, dynamic> json) {
-  return PackagePopularity(
-    DateTime.parse(json['date_first'] as String),
-    DateTime.parse(json['date_last'] as String),
-    (json['items'] as Map<String, dynamic>).map(
-      (k, e) => MapEntry(k, VoteTotals.fromJson(e as Map<String, dynamic>)),
-    ),
-  );
-}
+PackagePopularity _$PackagePopularityFromJson(Map<String, dynamic> json) =>
+    PackagePopularity(
+      DateTime.parse(json['date_first'] as String),
+      DateTime.parse(json['date_last'] as String),
+      (json['items'] as Map<String, dynamic>).map(
+        (k, e) => MapEntry(k, VoteTotals.fromJson(e as Map<String, dynamic>)),
+      ),
+    );
 
 Map<String, dynamic> _$PackagePopularityToJson(PackagePopularity instance) =>
     <String, dynamic>{
@@ -23,12 +22,10 @@ Map<String, dynamic> _$PackagePopularityToJson(PackagePopularity instance) =>
       'items': instance.items,
     };
 
-VoteTotals _$VoteTotalsFromJson(Map<String, dynamic> json) {
-  return VoteTotals(
-    VoteData.fromJson(json['flutter'] as Map<String, dynamic>),
-    VoteData.fromJson(json['notFlutter'] as Map<String, dynamic>),
-  );
-}
+VoteTotals _$VoteTotalsFromJson(Map<String, dynamic> json) => VoteTotals(
+      VoteData.fromJson(json['flutter'] as Map<String, dynamic>),
+      VoteData.fromJson(json['notFlutter'] as Map<String, dynamic>),
+    );
 
 Map<String, dynamic> _$VoteTotalsToJson(VoteTotals instance) =>
     <String, dynamic>{
@@ -36,13 +33,11 @@ Map<String, dynamic> _$VoteTotalsToJson(VoteTotals instance) =>
       'notFlutter': instance.notFlutter,
     };
 
-VoteData _$VoteDataFromJson(Map<String, dynamic> json) {
-  return VoteData(
-    json['votes_direct'] as int,
-    json['votes_dev'] as int,
-    json['votes_total'] as int,
-  );
-}
+VoteData _$VoteDataFromJson(Map<String, dynamic> json) => VoteData(
+      json['votes_direct'] as int,
+      json['votes_dev'] as int,
+      json['votes_total'] as int,
+    );
 
 Map<String, dynamic> _$VoteDataToJson(VoteData instance) => <String, dynamic>{
       'votes_direct': instance.direct,
