@@ -170,7 +170,6 @@ class StaticUrls {
   final String reportOKIconGreen;
   final String gtmJs;
   Map? _versionsTableIcons;
-  Map<String, String>? _assets;
   final _assetUrls = <String, String>{};
 
   StaticUrls._()
@@ -205,30 +204,6 @@ class StaticUrls {
           '$_defaultStaticPath/img/vertical_align_bottom-24px.svg'),
       'hasDocumentationFailed': true,
     };
-  }
-
-  /// A hashed version of the static assets.
-  ///
-  /// For each file like /static/img/logo.gif we create a key and value of:
-  /// `img__logo_gif => /static/img/logo.gif?hash=etag_hash`
-  ///
-  /// The /static/ prefix is stripped from the start of the key in order to
-  /// reduce the length of the mostly used files in the mustache templates.
-  Map<String, String> get assets {
-    if (_assets == null) {
-      _assets = <String, String>{};
-      for (String requestPath in staticFileCache.keys) {
-        final inStatic = requestPath.startsWith('$_defaultStaticPath/');
-        // Removing the /static/ prefix from the keys in order to make them
-        // shorter in the templates.
-        final hashedFile = inStatic
-            ? requestPath.substring(_defaultStaticPath.length + 1)
-            : requestPath;
-        final key = hashedFile.replaceAll('/', '__').replaceAll('.', '_');
-        _assets![key] = _getCacheableStaticUrl(requestPath);
-      }
-    }
-    return _assets!;
   }
 
   /// Returns the hashed URL of the static resource like:

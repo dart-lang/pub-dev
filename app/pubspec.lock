@@ -435,13 +435,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0"
-  mustache_template:
-    dependency: "direct main"
-    description:
-      name: mustache_template
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.0"
   neat_cache:
     dependency: "direct main"
     description:

@@ -14,7 +14,6 @@ import 'package:watcher/watcher.dart';
 
 import '../../frontend/handlers.dart';
 import '../../frontend/static_files.dart';
-import '../../frontend/templates/_cache.dart';
 import '../../job/backend.dart';
 import '../../package/deps_graph.dart';
 import '../../package/name_tracker.dart';
@@ -89,10 +88,6 @@ Future<void> watchForResourceChanges() async {
     );
     registerScopeExitCallback(subs.cancel);
   }
-
-  // watch mustache templates
-  setupWatcher(
-      'mustache templates', templateViewsDir, () => templateCache.update());
 
   // watch pkg/web_app
   setupWatcher('/pkg/web_app', path.join(resolveWebAppDirPath(), 'lib'),
