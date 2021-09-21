@@ -34,7 +34,7 @@ d.Node detailTabsNode({
               (t) => d.element(
                 'section',
                 classes: t.contentClasses,
-                child: d.unsafeRawHtml(t.contentHtml!),
+                child: t.contentNode!,
               ),
             ),
       ),

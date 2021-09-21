@@ -24,11 +24,11 @@ String renderPkgAdminPage(
     adminTab: Tab.withContent(
       id: 'admin',
       title: 'Admin',
-      contentHtml: packageAdminPageNode(
+      contentNode: packageAdminPageNode(
         package: data.package!,
         userPublishers: userPublishers,
         uploaderUsers: uploaderUsers,
-      ).toString(),
+      ),
     ),
   );
 
@@ -63,7 +63,7 @@ String renderPkgActivityLogPage(
     activityLogTab: Tab.withContent(
       id: 'activity-log',
       title: 'Activity Log',
-      contentHtml: activityLog.toString(),
+      contentNode: activityLog,
     ),
   );
   final content = renderDetailPage(

@@ -8,11 +8,12 @@ import 'package:path/path.dart' as p;
 
 import '../../package/model_properties.dart' show FileObject;
 import '../../shared/markdown.dart';
+import '../dom/dom.dart' as d;
 
 const HtmlEscape htmlAttrEscape = HtmlEscape(HtmlEscapeMode.attribute);
 
 /// Renders a file content (e.g. markdown, dart source file) into HTML.
-String renderFile(
+d.Node renderFile(
   FileObject file, {
   String? baseUrl,
   bool isChangelog = false,
@@ -20,19 +21,20 @@ String renderFile(
   final filename = file.filename;
   final content = file.text;
   if (_isMarkdownFile(filename)) {
-    return markdownToHtml(content,
+    return d.unsafeRawHtml(
+      markdownToHtml(
+        content,
         baseUrl: baseUrl,
         baseDir: p.dirname(filename),
-        isChangelog: isChangelog)!;
+        isChangelog: isChangelog,
+      )!,
+    );
   } else if (_isDartFile(filename)) {
     return _renderDartCode(content);
   } else {
     return _renderPlainText(content);
   }
 }
-
-String _escapeAngleBrackets(String msg) =>
-    const HtmlEscape(HtmlEscapeMode.element).convert(msg);
 
 bool _isMarkdownFile(String filename) {
   final lc = filename.toLowerCase();
@@ -43,8 +45,8 @@ bool _isMarkdownFile(String filename) {
 
 bool _isDartFile(String filename) => filename.toLowerCase().endsWith('.dart');
 
-String _renderDartCode(String text) =>
-    markdownToHtml('````dart\n${text.trim()}\n````\n')!;
+d.Node _renderDartCode(String text) =>
+    d.markdown('````dart\n${text.trim()}\n````\n');
 
-String _renderPlainText(String text) =>
-    '<div class="highlight"><pre>${_escapeAngleBrackets(text)}</pre></div>';
+d.Node _renderPlainText(String text) =>
+    d.div(classes: ['highlight'], child: d.pre(text: text));

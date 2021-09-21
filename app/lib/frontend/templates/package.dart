@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:client_data/page_data.dart';
 import 'package:pana/pana.dart' show getRepositoryUrl;
 
@@ -272,11 +270,11 @@ Tab _readmeTab(PackagePageData data) {
           data.asset != null &&
           data.asset!.kind == AssetKind.readme
       ? renderFile(data.asset!.toFileObject(), baseUrl: baseUrl)
-      : '';
+      : d.text('');
   return Tab.withContent(
     id: 'readme',
     title: 'Readme',
-    contentHtml: content,
+    contentNode: content,
     isMarkdown: true,
   );
 }
@@ -292,7 +290,7 @@ Tab? _changelogTab(PackagePageData data) {
   return Tab.withContent(
     id: 'changelog',
     title: 'Changelog',
-    contentHtml: content,
+    contentNode: content,
     isMarkdown: true,
   );
 }
@@ -303,20 +301,29 @@ Tab? _exampleTab(PackagePageData data) {
   final baseUrl = data.version!.packageLinks.baseUrl;
 
   final exampleFilename = data.asset!.path;
-  var renderedExample =
+  final renderedExample =
       renderFile(data.asset!.toFileObject(), baseUrl: baseUrl);
   final url = getRepositoryUrl(baseUrl, exampleFilename!);
-  final escapedName = htmlEscape.convert(exampleFilename);
-  final link = url == null
-      ? escapedName
-      : '<a href="$url" target="_blank" rel="noopener noreferrer nofollow">$escapedName</a>';
-  renderedExample = '<p style="font-family: monospace"><b>$link</b></p>\n'
-      '$renderedExample';
 
   return Tab.withContent(
     id: 'example',
     title: 'Example',
-    contentHtml: renderedExample,
+    contentNode: d.fragment([
+      d.p(
+        attributes: {'style': 'font-family: monospace'},
+        child: d.b(
+          child: url == null
+              ? d.text(exampleFilename)
+              : d.a(
+                  href: url,
+                  target: '_blank',
+                  rel: 'noopener noreferrer nofollow',
+                  text: exampleFilename,
+                ),
+        ),
+      ),
+      renderedExample,
+    ]),
     isMarkdown: true,
   );
 }
@@ -326,43 +333,44 @@ Tab _installTab(PackagePageData data) {
     version: data.version!,
     tags: data.scoreCard?.panaReport?.derivedTags,
     isDevDependency: devDependencyPackages.contains(data.version!.package),
-  ).toString();
-
+  );
   return Tab.withContent(
     id: 'installing',
     title: 'Installing',
-    contentHtml: content,
+    contentNode: content,
     isMarkdown: true,
   );
 }
 
 Tab _licenseTab(PackagePageData data) {
-  final licenseAsHtml = data.hasLicense
+  final license = data.hasLicense
       ? renderFile(
           data.asset!.toFileObject(),
           baseUrl: data.version!.packageLinks.baseUrl,
         )
-      : 'No license file found.';
-  final contentHtml = '<h2>License</h2>\n$licenseAsHtml';
+      : d.text('No license file found.');
   return Tab.withContent(
     id: 'license',
     title: 'License',
-    contentHtml: contentHtml,
+    contentNode: d.fragment([
+      d.h2(text: 'License'),
+      license,
+    ]),
     isMarkdown: true,
   );
 }
 
 Tab _pubspecTab(PackagePageData data) {
-  final contentHtml = data.hasPubspec
+  final content = data.hasPubspec
       ? renderFile(
           data.asset!.toFileObject(),
           baseUrl: data.version!.packageLinks.baseUrl,
         )
-      : 'No license file found.';
+      : d.text('No pubspec file found.');
   return Tab.withContent(
     id: 'pubspec',
     title: 'Pubspec',
-    contentHtml: contentHtml,
+    contentNode: content,
   );
 }
 
@@ -370,10 +378,10 @@ Tab _scoreTab(PackagePageData data) {
   return Tab.withContent(
     id: 'analysis',
     title: 'Scores',
-    contentHtml: scoreTabNode(
+    contentNode: scoreTabNode(
       card: data.scoreCard,
       likeCount: data.package!.likes,
-    ).toString(),
+    ),
   );
 }
 

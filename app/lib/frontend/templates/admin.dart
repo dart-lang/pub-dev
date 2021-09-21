@@ -45,25 +45,21 @@ String renderAccountPackagesPage({
     title += ' | Page ${pageLinks.currentPage}';
   }
 
-  final packageListHtml =
-      searchResultPage.hasNoHit ? '' : packageList(searchResultPage).toString();
-  final paginationHtml = paginationNode(pageLinks).toString();
-
-  final tabContent = [
+  final tabContent = d.fragment([
     listingInfo(
       searchForm: searchForm,
       totalCount: totalCount,
       ownedBy: 'you',
       messageFromBackend: messageFromBackend,
-    ).toString(),
-    packageListHtml,
-    paginationHtml,
-  ].join('\n');
+    ),
+    if (searchResultPage.hasHit) packageList(searchResultPage),
+    paginationNode(pageLinks),
+  ]);
   final content = renderDetailPage(
     headerNode: _accountDetailHeader(user, userSessionData),
     tabs: [
       Tab.withContent(
-          id: 'my-packages', title: 'My packages', contentHtml: tabContent),
+          id: 'my-packages', title: 'My packages', contentNode: tabContent),
       _myLikedPackagesLink(),
       _myPublishersLink(),
       _myActivityLogLink(),
@@ -87,16 +83,16 @@ String renderMyLikedPackagesPage({
   required UserSessionData userSessionData,
   required List<LikeData> likes,
 }) {
-  final likedPackagesListHtml = likedPackageListNode(likes).toString();
+  final resultCount = likes.isNotEmpty
+      ? d.p(
+          text:
+              'You like ${likes.length} ${likes.length == 1 ? 'package' : 'packages'}.')
+      : d.p(text: 'You have not liked any packages yet.');
 
-  final resultCountHtml = likes.isNotEmpty
-      ? '<p>You like ${likes.length} ${likes.length == 1 ? 'package' : 'packages'}. </p>'
-      : '<p>You have not liked any packages yet.</p>';
-
-  final tabContent = [
-    resultCountHtml,
-    likedPackagesListHtml,
-  ].join('\n');
+  final tabContent = d.fragment([
+    resultCount,
+    likedPackageListNode(likes),
+  ]);
   final content = renderDetailPage(
     headerNode: _accountDetailHeader(user, userSessionData),
     tabs: [
@@ -104,7 +100,7 @@ String renderMyLikedPackagesPage({
       Tab.withContent(
           id: 'my-liked-packages',
           title: 'My liked packages',
-          contentHtml: tabContent),
+          contentNode: tabContent),
       _myPublishersLink(),
       _myActivityLogLink(),
     ],
@@ -135,7 +131,7 @@ String renderAccountPublishersPage({
       Tab.withContent(
         id: 'my-publishers',
         title: 'My publishers',
-        contentHtml: pln.toString(),
+        contentNode: pln,
       ),
       _myActivityLogLink(),
     ],
@@ -172,7 +168,7 @@ String renderAccountMyActivityPage({
       Tab.withContent(
         id: 'my-activity-log',
         title: 'My activity log',
-        contentHtml: activityLog.toString(),
+        contentNode: activityLog,
       ),
     ],
     infoBoxNode: null,
