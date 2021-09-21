@@ -31,7 +31,7 @@ d.Node packageList(SearchResultPage searchResultPage) {
   );
 }
 
-/// Renders the `views/pkg/index.mustache` template.
+/// Renders the package listing template.
 String renderPkgIndexPage(
   SearchResultPage searchResultPage,
   PageLinks links, {

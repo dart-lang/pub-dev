@@ -12,7 +12,7 @@ import 'views/consent/page.dart';
 import 'views/consent/publisher_contact_invite.dart';
 import 'views/consent/publisher_member_invite.dart';
 
-/// Renders the `views/consent/page.mustache` template.
+/// Renders the consent page template.
 String renderConsentPage({
   required String consentId,
   required String title,
