@@ -24,9 +24,9 @@ d.Node packageListingNode({
         listingInfo,
         packageList,
         if (pagination != null) pagination,
-        if (searchForm.hasQuery)
-          d.markdown(
-              'Check our help page for [advanced search expressions](/help/search).'),
+        d.markdown('Check our help page for details on '
+            '[search expressions](/help/search#query-expressions) and '
+            '[result ranking](/help/search#ranking).'),
       ],
     ),
   ]);
