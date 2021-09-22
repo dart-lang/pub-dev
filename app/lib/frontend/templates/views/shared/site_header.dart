@@ -90,17 +90,17 @@ d.Node siteHeaderNode({
                 child: d.div(
                   classes: ['nav-table-columns'],
                   children: [
-                    _desktopLinksColumn('Pub.dev', _pubDevLinks()),
-                    _desktopLinksColumn('Flutter', _flutterLinks()),
-                    _desktopLinksColumn('Dart', _dartLinks()),
+                    _desktopLinksColumn('Pub.dev', _pubDevLinks),
+                    _desktopLinksColumn('Flutter', _flutterLinks),
+                    _desktopLinksColumn('Dart', _dartLinks),
                   ],
                 ),
               ),
             ],
           ),
-          _foldableMobileLinks('Pub.dev', _pubDevLinks()),
-          _foldableMobileLinks('Flutter', _flutterLinks()),
-          _foldableMobileLinks('Dart', _dartLinks()),
+          _foldableMobileLinks('Pub.dev', _pubDevLinks),
+          _foldableMobileLinks('Flutter', _flutterLinks),
+          _foldableMobileLinks('Dart', _dartLinks),
           if (userSession != null) _userBlock(userSession),
         ],
       ),
@@ -159,30 +159,24 @@ d.Node _userBlock(UserSessionData userSession) {
   );
 }
 
-Iterable<d.Node> _pubDevLinks() {
-  return [
-    _navNewPage('/help/search', 'Searching for packages'),
-    _navNewPage('/help/scoring', 'Package scoring and pub points'),
-  ];
-}
+final _pubDevLinks = [
+  _navNewPage('/help/search', 'Searching for packages'),
+  _navNewPage('/help/scoring', 'Package scoring and pub points'),
+];
 
-Iterable<d.Node> _flutterLinks() {
-  return [
-    _navNewPage('https://flutter.io/using-packages/', 'Using packages'),
-    _navNewPage('https://flutter.io/developing-packages/',
-        'Developing packages and plugins'),
-    _navNewPage(
-        '${urls.dartSiteRoot}/tools/pub/publishing', 'Publishing a package'),
-  ];
-}
+final _flutterLinks = [
+  _navNewPage('https://flutter.io/using-packages/', 'Using packages'),
+  _navNewPage('https://flutter.io/developing-packages/',
+      'Developing packages and plugins'),
+  _navNewPage(
+      '${urls.dartSiteRoot}/tools/pub/publishing', 'Publishing a package'),
+];
 
-Iterable<d.Node> _dartLinks() {
-  return [
-    _navNewPage('${urls.dartSiteRoot}/tools/pub/get-started', 'Using packages'),
-    _navNewPage(
-        '${urls.dartSiteRoot}/tools/pub/publishing', 'Publishing a package'),
-  ];
-}
+final _dartLinks = [
+  _navNewPage('${urls.dartSiteRoot}/tools/pub/get-started', 'Using packages'),
+  _navNewPage(
+      '${urls.dartSiteRoot}/tools/pub/publishing', 'Publishing a package'),
+];
 
 d.Node _navLink(String href, String text) {
   return d.a(classes: ['nav-link'], href: href, text: text);

@@ -14,7 +14,7 @@ mkdir -p "${OUTPUT_DIR}"
 # Change to web_css folder
 cd "${WEB_CSS_DIR}";
 
-dart pub run sass \
+dart run sass \
   --style=compressed \
   "${WEB_CSS_DIR}/lib/style.scss" \
   "${OUTPUT_DIR}/style.css"

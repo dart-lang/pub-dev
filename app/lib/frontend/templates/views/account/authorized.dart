@@ -4,16 +4,14 @@
 
 import '../../../dom/dom.dart' as d;
 
-d.Node authorizedNode() {
-  return d.fragment([
-    d.h1(text: 'Pub Authorized Successfully'),
-    d.p(
-      children: [
-        d.text('The '),
-        d.code(text: 'pub'),
-        d.text(' client has been successfully authorized. '
-            'You may now use it to upload packages and perform other tasks.'),
-      ],
-    ),
-  ]);
-}
+final authorizedNode = d.fragment([
+  d.h1(text: 'Pub Authorized Successfully'),
+  d.p(
+    children: [
+      d.text('The '),
+      d.code(text: 'pub'),
+      d.text(' client has been successfully authorized. '
+          'You may now use it to upload packages and perform other tasks.'),
+    ],
+  ),
+]);

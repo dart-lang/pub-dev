@@ -33,7 +33,7 @@ final _helpPublishingMarkdown = _readDocContent('help-publishing.md');
 String renderUnauthenticatedPage() {
   return renderLayoutPage(
     PageType.standalone,
-    unauthenticatedNode(),
+    unauthenticatedNode,
     title: 'Authentication required',
     noIndex: true,
   );
@@ -43,7 +43,7 @@ String renderUnauthenticatedPage() {
 String renderUnauthorizedPage() {
   return renderLayoutPage(
     PageType.standalone,
-    unauthorizedNode(),
+    unauthorizedNode,
     title: 'Authorization required',
     noIndex: true,
   );

@@ -24,7 +24,7 @@ d.Node landingPageNode({
       _block(
         shortId: 'ff',
         title: 'Flutter Favorites',
-        info: _ffInfo(),
+        info: _ffInfo,
         content: miniListNode('flutter-favorites', ffPackages!),
         viewAllUrl: '/flutter/favorites',
         viewAllEvent: 'landing-flutter-favorites-view-all',
@@ -131,16 +131,13 @@ d.Node _block({
   );
 }
 
-d.Node _ffInfo() {
-  return d.fragment([
-    d.text('Some of the packages that demonstrate the '),
-    d.a(
-      href:
-          'https://flutter.dev/docs/development/packages-and-plugins/favorites',
-      target: '_blank',
-      rel: 'noopener',
-      text: 'highest levels of quality',
-    ),
-    d.text(', selected by the Flutter Ecosystem Committee'),
-  ]);
-}
+final _ffInfo = d.fragment([
+  d.text('Some of the packages that demonstrate the '),
+  d.a(
+    href: 'https://flutter.dev/docs/development/packages-and-plugins/favorites',
+    target: '_blank',
+    rel: 'noopener',
+    text: 'highest levels of quality',
+  ),
+  d.text(', selected by the Flutter Ecosystem Committee'),
+]);

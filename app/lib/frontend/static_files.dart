@@ -14,7 +14,6 @@ import 'package:path/path.dart' as path;
 
 final _logger = Logger('pub.static_files');
 
-const String _defaultStaticPath = '/static';
 const _staticRootPaths = <String>['favicon.ico', 'robots.txt'];
 
 StaticFileCache? _cache;
@@ -117,11 +116,10 @@ class StaticFileCache {
         final bytes = file.readAsBytesSync();
         final lastModified = file.lastModifiedSync();
         final isRoot = _staticRootPaths.contains(relativePath);
-        final prefix = isRoot ? '' : _defaultStaticPath;
+        final prefix = isRoot ? '' : '/static';
         final requestPath = '$prefix/$relativePath';
         final digest = crypto.sha256.convert(bytes);
-        final String etag =
-            digest.bytes.map((b) => (b & 31).toRadixString(32)).join();
+        final etag = digest.bytes.map((b) => (b & 31).toRadixString(32)).join();
         return StaticFile(requestPath, contentType, bytes, lastModified, etag);
       },
     ).forEach(addFile);
@@ -154,80 +152,46 @@ class StaticFile {
   );
 
   String get contentAsString => utf8.decode(bytes);
+
+  late final String cacheableUrl =
+      Uri(path: requestPath, queryParameters: {'hash': etag}).toString();
 }
 
 class StaticUrls {
-  final String staticPath = _defaultStaticPath;
-  final String smallDartFavicon;
-  final String dartLogoSvg;
-  final String flutterLogo32x32;
-  final String pubDevLogo2xPng;
-  final String defaultProfilePng;
-  final String githubMarkdownCss;
-  final String packagesSideImage;
-  final String reportMissingIconRed;
-  final String reportMissingIconYellow;
-  final String reportOKIconGreen;
-  final String gtmJs;
-  Map? _versionsTableIcons;
-  final _assetUrls = <String, String>{};
+  late final smallDartFavicon = getAssetUrl('/favicon.ico');
+  late final dartLogoSvg = getAssetUrl('/static/img/dart-logo.svg');
+  late final flutterLogo32x32 =
+      getAssetUrl('/static/img/flutter-logo-32x32.png');
+  late final pubDevLogo2xPng = getAssetUrl('/static/img/pub-dev-logo-2x.png');
+  late final defaultProfilePng = getAssetUrl(
+      '/static/img/material-icon-twotone-account-circle-white-24dp.png');
+  late final githubMarkdownCss = getAssetUrl('/static/css/github-markdown.css');
+  late final packagesSideImage = getAssetUrl('/static/img/packages-side.png');
+  late final reportMissingIconRed =
+      getAssetUrl('/static/img/report-missing-icon-red.svg');
+  late final reportMissingIconYellow =
+      getAssetUrl('/static/img/report-missing-icon-yellow.svg');
+  late final reportOKIconGreen =
+      getAssetUrl('/static/img/report-ok-icon-green.svg');
+  late final gtmJs = getAssetUrl('/static/js/gtm.js');
+  late final documentationIcon =
+      getAssetUrl('/static/img/description-24px.svg');
+  late final documentationFailedIcon =
+      getAssetUrl('/static/img/documentation-failed-icon.svg');
+  late final downloadIcon =
+      getAssetUrl('/static/img/vertical_align_bottom-24px.svg');
 
-  StaticUrls._()
-      : smallDartFavicon = _getCacheableStaticUrl('/favicon.ico'),
-        dartLogoSvg =
-            _getCacheableStaticUrl('$_defaultStaticPath/img/dart-logo.svg'),
-        flutterLogo32x32 = _getCacheableStaticUrl(
-            '$_defaultStaticPath/img/flutter-logo-32x32.png'),
-        pubDevLogo2xPng = _getCacheableStaticUrl(
-            '$_defaultStaticPath/img/pub-dev-logo-2x.png'),
-        defaultProfilePng = _getCacheableStaticUrl(
-            '$_defaultStaticPath/img/material-icon-twotone-account-circle-white-24dp.png'),
-        githubMarkdownCss = _getCacheableStaticUrl(
-            '$_defaultStaticPath/css/github-markdown.css'),
-        packagesSideImage =
-            _getCacheableStaticUrl('$_defaultStaticPath/img/packages-side.png'),
-        reportMissingIconRed = _getCacheableStaticUrl(
-            '$_defaultStaticPath/img/report-missing-icon-red.svg'),
-        reportMissingIconYellow = _getCacheableStaticUrl(
-            '$_defaultStaticPath/img/report-missing-icon-yellow.svg'),
-        reportOKIconGreen = _getCacheableStaticUrl(
-            '$_defaultStaticPath/img/report-ok-icon-green.svg'),
-        gtmJs = _getCacheableStaticUrl('$_defaultStaticPath/js/gtm.js');
-
-  Map get versionsTableIcons {
-    return _versionsTableIcons ??= {
-      'documentation': _getCacheableStaticUrl(
-          '$_defaultStaticPath/img/description-24px.svg'),
-      'documentationFailed': _getCacheableStaticUrl(
-          '$_defaultStaticPath/img/documentation-failed-icon.svg'),
-      'download': _getCacheableStaticUrl(
-          '$_defaultStaticPath/img/vertical_align_bottom-24px.svg'),
-      'hasDocumentationFailed': true,
-    };
-  }
+  StaticUrls._();
 
   /// Returns the hashed URL of the static resource like:
-  /// `/static/img/logo_gif => /static/img/logo.gif?hash=etag_hash`
+  /// `/static/img/logo.gif => /static/img/logo.gif?hash=etag_hash`
   String getAssetUrl(String requestPath) {
-    return _assetUrls.putIfAbsent(requestPath, () {
-      final file = staticFileCache.getFile(requestPath);
-      if (file == null) {
-        throw Exception('Static resource not found: $requestPath');
-      } else {
-        return Uri(path: requestPath, queryParameters: {'hash': file.etag})
-            .toString();
-      }
-    });
-  }
-}
-
-/// Returns the URL of a static resource
-String _getCacheableStaticUrl(String requestPath) {
-  final file = staticFileCache.getFile(requestPath);
-  if (file == null) {
-    throw Exception('Static resource not found: $requestPath');
-  } else {
-    return '$requestPath?hash=${file.etag}';
+    final file = staticFileCache.getFile(requestPath);
+    if (file == null) {
+      throw Exception('Static resource not found: $requestPath');
+    } else {
+      return file.cacheableUrl;
+    }
   }
 }
 
