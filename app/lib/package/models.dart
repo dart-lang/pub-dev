@@ -20,8 +20,6 @@ import '../shared/tags.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 
-export '../package/model_properties.dart' show FileObject;
-
 part 'models.g.dart';
 
 /// The age of package (the last version published) after it is hidden in
@@ -592,8 +590,6 @@ class PackageVersionAsset extends db.ExpandoModel {
       version: version,
     );
   }
-
-  FileObject toFileObject() => FileObject(path!, textContent!);
 }
 
 /// Entity representing a package that has been removed.

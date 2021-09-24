@@ -269,7 +269,7 @@ Tab _readmeTab(PackagePageData data) {
   final content = data.hasReadme &&
           data.asset != null &&
           data.asset!.kind == AssetKind.readme
-      ? renderFile(data.asset!.toFileObject(), baseUrl: baseUrl)
+      ? renderFile(data.asset!, baseUrl: baseUrl)
       : d.text('');
   return Tab.withContent(
     id: 'readme',
@@ -283,7 +283,7 @@ Tab? _changelogTab(PackagePageData data) {
   if (!data.hasChangelog) return null;
   if (data.asset?.kind != AssetKind.changelog) return null;
   final content = renderFile(
-    data.asset!.toFileObject(),
+    data.asset!,
     baseUrl: data.version!.packageLinks.baseUrl,
     isChangelog: true,
   );
@@ -301,8 +301,7 @@ Tab? _exampleTab(PackagePageData data) {
   final baseUrl = data.version!.packageLinks.baseUrl;
 
   final exampleFilename = data.asset!.path;
-  final renderedExample =
-      renderFile(data.asset!.toFileObject(), baseUrl: baseUrl);
+  final renderedExample = renderFile(data.asset!, baseUrl: baseUrl);
   final url = getRepositoryUrl(baseUrl, exampleFilename!);
 
   return Tab.withContent(
@@ -345,7 +344,7 @@ Tab _installTab(PackagePageData data) {
 Tab _licenseTab(PackagePageData data) {
   final license = data.hasLicense
       ? renderFile(
-          data.asset!.toFileObject(),
+          data.asset!,
           baseUrl: data.version!.packageLinks.baseUrl,
         )
       : d.text('No license file found.');
@@ -363,7 +362,7 @@ Tab _licenseTab(PackagePageData data) {
 Tab _pubspecTab(PackagePageData data) {
   final content = data.hasPubspec
       ? renderFile(
-          data.asset!.toFileObject(),
+          data.asset!,
           baseUrl: data.version!.packageLinks.baseUrl,
         )
       : d.text('No pubspec file found.');
