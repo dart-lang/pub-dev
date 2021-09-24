@@ -50,12 +50,11 @@ d.Node versionRowNode({
               'Go to the documentation of ${version.package} ${version.version}',
           child: d.img(
             classes: ['version-table-icon'],
-            src: staticUrls.versionsTableIcons['documentation'] as String,
+            src: staticUrls.documentationIcon,
             alt:
                 'Go to the documentation of ${version.package} ${version.version}',
             attributes: {
-              'data-failed-icon':
-                  staticUrls.versionsTableIcons['documentationFailed'] as String
+              'data-failed-icon': staticUrls.documentationFailedIcon,
             },
           ),
         ),
@@ -68,7 +67,7 @@ d.Node versionRowNode({
           title: 'Download ${version.package} ${version.version} archive',
           child: d.img(
             classes: ['version-table-icon'],
-            src: staticUrls.versionsTableIcons['download'] as String,
+            src: staticUrls.downloadIcon,
             alt: 'Download ${version.package} ${version.version} archive',
           ),
         ),

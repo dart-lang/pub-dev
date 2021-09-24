@@ -32,8 +32,7 @@ d.Node publisherListNode({
           ),
         ),
       ),
-    if (publishers.isEmpty)
-      isGlobal ? _noPublisherGlobal() : _noPublisherLocal(),
+    if (publishers.isEmpty) isGlobal ? _noPublisherGlobal : _noPublisherLocal,
     d.h3(text: 'Want to create a new publisher?'),
     d.p(
       children: [
@@ -45,18 +44,16 @@ d.Node publisherListNode({
   ]);
 }
 
-d.Node _noPublisherGlobal() => d.p(text: 'No publisher has been registered.');
-d.Node _noPublisherLocal() {
-  return d.p(
-    children: [
-      d.text('You are not a member of any '),
-      d.a(
-        href: 'https://dart.dev/tools/pub/verified-publishers',
-        text: 'verified publishers',
-        rel: 'noreferrer',
-        target: '_blank',
-      ),
-      d.text('.'),
-    ],
-  );
-}
+final _noPublisherGlobal = d.p(text: 'No publisher has been registered.');
+final _noPublisherLocal = d.p(
+  children: [
+    d.text('You are not a member of any '),
+    d.a(
+      href: 'https://dart.dev/tools/pub/verified-publishers',
+      text: 'verified publishers',
+      rel: 'noreferrer',
+      target: '_blank',
+    ),
+    d.text('.'),
+  ],
+);

@@ -22,10 +22,9 @@ import 'views/publisher/publisher_list.dart';
 
 /// Renders the create publisher page.
 String renderCreatePublisherPage() {
-  final content = createPublisherPageNode();
   return renderLayoutPage(
     PageType.standalone,
-    content,
+    createPublisherPageNode,
     title: 'Create publisher',
     noIndex: true, // no need to index, as the page is only for a logged-in user
   );

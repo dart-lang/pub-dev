@@ -4,9 +4,7 @@
 
 import '../../../dom/dom.dart' as d;
 
-d.Node unauthorizedNode() {
-  return d.fragment([
-    d.h1(text: 'Authorization required'),
-    d.p(text: 'You have insufficient permissions to view this page.'),
-  ]);
-}
+final unauthorizedNode = d.fragment([
+  d.h1(text: 'Authorization required'),
+  d.p(text: 'You have insufficient permissions to view this page.'),
+]);

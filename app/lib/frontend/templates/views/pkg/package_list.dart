@@ -92,7 +92,7 @@ d.Node _packageItem(PackageView view) {
         ),
         d.a(href: urls.publisherUrl(view.publisherId!), text: view.publisherId),
       ]),
-    if (isFlutterFavorite) flutterFavoriteBadgeNode(),
+    if (isFlutterFavorite) flutterFavoriteBadgeNode,
     if (isNullSafe) nullSafeBadgeNode(),
   ]);
 

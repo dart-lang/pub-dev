@@ -398,8 +398,7 @@ d.Node renderPackageSchemaOrgHtml(PackagePageData data) {
     'dateCreated': p.created!.toIso8601String(),
     'dateModified': pv.created!.toIso8601String(),
     'programmingLanguage': 'Dart',
-    'image':
-        '${urls.siteRoot}${staticUrls.staticPath}/img/pub-dev-icon-cover-image.png'
+    'image': '${urls.siteRoot}/static/img/pub-dev-icon-cover-image.png'
   };
   final licenseFileUrl = data.scoreCard?.panaReport?.licenseFile?.url;
   if (licenseFileUrl != null) {

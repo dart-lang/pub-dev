@@ -14,12 +14,10 @@ import 'views/pkg/labeled_scores.dart';
 import 'views/pkg/tags.dart';
 
 /// Renders the Flutter Favorite badge, used by package listing.
-d.Node flutterFavoriteBadgeNode() {
-  return packageBadgeNode(
-    label: 'Flutter Favorite',
-    iconUrl: staticUrls.flutterLogo32x32,
-  );
-}
+final flutterFavoriteBadgeNode = packageBadgeNode(
+  label: 'Flutter Favorite',
+  iconUrl: staticUrls.flutterLogo32x32,
+);
 
 /// Renders the null-safe badge used by package listing and package page.
 d.Node nullSafeBadgeNode({String? title}) {
