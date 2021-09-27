@@ -11,6 +11,7 @@ import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:yaml/yaml.dart' show YamlException, loadYaml;
 
 import 'src/archive_surface.dart';
+import 'src/check_platforms.dart';
 import 'src/file_names.dart';
 import 'src/names.dart';
 import 'src/tar_utils.dart';
@@ -154,6 +155,7 @@ Future<PackageSummary> summarizePackageArchive(
   issues.addAll(checkValidJson(pubspecContent));
   issues.addAll(checkAuthors(pubspecContent));
   issues.addAll(checkSdkVersionRange(pubspec));
+  issues.addAll(checkPlatforms(pubspecContent));
   // Check whether the files can be extracted on case-preserving file systems
   // (e.g. on Windows). We can't allow two files with the same case-insensitive
   // name.
