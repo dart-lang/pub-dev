@@ -56,6 +56,12 @@ dependencies:
   api_builder:
     path: ../pkg/api_builder
   collection: ^1.15.0-nullsafety.4
+  chunked_stream: ^1.1.0
+  pub_worker:
+    path: ../pkg/pub_worker
+
+dependency_overrides:
+  _discoveryapis_commons: ^0.2.0 # can be removed when package:gcloud is upgraded
 
 dev_dependencies:
   build_runner: '^2.0.0'

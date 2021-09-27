@@ -9,6 +9,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
 import 'package:intl/intl.dart';
@@ -84,7 +85,7 @@ String? canonicalizeVersion(String? version) {
   semver.Version v;
   try {
     v = semver.Version.parse(version);
-  } on FormatException catch (_) {
+  } on FormatException {
     return null;
   }
   final pre = v.preRelease.isNotEmpty ? v.preRelease.join('.') : null;

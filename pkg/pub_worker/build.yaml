@@ -1,0 +1,7 @@
+# Read about `build.yaml` at https://pub.dartlang.org/packages/build_config
+# To update generated code, run `pub run build_runner build`
+targets:
+  $default:
+    sources:
+      - 'lib/payload.dart'
+      - 'lib/pana_report.dart'

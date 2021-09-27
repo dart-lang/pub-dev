@@ -12,6 +12,7 @@ targets:
       - 'lib/frontend/handlers/redirects.dart'
       - 'lib/package/models.dart'
       - 'lib/publisher/models.dart'
+      - 'lib/task/models.dart'
       - 'lib/scorecard/models.dart'
       - 'lib/search/models.dart'
       - 'lib/search/search_service.dart'

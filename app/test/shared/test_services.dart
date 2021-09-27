@@ -41,7 +41,7 @@ void testWithProfile(
   bool processJobsWithFakeRunners = false,
 }) {
   scopedTest(name, () async {
-    _setupLogging();
+    setupLogging();
     await withFakeServices(
       fn: () async {
         registerSearchClient(SearchClient(
@@ -84,7 +84,7 @@ PubApiClient createPubApiClient({String? authToken}) =>
 bool _loggingDone = false;
 
 /// Setup logging if environment variable `DEBUG` is defined.
-void _setupLogging() {
+void setupLogging() {
   if (_loggingDone) {
     return;
   }

@@ -16,6 +16,7 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
             'packageBucketName',
             'projectId',
             'searchServicePrefix',
+            'defaultServiceBaseUrl',
             'dartdocStorageBucketName',
             'popularityDumpBucketName',
             'searchSnapshotBucketName',
@@ -71,6 +72,8 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
                   ?.map((e) =>
                       AdminId.fromJson(Map<String, dynamic>.from(e as Map)))
                   .toList()),
+          defaultServiceBaseUrl:
+              $checkedConvert('defaultServiceBaseUrl', (v) => v as String),
         );
         return val;
       },
@@ -81,6 +84,7 @@ Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
       'packageBucketName': instance.packageBucketName,
       'projectId': instance.projectId,
       'searchServicePrefix': instance.searchServicePrefix,
+      'defaultServiceBaseUrl': instance.defaultServiceBaseUrl,
       'dartdocStorageBucketName': instance.dartdocStorageBucketName,
       'popularityDumpBucketName': instance.popularityDumpBucketName,
       'searchSnapshotBucketName': instance.searchSnapshotBucketName,

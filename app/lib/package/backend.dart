@@ -652,9 +652,9 @@ class PackageBackend {
     final canonicalVersion = canonicalizeVersion(version);
     InvalidInputException.checkSemanticVersion(canonicalVersion);
 
-    final packageKey = db.emptyKey.append(Package, id: package);
-    final packageVersionKey =
-        packageKey.append(PackageVersion, id: canonicalVersion);
+    final packageVersionKey = db.emptyKey
+        .append(Package, id: package)
+        .append(PackageVersion, id: version);
 
     if (!await isPackageVisible(package)) {
       throw NotFoundException.resource('package "$package"');
@@ -707,7 +707,12 @@ class PackageBackend {
 
     _logger
         .info('Redirecting pub client to google cloud storage (uuid: $guid)');
-    return uploadSigner.buildUpload(bucket, object, lifetime, '$url');
+    return uploadSigner.buildUpload(
+      bucket,
+      object,
+      lifetime,
+      successRedirectUrl: '$url',
+    );
   }
 
   /// Finishes the upload of a package.

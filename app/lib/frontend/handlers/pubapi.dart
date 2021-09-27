@@ -7,6 +7,7 @@ import 'package:client_data/account_api.dart';
 import 'package:client_data/admin_api.dart';
 import 'package:client_data/package_api.dart';
 import 'package:client_data/publisher_api.dart';
+import 'package:client_data/task_api.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
@@ -16,6 +17,7 @@ import '../../package/backend.dart' hide InviteStatus;
 import '../../publisher/backend.dart';
 import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
+import '../../task/backend.dart' show taskBackend;
 import 'account.dart';
 import 'custom_api.dart';
 import 'listing.dart';
@@ -406,6 +408,34 @@ class PubApi {
   @EndPoint.get('/packages/<package>.json')
   Future<Response> packageJson(Request request, String package) =>
       packageShowHandlerJson(request, package);
+
+  // ****
+  // **** Task API
+  // ****
+
+  @EndPoint.post('/api/tasks/<package>/<version>/upload')
+  Future<UploadTaskResultResponse> taskUploadResult(
+    Request request,
+    String package,
+    String version,
+  ) =>
+      taskBackend.handleUploadResult(
+        request,
+        package,
+        version,
+      );
+
+  @EndPoint.post('/api/tasks/<package>/<version>/finished')
+  Future<Response> taskUploadFinished(
+    Request request,
+    String package,
+    String version,
+  ) =>
+      taskBackend.handleUploadFinished(
+        request,
+        package,
+        version,
+      );
 
   // ****
   // **** Admin API
