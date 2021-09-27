@@ -211,4 +211,9 @@ class PubPackageMetaProvider implements PackageMetaProvider {
 
   @override
   ResourceProvider get resourceProvider => _resourceProvider;
+
+  @override
+  String getMessageForMissingPackageMeta(
+          LibraryElement library, DartdocOptionContext optionContext) =>
+      _delegate.getMessageForMissingPackageMeta(library, optionContext);
 }
