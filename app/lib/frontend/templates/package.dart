@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:client_data/page_data.dart';
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:pana/pana.dart' show getRepositoryUrl;
 
 import '../../package/models.dart';
@@ -41,6 +42,7 @@ d.Node renderPkgInfoBox(PackagePageData data) {
     isLatest: data.isLatestStable,
   );
 
+  final urlProblems = data.scoreCard?.panaReport?.urlProblems;
   final metaLinks = <InfoBoxLink>[];
   final docLinks = <InfoBoxLink>[];
   void addLink(
@@ -52,14 +54,23 @@ d.Node renderPkgInfoBox(PackagePageData data) {
     final uri = urls.parseValidUrl(href);
     if (uri == null) return;
 
-    if (detectServiceProvider) {
+    final problemCode = urlProblems == null
+        ? null
+        : urlProblems.firstWhereOrNull((p) => p.url == uri.toString())?.problem;
+    if (detectServiceProvider && problemCode == null) {
       final providerName = urls.inferServiceProviderName(href);
       if (providerName != null) {
         label += ' ($providerName)';
       }
     }
-    final linkData = InfoBoxLink(uri.toString(), label,
-        rel: uri.shouldIndicateUgc ? 'ugc' : null);
+    final linkData = InfoBoxLink(
+      uri.toString(),
+      label,
+      rel: problemCode != null
+          ? 'nofollow noopener ugc'
+          : (uri.shouldIndicateUgc ? 'ugc' : null),
+      problemCode: problemCode,
+    );
     if (documentation) {
       docLinks.add(linkData);
     } else {
