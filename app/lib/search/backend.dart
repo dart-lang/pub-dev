@@ -12,7 +12,6 @@ import 'package:logging/logging.dart';
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 
-import '../account/backend.dart';
 import '../dartdoc/backend.dart';
 import '../package/backend.dart';
 import '../package/model_properties.dart';
@@ -153,7 +152,6 @@ class SearchBackend {
       maxPoints: scoreCard?.maxPubPoints ?? 0,
       dependencies: _buildDependencies(pv.pubspec!, scoreCard),
       publisherId: p.publisherId,
-      uploaderEmails: await _buildUploaderEmails(p),
       uploaderUserIds: p.uploaders,
       apiDocPages: apiDocPages,
       timestamp: DateTime.now().toUtc(),
@@ -172,15 +170,6 @@ class SearchBackend {
       dependencies[package] = DependencyTypes.direct;
     });
     return dependencies;
-  }
-
-  Future<List<String>> _buildUploaderEmails(Package p) async {
-    if (p.publisherId != null) {
-      return <String>[];
-    }
-    final uploaders = await accountBackend.getEmailsOfUserIds(p.uploaders!);
-    uploaders.sort();
-    return uploaders.cast<String>();
   }
 
   List<ApiDocPage> _apiDocPagesFromPubDataText(String text) {
@@ -206,7 +195,6 @@ class SearchBackend {
         grantedPoints: 0,
         maxPoints: 0,
         publisherId: p.publisherId,
-        uploaderEmails: await _buildUploaderEmails(p),
         uploaderUserIds: p.uploaders,
         timestamp: DateTime.now().toUtc(),
       );

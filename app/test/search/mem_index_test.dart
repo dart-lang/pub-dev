@@ -30,7 +30,6 @@ void main() {
         grantedPoints: 110,
         maxPoints: 110,
         dependencies: {'async': 'direct', 'test': 'dev', 'foo': 'transitive'},
-        uploaderEmails: ['user1@example.com'],
         uploaderUserIds: ['user1-at-example-dot-com'],
       ));
       await index.addPackage(PackageDocument(
@@ -53,7 +52,6 @@ The delegating wrapper classes allow users to easily add functionality on top of
         maxPoints: 110,
         dependencies: {'test': 'dev'},
         publisherId: 'dart.dev',
-        uploaderEmails: ['user1@example.com'],
         uploaderUserIds: ['user1-at-example-dot-com'],
       ));
       await index.addPackage(PackageDocument(

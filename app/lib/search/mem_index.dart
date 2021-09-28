@@ -174,11 +174,7 @@ class InMemoryPackageIndex implements PackageIndex {
             query.uploaderOrPublishers!.any(doc.uploaderUserIds!.contains)) {
           return false;
         }
-
-        if (doc.uploaderEmails == null) {
-          return true; // turn this into an error in the future.
-        }
-        return !query.uploaderOrPublishers!.any(doc.uploaderEmails!.contains);
+        return true;
       });
     }
 
