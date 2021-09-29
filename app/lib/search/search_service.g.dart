@@ -28,10 +28,6 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
           ) ??
           const {},
       publisherId: json['publisherId'] as String?,
-      uploaderEmails: (json['uploaderEmails'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          const [],
       uploaderUserIds: (json['uploaderUserIds'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
@@ -60,7 +56,6 @@ Map<String, dynamic> _$PackageDocumentToJson(PackageDocument instance) =>
       'maxPoints': instance.maxPoints,
       'dependencies': instance.dependencies,
       'publisherId': instance.publisherId,
-      'uploaderEmails': instance.uploaderEmails,
       'uploaderUserIds': instance.uploaderUserIds,
       'apiDocPages': instance.apiDocPages,
       'timestamp': instance.timestamp.toIso8601String(),

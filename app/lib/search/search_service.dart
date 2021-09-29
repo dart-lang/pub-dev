@@ -99,10 +99,6 @@ class PackageDocument {
   /// The publisher id of the package
   final String? publisherId;
 
-  /// The current uploader emails of the package.
-  /// TODO: remove after the /my-packages query uses userIds instead of emails.
-  final List<String>? uploaderEmails;
-
   /// The current uploader userIds of the package.
   final List<String>? uploaderUserIds;
 
@@ -125,7 +121,6 @@ class PackageDocument {
     this.maxPoints = 0,
     this.dependencies = const {},
     this.publisherId,
-    this.uploaderEmails = const [],
     this.uploaderUserIds = const [],
     this.apiDocPages = const [],
     DateTime? timestamp,

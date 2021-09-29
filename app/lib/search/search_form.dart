@@ -107,14 +107,9 @@ class SearchForm {
   }
 
   SearchForm change({
-    String? query,
     String? sdk,
     TagsPredicate? tagsPredicate,
-    List<String>? uploaderOrPublishers,
-    String? publisherId,
-    SearchOrder? order,
     int? currentPage,
-    int? pageSize,
   }) {
     if (sdk != null) {
       tagsPredicate ??= this.tagsPredicate;
@@ -135,13 +130,13 @@ class SearchForm {
       }
     }
     return SearchForm._(
-      query: query ?? this.query,
+      query: query,
       tagsPredicate: tagsPredicate ?? this.tagsPredicate,
-      uploaderOrPublishers: uploaderOrPublishers ?? this.uploaderOrPublishers,
-      publisherId: publisherId ?? this.publisherId,
-      order: order ?? this.order,
+      uploaderOrPublishers: uploaderOrPublishers,
+      publisherId: publisherId,
+      order: order,
       currentPage: currentPage ?? this.currentPage,
-      pageSize: pageSize ?? this.pageSize,
+      pageSize: pageSize,
       includeDiscontinued: includeDiscontinued,
       includeUnlisted: includeUnlisted,
       nullSafe: nullSafe,
