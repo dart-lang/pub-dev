@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pana/models.dart' show LicenseFile;
+import 'package:pana/pana.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspek;
 
 import '../../../../package/models.dart';
@@ -17,7 +18,10 @@ class InfoBoxLink {
   final String label;
   final String? rel;
 
-  InfoBoxLink(this.href, this.label, {this.rel});
+  /// One of [UrlProblemCodes].
+  final String? problemCode;
+
+  InfoBoxLink(this.href, this.label, {this.rel, this.problemCode});
 }
 
 /// Renders the package info box.
@@ -118,6 +122,7 @@ d.Node _block(String title, d.Node? content) {
 d.Node _linkAndBr(InfoBoxLink link) {
   return d.fragment([
     d.a(classes: ['link'], href: link.href, text: link.label, rel: link.rel),
+    if (link.problemCode != null) d.text(' (${link.problemCode})'),
     d.br(),
   ]);
 }
