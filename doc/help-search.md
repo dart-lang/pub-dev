@@ -32,10 +32,10 @@ The search UI also supports filters:
 
 ## Ranking
 
-When you search for a package, the search algorithm applies [filters](#filters)
-and considers only the packages that match the search query. Because packages
-contain a lot of text (including documentation comments and identifiers from
-source code), common words can match many packages.
+When you search for a package, the search algorithm first applies [filters](#filters),
+and then considers only the packages that aren’t filtered out and that match
+the search query. Because packages contain a lot of text (including documentation
+comments and identifiers from source code), common words can match many packages.
 
 To find the most relevant search results, the algorithm ranks packages using a
 combination of the following parameters, listed in order of relative importance:
@@ -48,7 +48,7 @@ combination of the following parameters, listed in order of relative importance:
 
 - Package popularity and like count
 
-- [Pub points](/help/scoring#pub-points), which are based on factors such as:
+- [Pub points](/help/scoring#pub-points), which are based on factors such as these:
   - Adherence to Dart file conventions
   - Presence of documentation
   - Up-to-date dependencies
