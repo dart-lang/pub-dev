@@ -32,9 +32,37 @@ The search UI also supports filters:
 
 ## Ranking
 
-Default listings use a composite of the three scores to sort packages. The
-ranking is based on the composite score, and if applicable, the platform
-specificity and the text match score of the search team.
+When you search for a package, the search algorithm first applies [filters](#filters),
+and then considers only the packages that aren’t filtered out and that match
+the search query. Because packages contain a lot of text (including documentation
+comments and identifiers from source code), common words can match many packages.
+
+To find the most relevant search results, the algorithm ranks packages using a
+combination of the following parameters, listed in order of relative importance:
+
+- Search query relevance of the following:
+  - Package name
+  - Description
+  - README
+  - Documentation comments and identifiers
+
+- Package popularity and like count
+
+- [Pub points](/help/scoring#pub-points), which are based on factors such as these:
+  - Adherence to Dart file conventions
+  - Presence of documentation
+  - Up-to-date dependencies
+  - Language feature support
+
+- Search filter specificity, a measure of how relevant a package is to the
+  current filtering
+
+These parameters are normalized, weighted for relative importance, and combined
+to form an overall score for each search result; this score determines the
+default order of the displayed search results.
+
+The code for normalizing and weighting parameters changes occasionally. You can find
+it at [github.com/dart-lang/pub-dev](https://github.com/dart-lang/pub-dev/).
 
 ## Legacy packages
 
