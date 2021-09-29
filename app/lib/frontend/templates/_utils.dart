@@ -2,24 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:path/path.dart' as p;
 
-import '../../package/model_properties.dart' show FileObject;
+import '../../package/models.dart' show PackageVersionAsset;
 import '../../shared/markdown.dart';
 import '../dom/dom.dart' as d;
 
-const HtmlEscape htmlAttrEscape = HtmlEscape(HtmlEscapeMode.attribute);
-
 /// Renders a file content (e.g. markdown, dart source file) into HTML.
 d.Node renderFile(
-  FileObject file, {
+  PackageVersionAsset asset, {
   String? baseUrl,
   bool isChangelog = false,
 }) {
-  final filename = file.filename;
-  final content = file.text;
+  final filename = asset.path!;
+  final content = asset.textContent!;
   if (_isMarkdownFile(filename)) {
     return d.unsafeRawHtml(
       markdownToHtml(

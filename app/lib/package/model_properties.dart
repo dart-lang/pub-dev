@@ -211,10 +211,3 @@ class PubspecProperty extends StringProperty {
     return null;
   }
 }
-
-class FileObject {
-  final String filename;
-  final String text;
-
-  FileObject(this.filename, this.text);
-}

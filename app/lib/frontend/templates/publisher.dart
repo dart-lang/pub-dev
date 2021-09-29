@@ -4,7 +4,6 @@
 
 import 'package:client_data/page_data.dart';
 import 'package:client_data/publisher_api.dart' as api;
-import 'package:pub_dev/frontend/templates/views/publisher/admin_page.dart';
 
 import '../../audit/models.dart';
 import '../../frontend/templates/views/account/activity_log_table.dart';
@@ -16,6 +15,7 @@ import '../dom/dom.dart' as d;
 import 'detail_page.dart';
 import 'layout.dart';
 import 'listing.dart';
+import 'views/publisher/admin_page.dart';
 import 'views/publisher/create_page.dart';
 import 'views/publisher/header_metadata.dart';
 import 'views/publisher/publisher_list.dart';
