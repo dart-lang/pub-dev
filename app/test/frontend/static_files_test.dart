@@ -56,20 +56,22 @@ void main() {
       cache = StaticFileCache.withDefaults();
     });
 
-    final files = [
-      '/static/css/github-markdown.css',
-      '/static/highlight/github.css',
-      '/static/highlight/highlight.pack.js',
-      '/static/highlight/init.js',
-    ];
+    test('third-party files are copied', () {
+      final files = [
+        '/static/css/github-markdown.css',
+        '/static/highlight/github.css',
+        '/static/highlight/highlight.pack.js',
+        '/static/highlight/init.js',
+        '/static/material/material-components-web.min.css',
+        '/static/material/material-components-web.min.js',
+      ];
 
-    for (String file in files) {
-      test('$file exists', () {
+      for (String file in files) {
         final f = cache.getFile(file)!;
-        expect(f, isNotNull);
-        expect(f.etag.contains('mocked_hash_'), isFalse);
-      });
-    }
+        expect(f, isNotNull, reason: file);
+        expect(f.etag.contains('mocked_hash_'), isFalse, reason: file);
+      }
+    });
 
     test('proper hash in css content', () async {
       final css = cache.getFile('/static/css/style.css')!;
@@ -86,6 +88,50 @@ void main() {
           throw Exception('$absPath must use hash $expectedHash');
         }
       }
+    });
+
+    test('static files are referenced', () async {
+      final requestPaths = cache.keys.toSet()
+        // not referenced from the code, but embedded from GTM
+        ..remove('/static/js/survey-helper.js')
+        // debug-helper files are served, but not referenced
+        ..removeAll([
+          '/static/css/style.css.map',
+          '/static/js/script.dart.js.deps',
+          '/static/js/script.dart.js.info.json',
+          '/static/js/script.dart.js.map',
+          '/static/material/material-components-web.min.css.map',
+        ])
+        // files that are in the third-party directory but not essential to serving
+        ..removeAll([
+          '/static/css/github-markdown.css-license.txt',
+          '/static/highlight/readme.md',
+          '/static/material/package-lock.json',
+          '/static/material/package.json',
+          '/static/material/README.md',
+        ]);
+
+      expect(requestPaths, hasLength(greaterThan(50)));
+
+      final directories = [
+        'lib',
+        '../pkg/web_app/lib',
+        '../pkg/web_css/lib',
+      ];
+      for (final dir in directories) {
+        if (requestPaths.isEmpty) break;
+        final files = await Directory(dir).list(recursive: true).toList();
+        for (final file in files.whereType<File>()) {
+          if (requestPaths.isEmpty) break;
+          final content = await file.readAsString();
+          for (final rp in requestPaths.toList()) {
+            if (content.contains(rp)) {
+              requestPaths.remove(rp);
+            }
+          }
+        }
+      }
+      expect(requestPaths, <String>{});
     });
   });
 }

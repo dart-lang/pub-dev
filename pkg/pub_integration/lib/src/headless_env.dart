@@ -134,6 +134,9 @@ class HeadlessEnv {
       if (rs.status >= 500) {
         serverErrors
             .add('${rs.status} ${rs.statusText} received on ${rs.request.url}');
+      } else if (rs.status >= 400 && rs.url.contains('/static/')) {
+        serverErrors
+            .add('${rs.status} ${rs.statusText} received on ${rs.request.url}');
       }
 
       final contentType = rs.headers[HttpHeaders.contentTypeHeader];
