@@ -107,7 +107,6 @@ class Pubspec {
   SdkConstraintStatus get _sdkConstraintStatus =>
       SdkConstraintStatus.fromSdkVersion(_inner.environment?['sdk'], name);
 
-  // TODO: migrate uses to SdkConstraintStatus.isDart2Compatible
   bool get supportsOnlyLegacySdk => !_sdkConstraintStatus.isDart2Compatible;
 
   /// Whether the pubspec file contains a flutter.plugin entry.

@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:pana/pana.dart' as pana;
 import 'package:pool/pool.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -218,9 +219,7 @@ class ScoreCardBackend {
         if (size > _reportSizeDropThreshold) {
           _logger.reportError(
               '$reportType report exceeded size threshold ($size > $_reportSizeWarnThreshold)');
-          // Size trimming is temporarily disabled.
-          // TODO: re-enable after fixing the underlying issues with the verbose reports and package:appengine.
-          return false;
+          return true;
         } else if (size > _reportSizeWarnThreshold) {
           _logger.warning(
               '$reportType report exceeded size threshold ($size > $_reportSizeWarnThreshold)');
@@ -228,13 +227,60 @@ class ScoreCardBackend {
         return false;
       }
 
-      if (sizeCheck(ReportType.pana, scoreCard.panaReportJsonGz)) {
-        // TODO: replace with something meaningful
-        scoreCard.panaReportJsonGz = <int>[];
+      if (panaReport != null &&
+          sizeCheck(ReportType.pana, scoreCard.panaReportJsonGz)) {
+        scoreCard.updateReports(
+          panaReport: PanaReport(
+            timestamp: DateTime.now().toUtc(),
+            panaRuntimeInfo: panaReport.panaRuntimeInfo,
+            reportStatus: panaReport.reportStatus,
+            derivedTags: panaReport.derivedTags?.take(100).toList(),
+            allDependencies: panaReport.allDependencies?.take(100).toList(),
+            licenseFile: panaReport.licenseFile,
+            report: pana.Report(
+              sections: panaReport.report?.sections
+                      .map(
+                        (s) => s.summary.length < 1000
+                            ? s
+                            : pana.ReportSection(
+                                id: s.id,
+                                title: s.title,
+                                status: s.status,
+                                grantedPoints: s.grantedPoints,
+                                maxPoints: s.maxPoints,
+                                summary: [
+                                  s.summary.substring(0, 900),
+                                  '`Report exceeded size limit.`',
+                                ].join('[...]\n\n'),
+                              ),
+                      )
+                      .toList() ??
+                  [],
+            ),
+            flags: panaReport.flags,
+            urlProblems: panaReport.urlProblems?.take(10).toList(),
+          ),
+        );
       }
-      if (sizeCheck(ReportType.dartdoc, scoreCard.dartdocReportJsonGz)) {
-        // TODO: replace with something meaningful
-        scoreCard.dartdocReportJsonGz = <int>[];
+      if (dartdocReport != null &&
+          sizeCheck(ReportType.dartdoc, scoreCard.dartdocReportJsonGz)) {
+        scoreCard.updateReports(
+          dartdocReport: DartdocReport(
+            timestamp: dartdocReport.timestamp,
+            reportStatus: dartdocReport.reportStatus,
+            dartdocEntry: dartdocReport.dartdocEntry,
+            documentationSection: pana.ReportSection(
+              id: pana.ReportSectionId.documentation,
+              title: pana.documentationSectionTitle,
+              grantedPoints:
+                  dartdocReport.documentationSection?.grantedPoints ?? 0,
+              maxPoints: dartdocReport.documentationSection?.maxPoints ?? 10,
+              status: dartdocReport.documentationSection?.status ??
+                  pana.ReportStatus.failed,
+              summary: 'Report exceeded size limit.',
+            ),
+          ),
+        );
       }
 
       tx.insert(scoreCard);
