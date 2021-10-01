@@ -4,6 +4,7 @@
 
 import 'package:client_data/page_data.dart';
 
+import '../../account/backend.dart' show userSessionData;
 import '../../search/search_form.dart';
 import '../../search/search_service.dart';
 import '../../service/announcement/backend.dart';
@@ -73,7 +74,10 @@ String renderLayoutPage(
     pageDataEncoded:
         pageData == null ? null : pageDataJsonCodec.encode(pageData.toJson()),
     bodyClasses: bodyClasses,
-    siteHeader: siteHeaderNode(pageType: type),
+    siteHeader: siteHeaderNode(
+      pageType: type,
+      userSession: userSessionData,
+    ),
     announcementBanner: announcementBannerHtml == null
         ? null
         : d.unsafeRawHtml(announcementBannerHtml),
