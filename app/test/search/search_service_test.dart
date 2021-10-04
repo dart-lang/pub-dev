@@ -169,7 +169,7 @@ void main() {
         tagsPredicate: TagsPredicate.regularSearch(),
       );
       expect(
-        query.tagsPredicate.toQueryParameters(),
+        query.toServiceQuery().tagsPredicate.toQueryParameters(),
         [
           '-is:discontinued',
           '-is:unlisted',
@@ -188,7 +188,7 @@ void main() {
         tagsPredicate: TagsPredicate.regularSearch(),
       );
       expect(
-        query.tagsPredicate.toQueryParameters(),
+        query.toServiceQuery().tagsPredicate.toQueryParameters(),
         [
           '-is:discontinued',
           '-is:unlisted',
@@ -208,7 +208,7 @@ void main() {
         tagsPredicate: TagsPredicate.regularSearch(),
       );
       expect(
-        query.tagsPredicate.toQueryParameters(),
+        query.toServiceQuery().tagsPredicate.toQueryParameters(),
         [
           '-is:discontinued',
           '-is:unlisted',
