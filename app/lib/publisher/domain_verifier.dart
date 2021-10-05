@@ -3,8 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:googleapis/webmasters/v3.dart' as wmx;
+import 'package:googleapis/searchconsole/v1.dart' as wmx;
 import 'package:googleapis_auth/googleapis_auth.dart' as auth;
+
 import 'package:http/http.dart' as http;
 import 'package:retry/retry.dart' show retry;
 
@@ -38,13 +39,13 @@ class DomainVerifier {
           DateTime.now().toUtc().add(Duration(minutes: 20)), // avoid refresh
         ),
         null,
-        [wmx.WebmastersApi.webmastersReadonlyScope],
+        [wmx.SearchConsoleApi.webmastersReadonlyScope],
       ),
     );
     try {
       // Request list of sites/domains from the Search Console API.
       final sites = await retry(
-        () => wmx.WebmastersApi(client).sites.list(),
+        () => wmx.SearchConsoleApi(client).sites.list(),
         maxAttempts: 3,
         maxDelay: Duration(milliseconds: 500),
         retryIf: (e) => e is! auth.AccessDeniedException,

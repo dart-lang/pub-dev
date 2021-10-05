@@ -5,6 +5,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bumped runtimeVersion to `2021.10.01`.
  * Upgraded stable Dart analysis SDK to `2.14.3`.
  * Upgraded stable Flutter analysis SDK to `2.5.2`.
+ * Migrated searchconsole api. When deploying publisher registration should be
+   manually tested before migration.
 
 ## `20211001t132700-all`
 
