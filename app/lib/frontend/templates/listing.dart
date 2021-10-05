@@ -139,7 +139,7 @@ List<SearchTab> _calculateSearchTabs(SearchForm searchForm) {
       text: label,
       href: searchForm.toggleRuntime(runtimeTag).toSearchLink(),
       title: title,
-      active: searchForm.runtimes?.contains(runtimeTag) ?? false,
+      active: searchForm.runtimes.contains(runtimeTag),
     );
   }
 
@@ -152,7 +152,7 @@ List<SearchTab> _calculateSearchTabs(SearchForm searchForm) {
       text: label,
       href: searchForm.togglePlatform(platformTag).toSearchLink(),
       title: title,
-      active: searchForm.platforms?.contains(platformTag) ?? false,
+      active: searchForm.platforms.contains(platformTag),
     );
   }
 
