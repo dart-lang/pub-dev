@@ -33,8 +33,8 @@ class NameTracker {
   final Set<String> _names = <String>{};
 
   /// Names that are reserved due to moderated packages having these names.
-  final Set<String> _reservedNames = <String>{};
-  final Set<String> _reducedNames = <String>{};
+  final _reservedNames = <String>{};
+  final _conflictingNames = <String>{};
   final _firstScanCompleter = Completer();
   _NameTrackerUpdater? _updater;
 
@@ -43,12 +43,12 @@ class NameTracker {
   /// Add a package name to the tracker.
   void add(String name) {
     _names.add(name);
-    _reducedNames.add(reducePackageName(name));
+    _conflictingNames.addAll(_generateConflictingNames(name));
   }
 
   void addReservedName(String name) {
     _reservedNames.add(name);
-    _reducedNames.add(reducePackageName(name));
+    _conflictingNames.addAll(_generateConflictingNames(name));
     _names.remove(name);
   }
 
@@ -58,7 +58,7 @@ class NameTracker {
   /// Whether the [name] has a conflicting package that already exists or
   /// a conflicting package among the moderated packages.
   bool _hasConflict(String name) =>
-      _reducedNames.contains(reducePackageName(name)) ||
+      _generateConflictingNames(name).any(_conflictingNames.contains) ||
       _reservedNames.contains(name);
 
   /// Whether to accept the upload attempt of a given package [name].
@@ -211,5 +211,22 @@ class _NameTrackerUpdater {
       _sleepCompleter!.complete();
     }
     _sleepTimer?.cancel();
+  }
+}
+
+/// Generates the names that will be used to determine name conflicts:
+/// - For each package name, this will generate a String that doesn't contain `_`.
+/// - For names that are long enough, this will also try to generate the singular or plural form of the name.
+Iterable<String> _generateConflictingNames(String name) sync* {
+  // name without underscores
+  final reduced = reducePackageName(name);
+  yield reduced;
+  // singular/plural form parsing
+  // This could be improved with some a dictionary or a grammar parser.
+  if (!reduced.endsWith('s') && reduced.length >= 3) {
+    yield '${reduced}s';
+  }
+  if (reduced.endsWith('s') && reduced.length >= 4) {
+    yield reduced.substring(0, reduced.length - 1);
   }
 }
