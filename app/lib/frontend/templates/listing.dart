@@ -130,72 +130,78 @@ class PageLinks {
 }
 
 List<SearchTab> _calculateSearchTabs(SearchForm searchForm) {
-  SearchTab searchTab({
+  SearchTab runtimeTab({
     required String label,
-    required String tag,
+    required String runtimeTag,
     required String title,
   }) {
-    final tp = searchForm.tagsPredicate;
     return SearchTab(
       text: label,
-      href: searchForm
-          .change(
-            tagsPredicate: tp.isRequiredTag(tag)
-                ? tp.withoutTag(tag)
-                : tp.appendPredicate(TagsPredicate(requiredTags: [tag])),
-          )
-          .toSearchLink(),
+      href: searchForm.toggleRuntime(runtimeTag).toSearchLink(),
       title: title,
-      active: searchForm.tagsPredicate.isRequiredTag(tag),
+      active: searchForm.runtimes?.contains(runtimeTag) ?? false,
+    );
+  }
+
+  SearchTab platformTab({
+    required String label,
+    required String platformTag,
+    required String title,
+  }) {
+    return SearchTab(
+      text: label,
+      href: searchForm.togglePlatform(platformTag).toSearchLink(),
+      title: title,
+      active: searchForm.platforms?.contains(platformTag) ?? false,
     );
   }
 
   final sdk = searchForm.sdk;
   if (sdk == SdkTagValue.dart) {
     return <SearchTab>[
-      searchTab(
+      runtimeTab(
         label: 'native',
-        tag: DartSdkTag.runtimeNativeJit,
+        runtimeTag: DartSdkTag.runtimeNativeJit,
         title:
             'Packages compatible with Dart running on a native platform (JIT/AOT)',
       ),
-      searchTab(
+      runtimeTab(
         label: 'JS',
-        tag: DartSdkTag.runtimeWeb,
+        runtimeTag: DartSdkTag.runtimeWeb,
         title: 'Packages compatible with Dart compiled for the web',
       ),
     ];
   }
   if (sdk == SdkTagValue.flutter) {
     return <SearchTab>[
-      searchTab(
+      platformTab(
         label: 'Android',
-        tag: FlutterSdkTag.platformAndroid,
+        platformTag: FlutterSdkTag.platformAndroid,
         title: 'Packages compatible with Flutter on the Android platform',
       ),
-      searchTab(
+      platformTab(
         label: 'iOS',
-        tag: FlutterSdkTag.platformIos,
+        platformTag: FlutterSdkTag.platformIos,
         title: 'Packages compatible with Flutter on the iOS platform',
       ),
-      searchTab(
+      platformTab(
         label: 'Web',
-        tag: FlutterSdkTag.platformWeb,
+        platformTag: FlutterSdkTag.platformWeb,
         title: 'Packages compatible with Flutter on the Web platform',
       ),
-      searchTab(
+      platformTab(
         label: 'Linux',
-        tag: FlutterSdkTag.platformLinux,
+        platformTag: FlutterSdkTag.platformLinux,
         title: 'Packages compatible with Flutter on the Linux platform',
       ),
-      searchTab(
+      platformTab(
         label: 'macOS',
-        tag: FlutterSdkTag.platformMacos,
+        platformTag: FlutterSdkTag.platformMacos,
         title: 'Packages compatible with Flutter on the macOS platform',
       ),
-      searchTab(
+      platformTab(
         label: 'Windows',
-        tag: FlutterSdkTag.platformWindows,
+        platformTag: FlutterSdkTag.platformWindows,
         title: 'Packages compatible with Flutter on the Windows platform',
       ),
     ];

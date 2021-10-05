@@ -201,10 +201,10 @@ void main() {
         searchUrl(sdk: 'dart', runtimes: ['native']),
         '/dart/packages?runtime=native',
       );
+      final form = SearchForm.parse(runtimes: ['native']);
+      expect(form.runtimes, ['native-jit']);
       expect(
-        SearchForm.parse(runtimes: ['native'])
-            .tagsPredicate
-            .toQueryParameters(),
+        form.toServiceQuery().tagsPredicate.toQueryParameters(),
         ['runtime:native-jit'],
       );
     });
@@ -214,10 +214,10 @@ void main() {
         searchUrl(sdk: 'dart', runtimes: ['native-jit']),
         '/dart/packages?runtime=native',
       );
+      final form = SearchForm.parse(runtimes: ['native-jit']);
+      expect(form.runtimes, ['native-jit']);
       expect(
-        SearchForm.parse(runtimes: ['native-jit'])
-            .tagsPredicate
-            .toQueryParameters(),
+        form.toServiceQuery().tagsPredicate.toQueryParameters(),
         ['runtime:native-jit'],
       );
     });
@@ -227,8 +227,10 @@ void main() {
         searchUrl(sdk: 'dart', runtimes: ['web']),
         '/dart/packages?runtime=js',
       );
+      final form = SearchForm.parse(runtimes: ['web']);
+      expect(form.runtimes, ['web']);
       expect(
-        SearchForm.parse(runtimes: ['web']).tagsPredicate.toQueryParameters(),
+        form.toServiceQuery().tagsPredicate.toQueryParameters(),
         ['runtime:web'],
       );
     });
@@ -238,8 +240,10 @@ void main() {
         searchUrl(sdk: 'dart', runtimes: ['js']),
         '/dart/packages?runtime=js',
       );
+      final form = SearchForm.parse(runtimes: ['js']);
+      expect(form.runtimes, ['web']);
       expect(
-        SearchForm.parse(runtimes: ['js']).tagsPredicate.toQueryParameters(),
+        form.toServiceQuery().tagsPredicate.toQueryParameters(),
         ['runtime:web'],
       );
     });
@@ -249,8 +253,10 @@ void main() {
         searchUrl(sdk: 'dart', runtimes: ['xxy']),
         '/dart/packages?runtime=xxy',
       );
+      final form = SearchForm.parse(runtimes: ['xxy']);
+      expect(form.runtimes, ['xxy']);
       expect(
-        SearchForm.parse(runtimes: ['xxy']).tagsPredicate.toQueryParameters(),
+        form.toServiceQuery().tagsPredicate.toQueryParameters(),
         ['runtime:xxy'],
       );
     });

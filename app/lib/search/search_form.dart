@@ -15,6 +15,8 @@ class SearchForm {
   final ParsedQueryText parsedQuery;
 
   final TagsPredicate tagsPredicate;
+  final List<String>? runtimes;
+  final List<String>? platforms;
 
   /// The query will match packages where the owners of the package have
   /// non-empty intersection with the provided list of owners.
@@ -45,6 +47,8 @@ class SearchForm {
   SearchForm._({
     this.query,
     TagsPredicate? tagsPredicate,
+    this.runtimes,
+    this.platforms,
     List<String>? uploaderOrPublishers,
     String? publisherId,
     this.order,
@@ -81,13 +85,8 @@ class SearchForm {
     if (SdkTagValue.isNotAny(sdk)) {
       requiredTags.add('sdk:$sdk');
     }
-    DartSdkRuntime.decodeQueryValues(runtimes)
-        ?.map((v) => 'runtime:$v')
-        .forEach(requiredTags.add);
-    platforms
-        ?.where((v) => v.isNotEmpty)
-        .map((v) => 'platform:$v')
-        .forEach(requiredTags.add);
+    runtimes = DartSdkRuntime.decodeQueryValues(runtimes);
+    platforms = platforms?.where((v) => v.isNotEmpty).toList();
     if (requiredTags.isNotEmpty) {
       tagsPredicate = tagsPredicate
           .appendPredicate(TagsPredicate(requiredTags: requiredTags));
@@ -95,6 +94,8 @@ class SearchForm {
     return SearchForm._(
       query: q,
       tagsPredicate: tagsPredicate,
+      runtimes: runtimes,
+      platforms: platforms,
       uploaderOrPublishers: uploaderOrPublishers,
       publisherId: publisherId,
       order: order,
@@ -108,11 +109,14 @@ class SearchForm {
 
   SearchForm change({
     String? sdk,
-    TagsPredicate? tagsPredicate,
+    List<String>? runtimes,
+    List<String>? platforms,
     int? currentPage,
   }) {
+    runtimes ??= this.runtimes;
+    platforms ??= this.platforms;
+    var tagsPredicate = this.tagsPredicate;
     if (sdk != null) {
-      tagsPredicate ??= this.tagsPredicate;
       if (!tagsPredicate.isRequiredTag('sdk:$sdk')) {
         tagsPredicate = tagsPredicate
             .removePrefix('sdk:')
@@ -122,16 +126,18 @@ class SearchForm {
               .appendPredicate(TagsPredicate(requiredTags: ['sdk:$sdk']));
         }
         if (sdk != SdkTagValue.dart) {
-          tagsPredicate = tagsPredicate.removePrefix('runtime:');
+          runtimes = null;
         }
         if (sdk != SdkTagValue.flutter) {
-          tagsPredicate = tagsPredicate.removePrefix('platform:');
+          platforms = null;
         }
       }
     }
     return SearchForm._(
       query: query,
-      tagsPredicate: tagsPredicate ?? this.tagsPredicate,
+      tagsPredicate: tagsPredicate,
+      runtimes: runtimes,
+      platforms: platforms,
       uploaderOrPublishers: uploaderOrPublishers,
       publisherId: publisherId,
       order: order,
@@ -141,6 +147,26 @@ class SearchForm {
       includeUnlisted: includeUnlisted,
       nullSafe: nullSafe,
     );
+  }
+
+  SearchForm toggleRuntime(String runtime) {
+    final runtimes = <String>[...?this.runtimes];
+    if (runtimes.contains(runtime)) {
+      runtimes.remove(runtime);
+    } else {
+      runtimes.add(runtime);
+    }
+    return change(runtimes: runtimes);
+  }
+
+  SearchForm togglePlatform(String platform) {
+    final platforms = <String>[...?this.platforms];
+    if (platforms.contains(platform)) {
+      platforms.remove(platform);
+    } else {
+      platforms.add(platform);
+    }
+    return change(platforms: platforms);
   }
 
   ServiceSearchQuery toServiceQuery() {
@@ -171,6 +197,14 @@ class SearchForm {
           tagsPredicate.appendPredicate(TagsPredicate(requiredTags: [
         PackageTags.convertToPrereleaseTag(PackageVersionTags.isNullSafe),
       ]));
+    }
+    final requiredTags = [
+      ...?runtimes?.map((v) => 'runtime:$v'),
+      ...?platforms?.map((v) => 'platform:$v'),
+    ];
+    if (requiredTags.isNotEmpty) {
+      tagsPredicate = tagsPredicate
+          .appendPredicate(TagsPredicate(requiredTags: requiredTags));
     }
     return ServiceSearchQuery.parse(
       query: query,
@@ -224,7 +258,7 @@ class SearchForm {
     if (query != null && query!.isNotEmpty) {
       params['q'] = query;
     }
-    params.addAll(tagsPredicate.asSearchLinkParams());
+    params.addAll(hiddenFields());
     if (order != null) {
       final String paramName = 'sort';
       params[paramName] = serializeSearchOrder(order);
@@ -245,6 +279,18 @@ class SearchForm {
         path: toSearchFormPath(),
         queryParameters: params.isEmpty ? null : params);
     return uri.toString();
+  }
+
+  /// Helper method for emitting hidden fields in the search <form>
+  /// TODO: eventually remove this and use explicit values
+  Map<String, String> hiddenFields() {
+    final encodedRuntimes = DartSdkRuntime.encodeRuntimeTags(runtimes);
+    return {
+      if (encodedRuntimes != null && encodedRuntimes.isNotEmpty)
+        'runtime': encodedRuntimes.join(' '),
+      if (platforms != null && platforms!.isNotEmpty)
+        'platform': platforms!.join(' '),
+    };
   }
 }
 

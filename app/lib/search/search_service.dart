@@ -522,18 +522,6 @@ class TagsPredicate {
     return _values.entries.map((e) => e.value ? e.key : '-${e.key}').toList();
   }
 
-  /// Returns the tag values that can be passed query parameters of the
-  /// user-facing search query.
-  Map<String, String> asSearchLinkParams() {
-    final runtimeTagParts = tagPartsWithPrefix('runtime', value: true);
-    final params = <String, String>{
-      'runtime': DartSdkRuntime.encodeRuntimeTags(runtimeTagParts)!.join(' '),
-      'platform': tagPartsWithPrefix('platform', value: true).join(' '),
-    };
-    params.removeWhere((k, v) => v.isEmpty);
-    return params;
-  }
-
   /// Returns the second part of the tags matching [prefix] and [value].
   List<String> tagPartsWithPrefix(String prefix, {bool? value}) {
     return _values.keys

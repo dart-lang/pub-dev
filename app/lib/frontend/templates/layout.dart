@@ -129,7 +129,7 @@ d.Node _renderSearchBanner({
       ? null
       : serializeSearchOrder(searchForm!.order);
   final hiddenInputs = includePreferencesAsHiddenFields
-      ? (searchForm ?? SearchForm.parse()).tagsPredicate.asSearchLinkParams()
+      ? (searchForm ?? SearchForm.parse()).hiddenFields()
       : null;
   return searchBannerNode(
     // When search is active (query text has a non-empty value) users may expect
