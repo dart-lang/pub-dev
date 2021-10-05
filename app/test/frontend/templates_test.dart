@@ -573,6 +573,7 @@ void main() {
             name: 'Pub User',
             imageUrl: 'pub.dev/user-img-url.png',
           );
+          registerUserSessionData(session);
           final searchForm =
               SearchForm.parse(uploaderOrPublishers: [user.userId]);
           final String html = renderAccountPackagesPage(
@@ -605,6 +606,7 @@ void main() {
           name: 'Pub User',
           imageUrl: 'pub.dev/user-img-url.png',
         );
+        registerUserSessionData(session);
         final html = renderMyLikedPackagesPage(
           user: user,
           userSessionData: session,
@@ -630,6 +632,7 @@ void main() {
           name: 'Pub User',
           imageUrl: 'pub.dev/user-img-url.png',
         );
+        registerUserSessionData(session);
         final html = renderAccountPublishersPage(
           user: user,
           userSessionData: session,
@@ -653,6 +656,7 @@ void main() {
           name: 'Pub User',
           imageUrl: 'pub.dev/user-img-url.png',
         );
+        registerUserSessionData(session);
         final activities = await auditBackend.listRecordsForUserId(user.userId);
         expect(activities.records, isNotEmpty);
         final html = renderAccountMyActivityPage(
