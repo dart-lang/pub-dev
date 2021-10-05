@@ -100,6 +100,7 @@ class PubResourceProvider implements ResourceProvider {
 
   @override
   Future<List<int>> getModificationTimes(List<Source> sources) async {
+    // ignore: deprecated_member_use
     return _defaultProvider.getModificationTimes(sources);
   }
 
