@@ -125,8 +125,7 @@ void main() {
     });
 
     test('Flutter favorites', () {
-      final query = SearchForm.parse(
-          tagsPredicate: TagsPredicate(requiredTags: ['is:flutter-favorite']));
+      final query = SearchForm.parse(contextIsFlutterFavorites: true);
       expect(query.toSearchLink(page: 2), '/flutter/favorites?page=2');
     });
 

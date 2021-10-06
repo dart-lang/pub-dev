@@ -18,6 +18,12 @@ class SearchForm {
   final List<String> runtimes;
   final List<String> platforms;
 
+  /// Whether the search query is in the Flutter Favorites context.
+  final bool contextIsFlutterFavorites;
+
+  /// Whether the search query is in the Dart or Flutter SDK context.
+  final String? sdk;
+
   /// The query will match packages where the owners of the package have
   /// non-empty intersection with the provided list of owners.
   ///
@@ -49,6 +55,8 @@ class SearchForm {
     TagsPredicate? tagsPredicate,
     this.runtimes = const <String>[],
     this.platforms = const <String>[],
+    required this.contextIsFlutterFavorites,
+    required this.sdk,
     List<String>? uploaderOrPublishers,
     String? publisherId,
     this.order,
@@ -68,6 +76,7 @@ class SearchForm {
     List<String> runtimes = const <String>[],
     List<String> platforms = const <String>[],
     TagsPredicate? tagsPredicate,
+    bool contextIsFlutterFavorites = false,
     List<String>? uploaderOrPublishers,
     String? publisherId,
     SearchOrder? order,
@@ -82,9 +91,6 @@ class SearchForm {
     final q = _stringToNull(query?.trim());
     tagsPredicate ??= TagsPredicate();
     final requiredTags = <String>[];
-    if (SdkTagValue.isNotAny(sdk)) {
-      requiredTags.add('sdk:$sdk');
-    }
     runtimes = DartSdkRuntime.decodeQueryValues(runtimes);
     platforms = platforms.where((v) => v.isNotEmpty).toList();
     if (requiredTags.isNotEmpty) {
@@ -96,6 +102,8 @@ class SearchForm {
       tagsPredicate: tagsPredicate,
       runtimes: runtimes,
       platforms: platforms,
+      contextIsFlutterFavorites: contextIsFlutterFavorites,
+      sdk: sdk,
       uploaderOrPublishers: uploaderOrPublishers,
       publisherId: publisherId,
       order: order,
@@ -115,16 +123,10 @@ class SearchForm {
   }) {
     runtimes ??= this.runtimes;
     platforms ??= this.platforms;
-    var tagsPredicate = this.tagsPredicate;
+    var contextIsFlutterFavorites = this.contextIsFlutterFavorites;
     if (sdk != null) {
-      if (!tagsPredicate.isRequiredTag('sdk:$sdk')) {
-        tagsPredicate = tagsPredicate
-            .removePrefix('sdk:')
-            .withoutTag(PackageTags.isFlutterFavorite);
-        if (SdkTagValue.isNotAny(sdk)) {
-          tagsPredicate = tagsPredicate
-              .appendPredicate(TagsPredicate(requiredTags: ['sdk:$sdk']));
-        }
+      contextIsFlutterFavorites = false;
+      if (sdk != this.sdk) {
         if (sdk != SdkTagValue.dart) {
           runtimes = const <String>[];
         }
@@ -138,6 +140,8 @@ class SearchForm {
       tagsPredicate: tagsPredicate,
       runtimes: runtimes,
       platforms: platforms,
+      contextIsFlutterFavorites: contextIsFlutterFavorites,
+      sdk: sdk ?? this.sdk,
       uploaderOrPublishers: uploaderOrPublishers,
       publisherId: publisherId,
       order: order,
@@ -199,6 +203,8 @@ class SearchForm {
       ]));
     }
     final requiredTags = [
+      if (contextIsFlutterFavorites) PackageTags.isFlutterFavorite,
+      if (SdkTagValue.isNotAny(sdk)) 'sdk:$sdk',
       ...runtimes.map((v) => 'runtime:$v'),
       ...platforms.map((v) => 'platform:$v'),
     ];
@@ -222,23 +228,14 @@ class SearchForm {
   /// The zero-indexed offset for the search results.
   int get offset => (currentPage! - 1) * pageSize!;
 
-  String? get sdk {
-    final values = tagsPredicate.tagPartsWithPrefix('sdk', value: true);
-    return values.isEmpty ? null : values.first;
-  }
-
-  /// Returns whether the search is on Flutter Favorites.
-  bool get isFlutterFavorite =>
-      tagsPredicate.isRequiredTag(PackageTags.isFlutterFavorite);
-
   /// Converts the query to a user-facing link that the search form can use as
   /// the base path of its `action` parameter.
   String toSearchFormPath() {
     String path = '/packages';
-    if (sdk != null) {
+    if (sdk != null && SdkTagValue.isNotAny(sdk)) {
       path = '/$sdk/packages';
     }
-    if (isFlutterFavorite) {
+    if (contextIsFlutterFavorites) {
       path = '/flutter/favorites';
     }
     if (publisherId != null && publisherId!.isNotEmpty) {
@@ -299,6 +296,7 @@ SearchForm parseFrontendSearchForm(
   Map<String, String> queryParameters, {
   String? platform,
   String? sdk,
+  bool contextIsFlutterFavorites = false,
   List<String>? uploaderOrPublishers,
   String? publisherId,
   required TagsPredicate tagsPredicate,
