@@ -56,25 +56,25 @@ void main() {
           'grantedPubPoints': 20,
           'maxPubPoints': 20,
           'popularityScore': isNotNull,
-          'derivedTags': hasLength(100),
+          'derivedTags': isEmpty,
           'flags': [],
           'reportTypes': ['pana', 'dartdoc'],
           'dartdocReport': isNotNull,
           'panaReport': {
             'timestamp': isNotEmpty,
-            'panaRuntimeInfo': isNotEmpty,
-            'reportStatus': 'success',
-            'derivedTags': hasLength(100),
-            'allDependencies': hasLength(100),
+            'reportStatus': 'aborted',
+            'derivedTags': isEmpty,
+            'allDependencies': isEmpty,
             'report': {
               'sections': [
                 {
-                  'id': 'id',
-                  'title': 'title',
+                  'id': 'error',
+                  'title': 'Report exceeded size limit.',
                   'grantedPoints': 10,
                   'maxPoints': 10,
-                  'status': 'passed',
-                  'summary': hasLength(lessThan(1000)),
+                  'status': 'partial',
+                  'summary':
+                      'The `pana` report exceeded size limit. A log about the issue has been filed, the site admins will address it soon.',
                 },
               ],
             },
@@ -117,8 +117,9 @@ void main() {
             'title': 'Provide documentation',
             'grantedPoints': 10,
             'maxPoints': 10,
-            'status': 'passed',
-            'summary': hasLength(lessThan(1000)),
+            'status': 'partial',
+            'summary':
+                'The `dartdoc` report exceeded size limit. A log about the issue has been filed, the site admins will address it soon.',
           },
         });
       },
