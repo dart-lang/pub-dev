@@ -216,18 +216,6 @@ class PackageBackend {
         db.emptyKey.append(PackageVersionAsset, id: qvk.assetId(assetKind)));
   }
 
-  /// Looks up asset objects for the provided list of [keys].
-  ///
-  /// Returns `null` in the same index position if the asset entity does not
-  /// exists in the Datastore.
-  Future<List<PackageVersionAsset?>> lookupPackageVersionAssets(
-      Iterable<QualifiedVersionKey> keys, String assetKind) async {
-    return await db.lookup<PackageVersionAsset>(keys
-        .map((k) =>
-            db.emptyKey.append(PackageVersionAsset, id: k.assetId(assetKind)))
-        .toList());
-  }
-
   /// Looks up the latest versions of a list of packages.
   Future<List<PackageVersion>> lookupLatestVersions(
       List<Package> packages) async {

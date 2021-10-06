@@ -5,7 +5,6 @@
 library pub_dartlang_org.appengine_repository.models;
 
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -392,9 +391,10 @@ class PackageVersion extends db.ExpandoModel<String> {
   Version get semanticVersion => Version.parse(version!);
 
   String? get ellipsizedDescription {
-    final String? description = pubspec!.description;
+    final description = pubspec!.description;
     if (description == null) return null;
-    return description.substring(0, min(description.length, 200));
+    if (description.length < 210) return description;
+    return '${description.substring(0, 200)} [...]';
   }
 
   String get shortCreated {
