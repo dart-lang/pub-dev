@@ -315,6 +315,7 @@ SearchForm parseFrontendSearchForm(
   }
   return SearchForm.parse(
     query: queryText,
+    contextIsFlutterFavorites: contextIsFlutterFavorites,
     sdk: sdk,
     runtimes: runtimes ?? const <String>[],
     platforms: platforms ?? const <String>[],
