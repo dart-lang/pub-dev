@@ -213,7 +213,7 @@ class ScoreCardBackend {
         dartdocReport: dartdocReport,
       );
 
-      bool sizeCheck(String reportType, List<int>? bytes) {
+      bool reportIsTooBig(String reportType, List<int>? bytes) {
         if (bytes == null || bytes.isEmpty) return false;
         final size = bytes.length;
         if (size > _reportSizeDropThreshold) {
@@ -228,7 +228,7 @@ class ScoreCardBackend {
       }
 
       if (panaReport != null &&
-          sizeCheck(ReportType.pana, scoreCard.panaReportJsonGz)) {
+          reportIsTooBig(ReportType.pana, scoreCard.panaReportJsonGz)) {
         scoreCard.updateReports(
           panaReport: PanaReport(
             timestamp: DateTime.now().toUtc(),
@@ -256,7 +256,7 @@ class ScoreCardBackend {
         );
       }
       if (dartdocReport != null &&
-          sizeCheck(ReportType.dartdoc, scoreCard.dartdocReportJsonGz)) {
+          reportIsTooBig(ReportType.dartdoc, scoreCard.dartdocReportJsonGz)) {
         scoreCard.updateReports(
           dartdocReport: DartdocReport(
             timestamp: dartdocReport.timestamp,
