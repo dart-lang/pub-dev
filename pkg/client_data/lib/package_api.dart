@@ -48,6 +48,20 @@ class PkgOptions {
   Map<String, dynamic> toJson() => _$PkgOptionsToJson(this);
 }
 
+@JsonSerializable()
+class VersionOptions {
+  final bool? isRetracted;
+
+  VersionOptions({
+    this.isRetracted,
+  });
+
+  factory VersionOptions.fromJson(Map<String, dynamic> json) =>
+      _$VersionOptionsFromJson(json);
+
+  Map<String, dynamic> toJson() => _$VersionOptionsToJson(this);
+}
+
 /// Publisher ownership to get/set on a package.
 @JsonSerializable()
 class PackagePublisherInfo {

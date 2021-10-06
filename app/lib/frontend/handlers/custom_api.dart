@@ -309,3 +309,30 @@ Future<PkgOptions> putPackageOptionsHandler(
   await packageBackend.updateOptions(package, options);
   return await getPackageOptionsHandler(request, package);
 }
+
+/// Handles GET /api/packages/<package>/versions/<version>/options
+Future<VersionOptions> getVersionOptionsHandler(
+  shelf.Request request,
+  String package,
+  String version,
+) async {
+  checkPackageVersionParams(package, version);
+  final pv = await packageBackend.lookupPackageVersion(package, version);
+  if (pv == null) {
+    throw NotFoundException.resource('$package $version');
+  }
+  return VersionOptions(
+    isRetracted: pv.isRetracted,
+  );
+}
+
+/// Handles PUT /api/packages/<package>/versions/<version>/options
+Future<VersionOptions> putVersionOptionsHandler(
+  shelf.Request request,
+  String package,
+  String version,
+  VersionOptions options,
+) async {
+  await packageBackend.updatePackageVersionOptions(package, version, options);
+  return await getVersionOptionsHandler(request, package, version);
+}

@@ -242,6 +242,32 @@ class PackageBackend {
     return await query.run().toList();
   }
 
+  /// List the versions of [package] that are published in the last N [days].
+  Future<List<PackageVersion>> _listVersionsFromPastDays(
+    String package, {
+    required int days,
+    bool Function(PackageVersion pv)? where,
+  }) async {
+    final packageKey = db.emptyKey.append(Package, id: package);
+    final query = db.query<PackageVersion>(ancestorKey: packageKey)
+      ..filter(
+          'created >=', DateTime.now().toUtc().subtract(Duration(days: days)));
+    return await query.run().where((pv) => where == null || where(pv)).toList();
+  }
+
+  /// List retractable versions.
+  Future<List<PackageVersion>> listRetractableVersions(String package) async {
+    return await _listVersionsFromPastDays(package,
+        days: 7, where: (pv) => pv.canBeRetracted);
+  }
+
+  /// List versions that are retracted and the retraction is recent, it can be undone.
+  Future<List<PackageVersion>> listRecentlyRetractedVersions(
+      String package) async {
+    return await _listVersionsFromPastDays(package,
+        days: 14, where: (pv) => pv.canUndoRetracted);
+  }
+
   /// Get a [Uri] which can be used to download a tarball of the pub package.
   Future<Uri> downloadUrl(String package, String version) async {
     InvalidInputException.checkSemanticVersion(version);
@@ -417,6 +443,55 @@ class PackageBackend {
     await purgePackageCache(package);
     await jobBackend.trigger(JobService.analyzer, package,
         version: latestVersion);
+  }
+
+  /// Updates [options] on [package]/[version], assuming the current user
+  /// has proper rights, and the option change is allowed.
+  Future<void> updatePackageVersionOptions(
+    String package,
+    String version,
+    api.VersionOptions options,
+  ) async {
+    final user = await requireAuthenticatedUser();
+
+    final pkgKey = db.emptyKey.append(Package, id: package);
+    final versionKey = pkgKey.append(PackageVersion, id: version);
+    await withRetryTransaction(db, (tx) async {
+      final p = await tx.lookupOrNull<Package>(pkgKey);
+      if (p == null) {
+        throw NotFoundException.resource(package);
+      }
+      // Check that the user is admin for this package.
+      await checkPackageAdmin(p, user.userId);
+
+      final pv = await tx.lookupOrNull<PackageVersion>(versionKey);
+      if (pv == null) {
+        throw NotFoundException.resource(package);
+      }
+
+      bool hasChanged = false;
+      if (options.isRetracted != null &&
+          options.isRetracted != pv.isRetracted) {
+        if (options.isRetracted!) {
+          InvalidInputException.check(pv.canBeRetracted,
+              'Can\'t retract package "$package" version "$version".');
+          pv.isRetracted = true;
+          pv.retracted = DateTime.now().toUtc();
+        } else {
+          InvalidInputException.check(pv.canUndoRetracted,
+              'Can\'t undo retraction of package "$package" version "$version".');
+          pv.isRetracted = false;
+          pv.retracted = null;
+        }
+        hasChanged = true;
+      }
+
+      if (hasChanged) {
+        p.updated = DateTime.now().toUtc();
+        tx.insert(p);
+        tx.insert(pv);
+      }
+    });
   }
 
   /// Whether [userId] is a package admin (through direct uploaders list or
