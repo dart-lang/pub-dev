@@ -232,33 +232,26 @@ class ScoreCardBackend {
         scoreCard.updateReports(
           panaReport: PanaReport(
             timestamp: DateTime.now().toUtc(),
-            panaRuntimeInfo: panaReport.panaRuntimeInfo,
-            reportStatus: panaReport.reportStatus,
-            derivedTags: panaReport.derivedTags?.take(100).toList(),
-            allDependencies: panaReport.allDependencies?.take(100).toList(),
-            licenseFile: panaReport.licenseFile,
+            panaRuntimeInfo: null,
+            reportStatus: ReportStatus.aborted,
+            derivedTags: <String>[],
+            allDependencies: <String>[],
+            licenseFile: null,
             report: pana.Report(
-              sections: panaReport.report?.sections
-                      .map(
-                        (s) => s.summary.length < 1000
-                            ? s
-                            : pana.ReportSection(
-                                id: s.id,
-                                title: s.title,
-                                status: s.status,
-                                grantedPoints: s.grantedPoints,
-                                maxPoints: s.maxPoints,
-                                summary: [
-                                  s.summary.substring(0, 900),
-                                  '`Report exceeded size limit.`',
-                                ].join('[...]\n\n'),
-                              ),
-                      )
-                      .toList() ??
-                  [],
+              sections: [
+                pana.ReportSection(
+                  id: 'error',
+                  title: 'Report exceeded size limit.',
+                  grantedPoints: panaReport.report?.grantedPoints ?? 0,
+                  maxPoints: panaReport.report?.maxPoints ?? 1,
+                  status: pana.ReportStatus.partial,
+                  summary: 'The `pana` report exceeded size limit. '
+                      'A log about the issue has been filed, the site admins will address it soon.',
+                ),
+              ],
             ),
-            flags: panaReport.flags,
-            urlProblems: panaReport.urlProblems?.take(10).toList(),
+            flags: <String>[],
+            urlProblems: <pana.UrlProblem>[],
           ),
         );
       }
@@ -267,17 +260,17 @@ class ScoreCardBackend {
         scoreCard.updateReports(
           dartdocReport: DartdocReport(
             timestamp: dartdocReport.timestamp,
-            reportStatus: dartdocReport.reportStatus,
-            dartdocEntry: dartdocReport.dartdocEntry,
+            reportStatus: ReportStatus.aborted,
+            dartdocEntry: null,
             documentationSection: pana.ReportSection(
               id: pana.ReportSectionId.documentation,
               title: pana.documentationSectionTitle,
               grantedPoints:
                   dartdocReport.documentationSection?.grantedPoints ?? 0,
               maxPoints: dartdocReport.documentationSection?.maxPoints ?? 10,
-              status: dartdocReport.documentationSection?.status ??
-                  pana.ReportStatus.failed,
-              summary: 'Report exceeded size limit.',
+              status: pana.ReportStatus.partial,
+              summary: 'The `dartdoc` report exceeded size limit. '
+                  'A log about the issue has been filed, the site admins will address it soon.',
             ),
           ),
         );
