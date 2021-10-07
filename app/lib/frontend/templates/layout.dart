@@ -151,7 +151,7 @@ d.Node _renderSearchBanner({
 d.Node sdkTabsNode({
   SearchForm? searchForm,
 }) {
-  final isff = searchForm?.isFlutterFavorite ?? false;
+  final isff = searchForm?.contextIsFlutterFavorites ?? false;
   final currentSdk = isff ? null : searchForm?.sdk ?? SdkTagValue.any;
   SearchTab sdkTabData(String label, String tabSdk, String title) {
     String url;

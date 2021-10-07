@@ -49,10 +49,8 @@ Future<shelf.Response> flutterFavoritesPackagesHandlerHtml(
 ) {
   return _packagesHandlerHtmlCore(
     request,
+    contextIsFlutterFavorites: true,
     title: 'Flutter Favorite packages',
-    tagsPredicate: TagsPredicate.regularSearch().appendPredicate(TagsPredicate(
-      requiredTags: [PackageTags.isFlutterFavorite],
-    )),
     searchPlaceholder: 'Search Flutter favorite packages',
   );
 }
@@ -75,14 +73,15 @@ Future<shelf.Response> webPackagesHandlerHtml(shelf.Request request) async {
 Future<shelf.Response> _packagesHandlerHtmlCore(
   shelf.Request request, {
   String? sdk,
+  bool contextIsFlutterFavorites = false,
   String? title,
-  TagsPredicate? tagsPredicate,
   String? searchPlaceholder,
 }) async {
   final searchForm = parseFrontendSearchForm(
     request.requestedUri.queryParameters,
     sdk: sdk,
-    tagsPredicate: tagsPredicate ?? TagsPredicate.regularSearch(),
+    contextIsFlutterFavorites: contextIsFlutterFavorites,
+    tagsPredicate: TagsPredicate.regularSearch(),
   );
   final sw = Stopwatch()..start();
   final searchResult = await searchAdapter.search(searchForm);

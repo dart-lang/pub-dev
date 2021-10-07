@@ -7,15 +7,12 @@ import 'dart:math' as math;
 
 import 'package:http/http.dart';
 import 'package:pub_dev/search/search_form.dart';
-import 'package:pub_dev/shared/tags.dart';
 
 final _client = Client();
 final _random = math.Random.secure();
 
 final _forms = <SearchForm>[
-  SearchForm.parse(
-    tagsPredicate: TagsPredicate(requiredTags: [PackageTags.isFlutterFavorite]),
-  ),
+  SearchForm.parse(contextIsFlutterFavorites: true),
   SearchForm.parse(query: 'json'),
   SearchForm.parse(sdk: 'dart', currentPage: 2),
   SearchForm.parse(sdk: 'flutter', currentPage: 5),
