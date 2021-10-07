@@ -15,7 +15,6 @@ import '../../package/models.dart';
 import '../../package/overrides.dart';
 import '../../publisher/backend.dart';
 import '../../scorecard/backend.dart';
-import '../../shared/datastore.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../../shared/urls.dart' as urls;
@@ -310,14 +309,6 @@ Future<shelf.Response> packageActivityLogHandler(
 
 @visibleForTesting
 Future<PackagePageData> loadPackagePageData(
-  String packageName,
-  String? versionName,
-  String? assetKind,
-) =>
-    withRetryDatastore(
-        null, (_) => _loadPackagePageData(packageName, versionName, assetKind));
-
-Future<PackagePageData> _loadPackagePageData(
   String packageName,
   String? versionName,
   String? assetKind,

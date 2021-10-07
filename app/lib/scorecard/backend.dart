@@ -91,8 +91,11 @@ class ScoreCardBackend {
   }) async {
     final requiredReportTypes = ReportType.values;
     if (packageVersion == null || packageVersion == 'latest') {
-      final key = _db.emptyKey.append(Package, id: packageName);
-      final p = await _db.lookupOrNull<Package>(key);
+      final p = await db.withRetryDatastore(
+        _db,
+        (db) => db.lookupOrNull<Package>(
+            db.emptyKey.append(Package, id: packageName)),
+      );
       if (p == null) {
         return null;
       }
@@ -106,7 +109,8 @@ class ScoreCardBackend {
     }
 
     final key = scoreCardKey(packageName, packageVersion!);
-    final current = (await _db.lookupOrNull<ScoreCard>(key))?.toData();
+    final current = await db.withRetryDatastore(
+        _db, (db) async => (await db.lookupOrNull<ScoreCard>(key))?.toData());
     if (current != null) {
       // only full cards will be stored in cache
       if (current.isCurrent && current.hasReports(ReportType.values)) {
@@ -124,7 +128,8 @@ class ScoreCardBackend {
         .map((v) =>
             scoreCardKey(packageName, packageVersion!, runtimeVersion: v))
         .toList();
-    final fallbackCards = await _db.lookup<ScoreCard>(fallbackKeys);
+    final fallbackCards = await db.withRetryDatastore(
+        _db, (db) => db.lookup<ScoreCard>(fallbackKeys));
     final fallbackCardData =
         fallbackCards.where((c) => c != null).map((c) => c!.toData()).toList();
 

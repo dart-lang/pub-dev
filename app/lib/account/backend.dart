@@ -169,9 +169,11 @@ class AccountBackend {
 
   /// Returns [Like] if [userId] likes [package], otherwise returns `null`.
   Future<Like?> getPackageLikeStatus(String userId, String package) async {
-    final key = _db.emptyKey.append(User, id: userId).append(Like, id: package);
-
-    return await _db.lookupOrNull<Like>(key);
+    return await withRetryDatastore(_db, (db) async {
+      final key =
+          db.emptyKey.append(User, id: userId).append(Like, id: package);
+      return await db.lookupOrNull<Like>(key);
+    });
   }
 
   /// Returns a list with [LikeData] of all the packages that the given

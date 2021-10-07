@@ -165,11 +165,11 @@ final _transactionRetrier = RetryOptions(
 ///
 /// This does not retry [ResponseException].
 Future<T> withRetryDatastore<T>(
-  DatastoreDB? db,
+  DatastoreDB db,
   Future<T> Function(DatastoreDB db) fn,
 ) =>
     _transactionRetrier.retry<T>(
-      () => fn(db ?? dbService),
+      () => fn(db),
       // TODO(jonasfj): Over time we want reduce the number exceptions on which
       //                we retry. The following is a list of exceptions we know
       //                we want to retry:

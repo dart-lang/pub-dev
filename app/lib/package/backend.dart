@@ -148,16 +148,20 @@ class PackageBackend {
   ///
   /// Returns `null` if the package doesn't exist.
   Future<Package?> lookupPackage(String packageName) async {
-    final packageKey = db.emptyKey.append(Package, id: packageName);
-    return await db.lookupOrNull<Package>(packageKey);
+    return await withRetryDatastore(db, (db) async {
+      final packageKey = db.emptyKey.append(Package, id: packageName);
+      return await db.lookupOrNull<Package>(packageKey);
+    });
   }
 
   /// Looks up a moderated package by name.
   ///
   /// Returns `null` if the package doesn't exist.
   Future<ModeratedPackage?> lookupModeratedPackage(String packageName) async {
-    final packageKey = db.emptyKey.append(ModeratedPackage, id: packageName);
-    return await db.lookupOrNull<ModeratedPackage>(packageKey);
+    return await withRetryDatastore(db, (db) async {
+      final packageKey = db.emptyKey.append(ModeratedPackage, id: packageName);
+      return await db.lookupOrNull<ModeratedPackage>(packageKey);
+    });
   }
 
   /// Looks up a package by name.
@@ -180,12 +184,14 @@ class PackageBackend {
   /// entity does not exists in the datastore.
   Future<PackageVersion?> lookupPackageVersion(
       String package, String version) async {
-    final canonicalVersion = canonicalizeVersion(version);
-    if (canonicalVersion == null) return null;
-    final packageVersionKey = db.emptyKey
-        .append(Package, id: package)
-        .append(PackageVersion, id: canonicalVersion);
-    return await db.lookupOrNull<PackageVersion>(packageVersionKey);
+    return await withRetryDatastore(db, (db) async {
+      final canonicalVersion = canonicalizeVersion(version);
+      if (canonicalVersion == null) return null;
+      final packageVersionKey = db.emptyKey
+          .append(Package, id: package)
+          .append(PackageVersion, id: canonicalVersion);
+      return await db.lookupOrNull<PackageVersion>(packageVersionKey);
+    });
   }
 
   /// Looks up a specific package version's info object.
@@ -198,8 +204,10 @@ class PackageBackend {
     if (canonicalVersion == null) return null;
     final qvk =
         QualifiedVersionKey(package: package, version: canonicalVersion);
-    return await db.lookupOrNull<PackageVersionInfo>(
-        db.emptyKey.append(PackageVersionInfo, id: qvk.qualifiedVersion));
+    return await withRetryDatastore(db, (db) async {
+      return await db.lookupOrNull<PackageVersionInfo>(
+          db.emptyKey.append(PackageVersionInfo, id: qvk.qualifiedVersion));
+    });
   }
 
   /// Looks up a specific package version's asset object.
@@ -212,8 +220,10 @@ class PackageBackend {
     if (canonicalVersion == null) return null;
     final qvk =
         QualifiedVersionKey(package: package, version: canonicalVersion);
-    return await db.lookupOrNull<PackageVersionAsset>(
-        db.emptyKey.append(PackageVersionAsset, id: qvk.assetId(assetKind)));
+    return await withRetryDatastore(db, (db) async {
+      return await db.lookupOrNull<PackageVersionAsset>(
+          db.emptyKey.append(PackageVersionAsset, id: qvk.assetId(assetKind)));
+    });
   }
 
   /// Looks up the latest versions of a list of packages.
@@ -493,12 +503,14 @@ class PackageBackend {
     if (p.publisherId == null) {
       return p.containsUploader(userId);
     } else {
-      final memberKey = db.emptyKey
-          .append(Publisher, id: p.publisherId)
-          .append(PublisherMember, id: userId);
-      final list = await db.lookup<PublisherMember>([memberKey]);
-      final member = list.single;
-      return member?.role == PublisherMemberRole.admin;
+      return await withRetryDatastore(db, (db) async {
+        final memberKey = db.emptyKey
+            .append(Publisher, id: p.publisherId)
+            .append(PublisherMember, id: userId);
+        final list = await db.lookup<PublisherMember>([memberKey]);
+        final member = list.single;
+        return member?.role == PublisherMemberRole.admin;
+      });
     }
   }
 
