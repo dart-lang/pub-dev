@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
-import 'package:markdown/markdown.dart' as md;
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../package/backend.dart';
@@ -22,11 +21,8 @@ import '../dom/dom.dart' as d;
 /// Handles requests for /feed.atom
 Future<shelf.Response> atomFeedHandler(shelf.Request request) async {
   final feedContent = await cache.atomFeedXml().get(() async {
-    final versions = await packageBackend.latestPackageVersions(limit: 10);
-    final assets = await packageBackend.lookupPackageVersionAssets(
-        versions.map((v) => v.qualifiedVersionKey), AssetKind.readme);
-    final feed =
-        _feedFromPackageVersions(request.requestedUri, versions, assets);
+    final versions = await packageBackend.latestPackageVersions(limit: 25);
+    final feed = _feedFromPackageVersions(request.requestedUri, versions);
     return feed.toXmlDocument();
   });
   return shelf.Response.ok(
@@ -59,11 +55,7 @@ class FeedEntry {
         d.element('updated', text: updated.toIso8601String()),
         if (publisherId != null)
           d.element('author', child: d.element('name', text: publisherId)),
-        d.element(
-          'content',
-          attributes: {'type': 'html'},
-          text: content,
-        ),
+        d.element('content', text: content),
         d.element(
           'link',
           attributes: {
@@ -138,12 +130,10 @@ class Feed {
 Feed _feedFromPackageVersions(
   Uri requestedUri,
   List<PackageVersion> versions,
-  List<PackageVersionAsset?> assets,
 ) {
   final entries = <FeedEntry>[];
   for (var i = 0; i < versions.length; i++) {
     final version = versions[i];
-    final asset = assets[i];
 
     final pkgPage = urls.pkgPageUrl(version.package);
     final alternateUrl =
@@ -154,15 +144,7 @@ Feed _feedFromPackageVersions(
         sha512.convert(utf8.encode('${version.package}/${version.version}'));
     final id = createUuid(hash.bytes.sublist(0, 16));
     final title = 'v${version.version} of ${version.package}';
-
-    String? content = 'No README Found';
-    if (asset != null) {
-      content = asset.textContent;
-      if (asset.path!.endsWith('.md')) {
-        content = md.markdownToHtml(content!);
-      }
-    }
-
+    final content = version.ellipsizedDescription ?? '[no description]';
     entries.add(FeedEntry(id, title, version.created!, version.publisherId,
         content, alternateUrl, alternateTitle));
   }

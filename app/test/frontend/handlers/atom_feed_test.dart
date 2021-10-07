@@ -30,8 +30,7 @@ void main() {
           '  <id>urn:uuid:a6a43bff-e1ef-4633-b5ee-e0516b655be9</id>\n'
           '  <title>v1.2.0 of oxygen</title>\n'
           '  <updated>(.*)</updated>\n'
-          '  <content type="html">&lt;h1>oxygen&lt;/h1> &lt;p>Awesome package.&lt;/p>'
-          '</content>\n'
+          '  <content>oxygen is awesome</content>\n'
           '  <link href="https://pub.dev/packages/oxygen" rel="alternate" title="oxygen"/>\n'
           '</entry>');
       expect(
@@ -43,9 +42,7 @@ void main() {
           '  <id>urn:uuid:5f920595-c067-404a-bb19-2b0918372eb6</id>\n'
           '  <title>v1.0.0 of neon</title>\n'
           '  <updated>(.*)</updated>\n'
-          '  <content type="html">&lt;h1>neon&lt;/h1> '
-          '&lt;p>Awesome package.&lt;/p>'
-          '</content>\n'
+          '  <content>neon is awesome</content>\n'
           '  <link href="https://pub.dev/packages/neon" rel="alternate" title="neon"/>\n'
           '</entry>');
       expect(
