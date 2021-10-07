@@ -155,8 +155,8 @@ String publisherActivityLogUrl(String publisherId) =>
 
 String searchUrl({
   String? sdk,
-  List<String>? runtimes,
-  List<String>? platforms,
+  List<String> runtimes = const <String>[],
+  List<String> platforms = const <String>[],
   String? q,
   int? page,
 }) {

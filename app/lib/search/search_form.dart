@@ -15,8 +15,8 @@ class SearchForm {
   final ParsedQueryText parsedQuery;
 
   final TagsPredicate tagsPredicate;
-  final List<String>? runtimes;
-  final List<String>? platforms;
+  final List<String> runtimes;
+  final List<String> platforms;
 
   /// The query will match packages where the owners of the package have
   /// non-empty intersection with the provided list of owners.
@@ -47,8 +47,8 @@ class SearchForm {
   SearchForm._({
     this.query,
     TagsPredicate? tagsPredicate,
-    this.runtimes,
-    this.platforms,
+    this.runtimes = const <String>[],
+    this.platforms = const <String>[],
     List<String>? uploaderOrPublishers,
     String? publisherId,
     this.order,
@@ -65,8 +65,8 @@ class SearchForm {
   factory SearchForm.parse({
     String? query,
     String? sdk,
-    List<String>? runtimes,
-    List<String>? platforms,
+    List<String> runtimes = const <String>[],
+    List<String> platforms = const <String>[],
     TagsPredicate? tagsPredicate,
     List<String>? uploaderOrPublishers,
     String? publisherId,
@@ -86,7 +86,7 @@ class SearchForm {
       requiredTags.add('sdk:$sdk');
     }
     runtimes = DartSdkRuntime.decodeQueryValues(runtimes);
-    platforms = platforms?.where((v) => v.isNotEmpty).toList();
+    platforms = platforms.where((v) => v.isNotEmpty).toList();
     if (requiredTags.isNotEmpty) {
       tagsPredicate = tagsPredicate
           .appendPredicate(TagsPredicate(requiredTags: requiredTags));
@@ -126,10 +126,10 @@ class SearchForm {
               .appendPredicate(TagsPredicate(requiredTags: ['sdk:$sdk']));
         }
         if (sdk != SdkTagValue.dart) {
-          runtimes = null;
+          runtimes = const <String>[];
         }
         if (sdk != SdkTagValue.flutter) {
-          platforms = null;
+          platforms = const <String>[];
         }
       }
     }
@@ -150,7 +150,7 @@ class SearchForm {
   }
 
   SearchForm toggleRuntime(String runtime) {
-    final runtimes = <String>[...?this.runtimes];
+    final runtimes = <String>[...this.runtimes];
     if (runtimes.contains(runtime)) {
       runtimes.remove(runtime);
     } else {
@@ -160,7 +160,7 @@ class SearchForm {
   }
 
   SearchForm togglePlatform(String platform) {
-    final platforms = <String>[...?this.platforms];
+    final platforms = <String>[...this.platforms];
     if (platforms.contains(platform)) {
       platforms.remove(platform);
     } else {
@@ -199,8 +199,8 @@ class SearchForm {
       ]));
     }
     final requiredTags = [
-      ...?runtimes?.map((v) => 'runtime:$v'),
-      ...?platforms?.map((v) => 'platform:$v'),
+      ...runtimes.map((v) => 'runtime:$v'),
+      ...platforms.map((v) => 'platform:$v'),
     ];
     if (requiredTags.isNotEmpty) {
       tagsPredicate = tagsPredicate
@@ -286,10 +286,8 @@ class SearchForm {
   Map<String, String> hiddenFields() {
     final encodedRuntimes = DartSdkRuntime.encodeRuntimeTags(runtimes);
     return {
-      if (encodedRuntimes != null && encodedRuntimes.isNotEmpty)
-        'runtime': encodedRuntimes.join(' '),
-      if (platforms != null && platforms!.isNotEmpty)
-        'platform': platforms!.join(' '),
+      if (encodedRuntimes.isNotEmpty) 'runtime': encodedRuntimes.join(' '),
+      if (platforms.isNotEmpty) 'platform': platforms.join(' '),
     };
   }
 }
@@ -320,8 +318,8 @@ SearchForm parseFrontendSearchForm(
   return SearchForm.parse(
     query: queryText,
     sdk: sdk,
-    runtimes: runtimes,
-    platforms: platforms,
+    runtimes: runtimes ?? const <String>[],
+    platforms: platforms ?? const <String>[],
     uploaderOrPublishers: uploaderOrPublishers,
     publisherId: publisherId,
     order: sortOrder,
