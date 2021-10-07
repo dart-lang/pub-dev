@@ -161,16 +161,15 @@ final _transactionRetrier = RetryOptions(
   randomizationFactor: 0.25,
 );
 
-/// Call [fn] with a [TransactionWrapper] that is either committed or
-/// rolled back when [fn] returns, and retried if [fn] fails.
+/// Call [fn] with a [DatastoreDB], and retried if [fn] fails.
 ///
 /// This does not retry [ResponseException].
-Future<T> withRetryTransaction<T>(
-  DatastoreDB db,
-  Future<T> Function(TransactionWrapper tx) fn,
+Future<T> withRetryDatastore<T>(
+  DatastoreDB? db,
+  Future<T> Function(DatastoreDB db) fn,
 ) =>
     _transactionRetrier.retry<T>(
-      () => _withTransaction<T>(db, fn),
+      () => fn(db ?? dbService),
       // TODO(jonasfj): Over time we want reduce the number exceptions on which
       //                we retry. The following is a list of exceptions we know
       //                we want to retry:
@@ -180,6 +179,17 @@ Future<T> withRetryTransaction<T>(
       onRetry: (e) {
         final message =
             e is ds.DatastoreError ? 'DatastoreError' : 'non-DatastoreError';
-        _logger.info('retrying transaction - $message ${e.runtimeType}', e);
+        _logger.info(
+            'retrying Datastore operation - $message ${e.runtimeType}', e);
       },
     );
+
+/// Call [fn] with a [TransactionWrapper] that is either committed or
+/// rolled back when [fn] returns, and retried if [fn] fails.
+///
+/// This does not retry [ResponseException].
+Future<T> withRetryTransaction<T>(
+  DatastoreDB db,
+  Future<T> Function(TransactionWrapper tx) fn,
+) =>
+    withRetryDatastore(db, (db) => _withTransaction<T>(db, fn));
