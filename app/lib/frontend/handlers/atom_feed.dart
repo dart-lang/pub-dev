@@ -21,7 +21,7 @@ import '../dom/dom.dart' as d;
 /// Handles requests for /feed.atom
 Future<shelf.Response> atomFeedHandler(shelf.Request request) async {
   final feedContent = await cache.atomFeedXml().get(() async {
-    final versions = await packageBackend.latestPackageVersions(limit: 25);
+    final versions = await packageBackend.latestPackageVersions(limit: 100);
     final feed = _feedFromPackageVersions(request.requestedUri, versions);
     return feed.toXmlDocument();
   });
