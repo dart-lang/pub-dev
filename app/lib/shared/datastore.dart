@@ -161,7 +161,7 @@ final _transactionRetrier = RetryOptions(
   randomizationFactor: 0.25,
 );
 
-/// Call [fn] with a [DatastoreDB], and retried if [fn] fails.
+/// Call [fn] with a [DatastoreDB], and retries if [fn] fails.
 ///
 /// This does not retry [ResponseException].
 Future<T> withRetryDatastore<T>(
