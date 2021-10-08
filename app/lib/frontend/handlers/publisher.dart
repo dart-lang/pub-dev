@@ -58,7 +58,7 @@ Future<shelf.Response> publisherPackagesPageHandler(
   final searchForm = parseFrontendSearchForm(
     request.requestedUri.queryParameters,
     publisherId: publisherId,
-    tagsPredicate: TagsPredicate.allPackages(),
+    includeAll: true,
   );
   // Redirect in case of empty search query.
   if (request.requestedUri.query == 'q=') {

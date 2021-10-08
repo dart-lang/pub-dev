@@ -37,13 +37,15 @@ class SearchAdapter {
   /// Uses long-term caching and local randomized selection.
   /// Returns empty list when search is not available or doesn't yield results.
   Future<List<PackageView>> topFeatured({
-    List<String>? requiredTags,
+    String? sdk,
+    bool contextIsFlutterFavorites = false,
     int count = 6,
     SearchOrder? order,
   }) async {
     final form = SearchForm.parse(
+      contextIsFlutterFavorites: contextIsFlutterFavorites,
+      sdk: sdk,
       pageSize: 100,
-      tagsPredicate: TagsPredicate.advertisement(requiredTags: requiredTags),
       order: order,
     );
     final searchResults = await _searchOrFallback(

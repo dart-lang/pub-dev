@@ -16,7 +16,6 @@ import '../../package/search_adapter.dart';
 import '../../publisher/backend.dart';
 import '../../publisher/models.dart';
 import '../../search/search_form.dart';
-import '../../search/search_service.dart';
 import '../../shared/configuration.dart' show activeConfiguration;
 import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
@@ -219,7 +218,7 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
       userSessionData!.userId!,
       ...page.publishers!.map((p) => p.publisherId),
     ],
-    tagsPredicate: TagsPredicate.allPackages(),
+    includeAll: true,
   );
 
   final searchResult = await searchAdapter.search(searchForm);

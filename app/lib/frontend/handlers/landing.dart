@@ -49,7 +49,7 @@ Future<shelf.Response> indexLandingHandler(shelf.Request request) async {
 
   Future<String> _render() async {
     final ffPackages = await searchAdapter.topFeatured(
-      requiredTags: [PackageTags.isFlutterFavorite],
+      contextIsFlutterFavorites: true,
       count: 4,
     );
 
@@ -57,10 +57,10 @@ Future<shelf.Response> indexLandingHandler(shelf.Request request) async {
         await searchAdapter.topFeatured(order: SearchOrder.popularity);
 
     final topFlutterPackages =
-        await searchAdapter.topFeatured(requiredTags: [SdkTag.sdkFlutter]);
+        await searchAdapter.topFeatured(sdk: SdkTagValue.flutter);
 
     final topDartPackages =
-        await searchAdapter.topFeatured(requiredTags: [SdkTag.sdkDart]);
+        await searchAdapter.topFeatured(sdk: SdkTagValue.dart);
 
     final topPoWVideos = youtubeBackend.getTopPackageOfWeekVideos(count: 4);
 

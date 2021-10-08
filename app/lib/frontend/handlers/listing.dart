@@ -81,7 +81,6 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
     request.requestedUri.queryParameters,
     sdk: sdk,
     contextIsFlutterFavorites: contextIsFlutterFavorites,
-    tagsPredicate: TagsPredicate.regularSearch(),
   );
   final sw = Stopwatch()..start();
   final searchResult = await searchAdapter.search(searchForm);

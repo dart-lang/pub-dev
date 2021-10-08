@@ -14,7 +14,6 @@ class SearchForm {
   final String? query;
   final ParsedQueryText parsedQuery;
 
-  final TagsPredicate tagsPredicate;
   final List<String> runtimes;
   final List<String> platforms;
 
@@ -42,17 +41,22 @@ class SearchForm {
   final int? pageSize;
 
   /// True, if packages with is:discontinued tag should be included.
-  final bool? includeDiscontinued;
+  final bool includeDiscontinued;
 
   /// True, if packages with is:unlisted tag should be included.
-  final bool? includeUnlisted;
+  final bool includeUnlisted;
+
+  /// True, if all packages should be part of the results, including:
+  /// - discontinued
+  /// - unlisted
+  /// - legacy
+  final bool includeAll;
 
   /// True, if null safe package should be listed.
-  final bool? nullSafe;
+  final bool nullSafe;
 
   SearchForm._({
     this.query,
-    TagsPredicate? tagsPredicate,
     this.runtimes = const <String>[],
     this.platforms = const <String>[],
     required this.contextIsFlutterFavorites,
@@ -62,11 +66,11 @@ class SearchForm {
     this.order,
     this.currentPage,
     this.pageSize,
-    this.includeDiscontinued,
-    this.includeUnlisted,
-    this.nullSafe,
+    required this.includeDiscontinued,
+    required this.includeUnlisted,
+    required this.includeAll,
+    required this.nullSafe,
   })  : parsedQuery = ParsedQueryText.parse(query),
-        tagsPredicate = tagsPredicate ?? TagsPredicate(),
         uploaderOrPublishers = _listToNull(uploaderOrPublishers),
         publisherId = _stringToNull(publisherId);
 
@@ -75,7 +79,6 @@ class SearchForm {
     String? sdk,
     List<String> runtimes = const <String>[],
     List<String> platforms = const <String>[],
-    TagsPredicate? tagsPredicate,
     bool contextIsFlutterFavorites = false,
     List<String>? uploaderOrPublishers,
     String? publisherId,
@@ -84,22 +87,16 @@ class SearchForm {
     int? pageSize,
     bool includeDiscontinued = false,
     bool includeUnlisted = false,
+    bool includeAll = false,
     bool nullSafe = false,
   }) {
     currentPage ??= 1;
     pageSize ??= resultsPerPage;
     final q = _stringToNull(query?.trim());
-    tagsPredicate ??= TagsPredicate();
-    final requiredTags = <String>[];
     runtimes = DartSdkRuntime.decodeQueryValues(runtimes);
     platforms = platforms.where((v) => v.isNotEmpty).toList();
-    if (requiredTags.isNotEmpty) {
-      tagsPredicate = tagsPredicate
-          .appendPredicate(TagsPredicate(requiredTags: requiredTags));
-    }
     return SearchForm._(
       query: q,
-      tagsPredicate: tagsPredicate,
       runtimes: runtimes,
       platforms: platforms,
       contextIsFlutterFavorites: contextIsFlutterFavorites,
@@ -111,6 +108,7 @@ class SearchForm {
       pageSize: pageSize,
       includeDiscontinued: includeDiscontinued,
       includeUnlisted: includeUnlisted,
+      includeAll: includeAll,
       nullSafe: nullSafe,
     );
   }
@@ -137,7 +135,6 @@ class SearchForm {
     }
     return SearchForm._(
       query: query,
-      tagsPredicate: tagsPredicate,
       runtimes: runtimes,
       platforms: platforms,
       contextIsFlutterFavorites: contextIsFlutterFavorites,
@@ -149,6 +146,7 @@ class SearchForm {
       pageSize: pageSize,
       includeDiscontinued: includeDiscontinued,
       includeUnlisted: includeUnlisted,
+      includeAll: includeAll,
       nullSafe: nullSafe,
     );
   }
@@ -174,44 +172,32 @@ class SearchForm {
   }
 
   ServiceSearchQuery toServiceQuery() {
-    var tagsPredicate = this.tagsPredicate;
-    if (includeDiscontinued! &&
-        tagsPredicate.isProhibitedTag(PackageTags.isDiscontinued)) {
-      tagsPredicate = tagsPredicate.withoutTag(PackageTags.isDiscontinued);
-    }
-    if (includeUnlisted! &&
-        tagsPredicate.isProhibitedTag(PackageTags.isUnlisted)) {
-      tagsPredicate = tagsPredicate.withoutTag(PackageTags.isUnlisted);
-    }
+    var prohibitLegacy = !includeAll;
     // Only parse query texts when a quick text match indicates the presence of
     // `is:legacy` override.
-    if (tagsPredicate.isProhibitedTag(PackageVersionTags.isLegacy) &&
+    if (prohibitLegacy &&
         hasQuery &&
         query!.contains(PackageVersionTags.isLegacy)) {
       final parsed = ParsedQueryText.parse(query);
       if (parsed.tagsPredicate.isRequiredTag(PackageVersionTags.isLegacy)) {
-        tagsPredicate = tagsPredicate
-            .withoutTag(PackageVersionTags.isLegacy)
-            .appendPredicate(
-                TagsPredicate(requiredTags: [PackageVersionTags.isLegacy]));
+        prohibitLegacy = false;
       }
     }
-    if (nullSafe!) {
-      tagsPredicate =
-          tagsPredicate.appendPredicate(TagsPredicate(requiredTags: [
-        PackageTags.convertToPrereleaseTag(PackageVersionTags.isNullSafe),
-      ]));
-    }
-    final requiredTags = [
-      if (contextIsFlutterFavorites) PackageTags.isFlutterFavorite,
-      if (SdkTagValue.isNotAny(sdk)) 'sdk:$sdk',
-      ...runtimes.map((v) => 'runtime:$v'),
-      ...platforms.map((v) => 'platform:$v'),
-    ];
-    if (requiredTags.isNotEmpty) {
-      tagsPredicate = tagsPredicate
-          .appendPredicate(TagsPredicate(requiredTags: requiredTags));
-    }
+    final tagsPredicate = TagsPredicate(
+      requiredTags: [
+        if (nullSafe)
+          PackageTags.convertToPrereleaseTag(PackageVersionTags.isNullSafe),
+        if (contextIsFlutterFavorites) PackageTags.isFlutterFavorite,
+        if (SdkTagValue.isNotAny(sdk)) 'sdk:$sdk',
+        ...runtimes.map((v) => 'runtime:$v'),
+        ...platforms.map((v) => 'platform:$v'),
+      ],
+      prohibitedTags: [
+        if (!includeDiscontinued && !includeAll) PackageTags.isDiscontinued,
+        if (!includeUnlisted && !includeAll) PackageTags.isUnlisted,
+        if (prohibitLegacy) PackageVersionTags.isLegacy,
+      ],
+    );
     return ServiceSearchQuery.parse(
       query: query,
       tagsPredicate: tagsPredicate,
@@ -260,13 +246,13 @@ class SearchForm {
       final String paramName = 'sort';
       params[paramName] = serializeSearchOrder(order);
     }
-    if (includeDiscontinued!) {
+    if (includeDiscontinued) {
       params['discontinued'] = '1';
     }
-    if (includeUnlisted!) {
+    if (includeUnlisted) {
       params['unlisted'] = '1';
     }
-    if (nullSafe!) {
+    if (nullSafe) {
       params['null-safe'] = '1';
     }
     if (page != null && page > 1) {
@@ -299,7 +285,7 @@ SearchForm parseFrontendSearchForm(
   bool contextIsFlutterFavorites = false,
   List<String>? uploaderOrPublishers,
   String? publisherId,
-  required TagsPredicate tagsPredicate,
+  bool includeAll = false,
 }) {
   final currentPage = extractPageFromUrlParameters(queryParameters);
   final String queryText = queryParameters['q'] ?? '';
@@ -327,7 +313,7 @@ SearchForm parseFrontendSearchForm(
     includeUnlisted: queryParameters['unlisted'] == '1',
     nullSafe: queryParameters['prerelease-null-safe'] == '1' ||
         queryParameters['null-safe'] == '1',
-    tagsPredicate: tagsPredicate,
+    includeAll: includeAll,
   );
 }
 

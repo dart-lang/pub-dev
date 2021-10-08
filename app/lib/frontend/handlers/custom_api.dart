@@ -261,10 +261,8 @@ Future<VersionScore> packageVersionScoreHandler(
 
 /// Handles requests for /api/search
 Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
-  final searchForm = parseFrontendSearchForm(
-    request.requestedUri.queryParameters,
-    tagsPredicate: TagsPredicate.regularSearch(),
-  );
+  final searchForm =
+      parseFrontendSearchForm(request.requestedUri.queryParameters);
   final sr = await searchClient.search(searchForm.toServiceQuery());
   final packages =
       sr.allPackageHits.map((ps) => {'package': ps.package}).toList();
