@@ -123,11 +123,21 @@ class PackageBackend {
         .map((p) => p.name!);
   }
 
-  /// Retrieves package versions ordered by their latest version date.
+  /// Retrieves package versions ordered by their published date descending.
   Future<List<PackageVersion>> latestPackageVersions(
-      {int? offset, int? limit}) async {
-    final pkgPage = await latestPackages(offset: offset, limit: limit);
-    return lookupLatestVersions(pkgPage.packages);
+      {int offset = 0, required int limit}) async {
+    final query = db.query<PackageVersion>()
+      ..order('-created')
+      ..offset(offset)
+      ..limit(limit);
+    final versions = await query.run().toList();
+    final results = <PackageVersion>[];
+    for (final v in versions) {
+      if (isSoftRemoved(v.package)) continue;
+      if (!(await isPackageVisible(v.package))) continue;
+      results.add(v);
+    }
+    return results;
   }
 
   /// Returns the latest stable version of a package.

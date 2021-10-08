@@ -72,11 +72,16 @@ void main() {
     });
 
     group('Backend.latestPackageVersions', () {
-      testWithProfile('one package', fn: () async {
-        final list =
-            await packageBackend.latestPackageVersions(offset: 2, limit: 1);
-        expect(list.map((pv) => pv.qualifiedVersionKey.toString()),
-            ['neon/1.0.0']);
+      testWithProfile('all packages', fn: () async {
+        final list = await packageBackend.latestPackageVersions(limit: 100);
+        expect(list.map((pv) => pv.qualifiedVersionKey.toString()), [
+          'oxygen/2.0.0-dev',
+          'oxygen/1.2.0',
+          'oxygen/1.0.0',
+          'flutter_titanium/1.10.0',
+          'neon/1.0.0',
+          'flutter_titanium/1.9.0',
+        ]);
       });
 
       testWithProfile('empty', fn: () async {

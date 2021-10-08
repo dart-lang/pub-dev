@@ -8,6 +8,9 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded dartdoc to `4.0.0`.
  * NOTE: Migrated SearchConsole API.
          When deploying publisher registration should be manually tested before migration.
+ * NOTE: Atom feed returns the latest 100 package versions published.
+         A package may be present more than once.
+         Instead of the `README.md`, the feed contains only the `description:` field from `pubspec.yaml`.
 
 ## `20211001t132700-all`
 

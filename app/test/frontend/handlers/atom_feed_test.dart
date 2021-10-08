@@ -19,11 +19,14 @@ void main() {
       final feed = root.rootElement;
 
       final entries = feed.findElements('entry').toList();
-      expect(entries.length, 3);
+      expect(entries.length, 6);
       expect(entries.map((e) => e.findElements('title').first.text).toList(), [
+        'v2.0.0-dev of oxygen',
         'v1.2.0 of oxygen',
+        'v1.0.0 of oxygen',
         'v1.10.0 of flutter_titanium',
         'v1.0.0 of neon',
+        'v1.9.0 of flutter_titanium',
       ]);
 
       final oxygenExpr = RegExp('<entry>\n'
@@ -35,7 +38,7 @@ void main() {
           '</entry>');
       expect(
           oxygenExpr
-              .hasMatch(entries[0].toXmlString(pretty: true, indent: '  ')),
+              .hasMatch(entries[1].toXmlString(pretty: true, indent: '  ')),
           isTrue);
 
       final neonExpr = RegExp('<entry>\n'
@@ -46,7 +49,7 @@ void main() {
           '  <link href="https://pub.dev/packages/neon" rel="alternate" title="neon"/>\n'
           '</entry>');
       expect(
-          neonExpr.hasMatch(entries[2].toXmlString(pretty: true, indent: '  ')),
+          neonExpr.hasMatch(entries[4].toXmlString(pretty: true, indent: '  ')),
           isTrue);
 
       entries.forEach((e) => e.parent!.children.remove(e));
