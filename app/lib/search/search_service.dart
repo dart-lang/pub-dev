@@ -236,6 +236,10 @@ class ServiceSearchQuery {
   final List<String>? uploaderOrPublishers;
 
   final String? publisherId;
+
+  final int minPoints;
+  final int? updatedInDays;
+
   final SearchOrder? order;
   final int? offset;
   final int? limit;
@@ -245,6 +249,8 @@ class ServiceSearchQuery {
     TagsPredicate? tagsPredicate,
     List<String>? uploaderOrPublishers,
     String? publisherId,
+    required this.minPoints,
+    this.updatedInDays,
     this.order,
     this.offset,
     this.limit,
@@ -259,6 +265,8 @@ class ServiceSearchQuery {
     List<String>? uploaderOrPublishers,
     String? publisherId,
     SearchOrder? order,
+    int minPoints = 0,
+    int? updatedInDays,
     int offset = 0,
     int? limit = 10,
   }) {
@@ -268,6 +276,8 @@ class ServiceSearchQuery {
       tagsPredicate: tagsPredicate,
       uploaderOrPublishers: uploaderOrPublishers,
       publisherId: publisherId,
+      minPoints: minPoints,
+      updatedInDays: updatedInDays,
       order: order,
       offset: offset,
       limit: limit,
@@ -283,6 +293,10 @@ class ServiceSearchQuery {
     final String? orderValue = uri.queryParameters['order'];
     final SearchOrder? order = parseSearchOrder(orderValue);
 
+    final minPoints =
+        int.tryParse(uri.queryParameters['minPoints'] ?? '0') ?? 0;
+    final updatedInDays =
+        int.tryParse(uri.queryParameters['updatedInDays'] ?? '');
     final offset = int.tryParse(uri.queryParameters['offset'] ?? '0') ?? 0;
     final limit = int.tryParse(uri.queryParameters['limit'] ?? '0') ?? 0;
 
@@ -292,6 +306,8 @@ class ServiceSearchQuery {
       uploaderOrPublishers: uploaderOrPublishers,
       publisherId: publisherId,
       order: order,
+      minPoints: minPoints,
+      updatedInDays: updatedInDays,
       offset: max(0, offset),
       limit: max(_minSearchLimit, limit),
     );
@@ -312,6 +328,8 @@ class ServiceSearchQuery {
       uploaderOrPublishers: uploaderOrPublishers ?? this.uploaderOrPublishers,
       publisherId: publisherId ?? this.publisherId,
       order: order ?? this.order,
+      minPoints: minPoints,
+      updatedInDays: updatedInDays,
       offset: offset ?? this.offset,
       limit: limit ?? this.limit,
     );
@@ -324,6 +342,9 @@ class ServiceSearchQuery {
       'uploaderOrPublishers': uploaderOrPublishers,
       'publisherId': publisherId,
       'offset': offset?.toString(),
+      if (minPoints > 0) 'minPoints': minPoints.toString(),
+      if (updatedInDays != null && updatedInDays! > 0)
+        'updatedInDays': updatedInDays.toString(),
       'limit': limit?.toString(),
       'order': serializeSearchOrder(order),
     };

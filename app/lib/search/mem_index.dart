@@ -187,6 +187,26 @@ class InMemoryPackageIndex implements PackageIndex {
       });
     }
 
+    // filter on points
+    if (query.minPoints > 0) {
+      packages.removeWhere((package) {
+        final doc = _packages[package]!;
+        return (doc.grantedPoints ?? 0) < query.minPoints;
+      });
+    }
+
+    // filter on updatedInDays
+    if (query.updatedInDays != null && query.updatedInDays! > 0) {
+      final threshold =
+          Duration(days: query.updatedInDays!, hours: 11, minutes: 59);
+      final now = DateTime.now();
+      packages.removeWhere((package) {
+        final doc = _packages[package]!;
+        final diff = now.difference(doc.updated!);
+        return diff > threshold;
+      });
+    }
+
     PackageHit? highlightedHit;
     if (query.considerHighlightedHit) {
       final queryText = query.parsedQuery.text;
