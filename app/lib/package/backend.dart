@@ -125,7 +125,7 @@ class PackageBackend {
 
   /// Retrieves package versions ordered by their published date descending.
   Future<List<PackageVersion>> latestPackageVersions(
-      {int offset = 0, int limit = 10}) async {
+      {int offset = 0, required int limit}) async {
     final query = db.query<PackageVersion>()
       ..order('-created')
       ..offset(offset)
