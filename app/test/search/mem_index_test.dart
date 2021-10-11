@@ -12,64 +12,81 @@ import 'package:test/test.dart';
 void main() {
   group('InMemoryPackageIndex', () {
     late InMemoryPackageIndex index;
+    late DateTime lastPackageUpdated;
 
     setUpAll(() async {
       index = InMemoryPackageIndex(alwaysUpdateLikeScores: true);
-      await index.addPackage(PackageDocument(
-        package: 'http',
-        version: '0.11.3+14',
-        description: 'A composable, Future-based API for making HTTP requests.',
-        readme: '''http
+      final docs = [
+        PackageDocument(
+          package: 'http',
+          version: '0.11.3+14',
+          description:
+              'A composable, Future-based API for making HTTP requests.',
+          readme: '''http
           A composable, Future-based library for making HTTP requests.
           This package contains a set of high-level functions and classes that make it easy to consume HTTP resources. It's platform-independent, and can be used on both the command-line and the browser. Currently the global utility functions are unsupported on the browser; see "Using on the Browser" below.''',
-        created: DateTime.utc(2015, 01, 01),
-        updated: DateTime.utc(2017, 07, 20),
-        tags: ['sdk:dart', 'sdk:flutter', 'runtime:native-jit', 'runtime:web'],
-        popularity: 0.7,
-        likeCount: 10,
-        grantedPoints: 110,
-        maxPoints: 110,
-        dependencies: {'async': 'direct', 'test': 'dev', 'foo': 'transitive'},
-        uploaderUserIds: ['user1-at-example-dot-com'],
-      ));
-      await index.addPackage(PackageDocument(
-        package: 'async',
-        version: '1.13.3',
-        description:
-            'Utility functions and classes related to the \'dart:async\' library.',
-        readme:
-            '''Contains utility classes in the style of dart:async to work with asynchronous computations.
+          created: DateTime.utc(2015, 01, 01),
+          updated: DateTime.utc(2017, 07, 20),
+          tags: [
+            'sdk:dart',
+            'sdk:flutter',
+            'runtime:native-jit',
+            'runtime:web'
+          ],
+          popularity: 0.7,
+          likeCount: 10,
+          grantedPoints: 110,
+          maxPoints: 110,
+          dependencies: {'async': 'direct', 'test': 'dev', 'foo': 'transitive'},
+          uploaderUserIds: ['user1-at-example-dot-com'],
+        ),
+        PackageDocument(
+          package: 'async',
+          version: '1.13.3',
+          description:
+              'Utility functions and classes related to the \'dart:async\' library.',
+          readme:
+              '''Contains utility classes in the style of dart:async to work with asynchronous computations.
 The AsyncCache class allows expensive asynchronous computations values to be cached for a period of time.
 The AsyncMemoizer class makes it easy to only run an asynchronous operation once on demand.
 The CancelableOperation class defines an operation that can be canceled by its consumer. The producer can then listen for this cancellation and stop producing the future when it's received. It can be created using a CancelableCompleter.
 The delegating wrapper classes allow users to easily add functionality on top of existing instances of core types from dart:async. These include DelegatingFuture, DelegatingStream, DelegatingStreamSubscription, DelegatingStreamConsumer, DelegatingSink, DelegatingEventSink, and DelegatingStreamSink.''',
-        created: DateTime.utc(2015, 04, 01),
-        updated: DateTime.utc(2017, 05, 17),
-        tags: ['sdk:dart', 'sdk:flutter', 'runtime:native-jit', 'runtime:web'],
-        popularity: 0.8,
-        likeCount: 1,
-        grantedPoints: 10,
-        maxPoints: 110,
-        dependencies: {'test': 'dev'},
-        publisherId: 'dart.dev',
-        uploaderUserIds: ['user1-at-example-dot-com'],
-      ));
-      await index.addPackage(PackageDocument(
-        package: 'chrome_net',
-        version: '0.1.0',
-        description: 'A set of networking library for Chrome Apps.',
-        readme: '''TCP client and server libraries for Dart based Chrome Apps.
+          created: DateTime.utc(2015, 04, 01),
+          updated: DateTime.utc(2017, 05, 17),
+          tags: [
+            'sdk:dart',
+            'sdk:flutter',
+            'runtime:native-jit',
+            'runtime:web'
+          ],
+          popularity: 0.8,
+          likeCount: 1,
+          grantedPoints: 10,
+          maxPoints: 110,
+          dependencies: {'test': 'dev'},
+          publisherId: 'dart.dev',
+          uploaderUserIds: ['user1-at-example-dot-com'],
+        ),
+        PackageDocument(
+          package: 'chrome_net',
+          version: '0.1.0',
+          description: 'A set of networking library for Chrome Apps.',
+          readme: '''TCP client and server libraries for Dart based Chrome Apps.
 tcp.dart contains abstractions over chrome.sockets to aid in working with TCP client sockets and server sockets (TcpClient and TcpServer).
 server.dart adds a small, prescriptive server (PicoServer) that can be configured with different handlers for HTTP requests.''',
-        created: DateTime.utc(2014, 04, 01),
-        updated: DateTime.utc(2014, 09, 17),
-        tags: ['sdk:dart', 'runtime:web'],
-        popularity: 0.0,
-        dependencies: {'foo': 'direct'},
-        grantedPoints: 0,
-        maxPoints: 110,
-      ));
+          created: DateTime.utc(2014, 04, 01),
+          updated: DateTime.utc(2014, 09, 17),
+          tags: ['sdk:dart', 'runtime:web'],
+          popularity: 0.0,
+          dependencies: {'foo': 'direct'},
+          grantedPoints: 0,
+          maxPoints: 110,
+        ),
+      ];
+      await index.addPackages(docs);
       await index.markReady();
+      lastPackageUpdated =
+          docs.map((p) => p.updated).reduce((a, b) => a!.isAfter(b!) ? a : b)!;
     });
 
     test('popularity scores', () {
@@ -457,6 +474,65 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'packageHits': [
           {'package': 'http', 'score': closeTo(0.96, 0.01)},
           {'package': 'async', 'score': closeTo(0.70, 0.01)},
+        ],
+      });
+    });
+
+    test('no results with minPoints', () async {
+      final result =
+          await index.search(ServiceSearchQuery.parse(minPoints: 100000));
+      expect(json.decode(json.encode(result)), {
+        'timestamp': isNotNull,
+        'totalCount': 0,
+        'sdkLibraryHits': [],
+        'packageHits': [],
+      });
+    });
+
+    test('filter with minPoints', () async {
+      final result =
+          await index.search(ServiceSearchQuery.parse(minPoints: 10));
+      expect(json.decode(json.encode(result)), {
+        'timestamp': isNotNull,
+        'totalCount': 2,
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {'package': 'http', 'score': isNotNull},
+          {'package': 'async', 'score': isNotNull},
+        ],
+      });
+    });
+
+    test('no results with updatedInDays', () async {
+      final result =
+          await index.search(ServiceSearchQuery.parse(updatedInDays: 1));
+      expect(json.decode(json.encode(result)), {
+        'timestamp': isNotNull,
+        'totalCount': 0,
+        'sdkLibraryHits': [],
+        'packageHits': [],
+      });
+    });
+
+    test('filter with updatedInDays', () async {
+      final days = DateTime.now().difference(lastPackageUpdated).inDays;
+      final result1 =
+          await index.search(ServiceSearchQuery.parse(updatedInDays: days - 1));
+      expect(json.decode(json.encode(result1)), {
+        'timestamp': isNotNull,
+        'totalCount': 0,
+        'sdkLibraryHits': [],
+        'packageHits': [],
+      });
+
+      final result2 =
+          await index.search(ServiceSearchQuery.parse(updatedInDays: days + 1));
+      expect(json.decode(json.encode(result2)), {
+        'timestamp': isNotNull,
+        'totalCount': 1,
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {'package': 'http', 'score': isNotNull},
         ],
       });
     });
