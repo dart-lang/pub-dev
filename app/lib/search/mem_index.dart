@@ -188,10 +188,10 @@ class InMemoryPackageIndex implements PackageIndex {
     }
 
     // filter on points
-    if (query.minPoints > 0) {
+    if (query.minPoints != null && query.minPoints! > 0) {
       packages.removeWhere((package) {
         final doc = _packages[package]!;
-        return (doc.grantedPoints ?? 0) < query.minPoints;
+        return (doc.grantedPoints ?? 0) < query.minPoints!;
       });
     }
 

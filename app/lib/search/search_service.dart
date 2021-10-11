@@ -237,7 +237,7 @@ class ServiceSearchQuery {
 
   final String? publisherId;
 
-  final int minPoints;
+  final int? minPoints;
   final int? updatedInDays;
 
   final SearchOrder? order;
@@ -265,7 +265,7 @@ class ServiceSearchQuery {
     List<String>? uploaderOrPublishers,
     String? publisherId,
     SearchOrder? order,
-    int minPoints = 0,
+    int? minPoints,
     int? updatedInDays,
     int offset = 0,
     int? limit = 10,
@@ -342,7 +342,8 @@ class ServiceSearchQuery {
       'uploaderOrPublishers': uploaderOrPublishers,
       'publisherId': publisherId,
       'offset': offset?.toString(),
-      if (minPoints > 0) 'minPoints': minPoints.toString(),
+      if (minPoints != null && minPoints! > 0)
+        'minPoints': minPoints.toString(),
       if (updatedInDays != null && updatedInDays! > 0)
         'updatedInDays': updatedInDays.toString(),
       'limit': limit?.toString(),
