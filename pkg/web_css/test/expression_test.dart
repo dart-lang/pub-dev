@@ -22,21 +22,22 @@ void main() {
     });
 
     test('Check if all expressions are referenced in source files.', () async {
-      final styles = parse(await file.readAsString());
+      final styles = parse(
+        await file.readAsString(),
+        options: PreprocessorOptions(
+          throwOnWarnings: true,
+          throwOnErrors: true,
+          checked: true,
+        ),
+      );
       final visitor = _Visitor();
       styles.visit(visitor);
 
       // Sanity checks
-      // TODO: figure out how to find more expressions
       expect(visitor.elements, isNotEmpty);
-
-      // TODO: figure out why no element selector has been found
-      // expect(visitor.ids, isNotEmpty);
-
+      expect(visitor.ids, isNotEmpty);
       expect(visitor.classes, isNotEmpty);
-      // TODO: figure out why 'unlisted' is not present, while it is in `_tags.scss`
-      // expect(visitor.classes, contains('unlisted'));
-
+      expect(visitor.classes, contains('unlisted'));
       expect(visitor.selectors, isNotEmpty);
 
       final expressions = <String>{
@@ -46,13 +47,20 @@ void main() {
         ...visitor.selectors,
       };
 
-      // These expressions are extracted from the CSS file, but they shouldn't
-      // have been.
+      // These expressions are extracted from the CSS file, but they won't be
+      // referenced in the sources.
+      // CSS functions
       expressions.removeAll(<String>[
-        'site-font-color',
+        'first-child',
+        'focus-within',
         'keyframes',
+        'last-child',
         'nth-child',
       ]);
+      // composite patterns
+      expressions.removeWhere((e) => e.startsWith('home-block-'));
+      expressions.removeWhere(
+          (e) => e.startsWith('detail-tab-') && e.endsWith('-content'));
 
       final files = <File>[
         ...await Directory('../../app/lib')

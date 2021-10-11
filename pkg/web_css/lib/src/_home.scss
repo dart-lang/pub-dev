@@ -1,16 +1,6 @@
 /******************************************************
   home page
 ******************************************************/
-.landing-page-title {
-  color: gray;
-  font-weight: 500;
-  margin-bottom: 0px;
-}
-
-.landing-page-title-block {
-  text-align: center;
-  margin-bottom: 1em;
-}
 
 .home-banner {
   text-align: center;
@@ -240,7 +230,7 @@
 
     &.home-block-mp,
     &.home-block-tf,
-    &.home-block-td, {
+    &.home-block-td {
       display: flex;
       max-width: 596px;
       margin: 0 auto;
