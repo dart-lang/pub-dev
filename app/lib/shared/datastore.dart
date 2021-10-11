@@ -197,9 +197,9 @@ class RetryDatastoreDB implements DatastoreDB {
 
   final _readRetrier = RetryOptions(
     maxAttempts: 3,
-    delayFactor: Duration(milliseconds: 200),
-    maxDelay: Duration(seconds: 5),
-    randomizationFactor: 0.5,
+    delayFactor: Duration(milliseconds: 100),
+    maxDelay: Duration(seconds: 2),
+    randomizationFactor: 0.2,
   );
 
   RetryDatastoreDB(this._db);
