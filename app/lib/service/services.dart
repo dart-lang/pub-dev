@@ -62,6 +62,10 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
   }
   return withAppEngineServices(() async {
     return await fork(() async {
+      // retrying Datastore client
+      final origDbService = dbService;
+      registerDbService(RetryDatastoreDB(origDbService));
+
       // retrying auth client for storage service
       final authClient = await auth
           .clientViaApplicationDefaultCredentials(scopes: [...Storage.SCOPES]);
@@ -114,7 +118,7 @@ Future<void> withFakeServices({
   datastore ??= MemDatastore();
   storage ??= MemStorage();
   return await fork(() async {
-    registerDbService(DatastoreDB(datastore!));
+    registerDbService(RetryDatastoreDB(DatastoreDB(datastore!)));
     registerStorageService(storage!);
     if (configuration == null) {
       // start storage server
