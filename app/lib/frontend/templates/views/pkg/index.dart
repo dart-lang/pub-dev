@@ -33,9 +33,9 @@ d.Node packageListingNode({
 }
 
 d.Node _searchControls(SearchForm searchForm, d.Node? subSdkButtons) {
-  final includeDiscontinued = searchForm.includeDiscontinued ?? false;
-  final includeUnlisted = searchForm.includeUnlisted ?? false;
-  final nullSafe = searchForm.nullSafe ?? false;
+  final includeDiscontinued = searchForm.includeDiscontinued;
+  final includeUnlisted = searchForm.includeUnlisted;
+  final nullSafe = searchForm.nullSafe;
   final hasActiveAdvanced = includeDiscontinued || includeUnlisted || nullSafe;
   return d.div(
     classes: [

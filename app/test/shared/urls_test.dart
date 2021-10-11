@@ -201,7 +201,7 @@ void main() {
         searchUrl(sdk: 'dart', runtimes: ['native']),
         '/dart/packages?runtime=native',
       );
-      final form = SearchForm.parse(runtimes: ['native']);
+      final form = SearchForm.parse(runtimes: ['native'], includeAll: true);
       expect(form.runtimes, ['native-jit']);
       expect(
         form.toServiceQuery().tagsPredicate.toQueryParameters(),
@@ -214,7 +214,7 @@ void main() {
         searchUrl(sdk: 'dart', runtimes: ['native-jit']),
         '/dart/packages?runtime=native',
       );
-      final form = SearchForm.parse(runtimes: ['native-jit']);
+      final form = SearchForm.parse(runtimes: ['native-jit'], includeAll: true);
       expect(form.runtimes, ['native-jit']);
       expect(
         form.toServiceQuery().tagsPredicate.toQueryParameters(),
@@ -227,7 +227,7 @@ void main() {
         searchUrl(sdk: 'dart', runtimes: ['web']),
         '/dart/packages?runtime=js',
       );
-      final form = SearchForm.parse(runtimes: ['web']);
+      final form = SearchForm.parse(runtimes: ['web'], includeAll: true);
       expect(form.runtimes, ['web']);
       expect(
         form.toServiceQuery().tagsPredicate.toQueryParameters(),
@@ -240,7 +240,7 @@ void main() {
         searchUrl(sdk: 'dart', runtimes: ['js']),
         '/dart/packages?runtime=js',
       );
-      final form = SearchForm.parse(runtimes: ['js']);
+      final form = SearchForm.parse(runtimes: ['js'], includeAll: true);
       expect(form.runtimes, ['web']);
       expect(
         form.toServiceQuery().tagsPredicate.toQueryParameters(),
@@ -253,7 +253,7 @@ void main() {
         searchUrl(sdk: 'dart', runtimes: ['xxy']),
         '/dart/packages?runtime=xxy',
       );
-      final form = SearchForm.parse(runtimes: ['xxy']);
+      final form = SearchForm.parse(runtimes: ['xxy'], includeAll: true);
       expect(form.runtimes, ['xxy']);
       expect(
         form.toServiceQuery().tagsPredicate.toQueryParameters(),

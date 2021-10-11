@@ -165,17 +165,16 @@ void main() {
       final query = parseFrontendSearchForm(
         {'platform': 'android'},
         sdk: 'flutter',
-        tagsPredicate: TagsPredicate.regularSearch(),
       );
       expect(
-        query.toServiceQuery().tagsPredicate.toQueryParameters(),
-        [
+        query.toServiceQuery().tagsPredicate.toQueryParameters().toSet(),
+        {
           '-is:discontinued',
           '-is:unlisted',
           '-is:legacy',
           'sdk:flutter',
           'platform:android',
-        ],
+        },
       );
       expect(query.toSearchLink(), '/flutter/packages?platform=android');
     });
@@ -184,18 +183,17 @@ void main() {
       final query = parseFrontendSearchForm(
         Uri.parse('/flutter/packages?platform=android++ios').queryParameters,
         sdk: 'flutter',
-        tagsPredicate: TagsPredicate.regularSearch(),
       );
       expect(
-        query.toServiceQuery().tagsPredicate.toQueryParameters(),
-        [
+        query.toServiceQuery().tagsPredicate.toQueryParameters().toSet(),
+        {
           '-is:discontinued',
           '-is:unlisted',
           '-is:legacy',
           'sdk:flutter',
           'platform:android',
           'platform:ios',
-        ],
+        },
       );
       expect(query.toSearchLink(), '/flutter/packages?platform=android+ios');
     });
@@ -204,17 +202,16 @@ void main() {
       final query = parseFrontendSearchForm(
         Uri.parse('/dart/packages?runtime=web').queryParameters,
         sdk: 'dart',
-        tagsPredicate: TagsPredicate.regularSearch(),
       );
       expect(
-        query.toServiceQuery().tagsPredicate.toQueryParameters(),
-        [
+        query.toServiceQuery().tagsPredicate.toQueryParameters().toSet(),
+        {
           '-is:discontinued',
           '-is:unlisted',
           '-is:legacy',
           'sdk:dart',
           'runtime:web',
-        ],
+        },
       );
       expect(query.toSearchLink(), '/dart/packages?runtime=js');
     });
