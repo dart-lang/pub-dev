@@ -2,10 +2,11 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bumped runtimeVersion to `2021.10.05`.
+ * Bumped runtimeVersion to `2021.10.12`.
  * Upgraded stable Dart analysis SDK to `2.14.3`.
  * Upgraded stable Flutter analysis SDK to `2.5.2`.
  * Upgraded dartdoc to `4.0.0`.
+ * Upgraded dependencies (e.g. `package:analyzer` to `2.5.0`).
  * NOTE: Migrated SearchConsole API.
          When deploying publisher registration should be manually tested before migration.
  * NOTE: Atom feed returns the latest 100 package versions published.
