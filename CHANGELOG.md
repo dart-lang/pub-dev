@@ -6,6 +6,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Dart analysis SDK to `2.14.3`.
  * Upgraded stable Flutter analysis SDK to `2.5.2`.
  * Upgraded dartdoc to `4.0.0`.
+ * Upgraded pana to `0.21.3`.
  * Upgraded dependencies (e.g. `package:analyzer` to `2.5.0`).
  * NOTE: Migrated SearchConsole API.
          When deploying publisher registration should be manually tested before migration.
