@@ -1142,6 +1142,7 @@ Future<void> purgePackageCache(String package) async {
   await Future.wait([
     cache.packageVisible(package).purge(),
     cache.packageData(package).purge(),
+    cache.packageDataGz(package).purge(),
     cache.packageLatestVersion(package).purge(),
     cache.packageView(package).purge(),
     cache.uiPackagePage(package, null).purge(),

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
@@ -375,12 +376,34 @@ Future<PackagePageData> loadPackagePageData(
 Future<shelf.Response> listVersionsHandler(
     shelf.Request request, Uri baseUri, String package) async {
   checkPackageVersionParams(package);
-  final body = await cache.packageData(package).get(() async {
+
+  Future<List<int>> createRawBytes() async {
     final data = await packageBackend.listVersions(baseUri, package);
     return jsonUtf8Encoder.convert(data.toJson());
-  });
-  return shelf.Response(200, body: body, headers: {
-    'content-type': 'application/json; charset="utf-8"',
-    'x-content-type-options': 'nosniff',
-  });
+  }
+
+  Future<List<int>> createGzipBytes() async {
+    final raw = await createRawBytes();
+    return gzip.encode(raw);
+  }
+
+  shelf.Response createResponse(List<int> body, {required bool isGzip}) {
+    return shelf.Response(
+      200,
+      body: body,
+      headers: {
+        if (isGzip) 'content-encoding': 'gzip',
+        'content-type': 'application/json; charset="utf-8"',
+        'x-content-type-options': 'nosniff',
+      },
+    );
+  }
+
+  if (request.acceptsEncoding('gzip')) {
+    final body = await cache.packageDataGz(package).get(createGzipBytes);
+    return createResponse(body!, isGzip: true);
+  } else {
+    final body = await cache.packageData(package).get(createRawBytes);
+    return createResponse(body!, isGzip: false);
+  }
 }

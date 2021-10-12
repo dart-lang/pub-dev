@@ -13,6 +13,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * NOTE: Atom feed returns the latest 100 package versions published.
          A package may be present more than once.
          Instead of the `README.md`, the feed contains only the `description:` field from `pubspec.yaml`.
+ * NOTE: `/api/packages/<package>` calls are now cached and served with `gzip` content-encoding
+         when the client sends accept header in the request (`pub` client does send it).
 
 ## `20211001t132700-all`
 
