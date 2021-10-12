@@ -38,11 +38,17 @@ manual process where name squatting is determined by a pub.dev moderator.
 If you believe a package is engaged in name squatting,
 you can use the following steps to request a pub.dev moderator review and that the package be transferred to you:
 
- 1. Locate the email of the publisher, as shown in the details pane on the package page on pub.dev.
- 2. Email the publisher and copy/cc `support@pub.dev`, politely asking the publisher to either
-    explain their intended purpose or transfer the ownership of the package to you.
- 3. If the publisher does not respond within three (3) weeks, forward the thread to `support@pub.dev`,
-    and a pub.dev moderator will review your request.
+ 1. If the package has a publisher, locate the publisher in the details pane on 
+    the package page on pub.dev, the publisher page will have a contact email.
+ 2. Email the publisher and copy/cc `support@pub.dev`, politely asking the
+    publisher to either explain their intended purpose or transfer the ownership
+    of the package to you.
+
+    If the package had no publisher just email `support@pub.dev`, include the
+    package name, and we will forward the email to the package uploader.
+
+ 3. If the publisher does not respond within three (3) weeks, forward the thread
+    to `support@pub.dev`, and a pub.dev moderator will review your request.
 
 ### Trademark infringement
 Google and pub.dev respect the importance of trademarks and other proprietary rights,
