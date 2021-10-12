@@ -374,8 +374,8 @@ class ServiceSearchQuery {
 
   String? get sdk {
     final values = tagsPredicate._values.entries
-        .where((e) => e.key!.startsWith('sdk:') && e.value == true)
-        .map((e) => e.key!.split(':')[1]);
+        .where((e) => e.key.startsWith('sdk:') && e.value == true)
+        .map((e) => e.key.split(':')[1]);
     return values.isEmpty ? null : values.first;
   }
 
@@ -414,7 +414,7 @@ class QueryValidity {
 /// Filter conditions on tags.
 class TagsPredicate {
   /// tag -> {true = required | false = prohibited}
-  final _values = <String?, bool>{};
+  final _values = <String, bool>{};
 
   TagsPredicate({List<String>? requiredTags, List<String>? prohibitedTags}) {
     requiredTags?.forEach((tag) => _values[tag] = true);
@@ -430,10 +430,6 @@ class TagsPredicate {
           PackageVersionTags.isLegacy,
         ],
       );
-
-  /// Pre-populates the predicate with the default tags for all package listings
-  /// (e.g. "My packages").
-  factory TagsPredicate.allPackages() => TagsPredicate();
 
   bool get isEmpty => _values.isEmpty;
   bool get isNotEmpty => _values.isNotEmpty;
@@ -496,27 +492,6 @@ class TagsPredicate {
     return p;
   }
 
-  /// Create a new [TagsPredicate] from this [TagsPredicate] without any
-  /// constraints on [tag].
-  TagsPredicate withoutTag(String tag) {
-    final p = TagsPredicate();
-    p._values.addAll(_values);
-    p._values.remove(tag);
-    return p;
-  }
-
-  /// Creates a new instance with the current values except the ones starting
-  /// with [prefix].
-  TagsPredicate removePrefix(String prefix) {
-    final p = TagsPredicate();
-    _values.entries.forEach((e) {
-      if (!e.key!.startsWith(prefix)) {
-        p._values[e.key] = e.value;
-      }
-    });
-    return p;
-  }
-
   /// Evaluate this predicate against the list of supplied [tags].
   /// Returns true if the predicate matches the [tags], false otherwise.
   bool matches(List<String> tags) {
@@ -530,17 +505,8 @@ class TagsPredicate {
   }
 
   /// Returns the list of tag values that can be passed to search service URL.
-  List<String?> toQueryParameters() {
+  List<String> toQueryParameters() {
     return _values.entries.map((e) => e.value ? e.key : '-${e.key}').toList();
-  }
-
-  /// Returns the second part of the tags matching [prefix] and [value].
-  List<String> tagPartsWithPrefix(String prefix, {bool? value}) {
-    return _values.keys
-        .where((k) =>
-            k!.startsWith('$prefix:') && (value == null || _values[k] == value))
-        .map((k) => k!.substring(prefix.length + 1))
-        .toList();
   }
 }
 
