@@ -148,6 +148,10 @@ class CachePatterns {
       .withPrefix('api-package-data-by-uri')
       .withTTL(Duration(minutes: 10))['$package'];
 
+  Entry<List<int>> packageDataGz(String package) => _cache
+      .withPrefix('api-package-data-gz-by-uri')
+      .withTTL(Duration(minutes: 10))['$package'];
+
   Entry<VersionScore> versionScore(String package, String? version) => _cache
       .withPrefix('api-version-score')
       .withTTL(Duration(minutes: 60))
