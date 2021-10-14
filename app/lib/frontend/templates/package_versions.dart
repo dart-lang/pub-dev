@@ -18,12 +18,9 @@ import 'views/pkg/versions/version_row.dart';
 /// Renders the `views/pkg/versions/index` template.
 String renderPkgVersionsPage(
   PackagePageData data,
-  List<PackageVersion> versions,
-  List<Uri> versionDownloadUrls, {
+  List<PackageVersion> versions, {
   required Version dartSdkVersion,
 }) {
-  assert(versions.length == versionDownloadUrls.length);
-
   final previewVersionRows = <d.Node>[];
   final stableVersionRows = <d.Node>[];
   final prereleaseVersionRows = <d.Node>[];
@@ -34,8 +31,7 @@ String renderPkgVersionsPage(
       : null;
   for (int i = 0; i < versions.length; i++) {
     final version = versions[i];
-    final url = versionDownloadUrls[i].toString();
-    final rowNode = versionRowNode(version: version, downloadUrl: url);
+    final rowNode = versionRowNode(version);
     if (version.semanticVersion.isPreRelease) {
       prereleaseVersionRows.add(rowNode);
     } else if (version.pubspec!.isPreviewForCurrentSdk(dartSdkVersion)) {
