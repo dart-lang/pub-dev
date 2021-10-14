@@ -41,8 +41,8 @@ RUN dart /project/tool/pub_get_offline.dart /project/app
 #ENV GCLOUD_KEY /project/key.json
 #ENV GCLOUD_PROJECT dartlang-pub
 
-RUN /project/app/script/setup-dart.sh /tool/stable https://storage.googleapis.com/dart-archive/channels/stable/raw/2.14.3/sdk/dartsdk-linux-x64-release.zip
-RUN /project/app/script/setup-dart.sh /tool/preview https://storage.googleapis.com/dart-archive/channels/beta/release/2.15.0-82.2.beta/sdk/dartsdk-linux-x64-release.zip
+RUN /project/app/script/setup-dart.sh /tool/stable https://storage.googleapis.com/dart-archive/channels/stable/raw/2.14.4/sdk/dartsdk-linux-x64-release.zip
+RUN /project/app/script/setup-dart.sh /tool/preview https://storage.googleapis.com/dart-archive/channels/beta/release/2.15.0-178.1.beta/sdk/dartsdk-linux-x64-release.zip
 
 RUN /project/app/script/setup-flutter.sh /tool/stable 2.5.2
 RUN /project/app/script/setup-flutter.sh /tool/preview 2.6.0-5.2.pre
