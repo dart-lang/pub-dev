@@ -50,12 +50,12 @@ you can use the following steps to request a pub.dev moderator review and that t
 
    * If the package has no publisher:
 
-     * Email `support@pub.dev`, politely asking the publisher to either
+     * Email `support@pub.dev`, politely asking the uploader to either
        explain their intended purpose or transfer the ownership of the package
        to you.
        
-     * Be sure to mention the package name, and we will forward the email to the
-       package uploader.
+     * Be sure to mention the package name, and the pub.dev support team will
+       forward the email to the package uploader.
 
 2. If the publisher does not respond within three (3) weeks, forward the thread
   to `support@pub.dev`, and a pub.dev moderator will review your request.
