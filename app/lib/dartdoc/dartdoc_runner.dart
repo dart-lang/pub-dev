@@ -19,6 +19,7 @@ import '../job/backend.dart';
 import '../job/job.dart';
 import '../package/backend.dart';
 import '../package/models.dart';
+import '../package/overrides.dart';
 import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
 import '../shared/configuration.dart';
@@ -311,10 +312,14 @@ class DartdocJobProcessor extends JobProcessor {
 
           if (hasContent) {
             try {
+              final isInternal =
+                  internalPackageNames.contains(job.packageName!) ||
+                      packageStatus.isPublishedByDartDev;
               await DartdocCustomizer(customizerConfig(
                 packageName: job.packageName!,
                 packageVersion: job.packageVersion!,
                 isLatestStable: job.isLatestStable,
+                isInternal: isInternal,
               )).customizeDir(outputDir);
               logFileOutput.write('Content customization completed.\n\n');
             } catch (e, st) {

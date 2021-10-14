@@ -8,11 +8,18 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart' as html_parser;
+import 'package:logging/logging.dart';
+import 'package:path/path.dart' as p;
+
+import 'dartdoc_sanitizer.dart';
+
+final _logger = Logger('dartdoc_customization');
 
 class DartdocCustomizerConfig {
   final String packageName;
   final String packageVersion;
   final bool isLatestStable;
+  final bool isInternal;
   final String docRootUrl;
   final String latestStableDocumentationUrl;
   final String pubPackagePageUrl;
@@ -26,6 +33,7 @@ class DartdocCustomizerConfig {
     required this.packageName,
     required this.packageVersion,
     required this.isLatestStable,
+    required this.isInternal,
     required this.docRootUrl,
     required this.latestStableDocumentationUrl,
     required this.pubPackagePageUrl,
@@ -46,16 +54,41 @@ class DartdocCustomizer {
     final dir = Directory(path);
     await for (var fse in dir.list(recursive: true)) {
       if (fse is File && fse.path.endsWith('.html')) {
-        final c = await customizeFile(fse);
+        final relativeName = p.relative(fse.path, from: dir.path);
+        final level = p.split(relativeName).length - 1;
+        final c = await customizeFile(fse, level);
         changed = changed || c;
       }
     }
     return changed;
   }
 
-  Future<bool> customizeFile(File file) async {
-    final String oldContent = await file.readAsString();
-    final newContent = customizeHtml(oldContent);
+  Future<bool> customizeFile(File file, int directoryLevel) async {
+    final oldContent = await file.readAsString();
+    var newContent = oldContent;
+    try {
+      final sr = config.isInternal
+          ? SanitizerResult(true, oldContent, <String>[])
+          : sanitizeDartdocHtml(oldContent, directoryLevel);
+      if (!sr.passed) {
+        _logger.info(
+            '[dartdoc-sanitized-html] Failed to sanitize ${config.packageName} ${config.packageVersion} '
+            'file ${file.path}: ${sr.removed.join('; ')}');
+      }
+      newContent = customizeHtml(sr.contentHtml);
+    } catch (e, st) {
+      // Per-file catch-all for sanitization and customization, to make sure
+      // we will inspect all the files before uploading any of them.
+      _logger.shout(
+          '[dartdoc-sanitized-html] Failed to customize ${config.packageName} ${config.packageVersion} file ${file.path}',
+          e,
+          st);
+
+      // Paranoid override, as we don't know what happened.
+      newContent =
+          '<html><body>Failed to customize dartdoc file.</body></html>';
+    }
+    // override file only if the content changed
     if (oldContent != newContent) {
       await file.writeAsString(newContent);
       return true;

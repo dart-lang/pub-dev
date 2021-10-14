@@ -52,11 +52,13 @@ void main() {
         packageName: package,
         packageVersion: version,
         isLatestStable: false,
+        isInternal: false,
       ));
       final latestCustomizer = DartdocCustomizer(customizerConfig(
         packageName: package,
         packageVersion: version,
         isLatestStable: true,
+        isInternal: false,
       ));
 
       final path = '${package}_${version}_$name';

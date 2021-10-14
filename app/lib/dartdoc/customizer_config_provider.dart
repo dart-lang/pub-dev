@@ -12,11 +12,13 @@ DartdocCustomizerConfig customizerConfig({
   required String packageName,
   required String packageVersion,
   required bool isLatestStable,
+  required bool isInternal,
 }) {
   return DartdocCustomizerConfig(
     packageName: packageName,
     packageVersion: packageVersion,
     isLatestStable: isLatestStable,
+    isInternal: isInternal,
     docRootUrl: isLatestStable
         ? pkgDocUrl(packageName, isLatest: true)
         : pkgDocUrl(packageName, version: packageVersion),
