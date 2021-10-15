@@ -2,30 +2,32 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pub_dev/frontend/templates/package_misc.dart';
+import 'package:client_data/package_api.dart';
 
-import '../../../../../package/models.dart';
+import '../../../../../package/model_properties.dart';
 import '../../../../../shared/urls.dart' as urls;
+import '../../../../../shared/utils.dart' show shortDateFormat;
 import '../../../../dom/dom.dart' as d;
 import '../../../../static_files.dart';
+import '../../../package_misc.dart';
 
-d.Node versionRowNode(PackageVersion version) {
-  final sdk = version.pubspec!.minSdkVersion;
+d.Node versionRowNode(String package, VersionInfo version, Pubspec pubspec) {
+  final sdk = pubspec.minSdkVersion;
   return d.tr(
     attributes: {
-      'data-version': version.version!,
+      'data-version': version.version,
     },
     children: [
       d.td(
         classes: ['version'],
         child: d.a(
-          href: urls.pkgPageUrl(version.package, version: version.version),
-          text: version.version!,
+          href: urls.pkgPageUrl(package, version: version.version),
+          text: version.version,
         ),
       ),
       d.td(
         classes: ['badge'],
-        child: version.pubspec!.hasOptedIntoNullSafety
+        child: pubspec.hasOptedIntoNullSafety
             ? nullSafeBadgeNode(
                 title: 'Package version is opted into null safety.')
             : null,
@@ -37,19 +39,19 @@ d.Node versionRowNode(PackageVersion version) {
                 '${sdk.major}.${sdk.minor}${sdk.channel != null ? '(${sdk.channel})' : ''}')
             : null,
       ),
-      d.td(classes: ['uploaded'], text: version.shortCreated),
+      d.td(
+          classes: ['uploaded'],
+          text: shortDateFormat.format(version.published!)),
       d.td(
         classes: ['documentation'],
         child: d.a(
-          href: urls.pkgDocUrl(version.package, version: version.version),
+          href: urls.pkgDocUrl(package, version: version.version),
           rel: 'nofollow',
-          title:
-              'Go to the documentation of ${version.package} ${version.version}',
+          title: 'Go to the documentation of $package ${version.version}',
           child: d.img(
             classes: ['version-table-icon'],
             src: staticUrls.documentationIcon,
-            alt:
-                'Go to the documentation of ${version.package} ${version.version}',
+            alt: 'Go to the documentation of $package ${version.version}',
             attributes: {
               'data-failed-icon': staticUrls.documentationFailedIcon,
             },
@@ -59,13 +61,13 @@ d.Node versionRowNode(PackageVersion version) {
       d.td(
         classes: ['archive'],
         child: d.a(
-          href: urls.pkgArchiveDownloadUrl(version.package, version.version!),
+          href: version.archiveUrl,
           rel: 'nofollow',
-          title: 'Download ${version.package} ${version.version} archive',
+          title: 'Download $package ${version.version} archive',
           child: d.img(
             classes: ['version-table-icon'],
             src: staticUrls.downloadIcon,
-            alt: 'Download ${version.package} ${version.version} archive',
+            alt: 'Download $package ${version.version} archive',
           ),
         ),
       ),

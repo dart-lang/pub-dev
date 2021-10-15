@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:client_data/package_api.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:pub_semver/pub_semver.dart';
 
+import '../../package/model_properties.dart';
 import '../../package/models.dart';
 import '../../shared/urls.dart' as urls;
+import '../../shared/utils.dart' show shortDateFormat;
 import '../dom/dom.dart' as d;
 
 import 'detail_page.dart';
@@ -18,7 +21,7 @@ import 'views/pkg/versions/version_row.dart';
 /// Renders the `views/pkg/versions/index` template.
 String renderPkgVersionsPage(
   PackagePageData data,
-  List<PackageVersion> versions, {
+  List<VersionInfo> versions, {
   required Version dartSdkVersion,
 }) {
   final previewVersionRows = <d.Node>[];
@@ -31,10 +34,12 @@ String renderPkgVersionsPage(
       : null;
   for (int i = 0; i < versions.length; i++) {
     final version = versions[i];
-    final rowNode = versionRowNode(version);
-    if (version.semanticVersion.isPreRelease) {
+    final pubspec = Pubspec.fromJson(version.pubspec);
+    final rowNode = versionRowNode(pubspec.name, version, pubspec);
+    final semanticVersion = Version.parse(version.version);
+    if (semanticVersion.isPreRelease) {
       prereleaseVersionRows.add(rowNode);
-    } else if (version.pubspec!.isPreviewForCurrentSdk(dartSdkVersion)) {
+    } else if (pubspec.isPreviewForCurrentSdk(dartSdkVersion)) {
       previewVersionRows.add(rowNode);
     } else {
       stableVersionRows.add(rowNode);
@@ -48,8 +53,9 @@ String renderPkgVersionsPage(
     blocks.add(d.p(
       children: [
         d.text('The latest prerelease was '),
-        d.a(href: '#prerelease', text: latestPrereleaseVersion!.version!),
-        d.text(' on ${latestPrereleaseVersion.shortCreated}.'),
+        d.a(href: '#prerelease', text: latestPrereleaseVersion!.version),
+        d.text(
+            ' on ${shortDateFormat.format(latestPrereleaseVersion.published!)}.'),
       ],
     ));
   }

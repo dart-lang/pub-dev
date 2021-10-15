@@ -77,8 +77,11 @@ Future<shelf.Response> packageVersionsListHandler(
 
       sortPackageVersionsDesc(versions);
       final dartSdkVersion = await getDartSdkVersion();
-      return renderPkgVersionsPage(data, versions,
-          dartSdkVersion: dartSdkVersion.semanticVersion);
+      return renderPkgVersionsPage(
+        data,
+        versions.map((v) => v.toApiVersionInfo()).toList(),
+        dartSdkVersion: dartSdkVersion.semanticVersion,
+      );
     },
     cacheEntry: cache.uiPackageVersions(packageName),
   );
