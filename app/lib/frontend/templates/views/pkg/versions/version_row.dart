@@ -9,10 +9,7 @@ import '../../../../../shared/urls.dart' as urls;
 import '../../../../dom/dom.dart' as d;
 import '../../../../static_files.dart';
 
-d.Node versionRowNode({
-  required PackageVersion version,
-  required String downloadUrl,
-}) {
+d.Node versionRowNode(PackageVersion version) {
   final sdk = version.pubspec!.minSdkVersion;
   return d.tr(
     attributes: {
@@ -62,7 +59,7 @@ d.Node versionRowNode({
       d.td(
         classes: ['archive'],
         child: d.a(
-          href: downloadUrl,
+          href: urls.pkgArchiveDownloadUrl(version.package, version.version!),
           rel: 'nofollow',
           title: 'Download ${version.package} ${version.version} archive',
           child: d.img(

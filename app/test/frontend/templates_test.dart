@@ -453,10 +453,6 @@ void main() {
         final html = renderPkgVersionsPage(
           data,
           versions,
-          versions
-              .map((v) => Uri.parse(
-                  'https://pub.dev/download-url/${v.package}/${v.version}'))
-              .toList(),
           dartSdkVersion: Version.parse(runtimeSdkVersion),
         );
         expectGoldenFile(html, 'pkg_versions_page.html', timestamps: {

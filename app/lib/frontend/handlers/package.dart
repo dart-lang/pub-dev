@@ -76,13 +76,8 @@ Future<shelf.Response> packageVersionsListHandler(
       }
 
       sortPackageVersionsDesc(versions);
-      final versionDownloadUrls =
-          await Future.wait(versions.map((PackageVersion version) {
-        return packageBackend.downloadUrl(packageName, version.version!);
-      }).toList());
-
       final dartSdkVersion = await getDartSdkVersion();
-      return renderPkgVersionsPage(data, versions, versionDownloadUrls,
+      return renderPkgVersionsPage(data, versions,
           dartSdkVersion: dartSdkVersion.semanticVersion);
     },
     cacheEntry: cache.uiPackageVersions(packageName),
