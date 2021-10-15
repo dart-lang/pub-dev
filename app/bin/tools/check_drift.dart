@@ -12,12 +12,12 @@ final _client = Client();
 final _random = math.Random.secure();
 
 final _forms = <SearchForm>[
-  SearchForm.parse(contextIsFlutterFavorites: true),
-  SearchForm.parse(query: 'json'),
-  SearchForm.parse(sdk: 'dart', currentPage: 2),
-  SearchForm.parse(sdk: 'flutter', currentPage: 5),
-  SearchForm.parse(order: SearchOrder.created),
-  SearchForm.parse(order: SearchOrder.updated, currentPage: 3),
+  SearchForm(context: SearchContext.flutterFavorites()),
+  SearchForm(query: 'json'),
+  SearchForm(context: SearchContext.dart(), currentPage: 2),
+  SearchForm(context: SearchContext.flutter(), currentPage: 5),
+  SearchForm(order: SearchOrder.created),
+  SearchForm(order: SearchOrder.updated, currentPage: 3),
 ];
 
 Future<void> main(List<String> args) async {
@@ -51,7 +51,7 @@ Future<_Sample> _sample({
   int maxAttempts = 20,
   int maxItems = 3,
 }) async {
-  form ??= SearchForm.parse();
+  form ??= SearchForm();
   var attempt = 0;
   final items = <_Item>[];
 

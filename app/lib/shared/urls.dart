@@ -5,7 +5,7 @@
 import 'package:path/path.dart' as p;
 
 import '../package/overrides.dart';
-import '../search/search_form.dart' show SearchForm, SearchOrder;
+import '../search/search_form.dart' show SearchContext, SearchForm, SearchOrder;
 
 const primaryHost = 'pub.dev';
 const legacyHost = 'pub.dartlang.org';
@@ -145,7 +145,7 @@ String pkgDocUrl(
 
 String publisherUrl(String publisherId) => '/publishers/$publisherId';
 String publisherPackagesUrl(String publisherId) =>
-    SearchForm.parse(publisherId: publisherId).toSearchLink();
+    SearchForm(context: SearchContext.publisher(publisherId)).toSearchLink();
 
 String publisherAdminUrl(String publisherId) =>
     publisherUrl(publisherId) + '/admin';
@@ -154,14 +154,14 @@ String publisherActivityLogUrl(String publisherId) =>
     publisherUrl(publisherId) + '/activity-log';
 
 String searchUrl({
-  String? sdk,
+  SearchContext? context,
   List<String> runtimes = const <String>[],
   List<String> platforms = const <String>[],
   String? q,
   int? page,
 }) {
-  final query = SearchForm.parse(
-    sdk: sdk,
+  final query = SearchForm(
+    context: context,
     runtimes: runtimes,
     platforms: platforms,
     query: q,
@@ -170,7 +170,7 @@ String searchUrl({
 }
 
 String listingByPopularity() =>
-    SearchForm.parse(order: SearchOrder.popularity).toSearchLink();
+    SearchForm(order: SearchOrder.popularity).toSearchLink();
 String listingFlutterPackages() => '/flutter/packages';
 String listingDartPackages() => '/dart/packages';
 

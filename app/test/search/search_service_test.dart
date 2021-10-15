@@ -24,13 +24,13 @@ void main() {
 
   group('ParsedQuery', () {
     test('trim', () {
-      expect(SearchForm.parse(query: 'text').parsedQuery.text, 'text');
-      expect(SearchForm.parse(query: ' text ').query, 'text');
-      expect(SearchForm.parse(query: ' text ').parsedQuery.text, 'text');
+      expect(SearchForm(query: 'text').parsedQuery.text, 'text');
+      expect(SearchForm(query: ' text ').query, 'text');
+      expect(SearchForm(query: ' text ').parsedQuery.text, 'text');
     });
 
     test('no dependency', () {
-      final query = SearchForm.parse(query: 'text');
+      final query = SearchForm(query: 'text');
       expect(query.parsedQuery.text, 'text');
       expect(query.parsedQuery.refDependencies, []);
       expect(query.parsedQuery.allDependencies, []);
@@ -38,7 +38,7 @@ void main() {
     });
 
     test('only one dependency', () {
-      final query = SearchForm.parse(query: 'dependency:pkg');
+      final query = SearchForm(query: 'dependency:pkg');
       expect(query.parsedQuery.text, isNull);
       expect(query.parsedQuery.refDependencies, ['pkg']);
       expect(query.parsedQuery.allDependencies, []);
@@ -46,7 +46,7 @@ void main() {
     });
 
     test('only one dependency*', () {
-      final query = SearchForm.parse(query: 'dependency*:pkg');
+      final query = SearchForm(query: 'dependency*:pkg');
       expect(query.parsedQuery.text, isNull);
       expect(query.parsedQuery.refDependencies, []);
       expect(query.parsedQuery.allDependencies, ['pkg']);
@@ -54,8 +54,8 @@ void main() {
     });
 
     test('two dependencies with text blocks', () {
-      final query = SearchForm.parse(
-          query: 'text1 dependency:pkg1 text2 dependency:pkg2');
+      final query =
+          SearchForm(query: 'text1 dependency:pkg1 text2 dependency:pkg2');
       expect(query.parsedQuery.text, 'text1 text2');
       expect(query.parsedQuery.refDependencies, ['pkg1', 'pkg2']);
       expect(query.parsedQuery.allDependencies, []);
@@ -63,8 +63,8 @@ void main() {
     });
 
     test('two mixed dependencies with text blocks', () {
-      final query = SearchForm.parse(
-          query: 'text1 dependency:pkg1 text2 dependency*:pkg2');
+      final query =
+          SearchForm(query: 'text1 dependency:pkg1 text2 dependency*:pkg2');
       expect(query.parsedQuery.text, 'text1 text2');
       expect(query.parsedQuery.refDependencies, ['pkg1']);
       expect(query.parsedQuery.allDependencies, ['pkg2']);
@@ -72,27 +72,27 @@ void main() {
     });
 
     test('only publisher', () {
-      final query = SearchForm.parse(query: 'publisher:example.com');
+      final query = SearchForm(query: 'publisher:example.com');
       expect(query.parsedQuery.text, isNull);
       expect(query.parsedQuery.publisher, 'example.com');
     });
 
     test('known tag', () {
-      final query = SearchForm.parse(query: 'is:legacy');
+      final query = SearchForm(query: 'is:legacy');
       expect(query.parsedQuery.text, isNull);
       expect(
           query.parsedQuery.tagsPredicate.toQueryParameters(), ['is:legacy']);
     });
 
     test('forbidden known tag', () {
-      final query = SearchForm.parse(query: '-is:legacy');
+      final query = SearchForm(query: '-is:legacy');
       expect(query.parsedQuery.text, isNull);
       expect(
           query.parsedQuery.tagsPredicate.toQueryParameters(), ['-is:legacy']);
     });
 
     test('known tag + package prefix + search text', () {
-      final query = SearchForm.parse(query: 'json is:legacy package:foo_');
+      final query = SearchForm(query: 'json is:legacy package:foo_');
       expect(query.parsedQuery.text, 'json');
       expect(
           query.parsedQuery.tagsPredicate.toQueryParameters(), ['is:legacy']);
@@ -101,7 +101,7 @@ void main() {
 
     test('publisher + email + text + dependency', () {
       final query =
-          SearchForm.parse(query: 'publisher:example.com text dependency:pkg1');
+          SearchForm(query: 'publisher:example.com text dependency:pkg1');
       expect(query.parsedQuery.text, 'text');
       expect(query.parsedQuery.refDependencies, ['pkg1']);
       expect(query.parsedQuery.allDependencies, []);
@@ -111,48 +111,49 @@ void main() {
 
   group('Search URLs', () {
     test('empty', () {
-      final query = SearchForm.parse();
+      final query = SearchForm();
       expect(query.parsedQuery.text, isNull);
       expect(query.parsedQuery.packagePrefix, isNull);
       expect(query.toSearchLink(), '/packages');
     });
 
     test('platform: flutter', () {
-      final query = SearchForm.parse(sdk: 'flutter');
+      final query = SearchForm(context: SearchContext.flutter());
       expect(query.parsedQuery.text, isNull);
       expect(query.parsedQuery.packagePrefix, isNull);
       expect(query.toSearchLink(), '/flutter/packages');
     });
 
     test('Flutter favorites', () {
-      final query = SearchForm.parse(contextIsFlutterFavorites: true);
+      final query = SearchForm(context: SearchContext.flutterFavorites());
       expect(query.toSearchLink(page: 2), '/flutter/favorites?page=2');
     });
 
     test('publisher: example.com', () {
-      final query = SearchForm.parse(publisherId: 'example.com');
+      final query = SearchForm(context: SearchContext.publisher('example.com'));
       expect(query.toSearchLink(), '/publishers/example.com/packages');
       expect(query.toSearchLink(page: 2),
           '/publishers/example.com/packages?page=2');
     });
 
     test('publisher: example.com with query', () {
-      final query = SearchForm.parse(publisherId: 'example.com', query: 'json');
+      final query = SearchForm(
+          context: SearchContext.publisher('example.com'), query: 'json');
       expect(query.toSearchLink(), '/publishers/example.com/packages?q=json');
       expect(query.toSearchLink(page: 2),
           '/publishers/example.com/packages?q=json&page=2');
     });
 
     test('package prefix: angular', () {
-      final query = SearchForm.parse(query: 'package:angular');
+      final query = SearchForm(query: 'package:angular');
       expect(query.parsedQuery.text, isNull);
       expect(query.parsedQuery.packagePrefix, 'angular');
       expect(query.toSearchLink(), '/packages?q=package%3Aangular');
     });
 
     test('complex search', () {
-      final query = SearchForm.parse(
-          query: 'package:angular widget', order: SearchOrder.top);
+      final query =
+          SearchForm(query: 'package:angular widget', order: SearchOrder.top);
       expect(query.parsedQuery.text, 'widget');
       expect(query.parsedQuery.packagePrefix, 'angular');
       expect(query.toSearchLink(),
@@ -162,9 +163,9 @@ void main() {
 
   group('new sdk queries', () {
     test('sdk:flutter & platform:android', () {
-      final query = parseFrontendSearchForm(
+      final query = SearchForm.parse(
+        SearchContext.flutter(),
         {'platform': 'android'},
-        sdk: 'flutter',
       );
       expect(
         query.toServiceQuery().tagsPredicate.toQueryParameters().toSet(),
@@ -180,9 +181,9 @@ void main() {
     });
 
     test('sdk:flutter & platform:android & platform:ios', () {
-      final query = parseFrontendSearchForm(
+      final query = SearchForm.parse(
+        SearchContext.flutter(),
         Uri.parse('/flutter/packages?platform=android++ios').queryParameters,
-        sdk: 'flutter',
       );
       expect(
         query.toServiceQuery().tagsPredicate.toQueryParameters().toSet(),
@@ -199,9 +200,9 @@ void main() {
     });
 
     test('sdk:dart & runtime:web', () {
-      final query = parseFrontendSearchForm(
+      final query = SearchForm.parse(
+        SearchContext.dart(),
         Uri.parse('/dart/packages?runtime=web').queryParameters,
-        sdk: 'dart',
       );
       expect(
         query.toServiceQuery().tagsPredicate.toQueryParameters().toSet(),

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pub_dev/search/search_form.dart' show SearchForm;
+import 'package:pub_dev/search/search_form.dart';
 import 'package:pub_dev/shared/urls.dart';
 import 'package:test/test.dart';
 
@@ -192,16 +192,18 @@ void main() {
     });
 
     test('sdk:dart', () {
-      expect(searchUrl(sdk: 'dart'), '/dart/packages');
-      expect(searchUrl(sdk: 'dart', q: 'abc'), '/dart/packages?q=abc');
+      expect(searchUrl(context: SearchContext.dart()), '/dart/packages');
+      expect(searchUrl(context: SearchContext.dart(), q: 'abc'),
+          '/dart/packages?q=abc');
     });
 
     test('sdk:dart runtime:native', () {
       expect(
-        searchUrl(sdk: 'dart', runtimes: ['native']),
+        searchUrl(context: SearchContext.dart(), runtimes: ['native']),
         '/dart/packages?runtime=native',
       );
-      final form = SearchForm.parse(runtimes: ['native'], includeAll: true);
+      final form =
+          SearchForm(runtimes: ['native'], context: SearchContext.all());
       expect(form.runtimes, ['native-jit']);
       expect(
         form.toServiceQuery().tagsPredicate.toQueryParameters(),
@@ -211,10 +213,11 @@ void main() {
 
     test('sdk:dart runtime:native-jit', () {
       expect(
-        searchUrl(sdk: 'dart', runtimes: ['native-jit']),
+        searchUrl(context: SearchContext.dart(), runtimes: ['native-jit']),
         '/dart/packages?runtime=native',
       );
-      final form = SearchForm.parse(runtimes: ['native-jit'], includeAll: true);
+      final form =
+          SearchForm(runtimes: ['native-jit'], context: SearchContext.all());
       expect(form.runtimes, ['native-jit']);
       expect(
         form.toServiceQuery().tagsPredicate.toQueryParameters(),
@@ -224,10 +227,10 @@ void main() {
 
     test('sdk:dart runtime:web', () {
       expect(
-        searchUrl(sdk: 'dart', runtimes: ['web']),
+        searchUrl(context: SearchContext.dart(), runtimes: ['web']),
         '/dart/packages?runtime=js',
       );
-      final form = SearchForm.parse(runtimes: ['web'], includeAll: true);
+      final form = SearchForm(runtimes: ['web'], context: SearchContext.all());
       expect(form.runtimes, ['web']);
       expect(
         form.toServiceQuery().tagsPredicate.toQueryParameters(),
@@ -237,10 +240,10 @@ void main() {
 
     test('sdk:dart runtime:js', () {
       expect(
-        searchUrl(sdk: 'dart', runtimes: ['js']),
+        searchUrl(context: SearchContext.dart(), runtimes: ['js']),
         '/dart/packages?runtime=js',
       );
-      final form = SearchForm.parse(runtimes: ['js'], includeAll: true);
+      final form = SearchForm(runtimes: ['js'], context: SearchContext.all());
       expect(form.runtimes, ['web']);
       expect(
         form.toServiceQuery().tagsPredicate.toQueryParameters(),
@@ -250,10 +253,10 @@ void main() {
 
     test('sdk:dart runtime:xxy', () {
       expect(
-        searchUrl(sdk: 'dart', runtimes: ['xxy']),
+        searchUrl(context: SearchContext.dart(), runtimes: ['xxy']),
         '/dart/packages?runtime=xxy',
       );
-      final form = SearchForm.parse(runtimes: ['xxy'], includeAll: true);
+      final form = SearchForm(runtimes: ['xxy'], context: SearchContext.all());
       expect(form.runtimes, ['xxy']);
       expect(
         form.toServiceQuery().tagsPredicate.toQueryParameters(),
@@ -262,12 +265,15 @@ void main() {
     });
 
     test('sdk:flutter', () {
-      expect(searchUrl(sdk: 'flutter'), '/flutter/packages');
-      expect(searchUrl(sdk: 'flutter', q: 'abc'), '/flutter/packages?q=abc');
+      expect(searchUrl(context: SearchContext.flutter()), '/flutter/packages');
+      expect(searchUrl(context: SearchContext.flutter(), q: 'abc'),
+          '/flutter/packages?q=abc');
     });
 
     test('sdk:flutter platform:android+ios', () {
-      expect(searchUrl(sdk: 'flutter', platforms: ['android', 'ios']),
+      expect(
+          searchUrl(
+              context: SearchContext.flutter(), platforms: ['android', 'ios']),
           '/flutter/packages?platform=android+ios');
     });
   });

@@ -260,8 +260,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('order by updated: runtime filter', () async {
       final result = await index.search(
-        SearchForm.parse(
-          sdk: 'dart',
+        SearchForm(
+          context: SearchContext.dart(),
           order: SearchOrder.updated,
           runtimes: ['native'],
         ).toServiceQuery(),

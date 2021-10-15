@@ -8,21 +8,21 @@ import 'package:test/test.dart';
 void main() {
   group('SearchForm', () {
     test('query with defaults', () {
-      final form = SearchForm.parse(query: 'web framework');
+      final form = SearchForm(query: 'web framework');
       expect(form.toSearchLink(), '/packages?q=web+framework');
       expect(form.toSearchLink(page: 1), '/packages?q=web+framework');
       expect(form.toSearchLink(page: 2), '/packages?q=web+framework&page=2');
     });
 
     test('query with defaults on page 1', () {
-      final form = SearchForm.parse(query: 'web framework', currentPage: 1);
+      final form = SearchForm(query: 'web framework', currentPage: 1);
       expect(form.toSearchLink(), '/packages?q=web+framework');
       expect(form.toSearchLink(page: 1), '/packages?q=web+framework');
       expect(form.toSearchLink(page: 2), '/packages?q=web+framework&page=2');
     });
 
     test('query with defaults on page 3', () {
-      final form = SearchForm.parse(query: 'web framework', currentPage: 3);
+      final form = SearchForm(query: 'web framework', currentPage: 3);
       expect(form.toSearchLink(), '/packages?q=web+framework&page=3');
       expect(form.toSearchLink(page: 1), '/packages?q=web+framework');
       expect(form.toSearchLink(page: 2), '/packages?q=web+framework&page=2');
@@ -30,7 +30,10 @@ void main() {
     });
 
     test('query with with sdk', () {
-      final form = SearchForm.parse(query: 'some framework', sdk: 'flutter');
+      final form = SearchForm(
+        context: SearchContext.flutter(),
+        query: 'some framework',
+      );
       expect(form.toSearchLink(), '/flutter/packages?q=some+framework');
       expect(form.toSearchLink(page: 1), '/flutter/packages?q=some+framework');
       expect(form.toSearchLink(page: 2),
@@ -38,22 +41,30 @@ void main() {
     });
 
     test('removing Dart runtimes', () {
-      final form =
-          SearchForm.parse(query: 'text', sdk: 'dart', runtimes: ['js']);
+      final form = SearchForm(
+        context: SearchContext.dart(),
+        query: 'text',
+        runtimes: ['js'],
+      );
       expect(form.toSearchLink(), '/dart/packages?q=text&runtime=js');
-      expect(form.change(sdk: 'dart').toSearchLink(), form.toSearchLink());
-      expect(form.change(sdk: 'flutter').toSearchLink(),
+      expect(form.change(context: SearchContext.dart()).toSearchLink(),
+          form.toSearchLink());
+      expect(form.change(context: SearchContext.flutter()).toSearchLink(),
           '/flutter/packages?q=text');
-      expect(form.change(sdk: 'any').toSearchLink(), '/packages?q=text');
+      expect(form.change(context: SearchContext.regular()).toSearchLink(),
+          '/packages?q=text');
     });
 
     test('removing Flutter platforms', () {
-      final form =
-          SearchForm.parse(query: 'text', sdk: 'flutter', platforms: ['web']);
+      final form = SearchForm(
+          query: 'text', context: SearchContext.flutter(), platforms: ['web']);
       expect(form.toSearchLink(), '/flutter/packages?q=text&platform=web');
-      expect(form.change(sdk: 'dart').toSearchLink(), '/dart/packages?q=text');
-      expect(form.change(sdk: 'flutter').toSearchLink(), form.toSearchLink());
-      expect(form.change(sdk: 'any').toSearchLink(), '/packages?q=text');
+      expect(form.change(context: SearchContext.dart()).toSearchLink(),
+          '/dart/packages?q=text');
+      expect(form.change(context: SearchContext.flutter()).toSearchLink(),
+          form.toSearchLink());
+      expect(form.change(context: SearchContext.regular()).toSearchLink(),
+          '/packages?q=text');
     });
   });
 }

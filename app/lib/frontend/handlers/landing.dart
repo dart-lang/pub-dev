@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:pub_dev/search/search_form.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../package/search_adapter.dart';
@@ -19,18 +20,18 @@ import '../templates/landing.dart';
 
 /// Handles requests for /dart
 Future<shelf.Response> dartLandingHandler(shelf.Request request) async =>
-    redirectResponse(urls.searchUrl(sdk: SdkTagValue.dart));
+    redirectResponse(urls.searchUrl(context: SearchContext.dart()));
 
 /// Handles requests for /flutter
 Future<shelf.Response> flutterLandingHandler(shelf.Request request) async {
-  return redirectResponse(urls.searchUrl(sdk: SdkTagValue.flutter));
+  return redirectResponse(urls.searchUrl(context: SearchContext.flutter()));
 }
 
 /// Handles requests for /web
 Future<shelf.Response> webLandingHandler(shelf.Request request) async {
   return redirectResponse(
     urls.searchUrl(
-      sdk: SdkTagValue.dart,
+      context: SearchContext.dart(),
       runtimes: [DartSdkRuntime.web],
     ),
   );
@@ -49,18 +50,18 @@ Future<shelf.Response> indexLandingHandler(shelf.Request request) async {
 
   Future<String> _render() async {
     final ffPackages = await searchAdapter.topFeatured(
-      contextIsFlutterFavorites: true,
+      context: SearchContext.flutterFavorites(),
       count: 4,
     );
 
-    final mostPopularPackages =
-        await searchAdapter.topFeatured(order: SearchOrder.popularity);
+    final mostPopularPackages = await searchAdapter.topFeatured(
+        context: SearchContext.regular(), order: SearchOrder.popularity);
 
     final topFlutterPackages =
-        await searchAdapter.topFeatured(sdk: SdkTagValue.flutter);
+        await searchAdapter.topFeatured(context: SearchContext.flutter());
 
     final topDartPackages =
-        await searchAdapter.topFeatured(sdk: SdkTagValue.dart);
+        await searchAdapter.topFeatured(context: SearchContext.dart());
 
     final topPoWVideos = youtubeBackend.getTopPackageOfWeekVideos(count: 4);
 
