@@ -451,7 +451,7 @@ void main() {
         final versions = await packageBackend.versionsOfPackage('oxygen');
         final html = renderPkgVersionsPage(
           data,
-          versions,
+          versions.map((v) => v.toApiVersionInfo()).toList(),
           dartSdkVersion: Version.parse(runtimeSdkVersion),
         );
         expectGoldenFile(html, 'pkg_versions_page.html', timestamps: {

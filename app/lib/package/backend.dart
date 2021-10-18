@@ -631,9 +631,10 @@ class PackageBackend {
       name: package,
       isDiscontinued: pkg.isDiscontinued ? true : null,
       replacedBy: pkg.replacedBy,
-      latest: _toApiVersionInfo(baseUri, latest),
-      versions:
-          packageVersions.map((pv) => _toApiVersionInfo(baseUri, pv)).toList(),
+      latest: latest.toApiVersionInfo(baseUri: baseUri),
+      versions: packageVersions
+          .map((pv) => pv.toApiVersionInfo(baseUri: baseUri))
+          .toList(),
     );
   }
 
@@ -658,18 +659,8 @@ class PackageBackend {
       throw NotFoundException.resource('version "$version"');
     }
 
-    return _toApiVersionInfo(baseUri, pv);
+    return pv.toApiVersionInfo(baseUri: baseUri);
   }
-
-  api.VersionInfo _toApiVersionInfo(Uri baseUri, PackageVersion pv) =>
-      api.VersionInfo(
-        version: pv.version!,
-        isRetracted: pv.isRetracted == true ? true : null,
-        pubspec: pv.pubspec!.asJson,
-        archiveUrl: urls.pkgArchiveDownloadUrl(pv.package, pv.version!,
-            baseUri: baseUri),
-        published: pv.created,
-      );
 
   @visibleForTesting
   Stream<List<int>> download(String package, String version) {
@@ -1096,6 +1087,19 @@ class PackageBackend {
     // safe fallback on enabling uploads
     _logger.warning('Unknown upload restriction status: $value');
     return UploadRestrictionStatus.noRestriction;
+  }
+}
+
+extension PackageVersionExt on PackageVersion {
+  api.VersionInfo toApiVersionInfo({Uri? baseUri}) {
+    return api.VersionInfo(
+      version: version!,
+      isRetracted: isRetracted == true ? true : null,
+      pubspec: pubspec!.asJson,
+      archiveUrl:
+          urls.pkgArchiveDownloadUrl(package, version!, baseUri: baseUri),
+      published: created,
+    );
   }
 }
 
