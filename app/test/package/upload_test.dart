@@ -456,9 +456,11 @@ void main() {
           expect(email.bodyText,
               contains('https://pub.dev/packages/oxygen/versions/3.0.0\n'));
 
-          final pkgPage = await packageBackend.latestPackages();
-          expect(pkgPage.packages.first.name, 'oxygen');
-          expect(pkgPage.packages.first.latestVersion, '3.0.0');
+          await nameTracker.scanDatastore();
+          final lastPublished =
+              nameTracker.packagesOrderedByLastPublishedDesc.first;
+          expect(lastPublished.package, 'oxygen');
+          expect(lastPublished.latestVersion, '3.0.0');
 
           final stream = packageBackend.download('oxygen', '3.0.0');
           final chunks = await stream.toList();

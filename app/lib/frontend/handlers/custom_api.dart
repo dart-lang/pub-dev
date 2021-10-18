@@ -11,6 +11,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../../dartdoc/backend.dart';
 import '../../frontend/request_context.dart';
 import '../../package/backend.dart';
+import '../../package/models.dart';
 import '../../package/name_tracker.dart';
 import '../../package/overrides.dart';
 import '../../scorecard/backend.dart';
@@ -140,15 +141,18 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
   }
 
   final data = await cache.apiPackagesListPage(page).get(() async {
-    final pkgPage = await packageBackend.latestPackages(
-        offset: pageSize * (page - 1), limit: pageSize);
-    final pageVersions =
-        await packageBackend.lookupLatestVersions(pkgPage.packages);
+    final offset = pageSize * (page - 1);
+    final allPackages = nameTracker.packagesOrderedByLastPublishedDesc;
+    final packages = allPackages.skip(offset).take(pageSize).toList();
+    final pageVersions = await packageBackend.lookupVersions(
+      packages.map((p) =>
+          QualifiedVersionKey(package: p.package, version: p.latestVersion)),
+    );
 
     final packagesJson = [];
 
     final uri = activeConfiguration.primaryApiUri;
-    for (var version in pageVersions) {
+    for (final version in pageVersions.whereType<PackageVersion>()) {
       final versionString = Uri.encodeComponent(version.version!);
       final packageString = Uri.encodeComponent(version.package);
 
@@ -187,7 +191,7 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
       //     - 'prev_url'
     };
 
-    if (!pkgPage.isLast) {
+    if (allPackages.length > offset + pageSize) {
       json['next_url'] = '${uri!.resolve('/api/packages?page=${page + 1}')}';
     } else {
       // Set the last page in cache, if not already there with a lower number.
