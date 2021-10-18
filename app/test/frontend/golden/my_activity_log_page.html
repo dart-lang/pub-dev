@@ -44,8 +44,17 @@
       <div class="site-header-space"></div>
       <div class="site-header-mask"></div>
       <div class="site-header-nav scroll-container">
-        <div class="nav-login-container">
-          <button id="-account-login" class="nav-main-button link">Sign in</button>
+        <div id="-account-profile" class="nav-container nav-my-container hoverable">
+          <button class="nav-main-button">My pub.dev</button>
+          <div class="nav-hover-popup">
+            <div class="nav-table-column">
+              <a class="nav-link" href="/my-packages">My packages</a>
+              <a class="nav-link" href="/my-liked-packages">My liked packages</a>
+              <a class="nav-link" href="/my-publishers">My publishers</a>
+              <a class="nav-link" href="/my-activity-log">My activity log</a>
+              <a class="nav-link" href="/create-publisher">Create publisher</a>
+            </div>
+          </div>
         </div>
         <div class="nav-container nav-help-container hoverable">
           <button class="nav-main-button">Help</button>
@@ -99,6 +108,22 @@
           <div class="foldable-content">
             <a class="nav-link" href="https://dart.dev/tools/pub/get-started" rel="noopener" target="_blank">Using packages</a>
             <a class="nav-link" href="https://dart.dev/tools/pub/publishing" rel="noopener" target="_blank">Publishing a package</a>
+          </div>
+        </div>
+        <div class="nav-container nav-profile-container hoverable">
+          <input class="nav-profile-img nav-profile-image-desktop" type="image" src="pub.dev/user-img-url.png" alt="Profile Image"/>
+          <div class="nav-hover-popup">
+            <div class="nav-table-column">
+              <div class="nav-account-title-mobile">
+                <img class="nav-profile-img nav-profile-img-mobile" src="pub.dev/user-img-url.png" alt="Profile Image"/>
+                <div class="nav-account-title">
+                  <div class="nav-account-name">Pub User</div>
+                  <div class="nav-account-email">admin@pub.dev</div>
+                </div>
+              </div>
+              <div class="nav-separator"></div>
+              <a id="-account-logout" class="nav-link">Sign out</a>
+            </div>
           </div>
         </div>
       </div>
