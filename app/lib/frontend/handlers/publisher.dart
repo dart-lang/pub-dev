@@ -55,10 +55,9 @@ Future<shelf.Response> publisherPageHandler(
 /// Handles requests for GET /publishers/<publisherId>/packages [?q=...]
 Future<shelf.Response> publisherPackagesPageHandler(
     shelf.Request request, String publisherId) async {
-  final searchForm = parseFrontendSearchForm(
+  final searchForm = SearchForm.parse(
+    SearchContext.publisher(publisherId),
     request.requestedUri.queryParameters,
-    publisherId: publisherId,
-    includeAll: true,
   );
   // Redirect in case of empty search query.
   if (request.requestedUri.query == 'q=') {

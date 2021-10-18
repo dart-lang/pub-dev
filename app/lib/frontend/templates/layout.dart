@@ -104,7 +104,7 @@ d.Node _renderSearchBanner({
   required SearchForm? searchForm,
   String? searchPlaceholder,
 }) {
-  final sdk = searchForm?.sdk ?? SdkTagValue.any;
+  final sdk = searchForm?.context.sdk ?? SdkTagValue.any;
   final queryText = searchForm?.query;
   bool includePreferencesAsHiddenFields = false;
   if (publisherId != null) {
@@ -117,19 +117,20 @@ d.Node _renderSearchBanner({
   }
   String searchFormUrl;
   if (publisherId != null) {
-    searchFormUrl = SearchForm.parse(publisherId: publisherId).toSearchLink();
+    searchFormUrl = SearchForm(context: SearchContext.publisher(publisherId))
+        .toSearchLink();
   } else if (type == PageType.account) {
     searchFormUrl = urls.myPackagesUrl();
   } else if (searchForm != null) {
-    searchFormUrl = searchForm.toSearchFormPath();
+    searchFormUrl = searchForm.context.toSearchFormPath();
   } else {
-    searchFormUrl = SearchForm.parse().toSearchFormPath();
+    searchFormUrl = SearchForm().context.toSearchFormPath();
   }
   final searchSort = searchForm?.order == null
       ? null
       : serializeSearchOrder(searchForm!.order);
   final hiddenInputs = includePreferencesAsHiddenFields
-      ? (searchForm ?? SearchForm.parse()).hiddenFields()
+      ? (searchForm ?? SearchForm()).hiddenFields()
       : null;
   return searchBannerNode(
     // When search is active (query text has a non-empty value) users may expect
@@ -151,19 +152,19 @@ d.Node _renderSearchBanner({
 d.Node sdkTabsNode({
   SearchForm? searchForm,
 }) {
-  final isff = searchForm?.contextIsFlutterFavorites ?? false;
-  final currentSdk = isff ? null : searchForm?.sdk ?? SdkTagValue.any;
-  SearchTab sdkTabData(String label, String tabSdk, String title) {
+  final isff = searchForm?.context.isFlutterFavorites ?? false;
+  final currentSdk = isff ? null : searchForm?.context.sdk ?? SdkTagValue.any;
+  SearchTab sdkTabData(SearchContext context, String label, String title) {
     String url;
     if (searchForm != null) {
-      url = searchForm.change(sdk: tabSdk, currentPage: 1).toSearchLink();
+      url = searchForm.change(context: context, currentPage: 1).toSearchLink();
     } else {
-      url = urls.searchUrl(sdk: tabSdk);
+      url = urls.searchUrl(context: context);
     }
     return SearchTab(
       text: label,
       href: url,
-      active: tabSdk == currentSdk,
+      active: (context.sdk ?? SdkTagValue.any) == currentSdk,
       title: title,
     );
   }
@@ -171,18 +172,18 @@ d.Node sdkTabsNode({
   return searchTabsNode(
     [
       sdkTabData(
+        SearchContext.dart(),
         'Dart',
-        SdkTagValue.dart,
         'Packages compatible with the Dart SDK',
       ),
       sdkTabData(
+        SearchContext.flutter(),
         'Flutter',
-        SdkTagValue.flutter,
         'Packages compatible with the Flutter SDK',
       ),
       sdkTabData(
+        SearchContext.regular(),
         'Any',
-        SdkTagValue.any,
         'Packages compatible with the any SDK',
       ),
     ],

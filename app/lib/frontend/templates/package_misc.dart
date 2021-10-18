@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../../package/models.dart';
+import '../../search/search_form.dart';
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
@@ -55,7 +56,7 @@ d.Node tagsNodeFromPackageView({
     badgeTags.add(BadgeTag(
       sdk: 'Dart',
       title: 'Packages compatible with Dart SDK',
-      href: urls.searchUrl(sdk: SdkTagValue.dart),
+      href: urls.searchUrl(context: SearchContext.dart()),
       subTags: [
         if (tags.contains(DartSdkTag.runtimeNativeJit))
           BadgeSubTag(
@@ -63,7 +64,7 @@ d.Node tagsNodeFromPackageView({
             title:
                 'Packages compatible with Dart running on a native platform (JIT/AOT)',
             href: urls.searchUrl(
-                sdk: SdkTagValue.dart,
+                context: SearchContext.dart(),
                 runtimes: DartSdkRuntime.encodeRuntimeTags(
                     [DartSdkRuntime.nativeJit])),
           ),
@@ -72,7 +73,7 @@ d.Node tagsNodeFromPackageView({
             text: 'js',
             title: 'Packages compatible with Dart compiled for the web',
             href: urls.searchUrl(
-                sdk: SdkTagValue.dart,
+                context: SearchContext.dart(),
                 runtimes:
                     DartSdkRuntime.encodeRuntimeTags([DartSdkRuntime.web])),
           ),
@@ -83,14 +84,14 @@ d.Node tagsNodeFromPackageView({
     badgeTags.add(BadgeTag(
       sdk: 'Flutter',
       title: 'Packages compatible with Flutter SDK',
-      href: urls.searchUrl(sdk: SdkTagValue.flutter),
+      href: urls.searchUrl(context: SearchContext.flutter()),
       subTags: [
         if (tags.contains(FlutterSdkTag.platformAndroid))
           BadgeSubTag(
             text: 'Android',
             title: 'Packages compatible with Flutter on the Android platform',
             href: urls.searchUrl(
-                sdk: SdkTagValue.flutter,
+                context: SearchContext.flutter(),
                 platforms: [FlutterSdkPlatform.android]),
           ),
         if (tags.contains(FlutterSdkTag.platformIos))
@@ -98,14 +99,16 @@ d.Node tagsNodeFromPackageView({
             text: 'iOS',
             title: 'Packages compatible with Flutter on the iOS platform',
             href: urls.searchUrl(
-                sdk: SdkTagValue.flutter, platforms: [FlutterSdkPlatform.ios]),
+              context: SearchContext.flutter(),
+              platforms: [FlutterSdkPlatform.ios],
+            ),
           ),
         if (tags.contains(FlutterSdkTag.platformLinux))
           BadgeSubTag(
             text: 'Linux',
             title: 'Packages compatible with Flutter on the Linux platform',
             href: urls.searchUrl(
-                sdk: SdkTagValue.flutter,
+                context: SearchContext.flutter(),
                 platforms: [FlutterSdkPlatform.linux]),
           ),
         if (tags.contains(FlutterSdkTag.platformMacos))
@@ -113,7 +116,7 @@ d.Node tagsNodeFromPackageView({
             text: 'macOS',
             title: 'Packages compatible with Flutter on the macOS platform',
             href: urls.searchUrl(
-                sdk: SdkTagValue.flutter,
+                context: SearchContext.flutter(),
                 platforms: [FlutterSdkPlatform.macos]),
           ),
         if (tags.contains(FlutterSdkTag.platformWeb))
@@ -121,15 +124,18 @@ d.Node tagsNodeFromPackageView({
             text: 'web',
             title: 'Packages compatible with Flutter on the Web platform',
             href: urls.searchUrl(
-                sdk: SdkTagValue.flutter, platforms: [FlutterSdkPlatform.web]),
+              context: SearchContext.flutter(),
+              platforms: [FlutterSdkPlatform.web],
+            ),
           ),
         if (tags.contains(FlutterSdkTag.platformWindows))
           BadgeSubTag(
             text: 'Windows',
             title: 'Packages compatible with Flutter on the Windows platform',
             href: urls.searchUrl(
-                sdk: SdkTagValue.flutter,
-                platforms: [FlutterSdkPlatform.windows]),
+              context: SearchContext.flutter(),
+              platforms: [FlutterSdkPlatform.windows],
+            ),
           ),
       ],
     ));

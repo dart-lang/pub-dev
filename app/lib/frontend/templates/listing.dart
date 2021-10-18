@@ -115,7 +115,7 @@ class PageLinks {
   PageLinks(this.searchForm, this.count);
 
   PageLinks.empty()
-      : searchForm = SearchForm.parse(),
+      : searchForm = SearchForm(),
         count = 1;
 
   int get leftmostPage => max(currentPage! - maxPageLinks ~/ 2, 1);
@@ -156,7 +156,7 @@ List<SearchTab> _calculateSearchTabs(SearchForm searchForm) {
     );
   }
 
-  final sdk = searchForm.sdk;
+  final sdk = searchForm.context.sdk;
   if (sdk == SdkTagValue.dart) {
     return <SearchTab>[
       runtimeTab(

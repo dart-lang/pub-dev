@@ -148,9 +148,9 @@ d.Node _checkbox({
 }
 
 String? _subSdkLabel(SearchForm sq) {
-  if (sq.sdk == SdkTagValue.dart) {
+  if (sq.context.sdk == SdkTagValue.dart) {
     return 'Runtime';
-  } else if (sq.sdk == SdkTagValue.flutter) {
+  } else if (sq.context.sdk == SdkTagValue.flutter) {
     return 'Platform';
   } else {
     return null;

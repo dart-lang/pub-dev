@@ -28,18 +28,18 @@ Map searchDebugStats() {
 
 /// Handles /packages - package listing
 Future<shelf.Response> packagesHandlerHtml(shelf.Request request) =>
-    _packagesHandlerHtmlCore(request);
+    _packagesHandlerHtmlCore(request, context: SearchContext.regular());
 
 /// Handles /dart/packages
 Future<shelf.Response> dartPackagesHandlerHtml(shelf.Request request) async {
-  return await _packagesHandlerHtmlCore(request, sdk: SdkTagValue.dart);
+  return await _packagesHandlerHtmlCore(request, context: SearchContext.dart());
 }
 
 /// Handles /flutter/packages
 Future<shelf.Response> flutterPackagesHandlerHtml(shelf.Request request) {
   return _packagesHandlerHtmlCore(
     request,
-    sdk: SdkTagValue.flutter,
+    context: SearchContext.flutter(),
   );
 }
 
@@ -49,7 +49,7 @@ Future<shelf.Response> flutterFavoritesPackagesHandlerHtml(
 ) {
   return _packagesHandlerHtmlCore(
     request,
-    contextIsFlutterFavorites: true,
+    context: SearchContext.flutterFavorites(),
     title: 'Flutter Favorite packages',
     searchPlaceholder: 'Search Flutter favorite packages',
   );
@@ -59,7 +59,7 @@ Future<shelf.Response> flutterFavoritesPackagesHandlerHtml(
 Future<shelf.Response> webPackagesHandlerHtml(shelf.Request request) async {
   return redirectResponse(
     urls.searchUrl(
-      sdk: SdkTagValue.dart,
+      context: SearchContext.dart(),
       runtimes: [DartSdkRuntime.web],
       q: request.requestedUri.queryParameters['q'],
     ),
@@ -72,16 +72,12 @@ Future<shelf.Response> webPackagesHandlerHtml(shelf.Request request) async {
 /// - /flutter/packages
 Future<shelf.Response> _packagesHandlerHtmlCore(
   shelf.Request request, {
-  String? sdk,
-  bool contextIsFlutterFavorites = false,
+  required SearchContext context,
   String? title,
   String? searchPlaceholder,
 }) async {
-  final searchForm = parseFrontendSearchForm(
-    request.requestedUri.queryParameters,
-    sdk: sdk,
-    contextIsFlutterFavorites: contextIsFlutterFavorites,
-  );
+  final searchForm =
+      SearchForm.parse(context, request.requestedUri.queryParameters);
   final sw = Stopwatch()..start();
   final searchResult = await searchAdapter.search(searchForm);
   final int totalCount = searchResult.totalCount;
@@ -91,7 +87,7 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
     renderPkgIndexPage(
       searchResult,
       links,
-      sdk: sdk,
+      sdk: context.sdk,
       searchForm: searchForm,
       title: title,
       searchPlaceholder: searchPlaceholder,

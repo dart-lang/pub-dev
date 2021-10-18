@@ -37,17 +37,11 @@ class SearchAdapter {
   /// Uses long-term caching and local randomized selection.
   /// Returns empty list when search is not available or doesn't yield results.
   Future<List<PackageView>> topFeatured({
-    String? sdk,
-    bool contextIsFlutterFavorites = false,
+    required SearchContext context,
     int count = 6,
     SearchOrder? order,
   }) async {
-    final form = SearchForm.parse(
-      contextIsFlutterFavorites: contextIsFlutterFavorites,
-      sdk: sdk,
-      pageSize: 100,
-      order: order,
-    );
+    final form = SearchForm(context: context, pageSize: 100, order: order);
     final searchResults = await _searchOrFallback(
       form,
       false,
@@ -122,7 +116,8 @@ class SearchAdapter {
   /// `search` service.
   Future<PackageSearchResult> _fallbackSearch(SearchForm form) async {
     // Some search queries must not be served with the fallback search.
-    if (form.uploaderOrPublishers != null || form.publisherId != null) {
+    if (form.context.uploaderOrPublishers != null ||
+        form.context.publisherId != null) {
       return PackageSearchResult.empty(
           message: 'Search is temporarily unavailable.');
     }

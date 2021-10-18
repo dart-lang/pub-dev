@@ -387,7 +387,7 @@ void main() {
       'package index page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        final searchForm = SearchForm.parse();
+        final searchForm = SearchForm();
         final oxygen = (await scoreCardBackend.getPackageView('oxygen'))!;
         final titanium =
             (await scoreCardBackend.getPackageView('flutter_titanium'))!;
@@ -413,8 +413,7 @@ void main() {
       'package index page with search',
       processJobsWithFakeRunners: true,
       fn: () async {
-        final searchForm =
-            SearchForm.parse(query: 'foobar', order: SearchOrder.top);
+        final searchForm = SearchForm(query: 'foobar', order: SearchOrder.top);
         final oxygen = (await scoreCardBackend.getPackageView('oxygen'))!;
         final titanium =
             (await scoreCardBackend.getPackageView('flutter_titanium'))!;
@@ -482,7 +481,8 @@ void main() {
       'publisher packages page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        final searchForm = SearchForm.parse(publisherId: 'example.com');
+        final searchForm =
+            SearchForm(context: SearchContext.publisher('example.com'));
         final publisher = (await publisherBackend.getPublisher('example.com'))!;
         final neon = (await scoreCardBackend.getPackageView('neon'))!;
         final titanium =
@@ -571,7 +571,7 @@ void main() {
           );
           registerUserSessionData(session);
           final searchForm =
-              SearchForm.parse(uploaderOrPublishers: [user.userId]);
+              SearchForm(context: SearchContext.myPackages([user.userId]));
           final String html = renderAccountPackagesPage(
             user: user,
             userSessionData: session,
@@ -753,22 +753,19 @@ void main() {
     });
 
     test('pagination: in the middle', () {
-      final html =
-          paginationNode(PageLinks(SearchForm.parse(currentPage: 10), 299))
-              .toString();
+      final html = paginationNode(PageLinks(SearchForm(currentPage: 10), 299))
+          .toString();
       expectGoldenFile(html, 'pagination_middle.html', isFragment: true);
     });
 
     test('pagination: at first page', () {
-      final html =
-          paginationNode(PageLinks(SearchForm.parse(), 600)).toString();
+      final html = paginationNode(PageLinks(SearchForm(), 600)).toString();
       expectGoldenFile(html, 'pagination_first.html', isFragment: true);
     });
 
     test('pagination: at last page', () {
       final html =
-          paginationNode(PageLinks(SearchForm.parse(currentPage: 10), 91))
-              .toString();
+          paginationNode(PageLinks(SearchForm(currentPage: 10), 91)).toString();
       expectGoldenFile(html, 'pagination_last.html', isFragment: true);
     });
 
@@ -779,9 +776,9 @@ void main() {
 
     scopedTest('platform tabs: search', () {
       final html = sdkTabsNode(
-          searchForm: SearchForm.parse(
+          searchForm: SearchForm(
+        context: SearchContext.flutter(),
         query: 'foo',
-        sdk: 'flutter',
       )).toString();
       expectGoldenFile(html, 'platform_tabs_search.html', isFragment: true);
     });
@@ -796,28 +793,28 @@ void main() {
     });
 
     test('one', () {
-      final links = PageLinks(SearchForm.parse(), 1);
+      final links = PageLinks(SearchForm(), 1);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 1);
     });
 
     test('PageLinks.RESULTS_PER_PAGE - 1', () {
-      final links = PageLinks(SearchForm.parse(), resultsPerPage - 1);
+      final links = PageLinks(SearchForm(), resultsPerPage - 1);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 1);
     });
 
     test('PageLinks.RESULTS_PER_PAGE', () {
-      final links = PageLinks(SearchForm.parse(), resultsPerPage);
+      final links = PageLinks(SearchForm(), resultsPerPage);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 1);
     });
 
     test('PageLinks.RESULTS_PER_PAGE + 1', () {
-      final links = PageLinks(SearchForm.parse(), resultsPerPage + 1);
+      final links = PageLinks(SearchForm(), resultsPerPage + 1);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 2);
@@ -826,8 +823,7 @@ void main() {
     final int page2Offset = resultsPerPage;
 
     test('page=2 + one item', () {
-      final links =
-          PageLinks(SearchForm.parse(currentPage: 2), page2Offset + 1);
+      final links = PageLinks(SearchForm(currentPage: 2), page2Offset + 1);
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 2);
@@ -835,15 +831,15 @@ void main() {
 
     test('page=2 + PageLinks.RESULTS_PER_PAGE - 1', () {
       final links = PageLinks(
-          SearchForm.parse(currentPage: 2), page2Offset + resultsPerPage - 1);
+          SearchForm(currentPage: 2), page2Offset + resultsPerPage - 1);
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 2);
     });
 
     test('page=2 + PageLinks.RESULTS_PER_PAGE', () {
-      final links = PageLinks(
-          SearchForm.parse(currentPage: 2), page2Offset + resultsPerPage);
+      final links =
+          PageLinks(SearchForm(currentPage: 2), page2Offset + resultsPerPage);
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 2);
@@ -851,14 +847,14 @@ void main() {
 
     test('page=2 + PageLinks.RESULTS_PER_PAGE + 1', () {
       final links = PageLinks(
-          SearchForm.parse(currentPage: 2), page2Offset + resultsPerPage + 1);
+          SearchForm(currentPage: 2), page2Offset + resultsPerPage + 1);
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 3);
     });
 
     test('deep in the middle', () {
-      final links = PageLinks(SearchForm.parse(currentPage: 21), 600);
+      final links = PageLinks(SearchForm(currentPage: 21), 600);
       expect(links.currentPage, 21);
       expect(links.leftmostPage, 16);
       expect(links.rightmostPage, 26);

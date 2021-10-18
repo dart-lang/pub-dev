@@ -90,9 +90,9 @@ void main() {
 
     test('text search with platform', () async {
       final withPlatform = await index.search(
-        SearchForm.parse(
+        SearchForm(
+          context: SearchContext.flutter(),
           query: 'json',
-          sdk: 'flutter',
         ).toServiceQuery(),
       );
       expect(json.decode(json.encode(withPlatform)), {
