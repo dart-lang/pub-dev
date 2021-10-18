@@ -80,8 +80,8 @@ class NameTracker {
   void add(TrackedPackage pkg) {
     _names.add(pkg.package);
     _conflictingNames.addAll(_generateConflictingNames(pkg.package));
-    if (!_packages.containsKey(pkg.package) ||
-        _packages[pkg.package]!.lastPublished.isBefore(pkg.lastPublished)) {
+    final current = _packages[pkg.package];
+    if (current == null || current.lastPublished.isBefore(pkg.lastPublished)) {
       _packages[pkg.package] = pkg;
       _packagesOrderedByLastPublishedDesc = null;
     }
@@ -150,7 +150,7 @@ class NameTracker {
         package: p.name!,
         latestVersion: p.latestVersion!,
         lastPublished: p.lastVersionPublished!,
-        isVisible: p.isVisible && p.isIncludedInRobots,
+        isVisible: p.isVisible,
       ));
     }
 
@@ -248,7 +248,7 @@ class _NameTrackerUpdater {
         package: p.name!,
         latestVersion: p.latestVersion!,
         lastPublished: p.lastVersionPublished!,
-        isVisible: p.isVisible && p.isIncludedInRobots,
+        isVisible: p.isVisible,
       ));
     }
 
