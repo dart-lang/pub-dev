@@ -7,6 +7,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Flutter analysis SDK to `2.5.3`.
  * Upgraded preview Dart analysis SDK to `2.15.0-178.1.beta`.
  * NOTE: Started to use cached package list from NameTracker instead of Datastore queries with offset.
+ * NOTE: `/api/packages/<package>` calls only use `gzip` cache, which may increase
+         CPU utilization if there are many clients that do no accept the `gzip` content-encoding.
 
 ## `20211013t105500-all`
  * Bumped runtimeVersion to `2021.10.12`.
