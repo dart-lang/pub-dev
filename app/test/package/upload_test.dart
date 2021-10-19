@@ -458,7 +458,7 @@ void main() {
 
           await nameTracker.scanDatastore();
           final lastPublished =
-              nameTracker.packagesOrderedByLastPublishedDesc.first;
+              nameTracker.visiblePackagesOrderedByLastPublished.first;
           expect(lastPublished.package, 'oxygen');
           expect(lastPublished.latestVersion, '3.0.0');
 

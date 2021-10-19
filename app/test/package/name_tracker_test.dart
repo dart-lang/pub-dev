@@ -68,7 +68,8 @@ void main() {
         ),
       );
       expect(
-          nameTracker.packagesOrderedByLastPublishedDesc.single.latestVersion,
+          nameTracker
+              .visiblePackagesOrderedByLastPublished.single.latestVersion,
           '2.0.0');
     });
 
@@ -91,7 +92,7 @@ void main() {
         ),
       );
       expect(
-        nameTracker.packagesOrderedByLastPublishedDesc
+        nameTracker.visiblePackagesOrderedByLastPublished
             .map((e) => '${e.package}/${e.latestVersion}')
             .toList(),
         ['b/2.0.0', 'a/1.0.0'],
@@ -105,7 +106,7 @@ void main() {
         ),
       );
       expect(
-        nameTracker.packagesOrderedByLastPublishedDesc
+        nameTracker.visiblePackagesOrderedByLastPublished
             .map((e) => '${e.package}/${e.latestVersion}')
             .toList(),
         ['a/3.0.0', 'b/2.0.0'],

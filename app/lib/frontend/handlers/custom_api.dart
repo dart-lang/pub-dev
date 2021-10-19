@@ -142,7 +142,7 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
 
   final data = await cache.apiPackagesListPage(page).get(() async {
     final offset = pageSize * (page - 1);
-    final allPackages = nameTracker.packagesOrderedByLastPublishedDesc;
+    final allPackages = nameTracker.visiblePackagesOrderedByLastPublished;
     final packages = allPackages.skip(offset).take(pageSize).toList();
     final pageVersions = await packageBackend.lookupVersions(
       packages.map((p) =>

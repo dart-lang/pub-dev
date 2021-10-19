@@ -118,7 +118,7 @@ Future<shelf.Response> _packagesHandlerJson(
 
   final offset = pageSize * (page - 1);
 
-  final allPackages = nameTracker.packagesOrderedByLastPublishedDesc;
+  final allPackages = nameTracker.visiblePackagesOrderedByLastPublished;
   final pkgPage = allPackages.skip(offset).take(pageSize).toList();
 
   Uri? nextPageUrl;

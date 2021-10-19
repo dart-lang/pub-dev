@@ -20,6 +20,9 @@ class TrackedPackage {
   final String package;
   final String latestVersion;
   final DateTime lastPublished;
+
+  /// Derived from `Package.isVisible`, the flag indicates that the
+  /// package has not been withdrawn, and can be displayed.
   final bool isVisible;
 
   TrackedPackage({
@@ -95,7 +98,7 @@ class NameTracker {
 
   /// Returns the cached list of packages ordered by descending last published date.
   /// Only the visible packages are present.
-  List<TrackedPackage> get packagesOrderedByLastPublishedDesc {
+  List<TrackedPackage> get visiblePackagesOrderedByLastPublished {
     return _packagesOrderedByLastPublishedDesc ??= _packages.values
         .where((p) => p.isVisible)
         .toList()
