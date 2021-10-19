@@ -14,6 +14,7 @@ import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:test/test.dart';
 
@@ -22,55 +23,6 @@ import '../shared/test_services.dart';
 
 void main() {
   group('backend', () {
-    group('Backend.latestPackages', () {
-      testWithProfile('default packages', fn: () async {
-        final page = await packageBackend.latestPackages();
-        expect(page.packages.map((p) => p.name), [
-          'oxygen',
-          'flutter_titanium',
-          'neon',
-        ]);
-      });
-
-      testWithProfile('default packages with withheld', fn: () async {
-        final pkg = (await packageBackend.lookupPackage('oxygen'))!;
-        await dbService.commit(inserts: [pkg..isWithheld = true]);
-        final page = await packageBackend.latestPackages();
-        expect(page.packages.map((p) => p.name), [
-          'flutter_titanium',
-          'neon',
-        ]);
-      });
-
-      testWithProfile('default packages, extra earlier', fn: () async {
-        final h = (await packageBackend.lookupPackage('oxygen'))!;
-        h.updated = DateTime(2010);
-        h.lastVersionPublished = DateTime(2010);
-        await dbService.commit(inserts: [h]);
-        final page = await packageBackend.latestPackages();
-        expect(page.packages.last.name, 'oxygen');
-      });
-
-      testWithProfile('default packages, extra later', fn: () async {
-        final h = (await packageBackend.lookupPackage('neon'))!;
-        h.updated = DateTime(2030);
-        h.lastVersionPublished = DateTime(2030);
-        await dbService.commit(inserts: [h]);
-        final page = await packageBackend.latestPackages();
-        expect(page.packages.first.name, 'neon');
-      });
-
-      testWithProfile('default packages, offset: 2', fn: () async {
-        final page = await packageBackend.latestPackages(offset: 2);
-        expect(page.packages.map((p) => p.name), ['neon']);
-      });
-
-      testWithProfile('default packages, offset: 1, limit: 1', fn: () async {
-        final page = await packageBackend.latestPackages(offset: 1, limit: 1);
-        expect(page.packages.map((p) => p.name), ['flutter_titanium']);
-      });
-    });
-
     group('Backend.latestPackageVersions', () {
       testWithProfile('all packages', fn: () async {
         final list = await packageBackend.latestPackageVersions(limit: 100);
@@ -130,11 +82,11 @@ void main() {
 
     group('Backend.lookupLatestVersions', () {
       testWithProfile('two packages', fn: () async {
-        final list = await packageBackend.lookupLatestVersions([
-          (await packageBackend.lookupPackage('oxygen'))!,
-          (await packageBackend.lookupPackage('neon'))!,
+        final list = await packageBackend.lookupVersions([
+          QualifiedVersionKey(package: 'oxygen', version: '1.2.0'),
+          QualifiedVersionKey(package: 'neon', version: '1.0.0'),
         ]);
-        expect(list.map((pv) => pv.qualifiedVersionKey.toString()),
+        expect(list.map((pv) => pv!.qualifiedVersionKey.toString()),
             ['oxygen/1.2.0', 'neon/1.0.0']);
       });
     });

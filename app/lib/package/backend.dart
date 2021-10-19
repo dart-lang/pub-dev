@@ -90,26 +90,6 @@ class PackageBackend {
     }))!;
   }
 
-  /// Retrieves packages ordered by their latest version date.
-  Future<PackagePage> latestPackages({int? offset, int? limit}) async {
-    offset ??= 0;
-    limit ??= 10;
-    final query = db.query<Package>()
-      ..order('-lastVersionPublished')
-      ..offset(offset)
-      ..limit(limit + 1);
-    final result = await query.run().toList();
-    final packages = result
-        .take(limit)
-        .where((p) => p.isVisible)
-        .where((p) => !isSoftRemoved(p.name!))
-        .toList();
-    return PackagePage(
-      packages: packages,
-      isLast: result.length <= limit,
-    );
-  }
-
   /// Retrieves the names of all packages that need to be included in sitemap.txt.
   Stream<String> sitemapPackageNames() {
     final query = db.query<Package>()
@@ -226,11 +206,16 @@ class PackageBackend {
         db.emptyKey.append(PackageVersionAsset, id: qvk.assetId(assetKind)));
   }
 
-  /// Looks up the latest versions of a list of packages.
-  Future<List<PackageVersion>> lookupLatestVersions(
-      List<Package> packages) async {
-    final keys = packages.map((Package p) => p.latestVersionKey!).toList();
-    return (await db.lookup(keys)).cast();
+  /// Looks up the qualified [versions].
+  Future<List<PackageVersion?>> lookupVersions(
+      Iterable<QualifiedVersionKey> versions) async {
+    return await db.lookup<PackageVersion>(
+      versions
+          .map((k) => db.emptyKey
+              .append(Package, id: k.package)
+              .append(PackageVersion, id: k.version))
+          .toList(),
+    );
   }
 
   /// Looks up all versions of a package.
@@ -1105,13 +1090,6 @@ extension PackageVersionExt on PackageVersion {
       published: created,
     );
   }
-}
-
-class PackagePage {
-  final List<Package> packages;
-  final bool isLast;
-
-  PackagePage({required this.packages, required this.isLast});
 }
 
 enum UploadRestrictionStatus {

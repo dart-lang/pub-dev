@@ -9,9 +9,9 @@ void main() {
   group('json', () {
     final nameTracker = NameTracker(null);
     // main package
-    nameTracker.add('json');
+    nameTracker.add(TrackedPackage.simple('json'));
     // package was added before publishing was blocked.
-    nameTracker.add('j_son');
+    nameTracker.add(TrackedPackage.simple('j_son'));
 
     test('new package can be published', () async {
       expect(await nameTracker.accept('new_package'), isTrue);
@@ -40,11 +40,77 @@ void main() {
 
   group('isolate', () {
     final nameTracker = NameTracker(null);
-    nameTracker.add('isolates');
+    nameTracker.add(TrackedPackage.simple('isolates'));
 
     test('conflicting package: singular', () async {
       expect(await nameTracker.accept('isolate'), isFalse);
       expect(await nameTracker.accept('iso_late'), isFalse);
+    });
+  });
+
+  group('time and version', () {
+    test('earlier time does not override the entry', () {
+      final nameTracker = NameTracker(null);
+      nameTracker.add(
+        TrackedPackage(
+          package: 'a',
+          latestVersion: '2.0.0',
+          lastPublished: DateTime(2021, 10, 18),
+          isVisible: true,
+        ),
+      );
+      nameTracker.add(
+        TrackedPackage(
+          package: 'a',
+          latestVersion: '1.0.0',
+          lastPublished: DateTime(2021, 10, 17),
+          isVisible: true,
+        ),
+      );
+      expect(
+          nameTracker
+              .visiblePackagesOrderedByLastPublished.single.latestVersion,
+          '2.0.0');
+    });
+
+    test('later time does override the entry', () {
+      final nameTracker = NameTracker(null);
+      nameTracker.add(
+        TrackedPackage(
+          package: 'a',
+          latestVersion: '1.0.0',
+          lastPublished: DateTime(2021, 10, 18),
+          isVisible: true,
+        ),
+      );
+      nameTracker.add(
+        TrackedPackage(
+          package: 'b',
+          latestVersion: '2.0.0',
+          lastPublished: DateTime(2021, 10, 19),
+          isVisible: true,
+        ),
+      );
+      expect(
+        nameTracker.visiblePackagesOrderedByLastPublished
+            .map((e) => '${e.package}/${e.latestVersion}')
+            .toList(),
+        ['b/2.0.0', 'a/1.0.0'],
+      );
+      nameTracker.add(
+        TrackedPackage(
+          package: 'a',
+          latestVersion: '3.0.0',
+          lastPublished: DateTime(2021, 10, 20),
+          isVisible: true,
+        ),
+      );
+      expect(
+        nameTracker.visiblePackagesOrderedByLastPublished
+            .map((e) => '${e.package}/${e.latestVersion}')
+            .toList(),
+        ['a/3.0.0', 'b/2.0.0'],
+      );
     });
   });
 }

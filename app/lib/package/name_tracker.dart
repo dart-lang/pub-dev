@@ -15,6 +15,42 @@ import 'models.dart';
 final _logger = Logger('pub.name_tracker');
 const _pollingInterval = Duration(minutes: 15);
 
+/// Minimal package information tracked by [NameTracker].
+class TrackedPackage {
+  final String package;
+  final String latestVersion;
+  final DateTime lastPublished;
+
+  /// Derived from `Package.isVisible`, the flag indicates that the
+  /// package has not been withdrawn, and can be displayed.
+  final bool isVisible;
+
+  TrackedPackage({
+    required this.package,
+    required this.latestVersion,
+    required this.lastPublished,
+    required this.isVisible,
+  });
+
+  @visibleForTesting
+  TrackedPackage.simple(this.package)
+      : latestVersion = '1.0.0',
+        lastPublished = DateTime.now(),
+        isVisible = true;
+
+  @override
+  late final int hashCode =
+      Object.hash(package, latestVersion, lastPublished, isVisible);
+
+  @override
+  bool operator ==(Object other) {
+    return other is TrackedPackage &&
+        package == other.package &&
+        latestVersion == other.latestVersion &&
+        lastPublished == other.lastPublished;
+  }
+}
+
 /// Sets the active [NameTracker].
 void registerNameTracker(NameTracker value) =>
     ss.register(#_name_tracker, value);
@@ -32,6 +68,9 @@ class NameTracker {
   final DatastoreDB? _db;
   final Set<String> _names = <String>{};
 
+  final _packages = <String, TrackedPackage>{};
+  List<TrackedPackage>? _packagesOrderedByLastPublishedDesc;
+
   /// Names that are reserved due to moderated packages having these names.
   final _reservedNames = <String>{};
   final _conflictingNames = <String>{};
@@ -41,15 +80,29 @@ class NameTracker {
   NameTracker(this._db);
 
   /// Add a package name to the tracker.
-  void add(String name) {
-    _names.add(name);
-    _conflictingNames.addAll(_generateConflictingNames(name));
+  void add(TrackedPackage pkg) {
+    _names.add(pkg.package);
+    _conflictingNames.addAll(_generateConflictingNames(pkg.package));
+    final current = _packages[pkg.package];
+    if (current == null || current.lastPublished.isBefore(pkg.lastPublished)) {
+      _packages[pkg.package] = pkg;
+      _packagesOrderedByLastPublishedDesc = null;
+    }
   }
 
   void addReservedName(String name) {
     _reservedNames.add(name);
     _conflictingNames.addAll(_generateConflictingNames(name));
     _names.remove(name);
+  }
+
+  /// Returns the cached list of packages ordered by descending last published date.
+  /// Only the visible packages are present.
+  List<TrackedPackage> get visiblePackagesOrderedByLastPublished {
+    return _packagesOrderedByLastPublishedDesc ??= _packages.values
+        .where((p) => p.isVisible)
+        .toList()
+      ..sort((a, b) => -a.lastPublished.compareTo(b.lastPublished));
   }
 
   /// Whether the package was already added to the tracker.
@@ -96,7 +149,12 @@ class NameTracker {
   @visibleForTesting
   Future<void> scanDatastore() async {
     await for (final p in _db!.query<Package>().run()) {
-      add(p.name!);
+      add(TrackedPackage(
+        package: p.name!,
+        latestVersion: p.latestVersion!,
+        lastPublished: p.lastVersionPublished!,
+        isVisible: p.isVisible,
+      ));
     }
 
     await for (ModeratedPackage p in _db!.query<ModeratedPackage>().run()) {
@@ -183,13 +241,18 @@ class _NameTrackerUpdater {
 
   Future<void> _scan() async {
     final now = DateTime.now().toUtc();
-    final query = _db.query<Package>()..order('created');
+    final query = _db.query<Package>()..order('-lastVersionPublished');
     if (_lastTs != null) {
-      query.filter('created >', _lastTs);
+      query.filter('lastVersionPublished >', _lastTs);
     }
     await for (Package p in query.run()) {
       if (_stopped) return;
-      nameTracker.add(p.name!);
+      nameTracker.add(TrackedPackage(
+        package: p.name!,
+        latestVersion: p.latestVersion!,
+        lastPublished: p.lastVersionPublished!,
+        isVisible: p.isVisible,
+      ));
     }
 
     final moderatedPkgQuery = _db.query<ModeratedPackage>()..order('moderated');

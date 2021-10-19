@@ -6,8 +6,7 @@ import 'dart:async';
 
 import 'package:shelf/shelf.dart' as shelf;
 
-import '../../package/backend.dart';
-import '../../package/models.dart';
+import '../../package/name_tracker.dart';
 import '../../package/search_adapter.dart';
 import '../../search/search_form.dart';
 import '../../search/search_service.dart';
@@ -119,24 +118,24 @@ Future<shelf.Response> _packagesHandlerJson(
 
   final offset = pageSize * (page - 1);
 
-  final pkgPage =
-      await packageBackend.latestPackages(offset: offset, limit: pageSize);
+  final allPackages = nameTracker.visiblePackagesOrderedByLastPublished;
+  final pkgPage = allPackages.skip(offset).take(pageSize).toList();
 
   Uri? nextPageUrl;
-  if (!pkgPage.isLast) {
+  if (allPackages.length > offset + pageSize) {
     nextPageUrl =
         request.requestedUri.resolve('/packages.json?page=${page + 1}');
   }
 
-  String toUrl(Package package) {
-    final postfix = dotJsonResponse ? '.json' : '';
+  final postfix = dotJsonResponse ? '.json' : '';
+  String toUrl(String package) {
     return request.requestedUri
-        .resolve('/packages/${Uri.encodeComponent(package.name!)}$postfix')
+        .resolve('/packages/${Uri.encodeComponent(package)}$postfix')
         .toString();
   }
 
   final json = {
-    'packages': pkgPage.packages.map(toUrl).toList(),
+    'packages': pkgPage.map((p) => toUrl(p.package)).toList(),
     'next': nextPageUrl != null ? '$nextPageUrl' : null,
 
     // NOTE: We're not returning the following entry:
