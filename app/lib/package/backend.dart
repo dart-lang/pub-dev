@@ -612,7 +612,7 @@ class PackageBackend {
   /// Returns the known versions of [package].
   ///
   /// Used in `pub` client for finding which versions exist.
-  Future<api.PackageData> listVersions(Uri baseUri, String package) async {
+  Future<api.PackageData> listVersions(String package) async {
     final pkg = await packageBackend.lookupPackage(package);
     if (pkg == null || pkg.isNotVisible) {
       throw NotFoundException.resource('package "$package"');
@@ -631,18 +631,15 @@ class PackageBackend {
       name: package,
       isDiscontinued: pkg.isDiscontinued ? true : null,
       replacedBy: pkg.replacedBy,
-      latest: latest.toApiVersionInfo(baseUri: baseUri),
-      versions: packageVersions
-          .map((pv) => pv.toApiVersionInfo(baseUri: baseUri))
-          .toList(),
+      latest: latest.toApiVersionInfo(),
+      versions: packageVersions.map((pv) => pv.toApiVersionInfo()).toList(),
     );
   }
 
   /// Lookup and return the API's version info object.
   ///
   /// Throws [NotFoundException] when the version is missing.
-  Future<api.VersionInfo> lookupVersion(
-      Uri baseUri, String package, String version) async {
+  Future<api.VersionInfo> lookupVersion(String package, String version) async {
     checkPackageVersionParams(package, version);
     final canonicalVersion = canonicalizeVersion(version);
     InvalidInputException.checkSemanticVersion(canonicalVersion);
@@ -659,7 +656,7 @@ class PackageBackend {
       throw NotFoundException.resource('version "$version"');
     }
 
-    return pv.toApiVersionInfo(baseUri: baseUri);
+    return pv.toApiVersionInfo();
   }
 
   @visibleForTesting
@@ -1091,13 +1088,20 @@ class PackageBackend {
 }
 
 extension PackageVersionExt on PackageVersion {
-  api.VersionInfo toApiVersionInfo({Uri? baseUri}) {
+  api.VersionInfo toApiVersionInfo() {
     return api.VersionInfo(
       version: version!,
       isRetracted: isRetracted == true ? true : null,
       pubspec: pubspec!.asJson,
-      archiveUrl:
-          urls.pkgArchiveDownloadUrl(package, version!, baseUri: baseUri),
+      archiveUrl: urls.pkgArchiveDownloadUrl(
+        package,
+        version!,
+
+        /// We should use the primary API URI here, because the generated URLs may
+        /// end up in multiple cache, and it is critical that we always serve the
+        /// content with the proper cached URLs.
+        baseUri: activeConfiguration.primaryApiUri,
+      ),
       published: created,
     );
   }
