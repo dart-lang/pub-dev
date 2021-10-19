@@ -375,13 +375,9 @@ Future<shelf.Response> listVersionsHandler(
     shelf.Request request, String package) async {
   checkPackageVersionParams(package);
 
-  Future<List<int>> createRawBytes() async {
-    final data = await packageBackend.listVersions(package);
-    return jsonUtf8Encoder.convert(data.toJson());
-  }
-
   Future<List<int>> createGzipBytes() async {
-    final raw = await createRawBytes();
+    final data = await packageBackend.listVersions(package);
+    final raw = jsonUtf8Encoder.convert(data.toJson());
     return gzip.encode(raw);
   }
 
@@ -397,11 +393,10 @@ Future<shelf.Response> listVersionsHandler(
     );
   }
 
+  final body = await cache.packageDataGz(package).get(createGzipBytes);
   if (request.acceptsEncoding('gzip')) {
-    final body = await cache.packageDataGz(package).get(createGzipBytes);
     return createResponse(body!, isGzip: true);
   } else {
-    final body = await cache.packageData(package).get(createRawBytes);
-    return createResponse(body!, isGzip: false);
+    return createResponse(gzip.decode(body!), isGzip: false);
   }
 }
