@@ -395,8 +395,8 @@ Future<shelf.Response> listVersionsHandler(
 
   final body = (await cache.packageDataGz(package).get(createGzipBytes))!;
   if (request.acceptsEncoding('gzip')) {
-    return createResponse(body!, isGzip: true);
+    return createResponse(body, isGzip: true);
   } else {
-    return createResponse(gzip.decode(body!), isGzip: false);
+    return createResponse(gzip.decode(body), isGzip: false);
   }
 }
