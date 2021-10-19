@@ -14,7 +14,6 @@ import '../../account/consent_backend.dart';
 import '../../admin/backend.dart';
 import '../../package/backend.dart' hide InviteStatus;
 import '../../publisher/backend.dart';
-import '../../shared/configuration.dart';
 import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
 import 'account.dart';
@@ -35,8 +34,7 @@ class PubApi {
   /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#list-all-versions-of-a-package
   @EndPoint.get('/api/packages/<package>')
   Future<Response> listVersions(Request request, String package) async {
-    final baseUri = _replaceHost(request.requestedUri);
-    return await listVersionsHandler(request, baseUri, package);
+    return await listVersionsHandler(request, package);
   }
 
   /// Getting information about a specific (package, version) pair.
@@ -47,8 +45,7 @@ class PubApi {
     String package,
     String version,
   ) async =>
-      await packageBackend.lookupVersion(
-          _replaceHost(request.requestedUri), package, version);
+      await packageBackend.lookupVersion(package, version);
 
   /// Downloading package.
   /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#download-a-specific-version-of-a-package
@@ -477,18 +474,4 @@ class PubApi {
   Future<PackageUploaders> adminRemovePackageUploader(
           Request request, String package, String email) =>
       adminBackend.handleRemovePackageUploader(package, email);
-}
-
-/// Replaces the requested uri with the primary API uri.
-///
-/// A few API endpoint use the requested uri as a base to generate further URLs
-/// that we return in the response. Such generated URLs may end up in our cache,
-/// and it is critical that we only cache the values with the proper URLs.
-Uri _replaceHost(Uri requestedUri) {
-  return activeConfiguration.primaryApiUri!.replace(
-    path: requestedUri.path,
-    queryParameters: requestedUri.queryParameters.isEmpty
-        ? null
-        : requestedUri.queryParametersAll,
-  );
 }

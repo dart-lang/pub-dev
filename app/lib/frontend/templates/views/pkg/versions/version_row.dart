@@ -61,7 +61,7 @@ d.Node versionRowNode(String package, VersionInfo version, Pubspec pubspec) {
       d.td(
         classes: ['archive'],
         child: d.a(
-          href: version.archiveUrl,
+          href: urls.pkgArchiveDownloadUrl(package, version.version),
           rel: 'nofollow',
           title: 'Download $package ${version.version} archive',
           child: d.img(

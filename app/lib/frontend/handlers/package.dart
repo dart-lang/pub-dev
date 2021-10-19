@@ -372,11 +372,11 @@ Future<PackagePageData> loadPackagePageData(
 
 /// Handles /api/packages/<package> requests.
 Future<shelf.Response> listVersionsHandler(
-    shelf.Request request, Uri baseUri, String package) async {
+    shelf.Request request, String package) async {
   checkPackageVersionParams(package);
 
   Future<List<int>> createRawBytes() async {
-    final data = await packageBackend.listVersions(baseUri, package);
+    final data = await packageBackend.listVersions(package);
     return jsonUtf8Encoder.convert(data.toJson());
   }
 

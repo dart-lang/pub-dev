@@ -408,37 +408,31 @@ void main() {
     });
 
     group('GCloudRepository.lookupVersion', () {
-      final baseUri = Uri.parse('https://pub.dev');
-
       testWithProfile('package not found', fn: () async {
-        final rs =
-            packageBackend.lookupVersion(baseUri, 'not_hydrogen', '1.0.0');
+        final rs = packageBackend.lookupVersion('not_hydrogen', '1.0.0');
         await expectLater(rs, throwsA(isA<NotFoundException>()));
       });
 
       testWithProfile('version not found', fn: () async {
-        final rs = packageBackend.lookupVersion(baseUri, 'oxygen', '0.3.0');
+        final rs = packageBackend.lookupVersion('oxygen', '0.3.0');
         await expectLater(rs, throwsA(isA<NotFoundException>()));
       });
 
       testWithProfile('successful', fn: () async {
-        final version =
-            await packageBackend.lookupVersion(baseUri, 'oxygen', '1.0.0');
+        final version = await packageBackend.lookupVersion('oxygen', '1.0.0');
         expect(version, isNotNull);
         expect(version.version, '1.0.0');
       });
     });
 
     group('listVersions', () {
-      final baseUri = Uri.parse('https://pub.dev');
-
       testWithProfile('not found', fn: () async {
-        final rs = packageBackend.listVersions(baseUri, 'non_hydrogen');
+        final rs = packageBackend.listVersions('non_hydrogen');
         await expectLater(rs, throwsA(isA<NotFoundException>()));
       });
 
       testWithProfile('found', fn: () async {
-        final pd = await packageBackend.listVersions(baseUri, 'oxygen');
+        final pd = await packageBackend.listVersions('oxygen');
         expect(pd.versions, isNotEmpty);
         expect(pd.versions, hasLength(3));
         expect(pd.versions.first.version, '1.0.0');
@@ -452,7 +446,7 @@ void main() {
             adminAtPubDevAuthToken,
             () => packageBackend.updateOptions(
                 'oxygen', PkgOptions(isDiscontinued: true)));
-        final pd = await packageBackend.listVersions(baseUri, 'oxygen');
+        final pd = await packageBackend.listVersions('oxygen');
         expect(pd.isDiscontinued, isTrue);
       });
     });
