@@ -393,7 +393,7 @@ Future<shelf.Response> listVersionsHandler(
     );
   }
 
-  final body = await cache.packageDataGz(package).get(createGzipBytes);
+  final body = (await cache.packageDataGz(package).get(createGzipBytes))!;
   if (request.acceptsEncoding('gzip')) {
     return createResponse(body!, isGzip: true);
   } else {
