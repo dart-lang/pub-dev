@@ -5,6 +5,7 @@
 import '../../../../search/search_form.dart';
 import '../../../../shared/tags.dart';
 import '../../../dom/dom.dart' as d;
+import '../../../request_context.dart';
 import '../../../static_files.dart';
 import '../../layout.dart';
 
@@ -16,20 +17,87 @@ d.Node packageListingNode({
   required d.Node packageList,
   required d.Node? pagination,
 }) {
-  return d.fragment([
-    _searchControls(searchForm, subSdkButtons),
-    d.div(
-      classes: ['container'],
-      children: [
-        listingInfo,
-        packageList,
-        if (pagination != null) pagination,
-        d.markdown('Check our help page for details on '
-            '[search expressions](/help/search#query-expressions) and '
-            '[result ranking](/help/search#ranking).'),
-      ],
-    ),
+  final innerContent = d.fragment([
+    listingInfo,
+    packageList,
+    if (pagination != null) pagination,
+    d.markdown('Check our help page for details on '
+        '[search expressions](/help/search#query-expressions) and '
+        '[result ranking](/help/search#ranking).'),
   ]);
+  if (requestContext.showNewSearchUI) {
+    return _searchFormContainer(
+      searchForm: searchForm,
+      innerContent: innerContent,
+    );
+  } else {
+    return d.fragment([
+      _searchControls(searchForm, subSdkButtons),
+      d.div(classes: ['container'], child: innerContent),
+    ]);
+  }
+}
+
+d.Node _searchFormContainer({
+  required SearchForm searchForm,
+  required d.Node innerContent,
+}) {
+  return d.div(
+    classes: ['container', 'search-form-container', 'experimental'],
+    children: [
+      d.div(
+        classes: ['search-form'],
+        children: [
+          _filterSection(
+            label: 'Platforms',
+            isActive: true,
+            children: [
+              // TODO: add platform checkboxes
+              d.span(text: '[placeholder]'),
+            ],
+          ),
+          _filterSection(
+            label: 'SDKs',
+            children: [
+              // TODO: add SDK checkboxes
+              d.span(text: '[placeholder]'),
+            ],
+          ),
+        ],
+      ),
+      d.div(
+        classes: ['search-results'],
+        child: innerContent,
+      ),
+    ],
+  );
+}
+
+d.Node _filterSection({
+  required String label,
+  required Iterable<d.Node> children,
+  bool isActive = false,
+}) {
+  return d.div(
+    classes: ['search-form-section', 'foldable', if (isActive) '-active'],
+    children: [
+      d.h3(
+        classes: ['search-form-section-header foldable-button'],
+        children: [
+          d.span(classes: ['search-form-section-header-label'], text: label),
+          d.img(
+            classes: ['foldable-icon'],
+            src: staticUrls
+                .getAssetUrl('/static/img/search-form-foldable-icon.svg'),
+          ),
+        ],
+      ),
+      d.div(
+        classes: ['foldable-content'],
+        children: children,
+      ),
+    ],
+  );
 }
 
 d.Node _searchControls(SearchForm searchForm, d.Node? subSdkButtons) {

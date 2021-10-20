@@ -21,10 +21,7 @@ void _setEventForFoldable() {
     final scrollContainer = _parentWithClass(h, 'scroll-container');
     if (content == null) continue;
 
-    h.onClick.listen((e) async {
-      // Toggle state.
-      final isActive = foldable.classes.toggle('-active');
-
+    Future<void> update(bool isActive) async {
       // Closing is simple: no measurements, no scrolling.
       if (!isActive) {
         content.style.maxHeight = '0px';
@@ -84,7 +81,17 @@ void _setEventForFoldable() {
       // Wait one animation frame before enabling the content to resize on its own.
       await window.animationFrame;
       content.style.maxHeight = 'none';
+    }
+
+    // listen on trigger events
+    h.onClick.listen((e) async {
+      // Toggle state.
+      final isActive = foldable.classes.toggle('-active');
+      await update(isActive);
     });
+
+    // also update the initial state
+    update(foldable.classes.contains('-active'));
   }
 }
 

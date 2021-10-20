@@ -93,6 +93,9 @@ class SearchForm {
     List<String>? runtimes,
     List<String>? platforms,
     int? currentPage,
+    bool? includeDiscontinued,
+    bool? includeUnlisted,
+    bool? nullSafe,
   }) {
     runtimes ??= this.runtimes;
     platforms ??= this.platforms;
@@ -112,9 +115,9 @@ class SearchForm {
       order: order,
       currentPage: currentPage ?? this.currentPage,
       pageSize: pageSize,
-      includeDiscontinued: includeDiscontinued,
-      includeUnlisted: includeUnlisted,
-      nullSafe: nullSafe,
+      includeDiscontinued: includeDiscontinued ?? this.includeDiscontinued,
+      includeUnlisted: includeUnlisted ?? this.includeUnlisted,
+      nullSafe: nullSafe ?? this.nullSafe,
     );
   }
 
