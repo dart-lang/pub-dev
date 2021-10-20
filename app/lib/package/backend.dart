@@ -621,6 +621,27 @@ class PackageBackend {
     );
   }
 
+  /// Returns the known versions of [package] (via [listVersions]),
+  /// getting it from cache if available.
+  ///
+  /// The data is converted to JSON and UTF-8 (and stored like that in the cache).
+  Future<List<int>> listVersionsCachedBytes(String package) async {
+    final body = await cache.packageDataGz(package).get(() async {
+      final data = await listVersions(package);
+      final raw = jsonUtf8Encoder.convert(data.toJson());
+      return gzip.encode(raw);
+    });
+    return body!;
+  }
+
+  /// Returns the known versions of [package] (via [listVersions]),
+  /// getting it from the cache if available.
+  Future<api.PackageData> listVersionsCached(String package) async {
+    final data = await listVersionsCachedBytes(package);
+    return api.PackageData.fromJson(
+        utf8JsonDecoder.convert(gzip.decode(data)) as Map<String, dynamic>);
+  }
+
   /// Lookup and return the API's version info object.
   ///
   /// Throws [NotFoundException] when the version is missing.
