@@ -25,6 +25,7 @@ d.Node searchTabsNode(Iterable<SearchTab> tabs) {
     children: tabs.map(
       (tab) => d.a(
         classes: [
+          'search-link',
           'filter',
           if (tab.active) '-active',
         ],

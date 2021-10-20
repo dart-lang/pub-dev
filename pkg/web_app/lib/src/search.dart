@@ -45,7 +45,7 @@ void _setEventForKeyboardShortcut() {
 void _setEventForSearchInput() {
   final q = document.querySelector('input[name="q"]') as InputElement?;
   if (q == null) return null;
-  final anchors = document.querySelectorAll('.list-filters > a');
+  final anchors = document.querySelectorAll('.search-link');
   q.onChange.listen((_) {
     final newSearchQuery = q.value!.trim();
     for (final a in anchors) {
