@@ -411,3 +411,42 @@
     }
   }
 }
+
+.search-form-container.experimental {
+  display: flex;
+
+  .search-form {
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: 200px;
+    padding-right: 40px;
+  }
+
+  .search-results {
+    flex-grow: 1;
+  }
+
+  .search-form-section-header {
+    display: flex;
+
+    .search-form-section-header-label {
+      flex-grow: 1;
+    }
+  }
+
+  .search-form-section {
+    .foldable-icon {
+      margin-left: 18px;
+      width: 12px;
+
+      transform: rotate(180deg);
+      transition: transform .3s linear;
+    }
+
+    &.-active {
+      .foldable-icon {
+        transform: rotate(360deg);
+      }
+    }
+  }
+}

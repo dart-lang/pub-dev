@@ -12,6 +12,7 @@ import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/frontend/handlers/package.dart'
     show loadPackagePageData;
+import 'package:pub_dev/frontend/request_context.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/frontend/templates/admin.dart';
 import 'package:pub_dev/frontend/templates/consent.dart';
@@ -401,6 +402,34 @@ void main() {
           searchForm: searchForm,
         );
         expectGoldenFile(html, 'pkg_index_page.html', timestamps: {
+          'oxygen-created': oxygen.created,
+          'oxygen-updated': oxygen.updated,
+          'titanium-created': titanium.created,
+          'titanium-updated': titanium.updated,
+        });
+      },
+    );
+
+    testWithProfile(
+      'experimental package index page',
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        registerRequestContext(
+            RequestContext(isExperimental: true, showNewSearchUI: true));
+        final searchForm = SearchForm();
+        final oxygen = (await scoreCardBackend.getPackageView('oxygen'))!;
+        final titanium =
+            (await scoreCardBackend.getPackageView('flutter_titanium'))!;
+        final String html = renderPkgIndexPage(
+          SearchResultPage(
+            searchForm,
+            2,
+            packageHits: [oxygen, titanium],
+          ),
+          PageLinks.empty(),
+          searchForm: searchForm,
+        );
+        expectGoldenFile(html, 'pkg_index_page_experimental.html', timestamps: {
           'oxygen-created': oxygen.created,
           'oxygen-updated': oxygen.updated,
           'titanium-created': titanium.created,
