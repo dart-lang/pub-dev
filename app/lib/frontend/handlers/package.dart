@@ -70,16 +70,15 @@ Future<shelf.Response> packageVersionsListHandler(
     versionName: null,
     assetKind: null,
     renderFn: (data) async {
-      final versions = await packageBackend.versionsOfPackage(packageName);
-      if (versions.isEmpty) {
+      final versions = await packageBackend.listVersionsCached(packageName);
+      if (versions.versions.isEmpty) {
         return redirectToSearch(packageName);
       }
 
-      sortPackageVersionsDesc(versions);
       final dartSdkVersion = await getDartSdkVersion();
       return renderPkgVersionsPage(
         data,
-        versions.map((v) => v.toApiVersionInfo()).toList(),
+        versions.versions,
         dartSdkVersion: dartSdkVersion.semanticVersion,
       );
     },
@@ -375,12 +374,6 @@ Future<shelf.Response> listVersionsHandler(
     shelf.Request request, String package) async {
   checkPackageVersionParams(package);
 
-  Future<List<int>> createGzipBytes() async {
-    final data = await packageBackend.listVersions(package);
-    final raw = jsonUtf8Encoder.convert(data.toJson());
-    return gzip.encode(raw);
-  }
-
   shelf.Response createResponse(List<int> body, {required bool isGzip}) {
     return shelf.Response(
       200,
@@ -393,7 +386,7 @@ Future<shelf.Response> listVersionsHandler(
     );
   }
 
-  final body = (await cache.packageDataGz(package).get(createGzipBytes))!;
+  final body = await packageBackend.listVersionsCachedBytes(package);
   if (request.acceptsEncoding('gzip')) {
     return createResponse(body, isGzip: true);
   } else {
