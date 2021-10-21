@@ -161,8 +161,8 @@ void main() {
     });
   });
 
-  group('new sdk queries', () {
-    test('sdk:flutter & platform:android', () {
+  group('old SDK queries', () {
+    test('sdk:flutter context & platform:android', () {
       final query = SearchForm.parse(
         SearchContext.flutter(),
         {'platform': 'android'},
@@ -180,7 +180,7 @@ void main() {
       expect(query.toSearchLink(), '/flutter/packages?platform=android');
     });
 
-    test('sdk:flutter & platform:android & platform:ios', () {
+    test('sdk:flutter context & platform:android & platform:ios', () {
       final query = SearchForm.parse(
         SearchContext.flutter(),
         Uri.parse('/flutter/packages?platform=android++ios').queryParameters,
@@ -199,7 +199,7 @@ void main() {
       expect(query.toSearchLink(), '/flutter/packages?platform=android+ios');
     });
 
-    test('sdk:dart & runtime:web', () {
+    test('sdk:dart context & runtime:web', () {
       final query = SearchForm.parse(
         SearchContext.dart(),
         Uri.parse('/dart/packages?runtime=web').queryParameters,

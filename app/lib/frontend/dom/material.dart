@@ -252,7 +252,9 @@ d.Node checkbox({
   required String id,
   required String label,
   required bool checked,
+  d.Node Function(String label)? labelNodeContent,
 }) {
+  labelNodeContent ??= d.text;
   return d.div(
     classes: ['mdc-form-field'],
     children: [
@@ -287,7 +289,10 @@ d.Node checkbox({
           d.div(classes: ['mdc-checkbox__ripple']),
         ],
       ),
-      d.label(attributes: {'for': id}, text: label),
+      d.label(
+        attributes: {'for': id},
+        child: labelNodeContent(label),
+      ),
     ],
   );
 }

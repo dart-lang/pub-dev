@@ -9,6 +9,7 @@ import 'package:web_app/src/gtag_js.dart';
 void setupSearch() {
   _setEventForKeyboardShortcut();
   _setEventForSearchInput();
+  _setEventsForSearchForm();
   _setEventForFiltersToggle();
   _setEventForSortControl();
   _setEventForCheckboxChanges();
@@ -55,6 +56,18 @@ void _setEventForSearchInput() {
       params['q'] = newSearchQuery;
       final String newHref = oldUri.replace(queryParameters: params).toString();
       a.setAttribute('href', newHref);
+    }
+  });
+}
+
+void _setEventsForSearchForm() {
+  // When a search form checkbox has a linked search label,
+  //checking the checkbox will trigger a click on the link.
+  document.querySelectorAll('.search-form-linked-checkbox').forEach((e) {
+    final checkbox = e.querySelector('input');
+    final link = e.querySelector('a.search-link');
+    if (checkbox != null && link != null) {
+      checkbox.onChange.first.then((_) => link.click());
     }
   });
 }

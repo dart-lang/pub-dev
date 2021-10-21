@@ -5,6 +5,7 @@
 import '../../../../search/search_form.dart';
 import '../../../../shared/tags.dart';
 import '../../../dom/dom.dart' as d;
+import '../../../dom/material.dart' as material;
 import '../../../request_context.dart';
 import '../../../static_files.dart';
 import '../../layout.dart';
@@ -58,9 +59,18 @@ d.Node _searchFormContainer({
           ),
           _filterSection(
             label: 'SDKs',
+            isActive: searchForm.sdks.isNotEmpty,
             children: [
-              // TODO: add SDK checkboxes
-              d.span(text: '[placeholder]'),
+              _sdkCheckbox(
+                sdk: SdkTagValue.dart,
+                label: 'Dart',
+                searchForm: searchForm,
+              ),
+              _sdkCheckbox(
+                sdk: SdkTagValue.flutter,
+                label: 'Flutter',
+                searchForm: searchForm,
+              ),
             ],
           ),
         ],
@@ -70,6 +80,26 @@ d.Node _searchFormContainer({
         child: innerContent,
       ),
     ],
+  );
+}
+
+d.Node _sdkCheckbox({
+  required String sdk,
+  required String label,
+  required SearchForm searchForm,
+}) {
+  return d.div(
+    classes: ['search-form-linked-checkbox'],
+    child: material.checkbox(
+      id: 'search-form-checkbox-sdk-$sdk',
+      label: label,
+      labelNodeContent: (label) => d.a(
+        classes: ['search-link'],
+        href: searchForm.toggleSdk(sdk).toSearchLink(),
+        text: label,
+      ),
+      checked: searchForm.sdks.contains(sdk),
+    ),
   );
 }
 
