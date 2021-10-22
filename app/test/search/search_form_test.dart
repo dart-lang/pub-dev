@@ -29,7 +29,7 @@ void main() {
       expect(form.toSearchLink(page: 3), '/packages?q=web+framework&page=3');
     });
 
-    test('query with with sdk', () {
+    test('query with with sdk context', () {
       final form = SearchForm(
         context: SearchContext.flutter(),
         query: 'some framework',
@@ -40,12 +40,71 @@ void main() {
           '/flutter/packages?q=some+framework&page=2');
     });
 
+    test('query with with a single sdk parameter', () {
+      final form = SearchForm.parse(SearchContext.regular(), {
+        'q': 'some framework',
+        'sdk': 'dart',
+      });
+      expect(form.sdks, ['dart']);
+      // pages
+      expect(form.toSearchLink(), '/packages?q=some+framework&sdk=dart');
+      expect(form.toSearchLink(page: 1), '/packages?q=some+framework&sdk=dart');
+      expect(form.toSearchLink(page: 2),
+          '/packages?q=some+framework&sdk=dart&page=2');
+      // toggle
+      expect(form.toggleSdk('flutter').toSearchLink(),
+          '/packages?q=some+framework&sdk=dart+flutter');
+      expect(
+          form.toggleSdk('dart').toSearchLink(), '/packages?q=some+framework');
+      // query parameters
+      expect(
+        form.toServiceQuery().toUriQueryParameters(),
+        {
+          'q': 'some framework',
+          'tags': [
+            'sdk:dart',
+            '-is:discontinued',
+            '-is:unlisted',
+            '-is:legacy',
+          ],
+          'offset': '0',
+          'limit': '10',
+        },
+      );
+    });
+
+    test('non-standard sdk query parameters', () {
+      expect(
+        SearchForm.parse(
+          SearchContext.regular(),
+          {'sdk': 'any'},
+        ).sdks,
+        isEmpty,
+      );
+      expect(
+        SearchForm.parse(
+          SearchContext.regular(),
+          {'sdk': 'other'},
+        ).sdks,
+        isEmpty,
+      );
+      // deduplicate
+      expect(
+        SearchForm.parse(
+          SearchContext.regular(),
+          {'sdk': 'dart dart flutter dart'},
+        ).sdks,
+        ['dart', 'flutter'],
+      );
+    });
+
     test('removing Dart runtimes', () {
       final form = SearchForm(
         context: SearchContext.dart(),
         query: 'text',
         runtimes: ['js'],
       );
+      expect(form.sdks, isEmpty);
       expect(form.toSearchLink(), '/dart/packages?q=text&runtime=js');
       expect(form.change(context: SearchContext.dart()).toSearchLink(),
           form.toSearchLink());
