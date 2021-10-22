@@ -38,38 +38,29 @@ Future<shelf.Response> apiDocumentationHandler(
     return jsonResponse(cachedData);
   }
 
-  final versions = await packageBackend.versionsOfPackage(package);
-  if (versions.isEmpty) {
+  final versions = await packageBackend.listVersionsCached(package);
+  if (versions.versions.isEmpty) {
     return jsonResponse({}, status: 404);
   }
 
-  versions.sort((a, b) => a.semanticVersion.compareTo(b.semanticVersion));
-  String? latestStableVersion = versions.last.version;
-  for (int i = versions.length - 1; i >= 0; i--) {
-    if (!versions[i].semanticVersion.isPreRelease) {
-      latestStableVersion = versions[i].version;
-      break;
-    }
-  }
-
   final dartdocEntries = await dartdocBackend.getEntriesForVersions(
-      package, versions.map((pv) => pv.version!).toList());
+      package, versions.versions.map((pv) => pv.version).toList());
 
   final versionsData = [];
-  for (int i = 0; i < versions.length; i++) {
+  for (int i = 0; i < versions.versions.length; i++) {
     final entry = dartdocEntries[i];
     final hasDocumentation = entry != null && entry.hasContent;
     final status =
         entry == null ? 'awaiting' : (entry.hasContent ? 'success' : 'failed');
     versionsData.add({
-      'version': versions[i].version,
+      'version': versions.versions[i].version,
       'status': status,
       'hasDocumentation': hasDocumentation,
     });
   }
   final data = {
     'name': package,
-    'latestStableVersion': latestStableVersion,
+    'latestStableVersion': versions.latest.version,
     'versions': versionsData,
   };
   await cache.dartdocApiSummary(package).set(data);

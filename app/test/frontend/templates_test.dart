@@ -477,10 +477,10 @@ void main() {
       processJobsWithFakeRunners: true,
       fn: () async {
         final data = await loadPackagePageData('oxygen', '1.2.0', null);
-        final versions = await packageBackend.versionsOfPackage('oxygen');
+        final versions = await packageBackend.listVersionsCached('oxygen');
         final html = renderPkgVersionsPage(
           data,
-          versions.map((v) => v.toApiVersionInfo()).toList(),
+          versions.versions,
           dartSdkVersion: Version.parse(runtimeSdkVersion),
         );
         expectGoldenFile(html, 'pkg_versions_page.html', timestamps: {

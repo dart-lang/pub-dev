@@ -50,13 +50,11 @@ Future<shelf.Response> packageShowHandlerJson(
     return formattedNotFoundHandler(request);
   }
 
-  final versions = await packageBackend.versionsOfPackage(packageName);
-  sortPackageVersionsDesc(versions, decreasing: false);
+  final versions = await packageBackend.listVersionsCached(packageName);
 
   final json = {
     'name': package.name,
-    'versions':
-        versions.map((packageVersion) => packageVersion.version).toList(),
+    'versions': versions.versions.map((v) => v.version).toList(),
   };
   return jsonResponse(json);
 }

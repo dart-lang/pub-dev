@@ -370,18 +370,19 @@ class ScoreCardBackend {
   /// - the report is older than [successThreshold] if it was a success,
   /// - the report is older than [failureThreshold] if it was a failure.
   Future<bool> shouldUpdateReport(
-    PackageVersion? pv,
+    String package,
+    String version,
     String reportType, {
     Duration successThreshold = const Duration(days: 30),
     Duration failureThreshold = const Duration(days: 1),
     DateTime? updatedAfter,
   }) async {
-    if (pv == null || isSoftRemoved(pv.package)) {
+    if (isSoftRemoved(package)) {
       return false;
     }
 
     // checking existing card
-    final key = scoreCardKey(pv.package, pv.version!);
+    final key = scoreCardKey(package, version);
     final card = await _db.lookupOrNull<ScoreCard>(key);
     if (card == null) return true;
 
