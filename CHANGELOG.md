@@ -2,10 +2,11 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bumped runtimeVersion to `2021.10.18`.
+ * Bumped runtimeVersion to `2021.10.21`.
  * Upgraded stable Dart analysis SDK to `2.14.4`.
  * Upgraded stable Flutter analysis SDK to `2.5.3`.
  * Upgraded preview Dart analysis SDK to `2.15.0-178.1.beta`.
+ * Upgraded preview Flutter analysis SDK to `2.7.0-3.0.pre`.
  * NOTE: Started to use cached package list from NameTracker instead of Datastore queries with offset.
  * NOTE: `/api/packages/<package>` calls only use `gzip` cache, which may increase
          CPU utilization if there are many clients that do no accept the `gzip` content-encoding.
