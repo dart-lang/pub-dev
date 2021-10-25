@@ -53,8 +53,36 @@ d.Node _searchFormContainer({
             label: 'Platforms',
             isActive: true,
             children: [
-              // TODO: add platform checkboxes
-              d.span(text: '[placeholder]'),
+              _platformCheckbox(
+                platform: FlutterSdkPlatform.android,
+                label: 'Android',
+                searchForm: searchForm,
+              ),
+              _platformCheckbox(
+                platform: FlutterSdkPlatform.ios,
+                label: 'iOS',
+                searchForm: searchForm,
+              ),
+              _platformCheckbox(
+                platform: FlutterSdkPlatform.linux,
+                label: 'Linux',
+                searchForm: searchForm,
+              ),
+              _platformCheckbox(
+                platform: FlutterSdkPlatform.macos,
+                label: 'macOS',
+                searchForm: searchForm,
+              ),
+              _platformCheckbox(
+                platform: FlutterSdkPlatform.web,
+                label: 'Web',
+                searchForm: searchForm,
+              ),
+              _platformCheckbox(
+                platform: FlutterSdkPlatform.windows,
+                label: 'Windows',
+                searchForm: searchForm,
+              ),
             ],
           ),
           _filterSection(
@@ -80,6 +108,26 @@ d.Node _searchFormContainer({
         child: innerContent,
       ),
     ],
+  );
+}
+
+d.Node _platformCheckbox({
+  required String platform,
+  required String label,
+  required SearchForm searchForm,
+}) {
+  return d.div(
+    classes: ['search-form-linked-checkbox'],
+    child: material.checkbox(
+      id: 'search-form-checkbox-platform-$platform',
+      label: label,
+      labelNodeContent: (label) => d.a(
+        classes: ['search-link'],
+        href: searchForm.togglePlatform(platform).toSearchLink(),
+        text: label,
+      ),
+      checked: searchForm.platforms.contains(platform),
+    ),
   );
 }
 
