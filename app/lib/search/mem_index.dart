@@ -378,7 +378,17 @@ class InMemoryPackageIndex implements PackageIndex {
       final shouldSearchApiText =
           core.getMaxValue() < 0.4 && symbolPages.getMaxValue() < 0.3;
       if (!checkAborted() && shouldSearchApiText) {
+        final sw = Stopwatch()..start();
         dartdocPages = _apiDartdocIndex.searchWords(words, weight: 0.40);
+        _logger.info('[pub-search-query-with-api-dartdoc-index] '
+            'core: ${core.getValues().length}/${core.getMaxValue()} '
+            'symbols: ${symbolPages.getValues().length}/${symbolPages.getMaxValue()} '
+            'documentation: ${dartdocPages.getValues().length}/${dartdocPages.getMaxValue()} '
+            'elapsed: ${sw.elapsed}');
+      } else {
+        _logger.info('[pub-search-query-without-api-dartdoc-index] '
+            'core: ${core.getValues().length}/${core.getMaxValue()} '
+            'symbols: ${symbolPages.getValues().length}/${symbolPages.getMaxValue()}');
       }
 
       final apiDocScore = Score.max([symbolPages, dartdocPages]);
