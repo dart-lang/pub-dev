@@ -156,6 +156,13 @@ class SearchForm {
     return change(platforms: platforms);
   }
 
+  SearchForm toggleDiscontinued() =>
+      change(includeDiscontinued: !includeDiscontinued);
+
+  SearchForm toggleUnlisted() => change(includeUnlisted: !includeUnlisted);
+
+  SearchForm toggleNullSafe() => change(nullSafe: !nullSafe);
+
   ServiceSearchQuery toServiceQuery() {
     var prohibitLegacy = !context.includeAll;
     // Only parse query texts when a quick text match indicates the presence of
@@ -200,6 +207,10 @@ class SearchForm {
 
   /// The zero-indexed offset for the search results.
   int get offset => (currentPage! - 1) * pageSize!;
+
+  /// Whether any of the advanced options is active.
+  bool get hasActiveAdvanced =>
+      includeDiscontinued || includeUnlisted || nullSafe;
 
   /// Converts the query to a user-facing link that (after frontend parsing) will
   /// re-create an identical search query object.
