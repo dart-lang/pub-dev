@@ -27,7 +27,7 @@ final _logger = Logger('pub.job.backend');
 final _random = math.Random.secure();
 
 typedef ShouldProcess = Future<bool> Function(
-    PackageVersion pv, DateTime updated);
+    String package, String version, DateTime updated);
 
 /// Sets the active job backend.
 void registerJobBackend(JobBackend backend) =>
@@ -318,9 +318,8 @@ class JobBackend {
     await for (Job job in query.run()) {
       if (job.runtimeVersion != versions.runtimeVersion) continue;
       try {
-        final pv = await packageBackend.lookupPackageVersion(
-            job.packageName!, job.packageVersion!);
-        final process = await shouldProcess(pv!, job.packageVersionUpdated!);
+        final process = await shouldProcess(
+            job.packageName!, job.packageVersion!, job.packageVersionUpdated!);
         if (process) {
           await _schedule(job);
         } else {

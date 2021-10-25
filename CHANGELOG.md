@@ -10,6 +10,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * NOTE: Started to use cached package list from NameTracker instead of Datastore queries with offset.
  * NOTE: `/api/packages/<package>` calls only use `gzip` cache, which may increase
          CPU utilization if there are many clients that do no accept the `gzip` content-encoding.
+ * NOTE: Started to use cached package list for all use case where a list of package versions is required.
 
 ## `20211013t105500-all`
  * Bumped runtimeVersion to `2021.10.12`.

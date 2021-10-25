@@ -44,7 +44,7 @@ abstract class JobProcessor {
 
   Future<JobStatus> process(Job job);
 
-  Future<bool> shouldProcess(PackageVersion pv, DateTime updated);
+  Future<bool> shouldProcess(String package, String version, DateTime updated);
 
   /// Never completes.
   Future<void> run() async {
@@ -167,31 +167,32 @@ class JobMaintenance {
     }
     final packageNames = packages.keys.toList()..shuffle();
 
-    Future<void> updateJob(PackageVersion pv, bool skipLatestStable) async {
+    Future<void> updateJob(String package, String version, DateTime updated,
+        bool skipLatestStable) async {
       try {
-        final p = packages[pv.package];
+        final p = packages[package];
         if (p == null || p.isNotVisible) return;
         final releases = await packageBackend.latestReleases(p);
-        final isLatestStable = releases.stable.version == pv.version;
-        final isLatestPrerelease = releases.showPrerelease &&
-            releases.prerelease!.version == pv.version;
+        final isLatestStable = releases.stable.version == version;
+        final isLatestPrerelease =
+            releases.showPrerelease && releases.prerelease!.version == version;
         final isLatestPreview =
-            releases.showPreview && releases.preview!.version == pv.version;
+            releases.showPreview && releases.preview!.version == version;
         if (isLatestStable && skipLatestStable) return;
-        final shouldProcess = await _processor.shouldProcess(pv, pv.created!);
+        final shouldProcess =
+            await _processor.shouldProcess(package, version, updated);
         await jobBackend.createOrUpdate(
           service: _processor.service,
-          package: pv.package,
-          version: pv.version!,
+          package: package,
+          version: version,
           isLatestStable: isLatestStable,
           isLatestPrerelease: isLatestPrerelease,
           isLatestPreview: isLatestPreview,
-          packageVersionUpdated: pv.created,
+          packageVersionUpdated: updated,
           shouldProcess: shouldProcess,
         );
       } catch (e, st) {
-        _logger.info(
-            'History sync failed for ${pv.package} ${pv.version}', e, st);
+        _logger.info('History sync failed for $package $version', e, st);
       }
     }
 
@@ -203,8 +204,8 @@ class JobMaintenance {
       final futures = <Future>[];
       for (final package in packageNames) {
         final p = packages[package]!;
-        final pv = await _db.lookupValue<PackageVersion>(p.latestVersionKey!);
-        final f = pool.withResource(() => updateJob(pv, false));
+        final f = pool.withResource(() => updateJob(
+            package, p.latestVersion!, p.lastVersionPublished!, false));
         futures.add(f);
       }
       await Future.wait(futures);
@@ -219,10 +220,12 @@ class JobMaintenance {
       await cacheEntry.get(() async {
         final pool = Pool(4);
         final futures = <Future>[];
-        final versions = await packageBackend.versionsOfPackage(package);
+        final info = await packageBackend.listVersionsCached(package);
+        final versions = [...info.versions];
         versions.shuffle();
         for (final pv in versions) {
-          final f = pool.withResource(() => updateJob(pv, true));
+          final f = pool.withResource(
+              () => updateJob(package, pv.version, pv.published!, true));
           futures.add(f);
         }
         await Future.wait(futures);

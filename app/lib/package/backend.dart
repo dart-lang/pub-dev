@@ -131,7 +131,14 @@ class PackageBackend {
 
   /// Returns the number of versions for a given [package].
   Future<int> getPackageVersionsCount(String package) async {
-    return (await versionsOfPackage(package)).length;
+    try {
+      // TODO: introduce a counter on `Package`
+      final versions = await listVersionsCached(package);
+      return versions.versions.length;
+    } on NotFoundException catch (_) {
+      // TODO: find a better way to handle non-existing packages
+      return 0;
+    }
   }
 
   /// Looks up a package by name.
@@ -219,6 +226,7 @@ class PackageBackend {
   }
 
   /// Looks up all versions of a package.
+  @visibleForTesting
   Future<List<PackageVersion>> versionsOfPackage(String packageName) async {
     final packageKey = db.emptyKey.append(Package, id: packageName);
     final query = db.query<PackageVersion>(ancestorKey: packageKey);
