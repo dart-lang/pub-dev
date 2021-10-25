@@ -69,12 +69,14 @@ abstract class SdkTagValue {
 
 /// Collection of Dart SDK runtime tags (with prefix and value).
 abstract class DartSdkTag {
+  static const String runtimeNativeAot = 'runtime:${DartSdkRuntime.nativeAot}';
   static const String runtimeNativeJit = 'runtime:${DartSdkRuntime.nativeJit}';
   static const String runtimeWeb = 'runtime:${DartSdkRuntime.web}';
 }
 
 /// Collection of Dart SDK runtime values.
 abstract class DartSdkRuntime {
+  static const String nativeAot = 'native-aot';
   static const String nativeJit = 'native-jit';
   static const String web = 'web';
 

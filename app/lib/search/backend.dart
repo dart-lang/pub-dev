@@ -105,12 +105,45 @@ class SearchBackend {
         ? await loadTags(releases.preview!.version)
         : <String>[];
 
+    Iterable<String> expandPanaTag(String tag) {
+      if (tag == DartSdkTag.runtimeNativeJit) {
+        return [
+          tag,
+          FlutterSdkTag.platformAndroid,
+          FlutterSdkTag.platformLinux,
+          FlutterSdkTag.platformMacos,
+          FlutterSdkTag.platformWindows,
+        ];
+      } else if (tag == DartSdkTag.runtimeNativeAot) {
+        return [
+          tag,
+          FlutterSdkTag.platformAndroid,
+          FlutterSdkTag.platformIos,
+          FlutterSdkTag.platformLinux,
+          FlutterSdkTag.platformMacos,
+          FlutterSdkTag.platformWeb,
+          FlutterSdkTag.platformWindows,
+        ];
+      } else if (tag == DartSdkTag.runtimeWeb) {
+        return [
+          tag,
+          FlutterSdkTag.platformWeb,
+        ];
+      } else {
+        return [tag];
+      }
+    }
+
     final tags = <String>{
       ...p.getTags(),
       ...pv.getTags(),
-      ...scoreCard?.panaReport?.derivedTags ?? const <String>[],
-      ...prereleaseTags.map(PackageTags.convertToPrereleaseTag),
-      ...previewTags.map(PackageTags.convertToPrereleaseTag),
+      ...?scoreCard?.panaReport?.derivedTags?.expand(expandPanaTag),
+      ...prereleaseTags
+          .expand(expandPanaTag)
+          .map(PackageTags.convertToPrereleaseTag),
+      ...previewTags
+          .expand(expandPanaTag)
+          .map(PackageTags.convertToPrereleaseTag),
     };
 
     // This is a temporary workaround to expose latest stable versions with
