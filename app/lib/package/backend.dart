@@ -132,6 +132,7 @@ class PackageBackend {
   /// Returns the number of versions for a given [package].
   Future<int> getPackageVersionsCount(String package) async {
     try {
+      // TODO: introduce a counter on `Package`
       final versions = await listVersionsCached(package);
       return versions.versions.length;
     } on NotFoundException catch (_) {
