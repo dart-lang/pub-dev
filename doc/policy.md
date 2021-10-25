@@ -83,8 +83,6 @@ To ensure efficient review of your complaint, please provide all requested infor
 We cannot take action on incomplete complaints. We receive a high volume of
 complaints and review them in the order that they are received.
 
-See how to [report inappropriate use of a Google trademark][google-g_trademark].
-
 ## Content policy
 Pub.dev is intended to enable developers to share Dart packages with other developers.
 Thus, these packages are expected to contain Dart source code, assets (images, audio files, etc.)
@@ -112,7 +110,6 @@ You may use the Dart and Flutter marks solely in compliance with the
 [Flutter brand guidelines][flutter-brand-guidelines], respectively.
 For information about other Google brand features,
 visit [our brand permissions site][google-brand-permissions].
-See how to [report inappropriate use of a Google trademark][google-g_trademark].
 
 ## Changes
 Policies in this document may change over time. The current version of this
@@ -123,6 +120,5 @@ To view changes refer to the [history of this document][policy-history].
 [flutter-brand-guidelines]: https://flutter.dev/brand
 [google-brand-permissions]: https://www.google.com/permissions/
 [google-terms]: https://policies.google.com/terms?hl=en
-[google-g_trademark]: https://support.google.com/websearch/contact/g_trademark
 [pub-policy]: https://pub.dev/policy
 [policy-history]: https://github.com/dart-lang/pub-dev/commits/master/doc/policy.md
