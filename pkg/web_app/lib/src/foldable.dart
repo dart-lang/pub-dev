@@ -50,7 +50,7 @@ void _setEventForFoldable() {
       content.style.maxHeight = '${contentHeight}px';
 
       num scrollDiff = 0;
-      if (isActive && scrollContainer != null) {
+      if (scrollContainer != null) {
         /// Calculate the required amount of scrolling in order to have the
         /// entire content in the view, aligning it at the bottom of the visible
         /// scroll view.
@@ -89,9 +89,6 @@ void _setEventForFoldable() {
       final isActive = foldable.classes.toggle('-active');
       await update(isActive);
     });
-
-    // also update the initial state
-    update(foldable.classes.contains('-active'));
   }
 }
 

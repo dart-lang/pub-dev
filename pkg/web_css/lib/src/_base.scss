@@ -371,6 +371,12 @@ pre {
     overflow: hidden;
     transition: max-height 0.6s ease;
   }
+
+  &.-active {
+    .foldable-content {
+      display: block;
+    }
+  }
 }
 
 .announcement-banner {
