@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 import 'dart:io' as io;
+import 'dart:typed_data';
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -158,7 +159,7 @@ class _File implements File {
   ResourceProvider get provider => _delegate.provider;
 
   @override
-  List<int> readAsBytesSync() => _delegate.readAsBytesSync();
+  Uint8List readAsBytesSync() => _delegate.readAsBytesSync();
 
   @override
   String readAsStringSync() => _delegate.readAsStringSync();

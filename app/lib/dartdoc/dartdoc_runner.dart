@@ -134,6 +134,7 @@ class _DartdocRunner implements DartdocRunner {
       '--rel-canonical-prefix',
       canonicalUrl,
       '--no-validate-links',
+      '--sanitize-html',
     ];
     if (toolEnv.dartSdkDir != null) {
       args.addAll(['--sdk-dir', toolEnv.dartSdkDir!]);

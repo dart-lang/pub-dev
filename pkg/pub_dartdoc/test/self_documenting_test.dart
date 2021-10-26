@@ -26,6 +26,7 @@ void main() {
         Directory.current.absolute.path,
         '--output',
         tempDir.absolute.path,
+        '--sanitize-html',
       ]);
     });
 
