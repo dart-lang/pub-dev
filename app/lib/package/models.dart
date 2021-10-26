@@ -100,6 +100,12 @@ class Package extends db.ExpandoModel<String> {
   @db.StringListProperty()
   List<String>? uploaders;
 
+  /// The number of published versions.
+  ///
+  /// TODO: set required: true after the backfill is stabilized.
+  @db.IntProperty()
+  int? versionsCount;
+
   /// Set to `true` if package is discontinued, may otherwise be `false`.
   @db.BoolProperty(required: true)
   bool isDiscontinued = false;
@@ -147,6 +153,7 @@ class Package extends db.ExpandoModel<String> {
       ..latestPrereleaseVersionKey = version.key
       ..latestPrereleasePublished = now
       ..uploaders = [version.uploader!]
+      ..versionsCount = 0
       ..likes = 0
       ..isDiscontinued = false
       ..isUnlisted = false

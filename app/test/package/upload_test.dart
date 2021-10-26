@@ -113,6 +113,7 @@ void main() {
           expect(package.publisherId, isNull);
           expect(package.created!.compareTo(dateBeforeTest) >= 0, isTrue);
           expect(package.updated!.compareTo(dateBeforeTest) >= 0, isTrue);
+          expect(package.versionsCount, 1);
 
           final pvKey = package.latestVersionKey;
           final pv = (await dbService.lookup<PackageVersion>([pvKey!])).single!;
@@ -240,10 +241,14 @@ void main() {
 
       testWithProfile('not authorized', fn: () async {
         await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
+          final p1 = await packageBackend.lookupPackage('oxygen');
+          expect(p1!.versionsCount, 3);
           final tarball = await packageArchiveBytes(
               pubspecContent: generatePubspecYaml('oxygen', '2.2.0'));
           final rs = packageBackend.upload(Stream.fromIterable([tarball]));
           await expectLater(rs, throwsA(isA<AuthorizationException>()));
+          final p2 = await packageBackend.lookupPackage('oxygen');
+          expect(p2!.versionsCount, 3);
         });
       });
 
@@ -442,12 +447,16 @@ void main() {
 
       testWithProfile('successful update + download', fn: () async {
         await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          final p1 = await packageBackend.lookupPackage('oxygen');
+          expect(p1!.versionsCount, 3);
           final tarball = await packageArchiveBytes(
               pubspecContent: generatePubspecYaml('oxygen', '3.0.0'));
           final version =
               await packageBackend.upload(Stream.fromIterable([tarball]));
           expect(version.package, 'oxygen');
           expect(version.version, '3.0.0');
+          final p2 = await packageBackend.lookupPackage('oxygen');
+          expect(p2!.versionsCount, 4);
 
           expect(fakeEmailSender.sentMessages, hasLength(1));
           final email = fakeEmailSender.sentMessages.single;
