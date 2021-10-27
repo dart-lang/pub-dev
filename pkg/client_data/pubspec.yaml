@@ -2,14 +2,14 @@ name: client_data
 description: Shared data between server and JS client.
 publish_to: none
 environment:
-  sdk: '>=2.12.0 <3.0.0'
+  sdk: '>=2.14.0 <3.0.0'
 
 dependencies:
-  json_annotation: '>=3.0.0 <5.0.0'
+  json_annotation: ^4.3.0
 
 dev_dependencies:
   build_runner: '^2.0.0'
   build_verify: ^2.0.0
-  json_serializable: '^5.0.0'
+  json_serializable: ^6.0.1
   source_gen: '^1.0.0'
   test: '^1.16.5'

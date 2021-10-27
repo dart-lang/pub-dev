@@ -113,7 +113,7 @@ AdminId _$AdminIdFromJson(Map json) => $checkedCreate(
           permissions: $checkedConvert(
               'permissions',
               (v) => (v as List<dynamic>).map(
-                  (e) => _$enumDecodeNullable(_$AdminPermissionEnumMap, e))),
+                  (e) => $enumDecodeNullable(_$AdminPermissionEnumMap, e))),
         );
         return val;
       },
@@ -125,43 +125,6 @@ Map<String, dynamic> _$AdminIdToJson(AdminId instance) => <String, dynamic>{
       'permissions':
           instance.permissions.map((e) => _$AdminPermissionEnumMap[e]).toList(),
     };
-
-K _$enumDecode<K, V>(
-  Map<K, V> enumValues,
-  Object? source, {
-  K? unknownValue,
-}) {
-  if (source == null) {
-    throw ArgumentError(
-      'A value must be provided. Supported values: '
-      '${enumValues.values.join(', ')}',
-    );
-  }
-
-  return enumValues.entries.singleWhere(
-    (e) => e.value == source,
-    orElse: () {
-      if (unknownValue == null) {
-        throw ArgumentError(
-          '`$source` is not one of the supported values: '
-          '${enumValues.values.join(', ')}',
-        );
-      }
-      return MapEntry(unknownValue, enumValues.values.first);
-    },
-  ).key;
-}
-
-K? _$enumDecodeNullable<K, V>(
-  Map<K, V> enumValues,
-  dynamic source, {
-  K? unknownValue,
-}) {
-  if (source == null) {
-    return null;
-  }
-  return _$enumDecode<K, V>(enumValues, source, unknownValue: unknownValue);
-}
 
 const _$AdminPermissionEnumMap = {
   AdminPermission.listUsers: 'listUsers',
