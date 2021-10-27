@@ -130,7 +130,14 @@ class PackageBackend {
   }
 
   /// Returns the number of versions for a given [package].
-  Future<int> getPackageVersionsCount(String package) async {
+  Future<int> getPackageVersionsCount(
+    String package, {
+    bool skipCache = false,
+  }) async {
+    if (skipCache) {
+      final versions = await versionsOfPackage(package);
+      return versions.length;
+    }
     try {
       // TODO: introduce a counter on `Package`
       final versions = await listVersionsCached(package);
@@ -843,6 +850,11 @@ class PackageBackend {
       package!.updateVersion(newVersion,
           dartSdkVersion: currentDartSdk.semanticVersion);
       package!.updated = DateTime.now().toUtc();
+      // Update version count only if backfill has been run already.
+      // TODO: change this to always update when the backfill completed.
+      if (package!.versionCount != null) {
+        package!.versionCount = package!.versionCount! + 1;
+      }
 
       _logger.info(
         'Trying to upload tarball for ${package!.name} version ${newVersion.version} to cloud storage.',
