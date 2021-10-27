@@ -1,7 +1,7 @@
 name: pub_dev
 description: The pub.dartlang.org website.
 environment:
-  sdk: '>=2.12.0 <3.0.0'
+  sdk: '>=2.14.0 <3.0.0'
 dependencies:
   _popularity:
     path: ../pkg/_popularity
@@ -15,13 +15,13 @@ dependencies:
   fake_gcloud:
     path: ../pkg/fake_gcloud
   gcloud: '^0.8.1'
-  googleapis: '^3.0.0'
+  googleapis: ^6.0.0
   googleapis_auth: ^1.1.0
   html: ^0.15.0
   http: ^0.13.0
   http_parser: ^4.0.0
   intl: '^0.17.0'
-  json_annotation: '^4.0.0'
+  json_annotation: '^4.3.0'
   lints: ^1.0.0
   logging: '>=0.9.3 <2.0.0'
   markdown: ^4.0.0
@@ -61,7 +61,7 @@ dev_dependencies:
   build_runner: '^2.0.0'
   build_verify: ^2.0.0
   coverage: any # test already depends on it
-  json_serializable: '^5.0.0'
+  json_serializable: ^6.0.1
   pub_validations:
     path: ../pkg/pub_validations
   shelf_router_generator: ^1.0.0
