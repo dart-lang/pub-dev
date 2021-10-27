@@ -101,6 +101,30 @@ d.Node _searchFormContainer({
               ),
             ],
           ),
+          _filterSection(
+            label: 'Advanced',
+            isActive: searchForm.hasActiveAdvanced,
+            children: [
+              _formLinkedCheckbox(
+                id: 'search-form-checbox-discontinued',
+                label: 'Include discontinued',
+                toggledSearchForm: searchForm.toggleDiscontinued(),
+                isChecked: searchForm.includeDiscontinued,
+              ),
+              _formLinkedCheckbox(
+                id: 'search-form-checbox-unlisted',
+                label: 'Include unlisted',
+                toggledSearchForm: searchForm.toggleUnlisted(),
+                isChecked: searchForm.includeUnlisted,
+              ),
+              _formLinkedCheckbox(
+                id: 'search-form-checbox-null-safe',
+                label: 'Supports null safety',
+                toggledSearchForm: searchForm.toggleNullSafe(),
+                isChecked: searchForm.nullSafe,
+              ),
+            ],
+          ),
         ],
       ),
       d.div(
@@ -116,18 +140,11 @@ d.Node _platformCheckbox({
   required String label,
   required SearchForm searchForm,
 }) {
-  return d.div(
-    classes: ['search-form-linked-checkbox'],
-    child: material.checkbox(
-      id: 'search-form-checkbox-platform-$platform',
-      label: label,
-      labelNodeContent: (label) => d.a(
-        classes: ['search-link'],
-        href: searchForm.togglePlatform(platform).toSearchLink(),
-        text: label,
-      ),
-      checked: searchForm.platforms.contains(platform),
-    ),
+  return _formLinkedCheckbox(
+    id: 'search-form-checkbox-platform-$platform',
+    label: label,
+    toggledSearchForm: searchForm.togglePlatform(platform),
+    isChecked: searchForm.platforms.contains(platform),
   );
 }
 
@@ -136,17 +153,31 @@ d.Node _sdkCheckbox({
   required String label,
   required SearchForm searchForm,
 }) {
+  return _formLinkedCheckbox(
+    id: 'search-form-checkbox-sdk-$sdk',
+    label: label,
+    toggledSearchForm: searchForm.toggleSdk(sdk),
+    isChecked: searchForm.sdks.contains(sdk),
+  );
+}
+
+d.Node _formLinkedCheckbox({
+  required String id,
+  required String label,
+  required SearchForm toggledSearchForm,
+  required bool isChecked,
+}) {
   return d.div(
     classes: ['search-form-linked-checkbox'],
     child: material.checkbox(
-      id: 'search-form-checkbox-sdk-$sdk',
+      id: id,
       label: label,
       labelNodeContent: (label) => d.a(
         classes: ['search-link'],
-        href: searchForm.toggleSdk(sdk).toSearchLink(),
+        href: toggledSearchForm.toSearchLink(),
         text: label,
       ),
-      checked: searchForm.sdks.contains(sdk),
+      checked: isChecked,
     ),
   );
 }
@@ -182,11 +213,10 @@ d.Node _searchControls(SearchForm searchForm, d.Node? subSdkButtons) {
   final includeDiscontinued = searchForm.includeDiscontinued;
   final includeUnlisted = searchForm.includeUnlisted;
   final nullSafe = searchForm.nullSafe;
-  final hasActiveAdvanced = includeDiscontinued || includeUnlisted || nullSafe;
   return d.div(
     classes: [
       'search-controls',
-      if (hasActiveAdvanced) '-active',
+      if (searchForm.hasActiveAdvanced) '-active',
     ],
     children: [
       d.div(
