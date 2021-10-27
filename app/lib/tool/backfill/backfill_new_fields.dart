@@ -50,17 +50,17 @@ Future<void> _backfillPackages() async {
 
 /// Returns true if a race has been detected.
 Future<bool> _backfillPackage(Package p) async {
-  if (p.versionsCount != null) return false;
+  if (p.versionCount != null) return false;
   final count =
       await packageBackend.getPackageVersionsCount(p.name!, skipCache: true);
   return await withRetryTransaction(dbService, (tx) async {
     final v = await tx.lookupValue<Package>(p.key);
     // sanity checks for parallel updates during the version count
-    if (v.versionsCount == null &&
+    if (v.versionCount == null &&
         p.updated == v.updated &&
         p.lastVersionPublished == v.lastVersionPublished &&
         p.likes == v.likes) {
-      v.versionsCount = count;
+      v.versionCount = count;
       v.updated = DateTime.now().toUtc();
       tx.insert(v);
       return false;

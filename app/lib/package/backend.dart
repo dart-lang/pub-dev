@@ -852,8 +852,8 @@ class PackageBackend {
       package!.updated = DateTime.now().toUtc();
       // Update version count only if backfill has been run already.
       // TODO: change this to always update when the backfill completed.
-      if (package!.versionsCount != null) {
-        package!.versionsCount = package!.versionsCount! + 1;
+      if (package!.versionCount != null) {
+        package!.versionCount = package!.versionCount! + 1;
       }
 
       _logger.info(
