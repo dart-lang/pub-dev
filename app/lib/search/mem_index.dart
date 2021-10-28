@@ -10,7 +10,6 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
 import '../shared/utils.dart' show boundedList;
-import 'scope_specificity.dart';
 import 'search_service.dart';
 import 'text_utils.dart';
 import 'token_index.dart';
@@ -236,11 +235,9 @@ class InMemoryPackageIndex implements PackageIndex {
     late List<PackageHit> packageHits;
     switch (query.order ?? SearchOrder.top) {
       case SearchOrder.top:
-        final hasSpecificScope = query.sdk != null;
         final List<Score> scores = [
           _getOverallScore(packages),
           if (textResults != null) textResults.pkgScore,
-          if (hasSpecificScope) Score(_scopeSpecificityScore(query, packages)),
         ];
         final overallScore = Score.multiply(scores);
         packageHits = _rankWithValues(overallScore.getValues());
@@ -287,16 +284,6 @@ class InMemoryPackageIndex implements PackageIndex {
       highlightedHit: highlightedHit,
       packageHits: packageHits,
     );
-  }
-
-  Map<String, double> _scopeSpecificityScore(
-      ServiceSearchQuery query, Iterable<String> packages) {
-    final scopeSpecificity = <String, double>{};
-    packages.forEach((String package) {
-      final doc = _packages[package]!;
-      scopeSpecificity[package] = scoreScopeSpecificity(query.sdk, doc.tags);
-    });
-    return scopeSpecificity;
   }
 
   @visibleForTesting

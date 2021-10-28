@@ -4,8 +4,7 @@
 
 Package listings (with or without text search, filters or scopes) build on
 a ranking computed from multiple scores. If applicable, this score is
-adjusted with the text query match score or the scope specificity score
-of the search query.
+adjusted with the text query match score of the search query.
 
 ### Base composite score
 
@@ -17,20 +16,6 @@ The base composite score sorts packages according to::
 The usage metrics use a non-linear scoring model, where the package above the N-th
 percentile gets N/100 points (e.g. if a package has more likes than the 90% of the
 packages, it will get 0.90 points for likes).
-
-### Scope specificity score
-
-When a platform filter is specified, we filter search results to those matching
-the selected platform, and sort according to how closely it matches them
-([`scope_specificity.dart`](https://github.com/dart-lang/pub-dev/blob/master/app/lib/search/scope_specificity.dart)).
-
-For example, if the platform filter is `platform:web`, we'll have the following scores:
-
-- `<missing or empty platform>`: no match, doesn't show up in the results
-- `['platform:android', 'platform:ios']`: no match, doesn't show up in the results
-- `['platform:web']`: `1.0` (specific platform match)
-- `['platform:android', 'platform:web']`: `0.9` (1 extra platform, close platform match)
-- `['platform:android', 'platform:ios', 'platform:web']`: `0.8` (2+ extra platforms, distant platform match)
 
 ### Numerical ordering
 
@@ -103,9 +88,6 @@ score), we do the following linear transformation:
 
 - `overall`: `[0.0 .. 1.0] -> [0.5 .. 1.0]`
 
-Scope specificity is already protected against low values, there is no
-transformation required for it.
-
 For example, a result with the following scores is calculated the following way:
 
 | Name | Value |
@@ -118,8 +100,7 @@ For example, a result with the following scores is calculated the following way:
 | --- | --- | --- |
 | text match | 0.7 | 0.7 |
 | package's overall | 0.88 | 0.94 |
-| scope specificity | 0.9 | 0.9 |
-| result |  | 0.5922 |
+| result |  | 0.658 |
 
 ### SDK results
 
