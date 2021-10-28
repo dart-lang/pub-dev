@@ -385,9 +385,8 @@ class PackageVersion extends db.ExpandoModel<String> {
   String? publisherId;
 
   /// Whether the version has been retracted.
-  /// TODO: make it required once the release stabilizes
-  @db.BoolProperty()
-  bool? isRetracted;
+  @db.BoolProperty(required: true)
+  bool isRetracted = false;
 
   /// The timestamp when the version was retracted.
   @db.DateTimeProperty()
@@ -433,12 +432,12 @@ class PackageVersion extends db.ExpandoModel<String> {
   }
 
   bool get canBeRetracted =>
-      isRetracted != true &&
+      !isRetracted &&
       created!
           .isAfter(DateTime.now().toUtc().subtract(const Duration(days: 7)));
 
   bool get canUndoRetracted =>
-      isRetracted == true &&
+      isRetracted &&
       retracted!
           .isAfter(DateTime.now().toUtc().subtract(const Duration(days: 7)));
 }

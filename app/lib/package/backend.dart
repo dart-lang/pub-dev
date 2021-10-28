@@ -1117,7 +1117,7 @@ extension PackageVersionExt on PackageVersion {
   api.VersionInfo toApiVersionInfo() {
     return api.VersionInfo(
       version: version!,
-      isRetracted: isRetracted == true ? true : null,
+      isRetracted: isRetracted ? true : null,
       pubspec: pubspec!.asJson,
       archiveUrl: urls.pkgArchiveDownloadUrl(
         package,

@@ -13,23 +13,6 @@ import '../../shared/datastore.dart';
 /// release could remove the backfill from here.
 Future<void> backfillNewFields() async {
   await _backfillPackages();
-  await _backfillPackageVersions();
-}
-
-Future<void> _backfillPackageVersions() async {
-  final query = dbService.query<PackageVersion>();
-  await for (final pv in query.run()) {
-    await _backfillPackageVersion(pv);
-  }
-}
-
-Future<void> _backfillPackageVersion(PackageVersion pv) async {
-  if (pv.isRetracted != null) return;
-  await withRetryTransaction(dbService, (tx) async {
-    final v = await tx.lookupValue<PackageVersion>(pv.key);
-    v.isRetracted ??= false;
-    tx.insert(v);
-  });
 }
 
 Future<void> _backfillPackages() async {
