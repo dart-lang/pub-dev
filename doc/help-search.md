@@ -54,9 +54,6 @@ combination of the following parameters, listed in order of relative importance:
   - Up-to-date dependencies
   - Language feature support
 
-- Search filter specificity, a measure of how relevant a package is to the
-  current filtering
-
 These parameters are normalized, weighted for relative importance, and combined
 to form an overall score for each search result; this score determines the
 default order of the displayed search results.
