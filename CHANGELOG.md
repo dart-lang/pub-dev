@@ -3,6 +3,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Bumped runtimeVersion to `2021.10.28`.
+ * Upgraded preview Flutter analysis SDK to `2.7.0-3.1.pre`.
  * Upgraded dependencies (e.g. `package:analyzer` to `2.7.0`).
 
 ## `20211027t134800-all`

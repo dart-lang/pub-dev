@@ -56,7 +56,7 @@ final String runtimeSdkVersion = '2.14.1';
 final String toolStableDartSdkVersion = '2.14.4';
 final String toolStableFlutterSdkVersion = '2.5.3';
 final String toolPreviewDartSdkVersion = '2.15.0-178.1.beta';
-final String toolPreviewFlutterSdkVersion = '2.7.0-3.0.pre';
+final String toolPreviewFlutterSdkVersion = '2.7.0-3.1.pre';
 
 // Value comes from package:pana.
 final String panaVersion = pana.packageVersion;
