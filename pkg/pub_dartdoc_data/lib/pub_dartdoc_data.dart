@@ -10,9 +10,6 @@ part 'pub_dartdoc_data.g.dart';
 
 @JsonSerializable()
 class PubDartdocData {
-  /// Coverage may be non-existent in `pub-data.json` created with runtime
-  /// before version `2019.09.30`.
-  /// TODO: remove this note after we've deprecated that runtime version.
   final Coverage? coverage;
   final List<ApiElement>? apiElements;
 
