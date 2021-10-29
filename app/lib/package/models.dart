@@ -345,8 +345,6 @@ class Release {
       _$ReleaseFromJson(json);
 
   Map<String, dynamic> toJson() => _$ReleaseToJson(this);
-
-  String get shortPublished => shortDateFormat.format(published);
 }
 
 /// Pub package metadata for a specific uploaded version.
@@ -402,10 +400,6 @@ class PackageVersion extends db.ExpandoModel<String> {
     if (description == null) return null;
     if (description.length < 210) return description;
     return '${description.substring(0, 200)} [...]';
-  }
-
-  String get shortCreated {
-    return shortDateFormat.format(created!);
   }
 
   PackageLinks get packageLinks {

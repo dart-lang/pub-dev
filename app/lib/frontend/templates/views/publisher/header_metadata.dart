@@ -4,7 +4,6 @@
 
 import '../../../../publisher/models.dart' show Publisher;
 import '../../../../shared/urls.dart' as urls;
-import '../../../../shared/utils.dart' show shortDateFormat;
 import '../../../dom/dom.dart' as d;
 import '../../../static_files.dart' show staticUrls;
 
@@ -13,7 +12,6 @@ d.Node publisherHeaderMetadataNode(Publisher publisher) {
   final websiteUri = urls.parseValidUrl(publisher.websiteUrl);
   final websiteRel = (websiteUri?.shouldIndicateUgc ?? false) ? 'ugc' : null;
   final websiteDisplayable = urls.displayableUrl(publisher.websiteUrl);
-  final shortCreated = shortDateFormat.format(publisher.created!);
 
   return d.fragment([
     if (publisher.hasDescription)
@@ -32,7 +30,12 @@ d.Node publisherHeaderMetadataNode(Publisher publisher) {
           iconPath: '/static/img/email-icon.svg',
         ),
     ]),
-    d.p(text: 'Publisher registered on $shortCreated.'),
+    d.p(
+      children: [
+        d.text('Publisher registered on '),
+        d.shortTimestamp(publisher.created!),
+      ],
+    ),
   ]);
 }
 

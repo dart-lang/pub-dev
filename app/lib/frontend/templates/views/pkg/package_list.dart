@@ -6,7 +6,7 @@ import '../../../../package/models.dart';
 import '../../../../search/search_service.dart';
 import '../../../../shared/tags.dart';
 import '../../../../shared/urls.dart' as urls;
-import '../../../../shared/utils.dart' show shortDateFormat;
+import '../../../../shared/utils.dart' show formatXAgo;
 
 import '../../../dom/dom.dart' as d;
 import '../../../static_files.dart' show staticUrls;
@@ -74,9 +74,7 @@ d.Node _packageItem(PackageView view) {
         ],
         d.text(' • Updated: '),
         d.span(
-          text: view.updated == null
-              ? null
-              : shortDateFormat.format(view.updated!),
+          child: view.updated == null ? null : d.shortTimestamp(view.updated!),
         ),
       ],
     ),
@@ -128,7 +126,8 @@ d.Node _item({
   required d.Node? tagsNode,
   required List<_ApiPageUrl>? apiPages,
 }) {
-  final xAgoLabel = _renderXAgo(newTimestamp);
+  final age =
+      newTimestamp == null ? null : DateTime.now().difference(newTimestamp);
   return d.div(
     classes: ['packages-item'],
     children: [
@@ -139,7 +138,7 @@ d.Node _item({
             classes: ['packages-title'],
             child: d.a(href: url, text: name),
           ),
-          if (xAgoLabel != null)
+          if (age != null && age.inDays <= 30)
             d.div(
               classes: ['packages-recent'],
               children: [
@@ -149,7 +148,7 @@ d.Node _item({
                   title: 'new package',
                 ),
                 d.text(' Added '),
-                d.b(text: xAgoLabel),
+                d.b(text: formatXAgo(age)),
               ],
             ),
           if (labeledScoresNode != null) labeledScoresNode,
@@ -163,15 +162,6 @@ d.Node _item({
         d.div(classes: ['packages-api'], child: _apiPages(apiPages)),
     ],
   );
-}
-
-String? _renderXAgo(DateTime? value) {
-  if (value == null) return null;
-  final age = DateTime.now().difference(value);
-  if (age.inDays > 30) return null;
-  if (age.inDays > 1) return '${age.inDays} days ago';
-  if (age.inHours > 1) return '${age.inHours} hours ago';
-  return 'in the last hour';
 }
 
 class _ApiPageUrl {

@@ -4,7 +4,6 @@
 
 import '../../../../account/models.dart';
 import '../../../../shared/urls.dart' as urls;
-import '../../../../shared/utils.dart' show shortDateFormat;
 
 import '../../../dom/dom.dart' as d;
 import '../../../dom/material.dart' as material;
@@ -52,7 +51,7 @@ d.Node likedPackageListNode(List<LikeData> likes) {
             classes: ['packages-metadata'],
             children: [
               d.text(' Liked on: '),
-              d.span(text: shortDateFormat.format(like.created!)),
+              d.shortTimestamp(like.created!),
             ],
           ),
         ],

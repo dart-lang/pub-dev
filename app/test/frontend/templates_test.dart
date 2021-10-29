@@ -35,7 +35,7 @@ import 'package:pub_dev/scorecard/models.dart';
 import 'package:pub_dev/search/search_form.dart';
 import 'package:pub_dev/search/search_service.dart';
 import 'package:pub_dev/service/youtube/backend.dart';
-import 'package:pub_dev/shared/utils.dart' show shortDateFormat;
+import 'package:pub_dev/shared/utils.dart' show formatXAgo, shortDateFormat;
 import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -94,9 +94,11 @@ void main() {
       var replacedContent = content;
       timestamps?.forEach((key, value) {
         if (value != null) {
+          final age = DateTime.now().difference(value);
           replacedContent = replacedContent
               .replaceAll(shortDateFormat.format(value), '%%$key-date%%')
-              .replaceAll(value.toIso8601String(), '%%$key-timestamp%%');
+              .replaceAll(value.toIso8601String(), '%%$key-timestamp%%')
+              .replaceAll(formatXAgo(age), '%%x-ago%%');
         }
       });
       replacements?.forEach((key, value) {
@@ -632,20 +634,24 @@ void main() {
           imageUrl: 'pub.dev/user-img-url.png',
         );
         registerUserSessionData(session);
+        final liked1 = DateTime.fromMillisecondsSinceEpoch(1574423824000);
+        final liked2 = DateTime.fromMillisecondsSinceEpoch(1574423824000);
         final html = renderMyLikedPackagesPage(
           user: user,
           userSessionData: session,
           likes: [
             LikeData(
                 package: 'super_package',
-                created: DateTime.fromMillisecondsSinceEpoch(1574423824000)),
+                created: liked1),
             LikeData(
                 package: 'another_package',
-                created: DateTime.fromMillisecondsSinceEpoch(1574423824000))
+                created: liked2)
           ],
         );
         expectGoldenFile(html, 'my_liked_packages.html', timestamps: {
           'user-created': user.created,
+          'liked1': liked1,
+          'liked2': liked2,
         });
       });
     });

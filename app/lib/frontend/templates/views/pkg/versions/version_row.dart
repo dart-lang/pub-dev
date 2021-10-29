@@ -6,7 +6,6 @@ import 'package:client_data/package_api.dart';
 
 import '../../../../../package/model_properties.dart';
 import '../../../../../shared/urls.dart' as urls;
-import '../../../../../shared/utils.dart' show shortDateFormat;
 import '../../../../dom/dom.dart' as d;
 import '../../../../static_files.dart';
 import '../../../package_misc.dart';
@@ -40,8 +39,9 @@ d.Node versionRowNode(String package, VersionInfo version, Pubspec pubspec) {
             : null,
       ),
       d.td(
-          classes: ['uploaded'],
-          text: shortDateFormat.format(version.published!)),
+        classes: ['uploaded'],
+        child: d.shortTimestamp(version.published!),
+      ),
       d.td(
         classes: ['documentation'],
         child: d.a(
