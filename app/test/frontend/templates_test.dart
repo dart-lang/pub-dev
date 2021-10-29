@@ -640,12 +640,8 @@ void main() {
           user: user,
           userSessionData: session,
           likes: [
-            LikeData(
-                package: 'super_package',
-                created: liked1),
-            LikeData(
-                package: 'another_package',
-                created: liked2)
+            LikeData(package: 'super_package', created: liked1),
+            LikeData(package: 'another_package', created: liked2)
           ],
         );
         expectGoldenFile(html, 'my_liked_packages.html', timestamps: {
