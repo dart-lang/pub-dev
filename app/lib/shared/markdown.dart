@@ -4,12 +4,11 @@
 
 import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as m;
-import 'package:pana/pana.dart' show getRepositoryUrl;
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:sanitize_html/sanitize_html.dart';
 
-import 'urls.dart' show UriExt;
+import 'urls.dart' show getRepositoryUrl, UriExt;
 
 final Logger _logger = Logger('pub.markdown');
 
