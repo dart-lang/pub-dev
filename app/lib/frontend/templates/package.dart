@@ -410,8 +410,11 @@ d.Node renderPackageSchemaOrgHtml(PackagePageData data) {
     'image': '${urls.siteRoot}/static/img/pub-dev-icon-cover-image.png'
   };
   if (data.hasLicense) {
-    map['license'] = urls.pkgLicenseUrl(data.package!.name!,
-        version: data.isLatestStable ? null : data.version!.version);
+    map['license'] = urls.pkgLicenseUrl(
+      data.package!.name!,
+      version: data.isLatestStable ? null : data.version!.version,
+      includeHost: true,
+    );
   }
   // TODO: add http://schema.org/codeRepository for github and gitlab links
   return d.ldJson(map);

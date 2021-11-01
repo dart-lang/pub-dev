@@ -93,8 +93,17 @@ String pkgChangelogUrl(String package, {String? version}) =>
 String pkgExampleUrl(String package, {String? version}) =>
     pkgPageUrl(package, version: version, pkgPageTab: PkgPageTab.example);
 
-String pkgLicenseUrl(String package, {String? version}) =>
-    pkgPageUrl(package, version: version, pkgPageTab: PkgPageTab.license);
+String pkgLicenseUrl(
+  String package, {
+  String? version,
+  bool? includeHost,
+}) =>
+    pkgPageUrl(
+      package,
+      version: version,
+      pkgPageTab: PkgPageTab.license,
+      includeHost: includeHost ?? false,
+    );
 
 String pkgInstallUrl(String package, {String? version}) =>
     pkgPageUrl(package, version: version, pkgPageTab: PkgPageTab.install);
