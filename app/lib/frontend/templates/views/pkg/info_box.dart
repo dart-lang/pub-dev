@@ -33,15 +33,21 @@ d.Node packageInfoBoxNode({
 }) {
   final package = data.package!;
   final version = data.version!;
-  final license = _licenseNode(
-    licenseFile: data.scoreCard?.panaReport?.licenseFile,
-    licenseUrl: data.versionInfo?.hasLicense ?? false
-        ? urls.pkgLicenseUrl(
-            data.package!.name!,
-            version: data.isLatestStable ? null : data.version!.version,
-          )
-        : null,
-  );
+  d.Node? license;
+  if (data.versionInfo?.hasLicense ?? false) {
+    var licenseFile = data.scoreCard?.panaReport?.licenseFile;
+    if (licenseFile != null && data.scoreCard?.panaReport == null) {
+      licenseFile = LicenseFile('LICENSE', 'awaiting analysis');
+    }
+    licenseFile ??= LicenseFile('LICENSE', 'unknown');
+    license = _licenseNode(
+      licenseFile: licenseFile,
+      licenseUrl: urls.pkgLicenseUrl(
+        data.package!.name!,
+        version: data.isLatestStable ? null : data.version!.version,
+      ),
+    );
+  }
   final dependencies = _dependencyListNode(version.pubspec?.dependencies);
 
   return d.fragment([
@@ -128,11 +134,9 @@ d.Node _linkAndBr(InfoBoxLink link) {
 }
 
 d.Node? _licenseNode({
-  required LicenseFile? licenseFile,
-  required String? licenseUrl,
+  required LicenseFile licenseFile,
+  required String licenseUrl,
 }) {
-  if (licenseUrl == null) return null;
-  licenseFile ??= LicenseFile('LICENSE', 'unknown');
   return d.fragment([
     d.text('${licenseFile.shortFormatted} ('),
     d.a(href: licenseUrl, text: licenseFile.path),
