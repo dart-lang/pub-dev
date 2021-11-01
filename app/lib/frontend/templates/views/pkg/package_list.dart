@@ -42,7 +42,10 @@ d.Node _sdkLibraryItem(SdkLibraryHit hit) {
     newTimestamp: null,
     labeledScoresNode: null,
     description: hit.description ?? '',
-    metadataNode: d.text(metadataText),
+    metadataNode: d.fragment([
+      d.span(classes: ['packages-metadata-block'], text: metadataText),
+      coreLibraryBadgeNode,
+    ]),
     tagsNode: null,
     apiPages: null,
   );

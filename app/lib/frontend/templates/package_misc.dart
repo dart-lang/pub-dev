@@ -14,6 +14,9 @@ import 'views/pkg/badge.dart';
 import 'views/pkg/labeled_scores.dart';
 import 'views/pkg/tags.dart';
 
+/// Renders the core library badge node, used for SDK library hits.
+final coreLibraryBadgeNode = packageBadgeNode(label: 'Core library');
+
 /// Renders the Flutter Favorite badge, used by package listing.
 final flutterFavoriteBadgeNode = packageBadgeNode(
   label: 'Flutter Favorite',
