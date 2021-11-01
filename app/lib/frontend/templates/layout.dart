@@ -146,6 +146,7 @@ d.Node _renderSearchBanner({
     includeUnlisted: searchForm?.includeUnlisted ?? false,
     includeNullSafe: searchForm?.nullSafe ?? false,
     hiddenInputs: hiddenInputs,
+    hasActive: searchForm?.hasActiveNonQuery ?? false,
   );
 }
 

@@ -212,6 +212,11 @@ class SearchForm {
   bool get hasActiveAdvanced =>
       includeDiscontinued || includeUnlisted || nullSafe;
 
+  /// Whether any of the non-query settings are non-default
+  /// (e.g. clicking on any platforms, SDKs, or advanced filters).
+  bool get hasActiveNonQuery =>
+      sdks.isNotEmpty || platforms.isNotEmpty || hasActiveAdvanced;
+
   /// Converts the query to a user-facing link that (after frontend parsing) will
   /// re-create an identical search query object.
   String toSearchLink({int? page}) {

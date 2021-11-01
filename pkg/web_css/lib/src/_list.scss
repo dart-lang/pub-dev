@@ -415,6 +415,20 @@
 .search-form-container.experimental {
   display: flex;
 
+  @media (max-width: $device-mobile-max-width) {
+    display: block;
+
+    .search-form {
+      display: none;
+    }
+
+    &.-active-on-mobile {
+      .search-form {
+        display: block;
+      }
+    }
+  }
+
   .search-form {
     flex-grow: 0;
     flex-shrink: 0;
