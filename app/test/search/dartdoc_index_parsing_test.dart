@@ -129,15 +129,15 @@ void main() {
           'apiPages': [
             {
               'title': null,
-              'path': 'widgets/StatelessWidget/StatelessWidget.html',
-              'url':
-                  'https://api.flutter.dev/flutter/widgets/StatelessWidget/StatelessWidget.html'
-            },
-            {
-              'title': null,
               'path': 'widgets/StatelessWidget-class.html',
               'url':
                   'https://api.flutter.dev/flutter/widgets/StatelessWidget-class.html'
+            },
+            {
+              'title': null,
+              'path': 'widgets/StatelessWidget/StatelessWidget.html',
+              'url':
+                  'https://api.flutter.dev/flutter/widgets/StatelessWidget/StatelessWidget.html'
             },
             {
               'title': null,

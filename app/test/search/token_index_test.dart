@@ -7,6 +7,16 @@ import 'package:test/test.dart';
 
 void main() {
   group('TokenIndex', () {
+    test('partial token lookup', () {
+      final index = TokenIndex()..add('x', 'SomeCamelCasedWord and others');
+      expect(index.lookupTokens('word').tokenWeights, {'word': 1.0});
+      expect(index.lookupTokens('OtherCased').tokenWeights,
+          {'cased': closeTo(0.70, 0.01)});
+      expect(index.lookupTokens('SomethingElse').tokenWeights, {});
+      // do not return `cased` here:
+      expect(index.lookupTokens('SomethingElse OtherCased').tokenWeights, {});
+    });
+
     test('No match', () {
       final TokenIndex index = TokenIndex()
         ..add('uri://http', 'http')
@@ -35,11 +45,11 @@ void main() {
         ..add('queue_lower', queueText.toLowerCase())
         ..add('unmodifiable', 'CustomUnmodifiableMapBase');
       expect(index.search('queue'), {
-        'queue': closeTo(0.29, 0.01),
+        'queue': closeTo(0.53, 0.01),
       });
       expect(index.search('unmodifiabl'), {}); // no partial matches
       expect(index.search('unmodifiable'), {
-        'unmodifiable': closeTo(0.47, 0.01),
+        'unmodifiable': closeTo(0.68, 0.01),
       });
     });
 
@@ -72,8 +82,8 @@ void main() {
     test('Do not overweight partial matches', () {
       final index = TokenIndex()..add('flutter_qr_reader', 'flutter_qr_reader');
       final data = index.search('ByteDataReader');
-      // The partial match should not return more than 0.5 as score.
-      expect(data, {'flutter_qr_reader': lessThan(0.5)});
+      // The partial match should not return more than 0.65 as score.
+      expect(data, {'flutter_qr_reader': lessThan(0.65)});
     });
 
     test('longer words', () {

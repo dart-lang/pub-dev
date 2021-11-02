@@ -26,24 +26,26 @@ class Score {
   double operator [](String key) => _values[key] ?? 0.0;
 
   /// Calculates the intersection of the [scores], by multiplying the values.
-  static Score multiply(List<Score> scores) {
-    if (scores.length == 1) return scores.single;
-    Set<String>? keys;
-    for (Score score in scores) {
-      if (keys == null) {
-        keys = score.getKeys();
-      } else {
-        keys = keys.intersection(score.getKeys());
+  static Score multiply(Iterable<Score> scores) {
+    var values = <String, double>{};
+    var index = 0;
+    for (final score in scores) {
+      if (index > 0 && values.isEmpty) {
+        return Score(values);
       }
+      if (index == 0) {
+        values = score.getValues();
+      } else {
+        final keys = score.getKeys().intersection(values.keys.toSet());
+        if (keys.isEmpty) {
+          return Score.empty();
+        }
+        values = Map.fromIterable(keys,
+            value: (key) => values[key]! * score.getValues()[key]!);
+      }
+      index++;
     }
-    if (keys == null || keys.isEmpty) {
-      return Score({});
-    }
-    return Score(Map.fromIterable(
-      keys,
-      value: (key) =>
-          scores.fold(1.0, (double value, Score s) => s[key as String] * value),
-    ));
+    return Score(values);
   }
 
   /// Calculates the union of the [scores], by using the maximum values from
@@ -129,6 +131,13 @@ class TokenMatch {
       _maxWeight ??= _tokenWeights.values.fold<double>(0.0, math.max);
 
   Map<String, double> get tokenWeights => _tokenWeights;
+
+  void addWithMaxValue(String token, double weight) {
+    final old = _tokenWeights[token] ?? 0.0;
+    if (old < weight) {
+      _tokenWeights[token] = weight;
+    }
+  }
 }
 
 /// Stores a token -> documentId inverted index with weights.
@@ -182,23 +191,32 @@ class TokenIndex {
     removeTokens.forEach(_inverseIds.remove);
   }
 
-  /// Match the text against the corpus and return the tokens that have match.
-  TokenMatch _lookupTokens(String text) {
-    final TokenMatch tokenMatch = TokenMatch();
-    final tokens = tokenize(text) ?? {};
+  /// Match the text against the corpus and return the tokens or
+  /// their partial segments that have match.
+  @visibleForTesting
+  TokenMatch lookupTokens(String text) {
+    final tokenMatch = TokenMatch();
 
-    // Check which tokens have documents, and assign their weight.
-    for (String token in tokens.keys) {
-      final tokenWeight = tokens[token]!;
-      if (tokenWeight > 0.3) {
-        final int foundCount = _inverseIds[token]?.length ?? 0;
-        if (foundCount <= 0) continue;
-        final old = tokenMatch[token];
-        if (old == null || old < tokenWeight) {
-          tokenMatch[token] = tokenWeight;
+    for (final word in splitForIndexing(text)) {
+      final tokens = tokenize(word, isSplit: true) ?? {};
+
+      final present = tokens.keys
+          .where((token) => (_inverseIds[token]?.length ?? 0) > 0)
+          .toList();
+      if (present.isEmpty) {
+        return TokenMatch();
+      }
+      final bestTokenValue =
+          present.map((token) => tokens[token]!).reduce(math.max);
+      final minTokenValue = bestTokenValue * 0.7;
+      for (final token in present) {
+        final value = tokens[token]!;
+        if (value >= minTokenValue) {
+          tokenMatch.addWithMaxValue(token, value);
         }
       }
     }
+
     return tokenMatch;
   }
 
@@ -241,7 +259,7 @@ class TokenIndex {
   /// scoring.
   @visibleForTesting
   Map<String, double> search(String text) {
-    return _scoreDocs(_lookupTokens(text));
+    return _scoreDocs(lookupTokens(text));
   }
 
   /// Search the index for [words], with a (term-match / document coverage percent)
@@ -252,7 +270,7 @@ class TokenIndex {
       return Score.empty();
     }
     return Score.multiply(words.map((w) {
-      final tokens = _lookupTokens(w);
+      final tokens = lookupTokens(w);
       final values = _scoreDocs(
         tokens,
         weight: weight,
@@ -260,6 +278,6 @@ class TokenIndex {
         limitToIds: limitToIds,
       );
       return Score(values);
-    }).toList());
+    }));
   }
 }

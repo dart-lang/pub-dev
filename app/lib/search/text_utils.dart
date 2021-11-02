@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math' as math;
+
 import 'package:html/parser.dart';
 
 import '../shared/markdown.dart';
@@ -88,11 +90,12 @@ List<String> extractExactPhrases(String text) =>
 
 const int _maxWordLength = 80;
 
-Map<String, double>? tokenize(String? originalText) {
+Map<String, double>? tokenize(String? originalText, {bool isSplit = false}) {
   if (originalText == null || originalText.isEmpty) return null;
   final tokens = <String, double>{};
 
-  for (String word in splitForIndexing(originalText)) {
+  final words = isSplit ? [originalText] : splitForIndexing(originalText);
+  for (String word in words) {
     if (word.length > _maxWordLength) {
       continue;
     }
@@ -116,7 +119,7 @@ Map<String, double>? tokenize(String? originalText) {
     for (int i = 1; i < changeIndex.length; i++) {
       final token = normalizeBeforeIndexing(
           word.substring(changeIndex[i - 1], changeIndex[i]));
-      final double weight = token.length / word.length;
+      final weight = math.pow((token.length / word.length), 0.5).toDouble();
       if ((tokens[token] ?? 0.0) < weight) {
         tokens[token] = weight;
       }

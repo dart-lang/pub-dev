@@ -105,21 +105,26 @@ Other useful methods will be added soon...
     });
 
     test('Cased words', () {
+      expect(tokenize('snake_case'), {
+        'snake': 1.0,
+        'case': 1.0,
+      });
+
       expect(tokenize('CamelCase snake_case firstLowerCase'), {
         'camelcase': 1.0,
-        'camel': 0.5555555555555556,
+        'camel': 0.7453559924999299,
         'case': 1.0, // firstLowerCase should not set a lower value
         'snake': 1.0,
         'firstlowercase': 1.0,
-        'first': 0.35714285714285715,
-        'lower': 0.35714285714285715,
+        'first': 0.5976143046671968,
+        'lower': 0.5976143046671968,
       });
 
       expect(tokenize('firstLowerCase'), {
         'firstlowercase': 1.0,
-        'first': 0.35714285714285715,
-        'lower': 0.35714285714285715,
-        'case': 0.2857142857142857,
+        'first': 0.5976143046671968,
+        'lower': 0.5976143046671968,
+        'case': 0.5345224838248488,
       });
     });
   });
