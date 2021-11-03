@@ -55,6 +55,7 @@ void main() {
           'enclosedBy': {'name': 'AsyncError', 'type': 'class'},
         },
       ]));
+      index.addLibraryDescriptions({'dart:async': 'async description'});
     });
 
     test('AsyncError', () async {
@@ -66,6 +67,7 @@ void main() {
             'sdk': 'dart',
             'version': '',
             'library': 'dart:async',
+            'description': 'async description',
             'url': 'https://api.dart.dev/x/dart-async/dart-async-library.html',
             'score': closeTo(0.98, 0.01),
             'apiPages': [
@@ -101,6 +103,7 @@ void main() {
             'sdk': 'dart',
             'version': '',
             'library': 'dart:async',
+            'description': 'async description',
             'url': 'https://api.dart.dev/x/dart-async/dart-async-library.html',
             'score': closeTo(0.08, 0.01),
             'apiPages': [
@@ -125,6 +128,7 @@ void main() {
             'sdk': 'dart',
             'version': '',
             'library': 'dart:async',
+            'description': 'async description',
             'url': 'https://api.dart.dev/x/dart-async/dart-async-library.html',
             'score': closeTo(0.98, 0.01),
             'apiPages': [
