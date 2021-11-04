@@ -263,6 +263,7 @@ class IntegrityChecker {
     }
     final versionKeys = <Key>{};
     final qualifiedVersionKeys = <QualifiedVersionKey>{};
+    int versionCountUntilLastPublished = 0;
     await for (final pv
         in _db.query<PackageVersion>(ancestorKey: p.key).run()) {
       versionKeys.add(pv.key);
@@ -279,6 +280,16 @@ class IntegrityChecker {
       if (pv.isRetracted is! bool) {
         yield 'PackageVersion "${pv.qualifiedVersionKey}" has an `isRetracted` property which is not a bool.';
       }
+      // Count only the versions that were created before the last published timestamp,
+      // to prevent false alarms that could happing if a new version is being published
+      // while the integrity check is running.
+      if (!pv.created!.isAfter(p.lastVersionPublished!)) {
+        versionCountUntilLastPublished++;
+      }
+    }
+    if (p.versionCount != versionCountUntilLastPublished) {
+      yield 'Package "${p.name}" has `versionCount` (${p.versionCount}) that differs from the '
+          'number of versions until the last published date ($versionCountUntilLastPublished).';
     }
     if (p.lastVersionPublished == null) {
       yield 'Package "${p.name}" has an `lastVersionPublished` property which is null.';
