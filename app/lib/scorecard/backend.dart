@@ -336,14 +336,6 @@ class ScoreCardBackend {
   /// Deletes the old entries that predate [versions.gcBeforeRuntimeVersion].
   Future<void> deleteOldEntries() async {
     final now = DateTime.now();
-
-    // deleting reports
-    await _db.deleteWithQuery(_db.query<ScoreCardReport>()
-      ..filter('runtimeVersion <', versions.gcBeforeRuntimeVersion));
-    await _db.deleteWithQuery(_db.query<ScoreCardReport>()
-      ..filter('updated <', now.subtract(_deleteThreshold)));
-
-    // deleting scorecards
     await _db.deleteWithQuery(_db.query<ScoreCard>()
       ..filter('runtimeVersion <', versions.gcBeforeRuntimeVersion));
     await _db.deleteWithQuery(_db.query<ScoreCard>()

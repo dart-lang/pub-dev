@@ -174,14 +174,6 @@ class ScoreCard extends db.ExpandoModel<String> {
   }
 }
 
-/// Detail of a specific report for a given PackageVersion.
-///
-/// TODO: Remove this class after `2021.06.01` is no longer an accepted runtimeVersion.
-@db.Kind(name: 'ScoreCardReport', idType: db.IdType.String)
-class ScoreCardReport extends db.ExpandoModel<String> {
-  ScoreCardReport();
-}
-
 abstract class FlagMixin {
   List<String>? get flags;
 

@@ -55,7 +55,6 @@ Future main(List<String> args) async {
       dbService.query<UserSession>(): 500,
       dbService.query<User>(): 500,
       dbService.query<Like>(): 500,
-      dbService.query<ScoreCardReport>(): 100,
       dbService.query<ScoreCard>(): 500,
       dbService.query<PackageVersionInfo>(): 500,
       dbService.query<PackageVersionAsset>(): 100,

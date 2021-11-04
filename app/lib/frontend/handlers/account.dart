@@ -212,8 +212,6 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
       await publisherBackend.listPublishersForUser(userSessionData!.userId!);
   final searchForm = SearchForm.parse(
     SearchContext.myPackages([
-      // TODO: remove email after userId is populated in the search index
-      userSessionData!.email!,
       userSessionData!.userId!,
       ...page.publishers!.map((p) => p.publisherId),
     ]),

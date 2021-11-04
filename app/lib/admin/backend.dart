@@ -352,10 +352,6 @@ class AdminBackend {
     await _deleteWithQuery(
         _db.query<Job>()..filter('packageName =', packageName));
 
-    _logger.info('Removing package from ScoreCardReport ...');
-    await _deleteWithQuery(
-        _db.query<ScoreCardReport>()..filter('packageName =', packageName));
-
     _logger.info('Removing package from ScoreCard ...');
     await _deleteWithQuery(
         _db.query<ScoreCard>()..filter('packageName =', packageName));
