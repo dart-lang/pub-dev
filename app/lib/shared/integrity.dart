@@ -276,6 +276,9 @@ class IntegrityChecker {
       if (_invalidUsers.contains(pv.uploader)) {
         yield 'PackageVersion "${pv.qualifiedVersionKey}" has invalid uploader: User "${pv.uploader}".';
       }
+      if (pv.isRetracted is! bool) {
+        yield 'PackageVersion "${pv.qualifiedVersionKey}" has an `isRetracted` property which is not a bool.';
+      }
     }
     if (p.lastVersionPublished == null) {
       yield 'Package "${p.name}" has an `lastVersionPublished` property which is null.';
