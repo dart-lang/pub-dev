@@ -249,12 +249,13 @@ void main() {
 
         expect(utf8.decode(rs), '{"status":"OK"}');
 
-        final pkgAfterRemoval = await dbService.lookupOrNull<Package>(pkgKey);
-        expect(pkgAfterRemoval, isNotNull);
-        expect(Version.parse(pkgAfterRemoval!.latestVersion!),
+        final pkgAfter1stRemoval =
+            await dbService.lookupOrNull<Package>(pkgKey);
+        expect(pkgAfter1stRemoval, isNotNull);
+        expect(Version.parse(pkgAfter1stRemoval!.latestVersion!),
             lessThan(Version.parse(removeVersion)));
-        expect(pkgAfterRemoval.updated!.isAfter(timeBeforeRemoval), isTrue);
-        expect(pkgAfterRemoval.versionCount, package.versionCount! - 1);
+        expect(pkgAfter1stRemoval.updated!.isAfter(timeBeforeRemoval), isTrue);
+        expect(pkgAfter1stRemoval.versionCount, package.versionCount! - 1);
 
         final versionsAfterRemoval = await versionsQuery.run().toList();
         final missingVersion = versions
@@ -271,6 +272,26 @@ void main() {
         moderatedPkg =
             await dbService.lookupOrNull<ModeratedPackage>(moderatedPkgKey);
         expect(moderatedPkg, isNull);
+
+        // calling remove second time must not affect updated or version count
+        final rs2 =
+            await client.adminRemovePackageVersion('oxygen', removeVersion);
+        expect(utf8.decode(rs2), '{"status":"OK"}');
+        final pkgAfter2ndRemoval =
+            await dbService.lookupOrNull<Package>(pkgKey);
+        expect(pkgAfter2ndRemoval, isNotNull);
+        expect(
+          pkgAfter2ndRemoval!.latestVersion,
+          pkgAfter1stRemoval.latestVersion,
+        );
+        expect(
+          pkgAfter2ndRemoval.updated,
+          pkgAfter1stRemoval.updated,
+        );
+        expect(
+          pkgAfter2ndRemoval.versionCount,
+          pkgAfter1stRemoval.versionCount,
+        );
       });
     });
 
