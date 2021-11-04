@@ -113,5 +113,5 @@ class _Hit {
   final Score top;
   final double score;
 
-  _Hit(this.library, this.top) : score = top.getMaxValue();
+  _Hit(this.library, this.top) : score = top.maxValue;
 }

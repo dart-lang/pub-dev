@@ -15,13 +15,15 @@ class Score {
   Score(this._values);
   Score.empty() : _values = <String, double>{};
 
-  bool get isEmpty => _values.isEmpty;
+  late final bool isEmpty = _values.isEmpty;
+  late final bool isNotEmpty = !isEmpty;
 
   Set<String> getKeys({bool Function(String key)? where}) =>
       _values.keys.where((e) => where == null || where(e)).toSet();
-  double getMaxValue() => _values.values.fold(0.0, math.max);
+  late final double maxValue = _values.values.fold(0.0, math.max);
   Map<String, double> getValues() => _values;
   bool containsKey(String key) => _values.containsKey(key);
+  late final int length = _values.length;
 
   double operator [](String key) => _values[key] ?? 0.0;
 
@@ -65,7 +67,7 @@ class Score {
     assert(minValue != null || fraction != null);
     double? threshold = minValue;
     if (fraction != null) {
-      final double fractionValue = getMaxValue() * fraction;
+      final double fractionValue = maxValue * fraction;
       threshold ??= fractionValue;
       threshold = math.max(threshold, fractionValue);
     }
