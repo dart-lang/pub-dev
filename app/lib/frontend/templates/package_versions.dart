@@ -9,7 +9,6 @@ import 'package:pub_semver/pub_semver.dart';
 import '../../package/model_properties.dart';
 import '../../package/models.dart';
 import '../../shared/urls.dart' as urls;
-import '../../shared/utils.dart' show shortDateFormat;
 import '../dom/dom.dart' as d;
 
 import 'detail_page.dart';
@@ -54,8 +53,9 @@ String renderPkgVersionsPage(
       children: [
         d.text('The latest prerelease was '),
         d.a(href: '#prerelease', text: latestPrereleaseVersion!.version),
-        d.text(
-            ' on ${shortDateFormat.format(latestPrereleaseVersion.published!)}.'),
+        d.text(' on '),
+        d.shortTimestamp(latestPrereleaseVersion.published!),
+        d.text('.'),
       ],
     ));
   }

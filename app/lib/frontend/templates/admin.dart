@@ -9,7 +9,6 @@ import '../../package/search_adapter.dart' show SearchResultPage;
 import '../../publisher/models.dart' show PublisherSummary;
 import '../../search/search_form.dart' show SearchForm;
 import '../../shared/urls.dart' as urls;
-import '../../shared/utils.dart' show shortDateFormat;
 
 import '../dom/dom.dart' as d;
 import 'detail_page.dart';
@@ -200,13 +199,15 @@ Tab _myActivityLogLink() => Tab.withLink(
     href: urls.myActivityLogUrl());
 
 d.Node _accountDetailHeader(User user, UserSessionData userSessionData) {
-  final shortJoined = shortDateFormat.format(user.created!);
   return renderDetailHeader(
     title: userSessionData.name,
     imageUrl: userSessionData.imageUrlOfSize(200),
     metadataNode: d.fragment([
       d.p(text: user.email!),
-      d.p(text: 'Joined on $shortJoined'),
+      d.p(children: [
+        d.text('Joined on '),
+        d.shortTimestamp(user.created!),
+      ]),
     ]),
   );
 }

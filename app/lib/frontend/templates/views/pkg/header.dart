@@ -4,7 +4,6 @@
 
 import '../../../../package/models.dart';
 import '../../../../shared/urls.dart' as urls;
-import '../../../../shared/utils.dart' show shortDateFormat;
 import '../../../dom/dom.dart' as d;
 import '../../../static_files.dart';
 import '../../package_misc.dart';
@@ -18,7 +17,7 @@ d.Node packageHeaderNode({
 }) {
   return d.fragment([
     d.text('Published '),
-    d.span(text: shortDateFormat.format(published)),
+    d.span(child: d.shortTimestamp(published)),
     if (publisherId != null) ..._publisher(publisherId),
     if (isNullSafe) nullSafeBadgeNode(),
     if (releases != null) ..._releases(packageName, releases),

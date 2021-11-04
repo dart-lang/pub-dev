@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../../../../audit/models.dart';
-import '../../../../shared/utils.dart';
 import '../../../dom/dom.dart' as d;
 
 d.Node activityLogNode({
@@ -37,7 +36,7 @@ d.Node _activityLogTableNode(AuditLogRecordPage activities) {
     body: activities.records.map(
       (a) => d.tr(
         children: [
-          d.td(classes: ['date'], text: shortDateFormat.format(a.created!)),
+          d.td(classes: ['date'], child: d.shortTimestamp(a.created!)),
           d.td(
             classes: ['summary'],
             children: [

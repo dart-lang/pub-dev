@@ -4,7 +4,6 @@
 
 import '../../../../publisher/models.dart';
 import '../../../../shared/urls.dart' as urls;
-import '../../../../shared/utils.dart';
 import '../../../dom/dom.dart' as d;
 
 d.Node publisherListNode({
@@ -27,7 +26,11 @@ d.Node publisherListNode({
                   text: p.publisherId,
                 ),
               ),
-              d.p(text: 'Registered on ${shortDateFormat.format(p.created)}.'),
+              d.p(children: [
+                d.text('Registered on '),
+                d.shortTimestamp(p.created),
+                d.text('.'),
+              ]),
             ],
           ),
         ),

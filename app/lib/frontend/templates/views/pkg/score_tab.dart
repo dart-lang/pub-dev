@@ -6,7 +6,6 @@ import 'package:pana/models.dart';
 
 import '../../../../scorecard/models.dart' hide ReportStatus;
 import '../../../../shared/urls.dart' as urls;
-import '../../../../shared/utils.dart' show shortDateFormat;
 import '../../../dom/dom.dart' as d;
 import '../../../static_files.dart';
 import '../../package_misc.dart' show formatScore;
@@ -23,9 +22,6 @@ d.Node scoreTabNode({
   final report = card.getJoinedReport();
   final showAwaiting = !card.isSkipped && report == null;
   final showReport = !card.isSkipped && report != null;
-  final dateCompleted = card.panaReport?.timestamp == null
-      ? ''
-      : shortDateFormat.format(card.panaReport!.timestamp!);
 
   final toolEnvInfo = _renderToolEnvInfoNode(
       card.panaReport?.panaRuntimeInfo, card.usesFlutter);
@@ -71,9 +67,14 @@ d.Node scoreTabNode({
     if (showReport)
       d.p(
         classes: ['analysis-info'],
-        text: 'We analyzed this package on $dateCompleted, '
-            'and awarded it ${report?.grantedPoints ?? 0} '
-            'pub points (of a possible ${report?.maxPoints ?? 0}):',
+        children: [
+          d.text('We analyzed this package on '),
+          if (card.panaReport?.timestamp != null)
+            d.shortTimestamp(card.panaReport!.timestamp!),
+          d.text(', '
+              'and awarded it ${report?.grantedPoints ?? 0} '
+              'pub points (of a possible ${report?.maxPoints ?? 0}):'),
+        ],
       ),
     if (report != null) _reportNode(report),
     if (toolEnvInfo != null) toolEnvInfo,

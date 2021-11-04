@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import '../../shared/markdown.dart';
+import '../../shared/utils.dart' show formatXAgo, shortDateFormat;
 
 final _attributeEscape = HtmlEscape(HtmlEscapeMode.attribute);
 final _attributeRegExp = RegExp(r'^[a-z](?:[a-z0-9\-\_]*[a-z0-9]+)?$');
@@ -86,6 +87,16 @@ Node text(String value) => dom.text(value);
 
 /// Creates a DOM node with unsafe raw HTML content using the default [DomContext].
 Node unsafeRawHtml(String value) => dom.unsafeRawHtml(value);
+
+/// Creates a DOM node with the short, formatted [timestamp].
+Node shortTimestamp(DateTime timestamp) {
+  return span(
+    attributes: {
+      'title': formatXAgo(DateTime.now().difference(timestamp)),
+    },
+    text: shortDateFormat.format(timestamp),
+  );
+}
 
 /// Creates a DOM node with markdown content using the default [DomContext].
 Node markdown(
