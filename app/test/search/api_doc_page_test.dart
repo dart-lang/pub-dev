@@ -80,7 +80,7 @@ void main() {
         'packageHits': [
           {
             'package': 'other_with_api',
-            'score': closeTo(0.26, 0.01), // find serveWebPages
+            'score': closeTo(0.42, 0.01), // find serveWebPages
             'apiPages': [
               {'title': null, 'path': 'serve.html'},
             ],
@@ -101,7 +101,7 @@ void main() {
         'packageHits': [
           {
             'package': 'foo',
-            'score': closeTo(0.072, 0.001), // find WebPageGenerator
+            'score': closeTo(0.18, 0.01), // find WebPageGenerator
             'apiPages': [
               {'title': null, 'path': 'generator.html'},
             ],
@@ -121,7 +121,7 @@ void main() {
         'packageHits': [
           {
             'package': 'foo',
-            'score': closeTo(0.025, 0.001), // find WebPageGenerator
+            'score': closeTo(0.11, 0.01), // find WebPageGenerator
             'apiPages': [
               {'title': null, 'path': 'generator.html'},
             ],

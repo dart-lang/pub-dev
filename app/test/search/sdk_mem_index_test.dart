@@ -102,7 +102,7 @@ void main() {
             'version': '',
             'library': 'dart:async',
             'url': 'https://api.dart.dev/x/dart-async/dart-async-library.html',
-            'score': closeTo(0.08, 0.01),
+            'score': closeTo(0.28, 0.01),
             'apiPages': [
               {
                 'title': null,
