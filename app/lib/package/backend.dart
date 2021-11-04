@@ -652,7 +652,7 @@ class PackageBackend {
 
   /// Returns the known versions of [package] (via [listVersions]),
   /// getting it from the cache if available.
-  /// 
+  ///
   ///  The available versions are sorted by their semantic version number (ascending).
   Future<api.PackageData> listVersionsCached(String package) async {
     final data = await listVersionsCachedBytes(package);
