@@ -142,6 +142,11 @@ class PackageData {
       _$PackageDataFromJson(json);
 
   Map<String, dynamic> toJson() => _$PackageDataToJson(this);
+
+  // The cached version list contains the versions in semantically ascending order.
+  // By reversing that list, we will have them in semantically descending order,
+  // which is the preferred order for displaying on the versions page.
+  late final List<VersionInfo> descendingVersions = versions.reversed.toList();
 }
 
 @JsonSerializable(includeIfNull: false)

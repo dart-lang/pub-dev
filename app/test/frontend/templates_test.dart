@@ -22,10 +22,8 @@ import 'package:pub_dev/frontend/templates/listing.dart';
 import 'package:pub_dev/frontend/templates/misc.dart';
 import 'package:pub_dev/frontend/templates/package.dart';
 import 'package:pub_dev/frontend/templates/package_admin.dart';
-import 'package:pub_dev/frontend/templates/package_versions.dart';
 import 'package:pub_dev/frontend/templates/publisher.dart';
 import 'package:pub_dev/frontend/templates/views/pkg/score_tab.dart';
-import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/search_adapter.dart';
 import 'package:pub_dev/publisher/backend.dart';
@@ -38,7 +36,6 @@ import 'package:pub_dev/service/youtube/backend.dart';
 import 'package:pub_dev/shared/utils.dart' show formatXAgo, shortDateFormat;
 import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
-import 'package:pub_semver/pub_semver.dart';
 import 'package:pub_validations/html/html_validation.dart';
 import 'package:test/test.dart';
 import 'package:xml/xml.dart' as xml;
@@ -46,6 +43,7 @@ import 'package:xml/xml.dart' as xml;
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
 import '../shared/utils.dart';
+import 'handlers/_utils.dart';
 
 const String goldenDir = 'test/frontend/golden';
 
@@ -479,12 +477,8 @@ void main() {
       processJobsWithFakeRunners: true,
       fn: () async {
         final data = await loadPackagePageData('oxygen', '1.2.0', null);
-        final versions = await packageBackend.listVersionsCached('oxygen');
-        final html = renderPkgVersionsPage(
-          data,
-          versions.versions,
-          dartSdkVersion: Version.parse(runtimeSdkVersion),
-        );
+        final rs = await issueGet('/packages/oxygen/versions');
+        final html = await rs.readAsString();
         expectGoldenFile(html, 'pkg_versions_page.html', timestamps: {
           'version-created': data.version!.created,
           'package-created': data.package!.created,

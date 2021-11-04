@@ -54,7 +54,8 @@ Future<shelf.Response> packageShowHandlerJson(
 
   final json = {
     'name': package.name,
-    'versions': versions.versions.map((v) => v.version).toList(),
+    // output is expected in descending versions order
+    'versions': versions.descendingVersions.map((v) => v.version).toList(),
   };
   return jsonResponse(json);
 }
@@ -76,7 +77,8 @@ Future<shelf.Response> packageVersionsListHandler(
       final dartSdkVersion = await getDartSdkVersion();
       return renderPkgVersionsPage(
         data,
-        versions.versions,
+        // output is expected in descending versions order
+        versions.descendingVersions,
         dartSdkVersion: dartSdkVersion.semanticVersion,
       );
     },
