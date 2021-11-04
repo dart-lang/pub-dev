@@ -18,6 +18,25 @@ const httpsApiDartDev = 'https://api.dart.dev/';
 /// rejected and the URL mustn't be displayed.
 const trustedUrlSchemes = <String>['http', 'https', 'mailto'];
 
+/// Extensions that are considered to be images.
+final _imageExtensions = <String>{
+  '.apng',
+  '.avif',
+  '.gif',
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.svg',
+  '.webp',
+};
+
+/// Common repository URL replacement patterns.
+const _repositoryReplacePrefixes = {
+  'http://github.com': 'https://github.com',
+  'https://www.github.com': 'https://github.com',
+  'https://www.gitlab.com': 'https://gitlab.com',
+};
+
 /// Hostnames that are trusted in user-generated content (and don't get rel="ugc").
 const trustedTargetHost = [
   'api.dart.dev',
@@ -83,8 +102,17 @@ String pkgChangelogUrl(String package, {String? version}) =>
 String pkgExampleUrl(String package, {String? version}) =>
     pkgPageUrl(package, version: version, pkgPageTab: PkgPageTab.example);
 
-String pkgLicenseUrl(String package, {String? version}) =>
-    pkgPageUrl(package, version: version, pkgPageTab: PkgPageTab.license);
+String pkgLicenseUrl(
+  String package, {
+  String? version,
+  bool? includeHost,
+}) =>
+    pkgPageUrl(
+      package,
+      version: version,
+      pkgPageTab: PkgPageTab.license,
+      includeHost: includeHost ?? false,
+    );
 
 String pkgInstallUrl(String package, {String? version}) =>
     pkgPageUrl(package, version: version, pkgPageTab: PkgPageTab.install);
@@ -323,6 +351,57 @@ String myLikedPackagesUrl() => '/my-liked-packages';
 String myPublishersUrl() => '/my-publishers';
 String myActivityLogUrl() => '/my-activity-log';
 String createPublisherUrl() => '/create-publisher';
+
+/// Returns an URL that is likely the downloadable URL of the given path.
+String? getRepositoryUrl(
+  String? repository,
+  String relativePath, {
+  String branch = 'master',
+}) {
+  if (repository == null || repository.isEmpty) return null;
+  for (var key in _repositoryReplacePrefixes.keys) {
+    if (repository!.startsWith(key)) {
+      repository =
+          repository.replaceFirst(key, _repositoryReplacePrefixes[key]!);
+    }
+  }
+  try {
+    final uri = Uri.parse(repository!);
+    final segments = List<String>.from(uri.pathSegments);
+    while (segments.isNotEmpty && segments.last.isEmpty) {
+      segments.removeLast();
+    }
+
+    if (repository.startsWith('https://github.com/') ||
+        repository.startsWith('https://gitlab.com/')) {
+      if (segments.length >= 2 &&
+          segments[1].endsWith('.git') &&
+          segments[1].length > 4) {
+        segments[1] = segments[1].substring(0, segments[1].length - 4);
+      }
+
+      final extension = p.extension(relativePath).toLowerCase();
+      final isRaw = _imageExtensions.contains(extension);
+      final typeSegment = isRaw ? 'raw' : 'blob';
+
+      if (segments.length < 2) {
+        return null;
+      } else if (segments.length == 2) {
+        final newUrl = uri.replace(pathSegments: segments).toString();
+        return p.url.join(newUrl, typeSegment, branch, relativePath);
+      } else if (segments[2] == 'tree' || segments[2] == 'blob') {
+        segments[2] = typeSegment;
+        final newUrl = uri.replace(pathSegments: segments).toString();
+        return p.url.join(newUrl, relativePath);
+      } else {
+        return null;
+      }
+    }
+  } catch (_) {
+    return null;
+  }
+  return null;
+}
 
 /// Parses [url] and returns the [Uri] object only if the result Uri is valid
 /// (e.g. is relative or has recognized scheme).

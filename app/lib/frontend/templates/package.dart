@@ -4,7 +4,6 @@
 
 import 'package:client_data/page_data.dart';
 import 'package:collection/collection.dart' show IterableExtension;
-import 'package:pana/pana.dart' show getRepositoryUrl;
 
 import '../../package/models.dart';
 import '../../package/overrides.dart' show devDependencyPackages;
@@ -313,7 +312,7 @@ Tab? _exampleTab(PackagePageData data) {
 
   final exampleFilename = data.asset!.path;
   final renderedExample = renderFile(data.asset!, baseUrl: baseUrl);
-  final url = getRepositoryUrl(baseUrl, exampleFilename!);
+  final url = urls.getRepositoryUrl(baseUrl, exampleFilename!);
 
   return Tab.withContent(
     id: 'example',
@@ -410,9 +409,12 @@ d.Node renderPackageSchemaOrgHtml(PackagePageData data) {
     'programmingLanguage': 'Dart',
     'image': '${urls.siteRoot}/static/img/pub-dev-icon-cover-image.png'
   };
-  final licenseFileUrl = data.scoreCard?.panaReport?.licenseFile?.url;
-  if (licenseFileUrl != null) {
-    map['license'] = licenseFileUrl;
+  if (data.hasLicense) {
+    map['license'] = urls.pkgLicenseUrl(
+      data.package!.name!,
+      version: data.isLatestStable ? null : data.version!.version,
+      includeHost: true,
+    );
   }
   // TODO: add http://schema.org/codeRepository for github and gitlab links
   return d.ldJson(map);
