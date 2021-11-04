@@ -452,6 +452,10 @@ class IntegrityChecker {
     if (_packages.contains(packageName)) {
       return true;
     }
+    // There is a chance that the package was first published
+    // after the integrity check started, and it would be missing
+    // from the pre-populated set. Doing a second lookup to make
+    // sure of the existence of the package.
     final p = await packageBackend.lookupPackage(packageName);
     if (p != null) {
       _packages.add(packageName);
