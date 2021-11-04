@@ -54,10 +54,8 @@ Future<shelf.Response> packageShowHandlerJson(
 
   final json = {
     'name': package.name,
-    // The cached version list contains the versions in semantically ascending order.
-    // By reversing that list, we will have them in semantically descending order,
-    // which has been the order in this API output.
-    'versions': versions.versions.reversed.map((v) => v.version).toList(),
+    // output is expected in descending versions order
+    'versions': versions.descendingVersions.map((v) => v.version).toList(),
   };
   return jsonResponse(json);
 }
@@ -79,10 +77,8 @@ Future<shelf.Response> packageVersionsListHandler(
       final dartSdkVersion = await getDartSdkVersion();
       return renderPkgVersionsPage(
         data,
-        // The cached version list contains the versions in semantically ascending order.
-        // By reversing that list, we will have them in semantically descending order,
-        // which is the preferred order for displaying on the versions page.
-        versions.versions.reversed.toList(),
+        // output is expected in descending versions order
+        versions.descendingVersions,
         dartSdkVersion: dartSdkVersion.semanticVersion,
       );
     },

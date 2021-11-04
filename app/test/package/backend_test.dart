@@ -386,11 +386,13 @@ void main() {
       testWithProfile('found', fn: () async {
         final pd = await packageBackend.listVersions('oxygen');
         expect(pd.versions, isNotEmpty);
-        expect(pd.versions, hasLength(3));
-        expect(pd.versions.first.version, '1.0.0');
-        expect(pd.versions.last.version, '2.0.0-dev');
         expect(pd.latest.version, '1.2.0');
         expect(pd.isDiscontinued, isNull);
+        // checking versions order
+        expect(
+            pd.versions.map((v) => v.version), ['1.0.0', '1.2.0', '2.0.0-dev']);
+        expect(pd.descendingVersions.map((v) => v.version),
+            ['2.0.0-dev', '1.2.0', '1.0.0']);
       });
 
       testWithProfile('isDiscontinued', fn: () async {
