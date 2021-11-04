@@ -19,7 +19,16 @@ const httpsApiDartDev = 'https://api.dart.dev/';
 const trustedUrlSchemes = <String>['http', 'https', 'mailto'];
 
 /// Extensions that are considered to be images.
-final _imageExtensions = <String>{'.gif', '.jpg', '.jpeg', '.png'};
+final _imageExtensions = <String>{
+  '.apng',
+  '.avif',
+  '.gif',
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.svg',
+  '.webp',
+};
 
 /// Common repository URL replacement patterns.
 const _repositoryReplacePrefixes = {
