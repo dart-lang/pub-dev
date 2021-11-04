@@ -5,7 +5,6 @@
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-import 'package:retry/retry.dart';
 
 import '../shared/cached_value.dart';
 import 'backend.dart';
@@ -58,26 +57,21 @@ class DartSdkMemIndex {
 
 Future<SdkMemIndex?> _createDartSdkMemIndex() async {
   try {
-    return await retry(
-      () async {
-        final index = SdkMemIndex.dart();
-        final content = DartdocIndex.parseJsonText(
-          await searchBackend.fetchSdkIndexContentAsString(
-            baseUri: index.baseUri,
-            relativePath: 'index.json',
-          ),
-        );
-        await index.addDartdocIndex(content);
-        index.addLibraryDescriptions(
-          await searchBackend.fetchSdkLibraryDescriptions(
-            baseUri: index.baseUri,
-            libraryRelativeUrls: content.libraryRelativeUrls,
-          ),
-        );
-        return index;
-      },
-      maxAttempts: 3,
+    final index = SdkMemIndex.dart();
+    final content = DartdocIndex.parseJsonText(
+      await searchBackend.fetchSdkIndexContentAsString(
+        baseUri: index.baseUri,
+        relativePath: 'index.json',
+      ),
     );
+    await index.addDartdocIndex(content);
+    index.addLibraryDescriptions(
+      await searchBackend.fetchSdkLibraryDescriptions(
+        baseUri: index.baseUri,
+        libraryRelativeUrls: content.libraryRelativeUrls,
+      ),
+    );
+    return index;
   } catch (e, st) {
     _logger.warning('Unable to load Dart SDK index.', e, st);
     return null;
