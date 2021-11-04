@@ -16,6 +16,7 @@ d.Node searchBannerNode({
   required bool includeUnlisted,
   required bool includeNullSafe,
   required Map<String, String>? hiddenInputs,
+  required bool hasActive,
 }) {
   return d.form(
     classes: ['search-bar', 'banner-item'],
@@ -32,7 +33,10 @@ d.Node searchBannerNode({
       d.element('button', classes: ['icon']),
       if (showSearchFiltersButton)
         d.div(
-          classes: ['search-filters-btn-wrapper'],
+          classes: [
+            'search-filters-btn-wrapper',
+            if (hasActive) '-active',
+          ],
           children: [
             d.img(
               classes: ['search-filters-btn', 'search-filters-btn-inactive'],

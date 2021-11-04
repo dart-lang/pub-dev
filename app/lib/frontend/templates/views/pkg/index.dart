@@ -44,7 +44,12 @@ d.Node _searchFormContainer({
   required d.Node innerContent,
 }) {
   return d.div(
-    classes: ['container', 'search-form-container', 'experimental'],
+    classes: [
+      'container',
+      'search-form-container',
+      'experimental',
+      if (searchForm.hasActiveNonQuery) '-active-on-mobile',
+    ],
     children: [
       d.div(
         classes: ['search-form'],

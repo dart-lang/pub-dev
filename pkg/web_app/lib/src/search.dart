@@ -79,6 +79,11 @@ void _setEventForFiltersToggle() {
           .querySelectorAll('.search-filters-btn-wrapper')
           .forEach((e) => e.classes.toggle('-active'));
       document.querySelector('.search-controls')?.classes.toggle('-active');
+      // new search form UI
+      document
+          .querySelector('.search-form-container')
+          ?.classes
+          .toggle('-active-on-mobile');
     });
   });
 }
