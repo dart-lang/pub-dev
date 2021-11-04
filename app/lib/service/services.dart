@@ -193,6 +193,7 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
     await setupCache();
 
     registerScopeExitCallback(announcementBackend.close);
+    registerScopeExitCallback(searchBackend.close);
     registerScopeExitCallback(() async => nameTracker.stopTracking());
     registerScopeExitCallback(snapshotStorage.close);
     registerScopeExitCallback(indexUpdater.close);

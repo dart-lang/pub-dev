@@ -14,6 +14,7 @@ class SdkMemIndex {
   final Uri _baseUri;
   final _tokensPerLibrary = <String, TokenIndex>{};
   final _baseUriPerLibrary = <String, String>{};
+  final _descriptionPerLibrary = <String, String>{};
 
   SdkMemIndex({
     required String sdk,
@@ -62,6 +63,11 @@ class SdkMemIndex {
     }
   }
 
+  /// Adds the descriptions for each library.
+  void addLibraryDescriptions(Map<String, String> descriptions) {
+    _descriptionPerLibrary.addAll(descriptions);
+  }
+
   Future<List<SdkLibraryHit>> search(
     String query, {
     int? limit,
@@ -90,7 +96,7 @@ class SdkMemIndex {
               sdk: _sdk,
               version: _version,
               library: hit.library,
-              description: null,
+              description: _descriptionPerLibrary[hit.library],
               url: _baseUriPerLibrary[hit.library] ?? _baseUri.toString(),
               score: hit.score,
               apiPages: hit.top

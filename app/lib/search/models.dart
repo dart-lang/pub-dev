@@ -52,6 +52,15 @@ class DartdocIndex {
     return DartdocIndex(list);
   }
 
+  late final libraryRelativeUrls = Map<String, String>.fromEntries(
+    entries.where((e) => e.type == 'library').map(
+          (e) => MapEntry<String, String>(
+            e.qualifiedName.split('.').first,
+            e.href,
+          ),
+        ),
+  );
+
   String toJsonText() => json.encode(entries);
 }
 

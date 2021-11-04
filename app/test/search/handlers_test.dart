@@ -137,4 +137,25 @@ class MockSearchBackend implements SearchBackend {
   Stream<PackageDocument> loadMinimumPackageIndex() async* {
     throw UnimplementedError();
   }
+
+  @override
+  Future<String> fetchSdkIndexContentAsString({
+    required Uri baseUri,
+    required String relativePath,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Map<String, String>> fetchSdkLibraryDescriptions({
+    required Uri baseUri,
+    required Map<String, String> libraryRelativeUrls,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> close() {
+    throw UnimplementedError();
+  }
 }

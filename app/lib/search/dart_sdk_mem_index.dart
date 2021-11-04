@@ -3,12 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-import 'package:retry/retry.dart';
 
 import '../shared/cached_value.dart';
+import 'backend.dart';
 import 'models.dart';
 import 'sdk_mem_index.dart';
 import 'search_service.dart';
@@ -58,20 +57,21 @@ class DartSdkMemIndex {
 
 Future<SdkMemIndex?> _createDartSdkMemIndex() async {
   try {
-    return await retry(
-      () async {
-        final index = SdkMemIndex.dart();
-        final uri = index.baseUri.resolve('index.json');
-        final rs = await http.get(uri);
-        if (rs.statusCode != 200) {
-          throw Exception('Unexpected status code for $uri: ${rs.statusCode}');
-        }
-        final content = DartdocIndex.parseJsonText(rs.body);
-        await index.addDartdocIndex(content);
-        return index;
-      },
-      maxAttempts: 3,
+    final index = SdkMemIndex.dart();
+    final content = DartdocIndex.parseJsonText(
+      await searchBackend.fetchSdkIndexContentAsString(
+        baseUri: index.baseUri,
+        relativePath: 'index.json',
+      ),
     );
+    await index.addDartdocIndex(content);
+    index.addLibraryDescriptions(
+      await searchBackend.fetchSdkLibraryDescriptions(
+        baseUri: index.baseUri,
+        libraryRelativeUrls: content.libraryRelativeUrls,
+      ),
+    );
+    return index;
   } catch (e, st) {
     _logger.warning('Unable to load Dart SDK index.', e, st);
     return null;
