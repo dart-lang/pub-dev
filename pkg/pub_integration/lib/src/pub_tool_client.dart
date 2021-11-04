@@ -2,89 +2,119 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
-/// Command line pub interface.
-class PubToolClient {
-  final String? _dartSdkDir;
+/// Wrapper for the `dart` command-line tool, with a focus on `dart pub`.
+class DartToolClient {
   final String _pubHostedUrl;
-  final Directory _tempDir;
-  final Directory _pubCacheDir;
+  final String _tempDir;
 
-  PubToolClient._(
-    this._dartSdkDir,
+  DartToolClient._(
     this._pubHostedUrl,
     this._tempDir,
-    this._pubCacheDir,
   );
 
+  String get _pubCacheDir => p.join(_tempDir, 'pub-cache');
+  String get _configHome => p.join(_tempDir, 'config-home');
+
   /// Creates a new PubToolClient context with a temporary directory.
-  static Future<PubToolClient> create({
+  static Future<DartToolClient> create({
     required String pubHostedUrl,
     required String credentialsFileContent,
-    String? dartSdkDir,
   }) async {
-    final dir = await Directory.systemTemp.createTemp();
-    final pubCacheDir = Directory(p.join(dir.path, 'pub-cache'));
-    await pubCacheDir.create(recursive: true);
-    await File(p.join(pubCacheDir.path, 'credentials.json'))
-        .writeAsString(credentialsFileContent);
-    return PubToolClient._(dartSdkDir, pubHostedUrl, dir, pubCacheDir);
+    final tempDir = await Directory.systemTemp.createTemp();
+
+    final tool = DartToolClient._(pubHostedUrl, tempDir.path);
+    await Directory(tool._pubCacheDir).create(recursive: true);
+
+    // If we set $XDG_CONFIG_HOME, $APPDATA and $HOME to _configHome, we only
+    // need to write the config file to two locations to supported:
+    //  - $XDG_CONFIG_HOME/dart/pub-credentials.json
+    //  - $APPDATA/dart/pub-credentials.json
+    //  - $HOME/Library/Application Support/dart/pub-credentials.json
+    await Future.wait([
+      p.join(tool._configHome, 'dart'),
+      p.join(tool._configHome, 'Library', 'Application Support', 'dart'),
+    ].map((folder) async {
+      final configFile = File(p.join(folder, 'pub-credentials.json'));
+
+      await configFile.parent.create(recursive: true);
+      await configFile.writeAsString(credentialsFileContent);
+    }));
+    // Also write to legacy location in $PUB_CACHE/credentials.json
+    await File(p.join(tool._pubCacheDir, 'credentials.json')).writeAsString(
+      credentialsFileContent,
+    );
+    print('PUB_CACHE=${tool._pubCacheDir}');
+    return tool;
   }
 
   /// Delete temp resources.
   Future<void> close() async {
-    await _tempDir.delete(recursive: true);
+    await Future.wait([
+      _configHome,
+      _tempDir,
+    ].map((d) => Directory(d).delete(recursive: true)));
   }
 
   /// Runs a process.
-  Future<ProcessResult> runProc(
-    String executable,
+  Future<void> runDart(
     List<String> arguments, {
     String? workingDirectory,
     Map<String, String>? environment,
     String? expectedError,
   }) async {
-    final fullPathExecutable = _dartSdkDir == null
-        ? executable
-        : p.join(_dartSdkDir!, 'bin', executable);
-    final cmd = '$fullPathExecutable ${arguments.join(' ')}';
+    final cmd = 'dart ${arguments.join(' ')}';
     print('Running $cmd in $workingDirectory...');
-    environment ??= <String, String>{};
-    environment['PUB_CACHE'] = _pubCacheDir.path;
-    environment['PUB_HOSTED_URL'] = _pubHostedUrl;
 
     final pr = await Process.run(
-      fullPathExecutable,
+      Platform.resolvedExecutable,
       arguments,
       workingDirectory: workingDirectory,
-      environment: environment,
+      environment: {
+        ...environment ?? {},
+        'PUB_CACHE': _pubCacheDir,
+        'PUB_HOSTED_URL': _pubHostedUrl,
+        'XDG_CONFIG_HOME': _configHome,
+        'HOME': _configHome,
+        'APPDATA': _configHome,
+      },
     );
-    if (pr.exitCode == 0) return pr;
-    if (expectedError == pr.stderr.toString().trim()) return pr;
-    throw Exception('$cmd failed with exit code ${pr.exitCode}.\n'
-        'STDOUT: ${pr.stdout}\n'
-        'STDERR: ${pr.stderr}');
+
+    if (pr.exitCode == 0) {
+      return;
+    }
+    if (expectedError == pr.stderr.toString().trim()) {
+      return;
+    }
+    throw Exception(
+      '$cmd failed with exit code $exitCode.\n'
+      'STDOUT: ${pr.stdout}\n'
+      'STDERR: ${pr.stderr}',
+    );
   }
 
-  Future<ProcessResult> getDependencies(String pkgDir) async {
-    return await runProc('dart', ['pub', 'get'], workingDirectory: pkgDir);
+  Future<void> run(String pkgDir, String file) async {
+    await runDart(['run', file], workingDirectory: pkgDir);
   }
 
-  Future<ProcessResult> publish(String pkgDir, {String? expectedError}) async {
-    return await runProc(
-      'dart',
+  Future<void> getDependencies(String pkgDir) async {
+    await runDart(['pub', 'get'], workingDirectory: pkgDir);
+  }
+
+  Future<void> publish(String pkgDir, {String? expectedError}) async {
+    await runDart(
       ['pub', 'publish', '--force'],
       workingDirectory: pkgDir,
       expectedError: expectedError,
     );
   }
 
-  Future<ProcessResult> addUploader(String pkgDir, String email) async {
-    return await runProc(
-      'dart',
+  Future<void> addUploader(String pkgDir, String email) async {
+    await runDart(
       ['pub', 'uploader', 'add', email],
       workingDirectory: pkgDir,
       expectedError: "We've sent an invitation email to $email.\n"
@@ -92,9 +122,8 @@ class PubToolClient {
     );
   }
 
-  Future<ProcessResult> removeUploader(String pkgDir, String email) async {
-    return await runProc(
-      'dart',
+  Future<void> removeUploader(String pkgDir, String email) async {
+    await runDart(
       ['pub', 'uploader', 'remove', email],
       workingDirectory: pkgDir,
     );

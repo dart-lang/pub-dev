@@ -19,14 +19,12 @@ typedef InviteCompleterFn = Future<void> Function();
 /// A single object to execute integration script and verification tests with the
 /// `pub` tool on the pub.dev site (or on a test site).
 class PublishingScript {
-  final String? clientSdkDir;
   final String pubHostedUrl;
   final String credentialsFileContent;
   final String invitedEmail;
   final InviteCompleterFn inviteCompleterFn;
   final bool expectLiveSite;
   final PubHttpClient _pubHttpClient;
-  PubToolClient? _pubToolClient;
 
   String? _newDummyVersion;
   late bool _hasRetry;
@@ -37,7 +35,6 @@ class PublishingScript {
   late Directory _retryDir;
 
   PublishingScript(
-    this.clientSdkDir,
     this.pubHostedUrl,
     this.credentialsFileContent,
     this.invitedEmail,
@@ -47,48 +44,47 @@ class PublishingScript {
 
   /// Verify all integration steps.
   Future<void> verify() async {
-    assert(_pubToolClient == null);
     await _queryVersions();
     _temp = await Directory.systemTemp.createTemp('pub-integration');
+    final dart = await DartToolClient.create(
+      pubHostedUrl: pubHostedUrl,
+      credentialsFileContent: credentialsFileContent,
+    );
     try {
-      _pubToolClient = await PubToolClient.create(
-          pubHostedUrl: pubHostedUrl,
-          credentialsFileContent: credentialsFileContent);
-
       if (!_hasRetry) {
         await _createFakeRetryPkg();
-        await _pubToolClient!.getDependencies(_retryDir.path);
-        await _pubToolClient!.publish(_retryDir.path);
+        await dart.getDependencies(_retryDir.path);
+        await dart.publish(_retryDir.path);
       }
 
       // too large asset files are rejected
       await _createDummyPkg(oversized: true);
-      await _pubToolClient!.publish(_dummyDir.path,
+      await dart.publish(_dummyDir.path,
           expectedError:
               '`CHANGELOG.md` exceeds the maximum content length (131072 bytes).');
       await _dummyDir.delete(recursive: true);
 
       // upload package
       await _createDummyPkg(oversized: false);
-      await _pubToolClient!.getDependencies(_dummyDir.path);
-      await _pubToolClient!.publish(_dummyDir.path);
+      await dart.getDependencies(_dummyDir.path);
+      await dart.publish(_dummyDir.path);
       await Future.delayed(Duration(seconds: 1));
       await _verifyDummyPkg();
 
       // upload the same version again
-      await _pubToolClient!.publish(_dummyDir.path,
+      await dart.publish(_dummyDir.path,
           expectedError:
               'Version $_newDummyVersion of package _dummy_pkg already exists.');
 
       // run example
-      await _pubToolClient!.getDependencies(_dummyExampleDir.path);
-      await _run(_dummyExampleDir, 'bin/main.dart');
+      await dart.getDependencies(_dummyExampleDir.path);
+      await dart.run(_dummyExampleDir.path, 'bin/main.dart');
 
       // add/remove uploader
-      await _pubToolClient!.addUploader(_dummyDir.path, invitedEmail);
+      await dart.addUploader(_dummyDir.path, invitedEmail);
       await inviteCompleterFn();
       await _verifyDummyPkg();
-      await _pubToolClient!.removeUploader(_dummyDir.path, invitedEmail);
+      await dart.removeUploader(_dummyDir.path, invitedEmail);
       await _verifyDummyPkg();
 
       if (expectLiveSite) {
@@ -97,7 +93,7 @@ class PublishingScript {
     } finally {
       await _temp.delete(recursive: true);
       await _pubHttpClient.close();
-      await _pubToolClient?.close();
+      await dart.close();
     }
   }
 
@@ -125,10 +121,6 @@ class PublishingScript {
     _retryDir = Directory(path.join(_temp.path, 'pkg', 'retry'));
     await _retryDir.create(recursive: true);
     await createFakeRetryPkg(_retryDir.path);
-  }
-
-  Future<void> _run(Directory dir, String file) async {
-    await _pubToolClient!.runProc('dart', [file], workingDirectory: dir.path);
   }
 
   Future<void> _verifyDummyPkg() async {

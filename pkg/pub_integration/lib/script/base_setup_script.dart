@@ -16,7 +16,7 @@ class BaseSetupScript {
   final String pubHostedUrl;
   final String? credentialsFileContent;
   final PubHttpClient _pubHttpClient;
-  PubToolClient? _pubToolClient;
+  DartToolClient? _pubToolClient;
 
   late Directory _temp;
   late Directory _dummyDir;
@@ -36,7 +36,7 @@ class BaseSetupScript {
     assert(_pubToolClient == null);
     _temp = await Directory.systemTemp.createTemp('pub-integration');
     try {
-      _pubToolClient = await PubToolClient.create(
+      _pubToolClient = await DartToolClient.create(
           pubHostedUrl: pubHostedUrl,
           credentialsFileContent: credentialsFileContent!);
 
