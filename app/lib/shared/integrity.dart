@@ -6,6 +6,7 @@ import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 
 import '../account/models.dart';
+import '../package/backend.dart';
 import '../package/models.dart';
 import '../publisher/models.dart';
 import '../shared/datastore.dart';
@@ -448,7 +449,15 @@ class IntegrityChecker {
   }
 
   Future<bool> _packageExists(String packageName) async {
-    return _packages.contains(packageName);
+    if (_packages.contains(packageName)) {
+      return true;
+    }
+    final p = await packageBackend.lookupPackage(packageName);
+    if (p != null) {
+      _packages.add(packageName);
+      return true;
+    }
+    return false;
   }
 
   Future<bool> _packageMissing(String packageName) async =>
