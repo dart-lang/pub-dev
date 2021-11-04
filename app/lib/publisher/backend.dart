@@ -493,6 +493,7 @@ class PublisherBackend {
       ]);
     });
     await purgePublisherCache(publisherId: publisherId);
+    await purgeAccountCache(userId: userId);
   }
 
   Future<api.PublisherMember> _asPublisherMember(PublisherMember pm) async {
