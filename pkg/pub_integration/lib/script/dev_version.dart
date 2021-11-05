@@ -16,7 +16,7 @@ class DevVersionScript {
   final String pubHostedUrl;
   final String credentialsFileContent;
   final PubHttpClient _pubHttpClient;
-  PubToolClient? _pubToolClient;
+  DartToolClient? _pubToolClient;
   late Directory _temp;
   late Directory _pubCacheDir;
 
@@ -27,7 +27,7 @@ class DevVersionScript {
 
   /// Publish and verify dev and stable versions.
   Future<void> verify(bool stableFirst) async {
-    _pubToolClient = await PubToolClient.create(
+    _pubToolClient = await DartToolClient.create(
         pubHostedUrl: pubHostedUrl,
         credentialsFileContent: credentialsFileContent);
     _temp = await Directory.systemTemp.createTemp();

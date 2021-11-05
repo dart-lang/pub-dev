@@ -12,10 +12,8 @@ Future verifyPub({
   required String invitedEmail,
   required InviteCompleterFn inviteCompleterFn,
   bool expectLiveSite = true,
-  String? clientSdkDir,
 }) async {
   final pubToolScript = PublishingScript(
-    clientSdkDir,
     pubHostedUrl,
     credentialsFileContent,
     invitedEmail,

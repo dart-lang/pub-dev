@@ -66,7 +66,6 @@ void main() {
         credentialsFileContent: fakeCredentialsFileContent(),
         invitedEmail: 'dev@example.org',
         inviteCompleterFn: inviteCompleterFn,
-        clientSdkDir: Platform.environment['PUB_INTEGRATION_CLIENT_SDK_DIR'],
         expectLiveSite: false,
       );
     });

@@ -19,7 +19,7 @@ class PublisherScript {
   final String invitedEmail;
   final InviteCompleterFn inviteCompleterFn;
   final PubHttpClient _pubHttpClient;
-  PubToolClient? _pubToolClient;
+  DartToolClient? _pubToolClient;
 
   late Directory _temp;
 
@@ -35,7 +35,7 @@ class PublisherScript {
     assert(_pubToolClient == null);
     _temp = await Directory.systemTemp.createTemp('pub-integration');
     try {
-      _pubToolClient = await PubToolClient.create(
+      _pubToolClient = await DartToolClient.create(
           pubHostedUrl: pubHostedUrl,
           credentialsFileContent: credentialsFileContent);
 
