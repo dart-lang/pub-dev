@@ -26,7 +26,7 @@ Future<R?> rpc<R>({
 
   /// Callback that will be called with the value of the RPC call, when it was
   /// successful.
-  FutureOr Function(R value)? onSuccess,
+  FutureOr Function(R? value)? onSuccess,
 
   /// Callback that will be called with the error object, when executing
   /// `fn` was not successful. The return value of this callback will be used
@@ -89,7 +89,7 @@ Future<R?> rpc<R>({
 
   await modalMessage('Success', successMessage);
   if (onSuccess != null) {
-    await onSuccess(result!);
+    await onSuccess(result);
   }
   return result;
 }

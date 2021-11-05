@@ -357,6 +357,8 @@ void main() {
           data,
           ['example.com'],
           await accountBackend.lookupUsersByEmail('admin@pub.dev'),
+          [],
+          [],
         );
         expectGoldenFile(html, 'pkg_admin_page.html', timestamps: {
           'published': data.package!.created,

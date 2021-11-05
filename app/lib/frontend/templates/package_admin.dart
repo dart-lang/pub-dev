@@ -18,6 +18,8 @@ String renderPkgAdminPage(
   PackagePageData data,
   List<String> userPublishers,
   List<User> uploaderUsers,
+  List<String> retractableVersions,
+  List<String> retractedVersions,
 ) {
   final tabs = buildPackageTabs(
     data: data,
@@ -25,10 +27,11 @@ String renderPkgAdminPage(
       id: 'admin',
       title: 'Admin',
       contentNode: packageAdminPageNode(
-        package: data.package!,
-        userPublishers: userPublishers,
-        uploaderUsers: uploaderUsers,
-      ),
+          package: data.package!,
+          userPublishers: userPublishers,
+          uploaderUsers: uploaderUsers,
+          retractableVersions: retractableVersions,
+          retractedVersions: retractedVersions),
     ),
   );
 

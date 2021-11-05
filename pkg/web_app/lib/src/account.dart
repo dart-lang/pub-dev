@@ -178,6 +178,10 @@ class _PkgAdminWidget {
   Element? _inviteUploaderButton;
   Element? _inviteUploaderContent;
   InputElement? _inviteUploaderInput;
+  SelectElement? _retractPackageVersionInput;
+  Element? _retractPackageVersionButton;
+  SelectElement? _restoreRetractPackageVersionInput;
+  Element? _restoreRetractPackageVersionButton;
 
   void init() {
     if (!pageData.isPackagePage) return;
@@ -203,6 +207,19 @@ class _PkgAdminWidget {
     _inviteUploaderButton?.onClick.listen((_) => _inviteUploader());
     _inviteUploaderInput = document
         .getElementById('-pkg-admin-invite-uploader-input') as InputElement?;
+    _retractPackageVersionInput =
+        document.getElementById('-admin-retract-package-version-input')
+            as SelectElement?;
+    _retractPackageVersionButton =
+        document.getElementById('-admin-retract-package-version-button');
+    _retractPackageVersionButton?.onClick.listen((_) => _setRetracted());
+    _restoreRetractPackageVersionInput =
+        document.getElementById('-admin-restore-retract-package-version-input')
+            as SelectElement?;
+    _restoreRetractPackageVersionButton = document
+        .getElementById('-admin-restore-retract-package-version-button');
+    _restoreRetractPackageVersionButton?.onClick
+        .listen((_) => _restoreRetracted());
     if (_inviteUploaderContent != null) {
       _inviteUploaderContent!.remove();
       _inviteUploaderContent!.classes.remove('modal-content-hidden');
@@ -231,7 +248,7 @@ class _PkgAdminWidget {
       return false;
     }
 
-    await rpc(
+    await rpc<void>(
       fn: () async {
         await client.invitePackageUploader(
             pageData.pkgData!.package, InviteUploaderRequest(email: email));
@@ -245,7 +262,7 @@ class _PkgAdminWidget {
   }
 
   Future<void> _removeUploader(String email) async {
-    await rpc(
+    await rpc<void>(
       confirmQuestion: markdown(
           'Are you sure you want to remove uploader `$email` from this package?'),
       fn: () async {
@@ -259,7 +276,7 @@ class _PkgAdminWidget {
 
   Future<void> _toogleDiscontinued() async {
     final oldValue = _discontinuedCheckbox!.defaultChecked ?? false;
-    final newValue = await rpc(
+    final newValue = await rpc<bool?>(
       confirmQuestion: text(
           'Are you sure you want change the "discontinued" status of the package?'),
       fn: () async {
@@ -281,7 +298,7 @@ class _PkgAdminWidget {
   }
 
   Future<void> _updateReplacedBy() async {
-    await rpc(
+    await rpc<bool?>(
       confirmQuestion: text(
           'Are you sure you want change the "suggested replacement" field of the package?'),
       fn: () async {
@@ -323,6 +340,37 @@ class _PkgAdminWidget {
     }
   }
 
+  Future<void> _setRetracted() async {
+    final version = _retractPackageVersionInput?.value?.trim() ?? '';
+    await rpc<void>(
+      confirmQuestion: markdown(
+          'Are you sure you want to retract the package version `$version`?'),
+      fn: () async {
+        await client.setVersionOptions(pageData.pkgData!.package, version,
+            VersionOptions(isRetracted: true));
+      },
+      successMessage: text('Retraction completed. The page will reload.'),
+      onSuccess: (_) => window.location.reload(),
+    );
+  }
+
+  Future<void> _restoreRetracted() async {
+    final version = _restoreRetractPackageVersionInput?.value?.trim() ?? '';
+    await rpc<void>(
+      confirmQuestion: markdown(
+          'Are you sure you want to restore package version `$version`?'),
+      fn: () async {
+        print('before setVersionOption');
+        await client.setVersionOptions(pageData.pkgData!.package, version,
+            VersionOptions(isRetracted: false));
+      },
+      successMessage: text('Restoring complete. The page will reload.'),
+      onSuccess: (_) {
+        window.location.reload();
+      },
+    );
+  }
+
   Future<void> _setPublisher() async {
     final publisherId = _setPublisherInput?.value?.trim() ?? '';
     if (publisherId.isEmpty) {
@@ -333,7 +381,7 @@ class _PkgAdminWidget {
       return;
     }
 
-    await rpc(
+    await rpc<void>(
       confirmQuestion: markdown(
           'Are you sure you want to transfer the package to publisher `$publisherId`?'),
       fn: () async {
@@ -373,7 +421,7 @@ class _CreatePublisherWidget {
       return;
     }
 
-    await rpc(
+    await rpc<void>(
       confirmQuestion: markdown(
           'Are you sure you want to create publisher for `$publisherId`?'),
       fn: () async {
@@ -439,7 +487,7 @@ class _PublisherAdminWidget {
           'Changing it to an admin member email happens immediately, for other '
           'addresses we will send a confirmation request.';
     }
-    await rpc(
+    await rpc<void>(
       confirmQuestion: confirmQuestion == null ? null : text(confirmQuestion),
       fn: () async {
         final payload = UpdatePublisherRequest(
@@ -472,7 +520,7 @@ class _PublisherAdminWidget {
       return false;
     }
 
-    await rpc(
+    await rpc<void>(
       fn: () async {
         await client.invitePublisherMember(
             pageData.publisher!.publisherId, InviteMemberRequest(email: email));
@@ -486,7 +534,7 @@ class _PublisherAdminWidget {
   }
 
   Future<void> _removeMember(String userId, String email) async {
-    await rpc(
+    await rpc<void>(
       confirmQuestion: markdown(
           'Are you sure you want to remove `$email` from this publisher?'),
       fn: () async {
@@ -516,8 +564,8 @@ class _ConsentWidget {
         .listen((_) => _reject());
   }
 
-  void _updateButtons(bool granted) {
-    final text = granted ? 'Consent accepted.' : 'Consent rejected.';
+  void _updateButtons(bool? granted) {
+    final text = granted! ? 'Consent accepted.' : 'Consent rejected.';
     _buttons!.replaceWith(Element.p()..text = text);
   }
 
