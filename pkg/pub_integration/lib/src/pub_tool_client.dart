@@ -48,16 +48,12 @@ class DartToolClient {
     await File(p.join(tool._pubCacheDir, 'credentials.json')).writeAsString(
       credentialsFileContent,
     );
-    print('PUB_CACHE=${tool._pubCacheDir}');
     return tool;
   }
 
   /// Delete temp resources.
   Future<void> close() async {
-    await Future.wait([
-      _configHome,
-      _tempDir,
-    ].map((d) => Directory(d).delete(recursive: true)));
+    await Directory(_tempDir).delete(recursive: true);
   }
 
   /// Runs a process.
