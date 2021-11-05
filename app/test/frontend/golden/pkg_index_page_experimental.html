@@ -21,7 +21,7 @@
     <meta content="/static/img/pub-dev-icon-cover-image.png?hash=mocked_hash_355802124"/>
     <link rel="shortcut icon" href="/favicon.ico?hash=mocked_hash_985685822"/>
     <link rel="search" type="application/opensearchdescription+xml" title="Dart packages" href="/static/osd.xml?hash=mocked_hash_869379763"/>
-    <link rel="canonical" href="https://pub.dev/packages"/>
+    <link rel="canonical" href="https://pub.dev/packages?sdk=dart&amp;unlisted=1"/>
     <meta name="description" content="Pub is the package manager for the Dart programming language, containing reusable libraries &amp; packages for Flutter, AngularDart, and general Dart programs."/>
     <link rel="alternate" type="application/atom+xml" title="Updated Packages Feed for Pub" href="/feed.atom"/>
     <link rel="stylesheet" type="text/css" href="/static/material/material-components-web.min.css?hash=mocked_hash_335393842"/>
@@ -110,18 +110,19 @@
         <form class="search-bar banner-item" action="/packages">
           <input class="input" name="q" placeholder="Search packages" autocomplete="on" autofocus="autofocus"/>
           <button class="icon"></button>
-          <div class="search-filters-btn-wrapper">
+          <div class="search-filters-btn-wrapper -active">
             <img class="search-filters-btn search-filters-btn-inactive" src="/static/img/search-filters-inactive.svg?hash=mocked_hash_963166179"/>
             <img class="search-filters-btn search-filters-btn-active" src="/static/img/search-filters-active.svg?hash=mocked_hash_397783636"/>
           </div>
           <input id="-search-discontinued-field" type="hidden" name="discontinued" value="1" disabled="disabled"/>
-          <input id="-search-unlisted-field" type="hidden" name="unlisted" value="1" disabled="disabled"/>
+          <input id="-search-unlisted-field" type="hidden" name="unlisted" value="1"/>
           <input id="-search-null-safe-field" type="hidden" name="null-safe" value="1" disabled="disabled"/>
+          <input type="hidden" name="sdk" value="dart"/>
         </form>
       </div>
     </div>
     <main>
-      <div class="container search-form-container experimental">
+      <div class="container search-form-container experimental -active-on-mobile">
         <div class="search-form">
           <div class="search-form-section foldable -active">
             <h3 class="search-form-section-header foldable-button">
@@ -142,7 +143,7 @@
                     <div class="mdc-checkbox__ripple"></div>
                   </div>
                   <label for="search-form-checkbox-platform-android">
-                    <a class="search-link" href="/packages?platform=android">Android</a>
+                    <a class="search-link" href="/packages?sdk=dart&amp;platform=android&amp;unlisted=1">Android</a>
                   </label>
                 </div>
               </div>
@@ -159,7 +160,7 @@
                     <div class="mdc-checkbox__ripple"></div>
                   </div>
                   <label for="search-form-checkbox-platform-ios">
-                    <a class="search-link" href="/packages?platform=ios">iOS</a>
+                    <a class="search-link" href="/packages?sdk=dart&amp;platform=ios&amp;unlisted=1">iOS</a>
                   </label>
                 </div>
               </div>
@@ -176,7 +177,7 @@
                     <div class="mdc-checkbox__ripple"></div>
                   </div>
                   <label for="search-form-checkbox-platform-linux">
-                    <a class="search-link" href="/packages?platform=linux">Linux</a>
+                    <a class="search-link" href="/packages?sdk=dart&amp;platform=linux&amp;unlisted=1">Linux</a>
                   </label>
                 </div>
               </div>
@@ -193,7 +194,7 @@
                     <div class="mdc-checkbox__ripple"></div>
                   </div>
                   <label for="search-form-checkbox-platform-macos">
-                    <a class="search-link" href="/packages?platform=macos">macOS</a>
+                    <a class="search-link" href="/packages?sdk=dart&amp;platform=macos&amp;unlisted=1">macOS</a>
                   </label>
                 </div>
               </div>
@@ -210,7 +211,7 @@
                     <div class="mdc-checkbox__ripple"></div>
                   </div>
                   <label for="search-form-checkbox-platform-web">
-                    <a class="search-link" href="/packages?platform=web">Web</a>
+                    <a class="search-link" href="/packages?sdk=dart&amp;platform=web&amp;unlisted=1">Web</a>
                   </label>
                 </div>
               </div>
@@ -227,13 +228,13 @@
                     <div class="mdc-checkbox__ripple"></div>
                   </div>
                   <label for="search-form-checkbox-platform-windows">
-                    <a class="search-link" href="/packages?platform=windows">Windows</a>
+                    <a class="search-link" href="/packages?sdk=dart&amp;platform=windows&amp;unlisted=1">Windows</a>
                   </label>
                 </div>
               </div>
             </div>
           </div>
-          <div class="search-form-section foldable">
+          <div class="search-form-section foldable -active">
             <h3 class="search-form-section-header foldable-button">
               <span class="search-form-section-header-label">SDKs</span>
               <img class="foldable-icon" src="/static/img/search-form-foldable-icon.svg?hash=mocked_hash_663371761"/>
@@ -242,7 +243,7 @@
               <div class="search-form-linked-checkbox">
                 <div class="mdc-form-field">
                   <div class="mdc-checkbox">
-                    <input id="search-form-checkbox-sdk-dart" class="mdc-checkbox__native-control" type="checkbox"/>
+                    <input id="search-form-checkbox-sdk-dart" class="mdc-checkbox__native-control" type="checkbox" checked="checked"/>
                     <div class="mdc-checkbox__background">
                       <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
                         <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
@@ -252,7 +253,7 @@
                     <div class="mdc-checkbox__ripple"></div>
                   </div>
                   <label for="search-form-checkbox-sdk-dart">
-                    <a class="search-link" href="/packages?sdk=dart">Dart</a>
+                    <a class="search-link" href="/packages?unlisted=1">Dart</a>
                   </label>
                 </div>
               </div>
@@ -269,13 +270,13 @@
                     <div class="mdc-checkbox__ripple"></div>
                   </div>
                   <label for="search-form-checkbox-sdk-flutter">
-                    <a class="search-link" href="/packages?sdk=flutter">Flutter</a>
+                    <a class="search-link" href="/packages?sdk=dart+flutter&amp;unlisted=1">Flutter</a>
                   </label>
                 </div>
               </div>
             </div>
           </div>
-          <div class="search-form-section foldable">
+          <div class="search-form-section foldable -active">
             <h3 class="search-form-section-header foldable-button">
               <span class="search-form-section-header-label">Advanced</span>
               <img class="foldable-icon" src="/static/img/search-form-foldable-icon.svg?hash=mocked_hash_663371761"/>
@@ -294,14 +295,14 @@
                     <div class="mdc-checkbox__ripple"></div>
                   </div>
                   <label for="search-form-checbox-discontinued">
-                    <a class="search-link" href="/packages?discontinued=1">Include discontinued</a>
+                    <a class="search-link" href="/packages?sdk=dart&amp;discontinued=1&amp;unlisted=1">Include discontinued</a>
                   </label>
                 </div>
               </div>
               <div class="search-form-linked-checkbox">
                 <div class="mdc-form-field">
                   <div class="mdc-checkbox">
-                    <input id="search-form-checbox-unlisted" class="mdc-checkbox__native-control" type="checkbox"/>
+                    <input id="search-form-checbox-unlisted" class="mdc-checkbox__native-control" type="checkbox" checked="checked"/>
                     <div class="mdc-checkbox__background">
                       <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
                         <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
@@ -311,7 +312,7 @@
                     <div class="mdc-checkbox__ripple"></div>
                   </div>
                   <label for="search-form-checbox-unlisted">
-                    <a class="search-link" href="/packages?unlisted=1">Include unlisted</a>
+                    <a class="search-link" href="/packages?sdk=dart">Include unlisted</a>
                   </label>
                 </div>
               </div>
@@ -328,7 +329,7 @@
                     <div class="mdc-checkbox__ripple"></div>
                   </div>
                   <label for="search-form-checbox-null-safe">
-                    <a class="search-link" href="/packages?null-safe=1">Supports null safety</a>
+                    <a class="search-link" href="/packages?sdk=dart&amp;unlisted=1&amp;null-safe=1">Supports null safety</a>
                   </label>
                 </div>
               </div>
