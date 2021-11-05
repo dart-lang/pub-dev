@@ -224,7 +224,11 @@ class InMemoryPackageIndex implements PackageIndex {
     }
 
     // do text matching
-    final textResults = _searchText(packages, query.parsedQuery.text);
+    final textResults = _searchText(
+      packages,
+      query.parsedQuery.text,
+      hasHighlightedHit: highlightedHit != null,
+    );
 
     // filter packages that doesn't match text query
     if (textResults != null) {
@@ -325,7 +329,11 @@ class InMemoryPackageIndex implements PackageIndex {
     return Score(values);
   }
 
-  _TextResults? _searchText(Set<String> packages, String? text) {
+  _TextResults? _searchText(
+    Set<String> packages,
+    String? text, {
+    required bool hasHighlightedHit,
+  }) {
     final sw = Stopwatch()..start();
     if (text != null && text.isNotEmpty) {
       final words = splitForQuery(text);
@@ -362,8 +370,9 @@ class InMemoryPackageIndex implements PackageIndex {
       // Do documentation text search only when there was no reasonable core result
       // and no reasonable API symbol result.
       var dartdocPages = Score.empty();
-      final shouldSearchApiText =
-          core.maxValue < 0.4 && symbolPages.maxValue < 0.3;
+      final shouldSearchApiText = !hasHighlightedHit &&
+          core.maxValue < 0.4 &&
+          symbolPages.maxValue < 0.3;
       if (!checkAborted() && shouldSearchApiText) {
         final sw = Stopwatch()..start();
         dartdocPages = _apiDartdocIndex.searchWords(words, weight: 0.40);
@@ -374,17 +383,18 @@ class InMemoryPackageIndex implements PackageIndex {
             'elapsed: ${sw.elapsed}');
       } else {
         _logger.info('[pub-search-query-without-api-dartdoc-index] '
+            'hasHighlightedHit: $hasHighlightedHit '
             'core: ${core.length}/${core.maxValue} '
             'symbols: ${symbolPages.length}/${symbolPages.maxValue}');
       }
       final logTags = [
         if (symbolPages.isNotEmpty) '[pub-search-query-api-symbols-found]',
         if (dartdocPages.isNotEmpty) '[pub-search-query-api-dartdoc-found]',
-        if (symbolPages.maxValue > core.maxValue)
+        if (!hasHighlightedHit && symbolPages.maxValue > core.maxValue)
           '[pub-search-query-api-symbols-better-than-core]',
-        if (dartdocPages.maxValue > core.maxValue)
+        if (!hasHighlightedHit && dartdocPages.maxValue > core.maxValue)
           '[pub-search-query-api-dartdoc-better-than-core]',
-        if (symbolPages.maxValue > dartdocPages.maxValue)
+        if (!hasHighlightedHit && symbolPages.maxValue > dartdocPages.maxValue)
           '[pub-search-query-api-dartdoc-better-than-symbols]',
       ];
       if (logTags.isNotEmpty) {
