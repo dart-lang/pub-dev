@@ -154,7 +154,8 @@ Future<shelf.Response> staticsHandler(shelf.Request request) async {
 
 /// Handles requests for /experimental
 Future<shelf.Response> experimentalHandler(shelf.Request request) async {
-  final enabled = request.requestedUri.queryParameters['enabled'] == '1';
+  final param = request.requestedUri.queryParameters['enabled'];
+  final enabled = param == null ? requestContext.isExperimental : param == '1';
   final cookie = Cookie('experimental', enabled ? '1' : '0')
     ..httpOnly = true
     ..path = '/'
@@ -169,7 +170,7 @@ Future<shelf.Response> experimentalHandler(shelf.Request request) async {
   <center>
     <p>
       <br><br><br>
-      Experimental cookie enabled: <b>$enabled</b> (<a href="/experimental/?enabled=${enabled ? '0' : '1'}">toggle</a>).<br>
+      Experimental cookie enabled: <b>$enabled</b> (<a href="/experimental?enabled=${enabled ? '0' : '1'}">toggle</a>).<br>
       (redirecting to <a href="/">pub.dev</a> in 5 seconds).
     </p>
   <center>
