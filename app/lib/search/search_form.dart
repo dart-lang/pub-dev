@@ -225,9 +225,6 @@ class SearchForm {
     if (query != null && query!.isNotEmpty) {
       params['q'] = query;
     }
-    if (sdks.isNotEmpty) {
-      params['sdk'] = sdks.join(' ');
-    }
     params.addAll(hiddenFields());
     if (order != null) {
       final String paramName = 'sort';
@@ -256,6 +253,7 @@ class SearchForm {
   Map<String, String> hiddenFields() {
     final encodedRuntimes = DartSdkRuntime.encodeRuntimeTags(runtimes);
     return {
+      if (sdks.isNotEmpty) 'sdk': sdks.join(' '),
       if (encodedRuntimes.isNotEmpty) 'runtime': encodedRuntimes.join(' '),
       if (platforms.isNotEmpty) 'platform': platforms.join(' '),
     };
