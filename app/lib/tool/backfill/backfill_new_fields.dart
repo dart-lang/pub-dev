@@ -2,9 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:logging/logging.dart';
+
 import '../../package/backend.dart';
 import '../../package/models.dart';
 import '../../shared/datastore.dart';
+
+final _logger = Logger('backfill_new_fields');
 
 /// Backfills new fields that are introduced in a release.
 ///
@@ -31,24 +35,40 @@ Future<void> _backfillPackages() async {
   }
 }
 
-/// Returns true if a race has been detected.
+/// Returns true if a race has been detected while the Package entity
+/// was being verified and updated.
 Future<bool> _backfillPackage(Package p) async {
-  if (p.versionCount != null) return false;
-  final count =
-      await packageBackend.getPackageVersionsCount(p.name!, skipCache: true);
+  final versions = await packageBackend.versionsOfPackage(p.name!);
+  final count = versions.length;
+  final countUntilLastPublished = versions
+      .where((pv) => !pv.created!.isAfter(p.lastVersionPublished!))
+      .length;
+  if (count != countUntilLastPublished) {
+    _logger.info(
+        '[backfill-version-count-investigate] "${p.name}" version count '
+        'difference: $count total != $countUntilLastPublished until last published.');
+  }
+  if (p.versionCount == count) {
+    return false;
+  }
   return await withRetryTransaction(dbService, (tx) async {
     final v = await tx.lookupValue<Package>(p.key);
     // sanity checks for parallel updates during the version count
-    if (v.versionCount == null &&
-        p.updated == v.updated &&
-        p.lastVersionPublished == v.lastVersionPublished &&
-        p.likes == v.likes) {
+    if (v.versionCount != p.versionCount ||
+        p.updated != v.updated ||
+        p.lastVersionPublished != v.lastVersionPublished ||
+        p.likes != v.likes) {
+      _logger.info(
+          '[backfill-version-count-race] "${v.name}" ${v.versionCount} -> $count');
+      return true;
+    }
+    if (v.versionCount != count) {
+      _logger.info(
+          '[backfill-version-count-update] "${v.name}" ${v.versionCount} -> $count');
       v.versionCount = count;
       v.updated = DateTime.now().toUtc();
       tx.insert(v);
-      return false;
-    } else {
-      return true;
     }
+    return false;
   });
 }
