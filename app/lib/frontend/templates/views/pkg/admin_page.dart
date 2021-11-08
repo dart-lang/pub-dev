@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/frontend/request_context.dart';
+
 import '../../../../account/models.dart';
 import '../../../../package/models.dart';
 import '../../../../shared/urls.dart' as urls;
@@ -13,6 +15,8 @@ d.Node packageAdminPageNode({
   required Package package,
   required List<String> userPublishers,
   required List<User> uploaderUsers,
+  required List<String> retractableVersions,
+  required List<String> retractedVersions,
 }) {
   final pkgHasPublisher = package.publisherId != null;
   return d.fragment([
@@ -33,6 +37,7 @@ d.Node packageAdminPageNode({
         material.dropdown(
           id: '-admin-set-publisher-input',
           label: 'Select a publisher',
+          classes: ['-admin-dropdown'],
           options: [
             if (!pkgHasPublisher)
               d.option(value: '', text: '', disabled: true, selected: true),
@@ -155,5 +160,66 @@ d.Node packageAdminPageNode({
         checked: package.isUnlisted,
       ),
     ],
+    if (requestContext.showPackageRetraction) ...[
+      d.h2(text: 'Package Version Retraction'),
+      d.div(children: [
+        d.markdown(
+            'You can retract a package version up to 7 days after publication.'),
+        d.markdown(
+            'This will not remove the package version, but warn developers using'
+            ' it and stop new applications from taking dependency on it without a dependency override.'),
+        d.markdown(
+            'You can restore a retracted package version if the version was retracted within the last 7 days.'),
+        d.h3(text: 'Retract Package Version'),
+        if (retractableVersions.isNotEmpty) ...[
+          material.dropdown(
+            id: '-admin-retract-package-version-input',
+            label: 'Select a version',
+            classes: ['-admin-dropdown'],
+            options: [
+              ...retractableVersions.map(
+                (v) => d.option(value: v, text: v),
+              ),
+            ],
+          ),
+          d.p(
+            child: material.button(
+              id: '-admin-retract-package-version-button',
+              classes: ['pub-button-danger'],
+              raised: true,
+              label: 'Retract Package Version',
+            ),
+          )
+        ],
+        if (retractableVersions.isEmpty)
+          d.markdown('This package has no retractable versions.'),
+      ]),
+      d.h3(text: 'Restore Retracted Package Version'),
+      d.div(children: [
+        if (retractedVersions.isNotEmpty) ...[
+          material.dropdown(
+            id: '-admin-restore-retract-package-version-input',
+            label: 'Select a version',
+            classes: ['-admin-dropdown'],
+            options: [
+              ...retractedVersions.map(
+                (v) => d.option(value: v, text: v),
+              ),
+            ],
+          ),
+          d.p(
+            child: material.button(
+              id: '-admin-restore-retract-package-version-button',
+              classes: ['pub-button-danger'],
+              raised: true,
+              label: 'Restore Retraced Package Version',
+            ),
+          ),
+        ],
+        if (retractedVersions.isEmpty)
+          d.markdown(
+              'This package has no retracted versions that can be restored.'),
+      ]),
+    ]
   ]);
 }

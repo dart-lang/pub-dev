@@ -178,6 +178,10 @@ class _PkgAdminWidget {
   Element? _inviteUploaderButton;
   Element? _inviteUploaderContent;
   InputElement? _inviteUploaderInput;
+  SelectElement? _retractPackageVersionInput;
+  Element? _retractPackageVersionButton;
+  SelectElement? _restoreRetractPackageVersionInput;
+  Element? _restoreRetractPackageVersionButton;
 
   void init() {
     if (!pageData.isPackagePage) return;
@@ -203,6 +207,19 @@ class _PkgAdminWidget {
     _inviteUploaderButton?.onClick.listen((_) => _inviteUploader());
     _inviteUploaderInput = document
         .getElementById('-pkg-admin-invite-uploader-input') as InputElement?;
+    _retractPackageVersionInput =
+        document.getElementById('-admin-retract-package-version-input')
+            as SelectElement?;
+    _retractPackageVersionButton =
+        document.getElementById('-admin-retract-package-version-button');
+    _retractPackageVersionButton?.onClick.listen((_) => _setRetracted());
+    _restoreRetractPackageVersionInput =
+        document.getElementById('-admin-restore-retract-package-version-input')
+            as SelectElement?;
+    _restoreRetractPackageVersionButton = document
+        .getElementById('-admin-restore-retract-package-version-button');
+    _restoreRetractPackageVersionButton?.onClick
+        .listen((_) => _restoreRetracted());
     if (_inviteUploaderContent != null) {
       _inviteUploaderContent!.remove();
       _inviteUploaderContent!.classes.remove('modal-content-hidden');
@@ -281,7 +298,7 @@ class _PkgAdminWidget {
   }
 
   Future<void> _updateReplacedBy() async {
-    await rpc(
+    await rpc<bool?>(
       confirmQuestion: text(
           'Are you sure you want change the "suggested replacement" field of the package?'),
       fn: () async {
@@ -321,6 +338,35 @@ class _PkgAdminWidget {
       _unlistedCheckbox!.defaultChecked = newValue;
       _unlistedCheckbox!.checked = newValue;
     }
+  }
+
+  Future<void> _setRetracted() async {
+    final version = _retractPackageVersionInput?.value?.trim() ?? '';
+    await rpc<void>(
+      confirmQuestion: markdown(
+          'Are you sure you want to retract the package version `$version`?'),
+      fn: () async {
+        await client.setVersionOptions(pageData.pkgData!.package, version,
+            VersionOptions(isRetracted: true));
+      },
+      successMessage: text('Retraction completed. The page will reload.'),
+      onSuccess: (_) => window.location.reload(),
+    );
+  }
+
+  Future<void> _restoreRetracted() async {
+    final version = _restoreRetractPackageVersionInput?.value?.trim() ?? '';
+    await rpc<void>(
+      confirmQuestion: markdown(
+          'Are you sure you want to restore package version `$version`?'),
+      fn: () async {
+        print('before setVersionOption');
+        await client.setVersionOptions(pageData.pkgData!.package, version,
+            VersionOptions(isRetracted: false));
+      },
+      successMessage: text('Restoring complete. The page will reload.'),
+      onSuccess: (_) => window.location.reload(),
+    );
   }
 
   Future<void> _setPublisher() async {

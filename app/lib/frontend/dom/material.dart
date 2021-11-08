@@ -304,9 +304,13 @@ d.Node dropdown({
   required String id,
   required String label,
   required Iterable<d.Node> options,
+  Iterable<String>? classes,
 }) {
   return d.div(
-    classes: ['mdc-select'],
+    classes: [
+      'mdc-select',
+      if (classes != null) ...classes,
+    ],
     attributes: {'data-mdc-auto-init': 'MDCSelect'},
     children: [
       d.i(classes: ['mdc-select__dropdown-icon']),

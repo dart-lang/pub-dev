@@ -270,10 +270,16 @@ Future<shelf.Response> packageAdminHandler(
           .listPublishersForUser(userSessionData!.userId!);
       final uploaderEmails = await accountBackend
           .lookupUsersById(data.package!.uploaders ?? <String>[]);
+      final retractableVersions =
+          await packageBackend.listRetractableVersions(packageName);
+      final retractedVersions =
+          await packageBackend.listRecentlyRetractedVersions(packageName);
       return renderPkgAdminPage(
         data,
         page.publishers!.map((p) => p.publisherId).toList(),
         uploaderEmails.cast(),
+        retractableVersions.map((v) => v.id!).toList(),
+        retractedVersions.map((v) => v.id!).toList(),
       );
     },
   );
