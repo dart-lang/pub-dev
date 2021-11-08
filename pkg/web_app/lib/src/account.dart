@@ -365,9 +365,7 @@ class _PkgAdminWidget {
             VersionOptions(isRetracted: false));
       },
       successMessage: text('Restoring complete. The page will reload.'),
-      onSuccess: (_) {
-        window.location.reload();
-      },
+      onSuccess: (_) => window.location.reload(),
     );
   }
 

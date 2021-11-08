@@ -37,6 +37,7 @@ d.Node packageAdminPageNode({
         material.dropdown(
           id: '-admin-set-publisher-input',
           label: 'Select a publisher',
+          classes: ['-admin-dropdown'],
           options: [
             if (!pkgHasPublisher)
               d.option(value: '', text: '', disabled: true, selected: true),
@@ -174,6 +175,7 @@ d.Node packageAdminPageNode({
           material.dropdown(
             id: '-admin-retract-package-version-input',
             label: 'Select a version',
+            classes: ['-admin-dropdown'],
             options: [
               ...retractableVersions.map(
                 (v) => d.option(value: v, text: v),
@@ -198,6 +200,7 @@ d.Node packageAdminPageNode({
           material.dropdown(
             id: '-admin-restore-retract-package-version-input',
             label: 'Select a version',
+            classes: ['-admin-dropdown'],
             options: [
               ...retractedVersions.map(
                 (v) => d.option(value: v, text: v),

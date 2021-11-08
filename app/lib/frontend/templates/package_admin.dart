@@ -27,11 +27,12 @@ String renderPkgAdminPage(
       id: 'admin',
       title: 'Admin',
       contentNode: packageAdminPageNode(
-          package: data.package!,
-          userPublishers: userPublishers,
-          uploaderUsers: uploaderUsers,
-          retractableVersions: retractableVersions,
-          retractedVersions: retractedVersions),
+        package: data.package!,
+        userPublishers: userPublishers,
+        uploaderUsers: uploaderUsers,
+        retractableVersions: retractableVersions,
+        retractedVersions: retractedVersions,
+      ),
     ),
   );
 
