@@ -231,7 +231,7 @@ class _PkgAdminWidget {
       return false;
     }
 
-    await rpc(
+    await rpc<void>(
       fn: () async {
         await client.invitePackageUploader(
             pageData.pkgData!.package, InviteUploaderRequest(email: email));
@@ -245,7 +245,7 @@ class _PkgAdminWidget {
   }
 
   Future<void> _removeUploader(String email) async {
-    await rpc(
+    await rpc<void>(
       confirmQuestion: markdown(
           'Are you sure you want to remove uploader `$email` from this package?'),
       fn: () async {
@@ -259,7 +259,7 @@ class _PkgAdminWidget {
 
   Future<void> _toogleDiscontinued() async {
     final oldValue = _discontinuedCheckbox!.defaultChecked ?? false;
-    final newValue = await rpc(
+    final newValue = await rpc<bool>(
       confirmQuestion: text(
           'Are you sure you want change the "discontinued" status of the package?'),
       fn: () async {
@@ -333,7 +333,7 @@ class _PkgAdminWidget {
       return;
     }
 
-    await rpc(
+    await rpc<void>(
       confirmQuestion: markdown(
           'Are you sure you want to transfer the package to publisher `$publisherId`?'),
       fn: () async {
@@ -373,7 +373,7 @@ class _CreatePublisherWidget {
       return;
     }
 
-    await rpc(
+    await rpc<void>(
       confirmQuestion: markdown(
           'Are you sure you want to create publisher for `$publisherId`?'),
       fn: () async {
@@ -439,7 +439,7 @@ class _PublisherAdminWidget {
           'Changing it to an admin member email happens immediately, for other '
           'addresses we will send a confirmation request.';
     }
-    await rpc(
+    await rpc<void>(
       confirmQuestion: confirmQuestion == null ? null : text(confirmQuestion),
       fn: () async {
         final payload = UpdatePublisherRequest(
@@ -472,7 +472,7 @@ class _PublisherAdminWidget {
       return false;
     }
 
-    await rpc(
+    await rpc<void>(
       fn: () async {
         await client.invitePublisherMember(
             pageData.publisher!.publisherId, InviteMemberRequest(email: email));
@@ -486,7 +486,7 @@ class _PublisherAdminWidget {
   }
 
   Future<void> _removeMember(String userId, String email) async {
-    await rpc(
+    await rpc<void>(
       confirmQuestion: markdown(
           'Are you sure you want to remove `$email` from this publisher?'),
       fn: () async {
@@ -516,8 +516,8 @@ class _ConsentWidget {
         .listen((_) => _reject());
   }
 
-  void _updateButtons(bool granted) {
-    final text = granted ? 'Consent accepted.' : 'Consent rejected.';
+  void _updateButtons(bool? granted) {
+    final text = granted! ? 'Consent accepted.' : 'Consent rejected.';
     _buttons!.replaceWith(Element.p()..text = text);
   }
 
