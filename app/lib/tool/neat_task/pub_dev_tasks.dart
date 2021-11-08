@@ -27,7 +27,7 @@ final _logger = Logger('pub_dev_tasks');
 /// Periodic task that are not tied to a specific service.
 void _setupGenericPeriodicTasks() {
   // Backfills the fields that are new to the current release.
-  _weekly(
+  _daily(
     name: 'backfill-new-fields',
     isRuntimeVersioned: true,
     task: backfillNewFields,

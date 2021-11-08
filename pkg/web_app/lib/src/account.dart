@@ -276,7 +276,7 @@ class _PkgAdminWidget {
 
   Future<void> _toogleDiscontinued() async {
     final oldValue = _discontinuedCheckbox!.defaultChecked ?? false;
-    final newValue = await rpc<bool?>(
+    final newValue = await rpc<bool>(
       confirmQuestion: text(
           'Are you sure you want change the "discontinued" status of the package?'),
       fn: () async {

@@ -433,7 +433,10 @@
     flex-grow: 0;
     flex-shrink: 0;
     flex-basis: 200px;
-    padding-right: 40px;
+
+    @media (min-width: $device-desktop-min-width) {
+      margin-right: 40px;
+    }
   }
 
   .search-results {

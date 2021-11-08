@@ -290,7 +290,8 @@ class IntegrityChecker {
     }
     if (p.versionCount != versionCountUntilLastPublished) {
       yield 'Package "${p.name}" has `versionCount` (${p.versionCount}) that differs from the '
-          'number of versions until the last published date ($versionCountUntilLastPublished).';
+          'number of versions until the last published date ($versionCountUntilLastPublished). '
+          'Total number of versions: ${versionKeys.length}.';
     }
     if (p.lastVersionPublished == null) {
       yield 'Package "${p.name}" has an `lastVersionPublished` property which is null.';

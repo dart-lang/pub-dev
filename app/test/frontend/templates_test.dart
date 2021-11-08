@@ -390,7 +390,7 @@ void main() {
       'package index page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        final searchForm = SearchForm();
+        final searchForm = SearchForm(context: SearchContext.flutter());
         final oxygen = (await scoreCardBackend.getPackageView('oxygen'))!;
         final titanium =
             (await scoreCardBackend.getPackageView('flutter_titanium'))!;
@@ -418,7 +418,10 @@ void main() {
       fn: () async {
         registerRequestContext(
             RequestContext(isExperimental: true, showNewSearchUI: true));
-        final searchForm = SearchForm();
+        final searchForm = SearchForm(
+          sdks: ['dart'],
+          includeUnlisted: true,
+        );
         final oxygen = (await scoreCardBackend.getPackageView('oxygen'))!;
         final titanium =
             (await scoreCardBackend.getPackageView('flutter_titanium'))!;

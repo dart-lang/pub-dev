@@ -233,7 +233,6 @@ class PackageBackend {
   }
 
   /// Looks up all versions of a package.
-  @visibleForTesting
   Future<List<PackageVersion>> versionsOfPackage(String packageName) async {
     final packageKey = db.emptyKey.append(Package, id: packageName);
     final query = db.query<PackageVersion>(ancestorKey: packageKey);
