@@ -120,7 +120,7 @@ d.Node packageAdminPageNode({
       label: 'Mark "discontinued"',
       checked: package.isDiscontinued,
     ),
-    if (package.replacedBy != null) ...[
+    if (package.isDiscontinued) ...[
       d.h3(text: 'Suggested replacement'),
       d.markdown('When a package is *discontinued* the author may designate a '
           '*suggested replacement package*. Package users will be suggested '
