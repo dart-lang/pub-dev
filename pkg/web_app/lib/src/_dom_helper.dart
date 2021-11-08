@@ -26,14 +26,14 @@ Future<R?> rpc<R>({
 
   /// Callback that will be called with the value of the RPC call, when it was
   /// successful.
-  FutureOr Function(R? value)? onSuccess,
+  FutureOr<void> Function(R? value)? onSuccess,
 
   /// Callback that will be called with the error object, when executing
   /// `fn` was not successful. The return value of this callback will be used
   /// to return from the method.
   ///
   /// If not specified, the error will be thrown instead.
-  FutureOr<R?> Function(dynamic error)? onError,
+  FutureOr<R?> Function(Object error)? onError,
 }) async {
   if (confirmQuestion != null && !await modalConfirm(confirmQuestion)) {
     return null;
