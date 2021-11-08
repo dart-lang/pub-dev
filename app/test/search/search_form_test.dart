@@ -125,5 +125,10 @@ void main() {
       expect(form.change(context: SearchContext.regular()).toSearchLink(),
           '/packages?q=text');
     });
+
+    test('toggle platforms', () {
+      final form = SearchForm().togglePlatform('web');
+      expect(form.toSearchLink(), '/packages?platform=web');
+    });
   });
 }

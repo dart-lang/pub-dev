@@ -161,13 +161,13 @@ List<SearchTab> _calculateSearchTabs(SearchForm searchForm) {
     return <SearchTab>[
       runtimeTab(
         label: 'native',
-        runtimeTag: DartSdkTag.runtimeNativeJit,
+        runtimeTag: DartSdkRuntime.nativeJit,
         title:
             'Packages compatible with Dart running on a native platform (JIT/AOT)',
       ),
       runtimeTab(
         label: 'JS',
-        runtimeTag: DartSdkTag.runtimeWeb,
+        runtimeTag: DartSdkRuntime.web,
         title: 'Packages compatible with Dart compiled for the web',
       ),
     ];
@@ -176,32 +176,32 @@ List<SearchTab> _calculateSearchTabs(SearchForm searchForm) {
     return <SearchTab>[
       platformTab(
         label: 'Android',
-        platformTag: FlutterSdkTag.platformAndroid,
+        platformTag: FlutterSdkPlatform.android,
         title: 'Packages compatible with Flutter on the Android platform',
       ),
       platformTab(
         label: 'iOS',
-        platformTag: FlutterSdkTag.platformIos,
+        platformTag: FlutterSdkPlatform.ios,
         title: 'Packages compatible with Flutter on the iOS platform',
       ),
       platformTab(
         label: 'Web',
-        platformTag: FlutterSdkTag.platformWeb,
+        platformTag: FlutterSdkPlatform.web,
         title: 'Packages compatible with Flutter on the Web platform',
       ),
       platformTab(
         label: 'Linux',
-        platformTag: FlutterSdkTag.platformLinux,
+        platformTag: FlutterSdkPlatform.linux,
         title: 'Packages compatible with Flutter on the Linux platform',
       ),
       platformTab(
         label: 'macOS',
-        platformTag: FlutterSdkTag.platformMacos,
+        platformTag: FlutterSdkPlatform.macos,
         title: 'Packages compatible with Flutter on the macOS platform',
       ),
       platformTab(
         label: 'Windows',
-        platformTag: FlutterSdkTag.platformWindows,
+        platformTag: FlutterSdkPlatform.windows,
         title: 'Packages compatible with Flutter on the Windows platform',
       ),
     ];
