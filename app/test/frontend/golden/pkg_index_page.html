@@ -21,7 +21,7 @@
     <meta content="/static/img/pub-dev-icon-cover-image.png?hash=mocked_hash_355802124"/>
     <link rel="shortcut icon" href="/favicon.ico?hash=mocked_hash_985685822"/>
     <link rel="search" type="application/opensearchdescription+xml" title="Dart packages" href="/static/osd.xml?hash=mocked_hash_869379763"/>
-    <link rel="canonical" href="https://pub.dev/packages"/>
+    <link rel="canonical" href="https://pub.dev/flutter/packages"/>
     <meta name="description" content="Pub is the package manager for the Dart programming language, containing reusable libraries &amp; packages for Flutter, AngularDart, and general Dart programs."/>
     <link rel="alternate" type="application/atom+xml" title="Updated Packages Feed for Pub" href="/feed.atom"/>
     <link rel="stylesheet" type="text/css" href="/static/material/material-components-web.min.css?hash=mocked_hash_335393842"/>
@@ -107,8 +107,8 @@
     <div id="banner-container"></div>
     <div class="_banner-bg">
       <div class="container">
-        <form class="search-bar banner-item" action="/packages">
-          <input class="input" name="q" placeholder="Search packages" autocomplete="on" autofocus="autofocus"/>
+        <form class="search-bar banner-item" action="/flutter/packages">
+          <input class="input" name="q" placeholder="Search Flutter packages" autocomplete="on" autofocus="autofocus"/>
           <button class="icon"></button>
           <div class="search-filters-btn-wrapper">
             <img class="search-filters-btn search-filters-btn-inactive" src="/static/img/search-filters-inactive.svg?hash=mocked_hash_963166179"/>
@@ -127,27 +127,42 @@
             <div class="search-controls-sdk search-controls-tabs">
               <div class="list-filters">
                 <a class="search-link filter" href="/dart/packages" title="Packages compatible with the Dart SDK">Dart</a>
-                <a class="search-link filter" href="/flutter/packages" title="Packages compatible with the Flutter SDK">Flutter</a>
-                <a class="search-link filter -active" href="/packages" title="Packages compatible with the any SDK">
+                <a class="search-link filter -active" href="/flutter/packages" title="Packages compatible with the Flutter SDK">
                   <img class="filter-icon" src="/static/img/checkmark-icon.svg?hash=mocked_hash_296261337"/>
-                  Any
+                  Flutter
                 </a>
+                <a class="search-link filter" href="/packages" title="Packages compatible with the any SDK">Any</a>
               </div>
             </div>
             <div class="search-controls-sdk search-controls-buttons">
               <span class="search-controls-label">SDK</span>
               <div class="list-filters">
                 <a class="search-link filter" href="/dart/packages" title="Packages compatible with the Dart SDK">Dart</a>
-                <a class="search-link filter" href="/flutter/packages" title="Packages compatible with the Flutter SDK">Flutter</a>
-                <a class="search-link filter -active" href="/packages" title="Packages compatible with the any SDK">
+                <a class="search-link filter -active" href="/flutter/packages" title="Packages compatible with the Flutter SDK">
                   <img class="filter-icon" src="/static/img/checkmark-icon.svg?hash=mocked_hash_296261337"/>
-                  Any
+                  Flutter
                 </a>
+                <a class="search-link filter" href="/packages" title="Packages compatible with the any SDK">Any</a>
               </div>
             </div>
             <div class="search-filters-btn search-filters-btn-wrapper search-controls-more" data-ga-click-event="toggle-advanced-search">
               Advanced
               <img class="search-controls-more-carot" src="/static/img/carot-up.svg?hash=mocked_hash_771440143"/>
+            </div>
+          </div>
+        </div>
+        <div class="search-controls-subsdk">
+          <div class="container">
+            <span class="search-controls-label">Platform</span>
+            <div class="search-controls-buttons">
+              <div class="list-filters">
+                <a class="search-link filter" href="/flutter/packages?platform=platform%3Aandroid" title="Packages compatible with Flutter on the Android platform">Android</a>
+                <a class="search-link filter" href="/flutter/packages?platform=platform%3Aios" title="Packages compatible with Flutter on the iOS platform">iOS</a>
+                <a class="search-link filter" href="/flutter/packages?platform=platform%3Aweb" title="Packages compatible with Flutter on the Web platform">Web</a>
+                <a class="search-link filter" href="/flutter/packages?platform=platform%3Alinux" title="Packages compatible with Flutter on the Linux platform">Linux</a>
+                <a class="search-link filter" href="/flutter/packages?platform=platform%3Amacos" title="Packages compatible with Flutter on the macOS platform">macOS</a>
+                <a class="search-link filter" href="/flutter/packages?platform=platform%3Awindows" title="Packages compatible with Flutter on the Windows platform">Windows</a>
+              </div>
             </div>
           </div>
         </div>
