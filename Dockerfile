@@ -36,16 +36,13 @@ RUN ./build.sh
 WORKDIR /project/app
 RUN dart /project/tool/pub_get_offline.dart /project/app
 
-## NOTE: Uncomment the following lines for local testing:
-#ADD key.json /project/key.json
-#ENV GCLOUD_KEY /project/key.json
-#ENV GCLOUD_PROJECT dartlang-pub
+# Setup analysis Dart SDKs
+RUN /project/tool/setup-dart.sh /tool/stable https://storage.googleapis.com/dart-archive/channels/stable/raw/2.14.4/sdk/dartsdk-linux-x64-release.zip
+RUN /project/tool/setup-dart.sh /tool/preview https://storage.googleapis.com/dart-archive/channels/beta/release/2.15.0-178.1.beta/sdk/dartsdk-linux-x64-release.zip
 
-RUN /project/app/script/setup-dart.sh /tool/stable https://storage.googleapis.com/dart-archive/channels/stable/raw/2.14.4/sdk/dartsdk-linux-x64-release.zip
-RUN /project/app/script/setup-dart.sh /tool/preview https://storage.googleapis.com/dart-archive/channels/beta/release/2.15.0-178.1.beta/sdk/dartsdk-linux-x64-release.zip
-
-RUN /project/app/script/setup-flutter.sh /tool/stable 2.5.3
-RUN /project/app/script/setup-flutter.sh /tool/preview 2.7.0-3.1.pre
+# Setup analysis Flutter SDKs
+RUN /project/tool/setup-flutter.sh /tool/stable 2.5.3
+RUN /project/tool/setup-flutter.sh /tool/preview 2.7.0-3.1.pre
 
 # Clear out any arguments the base images might have set
 CMD []
