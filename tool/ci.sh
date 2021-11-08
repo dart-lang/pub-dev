@@ -1,5 +1,5 @@
 #!/bin/bash
-# Created with package:mono_repo v5.0.0
+# Created with package:mono_repo v5.0.4
 
 # Support built in commands on windows out of the box.
 # When it is a flutter repo (check the pubspec.yaml for "sdk: flutter")
@@ -72,12 +72,8 @@ for PKG in ${PKGS}; do
         dart analyze --fatal-infos  . || EXIT_CODE=$?
         ;;
       analyze_1)
-        echo 'dart analyze --fatal-infos bin/'
-        dart analyze --fatal-infos bin/ || EXIT_CODE=$?
-        ;;
-      analyze_2)
-        echo 'dart analyze --fatal-infos lib/'
-        dart analyze --fatal-infos lib/ || EXIT_CODE=$?
+        echo 'dart analyze --fatal-infos .'
+        dart analyze --fatal-infos . || EXIT_CODE=$?
         ;;
       command)
         echo './build.sh'
