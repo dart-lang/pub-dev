@@ -39,7 +39,7 @@ used by the `pub` command line client application.
 ```
 
 The API returns the top package names on `pub.dev`. At the moment we
-limit the result length at the maximum of 20000 package names, which
+limit the result length at the maximum of 20000 package names, this
 limit may change in the future.
 
 The response is always a gzip-ed JSON content, and should be cached
