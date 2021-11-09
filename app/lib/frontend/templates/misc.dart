@@ -56,8 +56,8 @@ String renderUnauthorizedPage() {
 String renderHelpApiPage() {
   return renderLayoutPage(
     PageType.standalone,
-    _renderStandalonePageContent(
-      contentMarkdown: _apiMarkdown,
+    standalonePageNode(
+      _apiMarkdown,
       sideImageUrl: static_files.staticUrls.packagesSideImage,
     ),
     title: 'pub.dev API',
