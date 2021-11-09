@@ -1,5 +1,5 @@
 #!/bin/bash
-# Created with package:mono_repo v5.0.0
+# Created with package:mono_repo v5.0.4
 
 # Support built in commands on windows out of the box.
 # When it is a flutter repo (check the pubspec.yaml for "sdk: flutter")
@@ -79,6 +79,10 @@ for PKG in ${PKGS}; do
         echo 'dart analyze --fatal-infos lib/'
         dart analyze --fatal-infos lib/ || EXIT_CODE=$?
         ;;
+      analyze_3)
+        echo 'dart analyze --fatal-infos test/'
+        dart analyze --fatal-infos test/ || EXIT_CODE=$?
+        ;;
       command)
         echo './build.sh'
         ./build.sh || EXIT_CODE=$?
@@ -88,48 +92,48 @@ for PKG in ${PKGS}; do
         dart format --output=none --set-exit-if-changed . || EXIT_CODE=$?
         ;;
       test_00)
-        echo 'dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '0~7p'`'
-        dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '0~7p'` || EXIT_CODE=$?
+        echo 'dart test --run-skipped --total-shards 7 --shard-index 0'
+        dart test --run-skipped --total-shards 7 --shard-index 0 || EXIT_CODE=$?
         ;;
       test_01)
-        echo 'dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '1~7p'`'
-        dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '1~7p'` || EXIT_CODE=$?
+        echo 'dart test --run-skipped --total-shards 7 --shard-index 1'
+        dart test --run-skipped --total-shards 7 --shard-index 1 || EXIT_CODE=$?
         ;;
       test_02)
-        echo 'dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '2~7p'`'
-        dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '2~7p'` || EXIT_CODE=$?
+        echo 'dart test --run-skipped --total-shards 7 --shard-index 2'
+        dart test --run-skipped --total-shards 7 --shard-index 2 || EXIT_CODE=$?
         ;;
       test_03)
-        echo 'dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '3~7p'`'
-        dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '3~7p'` || EXIT_CODE=$?
+        echo 'dart test --run-skipped --total-shards 7 --shard-index 3'
+        dart test --run-skipped --total-shards 7 --shard-index 3 || EXIT_CODE=$?
         ;;
       test_04)
-        echo 'dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '4~7p'`'
-        dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '4~7p'` || EXIT_CODE=$?
+        echo 'dart test --run-skipped --total-shards 7 --shard-index 4'
+        dart test --run-skipped --total-shards 7 --shard-index 4 || EXIT_CODE=$?
         ;;
       test_05)
-        echo 'dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '5~7p'`'
-        dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '5~7p'` || EXIT_CODE=$?
+        echo 'dart test --run-skipped --total-shards 7 --shard-index 5'
+        dart test --run-skipped --total-shards 7 --shard-index 5 || EXIT_CODE=$?
         ;;
       test_06)
-        echo 'dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '6~7p'`'
-        dart test --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '6~7p'` || EXIT_CODE=$?
+        echo 'dart test --run-skipped --total-shards 7 --shard-index 6'
+        dart test --run-skipped --total-shards 7 --shard-index 6 || EXIT_CODE=$?
         ;;
       test_07)
         echo 'dart test --run-skipped'
         dart test --run-skipped || EXIT_CODE=$?
         ;;
       test_08)
-        echo 'dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '0~3p'`'
-        dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '0~3p'` || EXIT_CODE=$?
+        echo 'dart test --run-skipped --total-shards 3 --shard-index 0'
+        dart test --run-skipped --total-shards 3 --shard-index 0 || EXIT_CODE=$?
         ;;
       test_09)
-        echo 'dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '1~3p'`'
-        dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '1~3p'` || EXIT_CODE=$?
+        echo 'dart test --run-skipped --total-shards 3 --shard-index 1'
+        dart test --run-skipped --total-shards 3 --shard-index 1 || EXIT_CODE=$?
         ;;
       test_10)
-        echo 'dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '2~3p'`'
-        dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '2~3p'` || EXIT_CODE=$?
+        echo 'dart test --run-skipped --total-shards 3 --shard-index 2'
+        dart test --run-skipped --total-shards 3 --shard-index 2 || EXIT_CODE=$?
         ;;
       *)
         echo -e "\033[31mUnknown TASK '${TASK}' - TERMINATING JOB\033[0m"

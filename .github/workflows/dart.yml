@@ -1,4 +1,4 @@
-# Created with package:mono_repo v5.0.0
+# Created with package:mono_repo v5.0.4
 name: Dart CI
 on:
   push:
@@ -27,13 +27,13 @@ jobs:
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.0
+      - uses: dart-lang/setup-dart@v1.3
         with:
           sdk: stable
       - id: checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v2.3.5
       - name: mono_repo self validate
-        run: dart pub global activate mono_repo 5.0.0
+        run: dart pub global activate mono_repo 5.0.4
       - name: mono_repo self validate
         run: dart pub global run mono_repo generate --validate
   job_002:
@@ -50,11 +50,11 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.14.1
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.0
+      - uses: dart-lang/setup-dart@v1.3
         with:
           sdk: "2.14.1"
       - id: checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v2.3.5
       - id: app_pub_get
         name: app; dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -199,24 +199,24 @@ jobs:
         working-directory: pkg/web_css
         run: dart analyze --fatal-infos  .
   job_003:
-    name: "smoke_test; PKG: pkg/pub_integration; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos bin/`, `dart analyze --fatal-infos lib/`"
+    name: "smoke_test; PKG: pkg/pub_integration; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos bin/`, `dart analyze --fatal-infos lib/`, `dart analyze --fatal-infos test/`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@v2.1.6
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.14.1;packages:pkg/pub_integration;commands:format-analyze_1-analyze_2"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.14.1;packages:pkg/pub_integration;commands:format-analyze_1-analyze_2-analyze_3"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;dart:2.14.1;packages:pkg/pub_integration
             os:ubuntu-latest;pub-cache-hosted;dart:2.14.1
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.0
+      - uses: dart-lang/setup-dart@v1.3
         with:
           sdk: "2.14.1"
       - id: checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v2.3.5
       - id: pkg_pub_integration_pub_get
         name: pkg/pub_integration; dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -234,6 +234,10 @@ jobs:
         if: "always() && steps.pkg_pub_integration_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_integration
         run: dart analyze --fatal-infos lib/
+      - name: "pkg/pub_integration; dart analyze --fatal-infos test/"
+        if: "always() && steps.pkg_pub_integration_pub_get.conclusion == 'success'"
+        working-directory: pkg/pub_integration
+        run: dart analyze --fatal-infos test/
   job_004:
     name: "build; PKG: pkg/web_app; `./build.sh`"
     runs-on: ubuntu-latest
@@ -248,11 +252,11 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.14.1
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.0
+      - uses: dart-lang/setup-dart@v1.3
         with:
           sdk: "2.14.1"
       - id: checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v2.3.5
       - id: pkg_web_app_pub_get
         name: pkg/web_app; dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -280,11 +284,11 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.14.1
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.0
+      - uses: dart-lang/setup-dart@v1.3
         with:
           sdk: "2.14.1"
       - id: checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v2.3.5
       - id: pkg_web_css_pub_get
         name: pkg/web_css; dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -299,7 +303,7 @@ jobs:
       - job_002
       - job_003
   job_006:
-    name: "unit_test; PKG: app; `dart test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~7p'``"
+    name: "unit_test; PKG: app; `dart test --run-skipped --total-shards 7 --shard-index 0`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -312,20 +316,20 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.14.1
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.0
+      - uses: dart-lang/setup-dart@v1.3
         with:
           sdk: "2.14.1"
       - id: checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v2.3.5
       - id: app_pub_get
         name: app; dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
         run: dart pub get
-      - name: "app; dart test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~7p'`"
+      - name: "app; dart test --run-skipped --total-shards 7 --shard-index 0"
         if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
-        run: "dart test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~7p'`"
+        run: dart test --run-skipped --total-shards 7 --shard-index 0
     needs:
       - job_001
       - job_002
@@ -333,7 +337,7 @@ jobs:
       - job_004
       - job_005
   job_007:
-    name: "unit_test; PKG: app; `dart test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~7p'``"
+    name: "unit_test; PKG: app; `dart test --run-skipped --total-shards 7 --shard-index 1`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -346,20 +350,20 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.14.1
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.0
+      - uses: dart-lang/setup-dart@v1.3
         with:
           sdk: "2.14.1"
       - id: checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v2.3.5
       - id: app_pub_get
         name: app; dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
         run: dart pub get
-      - name: "app; dart test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~7p'`"
+      - name: "app; dart test --run-skipped --total-shards 7 --shard-index 1"
         if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
-        run: "dart test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~7p'`"
+        run: dart test --run-skipped --total-shards 7 --shard-index 1
     needs:
       - job_001
       - job_002
@@ -367,7 +371,7 @@ jobs:
       - job_004
       - job_005
   job_008:
-    name: "unit_test; PKG: app; `dart test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~7p'``"
+    name: "unit_test; PKG: app; `dart test --run-skipped --total-shards 7 --shard-index 2`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -380,20 +384,20 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.14.1
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.0
+      - uses: dart-lang/setup-dart@v1.3
         with:
           sdk: "2.14.1"
       - id: checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v2.3.5
       - id: app_pub_get
         name: app; dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
         run: dart pub get
-      - name: "app; dart test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~7p'`"
+      - name: "app; dart test --run-skipped --total-shards 7 --shard-index 2"
         if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
-        run: "dart test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~7p'`"
+        run: dart test --run-skipped --total-shards 7 --shard-index 2
     needs:
       - job_001
       - job_002
@@ -401,7 +405,7 @@ jobs:
       - job_004
       - job_005
   job_009:
-    name: "unit_test; PKG: app; `dart test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '3~7p'``"
+    name: "unit_test; PKG: app; `dart test --run-skipped --total-shards 7 --shard-index 3`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -414,20 +418,20 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.14.1
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.0
+      - uses: dart-lang/setup-dart@v1.3
         with:
           sdk: "2.14.1"
       - id: checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v2.3.5
       - id: app_pub_get
         name: app; dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
         run: dart pub get
-      - name: "app; dart test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '3~7p'`"
+      - name: "app; dart test --run-skipped --total-shards 7 --shard-index 3"
         if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
-        run: "dart test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '3~7p'`"
+        run: dart test --run-skipped --total-shards 7 --shard-index 3
     needs:
       - job_001
       - job_002
@@ -435,7 +439,7 @@ jobs:
       - job_004
       - job_005
   job_010:
-    name: "unit_test; PKG: app; `dart test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '4~7p'``"
+    name: "unit_test; PKG: app; `dart test --run-skipped --total-shards 7 --shard-index 4`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -448,20 +452,20 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.14.1
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.0
+      - uses: dart-lang/setup-dart@v1.3
         with:
           sdk: "2.14.1"
       - id: checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v2.3.5
       - id: app_pub_get
         name: app; dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
         run: dart pub get
-      - name: "app; dart test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '4~7p'`"
+      - name: "app; dart test --run-skipped --total-shards 7 --shard-index 4"
         if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
-        run: "dart test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '4~7p'`"
+        run: dart test --run-skipped --total-shards 7 --shard-index 4
     needs:
       - job_001
       - job_002
@@ -469,7 +473,7 @@ jobs:
       - job_004
       - job_005
   job_011:
-    name: "unit_test; PKG: app; `dart test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '5~7p'``"
+    name: "unit_test; PKG: app; `dart test --run-skipped --total-shards 7 --shard-index 5`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -482,20 +486,20 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.14.1
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.0
+      - uses: dart-lang/setup-dart@v1.3
         with:
           sdk: "2.14.1"
       - id: checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v2.3.5
       - id: app_pub_get
         name: app; dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
         run: dart pub get
-      - name: "app; dart test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '5~7p'`"
+      - name: "app; dart test --run-skipped --total-shards 7 --shard-index 5"
         if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
-        run: "dart test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '5~7p'`"
+        run: dart test --run-skipped --total-shards 7 --shard-index 5
     needs:
       - job_001
       - job_002
@@ -503,7 +507,7 @@ jobs:
       - job_004
       - job_005
   job_012:
-    name: "unit_test; PKG: app; `dart test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '6~7p'``"
+    name: "unit_test; PKG: app; `dart test --run-skipped --total-shards 7 --shard-index 6`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -516,20 +520,20 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.14.1
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.0
+      - uses: dart-lang/setup-dart@v1.3
         with:
           sdk: "2.14.1"
       - id: checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v2.3.5
       - id: app_pub_get
         name: app; dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
         run: dart pub get
-      - name: "app; dart test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '6~7p'`"
+      - name: "app; dart test --run-skipped --total-shards 7 --shard-index 6"
         if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
-        run: "dart test --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '6~7p'`"
+        run: dart test --run-skipped --total-shards 7 --shard-index 6
     needs:
       - job_001
       - job_002
@@ -550,11 +554,11 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.14.1
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.0
+      - uses: dart-lang/setup-dart@v1.3
         with:
           sdk: "2.14.1"
       - id: checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v2.3.5
       - id: pkg__popularity_pub_get
         name: pkg/_popularity; dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -584,11 +588,11 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.14.1
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.0
+      - uses: dart-lang/setup-dart@v1.3
         with:
           sdk: "2.14.1"
       - id: checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v2.3.5
       - id: pkg_client_data_pub_get
         name: pkg/client_data; dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -618,11 +622,11 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.14.1
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.0
+      - uses: dart-lang/setup-dart@v1.3
         with:
           sdk: "2.14.1"
       - id: checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v2.3.5
       - id: pkg_fake_gcloud_pub_get
         name: pkg/fake_gcloud; dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -652,11 +656,11 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.14.1
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.0
+      - uses: dart-lang/setup-dart@v1.3
         with:
           sdk: "2.14.1"
       - id: checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v2.3.5
       - id: pkg_pub_dartdoc_pub_get
         name: pkg/pub_dartdoc; dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -686,11 +690,11 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.14.1
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.0
+      - uses: dart-lang/setup-dart@v1.3
         with:
           sdk: "2.14.1"
       - id: checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v2.3.5
       - id: pkg_pub_dartdoc_data_pub_get
         name: pkg/pub_dartdoc_data; dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -720,11 +724,11 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.14.1
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.0
+      - uses: dart-lang/setup-dart@v1.3
         with:
           sdk: "2.14.1"
       - id: checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v2.3.5
       - id: pkg_pub_package_reader_pub_get
         name: pkg/pub_package_reader; dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -754,11 +758,11 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.14.1
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.0
+      - uses: dart-lang/setup-dart@v1.3
         with:
           sdk: "2.14.1"
       - id: checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v2.3.5
       - id: pkg_pub_validations_pub_get
         name: pkg/pub_validations; dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -788,11 +792,11 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.14.1
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.0
+      - uses: dart-lang/setup-dart@v1.3
         with:
           sdk: "2.14.1"
       - id: checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v2.3.5
       - id: pkg_web_app_pub_get
         name: pkg/web_app; dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -822,11 +826,11 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.14.1
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.0
+      - uses: dart-lang/setup-dart@v1.3
         with:
           sdk: "2.14.1"
       - id: checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v2.3.5
       - id: pkg_web_css_pub_get
         name: pkg/web_css; dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
@@ -843,7 +847,7 @@ jobs:
       - job_004
       - job_005
   job_022:
-    name: "unit_test; PKG: pkg/pub_integration; `dart test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~3p'``"
+    name: "unit_test; PKG: pkg/pub_integration; `dart test --run-skipped --total-shards 3 --shard-index 0`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -856,20 +860,20 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.14.1
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.0
+      - uses: dart-lang/setup-dart@v1.3
         with:
           sdk: "2.14.1"
       - id: checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v2.3.5
       - id: pkg_pub_integration_pub_get
         name: pkg/pub_integration; dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/pub_integration
         run: dart pub get
-      - name: "pkg/pub_integration; dart test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~3p'`"
+      - name: "pkg/pub_integration; dart test --run-skipped --total-shards 3 --shard-index 0"
         if: "always() && steps.pkg_pub_integration_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_integration
-        run: "dart test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~3p'`"
+        run: dart test --run-skipped --total-shards 3 --shard-index 0
     needs:
       - job_001
       - job_002
@@ -877,7 +881,7 @@ jobs:
       - job_004
       - job_005
   job_023:
-    name: "unit_test; PKG: pkg/pub_integration; `dart test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~3p'``"
+    name: "unit_test; PKG: pkg/pub_integration; `dart test --run-skipped --total-shards 3 --shard-index 1`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -890,20 +894,20 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.14.1
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.0
+      - uses: dart-lang/setup-dart@v1.3
         with:
           sdk: "2.14.1"
       - id: checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v2.3.5
       - id: pkg_pub_integration_pub_get
         name: pkg/pub_integration; dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/pub_integration
         run: dart pub get
-      - name: "pkg/pub_integration; dart test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~3p'`"
+      - name: "pkg/pub_integration; dart test --run-skipped --total-shards 3 --shard-index 1"
         if: "always() && steps.pkg_pub_integration_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_integration
-        run: "dart test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~3p'`"
+        run: dart test --run-skipped --total-shards 3 --shard-index 1
     needs:
       - job_001
       - job_002
@@ -911,7 +915,7 @@ jobs:
       - job_004
       - job_005
   job_024:
-    name: "unit_test; PKG: pkg/pub_integration; `dart test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~3p'``"
+    name: "unit_test; PKG: pkg/pub_integration; `dart test --run-skipped --total-shards 3 --shard-index 2`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -924,20 +928,20 @@ jobs:
             os:ubuntu-latest;pub-cache-hosted;dart:2.14.1
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
-      - uses: dart-lang/setup-dart@v1.0
+      - uses: dart-lang/setup-dart@v1.3
         with:
           sdk: "2.14.1"
       - id: checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v2.3.5
       - id: pkg_pub_integration_pub_get
         name: pkg/pub_integration; dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/pub_integration
         run: dart pub get
-      - name: "pkg/pub_integration; dart test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~3p'`"
+      - name: "pkg/pub_integration; dart test --run-skipped --total-shards 3 --shard-index 2"
         if: "always() && steps.pkg_pub_integration_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_integration
-        run: "dart test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~3p'`"
+        run: dart test --run-skipped --total-shards 3 --shard-index 2
     needs:
       - job_001
       - job_002

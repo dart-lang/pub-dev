@@ -9,7 +9,8 @@ stages:
         # dart analyze doesn't support multiple dirs. A bug?
         - analyze: --fatal-infos bin/
         - analyze: --fatal-infos lib/
+        - analyze: --fatal-infos test/
   - unit_test:
-      - test: --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '0~3p'`
-      - test: --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '1~3p'`
-      - test: --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '2~3p'`
+      - test: --run-skipped --total-shards 3 --shard-index 0
+      - test: --run-skipped --total-shards 3 --shard-index 1
+      - test: --run-skipped --total-shards 3 --shard-index 2
