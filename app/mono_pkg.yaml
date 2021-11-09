@@ -8,13 +8,13 @@ stages:
         - format
         - analyze: --fatal-infos  .
   - unit_test:
-    - test: --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '0~7p'`
-    - test: --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '1~7p'`
-    - test: --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '2~7p'`
-    - test: --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '3~7p'`
-    - test: --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '4~7p'`
-    - test: --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '5~7p'`
-    - test: --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '6~7p'`
+    - test: --run-skipped --total-shards 7 --shard-index 0
+    - test: --run-skipped --total-shards 7 --shard-index 1
+    - test: --run-skipped --total-shards 7 --shard-index 2
+    - test: --run-skipped --total-shards 7 --shard-index 3
+    - test: --run-skipped --total-shards 7 --shard-index 4
+    - test: --run-skipped --total-shards 7 --shard-index 5
+    - test: --run-skipped --total-shards 7 --shard-index 6
 
 cache:
   directories:

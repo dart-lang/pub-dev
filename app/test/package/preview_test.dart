@@ -23,10 +23,13 @@ void main() {
       _ImportSource(() => currentSdkVersion, () => futureSdkVersion);
 
   group('SDK version changing', () {
-    test('verify versions', () async {
+    setUpAll(() async {
       final current = await getDartSdkVersion();
       currentSdkVersion = current.semanticVersion;
       futureSdkVersion = currentSdkVersion!.nextMinor.nextMinor;
+    });
+
+    test('verify versions', () async {
       expect(currentSdkVersion!.major, isNotNull);
       expect(futureSdkVersion!.major, currentSdkVersion!.major);
     });
