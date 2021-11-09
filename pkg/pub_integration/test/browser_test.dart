@@ -41,27 +41,21 @@ void main() {
       }
     });
 
-    test('base setup: publish packages', () async {
+    test('bulk tests', () async {
+      // base setup: publish packages
       script = BaseSetupScript(
         pubHostedUrl: 'http://localhost:${fakePubServerProcess.port}',
         credentialsFileContent: fakeCredentialsFileContent(),
       );
       await script.publishPackages();
-    });
-
-    test('base setup: update pub site', () async {
       await script.updatePubSite();
-    });
 
-    // Starting browser separately, as it may timeout when run together with the
-    // server startup.
-    test('start browser', () async {
+      // start browser
       headlessEnv = HeadlessEnv(trackCoverage: trackCoverage);
       await headlessEnv!.startBrowser(
           origin: 'http://localhost:${fakePubServerProcess.port}');
-    });
 
-    test('landing page', () async {
+      // landing page
       await headlessEnv!.withPage(
         user: FakeGoogleUser.withDefaults('dev@example.org'),
         fn: (page) async {
@@ -72,9 +66,8 @@ void main() {
           await page.hover('#-account-login');
         },
       );
-    });
 
-    test('listing page', () async {
+      // listing page
       await headlessEnv!.withPage(
         user: FakeGoogleUser.withDefaults('dev@example.org'),
         fn: (page) async {
@@ -91,9 +84,8 @@ void main() {
           expect(packages, {'_dummy_pkg', 'retry'});
         },
       );
-    });
 
-    test('package page', () async {
+      // package page
       await headlessEnv!.withPage(
         user: FakeGoogleUser.withDefaults('dev@example.org'),
         fn: (page) async {

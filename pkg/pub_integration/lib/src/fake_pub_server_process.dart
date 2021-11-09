@@ -12,7 +12,7 @@ import 'package:path/path.dart' as p;
 final _random = Random.secure();
 
 /// The timeout factor that should be used in integration tests.
-final testTimeoutFactor = 4;
+final testTimeoutFactor = 6;
 
 /// Wrapper and helper methods around the fake server process.
 class FakePubServerProcess {
