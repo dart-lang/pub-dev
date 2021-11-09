@@ -429,6 +429,17 @@ void main() {
           SearchResultPage(
             searchForm,
             2,
+            sdkLibraryHits: [
+              SdkLibraryHit(
+                sdk: 'dart',
+                version: '2.14.0',
+                library: 'dart:core',
+                description: 'core description',
+                url: 'https://api.dart.dev/library-page.html',
+                score: 1.0,
+                apiPages: null,
+              ),
+            ],
             packageHits: [oxygen, titanium],
           ),
           PageLinks.empty(),
