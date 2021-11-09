@@ -26,6 +26,7 @@ String renderPkgVersionsPage(
   final previewVersionRows = <d.Node>[];
   final stableVersionRows = <d.Node>[];
   final prereleaseVersionRows = <d.Node>[];
+  final retractedVersionRows = <d.Node>[];
   final latestPrereleaseVersion = data.latestReleases!.showPrerelease
       ? versions.firstWhereOrNull(
           (v) => v.version == data.latestReleases!.prerelease!.version,
@@ -36,7 +37,9 @@ String renderPkgVersionsPage(
     final pubspec = Pubspec.fromJson(version.pubspec);
     final rowNode = versionRowNode(pubspec.name, version, pubspec);
     final semanticVersion = Version.parse(version.version);
-    if (semanticVersion.isPreRelease) {
+    if (version.isRetracted != null && version.isRetracted!) {
+      retractedVersionRows.add(rowNode);
+    } else if (semanticVersion.isPreRelease) {
       prereleaseVersionRows.add(rowNode);
     } else if (pubspec.isPreviewForCurrentSdk(dartSdkVersion)) {
       previewVersionRows.add(rowNode);
@@ -81,6 +84,14 @@ String renderPkgVersionsPage(
       label: 'Prerelease',
       packageName: data.package!.name!,
       rows: prereleaseVersionRows,
+    ));
+  }
+  if (retractedVersionRows.isNotEmpty) {
+    blocks.add(versionSectionNode(
+      id: 'retracted',
+      label: 'Retracted',
+      packageName: data.package!.name!,
+      rows: retractedVersionRows,
     ));
   }
 

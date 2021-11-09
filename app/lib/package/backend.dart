@@ -489,6 +489,8 @@ class PackageBackend {
         tx.insert(pv);
       }
     });
+
+    await purgePackageCache(package);
   }
 
   /// Whether [userId] is a package admin (through direct uploaders list or
