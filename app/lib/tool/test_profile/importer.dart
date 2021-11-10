@@ -112,6 +112,13 @@ Future<void> importProfile({
               replacedBy: testPackage.replacedBy,
               isUnlisted: testPackage.isUnlisted,
             ));
+
+        if (testPackage.retractedVersions != null) {
+          testPackage.retractedVersions!.forEach((version) async {
+            await client.setVersionOptions(
+                packageName, version, VersionOptions(isRetracted: true));
+          });
+        }
       },
     );
 

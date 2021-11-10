@@ -132,6 +132,7 @@ d.Node renderPkgHeader(PackagePageData data) {
     tagsNode: tagsNodeFromPackageView(
       package: pkgView,
       version: data.isLatestStable ? null : data.version!.version,
+      isRetracted: data.version!.isRetracted,
     ),
     isLoose: true,
   );

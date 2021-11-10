@@ -24,7 +24,8 @@
   }
 
   &.legacy,
-  &.discontinued {
+  &.discontinued,
+  &.retracted {
     background: #c0392b;
     color: #f8f8f8;
   }

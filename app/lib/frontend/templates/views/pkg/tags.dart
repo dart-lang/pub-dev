@@ -27,6 +27,14 @@ class SimpleTag {
     );
   }
 
+  factory SimpleTag.retracted() {
+    return SimpleTag(
+      status: 'retracted',
+      text: 'retracted',
+      title: 'This version was retracted.',
+    );
+  }
+
   factory SimpleTag.unlisted() {
     return SimpleTag(
       status: 'unlisted',
