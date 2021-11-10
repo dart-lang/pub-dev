@@ -35,6 +35,7 @@ d.Node nullSafeBadgeNode({String? title}) {
 d.Node tagsNodeFromPackageView({
   required PackageView package,
   String? version,
+  bool isRetracted = false,
 }) {
   final tags = package.tags;
   final sdkTags = tags.where((s) => s.startsWith('sdk:')).toSet().toList();
@@ -43,6 +44,10 @@ d.Node tagsNodeFromPackageView({
   if (package.isDiscontinued) {
     simpleTags.add(SimpleTag.discontinued());
   }
+  if (isRetracted) {
+    simpleTags.add(SimpleTag.retracted());
+  }
+
   // Display unlisted tag only for packages that are not discontinued.
   if (!package.isDiscontinued &&
       package.tags.contains(PackageTags.isUnlisted)) {

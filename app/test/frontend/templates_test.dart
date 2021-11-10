@@ -269,6 +269,35 @@ void main() {
       });
     });
 
+    testWithProfile('package show page with retracted version',
+        testProfile: TestProfile(
+          packages: [
+            TestPackage(
+              name: 'pkg',
+              versions: ['1.0.0', '2.0.0'],
+              retractedVersions: ['1.0.0'],
+            ),
+          ],
+          defaultUser: 'admin@pub.dev',
+        ),
+        processJobsWithFakeRunners: true, fn: () async {
+      final data = await loadPackagePageData('pkg', '1.0.0', AssetKind.readme);
+      final html = renderPkgShowPage(data);
+      expectGoldenFile(html, 'pkg_show_page_retracted.html', timestamps: {
+        'published': data.package!.created,
+        'updated': data.version!.created,
+      });
+
+      final data2 = await loadPackagePageData('pkg', '2.0.0', AssetKind.readme);
+      final html2 = renderPkgShowPage(data2);
+      expectGoldenFile(
+          html2, 'pkg_show_page_retracted_non_retracted_version.html',
+          timestamps: {
+            'published': data2.package!.created,
+            'updated': data2.version!.created,
+          });
+    });
+
     testWithProfile(
       'package show page with legacy version',
       testProfile: TestProfile(
