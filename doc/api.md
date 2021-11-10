@@ -38,9 +38,8 @@ used by the `pub` command line client application.
 }
 ```
 
-The API returns the top package names on `pub.dev`. At the moment we
-limit the result length at the maximum of 20000 package names, this
-limit may change in the future.
+The API returns the top package names on `pub.dev`. To reduce payload size the
+result may not include all package names. The size limitation is subject to change.
 
 The response is always a gzip-ed JSON content, and should be cached
 on the client side  for at least 8 hours between requests (as indicated
@@ -48,7 +47,7 @@ by the `cache-control` header).
 
 Notes:
  * Not all package names are included in this response.
- * The inclusion criteria used by `pub.dev` may change without any early notice.
+ * The inclusion criteria used by `pub.dev` may change without notice.
 
 ## FAQ
 
