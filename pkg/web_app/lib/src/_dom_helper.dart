@@ -283,3 +283,11 @@ Element _createSpinner() => Element.div()
   ..children = [
     Element.div()..className = 'spinner',
   ];
+
+/// Get the value of the material dropdown's selected element
+/// (or null if none is selected).
+String? materialDropdownSelected(Element? elem) {
+  if (elem == null) return null;
+  final item = elem.querySelector('.mdc-list-item--selected');
+  return item?.dataset['value'];
+}

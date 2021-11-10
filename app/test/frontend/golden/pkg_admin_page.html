@@ -215,14 +215,31 @@
                       <strong>Upgrading to verified publishers is an irreversible operation.</strong>
                       Packages can be transferred between publishers, but they can't be converted back to legacy uploader ownership.
                     </p>
-                    <div class="mdc-select -admin-dropdown" data-mdc-auto-init="MDCSelect">
-                      <i class="mdc-select__dropdown-icon"></i>
-                      <select id="-admin-set-publisher-input" class="mdc-select__native-control">
-                        <option value="" disabled="disabled" selected="selected"></option>
-                        <option value="example.com">example.com</option>
-                      </select>
-                      <label class="mdc-floating-label">Select a publisher</label>
-                      <div class="mdc-line-ripple"></div>
+                    <div id="-admin-set-publisher-input" class="mdc-select mdc-select--filled -admin-dropdown" data-mdc-auto-init="MDCSelect">
+                      <div class="mdc-select__anchor">
+                        <span class="mdc-select__ripple"></span>
+                        <span class="mdc-select__selected-text"></span>
+                        <span class="mdc-select__dropdown-icon">
+                          <svg class="mdc-select__dropdown-icon-graphic" viewBox="7 10 10 5">
+                            <polygon class="mdc-select__dropdown-icon-inactive" stroke="none" fill-rule="evenodd" points="7 10 12 15 17 10"></polygon>
+                            <polygon class="mdc-select__dropdown-icon-active" stroke="none" fill-rule="evenodd" points="7 15 12 10 17 15"></polygon>
+                          </svg>
+                        </span>
+                        <span class="mdc-floating-label">Select a publisher</span>
+                        <span class="mdc-line-ripple"></span>
+                      </div>
+                      <div class="mdc-select__menu mdc-menu mdc-menu-surface mdc-menu-surface--fullwidth">
+                        <ul class="mdc-list">
+                          <li class="mdc-list-item mdc-list-item--selected" data-value="">
+                            <span class="mdc-list-item__ripple"></span>
+                            <span class="mdc-list-item__text"></span>
+                          </li>
+                          <li class="mdc-list-item" data-value="example.com">
+                            <span class="mdc-list-item__ripple"></span>
+                            <span class="mdc-list-item__text">example.com</span>
+                          </li>
+                        </ul>
+                      </div>
                     </div>
                     <p>
                       <button id="-admin-set-publisher-button" class="mdc-button mdc-button--raised pub-button-danger" data-mdc-auto-init="MDCRipple">Transfer to publisher</button>
