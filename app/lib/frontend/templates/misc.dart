@@ -15,6 +15,9 @@ import 'views/account/unauthorized.dart';
 import 'views/page/error.dart';
 import 'views/page/standalone.dart';
 
+/// The content of `/doc/api.md`
+final _apiMarkdown = _readDocContent('api.md');
+
 /// The content of `/doc/policy.md`
 final _policyMarkdown = _readDocContent('policy.md');
 
@@ -46,6 +49,19 @@ String renderUnauthorizedPage() {
     unauthorizedNode,
     title: 'Authorization required',
     noIndex: true,
+  );
+}
+
+/// Renders the `doc/api.md`.
+String renderHelpApiPage() {
+  return renderLayoutPage(
+    PageType.standalone,
+    standalonePageNode(
+      _apiMarkdown,
+      sideImageUrl: static_files.staticUrls.packagesSideImage,
+    ),
+    title: 'pub.dev API',
+    canonicalUrl: '/help/api',
   );
 }
 

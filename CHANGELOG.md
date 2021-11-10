@@ -2,6 +2,8 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * NOTE: First release that includes `/help/api`.
+   TODO(deferred): request community members on announce@ to self-report API use.
 
 ## `20211108t124400-all`
  * NOTE: Verify backfill logs (`[backfill-version-count-*]` entries) after a few days of this release.

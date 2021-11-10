@@ -48,6 +48,9 @@ class PublicPagesScript {
     _contains(await _pubClient.getContent('/help'),
         'following help pages are available');
 
+    _contains(
+        await _pubClient.getContent('/help/api'), 'Hosted Pub Repository API');
+
     _contains(await _pubClient.getContent('/help/scoring'),
         'additional checks in the future');
 
