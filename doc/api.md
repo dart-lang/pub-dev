@@ -5,7 +5,7 @@
 This document describes the officially supported API of the `pub.dev` site.
 `pub.dev` may expose API endpoints that are available publicly, but unless
 they are documented here, we don't consider them as officially
-supported, and may change or remove them without any notice.
+supported, and may change or remove them without notice.
 
 Changes to the officially supported `pub.dev` API will be announced at [Dart announce][announce].
 
