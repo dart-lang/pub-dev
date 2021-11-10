@@ -45,6 +45,7 @@ d.Node _sdkLibraryItem(SdkLibraryHit hit) {
     metadataNode: d.fragment([
       d.span(classes: ['packages-metadata-block'], text: metadataText),
       coreLibraryBadgeNode,
+      nullSafeBadgeNode(),
     ]),
     tagsNode: null,
     apiPages: null,
