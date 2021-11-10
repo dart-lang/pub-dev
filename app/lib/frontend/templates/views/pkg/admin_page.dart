@@ -40,9 +40,10 @@ d.Node packageAdminPageNode({
           classes: ['-admin-dropdown'],
           options: [
             if (!pkgHasPublisher)
-              d.option(value: '', text: '', disabled: true, selected: true),
+              material.option(
+                  value: '', text: '', disabled: true, selected: true),
             ...userPublishers.map(
-              (p) => d.option(
+              (p) => material.option(
                   value: p, text: p, selected: p == package.publisherId),
             ),
           ],
@@ -178,7 +179,7 @@ d.Node packageAdminPageNode({
             classes: ['-admin-dropdown'],
             options: [
               ...retractableVersions.map(
-                (v) => d.option(value: v, text: v),
+                (v) => material.option(value: v, text: v),
               ),
             ],
           ),
@@ -203,7 +204,7 @@ d.Node packageAdminPageNode({
             classes: ['-admin-dropdown'],
             options: [
               ...retractedVersions.map(
-                (v) => d.option(value: v, text: v),
+                (v) => material.option(value: v, text: v),
               ),
             ],
           ),

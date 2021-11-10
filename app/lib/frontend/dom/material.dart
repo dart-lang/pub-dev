@@ -252,6 +252,7 @@ d.Node checkbox({
   required String id,
   required String label,
   required bool checked,
+  bool indeterminate = false,
   d.Node Function(String label)? labelNodeContent,
 }) {
   labelNodeContent ??= d.text;
@@ -265,7 +266,11 @@ d.Node checkbox({
             type: 'checkbox',
             classes: ['mdc-checkbox__native-control'],
             id: id,
-            attributes: {if (checked) 'checked': 'checked'},
+            attributes: {
+              if (checked) 'checked': 'checked',
+              if (indeterminate) 'data-indeterminate': 'true',
+              if (indeterminate) 'aria-checked': 'mixed',
+            },
           ),
           d.div(
             classes: ['mdc-checkbox__background'],
@@ -299,7 +304,7 @@ d.Node checkbox({
 
 /// Renders a material dropdown / select component.
 ///
-/// [options] must be a list of `<option>` elements (e.g. from [d.option()]).
+/// [options] must be a list of `<li>` elements from [option].
 d.Node dropdown({
   required String id,
   required String label,
@@ -307,20 +312,86 @@ d.Node dropdown({
   Iterable<String>? classes,
 }) {
   return d.div(
+    id: id,
     classes: [
       'mdc-select',
+      'mdc-select--filled',
       if (classes != null) ...classes,
     ],
     attributes: {'data-mdc-auto-init': 'MDCSelect'},
     children: [
-      d.i(classes: ['mdc-select__dropdown-icon']),
-      d.select(
-        id: id,
-        classes: ['mdc-select__native-control'],
-        children: options,
+      d.div(
+        classes: ['mdc-select__anchor'],
+        children: [
+          d.span(classes: ['mdc-select__ripple']),
+          d.span(classes: ['mdc-select__selected-text']),
+          d.span(
+            classes: ['mdc-select__dropdown-icon'],
+            child: d.element(
+              'svg',
+              classes: ['mdc-select__dropdown-icon-graphic'],
+              attributes: {'viewBox': '7 10 10 5'},
+              children: [
+                d.element(
+                  'polygon',
+                  classes: ['mdc-select__dropdown-icon-inactive'],
+                  attributes: {
+                    'stroke': 'none',
+                    'fill-rule': 'evenodd',
+                    'points': '7 10 12 15 17 10',
+                  },
+                ),
+                d.element(
+                  'polygon',
+                  classes: ['mdc-select__dropdown-icon-active'],
+                  attributes: {
+                    'stroke': 'none',
+                    'fill-rule': 'evenodd',
+                    'points': '7 15 12 10 17 15',
+                  },
+                ),
+              ],
+            ),
+          ),
+          d.span(
+            classes: ['mdc-floating-label'],
+            text: label,
+          ),
+          d.span(classes: ['mdc-line-ripple']),
+        ],
       ),
-      d.label(classes: ['mdc-floating-label'], text: label),
-      d.div(classes: ['mdc-line-ripple']),
+      d.div(
+        classes: [
+          'mdc-select__menu',
+          'mdc-menu',
+          'mdc-menu-surface',
+          'mdc-menu-surface--fullwidth',
+        ],
+        child: d.ul(
+          classes: ['mdc-list'],
+          children: options,
+        ),
+      ),
+    ],
+  );
+}
+
+/// Renders an option item for material dropdown / select component.
+d.Node option({
+  required String value,
+  required String text,
+  bool selected = false,
+  bool disabled = false,
+}) {
+  return d.li(
+    classes: [
+      'mdc-list-item',
+      if (selected) 'mdc-list-item--selected',
+    ],
+    attributes: {'data-value': value},
+    children: [
+      d.span(classes: ['mdc-list-item__ripple']),
+      d.span(classes: ['mdc-list-item__text'], text: text),
     ],
   );
 }
