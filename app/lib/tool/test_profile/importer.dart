@@ -114,10 +114,10 @@ Future<void> importProfile({
             ));
 
         if (testPackage.retractedVersions != null) {
-          testPackage.retractedVersions!.forEach((version) async {
+          for (final version in testPackage.retractedVersions!) {
             await client.setVersionOptions(
                 packageName, version, VersionOptions(isRetracted: true));
-          });
+          }
         }
       },
     );
