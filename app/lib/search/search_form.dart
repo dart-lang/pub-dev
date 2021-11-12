@@ -15,8 +15,6 @@ class SearchForm {
   final String? query;
   late final parsedQuery = ParsedQueryText.parse(query);
 
-  final List<String> sdks;
-
   final List<String> runtimes;
   final List<String> platforms;
 
@@ -41,7 +39,6 @@ class SearchForm {
   SearchForm._({
     required this.context,
     this.query,
-    required this.sdks,
     this.runtimes = const <String>[],
     this.platforms = const <String>[],
     this.order,
@@ -55,7 +52,6 @@ class SearchForm {
   factory SearchForm({
     SearchContext? context,
     String? query,
-    List<String> sdks = const <String>[],
     List<String> runtimes = const <String>[],
     List<String> platforms = const <String>[],
     SearchOrder? order,
@@ -68,13 +64,11 @@ class SearchForm {
     currentPage ??= 1;
     pageSize ??= resultsPerPage;
     final q = _stringToNull(query?.trim());
-    sdks = sdks.where(SdkTagValue.isValidSdk).toSet().toList();
     runtimes = DartSdkRuntime.decodeQueryValues(runtimes);
     platforms = platforms.where((v) => v.isNotEmpty).toList();
     return SearchForm._(
       context: context ?? SearchContext.regular(),
       query: q,
-      sdks: sdks,
       runtimes: runtimes,
       platforms: platforms,
       order: order,
@@ -96,7 +90,7 @@ class SearchForm {
 
   SearchForm change({
     SearchContext? context,
-    List<String>? sdks,
+    String? query,
     List<String>? runtimes,
     List<String>? platforms,
     int? currentPage,
@@ -116,8 +110,7 @@ class SearchForm {
     }
     return SearchForm._(
       context: context ?? this.context,
-      query: query,
-      sdks: sdks ?? this.sdks,
+      query: query ?? this.query,
       runtimes: runtimes,
       platforms: platforms,
       order: order,
@@ -130,10 +123,15 @@ class SearchForm {
   }
 
   SearchForm toggleSdk(String sdk) {
-    final newSdks = sdks.contains(sdk)
-        ? sdks.where((v) => v != sdk).toList()
-        : <String>[...sdks, sdk];
-    return change(sdks: newSdks);
+    return toggleRequiredTag('sdk:$sdk');
+  }
+
+  SearchForm toggleRequiredTag(String tag) {
+    return change(
+      query: parsedQuery
+          .change(tagsPredicate: parsedQuery.tagsPredicate.toggleRequired(tag))
+          .toString(),
+    );
   }
 
   SearchForm toggleRuntime(String runtime) {
@@ -181,7 +179,6 @@ class SearchForm {
           PackageTags.convertToPrereleaseTag(PackageVersionTags.isNullSafe),
         if (context.isFlutterFavorites) PackageTags.isFlutterFavorite,
         if (SdkTagValue.isNotAny(context.sdk)) 'sdk:${context.sdk}',
-        ...sdks.map((v) => 'sdk:$v'),
         ...runtimes.map((v) => 'runtime:$v'),
         ...platforms.map((v) => 'platform:$v'),
       ],
@@ -215,7 +212,9 @@ class SearchForm {
   /// Whether any of the non-query settings are non-default
   /// (e.g. clicking on any platforms, SDKs, or advanced filters).
   bool get hasActiveNonQuery =>
-      sdks.isNotEmpty || platforms.isNotEmpty || hasActiveAdvanced;
+      parsedQuery.tagsPredicate.isNotEmpty ||
+      platforms.isNotEmpty ||
+      hasActiveAdvanced;
 
   /// Converts the query to a user-facing link that (after frontend parsing) will
   /// re-create an identical search query object.
@@ -253,7 +252,6 @@ class SearchForm {
   Map<String, String> hiddenFields() {
     final encodedRuntimes = DartSdkRuntime.encodeRuntimeTags(runtimes);
     return {
-      if (sdks.isNotEmpty) 'sdk': sdks.join(' '),
       if (encodedRuntimes.isNotEmpty) 'runtime': encodedRuntimes.join(' '),
       if (platforms.isNotEmpty) 'platform': platforms.join(' '),
     };
@@ -345,10 +343,6 @@ SearchForm _parseFrontendSearchForm(
   final String queryText = queryParameters['q'] ?? '';
   final String? sortParam = queryParameters['sort'];
   final SearchOrder? sortOrder = parseSearchOrder(sortParam);
-  List<String>? sdks;
-  if (queryParameters.containsKey('sdk')) {
-    sdks = queryParameters['sdk']!.split(' ');
-  }
   List<String>? runtimes;
   if (queryParameters.containsKey('runtime')) {
     runtimes = queryParameters['runtime']!.split(' ');
@@ -360,7 +354,6 @@ SearchForm _parseFrontendSearchForm(
   return SearchForm(
     context: context,
     query: queryText,
-    sdks: sdks ?? const <String>[],
     runtimes: runtimes ?? const <String>[],
     platforms: platforms ?? const <String>[],
     order: sortOrder,

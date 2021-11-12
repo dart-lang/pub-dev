@@ -92,7 +92,8 @@ d.Node _searchFormContainer({
           ),
           _filterSection(
             label: 'SDKs',
-            isActive: searchForm.sdks.isNotEmpty,
+            isActive: searchForm.parsedQuery.tagsPredicate
+                .anyTag((t) => t.startsWith('sdk:')),
             children: [
               _sdkCheckbox(
                 sdk: SdkTagValue.dart,
@@ -111,19 +112,19 @@ d.Node _searchFormContainer({
             isActive: searchForm.hasActiveAdvanced,
             children: [
               _formLinkedCheckbox(
-                id: 'search-form-checbox-discontinued',
+                id: 'search-form-checkbox-discontinued',
                 label: 'Include discontinued',
                 toggledSearchForm: searchForm.toggleDiscontinued(),
                 isChecked: searchForm.includeDiscontinued,
               ),
               _formLinkedCheckbox(
-                id: 'search-form-checbox-unlisted',
+                id: 'search-form-checkbox-unlisted',
                 label: 'Include unlisted',
                 toggledSearchForm: searchForm.toggleUnlisted(),
                 isChecked: searchForm.includeUnlisted,
               ),
               _formLinkedCheckbox(
-                id: 'search-form-checbox-null-safe',
+                id: 'search-form-checkbox-null-safe',
                 label: 'Supports null safety',
                 toggledSearchForm: searchForm.toggleNullSafe(),
                 isChecked: searchForm.nullSafe,
@@ -145,11 +146,11 @@ d.Node _platformCheckbox({
   required String label,
   required SearchForm searchForm,
 }) {
-  return _formLinkedCheckbox(
-    id: 'search-form-checkbox-platform-$platform',
+  return _tagBasedCheckbox(
+    tagPrefix: 'platform',
+    tagValue: platform,
     label: label,
-    toggledSearchForm: searchForm.togglePlatform(platform),
-    isChecked: searchForm.platforms.contains(platform),
+    searchForm: searchForm,
   );
 }
 
@@ -158,11 +159,28 @@ d.Node _sdkCheckbox({
   required String label,
   required SearchForm searchForm,
 }) {
-  return _formLinkedCheckbox(
-    id: 'search-form-checkbox-sdk-$sdk',
+  return _tagBasedCheckbox(
+    tagPrefix: 'sdk',
+    tagValue: sdk,
     label: label,
-    toggledSearchForm: searchForm.toggleSdk(sdk),
-    isChecked: searchForm.sdks.contains(sdk),
+    searchForm: searchForm,
+  );
+}
+
+d.Node _tagBasedCheckbox({
+  required String tagPrefix,
+  required String tagValue,
+  required String label,
+  required SearchForm searchForm,
+}) {
+  final tag = '$tagPrefix:$tagValue';
+  final toggledSearchForm = searchForm.toggleRequiredTag(tag);
+  return _formLinkedCheckbox(
+    id: 'search-form-checkbox-$tagPrefix-$tagValue',
+    label: label,
+    toggledSearchForm: toggledSearchForm,
+    isChecked: searchForm.parsedQuery.tagsPredicate.isRequiredTag(tag),
+    isIndeterminate: searchForm.parsedQuery.tagsPredicate.isProhibitedTag(tag),
   );
 }
 
@@ -171,6 +189,7 @@ d.Node _formLinkedCheckbox({
   required String label,
   required SearchForm toggledSearchForm,
   required bool isChecked,
+  bool isIndeterminate = false,
 }) {
   return d.div(
     classes: ['search-form-linked-checkbox'],
@@ -183,6 +202,7 @@ d.Node _formLinkedCheckbox({
         text: label,
       ),
       checked: isChecked,
+      indeterminate: isIndeterminate,
     ),
   );
 }

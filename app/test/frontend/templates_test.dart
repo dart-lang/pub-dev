@@ -448,7 +448,7 @@ void main() {
         registerRequestContext(
             RequestContext(isExperimental: true, showNewSearchUI: true));
         final searchForm = SearchForm(
-          sdks: ['dart'],
+          query: 'sdk:dart',
           includeUnlisted: true,
         );
         final oxygen = (await scoreCardBackend.getPackageView('oxygen'))!;

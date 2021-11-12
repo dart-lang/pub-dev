@@ -414,11 +414,16 @@ class QueryValidity {
 /// Filter conditions on tags.
 class TagsPredicate {
   /// tag -> {true = required | false = prohibited}
-  final _values = <String, bool>{};
+  final Map<String, bool> _values;
 
-  TagsPredicate({List<String>? requiredTags, List<String>? prohibitedTags}) {
-    requiredTags?.forEach((tag) => _values[tag] = true);
-    prohibitedTags?.forEach((tag) => _values[tag] = false);
+  TagsPredicate._(this._values);
+
+  factory TagsPredicate(
+      {List<String>? requiredTags, List<String>? prohibitedTags}) {
+    final values = <String, bool>{};
+    requiredTags?.forEach((tag) => values[tag] = true);
+    prohibitedTags?.forEach((tag) => values[tag] = false);
+    return TagsPredicate._(values);
   }
 
   /// Pre-populates the predicate with the default tags for regular search (e.g.
@@ -437,6 +442,7 @@ class TagsPredicate {
   bool isRequiredTag(String tag) => _values[tag] == true;
   bool isProhibitedTag(String tag) => _values[tag] == false;
   bool hasTag(String tag) => _values.containsKey(tag);
+  bool anyTag(bool Function(String key) fn) => _values.keys.any(fn);
 
   /// Parses [values] passed via Uri.queryParameters
   factory TagsPredicate.parseQueryValues(List<String?>? values) {
@@ -502,6 +508,26 @@ class TagsPredicate {
       if (!required && present) return false;
     }
     return true;
+  }
+
+  /// Toggles [tag] between required and absent status.
+  TagsPredicate toggleRequired(String tag) {
+    final current = _values[tag];
+    return _change(tag, current == null ? true : null);
+  }
+
+  TagsPredicate _change(String tag, bool? value) {
+    final current = _values[tag];
+    if (current == value) {
+      return this;
+    }
+    final newValues = Map<String, bool>.from(_values);
+    if (value == null) {
+      newValues.remove(tag);
+    } else {
+      newValues[tag] = value;
+    }
+    return TagsPredicate._(newValues);
   }
 
   /// Returns the list of tag values that can be passed to search service URL.
@@ -584,6 +610,19 @@ class ParsedQueryText {
     );
   }
 
+  ParsedQueryText change({
+    TagsPredicate? tagsPredicate,
+  }) {
+    return ParsedQueryText._(
+      text,
+      packagePrefix,
+      refDependencies,
+      allDependencies,
+      publisher,
+      tagsPredicate ?? this.tagsPredicate,
+    );
+  }
+
   bool get hasAnyDependency =>
       refDependencies.isNotEmpty || allDependencies.isNotEmpty;
 
@@ -594,6 +633,19 @@ class ParsedQueryText {
       !hasAnyDependency &&
       publisher == null &&
       tagsPredicate.isEmpty;
+
+  @override
+  String toString() {
+    if (hasOnlyFreeText) return text!;
+    return <String>[
+      if (packagePrefix != null) 'package:$packagePrefix',
+      ...refDependencies.map((d) => 'dependency:$d'),
+      ...allDependencies.map((d) => 'dependency*:$d'),
+      if (publisher != null) 'publisher:$publisher',
+      ...tagsPredicate.toQueryParameters(),
+      if (text != null && text!.isNotEmpty) text!,
+    ].join(' ');
+  }
 }
 
 @JsonSerializable(includeIfNull: false)
