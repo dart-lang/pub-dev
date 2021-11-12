@@ -293,55 +293,15 @@ class PackageBackend {
         throw NotFoundException.resource('package "$package"');
       }
 
-      final oldStableVersion = p.latestSemanticVersion;
-      final oldPrereleaseVersion = p.latestPrereleaseSemanticVersion;
-      final oldPreviewVersion = p.latestPreviewSemanticVersion;
+      final changed = p.updateLatestVersionReferences(versions,
+          dartSdkVersion: dartSdkVersion!);
 
-      // reset field values
-      p.latestVersionKey = null;
-      p.latestPrereleaseVersionKey = null;
-      p.latestPreviewVersionKey = null;
-
-      // update fields
-      for (final pv in versions) {
-        p.updateVersion(pv, dartSdkVersion: dartSdkVersion!);
-      }
-
-      // shortcut if there was no change
-      final unchanged = oldStableVersion == p.latestSemanticVersion &&
-          oldPrereleaseVersion == p.latestPrereleaseSemanticVersion &&
-          oldPreviewVersion == p.latestPreviewSemanticVersion;
-      if (unchanged) {
+      if (!changed) {
         _logger.info('No version field updates for package `$package`.');
         return false;
       }
 
-      // sanity check changes
-      final prereleaseNotOk =
-          oldPrereleaseVersion!.compareTo(p.latestPrereleaseSemanticVersion!) >
-              0;
-      final previewNotOk = oldPreviewVersion != null &&
-          oldPreviewVersion.compareTo(p.latestPreviewSemanticVersion!) > 0;
-      if (prereleaseNotOk || previewNotOk) {
-        _logger.severe(
-            'Version update sanity check failed for package "$package": '
-            '$oldPrereleaseVersion -> ${p.latestPrereleaseVersion} / '
-            '$oldPreviewVersion -> ${p.latestPreviewVersion}');
-        return false;
-      }
-
-      // Stepping back a version on latest stable seems to be a valid use case
-      // at the time of introducing the feature, let's keep it on as a warning.
-      final stableNotOk =
-          oldStableVersion.compareTo(p.latestSemanticVersion) > 0 &&
-              oldStableVersion.compareTo(p.latestPreviewSemanticVersion!) != 0;
-      if (stableNotOk) {
-        _logger.warning('Possible version update issue for package "$package": '
-            '$oldStableVersion -> ${p.latestVersion} / ');
-      }
-
       _logger.info('Updating version fields for package `$package`.');
-      p.updated = DateTime.now().toUtc();
       tx.insert(p);
       return true;
     });
@@ -484,12 +444,35 @@ class PackageBackend {
       }
 
       if (hasChanged) {
-        p.updated = DateTime.now().toUtc();
+        // Update references to latest versions if the retracted version was
+        // the latest version or the restored version is newer than the latest.
+        final latestNeedsUpdate = p.latestVersion == pv.version ||
+            p.latestPrereleaseVersion == pv.version ||
+            p.latestPreviewVersion == pv.version ||
+            isNewer(p.latestSemanticVersion, pv.semanticVersion) ||
+            (p.latestPrereleaseSemanticVersion != null &&
+                isNewer(p.latestPrereleaseSemanticVersion!, pv.semanticVersion,
+                    pubSorted: false)) ||
+            (p.latestPreviewSemanticVersion != null &&
+                isNewer(p.latestPreviewSemanticVersion!, pv.semanticVersion,
+                    pubSorted: false));
+
+        if (latestNeedsUpdate) {
+          final versions = await (tx.query<PackageVersion>(pkgKey).run())
+              .where((v) => v.version != pv.version)
+              .toList();
+          versions.add(pv);
+
+          final currentDartSdk = await getDartSdkVersion();
+
+          p.updateLatestVersionReferences(versions,
+              dartSdkVersion: currentDartSdk.semanticVersion);
+        }
+
         tx.insert(p);
         tx.insert(pv);
       }
     });
-
     await purgePackageCache(package);
   }
 

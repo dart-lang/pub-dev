@@ -5,6 +5,7 @@
 import 'package:client_data/package_api.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 
 import '../shared/handlers_test_utils.dart';
@@ -163,6 +164,121 @@ void main() {
         retractable: ['1.0.0', '1.2.0', '2.0.0-dev'],
         recentlyRetracted: [],
       );
+    });
+
+    testWithProfile('Updates latest version references',
+        testProfile: TestProfile(
+          defaultUser: 'admin@pub.dev',
+          packages: [
+            TestPackage(
+                name: 'oxygen',
+                versions: ['1.0.0', '1.2.0', '2.0.0-dev', '2.1.0-dev']),
+          ],
+        ), fn: () async {
+      await expectVersions(
+        retractable: ['1.0.0', '1.2.0', '2.0.0-dev', '2.1.0-dev'],
+        recentlyRetracted: [],
+      );
+      final pkg = (await packageBackend.lookupPackage('oxygen'))!;
+      expect(pkg.latestVersion, '1.2.0');
+
+      final origLastVersionPublished = pkg.lastVersionPublished;
+      final origLatestPublished = pkg.latestPublished;
+      final origLatestPrereleasePublished = pkg.latestPrereleasePublished;
+
+      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+
+      final orig = await client.getVersionOptions('oxygen', '1.2.0');
+      expect(orig.isRetracted, isFalse);
+      final origInfo = await client.packageVersionInfo('oxygen', '1.2.0');
+      expect(origInfo.isRetracted, isNull);
+
+// Retract latest
+      final u1 = await client.setVersionOptions(
+          'oxygen', '1.2.0', VersionOptions(isRetracted: true));
+      expect(u1.isRetracted, isTrue);
+      final u1Info = await client.packageVersionInfo('oxygen', '1.2.0');
+      expect(u1Info.isRetracted, isTrue);
+
+      final pkg1 = (await packageBackend.lookupPackage('oxygen'))!;
+      expect(pkg1.latestVersion, '1.0.0');
+      expect(pkg1.latestPublished, isNot(origLatestPublished));
+      expect(pkg1.lastVersionPublished, origLastVersionPublished);
+
+// Restore latest
+      final u2 = await client.setVersionOptions(
+          'oxygen', '1.2.0', VersionOptions(isRetracted: false));
+      expect(u2.isRetracted, isFalse);
+      final u2Info = await client.packageVersionInfo('oxygen', '1.2.0');
+      expect(u2Info.isRetracted, isNull);
+
+      final pkg2 = (await packageBackend.lookupPackage('oxygen'))!;
+      expect(pkg2.latestVersion, '1.2.0');
+      expect(pkg2.latestPublished, origLatestPublished);
+      expect(pkg2.lastVersionPublished, origLastVersionPublished);
+
+// Retract latest dev
+      final u3 = await client.setVersionOptions(
+          'oxygen', '2.1.0-dev', VersionOptions(isRetracted: true));
+      expect(u3.isRetracted, isTrue);
+      final u3Info = await client.packageVersionInfo('oxygen', '2.1.0-dev');
+      expect(u3Info.isRetracted, isTrue);
+
+      final pkg3 = (await packageBackend.lookupPackage('oxygen'))!;
+      expect(pkg3.latestPrereleaseVersion, '2.0.0-dev');
+      expect(
+          pkg3.latestPrereleasePublished, isNot(origLatestPrereleasePublished));
+      expect(pkg3.lastVersionPublished, origLastVersionPublished);
+
+// Retract all dev
+      final u4 = await client.setVersionOptions(
+          'oxygen', '2.0.0-dev', VersionOptions(isRetracted: true));
+      expect(u4.isRetracted, isTrue);
+      final u4Info = await client.packageVersionInfo('oxygen', '2.0.0-dev');
+      expect(u4Info.isRetracted, isTrue);
+
+      final pkg4 = (await packageBackend.lookupPackage('oxygen'))!;
+      expect(pkg4.latestPrereleaseVersion, '1.2.0');
+      expect(pkg4.latestPrereleasePublished, origLatestPublished);
+      expect(pkg4.lastVersionPublished, origLastVersionPublished);
+
+// Restore latest dev
+      final u5 = await client.setVersionOptions(
+          'oxygen', '2.1.0-dev', VersionOptions(isRetracted: false));
+      expect(u5.isRetracted, isFalse);
+      final u5Info = await client.packageVersionInfo('oxygen', '2.1.0-dev');
+      expect(u5Info.isRetracted, isNull);
+
+      final pkg5 = (await packageBackend.lookupPackage('oxygen'))!;
+      expect(pkg5.latestPrereleaseVersion, '2.1.0-dev');
+      expect(pkg5.latestPrereleasePublished, origLatestPrereleasePublished);
+      expect(pkg5.lastVersionPublished, origLastVersionPublished);
+
+// Retract all
+      final u6 = await client.setVersionOptions(
+          'oxygen', '1.2.0', VersionOptions(isRetracted: true));
+      expect(u6.isRetracted, isTrue);
+      final u7 = await client.setVersionOptions(
+          'oxygen', '1.0.0', VersionOptions(isRetracted: true));
+      expect(u7.isRetracted, isTrue);
+      final u9 = await client.setVersionOptions(
+          'oxygen', '2.1.0-dev', VersionOptions(isRetracted: true));
+      expect(u9.isRetracted, isTrue);
+      final u6Info = await client.packageVersionInfo('oxygen', '1.0.0');
+      final u7Info = await client.packageVersionInfo('oxygen', '1.2.0');
+      final u8Info = await client.packageVersionInfo('oxygen', '2.0.0-dev');
+      final u9Info = await client.packageVersionInfo('oxygen', '2.1.0-dev');
+      expect(u6Info.isRetracted, isTrue);
+      expect(u7Info.isRetracted, isTrue);
+      expect(u8Info.isRetracted, isTrue);
+      expect(u9Info.isRetracted, isTrue);
+
+      final pkg6 = (await packageBackend.lookupPackage('oxygen'))!;
+      expect(pkg6.latestVersion, '1.2.0');
+      expect(pkg6.latestPrereleaseVersion, '2.1.0-dev');
+      expect(pkg6.lastVersionPublished, origLastVersionPublished);
+      expect(pkg6.latestPrereleasePublished, origLatestPrereleasePublished);
+      expect(pkg6.lastVersionPublished, origLastVersionPublished);
     });
   });
 }

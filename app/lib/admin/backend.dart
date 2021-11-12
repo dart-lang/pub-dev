@@ -398,26 +398,13 @@ class AdminBackend {
             'Last version detected. Use full package removal without the version qualifier.');
       }
 
-      bool updateVersionReferences = false;
-      if (package != null && package.latestVersion == version) {
-        package.latestVersionKey = null;
-        package.latestPublished = null;
-        updateVersionReferences = true;
-      }
-      if (package != null && package.latestPrereleaseVersion == version) {
-        package.latestPrereleaseVersionKey = null;
-        package.latestPrereleasePublished = null;
-        updateVersionReferences = true;
-      }
-      if (package != null && package.latestPreviewVersion == version) {
-        package.latestPreviewVersionKey = null;
-        package.latestPreviewPublished = null;
-      }
-      if (updateVersionReferences) {
-        package!.lastVersionPublished = null;
-        versions.where((v) => v.version != version).forEach((v) => package
-            .updateVersion(v, dartSdkVersion: currentDartSdk.semanticVersion));
-        package.updated = DateTime.now().toUtc();
+      if (package != null &&
+          (package.latestVersion == version ||
+              package.latestPrereleaseVersion == version ||
+              package.latestPreviewVersion == version)) {
+        package.updateLatestVersionReferences(
+            versions.where((v) => v.version != version).toList(),
+            dartSdkVersion: currentDartSdk.semanticVersion);
       }
       tx.insert(package!);
     });
