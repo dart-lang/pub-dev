@@ -13,7 +13,15 @@ d.Node packageBadgeNode({
     classes: ['package-badge'],
     attributes: title != null ? <String, String>{'title': title} : null,
     children: [
-      if (iconUrl != null) d.img(classes: ['package-badge-icon'], src: iconUrl),
+      if (iconUrl != null)
+        d.img(
+          classes: ['package-badge-icon'],
+          src: iconUrl,
+          attributes: {
+            'width': '13',
+            'height': '13',
+          },
+        ),
       d.text(label),
     ],
   );
