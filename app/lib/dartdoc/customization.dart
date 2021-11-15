@@ -75,6 +75,7 @@ class DartdocCustomizer {
     _addAlternateUrl(head, canonical);
     _addAnalyticsTracker(head, body);
     _addGithubMarkdownStyle(head, body);
+    _replaceFontUrls(head);
     final breadcrumbs = body.querySelector('.breadcrumbs');
     final breadcrumbsDepth = breadcrumbs?.children.length ?? 0;
     if (breadcrumbs != null) {
@@ -199,6 +200,17 @@ class DartdocCustomizer {
         ),
       body.firstChild,
     );
+  }
+
+  void _replaceFontUrls(Element head) {
+    head.querySelectorAll('link').forEach((e) {
+      final href = e.attributes['href'];
+      if (href != null &&
+          href.startsWith('https://fonts.googleapis.com/') &&
+          !href.contains('display=swap')) {
+        e.attributes['href'] = '$href&display=swap';
+      }
+    });
   }
 
   void _addPubSiteLogo(Element breadcrumbs) {
