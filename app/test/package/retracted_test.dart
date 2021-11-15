@@ -193,7 +193,7 @@ void main() {
       final origInfo = await client.packageVersionInfo('oxygen', '1.2.0');
       expect(origInfo.isRetracted, isNull);
 
-// Retract latest
+      // Retract latest
       final u1 = await client.setVersionOptions(
           'oxygen', '1.2.0', VersionOptions(isRetracted: true));
       expect(u1.isRetracted, isTrue);
@@ -205,7 +205,7 @@ void main() {
       expect(pkg1.latestPublished, isNot(origLatestPublished));
       expect(pkg1.lastVersionPublished, origLastVersionPublished);
 
-// Restore latest
+      // Restore latest
       final u2 = await client.setVersionOptions(
           'oxygen', '1.2.0', VersionOptions(isRetracted: false));
       expect(u2.isRetracted, isFalse);
@@ -217,7 +217,7 @@ void main() {
       expect(pkg2.latestPublished, origLatestPublished);
       expect(pkg2.lastVersionPublished, origLastVersionPublished);
 
-// Retract latest dev
+      // Retract latest dev
       final u3 = await client.setVersionOptions(
           'oxygen', '2.1.0-dev', VersionOptions(isRetracted: true));
       expect(u3.isRetracted, isTrue);
@@ -230,7 +230,7 @@ void main() {
           pkg3.latestPrereleasePublished, isNot(origLatestPrereleasePublished));
       expect(pkg3.lastVersionPublished, origLastVersionPublished);
 
-// Retract all dev
+      // Retract all dev
       final u4 = await client.setVersionOptions(
           'oxygen', '2.0.0-dev', VersionOptions(isRetracted: true));
       expect(u4.isRetracted, isTrue);
@@ -242,7 +242,7 @@ void main() {
       expect(pkg4.latestPrereleasePublished, origLatestPublished);
       expect(pkg4.lastVersionPublished, origLastVersionPublished);
 
-// Restore latest dev
+      // Restore latest dev
       final u5 = await client.setVersionOptions(
           'oxygen', '2.1.0-dev', VersionOptions(isRetracted: false));
       expect(u5.isRetracted, isFalse);
@@ -254,7 +254,7 @@ void main() {
       expect(pkg5.latestPrereleasePublished, origLatestPrereleasePublished);
       expect(pkg5.lastVersionPublished, origLastVersionPublished);
 
-// Retract all
+      // Retract all
       final u6 = await client.setVersionOptions(
           'oxygen', '1.2.0', VersionOptions(isRetracted: true));
       expect(u6.isRetracted, isTrue);

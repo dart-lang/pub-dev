@@ -249,13 +249,13 @@ class Package extends db.ExpandoModel<String> {
     latestPrereleaseVersionKey = null;
     latestPreviewVersionKey = null;
 
-    versions.forEach((v) => updateVersion(v,
-        dartSdkVersion: dartSdkVersion, includeRetracted: false));
+    versions
+      ..where((v) => !v.isRetracted)
+          .forEach((v) => updateVersion(v, dartSdkVersion: dartSdkVersion));
 
     if (latestVersionKey == null) {
       // All versions are retracted, we use the latest regardless of retracted status.
-      versions.forEach((v) => updateVersion(v,
-          dartSdkVersion: dartSdkVersion, includeRetracted: true));
+      versions.forEach((v) => updateVersion(v, dartSdkVersion: dartSdkVersion));
     }
 
     final unchanged = oldStableVersion == latestSemanticVersion &&
@@ -273,9 +273,7 @@ class Package extends db.ExpandoModel<String> {
   void updateVersion(
     PackageVersion pv, {
     required Version dartSdkVersion,
-    bool includeRetracted = false,
   }) {
-    if (!includeRetracted && pv.isRetracted) return;
     final newVersion = pv.semanticVersion;
     final isOnStableSdk = !pv.pubspec!.isPreviewForCurrentSdk(dartSdkVersion);
 
