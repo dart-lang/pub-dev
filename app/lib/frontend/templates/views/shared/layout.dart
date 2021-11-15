@@ -74,7 +74,7 @@ d.Node pageLayoutNode({
             d.link(
               rel: 'stylesheet',
               href:
-                  'https://fonts.googleapis.com/css?family=Google+Sans:300,400,500|Google+Sans+Display:400|Roboto:300,400,500,700|Roboto+Mono:300,400,700',
+                  'https://fonts.googleapis.com/css?family=Google+Sans:300,400,500|Google+Sans+Display:400|Roboto:300,400,500,700|Roboto+Mono:300,400,700&display=swap',
             ),
             d.meta(
               content: staticUrls
