@@ -234,6 +234,8 @@ d.Node _siteFooterNode() {
           classes: ['inline-icon'],
           title: title,
           alt: title,
+          width: 20,
+          height: 20,
         ),
       );
 
