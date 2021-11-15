@@ -55,7 +55,8 @@ class Package extends db.ExpandoModel<String> {
   @db.IntProperty(required: true)
   int likes = 0;
 
-  /// [DateTime] when the most recently uploaded [PackageVersion] was published.
+  /// [DateTime] when the most recently uploaded [PackageVersion] was published,
+  /// regardless of the retracted status of that version.
   @db.DateTimeProperty(required: true)
   DateTime? lastVersionPublished;
 
@@ -233,6 +234,38 @@ class Package extends db.ExpandoModel<String> {
           name!, publisherId!);
     }
     uploaders!.remove(userId);
+  }
+
+  bool updateLatestVersionReferences(
+    List<PackageVersion> versions, {
+    required Version dartSdkVersion,
+  }) {
+    final oldStableVersion = latestSemanticVersion;
+    final oldPrereleaseVersion = latestPrereleaseSemanticVersion;
+    final oldPreviewVersion = latestPreviewSemanticVersion;
+
+    // reset field values
+    latestVersionKey = null;
+    latestPrereleaseVersionKey = null;
+    latestPreviewVersionKey = null;
+
+    versions
+      ..where((v) => !v.isRetracted)
+          .forEach((v) => updateVersion(v, dartSdkVersion: dartSdkVersion));
+
+    if (latestVersionKey == null) {
+      // All versions are retracted, we use the latest regardless of retracted status.
+      versions.forEach((v) => updateVersion(v, dartSdkVersion: dartSdkVersion));
+    }
+
+    final unchanged = oldStableVersion == latestSemanticVersion &&
+        oldPrereleaseVersion == latestPrereleaseSemanticVersion &&
+        oldPreviewVersion == latestPreviewSemanticVersion;
+    if (unchanged) {
+      return false;
+    }
+    updated = DateTime.now().toUtc();
+    return true;
   }
 
   /// Updates latest stable, prerelease and preview versions and published
