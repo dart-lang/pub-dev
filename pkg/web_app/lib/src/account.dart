@@ -169,7 +169,7 @@ Future _updateSession() async {
 
 /// Active on /packages/<package>/admin page.
 class _PkgAdminWidget {
-  SelectElement? _setPublisherInput;
+  Element? _setPublisherInput;
   Element? _setPublisherButton;
   InputElement? _discontinuedCheckbox;
   InputElement? _replacedByInput;
@@ -178,15 +178,14 @@ class _PkgAdminWidget {
   Element? _inviteUploaderButton;
   Element? _inviteUploaderContent;
   InputElement? _inviteUploaderInput;
-  SelectElement? _retractPackageVersionInput;
+  Element? _retractPackageVersionInput;
   Element? _retractPackageVersionButton;
-  SelectElement? _restoreRetractPackageVersionInput;
+  Element? _restoreRetractPackageVersionInput;
   Element? _restoreRetractPackageVersionButton;
 
   void init() {
     if (!pageData.isPackagePage) return;
-    _setPublisherInput =
-        document.getElementById('-admin-set-publisher-input') as SelectElement?;
+    _setPublisherInput = document.getElementById('-admin-set-publisher-input');
     _setPublisherButton =
         document.getElementById('-admin-set-publisher-button');
     _setPublisherButton?.onClick.listen((_) => _setPublisher());
@@ -208,14 +207,12 @@ class _PkgAdminWidget {
     _inviteUploaderInput = document
         .getElementById('-pkg-admin-invite-uploader-input') as InputElement?;
     _retractPackageVersionInput =
-        document.getElementById('-admin-retract-package-version-input')
-            as SelectElement?;
+        document.getElementById('-admin-retract-package-version-input');
     _retractPackageVersionButton =
         document.getElementById('-admin-retract-package-version-button');
     _retractPackageVersionButton?.onClick.listen((_) => _setRetracted());
     _restoreRetractPackageVersionInput =
-        document.getElementById('-admin-restore-retract-package-version-input')
-            as SelectElement?;
+        document.getElementById('-admin-restore-retract-package-version-input');
     _restoreRetractPackageVersionButton = document
         .getElementById('-admin-restore-retract-package-version-button');
     _restoreRetractPackageVersionButton?.onClick
@@ -341,7 +338,8 @@ class _PkgAdminWidget {
   }
 
   Future<void> _setRetracted() async {
-    final version = _retractPackageVersionInput?.value?.trim() ?? '';
+    final version =
+        materialDropdownSelected(_retractPackageVersionInput)?.trim() ?? '';
     await rpc<void>(
       confirmQuestion: markdown(
           'Are you sure you want to retract the package version `$version`?'),
@@ -355,7 +353,9 @@ class _PkgAdminWidget {
   }
 
   Future<void> _restoreRetracted() async {
-    final version = _restoreRetractPackageVersionInput?.value?.trim() ?? '';
+    final version =
+        materialDropdownSelected(_restoreRetractPackageVersionInput)?.trim() ??
+            '';
     await rpc<void>(
       confirmQuestion: markdown(
           'Are you sure you want to restore package version `$version`?'),
@@ -370,7 +370,8 @@ class _PkgAdminWidget {
   }
 
   Future<void> _setPublisher() async {
-    final publisherId = _setPublisherInput?.value?.trim() ?? '';
+    final publisherId =
+        materialDropdownSelected(_setPublisherInput)?.trim() ?? '';
     if (publisherId.isEmpty) {
       await modalMessage(
         'Input validation',
