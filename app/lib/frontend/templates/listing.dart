@@ -9,6 +9,7 @@ import '../../search/search_form.dart';
 import '../../search/search_service.dart';
 import '../../shared/tags.dart';
 import '../dom/dom.dart' as d;
+import '../request_context.dart';
 
 import '_consts.dart';
 import 'layout.dart';
@@ -87,9 +88,10 @@ d.Node listingInfo({
   String? ownedBy,
   required String? messageFromBackend,
 }) {
+  final hideQuery = requestContext.showNewSearchUI;
   return listingInfoNode(
     totalCount: totalCount,
-    searchQuery: searchForm.query,
+    searchQuery: hideQuery ? null : searchForm.query,
     ownedBy: ownedBy,
     sortControlNode: _renderSortControl(searchForm),
     messageMarkdown: messageFromBackend,
