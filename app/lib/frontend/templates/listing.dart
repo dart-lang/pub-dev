@@ -39,6 +39,7 @@ String renderPkgIndexPage(
   String? sdk,
   String? title,
   required SearchForm searchForm,
+  SearchForm? refererForm,
   String? searchPlaceholder,
   String? messageFromBackend,
 }) {
@@ -48,6 +49,7 @@ String renderPkgIndexPage(
 
   final content = packageListingNode(
     searchForm: searchForm,
+    refererForm: refererForm,
     subSdkButtons: searchTabs.isNotEmpty ? searchTabsNode(searchTabs) : null,
     listingInfo: listingInfo(
       searchForm: searchForm,

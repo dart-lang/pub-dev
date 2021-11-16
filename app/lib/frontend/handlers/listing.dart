@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:shelf/shelf.dart' as shelf;
 
@@ -75,6 +76,12 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
   String? title,
   String? searchPlaceholder,
 }) async {
+  final referer = request.headers[HttpHeaders.refererHeader];
+  final refererUri = referer == null ? null : Uri.tryParse(referer);
+  final refererForm = refererUri == null
+      ? null
+      : SearchForm.parse(context, refererUri.queryParameters);
+
   final searchForm =
       SearchForm.parse(context, request.requestedUri.queryParameters);
   final sw = Stopwatch()..start();
@@ -88,6 +95,7 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
       links,
       sdk: context.sdk,
       searchForm: searchForm,
+      refererForm: refererForm,
       title: title,
       searchPlaceholder: searchPlaceholder,
       messageFromBackend: searchResult.message,

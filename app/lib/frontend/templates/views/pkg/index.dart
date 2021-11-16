@@ -13,6 +13,7 @@ import '../../layout.dart';
 /// Renders the package listing.
 d.Node packageListingNode({
   required SearchForm searchForm,
+  required SearchForm? refererForm,
   required d.Node? subSdkButtons,
   required d.Node listingInfo,
   required d.Node packageList,
@@ -29,6 +30,7 @@ d.Node packageListingNode({
   if (requestContext.showNewSearchUI) {
     return _searchFormContainer(
       searchForm: searchForm,
+      refererForm: refererForm,
       innerContent: innerContent,
     );
   } else {
@@ -41,6 +43,7 @@ d.Node packageListingNode({
 
 d.Node _searchFormContainer({
   required SearchForm searchForm,
+  required SearchForm? refererForm,
   required d.Node innerContent,
 }) {
   return d.div(
@@ -92,8 +95,8 @@ d.Node _searchFormContainer({
           ),
           _filterSection(
             label: 'SDKs',
-            isActive: searchForm.parsedQuery.tagsPredicate
-                .anyTag((t) => t.startsWith('sdk:')),
+            isActive: searchForm.hasParsedQuerySdkPredicate ||
+                (refererForm?.hasParsedQuerySdkPredicate ?? false),
             children: [
               _sdkCheckbox(
                 sdk: SdkTagValue.dart,
@@ -109,7 +112,8 @@ d.Node _searchFormContainer({
           ),
           _filterSection(
             label: 'Advanced',
-            isActive: searchForm.hasActiveAdvanced,
+            isActive: searchForm.hasActiveAdvanced ||
+                (refererForm?.hasActiveAdvanced ?? false),
             children: [
               _formLinkedCheckbox(
                 id: 'search-form-checkbox-discontinued',

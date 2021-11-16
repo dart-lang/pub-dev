@@ -209,6 +209,10 @@ class SearchForm {
   bool get hasActiveAdvanced =>
       includeDiscontinued || includeUnlisted || nullSafe;
 
+  /// Whether the user input has any predicate with `sdk:` prefix.
+  bool get hasParsedQuerySdkPredicate =>
+      parsedQuery.tagsPredicate.anyTag((t) => t.startsWith('sdk:'));
+
   /// Whether any of the non-query settings are non-default
   /// (e.g. clicking on any platforms, SDKs, or advanced filters).
   bool get hasActiveNonQuery =>
