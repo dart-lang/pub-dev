@@ -340,6 +340,11 @@ class _PkgAdminWidget {
   Future<void> _setRetracted() async {
     final version =
         materialDropdownSelected(_retractPackageVersionInput)?.trim() ?? '';
+    if (version.isEmpty) {
+      await _validateVersionSelection();
+      return;
+    }
+
     await rpc<void>(
       confirmQuestion: markdown(
           'Are you sure you want to retract the package version `$version`?'),
@@ -356,6 +361,11 @@ class _PkgAdminWidget {
     final version =
         materialDropdownSelected(_restoreRetractPackageVersionInput)?.trim() ??
             '';
+    if (version.isEmpty) {
+      await _validateVersionSelection();
+      return;
+    }
+
     await rpc<void>(
       confirmQuestion: markdown(
           'Are you sure you want to restore package version `$version`?'),
@@ -366,6 +376,13 @@ class _PkgAdminWidget {
       },
       successMessage: text('Restoring complete. The page will reload.'),
       onSuccess: (_) => window.location.reload(),
+    );
+  }
+
+  Future<void> _validateVersionSelection() async {
+    await modalMessage(
+      'Input validation',
+      text('Please select a version.'),
     );
   }
 
