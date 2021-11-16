@@ -184,6 +184,8 @@ d.Node pageLayoutNode({
                           src: staticUrls
                               .getAssetUrl('/static/img/pub-dev-logo.svg'),
                           alt: 'pub.dev package manager',
+                          width: 328,
+                          height: 70,
                         ),
                       ]),
                     searchBanner,
@@ -194,6 +196,8 @@ d.Node pageLayoutNode({
                           src: staticUrls.getAssetUrl(
                               '/static/img/supported-by-google.png'),
                           alt: 'Supported by Google',
+                          width: 218,
+                          height: 36,
                         ),
                       ]),
                   ],

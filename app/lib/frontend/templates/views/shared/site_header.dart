@@ -27,6 +27,8 @@ d.Node siteHeaderNode({
             classes: ['site-logo'],
             alt: 'pub logo',
             src: staticUrls.pubDevLogo2xPng,
+            width: 135,
+            height: 30,
           ),
         ),
       d.div(classes: ['site-header-space']),
