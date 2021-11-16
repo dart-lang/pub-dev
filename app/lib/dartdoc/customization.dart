@@ -208,7 +208,13 @@ class DartdocCustomizer {
       if (href != null &&
           href.startsWith('https://fonts.googleapis.com/') &&
           !href.contains('display=swap')) {
-        e.attributes['href'] = '$href&display=swap';
+        final uri = Uri.tryParse(href);
+        if (uri != null) {
+          e.attributes['href'] = uri.replace(queryParameters: {
+            ...uri.queryParameters,
+            'display': 'swap',
+          }).toString();
+        }
       }
     });
   }
