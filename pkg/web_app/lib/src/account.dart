@@ -342,6 +342,7 @@ class _PkgAdminWidget {
         materialDropdownSelected(_retractPackageVersionInput)?.trim() ?? '';
     if (version.isEmpty) {
       await _validateVersionSelection();
+      return;
     }
 
     await rpc<void>(
@@ -362,6 +363,7 @@ class _PkgAdminWidget {
             '';
     if (version.isEmpty) {
       await _validateVersionSelection();
+      return;
     }
 
     await rpc<void>(
@@ -382,7 +384,6 @@ class _PkgAdminWidget {
       'Input validation',
       text('Please select a version.'),
     );
-    return;
   }
 
   Future<void> _setPublisher() async {
