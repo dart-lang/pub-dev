@@ -4,6 +4,6 @@
     "build": "cp node_modules/material-components-web/dist/material-components-web.min.* ."
   },
   "devDependencies": {
-    "material-components-web": "^7.0.0"
+    "material-components-web": "^13.0.0"
   }
 }
