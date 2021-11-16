@@ -17,10 +17,8 @@ d.Node packageBadgeNode({
         d.img(
           classes: ['package-badge-icon'],
           src: iconUrl,
-          attributes: {
-            'width': '13',
-            'height': '13',
-          },
+          width: 13,
+          height: 13,
         ),
       d.text(label),
     ],
