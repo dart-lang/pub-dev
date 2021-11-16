@@ -93,7 +93,6 @@ d.Node detailHeaderNode({
                                     ? 'Unlike this package'
                                     : 'Like this package',
                                 'data-ga-click-event': 'toggle-like',
-                                'aria-hidden': 'true',
                                 'aria-pressed': isLiked ? 'true' : 'false',
                               },
                             ),
