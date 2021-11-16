@@ -368,6 +368,8 @@ Node img({
   String? src,
   String? title,
   String? alt,
+  int? width,
+  int? height,
 }) {
   return dom.element(
     'img',
@@ -377,6 +379,8 @@ Node img({
       if (src != null) 'src': src,
       if (title != null) 'title': title,
       if (alt != null) 'alt': alt,
+      if (width != null) 'width': width.toString(),
+      if (height != null) 'height': height.toString(),
       if (attributes != null) ...attributes,
     },
     children: children,
