@@ -165,7 +165,7 @@ d.Node packageAdminPageNode({
       d.h2(text: 'Package Version Retraction'),
       d.div(children: [
         d.markdown(
-            'You can retract a package version up to 7 days after publication.'),
+            'You can [retract](https://dart.dev/go/pubretract) a package version up to 7 days after publication.'),
         d.markdown(
             'This will not remove the package version, but warn developers using'
             ' it and stop new applications from taking dependency on it without a dependency override.'),
