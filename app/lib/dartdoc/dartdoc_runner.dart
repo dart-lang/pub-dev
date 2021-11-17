@@ -324,6 +324,7 @@ class DartdocJobProcessor extends JobProcessor {
               logFileOutput.write('Content customization failed.\n\n');
             }
 
+            await _blob(outputDir, logFileOutput);
             await _tar(tempDirPath, tarDir, outputDir, logFileOutput);
           } else {
             logFileOutput.write('No content found!\n\n');
@@ -605,6 +606,25 @@ class DartdocJobProcessor extends JobProcessor {
         .pipe(tmpTar.openWrite());
     await tmpTar.rename(p.join(outputDir, _archiveFilePath));
     logFileOutput.write('Created package archive in ${sw.elapsed}.\n');
+  }
+
+  Future<void> _blob(String outputDir, StringBuffer logFileOutput) async {
+    final sw = Stopwatch()..start();
+    logFileOutput.write('Scanning blob content...\n');
+    final files = <String>[];
+    var offset = 0;
+    await for (final entry in Directory(outputDir).list(recursive: true)) {
+      if (entry is File) {
+        final path = p.relative(entry.path, from: outputDir);
+        final length = await entry.length();
+        files.add('$path $offset $length');
+        offset += length;
+      }
+    }
+    files.sort();
+    final indexLength = files.join('\n').length;
+    logFileOutput.write(
+        'Scanned blob content in ${sw.elapsed}, simple index count: ${files.length}, total length: $indexLength.\n');
   }
 
   Future<PubDartdocData?> _loadPubDartdocData(
