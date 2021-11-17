@@ -22,7 +22,6 @@ Future<void> main(List<String> arguments) async {
   if (config == null) {
     throw ArgumentError();
   }
-  pubResourceProvider.setConfig(output: config.output);
 
   final packageConfigProvider = PhysicalPackageConfigProvider();
   final packageBuilder =
@@ -35,9 +34,6 @@ Future<void> main(List<String> arguments) async {
   final pubDataGenerator =
       PubDataGenerator(config.inputDir, config.resourceProvider);
   pubDataGenerator.generate(results.packageGraph, config.output);
-
-  print('[${DateTime.now().toIso8601String()}] Writing files...');
-  pubResourceProvider.writeFilesToDiskSync();
 
   print(
       '[${DateTime.now().toIso8601String()}] Max memory use: ${ProcessInfo.maxRss}');

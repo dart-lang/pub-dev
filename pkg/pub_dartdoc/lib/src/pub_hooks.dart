@@ -3,18 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io' as io;
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/generated/sdk.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/generated/source.dart';
 import 'package:dartdoc/dartdoc.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:watcher/watcher.dart';
 
@@ -37,10 +34,8 @@ class DocumentationTooBigException implements Exception {
 ///       instead of overriding file writes in the output path.
 class PubResourceProvider implements ResourceProvider {
   final ResourceProvider _defaultProvider;
-  final _memoryResourceProvider = MemoryResourceProvider();
   final int _maxFileCount;
   final int _maxTotalLengthBytes;
-  String _outputPath;
   int _fileCount = 0;
   int _totalLengthBytes = 0;
   final _paths = <String>[];
@@ -52,17 +47,6 @@ class PubResourceProvider implements ResourceProvider {
   })  : _maxFileCount = maxFileCount ?? _defaultMaxFileCount,
         _maxTotalLengthBytes =
             maxTotalLengthBytes ?? _defaultMaxTotalLengthBytes;
-
-  /// Writes in-memory files to disk.
-  void writeFilesToDiskSync() {
-    for (final path in _paths) {
-      final r = _memoryResourceProvider.getResource(path);
-      final c = r as File;
-      final file = io.File(c.path);
-      file.parent.createSync(recursive: true);
-      file.writeAsBytesSync(c.readAsBytesSync());
-    }
-  }
 
   /// Checks if we have reached any file write limit before storing the bytes.
   void _aboutToWriteBytes(String path, int length) {
@@ -79,25 +63,11 @@ class PubResourceProvider implements ResourceProvider {
     }
   }
 
-  void setConfig({
-    @required String output,
-  }) {
-    _outputPath = output;
-  }
-
-  bool _isOutput(String path) {
-    return _outputPath != null &&
-        (path == _outputPath || p.isWithin(_outputPath, path));
-  }
-
-  ResourceProvider _rp(String path) =>
-      _isOutput(path) ? _memoryResourceProvider : _defaultProvider;
+  @override
+  File getFile(String path) => _File(this, _defaultProvider.getFile(path));
 
   @override
-  File getFile(String path) => _File(this, _rp(path).getFile(path));
-
-  @override
-  Folder getFolder(String path) => _rp(path).getFolder(path);
+  Folder getFolder(String path) => _defaultProvider.getFolder(path);
 
   @override
   Future<List<int>> getModificationTimes(List<Source> sources) async {
@@ -106,7 +76,7 @@ class PubResourceProvider implements ResourceProvider {
   }
 
   @override
-  Resource getResource(String path) => _rp(path).getResource(path);
+  Resource getResource(String path) => _defaultProvider.getResource(path);
 
   @override
   Folder getStateLocation(String pluginId) {

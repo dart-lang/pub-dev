@@ -7,6 +7,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded preview Flutter analysis SDK to `2.8.0-3.1.pre`.
  * NOTE: First release that includes `/help/api`.
    TODO(deferred): request community members on announce@ to self-report API use.
+ * NOTE: removed in-memory buffering in `pkg/pub_dartdoc`.
 
 ## `20211108t124400-all`
  * NOTE: Verify backfill logs (`[backfill-version-count-*]` entries) after a few days of this release.

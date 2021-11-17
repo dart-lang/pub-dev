@@ -4,7 +4,6 @@ environment:
   sdk: ">=2.6.0 <3.0.0"
 dependencies:
   analyzer: any # whatever dartdoc supports
-  meta: ^1.0.0
   path: ^1.8.0
   pub_dartdoc_data:
     path: ../pub_dartdoc_data
