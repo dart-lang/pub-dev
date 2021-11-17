@@ -7,6 +7,7 @@ import 'dart:convert' as convert;
 import 'dart:io';
 
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' hide Pubspec, ReportStatus;
 import 'package:pana/pana.dart' as pana show ReportStatus;
 import 'package:path/path.dart' as p;
@@ -21,6 +22,7 @@ import '../package/backend.dart';
 import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
 import '../shared/configuration.dart';
+import '../shared/datastore.dart';
 import '../shared/env_config.dart';
 import '../shared/tool_env.dart';
 import '../shared/urls.dart';
@@ -155,6 +157,19 @@ class _DartdocRunner implements DartdocRunner {
     );
     return DartdocRunnerResult(args: args, processResult: pr);
   }
+}
+
+/// Generates package documentation for all packages with fake dartdoc runner.
+@visibleForTesting
+Future<void> processJobsWithDartdocRunner({
+  DartdocRunner? runner,
+}) async {
+  final jobProcessor = DartdocJobProcessor(
+    aliveCallback: null,
+    runner: runner ?? _DartdocRunner(),
+  );
+  // ignore: invalid_use_of_visible_for_testing_member
+  await JobMaintenance(dbService, jobProcessor).scanUpdateAndRunOnce();
 }
 
 class DartdocJobProcessor extends JobProcessor {

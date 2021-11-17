@@ -15,6 +15,7 @@ import '../package/overrides.dart';
 import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
 import '../shared/configuration.dart';
+import '../shared/datastore.dart';
 import '../shared/tool_env.dart';
 
 final Logger _logger = Logger('pub.analyzer.pana');
@@ -39,6 +40,18 @@ abstract class PanaRunner {
     required String version,
     required PackageStatus packageStatus,
   });
+}
+
+@visibleForTesting
+Future<void> processJobsWithPanaRunner({
+  PanaRunner? runner,
+}) async {
+  final jobProcessor = AnalyzerJobProcessor(
+    aliveCallback: null,
+    runner: runner ?? _PanaRunner(),
+  );
+  // ignore: invalid_use_of_visible_for_testing_member
+  await JobMaintenance(dbService, jobProcessor).scanUpdateAndRunOnce();
 }
 
 class _PanaRunner implements PanaRunner {

@@ -5,7 +5,6 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
@@ -15,7 +14,6 @@ import 'package:pub_dev/dartdoc/dartdoc_runner.dart';
 import 'package:pub_dev/fake/backend/fake_dartdoc_runner.dart';
 import 'package:pub_dev/fake/backend/fake_pana_runner.dart';
 import 'package:pub_dev/frontend/static_files.dart';
-import 'package:pub_dev/job/job.dart';
 import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/importer.dart';
@@ -92,19 +90,10 @@ class FakeInitDataFileCommand extends Command {
 }
 
 Future<void> _analyze() async {
-  // pana
   await fork(() async {
-    final jobProcessor = AnalyzerJobProcessor(aliveCallback: null);
-    final jobMaintenance = JobMaintenance(dbService, jobProcessor);
     // ignore: invalid_use_of_visible_for_testing_member
-    await jobMaintenance.scanUpdateAndRunOnce();
-  });
-
-  // dartdoc
-  await fork(() async {
-    final jobProcessor = DartdocJobProcessor(aliveCallback: null);
-    final jobMaintenance = JobMaintenance(dbService, jobProcessor);
+    await processJobsWithPanaRunner();
     // ignore: invalid_use_of_visible_for_testing_member
-    await jobMaintenance.scanUpdateAndRunOnce();
+    await processJobsWithDartdocRunner();
   });
 }

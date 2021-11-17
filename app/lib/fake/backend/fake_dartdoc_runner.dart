@@ -11,17 +11,11 @@ import 'package:path/path.dart' as p;
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 
 import '../../dartdoc/dartdoc_runner.dart';
-import '../../job/job.dart';
-import '../../shared/datastore.dart';
 
 /// Generates package documentation for all packages with fake dartdoc runner.
 Future<void> processJobsWithFakeDartdocRunner() async {
-  final jobProcessor = DartdocJobProcessor(
-    aliveCallback: null,
-    runner: FakeDartdocRunner(),
-  );
   // ignore: invalid_use_of_visible_for_testing_member
-  await JobMaintenance(dbService, jobProcessor).scanUpdateAndRunOnce();
+  await processJobsWithDartdocRunner(runner: FakeDartdocRunner());
 }
 
 /// Generates dartdoc content and results based on a deterministic random seed.
