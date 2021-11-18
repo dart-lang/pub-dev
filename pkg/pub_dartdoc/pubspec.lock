@@ -184,7 +184,7 @@ packages:
     source: hosted
     version: "0.12.11"
   meta:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: meta
       url: "https://pub.dartlang.org"
