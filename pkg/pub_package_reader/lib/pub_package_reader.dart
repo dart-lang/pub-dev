@@ -154,8 +154,9 @@ Future<PackageSummary> summarizePackageArchive(
   }
   issues.addAll(checkValidJson(pubspecContent));
   issues.addAll(checkAuthors(pubspecContent));
-  issues.addAll(checkSdkVersionRange(pubspec));
   issues.addAll(checkPlatforms(pubspecContent));
+  issues.addAll(checkStrictVersions(pubspec));
+  issues.addAll(checkSdkVersionRange(pubspec));
   // Check whether the files can be extracted on case-preserving file systems
   // (e.g. on Windows). We can't allow two files with the same case-insensitive
   // name.
@@ -308,6 +309,44 @@ Iterable<ArchiveIssue> checkAuthors(String pubspecContent) sync* {
     yield ArchiveIssue(
         'Do not specify both `author` and `authors` in `pubspec.yaml`.');
   }
+}
+
+final _strictRegExp = RegExp(r'^' // Start at beginning.
+    r'(\d+)\.(\d+)\.(\d+)' // Version number.
+    r'(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?' // Pre-release.
+    r'(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?' // Build.
+    r'$' // End of string.
+    );
+
+/// Checks if all version constraints follow a stricter pattern.
+Iterable<ArchiveIssue> checkStrictVersions(Pubspec pubspec) sync* {
+  Iterable<Version?> expandConstraint(VersionConstraint? constraint) {
+    if (constraint is VersionRange) {
+      return [constraint.min, constraint.max];
+    }
+    return const Iterable.empty();
+  }
+
+  Iterable<Version?> expandDependency(Dependency? dependency) {
+    if (dependency is HostedDependency) {
+      return expandConstraint(dependency.version);
+    }
+    return const Iterable.empty();
+  }
+
+  final versions = [
+    pubspec.version,
+    ...?pubspec.environment?.values.expand(expandConstraint),
+    ...pubspec.dependencies.values.expand(expandDependency),
+    ...pubspec.devDependencies.values.expand(expandDependency),
+    ...pubspec.dependencyOverrides.values.expand(expandDependency),
+  ];
+
+  yield* versions
+      .whereType<Version>() // only consider non-null values
+      .where((v) => _strictRegExp.matchAsPrefix(v.toString()) == null)
+      .map((v) => ArchiveIssue(
+          'Version value `$v` does not follow strict version pattern.'));
 }
 
 final _preDart3 = VersionConstraint.parse('<3.0.0');
