@@ -66,5 +66,36 @@ dev_dependencies:
         )),
       );
     });
+
+    test('malformatted version', () async {
+      final summary = await summarizePackageArchive(
+        await makeTar({
+          'pubspec.yaml': '''
+name: foo
+version: 1.0,0
+environment:
+  sdk: ^2.14,0
+dependencies:
+  bar: ^1-0-0
+dev_dependencies:
+  test: ^1:0-0
+dependency_overrides:
+  test: ^1:0:0
+''',
+          'LICENSE': 'All rights reserved...',
+        }),
+      );
+
+      expect(
+        summary.issues.map((e) => e.message).toList(),
+        [
+          'Version value `1.0,0` does not follow strict version pattern.',
+          'Version value `2.14,0` does not follow strict version pattern.',
+          'Version value `1-0-0` does not follow strict version pattern.',
+          'Version value `1:0-0` does not follow strict version pattern.',
+          'Version value `1:0:0` does not follow strict version pattern.',
+        ],
+      );
+    });
   });
 }
