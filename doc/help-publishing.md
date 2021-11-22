@@ -38,6 +38,5 @@ If you are no longer maintaining a package, you can [mark it
 discontinued](https://dart.dev/tools/pub/publishing#discontinue), and it will
 disappear from pub.dev search.
 
-
 [pub-tool]: https://dart.dev/tools/pub
 [pub-publish]: https://dart.dev/tools/pub/publishing

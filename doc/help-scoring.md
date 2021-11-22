@@ -5,7 +5,7 @@ with additional checks in the future.*
 
 For each package, this site displays three scoring dimensions. These are
 displayed in search results, in the sidebar on individual package pages, and in
-full detail in the scoring report on the 'Scores' tag of an individiual package.
+full detail in the scoring report on the 'Scores' tag of an individual package.
 The three dimensions are:
 
   - **Likes**: A measure of how many developers have liked a package. This
@@ -77,7 +77,7 @@ This category measures if a package has documentation in two areas:
 ### Support multiple platforms
 
 Packages are encouraged to support multiple platforms, to enable app developers
-to support a wide vieratity of platforms for their apps. This includes Dart's
+to support a wide variety of platforms for their apps. This includes Dart's
 [native and web](https://dart.dev/platforms) platforms, and Flutter's
 [mobile](https://flutter.dev/docs), [web](https://flutter.dev/web), and
 [desktop](https://flutter.dev/desktop) targets.
@@ -92,7 +92,7 @@ Pub.dev uses two different algorithms for determining which platforms are suppor
  - **Dart packages**: For packages that depend on just the Dart SDK, platform
    support is inferred by looking at the imports of [Dart core
    libraries](https://dart.dev/guides/libraries); the majority of these are
-   multiplatform, but [as listed](https://dart.dev/guides/libraries) a few
+   multi-platform, but [as listed](https://dart.dev/guides/libraries) a few
    support just the Dart native or Dart web platforms.
 
 If you need to import different libraries for specific platforms (e.g. on the
@@ -107,7 +107,7 @@ warnings, and lints (code style issues).
 To validate a package prior to publishing, run `dart analyze` (Dart SDK) /
 `flutter analyze` (Flutter SDK), and fix the items it returns.
 
-For code style, make sure to familarize yourself with the [Dart style
+For code style, make sure to familiarize yourself with the [Dart style
 guide](https://dart.dev/guides/language/effective-dart/style).
 
 Use [`analysis_options.yaml`][analysis-options] to specify further linter rules,
