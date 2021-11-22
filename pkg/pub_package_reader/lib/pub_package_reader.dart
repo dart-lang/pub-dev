@@ -328,6 +328,8 @@ Iterable<ArchiveIssue> checkStrictVersions(Pubspec pubspec) sync* {
   }
 
   Iterable<Version?> expandDependency(Dependency? dependency) {
+    /// TODO: add `GitDependency` and `PathDependency` once they start to support `version`.
+    ///       https://github.com/dart-lang/pubspec_parse/issues/77
     if (dependency is HostedDependency) {
       return expandConstraint(dependency.version);
     }
