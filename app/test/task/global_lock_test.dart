@@ -75,10 +75,9 @@ void main() {
       ]);
     });
   },
-      skip: Platform.environment['GCLOUD_PROJECT'] != null &&
+      skip: Platform.environment['GOOGLE_CLOUD_PROJECT'] != null &&
               // Avoid running against production by accident
-              Platform.environment['GCLOUD_PROJECT'] != 'dartlang-pub' &&
-              Platform.environment['GCLOUD_KEY'] != null
+              Platform.environment['GOOGLE_CLOUD_PROJECT'] != 'dartlang-pub'
           ? false
-          : 'GlobalLock testing requires GCLOUD_PROJECT and GCLOUD_KEY');
+          : 'GlobalLock testing requires GOOGLE_CLOUD_PROJECT');
 }

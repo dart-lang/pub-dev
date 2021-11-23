@@ -2,12 +2,12 @@
 # See https://dart.dev/tools/pub/glossary#lockfile
 packages:
   _discoveryapis_commons:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
       name: _discoveryapis_commons
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.1"
+    version: "1.0.2"
   _fe_analyzer_shared:
     dependency: transitive
     description:
@@ -112,14 +112,14 @@ packages:
       name: build_resolvers
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.4"
+    version: "2.0.5"
   build_runner:
     dependency: "direct dev"
     description:
       name: build_runner
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.1.4"
+    version: "2.1.5"
   build_runner_core:
     dependency: transitive
     description:
@@ -273,7 +273,7 @@ packages:
       name: gcloud
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.8.4"
+    version: "0.8.5"
   glob:
     dependency: transitive
     description:
@@ -287,7 +287,7 @@ packages:
       name: googleapis
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.0.0"
+    version: "7.0.0"
   googleapis_auth:
     dependency: "direct main"
     description:
@@ -427,7 +427,7 @@ packages:
       name: markdown
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.0.0"
+    version: "4.0.1"
   matcher:
     dependency: transitive
     description:
@@ -602,7 +602,7 @@ packages:
       name: shelf_router
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.1"
+    version: "1.1.2"
   shelf_router_generator:
     dependency: "direct dev"
     description:
@@ -714,21 +714,21 @@ packages:
       name: test
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.19.2"
+    version: "1.19.3"
   test_api:
     dependency: transitive
     description:
       name: test_api
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.6"
+    version: "0.4.7"
   test_core:
     dependency: transitive
     description:
       name: test_core
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.7"
+    version: "0.4.8"
   timing:
     dependency: transitive
     description:
@@ -763,7 +763,7 @@ packages:
       name: vm_service
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "7.3.0"
+    version: "7.5.0"
   watcher:
     dependency: "direct main"
     description:

@@ -317,7 +317,8 @@ class TaskBackend {
             return true; // I/O issues are worth retrying
           }
           if (e is DetailedApiRequestError) {
-            return e.status >= 500; // 5xx errors are retried
+            final status = e.status;
+            return status == null || status >= 500; // 5xx errors are retried
           }
           return e is ApiRequestError; // Unknown API errors are retried
         },
