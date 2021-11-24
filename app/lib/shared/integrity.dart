@@ -294,8 +294,33 @@ class IntegrityChecker {
           'Total number of versions: ${versionKeys.length}.';
     }
     if (p.lastVersionPublished == null) {
-      yield 'Package "${p.name}" has an `lastVersionPublished` property which is null.';
+      yield 'Package "${p.name}" has a `lastVersionPublished` property which is null.';
     }
+    if (p.latestPublished == null) {
+      yield 'Package "${p.name}" has a `latestPublished` property which is null.';
+    }
+    if (p.latestPrereleasePublished == null) {
+      yield 'Package "${p.name}" has a `latestPrereleasePublished` property which is null.';
+    }
+    if (p.latestPreviewPublished == null) {
+      yield 'Package "${p.name}" has a `latestPreviewPublished` property which is null.';
+    }
+    if (p.lastVersionPublished != null &&
+        p.latestPublished != null &&
+        p.lastVersionPublished!.isBefore(p.latestPreviewPublished!)) {
+      yield 'Package "${p.name}" has a `lastVersionPublished` property which is before its `latestPublished`.';
+    }
+    if (p.lastVersionPublished != null &&
+        p.latestPrereleasePublished != null &&
+        p.lastVersionPublished!.isBefore(p.latestPrereleasePublished!)) {
+      yield 'Package "${p.name}" has a `lastVersionPublished` property which is before its `latestPrereleasePublished`. (${p.latestVersion} ${p.latestPrereleaseVersion}, ${p.lastVersionPublished} - ${p.latestPrereleasePublished})';
+    }
+    if (p.lastVersionPublished != null &&
+        p.latestPreviewPublished != null &&
+        p.lastVersionPublished!.isBefore(p.latestPreviewPublished!)) {
+      yield 'Package "${p.name}" has a `lastVersionPublished` property which is before its `latestPreviewPublished`.';
+    }
+
     if (p.latestVersionKey == null) {
       yield 'Package "${p.name}" has a `latestVersionKey` property which is null.';
     } else if (!versionKeys.contains(p.latestVersionKey)) {
@@ -305,6 +330,11 @@ class IntegrityChecker {
       yield 'Package "${p.name}" has a `latestPrereleaseVersionKey` property which is null.';
     } else if (!versionKeys.contains(p.latestPrereleaseVersionKey)) {
       yield 'Package "${p.name}" has missing `latestPrereleaseVersionKey`: "${p.latestPrereleaseVersionKey!.id}".';
+    }
+    if (p.latestPreviewVersionKey == null) {
+      yield 'Package "${p.name}" has a `latestPreviewVersionKey` property which is null.';
+    } else if (!versionKeys.contains(p.latestPreviewVersionKey)) {
+      yield 'Package "${p.name}" has missing `latestPreviewVersionKey`: "${p.latestPreviewVersionKey!.id}".';
     }
 
     // Checking if PackageVersionInfo is referenced by a PackageVersion entity.
