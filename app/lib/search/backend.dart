@@ -108,36 +108,6 @@ class SearchBackend {
         ? await loadTags(releases.preview!.version)
         : <String>[];
 
-    /// Expand `runtime:*` tags into `platform:*` tags to enable
-    /// unnested platform search queries to run on the current pana tagging.
-    Iterable<String> expandPanaTag(String tag) {
-      if (tag == DartSdkTag.runtimeNativeJit) {
-        return [
-          tag,
-          FlutterSdkTag.platformLinux,
-          FlutterSdkTag.platformMacos,
-          FlutterSdkTag.platformWindows,
-        ];
-      } else if (tag == DartSdkTag.runtimeNativeAot) {
-        return [
-          tag,
-          FlutterSdkTag.platformAndroid,
-          FlutterSdkTag.platformIos,
-          FlutterSdkTag.platformLinux,
-          FlutterSdkTag.platformMacos,
-          FlutterSdkTag.platformWeb,
-          FlutterSdkTag.platformWindows,
-        ];
-      } else if (tag == DartSdkTag.runtimeWeb) {
-        return [
-          tag,
-          FlutterSdkTag.platformWeb,
-        ];
-      } else {
-        return [tag];
-      }
-    }
-
     final tags = <String>{
       ...p.getTags(),
       ...pv.getTags(),
