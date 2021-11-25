@@ -82,15 +82,15 @@ class SimpleTag {
 }
 
 class BadgeTag {
-  final String sdk;
-  final String title;
-  final String href;
+  final String text;
+  final String? title;
+  final String? href;
   final List<BadgeSubTag> subTags;
 
   BadgeTag({
-    required this.sdk,
-    required this.title,
-    required this.href,
+    required this.text,
+    this.title,
+    this.href,
     required this.subTags,
   });
 }
@@ -116,12 +116,15 @@ d.Node tagsNode({
       (t) => d.div(
         classes: ['-pub-tag-badge'],
         children: [
-          d.a(
-            classes: ['tag-badge-main'],
-            title: t.title,
-            href: t.href,
-            text: t.sdk,
-          ),
+          if (t.href == null)
+            d.span(classes: ['tag-badge-main'], text: t.text)
+          else
+            d.a(
+              classes: ['tag-badge-main'],
+              title: t.title,
+              href: t.href,
+              text: t.text,
+            ),
           ...t.subTags.map(
             (s) => d.a(
               classes: ['tag-badge-sub'],

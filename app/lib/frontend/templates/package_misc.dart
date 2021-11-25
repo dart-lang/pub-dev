@@ -8,6 +8,7 @@ import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
 import '../dom/dom.dart' as d;
+import '../request_context.dart';
 import '../static_files.dart';
 
 import 'views/pkg/badge.dart';
@@ -59,10 +60,81 @@ d.Node tagsNodeFromPackageView({
   if (package.isLegacy) {
     simpleTags.add(SimpleTag.legacy());
   }
+  if (requestContext.showNewSearchUI) {
+    final expandedTags = tags.expand(expandPanaTag).toSet();
+    String tagUrl(String requiredTag) =>
+        SearchForm().toggleRequiredTag(requiredTag).toSearchLink();
+
+    final sdkBadgeTag = BadgeTag(
+      text: 'SDK',
+      subTags: [
+        if (sdkTags.contains(SdkTag.sdkDart))
+          BadgeSubTag(
+            text: 'Dart',
+            title: 'Packages compatible with Dart SDK',
+            href: tagUrl(SdkTag.sdkDart),
+          ),
+        if (sdkTags.contains(SdkTag.sdkFlutter))
+          BadgeSubTag(
+            text: 'Flutter',
+            title: 'Packages compatible with Flutter SDK',
+            href: tagUrl(SdkTag.sdkFlutter),
+          ),
+      ],
+    );
+    if (sdkBadgeTag.subTags.isNotEmpty) {
+      badgeTags.add(sdkBadgeTag);
+    }
+
+    final platformBadgeTag = BadgeTag(
+      text: 'Platform',
+      subTags: [
+        if (expandedTags.contains(FlutterSdkTag.platformAndroid))
+          BadgeSubTag(
+            text: 'Android',
+            title: 'Packages compatible with Android platform',
+            href: tagUrl(FlutterSdkTag.platformAndroid),
+          ),
+        if (expandedTags.contains(FlutterSdkTag.platformIos))
+          BadgeSubTag(
+            text: 'iOS',
+            title: 'Packages compatible with iOS platform',
+            href: tagUrl(FlutterSdkTag.platformIos),
+          ),
+        if (expandedTags.contains(FlutterSdkTag.platformLinux))
+          BadgeSubTag(
+            text: 'Linux',
+            title: 'Packages compatible with Linux platform',
+            href: tagUrl(FlutterSdkTag.platformLinux),
+          ),
+        if (expandedTags.contains(FlutterSdkTag.platformMacos))
+          BadgeSubTag(
+            text: 'macOS',
+            title: 'Packages compatible with macOS platform',
+            href: tagUrl(FlutterSdkTag.platformMacos),
+          ),
+        if (expandedTags.contains(FlutterSdkTag.platformWeb))
+          BadgeSubTag(
+            text: 'web',
+            title: 'Packages compatible with Web platform',
+            href: tagUrl(FlutterSdkTag.platformWeb),
+          ),
+        if (expandedTags.contains(FlutterSdkTag.platformWindows))
+          BadgeSubTag(
+            text: 'Windows',
+            title: 'Packages compatible with Windows platform',
+            href: tagUrl(FlutterSdkTag.platformWindows),
+          ),
+      ],
+    );
+    if (platformBadgeTag.subTags.isNotEmpty) {
+      badgeTags.add(platformBadgeTag);
+    }
+  }
   // We only display first-class platform/runtimes
-  if (sdkTags.contains(SdkTag.sdkDart)) {
+  if (!requestContext.showNewSearchUI && sdkTags.contains(SdkTag.sdkDart)) {
     badgeTags.add(BadgeTag(
-      sdk: 'Dart',
+      text: 'Dart',
       title: 'Packages compatible with Dart SDK',
       href: urls.searchUrl(context: SearchContext.dart()),
       subTags: [
@@ -88,9 +160,9 @@ d.Node tagsNodeFromPackageView({
       ],
     ));
   }
-  if (sdkTags.contains(SdkTag.sdkFlutter)) {
+  if (!requestContext.showNewSearchUI && sdkTags.contains(SdkTag.sdkFlutter)) {
     badgeTags.add(BadgeTag(
-      sdk: 'Flutter',
+      text: 'Flutter',
       title: 'Packages compatible with Flutter SDK',
       href: urls.searchUrl(context: SearchContext.flutter()),
       subTags: [
