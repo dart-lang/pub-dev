@@ -41,6 +41,7 @@ String renderPkgIndexPage(
   required SearchForm searchForm,
   String? searchPlaceholder,
   String? messageFromBackend,
+  Set<String>? openSections,
 }) {
   final topPackages = getSdkDict(sdk).topSdkPackages;
   final isSearch = searchForm.hasQuery;
@@ -57,6 +58,7 @@ String renderPkgIndexPage(
     ),
     packageList: packageList(searchResultPage),
     pagination: searchResultPage.hasHit ? paginationNode(links) : null,
+    openSections: openSections,
   );
 
   String pageTitle = title ?? topPackages;

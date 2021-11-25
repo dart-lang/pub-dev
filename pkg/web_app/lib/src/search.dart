@@ -4,7 +4,8 @@
 
 import 'dart:html';
 
-import 'package:web_app/src/gtag_js.dart';
+import 'gtag_js.dart';
+import 'page_updater.dart';
 
 void setupSearch() {
   _setEventForKeyboardShortcut();
@@ -65,9 +66,59 @@ void _setEventsForSearchForm() {
   //checking the checkbox will trigger a click on the link.
   document.querySelectorAll('.search-form-linked-checkbox').forEach((e) {
     final checkbox = e.querySelector('input');
-    final link = e.querySelector('a.search-link');
+    final link = e.querySelector('a');
     if (checkbox != null && link != null) {
-      checkbox.onChange.first.then((_) => link.click());
+      final originalHrefUri = Uri.parse(link.getAttribute('href')!);
+      Future<void> handleClick(Event event) async {
+        event.preventDefault();
+        event.stopPropagation();
+
+        // create new URL based on the window state
+        final windowUri = Uri.parse(window.location.href);
+        final inputQElem =
+            document.body!.querySelector('input[name="q"]') as InputElement;
+        var queryText =
+            inputQElem.value ?? originalHrefUri.queryParameters['q'] ?? '';
+        queryText = queryText.trim();
+        final tag = link.dataset['tag'];
+        if (tag != null && ' $queryText '.contains(' $tag ')) {
+          queryText = ' $queryText '.replaceFirst(' $tag ', ' ').trim();
+        } else {
+          queryText = '$queryText $tag'.trim();
+        }
+
+        final newUri = originalHrefUri.replace(
+          queryParameters: {
+            ...originalHrefUri.queryParameters,
+            'q': queryText,
+          },
+        );
+
+        final openSections = document
+            .querySelectorAll('.search-form-section')
+            .where((e) =>
+                e.dataset.containsKey('section-tag') &&
+                e.classes.contains('-active'))
+            .map((e) => e.dataset['section-tag'])
+            .whereType<String>()
+            .join(' ');
+
+        final requestUri = windowUri.replace(
+          path: newUri.path,
+          queryParameters: {
+            ...newUri.queryParameters,
+            'open-sections': openSections,
+          },
+        );
+
+        await updateBodyWithHttpGet(
+          requestUri: requestUri,
+          navigationUrl: windowUri.resolveUri(newUri).toString(),
+        );
+      }
+
+      checkbox.onChange.listen(handleClick);
+      link.onClick.listen(handleClick);
     }
   });
 }

@@ -75,6 +75,8 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
   String? title,
   String? searchPlaceholder,
 }) async {
+  final openSections =
+      request.requestedUri.queryParameters['open-sections']?.split(' ').toSet();
   final searchForm =
       SearchForm.parse(context, request.requestedUri.queryParameters);
   final sw = Stopwatch()..start();
@@ -91,6 +93,7 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
       title: title,
       searchPlaceholder: searchPlaceholder,
       messageFromBackend: searchResult.message,
+      openSections: openSections,
     ),
   );
   _searchOverallLatencyTracker.add(sw.elapsed);

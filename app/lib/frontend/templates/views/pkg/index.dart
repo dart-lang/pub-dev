@@ -17,6 +17,7 @@ d.Node packageListingNode({
   required d.Node listingInfo,
   required d.Node packageList,
   required d.Node? pagination,
+  required Set<String>? openSections,
 }) {
   final innerContent = d.fragment([
     listingInfo,
@@ -30,6 +31,7 @@ d.Node packageListingNode({
     return _searchFormContainer(
       searchForm: searchForm,
       innerContent: innerContent,
+      openSections: openSections ?? const <String>{},
     );
   } else {
     return d.fragment([
@@ -42,6 +44,7 @@ d.Node packageListingNode({
 d.Node _searchFormContainer({
   required SearchForm searchForm,
   required d.Node innerContent,
+  required Set<String> openSections,
 }) {
   return d.div(
     classes: [
@@ -91,9 +94,11 @@ d.Node _searchFormContainer({
             ],
           ),
           _filterSection(
+            sectionTag: 'sdks',
             label: 'SDKs',
-            isActive: searchForm.parsedQuery.tagsPredicate
-                .anyTag((t) => t.startsWith('sdk:')),
+            isActive: openSections.contains('sdks') ||
+                searchForm.parsedQuery.tagsPredicate
+                    .anyTag((t) => t.startsWith('sdk:')),
             children: [
               _sdkCheckbox(
                 sdk: SdkTagValue.dart,
@@ -108,8 +113,10 @@ d.Node _searchFormContainer({
             ],
           ),
           _filterSection(
+            sectionTag: 'advanced',
             label: 'Advanced',
-            isActive: searchForm.hasActiveAdvanced,
+            isActive: openSections.contains('advanced') ||
+                searchForm.hasActiveAdvanced,
             children: [
               _formLinkedCheckbox(
                 id: 'search-form-checkbox-discontinued',
@@ -181,6 +188,7 @@ d.Node _tagBasedCheckbox({
     toggledSearchForm: toggledSearchForm,
     isChecked: searchForm.parsedQuery.tagsPredicate.isRequiredTag(tag),
     isIndeterminate: searchForm.parsedQuery.tagsPredicate.isProhibitedTag(tag),
+    tag: tag,
   );
 }
 
@@ -190,6 +198,7 @@ d.Node _formLinkedCheckbox({
   required SearchForm toggledSearchForm,
   required bool isChecked,
   bool isIndeterminate = false,
+  String? tag,
 }) {
   return d.div(
     classes: ['search-form-linked-checkbox'],
@@ -197,9 +206,11 @@ d.Node _formLinkedCheckbox({
       id: id,
       label: label,
       labelNodeContent: (label) => d.a(
-        classes: ['search-link'],
         href: toggledSearchForm.toSearchLink(),
         text: label,
+        attributes: {
+          if (tag != null) 'data-tag': isIndeterminate ? '-$tag' : tag,
+        },
       ),
       checked: isChecked,
       indeterminate: isIndeterminate,
@@ -208,12 +219,14 @@ d.Node _formLinkedCheckbox({
 }
 
 d.Node _filterSection({
+  String? sectionTag,
   required String label,
   required Iterable<d.Node> children,
   bool isActive = false,
 }) {
   return d.div(
     classes: ['search-form-section', 'foldable', if (isActive) '-active'],
+    attributes: {if (sectionTag != null) 'data-section-tag': sectionTag},
     children: [
       d.h3(
         classes: ['search-form-section-header foldable-button'],

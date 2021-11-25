@@ -11,11 +11,18 @@ import 'src/hoverable.dart';
 import 'src/issues.dart';
 import 'src/likes.dart';
 import 'src/mobile_nav.dart';
+import 'src/page_updater.dart';
 import 'src/scroll.dart';
 import 'src/search.dart';
 
 void main() {
   window.onLoad.listen((_) => mdc.autoInit());
+  setupAccount();
+  _setupAllEvents();
+  setupPageUpdater(_setupAllEvents);
+}
+
+void _setupAllEvents() {
   setupSearch();
   setupScroll();
   setupFoldable();
@@ -23,7 +30,6 @@ void main() {
   setupMobileNav();
   setupIssues();
   updateDartdocStatus();
-  setupAccount();
   setupLikes();
   setupLikesList();
 }
