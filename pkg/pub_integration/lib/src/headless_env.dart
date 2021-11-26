@@ -15,6 +15,7 @@ import 'package:puppeteer/src/page/page.dart' show ClientError;
 /// and uncaught exceptions.
 class HeadlessEnv {
   final String testName;
+  final String _origin;
   final String? _coverageDir;
   final Directory _tempDir;
   final bool debug;
@@ -32,10 +33,12 @@ class HeadlessEnv {
   final _cssCoverages = <String, _Coverage>{};
 
   HeadlessEnv({
+    required String origin,
     required this.testName,
     String? coverageDir,
     this.debug = false,
-  })  : _coverageDir = coverageDir ?? Platform.environment['COVERAGE_DIR'],
+  })  : _origin = origin,
+        _coverageDir = coverageDir ?? Platform.environment['COVERAGE_DIR'],
         _tempDir = Directory.systemTemp.createTempSync('pub-headless');
 
   Future<String> _detectChromeBinary() async {
@@ -58,7 +61,7 @@ class HeadlessEnv {
     return r.executablePath;
   }
 
-  Future<void> startBrowser({String? origin}) async {
+  Future<void> startBrowser() async {
     if (_browser != null) return;
     final chromeBin = await _detectChromeBinary();
     final userDataDir = await _tempDir.createTemp('user');
@@ -76,22 +79,20 @@ class HeadlessEnv {
       headless: !debug,
       devTools: false,
     );
-    // When origin is specified, update the default permissions like clipboard
-    // access.
-    if (origin != null) {
-      await _browser!.defaultBrowserContext
-          .overridePermissions(origin, [PermissionType.clipboardReadWrite]);
-    }
+
+    // Update the default permissions like clipboard access.
+    await _browser!.defaultBrowserContext
+        .overridePermissions(_origin, [PermissionType.clipboardReadWrite]);
   }
 
   /// Creates a new page and setup overrides and tracking.
   Future<R> withPage<R>({
     FakeGoogleUser? user,
     required Future<R> Function(Page page) fn,
-    String? origin,
   }) async {
-    await startBrowser(origin: origin);
+    await startBrowser();
     final page = await _browser!.newPage();
+    _pageOriginExpando[page] = _origin;
     await page.setRequestInterception(true);
     if (trackCoverage) {
       await page.coverage.startJSCoverage(resetOnNavigation: false);
@@ -249,6 +250,17 @@ class HeadlessEnv {
 
     await saveToFile(_jsCoverages, '$outputDir/$testName.js.json');
     await saveToFile(_cssCoverages, '$outputDir/$testName.css.json');
+  }
+}
+
+/// Stores the origin URL on the page.
+final _pageOriginExpando = Expando<String>();
+
+extension PageExt on Page {
+  /// Visits the [path] relative to the origin.
+  Future<Response> gotoOrigin(String path) async {
+    final origin = _pageOriginExpando[this];
+    return await goto('$origin$path', wait: Until.networkIdle);
   }
 }
 

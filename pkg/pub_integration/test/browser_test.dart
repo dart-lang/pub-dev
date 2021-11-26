@@ -14,7 +14,7 @@ void main() {
   group('browser', () {
     late FakePubServerProcess fakePubServerProcess;
     late BaseSetupScript script;
-    final headlessEnv = HeadlessEnv(testName: 'browser');
+    late final HeadlessEnv headlessEnv;
     final httpClient = http.Client();
 
     setUpAll(() async {
@@ -39,15 +39,17 @@ void main() {
       await script.updatePubSite();
 
       // start browser
-      await headlessEnv.startBrowser(
-          origin: 'http://localhost:${fakePubServerProcess.port}');
+      headlessEnv = HeadlessEnv(
+        testName: 'browser',
+        origin: 'http://localhost:${fakePubServerProcess.port}',
+      );
+      await headlessEnv.startBrowser();
 
       // landing page
       await headlessEnv.withPage(
         user: FakeGoogleUser.withDefaults('dev@example.org'),
         fn: (page) async {
-          await page.goto('http://localhost:${fakePubServerProcess.port}',
-              wait: Until.networkIdle);
+          await page.gotoOrigin('/');
 
           // checking if there is a login button
           await page.hover('#-account-login');
@@ -58,9 +60,7 @@ void main() {
       await headlessEnv.withPage(
         user: FakeGoogleUser.withDefaults('dev@example.org'),
         fn: (page) async {
-          await page.goto(
-              'http://localhost:${fakePubServerProcess.port}/packages',
-              wait: Until.networkIdle);
+          await page.gotoOrigin('/packages');
 
           // check package list
           final packages = <String?>{};
@@ -75,9 +75,7 @@ void main() {
       await headlessEnv.withPage(
         user: FakeGoogleUser.withDefaults('dev@example.org'),
         fn: (page) async {
-          await page.goto(
-              'http://localhost:${fakePubServerProcess.port}/packages/retry',
-              wait: Until.networkIdle);
+          await page.gotoOrigin('/packages/retry');
 
           // check pub score
           final pubScoreElem = await page
@@ -94,19 +92,13 @@ void main() {
           await checkHeaderTitle();
           await _checkCopyToClipboard(page);
 
-          await page.goto(
-              'http://localhost:${fakePubServerProcess.port}/packages/retry/versions/2.0.1',
-              wait: Until.networkIdle);
+          await page.gotoOrigin('/packages/retry/versions/2.0.1');
           await checkHeaderTitle();
 
-          await page.goto(
-              'http://localhost:${fakePubServerProcess.port}/packages/retry/versions/2.0.01',
-              wait: Until.networkIdle);
+          await page.gotoOrigin('/packages/retry/versions/2.0.01');
           await checkHeaderTitle();
 
-          await page.goto(
-              'http://localhost:${fakePubServerProcess.port}/packages/retry/license',
-              wait: Until.networkIdle);
+          await page.gotoOrigin('/packages/retry/license');
           await checkHeaderTitle();
         },
       );
