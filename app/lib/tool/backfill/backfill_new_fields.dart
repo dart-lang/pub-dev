@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:logging/logging.dart';
+import 'package:retry/retry.dart';
 
 import '../../package/backend.dart';
 import '../../package/models.dart';
@@ -20,31 +21,25 @@ Future<void> backfillNewFields() async {
 }
 
 Future<void> _backfillPackages() async {
-  // Backfilling the version count may take several second for each package,
-  // during which a new version could be published. To prevent bad updates,
-  // the count is not used in such cases, and backfill is re-run every time
-  // a race has been detected.
-  var wasRace = true;
-  while (wasRace) {
-    wasRace = false;
+  await for (final p in dbService.query<Package>().run()) {
+    // Backfilling the version count may take several second for each package,
+    // during which a new version could be published.
+    // To prevent bad updates, the backfill is running with retry.
+    await retry(() => _packageVersionCount(p.name!));
+  }
 
-    await for (final p in dbService.query<Package>().run()) {
-      if (await _packageVersionCount(p)) {
-        wasRace = true;
-      }
-    }
-
-    await for (final p in dbService.query<Package>().run()) {
-      if (await _packagePublishedTimestamps(p)) {
-        wasRace = true;
-      }
-    }
+  await for (final p in dbService.query<Package>().run()) {
+    // Correcting the timestamp may take several second for each package,
+    // during which a new version could be published.
+    // To prevent bad updates, the backfill is running with retry.
+    await retry(() => _packagePublishedTimestamps(p.name!));
   }
 }
 
 /// Corrects the Package's published timestamps.
-/// Returns true if a race has been detected while the entity was updated.
-Future<bool> _packagePublishedTimestamps(Package p) async {
+/// Throws if a race has been detected while the entity was updated.
+Future<void> _packagePublishedTimestamps(String name) async {
+  final p = (await packageBackend.lookupPackage(name))!;
   final versions = await packageBackend.listVersionsCached(p.name!);
   final stable = versions.versions
       .firstWhere((v) => v.version == p.latestVersion)
@@ -64,7 +59,7 @@ Future<bool> _packagePublishedTimestamps(Package p) async {
       p.latestPrereleasePublished == prerelease &&
       p.latestPreviewPublished == preview &&
       !p.lastVersionPublished!.isBefore(last)) {
-    return false;
+    return;
   }
 
   return await withRetryTransaction(dbService, (tx) async {
@@ -80,7 +75,7 @@ Future<bool> _packagePublishedTimestamps(Package p) async {
         p.latestPreviewPublished != v.latestPreviewPublished ||
         p.lastVersionPublished != v.lastVersionPublished) {
       _logger.info('[backfill-published-timestamps-race] "${v.name}"');
-      return true;
+      throw Exception('Race condition detected.');
     }
 
     v.latestPublished = stable;
@@ -90,13 +85,13 @@ Future<bool> _packagePublishedTimestamps(Package p) async {
       v.lastVersionPublished = last;
     }
     v.updated = DateTime.now().toUtc();
-    return false;
   });
 }
 
 /// Backfills the Package's `versionCount` field.
-/// Returns true if a race has been detected while the entity was updated.
-Future<bool> _packageVersionCount(Package p) async {
+/// Throws if a race has been detected while the entity was updated.
+Future<void> _packageVersionCount(String name) async {
+  final p = (await packageBackend.lookupPackage(name))!;
   final versions = await packageBackend.versionsOfPackage(p.name!);
   final count = versions.length;
   final countUntilLastPublished = versions
@@ -108,7 +103,7 @@ Future<bool> _packageVersionCount(Package p) async {
         'difference: $count total != $countUntilLastPublished until last published.');
   }
   if (p.versionCount == count) {
-    return false;
+    return;
   }
   return await withRetryTransaction(dbService, (tx) async {
     final v = await tx.lookupValue<Package>(p.key);
@@ -119,7 +114,7 @@ Future<bool> _packageVersionCount(Package p) async {
         p.likes != v.likes) {
       _logger.info(
           '[backfill-version-count-race] "${v.name}" ${v.versionCount} -> $count');
-      return true;
+      throw Exception('Race condition detected.');
     }
     if (v.versionCount != count) {
       _logger.info(
@@ -128,6 +123,5 @@ Future<bool> _packageVersionCount(Package p) async {
       v.updated = DateTime.now().toUtc();
       tx.insert(v);
     }
-    return false;
   });
 }
