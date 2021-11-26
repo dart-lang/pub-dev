@@ -40,19 +40,16 @@ Future<void> _backfillPackages() async {
 /// Throws if a race has been detected while the entity was updated.
 Future<void> _packagePublishedTimestamps(String name) async {
   final p = (await packageBackend.lookupPackage(name))!;
-  final versions = await packageBackend.listVersionsCached(p.name!);
-  final stable = versions.versions
-      .firstWhere((v) => v.version == p.latestVersion)
-      .published;
-  final prerelease = versions.versions
+  final versions = await packageBackend.versionsOfPackage(name);
+  final stable =
+      versions.firstWhere((v) => v.version == p.latestVersion).created;
+  final prerelease = versions
       .firstWhere((v) => v.version == p.latestPrereleaseVersion)
-      .published;
-  final preview = versions.versions
-      .firstWhere((v) => v.version == p.latestPreviewVersion)
-      .published;
-  final last = versions.versions
-      .map((e) => e.published!)
-      .reduce((a, b) => a.isBefore(b) ? b : a);
+      .created;
+  final preview =
+      versions.firstWhere((v) => v.version == p.latestPreviewVersion).created;
+  final last =
+      versions.map((e) => e.created!).reduce((a, b) => a.isBefore(b) ? b : a);
 
   // check if any update is needed
   if (p.latestPublished == stable &&
