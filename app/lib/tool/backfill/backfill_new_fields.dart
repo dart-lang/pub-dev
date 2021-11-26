@@ -25,14 +25,22 @@ Future<void> _backfillPackages() async {
     // Backfilling the version count may take several second for each package,
     // during which a new version could be published.
     // To prevent bad updates, the backfill is running with retry.
-    await retry(() => _packageVersionCount(p.name!));
+    try {
+      await retry(() => _packageVersionCount(p.name!));
+    } catch (e, st) {
+      _logger.severe('Unable to backfill package "${p.name}".', e, st);
+    }
   }
 
   await for (final p in dbService.query<Package>().run()) {
     // Correcting the timestamp may take several second for each package,
     // during which a new version could be published.
     // To prevent bad updates, the backfill is running with retry.
-    await retry(() => _packagePublishedTimestamps(p.name!));
+    try {
+      await retry(() => _packagePublishedTimestamps(p.name!));
+    } catch (e, st) {
+      _logger.severe('Unable to correct package "${p.name}".', e, st);
+    }
   }
 }
 
