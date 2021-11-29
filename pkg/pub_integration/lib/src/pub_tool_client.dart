@@ -39,15 +39,17 @@ class DartToolClient {
     await Directory(tool._pubCacheDir).create(recursive: true);
 
     var creds = oauth2.Credentials.fromJson(credentialsFileContent);
-    final c = http.Client();
-    try {
-      creds = await creds.refresh(
-        identifier: _pubClientId,
-        secret: _pubClientSecret,
-        httpClient: c,
-      );
-    } finally {
-      c.close();
+    if ((creds.expiration ?? DateTime(0)).isBefore(DateTime.now())) {
+      final c = http.Client();
+      try {
+        creds = await creds.refresh(
+          identifier: _pubClientId,
+          secret: _pubClientSecret,
+          httpClient: c,
+        );
+      } finally {
+        c.close();
+      }
     }
 
     // If we set $XDG_CONFIG_HOME, $APPDATA and $HOME to _configHome, we only
