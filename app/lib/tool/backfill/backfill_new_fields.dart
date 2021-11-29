@@ -90,6 +90,7 @@ Future<void> _packagePublishedTimestamps(String name) async {
       v.lastVersionPublished = last;
     }
     v.updated = DateTime.now().toUtc();
+    tx.insert(v);
   });
 }
 
