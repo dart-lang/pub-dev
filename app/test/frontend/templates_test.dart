@@ -721,18 +721,20 @@ void main() {
           imageUrl: 'pub.dev/user-img-url.png',
         );
         registerUserSessionData(session);
+        final publisherCreated = DateTime(2021, 07, 01, 16, 05);
         final html = renderAccountPublishersPage(
           user: user,
           userSessionData: session,
           publishers: [
             PublisherSummary(
               publisherId: 'example.com',
-              created: DateTime(2021, 07, 01, 16, 05),
+              created: publisherCreated,
             ),
           ],
         );
         expectGoldenFile(html, 'my_publishers.html', timestamps: {
           'user-created': user.created,
+          'publisher-created': publisherCreated,
         });
       });
     });
