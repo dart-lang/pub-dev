@@ -41,8 +41,9 @@ void main() {
         uri,
         headers: {HttpHeaders.acceptEncodingHeader: 'deflate;q=1, *;q=0.2'},
       );
-      expect(request.acceptsEncoding('gzip'), isTrue);
-      expect(request.acceptsEncoding('anything'), isTrue);
+      expect(request.acceptsEncoding('gzip'), isFalse);
+      expect(request.acceptsEncoding('anything'), isFalse);
+      expect(request.acceptsEncoding('*'), isTrue);
     });
   });
 }

@@ -165,6 +165,6 @@ extension RequestExt on shelf.Request {
     }
     final items =
         accepting.split(',').map((p) => p.split(';').first.trim()).toSet();
-    return items.contains('*') || items.contains(encoding);
+    return items.contains(encoding);
   }
 }
