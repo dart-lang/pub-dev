@@ -190,6 +190,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.1"
+  oauth2:
+    dependency: "direct main"
+    description:
+      name: oauth2
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.0"
   package_config:
     dependency: transitive
     description:
