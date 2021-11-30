@@ -3,9 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:oauth2/oauth2.dart' as oauth2;
 
 import 'package:path/path.dart' as p;
+
+// OAuth clientId and clientSecret also hardcoded into the `pub` client.
+final _pubClientId =
+    '818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.googleusercontent.com';
+final _pubClientSecret = 'SWeqj8seoJW0w7_CpEPFLX0K';
 
 /// Wrapper for the `dart` command-line tool, with a focus on `dart pub`.
 class DartToolClient {
@@ -30,6 +38,20 @@ class DartToolClient {
     final tool = DartToolClient._(pubHostedUrl, tempDir.path);
     await Directory(tool._pubCacheDir).create(recursive: true);
 
+    var creds = oauth2.Credentials.fromJson(credentialsFileContent);
+    if ((creds.expiration ?? DateTime(0)).isBefore(DateTime.now())) {
+      final c = http.Client();
+      try {
+        creds = await creds.refresh(
+          identifier: _pubClientId,
+          secret: _pubClientSecret,
+          httpClient: c,
+        );
+      } finally {
+        c.close();
+      }
+    }
+
     // If we set $XDG_CONFIG_HOME, $APPDATA and $HOME to _configHome, we only
     // need to write the config file to two locations to supported:
     //  - $XDG_CONFIG_HOME/dart/pub-credentials.json
@@ -39,10 +61,24 @@ class DartToolClient {
       p.join(tool._configHome, 'dart'),
       p.join(tool._configHome, 'Library', 'Application Support', 'dart'),
     ].map((folder) async {
-      final configFile = File(p.join(folder, 'pub-credentials.json'));
+      final credentialsFile = File(p.join(folder, 'pub-credentials.json'));
+      await credentialsFile.parent.create(recursive: true);
+      await credentialsFile.writeAsString(credentialsFileContent);
 
-      await configFile.parent.create(recursive: true);
-      await configFile.writeAsString(credentialsFileContent);
+      // if pubHostedUrl is NOT pub.dev or pub.dartlang.org, then the 'dart pub'
+      // client will refuse to use the oauth credentials from
+      // pub-credentials.json, so instead we use accessToken directly.
+      final tokensFile = File(p.join(folder, 'pub-tokens.json'));
+      await tokensFile.parent.create(recursive: true);
+      await tokensFile.writeAsString(json.encode({
+        'version': 1,
+        'hosted': [
+          {
+            'url': pubHostedUrl,
+            'token': creds.accessToken,
+          },
+        ],
+      }));
     }));
     // Also write to legacy location in $PUB_CACHE/credentials.json
     await File(p.join(tool._pubCacheDir, 'credentials.json')).writeAsString(
