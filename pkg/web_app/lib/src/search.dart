@@ -81,10 +81,13 @@ void _setEventsForSearchForm() {
             inputQElem.value ?? originalHrefUri.queryParameters['q'] ?? '';
         queryText = queryText.trim();
         final tag = link.dataset['tag'];
-        if (tag != null && ' $queryText '.contains(' $tag ')) {
-          queryText = ' $queryText '.replaceFirst(' $tag ', ' ').trim();
-        } else {
-          queryText = '$queryText $tag'.trim();
+        if (tag != null) {
+          // remove or add tag to query string
+          if (' $queryText '.contains(' $tag ')) {
+            queryText = ' $queryText '.replaceFirst(' $tag ', ' ').trim();
+          } else {
+            queryText = '$queryText $tag'.trim();
+          }
         }
 
         final newUri = originalHrefUri.replace(

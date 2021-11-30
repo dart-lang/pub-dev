@@ -164,6 +164,17 @@ void main() {
           expect(i6.totalCount, i2.totalCount);
           expect(i6.openSections, i5.openSections);
           expect(page.url, '$origin/packages?q=platform%3Aandroid+pkg');
+
+          // include discontinued
+          await page.click('.search-form-section[data-section-tag="advanced"]');
+          await Future.delayed(Duration(seconds: 1));
+          await page.click('#search-form-checkbox-discontinued');
+          await page.waitForNavigation(wait: Until.networkIdle);
+          final i7 = await listingPageInfo(page);
+          expect(i7.totalCount, i6.totalCount);
+          expect(i7.openSections, ['sdks', 'advanced']);
+          expect(page.url,
+              '$origin/packages?q=platform%3Aandroid+pkg&discontinued=1');
         },
       );
     });
