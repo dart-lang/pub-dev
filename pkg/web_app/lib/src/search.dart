@@ -122,6 +122,7 @@ void _setEventsForSearchForm() {
 
       checkbox.onChange.listen(handleClick);
       link.onClick.listen(handleClick);
+      e.onClick.listen(handleClick);
     }
   });
 }

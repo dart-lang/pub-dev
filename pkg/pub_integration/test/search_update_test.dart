@@ -157,8 +157,9 @@ void main() {
           final flutterCB5 = await page.$('#search-form-checkbox-sdk-flutter');
           expect(await flutterCB5.attributeValue('data-indeterminate'), 'true');
 
-          // clear Flutter
-          await flutterCB5.click();
+          // clear Flutter with a row-level click
+          final flutterRow = await flutterCB5.$x('../../..');
+          await flutterRow.single.click();
           await page.waitForNavigation(wait: Until.networkIdle);
           final i6 = await listingPageInfo(page);
           expect(i6.totalCount, i2.totalCount);
@@ -175,6 +176,11 @@ void main() {
           expect(i7.openSections, ['sdks', 'advanced']);
           expect(page.url,
               '$origin/packages?q=platform%3Aandroid+pkg&discontinued=1');
+
+          // remove discontinued
+          await page.click('#search-form-checkbox-discontinued');
+          await page.waitForNavigation(wait: Until.networkIdle);
+          expect(page.url, '$origin/packages?q=platform%3Aandroid+pkg');
         },
       );
     });
