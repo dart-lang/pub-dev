@@ -186,6 +186,10 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
               storageService, activeConfiguration.packageBucketName!),
           null),
     );
+
+    registerImageStorage(ImageStorage(await getOrCreateBucket(
+        storageService, activeConfiguration.imageBucketName!)));
+
     registerYoutubeBackend(YoutubeBackend());
 
     // depends on previously registered services

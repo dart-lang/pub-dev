@@ -55,6 +55,9 @@ class Configuration {
   /// The name of the Cloud Storage bucket to use for uploaded package content.
   final String? packageBucketName;
 
+  /// The name of the Cloud Storage bucket to use for uploaded images.
+  final String? imageBucketName;
+
   /// The Cloud project Id. This is only required when using Apiary to access
   /// Datastore and/or Cloud Storage
   final String projectId;
@@ -159,6 +162,7 @@ class Configuration {
     return Configuration(
       projectId: projectId,
       packageBucketName: 'pub-packages',
+      imageBucketName: 'pub-images',
       dartdocStorageBucketName: '$projectId--dartdoc-storage',
       popularityDumpBucketName: '$projectId--popularity',
       searchSnapshotBucketName: '$projectId--search-snapshot',
@@ -208,6 +212,7 @@ class Configuration {
     return Configuration(
       projectId: projectId,
       packageBucketName: '$projectId--pub-packages',
+      imageBucketName: '$projectId-bucket-image',
       dartdocStorageBucketName: '$projectId--dartdoc-storage',
       popularityDumpBucketName: '$projectId--popularity',
       searchSnapshotBucketName: '$projectId--search-snapshot',
@@ -254,6 +259,7 @@ class Configuration {
   Configuration({
     required this.projectId,
     required this.packageBucketName,
+    required this.imageBucketName,
     required this.dartdocStorageBucketName,
     required this.popularityDumpBucketName,
     required this.searchSnapshotBucketName,
@@ -298,6 +304,7 @@ class Configuration {
     return Configuration(
       projectId: 'dartlang-pub-fake',
       packageBucketName: 'fake-bucket-pub',
+      imageBucketName: 'fake-bucket-image',
       dartdocStorageBucketName: 'fake-bucket-dartdoc',
       popularityDumpBucketName: 'fake-bucket-popularity',
       searchSnapshotBucketName: 'fake-bucket-search',
@@ -328,6 +335,7 @@ class Configuration {
     return Configuration(
       projectId: 'dartlang-pub-test',
       packageBucketName: 'fake-bucket-pub',
+      imageBucketName: 'fake-bucket-image',
       dartdocStorageBucketName: 'fake-bucket-dartdoc',
       popularityDumpBucketName: 'fake-bucket-popularity',
       searchSnapshotBucketName: 'fake-bucket-search',

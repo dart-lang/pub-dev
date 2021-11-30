@@ -513,4 +513,60 @@ void main() {
       timeout: Timeout.factor(1.5),
     );
   });
+
+  group('image upload', () {
+    testWithProfile('succesful upload', fn: () async {
+      await imageStorage.upload(
+          'new_pkg',
+          '1.2.3',
+          () => Stream.fromIterable([
+                [1],
+              ]),
+          'image.svg',
+          1);
+
+      expect(
+          await imageStorage.bucket
+              .read('new_pkg/1.2.3/image.svg')
+              .fold<List<int>>(<int>[], (buffer, data) => buffer..addAll(data)),
+          [1]);
+    });
+
+    testWithProfile('unsupported file extension', fn: () async {
+      final rs = imageStorage.upload(
+          'new_pkg',
+          '1.2.3',
+          () => Stream.fromIterable([
+                [1]
+              ]),
+          'image.txt',
+          1);
+
+      await expectLater(
+        rs,
+        throwsA(
+          isA<ImageRejectedException>().having(
+              (e) => '$e', 'text', contains('Failed to upload image file')),
+        ),
+      );
+    });
+
+    testWithProfile('no file extension', fn: () async {
+      final rs = imageStorage.upload(
+          'new_pkg',
+          '1.2.3',
+          () => Stream.fromIterable([
+                [1]
+              ]),
+          'image',
+          1);
+
+      await expectLater(
+        rs,
+        throwsA(
+          isA<ImageRejectedException>(),
+        ),
+      );
+    });
+  });
 }
