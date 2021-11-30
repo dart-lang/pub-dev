@@ -160,8 +160,11 @@ extension RequestExt on shelf.Request {
   ///       value is present (or everything is accepted).
   bool acceptsEncoding(String encoding) {
     final accepting = headers[HttpHeaders.acceptEncodingHeader];
-    return accepting == null ||
-        accepting.contains('*') ||
-        accepting.contains(encoding);
+    if (accepting == null || accepting.isEmpty) {
+      return false;
+    }
+    final items =
+        accepting.split(',').map((p) => p.split(';').first.trim()).toSet();
+    return items.contains(encoding);
   }
 }
