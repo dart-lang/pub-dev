@@ -7,6 +7,7 @@ import 'package:pub_integration/script/base_setup_script.dart';
 import 'package:pub_integration/src/fake_credentials.dart';
 import 'package:pub_integration/src/fake_pub_server_process.dart';
 import 'package:pub_integration/src/headless_env.dart';
+import 'package:pub_integration/src/pub_puppeteer_helpers.dart';
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
 
@@ -63,11 +64,8 @@ void main() {
           await page.gotoOrigin('/packages');
 
           // check package list
-          final packages = <String?>{};
-          for (final item in await page.$$('.packages .packages-title a')) {
-            packages.add(await item.textContent());
-          }
-          expect(packages, {'_dummy_pkg', 'retry'});
+          final info = await listingPageInfo(page);
+          expect(info.packageNames, containsAll(['_dummy_pkg', 'retry']));
         },
       );
 
