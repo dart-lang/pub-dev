@@ -1341,49 +1341,6 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
   return DerivedPackageVersionEntities(versionInfo, assets);
 }
 
-class ImageStorage {
-  final Bucket bucket;
-  ImageStorage(this.bucket);
-
-  final supportedMIMETypes = [
-    'image/apng',
-    'image/avif',
-    'image/gif',
-    'image/jpeg',
-    'image/png',
-    'image/svg+xml',
-    'image/webp'
-  ];
-
-  Future<void> upload(
-      String package,
-      String version,
-      Stream<List<int>> Function() openStream,
-      String imageFilePath,
-      int length) async {
-    final String? mimeType = lookupMimeType(imageFilePath);
-
-    if (mimeType == null || !validateImage(mimeType)) {
-      _logger.info(
-          'Image upload of $imageFilePath for package $package failed. '
-          'The file $imageFilePath is not one of the following supported MIME types:'
-          ' ${supportedMIMETypes.join(', ')}.');
-      throw ImageRejectedException.invalid();
-    }
-
-    return bucket.uploadPublic(
-        bucket,
-        [package, version, imageFilePath.split('/').last].join('/'),
-        length,
-        openStream,
-        mimeType);
-  }
-
-  bool validateImage(String mimeType) {
-    return supportedMIMETypes.contains(mimeType);
-  }
-}
-
 /// Helper utility class for interfacing with Cloud Storage for storing
 /// tarballs.
 class TarballStorage {
@@ -1515,5 +1472,54 @@ void checkPackageVersionParams(String package, [String? version]) {
     if (version != 'latest') {
       InvalidInputException.checkSemanticVersion(version);
     }
+  }
+}
+
+/// Helper utility class for interfacing with Cloud Storage for storing
+/// images.
+class ImageStorage {
+  final Bucket bucket;
+  ImageStorage(this.bucket);
+
+  final _supportedMIMETypes = [
+    'image/apng',
+    'image/avif',
+    'image/gif',
+    'image/jpeg',
+    'image/png',
+    'image/svg+xml',
+    'image/webp'
+  ];
+
+  /// Uploads an image to image storage, at '<package>/<version>/<imageFileName>'.
+  ///
+  /// Throws an [ImageRejectedException] if the provided image file is not one of
+  /// the following supported MIME types : image/apng, image/avif, image/gif,
+  /// image/jpeg, image/png, image/svg+xml, image/webp.
+  Future<void> upload(
+      String package,
+      String version,
+      Stream<List<int>> Function() openStream,
+      String imageFilePath,
+      int length) async {
+    final String? mimeType = lookupMimeType(imageFilePath);
+
+    if (mimeType == null || !_validateImage(mimeType)) {
+      _logger.info(
+          'Image upload of $imageFilePath for package $package failed. '
+          'The file $imageFilePath is not one of the following supported MIME types:'
+          ' ${_supportedMIMETypes.join(', ')}.');
+      throw ImageRejectedException.invalid();
+    }
+
+    return bucket.uploadPublic(
+        [package, version, imageFilePath.split('/').last].join('/'),
+        length,
+        openStream,
+        mimeType);
+  }
+
+  bool _validateImage(String mimeType) {
+    return _supportedMIMETypes.contains(mimeType);
   }
 }

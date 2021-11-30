@@ -34,12 +34,12 @@ extension BucketExt on Bucket {
     }
   }
 
-  Future uploadPublic(Bucket bucket, String objectName, int length,
+  Future uploadPublic(String objectName, int length,
       Stream<List<int>> Function() openStream, String contentType) {
     final publicRead = AclEntry(AllUsersScope(), AclPermission.READ);
     final acl = Acl([publicRead]);
     final metadata = ObjectMetadata(acl: acl, contentType: contentType);
-    return uploadWithRetry(bucket, objectName, length, openStream,
+    return uploadWithRetry(this, objectName, length, openStream,
         metadata: metadata);
   }
 }
