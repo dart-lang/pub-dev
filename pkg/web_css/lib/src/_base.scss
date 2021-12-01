@@ -387,3 +387,11 @@ pre {
 
   text-align: center;
 }
+
+span.-x-ago {
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline dotted #ccc;
+  }
+}

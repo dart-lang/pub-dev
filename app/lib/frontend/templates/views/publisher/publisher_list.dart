@@ -27,8 +27,8 @@ d.Node publisherListNode({
                 ),
               ),
               d.p(children: [
-                d.text('Registered on '),
-                d.shortTimestamp(p.created),
+                d.text('Registered '),
+                d.xAgoTimestamp(p.created, datePrefix: 'on'),
                 d.text('.'),
               ]),
             ],

@@ -78,7 +78,7 @@ d.Node _packageItem(PackageView view) {
         ],
         d.text(' • Updated: '),
         d.span(
-          child: view.updated == null ? null : d.shortTimestamp(view.updated!),
+          child: view.updated == null ? null : d.xAgoTimestamp(view.updated!),
         ),
       ],
     ),

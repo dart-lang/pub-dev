@@ -40,7 +40,7 @@ d.Node versionRowNode(String package, VersionInfo version, Pubspec pubspec) {
       ),
       d.td(
         classes: ['uploaded'],
-        child: d.shortTimestamp(version.published!),
+        child: d.xAgoTimestamp(version.published!),
       ),
       d.td(
         classes: ['documentation'],

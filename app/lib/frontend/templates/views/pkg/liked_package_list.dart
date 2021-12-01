@@ -50,8 +50,8 @@ d.Node likedPackageListNode(List<LikeData> likes) {
           d.p(
             classes: ['packages-metadata'],
             children: [
-              d.text(' Liked on: '),
-              d.shortTimestamp(like.created!),
+              d.text(' Liked '),
+              d.xAgoTimestamp(like.created!, datePrefix: 'on'),
             ],
           ),
         ],

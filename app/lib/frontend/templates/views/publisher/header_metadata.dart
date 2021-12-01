@@ -32,8 +32,8 @@ d.Node publisherHeaderMetadataNode(Publisher publisher) {
     ]),
     d.p(
       children: [
-        d.text('Publisher registered on '),
-        d.shortTimestamp(publisher.created!),
+        d.text('Publisher registered '),
+        d.xAgoTimestamp(publisher.created!, datePrefix: 'on'),
       ],
     ),
   ]);

@@ -36,7 +36,7 @@ d.Node _activityLogTableNode(AuditLogRecordPage activities) {
     body: activities.records.map(
       (a) => d.tr(
         children: [
-          d.td(classes: ['date'], child: d.shortTimestamp(a.created!)),
+          d.td(classes: ['date'], child: d.xAgoTimestamp(a.created!)),
           d.td(
             classes: ['summary'],
             children: [
