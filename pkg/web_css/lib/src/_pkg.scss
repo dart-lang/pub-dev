@@ -331,7 +331,7 @@
     pre {
       // Most lines have 80 characters, better to scale down the font size
       // to keep everything visible at the same time.
-      font-size: 60%;
+      font-size: 50%;
 
       @media (min-width: $device-desktop-min-width) {
         // On larger screens the above setting seems to be too small. The
@@ -340,7 +340,7 @@
         //
         // The scaling breaks down on smaller screens, keeping it for
         // desktop only.
-        font-size: 1.2vw;
+        font-size: 1.0vw;
       }
     }
   }
