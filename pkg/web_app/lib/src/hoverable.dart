@@ -8,6 +8,7 @@ void setupHoverable() {
   _setEventForHoverable();
   _setEventForPackageTitleCopyToClipboard();
   _setEventForPreCodeCopyToClipboard();
+  _setEventForXAgo();
 }
 
 Element? _activeHover;
@@ -111,6 +112,16 @@ void _setEventForPreCodeCopyToClipboard() {
       final text = pre.dataset['textToCopy']?.trim() ?? pre.text!.trim();
       _copyToClipboard(text);
       await _animateCopyFeedback(feedback);
+    });
+  });
+}
+
+void _setEventForXAgo() {
+  document.querySelectorAll('span.-x-ago').forEach((e) {
+    e.onClick.listen((_) {
+      final text = e.text;
+      e.text = e.getAttribute('title');
+      e.setAttribute('title', text!);
     });
   });
 }

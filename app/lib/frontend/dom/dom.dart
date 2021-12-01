@@ -88,13 +88,16 @@ Node text(String value) => dom.text(value);
 /// Creates a DOM node with unsafe raw HTML content using the default [DomContext].
 Node unsafeRawHtml(String value) => dom.unsafeRawHtml(value);
 
-/// Creates a DOM node with the short, formatted [timestamp].
-Node shortTimestamp(DateTime timestamp) {
+/// Creates a DOM node with the short, formatted x-ago [timestamp].
+Node xAgoTimestamp(DateTime timestamp, {String? datePrefix}) {
+  final title = [
+    if (datePrefix != null) datePrefix,
+    shortDateFormat.format(timestamp),
+  ].join(' ');
   return span(
-    attributes: {
-      'title': formatXAgo(DateTime.now().difference(timestamp)),
-    },
-    text: shortDateFormat.format(timestamp),
+    classes: ['-x-ago'],
+    attributes: {'title': title},
+    text: formatXAgo(DateTime.now().difference(timestamp)),
   );
 }
 
