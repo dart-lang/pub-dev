@@ -12,6 +12,7 @@ void main() {
     final expectedValue = 'foo';
     expect(config.projectId, expectedValue);
     expect(config.packageBucketName, expectedValue);
+    expect(config.imageBucketName, expectedValue);
     expect(config.dartdocStorageBucketName, expectedValue);
     expect(config.popularityDumpBucketName, expectedValue);
     expect(config.admins![0].email, 'foo@foo.foo');

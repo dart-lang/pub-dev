@@ -440,13 +440,3 @@ class EmailSenderException extends ResponseException {
       : super._(500, 'EmailSenderFailed',
             'Failed to send email, please retry later.');
 }
-
-// Thrown when the image file upload is rejected.
-class ImageRejectedException extends ResponseException {
-  ImageRejectedException.invalid()
-      : super._(
-            400,
-            'InvalidImageFile',
-            'Failed to upload image file, check that the file is an image with'
-                ' a supported MIME type.');
-}

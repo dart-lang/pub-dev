@@ -212,7 +212,7 @@ class Configuration {
     return Configuration(
       projectId: projectId,
       packageBucketName: '$projectId--pub-packages',
-      imageBucketName: '$projectId-bucket-image',
+      imageBucketName: '$projectId--pub-images',
       dartdocStorageBucketName: '$projectId--dartdoc-storage',
       popularityDumpBucketName: '$projectId--popularity',
       searchSnapshotBucketName: '$projectId--search-snapshot',
