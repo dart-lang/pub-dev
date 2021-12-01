@@ -46,12 +46,11 @@ class ImageStorage {
       String imageFilePath,
       int length) async {
     final String? mimeType = lookupMimeType(imageFilePath);
-
-    if (mimeType == null || !validateImage(mimeType)) {
+    if (mimeType == null || !isAllowedContentType(imageFilePath)) {
       _logger.info(
           'Image upload of $imageFilePath for package $package failed. '
-          'The file $imageFilePath is not one of the following supported MIME types:'
-          ' ${_supportedMIMETypes.join(', ')}.');
+          'The file $imageFilePath is not one of the following supported MIME '
+          'types: ${_supportedMIMETypes.join(', ')}.');
       throw ArgumentError(
           'Failed to upload image file: Unsupported MIME type.');
     }
@@ -60,10 +59,12 @@ class ImageStorage {
         length, openStream, mimeType);
   }
 
-  /// Validates whether the given [mimeType] is one of the supported MIME types.
-  bool validateImage(String mimeType) {
+  /// Validates whether the given image at [imageFilePath] is one of the
+  /// supported MIME types.
+  bool isAllowedContentType(String imageFilePath) {
+    final String? mimeType = lookupMimeType(imageFilePath);
     return _supportedMIMETypes.contains(mimeType);
   }
 
-  // TODO(Zarah) add functionality to garbage collect bucket entries.
+  // TODO(zarah) add functionality to garbage collect bucket entries.
 }

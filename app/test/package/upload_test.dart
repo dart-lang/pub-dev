@@ -13,7 +13,6 @@ import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/name_tracker.dart';
-import 'package:pub_dev/package/screenshots/backend.dart';
 import 'package:pub_dev/package/upload_signer_service.dart';
 import 'package:pub_dev/service/secret/backend.dart';
 import 'package:pub_dev/shared/exceptions.dart';
