@@ -50,7 +50,7 @@ final maxVersionsPerPackage = 1000;
 
 final Logger _logger = Logger('pub.cloud_repository');
 
-/// Sets the active tarball storage
+/// Sets the active tarball storage.
 void registerTarballStorage(TarballStorage ts) =>
     ss.register(#_tarball_storage, ts);
 
