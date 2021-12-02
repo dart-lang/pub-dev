@@ -15,6 +15,7 @@ import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart' show DurationTracker;
 
+import '../request_context.dart';
 import '../templates/listing.dart';
 
 final _searchOverallLatencyTracker = DurationTracker();
@@ -31,12 +32,24 @@ Future<shelf.Response> packagesHandlerHtml(shelf.Request request) =>
 
 /// Handles /dart/packages
 Future<shelf.Response> dartPackagesHandlerHtml(shelf.Request request) async {
+  if (requestContext.showNewSearchUI) {
+    final newUrl = SearchForm(query: request.requestedUri.queryParameters['q'])
+        .toggleRequiredTag(SdkTag.sdkDart)
+        .toSearchLink();
+    return redirectResponse(newUrl);
+  }
   return await _packagesHandlerHtmlCore(request, context: SearchContext.dart());
 }
 
 /// Handles /flutter/packages
-Future<shelf.Response> flutterPackagesHandlerHtml(shelf.Request request) {
-  return _packagesHandlerHtmlCore(
+Future<shelf.Response> flutterPackagesHandlerHtml(shelf.Request request) async {
+  if (requestContext.showNewSearchUI) {
+    final newUrl = SearchForm(query: request.requestedUri.queryParameters['q'])
+        .toggleRequiredTag(SdkTag.sdkFlutter)
+        .toSearchLink();
+    return redirectResponse(newUrl);
+  }
+  return await _packagesHandlerHtmlCore(
     request,
     context: SearchContext.flutter(),
   );
@@ -56,6 +69,12 @@ Future<shelf.Response> flutterFavoritesPackagesHandlerHtml(
 
 /// Handles /web/packages
 Future<shelf.Response> webPackagesHandlerHtml(shelf.Request request) async {
+  if (requestContext.showNewSearchUI) {
+    final newUrl = SearchForm(query: request.requestedUri.queryParameters['q'])
+        .toggleRequiredTag(FlutterSdkTag.platformWeb)
+        .toSearchLink();
+    return redirectResponse(newUrl);
+  }
   return redirectResponse(
     urls.searchUrl(
       context: SearchContext.dart(),
