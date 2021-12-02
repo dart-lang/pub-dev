@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:client_data/account_api.dart';
+import 'package:logging/logging.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
@@ -25,16 +26,20 @@ import '../templates/consent.dart';
 import '../templates/listing.dart';
 import '../templates/misc.dart' show renderUnauthenticatedPage;
 
+final _logger = Logger('account_handler');
+
 /// Handles requests for /authorized
 shelf.Response authorizedHandler(_) => htmlResponse(renderAuthorizedPage());
 
 /// Handles POST /api/account/session
 Future<shelf.Response> updateSessionHandler(
     shelf.Request request, ClientSessionRequest body) async {
+  final sw = Stopwatch()..start();
   final user = await requireAuthenticatedUser();
 
   InvalidInputException.checkNotNull(body.accessToken, 'accessToken');
   await accountBackend.verifyAccessTokenOwnership(body.accessToken!, user);
+  final t1 = sw.elapsed;
 
   // Only allow creation of sessions on the primary site host.
   // Exposing session on other domains is a security concern.
@@ -49,6 +54,7 @@ Future<shelf.Response> updateSessionHandler(
   final cookieString = request.headers[HttpHeaders.cookieHeader];
   final sessionData =
       await accountBackend.parseAndLookupSessionCookie(cookieString);
+  final t2 = sw.elapsed;
   // check if the session data is the same
   if (sessionData != null &&
       sessionData.userId == user.userId &&
@@ -57,14 +63,20 @@ Future<shelf.Response> updateSessionHandler(
       changed: false,
       expires: sessionData.expires,
     );
+    _logger.info(
+        '[pub-session-handler-debug] Session was alive: $t1 / ${t2 - t1}.');
     return jsonResponse(status.toJson());
   }
 
   final profile = await authProvider.getAccountProfile(body.accessToken);
+  final t3 = sw.elapsed;
   final newSession = await accountBackend.createNewSession(
     name: profile!.name!,
     imageUrl: profile.imageUrl!,
   );
+  final t4 = sw.elapsed;
+  _logger.info(
+      '[pub-session-handler-debug] Session was created: $t1 / ${t2 - t1} / ${t3 - t2} / ${t4 - t3}.');
 
   return jsonResponse(
     ClientSessionStatus(
