@@ -162,7 +162,7 @@ class Configuration {
     return Configuration(
       projectId: projectId,
       packageBucketName: 'pub-packages',
-      imageBucketName: 'pub-images',
+      imageBucketName: '$projectId--pub-images',
       dartdocStorageBucketName: '$projectId--dartdoc-storage',
       popularityDumpBucketName: '$projectId--popularity',
       searchSnapshotBucketName: '$projectId--search-snapshot',
