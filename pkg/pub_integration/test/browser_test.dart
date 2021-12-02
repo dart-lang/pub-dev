@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:http/http.dart' as http;
-import 'package:path/path.dart' as p;
 import 'package:pub_integration/script/base_setup_script.dart';
 import 'package:pub_integration/src/fake_credentials.dart';
 import 'package:pub_integration/src/fake_pub_server_process.dart';
@@ -14,14 +11,10 @@ import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final coverageDir = Platform.environment['COVERAGE_DIR'];
-  final trackCoverage =
-      coverageDir != null || Platform.environment['COVERAGE'] == '1';
-
   group('browser', () {
     late FakePubServerProcess fakePubServerProcess;
     late BaseSetupScript script;
-    HeadlessEnv? headlessEnv;
+    late final HeadlessEnv headlessEnv;
     final httpClient = http.Client();
 
     setUpAll(() async {
@@ -31,14 +24,9 @@ void main() {
 
     tearDownAll(() async {
       await script.close();
-      await headlessEnv?.close();
+      await headlessEnv.close();
       await fakePubServerProcess.kill();
       httpClient.close();
-      headlessEnv?.printCoverage();
-      if (coverageDir != null) {
-        await headlessEnv?.saveCoverage(
-            p.join(coverageDir, 'puppeteer'), 'browser');
-      }
     });
 
     test('bulk tests', () async {
@@ -51,16 +39,17 @@ void main() {
       await script.updatePubSite();
 
       // start browser
-      headlessEnv = HeadlessEnv(trackCoverage: trackCoverage);
-      await headlessEnv!.startBrowser(
-          origin: 'http://localhost:${fakePubServerProcess.port}');
+      headlessEnv = HeadlessEnv(
+        testName: 'browser',
+        origin: 'http://localhost:${fakePubServerProcess.port}',
+      );
+      await headlessEnv.startBrowser();
 
       // landing page
-      await headlessEnv!.withPage(
+      await headlessEnv.withPage(
         user: FakeGoogleUser.withDefaults('dev@example.org'),
         fn: (page) async {
-          await page.goto('http://localhost:${fakePubServerProcess.port}',
-              wait: Until.networkIdle);
+          await page.gotoOrigin('/');
 
           // checking if there is a login button
           await page.hover('#-account-login');
@@ -68,62 +57,48 @@ void main() {
       );
 
       // listing page
-      await headlessEnv!.withPage(
+      await headlessEnv.withPage(
         user: FakeGoogleUser.withDefaults('dev@example.org'),
         fn: (page) async {
-          await page.goto(
-              'http://localhost:${fakePubServerProcess.port}/packages',
-              wait: Until.networkIdle);
+          await page.gotoOrigin('/packages');
 
           // check package list
           final packages = <String?>{};
           for (final item in await page.$$('.packages .packages-title a')) {
-            final text = await (await item.property('textContent')).jsonValue;
-            packages.add(text as String?);
+            packages.add(await item.textContent());
           }
           expect(packages, {'_dummy_pkg', 'retry'});
         },
       );
 
       // package page
-      await headlessEnv!.withPage(
+      await headlessEnv.withPage(
         user: FakeGoogleUser.withDefaults('dev@example.org'),
         fn: (page) async {
-          await page.goto(
-              'http://localhost:${fakePubServerProcess.port}/packages/retry',
-              wait: Until.networkIdle);
+          await page.gotoOrigin('/packages/retry');
 
           // check pub score
           final pubScoreElem = await page
               .$('.packages-score-health .packages-score-value-number');
-          final pubScore =
-              await (await (pubScoreElem).property('textContent')).jsonValue;
-          expect(int.parse(pubScore.toString()), greaterThanOrEqualTo(100));
+          final pubScore = await pubScoreElem.textContent();
+          expect(int.parse(pubScore), greaterThanOrEqualTo(100));
 
           // check header with name and version
           Future<void> checkHeaderTitle() async {
             final headerTitle = await page.$('h1.title');
-            final headerTitleText =
-                await (await headerTitle.property('textContent')).jsonValue;
-            expect(headerTitleText, contains('retry 2.0.1'));
+            expect(await headerTitle.textContent(), contains('retry 2.0.1'));
           }
 
           await checkHeaderTitle();
           await _checkCopyToClipboard(page);
 
-          await page.goto(
-              'http://localhost:${fakePubServerProcess.port}/packages/retry/versions/2.0.1',
-              wait: Until.networkIdle);
+          await page.gotoOrigin('/packages/retry/versions/2.0.1');
           await checkHeaderTitle();
 
-          await page.goto(
-              'http://localhost:${fakePubServerProcess.port}/packages/retry/versions/2.0.01',
-              wait: Until.networkIdle);
+          await page.gotoOrigin('/packages/retry/versions/2.0.01');
           await checkHeaderTitle();
 
-          await page.goto(
-              'http://localhost:${fakePubServerProcess.port}/packages/retry/license',
-              wait: Until.networkIdle);
+          await page.gotoOrigin('/packages/retry/license');
           await checkHeaderTitle();
         },
       );
