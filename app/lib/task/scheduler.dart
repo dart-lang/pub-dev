@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:clock/clock.dart';
 import 'package:logging/logging.dart' show Logger;
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
@@ -21,11 +22,16 @@ const _maxInstanceAge = Duration(hours: 2);
 
 const _maxInstancesPerIteration = 50;
 
+/// Schedule tasks from [PackageState] while [claim] is valid, and [abort] have
+/// not been resolved.
 Future<void> schedule(
   GlobalLockClaim claim,
   CloudCompute compute,
-  DatastoreDB db,
-) async {
+  DatastoreDB db, {
+  Completer<void>? abort,
+}) async {
+  abort ??= Completer();
+
   // Map from zone to DateTime when zone is allowed again
   final zoneBannedUntil = <String, DateTime>{
     for (final zone in compute.zones) zone: DateTime(0),
@@ -40,8 +46,8 @@ Future<void> schedule(
   final rng = Random(Random.secure().nextInt(2 << 31));
 
   // Run scheduling iterations, so long as we have a valid claim
-  while (claim.valid) {
-    final iterationStart = DateTime.now();
+  while (claim.valid && !abort.isCompleted) {
+    final iterationStart = clock.now();
 
     // Count number of instances, and delete old instances
     var instances = 0;
@@ -50,11 +56,11 @@ Future<void> schedule(
 
       // If terminated or older than maxInstanceAge, delete the instance...
       if (instance.state == InstanceState.terminated &&
-          instance.created.isBefore(DateTime.now().subtract(_maxInstanceAge)) &&
+          instance.created.isBefore(clock.now().subtract(_maxInstanceAge)) &&
           // Prevent multiple calls to delete the same instance
           deletionInProgress.add(instance.name)) {
         scheduleMicrotask(() async {
-          final deletionStart = DateTime.now();
+          final deletionStart = clock.now();
           try {
             await compute.delete(instance.zone, instance.name);
           } catch (e, st) {
@@ -73,13 +79,16 @@ Future<void> schedule(
     // If we are not allowed to create new instances within the allowed quota,
     if (_concurrentInstanceLimit >= instances) {
       // Wait 30 seconds then list instances again, so that we can count them
-      await _sleep(Duration(seconds: 30), since: iterationStart);
+      await Future.any([
+        _sleep(Duration(seconds: 30), since: iterationStart),
+        abort.future,
+      ]);
       continue; // skip the rest of the iteration
     }
 
     // Determine which zones are not banned
     final allowedZones = zoneBannedUntil.entries
-        .where((e) => e.value.isBefore(DateTime.now()))
+        .where((e) => e.value.isBefore(clock.now()))
         .map((e) => e.key)
         .toList()
       ..shuffle(rng);
@@ -88,7 +97,10 @@ Future<void> schedule(
 
     // If no zones are available, we sleep and try again later.
     if (allowedZones.isEmpty) {
-      await _sleep(Duration(seconds: 30), since: iterationStart);
+      await Future.any([
+        _sleep(Duration(seconds: 30), since: iterationStart),
+        abort.future,
+      ]);
       continue;
     }
 
@@ -96,7 +108,7 @@ Future<void> schedule(
     var pendingPackagesReviewed = 0;
     await Future.wait(await (db.query<PackageState>()
           ..filter('runtimeVersion =', runtimeVersion)
-          ..filter('pendingAt <=', DateTime.now())
+          ..filter('pendingAt <=', clock.now())
           ..order('pendingAt')
           ..limit(min(
             _maxInstancesPerIteration,
@@ -118,7 +130,7 @@ Future<void> schedule(
           return;
         }
 
-        final now = DateTime.now();
+        final now = clock.now();
         final pendingVersions = s.pendingVersions(at: now);
         if (pendingVersions.isEmpty) {
           payload = null; // do not schedule anything
@@ -143,10 +155,12 @@ Future<void> schedule(
         payload = json.encode({
           'package': s.package,
           'callback': activeConfiguration.defaultServiceBaseUrl,
-          'versions': pendingVersions.map((v) => {
-                'version': v,
-                'token': s.versions![v]!.secretToken,
-              })
+          'versions': pendingVersions
+              .map((v) => {
+                    'version': v,
+                    'token': s.versions![v]!.secretToken,
+                  })
+              .toList(),
         });
 
         // Create human readable description for GCP console.
@@ -181,7 +195,7 @@ Future<void> schedule(
             st,
           );
           // Ban usage of zone for 15 minutes
-          zoneBannedUntil[zone] = DateTime.now().add(Duration(minutes: 15));
+          zoneBannedUntil[zone] = clock.now().add(Duration(minutes: 15));
 
           // Restore the state of the PackageState for versions that were
           // suppose to run on the instance we just failed to create.
@@ -208,21 +222,28 @@ Future<void> schedule(
     // If there was no pending packages reviewed, and no instances currently
     // running, then we can easily sleep 1 minute before we poll again.
     if (instances == 0 && pendingPackagesReviewed == 0) {
-      await Future.delayed(Duration(minutes: 1));
+      await Future.any([
+        _sleep(Duration(minutes: 1)),
+        abort.future,
+      ]);
       continue;
     }
 
     // If more tasks is available and quota wasn't used up, we only sleep 10s
-    await _sleep(Duration(seconds: 10), since: iterationStart);
+    await Future.any([
+      _sleep(Duration(seconds: 10), since: iterationStart),
+      abort.future,
+    ]);
   }
 }
 
 /// Sleep [delay] time [since] timestamp, or now if not given.
 Future<void> _sleep(Duration delay, {DateTime? since}) async {
   ArgumentError.checkNotNull(delay, 'delay');
-  since ??= DateTime.now();
+  final now = clock.now();
+  since ??= now;
 
-  delay = delay - DateTime.now().difference(since);
+  delay = delay - now.difference(since);
   if (delay.isNegative) {
     // Await a micro task to ensure consistent behavior
     await Future.microtask(() {});

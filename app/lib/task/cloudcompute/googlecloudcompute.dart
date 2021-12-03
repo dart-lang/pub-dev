@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:googleapis/compute/v1.dart' hide Duration;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart' show Logger;
@@ -35,6 +36,10 @@ const _googleCloudZones = [
 /// [machine-types]: https://cloud.google.com/compute/docs/machine-types
 const _googleCloudMachineType = 'e2-standard-2'; // 2 vCPUs 8GB ram
 
+/// OAuth scope needed for the [http.Client] passed to
+/// [createGoogleCloudCompute].
+const googleCloudComputeScope = ComputeApi.cloudPlatformScope;
+
 /// Create a [CloudCompute] abstraction wrapping Google Compute Engine.
 ///
 /// The [CloudCompute] abstraction created will manage instance in the given
@@ -53,11 +58,11 @@ const _googleCloudMachineType = 'e2-standard-2'; // 2 vCPUs 8GB ram
 /// specified at instance creation.
 ///
 /// [c-o-s]: https://cloud.google.com/container-optimized-os/docs
-Future<CloudCompute> createGoogleCloudCompute({
+CloudCompute createGoogleCloudCompute({
   required http.Client client,
   required String project,
   required String poolLabel,
-}) async {
+}) {
   if (poolLabel.isEmpty) {
     throw ArgumentError.value(poolLabel, 'poolLabel', 'must not be empty');
   }
@@ -107,7 +112,7 @@ class _PendingGoogleCloudInstance extends CloudInstance {
   final String name;
 
   @override
-  DateTime get created => DateTime.now();
+  DateTime get created => clock.now();
 
   @override
   InstanceState get state => InstanceState.pending;
@@ -144,6 +149,9 @@ Future<T> _retry<T>(Future<T> Function() fn) async {
         e is IOException,
   );
 }
+
+/// Pattern for valid GCE instance names.
+final _validInstanceNamePattern = RegExp(r'^[a-z]([-a-z0-9]*[a-z0-9])?$');
 
 @sealed
 class _GoogleCloudCompute extends CloudCompute {
@@ -200,6 +208,14 @@ class _GoogleCloudCompute extends CloudCompute {
         'zone',
         'must be one of CloudCompute.zones',
       );
+    }
+    if (name.isEmpty || name.length > 63) {
+      throw ArgumentError.value(
+          name, 'name', 'must have a length between 1 and 63');
+    }
+    if (!_validInstanceNamePattern.hasMatch(name)) {
+      throw ArgumentError.value(
+          name, 'name', 'must match pattern: $_validInstanceNamePattern');
     }
     // Max argument string size on Linux is MAX_ARG_STRLEN = 131072
     // In addition the maximum meta-data size supported by GCE is 256KiB
@@ -322,7 +338,7 @@ class _GoogleCloudCompute extends CloudCompute {
       logWarningsThrowErrors();
 
       while (op.status != 'DONE') {
-        final start = DateTime.now();
+        final start = clock.now();
         op = await _retry(() => _api.zoneOperations
             .wait(
               _project,
@@ -334,7 +350,7 @@ class _GoogleCloudCompute extends CloudCompute {
 
         if (op.status != 'DONE') {
           // Ensure at-least two minutes between api.zoneOperations.wait() calls
-          final elapsed = DateTime.now().difference(start);
+          final elapsed = clock.now().difference(start);
           final remainder = Duration(minutes: 2) - elapsed;
           if (!remainder.isNegative) {
             await Future.delayed(remainder);

@@ -57,7 +57,7 @@ abstract class CloudCompute {
   ///
   /// The future returned may take a long time to resolve (several minutes).
   /// Any [Exception] thrown by this method should be considered a reason to
-  /// reduce the request rate on this [CloudCompute] instance.
+  /// reduce the request rate on the given zone [zone].
   Future<CloudInstance> createInstance({
     required String zone,
     required String name,

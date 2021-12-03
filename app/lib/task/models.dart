@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert' show json;
+
+import 'package:clock/clock.dart';
 import 'package:gcloud/db.dart' as db;
 import 'package:json_annotation/json_annotation.dart';
 
@@ -137,7 +139,7 @@ class PackageState extends db.ExpandoModel<String> {
   ///   * `lastDependencyChanged > scheduled`, or,
   ///   * `attempts > 0 && attempts < 3 && now - scheduled > 3 hours * attemps^2`
   List<String> pendingVersions({DateTime? at}) {
-    final at_ = at ?? DateTime.now();
+    final at_ = at ?? clock.now();
     Duration timeSince(DateTime past) => at_.difference(past);
     Duration delay(int attempts) => Duration(hours: 3) * (attempts * attempts);
 
@@ -217,7 +219,7 @@ class PackageVersionState {
     for (int i = 0; i < N; i++) {
       equal = token[i] == st[i] && equal;
     }
-    return DateTime.now().difference(scheduled) < maxTaskExecutionTime && equal;
+    return clock.now().difference(scheduled) < maxTaskExecutionTime && equal;
   }
 
   PackageVersionState({

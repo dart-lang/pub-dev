@@ -184,7 +184,7 @@ packages:
     source: path
     version: "0.0.0"
   clock:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: clock
       url: "https://pub.dartlang.org"
@@ -239,6 +239,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.2.0"
+  fake_async:
+    dependency: "direct dev"
+    description:
+      name: fake_async
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.2.0"
   fake_gcloud:
     dependency: "direct main"
     description:

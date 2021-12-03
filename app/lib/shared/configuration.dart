@@ -79,6 +79,10 @@ class Configuration {
   /// The name of the Cloud Storage bucket to use for search snapshots.
   final String? searchSnapshotBucketName;
 
+  /// The name of the Cloud Storage bucket to use for task results, such as
+  /// generated dartdoc blobs, dartdoc index-files, pana-reports and task logs.
+  final String? taskResultBucketName;
+
   // The scheme://host:port prefix for storage URLs.
   final String? storageBaseUrl;
 
@@ -170,6 +174,7 @@ class Configuration {
       dartdocStorageBucketName: '$projectId--dartdoc-storage',
       popularityDumpBucketName: '$projectId--popularity',
       searchSnapshotBucketName: '$projectId--search-snapshot',
+      taskResultBucketName: '$projectId--task-result',
       searchServicePrefix: 'https://search-dot-$projectId.appspot.com',
       defaultServiceBaseUrl:
           'https://${envConfig.gaeVersion}-dot-$projectId.appspot.com',
@@ -221,6 +226,7 @@ class Configuration {
       dartdocStorageBucketName: '$projectId--dartdoc-storage',
       popularityDumpBucketName: '$projectId--popularity',
       searchSnapshotBucketName: '$projectId--search-snapshot',
+      taskResultBucketName: '$projectId--task-result',
       // TODO: Support finding search on localhost when envConfig.isRunningLocally
       //       is true, this also requires running search on localhost.
       searchServicePrefix: 'https://search-dot-$projectId.appspot.com',
@@ -270,6 +276,7 @@ class Configuration {
     required this.dartdocStorageBucketName,
     required this.popularityDumpBucketName,
     required this.searchSnapshotBucketName,
+    required this.taskResultBucketName,
     required this.searchServicePrefix,
     required this.storageBaseUrl,
     required this.pubClientAudience,
@@ -315,6 +322,7 @@ class Configuration {
       dartdocStorageBucketName: 'fake-bucket-dartdoc',
       popularityDumpBucketName: 'fake-bucket-popularity',
       searchSnapshotBucketName: 'fake-bucket-search',
+      taskResultBucketName: 'fake-bucket-task-result',
       searchServicePrefix: 'http://localhost:$searchPort',
       storageBaseUrl: storageBaseUrl,
       pubClientAudience: null,
@@ -346,6 +354,7 @@ class Configuration {
       dartdocStorageBucketName: 'fake-bucket-dartdoc',
       popularityDumpBucketName: 'fake-bucket-popularity',
       searchSnapshotBucketName: 'fake-bucket-search',
+      taskResultBucketName: 'fake-bucket-task-result',
       searchServicePrefix: 'http://localhost:0',
       storageBaseUrl: storageBaseUrl ?? 'http://localhost:0',
       pubClientAudience: null,

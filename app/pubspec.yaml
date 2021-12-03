@@ -10,6 +10,7 @@ dependencies:
   basics: ^0.6.0
   client_data:
     path: ../pkg/client_data
+  clock: ^1.1.0
   convert: '^3.0.0'
   crypto: '^3.0.0'
   fake_gcloud:
@@ -59,6 +60,7 @@ dependencies:
   chunked_stream: ^1.1.0
   pub_worker:
     path: ../pkg/pub_worker
+  fake_async: ^1.2.0
 
 dev_dependencies:
   build_runner: '^2.0.0'

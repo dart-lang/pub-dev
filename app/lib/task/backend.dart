@@ -5,6 +5,8 @@ import 'dart:io';
 import 'package:chunked_stream/chunked_stream.dart'
     show readChunkedStream, MaximumSizeExceeded;
 import 'package:client_data/task_api.dart' as api;
+import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -15,12 +17,14 @@ import 'package:logging/logging.dart' show Logger;
 import 'package:pana/models.dart' show Summary;
 import 'package:pool/pool.dart' show Pool;
 import 'package:pub_dev/package/backend.dart' show packageBackend;
+import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/upload_signer_service.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/redis_cache.dart' show cache;
 import 'package:pub_dev/shared/utils.dart' show canonicalizeVersion;
-import 'package:pub_dev/shared/versions.dart' show runtimeVersion;
+import 'package:pub_dev/shared/versions.dart'
+    show runtimeVersion, gcBeforeRuntimeVersion, shouldGCVersion;
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:pub_dev/task/global_lock.dart';
 import 'package:pub_dev/task/models.dart'
@@ -33,8 +37,14 @@ import 'package:shelf/shelf.dart' as shelf;
 
 final _log = Logger('pub.task.backend');
 
-// TODO: Create setupTaskBackend() which creates bucket, cloudCompute
-// TODO: Ensure that runBackgroundProcessing() is triggered in default instance at startup
+/// Register a [CloudCompute] pool for task workers in the current
+/// service scope.
+void registertaskWorkerCloudCompute(CloudCompute workerPool) =>
+    ss.register(#_taskWorkerCloudCompute, workerPool);
+
+/// Get the active [CloudCompute] pool for task workers.
+CloudCompute get taskWorkerCloudCompute =>
+    ss.lookup(#_taskWorkerCloudCompute) as CloudCompute;
 
 /// Sets the task backend service.
 void registerTaskBackend(TaskBackend backend) =>
@@ -48,33 +58,281 @@ class TaskBackend {
   final CloudCompute _cloudCompute;
   final Bucket _bucket;
 
-  TaskBackend._(this._db, this._cloudCompute, this._bucket);
+  /// If [start] has been called to start background processes.
+  var _started = false;
 
-  /// Run background processing, it should be sufficient to create one of these
-  /// for the entire system. However, it is important that at-least one of these
-  /// are running at any given time.
-  Future<void> runBackgroundProcessing() async {
-    // TODO: Scan for new updated packages
-    //       Loop:
-    //         for each package (updated since)
-    //            trackPackageVersion(..)
-    //         sleep
-    // Consider using another global lock for this to reduce number of write
-    // conflicts.
+  /// If [close] has been called to stop background processes.
+  final _aborted = Completer<void>();
 
-    final lock = GlobalLock.create(
-      '$runtimeVersion/task/scheduler',
-      expiration: Duration(minutes: 25),
-    );
+  /// If background processes created by [start] have stoppped.
+  ///
+  /// This won't be resolved if [start] has not been called!
+  final _stopped = Completer<void>();
 
-    // ignore: literal_only_boolean_expressions
-    while (true) {
-      // acquire the global lock and create VMs for pending packages, and
-      // kill overdue VMs.
-      await lock.withClaim((claim) async {
-        await schedule(claim, _cloudCompute, _db);
+  TaskBackend(this._db, this._cloudCompute, this._bucket);
+
+  /// Start background scheduling of tasks.
+  ///
+  /// Calling [start] multiple times is an error.
+  Future<void> start() async {
+    if (_started) {
+      throw StateError('TaskBackend.start() has already been called!');
+    }
+    if (_aborted.isCompleted) {
+      throw StateError('TaskBackend.close() has already been called!');
+    }
+    _started = true;
+
+    // Start scanning for packages to be tracked
+    scheduleMicrotask(() async {});
+
+    // Start background task to schedule tasks
+    scheduleMicrotask(() async {
+      // Create a lock for task scheduling, so tasks
+      final lock = GlobalLock.create(
+        '$runtimeVersion/task/scheduler',
+        expiration: Duration(minutes: 25),
+      );
+
+      while (!_aborted.isCompleted) {
+        // Acquire the global lock and create VMs for pending packages, and
+        // kill overdue VMs.
+        await lock.withClaim((claim) async {
+          await schedule(claim, _cloudCompute, _db, abort: _aborted);
+        }, abort: _aborted);
+      }
+    });
+  }
+
+  /// Stop any background process that may be running.
+  ///
+  /// Calling this method is always safe.
+  Future<void> close() async {
+    if (!_aborted.isCompleted) {
+      _aborted.complete();
+    }
+    if (_started) {
+      await _stopped.future;
+    }
+  }
+
+  /// Track all package versions.
+  ///
+  /// This will synchronize any changes from [Package] and [PackageVersion]
+  /// entities to [PackageState] entities.
+  ///
+  /// This is intended to run as a background tasks that is called once per
+  /// day or so.
+  Future<void> backfillTrackingState() async {
+    // Store package name, so we can skip looking at these when scanning for
+    // [PackageState] entities that shouldn't exist.
+    final packageNames = <String>{};
+
+    // Allow a little concurrency
+    final pool = Pool(10);
+    // Track error / stackTrace, so we can re-throw the first error, when this
+    // backfill task is done. We want to bubble up so that background task is
+    // not registered as having completed successfully.
+    Object? error;
+    StackTrace? stackTrace;
+
+    // For each package we should ensure state is tracked
+    final pq = _db.query<Package>();
+    await for (final p in pq.run()) {
+      packageNames.add(p.name!);
+
+      final r = await pool.request();
+      scheduleMicrotask(() async {
+        try {
+          await _trackPackage(p.name!);
+        } catch (e, st) {
+          _log.severe('failed to track state for "${p.name}"', e, st);
+          if (error == null) {
+            error = e; // save [e] for later, if this is the first failure
+            stackTrace = st;
+          }
+        } finally {
+          r.release(); // always release to avoid deadlock
+        }
       });
     }
+
+    // Check that all [PackageState] entities have a matching [Package] entity.
+    final sq = _db.query<PackageState>()
+      ..filter('runtimeVersion =', runtimeVersion);
+
+    await for (final state in sq.run()) {
+      if (!packageNames.contains(state.package)) {
+        final r = await pool.request();
+
+        scheduleMicrotask(() async {
+          try {
+            // Lookup the package to ensure it really doesn't exist
+            final packageKey = _db.emptyKey.append(Package, id: state.package);
+            final package = await _db.lookupOrNull<Package>(packageKey);
+            if (package == null) {
+              await _db.commit(deletes: [state.key]);
+            }
+          } catch (e, st) {
+            _log.severe('failed to untrack "${state.package}"', e, st);
+            if (error == null) {
+              error = e; // save [e] for later, if this is the first failure
+              stackTrace = st;
+            }
+          } finally {
+            r.release(); // always release to avoid deadlock
+          }
+        });
+      }
+    }
+
+    // Wait for all ongoing microtasks started above to complete.
+    await pool.close();
+    await pool.done;
+
+    // If we had any error, we rethrow to ensure that any background task
+    // calling this method won't register completion as successful.
+    if (error != null) {
+      // Hack to rethrow [error] with [stackTrace]
+      await Future.error(error!, stackTrace);
+    }
+  }
+
+  Future<void> _trackPackage(String packageName) async {
+    await withRetryTransaction(_db, (tx) async {
+      final pkgKey = _db.emptyKey.append(Package, id: packageName);
+
+      final stateKey = PackageState.createKey(_db, runtimeVersion, packageName);
+      // Lookup Package and PackageVersion in the same transaction.
+      // Await results later to ensure concurrent lookups!
+      final packageFuture = tx.lookupOrNull<Package>(pkgKey);
+      final versionsFuture = tx.query<PackageVersion>(pkgKey).run().toList();
+      final state = await tx.lookupOrNull<PackageState>(stateKey);
+      final package = await packageFuture;
+      final versions = await versionsFuture;
+      if (package == null) {
+        return; // assume package was deleted!
+      }
+
+      // If package is not visible, we should remove it!
+      if (package.isNotVisible) {
+        if (state != null) {
+          tx.delete(state.key);
+        }
+        return;
+      }
+
+      // Ensure we have PackageState entity
+      if (state == null) {
+        // Create [PackageState] entity to track the package
+        tx.insert(
+          PackageState()
+            ..setId(runtimeVersion, packageName)
+            ..runtimeVersion = runtimeVersion
+            ..versions = {
+              for (final v in versions)
+                v.version!: PackageVersionState(
+                  scheduled: DateTime(0),
+                  attempts: 0,
+                ),
+            }
+            ..dependencies = <String>[]
+            ..lastDependencyChanged = DateTime(0)
+            ..derivePendingAt(),
+        );
+        return; // no more work for this package, state is sync'ed
+      }
+
+      // List versions that not tracked, but should be
+      final untrackedVersions = versions
+          .map((v) => v.version!)
+          .whereNot((v) => state.versions!.containsKey(v))
+          .toList();
+
+      // List of versions that are tracked, but don't exist. These have
+      // probably been deleted.
+      final deletedVersions = state.versions!.keys
+          .where((v) => versions.none((pv) => pv.version == v))
+          .toList();
+
+      // There should never be an overlap between versions untracked and
+      // versions that tracked by now missing / deleted.
+      assert(
+        untrackedVersions.toSet().intersection(deletedVersions.toSet()).isEmpty,
+      );
+
+      // Stop transaction, if there is no changes to be made!
+      if (untrackedVersions.isEmpty && deletedVersions.isEmpty) {
+        return;
+      }
+
+      // Make changes!
+      state.versions!
+        // Remove versions that have been deleted
+        ..removeWhere((v, _) => deletedVersions.contains(v))
+        // Add versions we should be tracking
+        ..addAll({
+          for (final v in untrackedVersions)
+            v: PackageVersionState(
+              scheduled: DateTime(0),
+              attempts: 0,
+            ),
+        });
+
+      tx.insert(state);
+    });
+  }
+
+  /// Garbage collect [PackageState] and results from old runtimeVersions.
+  Future<void> garbageCollect() async {
+    // GC the old [PackageState] entities
+    await _db.deleteWithQuery(
+      _db.query<PackageState>()
+        ..filter('runtimeVersion <', gcBeforeRuntimeVersion),
+    );
+
+    // Limit to 50 concurrent deletion requests
+    final pool = Pool(50);
+
+    // Objects in the bucket are stored under the following pattern:
+    //   `<runtimeVersion>/<package>/<version>/...`
+    // Thus, we list with `/` as delimiter and get a list of runtimeVersions
+    await for (final d in _bucket.list(prefix: '', delimiter: '/')) {
+      if (!d.isDirectory) {
+        _log.warning('bucket should not contain any top-level object');
+        continue;
+      }
+
+      // Remove trailing slash from object prefix, to get a runtimeVersion
+      assert(d.name.endsWith('/'));
+      final rtVersion = d.name.substring(0, d.name.length - 1);
+
+      // Check if the runtimeVersion should be GC'ed
+      if (shouldGCVersion(rtVersion)) {
+        // List all objects under the `<rtVersion>/`
+        await for (final obj in _bucket.list(prefix: d.name, delimiter: '')) {
+          // Limit concurrency
+          final r = await pool.request();
+
+          // Schedule a microtask, that always ends by releasing the resource.
+          // Any issues deleting are logged as a warning, we'll probably try
+          // again later, so this is not really an issue.
+          scheduleMicrotask(() async {
+            try {
+              await _bucket.delete(obj.name);
+            } catch (e, st) {
+              _log.warning('Failed to garbage collect: ${d.name}', e, st);
+            } finally {
+              r.release(); // always release to avoid deadlock
+            }
+          });
+        }
+      }
+    }
+
+    // Close the pool, and wait for all pending deletion request to complete.
+    await pool.close();
+    await pool.done;
   }
 
   /// Report [package] and [version] published and trigger analysis if required.
@@ -96,8 +354,6 @@ class TaskBackend {
         'PackageVersion entity is created',
       );
     }
-    // TODO: Find out if [PackageVersion.created] can be null, this is undocumented
-    final publishedAt = packageVersion.created ?? DateTime.now().toUtc();
 
     // Ensure that `version` is present in [PackageState.versions]
     await withRetryTransaction(_db, (tx) async {
@@ -114,7 +370,7 @@ class TaskBackend {
         ..runtimeVersion = runtimeVersion
         ..versions = {}
         ..dependencies = <String>[]
-        ..lastDependencyChanged = publishedAt;
+        ..lastDependencyChanged = DateTime(0);
 
       // Ensure the version is present
       state.versions![version] ??= PackageVersionState(
@@ -129,26 +385,60 @@ class TaskBackend {
       tx.insert(state);
     });
 
-    // With concurrency of 20, update `lastDependencyChanged` and `pendingAt`
-    // for all [PackageState] entities with a dependency on `package`.
+    await _updateLastDependencyChangedForDependents(
+      package,
+      packageVersion.created!,
+    );
+  }
+
+  /// Update [PackageState.lastDependencyChanged] for all packages with
+  /// dependency on [package] to at-least [publishedAt].
+  Future<void> _updateLastDependencyChangedForDependents(
+    String package,
+    DateTime publishedAt,
+  ) async {
+    // Max concurrency of 20!
     final pool = Pool(20);
+
+    // Query for [PackageState] that has [package] listed in [dependencies].
+    // Notice that datastore query logic for `dependencies = package` means
+    // entities where:
+    //  (A) `dependencies` is equal to `package` (won't happen here).
+    //  (B) `dependencies` is a list of strings containing `packages`,
+    //      this is the matching logic we leverage here.
+    //
+    // We only update [PackageState] to have [lastDependencyChanged], this
+    // ensures that there is no risk of indefinite propergation.
     final q = _db.query<PackageState>()
       ..filter('dependencies =', package)
       ..filter('lastDependencyChanged <', publishedAt);
     await for (final state in q.run()) {
       final r = await pool.request();
+
+      // Schedule a microtask that attempts to update [lastDependencyChanged],
+      // and logs any failures before always releasing the [r].
       scheduleMicrotask(() async {
         try {
           await withRetryTransaction(_db, (tx) async {
+            // Reload [state] within a transaction to avoid overwriting changes
+            // made by others trying to update state for another package.
             final s = await tx.lookupValue<PackageState>(state.key);
             if (s.lastDependencyChanged!.isBefore(publishedAt)) {
-              s.lastDependencyChanged = publishedAt;
-              s.derivePendingAt();
-              tx.insert(s);
+              tx.insert(
+                s
+                  ..lastDependencyChanged = publishedAt
+                  ..derivePendingAt(),
+              );
             }
           });
+        } catch (e, st) {
+          _log.warning(
+            'failed to propagate lastDependencyChanged for ${state.package}',
+            e,
+            st,
+          );
         } finally {
-          r.release();
+          r.release(); // always release to avoid deadlocks
         }
       });
     }
@@ -185,7 +475,7 @@ class TaskBackend {
     // Set expiration of signed URLs to remaining execution time + 5 min to
     // allow for clock skew.
     final expiration = maxTaskExecutionTime -
-        (DateTime.now().difference(versionState.scheduled)) +
+        (clock.now().difference(versionState.scheduled)) +
         Duration(minutes: 5);
 
     // Use sha256 truncated to 32 bytes as identifier
@@ -252,23 +542,37 @@ class TaskBackend {
       state.versions![version] = PackageVersionState(
         scheduled: versionState.scheduled,
         attempts: 0,
-        instance: null,
-        secretToken: null,
+        instance: null, // version is no-longer running on this instance
+        secretToken: null, // TODO: Consider retaining this for idempotency
         zone: null,
       );
-
-      tx.insert(state);
 
       // Determine if something else was running on the instance
       isInstanceDone = state.versions!.values.any(
         (v) => v.instance == instance,
       );
+
+      // Update dependencies, if pana summary has dependencies
+      final summary = await panaSummary(package, version);
+      if (summary != null && summary.allDependencies != null) {
+        final dependencies = {...state.dependencies ?? []};
+        // Only update if new dependencies have been discovered.
+        // This avoids unnecessary churn on datastore when there is no changes.
+        if (!dependencies.containsAll(summary.allDependencies ?? [])) {
+          state.dependencies = {
+            ...dependencies,
+            ...summary.allDependencies ?? [],
+          }.sorted();
+        }
+      }
+
+      tx.insert(state);
     });
 
     // If nothing else is running on the instance, delete it!
     // We do this in a microtask after returning, so that it doesn't slow down
     // worker response. We avoid doing it in the transaction because we wish to
-    // avoid this operation being retried.
+    // avoid doing this operation again if the transaction fails.
     if (isInstanceDone) {
       assert(zone != null && instance != null);
       scheduleMicrotask(() async {

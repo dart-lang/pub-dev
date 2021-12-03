@@ -7,8 +7,7 @@
 // run this as part of normal testing.
 @Tags(['fragile'])
 import 'dart:async';
-import 'dart:convert' show json;
-import 'dart:io' show Platform, File;
+import 'dart:io' show Platform;
 
 import 'package:appengine/appengine.dart';
 import 'package:googleapis/compute/v1.dart' show ComputeApi;
@@ -26,17 +25,14 @@ void main() {
     await withAppEngineServices(() async {
       // Hack around the fact that [authClientService] does not get the
       // compute scope.
-      final client = await auth.clientViaServiceAccount(
-        auth.ServiceAccountCredentials.fromJson(json.decode(
-          File(Platform.environment['GCLOUD_KEY']!).readAsStringSync(),
-        )),
-        [ComputeApi.computeScope],
-      );
+      /*final client = await auth.clientViaApplicationDefaultCredentials(
+        scopes: [ComputeApi.computeScope],
+      );*/
 
       // Create CloudCompute instance
       final gce = await createGoogleCloudCompute(
-        client: client,
-        project: Platform.environment['GCLOUD_PROJECT']!,
+        client: authClientService,
+        project: Platform.environment['GOOGLE_CLOUD_PROJECT']!,
         poolLabel: 'manual-testing',
       );
 
@@ -90,10 +86,9 @@ void main() {
     });
   },
       timeout: Timeout.parse('30m'),
-      skip: Platform.environment['GCLOUD_PROJECT'] != null &&
+      skip: Platform.environment['GOOGLE_CLOUD_PROJECT'] != null &&
               // Avoid running against production by accident
-              Platform.environment['GCLOUD_PROJECT'] != 'dartlang-pub' &&
-              Platform.environment['GCLOUD_KEY'] != null
+              Platform.environment['GOOGLE_CLOUD_PROJECT'] != 'dartlang-pub'
           ? false
-          : 'createGoogleCloudCompute testing requires GCLOUD_PROJECT and GCLOUD_KEY');
+          : 'createGoogleCloudCompute testing requires GOOGLE_CLOUD_PROJECT');
 }

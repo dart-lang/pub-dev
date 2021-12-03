@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:gcloud/datastore.dart' show TransactionAbortedError;
 import 'package:logging/logging.dart' show Logger;
 import 'package:pub_dev/shared/datastore.dart';
@@ -22,11 +23,18 @@ class GlobalLock {
       GlobalLock._(lockId, expiration, dbService);
 
   /// Call [fn] while retaining a claim to this lock. This will wait until the
-  /// lock is aqcuired.
-  Future<T> withClaim<T>(FutureOr<T> Function(GlobalLockClaim claim) fn) async {
+  /// lock is acquired.
+  ///
+  /// A [TimeoutException] is thrown if [abort] is completed before the lock is
+  /// acquired.
+  Future<T> withClaim<T>(
+    FutureOr<T> Function(GlobalLockClaim claim) fn, {
+    Completer<void>? abort,
+  }) async {
     ArgumentError.checkNotNull(fn, 'fn');
+    abort ??= Completer();
 
-    final c = await claim();
+    final c = await claim(abort: abort);
     final claimId = c._entry.claimId;
     var refreshed = Future.value(true);
     var done = false;
@@ -36,7 +44,7 @@ class GlobalLock {
           // Await for 50% of the time until expiration is gone
           var delay = c.expires
               .subtract(_expiration * 0.5)
-              .difference(DateTime.now().toUtc());
+              .difference(clock.now().toUtc());
           // always sleep at-least 10% of expiration
           if (delay < _expiration * 0.1) {
             delay = _expiration * 0.1;
@@ -98,12 +106,12 @@ class GlobalLock {
         var e = await tx.lookupOrNull<GlobalLockState>(k);
         if (e == null ||
             e.claimId == '' ||
-            e.lockedUntil!.isBefore(DateTime.now().toUtc())) {
+            e.lockedUntil!.isBefore(clock.now().toUtc())) {
           // Claim the lock, if not currently locked
           e = GlobalLockState()
             ..id = _lockId
             ..claimId = claimId
-            ..lockedUntil = DateTime.now().add(_expiration).toUtc();
+            ..lockedUntil = clock.now().add(_expiration).toUtc();
           tx.insert(e);
         }
         return e;
@@ -120,20 +128,30 @@ class GlobalLock {
   ///
   /// If [timeout] is given, [TimeoutException] is thrown if [timeout] is
   /// exceeded.
-  Future<GlobalLockClaim> claim([Duration? timeout]) async {
+  /// If [abort] is given, [TimeoutException] is thrown if [abort] is completed.
+  Future<GlobalLockClaim> claim({
+    Duration? timeout,
+    Completer<void>? abort,
+  }) async {
+    abort ??= Completer();
     final claimId = Ulid().toString();
-    final s = Stopwatch()..start();
+    final s = clock.stopwatch()..start();
 
     var e = await _tryClaimOrGet(claimId);
 
-    while (!_hasClaim(e, claimId) && (timeout == null || s.elapsed < timeout)) {
+    while (!_hasClaim(e, claimId) &&
+        (timeout == null || s.elapsed < timeout) &&
+        !abort.isCompleted) {
       if (e != null) {
         // Sleep till lockedUntil, and always sleep at-least 10% of _expiration
-        var delay = e.lockedUntil!.difference(DateTime.now().toUtc());
+        var delay = e.lockedUntil!.difference(clock.now().toUtc());
         if (delay < _expiration * 0.1) {
           delay = _expiration * 0.1;
         }
-        await Future.delayed(delay);
+        await Future.any([
+          Future.delayed(delay),
+          abort.future,
+        ]);
       }
       e = await _tryClaimOrGet(claimId);
     }
@@ -154,7 +172,7 @@ class GlobalLock {
 bool _hasClaim(GlobalLockState? e, String claimId) {
   return e != null &&
       e.claimId == claimId &&
-      e.lockedUntil!.isAfter(DateTime.now().toUtc());
+      e.lockedUntil!.isAfter(clock.now().toUtc());
 }
 
 class GlobalLockClaim {
@@ -172,7 +190,7 @@ class GlobalLockClaim {
       _released == null &&
       _entry.lockedUntil!
           .subtract(_expiration * 0.25)
-          .isAfter(DateTime.now().toUtc());
+          .isAfter(clock.now().toUtc());
 
   /// Point in time at which this claim expires, if not [refresh]'ed.
   DateTime get expires => _entry.lockedUntil!;
@@ -188,7 +206,7 @@ class GlobalLockClaim {
 
         if (e != null && _hasClaim(e, _entry.claimId!)) {
           e.claimId = _entry.claimId;
-          e.lockedUntil = DateTime.now().add(_expiration).toUtc();
+          e.lockedUntil = clock.now().add(_expiration).toUtc();
           tx.insert(e);
         }
         return e;
@@ -227,7 +245,7 @@ class GlobalLockClaim {
         if (e != null && _hasClaim(e, _entry.claimId!)) {
           _log.info('releasing claim ${_entry.claimId} on ${_entry.lockId}');
           e.claimId = '';
-          e.lockedUntil = DateTime.now().toUtc();
+          e.lockedUntil = clock.now().toUtc();
           tx.insert(e);
         }
       });

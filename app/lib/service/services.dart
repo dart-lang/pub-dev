@@ -12,6 +12,9 @@ import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:pub_dev/fake/server/fake_storage_server.dart';
 import 'package:pub_dev/service/youtube/backend.dart';
+import 'package:pub_dev/task/backend.dart';
+import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
+import 'package:pub_dev/task/cloudcompute/googlecloudcompute.dart';
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
@@ -44,6 +47,7 @@ import '../shared/env_config.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/redis_cache.dart' show setupCache;
 import '../shared/storage.dart';
+import '../shared/versions.dart';
 import '../tool/utils/http.dart';
 
 import 'announcement/backend.dart';
@@ -97,6 +101,17 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
       );
       registerUploadSigner(await createUploadSigner(retryingAuthClient));
 
+      // Confiugure a CloudCompute pool for later use in TaskBackend
+      final gceClient = await auth.clientViaApplicationDefaultCredentials(
+        scopes: [googleCloudComputeScope],
+      );
+      registerScopeExitCallback(gceClient.close);
+      registertaskWorkerCloudCompute(createGoogleCloudCompute(
+        client: gceClient,
+        project: activeConfiguration.projectId,
+        poolLabel: '$runtimeVersion/worker',
+      ));
+
       return await _withPubServices(fn);
     });
   });
@@ -138,6 +153,9 @@ Future<void> withFakeServices({
     registerEmailSender(FakeEmailSender());
     registerUploadSigner(
         FakeUploadSignerService(configuration!.storageBaseUrl!));
+
+    registertaskWorkerCloudCompute(FakeCloudCompute());
+
     return await _withPubServices(() async {
       await youtubeBackend.start();
       return await fn();
@@ -190,8 +208,19 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
 
     // depends on previously registered services
     registerPackageBackend(PackageBackend(dbService, tarballStorage));
+
+    registerTaskBackend(TaskBackend(
+      dbService,
+      taskWorkerCloudCompute,
+      await getOrCreateBucket(
+        storageService,
+        activeConfiguration.taskResultBucketName!,
+      ),
+    ));
+
     await setupCache();
 
+    registerScopeExitCallback(taskBackend.close);
     registerScopeExitCallback(announcementBackend.close);
     registerScopeExitCallback(searchBackend.close);
     registerScopeExitCallback(() async => nameTracker.stopTracking());
