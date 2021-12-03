@@ -10,8 +10,6 @@ import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:appengine/appengine.dart';
-import 'package:googleapis/compute/v1.dart' show ComputeApi;
-import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:pub_dev/task/cloudcompute/googlecloudcompute.dart';
 import 'package:test/test.dart';
@@ -23,14 +21,8 @@ void main() {
     setupLogging();
 
     await withAppEngineServices(() async {
-      // Hack around the fact that [authClientService] does not get the
-      // compute scope.
-      /*final client = await auth.clientViaApplicationDefaultCredentials(
-        scopes: [ComputeApi.computeScope],
-      );*/
-
       // Create CloudCompute instance
-      final gce = await createGoogleCloudCompute(
+      final gce = createGoogleCloudCompute(
         client: authClientService,
         project: Platform.environment['GOOGLE_CLOUD_PROJECT']!,
         poolLabel: 'manual-testing',
