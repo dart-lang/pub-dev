@@ -1,0 +1,6 @@
+{
+  "private": true,
+  "dependencies": {
+    "lighthouse": "^9.1.0"
+  }
+}
