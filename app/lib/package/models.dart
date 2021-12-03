@@ -699,17 +699,11 @@ class QualifiedVersionKey {
 @JsonSerializable(includeIfNull: false)
 class PackageView extends Object with FlagMixin {
   final String? name;
-  final String? version;
-
-  // Not null only if there is a difference compared to the [version] or [previewVersion].
-  final String? prereleaseVersion;
-  // Not null only if there is a difference compared to the [version].
-  final String? previewVersion;
+  final LatestReleases? releases;
   final String? ellipsizedDescription;
 
   /// The date when the package was first published.
   final DateTime? created;
-  final DateTime? updated;
   @override
   final List<String>? flags;
   final String? publisherId;
@@ -734,12 +728,9 @@ class PackageView extends Object with FlagMixin {
 
   PackageView({
     this.name,
-    this.version,
-    this.prereleaseVersion,
-    this.previewVersion,
+    this.releases,
     this.ellipsizedDescription,
     this.created,
-    this.updated,
     this.flags,
     this.publisherId,
     this.isAwaiting = false,
@@ -756,14 +747,11 @@ class PackageView extends Object with FlagMixin {
 
   factory PackageView.fromModel({
     required Package package,
+    required LatestReleases releases,
     PackageVersion? version,
     ScoreCardData? scoreCard,
     List<ApiPageRef>? apiPages,
   }) {
-    final prereleaseVersion =
-        package.showPrereleaseVersion ? package.latestPrereleaseVersion : null;
-    final previewVersion =
-        package.showPreviewVersion ? package.latestPreviewVersion : null;
     final hasPanaReport = scoreCard?.reportTypes != null &&
         scoreCard!.reportTypes!.contains(ReportType.pana);
     final isAwaiting =
@@ -776,12 +764,9 @@ class PackageView extends Object with FlagMixin {
             (!scoreCard.isSkipped && !hasPanaReport);
     return PackageView(
       name: version?.package ?? package.name,
-      version: version?.version ?? package.latestVersion,
-      prereleaseVersion: prereleaseVersion,
-      previewVersion: previewVersion,
+      releases: releases,
       ellipsizedDescription: version?.ellipsizedDescription,
       created: package.created,
-      updated: package.lastVersionPublished,
       flags: scoreCard?.flags,
       publisherId: package.publisherId,
       isAwaiting: isAwaiting,
@@ -803,12 +788,9 @@ class PackageView extends Object with FlagMixin {
   PackageView change({List<ApiPageRef>? apiPages}) {
     return PackageView(
       name: name,
-      version: version,
-      prereleaseVersion: prereleaseVersion,
-      previewVersion: previewVersion,
+      releases: releases,
       ellipsizedDescription: ellipsizedDescription,
       created: created,
-      updated: updated,
       flags: flags,
       publisherId: publisherId,
       isAwaiting: isAwaiting,
@@ -933,6 +915,7 @@ class PackagePageData {
   PackageView toPackageView() {
     return _view ??= PackageView.fromModel(
       package: package!,
+      releases: latestReleases!,
       version: version,
       scoreCard: scoreCard,
     );
