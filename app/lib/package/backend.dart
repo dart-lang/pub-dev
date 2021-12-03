@@ -50,7 +50,7 @@ final maxVersionsPerPackage = 1000;
 
 final Logger _logger = Logger('pub.cloud_repository');
 
-/// Sets the active tarball storage
+/// Sets the active tarball storage.
 void registerTarballStorage(TarballStorage ts) =>
     ss.register(#_tarball_storage, ts);
 
@@ -738,11 +738,13 @@ class PackageBackend {
       }
       await _saveTarballToFS(_storage.readTempObject(guid), filename);
       _logger.info('Examining tarball content ($guid).');
+      final sw = Stopwatch()..start();
       final archive = await summarizePackageArchive(
         filename,
         maxContentLength: maxAssetContentLength,
         maxArchiveSize: UploadSignerService.maxUploadSize,
       );
+      _logger.info('Package archive scanned in ${sw.elapsed}.');
       if (archive.hasIssues) {
         throw PackageRejectedException(archive.issues.first.message);
       }
@@ -756,6 +758,7 @@ class PackageBackend {
             pubspec.nonCanonicalVersion);
       }
 
+      sw.reset();
       final version = await _performTarballUpload(
         user,
         (package, version) =>
@@ -763,8 +766,12 @@ class PackageBackend {
         restriction,
         archive,
       );
+      _logger.info('Tarball uploaded in ${sw.elapsed}.');
       _logger.info('Removing temporary object $guid.');
+
+      sw.reset();
       await _storage.removeTempObject(guid);
+      _logger.info('Temporary object removed in ${sw.elapsed}.');
       return version;
     });
   }
@@ -775,6 +782,7 @@ class PackageBackend {
     UploadRestrictionStatus restriction,
     PackageSummary archive,
   ) async {
+    final sw = Stopwatch()..start();
     final entities = await _createUploadEntities(db, user, archive);
     final newVersion = entities.packageVersion;
 
@@ -784,6 +792,8 @@ class PackageBackend {
       throw PackageRejectedException.maxVersionCountReached(
           newVersion.package, _maxVersionsPerPackage);
     }
+    _logger.info('Upload version count check completed in ${sw.elapsed}.');
+    sw.reset();
 
     final currentDartSdk = await getDartSdkVersion();
 
@@ -873,6 +883,8 @@ class PackageBackend {
       return newVersion;
     });
     _logger.info('Upload successful. [package-uploaded]');
+    _logger.info('Upload transaction compelted in ${sw.elapsed}.');
+    sw.reset();
 
     _logger.info('Invalidating cache for package ${newVersion.package}.');
     await purgePackageCache(newVersion.package);
@@ -921,6 +933,7 @@ class PackageBackend {
       final v = newVersion.qualifiedVersionKey;
       _logger.severe('Error post-processing package upload $v', e, st);
     }
+    _logger.info('Post-upload tasks completed in ${sw.elapsed}.');
     return pv;
   }
 
@@ -1191,6 +1204,7 @@ class InviteStatus {
 /// Completes with an error if the incoming stream has an error or if the size
 /// exceeds [UploadSignerService.maxUploadSize].
 Future _saveTarballToFS(Stream<List<int>> data, String filename) async {
+  final sw = Stopwatch()..start();
   final targetFile = File(filename);
   try {
     int receivedBytes = 0;
@@ -1212,7 +1226,7 @@ Future _saveTarballToFS(Stream<List<int>> data, String filename) async {
     _logger.warning('An error occured while streaming tarball to FS.', e, st);
     rethrow;
   }
-  _logger.info('Finished streaming tarball to FS.');
+  _logger.info('Finished streaming tarball to FS (elapsed: ${sw.elapsed}).');
 }
 
 class _UploadEntities {

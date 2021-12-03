@@ -68,9 +68,9 @@ d.Node scoreTabNode({
       d.p(
         classes: ['analysis-info'],
         children: [
-          d.text('We analyzed this package on '),
+          d.text('We analyzed this package '),
           if (card.panaReport?.timestamp != null)
-            d.shortTimestamp(card.panaReport!.timestamp!),
+            d.xAgoTimestamp(card.panaReport!.timestamp!, datePrefix: 'on'),
           d.text(', '
               'and awarded it ${report?.grantedPoints ?? 0} '
               'pub points (of a possible ${report?.maxPoints ?? 0}):'),

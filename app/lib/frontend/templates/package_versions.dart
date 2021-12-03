@@ -56,8 +56,8 @@ String renderPkgVersionsPage(
       children: [
         d.text('The latest prerelease was '),
         d.a(href: '#prerelease', text: latestPrereleaseVersion!.version),
-        d.text(' on '),
-        d.shortTimestamp(latestPrereleaseVersion.published!),
+        d.text(' '),
+        d.xAgoTimestamp(latestPrereleaseVersion.published!, datePrefix: 'on'),
         d.text('.'),
       ],
     ));

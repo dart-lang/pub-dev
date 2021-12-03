@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
 import 'package:pub_validations/html/html_validation.dart';
 import 'package:puppeteer/puppeteer.dart';
 // ignore: implementation_imports
@@ -13,12 +14,16 @@ import 'package:puppeteer/src/page/page.dart' show ClientError;
 /// Creates and tracks the headless Chrome environment, its temp directories and
 /// and uncaught exceptions.
 class HeadlessEnv {
-  final Directory tempDir;
+  final String testName;
+  final String _origin;
+  final String? _coverageDir;
+  final Directory _tempDir;
   final bool debug;
   Browser? _browser;
   final clientErrors = <ClientError>[];
   final serverErrors = <String>[];
-  final bool trackCoverage;
+  late final bool trackCoverage =
+      _coverageDir != null || Platform.environment.containsKey('COVERAGE');
   final _trackedPages = <Page>[];
 
   /// The coverage report of JavaScript files.
@@ -28,10 +33,13 @@ class HeadlessEnv {
   final _cssCoverages = <String, _Coverage>{};
 
   HeadlessEnv({
-    Directory? tempDir,
-    this.trackCoverage = false,
+    required String origin,
+    required this.testName,
+    String? coverageDir,
     this.debug = false,
-  }) : tempDir = tempDir ?? Directory.systemTemp.createTempSync('pub-headless');
+  })  : _origin = origin,
+        _coverageDir = coverageDir ?? Platform.environment['COVERAGE_DIR'],
+        _tempDir = Directory.systemTemp.createTempSync('pub-headless');
 
   Future<String> _detectChromeBinary() async {
     // TODO: scan $PATH
@@ -53,10 +61,10 @@ class HeadlessEnv {
     return r.executablePath;
   }
 
-  Future<void> startBrowser({String? origin}) async {
+  Future<void> startBrowser() async {
     if (_browser != null) return;
     final chromeBin = await _detectChromeBinary();
-    final userDataDir = await tempDir.createTemp('user');
+    final userDataDir = await _tempDir.createTemp('user');
     _browser = await puppeteer.launch(
       executablePath: chromeBin,
       args: [
@@ -71,22 +79,20 @@ class HeadlessEnv {
       headless: !debug,
       devTools: false,
     );
-    // When origin is specified, update the default permissions like clipboard
-    // access.
-    if (origin != null) {
-      await _browser!.defaultBrowserContext
-          .overridePermissions(origin, [PermissionType.clipboardReadWrite]);
-    }
+
+    // Update the default permissions like clipboard access.
+    await _browser!.defaultBrowserContext
+        .overridePermissions(_origin, [PermissionType.clipboardReadWrite]);
   }
 
   /// Creates a new page and setup overrides and tracking.
   Future<R> withPage<R>({
     FakeGoogleUser? user,
     required Future<R> Function(Page page) fn,
-    String? origin,
   }) async {
-    await startBrowser(origin: origin);
+    await startBrowser();
     final page = await _browser!.newPage();
+    _pageOriginExpando[page] = _origin;
     await page.setRequestInterception(true);
     if (trackCoverage) {
       await page.coverage.startJSCoverage(resetOnNavigation: false);
@@ -208,9 +214,15 @@ class HeadlessEnv {
       throw StateError('There are tracked pages with pending coverage report.');
     }
     await _browser!.close();
+
+    _printCoverage();
+    if (_coverageDir != null) {
+      await _saveCoverage(p.join(_coverageDir!, 'puppeteer'));
+    }
+    await _tempDir.delete(recursive: true);
   }
 
-  void printCoverage() {
+  void _printCoverage() {
     for (final c in _jsCoverages.values) {
       print('${c.url}: ${c.percent.toStringAsFixed(2)}%');
     }
@@ -219,7 +231,7 @@ class HeadlessEnv {
     }
   }
 
-  Future<void> saveCoverage(String outputDir, String name) async {
+  Future<void> _saveCoverage(String outputDir) async {
     Future<void> saveToFile(Map<String, _Coverage> map, String path) async {
       if (map.isNotEmpty) {
         final file = File(path);
@@ -236,8 +248,25 @@ class HeadlessEnv {
       }
     }
 
-    await saveToFile(_jsCoverages, '$outputDir/$name.js.json');
-    await saveToFile(_cssCoverages, '$outputDir/$name.css.json');
+    await saveToFile(_jsCoverages, '$outputDir/$testName.js.json');
+    await saveToFile(_cssCoverages, '$outputDir/$testName.css.json');
+  }
+}
+
+/// Stores the origin URL on the page.
+final _pageOriginExpando = Expando<String>();
+
+extension PageExt on Page {
+  /// Visits the [path] relative to the origin.
+  Future<Response> gotoOrigin(String path) async {
+    final origin = _pageOriginExpando[this];
+    return await goto('$origin$path', wait: Until.networkIdle);
+  }
+}
+
+extension ElementHandleExt on ElementHandle {
+  Future<String> textContent() async {
+    return await propertyValue('textContent');
   }
 }
 

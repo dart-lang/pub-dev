@@ -33,6 +33,15 @@ extension BucketExt on Bucket {
       rethrow;
     }
   }
+
+  Future uploadPublic(String objectName, int length,
+      Stream<List<int>> Function() openStream, String contentType) {
+    final publicRead = AclEntry(AllUsersScope(), AclPermission.READ);
+    final acl = Acl([publicRead]);
+    final metadata = ObjectMetadata(acl: acl, contentType: contentType);
+    return uploadWithRetry(this, objectName, length, openStream,
+        metadata: metadata);
+  }
 }
 
 /// Returns a valid `gs://` URI for a given [bucket] + [path] combination.
@@ -114,11 +123,14 @@ Future<int> deleteBucketFolderRecursively(
 
 /// Uploads content from [openStream] to the [bucket] as [objectName].
 Future uploadWithRetry(Bucket bucket, String objectName, int length,
-    Stream<List<int>> Function() openStream) async {
+    Stream<List<int>> Function() openStream,
+    {ObjectMetadata? metadata}) async {
   await retryAsync(
     () async {
       final sink = bucket.write(objectName,
-          length: length, contentType: contentType(objectName));
+          length: length,
+          contentType: metadata?.contentType ?? contentType(objectName),
+          metadata: metadata);
       await sink.addStream(openStream());
       await sink.close();
     },

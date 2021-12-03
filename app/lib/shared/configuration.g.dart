@@ -14,6 +14,7 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
           json,
           allowedKeys: const [
             'packageBucketName',
+            'imageBucketName',
             'projectId',
             'searchServicePrefix',
             'defaultServiceBaseUrl',
@@ -39,6 +40,8 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
           projectId: $checkedConvert('projectId', (v) => v as String),
           packageBucketName:
               $checkedConvert('packageBucketName', (v) => v as String?),
+          imageBucketName:
+              $checkedConvert('imageBucketName', (v) => v as String?),
           dartdocStorageBucketName:
               $checkedConvert('dartdocStorageBucketName', (v) => v as String?),
           popularityDumpBucketName:
@@ -85,6 +88,7 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
 Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
     <String, dynamic>{
       'packageBucketName': instance.packageBucketName,
+      'imageBucketName': instance.imageBucketName,
       'projectId': instance.projectId,
       'searchServicePrefix': instance.searchServicePrefix,
       'defaultServiceBaseUrl': instance.defaultServiceBaseUrl,

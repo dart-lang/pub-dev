@@ -205,8 +205,8 @@ d.Node _accountDetailHeader(User user, UserSessionData userSessionData) {
     metadataNode: d.fragment([
       d.p(text: user.email!),
       d.p(children: [
-        d.text('Joined on '),
-        d.shortTimestamp(user.created!),
+        d.text('Joined '),
+        d.xAgoTimestamp(user.created!, datePrefix: 'on'),
       ]),
     ]),
   );

@@ -21,9 +21,9 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 /// Make sure that at least two versions are kept here as the next candidates
 /// when the version switch happens.
 const acceptedRuntimeVersions = <String>[
-  '2021.11.16', // The current [runtimeVersion].
-  '2021.11.01',
-  '2021.10.26',
+  '2021.11.28', // The current [runtimeVersion].
+  '2021.11.22',
+  '2021.11.16',
 ];
 
 /// Represents a combined version of the overall toolchain and processing,
@@ -55,8 +55,8 @@ bool shouldGCVersion(String version) =>
 final String runtimeSdkVersion = '2.14.1';
 final String toolStableDartSdkVersion = '2.14.4';
 final String toolStableFlutterSdkVersion = '2.5.3';
-final String toolPreviewDartSdkVersion = '2.15.0-268.8.beta';
-final String toolPreviewFlutterSdkVersion = '2.8.0-3.1.pre';
+final String toolPreviewDartSdkVersion = '2.15.0-268.18.beta';
+final String toolPreviewFlutterSdkVersion = '2.8.0-3.2.pre';
 
 // Value comes from package:pana.
 final String panaVersion = pana.packageVersion;

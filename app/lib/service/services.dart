@@ -11,6 +11,7 @@ import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:pub_dev/fake/server/fake_storage_server.dart';
+import 'package:pub_dev/package/screenshots/backend.dart';
 import 'package:pub_dev/service/youtube/backend.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
@@ -204,6 +205,10 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
               storageService, activeConfiguration.packageBucketName!),
           null),
     );
+
+    registerImageStorage(ImageStorage(await getOrCreateBucket(
+        storageService, activeConfiguration.imageBucketName!)));
+
     registerYoutubeBackend(YoutubeBackend());
 
     // depends on previously registered services

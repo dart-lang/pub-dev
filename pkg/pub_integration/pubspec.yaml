@@ -13,6 +13,7 @@ dependencies:
   pub_validations:
     path: ../pub_validations
   puppeteer: 2.0.0
+  oauth2: ^2.0.0
 
 dev_dependencies:
   coverage: any # test already depends on it
