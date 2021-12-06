@@ -71,7 +71,7 @@ class TaskBackend {
 
   TaskBackend(this._db, this._cloudCompute, this._bucket);
 
-  /// Start background scheduling of tasks.
+  /// Start continuous background processes for scheduling of tasks.
   ///
   /// Calling [start] multiple times is an error.
   Future<void> start() async {
@@ -84,23 +84,62 @@ class TaskBackend {
     _started = true;
 
     // Start scanning for packages to be tracked
-    scheduleMicrotask(() async {});
+    final _doneScanning = Completer<void>();
+    scheduleMicrotask(() async {
+      try {
+        // Create a lock for task scheduling, so tasks
+        final lock = GlobalLock.create(
+          '$runtimeVersion/task/scanning',
+          expiration: Duration(minutes: 25),
+        );
+
+        while (!_aborted.isCompleted) {
+          // Acquire the global lock and scan for package changes while lock is
+          // valid.
+          await lock.withClaim((claim) async {
+            await _scanForPackageUpdates(claim, abort: _aborted);
+          }, abort: _aborted);
+        }
+      } catch (e, st) {
+        _log.severe('scanning loop crashed', e, st);
+      } finally {
+        _doneScanning.complete();
+      }
+    });
 
     // Start background task to schedule tasks
+    final _doneScheduling = Completer<void>();
     scheduleMicrotask(() async {
-      // Create a lock for task scheduling, so tasks
-      final lock = GlobalLock.create(
-        '$runtimeVersion/task/scheduler',
-        expiration: Duration(minutes: 25),
-      );
+      try {
+        // Create a lock for task scheduling, so tasks
+        final lock = GlobalLock.create(
+          '$runtimeVersion/task/scheduler',
+          expiration: Duration(minutes: 25),
+        );
 
-      while (!_aborted.isCompleted) {
-        // Acquire the global lock and create VMs for pending packages, and
-        // kill overdue VMs.
-        await lock.withClaim((claim) async {
-          await schedule(claim, _cloudCompute, _db, abort: _aborted);
-        }, abort: _aborted);
+        while (!_aborted.isCompleted) {
+          // Acquire the global lock and create VMs for pending packages, and
+          // kill overdue VMs.
+          await lock.withClaim((claim) async {
+            await schedule(claim, _cloudCompute, _db, abort: _aborted);
+          }, abort: _aborted);
+        }
+      } catch (e, st) {
+        _log.severe('scheduling loop crashed', e, st);
+      } finally {
+        _doneScheduling.complete();
       }
+    });
+
+    scheduleMicrotask(() async {
+      // Wait for background process to finish
+      await Future.wait([
+        _doneScanning.future,
+        _doneScheduling.future,
+      ]);
+
+      // Report background processes as stopped
+      _stopped.complete();
     });
   }
 
@@ -195,6 +234,60 @@ class TaskBackend {
     if (error != null) {
       // Hack to rethrow [error] with [stackTrace]
       await Future.error(error!, stackTrace);
+    }
+  }
+
+  /// Scan for updates from packages until [abort] is resolved, or [claim]
+  /// is lost.
+  Future<void> _scanForPackageUpdates(
+    GlobalLockClaim claim, {
+    Completer<void>? abort,
+  }) async {
+    abort ??= Completer<void>();
+
+    // Map from package to updated that has been seen.
+    final seen = <String, DateTime>{};
+
+    var since = clock.ago(minutes: 30);
+    while (claim.valid && !abort.isCompleted) {
+      // Look at all packages changed in [since]
+      final q = _db.query<Package>()
+        ..filter('updated >', since)
+        ..order('-updated');
+
+      // Next time we'll only consider changes since now - 5 minutes
+      since = clock.ago(minutes: 5);
+
+      // Look at all packages that has changed
+      await for (final p in q.run()) {
+        // Abort, if claim is invalid or abort has been resolved!
+        if (!claim.valid || abort.isCompleted) {
+          return;
+        }
+
+        // Check if the [updated] timestamp has been seen before.
+        // If so, we skip checking it!
+        final lastSeen = seen[p.name!];
+        if (lastSeen != null && lastSeen.toUtc() == p.updated!.toUtc()) {
+          continue;
+        }
+        // Remember the updated time for this package, so we don't check it
+        // again...
+        seen[p.name!] = p.updated!;
+
+        // Check the package
+        await _trackPackage(p.name!);
+      }
+
+      // Cleanup the [seen] map for anything older than [since], as this won't
+      // be relevant to the next iteration.
+      seen.removeWhere((_, updated) => updated.isBefore(since));
+
+      // Wait 10 minutes before scanning again!
+      await Future.any([
+        Future.delayed(Duration(minutes: 10)),
+        abort.future,
+      ]);
     }
   }
 
