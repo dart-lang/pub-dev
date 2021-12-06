@@ -155,7 +155,7 @@ class VersionInfo {
 
   /// `true` if version is retracted.
   /// If it is omitted, `null` or `false` the package is *not retracted*.
-  final bool? isRetracted;
+  final bool? retracted;
 
   final Map<String, dynamic> pubspec;
 
@@ -168,7 +168,7 @@ class VersionInfo {
 
   VersionInfo({
     required this.version,
-    required this.isRetracted,
+    required this.retracted,
     required this.pubspec,
     required this.archiveUrl,
     required this.published,
