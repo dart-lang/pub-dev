@@ -31,7 +31,8 @@ class RequestContext {
   final bool showNewSearchUI;
 
   /// Whether to render the admin UI for retracting package versions.
-  final bool showPackageRetraction;
+  /// TODO: remove after release.
+  final showPackageRetraction = true;
 
   const RequestContext({
     this.indentJson = false,
@@ -39,6 +40,5 @@ class RequestContext {
     this.blockRobots = true,
     this.uiCacheEnabled = false,
     this.showNewSearchUI = false,
-    this.showPackageRetraction = false,
   });
 }

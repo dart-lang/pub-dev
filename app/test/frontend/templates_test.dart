@@ -408,8 +408,8 @@ void main() {
           data,
           ['example.com'],
           await accountBackend.lookupUsersByEmail('admin@pub.dev'),
-          [],
-          [],
+          ['2.0.0'],
+          ['1.0.0'],
         );
         expectGoldenFile(html, 'pkg_admin_page.html', timestamps: {
           'published': data.package!.created,
