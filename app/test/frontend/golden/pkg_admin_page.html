@@ -326,6 +326,70 @@
                     </div>
                     <label for="-admin-is-unlisted-checkbox">Mark "unlisted"</label>
                   </div>
+                  <h2>Package Version Retraction</h2>
+                  <div>
+                    <p>
+                      You can
+                      <a href="https://dart.dev/go/package-retraction">retract</a>
+                      a package version up to 7 days after publication.
+                    </p>
+                    <p>This will not remove the package version, but warn developers using it and stop new applications from taking dependency on it without a dependency override.</p>
+                    <p>You can restore a retracted package version if the version was retracted within the last 7 days.</p>
+                    <h3>Retract Package Version</h3>
+                    <div id="-admin-retract-package-version-input" class="mdc-select mdc-select--filled -admin-dropdown" data-mdc-auto-init="MDCSelect">
+                      <div class="mdc-select__anchor">
+                        <span class="mdc-select__ripple"></span>
+                        <span class="mdc-select__selected-text"></span>
+                        <span class="mdc-select__dropdown-icon">
+                          <svg class="mdc-select__dropdown-icon-graphic" viewBox="7 10 10 5">
+                            <polygon class="mdc-select__dropdown-icon-inactive" stroke="none" fill-rule="evenodd" points="7 10 12 15 17 10"></polygon>
+                            <polygon class="mdc-select__dropdown-icon-active" stroke="none" fill-rule="evenodd" points="7 15 12 10 17 15"></polygon>
+                          </svg>
+                        </span>
+                        <span class="mdc-floating-label">Select a version</span>
+                        <span class="mdc-line-ripple"></span>
+                      </div>
+                      <div class="mdc-select__menu mdc-menu mdc-menu-surface mdc-menu-surface--fullwidth">
+                        <ul class="mdc-list">
+                          <li class="mdc-list-item" data-value="2.0.0">
+                            <span class="mdc-list-item__ripple"></span>
+                            <span class="mdc-list-item__text">2.0.0</span>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                    <p>
+                      <button id="-admin-retract-package-version-button" class="mdc-button mdc-button--raised pub-button-danger" data-mdc-auto-init="MDCRipple">Retract Package Version</button>
+                    </p>
+                  </div>
+                  <h3>Restore Retracted Package Version</h3>
+                  <div>
+                    <div id="-admin-restore-retract-package-version-input" class="mdc-select mdc-select--filled -admin-dropdown" data-mdc-auto-init="MDCSelect">
+                      <div class="mdc-select__anchor">
+                        <span class="mdc-select__ripple"></span>
+                        <span class="mdc-select__selected-text"></span>
+                        <span class="mdc-select__dropdown-icon">
+                          <svg class="mdc-select__dropdown-icon-graphic" viewBox="7 10 10 5">
+                            <polygon class="mdc-select__dropdown-icon-inactive" stroke="none" fill-rule="evenodd" points="7 10 12 15 17 10"></polygon>
+                            <polygon class="mdc-select__dropdown-icon-active" stroke="none" fill-rule="evenodd" points="7 15 12 10 17 15"></polygon>
+                          </svg>
+                        </span>
+                        <span class="mdc-floating-label">Select a version</span>
+                        <span class="mdc-line-ripple"></span>
+                      </div>
+                      <div class="mdc-select__menu mdc-menu mdc-menu-surface mdc-menu-surface--fullwidth">
+                        <ul class="mdc-list">
+                          <li class="mdc-list-item" data-value="1.0.0">
+                            <span class="mdc-list-item__ripple"></span>
+                            <span class="mdc-list-item__text">1.0.0</span>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                    <p>
+                      <button id="-admin-restore-retract-package-version-button" class="mdc-button mdc-button--raised pub-button-danger" data-mdc-auto-init="MDCRipple">Restore Retraced Package Version</button>
+                    </p>
+                  </div>
                 </section>
               </div>
             </div>
