@@ -155,6 +155,7 @@ class VersionInfo {
 
   /// `true` if version is retracted.
   /// If it is omitted, `null` or `false` the package is *not retracted*.
+  @JsonKey(name: 'retracted')
   final bool? isRetracted;
 
   final Map<String, dynamic> pubspec;
