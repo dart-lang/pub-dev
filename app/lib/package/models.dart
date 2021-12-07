@@ -138,6 +138,10 @@ class Package extends db.ExpandoModel<String> {
   @db.StringListProperty()
   List<String>? assignedTags;
 
+  /// List of versions that have been deleted and must not be re-uploaded again.
+  @db.StringListProperty()
+  List<String>? deletedVersions;
+
   Package();
 
   /// Creates a new [Package] and populates all of it's fields from [version].
@@ -162,7 +166,8 @@ class Package extends db.ExpandoModel<String> {
       ..isDiscontinued = false
       ..isUnlisted = false
       ..isWithheld = false
-      ..assignedTags = [];
+      ..assignedTags = []
+      ..deletedVersions = [];
   }
 
   // Convenience Fields:

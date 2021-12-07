@@ -322,6 +322,23 @@ void main() {
         });
       });
 
+      testWithProfile('versions has been deleted', fn: () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          await adminBackend.removePackageVersion('oxygen', '1.0.0');
+          final tarball = await packageArchiveBytes(
+              pubspecContent: generatePubspecYaml('oxygen', '1.0.0'));
+          final rs = packageBackend.upload(Stream.fromIterable([tarball]));
+          await expectLater(
+              rs,
+              throwsA(isA<Exception>().having(
+                (e) => '$e',
+                'text',
+                contains(
+                    'Version 1.0.0 of package oxygen was deleted previously, re-upload is not allowed.'),
+              )));
+        });
+      });
+
       // Returns the error message as String or null if it succeeded.
       Future<String?> fn(String name) async {
         final pubspecContent = generatePubspecYaml(name, '0.2.0');
