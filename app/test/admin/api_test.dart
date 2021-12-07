@@ -255,7 +255,7 @@ void main() {
         expect(Version.parse(pkgAfter1stRemoval!.latestVersion!),
             lessThan(Version.parse(removeVersion)));
         expect(pkgAfter1stRemoval.updated!.isAfter(timeBeforeRemoval), isTrue);
-        expect(pkgAfter1stRemoval.versionCount, package.versionCount! - 1);
+        expect(pkgAfter1stRemoval.versionCount, package.versionCount - 1);
 
         final versionsAfterRemoval = await versionsQuery.run().toList();
         final missingVersion = versions

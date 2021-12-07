@@ -387,7 +387,7 @@ class AdminBackend {
       final versionNames = versions.map((v) => v.version).toList();
       if (versionNames.contains(version)) {
         tx.delete(packageKey.append(PackageVersion, id: version));
-        package!.versionCount = package.versionCount! - 1;
+        package!.versionCount--;
         package.updated = DateTime.now().toUtc();
       } else {
         print('Package $packageName does not have a version $version.');

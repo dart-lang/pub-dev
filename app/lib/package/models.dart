@@ -104,8 +104,8 @@ class Package extends db.ExpandoModel<String> {
   /// The number of published versions.
   ///
   /// TODO: set required: true after the backfill is stabilized.
-  @db.IntProperty()
-  int? versionCount;
+  @db.IntProperty(required: true)
+  int versionCount = 0;
 
   /// Set to `true` if package is discontinued, may otherwise be `false`.
   @db.BoolProperty(required: true)

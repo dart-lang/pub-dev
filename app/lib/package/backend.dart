@@ -129,25 +129,6 @@ class PackageBackend {
     });
   }
 
-  /// Returns the number of versions for a given [package].
-  Future<int> getPackageVersionsCount(
-    String package, {
-    bool skipCache = false,
-  }) async {
-    if (skipCache) {
-      final versions = await versionsOfPackage(package);
-      return versions.length;
-    }
-    try {
-      // TODO: introduce a counter on `Package`
-      final versions = await listVersionsCached(package);
-      return versions.versions.length;
-    } on NotFoundException catch (_) {
-      // TODO: find a better way to handle non-existing packages
-      return 0;
-    }
-  }
-
   /// Looks up a package by name.
   ///
   /// Returns `null` if the package doesn't exist.
@@ -780,16 +761,6 @@ class PackageBackend {
     final sw = Stopwatch()..start();
     final entities = await _createUploadEntities(db, user, archive);
     final newVersion = entities.packageVersion;
-
-    // Check version count outside of the transaction.
-    final versionsCount = await getPackageVersionsCount(newVersion.package);
-    if (versionsCount >= _maxVersionsPerPackage) {
-      throw PackageRejectedException.maxVersionCountReached(
-          newVersion.package, _maxVersionsPerPackage);
-    }
-    _logger.info('Upload version count check completed in ${sw.elapsed}.');
-    sw.reset();
-
     final currentDartSdk = await getDartSdkVersion();
 
     Package? package;
@@ -836,6 +807,11 @@ class PackageBackend {
             user.email!, package!.name!);
       }
 
+      if (package!.versionCount >= _maxVersionsPerPackage) {
+        throw PackageRejectedException.maxVersionCountReached(
+            newVersion.package, _maxVersionsPerPackage);
+      }
+
       if (package!.isNotVisible) {
         throw PackageRejectedException.isWithheld();
       }
@@ -847,11 +823,7 @@ class PackageBackend {
       package!.updateVersion(newVersion,
           dartSdkVersion: currentDartSdk.semanticVersion);
       package!.updated = DateTime.now().toUtc();
-      // Update version count only if backfill has been run already.
-      // TODO: change this to always update when the backfill completed.
-      if (package!.versionCount != null) {
-        package!.versionCount = package!.versionCount! + 1;
-      }
+      package!.versionCount++;
 
       _logger.info(
         'Trying to upload tarball for ${package!.name} version ${newVersion.version} to cloud storage.',
