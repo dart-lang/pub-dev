@@ -44,7 +44,6 @@ void main() {
               ),
             },
           }));
-      await httpClient.get(Uri.parse('$origin/fake-update-search'));
 
       // start browser
       headlessEnv = HeadlessEnv(testName: 'search-update', origin: origin);

@@ -108,14 +108,17 @@ class FakeServerCommand extends Command {
     Future<shelf.Response> forwardUpdatesHandler(shelf.Request rq) async {
       if (rq.method.toUpperCase() == 'POST' &&
           rq.requestedUri.path == '/fake-test-profile') {
-        return await _testProfile(rq);
+        return await _chainHandlers([
+          () => _testProfile(rq),
+          () => _updateUpstream(searchPort),
+        ]);
       }
       if (rq.requestedUri.path == '/fake-update-all') {
-        final analyzerRs = await _updateUpstream(analyzerPort);
-        if (analyzerRs.statusCode != 200) return analyzerRs;
-        final dartdocRs = await _updateUpstream(dartdocPort);
-        if (dartdocRs.statusCode != 200) return dartdocRs;
-        return await _updateUpstream(searchPort);
+        return await _chainHandlers([
+          () => _updateUpstream(analyzerPort),
+          () => _updateUpstream(dartdocPort),
+          () => _updateUpstream(searchPort),
+        ]);
       }
       if (rq.requestedUri.path == '/fake-update-analyzer') {
         return await _updateUpstream(analyzerPort);
@@ -173,4 +176,15 @@ Future<shelf.Response> _testProfile(shelf.Request rq) async {
   await processJobsWithFakePanaRunner();
   await processJobsWithFakeDartdocRunner();
   return shelf.Response.ok('{}');
+}
+
+typedef RequestHandler = Future<shelf.Response> Function();
+
+Future<shelf.Response> _chainHandlers(List<RequestHandler> handlers) async {
+  late shelf.Response last;
+  for (final h in handlers) {
+    last = await h();
+    if (last.statusCode != 200) return last;
+  }
+  return last;
 }
