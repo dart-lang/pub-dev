@@ -31,6 +31,15 @@ void main() {
     test('bulk tests', () async {
       final origin = 'http://localhost:${fakePubServerProcess.port}';
       // init server data
+      //
+      // The test profile import uses a fake analysis by default, which
+      // assigns tags with a pseudorandom process (based on the hash of the
+      // package's name and sometimes the version), with a few hardcoded
+      // patterns, e.g. `flutter_*` packages will get `sdk:flutter` tag assigned.
+      //
+      // This imports 100 packages with these semi-random tags, and adding and
+      // removing filters works because of the number of packages and their
+      // tags are kind of random.
       await httpClient.post(Uri.parse('$origin/fake-test-profile'),
           body: json.encode({
             'testProfile': {
