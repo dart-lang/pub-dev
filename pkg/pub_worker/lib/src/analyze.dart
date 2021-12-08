@@ -8,12 +8,12 @@ import 'dart:io' show Directory, File, Process, Platform, ProcessSignal;
 import 'dart:isolate' show Isolate;
 
 import 'package:http/http.dart' show Client;
+import 'package:indexed_blob/indexed_blob.dart';
 import 'package:logging/logging.dart' show Logger;
 import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_worker/pana_report.dart' show PanaReport;
 import 'package:pub_worker/payload.dart';
-import 'package:pub_worker/src/blobindexpair.dart';
 import 'package:pub_worker/src/http.dart';
 import 'package:pub_worker/src/pubapi.client.dart';
 import 'package:pub_worker/src/upload.dart';

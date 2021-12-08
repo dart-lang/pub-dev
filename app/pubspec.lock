@@ -240,7 +240,7 @@ packages:
     source: hosted
     version: "2.2.0"
   fake_async:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: fake_async
       url: "https://pub.dartlang.org"
@@ -365,6 +365,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.2.0"
+  indexed_blob:
+    dependency: "direct main"
+    description:
+      path: "../pkg/indexed_blob"
+      relative: true
+    source: path
+    version: "0.0.0"
   intl:
     dependency: "direct main"
     description:

@@ -13,6 +13,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart' show Bucket;
 import 'package:googleapis/storage/v1.dart'
     show DetailedApiRequestError, ApiRequestError;
+import 'package:indexed_blob/indexed_blob.dart' show BlobIndex;
 import 'package:logging/logging.dart' show Logger;
 import 'package:pana/models.dart' show Summary;
 import 'package:pool/pool.dart' show Pool;
@@ -30,7 +31,6 @@ import 'package:pub_dev/task/global_lock.dart';
 import 'package:pub_dev/task/models.dart'
     show PackageState, PackageVersionState, maxTaskExecutionTime;
 import 'package:pub_dev/task/scheduler.dart';
-import 'package:pub_worker/blob.dart' show BlobIndex;
 import 'package:pub_worker/pana_report.dart' show PanaReport;
 import 'package:retry/retry.dart' show retry;
 import 'package:shelf/shelf.dart' as shelf;

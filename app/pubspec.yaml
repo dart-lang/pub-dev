@@ -61,6 +61,8 @@ dependencies:
   pub_worker:
     path: ../pkg/pub_worker
   fake_async: ^1.2.0
+  indexed_blob:
+    path: ../pkg/indexed_blob
 
 dev_dependencies:
   build_runner: '^2.0.0'

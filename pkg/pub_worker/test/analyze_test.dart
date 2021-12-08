@@ -9,8 +9,8 @@ import 'dart:typed_data';
 
 import 'package:client_data/package_api.dart';
 import 'package:client_data/task_api.dart';
+import 'package:indexed_blob/indexed_blob.dart';
 import 'package:logging/logging.dart' show Logger, Level, LogRecord;
-import 'package:pub_worker/blob.dart';
 import 'package:pub_worker/pana_report.dart';
 import 'package:pub_worker/payload.dart';
 import 'package:pub_worker/src/analyze.dart' show analyze;

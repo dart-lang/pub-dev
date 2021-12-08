@@ -6,15 +6,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'package:client_data/package_api.dart' show VersionScore;
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:indexed_blob/indexed_blob.dart' show BlobIndex;
 import 'package:logging/logging.dart';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:pub_worker/pana_report.dart' show PanaReport;
-import 'package:pub_worker/blob.dart' show BlobIndex;
 
 import '../account/models.dart' show LikeData, UserSessionData;
 import '../dartdoc/models.dart' show DartdocEntry, FileInfo;
