@@ -22,4 +22,14 @@ void main() {
       expect(main.contains('void '), isTrue);
     }
   });
+
+  test('redis: separators in prefixes', () {
+    final file = File('lib/shared/redis_cache.dart');
+    final lines = file.readAsLinesSync();
+    for (final line in lines) {
+      if (line.contains('withPrefix')) {
+        expect(line, contains("/')"));
+      }
+    }
+  });
 }
