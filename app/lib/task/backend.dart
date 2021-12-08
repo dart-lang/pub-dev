@@ -53,6 +53,15 @@ void registerTaskBackend(TaskBackend backend) =>
 /// The active task backend service.
 TaskBackend get taskBackend => ss.lookup(#_taskBackend) as TaskBackend;
 
+// TODO: Reduce number of versions we want to track with some heuristics
+//       latest stable/preview/prerelease.
+//       5 latest major versions.
+//
+// TODO: Handle case where worker has it doesn't have time to process remaining versions
+//       It probably just writes in log that it could do it within given time constraints
+//       and calls finish for each version signaling that the version needs not be retriggered!
+// NOTE: Tracking all versions could be too much overhead in entity size.
+
 class TaskBackend {
   final DatastoreDB _db;
   final CloudCompute _cloudCompute;
@@ -103,6 +112,7 @@ class TaskBackend {
       } catch (e, st) {
         _log.severe('scanning loop crashed', e, st);
       } finally {
+        _log.fine('scanning loop stopped');
         _doneScanning.complete();
       }
     });
@@ -127,6 +137,7 @@ class TaskBackend {
       } catch (e, st) {
         _log.severe('scheduling loop crashed', e, st);
       } finally {
+        _log.fine('scheduling loop stopped');
         _doneScheduling.complete();
       }
     });
@@ -318,6 +329,7 @@ class TaskBackend {
       // Ensure we have PackageState entity
       if (state == null) {
         // Create [PackageState] entity to track the package
+        _log.info('Started state tracking for $packageName');
         tx.insert(
           PackageState()
             ..setId(runtimeVersion, packageName)
@@ -372,6 +384,7 @@ class TaskBackend {
             ),
         });
 
+      _log.info('Update state tracking for $packageName');
       tx.insert(state);
     });
   }
@@ -648,6 +661,8 @@ class TaskBackend {
       // Update dependencies, if pana summary has dependencies
       final summary = await panaSummary(package, version);
       if (summary != null && summary.allDependencies != null) {
+        // TODO: Limit size of dependencies!!
+
         final dependencies = {...state.dependencies ?? []};
         // Only update if new dependencies have been discovered.
         // This avoids unnecessary churn on datastore when there is no changes.

@@ -1,7 +1,10 @@
 import 'package:clock/clock.dart';
+import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
 import 'cloudcompute.dart';
+
+final _log = Logger('pub.fakecloudcompute');
 
 @sealed
 class FakeCloudCompute extends CloudCompute {
@@ -46,6 +49,7 @@ class FakeCloudCompute extends CloudCompute {
       arguments: arguments,
       description: description,
     );
+    _log.info('Creating instance "$name"');
     _instances.add(instance);
     return instance;
   }
@@ -63,6 +67,7 @@ class FakeCloudCompute extends CloudCompute {
     }
 
     // Let's make the operation take a minute, and then remove the instance!
+    _log.info('Deleting instance "$name"');
     await Future.delayed(Duration(minutes: 1));
     _instances.removeWhere((i) => i.name == name && i.zone == zone);
   }

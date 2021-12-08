@@ -64,7 +64,6 @@ void testWithProfile(
         await fork(() async {
           await fn();
         });
-
         // post-test integrity check
         final problems =
             await IntegrityChecker(dbService).findProblems().toList();

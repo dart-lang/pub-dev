@@ -48,6 +48,7 @@ Future<void> schedule(
   // Run scheduling iterations, so long as we have a valid claim
   while (claim.valid && !abort.isCompleted) {
     final iterationStart = clock.now();
+    _log.info('Starting scheduling cycle');
 
     // Count number of instances, and delete old instances
     var instances = 0;
@@ -55,10 +56,21 @@ Future<void> schedule(
       instances += 1; // count the instance
 
       // If terminated or older than maxInstanceAge, delete the instance...
-      if (instance.state == InstanceState.terminated &&
-          instance.created.isBefore(clock.now().subtract(_maxInstanceAge)) &&
-          // Prevent multiple calls to delete the same instance
-          deletionInProgress.add(instance.name)) {
+      final isTerminated = instance.state == InstanceState.terminated;
+      final isTooOld = instance.created.isBefore(clock.agoBy(_maxInstanceAge));
+      // Also check deletionInProgress to prevent multiple calls to delete the
+      // same instance
+      if ((isTerminated || isTooOld) && deletionInProgress.add(instance.name)) {
+        if (isTooOld) {
+          // This indicates that something is wrong the with the instance,
+          // ideally it should have detected its own deadline being violated
+          // and terminated on its own. Ofcourse, this can fail for arbitrary
+          // reasons in a distributed system.
+          _log.warning('terminating "${instance.name}" for being too old!');
+        } else if (isTerminated) {
+          _log.fine('deleting "${instance.name}" as it has terminated.');
+        }
+
         scheduleMicrotask(() async {
           final deletionStart = clock.now();
           try {
@@ -75,9 +87,11 @@ Future<void> schedule(
         });
       }
     }
+    _log.info('Found $instances instances');
 
     // If we are not allowed to create new instances within the allowed quota,
-    if (_concurrentInstanceLimit >= instances) {
+    if (_concurrentInstanceLimit <= instances) {
+      _log.info('Reached instance limit, trying again in 30s');
       // Wait 30 seconds then list instances again, so that we can count them
       await Future.any([
         _sleep(Duration(seconds: 30), since: iterationStart),
@@ -97,6 +111,7 @@ Future<void> schedule(
 
     // If no zones are available, we sleep and try again later.
     if (allowedZones.isEmpty) {
+      _log.info('All compute-engine zones are banned, trying again in 30s');
       await Future.any([
         _sleep(Duration(seconds: 30), since: iterationStart),
         abort.future,
@@ -190,7 +205,8 @@ Future<void> schedule(
           );
         } on Exception catch (e, st) {
           _log.warning(
-            'Failed to create instance $instanceName in $zone',
+            'Failed to create instance $instanceName, banning zone "$zone" for '
+            '15 minutes',
             e,
             st,
           );
