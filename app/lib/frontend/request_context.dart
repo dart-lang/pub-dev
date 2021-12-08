@@ -30,10 +30,6 @@ class RequestContext {
   /// Whether to render the new search UI with un-nested platforms.
   final bool showNewSearchUI;
 
-  /// Whether to render the admin UI for retracting package versions.
-  /// TODO: remove after release.
-  final showPackageRetraction = true;
-
   const RequestContext({
     this.indentJson = false,
     this.isExperimental = false,
