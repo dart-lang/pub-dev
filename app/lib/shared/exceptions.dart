@@ -334,8 +334,8 @@ class AuthorizationException extends ResponseException {
   factory AuthorizationException.userCannotUploadNewVersion(
           String email, String package) =>
       AuthorizationException._(
-        '`$email` has insufficient permissions to upload new versions of '
-        'package `$package`.',
+        '`$email` has insufficient permissions to upload new versions to '
+        'existing package `$package`.',
       );
 
   /// Signaling that the user does not have permissions to change uploaders for
