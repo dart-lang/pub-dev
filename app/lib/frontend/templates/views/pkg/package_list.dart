@@ -56,30 +56,39 @@ d.Node _packageItem(PackageView view) {
   final isFlutterFavorite = view.tags.contains(PackageTags.isFlutterFavorite);
   final isNullSafe = view.tags.contains(PackageVersionTags.isNullSafe);
 
+  Iterable<d.Node> versionAndTimestamp(
+    Release release, {
+    bool isLatest = false,
+  }) {
+    return [
+      d.a(
+        href: urls.pkgPageUrl(
+          view.name!,
+          version: isLatest ? null : release.version,
+        ),
+        text: release.version,
+      ),
+      d.text(' ('),
+      d.xAgoTimestamp(release.published),
+      d.text(')'),
+    ];
+  }
+
+  final releases = view.releases!;
   final metadataNode = d.fragment([
     d.span(
       classes: ['packages-metadata-block'],
       children: [
         d.text('v '),
-        d.a(href: urls.pkgPageUrl(view.name!), text: view.version),
-        if (view.previewVersion != null) ...[
+        ...versionAndTimestamp(releases.stable, isLatest: true),
+        if (releases.showPreview) ...[
           d.text(' / '),
-          d.a(
-            href: urls.pkgPageUrl(view.name!, version: view.previewVersion),
-            text: view.previewVersion,
-          ),
+          ...versionAndTimestamp(releases.preview!),
         ],
-        if (view.prereleaseVersion != null) ...[
-          d.text('/ '),
-          d.a(
-            href: urls.pkgPageUrl(view.name!, version: view.prereleaseVersion),
-            text: view.prereleaseVersion,
-          ),
+        if (releases.showPrerelease) ...[
+          d.text(' / '),
+          ...versionAndTimestamp(releases.prerelease!),
         ],
-        d.text(' • Updated: '),
-        d.span(
-          child: view.updated == null ? null : d.xAgoTimestamp(view.updated!),
-        ),
       ],
     ),
     if (view.publisherId != null)

@@ -79,7 +79,12 @@ class ScoreCardBackend {
 
       final pv = await pvFuture;
       final card = await cardFuture;
-      return PackageView.fromModel(package: p, version: pv, scoreCard: card);
+      return PackageView.fromModel(
+        package: p,
+        releases: releases,
+        version: pv,
+        scoreCard: card,
+      );
     });
   }
 

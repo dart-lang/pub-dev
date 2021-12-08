@@ -456,9 +456,7 @@ void main() {
         );
         expectGoldenFile(html, 'pkg_index_page.html', timestamps: {
           'oxygen-created': oxygen.created,
-          'oxygen-updated': oxygen.updated,
           'titanium-created': titanium.created,
-          'titanium-updated': titanium.updated,
         });
       },
     );
@@ -498,9 +496,7 @@ void main() {
         );
         expectGoldenFile(html, 'pkg_index_page_experimental.html', timestamps: {
           'oxygen-created': oxygen.created,
-          'oxygen-updated': oxygen.updated,
           'titanium-created': titanium.created,
-          'titanium-updated': titanium.updated,
         });
       },
     );
@@ -532,9 +528,7 @@ void main() {
         );
         expectGoldenFile(html, 'search_page.html', timestamps: {
           'oxygen-created': oxygen.created,
-          'oxygen-updated': oxygen.updated,
           'titanium-created': titanium.created,
-          'titanium-updated': titanium.updated,
         });
       },
     );
@@ -594,9 +588,7 @@ void main() {
         );
         expectGoldenFile(html, 'publisher_packages_page.html', timestamps: {
           'neon-created': neon.created,
-          'neon-updated': neon.updated,
           'titanium-created': titanium.created,
-          'titanium-updated': titanium.updated,
           'publisher-created': publisher.created,
           'publisher-updated': publisher.updated,
         });
@@ -679,9 +671,7 @@ void main() {
           );
           expectGoldenFile(html, 'my_packages.html', timestamps: {
             'oxygen-created': oxygen.created,
-            'oxygen-updated': oxygen.updated,
             'neon-created': neon.created,
-            'neon-updated': neon.updated,
           });
         });
       },
