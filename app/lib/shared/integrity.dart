@@ -9,10 +9,11 @@ import '../account/models.dart';
 import '../package/backend.dart';
 import '../package/models.dart';
 import '../publisher/models.dart';
-import '../shared/datastore.dart';
-import '../shared/tags.dart' show allowedTagPrefixes;
 
+import 'datastore.dart';
 import 'email.dart' show looksLikeEmail;
+import 'tags.dart' show allowedTagPrefixes;
+import 'utils.dart' show canonicalizeVersion;
 
 final _logger = Logger('integrity.check');
 
@@ -262,6 +263,15 @@ class IntegrityChecker {
         yield 'Package "${p.name}" has invalid uploader: "$userId".';
       }
     }
+    if (p.deletedVersions != null) {
+      // make sure we store valid versions here
+      for (final v in p.deletedVersions!) {
+        final c = canonicalizeVersion(v);
+        if (c == null) {
+          yield 'Package "{p.name}" has invalid deleted version "$v".';
+        }
+      }
+    }
     final versionKeys = <Key>{};
     final qualifiedVersionKeys = <QualifiedVersionKey>{};
     int versionCountUntilLastPublished = 0;
@@ -269,6 +279,10 @@ class IntegrityChecker {
         in _db.query<PackageVersion>(ancestorKey: p.key).run()) {
       versionKeys.add(pv.key);
       qualifiedVersionKeys.add(pv.qualifiedVersionKey);
+      if (p.deletedVersions != null &&
+          p.deletedVersions!.contains(pv.version!)) {
+        yield 'PackageVersion "${pv.qualifiedVersionKey}" exists, but is marked as deleted in Package "${p.name}".';
+      }
       if (pv.uploader == null) {
         yield 'PackageVersion "${pv.qualifiedVersionKey}" has no uploader.';
       }
