@@ -467,4 +467,16 @@
       }
     }
   }
+
+  .search-form-linked-checkbox {
+    cursor: pointer;
+
+    &:hover {
+      background-color: #f7f7f7;
+    }
+
+    a {
+      color: $site-font-color;
+    }
+  }
 }

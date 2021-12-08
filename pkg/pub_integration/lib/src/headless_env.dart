@@ -268,6 +268,11 @@ extension ElementHandleExt on ElementHandle {
   Future<String> textContent() async {
     return await propertyValue('textContent');
   }
+
+  Future<String?> attributeValue(String name) async {
+    final v = await evaluate('el => el.getAttribute("$name")');
+    return v as String?;
+  }
 }
 
 /// Track the covered ranges in the source file.
