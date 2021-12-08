@@ -112,7 +112,7 @@ Future<PackageSummary> summarizePackageArchive(
   }
 
   // processing pubspec.yaml
-  final pubspecPath = tar.searchForFile(['pubspec.yaml']);
+  final pubspecPath = tar.firstFileNameOrNull(['pubspec.yaml']);
   if (pubspecPath == null) {
     issues.add(ArchiveIssue('pubspec.yaml is missing.'));
     return PackageSummary(issues: issues);
@@ -181,42 +181,47 @@ Future<PackageSummary> summarizePackageArchive(
     return PackageSummary(issues: issues);
   }
 
-  final package = pubspec.name;
+  String? readmePath = tar.firstFileNameOrNull(readmeFileNames);
+  String? changelogPath = tar.firstFileNameOrNull(changelogFileNames);
+  String? examplePath =
+      tar.firstFileNameOrNull(exampleFileCandidates(pubspec.name));
+  String? licensePath = tar.firstFileNameOrNull(licenseFileNames);
 
-  Future<String?> extractContent(String? contentPath) async {
+  final contentBytes = await tar.scanAndReadFiles(
+    [readmePath, changelogPath, examplePath, licensePath]
+        .whereType<String>()
+        .toList(),
+    maxLength: maxContentLength,
+  );
+
+  String? tryParseContentBytes(String? contentPath) {
     if (contentPath == null) return null;
-    final content =
-        await tar.readContentAsString(contentPath, maxLength: maxContentLength);
-    if (content.trim().isEmpty) {
-      return null;
-    }
-    if (utf8.encode(content).length > maxContentLength) {
+    final bytes = contentBytes[contentPath];
+    if (bytes == null) return null;
+    if (bytes.length > maxContentLength) {
       issues.add(ArchiveIssue(
           '`$contentPath` exceeds the maximum content length ($maxContentLength bytes).'));
+    }
+    String content = utf8.decode(bytes, allowMalformed: true);
+    if (content.length > maxContentLength) {
+      content = content.substring(0, maxContentLength) + '[...]\n\n';
     }
     return content;
   }
 
-  String? readmePath = tar.searchForFile(readmeFileNames);
-  final readmeContent = await extractContent(readmePath);
+  final readmeContent = tryParseContentBytes(readmePath);
   if (readmeContent == null) {
     readmePath = null;
   }
-
-  String? changelogPath = tar.searchForFile(changelogFileNames);
-  final changelogContent = await extractContent(changelogPath);
+  final changelogContent = tryParseContentBytes(changelogPath);
   if (changelogContent == null) {
     changelogPath = null;
   }
-
-  String? examplePath = tar.searchForFile(exampleFileCandidates(package));
-  final exampleContent = await extractContent(examplePath);
+  final exampleContent = tryParseContentBytes(examplePath);
   if (exampleContent == null) {
     examplePath = null;
   }
-
-  String? licensePath = tar.searchForFile(licenseFileNames);
-  final licenseContent = await extractContent(licensePath);
+  final licenseContent = tryParseContentBytes(licensePath);
   if (licenseContent == null) {
     licensePath = null;
   }
