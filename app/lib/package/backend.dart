@@ -450,8 +450,17 @@ class PackageBackend {
               dartSdkVersion: currentDartSdk.semanticVersion);
         }
 
+        _logger.info('Updating $package ${pv.version} options: '
+            'isRetracted: ${pv.isRetracted}');
+
         tx.insert(p);
         tx.insert(pv);
+        tx.insert(AuditLogRecord.packageVersionOptionsUpdated(
+          package: p.name!,
+          version: pv.version!,
+          user: user,
+          options: ['retracted'],
+        ));
       }
     });
     await purgePackageCache(package);

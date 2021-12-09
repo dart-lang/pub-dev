@@ -153,6 +153,30 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..publishers = [];
   }
 
+  factory AuditLogRecord.packageVersionOptionsUpdated({
+    required String package,
+    required String version,
+    required User user,
+    required List<String> options,
+  }) {
+    final optionsStr = options.map((o) => '`$o`').join(', ');
+    return AuditLogRecord._init()
+      ..kind = AuditLogRecordKind.packageVersionOptionsUpdated
+      ..agent = user.userId
+      ..summary = '`${user.email}` updated $optionsStr of '
+          'package `$package` version `$version`.'
+      ..data = {
+        'package': package,
+        'version': version,
+        'user': user.email,
+        'options': options,
+      }
+      ..users = [user.userId]
+      ..packages = [package]
+      ..packageVersions = [version]
+      ..publishers = [];
+  }
+
   factory AuditLogRecord.packagePublished({
     required User uploader,
     required String package,
@@ -596,6 +620,9 @@ class AuditLogRecord extends db.ExpandoModel<String> {
 abstract class AuditLogRecordKind {
   /// Event that a package was updated with new options
   static const packageOptionsUpdated = 'package-options-updated';
+
+  /// Event that a package version was updated with new options
+  static const packageVersionOptionsUpdated = 'package-version-options-updated';
 
   /// Event that a package was published.
   ///
