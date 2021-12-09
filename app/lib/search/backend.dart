@@ -167,7 +167,9 @@ class SearchBackend {
       uploaderUserIds: [
         // TODO: remove internal IDs after search is migrated to use external IDs
         ...?p.uploaders,
-        ...uploaderUsers.map((u) => u?.externalSearchUserId).whereType<String>(),
+        ...uploaderUsers
+            .map((u) => u?.externalSearchUserId)
+            .whereType<String>(),
       ],
       apiDocPages: apiDocPages,
       timestamp: DateTime.now().toUtc(),
