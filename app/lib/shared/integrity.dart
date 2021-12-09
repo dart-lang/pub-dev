@@ -2,17 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 
 import '../account/models.dart';
+import '../audit/models.dart';
 import '../package/backend.dart';
 import '../package/models.dart';
 import '../publisher/models.dart';
+import '../tool/utils/http.dart';
 
+import 'configuration.dart';
 import 'datastore.dart';
 import 'email.dart' show looksLikeEmail;
+import 'env_config.dart';
 import 'tags.dart' show allowedTagPrefixes;
+import 'urls.dart' as urls;
 import 'utils.dart' show canonicalizeVersion;
 
 final _logger = Logger('integrity.check');
@@ -27,12 +33,14 @@ class IntegrityChecker {
   final _deletedUsers = <String>{};
   final _invalidUsers = <String>{};
   final _packages = <String>{};
+  final _moderatedPackages = <String>{};
   final _packageReplacedBys = <String, String>{};
   final _packagesWithVersion = <String>{};
   final _publishers = <String>{};
   final _publishersAbandoned = <String>{};
   int _packageChecked = 0;
   int _versionChecked = 0;
+  late http.Client _httpClient;
 
   IntegrityChecker(this._db, {int? concurrency})
       : _concurrency = concurrency ?? 1;
@@ -49,6 +57,7 @@ class IntegrityChecker {
 
   /// Runs integrity checks, and returns the list of problems.
   Stream<String> findProblems() async* {
+    _httpClient = httpRetryClient();
     yield* _checkUsers();
     yield* _checkOAuthUserIDs();
     yield* _checkPublishers();
@@ -57,6 +66,8 @@ class IntegrityChecker {
     yield* _checkVersions();
     yield* _checkLikes();
     yield* _checkModeratedPackages();
+    yield* _checkAuditLogs();
+    _httpClient.close();
   }
 
   Stream<String> _checkUsers() async* {
@@ -283,18 +294,6 @@ class IntegrityChecker {
           p.deletedVersions!.contains(pv.version!)) {
         yield 'PackageVersion "${pv.qualifiedVersionKey}" exists, but is marked as deleted in Package "${p.name}".';
       }
-      if (pv.uploader == null) {
-        yield 'PackageVersion "${pv.qualifiedVersionKey}" has no uploader.';
-      }
-      if (!_userToOauth.containsKey(pv.uploader)) {
-        yield 'PackageVersion "${pv.qualifiedVersionKey}" has uploader without User: "${pv.uploader}".';
-      }
-      if (_invalidUsers.contains(pv.uploader)) {
-        yield 'PackageVersion "${pv.qualifiedVersionKey}" has invalid uploader: User "${pv.uploader}".';
-      }
-      if (pv.isRetracted is! bool) {
-        yield 'PackageVersion "${pv.qualifiedVersionKey}" has an `isRetracted` property which is not a bool.';
-      }
       // Count only the versions that were created before the last published timestamp,
       // to prevent false alarms that could happing if a new version is being published
       // while the integrity check is running.
@@ -438,6 +437,30 @@ class IntegrityChecker {
     if (pv.uploader == null) {
       yield 'PackageVersion "${pv.qualifiedVersionKey}" has no uploader.';
     }
+    if (!_userToOauth.containsKey(pv.uploader)) {
+      yield 'PackageVersion "${pv.qualifiedVersionKey}" has uploader without User: "${pv.uploader}".';
+    }
+    if (_invalidUsers.contains(pv.uploader)) {
+      yield 'PackageVersion "${pv.qualifiedVersionKey}" has invalid uploader: User "${pv.uploader}".';
+    }
+    if (pv.isRetracted is! bool) {
+      yield 'PackageVersion "${pv.qualifiedVersionKey}" has an `isRetracted` property which is not a bool.';
+    }
+    if (!envConfig.isRunningLocally) {
+      final info = await tarballStorage.info(pv.package, pv.version!);
+      if (info == null) {
+        yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching archive file.';
+      }
+      // Also issue a HTTP request.
+      if (!envConfig.isRunningLocally) {
+        final rs = await _httpClient.head(Uri.parse(urls.pkgArchiveDownloadUrl(
+            pv.package, pv.version!,
+            baseUri: activeConfiguration.primaryApiUri)));
+        if (rs.statusCode != 200) {
+          yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching archive file (HTTP status ${rs.statusCode}).';
+        }
+      }
+    }
 
     // Sanity checks for the `created` property
     if (pv.created == null) {
@@ -487,8 +510,41 @@ class IntegrityChecker {
 
     await for (final pkg in _db.query<ModeratedPackage>().run()) {
       final packageName = pkg.name!;
+      _moderatedPackages.add(packageName);
       if (await _packageExists(packageName)) {
         yield 'Moderated package "$packageName" also present in active packages.';
+      }
+    }
+  }
+
+  Stream<String> _checkAuditLogs() async* {
+    _logger.info('Scanning AuditLogRecords...');
+
+    await for (final record in _db.query<AuditLogRecord>().run()) {
+      yield* _checkAuditLogRecord(record);
+    }
+  }
+
+  Stream<String> _checkAuditLogRecord(AuditLogRecord r) async* {
+    if (r.users == null || r.users!.isEmpty) {
+      yield 'AuditLogRecord "${r.id}" has no users.';
+    }
+
+    for (final p in r.packages ?? const <String>[]) {
+      if (!_moderatedPackages.contains(p) && await _packageMissing(p)) {
+        yield 'AuditLogRecord "${r.id}" has missing package "$p".';
+      }
+    }
+
+    for (final pv in r.packageVersions ?? const <String>[]) {
+      final parts = pv.split('/');
+      if (parts.length != 2) {
+        yield 'AuditLogRecord "${r.id}" has invalid package version "$pv".';
+        continue;
+      }
+      final p = parts[0];
+      if (!_moderatedPackages.contains(p) && await _packageMissing(p)) {
+        yield 'AuditLogRecord "${r.id}" has missing package "$p" in package version "$pv".';
       }
     }
   }
