@@ -379,7 +379,8 @@ class AdminBackend {
       final Key packageKey = _db.emptyKey.append(Package, id: packageName);
       final package = await tx.lookupOrNull<Package>(packageKey);
       if (package == null) {
-        print('Package $packageName does not exist.');
+        throw Exception(
+            'Package "$packageName" does not exists. Use full package removal without the version qualifier.');
       }
 
       final versionsQuery = tx.query<PackageVersion>(packageKey);
@@ -387,7 +388,7 @@ class AdminBackend {
       final versionNames = versions.map((v) => v.version).toList();
       if (versionNames.contains(version)) {
         tx.delete(packageKey.append(PackageVersion, id: version));
-        package!.versionCount--;
+        package.versionCount--;
         package.updated = DateTime.now().toUtc();
       } else {
         print('Package $packageName does not have a version $version.');
@@ -398,15 +399,20 @@ class AdminBackend {
             'Last version detected. Use full package removal without the version qualifier.');
       }
 
-      if (package != null &&
-          (package.latestVersion == version ||
-              package.latestPrereleaseVersion == version ||
-              package.latestPreviewVersion == version)) {
+      if (package.latestVersion == version ||
+          package.latestPrereleaseVersion == version ||
+          package.latestPreviewVersion == version) {
         package.updateLatestVersionReferences(
             versions.where((v) => v.version != version).toList(),
             dartSdkVersion: currentDartSdk.semanticVersion);
       }
-      tx.insert(package!);
+
+      package.deletedVersions ??= <String>[];
+      if (!package.deletedVersions!.contains(version)) {
+        package.deletedVersions!.add(version);
+      }
+
+      tx.insert(package);
     });
 
     final bucket =

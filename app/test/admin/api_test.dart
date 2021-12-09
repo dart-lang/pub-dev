@@ -218,6 +218,7 @@ void main() {
         final pkgKey = dbService.emptyKey.append(Package, id: 'oxygen');
         final package = await dbService.lookupValue<Package>(pkgKey);
         expect(package, isNotNull);
+        expect(package.deletedVersions ?? [], isEmpty);
 
         final versionsQuery =
             dbService.query<PackageVersion>(ancestorKey: pkgKey);
@@ -256,6 +257,7 @@ void main() {
             lessThan(Version.parse(removeVersion)));
         expect(pkgAfter1stRemoval.updated!.isAfter(timeBeforeRemoval), isTrue);
         expect(pkgAfter1stRemoval.versionCount, package.versionCount - 1);
+        expect(pkgAfter1stRemoval.deletedVersions, [removeVersion]);
 
         final versionsAfterRemoval = await versionsQuery.run().toList();
         final missingVersion = versions
@@ -291,6 +293,10 @@ void main() {
         expect(
           pkgAfter2ndRemoval.versionCount,
           pkgAfter1stRemoval.versionCount,
+        );
+        expect(
+          pkgAfter2ndRemoval.deletedVersions,
+          pkgAfter1stRemoval.deletedVersions,
         );
       });
     });

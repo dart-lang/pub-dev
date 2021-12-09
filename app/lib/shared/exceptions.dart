@@ -211,6 +211,11 @@ class PackageRejectedException extends ResponseException {
       : super._(400, 'PackageRejected',
             'Version $version of package $package already exists.');
 
+  /// The [package] had an existing [version], but was deleted.
+  PackageRejectedException.versionDeleted(String package, String version)
+      : super._(400, 'PackageRejected',
+            'Version $version of package $package was deleted previously, re-upload is not allowed.');
+
   /// The package is has an active `isWithheld` flag, no further version is allowed.
   PackageRejectedException.isWithheld()
       : super._(400, 'PackageRejected', 'Package has been withheld.');

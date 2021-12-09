@@ -825,6 +825,12 @@ class PackageBackend {
         throw PackageRejectedException.isWithheld();
       }
 
+      if (package!.deletedVersions != null &&
+          package!.deletedVersions!.contains(newVersion.version!)) {
+        throw PackageRejectedException.versionDeleted(
+            package!.name!, newVersion.version!);
+      }
+
       // Store the publisher of the package at the time of the upload.
       newVersion.publisherId = package!.publisherId;
 
