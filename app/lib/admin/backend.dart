@@ -267,6 +267,7 @@ class AdminBackend {
       u
         ..oauthUserId = null
         ..created = null
+        ..externalSearchUserId = null
         ..isDeleted = true;
       tx.queueMutations(inserts: [u], deletes: deleteKeys);
     });

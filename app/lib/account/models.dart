@@ -7,6 +7,7 @@ import 'package:ulid/ulid.dart';
 
 import '../frontend/static_files.dart';
 import '../shared/datastore.dart' as db;
+import '../shared/utils.dart' show createUuid;
 
 part 'models.g.dart';
 
@@ -51,6 +52,28 @@ class User extends db.ExpandoModel<String> {
   /// to perform any action.
   @db.BoolProperty(required: true)
   bool isBlocked = false;
+
+  /// The user's unique identifier stored in external systems, e.g. third-party
+  /// search index.
+  ///
+  /// The value is a random (v4) UUID identifier.
+  @db.StringProperty()
+  String? externalSearchUserId;
+
+  User();
+
+  User.init({
+    required db.Key emptyKey,
+    required this.email,
+    this.oauthUserId,
+  }) {
+    parentKey = emptyKey;
+    id = createUuid();
+    isBlocked = false;
+    isDeleted = false;
+    created = DateTime.now().toUtc();
+    externalSearchUserId = createUuid();
+  }
 }
 
 /// Maps Oauth user_id to User.id
@@ -119,6 +142,10 @@ class UserSession extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)
   String? userId;
 
+  // TODO: set to true after external ID becomes filled
+  @db.StringProperty(required: false)
+  String? externalSearchUserId;
+
   @db.StringProperty(required: true)
   String? email;
 
@@ -155,6 +182,9 @@ class UserSessionData {
   /// The v4 (random) UUID String of the [User] that has this session.
   final String? userId;
 
+  /// The v4 (random) UUID String of the [User] used for external search identifier.
+  final String? externalSearchUserId;
+
   /// The email address of the [User].
   final String? email;
 
@@ -173,6 +203,7 @@ class UserSessionData {
   UserSessionData({
     required this.sessionId,
     this.userId,
+    this.externalSearchUserId,
     this.email,
     this.name,
     this.imageUrl,
@@ -184,6 +215,7 @@ class UserSessionData {
     return UserSessionData(
       sessionId: session.sessionId,
       userId: session.userId,
+      externalSearchUserId: session.externalSearchUserId,
       email: session.email,
       name: session.name,
       imageUrl: session.imageUrl,

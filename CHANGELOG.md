@@ -3,6 +3,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Bumped runtimeVersion to `2021.12.08`.
+ * NOTE: Started to populate and backfill `User.externalSearchUserId`.
+         Started to use `User.externalSearchUserId` in search.
 
 ## `20211206t162600-all`
  * Renamed `retracted` field in API response object `VersionInfo`.

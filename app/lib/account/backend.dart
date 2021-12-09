@@ -155,14 +155,7 @@ class AccountBackend {
       throw Exception('More than one User exists for email: $email');
     }
     if (users.isNotEmpty) return users.single;
-    final user = User()
-      ..parentKey = _db.emptyKey
-      ..id = createUuid()
-      ..email = email
-      ..created = DateTime.now().toUtc()
-      ..isBlocked = false
-      ..isDeleted = false;
-
+    final user = User.init(emptyKey: _db.emptyKey, email: email);
     await _db.commit(inserts: [user]);
     return user;
   }
@@ -404,14 +397,11 @@ class AccountBackend {
       }
 
       // Create new user with oauth2 user_id mapping
-      final user = User()
-        ..parentKey = emptyKey
-        ..id = createUuid()
-        ..oauthUserId = auth.oauthUserId
-        ..email = auth.email
-        ..created = DateTime.now().toUtc()
-        ..isBlocked = false
-        ..isDeleted = false;
+      final user = User.init(
+        emptyKey: emptyKey,
+        email: auth.email,
+        oauthUserId: auth.oauthUserId,
+      );
 
       tx.insert(user);
       tx.insert(

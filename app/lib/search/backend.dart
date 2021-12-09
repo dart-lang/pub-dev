@@ -13,6 +13,8 @@ import 'package:logging/logging.dart';
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 
+import '../account/backend.dart';
+import '../account/models.dart';
 import '../dartdoc/backend.dart';
 import '../package/backend.dart';
 import '../package/model_properties.dart';
@@ -144,6 +146,9 @@ class SearchBackend {
     }
 
     final popularity = popularityStorage.lookup(packageName);
+    final uploaderUsers = p.uploaders == null
+        ? <User>[]
+        : await accountBackend.lookupUsersById(p.uploaders!);
 
     return PackageDocument(
       package: pv.package,
@@ -159,7 +164,11 @@ class SearchBackend {
       maxPoints: scoreCard?.maxPubPoints ?? 0,
       dependencies: _buildDependencies(pv.pubspec!, scoreCard),
       publisherId: p.publisherId,
-      uploaderUserIds: p.uploaders,
+      uploaderUserIds: [
+        // TODO: remove internal IDs after search is migrated to use external IDs
+        ...?p.uploaders,
+        ...uploaderUsers.map((u) => u?.externalSearchUserId).whereType<String>(),
+      ],
       apiDocPages: apiDocPages,
       timestamp: DateTime.now().toUtc(),
     );

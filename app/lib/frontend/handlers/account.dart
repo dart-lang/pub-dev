@@ -224,7 +224,10 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
       await publisherBackend.listPublishersForUser(userSessionData!.userId!);
   final searchForm = SearchForm.parse(
     SearchContext.myPackages([
+      // TODO: remove internal userId after search has been migrated to use external ids
       userSessionData!.userId!,
+      if (userSessionData!.externalSearchUserId != null)
+        userSessionData!.externalSearchUserId!,
       ...page.publishers!.map((p) => p.publisherId),
     ]),
     request.requestedUri.queryParameters,

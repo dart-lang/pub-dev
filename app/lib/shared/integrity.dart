@@ -61,7 +61,7 @@ class IntegrityChecker {
   Stream<String> _checkUsers() async* {
     _logger.info('Scanning Users...');
     final gmailComEmails = <String>{};
-    await for (User user in _db.query<User>().run()) {
+    await for (final user in _db.query<User>().run()) {
       _userToOauth[user.userId] = user.oauthUserId;
       final email = user.email;
       if (email == null || email.isEmpty || !looksLikeEmail(email)) {
@@ -95,6 +95,8 @@ class IntegrityChecker {
         if (user.created != null) {
           yield 'User "${user.userId}" is deleted, but `created` time is still set.';
         }
+      } else {
+        // TODO: add check for externalSearchUserId after it is backfilled
       }
     }
   }
