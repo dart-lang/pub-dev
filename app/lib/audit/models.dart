@@ -96,6 +96,8 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   /// This is the list of package version who should have this record show up in
   /// their audit-log.
   ///
+  /// The format of the list entries is `<package>/<version>`.
+  ///
   /// This property **MUST** only be used for querying. The contents of this property is
   /// **NOT** intended for consumption or presentation by other means. It's only here
   /// to make it easy to find [AuditLogRecord]s relevant for a specific package version.
@@ -173,7 +175,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       }
       ..users = [user.userId]
       ..packages = [package]
-      ..packageVersions = [version]
+      ..packageVersions = ['$package/$version']
       ..publishers = [];
   }
 
