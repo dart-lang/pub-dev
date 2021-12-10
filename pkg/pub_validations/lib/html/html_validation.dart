@@ -111,6 +111,12 @@ void validateHtml(Node root) {
   for (final elem in buttons) {
     final text = elem.attributes['aria-label']?.trim() ?? elem.text.trim();
     if (text.isEmpty) {
+      // Exempt buttons in dartdoc output:
+      // TODO: remove after dartdoc content is updated.
+      if (elem.outerHtml ==
+          '<button id=\"sidenav-left-toggle\" type=\"button\">&nbsp;</button>') {
+        continue;
+      }
       throw AssertionError(
           'button tag text content or aria-label must not be empty, found: ${elem.outerHtml}');
     }
