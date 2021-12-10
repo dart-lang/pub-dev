@@ -12,10 +12,10 @@ d.Node button({
   bool raised = false,
   bool unelevated = false,
   Map<String, String>? attributes,
-  String? iconUrl,
+  d.Image? icon,
   required String label,
 }) {
-  final isSimpleLabel = iconUrl == null && customTypeClass == null;
+  final isSimpleLabel = icon == null && customTypeClass == null;
   return d.element(
     'button',
     id: id,
@@ -34,13 +34,13 @@ d.Node button({
         ? [d.text(label)]
         : [
             d.div(classes: ['mdc-button__ripple']),
-            if (iconUrl != null)
+            if (icon != null)
               d.img(
                 classes: [
                   'mdc-button__icon',
                   if (customTypeClass != null) '$customTypeClass-img',
                 ],
-                src: iconUrl,
+                image: icon,
                 attributes: {'aria-hidden': 'true'},
               ),
             d.span(
@@ -73,10 +73,8 @@ d.Node iconButton({
   required String id,
   required bool isOn,
   Map<String, String>? attributes,
-  required int iconWidth,
-  required int iconHeight,
-  required String onIconUrl,
-  required String offIconUrl,
+  required d.Image onIcon,
+  required d.Image offIcon,
 }) {
   return d.element(
     'button',
@@ -89,19 +87,11 @@ d.Node iconButton({
     children: [
       d.img(
         classes: ['mdc-icon-button__icon'],
-        src: offIconUrl,
-        attributes: {
-          'width': '$iconWidth',
-          'height': '$iconHeight',
-        },
+        image: offIcon,
       ),
       d.img(
         classes: ['mdc-icon-button__icon', 'mdc-icon-button__icon--on'],
-        src: onIconUrl,
-        attributes: {
-          'width': '$iconWidth',
-          'height': '$iconHeight',
-        },
+        image: onIcon,
       ),
     ],
   );

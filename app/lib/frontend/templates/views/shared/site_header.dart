@@ -25,10 +25,12 @@ d.Node siteHeaderNode({
           href: '/',
           child: d.img(
             classes: ['site-logo'],
-            alt: 'pub logo',
-            src: staticUrls.pubDevLogo2xPng,
-            width: 135,
-            height: 30,
+            image: d.Image(
+              src: staticUrls.pubDevLogo2xPng,
+              alt: 'pub logo',
+              width: 135,
+              height: 30,
+            ),
           ),
         ),
       d.div(classes: ['site-header-space']),
@@ -133,8 +135,10 @@ d.Node _userBlock(UserSessionData userSession) {
               children: [
                 d.img(
                   classes: ['nav-profile-img', 'nav-profile-img-mobile'],
-                  src: userSession.imageUrl,
-                  alt: 'Profile Image',
+                  image: d.Image(
+                    src: userSession.imageUrl ?? '',
+                    alt: 'Profile Image',
+                  ),
                 ),
                 d.div(
                   classes: ['nav-account-title'],
@@ -214,8 +218,11 @@ d.Node _foldableMobileLinks(String label, Iterable<d.Node> children) {
           d.text('$label '),
           d.img(
             classes: ['foldable-icon'],
-            src: staticUrls
-                .getAssetUrl('/static/img/nav-mobile-foldable-icon.svg'),
+            image: d.Image(
+              src: staticUrls
+                  .getAssetUrl('/static/img/nav-mobile-foldable-icon.svg'),
+              alt: 'icon to toggle folding of the section',
+            ),
           ),
         ],
       ),

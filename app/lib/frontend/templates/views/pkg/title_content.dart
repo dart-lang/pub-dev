@@ -20,7 +20,10 @@ d.Node titleContentNode({
             'data-copy-content': '$package: ^$version',
             'data-ga-click-event': 'copy-package-version',
           },
-          src: staticUrls.getAssetUrl('/static/img/content-copy-icon.svg'),
+          image: d.Image(
+            src: staticUrls.getAssetUrl('/static/img/content-copy-icon.svg'),
+            alt: 'icon indicating copy to clipboard operation',
+          ),
           title: 'Copy "$package: ^$version" to clipboard',
         ),
         d.div(

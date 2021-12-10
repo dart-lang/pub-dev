@@ -234,8 +234,11 @@ d.Node _filterSection({
           d.span(classes: ['search-form-section-header-label'], text: label),
           d.img(
             classes: ['foldable-icon'],
-            src: staticUrls
-                .getAssetUrl('/static/img/search-form-foldable-icon.svg'),
+            image: d.Image(
+              src: staticUrls
+                  .getAssetUrl('/static/img/search-form-foldable-icon.svg'),
+              alt: 'fold toggle icon (up/down arrow)',
+            ),
           ),
         ],
       ),
@@ -284,7 +287,10 @@ d.Node _searchControls(SearchForm searchForm, d.Node? subSdkButtons) {
                 d.text('Advanced '),
                 d.img(
                   classes: ['search-controls-more-carot'],
-                  src: staticUrls.getAssetUrl('/static/img/carot-up.svg'),
+                  image: d.Image(
+                    src: staticUrls.getAssetUrl('/static/img/carot-up.svg'),
+                    alt: 'toggle button for advanced search (carot up)',
+                  ),
                 ),
               ],
             ),

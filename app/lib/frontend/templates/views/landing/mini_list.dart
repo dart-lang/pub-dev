@@ -52,8 +52,11 @@ d.Node _footer(String sectionTag, PackageView p) {
           children: [
             d.img(
               classes: ['publisher-badge'],
-              src: staticUrls
-                  .getAssetUrl('/static/img/verified-publisher-gray.svg'),
+              image: d.Image(
+                src: staticUrls
+                    .getAssetUrl('/static/img/verified-publisher-gray.svg'),
+                alt: 'verified publisher badge',
+              ),
               title: 'Published by a pub.dev verified publisher',
             ),
             d.a(

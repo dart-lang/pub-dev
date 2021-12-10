@@ -21,7 +21,12 @@ final coreLibraryBadgeNode = packageBadgeNode(label: 'Core library');
 /// Renders the Flutter Favorite badge, used by package listing.
 final flutterFavoriteBadgeNode = packageBadgeNode(
   label: 'Flutter Favorite',
-  iconUrl: staticUrls.flutterLogo32x32,
+  icon: d.Image(
+    src: staticUrls.flutterLogo32x32,
+    alt: 'Flutter logo',
+    width: 13,
+    height: 13,
+  ),
 );
 
 /// Renders the null-safe badge used by package listing and package page.

@@ -15,7 +15,7 @@ final wideHeaderDetailPageClassName = '-wide-header-detail-page';
 d.Node renderDetailHeader({
   String? title,
   d.Node? titleNode,
-  String? imageUrl,
+  d.Image? image,
   int? packageLikes,
   bool? isLiked,
   bool isFlutterFavorite = false,
@@ -35,7 +35,7 @@ d.Node renderDetailHeader({
     titleNode: titleNode ?? d.text(title!),
     metadataNode: metadataNode,
     tagsNode: tagsNode,
-    imageUrl: imageUrl,
+    image: image,
     isLoose: isLoose,
     isLiked: isLiked == true,
     likeCount: packageLikes,

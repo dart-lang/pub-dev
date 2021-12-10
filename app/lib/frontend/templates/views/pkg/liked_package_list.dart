@@ -41,7 +41,7 @@ d.Node likedPackageListNode(List<LikeData> likes) {
                     'data-thumb_up_outlined': thumbUpOutlinedUrl,
                     'data-thumb_up_filled': thumbUpFilledUrl,
                   },
-                  iconUrl: thumbUpFilledUrl,
+                  icon: d.Image(src: thumbUpFilledUrl, alt: 'thumb up icon'),
                   label: 'Unlike',
                 ),
               ),

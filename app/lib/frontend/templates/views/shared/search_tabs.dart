@@ -35,7 +35,10 @@ d.Node searchTabsNode(Iterable<SearchTab> tabs) {
           if (tab.active)
             d.img(
               classes: ['filter-icon'],
-              src: staticUrls.getAssetUrl('/static/img/checkmark-icon.svg'),
+              image: d.Image(
+                src: staticUrls.getAssetUrl('/static/img/checkmark-icon.svg'),
+                alt: 'icon with a checkmark - indicating active status',
+              ),
             ),
           d.text(tab.text),
         ],

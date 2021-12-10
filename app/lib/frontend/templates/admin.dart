@@ -201,7 +201,10 @@ Tab _myActivityLogLink() => Tab.withLink(
 d.Node _accountDetailHeader(User user, UserSessionData userSessionData) {
   return renderDetailHeader(
     title: userSessionData.name,
-    imageUrl: userSessionData.imageUrlOfSize(200),
+    image: d.Image(
+      src: userSessionData.imageUrlOfSize(200),
+      alt: 'user profile picture',
+    ),
     metadataNode: d.fragment([
       d.p(text: user.email!),
       d.p(children: [

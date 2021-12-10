@@ -97,8 +97,11 @@ d.Node _packageItem(PackageView view) {
       ], children: [
         d.img(
           classes: ['package-vp-icon'],
-          src:
-              staticUrls.getAssetUrl('/static/img/verified-publisher-icon.svg'),
+          image: d.Image(
+            src: staticUrls
+                .getAssetUrl('/static/img/verified-publisher-icon.svg'),
+            alt: 'shield icon for verified publishers',
+          ),
           title: 'Published by a pub.dev verified publisher',
         ),
         d.a(href: urls.publisherUrl(view.publisherId!), text: view.publisherId),
@@ -157,7 +160,11 @@ d.Node _item({
               children: [
                 d.img(
                   classes: ['packages-recent-icon'],
-                  src: staticUrls.getAssetUrl('/static/img/schedule-icon.svg'),
+                  image: d.Image(
+                    src:
+                        staticUrls.getAssetUrl('/static/img/schedule-icon.svg'),
+                    alt: 'icon indicating recent time',
+                  ),
                   title: 'new package',
                 ),
                 d.text(' Added '),

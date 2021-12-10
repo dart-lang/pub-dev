@@ -21,27 +21,35 @@ d.Node videoListNode(List<PkgOfWeekVideo> videos) {
           children: [
             d.img(
               classes: ['pow-video-thumbnail'],
-              src: v.thumbnailUrl,
-              alt: v.title,
-              width: 260,
-              height: 195,
+              image: d.Image(
+                src: v.thumbnailUrl,
+                alt: v.title,
+                width: 260,
+                height: 195,
+              ),
             ),
             d.div(
               classes: ['pow-video-overlay'],
               children: [
                 d.img(
                   classes: ['pow-video-overlay-img-active'],
-                  src: staticUrls
-                      .getAssetUrl('/static/img/youtube-play-red.png'),
-                  width: 76,
-                  height: 53,
+                  image: d.Image(
+                    src: staticUrls
+                        .getAssetUrl('/static/img/youtube-play-red.png'),
+                    alt: 'youtube video play icon - active',
+                    width: 76,
+                    height: 53,
+                  ),
                 ),
                 d.img(
                   classes: ['pow-video-overlay-img-inactive'],
-                  src: staticUrls
-                      .getAssetUrl('/static/img/youtube-play-black.png'),
-                  width: 76,
-                  height: 53,
+                  image: d.Image(
+                    src: staticUrls
+                        .getAssetUrl('/static/img/youtube-play-black.png'),
+                    alt: 'youtube video play icon - inactive',
+                    width: 76,
+                    height: 53,
+                  ),
                 ),
               ],
             ),
