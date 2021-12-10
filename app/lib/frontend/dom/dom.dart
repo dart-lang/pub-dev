@@ -203,12 +203,16 @@ Node button({
   Iterable<Node>? children,
   Node? child,
   String? text,
+  String? ariaLabel,
 }) =>
     dom.element(
       'button',
       id: id,
       classes: classes,
-      attributes: attributes,
+      attributes: {
+        if (ariaLabel != null) 'aria-label': ariaLabel,
+        ...?attributes,
+      },
       children: _children(children, child, text),
     );
 
