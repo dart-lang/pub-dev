@@ -34,8 +34,11 @@ Iterable<d.Node> _publisher(String publisherId) {
         d.img(
           classes: ['-pub-publisher-shield'],
           title: 'Published by a pub.dev verified publisher',
-          src:
-              staticUrls.getAssetUrl('/static/img/verified-publisher-blue.svg'),
+          image: d.Image(
+            src: staticUrls
+                .getAssetUrl('/static/img/verified-publisher-blue.svg'),
+            alt: 'shield icon for verified publishers',
+          ),
         ),
         d.text(publisherId),
       ],

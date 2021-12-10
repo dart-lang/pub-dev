@@ -181,11 +181,13 @@ d.Node pageLayoutNode({
                         ),
                         d.img(
                           classes: ['logo'],
-                          src: staticUrls
-                              .getAssetUrl('/static/img/pub-dev-logo.svg'),
-                          alt: 'pub.dev package manager',
-                          width: 328,
-                          height: 70,
+                          image: d.Image(
+                            src: staticUrls
+                                .getAssetUrl('/static/img/pub-dev-logo.svg'),
+                            alt: 'pub.dev package manager',
+                            width: 328,
+                            height: 70,
+                          ),
                         ),
                       ]),
                     searchBanner,
@@ -193,11 +195,13 @@ d.Node pageLayoutNode({
                       d.fragment([
                         landingBlurb!,
                         d.img(
-                          src: staticUrls.getAssetUrl(
-                              '/static/img/supported-by-google.png'),
-                          alt: 'Supported by Google',
-                          width: 218,
-                          height: 36,
+                          image: d.Image(
+                            src: staticUrls.getAssetUrl(
+                                '/static/img/supported-by-google.png'),
+                            alt: 'Supported by Google',
+                            width: 218,
+                            height: 36,
+                          ),
                         ),
                       ]),
                   ],
@@ -228,18 +232,15 @@ d.Node _siteFooterNode() {
   d.Node link(String href, String label, {bool sep = true}) =>
       d.a(classes: ['link', if (sep) 'sep'], href: href, text: label);
 
-  d.Node icon(String linkHref, List<String> classes, String iconSrc,
-          String title) =>
+  d.Node icon(
+          String linkHref, List<String> classes, d.Image icon, String title) =>
       d.a(
         classes: ['link', 'icon', ...classes],
         href: linkHref,
         child: d.img(
-          src: iconSrc,
           classes: ['inline-icon'],
           title: title,
-          alt: title,
-          width: 20,
-          height: 20,
+          image: icon,
         ),
       );
 
@@ -257,13 +258,23 @@ d.Node _siteFooterNode() {
       icon(
         '/feed.atom',
         ['sep'],
-        staticUrls.getAssetUrl('/static/img/rss-feed-icon.svg'),
+        d.Image(
+          src: staticUrls.getAssetUrl('/static/img/rss-feed-icon.svg'),
+          alt: 'RSS icon',
+          width: 20,
+          height: 20,
+        ),
         'RSS/atom feed',
       ),
       icon(
         'https://github.com/dart-lang/pub-dev/issues/new',
         ['github_issue'],
-        staticUrls.getAssetUrl('/static/img/bug-report-white-96px.png'),
+        d.Image(
+          src: staticUrls.getAssetUrl('/static/img/bug-report-white-96px.png'),
+          alt: 'bug report icon',
+          width: 20,
+          height: 20,
+        ),
         'Report an issue with this site',
       ),
     ],

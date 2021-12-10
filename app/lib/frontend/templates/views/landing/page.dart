@@ -32,7 +32,10 @@ d.Node landingPageNode({
     if (_isNotEmptyList(mostPopularPackages))
       _block(
         shortId: 'mp',
-        imageUrl: staticUrls.getAssetUrl('/static/img/landing-01.png'),
+        image: d.Image(
+          src: staticUrls.getAssetUrl('/static/img/landing-01.png'),
+          alt: 'decoration image for package section',
+        ),
         title: 'Most popular packages',
         info: d
             .text('Some of the most downloaded packages over the past 60 days'),
@@ -43,7 +46,10 @@ d.Node landingPageNode({
     if (_isNotEmptyList(topFlutterPackages))
       _block(
         shortId: 'tf',
-        imageUrl: staticUrls.getAssetUrl('/static/img/landing-02.png'),
+        image: d.Image(
+          src: staticUrls.getAssetUrl('/static/img/landing-02.png'),
+          alt: 'decoration image for package section',
+        ),
         imageGoesAfterContent: true,
         title: 'Top Flutter packages',
         info: d.text(
@@ -55,7 +61,10 @@ d.Node landingPageNode({
     if (_isNotEmptyList(topDartPackages))
       _block(
         shortId: 'td',
-        imageUrl: staticUrls.getAssetUrl('/static/img/landing-03.png'),
+        image: d.Image(
+          src: staticUrls.getAssetUrl('/static/img/landing-03.png'),
+          alt: 'decoration image for package section',
+        ),
         title: 'Top Dart packages',
         info: d
             .text('Some of the top packages for any Dart-based app or program'),
@@ -82,7 +91,7 @@ bool _isNotEmptyList(List? l) => l != null && l.isNotEmpty;
 
 d.Node _block({
   required String shortId,
-  String? imageUrl,
+  d.Image? image,
   bool imageGoesAfterContent = false,
   required String title,
   required d.Node info,
@@ -96,10 +105,10 @@ d.Node _block({
     classes: ['home-block', 'home-block-$shortId'],
     children: [
       // image: before content
-      if (imageUrl != null && !imageGoesAfterContent)
+      if (image != null && !imageGoesAfterContent)
         d.div(
           classes: ['home-block-image'],
-          child: d.img(src: imageUrl),
+          child: d.img(image: image),
         ),
       // content
       d.div(
@@ -122,10 +131,10 @@ d.Node _block({
         ],
       ),
       // image: after content
-      if (imageUrl != null && imageGoesAfterContent)
+      if (image != null && imageGoesAfterContent)
         d.div(
           classes: ['home-block-image'],
-          child: d.img(src: imageUrl),
+          child: d.img(image: image),
         ),
     ],
   );

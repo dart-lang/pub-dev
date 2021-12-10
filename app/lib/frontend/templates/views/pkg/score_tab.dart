@@ -104,7 +104,10 @@ d.Node _section(ReportSection section) {
               classes: ['pkg-report-header-icon'],
               child: d.img(
                 classes: ['pkg-report-icon'],
-                src: _statusIconUrls[section.status],
+                image: d.Image(
+                  src: _statusIconUrls[section.status]!,
+                  alt: 'icon indicating section status',
+                ),
               ),
             ),
             d.div(classes: ['pkg-report-header-title'], text: section.title),
@@ -124,8 +127,11 @@ d.Node _section(ReportSection section) {
                     text: '${section.maxPoints}'),
                 d.img(
                   classes: ['foldable-icon'],
-                  src: staticUrls
-                      .getAssetUrl('/static/img/report-foldable-icon.svg'),
+                  image: d.Image(
+                    src: staticUrls
+                        .getAssetUrl('/static/img/report-foldable-icon.svg'),
+                    alt: 'icon to trigger folding of the section',
+                  ),
                 ),
               ],
             ),

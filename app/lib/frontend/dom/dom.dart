@@ -362,28 +362,39 @@ Node i({
   );
 }
 
+class Image {
+  final String src;
+  final String alt;
+  final int? width;
+  final int? height;
+
+  Image({
+    required this.src,
+    required this.alt,
+    this.width,
+    this.height,
+  });
+}
+
 /// Creates an `<img>` Element using the default [DomContext].
 Node img({
   String? id,
   Iterable<String>? classes,
   Map<String, String>? attributes,
   Iterable<Node>? children,
-  String? src,
+  required Image image,
   String? title,
-  String? alt,
-  int? width,
-  int? height,
 }) {
   return dom.element(
     'img',
     id: id,
     classes: classes,
     attributes: <String, String>{
-      if (src != null) 'src': src,
+      'src': image.src,
+      'alt': image.alt,
+      if (image.width != null) 'width': image.width.toString(),
+      if (image.height != null) 'height': image.height.toString(),
       if (title != null) 'title': title,
-      if (alt != null) 'alt': alt,
-      if (width != null) 'width': width.toString(),
-      if (height != null) 'height': height.toString(),
       if (attributes != null) ...attributes,
     },
     children: children,

@@ -22,12 +22,14 @@ d.Node publisherHeaderMetadataNode(Publisher publisher) {
           href: websiteUri.toString(),
           rel: websiteRel,
           label: websiteDisplayable!,
+          iconAlt: 'icon indicating a website link',
         ),
       if (publisher.hasContactEmail)
         _ref(
           href: 'mailto:${publisher.contactEmail}',
           label: publisher.contactEmail!,
           iconPath: '/static/img/email-icon.svg',
+          iconAlt: 'icon indicating an email',
         ),
     ]),
     d.p(
@@ -44,13 +46,17 @@ d.Node _ref({
   String? rel,
   required String label,
   String? iconPath,
+  required String iconAlt,
 }) {
   return d.span(classes: [
     'detail-header-metadata-ref'
   ], children: [
     d.img(
       classes: ['detail-header-metadata-ref-icon'],
-      src: staticUrls.getAssetUrl(iconPath ?? '/static/img/link-icon.svg'),
+      image: d.Image(
+        src: staticUrls.getAssetUrl(iconPath ?? '/static/img/link-icon.svg'),
+        alt: iconAlt,
+      ),
     ),
     d.a(
       classes: ['detail-header-metadata-ref-label'],

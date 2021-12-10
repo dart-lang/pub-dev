@@ -6,20 +6,23 @@ import '../../../dom/dom.dart' as d;
 
 /// Renders the standalone page template with [content].
 ///
-/// [sideImageUrl] should already contain the `?hash` request parameter for caching.
+/// [sideImage] should already contain the `?hash` request parameter for caching.
 d.Node standalonePageNode(
   d.Node content, {
-  String? sideImageUrl,
+  d.Image? sideImage,
 }) {
-  assert(sideImageUrl == null || sideImageUrl.contains('?hash='));
-  final hasSideImage = sideImageUrl != null;
+  assert(sideImage == null || sideImage.src.contains('?hash='));
+  final hasSideImage = sideImage != null;
   return d.div(
     classes: ['standalone-wrapper', if (hasSideImage) '-has-side-image'],
     children: [
       if (hasSideImage)
         d.div(
           classes: ['standalone-side-image-block'],
-          child: d.img(classes: ['standalone-side-image'], src: sideImageUrl),
+          child: d.img(
+            classes: ['standalone-side-image'],
+            image: sideImage!,
+          ),
         ),
       d.div(classes: ['standalone-content'], child: content),
     ],

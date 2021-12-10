@@ -50,8 +50,10 @@ d.Node versionRowNode(String package, VersionInfo version, Pubspec pubspec) {
           title: 'Go to the documentation of $package ${version.version}',
           child: d.img(
             classes: ['version-table-icon'],
-            src: staticUrls.documentationIcon,
-            alt: 'Go to the documentation of $package ${version.version}',
+            image: d.Image(
+              src: staticUrls.documentationIcon,
+              alt: 'Go to the documentation of $package ${version.version}',
+            ),
             attributes: {
               'data-failed-icon': staticUrls.documentationFailedIcon,
             },
@@ -66,8 +68,10 @@ d.Node versionRowNode(String package, VersionInfo version, Pubspec pubspec) {
           title: 'Download $package ${version.version} archive',
           child: d.img(
             classes: ['version-table-icon'],
-            src: staticUrls.downloadIcon,
-            alt: 'Download $package ${version.version} archive',
+            image: d.Image(
+              src: staticUrls.downloadIcon,
+              alt: 'Download $package ${version.version} archive',
+            ),
           ),
         ),
       ),
