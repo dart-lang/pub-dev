@@ -1382,6 +1382,12 @@ class TarballStorage {
     return bucket.read(object);
   }
 
+  /// Gets the file info of a [package] in the given [version].
+  Future<ObjectInfo?> info(String package, String version) async {
+    final object = namer.tarballObjectName(package, version);
+    return await bucket.tryInfo(object);
+  }
+
   /// Deletes the tarball of a [package] in the given [version] permanently.
   Future<void> remove(String package, String version) async {
     final object = namer.tarballObjectName(package, version);
