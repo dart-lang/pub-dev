@@ -9,7 +9,6 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pana/pana.dart' as pana;
 import 'package:pool/pool.dart';
-import 'package:pub_semver/pub_semver.dart';
 
 import '../package/backend.dart';
 import '../package/models.dart' show Package, PackageVersion, PackageView;
@@ -19,7 +18,6 @@ import '../shared/popularity_storage.dart';
 import '../shared/redis_cache.dart' show cache;
 import '../shared/utils.dart';
 import '../shared/versions.dart' as versions;
-import '../tool/utils/dart_sdk_version.dart';
 
 import 'helpers.dart';
 import 'models.dart';
@@ -174,9 +172,7 @@ class ScoreCardBackend {
       throw Exception('Unable to lookup $packageName $packageVersion.');
     }
 
-    final currentSdkVersion = await getDartSdkVersion();
-    final status = PackageStatus.fromModels(
-        package, version, currentSdkVersion.semanticVersion);
+    final status = PackageStatus.fromModels(package, version);
 
     await db.withRetryTransaction(_db, (tx) async {
       var scoreCard = await tx.lookupOrNull<ScoreCard>(key);
@@ -349,13 +345,12 @@ class ScoreCardBackend {
 
   /// Returns the status of a package and version.
   Future<PackageStatus> getPackageStatus(String package, String version) async {
-    final currentSdkVersion = await getDartSdkVersion();
     final packageKey = _db.emptyKey.append(Package, id: package);
     final List list = await _db
         .lookup([packageKey, packageKey.append(PackageVersion, id: version)]);
     final p = list[0] as Package;
     final pv = list[1] as PackageVersion;
-    return PackageStatus.fromModels(p, pv, currentSdkVersion.semanticVersion);
+    return PackageStatus.fromModels(p, pv);
   }
 
   /// Returns whether we should update the [reportType] report for the given
@@ -421,7 +416,7 @@ class PackageStatus {
   final bool isObsolete;
   final bool isLegacy;
   final bool usesFlutter;
-  final bool usesPreviewSdk;
+  final bool usesPreviewAnalysisSdk;
   final bool isPublishedByDartDev;
 
   PackageStatus._({
@@ -433,12 +428,11 @@ class PackageStatus {
     this.isObsolete = false,
     this.isLegacy = false,
     this.usesFlutter = false,
-    this.usesPreviewSdk = false,
+    this.usesPreviewAnalysisSdk = false,
     this.isPublishedByDartDev = false,
   });
 
-  factory PackageStatus.fromModels(
-      Package? p, PackageVersion? pv, Version currentSdkVersion) {
+  factory PackageStatus.fromModels(Package? p, PackageVersion? pv) {
     if (p == null || pv == null || p.isNotVisible) {
       return PackageStatus._(exists: false);
     }
@@ -456,7 +450,7 @@ class PackageStatus {
       isObsolete: isObsolete,
       isLegacy: pv.pubspec!.supportsOnlyLegacySdk,
       usesFlutter: pv.pubspec!.usesFlutter,
-      usesPreviewSdk: pv.pubspec!.isPreviewForCurrentSdk(currentSdkVersion),
+      usesPreviewAnalysisSdk: pv.pubspec!.usesPreviewAnalysisSdk(),
       isPublishedByDartDev:
           p.publisherId != null && isDartDevPublisher(p.publisherId),
     );

@@ -280,7 +280,7 @@ class DartdocJobProcessor extends JobProcessor {
     DartdocEntry? entry;
     try {
       await withToolEnv(
-        usesPreviewSdk: packageStatus.usesPreviewSdk,
+        usesPreviewSdk: packageStatus.usesPreviewAnalysisSdk,
         fn: (toolEnv) async {
           final sw = Stopwatch()..start();
           final usesFlutter = packageStatus.usesFlutter;
@@ -317,7 +317,7 @@ class DartdocJobProcessor extends JobProcessor {
           if (depsResolved) {
             dartdocResult = await _generateDocs(
                 toolEnv, logger, job, pkgPath, outputDir, logFileOutput,
-                usesPreviewSdk: packageStatus.usesPreviewSdk);
+                usesPreviewSdk: packageStatus.usesPreviewAnalysisSdk);
             hasContent =
                 dartdocResult!.hasIndexHtml && dartdocResult!.hasIndexJson;
           } else {

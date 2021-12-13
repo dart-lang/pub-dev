@@ -64,7 +64,7 @@ class _PanaRunner implements PanaRunner {
     required PackageStatus packageStatus,
   }) async {
     return await withToolEnv(
-      usesPreviewSdk: packageStatus.usesPreviewSdk,
+      usesPreviewSdk: packageStatus.usesPreviewAnalysisSdk,
       fn: (toolEnv) async {
         try {
           final PackageAnalyzer analyzer =

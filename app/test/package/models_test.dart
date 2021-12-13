@@ -8,6 +8,7 @@ import 'package:pub_dev/package/model_properties.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
@@ -133,6 +134,71 @@ version: 1.0.9
                 '    androidPackage: com.example.EntryPoint\n');
         expect(p.hasFlutterPlugin, isTrue);
         expect(p.dependsOnFlutterSdk, isFalse);
+      });
+    });
+
+    group('preview analysis SDK', () {
+      final nextDartSdk = semanticToolStableDartSdkVersion.nextMinor.toString();
+      final nextFlutterSdk =
+          semanticToolStableFlutterSdkVersion.nextMinor.toString();
+
+      bool usesPreviewAnalysisSdk(Map<String, String> environment) {
+        return Pubspec.fromJson({
+          'name': 'test',
+          'environment': environment,
+        }).usesPreviewAnalysisSdk();
+      }
+
+      test('no constraints', () {
+        expect(usesPreviewAnalysisSdk({}), isFalse);
+      });
+
+      test('stable constraints', () {
+        expect(
+            usesPreviewAnalysisSdk({
+              'sdk': '>=$toolStableDartSdkVersion <400.0.0',
+            }),
+            isFalse);
+        expect(
+            usesPreviewAnalysisSdk({
+              'flutter': '>=$toolStableFlutterSdkVersion <400.0.0',
+            }),
+            isFalse);
+        expect(
+            usesPreviewAnalysisSdk({
+              'sdk': '>=$toolStableDartSdkVersion <400.0.0',
+              'flutter': '>=$toolStableFlutterSdkVersion <400.0.0',
+            }),
+            isFalse);
+      });
+
+      test('preview Dart', () {
+        expect(
+          usesPreviewAnalysisSdk({
+            'sdk': '>=$nextDartSdk <400.0.0',
+          }),
+          isTrue,
+        );
+      });
+
+      test('preview Flutter', () {
+        expect(
+            usesPreviewAnalysisSdk({
+              'flutter': '>=$nextFlutterSdk <400.0.0',
+            }),
+            isTrue);
+        expect(
+            usesPreviewAnalysisSdk({
+              'sdk': '>=$toolStableDartSdkVersion <400.0.0',
+              'flutter': '>=$nextFlutterSdk <400.0.0',
+            }),
+            isTrue);
+        expect(
+            usesPreviewAnalysisSdk({
+              'sdk': '>=$nextDartSdk <400.0.0',
+              'flutter': '>=$nextFlutterSdk <400.0.0',
+            }),
+            isTrue);
       });
     });
   });

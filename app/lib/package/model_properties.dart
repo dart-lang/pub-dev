@@ -14,6 +14,7 @@ import 'package:yaml/yaml.dart';
 
 import '../shared/datastore.dart';
 import '../shared/utils.dart' show canonicalizeVersion;
+import '../shared/versions.dart' as versions;
 
 Map<String, dynamic> _loadYaml(String yamlString) {
   final map = loadYaml(yamlString) as Map;
@@ -95,6 +96,20 @@ class Pubspec {
   bool isPreviewForCurrentSdk(Version currentSdkVersion) {
     final msv = minSdkVersion;
     return msv != null && msv.value.compareTo(currentSdkVersion) > 0;
+  }
+
+  /// True if either the Dart or the Flutter SDK constraint is higher than the
+  /// stable analysis SDK in the current runtime.
+  bool usesPreviewAnalysisSdk() {
+    if (isPreviewForCurrentSdk(versions.semanticToolStableDartSdkVersion)) {
+      return true;
+    }
+    final v = MinSdkVersion.tryParse(_inner.environment?['flutter']);
+    if (v != null &&
+        v.value.compareTo(versions.semanticToolStableFlutterSdkVersion) > 0) {
+      return true;
+    }
+    return false;
   }
 
   String? get sdkConstraint {
