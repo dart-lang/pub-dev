@@ -189,6 +189,15 @@ void main() {
           await page.click('#search-form-checkbox-discontinued');
           await page.waitForNavigation(wait: Until.networkIdle);
           expect(page.url, '$origin/packages?q=platform%3Aandroid+pkg');
+
+          // toggle is:null-safe
+          await page.click('#search-form-checkbox-is-null-safe');
+          await page.waitForNavigation(wait: Until.networkIdle);
+          expect(page.url,
+              '$origin/packages?q=platform%3Aandroid+pkg+is%3Anull-safe');
+          await page.click('#search-form-checkbox-is-null-safe');
+          await page.waitForNavigation(wait: Until.networkIdle);
+          expect(page.url, '$origin/packages?q=platform%3Aandroid+pkg');
         },
       );
     });
