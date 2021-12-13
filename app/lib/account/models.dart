@@ -119,18 +119,18 @@ class UserSession extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)
   String? userId;
 
-  @db.StringProperty(required: true)
+  @db.StringProperty(required: true, indexed: false)
   String? email;
 
   /// The name of the user given by the authentication provider.
   /// May be null, or could contain any arbitrary text.
-  @db.StringProperty()
+  @db.StringProperty(indexed: false)
   String? name;
 
-  @db.StringProperty()
+  @db.StringProperty(indexed: false)
   String? imageUrl;
 
-  @db.DateTimeProperty(required: true)
+  @db.DateTimeProperty(required: true, indexed: false)
   DateTime? created;
 
   @db.DateTimeProperty(required: true)

@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bumped runtimeVersion to `2021.12.09`.
  * Upgraded stable Flutter analysis SDK to `2.8.0`.
  * Upgraded preview Flutter analysis SDK to `2.8.0`.
+ * NOTE: `UserSession` no longer indexes on `email`, `name`, `userImg` and `created` fields.
 
 ## `20211206t162600-all`
  * Renamed `retracted` field in API response object `VersionInfo`.
