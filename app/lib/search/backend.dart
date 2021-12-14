@@ -109,6 +109,14 @@ class SearchBackend {
         : <String>[];
 
     final tags = <String>{
+      // Every package gets the show:* tags, so they can be used as override in
+      // the query text.
+      PackageTags.showHidden,
+      PackageTags.showDiscontinued,
+      PackageTags.showUnlisted,
+      PackageVersionTags.showLegacy,
+
+      // regular tags
       ...p.getTags(),
       ...pv.getTags(),
       ...?scoreCard?.panaReport?.derivedTags?.expand(expandPanaTag),
