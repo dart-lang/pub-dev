@@ -475,8 +475,8 @@ class AccountBackend {
 
     final cacheEntry = cache.userSessionData(sessionId);
     final cached = await cacheEntry.get();
-    if (cached != null && DateTime.now().isBefore(cached.expires)) {
-      return cached;
+    if (cached != null) {
+      return cached.isExpired ? null : cached;
     }
 
     final key = _db.emptyKey.append(UserSession, id: sessionId);
@@ -491,8 +491,6 @@ class AccountBackend {
       await cacheEntry.purge();
       return null;
     }
-
-    // TODO: decide about extending the expiration time (maybe asynchronously)
 
     final data = UserSessionData.fromModel(session);
     await cacheEntry.set(data);
@@ -512,9 +510,8 @@ class AccountBackend {
     // account for possible clock skew
     final ts = now.subtract(Duration(minutes: 15));
     final query = _db.query<UserSession>()..filter('expires <', ts);
-    await for (final s in query.run()) {
-      await invalidateSession(s.sessionId);
-    }
+    final count = await _db.deleteWithQuery(query);
+    _logger.info('Deleted ${count.deleted} UserSession entries.');
   }
 
   /// Updates the blocked status of a user.

@@ -197,6 +197,8 @@ class UserSessionData {
 
   Map<String, dynamic> toJson() => _$UserSessionDataToJson(this);
 
+  bool get isExpired => DateTime.now().isAfter(expires);
+
   bool get hasName => name != null && name!.isNotEmpty;
 
   /// Set image size to NxN pixels for faster loading, see:
