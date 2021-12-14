@@ -51,47 +51,47 @@ class ScoreCard extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)
   String? packageName;
 
-  @db.StringProperty(required: true)
+  @db.StringProperty(required: true, indexed: false)
   String? packageVersion;
 
   @db.StringProperty(required: true)
   String? runtimeVersion;
 
-  @db.DateTimeProperty(required: true)
+  @db.DateTimeProperty(required: true, indexed: false)
   DateTime? updated;
 
-  @db.DateTimeProperty(required: true)
+  @db.DateTimeProperty(required: true, indexed: false)
   DateTime? packageCreated;
 
-  @db.DateTimeProperty(required: true)
+  @db.DateTimeProperty(required: true, indexed: false)
   DateTime? packageVersionCreated;
 
   /// Granted score from pana and dartdoc analysis.
-  @db.IntProperty()
+  @db.IntProperty(indexed: false)
   int? grantedPubPoints;
 
   /// Max score from pana and dartdoc analysis.
   /// `null` if report is not ready yet.
   /// `0` if analysis was not running
-  @db.IntProperty()
+  @db.IntProperty(indexed: false)
   int? maxPubPoints;
 
   /// Score for package popularity (0.0 - 1.0).
-  @db.DoubleProperty()
+  @db.DoubleProperty(indexed: false)
   double? popularityScore;
 
   /// List of tags computed by `pana` or other analyzer.
-  @db.StringListProperty()
+  @db.StringListProperty(indexed: false)
   List<String> derivedTags = <String>[];
 
   /// The flags for the package, version or analysis.
   /// Example values: entries from [PackageFlags].
-  @CompatibleStringListProperty()
+  @CompatibleStringListProperty(indexed: false)
   List<String> flags = <String>[];
 
   /// The report types that are already done for the ScoreCard.
   /// Contains values from [ReportType].
-  @CompatibleStringListProperty()
+  @CompatibleStringListProperty(indexed: false)
   List<String> reportTypes = <String>[];
 
   /// Compressed, json-encoded content of [PanaReport].
