@@ -7,6 +7,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded preview Dart analysis SDK to `2.16.0-80.1.beta`.
  * Upgraded stable Flutter analysis SDK to `2.8.0`.
  * Upgraded preview Flutter analysis SDK to `2.8.0`.
+ * NOTE: `UserSession` no longer indexes on `email`, `name`, `userImg` and `created` fields.
 
 ## `20211206t162600-all`
  * Renamed `retracted` field in API response object `VersionInfo`.
