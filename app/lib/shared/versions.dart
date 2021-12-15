@@ -58,6 +58,11 @@ final String toolStableFlutterSdkVersion = '2.8.0';
 final String toolPreviewDartSdkVersion = '2.16.0-80.1.beta';
 final String toolPreviewFlutterSdkVersion = '2.8.0';
 
+final semanticToolStableDartSdkVersion =
+    Version.parse(toolStableDartSdkVersion);
+final semanticToolStableFlutterSdkVersion =
+    Version.parse(toolStableFlutterSdkVersion);
+
 // Value comes from package:pana.
 final String panaVersion = pana.packageVersion;
 final Version semanticPanaVersion = Version.parse(panaVersion);

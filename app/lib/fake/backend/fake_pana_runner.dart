@@ -32,7 +32,7 @@ class FakePanaRunner implements PanaRunner {
       packageName: package,
       packageVersion: Version.parse(version),
       runtimeInfo: PanaRuntimeInfo(
-        sdkVersion: packageStatus.usesPreviewSdk
+        sdkVersion: packageStatus.usesPreviewAnalysisSdk
             ? toolPreviewDartSdkVersion
             : toolStableDartSdkVersion,
         panaVersion: panaVersion,
