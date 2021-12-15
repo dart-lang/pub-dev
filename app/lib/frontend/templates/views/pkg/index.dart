@@ -116,7 +116,9 @@ d.Node _searchFormContainer({
             sectionTag: 'advanced',
             label: 'Advanced',
             isActive: openSections.contains('advanced') ||
-                searchForm.hasActiveAdvanced,
+                searchForm.hasActiveAdvanced ||
+                searchForm.parsedQuery.tagsPredicate
+                    .hasTag(PackageVersionTags.isNullSafe),
             children: [
               _formLinkedCheckbox(
                 id: 'search-form-checkbox-discontinued',
@@ -130,11 +132,11 @@ d.Node _searchFormContainer({
                 toggledSearchForm: searchForm.toggleUnlisted(),
                 isChecked: searchForm.includeUnlisted,
               ),
-              _formLinkedCheckbox(
-                id: 'search-form-checkbox-null-safe',
+              _tagBasedCheckbox(
+                tagPrefix: 'is',
+                tagValue: 'null-safe',
                 label: 'Supports null safety',
-                toggledSearchForm: searchForm.toggleNullSafe(),
-                isChecked: searchForm.nullSafe,
+                searchForm: searchForm,
               ),
             ],
           ),
