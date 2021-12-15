@@ -93,12 +93,6 @@ class IntegrityChecker {
         yield 'Email address "$email" is present at "${user.userId}" and another Users.';
       }
 
-      if (user.isDeleted is! bool) {
-        yield 'User "${user.userId}" has an `isDeleted` property which is not a bool.';
-      }
-      if (user.isBlocked is! bool) {
-        yield 'User "${user.userId}" has an `isBlocked` property which is not a bool.';
-      }
       if (user.isDeleted) {
         _deletedUsers.add(user.userId);
         if (user.oauthUserId != null) {
@@ -254,17 +248,8 @@ class IntegrityChecker {
     if (assignedTags.length != assignedTags.toSet().length) {
       yield 'Package "${p.name}" has an `assignedTags` property which contains duplicates.';
     }
-    if (p.likes is! int || p.likes < 0) {
+    if (p.likes < 0) {
       yield 'Package "${p.name}" has a `likes` property which is not a non-negative integer.';
-    }
-    if (p.isDiscontinued is! bool) {
-      yield 'Package "${p.name}" has an `isDiscontinued` property which is not a bool.';
-    }
-    if (p.isUnlisted is! bool) {
-      yield 'Package "${p.name}" has an `isUnlisted` property which is not a bool.';
-    }
-    if (p.isWithheld is! bool) {
-      yield 'Package "${p.name}" has an `isWithheld` property which is not a bool.';
     }
     for (String? userId in p.uploaders!) {
       if (!_userToOauth.containsKey(userId)) {

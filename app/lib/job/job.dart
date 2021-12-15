@@ -18,7 +18,6 @@ import '../shared/task_sources.dart';
 import '../shared/utils.dart' show DurationTracker;
 
 import 'backend.dart';
-import 'model.dart';
 
 export 'model.dart';
 
