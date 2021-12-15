@@ -38,7 +38,7 @@ RUN dart /project/tool/pub_get_offline.dart /project/app
 
 # Setup analysis Dart SDKs
 RUN /project/tool/setup-dart.sh /tool/stable https://storage.googleapis.com/dart-archive/channels/stable/raw/2.15.1/sdk/dartsdk-linux-x64-release.zip
-RUN /project/tool/setup-dart.sh /tool/preview https://storage.googleapis.com/dart-archive/channels/dev/release/2.16.0-80.1.beta/sdk/dartsdk-linux-x64-release.zip
+RUN /project/tool/setup-dart.sh /tool/preview https://storage.googleapis.com/dart-archive/channels/beta/release/2.16.0-80.1.beta/sdk/dartsdk-linux-x64-release.zip
 
 # Setup analysis Flutter SDKs
 RUN /project/tool/setup-flutter.sh /tool/stable 2.8.0
