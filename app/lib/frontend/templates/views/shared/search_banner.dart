@@ -30,7 +30,7 @@ d.Node searchBannerNode({
         autofocus: autofocus,
         value: queryText,
       ),
-      d.element('button', classes: ['icon']),
+      d.button(classes: ['icon'], ariaLabel: 'search'),
       if (showSearchFiltersButton)
         d.div(
           classes: [

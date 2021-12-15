@@ -18,7 +18,7 @@ d.Node siteHeaderNode({
   return d.div(
     classes: ['site-header'],
     children: [
-      d.button(classes: ['hamburger']),
+      d.button(classes: ['hamburger'], ariaLabel: 'menu toggle'),
       if (pageType != PageType.landing)
         d.a(
           classes: ['logo'],
