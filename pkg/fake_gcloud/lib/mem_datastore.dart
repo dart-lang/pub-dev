@@ -208,6 +208,10 @@ class MemDatastore implements Datastore {
           return true;
         }
         return query.filters!.every((f) {
+          if (e.unIndexedProperties.contains(f.name)) {
+            throw DatastoreError(
+                'Filtering on unindexed property: "${f.name}".');
+          }
           final v = _getValue(e, f.name);
           if (v == null) return false;
           final c = _compare(v, f.value);
@@ -231,6 +235,12 @@ class MemDatastore implements Datastore {
     if (query.orders != null && query.orders!.isNotEmpty) {
       items.sort((a, b) {
         for (Order o in query.orders!) {
+          if (a.unIndexedProperties.contains(o.propertyName) ||
+              b.unIndexedProperties.contains(o.propertyName)) {
+            throw DatastoreError(
+                'Ordering on unindexed property: "${o.propertyName}".');
+          }
+
           final ap = _getValue(a, o.propertyName);
           final bp = _getValue(b, o.propertyName);
           final c = _compare(ap, bp);
