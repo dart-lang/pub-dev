@@ -1,0 +1,11 @@
+name: indexed_blob
+publish_to: none
+dependencies:
+  async: ^2.8.0
+  jsontool: ^1.1.0
+  meta: ^1.7.0
+  path: ^1.8.0
+dev_dependencies:
+  test: ^1.0.0
+environment:
+  sdk: ^2.12.0
