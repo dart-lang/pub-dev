@@ -199,6 +199,38 @@ jobs:
         working-directory: pkg/web_css
         run: dart analyze --fatal-infos  .
   job_003:
+    name: "smoke_test; PKG: pkg/indexed_blob; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2.1.6
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.14.1;packages:pkg/indexed_blob;commands:format-analyze_1"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.14.1;packages:pkg/indexed_blob
+            os:ubuntu-latest;pub-cache-hosted;dart:2.14.1
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: dart-lang/setup-dart@v1.3
+        with:
+          sdk: "2.14.1"
+      - id: checkout
+        uses: actions/checkout@v2.3.5
+      - id: pkg_indexed_blob_pub_get
+        name: pkg/indexed_blob; dart pub get
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: pkg/indexed_blob
+        run: dart pub get
+      - name: "pkg/indexed_blob; dart format --output=none --set-exit-if-changed ."
+        if: "always() && steps.pkg_indexed_blob_pub_get.conclusion == 'success'"
+        working-directory: pkg/indexed_blob
+        run: "dart format --output=none --set-exit-if-changed ."
+      - name: "pkg/indexed_blob; dart analyze --fatal-infos ."
+        if: "always() && steps.pkg_indexed_blob_pub_get.conclusion == 'success'"
+        working-directory: pkg/indexed_blob
+        run: dart analyze --fatal-infos .
+  job_004:
     name: "smoke_test; PKG: pkg/pub_integration; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos bin/`, `dart analyze --fatal-infos lib/`, `dart analyze --fatal-infos test/`"
     runs-on: ubuntu-latest
     steps:
@@ -206,7 +238,7 @@ jobs:
         uses: actions/cache@v2.1.6
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.14.1;packages:pkg/pub_integration;commands:format-analyze_1-analyze_2-analyze_3"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.14.1;packages:pkg/pub_integration;commands:format-analyze_2-analyze_3-analyze_4"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;dart:2.14.1;packages:pkg/pub_integration
             os:ubuntu-latest;pub-cache-hosted;dart:2.14.1
@@ -238,7 +270,7 @@ jobs:
         if: "always() && steps.pkg_pub_integration_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_integration
         run: dart analyze --fatal-infos test/
-  job_004:
+  job_005:
     name: "build; PKG: pkg/web_app; `./build.sh`"
     runs-on: ubuntu-latest
     steps:
@@ -270,7 +302,8 @@ jobs:
       - job_001
       - job_002
       - job_003
-  job_005:
+      - job_004
+  job_006:
     name: "build; PKG: pkg/web_css; `./build.sh`"
     runs-on: ubuntu-latest
     steps:
@@ -302,7 +335,8 @@ jobs:
       - job_001
       - job_002
       - job_003
-  job_006:
+      - job_004
+  job_007:
     name: "unit_test; PKG: app; `dart test --run-skipped --total-shards 7 --shard-index 0`"
     runs-on: ubuntu-latest
     steps:
@@ -336,7 +370,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_007:
+      - job_006
+  job_008:
     name: "unit_test; PKG: app; `dart test --run-skipped --total-shards 7 --shard-index 1`"
     runs-on: ubuntu-latest
     steps:
@@ -370,7 +405,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_008:
+      - job_006
+  job_009:
     name: "unit_test; PKG: app; `dart test --run-skipped --total-shards 7 --shard-index 2`"
     runs-on: ubuntu-latest
     steps:
@@ -404,7 +440,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_009:
+      - job_006
+  job_010:
     name: "unit_test; PKG: app; `dart test --run-skipped --total-shards 7 --shard-index 3`"
     runs-on: ubuntu-latest
     steps:
@@ -438,7 +475,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_010:
+      - job_006
+  job_011:
     name: "unit_test; PKG: app; `dart test --run-skipped --total-shards 7 --shard-index 4`"
     runs-on: ubuntu-latest
     steps:
@@ -472,7 +510,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_011:
+      - job_006
+  job_012:
     name: "unit_test; PKG: app; `dart test --run-skipped --total-shards 7 --shard-index 5`"
     runs-on: ubuntu-latest
     steps:
@@ -506,7 +545,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_012:
+      - job_006
+  job_013:
     name: "unit_test; PKG: app; `dart test --run-skipped --total-shards 7 --shard-index 6`"
     runs-on: ubuntu-latest
     steps:
@@ -540,7 +580,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_013:
+      - job_006
+  job_014:
     name: "unit_test; PKG: pkg/_popularity; `dart test --run-skipped`"
     runs-on: ubuntu-latest
     steps:
@@ -574,7 +615,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_014:
+      - job_006
+  job_015:
     name: "unit_test; PKG: pkg/client_data; `dart test --run-skipped`"
     runs-on: ubuntu-latest
     steps:
@@ -608,7 +650,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_015:
+      - job_006
+  job_016:
     name: "unit_test; PKG: pkg/fake_gcloud; `dart test --run-skipped`"
     runs-on: ubuntu-latest
     steps:
@@ -642,7 +685,43 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_016:
+      - job_006
+  job_017:
+    name: "unit_test; PKG: pkg/indexed_blob; `dart test --run-skipped`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v2.1.6
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;dart:2.14.1;packages:pkg/indexed_blob;commands:test_07"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;dart:2.14.1;packages:pkg/indexed_blob
+            os:ubuntu-latest;pub-cache-hosted;dart:2.14.1
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - uses: dart-lang/setup-dart@v1.3
+        with:
+          sdk: "2.14.1"
+      - id: checkout
+        uses: actions/checkout@v2.3.5
+      - id: pkg_indexed_blob_pub_get
+        name: pkg/indexed_blob; dart pub get
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: pkg/indexed_blob
+        run: dart pub get
+      - name: "pkg/indexed_blob; dart test --run-skipped"
+        if: "always() && steps.pkg_indexed_blob_pub_get.conclusion == 'success'"
+        working-directory: pkg/indexed_blob
+        run: dart test --run-skipped
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+      - job_006
+  job_018:
     name: "unit_test; PKG: pkg/pub_dartdoc; `dart test --run-skipped`"
     runs-on: ubuntu-latest
     steps:
@@ -676,7 +755,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_017:
+      - job_006
+  job_019:
     name: "unit_test; PKG: pkg/pub_dartdoc_data; `dart test --run-skipped`"
     runs-on: ubuntu-latest
     steps:
@@ -710,7 +790,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_018:
+      - job_006
+  job_020:
     name: "unit_test; PKG: pkg/pub_package_reader; `dart test --run-skipped`"
     runs-on: ubuntu-latest
     steps:
@@ -744,7 +825,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_019:
+      - job_006
+  job_021:
     name: "unit_test; PKG: pkg/pub_validations; `dart test --run-skipped`"
     runs-on: ubuntu-latest
     steps:
@@ -778,7 +860,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_020:
+      - job_006
+  job_022:
     name: "unit_test; PKG: pkg/web_app; `dart test --run-skipped`"
     runs-on: ubuntu-latest
     steps:
@@ -812,7 +895,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_021:
+      - job_006
+  job_023:
     name: "unit_test; PKG: pkg/web_css; `dart test --run-skipped`"
     runs-on: ubuntu-latest
     steps:
@@ -846,7 +930,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_022:
+      - job_006
+  job_024:
     name: "unit_test; PKG: pkg/pub_integration; `dart test --run-skipped --total-shards 3 --shard-index 0`"
     runs-on: ubuntu-latest
     steps:
@@ -880,7 +965,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_023:
+      - job_006
+  job_025:
     name: "unit_test; PKG: pkg/pub_integration; `dart test --run-skipped --total-shards 3 --shard-index 1`"
     runs-on: ubuntu-latest
     steps:
@@ -914,7 +1000,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_024:
+      - job_006
+  job_026:
     name: "unit_test; PKG: pkg/pub_integration; `dart test --run-skipped --total-shards 3 --shard-index 2`"
     runs-on: ubuntu-latest
     steps:
@@ -948,3 +1035,4 @@ jobs:
       - job_003
       - job_004
       - job_005
+      - job_006
