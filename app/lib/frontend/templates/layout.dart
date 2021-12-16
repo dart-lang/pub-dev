@@ -32,6 +32,13 @@ enum PageType {
   standalone,
 }
 
+/// Whether to show a wide/tall search banner at the top of the page,
+/// otherwise only show a top-navigation search input.
+bool showSearchBanner(PageType type) =>
+    type != PageType.account &&
+    type != PageType.package &&
+    type != PageType.standalone;
+
 /// Renders the layout page template.
 String renderLayoutPage(
   PageType type,
@@ -62,8 +69,6 @@ String renderLayoutPage(
     if (type == PageType.landing) 'page-landing',
   ];
   final announcementBannerHtml = announcementBackend.getAnnouncementHtml();
-  final showSearchBanner =
-      type != PageType.package && type != PageType.standalone;
   return pageLayoutNode(
     title: title,
     description: pageDescription ?? _defaultPageDescription,
@@ -81,7 +86,7 @@ String renderLayoutPage(
     announcementBanner: announcementBannerHtml == null
         ? null
         : d.unsafeRawHtml(announcementBannerHtml),
-    searchBanner: showSearchBanner
+    searchBanner: showSearchBanner(type)
         ? _renderSearchBanner(
             type: type,
             publisherId: publisherId,
@@ -109,8 +114,6 @@ d.Node _renderSearchBanner({
   bool includePreferencesAsHiddenFields = false;
   if (publisherId != null) {
     searchPlaceholder ??= 'Search $publisherId packages';
-  } else if (type == PageType.account) {
-    searchPlaceholder ??= 'Search your packages';
   } else {
     searchPlaceholder ??= getSdkDict(sdk).searchPackagesLabel;
     includePreferencesAsHiddenFields = true;

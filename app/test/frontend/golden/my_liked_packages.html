@@ -43,6 +43,11 @@
       </a>
       <div class="site-header-space"></div>
       <div class="site-header-mask"></div>
+      <div class="site-header-search">
+        <form action="/packages" method="GET">
+          <input class="site-header-search-input" name="q" placeholder="New search..." autocomplete="on"/>
+        </form>
+      </div>
       <div class="site-header-nav scroll-container">
         <div id="-account-profile" class="nav-container nav-my-container hoverable">
           <button class="nav-main-button">My pub.dev</button>
@@ -129,17 +134,6 @@
       </div>
     </div>
     <div id="banner-container"></div>
-    <div class="_banner-bg">
-      <div class="container">
-        <form class="search-bar banner-item" action="/my-packages">
-          <input class="input" name="q" placeholder="Search your packages" autocomplete="on" autofocus="autofocus"/>
-          <button class="icon" aria-label="search"></button>
-          <input id="-search-discontinued-field" type="hidden" name="discontinued" value="1" disabled="disabled"/>
-          <input id="-search-unlisted-field" type="hidden" name="unlisted" value="1" disabled="disabled"/>
-          <input id="-search-null-safe-field" type="hidden" name="null-safe" value="1" disabled="disabled"/>
-        </form>
-      </div>
-    </div>
     <main class="-wide-header-detail-page">
       <div class="detail-wrapper -active">
         <div class="detail-header">

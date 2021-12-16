@@ -6,15 +6,13 @@ import '../../../../account/models.dart' show UserSessionData;
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
 import '../../../static_files.dart' show staticUrls;
-import '../../layout.dart' show PageType;
+import '../../layout.dart' show PageType, showSearchBanner;
 
 /// Creates the site header and navigation node.
 d.Node siteHeaderNode({
   required PageType pageType,
   UserSessionData? userSession,
 }) {
-  final showHeaderSearch =
-      pageType == PageType.package || pageType == PageType.standalone;
   return d.div(
     classes: ['site-header'],
     children: [
@@ -35,7 +33,7 @@ d.Node siteHeaderNode({
         ),
       d.div(classes: ['site-header-space']),
       d.div(classes: ['site-header-mask']),
-      if (showHeaderSearch)
+      if (!showSearchBanner(pageType))
         d.div(
           classes: ['site-header-search'],
           child: d.form(
