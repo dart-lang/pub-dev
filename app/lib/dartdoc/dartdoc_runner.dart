@@ -16,7 +16,6 @@ import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 import 'package:tar/tar.dart';
 
 import '../frontend/static_files.dart';
-import '../job/backend.dart';
 import '../job/job.dart';
 import '../package/backend.dart';
 import '../scorecard/backend.dart';

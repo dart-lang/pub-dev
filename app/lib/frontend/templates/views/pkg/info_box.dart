@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pana/models.dart' show LicenseFile;
 import 'package:pana/pana.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspek;
 

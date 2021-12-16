@@ -8,8 +8,6 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:pub_validations/html/html_validation.dart';
 import 'package:puppeteer/puppeteer.dart';
-// ignore: implementation_imports
-import 'package:puppeteer/src/page/page.dart' show ClientError;
 
 /// Creates and tracks the headless Chrome environment, its temp directories and
 /// and uncaught exceptions.

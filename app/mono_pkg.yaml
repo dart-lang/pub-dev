@@ -1,6 +1,6 @@
 # See https://github.com/dart-lang/mono_repo for details
 dart:
-  - 2.14.1
+  - 2.15.1
 
 stages:
   - smoke_test:
