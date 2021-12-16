@@ -2,6 +2,8 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20211216t102600-all`
  * Bumped runtimeVersion to `2021.12.15`.
  * Restored indexed fields in `Job`.
 
