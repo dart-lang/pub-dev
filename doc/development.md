@@ -113,6 +113,13 @@ dart pub global activate mono_repo
 dart pub global run mono_repo pub get
 ```
 
+### Update/upgrade SDK in all mono_pkg.yaml
+
+```bash
+dart tool/update_mono_pkg_yaml.dart
+dart pub global run mono_repo generate
+```
+
 ### Creating a new package (or vendoring existing packages)
 
 1. Create `mono_pkg.yaml` for the package. (Use the existing ones as template.)
