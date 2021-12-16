@@ -162,17 +162,23 @@ class SearchForm {
   SearchForm toggleNullSafe() => change(nullSafe: !nullSafe);
 
   ServiceSearchQuery toServiceQuery() {
-    var prohibitLegacy = !context.includeAll;
-    // Only parse query texts when a quick text match indicates the presence of
-    // `is:legacy` override.
-    if (prohibitLegacy &&
-        hasQuery &&
-        query!.contains(PackageVersionTags.isLegacy)) {
-      final parsed = ParsedQueryText.parse(query);
-      if (parsed.tagsPredicate.isRequiredTag(PackageVersionTags.isLegacy)) {
-        prohibitLegacy = false;
-      }
-    }
+    final prohibitLegacy = !context.includeAll &&
+        !parsedQuery.tagsPredicate.anyTag((tag) =>
+            tag == PackageVersionTags.isLegacy ||
+            tag == PackageVersionTags.showLegacy ||
+            tag == PackageTags.showHidden);
+    final prohibitDiscontinued = !context.includeAll &&
+        !includeDiscontinued &&
+        !parsedQuery.tagsPredicate.anyTag((tag) =>
+            tag == PackageTags.isDiscontinued ||
+            tag == PackageTags.showDiscontinued ||
+            tag == PackageTags.showHidden);
+    final prohibitUnlisted = !context.includeAll &&
+        !includeUnlisted &&
+        !parsedQuery.tagsPredicate.anyTag((tag) =>
+            tag == PackageTags.isUnlisted ||
+            tag == PackageTags.showUnlisted ||
+            tag == PackageTags.showHidden);
     final tagsPredicate = TagsPredicate(
       requiredTags: [
         if (nullSafe)
@@ -183,9 +189,8 @@ class SearchForm {
         ...platforms.map((v) => 'platform:$v'),
       ],
       prohibitedTags: [
-        if (!includeDiscontinued && !context.includeAll)
-          PackageTags.isDiscontinued,
-        if (!includeUnlisted && !context.includeAll) PackageTags.isUnlisted,
+        if (prohibitDiscontinued) PackageTags.isDiscontinued,
+        if (prohibitUnlisted) PackageTags.isUnlisted,
         if (prohibitLegacy) PackageVersionTags.isLegacy,
       ],
     );

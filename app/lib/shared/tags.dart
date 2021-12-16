@@ -12,15 +12,28 @@ const allowedTagPrefixes = [
   'platform:',
   'runtime:',
   'sdk:',
+  'show:',
 ];
 
 /// Collection of package-related tags.
 abstract class PackageTags {
+  /// Package is marked discontinued | unlisted | legacy.
+  static const String isHidden = 'is:hidden';
+
+  /// Package is shown, regardless of its hidden status.
+  static const String showHidden = 'show:hidden';
+
   /// Package is marked discontinued.
   static const String isDiscontinued = 'is:discontinued';
 
+  /// Package is shown, regardless of its discontinued status.
+  static const String showDiscontinued = 'show:discontinued';
+
   /// Package is marked unlisted.
   static const String isUnlisted = 'is:unlisted';
+
+  /// Package is shown, regardless of its unlisted status.
+  static const String showUnlisted = 'show:unlisted';
 
   /// The first version of the package was published less than 30 days ago.
   static const String isRecent = 'is:recent';
@@ -39,6 +52,9 @@ abstract class PackageTags {
 abstract class PackageVersionTags {
   /// PackageVersion supports only legacy (Dart 1) SDK.
   static const String isLegacy = 'is:legacy';
+
+  /// Package is shown, regardless of its legacy status.
+  static const String showLegacy = 'show:legacy';
 
   /// The PackageVersion is null-safe.
   ///

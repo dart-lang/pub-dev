@@ -112,5 +112,59 @@ void main() {
       final form = SearchForm().togglePlatform('web');
       expect(form.toSearchLink(), '/packages?platform=web');
     });
+
+    test('query-based show:hidden', () {
+      expect(
+        SearchForm(query: 'show:hidden')
+            .toServiceQuery()
+            .toUriQueryParameters()['tags'],
+        [],
+      );
+    });
+
+    test('query-based discontinued', () {
+      expect(
+        SearchForm(query: 'is:discontinued')
+            .toServiceQuery()
+            .toUriQueryParameters()['tags'],
+        ['-is:unlisted', '-is:legacy'],
+      );
+      expect(
+        SearchForm(query: 'show:discontinued')
+            .toServiceQuery()
+            .toUriQueryParameters()['tags'],
+        ['-is:unlisted', '-is:legacy'],
+      );
+    });
+
+    test('query-based unlisted', () {
+      expect(
+        SearchForm(query: 'is:unlisted')
+            .toServiceQuery()
+            .toUriQueryParameters()['tags'],
+        ['-is:discontinued', '-is:legacy'],
+      );
+      expect(
+        SearchForm(query: 'show:unlisted')
+            .toServiceQuery()
+            .toUriQueryParameters()['tags'],
+        ['-is:discontinued', '-is:legacy'],
+      );
+    });
+
+    test('query-based legacy', () {
+      expect(
+        SearchForm(query: 'is:legacy')
+            .toServiceQuery()
+            .toUriQueryParameters()['tags'],
+        ['-is:discontinued', '-is:unlisted'],
+      );
+      expect(
+        SearchForm(query: 'show:legacy')
+            .toServiceQuery()
+            .toUriQueryParameters()['tags'],
+        ['-is:discontinued', '-is:unlisted'],
+      );
+    });
   });
 }
