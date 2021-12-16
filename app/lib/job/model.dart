@@ -84,7 +84,7 @@ class Job extends ExpandoModel<String> {
 
   // fields for state = available
 
-  @IntProperty(indexed: false)
+  @IntProperty()
   int priority = 0;
 
   // fields for state = processing
@@ -148,7 +148,7 @@ class Job extends ExpandoModel<String> {
 
 class JobServiceProperty extends StringProperty {
   const JobServiceProperty({String? propertyName, bool required = false})
-      : super(propertyName: propertyName, required: required, indexed: false);
+      : super(propertyName: propertyName, required: required, indexed: true);
 
   @override
   bool validate(ModelDB db, Object? value) =>
@@ -174,7 +174,7 @@ class JobServiceProperty extends StringProperty {
 
 class JobStateProperty extends StringProperty {
   const JobStateProperty({String? propertyName, bool required = false})
-      : super(propertyName: propertyName, required: required, indexed: false);
+      : super(propertyName: propertyName, required: required, indexed: true);
 
   @override
   bool validate(ModelDB db, Object? value) =>
