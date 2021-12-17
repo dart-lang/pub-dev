@@ -41,8 +41,8 @@ RUN /project/tool/setup-dart.sh /tool/stable https://storage.googleapis.com/dart
 RUN /project/tool/setup-dart.sh /tool/preview https://storage.googleapis.com/dart-archive/channels/beta/release/2.16.0-80.1.beta/sdk/dartsdk-linux-x64-release.zip
 
 # Setup analysis Flutter SDKs
-RUN /project/tool/setup-flutter.sh /tool/stable 2.8.0
-RUN /project/tool/setup-flutter.sh /tool/preview 2.8.0
+RUN /project/tool/setup-flutter.sh /tool/stable 2.8.1
+RUN /project/tool/setup-flutter.sh /tool/preview 2.9.0-0.1.pre
 
 # Clear out any arguments the base images might have set
 CMD []
