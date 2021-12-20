@@ -356,10 +356,11 @@ void main() {
     });
 
     scopedTest('aborted analysis tab', () async {
+      final timestamp = DateTime(2017, 12, 18, 14, 26, 00);
       final card = ScoreCardData(
         reportTypes: ['pana'],
         panaReport: PanaReport(
-          timestamp: DateTime(2017, 12, 18, 14, 26, 00),
+          timestamp: timestamp,
           panaRuntimeInfo: _panaRuntimeInfo,
           reportStatus: ReportStatus.aborted,
           derivedTags: null,
@@ -372,7 +373,12 @@ void main() {
       );
       final html = scoreTabNode(card: card, likeCount: 1000000).toString();
 
-      expectGoldenFile(html, 'analysis_tab_aborted.html', isFragment: true);
+      expectGoldenFile(
+        html,
+        'analysis_tab_aborted.html',
+        isFragment: true,
+        timestamps: {'timestamp': timestamp},
+      );
     });
 
     scopedTest('outdated analysis tab', () async {
