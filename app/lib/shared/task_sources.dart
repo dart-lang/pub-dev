@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_dev/package/backend.dart';
 
 import '../package/models.dart';
@@ -28,7 +29,7 @@ class DatastoreHeadTaskSource implements TaskSource {
   final Duration _window;
   final Duration _sleep;
   final TaskSourceModel _model;
-  DateTime? _lastTs;
+  DateTime _lastTs;
 
   DatastoreHeadTaskSource(
     this._db,
@@ -46,25 +47,13 @@ class DatastoreHeadTaskSource implements TaskSource {
         _sleep = sleep ?? _defaultSleep,
         _lastTs = skipHistory
             ? DateTime.now().toUtc().subtract(window ?? _defaultWindow)
-            : null;
+            : DateTime.utc(2000);
 
   @override
   Stream<Task> startStreaming() async* {
     for (;;) {
       try {
-        final DateTime now = DateTime.now().toUtc();
-        switch (_model) {
-          case TaskSourceModel.package:
-            yield* _poll<Package>('updated', _packageToTask);
-            break;
-          case TaskSourceModel.version:
-            yield* _poll<PackageVersion>('created', _versionToTask);
-            break;
-          case TaskSourceModel.scorecard:
-            yield* _poll<ScoreCard>('updated', _scoreCardToTask);
-            break;
-        }
-        _lastTs = now.subtract(_window);
+        yield* pollOnce();
       } catch (e, st) {
         _logger.severe('Error polling head.', e, st);
       }
@@ -72,12 +61,28 @@ class DatastoreHeadTaskSource implements TaskSource {
     }
   }
 
-  Stream<Task> _poll<M extends Model>(
-      String field, FutureOr<Task?> Function(M model) modelToTask) async* {
-    final Query q = _db.query<M>();
-    if (_lastTs != null) {
-      q.filter('$field >=', _lastTs);
+  @visibleForTesting
+  Stream<Task> pollOnce() async* {
+    final now = DateTime.now().toUtc();
+    switch (_model) {
+      case TaskSourceModel.package:
+        yield* _pollModel<Package>('updated', _packageToTask);
+        break;
+      case TaskSourceModel.version:
+        yield* _pollModel<PackageVersion>('created', _versionToTask);
+        break;
+      case TaskSourceModel.scorecard:
+        yield* _pollModel<ScoreCard>('updated', _scoreCardToTask);
+        break;
     }
+    _lastTs = now.subtract(_window);
+  }
+
+  Stream<Task> _pollModel<M extends Model>(
+      String field, FutureOr<Task?> Function(M model) modelToTask) async* {
+    final q = _db.query<M>()
+      ..filter('$field >=', _lastTs)
+      ..order('-$field');
     await for (M model in q.run().cast<M>()) {
       final task = await modelToTask(model);
       if (task != null) {
