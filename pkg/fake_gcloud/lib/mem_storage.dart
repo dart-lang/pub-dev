@@ -245,7 +245,7 @@ class _Bucket implements Bucket {
     } else {
       yield bytes;
     }
-   }
+  }
 
   @override
   Stream<BucketEntry> list({String? prefix, String? delimiter}) async* {
