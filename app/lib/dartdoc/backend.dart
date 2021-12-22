@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
+import 'package:indexed_blob/indexed_blob.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
@@ -23,6 +24,17 @@ import '../shared/versions.dart' as shared_versions;
 
 import 'models.dart';
 import 'storage_path.dart' as storage_path;
+
+const archiveFilePath = 'package.tar.gz';
+const blobFilePath = 'blob-data.gz';
+const blobIndexV1FilePath = 'index-v1.json';
+const buildLogFilePath = 'log.txt';
+const uploadedFilePaths = [
+  archiveFilePath,
+  blobFilePath,
+  blobIndexV1FilePath,
+  buildLogFilePath,
+];
 
 final Logger _logger = Logger('pub.dartdoc.backend');
 
@@ -262,6 +274,25 @@ class DartdocBackend {
           () async => retry<FileInfo?>(
             () async {
               try {
+                if (uploadedFilePaths.contains(relativePath)) {
+                  final info = await _storage.info(objectName);
+                  return FileInfo(lastModified: info.updated, etag: info.etag);
+                }
+                final index = await _getBlobIndex(entry);
+                if (index != null) {
+                  final range = index.lookup(relativePath);
+                  if (range == null) {
+                    return null;
+                  }
+                  return FileInfo(
+                    lastModified: entry.timestamp!,
+                    etag: '${entry.uuid}-${range.start}-${range.end}',
+                    blobId: entry.uuid,
+                    blobOffset: range.start,
+                    blobLength: range.length,
+                  );
+                }
+                // TODO: remove this once all the accepted runtimes use blobs
                 final info = await _storage.info(objectName);
                 return FileInfo(lastModified: info.updated, etag: info.etag);
               } catch (e) {
@@ -275,12 +306,32 @@ class DartdocBackend {
         );
   }
 
+  Future<BlobIndex?> _getBlobIndex(DartdocEntry entry) async {
+    if (!entry.hasBlob) return null;
+    final objectName = entry.objectName(blobIndexV1FilePath);
+    final indexContent =
+        await cache.dartdocBlobIndexV1(objectName).get(() async {
+      return await _storage.readAsBytes(objectName);
+    });
+    if (indexContent == null) return null;
+    return BlobIndex.fromBytes(indexContent);
+  }
+
   /// Returns a file's content from the storage bucket.
   Stream<List<int>> readContent(DartdocEntry entry, String relativePath) {
     final objectName = entry.objectName(relativePath);
     // TODO: add caching with memcache
     _logger.info('Retrieving $objectName from bucket.');
     return _storage.read(objectName);
+  }
+
+  /// Reads content from blob.
+  Stream<List<int>> readFromBlob(DartdocEntry entry, FileInfo info) {
+    return _storage.read(
+      entry.objectName(blobFilePath),
+      offset: info.blobOffset!,
+      length: info.blobLength!,
+    );
   }
 
   /// Returns the text content of a file inside the dartdoc archive.
@@ -298,6 +349,15 @@ class DartdocBackend {
       if (entry == null || !entry.hasContent) {
         return null;
       }
+      final index = await _getBlobIndex(entry);
+      if (index != null) {
+        final range = index.lookup(relativePath);
+        if (range == null) return null;
+        final bytes = await _storage.readAsBytes(entry.objectName(blobFilePath),
+            offset: range.start, length: range.length);
+        return utf8.decode(gzip.decode(bytes));
+      }
+      // TODO: remove this once all the accepted runtimes use blobs
       final stream = readContent(entry, relativePath).transform(utf8.decoder);
       return (await stream.toList().timeout(timeout)).join();
     } catch (e, st) {

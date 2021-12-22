@@ -68,6 +68,11 @@ class CachePatterns {
         decode: (data) => FileInfo.fromBytes(data),
       ))[objectName];
 
+  /// Cache for the binary content of the blob index (v1).
+  Entry<List<int>> dartdocBlobIndexV1(String objectName) => _cache
+      .withPrefix('dartdoc-blob-index-v1/')
+      .withTTL(Duration(minutes: 60))[objectName];
+
   /// Cache for API summaries used by dartdoc.
   Entry<Map<String, dynamic>> dartdocApiSummary(String package) => _cache
       .withPrefix('dartdoc-apisummary/')

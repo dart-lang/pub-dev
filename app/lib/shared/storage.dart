@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
     show DetailedApiRequestError;
@@ -42,6 +43,29 @@ extension BucketExt on Bucket {
     final metadata = ObjectMetadata(acl: acl, contentType: contentType);
     return uploadWithRetry(this, objectName, length, openStream,
         metadata: metadata);
+  }
+
+  /// Reads file content as bytes.
+  Future<Uint8List> readAsBytes(
+    String objectName, {
+    int? offset,
+    int? length,
+  }) async {
+    return retry(
+      () async {
+        final builder = BytesBuilder(copy: false);
+        await for (final chunk
+            in read(objectName, offset: offset, length: length)) {
+          builder.add(chunk);
+        }
+        return builder.toBytes();
+      },
+      retryIf: (e) {
+        return e is DetailedApiRequestError &&
+            e.status != null &&
+            e.status! >= 500;
+      },
+    );
   }
 }
 

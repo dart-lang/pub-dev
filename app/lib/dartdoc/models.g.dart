@@ -27,6 +27,8 @@ DartdocEntry _$DartdocEntryFromJson(Map<String, dynamic> json) => DartdocEntry(
       hasContent: json['hasContent'] as bool? ?? false,
       archiveSize: json['archiveSize'] as int?,
       totalSize: json['totalSize'] as int?,
+      blobSize: json['blobSize'] as int?,
+      blobIndexSize: json['blobIndexSize'] as int?,
     );
 
 Map<String, dynamic> _$DartdocEntryToJson(DartdocEntry instance) =>
@@ -47,14 +49,24 @@ Map<String, dynamic> _$DartdocEntryToJson(DartdocEntry instance) =>
       'hasContent': instance.hasContent,
       'archiveSize': instance.archiveSize,
       'totalSize': instance.totalSize,
+      'blobSize': instance.blobSize,
+      'blobIndexSize': instance.blobIndexSize,
     };
 
 FileInfo _$FileInfoFromJson(Map<String, dynamic> json) => FileInfo(
       lastModified: DateTime.parse(json['lastModified'] as String),
       etag: json['etag'] as String,
+      blobId: json['blobId'] as String?,
+      blobOffset: json['blobOffset'] as int?,
+      blobLength: json['blobLength'] as int?,
+      contentLength: json['contentLength'] as int?,
     );
 
 Map<String, dynamic> _$FileInfoToJson(FileInfo instance) => <String, dynamic>{
       'lastModified': instance.lastModified.toIso8601String(),
       'etag': instance.etag,
+      'blobId': instance.blobId,
+      'blobOffset': instance.blobOffset,
+      'blobLength': instance.blobLength,
+      'contentLength': instance.contentLength,
     };

@@ -239,8 +239,13 @@ class _Bucket implements Bucket {
     _validateObjectName(objectName);
     _logger.info('read request for $objectName');
     final file = _files[objectName];
-    yield file!.content;
-  }
+    final bytes = file!.content;
+    if (offset != null) {
+      yield bytes.sublist(offset, offset + length!);
+    } else {
+      yield bytes;
+    }
+   }
 
   @override
   Stream<BucketEntry> list({String? prefix, String? delimiter}) async* {
