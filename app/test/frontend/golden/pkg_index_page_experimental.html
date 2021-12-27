@@ -281,10 +281,10 @@
               <img class="foldable-icon" src="/static/img/search-form-foldable-icon.svg?hash=mocked_hash_663371761" alt="fold toggle icon (up/down arrow)"/>
             </h3>
             <div class="foldable-content">
-              <div class="search-form-linked-checkbox">
+              <div class="search-form-linked-checkbox" title="Show discontinued, unlisted and legacy Dart 1.x packages.">
                 <div class="mdc-form-field">
                   <div class="mdc-checkbox">
-                    <input id="search-form-checkbox-discontinued" class="mdc-checkbox__native-control" type="checkbox"/>
+                    <input id="search-form-checkbox-show-hidden" class="mdc-checkbox__native-control" type="checkbox"/>
                     <div class="mdc-checkbox__background">
                       <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
                         <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
@@ -293,25 +293,8 @@
                     </div>
                     <div class="mdc-checkbox__ripple"></div>
                   </div>
-                  <label for="search-form-checkbox-discontinued">
-                    <a href="/packages?q=sdk%3Adart&amp;discontinued=1&amp;unlisted=1">Include discontinued</a>
-                  </label>
-                </div>
-              </div>
-              <div class="search-form-linked-checkbox">
-                <div class="mdc-form-field">
-                  <div class="mdc-checkbox">
-                    <input id="search-form-checkbox-unlisted" class="mdc-checkbox__native-control" type="checkbox" checked="checked"/>
-                    <div class="mdc-checkbox__background">
-                      <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
-                        <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
-                      </svg>
-                      <div class="mdc-checkbox__mixedmark"></div>
-                    </div>
-                    <div class="mdc-checkbox__ripple"></div>
-                  </div>
-                  <label for="search-form-checkbox-unlisted">
-                    <a href="/packages?q=sdk%3Adart">Include unlisted</a>
+                  <label for="search-form-checkbox-show-hidden">
+                    <a href="/packages?q=sdk%3Adart+show%3Ahidden&amp;unlisted=1" data-tag="show:hidden">Include hidden</a>
                   </label>
                 </div>
               </div>

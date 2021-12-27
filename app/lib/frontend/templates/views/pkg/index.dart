@@ -118,19 +118,17 @@ d.Node _searchFormContainer({
             isActive: openSections.contains('advanced') ||
                 searchForm.hasActiveAdvanced ||
                 searchForm.parsedQuery.tagsPredicate
+                    .hasTag(PackageTags.showHidden) ||
+                searchForm.parsedQuery.tagsPredicate
                     .hasTag(PackageVersionTags.isNullSafe),
             children: [
-              _formLinkedCheckbox(
-                id: 'search-form-checkbox-discontinued',
-                label: 'Include discontinued',
-                toggledSearchForm: searchForm.toggleDiscontinued(),
-                isChecked: searchForm.includeDiscontinued,
-              ),
-              _formLinkedCheckbox(
-                id: 'search-form-checkbox-unlisted',
-                label: 'Include unlisted',
-                toggledSearchForm: searchForm.toggleUnlisted(),
-                isChecked: searchForm.includeUnlisted,
+              _tagBasedCheckbox(
+                tagPrefix: 'show',
+                tagValue: 'hidden',
+                label: 'Include hidden',
+                searchForm: searchForm,
+                title:
+                    'Show discontinued, unlisted and legacy Dart 1.x packages.',
               ),
               _tagBasedCheckbox(
                 tagPrefix: 'is',
@@ -181,6 +179,7 @@ d.Node _tagBasedCheckbox({
   required String tagValue,
   required String label,
   required SearchForm searchForm,
+  String? title,
 }) {
   final tag = '$tagPrefix:$tagValue';
   final toggledSearchForm = searchForm.toggleRequiredTag(tag);
@@ -191,6 +190,7 @@ d.Node _tagBasedCheckbox({
     isChecked: searchForm.parsedQuery.tagsPredicate.isRequiredTag(tag),
     isIndeterminate: searchForm.parsedQuery.tagsPredicate.isProhibitedTag(tag),
     tag: tag,
+    title: title,
   );
 }
 
@@ -201,9 +201,13 @@ d.Node _formLinkedCheckbox({
   required bool isChecked,
   bool isIndeterminate = false,
   String? tag,
+  String? title,
 }) {
   return d.div(
     classes: ['search-form-linked-checkbox'],
+    attributes: {
+      if (title != null) 'title': title,
+    },
     child: material.checkbox(
       id: id,
       label: label,

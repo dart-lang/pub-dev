@@ -94,9 +94,6 @@ class SearchForm {
     List<String>? runtimes,
     List<String>? platforms,
     int? currentPage,
-    bool? includeDiscontinued,
-    bool? includeUnlisted,
-    bool? nullSafe,
   }) {
     runtimes ??= this.runtimes;
     platforms ??= this.platforms;
@@ -116,9 +113,9 @@ class SearchForm {
       order: order,
       currentPage: currentPage ?? this.currentPage,
       pageSize: pageSize,
-      includeDiscontinued: includeDiscontinued ?? this.includeDiscontinued,
-      includeUnlisted: includeUnlisted ?? this.includeUnlisted,
-      nullSafe: nullSafe ?? this.nullSafe,
+      includeDiscontinued: includeDiscontinued,
+      includeUnlisted: includeUnlisted,
+      nullSafe: nullSafe,
     );
   }
 
@@ -153,13 +150,6 @@ class SearchForm {
     }
     return change(platforms: platforms);
   }
-
-  SearchForm toggleDiscontinued() =>
-      change(includeDiscontinued: !includeDiscontinued);
-
-  SearchForm toggleUnlisted() => change(includeUnlisted: !includeUnlisted);
-
-  SearchForm toggleNullSafe() => change(nullSafe: !nullSafe);
 
   ServiceSearchQuery toServiceQuery() {
     final prohibitLegacy = !context.includeAll &&
