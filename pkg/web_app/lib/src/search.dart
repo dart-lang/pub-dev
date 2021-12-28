@@ -61,6 +61,15 @@ void _setEventForSearchInput() {
   });
 }
 
+void adjustQueryTextAfterPageShow() {
+  final q = document.querySelector('input[name="q"]') as InputElement?;
+  if (q == null) return null;
+  final uri = Uri.tryParse(window.location.href);
+  if (q.value != uri?.queryParameters['q']) {
+    q.value = uri?.queryParameters['q'] ?? q.value;
+  }
+}
+
 void _setEventsForSearchForm() {
   // When a search form checkbox has a linked search label,
   //checking the checkbox will trigger a click on the link.

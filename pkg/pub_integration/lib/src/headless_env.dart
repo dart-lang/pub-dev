@@ -260,6 +260,12 @@ extension PageExt on Page {
     final origin = _pageOriginExpando[this];
     return await goto('$origin$path', wait: Until.networkIdle);
   }
+
+  /// Returns the [property] value of the first elemented by [selector].
+  Future<String> propertyValue(String selector, String property) async {
+    final h = await $(selector);
+    return await h.propertyValue(property);
+  }
 }
 
 extension ElementHandleExt on ElementHandle {
