@@ -35,7 +35,6 @@ const acceptedRuntimeVersions = <String>[
 /// in pana, dartdoc, or the SDKs, or when an feature or bugfix should be picked
 /// up by the analysis ASAP.
 final String runtimeVersion = acceptedRuntimeVersions.first;
-final Version semanticRuntimeVersion = Version.parse(runtimeVersion);
 
 /// The list of runtime versions to use when looking for past version-specific
 /// data.
@@ -65,18 +64,9 @@ final semanticToolStableFlutterSdkVersion =
 
 // Value comes from package:pana.
 final String panaVersion = pana.packageVersion;
-final Version semanticPanaVersion = Version.parse(panaVersion);
 
 // keep in-sync with pkg/pub_dartdoc/pubspec.yaml
 final String dartdocVersion = '4.1.0';
-final Version semanticDartdocVersion = Version.parse(dartdocVersion);
-
-// Version that control the dartdoc serving.
-// Pin this to a specific version when there is a coordinated upgrade of the
-// generated documentation template or style. The new version can generate the
-// docs without any traffic sent to it, while the old won't accidentally serve
-// them.
-final dartdocServingRuntime = Version.parse(runtimeVersion);
 
 /// Whether the given runtime version (stored with the dartdoc entry) should
 /// be displayed on the live site (or a coordinated upgrade is in progress).
