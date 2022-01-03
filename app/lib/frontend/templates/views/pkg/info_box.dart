@@ -54,7 +54,7 @@ d.Node packageInfoBoxNode({
     if (package.replacedBy != null) _replacedBy(package.replacedBy!),
     if (package.publisherId != null) _publisher(package.publisherId!),
     _metadata(
-      description: version.pubspec!.description,
+      description: version.ellipsizedDescription,
       metaLinks: metaLinks,
     ),
     if (docLinks.isNotEmpty)

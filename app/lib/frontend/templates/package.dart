@@ -403,7 +403,7 @@ d.Node renderPackageSchemaOrgHtml(PackagePageData data) {
     '@type': 'SoftwareSourceCode',
     'name': p.name,
     'version': pv.version,
-    'description': '${p.name} - ${pv.pubspec!.description}',
+    'description': '${p.name} - ${pv.ellipsizedDescription}',
     'url': urls.pkgPageUrl(p.name!, includeHost: true),
     'dateCreated': p.created!.toIso8601String(),
     'dateModified': pv.created!.toIso8601String(),

@@ -18,6 +18,7 @@ import '../shared/model_properties.dart';
 import '../shared/tags.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
+import '../tool/utils/emoji.dart';
 
 part 'models.g.dart';
 
@@ -436,8 +437,9 @@ class PackageVersion extends db.ExpandoModel<String> {
   Version get semanticVersion => Version.parse(version!);
 
   String? get ellipsizedDescription {
-    final description = pubspec!.description;
+    var description = pubspec!.description;
     if (description == null) return null;
+    description = removeEmojis(description).trim();
     if (description.length < 210) return description;
     return '${description.substring(0, 200)} [...]';
   }

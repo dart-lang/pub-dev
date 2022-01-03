@@ -157,7 +157,7 @@ class SearchBackend {
       package: pv.package,
       version: pv.version!,
       tags: tags.toList(),
-      description: compactDescription(pv.pubspec!.description),
+      description: pv.ellipsizedDescription,
       created: p.created,
       updated: p.lastVersionPublished,
       readme: compactReadme(readmeAsset?.textContent),
