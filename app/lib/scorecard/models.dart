@@ -57,7 +57,7 @@ class ScoreCard extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)
   String? runtimeVersion;
 
-  @db.DateTimeProperty(required: true, indexed: false)
+  @db.DateTimeProperty(required: true)
   DateTime? updated;
 
   @db.DateTimeProperty(required: true, indexed: false)
