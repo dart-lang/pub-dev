@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:clock/clock.dart';
 import 'package:http/http.dart';
 import 'package:pub_dev/search/search_form.dart';
 
@@ -104,7 +105,7 @@ Future<_Item> _singleItem(SearchForm form) async {
       instanceHash: instanceHash,
       updatedPackages: updatedPackages,
       packages: packages,
-      indexUpdated: DateTime.now().difference(lastUpdated),
+      indexUpdated: clock.now().difference(lastUpdated),
       scores: scores,
     );
   } else {

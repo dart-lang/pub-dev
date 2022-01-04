@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:math' show max;
 
+import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:logging/logging.dart';
 
@@ -52,7 +53,7 @@ class IndexInfo {
         'packageCount': packageCount,
         'lastUpdated': lastUpdated?.toIso8601String(),
         if (lastUpdated != null)
-          'lastUpdateDelta': DateTime.now().difference(lastUpdated!).toString(),
+          'lastUpdateDelta': clock.now().difference(lastUpdated!).toString(),
         'updatedPackages': updatedPackages,
       };
 }
@@ -125,7 +126,7 @@ class PackageDocument {
     this.apiDocPages = const [],
     DateTime? timestamp,
   })  : tags = tags ?? const <String>[],
-        timestamp = timestamp ?? DateTime.now();
+        timestamp = timestamp ?? clock.now();
 
   factory PackageDocument.fromJson(Map<String, dynamic> json) =>
       _$PackageDocumentFromJson(json);
@@ -671,7 +672,7 @@ class PackageSearchResult {
         packageHits = packageHits ?? <PackageHit>[];
 
   PackageSearchResult.empty({this.message})
-      : timestamp = DateTime.now().toUtc(),
+      : timestamp = clock.now().toUtc(),
         totalCount = 0,
         highlightedHit = null,
         sdkLibraryHits = <SdkLibraryHit>[],
@@ -680,7 +681,7 @@ class PackageSearchResult {
   factory PackageSearchResult.fromJson(Map<String, dynamic> json) =>
       _$PackageSearchResultFromJson(json);
 
-  Duration get age => DateTime.now().difference(timestamp!);
+  Duration get age => clock.now().difference(timestamp!);
 
   Map<String, dynamic> toJson() => _$PackageSearchResultToJson(this);
 

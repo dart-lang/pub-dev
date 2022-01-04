@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:clock/clock.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
@@ -450,7 +451,7 @@ class IntegrityChecker {
     // Sanity checks for the `created` property
     if (pv.created == null) {
       yield 'PackageVersion "${pv.qualifiedVersionKey}" has no `created` property.';
-    } else if (pv.created!.isAfter(DateTime.now().add(Duration(minutes: 15)))) {
+    } else if (pv.created!.isAfter(clock.now().add(Duration(minutes: 15)))) {
       // Can't be published in the future (+15 min to allow for clock drift).
       yield 'PackageVersion "${pv.qualifiedVersionKey}" has `created` > now().';
     } else if (pv.created!.isBefore(DateTime(2011))) {

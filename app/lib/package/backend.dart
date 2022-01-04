@@ -9,6 +9,7 @@ import 'dart:io';
 
 import 'package:client_data/account_api.dart' as account_api;
 import 'package:client_data/package_api.dart' as api;
+import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
@@ -94,7 +95,7 @@ class PackageBackend {
   Stream<String> sitemapPackageNames() {
     final query = db.query<Package>()
       ..filter(
-          'updated >', DateTime.now().toUtc().subtract(robotsVisibilityMaxAge));
+          'updated >', clock.now().toUtc().subtract(robotsVisibilityMaxAge));
     return query
         .run()
         .where((p) => p.isVisible)
@@ -229,7 +230,7 @@ class PackageBackend {
     final packageKey = db.emptyKey.append(Package, id: package);
     final query = db.query<PackageVersion>(ancestorKey: packageKey)
       ..filter(
-          'created >=', DateTime.now().toUtc().subtract(Duration(days: days)));
+          'created >=', clock.now().toUtc().subtract(Duration(days: days)));
     return await query.run().where((pv) => where == null || where(pv)).toList();
   }
 
@@ -367,7 +368,7 @@ class PackageBackend {
         return;
       }
 
-      p.updated = DateTime.now().toUtc();
+      p.updated = clock.now().toUtc();
       _logger.info('Updating $package options: '
           'isDiscontinued: ${p.isDiscontinued} '
           'isUnlisted: ${p.isUnlisted}');
@@ -414,7 +415,7 @@ class PackageBackend {
           InvalidInputException.check(pv.canBeRetracted,
               'Can\'t retract package "$package" version "$version".');
           pv.isRetracted = true;
-          pv.retracted = DateTime.now().toUtc();
+          pv.retracted = clock.now().toUtc();
         } else {
           InvalidInputException.check(pv.canUndoRetracted,
               'Can\'t undo retraction of package "$package" version "$version".');
@@ -538,7 +539,7 @@ class PackageBackend {
       final fromPublisherId = package.publisherId;
       package.publisherId = request.publisherId;
       package.uploaders?.clear();
-      package.updated = DateTime.now().toUtc();
+      package.updated = clock.now().toUtc();
 
       tx.insert(package);
       tx.insert(AuditLogRecord.packageTransferred(
@@ -571,7 +572,7 @@ class PackageBackend {
 //      final package = (await db.lookup<Package>([key])).single;
 //      package.publisherId = null;
 //      package.uploaders = [user.userId];
-//      package.updated = DateTime.now().toUtc();
+//      package.updated = clock.now().toUtc();
 //      // TODO: store PackageTransferred History entry.
 //      tx.queueMutations(inserts: [package]);
 //      await tx.commit();
@@ -837,7 +838,7 @@ class PackageBackend {
       // Keep the latest version in the package object up-to-date.
       package!.updateVersion(newVersion,
           dartSdkVersion: currentDartSdk.semanticVersion);
-      package!.updated = DateTime.now().toUtc();
+      package!.updated = clock.now().toUtc();
       package!.versionCount++;
 
       _logger.info(
@@ -996,7 +997,7 @@ class PackageBackend {
 
       // Add [uploaderEmail] to uploaders and commit.
       package.addUploader(uploader.userId);
-      package.updated = DateTime.now().toUtc();
+      package.updated = clock.now().toUtc();
 
       tx.insert(package);
       tx.insert(AuditLogRecord.uploaderInviteAccepted(
@@ -1065,7 +1066,7 @@ class PackageBackend {
 
       // Remove the uploader from the list.
       package.removeUploader(uploader.userId);
-      package.updated = DateTime.now().toUtc();
+      package.updated = clock.now().toUtc();
 
       tx.insert(package);
       tx.insert(AuditLogRecord.uploaderRemoved(
@@ -1245,7 +1246,7 @@ Future<_UploadEntities> _createUploadEntities(
     ..parentKey = packageKey
     ..version = versionString
     ..packageKey = packageKey
-    ..created = DateTime.now().toUtc()
+    ..created = clock.now().toUtc()
     ..pubspec = pubspec
     ..libraries = archive.libraries
     ..uploader = user.userId
@@ -1325,7 +1326,7 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
   final versionInfo = PackageVersionInfo()
     ..initFromKey(key)
     ..versionCreated = versionCreated
-    ..updated = DateTime.now().toUtc()
+    ..updated = clock.now().toUtc()
     ..libraries = archive.libraries
     ..libraryCount = archive.libraries!.length
     ..assets = assets.map((a) => a.kind!).toList()

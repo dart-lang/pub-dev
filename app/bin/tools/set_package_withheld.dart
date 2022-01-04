@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:clock/clock.dart';
 
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/package/backend.dart';
@@ -108,7 +109,7 @@ Future<void> _updateStatus(Package pkg, bool status, String? reason) async {
     final p = await tx.lookupValue<Package>(pkg.key);
     p.isWithheld = status;
     p.withheldReason = reason;
-    p.updated = DateTime.now().toUtc();
+    p.updated = clock.now().toUtc();
     tx.insert(p);
   });
   await purgePackageCache(pkg.name!);

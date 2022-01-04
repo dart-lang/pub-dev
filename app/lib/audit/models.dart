@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
+
 import '../account/models.dart';
 import '../shared/datastore.dart' as db;
 import '../shared/utils.dart' show createUuid;
@@ -117,12 +119,12 @@ class AuditLogRecord extends db.ExpandoModel<String> {
 
   AuditLogRecord();
 
-  bool get isExpired => DateTime.now().isAfter(expires!);
+  bool get isExpired => clock.now().isAfter(expires!);
   bool get isNotExpired => !isExpired;
 
   /// Init log record with default id and timestamps
   AuditLogRecord._init() {
-    final now = DateTime.now().toUtc();
+    final now = clock.now().toUtc();
     id = createUuid();
     created = now;
     expires = now.add(_defaultExpires);

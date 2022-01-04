@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
@@ -94,7 +95,7 @@ class InMemoryPackageIndex implements PackageIndex {
     }
 
     await Future.delayed(Duration.zero);
-    _lastUpdated = DateTime.now().toUtc();
+    _lastUpdated = clock.now().toUtc();
     _trackUpdated(doc.package);
   }
 
@@ -119,7 +120,7 @@ class InMemoryPackageIndex implements PackageIndex {
       _apiDartdocIndex.remove(pageId);
     }
     _likeTracker.removePackage(doc.package);
-    _lastUpdated = DateTime.now().toUtc();
+    _lastUpdated = clock.now().toUtc();
     _trackUpdated('-$package');
   }
 
@@ -198,7 +199,7 @@ class InMemoryPackageIndex implements PackageIndex {
     if (query.updatedInDays != null && query.updatedInDays! > 0) {
       final threshold =
           Duration(days: query.updatedInDays!, hours: 11, minutes: 59);
-      final now = DateTime.now();
+      final now = clock.now();
       packages.removeWhere((package) {
         final doc = _packages[package]!;
         final diff = now.difference(doc.updated!);
@@ -283,7 +284,7 @@ class InMemoryPackageIndex implements PackageIndex {
     }
 
     return PackageSearchResult(
-      timestamp: DateTime.now().toUtc(),
+      timestamp: clock.now().toUtc(),
       totalCount: totalCount,
       highlightedHit: highlightedHit,
       packageHits: packageHits,
@@ -630,7 +631,7 @@ class _LikeTracker {
       // we know there is nothing to update
       return;
     }
-    final now = DateTime.now();
+    final now = clock.now();
     if (_lastUpdated != null && now.difference(_lastUpdated!).inHours < 12) {
       // we don't need to update too frequently
       return;
@@ -660,7 +661,7 @@ class _LikeTracker {
       }
     }
     _changed = false;
-    _lastUpdated = DateTime.now();
+    _lastUpdated = clock.now();
     _logger.info('Updated like scores in ${sw.elapsed} (${entries.length})');
   }
 }

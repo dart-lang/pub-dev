@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:client_data/account_api.dart' as account_api;
 import 'package:client_data/publisher_api.dart' as api;
+import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 
@@ -160,7 +161,7 @@ class PublisherBackend {
     }
 
     // Create the publisher
-    final now = DateTime.now().toUtc();
+    final now = clock.now().toUtc();
     await withRetryTransaction(_db, (tx) async {
       final key = _db.emptyKey.append(Publisher, id: publisherId);
       final p = await tx.lookupOrNull<Publisher>(key);
@@ -286,7 +287,7 @@ class PublisherBackend {
 
       p.description = update.description ?? p.description;
       p.websiteUrl = update.websiteUrl ?? p.websiteUrl;
-      p.updated = DateTime.now().toUtc();
+      p.updated = clock.now().toUtc();
 
       tx.insert(p);
       tx.insert(AuditLogRecord.publisherUpdated(
@@ -312,7 +313,7 @@ class PublisherBackend {
       final key = _db.emptyKey.append(Publisher, id: publisherId);
       final p = await tx.lookupValue<Publisher>(key);
       p.contactEmail = contactEmail;
-      p.updated = DateTime.now().toUtc();
+      p.updated = clock.now().toUtc();
       tx.insert(p);
       tx.insert(AuditLogRecord.publisherContactInviteAccepted(
         user: activeUser,
@@ -432,7 +433,7 @@ class PublisherBackend {
         final current = await tx.lookupValue<PublisherMember>(key);
         // fall back to current role if role is not updated
         current.role = update.role ?? current.role;
-        current.updated = DateTime.now().toUtc();
+        current.updated = clock.now().toUtc();
         tx.insert(current);
       });
     }
@@ -477,7 +478,7 @@ class PublisherBackend {
           .append(PublisherMember, id: userId);
       final member = await tx.lookupOrNull<PublisherMember>(key);
       if (member != null) return;
-      final now = DateTime.now().toUtc();
+      final now = clock.now().toUtc();
       tx.queueMutations(inserts: [
         PublisherMember()
           ..parentKey = key.parent

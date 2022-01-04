@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../shared/datastore.dart' as db;
@@ -290,7 +291,7 @@ class DartdocEntry {
 
   /// The current age of the entry.
   Duration get age {
-    return DateTime.now().toUtc().difference(timestamp!);
+    return clock.now().toUtc().difference(timestamp!);
   }
 }
 

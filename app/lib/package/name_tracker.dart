@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -35,7 +36,7 @@ class TrackedPackage {
   @visibleForTesting
   TrackedPackage.simple(this.package)
       : latestVersion = '1.0.0',
-        lastPublished = DateTime.now(),
+        lastPublished = clock.now(),
         isVisible = true;
 
   @override
@@ -240,7 +241,7 @@ class _NameTrackerUpdater {
   }
 
   Future<void> _scan() async {
-    final now = DateTime.now().toUtc();
+    final now = clock.now().toUtc();
     final query = _db.query<Package>()..order('-lastVersionPublished');
     if (_lastTs != null) {
       query.filter('lastVersionPublished >', _lastTs);

@@ -8,6 +8,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:client_data/package_api.dart' show VersionScore;
+import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:neat_cache/cache_provider.dart';
@@ -417,7 +418,7 @@ class _DelayedCachePurger {
   }
 
   Future<void> _purge() async {
-    final now = DateTime.now();
+    final now = clock.now();
     for (final e in _entries.where((e) => !e.time.isAfter(now)).toList()) {
       await e.entry.purge();
       _entries.remove(e);
@@ -439,5 +440,5 @@ class _DelayedPurge {
   final DateTime time;
 
   _DelayedPurge(this.entry, Duration? delay)
-      : time = DateTime.now().add(delay ?? Duration(seconds: 30));
+      : time = clock.now().add(delay ?? Duration(seconds: 30));
 }

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_dev/package/backend.dart';
@@ -46,7 +47,7 @@ class DatastoreHeadTaskSource implements TaskSource {
   })  : _window = window ?? _defaultWindow,
         _sleep = sleep ?? _defaultSleep,
         _lastTs = skipHistory
-            ? DateTime.now().toUtc().subtract(window ?? _defaultWindow)
+            ? clock.now().toUtc().subtract(window ?? _defaultWindow)
             : DateTime.utc(2000);
 
   @override
@@ -63,7 +64,7 @@ class DatastoreHeadTaskSource implements TaskSource {
 
   @visibleForTesting
   Stream<Task> pollOnce() async* {
-    final now = DateTime.now().toUtc();
+    final now = clock.now().toUtc();
     switch (_model) {
       case TaskSourceModel.package:
         yield* _pollModel<Package>('updated', _packageToTask);

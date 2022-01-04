@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
@@ -147,8 +148,7 @@ class ScoreCardBackend {
     // However, once the upload is above the specified age, it is better to
     // display and old analysis than to keep waiting on a new one.
     if (fallbackCard != null) {
-      final age =
-          DateTime.now().difference(fallbackCard.packageVersionCreated!);
+      final age = clock.now().difference(fallbackCard.packageVersionCreated!);
       if (age < _fallbackMinimumAge) {
         return null;
       }
@@ -187,7 +187,7 @@ class ScoreCardBackend {
         );
       } else {
         _logger.info('Updating ScoreCard $packageName $packageVersion.');
-        scoreCard.updated = DateTime.now().toUtc();
+        scoreCard.updated = clock.now().toUtc();
       }
 
       scoreCard.flags.clear();
@@ -232,7 +232,7 @@ class ScoreCardBackend {
           reportIsTooBig(ReportType.pana, scoreCard.panaReportJsonGz)) {
         scoreCard.updateReports(
           panaReport: PanaReport(
-            timestamp: DateTime.now().toUtc(),
+            timestamp: clock.now().toUtc(),
             panaRuntimeInfo: null,
             reportStatus: ReportStatus.aborted,
             derivedTags: <String>[],
@@ -329,14 +329,14 @@ class ScoreCardBackend {
     await db.withRetryTransaction(_db, (tx) async {
       final card = await tx.lookupOrNull<ScoreCard>(key);
       if (card == null) return;
-      card.updated = DateTime.now().toUtc();
+      card.updated = clock.now().toUtc();
       tx.insert(card);
     });
   }
 
   /// Deletes the old entries that predate [versions.gcBeforeRuntimeVersion].
   Future<void> deleteOldEntries() async {
-    final now = DateTime.now();
+    final now = clock.now();
     await _db.deleteWithQuery(_db.query<ScoreCard>()
       ..filter('runtimeVersion <', versions.gcBeforeRuntimeVersion));
     await _db.deleteWithQuery(_db.query<ScoreCard>()
@@ -388,7 +388,7 @@ class ScoreCardBackend {
         return true;
       }
       // checking age
-      final age = DateTime.now().toUtc().difference(updated);
+      final age = clock.now().toUtc().difference(updated);
       final isSuccess = reportStatus == ReportStatus.success;
       final ageThreshold = isSuccess ? successThreshold : failureThreshold;
       return age > ageThreshold;
@@ -438,7 +438,7 @@ class PackageStatus {
     }
     final publishDate = pv.created!;
     final isLatestStable = p.latestVersion == pv.version;
-    final now = DateTime.now().toUtc();
+    final now = clock.now().toUtc();
     final age = now.difference(publishDate).abs();
     final isObsolete = age > twoYears && !isLatestStable;
     return PackageStatus._(

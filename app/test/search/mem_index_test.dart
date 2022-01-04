@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:pub_dev/search/mem_index.dart';
 import 'package:pub_dev/search/search_form.dart';
 import 'package:pub_dev/search/search_service.dart';
@@ -515,7 +516,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('filter with updatedInDays', () async {
-      final days = DateTime.now().difference(lastPackageUpdated).inDays;
+      final days = clock.now().difference(lastPackageUpdated).inDays;
       final result1 =
           await index.search(ServiceSearchQuery.parse(updatedInDays: days - 1));
       expect(json.decode(json.encode(result1)), {

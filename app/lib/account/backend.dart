@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 // ignore: import_of_legacy_library_into_null_safe
@@ -159,7 +160,7 @@ class AccountBackend {
       ..parentKey = _db.emptyKey
       ..id = createUuid()
       ..email = email
-      ..created = DateTime.now().toUtc()
+      ..created = clock.now().toUtc()
       ..isBlocked = false
       ..isDeleted = false;
 
@@ -209,7 +210,7 @@ class AccountBackend {
       final newLike = Like()
         ..parentKey = user.key
         ..id = p.id
-        ..created = DateTime.now().toUtc()
+        ..created = clock.now().toUtc()
         ..packageName = p.name;
 
       tx.queueMutations(inserts: [p, newLike]);
@@ -409,7 +410,7 @@ class AccountBackend {
         ..id = createUuid()
         ..oauthUserId = auth.oauthUserId
         ..email = auth.email
-        ..created = DateTime.now().toUtc()
+        ..created = clock.now().toUtc()
         ..isBlocked = false
         ..isDeleted = false;
 
@@ -439,7 +440,7 @@ class AccountBackend {
     required String imageUrl,
   }) async {
     final user = await requireAuthenticatedUser();
-    final now = DateTime.now().toUtc();
+    final now = clock.now().toUtc();
     final session = UserSession()
       ..id = createUuid()
       ..userId = user.userId
@@ -506,7 +507,7 @@ class AccountBackend {
 
   /// Removes the expired sessions from Datastore and Redis cache.
   Future<void> deleteObsoleteSessions() async {
-    final now = DateTime.now().toUtc();
+    final now = clock.now().toUtc();
     // account for possible clock skew
     final ts = now.subtract(Duration(minutes: 15));
     final query = _db.query<UserSession>()..filter('expires <', ts);

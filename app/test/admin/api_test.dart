@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:client_data/admin_api.dart';
+import 'package:clock/clock.dart';
 import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
@@ -182,7 +183,7 @@ void main() {
             await dbService.lookupOrNull<ModeratedPackage>(moderatedPkgKey);
         expect(moderatedPkg, isNull);
 
-        final timeBeforeRemoval = DateTime.now().toUtc();
+        final timeBeforeRemoval = clock.now().toUtc();
         final rs = await client.adminRemovePackage('oxygen');
 
         expect(utf8.decode(rs), '{"status":"OK"}');
@@ -244,7 +245,7 @@ void main() {
             await dbService.lookupOrNull<ModeratedPackage>(moderatedPkgKey);
         expect(moderatedPkg, isNull);
 
-        final timeBeforeRemoval = DateTime.now().toUtc();
+        final timeBeforeRemoval = clock.now().toUtc();
         final rs =
             await client.adminRemovePackageVersion('oxygen', removeVersion);
 

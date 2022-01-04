@@ -8,6 +8,7 @@ import 'dart:isolate';
 import 'dart:math';
 
 import 'package:appengine/appengine.dart';
+import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
@@ -79,7 +80,7 @@ Future startIsolates({
 
     /// The duration while errors won't cause frontend isolates to restart.
     var restartProtectionOffset = Duration.zero;
-    var lastStarted = DateTime.now();
+    var lastStarted = clock.now();
     int workerStarted = 0;
     final statConsumerPorts = <SendPort>[];
 
@@ -109,7 +110,7 @@ Future startIsolates({
         statConsumerPorts.add(protocolMessage.statsConsumerPort!);
       }
       logger.info('Frontend isolate #$frontendIndex started.');
-      lastStarted = DateTime.now();
+      lastStarted = clock.now();
 
       StreamSubscription? errorSubscription;
       StreamSubscription? exitSubscription;
@@ -141,7 +142,7 @@ Future startIsolates({
         stderr.writeln('ERROR from frontend isolate #$frontendIndex: $e');
         logger.severe('ERROR from frontend isolate #$frontendIndex', e);
 
-        final now = DateTime.now();
+        final now = clock.now();
         // If the last isolate was started more than an hour ago, we can reset
         // the protection.
         if (now.isAfter(lastStarted.add(Duration(hours: 1)))) {

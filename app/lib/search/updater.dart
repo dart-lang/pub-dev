@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -158,7 +159,7 @@ class _PeriodicUpdateTaskSource implements TaskSource {
   Stream<Task> startStreaming() async* {
     for (;;) {
       await Future.delayed(Duration(hours: 2));
-      final now = DateTime.now();
+      final now = clock.now();
       final tasks = snapshotStorage.documents.values
           .where((pd) {
             final ageInMonths = now.difference(pd.updated ?? now).inDays ~/ 30;

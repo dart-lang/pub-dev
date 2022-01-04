@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
@@ -38,7 +39,7 @@ class CachedValue<T> {
   final Duration _maxAge;
   final Duration _interval;
   final Duration _timeout;
-  DateTime _lastUpdated = DateTime.now();
+  DateTime _lastUpdated = clock.now();
   Timer? _timer;
   T? _value;
   Completer? _ongoingCompleter;
@@ -57,7 +58,7 @@ class CachedValue<T> {
         _timeout = timeout ?? interval ~/ 2;
 
   DateTime get lastUpdated => _lastUpdated;
-  Duration get age => DateTime.now().difference(_lastUpdated);
+  Duration get age => clock.now().difference(_lastUpdated);
   bool get isAvailable => _value != null && age <= _maxAge;
 
   /// The cached value, may be null.
@@ -66,7 +67,7 @@ class CachedValue<T> {
   @visibleForTesting
   void setValue(T v) {
     _value = v;
-    _lastUpdated = DateTime.now();
+    _lastUpdated = clock.now();
   }
 
   /// Updates the cached value.
@@ -88,7 +89,7 @@ class CachedValue<T> {
     try {
       _value = await _updateFn().timeout(_timeout);
       if (_value != null) {
-        _lastUpdated = DateTime.now();
+        _lastUpdated = clock.now();
       }
     } catch (e, st) {
       if (age <= _maxAge) {

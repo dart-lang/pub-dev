@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' hide ReportStatus;
@@ -187,7 +188,7 @@ PanaReport panaReportFromSummary(Summary? summary, {List<String>? flags}) {
   final reportStatus =
       summary == null ? ReportStatus.aborted : ReportStatus.success;
   return PanaReport(
-    timestamp: DateTime.now().toUtc(),
+    timestamp: clock.now().toUtc(),
     panaRuntimeInfo: summary?.runtimeInfo,
     reportStatus: reportStatus,
     derivedTags: summary?.tags,

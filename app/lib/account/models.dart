@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:ulid/ulid.dart';
 
@@ -136,7 +137,7 @@ class UserSession extends db.ExpandoModel<String> {
   @db.DateTimeProperty(required: true)
   DateTime? expires;
 
-  bool isExpired() => DateTime.now().isAfter(expires!);
+  bool isExpired() => clock.now().isAfter(expires!);
 }
 
 /// Pattern for detecting profile image parameters as specified in [1].
@@ -197,7 +198,7 @@ class UserSessionData {
 
   Map<String, dynamic> toJson() => _$UserSessionDataToJson(this);
 
-  bool get isExpired => DateTime.now().isAfter(expires);
+  bool get isExpired => clock.now().isAfter(expires);
 
   bool get hasName => name != null && name!.isNotEmpty;
 
@@ -287,11 +288,11 @@ class Consent extends db.Model {
       kind: kind,
       args: args!,
     );
-    created = DateTime.now().toUtc();
+    created = clock.now().toUtc();
     expires = created!.add(timeout);
   }
 
-  bool isExpired() => DateTime.now().toUtc().isAfter(expires!);
+  bool isExpired() => clock.now().toUtc().isAfter(expires!);
 
   /// The timestamp when the next notification could be sent out.
   DateTime get nextNotification =>
@@ -299,8 +300,7 @@ class Consent extends db.Model {
 
   /// Whether a new notification should be sent.
   bool shouldNotify() =>
-      notificationCount == 0 ||
-      DateTime.now().toUtc().isAfter(nextNotification);
+      notificationCount == 0 || clock.now().toUtc().isAfter(nextNotification);
 }
 
 /// Calculates the dedupId of a consent request.

@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pana/models.dart'
     show LicenseFile, PanaRuntimeInfo, Report, ReportSection, UrlProblem;
@@ -114,7 +115,7 @@ class ScoreCard extends db.ExpandoModel<String> {
     final key = scoreCardKey(packageName!, packageVersion!);
     parentKey = key.parent;
     id = key.id;
-    updated = DateTime.now().toUtc();
+    updated = clock.now().toUtc();
   }
 
   ScoreCardData toData() => ScoreCardData(
@@ -244,7 +245,7 @@ class ScoreCardData extends Object with FlagMixin {
   factory ScoreCardData.fromJson(Map<String, dynamic> json) =>
       _$ScoreCardDataFromJson(json);
 
-  bool get isNew => DateTime.now().difference(packageCreated!).inDays <= 30;
+  bool get isNew => clock.now().difference(packageCreated!).inDays <= 30;
 
   bool get isCurrent => runtimeVersion == versions.runtimeVersion;
 

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:client_data/account_api.dart' as api;
+import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:retry/retry.dart';
@@ -201,7 +202,7 @@ class ConsentBackend {
     return await withRetryTransaction(_db, (tx) async {
       final c = await tx.lookupValue<Consent>(consent.key);
       c.notificationCount++;
-      c.lastNotified = DateTime.now().toUtc();
+      c.lastNotified = clock.now().toUtc();
       tx.insert(c);
       return api.InviteStatus(
           emailSent: true, nextNotification: c.nextNotification);
@@ -211,7 +212,7 @@ class ConsentBackend {
   /// Removes obsolete/expired [Consent] entries from Datastore.
   Future<void> deleteObsoleteConsents() async {
     final query = _db.query<Consent>()
-      ..filter('expires <', DateTime.now().toUtc());
+      ..filter('expires <', clock.now().toUtc());
     await for (var entry in query.run()) {
       try {
         await _delete(entry, (a) => a.onExpire(entry));

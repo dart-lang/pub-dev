@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
@@ -141,7 +142,7 @@ class SearchAdapter {
     packageHits =
         packageHits.skip(form.offset).take(form.pageSize ?? 10).toList();
     return PackageSearchResult(
-        timestamp: DateTime.now().toUtc(),
+        timestamp: clock.now().toUtc(),
         packageHits: packageHits,
         totalCount: totalCount,
         message:
