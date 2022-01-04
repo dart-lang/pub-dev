@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:_popularity/popularity.dart';
+import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
@@ -58,8 +59,8 @@ class PopularityStorage {
   @visibleForTesting
   void updateValues(Map<String, double> values) {
     // ignore: invalid_use_of_visible_for_testing_member
-    _popularity.setValue(_PopularityData(
-        values: values, first: DateTime.now(), last: DateTime.now()));
+    _popularity.setValue(
+        _PopularityData(values: values, first: clock.now(), last: clock.now()));
   }
 }
 

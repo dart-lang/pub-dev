@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import 'search_service.dart';
@@ -17,18 +18,18 @@ class SearchSnapshot {
 
   SearchSnapshot._(this.updated, this.documents);
 
-  factory SearchSnapshot() => SearchSnapshot._(DateTime.now().toUtc(), {});
+  factory SearchSnapshot() => SearchSnapshot._(clock.now().toUtc(), {});
 
   factory SearchSnapshot.fromJson(Map<String, dynamic> json) =>
       _$SearchSnapshotFromJson(json);
 
   void add(PackageDocument doc) {
-    updated = DateTime.now().toUtc();
+    updated = clock.now().toUtc();
     documents![doc.package] = doc;
   }
 
   void remove(String packageName) {
-    updated = DateTime.now().toUtc();
+    updated = clock.now().toUtc();
     documents!.remove(packageName);
   }
 

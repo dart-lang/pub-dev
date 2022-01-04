@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -30,9 +31,9 @@ class DartSdkVersion {
 
   DartSdkVersion(this.version, this.published, {DateTime? expires})
       : semanticVersion = Version.parse(version),
-        expires = expires ?? DateTime.now().add(_defaultMaxAge);
+        expires = expires ?? clock.now().add(_defaultMaxAge);
 
-  bool get isExpired => DateTime.now().isBefore(expires);
+  bool get isExpired => clock.now().isBefore(expires);
 }
 
 /// Gets the latest Dart SDK version information (value may be cached).
@@ -62,8 +63,8 @@ Future<DartSdkVersion> _fetchDartSdkVersion() async {
     // If there is no cached value, use the runtime analysis SDK as the latest.
     return _cached = DartSdkVersion(
       _cached?.version ?? toolStableDartSdkVersion,
-      _cached?.published ?? DateTime.now(),
-      expires: DateTime.now().add(_failedFetchCacheDuration),
+      _cached?.published ?? clock.now(),
+      expires: clock.now().add(_failedFetchCacheDuration),
     );
   } finally {
     client.close();

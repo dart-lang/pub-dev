@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:clock/clock.dart';
 import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/shared/datastore.dart';
@@ -12,7 +13,7 @@ void main() {
     final backend = AuditBackend(DatastoreDB(MemDatastore()));
 
     test('nearby timestamps', () {
-      final t1 = DateTime.now().toUtc();
+      final t1 = clock.now().toUtc();
       final t2 = t1.subtract(Duration(milliseconds: 1));
       final param = backend.nextTimestamp(t1, t2);
       expect(param, t2.toIso8601String());
@@ -20,7 +21,7 @@ void main() {
     });
 
     test('larger difference', () {
-      final t1 = DateTime.now().toUtc();
+      final t1 = clock.now().toUtc();
       final t2 = t1.subtract(Duration(days: 2));
       final param = backend.nextTimestamp(t1, t2);
       expect(param, hasLength(10));

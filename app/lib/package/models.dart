@@ -6,6 +6,7 @@ library pub_dartlang_org.appengine_repository.models;
 
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -146,7 +147,7 @@ class Package extends db.ExpandoModel<String> {
 
   /// Creates a new [Package] and populates all of it's fields from [version].
   factory Package.fromVersion(PackageVersion version) {
-    final now = DateTime.now().toUtc();
+    final now = clock.now().toUtc();
     return Package()
       ..parentKey = version.packageKey!.parent
       ..id = version.pubspec!.name
@@ -176,7 +177,7 @@ class Package extends db.ExpandoModel<String> {
   bool get isNotVisible => !isVisible;
 
   bool get isIncludedInRobots {
-    final now = DateTime.now();
+    final now = clock.now();
     return isVisible &&
         !isDiscontinued &&
         !isUnlisted &&
@@ -272,7 +273,7 @@ class Package extends db.ExpandoModel<String> {
     if (unchanged) {
       return false;
     }
-    updated = DateTime.now().toUtc();
+    updated = clock.now().toUtc();
     return true;
   }
 
@@ -311,7 +312,7 @@ class Package extends db.ExpandoModel<String> {
     }
   }
 
-  bool isNewPackage() => created!.difference(DateTime.now()).abs().inDays <= 30;
+  bool isNewPackage() => created!.difference(clock.now()).abs().inDays <= 30;
 
   /// List of tags from the flags on the current [Package] entity.
   List<String> getTags() {
@@ -467,13 +468,11 @@ class PackageVersion extends db.ExpandoModel<String> {
 
   bool get canBeRetracted =>
       !isRetracted &&
-      created!
-          .isAfter(DateTime.now().toUtc().subtract(const Duration(days: 7)));
+      created!.isAfter(clock.now().toUtc().subtract(const Duration(days: 7)));
 
   bool get canUndoRetracted =>
       isRetracted &&
-      retracted!
-          .isAfter(DateTime.now().toUtc().subtract(const Duration(days: 7)));
+      retracted!.isAfter(clock.now().toUtc().subtract(const Duration(days: 7)));
 }
 
 /// A derived entity that holds derived/cleaned content of [PackageVersion].
@@ -534,7 +533,7 @@ class PackageVersionInfo extends db.ExpandoModel<String> {
       changed = true;
     }
     if (changed) {
-      updated = DateTime.now().toUtc();
+      updated = clock.now().toUtc();
     }
     return changed;
   }
@@ -613,7 +612,7 @@ class PackageVersionAsset extends db.ExpandoModel {
   }) {
     id = Uri(pathSegments: [package!, version!, kind!]).path;
     packageVersion = Uri(pathSegments: [package!, version!]).path;
-    this.updated = updated ?? DateTime.now().toUtc();
+    this.updated = updated ?? clock.now().toUtc();
   }
 
   /// Updates the current instance with the newly [derived] data.
@@ -633,7 +632,7 @@ class PackageVersionAsset extends db.ExpandoModel {
       changed = true;
     }
     if (changed) {
-      updated = DateTime.now().toUtc();
+      updated = clock.now().toUtc();
     }
     return changed;
   }

@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 
 final _statsLogger = Logger('scheduler.stats');
@@ -18,7 +19,7 @@ void registerSchedulerStatsStream(Stream<Map> stream) {
 
 void updateLatestStats(Map stats) {
   _latestSchedulerStats = stats;
-  final now = DateTime.now();
+  final now = clock.now();
   if (_lastLog == null ||
       now.difference(_lastLog!) > const Duration(minutes: 10)) {
     _statsLogger.info(const JsonEncoder.withIndent(' ').convert(stats));

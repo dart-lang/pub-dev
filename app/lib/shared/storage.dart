@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
     show DetailedApiRequestError;
+import 'package:clock/clock.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
@@ -173,7 +174,7 @@ class VersionedJsonStorage {
     if (info == null) {
       return false;
     }
-    final now = DateTime.now();
+    final now = clock.now();
     if (maxAge != null && now.difference(info.updated) > maxAge) {
       return false;
     }
@@ -252,7 +253,7 @@ class VersionedJsonStorage {
       found++;
       if (versions.shouldGCVersion(version)) {
         final info = await _bucket.info(entry.name);
-        final age = DateTime.now().difference(info.updated);
+        final age = clock.now().difference(info.updated);
         if (minAgeThreshold == null || age > minAgeThreshold) {
           deleted++;
           await deleteFromBucket(_bucket, entry.name);

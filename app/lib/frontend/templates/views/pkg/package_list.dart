@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:clock/clock.dart';
+
 import '../../../../package/models.dart';
 import '../../../../search/search_service.dart';
 import '../../../../shared/tags.dart';
@@ -143,7 +145,7 @@ d.Node _item({
   required List<_ApiPageUrl>? apiPages,
 }) {
   final age =
-      newTimestamp == null ? null : DateTime.now().difference(newTimestamp);
+      newTimestamp == null ? null : clock.now().difference(newTimestamp);
   return d.div(
     classes: ['packages-item'],
     children: [

@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/youtube/v3.dart';
 import 'package:googleapis_auth/auth_io.dart';
@@ -60,7 +61,7 @@ class YoutubeBackend {
     if (!_packageOfWeekVideoList.isAvailable) {
       return const <PkgOfWeekVideo>[];
     }
-    final now = DateTime.now().toUtc();
+    final now = clock.now().toUtc();
     random ??= math.Random(
         now.year * 1000 + now.month * 100 + now.day * 10 + now.hour);
     return selectRandomVideos(random, _packageOfWeekVideoList.value!, count);

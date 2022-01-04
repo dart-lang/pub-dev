@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert' as convert;
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' hide Pubspec, ReportStatus;
@@ -293,7 +294,7 @@ class DartdocJobProcessor extends JobProcessor {
               'toolEnv Dart SDK: ${toolEnv.runtimeInfo.sdkVersion}\n'
               'usesFlutter: $usesFlutter\n'
               'flutter: ${toolEnv.runtimeInfo.flutterVersions}\n'
-              'started: ${DateTime.now().toUtc().toIso8601String()}\n\n');
+              'started: ${clock.now().toUtc().toIso8601String()}\n\n');
 
           await _runner.downloadAndExtract(
             package: job.packageName!,
@@ -410,7 +411,7 @@ class DartdocJobProcessor extends JobProcessor {
     await _storeScoreCard(
         job,
         DartdocReport(
-          timestamp: DateTime.now().toUtc(),
+          timestamp: clock.now().toUtc(),
           reportStatus: reportStatus,
           dartdocEntry: entry,
           documentationSection: documentationSection,
@@ -553,7 +554,7 @@ class DartdocJobProcessor extends JobProcessor {
           .fold<int>(0, (a, b) => a + b);
       totalSize = totalSize - archiveSize;
     }
-    final now = DateTime.now();
+    final now = clock.now();
     final isObsolete = job.isLatestStable == false &&
         job.packageVersionUpdated!.difference(now).abs() > _twoYears;
     final entry = DartdocEntry(
@@ -567,7 +568,7 @@ class DartdocJobProcessor extends JobProcessor {
       sdkVersion: toolEnv.runtimeInfo.sdkVersion,
       dartdocVersion: versions.dartdocVersion,
       flutterVersion: toolEnv.runtimeInfo.flutterVersion,
-      timestamp: DateTime.now().toUtc(),
+      timestamp: clock.now().toUtc(),
       runDuration: runDuration,
       depsResolved: depsResolved,
       hasContent: hasContent,
@@ -719,7 +720,7 @@ DartdocReport _emptyReport({
   required String description,
 }) {
   return DartdocReport(
-    timestamp: DateTime.now().toUtc(),
+    timestamp: clock.now().toUtc(),
     reportStatus: ReportStatus.aborted,
     dartdocEntry: null,
     documentationSection: ReportSection(

@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:client_data/admin_api.dart' as api;
+import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -314,7 +315,7 @@ class AdminBackend {
           ..parentKey = _db.emptyKey
           ..id = packageName
           ..name = packageName
-          ..moderated = DateTime.now().toUtc()
+          ..moderated = clock.now().toUtc()
           ..versions = versions.map((v) => v.version!).toList()
           ..publisherId = package?.publisherId
           ..uploaders = package?.uploaders;
@@ -389,7 +390,7 @@ class AdminBackend {
       if (versionNames.contains(version)) {
         tx.delete(packageKey.append(PackageVersion, id: version));
         package.versionCount--;
-        package.updated = DateTime.now().toUtc();
+        package.updated = clock.now().toUtc();
       } else {
         print('Package $packageName does not have a version $version.');
       }
@@ -513,7 +514,7 @@ class AdminBackend {
         package.assignedTags!
           ..removeWhere(body.assignedTagsRemoved.contains)
           ..addAll(body.assignedTagsAdded);
-        package.updated = DateTime.now().toUtc();
+        package.updated = clock.now().toUtc();
         tx.insert(package);
       }
 
@@ -631,7 +632,7 @@ class AdminBackend {
             options: ['discontinued'],
           ));
         }
-        p.updated = DateTime.now().toUtc();
+        p.updated = clock.now().toUtc();
         tx.insert(p);
       }
     });

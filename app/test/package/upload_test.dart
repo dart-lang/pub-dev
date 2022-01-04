@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/admin/backend.dart';
@@ -95,7 +96,7 @@ void main() {
         await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
           final user =
               await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
-          final dateBeforeTest = DateTime.now().toUtc();
+          final dateBeforeTest = clock.now().toUtc();
           final pubspecContent = generatePubspecYaml('new_package', '1.2.3');
           await tarballStorage.bucket.writeBytes('tmp/$uploadId',
               await packageArchiveBytes(pubspecContent: pubspecContent));
@@ -172,7 +173,7 @@ void main() {
         await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
           final user =
               await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
-          final dateBeforeTest = DateTime.now().toUtc();
+          final dateBeforeTest = clock.now().toUtc();
           final pubspecContent = generatePubspecYaml('neon', '7.0.0');
           await tarballStorage.bucket.writeBytes('tmp/$uploadId',
               await packageArchiveBytes(pubspecContent: pubspecContent));

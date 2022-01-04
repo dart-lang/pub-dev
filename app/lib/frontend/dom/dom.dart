@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
+
 import '../../shared/markdown.dart';
 import '../../shared/utils.dart' show formatXAgo, shortDateFormat;
 
@@ -97,7 +99,7 @@ Node xAgoTimestamp(DateTime timestamp, {String? datePrefix}) {
   return span(
     classes: ['-x-ago'],
     attributes: {'title': title},
-    text: formatXAgo(DateTime.now().difference(timestamp)),
+    text: formatXAgo(clock.now().difference(timestamp)),
   );
 }
 

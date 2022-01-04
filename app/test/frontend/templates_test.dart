@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:html/parser.dart';
 import 'package:pana/pana.dart' hide ReportStatus;
 import 'package:pub_dev/account/backend.dart';
@@ -59,7 +60,7 @@ void main() {
       final properCache = StaticFileCache.withDefaults();
       final cache = StaticFileCache();
       for (String path in properCache.keys) {
-        final file = StaticFile(path, 'text/mock', [], DateTime.now(),
+        final file = StaticFile(path, 'text/mock', [], clock.now(),
             'mocked_hash_${path.hashCode.abs()}');
         cache.addFile(file);
       }
@@ -92,7 +93,7 @@ void main() {
       var replacedContent = content;
       timestamps?.forEach((key, value) {
         if (value != null) {
-          final age = DateTime.now().difference(value);
+          final age = clock.now().difference(value);
           replacedContent = replacedContent
               .replaceAll(shortDateFormat.format(value), '%%$key-date%%')
               .replaceAll(value.toIso8601String(), '%%$key-timestamp%%')
@@ -402,8 +403,8 @@ void main() {
             final user = await requireAuthenticatedUser();
             registerUserSessionData(UserSessionData(
               userId: user.userId,
-              created: DateTime.now(),
-              expires: DateTime.now().add(Duration(days: 1)),
+              created: clock.now(),
+              expires: clock.now().add(Duration(days: 1)),
               sessionId: 'session-1',
             ));
             return await loadPackagePageData(

@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:neat_periodic_task/neat_periodic_task.dart';
 import 'package:ulid/ulid.dart';
@@ -46,7 +47,7 @@ class NeatTaskStatus extends db.ExpandoModel<String> {
     runtimeVersion =
         _runtimeVersion(name, isRuntimeVersioned: isRuntimeVersioned);
     id = _compositeId(name, isRuntimeVersioned: isRuntimeVersioned);
-    updated = DateTime.now().toUtc();
+    updated = clock.now().toUtc();
   }
 }
 
@@ -116,7 +117,7 @@ class DatastoreStatusProvider extends NeatStatusProvider {
       e
         ..statusBase64 = base64.encode(status ?? <int>[])
         ..etag = Ulid().toCanonical()
-        ..updated = DateTime.now().toUtc();
+        ..updated = clock.now().toUtc();
       tx.insert(e);
       return e.etag;
     });
@@ -136,7 +137,7 @@ Future<void> deleteOldNeatTaskStatuses(
   Duration maxAge = const Duration(days: 30),
 }) async {
   final query = dbService.query<NeatTaskStatus>();
-  final now = DateTime.now().toUtc();
+  final now = clock.now().toUtc();
   final count = await dbService.deleteWithQuery<NeatTaskStatus>(
     query,
     where: (status) {

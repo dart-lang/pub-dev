@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:meta/meta.dart';
 import 'package:pub_dev/shared/exceptions.dart';
@@ -38,8 +39,8 @@ class AuditBackend {
         propertyName == 'publishers');
     final query = _db.query<AuditLogRecord>()
       ..filter('$propertyName =', value)
-      ..filter('created <=',
-          before ?? DateTime.now().toUtc().add(Duration(minutes: 5)))
+      ..filter(
+          'created <=', before ?? clock.now().toUtc().add(Duration(minutes: 5)))
       ..order('-created')
       ..limit(_maxAuditLogBatchSize);
     // TODO: consider using repeated queries to filter already expired records,
@@ -96,7 +97,7 @@ class AuditBackend {
   /// Deletes expired log records.
   Future<void> deleteExpiredRecords() async {
     await _db.deleteWithQuery<AuditLogRecord>(
-      _db.query<AuditLogRecord>()..filter('expires <', DateTime.now().toUtc()),
+      _db.query<AuditLogRecord>()..filter('expires <', clock.now().toUtc()),
       where: (r) => r.isExpired,
     );
   }
@@ -115,7 +116,7 @@ class AuditBackend {
   /// Returns a timestamp slightly into the future if the parameter is missing.
   /// Throws [InvalidInputException] if the query parameter is invalid.
   DateTime parseBeforeQueryParameter(String? param) {
-    final now = DateTime.now().toUtc();
+    final now = clock.now().toUtc();
     if (param == null) {
       return now.add(const Duration(minutes: 5));
     }

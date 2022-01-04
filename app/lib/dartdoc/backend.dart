@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
     show DetailedApiRequestError;
+import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
@@ -345,7 +346,7 @@ class DartdocBackend {
   /// TODO: remove this after we only use [DartdocRun] to store state.
   Future<void> gcStorageBucket() async {
     final query = _db.query<DartdocRun>()
-      ..filter('created >', DateTime.now().toUtc().subtract(Duration(days: 2)));
+      ..filter('created >', clock.now().toUtc().subtract(Duration(days: 2)));
     var total = DeleteCounts.empty();
     await for (final r in query.run()) {
       if (r.runtimeVersion != shared_versions.runtimeVersion) continue;

@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:html/parser.dart' as html_parser;
@@ -169,7 +170,7 @@ class SearchBackend {
       publisherId: p.publisherId,
       uploaderUserIds: p.uploaders,
       apiDocPages: apiDocPages,
-      timestamp: DateTime.now().toUtc(),
+      timestamp: clock.now().toUtc(),
     );
   }
 
@@ -211,7 +212,7 @@ class SearchBackend {
         maxPoints: 0,
         publisherId: p.publisherId,
         uploaderUserIds: p.uploaders,
-        timestamp: DateTime.now().toUtc(),
+        timestamp: clock.now().toUtc(),
       );
     }
   }

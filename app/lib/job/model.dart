@@ -4,6 +4,7 @@
 
 import 'dart:math' as math;
 
+import 'package:clock/clock.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../shared/datastore.dart';
@@ -119,7 +120,7 @@ class Job extends ExpandoModel<String> {
     priority = 0;
 
     // newer versions first
-    final now = DateTime.now().toUtc();
+    final now = clock.now().toUtc();
     final age = now.difference(packageVersionUpdated!).abs();
     priority += age.inDays;
 
