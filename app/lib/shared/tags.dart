@@ -43,9 +43,6 @@ abstract class PackageTags {
 
   /// The `publisher:<publisherId>` tag.
   static String publisherTag(String publisherId) => 'publisher:$publisherId';
-
-  /// Transforms the tag with the suffix of `-in-prerelease`.
-  static String convertToPrereleaseTag(String tag) => '$tag-in-prerelease';
 }
 
 /// Collection of version-related tags.

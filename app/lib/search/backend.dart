@@ -120,21 +120,9 @@ class SearchBackend {
       ...p.getTags(),
       ...pv.getTags(),
       ...?scoreCard?.panaReport?.derivedTags?.expand(expandPanaTag),
-      ...prereleaseTags
-          .expand(expandPanaTag)
-          .map(PackageTags.convertToPrereleaseTag),
-      ...previewTags
-          .expand(expandPanaTag)
-          .map(PackageTags.convertToPrereleaseTag),
+      ...prereleaseTags.expand(expandPanaTag),
+      ...previewTags.expand(expandPanaTag),
     };
-
-    // This is a temporary workaround to expose latest stable versions with
-    // null-safety support.
-    // TODO: Cleanup after we've implemented better search support for this.
-    if (tags.contains(PackageVersionTags.isNullSafe)) {
-      tags.add(
-          PackageTags.convertToPrereleaseTag(PackageVersionTags.isNullSafe));
-    }
 
     final pubDataContent = await dartdocBackend.getTextContent(
         packageName, 'latest', 'pub-data.json',
