@@ -37,11 +37,6 @@ void main() {
       archiveSize: 10000,
       totalSize: 60000,
     );
-    expect(entry.inProgressPrefix, 'pkg_foo/1.2.3/in-progress/');
-    expect(entry.inProgressObjectName,
-        'pkg_foo/1.2.3/in-progress/12345678-abcdef10.json');
-    expect(entry.entryPrefix, 'pkg_foo/1.2.3/entry/');
-    expect(entry.entryObjectName, 'pkg_foo/1.2.3/entry/12345678-abcdef10.json');
     expect(entry.contentPrefix, 'pkg_foo/1.2.3/content/12345678-abcdef10/');
     expect(entry.objectName('static-assets/css/style.css'),
         'shared-assets/dartdoc/0.16.0/static-assets/css/style.css');

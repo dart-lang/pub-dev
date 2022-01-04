@@ -23,24 +23,6 @@ bool isSharedAsset(String relativePath) {
 String sharedAssetObjectName(String dartdocVersion, String relativePath) =>
     p.join(_storageSharedAssetPrefix, 'dartdoc', dartdocVersion, relativePath);
 
-/// Entry prefix for uploads in progress.
-String inProgressPrefix(String packageName, String packageVersion) =>
-    '$packageName/$packageVersion/in-progress/';
-
-/// ObjectName of the DartdocEntry for uploads in progress.
-String inProgressObjectName(
-        String packageName, String packageVersion, String uuid) =>
-    p.join(inProgressPrefix(packageName, packageVersion), '$uuid.json');
-
-/// Entry prefix for completed uploads.
-String entryPrefix(String packageName, String packageVersion) =>
-    '$packageName/$packageVersion/entry/';
-
-/// ObjectName of the DartdocEntry for completed uploads.
-String entryObjectName(
-        String packageName, String packageVersion, String uuid) =>
-    p.join(entryPrefix(packageName, packageVersion), '$uuid.json');
-
 /// Content path prefix.
 String contentPrefix(String packageName, String packageVersion, String uuid) =>
     '$packageName/$packageVersion/content/$uuid/';
