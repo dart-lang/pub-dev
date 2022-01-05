@@ -599,8 +599,8 @@ class PackageBackend {
     }
     packageVersions
         .sort((a, b) => a.semanticVersion.compareTo(b.semanticVersion));
-    final latest = packageVersions.lastWhere(
-      (pv) => !pv.semanticVersion.isPreRelease,
+    final latest = packageVersions.firstWhere(
+      (pv) => pv.version == pkg.latestVersion,
       orElse: () => packageVersions.last,
     );
     return api.PackageData(
