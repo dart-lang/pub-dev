@@ -6,7 +6,7 @@ import 'dart:html';
 
 import 'package:web_app/src/gtm_js.dart';
 
-import 'gtag_js.dart';
+import 'gtm_js.dart';
 import 'page_updater.dart';
 
 void setupSearch() {
@@ -36,10 +36,9 @@ void _setEventForKeyboardShortcut() {
         e.preventDefault();
 
         // notify analytics
-        gtagEvent(
-          'focus-search',
+        gtmCustomEvent(
           category: 'keyboard-shortcut',
-          label: 'path:${window.location.pathname}',
+          action: 'focus-search',
         );
       }
     });
