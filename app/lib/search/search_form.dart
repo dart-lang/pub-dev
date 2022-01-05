@@ -171,8 +171,7 @@ class SearchForm {
             tag == PackageTags.showHidden);
     final tagsPredicate = TagsPredicate(
       requiredTags: [
-        if (nullSafe)
-          PackageTags.convertToPrereleaseTag(PackageVersionTags.isNullSafe),
+        if (nullSafe) PackageVersionTags.isNullSafe,
         if (context.isFlutterFavorites) PackageTags.isFlutterFavorite,
         if (SdkTagValue.isNotAny(context.sdk)) 'sdk:${context.sdk}',
         ...runtimes.map((v) => 'runtime:$v'),
