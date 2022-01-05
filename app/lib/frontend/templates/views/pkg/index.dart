@@ -190,6 +190,7 @@ d.Node _tagBasedCheckbox({
     isChecked: searchForm.parsedQuery.tagsPredicate.isRequiredTag(tag),
     isIndeterminate: searchForm.parsedQuery.tagsPredicate.isProhibitedTag(tag),
     tag: tag,
+    action: 'filter-$tagPrefix-$tagValue',
     title: title,
   );
 }
@@ -201,6 +202,7 @@ d.Node _formLinkedCheckbox({
   required bool isChecked,
   bool isIndeterminate = false,
   String? tag,
+  required String? action,
   String? title,
 }) {
   return d.div(
@@ -215,6 +217,7 @@ d.Node _formLinkedCheckbox({
         href: toggledSearchForm.toSearchLink(),
         text: label,
         attributes: {
+          if (action != null) 'data-action': action,
           if (tag != null) 'data-tag': isIndeterminate ? '-$tag' : tag,
         },
       ),
