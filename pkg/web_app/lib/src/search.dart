@@ -141,7 +141,10 @@ void _setEventsForSearchForm() {
         // notify GTM on the click
         final action = link.dataset['action'];
         if (action != null && action.isNotEmpty) {
-          gtmCustomEventClick(action: '$action-$actionPostfix');
+          gtmCustomEvent(
+            category: 'click',
+            action: '$action-$actionPostfix',
+          );
         }
       }
 

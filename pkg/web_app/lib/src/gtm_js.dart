@@ -17,14 +17,13 @@ void _pushMap(Map<String, dynamic> data) {
   _push(jsify(data));
 }
 
-/// Records a GTM [action] with the default [event] name and [category].
-void gtmCustomEventClick({
-  String event = 'custom-event',
-  String category = 'click',
+/// Records a GTM [action] with within a [category].
+void gtmCustomEvent({
+  required String category,
   required String action,
 }) {
   _pushMap({
-    'event': event,
+    'event': 'custom-event', // hardcoded, used in GTM Trigger
     'customEventCategory': category,
     'customEventAction': action,
     'customEventLabel': 'path:${dart_html.window.location.pathname}',
