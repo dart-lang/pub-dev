@@ -64,7 +64,7 @@ void _setEventForSearchInput() {
 /// When using the back button, or pulling a page state from cache or history,
 /// the query text on the page may differ from the text inside the main input
 /// field.
-/// 
+///
 /// This method adjusts the input field's text to match the query parameter,
 /// as if the page was freshly loaded.
 void adjustQueryTextAfterPageShow() {
