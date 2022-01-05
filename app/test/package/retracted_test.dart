@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:client_data/package_api.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/datastore.dart';
@@ -132,6 +134,10 @@ void main() {
       expect(orig.isRetracted, isFalse);
       final origInfo = await client.packageVersionInfo('oxygen', '1.2.0');
       expect(origInfo.retracted, isNull);
+      final p0Info = PackageData.fromJson(
+          json.decode(utf8.decode(await client.listVersions('oxygen')))
+              as Map<String, dynamic>);
+      expect(p0Info.latest.version, '1.2.0');
 
       final u1 = await client.setVersionOptions(
           'oxygen', '1.2.0', VersionOptions(isRetracted: true));
@@ -144,6 +150,10 @@ void main() {
         retractable: ['1.0.0', '2.0.0-dev'],
         recentlyRetracted: ['1.2.0'],
       );
+      final p1Info = PackageData.fromJson(
+          json.decode(utf8.decode(await client.listVersions('oxygen')))
+              as Map<String, dynamic>);
+      expect(p1Info.latest.version, '1.0.0');
 
       final u2 = await client.setVersionOptions(
           'oxygen', '1.2.0', VersionOptions(isRetracted: true));
@@ -164,6 +174,10 @@ void main() {
         retractable: ['1.0.0', '1.2.0', '2.0.0-dev'],
         recentlyRetracted: [],
       );
+      final p3Info = PackageData.fromJson(
+          json.decode(utf8.decode(await client.listVersions('oxygen')))
+              as Map<String, dynamic>);
+      expect(p3Info.latest.version, '1.2.0');
     });
 
     testWithProfile('Updates latest version references',
