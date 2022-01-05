@@ -4,6 +4,8 @@
 
 import 'dart:html';
 
+import 'package:web_app/src/gtm_js.dart';
+
 import 'gtag_js.dart';
 import 'page_updater.dart';
 
@@ -96,10 +98,12 @@ void _setEventsForSearchForm() {
             inputQElem.value ?? originalHrefUri.queryParameters['q'] ?? '';
         queryText = queryText.trim();
         final tag = link.dataset['tag'];
+        var actionPostfix = '-on';
         if (tag != null) {
           // remove or add tag to query string
           if (' $queryText '.contains(' $tag ')) {
             queryText = ' $queryText '.replaceFirst(' $tag ', ' ').trim();
+            actionPostfix = '-off';
           } else {
             queryText = '$queryText $tag'.trim();
           }
@@ -133,6 +137,15 @@ void _setEventsForSearchForm() {
           requestUri: requestUri,
           navigationUrl: windowUri.resolveUri(newUri).toString(),
         );
+
+        // notify GTM on the click
+        final action = link.dataset['action'];
+        if (action != null && action.isNotEmpty) {
+          gtmCustomEvent(
+            category: 'click',
+            action: '$action-$actionPostfix',
+          );
+        }
       }
 
       checkbox.onChange.listen(handleClick);
