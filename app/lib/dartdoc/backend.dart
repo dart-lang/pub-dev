@@ -6,9 +6,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
-    show DetailedApiRequestError;
-import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
@@ -22,7 +19,6 @@ import '../scorecard/backend.dart';
 import '../shared/datastore.dart';
 import '../shared/redis_cache.dart' show cache;
 import '../shared/storage.dart';
-import '../shared/utils.dart' show DeleteCounts;
 import '../shared/versions.dart' as shared_versions;
 
 import 'models.dart';
@@ -339,81 +335,6 @@ class DartdocBackend {
     }
   }
 
-  /// Scan the Datastore for recent [DartdocRun]s and run the storage
-  /// bucket GC on them. Failing to run these GC should be fine, as we
-  /// eventually remove them by their old runtimeVersion.
-  ///
-  /// TODO: remove this after we only use [DartdocRun] to store state.
-  Future<void> gcStorageBucket() async {
-    final query = _db.query<DartdocRun>()
-      ..filter('created >', clock.now().toUtc().subtract(Duration(days: 2)));
-    var total = DeleteCounts.empty();
-    await for (final r in query.run()) {
-      if (r.runtimeVersion != shared_versions.runtimeVersion) continue;
-      total += await _removeObsolete(r.package!, r.version!);
-    }
-    _logger.info(
-        'gc-dartdoc-storage-bucket cleared $total entries (${shared_versions.runtimeVersion}).');
-  }
-
-  /// Removes incomplete uploads and old outputs from the bucket.
-  Future<DeleteCounts> _removeObsolete(String package, String version) async {
-    final completedList =
-        await _listEntries(storage_path.entryPrefix(package, version));
-    final inProgressList =
-        await _listEntries(storage_path.inProgressPrefix(package, version));
-
-    final deleteEntries = [
-      ...completedList
-          .where((e) => (shared_versions.shouldGCVersion(e.runtimeVersion))),
-      ...inProgressList
-          .where((e) => (shared_versions.shouldGCVersion(e.runtimeVersion)))
-    ];
-
-    // delete everything else
-    for (var entry in deleteEntries) {
-      await _deleteAll(entry);
-    }
-    return DeleteCounts(
-        completedList.length + inProgressList.length, deleteEntries.length);
-  }
-
-  Future<List<DartdocEntry>> _listEntries(String prefix) async {
-    if (!prefix.endsWith('/')) {
-      throw ArgumentError('Directory prefix must end with `/`.');
-    }
-    return retry(
-      () async {
-        final List<DartdocEntry> list = [];
-        await for (final entry in _storage.list(prefix: prefix)) {
-          if (entry.isDirectory) continue;
-          if (!entry.name.endsWith('.json')) continue;
-          final dartdocEntry = await _tryLoadEntryFromBucket(entry.name);
-          if (dartdocEntry != null) {
-            list.add(dartdocEntry);
-          }
-        }
-        return list;
-      },
-      maxAttempts: 2,
-    );
-  }
-
-  /// Tries to load the entry from the storage bucket.
-  /// Returns null if the entry was missing or unable to parse.
-  Future<DartdocEntry?> _tryLoadEntryFromBucket(String objectName) async {
-    try {
-      return await DartdocEntry.fromStream(_storage.read(objectName));
-    } catch (e, st) {
-      if (e is DetailedApiRequestError && e.status == 404) {
-        // ignore exception: entry was removed by another cleanup process during the listing
-      } else {
-        _logger.warning('Unable to read entry: $objectName.', e, st);
-      }
-    }
-    return null;
-  }
-
   Future<void> _deleteAll(DartdocEntry entry) async {
     await withRetryTransaction(_db, (tx) async {
       final r = await tx.lookupOrNull<DartdocRun>(
@@ -425,8 +346,6 @@ class DartdocBackend {
     });
 
     await _deleteAllWithPrefix(entry.contentPrefix);
-    await deleteFromBucket(_storage, entry.entryObjectName);
-    await deleteFromBucket(_storage, entry.inProgressObjectName);
     await withRetryTransaction(_db, (tx) async {
       final r = await tx.lookupOrNull<DartdocRun>(
           _db.emptyKey.append(DartdocRun, id: entry.uuid));

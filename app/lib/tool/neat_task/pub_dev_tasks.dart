@@ -111,13 +111,6 @@ void setupDartdocPeriodicTasks() {
     isRuntimeVersioned: true,
     task: () async => await dartdocBackend.deleteExpiredRuns(),
   );
-
-  // Deletes content from dartdoc storage bucket based on the old entries.
-  _daily(
-    name: 'gc-dartdoc-storage-bucket',
-    isRuntimeVersioned: true,
-    task: () async => await dartdocBackend.gcStorageBucket(),
-  );
 }
 
 /// Setup the tasks that we are running in the search service.

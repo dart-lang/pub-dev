@@ -10,7 +10,6 @@ import 'package:json_annotation/json_annotation.dart';
 
 import '../shared/datastore.dart' as db;
 import '../shared/utils.dart' show jsonUtf8Encoder, utf8JsonDecoder;
-import '../shared/versions.dart' as versions;
 import 'storage_path.dart' as storage_path;
 
 part 'models.g.dart';
@@ -231,26 +230,6 @@ class DartdocEntry {
   }
 
   Map<String, dynamic> toJson() => _$DartdocEntryToJson(this);
-
-  /// Whether the version should be serving with (e.g. it is not a known
-  /// coordinated upgrade of the templates and styles).
-  bool get isServing => versions.shouldServeDartdoc(runtimeVersion);
-
-  /// The path of the status while the upload is in progress
-  String get inProgressPrefix =>
-      storage_path.inProgressPrefix(packageName, packageVersion);
-
-  /// The path of the particular JSON status while upload is in progress
-  String get inProgressObjectName =>
-      storage_path.inProgressObjectName(packageName, packageVersion, uuid);
-
-  /// The path prefix where all of the entry JSON files are stored.
-  String get entryPrefix =>
-      storage_path.entryPrefix(packageName, packageVersion);
-
-  /// The path of the particular JSON entry after the upload was completed.
-  String get entryObjectName =>
-      storage_path.entryObjectName(packageName, packageVersion, uuid);
 
   /// The path prefix where the content of this instance is stored.
   String get contentPrefix =>
