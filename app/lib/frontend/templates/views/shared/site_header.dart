@@ -6,6 +6,7 @@ import '../../../../account/models.dart' show UserSessionData;
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
 import '../../../static_files.dart' show staticUrls;
+import '../../_consts.dart';
 import '../../layout.dart' show PageType, showSearchBanner;
 
 /// Creates the site header and navigation node.
@@ -73,10 +74,11 @@ d.Node siteHeaderNode({
                   child: d.div(
                     classes: ['nav-table-column'],
                     children: [
-                      _navLink(urls.myPackagesUrl(), 'My packages'),
-                      _navLink(urls.myLikedPackagesUrl(), 'My liked packages'),
-                      _navLink(urls.myPublishersUrl(), 'My publishers'),
-                      _navLink(urls.myActivityLogUrl(), 'My activity log'),
+                      _navLink(urls.myPublishersUrl(), myPublishersTabTitle),
+                      _navLink(urls.myPackagesUrl(), myPackagesTabTitle),
+                      _navLink(
+                          urls.myLikedPackagesUrl(), myLikedPackagesTabTitle),
+                      _navLink(urls.myActivityLogUrl(), myActivityLogTabTitle),
                       _navLink(urls.createPublisherUrl(), 'Create publisher'),
                     ],
                   ),

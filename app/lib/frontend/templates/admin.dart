@@ -11,6 +11,7 @@ import '../../search/search_form.dart' show SearchForm;
 import '../../shared/urls.dart' as urls;
 
 import '../dom/dom.dart' as d;
+import '_consts.dart';
 import 'detail_page.dart';
 import 'layout.dart';
 import 'listing.dart';
@@ -57,10 +58,12 @@ String renderAccountPackagesPage({
   final content = renderDetailPage(
     headerNode: _accountDetailHeader(user, userSessionData),
     tabs: [
-      Tab.withContent(
-          id: 'my-packages', title: 'My packages', contentNode: tabContent),
-      _myLikedPackagesLink(),
       _myPublishersLink(),
+      Tab.withContent(
+          id: 'my-packages',
+          title: myPackagesTabTitle,
+          contentNode: tabContent),
+      _myLikedPackagesLink(),
       _myActivityLogLink(),
     ],
     infoBoxNode: null,
@@ -95,12 +98,12 @@ String renderMyLikedPackagesPage({
   final content = renderDetailPage(
     headerNode: _accountDetailHeader(user, userSessionData),
     tabs: [
+      _myPublishersLink(),
       _myPackagesLink(),
       Tab.withContent(
           id: 'my-liked-packages',
-          title: 'My liked packages',
+          title: myLikedPackagesTabTitle,
           contentNode: tabContent),
-      _myPublishersLink(),
       _myActivityLogLink(),
     ],
     infoBoxNode: null,
@@ -125,13 +128,13 @@ String renderAccountPublishersPage({
   final content = renderDetailPage(
     headerNode: _accountDetailHeader(user, userSessionData),
     tabs: [
-      _myPackagesLink(),
-      _myLikedPackagesLink(),
       Tab.withContent(
         id: 'my-publishers',
-        title: 'My publishers',
+        title: myPublishersTabTitle,
         contentNode: pln,
       ),
+      _myPackagesLink(),
+      _myLikedPackagesLink(),
       _myActivityLogLink(),
     ],
     infoBoxNode: null,
@@ -161,12 +164,12 @@ String renderAccountMyActivityPage({
   final content = renderDetailPage(
     headerNode: _accountDetailHeader(user, userSessionData),
     tabs: [
+      _myPublishersLink(),
       _myPackagesLink(),
       _myLikedPackagesLink(),
-      _myPublishersLink(),
       Tab.withContent(
         id: 'my-activity-log',
-        title: 'My activity log',
+        title: myActivityLogTabTitle,
         contentNode: activityLog,
       ),
     ],
@@ -183,19 +186,21 @@ String renderAccountMyActivityPage({
 }
 
 Tab _myPackagesLink() => Tab.withLink(
-    id: 'my-packages', title: 'My packages', href: urls.myPackagesUrl());
+    id: 'my-packages', title: myPackagesTabTitle, href: urls.myPackagesUrl());
 
 Tab _myLikedPackagesLink() => Tab.withLink(
     id: 'my-liked-packages',
-    title: 'My liked packages',
+    title: myLikedPackagesTabTitle,
     href: urls.myLikedPackagesUrl());
 
 Tab _myPublishersLink() => Tab.withLink(
-    id: 'my-publishers', title: 'My publishers', href: urls.myPublishersUrl());
+    id: 'my-publishers',
+    title: myPublishersTabTitle,
+    href: urls.myPublishersUrl());
 
 Tab _myActivityLogLink() => Tab.withLink(
     id: 'my-activity-log',
-    title: 'My activity log',
+    title: myActivityLogTabTitle,
     href: urls.myActivityLogUrl());
 
 d.Node _accountDetailHeader(User user, UserSessionData userSessionData) {
