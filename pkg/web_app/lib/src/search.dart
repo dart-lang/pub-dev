@@ -61,6 +61,21 @@ void _setEventForSearchInput() {
   });
 }
 
+/// When using the back button, or pulling a page state from cache or history,
+/// the query text on the page may differ from the text inside the main input
+/// field.
+///
+/// This method adjusts the input field's text to match the query parameter,
+/// as if the page was freshly loaded.
+void adjustQueryTextAfterPageShow() {
+  final q = document.querySelector('input[name="q"]') as InputElement?;
+  if (q == null) return null;
+  final uri = Uri.tryParse(window.location.href);
+  if (q.value != uri?.queryParameters['q']) {
+    q.value = uri?.queryParameters['q'] ?? q.value;
+  }
+}
+
 void _setEventsForSearchForm() {
   // When a search form checkbox has a linked search label,
   //checking the checkbox will trigger a click on the link.

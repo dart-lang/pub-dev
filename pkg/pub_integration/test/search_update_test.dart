@@ -200,6 +200,59 @@ void main() {
           expect(page.url, '$origin/packages?q=platform%3Aandroid+pkg');
         },
       );
+
+      // back button working with checkboxes
+      await headlessEnv.withPage(
+        fn: (page) async {
+          await page.gotoOrigin('/experimental?enabled=1');
+          await page.gotoOrigin('/packages');
+
+          await page.focus('input[name="q"]');
+          await page.keyboard.type('pkg');
+          await page.keyboard.press(Key.enter);
+          await page.waitForNavigation(wait: Until.networkIdle);
+          expect(page.url, '$origin/packages?q=pkg');
+          expect(await page.propertyValue('input[name="q"]', 'value'), 'pkg');
+
+          await page.click('#search-form-checkbox-platform-android');
+          await page.waitForNavigation(wait: Until.networkIdle);
+          expect(page.url, '$origin/packages?q=pkg+platform%3Aandroid');
+          expect(await page.propertyValue('input[name="q"]', 'value'),
+              'pkg platform:android');
+
+          await page.goBack(wait: Until.networkIdle);
+          expect(page.url, '$origin/packages?q=pkg');
+          expect(await page.propertyValue('input[name="q"]', 'value'), 'pkg');
+        },
+      );
+
+      // back button updating the URL and the input text
+      await headlessEnv.withPage(
+        fn: (page) async {
+          await page.gotoOrigin('/experimental?enabled=1');
+          await page.gotoOrigin('/packages');
+
+          await page.focus('input[name="q"]');
+          await page.keyboard.type('pkg');
+          await page.keyboard.press(Key.enter);
+          await page.waitForNavigation(wait: Until.networkIdle);
+          expect(page.url, '$origin/packages?q=pkg');
+          expect(await page.propertyValue('input[name="q"]', 'value'), 'pkg');
+
+          await page.focus('input[name="q"]');
+          await page.keyboard.press(Key.arrowDown);
+          await page.keyboard.press(Key.backspace);
+          await page.keyboard.press(Key.backspace);
+          await page.keyboard.press(Key.enter);
+          await page.waitForNavigation(wait: Until.networkIdle);
+          expect(page.url, '$origin/packages?q=p');
+          expect(await page.propertyValue('input[name="q"]', 'value'), 'p');
+
+          await page.goBack(wait: Until.networkIdle);
+          expect(page.url, '$origin/packages?q=pkg');
+          expect(await page.propertyValue('input[name="q"]', 'value'), 'pkg');
+        },
+      );
     });
   }, timeout: Timeout.factor(testTimeoutFactor));
 }

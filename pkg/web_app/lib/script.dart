@@ -20,6 +20,12 @@ void main() {
   setupAccount();
   _setupAllEvents();
   setupPageUpdater(_setupAllEvents);
+  // event triggered after a page is displayed:
+  // - after the initial load or,
+  // - from cache via back button.
+  window.onPageShow.listen((_) {
+    adjustQueryTextAfterPageShow();
+  });
 }
 
 void _setupAllEvents() {
