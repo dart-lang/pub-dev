@@ -106,10 +106,11 @@ void main() {
           await issueGet('/flutter/packages'),
           present: [
             '/packages/flutter_titanium',
-          ],
-          absent: [
             '/packages/oxygen',
             '/packages/neon',
+          ],
+          absent: [
+            // TODO: create a fake analyzer that produces results here
           ],
         );
       },
