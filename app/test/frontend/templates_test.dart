@@ -255,7 +255,7 @@ void main() {
           packages: [
             TestPackage(
               name: 'pkg',
-              versions: ['1.0.0'],
+              versions: [TestVersion(version: '1.0.0')],
               isDiscontinued: true,
             ),
           ],
@@ -275,7 +275,10 @@ void main() {
           packages: [
             TestPackage(
               name: 'pkg',
-              versions: ['1.0.0', '2.0.0'],
+              versions: [
+                TestVersion(version: '1.0.0'),
+                TestVersion(version: '2.0.0'),
+              ],
               retractedVersions: ['1.0.0'],
             ),
           ],
@@ -304,7 +307,10 @@ void main() {
           packages: [
             TestPackage(
               name: 'pkg',
-              versions: ['1.0.0', '2.0.0'],
+              versions: [
+                TestVersion(version: '1.0.0'),
+                TestVersion(version: '2.0.0'),
+              ],
               retractedVersions: ['1.0.0'],
             ),
           ],
@@ -325,7 +331,8 @@ void main() {
       'package show page with legacy version',
       testProfile: TestProfile(
         packages: [
-          TestPackage(name: 'pkg', versions: ['1.0.0-legacy']),
+          TestPackage(
+              name: 'pkg', versions: [TestVersion(version: '1.0.0-legacy')]),
         ],
         defaultUser: 'admin@pub.dev',
       ),

@@ -54,7 +54,7 @@ class TestPackage {
   final String name;
   final List<String>? uploaders;
   final String? publisher;
-  final List<String>? versions;
+  final List<TestVersion>? versions;
   final bool? isDiscontinued;
   final String? replacedBy;
   final bool? isUnlisted;
@@ -80,7 +80,7 @@ class TestPackage {
 
   TestPackage change({
     List<String>? uploaders,
-    List<String>? versions,
+    List<TestVersion>? versions,
   }) {
     return TestPackage(
       name: name,
@@ -94,6 +94,22 @@ class TestPackage {
       retractedVersions: retractedVersions,
     );
   }
+}
+
+@JsonSerializable(explicitToJson: true, includeIfNull: false)
+class TestVersion {
+  final String version;
+  final DateTime? created;
+
+  TestVersion({
+    required this.version,
+    this.created,
+  });
+
+  factory TestVersion.fromJson(Map<String, dynamic> json) =>
+      _$TestVersionFromJson(json);
+
+  Map<String, dynamic> toJson() => _$TestVersionToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)

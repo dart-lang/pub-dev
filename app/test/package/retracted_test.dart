@@ -184,9 +184,12 @@ void main() {
         testProfile: TestProfile(
           defaultUser: 'admin@pub.dev',
           packages: [
-            TestPackage(
-                name: 'oxygen',
-                versions: ['1.0.0', '1.2.0', '2.0.0-dev', '2.1.0-dev']),
+            TestPackage(name: 'oxygen', versions: [
+              TestVersion(version: '1.0.0'),
+              TestVersion(version: '1.2.0'),
+              TestVersion(version: '2.0.0-dev'),
+              TestVersion(version: '2.1.0-dev'),
+            ]),
           ],
         ), fn: () async {
       await expectVersions(
