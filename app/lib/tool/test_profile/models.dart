@@ -73,8 +73,16 @@ class TestPackage {
     this.retractedVersions,
   });
 
-  factory TestPackage.fromJson(Map<String, dynamic> json) =>
-      _$TestPackageFromJson(json);
+  factory TestPackage.fromJson(Map<String, dynamic> json) {
+    // convert simple String versions to objects
+    final versions = json['versions'] as List?;
+    json = {
+      ...json,
+      'versions':
+          versions?.map((v) => v is String ? {'version': v} : v).toList(),
+    };
+    return _$TestPackageFromJson(json);
+  }
 
   Map<String, dynamic> toJson() => _$TestPackageToJson(this);
 

@@ -25,7 +25,10 @@ packages:
             {
               'name': 'foo',
               'publisher': 'example.com',
-              'versions': ['1.0.0', '2.0.0']
+              'versions': [
+                {'version': '1.0.0'},
+                {'version': '2.0.0'},
+              ]
             }
           ],
           'publishers': [
@@ -65,7 +68,10 @@ packages:
             {
               'name': 'foo',
               'uploaders': ['user@domain.com'],
-              'versions': ['1.0.0', '2.0.0']
+              'versions': [
+                {'version': '1.0.0'},
+                {'version': '2.0.0'},
+              ],
             }
           ],
           'publishers': [],
@@ -101,7 +107,9 @@ packages:
             {
               'name': 'foo',
               'uploaders': ['user@domain.com'],
-              'versions': ['1.1.0']
+              'versions': [
+                {'version': '1.1.0', 'created': isNotEmpty},
+              ],
             }
           ],
           'publishers': [],
