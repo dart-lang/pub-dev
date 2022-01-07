@@ -46,7 +46,7 @@ class FakePanaRunner implements PanaRunner {
           if (random.nextInt(5) > 0) 'runtime:native-jit',
           if (random.nextInt(5) > 0) 'runtime:web',
         ],
-        if (packageStatus.usesFlutter && random.nextInt(10) > 0) ...[
+        if (packageStatus.usesFlutter || random.nextInt(10) > 0) ...[
           'sdk:flutter',
           if (random.nextInt(5) > 0) 'platform:android',
           if (random.nextInt(5) > 0) 'platform:ios',

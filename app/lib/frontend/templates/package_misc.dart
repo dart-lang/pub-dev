@@ -66,7 +66,6 @@ d.Node tagsNodeFromPackageView({
     simpleTags.add(SimpleTag.legacy());
   }
   if (requestContext.showNewSearchUI) {
-    final expandedTags = tags.expand(expandPanaTag).toSet();
     String tagUrl(String requiredTag) =>
         SearchForm().toggleRequiredTag(requiredTag).toSearchLink();
 
@@ -94,37 +93,37 @@ d.Node tagsNodeFromPackageView({
     final platformBadgeTag = BadgeTag(
       text: 'Platform',
       subTags: [
-        if (expandedTags.contains(FlutterSdkTag.platformAndroid))
+        if (tags.contains(FlutterSdkTag.platformAndroid))
           BadgeSubTag(
             text: 'Android',
             title: 'Packages compatible with Android platform',
             href: tagUrl(FlutterSdkTag.platformAndroid),
           ),
-        if (expandedTags.contains(FlutterSdkTag.platformIos))
+        if (tags.contains(FlutterSdkTag.platformIos))
           BadgeSubTag(
             text: 'iOS',
             title: 'Packages compatible with iOS platform',
             href: tagUrl(FlutterSdkTag.platformIos),
           ),
-        if (expandedTags.contains(FlutterSdkTag.platformLinux))
+        if (tags.contains(FlutterSdkTag.platformLinux))
           BadgeSubTag(
             text: 'Linux',
             title: 'Packages compatible with Linux platform',
             href: tagUrl(FlutterSdkTag.platformLinux),
           ),
-        if (expandedTags.contains(FlutterSdkTag.platformMacos))
+        if (tags.contains(FlutterSdkTag.platformMacos))
           BadgeSubTag(
             text: 'macOS',
             title: 'Packages compatible with macOS platform',
             href: tagUrl(FlutterSdkTag.platformMacos),
           ),
-        if (expandedTags.contains(FlutterSdkTag.platformWeb))
+        if (tags.contains(FlutterSdkTag.platformWeb))
           BadgeSubTag(
             text: 'web',
             title: 'Packages compatible with Web platform',
             href: tagUrl(FlutterSdkTag.platformWeb),
           ),
-        if (expandedTags.contains(FlutterSdkTag.platformWindows))
+        if (tags.contains(FlutterSdkTag.platformWindows))
           BadgeSubTag(
             text: 'Windows',
             title: 'Packages compatible with Windows platform',

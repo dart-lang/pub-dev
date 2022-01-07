@@ -27,6 +27,12 @@ void main() {
         'runtime:native-aot',
         'runtime:native-jit',
         'runtime:web',
+        'sdk:flutter',
+        'platform:android',
+        'platform:ios',
+        'platform:macos',
+        'platform:web',
+        'platform:windows',
       ]);
       expect(report.report!.grantedPoints, 33);
       expect(report.report!.maxPoints, 60);

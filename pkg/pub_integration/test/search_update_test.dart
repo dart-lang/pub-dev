@@ -84,18 +84,18 @@ void main() {
           await page.click('#search-form-checkbox-platform-android');
           await page.waitForNavigation(wait: Until.networkIdle);
           final i2 = await listingPageInfo(page);
-          expect(i2.totalCount, 75);
+          expect(i2.totalCount, 73);
           expect(i2.packageNames, [
+            'pkg_11',
             'flutter_pkg_51',
             'pkg_13',
             'pkg_62',
-            'pkg_34',
-            'pkg_94',
+            'pkg_28',
             'flutter_pkg_66',
             'flutter_pkg_0',
-            'pkg_73',
-            'pkg_88',
+            'pkg_37',
             'flutter_pkg_84',
+            'pkg_91',
           ]);
           expect(i2.openSections, isEmpty);
           expect(page.url, '$origin/packages?q=platform%3Aandroid');
@@ -111,18 +111,18 @@ void main() {
           await flutterCB3.click();
           await page.waitForNavigation(wait: Until.networkIdle);
           final i3 = await listingPageInfo(page);
-          expect(i3.totalCount, 32);
+          expect(i3.totalCount, 73);
           expect(i3.packageNames, [
+            'pkg_11',
             'flutter_pkg_51',
+            'pkg_13',
+            'pkg_62',
+            'pkg_28',
             'flutter_pkg_66',
             'flutter_pkg_0',
+            'pkg_37',
             'flutter_pkg_84',
-            'flutter_pkg_36',
-            'flutter_pkg_33',
-            'flutter_pkg_45',
-            'flutter_pkg_63',
-            'flutter_pkg_93',
-            'flutter_pkg_54',
+            'pkg_91',
           ]);
           expect(
               page.url, '$origin/packages?q=platform%3Aandroid+sdk%3Aflutter');
@@ -148,16 +148,7 @@ void main() {
           final i5 = await listingPageInfo(page);
           expect(i5.totalCount, i2.totalCount - i3.totalCount);
           expect(i5.packageNames, [
-            'pkg_13',
-            'pkg_62',
-            'pkg_34',
-            'pkg_94',
-            'pkg_73',
-            'pkg_88',
-            'pkg_91',
-            'pkg_53',
-            'pkg_2',
-            'pkg_98',
+            // TODO: create a fake analyzer that produces results here
           ]);
           expect(i5.openSections, ['sdks']);
           expect(page.url,

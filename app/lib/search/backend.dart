@@ -120,9 +120,9 @@ class SearchBackend {
       // regular tags
       ...p.getTags(),
       ...pv.getTags(),
-      ...?scoreCard?.panaReport?.derivedTags?.expand(expandPanaTag),
-      ...prereleaseTags.expand(expandPanaTag),
-      ...previewTags.expand(expandPanaTag),
+      ...?scoreCard?.panaReport?.derivedTags,
+      ...prereleaseTags,
+      ...previewTags,
     };
 
     final pubDataContent = await dartdocBackend.getTextContent(
