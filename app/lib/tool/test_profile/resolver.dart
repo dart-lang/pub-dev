@@ -37,7 +37,7 @@ Future<List<ResolvedVersion>> resolveVersions(
 
     for (final package in profile.packages) {
       final versions = package.versions == null || package.versions!.isEmpty
-          ? <String>['any']
+          ? <TestVersion>[TestVersion(version: 'any', created: null)]
           : package.versions;
       for (final version in versions!) {
         final dummyDir = Directory(p.join(temp.path, 'dummy'));
@@ -46,7 +46,7 @@ Future<List<ResolvedVersion>> resolveVersions(
         final pubspecFile = File(p.join(dummyDir.path, 'pubspec.yaml'));
         await pubspecFile.writeAsString(_generateDummyPubspec(
           package.name,
-          version,
+          version.version,
           minSdkVersion: toolEnv.runtimeInfo.sdkVersion,
         ));
 

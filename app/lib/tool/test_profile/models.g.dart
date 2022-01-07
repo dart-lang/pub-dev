@@ -43,7 +43,7 @@ TestPackage _$TestPackageFromJson(Map<String, dynamic> json) => TestPackage(
           .toList(),
       publisher: json['publisher'] as String?,
       versions: (json['versions'] as List<dynamic>?)
-          ?.map((e) => e as String)
+          ?.map((e) => TestVersion.fromJson(e as Map<String, dynamic>))
           .toList(),
       isDiscontinued: json['isDiscontinued'] as bool?,
       replacedBy: json['replacedBy'] as String?,
@@ -67,12 +67,34 @@ Map<String, dynamic> _$TestPackageToJson(TestPackage instance) {
 
   writeNotNull('uploaders', instance.uploaders);
   writeNotNull('publisher', instance.publisher);
-  writeNotNull('versions', instance.versions);
+  writeNotNull('versions', instance.versions?.map((e) => e.toJson()).toList());
   writeNotNull('isDiscontinued', instance.isDiscontinued);
   writeNotNull('replacedBy', instance.replacedBy);
   writeNotNull('isUnlisted', instance.isUnlisted);
   writeNotNull('isFlutterFavorite', instance.isFlutterFavorite);
   writeNotNull('retractedVersions', instance.retractedVersions);
+  return val;
+}
+
+TestVersion _$TestVersionFromJson(Map<String, dynamic> json) => TestVersion(
+      version: json['version'] as String,
+      created: json['created'] == null
+          ? null
+          : DateTime.parse(json['created'] as String),
+    );
+
+Map<String, dynamic> _$TestVersionToJson(TestVersion instance) {
+  final val = <String, dynamic>{
+    'version': instance.version,
+  };
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('created', instance.created?.toIso8601String());
   return val;
 }
 

@@ -44,7 +44,9 @@ TestProfile normalize(
           rv.package,
           () => TestPackage(
                 name: rv.package,
-                versions: [rv.version],
+                versions: [
+                  TestVersion(version: rv.version, created: rv.created),
+                ],
                 uploaders: [defaultUser],
               ));
     });
@@ -54,6 +56,10 @@ TestProfile normalize(
           .where((rv) => rv.package == p.name)
           .map((rv) => rv.version)
           .toSet()
+          .map((v) => TestVersion(
+              version: v,
+              created:
+                  resolvedVersions.firstWhere((x) => x.version == v).created))
           .toList();
       packages[p.name] = p.change(versions: versions);
     });

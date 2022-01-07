@@ -21,7 +21,7 @@ void main() {
         packages: [
           TestPackage(
             name: 'retry',
-            versions: ['2.0.0'],
+            versions: [TestVersion(version: '2.0.0')],
             publisher: 'example.com',
           )
         ],

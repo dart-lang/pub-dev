@@ -506,7 +506,9 @@ void main() {
         defaultUser: 'admin@pub.dev',
         packages: <TestPackage>[
           TestPackage(
-              name: 'busy_pkg', versions: List.generate(100, (i) => '1.0.$i')),
+              name: 'busy_pkg',
+              versions:
+                  List.generate(100, (i) => TestVersion(version: '1.0.$i'))),
         ],
       ),
       fn: () async {
