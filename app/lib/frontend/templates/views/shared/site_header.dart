@@ -116,7 +116,8 @@ d.Node _userBlock(UserSessionData userSession) {
   return d.div(
     classes: ['nav-container', 'nav-profile-container', 'hoverable'],
     children: [
-      // TODO: revisit why <input> was used here, maybe implement tab control differently?
+      // `<input>` here is used to allow keyboard navigation on the page.
+      // TODO: consider using a different semantic markup with an inside `<img>` element
       d.input(
         type: 'image',
         classes: ['nav-profile-img', 'nav-profile-image-desktop'],

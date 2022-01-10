@@ -103,8 +103,6 @@ class Package extends db.ExpandoModel<String> {
   List<String>? uploaders;
 
   /// The number of published versions.
-  ///
-  /// TODO: set required: true after the backfill is stabilized.
   @db.IntProperty(required: true)
   int versionCount = 0;
 
@@ -134,8 +132,8 @@ class Package extends db.ExpandoModel<String> {
   /// Tags that are assigned to this package.
   ///
   /// The permissions required to assign a tag typically depends on the tag.
-  /// A package owner might be able to assign `'is:discontinued'` while a tag
-  /// like `'is:not-advertized'` might only be managed by pub-administrators.
+  /// A package owner might be able to assign `'is:discontinued'` while other
+  /// tags might only be managed by pub-administrators.
   @db.StringListProperty()
   List<String>? assignedTags;
 
@@ -317,14 +315,11 @@ class Package extends db.ExpandoModel<String> {
   /// List of tags from the flags on the current [Package] entity.
   List<String> getTags() {
     return <String>[
-      // TODO(jonasfj): Remove the if (assignedTags != null) condition, we only
-      //                need this until we've done backfill_package_fields.dart
-      if (assignedTags != null) ...assignedTags!,
+      ...?assignedTags,
       if (isDiscontinued) PackageTags.isDiscontinued,
       if (isNewPackage()) PackageTags.isRecent,
       if (isUnlisted) PackageTags.isUnlisted,
       if (publisherId != null) PackageTags.publisherTag(publisherId!),
-      // TODO: uploader:<...>
     ];
   }
 
