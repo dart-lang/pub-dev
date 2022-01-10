@@ -101,10 +101,8 @@ d.Node _useAsLibrary(
       d.p(children: [
         d.text('Alternatively, your editor might support '),
         if (!flutterOnly) d.code(text: 'dart pub get'),
-        if (useFlutterPackagesGet) ...[
-          d.text(' or '),
-          d.code(text: 'flutter pub get'),
-        ],
+        if (!flutterOnly && useFlutterPackagesGet) d.text(' or '),
+        if (useFlutterPackagesGet) d.code(text: 'flutter pub get'),
         d.text('. Check the docs for your editor to learn more.'),
       ]),
   ]);
