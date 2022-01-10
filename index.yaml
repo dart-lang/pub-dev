@@ -44,6 +44,11 @@ indexes:
   - name: state
   - name: lockedUntil
 
+- kind: Package
+  properties:
+  - name: uploaders
+  - name: name
+
 - kind: PackageVersion
   ancestor: yes
   properties:
