@@ -181,14 +181,18 @@ void main() {
           await page.waitForNavigation(wait: Until.networkIdle);
           expect(page.url, '$origin/packages?q=platform%3Aandroid+pkg');
 
-          // toggle is:null-safe
-          await page.click('#search-form-checkbox-is-null-safe');
-          await page.waitForNavigation(wait: Until.networkIdle);
-          expect(page.url,
-              '$origin/packages?q=platform%3Aandroid+pkg+is%3Anull-safe');
-          await page.click('#search-form-checkbox-is-null-safe');
-          await page.waitForNavigation(wait: Until.networkIdle);
-          expect(page.url, '$origin/packages?q=platform%3Aandroid+pkg');
+          Future<void> toggleMore(String tagPrefix, String tagPostfix) async {
+            await page.click('#search-form-checkbox-$tagPrefix-$tagPostfix');
+            await page.waitForNavigation(wait: Until.networkIdle);
+            expect(page.url,
+                '$origin/packages?q=platform%3Aandroid+pkg+$tagPrefix%3A$tagPostfix');
+            await page.click('#search-form-checkbox-$tagPrefix-$tagPostfix');
+            await page.waitForNavigation(wait: Until.networkIdle);
+            expect(page.url, '$origin/packages?q=platform%3Aandroid+pkg');
+          }
+
+          await toggleMore('is', 'null-safe');
+          await toggleMore('is', 'flutter-favorite');
         },
       );
 

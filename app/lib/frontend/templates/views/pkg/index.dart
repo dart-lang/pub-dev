@@ -123,6 +123,13 @@ d.Node _searchFormContainer({
                     .hasTag(PackageVersionTags.isNullSafe),
             children: [
               _tagBasedCheckbox(
+                tagPrefix: 'is',
+                tagValue: 'flutter-favorite',
+                label: 'Flutter favorite',
+                searchForm: searchForm,
+                title: 'Show only Flutter favorites.',
+              ),
+              _tagBasedCheckbox(
                 tagPrefix: 'show',
                 tagValue: 'hidden',
                 label: 'Include hidden',
