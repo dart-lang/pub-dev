@@ -416,8 +416,7 @@ class InMemoryPackageIndex implements PackageIndex {
           .removeLowValues(fraction: 0.2, minValue: 0.01);
 
       // filter results based on exact phrases
-      final phrases =
-          extractExactPhrases(text).map(normalizeBeforeIndexing).toList();
+      final phrases = extractExactPhrases(text);
       if (!aborted && phrases.isNotEmpty) {
         final Map<String, double> matched = <String, double>{};
         for (String package in score.getKeys()) {
