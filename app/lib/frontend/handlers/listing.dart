@@ -58,7 +58,13 @@ Future<shelf.Response> flutterPackagesHandlerHtml(shelf.Request request) async {
 /// Handles /flutter/favorites
 Future<shelf.Response> flutterFavoritesPackagesHandlerHtml(
   shelf.Request request,
-) {
+) async {
+  if (requestContext.showNewSearchUI) {
+    final newUrl = SearchForm(query: request.requestedUri.queryParameters['q'])
+        .toggleRequiredTag(PackageTags.isFlutterFavorite)
+        .toSearchLink();
+    return redirectResponse(newUrl);
+  }
   return _packagesHandlerHtmlCore(
     request,
     context: SearchContext.flutterFavorites(),
