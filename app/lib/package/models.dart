@@ -920,3 +920,14 @@ class PackagePageData {
     );
   }
 }
+
+/// Describes the list of packages names and the continuation token for the next page.
+class PackageListPage {
+  final List<String> packages;
+  final String? nextPackage;
+
+  PackageListPage({
+    required this.packages,
+    this.nextPackage,
+  });
+}

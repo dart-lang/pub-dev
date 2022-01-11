@@ -154,6 +154,26 @@ class PackageBackend {
         .cast();
   }
 
+  /// List all packages where the [userId] is an uploader.
+  Future<PackageListPage> listPackagesForUser(
+    String userId, {
+    String? next,
+    int limit = 10,
+  }) async {
+    final query = db.query<Package>()
+      ..filter('uploaders =', userId)
+      ..order('name')
+      ..limit(limit + 1);
+    if (next != null) {
+      query.filter('name >=', next);
+    }
+    final packages = await query.run().toList();
+    return PackageListPage(
+      packages: packages.take(limit).map((p) => p.name!).toList(),
+      nextPackage: packages.length <= limit ? null : packages.last.name!,
+    );
+  }
+
   /// Returns the latest releases info of a package.
   Future<LatestReleases> latestReleases(Package package) async {
     // TODO: implement runtimeVersion-specific release calculation

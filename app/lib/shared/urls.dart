@@ -346,7 +346,10 @@ String? displayableUrl(String? url) {
   return url;
 }
 
-String myPackagesUrl() => '/my-packages';
+String myPackagesUrl({String? next}) => Uri(
+      path: '/my-packages',
+      queryParameters: next == null ? null : {'next': next},
+    ).toString();
 String myLikedPackagesUrl() => '/my-liked-packages';
 String myPublishersUrl() => '/my-publishers';
 String myActivityLogUrl() => '/my-activity-log';

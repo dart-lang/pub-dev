@@ -62,7 +62,7 @@ class SearchAdapter {
           : _random.nextInt(availablePackages.length);
       packages.add(availablePackages.removeAt(index));
     }
-    return (await _getPackageViews(packages)).cast<PackageView>();
+    return (await getPackageViews(packages)).cast<PackageView>();
   }
 
   /// Performs search using the `search` service and lookup package info and
@@ -153,7 +153,8 @@ class SearchAdapter {
   /// the latest stable version.
   ///
   /// If the package does not exist, it will return null in the given index.
-  Future<List<PackageView?>> _getPackageViews(List<String> packages) async {
+  /// TODO: move this method (and the pool) to [ScoreCardBackend].
+  Future<List<PackageView?>> getPackageViews(Iterable<String> packages) async {
     final futures = <Future<PackageView?>>[];
     for (final p in packages) {
       futures.add(

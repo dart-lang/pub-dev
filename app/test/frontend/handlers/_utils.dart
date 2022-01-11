@@ -5,6 +5,7 @@
 library pub_dartlang_org.frontend.handlers_test;
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
@@ -26,14 +27,53 @@ void tScopedTest(String name, Future<void> Function() func) {
   });
 }
 
-Future<shelf.Response> issueGet(String path, {String? host}) async {
+Future<shelf.Response> issueGet(
+  String path, {
+  String? host,
+  Map<String, String>? headers,
+}) async =>
+    issueHttp(
+      'GET',
+      path,
+      host: host,
+      headers: headers,
+    );
+
+Future<shelf.Response> issueHttp(
+  String method,
+  String path, {
+  String? host,
+  Map<String, String>? headers,
+  dynamic body,
+}) async {
   final uri = host == null ? '$siteRoot$path' : 'https://$host$path';
-  final request = shelf.Request('GET', Uri.parse(uri));
+  final request = shelf.Request(
+    method,
+    Uri.parse(uri),
+    headers: headers,
+    body: body,
+  );
   final handler = createAppHandler();
   final wrapped = wrapHandler(Logger('test'), handler, sanitize: true);
   return await ss.fork(() async {
     return await wrapped(request);
   }) as shelf.Response;
+}
+
+Future<String> acquireSessionCookie(String token) async {
+  final rs = await issueHttp(
+    'POST',
+    '/api/account/session',
+    headers: {
+      'authorization': 'bearer $token',
+    },
+    body: json.encode({
+      'accessToken': token,
+    }),
+  );
+  expect(rs.statusCode, 200);
+  final cookieHeader = rs.headers['set-cookie'];
+  return cookieHeader!.split(';').first;
 }
 
 Future<String> expectHtmlResponse(

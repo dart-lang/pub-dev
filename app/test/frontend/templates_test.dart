@@ -668,20 +668,12 @@ void main() {
             imageUrl: 'pub.dev/user-img-url.png',
           );
           registerUserSessionData(session);
-          final searchForm =
-              SearchForm(context: SearchContext.myPackages([user.userId]));
-          final String html = renderAccountPackagesPage(
+          final html = renderAccountPackagesPage(
             user: user,
             userSessionData: session,
-            searchResultPage: SearchResultPage(
-              searchForm,
-              2,
-              packageHits: [oxygen!, neon!],
-            ),
-            pageLinks: PageLinks(searchForm, 10),
-            searchForm: searchForm,
-            totalCount: 2,
-            messageFromBackend: null,
+            packageHits: [oxygen!, neon!],
+            startPackage: 'oxygen',
+            nextPackage: 'package_after_neon',
           );
           expectGoldenFile(html, 'my_packages.html', timestamps: {
             'oxygen-created': oxygen.created,
