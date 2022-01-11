@@ -142,6 +142,7 @@ d.Node _searchFormContainer({
                 tagValue: 'null-safe',
                 label: 'Supports null safety',
                 searchForm: searchForm,
+                title: 'Show only null-safe packages.',
               ),
             ],
           ),
@@ -165,6 +166,7 @@ d.Node _platformCheckbox({
     tagValue: platform,
     label: label,
     searchForm: searchForm,
+    title: 'Show only packages that support the $label platform.',
   );
 }
 
@@ -178,6 +180,7 @@ d.Node _sdkCheckbox({
     tagValue: sdk,
     label: label,
     searchForm: searchForm,
+    title: 'Show only packages that support the $label SDK.',
   );
 }
 
@@ -186,7 +189,7 @@ d.Node _tagBasedCheckbox({
   required String tagValue,
   required String label,
   required SearchForm searchForm,
-  String? title,
+  required String title,
 }) {
   final tag = '$tagPrefix:$tagValue';
   final toggledSearchForm = searchForm.toggleRequiredTag(tag);
