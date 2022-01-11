@@ -172,6 +172,32 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       });
     });
 
+    test('exact phrase: multiple words with matching cases', () async {
+      final result = await index
+          .search(ServiceSearchQuery.parse(query: '"AsyncCache class"'));
+      expect(json.decode(json.encode(result)), {
+        'timestamp': isNotNull,
+        'totalCount': 1,
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {'package': 'async', 'score': closeTo(0.38, 0.01)},
+        ],
+      });
+    });
+
+    test('exact phrase: multiple words with non-matching cases', () async {
+      final result = await index
+          .search(ServiceSearchQuery.parse(query: '"asynccache Class"'));
+      expect(json.decode(json.encode(result)), {
+        'timestamp': isNotNull,
+        'totalCount': 0,
+        'sdkLibraryHits': [],
+        'packageHits': [
+          // TODO: make sure package:async shows up
+        ],
+      });
+    });
+
     test('exact phrase with dot: "once on demand."', () async {
       final result = await index
           .search(ServiceSearchQuery.parse(query: '"once on demand."'));
