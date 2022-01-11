@@ -51,7 +51,7 @@ Future<shelf.Response> apiDocumentationHandler(
     final entry = dartdocEntries[i];
     final hasDocumentation = entry != null && entry.hasContent;
     final status =
-        entry == null ? 'awaiting' : (entry.hasContent ? 'success' : 'failed');
+        entry == null ? 'pending' : (entry.hasContent ? 'success' : 'failed');
     versionsData.add({
       'version': versions.versions[i].version,
       'status': status,

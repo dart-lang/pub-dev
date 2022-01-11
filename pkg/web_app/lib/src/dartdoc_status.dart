@@ -47,9 +47,9 @@ void updateDartdocStatus() {
               if (docCol == null) return;
               final docLink = docCol.querySelector('a') as AnchorElement?;
               if (docLink == null) return;
-              if (status == 'awaiting') {
+              if (status == 'pending') {
                 docCol.dataset[_hasDocumentationAttr] = '...';
-                docLink.text = 'awaiting';
+                docLink.text = 'pending';
               } else if (hasDocumentation) {
                 docCol.dataset[_hasDocumentationAttr] = '1';
               } else {

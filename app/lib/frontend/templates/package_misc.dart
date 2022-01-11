@@ -224,8 +224,8 @@ d.Node tagsNodeFromPackageView({
       ],
     ));
   }
-  if (badgeTags.isEmpty && package.isAwaiting!) {
-    simpleTags.add(SimpleTag.awaiting());
+  if (badgeTags.isEmpty && package.isPending) {
+    simpleTags.add(SimpleTag.pending());
   }
   if (simpleTags.isEmpty && badgeTags.isEmpty) {
     simpleTags.add(SimpleTag.unidentified(

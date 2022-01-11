@@ -36,7 +36,7 @@ d.Node packageInfoBoxNode({
   if (data.versionInfo?.hasLicense ?? false) {
     var licenseFile = data.scoreCard?.panaReport?.licenseFile;
     if (licenseFile != null && data.scoreCard?.panaReport == null) {
-      licenseFile = LicenseFile('LICENSE', 'awaiting analysis');
+      licenseFile = LicenseFile('LICENSE', 'pending analysis');
     }
     licenseFile ??= LicenseFile('LICENSE', 'unknown');
     license = _licenseNode(
