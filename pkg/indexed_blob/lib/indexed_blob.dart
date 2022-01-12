@@ -323,4 +323,7 @@ class FileRange {
       blobId,
     );
   }
+
+  /// The length of the range in blob.
+  int get length => end - start;
 }

@@ -21,6 +21,8 @@ dependencies:
   html: ^0.15.0
   http: ^0.13.0
   http_parser: ^4.0.0
+  indexed_blob:
+    path: ../pkg/indexed_blob
   intl: '^0.17.0'
   json_annotation: '^4.3.0'
   lints: ^1.0.0

@@ -4,6 +4,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Bumped runtimeVersion to `2022.01.06`.
  * Upgraded pana to `0.21.5`.
+ * NOTE: Started to use `pkg/indexed_blob` to generate and serve `dartdoc` content.
 
 ## `20220106t124300-all`
  * Bumped runtimeVersion to `2021.12.17`.

@@ -175,6 +175,14 @@ class DartdocEntry {
   /// The size of all the individual files, uncompressed.
   final int? totalSize;
 
+  /// The size of the compressed blob file.
+  /// If this is null or zero, the blob file is missing.
+  final int? blobSize;
+
+  /// The size of the compressed blob index file.
+  /// If this is null or zero, the blob file is missing.
+  final int? blobIndexSize;
+
   DartdocEntry({
     required this.uuid,
     required this.packageName,
@@ -192,6 +200,8 @@ class DartdocEntry {
     this.hasContent = false,
     required this.archiveSize,
     required this.totalSize,
+    this.blobSize,
+    this.blobIndexSize,
   });
 
   factory DartdocEntry.fromJson(Map<String, dynamic> json) =>
@@ -226,6 +236,8 @@ class DartdocEntry {
       hasContent: hasContent,
       archiveSize: archiveSize,
       totalSize: totalSize,
+      blobSize: blobSize,
+      blobIndexSize: blobIndexSize,
     );
   }
 
@@ -236,7 +248,7 @@ class DartdocEntry {
       storage_path.contentPrefix(packageName, packageVersion, uuid);
 
   String objectName(String relativePath) {
-    final isShared = storage_path.isSharedAsset(relativePath);
+    final isShared = !hasBlob && storage_path.isSharedAsset(relativePath);
     if (isShared) {
       return storage_path.sharedAssetObjectName(dartdocVersion!, relativePath);
     } else {
@@ -244,6 +256,12 @@ class DartdocEntry {
           packageName, packageVersion, uuid, relativePath);
     }
   }
+
+  bool get hasBlob =>
+      blobSize != null &&
+      blobSize! > 0 &&
+      blobIndexSize != null &&
+      blobIndexSize! > 0;
 
   List<int> asBytes() => jsonUtf8Encoder.convert(toJson());
 
@@ -278,8 +296,19 @@ class DartdocEntry {
 class FileInfo {
   final DateTime lastModified;
   final String etag;
+  final String? blobId;
+  final int? blobOffset;
+  final int? blobLength;
+  final int? contentLength;
 
-  FileInfo({required this.lastModified, required this.etag});
+  FileInfo({
+    required this.lastModified,
+    required this.etag,
+    this.blobId,
+    this.blobOffset,
+    this.blobLength,
+    this.contentLength,
+  });
 
   factory FileInfo.fromJson(Map<String, dynamic> json) =>
       _$FileInfoFromJson(json);

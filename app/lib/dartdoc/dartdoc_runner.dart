@@ -7,6 +7,7 @@ import 'dart:convert' as convert;
 import 'dart:io';
 
 import 'package:clock/clock.dart';
+import 'package:indexed_blob/indexed_blob.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' hide Pubspec, ReportStatus;
@@ -37,9 +38,6 @@ import 'models.dart';
 
 final Logger _logger = Logger('pub.dartdoc.runner');
 
-const statusFilePath = 'status.json';
-const _archiveFilePath = 'package.tar.gz';
-const _buildLogFilePath = 'log.txt';
 const _packageTimeout = Duration(minutes: 10);
 final _packageTimeoutExtended = _packageTimeout * 2;
 const _pubDataFileName = 'pub-data.json';
@@ -260,12 +258,15 @@ class DartdocJobProcessor extends JobProcessor {
         await Directory.systemTemp.createTemp('pub-dartlang-dartdoc');
     final tempDirPath = tempDir.resolveSymbolicLinksSync();
     final pkgPath = p.join(tempDirPath, 'pkg');
-    final tarDir = p.join(tempDirPath, 'output');
-    final outputDir = p.join(tarDir, job.packageName, job.packageVersion);
+    final tarBaseDir = p.join(tempDirPath, 'output');
+    final dartdocContentDir =
+        p.join(tarBaseDir, job.packageName, job.packageVersion);
+    final uploadDir = p.join(tempDirPath, 'upload');
 
     // directories need to be created
-    await Directory(outputDir).create(recursive: true);
     await Directory(pkgPath).create(recursive: true);
+    await Directory(dartdocContentDir).create(recursive: true);
+    await Directory(uploadDir).create(recursive: true);
 
     final latestVersion =
         await packageBackend.getLatestVersion(job.packageName!);
@@ -301,6 +302,7 @@ class DartdocJobProcessor extends JobProcessor {
             version: job.packageVersion!,
             destination: pkgPath,
           );
+          final uuid = createUuid();
 
           // Resolve dependencies only for non-legacy package versions.
           if (!packageStatus.isLegacy) {
@@ -316,7 +318,7 @@ class DartdocJobProcessor extends JobProcessor {
           // Generate docs only for packages that have healthy dependencies.
           if (depsResolved) {
             dartdocResult = await _generateDocs(
-                toolEnv, logger, job, pkgPath, outputDir, logFileOutput,
+                toolEnv, logger, job, pkgPath, dartdocContentDir, logFileOutput,
                 usesPreviewSdk: packageStatus.usesPreviewAnalysisSdk);
             hasContent =
                 dartdocResult!.hasIndexHtml && dartdocResult!.hasIndexJson;
@@ -331,7 +333,7 @@ class DartdocJobProcessor extends JobProcessor {
                 packageName: job.packageName!,
                 packageVersion: job.packageVersion!,
                 isLatestStable: job.isLatestStable,
-              )).customizeDir(outputDir);
+              )).customizeDir(dartdocContentDir);
               logFileOutput.write('Content customization completed.\n\n');
             } catch (e, st) {
               // Do not block on customization failure.
@@ -339,20 +341,20 @@ class DartdocJobProcessor extends JobProcessor {
               logFileOutput.write('Content customization failed.\n\n');
             }
 
-            await _blob(outputDir, logFileOutput);
-            await _tar(tempDirPath, tarDir, outputDir, logFileOutput);
+            await _blob(uuid, dartdocContentDir, uploadDir, logFileOutput);
+            await _tar(tempDirPath, tarBaseDir, uploadDir, logFileOutput);
           } else {
             logFileOutput.write('No content found!\n\n');
           }
 
-          entry = await _createEntry(toolEnv, job, outputDir, usesFlutter,
-              depsResolved, hasContent, sw.elapsed);
+          entry = await _createEntry(uuid, toolEnv, job, dartdocContentDir,
+              uploadDir, usesFlutter, depsResolved, hasContent, sw.elapsed);
           logFileOutput
               .write('entry created: ${entry!.uuid} in ${sw.elapsed}\n\n');
 
           logFileOutput
               .write('completed: ${entry!.timestamp!.toIso8601String()}\n');
-          await _writeLog(outputDir, logFileOutput);
+          await _writeLog(uploadDir, logFileOutput);
         },
       );
 
@@ -369,7 +371,7 @@ class DartdocJobProcessor extends JobProcessor {
               isLatest: entry!.isLatest);
         }
       } else {
-        await dartdocBackend.uploadDir(entry!, outputDir);
+        await dartdocBackend.uploadDir(entry!, uploadDir);
         reportStatus = hasContent ? ReportStatus.success : ReportStatus.failed;
       }
 
@@ -377,7 +379,7 @@ class DartdocJobProcessor extends JobProcessor {
         reportIssueWithLatest(job, 'No content.');
       }
 
-      dartdocData = await _loadPubDartdocData(logger, outputDir);
+      dartdocData = await _loadPubDartdocData(logger, dartdocContentDir);
     } catch (e, st) {
       reportStatus = ReportStatus.aborted;
       if (isLatestStable) {
@@ -534,31 +536,37 @@ class DartdocJobProcessor extends JobProcessor {
   }
 
   Future<DartdocEntry> _createEntry(
+      String uuid,
       ToolEnvironment toolEnv,
       Job job,
-      String outputDir,
+      String dartdocContentDir,
+      String uploadDir,
       bool usesFlutter,
       bool depsResolved,
       bool hasContent,
       Duration runDuration) async {
     int? archiveSize;
     int? totalSize;
+    int? blobSize;
+    int? blobIndexSize;
     if (hasContent) {
-      final archiveFile = File(p.join(outputDir, _archiveFilePath));
+      final archiveFile = File(p.join(uploadDir, archiveFilePath));
       archiveSize = await archiveFile.length();
-      totalSize = await Directory(outputDir)
+      totalSize = await Directory(dartdocContentDir)
           .list(recursive: true)
           .where((fse) => fse is File)
           .cast<File>()
           .asyncMap((file) => file.length())
           .fold<int>(0, (a, b) => a + b);
-      totalSize = totalSize - archiveSize;
+      blobSize = await File(p.join(uploadDir, blobFilePath)).length();
+      blobIndexSize =
+          await File(p.join(uploadDir, blobIndexV1FilePath)).length();
     }
     final now = clock.now();
     final isObsolete = job.isLatestStable == false &&
         job.packageVersionUpdated!.difference(now).abs() > _twoYears;
-    final entry = DartdocEntry(
-      uuid: createUuid(),
+    return DartdocEntry(
+      uuid: uuid,
       packageName: job.packageName!,
       packageVersion: job.packageVersion!,
       isLatest: job.isLatestStable,
@@ -574,16 +582,13 @@ class DartdocJobProcessor extends JobProcessor {
       hasContent: hasContent,
       archiveSize: archiveSize,
       totalSize: totalSize,
+      blobSize: blobSize,
+      blobIndexSize: blobIndexSize,
     );
-
-    // write entry into local file
-    await File(p.join(outputDir, statusFilePath)).writeAsBytes(entry.asBytes());
-
-    return entry;
   }
 
   Future<void> _writeLog(String outputDir, StringBuffer buffer) async {
-    await File(p.join(outputDir, _buildLogFilePath))
+    await File(p.join(outputDir, buildLogFilePath))
         .writeAsString(buffer.toString());
   }
 
@@ -593,7 +598,7 @@ class DartdocJobProcessor extends JobProcessor {
     buffer.write('exit code: ${pr.exitCode}\n');
   }
 
-  Future<void> _tar(String tmpDir, String tarDir, String outputDir,
+  Future<void> _tar(String tmpDir, String tarDir, String uploadDir,
       StringBuffer logFileOutput) async {
     logFileOutput.write('Creating package archive...\n');
     final sw = Stopwatch()..start();
@@ -614,32 +619,34 @@ class DartdocJobProcessor extends JobProcessor {
       }
     }
 
-    final tmpTar = File(p.join(tmpDir, _archiveFilePath));
+    final tmpTar = File(p.join(tmpDir, archiveFilePath));
     await _list()
         .transform(tarWriter)
         .transform(gzip.encoder)
         .pipe(tmpTar.openWrite());
-    await tmpTar.rename(p.join(outputDir, _archiveFilePath));
+    await tmpTar.rename(p.join(uploadDir, archiveFilePath));
     logFileOutput.write('Created package archive in ${sw.elapsed}.\n');
   }
 
-  Future<void> _blob(String outputDir, StringBuffer logFileOutput) async {
+  Future<void> _blob(String blobId, String dartdocContentDir, String uploadDir,
+      StringBuffer logFileOutput) async {
     final sw = Stopwatch()..start();
     logFileOutput.write('Scanning blob content...\n');
-    final files = <String>[];
-    var offset = 0;
-    await for (final entry in Directory(outputDir).list(recursive: true)) {
+    final blobFile = File(p.join(uploadDir, blobFilePath));
+    final builder = IndexedBlobBuilder(blobFile.openWrite());
+    await for (final entry
+        in Directory(dartdocContentDir).list(recursive: true)) {
       if (entry is File) {
-        final path = p.relative(entry.path, from: outputDir);
-        final length = await entry.length();
-        files.add('$path $offset $length');
-        offset += length;
+        final path = p.relative(entry.path, from: dartdocContentDir);
+        await builder.addFile(path, entry.openRead().transform(gzip.encoder));
       }
     }
-    files.sort();
-    final indexLength = files.join('\n').length;
+    final index = await builder.buildIndex(blobId);
+    final indexFile = File(p.join(uploadDir, blobIndexV1FilePath));
+    await indexFile.writeAsBytes(index.asBytes());
+
     logFileOutput.write(
-        'Scanned blob content in ${sw.elapsed}, simple index count: ${files.length}, total length: $indexLength.\n');
+        'Scanned blob content in ${sw.elapsed}, index: ${indexFile.lengthSync()}, blob: ${blobFile.lengthSync()}.\n');
   }
 
   Future<PubDartdocData?> _loadPubDartdocData(

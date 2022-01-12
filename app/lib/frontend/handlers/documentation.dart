@@ -84,7 +84,6 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
     if (isNotModified(request, info.lastModified, info.etag)) {
       return shelf.Response.notModified();
     }
-    final stream = dartdocBackend.readContent(entry, docFilePath.path!);
     final headers = {
       HttpHeaders.contentTypeHeader: contentType(docFilePath.path!),
       HttpHeaders.cacheControlHeader:
@@ -92,6 +91,19 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
       HttpHeaders.lastModifiedHeader: formatHttpDate(info.lastModified),
       HttpHeaders.etagHeader: info.etag,
     };
+    if (info.blobId != null) {
+      final sendGzip = request.acceptsEncoding('gzip');
+      final content = dartdocBackend.readFromBlob(entry, info);
+      return shelf.Response(
+        HttpStatus.ok,
+        body: sendGzip ? content : content.transform(gzip.decoder),
+        headers: {
+          ...headers,
+          if (sendGzip) HttpHeaders.contentEncodingHeader: 'gzip',
+        },
+      );
+    }
+    final stream = dartdocBackend.readContent(entry, docFilePath.path!);
     return shelf.Response(HttpStatus.ok, body: stream, headers: headers);
   }
   return notFoundHandler(request);
