@@ -97,6 +97,8 @@ void main() {
           replacedContent = replacedContent
               .replaceAll(shortDateFormat.format(value), '%%$key-date%%')
               .replaceAll(value.toIso8601String(), '%%$key-timestamp%%')
+              .replaceAll(value.toIso8601String().replaceAll(':', r'\u003a'),
+                  '%%$key-escaped-timestamp%%')
               .replaceAll(formatXAgo(age), '%%x-ago%%');
         }
       });
