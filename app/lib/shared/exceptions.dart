@@ -198,6 +198,18 @@ class PackageRejectedException extends ResponseException {
   PackageRejectedException.nameReserved(String package)
       : super._(400, 'PackageRejected', 'Package name $package is reserved.');
 
+  /// The [package] is similar to an active package.
+  PackageRejectedException.similarToActive(
+      String package, String conflicting, String url)
+      : super._(400, 'PackageRejected',
+            'Package name `$package` is too similar to another active package: `$conflicting` ($url).');
+
+  /// The [package] is similar to a moderated or withdrawn package.
+  PackageRejectedException.similarToModerated(
+      String package, String conflicting)
+      : super._(400, 'PackageRejected',
+            'Package name `$package` is too similar to a moderated package: `$conflicting`.');
+
   /// The [package] has reached or has more versions than [limit].
   PackageRejectedException.maxVersionCountReached(String package, int limit)
       : super._(

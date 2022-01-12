@@ -14,27 +14,27 @@ void main() {
     nameTracker.add(TrackedPackage.simple('j_son'));
 
     test('new package can be published', () async {
-      expect(await nameTracker.accept('new_package'), isTrue);
+      expect(await nameTracker.accept('new_package'), isNull);
     });
 
     test('existing package is accepted and can be published again', () async {
-      expect(await nameTracker.accept('json'), isTrue);
-      expect(await nameTracker.accept('j_son'), isTrue);
+      expect(await nameTracker.accept('json'), isNull);
+      expect(await nameTracker.accept('j_son'), isNull);
     });
 
     test('conflicting package: same name', () async {
-      expect(await nameTracker.accept('j_s_o_n'), isFalse);
-      expect(await nameTracker.accept('js_on'), isFalse);
-      expect(await nameTracker.accept('jso_n'), isFalse);
-      expect(await nameTracker.accept('json_'), isFalse);
-      expect(await nameTracker.accept('_json'), isFalse);
-      expect(await nameTracker.accept('_json_'), isFalse);
-      expect(await nameTracker.accept('_j_s_o_n_'), isFalse);
+      expect(await nameTracker.accept('j_s_o_n'), 'json');
+      expect(await nameTracker.accept('js_on'), 'json');
+      expect(await nameTracker.accept('jso_n'), 'json');
+      expect(await nameTracker.accept('json_'), 'json');
+      expect(await nameTracker.accept('_json'), 'json');
+      expect(await nameTracker.accept('_json_'), 'json');
+      expect(await nameTracker.accept('_j_s_o_n_'), 'json');
     });
 
     test('conflicting package: plural', () async {
-      expect(await nameTracker.accept('jsons'), isFalse);
-      expect(await nameTracker.accept('json__s'), isFalse);
+      expect(await nameTracker.accept('jsons'), 'json');
+      expect(await nameTracker.accept('json__s'), 'json');
     });
   });
 
@@ -43,8 +43,8 @@ void main() {
     nameTracker.add(TrackedPackage.simple('isolates'));
 
     test('conflicting package: singular', () async {
-      expect(await nameTracker.accept('isolate'), isFalse);
-      expect(await nameTracker.accept('iso_late'), isFalse);
+      expect(await nameTracker.accept('isolate'), 'isolate');
+      expect(await nameTracker.accept('iso_late'), 'isolate');
     });
   });
 
