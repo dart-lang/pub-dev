@@ -176,9 +176,11 @@ class DartdocEntry {
   final int? totalSize;
 
   /// The size of the compressed blob file.
+  /// If this is null or zero, the blob file is missing.
   final int? blobSize;
 
   /// The size of the compressed blob index file.
+  /// If this is null or zero, the blob file is missing.
   final int? blobIndexSize;
 
   DartdocEntry({

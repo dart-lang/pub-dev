@@ -25,6 +25,9 @@ import '../shared/versions.dart' as shared_versions;
 import 'models.dart';
 import 'storage_path.dart' as storage_path;
 
+/// Exposed because the HTTP handler needs to know these files
+/// are served not from the blob.
+/// TODO: refactor after we are using only blobs in all accepted runtimes.
 const archiveFilePath = 'package.tar.gz';
 const blobFilePath = 'blob-data.gz';
 const blobIndexV1FilePath = 'index-v1.json';
