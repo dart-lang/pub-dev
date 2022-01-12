@@ -1,5 +1,5 @@
 # See https://pub.dev/packages/mono_repo for details on this file
-dart:
+sdk:
   - 2.15.1
 
 stages:

@@ -1,5 +1,5 @@
 # See https://github.com/dart-lang/mono_repo for details
-dart:
+sdk:
   - 2.15.1
 
 stages:
