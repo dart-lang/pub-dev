@@ -43,8 +43,8 @@ void main() {
     nameTracker.add(TrackedPackage.simple('isolates'));
 
     test('conflicting package: singular', () async {
-      expect(await nameTracker.accept('isolate'), 'isolate');
-      expect(await nameTracker.accept('iso_late'), 'isolate');
+      expect(await nameTracker.accept('isolate'), 'isolates');
+      expect(await nameTracker.accept('iso_late'), 'isolates');
     });
   });
 
