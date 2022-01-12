@@ -706,7 +706,7 @@ class PackageView extends Object with FlagMixin {
   @override
   final List<String>? flags;
   final String? publisherId;
-  final bool? isAwaiting;
+  final bool isPending;
 
   final int? likes;
 
@@ -732,14 +732,15 @@ class PackageView extends Object with FlagMixin {
     this.created,
     this.flags,
     this.publisherId,
-    this.isAwaiting = false,
+    bool? isPending,
     this.likes,
     this.grantedPubPoints,
     this.maxPubPoints,
     this.popularity,
     List<String>? tags,
     this.apiPages,
-  }) : tags = tags ?? <String>[];
+  })  : isPending = isPending ?? false,
+        tags = tags ?? <String>[];
 
   factory PackageView.fromJson(Map<String, dynamic> json) =>
       _$PackageViewFromJson(json);
@@ -753,7 +754,7 @@ class PackageView extends Object with FlagMixin {
   }) {
     final hasPanaReport = scoreCard?.reportTypes != null &&
         scoreCard!.reportTypes!.contains(ReportType.pana);
-    final isAwaiting =
+    final isPending =
         // Job processing has not created any card yet.
         (scoreCard == null) ||
             // The uploader has recently removed the "discontinued" flag, but the
@@ -768,7 +769,7 @@ class PackageView extends Object with FlagMixin {
       created: package.created,
       flags: scoreCard?.flags,
       publisherId: package.publisherId,
-      isAwaiting: isAwaiting,
+      isPending: isPending,
       likes: package.likes,
       grantedPubPoints: scoreCard?.grantedPubPoints,
       maxPubPoints: scoreCard?.maxPubPoints,
@@ -792,7 +793,7 @@ class PackageView extends Object with FlagMixin {
       created: created,
       flags: flags,
       publisherId: publisherId,
-      isAwaiting: isAwaiting,
+      isPending: isPending,
       likes: likes,
       grantedPubPoints: grantedPubPoints,
       maxPubPoints: maxPubPoints,
