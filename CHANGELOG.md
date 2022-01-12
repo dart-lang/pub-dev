@@ -2,6 +2,8 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20220112t121700-all`
  * Bumped runtimeVersion to `2022.01.06`.
  * Upgraded pana to `0.21.5`.
  * NOTE: Started to use `pkg/indexed_blob` to generate and serve `dartdoc` content.
