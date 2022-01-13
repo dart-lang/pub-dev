@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../shared/tags.dart';
-import '../shared/urls.dart';
 
 import 'search_service.dart';
 
@@ -186,7 +185,6 @@ class SearchForm {
     return ServiceSearchQuery.parse(
       query: query,
       tagsPredicate: tagsPredicate,
-      uploaderOrPublishers: context.uploaderOrPublishers,
       publisherId: context.publisherId,
       offset: offset,
       limit: pageSize,
@@ -260,13 +258,6 @@ class SearchContext {
   /// Whether the search query is in the Dart or Flutter SDK context.
   final String? sdk;
 
-  /// The query will match packages where the owners of the package have
-  /// non-empty intersection with the provided list of owners.
-  ///
-  /// Values of this list can be email addresses (usually a single on) or
-  /// publisher ids (may be multiple).
-  final List<String>? uploaderOrPublishers;
-
   final String? publisherId;
 
   /// True, if all packages should be part of the results, including:
@@ -278,11 +269,9 @@ class SearchContext {
   SearchContext._({
     this.isFlutterFavorites = false,
     this.sdk,
-    List<String>? uploaderOrPublishers,
     String? publisherId,
     this.includeAll = false,
-  })  : uploaderOrPublishers = _listToNull(uploaderOrPublishers),
-        publisherId = _stringToNull(publisherId);
+  }) : publisherId = _stringToNull(publisherId);
 
   /// Include all packages, including discontinued, unlisted and legacy.
   factory SearchContext.all() => SearchContext._(includeAll: true);
@@ -304,13 +293,6 @@ class SearchContext {
   factory SearchContext.publisher(String publisherId) =>
       SearchContext._(publisherId: publisherId, includeAll: true);
 
-  /// All packages listed for the current user.
-  factory SearchContext.myPackages(List<String>? uploaderOrPublishers) =>
-      SearchContext._(
-        uploaderOrPublishers: uploaderOrPublishers,
-        includeAll: true,
-      );
-
   /// Converts the query to a user-facing link that the search form can use as
   /// the base path of its `action` parameter.
   String toSearchFormPath() {
@@ -323,9 +305,6 @@ class SearchContext {
     }
     if (publisherId != null && publisherId!.isNotEmpty) {
       path = '/publishers/$publisherId/packages';
-    }
-    if (uploaderOrPublishers != null && uploaderOrPublishers!.isNotEmpty) {
-      path = myPackagesUrl();
     }
     return path;
   }
@@ -360,5 +339,3 @@ SearchForm _parseFrontendSearchForm(
 }
 
 String? _stringToNull(String? v) => (v == null || v.isEmpty) ? null : v;
-List<String>? _listToNull(List<String>? list) =>
-    (list == null || list.isEmpty) ? null : list;

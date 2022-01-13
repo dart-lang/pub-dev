@@ -32,7 +32,6 @@ void main() {
         popularity: 0.4,
         grantedPoints: 110,
         maxPoints: 110,
-        uploaderUserIds: ['foo-at-example-dot-com'],
       ));
       dartSdkMemIndex.setDartdocIndex(
         DartdocIndex.fromJsonList([
