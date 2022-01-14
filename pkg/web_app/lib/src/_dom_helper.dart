@@ -182,6 +182,8 @@ Future<bool> modalWindow({
   } finally {
     dialog.destroy();
     root.remove();
+    // TODO: Investigate if this is a bug in the JS library or in `package:mdc_web`
+    document.body!.classes.remove('mdc-dialog-scroll-lock');
   }
   return await c.future;
 }
