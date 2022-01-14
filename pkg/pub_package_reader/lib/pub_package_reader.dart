@@ -312,7 +312,16 @@ Iterable<ArchiveIssue> validatePackageVersion(Version? version) sync* {
 /// https://en.wikipedia.org/wiki/Zalgo_text
 Iterable<ArchiveIssue> validateZalgo(String field, String? text) sync* {
   if (text == null) return;
-  bool isDiacritic(int code) => code >= 0x0300 && code <= 0x036F;
+  // Checks if the code is in the combining character unicode ranges:
+  // https://en.wikipedia.org/wiki/Combining_character
+  bool isDiacritic(int code) =>
+      (code >= 0x0300 && code <= 0x036F) ||
+      (code >= 0x1AB0 && code <= 0x1AFF) ||
+      (code >= 0x1DC0 && code <= 0x1DFF) ||
+      (code >= 0x20D0 && code <= 0x20FF) ||
+      (code >= 0xFE20 && code <= 0xFE2F) ||
+      (code == 0x3099) ||
+      (code == 0x309A);
   final codes = text.codeUnits;
   for (var i = 1; i < codes.length; i++) {
     // checks for consecutive diacritical marks
