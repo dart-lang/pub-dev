@@ -235,6 +235,7 @@ Future<PackageSummary> summarizePackageArchive(
 
   issues.addAll(validatePackageName(pubspec.name));
   issues.addAll(validatePackageVersion(pubspec.version));
+  issues.addAll(validateZalgo('description', pubspec.description));
   issues.addAll(syntaxCheckUrl(pubspec.homepage, 'homepage'));
   issues.addAll(syntaxCheckUrl(pubspec.repository?.toString(), 'repository'));
   issues.addAll(syntaxCheckUrl(pubspec.documentation, 'documentation'));
@@ -304,6 +305,21 @@ Iterable<ArchiveIssue> validatePackageVersion(Version? version) sync* {
   if (version.toString().length > 64) {
     yield ArchiveIssue('Package version must not exceed 64 characters. '
         '(Please file an issue if you think you have a good reason for a longer version.)');
+  }
+}
+
+/// Checks if the [text] has any weird characters like in
+/// https://en.wikipedia.org/wiki/Zalgo_text
+Iterable<ArchiveIssue> validateZalgo(String field, String? text) sync* {
+  if (text == null) return;
+  bool isDiacritic(int code) => code >= 0x0300 && code <= 0x036F;
+  final codes = text.codeUnits;
+  for (var i = 1; i < codes.length; i++) {
+    // checks for consecutive diacritical marks
+    if (isDiacritic(codes[i]) && isDiacritic(codes[i - 1])) {
+      yield ArchiveIssue('`$field` contains too many diacritical marks.');
+      break;
+    }
   }
 }
 
