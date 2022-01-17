@@ -7,6 +7,8 @@ library pub_dartlang_org.model_properties;
 import 'dart:convert';
 
 import 'package:pana/pana.dart' show SdkConstraintStatus;
+import 'package:pub_package_reader/pub_package_reader.dart'
+    show checkStrictVersions;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspek
     show Dependency, Pubspec;
@@ -82,6 +84,9 @@ class Pubspec {
     final map = _json!['executables'];
     return map is Map<String, dynamic> ? map : null;
   }
+
+  /// Whether the pubspec has any version value inside that is not formatter properly.
+  bool get hasBadVersionFormat => checkStrictVersions(_inner).isNotEmpty;
 
   /// Returns the minimal SDK version for the Dart SDK.
   ///
