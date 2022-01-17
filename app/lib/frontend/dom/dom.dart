@@ -16,8 +16,7 @@ final _elementRegExp = _attributeRegExp;
 // As we want to store rawJson inside a HTML Element, it is better
 // to escape all non-trusteded characters inside it. Non-trusted
 // characters must include `</!>` characters.
-final _ldJsonEscapedCharactersRegExp =
-    RegExp(r'[^0-9a-zA-Z ,@\:\{\}\[\]\.\-"]');
+final _ldJsonEscapedCharactersRegExp = RegExp(r'[^0-9a-zA-Z ,@\.\-]');
 
 /// The DOM context to use while constructing nodes.
 ///
@@ -135,17 +134,50 @@ Node codeSnippet({
 
 /// Creates a DOM element with ld+json `<script>` content.
 Node ldJson(Map<String, dynamic> content) {
-  final rawJson = json.encode(content);
-  final rawHtml = rawJson.replaceAllMapped(
-    _ldJsonEscapedCharactersRegExp,
-    (m) {
-      final code = m[0]!.codeUnitAt(0);
-      return r'\u' + code.toRadixString(16).padLeft(4, '0');
-    },
-  );
+  final sb = StringBuffer();
+
+  /// Build the JSON content by manually escaping dangerous characters,
+  /// and also building the object and list structures.
+  void write(dynamic value) {
+    if (value is String) {
+      sb.write('"');
+      sb.write(value.replaceAllMapped(
+        _ldJsonEscapedCharactersRegExp,
+        (m) {
+          final code = m[0]!.codeUnitAt(0);
+          return r'\u' + code.toRadixString(16).padLeft(4, '0');
+        },
+      ));
+      sb.write('"');
+    } else if (value is List) {
+      sb.write('[');
+      for (var i = 0; i < value.length; i++) {
+        if (i > 0) sb.write(',');
+        write(value[i]);
+      }
+      sb.write(']');
+    } else if (value is Map) {
+      final entries = value.entries.toList();
+      sb.write('{');
+      for (var i = 0; i < entries.length; i++) {
+        if (i > 0) sb.write(',');
+        write(entries[i].key);
+        sb.write(':');
+        write(entries[i].value);
+      }
+      sb.write('}');
+    } else if (value is bool || value is num || value == null) {
+      sb.write(json.encode(value));
+    } else {
+      throw ArgumentError(
+          'Value `$value` could not be translated to JSON, unexpected type: `${value.runtimeType}`.');
+    }
+  }
+
+  write(content);
   return script(
     type: 'application/ld+json',
-    child: unsafeRawHtml(rawHtml),
+    child: unsafeRawHtml(sb.toString()),
   );
 }
 
