@@ -169,7 +169,8 @@ Node ldJson(Map<String, dynamic> content) {
     } else if (value is bool || value is num || value == null) {
       sb.write(json.encode(value));
     } else {
-      throw ArgumentError('Unexpected value: $value');
+      throw ArgumentError(
+          'Value `$value` could not be translated to JSON, unexpected type: `${value.runtimeType}`.');
     }
   }
 
