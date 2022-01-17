@@ -136,7 +136,7 @@ Node codeSnippet({
 Node ldJson(Map<String, dynamic> content) {
   final sb = StringBuffer();
 
-  /// Build the JSON content by manually escaping most untrusted characters,
+  /// Build the JSON content by manually escaping dangerous characters,
   /// and also building the object and list structures.
   void write(dynamic value) {
     if (value is String) {
