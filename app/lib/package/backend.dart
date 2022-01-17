@@ -756,8 +756,21 @@ class PackageBackend {
       }
 
       final pubspec = Pubspec.fromYaml(archive.pubspecContent!);
-      PackageRejectedException.check(await nameTracker.accept(pubspec.name),
-          'Package name is too similar to another active or moderated package.');
+      final conflictingName = await nameTracker.accept(pubspec.name);
+      if (conflictingName != null) {
+        final visible = await isPackageVisible(conflictingName);
+        if (visible) {
+          throw PackageRejectedException.similarToActive(
+              pubspec.name,
+              conflictingName,
+              urls.pkgPageUrl(conflictingName, includeHost: true));
+        } else {
+          throw PackageRejectedException.similarToModerated(
+              pubspec.name, conflictingName);
+        }
+      }
+      PackageRejectedException.check(conflictingName == null,
+          'Package name is too similar to another active or moderated package: `$conflictingName`.');
       final versionString = canonicalizeVersion(pubspec.nonCanonicalVersion);
       if (versionString == null) {
         throw InvalidInputException.canonicalizeVersionError(

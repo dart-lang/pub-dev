@@ -371,10 +371,10 @@ void main() {
       testWithProfile('similar package names are rejected', fn: () async {
         await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
           expect(await fn('ox_ygen'),
-              'PackageRejected(400): Package name is too similar to another active or moderated package.');
+              'PackageRejected(400): Package name `ox_ygen` is too similar to another active package: `oxygen` (https://pub.dev/packages/oxygen).');
 
           expect(await fn('ox_y_ge_n'),
-              'PackageRejected(400): Package name is too similar to another active or moderated package.');
+              'PackageRejected(400): Package name `ox_y_ge_n` is too similar to another active package: `oxygen` (https://pub.dev/packages/oxygen).');
         });
       });
 
@@ -384,10 +384,10 @@ void main() {
           await nameTracker.scanDatastore();
 
           expect(await fn('neon'),
-              'PackageRejected(400): Package name is too similar to another active or moderated package.');
+              'PackageRejected(400): Package name `neon` is too similar to a moderated package: `neon`.');
 
           expect(await fn('ne_on'),
-              'PackageRejected(400): Package name is too similar to another active or moderated package.');
+              'PackageRejected(400): Package name `ne_on` is too similar to a moderated package: `neon`.');
         });
       });
 

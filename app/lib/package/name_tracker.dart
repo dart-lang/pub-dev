@@ -74,7 +74,7 @@ class NameTracker {
 
   /// Names that are reserved due to moderated packages having these names.
   final _reservedNames = <String>{};
-  final _conflictingNames = <String>{};
+  final _conflictingNames = <String, String>{};
   final _firstScanCompleter = Completer();
   _NameTrackerUpdater? _updater;
 
@@ -83,7 +83,7 @@ class NameTracker {
   /// Add a package name to the tracker.
   void add(TrackedPackage pkg) {
     _names.add(pkg.package);
-    _conflictingNames.addAll(_generateConflictingNames(pkg.package));
+    _addConflictingName(pkg.package);
     final current = _packages[pkg.package];
     if (current == null || current.lastPublished.isBefore(pkg.lastPublished)) {
       _packages[pkg.package] = pkg;
@@ -93,8 +93,14 @@ class NameTracker {
 
   void addReservedName(String name) {
     _reservedNames.add(name);
-    _conflictingNames.addAll(_generateConflictingNames(name));
+    _addConflictingName(name);
     _names.remove(name);
+  }
+
+  void _addConflictingName(String name) {
+    for (final generated in _generateConflictingNames(name)) {
+      _conflictingNames.putIfAbsent(generated, () => name);
+    }
   }
 
   /// Returns the cached list of packages ordered by descending last published date.
@@ -109,26 +115,28 @@ class NameTracker {
   /// Whether the package was already added to the tracker.
   bool _hasPackage(String name) => _names.contains(name);
 
-  /// Whether the [name] has a conflicting package that already exists or
-  /// a conflicting package among the moderated packages.
-  bool _hasConflict(String name) =>
-      _generateConflictingNames(name).any(_conflictingNames.contains) ||
-      _reservedNames.contains(name);
-
   /// Whether to accept the upload attempt of a given package [name].
   ///
   /// Either the package [name] should exists, or it should be different enough
   /// from already existing active or moderated package names. An example for
   /// the rejection: `long_name` will be rejected, if package `longname` or
   /// `lon_gname` exists.
-  Future<bool> accept(String name) async {
+  ///
+  /// Returns the package name that caused rejection or null if it is accepted.
+  Future<String?> accept(String name) async {
     // fast track:
-    if (_hasPackage(name)) return true;
+    if (_hasPackage(name)) return null;
     // Trigger a new scan (if updater is active) to get the packages that may
     // have been uploaded recently.
     await _updater?._scan();
     // normal checks:
-    return _hasPackage(name) || !_hasConflict(name);
+    if (_hasPackage(name)) return null;
+    if (_reservedNames.contains(name)) return name;
+    for (final generated in _generateConflictingNames(name)) {
+      final original = _conflictingNames[generated];
+      if (original != null) return original;
+    }
+    return null;
   }
 
   int get _length => _names.length;
