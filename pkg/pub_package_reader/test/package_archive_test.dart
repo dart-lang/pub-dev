@@ -58,6 +58,19 @@ void main() {
     });
   });
 
+  group('Zalgo text', () {
+    test('allows CJK', () {
+      expect(
+          validateZalgo('field',
+              '文字 Chinese (Hanzi), 漢字 Japanese (Kanji), 漢字 Korean (Hanja)'),
+          isEmpty);
+    });
+
+    test('blocks Zalgo', () {
+      expect(validateZalgo('field', 'z͎͗ͣḁ̵̑l̉̃ͦg̐̓̒o͓̔ͥ'), isNotEmpty);
+    });
+  });
+
   group('sdk version range', () {
     test('accepted ranges', () {
       void isAccepted(String range) {
