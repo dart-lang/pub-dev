@@ -58,6 +58,18 @@ void main() {
     });
   });
 
+  group('publish_to', () {
+    test('OK', () {
+      expect(validatePublishTo(null), isEmpty);
+      expect(validatePublishTo('pub.dev'), isEmpty);
+      expect(validatePublishTo('pub.dartlang.org'), isEmpty);
+    });
+
+    test('bad value', () {
+      expect(validatePublishTo('example.com'), isNotEmpty);
+    });
+  });
+
   group('Zalgo text', () {
     test('allows CJK', () {
       expect(

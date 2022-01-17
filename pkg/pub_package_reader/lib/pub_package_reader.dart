@@ -235,6 +235,7 @@ Future<PackageSummary> summarizePackageArchive(
 
   issues.addAll(validatePackageName(pubspec.name));
   issues.addAll(validatePackageVersion(pubspec.version));
+  issues.addAll(validatePublishTo(pubspec.publishTo));
   issues.addAll(validateZalgo('description', pubspec.description));
   issues.addAll(syntaxCheckUrl(pubspec.homepage, 'homepage'));
   issues.addAll(syntaxCheckUrl(pubspec.repository?.toString(), 'repository'));
@@ -305,6 +306,13 @@ Iterable<ArchiveIssue> validatePackageVersion(Version? version) sync* {
   if (version.toString().length > 64) {
     yield ArchiveIssue('Package version must not exceed 64 characters. '
         '(Please file an issue if you think you have a good reason for a longer version.)');
+  }
+}
+
+/// Sanity check for matching `publish_to` field in `pubspec.yaml`.
+Iterable<ArchiveIssue> validatePublishTo(String? value) sync* {
+  if (value != null && value != 'pub.dartlang.org' && value != 'pub.dev') {
+    yield ArchiveIssue('Invalid `publish_to` value: `$value`.');
   }
 }
 
