@@ -43,9 +43,6 @@ final _fallbackMinimumAge = const Duration(hours: 4);
 /// https://github.com/dart-lang/pub-dev/issues/4780
 const _batchLookupMaxKeyCount = 10;
 
-/// The concurrent request for the batch lookup.
-const _batchLookupConcurrency = 4;
-
 /// Sets the active scorecard backend.
 void registerScoreCardBackend(ScoreCardBackend backend) =>
     ss.register(#_scorecard_backend, backend);
@@ -57,7 +54,32 @@ ScoreCardBackend get scoreCardBackend =>
 /// Handles the data store and lookup for ScoreCard.
 class ScoreCardBackend {
   final db.DatastoreDB _db;
+
+  /// Concurrency control to get [PackageView] entities from the cache or Datastore.
+  final _packageViewGetterPool = Pool(10);
+
+  /// Concurrency control to get [ScoreCardData] from the Datastore.
+  final _scoreCardDataPool = Pool(10);
+
   ScoreCardBackend(this._db);
+
+  Future<void> close() async {
+    await _packageViewGetterPool.close();
+    await _scoreCardDataPool.close();
+  }
+
+  /// Returns the [PackageView] instance for each package in [packages], using
+  /// the latest stable version.
+  ///
+  /// If the package does not exist, it will return null in the given index.
+  Future<List<PackageView?>> getPackageViews(Iterable<String> packages) async {
+    final futures = <Future<PackageView?>>[];
+    for (final p in packages) {
+      futures.add(
+          _packageViewGetterPool.withResource(() async => getPackageView(p)));
+    }
+    return await Future.wait(futures);
+  }
 
   /// Returns the [PackageView] instance for [package] on its latest stable version.
   ///
@@ -295,7 +317,6 @@ class ScoreCardBackend {
     Iterable<String> versions, {
     String? runtimeVersion,
   }) async {
-    final pool = Pool(_batchLookupConcurrency);
     final futures = <Future<List<ScoreCardData?>>>[];
     for (var start = 0;
         start < versions.length;
@@ -306,7 +327,7 @@ class ScoreCardBackend {
           .map((v) =>
               scoreCardKey(packageName, v, runtimeVersion: runtimeVersion))
           .toList();
-      final f = pool.withResource(() async {
+      final f = _scoreCardDataPool.withResource(() async {
         final items = await _db.lookup<ScoreCard>(keys);
         return items.map((item) => item?.toData()).toList();
       });
@@ -317,7 +338,6 @@ class ScoreCardBackend {
       <ScoreCardData?>[],
       (r, list) => r..addAll(list),
     );
-    await pool.close();
     return results;
   }
 

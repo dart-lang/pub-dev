@@ -206,8 +206,8 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
     registerScopeExitCallback(dartSdkMemIndex.close);
     registerScopeExitCallback(flutterSdkMemIndex.close);
     registerScopeExitCallback(popularityStorage.close);
+    registerScopeExitCallback(scoreCardBackend.close);
     registerScopeExitCallback(searchClient.close);
-    registerScopeExitCallback(searchAdapter.close);
     registerScopeExitCallback(youtubeBackend.close);
 
     // Create a zone-local flag to indicate that services setup has been completed.
