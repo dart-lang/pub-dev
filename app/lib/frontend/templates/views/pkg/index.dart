@@ -118,6 +118,8 @@ d.Node _searchFormContainer({
             isActive: openSections.contains('advanced') ||
                 searchForm.hasActiveAdvanced ||
                 searchForm.parsedQuery.tagsPredicate
+                    .hasTag(PackageTags.isFlutterFavorite) ||
+                searchForm.parsedQuery.tagsPredicate
                     .hasTag(PackageTags.showHidden) ||
                 searchForm.parsedQuery.tagsPredicate
                     .hasTag(PackageVersionTags.isNullSafe),
