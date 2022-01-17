@@ -39,7 +39,6 @@ void main() {
           grantedPoints: 110,
           maxPoints: 110,
           dependencies: {'async': 'direct', 'test': 'dev', 'foo': 'transitive'},
-          uploaderUserIds: ['user1-at-example-dot-com'],
         ),
         PackageDocument(
           package: 'async',
@@ -66,7 +65,6 @@ The delegating wrapper classes allow users to easily add functionality on top of
           maxPoints: 110,
           dependencies: {'test': 'dev'},
           publisherId: 'dart.dev',
-          uploaderUserIds: ['user1-at-example-dot-com'],
         ),
         PackageDocument(
           package: 'chrome_net',
@@ -456,53 +454,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           .search(ServiceSearchQuery.parse(query: 'async publisher:dart.dev'));
       expect(rs2.highlightedHit, isNull);
       expect(rs2.totalCount, 1);
-    });
-
-    test('no results via owners', () async {
-      final PackageSearchResult result = await index.search(
-          ServiceSearchQuery.parse(uploaderOrPublishers: ['other-domain.com']));
-      expect(json.decode(json.encode(result)), {
-        'timestamp': isNotNull,
-        'totalCount': 0,
-        'sdkLibraryHits': [],
-        'packageHits': [],
-      });
-    });
-
-    test('filter by a single owner', () async {
-      final PackageSearchResult result = await index
-          .search(ServiceSearchQuery.parse(uploaderOrPublishers: ['dart.dev']));
-      expect(json.decode(json.encode(result)), {
-        'timestamp': isNotNull,
-        'totalCount': 1,
-        'sdkLibraryHits': [],
-        'packageHits': [
-          {'package': 'async', 'score': closeTo(0.70, 0.01)},
-        ],
-      });
-
-      // do not highlight package if otherwise exact match is in the query
-      final rs2 = await index.search(ServiceSearchQuery.parse(
-          query: 'async', uploaderOrPublishers: ['dart.dev']));
-      expect(rs2.highlightedHit, isNull);
-      expect(rs2.totalCount, 1);
-    });
-
-    test('filter by multiple owners', () async {
-      final PackageSearchResult result =
-          await index.search(ServiceSearchQuery.parse(uploaderOrPublishers: [
-        'dart.dev',
-        'user1-at-example-dot-com',
-      ]));
-      expect(json.decode(json.encode(result)), {
-        'timestamp': isNotNull,
-        'totalCount': 2,
-        'sdkLibraryHits': [],
-        'packageHits': [
-          {'package': 'http', 'score': closeTo(0.96, 0.01)},
-          {'package': 'async', 'score': closeTo(0.70, 0.01)},
-        ],
-      });
     });
 
     test('no results with minPoints', () async {

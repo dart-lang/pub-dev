@@ -100,9 +100,6 @@ class PackageDocument {
   /// The publisher id of the package
   final String? publisherId;
 
-  /// The current uploader userIds of the package.
-  final List<String>? uploaderUserIds;
-
   final List<ApiDocPage>? apiDocPages;
 
   /// The creation timestamp of this document.
@@ -122,7 +119,6 @@ class PackageDocument {
     this.maxPoints = 0,
     this.dependencies = const {},
     this.publisherId,
-    this.uploaderUserIds = const [],
     this.apiDocPages = const [],
     DateTime? timestamp,
   })  : tags = tags ?? const <String>[],
@@ -221,20 +217,11 @@ final _tagRegExp =
     RegExp(r'([\+|\-]?[a-z0-9]+:[a-z0-9\-_\.]+)', caseSensitive: false);
 
 String? _stringToNull(String? v) => (v == null || v.isEmpty) ? null : v;
-List<String>? _listToNull(List<String>? list) =>
-    (list == null || list.isEmpty) ? null : list;
 
 class ServiceSearchQuery {
   final String? query;
   final ParsedQueryText parsedQuery;
   final TagsPredicate tagsPredicate;
-
-  /// The query will match packages where the owners of the package have
-  /// non-empty intersection with the provided list of owners.
-  ///
-  /// Values of this list can be email addresses (usually a single on) or
-  /// publisher ids (may be multiple).
-  final List<String>? uploaderOrPublishers;
 
   final String? publisherId;
 
@@ -248,7 +235,6 @@ class ServiceSearchQuery {
   ServiceSearchQuery._({
     this.query,
     TagsPredicate? tagsPredicate,
-    List<String>? uploaderOrPublishers,
     String? publisherId,
     required this.minPoints,
     this.updatedInDays,
@@ -257,13 +243,11 @@ class ServiceSearchQuery {
     this.limit,
   })  : parsedQuery = ParsedQueryText.parse(query),
         tagsPredicate = tagsPredicate ?? TagsPredicate(),
-        uploaderOrPublishers = _listToNull(uploaderOrPublishers),
         publisherId = _stringToNull(publisherId);
 
   factory ServiceSearchQuery.parse({
     String? query,
     TagsPredicate? tagsPredicate,
-    List<String>? uploaderOrPublishers,
     String? publisherId,
     SearchOrder? order,
     int? minPoints,
@@ -275,7 +259,6 @@ class ServiceSearchQuery {
     return ServiceSearchQuery._(
       query: q,
       tagsPredicate: tagsPredicate,
-      uploaderOrPublishers: uploaderOrPublishers,
       publisherId: publisherId,
       minPoints: minPoints,
       updatedInDays: updatedInDays,
@@ -289,7 +272,6 @@ class ServiceSearchQuery {
     final q = uri.queryParameters['q'];
     final tagsPredicate =
         TagsPredicate.parseQueryValues(uri.queryParametersAll['tags']);
-    final uploaderOrPublishers = uri.queryParametersAll['uploaderOrPublishers'];
     final publisherId = uri.queryParameters['publisherId'];
     final String? orderValue = uri.queryParameters['order'];
     final SearchOrder? order = parseSearchOrder(orderValue);
@@ -304,7 +286,6 @@ class ServiceSearchQuery {
     return ServiceSearchQuery.parse(
       query: q,
       tagsPredicate: tagsPredicate,
-      uploaderOrPublishers: uploaderOrPublishers,
       publisherId: publisherId,
       order: order,
       minPoints: minPoints,
@@ -317,7 +298,6 @@ class ServiceSearchQuery {
   ServiceSearchQuery change({
     String? query,
     TagsPredicate? tagsPredicate,
-    List<String>? uploaderOrPublishers,
     String? publisherId,
     SearchOrder? order,
     int? offset,
@@ -326,7 +306,6 @@ class ServiceSearchQuery {
     return ServiceSearchQuery._(
       query: query ?? this.query,
       tagsPredicate: tagsPredicate ?? this.tagsPredicate,
-      uploaderOrPublishers: uploaderOrPublishers ?? this.uploaderOrPublishers,
       publisherId: publisherId ?? this.publisherId,
       order: order ?? this.order,
       minPoints: minPoints,
@@ -340,7 +319,6 @@ class ServiceSearchQuery {
     final map = <String, dynamic>{
       'q': query,
       'tags': tagsPredicate.toQueryParameters(),
-      'uploaderOrPublishers': uploaderOrPublishers,
       'publisherId': publisherId,
       'offset': offset?.toString(),
       if (minPoints != null && minPoints! > 0)
@@ -358,8 +336,7 @@ class ServiceSearchQuery {
   bool get _hasOnlyFreeText => _hasQuery && parsedQuery.hasOnlyFreeText;
   bool get _isNaturalOrder =>
       order == null || order == SearchOrder.top || order == SearchOrder.text;
-  bool get _hasNoOwnershipScope =>
-      publisherId == null && uploaderOrPublishers == null;
+  bool get _hasNoOwnershipScope => publisherId == null;
   bool get _isFlutterFavorite =>
       tagsPredicate.hasTag(PackageTags.isFlutterFavorite);
 

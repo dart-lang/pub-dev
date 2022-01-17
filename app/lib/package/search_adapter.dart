@@ -117,8 +117,7 @@ class SearchAdapter {
   /// `search` service.
   Future<PackageSearchResult> _fallbackSearch(SearchForm form) async {
     // Some search queries must not be served with the fallback search.
-    if (form.context.uploaderOrPublishers != null ||
-        form.context.publisherId != null) {
+    if (form.context.publisherId != null) {
       return PackageSearchResult.empty(
           message: 'Search is temporarily unavailable.');
     }

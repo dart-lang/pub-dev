@@ -161,23 +161,6 @@ class InMemoryPackageIndex implements PackageIndex {
       });
     }
 
-    // filter on owners
-    if (query.uploaderOrPublishers != null) {
-      assert(query.uploaderOrPublishers!.isNotEmpty);
-
-      packages.removeWhere((package) {
-        final doc = _packages[package]!;
-        if (doc.publisherId != null) {
-          return !query.uploaderOrPublishers!.contains(doc.publisherId);
-        }
-        if (doc.uploaderUserIds != null &&
-            query.uploaderOrPublishers!.any(doc.uploaderUserIds!.contains)) {
-          return false;
-        }
-        return true;
-      });
-    }
-
     // filter on publisher
     if (query.publisherId != null || query.parsedQuery.publisher != null) {
       final publisherId = query.publisherId ?? query.parsedQuery.publisher;
