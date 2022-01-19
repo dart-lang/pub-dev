@@ -61,11 +61,17 @@ void main() {
   group('publish_to', () {
     test('OK', () {
       expect(validatePublishTo(null), isEmpty);
-      expect(validatePublishTo('pub.dev'), isEmpty);
-      expect(validatePublishTo('pub.dartlang.org'), isEmpty);
+    });
+
+    test('recognized, but instead they should be `null`', () {
+      expect(validatePublishTo('https://pub.dev'), isNotEmpty);
+      expect(validatePublishTo('https://pub.dev/'), isNotEmpty);
+      expect(validatePublishTo('https://pub.dartlang.org'), isNotEmpty);
+      expect(validatePublishTo('https://pub.dartlang.org/'), isNotEmpty);
     });
 
     test('bad value', () {
+      expect(validatePublishTo(''), isNotEmpty);
       expect(validatePublishTo('example.com'), isNotEmpty);
     });
   });

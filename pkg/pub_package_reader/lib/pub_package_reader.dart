@@ -311,7 +311,7 @@ Iterable<ArchiveIssue> validatePackageVersion(Version? version) sync* {
 
 /// Sanity check for matching `publish_to` field in `pubspec.yaml`.
 Iterable<ArchiveIssue> validatePublishTo(String? value) sync* {
-  if (value != null && value != 'pub.dartlang.org' && value != 'pub.dev') {
+  if (value != null) {
     yield ArchiveIssue('Invalid `publish_to` value: `$value`.');
   }
 }
