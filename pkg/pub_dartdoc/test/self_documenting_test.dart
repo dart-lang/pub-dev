@@ -49,10 +49,10 @@ void main() {
       final memUse = int.parse(memUseStr);
 
       // Last 3 measurements:
-      // 1964208128
-      // 1959505920
-      // 1964068864
-      final maxMemUse = 1.9;
+      // 1529630720
+      // 1530777600
+      // 1531613184
+      final maxMemUse = 1.55;
       expect(memUse, lessThan(maxMemUse * 1024 * 1024 * 1024));
 
       // Sanity check for the test.

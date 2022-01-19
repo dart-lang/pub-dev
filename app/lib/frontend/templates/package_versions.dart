@@ -37,7 +37,7 @@ String renderPkgVersionsPage(
     final pubspec = Pubspec.fromJson(version.pubspec);
     final rowNode = versionRowNode(pubspec.name, version, pubspec);
     final semanticVersion = Version.parse(version.version);
-    if (version.isRetracted != null && version.isRetracted!) {
+    if (version.retracted != null && version.retracted!) {
       retractedVersionRows.add(rowNode);
     } else if (semanticVersion.isPreRelease) {
       prereleaseVersionRows.add(rowNode);

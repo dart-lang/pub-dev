@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:clock/clock.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:pub_dev/tool/test_profile/normalizer.dart';
 import 'package:test/test.dart';
@@ -24,7 +25,10 @@ packages:
             {
               'name': 'foo',
               'publisher': 'example.com',
-              'versions': ['1.0.0', '2.0.0']
+              'versions': [
+                {'version': '1.0.0'},
+                {'version': '2.0.0'},
+              ]
             }
           ],
           'publishers': [
@@ -64,7 +68,10 @@ packages:
             {
               'name': 'foo',
               'uploaders': ['user@domain.com'],
-              'versions': ['1.0.0', '2.0.0']
+              'versions': [
+                {'version': '1.0.0'},
+                {'version': '2.0.0'},
+              ],
             }
           ],
           'publishers': [],
@@ -91,7 +98,7 @@ packages:
             ResolvedVersion(
               package: 'foo',
               version: '1.1.0',
-              created: DateTime.now(),
+              created: clock.now(),
             ),
           ],
         ).toJson(),
@@ -100,7 +107,9 @@ packages:
             {
               'name': 'foo',
               'uploaders': ['user@domain.com'],
-              'versions': ['1.1.0']
+              'versions': [
+                {'version': '1.1.0', 'created': isNotEmpty},
+              ],
             }
           ],
           'publishers': [],

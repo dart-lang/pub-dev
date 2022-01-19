@@ -82,9 +82,15 @@ void main() {
   });
 
   test('Dart SDK versions should match dockerfile', () async {
-    final String docker = await File('../Dockerfile').readAsString();
-    expect(docker.contains('/$toolStableDartSdkVersion/sdk/'), isTrue);
-    expect(docker.contains('/$toolPreviewDartSdkVersion/sdk/'), isTrue);
+    final dockerfileContent = await File('../Dockerfile').readAsString();
+    expect(
+        dockerfileContent,
+        contains(
+            'RUN /project/tool/setup-dart.sh /tool/stable $toolStableDartSdkVersion'));
+    expect(
+        dockerfileContent,
+        contains(
+            'RUN /project/tool/setup-dart.sh /tool/preview $toolPreviewDartSdkVersion'));
   });
 
   test('Flutter SDK versions should match dockerfile', () async {
@@ -156,7 +162,7 @@ and do not format to also bump the runtimeVersion.''',
     });
 
     test('current version is serving', () {
-      expect(shouldServeDartdoc(dartdocServingRuntime.toString()), isTrue);
+      expect(shouldServeDartdoc(runtimeVersion), isTrue);
     });
 
     test('next version is not serving', () {

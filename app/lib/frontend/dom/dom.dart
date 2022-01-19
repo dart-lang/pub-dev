@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
+
 import '../../shared/markdown.dart';
 import '../../shared/utils.dart' show formatXAgo, shortDateFormat;
 
@@ -14,8 +16,7 @@ final _elementRegExp = _attributeRegExp;
 // As we want to store rawJson inside a HTML Element, it is better
 // to escape all non-trusteded characters inside it. Non-trusted
 // characters must include `</!>` characters.
-final _ldJsonEscapedCharactersRegExp =
-    RegExp(r'[^0-9a-zA-Z ,@\:\{\}\[\]\.\-"]');
+final _ldJsonEscapedCharactersRegExp = RegExp(r'[^0-9a-zA-Z ,@\.\-]');
 
 /// The DOM context to use while constructing nodes.
 ///
@@ -97,7 +98,7 @@ Node xAgoTimestamp(DateTime timestamp, {String? datePrefix}) {
   return span(
     classes: ['-x-ago'],
     attributes: {'title': title},
-    text: formatXAgo(DateTime.now().difference(timestamp)),
+    text: formatXAgo(clock.now().difference(timestamp)),
   );
 }
 
@@ -133,17 +134,50 @@ Node codeSnippet({
 
 /// Creates a DOM element with ld+json `<script>` content.
 Node ldJson(Map<String, dynamic> content) {
-  final rawJson = json.encode(content);
-  final rawHtml = rawJson.replaceAllMapped(
-    _ldJsonEscapedCharactersRegExp,
-    (m) {
-      final code = m[0]!.codeUnitAt(0);
-      return r'\u' + code.toRadixString(16).padLeft(4, '0');
-    },
-  );
+  final sb = StringBuffer();
+
+  /// Build the JSON content by manually escaping dangerous characters,
+  /// and also building the object and list structures.
+  void write(dynamic value) {
+    if (value is String) {
+      sb.write('"');
+      sb.write(value.replaceAllMapped(
+        _ldJsonEscapedCharactersRegExp,
+        (m) {
+          final code = m[0]!.codeUnitAt(0);
+          return r'\u' + code.toRadixString(16).padLeft(4, '0');
+        },
+      ));
+      sb.write('"');
+    } else if (value is List) {
+      sb.write('[');
+      for (var i = 0; i < value.length; i++) {
+        if (i > 0) sb.write(',');
+        write(value[i]);
+      }
+      sb.write(']');
+    } else if (value is Map) {
+      final entries = value.entries.toList();
+      sb.write('{');
+      for (var i = 0; i < entries.length; i++) {
+        if (i > 0) sb.write(',');
+        write(entries[i].key);
+        sb.write(':');
+        write(entries[i].value);
+      }
+      sb.write('}');
+    } else if (value is bool || value is num || value == null) {
+      sb.write(json.encode(value));
+    } else {
+      throw ArgumentError(
+          'Value `$value` could not be translated to JSON, unexpected type: `${value.runtimeType}`.');
+    }
+  }
+
+  write(content);
   return script(
     type: 'application/ld+json',
-    child: unsafeRawHtml(rawHtml),
+    child: unsafeRawHtml(sb.toString()),
   );
 }
 
@@ -203,12 +237,16 @@ Node button({
   Iterable<Node>? children,
   Node? child,
   String? text,
+  String? ariaLabel,
 }) =>
     dom.element(
       'button',
       id: id,
       classes: classes,
-      attributes: attributes,
+      attributes: {
+        if (ariaLabel != null) 'aria-label': ariaLabel,
+        ...?attributes,
+      },
       children: _children(children, child, text),
     );
 
@@ -362,28 +400,39 @@ Node i({
   );
 }
 
+class Image {
+  final String src;
+  final String alt;
+  final int? width;
+  final int? height;
+
+  Image({
+    required this.src,
+    required this.alt,
+    this.width,
+    this.height,
+  });
+}
+
 /// Creates an `<img>` Element using the default [DomContext].
 Node img({
   String? id,
   Iterable<String>? classes,
   Map<String, String>? attributes,
   Iterable<Node>? children,
-  String? src,
+  required Image image,
   String? title,
-  String? alt,
-  int? width,
-  int? height,
 }) {
   return dom.element(
     'img',
     id: id,
     classes: classes,
     attributes: <String, String>{
-      if (src != null) 'src': src,
+      'src': image.src,
+      'alt': image.alt,
+      if (image.width != null) 'width': image.width.toString(),
+      if (image.height != null) 'height': image.height.toString(),
       if (title != null) 'title': title,
-      if (alt != null) 'alt': alt,
-      if (width != null) 'width': width.toString(),
-      if (height != null) 'height': height.toString(),
       if (attributes != null) ...attributes,
     },
     children: children,

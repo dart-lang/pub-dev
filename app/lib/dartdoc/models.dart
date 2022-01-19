@@ -5,11 +5,11 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../shared/datastore.dart' as db;
 import '../shared/utils.dart' show jsonUtf8Encoder, utf8JsonDecoder;
-import '../shared/versions.dart' as versions;
 import 'storage_path.dart' as storage_path;
 
 part 'models.g.dart';
@@ -175,6 +175,14 @@ class DartdocEntry {
   /// The size of all the individual files, uncompressed.
   final int? totalSize;
 
+  /// The size of the compressed blob file.
+  /// If this is null or zero, the blob file is missing.
+  final int? blobSize;
+
+  /// The size of the compressed blob index file.
+  /// If this is null or zero, the blob file is missing.
+  final int? blobIndexSize;
+
   DartdocEntry({
     required this.uuid,
     required this.packageName,
@@ -192,6 +200,8 @@ class DartdocEntry {
     this.hasContent = false,
     required this.archiveSize,
     required this.totalSize,
+    this.blobSize,
+    this.blobIndexSize,
   });
 
   factory DartdocEntry.fromJson(Map<String, dynamic> json) =>
@@ -226,37 +236,19 @@ class DartdocEntry {
       hasContent: hasContent,
       archiveSize: archiveSize,
       totalSize: totalSize,
+      blobSize: blobSize,
+      blobIndexSize: blobIndexSize,
     );
   }
 
   Map<String, dynamic> toJson() => _$DartdocEntryToJson(this);
-
-  /// Whether the version should be serving with (e.g. it is not a known
-  /// coordinated upgrade of the templates and styles).
-  bool get isServing => versions.shouldServeDartdoc(runtimeVersion);
-
-  /// The path of the status while the upload is in progress
-  String get inProgressPrefix =>
-      storage_path.inProgressPrefix(packageName, packageVersion);
-
-  /// The path of the particular JSON status while upload is in progress
-  String get inProgressObjectName =>
-      storage_path.inProgressObjectName(packageName, packageVersion, uuid);
-
-  /// The path prefix where all of the entry JSON files are stored.
-  String get entryPrefix =>
-      storage_path.entryPrefix(packageName, packageVersion);
-
-  /// The path of the particular JSON entry after the upload was completed.
-  String get entryObjectName =>
-      storage_path.entryObjectName(packageName, packageVersion, uuid);
 
   /// The path prefix where the content of this instance is stored.
   String get contentPrefix =>
       storage_path.contentPrefix(packageName, packageVersion, uuid);
 
   String objectName(String relativePath) {
-    final isShared = storage_path.isSharedAsset(relativePath);
+    final isShared = !hasBlob && storage_path.isSharedAsset(relativePath);
     if (isShared) {
       return storage_path.sharedAssetObjectName(dartdocVersion!, relativePath);
     } else {
@@ -264,6 +256,12 @@ class DartdocEntry {
           packageName, packageVersion, uuid, relativePath);
     }
   }
+
+  bool get hasBlob =>
+      blobSize != null &&
+      blobSize! > 0 &&
+      blobIndexSize != null &&
+      blobIndexSize! > 0;
 
   List<int> asBytes() => jsonUtf8Encoder.convert(toJson());
 
@@ -290,7 +288,7 @@ class DartdocEntry {
 
   /// The current age of the entry.
   Duration get age {
-    return DateTime.now().toUtc().difference(timestamp!);
+    return clock.now().toUtc().difference(timestamp!);
   }
 }
 
@@ -298,8 +296,19 @@ class DartdocEntry {
 class FileInfo {
   final DateTime lastModified;
   final String etag;
+  final String? blobId;
+  final int? blobOffset;
+  final int? blobLength;
+  final int? contentLength;
 
-  FileInfo({required this.lastModified, required this.etag});
+  FileInfo({
+    required this.lastModified,
+    required this.etag,
+    this.blobId,
+    this.blobOffset,
+    this.blobLength,
+    this.contentLength,
+  });
 
   factory FileInfo.fromJson(Map<String, dynamic> json) =>
       _$FileInfoFromJson(json);

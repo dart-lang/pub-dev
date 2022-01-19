@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/searchconsole/v1.dart' as wmx;
 import 'package:googleapis_auth/googleapis_auth.dart' as auth;
@@ -36,7 +37,7 @@ class DomainVerifier {
         auth.AccessToken(
           'Bearer',
           accessToken,
-          DateTime.now().toUtc().add(Duration(minutes: 20)), // avoid refresh
+          clock.now().toUtc().add(Duration(minutes: 20)), // avoid refresh
         ),
         null,
         [wmx.SearchConsoleApi.webmastersReadonlyScope],

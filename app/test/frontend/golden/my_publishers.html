@@ -37,21 +37,26 @@
       <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MX6DBN9" height="0" width="0" style="display:none;visibility:hidden"></iframe>
     </noscript>
     <div class="site-header">
-      <button class="hamburger"></button>
+      <button class="hamburger" aria-label="menu toggle"></button>
       <a class="logo" href="/">
         <img class="site-logo" src="/static/img/pub-dev-logo-2x.png?hash=mocked_hash_685890546" alt="pub logo" width="135" height="30"/>
       </a>
       <div class="site-header-space"></div>
       <div class="site-header-mask"></div>
+      <div class="site-header-search">
+        <form action="/packages" method="GET">
+          <input class="site-header-search-input" name="q" placeholder="New search..." autocomplete="on"/>
+        </form>
+      </div>
       <div class="site-header-nav scroll-container">
         <div id="-account-profile" class="nav-container nav-my-container hoverable">
           <button class="nav-main-button">My pub.dev</button>
           <div class="nav-hover-popup">
             <div class="nav-table-column">
-              <a class="nav-link" href="/my-packages">My packages</a>
-              <a class="nav-link" href="/my-liked-packages">My liked packages</a>
-              <a class="nav-link" href="/my-publishers">My publishers</a>
-              <a class="nav-link" href="/my-activity-log">My activity log</a>
+              <a class="nav-link" href="/my-publishers">Publishers</a>
+              <a class="nav-link" href="/my-packages">Packages</a>
+              <a class="nav-link" href="/my-liked-packages">Likes</a>
+              <a class="nav-link" href="/my-activity-log">Activity log</a>
               <a class="nav-link" href="/create-publisher">Create publisher</a>
             </div>
           </div>
@@ -82,7 +87,7 @@
         <div class="nav-container nav-help-container-mobile foldable">
           <h3 class="foldable-button">
             Pub.dev
-            <img class="foldable-icon" src="/static/img/nav-mobile-foldable-icon.svg?hash=mocked_hash_806401648"/>
+            <img class="foldable-icon" src="/static/img/nav-mobile-foldable-icon.svg?hash=mocked_hash_806401648" alt="icon to toggle folding of the section"/>
           </h3>
           <div class="foldable-content">
             <a class="nav-link" href="/help/search" rel="noopener" target="_blank">Searching for packages</a>
@@ -92,7 +97,7 @@
         <div class="nav-container nav-help-container-mobile foldable">
           <h3 class="foldable-button">
             Flutter
-            <img class="foldable-icon" src="/static/img/nav-mobile-foldable-icon.svg?hash=mocked_hash_806401648"/>
+            <img class="foldable-icon" src="/static/img/nav-mobile-foldable-icon.svg?hash=mocked_hash_806401648" alt="icon to toggle folding of the section"/>
           </h3>
           <div class="foldable-content">
             <a class="nav-link" href="https://flutter.io/using-packages/" rel="noopener" target="_blank">Using packages</a>
@@ -103,7 +108,7 @@
         <div class="nav-container nav-help-container-mobile foldable">
           <h3 class="foldable-button">
             Dart
-            <img class="foldable-icon" src="/static/img/nav-mobile-foldable-icon.svg?hash=mocked_hash_806401648"/>
+            <img class="foldable-icon" src="/static/img/nav-mobile-foldable-icon.svg?hash=mocked_hash_806401648" alt="icon to toggle folding of the section"/>
           </h3>
           <div class="foldable-content">
             <a class="nav-link" href="https://dart.dev/tools/pub/get-started" rel="noopener" target="_blank">Using packages</a>
@@ -129,24 +134,13 @@
       </div>
     </div>
     <div id="banner-container"></div>
-    <div class="_banner-bg">
-      <div class="container">
-        <form class="search-bar banner-item" action="/my-packages">
-          <input class="input" name="q" placeholder="Search your packages" autocomplete="on" autofocus="autofocus"/>
-          <button class="icon"></button>
-          <input id="-search-discontinued-field" type="hidden" name="discontinued" value="1" disabled="disabled"/>
-          <input id="-search-unlisted-field" type="hidden" name="unlisted" value="1" disabled="disabled"/>
-          <input id="-search-null-safe-field" type="hidden" name="null-safe" value="1" disabled="disabled"/>
-        </form>
-      </div>
-    </div>
     <main class="-wide-header-detail-page">
       <div class="detail-wrapper -active">
         <div class="detail-header">
           <div class="detail-container">
             <div class="detail-header-outer-block">
               <div class="detail-header-image-block">
-                <img class="detail-header-image" src="pub.dev/user-img-url.png=s400"/>
+                <img class="detail-header-image" src="pub.dev/user-img-url.png=s400" alt="user profile picture"/>
               </div>
               <div class="detail-header-content-block">
                 <h1 class="title">Pub User</h1>
@@ -166,15 +160,15 @@
             <div class="detail-tabs-wide-header">
               <div class="detail-container">
                 <ul class="detail-tabs-header">
+                  <li class="detail-tab tab-button detail-tab-my-publishers-title -active -private" role="button">Publishers</li>
                   <li class="detail-tab tab-link detail-tab-my-packages-title -private" role="button">
-                    <a href="/my-packages">My packages</a>
+                    <a href="/my-packages">Packages</a>
                   </li>
                   <li class="detail-tab tab-link detail-tab-my-liked-packages-title -private" role="button">
-                    <a href="/my-liked-packages">My liked packages</a>
+                    <a href="/my-liked-packages">Likes</a>
                   </li>
-                  <li class="detail-tab tab-button detail-tab-my-publishers-title -active -private" role="button">My publishers</li>
                   <li class="detail-tab tab-link detail-tab-my-activity-log-title -private" role="button">
-                    <a href="/my-activity-log">My activity log</a>
+                    <a href="/my-activity-log">Activity log</a>
                   </li>
                 </ul>
               </div>
@@ -216,10 +210,10 @@
       <a class="link sep" href="https://www.google.com/intl/en/policies/privacy/">Privacy</a>
       <a class="link sep" href="/help">Help</a>
       <a class="link icon sep" href="/feed.atom">
-        <img class="inline-icon" src="/static/img/rss-feed-icon.svg?hash=mocked_hash_795155912" title="RSS/atom feed" alt="RSS/atom feed" width="20" height="20"/>
+        <img class="inline-icon" src="/static/img/rss-feed-icon.svg?hash=mocked_hash_795155912" alt="RSS icon" width="20" height="20" title="RSS/atom feed"/>
       </a>
       <a class="link icon github_issue" href="https://github.com/dart-lang/pub-dev/issues/new">
-        <img class="inline-icon" src="/static/img/bug-report-white-96px.png?hash=mocked_hash_709947442" title="Report an issue with this site" alt="Report an issue with this site" width="20" height="20"/>
+        <img class="inline-icon" src="/static/img/bug-report-white-96px.png?hash=mocked_hash_709947442" alt="bug report icon" width="20" height="20" title="Report an issue with this site"/>
       </a>
     </footer>
   </body>

@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:html/parser.dart';
 import 'package:pana/pana.dart' hide ReportStatus;
 import 'package:pub_dev/account/backend.dart';
@@ -59,7 +60,7 @@ void main() {
       final properCache = StaticFileCache.withDefaults();
       final cache = StaticFileCache();
       for (String path in properCache.keys) {
-        final file = StaticFile(path, 'text/mock', [], DateTime.now(),
+        final file = StaticFile(path, 'text/mock', [], clock.now(),
             'mocked_hash_${path.hashCode.abs()}');
         cache.addFile(file);
       }
@@ -92,10 +93,12 @@ void main() {
       var replacedContent = content;
       timestamps?.forEach((key, value) {
         if (value != null) {
-          final age = DateTime.now().difference(value);
+          final age = clock.now().difference(value);
           replacedContent = replacedContent
               .replaceAll(shortDateFormat.format(value), '%%$key-date%%')
               .replaceAll(value.toIso8601String(), '%%$key-timestamp%%')
+              .replaceAll(value.toIso8601String().replaceAll(':', r'\u003a'),
+                  '%%$key-escaped-timestamp%%')
               .replaceAll(formatXAgo(age), '%%x-ago%%');
         }
       });
@@ -254,7 +257,7 @@ void main() {
           packages: [
             TestPackage(
               name: 'pkg',
-              versions: ['1.0.0'],
+              versions: [TestVersion(version: '1.0.0')],
               isDiscontinued: true,
             ),
           ],
@@ -274,7 +277,10 @@ void main() {
           packages: [
             TestPackage(
               name: 'pkg',
-              versions: ['1.0.0', '2.0.0'],
+              versions: [
+                TestVersion(version: '1.0.0'),
+                TestVersion(version: '2.0.0'),
+              ],
               retractedVersions: ['1.0.0'],
             ),
           ],
@@ -303,7 +309,10 @@ void main() {
           packages: [
             TestPackage(
               name: 'pkg',
-              versions: ['1.0.0', '2.0.0'],
+              versions: [
+                TestVersion(version: '1.0.0'),
+                TestVersion(version: '2.0.0'),
+              ],
               retractedVersions: ['1.0.0'],
             ),
           ],
@@ -324,7 +333,8 @@ void main() {
       'package show page with legacy version',
       testProfile: TestProfile(
         packages: [
-          TestPackage(name: 'pkg', versions: ['1.0.0-legacy']),
+          TestPackage(
+              name: 'pkg', versions: [TestVersion(version: '1.0.0-legacy')]),
         ],
         defaultUser: 'admin@pub.dev',
       ),
@@ -356,10 +366,11 @@ void main() {
     });
 
     scopedTest('aborted analysis tab', () async {
+      final timestamp = DateTime(2017, 12, 18, 14, 26, 00);
       final card = ScoreCardData(
         reportTypes: ['pana'],
         panaReport: PanaReport(
-          timestamp: DateTime(2017, 12, 18, 14, 26, 00),
+          timestamp: timestamp,
           panaRuntimeInfo: _panaRuntimeInfo,
           reportStatus: ReportStatus.aborted,
           derivedTags: null,
@@ -372,7 +383,12 @@ void main() {
       );
       final html = scoreTabNode(card: card, likeCount: 1000000).toString();
 
-      expectGoldenFile(html, 'analysis_tab_aborted.html', isFragment: true);
+      expectGoldenFile(
+        html,
+        'analysis_tab_aborted.html',
+        isFragment: true,
+        timestamps: {'timestamp': timestamp},
+      );
     });
 
     scopedTest('outdated analysis tab', () async {
@@ -396,8 +412,8 @@ void main() {
             final user = await requireAuthenticatedUser();
             registerUserSessionData(UserSessionData(
               userId: user.userId,
-              created: DateTime.now(),
-              expires: DateTime.now().add(Duration(days: 1)),
+              created: clock.now(),
+              expires: clock.now().add(Duration(days: 1)),
               sessionId: 'session-1',
             ));
             return await loadPackagePageData(
@@ -408,8 +424,8 @@ void main() {
           data,
           ['example.com'],
           await accountBackend.lookupUsersByEmail('admin@pub.dev'),
-          [],
-          [],
+          ['2.0.0'],
+          ['1.0.0'],
         );
         expectGoldenFile(html, 'pkg_admin_page.html', timestamps: {
           'published': data.package!.created,
@@ -456,9 +472,7 @@ void main() {
         );
         expectGoldenFile(html, 'pkg_index_page.html', timestamps: {
           'oxygen-created': oxygen.created,
-          'oxygen-updated': oxygen.updated,
           'titanium-created': titanium.created,
-          'titanium-updated': titanium.updated,
         });
       },
     );
@@ -498,9 +512,7 @@ void main() {
         );
         expectGoldenFile(html, 'pkg_index_page_experimental.html', timestamps: {
           'oxygen-created': oxygen.created,
-          'oxygen-updated': oxygen.updated,
           'titanium-created': titanium.created,
-          'titanium-updated': titanium.updated,
         });
       },
     );
@@ -532,9 +544,7 @@ void main() {
         );
         expectGoldenFile(html, 'search_page.html', timestamps: {
           'oxygen-created': oxygen.created,
-          'oxygen-updated': oxygen.updated,
           'titanium-created': titanium.created,
-          'titanium-updated': titanium.updated,
         });
       },
     );
@@ -594,9 +604,7 @@ void main() {
         );
         expectGoldenFile(html, 'publisher_packages_page.html', timestamps: {
           'neon-created': neon.created,
-          'neon-updated': neon.updated,
           'titanium-created': titanium.created,
-          'titanium-updated': titanium.updated,
           'publisher-created': publisher.created,
           'publisher-updated': publisher.updated,
         });
@@ -662,26 +670,16 @@ void main() {
             imageUrl: 'pub.dev/user-img-url.png',
           );
           registerUserSessionData(session);
-          final searchForm =
-              SearchForm(context: SearchContext.myPackages([user.userId]));
-          final String html = renderAccountPackagesPage(
+          final html = renderAccountPackagesPage(
             user: user,
             userSessionData: session,
-            searchResultPage: SearchResultPage(
-              searchForm,
-              2,
-              packageHits: [oxygen!, neon!],
-            ),
-            pageLinks: PageLinks(searchForm, 10),
-            searchForm: searchForm,
-            totalCount: 2,
-            messageFromBackend: null,
+            packageHits: [oxygen!, neon!],
+            startPackage: 'oxygen',
+            nextPackage: 'package_after_neon',
           );
           expectGoldenFile(html, 'my_packages.html', timestamps: {
             'oxygen-created': oxygen.created,
-            'oxygen-updated': oxygen.updated,
             'neon-created': neon.created,
-            'neon-updated': neon.updated,
           });
         });
       },

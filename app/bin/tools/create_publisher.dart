@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:args/args.dart';
+import 'package:clock/clock.dart';
 
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/audit/models.dart';
@@ -60,7 +61,7 @@ Future main(List<String> args) async {
     }
 
     // Create the publisher
-    final now = DateTime.now().toUtc();
+    final now = clock.now().toUtc();
     await withRetryTransaction(dbService, (tx) async {
       final key = dbService.emptyKey.append(Publisher, id: publisherId);
       final p = await tx.lookupOrNull<Publisher>(key);

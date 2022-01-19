@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 
@@ -139,11 +140,11 @@ class JobBackend {
     required bool shouldProcess,
     int? priority,
   }) async {
-    packageVersionUpdated ??= DateTime.now().toUtc();
+    packageVersionUpdated ??= clock.now().toUtc();
     final id = _id(service, package, version);
     final state = shouldProcess ? JobState.available : JobState.idle;
     final lockedUntil =
-        shouldProcess ? null : DateTime.now().add(_shortExtendDuration);
+        shouldProcess ? null : clock.now().add(_shortExtendDuration);
     await db.withRetryTransaction(_db, (tx) async {
       final current =
           await tx.lookupOrNull<Job>(_db.emptyKey.append(Job, id: id));
@@ -234,7 +235,7 @@ class JobBackend {
           pool.markRace();
           return null;
         }
-        final now = DateTime.now().toUtc();
+        final now = clock.now().toUtc();
         selected!
           ..state = JobState.processing
           ..attemptCount = (selected.attemptCount ?? 0) + 1
@@ -271,7 +272,7 @@ class JobBackend {
       ..filter('runtimeVersion =', versions.runtimeVersion)
       ..filter('service =', service)
       ..filter('state =', JobState.processing)
-      ..filter('lockedUntil <', DateTime.now().toUtc());
+      ..filter('lockedUntil <', clock.now().toUtc());
     await for (Job job in query.run()) {
       try {
         await _unlock(job);
@@ -304,7 +305,7 @@ class JobBackend {
             current.lockedUntil == job.lockedUntil) {
           current
             ..processingKey = null
-            ..lockedUntil = DateTime.now().toUtc().add(_shortExtendDuration);
+            ..lockedUntil = clock.now().toUtc().add(_shortExtendDuration);
           tx.insert(current);
         }
       });
@@ -314,7 +315,7 @@ class JobBackend {
       ..filter('runtimeVersion =', versions.runtimeVersion)
       ..filter('service =', service)
       ..filter('state =', JobState.idle)
-      ..filter('lockedUntil <', DateTime.now().toUtc());
+      ..filter('lockedUntil <', clock.now().toUtc());
     await for (Job job in query.run()) {
       if (job.runtimeVersion != versions.runtimeVersion) continue;
       try {
@@ -388,7 +389,8 @@ class JobBackend {
     final extend = (errorCount == 0 || errorCount > 3)
         ? _longExtendDuration
         : _shortExtendDuration;
-    return DateTime.now()
+    return clock
+        .now()
         .toUtc()
         .add(extend)
         .add(Duration(hours: math.min(errorCount, 168 /* one week */)));
@@ -417,14 +419,14 @@ class JobBackend {
 /// Tracks the cached results of the latest available Job query.
 class _AvailablePool {
   final _jobs = <Job>[];
-  DateTime _queried = DateTime.now();
+  DateTime _queried = clock.now();
   int _race = 0;
 
   /// Update pool with a fresh list of jobs.
   void update(List<Job> jobs) {
     _jobs.clear();
     _jobs.addAll(jobs);
-    _queried = DateTime.now();
+    _queried = clock.now();
     _race = 0;
   }
 
@@ -432,7 +434,7 @@ class _AvailablePool {
   bool get hasAvailable {
     if (_jobs.isEmpty) return false;
     // expire list after 15 minutes
-    if (DateTime.now().difference(_queried).inMinutes >= 15) return false;
+    if (clock.now().difference(_queried).inMinutes >= 15) return false;
     // force expire if there are too many races compared to the remaining items
     if (_race * 10 > _jobs.length) return false;
     // otherwise a Job should be available
@@ -495,7 +497,7 @@ class _Stat {
 }
 
 class _AllStats {
-  final DateTime timestamp = DateTime.now().toUtc();
+  final DateTime timestamp = clock.now().toUtc();
   final _Stat all = _Stat();
   final _Stat latest = _Stat();
   final _Stat last90 = _Stat(collectFailed: true);

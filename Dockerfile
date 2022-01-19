@@ -1,5 +1,5 @@
 # Keep version in-sync with .mono_repo.yml and app/lib/shared/versions.dart
-FROM google/dart-runtime-base:2.14.1
+FROM google/dart-runtime-base:2.15.1
 
 # `apt-mark hold dart` ensures that Dart is not upgraded with the other packages
 #   We want to make sure SDK upgrades are explicit.
@@ -37,12 +37,12 @@ WORKDIR /project/app
 RUN dart /project/tool/pub_get_offline.dart /project/app
 
 # Setup analysis Dart SDKs
-RUN /project/tool/setup-dart.sh /tool/stable https://storage.googleapis.com/dart-archive/channels/stable/raw/2.14.4/sdk/dartsdk-linux-x64-release.zip
-RUN /project/tool/setup-dart.sh /tool/preview https://storage.googleapis.com/dart-archive/channels/beta/release/2.15.0-268.18.beta/sdk/dartsdk-linux-x64-release.zip
+RUN /project/tool/setup-dart.sh /tool/stable 2.15.1
+RUN /project/tool/setup-dart.sh /tool/preview 2.16.0-134.1.beta
 
 # Setup analysis Flutter SDKs
-RUN /project/tool/setup-flutter.sh /tool/stable 2.5.3
-RUN /project/tool/setup-flutter.sh /tool/preview 2.8.0-3.2.pre
+RUN /project/tool/setup-flutter.sh /tool/stable 2.8.1
+RUN /project/tool/setup-flutter.sh /tool/preview 2.10.0-0.1.pre
 
 # Clear out any arguments the base images might have set
 CMD []

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:client_data/package_api.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/datastore.dart';
@@ -131,25 +133,33 @@ void main() {
       final orig = await client.getVersionOptions('oxygen', '1.2.0');
       expect(orig.isRetracted, isFalse);
       final origInfo = await client.packageVersionInfo('oxygen', '1.2.0');
-      expect(origInfo.isRetracted, isNull);
+      expect(origInfo.retracted, isNull);
+      final p0Info = PackageData.fromJson(
+          json.decode(utf8.decode(await client.listVersions('oxygen')))
+              as Map<String, dynamic>);
+      expect(p0Info.latest.version, '1.2.0');
 
       final u1 = await client.setVersionOptions(
           'oxygen', '1.2.0', VersionOptions(isRetracted: true));
       expect(u1.isRetracted, isTrue);
       final u1Info = await client.packageVersionInfo('oxygen', '1.2.0');
-      expect(u1Info.isRetracted, isTrue);
+      expect(u1Info.retracted, isTrue);
       final v1 = await client.packageVersionInfo('oxygen', '1.0.0');
-      expect(v1.isRetracted, isNull);
+      expect(v1.retracted, isNull);
       await expectVersions(
         retractable: ['1.0.0', '2.0.0-dev'],
         recentlyRetracted: ['1.2.0'],
       );
+      final p1Info = PackageData.fromJson(
+          json.decode(utf8.decode(await client.listVersions('oxygen')))
+              as Map<String, dynamic>);
+      expect(p1Info.latest.version, '1.0.0');
 
       final u2 = await client.setVersionOptions(
           'oxygen', '1.2.0', VersionOptions(isRetracted: true));
       expect(u2.toJson(), u1.toJson());
       final u2Info = await client.packageVersionInfo('oxygen', '1.2.0');
-      expect(u2Info.isRetracted, isTrue);
+      expect(u2Info.retracted, isTrue);
       await expectVersions(
         retractable: ['1.0.0', '2.0.0-dev'],
         recentlyRetracted: ['1.2.0'],
@@ -159,20 +169,27 @@ void main() {
           'oxygen', '1.2.0', VersionOptions(isRetracted: false));
       expect(u3.toJson(), orig.toJson());
       final u3Info = await client.packageVersionInfo('oxygen', '1.2.0');
-      expect(u3Info.isRetracted, isNull);
+      expect(u3Info.retracted, isNull);
       await expectVersions(
         retractable: ['1.0.0', '1.2.0', '2.0.0-dev'],
         recentlyRetracted: [],
       );
+      final p3Info = PackageData.fromJson(
+          json.decode(utf8.decode(await client.listVersions('oxygen')))
+              as Map<String, dynamic>);
+      expect(p3Info.latest.version, '1.2.0');
     });
 
     testWithProfile('Updates latest version references',
         testProfile: TestProfile(
           defaultUser: 'admin@pub.dev',
           packages: [
-            TestPackage(
-                name: 'oxygen',
-                versions: ['1.0.0', '1.2.0', '2.0.0-dev', '2.1.0-dev']),
+            TestPackage(name: 'oxygen', versions: [
+              TestVersion(version: '1.0.0'),
+              TestVersion(version: '1.2.0'),
+              TestVersion(version: '2.0.0-dev'),
+              TestVersion(version: '2.1.0-dev'),
+            ]),
           ],
         ), fn: () async {
       await expectVersions(
@@ -191,14 +208,14 @@ void main() {
       final orig = await client.getVersionOptions('oxygen', '1.2.0');
       expect(orig.isRetracted, isFalse);
       final origInfo = await client.packageVersionInfo('oxygen', '1.2.0');
-      expect(origInfo.isRetracted, isNull);
+      expect(origInfo.retracted, isNull);
 
       // Retract latest
       final u1 = await client.setVersionOptions(
           'oxygen', '1.2.0', VersionOptions(isRetracted: true));
       expect(u1.isRetracted, isTrue);
       final u1Info = await client.packageVersionInfo('oxygen', '1.2.0');
-      expect(u1Info.isRetracted, isTrue);
+      expect(u1Info.retracted, isTrue);
 
       final pkg1 = (await packageBackend.lookupPackage('oxygen'))!;
       expect(pkg1.latestVersion, '1.0.0');
@@ -210,7 +227,7 @@ void main() {
           'oxygen', '1.2.0', VersionOptions(isRetracted: false));
       expect(u2.isRetracted, isFalse);
       final u2Info = await client.packageVersionInfo('oxygen', '1.2.0');
-      expect(u2Info.isRetracted, isNull);
+      expect(u2Info.retracted, isNull);
 
       final pkg2 = (await packageBackend.lookupPackage('oxygen'))!;
       expect(pkg2.latestVersion, '1.2.0');
@@ -222,7 +239,7 @@ void main() {
           'oxygen', '2.1.0-dev', VersionOptions(isRetracted: true));
       expect(u3.isRetracted, isTrue);
       final u3Info = await client.packageVersionInfo('oxygen', '2.1.0-dev');
-      expect(u3Info.isRetracted, isTrue);
+      expect(u3Info.retracted, isTrue);
 
       final pkg3 = (await packageBackend.lookupPackage('oxygen'))!;
       expect(pkg3.latestPrereleaseVersion, '2.0.0-dev');
@@ -235,7 +252,7 @@ void main() {
           'oxygen', '2.0.0-dev', VersionOptions(isRetracted: true));
       expect(u4.isRetracted, isTrue);
       final u4Info = await client.packageVersionInfo('oxygen', '2.0.0-dev');
-      expect(u4Info.isRetracted, isTrue);
+      expect(u4Info.retracted, isTrue);
 
       final pkg4 = (await packageBackend.lookupPackage('oxygen'))!;
       expect(pkg4.latestPrereleaseVersion, '1.2.0');
@@ -247,7 +264,7 @@ void main() {
           'oxygen', '2.1.0-dev', VersionOptions(isRetracted: false));
       expect(u5.isRetracted, isFalse);
       final u5Info = await client.packageVersionInfo('oxygen', '2.1.0-dev');
-      expect(u5Info.isRetracted, isNull);
+      expect(u5Info.retracted, isNull);
 
       final pkg5 = (await packageBackend.lookupPackage('oxygen'))!;
       expect(pkg5.latestPrereleaseVersion, '2.1.0-dev');
@@ -268,10 +285,10 @@ void main() {
       final u7Info = await client.packageVersionInfo('oxygen', '1.2.0');
       final u8Info = await client.packageVersionInfo('oxygen', '2.0.0-dev');
       final u9Info = await client.packageVersionInfo('oxygen', '2.1.0-dev');
-      expect(u6Info.isRetracted, isTrue);
-      expect(u7Info.isRetracted, isTrue);
-      expect(u8Info.isRetracted, isTrue);
-      expect(u9Info.isRetracted, isTrue);
+      expect(u6Info.retracted, isTrue);
+      expect(u7Info.retracted, isTrue);
+      expect(u8Info.retracted, isTrue);
+      expect(u9Info.retracted, isTrue);
 
       final pkg6 = (await packageBackend.lookupPackage('oxygen'))!;
       expect(pkg6.latestVersion, '1.2.0');

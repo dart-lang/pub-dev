@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert' show json;
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/iamcredentials/v1.dart' as iam_credentials;
 import 'package:http/http.dart' as http;
@@ -148,10 +149,10 @@ class _GmailSmtpRelay implements EmailSender {
   }
 
   Future<SmtpServer> _getSmtpServer() async {
-    final maxAge = DateTime.now().subtract(Duration(minutes: 15));
+    final maxAge = clock.now().subtract(Duration(minutes: 15));
     if (_accessToken == null || _accessTokenRefreshed.isBefore(maxAge)) {
       _accessToken = _createAccessToken();
-      _accessTokenRefreshed = DateTime.now();
+      _accessTokenRefreshed = clock.now();
     }
 
     // For documentation see:
@@ -164,7 +165,7 @@ class _GmailSmtpRelay implements EmailSender {
   /// https://developers.google.com/identity/protocols/oauth2/service-account
   Future<String> _createAccessToken() async {
     final iam = iam_credentials.IAMCredentialsApi(_authClient);
-    final iat = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000 - 20;
+    final iat = clock.now().toUtc().millisecondsSinceEpoch ~/ 1000 - 20;
     iam_credentials.SignJwtResponse jwtResponse;
     try {
       jwtResponse = await retry(() => iam.projects.serviceAccounts.signJwt(

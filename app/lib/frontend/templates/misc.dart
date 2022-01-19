@@ -32,6 +32,11 @@ final _helpScoringMarkdown = _readDocContent('help-scoring.md');
 final _helpSearchMarkdown = _readDocContent('help-search.md');
 final _helpPublishingMarkdown = _readDocContent('help-publishing.md');
 
+late final _sideImage = d.Image(
+  src: static_files.staticUrls.packagesSideImage,
+  alt: 'cover image decorating the page',
+);
+
 /// Renders the response where the real content is only provided for logged-in users.
 String renderUnauthenticatedPage() {
   return renderLayoutPage(
@@ -58,7 +63,7 @@ String renderHelpApiPage() {
     PageType.standalone,
     standalonePageNode(
       _apiMarkdown,
-      sideImageUrl: static_files.staticUrls.packagesSideImage,
+      sideImage: _sideImage,
     ),
     title: 'pub.dev API',
     canonicalUrl: '/help/api',
@@ -71,7 +76,7 @@ String renderHelpPage() {
     PageType.standalone,
     standalonePageNode(
       _helpMarkdown,
-      sideImageUrl: static_files.staticUrls.packagesSideImage,
+      sideImage: _sideImage,
     ),
     title: 'Help | Dart packages',
     canonicalUrl: '/help',
@@ -84,7 +89,7 @@ String renderHelpScoringPage() {
     PageType.standalone,
     standalonePageNode(
       _helpScoringMarkdown,
-      sideImageUrl: static_files.staticUrls.packagesSideImage,
+      sideImage: _sideImage,
     ),
     title: 'Scoring | Dart packages',
     canonicalUrl: '/help/scoring',
@@ -97,7 +102,7 @@ String renderHelpSearchPage() {
     PageType.standalone,
     standalonePageNode(
       _helpSearchMarkdown,
-      sideImageUrl: static_files.staticUrls.packagesSideImage,
+      sideImage: _sideImage,
     ),
     title: 'Search | Dart packages',
     canonicalUrl: '/help/search',
@@ -110,7 +115,7 @@ String renderHelpPublishingPage() {
     PageType.standalone,
     standalonePageNode(
       _helpPublishingMarkdown,
-      sideImageUrl: static_files.staticUrls.packagesSideImage,
+      sideImage: _sideImage,
     ),
     title: 'Publishing | Dart packages',
     canonicalUrl: '/help/publishing',

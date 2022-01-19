@@ -5,6 +5,11 @@
 import '../../shared/tags.dart' show SdkTagValue;
 import '../dom/dom.dart' as d;
 
+const myPublishersTabTitle = 'Publishers';
+const myPackagesTabTitle = 'Packages';
+const myLikedPackagesTabTitle = 'Likes';
+const myActivityLogTabTitle = 'Activity log';
+
 class SdkDict {
   final String topSdkPackages;
   final String searchPackagesLabel;

@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
 import 'package:tar/tar.dart';
@@ -37,38 +38,63 @@ class TarArchive {
               MapEntry<String, String>(_normalize(key), _normalize(value))),
         );
 
-  /// Reads file content as String.
-  Future<String> readContentAsString(String name, {int maxLength = 0}) async {
-    final mappedName = _normalizedNames[name] ?? name;
+  /// Scans the tar archive and reads the content of the files identified by [names].
+  ///
+  /// For each file, if [maxLength] is reached, the content is returned up-to the
+  /// current byte buffer.
+  Future<Map<String, Uint8List>> scanAndReadFiles(
+    List<String> names, {
+    required int maxLength,
+  }) async {
+    if (names.isEmpty) return <String, Uint8List>{};
+    final mappedNames =
+        names.map((name) => _normalizedNames[name] ?? name).toList();
     final reader = TarReader(
       File(_path).openRead().transform(gzip.decoder),
       disallowTrailingData: true,
     );
+    final results = <String, Uint8List>{};
     try {
-      while (await reader.moveNext()) {
-        if (reader.current.name != mappedName) continue;
+      while (await reader.moveNext() && results.length < names.length) {
+        final currentName = reader.current.name;
+        final indexOfMapped = mappedNames.indexOf(currentName);
+        if (indexOfMapped < 0) continue;
         final builder = BytesBuilder();
         await for (final chunk in reader.current.contents) {
-          builder.add(chunk);
-          if (maxLength > 0 && builder.length >= maxLength) break;
+          // We need to read all content chuncks before proceeding with
+          // the next file, however, if the buffer is over the maximum
+          // length, we can drop the chunks.
+          if (maxLength == 0 || builder.length <= maxLength) {
+            builder.add(chunk);
+          }
         }
-        String content = utf8.decode(builder.toBytes(), allowMalformed: true);
-        if (maxLength > 0 && content.length > maxLength) {
-          content = content.substring(0, maxLength) + '[...]\n\n';
-        }
-        return content;
+        results[names[indexOfMapped]] = builder.toBytes();
       }
     } finally {
       await reader.cancel();
     }
-    throw AssertionError('Unable to read $name from $_path.');
+    if (results.length != mappedNames.length) {
+      final missing = {...mappedNames}..removeAll(results.keys);
+      throw AssertionError('Unable to read ${missing.join(' ')} from $_path.');
+    }
+    return results;
+  }
+
+  /// Reads file content as String.
+  Future<String> readContentAsString(String name, {int maxLength = 0}) async {
+    final contents = await scanAndReadFiles([name], maxLength: maxLength);
+    String content = utf8.decode(contents.values.single, allowMalformed: true);
+    if (maxLength > 0 && content.length > maxLength) {
+      content = content.substring(0, maxLength) + '[...]\n\n';
+    }
+    return content;
   }
 
   // Searches in scanned files for a file name [name] and compare in a
   // case-insensitive manner.
   //
   // Returns `null` if not found otherwise the correct filename.
-  String? searchForFile(Iterable<String> names) {
+  String? firstFileNameOrNull(Iterable<String> names) {
     for (String name in names) {
       final String nameLowercase = name.toLowerCase();
       for (final filename in fileNames) {

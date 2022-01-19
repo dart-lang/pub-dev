@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pana/models.dart'
     show LicenseFile, PanaRuntimeInfo, Report, ReportSection, UrlProblem;
@@ -51,7 +52,7 @@ class ScoreCard extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)
   String? packageName;
 
-  @db.StringProperty(required: true)
+  @db.StringProperty(required: true, indexed: false)
   String? packageVersion;
 
   @db.StringProperty(required: true)
@@ -60,38 +61,38 @@ class ScoreCard extends db.ExpandoModel<String> {
   @db.DateTimeProperty(required: true)
   DateTime? updated;
 
-  @db.DateTimeProperty(required: true)
+  @db.DateTimeProperty(required: true, indexed: false)
   DateTime? packageCreated;
 
-  @db.DateTimeProperty(required: true)
+  @db.DateTimeProperty(required: true, indexed: false)
   DateTime? packageVersionCreated;
 
   /// Granted score from pana and dartdoc analysis.
-  @db.IntProperty()
+  @db.IntProperty(indexed: false)
   int? grantedPubPoints;
 
   /// Max score from pana and dartdoc analysis.
   /// `null` if report is not ready yet.
   /// `0` if analysis was not running
-  @db.IntProperty()
+  @db.IntProperty(indexed: false)
   int? maxPubPoints;
 
   /// Score for package popularity (0.0 - 1.0).
-  @db.DoubleProperty()
+  @db.DoubleProperty(indexed: false)
   double? popularityScore;
 
   /// List of tags computed by `pana` or other analyzer.
-  @db.StringListProperty()
+  @db.StringListProperty(indexed: false)
   List<String> derivedTags = <String>[];
 
   /// The flags for the package, version or analysis.
   /// Example values: entries from [PackageFlags].
-  @CompatibleStringListProperty()
+  @CompatibleStringListProperty(indexed: false)
   List<String> flags = <String>[];
 
   /// The report types that are already done for the ScoreCard.
   /// Contains values from [ReportType].
-  @CompatibleStringListProperty()
+  @CompatibleStringListProperty(indexed: false)
   List<String> reportTypes = <String>[];
 
   /// Compressed, json-encoded content of [PanaReport].
@@ -114,7 +115,7 @@ class ScoreCard extends db.ExpandoModel<String> {
     final key = scoreCardKey(packageName!, packageVersion!);
     parentKey = key.parent;
     id = key.id;
-    updated = DateTime.now().toUtc();
+    updated = clock.now().toUtc();
   }
 
   ScoreCardData toData() => ScoreCardData(
@@ -244,7 +245,7 @@ class ScoreCardData extends Object with FlagMixin {
   factory ScoreCardData.fromJson(Map<String, dynamic> json) =>
       _$ScoreCardDataFromJson(json);
 
-  bool get isNew => DateTime.now().difference(packageCreated!).inDays <= 30;
+  bool get isNew => clock.now().difference(packageCreated!).inDays <= 30;
 
   bool get isCurrent => runtimeVersion == versions.runtimeVersion;
 

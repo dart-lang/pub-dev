@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../shared/tags.dart';
-import '../shared/urls.dart';
 
 import 'search_service.dart';
 
@@ -94,9 +93,6 @@ class SearchForm {
     List<String>? runtimes,
     List<String>? platforms,
     int? currentPage,
-    bool? includeDiscontinued,
-    bool? includeUnlisted,
-    bool? nullSafe,
   }) {
     runtimes ??= this.runtimes;
     platforms ??= this.platforms;
@@ -116,9 +112,9 @@ class SearchForm {
       order: order,
       currentPage: currentPage ?? this.currentPage,
       pageSize: pageSize,
-      includeDiscontinued: includeDiscontinued ?? this.includeDiscontinued,
-      includeUnlisted: includeUnlisted ?? this.includeUnlisted,
-      nullSafe: nullSafe ?? this.nullSafe,
+      includeDiscontinued: includeDiscontinued,
+      includeUnlisted: includeUnlisted,
+      nullSafe: nullSafe,
     );
   }
 
@@ -154,45 +150,41 @@ class SearchForm {
     return change(platforms: platforms);
   }
 
-  SearchForm toggleDiscontinued() =>
-      change(includeDiscontinued: !includeDiscontinued);
-
-  SearchForm toggleUnlisted() => change(includeUnlisted: !includeUnlisted);
-
-  SearchForm toggleNullSafe() => change(nullSafe: !nullSafe);
-
   ServiceSearchQuery toServiceQuery() {
-    var prohibitLegacy = !context.includeAll;
-    // Only parse query texts when a quick text match indicates the presence of
-    // `is:legacy` override.
-    if (prohibitLegacy &&
-        hasQuery &&
-        query!.contains(PackageVersionTags.isLegacy)) {
-      final parsed = ParsedQueryText.parse(query);
-      if (parsed.tagsPredicate.isRequiredTag(PackageVersionTags.isLegacy)) {
-        prohibitLegacy = false;
-      }
-    }
+    final prohibitLegacy = !context.includeAll &&
+        !parsedQuery.tagsPredicate.anyTag((tag) =>
+            tag == PackageVersionTags.isLegacy ||
+            tag == PackageVersionTags.showLegacy ||
+            tag == PackageTags.showHidden);
+    final prohibitDiscontinued = !context.includeAll &&
+        !includeDiscontinued &&
+        !parsedQuery.tagsPredicate.anyTag((tag) =>
+            tag == PackageTags.isDiscontinued ||
+            tag == PackageTags.showDiscontinued ||
+            tag == PackageTags.showHidden);
+    final prohibitUnlisted = !context.includeAll &&
+        !includeUnlisted &&
+        !parsedQuery.tagsPredicate.anyTag((tag) =>
+            tag == PackageTags.isUnlisted ||
+            tag == PackageTags.showUnlisted ||
+            tag == PackageTags.showHidden);
     final tagsPredicate = TagsPredicate(
       requiredTags: [
-        if (nullSafe)
-          PackageTags.convertToPrereleaseTag(PackageVersionTags.isNullSafe),
+        if (nullSafe) PackageVersionTags.isNullSafe,
         if (context.isFlutterFavorites) PackageTags.isFlutterFavorite,
         if (SdkTagValue.isNotAny(context.sdk)) 'sdk:${context.sdk}',
         ...runtimes.map((v) => 'runtime:$v'),
         ...platforms.map((v) => 'platform:$v'),
       ],
       prohibitedTags: [
-        if (!includeDiscontinued && !context.includeAll)
-          PackageTags.isDiscontinued,
-        if (!includeUnlisted && !context.includeAll) PackageTags.isUnlisted,
+        if (prohibitDiscontinued) PackageTags.isDiscontinued,
+        if (prohibitUnlisted) PackageTags.isUnlisted,
         if (prohibitLegacy) PackageVersionTags.isLegacy,
       ],
     );
     return ServiceSearchQuery.parse(
       query: query,
       tagsPredicate: tagsPredicate,
-      uploaderOrPublishers: context.uploaderOrPublishers,
       publisherId: context.publisherId,
       offset: offset,
       limit: pageSize,
@@ -266,13 +258,6 @@ class SearchContext {
   /// Whether the search query is in the Dart or Flutter SDK context.
   final String? sdk;
 
-  /// The query will match packages where the owners of the package have
-  /// non-empty intersection with the provided list of owners.
-  ///
-  /// Values of this list can be email addresses (usually a single on) or
-  /// publisher ids (may be multiple).
-  final List<String>? uploaderOrPublishers;
-
   final String? publisherId;
 
   /// True, if all packages should be part of the results, including:
@@ -284,11 +269,9 @@ class SearchContext {
   SearchContext._({
     this.isFlutterFavorites = false,
     this.sdk,
-    List<String>? uploaderOrPublishers,
     String? publisherId,
     this.includeAll = false,
-  })  : uploaderOrPublishers = _listToNull(uploaderOrPublishers),
-        publisherId = _stringToNull(publisherId);
+  }) : publisherId = _stringToNull(publisherId);
 
   /// Include all packages, including discontinued, unlisted and legacy.
   factory SearchContext.all() => SearchContext._(includeAll: true);
@@ -310,13 +293,6 @@ class SearchContext {
   factory SearchContext.publisher(String publisherId) =>
       SearchContext._(publisherId: publisherId, includeAll: true);
 
-  /// All packages listed for the current user.
-  factory SearchContext.myPackages(List<String>? uploaderOrPublishers) =>
-      SearchContext._(
-        uploaderOrPublishers: uploaderOrPublishers,
-        includeAll: true,
-      );
-
   /// Converts the query to a user-facing link that the search form can use as
   /// the base path of its `action` parameter.
   String toSearchFormPath() {
@@ -329,9 +305,6 @@ class SearchContext {
     }
     if (publisherId != null && publisherId!.isNotEmpty) {
       path = '/publishers/$publisherId/packages';
-    }
-    if (uploaderOrPublishers != null && uploaderOrPublishers!.isNotEmpty) {
-      path = myPackagesUrl();
     }
     return path;
   }
@@ -366,5 +339,3 @@ SearchForm _parseFrontendSearchForm(
 }
 
 String? _stringToNull(String? v) => (v == null || v.isEmpty) ? null : v;
-List<String>? _listToNull(List<String>? list) =>
-    (list == null || list.isEmpty) ? null : list;

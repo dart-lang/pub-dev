@@ -34,7 +34,7 @@ void main() {
       final pvs = await _resolve([
         TestPackage(
           name: 'safe_url_check',
-          versions: ['1.0.0'],
+          versions: [TestVersion(version: '1.0.0')],
         )
       ]);
       expect(pvs, hasLength(2));

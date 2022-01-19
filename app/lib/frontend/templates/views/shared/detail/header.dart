@@ -12,7 +12,7 @@ d.Node detailHeaderNode({
   required d.Node titleNode,
   required d.Node? metadataNode,
   required d.Node? tagsNode,
-  required String? imageUrl,
+  required d.Image? image,
   required bool isLiked,
   required int? likeCount,
   required bool isFlutterFavorite,
@@ -36,14 +36,20 @@ d.Node detailHeaderNode({
                 d.img(
                   classes: ['ff-banner', 'ff-banner-desktop'],
                   title: 'Package is a Flutter Favorite',
-                  src: staticUrls
-                      .getAssetUrl('/static/img/ff-banner-desktop-2x.png'),
+                  image: d.Image(
+                    src: staticUrls
+                        .getAssetUrl('/static/img/ff-banner-desktop-2x.png'),
+                    alt: 'large Flutter Favorite logo',
+                  ),
                 ),
                 d.img(
                   classes: ['ff-banner', 'ff-banner-mobile'],
                   title: 'Package is a Flutter Favorite',
-                  src: staticUrls
-                      .getAssetUrl('/static/img/ff-banner-mobile-2x.png'),
+                  image: d.Image(
+                    src: staticUrls
+                        .getAssetUrl('/static/img/ff-banner-mobile-2x.png'),
+                    alt: 'small Flutter Favorite logo',
+                  ),
                 ),
               ],
             ),
@@ -59,10 +65,13 @@ d.Node detailHeaderNode({
         child: d.div(
           classes: ['detail-header-outer-block'],
           children: [
-            if (imageUrl != null && imageUrl.isNotEmpty)
+            if (image != null)
               d.div(
                 classes: ['detail-header-image-block'],
-                child: d.img(classes: ['detail-header-image'], src: imageUrl),
+                child: d.img(
+                  classes: ['detail-header-image'],
+                  image: image,
+                ),
               ),
             d.div(
               classes: ['detail-header-content-block'],
@@ -82,12 +91,20 @@ d.Node detailHeaderNode({
                             material.iconButton(
                               id: '-pub-like-icon-button',
                               isOn: isLiked,
-                              iconWidth: 18,
-                              iconHeight: 18,
-                              onIconUrl: staticUrls
-                                  .getAssetUrl('/static/img/like-active.svg'),
-                              offIconUrl: staticUrls
-                                  .getAssetUrl('/static/img/like-inactive.svg'),
+                              onIcon: d.Image(
+                                src: staticUrls
+                                    .getAssetUrl('/static/img/like-active.svg'),
+                                alt: 'icon indicating liked status (active)',
+                                width: 18,
+                                height: 18,
+                              ),
+                              offIcon: d.Image(
+                                src: staticUrls.getAssetUrl(
+                                    '/static/img/like-inactive.svg'),
+                                alt: 'icon indicating liked status (inactive)',
+                                width: 18,
+                                height: 18,
+                              ),
                               attributes: {
                                 'aria-label': isLiked
                                     ? 'Unlike this package'

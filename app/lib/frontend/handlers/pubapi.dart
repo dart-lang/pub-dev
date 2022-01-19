@@ -17,6 +17,7 @@ import '../../package/backend.dart' hide InviteStatus;
 import '../../publisher/backend.dart';
 import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
+import '../../shared/urls.dart' as urls;
 import '../../task/backend.dart' show taskBackend;
 import 'account.dart';
 import 'custom_api.dart';
@@ -115,17 +116,17 @@ class PubApi {
   Future<SuccessMessage> packageUploadCallback(Request request) async {
     final uploadId = request.requestedUri.queryParameters['upload_id'];
     InvalidInputException.checkNotNull(uploadId, 'upload_id');
-    await packageBackend.publishUploadedBlob(uploadId!);
-    return SuccessMessage(
-        success: Message(message: 'Successfully uploaded package.'));
+    return await finishPackageUpload(request, uploadId!);
   }
 
   @EndPoint.get('/api/packages/versions/newUploadFinish/<uploadId>')
   Future<SuccessMessage> finishPackageUpload(
       Request request, String uploadId) async {
-    await packageBackend.publishUploadedBlob(uploadId);
+    final pv = await packageBackend.publishUploadedBlob(uploadId);
     return SuccessMessage(
-        success: Message(message: 'Successfully uploaded package.'));
+        success: Message(
+            message:
+                'Successfully uploaded ${urls.pkgPageUrl(pv.package, includeHost: true)} "${pv.version}".'));
   }
 
   /// Adding a new uploader

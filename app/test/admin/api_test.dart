@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:client_data/admin_api.dart';
+import 'package:clock/clock.dart';
 import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
@@ -182,7 +183,7 @@ void main() {
             await dbService.lookupOrNull<ModeratedPackage>(moderatedPkgKey);
         expect(moderatedPkg, isNull);
 
-        final timeBeforeRemoval = DateTime.now().toUtc();
+        final timeBeforeRemoval = clock.now().toUtc();
         final rs = await client.adminRemovePackage('oxygen');
 
         expect(utf8.decode(rs), '{"status":"OK"}');
@@ -218,6 +219,7 @@ void main() {
         final pkgKey = dbService.emptyKey.append(Package, id: 'oxygen');
         final package = await dbService.lookupValue<Package>(pkgKey);
         expect(package, isNotNull);
+        expect(package.deletedVersions ?? [], isEmpty);
 
         final versionsQuery =
             dbService.query<PackageVersion>(ancestorKey: pkgKey);
@@ -243,7 +245,7 @@ void main() {
             await dbService.lookupOrNull<ModeratedPackage>(moderatedPkgKey);
         expect(moderatedPkg, isNull);
 
-        final timeBeforeRemoval = DateTime.now().toUtc();
+        final timeBeforeRemoval = clock.now().toUtc();
         final rs =
             await client.adminRemovePackageVersion('oxygen', removeVersion);
 
@@ -255,7 +257,8 @@ void main() {
         expect(Version.parse(pkgAfter1stRemoval!.latestVersion!),
             lessThan(Version.parse(removeVersion)));
         expect(pkgAfter1stRemoval.updated!.isAfter(timeBeforeRemoval), isTrue);
-        expect(pkgAfter1stRemoval.versionCount, package.versionCount! - 1);
+        expect(pkgAfter1stRemoval.versionCount, package.versionCount - 1);
+        expect(pkgAfter1stRemoval.deletedVersions, [removeVersion]);
 
         final versionsAfterRemoval = await versionsQuery.run().toList();
         final missingVersion = versions
@@ -291,6 +294,10 @@ void main() {
         expect(
           pkgAfter2ndRemoval.versionCount,
           pkgAfter1stRemoval.versionCount,
+        );
+        expect(
+          pkgAfter2ndRemoval.deletedVersions,
+          pkgAfter1stRemoval.deletedVersions,
         );
       });
     });

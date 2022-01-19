@@ -39,7 +39,7 @@
       <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MX6DBN9" height="0" width="0" style="display:none;visibility:hidden"></iframe>
     </noscript>
     <div class="site-header">
-      <button class="hamburger"></button>
+      <button class="hamburger" aria-label="menu toggle"></button>
       <a class="logo" href="/">
         <img class="site-logo" src="/static/img/pub-dev-logo-2x.png?hash=mocked_hash_685890546" alt="pub logo" width="135" height="30"/>
       </a>
@@ -80,7 +80,7 @@
         <div class="nav-container nav-help-container-mobile foldable">
           <h3 class="foldable-button">
             Pub.dev
-            <img class="foldable-icon" src="/static/img/nav-mobile-foldable-icon.svg?hash=mocked_hash_806401648"/>
+            <img class="foldable-icon" src="/static/img/nav-mobile-foldable-icon.svg?hash=mocked_hash_806401648" alt="icon to toggle folding of the section"/>
           </h3>
           <div class="foldable-content">
             <a class="nav-link" href="/help/search" rel="noopener" target="_blank">Searching for packages</a>
@@ -90,7 +90,7 @@
         <div class="nav-container nav-help-container-mobile foldable">
           <h3 class="foldable-button">
             Flutter
-            <img class="foldable-icon" src="/static/img/nav-mobile-foldable-icon.svg?hash=mocked_hash_806401648"/>
+            <img class="foldable-icon" src="/static/img/nav-mobile-foldable-icon.svg?hash=mocked_hash_806401648" alt="icon to toggle folding of the section"/>
           </h3>
           <div class="foldable-content">
             <a class="nav-link" href="https://flutter.io/using-packages/" rel="noopener" target="_blank">Using packages</a>
@@ -101,7 +101,7 @@
         <div class="nav-container nav-help-container-mobile foldable">
           <h3 class="foldable-button">
             Dart
-            <img class="foldable-icon" src="/static/img/nav-mobile-foldable-icon.svg?hash=mocked_hash_806401648"/>
+            <img class="foldable-icon" src="/static/img/nav-mobile-foldable-icon.svg?hash=mocked_hash_806401648" alt="icon to toggle folding of the section"/>
           </h3>
           <div class="foldable-content">
             <a class="nav-link" href="https://dart.dev/tools/pub/get-started" rel="noopener" target="_blank">Using packages</a>
@@ -120,7 +120,7 @@
                 <h1 class="title">
                   pkg 1.0.0
                   <span class="pkg-page-title-copy">
-                    <img class="pkg-page-title-copy-icon" src="/static/img/content-copy-icon.svg?hash=mocked_hash_1005735992" title="Copy &quot;pkg: ^1.0.0&quot; to clipboard" data-copy-content="pkg: ^1.0.0" data-ga-click-event="copy-package-version"/>
+                    <img class="pkg-page-title-copy-icon" src="/static/img/content-copy-icon.svg?hash=mocked_hash_1005735992" alt="icon indicating copy to clipboard operation" title="Copy &quot;pkg: ^1.0.0&quot; to clipboard" data-copy-content="pkg: ^1.0.0" data-ga-click-event="copy-package-version"/>
                     <div class="pkg-page-title-copy-feedback">
                       <span class="code">pkg: ^1.0.0</span>
                       copied to clipboard
@@ -139,8 +139,8 @@
                   </div>
                   <div class="detail-like">
                     <button id="-pub-like-icon-button" class="mdc-icon-button" aria-label="Like this package" data-ga-click-event="toggle-like" aria-pressed="false">
-                      <img class="mdc-icon-button__icon" src="/static/img/like-inactive.svg?hash=mocked_hash_1066096316" width="18" height="18"/>
-                      <img class="mdc-icon-button__icon mdc-icon-button__icon--on" src="/static/img/like-active.svg?hash=mocked_hash_986617859" width="18" height="18"/>
+                      <img class="mdc-icon-button__icon" src="/static/img/like-inactive.svg?hash=mocked_hash_1066096316" alt="icon indicating liked status (inactive)" width="18" height="18"/>
+                      <img class="mdc-icon-button__icon mdc-icon-button__icon--on" src="/static/img/like-active.svg?hash=mocked_hash_986617859" alt="icon indicating liked status (active)" width="18" height="18"/>
                     </button>
                     <span class="likes-count">
                       <span id="likes-count">0</span>
@@ -246,7 +246,7 @@
             </p>
           </aside>
         </div>
-        <script type="application/ld+json">{"@context":"http:\u002f\u002fschema.org","@type":"SoftwareSourceCode","name":"pkg","version":"1.0.0","description":"pkg - pkg is awesome","url":"https:\u002f\u002fpub.dev\u002fpackages\u002fpkg","dateCreated":"%%published-timestamp%%","dateModified":"%%published-timestamp%%","programmingLanguage":"Dart","image":"https:\u002f\u002fpub.dev\u002fstatic\u002fimg\u002fpub-dev-icon-cover-image.png","license":"https:\u002f\u002fpub.dev\u002fpackages\u002fpkg\u002flicense"}</script>
+        <script type="application/ld+json">{"@context":"http\u003a\u002f\u002fschema.org","@type":"SoftwareSourceCode","name":"pkg","version":"1.0.0","description":"pkg - pkg is awesome","url":"https\u003a\u002f\u002fpub.dev\u002fpackages\u002fpkg","dateCreated":"%%published-escaped-timestamp%%","dateModified":"%%published-escaped-timestamp%%","programmingLanguage":"Dart","image":"https\u003a\u002f\u002fpub.dev\u002fstatic\u002fimg\u002fpub-dev-icon-cover-image.png","license":"https\u003a\u002f\u002fpub.dev\u002fpackages\u002fpkg\u002flicense"}</script>
       </div>
       <div class="detail-metadata">
         <h3 class="detail-metadata-title">
@@ -313,10 +313,10 @@
       <a class="link sep" href="https://www.google.com/intl/en/policies/privacy/">Privacy</a>
       <a class="link sep" href="/help">Help</a>
       <a class="link icon sep" href="/feed.atom">
-        <img class="inline-icon" src="/static/img/rss-feed-icon.svg?hash=mocked_hash_795155912" title="RSS/atom feed" alt="RSS/atom feed" width="20" height="20"/>
+        <img class="inline-icon" src="/static/img/rss-feed-icon.svg?hash=mocked_hash_795155912" alt="RSS icon" width="20" height="20" title="RSS/atom feed"/>
       </a>
       <a class="link icon github_issue" href="https://github.com/dart-lang/pub-dev/issues/new">
-        <img class="inline-icon" src="/static/img/bug-report-white-96px.png?hash=mocked_hash_709947442" title="Report an issue with this site" alt="Report an issue with this site" width="20" height="20"/>
+        <img class="inline-icon" src="/static/img/bug-report-white-96px.png?hash=mocked_hash_709947442" alt="bug report icon" width="20" height="20" title="Report an issue with this site"/>
       </a>
     </footer>
     <script src="/static/highlight/highlight-with-init.js?hash=mocked_hash_670483893" defer="defer"></script>

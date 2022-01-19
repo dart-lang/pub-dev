@@ -5,9 +5,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
     show DetailedApiRequestError;
+import 'package:clock/clock.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
@@ -41,6 +43,29 @@ extension BucketExt on Bucket {
     final metadata = ObjectMetadata(acl: acl, contentType: contentType);
     return uploadWithRetry(this, objectName, length, openStream,
         metadata: metadata);
+  }
+
+  /// Reads file content as bytes.
+  Future<Uint8List> readAsBytes(
+    String objectName, {
+    int? offset,
+    int? length,
+  }) async {
+    return retry(
+      () async {
+        final builder = BytesBuilder(copy: false);
+        await for (final chunk
+            in read(objectName, offset: offset, length: length)) {
+          builder.add(chunk);
+        }
+        return builder.toBytes();
+      },
+      retryIf: (e) {
+        return e is DetailedApiRequestError &&
+            e.status != null &&
+            e.status! >= 500;
+      },
+    );
   }
 }
 
@@ -173,7 +198,7 @@ class VersionedJsonStorage {
     if (info == null) {
       return false;
     }
-    final now = DateTime.now();
+    final now = clock.now();
     if (maxAge != null && now.difference(info.updated) > maxAge) {
       return false;
     }
@@ -252,7 +277,7 @@ class VersionedJsonStorage {
       found++;
       if (versions.shouldGCVersion(version)) {
         final info = await _bucket.info(entry.name);
-        final age = DateTime.now().difference(info.updated);
+        final age = clock.now().difference(info.updated);
         if (minAgeThreshold == null || age > minAgeThreshold) {
           deleted++;
           await deleteFromBucket(_bucket, entry.name);

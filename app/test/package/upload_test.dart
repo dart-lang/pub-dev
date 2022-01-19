@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/admin/backend.dart';
@@ -95,7 +96,7 @@ void main() {
         await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
           final user =
               await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
-          final dateBeforeTest = DateTime.now().toUtc();
+          final dateBeforeTest = clock.now().toUtc();
           final pubspecContent = generatePubspecYaml('new_package', '1.2.3');
           await tarballStorage.bucket.writeBytes('tmp/$uploadId',
               await packageArchiveBytes(pubspecContent: pubspecContent));
@@ -172,7 +173,7 @@ void main() {
         await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
           final user =
               await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
-          final dateBeforeTest = DateTime.now().toUtc();
+          final dateBeforeTest = clock.now().toUtc();
           final pubspecContent = generatePubspecYaml('neon', '7.0.0');
           await tarballStorage.bucket.writeBytes('tmp/$uploadId',
               await packageArchiveBytes(pubspecContent: pubspecContent));
@@ -322,6 +323,23 @@ void main() {
         });
       });
 
+      testWithProfile('versions has been deleted', fn: () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          await adminBackend.removePackageVersion('oxygen', '1.0.0');
+          final tarball = await packageArchiveBytes(
+              pubspecContent: generatePubspecYaml('oxygen', '1.0.0'));
+          final rs = packageBackend.upload(Stream.fromIterable([tarball]));
+          await expectLater(
+              rs,
+              throwsA(isA<Exception>().having(
+                (e) => '$e',
+                'text',
+                contains(
+                    'Version 1.0.0 of package oxygen was deleted previously, re-upload is not allowed.'),
+              )));
+        });
+      });
+
       // Returns the error message as String or null if it succeeded.
       Future<String?> fn(String name) async {
         final pubspecContent = generatePubspecYaml(name, '0.2.0');
@@ -353,10 +371,10 @@ void main() {
       testWithProfile('similar package names are rejected', fn: () async {
         await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
           expect(await fn('ox_ygen'),
-              'PackageRejected(400): Package name is too similar to another active or moderated package.');
+              'PackageRejected(400): Package name `ox_ygen` is too similar to another active package: `oxygen` (https://pub.dev/packages/oxygen).');
 
           expect(await fn('ox_y_ge_n'),
-              'PackageRejected(400): Package name is too similar to another active or moderated package.');
+              'PackageRejected(400): Package name `ox_y_ge_n` is too similar to another active package: `oxygen` (https://pub.dev/packages/oxygen).');
         });
       });
 
@@ -366,10 +384,10 @@ void main() {
           await nameTracker.scanDatastore();
 
           expect(await fn('neon'),
-              'PackageRejected(400): Package name is too similar to another active or moderated package.');
+              'PackageRejected(400): Package name `neon` is too similar to a moderated package: `neon`.');
 
           expect(await fn('ne_on'),
-              'PackageRejected(400): Package name is too similar to another active or moderated package.');
+              'PackageRejected(400): Package name `ne_on` is too similar to a moderated package: `neon`.');
         });
       });
 
@@ -488,7 +506,9 @@ void main() {
         defaultUser: 'admin@pub.dev',
         packages: <TestPackage>[
           TestPackage(
-              name: 'busy_pkg', versions: List.generate(100, (i) => '1.0.$i')),
+              name: 'busy_pkg',
+              versions:
+                  List.generate(100, (i) => TestVersion(version: '1.0.$i'))),
         ],
       ),
       fn: () async {

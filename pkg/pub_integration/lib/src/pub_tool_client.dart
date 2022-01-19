@@ -98,6 +98,7 @@ class DartToolClient {
     String? workingDirectory,
     Map<String, String>? environment,
     String? expectedError,
+    String? expectedOutputContains,
   }) async {
     final cmd = 'dart ${arguments.join(' ')}';
     print('Running $cmd in $workingDirectory...');
@@ -116,6 +117,15 @@ class DartToolClient {
       },
     );
 
+    if (expectedOutputContains != null &&
+        !pr.stdout.toString().contains(expectedOutputContains)) {
+      throw Exception(
+        '$cmd output does not contain expected string ($expectedOutputContains).\n'
+        'STDOUT: ${pr.stdout}\n'
+        'STDERR: ${pr.stderr}',
+      );
+    }
+
     if (pr.exitCode == 0) {
       return;
     }
@@ -123,7 +133,7 @@ class DartToolClient {
       return;
     }
     throw Exception(
-      '$cmd failed with exit code $exitCode.\n'
+      '$cmd failed with exit code ${pr.exitCode}.\n'
       'STDOUT: ${pr.stdout}\n'
       'STDERR: ${pr.stderr}',
     );
@@ -137,11 +147,16 @@ class DartToolClient {
     await runDart(['pub', 'get'], workingDirectory: pkgDir);
   }
 
-  Future<void> publish(String pkgDir, {String? expectedError}) async {
+  Future<void> publish(
+    String pkgDir, {
+    String? expectedError,
+    String? expectedOutputContains,
+  }) async {
     await runDart(
       ['pub', 'publish', '--force'],
       workingDirectory: pkgDir,
       expectedError: expectedError,
+      expectedOutputContains: expectedOutputContains,
     );
   }
 

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 
 import '../package/overrides.dart';
@@ -153,7 +154,7 @@ class Task {
 
   Task(this.package, this.version, this.updated);
 
-  Task.now(this.package, this.version) : updated = DateTime.now();
+  Task.now(this.package, this.version) : updated = clock.now();
 
   @override
   String toString() => '$package $version';

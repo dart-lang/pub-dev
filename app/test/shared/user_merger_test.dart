@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:clock/clock.dart';
 import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
@@ -62,14 +63,14 @@ void main() {
         ..id = 'target'
         ..userId = admin.userId
         ..email = admin.email
-        ..created = DateTime.now()
-        ..expires = DateTime.now(),
+        ..created = clock.now()
+        ..expires = clock.now(),
       UserSession()
         ..id = 'control'
         ..userId = control.userId
         ..email = control.userId
-        ..created = DateTime.now()
-        ..expires = DateTime.now(),
+        ..created = clock.now()
+        ..expires = clock.now(),
     ]);
 
     await _corruptAndFix();

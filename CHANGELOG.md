@@ -2,6 +2,42 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bumped runtimeVersion to `2022.01.17`.
+ * Upgraded preview Dart analysis SDK to `2.16.0-134.1.beta`.
+ * Upgraded preview Flutter analysis SDK to `2.10.0-0.1.pre`.
+ * NOTE: `search` index no longer uses or populates uploader `userId`.
+
+## `20220112t121700-all`
+ * Bumped runtimeVersion to `2022.01.06`.
+ * Upgraded pana to `0.21.5`.
+ * NOTE: Started to use `pkg/indexed_blob` to generate and serve `dartdoc` content.
+
+## `20220106t124300-all`
+ * Bumped runtimeVersion to `2021.12.17`.
+ * Upgraded runtime Dart SDK to `2.15.1`
+ * Upgraded stable Flutter analysis SDK to `2.8.1`.
+ * Upgraded preview Flutter analysis SDK to `2.9.0-0.1.pre`.
+
+## `20211216t102600-all`
+ * Bumped runtimeVersion to `2021.12.15`.
+ * Restored indexed fields in `Job`.
+
+## `20211215t122100-all`
+ * Bumped runtimeVersion to `2021.12.14`.
+ * Upgrade stable Dart analysis SDK to `2.15.1`.
+ * Upgraded preview Dart analysis SDK to `2.16.0-80.1.beta`.
+ * Upgraded stable Flutter analysis SDK to `2.8.0`.
+ * Upgraded preview Flutter analysis SDK to `2.8.0`.
+ * NOTE: `UserSession` no longer indexes on `email`, `name`, `userImg` and `created` fields.
+
+## `20211206t162600-all`
+ * Renamed `retracted` field in API response object `VersionInfo`.
+
+## `20211206t133000-all`
+ * Bumped runtimeVersion to `2021.12.06`.
+ * Upgrade stable Dart analysis SDK to `2.15.0`.
+ * Upgraded preview Dart analysis SDK to `2.16.0-63.0.dev`.
+ * Upgraded preview Flutter analysis SDK to `2.8.0-3.3.pre`.
 
 ## `20211202t154700-all`
  * Bumped runtimeVersion to `2021.11.28`.

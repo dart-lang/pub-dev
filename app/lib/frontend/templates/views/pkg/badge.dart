@@ -7,18 +7,16 @@ import '../../../dom/dom.dart' as d;
 d.Node packageBadgeNode({
   required String label,
   String? title,
-  String? iconUrl,
+  d.Image? icon,
 }) {
   return d.span(
     classes: ['package-badge'],
     attributes: title != null ? <String, String>{'title': title} : null,
     children: [
-      if (iconUrl != null)
+      if (icon != null)
         d.img(
           classes: ['package-badge-icon'],
-          src: iconUrl,
-          width: 13,
-          height: 13,
+          image: icon,
         ),
       d.text(label),
     ],

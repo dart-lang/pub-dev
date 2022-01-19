@@ -112,7 +112,7 @@ Future<PackageSummary> summarizePackageArchive(
   }
 
   // processing pubspec.yaml
-  final pubspecPath = tar.searchForFile(['pubspec.yaml']);
+  final pubspecPath = tar.firstFileNameOrNull(['pubspec.yaml']);
   if (pubspecPath == null) {
     issues.add(ArchiveIssue('pubspec.yaml is missing.'));
     return PackageSummary(issues: issues);
@@ -181,42 +181,47 @@ Future<PackageSummary> summarizePackageArchive(
     return PackageSummary(issues: issues);
   }
 
-  final package = pubspec.name;
+  String? readmePath = tar.firstFileNameOrNull(readmeFileNames);
+  String? changelogPath = tar.firstFileNameOrNull(changelogFileNames);
+  String? examplePath =
+      tar.firstFileNameOrNull(exampleFileCandidates(pubspec.name));
+  String? licensePath = tar.firstFileNameOrNull(licenseFileNames);
 
-  Future<String?> extractContent(String? contentPath) async {
+  final contentBytes = await tar.scanAndReadFiles(
+    [readmePath, changelogPath, examplePath, licensePath]
+        .whereType<String>()
+        .toList(),
+    maxLength: maxContentLength,
+  );
+
+  String? tryParseContentBytes(String? contentPath) {
     if (contentPath == null) return null;
-    final content =
-        await tar.readContentAsString(contentPath, maxLength: maxContentLength);
-    if (content.trim().isEmpty) {
-      return null;
-    }
-    if (utf8.encode(content).length > maxContentLength) {
+    final bytes = contentBytes[contentPath];
+    if (bytes == null) return null;
+    if (bytes.length > maxContentLength) {
       issues.add(ArchiveIssue(
           '`$contentPath` exceeds the maximum content length ($maxContentLength bytes).'));
+    }
+    String content = utf8.decode(bytes, allowMalformed: true);
+    if (content.length > maxContentLength) {
+      content = content.substring(0, maxContentLength) + '[...]\n\n';
     }
     return content;
   }
 
-  String? readmePath = tar.searchForFile(readmeFileNames);
-  final readmeContent = await extractContent(readmePath);
+  final readmeContent = tryParseContentBytes(readmePath);
   if (readmeContent == null) {
     readmePath = null;
   }
-
-  String? changelogPath = tar.searchForFile(changelogFileNames);
-  final changelogContent = await extractContent(changelogPath);
+  final changelogContent = tryParseContentBytes(changelogPath);
   if (changelogContent == null) {
     changelogPath = null;
   }
-
-  String? examplePath = tar.searchForFile(exampleFileCandidates(package));
-  final exampleContent = await extractContent(examplePath);
+  final exampleContent = tryParseContentBytes(examplePath);
   if (exampleContent == null) {
     examplePath = null;
   }
-
-  String? licensePath = tar.searchForFile(licenseFileNames);
-  final licenseContent = await extractContent(licensePath);
+  final licenseContent = tryParseContentBytes(licensePath);
   if (licenseContent == null) {
     licensePath = null;
   }
@@ -230,6 +235,7 @@ Future<PackageSummary> summarizePackageArchive(
 
   issues.addAll(validatePackageName(pubspec.name));
   issues.addAll(validatePackageVersion(pubspec.version));
+  issues.addAll(validateZalgo('description', pubspec.description));
   issues.addAll(syntaxCheckUrl(pubspec.homepage, 'homepage'));
   issues.addAll(syntaxCheckUrl(pubspec.repository?.toString(), 'repository'));
   issues.addAll(syntaxCheckUrl(pubspec.documentation, 'documentation'));
@@ -299,6 +305,30 @@ Iterable<ArchiveIssue> validatePackageVersion(Version? version) sync* {
   if (version.toString().length > 64) {
     yield ArchiveIssue('Package version must not exceed 64 characters. '
         '(Please file an issue if you think you have a good reason for a longer version.)');
+  }
+}
+
+/// Checks if the [text] has any weird characters like in
+/// https://en.wikipedia.org/wiki/Zalgo_text
+Iterable<ArchiveIssue> validateZalgo(String field, String? text) sync* {
+  if (text == null) return;
+  // Checks if the code is in the combining character unicode ranges:
+  // https://en.wikipedia.org/wiki/Combining_character
+  bool isDiacritic(int code) =>
+      (code >= 0x0300 && code <= 0x036F) ||
+      (code >= 0x1AB0 && code <= 0x1AFF) ||
+      (code >= 0x1DC0 && code <= 0x1DFF) ||
+      (code >= 0x20D0 && code <= 0x20FF) ||
+      (code >= 0xFE20 && code <= 0xFE2F) ||
+      (code == 0x3099) ||
+      (code == 0x309A);
+  final codes = text.codeUnits;
+  for (var i = 1; i < codes.length; i++) {
+    // checks for consecutive diacritical marks
+    if (isDiacritic(codes[i]) && isDiacritic(codes[i - 1])) {
+      yield ArchiveIssue('`$field` contains too many diacritical marks.');
+      break;
+    }
   }
 }
 

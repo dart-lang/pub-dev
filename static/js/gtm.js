@@ -13,6 +13,7 @@ window.dataLayer.push({
 // with a 'data-ga-click-event' attribute is clicked.
 window.addEventListener('DOMContentLoaded', function () {
   function sendEvent(e) {
+    var hasModifierKey = (e.altKey == true) || (e.ctrlKey  == true) || (e.metaKey == true) || (e.shiftKey == true);
     var element = e.currentTarget;
     var customEvent = {
       event: 'custom-event',
@@ -22,7 +23,7 @@ window.addEventListener('DOMContentLoaded', function () {
       customEventValue: 1 
     };
 
-    if (element.hasAttribute('href')) {
+    if (element.hasAttribute('href') && (!hasModifierKey)) {
       var done = false;
       // Change location after handling the event:
       // https://developers.google.com/tag-manager/enhanced-ecommerce

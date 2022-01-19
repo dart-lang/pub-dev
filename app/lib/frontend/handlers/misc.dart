@@ -170,6 +170,7 @@ Future<shelf.Response> experimentalHandler(shelf.Request request) async {
 <html>
 <head>
   <meta http-equiv="refresh" content="5; url=/">
+  <meta name="robots" content="noindex" />
 </head>
 <body>
   <center>
@@ -178,7 +179,7 @@ Future<shelf.Response> experimentalHandler(shelf.Request request) async {
       Experimental cookie enabled: <b>$enabled</b> (<a href="/experimental?enabled=${enabled ? '0' : '1'}">toggle</a>).<br>
       (redirecting to <a href="/">pub.dev</a> in 5 seconds).
     </p>
-  <center>
+  </center>
 </body>
 </html>''', headers: {
     HttpHeaders.setCookieHeader: cookie.toString(),

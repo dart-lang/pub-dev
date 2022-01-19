@@ -12,6 +12,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
+import 'package:clock/clock.dart';
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 // ignore: implementation_imports
@@ -284,7 +285,7 @@ String buildSetCookieValue({
     'Path=/',
     // Max-Age takes precedence over 'Expires', this also has the benefit of
     // not being corrupted by client-side clock skew.
-    'Max-Age=${expires.difference(DateTime.now()).inSeconds}',
+    'Max-Age=${expires.difference(clock.now()).inSeconds}',
     // Cookie expires when the session expires.
     'Expires=${HttpDate.format(expires)}',
     // Do not include the cookie in CORS requests, unless the request is a

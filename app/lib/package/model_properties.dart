@@ -7,6 +7,8 @@ library pub_dartlang_org.model_properties;
 import 'dart:convert';
 
 import 'package:pana/pana.dart' show SdkConstraintStatus;
+import 'package:pub_package_reader/pub_package_reader.dart'
+    show checkStrictVersions;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspek
     show Dependency, Pubspec;
@@ -14,6 +16,7 @@ import 'package:yaml/yaml.dart';
 
 import '../shared/datastore.dart';
 import '../shared/utils.dart' show canonicalizeVersion;
+import '../shared/versions.dart' as versions;
 
 Map<String, dynamic> _loadYaml(String yamlString) {
   final map = loadYaml(yamlString) as Map;
@@ -82,6 +85,9 @@ class Pubspec {
     return map is Map<String, dynamic> ? map : null;
   }
 
+  /// Whether the pubspec has any version value inside that is not formatter properly.
+  bool get hasBadVersionFormat => checkStrictVersions(_inner).isNotEmpty;
+
   /// Returns the minimal SDK version for the Dart SDK.
   ///
   /// Returns null if the constraint is missing or does not follow the
@@ -95,6 +101,20 @@ class Pubspec {
   bool isPreviewForCurrentSdk(Version currentSdkVersion) {
     final msv = minSdkVersion;
     return msv != null && msv.value.compareTo(currentSdkVersion) > 0;
+  }
+
+  /// True if either the Dart or the Flutter SDK constraint is higher than the
+  /// stable analysis SDK in the current runtime.
+  bool usesPreviewAnalysisSdk() {
+    if (isPreviewForCurrentSdk(versions.semanticToolStableDartSdkVersion)) {
+      return true;
+    }
+    final v = MinSdkVersion.tryParse(_inner.environment?['flutter']);
+    if (v != null &&
+        v.value.compareTo(versions.semanticToolStableFlutterSdkVersion) > 0) {
+      return true;
+    }
+    return false;
   }
 
   String? get sdkConstraint {

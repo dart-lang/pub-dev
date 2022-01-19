@@ -6,24 +6,23 @@ import 'dart:io';
 
 import 'package:client_data/account_api.dart';
 import 'package:logging/logging.dart';
-import 'package:pub_dev/audit/backend.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
 import '../../account/consent_backend.dart';
 import '../../account/session_cookie.dart' as session_cookie;
+import '../../audit/backend.dart';
 import '../../package/backend.dart';
-import '../../package/search_adapter.dart';
+import '../../package/models.dart';
 import '../../publisher/backend.dart';
 import '../../publisher/models.dart';
-import '../../search/search_form.dart';
+import '../../scorecard/backend.dart';
 import '../../shared/configuration.dart' show activeConfiguration;
 import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
 
 import '../templates/admin.dart';
 import '../templates/consent.dart';
-import '../templates/listing.dart';
 import '../templates/misc.dart' show renderUnauthenticatedPage;
 
 final _logger = Logger('account_handler');
@@ -220,28 +219,17 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
     return redirectResponse(request.requestedUri.path);
   }
 
-  final page =
-      await publisherBackend.listPublishersForUser(userSessionData!.userId!);
-  final searchForm = SearchForm.parse(
-    SearchContext.myPackages([
-      userSessionData!.userId!,
-      ...page.publishers!.map((p) => p.publisherId),
-    ]),
-    request.requestedUri.queryParameters,
-  );
-
-  final searchResult = await searchAdapter.search(searchForm);
-  final int totalCount = searchResult.totalCount;
-  final links = PageLinks(searchForm, totalCount);
+  final next = request.requestedUri.queryParameters['next'];
+  final page = await packageBackend
+      .listPackagesForUser(userSessionData!.userId!, next: next);
+  final hits = await scoreCardBackend.getPackageViews(page.packages);
 
   final html = renderAccountPackagesPage(
     user: (await accountBackend.lookupUserById(userSessionData!.userId!))!,
     userSessionData: userSessionData!,
-    searchResultPage: searchResult,
-    pageLinks: links,
-    searchForm: searchForm,
-    totalCount: totalCount,
-    messageFromBackend: searchResult.message,
+    startPackage: next,
+    packageHits: hits.whereType<PackageView>().toList(),
+    nextPackage: page.nextPackage,
   );
   return htmlResponse(html);
 }

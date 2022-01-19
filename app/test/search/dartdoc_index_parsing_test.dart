@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:pub_dev/search/models.dart';
@@ -38,7 +39,7 @@ void main() {
       final file = File(p.join('.dart_tool', 'pub-search-data', name));
       if (await file.exists()) {
         final lastModified = await file.lastModified();
-        final age = DateTime.now().difference(lastModified);
+        final age = clock.now().difference(lastModified);
         if (age.inDays < 7) {
           return file;
         }

@@ -8,6 +8,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:client_data/package_api.dart' show VersionScore;
+import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:indexed_blob/indexed_blob.dart' show BlobIndex;
 import 'package:logging/logging.dart';
@@ -34,7 +35,7 @@ class CachePatterns {
   final Cache<List<int>> _cache;
   CachePatterns._(Cache<List<int>> cache)
       : _cache = cache
-            .withPrefix('rv-$runtimeVersion')
+            .withPrefix('rv-$runtimeVersion/')
             .withTTL(Duration(minutes: 10));
 
   // NOTE: This class should only contain methods that return Entry<T>, as well
@@ -42,7 +43,7 @@ class CachePatterns {
 
   /// Cache for [UserSessionData].
   Entry<UserSessionData> userSessionData(String sessionId) => _cache
-      .withPrefix('account-usersession')
+      .withPrefix('account-usersession/')
       .withTTL(Duration(hours: 24))
       .withCodec(utf8)
       .withCodec(json)
@@ -53,7 +54,7 @@ class CachePatterns {
 
   /// Cache for [DartdocEntry] objects.
   Entry<DartdocEntry> dartdocEntry(String package, String version) => _cache
-      .withPrefix('dartdoc-entry')
+      .withPrefix('dartdoc-entry/')
       .withTTL(Duration(hours: 24))
       .withCodec(wrapAsCodec(
         encode: (DartdocEntry entry) => entry.asBytes(),
@@ -62,16 +63,21 @@ class CachePatterns {
 
   /// Cache for [FileInfo] objects used by dartdoc.
   Entry<FileInfo> dartdocFileInfo(String objectName) => _cache
-      .withPrefix('dartdoc-fileinfo')
+      .withPrefix('dartdoc-fileinfo/')
       .withTTL(Duration(minutes: 60))
       .withCodec(wrapAsCodec(
         encode: (FileInfo info) => info.asBytes(),
         decode: (data) => FileInfo.fromBytes(data),
       ))[objectName];
 
+  /// Cache for the binary content of the blob index (v1).
+  Entry<List<int>> dartdocBlobIndexV1(String objectName) => _cache
+      .withPrefix('dartdoc-blob-index-v1/')
+      .withTTL(Duration(minutes: 60))[objectName];
+
   /// Cache for API summaries used by dartdoc.
   Entry<Map<String, dynamic>> dartdocApiSummary(String package) => _cache
-      .withPrefix('dartdoc-apisummary')
+      .withPrefix('dartdoc-apisummary/')
       .withTTL(Duration(minutes: 60))
       .withCodec(utf8)
       .withCodec(json)
@@ -81,63 +87,63 @@ class CachePatterns {
       ))[package];
 
   Entry<String> uiPackagePage(String package, String? version) => _cache
-      .withPrefix('ui-packagepage')
+      .withPrefix('ui-packagepage/')
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8)['$package-$version'];
 
   Entry<String> uiPackageChangelog(String package, String? version) => _cache
-      .withPrefix('ui-package-changelog')
+      .withPrefix('ui-package-changelog/')
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8)['$package-$version'];
 
   Entry<String> uiPackageExample(String package, String? version) => _cache
-      .withPrefix('ui-package-example')
+      .withPrefix('ui-package-example/')
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8)['$package-$version'];
 
   Entry<String> uiPackageInstall(String package, String? version) => _cache
-      .withPrefix('ui-package-install')
+      .withPrefix('ui-package-install/')
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8)['$package-$version'];
 
   Entry<String> uiPackageLicense(String package, String? version) => _cache
-      .withPrefix('ui-package-license')
+      .withPrefix('ui-package-license/')
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8)['$package-$version'];
 
   Entry<String> uiPackagePubspec(String package, String? version) => _cache
-      .withPrefix('ui-package-pubspec')
+      .withPrefix('ui-package-pubspec/')
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8)['$package-$version'];
 
   Entry<String> uiPackageScore(String package, String? version) => _cache
-      .withPrefix('ui-package-score')
+      .withPrefix('ui-package-score/')
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8)['$package-$version'];
 
   Entry<String> uiPackageVersions(String package) => _cache
-      .withPrefix('ui-package-versions')
+      .withPrefix('ui-package-versions/')
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8)['$package'];
 
   Entry<String> uiIndexPage() => _cache
-      .withPrefix('ui-indexpage')
+      .withPrefix('ui-indexpage/')
       .withTTL(Duration(minutes: 60))
       .withCodec(utf8)['/'];
 
   Entry<String> uiPublisherListPage() => _cache
-      .withPrefix('ui-publisherpage')
+      .withPrefix('ui-publisherpage/')
       .withTTL(Duration(minutes: 60))
       .withCodec(utf8)['/publishers'];
 
   /// The first, non-search page for publisher's packages.
   Entry<String> uiPublisherPackagesPage(String publisherId) => _cache
-      .withPrefix('ui-publisherpage')
+      .withPrefix('ui-publisherpage/')
       .withTTL(Duration(minutes: 60))
       .withCodec(utf8)[publisherId];
 
   Entry<bool> packageVisible(String package) => _cache
-      .withPrefix('package-visible')
+      .withPrefix('package-visible/')
       .withTTL(Duration(days: 7))
       .withCodec(utf8)
       .withCodec(json)
@@ -147,15 +153,15 @@ class CachePatterns {
       ))[package];
 
   Entry<List<int>> packageData(String package) => _cache
-      .withPrefix('api-package-data-by-uri')
+      .withPrefix('api-package-data-by-uri/')
       .withTTL(Duration(minutes: 10))['$package'];
 
   Entry<List<int>> packageDataGz(String package) => _cache
-      .withPrefix('api-package-data-gz-by-uri')
+      .withPrefix('api-package-data-gz-by-uri/')
       .withTTL(Duration(minutes: 10))['$package'];
 
   Entry<VersionScore> versionScore(String package, String? version) => _cache
-      .withPrefix('api-version-score')
+      .withPrefix('api-version-score/')
       .withTTL(Duration(minutes: 60))
       .withCodec(utf8)
       .withCodec(json)
@@ -165,12 +171,12 @@ class CachePatterns {
       ))['$package-$version'];
 
   Entry<String> packageLatestVersion(String package) => _cache
-      .withPrefix('package-latest-version')
+      .withPrefix('package-latest-version/')
       .withTTL(Duration(minutes: 60))
       .withCodec(utf8)[package];
 
   Entry<PackageView> packageView(String package) => _cache
-      .withPrefix('package-view')
+      .withPrefix('package-view/')
       .withTTL(Duration(minutes: 60))
       .withCodec(utf8)
       .withCodec(json)
@@ -180,7 +186,7 @@ class CachePatterns {
       ))[package];
 
   Entry<Map<String, dynamic>> apiPackagesListPage(int page) => _cache
-      .withPrefix('api-packages-list')
+      .withPrefix('api-packages-list/')
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8)
       .withCodec(json)
@@ -192,7 +198,7 @@ class CachePatterns {
   Entry<PackageSearchResult> packageSearchResult(String url, {Duration? ttl}) {
     ttl ??= const Duration(minutes: 1);
     return _cache
-        .withPrefix('search-result')
+        .withPrefix('search-result/')
         .withTTL(ttl)
         .withCodec(utf8)
         .withCodec(json)
@@ -204,7 +210,7 @@ class CachePatterns {
   }
 
   Entry<ScoreCardData> scoreCardData(String package, String version) => _cache
-      .withPrefix('scorecarddata')
+      .withPrefix('scorecarddata/')
       .withCodec(utf8)
       .withCodec(json)
       .withCodec(wrapAsCodec(
@@ -213,7 +219,7 @@ class CachePatterns {
       ))['$package-$version'];
 
   Entry<List<LikeData>> userPackageLikes(String userId) => _cache
-      .withPrefix('user-package-likes')
+      .withPrefix('user-package-likes/')
       .withTTL(Duration(minutes: 60))
       .withCodec(utf8)
       .withCodec(json)
@@ -226,23 +232,23 @@ class CachePatterns {
       ))[userId];
 
   Entry<String> secretValue(String secretId) => _cache
-      .withPrefix('secret-value')
+      .withPrefix('secret-value/')
       .withTTL(Duration(minutes: 60))
       .withCodec(utf8)[secretId];
 
   Entry<String> sitemap(String requestedUri) => _cache
-      .withPrefix('sitemap')
+      .withPrefix('sitemap/')
       .withTTL(Duration(hours: 12))
       .withCodec(utf8)[requestedUri];
 
   Entry<List<int>> packageNameCompletitionDataJsonGz() => _cache
-      .withPrefix('api-package-name-completition-data-json-gz')
+      .withPrefix('api-package-name-completition-data-json-gz/')
       .withTTL(Duration(hours: 8))['-'];
 
   Entry<PublisherPage> allPublishersPage() => publisherPage('-');
 
   Entry<PublisherPage> publisherPage(String userId) => _cache
-      .withPrefix('publisher-page')
+      .withPrefix('publisher-page/')
       .withTTL(Duration(hours: 4))
       .withCodec(utf8)
       .withCodec(json)
@@ -252,7 +258,7 @@ class CachePatterns {
       ))['$userId'];
 
   Entry<String> atomFeedXml() => _cache
-      .withPrefix('atom-feed-xml')
+      .withPrefix('atom-feed-xml/')
       .withTTL(Duration(minutes: 3))
       .withCodec(utf8)['/'];
 
@@ -262,7 +268,7 @@ class CachePatterns {
 
   /// Stores the flag that a [package]'s versions have been scanned for job entities.
   Entry<bool> jobHistoryPackageScanned(String service, String package) => _cache
-      .withPrefix('job-history-package-scanned')
+      .withPrefix('job-history-package-scanned/')
       .withTTL(Duration(days: 7))
       .withCodec(utf8)
       .withCodec(json)
@@ -456,7 +462,7 @@ class _DelayedCachePurger {
   }
 
   Future<void> _purge() async {
-    final now = DateTime.now();
+    final now = clock.now();
     for (final e in _entries.where((e) => !e.time.isAfter(now)).toList()) {
       await e.entry.purge();
       _entries.remove(e);
@@ -478,5 +484,5 @@ class _DelayedPurge {
   final DateTime time;
 
   _DelayedPurge(this.entry, Duration? delay)
-      : time = DateTime.now().add(delay ?? Duration(seconds: 30));
+      : time = clock.now().add(delay ?? Duration(seconds: 30));
 }

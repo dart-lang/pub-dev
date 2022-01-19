@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 // ignore: import_of_legacy_library_into_null_safe
@@ -159,7 +160,7 @@ class AccountBackend {
       ..parentKey = _db.emptyKey
       ..id = createUuid()
       ..email = email
-      ..created = DateTime.now().toUtc()
+      ..created = clock.now().toUtc()
       ..isBlocked = false
       ..isDeleted = false;
 
@@ -209,7 +210,7 @@ class AccountBackend {
       final newLike = Like()
         ..parentKey = user.key
         ..id = p.id
-        ..created = DateTime.now().toUtc()
+        ..created = clock.now().toUtc()
         ..packageName = p.name;
 
       tx.queueMutations(inserts: [p, newLike]);
@@ -279,11 +280,11 @@ class AccountBackend {
     return await ss.fork(() async {
       final auth = await authProvider.tryAuthenticate(token);
       if (auth == null) {
-        throw AuthenticationException.authenticationRequired();
+        throw AuthenticationException.failed();
       }
       final user = await _lookupOrCreateUserByOauthUserId(auth);
       if (user == null) {
-        throw AuthenticationException.authenticationRequired();
+        throw AuthenticationException.failed();
       }
       if (user.isDeleted) {
         // This can only happen if we have a data inconsistency in the datastore.
@@ -409,7 +410,7 @@ class AccountBackend {
         ..id = createUuid()
         ..oauthUserId = auth.oauthUserId
         ..email = auth.email
-        ..created = DateTime.now().toUtc()
+        ..created = clock.now().toUtc()
         ..isBlocked = false
         ..isDeleted = false;
 
@@ -439,7 +440,7 @@ class AccountBackend {
     required String imageUrl,
   }) async {
     final user = await requireAuthenticatedUser();
-    final now = DateTime.now().toUtc();
+    final now = clock.now().toUtc();
     final session = UserSession()
       ..id = createUuid()
       ..userId = user.userId
@@ -475,8 +476,8 @@ class AccountBackend {
 
     final cacheEntry = cache.userSessionData(sessionId);
     final cached = await cacheEntry.get();
-    if (cached != null && DateTime.now().isBefore(cached.expires)) {
-      return cached;
+    if (cached != null) {
+      return cached.isExpired ? null : cached;
     }
 
     final key = _db.emptyKey.append(UserSession, id: sessionId);
@@ -492,8 +493,6 @@ class AccountBackend {
       return null;
     }
 
-    // TODO: decide about extending the expiration time (maybe asynchronously)
-
     final data = UserSessionData.fromModel(session);
     await cacheEntry.set(data);
     return data;
@@ -508,13 +507,12 @@ class AccountBackend {
 
   /// Removes the expired sessions from Datastore and Redis cache.
   Future<void> deleteObsoleteSessions() async {
-    final now = DateTime.now().toUtc();
+    final now = clock.now().toUtc();
     // account for possible clock skew
     final ts = now.subtract(Duration(minutes: 15));
     final query = _db.query<UserSession>()..filter('expires <', ts);
-    await for (final s in query.run()) {
-      await invalidateSession(s.sessionId);
-    }
+    final count = await _db.deleteWithQuery(query);
+    _logger.info('Deleted ${count.deleted} UserSession entries.');
   }
 
   /// Updates the blocked status of a user.

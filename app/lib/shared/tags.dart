@@ -12,15 +12,28 @@ const allowedTagPrefixes = [
   'platform:',
   'runtime:',
   'sdk:',
+  'show:',
 ];
 
 /// Collection of package-related tags.
 abstract class PackageTags {
+  /// Package is marked discontinued | unlisted | legacy.
+  static const String isHidden = 'is:hidden';
+
+  /// Package is shown, regardless of its hidden status.
+  static const String showHidden = 'show:hidden';
+
   /// Package is marked discontinued.
   static const String isDiscontinued = 'is:discontinued';
 
+  /// Package is shown, regardless of its discontinued status.
+  static const String showDiscontinued = 'show:discontinued';
+
   /// Package is marked unlisted.
   static const String isUnlisted = 'is:unlisted';
+
+  /// Package is shown, regardless of its unlisted status.
+  static const String showUnlisted = 'show:unlisted';
 
   /// The first version of the package was published less than 30 days ago.
   static const String isRecent = 'is:recent';
@@ -30,15 +43,15 @@ abstract class PackageTags {
 
   /// The `publisher:<publisherId>` tag.
   static String publisherTag(String publisherId) => 'publisher:$publisherId';
-
-  /// Transforms the tag with the suffix of `-in-prerelease`.
-  static String convertToPrereleaseTag(String tag) => '$tag-in-prerelease';
 }
 
 /// Collection of version-related tags.
 abstract class PackageVersionTags {
   /// PackageVersion supports only legacy (Dart 1) SDK.
   static const String isLegacy = 'is:legacy';
+
+  /// Package is shown, regardless of its legacy status.
+  static const String showLegacy = 'show:legacy';
 
   /// The PackageVersion is null-safe.
   ///
@@ -133,34 +146,4 @@ abstract class FlutterSdkPlatform {
   static const String macos = 'macos';
   static const String web = 'web';
   static const String windows = 'windows';
-}
-
-/// Expand `runtime:*` tags into `platform:*` tags to enable
-/// unnested platform search queries to run on the current pana tagging.
-Iterable<String> expandPanaTag(String tag) {
-  if (tag == DartSdkTag.runtimeNativeJit) {
-    return [
-      tag,
-      FlutterSdkTag.platformLinux,
-      FlutterSdkTag.platformMacos,
-      FlutterSdkTag.platformWindows,
-    ];
-  } else if (tag == DartSdkTag.runtimeNativeAot) {
-    return [
-      tag,
-      FlutterSdkTag.platformAndroid,
-      FlutterSdkTag.platformIos,
-      FlutterSdkTag.platformLinux,
-      FlutterSdkTag.platformMacos,
-      FlutterSdkTag.platformWeb,
-      FlutterSdkTag.platformWindows,
-    ];
-  } else if (tag == DartSdkTag.runtimeWeb) {
-    return [
-      tag,
-      FlutterSdkTag.platformWeb,
-    ];
-  } else {
-    return [tag];
-  }
 }

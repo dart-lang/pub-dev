@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:client_data/admin_api.dart' as api;
+import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -314,7 +315,7 @@ class AdminBackend {
           ..parentKey = _db.emptyKey
           ..id = packageName
           ..name = packageName
-          ..moderated = DateTime.now().toUtc()
+          ..moderated = clock.now().toUtc()
           ..versions = versions.map((v) => v.version!).toList()
           ..publisherId = package?.publisherId
           ..uploaders = package?.uploaders;
@@ -379,7 +380,8 @@ class AdminBackend {
       final Key packageKey = _db.emptyKey.append(Package, id: packageName);
       final package = await tx.lookupOrNull<Package>(packageKey);
       if (package == null) {
-        print('Package $packageName does not exist.');
+        throw Exception(
+            'Package "$packageName" does not exists. Use full package removal without the version qualifier.');
       }
 
       final versionsQuery = tx.query<PackageVersion>(packageKey);
@@ -387,8 +389,8 @@ class AdminBackend {
       final versionNames = versions.map((v) => v.version).toList();
       if (versionNames.contains(version)) {
         tx.delete(packageKey.append(PackageVersion, id: version));
-        package!.versionCount = package.versionCount! - 1;
-        package.updated = DateTime.now().toUtc();
+        package.versionCount--;
+        package.updated = clock.now().toUtc();
       } else {
         print('Package $packageName does not have a version $version.');
       }
@@ -398,15 +400,20 @@ class AdminBackend {
             'Last version detected. Use full package removal without the version qualifier.');
       }
 
-      if (package != null &&
-          (package.latestVersion == version ||
-              package.latestPrereleaseVersion == version ||
-              package.latestPreviewVersion == version)) {
+      if (package.latestVersion == version ||
+          package.latestPrereleaseVersion == version ||
+          package.latestPreviewVersion == version) {
         package.updateLatestVersionReferences(
             versions.where((v) => v.version != version).toList(),
             dartSdkVersion: currentDartSdk.semanticVersion);
       }
-      tx.insert(package!);
+
+      package.deletedVersions ??= <String>[];
+      if (!package.deletedVersions!.contains(version)) {
+        package.deletedVersions!.add(version);
+      }
+
+      tx.insert(package);
     });
 
     final bucket =
@@ -507,7 +514,7 @@ class AdminBackend {
         package.assignedTags!
           ..removeWhere(body.assignedTagsRemoved.contains)
           ..addAll(body.assignedTagsAdded);
-        package.updated = DateTime.now().toUtc();
+        package.updated = clock.now().toUtc();
         tx.insert(package);
       }
 
@@ -625,7 +632,7 @@ class AdminBackend {
             options: ['discontinued'],
           ));
         }
-        p.updated = DateTime.now().toUtc();
+        p.updated = clock.now().toUtc();
         tx.insert(p);
       }
     });

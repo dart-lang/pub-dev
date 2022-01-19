@@ -39,7 +39,10 @@ void main() {
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
         packages: [
-          TestPackage(name: 'pkg', versions: ['1.0.0', '1.2.0']),
+          TestPackage(name: 'pkg', versions: [
+            TestVersion(version: '1.0.0'),
+            TestVersion(version: '1.2.0'),
+          ]),
         ],
       ),
       importSource: importSource,
@@ -93,7 +96,10 @@ void main() {
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
         packages: [
-          TestPackage(name: 'pkg', versions: ['1.0.0', '1.2.0']),
+          TestPackage(name: 'pkg', versions: [
+            TestVersion(version: '1.0.0'),
+            TestVersion(version: '1.2.0'),
+          ]),
         ],
       ),
       importSource: importSource,
@@ -127,10 +133,10 @@ void main() {
         defaultUser: 'admin@pub.dev',
         packages: [
           TestPackage(name: 'pkg', versions: [
-            '0.1.0-nullsafety.0',
-            '0.1.0-nullsafety.1',
-            '0.2.0-nullsafety.0',
-            '0.2.1-nullsafety.0',
+            TestVersion(version: '0.1.0-nullsafety.0'),
+            TestVersion(version: '0.1.0-nullsafety.1'),
+            TestVersion(version: '0.2.0-nullsafety.0'),
+            TestVersion(version: '0.2.1-nullsafety.0'),
           ]),
         ],
       ),
@@ -163,7 +169,10 @@ void main() {
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
         packages: [
-          TestPackage(name: 'pkg', versions: ['1.0.0', '1.2.0']),
+          TestPackage(name: 'pkg', versions: [
+            TestVersion(version: '1.0.0'),
+            TestVersion(version: '1.2.0'),
+          ]),
         ],
       ),
       importSource: importSource,

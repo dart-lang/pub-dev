@@ -2,11 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:pub_dev/package/model_properties.dart';
 import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
+
+import '../shared/test_services.dart';
 
 void main() {
   group('models', () {
@@ -130,6 +136,71 @@ version: 1.0.9
         expect(p.dependsOnFlutterSdk, isFalse);
       });
     });
+
+    group('preview analysis SDK', () {
+      final nextDartSdk = semanticToolStableDartSdkVersion.nextMinor.toString();
+      final nextFlutterSdk =
+          semanticToolStableFlutterSdkVersion.nextMinor.toString();
+
+      bool usesPreviewAnalysisSdk(Map<String, String> environment) {
+        return Pubspec.fromJson({
+          'name': 'test',
+          'environment': environment,
+        }).usesPreviewAnalysisSdk();
+      }
+
+      test('no constraints', () {
+        expect(usesPreviewAnalysisSdk({}), isFalse);
+      });
+
+      test('stable constraints', () {
+        expect(
+            usesPreviewAnalysisSdk({
+              'sdk': '>=$toolStableDartSdkVersion <400.0.0',
+            }),
+            isFalse);
+        expect(
+            usesPreviewAnalysisSdk({
+              'flutter': '>=$toolStableFlutterSdkVersion <400.0.0',
+            }),
+            isFalse);
+        expect(
+            usesPreviewAnalysisSdk({
+              'sdk': '>=$toolStableDartSdkVersion <400.0.0',
+              'flutter': '>=$toolStableFlutterSdkVersion <400.0.0',
+            }),
+            isFalse);
+      });
+
+      test('preview Dart', () {
+        expect(
+          usesPreviewAnalysisSdk({
+            'sdk': '>=$nextDartSdk <400.0.0',
+          }),
+          isTrue,
+        );
+      });
+
+      test('preview Flutter', () {
+        expect(
+            usesPreviewAnalysisSdk({
+              'flutter': '>=$nextFlutterSdk <400.0.0',
+            }),
+            isTrue);
+        expect(
+            usesPreviewAnalysisSdk({
+              'sdk': '>=$toolStableDartSdkVersion <400.0.0',
+              'flutter': '>=$nextFlutterSdk <400.0.0',
+            }),
+            isTrue);
+        expect(
+            usesPreviewAnalysisSdk({
+              'sdk': '>=$nextDartSdk <400.0.0',
+              'flutter': '>=$nextFlutterSdk <400.0.0',
+            }),
+            isTrue);
+      });
+    });
   });
 
   group('MinSdkVersion', () {
@@ -163,6 +234,15 @@ version: 1.0.9
       expect(msd.major, 2);
       expect(msd.minor, 12);
       expect(msd.channel, isNull);
+    });
+  });
+
+  group('PackageView', () {
+    testWithProfile('do not forget to update change method', fn: () async {
+      final view = await scoreCardBackend.getPackageView('oxygen');
+      final original = json.decode(json.encode(view!.toJson()));
+      final updated = json.decode(json.encode(view.change().toJson()));
+      expect(updated, original);
     });
   });
 }

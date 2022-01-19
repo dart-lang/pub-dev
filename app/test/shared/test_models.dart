@@ -13,21 +13,21 @@ final defaultTestProfile = TestProfile(
     TestPackage(
       name: 'oxygen',
       versions: [
-        '1.0.0',
-        '1.2.0',
-        '2.0.0-dev',
+        TestVersion(version: '1.0.0'),
+        TestVersion(version: '1.2.0'),
+        TestVersion(version: '2.0.0-dev'),
       ],
     ),
     TestPackage(
       name: 'neon',
-      versions: ['1.0.0'],
+      versions: [TestVersion(version: '1.0.0')],
       publisher: 'example.com',
     ),
     TestPackage(
       name: 'flutter_titanium',
       versions: [
-        '1.9.0',
-        '1.10.0',
+        TestVersion(version: '1.9.0'),
+        TestVersion(version: '1.10.0'),
       ],
     ),
   ],

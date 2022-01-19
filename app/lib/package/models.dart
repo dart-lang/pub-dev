@@ -6,6 +6,7 @@ library pub_dartlang_org.appengine_repository.models;
 
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -102,10 +103,8 @@ class Package extends db.ExpandoModel<String> {
   List<String>? uploaders;
 
   /// The number of published versions.
-  ///
-  /// TODO: set required: true after the backfill is stabilized.
-  @db.IntProperty()
-  int? versionCount;
+  @db.IntProperty(required: true)
+  int versionCount = 0;
 
   /// Set to `true` if package is discontinued, may otherwise be `false`.
   @db.BoolProperty(required: true)
@@ -133,16 +132,20 @@ class Package extends db.ExpandoModel<String> {
   /// Tags that are assigned to this package.
   ///
   /// The permissions required to assign a tag typically depends on the tag.
-  /// A package owner might be able to assign `'is:discontinued'` while a tag
-  /// like `'is:not-advertized'` might only be managed by pub-administrators.
+  /// A package owner might be able to assign `'is:discontinued'` while other
+  /// tags might only be managed by pub-administrators.
   @db.StringListProperty()
   List<String>? assignedTags;
+
+  /// List of versions that have been deleted and must not be re-uploaded again.
+  @db.StringListProperty()
+  List<String>? deletedVersions;
 
   Package();
 
   /// Creates a new [Package] and populates all of it's fields from [version].
   factory Package.fromVersion(PackageVersion version) {
-    final now = DateTime.now().toUtc();
+    final now = clock.now().toUtc();
     return Package()
       ..parentKey = version.packageKey!.parent
       ..id = version.pubspec!.name
@@ -162,7 +165,8 @@ class Package extends db.ExpandoModel<String> {
       ..isDiscontinued = false
       ..isUnlisted = false
       ..isWithheld = false
-      ..assignedTags = [];
+      ..assignedTags = []
+      ..deletedVersions = [];
   }
 
   // Convenience Fields:
@@ -171,7 +175,7 @@ class Package extends db.ExpandoModel<String> {
   bool get isNotVisible => !isVisible;
 
   bool get isIncludedInRobots {
-    final now = DateTime.now();
+    final now = clock.now();
     return isVisible &&
         !isDiscontinued &&
         !isUnlisted &&
@@ -267,7 +271,7 @@ class Package extends db.ExpandoModel<String> {
     if (unchanged) {
       return false;
     }
-    updated = DateTime.now().toUtc();
+    updated = clock.now().toUtc();
     return true;
   }
 
@@ -306,19 +310,16 @@ class Package extends db.ExpandoModel<String> {
     }
   }
 
-  bool isNewPackage() => created!.difference(DateTime.now()).abs().inDays <= 30;
+  bool isNewPackage() => created!.difference(clock.now()).abs().inDays <= 30;
 
   /// List of tags from the flags on the current [Package] entity.
   List<String> getTags() {
     return <String>[
-      // TODO(jonasfj): Remove the if (assignedTags != null) condition, we only
-      //                need this until we've done backfill_package_fields.dart
-      if (assignedTags != null) ...assignedTags!,
+      ...?assignedTags,
       if (isDiscontinued) PackageTags.isDiscontinued,
       if (isNewPackage()) PackageTags.isRecent,
       if (isUnlisted) PackageTags.isUnlisted,
       if (publisherId != null) PackageTags.publisherTag(publisherId!),
-      // TODO: uploader:<...>
     ];
   }
 
@@ -462,13 +463,11 @@ class PackageVersion extends db.ExpandoModel<String> {
 
   bool get canBeRetracted =>
       !isRetracted &&
-      created!
-          .isAfter(DateTime.now().toUtc().subtract(const Duration(days: 7)));
+      created!.isAfter(clock.now().toUtc().subtract(const Duration(days: 7)));
 
   bool get canUndoRetracted =>
       isRetracted &&
-      retracted!
-          .isAfter(DateTime.now().toUtc().subtract(const Duration(days: 7)));
+      retracted!.isAfter(clock.now().toUtc().subtract(const Duration(days: 7)));
 }
 
 /// A derived entity that holds derived/cleaned content of [PackageVersion].
@@ -529,7 +528,7 @@ class PackageVersionInfo extends db.ExpandoModel<String> {
       changed = true;
     }
     if (changed) {
-      updated = DateTime.now().toUtc();
+      updated = clock.now().toUtc();
     }
     return changed;
   }
@@ -608,7 +607,7 @@ class PackageVersionAsset extends db.ExpandoModel {
   }) {
     id = Uri(pathSegments: [package!, version!, kind!]).path;
     packageVersion = Uri(pathSegments: [package!, version!]).path;
-    this.updated = updated ?? DateTime.now().toUtc();
+    this.updated = updated ?? clock.now().toUtc();
   }
 
   /// Updates the current instance with the newly [derived] data.
@@ -628,7 +627,7 @@ class PackageVersionAsset extends db.ExpandoModel {
       changed = true;
     }
     if (changed) {
-      updated = DateTime.now().toUtc();
+      updated = clock.now().toUtc();
     }
     return changed;
   }
@@ -699,21 +698,15 @@ class QualifiedVersionKey {
 @JsonSerializable(includeIfNull: false)
 class PackageView extends Object with FlagMixin {
   final String? name;
-  final String? version;
-
-  // Not null only if there is a difference compared to the [version] or [previewVersion].
-  final String? prereleaseVersion;
-  // Not null only if there is a difference compared to the [version].
-  final String? previewVersion;
+  final LatestReleases? releases;
   final String? ellipsizedDescription;
 
   /// The date when the package was first published.
   final DateTime? created;
-  final DateTime? updated;
   @override
   final List<String>? flags;
   final String? publisherId;
-  final bool? isAwaiting;
+  final bool isPending;
 
   final int? likes;
 
@@ -734,39 +727,34 @@ class PackageView extends Object with FlagMixin {
 
   PackageView({
     this.name,
-    this.version,
-    this.prereleaseVersion,
-    this.previewVersion,
+    this.releases,
     this.ellipsizedDescription,
     this.created,
-    this.updated,
     this.flags,
     this.publisherId,
-    this.isAwaiting = false,
+    bool? isPending,
     this.likes,
     this.grantedPubPoints,
     this.maxPubPoints,
     this.popularity,
     List<String>? tags,
     this.apiPages,
-  }) : tags = tags ?? <String>[];
+  })  : isPending = isPending ?? false,
+        tags = tags ?? <String>[];
 
   factory PackageView.fromJson(Map<String, dynamic> json) =>
       _$PackageViewFromJson(json);
 
   factory PackageView.fromModel({
     required Package package,
+    required LatestReleases releases,
     PackageVersion? version,
     ScoreCardData? scoreCard,
     List<ApiPageRef>? apiPages,
   }) {
-    final prereleaseVersion =
-        package.showPrereleaseVersion ? package.latestPrereleaseVersion : null;
-    final previewVersion =
-        package.showPreviewVersion ? package.latestPreviewVersion : null;
     final hasPanaReport = scoreCard?.reportTypes != null &&
         scoreCard!.reportTypes!.contains(ReportType.pana);
-    final isAwaiting =
+    final isPending =
         // Job processing has not created any card yet.
         (scoreCard == null) ||
             // The uploader has recently removed the "discontinued" flag, but the
@@ -776,15 +764,12 @@ class PackageView extends Object with FlagMixin {
             (!scoreCard.isSkipped && !hasPanaReport);
     return PackageView(
       name: version?.package ?? package.name,
-      version: version?.version ?? package.latestVersion,
-      prereleaseVersion: prereleaseVersion,
-      previewVersion: previewVersion,
+      releases: releases,
       ellipsizedDescription: version?.ellipsizedDescription,
       created: package.created,
-      updated: package.lastVersionPublished,
       flags: scoreCard?.flags,
       publisherId: package.publisherId,
-      isAwaiting: isAwaiting,
+      isPending: isPending,
       likes: package.likes,
       grantedPubPoints: scoreCard?.grantedPubPoints,
       maxPubPoints: scoreCard?.maxPubPoints,
@@ -803,15 +788,12 @@ class PackageView extends Object with FlagMixin {
   PackageView change({List<ApiPageRef>? apiPages}) {
     return PackageView(
       name: name,
-      version: version,
-      prereleaseVersion: prereleaseVersion,
-      previewVersion: previewVersion,
+      releases: releases,
       ellipsizedDescription: ellipsizedDescription,
       created: created,
-      updated: updated,
       flags: flags,
       publisherId: publisherId,
-      isAwaiting: isAwaiting,
+      isPending: isPending,
       likes: likes,
       grantedPubPoints: grantedPubPoints,
       maxPubPoints: maxPubPoints,
@@ -933,8 +915,20 @@ class PackagePageData {
   PackageView toPackageView() {
     return _view ??= PackageView.fromModel(
       package: package!,
+      releases: latestReleases!,
       version: version,
       scoreCard: scoreCard,
     );
   }
+}
+
+/// Describes the list of packages names and the continuation token for the next page.
+class PackageListPage {
+  final List<String> packages;
+  final String? nextPackage;
+
+  PackageListPage({
+    required this.packages,
+    this.nextPackage,
+  });
 }

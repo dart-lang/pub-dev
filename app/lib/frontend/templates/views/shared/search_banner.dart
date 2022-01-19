@@ -30,7 +30,7 @@ d.Node searchBannerNode({
         autofocus: autofocus,
         value: queryText,
       ),
-      d.element('button', classes: ['icon']),
+      d.button(classes: ['icon'], ariaLabel: 'search'),
       if (showSearchFiltersButton)
         d.div(
           classes: [
@@ -40,13 +40,19 @@ d.Node searchBannerNode({
           children: [
             d.img(
               classes: ['search-filters-btn', 'search-filters-btn-inactive'],
-              src: staticUrls
-                  .getAssetUrl('/static/img/search-filters-inactive.svg'),
+              image: d.Image(
+                src: staticUrls
+                    .getAssetUrl('/static/img/search-filters-inactive.svg'),
+                alt: 'icon to toggle the display of search filters (inactive)',
+              ),
             ),
             d.img(
               classes: ['search-filters-btn', 'search-filters-btn-active'],
-              src: staticUrls
-                  .getAssetUrl('/static/img/search-filters-active.svg'),
+              image: d.Image(
+                src: staticUrls
+                    .getAssetUrl('/static/img/search-filters-active.svg'),
+                alt: 'icon to toggle the display of search filters (active)',
+              ),
             ),
           ],
         ),

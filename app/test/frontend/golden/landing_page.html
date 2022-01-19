@@ -38,7 +38,7 @@
       <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MX6DBN9" height="0" width="0" style="display:none;visibility:hidden"></iframe>
     </noscript>
     <div class="site-header">
-      <button class="hamburger"></button>
+      <button class="hamburger" aria-label="menu toggle"></button>
       <div class="site-header-space"></div>
       <div class="site-header-mask"></div>
       <div class="site-header-nav scroll-container">
@@ -71,7 +71,7 @@
         <div class="nav-container nav-help-container-mobile foldable">
           <h3 class="foldable-button">
             Pub.dev
-            <img class="foldable-icon" src="/static/img/nav-mobile-foldable-icon.svg?hash=mocked_hash_806401648"/>
+            <img class="foldable-icon" src="/static/img/nav-mobile-foldable-icon.svg?hash=mocked_hash_806401648" alt="icon to toggle folding of the section"/>
           </h3>
           <div class="foldable-content">
             <a class="nav-link" href="/help/search" rel="noopener" target="_blank">Searching for packages</a>
@@ -81,7 +81,7 @@
         <div class="nav-container nav-help-container-mobile foldable">
           <h3 class="foldable-button">
             Flutter
-            <img class="foldable-icon" src="/static/img/nav-mobile-foldable-icon.svg?hash=mocked_hash_806401648"/>
+            <img class="foldable-icon" src="/static/img/nav-mobile-foldable-icon.svg?hash=mocked_hash_806401648" alt="icon to toggle folding of the section"/>
           </h3>
           <div class="foldable-content">
             <a class="nav-link" href="https://flutter.io/using-packages/" rel="noopener" target="_blank">Using packages</a>
@@ -92,7 +92,7 @@
         <div class="nav-container nav-help-container-mobile foldable">
           <h3 class="foldable-button">
             Dart
-            <img class="foldable-icon" src="/static/img/nav-mobile-foldable-icon.svg?hash=mocked_hash_806401648"/>
+            <img class="foldable-icon" src="/static/img/nav-mobile-foldable-icon.svg?hash=mocked_hash_806401648" alt="icon to toggle folding of the section"/>
           </h3>
           <div class="foldable-content">
             <a class="nav-link" href="https://dart.dev/tools/pub/get-started" rel="noopener" target="_blank">Using packages</a>
@@ -108,7 +108,7 @@
         <img class="logo" src="/static/img/pub-dev-logo.svg?hash=mocked_hash_207464415" alt="pub.dev package manager" width="328" height="70"/>
         <form class="search-bar banner-item" action="/packages">
           <input class="input" name="q" placeholder="Search packages" autocomplete="on" autofocus="autofocus"/>
-          <button class="icon"></button>
+          <button class="icon" aria-label="search"></button>
           <input id="-search-discontinued-field" type="hidden" name="discontinued" value="1" disabled="disabled"/>
           <input id="-search-unlisted-field" type="hidden" name="unlisted" value="1" disabled="disabled"/>
           <input id="-search-null-safe-field" type="hidden" name="null-safe" value="1" disabled="disabled"/>
@@ -150,7 +150,7 @@
       </div>
       <div class="home-block home-block-mp">
         <div class="home-block-image">
-          <img src="/static/img/landing-01.png?hash=mocked_hash_885315573"/>
+          <img src="/static/img/landing-01.png?hash=mocked_hash_885315573" alt="decoration image for package section"/>
         </div>
         <div class="home-block-content">
           <h1 class="home-block-title">Most popular packages</h1>
@@ -165,7 +165,7 @@
               </div>
               <div class="mini-list-item-footer">
                 <div class="mini-list-item-publisher">
-                  <img class="publisher-badge" src="/static/img/verified-publisher-gray.svg?hash=mocked_hash_248900311" title="Published by a pub.dev verified publisher"/>
+                  <img class="publisher-badge" src="/static/img/verified-publisher-gray.svg?hash=mocked_hash_248900311" alt="verified publisher badge" title="Published by a pub.dev verified publisher"/>
                   <a class="publisher-link" href="/publishers/example.com" data-ga-click-event="landing-most-popular-card-publisher">example.com</a>
                 </div>
               </div>
@@ -194,8 +194,8 @@
               <a href="https://youtube.com/watch?v=video-id&amp;list=PLjxrf2q8roU1quF6ny8oFHJ2gBdrYN_AK" rel="noopener" target="_blank" title="POW description" data-ga-click-event="package-of-the-week-video">
                 <img class="pow-video-thumbnail" src="http://youtube.com/image/thumbnail?i=123&amp;s=4" alt="POW Title" width="260" height="195"/>
                 <div class="pow-video-overlay">
-                  <img class="pow-video-overlay-img-active" src="/static/img/youtube-play-red.png?hash=mocked_hash_325144362" width="76" height="53"/>
-                  <img class="pow-video-overlay-img-inactive" src="/static/img/youtube-play-black.png?hash=mocked_hash_405283570" width="76" height="53"/>
+                  <img class="pow-video-overlay-img-active" src="/static/img/youtube-play-red.png?hash=mocked_hash_325144362" alt="youtube video play icon - active" width="76" height="53"/>
+                  <img class="pow-video-overlay-img-inactive" src="/static/img/youtube-play-black.png?hash=mocked_hash_405283570" alt="youtube video play icon - inactive" width="76" height="53"/>
                 </div>
               </a>
             </div>
@@ -215,12 +215,12 @@
       <a class="link sep" href="https://www.google.com/intl/en/policies/privacy/">Privacy</a>
       <a class="link sep" href="/help">Help</a>
       <a class="link icon sep" href="/feed.atom">
-        <img class="inline-icon" src="/static/img/rss-feed-icon.svg?hash=mocked_hash_795155912" title="RSS/atom feed" alt="RSS/atom feed" width="20" height="20"/>
+        <img class="inline-icon" src="/static/img/rss-feed-icon.svg?hash=mocked_hash_795155912" alt="RSS icon" width="20" height="20" title="RSS/atom feed"/>
       </a>
       <a class="link icon github_issue" href="https://github.com/dart-lang/pub-dev/issues/new">
-        <img class="inline-icon" src="/static/img/bug-report-white-96px.png?hash=mocked_hash_709947442" title="Report an issue with this site" alt="Report an issue with this site" width="20" height="20"/>
+        <img class="inline-icon" src="/static/img/bug-report-white-96px.png?hash=mocked_hash_709947442" alt="bug report icon" width="20" height="20" title="Report an issue with this site"/>
       </a>
     </footer>
-    <script type="application/ld+json">{"@context":"http:\u002f\u002fschema.org","@type":"WebSite","url":"https:\u002f\u002fpub.dev\u002f","potentialAction":{"@type":"SearchAction","target":"https:\u002f\u002fpub.dev\u002fpackages\u003fq\u003d{search\u005fterm\u005fstring}","query-input":"required name\u003dsearch\u005fterm\u005fstring"}}</script>
+    <script type="application/ld+json">{"@context":"http\u003a\u002f\u002fschema.org","@type":"WebSite","url":"https\u003a\u002f\u002fpub.dev\u002f","potentialAction":{"@type":"SearchAction","target":"https\u003a\u002f\u002fpub.dev\u002fpackages\u003fq\u003d\u007bsearch\u005fterm\u005fstring\u007d","query-input":"required name\u003dsearch\u005fterm\u005fstring"}}</script>
   </body>
 </html>

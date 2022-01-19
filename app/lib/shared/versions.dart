@@ -21,9 +21,11 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 /// Make sure that at least two versions are kept here as the next candidates
 /// when the version switch happens.
 const acceptedRuntimeVersions = <String>[
-  '2021.11.28', // The current [runtimeVersion].
-  '2021.11.22',
-  '2021.11.16',
+  // The current [runtimeVersion].
+  '2022.01.17',
+  // Fallback runtime versions.
+  '2022.01.06',
+  '2021.12.17',
 ];
 
 /// Represents a combined version of the overall toolchain and processing,
@@ -35,7 +37,6 @@ const acceptedRuntimeVersions = <String>[
 /// in pana, dartdoc, or the SDKs, or when an feature or bugfix should be picked
 /// up by the analysis ASAP.
 final String runtimeVersion = acceptedRuntimeVersions.first;
-final Version semanticRuntimeVersion = Version.parse(runtimeVersion);
 
 /// The list of runtime versions to use when looking for past version-specific
 /// data.
@@ -52,26 +53,22 @@ bool shouldGCVersion(String version) =>
     version.compareTo(gcBeforeRuntimeVersion) < 0;
 
 // keep in-sync with SDK version in .mono_repo.yml and Dockerfile
-final String runtimeSdkVersion = '2.14.1';
-final String toolStableDartSdkVersion = '2.14.4';
-final String toolStableFlutterSdkVersion = '2.5.3';
-final String toolPreviewDartSdkVersion = '2.15.0-268.18.beta';
-final String toolPreviewFlutterSdkVersion = '2.8.0-3.2.pre';
+final String runtimeSdkVersion = '2.15.1';
+final String toolStableDartSdkVersion = '2.15.1';
+final String toolStableFlutterSdkVersion = '2.8.1';
+final String toolPreviewDartSdkVersion = '2.16.0-134.1.beta';
+final String toolPreviewFlutterSdkVersion = '2.10.0-0.1.pre';
+
+final semanticToolStableDartSdkVersion =
+    Version.parse(toolStableDartSdkVersion);
+final semanticToolStableFlutterSdkVersion =
+    Version.parse(toolStableFlutterSdkVersion);
 
 // Value comes from package:pana.
 final String panaVersion = pana.packageVersion;
-final Version semanticPanaVersion = Version.parse(panaVersion);
 
 // keep in-sync with pkg/pub_dartdoc/pubspec.yaml
 final String dartdocVersion = '4.1.0';
-final Version semanticDartdocVersion = Version.parse(dartdocVersion);
-
-// Version that control the dartdoc serving.
-// Pin this to a specific version when there is a coordinated upgrade of the
-// generated documentation template or style. The new version can generate the
-// docs without any traffic sent to it, while the old won't accidentally serve
-// them.
-final dartdocServingRuntime = Version.parse(runtimeVersion);
 
 /// Whether the given runtime version (stored with the dartdoc entry) should
 /// be displayed on the live site (or a coordinated upgrade is in progress).

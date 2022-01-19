@@ -19,7 +19,7 @@ void main() {
       'end2end test',
       testProfile: TestProfile(
         packages: [
-          TestPackage(name: 'retry', versions: ['3.1.0']),
+          TestPackage(name: 'retry', versions: [TestVersion(version: '3.1.0')]),
         ],
         defaultUser: 'admin@pub.dev',
       ),
@@ -40,6 +40,11 @@ void main() {
         expect(entry.archiveSize, lessThan(50000));
         expect(entry.totalSize, greaterThan(180000));
         expect(entry.totalSize, lessThan(220000));
+        expect(entry.hasBlob, isTrue);
+        expect(entry.blobSize, greaterThan(55000));
+        expect(entry.blobSize, lessThan(70000));
+        expect(entry.blobIndexSize, greaterThan(500));
+        expect(entry.blobIndexSize, lessThan(1000));
 
         // uploaded content check
         final indexHtml = await dartdocBackend.getTextContent(
@@ -56,11 +61,23 @@ void main() {
           timeout: Duration(seconds: 1),
         );
         expect(libraryHtml, contains('retry/RetryOptions-class.html'));
+        expect(indexHtml == libraryHtml, isFalse);
 
         final rs = await issueGet(
             '/documentation/retry/latest/retry/retry-library.html');
         expect(rs.statusCode, 200);
         expect(await rs.readAsString(), libraryHtml);
+
+        final rs2 = await issueGet('/documentation/retry/latest/log.txt');
+        expect(rs2.statusCode, 200);
+        expect(await rs2.readAsString(), contains('entry created:'));
+
+        final rs3 =
+            await issueGet('/documentation/retry/latest/package.tar.gz');
+        expect(rs3.statusCode, 200);
+        final body3 = await rs3.read().toList();
+        final body3Length = body3.map((e) => e.length).reduce((a, b) => a + b);
+        expect(body3Length, entry.archiveSize);
       },
       timeout: Timeout.factor(8),
     );

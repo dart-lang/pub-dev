@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:ulid/ulid.dart';
 
@@ -119,24 +120,24 @@ class UserSession extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)
   String? userId;
 
-  @db.StringProperty(required: true)
+  @db.StringProperty(required: true, indexed: false)
   String? email;
 
   /// The name of the user given by the authentication provider.
   /// May be null, or could contain any arbitrary text.
-  @db.StringProperty()
+  @db.StringProperty(indexed: false)
   String? name;
 
-  @db.StringProperty()
+  @db.StringProperty(indexed: false)
   String? imageUrl;
 
-  @db.DateTimeProperty(required: true)
+  @db.DateTimeProperty(required: true, indexed: false)
   DateTime? created;
 
   @db.DateTimeProperty(required: true)
   DateTime? expires;
 
-  bool isExpired() => DateTime.now().isAfter(expires!);
+  bool isExpired() => clock.now().isAfter(expires!);
 }
 
 /// Pattern for detecting profile image parameters as specified in [1].
@@ -196,6 +197,8 @@ class UserSessionData {
       _$UserSessionDataFromJson(json);
 
   Map<String, dynamic> toJson() => _$UserSessionDataToJson(this);
+
+  bool get isExpired => clock.now().isAfter(expires);
 
   bool get hasName => name != null && name!.isNotEmpty;
 
@@ -285,11 +288,11 @@ class Consent extends db.Model {
       kind: kind,
       args: args!,
     );
-    created = DateTime.now().toUtc();
+    created = clock.now().toUtc();
     expires = created!.add(timeout);
   }
 
-  bool isExpired() => DateTime.now().toUtc().isAfter(expires!);
+  bool isExpired() => clock.now().toUtc().isAfter(expires!);
 
   /// The timestamp when the next notification could be sent out.
   DateTime get nextNotification =>
@@ -297,8 +300,7 @@ class Consent extends db.Model {
 
   /// Whether a new notification should be sent.
   bool shouldNotify() =>
-      notificationCount == 0 ||
-      DateTime.now().toUtc().isAfter(nextNotification);
+      notificationCount == 0 || clock.now().toUtc().isAfter(nextNotification);
 }
 
 /// Calculates the dedupId of a consent request.

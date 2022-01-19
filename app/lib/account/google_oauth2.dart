@@ -4,6 +4,7 @@
 
 import 'dart:convert' show json;
 
+import 'package:clock/clock.dart';
 import 'package:googleapis/oauth2/v2.dart' as oauth2_v2;
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:http/http.dart' as http;
@@ -139,14 +140,14 @@ class GoogleOauth2AuthProvider extends AuthProvider {
       return null;
     }
     // Validate create time
-    final fiveMinFromNow = DateTime.now().toUtc().add(Duration(minutes: 5));
+    final fiveMinFromNow = clock.now().toUtc().add(Duration(minutes: 5));
     final iat = r['iat'];
     if (iat == null || _parseTimestamp(iat).isAfter(fiveMinFromNow)) {
       _logger.warning('JWT rejected, iat = "$iat"');
       return null; // Token is created more than 5 minutes in the future
     }
     // Validate expiration time
-    final fiveMinInPast = DateTime.now().toUtc().subtract(Duration(minutes: 5));
+    final fiveMinInPast = clock.now().toUtc().subtract(Duration(minutes: 5));
     final exp = r['exp'];
     if (exp == null || _parseTimestamp(exp).isBefore(fiveMinInPast)) {
       _logger.warning('JWT rejected, exp = "$exp"');
@@ -192,7 +193,7 @@ class GoogleOauth2AuthProvider extends AuthProvider {
           auth.AccessToken(
             'Bearer',
             accessToken,
-            DateTime.now().toUtc().add(Duration(minutes: 20)), // avoid refresh
+            clock.now().toUtc().add(Duration(minutes: 20)), // avoid refresh
           ),
           null,
           [],

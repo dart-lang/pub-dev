@@ -22,4 +22,29 @@ void main() {
       expect(main.contains('void '), isTrue);
     }
   });
+
+  test('redis: separators in prefixes', () {
+    final file = File('lib/shared/redis_cache.dart');
+    final lines = file.readAsLinesSync();
+    for (final line in lines) {
+      if (line.contains('withPrefix')) {
+        expect(line, contains("/')"));
+      }
+    }
+  });
+
+  test('clock.now() instead of DateTime.now()', () async {
+    final exceptions = [
+      './test/shared/misc_source_files_test.dart',
+    ];
+    final files = Directory('.')
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((f) => f.path.endsWith('.dart'));
+    for (final file in files) {
+      final content = await file.readAsString();
+      expect(content.contains('DateTime.now()'), exceptions.contains(file.path),
+          reason: '${file.path} contains DateTime.now()');
+    }
+  });
 }

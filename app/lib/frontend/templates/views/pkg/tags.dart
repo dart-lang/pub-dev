@@ -63,11 +63,12 @@ class SimpleTag {
     );
   }
 
-  factory SimpleTag.awaiting() {
+  factory SimpleTag.pending() {
     return SimpleTag(
       status: 'missing',
-      text: '[awaiting]',
-      title: 'Analysis should be ready soon.',
+      text: '[pending analysis]',
+      title:
+          "This version was scheduled for analysis, but it hasn't completed yet.",
     );
   }
 

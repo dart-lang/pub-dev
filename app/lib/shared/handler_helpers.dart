@@ -143,7 +143,6 @@ shelf.Handler _requestContextWrapper(shelf.Handler handler) {
       blockRobots: !enableRobots,
       uiCacheEnabled: uiCacheEnabled,
       showNewSearchUI: isExperimental,
-      showPackageRetraction: isExperimental,
     ));
     return await handler(request);
   };
@@ -250,6 +249,9 @@ shelf.Handler _userAuthWrapper(shelf.Handler handler) {
       final parts = authorization.split(' ');
       if (parts.length == 2 && parts.first.trim().toLowerCase() == 'bearer') {
         accessToken = parts.last.trim();
+      }
+      if (accessToken == null) {
+        throw AuthenticationException.failed();
       }
       return await accountBackend.withBearerToken(
           accessToken, () async => await handler(request));

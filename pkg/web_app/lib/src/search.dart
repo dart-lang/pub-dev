@@ -4,7 +4,9 @@
 
 import 'dart:html';
 
-import 'gtag_js.dart';
+import 'package:web_app/src/gtm_js.dart';
+
+import 'gtm_js.dart';
 import 'page_updater.dart';
 
 void setupSearch() {
@@ -34,10 +36,9 @@ void _setEventForKeyboardShortcut() {
         e.preventDefault();
 
         // notify analytics
-        gtagEvent(
-          'focus-search',
+        gtmCustomEvent(
           category: 'keyboard-shortcut',
-          label: 'path:${window.location.pathname}',
+          action: 'focus-search',
         );
       }
     });
@@ -61,6 +62,21 @@ void _setEventForSearchInput() {
   });
 }
 
+/// When using the back button, or pulling a page state from cache or history,
+/// the query text on the page may differ from the text inside the main input
+/// field.
+///
+/// This method adjusts the input field's text to match the query parameter,
+/// as if the page was freshly loaded.
+void adjustQueryTextAfterPageShow() {
+  final q = document.querySelector('input[name="q"]') as InputElement?;
+  if (q == null) return null;
+  final uri = Uri.tryParse(window.location.href);
+  if (q.value != uri?.queryParameters['q']) {
+    q.value = uri?.queryParameters['q'] ?? q.value;
+  }
+}
+
 void _setEventsForSearchForm() {
   // When a search form checkbox has a linked search label,
   //checking the checkbox will trigger a click on the link.
@@ -81,10 +97,15 @@ void _setEventsForSearchForm() {
             inputQElem.value ?? originalHrefUri.queryParameters['q'] ?? '';
         queryText = queryText.trim();
         final tag = link.dataset['tag'];
-        if (tag != null && ' $queryText '.contains(' $tag ')) {
-          queryText = ' $queryText '.replaceFirst(' $tag ', ' ').trim();
-        } else {
-          queryText = '$queryText $tag'.trim();
+        var actionPostfix = '-on';
+        if (tag != null) {
+          // remove or add tag to query string
+          if (' $queryText '.contains(' $tag ')) {
+            queryText = ' $queryText '.replaceFirst(' $tag ', ' ').trim();
+            actionPostfix = '-off';
+          } else {
+            queryText = '$queryText $tag'.trim();
+          }
         }
 
         final newUri = originalHrefUri.replace(
@@ -115,10 +136,20 @@ void _setEventsForSearchForm() {
           requestUri: requestUri,
           navigationUrl: windowUri.resolveUri(newUri).toString(),
         );
+
+        // notify GTM on the click
+        final action = link.dataset['action'];
+        if (action != null && action.isNotEmpty) {
+          gtmCustomEvent(
+            category: 'click',
+            action: '$action-$actionPostfix',
+          );
+        }
       }
 
       checkbox.onChange.listen(handleClick);
       link.onClick.listen(handleClick);
+      e.onClick.listen(handleClick);
     }
   });
 }

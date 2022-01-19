@@ -5,17 +5,17 @@
 import '../../account/models.dart' show LikeData, User, UserSessionData;
 import '../../audit/models.dart';
 import '../../frontend/templates/views/account/activity_log_table.dart';
-import '../../package/search_adapter.dart' show SearchResultPage;
+import '../../package/models.dart';
 import '../../publisher/models.dart' show PublisherSummary;
-import '../../search/search_form.dart' show SearchForm;
 import '../../shared/urls.dart' as urls;
 
 import '../dom/dom.dart' as d;
+import '_consts.dart';
 import 'detail_page.dart';
 import 'layout.dart';
-import 'listing.dart';
 import 'views/account/authorized.dart';
 import 'views/pkg/liked_package_list.dart';
+import 'views/pkg/package_list.dart';
 import 'views/publisher/publisher_list.dart';
 
 /// Renders the response that is displayed after pub client authorizes successfully.
@@ -32,35 +32,46 @@ String renderAuthorizedPage() {
 String renderAccountPackagesPage({
   required User user,
   required UserSessionData userSessionData,
-  required SearchResultPage searchResultPage,
-  required String? messageFromBackend,
-  required PageLinks pageLinks,
-  required SearchForm searchForm,
-  required int totalCount,
+  required List<PackageView> packageHits,
+  required String? startPackage,
+  required String? nextPackage,
 }) {
-  final isSearch = searchForm.hasQuery;
   String title = 'My packages';
-  if (isSearch && pageLinks.currentPage! > 1) {
-    title += ' | Page ${pageLinks.currentPage}';
+  if (startPackage != null && startPackage.isNotEmpty) {
+    title += ' | starting with $startPackage';
   }
 
+  final hasNoPackage = startPackage == null && packageHits.isEmpty;
+
   final tabContent = d.fragment([
-    listingInfo(
-      searchForm: searchForm,
-      totalCount: totalCount,
-      ownedBy: 'you',
-      messageFromBackend: messageFromBackend,
+    if (hasNoPackage)
+      d.p(text: 'You have no package where you are an uploader.')
+    else
+      d.markdown(
+          'List of your packages starting with `${startPackage ?? packageHits.first.name}`:'),
+    listOfPackagesNode(
+      highlightedHit: null,
+      sdkLibraryHits: [],
+      packageHits: packageHits,
     ),
-    if (searchResultPage.hasHit) packageList(searchResultPage),
-    paginationNode(pageLinks),
+    if (nextPackage != null)
+      d.div(
+        child: d.a(
+          classes: ['link-button'],
+          href: urls.myPackagesUrl(next: nextPackage),
+          text: 'Next...',
+        ),
+      ),
   ]);
   final content = renderDetailPage(
     headerNode: _accountDetailHeader(user, userSessionData),
     tabs: [
-      Tab.withContent(
-          id: 'my-packages', title: 'My packages', contentNode: tabContent),
-      _myLikedPackagesLink(),
       _myPublishersLink(),
+      Tab.withContent(
+          id: 'my-packages',
+          title: myPackagesTabTitle,
+          contentNode: tabContent),
+      _myLikedPackagesLink(),
       _myActivityLogLink(),
     ],
     infoBoxNode: null,
@@ -70,7 +81,6 @@ String renderAccountPackagesPage({
     PageType.account,
     content,
     title: title,
-    searchForm: searchForm,
     noIndex: true,
     mainClasses: [wideHeaderDetailPageClassName],
   );
@@ -95,12 +105,12 @@ String renderMyLikedPackagesPage({
   final content = renderDetailPage(
     headerNode: _accountDetailHeader(user, userSessionData),
     tabs: [
+      _myPublishersLink(),
       _myPackagesLink(),
       Tab.withContent(
           id: 'my-liked-packages',
-          title: 'My liked packages',
+          title: myLikedPackagesTabTitle,
           contentNode: tabContent),
-      _myPublishersLink(),
       _myActivityLogLink(),
     ],
     infoBoxNode: null,
@@ -125,13 +135,13 @@ String renderAccountPublishersPage({
   final content = renderDetailPage(
     headerNode: _accountDetailHeader(user, userSessionData),
     tabs: [
-      _myPackagesLink(),
-      _myLikedPackagesLink(),
       Tab.withContent(
         id: 'my-publishers',
-        title: 'My publishers',
+        title: myPublishersTabTitle,
         contentNode: pln,
       ),
+      _myPackagesLink(),
+      _myLikedPackagesLink(),
       _myActivityLogLink(),
     ],
     infoBoxNode: null,
@@ -161,12 +171,12 @@ String renderAccountMyActivityPage({
   final content = renderDetailPage(
     headerNode: _accountDetailHeader(user, userSessionData),
     tabs: [
+      _myPublishersLink(),
       _myPackagesLink(),
       _myLikedPackagesLink(),
-      _myPublishersLink(),
       Tab.withContent(
         id: 'my-activity-log',
-        title: 'My activity log',
+        title: myActivityLogTabTitle,
         contentNode: activityLog,
       ),
     ],
@@ -183,25 +193,30 @@ String renderAccountMyActivityPage({
 }
 
 Tab _myPackagesLink() => Tab.withLink(
-    id: 'my-packages', title: 'My packages', href: urls.myPackagesUrl());
+    id: 'my-packages', title: myPackagesTabTitle, href: urls.myPackagesUrl());
 
 Tab _myLikedPackagesLink() => Tab.withLink(
     id: 'my-liked-packages',
-    title: 'My liked packages',
+    title: myLikedPackagesTabTitle,
     href: urls.myLikedPackagesUrl());
 
 Tab _myPublishersLink() => Tab.withLink(
-    id: 'my-publishers', title: 'My publishers', href: urls.myPublishersUrl());
+    id: 'my-publishers',
+    title: myPublishersTabTitle,
+    href: urls.myPublishersUrl());
 
 Tab _myActivityLogLink() => Tab.withLink(
     id: 'my-activity-log',
-    title: 'My activity log',
+    title: myActivityLogTabTitle,
     href: urls.myActivityLogUrl());
 
 d.Node _accountDetailHeader(User user, UserSessionData userSessionData) {
   return renderDetailHeader(
     title: userSessionData.name,
-    imageUrl: userSessionData.imageUrlOfSize(200),
+    image: d.Image(
+      src: userSessionData.imageUrlOfSize(200),
+      alt: 'user profile picture',
+    ),
     metadataNode: d.fragment([
       d.p(text: user.email!),
       d.p(children: [

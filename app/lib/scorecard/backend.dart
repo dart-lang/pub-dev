@@ -4,12 +4,12 @@
 
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pana/pana.dart' as pana;
 import 'package:pool/pool.dart';
-import 'package:pub_semver/pub_semver.dart';
 
 import '../package/backend.dart';
 import '../package/models.dart' show Package, PackageVersion, PackageView;
@@ -19,7 +19,6 @@ import '../shared/popularity_storage.dart';
 import '../shared/redis_cache.dart' show cache;
 import '../shared/utils.dart';
 import '../shared/versions.dart' as versions;
-import '../tool/utils/dart_sdk_version.dart';
 
 import 'helpers.dart';
 import 'models.dart';
@@ -44,9 +43,6 @@ final _fallbackMinimumAge = const Duration(hours: 4);
 /// https://github.com/dart-lang/pub-dev/issues/4780
 const _batchLookupMaxKeyCount = 10;
 
-/// The concurrent request for the batch lookup.
-const _batchLookupConcurrency = 4;
-
 /// Sets the active scorecard backend.
 void registerScoreCardBackend(ScoreCardBackend backend) =>
     ss.register(#_scorecard_backend, backend);
@@ -58,7 +54,32 @@ ScoreCardBackend get scoreCardBackend =>
 /// Handles the data store and lookup for ScoreCard.
 class ScoreCardBackend {
   final db.DatastoreDB _db;
+
+  /// Concurrency control to get [PackageView] entities from the cache or Datastore.
+  final _packageViewGetterPool = Pool(10);
+
+  /// Concurrency control to get [ScoreCardData] from the Datastore.
+  final _scoreCardDataPool = Pool(10);
+
   ScoreCardBackend(this._db);
+
+  Future<void> close() async {
+    await _packageViewGetterPool.close();
+    await _scoreCardDataPool.close();
+  }
+
+  /// Returns the [PackageView] instance for each package in [packages], using
+  /// the latest stable version.
+  ///
+  /// If the package does not exist, it will return null in the given index.
+  Future<List<PackageView?>> getPackageViews(Iterable<String> packages) async {
+    final futures = <Future<PackageView?>>[];
+    for (final p in packages) {
+      futures.add(
+          _packageViewGetterPool.withResource(() async => getPackageView(p)));
+    }
+    return await Future.wait(futures);
+  }
 
   /// Returns the [PackageView] instance for [package] on its latest stable version.
   ///
@@ -79,7 +100,12 @@ class ScoreCardBackend {
 
       final pv = await pvFuture;
       final card = await cardFuture;
-      return PackageView.fromModel(package: p, version: pv, scoreCard: card);
+      return PackageView.fromModel(
+        package: p,
+        releases: releases,
+        version: pv,
+        scoreCard: card,
+      );
     });
   }
 
@@ -144,8 +170,7 @@ class ScoreCardBackend {
     // However, once the upload is above the specified age, it is better to
     // display and old analysis than to keep waiting on a new one.
     if (fallbackCard != null) {
-      final age =
-          DateTime.now().difference(fallbackCard.packageVersionCreated!);
+      final age = clock.now().difference(fallbackCard.packageVersionCreated!);
       if (age < _fallbackMinimumAge) {
         return null;
       }
@@ -169,9 +194,7 @@ class ScoreCardBackend {
       throw Exception('Unable to lookup $packageName $packageVersion.');
     }
 
-    final currentSdkVersion = await getDartSdkVersion();
-    final status = PackageStatus.fromModels(
-        package, version, currentSdkVersion.semanticVersion);
+    final status = PackageStatus.fromModels(package, version);
 
     await db.withRetryTransaction(_db, (tx) async {
       var scoreCard = await tx.lookupOrNull<ScoreCard>(key);
@@ -186,7 +209,7 @@ class ScoreCardBackend {
         );
       } else {
         _logger.info('Updating ScoreCard $packageName $packageVersion.');
-        scoreCard.updated = DateTime.now().toUtc();
+        scoreCard.updated = clock.now().toUtc();
       }
 
       scoreCard.flags.clear();
@@ -231,7 +254,7 @@ class ScoreCardBackend {
           reportIsTooBig(ReportType.pana, scoreCard.panaReportJsonGz)) {
         scoreCard.updateReports(
           panaReport: PanaReport(
-            timestamp: DateTime.now().toUtc(),
+            timestamp: clock.now().toUtc(),
             panaRuntimeInfo: null,
             reportStatus: ReportStatus.aborted,
             derivedTags: <String>[],
@@ -294,7 +317,6 @@ class ScoreCardBackend {
     Iterable<String> versions, {
     String? runtimeVersion,
   }) async {
-    final pool = Pool(_batchLookupConcurrency);
     final futures = <Future<List<ScoreCardData?>>>[];
     for (var start = 0;
         start < versions.length;
@@ -305,7 +327,7 @@ class ScoreCardBackend {
           .map((v) =>
               scoreCardKey(packageName, v, runtimeVersion: runtimeVersion))
           .toList();
-      final f = pool.withResource(() async {
+      final f = _scoreCardDataPool.withResource(() async {
         final items = await _db.lookup<ScoreCard>(keys);
         return items.map((item) => item?.toData()).toList();
       });
@@ -316,7 +338,6 @@ class ScoreCardBackend {
       <ScoreCardData?>[],
       (r, list) => r..addAll(list),
     );
-    await pool.close();
     return results;
   }
 
@@ -328,14 +349,14 @@ class ScoreCardBackend {
     await db.withRetryTransaction(_db, (tx) async {
       final card = await tx.lookupOrNull<ScoreCard>(key);
       if (card == null) return;
-      card.updated = DateTime.now().toUtc();
+      card.updated = clock.now().toUtc();
       tx.insert(card);
     });
   }
 
   /// Deletes the old entries that predate [versions.gcBeforeRuntimeVersion].
   Future<void> deleteOldEntries() async {
-    final now = DateTime.now();
+    final now = clock.now();
     await _db.deleteWithQuery(_db.query<ScoreCard>()
       ..filter('runtimeVersion <', versions.gcBeforeRuntimeVersion));
     await _db.deleteWithQuery(_db.query<ScoreCard>()
@@ -344,13 +365,12 @@ class ScoreCardBackend {
 
   /// Returns the status of a package and version.
   Future<PackageStatus> getPackageStatus(String package, String version) async {
-    final currentSdkVersion = await getDartSdkVersion();
     final packageKey = _db.emptyKey.append(Package, id: package);
     final List list = await _db
         .lookup([packageKey, packageKey.append(PackageVersion, id: version)]);
     final p = list[0] as Package;
     final pv = list[1] as PackageVersion;
-    return PackageStatus.fromModels(p, pv, currentSdkVersion.semanticVersion);
+    return PackageStatus.fromModels(p, pv);
   }
 
   /// Returns whether we should update the [reportType] report for the given
@@ -388,7 +408,7 @@ class ScoreCardBackend {
         return true;
       }
       // checking age
-      final age = DateTime.now().toUtc().difference(updated);
+      final age = clock.now().toUtc().difference(updated);
       final isSuccess = reportStatus == ReportStatus.success;
       final ageThreshold = isSuccess ? successThreshold : failureThreshold;
       return age > ageThreshold;
@@ -416,7 +436,7 @@ class PackageStatus {
   final bool isObsolete;
   final bool isLegacy;
   final bool usesFlutter;
-  final bool usesPreviewSdk;
+  final bool usesPreviewAnalysisSdk;
   final bool isPublishedByDartDev;
 
   PackageStatus._({
@@ -428,18 +448,17 @@ class PackageStatus {
     this.isObsolete = false,
     this.isLegacy = false,
     this.usesFlutter = false,
-    this.usesPreviewSdk = false,
+    this.usesPreviewAnalysisSdk = false,
     this.isPublishedByDartDev = false,
   });
 
-  factory PackageStatus.fromModels(
-      Package? p, PackageVersion? pv, Version currentSdkVersion) {
+  factory PackageStatus.fromModels(Package? p, PackageVersion? pv) {
     if (p == null || pv == null || p.isNotVisible) {
       return PackageStatus._(exists: false);
     }
     final publishDate = pv.created!;
     final isLatestStable = p.latestVersion == pv.version;
-    final now = DateTime.now().toUtc();
+    final now = clock.now().toUtc();
     final age = now.difference(publishDate).abs();
     final isObsolete = age > twoYears && !isLatestStable;
     return PackageStatus._(
@@ -451,7 +470,7 @@ class PackageStatus {
       isObsolete: isObsolete,
       isLegacy: pv.pubspec!.supportsOnlyLegacySdk,
       usesFlutter: pv.pubspec!.usesFlutter,
-      usesPreviewSdk: pv.pubspec!.isPreviewForCurrentSdk(currentSdkVersion),
+      usesPreviewAnalysisSdk: pv.pubspec!.usesPreviewAnalysisSdk(),
       isPublishedByDartDev:
           p.publisherId != null && isDartDevPublisher(p.publisherId),
     );

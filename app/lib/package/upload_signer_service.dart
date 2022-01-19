@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:client_data/package_api.dart';
+import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/iam/v1.dart' as iam;
 import 'package:googleapis_auth/auth_io.dart' as auth;
@@ -70,7 +71,7 @@ abstract class UploadSignerService {
     String predefinedAcl = 'project-private',
     int maxUploadSize = maxUploadSize,
   }) async {
-    final now = DateTime.now().toUtc();
+    final now = clock.now().toUtc();
     final expirationString = now.add(lifetime).toIso8601String();
 
     object = '$bucket/$object';

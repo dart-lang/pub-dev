@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:clock/clock.dart';
+
 import '../../../../package/models.dart';
 import '../../../../search/search_service.dart';
 import '../../../../shared/tags.dart';
@@ -56,30 +58,39 @@ d.Node _packageItem(PackageView view) {
   final isFlutterFavorite = view.tags.contains(PackageTags.isFlutterFavorite);
   final isNullSafe = view.tags.contains(PackageVersionTags.isNullSafe);
 
+  Iterable<d.Node> versionAndTimestamp(
+    Release release, {
+    bool isLatest = false,
+  }) {
+    return [
+      d.a(
+        href: urls.pkgPageUrl(
+          view.name!,
+          version: isLatest ? null : release.version,
+        ),
+        text: release.version,
+      ),
+      d.text(' ('),
+      d.xAgoTimestamp(release.published),
+      d.text(')'),
+    ];
+  }
+
+  final releases = view.releases!;
   final metadataNode = d.fragment([
     d.span(
       classes: ['packages-metadata-block'],
       children: [
         d.text('v '),
-        d.a(href: urls.pkgPageUrl(view.name!), text: view.version),
-        if (view.previewVersion != null) ...[
+        ...versionAndTimestamp(releases.stable, isLatest: true),
+        if (releases.showPreview) ...[
           d.text(' / '),
-          d.a(
-            href: urls.pkgPageUrl(view.name!, version: view.previewVersion),
-            text: view.previewVersion,
-          ),
+          ...versionAndTimestamp(releases.preview!),
         ],
-        if (view.prereleaseVersion != null) ...[
-          d.text('/ '),
-          d.a(
-            href: urls.pkgPageUrl(view.name!, version: view.prereleaseVersion),
-            text: view.prereleaseVersion,
-          ),
+        if (releases.showPrerelease) ...[
+          d.text(' / '),
+          ...versionAndTimestamp(releases.prerelease!),
         ],
-        d.text(' • Updated: '),
-        d.span(
-          child: view.updated == null ? null : d.xAgoTimestamp(view.updated!),
-        ),
       ],
     ),
     if (view.publisherId != null)
@@ -88,8 +99,11 @@ d.Node _packageItem(PackageView view) {
       ], children: [
         d.img(
           classes: ['package-vp-icon'],
-          src:
-              staticUrls.getAssetUrl('/static/img/verified-publisher-icon.svg'),
+          image: d.Image(
+            src: staticUrls
+                .getAssetUrl('/static/img/verified-publisher-icon.svg'),
+            alt: 'shield icon for verified publishers',
+          ),
           title: 'Published by a pub.dev verified publisher',
         ),
         d.a(href: urls.publisherUrl(view.publisherId!), text: view.publisherId),
@@ -131,7 +145,7 @@ d.Node _item({
   required List<_ApiPageUrl>? apiPages,
 }) {
   final age =
-      newTimestamp == null ? null : DateTime.now().difference(newTimestamp);
+      newTimestamp == null ? null : clock.now().difference(newTimestamp);
   return d.div(
     classes: ['packages-item'],
     children: [
@@ -148,7 +162,11 @@ d.Node _item({
               children: [
                 d.img(
                   classes: ['packages-recent-icon'],
-                  src: staticUrls.getAssetUrl('/static/img/schedule-icon.svg'),
+                  image: d.Image(
+                    src:
+                        staticUrls.getAssetUrl('/static/img/schedule-icon.svg'),
+                    alt: 'icon indicating recent time',
+                  ),
                   title: 'new package',
                 ),
                 d.text(' Added '),

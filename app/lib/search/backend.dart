@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:html/parser.dart' as html_parser;
@@ -109,24 +110,20 @@ class SearchBackend {
         : <String>[];
 
     final tags = <String>{
+      // Every package gets the show:* tags, so they can be used as override in
+      // the query text.
+      PackageTags.showHidden,
+      PackageTags.showDiscontinued,
+      PackageTags.showUnlisted,
+      PackageVersionTags.showLegacy,
+
+      // regular tags
       ...p.getTags(),
       ...pv.getTags(),
-      ...?scoreCard?.panaReport?.derivedTags?.expand(expandPanaTag),
-      ...prereleaseTags
-          .expand(expandPanaTag)
-          .map(PackageTags.convertToPrereleaseTag),
-      ...previewTags
-          .expand(expandPanaTag)
-          .map(PackageTags.convertToPrereleaseTag),
+      ...?scoreCard?.panaReport?.derivedTags,
+      ...prereleaseTags,
+      ...previewTags,
     };
-
-    // This is a temporary workaround to expose latest stable versions with
-    // null-safety support.
-    // TODO: Cleanup after we've implemented better search support for this.
-    if (tags.contains(PackageVersionTags.isNullSafe)) {
-      tags.add(
-          PackageTags.convertToPrereleaseTag(PackageVersionTags.isNullSafe));
-    }
 
     final pubDataContent = await dartdocBackend.getTextContent(
         packageName, 'latest', 'pub-data.json',
@@ -159,9 +156,8 @@ class SearchBackend {
       maxPoints: scoreCard?.maxPubPoints ?? 0,
       dependencies: _buildDependencies(pv.pubspec!, scoreCard),
       publisherId: p.publisherId,
-      uploaderUserIds: p.uploaders,
       apiDocPages: apiDocPages,
-      timestamp: DateTime.now().toUtc(),
+      timestamp: clock.now().toUtc(),
     );
   }
 
@@ -202,8 +198,7 @@ class SearchBackend {
         grantedPoints: 0,
         maxPoints: 0,
         publisherId: p.publisherId,
-        uploaderUserIds: p.uploaders,
-        timestamp: DateTime.now().toUtc(),
+        timestamp: clock.now().toUtc(),
       );
     }
   }

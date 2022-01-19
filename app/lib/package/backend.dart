@@ -9,6 +9,7 @@ import 'dart:io';
 
 import 'package:client_data/account_api.dart' as account_api;
 import 'package:client_data/package_api.dart' as api;
+import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
@@ -94,7 +95,7 @@ class PackageBackend {
   Stream<String> sitemapPackageNames() {
     final query = db.query<Package>()
       ..filter(
-          'updated >', DateTime.now().toUtc().subtract(robotsVisibilityMaxAge));
+          'updated >', clock.now().toUtc().subtract(robotsVisibilityMaxAge));
     return query
         .run()
         .where((p) => p.isVisible)
@@ -129,25 +130,6 @@ class PackageBackend {
     });
   }
 
-  /// Returns the number of versions for a given [package].
-  Future<int> getPackageVersionsCount(
-    String package, {
-    bool skipCache = false,
-  }) async {
-    if (skipCache) {
-      final versions = await versionsOfPackage(package);
-      return versions.length;
-    }
-    try {
-      // TODO: introduce a counter on `Package`
-      final versions = await listVersionsCached(package);
-      return versions.versions.length;
-    } on NotFoundException catch (_) {
-      // TODO: find a better way to handle non-existing packages
-      return 0;
-    }
-  }
-
   /// Looks up a package by name.
   ///
   /// Returns `null` if the package doesn't exist.
@@ -170,6 +152,26 @@ class PackageBackend {
             .map((p) => db.emptyKey.append(Package, id: p))
             .toList()))
         .cast();
+  }
+
+  /// List all packages where the [userId] is an uploader.
+  Future<PackageListPage> listPackagesForUser(
+    String userId, {
+    String? next,
+    int limit = 10,
+  }) async {
+    final query = db.query<Package>()
+      ..filter('uploaders =', userId)
+      ..order('name')
+      ..limit(limit + 1);
+    if (next != null) {
+      query.filter('name >=', next);
+    }
+    final packages = await query.run().toList();
+    return PackageListPage(
+      packages: packages.take(limit).map((p) => p.name!).toList(),
+      nextPackage: packages.length <= limit ? null : packages.last.name!,
+    );
   }
 
   /// Returns the latest releases info of a package.
@@ -248,7 +250,7 @@ class PackageBackend {
     final packageKey = db.emptyKey.append(Package, id: package);
     final query = db.query<PackageVersion>(ancestorKey: packageKey)
       ..filter(
-          'created >=', DateTime.now().toUtc().subtract(Duration(days: days)));
+          'created >=', clock.now().toUtc().subtract(Duration(days: days)));
     return await query.run().where((pv) => where == null || where(pv)).toList();
   }
 
@@ -386,7 +388,7 @@ class PackageBackend {
         return;
       }
 
-      p.updated = DateTime.now().toUtc();
+      p.updated = clock.now().toUtc();
       _logger.info('Updating $package options: '
           'isDiscontinued: ${p.isDiscontinued} '
           'isUnlisted: ${p.isUnlisted}');
@@ -433,7 +435,7 @@ class PackageBackend {
           InvalidInputException.check(pv.canBeRetracted,
               'Can\'t retract package "$package" version "$version".');
           pv.isRetracted = true;
-          pv.retracted = DateTime.now().toUtc();
+          pv.retracted = clock.now().toUtc();
         } else {
           InvalidInputException.check(pv.canUndoRetracted,
               'Can\'t undo retraction of package "$package" version "$version".');
@@ -469,8 +471,17 @@ class PackageBackend {
               dartSdkVersion: currentDartSdk.semanticVersion);
         }
 
+        _logger.info('Updating $package ${pv.version} options: '
+            'isRetracted: ${pv.isRetracted}');
+
         tx.insert(p);
         tx.insert(pv);
+        tx.insert(AuditLogRecord.packageVersionOptionsUpdated(
+          package: p.name!,
+          version: pv.version!,
+          user: user,
+          options: ['retracted'],
+        ));
       }
     });
     await purgePackageCache(package);
@@ -548,7 +559,7 @@ class PackageBackend {
       final fromPublisherId = package.publisherId;
       package.publisherId = request.publisherId;
       package.uploaders?.clear();
-      package.updated = DateTime.now().toUtc();
+      package.updated = clock.now().toUtc();
 
       tx.insert(package);
       tx.insert(AuditLogRecord.packageTransferred(
@@ -581,7 +592,7 @@ class PackageBackend {
 //      final package = (await db.lookup<Package>([key])).single;
 //      package.publisherId = null;
 //      package.uploaders = [user.userId];
-//      package.updated = DateTime.now().toUtc();
+//      package.updated = clock.now().toUtc();
 //      // TODO: store PackageTransferred History entry.
 //      tx.queueMutations(inserts: [package]);
 //      await tx.commit();
@@ -608,8 +619,8 @@ class PackageBackend {
     }
     packageVersions
         .sort((a, b) => a.semanticVersion.compareTo(b.semanticVersion));
-    final latest = packageVersions.lastWhere(
-      (pv) => !pv.semanticVersion.isPreRelease,
+    final latest = packageVersions.firstWhere(
+      (pv) => pv.version == pkg.latestVersion,
       orElse: () => packageVersions.last,
     );
     return api.PackageData(
@@ -750,8 +761,21 @@ class PackageBackend {
       }
 
       final pubspec = Pubspec.fromYaml(archive.pubspecContent!);
-      PackageRejectedException.check(await nameTracker.accept(pubspec.name),
-          'Package name is too similar to another active or moderated package.');
+      final conflictingName = await nameTracker.accept(pubspec.name);
+      if (conflictingName != null) {
+        final visible = await isPackageVisible(conflictingName);
+        if (visible) {
+          throw PackageRejectedException.similarToActive(
+              pubspec.name,
+              conflictingName,
+              urls.pkgPageUrl(conflictingName, includeHost: true));
+        } else {
+          throw PackageRejectedException.similarToModerated(
+              pubspec.name, conflictingName);
+        }
+      }
+      PackageRejectedException.check(conflictingName == null,
+          'Package name is too similar to another active or moderated package: `$conflictingName`.');
       final versionString = canonicalizeVersion(pubspec.nonCanonicalVersion);
       if (versionString == null) {
         throw InvalidInputException.canonicalizeVersionError(
@@ -785,16 +809,6 @@ class PackageBackend {
     final sw = Stopwatch()..start();
     final entities = await _createUploadEntities(db, user, archive);
     final newVersion = entities.packageVersion;
-
-    // Check version count outside of the transaction.
-    final versionsCount = await getPackageVersionsCount(newVersion.package);
-    if (versionsCount >= _maxVersionsPerPackage) {
-      throw PackageRejectedException.maxVersionCountReached(
-          newVersion.package, _maxVersionsPerPackage);
-    }
-    _logger.info('Upload version count check completed in ${sw.elapsed}.');
-    sw.reset();
-
     final currentDartSdk = await getDartSdkVersion();
 
     Package? package;
@@ -841,8 +855,19 @@ class PackageBackend {
             user.email!, package!.name!);
       }
 
+      if (package!.versionCount >= _maxVersionsPerPackage) {
+        throw PackageRejectedException.maxVersionCountReached(
+            newVersion.package, _maxVersionsPerPackage);
+      }
+
       if (package!.isNotVisible) {
         throw PackageRejectedException.isWithheld();
+      }
+
+      if (package!.deletedVersions != null &&
+          package!.deletedVersions!.contains(newVersion.version!)) {
+        throw PackageRejectedException.versionDeleted(
+            package!.name!, newVersion.version!);
       }
 
       // Store the publisher of the package at the time of the upload.
@@ -851,12 +876,8 @@ class PackageBackend {
       // Keep the latest version in the package object up-to-date.
       package!.updateVersion(newVersion,
           dartSdkVersion: currentDartSdk.semanticVersion);
-      package!.updated = DateTime.now().toUtc();
-      // Update version count only if backfill has been run already.
-      // TODO: change this to always update when the backfill completed.
-      if (package!.versionCount != null) {
-        package!.versionCount = package!.versionCount! + 1;
-      }
+      package!.updated = clock.now().toUtc();
+      package!.versionCount++;
 
       _logger.info(
         'Trying to upload tarball for ${package!.name} version ${newVersion.version} to cloud storage.',
@@ -1014,7 +1035,7 @@ class PackageBackend {
 
       // Add [uploaderEmail] to uploaders and commit.
       package.addUploader(uploader.userId);
-      package.updated = DateTime.now().toUtc();
+      package.updated = clock.now().toUtc();
 
       tx.insert(package);
       tx.insert(AuditLogRecord.uploaderInviteAccepted(
@@ -1083,7 +1104,7 @@ class PackageBackend {
 
       // Remove the uploader from the list.
       package.removeUploader(uploader.userId);
-      package.updated = DateTime.now().toUtc();
+      package.updated = clock.now().toUtc();
 
       tx.insert(package);
       tx.insert(AuditLogRecord.uploaderRemoved(
@@ -1122,7 +1143,7 @@ extension PackageVersionExt on PackageVersion {
   api.VersionInfo toApiVersionInfo() {
     return api.VersionInfo(
       version: version!,
-      isRetracted: isRetracted ? true : null,
+      retracted: isRetracted ? true : null,
       pubspec: pubspec!.asJson,
       archiveUrl: urls.pkgArchiveDownloadUrl(
         package,
@@ -1263,7 +1284,7 @@ Future<_UploadEntities> _createUploadEntities(
     ..parentKey = packageKey
     ..version = versionString
     ..packageKey = packageKey
-    ..created = DateTime.now().toUtc()
+    ..created = clock.now().toUtc()
     ..pubspec = pubspec
     ..libraries = archive.libraries
     ..uploader = user.userId
@@ -1343,7 +1364,7 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
   final versionInfo = PackageVersionInfo()
     ..initFromKey(key)
     ..versionCreated = versionCreated
-    ..updated = DateTime.now().toUtc()
+    ..updated = clock.now().toUtc()
     ..libraries = archive.libraries
     ..libraryCount = archive.libraries!.length
     ..assets = assets.map((a) => a.kind!).toList()
@@ -1398,6 +1419,12 @@ class TarballStorage {
   Stream<List<int>> download(String package, String version) {
     final object = namer.tarballObjectName(package, version);
     return bucket.read(object);
+  }
+
+  /// Gets the file info of a [package] in the given [version].
+  Future<ObjectInfo?> info(String package, String version) async {
+    final object = namer.tarballObjectName(package, version);
+    return await bucket.tryInfo(object);
   }
 
   /// Deletes the tarball of a [package] in the given [version] permanently.

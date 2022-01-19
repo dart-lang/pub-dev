@@ -7,6 +7,7 @@ library pub_dartlang_org.atom_feed;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:crypto/crypto.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
@@ -158,7 +159,7 @@ Feed _feedFromPackageVersions(
   final alternateUrl =
       activeConfiguration.primarySiteUri.resolve('/').toString();
   final author = 'Dart Team';
-  final updated = DateTime.now().toUtc();
+  final updated = clock.now().toUtc();
 
   return Feed(id, title, subTitle, updated, author, alternateUrl, selfUrl,
       'Pub Feed Generator', '0.1.0', entries);

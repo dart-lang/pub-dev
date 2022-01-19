@@ -31,16 +31,19 @@ void validateHtml(Node root) {
   List<Element> elements;
   List<Element> links;
   List<Element> scripts;
+  List<Element> buttons;
 
   if (root is DocumentFragment) {
     elements = root.querySelectorAll('*');
     links = root.querySelectorAll('a');
     scripts = root.querySelectorAll('script');
+    buttons = root.querySelectorAll('button');
   } else if (root is Document) {
     _validateCanonicalLink(root.querySelector('head')!);
     elements = root.querySelectorAll('*');
     links = root.querySelectorAll('a');
     scripts = root.querySelectorAll('script');
+    buttons = root.querySelectorAll('button');
   } else {
     throw AssertionError('Unknown html element type: $root');
   }
@@ -101,6 +104,21 @@ void validateHtml(Node root) {
         throw AssertionError(
             'script tag must text content must be empty, found: ${elem.outerHtml}');
       }
+    }
+  }
+
+  // Lighthouse flags buttons that don't have text content or an `aria-label` property.
+  for (final elem in buttons) {
+    final text = elem.attributes['aria-label']?.trim() ?? elem.text.trim();
+    if (text.isEmpty) {
+      // Exempt buttons in dartdoc output:
+      // TODO: remove after dartdoc content is updated.
+      if (elem.outerHtml ==
+          '<button id=\"sidenav-left-toggle\" type=\"button\">&nbsp;</button>') {
+        continue;
+      }
+      throw AssertionError(
+          'button tag text content or aria-label must not be empty, found: ${elem.outerHtml}');
     }
   }
 }

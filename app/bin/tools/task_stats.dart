@@ -11,6 +11,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:clock/clock.dart';
 import 'package:pool/pool.dart';
 
 import 'package:pub_dev/package/models.dart';
@@ -32,7 +33,7 @@ Future main(List<String> args) async {
 
   await withToolRuntime(() async {
     final statFutures = <Future<_Stat>>[];
-    final updatedAfter = DateTime.now().subtract(Duration(days: maxAgeDays));
+    final updatedAfter = clock.now().subtract(Duration(days: maxAgeDays));
     final query = dbService.query<Package>()
       ..filter('updated >=', updatedAfter);
     await for (Package p in query.run()) {

@@ -20,7 +20,7 @@ d.Node scoreTabNode({
   }
 
   final report = card.getJoinedReport();
-  final showAwaiting = !card.isSkipped && report == null;
+  final showPending = !card.isSkipped && report == null;
   final showReport = !card.isSkipped && report != null;
 
   final toolEnvInfo = _renderToolEnvInfoNode(
@@ -59,7 +59,7 @@ d.Node scoreTabNode({
             'The package version is not analyzed, because it does not support Dart 2. '
             'Until this is resolved, the package will receive a pub score of 0.',
       ),
-    if (showAwaiting)
+    if (showPending)
       d.p(
         classes: ['analysis-info'],
         text: 'The analysis of the package has not been completed yet.',
@@ -104,7 +104,10 @@ d.Node _section(ReportSection section) {
               classes: ['pkg-report-header-icon'],
               child: d.img(
                 classes: ['pkg-report-icon'],
-                src: _statusIconUrls[section.status],
+                image: d.Image(
+                  src: _statusIconUrls[section.status]!,
+                  alt: 'icon indicating section status',
+                ),
               ),
             ),
             d.div(classes: ['pkg-report-header-title'], text: section.title),
@@ -124,8 +127,11 @@ d.Node _section(ReportSection section) {
                     text: '${section.maxPoints}'),
                 d.img(
                   classes: ['foldable-icon'],
-                  src: staticUrls
-                      .getAssetUrl('/static/img/report-foldable-icon.svg'),
+                  image: d.Image(
+                    src: staticUrls
+                        .getAssetUrl('/static/img/report-foldable-icon.svg'),
+                    alt: 'icon to trigger folding of the section',
+                  ),
                 ),
               ],
             ),
@@ -237,7 +243,7 @@ d.Node _pubPointsKeyFigureNode(Report? report) {
   if (report == null) {
     return _keyFigureNode(
       value: '',
-      supplemental: 'awaiting',
+      supplemental: 'pending',
       label: 'pub points',
     );
   }

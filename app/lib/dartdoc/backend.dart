@@ -6,27 +6,38 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
-    show DetailedApiRequestError;
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
+import 'package:indexed_blob/indexed_blob.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
 import 'package:retry/retry.dart';
 
-import '../dartdoc/models.dart' show DartdocEntry;
 import '../package/backend.dart';
 import '../package/models.dart' show Package, PackageVersion;
 import '../scorecard/backend.dart';
 import '../shared/datastore.dart';
 import '../shared/redis_cache.dart' show cache;
 import '../shared/storage.dart';
-import '../shared/utils.dart' show DeleteCounts;
 import '../shared/versions.dart' as shared_versions;
 
 import 'models.dart';
 import 'storage_path.dart' as storage_path;
+
+/// Exposed because the HTTP handler needs to know these files
+/// are served not from the blob.
+/// TODO: refactor after we are using only blobs in all accepted runtimes.
+const archiveFilePath = 'package.tar.gz';
+const blobFilePath = 'blob-data.gz';
+const blobIndexV1FilePath = 'index-v1.json';
+const buildLogFilePath = 'log.txt';
+const uploadedFilePaths = [
+  archiveFilePath,
+  blobFilePath,
+  blobIndexV1FilePath,
+  buildLogFilePath,
+];
 
 final Logger _logger = Logger('pub.dartdoc.backend');
 
@@ -266,6 +277,25 @@ class DartdocBackend {
           () async => retry<FileInfo?>(
             () async {
               try {
+                if (uploadedFilePaths.contains(relativePath)) {
+                  final info = await _storage.info(objectName);
+                  return FileInfo(lastModified: info.updated, etag: info.etag);
+                }
+                final index = await _getBlobIndex(entry);
+                if (index != null) {
+                  final range = index.lookup(relativePath);
+                  if (range == null) {
+                    return null;
+                  }
+                  return FileInfo(
+                    lastModified: entry.timestamp!,
+                    etag: '${entry.uuid}-${range.start}-${range.end}',
+                    blobId: entry.uuid,
+                    blobOffset: range.start,
+                    blobLength: range.length,
+                  );
+                }
+                // TODO: remove this once all the accepted runtimes use blobs
                 final info = await _storage.info(objectName);
                 return FileInfo(lastModified: info.updated, etag: info.etag);
               } catch (e) {
@@ -279,12 +309,32 @@ class DartdocBackend {
         );
   }
 
+  Future<BlobIndex?> _getBlobIndex(DartdocEntry entry) async {
+    if (!entry.hasBlob) return null;
+    final objectName = entry.objectName(blobIndexV1FilePath);
+    final indexContent =
+        await cache.dartdocBlobIndexV1(objectName).get(() async {
+      return await _storage.readAsBytes(objectName);
+    });
+    if (indexContent == null) return null;
+    return BlobIndex.fromBytes(indexContent);
+  }
+
   /// Returns a file's content from the storage bucket.
   Stream<List<int>> readContent(DartdocEntry entry, String relativePath) {
     final objectName = entry.objectName(relativePath);
     // TODO: add caching with memcache
     _logger.info('Retrieving $objectName from bucket.');
     return _storage.read(objectName);
+  }
+
+  /// Reads content from blob.
+  Stream<List<int>> readFromBlob(DartdocEntry entry, FileInfo info) {
+    return _storage.read(
+      entry.objectName(blobFilePath),
+      offset: info.blobOffset!,
+      length: info.blobLength!,
+    );
   }
 
   /// Returns the text content of a file inside the dartdoc archive.
@@ -302,6 +352,15 @@ class DartdocBackend {
       if (entry == null || !entry.hasContent) {
         return null;
       }
+      final index = await _getBlobIndex(entry);
+      if (index != null) {
+        final range = index.lookup(relativePath);
+        if (range == null) return null;
+        final bytes = await _storage.readAsBytes(entry.objectName(blobFilePath),
+            offset: range.start, length: range.length);
+        return utf8.decode(gzip.decode(bytes));
+      }
+      // TODO: remove this once all the accepted runtimes use blobs
       final stream = readContent(entry, relativePath).transform(utf8.decoder);
       return (await stream.toList().timeout(timeout)).join();
     } catch (e, st) {
@@ -339,81 +398,6 @@ class DartdocBackend {
     }
   }
 
-  /// Scan the Datastore for recent [DartdocRun]s and run the storage
-  /// bucket GC on them. Failing to run these GC should be fine, as we
-  /// eventually remove them by their old runtimeVersion.
-  ///
-  /// TODO: remove this after we only use [DartdocRun] to store state.
-  Future<void> gcStorageBucket() async {
-    final query = _db.query<DartdocRun>()
-      ..filter('created >', DateTime.now().toUtc().subtract(Duration(days: 2)));
-    var total = DeleteCounts.empty();
-    await for (final r in query.run()) {
-      if (r.runtimeVersion != shared_versions.runtimeVersion) continue;
-      total += await _removeObsolete(r.package!, r.version!);
-    }
-    _logger.info(
-        'gc-dartdoc-storage-bucket cleared $total entries (${shared_versions.runtimeVersion}).');
-  }
-
-  /// Removes incomplete uploads and old outputs from the bucket.
-  Future<DeleteCounts> _removeObsolete(String package, String version) async {
-    final completedList =
-        await _listEntries(storage_path.entryPrefix(package, version));
-    final inProgressList =
-        await _listEntries(storage_path.inProgressPrefix(package, version));
-
-    final deleteEntries = [
-      ...completedList
-          .where((e) => (shared_versions.shouldGCVersion(e.runtimeVersion))),
-      ...inProgressList
-          .where((e) => (shared_versions.shouldGCVersion(e.runtimeVersion)))
-    ];
-
-    // delete everything else
-    for (var entry in deleteEntries) {
-      await _deleteAll(entry);
-    }
-    return DeleteCounts(
-        completedList.length + inProgressList.length, deleteEntries.length);
-  }
-
-  Future<List<DartdocEntry>> _listEntries(String prefix) async {
-    if (!prefix.endsWith('/')) {
-      throw ArgumentError('Directory prefix must end with `/`.');
-    }
-    return retry(
-      () async {
-        final List<DartdocEntry> list = [];
-        await for (final entry in _storage.list(prefix: prefix)) {
-          if (entry.isDirectory) continue;
-          if (!entry.name.endsWith('.json')) continue;
-          final dartdocEntry = await _tryLoadEntryFromBucket(entry.name);
-          if (dartdocEntry != null) {
-            list.add(dartdocEntry);
-          }
-        }
-        return list;
-      },
-      maxAttempts: 2,
-    );
-  }
-
-  /// Tries to load the entry from the storage bucket.
-  /// Returns null if the entry was missing or unable to parse.
-  Future<DartdocEntry?> _tryLoadEntryFromBucket(String objectName) async {
-    try {
-      return await DartdocEntry.fromStream(_storage.read(objectName));
-    } catch (e, st) {
-      if (e is DetailedApiRequestError && e.status == 404) {
-        // ignore exception: entry was removed by another cleanup process during the listing
-      } else {
-        _logger.warning('Unable to read entry: $objectName.', e, st);
-      }
-    }
-    return null;
-  }
-
   Future<void> _deleteAll(DartdocEntry entry) async {
     await withRetryTransaction(_db, (tx) async {
       final r = await tx.lookupOrNull<DartdocRun>(
@@ -425,8 +409,6 @@ class DartdocBackend {
     });
 
     await _deleteAllWithPrefix(entry.contentPrefix);
-    await deleteFromBucket(_storage, entry.entryObjectName);
-    await deleteFromBucket(_storage, entry.inProgressObjectName);
     await withRetryTransaction(_db, (tx) async {
       final r = await tx.lookupOrNull<DartdocRun>(
           _db.emptyKey.append(DartdocRun, id: entry.uuid));

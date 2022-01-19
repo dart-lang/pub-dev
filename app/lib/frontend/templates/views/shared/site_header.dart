@@ -6,34 +6,35 @@ import '../../../../account/models.dart' show UserSessionData;
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
 import '../../../static_files.dart' show staticUrls;
-import '../../layout.dart' show PageType;
+import '../../_consts.dart';
+import '../../layout.dart' show PageType, showSearchBanner;
 
 /// Creates the site header and navigation node.
 d.Node siteHeaderNode({
   required PageType pageType,
   UserSessionData? userSession,
 }) {
-  final showHeaderSearch =
-      pageType == PageType.package || pageType == PageType.standalone;
   return d.div(
     classes: ['site-header'],
     children: [
-      d.button(classes: ['hamburger']),
+      d.button(classes: ['hamburger'], ariaLabel: 'menu toggle'),
       if (pageType != PageType.landing)
         d.a(
           classes: ['logo'],
           href: '/',
           child: d.img(
             classes: ['site-logo'],
-            alt: 'pub logo',
-            src: staticUrls.pubDevLogo2xPng,
-            width: 135,
-            height: 30,
+            image: d.Image(
+              src: staticUrls.pubDevLogo2xPng,
+              alt: 'pub logo',
+              width: 135,
+              height: 30,
+            ),
           ),
         ),
       d.div(classes: ['site-header-space']),
       d.div(classes: ['site-header-mask']),
-      if (showHeaderSearch)
+      if (!showSearchBanner(pageType))
         d.div(
           classes: ['site-header-search'],
           child: d.form(
@@ -73,10 +74,11 @@ d.Node siteHeaderNode({
                   child: d.div(
                     classes: ['nav-table-column'],
                     children: [
-                      _navLink(urls.myPackagesUrl(), 'My packages'),
-                      _navLink(urls.myLikedPackagesUrl(), 'My liked packages'),
-                      _navLink(urls.myPublishersUrl(), 'My publishers'),
-                      _navLink(urls.myActivityLogUrl(), 'My activity log'),
+                      _navLink(urls.myPublishersUrl(), myPublishersTabTitle),
+                      _navLink(urls.myPackagesUrl(), myPackagesTabTitle),
+                      _navLink(
+                          urls.myLikedPackagesUrl(), myLikedPackagesTabTitle),
+                      _navLink(urls.myActivityLogUrl(), myActivityLogTabTitle),
                       _navLink(urls.createPublisherUrl(), 'Create publisher'),
                     ],
                   ),
@@ -114,7 +116,8 @@ d.Node _userBlock(UserSessionData userSession) {
   return d.div(
     classes: ['nav-container', 'nav-profile-container', 'hoverable'],
     children: [
-      // TODO: revisit why <input> was used here, maybe implement tab control differently?
+      // `<input>` here is used to allow keyboard navigation on the page.
+      // TODO: consider using a different semantic markup with an inside `<img>` element
       d.input(
         type: 'image',
         classes: ['nav-profile-img', 'nav-profile-image-desktop'],
@@ -133,8 +136,10 @@ d.Node _userBlock(UserSessionData userSession) {
               children: [
                 d.img(
                   classes: ['nav-profile-img', 'nav-profile-img-mobile'],
-                  src: userSession.imageUrl,
-                  alt: 'Profile Image',
+                  image: d.Image(
+                    src: userSession.imageUrl ?? '',
+                    alt: 'Profile Image',
+                  ),
                 ),
                 d.div(
                   classes: ['nav-account-title'],
@@ -214,8 +219,11 @@ d.Node _foldableMobileLinks(String label, Iterable<d.Node> children) {
           d.text('$label '),
           d.img(
             classes: ['foldable-icon'],
-            src: staticUrls
-                .getAssetUrl('/static/img/nav-mobile-foldable-icon.svg'),
+            image: d.Image(
+              src: staticUrls
+                  .getAssetUrl('/static/img/nav-mobile-foldable-icon.svg'),
+              alt: 'icon to toggle folding of the section',
+            ),
           ),
         ],
       ),

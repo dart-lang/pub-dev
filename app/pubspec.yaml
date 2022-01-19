@@ -21,6 +21,8 @@ dependencies:
   html: ^0.15.0
   http: ^0.13.0
   http_parser: ^4.0.0
+  indexed_blob:
+    path: ../pkg/indexed_blob
   intl: '^0.17.0'
   json_annotation: '^4.3.0'
   lints: ^1.0.0
@@ -46,7 +48,7 @@ dependencies:
   watcher: ^1.0.0
   yaml: '^3.0.0'
   # pana version to be pinned
-  pana: '0.21.4'
+  pana: '0.21.5'
   # 3rd-party packages with pinned versions
   buffer: '1.1.1'
   mailer: '5.0.1'
@@ -61,12 +63,10 @@ dependencies:
   pub_worker:
     path: ../pkg/pub_worker
   fake_async: ^1.2.0
-  indexed_blob:
-    path: ../pkg/indexed_blob
 
 dev_dependencies:
   build_runner: '^2.0.0'
-  build_verify: ^2.0.0
+  build_verify: ^3.0.0
   coverage: any # test already depends on it
   json_serializable: ^6.0.1
   pub_validations:

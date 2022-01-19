@@ -88,7 +88,9 @@ void main() {
         testProfile: TestProfile(
           defaultUser: 'admin@pub.dev',
           packages: List<TestPackage>.generate(
-              15, (i) => TestPackage(name: 'pkg$i', versions: ['1.0.0'])),
+              15,
+              (i) => TestPackage(
+                  name: 'pkg$i', versions: [TestVersion(version: '1.0.0')])),
         ), fn: () async {
       final present = ['pkg5', 'pkg7', 'pkg11', 'pkg13', 'pkg14'];
       final absent = ['pkg0', 'pkg2', 'pkg3', 'pkg4', 'pkg6', 'pkg9', 'pkg10'];
@@ -101,15 +103,19 @@ void main() {
 
     testWithProfile(
       '/flutter/packages',
+      testProfile: TestProfile(
+        packages: List.generate(3, (i) => TestPackage(name: 'package_$i')),
+        defaultUser: 'admin@pub.dev',
+      ),
       fn: () async {
         await expectHtmlResponse(
           await issueGet('/flutter/packages'),
           present: [
-            '/packages/flutter_titanium',
+            '/packages/package_1',
+            '/packages/package_2',
           ],
           absent: [
-            '/packages/oxygen',
-            '/packages/neon',
+            '/packages/package_0',
           ],
         );
       },

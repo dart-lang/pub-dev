@@ -38,7 +38,7 @@
       <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MX6DBN9" height="0" width="0" style="display:none;visibility:hidden"></iframe>
     </noscript>
     <div class="site-header">
-      <button class="hamburger"></button>
+      <button class="hamburger" aria-label="menu toggle"></button>
       <a class="logo" href="/">
         <img class="site-logo" src="/static/img/pub-dev-logo-2x.png?hash=mocked_hash_685890546" alt="pub logo" width="135" height="30"/>
       </a>
@@ -74,7 +74,7 @@
         <div class="nav-container nav-help-container-mobile foldable">
           <h3 class="foldable-button">
             Pub.dev
-            <img class="foldable-icon" src="/static/img/nav-mobile-foldable-icon.svg?hash=mocked_hash_806401648"/>
+            <img class="foldable-icon" src="/static/img/nav-mobile-foldable-icon.svg?hash=mocked_hash_806401648" alt="icon to toggle folding of the section"/>
           </h3>
           <div class="foldable-content">
             <a class="nav-link" href="/help/search" rel="noopener" target="_blank">Searching for packages</a>
@@ -84,7 +84,7 @@
         <div class="nav-container nav-help-container-mobile foldable">
           <h3 class="foldable-button">
             Flutter
-            <img class="foldable-icon" src="/static/img/nav-mobile-foldable-icon.svg?hash=mocked_hash_806401648"/>
+            <img class="foldable-icon" src="/static/img/nav-mobile-foldable-icon.svg?hash=mocked_hash_806401648" alt="icon to toggle folding of the section"/>
           </h3>
           <div class="foldable-content">
             <a class="nav-link" href="https://flutter.io/using-packages/" rel="noopener" target="_blank">Using packages</a>
@@ -95,7 +95,7 @@
         <div class="nav-container nav-help-container-mobile foldable">
           <h3 class="foldable-button">
             Dart
-            <img class="foldable-icon" src="/static/img/nav-mobile-foldable-icon.svg?hash=mocked_hash_806401648"/>
+            <img class="foldable-icon" src="/static/img/nav-mobile-foldable-icon.svg?hash=mocked_hash_806401648" alt="icon to toggle folding of the section"/>
           </h3>
           <div class="foldable-content">
             <a class="nav-link" href="https://dart.dev/tools/pub/get-started" rel="noopener" target="_blank">Using packages</a>
@@ -109,10 +109,10 @@
       <div class="container">
         <form class="search-bar banner-item" action="/packages">
           <input class="input" name="q" placeholder="Search packages" autocomplete="on" value="sdk:dart"/>
-          <button class="icon"></button>
+          <button class="icon" aria-label="search"></button>
           <div class="search-filters-btn-wrapper -active">
-            <img class="search-filters-btn search-filters-btn-inactive" src="/static/img/search-filters-inactive.svg?hash=mocked_hash_963166179"/>
-            <img class="search-filters-btn search-filters-btn-active" src="/static/img/search-filters-active.svg?hash=mocked_hash_397783636"/>
+            <img class="search-filters-btn search-filters-btn-inactive" src="/static/img/search-filters-inactive.svg?hash=mocked_hash_963166179" alt="icon to toggle the display of search filters (inactive)"/>
+            <img class="search-filters-btn search-filters-btn-active" src="/static/img/search-filters-active.svg?hash=mocked_hash_397783636" alt="icon to toggle the display of search filters (active)"/>
           </div>
           <input id="-search-discontinued-field" type="hidden" name="discontinued" value="1" disabled="disabled"/>
           <input id="-search-unlisted-field" type="hidden" name="unlisted" value="1"/>
@@ -126,10 +126,10 @@
           <div class="search-form-section foldable -active">
             <h3 class="search-form-section-header foldable-button">
               <span class="search-form-section-header-label">Platforms</span>
-              <img class="foldable-icon" src="/static/img/search-form-foldable-icon.svg?hash=mocked_hash_663371761"/>
+              <img class="foldable-icon" src="/static/img/search-form-foldable-icon.svg?hash=mocked_hash_663371761" alt="fold toggle icon (up/down arrow)"/>
             </h3>
             <div class="foldable-content">
-              <div class="search-form-linked-checkbox">
+              <div class="search-form-linked-checkbox" title="Show only packages that support the Android platform.">
                 <div class="mdc-form-field">
                   <div class="mdc-checkbox">
                     <input id="search-form-checkbox-platform-android" class="mdc-checkbox__native-control" type="checkbox"/>
@@ -142,11 +142,11 @@
                     <div class="mdc-checkbox__ripple"></div>
                   </div>
                   <label for="search-form-checkbox-platform-android">
-                    <a href="/packages?q=sdk%3Adart+platform%3Aandroid&amp;unlisted=1" data-tag="platform:android">Android</a>
+                    <a href="/packages?q=sdk%3Adart+platform%3Aandroid&amp;unlisted=1" data-action="filter-platform-android" data-tag="platform:android">Android</a>
                   </label>
                 </div>
               </div>
-              <div class="search-form-linked-checkbox">
+              <div class="search-form-linked-checkbox" title="Show only packages that support the iOS platform.">
                 <div class="mdc-form-field">
                   <div class="mdc-checkbox">
                     <input id="search-form-checkbox-platform-ios" class="mdc-checkbox__native-control" type="checkbox"/>
@@ -159,11 +159,11 @@
                     <div class="mdc-checkbox__ripple"></div>
                   </div>
                   <label for="search-form-checkbox-platform-ios">
-                    <a href="/packages?q=sdk%3Adart+platform%3Aios&amp;unlisted=1" data-tag="platform:ios">iOS</a>
+                    <a href="/packages?q=sdk%3Adart+platform%3Aios&amp;unlisted=1" data-action="filter-platform-ios" data-tag="platform:ios">iOS</a>
                   </label>
                 </div>
               </div>
-              <div class="search-form-linked-checkbox">
+              <div class="search-form-linked-checkbox" title="Show only packages that support the Linux platform.">
                 <div class="mdc-form-field">
                   <div class="mdc-checkbox">
                     <input id="search-form-checkbox-platform-linux" class="mdc-checkbox__native-control" type="checkbox"/>
@@ -176,11 +176,11 @@
                     <div class="mdc-checkbox__ripple"></div>
                   </div>
                   <label for="search-form-checkbox-platform-linux">
-                    <a href="/packages?q=sdk%3Adart+platform%3Alinux&amp;unlisted=1" data-tag="platform:linux">Linux</a>
+                    <a href="/packages?q=sdk%3Adart+platform%3Alinux&amp;unlisted=1" data-action="filter-platform-linux" data-tag="platform:linux">Linux</a>
                   </label>
                 </div>
               </div>
-              <div class="search-form-linked-checkbox">
+              <div class="search-form-linked-checkbox" title="Show only packages that support the macOS platform.">
                 <div class="mdc-form-field">
                   <div class="mdc-checkbox">
                     <input id="search-form-checkbox-platform-macos" class="mdc-checkbox__native-control" type="checkbox"/>
@@ -193,11 +193,11 @@
                     <div class="mdc-checkbox__ripple"></div>
                   </div>
                   <label for="search-form-checkbox-platform-macos">
-                    <a href="/packages?q=sdk%3Adart+platform%3Amacos&amp;unlisted=1" data-tag="platform:macos">macOS</a>
+                    <a href="/packages?q=sdk%3Adart+platform%3Amacos&amp;unlisted=1" data-action="filter-platform-macos" data-tag="platform:macos">macOS</a>
                   </label>
                 </div>
               </div>
-              <div class="search-form-linked-checkbox">
+              <div class="search-form-linked-checkbox" title="Show only packages that support the Web platform.">
                 <div class="mdc-form-field">
                   <div class="mdc-checkbox">
                     <input id="search-form-checkbox-platform-web" class="mdc-checkbox__native-control" type="checkbox"/>
@@ -210,11 +210,11 @@
                     <div class="mdc-checkbox__ripple"></div>
                   </div>
                   <label for="search-form-checkbox-platform-web">
-                    <a href="/packages?q=sdk%3Adart+platform%3Aweb&amp;unlisted=1" data-tag="platform:web">Web</a>
+                    <a href="/packages?q=sdk%3Adart+platform%3Aweb&amp;unlisted=1" data-action="filter-platform-web" data-tag="platform:web">Web</a>
                   </label>
                 </div>
               </div>
-              <div class="search-form-linked-checkbox">
+              <div class="search-form-linked-checkbox" title="Show only packages that support the Windows platform.">
                 <div class="mdc-form-field">
                   <div class="mdc-checkbox">
                     <input id="search-form-checkbox-platform-windows" class="mdc-checkbox__native-control" type="checkbox"/>
@@ -227,7 +227,7 @@
                     <div class="mdc-checkbox__ripple"></div>
                   </div>
                   <label for="search-form-checkbox-platform-windows">
-                    <a href="/packages?q=sdk%3Adart+platform%3Awindows&amp;unlisted=1" data-tag="platform:windows">Windows</a>
+                    <a href="/packages?q=sdk%3Adart+platform%3Awindows&amp;unlisted=1" data-action="filter-platform-windows" data-tag="platform:windows">Windows</a>
                   </label>
                 </div>
               </div>
@@ -236,10 +236,10 @@
           <div class="search-form-section foldable -active" data-section-tag="sdks">
             <h3 class="search-form-section-header foldable-button">
               <span class="search-form-section-header-label">SDKs</span>
-              <img class="foldable-icon" src="/static/img/search-form-foldable-icon.svg?hash=mocked_hash_663371761"/>
+              <img class="foldable-icon" src="/static/img/search-form-foldable-icon.svg?hash=mocked_hash_663371761" alt="fold toggle icon (up/down arrow)"/>
             </h3>
             <div class="foldable-content">
-              <div class="search-form-linked-checkbox">
+              <div class="search-form-linked-checkbox" title="Show only packages that support the Dart SDK.">
                 <div class="mdc-form-field">
                   <div class="mdc-checkbox">
                     <input id="search-form-checkbox-sdk-dart" class="mdc-checkbox__native-control" type="checkbox" checked="checked"/>
@@ -252,11 +252,11 @@
                     <div class="mdc-checkbox__ripple"></div>
                   </div>
                   <label for="search-form-checkbox-sdk-dart">
-                    <a href="/packages?unlisted=1" data-tag="sdk:dart">Dart</a>
+                    <a href="/packages?unlisted=1" data-action="filter-sdk-dart" data-tag="sdk:dart">Dart</a>
                   </label>
                 </div>
               </div>
-              <div class="search-form-linked-checkbox">
+              <div class="search-form-linked-checkbox" title="Show only packages that support the Flutter SDK.">
                 <div class="mdc-form-field">
                   <div class="mdc-checkbox">
                     <input id="search-form-checkbox-sdk-flutter" class="mdc-checkbox__native-control" type="checkbox"/>
@@ -269,7 +269,7 @@
                     <div class="mdc-checkbox__ripple"></div>
                   </div>
                   <label for="search-form-checkbox-sdk-flutter">
-                    <a href="/packages?q=sdk%3Adart+sdk%3Aflutter&amp;unlisted=1" data-tag="sdk:flutter">Flutter</a>
+                    <a href="/packages?q=sdk%3Adart+sdk%3Aflutter&amp;unlisted=1" data-action="filter-sdk-flutter" data-tag="sdk:flutter">Flutter</a>
                   </label>
                 </div>
               </div>
@@ -278,13 +278,13 @@
           <div class="search-form-section foldable -active" data-section-tag="advanced">
             <h3 class="search-form-section-header foldable-button">
               <span class="search-form-section-header-label">Advanced</span>
-              <img class="foldable-icon" src="/static/img/search-form-foldable-icon.svg?hash=mocked_hash_663371761"/>
+              <img class="foldable-icon" src="/static/img/search-form-foldable-icon.svg?hash=mocked_hash_663371761" alt="fold toggle icon (up/down arrow)"/>
             </h3>
             <div class="foldable-content">
-              <div class="search-form-linked-checkbox">
+              <div class="search-form-linked-checkbox" title="Show only Flutter favorites.">
                 <div class="mdc-form-field">
                   <div class="mdc-checkbox">
-                    <input id="search-form-checkbox-discontinued" class="mdc-checkbox__native-control" type="checkbox"/>
+                    <input id="search-form-checkbox-is-flutter-favorite" class="mdc-checkbox__native-control" type="checkbox"/>
                     <div class="mdc-checkbox__background">
                       <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
                         <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
@@ -293,15 +293,15 @@
                     </div>
                     <div class="mdc-checkbox__ripple"></div>
                   </div>
-                  <label for="search-form-checkbox-discontinued">
-                    <a href="/packages?q=sdk%3Adart&amp;discontinued=1&amp;unlisted=1">Include discontinued</a>
+                  <label for="search-form-checkbox-is-flutter-favorite">
+                    <a href="/packages?q=sdk%3Adart+is%3Aflutter-favorite&amp;unlisted=1" data-action="filter-is-flutter-favorite" data-tag="is:flutter-favorite">Flutter favorite</a>
                   </label>
                 </div>
               </div>
-              <div class="search-form-linked-checkbox">
+              <div class="search-form-linked-checkbox" title="Show discontinued, unlisted and legacy Dart 1.x packages.">
                 <div class="mdc-form-field">
                   <div class="mdc-checkbox">
-                    <input id="search-form-checkbox-unlisted" class="mdc-checkbox__native-control" type="checkbox" checked="checked"/>
+                    <input id="search-form-checkbox-show-hidden" class="mdc-checkbox__native-control" type="checkbox"/>
                     <div class="mdc-checkbox__background">
                       <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
                         <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
@@ -310,15 +310,15 @@
                     </div>
                     <div class="mdc-checkbox__ripple"></div>
                   </div>
-                  <label for="search-form-checkbox-unlisted">
-                    <a href="/packages?q=sdk%3Adart">Include unlisted</a>
+                  <label for="search-form-checkbox-show-hidden">
+                    <a href="/packages?q=sdk%3Adart+show%3Ahidden&amp;unlisted=1" data-action="filter-show-hidden" data-tag="show:hidden">Include hidden</a>
                   </label>
                 </div>
               </div>
-              <div class="search-form-linked-checkbox">
+              <div class="search-form-linked-checkbox" title="Show only null-safe packages.">
                 <div class="mdc-form-field">
                   <div class="mdc-checkbox">
-                    <input id="search-form-checkbox-null-safe" class="mdc-checkbox__native-control" type="checkbox"/>
+                    <input id="search-form-checkbox-is-null-safe" class="mdc-checkbox__native-control" type="checkbox"/>
                     <div class="mdc-checkbox__background">
                       <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
                         <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
@@ -327,8 +327,8 @@
                     </div>
                     <div class="mdc-checkbox__ripple"></div>
                   </div>
-                  <label for="search-form-checkbox-null-safe">
-                    <a href="/packages?q=sdk%3Adart&amp;unlisted=1&amp;null-safe=1">Supports null safety</a>
+                  <label for="search-form-checkbox-is-null-safe">
+                    <a href="/packages?q=sdk%3Adart+is%3Anull-safe&amp;unlisted=1" data-action="filter-is-null-safe" data-tag="is:null-safe">Supports null safety</a>
                   </label>
                 </div>
               </div>
@@ -378,7 +378,7 @@
                   <a href="/packages/oxygen">oxygen</a>
                 </h3>
                 <div class="packages-recent">
-                  <img class="packages-recent-icon" src="/static/img/schedule-icon.svg?hash=mocked_hash_164576935" title="new package"/>
+                  <img class="packages-recent-icon" src="/static/img/schedule-icon.svg?hash=mocked_hash_164576935" alt="icon indicating recent time" title="new package"/>
                   Added
                   <b>%%x-ago%%</b>
                 </div>
@@ -411,24 +411,25 @@
                 <span class="packages-metadata-block">
                   v
                   <a href="/packages/oxygen">1.2.0</a>
-                  /
+                  (
+                  <span class="-x-ago" title="%%oxygen-created-date%%">%%x-ago%%</span>
+                  ) /
                   <a href="/packages/oxygen/versions/2.0.0-dev">2.0.0-dev</a>
-                  • Updated:
-                  <span>
-                    <span class="-x-ago" title="%%oxygen-created-date%%">%%x-ago%%</span>
-                  </span>
+                  (
+                  <span class="-x-ago" title="%%oxygen-created-date%%">%%x-ago%%</span>
+                  )
                 </span>
               </p>
               <div>
                 <div class="-pub-tag-badge">
                   <span class="tag-badge-main">SDK</span>
                   <a class="tag-badge-sub" href="/packages?q=sdk%3Adart" title="Packages compatible with Dart SDK">Dart</a>
+                  <a class="tag-badge-sub" href="/packages?q=sdk%3Aflutter" title="Packages compatible with Flutter SDK">Flutter</a>
                 </div>
                 <div class="-pub-tag-badge">
                   <span class="tag-badge-main">Platform</span>
                   <a class="tag-badge-sub" href="/packages?q=platform%3Aandroid" title="Packages compatible with Android platform">Android</a>
                   <a class="tag-badge-sub" href="/packages?q=platform%3Aios" title="Packages compatible with iOS platform">iOS</a>
-                  <a class="tag-badge-sub" href="/packages?q=platform%3Alinux" title="Packages compatible with Linux platform">Linux</a>
                   <a class="tag-badge-sub" href="/packages?q=platform%3Amacos" title="Packages compatible with macOS platform">macOS</a>
                   <a class="tag-badge-sub" href="/packages?q=platform%3Aweb" title="Packages compatible with Web platform">web</a>
                   <a class="tag-badge-sub" href="/packages?q=platform%3Awindows" title="Packages compatible with Windows platform">Windows</a>
@@ -441,7 +442,7 @@
                   <a href="/packages/flutter_titanium">flutter_titanium</a>
                 </h3>
                 <div class="packages-recent">
-                  <img class="packages-recent-icon" src="/static/img/schedule-icon.svg?hash=mocked_hash_164576935" title="new package"/>
+                  <img class="packages-recent-icon" src="/static/img/schedule-icon.svg?hash=mocked_hash_164576935" alt="icon indicating recent time" title="new package"/>
                   Added
                   <b>%%x-ago%%</b>
                 </div>
@@ -474,10 +475,9 @@
                 <span class="packages-metadata-block">
                   v
                   <a href="/packages/flutter_titanium">1.10.0</a>
-                  • Updated:
-                  <span>
-                    <span class="-x-ago" title="%%oxygen-created-date%%">%%x-ago%%</span>
-                  </span>
+                  (
+                  <span class="-x-ago" title="%%oxygen-created-date%%">%%x-ago%%</span>
+                  )
                 </span>
               </p>
               <div>
@@ -489,11 +489,7 @@
                 <div class="-pub-tag-badge">
                   <span class="tag-badge-main">Platform</span>
                   <a class="tag-badge-sub" href="/packages?q=platform%3Aandroid" title="Packages compatible with Android platform">Android</a>
-                  <a class="tag-badge-sub" href="/packages?q=platform%3Aios" title="Packages compatible with iOS platform">iOS</a>
-                  <a class="tag-badge-sub" href="/packages?q=platform%3Alinux" title="Packages compatible with Linux platform">Linux</a>
                   <a class="tag-badge-sub" href="/packages?q=platform%3Amacos" title="Packages compatible with macOS platform">macOS</a>
-                  <a class="tag-badge-sub" href="/packages?q=platform%3Aweb" title="Packages compatible with Web platform">web</a>
-                  <a class="tag-badge-sub" href="/packages?q=platform%3Awindows" title="Packages compatible with Windows platform">Windows</a>
                 </div>
               </div>
             </div>
@@ -534,10 +530,10 @@
       <a class="link sep" href="https://www.google.com/intl/en/policies/privacy/">Privacy</a>
       <a class="link sep" href="/help">Help</a>
       <a class="link icon sep" href="/feed.atom">
-        <img class="inline-icon" src="/static/img/rss-feed-icon.svg?hash=mocked_hash_795155912" title="RSS/atom feed" alt="RSS/atom feed" width="20" height="20"/>
+        <img class="inline-icon" src="/static/img/rss-feed-icon.svg?hash=mocked_hash_795155912" alt="RSS icon" width="20" height="20" title="RSS/atom feed"/>
       </a>
       <a class="link icon github_issue" href="https://github.com/dart-lang/pub-dev/issues/new">
-        <img class="inline-icon" src="/static/img/bug-report-white-96px.png?hash=mocked_hash_709947442" title="Report an issue with this site" alt="Report an issue with this site" width="20" height="20"/>
+        <img class="inline-icon" src="/static/img/bug-report-white-96px.png?hash=mocked_hash_709947442" alt="bug report icon" width="20" height="20" title="Report an issue with this site"/>
       </a>
     </footer>
   </body>

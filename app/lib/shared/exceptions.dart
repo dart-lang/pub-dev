@@ -213,6 +213,18 @@ class PackageRejectedException extends ResponseException {
   PackageRejectedException.nameReserved(String package)
       : super._(400, 'PackageRejected', 'Package name $package is reserved.');
 
+  /// The [package] is similar to an active package.
+  PackageRejectedException.similarToActive(
+      String package, String conflicting, String url)
+      : super._(400, 'PackageRejected',
+            'Package name `$package` is too similar to another active package: `$conflicting` ($url).');
+
+  /// The [package] is similar to a moderated or withdrawn package.
+  PackageRejectedException.similarToModerated(
+      String package, String conflicting)
+      : super._(400, 'PackageRejected',
+            'Package name `$package` is too similar to a moderated package: `$conflicting`.');
+
   /// The [package] has reached or has more versions than [limit].
   PackageRejectedException.maxVersionCountReached(String package, int limit)
       : super._(
@@ -225,6 +237,11 @@ class PackageRejectedException extends ResponseException {
   PackageRejectedException.versionExists(String package, String version)
       : super._(400, 'PackageRejected',
             'Version $version of package $package already exists.');
+
+  /// The [package] had an existing [version], but was deleted.
+  PackageRejectedException.versionDeleted(String package, String version)
+      : super._(400, 'PackageRejected',
+            'Version $version of package $package was deleted previously, re-upload is not allowed.');
 
   /// The package is has an active `isWithheld` flag, no further version is allowed.
   PackageRejectedException.isWithheld()
@@ -304,6 +321,10 @@ class AuthenticationException extends ResponseException {
       AuthenticationException._(
           '`accessToken` does not match current active user.');
 
+  /// Signaling that `authorization` header has bad value or is expired.
+  factory AuthenticationException.failed() =>
+      AuthenticationException._('Authentication failed.');
+
   /// Signaling that User lookup (via e-mail) failed.
   factory AuthenticationException.userNotFound() =>
       AuthenticationException._('User not found.');
@@ -349,8 +370,8 @@ class AuthorizationException extends ResponseException {
   factory AuthorizationException.userCannotUploadNewVersion(
           String email, String package) =>
       AuthorizationException._(
-        '`$email` has insufficient permissions to upload new versions of '
-        'package `$package`.',
+        '`$email` has insufficient permissions to upload new versions to '
+        'existing package `$package`.',
       );
 
   /// Signaling that the user does not have permissions to change uploaders for

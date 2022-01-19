@@ -23,7 +23,7 @@ void main() {
       'end2end test',
       testProfile: TestProfile(
         packages: [
-          TestPackage(name: 'retry', versions: ['3.1.0']),
+          TestPackage(name: 'retry', versions: [TestVersion(version: '3.1.0')]),
         ],
         defaultUser: 'admin@pub.dev',
       ),

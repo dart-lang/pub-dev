@@ -8,8 +8,6 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:pub_validations/html/html_validation.dart';
 import 'package:puppeteer/puppeteer.dart';
-// ignore: implementation_imports
-import 'package:puppeteer/src/page/page.dart' show ClientError;
 
 /// Creates and tracks the headless Chrome environment, its temp directories and
 /// and uncaught exceptions.
@@ -262,11 +260,22 @@ extension PageExt on Page {
     final origin = _pageOriginExpando[this];
     return await goto('$origin$path', wait: Until.networkIdle);
   }
+
+  /// Returns the [property] value of the first elemented by [selector].
+  Future<String> propertyValue(String selector, String property) async {
+    final h = await $(selector);
+    return await h.propertyValue(property);
+  }
 }
 
 extension ElementHandleExt on ElementHandle {
   Future<String> textContent() async {
     return await propertyValue('textContent');
+  }
+
+  Future<String?> attributeValue(String name) async {
+    final v = await evaluate('el => el.getAttribute("$name")');
+    return v as String?;
   }
 }
 

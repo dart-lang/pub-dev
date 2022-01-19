@@ -116,25 +116,35 @@ d.Node _searchFormContainer({
             sectionTag: 'advanced',
             label: 'Advanced',
             isActive: openSections.contains('advanced') ||
-                searchForm.hasActiveAdvanced,
+                searchForm.hasActiveAdvanced ||
+                searchForm.parsedQuery.tagsPredicate
+                    .hasTag(PackageTags.isFlutterFavorite) ||
+                searchForm.parsedQuery.tagsPredicate
+                    .hasTag(PackageTags.showHidden) ||
+                searchForm.parsedQuery.tagsPredicate
+                    .hasTag(PackageVersionTags.isNullSafe),
             children: [
-              _formLinkedCheckbox(
-                id: 'search-form-checkbox-discontinued',
-                label: 'Include discontinued',
-                toggledSearchForm: searchForm.toggleDiscontinued(),
-                isChecked: searchForm.includeDiscontinued,
+              _tagBasedCheckbox(
+                tagPrefix: 'is',
+                tagValue: 'flutter-favorite',
+                label: 'Flutter favorite',
+                searchForm: searchForm,
+                title: 'Show only Flutter favorites.',
               ),
-              _formLinkedCheckbox(
-                id: 'search-form-checkbox-unlisted',
-                label: 'Include unlisted',
-                toggledSearchForm: searchForm.toggleUnlisted(),
-                isChecked: searchForm.includeUnlisted,
+              _tagBasedCheckbox(
+                tagPrefix: 'show',
+                tagValue: 'hidden',
+                label: 'Include hidden',
+                searchForm: searchForm,
+                title:
+                    'Show discontinued, unlisted and legacy Dart 1.x packages.',
               ),
-              _formLinkedCheckbox(
-                id: 'search-form-checkbox-null-safe',
+              _tagBasedCheckbox(
+                tagPrefix: 'is',
+                tagValue: 'null-safe',
                 label: 'Supports null safety',
-                toggledSearchForm: searchForm.toggleNullSafe(),
-                isChecked: searchForm.nullSafe,
+                searchForm: searchForm,
+                title: 'Show only null-safe packages.',
               ),
             ],
           ),
@@ -158,6 +168,7 @@ d.Node _platformCheckbox({
     tagValue: platform,
     label: label,
     searchForm: searchForm,
+    title: 'Show only packages that support the $label platform.',
   );
 }
 
@@ -171,6 +182,7 @@ d.Node _sdkCheckbox({
     tagValue: sdk,
     label: label,
     searchForm: searchForm,
+    title: 'Show only packages that support the $label SDK.',
   );
 }
 
@@ -179,6 +191,7 @@ d.Node _tagBasedCheckbox({
   required String tagValue,
   required String label,
   required SearchForm searchForm,
+  required String title,
 }) {
   final tag = '$tagPrefix:$tagValue';
   final toggledSearchForm = searchForm.toggleRequiredTag(tag);
@@ -189,6 +202,8 @@ d.Node _tagBasedCheckbox({
     isChecked: searchForm.parsedQuery.tagsPredicate.isRequiredTag(tag),
     isIndeterminate: searchForm.parsedQuery.tagsPredicate.isProhibitedTag(tag),
     tag: tag,
+    action: 'filter-$tagPrefix-$tagValue',
+    title: title,
   );
 }
 
@@ -199,9 +214,14 @@ d.Node _formLinkedCheckbox({
   required bool isChecked,
   bool isIndeterminate = false,
   String? tag,
+  required String? action,
+  String? title,
 }) {
   return d.div(
     classes: ['search-form-linked-checkbox'],
+    attributes: {
+      if (title != null) 'title': title,
+    },
     child: material.checkbox(
       id: id,
       label: label,
@@ -209,6 +229,7 @@ d.Node _formLinkedCheckbox({
         href: toggledSearchForm.toSearchLink(),
         text: label,
         attributes: {
+          if (action != null) 'data-action': action,
           if (tag != null) 'data-tag': isIndeterminate ? '-$tag' : tag,
         },
       ),
@@ -234,8 +255,11 @@ d.Node _filterSection({
           d.span(classes: ['search-form-section-header-label'], text: label),
           d.img(
             classes: ['foldable-icon'],
-            src: staticUrls
-                .getAssetUrl('/static/img/search-form-foldable-icon.svg'),
+            image: d.Image(
+              src: staticUrls
+                  .getAssetUrl('/static/img/search-form-foldable-icon.svg'),
+              alt: 'fold toggle icon (up/down arrow)',
+            ),
           ),
         ],
       ),
@@ -284,7 +308,10 @@ d.Node _searchControls(SearchForm searchForm, d.Node? subSdkButtons) {
                 d.text('Advanced '),
                 d.img(
                   classes: ['search-controls-more-carot'],
-                  src: staticUrls.getAssetUrl('/static/img/carot-up.svg'),
+                  image: d.Image(
+                    src: staticUrls.getAssetUrl('/static/img/carot-up.svg'),
+                    alt: 'toggle button for advanced search (carot up)',
+                  ),
                 ),
               ],
             ),
