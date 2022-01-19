@@ -84,7 +84,7 @@ void main() {
           await page.click('#search-form-checkbox-platform-android');
           await page.waitForNavigation(wait: Until.networkIdle);
           final i2 = await listingPageInfo(page);
-          expect(i2.totalCount, 73);
+          expect(i2.totalCount, 78);
           expect(i2.packageNames, [
             'pkg_11',
             'flutter_pkg_51',
@@ -111,18 +111,18 @@ void main() {
           await flutterCB3.click();
           await page.waitForNavigation(wait: Until.networkIdle);
           final i3 = await listingPageInfo(page);
-          expect(i3.totalCount, 73);
+          expect(i3.totalCount, 68);
           expect(i3.packageNames, [
-            'pkg_11',
             'flutter_pkg_51',
             'pkg_13',
             'pkg_62',
-            'pkg_28',
-            'flutter_pkg_66',
             'flutter_pkg_0',
             'pkg_37',
             'flutter_pkg_84',
             'pkg_91',
+            'pkg_53',
+            'flutter_pkg_36',
+            'pkg_2',
           ]);
           expect(
               page.url, '$origin/packages?q=platform%3Aandroid+sdk%3Aflutter');
@@ -148,7 +148,16 @@ void main() {
           final i5 = await listingPageInfo(page);
           expect(i5.totalCount, i2.totalCount - i3.totalCount);
           expect(i5.packageNames, [
-            // TODO: create a fake analyzer that produces results here
+            'pkg_11',
+            'pkg_28',
+            'flutter_pkg_66',
+            'pkg_77',
+            'pkg_43',
+            'pkg_23',
+            'flutter_pkg_69',
+            'pkg_19',
+            'pkg_68',
+            'pkg_49',
           ]);
           expect(i5.openSections, ['sdks']);
           expect(page.url,

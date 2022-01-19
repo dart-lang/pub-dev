@@ -28,6 +28,10 @@ class FakePanaRunner implements PanaRunner {
     final random = Random('$package/$version'.hashCode);
     final layoutPoints = random.nextInt(30);
     final examplePoints = random.nextInt(30);
+    final hasSdkDart = random.nextInt(10) > 0;
+    final hasSdkFlutter =
+        random.nextInt(packageStatus.usesFlutter ? 20 : 10) > 0;
+    final hasValidSdk = hasSdkDart || hasSdkFlutter;
     return Summary(
       packageName: package,
       packageVersion: Version.parse(version),
@@ -40,21 +44,17 @@ class FakePanaRunner implements PanaRunner {
       ),
       allDependencies: <String>[],
       tags: <String>[
-        if (random.nextInt(10) > 0) ...[
-          'sdk:dart',
-          if (random.nextInt(5) > 0) 'runtime:native-aot',
-          if (random.nextInt(5) > 0) 'runtime:native-jit',
-          if (random.nextInt(5) > 0) 'runtime:web',
-        ],
-        if (packageStatus.usesFlutter || random.nextInt(10) > 0) ...[
-          'sdk:flutter',
-          if (random.nextInt(5) > 0) 'platform:android',
-          if (random.nextInt(5) > 0) 'platform:ios',
-          if (random.nextInt(5) > 0) 'platform:linux',
-          if (random.nextInt(5) > 0) 'platform:macos',
-          if (random.nextInt(5) > 0) 'platform:web',
-          if (random.nextInt(5) > 0) 'platform:windows',
-        ],
+        if (hasSdkDart) 'sdk:dart',
+        if (hasSdkDart && random.nextInt(5) > 0) 'runtime:native-aot',
+        if (hasSdkDart && random.nextInt(5) > 0) 'runtime:native-jit',
+        if (hasSdkDart && random.nextInt(5) > 0) 'runtime:web',
+        if (hasSdkFlutter) 'sdk:flutter',
+        if (hasValidSdk && random.nextInt(5) > 0) 'platform:android',
+        if (hasValidSdk && random.nextInt(5) > 0) 'platform:ios',
+        if (hasValidSdk && random.nextInt(5) > 0) 'platform:linux',
+        if (hasValidSdk && random.nextInt(5) > 0) 'platform:macos',
+        if (hasValidSdk && random.nextInt(5) > 0) 'platform:web',
+        if (hasValidSdk && random.nextInt(5) > 0) 'platform:windows',
       ],
       report: Report(
         sections: [

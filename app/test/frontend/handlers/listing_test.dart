@@ -103,16 +103,19 @@ void main() {
 
     testWithProfile(
       '/flutter/packages',
+      testProfile: TestProfile(
+        packages: List.generate(3, (i) => TestPackage(name: 'package_$i')),
+        defaultUser: 'admin@pub.dev',
+      ),
       fn: () async {
         await expectHtmlResponse(
           await issueGet('/flutter/packages'),
           present: [
-            '/packages/flutter_titanium',
-            '/packages/oxygen',
-            '/packages/neon',
+            '/packages/package_1',
+            '/packages/package_2',
           ],
           absent: [
-            // TODO: create a fake analyzer that produces results here
+            '/packages/package_0',
           ],
         );
       },
