@@ -8,7 +8,6 @@ import 'dart:math';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
-import 'package:pool/pool.dart';
 
 import '../scorecard/backend.dart';
 import '../search/search_client.dart';
@@ -31,8 +30,6 @@ void registerSearchAdapter(SearchAdapter s) => ss.register(#_search, s);
 /// processes its results, extending the search results with up-to-date package
 /// data.
 class SearchAdapter {
-  final _pool = Pool(16);
-
   /// Lookup the top featured packages with the specific tags and sorting.
   ///
   /// Uses long-term caching and local randomized selection.
@@ -62,7 +59,9 @@ class SearchAdapter {
           : _random.nextInt(availablePackages.length);
       packages.add(availablePackages.removeAt(index));
     }
-    return (await getPackageViews(packages)).cast<PackageView>();
+    return (await scoreCardBackend.getPackageViews(packages))
+        .whereType<PackageView>()
+        .toList();
   }
 
   /// Performs search using the `search` service and lookup package info and
@@ -148,41 +147,17 @@ class SearchAdapter {
             'Search is temporarily impaired, filtering and ranking may be incorrect.');
   }
 
-  /// Returns the [PackageView] instance for each package in [packages], using
-  /// the latest stable version.
-  ///
-  /// If the package does not exist, it will return null in the given index.
-  /// TODO: move this method (and the pool) to [ScoreCardBackend].
-  Future<List<PackageView?>> getPackageViews(Iterable<String> packages) async {
-    final futures = <Future<PackageView?>>[];
-    for (final p in packages) {
-      futures.add(
-          _pool.withResource(() async => scoreCardBackend.getPackageView(p)));
-    }
-    return await Future.wait(futures);
-  }
-
   Future<Map<String, PackageView>> _getPackageViewsFromHits(
       List<PackageHit> hits) async {
+    final views = await scoreCardBackend
+        .getPackageViews(hits.map((h) => h.package).toList());
     final results = <String, PackageView>{};
-    final futures = <Future>[];
-    for (final hit in hits) {
-      final f = _pool.withResource(() async {
-        final view = await scoreCardBackend.getPackageView(hit.package);
-        if (view == null) {
-          // The package may have been deleted, but the index still has it.
-          return;
-        }
-        results[hit.package] = view.change(apiPages: hit.apiPages);
-      });
-      futures.add(f);
+    for (var i = 0; i < hits.length; i++) {
+      final view = views[i];
+      if (view == null) continue;
+      results[view.name!] = view.change(apiPages: hits[i].apiPages);
     }
-    await Future.wait(futures);
     return results;
-  }
-
-  Future<void> close() async {
-    await _pool.close();
   }
 }
 
