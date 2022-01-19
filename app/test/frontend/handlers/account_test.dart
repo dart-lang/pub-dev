@@ -10,6 +10,20 @@ import '../../shared/test_services.dart';
 import '_utils.dart';
 
 void main() {
+  group('bad authorization header', () {
+    testWithProfile('bad format', fn: () async {
+      await expectHtmlResponse(
+        await issueGet(
+          '/packages/oxygen',
+          headers: {'authorization': 'bad value'},
+        ),
+        status: 401,
+        present: ['Authentication failed.'],
+        absent: ['/packages/oxygen'],
+      );
+    });
+  });
+
   group('account handlers tests', () {
     // TODO: add test for /consent page
     // TODO: add test for GET /api/account/consent/<consentId> API calls

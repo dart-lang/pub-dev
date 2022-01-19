@@ -280,11 +280,11 @@ class AccountBackend {
     return await ss.fork(() async {
       final auth = await authProvider.tryAuthenticate(token);
       if (auth == null) {
-        throw AuthenticationException.authenticationRequired();
+        throw AuthenticationException.failed();
       }
       final user = await _lookupOrCreateUserByOauthUserId(auth);
       if (user == null) {
-        throw AuthenticationException.authenticationRequired();
+        throw AuthenticationException.failed();
       }
       if (user.isDeleted) {
         // This can only happen if we have a data inconsistency in the datastore.

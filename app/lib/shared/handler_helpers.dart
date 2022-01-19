@@ -250,6 +250,9 @@ shelf.Handler _userAuthWrapper(shelf.Handler handler) {
       if (parts.length == 2 && parts.first.trim().toLowerCase() == 'bearer') {
         accessToken = parts.last.trim();
       }
+      if (accessToken == null) {
+        throw AuthenticationException.failed();
+      }
       return await accountBackend.withBearerToken(
           accessToken, () async => await handler(request));
     } else {
