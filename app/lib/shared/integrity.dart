@@ -10,6 +10,7 @@ import 'package:pool/pool.dart';
 import '../account/models.dart';
 import '../audit/models.dart';
 import '../package/backend.dart';
+import '../package/model_properties.dart';
 import '../package/models.dart';
 import '../publisher/models.dart';
 import '../tool/utils/http.dart';
@@ -385,6 +386,11 @@ class IntegrityChecker {
       if (!referencedAssetIds.contains(pva.assetId)) {
         yield 'PackageVersionAsset "${pva.id}" is not referenced from PackageVersionInfo.';
       }
+      // check pubspec content
+      if (pva.kind == AssetKind.pubspec) {
+        final pubspec = Pubspec.fromYaml(pva.textContent!);
+        yield* _checkPubspec('PackageVersionAsset', pva.id.toString(), pubspec);
+      }
     }
 
     // check if all of PackageVersionInfo.assets exist
@@ -458,6 +464,9 @@ class IntegrityChecker {
       // Can't be published before Dart, which was first published in 2011.
       yield 'PackageVersion "${pv.qualifiedVersionKey}" has `created` < 2011.';
     }
+
+    yield* _checkPubspec(
+        'PackageVersion', pv.qualifiedVersionKey.toString(), pv.pubspec!);
 
     _versionChecked++;
     if (_versionChecked % 5000 == 0) {
@@ -553,4 +562,10 @@ class IntegrityChecker {
 
   Future<bool> _packageMissing(String packageName) async =>
       !(await _packageExists(packageName));
+}
+
+Stream<String> _checkPubspec(String type, String key, Pubspec pubspec) async* {
+  if (pubspec.hasBadVersionFormat) {
+    yield '$type "$key" has bad version format in `pubspec`.';
+  }
 }
