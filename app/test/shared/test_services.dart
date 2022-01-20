@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
@@ -82,18 +83,69 @@ PubApiClient createPubApiClient({String? authToken}) =>
 
 bool _loggingDone = false;
 
+class _LoggerNamePattern {
+  final bool negated;
+  final RegExp pattern;
+  _LoggerNamePattern(this.negated, this.pattern);
+}
+
 /// Setup logging if environment variable `DEBUG` is defined.
+///
+/// Logs are filtered based on `DEBUG='<filter>'`. This is simple filter
+/// operating on log names.
+///
+/// **Examples**:
+///  * `DEBUG='*'`, will show output from all loggers.
+///  * `DEBUG='pub.*'`, will show output from loggers with name prefixed 'pub.'.
+///  * `DEBUG='* -neat_cache'`, will show output from all loggers, except 'neat_cache'.
+///
+/// Multiple filters can be applied, the last matching filter will be applied.
 void setupLogging() {
   if (_loggingDone) {
     return;
   }
   _loggingDone = true;
-  if ((Platform.environment['DEBUG'] ?? '') == '') {
+  final debugEnv = (Platform.environment['DEBUG'] ?? '').trim();
+  if (debugEnv.isEmpty) {
     return;
   }
+
+  final patterns = debugEnv.split(' ').map((s) {
+    var pattern = s.trim();
+    final negated = pattern.startsWith('-');
+    if (negated) {
+      pattern = pattern.substring(1);
+    }
+
+    return _LoggerNamePattern(
+      negated,
+      RegExp('^' +
+          pattern.splitMapJoin(
+            '*',
+            onMatch: (m) => '.*',
+            onNonMatch: RegExp.escape,
+          ) +
+          '\$'),
+    );
+  }).toList();
+
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((LogRecord rec) {
-    print('${rec.level.name}: ${rec.time}: ${rec.message}');
+    final time = clock.now(); // rec.time
+
+    var matched = false;
+    for (final p in patterns) {
+      if (p.pattern.hasMatch(rec.loggerName)) {
+        matched = !p.negated;
+      }
+    }
+    if (!matched) {
+      return;
+    }
+
+    for (final line in rec.message.split('\n')) {
+      print('$time [${rec.loggerName}] ${rec.level.name}: $line');
+    }
     if (rec.error != null) {
       print('ERROR: ${rec.error}, ${rec.stackTrace}');
     }
