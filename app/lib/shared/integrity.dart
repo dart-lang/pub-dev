@@ -40,6 +40,8 @@ class IntegrityChecker {
   final _packagesWithVersion = <String>{};
   final _publishers = <String>{};
   final _publishersAbandoned = <String>{};
+  // package name -> versions
+  final _badVersionInPubspec = <String, Set<String>>{};
   int _packageChecked = 0;
   int _versionChecked = 0;
   late http.Client _httpClient;
@@ -69,6 +71,7 @@ class IntegrityChecker {
     yield* _checkLikes();
     yield* _checkModeratedPackages();
     yield* _checkAuditLogs();
+    yield* _reportPubspecVersionIssues();
     _httpClient.close();
   }
 
@@ -389,7 +392,11 @@ class IntegrityChecker {
       // check pubspec content
       if (pva.kind == AssetKind.pubspec) {
         final pubspec = Pubspec.fromYaml(pva.textContent!);
-        yield* _checkPubspec('PackageVersionAsset', pva.id.toString(), pubspec);
+        if (pubspec.hasBadVersionFormat) {
+          _badVersionInPubspec
+              .putIfAbsent(p.name!, () => <String>{})
+              .add(pva.version!);
+        }
       }
     }
 
@@ -465,8 +472,11 @@ class IntegrityChecker {
       yield 'PackageVersion "${pv.qualifiedVersionKey}" has `created` < 2011.';
     }
 
-    yield* _checkPubspec(
-        'PackageVersion', pv.qualifiedVersionKey.toString(), pv.pubspec!);
+    if (pv.pubspec!.hasBadVersionFormat) {
+      _badVersionInPubspec
+          .putIfAbsent(pv.package, () => <String>{})
+          .add(pv.version!);
+    }
 
     _versionChecked++;
     if (_versionChecked % 5000 == 0) {
@@ -562,10 +572,16 @@ class IntegrityChecker {
 
   Future<bool> _packageMissing(String packageName) async =>
       !(await _packageExists(packageName));
-}
 
-Stream<String> _checkPubspec(String type, String key, Pubspec pubspec) async* {
-  if (pubspec.hasBadVersionFormat) {
-    yield '$type "$key" has bad version format in `pubspec`.';
+  Stream<String> _reportPubspecVersionIssues() async* {
+    for (final String package in _badVersionInPubspec.keys) {
+      final values = _badVersionInPubspec[package]!.toList()..sort();
+      // report the number of versions affected, plus the first 10 versions
+      yield [
+        'Bad version format in pubspec for package "$package" ${values.length} versions: ',
+        '${values.take(10).map((s) => '"$s"').join(', ')}',
+        if (values.length > 10) ' and more.'
+      ].join();
+    }
   }
 }
