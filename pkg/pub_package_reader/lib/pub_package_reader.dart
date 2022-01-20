@@ -629,7 +629,8 @@ Iterable<ArchiveIssue> checkScreenshots(
     // check path
     final normalizedPath = p.normalize(s.path);
     if (normalizedPath != s.path) {
-      yield ArchiveIssue('Screenshot `${s.path}` is not normalized.');
+      yield ArchiveIssue(
+          'Screenshot `${s.path}` is not normalized, should be `$normalizedPath`.');
     }
     if (!files.contains(normalizedPath)) {
       yield ArchiveIssue('Screenshot `${s.path}` is missing from archive.');
