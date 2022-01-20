@@ -6,7 +6,9 @@ import 'dart:io';
 
 import 'package:gcloud/db.dart';
 import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/package/model_properties.dart';
 import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:pub_dev/tool/backfill/backfill_packageversions.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
@@ -15,7 +17,7 @@ import 'package:test/test.dart';
 import '../../shared/test_services.dart';
 
 void main() {
-  group('normalization tests', () {
+  group('backfill package version from archive', () {
     Future<PackageSummary> _archive(String package, String version) async {
       return await withTempDirectory((dir) async {
         final file = File('${dir.path}/archive.tar.gz');
@@ -41,6 +43,7 @@ void main() {
           stat.toJson(),
           {
             'versionCount': 3,
+            'pvCount': 0,
             'pvInfoCount': 0,
             'pvAssetUpdatedCount': 0,
             'pvAssetDeletedCount': 0
@@ -77,6 +80,7 @@ void main() {
           stat.toJson(),
           {
             'versionCount': 3,
+            'pvCount': 0,
             'pvInfoCount': 1,
             'pvAssetUpdatedCount': 1,
             'pvAssetDeletedCount': 0
@@ -95,6 +99,52 @@ void main() {
           AssetKind.readme,
         ))!;
         expect(readme2.textContent, readme.textContent);
+      },
+    );
+
+    testWithProfile(
+      'Update pubspec in PackageVersion and in PackageVersionAsset',
+      fn: () async {
+        final pv =
+            (await packageBackend.lookupPackageVersion('oxygen', '1.2.0'))!;
+        final asset = (await packageBackend.lookupPackageVersionAsset(
+          'oxygen',
+          '1.2.0',
+          AssetKind.pubspec,
+        ))!;
+        final originalPvContent = pv.pubspec!.jsonString;
+        final originalAssetContent = asset.textContent;
+
+        pv.pubspec = Pubspec.fromYaml('name: x');
+        asset.textContent = 'name: x\nversion: 1,2,3\n';
+        await dbService.commit(inserts: [pv, asset]);
+
+        final stat = await backfillAllVersionsOfPackage(
+          'oxygen',
+          archiveResolver: _archive,
+        );
+
+        expect(
+          stat.toJson(),
+          {
+            'versionCount': 3,
+            'pvCount': 1,
+            'pvInfoCount': 0,
+            'pvAssetUpdatedCount': 1,
+            'pvAssetDeletedCount': 0
+          },
+        );
+
+        final pv2 =
+            (await packageBackend.lookupPackageVersion('oxygen', '1.2.0'))!;
+        final asset2 = (await packageBackend.lookupPackageVersionAsset(
+          'oxygen',
+          '1.2.0',
+          AssetKind.pubspec,
+        ))!;
+
+        expect(pv2.pubspec!.jsonString, originalPvContent);
+        expect(asset2.textContent, originalAssetContent);
       },
     );
   });
