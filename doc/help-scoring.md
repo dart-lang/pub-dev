@@ -29,9 +29,10 @@ option.
 ## Popularity
 
 Popularity measures the number of apps that depend on a package over the past 60
-days. We show this on a normalized scale from 100% (the most used package) to 0%
-(the least used package), but are investigating if we can provide absolute usage
-counts in a future version.
+days. We show this as a percentile from 100% (among the top 1% of packages) to
+0% (the least used package), but are investigating if we can provide absolute
+usage counts in a future version See
+[this](https://github.com/dart-lang/pub-dev/issues/2714) issue.
 
 Although this score is based on actual download counts, it compensates for
 automated tools such as continuous builds that fetch the package on each change
@@ -39,7 +40,8 @@ request.
 
 ## Pub Points
 
-Pub points is pub.dev's measure of quality. Pub points are awarded in five categories:
+Pub points is pub.dev's measure of quality. Pub points are awarded in six
+categories:
 
 ### Follow Dart file conventions
 
@@ -74,7 +76,7 @@ This category measures if a package has documentation in two areas:
   - At least 20% of the public API members contain [API
     documentation](https://dart.dev/guides/libraries/create-library-packages#documenting-a-library).
 
-### Support multiple platforms
+### Platform support
 
 Packages are encouraged to support multiple platforms, to enable app developers
 to support a wide variety of platforms for their apps. This includes Dart's
@@ -82,23 +84,46 @@ to support a wide variety of platforms for their apps. This includes Dart's
 [mobile](https://flutter.dev/docs), [web](https://flutter.dev/web), and
 [desktop](https://flutter.dev/desktop) targets.
 
-Pub.dev uses two different algorithms for determining which platforms are supported:
+pub.dev knows about the following platforms:
 
- - **Flutter packages**: For packages that depend on the Flutter SDK, platform
-   support is determined by looking at the [`platforms`
-   tag](https://flutter.dev/docs/development/packages-and-plugins/developing-packages#plugin-platforms)
-   in the `pubspec.yaml` file.
+* windows
+* linux
+* macos
+* android
+* ios
+* web
 
- - **Dart packages**: For packages that depend on just the Dart SDK, platform
-   support is inferred by looking at the imports of [Dart core
-   libraries](https://dart.dev/guides/libraries); the majority of these are
-   multi-platform, but [as listed](https://dart.dev/guides/libraries) a few
-   support just the Dart native or Dart web platforms.
+And the two SDKs
+
+* Flutter
+* Dart
+
+The platform support will be detected by analyzing the transitive import graph
+of the top-level libraries, and finding what core libraries are used. (eg. a
+package importing `dart:html` does not support the 'windows' platform).
 
 If you need to import different libraries for specific platforms (e.g. on the
 web vs on devices), you can use Dart's [**conditional
 imports**](https://dart.dev/guides/libraries/create-library-packages#conditionally-importing-and-exporting-library-files).
 
+#### Declaring platforms:
+
+For packages that make sense or only have implementation on a subset of 
+platforms the detected platform support can be overridden with a platform 
+declaration in the `pubspec.yaml` file:
+
+* Flutter plugins declare their platforms by the  [`flutter.plugin.platform`
+   key](https://flutter.dev/docs/development/packages-and-plugins/developing-packages#plugin-platforms).
+
+* Packages using FFI or otherwise being platform-specific can declare their
+  platform support using a top-level ['platforms'] declaration:
+
+  ```yaml
+  # This package works only on Windows and Linux.
+  platforms: 
+    windows:
+    linux:
+  ```
 ### Pass static analysis
 
 Static analysis is used to determine of the package contains any errors,
@@ -110,27 +135,10 @@ To validate a package prior to publishing, run `dart analyze` (Dart SDK) /
 For code style, make sure to familiarize yourself with the [Dart style
 guide](https://dart.dev/guides/language/effective-dart/style).
 
-Use [`analysis_options.yaml`][analysis-options] to specify further linter rules,
-[enable default rules Google uses][analysis-pedantic], and make sure you fix all
-warnings and errors before publishing. Here's an example
-`analysis_options.yaml`:
-
-````yaml
-# Defines a default set of lint rules enforced for
-# projects at Google. For details and rationale,
-# see https://github.com/dart-lang/pedantic#enabled-lints.
-include: package:pedantic/analysis_options.yaml
-
-# For lint rules and documentation, see http://dart-lang.github.io/linter/lints.
-# Uncomment to specify additional rules.
-# linter:
-#   rules:
-#     - camel_case_types
-
-# analyzer:
-#   exclude:
-#     - path/to/excluded/files/**
-````
+Your package will be analyzed against the lints in the standard
+[lints](https://pub.dev/packages/lints) package. Look
+[here](https://pub.dev/packages/lints#how-to-enable-these-lints) to learn how to
+enable the same lints locally.
 
 ### Support up-to-date dependencies
 
@@ -143,6 +151,10 @@ This category measures if a package has up-to-date dependencies in three areas:
 To determine if your package supports the latest versions of dependencies prior
 to publishing, run the `pub outdated` command (Dart SDK) or `flutter pub
 outdated` command (Flutter SDK).
+
+### Null-safety
+
+This category will award points to packages that have updated to null-safety.
 
 ## Calculating pub points prior to publishing
 
