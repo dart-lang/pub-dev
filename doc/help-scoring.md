@@ -93,7 +93,7 @@ pub.dev knows about the following platforms:
 * ios
 * web
 
-And the two SDKs
+And the two SDKs:
 
 * Flutter
 * Dart
