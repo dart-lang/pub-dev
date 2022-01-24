@@ -425,66 +425,56 @@ class PackageBackend {
 
       final pv = await tx.lookupOrNull<PackageVersion>(versionKey);
       if (pv == null) {
-        throw NotFoundException.resource(package);
+        throw NotFoundException.resource(version);
       }
 
-      bool hasChanged = false;
       if (options.isRetracted != null &&
           options.isRetracted != pv.isRetracted) {
         if (options.isRetracted!) {
           InvalidInputException.check(pv.canBeRetracted,
               'Can\'t retract package "$package" version "$version".');
-          pv.isRetracted = true;
-          pv.retracted = clock.now().toUtc();
         } else {
           InvalidInputException.check(pv.canUndoRetracted,
               'Can\'t undo retraction of package "$package" version "$version".');
-          pv.isRetracted = false;
-          pv.retracted = null;
         }
-        hasChanged = true;
-      }
-
-      if (hasChanged) {
-        // Update references to latest versions if the retracted version was
-        // the latest version or the restored version is newer than the latest.
-        final latestNeedsUpdate = p.latestVersion == pv.version ||
-            p.latestPrereleaseVersion == pv.version ||
-            p.latestPreviewVersion == pv.version ||
-            isNewer(p.latestSemanticVersion, pv.semanticVersion) ||
-            (p.latestPrereleaseSemanticVersion != null &&
-                isNewer(p.latestPrereleaseSemanticVersion!, pv.semanticVersion,
-                    pubSorted: false)) ||
-            (p.latestPreviewSemanticVersion != null &&
-                isNewer(p.latestPreviewSemanticVersion!, pv.semanticVersion,
-                    pubSorted: false));
-
-        if (latestNeedsUpdate) {
-          final versions = await (tx.query<PackageVersion>(pkgKey).run())
-              .where((v) => v.version != pv.version)
-              .toList();
-          versions.add(pv);
-
-          final currentDartSdk = await getDartSdkVersion();
-
-          p.updateLatestVersionReferences(versions,
-              dartSdkVersion: currentDartSdk.semanticVersion);
-        }
-
-        _logger.info('Updating $package ${pv.version} options: '
-            'isRetracted: ${pv.isRetracted}');
-
-        tx.insert(p);
-        tx.insert(pv);
-        tx.insert(AuditLogRecord.packageVersionOptionsUpdated(
-          package: p.name!,
-          version: pv.version!,
-          user: user,
-          options: ['retracted'],
-        ));
+        await doUpdateRetractedStatus(user, tx, p, pv, options.isRetracted!);
       }
     });
     await purgePackageCache(package);
+  }
+
+  /// Updates the retracted status inside a transaction.
+  ///
+  /// This is a helper method, and should be used only after appropriate
+  /// input validation.
+  Future<void> doUpdateRetractedStatus(User user, TransactionWrapper tx,
+      Package p, PackageVersion pv, bool isRetracted) async {
+    pv.isRetracted = isRetracted;
+    pv.retracted = isRetracted ? clock.now() : null;
+
+    // Update references to latest versions if the retracted version was
+    // the latest version or the restored version is newer than the latest.
+    if (p.mayAffectLatestVersions(pv.semanticVersion)) {
+      final versions = await tx.query<PackageVersion>(p.key).run().toList();
+      final currentDartSdk = await getDartSdkVersion();
+      p.updateLatestVersionReferences(
+        versions,
+        dartSdkVersion: currentDartSdk.semanticVersion,
+        replaced: pv,
+      );
+    }
+
+    _logger.info(
+        'Updating ${p.name} ${pv.version} options: isRetracted: $isRetracted');
+
+    tx.insert(p);
+    tx.insert(pv);
+    tx.insert(AuditLogRecord.packageVersionOptionsUpdated(
+      package: p.name!,
+      version: pv.version!,
+      user: user,
+      options: ['retracted'],
+    ));
   }
 
   /// Whether [userId] is a package admin (through direct uploaders list or

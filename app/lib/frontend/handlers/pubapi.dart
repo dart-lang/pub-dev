@@ -445,6 +445,13 @@ class PubApi {
     return jsonResponse({'status': 'OK'});
   }
 
+  @EndPoint.put('/api/admin/packages/<package>/versions/<version>/options')
+  Future<VersionOptions> adminUpdateVersionOptions(Request request,
+      String package, String version, VersionOptions options) async {
+    await adminBackend.updateVersionOptions(package, version, options);
+    return getVersionOptionsHandler(request, package, version);
+  }
+
   @EndPoint.get('/api/admin/packages/<package>/assigned-tags')
   Future<AssignedTags> adminGetAssignedTags(
     Request request,

@@ -41,5 +41,6 @@ admins:
   - listUsers
   - manageAssignedTags
   - managePackageOwnership
+  - manageRetraction
   - removePackage
   - removeUsers

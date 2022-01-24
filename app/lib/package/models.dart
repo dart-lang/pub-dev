@@ -243,10 +243,21 @@ class Package extends db.ExpandoModel<String> {
     uploaders!.remove(userId);
   }
 
+  /// Updates the latest* version fields using all the available versions
+  /// and the current Dart SDK.
+  ///
+  /// If the update was triggered because of a single version changing, the
+  /// [replaced] parameter can be used to replace the corresponding entry
+  /// from the [allVersions] parameter, which may have been loaded before the
+  /// transaction started.
   bool updateLatestVersionReferences(
-    List<PackageVersion> versions, {
+    Iterable<PackageVersion> allVersions, {
     required Version dartSdkVersion,
+    PackageVersion? replaced,
   }) {
+    final versions = allVersions
+        .map((v) => v.version == replaced?.version ? replaced! : v)
+        .toList();
     final oldStableVersion = latestSemanticVersion;
     final oldPrereleaseVersion = latestPrereleaseSemanticVersion;
     final oldPreviewVersion = latestPreviewSemanticVersion;
@@ -308,6 +319,21 @@ class Package extends db.ExpandoModel<String> {
         lastVersionPublished!.isBefore(pv.created!)) {
       lastVersionPublished = pv.created;
     }
+  }
+
+  /// Checks if a change in a version's status may affect
+  /// the latest versions: is it one of them or is it newer
+  /// than one of the latests.
+  bool mayAffectLatestVersions(Version version) {
+    return latestVersion == version.toString() ||
+        latestPrereleaseVersion == version.toString() ||
+        latestPreviewVersion == version.toString() ||
+        isNewer(latestSemanticVersion, version) ||
+        (latestPrereleaseSemanticVersion != null &&
+            isNewer(latestPrereleaseSemanticVersion!, version,
+                pubSorted: false)) ||
+        (latestPreviewSemanticVersion != null &&
+            isNewer(latestPreviewSemanticVersion!, version, pubSorted: false));
   }
 
   bool isNewPackage() => created!.difference(clock.now()).abs().inDays <= 30;
@@ -429,7 +455,7 @@ class PackageVersion extends db.ExpandoModel<String> {
 
   // Convenience Fields:
 
-  Version get semanticVersion => Version.parse(version!);
+  late final semanticVersion = Version.parse(version!);
 
   String? get ellipsizedDescription {
     final description = pubspec!.description;
