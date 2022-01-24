@@ -29,9 +29,9 @@ option.
 ## Popularity
 
 Popularity measures the number of apps that depend on a package over the past 60
-days. We show this as a percentile from 100% (among the top 1% of packages) to
-0% (the least used package), but are investigating if we can provide absolute
-usage counts in a future version See
+days. We show this as a percentile from 100% (among the top 1% most used
+packages) to 0% (the least used package). We are investigating if we can provide
+absolute usage counts in a future version See
 [this](https://github.com/dart-lang/pub-dev/issues/2714) issue.
 
 Although this score is based on actual download counts, it compensates for
@@ -86,12 +86,12 @@ to support a wide variety of platforms for their apps. This includes Dart's
 
 pub.dev knows about the following platforms:
 
-* windows
-* linux
-* macos
-* android
-* ios
-* web
+* Windows
+* Linux
+* macOS
+* Android
+* iOS
+* Web
 
 And the two SDKs:
 
