@@ -16,7 +16,7 @@ dependencies:
   fake_gcloud:
     path: ../pkg/fake_gcloud
   gcloud: '^0.8.1'
-  googleapis: ^6.0.0
+  googleapis: ^7.0.0
   googleapis_auth: ^1.1.0
   html: ^0.15.0
   http: ^0.13.0
@@ -51,10 +51,10 @@ dependencies:
   pana: '0.21.5'
   # 3rd-party packages with pinned versions
   buffer: '1.1.1'
-  mailer: '5.0.1'
+  mailer: '5.1.0'
   sanitize_html: ^2.0.0
   ulid: '2.0.0'
-  tar: '0.5.0'
+  tar: '0.5.1'
   http_retry: '0.2.0'
   api_builder:
     path: ../pkg/api_builder
