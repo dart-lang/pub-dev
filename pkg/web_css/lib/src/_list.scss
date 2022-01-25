@@ -446,6 +446,9 @@
   .search-form-section-header {
     display: flex;
     cursor: pointer;
+    font-family: $font-family-google-sans;
+    font-size: 14px;
+    font-weight: bold;
 
     .search-form-section-header-label {
       flex-grow: 1;
