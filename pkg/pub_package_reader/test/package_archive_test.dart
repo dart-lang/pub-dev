@@ -604,4 +604,116 @@ $dependencies
       expect(checkValidJson(pubspec), isNotEmpty);
     });
   });
+
+  group('screenshots', () {
+    test('not normalized path', () {
+      final pubspec = Pubspec.parse('''
+      name: package
+      screenshots:
+        - path: a/../b.jpg
+          description: abcd efgh ijkl
+      ''');
+      expect(
+        checkScreenshots(pubspec, ['b.jpg']).single.message,
+        contains('normalized'),
+      );
+    });
+
+    test('missing file', () {
+      final pubspec = Pubspec.parse('''
+      name: package
+      screenshots:
+        - path: b.jpg
+          description: abcd efgh ijkl
+      ''');
+      expect(
+        checkScreenshots(pubspec, ['a.jpg']).single.message,
+        contains('missing'),
+      );
+    });
+
+    test('duplicate file', () {
+      final pubspec = Pubspec.parse('''
+      name: package
+      screenshots:
+        - path: b.jpg
+          description: abcd efgh ijkl
+        - path: b.jpg
+          description: efgh ijkl abcd
+      ''');
+      // both files will emit 1 issue about being a duplicate
+      expect(
+        checkScreenshots(pubspec, ['b.jpg'])
+            .map((e) => e.message)
+            .every((e) => e.contains('only once')),
+        isTrue,
+      );
+    });
+
+    test('no description', () {
+      final pubspec = Pubspec.parse('''
+      name: package
+      screenshots:
+        - path: b.jpg
+          description: ''
+      ''');
+      expect(
+        checkScreenshots(pubspec, ['b.jpg']).single.message,
+        contains('too short'),
+      );
+    });
+
+    test('short description', () {
+      final pubspec = Pubspec.parse('''
+      name: package
+      screenshots:
+        - path: b.jpg
+          description: none
+      ''');
+      expect(
+        checkScreenshots(pubspec, ['b.jpg']).single.message,
+        contains('too short'),
+      );
+    });
+
+    test('long description', () {
+      final description = 'abcdefg' * 100;
+      final pubspec = Pubspec.parse('''
+      name: package
+      screenshots:
+        - path: b.jpg
+          description: $description
+      ''');
+      expect(
+        checkScreenshots(pubspec, ['b.jpg']).single.message,
+        contains('too long'),
+      );
+    });
+
+    test('Zalgo in description', () {
+      final pubspec = Pubspec.parse('''
+      name: package
+      screenshots:
+        - path: b.jpg
+          description: z͎͗ͣḁ̵̑l̉̃ͦg̐̓̒o͓̔ͥ
+      ''');
+      expect(
+        checkScreenshots(pubspec, ['b.jpg']),
+        isNotEmpty,
+      );
+    });
+
+    test('OK', () {
+      final pubspec = Pubspec.parse('''
+      name: package
+      screenshots:
+        - path: b.jpg
+          description: reasonable description
+      ''');
+      expect(
+        checkScreenshots(pubspec, ['b.jpg']),
+        isEmpty,
+      );
+    });
+  });
 }

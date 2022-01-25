@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:yaml/yaml.dart' show YamlException, loadYaml;
@@ -249,6 +250,7 @@ Future<PackageSummary> summarizePackageArchive(
   // issues.addAll(forbidPreReleaseSdk(pubspec));
   issues.addAll(requireIosFolderOrFlutter2_20(pubspec, tar.fileNames));
   issues.addAll(requireNonEmptyLicense(licensePath, licenseContent));
+  issues.addAll(checkScreenshots(pubspec, tar.fileNames));
 
   return PackageSummary(
     issues: issues,
@@ -625,5 +627,38 @@ Iterable<ArchiveIssue> requireNonEmptyLicense(
   if (content.toLowerCase().contains('todo: add your license here.')) {
     yield ArchiveIssue('LICENSE file `$path` contains generic TODO.');
     return;
+  }
+}
+
+Iterable<ArchiveIssue> checkScreenshots(
+    Pubspec pubspec, List<String> files) sync* {
+  if (pubspec.screenshots == null) return;
+  for (final s in pubspec.screenshots!) {
+    // check path
+    final normalizedPath = p.normalize(s.path);
+    if (normalizedPath != s.path) {
+      yield ArchiveIssue(
+          'Screenshot `${s.path}` is not normalized, should be `$normalizedPath`.');
+    }
+    if (!files.contains(normalizedPath)) {
+      yield ArchiveIssue('Screenshot `${s.path}` is missing from archive.');
+    }
+
+    // verify duplicate screenshots
+    if (pubspec.screenshots!.where((x) => x.path == s.path).length > 1) {
+      yield ArchiveIssue('Screenshot `${s.path}` must be present only once.');
+    }
+
+    // validate screenshot text
+    final textLength = s.description.trim().length;
+    if (textLength <= 10) {
+      yield ArchiveIssue(
+          'Screenshot description for `${s.path}` is too short. Should be at least 10 characters.');
+    }
+    if (textLength > 200) {
+      yield ArchiveIssue(
+          'Screenshot description for `${s.path}` is too long (over 200 characters).');
+    }
+    yield* validateZalgo('screenshot description', s.description);
   }
 }
