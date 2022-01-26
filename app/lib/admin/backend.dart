@@ -14,7 +14,6 @@ import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/shared/email.dart';
-import 'package:pub_semver/pub_semver.dart';
 
 import '../account/backend.dart';
 import '../account/models.dart';
