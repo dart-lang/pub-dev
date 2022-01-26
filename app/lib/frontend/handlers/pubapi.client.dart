@@ -412,6 +412,15 @@ class PubApiClient {
     );
   }
 
+  Future<_i3.VersionOptions> adminUpdateVersionOptions(
+      String package, String version, _i3.VersionOptions payload) async {
+    return _i3.VersionOptions.fromJson(await _client.requestJson(
+      verb: 'put',
+      path: '/api/admin/packages/$package/versions/$version/options',
+      body: payload.toJson(),
+    ));
+  }
+
   Future<_i6.AssignedTags> adminGetAssignedTags(String package) async {
     return _i6.AssignedTags.fromJson(await _client.requestJson(
       verb: 'get',

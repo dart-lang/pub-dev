@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:client_data/admin_api.dart' as api;
+import 'package:client_data/package_api.dart';
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
@@ -21,7 +22,11 @@ import '../account/models.dart';
 import '../dartdoc/backend.dart';
 import '../job/model.dart';
 import '../package/backend.dart'
-    show TarballStorage, checkPackageVersionParams, packageBackend;
+    show
+        TarballStorage,
+        checkPackageVersionParams,
+        packageBackend,
+        purgePackageCache;
 import '../package/models.dart';
 import '../publisher/models.dart';
 import '../scorecard/models.dart';
@@ -366,6 +371,45 @@ class AdminBackend {
         'NOTICE: Redis caches referencing the package will expire given time.');
   }
 
+  /// Updates the options (e.g. retraction) of the specific package version and
+  /// updates other related entities.
+  /// It is safe to call [updateVersionOptions] on an version with the same
+  /// options values (e.g. same retracted status), as the call is idempotent.
+  Future<void> updateVersionOptions(
+      String packageName, String version, VersionOptions options) async {
+    checkPackageVersionParams(packageName, version);
+    InvalidInputException.check(options.isRetracted != null,
+        'Only updating "isRetracted" is implemented.');
+    final caller =
+        await _requireAdminPermission(AdminPermission.manageRetraction);
+
+    if (options.isRetracted != null) {
+      final isRetracted = options.isRetracted!;
+      _logger.info(
+          '${caller.userId} (${caller.email}) initiated the isRetracted status '
+          'of package $packageName $version to be $isRetracted.');
+
+      await withRetryTransaction(_db, (tx) async {
+        final p = await tx.lookupOrNull<Package>(
+            _db.emptyKey.append(Package, id: packageName));
+        if (p == null) {
+          throw NotFoundException.resource(packageName);
+        }
+        final pv = await tx.lookupOrNull<PackageVersion>(
+            p.key.append(PackageVersion, id: version));
+        if (pv == null) {
+          throw NotFoundException.resource(version);
+        }
+
+        if (pv.isRetracted != isRetracted) {
+          await packageBackend.doUpdateRetractedStatus(
+              caller, tx, p, pv, isRetracted);
+        }
+      });
+      await purgePackageCache(packageName);
+    }
+  }
+
   /// Removes the specific package version from the Datastore and updates other
   /// related entities. It is safe to call [removePackageVersion] on an already
   /// removed version, as the call is idempotent.
@@ -400,9 +444,7 @@ class AdminBackend {
             'Last version detected. Use full package removal without the version qualifier.');
       }
 
-      if (package.latestVersion == version ||
-          package.latestPrereleaseVersion == version ||
-          package.latestPreviewVersion == version) {
+      if (package.mayAffectLatestVersions(Version.parse(version))) {
         package.updateLatestVersionReferences(
             versions.where((v) => v.version != version).toList(),
             dartSdkVersion: currentDartSdk.semanticVersion);
@@ -438,6 +480,7 @@ class AdminBackend {
       _db.query<Job>()..filter('packageName =', packageName),
       where: (Job job) => job.packageVersion == version,
     );
+    await purgePackageCache(packageName);
   }
 
   Future _deleteWithQuery<T>(Query query,

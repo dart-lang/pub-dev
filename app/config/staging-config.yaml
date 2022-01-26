@@ -25,6 +25,7 @@ admins:
   - listUsers
   - manageAssignedTags
   - managePackageOwnership
+  - manageRetraction
   - removePackage
   - removeUsers
 - oauthUserId: '117672289743137340098'

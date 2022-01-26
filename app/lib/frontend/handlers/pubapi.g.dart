@@ -735,6 +735,23 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
+  router.add('PUT', r'/api/admin/packages/<package>/versions/<version>/options',
+      (Request request, String package, String version) async {
+    try {
+      final _$result = await service.adminUpdateVersionOptions(
+        request,
+        package,
+        version,
+        await $utilities.decodeJson<VersionOptions>(
+            request, (o) => VersionOptions.fromJson(o)),
+      );
+      return $utilities.jsonResponse(_$result.toJson());
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
   router.add('GET', r'/api/admin/packages/<package>/assigned-tags',
       (Request request, String package) async {
     try {

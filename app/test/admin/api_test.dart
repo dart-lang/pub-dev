@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:client_data/admin_api.dart';
+import 'package:client_data/package_api.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/backend.dart';
@@ -19,6 +20,7 @@ import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
+import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
 
@@ -552,6 +554,110 @@ void main() {
               'oxygen', 'admin@pub.dev');
           expect(rs.uploaders, isEmpty);
         });
+      });
+    });
+
+    group('retraction', () {
+      setupTestsWithCallerAuthorizationIssues(
+          (client) => client.adminUpdateVersionOptions(
+                'oxygen',
+                '1.2.0',
+                VersionOptions(isRetracted: true),
+              ));
+
+      testWithProfile('bad retraction value', fn: () async {
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+        await expectApiException(
+          client.adminUpdateVersionOptions(
+            'oxygen',
+            '1.0.0',
+            VersionOptions(),
+          ),
+          status: 400,
+          code: 'InvalidInput',
+        );
+      });
+
+      testWithProfile('missing package', fn: () async {
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+        await expectApiException(
+          client.adminUpdateVersionOptions(
+            'no_such_package',
+            '1.0.0',
+            VersionOptions(isRetracted: true),
+          ),
+          status: 404,
+          code: 'NotFound',
+        );
+      });
+
+      testWithProfile('missing version', fn: () async {
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+        await expectApiException(
+          client.adminUpdateVersionOptions(
+            'oxygen',
+            '1.0.0-no-such-version',
+            VersionOptions(isRetracted: true),
+          ),
+          status: 404,
+          code: 'NotFound',
+        );
+      });
+
+      testWithProfile('no change', fn: () async {
+        final v1 = await packageBackend.lookupPackageVersion('oxygen', '1.0.0');
+        expect(v1!.isRetracted, false);
+        expect(v1.retracted, null);
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+        final rs = await client.adminUpdateVersionOptions(
+          'oxygen',
+          '1.0.0',
+          VersionOptions(isRetracted: false),
+        );
+        final v2 = await packageBackend.lookupPackageVersion('oxygen', '1.0.0');
+        expect(v2!.isRetracted, false);
+        expect(v2.retracted, null);
+        expect(rs.isRetracted, v2.isRetracted);
+      });
+
+      testWithProfile('update value and revert', fn: () async {
+        final v1 = await packageBackend.lookupPackageVersion('oxygen', '1.0.0');
+        expect(v1!.isRetracted, false);
+        expect(v1.retracted, null);
+        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+
+        // retract
+        final rs1 = await client.adminUpdateVersionOptions(
+          'oxygen',
+          '1.0.0',
+          VersionOptions(isRetracted: true),
+        );
+        final v2 = await packageBackend.lookupPackageVersion('oxygen', '1.0.0');
+        expect(v2!.isRetracted, true);
+        expect(v2.retracted, isNotNull);
+        expect(rs1.isRetracted, v2.isRetracted);
+
+        // retract again
+        final rs2 = await client.adminUpdateVersionOptions(
+          'oxygen',
+          '1.0.0',
+          VersionOptions(isRetracted: true),
+        );
+        final v3 = await packageBackend.lookupPackageVersion('oxygen', '1.0.0');
+        expect(v3!.isRetracted, true);
+        expect(v3.retracted, v2.retracted);
+        expect(rs2.isRetracted, v3.isRetracted);
+
+        // revert
+        final rs3 = await client.adminUpdateVersionOptions(
+          'oxygen',
+          '1.0.0',
+          VersionOptions(isRetracted: false),
+        );
+        final v4 = await packageBackend.lookupPackageVersion('oxygen', '1.0.0');
+        expect(v4!.isRetracted, false);
+        expect(v4.retracted, null);
+        expect(rs3.isRetracted, v4.isRetracted);
       });
     });
   });
