@@ -286,54 +286,56 @@ class AdminBackend {
     _logger.info('${caller.userId} (${caller.email}) initiated the delete '
         'of package $packageName');
 
-    List<Version>? versionsNames;
+    final packageKey = _db.emptyKey.append(Package, id: packageName);
+    final versions = (await _db
+            .query<PackageVersion>(ancestorKey: packageKey)
+            .run()
+            .map((pv) => pv.version!)
+            .toList())
+        .toSet();
+
     await withRetryTransaction(_db, (tx) async {
-      final deletes = <Key>[];
-      final packageKey = _db.emptyKey.append(Package, id: packageName);
       final package = await tx.lookupOrNull<Package>(packageKey);
       if (package == null) {
         _logger
             .info('Package $packageName not found. Removing related elements.');
-      } else {
-        deletes.add(packageKey);
+        // Returning early makes sure we are not creating ghost `ModeratedPackage`
+        // entities because of a typo.
+        return;
       }
-
-      final versionsQuery = tx.query<PackageVersion>(packageKey);
-      final versions = await versionsQuery.run().toList();
-      // The delete package operation could be aborted after the `PackageVersion`
-      // entries are deleted, but before the archives are started.
-      // TODO: when this list is empty, query other related entities to fetch the versions
-      versionsNames = versions.map((v) => v.semanticVersion).toList();
-      deletes.addAll(versions.map((v) => v.key));
+      tx.delete(packageKey);
 
       final moderatedPkgKey =
           _db.emptyKey.append(ModeratedPackage, id: packageName);
-      ModeratedPackage? moderatedPkg =
+      final moderatedPkg =
           await _db.lookupOrNull<ModeratedPackage>(moderatedPkgKey);
       if (moderatedPkg == null) {
-        moderatedPkg = ModeratedPackage()
+        // Refresh versions to make sure we are not missing a freshly uploaded one.
+        versions.addAll(await tx
+            .query<PackageVersion>(packageKey)
+            .run()
+            .map((pv) => pv.version!)
+            .toList());
+
+        tx.insert(ModeratedPackage()
           ..parentKey = _db.emptyKey
           ..id = packageName
           ..name = packageName
           ..moderated = clock.now().toUtc()
-          ..versions = versions.map((v) => v.version!).toList()
-          ..publisherId = package?.publisherId
-          ..uploaders = package?.uploaders;
+          ..versions = versions.toList()
+          ..publisherId = package.publisherId
+          ..uploaders = package.uploaders);
 
         _logger.info('Adding package to moderated packages ...');
       }
-      tx.queueMutations(deletes: deletes, inserts: [moderatedPkg]);
     });
 
     final pool = Pool(10);
     final futures = <Future>[];
-    final TarballStorage storage = TarballStorage(storageService,
+    final storage = TarballStorage(storageService,
         storageService.bucket(activeConfiguration.packageBucketName!), '');
-    versionsNames!.forEach((final v) {
-      final future = pool.withResource(() async {
-        await storage.remove(packageName, v.toString());
-      });
-      futures.add(future);
+    versions.forEach((final v) {
+      futures.add(pool.withResource(() => storage.remove(packageName, v)));
     });
     await Future.wait(futures);
     await pool.close();
@@ -341,24 +343,28 @@ class AdminBackend {
     _logger.info('Removing package from dartdoc backend ...');
     await dartdocBackend.removeAll(packageName, concurrency: 32);
 
+    _logger.info('Removing package from PackageVersion ...');
+    await _db
+        .deleteWithQuery(_db.query<PackageVersion>(ancestorKey: packageKey));
+
     _logger.info('Removing package from PackageVersionInfo ...');
-    await _deleteWithQuery(
+    await _db.deleteWithQuery(
         _db.query<PackageVersionInfo>()..filter('package =', packageName));
 
     _logger.info('Removing package from PackageVersionAsset ...');
-    await _deleteWithQuery(
+    await _db.deleteWithQuery(
         _db.query<PackageVersionAsset>()..filter('package =', packageName));
 
     _logger.info('Removing package from Jobs ...');
-    await _deleteWithQuery(
+    await _db.deleteWithQuery(
         _db.query<Job>()..filter('packageName =', packageName));
 
     _logger.info('Removing package from ScoreCard ...');
-    await _deleteWithQuery(
+    await _db.deleteWithQuery(
         _db.query<ScoreCard>()..filter('packageName =', packageName));
 
     _logger.info('Removing package from Like ...');
-    await _deleteWithQuery(
+    await _db.deleteWithQuery(
         _db.query<Like>()..filter('packageName =', packageName));
 
     _logger.info('Package "$packageName" got successfully removed.');
@@ -377,7 +383,7 @@ class AdminBackend {
 
     final currentDartSdk = await getDartSdkVersion();
     await withRetryTransaction(_db, (tx) async {
-      final Key packageKey = _db.emptyKey.append(Package, id: packageName);
+      final packageKey = _db.emptyKey.append(Package, id: packageName);
       final package = await tx.lookupOrNull<Package>(packageKey);
       if (package == null) {
         throw Exception(
@@ -424,38 +430,20 @@ class AdminBackend {
 
     await dartdocBackend.removeAll(packageName, version: version);
 
-    await _deleteWithQuery(
+    await _db.deleteWithQuery(
       _db.query<PackageVersionInfo>()..filter('package =', packageName),
       where: (PackageVersionInfo info) => info.version == version,
     );
 
-    await _deleteWithQuery(
+    await _db.deleteWithQuery(
       _db.query<PackageVersionAsset>()..filter('package =', packageName),
       where: (PackageVersionAsset asset) => asset.version == version,
     );
 
-    await _deleteWithQuery(
+    await _db.deleteWithQuery(
       _db.query<Job>()..filter('packageName =', packageName),
       where: (Job job) => job.packageVersion == version,
     );
-  }
-
-  Future _deleteWithQuery<T>(Query query,
-      {bool Function(T item)? where}) async {
-    final deletes = <Key>[];
-    await for (Model m in query.run()) {
-      final shouldDelete = where == null || where(m as T);
-      if (shouldDelete) {
-        deletes.add(m.key);
-        if (deletes.length >= 500) {
-          await _db.commit(deletes: deletes);
-          deletes.clear();
-        }
-      }
-    }
-    if (deletes.isNotEmpty) {
-      await _db.commit(deletes: deletes);
-    }
   }
 
   /// Handles GET '/api/admin/packages/<package>/assigned-tags'
