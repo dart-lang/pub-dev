@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bumped runtimeVersion to `2022.01.27`.
  * Upgraded preview Dart analysis SDK to `2.16.0-134.5.beta`.
  * Upgraded preview Flutter analysis SDK to `2.10.0-0.3.pre`.
+ * Upgraded pana to `0.21.6`.
  * Upgraded dependencies, including `googleapis`, `mailer`, `tar`.
  * NOTE: `search` index no longer uses or populates uploader `userId`.
 
