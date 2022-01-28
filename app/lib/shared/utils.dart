@@ -354,13 +354,8 @@ String createUuid([List<int>? bytes]) {
 ///
 /// Returns `null` otherwise.
 Map<String, String>? cloudTraceHeaders() {
-  // TODO: remove this once `context` gets fixed to nullable.
-  try {
-    if (context.traceId == null) return null;
-    return {_cloudTraceContextHeader: context.traceId!};
-  } catch (_) {
-    // no-op
-  }
+  if (context.traceId == null) return null;
+  return {_cloudTraceContextHeader: context.traceId!};
 }
 
 extension LoggerExt on Logger {
