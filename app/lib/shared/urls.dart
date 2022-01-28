@@ -4,7 +4,6 @@
 
 import 'package:path/path.dart' as p;
 
-import '../package/overrides.dart';
 import '../search/search_form.dart' show SearchContext, SearchForm, SearchOrder;
 
 const primaryHost = 'pub.dev';
@@ -256,12 +255,11 @@ String? inferIssueTrackerUrl(String? baseUrl) {
       return null;
     }
     segments.add('issues');
-    final url = Uri(
+    return Uri(
       scheme: 'https',
       host: uri.host,
       pathSegments: segments,
     ).toString();
-    return overrideIssueTrackerUrl(url);
   }
   return null;
 }
