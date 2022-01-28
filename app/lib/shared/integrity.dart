@@ -135,7 +135,11 @@ class IntegrityChecker {
       final userId = _oauthToUser[oauthUserId];
       if (userId == null) {
         yield 'OAuthUserID "$oauthUserId" has no User.';
+        continue;
       }
+      // make sure we have the latest userId -> oauthUserId mapping
+      await _userExists(userId);
+      // check mapping
       final pointer = _userToOauth[userId];
       if (pointer == null) {
         yield 'User "$userId" is mapped from OAuthUserID "$oauthUserId", but does not have it set.';
@@ -178,11 +182,14 @@ class IntegrityChecker {
       if (!_publishers.contains(pm.publisherId)) {
         yield 'PublisherMember "${pm.userId}" references a non-existing `publisherId`: "${pm.publisherId}".';
       }
-      if (_deletedUsers.contains(pm.userId)) {
-        yield 'PublisherMember "${pm.publisherId}" / "${pm.userId}" references a deleted User.';
-      }
-      if (!_userToOauth.containsKey(pm.userId)) {
-        yield 'PublisherMember "${pm.publisherId}" / "${pm.userId}" references a non-existing User.';
+      if (pm.userId == null) {
+        yield 'PublisherMember of "${pm.publisherId}" has no `userId`.';
+      } else {
+        yield* _checkUserValid(
+          pm.userId!,
+          entityType: 'PublisherMember',
+          entityId: '${pm.publisherId} / ${pm.userId}',
+        );
       }
     }
   }
@@ -253,13 +260,12 @@ class IntegrityChecker {
     if (p.likes < 0) {
       yield 'Package "${p.name}" has a `likes` property which is not a non-negative integer.';
     }
-    for (String? userId in p.uploaders!) {
-      if (!_userToOauth.containsKey(userId)) {
-        yield 'Package "${p.name}" has uploader without User: "$userId".';
-      }
-      if (_invalidUsers.contains(userId)) {
-        yield 'Package "${p.name}" has invalid uploader: "$userId".';
-      }
+    for (final userId in p.uploaders!) {
+      yield* _checkUserValid(
+        userId,
+        entityType: 'Package',
+        entityId: p.name,
+      );
     }
     if (p.deletedVersions != null) {
       // make sure we store valid versions here
@@ -428,12 +434,13 @@ class IntegrityChecker {
 
     if (pv.uploader == null) {
       yield 'PackageVersion "${pv.qualifiedVersionKey}" has no uploader.';
-    }
-    if (!_userToOauth.containsKey(pv.uploader)) {
-      yield 'PackageVersion "${pv.qualifiedVersionKey}" has uploader without User: "${pv.uploader}".';
-    }
-    if (_invalidUsers.contains(pv.uploader)) {
-      yield 'PackageVersion "${pv.qualifiedVersionKey}" has invalid uploader: User "${pv.uploader}".';
+    } else {
+      yield* _checkUserValid(
+        pv.uploader!,
+        entityType: 'PackageVersion',
+        entityId: pv.qualifiedVersionKey.toString(),
+        isRetainedRecord: true,
+      );
     }
     if (pv.isRetracted && pv.retracted == null) {
       yield 'PackageVersion "${pv.qualifiedVersionKey}" is retracted, but `retracted` property is null.';
@@ -486,16 +493,10 @@ class IntegrityChecker {
             ' has a `packageName` property which is not the same as `package`/`id`.';
       }
 
-      final userId = like.userId;
-      if (!_userToOauth.keys.contains(userId)) {
-        yield 'Like entity with nonexisting user "$userId".';
-      }
-      if (_deletedUsers.contains(userId)) {
-        yield 'Like entity with deleted user "$userId".';
-      }
+      yield* _checkUserValid(like.userId, entityType: 'Like');
 
       if (await _packageMissing(like.package)) {
-        yield 'User "$userId" likes missing package "${like.package}".';
+        yield 'User "${like.userId}" likes missing package "${like.package}".';
       }
     }
   }
@@ -542,6 +543,41 @@ class IntegrityChecker {
         yield 'AuditLogRecord "${r.id}" has missing package "$p" in package version "$pv".';
       }
     }
+  }
+
+  Stream<String> _checkUserValid(
+    String userId, {
+    required String entityType,
+    String? entityId,
+
+    /// Set true for entries where we retain the record indefintely,
+    /// even if the [User] has been deleted or invalidated.
+    bool isRetainedRecord = false,
+  }) async* {
+    final label =
+        entityId == null ? '$entityType entity' : '$entityType "$entityId"';
+    if (!(await _userExists(userId))) {
+      yield '$label references a nonexisting User: "$userId".';
+    }
+    if (!isRetainedRecord && _deletedUsers.contains(userId)) {
+      yield '$label references a deleted User "$userId".';
+    }
+    if (_invalidUsers.contains(userId)) {
+      yield '$label references an invalid User: "$userId".';
+    }
+  }
+
+  Future<bool> _userExists(String userId) async {
+    if (_userToOauth.containsKey(userId)) {
+      return true;
+    }
+    final user =
+        await _db.lookupOrNull<User>(_db.emptyKey.append(User, id: userId));
+    if (user == null) {
+      return false;
+    }
+    _userToOauth[user.oauthUserId!] = user.userId;
+    return true;
   }
 
   Future<bool> _packageExists(String packageName) async {
