@@ -115,6 +115,9 @@ void main() {
         final originalPvContent = pv.pubspec!.jsonString;
         final originalAssetContent = asset.textContent;
 
+        // Inject non-normalized version number in the pubspec asset.
+        // This ensures that we can cleanup from:
+        // https://github.com/dart-lang/pub_semver/pull/63
         pv.pubspec = Pubspec.fromYaml('name: x');
         asset.textContent = 'name: x\nversion: 1,2,3\n';
         await dbService.commit(inserts: [pv, asset]);
