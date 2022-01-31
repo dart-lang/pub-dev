@@ -480,6 +480,23 @@ class PackageVersion extends db.ExpandoModel<String> {
     );
   }
 
+  /// Updates the current instance with the newly derived data.
+  /// Returns true if the current instance changed.
+  bool updateIfChanged({
+    required String? pubspecContentAsYaml,
+  }) {
+    var changed = false;
+    if (pubspecContentAsYaml != null) {
+      final newPubspec = Pubspec.fromYaml(pubspecContentAsYaml);
+      // TODO: consider deep compare of the pubspec data
+      if (pubspec!.jsonString != newPubspec.jsonString) {
+        pubspec = newPubspec;
+        changed = true;
+      }
+    }
+    return changed;
+  }
+
   /// List of tags from the flags on the current [PackageVersion] entity.
   List<String> getTags() {
     return <String>[

@@ -86,12 +86,19 @@ Future<BackfillStat> backfillPackageVersion({
       await existingAssetQuery.run().map((a) => a.key).toList();
 
   return await withRetryTransaction(dbService, (tx) async {
+    final pv = await tx.lookupValue<PackageVersion>(dbService.emptyKey
+        .append(Package, id: package)
+        .append(PackageVersion, id: version));
     final pvInfo = await tx.lookupOrNull<PackageVersionInfo>(dbService.emptyKey
         .append(PackageVersionInfo, id: derived.packageVersionInfo.id));
     final pvAssets = await tx.lookup<PackageVersionAsset>(existingAssetKeys);
 
     final inserts = <Model>[];
     final deletes = <Key>[];
+
+    if (pv.updateIfChanged(pubspecContentAsYaml: archive.pubspecContent)) {
+      inserts.add(pv);
+    }
 
     if (pvInfo == null) {
       inserts.add(derived.packageVersionInfo);
@@ -122,6 +129,7 @@ Future<BackfillStat> backfillPackageVersion({
     }
     return BackfillStat(
       versionCount: 1,
+      pvCount: inserts.whereType<PackageVersion>().length,
       pvInfoCount: inserts.whereType<PackageVersionInfo>().length,
       pvAssetUpdatedCount: inserts.whereType<PackageVersionAsset>().length,
       pvAssetDeletedCount: deletes.length, // only assets are deleted
@@ -152,12 +160,14 @@ class BackfillStat {
   // package stat
   final int versionCount;
   // updated counts
+  final int pvCount;
   final int pvInfoCount;
   final int pvAssetUpdatedCount;
   final int pvAssetDeletedCount;
 
   BackfillStat({
     required this.versionCount,
+    required this.pvCount,
     required this.pvInfoCount,
     required this.pvAssetUpdatedCount,
     required this.pvAssetDeletedCount,
@@ -165,6 +175,7 @@ class BackfillStat {
 
   BackfillStat operator +(BackfillStat other) => BackfillStat(
         versionCount: versionCount + other.versionCount,
+        pvCount: pvCount + other.pvCount,
         pvInfoCount: pvInfoCount + other.pvInfoCount,
         pvAssetUpdatedCount: pvAssetUpdatedCount + other.pvAssetUpdatedCount,
         pvAssetDeletedCount: pvAssetDeletedCount + other.pvAssetDeletedCount,
@@ -172,6 +183,7 @@ class BackfillStat {
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'versionCount': versionCount,
+        'pvCount': pvCount,
         'pvInfoCount': pvInfoCount,
         'pvAssetUpdatedCount': pvAssetUpdatedCount,
         'pvAssetDeletedCount': pvAssetDeletedCount,
