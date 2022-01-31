@@ -63,6 +63,16 @@ void main() {
       await expectNotFoundResponse(await issueGet('/flutter/plugins'));
     });
 
+    testWithProfile('/flutter/packages', fn: () async {
+      await expectRedirectResponse(
+          await issueGet('/flutter/packages'), '/packages?q=sdk%3Aflutter');
+    });
+
+    testWithProfile('/flutter/favorites', fn: () async {
+      await expectRedirectResponse(await issueGet('/flutter/favorites'),
+          '/packages?q=is%3Aflutter-favorite');
+    });
+
     testWithProfile('/search?q=foobar', fn: () async {
       await expectRedirectResponse(
           await issueGet('/search?q=foobar', host: 'pub.dartlang.org'),
