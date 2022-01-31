@@ -462,6 +462,7 @@ class PackageVersion extends db.ExpandoModel<String> {
     var changed = false;
     if (pubspecContentAsYaml != null) {
       final newPubspec = Pubspec.fromYaml(pubspecContentAsYaml);
+      // TODO: consider deep compare of the pubspec data
       if (pubspec!.jsonString != newPubspec.jsonString) {
         pubspec = newPubspec;
         changed = true;
