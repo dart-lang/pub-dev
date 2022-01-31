@@ -38,7 +38,7 @@ RUN dart /project/tool/pub_get_offline.dart /project/app
 
 # Setup analysis Dart SDKs
 RUN /project/tool/setup-dart.sh /tool/stable 2.15.1
-RUN /project/tool/setup-dart.sh /tool/preview 2.16.0-134.5.beta
+RUN /project/tool/setup-dart.sh /tool/preview 2.16.0-134.6.beta
 
 # Setup analysis Flutter SDKs
 RUN /project/tool/setup-flutter.sh /tool/stable 2.8.1
