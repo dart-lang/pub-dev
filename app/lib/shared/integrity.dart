@@ -201,7 +201,7 @@ class IntegrityChecker {
     _logger.info('Scanning Packages...');
     final pool = Pool(_concurrency);
     final futures = <Future<List<String>>>[];
-    await for (Package p in _db.query<Package>().run()) {
+    await for (final p in _db.query<Package>().run()) {
       final f = pool.withResource(() => _checkPackage(p).toList());
       futures.add(f);
     }
@@ -263,12 +263,14 @@ class IntegrityChecker {
     if (p.likes < 0) {
       yield 'Package "${p.name}" has a `likes` property which is not a non-negative integer.';
     }
-    for (final userId in p.uploaders!) {
-      yield* _checkUserValid(
-        userId,
-        entityType: 'Package',
-        entityId: p.name,
-      );
+    if (p.uploaders != null) {
+      for (final userId in p.uploaders!) {
+        yield* _checkUserValid(
+          userId,
+          entityType: 'Package',
+          entityId: p.name,
+        );
+      }
     }
     if (p.deletedVersions != null) {
       // make sure we store valid versions here
@@ -397,11 +399,15 @@ class IntegrityChecker {
       }
       // check pubspec content
       if (pva.kind == AssetKind.pubspec) {
-        final pubspec = Pubspec.fromYaml(pva.textContent!);
-        if (pubspec.hasBadVersionFormat) {
-          _badVersionInPubspec
-              .putIfAbsent(p.name!, () => <String>{})
-              .add(pva.version!);
+        try {
+          final pubspec = Pubspec.fromYaml(pva.textContent!);
+          if (pubspec.hasBadVersionFormat) {
+            _badVersionInPubspec
+                .putIfAbsent(p.name!, () => <String>{})
+                .add(pva.version!);
+          }
+        } catch (e) {
+          yield 'PackageVersionAsset "${pva.id}" "pubspec" has parse error: $e.';
         }
       }
     }
@@ -479,7 +485,9 @@ class IntegrityChecker {
       yield 'PackageVersion "${pv.qualifiedVersionKey}" has `created` < 2011.';
     }
 
-    if (pv.pubspec!.hasBadVersionFormat) {
+    if (pv.pubspec == null) {
+      yield 'PackageVersion "${pv.qualifiedVersionKey}" has no `pubspec` property.';
+    } else if (pv.pubspec!.hasBadVersionFormat) {
       _badVersionInPubspec
           .putIfAbsent(pv.package, () => <String>{})
           .add(pv.version!);
@@ -586,7 +594,7 @@ class IntegrityChecker {
     if (user == null) {
       return false;
     }
-    _userToOauth[user.oauthUserId!] = user.userId;
+    _userToOauth[user.userId] = user.oauthUserId;
     return true;
   }
 
