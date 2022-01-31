@@ -263,8 +263,9 @@ class IntegrityChecker {
     if (p.likes < 0) {
       yield 'Package "${p.name}" has a `likes` property which is not a non-negative integer.';
     }
-    if (p.uploaders != null) {
-      for (final userId in p.uploaders!) {
+    final uploaders = p.uploaders;
+    if (uploaders != null) {
+      for (final userId in uploaders) {
         yield* _checkUserValid(
           userId,
           entityType: 'Package',
