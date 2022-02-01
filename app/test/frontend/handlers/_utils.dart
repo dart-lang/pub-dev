@@ -90,6 +90,7 @@ Future<String> expectHtmlResponse(
   expect(content, contains('</html>'));
   for (Pattern p in present) {
     if (p.allMatches(content).isEmpty) {
+      print(content);
       throw Exception('$p is missing from the content.');
     }
   }

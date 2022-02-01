@@ -73,7 +73,7 @@ class PublicPagesScript {
 
   Future<void> _searchPage() async {
     final content = await _pubClient.getContent('/packages?q=retry');
-    _contains(content, 'search query <code>retry</code>');
+    _contains(content, '/packages/retry');
   }
 
   Future<void> _sitemaps() async {

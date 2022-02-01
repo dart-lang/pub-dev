@@ -457,6 +457,8 @@ void main() {
       'package index page',
       processJobsWithFakeRunners: true,
       fn: () async {
+        registerRequestContext(
+            RequestContext(isExperimental: true, showNewSearchUI: false));
         final searchForm = SearchForm(context: SearchContext.flutter());
         final oxygen = (await scoreCardBackend.getPackageView('oxygen'))!;
         final titanium =
