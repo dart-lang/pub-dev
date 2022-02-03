@@ -5,6 +5,8 @@
 import 'dart:io';
 
 import 'package:gcloud/db.dart';
+import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as p;
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/model_properties.dart';
 import 'package:pub_dev/package/models.dart';
@@ -150,5 +152,24 @@ void main() {
         expect(asset2.textContent, originalAssetContent);
       },
     );
+  });
+
+  group('known backfill', () {
+    test('built_value 5.2.0', () async {
+      final rs = await http.get(Uri.parse(
+          'https://pub.dev/packages/built_value/versions/5.2.0.tar.gz'));
+      expect(rs.statusCode, 200);
+      await withTempDirectory((d) async {
+        final file = File(p.join(d.path, 'archive.tar.gz'));
+        await file.writeAsBytes(rs.bodyBytes);
+        final archive = await summarizePackageArchive(
+          file.path,
+          created: DateTime(2020, 1, 1),
+        );
+        expect(archive.pubspecContent, isNot(contains('>=2-0-0-dev')));
+        expect(archive.pubspecContent, contains('>=2.0.0-dev'));
+        expect(archive.hasIssues, false);
+      });
+    });
   });
 }

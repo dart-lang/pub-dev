@@ -365,5 +365,12 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.1.0"
+  yaml_edit:
+    dependency: "direct main"
+    description:
+      name: yaml_edit
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.1"
 sdks:
   dart: ">=2.16.0-100.0.dev <3.0.0"

@@ -48,8 +48,8 @@ Future<BackfillStat> backfillAllVersionsOfPackage(
   final query = dbService.query<PackageVersion>(ancestorKey: packageKey);
   final stats = <BackfillStat>[];
   final httpClient = http.Client();
-  archiveResolver ??= (p, v) => _parseArchive(httpClient, p, v);
-  await for (PackageVersion pv in query.run()) {
+  await for (final pv in query.run()) {
+    archiveResolver ??= (p, v) => _parseArchive(httpClient, p, v, pv.created!);
     final archive = await archiveResolver(pv.package, pv.version!);
     final stat = await backfillPackageVersion(
       package: pv.package,
@@ -138,7 +138,11 @@ Future<BackfillStat> backfillPackageVersion({
 }
 
 Future<PackageSummary> _parseArchive(
-    http.Client httpClient, String? package, String? version) async {
+  http.Client httpClient,
+  String? package,
+  String? version,
+  DateTime created,
+) async {
   final fn = '$package-$version.tar.gz';
   final uri =
       Uri.parse('https://storage.googleapis.com/pub-packages/packages/$fn');
@@ -149,8 +153,11 @@ Future<PackageSummary> _parseArchive(
   final tempFile = File(p.join(Directory.systemTemp.path, fn));
   await tempFile.writeAsBytes(rs.bodyBytes);
   try {
-    return await summarizePackageArchive(tempFile.path,
-        maxContentLength: maxAssetContentLength);
+    return await summarizePackageArchive(
+      tempFile.path,
+      maxContentLength: maxAssetContentLength,
+      created: created,
+    );
   } finally {
     await tempFile.delete();
   }

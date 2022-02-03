@@ -10,6 +10,7 @@ dependencies:
   pub_semver: ^2.0.0
   pubspec_parse: '>=0.1.4 <2.0.0'
   yaml: ^3.0.0
+  yaml_edit: ^2.0.1
   tar: 0.5.1
   collection: ^1.15.0-nullsafety.4
 

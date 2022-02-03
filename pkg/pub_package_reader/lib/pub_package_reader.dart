@@ -15,6 +15,7 @@ import 'src/archive_surface.dart';
 import 'src/check_platforms.dart';
 import 'src/file_names.dart';
 import 'src/names.dart';
+import 'src/pubspec_content_override.dart';
 import 'src/tar_utils.dart';
 import 'src/yaml_utils.dart';
 
@@ -79,6 +80,12 @@ Future<PackageSummary> summarizePackageArchive(
   /// The maximum number of files in the archive.
   /// TODO: set this lower once we scan the existing archives
   int maxFileCount = 64 * 1024,
+
+  /// The timestamp when the archive was uploaded and accepted.
+  ///
+  /// If specified, some packages may get a transparent rewrite of their
+  /// assets to preserve backwards-compatible behavior on pub.dev.
+  DateTime? created,
 }) async {
   final issues = <ArchiveIssue>[];
 
@@ -119,7 +126,10 @@ Future<PackageSummary> summarizePackageArchive(
     return PackageSummary(issues: issues);
   }
 
-  final pubspecContent = await tar.readContentAsString(pubspecPath);
+  final pubspecContent = overridePubspecContentIfNeeded(
+    content: await tar.readContentAsString(pubspecPath),
+    created: created ?? DateTime.now().toUtc(),
+  );
   // Large pubspec content should be rejected, as either a storage limit will be
   // limiting it, or it will slow down queries and processing for very little
   // reason.
