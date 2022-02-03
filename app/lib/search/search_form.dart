@@ -199,7 +199,12 @@ class SearchForm {
 
   /// Whether any of the advanced options is active.
   bool get hasActiveAdvanced =>
-      includeDiscontinued || includeUnlisted || nullSafe;
+      includeDiscontinued ||
+      includeUnlisted ||
+      nullSafe ||
+      parsedQuery.tagsPredicate.hasTag(PackageTags.isFlutterFavorite) ||
+      parsedQuery.tagsPredicate.hasTag(PackageTags.showHidden) ||
+      parsedQuery.tagsPredicate.hasTag(PackageVersionTags.isNullSafe);
 
   /// Whether any of the non-query settings are non-default
   /// (e.g. clicking on any platforms, SDKs, or advanced filters).
