@@ -31,7 +31,7 @@ class EnvConfig {
   final int frontendCount;
   final int workerCount;
 
-  // Config Path points to configuratio file
+  // Config Path points to configuration file
   final String? configPath;
 
   EnvConfig._(
