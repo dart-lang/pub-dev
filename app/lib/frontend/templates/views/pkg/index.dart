@@ -127,9 +127,9 @@ d.Node _searchFormContainer({
               _tagBasedCheckbox(
                 tagPrefix: 'is',
                 tagValue: 'flutter-favorite',
-                label: 'Flutter favorite',
+                label: 'Flutter Favorite',
                 searchForm: searchForm,
-                title: 'Show only Flutter favorites.',
+                title: 'Show only Flutter Favorite packages.',
               ),
               _tagBasedCheckbox(
                 tagPrefix: 'show',
