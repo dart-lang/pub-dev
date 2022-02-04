@@ -6,7 +6,6 @@ import '../../../dom/dom.dart' as d;
 
 d.Node listingInfoNode({
   required int totalCount,
-  required String? searchQuery,
   required String? ownedBy,
   required d.Node sortControlNode,
   required String? messageMarkdown,
@@ -21,10 +20,6 @@ d.Node listingInfoNode({
           d.span(classes: ['info-identifier'], text: 'Results'),
           d.span(classes: ['count'], text: '$totalCount'),
           d.text(' $packageOrPackages'),
-          if (searchQuery != null && searchQuery.isNotEmpty) ...[
-            d.text(' for search query '),
-            d.code(text: searchQuery),
-          ],
           if (ownedBy != null && ownedBy.isNotEmpty) ...[
             d.text(' owned by '),
             d.code(text: ownedBy),
