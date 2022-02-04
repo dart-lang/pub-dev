@@ -74,7 +74,20 @@ String overridePubspecContentIfNeeded({
   return content;
 }
 
-String? _tryOverrideContent(String content) {
+/// Fixes broken version and version constraints in [pubspecYaml] and returns a new YAML string.
+///
+/// Prior to [pub_semver#63] version numbers and version constraints were accepted with any
+/// character as separate, instead of requiring  `.` (dot). This occurred because the regular expression
+/// in `package:pub_semver` didn't escape dots as `\.`, but just contained `.` (dot, meaning any character).
+///
+/// Thus, package versions published prior to 2022-01-01, maybe contain _version numbers_,
+/// _version constraints_ and _SDK constraints_ that doesn't use `.` (dot) as separator. As removing
+/// these _package versions_ would break existing users, this function will rewrite the version numbers
+/// and version constraints to have a valid format equivalent to how older versions of `pub_semver`
+/// would have interpreted the version number / version constraints.
+///
+/// [pub_semver#63]: https://github.com/dart-lang/pub_semver/pull/63
+String _fixupBrokenVersionAndConstraints(String pubspecYaml) {
   final root = yaml.loadYaml(content);
   if (root is! Map) {
     return null;
