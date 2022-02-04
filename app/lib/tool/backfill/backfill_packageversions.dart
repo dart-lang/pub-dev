@@ -141,7 +141,7 @@ Future<PackageSummary> _parseArchive(
   http.Client httpClient,
   String? package,
   String? version,
-  DateTime created,
+  DateTime published,
 ) async {
   final fn = '$package-$version.tar.gz';
   final uri =
@@ -156,7 +156,7 @@ Future<PackageSummary> _parseArchive(
     return await summarizePackageArchive(
       tempFile.path,
       maxContentLength: maxAssetContentLength,
-      created: created,
+      published: published,
     );
   } finally {
     await tempFile.delete();

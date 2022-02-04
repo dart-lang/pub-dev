@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
@@ -132,7 +133,7 @@ Future<PackageSummary> summarizePackageArchive(
 
   final pubspecContent = overridePubspecContentIfNeeded(
     content: await tar.readContentAsString(pubspecPath),
-    created: created ?? DateTime.now().toUtc(),
+    published: published ?? clock.now().toUtc(),
   );
   // Large pubspec content should be rejected, as either a storage limit will be
   // limiting it, or it will slow down queries and processing for very little

@@ -28,7 +28,7 @@ void main() {
     String tryOverride(String content) {
       return overridePubspecContentIfNeeded(
         content: content,
-        created: DateTime(2021, 1, 1),
+        published: DateTime(2021, 1, 1),
       );
     }
 

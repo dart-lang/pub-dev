@@ -164,7 +164,7 @@ void main() {
         await file.writeAsBytes(rs.bodyBytes);
         final archive = await summarizePackageArchive(
           file.path,
-          created: DateTime(2020, 1, 1),
+          published: DateTime(2020, 1, 1),
         );
         expect(archive.pubspecContent, isNot(contains('>=2-0-0-dev')));
         expect(archive.pubspecContent, contains('>=2.0.0-dev'));

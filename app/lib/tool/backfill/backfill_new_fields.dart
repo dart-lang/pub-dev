@@ -35,8 +35,10 @@ Future<void> backfillNewFields() async {
           await tarballStorage
               .download(pv.package, pv.version!)
               .pipe(File(archivePath).openWrite());
-          final archive =
-              await summarizePackageArchive(archivePath, created: pv.created!);
+          final archive = await summarizePackageArchive(
+            archivePath,
+            published: pv.created!,
+          );
           final stats = await backfillPackageVersion(
             package: pv.package,
             version: pv.version!,

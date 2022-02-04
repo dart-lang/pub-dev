@@ -15,7 +15,8 @@ final _lenientRegExp = RegExp(r'(\d+).(\d+).(\d+)' // Version number.
     r'(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?' // Build.
     );
 
-/// Packages with bad versions:
+/// Packages with bad versions as detected by
+/// https://github.com/dart-lang/pub_semver/pull/63
 const _packagesWithBadVersions = <String>{
   'assets_audio_player_web',
   'bloc_pattern',
@@ -50,12 +51,13 @@ const _packagesWithBadVersions = <String>{
 /// - If the archive was created before 2022-01-01, we may need to update the
 ///   version number, version constraint and SDK constraints, as `pub_semver`
 ///   accepted separator characters other than `.`.
+///   https://github.com/dart-lang/pub_semver/pull/63
 String overridePubspecContentIfNeeded({
   required String content,
-  required DateTime created,
+  required DateTime published,
 }) {
   // quick checks to skip overrides
-  if (created.year >= 2022) {
+  if (published.year >= 2022) {
     return content;
   }
 
