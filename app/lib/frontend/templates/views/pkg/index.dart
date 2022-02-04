@@ -51,7 +51,8 @@ d.Node _searchFormContainer({
       'container',
       'search-form-container',
       'experimental',
-      if (searchForm.hasActiveNonQuery) '-active-on-mobile',
+      if (openSections.isNotEmpty || searchForm.hasActiveNonQuery)
+        '-active-on-mobile',
     ],
     children: [
       d.div(
@@ -116,13 +117,7 @@ d.Node _searchFormContainer({
             sectionTag: 'advanced',
             label: 'Advanced',
             isActive: openSections.contains('advanced') ||
-                searchForm.hasActiveAdvanced ||
-                searchForm.parsedQuery.tagsPredicate
-                    .hasTag(PackageTags.isFlutterFavorite) ||
-                searchForm.parsedQuery.tagsPredicate
-                    .hasTag(PackageTags.showHidden) ||
-                searchForm.parsedQuery.tagsPredicate
-                    .hasTag(PackageVersionTags.isNullSafe),
+                searchForm.hasActiveAdvanced,
             children: [
               _tagBasedCheckbox(
                 tagPrefix: 'is',
