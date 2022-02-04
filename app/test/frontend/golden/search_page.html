@@ -122,257 +122,422 @@
       </div>
     </div>
     <main>
-      <div class="search-controls">
-        <div class="container">
-          <div class="search-controls-primary">
-            <div class="search-controls-sdk search-controls-tabs">
-              <div class="list-filters">
-                <a class="search-link filter" href="/dart/packages?q=foobar&amp;sort=top" title="Packages compatible with the Dart SDK">Dart</a>
-                <a class="search-link filter" href="/flutter/packages?q=foobar&amp;sort=top" title="Packages compatible with the Flutter SDK">Flutter</a>
-                <a class="search-link filter -active" href="/packages?q=foobar&amp;sort=top" title="Packages compatible with the any SDK">
-                  <img class="filter-icon" src="/static/img/checkmark-icon.svg?hash=mocked_hash_296261337" alt="icon with a checkmark - indicating active status"/>
-                  Any
+      <div class="container search-form-container experimental">
+        <div class="search-form">
+          <div class="search-form-section foldable -active">
+            <h3 class="search-form-section-header foldable-button">
+              <span class="search-form-section-header-label">Platforms</span>
+              <img class="foldable-icon" src="/static/img/search-form-foldable-icon.svg?hash=mocked_hash_663371761" alt="fold toggle icon (up/down arrow)"/>
+            </h3>
+            <div class="foldable-content">
+              <div class="search-form-linked-checkbox" title="Show only packages that support the Android platform.">
+                <div class="mdc-form-field">
+                  <div class="mdc-checkbox">
+                    <input id="search-form-checkbox-platform-android" class="mdc-checkbox__native-control" type="checkbox"/>
+                    <div class="mdc-checkbox__background">
+                      <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                        <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                      </svg>
+                      <div class="mdc-checkbox__mixedmark"></div>
+                    </div>
+                    <div class="mdc-checkbox__ripple"></div>
+                  </div>
+                  <label for="search-form-checkbox-platform-android">
+                    <a href="/packages?q=platform%3Aandroid+foobar&amp;sort=top" data-action="filter-platform-android" data-tag="platform:android">Android</a>
+                  </label>
+                </div>
+              </div>
+              <div class="search-form-linked-checkbox" title="Show only packages that support the iOS platform.">
+                <div class="mdc-form-field">
+                  <div class="mdc-checkbox">
+                    <input id="search-form-checkbox-platform-ios" class="mdc-checkbox__native-control" type="checkbox"/>
+                    <div class="mdc-checkbox__background">
+                      <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                        <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                      </svg>
+                      <div class="mdc-checkbox__mixedmark"></div>
+                    </div>
+                    <div class="mdc-checkbox__ripple"></div>
+                  </div>
+                  <label for="search-form-checkbox-platform-ios">
+                    <a href="/packages?q=platform%3Aios+foobar&amp;sort=top" data-action="filter-platform-ios" data-tag="platform:ios">iOS</a>
+                  </label>
+                </div>
+              </div>
+              <div class="search-form-linked-checkbox" title="Show only packages that support the Linux platform.">
+                <div class="mdc-form-field">
+                  <div class="mdc-checkbox">
+                    <input id="search-form-checkbox-platform-linux" class="mdc-checkbox__native-control" type="checkbox"/>
+                    <div class="mdc-checkbox__background">
+                      <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                        <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                      </svg>
+                      <div class="mdc-checkbox__mixedmark"></div>
+                    </div>
+                    <div class="mdc-checkbox__ripple"></div>
+                  </div>
+                  <label for="search-form-checkbox-platform-linux">
+                    <a href="/packages?q=platform%3Alinux+foobar&amp;sort=top" data-action="filter-platform-linux" data-tag="platform:linux">Linux</a>
+                  </label>
+                </div>
+              </div>
+              <div class="search-form-linked-checkbox" title="Show only packages that support the macOS platform.">
+                <div class="mdc-form-field">
+                  <div class="mdc-checkbox">
+                    <input id="search-form-checkbox-platform-macos" class="mdc-checkbox__native-control" type="checkbox"/>
+                    <div class="mdc-checkbox__background">
+                      <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                        <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                      </svg>
+                      <div class="mdc-checkbox__mixedmark"></div>
+                    </div>
+                    <div class="mdc-checkbox__ripple"></div>
+                  </div>
+                  <label for="search-form-checkbox-platform-macos">
+                    <a href="/packages?q=platform%3Amacos+foobar&amp;sort=top" data-action="filter-platform-macos" data-tag="platform:macos">macOS</a>
+                  </label>
+                </div>
+              </div>
+              <div class="search-form-linked-checkbox" title="Show only packages that support the Web platform.">
+                <div class="mdc-form-field">
+                  <div class="mdc-checkbox">
+                    <input id="search-form-checkbox-platform-web" class="mdc-checkbox__native-control" type="checkbox"/>
+                    <div class="mdc-checkbox__background">
+                      <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                        <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                      </svg>
+                      <div class="mdc-checkbox__mixedmark"></div>
+                    </div>
+                    <div class="mdc-checkbox__ripple"></div>
+                  </div>
+                  <label for="search-form-checkbox-platform-web">
+                    <a href="/packages?q=platform%3Aweb+foobar&amp;sort=top" data-action="filter-platform-web" data-tag="platform:web">Web</a>
+                  </label>
+                </div>
+              </div>
+              <div class="search-form-linked-checkbox" title="Show only packages that support the Windows platform.">
+                <div class="mdc-form-field">
+                  <div class="mdc-checkbox">
+                    <input id="search-form-checkbox-platform-windows" class="mdc-checkbox__native-control" type="checkbox"/>
+                    <div class="mdc-checkbox__background">
+                      <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                        <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                      </svg>
+                      <div class="mdc-checkbox__mixedmark"></div>
+                    </div>
+                    <div class="mdc-checkbox__ripple"></div>
+                  </div>
+                  <label for="search-form-checkbox-platform-windows">
+                    <a href="/packages?q=platform%3Awindows+foobar&amp;sort=top" data-action="filter-platform-windows" data-tag="platform:windows">Windows</a>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="search-form-section foldable" data-section-tag="sdks">
+            <h3 class="search-form-section-header foldable-button">
+              <span class="search-form-section-header-label">SDKs</span>
+              <img class="foldable-icon" src="/static/img/search-form-foldable-icon.svg?hash=mocked_hash_663371761" alt="fold toggle icon (up/down arrow)"/>
+            </h3>
+            <div class="foldable-content">
+              <div class="search-form-linked-checkbox" title="Show only packages that support the Dart SDK.">
+                <div class="mdc-form-field">
+                  <div class="mdc-checkbox">
+                    <input id="search-form-checkbox-sdk-dart" class="mdc-checkbox__native-control" type="checkbox"/>
+                    <div class="mdc-checkbox__background">
+                      <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                        <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                      </svg>
+                      <div class="mdc-checkbox__mixedmark"></div>
+                    </div>
+                    <div class="mdc-checkbox__ripple"></div>
+                  </div>
+                  <label for="search-form-checkbox-sdk-dart">
+                    <a href="/packages?q=sdk%3Adart+foobar&amp;sort=top" data-action="filter-sdk-dart" data-tag="sdk:dart">Dart</a>
+                  </label>
+                </div>
+              </div>
+              <div class="search-form-linked-checkbox" title="Show only packages that support the Flutter SDK.">
+                <div class="mdc-form-field">
+                  <div class="mdc-checkbox">
+                    <input id="search-form-checkbox-sdk-flutter" class="mdc-checkbox__native-control" type="checkbox"/>
+                    <div class="mdc-checkbox__background">
+                      <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                        <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                      </svg>
+                      <div class="mdc-checkbox__mixedmark"></div>
+                    </div>
+                    <div class="mdc-checkbox__ripple"></div>
+                  </div>
+                  <label for="search-form-checkbox-sdk-flutter">
+                    <a href="/packages?q=sdk%3Aflutter+foobar&amp;sort=top" data-action="filter-sdk-flutter" data-tag="sdk:flutter">Flutter</a>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="search-form-section foldable" data-section-tag="advanced">
+            <h3 class="search-form-section-header foldable-button">
+              <span class="search-form-section-header-label">Advanced</span>
+              <img class="foldable-icon" src="/static/img/search-form-foldable-icon.svg?hash=mocked_hash_663371761" alt="fold toggle icon (up/down arrow)"/>
+            </h3>
+            <div class="foldable-content">
+              <div class="search-form-linked-checkbox" title="Show only Flutter Favorite packages.">
+                <div class="mdc-form-field">
+                  <div class="mdc-checkbox">
+                    <input id="search-form-checkbox-is-flutter-favorite" class="mdc-checkbox__native-control" type="checkbox"/>
+                    <div class="mdc-checkbox__background">
+                      <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                        <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                      </svg>
+                      <div class="mdc-checkbox__mixedmark"></div>
+                    </div>
+                    <div class="mdc-checkbox__ripple"></div>
+                  </div>
+                  <label for="search-form-checkbox-is-flutter-favorite">
+                    <a href="/packages?q=is%3Aflutter-favorite+foobar&amp;sort=top" data-action="filter-is-flutter-favorite" data-tag="is:flutter-favorite">Flutter Favorite</a>
+                  </label>
+                </div>
+              </div>
+              <div class="search-form-linked-checkbox" title="Show discontinued, unlisted and legacy Dart 1.x packages.">
+                <div class="mdc-form-field">
+                  <div class="mdc-checkbox">
+                    <input id="search-form-checkbox-show-hidden" class="mdc-checkbox__native-control" type="checkbox"/>
+                    <div class="mdc-checkbox__background">
+                      <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                        <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                      </svg>
+                      <div class="mdc-checkbox__mixedmark"></div>
+                    </div>
+                    <div class="mdc-checkbox__ripple"></div>
+                  </div>
+                  <label for="search-form-checkbox-show-hidden">
+                    <a href="/packages?q=show%3Ahidden+foobar&amp;sort=top" data-action="filter-show-hidden" data-tag="show:hidden">Include hidden</a>
+                  </label>
+                </div>
+              </div>
+              <div class="search-form-linked-checkbox" title="Show only null-safe packages.">
+                <div class="mdc-form-field">
+                  <div class="mdc-checkbox">
+                    <input id="search-form-checkbox-is-null-safe" class="mdc-checkbox__native-control" type="checkbox"/>
+                    <div class="mdc-checkbox__background">
+                      <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                        <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                      </svg>
+                      <div class="mdc-checkbox__mixedmark"></div>
+                    </div>
+                    <div class="mdc-checkbox__ripple"></div>
+                  </div>
+                  <label for="search-form-checkbox-is-null-safe">
+                    <a href="/packages?q=is%3Anull-safe+foobar&amp;sort=top" data-action="filter-is-null-safe" data-tag="is:null-safe">Supports null safety</a>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="search-results">
+          <div class="listing-info">
+            <div class="listing-info-count">
+              <span class="info-identifier">Results</span>
+              <span class="count">2</span>
+              packages
+            </div>
+            <div class="sort-control hoverable">
+              <div class="info-identifier" title="Packages are sorted by the overall score.">
+                Sort by
+                <span class="sort-control-selected">overall score</span>
+              </div>
+              <div class="sort-control-popup">
+                <div class="sort-control-option" data-value="search_relevance">search relevance</div>
+                <div class="sort-control-option selected" data-value="top">overall score</div>
+                <div class="sort-control-option" data-value="updated">recently updated</div>
+                <div class="sort-control-option" data-value="created">newest package</div>
+                <div class="sort-control-option" data-value="like">most likes</div>
+                <div class="sort-control-option" data-value="points">most pub points</div>
+                <div class="sort-control-option" data-value="popularity">popularity</div>
+              </div>
+            </div>
+          </div>
+          <div class="packages">
+            <div class="packages-item">
+              <div class="packages-header">
+                <h3 class="packages-title">
+                  <a href="/packages/oxygen">oxygen</a>
+                </h3>
+                <div class="packages-recent">
+                  <img class="packages-recent-icon" src="/static/img/schedule-icon.svg?hash=mocked_hash_164576935" alt="icon indicating recent time" title="new package"/>
+                  Added
+                  <b>%%x-ago%%</b>
+                </div>
+                <a class="packages-scores" href="/packages/oxygen/score">
+                  <div class="packages-score packages-score-like">
+                    <div class="packages-score-value -has-value">
+                      <span class="packages-score-value-number">0</span>
+                      <span class="packages-score-value-sign"></span>
+                    </div>
+                    <div class="packages-score-label">likes</div>
+                  </div>
+                  <div class="packages-score packages-score-health">
+                    <div class="packages-score-value -has-value">
+                      <span class="packages-score-value-number">43</span>
+                      <span class="packages-score-value-sign"></span>
+                    </div>
+                    <div class="packages-score-label">pub points</div>
+                  </div>
+                  <div class="packages-score packages-score-popularity">
+                    <div class="packages-score-value -has-value">
+                      <span class="packages-score-value-number">3</span>
+                      <span class="packages-score-value-sign">%</span>
+                    </div>
+                    <div class="packages-score-label">popularity</div>
+                  </div>
                 </a>
               </div>
+              <p class="packages-description">oxygen is awesome</p>
+              <p class="packages-metadata">
+                <span class="packages-metadata-block">
+                  v
+                  <a href="/packages/oxygen">1.2.0</a>
+                  (
+                  <span class="-x-ago" title="%%oxygen-created-date%%">%%x-ago%%</span>
+                  ) /
+                  <a href="/packages/oxygen/versions/2.0.0-dev">2.0.0-dev</a>
+                  (
+                  <span class="-x-ago" title="%%oxygen-created-date%%">%%x-ago%%</span>
+                  )
+                </span>
+              </p>
+              <div>
+                <div class="-pub-tag-badge">
+                  <span class="tag-badge-main">SDK</span>
+                  <a class="tag-badge-sub" href="/packages?q=sdk%3Adart" title="Packages compatible with Dart SDK">Dart</a>
+                  <a class="tag-badge-sub" href="/packages?q=sdk%3Aflutter" title="Packages compatible with Flutter SDK">Flutter</a>
+                </div>
+                <div class="-pub-tag-badge">
+                  <span class="tag-badge-main">Platform</span>
+                  <a class="tag-badge-sub" href="/packages?q=platform%3Aandroid" title="Packages compatible with Android platform">Android</a>
+                  <a class="tag-badge-sub" href="/packages?q=platform%3Aios" title="Packages compatible with iOS platform">iOS</a>
+                  <a class="tag-badge-sub" href="/packages?q=platform%3Amacos" title="Packages compatible with macOS platform">macOS</a>
+                  <a class="tag-badge-sub" href="/packages?q=platform%3Aweb" title="Packages compatible with Web platform">web</a>
+                  <a class="tag-badge-sub" href="/packages?q=platform%3Awindows" title="Packages compatible with Windows platform">Windows</a>
+                </div>
+              </div>
+              <div class="packages-api">
+                <div class="packages-api-label">API results:</div>
+                <details class="packages-api-details packages-api-links">
+                  <summary>
+                    <a href="/documentation/oxygen/latest/some/some-library.html">some/some-library.html</a>
+                  </summary>
+                  <div class="-rest">
+                    <a href="/documentation/oxygen/latest/some/x-class.html">Class X</a>
+                  </div>
+                </details>
+              </div>
             </div>
-            <div class="search-controls-sdk search-controls-buttons">
-              <span class="search-controls-label">SDK</span>
-              <div class="list-filters">
-                <a class="search-link filter" href="/dart/packages?q=foobar&amp;sort=top" title="Packages compatible with the Dart SDK">Dart</a>
-                <a class="search-link filter" href="/flutter/packages?q=foobar&amp;sort=top" title="Packages compatible with the Flutter SDK">Flutter</a>
-                <a class="search-link filter -active" href="/packages?q=foobar&amp;sort=top" title="Packages compatible with the any SDK">
-                  <img class="filter-icon" src="/static/img/checkmark-icon.svg?hash=mocked_hash_296261337" alt="icon with a checkmark - indicating active status"/>
-                  Any
+            <div class="packages-item">
+              <div class="packages-header">
+                <h3 class="packages-title">
+                  <a href="/packages/flutter_titanium">flutter_titanium</a>
+                </h3>
+                <div class="packages-recent">
+                  <img class="packages-recent-icon" src="/static/img/schedule-icon.svg?hash=mocked_hash_164576935" alt="icon indicating recent time" title="new package"/>
+                  Added
+                  <b>%%x-ago%%</b>
+                </div>
+                <a class="packages-scores" href="/packages/flutter_titanium/score">
+                  <div class="packages-score packages-score-like">
+                    <div class="packages-score-value -has-value">
+                      <span class="packages-score-value-number">0</span>
+                      <span class="packages-score-value-sign"></span>
+                    </div>
+                    <div class="packages-score-label">likes</div>
+                  </div>
+                  <div class="packages-score packages-score-health">
+                    <div class="packages-score-value -has-value">
+                      <span class="packages-score-value-number">24</span>
+                      <span class="packages-score-value-sign"></span>
+                    </div>
+                    <div class="packages-score-label">pub points</div>
+                  </div>
+                  <div class="packages-score packages-score-popularity">
+                    <div class="packages-score-value -has-value">
+                      <span class="packages-score-value-number">43</span>
+                      <span class="packages-score-value-sign">%</span>
+                    </div>
+                    <div class="packages-score-label">popularity</div>
+                  </div>
                 </a>
               </div>
-            </div>
-            <div class="search-filters-btn search-filters-btn-wrapper search-controls-more" data-ga-click-event="toggle-advanced-search">
-              Advanced
-              <img class="search-controls-more-carot" src="/static/img/carot-up.svg?hash=mocked_hash_771440143" alt="toggle button for advanced search (carot up)"/>
-            </div>
-          </div>
-        </div>
-        <div class="search-controls-advanced">
-          <div class="container">
-            <div class="search-controls-advanced-block">
-              <div class="search-controls-checkbox">
-                <input id="-search-unlisted-checkbox" type="checkbox" name="unlisted"/>
-                <label for="-search-unlisted-checkbox">Include unlisted packages</label>
-              </div>
-              <div class="search-controls-checkbox">
-                <input id="-search-discontinued-checkbox" type="checkbox" name="discontinued"/>
-                <label for="-search-discontinued-checkbox">Include discontinued packages</label>
-              </div>
-              <div class="search-controls-checkbox">
-                <input id="-search-null-safe-checkbox" type="checkbox" name="null-safe"/>
-                <label for="-search-null-safe-checkbox">Supports null safety</label>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="container">
-        <div class="listing-info">
-          <div class="listing-info-count">
-            <span class="info-identifier">Results</span>
-            <span class="count">2</span>
-            packages for search query
-            <code>foobar</code>
-          </div>
-          <div class="sort-control hoverable">
-            <div class="info-identifier" title="Packages are sorted by the overall score.">
-              Sort by
-              <span class="sort-control-selected">overall score</span>
-            </div>
-            <div class="sort-control-popup">
-              <div class="sort-control-option" data-value="search_relevance">search relevance</div>
-              <div class="sort-control-option selected" data-value="top">overall score</div>
-              <div class="sort-control-option" data-value="updated">recently updated</div>
-              <div class="sort-control-option" data-value="created">newest package</div>
-              <div class="sort-control-option" data-value="like">most likes</div>
-              <div class="sort-control-option" data-value="points">most pub points</div>
-              <div class="sort-control-option" data-value="popularity">popularity</div>
-            </div>
-          </div>
-        </div>
-        <div class="packages">
-          <div class="packages-item">
-            <div class="packages-header">
-              <h3 class="packages-title">
-                <a href="/packages/oxygen">oxygen</a>
-              </h3>
-              <div class="packages-recent">
-                <img class="packages-recent-icon" src="/static/img/schedule-icon.svg?hash=mocked_hash_164576935" alt="icon indicating recent time" title="new package"/>
-                Added
-                <b>%%x-ago%%</b>
-              </div>
-              <a class="packages-scores" href="/packages/oxygen/score">
-                <div class="packages-score packages-score-like">
-                  <div class="packages-score-value -has-value">
-                    <span class="packages-score-value-number">0</span>
-                    <span class="packages-score-value-sign"></span>
-                  </div>
-                  <div class="packages-score-label">likes</div>
+              <p class="packages-description">flutter_titanium is awesome</p>
+              <p class="packages-metadata">
+                <span class="packages-metadata-block">
+                  v
+                  <a href="/packages/flutter_titanium">1.10.0</a>
+                  (
+                  <span class="-x-ago" title="%%oxygen-created-date%%">%%x-ago%%</span>
+                  )
+                </span>
+              </p>
+              <div>
+                <div class="-pub-tag-badge">
+                  <span class="tag-badge-main">SDK</span>
+                  <a class="tag-badge-sub" href="/packages?q=sdk%3Adart" title="Packages compatible with Dart SDK">Dart</a>
+                  <a class="tag-badge-sub" href="/packages?q=sdk%3Aflutter" title="Packages compatible with Flutter SDK">Flutter</a>
                 </div>
-                <div class="packages-score packages-score-health">
-                  <div class="packages-score-value -has-value">
-                    <span class="packages-score-value-number">43</span>
-                    <span class="packages-score-value-sign"></span>
-                  </div>
-                  <div class="packages-score-label">pub points</div>
+                <div class="-pub-tag-badge">
+                  <span class="tag-badge-main">Platform</span>
+                  <a class="tag-badge-sub" href="/packages?q=platform%3Aandroid" title="Packages compatible with Android platform">Android</a>
+                  <a class="tag-badge-sub" href="/packages?q=platform%3Amacos" title="Packages compatible with macOS platform">macOS</a>
                 </div>
-                <div class="packages-score packages-score-popularity">
-                  <div class="packages-score-value -has-value">
-                    <span class="packages-score-value-number">3</span>
-                    <span class="packages-score-value-sign">%</span>
-                  </div>
-                  <div class="packages-score-label">popularity</div>
-                </div>
+              </div>
+            </div>
+          </div>
+          <ul class="pagination">
+            <li class="-disabled">
+              <a rel="prev">
+                <span>«</span>
               </a>
-            </div>
-            <p class="packages-description">oxygen is awesome</p>
-            <p class="packages-metadata">
-              <span class="packages-metadata-block">
-                v
-                <a href="/packages/oxygen">1.2.0</a>
-                (
-                <span class="-x-ago" title="%%oxygen-created-date%%">%%x-ago%%</span>
-                ) /
-                <a href="/packages/oxygen/versions/2.0.0-dev">2.0.0-dev</a>
-                (
-                <span class="-x-ago" title="%%oxygen-created-date%%">%%x-ago%%</span>
-                )
-              </span>
-            </p>
-            <div>
-              <div class="-pub-tag-badge">
-                <a class="tag-badge-main" href="/dart/packages" title="Packages compatible with Dart SDK">Dart</a>
-                <a class="tag-badge-sub" href="/dart/packages?runtime=native" title="Packages compatible with Dart running on a native platform (JIT/AOT)">native</a>
-                <a class="tag-badge-sub" href="/dart/packages?runtime=js" title="Packages compatible with Dart compiled for the web">js</a>
-              </div>
-              <div class="-pub-tag-badge">
-                <a class="tag-badge-main" href="/flutter/packages" title="Packages compatible with Flutter SDK">Flutter</a>
-                <a class="tag-badge-sub" href="/flutter/packages?platform=android" title="Packages compatible with Flutter on the Android platform">Android</a>
-                <a class="tag-badge-sub" href="/flutter/packages?platform=ios" title="Packages compatible with Flutter on the iOS platform">iOS</a>
-                <a class="tag-badge-sub" href="/flutter/packages?platform=macos" title="Packages compatible with Flutter on the macOS platform">macOS</a>
-                <a class="tag-badge-sub" href="/flutter/packages?platform=web" title="Packages compatible with Flutter on the Web platform">web</a>
-                <a class="tag-badge-sub" href="/flutter/packages?platform=windows" title="Packages compatible with Flutter on the Windows platform">Windows</a>
-              </div>
-            </div>
-            <div class="packages-api">
-              <div class="packages-api-label">API results:</div>
-              <details class="packages-api-details packages-api-links">
-                <summary>
-                  <a href="/documentation/oxygen/latest/some/some-library.html">some/some-library.html</a>
-                </summary>
-                <div class="-rest">
-                  <a href="/documentation/oxygen/latest/some/x-class.html">Class X</a>
-                </div>
-              </details>
-            </div>
-          </div>
-          <div class="packages-item">
-            <div class="packages-header">
-              <h3 class="packages-title">
-                <a href="/packages/flutter_titanium">flutter_titanium</a>
-              </h3>
-              <div class="packages-recent">
-                <img class="packages-recent-icon" src="/static/img/schedule-icon.svg?hash=mocked_hash_164576935" alt="icon indicating recent time" title="new package"/>
-                Added
-                <b>%%x-ago%%</b>
-              </div>
-              <a class="packages-scores" href="/packages/flutter_titanium/score">
-                <div class="packages-score packages-score-like">
-                  <div class="packages-score-value -has-value">
-                    <span class="packages-score-value-number">0</span>
-                    <span class="packages-score-value-sign"></span>
-                  </div>
-                  <div class="packages-score-label">likes</div>
-                </div>
-                <div class="packages-score packages-score-health">
-                  <div class="packages-score-value -has-value">
-                    <span class="packages-score-value-number">24</span>
-                    <span class="packages-score-value-sign"></span>
-                  </div>
-                  <div class="packages-score-label">pub points</div>
-                </div>
-                <div class="packages-score packages-score-popularity">
-                  <div class="packages-score-value -has-value">
-                    <span class="packages-score-value-number">43</span>
-                    <span class="packages-score-value-sign">%</span>
-                  </div>
-                  <div class="packages-score-label">popularity</div>
-                </div>
+            </li>
+            <li class="-active">
+              <a>
+                <span>1</span>
               </a>
-            </div>
-            <p class="packages-description">flutter_titanium is awesome</p>
-            <p class="packages-metadata">
-              <span class="packages-metadata-block">
-                v
-                <a href="/packages/flutter_titanium">1.10.0</a>
-                (
-                <span class="-x-ago" title="%%oxygen-created-date%%">%%x-ago%%</span>
-                )
-              </span>
-            </p>
-            <div>
-              <div class="-pub-tag-badge">
-                <a class="tag-badge-main" href="/dart/packages" title="Packages compatible with Dart SDK">Dart</a>
-                <a class="tag-badge-sub" href="/dart/packages?runtime=native" title="Packages compatible with Dart running on a native platform (JIT/AOT)">native</a>
-                <a class="tag-badge-sub" href="/dart/packages?runtime=js" title="Packages compatible with Dart compiled for the web">js</a>
-              </div>
-              <div class="-pub-tag-badge">
-                <a class="tag-badge-main" href="/flutter/packages" title="Packages compatible with Flutter SDK">Flutter</a>
-                <a class="tag-badge-sub" href="/flutter/packages?platform=android" title="Packages compatible with Flutter on the Android platform">Android</a>
-                <a class="tag-badge-sub" href="/flutter/packages?platform=macos" title="Packages compatible with Flutter on the macOS platform">macOS</a>
-              </div>
-            </div>
-          </div>
+            </li>
+            <li>
+              <a href="/packages?q=foobar&amp;sort=top&amp;page=2" rel="next">
+                <span>2</span>
+              </a>
+            </li>
+            <li>
+              <a href="/packages?q=foobar&amp;sort=top&amp;page=3">
+                <span>3</span>
+              </a>
+            </li>
+            <li>
+              <a href="/packages?q=foobar&amp;sort=top&amp;page=4">
+                <span>4</span>
+              </a>
+            </li>
+            <li>
+              <a href="/packages?q=foobar&amp;sort=top&amp;page=5">
+                <span>5</span>
+              </a>
+            </li>
+            <li>
+              <a href="/packages?q=foobar&amp;sort=top&amp;page=2" rel="next">
+                <span>»</span>
+              </a>
+            </li>
+          </ul>
+          <p>
+            Check our help page for details on
+            <a href="/help/search#query-expressions">search expressions</a>
+            and
+            <a href="/help/search#ranking">result ranking</a>
+            .
+          </p>
         </div>
-        <ul class="pagination">
-          <li class="-disabled">
-            <a rel="prev">
-              <span>«</span>
-            </a>
-          </li>
-          <li class="-active">
-            <a>
-              <span>1</span>
-            </a>
-          </li>
-          <li>
-            <a href="/packages?q=foobar&amp;sort=top&amp;page=2" rel="next">
-              <span>2</span>
-            </a>
-          </li>
-          <li>
-            <a href="/packages?q=foobar&amp;sort=top&amp;page=3">
-              <span>3</span>
-            </a>
-          </li>
-          <li>
-            <a href="/packages?q=foobar&amp;sort=top&amp;page=4">
-              <span>4</span>
-            </a>
-          </li>
-          <li>
-            <a href="/packages?q=foobar&amp;sort=top&amp;page=5">
-              <span>5</span>
-            </a>
-          </li>
-          <li>
-            <a href="/packages?q=foobar&amp;sort=top&amp;page=2" rel="next">
-              <span>»</span>
-            </a>
-          </li>
-        </ul>
-        <p>
-          Check our help page for details on
-          <a href="/help/search#query-expressions">search expressions</a>
-          and
-          <a href="/help/search#ranking">result ranking</a>
-          .
-        </p>
       </div>
     </main>
     <footer class="site-footer">

@@ -6,9 +6,7 @@ import '../../../../search/search_form.dart';
 import '../../../../shared/tags.dart';
 import '../../../dom/dom.dart' as d;
 import '../../../dom/material.dart' as material;
-import '../../../request_context.dart';
 import '../../../static_files.dart';
-import '../../layout.dart';
 
 /// Renders the package listing.
 d.Node packageListingNode({
@@ -27,18 +25,11 @@ d.Node packageListingNode({
         '[search expressions](/help/search#query-expressions) and '
         '[result ranking](/help/search#ranking).'),
   ]);
-  if (requestContext.showNewSearchUI) {
-    return _searchFormContainer(
-      searchForm: searchForm,
-      innerContent: innerContent,
-      openSections: openSections ?? const <String>{},
-    );
-  } else {
-    return d.fragment([
-      _searchControls(searchForm, subSdkButtons),
-      d.div(classes: ['container'], child: innerContent),
-    ]);
-  }
+  return _searchFormContainer(
+    searchForm: searchForm,
+    innerContent: innerContent,
+    openSections: openSections ?? const <String>{},
+  );
 }
 
 d.Node _searchFormContainer({
@@ -269,131 +260,4 @@ d.Node _filterSection({
       ),
     ],
   );
-}
-
-d.Node _searchControls(SearchForm searchForm, d.Node? subSdkButtons) {
-  final includeDiscontinued = searchForm.includeDiscontinued;
-  final includeUnlisted = searchForm.includeUnlisted;
-  final nullSafe = searchForm.nullSafe;
-  return d.div(
-    classes: [
-      'search-controls',
-      if (searchForm.hasActiveAdvanced) '-active',
-    ],
-    children: [
-      d.div(
-        classes: ['container'],
-        child: d.div(
-          classes: ['search-controls-primary'],
-          children: [
-            d.div(
-              classes: ['search-controls-sdk', 'search-controls-tabs'],
-              child: sdkTabsNode(searchForm: searchForm),
-            ),
-            d.div(
-              classes: ['search-controls-sdk', 'search-controls-buttons'],
-              children: [
-                d.span(classes: ['search-controls-label'], text: 'SDK'),
-                sdkTabsNode(searchForm: searchForm),
-              ],
-            ),
-            d.div(
-              classes: [
-                'search-filters-btn',
-                'search-filters-btn-wrapper',
-                'search-controls-more',
-              ],
-              attributes: {'data-ga-click-event': 'toggle-advanced-search'},
-              children: [
-                d.text('Advanced '),
-                d.img(
-                  classes: ['search-controls-more-carot'],
-                  image: d.Image(
-                    src: staticUrls.getAssetUrl('/static/img/carot-up.svg'),
-                    alt: 'toggle button for advanced search (carot up)',
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-      if (subSdkButtons != null)
-        d.div(
-          classes: ['search-controls-subsdk'],
-          child: d.div(
-            classes: ['container'],
-            children: [
-              d.span(
-                classes: ['search-controls-label'],
-                text: _subSdkLabel(searchForm),
-              ),
-              d.div(
-                classes: ['search-controls-buttons'],
-                child: subSdkButtons,
-              ),
-            ],
-          ),
-        ),
-      d.div(
-        classes: ['search-controls-advanced'],
-        child: d.div(
-          classes: ['container'],
-          child: d.div(
-            classes: ['search-controls-advanced-block'],
-            children: [
-              _checkbox(
-                id: '-search-unlisted-checkbox',
-                label: 'Include unlisted packages',
-                name: 'unlisted',
-                checked: includeUnlisted,
-              ),
-              _checkbox(
-                id: '-search-discontinued-checkbox',
-                label: 'Include discontinued packages',
-                name: 'discontinued',
-                checked: includeDiscontinued,
-              ),
-              _checkbox(
-                id: '-search-null-safe-checkbox',
-                label: 'Supports null safety',
-                name: 'null-safe',
-                checked: nullSafe,
-              ),
-            ],
-          ),
-        ),
-      ),
-    ],
-  );
-}
-
-d.Node _checkbox({
-  required String id,
-  required String label,
-  required String name,
-  required bool checked,
-}) {
-  return d.div(
-    classes: ['search-controls-checkbox'],
-    children: [
-      d.input(
-        type: 'checkbox',
-        id: id,
-        name: name,
-        attributes: checked ? {'checked': 'checked'} : null,
-      ),
-      d.label(attributes: {'for': id}, text: label),
-    ],
-  );
-}
-
-String? _subSdkLabel(SearchForm sq) {
-  if (sq.context.sdk == SdkTagValue.dart) {
-    return 'Runtime';
-  } else if (sq.context.sdk == SdkTagValue.flutter) {
-    return 'Platform';
-  } else {
-    return null;
-  }
 }

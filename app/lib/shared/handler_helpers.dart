@@ -142,7 +142,6 @@ shelf.Handler _requestContextWrapper(shelf.Handler handler) {
       isExperimental: isExperimental,
       blockRobots: !enableRobots,
       uiCacheEnabled: uiCacheEnabled,
-      showNewSearchUI: true,
     ));
     return await handler(request);
   };

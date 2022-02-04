@@ -457,34 +457,7 @@ void main() {
       'package index page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        registerRequestContext(
-            RequestContext(isExperimental: true, showNewSearchUI: false));
-        final searchForm = SearchForm(context: SearchContext.flutter());
-        final oxygen = (await scoreCardBackend.getPackageView('oxygen'))!;
-        final titanium =
-            (await scoreCardBackend.getPackageView('flutter_titanium'))!;
-        final String html = renderPkgIndexPage(
-          SearchResultPage(
-            searchForm,
-            2,
-            packageHits: [oxygen, titanium],
-          ),
-          PageLinks.empty(),
-          searchForm: searchForm,
-        );
-        expectGoldenFile(html, 'pkg_index_page.html', timestamps: {
-          'oxygen-created': oxygen.created,
-          'titanium-created': titanium.created,
-        });
-      },
-    );
-
-    testWithProfile(
-      'experimental package index page',
-      processJobsWithFakeRunners: true,
-      fn: () async {
-        registerRequestContext(
-            RequestContext(isExperimental: true, showNewSearchUI: true));
+        registerRequestContext(RequestContext(isExperimental: true));
         final searchForm = SearchForm(
           query: 'sdk:dart',
           includeUnlisted: true,
@@ -512,7 +485,7 @@ void main() {
           PageLinks.empty(),
           searchForm: searchForm,
         );
-        expectGoldenFile(html, 'pkg_index_page_experimental.html', timestamps: {
+        expectGoldenFile(html, 'pkg_index_page.html', timestamps: {
           'oxygen-created': oxygen.created,
           'titanium-created': titanium.created,
         });

@@ -61,7 +61,6 @@ void main() {
       // listing page
       await headlessEnv.withPage(
         fn: (page) async {
-          await page.gotoOrigin('/experimental?enabled=1');
           await page.gotoOrigin('/packages');
 
           // check package list
@@ -208,7 +207,6 @@ void main() {
       // back button working with checkboxes
       await headlessEnv.withPage(
         fn: (page) async {
-          await page.gotoOrigin('/experimental?enabled=1');
           await page.gotoOrigin('/packages');
 
           await page.focus('input[name="q"]');
@@ -233,7 +231,6 @@ void main() {
       // back button updating the URL and the input text
       await headlessEnv.withPage(
         fn: (page) async {
-          await page.gotoOrigin('/experimental?enabled=1');
           await page.gotoOrigin('/packages');
 
           await page.focus('input[name="q"]');
