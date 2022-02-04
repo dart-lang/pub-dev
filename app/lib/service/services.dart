@@ -10,9 +10,6 @@ import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
-import 'package:pub_dev/fake/server/fake_storage_server.dart';
-import 'package:pub_dev/package/screenshots/backend.dart';
-import 'package:pub_dev/service/youtube/backend.dart';
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
@@ -24,10 +21,13 @@ import '../fake/backend/fake_auth_provider.dart';
 import '../fake/backend/fake_domain_verifier.dart';
 import '../fake/backend/fake_email_sender.dart';
 import '../fake/backend/fake_upload_signer_service.dart';
+import '../fake/server/fake_client_context.dart';
+import '../fake/server/fake_storage_server.dart';
 import '../frontend/email_sender.dart';
 import '../job/backend.dart';
 import '../package/backend.dart';
 import '../package/name_tracker.dart';
+import '../package/screenshots/backend.dart';
 import '../package/search_adapter.dart';
 import '../package/upload_signer_service.dart';
 import '../publisher/backend.dart';
@@ -39,6 +39,7 @@ import '../search/flutter_sdk_mem_index.dart';
 import '../search/mem_index.dart';
 import '../search/search_client.dart';
 import '../search/updater.dart';
+import '../service/youtube/backend.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
 import '../shared/env_config.dart';
@@ -119,6 +120,7 @@ Future<void> withFakeServices({
   datastore ??= MemDatastore();
   storage ??= MemStorage();
   return await fork(() async {
+    register(#appengine.context, FakeClientContext());
     registerDbService(RetryDatastoreDB(DatastoreDB(datastore!)));
     registerStorageService(storage!);
     if (configuration == null) {

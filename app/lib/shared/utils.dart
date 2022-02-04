@@ -350,18 +350,12 @@ String createUuid([List<int>? bytes]) {
   ].join('-');
 }
 
-/// Returns a header map when appengine context's is active and traceId is set.
+/// Returns a header map when appengine context's is active and `traceId` is set.
 ///
 /// Returns `null` otherwise.
 Map<String, String>? cloudTraceHeaders() {
-  try {
-    if (context.traceId == null) return null;
-    return {_cloudTraceContextHeader: context.traceId!};
-  } catch (e, st) {
-    // TODO: remove try-catch and logging, once `context` gets fixed
-    //       (either in appengine, or in our fake tests).
-    _logger.warning('Request with non-appengine context detected.', e, st);
-  }
+  if (context.traceId == null) return null;
+  return {_cloudTraceContextHeader: context.traceId!};
 }
 
 extension LoggerExt on Logger {
