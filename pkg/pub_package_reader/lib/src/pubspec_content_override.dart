@@ -47,8 +47,9 @@ const _packagesWithBadVersions = <String>{
 
 /// Override pubspec.yaml content if needed:
 ///
-/// - If the archive was created before 2022-01-01, we may need to update the version number, version constraint and SDK constraints,
-///   as pub_semver accepted separator characters other than `.`.
+/// - If the archive was created before 2022-01-01, we may need to update the
+///   version number, version constraint and SDK constraints, as `pub_semver`
+///   accepted separator characters other than `.`.
 String overridePubspecContentIfNeeded({
   required String content,
   required DateTime created,
@@ -62,11 +63,7 @@ String overridePubspecContentIfNeeded({
   }
 
   try {
-    final c = _tryOverrideContent(content);
-    if (c != null && c != content) {
-      _logger.info('Content override for pubspec successful.');
-    }
-    return c ?? content;
+    return _fixupBrokenVersionAndConstraints(content);
   } on FormatException catch (e, st) {
     _logger.info('Unable to parse pubspec.', e, st);
   }
@@ -88,9 +85,9 @@ String overridePubspecContentIfNeeded({
 ///
 /// [pub_semver#63]: https://github.com/dart-lang/pub_semver/pull/63
 String _fixupBrokenVersionAndConstraints(String pubspecYaml) {
-  final root = yaml.loadYaml(content);
+  final root = yaml.loadYaml(pubspecYaml);
   if (root is! Map) {
-    _log.warning(
+    _logger.warning(
         'Unable to parse YAML for package, in _fixupBrokenVersionAndConstraints!');
     return pubspecYaml; // return original as no changes can be made
   }
@@ -98,10 +95,10 @@ String _fixupBrokenVersionAndConstraints(String pubspecYaml) {
   // sanity check on the name again, now with parsed yaml
   final name = root['name'];
   if (name is! String || !_packagesWithBadVersions.contains(name)) {
-    return null;
+    return pubspecYaml; // return original as no changes needed
   }
 
-  final editor = YamlEditor(content);
+  final editor = YamlEditor(pubspecYaml);
   for (final c in _detectVersionEditCandidates(root)) {
     final updated = c.value.replaceAllMapped(_lenientRegExp, (match) {
       final major = int.parse(match[1]!);
