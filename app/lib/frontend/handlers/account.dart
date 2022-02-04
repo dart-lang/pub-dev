@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:client_data/account_api.dart';
+import 'package:_pub_shared/data/account_api.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 

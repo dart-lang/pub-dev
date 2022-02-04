@@ -8,6 +8,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "34.0.0"
+  _pub_shared:
+    dependency: "direct main"
+    description:
+      path: "../_pub_shared"
+      relative: true
+    source: path
+    version: "0.0.0"
   analyzer:
     dependency: transitive
     description:
@@ -92,13 +99,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.3.5"
-  client_data:
-    dependency: "direct main"
-    description:
-      path: "../client_data"
-      relative: true
-    source: path
-    version: "0.0.0"
   clock:
     dependency: transitive
     description:

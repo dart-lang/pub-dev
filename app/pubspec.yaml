@@ -5,11 +5,11 @@ environment:
 dependencies:
   _popularity:
     path: ../pkg/_popularity
+  _pub_shared:
+    path: ../pkg/_pub_shared
   appengine: '^0.13.0'
   args: '^2.0.0'
   basics: ^0.6.0
-  client_data:
-    path: ../pkg/client_data
   clock: ^1.1.0
   convert: '^3.0.0'
   crypto: '^3.0.0'

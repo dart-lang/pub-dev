@@ -4,8 +4,8 @@
 
 import 'dart:convert';
 
-import 'package:client_data/account_api.dart' as account_api;
-import 'package:client_data/publisher_api.dart';
+import 'package:_pub_shared/data/account_api.dart' as account_api;
+import 'package:_pub_shared/data/publisher_api.dart';
 import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';

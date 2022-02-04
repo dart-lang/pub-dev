@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_pub_shared/data/account_api.dart';
+import 'package:_pub_shared/data/admin_api.dart';
+import 'package:_pub_shared/data/package_api.dart';
+import 'package:_pub_shared/data/publisher_api.dart';
 import 'package:api_builder/api_builder.dart';
-import 'package:client_data/account_api.dart';
-import 'package:client_data/admin_api.dart';
-import 'package:client_data/package_api.dart';
-import 'package:client_data/publisher_api.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 

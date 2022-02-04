@@ -7,8 +7,8 @@ library pub_dartlang_org.backend;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:client_data/account_api.dart' as account_api;
-import 'package:client_data/package_api.dart' as api;
+import 'package:_pub_shared/data/account_api.dart' as account_api;
+import 'package:_pub_shared/data/package_api.dart' as api;
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';

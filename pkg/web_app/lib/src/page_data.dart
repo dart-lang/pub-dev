@@ -4,7 +4,7 @@
 
 import 'dart:html';
 
-import 'package:client_data/page_data.dart';
+import 'package:_pub_shared/data/page_data.dart';
 
 PageData? _data;
 

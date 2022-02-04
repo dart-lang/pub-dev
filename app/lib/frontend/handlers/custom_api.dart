@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:client_data/package_api.dart';
+import 'package:_pub_shared/data/package_api.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../dartdoc/backend.dart';

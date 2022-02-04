@@ -5,8 +5,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:_pub_shared/data/package_api.dart' as package_api;
 import 'package:basics/basics.dart';
-import 'package:client_data/package_api.dart' as package_api;
 import 'package:http/http.dart' as http;
 import 'package:pana/pana.dart' show ToolEnvironment;
 import 'package:path/path.dart' as p;
