@@ -99,6 +99,7 @@ String _fixupBrokenVersionAndConstraints(String pubspecYaml) {
   }
 
   final editor = YamlEditor(pubspecYaml);
+  var hasBeenUpdated = false;
   for (final c in _detectVersionEditCandidates(root)) {
     final updated = c.value.replaceAllMapped(_lenientRegExp, (match) {
       final major = int.parse(match[1]!);
@@ -110,10 +111,15 @@ String _fixupBrokenVersionAndConstraints(String pubspecYaml) {
     });
     if (updated != c.value) {
       editor.update(c.path, updated);
+      hasBeenUpdated = true;
     }
   }
 
-  return editor.toString();
+  final fixedPubspecYaml = editor.toString();
+  if (hasBeenUpdated && fixedPubspecYaml == pubspecYaml) {
+    _logger.warning('Updating pubspec.yaml while fixing versions failed.');
+  }
+  return fixedPubspecYaml;
 }
 
 class _VersionEditCandidate {
