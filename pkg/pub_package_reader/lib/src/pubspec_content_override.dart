@@ -47,7 +47,7 @@ const _packagesWithBadVersions = <String>{
 
 /// Override pubspec.yaml content if needed:
 ///
-/// - If the archive was created before 2022, we may need to update the versions,
+/// - If the archive was created before 2022-01-01, we may need to update the version number, version constraint and SDK constraints,
 ///   as pub_semver accepted separator characters other than `.`.
 String overridePubspecContentIfNeeded({
   required String content,
