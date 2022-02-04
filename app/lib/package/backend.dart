@@ -739,7 +739,7 @@ class PackageBackend {
         filename,
         maxContentLength: maxAssetContentLength,
         maxArchiveSize: UploadSignerService.maxUploadSize,
-        created: DateTime.now().toUtc(),
+        created: clock.now().toUtc(),
       );
       _logger.info('Package archive scanned in ${sw.elapsed}.');
       if (archive.hasIssues) {
