@@ -81,11 +81,15 @@ Future<PackageSummary> summarizePackageArchive(
   /// TODO: set this lower once we scan the existing archives
   int maxFileCount = 64 * 1024,
 
-  /// The timestamp when the archive was uploaded and accepted.
+  /// [DateTime] when the archive was uploaded / published.
   ///
-  /// If specified, some packages may get a transparent rewrite of their
-  /// assets to preserve backwards-compatible behavior on pub.dev.
-  DateTime? created,
+  /// Used to ensure that constraints in place when a package was published
+  /// are considered when summarizing assets. Ensuring we preserve
+  /// backwards-compatibility with packages that does not satisfy constraints
+  /// enforced at publish-time today.
+  ///
+  /// Defaults to [DateTime.now], if not specified.
+  DateTime? published,
 }) async {
   final issues = <ArchiveIssue>[];
 
