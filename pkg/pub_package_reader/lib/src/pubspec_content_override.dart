@@ -58,9 +58,6 @@ String overridePubspecContentIfNeeded({
   if (created.year >= 2022) {
     return content;
   }
-  if (_packagesWithBadVersions.every((name) => !content.contains(name))) {
-    return content;
-  }
 
   try {
     return _fixupBrokenVersionAndConstraints(content);
