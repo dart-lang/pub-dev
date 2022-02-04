@@ -90,7 +90,8 @@ String overridePubspecContentIfNeeded({
 String _fixupBrokenVersionAndConstraints(String pubspecYaml) {
   final root = yaml.loadYaml(content);
   if (root is! Map) {
-    return null;
+    _log.warning('Unable to parse YAML for package, in _fixupBrokenVersionAndConstraints!');
+    return pubspecYaml; // return original as no changes can be made
   }
 
   // sanity check on the name again, now with parsed yaml
