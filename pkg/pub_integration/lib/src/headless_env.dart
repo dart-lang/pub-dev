@@ -5,8 +5,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:_pub_shared/validation/html/html_validation.dart';
 import 'package:path/path.dart' as p;
-import 'package:pub_validations/html/html_validation.dart';
 import 'package:puppeteer/puppeteer.dart';
 
 /// Creates and tracks the headless Chrome environment, its temp directories and

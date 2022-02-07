@@ -5,9 +5,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:_pub_shared/validation/html/html_validation.dart';
 import 'package:http/http.dart';
-
-import 'package:pub_validations/html/html_validation.dart';
 
 /// Simple pub client library.
 class PubHttpClient {
