@@ -110,7 +110,7 @@ String _fixupBrokenVersionAndConstraints(String pubspecYaml) {
     });
     if (updated != c.value) {
       try {
-        Version.parse(updated);
+        VersionConstraint.parse(updated);
       } on FormatException catch (e, st) {
         _logger.shout('Failed to fix broken version in package:$name', e, st);
         return pubspecYaml;
