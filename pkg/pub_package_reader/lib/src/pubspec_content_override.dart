@@ -10,9 +10,12 @@ import 'package:yaml_edit/yaml_edit.dart';
 final _logger = Logger('pubspec_yaml_override');
 
 /// The version regular expression that accepted any character as separator.
-final _lenientRegExp = RegExp(r'(\d+).(\d+).(\d+)' // Version number.
+final _lenientRegExp = RegExp(r'^' // Start at beginning.
+    r'(\^|<[=]?|>[=]?)?' // Range operators.
+    r'(\d+).(\d+).(\d+)' // Version number.
     r'(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?' // Pre-release.
     r'(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?' // Build.
+    r'$' // Scan the entire String.
     );
 
 /// Packages with bad versions as detected by
@@ -100,14 +103,26 @@ String _fixupBrokenVersionAndConstraints(String pubspecYaml) {
   final editor = YamlEditor(pubspecYaml);
   var hasBeenUpdated = false;
   for (final c in _detectVersionEditCandidates(root)) {
-    final updated = c.value.replaceAllMapped(_lenientRegExp, (match) {
-      final major = int.parse(match[1]!);
-      final minor = int.parse(match[2]!);
-      final patch = int.parse(match[3]!);
-      final pre = match[5];
-      final build = match[8];
-      return Version(major, minor, patch, pre: pre, build: build).toString();
-    });
+    final updated = c.value
+        // Version constraints may have more than one version expression, separated by space.
+        // TODO: consider replacing all whitespaces to spaces.
+        .split(' ')
+        // Each part of that expression may be mapped by the matcher only full,
+        // otherwise no replacement will be applied.
+        .map((part) => part.replaceFirstMapped(_lenientRegExp, (match) {
+              final range = match[1] ?? '';
+              final major = int.parse(match[2]!);
+              final minor = int.parse(match[3]!);
+              final patch = int.parse(match[4]!);
+              final pre = match[6];
+              final build = match[9];
+              final versionStr =
+                  Version(major, minor, patch, pre: pre, build: build)
+                      .toString();
+              return '$range$versionStr';
+            }))
+        // Joining the parts by the same separator character.
+        .join(' ');
     if (updated != c.value) {
       try {
         VersionConstraint.parse(updated);
