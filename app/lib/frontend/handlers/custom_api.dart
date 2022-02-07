@@ -75,7 +75,7 @@ Future<shelf.Response> apiPackagesCompactListHandler(shelf.Request request) =>
 /// Handles requests for
 /// - /api/package-names
 Future<shelf.Response> apiPackageNamesHandler(shelf.Request request) async {
-  final packageNames = await nameTracker.getPackageNames();
+  final packageNames = await nameTracker.getVisiblePackageNames();
   packageNames.removeWhere(isSoftRemoved);
   return jsonResponse({
     'packages': packageNames,
