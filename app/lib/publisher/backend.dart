@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
-import 'package:client_data/account_api.dart' as account_api;
-import 'package:client_data/publisher_api.dart' as api;
+import 'package:_pub_shared/data/account_api.dart' as account_api;
+import 'package:_pub_shared/data/publisher_api.dart' as api;
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';

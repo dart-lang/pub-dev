@@ -1,5 +1,5 @@
-name: client_data
-description: Shared data between server and JS client.
+name: _pub_shared
+description: Shared data between the pub server and web_app client.
 publish_to: none
 environment:
   sdk: '>=2.14.0 <3.0.0'

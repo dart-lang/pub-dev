@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:client_data/account_api.dart' as account_api;
+import 'package:_pub_shared/data/account_api.dart' as account_api;
 import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/consent_backend.dart';

@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:client_data/admin_api.dart';
-import 'package:client_data/package_api.dart';
-import 'package:client_data/publisher_api.dart';
+import 'package:_pub_shared/data/admin_api.dart';
+import 'package:_pub_shared/data/package_api.dart';
+import 'package:_pub_shared/data/publisher_api.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 

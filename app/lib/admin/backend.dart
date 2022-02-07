@@ -4,8 +4,8 @@
 
 import 'dart:convert';
 
-import 'package:client_data/admin_api.dart' as api;
-import 'package:client_data/package_api.dart';
+import 'package:_pub_shared/data/admin_api.dart' as api;
+import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';

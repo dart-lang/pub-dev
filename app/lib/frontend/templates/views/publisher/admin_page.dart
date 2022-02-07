@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:client_data/publisher_api.dart' as api;
+import 'package:_pub_shared/data/publisher_api.dart' as api;
 
 import '../../../../publisher/models.dart';
 import '../../../dom/dom.dart' as d;

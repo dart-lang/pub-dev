@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:client_data/package_api.dart' show VersionScore;
+import 'package:_pub_shared/data/package_api.dart' show VersionScore;
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';

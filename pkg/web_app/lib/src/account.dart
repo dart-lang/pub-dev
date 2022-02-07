@@ -6,9 +6,9 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:js';
 
-import 'package:client_data/account_api.dart';
-import 'package:client_data/package_api.dart';
-import 'package:client_data/publisher_api.dart';
+import 'package:_pub_shared/data/account_api.dart';
+import 'package:_pub_shared/data/package_api.dart';
+import 'package:_pub_shared/data/publisher_api.dart';
 import 'package:http/browser_client.dart' as http;
 
 import '_authenticated_client.dart';
