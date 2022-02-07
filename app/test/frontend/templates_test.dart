@@ -18,7 +18,6 @@ import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/frontend/templates/admin.dart';
 import 'package:pub_dev/frontend/templates/consent.dart';
 import 'package:pub_dev/frontend/templates/landing.dart';
-import 'package:pub_dev/frontend/templates/layout.dart';
 import 'package:pub_dev/frontend/templates/listing.dart';
 import 'package:pub_dev/frontend/templates/misc.dart';
 import 'package:pub_dev/frontend/templates/package.dart';
@@ -834,20 +833,6 @@ void main() {
       final html =
           paginationNode(PageLinks(SearchForm(currentPage: 10), 91)).toString();
       expectGoldenFile(html, 'pagination_last.html', isFragment: true);
-    });
-
-    scopedTest('platform tabs: list', () {
-      final html = sdkTabsNode().toString();
-      expectGoldenFile(html, 'platform_tabs_list.html', isFragment: true);
-    });
-
-    scopedTest('platform tabs: search', () {
-      final html = sdkTabsNode(
-          searchForm: SearchForm(
-        context: SearchContext.flutter(),
-        query: 'foo',
-      )).toString();
-      expectGoldenFile(html, 'platform_tabs_search.html', isFragment: true);
     });
   });
 

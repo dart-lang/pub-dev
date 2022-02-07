@@ -19,7 +19,6 @@ import '_consts.dart';
 
 import 'views/shared/layout.dart';
 import 'views/shared/search_banner.dart';
-import 'views/shared/search_tabs.dart';
 import 'views/shared/site_header.dart';
 
 enum PageType {
@@ -150,47 +149,6 @@ d.Node _renderSearchBanner({
     includeNullSafe: searchForm?.nullSafe ?? false,
     hiddenInputs: hiddenInputs,
     hasActive: searchForm?.hasActiveNonQuery ?? false,
-  );
-}
-
-d.Node sdkTabsNode({
-  SearchForm? searchForm,
-}) {
-  final isff = searchForm?.context.isFlutterFavorites ?? false;
-  final currentSdk = isff ? null : searchForm?.context.sdk ?? SdkTagValue.any;
-  SearchTab sdkTabData(SearchContext context, String label, String title) {
-    String url;
-    if (searchForm != null) {
-      url = searchForm.change(context: context, currentPage: 1).toSearchLink();
-    } else {
-      url = urls.searchUrl(context: context);
-    }
-    return SearchTab(
-      text: label,
-      href: url,
-      active: (context.sdk ?? SdkTagValue.any) == currentSdk,
-      title: title,
-    );
-  }
-
-  return searchTabsNode(
-    [
-      sdkTabData(
-        SearchContext.dart(),
-        'Dart',
-        'Packages compatible with the Dart SDK',
-      ),
-      sdkTabData(
-        SearchContext.flutter(),
-        'Flutter',
-        'Packages compatible with the Flutter SDK',
-      ),
-      sdkTabData(
-        SearchContext.regular(),
-        'Any',
-        'Packages compatible with the any SDK',
-      ),
-    ],
   );
 }
 
