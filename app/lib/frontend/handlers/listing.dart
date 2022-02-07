@@ -26,7 +26,7 @@ Map searchDebugStats() {
 
 /// Handles /packages - package listing
 Future<shelf.Response> packagesHandlerHtml(shelf.Request request) =>
-    _packagesHandlerHtmlCore(request, context: SearchContext.regular());
+    _packagesHandlerHtmlCore(request);
 
 /// Handles /dart/packages
 Future<shelf.Response> dartPackagesHandlerHtml(shelf.Request request) async {
@@ -64,18 +64,11 @@ Future<shelf.Response> webPackagesHandlerHtml(shelf.Request request) async {
 
 /// Handles:
 /// - /packages - package listing
-/// - /dart/packages
-/// - /flutter/packages
-Future<shelf.Response> _packagesHandlerHtmlCore(
-  shelf.Request request, {
-  required SearchContext context,
-  String? title,
-  String? searchPlaceholder,
-}) async {
+Future<shelf.Response> _packagesHandlerHtmlCore(shelf.Request request) async {
   final openSections =
       request.requestedUri.queryParameters['open-sections']?.split(' ').toSet();
-  final searchForm =
-      SearchForm.parse(context, request.requestedUri.queryParameters);
+  final searchForm = SearchForm.parse(
+      SearchContext.regular(), request.requestedUri.queryParameters);
   final sw = Stopwatch()..start();
   final searchResult = await searchAdapter.search(searchForm);
   final int totalCount = searchResult.totalCount;
@@ -85,10 +78,7 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
     renderPkgIndexPage(
       searchResult,
       links,
-      sdk: context.sdk,
       searchForm: searchForm,
-      title: title,
-      searchPlaceholder: searchPlaceholder,
       messageFromBackend: searchResult.message,
       openSections: openSections,
     ),

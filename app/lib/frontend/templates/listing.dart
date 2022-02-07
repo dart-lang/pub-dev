@@ -35,14 +35,11 @@ d.Node packageList(SearchResultPage searchResultPage) {
 String renderPkgIndexPage(
   SearchResultPage searchResultPage,
   PageLinks links, {
-  String? sdk,
-  String? title,
   required SearchForm searchForm,
-  String? searchPlaceholder,
   String? messageFromBackend,
   Set<String>? openSections,
 }) {
-  final topPackages = getSdkDict(sdk).topSdkPackages;
+  final topPackages = getSdkDict(null).topSdkPackages;
   final isSearch = searchForm.hasQuery;
   final searchTabs = _calculateSearchTabs(searchForm);
 
@@ -52,7 +49,7 @@ String renderPkgIndexPage(
     listingInfo: listingInfo(
       searchForm: searchForm,
       totalCount: searchResultPage.totalCount,
-      title: title ?? topPackages,
+      title: topPackages,
       messageFromBackend: messageFromBackend,
     ),
     packageList: packageList(searchResultPage),
@@ -60,7 +57,7 @@ String renderPkgIndexPage(
     openSections: openSections,
   );
 
-  String pageTitle = title ?? topPackages;
+  String pageTitle = topPackages;
   if (isSearch) {
     pageTitle = 'Search results for ${searchForm.query}.';
   } else {
@@ -72,11 +69,9 @@ String renderPkgIndexPage(
     PageType.listing,
     content,
     title: pageTitle,
-    sdk: sdk,
     searchForm: searchForm,
     canonicalUrl: searchForm.toSearchLink(),
     noIndex: true,
-    searchPlaceHolder: searchPlaceholder,
     mainClasses: [],
   );
 }

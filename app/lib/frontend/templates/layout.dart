@@ -49,12 +49,10 @@ String renderLayoutPage(
   /// The canonical content link that will be put in the header.
   /// https://support.google.com/webmasters/answer/139066?hl=en
   String? canonicalUrl,
-  String? sdk,
   String? publisherId,
   SearchForm? searchForm,
   bool noIndex = false,
   PageData? pageData,
-  String? searchPlaceHolder,
   List<String>? mainClasses,
 }) {
   // normalize canonical URL
@@ -62,7 +60,7 @@ String renderLayoutPage(
     canonicalUrl = '${urls.siteRoot}$canonicalUrl';
   }
   mainClasses ??= ['container'];
-  final isRoot = type == PageType.landing && sdk == null;
+  final isRoot = type == PageType.landing;
   final bodyClasses = [
     if (type == PageType.standalone) 'page-standalone',
     if (type == PageType.landing) 'page-landing',
@@ -90,7 +88,6 @@ String renderLayoutPage(
             type: type,
             publisherId: publisherId,
             searchForm: searchForm,
-            searchPlaceholder: searchPlaceHolder,
           )
         : null,
     isLanding: type == PageType.landing,
@@ -106,11 +103,11 @@ d.Node _renderSearchBanner({
   required PageType type,
   required String? publisherId,
   required SearchForm? searchForm,
-  String? searchPlaceholder,
 }) {
   final sdk = searchForm?.context.sdk ?? SdkTagValue.any;
   final queryText = searchForm?.query;
   bool includePreferencesAsHiddenFields = false;
+  String? searchPlaceholder;
   if (publisherId != null) {
     searchPlaceholder ??= 'Search $publisherId packages';
   } else {
