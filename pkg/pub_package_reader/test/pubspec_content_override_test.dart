@@ -26,8 +26,8 @@ void main() {
     }
 
     String tryOverride(String content) {
-      return overridePubspecContentIfNeeded(
-        content: content,
+      return overridePubspecYamlIfNeeded(
+        pubspecYaml: content,
         published: DateTime(2021, 1, 1),
       );
     }

@@ -7,7 +7,7 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart' as yaml;
 import 'package:yaml_edit/yaml_edit.dart';
 
-final _logger = Logger('pubspec_content_override');
+final _logger = Logger('pubspec_yaml_override');
 
 /// The version regular expression that accepted any character as separator.
 final _lenientRegExp = RegExp(r'(\d+).(\d+).(\d+)' // Version number.
@@ -46,28 +46,28 @@ const _packagesWithBadVersions = <String>{
   'polymer_interop',
 };
 
-/// Override pubspec.yaml content if needed:
+/// Override pubspec.yaml if needed:
 ///
 /// - If the archive was created before 2022-01-01, we may need to update the
 ///   version number, version constraint and SDK constraints, as `pub_semver`
 ///   accepted separator characters other than `.`.
 ///   https://github.com/dart-lang/pub_semver/pull/63
-String overridePubspecContentIfNeeded({
-  required String content,
+String overridePubspecYamlIfNeeded({
+  required String pubspecYaml,
   required DateTime published,
 }) {
   // quick checks to skip overrides
   if (published.year >= 2022) {
-    return content;
+    return pubspecYaml;
   }
 
   try {
-    return _fixupBrokenVersionAndConstraints(content);
+    return _fixupBrokenVersionAndConstraints(pubspecYaml);
   } on FormatException catch (e, st) {
     _logger.info('Unable to parse pubspec.', e, st);
   }
-  // fallback: don't override content
-  return content;
+  // fallback: don't override
+  return pubspecYaml;
 }
 
 /// Fixes broken version and version constraints in [pubspecYaml] and returns a new YAML string.

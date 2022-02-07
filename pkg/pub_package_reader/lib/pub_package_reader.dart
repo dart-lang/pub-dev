@@ -131,8 +131,8 @@ Future<PackageSummary> summarizePackageArchive(
     return PackageSummary(issues: issues);
   }
 
-  final pubspecContent = overridePubspecContentIfNeeded(
-    content: await tar.readContentAsString(pubspecPath),
+  final pubspecContent = overridePubspecYamlIfNeeded(
+    pubspecYaml: await tar.readContentAsString(pubspecPath),
     published: published ?? clock.now().toUtc(),
   );
   // Large pubspec content should be rejected, as either a storage limit will be
