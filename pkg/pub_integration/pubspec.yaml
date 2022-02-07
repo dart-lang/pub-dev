@@ -12,8 +12,6 @@ dependencies:
   http: ^0.13.0
   path: ^1.8.0
   pub_semver: ^2.0.0
-  pub_validations:
-    path: ../pub_validations
   puppeteer: 2.0.0
   oauth2: ^2.0.0
 

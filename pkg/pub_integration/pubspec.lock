@@ -246,13 +246,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.0"
-  pub_validations:
-    dependency: "direct main"
-    description:
-      path: "../pub_validations"
-      relative: true
-    source: path
-    version: "0.0.0"
   puppeteer:
     dependency: "direct main"
     description:
