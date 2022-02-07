@@ -73,11 +73,11 @@ String overridePubspecYamlIfNeeded({
 /// Fixes broken version and version constraints in [pubspecYaml] and returns a new YAML string.
 ///
 /// Prior to [pub_semver#63] version numbers and version constraints were accepted with any
-/// character as separate, instead of requiring  `.` (dot). This occurred because the regular expression
-/// in `package:pub_semver` didn't escape dots as `\.`, but just contained `.` (dot, meaning any character).
+/// character as separator, instead of requiring  `.` (dot). This occurred because the regular expression
+/// in `package:pub_semver` didn't escape dots as `\.`, but just contained `.` (dot, meaning any character). (see https://github.com/dart-lang/pub_semver/commit/cee044a3dc8)
 ///
-/// Thus, package versions published prior to 2022-01-01, maybe contain _version numbers_,
-/// _version constraints_ and _SDK constraints_ that doesn't use `.` (dot) as separator. As removing
+/// Thus, package versions published prior to 2022-01-01, may contain _version numbers_,
+/// _version constraints_ and _SDK constraints_ that don't use `.` (dot) as separator. As removing
 /// these _package versions_ would break existing users, this function will rewrite the version numbers
 /// and version constraints to have a valid format equivalent to how older versions of `pub_semver`
 /// would have interpreted the version number / version constraints.
@@ -122,7 +122,8 @@ String _fixupBrokenVersionAndConstraints(String pubspecYaml) {
 
   final fixedPubspecYaml = editor.toString();
   if (hasBeenUpdated && fixedPubspecYaml == pubspecYaml) {
-    _logger.warning('Updating pubspec.yaml while fixing versions failed.');
+    _logger.warning(
+        'Updating pubspec.yaml in package:$name failed while fixing versions.');
   }
   return fixedPubspecYaml;
 }
