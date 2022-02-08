@@ -274,9 +274,21 @@ shelf.Handler _userSessionWrapper(Logger logger, shelf.Handler handler) {
     }
     shelf.Response rs = await handler(request);
     if (userSessionData != null) {
-      // Indicates that the response is intended for a single user and must not
-      // be stored by a shared cache. A private cache may store the response.
-      rs = rs.change(headers: {HttpHeaders.cacheControlHeader: 'private'});
+      // Responses for a user session are intended for a single user and must not
+      // be stored by a shared, public cache. A private cache may store the response.
+      //
+      // - We are keep parameters, e.g. max-age.
+      // - We are replacing `public` to `private`.
+      // - When the original header is empty, we set it to `private`.
+      final original = rs.headers[HttpHeaders.cacheControlHeader] ?? '';
+      final parts = original
+          .split(',')
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .map((e) => e == 'public' ? 'private' : e)
+          .toList();
+      final newValue = parts.isEmpty ? 'private' : parts.join(', ');
+      rs = rs.change(headers: {HttpHeaders.cacheControlHeader: newValue});
     }
     return rs;
   };
