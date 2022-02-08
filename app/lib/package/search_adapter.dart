@@ -35,11 +35,17 @@ class SearchAdapter {
   /// Uses long-term caching and local randomized selection.
   /// Returns empty list when search is not available or doesn't yield results.
   Future<List<PackageView>> topFeatured({
-    required SearchContext context,
+    SearchContext? context,
+    String? query,
     int count = 6,
     SearchOrder? order,
   }) async {
-    final form = SearchForm(context: context, pageSize: 100, order: order);
+    final form = SearchForm(
+      context: context,
+      query: query,
+      pageSize: 100,
+      order: order,
+    );
     final searchResults = await _searchOrFallback(
       form,
       false,
