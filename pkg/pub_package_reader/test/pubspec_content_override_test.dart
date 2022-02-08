@@ -37,9 +37,9 @@ void main() {
     });
 
     test('version, update', () {
-      final updated = tryOverride(pubspec(version: '1,3.0'));
-      expect(updated, contains('version: 1.3.0'));
-      expect(updated, isNot(contains('version: 1,3.0')));
+      final updated = tryOverride(pubspec(version: '1,3.0+1'));
+      expect(updated, contains('version: 1.3.0+1'));
+      expect(updated, isNot(contains('version: 1,3.0+1')));
     });
 
     test('sdk, no change', () {
@@ -58,7 +58,7 @@ void main() {
       final wrong = '">=2,10,0-0 <3,0.0"';
       final content = pubspec(sdk: wrong);
       final updated = tryOverride(content);
-      expect(updated, contains('sdk: ">=2.10.0-0 <3.0.0"'));
+      expect(updated, contains('sdk: ">=2.10.0-0 <2.17.0"'));
       expect(updated, isNot(contains('sdk: $wrong')));
     });
 
@@ -99,7 +99,7 @@ void main() {
         'name: mocktail\n'
         'version: 1.3.5\n'
         'environment:\n'
-        '  sdk: ">=2.12.0-0 <3.0.0+1"\n'
+        '  sdk: ">=2.12.0-0 <2.17.0"\n'
         'dependencies:\n'
         '  path: ^1.0.0\n'
         'dev_dependencies:\n'

@@ -49,6 +49,15 @@ const _packagesWithBadVersions = <String>{
   'polymer_interop',
 };
 
+/// The strict version parsing fix will be part of this SDK release.
+final _maxSdkVersion = Version(2, 17, 0);
+final _defaultSdkVersionRange = VersionRange(
+  min: Version(2, 12, 0),
+  includeMin: true,
+  max: _maxSdkVersion,
+  includeMax: false,
+);
+
 /// Override pubspec.yaml if needed:
 ///
 /// - If the archive was created before 2022-01-01, we may need to update the
@@ -134,12 +143,39 @@ String _fixupBrokenVersionAndConstraints(String pubspecYaml) {
       hasBeenUpdated = true;
     }
   }
+  if (!hasBeenUpdated) {
+    return pubspecYaml;
+  }
+
+  // If there was any version correction, we should restrict the SDK version
+  // range to disallow 2.17.0, which should have the fixed `package:pub_semver`.
+  try {
+    final path = ['environment', 'sdk'];
+    final sdkValue = editor.parseAt(path).value?.toString();
+    final parsed = VersionConstraint.parse(sdkValue ?? '');
+    if (parsed is VersionRange) {
+      final newRange = VersionRange(
+        min: parsed.min,
+        includeMin: parsed.includeMin,
+        max: Version.parse('2.17.0'),
+        includeMax: false,
+      );
+      editor.update(path, newRange.toString());
+    } else {
+      editor.update(path, _defaultSdkVersionRange.toString());
+    }
+  } on ArgumentError catch (_) {
+    // no update
+  } on FormatException catch (_) {
+    // no update
+  }
 
   final fixedPubspecYaml = editor.toString();
-  if (hasBeenUpdated && fixedPubspecYaml == pubspecYaml) {
+  if (fixedPubspecYaml == pubspecYaml) {
     _logger.warning(
         'Updating pubspec.yaml in package:$name failed while fixing versions.');
   }
+
   return fixedPubspecYaml;
 }
 
