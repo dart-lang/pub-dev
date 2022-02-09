@@ -213,7 +213,7 @@ void main() {
           await page.keyboard.type('pkg');
           final sequence = ['android', 'windows', 'web', 'windows', 'ios'];
           for (final platform in sequence) {
-            await Future.delayed(Duration(milliseconds: 5));
+            await Future.delayed(Duration(milliseconds: 50));
             await page.waitForSelector(
               '#search-form-checkbox-platform-$platform',
               visible: true,
