@@ -204,6 +204,51 @@ void main() {
         },
       );
 
+      // type + multiple checkbox clicks
+      await headlessEnv.withPage(
+        fn: (page) async {
+          await page.gotoOrigin('/packages');
+
+          await page.focus('input[name="q"]');
+          await page.keyboard.type('pkg');
+          final sequence = ['android', 'windows', 'web', 'windows', 'ios'];
+          for (final platform in sequence) {
+            await Future.delayed(Duration(milliseconds: 5));
+            await page.waitForSelector(
+              '#search-form-checkbox-platform-$platform',
+              visible: true,
+            );
+            await page.click('#search-form-checkbox-platform-$platform');
+          }
+          await page.waitForNavigation(wait: Until.networkIdle);
+          expect(
+              page.url,
+              allOf(
+                contains('pkg'),
+                contains('android'),
+                contains('web'),
+                contains('ios'),
+              ));
+          expect(page.url, isNot(contains('windows')));
+          expect(await page.propertyValue('input[name="q"]', 'value'),
+              'pkg platform:android platform:web platform:ios');
+
+          await page.click('#search-form-checkbox-platform-windows');
+          await page.waitForNavigation(wait: Until.networkIdle);
+          expect(
+              page.url,
+              allOf(
+                contains('pkg'),
+                contains('android'),
+                contains('web'),
+                contains('ios'),
+                contains('windows'),
+              ));
+          expect(await page.propertyValue('input[name="q"]', 'value'),
+              'pkg platform:android platform:web platform:ios platform:windows');
+        },
+      );
+
       // back button working with checkboxes
       await headlessEnv.withPage(
         fn: (page) async {

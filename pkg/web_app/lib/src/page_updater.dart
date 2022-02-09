@@ -59,15 +59,18 @@ Future<void> updateBodyWithHttpGet({
   required Uri requestUri,
   String? navigationUrl,
   Duration timeout = const Duration(seconds: 4),
+  bool Function()? preupdateCheck,
 }) async {
   try {
     final page = await http.get(requestUri).timeout(timeout);
     if (page.statusCode == 200) {
-      _update(
-        page.body,
-        pushState: true,
-        url: navigationUrl ?? requestUri.toString(),
-      );
+      if (preupdateCheck == null || preupdateCheck()) {
+        _update(
+          page.body,
+          pushState: true,
+          url: navigationUrl ?? requestUri.toString(),
+        );
+      }
       return;
     }
   } catch (e, st) {
