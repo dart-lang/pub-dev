@@ -213,12 +213,12 @@ void main() {
           await page.keyboard.type('pkg');
           final sequence = ['android', 'windows', 'web', 'windows', 'ios'];
           for (final platform in sequence) {
+            // check the existence of the click target twice, with a little delay
+            final targetSelector = '#search-form-checkbox-platform-$platform';
+            await page.waitForSelector(targetSelector, visible: true);
             await Future.delayed(Duration(milliseconds: 50));
-            await page.waitForSelector(
-              '#search-form-checkbox-platform-$platform',
-              visible: true,
-            );
-            await page.click('#search-form-checkbox-platform-$platform');
+            await page.waitForSelector(targetSelector, visible: true);
+            await page.click(targetSelector);
           }
           await page.waitForNavigation(wait: Until.networkIdle);
           expect(
