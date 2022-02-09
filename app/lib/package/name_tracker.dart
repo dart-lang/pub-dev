@@ -159,7 +159,8 @@ class NameTracker {
 
   /// Get the names of all visible packages.
   ///
-  /// Packages that are withdrawn are not listed here.
+  /// Packages that are _withdrawn_ are not listed here.
+  /// Packages that are _unlisted_ or _discontinued_ are **included in this list**.
   ///
   /// If it is called before the first scan was done, it will wait for
   /// it to complete. Afterwards it always returns the currently cached
