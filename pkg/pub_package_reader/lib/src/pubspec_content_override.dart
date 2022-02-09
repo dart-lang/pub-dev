@@ -176,7 +176,7 @@ String _fixupBrokenVersionAndConstraints(String pubspecYaml) {
         'Updating pubspec.yaml in package:$name failed while fixing versions.');
   }
 
-  return fixedPubspecYaml;
+  return '# overrides applied by pub.dev\n$fixedPubspecYaml';
 }
 
 class _VersionEditCandidate {
