@@ -127,8 +127,9 @@ class SearchAdapter {
           message: 'Search is temporarily unavailable.');
     }
 
-    final names =
-        await nameTracker.getPackageNames().timeout(Duration(seconds: 5));
+    final names = await nameTracker
+        .getVisiblePackageNames()
+        .timeout(Duration(seconds: 5));
     final text = (form.query ?? '').trim().toLowerCase();
     List<PackageHit> packageHits =
         names.where((s) => s.contains(text)).map((pkgName) {

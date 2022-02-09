@@ -54,6 +54,7 @@ void main() {
       nameTracker.add(
         TrackedPackage(
           package: 'a',
+          updated: DateTime(2021, 10, 18),
           latestVersion: '2.0.0',
           lastPublished: DateTime(2021, 10, 18),
           isVisible: true,
@@ -62,6 +63,7 @@ void main() {
       nameTracker.add(
         TrackedPackage(
           package: 'a',
+          updated: DateTime(2021, 10, 17),
           latestVersion: '1.0.0',
           lastPublished: DateTime(2021, 10, 17),
           isVisible: true,
@@ -78,6 +80,7 @@ void main() {
       nameTracker.add(
         TrackedPackage(
           package: 'a',
+          updated: DateTime(2021, 10, 18),
           latestVersion: '1.0.0',
           lastPublished: DateTime(2021, 10, 18),
           isVisible: true,
@@ -86,6 +89,7 @@ void main() {
       nameTracker.add(
         TrackedPackage(
           package: 'b',
+          updated: DateTime(2021, 10, 19),
           latestVersion: '2.0.0',
           lastPublished: DateTime(2021, 10, 19),
           isVisible: true,
@@ -99,6 +103,7 @@ void main() {
       );
       nameTracker.add(
         TrackedPackage(
+          updated: DateTime(2021, 10, 20),
           package: 'a',
           latestVersion: '3.0.0',
           lastPublished: DateTime(2021, 10, 20),
