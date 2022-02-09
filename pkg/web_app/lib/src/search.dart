@@ -78,6 +78,9 @@ void adjustQueryTextAfterPageShow() {
 }
 
 void _setEventsForSearchForm() {
+  // Shared state for concurrent click events.
+  Uri? lastTargetUri;
+
   // When a search form checkbox has a linked search label,
   //checking the checkbox will trigger a click on the link.
   document.querySelectorAll('.search-form-linked-checkbox').forEach((e) {
@@ -107,8 +110,9 @@ void _setEventsForSearchForm() {
             queryText = '$queryText $tag'.trim();
           }
         }
+        inputQElem.value = queryText;
 
-        final newUri = originalHrefUri.replace(
+        final newVisibleUri = originalHrefUri.replace(
           queryParameters: {
             ...originalHrefUri.queryParameters,
             'q': queryText,
@@ -124,17 +128,19 @@ void _setEventsForSearchForm() {
             .whereType<String>()
             .join(' ');
 
-        final requestUri = windowUri.replace(
-          path: newUri.path,
+        final requestUri = newVisibleUri.replace(
+          path: newVisibleUri.path,
           queryParameters: {
-            ...newUri.queryParameters,
+            ...newVisibleUri.queryParameters,
             'open-sections': openSections,
           },
         );
+        lastTargetUri = newVisibleUri;
 
         await updateBodyWithHttpGet(
           requestUri: requestUri,
-          navigationUrl: windowUri.resolveUri(newUri).toString(),
+          navigationUrl: windowUri.resolveUri(newVisibleUri).toString(),
+          preupdateCheck: () => lastTargetUri == newVisibleUri,
         );
 
         // notify GTM on the click
