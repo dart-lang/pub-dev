@@ -49,7 +49,7 @@ Future<shelf.Response> indexLandingHandler(shelf.Request request) async {
 
   Future<String> _render() async {
     final ffPackages = await searchAdapter.topFeatured(
-      context: SearchContext.flutterFavorites(),
+      query: PackageTags.isFlutterFavorite,
       count: 4,
     );
 

@@ -171,7 +171,6 @@ class SearchForm {
     final tagsPredicate = TagsPredicate(
       requiredTags: [
         if (nullSafe) PackageVersionTags.isNullSafe,
-        if (context.isFlutterFavorites) PackageTags.isFlutterFavorite,
         if (SdkTagValue.isNotAny(context.sdk)) 'sdk:${context.sdk}',
         ...runtimes.map((v) => 'runtime:$v'),
         ...platforms.map((v) => 'platform:$v'),
@@ -257,9 +256,6 @@ class SearchForm {
 
 /// The context of the search, e.g. (all | publisher | my-) packages.
 class SearchContext {
-  /// Whether the search query is in the Flutter Favorites context.
-  final bool isFlutterFavorites;
-
   /// Whether the search query is in the Dart or Flutter SDK context.
   final String? sdk;
 
@@ -272,7 +268,6 @@ class SearchContext {
   final bool includeAll;
 
   SearchContext._({
-    this.isFlutterFavorites = false,
     this.sdk,
     String? publisherId,
     this.includeAll = false,
@@ -290,10 +285,6 @@ class SearchContext {
   /// Regular search on the Flutter SDK.
   factory SearchContext.flutter() => SearchContext._(sdk: SdkTagValue.flutter);
 
-  /// Regular search on Flutter Favorites.
-  factory SearchContext.flutterFavorites() =>
-      SearchContext._(isFlutterFavorites: true);
-
   /// All packages listed for a publisher.
   factory SearchContext.publisher(String publisherId) =>
       SearchContext._(publisherId: publisherId, includeAll: true);
@@ -304,9 +295,6 @@ class SearchContext {
     String path = '/packages';
     if (sdk != null && SdkTagValue.isNotAny(sdk)) {
       path = '/$sdk/packages';
-    }
-    if (isFlutterFavorites) {
-      path = '/flutter/favorites';
     }
     if (publisherId != null && publisherId!.isNotEmpty) {
       path = '/publishers/$publisherId/packages';

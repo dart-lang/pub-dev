@@ -4,6 +4,7 @@
 
 import 'package:pub_dev/search/search_form.dart';
 import 'package:pub_dev/search/search_service.dart';
+import 'package:pub_dev/shared/tags.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -125,8 +126,9 @@ void main() {
     });
 
     test('Flutter favorites', () {
-      final query = SearchForm(context: SearchContext.flutterFavorites());
-      expect(query.toSearchLink(page: 2), '/flutter/favorites?page=2');
+      final query = SearchForm(query: PackageTags.isFlutterFavorite);
+      expect(query.toSearchLink(page: 2),
+          '/packages?q=is%3Aflutter-favorite&page=2');
     });
 
     test('publisher: example.com', () {

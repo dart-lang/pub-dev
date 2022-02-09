@@ -8,12 +8,13 @@ import 'dart:math' as math;
 import 'package:clock/clock.dart';
 import 'package:http/http.dart';
 import 'package:pub_dev/search/search_form.dart';
+import 'package:pub_dev/shared/tags.dart';
 
 final _client = Client();
 final _random = math.Random.secure();
 
 final _forms = <SearchForm>[
-  SearchForm(context: SearchContext.flutterFavorites()),
+  SearchForm(query: PackageTags.isFlutterFavorite),
   SearchForm(query: 'json'),
   SearchForm(context: SearchContext.dart(), currentPage: 2),
   SearchForm(context: SearchContext.flutter(), currentPage: 5),
