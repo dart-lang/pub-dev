@@ -11,7 +11,6 @@ import '../../../static_files.dart';
 /// Renders the package listing.
 d.Node packageListingNode({
   required SearchForm searchForm,
-  required d.Node? subSdkButtons,
   required d.Node listingInfo,
   required d.Node packageList,
   required d.Node? pagination,

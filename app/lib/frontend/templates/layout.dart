@@ -9,7 +9,6 @@ import '../../search/search_form.dart';
 import '../../search/search_service.dart';
 import '../../service/announcement/backend.dart';
 import '../../shared/configuration.dart';
-import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
 import '../dom/dom.dart' as d;
@@ -104,15 +103,12 @@ d.Node _renderSearchBanner({
   required String? publisherId,
   required SearchForm? searchForm,
 }) {
-  final sdk = searchForm?.context.sdk ?? SdkTagValue.any;
   final queryText = searchForm?.query;
-  bool includePreferencesAsHiddenFields = false;
   String? searchPlaceholder;
   if (publisherId != null) {
     searchPlaceholder ??= 'Search $publisherId packages';
   } else {
-    searchPlaceholder ??= getSdkDict(sdk).searchPackagesLabel;
-    includePreferencesAsHiddenFields = true;
+    searchPlaceholder ??= getSdkDict(null).searchPackagesLabel;
   }
   String searchFormUrl;
   if (publisherId != null) {
@@ -128,9 +124,6 @@ d.Node _renderSearchBanner({
   final searchSort = searchForm?.order == null
       ? null
       : serializeSearchOrder(searchForm!.order);
-  final hiddenInputs = includePreferencesAsHiddenFields
-      ? (searchForm ?? SearchForm()).hiddenFields()
-      : null;
   return searchBannerNode(
     // When search is active (query text has a non-empty value) users may expect
     // to scroll through the results via keyboard. We should only autofocus the
@@ -141,10 +134,6 @@ d.Node _renderSearchBanner({
     placeholder: searchPlaceholder,
     queryText: queryText,
     sortParam: searchSort,
-    includeDiscontinued: searchForm?.includeDiscontinued ?? false,
-    includeUnlisted: searchForm?.includeUnlisted ?? false,
-    includeNullSafe: searchForm?.nullSafe ?? false,
-    hiddenInputs: hiddenInputs,
     hasActive: searchForm?.hasActiveNonQuery ?? false,
   );
 }

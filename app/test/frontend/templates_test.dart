@@ -457,10 +457,7 @@ void main() {
       processJobsWithFakeRunners: true,
       fn: () async {
         registerRequestContext(RequestContext(isExperimental: true));
-        final searchForm = SearchForm(
-          query: 'sdk:dart',
-          includeUnlisted: true,
-        );
+        final searchForm = SearchForm(query: 'sdk:dart');
         final oxygen = (await scoreCardBackend.getPackageView('oxygen'))!;
         final titanium =
             (await scoreCardBackend.getPackageView('flutter_titanium'))!;
