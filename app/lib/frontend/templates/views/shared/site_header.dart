@@ -139,8 +139,8 @@ d.Node _userBlock(UserSessionData userSession) {
                   image: d.Image(
                     src: userSession.imageUrl ?? '',
                     alt: 'Profile Image',
-                    width: 96,
-                    height: 96,
+                    width: 30,
+                    height: 30,
                   ),
                 ),
                 d.div(

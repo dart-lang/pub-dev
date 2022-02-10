@@ -35,8 +35,8 @@ final _helpPublishingMarkdown = _readDocContent('help-publishing.md');
 late final _sideImage = d.Image(
   src: static_files.staticUrls.packagesSideImage,
   alt: 'cover image decorating the page',
-  width: 1035,
-  height: 1035,
+  width: 400,
+  height: 400,
 );
 
 /// Renders the response where the real content is only provided for logged-in users.
