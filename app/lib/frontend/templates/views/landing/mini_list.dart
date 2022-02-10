@@ -56,6 +56,8 @@ d.Node _footer(String sectionTag, PackageView p) {
                 src: staticUrls
                     .getAssetUrl('/static/img/verified-publisher-gray.svg'),
                 alt: 'verified publisher badge',
+                width: 16,
+                height: 16,
               ),
               title: 'Published by a pub.dev verified publisher',
             ),

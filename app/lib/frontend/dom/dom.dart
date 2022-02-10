@@ -409,8 +409,8 @@ class Image {
   Image({
     required this.src,
     required this.alt,
-    this.width,
-    this.height,
+    required this.width,
+    required this.height,
   });
 }
 

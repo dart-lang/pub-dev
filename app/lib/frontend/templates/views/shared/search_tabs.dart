@@ -38,6 +38,8 @@ d.Node searchTabsNode(Iterable<SearchTab> tabs) {
               image: d.Image(
                 src: staticUrls.getAssetUrl('/static/img/checkmark-icon.svg'),
                 alt: 'icon with a checkmark - indicating active status',
+                width: 16,
+                height: 16,
               ),
             ),
           d.text(tab.text),

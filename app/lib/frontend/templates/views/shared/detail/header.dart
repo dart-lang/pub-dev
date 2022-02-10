@@ -40,6 +40,8 @@ d.Node detailHeaderNode({
                     src: staticUrls
                         .getAssetUrl('/static/img/ff-banner-desktop-2x.png'),
                     alt: 'large Flutter Favorite logo',
+                    width: 150,
+                    height: 218,
                   ),
                 ),
                 d.img(
@@ -49,6 +51,8 @@ d.Node detailHeaderNode({
                     src: staticUrls
                         .getAssetUrl('/static/img/ff-banner-mobile-2x.png'),
                     alt: 'small Flutter Favorite logo',
+                    width: 94,
+                    height: 116,
                   ),
                 ),
               ],

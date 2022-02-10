@@ -107,6 +107,8 @@ d.Node _section(ReportSection section) {
                 image: d.Image(
                   src: _statusIconUrls[section.status]!,
                   alt: 'icon indicating section status',
+                  width: 18,
+                  height: 18,
                 ),
               ),
             ),
@@ -131,6 +133,8 @@ d.Node _section(ReportSection section) {
                     src: staticUrls
                         .getAssetUrl('/static/img/report-foldable-icon.svg'),
                     alt: 'icon to trigger folding of the section',
+                    width: 13,
+                    height: 6,
                   ),
                 ),
               ],

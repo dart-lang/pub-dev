@@ -245,6 +245,8 @@ d.Node _filterSection({
               src: staticUrls
                   .getAssetUrl('/static/img/search-form-foldable-icon.svg'),
               alt: 'fold toggle icon (up/down arrow)',
+              width: 13,
+              height: 6,
             ),
           ),
         ],

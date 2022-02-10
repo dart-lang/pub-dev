@@ -53,6 +53,8 @@ d.Node versionRowNode(String package, VersionInfo version, Pubspec pubspec) {
             image: d.Image(
               src: staticUrls.documentationIcon,
               alt: 'Go to the documentation of $package ${version.version}',
+              width: 24,
+              height: 24,
             ),
             attributes: {
               'data-failed-icon': staticUrls.documentationFailedIcon,
@@ -71,6 +73,8 @@ d.Node versionRowNode(String package, VersionInfo version, Pubspec pubspec) {
             image: d.Image(
               src: staticUrls.downloadIcon,
               alt: 'Download $package ${version.version} archive',
+              width: 24,
+              height: 24,
             ),
           ),
         ),
