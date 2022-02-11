@@ -85,10 +85,17 @@ complaints and review them in the order that they are received.
 
 ## Content policy
 Pub.dev is intended to enable developers to share Dart packages with other developers.
-Thus, these packages are expected to contain Dart source code, assets (images, audio files, etc.)
+Thus, these packages must contain Dart source code, assets (images, audio files, etc.)
 directly related to the main function of this source code, and possibly,
 additional source code in other programming languages with which the Dart code interfaces.
-Any other content is not allowed on pub.dev, and may be subject to moderation at
+
+All content published to pub.dev must comply with the [Google Terms of Service][google-terms].
+This includes — but is not limited to — the following terms: Don’t abuse, harm, interfere with,
+or disrupt the services — for example, by accessing or using them in fraudulent or deceptive ways,
+introducing malware, or spamming, hacking, or bypassing our systems or protective measures.
+
+Any content that doesn't follow the pub.dev policy, including the Google Terms of Service,
+is not allowed on pub.dev, and may be subject to moderation at
 the discretion of the pub.dev moderators, up to and including unpublishing of a package.
 
 ## Copyright policy
