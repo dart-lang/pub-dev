@@ -96,7 +96,7 @@ void main() {
       );
       expect(
         tryOverride(content),
-        '# overrides applied by pub.dev\n'
+        '# Compatibility rewrites applied by pub.dev\n'
         'name: mocktail\n'
         'version: 1.3.5\n'
         'environment:\n'

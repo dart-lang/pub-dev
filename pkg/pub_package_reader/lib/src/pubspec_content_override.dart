@@ -134,7 +134,11 @@ String _fixupBrokenVersionAndConstraints(String pubspecYaml) {
         .join(' ');
     if (updated != c.value) {
       try {
-        VersionConstraint.parse(updated);
+        if (c.isVersion) {
+          Version.parse(updated);
+        } else {
+          VersionConstraint.parse(updated);
+        }
       } on FormatException catch (e, st) {
         _logger.shout('Failed to fix broken version in package:$name', e, st);
         return pubspecYaml;
@@ -176,14 +180,19 @@ String _fixupBrokenVersionAndConstraints(String pubspecYaml) {
         'Updating pubspec.yaml in package:$name failed while fixing versions.');
   }
 
-  return '# overrides applied by pub.dev\n$fixedPubspecYaml';
+  return '# Compatibility rewrites applied by pub.dev\n$fixedPubspecYaml';
 }
 
 class _VersionEditCandidate {
   final List<Object> path;
   final String value;
+  final bool isVersion;
 
-  _VersionEditCandidate(this.path, this.value);
+  _VersionEditCandidate(
+    this.path,
+    this.value, {
+    this.isVersion = false,
+  });
 }
 
 List<_VersionEditCandidate> _detectVersionEditCandidates(Map root) {
@@ -191,7 +200,7 @@ List<_VersionEditCandidate> _detectVersionEditCandidates(Map root) {
 
   final version = root['version'];
   if (version is String) {
-    paths.add(_VersionEditCandidate(['version'], version));
+    paths.add(_VersionEditCandidate(['version'], version, isVersion: true));
   }
 
   final env = root['environment'];
