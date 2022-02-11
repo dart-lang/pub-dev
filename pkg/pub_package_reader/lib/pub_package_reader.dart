@@ -237,6 +237,7 @@ Future<PackageSummary> summarizePackageArchive(
   issues.addAll(validatePackageName(pubspec.name));
   issues.addAll(validatePackageVersion(pubspec.version));
   issues.addAll(validatePublishTo(pubspec.publishTo));
+  issues.addAll(validateDescription(pubspec.description));
   issues.addAll(validateZalgo('description', pubspec.description));
   issues.addAll(syntaxCheckUrl(pubspec.homepage, 'homepage'));
   issues.addAll(syntaxCheckUrl(pubspec.repository?.toString(), 'repository'));
@@ -315,6 +316,55 @@ Iterable<ArchiveIssue> validatePackageVersion(Version? version) sync* {
 Iterable<ArchiveIssue> validatePublishTo(String? value) sync* {
   if (value != null) {
     yield ArchiveIssue('Invalid `publish_to` value: `$value`.');
+  }
+}
+
+final _descriptionsInKnownTemplates = {
+  // ex-stagehand templates, check latest versions in dart-lang/sdk's
+  // pkg/dartdev/lib/src/templates/ directory:
+  'a sample command-line application',
+  'a simple command-line application',
+  'a starting point for dart libraries or applications',
+  'a web server built using the shelf package',
+  'a web app that uses angulardart components',
+  'an absolute bare-bones web app',
+  'a simple stagexl web app',
+  // Flutter templates, check latest version in flutter/flutter's
+  // packages/flutter_tools/lib/src/commands/create.dart directory:
+  'a new flutter module project',
+  'a new flutter package project',
+  'a new flutter plugin project',
+  'a new flutter ffi plugin project',
+};
+
+/// Validates the `description` field in the `pubspec.yaml`.
+Iterable<ArchiveIssue> validateDescription(String? description) sync* {
+  if (description == null) {
+    yield ArchiveIssue('Missing `description`.');
+    return;
+  }
+  final trimmed = description.trim();
+  if (trimmed.isEmpty) {
+    yield ArchiveIssue('No content in `description`.');
+    return;
+  }
+  if (description.length > 512) {
+    yield ArchiveIssue(
+        '`description` is too long, maximum length allowed: 512 characters.');
+  }
+  if (description.split(' ').any((part) => part.length > 64)) {
+    yield ArchiveIssue(
+        '`description` uses too long phrases, maximum world length allowed: 64 characters.');
+  }
+  final lower = trimmed.toLowerCase();
+  for (final text in _descriptionsInKnownTemplates) {
+    if (lower.contains(text)) {
+      yield ArchiveIssue(
+          '`description` contains a generic text fragment coming from package templates (`$text`).\n'
+          'Please follow the guides to describe your package:\n'
+          'https://dart.dev/tools/pub/pubspec#description');
+      break;
+    }
   }
 }
 

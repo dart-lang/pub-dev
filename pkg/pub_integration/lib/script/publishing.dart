@@ -46,7 +46,7 @@ class PublishingScript {
   Future<void> verify() async {
     await _queryVersions();
     _temp = await Directory.systemTemp.createTemp('pub-integration');
-    final dart = await DartToolClient.create(
+    final dart = await DartToolClient.withServer(
       pubHostedUrl: pubHostedUrl,
       credentialsFileContent: credentialsFileContent,
     );
