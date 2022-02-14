@@ -313,4 +313,23 @@ Iterable<String> _generateConflictingNames(String name) sync* {
   if (reduced.endsWith('s') && reduced.length >= 4) {
     yield reduced.substring(0, reduced.length - 1);
   }
+  for (final pair in _homoglyphPairs) {
+    if (reduced.contains(pair[0])) {
+      yield reduced.replaceAll(pair[0], pair[1]);
+    }
+    if (reduced.contains(pair[1])) {
+      yield reduced.replaceAll(pair[1], pair[0]);
+    }
+  }
 }
+
+/// Homoglyphs are characters with different meanings, that look similar/identical to each other.
+/// These pairs - depending on the font being used - may be rendered similarly.
+const _homoglyphPairs = [
+  ['1', 'l'],
+  ['a', 'ci'],
+  ['d', 'cl'],
+  ['g', 'cj'],
+  ['m', 'rn'],
+  ['w', 'vv'],
+];

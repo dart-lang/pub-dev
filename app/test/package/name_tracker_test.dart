@@ -48,6 +48,27 @@ void main() {
     });
   });
 
+  group('m vs rn', () {
+    final nameTracker = NameTracker(null);
+    nameTracker.add(TrackedPackage.simple('morning'));
+
+    test('morning', () async {
+      expect(await nameTracker.accept('moming'), 'morning');
+      expect(await nameTracker.accept('rnoming'), 'morning');
+      expect(await nameTracker.accept('rnorning'), 'morning');
+    });
+  });
+
+  group('vv vs w', () {
+    final nameTracker = NameTracker(null);
+    nameTracker.add(TrackedPackage.simple('webb'));
+
+    test('morning', () async {
+      expect(await nameTracker.accept('vvebb'), 'webb');
+      expect(await nameTracker.accept('vvvebb'), isNull);
+    });
+  });
+
   group('time and version', () {
     test('earlier time does not override the entry', () {
       final nameTracker = NameTracker(null);
