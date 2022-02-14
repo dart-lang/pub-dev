@@ -70,12 +70,6 @@ class PubResourceProvider implements ResourceProvider {
   Folder getFolder(String path) => _defaultProvider.getFolder(path);
 
   @override
-  Future<List<int>> getModificationTimes(List<Source> sources) async {
-    // ignore: deprecated_member_use
-    return _defaultProvider.getModificationTimes(sources);
-  }
-
-  @override
   Resource getResource(String path) => _defaultProvider.getResource(path);
 
   @override
@@ -93,7 +87,7 @@ class _File implements File {
   _File(this._provider, this._delegate);
 
   @override
-  Stream<WatchEvent> get changes => _delegate.changes;
+  Stream<WatchEvent> get changes => _delegate.watch().changes;
 
   @override
   File copyTo(Folder parentFolder) => _delegate.copyTo(parentFolder);
@@ -115,9 +109,6 @@ class _File implements File {
 
   @override
   int get modificationStamp => _delegate.modificationStamp;
-
-  @override
-  Folder get parent => _delegate.parent2;
 
   @override
   Folder get parent2 => _delegate.parent2;
@@ -145,6 +136,9 @@ class _File implements File {
 
   @override
   Uri toUri() => _delegate.toUri();
+
+  @override
+  ResourceWatcher watch() => _delegate.watch();
 
   @override
   void writeAsBytesSync(List<int> bytes) {
