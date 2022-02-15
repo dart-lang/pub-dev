@@ -212,22 +212,13 @@ class ScoreCardBackend {
         scoreCard.updated = clock.now().toUtc();
       }
 
-      scoreCard.flags.clear();
-      if (package.isDiscontinued) {
-        scoreCard.addFlag(PackageFlags.isDiscontinued);
-      }
-      if (status.isLatestStable) {
-        scoreCard.addFlag(PackageFlags.isLatestStable);
-      }
-      if (status.isLegacy) {
-        scoreCard.addFlag(PackageFlags.isLegacy);
-      }
-      if (status.isObsolete) {
-        scoreCard.addFlag(PackageFlags.isObsolete);
-      }
-      if (version.pubspec!.usesFlutter) {
-        scoreCard.addFlag(PackageFlags.usesFlutter);
-      }
+      scoreCard.flags = [
+        if (package.isDiscontinued) PackageFlags.isDiscontinued,
+        if (status.isLatestStable) PackageFlags.isLatestStable,
+        if (status.isLegacy) PackageFlags.isLegacy,
+        if (status.isObsolete) PackageFlags.isObsolete,
+        if (version.pubspec!.usesFlutter) PackageFlags.usesFlutter,
+      ];
 
       scoreCard.popularityScore = popularityStorage.lookup(packageName);
 

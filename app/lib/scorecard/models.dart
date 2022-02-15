@@ -137,16 +137,6 @@ class ScoreCard extends db.ExpandoModel<String> {
 
   Version get semanticRuntimeVersion => Version.parse(runtimeVersion!);
 
-  void addFlag(String flag) {
-    if (!flags.contains(flag)) {
-      flags.add(flag);
-    }
-  }
-
-  void removeFlag(String flag) {
-    flags.remove(flag);
-  }
-
   void updateReports({
     PanaReport? panaReport,
     DartdocReport? dartdocReport,
@@ -167,7 +157,7 @@ class ScoreCard extends db.ExpandoModel<String> {
       if (panaReport != null) ReportType.pana,
       if (dartdocReport != null) ReportType.dartdoc,
     ];
-    panaReport?.flags?.forEach(addFlag);
+    flags = [...?panaReport?.flags];
     final report =
         joinReport(panaReport: panaReport, dartdocReport: dartdocReport);
     grantedPubPoints = report?.grantedPoints ?? 0;
