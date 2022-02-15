@@ -157,7 +157,10 @@ class ScoreCard extends db.ExpandoModel<String> {
       if (panaReport != null) ReportType.pana,
       if (dartdocReport != null) ReportType.dartdoc,
     ];
-    flags = [...?panaReport?.flags];
+    flags = {
+      ...flags,
+      ...?panaReport?.flags,
+    }.toList();
     final report =
         joinReport(panaReport: panaReport, dartdocReport: dartdocReport);
     grantedPubPoints = report?.grantedPoints ?? 0;
