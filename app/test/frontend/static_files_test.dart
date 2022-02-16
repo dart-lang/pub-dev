@@ -42,7 +42,7 @@ void main() {
     test('pubapi.client.dart', () async {
       final f1 = File('lib/frontend/handlers/pubapi.client.dart');
       final c1 = await f1.readAsString();
-      final f2 = File('../pkg/web_app/lib/src/pubapi.client.dart');
+      final f2 = File('../pkg/web_app/lib/src/api_client/pubapi.client.dart');
       final c2 = await f2.readAsString();
       expect(c2, c1);
     });
@@ -102,6 +102,14 @@ void main() {
           '/static/js/script.dart.js.map',
           '/static/material/material-components-web.min.css.map',
         ])
+        // script parts are served, but not referenced
+        ..removeWhere(
+          (e) =>
+              e.startsWith('/static/js/script.dart.js_') &&
+              (e.endsWith('.part.js') || e.endsWith('.part.js.map')),
+        )
+        // material build parts may be present in local dev environment
+        ..removeWhere((e) => e.startsWith('/static/material/node_modules/'))
         // files that are in the third-party directory but not essential to serving
         ..removeAll([
           '/static/css/github-markdown.css-license.txt',
@@ -137,6 +145,15 @@ void main() {
         }
       }
       expect(requestPaths, <String>{});
+    });
+
+    // This test loosely tracks the size of the main script.dart.js file,
+    // in order to catch sudden jumps in compiled size. When this breaks,
+    // update the size, and verify if the amount of change is reasonable.
+    test('script.dart.js size check', () {
+      final file = cache.getFile('/static/js/script.dart.js');
+      expect(file, isNotNull);
+      expect((file!.bytes.length / 1024).round(), closeTo(338, 1));
     });
   });
 }

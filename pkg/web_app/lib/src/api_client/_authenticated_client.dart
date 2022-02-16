@@ -2,23 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:http/browser_client.dart';
-import 'package:http/http.dart';
+import 'dart:async';
+import 'dart:html';
+
+import 'package:http/browser_client.dart' as browser_client;
+import 'package:http/http.dart' as http;
 
 /// Creates an authenticated [Client] that calls [getToken] to obtain an
 /// bearer-token to use in the `Authorization: Bearer <token>` header.
-Client createAuthenticatedClient(Future<String?> Function() getToken) {
+http.Client createAuthenticatedClient(Future<String?> Function() getToken) {
   return _AuthenticatedClient(getToken);
 }
 
 /// An [Client] which sends a `Bearer` token as `Authorization` header for each request.
-class _AuthenticatedClient extends BrowserClient {
+class _AuthenticatedClient extends browser_client.BrowserClient {
   final Future<String?> Function() _getToken;
-  final _client = BrowserClient();
+  final _client = browser_client.BrowserClient();
   _AuthenticatedClient(this._getToken);
 
   @override
-  Future<StreamedResponse> send(BaseRequest request) async {
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
     final token = await _getToken();
     // Make new request object and perform the authenticated request.
     final modifiedRequest =
@@ -41,7 +44,7 @@ class _AuthenticatedClient extends BrowserClient {
   }
 }
 
-class _RequestImpl extends BaseRequest {
+class _RequestImpl extends http.BaseRequest {
   final Stream<List<int>> _stream;
 
   _RequestImpl(String method, Uri url, [Stream<List<int>>? stream])
@@ -49,8 +52,8 @@ class _RequestImpl extends BaseRequest {
         super(method, url);
 
   @override
-  ByteStream finalize() {
+  http.ByteStream finalize() {
     super.finalize();
-    return ByteStream(_stream);
+    return http.ByteStream(_stream);
   }
 }
