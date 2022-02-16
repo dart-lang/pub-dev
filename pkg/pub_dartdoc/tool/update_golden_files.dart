@@ -21,8 +21,18 @@ Future<void> main() async {
     }
     await _extractTarGz(Stream.fromIterable([rs.bodyBytes]), tempDir.path);
 
+    // need to run pub get first
+    final pr1 = await Process.run(
+      'dart',
+      ['pub', 'get'],
+      workingDirectory: tempDir.path,
+    );
+    if (pr1.exitCode != 0) {
+      throw AssertionError('Non-zero exit code: ${pr1.stdout}\n${pr1.stderr}');
+    }
+
     // generate
-    final pr = await Process.run(
+    final pr2 = await Process.run(
       'dart',
       [
         'bin/pub_dartdoc.dart',
@@ -34,8 +44,8 @@ Future<void> main() async {
         p.join(tempDir.path, 'doc', 'api'),
       ],
     );
-    if (pr.exitCode != 0) {
-      throw AssertionError('Non-zero exit code: ${pr.stdout}\n${pr.stderr}');
+    if (pr2.exitCode != 0) {
+      throw AssertionError('Non-zero exit code: ${pr2.stdout}\n${pr2.stderr}');
     }
 
     // copy
