@@ -1,3 +1,9 @@
+// Include third-party CSS into a single output file
+// to reduce the number of HTTP requests.
+@use '../../../third_party/highlight/github.css';
+@use '../../../third_party/css/github-markdown.css';
+
+// Local styles and rules.
 @import 'src/_variables';
 @import 'src/_base';
 @import 'src/_site_header';
