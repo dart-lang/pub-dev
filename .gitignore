@@ -17,6 +17,7 @@ build/
 /static/js/script.dart.js
 /static/js/script.dart.js.info.json
 /static/js/script.dart.js.map
+/static/js/script.dart.js_*
 
 # Or local files with secrets
 key.json
