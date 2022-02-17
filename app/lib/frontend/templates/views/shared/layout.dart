@@ -107,16 +107,6 @@ d.Node pageLayoutNode({
             d.link(
               rel: 'stylesheet',
               type: 'text/css',
-              href: staticUrls.getAssetUrl('/static/highlight/github.css'),
-            ),
-            d.link(
-              rel: 'stylesheet',
-              type: 'text/css',
-              href: staticUrls.getAssetUrl('/static/css/github-markdown.css'),
-            ),
-            d.link(
-              rel: 'stylesheet',
-              type: 'text/css',
               href: staticUrls.getAssetUrl('/static/css/style.css'),
             ),
             d.script(

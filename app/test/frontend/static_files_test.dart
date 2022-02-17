@@ -109,6 +109,11 @@ void main() {
           '/static/material/package-lock.json',
           '/static/material/package.json',
           '/static/material/README.md',
+        ])
+        // third-party CSS files that are included in the style.scss are no longer referenced elsewhere
+        ..removeAll([
+          '/static/css/github-markdown.css',
+          '/static/highlight/github.css',
         ]);
 
       expect(requestPaths, hasLength(greaterThan(50)));
