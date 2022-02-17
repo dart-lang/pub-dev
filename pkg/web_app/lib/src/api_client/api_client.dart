@@ -4,7 +4,7 @@
 
 import 'dart:html';
 
-import 'package:http/browser_client.dart' as browser_client;
+import 'package:http/http.dart' as http;
 
 import '../_authentication_proxy.dart';
 import '_authenticated_client.dart';
@@ -23,7 +23,7 @@ String get _baseUrl {
 
 /// The pub API client to use without credentials.
 PubApiClient get unauthenticatedClient =>
-    PubApiClient(_baseUrl, client: browser_client.BrowserClient());
+    PubApiClient(_baseUrl, client: http.Client());
 
 /// The pub API client to use with account credentials.
 PubApiClient get client {
