@@ -136,6 +136,26 @@ d.Node pageLayoutNode({
             ),
             if (pageDataEncoded != null)
               d.meta(name: 'pub-page-data', content: pageDataEncoded),
+            if (isLanding) ...[
+              d.link(
+                rel: 'preload',
+                href: staticUrls.getAssetUrl('/static/img/hero-bg-static.svg'),
+                as: 'image',
+              ),
+              d.link(
+                rel: 'preload',
+                href:
+                    staticUrls.getAssetUrl('/static/img/square-bg-full-2x.png'),
+                as: 'image',
+              ),
+            ],
+            if (includeHighlightJs)
+              d.link(
+                rel: 'preload',
+                href: staticUrls
+                    .getAssetUrl('/static/highlight/highlight-with-init.js'),
+                as: 'script',
+              ),
           ],
         ),
         d.element(
