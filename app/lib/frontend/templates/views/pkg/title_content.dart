@@ -23,6 +23,8 @@ d.Node titleContentNode({
           image: d.Image(
             src: staticUrls.getAssetUrl('/static/img/content-copy-icon.svg'),
             alt: 'icon indicating copy to clipboard operation',
+            width: 18,
+            height: 18,
           ),
           title: 'Copy "$package: ^$version" to clipboard',
         ),

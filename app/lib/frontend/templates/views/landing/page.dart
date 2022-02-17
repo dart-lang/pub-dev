@@ -35,6 +35,8 @@ d.Node landingPageNode({
         image: d.Image(
           src: staticUrls.getAssetUrl('/static/img/landing-01.png'),
           alt: 'decoration image for package section',
+          width: 351,
+          height: 240,
         ),
         title: 'Most popular packages',
         info: d
@@ -49,6 +51,8 @@ d.Node landingPageNode({
         image: d.Image(
           src: staticUrls.getAssetUrl('/static/img/landing-02.png'),
           alt: 'decoration image for package section',
+          width: 306,
+          height: 240,
         ),
         imageGoesAfterContent: true,
         title: 'Top Flutter packages',
@@ -64,6 +68,8 @@ d.Node landingPageNode({
         image: d.Image(
           src: staticUrls.getAssetUrl('/static/img/landing-03.png'),
           alt: 'decoration image for package section',
+          width: 370,
+          height: 240,
         ),
         title: 'Top Dart packages',
         info: d

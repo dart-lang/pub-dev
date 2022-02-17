@@ -92,6 +92,8 @@ d.Node _publisher(String? publisherId) {
                   src: staticUrls
                       .getAssetUrl('/static/img/verified-publisher-blue.svg'),
                   alt: 'shield icon for verified publishers',
+                  width: 15,
+                  height: 15,
                 ),
               ),
               d.text(publisherId),

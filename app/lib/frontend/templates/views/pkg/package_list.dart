@@ -103,6 +103,8 @@ d.Node _packageItem(PackageView view) {
             src: staticUrls
                 .getAssetUrl('/static/img/verified-publisher-icon.svg'),
             alt: 'shield icon for verified publishers',
+            width: 14,
+            height: 14,
           ),
           title: 'Published by a pub.dev verified publisher',
         ),
@@ -166,6 +168,8 @@ d.Node _item({
                     src:
                         staticUrls.getAssetUrl('/static/img/schedule-icon.svg'),
                     alt: 'icon indicating recent time',
+                    width: 10,
+                    height: 10,
                   ),
                   title: 'new package',
                 ),
