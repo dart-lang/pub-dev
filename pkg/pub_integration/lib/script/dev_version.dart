@@ -27,7 +27,7 @@ class DevVersionScript {
 
   /// Publish and verify dev and stable versions.
   Future<void> verify(bool stableFirst) async {
-    _pubToolClient = await DartToolClient.create(
+    _pubToolClient = await DartToolClient.withServer(
         pubHostedUrl: pubHostedUrl,
         credentialsFileContent: credentialsFileContent);
     _temp = await Directory.systemTemp.createTemp();

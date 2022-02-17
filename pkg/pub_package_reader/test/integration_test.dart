@@ -36,6 +36,7 @@ void main() {
           'pubspec.yaml': '''
 name: mypkg
 version: 1.0.0
+description: mypkg is awesome
 environment:
   sdk: '>=2.10.0 <3.0.0'
 ''',
@@ -52,6 +53,7 @@ environment:
           'pubspec.yaml': '''
 name: foo
 version: &v 1.0.0
+description: foo is awesome
 dev_dependencies:
   bar: *v
 ''',
@@ -73,6 +75,7 @@ dev_dependencies:
           'pubspec.yaml': '''
 name: foo
 version: 1.0,0
+description: foo is awesome
 environment:
   sdk: ^2.14,0
 dependencies:

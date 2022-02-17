@@ -76,6 +76,45 @@ void main() {
     });
   });
 
+  group('description', () {
+    test('missing', () {
+      expect(validateDescription(null), isNotEmpty);
+    });
+
+    test('empty', () {
+      expect(validateDescription(''), isNotEmpty);
+    });
+
+    test('only spaces', () {
+      expect(validateDescription('  '), isNotEmpty);
+    });
+
+    test('too long overall', () {
+      expect(validateDescription('a ' * 500), isNotEmpty);
+    });
+
+    test('too long words', () {
+      expect(validateDescription('a' * 100), isNotEmpty);
+    });
+
+    test('known template', () {
+      expect(validateDescription('A sample command-line application.'),
+          isNotEmpty);
+    });
+
+    test('known template with some extra text', () {
+      expect(validateDescription('A sample command-line application by xyz.'),
+          isNotEmpty);
+    });
+
+    test('valid text', () {
+      expect(
+          validateDescription(
+              'Evaluate the health and quality of a Dart package'),
+          isEmpty);
+    });
+  });
+
   group('Zalgo text', () {
     test('allows CJK', () {
       expect(
