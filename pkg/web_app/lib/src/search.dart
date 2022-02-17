@@ -15,7 +15,6 @@ void setupSearch() {
   _setEventsForSearchForm();
   _setEventForFiltersToggle();
   _setEventForSortControl();
-  _setEventForCheckboxChanges();
 }
 
 void _setEventForKeyboardShortcut() {
@@ -205,28 +204,4 @@ void _updateSortField(String? value) {
 
   // TODO: instead of submitting, compose the URL here (also removing the single `?`)
   queryText.form!.submit();
-}
-
-void _setEventForCheckboxChanges() {
-  _setEventForHiddenCheckboxField(
-      '-search-unlisted-field', '-search-unlisted-checkbox');
-  _setEventForHiddenCheckboxField(
-      '-search-discontinued-field', '-search-discontinued-checkbox');
-  _setEventForHiddenCheckboxField(
-      '-search-null-safe-field', '-search-null-safe-checkbox');
-}
-
-void _setEventForHiddenCheckboxField(
-    String hiddenFieldId, String visibleCheckboxId) {
-  final hiddenField = document.getElementById(hiddenFieldId) as InputElement?;
-  final visibleCheckbox =
-      document.getElementById(visibleCheckboxId) as CheckboxInputElement?;
-  if (hiddenField != null && visibleCheckbox != null) {
-    final formElement = hiddenField.form;
-    visibleCheckbox.onChange.listen((_) {
-      hiddenField.disabled = !(visibleCheckbox.checked!);
-      // TODO: instead of submitting, compose the URL here (also removing the single `?`)
-      formElement!.submit();
-    });
-  }
 }

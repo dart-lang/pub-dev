@@ -182,15 +182,11 @@ String publisherActivityLogUrl(String publisherId) =>
 
 String searchUrl({
   SearchContext? context,
-  List<String> runtimes = const <String>[],
-  List<String> platforms = const <String>[],
   String? q,
   int? page,
 }) {
   final query = SearchForm(
     context: context,
-    runtimes: runtimes,
-    platforms: platforms,
     query: q,
   );
   return query.toSearchLink(page: page);

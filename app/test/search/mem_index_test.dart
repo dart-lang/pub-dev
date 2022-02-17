@@ -283,12 +283,11 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       });
     });
 
-    test('order by updated: runtime filter', () async {
+    test('order by update with sdk filter', () async {
       final result = await index.search(
         SearchForm(
-          context: SearchContext.dart(),
+          query: 'sdk:dart runtime:native-jit',
           order: SearchOrder.updated,
-          runtimes: ['native'],
         ).toServiceQuery(),
       );
       expect(json.decode(json.encode(result)), {

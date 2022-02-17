@@ -119,10 +119,10 @@ void main() {
     });
 
     test('platform: flutter', () {
-      final query = SearchForm(context: SearchContext.flutter());
+      final query = SearchForm(query: SdkTag.sdkFlutter);
       expect(query.parsedQuery.text, isNull);
       expect(query.parsedQuery.packagePrefix, isNull);
-      expect(query.toSearchLink(), '/flutter/packages');
+      expect(query.toSearchLink(), '/packages?q=sdk%3Aflutter');
     });
 
     test('Flutter favorites', () {
@@ -160,63 +160,6 @@ void main() {
       expect(query.parsedQuery.packagePrefix, 'angular');
       expect(query.toSearchLink(),
           '/packages?q=package%3Aangular+widget&sort=top');
-    });
-  });
-
-  group('old SDK queries', () {
-    test('sdk:flutter context & platform:android', () {
-      final query = SearchForm.parse(
-        SearchContext.flutter(),
-        {'platform': 'android'},
-      );
-      expect(
-        query.toServiceQuery().tagsPredicate.toQueryParameters().toSet(),
-        {
-          '-is:discontinued',
-          '-is:unlisted',
-          '-is:legacy',
-          'sdk:flutter',
-          'platform:android',
-        },
-      );
-      expect(query.toSearchLink(), '/flutter/packages?platform=android');
-    });
-
-    test('sdk:flutter context & platform:android & platform:ios', () {
-      final query = SearchForm.parse(
-        SearchContext.flutter(),
-        Uri.parse('/flutter/packages?platform=android++ios').queryParameters,
-      );
-      expect(
-        query.toServiceQuery().tagsPredicate.toQueryParameters().toSet(),
-        {
-          '-is:discontinued',
-          '-is:unlisted',
-          '-is:legacy',
-          'sdk:flutter',
-          'platform:android',
-          'platform:ios',
-        },
-      );
-      expect(query.toSearchLink(), '/flutter/packages?platform=android+ios');
-    });
-
-    test('sdk:dart context & runtime:web', () {
-      final query = SearchForm.parse(
-        SearchContext.dart(),
-        Uri.parse('/dart/packages?runtime=web').queryParameters,
-      );
-      expect(
-        query.toServiceQuery().tagsPredicate.toQueryParameters().toSet(),
-        {
-          '-is:discontinued',
-          '-is:unlisted',
-          '-is:legacy',
-          'sdk:dart',
-          'runtime:web',
-        },
-      );
-      expect(query.toSearchLink(), '/dart/packages?runtime=js');
     });
   });
 }

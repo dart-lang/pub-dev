@@ -16,8 +16,8 @@ final _random = math.Random.secure();
 final _forms = <SearchForm>[
   SearchForm(query: PackageTags.isFlutterFavorite),
   SearchForm(query: 'json'),
-  SearchForm(context: SearchContext.dart(), currentPage: 2),
-  SearchForm(context: SearchContext.flutter(), currentPage: 5),
+  SearchForm(query: SdkTag.sdkDart, currentPage: 2),
+  SearchForm(query: SdkTag.sdkFlutter, currentPage: 5),
   SearchForm(order: SearchOrder.created),
   SearchForm(order: SearchOrder.updated, currentPage: 3),
 ];

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pub_dev/search/search_form.dart';
 import 'package:pub_dev/shared/urls.dart';
 import 'package:test/test.dart';
 
@@ -189,92 +188,6 @@ void main() {
     test('sdk:*', () {
       expect(searchUrl(), '/packages');
       expect(searchUrl(q: 'abc'), '/packages?q=abc');
-    });
-
-    test('sdk:dart', () {
-      expect(searchUrl(context: SearchContext.dart()), '/dart/packages');
-      expect(searchUrl(context: SearchContext.dart(), q: 'abc'),
-          '/dart/packages?q=abc');
-    });
-
-    test('sdk:dart runtime:native', () {
-      expect(
-        searchUrl(context: SearchContext.dart(), runtimes: ['native']),
-        '/dart/packages?runtime=native',
-      );
-      final form =
-          SearchForm(runtimes: ['native'], context: SearchContext.all());
-      expect(form.runtimes, ['native-jit']);
-      expect(
-        form.toServiceQuery().tagsPredicate.toQueryParameters(),
-        ['runtime:native-jit'],
-      );
-    });
-
-    test('sdk:dart runtime:native-jit', () {
-      expect(
-        searchUrl(context: SearchContext.dart(), runtimes: ['native-jit']),
-        '/dart/packages?runtime=native',
-      );
-      final form =
-          SearchForm(runtimes: ['native-jit'], context: SearchContext.all());
-      expect(form.runtimes, ['native-jit']);
-      expect(
-        form.toServiceQuery().tagsPredicate.toQueryParameters(),
-        ['runtime:native-jit'],
-      );
-    });
-
-    test('sdk:dart runtime:web', () {
-      expect(
-        searchUrl(context: SearchContext.dart(), runtimes: ['web']),
-        '/dart/packages?runtime=js',
-      );
-      final form = SearchForm(runtimes: ['web'], context: SearchContext.all());
-      expect(form.runtimes, ['web']);
-      expect(
-        form.toServiceQuery().tagsPredicate.toQueryParameters(),
-        ['runtime:web'],
-      );
-    });
-
-    test('sdk:dart runtime:js', () {
-      expect(
-        searchUrl(context: SearchContext.dart(), runtimes: ['js']),
-        '/dart/packages?runtime=js',
-      );
-      final form = SearchForm(runtimes: ['js'], context: SearchContext.all());
-      expect(form.runtimes, ['web']);
-      expect(
-        form.toServiceQuery().tagsPredicate.toQueryParameters(),
-        ['runtime:web'],
-      );
-    });
-
-    test('sdk:dart runtime:xxy', () {
-      expect(
-        searchUrl(context: SearchContext.dart(), runtimes: ['xxy']),
-        '/dart/packages?runtime=xxy',
-      );
-      final form = SearchForm(runtimes: ['xxy'], context: SearchContext.all());
-      expect(form.runtimes, ['xxy']);
-      expect(
-        form.toServiceQuery().tagsPredicate.toQueryParameters(),
-        ['runtime:xxy'],
-      );
-    });
-
-    test('sdk:flutter', () {
-      expect(searchUrl(context: SearchContext.flutter()), '/flutter/packages');
-      expect(searchUrl(context: SearchContext.flutter(), q: 'abc'),
-          '/flutter/packages?q=abc');
-    });
-
-    test('sdk:flutter platform:android+ios', () {
-      expect(
-          searchUrl(
-              context: SearchContext.flutter(), platforms: ['android', 'ios']),
-          '/flutter/packages?platform=android+ios');
     });
   });
 
