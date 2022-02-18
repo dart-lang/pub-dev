@@ -148,8 +148,8 @@ bool isNotModified(
 extension RequestExt on shelf.Request {
   /// Returns true if the current request declares that it accepts the [encoding].
   ///
-  /// NOTE: the method does not parses the header, only checks whether the String
-  ///       value is present (or everything is accepted).
+  /// NOTE: the method does not parses the header, only checks whether the [encoding]
+  ///       String is present (or everything is accepted).
   bool acceptsEncoding(String encoding) {
     final accepting = headers[HttpHeaders.acceptEncodingHeader];
     if (accepting == null || accepting.isEmpty) {
@@ -159,4 +159,10 @@ extension RequestExt on shelf.Request {
         accepting.split(',').map((p) => p.split(';').first.trim()).toSet();
     return items.contains(encoding);
   }
+
+  /// Returns true if the current request declares that it accepts the `gzip` encoding.
+  ///
+  /// NOTE: the method does not parses the header, only checks whether the `gzip`
+  ///       String is present (or everything is accepted).
+  bool acceptsGzipEncoding() => acceptsEncoding('gzip');
 }

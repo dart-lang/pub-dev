@@ -92,7 +92,7 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
       HttpHeaders.etagHeader: info.etag,
     };
     if (info.blobId != null) {
-      final sendGzip = request.acceptsEncoding('gzip');
+      final sendGzip = request.acceptsGzipEncoding();
       final content = dartdocBackend.readFromBlob(entry, info);
       return shelf.Response(
         HttpStatus.ok,
