@@ -7,16 +7,9 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart' as yaml;
 import 'package:yaml_edit/yaml_edit.dart';
 
-final _logger = Logger('pubspec_yaml_override');
+import 'pub_semver_2.1.0_parser.dart';
 
-/// The version regular expression that accepted any character as separator.
-final _lenientRegExp = RegExp(r'^' // Start at beginning.
-    r'(\^|<[=]?|>[=]?)?' // Range operators.
-    r'(\d+).(\d+).(\d+)' // Version number.
-    r'(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?' // Pre-release.
-    r'(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?' // Build.
-    r'$' // Scan the entire String.
-    );
+final _logger = Logger('pubspec_yaml_override');
 
 /// Packages with bad versions as detected by
 /// https://github.com/dart-lang/pub_semver/pull/63
@@ -112,39 +105,37 @@ String _fixupBrokenVersionAndConstraints(String pubspecYaml) {
   final editor = YamlEditor(pubspecYaml);
   var hasBeenUpdated = false;
   for (final c in _detectVersionEditCandidates(root)) {
-    final updated = c.value
-        // Version constraints may have more than one version expression, separated by space.
-        // TODO: consider replacing all whitespaces to spaces.
-        .split(' ')
-        // Each part of that expression may be mapped by the matcher only full,
-        // otherwise no replacement will be applied.
-        .map((part) => part.replaceFirstMapped(_lenientRegExp, (match) {
-              final range = match[1] ?? '';
-              final major = int.parse(match[2]!);
-              final minor = int.parse(match[3]!);
-              final patch = int.parse(match[4]!);
-              final pre = match[6];
-              final build = match[9];
-              final versionStr =
-                  Version(major, minor, patch, pre: pre, build: build)
-                      .toString();
-              return '$range$versionStr';
-            }))
-        // Joining the parts by the same separator character.
-        .join(' ');
-    if (updated != c.value) {
-      try {
-        if (c.isVersion) {
-          Version.parse(updated);
-        } else {
-          VersionConstraint.parse(updated);
+    try {
+      if (c.isVersion) {
+        final v = parsePossiblyBrokenVersion(c.value);
+        final updated = v.toString();
+        if (updated == c.value) continue;
+        // sanity check
+        if (Version.parse(updated).toString() != updated) {
+          throw FormatException(
+              'Sanity check failed on version: `${c.value}`.');
         }
-      } on FormatException catch (e, st) {
-        _logger.shout('Failed to fix broken version in package:$name', e, st);
-        return pubspecYaml;
+        // do update
+        editor.update(c.path, updated);
+        hasBeenUpdated = true;
+      } else {
+        final vc = parsePossiblyBrokenVersionConstraint(c.value);
+        final updated = vc.toString();
+        if (updated == c.value) continue;
+        // sanity check
+        if (VersionConstraint.parse(updated).toString() != updated) {
+          throw FormatException(
+              'Sanity check failed on version constraint: `${c.value}`.');
+        }
+        // do update
+        editor.update(c.path, updated);
+        hasBeenUpdated = true;
       }
-      editor.update(c.path, updated);
-      hasBeenUpdated = true;
+    } on FormatException catch (e, st) {
+      print(e);
+      print(st);
+      _logger.shout('Failed to fix broken version in package:$name', e, st);
+      return pubspecYaml;
     }
   }
   if (!hasBeenUpdated) {
