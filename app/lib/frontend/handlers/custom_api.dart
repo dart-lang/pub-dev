@@ -25,6 +25,8 @@ import '../../shared/redis_cache.dart' show cache;
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart' show jsonUtf8Encoder;
 
+import 'headers.dart';
+
 /// Handles requests for /api/documentation/<package>
 Future<shelf.Response> apiDocumentationHandler(
     shelf.Request request, String package) async {
@@ -112,7 +114,7 @@ Future<shelf.Response> apiPackageNameCompletionDataHandler(
   return shelf.Response(200, body: bytes, headers: {
     ...jsonResponseHeaders,
     'Content-Encoding': 'gzip',
-    'Cache-Control': 'public, max-age=28800', // 8 hours caching
+    ...CacheHeaders.packageNameCompletion(),
   });
 }
 

@@ -20,6 +20,7 @@ import '../../shared/urls.dart';
 import '../../shared/utils.dart' show contentType;
 
 import '../templates/misc.dart';
+import 'headers.dart';
 
 /// Handles requests for:
 ///   - /documentation/<package>/<version>
@@ -86,8 +87,7 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
     }
     final headers = {
       HttpHeaders.contentTypeHeader: contentType(docFilePath.path!),
-      HttpHeaders.cacheControlHeader:
-          'private, max-age=${staticShortCache.inSeconds}',
+      ...CacheHeaders.dartdocAsset(),
       HttpHeaders.lastModifiedHeader: formatHttpDate(info.lastModified),
       HttpHeaders.etagHeader: info.etag,
     };
