@@ -153,7 +153,7 @@ void main() {
     test('script.dart.js size check', () {
       final file = cache.getFile('/static/js/script.dart.js');
       expect(file, isNotNull);
-      expect((file!.bytes.length / 1024).round(), closeTo(338, 1));
+      expect((file!.bytes.length / 1024).round(), closeTo(337, 1));
     });
   });
 }
