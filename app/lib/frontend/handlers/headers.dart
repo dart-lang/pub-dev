@@ -4,6 +4,8 @@
 
 // TODO: move other header helpers into this library
 
+import 'dart:io';
+
 import '../../account/backend.dart';
 
 /// Represents cache-control settings for an asset category.
@@ -11,29 +13,25 @@ class CacheHeaders {
   /// The maximum age while a response may be cached.
   final Duration maxAge;
 
-  /// The default cache storage category.
-  /// `public` by default
-  final String storage;
-
-  /// The cache storage category used for signed-in users.
-  /// `private by default
-  final String signedInStorage;
-
-  CacheHeaders._(
-    this.maxAge, {
-    this.storage = 'public',
-    this.signedInStorage = 'private',
-  });
+  CacheHeaders._(this.maxAge);
 
   Map<String, String> call() {
     final isSignedin = userSessionData != null;
     return <String, String>{
-      'Cache-Control': <String>[
-        isSignedin ? signedInStorage : storage,
-        'max-age=${maxAge.inSeconds}',
+      HttpHeaders.cacheControlHeader: <String>[
+        isSignedin ? 'private' : 'public',
+        if (maxAge > Duration.zero) 'max-age=${maxAge.inSeconds}',
       ].join(', '),
     };
   }
+
+  /// Returns true if the current [headers] contain any cache-control header.
+  static bool hasCacheHeader(Map<String, String> headers) {
+    return headers.containsKey(HttpHeaders.cacheControlHeader);
+  }
+
+  /// Default private-only caching.
+  static final private = CacheHeaders._(Duration.zero);
 
   /// Everything under the /documentation/ endpoint.
   static final dartdocAsset = CacheHeaders._(Duration(minutes: 15));

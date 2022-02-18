@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_dev/frontend/handlers/headers.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:stack_trace/stack_trace.dart';
@@ -272,7 +273,16 @@ shelf.Handler _userSessionWrapper(Logger logger, shelf.Handler handler) {
         registerUserSessionData(sessionData);
       }
     }
-    return await handler(request);
+    shelf.Response rs = await handler(request);
+    if (userSessionData != null && !CacheHeaders.hasCacheHeader(rs.headers)) {
+      // Indicates that the response is intended for a single user and must not
+      // be stored by a shared cache. A private cache may store the response.
+      rs = rs.change(headers: {
+        ...rs.headers,
+        ...CacheHeaders.private(),
+      });
+    }
+    return rs;
   };
 }
 
