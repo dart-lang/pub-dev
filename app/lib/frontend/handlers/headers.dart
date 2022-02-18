@@ -13,13 +13,20 @@ class CacheHeaders {
   /// The maximum age while a response may be cached.
   final Duration maxAge;
 
-  CacheHeaders._(this.maxAge);
+  /// The cache storage category used for signed-in users.
+  /// `private` by default.
+  final String? signedInStorage;
+
+  CacheHeaders._(
+    this.maxAge, {
+    this.signedInStorage,
+  });
 
   Map<String, String> call() {
     final isSignedin = userSessionData != null;
     return <String, String>{
       HttpHeaders.cacheControlHeader: <String>[
-        isSignedin ? 'private' : 'public',
+        isSignedin ? (signedInStorage ?? 'private') : 'public',
         if (maxAge > Duration.zero) 'max-age=${maxAge.inSeconds}',
       ].join(', '),
     };
@@ -41,5 +48,8 @@ class CacheHeaders {
   static final packageNameCompletion = CacheHeaders._(Duration(hours: 8));
 
   /// Everything under the /static/ endpoint.
-  static final staticAsset = CacheHeaders._(Duration(days: 7));
+  static final staticAsset = CacheHeaders._(
+    Duration(days: 7),
+    signedInStorage: 'public',
+  );
 }
