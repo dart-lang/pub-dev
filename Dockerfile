@@ -1,12 +1,8 @@
 # Keep version in-sync with .mono_repo.yml and app/lib/shared/versions.dart
-FROM google/dart-runtime-base:2.16.1
-
-# `apt-mark hold dart` ensures that Dart is not upgraded with the other packages
-#   We want to make sure SDK upgrades are explicit.
+FROM dart:2.16.1
 
 # After install we remove the apt-index again to keep the docker image diff small.
-RUN apt-mark hold dart &&\
-  apt-get update && \
+RUN apt-get update && \
   apt-get upgrade -y && \
   apt-get install -y git unzip && \
   rm -rf /var/lib/apt/lists/*
@@ -46,4 +42,4 @@ RUN /project/tool/setup-flutter.sh /tool/preview 2.10.1
 
 # Clear out any arguments the base images might have set
 CMD []
-ENTRYPOINT /usr/bin/dart bin/server.dart "$GAE_SERVICE"
+ENTRYPOINT /usr/lib/dart/bin/dart bin/server.dart "$GAE_SERVICE"
