@@ -180,9 +180,6 @@ abstract class FlagMixin {
       flags != null && flags!.contains(PackageFlags.isObsolete);
 
   bool get isSkipped => isDiscontinued || isLegacy || isObsolete;
-
-  bool get usesFlutter =>
-      flags != null && flags!.contains(PackageFlags.usesFlutter);
 }
 
 @JsonSerializable()

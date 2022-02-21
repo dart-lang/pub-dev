@@ -391,6 +391,7 @@ Tab _scoreTab(PackagePageData data) {
     contentNode: scoreTabNode(
       card: data.scoreCard,
       likeCount: data.package!.likes,
+      usesFlutter: data.version!.pubspec!.usesFlutter,
     ),
   );
 }

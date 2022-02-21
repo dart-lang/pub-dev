@@ -360,7 +360,8 @@ void main() {
 
     scopedTest('no content for analysis tab', () async {
       // no content
-      expect(scoreTabNode(card: null, likeCount: 4).toString(),
+      expect(
+          scoreTabNode(card: null, likeCount: 4, usesFlutter: false).toString(),
           '<i>Awaiting analysis to complete.</i>');
     });
 
@@ -380,7 +381,11 @@ void main() {
           urlProblems: null,
         ),
       );
-      final html = scoreTabNode(card: card, likeCount: 1000000).toString();
+      final html = scoreTabNode(
+        card: card,
+        likeCount: 1000000,
+        usesFlutter: false,
+      ).toString();
 
       expectGoldenFile(
         html,
@@ -396,7 +401,11 @@ void main() {
         flags: [PackageFlags.isObsolete],
         updated: DateTime(2017, 12, 18, 14, 26, 00),
       );
-      final String html = scoreTabNode(card: card, likeCount: 1111).toString();
+      final String html = scoreTabNode(
+        card: card,
+        likeCount: 1111,
+        usesFlutter: false,
+      ).toString();
       expectGoldenFile(html, 'analysis_tab_outdated.html', isFragment: true);
     });
 
