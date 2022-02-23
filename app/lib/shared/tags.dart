@@ -9,6 +9,7 @@
 /// or an error should be returned to the caller.
 const allowedTagPrefixes = [
   'is:',
+  'license:',
   'platform:',
   'runtime:',
   'sdk:',
