@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
@@ -15,6 +16,7 @@ import 'src/archive_surface.dart';
 import 'src/check_platforms.dart';
 import 'src/file_names.dart';
 import 'src/names.dart';
+import 'src/pubspec_content_override.dart';
 import 'src/tar_utils.dart';
 import 'src/yaml_utils.dart';
 
@@ -79,6 +81,16 @@ Future<PackageSummary> summarizePackageArchive(
   /// The maximum number of files in the archive.
   /// TODO: set this lower once we scan the existing archives
   int maxFileCount = 64 * 1024,
+
+  /// [DateTime] when the archive was uploaded / published.
+  ///
+  /// Used to ensure that constraints in place when a package was published
+  /// are considered when summarizing assets. Ensuring we preserve
+  /// backwards-compatibility with packages that does not satisfy constraints
+  /// enforced at publish-time today.
+  ///
+  /// Defaults to [DateTime.now], if not specified.
+  DateTime? published,
 }) async {
   final issues = <ArchiveIssue>[];
 
@@ -119,7 +131,10 @@ Future<PackageSummary> summarizePackageArchive(
     return PackageSummary(issues: issues);
   }
 
-  final pubspecContent = await tar.readContentAsString(pubspecPath);
+  final pubspecContent = overridePubspecYamlIfNeeded(
+    pubspecYaml: await tar.readContentAsString(pubspecPath),
+    published: published ?? clock.now().toUtc(),
+  );
   // Large pubspec content should be rejected, as either a storage limit will be
   // limiting it, or it will slow down queries and processing for very little
   // reason.
