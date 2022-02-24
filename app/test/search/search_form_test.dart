@@ -103,6 +103,14 @@ void main() {
       );
     });
 
+    test('query with license tag', () {
+      final form = SearchForm(query: 'license:gpl some framework');
+      expect(form.toSearchLink(), '/packages?q=license%3Agpl+some+framework');
+      expect(form.parsedQuery.text, 'some framework');
+      expect(
+          form.parsedQuery.tagsPredicate.toQueryParameters(), ['license:gpl']);
+    });
+
     test('query-based unlisted', () {
       expect(
         SearchForm(query: 'is:unlisted')
