@@ -24,8 +24,8 @@ d.Node scoreTabNode({
   final showPending = !card.isSkipped && report == null;
   final showReport = !card.isSkipped && report != null;
 
-  final toolEnvInfo = _renderToolEnvInfoNode(
-      card.panaReport?.panaRuntimeInfo, usesFlutter);
+  final toolEnvInfo =
+      _renderToolEnvInfoNode(card.panaReport?.panaRuntimeInfo, usesFlutter);
   return d.fragment([
     d.div(
       classes: ['score-key-figures'],
