@@ -7,7 +7,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded preview Dart analysis SDK to `2.17.0-85.0.dev`.
  * Upgraded stable Flutter analysis SDK to `2.10.2`.
  * Upgraded preview Flutter analysis SDK to `2.11.0-0.1.pre`.
- * Upgraded dartdoc to `5.0.0`.
+ * Upgraded dartdoc to `5.0.1`.
+ * NOTE: override invalid versions at package extraction + backfill.
 
 ## `20220209t173000-all`
  * Bumped runtimeVersion to `2022.02.09`.

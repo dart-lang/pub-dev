@@ -8,7 +8,7 @@ dependencies:
   pub_dartdoc_data:
     path: ../pub_dartdoc_data
   # dartdoc version to be pinned, keep in-sync with app/lib/shared/versions.dart
-  dartdoc: 5.0.0
+  dartdoc: 5.0.1
 
 dev_dependencies:
   http: ^0.13.0
