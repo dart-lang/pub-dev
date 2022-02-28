@@ -11,7 +11,6 @@ dependencies:
     path: ../api_builder
   collection: ^1.0.0
   http: ^0.13.0
-  intl: ^0.17.0
   js: ^0.6.1
   markdown: ^4.0.0
   mdc_web: ^0.6.0
