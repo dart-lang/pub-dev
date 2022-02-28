@@ -20,6 +20,8 @@ import '../request_context.dart';
 import '../static_files.dart';
 import '../templates/misc.dart';
 
+import 'headers.dart';
+
 /// Handles requests for /help
 Future<shelf.Response> helpPageHandler(shelf.Request request) async {
   return htmlResponse(renderHelpPage());
@@ -147,11 +149,9 @@ Future<shelf.Response> staticsHandler(shelf.Request request) async {
       HttpHeaders.contentLengthHeader: staticFile.bytes.length.toString(),
       HttpHeaders.lastModifiedHeader: formatHttpDate(staticFile.lastModified),
       HttpHeaders.etagHeader: staticFile.etag,
+      if (hash != null && hash.isNotEmpty && hash == staticFile.etag)
+        ...CacheHeaders.staticAsset(),
     };
-    if (hash != null && hash.isNotEmpty && hash == staticFile.etag) {
-      headers[HttpHeaders.cacheControlHeader] =
-          'private, max-age=${staticLongCache.inSeconds}';
-    }
     return shelf.Response.ok(staticFile.bytes, headers: headers);
   }
   return notFoundHandler(request);

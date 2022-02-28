@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_dev/frontend/handlers/headers.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:stack_trace/stack_trace.dart';
@@ -273,23 +274,13 @@ shelf.Handler _userSessionWrapper(Logger logger, shelf.Handler handler) {
       }
     }
     shelf.Response rs = await handler(request);
-    if (userSessionData != null) {
-      // Responses for a user session are intended for a single user and must not
-      // be stored by a shared, public cache. A private cache may store the response.
-      //
-      // - replacing `public` to `private`
-      // - otherwise, keeping parameters, e.g. max-age
-      final original = rs.headers[HttpHeaders.cacheControlHeader] ?? '';
-      final parts = original
-          .split(',')
-          .map((e) => e.trim())
-          .where((e) => e.isNotEmpty)
-          .map((e) => e == 'public' ? 'private' : e)
-          .toList();
-      if (parts.isNotEmpty) {
-        final newValue = parts.join(', ');
-        rs = rs.change(headers: {HttpHeaders.cacheControlHeader: newValue});
-      }
+    if (userSessionData != null && !CacheHeaders.hasCacheHeader(rs.headers)) {
+      // Indicates that the response is intended for a single user and must not
+      // be stored by a shared cache. A private cache may store the response.
+      rs = rs.change(headers: {
+        ...rs.headers,
+        ...CacheHeaders.private(),
+      });
     }
     return rs;
   };

@@ -20,14 +20,6 @@ import 'versions.dart';
 const String default400BadRequest = '400 Bad Request';
 const String default404NotFound = '404 Not Found';
 
-/// The default age a browser would take hold of the static files before
-/// checking with the server for a newer version.
-const staticShortCache = Duration(minutes: 5);
-
-/// The age the browser should cache the static file if there is a hash provided
-/// and it matches the etag.
-const staticLongCache = Duration(days: 7);
-
 /// The default header values for JSON responses.
 const jsonResponseHeaders = <String, String>{
   'content-type': 'application/json; charset="utf-8"',
