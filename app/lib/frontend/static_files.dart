@@ -189,6 +189,8 @@ class StaticFile {
 
   late final String cacheableUrl =
       Uri(path: requestPath, queryParameters: {'hash': etag}).toString();
+
+  late final gzippedBytes = GZipCodec(level: 9).encode(bytes);
 }
 
 class StaticUrls {

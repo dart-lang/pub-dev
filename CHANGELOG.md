@@ -9,6 +9,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded preview Flutter analysis SDK to `2.11.0-0.1.pre`.
  * Upgraded dartdoc to `5.0.1`.
  * NOTE: override invalid versions at package extraction + backfill.
+ * NOTE: `/static/` files are served with gzipped bytes when the request accepts it.
 
 ## `20220209t173000-all`
  * Bumped runtimeVersion to `2022.02.09`.

@@ -143,16 +143,20 @@ Future<shelf.Response> staticsHandler(shelf.Request request) async {
     if (isNotModified(request, staticFile.lastModified, staticFile.etag)) {
       return shelf.Response.notModified();
     }
+    final acceptsGzipEncoding = request.acceptsGzipEncoding();
+    final bytes =
+        acceptsGzipEncoding ? staticFile.gzippedBytes : staticFile.bytes;
     final String? hash = request.requestedUri.queryParameters['hash'];
     final headers = <String, String>{
+      if (acceptsGzipEncoding) HttpHeaders.contentEncodingHeader: 'gzip',
       HttpHeaders.contentTypeHeader: staticFile.contentType,
-      HttpHeaders.contentLengthHeader: staticFile.bytes.length.toString(),
+      HttpHeaders.contentLengthHeader: bytes.length.toString(),
       HttpHeaders.lastModifiedHeader: formatHttpDate(staticFile.lastModified),
       HttpHeaders.etagHeader: staticFile.etag,
       if (hash != null && hash.isNotEmpty && hash == staticFile.etag)
         ...CacheHeaders.staticAsset(),
     };
-    return shelf.Response.ok(staticFile.bytes, headers: headers);
+    return shelf.Response.ok(bytes, headers: headers);
   }
   return notFoundHandler(request);
 }
