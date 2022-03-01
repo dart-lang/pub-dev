@@ -85,6 +85,16 @@ class Like extends db.ExpandoModel<String> {
   /// Same as [id]. This is added to enable filtering on queries.
   @db.StringProperty()
   String? packageName;
+
+  /// Returns a new [Like] object with a new parent.
+  /// Should be used only for merging users.
+  Like changeParentUser(db.Key newParentKey) {
+    return Like()
+      ..parentKey = newParentKey
+      ..id = package
+      ..created = created
+      ..packageName = packageName;
+  }
 }
 
 /// The cacheable version of [Like].
