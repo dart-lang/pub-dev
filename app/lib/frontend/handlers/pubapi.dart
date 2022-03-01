@@ -412,6 +412,13 @@ class PubApi {
   // **** Admin API
   // ****
 
+  @EndPoint.post('/api/admin/tools/<tool>/<args|[^]*>')
+  Future<Response> adminExecuteTool(
+      Request request, String tool, String args) async {
+    final parsedArgs = request.requestedUri.pathSegments.skip(4).toList();
+    return Response.ok(await adminBackend.executeTool(tool, parsedArgs));
+  }
+
   @EndPoint.get('/api/admin/users')
   Future<AdminListUsersResponse> adminListUsers(
     Request request, {

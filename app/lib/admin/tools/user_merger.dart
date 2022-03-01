@@ -4,8 +4,8 @@
 
 import 'package:args/args.dart';
 
-import 'package:pub_dev/service/entrypoint/tools.dart';
 import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/user_merger.dart';
 
 final _argParser = ArgParser()
@@ -21,34 +21,31 @@ final _argParser = ArgParser()
 
 int? concurrency;
 
-Future main(List<String> args) async {
+Future<String> executeUserMergerTool(List<String> args) async {
   final argv = _argParser.parse(args);
   if (argv['help'] as bool) {
-    print('Usage: dart user_merger.dart --oauth-user-id <id>');
-    print(
-        'Usage: dart user_merger.dart --from-user-id <id> --to-user-id <other-id>');
-    print(_argParser.usage);
-    return;
+    return 'Usage: dart user_merger.dart --oauth-user-id <id>\n'
+        'Usage: dart user_merger.dart --from-user-id <id> --to-user-id <other-id>\n'
+        '${_argParser.usage}';
   }
 
   concurrency = int.parse(argv['concurrency'] as String);
   final oauthUserId = argv['oauth-user-id'] as String?;
   final fromUserId = argv['from-user-id'] as String?;
   final toUserId = argv['to-user-id'] as String?;
-
-  await withToolRuntime(() async {
-    final userMerger = UserMerger(db: dbService, concurrency: concurrency);
-    if (oauthUserId != null) {
-      if (fromUserId != null || toUserId != null) {
-        throw Exception('`from-user-id` or `to-user-id` must not be specified');
-      }
-      await userMerger.fixOAuthUserID(oauthUserId);
-    } else if (fromUserId != null && toUserId != null) {
-      await userMerger.mergeUser(fromUserId, toUserId);
-    } else if (fromUserId != null || toUserId != null) {
-      throw Exception('`from-user-id` and `to-user-id` must be used together');
-    } else {
-      await userMerger.fixAll();
-    }
-  });
+  final userMerger = UserMerger(db: dbService, concurrency: concurrency);
+  if (oauthUserId != null) {
+    InvalidInputException.checkNull(fromUserId, 'fromUserId');
+    InvalidInputException.checkNull(toUserId, 'toUserId');
+    await userMerger.fixOAuthUserID(oauthUserId);
+    return 'Fixed `oauthUderId`.';
+  } else if (fromUserId != null && toUserId != null) {
+    await userMerger.mergeUser(fromUserId, toUserId);
+    return 'Merged `$fromUserId` into `$toUserId`.';
+  } else {
+    InvalidInputException.checkNull(fromUserId, 'fromUserId');
+    InvalidInputException.checkNull(toUserId, 'toUserId');
+    final count = await userMerger.fixAll();
+    return 'Fixed $count `User` entities.';
+  }
 }
