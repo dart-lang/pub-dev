@@ -6,6 +6,7 @@ import 'package:clock/clock.dart';
 import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/shared/user_merger.dart';
@@ -132,5 +133,38 @@ void main() {
         ['user@pub.dev']);
     expect(await publisherBackend.getAdminMemberEmails('verified.com'),
         ['control@pub.dev']);
+  });
+
+  testWithProfile('like', fn: () async {
+    final user = await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+    final admin =
+        await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
+    await accountBackend.likePackage(admin, 'oxygen');
+    expect(
+        (await accountBackend.listPackageLikes(admin))
+            .map((e) => e.package)
+            .toList(),
+        ['oxygen']);
+    expect(await accountBackend.listPackageLikes(user), isEmpty);
+
+    await _corruptAndFix();
+
+    expect(await accountBackend.listPackageLikes(admin), isEmpty);
+    expect(
+        (await accountBackend.listPackageLikes(user))
+            .map((e) => e.package)
+            .toList(),
+        ['oxygen']);
+  });
+
+  testWithProfile('audit log record', fn: () async {
+    final user = await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+    final admin =
+        await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
+    await _corruptAndFix();
+    final adminRecords = await auditBackend.listRecordsForUserId(admin.userId);
+    expect(adminRecords.records, isEmpty);
+    final userRecords = await auditBackend.listRecordsForUserId(user.userId);
+    expect(userRecords.records, isNotEmpty);
   });
 }
