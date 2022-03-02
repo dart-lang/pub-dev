@@ -55,18 +55,20 @@ class SearchForm {
   /// we use in the search service backend.
   factory SearchForm.parse(
       SearchContext context, Map<String, String> queryParameters) {
-    return _parseFrontendSearchForm(context, queryParameters);
+    return SearchForm(
+      context: context,
+      query: queryParameters['q'] ?? '',
+      order: parseSearchOrder(queryParameters['sort']),
+      currentPage: extractPageFromUrlParameters(queryParameters),
+    );
   }
 
-  SearchForm _change({
-    String? query,
-    int? currentPage,
-  }) {
+  SearchForm _change({String? query}) {
     return SearchForm._(
       context: context,
       query: query ?? this.query,
       order: order,
-      currentPage: currentPage ?? this.currentPage,
+      currentPage: currentPage,
       pageSize: pageSize,
     );
   }
@@ -131,21 +133,15 @@ class SearchForm {
   /// re-create an identical search query object.
   String toSearchLink({int? page}) {
     page ??= currentPage;
-    final params = <String, dynamic>{};
-    if (query != null && query!.isNotEmpty) {
-      params['q'] = query;
-    }
-    if (order != null) {
-      final String paramName = 'sort';
-      params[paramName] = serializeSearchOrder(order);
-    }
-    if (page != null && page > 1) {
-      params['page'] = page.toString();
-    }
-    final uri = Uri(
-        path: context.toSearchFormPath(),
-        queryParameters: params.isEmpty ? null : params);
-    return uri.toString();
+    final params = <String, dynamic>{
+      if (query != null && query!.isNotEmpty) 'q': query,
+      if (order != null) 'sort': order!.name,
+      if (page != null && page > 1) 'page': page.toString(),
+    };
+    return Uri(
+      path: context.toSearchFormPath(),
+      queryParameters: params.isEmpty ? null : params,
+    ).toString();
   }
 }
 
@@ -164,9 +160,6 @@ class SearchContext {
     this.includeAll = false,
   }) : publisherId = _stringToNull(publisherId);
 
-  /// Include all packages, including discontinued, unlisted and legacy.
-  factory SearchContext.all() => SearchContext._(includeAll: true);
-
   /// Regular search, not displaying discontinued, unlisted or legacy packages.
   factory SearchContext.regular() => SearchContext._();
 
@@ -177,26 +170,11 @@ class SearchContext {
   /// Converts the query to a user-facing link that the search form can use as
   /// the base path of its `action` parameter.
   String toSearchFormPath() {
-    String path = '/packages';
     if (publisherId != null && publisherId!.isNotEmpty) {
-      path = '/publishers/$publisherId/packages';
+      return '/publishers/$publisherId/packages';
     }
-    return path;
+    return '/packages';
   }
-}
-
-SearchForm _parseFrontendSearchForm(
-    SearchContext context, Map<String, String> queryParameters) {
-  final currentPage = extractPageFromUrlParameters(queryParameters);
-  final String queryText = queryParameters['q'] ?? '';
-  final String? sortParam = queryParameters['sort'];
-  final SearchOrder? sortOrder = parseSearchOrder(sortParam);
-  return SearchForm(
-    context: context,
-    query: queryText,
-    order: sortOrder,
-    currentPage: currentPage,
-  );
 }
 
 String? _stringToNull(String? v) => (v == null || v.isEmpty) ? null : v;

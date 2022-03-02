@@ -6,7 +6,6 @@ import 'package:_pub_shared/data/page_data.dart';
 
 import '../../account/backend.dart' show userSessionData;
 import '../../search/search_form.dart';
-import '../../search/search_service.dart';
 import '../../service/announcement/backend.dart';
 import '../../shared/configuration.dart';
 import '../../shared/urls.dart' as urls;
@@ -121,9 +120,7 @@ d.Node _renderSearchBanner({
   } else {
     searchFormUrl = SearchForm().context.toSearchFormPath();
   }
-  final searchSort = searchForm?.order == null
-      ? null
-      : serializeSearchOrder(searchForm!.order);
+  final searchSort = searchForm?.order?.name;
   return searchBannerNode(
     // When search is active (query text has a non-empty value) users may expect
     // to scroll through the results via keyboard. We should only autofocus the

@@ -88,8 +88,7 @@ d.Node _searchFormContainer({
             sectionTag: 'sdks',
             label: 'SDKs',
             isActive: openSections.contains('sdks') ||
-                searchForm.parsedQuery.tagsPredicate
-                    .anyTag((t) => t.startsWith('sdk:')),
+                searchForm.parsedQuery.tagsPredicate.hasTagPrefix('sdk:'),
             children: [
               _sdkCheckbox(
                 sdk: SdkTagValue.dart,

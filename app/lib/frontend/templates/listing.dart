@@ -91,8 +91,8 @@ d.Node listingInfo({
 d.Node _renderSortControl(SearchForm form) {
   final isSearch = form.hasQuery;
   final options = getSortDicts(isSearch);
-  final sortValue = serializeSearchOrder(form.order) ??
-      (isSearch ? 'search_relevance' : 'listing_relevance');
+  final sortValue =
+      form.order?.name ?? (isSearch ? 'search_relevance' : 'listing_relevance');
   final selected = options.firstWhere(
     (o) => o.id == sortValue,
     orElse: () => options.first,
