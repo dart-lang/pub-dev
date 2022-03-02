@@ -394,6 +394,9 @@ class AdminId {
 
 /// Permission that can be granted to administrators.
 enum AdminPermission {
+  /// Permission to execute a tool.
+  executeTool,
+
   /// Permission to list all users.
   listUsers,
 

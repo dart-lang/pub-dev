@@ -22,6 +22,7 @@ admins:
 - oauthUserId: '111042304059633250784'
   email: istvan.soos@gmail.com
   permissions:
+  - executeTool
   - listUsers
   - manageAssignedTags
   - managePackageOwnership

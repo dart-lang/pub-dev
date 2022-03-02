@@ -4,6 +4,7 @@
 
 import 'package:pool/pool.dart';
 import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/shared/exceptions.dart';
 
 import '../account/models.dart';
 import '../audit/models.dart';
@@ -27,11 +28,12 @@ class UserMerger {
         _omitEmailCheck = omitEmailCheck ?? false;
 
   /// Fixes all OAuthUserID issues.
-  Future<void> fixAll() async {
+  Future<int> fixAll() async {
     final ids = await scanOauthUserIdsWithProblems();
     for (final id in ids) {
       await fixOAuthUserID(id);
     }
+    return ids.length;
   }
 
   /// Returns the OAuth userIds that have more than one User.
@@ -85,6 +87,20 @@ class UserMerger {
   /// Migrates data for User merge.
   Future<void> mergeUser(String fromUserId, String toUserId) async {
     print('Merging User: $fromUserId -> $toUserId');
+    final fromUserKey = _db.emptyKey.append(User, id: fromUserId);
+    final toUserKey = _db.emptyKey.append(User, id: toUserId);
+    final fromUser = await _db.lookupOrNull<User>(fromUserKey);
+    InvalidInputException.checkNotNull(fromUser, 'fromUser');
+    final toUser = await _db.lookupOrNull<User>(toUserKey);
+    InvalidInputException.checkNotNull(toUser, 'toUser');
+    final fromUserMapping = fromUser!.oauthUserId == null
+        ? null
+        : await _db.lookupOrNull<OAuthUserID>(
+            _db.emptyKey.append(OAuthUserID, id: fromUser.oauthUserId));
+    final toUserMapping = toUser!.oauthUserId == null
+        ? null
+        : await _db.lookupOrNull<OAuthUserID>(
+            _db.emptyKey.append(OAuthUserID, id: toUser.oauthUserId));
 
     // Package
     await _processConcurrently(
@@ -116,8 +132,6 @@ class UserMerger {
     );
 
     // Like
-    final fromUserKey = _db.emptyKey.append(User, id: fromUserId);
-    final toUserKey = _db.emptyKey.append(User, id: toUserId);
     await _processConcurrently(
       _db.query<Like>(ancestorKey: fromUserKey),
       (Like like) async {
@@ -203,7 +217,24 @@ class UserMerger {
       });
     });
 
-    await _db.commit(deletes: [fromUserKey]);
+    await withRetryTransaction(_db, (tx) async {
+      final u = await _db.lookupValue<User>(toUserKey);
+      if (toUser.created!.isAfter(fromUser.created!)) {
+        u.created = fromUser.created;
+      }
+      if (toUserMapping == null) {
+        u.oauthUserId = null;
+      }
+      if (fromUserMapping?.userId == toUserId) {
+        u.oauthUserId = fromUserMapping!.oauthUserId;
+      }
+      tx.insert(u);
+      tx.delete(fromUserKey);
+      if (fromUserMapping?.userId == fromUserId) {
+        tx.delete(fromUserMapping!.key);
+      }
+    });
+
     await purgeAccountCache(userId: fromUserId);
     await purgeAccountCache(userId: toUserId);
   }

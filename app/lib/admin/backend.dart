@@ -13,6 +13,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
+import 'package:pub_dev/admin/tools/user_merger.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/shared/email.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -67,9 +68,21 @@ class AdminBackend {
     return user;
   }
 
+  /// Executes a [tool] with the [args].
+  ///
+  /// NOTE: This method allows old command-line tools to be used via the
+  /// admin API, but it should only be used as a temporary measure.
+  /// Tools should be either removed or migrated to proper top-level API endpoints.
+  Future<String> executeTool(String tool, List<String> args) async {
+    await _requireAdminPermission(AdminPermission.executeTool);
+    switch (tool) {
+      case 'user-merger':
+        return await executeUserMergerTool(args);
+    }
+    throw NotAcceptableException('Invalid tool `$tool`.');
+  }
+
   /// List users.
-  ///
-  ///
   Future<api.AdminListUsersResponse> listUsers({
     String? email,
     String? oauthUserId,

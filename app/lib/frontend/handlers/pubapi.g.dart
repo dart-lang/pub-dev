@@ -677,6 +677,21 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
+  router.add('POST', r'/api/admin/tools/<tool>/<args|[^]*>',
+      (Request request, String tool, String args) async {
+    try {
+      final _$result = await service.adminExecuteTool(
+        request,
+        tool,
+        args,
+      );
+      return _$result;
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
   router.add('GET', r'/api/admin/users', (Request request) async {
     try {
       final _$result = await service.adminListUsers(

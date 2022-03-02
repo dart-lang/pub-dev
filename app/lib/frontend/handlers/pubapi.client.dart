@@ -375,6 +375,13 @@ class PubApiClient {
     );
   }
 
+  Future<List<int>> adminExecuteTool(String tool, String args) async {
+    return await _client.requestBytes(
+      verb: 'post',
+      path: '/api/admin/tools/$tool/$args',
+    );
+  }
+
   Future<_i6.AdminListUsersResponse> adminListUsers(
       {String? email, String? ouid, String? ct}) async {
     return _i6.AdminListUsersResponse.fromJson(await _client.requestJson(
