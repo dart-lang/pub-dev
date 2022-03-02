@@ -194,8 +194,6 @@ String searchUrl({
 
 String listingByPopularity() =>
     SearchForm(order: SearchOrder.popularity).toSearchLink();
-String listingFlutterPackages() => '/flutter/packages';
-String listingDartPackages() => '/dart/packages';
 
 String dartSdkMainUrl(String version) {
   final isDev = version.contains('dev');
