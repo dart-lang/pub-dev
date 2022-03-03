@@ -72,7 +72,7 @@ Future<BackfillStat> backfillPackageVersion({
   _logger.info(
       'Backfill PackageVersion[Pubspec|Info|Asset(s)] in: $package/$version');
   if (archive.hasIssues) {
-    _logger.warning('Issues were found in the archive: '
+    _logger.info('Issues were found in the archive: '
         '${archive.issues.map((e) => e.message).join('; ')}');
   }
   final derived = derivePackageVersionEntities(
