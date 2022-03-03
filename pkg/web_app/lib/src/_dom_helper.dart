@@ -5,8 +5,8 @@
 import 'dart:async';
 import 'dart:html';
 
-import 'package:markdown/markdown.dart' as md;
 import 'package:mdc_web/mdc_web.dart' show MDCDialog;
+import 'deferred/markdown.dart' deferred as md;
 
 /// Displays a message via the modal window.
 Future modalMessage(String title, Element content) async {
@@ -149,20 +149,9 @@ Element _buildDialog({
 Element text(String text) => Element.div()..text = text;
 
 /// Creates an [Element] with Markdown-formatted content.
-Element markdown(String text) => Element.div()
-  ..setInnerHtml(
-    md.markdownToHtml(text),
-    validator: NodeValidator(uriPolicy: _UnsafeUriPolicy()),
-  );
-
-/// Allows any [Uri].
-///
-/// This shouldn't be a problem as we only render HTML we trust.
-class _UnsafeUriPolicy implements UriPolicy {
-  @override
-  bool allowsUri(String uri) {
-    return true;
-  }
+Future<Element> markdown(String text) async {
+  await md.loadLibrary();
+  return md.markdown(text);
 }
 
 /// Get the value of the material dropdown's selected element

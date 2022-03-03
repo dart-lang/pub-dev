@@ -4,7 +4,7 @@
 
 import 'dart:html';
 
-import 'package:http/http.dart' as http;
+import 'package:http/http.dart' deferred as http;
 
 typedef PopStateFn = Function();
 
@@ -62,6 +62,7 @@ Future<void> updateBodyWithHttpGet({
   bool Function()? preupdateCheck,
 }) async {
   try {
+    await http.loadLibrary();
     final page = await http.get(requestUri).timeout(timeout);
     if (page.statusCode == 200) {
       if (preupdateCheck == null || preupdateCheck()) {

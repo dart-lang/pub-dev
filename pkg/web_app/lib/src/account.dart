@@ -58,7 +58,7 @@ void _signInNotAvailable() {
   document.getElementById('-account-login')?.onClick.listen((_) async {
     await modalMessage(
         'Sign in is not available',
-        markdown(
+        await markdown(
             '`pub.dev` uses third-party cookies and access to Google domains for accounts and sign in. '
             'Please enable third-party cookies and don\'t block content on `pub.dev`.'));
   });
