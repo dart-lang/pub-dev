@@ -7,7 +7,7 @@ import 'dart:html';
 import 'package:web_app/src/gtm_js.dart';
 
 import 'gtm_js.dart';
-import 'page_updater.dart';
+import 'page_updater.dart' deferred as page_updater;
 
 void setupSearch() {
   _setEventForKeyboardShortcut();
@@ -16,6 +16,10 @@ void setupSearch() {
   _setEventForFiltersToggle();
   _setEventForSortControl();
 }
+
+Future? _pageUpdaterLoading;
+Future _triggerDeferredPageUpdaterLoad() =>
+    _pageUpdaterLoading ??= page_updater.loadLibrary();
 
 void _setEventForKeyboardShortcut() {
   final inputElem = document.querySelector('input.site-header-search-input');
@@ -86,6 +90,7 @@ void _setEventsForSearchForm() {
     final checkbox = e.querySelector('input');
     final link = e.querySelector('a');
     if (checkbox != null && link != null) {
+      _triggerDeferredPageUpdaterLoad();
       final originalHrefUri = Uri.parse(link.getAttribute('href')!);
       Future<void> handleClick(Event event) async {
         event.preventDefault();
@@ -136,7 +141,8 @@ void _setEventsForSearchForm() {
         );
         lastTargetUri = newVisibleUri;
 
-        await updateBodyWithHttpGet(
+        await _triggerDeferredPageUpdaterLoad();
+        await page_updater.updateBodyWithHttpGet(
           requestUri: requestUri,
           navigationUrl: windowUri.resolveUri(newVisibleUri).toString(),
           preupdateCheck: () => lastTargetUri == newVisibleUri,
