@@ -19,7 +19,6 @@ import 'configuration.dart';
 import 'datastore.dart';
 import 'email.dart' show looksLikeEmail;
 import 'env_config.dart';
-import 'tags.dart' show allowedTagPrefixes;
 import 'urls.dart' as urls;
 import 'utils.dart' show canonicalizeVersion;
 
@@ -251,12 +250,6 @@ class IntegrityChecker {
       yield 'Package "${p.name}" has an `assignedTags` property which is not a list.';
     }
     final assignedTags = p.assignedTags ?? <String>[];
-    for (final tag in assignedTags) {
-      if (!allowedTagPrefixes.any(tag.startsWith)) {
-        yield 'Package "${p.name}" has assigned tag "$tag" in `assignedTags` '
-            'property, which is not allowed.';
-      }
-    }
     if (assignedTags.length != assignedTags.toSet().length) {
       yield 'Package "${p.name}" has an `assignedTags` property which contains duplicates.';
     }

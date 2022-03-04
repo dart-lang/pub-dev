@@ -34,7 +34,6 @@ import '../scorecard/models.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
 import '../shared/exceptions.dart';
-import '../shared/tags.dart';
 import '../tool/utils/dart_sdk_version.dart';
 
 final _logger = Logger('pub.admin.backend');
@@ -530,11 +529,6 @@ class AdminBackend {
   ) async {
     await _requireAdminPermission(AdminPermission.manageAssignedTags);
 
-    InvalidInputException.check(
-      body.assignedTagsAdded
-          .every((tag) => allowedTagPrefixes.any(tag.startsWith)),
-      'Only following tag-prefixes are allowed "${allowedTagPrefixes.join("\", ")}"',
-    );
     InvalidInputException.check(
       body.assignedTagsAdded
           .toSet()

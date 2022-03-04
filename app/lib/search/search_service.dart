@@ -26,11 +26,6 @@ const int maxPageLinks = 10;
 /// The maximum length of the search query's text phrase that we'll try to serve.
 const _maxQueryLength = 256;
 
-/// The tag prefixes that we can detect in the user-provided search query.
-final _detectedTagPrefixes = <String>{
-  ...allowedTagPrefixes.expand((s) => [s, '-$s', '+$s']),
-};
-
 /// Statistics about the index content.
 class IndexInfo {
   final bool isReady;
@@ -494,11 +489,10 @@ class ParsedQueryText {
       queryText = queryText.replaceFirst(_packageRegexp, ' ');
     }
 
-    List<String> extractRegExp(RegExp regExp, {bool Function(String?)? where}) {
+    List<String> extractRegExp(RegExp regExp) {
       final values = regExp
           .allMatches(queryText!)
           .map((Match m) => m.group(1))
-          .where((s) => where == null || where(s))
           .cast<String>()
           .toList();
       if (values.isNotEmpty) {
@@ -512,10 +506,7 @@ class ParsedQueryText {
     final allPublishers = extractRegExp(_publisherRegexp);
     final publisher = allPublishers.isEmpty ? null : allPublishers.first;
 
-    final tagValues = extractRegExp(
-      _tagRegExp,
-      where: (tag) => _detectedTagPrefixes.any((p) => tag!.startsWith(p)),
-    );
+    final tagValues = extractRegExp(_tagRegExp);
     final tagsPredicate = TagsPredicate.parseQueryValues(tagValues);
 
     queryText = queryText!.replaceAll(_whitespacesRegExp, ' ').trim();
