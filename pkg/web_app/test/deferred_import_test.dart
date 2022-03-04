@@ -16,13 +16,25 @@ void main() {
   // The test requires all recognized library imports to use `deferred as` library loading,
   // and it also requires to list all of the libraries that are loaded as deferred.
   test('deferred imports', () async {
-    final deferredLibraryParts = {
+    /// Maps the library name parts to the libraries that are allowed to import it
+    /// without using deferred (because e.g. they are already deferred).
+    final deferredLibraryParts = <String, List<String>>{
       // Everything in api_client/ should be imported with deferred,
       // however, files inside the directory can be imported synchronously,
       // as they doesn't contain the api_client/ directory path.
-      'api_client/',
-      'admin_pages.dart',
-      'package:intl/intl.dart',
+      'api_client/': [],
+      'admin_pages.dart': [],
+      'deferred/http.dart': [
+        'lib/src/api_client/api_client.dart',
+      ],
+      'deferred/markdown.dart': [],
+      'package:http/': [
+        'lib/src/api_client/pubapi.client.dart',
+        'lib/src/deferred/http.dart',
+      ],
+      'package:markdown/': [
+        'lib/src/deferred/markdown.dart',
+      ],
     };
 
     for (final file in files) {
@@ -30,10 +42,19 @@ void main() {
       final lines = content.split('\n');
       for (final line in lines) {
         if (line.contains('import') || line.contains('export')) {
-          final containsPart = deferredLibraryParts.any(line.contains);
           final containsDeferred = line.contains(' deferred as ');
-          expect(containsPart, containsDeferred,
-              reason: 'Import line pattern not recognized: $line');
+          var hasDefintion = false;
+          for (final key in deferredLibraryParts.keys.where(line.contains)) {
+            hasDefintion = true;
+            final containsFile = deferredLibraryParts[key]!.contains(file.path);
+            expect(containsFile, !containsDeferred,
+                reason:
+                    'Import line pattern not recognized: $line in ${file.path}.');
+          }
+          if (containsDeferred) {
+            expect(hasDefintion, isTrue,
+                reason: 'Unknown library from `$line` in ${file.path}');
+          }
         }
       }
     }

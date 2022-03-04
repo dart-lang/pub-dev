@@ -111,7 +111,7 @@ class _PkgAdminWidget {
         await api_client.client.invitePackageUploader(
             pageData.pkgData!.package, InviteUploaderRequest(email: email));
       },
-      successMessage: markdown('`$email` was invited.'),
+      successMessage: await markdown('`$email` was invited.'),
       onSuccess: (_) {
         _inviteUploaderInput!.value = '';
       },
@@ -121,13 +121,13 @@ class _PkgAdminWidget {
 
   Future<void> _removeUploader(String email) async {
     await api_client.rpc<void>(
-      confirmQuestion: markdown(
+      confirmQuestion: await markdown(
           'Are you sure you want to remove uploader `$email` from this package?'),
       fn: () async {
         await api_client.client
             .removeUploader(pageData.pkgData!.package, email);
       },
-      successMessage: markdown(
+      successMessage: await markdown(
           'Uploader `$email` removed from this package. The page will reload.'),
       onSuccess: (_) => window.location.reload(),
     );
@@ -208,7 +208,7 @@ class _PkgAdminWidget {
     }
 
     await api_client.rpc<void>(
-      confirmQuestion: markdown(
+      confirmQuestion: await markdown(
           'Are you sure you want to retract the package version `$version`?'),
       fn: () async {
         await api_client.client.setVersionOptions(pageData.pkgData!.package,
@@ -229,7 +229,7 @@ class _PkgAdminWidget {
     }
 
     await api_client.rpc<void>(
-      confirmQuestion: markdown(
+      confirmQuestion: await markdown(
           'Are you sure you want to restore package version `$version`?'),
       fn: () async {
         print('before setVersionOption');
@@ -260,7 +260,7 @@ class _PkgAdminWidget {
     }
 
     await api_client.rpc<void>(
-      confirmQuestion: markdown(
+      confirmQuestion: await markdown(
           'Are you sure you want to transfer the package to publisher `$publisherId`?'),
       fn: () async {
         final payload = PackagePublisherInfo(publisherId: publisherId);
@@ -301,7 +301,7 @@ class _CreatePublisherWidget {
     }
 
     await api_client.rpc<void>(
-      confirmQuestion: markdown(
+      confirmQuestion: await markdown(
           'Are you sure you want to create publisher for `$publisherId`?'),
       fn: () async {
         final extraScope =
@@ -405,7 +405,7 @@ class _PublisherAdminWidget {
         await api_client.client.invitePublisherMember(
             pageData.publisher!.publisherId, InviteMemberRequest(email: email));
       },
-      successMessage: markdown('`$email` was invited.'),
+      successMessage: await markdown('`$email` was invited.'),
       onSuccess: (_) {
         _inviteMemberInput!.value = '';
       },
@@ -415,13 +415,13 @@ class _PublisherAdminWidget {
 
   Future<void> _removeMember(String userId, String email) async {
     await api_client.rpc<void>(
-      confirmQuestion: markdown(
+      confirmQuestion: await markdown(
           'Are you sure you want to remove `$email` from this publisher?'),
       fn: () async {
         await api_client.client
             .removePublisherMember(pageData.publisher!.publisherId, userId);
       },
-      successMessage: markdown(
+      successMessage: await markdown(
           '`$email` removed from this publisher. The page will reload.'),
       onSuccess: (_) => window.location.reload(),
     );

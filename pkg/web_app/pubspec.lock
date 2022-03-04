@@ -107,7 +107,7 @@ packages:
     source: hosted
     version: "4.1.0"
   collection:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: collection
       url: "https://pub.dartlang.org"

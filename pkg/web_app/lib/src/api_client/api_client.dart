@@ -4,10 +4,8 @@
 
 import 'dart:html';
 
-import 'package:http/http.dart' as http;
-
 import '../_authentication_proxy.dart';
-import '_authenticated_client.dart';
+import '../deferred/http.dart' as http;
 import 'pubapi.client.dart';
 
 export '_rpc.dart';
@@ -27,7 +25,8 @@ PubApiClient get unauthenticatedClient =>
 
 /// The pub API client to use with account credentials.
 PubApiClient get client {
-  return PubApiClient(_baseUrl, client: createAuthenticatedClient(() async {
+  return PubApiClient(_baseUrl,
+      client: http.createAuthenticatedClient(() async {
     // Wait until we're initialized
     await authProxyReady;
 

@@ -77,7 +77,7 @@ Future<R?> rpc<R>({
   }
 
   if (error != null) {
-    await modalMessage('Error', markdown(errorMessage!));
+    await modalMessage('Error', await markdown(errorMessage!));
     if (onError != null) {
       return await onError(error);
     } else {
