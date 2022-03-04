@@ -53,32 +53,32 @@ d.Node _searchFormContainer({
             isActive: true,
             children: [
               _platformCheckbox(
-                platform: FlutterSdkPlatform.android,
+                platform: PlatformTagValue.android,
                 label: 'Android',
                 searchForm: searchForm,
               ),
               _platformCheckbox(
-                platform: FlutterSdkPlatform.ios,
+                platform: PlatformTagValue.ios,
                 label: 'iOS',
                 searchForm: searchForm,
               ),
               _platformCheckbox(
-                platform: FlutterSdkPlatform.linux,
+                platform: PlatformTagValue.linux,
                 label: 'Linux',
                 searchForm: searchForm,
               ),
               _platformCheckbox(
-                platform: FlutterSdkPlatform.macos,
+                platform: PlatformTagValue.macos,
                 label: 'macOS',
                 searchForm: searchForm,
               ),
               _platformCheckbox(
-                platform: FlutterSdkPlatform.web,
+                platform: PlatformTagValue.web,
                 label: 'Web',
                 searchForm: searchForm,
               ),
               _platformCheckbox(
-                platform: FlutterSdkPlatform.windows,
+                platform: PlatformTagValue.windows,
                 label: 'Windows',
                 searchForm: searchForm,
               ),

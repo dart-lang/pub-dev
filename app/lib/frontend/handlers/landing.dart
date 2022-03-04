@@ -28,7 +28,7 @@ Future<shelf.Response> flutterLandingHandler(shelf.Request request) async {
 
 /// Handles requests for /web
 Future<shelf.Response> webLandingHandler(shelf.Request request) async {
-  return redirectResponse(urls.searchUrl(q: FlutterSdkTag.platformWeb));
+  return redirectResponse(urls.searchUrl(q: PlatformTag.platformWeb));
 }
 
 /// Handles requests for /

@@ -29,7 +29,7 @@ class SearchResultCombiner {
 
     final primaryResult = await primaryIndex.search(query);
     final queryFlutterSdk = query.tagsPredicate.hasNoTagPrefix('sdk:') ||
-        query.tagsPredicate.hasTag(SdkTagValue.flutter);
+        query.tagsPredicate.hasTag(SdkTag.sdkFlutter);
     final sdkLibraryHits = [
       ...await dartSdkMemIndex.search(query.query!, limit: 2),
       if (queryFlutterSdk)
