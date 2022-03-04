@@ -7,7 +7,6 @@ import 'dart:math' show max;
 
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:logging/logging.dart';
 
 import '../shared/tags.dart';
 
@@ -31,8 +30,6 @@ const _maxQueryLength = 256;
 final _detectedTagPrefixes = <String>{
   ...allowedTagPrefixes.expand((s) => [s, '-$s', '+$s']),
 };
-
-final _logger = Logger('search.search_service');
 
 /// Statistics about the index content.
 class IndexInfo {
@@ -341,16 +338,6 @@ class ServiceSearchQuery {
       return QueryValidity.reject(rejectReason: 'Query too long.');
     }
 
-    // Do not allow override of search filter tags. (E.g. search scope would
-    // require sdk:flutter, do not allow -sdk:flutter to override it).
-    final conflictingTags =
-        tagsPredicate._getConflictingTags(parsedQuery.tagsPredicate);
-    if (conflictingTags.isNotEmpty) {
-      return QueryValidity.reject(
-          rejectReason:
-              'Tag conflict with search filters: `${conflictingTags.join(', ')}`.');
-    }
-
     return QueryValidity.accept();
   }
 }
@@ -422,34 +409,12 @@ class TagsPredicate {
     return p;
   }
 
-  /// Returns the list of tags that override the current tag predicates.
-  ///
-  /// Returns an empty list when no tags overrides an existing value.
-  List<String?> _getConflictingTags(TagsPredicate other) {
-    final tags = <String?>[];
-    for (final e in other._values.entries) {
-      if (_values.containsKey(e.key) &&
-          _values[e.key] != other._values[e.key]) {
-        tags.add(e.key);
-      }
-    }
-    return tags;
-  }
-
   /// Appends [other] predicate to the current set of tags, and returns a new
   /// [TagsPredicate] instance.
   ///
   /// If there are conflicting tag predicates, the [other] takes precedence over
   /// this [TagsPredicate].
   TagsPredicate appendPredicate(TagsPredicate other) {
-    // Ideally we want to throw an ArgumentError here, but to make sure we don't
-    // break the site, let's just log it first.
-    // TODO: throw exception instead of logging
-    final conflictingTags = _getConflictingTags(other);
-    if (conflictingTags.isNotEmpty) {
-      _logger.warning('Invalid append detected: ${conflictingTags.join(', ')}',
-          StackTrace.current);
-    }
     final p = TagsPredicate();
     p._values.addAll(_values);
     p._values.addAll(other._values);
