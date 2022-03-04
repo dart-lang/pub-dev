@@ -71,41 +71,22 @@ abstract class SdkTag {
 abstract class SdkTagValue {
   static const String dart = 'dart';
   static const String flutter = 'flutter';
-  static const String any = 'any';
 
-  static bool isAny(String? value) => value == null || value == any;
-  static bool isNotAny(String? value) => !isAny(value);
   static bool isValidSdk(String value) => value == dart || value == flutter;
 }
 
-/// Collection of Dart SDK runtime tags (with prefix and value).
-abstract class DartSdkTag {
-  static const String runtimeNativeAot = 'runtime:${DartSdkRuntime.nativeAot}';
-  static const String runtimeNativeJit = 'runtime:${DartSdkRuntime.nativeJit}';
-  static const String runtimeWeb = 'runtime:${DartSdkRuntime.web}';
+/// Collection of platform tags (with prefix and value).
+abstract class PlatformTag {
+  static const String platformAndroid = 'platform:${PlatformTagValue.android}';
+  static const String platformIos = 'platform:${PlatformTagValue.ios}';
+  static const String platformMacos = 'platform:${PlatformTagValue.macos}';
+  static const String platformLinux = 'platform:${PlatformTagValue.linux}';
+  static const String platformWeb = 'platform:${PlatformTagValue.web}';
+  static const String platformWindows = 'platform:${PlatformTagValue.windows}';
 }
 
-/// Collection of Dart SDK runtime values.
-abstract class DartSdkRuntime {
-  static const String nativeAot = 'native-aot';
-  static const String nativeJit = 'native-jit';
-  static const String web = 'web';
-}
-
-/// Collection of Flutter SDK platform tags (with prefix and value).
-abstract class FlutterSdkTag {
-  static const String platformAndroid =
-      'platform:${FlutterSdkPlatform.android}';
-  static const String platformIos = 'platform:${FlutterSdkPlatform.ios}';
-  static const String platformMacos = 'platform:${FlutterSdkPlatform.macos}';
-  static const String platformLinux = 'platform:${FlutterSdkPlatform.linux}';
-  static const String platformWeb = 'platform:${FlutterSdkPlatform.web}';
-  static const String platformWindows =
-      'platform:${FlutterSdkPlatform.windows}';
-}
-
-/// Collection of Flutter SDK platform values.
-abstract class FlutterSdkPlatform {
+/// Collection of platform tag values.
+abstract class PlatformTagValue {
   static const String android = 'android';
   static const String ios = 'ios';
   static const String linux = 'linux';

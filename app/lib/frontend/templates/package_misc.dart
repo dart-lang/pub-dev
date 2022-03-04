@@ -91,41 +91,41 @@ d.Node tagsNodeFromPackageView({
   final platformBadgeTag = BadgeTag(
     text: 'Platform',
     subTags: [
-      if (tags.contains(FlutterSdkTag.platformAndroid))
+      if (tags.contains(PlatformTag.platformAndroid))
         BadgeSubTag(
           text: 'Android',
           title: 'Packages compatible with Android platform',
-          href: tagUrl(FlutterSdkTag.platformAndroid),
+          href: tagUrl(PlatformTag.platformAndroid),
         ),
-      if (tags.contains(FlutterSdkTag.platformIos))
+      if (tags.contains(PlatformTag.platformIos))
         BadgeSubTag(
           text: 'iOS',
           title: 'Packages compatible with iOS platform',
-          href: tagUrl(FlutterSdkTag.platformIos),
+          href: tagUrl(PlatformTag.platformIos),
         ),
-      if (tags.contains(FlutterSdkTag.platformLinux))
+      if (tags.contains(PlatformTag.platformLinux))
         BadgeSubTag(
           text: 'Linux',
           title: 'Packages compatible with Linux platform',
-          href: tagUrl(FlutterSdkTag.platformLinux),
+          href: tagUrl(PlatformTag.platformLinux),
         ),
-      if (tags.contains(FlutterSdkTag.platformMacos))
+      if (tags.contains(PlatformTag.platformMacos))
         BadgeSubTag(
           text: 'macOS',
           title: 'Packages compatible with macOS platform',
-          href: tagUrl(FlutterSdkTag.platformMacos),
+          href: tagUrl(PlatformTag.platformMacos),
         ),
-      if (tags.contains(FlutterSdkTag.platformWeb))
+      if (tags.contains(PlatformTag.platformWeb))
         BadgeSubTag(
           text: 'web',
           title: 'Packages compatible with Web platform',
-          href: tagUrl(FlutterSdkTag.platformWeb),
+          href: tagUrl(PlatformTag.platformWeb),
         ),
-      if (tags.contains(FlutterSdkTag.platformWindows))
+      if (tags.contains(PlatformTag.platformWindows))
         BadgeSubTag(
           text: 'Windows',
           title: 'Packages compatible with Windows platform',
-          href: tagUrl(FlutterSdkTag.platformWindows),
+          href: tagUrl(PlatformTag.platformWindows),
         ),
     ],
   );

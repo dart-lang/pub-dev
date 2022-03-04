@@ -57,7 +57,7 @@ Future<shelf.Response> flutterFavoritesPackagesHandlerHtml(
 /// Handles /web/packages
 Future<shelf.Response> webPackagesHandlerHtml(shelf.Request request) async {
   final newUrl = SearchForm(query: request.requestedUri.queryParameters['q'])
-      .toggleRequiredTag(FlutterSdkTag.platformWeb)
+      .toggleRequiredTag(PlatformTag.platformWeb)
       .toSearchLink();
   return redirectResponse(newUrl);
 }
