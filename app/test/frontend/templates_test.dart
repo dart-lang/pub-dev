@@ -368,7 +368,6 @@ void main() {
     scopedTest('aborted analysis tab', () async {
       final timestamp = DateTime(2017, 12, 18, 14, 26, 00);
       final card = ScoreCardData(
-        reportTypes: ['pana'],
         panaReport: PanaReport(
           timestamp: timestamp,
           panaRuntimeInfo: _panaRuntimeInfo,

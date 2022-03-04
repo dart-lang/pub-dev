@@ -795,8 +795,7 @@ class PackageView extends Object with FlagMixin {
     ScoreCardData? scoreCard,
     List<ApiPageRef>? apiPages,
   }) {
-    final hasPanaReport = scoreCard?.reportTypes != null &&
-        scoreCard!.reportTypes!.contains(ReportType.pana);
+    final hasPanaReport = scoreCard?.hasPanaReport ?? false;
     final isPending =
         // Job processing has not created any card yet.
         (scoreCard == null) ||
