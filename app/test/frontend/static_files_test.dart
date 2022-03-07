@@ -154,7 +154,7 @@ void main() {
     test('script.dart.js and parts size check', () {
       final file = cache.getFile('/static/js/script.dart.js');
       expect(file, isNotNull);
-      expect((file!.bytes.length / 1024).round(), closeTo(267, 1));
+      expect((file!.bytes.length / 1024).round(), closeTo(271, 1));
 
       final parts = cache.paths
           .where((path) =>

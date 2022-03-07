@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:pub_dev/search/search_form.dart';
+import 'package:_pub_shared/search/search_form.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../package/search_adapter.dart';

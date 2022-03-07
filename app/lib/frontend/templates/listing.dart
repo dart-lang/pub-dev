@@ -4,8 +4,9 @@
 
 import 'dart:math';
 
+import 'package:_pub_shared/search/search_form.dart';
+
 import '../../package/search_adapter.dart';
-import '../../search/search_form.dart';
 import '../../search/search_service.dart';
 import '../dom/dom.dart' as d;
 

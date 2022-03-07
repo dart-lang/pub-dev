@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_pub_shared/data/page_data.dart';
+import 'package:_pub_shared/search/search_form.dart';
 
 import '../../account/backend.dart' show userSessionData;
-import '../../search/search_form.dart';
 import '../../service/announcement/backend.dart';
 import '../../shared/configuration.dart';
 import '../../shared/urls.dart' as urls;

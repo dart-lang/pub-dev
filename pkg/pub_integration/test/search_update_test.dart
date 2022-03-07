@@ -182,7 +182,7 @@ void main() {
           expect(i7.totalCount, i6.totalCount);
           expect(i7.openSections, ['sdks', 'advanced']);
           expect(page.url,
-              '$origin/packages?q=platform%3Aandroid+pkg+show%3Ahidden');
+              '$origin/packages?q=platform%3Aandroid+show%3Ahidden+pkg');
 
           // remove discontinued
           await page.click('#search-form-checkbox-show-hidden');
@@ -193,7 +193,7 @@ void main() {
             await page.click('#search-form-checkbox-$tagPrefix-$tagPostfix');
             await page.waitForNavigation(wait: Until.networkIdle);
             expect(page.url,
-                '$origin/packages?q=platform%3Aandroid+pkg+$tagPrefix%3A$tagPostfix');
+                '$origin/packages?q=platform%3Aandroid+$tagPrefix%3A$tagPostfix+pkg');
             await page.click('#search-form-checkbox-$tagPrefix-$tagPostfix');
             await page.waitForNavigation(wait: Until.networkIdle);
             expect(page.url, '$origin/packages?q=platform%3Aandroid+pkg');
@@ -231,7 +231,7 @@ void main() {
               ));
           expect(page.url, isNot(contains('windows')));
           expect(await page.propertyValue('input[name="q"]', 'value'),
-              'pkg platform:android platform:web platform:ios');
+              'platform:android platform:web platform:ios pkg');
 
           await page.click('#search-form-checkbox-platform-windows');
           await page.waitForNavigation(wait: Until.networkIdle);
@@ -245,7 +245,7 @@ void main() {
                 contains('windows'),
               ));
           expect(await page.propertyValue('input[name="q"]', 'value'),
-              'pkg platform:android platform:web platform:ios platform:windows');
+              'platform:android platform:web platform:ios platform:windows pkg');
         },
       );
 
@@ -263,9 +263,9 @@ void main() {
 
           await page.click('#search-form-checkbox-platform-android');
           await page.waitForNavigation(wait: Until.networkIdle);
-          expect(page.url, '$origin/packages?q=pkg+platform%3Aandroid');
+          expect(page.url, '$origin/packages?q=platform%3Aandroid+pkg');
           expect(await page.propertyValue('input[name="q"]', 'value'),
-              'pkg platform:android');
+              'platform:android pkg');
 
           await page.goBack(wait: Until.networkIdle);
           expect(page.url, '$origin/packages?q=pkg');

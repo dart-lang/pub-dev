@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../../../search/search_form.dart';
+import 'package:_pub_shared/search/search_form.dart';
+
 import '../../../../shared/tags.dart';
 import '../../../dom/dom.dart' as d;
 import '../../../dom/material.dart' as material;
@@ -214,7 +215,7 @@ d.Node _formLinkedCheckbox({
         text: label,
         attributes: {
           if (action != null) 'data-action': action,
-          if (tag != null) 'data-tag': isIndeterminate ? '-$tag' : tag,
+          if (tag != null) 'data-tag': tag,
         },
       ),
       checked: isChecked,

@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_pub_shared/search/search_form.dart'
+    show SearchContext, SearchForm, SearchOrder;
 import 'package:path/path.dart' as p;
-
-import '../search/search_form.dart' show SearchContext, SearchForm, SearchOrder;
 
 const primaryHost = 'pub.dev';
 const legacyHost = 'pub.dartlang.org';
