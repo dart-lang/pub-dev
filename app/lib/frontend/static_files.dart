@@ -164,6 +164,9 @@ class StaticFileCache {
     _files[file.requestPath] = file;
   }
 
+  @visibleForTesting
+  Iterable<String> get paths => _files.keys;
+
   bool hasFile(String requestPath) => _files.containsKey(requestPath);
 
   StaticFile? getFile(String requestPath) => _files[requestPath];

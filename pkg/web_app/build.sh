@@ -11,6 +11,12 @@ STATIC_DIR="${PROJECT_DIR}/static"
 # Change to web_app folder
 cd "${WEB_APP_DIR}";
 
+# Delete script and fragments.
+if [[ -f "${STATIC_DIR}/js/script.dart.js" ]];
+then
+    rm "${STATIC_DIR}"/js/script.dart.js*
+fi
+
 dart2js \
   --csp \
   --dump-info \
