@@ -13,13 +13,11 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
-import 'package:pub_dev/admin/tools/user_merger.dart';
-import 'package:pub_dev/audit/models.dart';
-import 'package:pub_dev/shared/email.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../account/backend.dart';
 import '../account/models.dart';
+import '../audit/models.dart';
 import '../dartdoc/backend.dart';
 import '../job/model.dart';
 import '../package/backend.dart'
@@ -33,9 +31,13 @@ import '../publisher/models.dart';
 import '../scorecard/models.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
+import '../shared/email.dart';
 import '../shared/exceptions.dart';
 import '../shared/tags.dart';
 import '../tool/utils/dart_sdk_version.dart';
+import 'tools/list_package_withheld.dart';
+import 'tools/set_package_withheld.dart';
+import 'tools/user_merger.dart';
 
 final _logger = Logger('pub.admin.backend');
 final _continuationCodec = utf8.fuse(hex);
@@ -76,6 +78,10 @@ class AdminBackend {
   Future<String> executeTool(String tool, List<String> args) async {
     await _requireAdminPermission(AdminPermission.executeTool);
     switch (tool) {
+      case 'list-package-withheld':
+        return await executeListPackageWithheld(args);
+      case 'set-package-withheld':
+        return await executeSetPackageWithheld(args);
       case 'user-merger':
         return await executeUserMergerTool(args);
     }
