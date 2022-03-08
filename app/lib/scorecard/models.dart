@@ -33,8 +33,6 @@ abstract class PackageFlags {
 abstract class ReportType {
   static const String pana = 'pana';
   static const String dartdoc = 'dartdoc';
-
-  static const values = <String>[pana, dartdoc];
 }
 
 abstract class ReportStatus {
@@ -90,11 +88,6 @@ class ScoreCard extends db.ExpandoModel<String> {
   @CompatibleStringListProperty(indexed: false)
   List<String> flags = <String>[];
 
-  /// The report types that are already done for the ScoreCard.
-  /// Contains values from [ReportType].
-  @CompatibleStringListProperty(indexed: false)
-  List<String> reportTypes = <String>[];
-
   /// Compressed, json-encoded content of [PanaReport].
   @db.BlobProperty()
   List<int>? panaReportJsonGz;
@@ -130,7 +123,6 @@ class ScoreCard extends db.ExpandoModel<String> {
         popularityScore: popularityScore,
         derivedTags: derivedTags,
         flags: flags,
-        reportTypes: reportTypes,
         dartdocReport: DartdocReport.fromBytes(dartdocReportJsonGz),
         panaReport: PanaReport.fromBytes(panaReportJsonGz),
       );
@@ -153,10 +145,6 @@ class ScoreCard extends db.ExpandoModel<String> {
     }
 
     derivedTags = panaReport?.derivedTags ?? derivedTags;
-    reportTypes = [
-      if (panaReport != null) ReportType.pana,
-      if (dartdocReport != null) ReportType.dartdoc,
-    ];
     flags = {
       ...flags,
       ...?panaReport?.flags,
@@ -209,9 +197,6 @@ class ScoreCardData extends Object with FlagMixin {
   @override
   final List<String>? flags;
 
-  /// The report types that are already done for the ScoreCard.
-  final List<String>? reportTypes;
-
   final DartdocReport? dartdocReport;
   final PanaReport? panaReport;
 
@@ -227,7 +212,6 @@ class ScoreCardData extends Object with FlagMixin {
     this.popularityScore,
     this.derivedTags,
     this.flags,
-    this.reportTypes,
     this.dartdocReport,
     this.panaReport,
   });
@@ -236,40 +220,23 @@ class ScoreCardData extends Object with FlagMixin {
       _$ScoreCardDataFromJson(json);
 
   bool get isNew => clock.now().difference(packageCreated!).inDays <= 30;
-
   bool get isCurrent => runtimeVersion == versions.runtimeVersion;
-
   bool get hasApiDocs => dartdocReport?.reportStatus == ReportStatus.success;
+  bool get hasPanaReport => panaReport != null;
+  bool get hasAllReports => panaReport != null && dartdocReport != null;
 
   Map<String, dynamic> toJson() => _$ScoreCardDataToJson(this);
-
-  /// Whether the data has all the required report types.
-  bool hasReports(List<String> requiredTypes) {
-    if (requiredTypes.isEmpty) return true;
-    if (reportTypes == null || reportTypes!.isEmpty) return false;
-    return requiredTypes.every(reportTypes!.contains);
-  }
 
   Report? getJoinedReport() =>
       joinReport(panaReport: panaReport, dartdocReport: dartdocReport);
 }
 
-abstract class ReportData {
-  String get reportType;
-  String? get reportStatus;
-  Map<String, dynamic> toJson();
-}
-
 @JsonSerializable(includeIfNull: false)
-class PanaReport implements ReportData {
-  @override
-  String get reportType => ReportType.pana;
-
+class PanaReport {
   final DateTime? timestamp;
 
   final PanaRuntimeInfo? panaRuntimeInfo;
 
-  @override
   final String? reportStatus;
 
   /// List of tags computed by `pana`.
@@ -311,20 +278,14 @@ class PanaReport implements ReportData {
     return PanaReport.fromJson(map);
   }
 
-  @override
   Map<String, dynamic> toJson() => _$PanaReportToJson(this);
 
   List<int> toBytes() => _gzipCodec.encode(jsonUtf8Encoder.convert(toJson()));
 }
 
 @JsonSerializable()
-class DartdocReport implements ReportData {
-  @override
-  String get reportType => ReportType.dartdoc;
-
+class DartdocReport {
   final DateTime? timestamp;
-
-  @override
   final String? reportStatus;
 
   /// The latest dartdoc entry's UUID.
@@ -350,7 +311,6 @@ class DartdocReport implements ReportData {
     return DartdocReport.fromJson(map);
   }
 
-  @override
   Map<String, dynamic> toJson() => _$DartdocReportToJson(this);
 
   List<int> toBytes() => _gzipCodec.encode(jsonUtf8Encoder.convert(toJson()));

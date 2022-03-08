@@ -4,6 +4,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Bumped runtimeVersion to `2022.03.03`.
  * Upgraded stable Flutter analysis SDK to `2.10.3`.
+ * NOTE: removed `ScoreCardData.reportTypes`
 
 ## `20220302t144000-all`
  * Bumped runtimeVersion to `2022.02.25`.
