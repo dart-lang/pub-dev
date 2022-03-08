@@ -118,7 +118,7 @@ void main() {
 
     testWithProfile('withheld package gets rejected', fn: () async {
       final pkg = await packageBackend.lookupPackage('oxygen');
-      await dbService.commit(inserts: [pkg!..isWithheld = true]);
+      await dbService.commit(inserts: [pkg!..updateWithheld(true)]);
       await expectNotFoundResponse(
           await issueGet('/documentation/oxygen/latest/'));
     });
