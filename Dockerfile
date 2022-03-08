@@ -4,7 +4,7 @@ FROM dart:2.16.1
 # After install we remove the apt-index again to keep the docker image diff small.
 RUN apt-get update && \
   apt-get upgrade -y && \
-  apt-get install -y git unzip && \
+  apt-get install -y git unzip webp && \
   rm -rf /var/lib/apt/lists/*
 
 # Let the pub server know that this is not a "typical" pub client but rather a bot.
