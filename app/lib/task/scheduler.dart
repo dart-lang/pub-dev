@@ -236,18 +236,28 @@ Future<void> schedule(
     }).toList());
 
     // If there was no pending packages reviewed, and no instances currently
-    // running, then we can easily sleep 1 minute before we poll again.
+    // running, then we can easily sleep 5 minutes before we poll again.
     if (instances == 0 && pendingPackagesReviewed == 0) {
       await Future.any([
-        _sleep(Duration(minutes: 1)),
+        _sleep(Duration(minutes: 5)),
         abort.future,
       ]);
       continue;
     }
 
     // If more tasks is available and quota wasn't used up, we only sleep 10s
+    if (pendingPackagesReviewed >= _maxInstancesPerIteration &&
+        _concurrentInstanceLimit > instances) {
+      await Future.any([
+        _sleep(Duration(seconds: 10), since: iterationStart),
+        abort.future,
+      ]);
+      continue;
+    }
+
+    // If we are waiting for quota, then we sleep a minute before checking again
     await Future.any([
-      _sleep(Duration(seconds: 10), since: iterationStart),
+      _sleep(Duration(minutes: 1), since: iterationStart),
       abort.future,
     ]);
   }

@@ -225,7 +225,7 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
 
     await setupCache();
 
-    registerScopeExitCallback(taskBackend.close);
+    registerScopeExitCallback(taskBackend.stop);
     registerScopeExitCallback(announcementBackend.close);
     registerScopeExitCallback(searchBackend.close);
     registerScopeExitCallback(() async => nameTracker.stopTracking());

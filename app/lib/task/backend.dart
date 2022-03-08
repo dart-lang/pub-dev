@@ -67,30 +67,35 @@ class TaskBackend {
   final CloudCompute _cloudCompute;
   final Bucket _bucket;
 
-  /// If [start] has been called to start background processes.
-  var _started = false;
-
-  /// If [close] has been called to stop background processes.
-  final _aborted = Completer<void>();
+  /// If [stop] has been called to stop background processes.
+  ///
+  /// `null` when not started yet, or we have been fully stopped.
+  Completer<void>? _aborted;
 
   /// If background processes created by [start] have stoppped.
   ///
   /// This won't be resolved if [start] has not been called!
-  final _stopped = Completer<void>();
+  /// `null` when not started yet.
+  Completer<void>? _stopped;
 
   TaskBackend(this._db, this._cloudCompute, this._bucket);
 
   /// Start continuous background processes for scheduling of tasks.
   ///
-  /// Calling [start] multiple times is an error.
+  /// Calling [start] without first calling [stop] is an error.
   Future<void> start() async {
-    if (_started) {
+    if (_aborted != null) {
       throw StateError('TaskBackend.start() has already been called!');
     }
-    if (_aborted.isCompleted) {
-      throw StateError('TaskBackend.close() has already been called!');
-    }
-    _started = true;
+    // Note: During testing we call [start] and [stop] in a [FakeAsync.run],
+    //       this only works because the completers are created here.
+    //       If we create the completers in the constructor which gets called
+    //       outside [FakeAsync.run], then this won't work.
+    //       In the future we hopefully support running the entire service using
+    //       FakeAsync, but this point we rely on completers being created when
+    //       [start] is called -- and not in the [TaskBackend] constructor.
+    final aborted = _aborted = Completer();
+    final stopped = _stopped = Completer();
 
     // Start scanning for packages to be tracked
     final _doneScanning = Completer<void>();
@@ -102,12 +107,12 @@ class TaskBackend {
           expiration: Duration(minutes: 25),
         );
 
-        while (!_aborted.isCompleted) {
+        while (!aborted.isCompleted) {
           // Acquire the global lock and scan for package changes while lock is
           // valid.
           await lock.withClaim((claim) async {
-            await _scanForPackageUpdates(claim, abort: _aborted);
-          }, abort: _aborted);
+            await _scanForPackageUpdates(claim, abort: aborted);
+          }, abort: aborted);
         }
       } catch (e, st) {
         _log.severe('scanning loop crashed', e, st);
@@ -127,12 +132,12 @@ class TaskBackend {
           expiration: Duration(minutes: 25),
         );
 
-        while (!_aborted.isCompleted) {
+        while (!aborted.isCompleted) {
           // Acquire the global lock and create VMs for pending packages, and
           // kill overdue VMs.
           await lock.withClaim((claim) async {
-            await schedule(claim, _cloudCompute, _db, abort: _aborted);
-          }, abort: _aborted);
+            await schedule(claim, _cloudCompute, _db, abort: aborted);
+          }, abort: aborted);
         }
       } catch (e, st) {
         _log.severe('scheduling loop crashed', e, st);
@@ -150,20 +155,24 @@ class TaskBackend {
       ]);
 
       // Report background processes as stopped
-      _stopped.complete();
+      stopped.complete();
     });
   }
 
   /// Stop any background process that may be running.
   ///
   /// Calling this method is always safe.
-  Future<void> close() async {
-    if (!_aborted.isCompleted) {
-      _aborted.complete();
+  Future<void> stop() async {
+    final aborted = _aborted;
+    if (aborted == null) {
+      return;
     }
-    if (_started) {
-      await _stopped.future;
+    if (!aborted.isCompleted) {
+      aborted.complete();
     }
+    await _stopped!.future;
+    _aborted = null;
+    _stopped = null;
   }
 
   /// Track all package versions.
@@ -571,7 +580,7 @@ class TaskBackend {
     final versionState = state.versions![version]!;
 
     // Check the secret token
-    if (versionState.isAuthorized(_extractBearerToken(request))) {
+    if (!versionState.isAuthorized(_extractBearerToken(request))) {
       throw AuthenticationException.authenticationRequired();
     }
     assert(versionState.scheduled != DateTime(0));
@@ -634,7 +643,7 @@ class TaskBackend {
       final versionState = state.versions![version]!;
 
       // Check the secret token
-      if (versionState.isAuthorized(_extractBearerToken(request))) {
+      if (!versionState.isAuthorized(_extractBearerToken(request))) {
         throw AuthenticationException.authenticationRequired();
       }
       assert(versionState.scheduled != DateTime(0));

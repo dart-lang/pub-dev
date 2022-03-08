@@ -11,6 +11,15 @@ abstract class CloudInstance {
 
   /// State of the instance.
   InstanceState get state;
+
+  /// Representation for debugging purposes.
+  @override
+  String toString() => 'CloudInstance(${[
+        'name: $name',
+        'zone: $zone',
+        'created: $created',
+        'state: $state',
+      ].join(',')})';
 }
 
 /// Simplified instance state.
