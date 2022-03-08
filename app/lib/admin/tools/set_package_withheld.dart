@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:args/args.dart';
-import 'package:clock/clock.dart';
 
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/package/backend.dart';
@@ -93,9 +92,7 @@ Future<String> _updateStatus(Package pkg, bool status, String? reason) async {
   }
   await withRetryTransaction(dbService, (tx) async {
     final p = await tx.lookupValue<Package>(pkg.key);
-    p.isWithheld = status;
-    p.withheldReason = reason;
-    p.updated = clock.now().toUtc();
+    p.updateWithheld(status, reason: reason);
     tx.insert(p);
   });
   await purgePackageCache(pkg.name!);

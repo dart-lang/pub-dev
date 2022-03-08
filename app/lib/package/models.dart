@@ -126,8 +126,16 @@ class Package extends db.ExpandoModel<String> {
   bool isWithheld = false;
 
   /// The reason why the package was withheld.
-  @db.StringProperty()
+  @db.StringProperty(indexed: false)
   String? withheldReason;
+
+  /// The timestamp when the [isWithheld] flag was set to `true`, `null` otherwise.
+  @db.DateTimeProperty(indexed: false)
+  DateTime? withheld;
+
+  /// The timestamp when the withheld status expires and the [Package] will be deleted.
+  @db.DateTimeProperty(indexed: false)
+  DateTime? withheldExpires;
 
   /// Tags that are assigned to this package.
   ///
@@ -368,6 +376,15 @@ class Package extends db.ExpandoModel<String> {
             )
           : null,
     );
+  }
+
+  void updateWithheld(bool status, {String? reason}) {
+    final now = clock.now().toUtc();
+    isWithheld = status;
+    withheldReason = reason;
+    withheld = status ? now : null;
+    withheldExpires = status ? now.add(Duration(days: 60)) : null;
+    updated = now;
   }
 }
 

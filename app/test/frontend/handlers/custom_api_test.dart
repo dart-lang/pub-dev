@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:clock/clock.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/shared/configuration.dart';
@@ -111,10 +110,7 @@ void main() {
         },
       );
       final p = await packageBackend.lookupPackage('neon');
-      p!
-        ..isWithheld = true
-        ..withheldReason = 'spam'
-        ..updated = clock.now();
+      p!.updateWithheld(true, reason: 'spam');
       await dbService.commit(inserts: [p]);
       await nameTracker.scanDatastore();
       await expectJsonResponse(

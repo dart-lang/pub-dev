@@ -352,6 +352,26 @@ class IntegrityChecker {
       yield 'Package "${p.name}" has missing `latestPreviewVersionKey`: "${p.latestPreviewVersionKey!.id}".';
     }
 
+    // Withheld fields
+    if (p.isWithheld) {
+      if (p.withheld == null) {
+        yield 'Package "${p.name}" is withheld, but has no `withheld` timestamp.';
+      }
+      if (p.withheldExpires == null) {
+        yield 'Package "${p.name}" is withheld, but has no `withheldExpires` timestamp.';
+      }
+    } else {
+      if (p.withheld != null) {
+        yield 'Package "${p.name}" is not withheld, but has `withheld` timestamp.';
+      }
+      if (p.withheldReason != null && p.withheldReason!.isNotEmpty) {
+        yield 'Package "${p.name}" is not withheld, but has `withheldReason` field.';
+      }
+      if (p.withheldExpires != null) {
+        yield 'Package "${p.name}" is not withheld, but has `withheldExpires` timestamp.';
+      }
+    }
+
     // Checking if PackageVersionInfo is referenced by a PackageVersion entity.
     final pviQuery = _db.query<PackageVersionInfo>()
       ..filter('package =', p.name);
