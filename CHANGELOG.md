@@ -2,8 +2,9 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bumped runtimeVersion to `2022.03.03`.
+ * Bumped runtimeVersion to `2022.03.08`.
  * Upgraded stable Flutter analysis SDK to `2.10.3`.
+ * Upgraded pana to `0.21.8`.
  * NOTE: removed `ScoreCardData.reportTypes`
 
 ## `20220302t144000-all`
