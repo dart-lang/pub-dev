@@ -284,9 +284,7 @@ Future<PackageSummary> summarizePackageArchive(
 }
 
 /// Sanity checks if the user would upload a package with a modified pub client
-/// that skips these verifications.
-/// TODO: share code to use the same validations as in
-/// https://github.com/dart-lang/pub/blob/master/lib/src/validator/name.dart#L52
+/// that skips these verifications. This checks only basic package name patterns.
 Iterable<ArchiveIssue> validatePackageName(String name) sync* {
   if (!identifierExpr.hasMatch(name)) {
     yield ArchiveIssue(
@@ -295,15 +293,21 @@ Iterable<ArchiveIssue> validatePackageName(String name) sync* {
   if (!startsWithLetterOrUnderscore.hasMatch(name)) {
     yield ArchiveIssue('Package name must begin with a letter or underscore.');
   }
-  if (reservedWords.contains(reducePackageName(name))) {
-    yield ArchiveIssue('Package name must not be a reserved word in Dart.');
-  }
 
   if (name.length > 64) {
     yield ArchiveIssue('Package name must not exceed 64 characters. '
         '(Please file an issue if you think you have a good reason for a longer name.)');
   }
+}
 
+/// Sanity checks for new package names.
+///
+/// TODO: refactor to make sure this is applied only on new package names,
+///       and consider removing the known mixed case package checks
+Iterable<ArchiveIssue> validateNewPackageName(String name) sync* {
+  if (reservedWords.contains(reducePackageName(name))) {
+    yield ArchiveIssue('Package name must not be a reserved word in Dart.');
+  }
   final bool isLower = name == name.toLowerCase();
   final bool matchesMixedCase = knownMixedCasePackages.contains(name);
   if (!isLower && !matchesMixedCase) {

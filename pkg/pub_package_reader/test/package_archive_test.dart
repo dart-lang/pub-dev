@@ -11,21 +11,21 @@ import 'package:test/test.dart';
 void main() {
   group('package name validation', () {
     test('reject unknown mixed-case', () {
-      expect(validatePackageName('myNewPackage'), isNotEmpty);
+      expect(validateNewPackageName('myNewPackage'), isNotEmpty);
     });
 
     test('accept only lower-case babylon (original author continues it)', () {
-      expect(validatePackageName('Babylon'), isNotEmpty);
-      expect(validatePackageName('babylon'), isEmpty);
+      expect(validateNewPackageName('Babylon'), isNotEmpty);
+      expect(validateNewPackageName('babylon'), isEmpty);
     });
 
     test('accept only upper-case Pong (no contact with author)', () {
-      expect(validatePackageName('pong'), isNotEmpty);
-      expect(validatePackageName('Pong'), isEmpty);
+      expect(validateNewPackageName('pong'), isNotEmpty);
+      expect(validateNewPackageName('Pong'), isEmpty);
     });
 
     test('reject unknown mixed-case', () {
-      expect(validatePackageName('pong'), isNotEmpty);
+      expect(validateNewPackageName('pong'), isNotEmpty);
     });
 
     test('accept lower-case', () {
@@ -33,8 +33,8 @@ void main() {
     });
 
     test('reject reserved words', () {
-      expect(validatePackageName('do'), isNotEmpty);
-      expect(validatePackageName('d_o'), isNotEmpty);
+      expect(validateNewPackageName('do'), isNotEmpty);
+      expect(validateNewPackageName('d_o'), isNotEmpty);
     });
 
     test('check the length of the name', () {

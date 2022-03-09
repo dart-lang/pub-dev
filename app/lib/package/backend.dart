@@ -762,6 +762,16 @@ class PackageBackend {
       }
       PackageRejectedException.check(conflictingName == null,
           'Package name is too similar to another active or moderated package: `$conflictingName`.');
+
+      // Apply name verification for new packages.
+      final isCurrentlyVisible = await isPackageVisible(pubspec.name);
+      if (!isCurrentlyVisible) {
+        final newNameIssues = validateNewPackageName(pubspec.name).toList();
+        if (newNameIssues.isNotEmpty) {
+          throw PackageRejectedException(newNameIssues.first.message);
+        }
+      }
+
       final versionString = canonicalizeVersion(pubspec.nonCanonicalVersion);
       if (versionString == null) {
         throw InvalidInputException.canonicalizeVersionError(
