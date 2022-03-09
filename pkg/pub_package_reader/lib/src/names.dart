@@ -8,7 +8,7 @@ const reservedWords = <String>{
   'abstract',
   'as',
   'assert',
-  'async',
+  // 'async', // reserved, but allowed because package:async already exists.
   'await',
   'break',
   'case',
