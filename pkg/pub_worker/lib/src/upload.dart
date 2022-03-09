@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:client_data/package_api.dart' show UploadInfo;
+import 'package:_pub_shared/data/package_api.dart' show UploadInfo;
 import 'package:http/http.dart'
     show MultipartRequest, MultipartFile, Client, Response;
 import 'package:http_parser/http_parser.dart' show MediaType;
