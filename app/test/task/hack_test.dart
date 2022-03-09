@@ -1,12 +1,10 @@
 import 'dart:convert';
 import 'dart:io' show Platform;
-import 'package:test/test.dart';
-import 'package:ulid/ulid.dart' show Ulid;
-import 'package:appengine/appengine.dart';
-import 'package:gcloud/http.dart';
-import 'package:googleapis/iamcredentials/v1.dart';
 
-import '../shared/test_services.dart';
+import 'package:appengine/appengine.dart';
+import 'package:clock/clock.dart';
+import 'package:googleapis/iamcredentials/v1.dart';
+import 'package:test/test.dart';
 
 final serviceAccount = 'dartlang-pub-dev@appspot.gserviceaccount.com';
 
@@ -17,14 +15,14 @@ void main() {
       await api.projects.serviceAccounts.signJwt(
           SignJwtRequest()
             ..payload = json.encode({
-              'iat': DateTime.now()
+              'iat': clock
+                      .now()
                       .subtract(Duration(minutes: 15))
                       .millisecondsSinceEpoch ~/
                   1000,
-              'exp': DateTime.now()
-                      .add(Duration(hours: 3))
-                      .millisecondsSinceEpoch ~/
-                  1000,
+              'exp':
+                  clock.now().add(Duration(hours: 3)).millisecondsSinceEpoch ~/
+                      1000,
               'sub': 'worker-234233ulid2323(instance-name)',
               'iss': 'https://pub.dev',
               'aud': 'https://pub.dev',

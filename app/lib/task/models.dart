@@ -5,7 +5,7 @@
 import 'dart:convert' show json;
 
 import 'package:clock/clock.dart';
-import 'package:gcloud/db.dart' as db;
+import 'package:pub_dev/shared/datastore.dart' as db;
 import 'package:json_annotation/json_annotation.dart';
 
 part 'models.g.dart';

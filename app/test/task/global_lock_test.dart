@@ -5,6 +5,7 @@
 import 'dart:io' show Platform;
 
 import 'package:appengine/appengine.dart';
+import 'package:clock/clock.dart';
 import 'package:pub_dev/task/global_lock.dart' show GlobalLock;
 import 'package:test/test.dart';
 import 'package:ulid/ulid.dart' show Ulid;
@@ -45,13 +46,13 @@ void main() {
             running++;
             expect(running, equals(1));
             expect(claim.valid, isTrue);
-            expect(claim.expires.isAfter(DateTime.now().toUtc()), isTrue);
+            expect(claim.expires.isAfter(clock.now().toUtc()), isTrue);
 
             final oldExpires = claim.expires;
             await Future.delayed(Duration(seconds: 3));
             expect(running, equals(1));
             expect(claim.valid, isTrue);
-            expect(claim.expires.isAfter(DateTime.now().toUtc()), isTrue);
+            expect(claim.expires.isAfter(clock.now().toUtc()), isTrue);
             expect(claim.expires != oldExpires, isTrue);
             running--;
           });
@@ -61,13 +62,13 @@ void main() {
             running++;
             expect(running, equals(1));
             expect(claim.valid, isTrue);
-            expect(claim.expires.isAfter(DateTime.now().toUtc()), isTrue);
+            expect(claim.expires.isAfter(clock.now().toUtc()), isTrue);
 
             final oldExpires = claim.expires;
             await Future.delayed(Duration(seconds: 3));
             expect(running, equals(1));
             expect(claim.valid, isTrue);
-            expect(claim.expires.isAfter(DateTime.now().toUtc()), isTrue);
+            expect(claim.expires.isAfter(clock.now().toUtc()), isTrue);
             expect(claim.expires != oldExpires, isTrue);
             running--;
           });

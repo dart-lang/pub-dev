@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:clock/clock.dart';
-import 'package:gcloud/datastore.dart' show TransactionAbortedError;
 import 'package:logging/logging.dart' show Logger;
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/task/models.dart' show GlobalLockState;

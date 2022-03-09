@@ -279,7 +279,7 @@ class CachePatterns {
 
   /// Cache for [PanaReport] objects using by TaskBackend.
   Entry<PanaReport> panaReport(String package, String version) => _cache
-      .withPrefix('pana-report')
+      .withPrefix('pana-report/')
       .withTTL(Duration(hours: 24))
       .withCodec(utf8)
       .withCodec(json)
@@ -290,13 +290,13 @@ class CachePatterns {
 
   /// Cache for pana-log objects, used by TaskBackend.
   Entry<String> panaLog(String package, String version, String id) => _cache
-      .withPrefix('pana-log')
+      .withPrefix('pana-log/')
       .withCodec(utf8)
       .withTTL(Duration(hours: 6))['$package-$version/$id'];
 
   /// Cache for dartdoc-index objects, used by TaskBackend.
   Entry<BlobIndex> dartdocIndex(String package, String version) => _cache
-      .withPrefix('dartdoc-index')
+      .withPrefix('dartdoc-index/')
       .withTTL(Duration(hours: 24))
       .withCodec(wrapAsCodec(
         encode: (BlobIndex entry) => entry.asBytes(),
@@ -311,7 +311,7 @@ class CachePatterns {
     String path,
   ) =>
       _cache
-          .withPrefix('dartdoc-page')
+          .withPrefix('dartdoc-page/')
           .withTTL(Duration(hours: 6))['$package-$version/$blobId/$path'];
 }
 
