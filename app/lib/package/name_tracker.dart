@@ -19,6 +19,7 @@ const _pollingInterval = Duration(minutes: 15);
 /// Minimal package information tracked by [NameTracker].
 class TrackedPackage {
   final String package;
+  final DateTime updated;
   final String latestVersion;
   final DateTime lastPublished;
 
@@ -28,27 +29,39 @@ class TrackedPackage {
 
   TrackedPackage({
     required this.package,
+    required this.updated,
     required this.latestVersion,
     required this.lastPublished,
     required this.isVisible,
   });
 
+  factory TrackedPackage.fromPackage(Package p) => TrackedPackage(
+        package: p.name!,
+        updated: p.updated!,
+        latestVersion: p.latestVersion!,
+        lastPublished: p.lastVersionPublished!,
+        isVisible: p.isVisible,
+      );
+
   @visibleForTesting
   TrackedPackage.simple(this.package)
       : latestVersion = '1.0.0',
+        updated = clock.now(),
         lastPublished = clock.now(),
         isVisible = true;
 
   @override
   late final int hashCode =
-      Object.hash(package, latestVersion, lastPublished, isVisible);
+      Object.hash(package, updated, latestVersion, lastPublished, isVisible);
 
   @override
   bool operator ==(Object other) {
     return other is TrackedPackage &&
         package == other.package &&
+        updated == other.updated &&
         latestVersion == other.latestVersion &&
-        lastPublished == other.lastPublished;
+        lastPublished == other.lastPublished &&
+        isVisible == other.isVisible;
   }
 }
 
@@ -85,7 +98,7 @@ class NameTracker {
     _names.add(pkg.package);
     _addConflictingName(pkg.package);
     final current = _packages[pkg.package];
-    if (current == null || current.lastPublished.isBefore(pkg.lastPublished)) {
+    if (current == null || current.updated.isBefore(pkg.updated)) {
       _packages[pkg.package] = pkg;
       _packagesOrderedByLastPublishedDesc = null;
     }
@@ -144,26 +157,30 @@ class NameTracker {
   /// Whether the first scan was already completed.
   bool get isReady => _firstScanCompleter.isCompleted;
 
-  /// Get the list of all the packages. If it is called before the first scan
-  /// was done, it will wait for it to complete. Afterwards it always returns
-  /// the currently cached list of names, without scanning the Datastore.
-  Future<List<String>> getPackageNames() async {
+  /// Get the names of all visible packages.
+  ///
+  /// Packages that are _withdrawn_ are not listed here.
+  /// Packages that are _unlisted_ or _discontinued_ are **included in this list**.
+  ///
+  /// If it is called before the first scan was done, it will wait for
+  /// it to complete. Afterwards it always returns the currently cached
+  /// list of names, without scanning the Datastore.
+  Future<List<String>> getVisiblePackageNames() async {
     if (!_firstScanCompleter.isCompleted) {
       await _firstScanCompleter.future;
     }
-    return _names.toList()..sort();
+    return _packages.values
+        .where((t) => t.isVisible)
+        .map((t) => t.package)
+        .toList()
+      ..sort();
   }
 
   /// Scans the Datastore and populates the tracker.
   @visibleForTesting
   Future<void> scanDatastore() async {
     await for (final p in _db!.query<Package>().run()) {
-      add(TrackedPackage(
-        package: p.name!,
-        latestVersion: p.latestVersion!,
-        lastPublished: p.lastVersionPublished!,
-        isVisible: p.isVisible,
-      ));
+      add(TrackedPackage.fromPackage(p));
     }
 
     await for (ModeratedPackage p in _db!.query<ModeratedPackage>().run()) {
@@ -256,12 +273,7 @@ class _NameTrackerUpdater {
     }
     await for (Package p in query.run()) {
       if (_stopped) return;
-      nameTracker.add(TrackedPackage(
-        package: p.name!,
-        latestVersion: p.latestVersion!,
-        lastPublished: p.lastVersionPublished!,
-        isVisible: p.isVisible,
-      ));
+      nameTracker.add(TrackedPackage.fromPackage(p));
     }
 
     final moderatedPkgQuery = _db.query<ModeratedPackage>()..order('moderated');
@@ -301,4 +313,23 @@ Iterable<String> _generateConflictingNames(String name) sync* {
   if (reduced.endsWith('s') && reduced.length >= 4) {
     yield reduced.substring(0, reduced.length - 1);
   }
+  for (final pair in _homoglyphPairs) {
+    if (reduced.contains(pair[0])) {
+      yield reduced.replaceAll(pair[0], pair[1]);
+    }
+    if (reduced.contains(pair[1])) {
+      yield reduced.replaceAll(pair[1], pair[0]);
+    }
+  }
 }
+
+/// Homoglyphs are characters with different meanings, that look similar/identical to each other.
+/// These pairs - depending on the font being used - may be rendered similarly.
+const _homoglyphPairs = [
+  ['1', 'l'],
+  ['a', 'ci'],
+  ['d', 'cl'],
+  ['g', 'cj'],
+  ['m', 'rn'],
+  ['w', 'vv'],
+];

@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:clock/clock.dart';
+import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/package/name_tracker.dart';
+import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/urls.dart' as urls;
 import 'package:test/test.dart';
 
@@ -90,6 +94,30 @@ void main() {
             'neon',
             'oxygen',
           ]),
+          'nextUrl': null,
+        },
+      );
+    });
+
+    testWithProfile('/api/package-names - only valid packages', fn: () async {
+      await expectJsonResponse(
+        await issueGet('/api/package-names'),
+        body: {
+          'packages': contains('neon'),
+          'nextUrl': null,
+        },
+      );
+      final p = await packageBackend.lookupPackage('neon');
+      p!
+        ..isWithheld = true
+        ..withheldReason = 'spam'
+        ..updated = clock.now();
+      await dbService.commit(inserts: [p]);
+      await nameTracker.scanDatastore();
+      await expectJsonResponse(
+        await issueGet('/api/package-names'),
+        body: {
+          'packages': isNot(contains('neon')),
           'nextUrl': null,
         },
       );

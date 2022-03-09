@@ -28,15 +28,24 @@ class DartToolClient {
   String get _pubCacheDir => p.join(_tempDir, 'pub-cache');
   String get _configHome => p.join(_tempDir, 'config-home');
 
-  /// Creates a new PubToolClient context with a temporary directory.
-  static Future<DartToolClient> create({
+  /// Creates a new [DartToolClient] context using pub.dev and a
+  /// temporary directory for pub cache.
+  static Future<DartToolClient> withPubDev() async {
+    final tempDir = await Directory.systemTemp.createTemp();
+    final tool = DartToolClient._('https://pub.dartlang.org', tempDir.path);
+    await tool._init();
+    return tool;
+  }
+
+  /// Creates a new [DartToolClient] context with a temporary directory.
+  static Future<DartToolClient> withServer({
     required String pubHostedUrl,
     required String credentialsFileContent,
   }) async {
     final tempDir = await Directory.systemTemp.createTemp();
 
     final tool = DartToolClient._(pubHostedUrl, tempDir.path);
-    await Directory(tool._pubCacheDir).create(recursive: true);
+    await tool._init();
 
     var creds = oauth2.Credentials.fromJson(credentialsFileContent);
     if ((creds.expiration ?? DateTime(0)).isBefore(DateTime.now())) {
@@ -85,6 +94,10 @@ class DartToolClient {
       credentialsFileContent,
     );
     return tool;
+  }
+
+  Future<void> _init() async {
+    await Directory(_pubCacheDir).create(recursive: true);
   }
 
   /// Delete temp resources.
@@ -145,6 +158,10 @@ class DartToolClient {
 
   Future<void> getDependencies(String pkgDir) async {
     await runDart(['pub', 'get'], workingDirectory: pkgDir);
+  }
+
+  Future<void> create(String pkgDir) async {
+    await runDart(['create', '--force', pkgDir]);
   }
 
   Future<void> publish(

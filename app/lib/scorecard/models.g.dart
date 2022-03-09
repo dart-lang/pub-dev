@@ -28,9 +28,6 @@ ScoreCardData _$ScoreCardDataFromJson(Map<String, dynamic> json) =>
           .toList(),
       flags:
           (json['flags'] as List<dynamic>?)?.map((e) => e as String).toList(),
-      reportTypes: (json['reportTypes'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
       dartdocReport: json['dartdocReport'] == null
           ? null
           : DartdocReport.fromJson(
@@ -54,7 +51,6 @@ Map<String, dynamic> _$ScoreCardDataToJson(ScoreCardData instance) =>
       'popularityScore': instance.popularityScore,
       'derivedTags': instance.derivedTags,
       'flags': instance.flags,
-      'reportTypes': instance.reportTypes,
       'dartdocReport': instance.dartdocReport,
       'panaReport': instance.panaReport,
     };

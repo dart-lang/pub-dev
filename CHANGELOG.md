@@ -2,9 +2,40 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bumped runtimeVersion to `2022.01.17`.
- * Upgraded preview Dart analysis SDK to `2.16.0-134.1.beta`.
- * Upgraded preview Flutter analysis SDK to `2.10.0-0.1.pre`.
+ * Bumped runtimeVersion to `2022.03.08`.
+ * Upgraded stable Flutter analysis SDK to `2.10.3`.
+ * Upgraded pana to `0.21.8`.
+ * NOTE: removed `ScoreCardData.reportTypes`
+
+## `20220302t144000-all`
+ * Bumped runtimeVersion to `2022.02.25`.
+ * Upgraded runtime Dart SDK to `2.16.1`
+ * Upgraded preview Dart analysis SDK to `2.17.0-85.0.dev`.
+ * Upgraded stable Flutter analysis SDK to `2.10.2`.
+ * Upgraded preview Flutter analysis SDK to `2.11.0-0.1.pre`.
+ * Upgraded dartdoc to `5.0.1`.
+ * NOTE: override invalid versions at package extraction + backfill.
+ * NOTE: `/static/` files are served with gzipped bytes when the request accepts it.
+
+## `20220209t173000-all`
+ * Bumped runtimeVersion to `2022.02.09`.
+ * Upgrade stable Dart analysis SDK to `2.16.1`.
+ * Upgraded preview Dart analysis SDK to `2.16.1`.
+ * Upgraded stable Flutter analysis SDK to `2.10.0`.
+ * Upgraded preview Flutter analysis SDK to `2.10.0`.
+
+## `20220202t122400-all`
+ * Bumped runtimeVersion to `2022.01.31`.
+ * Upgrade stable Dart analysis SDK to `2.16.0`.
+ * Upgraded preview Dart analysis SDK to `2.16.0`.
+ * NOTE: additional null-safety checks in integrity verification.
+
+## `20220128t123200-all`
+ * Bumped runtimeVersion to `2022.01.27`.
+ * Upgraded preview Dart analysis SDK to `2.16.0-134.5.beta`.
+ * Upgraded preview Flutter analysis SDK to `2.10.0-0.3.pre`.
+ * Upgraded pana to `0.21.7`.
+ * Upgraded dependencies, including `googleapis`, `mailer`, `tar`.
  * NOTE: `search` index no longer uses or populates uploader `userId`.
 
 ## `20220112t121700-all`

@@ -58,7 +58,6 @@ void main() {
           'popularityScore': isNotNull,
           'derivedTags': isEmpty,
           'flags': [],
-          'reportTypes': ['pana', 'dartdoc'],
           'dartdocReport': isNotNull,
           'panaReport': {
             'timestamp': isNotEmpty,

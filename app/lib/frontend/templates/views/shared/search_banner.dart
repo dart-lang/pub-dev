@@ -12,10 +12,6 @@ d.Node searchBannerNode({
   required bool autofocus,
   required bool showSearchFiltersButton,
   required String? sortParam,
-  required bool includeDiscontinued,
-  required bool includeUnlisted,
-  required bool includeNullSafe,
-  required Map<String, String>? hiddenInputs,
   required bool hasActive,
 }) {
   return d.form(
@@ -44,6 +40,8 @@ d.Node searchBannerNode({
                 src: staticUrls
                     .getAssetUrl('/static/img/search-filters-inactive.svg'),
                 alt: 'icon to toggle the display of search filters (inactive)',
+                width: 42,
+                height: 42,
               ),
             ),
             d.img(
@@ -52,36 +50,14 @@ d.Node searchBannerNode({
                 src: staticUrls
                     .getAssetUrl('/static/img/search-filters-active.svg'),
                 alt: 'icon to toggle the display of search filters (active)',
+                width: 42,
+                height: 42,
               ),
             ),
           ],
         ),
       if (sortParam != null && sortParam.isNotEmpty)
         d.input(type: 'hidden', name: 'sort', value: sortParam),
-      d.input(
-        id: '-search-discontinued-field',
-        type: 'hidden',
-        name: 'discontinued',
-        value: '1',
-        disabled: !includeDiscontinued,
-      ),
-      d.input(
-        id: '-search-unlisted-field',
-        type: 'hidden',
-        name: 'unlisted',
-        value: '1',
-        disabled: !includeUnlisted,
-      ),
-      d.input(
-        id: '-search-null-safe-field',
-        type: 'hidden',
-        name: 'null-safe',
-        value: '1',
-        disabled: !includeNullSafe,
-      ),
-      if (hiddenInputs != null)
-        ...hiddenInputs.entries
-            .map((e) => d.input(type: 'hidden', name: e.key, value: e.value)),
     ],
   );
 }

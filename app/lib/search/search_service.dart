@@ -7,7 +7,6 @@ import 'dart:math' show max;
 
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:logging/logging.dart';
 
 import '../shared/tags.dart';
 
@@ -31,8 +30,6 @@ const _maxQueryLength = 256;
 final _detectedTagPrefixes = <String>{
   ...allowedTagPrefixes.expand((s) => [s, '-$s', '+$s']),
 };
-
-final _logger = Logger('search.search_service');
 
 /// Statistics about the index content.
 class IndexInfo {
@@ -180,28 +177,10 @@ SearchOrder? parseSearchOrder(String? value) {
   if (value == null) {
     return null;
   }
-  switch (value) {
-    case 'top':
-      return SearchOrder.top;
-    case 'text':
-      return SearchOrder.text;
-    case 'created':
-      return SearchOrder.created;
-    case 'updated':
-      return SearchOrder.updated;
-    case 'popularity':
-      return SearchOrder.popularity;
-    case 'like':
-      return SearchOrder.like;
-    case 'points':
-      return SearchOrder.points;
+  for (final v in SearchOrder.values) {
+    if (v.name == value) return v;
   }
   return null;
-}
-
-String? serializeSearchOrder(SearchOrder? order) {
-  if (order == null) return null;
-  return order.toString().split('.').last;
 }
 
 final RegExp _whitespacesRegExp = RegExp(r'\s+');
@@ -326,7 +305,7 @@ class ServiceSearchQuery {
       if (updatedInDays != null && updatedInDays! > 0)
         'updatedInDays': updatedInDays.toString(),
       'limit': limit?.toString(),
-      'order': serializeSearchOrder(order),
+      'order': order?.name,
     };
     map.removeWhere((k, v) => v == null);
     return map;
@@ -350,13 +329,6 @@ class ServiceSearchQuery {
   bool get considerHighlightedHit => _hasOnlyFreeText && _hasNoOwnershipScope;
   bool get includeHighlightedHit => considerHighlightedHit && offset == 0;
 
-  String? get sdk {
-    final values = tagsPredicate._values.entries
-        .where((e) => e.key.startsWith('sdk:') && e.value == true)
-        .map((e) => e.key.split(':')[1]);
-    return values.isEmpty ? null : values.first;
-  }
-
   /// Returns the validity status of the query.
   QueryValidity evaluateValidity() {
     // Block search on unreasonably long search queries (when the free-form
@@ -364,16 +336,6 @@ class ServiceSearchQuery {
     final queryLength = parsedQuery.text?.length ?? 0;
     if (queryLength > _maxQueryLength) {
       return QueryValidity.reject(rejectReason: 'Query too long.');
-    }
-
-    // Do not allow override of search filter tags. (E.g. search scope would
-    // require sdk:flutter, do not allow -sdk:flutter to override it).
-    final conflictingTags =
-        tagsPredicate._getConflictingTags(parsedQuery.tagsPredicate);
-    if (conflictingTags.isNotEmpty) {
-      return QueryValidity.reject(
-          rejectReason:
-              'Tag conflict with search filters: `${conflictingTags.join(', ')}`.');
     }
 
     return QueryValidity.accept();
@@ -421,13 +383,18 @@ class TagsPredicate {
   bool isProhibitedTag(String tag) => _values[tag] == false;
   bool hasTag(String tag) => _values.containsKey(tag);
   bool anyTag(bool Function(String key) fn) => _values.keys.any(fn);
+  bool hasTagPrefix(String prefix) => anyTag((t) => t.startsWith(prefix));
+  bool hasNoTagPrefix(String prefix) => !hasTagPrefix(prefix);
 
   /// Parses [values] passed via Uri.queryParameters
-  factory TagsPredicate.parseQueryValues(List<String?>? values) {
+  factory TagsPredicate.parseQueryValues(List<String>? values) {
     final p = TagsPredicate();
-    for (String? tag in values ?? const <String>[]) {
+    if (values == null) {
+      return p;
+    }
+    for (var tag in values) {
       bool required = true;
-      if (tag!.startsWith('-')) {
+      if (tag.startsWith('-')) {
         tag = tag.substring(1);
         required = false;
       } else if (tag.startsWith('+')) {
@@ -442,34 +409,12 @@ class TagsPredicate {
     return p;
   }
 
-  /// Returns the list of tags that override the current tag predicates.
-  ///
-  /// Returns an empty list when no tags overrides an existing value.
-  List<String?> _getConflictingTags(TagsPredicate other) {
-    final tags = <String?>[];
-    for (final e in other._values.entries) {
-      if (_values.containsKey(e.key) &&
-          _values[e.key] != other._values[e.key]) {
-        tags.add(e.key);
-      }
-    }
-    return tags;
-  }
-
   /// Appends [other] predicate to the current set of tags, and returns a new
   /// [TagsPredicate] instance.
   ///
   /// If there are conflicting tag predicates, the [other] takes precedence over
   /// this [TagsPredicate].
   TagsPredicate appendPredicate(TagsPredicate other) {
-    // Ideally we want to throw an ArgumentError here, but to make sure we don't
-    // break the site, let's just log it first.
-    // TODO: throw exception instead of logging
-    final conflictingTags = _getConflictingTags(other);
-    if (conflictingTags.isNotEmpty) {
-      _logger.warning('Invalid append detected: ${conflictingTags.join(', ')}',
-          StackTrace.current);
-    }
     final p = TagsPredicate();
     p._values.addAll(_values);
     p._values.addAll(other._values);

@@ -4,7 +4,7 @@
 
 import 'dart:convert';
 
-import 'package:client_data/package_api.dart';
+import 'package:_pub_shared/data/package_api.dart';
 import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/audit/backend.dart';

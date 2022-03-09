@@ -27,14 +27,10 @@ class RequestContext {
   /// pollution by visually changing the site).
   final bool uiCacheEnabled;
 
-  /// Whether to render the new search UI with un-nested platforms.
-  final bool showNewSearchUI;
-
   const RequestContext({
     this.indentJson = false,
     this.isExperimental = false,
     this.blockRobots = true,
     this.uiCacheEnabled = false,
-    this.showNewSearchUI = false,
   });
 }

@@ -61,6 +61,18 @@ void main() {
       expressions.removeWhere((e) => e.startsWith('home-block-'));
       expressions.removeWhere(
           (e) => e.startsWith('detail-tab-') && e.endsWith('-content'));
+      // hljs
+      expressions.removeWhere((e) => e == 'hljs' || e.startsWith('hljs-'));
+      // github-markdown.css
+      expressions.removeAll([
+        'kbd',
+        'no-list',
+        'emoji',
+        'align-center',
+        'align-right',
+        'float-left',
+        'float-right',
+      ]);
 
       final files = <File>[
         ...await Directory('../../app/lib')

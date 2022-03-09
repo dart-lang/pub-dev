@@ -48,12 +48,34 @@ void main() {
     });
   });
 
+  group('m vs rn', () {
+    final nameTracker = NameTracker(null);
+    nameTracker.add(TrackedPackage.simple('morning'));
+
+    test('morning', () async {
+      expect(await nameTracker.accept('moming'), 'morning');
+      expect(await nameTracker.accept('rnoming'), 'morning');
+      expect(await nameTracker.accept('rnorning'), 'morning');
+    });
+  });
+
+  group('vv vs w', () {
+    final nameTracker = NameTracker(null);
+    nameTracker.add(TrackedPackage.simple('webb'));
+
+    test('morning', () async {
+      expect(await nameTracker.accept('vvebb'), 'webb');
+      expect(await nameTracker.accept('vvvebb'), isNull);
+    });
+  });
+
   group('time and version', () {
     test('earlier time does not override the entry', () {
       final nameTracker = NameTracker(null);
       nameTracker.add(
         TrackedPackage(
           package: 'a',
+          updated: DateTime(2021, 10, 18),
           latestVersion: '2.0.0',
           lastPublished: DateTime(2021, 10, 18),
           isVisible: true,
@@ -62,6 +84,7 @@ void main() {
       nameTracker.add(
         TrackedPackage(
           package: 'a',
+          updated: DateTime(2021, 10, 17),
           latestVersion: '1.0.0',
           lastPublished: DateTime(2021, 10, 17),
           isVisible: true,
@@ -78,6 +101,7 @@ void main() {
       nameTracker.add(
         TrackedPackage(
           package: 'a',
+          updated: DateTime(2021, 10, 18),
           latestVersion: '1.0.0',
           lastPublished: DateTime(2021, 10, 18),
           isVisible: true,
@@ -86,6 +110,7 @@ void main() {
       nameTracker.add(
         TrackedPackage(
           package: 'b',
+          updated: DateTime(2021, 10, 19),
           latestVersion: '2.0.0',
           lastPublished: DateTime(2021, 10, 19),
           isVisible: true,
@@ -99,6 +124,7 @@ void main() {
       );
       nameTracker.add(
         TrackedPackage(
+          updated: DateTime(2021, 10, 20),
           package: 'a',
           latestVersion: '3.0.0',
           lastPublished: DateTime(2021, 10, 20),

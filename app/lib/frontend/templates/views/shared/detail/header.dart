@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:intl/intl.dart';
+import 'package:_pub_shared/format/number_format.dart';
 
 import '../../../../dom/dom.dart' as d;
 import '../../../../dom/material.dart' as material;
@@ -40,6 +40,8 @@ d.Node detailHeaderNode({
                     src: staticUrls
                         .getAssetUrl('/static/img/ff-banner-desktop-2x.png'),
                     alt: 'large Flutter Favorite logo',
+                    width: 150,
+                    height: 218,
                   ),
                 ),
                 d.img(
@@ -49,6 +51,8 @@ d.Node detailHeaderNode({
                     src: staticUrls
                         .getAssetUrl('/static/img/ff-banner-mobile-2x.png'),
                     alt: 'small Flutter Favorite logo',
+                    width: 94,
+                    height: 116,
                   ),
                 ),
               ],
@@ -136,5 +140,5 @@ d.Node detailHeaderNode({
 // keep in-sync with pkg/web_app/lib/src/likes.dart
 String? _formatPackageLikes(int? likesCount) {
   if (likesCount == null) return null;
-  return NumberFormat.compact().format(likesCount);
+  return formatWithSuffix(likesCount);
 }

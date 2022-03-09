@@ -48,8 +48,8 @@ Future<BackfillStat> backfillAllVersionsOfPackage(
   final query = dbService.query<PackageVersion>(ancestorKey: packageKey);
   final stats = <BackfillStat>[];
   final httpClient = http.Client();
-  archiveResolver ??= (p, v) => _parseArchive(httpClient, p, v);
-  await for (PackageVersion pv in query.run()) {
+  await for (final pv in query.run()) {
+    archiveResolver ??= (p, v) => _parseArchive(httpClient, p, v, pv.created!);
     final archive = await archiveResolver(pv.package, pv.version!);
     final stat = await backfillPackageVersion(
       package: pv.package,
@@ -72,7 +72,7 @@ Future<BackfillStat> backfillPackageVersion({
   _logger.info(
       'Backfill PackageVersion[Pubspec|Info|Asset(s)] in: $package/$version');
   if (archive.hasIssues) {
-    _logger.warning('Issues were found in the archive: '
+    _logger.info('Issues were found in the archive: '
         '${archive.issues.map((e) => e.message).join('; ')}');
   }
   final derived = derivePackageVersionEntities(
@@ -86,12 +86,19 @@ Future<BackfillStat> backfillPackageVersion({
       await existingAssetQuery.run().map((a) => a.key).toList();
 
   return await withRetryTransaction(dbService, (tx) async {
+    final pv = await tx.lookupValue<PackageVersion>(dbService.emptyKey
+        .append(Package, id: package)
+        .append(PackageVersion, id: version));
     final pvInfo = await tx.lookupOrNull<PackageVersionInfo>(dbService.emptyKey
         .append(PackageVersionInfo, id: derived.packageVersionInfo.id));
     final pvAssets = await tx.lookup<PackageVersionAsset>(existingAssetKeys);
 
     final inserts = <Model>[];
     final deletes = <Key>[];
+
+    if (pv.updateIfChanged(pubspecContentAsYaml: archive.pubspecContent)) {
+      inserts.add(pv);
+    }
 
     if (pvInfo == null) {
       inserts.add(derived.packageVersionInfo);
@@ -122,6 +129,7 @@ Future<BackfillStat> backfillPackageVersion({
     }
     return BackfillStat(
       versionCount: 1,
+      pvCount: inserts.whereType<PackageVersion>().length,
       pvInfoCount: inserts.whereType<PackageVersionInfo>().length,
       pvAssetUpdatedCount: inserts.whereType<PackageVersionAsset>().length,
       pvAssetDeletedCount: deletes.length, // only assets are deleted
@@ -130,7 +138,11 @@ Future<BackfillStat> backfillPackageVersion({
 }
 
 Future<PackageSummary> _parseArchive(
-    http.Client httpClient, String? package, String? version) async {
+  http.Client httpClient,
+  String? package,
+  String? version,
+  DateTime published,
+) async {
   final fn = '$package-$version.tar.gz';
   final uri =
       Uri.parse('https://storage.googleapis.com/pub-packages/packages/$fn');
@@ -141,8 +153,11 @@ Future<PackageSummary> _parseArchive(
   final tempFile = File(p.join(Directory.systemTemp.path, fn));
   await tempFile.writeAsBytes(rs.bodyBytes);
   try {
-    return await summarizePackageArchive(tempFile.path,
-        maxContentLength: maxAssetContentLength);
+    return await summarizePackageArchive(
+      tempFile.path,
+      maxContentLength: maxAssetContentLength,
+      published: published,
+    );
   } finally {
     await tempFile.delete();
   }
@@ -152,12 +167,14 @@ class BackfillStat {
   // package stat
   final int versionCount;
   // updated counts
+  final int pvCount;
   final int pvInfoCount;
   final int pvAssetUpdatedCount;
   final int pvAssetDeletedCount;
 
   BackfillStat({
     required this.versionCount,
+    required this.pvCount,
     required this.pvInfoCount,
     required this.pvAssetUpdatedCount,
     required this.pvAssetDeletedCount,
@@ -165,6 +182,7 @@ class BackfillStat {
 
   BackfillStat operator +(BackfillStat other) => BackfillStat(
         versionCount: versionCount + other.versionCount,
+        pvCount: pvCount + other.pvCount,
         pvInfoCount: pvInfoCount + other.pvInfoCount,
         pvAssetUpdatedCount: pvAssetUpdatedCount + other.pvAssetUpdatedCount,
         pvAssetDeletedCount: pvAssetDeletedCount + other.pvAssetDeletedCount,
@@ -172,6 +190,7 @@ class BackfillStat {
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'versionCount': versionCount,
+        'pvCount': pvCount,
         'pvInfoCount': pvInfoCount,
         'pvAssetUpdatedCount': pvAssetUpdatedCount,
         'pvAssetDeletedCount': pvAssetDeletedCount,

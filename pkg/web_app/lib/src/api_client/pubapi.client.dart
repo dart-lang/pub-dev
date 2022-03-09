@@ -4,11 +4,11 @@
 // ClientLibraryGenerator
 // **************************************************************************
 
+import 'package:_pub_shared/data/account_api.dart' as _i4;
+import 'package:_pub_shared/data/admin_api.dart' as _i6;
+import 'package:_pub_shared/data/package_api.dart' as _i3;
+import 'package:_pub_shared/data/publisher_api.dart' as _i5;
 import 'package:api_builder/_client_utils.dart' as _i2;
-import 'package:client_data/account_api.dart' as _i4;
-import 'package:client_data/admin_api.dart' as _i6;
-import 'package:client_data/package_api.dart' as _i3;
-import 'package:client_data/publisher_api.dart' as _i5;
 import 'package:http/http.dart' as _i1;
 
 export 'package:api_builder/_client_utils.dart' show RequestException;
@@ -375,6 +375,13 @@ class PubApiClient {
     );
   }
 
+  Future<List<int>> adminExecuteTool(String tool, String args) async {
+    return await _client.requestBytes(
+      verb: 'post',
+      path: '/api/admin/tools/$tool/$args',
+    );
+  }
+
   Future<_i6.AdminListUsersResponse> adminListUsers(
       {String? email, String? ouid, String? ct}) async {
     return _i6.AdminListUsersResponse.fromJson(await _client.requestJson(
@@ -410,6 +417,15 @@ class PubApiClient {
       verb: 'delete',
       path: '/api/admin/packages/$package/versions/$version',
     );
+  }
+
+  Future<_i3.VersionOptions> adminUpdateVersionOptions(
+      String package, String version, _i3.VersionOptions payload) async {
+    return _i3.VersionOptions.fromJson(await _client.requestJson(
+      verb: 'put',
+      path: '/api/admin/packages/$package/versions/$version/options',
+      body: payload.toJson(),
+    ));
   }
 
   Future<_i6.AssignedTags> adminGetAssignedTags(String package) async {

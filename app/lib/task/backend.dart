@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:_pub_shared/data/task_api.dart' as api;
 import 'package:chunked_stream/chunked_stream.dart'
     show readChunkedStream, MaximumSizeExceeded;
-import 'package:client_data/task_api.dart' as api;
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';

@@ -419,6 +419,9 @@ class AdminId {
 
 /// Permission that can be granted to administrators.
 enum AdminPermission {
+  /// Permission to execute a tool.
+  executeTool,
+
   /// Permission to list all users.
   listUsers,
 
@@ -427,6 +430,9 @@ enum AdminPermission {
 
   /// Permission to get/set the uploaders of a package.
   managePackageOwnership,
+
+  /// Permission to manage retracted status of a package version.
+  manageRetraction,
 
   /// Permission to remove a package.
   removePackage,

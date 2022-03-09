@@ -216,6 +216,8 @@ d.Node _accountDetailHeader(User user, UserSessionData userSessionData) {
     image: d.Image(
       src: userSessionData.imageUrlOfSize(200),
       alt: 'user profile picture',
+      width: 200,
+      height: 200,
     ),
     metadataNode: d.fragment([
       d.p(text: user.email!),

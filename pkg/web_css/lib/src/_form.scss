@@ -83,3 +83,13 @@
 .-admin-dropdown {
   min-width: 225px; // ~ the width of the button that triggers the transfer
 }
+
+.detail-tab-admin-content {
+  h2 {
+    &:not(:first-of-type) {
+      border-top: 1px solid #ccc;
+      margin-top: 16px;
+      padding-top: 16px;
+    }
+  }
+}

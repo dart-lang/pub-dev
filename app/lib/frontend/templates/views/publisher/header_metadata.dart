@@ -56,6 +56,8 @@ d.Node _ref({
       image: d.Image(
         src: staticUrls.getAssetUrl(iconPath ?? '/static/img/link-icon.svg'),
         alt: iconAlt,
+        width: 14,
+        height: 14,
       ),
     ),
     d.a(

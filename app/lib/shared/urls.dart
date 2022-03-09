@@ -4,7 +4,6 @@
 
 import 'package:path/path.dart' as p;
 
-import '../package/overrides.dart';
 import '../search/search_form.dart' show SearchContext, SearchForm, SearchOrder;
 
 const primaryHost = 'pub.dev';
@@ -183,15 +182,11 @@ String publisherActivityLogUrl(String publisherId) =>
 
 String searchUrl({
   SearchContext? context,
-  List<String> runtimes = const <String>[],
-  List<String> platforms = const <String>[],
   String? q,
   int? page,
 }) {
   final query = SearchForm(
     context: context,
-    runtimes: runtimes,
-    platforms: platforms,
     query: q,
   );
   return query.toSearchLink(page: page);
@@ -199,8 +194,6 @@ String searchUrl({
 
 String listingByPopularity() =>
     SearchForm(order: SearchOrder.popularity).toSearchLink();
-String listingFlutterPackages() => '/flutter/packages';
-String listingDartPackages() => '/dart/packages';
 
 String dartSdkMainUrl(String version) {
   final isDev = version.contains('dev');
@@ -256,12 +249,11 @@ String? inferIssueTrackerUrl(String? baseUrl) {
       return null;
     }
     segments.add('issues');
-    final url = Uri(
+    return Uri(
       scheme: 'https',
       host: uri.host,
       pathSegments: segments,
     ).toString();
-    return overrideIssueTrackerUrl(url);
   }
   return null;
 }

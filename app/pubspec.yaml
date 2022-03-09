@@ -5,11 +5,11 @@ environment:
 dependencies:
   _popularity:
     path: ../pkg/_popularity
+  _pub_shared:
+    path: ../pkg/_pub_shared
   appengine: '^0.13.0'
   args: '^2.0.0'
   basics: ^0.6.0
-  client_data:
-    path: ../pkg/client_data
   clock: ^1.1.0
   convert: '^3.0.0'
   crypto: '^3.0.0'
@@ -48,13 +48,13 @@ dependencies:
   watcher: ^1.0.0
   yaml: '^3.0.0'
   # pana version to be pinned
-  pana: '0.21.5'
+  pana: '0.21.8'
   # 3rd-party packages with pinned versions
   buffer: '1.1.1'
-  mailer: '5.0.1'
+  mailer: '5.1.0'
   sanitize_html: ^2.0.0
   ulid: '2.0.0'
-  tar: '0.5.0'
+  tar: '0.5.1'
   http_retry: '0.2.0'
   api_builder:
     path: ../pkg/api_builder
@@ -69,8 +69,6 @@ dev_dependencies:
   build_verify: ^3.0.0
   coverage: any # test already depends on it
   json_serializable: ^6.0.1
-  pub_validations:
-    path: ../pkg/pub_validations
   shelf_router_generator: ^1.0.0
   source_gen: '^1.0.0'
   test: ^1.16.5

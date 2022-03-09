@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:client_data/package_api.dart';
+import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/iam/v1.dart' as iam;

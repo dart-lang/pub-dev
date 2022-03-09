@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:_pub_shared/validation/html/html_validation.dart';
 import 'package:clock/clock.dart';
 import 'package:html/parser.dart';
 import 'package:pana/pana.dart' hide ReportStatus;
@@ -18,7 +19,6 @@ import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/frontend/templates/admin.dart';
 import 'package:pub_dev/frontend/templates/consent.dart';
 import 'package:pub_dev/frontend/templates/landing.dart';
-import 'package:pub_dev/frontend/templates/layout.dart';
 import 'package:pub_dev/frontend/templates/listing.dart';
 import 'package:pub_dev/frontend/templates/misc.dart';
 import 'package:pub_dev/frontend/templates/package.dart';
@@ -37,7 +37,6 @@ import 'package:pub_dev/service/youtube/backend.dart';
 import 'package:pub_dev/shared/utils.dart' show formatXAgo, shortDateFormat;
 import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
-import 'package:pub_validations/html/html_validation.dart';
 import 'package:test/test.dart';
 import 'package:xml/xml.dart' as xml;
 
@@ -361,14 +360,14 @@ void main() {
 
     scopedTest('no content for analysis tab', () async {
       // no content
-      expect(scoreTabNode(card: null, likeCount: 4).toString(),
+      expect(
+          scoreTabNode(card: null, likeCount: 4, usesFlutter: false).toString(),
           '<i>Awaiting analysis to complete.</i>');
     });
 
     scopedTest('aborted analysis tab', () async {
       final timestamp = DateTime(2017, 12, 18, 14, 26, 00);
       final card = ScoreCardData(
-        reportTypes: ['pana'],
         panaReport: PanaReport(
           timestamp: timestamp,
           panaRuntimeInfo: _panaRuntimeInfo,
@@ -381,7 +380,11 @@ void main() {
           urlProblems: null,
         ),
       );
-      final html = scoreTabNode(card: card, likeCount: 1000000).toString();
+      final html = scoreTabNode(
+        card: card,
+        likeCount: 1000000,
+        usesFlutter: false,
+      ).toString();
 
       expectGoldenFile(
         html,
@@ -397,7 +400,11 @@ void main() {
         flags: [PackageFlags.isObsolete],
         updated: DateTime(2017, 12, 18, 14, 26, 00),
       );
-      final String html = scoreTabNode(card: card, likeCount: 1111).toString();
+      final String html = scoreTabNode(
+        card: card,
+        likeCount: 1111,
+        usesFlutter: false,
+      ).toString();
       expectGoldenFile(html, 'analysis_tab_outdated.html', isFragment: true);
     });
 
@@ -457,36 +464,8 @@ void main() {
       'package index page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        final searchForm = SearchForm(context: SearchContext.flutter());
-        final oxygen = (await scoreCardBackend.getPackageView('oxygen'))!;
-        final titanium =
-            (await scoreCardBackend.getPackageView('flutter_titanium'))!;
-        final String html = renderPkgIndexPage(
-          SearchResultPage(
-            searchForm,
-            2,
-            packageHits: [oxygen, titanium],
-          ),
-          PageLinks.empty(),
-          searchForm: searchForm,
-        );
-        expectGoldenFile(html, 'pkg_index_page.html', timestamps: {
-          'oxygen-created': oxygen.created,
-          'titanium-created': titanium.created,
-        });
-      },
-    );
-
-    testWithProfile(
-      'experimental package index page',
-      processJobsWithFakeRunners: true,
-      fn: () async {
-        registerRequestContext(
-            RequestContext(isExperimental: true, showNewSearchUI: true));
-        final searchForm = SearchForm(
-          query: 'sdk:dart',
-          includeUnlisted: true,
-        );
+        registerRequestContext(RequestContext(isExperimental: true));
+        final searchForm = SearchForm(query: 'sdk:dart');
         final oxygen = (await scoreCardBackend.getPackageView('oxygen'))!;
         final titanium =
             (await scoreCardBackend.getPackageView('flutter_titanium'))!;
@@ -510,7 +489,7 @@ void main() {
           PageLinks.empty(),
           searchForm: searchForm,
         );
-        expectGoldenFile(html, 'pkg_index_page_experimental.html', timestamps: {
+        expectGoldenFile(html, 'pkg_index_page.html', timestamps: {
           'oxygen-created': oxygen.created,
           'titanium-created': titanium.created,
         });
@@ -859,20 +838,6 @@ void main() {
       final html =
           paginationNode(PageLinks(SearchForm(currentPage: 10), 91)).toString();
       expectGoldenFile(html, 'pagination_last.html', isFragment: true);
-    });
-
-    scopedTest('platform tabs: list', () {
-      final html = sdkTabsNode().toString();
-      expectGoldenFile(html, 'platform_tabs_list.html', isFragment: true);
-    });
-
-    scopedTest('platform tabs: search', () {
-      final html = sdkTabsNode(
-          searchForm: SearchForm(
-        context: SearchContext.flutter(),
-        query: 'foo',
-      )).toString();
-      expectGoldenFile(html, 'platform_tabs_search.html', isFragment: true);
     });
   });
 

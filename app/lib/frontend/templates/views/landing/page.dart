@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../../../../package/models.dart';
+import '../../../../search/search_form.dart';
 import '../../../../service/youtube/backend.dart';
+import '../../../../shared/tags.dart';
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
 import '../../../static_files.dart';
@@ -26,7 +28,8 @@ d.Node landingPageNode({
         title: 'Flutter Favorites',
         info: _ffInfo,
         content: miniListNode('flutter-favorites', ffPackages!),
-        viewAllUrl: '/flutter/favorites',
+        viewAllUrl:
+            SearchForm(query: PackageTags.isFlutterFavorite).toSearchLink(),
         viewAllEvent: 'landing-flutter-favorites-view-all',
       ),
     if (_isNotEmptyList(mostPopularPackages))
@@ -35,6 +38,8 @@ d.Node landingPageNode({
         image: d.Image(
           src: staticUrls.getAssetUrl('/static/img/landing-01.png'),
           alt: 'decoration image for package section',
+          width: 351,
+          height: 240,
         ),
         title: 'Most popular packages',
         info: d
@@ -49,13 +54,15 @@ d.Node landingPageNode({
         image: d.Image(
           src: staticUrls.getAssetUrl('/static/img/landing-02.png'),
           alt: 'decoration image for package section',
+          width: 306,
+          height: 240,
         ),
         imageGoesAfterContent: true,
         title: 'Top Flutter packages',
         info: d.text(
             'Some of the top packages that extend Flutter with new features'),
         content: miniListNode('top-flutter', topFlutterPackages!),
-        viewAllUrl: urls.listingFlutterPackages(),
+        viewAllUrl: SearchForm(query: SdkTag.sdkFlutter).toSearchLink(),
         viewAllEvent: 'landing-top-flutter-view-all',
       ),
     if (_isNotEmptyList(topDartPackages))
@@ -64,12 +71,14 @@ d.Node landingPageNode({
         image: d.Image(
           src: staticUrls.getAssetUrl('/static/img/landing-03.png'),
           alt: 'decoration image for package section',
+          width: 370,
+          height: 240,
         ),
         title: 'Top Dart packages',
         info: d
             .text('Some of the top packages for any Dart-based app or program'),
         content: miniListNode('top-dart', topDartPackages!),
-        viewAllUrl: urls.listingDartPackages(),
+        viewAllUrl: SearchForm(query: SdkTag.sdkDart).toSearchLink(),
         viewAllEvent: 'landing-top-dart-view-all',
       ),
     if (_isNotEmptyList(topPoWVideos))

@@ -73,19 +73,6 @@ const devDependencyPackages = <String>{
   'test_process',
 };
 
-// TODO: remove this after all of the flutter plugins have a proper issue tracker entry in their pubspec.yaml
-const _issueTrackerUrlOverrides = <String, String>{
-  'https://github.com/flutter/plugins/issues':
-      'https://github.com/flutter/flutter/issues',
-};
-
-String? overrideIssueTrackerUrl(String? url) {
-  if (url == null) {
-    return null;
-  }
-  return _issueTrackerUrlOverrides[url] ?? url;
-}
-
 /// A package is soft-removed when we keep it in the archives and index, but we
 /// won't serve the package or the documentation page, or any data about it.
 bool isSoftRemoved(String packageName) =>

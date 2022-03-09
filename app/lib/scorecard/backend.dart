@@ -115,7 +115,6 @@ class ScoreCardBackend {
     String? packageVersion, {
     bool onlyCurrent = false,
   }) async {
-    final requiredReportTypes = ReportType.values;
     if (packageVersion == null || packageVersion == 'latest') {
       final key = _db.emptyKey.append(Package, id: packageName);
       final p = await _db.lookupOrNull<Package>(key);
@@ -127,7 +126,7 @@ class ScoreCardBackend {
     final cached = onlyCurrent
         ? null
         : await cache.scoreCardData(packageName, packageVersion!).get();
-    if (cached != null && cached.hasReports(requiredReportTypes)) {
+    if (cached != null && cached.hasAllReports) {
       return cached;
     }
 
@@ -135,10 +134,10 @@ class ScoreCardBackend {
     final current = (await _db.lookupOrNull<ScoreCard>(key))?.toData();
     if (current != null) {
       // only full cards will be stored in cache
-      if (current.isCurrent && current.hasReports(ReportType.values)) {
+      if (current.isCurrent && current.hasAllReports) {
         await cache.scoreCardData(packageName, packageVersion).set(current);
       }
-      if (onlyCurrent || current.hasReports(requiredReportTypes)) {
+      if (onlyCurrent || current.hasAllReports) {
         return current;
       }
     }
@@ -156,10 +155,9 @@ class ScoreCardBackend {
 
     if (fallbackCardData.isEmpty) return null;
 
-    final fallbackCard = fallbackCardData
-            .firstWhereOrNull((d) => d.hasReports(requiredReportTypes)) ??
-        fallbackCardData
-            .firstWhereOrNull((d) => d.hasReports([ReportType.pana]));
+    final fallbackCard =
+        fallbackCardData.firstWhereOrNull((d) => d.hasAllReports) ??
+            fallbackCardData.firstWhereOrNull((d) => d.hasPanaReport);
 
     // For recently uploaded version, we don't want to fallback to an analysis
     // coming from an older running deployment too early. A new analysis may
@@ -212,22 +210,13 @@ class ScoreCardBackend {
         scoreCard.updated = clock.now().toUtc();
       }
 
-      scoreCard.flags.clear();
-      if (package.isDiscontinued) {
-        scoreCard.addFlag(PackageFlags.isDiscontinued);
-      }
-      if (status.isLatestStable) {
-        scoreCard.addFlag(PackageFlags.isLatestStable);
-      }
-      if (status.isLegacy) {
-        scoreCard.addFlag(PackageFlags.isLegacy);
-      }
-      if (status.isObsolete) {
-        scoreCard.addFlag(PackageFlags.isObsolete);
-      }
-      if (version.pubspec!.usesFlutter) {
-        scoreCard.addFlag(PackageFlags.usesFlutter);
-      }
+      scoreCard.flags = [
+        if (package.isDiscontinued) PackageFlags.isDiscontinued,
+        if (status.isLatestStable) PackageFlags.isLatestStable,
+        if (status.isLegacy) PackageFlags.isLegacy,
+        if (status.isObsolete) PackageFlags.isObsolete,
+        if (version.pubspec!.usesFlutter) PackageFlags.usesFlutter,
+      ];
 
       scoreCard.popularityScore = popularityStorage.lookup(packageName);
 
@@ -366,10 +355,10 @@ class ScoreCardBackend {
   /// Returns the status of a package and version.
   Future<PackageStatus> getPackageStatus(String package, String version) async {
     final packageKey = _db.emptyKey.append(Package, id: package);
-    final List list = await _db
+    final list = await _db
         .lookup([packageKey, packageKey.append(PackageVersion, id: version)]);
-    final p = list[0] as Package;
-    final pv = list[1] as PackageVersion;
+    final p = list[0] as Package?;
+    final pv = list[1] as PackageVersion?;
     return PackageStatus.fromModels(p, pv);
   }
 

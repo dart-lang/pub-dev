@@ -4,8 +4,6 @@
 
 import 'dart:html';
 
-import 'package:collection/collection.dart';
-
 void setupScroll() {
   _setEventForAnchorScroll();
   window.onHashChange.listen((_) {
@@ -24,10 +22,11 @@ void _scrollToHash() {
       return;
     }
     // if there is an element on the current tab, scroll to it
-    final firstVisible = list.firstWhereOrNull((e) => e.offsetHeight > 0);
-    if (firstVisible != null) {
-      _scrollTo(firstVisible);
-      return;
+    for (final e in list) {
+      if (e.offsetHeight > 0) {
+        _scrollTo(e);
+        return;
+      }
     }
     // fallback, should not happen
     _scrollTo(list.first);

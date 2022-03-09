@@ -14,9 +14,6 @@ class SearchForm {
   final String? query;
   late final parsedQuery = ParsedQueryText.parse(query);
 
-  final List<String> runtimes;
-  final List<String> platforms;
-
   final SearchOrder? order;
 
   /// The visible index of the current page (and offset position).
@@ -26,56 +23,30 @@ class SearchForm {
   /// The number of search results per page.
   final int? pageSize;
 
-  /// True, if packages with is:discontinued tag should be included.
-  final bool includeDiscontinued;
-
-  /// True, if packages with is:unlisted tag should be included.
-  final bool includeUnlisted;
-
-  /// True, if null safe package should be listed.
-  final bool nullSafe;
-
   SearchForm._({
     required this.context,
     this.query,
-    this.runtimes = const <String>[],
-    this.platforms = const <String>[],
     this.order,
     this.currentPage,
     this.pageSize,
-    required this.includeDiscontinued,
-    required this.includeUnlisted,
-    required this.nullSafe,
   });
 
   factory SearchForm({
     SearchContext? context,
     String? query,
-    List<String> runtimes = const <String>[],
-    List<String> platforms = const <String>[],
     SearchOrder? order,
     int? currentPage,
     int? pageSize,
-    bool includeDiscontinued = false,
-    bool includeUnlisted = false,
-    bool nullSafe = false,
   }) {
     currentPage ??= 1;
     pageSize ??= resultsPerPage;
     final q = _stringToNull(query?.trim());
-    runtimes = DartSdkRuntime.decodeQueryValues(runtimes);
-    platforms = platforms.where((v) => v.isNotEmpty).toList();
     return SearchForm._(
       context: context ?? SearchContext.regular(),
       query: q,
-      runtimes: runtimes,
-      platforms: platforms,
       order: order,
       currentPage: currentPage,
       pageSize: pageSize,
-      includeDiscontinued: includeDiscontinued,
-      includeUnlisted: includeUnlisted,
-      nullSafe: nullSafe,
     );
   }
 
@@ -84,70 +55,30 @@ class SearchForm {
   /// we use in the search service backend.
   factory SearchForm.parse(
       SearchContext context, Map<String, String> queryParameters) {
-    return _parseFrontendSearchForm(context, queryParameters);
-  }
-
-  SearchForm change({
-    SearchContext? context,
-    String? query,
-    List<String>? runtimes,
-    List<String>? platforms,
-    int? currentPage,
-  }) {
-    runtimes ??= this.runtimes;
-    platforms ??= this.platforms;
-    if (context != null && context.sdk != this.context.sdk) {
-      if (context.sdk != SdkTagValue.dart) {
-        runtimes = const <String>[];
-      }
-      if (context.sdk != SdkTagValue.flutter) {
-        platforms = const <String>[];
-      }
-    }
-    return SearchForm._(
-      context: context ?? this.context,
-      query: query ?? this.query,
-      runtimes: runtimes,
-      platforms: platforms,
-      order: order,
-      currentPage: currentPage ?? this.currentPage,
-      pageSize: pageSize,
-      includeDiscontinued: includeDiscontinued,
-      includeUnlisted: includeUnlisted,
-      nullSafe: nullSafe,
+    return SearchForm(
+      context: context,
+      query: queryParameters['q'] ?? '',
+      order: parseSearchOrder(queryParameters['sort']),
+      currentPage: extractPageFromUrlParameters(queryParameters),
     );
   }
 
-  SearchForm toggleSdk(String sdk) {
-    return toggleRequiredTag('sdk:$sdk');
+  SearchForm _change({String? query}) {
+    return SearchForm._(
+      context: context,
+      query: query ?? this.query,
+      order: order,
+      currentPage: currentPage,
+      pageSize: pageSize,
+    );
   }
 
   SearchForm toggleRequiredTag(String tag) {
-    return change(
+    return _change(
       query: parsedQuery
           .change(tagsPredicate: parsedQuery.tagsPredicate.toggleRequired(tag))
           .toString(),
     );
-  }
-
-  SearchForm toggleRuntime(String runtime) {
-    final runtimes = <String>[...this.runtimes];
-    if (runtimes.contains(runtime)) {
-      runtimes.remove(runtime);
-    } else {
-      runtimes.add(runtime);
-    }
-    return change(runtimes: runtimes);
-  }
-
-  SearchForm togglePlatform(String platform) {
-    final platforms = <String>[...this.platforms];
-    if (platforms.contains(platform)) {
-      platforms.remove(platform);
-    } else {
-      platforms.add(platform);
-    }
-    return change(platforms: platforms);
   }
 
   ServiceSearchQuery toServiceQuery() {
@@ -157,25 +88,16 @@ class SearchForm {
             tag == PackageVersionTags.showLegacy ||
             tag == PackageTags.showHidden);
     final prohibitDiscontinued = !context.includeAll &&
-        !includeDiscontinued &&
         !parsedQuery.tagsPredicate.anyTag((tag) =>
             tag == PackageTags.isDiscontinued ||
             tag == PackageTags.showDiscontinued ||
             tag == PackageTags.showHidden);
     final prohibitUnlisted = !context.includeAll &&
-        !includeUnlisted &&
         !parsedQuery.tagsPredicate.anyTag((tag) =>
             tag == PackageTags.isUnlisted ||
             tag == PackageTags.showUnlisted ||
             tag == PackageTags.showHidden);
     final tagsPredicate = TagsPredicate(
-      requiredTags: [
-        if (nullSafe) PackageVersionTags.isNullSafe,
-        if (context.isFlutterFavorites) PackageTags.isFlutterFavorite,
-        if (SdkTagValue.isNotAny(context.sdk)) 'sdk:${context.sdk}',
-        ...runtimes.map((v) => 'runtime:$v'),
-        ...platforms.map((v) => 'platform:$v'),
-      ],
       prohibitedTags: [
         if (prohibitDiscontinued) PackageTags.isDiscontinued,
         if (prohibitUnlisted) PackageTags.isUnlisted,
@@ -199,65 +121,32 @@ class SearchForm {
 
   /// Whether any of the advanced options is active.
   bool get hasActiveAdvanced =>
-      includeDiscontinued || includeUnlisted || nullSafe;
+      parsedQuery.tagsPredicate.hasTag(PackageTags.isFlutterFavorite) ||
+      parsedQuery.tagsPredicate.hasTag(PackageTags.showHidden) ||
+      parsedQuery.tagsPredicate.hasTag(PackageVersionTags.isNullSafe);
 
   /// Whether any of the non-query settings are non-default
   /// (e.g. clicking on any platforms, SDKs, or advanced filters).
-  bool get hasActiveNonQuery =>
-      parsedQuery.tagsPredicate.isNotEmpty ||
-      platforms.isNotEmpty ||
-      hasActiveAdvanced;
+  bool get hasActiveNonQuery => parsedQuery.tagsPredicate.isNotEmpty;
 
   /// Converts the query to a user-facing link that (after frontend parsing) will
   /// re-create an identical search query object.
   String toSearchLink({int? page}) {
     page ??= currentPage;
-    final params = <String, dynamic>{};
-    if (query != null && query!.isNotEmpty) {
-      params['q'] = query;
-    }
-    params.addAll(hiddenFields());
-    if (order != null) {
-      final String paramName = 'sort';
-      params[paramName] = serializeSearchOrder(order);
-    }
-    if (includeDiscontinued) {
-      params['discontinued'] = '1';
-    }
-    if (includeUnlisted) {
-      params['unlisted'] = '1';
-    }
-    if (nullSafe) {
-      params['null-safe'] = '1';
-    }
-    if (page != null && page > 1) {
-      params['page'] = page.toString();
-    }
-    final uri = Uri(
-        path: context.toSearchFormPath(),
-        queryParameters: params.isEmpty ? null : params);
-    return uri.toString();
-  }
-
-  /// Helper method for emitting hidden fields in the search <form>
-  /// TODO: eventually remove this and use explicit values
-  Map<String, String> hiddenFields() {
-    final encodedRuntimes = DartSdkRuntime.encodeRuntimeTags(runtimes);
-    return {
-      if (encodedRuntimes.isNotEmpty) 'runtime': encodedRuntimes.join(' '),
-      if (platforms.isNotEmpty) 'platform': platforms.join(' '),
+    final params = <String, dynamic>{
+      if (query != null && query!.isNotEmpty) 'q': query,
+      if (order != null) 'sort': order!.name,
+      if (page != null && page > 1) 'page': page.toString(),
     };
+    return Uri(
+      path: context.toSearchFormPath(),
+      queryParameters: params.isEmpty ? null : params,
+    ).toString();
   }
 }
 
 /// The context of the search, e.g. (all | publisher | my-) packages.
 class SearchContext {
-  /// Whether the search query is in the Flutter Favorites context.
-  final bool isFlutterFavorites;
-
-  /// Whether the search query is in the Dart or Flutter SDK context.
-  final String? sdk;
-
   final String? publisherId;
 
   /// True, if all packages should be part of the results, including:
@@ -267,27 +156,12 @@ class SearchContext {
   final bool includeAll;
 
   SearchContext._({
-    this.isFlutterFavorites = false,
-    this.sdk,
     String? publisherId,
     this.includeAll = false,
   }) : publisherId = _stringToNull(publisherId);
 
-  /// Include all packages, including discontinued, unlisted and legacy.
-  factory SearchContext.all() => SearchContext._(includeAll: true);
-
   /// Regular search, not displaying discontinued, unlisted or legacy packages.
   factory SearchContext.regular() => SearchContext._();
-
-  /// Regular search on the Dart SDK.
-  factory SearchContext.dart() => SearchContext._(sdk: SdkTagValue.dart);
-
-  /// Regular search on the Flutter SDK.
-  factory SearchContext.flutter() => SearchContext._(sdk: SdkTagValue.flutter);
-
-  /// Regular search on Flutter Favorites.
-  factory SearchContext.flutterFavorites() =>
-      SearchContext._(isFlutterFavorites: true);
 
   /// All packages listed for a publisher.
   factory SearchContext.publisher(String publisherId) =>
@@ -296,46 +170,11 @@ class SearchContext {
   /// Converts the query to a user-facing link that the search form can use as
   /// the base path of its `action` parameter.
   String toSearchFormPath() {
-    String path = '/packages';
-    if (sdk != null && SdkTagValue.isNotAny(sdk)) {
-      path = '/$sdk/packages';
-    }
-    if (isFlutterFavorites) {
-      path = '/flutter/favorites';
-    }
     if (publisherId != null && publisherId!.isNotEmpty) {
-      path = '/publishers/$publisherId/packages';
+      return '/publishers/$publisherId/packages';
     }
-    return path;
+    return '/packages';
   }
-}
-
-SearchForm _parseFrontendSearchForm(
-    SearchContext context, Map<String, String> queryParameters) {
-  final currentPage = extractPageFromUrlParameters(queryParameters);
-  final String queryText = queryParameters['q'] ?? '';
-  final String? sortParam = queryParameters['sort'];
-  final SearchOrder? sortOrder = parseSearchOrder(sortParam);
-  List<String>? runtimes;
-  if (queryParameters.containsKey('runtime')) {
-    runtimes = queryParameters['runtime']!.split(' ');
-  }
-  List<String>? platforms;
-  if (queryParameters.containsKey('platform')) {
-    platforms = queryParameters['platform']!.split(' ');
-  }
-  return SearchForm(
-    context: context,
-    query: queryText,
-    runtimes: runtimes ?? const <String>[],
-    platforms: platforms ?? const <String>[],
-    order: sortOrder,
-    currentPage: currentPage,
-    includeDiscontinued: queryParameters['discontinued'] == '1',
-    includeUnlisted: queryParameters['unlisted'] == '1',
-    nullSafe: queryParameters['prerelease-null-safe'] == '1' ||
-        queryParameters['null-safe'] == '1',
-  );
 }
 
 String? _stringToNull(String? v) => (v == null || v.isEmpty) ? null : v;

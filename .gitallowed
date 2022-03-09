@@ -1,3 +1,5 @@
 app/lib/shared/configuration.dart:.*\.apps\.googleusercontent.com
 app/lib/shared/configuration.dart:.*\.apps\.googleusercontent.com
 pkg/pub_integration/lib/src/pub_tool_client.dart:.*\.apps\.googleusercontent.com
+app/config/prod-config.yaml:.*\.apps\.googleusercontent.com
+app/config/staging-config.yaml:.*\.apps\.googleusercontent.com

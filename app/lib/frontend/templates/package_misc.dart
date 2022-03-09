@@ -8,7 +8,6 @@ import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
 import '../dom/dom.dart' as d;
-import '../request_context.dart';
 import '../static_files.dart';
 
 import 'views/pkg/badge.dart';
@@ -65,164 +64,73 @@ d.Node tagsNodeFromPackageView({
   if (package.isLegacy) {
     simpleTags.add(SimpleTag.legacy());
   }
-  if (requestContext.showNewSearchUI) {
-    String tagUrl(String requiredTag) =>
-        SearchForm().toggleRequiredTag(requiredTag).toSearchLink();
+  String tagUrl(String requiredTag) =>
+      SearchForm().toggleRequiredTag(requiredTag).toSearchLink();
 
-    final sdkBadgeTag = BadgeTag(
-      text: 'SDK',
-      subTags: [
-        if (sdkTags.contains(SdkTag.sdkDart))
-          BadgeSubTag(
-            text: 'Dart',
-            title: 'Packages compatible with Dart SDK',
-            href: tagUrl(SdkTag.sdkDart),
-          ),
-        if (sdkTags.contains(SdkTag.sdkFlutter))
-          BadgeSubTag(
-            text: 'Flutter',
-            title: 'Packages compatible with Flutter SDK',
-            href: tagUrl(SdkTag.sdkFlutter),
-          ),
-      ],
-    );
-    if (sdkBadgeTag.subTags.isNotEmpty) {
-      badgeTags.add(sdkBadgeTag);
-    }
+  final sdkBadgeTag = BadgeTag(
+    text: 'SDK',
+    subTags: [
+      if (sdkTags.contains(SdkTag.sdkDart))
+        BadgeSubTag(
+          text: 'Dart',
+          title: 'Packages compatible with Dart SDK',
+          href: tagUrl(SdkTag.sdkDart),
+        ),
+      if (sdkTags.contains(SdkTag.sdkFlutter))
+        BadgeSubTag(
+          text: 'Flutter',
+          title: 'Packages compatible with Flutter SDK',
+          href: tagUrl(SdkTag.sdkFlutter),
+        ),
+    ],
+  );
+  if (sdkBadgeTag.subTags.isNotEmpty) {
+    badgeTags.add(sdkBadgeTag);
+  }
 
-    final platformBadgeTag = BadgeTag(
-      text: 'Platform',
-      subTags: [
-        if (tags.contains(FlutterSdkTag.platformAndroid))
-          BadgeSubTag(
-            text: 'Android',
-            title: 'Packages compatible with Android platform',
-            href: tagUrl(FlutterSdkTag.platformAndroid),
-          ),
-        if (tags.contains(FlutterSdkTag.platformIos))
-          BadgeSubTag(
-            text: 'iOS',
-            title: 'Packages compatible with iOS platform',
-            href: tagUrl(FlutterSdkTag.platformIos),
-          ),
-        if (tags.contains(FlutterSdkTag.platformLinux))
-          BadgeSubTag(
-            text: 'Linux',
-            title: 'Packages compatible with Linux platform',
-            href: tagUrl(FlutterSdkTag.platformLinux),
-          ),
-        if (tags.contains(FlutterSdkTag.platformMacos))
-          BadgeSubTag(
-            text: 'macOS',
-            title: 'Packages compatible with macOS platform',
-            href: tagUrl(FlutterSdkTag.platformMacos),
-          ),
-        if (tags.contains(FlutterSdkTag.platformWeb))
-          BadgeSubTag(
-            text: 'web',
-            title: 'Packages compatible with Web platform',
-            href: tagUrl(FlutterSdkTag.platformWeb),
-          ),
-        if (tags.contains(FlutterSdkTag.platformWindows))
-          BadgeSubTag(
-            text: 'Windows',
-            title: 'Packages compatible with Windows platform',
-            href: tagUrl(FlutterSdkTag.platformWindows),
-          ),
-      ],
-    );
-    if (platformBadgeTag.subTags.isNotEmpty) {
-      badgeTags.add(platformBadgeTag);
-    }
-  }
-  // We only display first-class platform/runtimes
-  if (!requestContext.showNewSearchUI && sdkTags.contains(SdkTag.sdkDart)) {
-    badgeTags.add(BadgeTag(
-      text: 'Dart',
-      title: 'Packages compatible with Dart SDK',
-      href: urls.searchUrl(context: SearchContext.dart()),
-      subTags: [
-        if (tags.contains(DartSdkTag.runtimeNativeJit))
-          BadgeSubTag(
-            text: 'native',
-            title:
-                'Packages compatible with Dart running on a native platform (JIT/AOT)',
-            href: urls.searchUrl(
-                context: SearchContext.dart(),
-                runtimes: DartSdkRuntime.encodeRuntimeTags(
-                    [DartSdkRuntime.nativeJit])),
-          ),
-        if (tags.contains(DartSdkTag.runtimeWeb))
-          BadgeSubTag(
-            text: 'js',
-            title: 'Packages compatible with Dart compiled for the web',
-            href: urls.searchUrl(
-                context: SearchContext.dart(),
-                runtimes:
-                    DartSdkRuntime.encodeRuntimeTags([DartSdkRuntime.web])),
-          ),
-      ],
-    ));
-  }
-  if (!requestContext.showNewSearchUI && sdkTags.contains(SdkTag.sdkFlutter)) {
-    badgeTags.add(BadgeTag(
-      text: 'Flutter',
-      title: 'Packages compatible with Flutter SDK',
-      href: urls.searchUrl(context: SearchContext.flutter()),
-      subTags: [
-        if (tags.contains(FlutterSdkTag.platformAndroid))
-          BadgeSubTag(
-            text: 'Android',
-            title: 'Packages compatible with Flutter on the Android platform',
-            href: urls.searchUrl(
-                context: SearchContext.flutter(),
-                platforms: [FlutterSdkPlatform.android]),
-          ),
-        if (tags.contains(FlutterSdkTag.platformIos))
-          BadgeSubTag(
-            text: 'iOS',
-            title: 'Packages compatible with Flutter on the iOS platform',
-            href: urls.searchUrl(
-              context: SearchContext.flutter(),
-              platforms: [FlutterSdkPlatform.ios],
-            ),
-          ),
-        if (tags.contains(FlutterSdkTag.platformLinux))
-          BadgeSubTag(
-            text: 'Linux',
-            title: 'Packages compatible with Flutter on the Linux platform',
-            href: urls.searchUrl(
-                context: SearchContext.flutter(),
-                platforms: [FlutterSdkPlatform.linux]),
-          ),
-        if (tags.contains(FlutterSdkTag.platformMacos))
-          BadgeSubTag(
-            text: 'macOS',
-            title: 'Packages compatible with Flutter on the macOS platform',
-            href: urls.searchUrl(
-                context: SearchContext.flutter(),
-                platforms: [FlutterSdkPlatform.macos]),
-          ),
-        if (tags.contains(FlutterSdkTag.platformWeb))
-          BadgeSubTag(
-            text: 'web',
-            title: 'Packages compatible with Flutter on the Web platform',
-            href: urls.searchUrl(
-              context: SearchContext.flutter(),
-              platforms: [FlutterSdkPlatform.web],
-            ),
-          ),
-        if (tags.contains(FlutterSdkTag.platformWindows))
-          BadgeSubTag(
-            text: 'Windows',
-            title: 'Packages compatible with Flutter on the Windows platform',
-            href: urls.searchUrl(
-              context: SearchContext.flutter(),
-              platforms: [FlutterSdkPlatform.windows],
-            ),
-          ),
-      ],
-    ));
+  final platformBadgeTag = BadgeTag(
+    text: 'Platform',
+    subTags: [
+      if (tags.contains(PlatformTag.platformAndroid))
+        BadgeSubTag(
+          text: 'Android',
+          title: 'Packages compatible with Android platform',
+          href: tagUrl(PlatformTag.platformAndroid),
+        ),
+      if (tags.contains(PlatformTag.platformIos))
+        BadgeSubTag(
+          text: 'iOS',
+          title: 'Packages compatible with iOS platform',
+          href: tagUrl(PlatformTag.platformIos),
+        ),
+      if (tags.contains(PlatformTag.platformLinux))
+        BadgeSubTag(
+          text: 'Linux',
+          title: 'Packages compatible with Linux platform',
+          href: tagUrl(PlatformTag.platformLinux),
+        ),
+      if (tags.contains(PlatformTag.platformMacos))
+        BadgeSubTag(
+          text: 'macOS',
+          title: 'Packages compatible with macOS platform',
+          href: tagUrl(PlatformTag.platformMacos),
+        ),
+      if (tags.contains(PlatformTag.platformWeb))
+        BadgeSubTag(
+          text: 'web',
+          title: 'Packages compatible with Web platform',
+          href: tagUrl(PlatformTag.platformWeb),
+        ),
+      if (tags.contains(PlatformTag.platformWindows))
+        BadgeSubTag(
+          text: 'Windows',
+          title: 'Packages compatible with Windows platform',
+          href: tagUrl(PlatformTag.platformWindows),
+        ),
+    ],
+  );
+  if (platformBadgeTag.subTags.isNotEmpty) {
+    badgeTags.add(platformBadgeTag);
   }
   if (badgeTags.isEmpty && package.isPending) {
     simpleTags.add(SimpleTag.pending());

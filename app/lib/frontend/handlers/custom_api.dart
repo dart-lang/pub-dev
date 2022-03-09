@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:client_data/package_api.dart';
+import 'package:_pub_shared/data/package_api.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../dartdoc/backend.dart';
@@ -24,6 +24,8 @@ import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart' show jsonUtf8Encoder;
+
+import 'headers.dart';
 
 /// Handles requests for /api/documentation/<package>
 Future<shelf.Response> apiDocumentationHandler(
@@ -75,7 +77,7 @@ Future<shelf.Response> apiPackagesCompactListHandler(shelf.Request request) =>
 /// Handles requests for
 /// - /api/package-names
 Future<shelf.Response> apiPackageNamesHandler(shelf.Request request) async {
-  final packageNames = await nameTracker.getPackageNames();
+  final packageNames = await nameTracker.getVisiblePackageNames();
   packageNames.removeWhere(isSoftRemoved);
   return jsonResponse({
     'packages': packageNames,
@@ -89,7 +91,7 @@ Future<shelf.Response> apiPackageNamesHandler(shelf.Request request) async {
 Future<shelf.Response> apiPackageNameCompletionDataHandler(
     shelf.Request request) async {
   // only accept requests which allow gzip content encoding
-  if (!request.acceptsEncoding('gzip')) {
+  if (!request.acceptsGzipEncoding()) {
     throw NotAcceptableException('Client must accept gzip content.');
   }
 
@@ -112,7 +114,7 @@ Future<shelf.Response> apiPackageNameCompletionDataHandler(
   return shelf.Response(200, body: bytes, headers: {
     ...jsonResponseHeaders,
     'Content-Encoding': 'gzip',
-    'Cache-Control': 'public, max-age=28800', // 8 hours caching
+    ...CacheHeaders.packageNameCompletion(),
   });
 }
 

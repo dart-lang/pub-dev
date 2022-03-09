@@ -5,10 +5,10 @@
 import 'dart:async';
 import 'dart:html';
 
-import 'package:intl/intl.dart';
+import 'package:_pub_shared/format/number_format.dart';
 import 'package:mdc_web/mdc_web.dart' show MDCIconButtonToggle;
 
-import 'account.dart';
+import 'api_client/api_client.dart' deferred as api_client;
 import 'page_data.dart';
 
 Future<void> _done = Future.value();
@@ -22,18 +22,19 @@ void setupLikesList() {
   document.querySelectorAll('.-pub-like-button').forEach((likeButton) {
     final package = likeButton.dataset['package']!;
 
-    likeButton.onClick.listen((Event e) {
+    likeButton.onClick.listen((Event e) async {
+      await api_client.loadLibrary();
       final text = likeButton.querySelector('.-pub-like-button-label')!;
       final img =
           likeButton.querySelector('.-pub-like-button-img') as ImageElement;
       if (text.innerText == 'LIKE') {
         text.innerText = 'UNLIKE';
         img.src = likeButton.dataset['thumb_up_filled'];
-        _enqueue(() => client.likePackage(package));
+        _enqueue(() => api_client.client.likePackage(package));
       } else {
         text.innerText = 'LIKE';
         img.src = likeButton.dataset['thumb_up_outlined'];
-        _enqueue(() => client.unlikePackage(package));
+        _enqueue(() => api_client.client.unlikePackage(package));
       }
     });
   });
@@ -54,21 +55,23 @@ void setupLikes() {
   // keep in-sync with app/lib/frontend/templates/views/shared/detail/header.dart
   String likesString() {
     final likesCount = pageData.pkgData!.likes + likesDelta;
-    return NumberFormat.compact().format(likesCount);
+    return formatWithSuffix(likesCount);
   }
 
-  iconButtonToggle.listen(MDCIconButtonToggle.changeEvent, (Event e) {
+  iconButtonToggle.listen(MDCIconButtonToggle.changeEvent, (Event e) async {
     likeButton.blur();
+    await api_client.loadLibrary();
     if (iconButtonToggle.on ?? false) {
       // The button has shifted to on.
       likesDelta++;
       likes!.innerText = likesString();
-      _enqueue(() => client.likePackage(pageData.pkgData!.package));
+      _enqueue(() => api_client.client.likePackage(pageData.pkgData!.package));
     } else {
       // The button has shifted to off.
       likesDelta--;
       likes!.innerText = likesString();
-      _enqueue(() => client.unlikePackage(pageData.pkgData!.package));
+      _enqueue(
+          () => api_client.client.unlikePackage(pageData.pkgData!.package));
     }
   });
 }

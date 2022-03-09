@@ -4,12 +4,12 @@
 
 import 'dart:io';
 
+import 'package:_pub_shared/validation/html/html_validation.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'package:pub_dev/dartdoc/customization.dart';
 import 'package:pub_dev/dartdoc/customizer_config_provider.dart';
 import 'package:pub_dev/frontend/static_files.dart';
-import 'package:pub_validations/html/html_validation.dart';
 import 'package:test/test.dart';
 import 'package:xml/xml.dart';
 

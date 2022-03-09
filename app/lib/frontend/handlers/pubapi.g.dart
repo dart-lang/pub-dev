@@ -707,6 +707,21 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
+  router.add('POST', r'/api/admin/tools/<tool>/<args|[^]*>',
+      (Request request, String tool, String args) async {
+    try {
+      final _$result = await service.adminExecuteTool(
+        request,
+        tool,
+        args,
+      );
+      return _$result;
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
   router.add('GET', r'/api/admin/users', (Request request) async {
     try {
       final _$result = await service.adminListUsers(
@@ -759,6 +774,23 @@ Router _$PubApiRouter(PubApi service) {
         version,
       );
       return _$result;
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
+  router.add('PUT', r'/api/admin/packages/<package>/versions/<version>/options',
+      (Request request, String package, String version) async {
+    try {
+      final _$result = await service.adminUpdateVersionOptions(
+        request,
+        package,
+        version,
+        await $utilities.decodeJson<VersionOptions>(
+            request, (o) => VersionOptions.fromJson(o)),
+      );
+      return $utilities.jsonResponse(_$result.toJson());
     } on ApiResponseException catch (e) {
       return e.asApiResponse();
     } catch (e, st) {

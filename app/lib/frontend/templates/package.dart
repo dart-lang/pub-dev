@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:client_data/page_data.dart';
+import 'package:_pub_shared/data/page_data.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 
 import '../../package/models.dart';
@@ -391,6 +391,7 @@ Tab _scoreTab(PackagePageData data) {
     contentNode: scoreTabNode(
       card: data.scoreCard,
       likeCount: data.package!.likes,
+      usesFlutter: data.version!.pubspec!.usesFlutter,
     ),
   );
 }

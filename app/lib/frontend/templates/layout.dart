@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:client_data/page_data.dart';
+import 'package:_pub_shared/data/page_data.dart';
 
 import '../../account/backend.dart' show userSessionData;
 import '../../search/search_form.dart';
-import '../../search/search_service.dart';
 import '../../service/announcement/backend.dart';
 import '../../shared/configuration.dart';
-import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
 import '../dom/dom.dart' as d;
@@ -19,7 +17,6 @@ import '_consts.dart';
 
 import 'views/shared/layout.dart';
 import 'views/shared/search_banner.dart';
-import 'views/shared/search_tabs.dart';
 import 'views/shared/site_header.dart';
 
 enum PageType {
@@ -50,12 +47,10 @@ String renderLayoutPage(
   /// The canonical content link that will be put in the header.
   /// https://support.google.com/webmasters/answer/139066?hl=en
   String? canonicalUrl,
-  String? sdk,
   String? publisherId,
   SearchForm? searchForm,
   bool noIndex = false,
   PageData? pageData,
-  String? searchPlaceHolder,
   List<String>? mainClasses,
 }) {
   // normalize canonical URL
@@ -63,7 +58,7 @@ String renderLayoutPage(
     canonicalUrl = '${urls.siteRoot}$canonicalUrl';
   }
   mainClasses ??= ['container'];
-  final isRoot = type == PageType.landing && sdk == null;
+  final isRoot = type == PageType.landing;
   final bodyClasses = [
     if (type == PageType.standalone) 'page-standalone',
     if (type == PageType.landing) 'page-landing',
@@ -91,7 +86,6 @@ String renderLayoutPage(
             type: type,
             publisherId: publisherId,
             searchForm: searchForm,
-            searchPlaceholder: searchPlaceHolder,
           )
         : null,
     isLanding: type == PageType.landing,
@@ -107,16 +101,13 @@ d.Node _renderSearchBanner({
   required PageType type,
   required String? publisherId,
   required SearchForm? searchForm,
-  String? searchPlaceholder,
 }) {
-  final sdk = searchForm?.context.sdk ?? SdkTagValue.any;
   final queryText = searchForm?.query;
-  bool includePreferencesAsHiddenFields = false;
+  String? searchPlaceholder;
   if (publisherId != null) {
     searchPlaceholder ??= 'Search $publisherId packages';
   } else {
-    searchPlaceholder ??= getSdkDict(sdk).searchPackagesLabel;
-    includePreferencesAsHiddenFields = true;
+    searchPlaceholder ??= getSdkDict(null).searchPackagesLabel;
   }
   String searchFormUrl;
   if (publisherId != null) {
@@ -129,12 +120,7 @@ d.Node _renderSearchBanner({
   } else {
     searchFormUrl = SearchForm().context.toSearchFormPath();
   }
-  final searchSort = searchForm?.order == null
-      ? null
-      : serializeSearchOrder(searchForm!.order);
-  final hiddenInputs = includePreferencesAsHiddenFields
-      ? (searchForm ?? SearchForm()).hiddenFields()
-      : null;
+  final searchSort = searchForm?.order?.name;
   return searchBannerNode(
     // When search is active (query text has a non-empty value) users may expect
     // to scroll through the results via keyboard. We should only autofocus the
@@ -145,52 +131,7 @@ d.Node _renderSearchBanner({
     placeholder: searchPlaceholder,
     queryText: queryText,
     sortParam: searchSort,
-    includeDiscontinued: searchForm?.includeDiscontinued ?? false,
-    includeUnlisted: searchForm?.includeUnlisted ?? false,
-    includeNullSafe: searchForm?.nullSafe ?? false,
-    hiddenInputs: hiddenInputs,
     hasActive: searchForm?.hasActiveNonQuery ?? false,
-  );
-}
-
-d.Node sdkTabsNode({
-  SearchForm? searchForm,
-}) {
-  final isff = searchForm?.context.isFlutterFavorites ?? false;
-  final currentSdk = isff ? null : searchForm?.context.sdk ?? SdkTagValue.any;
-  SearchTab sdkTabData(SearchContext context, String label, String title) {
-    String url;
-    if (searchForm != null) {
-      url = searchForm.change(context: context, currentPage: 1).toSearchLink();
-    } else {
-      url = urls.searchUrl(context: context);
-    }
-    return SearchTab(
-      text: label,
-      href: url,
-      active: (context.sdk ?? SdkTagValue.any) == currentSdk,
-      title: title,
-    );
-  }
-
-  return searchTabsNode(
-    [
-      sdkTabData(
-        SearchContext.dart(),
-        'Dart',
-        'Packages compatible with the Dart SDK',
-      ),
-      sdkTabData(
-        SearchContext.flutter(),
-        'Flutter',
-        'Packages compatible with the Flutter SDK',
-      ),
-      sdkTabData(
-        SearchContext.regular(),
-        'Any',
-        'Packages compatible with the any SDK',
-      ),
-    ],
   );
 }
 

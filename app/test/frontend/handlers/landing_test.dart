@@ -51,7 +51,7 @@ void main() {
 
     testWithProfile('/flutter', fn: () async {
       final rs = await issueGet('/flutter');
-      await expectRedirectResponse(rs, '/flutter/packages');
+      await expectRedirectResponse(rs, '/packages?q=sdk%3Aflutter');
     });
 
     testWithProfile('/xxx - not found page', fn: () async {

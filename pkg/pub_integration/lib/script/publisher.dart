@@ -35,7 +35,7 @@ class PublisherScript {
     assert(_pubToolClient == null);
     _temp = await Directory.systemTemp.createTemp('pub-integration');
     try {
-      _pubToolClient = await DartToolClient.create(
+      _pubToolClient = await DartToolClient.withServer(
           pubHostedUrl: pubHostedUrl,
           credentialsFileContent: credentialsFileContent);
 

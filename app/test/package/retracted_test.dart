@@ -4,7 +4,7 @@
 
 import 'dart:convert';
 
-import 'package:client_data/package_api.dart';
+import 'package:_pub_shared/data/package_api.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';

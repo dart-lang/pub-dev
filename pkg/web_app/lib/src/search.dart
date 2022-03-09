@@ -15,7 +15,6 @@ void setupSearch() {
   _setEventsForSearchForm();
   _setEventForFiltersToggle();
   _setEventForSortControl();
-  _setEventForCheckboxChanges();
 }
 
 void _setEventForKeyboardShortcut() {
@@ -78,6 +77,9 @@ void adjustQueryTextAfterPageShow() {
 }
 
 void _setEventsForSearchForm() {
+  // Shared state for concurrent click events.
+  Uri? lastTargetUri;
+
   // When a search form checkbox has a linked search label,
   //checking the checkbox will trigger a click on the link.
   document.querySelectorAll('.search-form-linked-checkbox').forEach((e) {
@@ -107,8 +109,9 @@ void _setEventsForSearchForm() {
             queryText = '$queryText $tag'.trim();
           }
         }
+        inputQElem.value = queryText;
 
-        final newUri = originalHrefUri.replace(
+        final newVisibleUri = originalHrefUri.replace(
           queryParameters: {
             ...originalHrefUri.queryParameters,
             'q': queryText,
@@ -124,17 +127,19 @@ void _setEventsForSearchForm() {
             .whereType<String>()
             .join(' ');
 
-        final requestUri = windowUri.replace(
-          path: newUri.path,
+        final requestUri = newVisibleUri.replace(
+          path: newVisibleUri.path,
           queryParameters: {
-            ...newUri.queryParameters,
+            ...newVisibleUri.queryParameters,
             'open-sections': openSections,
           },
         );
+        lastTargetUri = newVisibleUri;
 
         await updateBodyWithHttpGet(
           requestUri: requestUri,
-          navigationUrl: windowUri.resolveUri(newUri).toString(),
+          navigationUrl: windowUri.resolveUri(newVisibleUri).toString(),
+          preupdateCheck: () => lastTargetUri == newVisibleUri,
         );
 
         // notify GTM on the click
@@ -160,8 +165,6 @@ void _setEventForFiltersToggle() {
       document
           .querySelectorAll('.search-filters-btn-wrapper')
           .forEach((e) => e.classes.toggle('-active'));
-      document.querySelector('.search-controls')?.classes.toggle('-active');
-      // new search form UI
       document
           .querySelector('.search-form-container')
           ?.classes
@@ -201,28 +204,4 @@ void _updateSortField(String? value) {
 
   // TODO: instead of submitting, compose the URL here (also removing the single `?`)
   queryText.form!.submit();
-}
-
-void _setEventForCheckboxChanges() {
-  _setEventForHiddenCheckboxField(
-      '-search-unlisted-field', '-search-unlisted-checkbox');
-  _setEventForHiddenCheckboxField(
-      '-search-discontinued-field', '-search-discontinued-checkbox');
-  _setEventForHiddenCheckboxField(
-      '-search-null-safe-field', '-search-null-safe-checkbox');
-}
-
-void _setEventForHiddenCheckboxField(
-    String hiddenFieldId, String visibleCheckboxId) {
-  final hiddenField = document.getElementById(hiddenFieldId) as InputElement?;
-  final visibleCheckbox =
-      document.getElementById(visibleCheckboxId) as CheckboxInputElement?;
-  if (hiddenField != null && visibleCheckbox != null) {
-    final formElement = hiddenField.form;
-    visibleCheckbox.onChange.listen((_) {
-      hiddenField.disabled = !(visibleCheckbox.checked!);
-      // TODO: instead of submitting, compose the URL here (also removing the single `?`)
-      formElement!.submit();
-    });
-  }
 }

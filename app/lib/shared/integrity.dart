@@ -40,6 +40,8 @@ class IntegrityChecker {
   final _packagesWithVersion = <String>{};
   final _publishers = <String>{};
   final _publishersAbandoned = <String>{};
+  // package name -> versions
+  final _badVersionInPubspec = <String, Set<String>>{};
   int _packageChecked = 0;
   int _versionChecked = 0;
   late http.Client _httpClient;
@@ -69,6 +71,7 @@ class IntegrityChecker {
     yield* _checkLikes();
     yield* _checkModeratedPackages();
     yield* _checkAuditLogs();
+    yield* _reportPubspecVersionIssues();
     _httpClient.close();
   }
 
@@ -135,7 +138,11 @@ class IntegrityChecker {
       final userId = _oauthToUser[oauthUserId];
       if (userId == null) {
         yield 'OAuthUserID "$oauthUserId" has no User.';
+        continue;
       }
+      // make sure we have the latest userId -> oauthUserId mapping
+      await _userExists(userId);
+      // check mapping
       final pointer = _userToOauth[userId];
       if (pointer == null) {
         yield 'User "$userId" is mapped from OAuthUserID "$oauthUserId", but does not have it set.';
@@ -178,11 +185,14 @@ class IntegrityChecker {
       if (!_publishers.contains(pm.publisherId)) {
         yield 'PublisherMember "${pm.userId}" references a non-existing `publisherId`: "${pm.publisherId}".';
       }
-      if (_deletedUsers.contains(pm.userId)) {
-        yield 'PublisherMember "${pm.publisherId}" / "${pm.userId}" references a deleted User.';
-      }
-      if (!_userToOauth.containsKey(pm.userId)) {
-        yield 'PublisherMember "${pm.publisherId}" / "${pm.userId}" references a non-existing User.';
+      if (pm.userId == null) {
+        yield 'PublisherMember of "${pm.publisherId}" has no `userId`.';
+      } else {
+        yield* _checkUserValid(
+          pm.userId!,
+          entityType: 'PublisherMember',
+          entityId: '${pm.publisherId} / ${pm.userId}',
+        );
       }
     }
   }
@@ -191,7 +201,7 @@ class IntegrityChecker {
     _logger.info('Scanning Packages...');
     final pool = Pool(_concurrency);
     final futures = <Future<List<String>>>[];
-    await for (Package p in _db.query<Package>().run()) {
+    await for (final p in _db.query<Package>().run()) {
       final f = pool.withResource(() => _checkPackage(p).toList());
       futures.add(f);
     }
@@ -253,12 +263,14 @@ class IntegrityChecker {
     if (p.likes < 0) {
       yield 'Package "${p.name}" has a `likes` property which is not a non-negative integer.';
     }
-    for (String? userId in p.uploaders!) {
-      if (!_userToOauth.containsKey(userId)) {
-        yield 'Package "${p.name}" has uploader without User: "$userId".';
-      }
-      if (_invalidUsers.contains(userId)) {
-        yield 'Package "${p.name}" has invalid uploader: "$userId".';
+    final uploaders = p.uploaders;
+    if (uploaders != null) {
+      for (final userId in uploaders) {
+        yield* _checkUserValid(
+          userId,
+          entityType: 'Package',
+          entityId: p.name,
+        );
       }
     }
     if (p.deletedVersions != null) {
@@ -388,8 +400,16 @@ class IntegrityChecker {
       }
       // check pubspec content
       if (pva.kind == AssetKind.pubspec) {
-        final pubspec = Pubspec.fromYaml(pva.textContent!);
-        yield* _checkPubspec('PackageVersionAsset', pva.id.toString(), pubspec);
+        try {
+          final pubspec = Pubspec.fromYaml(pva.textContent!);
+          if (pubspec.hasBadVersionFormat) {
+            _badVersionInPubspec
+                .putIfAbsent(p.name!, () => <String>{})
+                .add(pva.version!);
+          }
+        } catch (e) {
+          yield 'PackageVersionAsset "${pva.id}" "pubspec" has parse error: $e.';
+        }
       }
     }
 
@@ -428,12 +448,13 @@ class IntegrityChecker {
 
     if (pv.uploader == null) {
       yield 'PackageVersion "${pv.qualifiedVersionKey}" has no uploader.';
-    }
-    if (!_userToOauth.containsKey(pv.uploader)) {
-      yield 'PackageVersion "${pv.qualifiedVersionKey}" has uploader without User: "${pv.uploader}".';
-    }
-    if (_invalidUsers.contains(pv.uploader)) {
-      yield 'PackageVersion "${pv.qualifiedVersionKey}" has invalid uploader: User "${pv.uploader}".';
+    } else {
+      yield* _checkUserValid(
+        pv.uploader!,
+        entityType: 'PackageVersion',
+        entityId: pv.qualifiedVersionKey.toString(),
+        isRetainedRecord: true,
+      );
     }
     if (pv.isRetracted && pv.retracted == null) {
       yield 'PackageVersion "${pv.qualifiedVersionKey}" is retracted, but `retracted` property is null.';
@@ -465,8 +486,13 @@ class IntegrityChecker {
       yield 'PackageVersion "${pv.qualifiedVersionKey}" has `created` < 2011.';
     }
 
-    yield* _checkPubspec(
-        'PackageVersion', pv.qualifiedVersionKey.toString(), pv.pubspec!);
+    if (pv.pubspec == null) {
+      yield 'PackageVersion "${pv.qualifiedVersionKey}" has no `pubspec` property.';
+    } else if (pv.pubspec!.hasBadVersionFormat) {
+      _badVersionInPubspec
+          .putIfAbsent(pv.package, () => <String>{})
+          .add(pv.version!);
+    }
 
     _versionChecked++;
     if (_versionChecked % 5000 == 0) {
@@ -486,16 +512,10 @@ class IntegrityChecker {
             ' has a `packageName` property which is not the same as `package`/`id`.';
       }
 
-      final userId = like.userId;
-      if (!_userToOauth.keys.contains(userId)) {
-        yield 'Like entity with nonexisting user "$userId".';
-      }
-      if (_deletedUsers.contains(userId)) {
-        yield 'Like entity with deleted user "$userId".';
-      }
+      yield* _checkUserValid(like.userId, entityType: 'Like');
 
       if (await _packageMissing(like.package)) {
-        yield 'User "$userId" likes missing package "${like.package}".';
+        yield 'User "${like.userId}" likes missing package "${like.package}".';
       }
     }
   }
@@ -544,6 +564,41 @@ class IntegrityChecker {
     }
   }
 
+  Stream<String> _checkUserValid(
+    String userId, {
+    required String entityType,
+    String? entityId,
+
+    /// Set true for entries where we retain the record indefintely,
+    /// even if the [User] has been deleted or invalidated.
+    bool isRetainedRecord = false,
+  }) async* {
+    final label =
+        entityId == null ? '$entityType entity' : '$entityType "$entityId"';
+    if (!(await _userExists(userId))) {
+      yield '$label references a nonexisting User: "$userId".';
+    }
+    if (!isRetainedRecord && _deletedUsers.contains(userId)) {
+      yield '$label references a deleted User "$userId".';
+    }
+    if (_invalidUsers.contains(userId)) {
+      yield '$label references an invalid User: "$userId".';
+    }
+  }
+
+  Future<bool> _userExists(String userId) async {
+    if (_userToOauth.containsKey(userId)) {
+      return true;
+    }
+    final user =
+        await _db.lookupOrNull<User>(_db.emptyKey.append(User, id: userId));
+    if (user == null) {
+      return false;
+    }
+    _userToOauth[user.userId] = user.oauthUserId;
+    return true;
+  }
+
   Future<bool> _packageExists(String packageName) async {
     if (_packages.contains(packageName)) {
       return true;
@@ -562,10 +617,16 @@ class IntegrityChecker {
 
   Future<bool> _packageMissing(String packageName) async =>
       !(await _packageExists(packageName));
-}
 
-Stream<String> _checkPubspec(String type, String key, Pubspec pubspec) async* {
-  if (pubspec.hasBadVersionFormat) {
-    yield '$type "$key" has bad version format in `pubspec`.';
+  Stream<String> _reportPubspecVersionIssues() async* {
+    for (final String package in _badVersionInPubspec.keys) {
+      final values = _badVersionInPubspec[package]!.toList()..sort();
+      // report the number of versions affected, plus the first 10 versions
+      yield [
+        'Bad version format in pubspec for package "$package" ${values.length} versions: ',
+        '${values.take(10).map((s) => '"$s"').join(', ')}',
+        if (values.length > 10) ' and more.'
+      ].join();
+    }
   }
 }

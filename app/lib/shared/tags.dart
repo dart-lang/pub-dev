@@ -9,6 +9,7 @@
 /// or an error should be returned to the caller.
 const allowedTagPrefixes = [
   'is:',
+  'license:',
   'platform:',
   'runtime:',
   'sdk:',
@@ -70,76 +71,22 @@ abstract class SdkTag {
 abstract class SdkTagValue {
   static const String dart = 'dart';
   static const String flutter = 'flutter';
-  static const String any = 'any';
 
-  static bool isAny(String? value) => value == null || value == any;
-  static bool isNotAny(String? value) => !isAny(value);
   static bool isValidSdk(String value) => value == dart || value == flutter;
 }
 
-/// Collection of Dart SDK runtime tags (with prefix and value).
-abstract class DartSdkTag {
-  static const String runtimeNativeAot = 'runtime:${DartSdkRuntime.nativeAot}';
-  static const String runtimeNativeJit = 'runtime:${DartSdkRuntime.nativeJit}';
-  static const String runtimeWeb = 'runtime:${DartSdkRuntime.web}';
+/// Collection of platform tags (with prefix and value).
+abstract class PlatformTag {
+  static const String platformAndroid = 'platform:${PlatformTagValue.android}';
+  static const String platformIos = 'platform:${PlatformTagValue.ios}';
+  static const String platformMacos = 'platform:${PlatformTagValue.macos}';
+  static const String platformLinux = 'platform:${PlatformTagValue.linux}';
+  static const String platformWeb = 'platform:${PlatformTagValue.web}';
+  static const String platformWindows = 'platform:${PlatformTagValue.windows}';
 }
 
-/// Collection of Dart SDK runtime values.
-abstract class DartSdkRuntime {
-  static const String nativeAot = 'native-aot';
-  static const String nativeJit = 'native-jit';
-  static const String web = 'web';
-
-  /// human-readable identifiers mapped to runtime tags
-  static const _decodeMap = <String, List<String>>{
-    'native': [nativeJit],
-    'js': [web],
-  };
-
-  // runtime tags mapped to human-readable identifiers
-  static const _encodeMap = <String, List<String>>{
-    nativeJit: ['native'],
-    web: ['js'],
-  };
-
-  /// Decodes the human-readable [values] and returns [DartSdkRuntime] tag values.
-  ///
-  /// The decoding may change the value, omit values, or emit more values.
-  static List<String> decodeQueryValues(List<String> values) {
-    final set = values.toSet();
-    DartSdkRuntime._decodeMap.forEach((key, values) {
-      if (set.remove(key)) set.addAll(values);
-    });
-    return set.toList()..sort();
-  }
-
-  /// Encodes the [DartSdkRuntime] tag values into human-readable format that
-  /// will be used in links.
-  ///
-  /// The encoding may change the value, omit values, or emit more values.
-  static List<String> encodeRuntimeTags(List<String> values) {
-    final set = values.toSet();
-    DartSdkRuntime._encodeMap.forEach((key, values) {
-      if (set.remove(key)) set.addAll(values);
-    });
-    return set.toList()..sort();
-  }
-}
-
-/// Collection of Flutter SDK platform tags (with prefix and value).
-abstract class FlutterSdkTag {
-  static const String platformAndroid =
-      'platform:${FlutterSdkPlatform.android}';
-  static const String platformIos = 'platform:${FlutterSdkPlatform.ios}';
-  static const String platformMacos = 'platform:${FlutterSdkPlatform.macos}';
-  static const String platformLinux = 'platform:${FlutterSdkPlatform.linux}';
-  static const String platformWeb = 'platform:${FlutterSdkPlatform.web}';
-  static const String platformWindows =
-      'platform:${FlutterSdkPlatform.windows}';
-}
-
-/// Collection of Flutter SDK platform values.
-abstract class FlutterSdkPlatform {
+/// Collection of platform tag values.
+abstract class PlatformTagValue {
   static const String android = 'android';
   static const String ios = 'ios';
   static const String linux = 'linux';

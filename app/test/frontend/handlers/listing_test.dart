@@ -109,7 +109,7 @@ void main() {
       ),
       fn: () async {
         await expectHtmlResponse(
-          await issueGet('/flutter/packages'),
+          await issueGet('/packages?q=sdk%3Aflutter'),
           present: [
             '/packages/package_1',
             '/packages/package_2',
@@ -137,13 +137,13 @@ void main() {
       fn: () async {
         final names = ['flutter_pkg2', 'flutter_pkg4', 'flutter_pkg10'];
         await expectHtmlResponse(
-          await issueGet('/flutter/packages?page=2'),
+          await issueGet('/packages?q=sdk%3Aflutter&page=2'),
           present: names.map((name) => '/packages/$name').toList(),
         );
 
         await expectHtmlResponse(
-          await issueGet('/flutter/favorites'),
-          present: ['/flutter/favorites?page=2'],
+          await issueGet('/packages?q=is%3Aflutter-favorite'),
+          present: ['/packages?q=is%3Aflutter-favorite&amp;page=2'],
         );
       },
       processJobsWithFakeRunners: true,
@@ -156,15 +156,6 @@ void main() {
       await expectHtmlResponse(
         await issueGet('/packages?q=$longString'),
         present: ['Search query rejected. Query too long.'],
-      );
-    });
-
-    testWithProfile('invalid override', fn: () async {
-      await expectHtmlResponse(
-        await issueGet('/flutter/packages?q=-sdk:flutter'),
-        present: [
-          'Search query rejected. Tag conflict with search filters: <code>sdk:flutter</code>.'
-        ],
       );
     });
   });

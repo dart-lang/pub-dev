@@ -40,9 +40,26 @@ Future main() async {
 
   final output = StringBuffer();
 
-  output.writeln(_tree['app/lib']?.formatted);
-  output.writeln(_tree['pkg/web_app'].formatted);
-  output.writeln(_tree['pkg/web_css'].formatted);
+  final libEntries = [
+    _tree['app/lib'],
+    ..._tree.values
+        .where(
+            (e) => e.key.startsWith('pkg/') && e.depth == 2 && e.leaf != 'test')
+        .where((e) =>
+            !e.key.startsWith('pkg/api_builder/') &&
+            !e.key.startsWith('pkg/code_coverage/') &&
+            !e.key.startsWith('pkg/fake_gcloud/') &&
+            !e.key.startsWith('pkg/pub_integration/'))
+  ];
+  final pubDevEntry = Entry('pub-dev')
+    ..covered = libEntries.map((e) => e.covered).reduce((a, b) => a + b)
+    ..total = libEntries.map((e) => e.total).reduce((a, b) => a + b);
+  output.writeln([
+    pubDevEntry.formatted('pub-dev'),
+    _tree['app/lib'].formatted('app'),
+    _tree['pkg/web_app/lib'].formatted('pkg/web_app'),
+    _tree['pkg/web_css/lib'].formatted('pkg/web_css'),
+  ].join(', '));
 
   final keys = _tree.keys.toList()..sort();
   for (String key in keys) {
@@ -87,7 +104,7 @@ class Entry {
   double get percent => total == 0 ? 0.0 : covered * 100.0 / total;
   String get percentAsString => percent.toStringAsFixed(1);
 
-  String get formatted {
-    return '$percentAsString% in $key ($covered/$total)';
+  String formatted(String path) {
+    return '$percentAsString% in ${path ?? key} ($covered/$total)';
   }
 }

@@ -14,6 +14,7 @@ import '../../package_misc.dart' show formatScore;
 d.Node scoreTabNode({
   required int? likeCount,
   required ScoreCardData? card,
+  required bool usesFlutter,
 }) {
   if (card == null) {
     return d.i(text: 'Awaiting analysis to complete.');
@@ -23,8 +24,8 @@ d.Node scoreTabNode({
   final showPending = !card.isSkipped && report == null;
   final showReport = !card.isSkipped && report != null;
 
-  final toolEnvInfo = _renderToolEnvInfoNode(
-      card.panaReport?.panaRuntimeInfo, card.usesFlutter);
+  final toolEnvInfo =
+      _renderToolEnvInfoNode(card.panaReport?.panaRuntimeInfo, usesFlutter);
   return d.fragment([
     d.div(
       classes: ['score-key-figures'],
@@ -107,6 +108,8 @@ d.Node _section(ReportSection section) {
                 image: d.Image(
                   src: _statusIconUrls[section.status]!,
                   alt: 'icon indicating section status',
+                  width: 18,
+                  height: 18,
                 ),
               ),
             ),
@@ -131,6 +134,8 @@ d.Node _section(ReportSection section) {
                     src: staticUrls
                         .getAssetUrl('/static/img/report-foldable-icon.svg'),
                     alt: 'icon to trigger folding of the section',
+                    width: 13,
+                    height: 6,
                   ),
                 ),
               ],
@@ -186,8 +191,7 @@ String _updatedSummary(String summary) {
 d.Node? _renderToolEnvInfoNode(PanaRuntimeInfo? info, bool usesFlutter) {
   if (info == null) return null;
   final flutterVersion = usesFlutter ? info.flutterVersion : null;
-  final flutterDartVersion =
-      usesFlutter ? info.flutterInternalDartSdkVersion : null;
+  final flutterDartVersion = info.flutterInternalDartSdkVersion;
   return _toolEnvInfoNode([
     _ToolVersionInfo('Pana', info.panaVersion),
     if (flutterVersion != null)

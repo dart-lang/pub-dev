@@ -20,14 +20,6 @@ import 'versions.dart';
 const String default400BadRequest = '400 Bad Request';
 const String default404NotFound = '404 Not Found';
 
-/// The default age a browser would take hold of the static files before
-/// checking with the server for a newer version.
-const staticShortCache = Duration(minutes: 5);
-
-/// The age the browser should cache the static file if there is a hash provided
-/// and it matches the etag.
-const staticLongCache = Duration(days: 7);
-
 /// The default header values for JSON responses.
 const jsonResponseHeaders = <String, String>{
   'content-type': 'application/json; charset="utf-8"',
@@ -156,8 +148,8 @@ bool isNotModified(
 extension RequestExt on shelf.Request {
   /// Returns true if the current request declares that it accepts the [encoding].
   ///
-  /// NOTE: the method does not parses the header, only checks whether the String
-  ///       value is present (or everything is accepted).
+  /// NOTE: the method does not parses the header, only checks whether the [encoding]
+  ///       String is present (or everything is accepted).
   bool acceptsEncoding(String encoding) {
     final accepting = headers[HttpHeaders.acceptEncodingHeader];
     if (accepting == null || accepting.isEmpty) {
@@ -167,4 +159,10 @@ extension RequestExt on shelf.Request {
         accepting.split(',').map((p) => p.split(';').first.trim()).toSet();
     return items.contains(encoding);
   }
+
+  /// Returns true if the current request declares that it accepts the `gzip` encoding.
+  ///
+  /// NOTE: the method does not parses the header, only checks whether the `gzip`
+  ///       String is present (or everything is accepted).
+  bool acceptsGzipEncoding() => acceptsEncoding('gzip');
 }

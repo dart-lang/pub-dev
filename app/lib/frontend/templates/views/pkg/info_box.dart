@@ -52,7 +52,7 @@ d.Node packageInfoBoxNode({
   return d.fragment([
     labeledScores,
     if (package.replacedBy != null) _replacedBy(package.replacedBy!),
-    if (package.publisherId != null) _publisher(package.publisherId!),
+    _publisher(package.publisherId),
     _metadata(
       description: version.pubspec!.description,
       metaLinks: metaLinks,
@@ -77,24 +77,28 @@ d.Node _replacedBy(String replacedBy) {
   );
 }
 
-d.Node _publisher(String publisherId) {
+d.Node _publisher(String? publisherId) {
   return _block(
     'Publisher',
-    d.a(
-      href: urls.publisherUrl(publisherId),
-      children: [
-        d.img(
-          classes: ['-pub-publisher-shield'],
-          title: 'Published by a pub.dev verified publisher',
-          image: d.Image(
-            src: staticUrls
-                .getAssetUrl('/static/img/verified-publisher-blue.svg'),
-            alt: 'shield icon for verified publishers',
+    publisherId == null
+        ? d.span(text: 'unverified uploader')
+        : d.a(
+            href: urls.publisherUrl(publisherId),
+            children: [
+              d.img(
+                classes: ['-pub-publisher-shield'],
+                title: 'Published by a pub.dev verified publisher',
+                image: d.Image(
+                  src: staticUrls
+                      .getAssetUrl('/static/img/verified-publisher-blue.svg'),
+                  alt: 'shield icon for verified publishers',
+                  width: 15,
+                  height: 15,
+                ),
+              ),
+              d.text(publisherId),
+            ],
           ),
-        ),
-        d.text(publisherId),
-      ],
-    ),
   );
 }
 

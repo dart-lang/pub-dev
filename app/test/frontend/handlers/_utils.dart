@@ -7,12 +7,12 @@ library pub_dartlang_org.frontend.handlers_test;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:_pub_shared/validation/html/html_validation.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pub_dev/frontend/handlers.dart';
 import 'package:pub_dev/shared/handler_helpers.dart';
 import 'package:pub_dev/shared/urls.dart';
-import 'package:pub_validations/html/html_validation.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
@@ -90,6 +90,7 @@ Future<String> expectHtmlResponse(
   expect(content, contains('</html>'));
   for (Pattern p in present) {
     if (p.allMatches(content).isEmpty) {
+      print(content);
       throw Exception('$p is missing from the content.');
     }
   }

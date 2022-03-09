@@ -71,14 +71,11 @@ void main() {
 
   test('runtime sdk version should match CI and dockerfile', () async {
     final String docker = await File('../Dockerfile').readAsString();
-    expect(
-        docker.contains('\nFROM google/dart-runtime-base:$runtimeSdkVersion\n'),
-        isTrue);
+    expect(docker.contains('\nFROM dart:$runtimeSdkVersion\n'), isTrue);
     final String monoPkg = await File('mono_pkg.yaml').readAsString();
     expect(monoPkg.contains('$runtimeSdkVersion'), isTrue);
-    final String ci =
-        await File('../.github/workflows/dart.yml').readAsString();
-    expect(ci.contains('$runtimeSdkVersion'), isTrue);
+    final ci = await File('../.github/workflows/dart.yml').readAsString();
+    expect(ci.contains('sdk:$runtimeSdkVersion'), isTrue);
   });
 
   test('Dart SDK versions should match dockerfile', () async {

@@ -76,6 +76,45 @@ void main() {
     });
   });
 
+  group('description', () {
+    test('missing', () {
+      expect(validateDescription(null), isNotEmpty);
+    });
+
+    test('empty', () {
+      expect(validateDescription(''), isNotEmpty);
+    });
+
+    test('only spaces', () {
+      expect(validateDescription('  '), isNotEmpty);
+    });
+
+    test('too long overall', () {
+      expect(validateDescription('a ' * 500), isNotEmpty);
+    });
+
+    test('too long words', () {
+      expect(validateDescription('a' * 100), isNotEmpty);
+    });
+
+    test('known template', () {
+      expect(validateDescription('A sample command-line application.'),
+          isNotEmpty);
+    });
+
+    test('known template with some extra text', () {
+      expect(validateDescription('A sample command-line application by xyz.'),
+          isNotEmpty);
+    });
+
+    test('valid text', () {
+      expect(
+          validateDescription(
+              'Evaluate the health and quality of a Dart package'),
+          isEmpty);
+    });
+  });
+
   group('Zalgo text', () {
     test('allows CJK', () {
       expect(
@@ -602,6 +641,118 @@ $dependencies
         [1,2,3,4,5]: 'value of a composite key'
       ''';
       expect(checkValidJson(pubspec), isNotEmpty);
+    });
+  });
+
+  group('screenshots', () {
+    test('not normalized path', () {
+      final pubspec = Pubspec.parse('''
+      name: package
+      screenshots:
+        - path: a/../b.jpg
+          description: abcd efgh ijkl
+      ''');
+      expect(
+        checkScreenshots(pubspec, ['b.jpg']).single.message,
+        contains('normalized'),
+      );
+    });
+
+    test('missing file', () {
+      final pubspec = Pubspec.parse('''
+      name: package
+      screenshots:
+        - path: b.jpg
+          description: abcd efgh ijkl
+      ''');
+      expect(
+        checkScreenshots(pubspec, ['a.jpg']).single.message,
+        contains('missing'),
+      );
+    });
+
+    test('duplicate file', () {
+      final pubspec = Pubspec.parse('''
+      name: package
+      screenshots:
+        - path: b.jpg
+          description: abcd efgh ijkl
+        - path: b.jpg
+          description: efgh ijkl abcd
+      ''');
+      // both files will emit 1 issue about being a duplicate
+      expect(
+        checkScreenshots(pubspec, ['b.jpg'])
+            .map((e) => e.message)
+            .every((e) => e.contains('only once')),
+        isTrue,
+      );
+    });
+
+    test('no description', () {
+      final pubspec = Pubspec.parse('''
+      name: package
+      screenshots:
+        - path: b.jpg
+          description: ''
+      ''');
+      expect(
+        checkScreenshots(pubspec, ['b.jpg']).single.message,
+        contains('too short'),
+      );
+    });
+
+    test('short description', () {
+      final pubspec = Pubspec.parse('''
+      name: package
+      screenshots:
+        - path: b.jpg
+          description: none
+      ''');
+      expect(
+        checkScreenshots(pubspec, ['b.jpg']).single.message,
+        contains('too short'),
+      );
+    });
+
+    test('long description', () {
+      final description = 'abcdefg' * 100;
+      final pubspec = Pubspec.parse('''
+      name: package
+      screenshots:
+        - path: b.jpg
+          description: $description
+      ''');
+      expect(
+        checkScreenshots(pubspec, ['b.jpg']).single.message,
+        contains('too long'),
+      );
+    });
+
+    test('Zalgo in description', () {
+      final pubspec = Pubspec.parse('''
+      name: package
+      screenshots:
+        - path: b.jpg
+          description: z͎͗ͣḁ̵̑l̉̃ͦg̐̓̒o͓̔ͥ
+      ''');
+      expect(
+        checkScreenshots(pubspec, ['b.jpg']),
+        isNotEmpty,
+      );
+    });
+
+    test('OK', () {
+      final pubspec = Pubspec.parse('''
+      name: package
+      screenshots:
+        - path: b.jpg
+          description: reasonable description
+      ''');
+      expect(
+        checkScreenshots(pubspec, ['b.jpg']),
+        isEmpty,
+      );
     });
   });
 }

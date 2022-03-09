@@ -1,14 +1,10 @@
 # Keep version in-sync with .mono_repo.yml and app/lib/shared/versions.dart
-FROM google/dart-runtime-base:2.15.1
-
-# `apt-mark hold dart` ensures that Dart is not upgraded with the other packages
-#   We want to make sure SDK upgrades are explicit.
+FROM dart:2.16.1
 
 # After install we remove the apt-index again to keep the docker image diff small.
-RUN apt-mark hold dart &&\
-  apt-get update && \
+RUN apt-get update && \
   apt-get upgrade -y && \
-  apt-get install -y git unzip && \
+  apt-get install -y git unzip webp && \
   rm -rf /var/lib/apt/lists/*
 
 # Let the pub server know that this is not a "typical" pub client but rather a bot.
@@ -37,13 +33,13 @@ WORKDIR /project/app
 RUN dart /project/tool/pub_get_offline.dart /project/app
 
 # Setup analysis Dart SDKs
-RUN /project/tool/setup-dart.sh /tool/stable 2.15.1
-RUN /project/tool/setup-dart.sh /tool/preview 2.16.0-134.1.beta
+RUN /project/tool/setup-dart.sh /tool/stable 2.16.1
+RUN /project/tool/setup-dart.sh /tool/preview 2.17.0-85.0.dev
 
 # Setup analysis Flutter SDKs
-RUN /project/tool/setup-flutter.sh /tool/stable 2.8.1
-RUN /project/tool/setup-flutter.sh /tool/preview 2.10.0-0.1.pre
+RUN /project/tool/setup-flutter.sh /tool/stable 2.10.3
+RUN /project/tool/setup-flutter.sh /tool/preview 2.11.0-0.1.pre
 
 # Clear out any arguments the base images might have set
 CMD []
-ENTRYPOINT /usr/bin/dart bin/server.dart "$GAE_SERVICE"
+ENTRYPOINT /usr/lib/dart/bin/dart bin/server.dart "$GAE_SERVICE"

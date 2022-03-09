@@ -139,6 +139,8 @@ d.Node _userBlock(UserSessionData userSession) {
                   image: d.Image(
                     src: userSession.imageUrl ?? '',
                     alt: 'Profile Image',
+                    width: 30,
+                    height: 30,
                   ),
                 ),
                 d.div(
@@ -223,6 +225,8 @@ d.Node _foldableMobileLinks(String label, Iterable<d.Node> children) {
               src: staticUrls
                   .getAssetUrl('/static/img/nav-mobile-foldable-icon.svg'),
               alt: 'icon to toggle folding of the section',
+              width: 13,
+              height: 6,
             ),
           ),
         ],

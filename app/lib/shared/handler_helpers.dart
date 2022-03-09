@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_dev/frontend/handlers/headers.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:stack_trace/stack_trace.dart';
@@ -30,15 +31,6 @@ import 'utils.dart' show fileAnIssueContent, parseCookieHeader;
 // https://get.dev/#benefits
 // However, we should still emit it on other domains e.g. on pub.dartlang.org.
 const _hstsDuration = Duration(days: 365);
-
-// TODO: remove after appengine gets fixed
-ClientContext? get _appengineContext {
-  try {
-    return context;
-  } catch (_) {
-    return null;
-  }
-}
 
 Future<void> runHandler(
   Logger logger,
@@ -142,7 +134,6 @@ shelf.Handler _requestContextWrapper(shelf.Handler handler) {
       isExperimental: isExperimental,
       blockRobots: !enableRobots,
       uiCacheEnabled: uiCacheEnabled,
-      showNewSearchUI: isExperimental,
     ));
     return await handler(request);
   };
@@ -196,8 +187,8 @@ shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
 
       final title = 'Pub is not feeling well';
       Map<String, String>? debugHeaders;
-      if (_appengineContext?.traceId != null) {
-        debugHeaders = {'package-site-request-id': _appengineContext!.traceId!};
+      if (context.traceId != null) {
+        debugHeaders = {'package-site-request-id': context.traceId!};
       }
       final markdownText = '''# $title
 
@@ -208,7 +199,7 @@ $fileAnIssueContent
 Add these details to help us fix the issue:
 ````
 Requested URL: ${request.requestedUri}
-Request ID: ${_appengineContext?.traceId}
+Request ID: ${context.traceId}
 ````
       ''';
 
@@ -283,10 +274,13 @@ shelf.Handler _userSessionWrapper(Logger logger, shelf.Handler handler) {
       }
     }
     shelf.Response rs = await handler(request);
-    if (userSessionData != null) {
+    if (userSessionData != null && !CacheHeaders.hasCacheHeader(rs.headers)) {
       // Indicates that the response is intended for a single user and must not
       // be stored by a shared cache. A private cache may store the response.
-      rs = rs.change(headers: {HttpHeaders.cacheControlHeader: 'private'});
+      rs = rs.change(headers: {
+        ...rs.headers,
+        ...CacheHeaders.private(),
+      });
     }
     return rs;
   };
@@ -297,16 +291,14 @@ shelf.Handler _userSessionWrapper(Logger logger, shelf.Handler handler) {
 /// - adds Strict-Transport-Security response header (HSTS)
 shelf.Handler _httpsWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
-    if (_appengineContext != null &&
-        _appengineContext!.isProductionEnvironment &&
+    if (context.isProductionEnvironment &&
         request.requestedUri.scheme != 'https') {
       final secureUri = request.requestedUri.replace(scheme: 'https');
       return shelf.Response.seeOther(secureUri);
     }
 
     shelf.Response rs = await handler(request);
-    if (_appengineContext != null &&
-        _appengineContext!.isProductionEnvironment) {
+    if (context.isProductionEnvironment) {
       rs = rs.change(headers: {
         'strict-transport-security':
             'max-age=${_hstsDuration.inSeconds}; preload',

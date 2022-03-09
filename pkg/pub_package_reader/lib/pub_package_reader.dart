@@ -4,8 +4,10 @@
 
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:yaml/yaml.dart' show YamlException, loadYaml;
@@ -14,6 +16,7 @@ import 'src/archive_surface.dart';
 import 'src/check_platforms.dart';
 import 'src/file_names.dart';
 import 'src/names.dart';
+import 'src/pubspec_content_override.dart';
 import 'src/tar_utils.dart';
 import 'src/yaml_utils.dart';
 
@@ -78,6 +81,16 @@ Future<PackageSummary> summarizePackageArchive(
   /// The maximum number of files in the archive.
   /// TODO: set this lower once we scan the existing archives
   int maxFileCount = 64 * 1024,
+
+  /// [DateTime] when the archive was uploaded / published.
+  ///
+  /// Used to ensure that constraints in place when a package was published
+  /// are considered when summarizing assets. Ensuring we preserve
+  /// backwards-compatibility with packages that does not satisfy constraints
+  /// enforced at publish-time today.
+  ///
+  /// Defaults to [DateTime.now], if not specified.
+  DateTime? published,
 }) async {
   final issues = <ArchiveIssue>[];
 
@@ -118,7 +131,10 @@ Future<PackageSummary> summarizePackageArchive(
     return PackageSummary(issues: issues);
   }
 
-  final pubspecContent = await tar.readContentAsString(pubspecPath);
+  final pubspecContent = overridePubspecYamlIfNeeded(
+    pubspecYaml: await tar.readContentAsString(pubspecPath),
+    published: published ?? clock.now().toUtc(),
+  );
   // Large pubspec content should be rejected, as either a storage limit will be
   // limiting it, or it will slow down queries and processing for very little
   // reason.
@@ -236,6 +252,7 @@ Future<PackageSummary> summarizePackageArchive(
   issues.addAll(validatePackageName(pubspec.name));
   issues.addAll(validatePackageVersion(pubspec.version));
   issues.addAll(validatePublishTo(pubspec.publishTo));
+  issues.addAll(validateDescription(pubspec.description));
   issues.addAll(validateZalgo('description', pubspec.description));
   issues.addAll(syntaxCheckUrl(pubspec.homepage, 'homepage'));
   issues.addAll(syntaxCheckUrl(pubspec.repository?.toString(), 'repository'));
@@ -249,6 +266,7 @@ Future<PackageSummary> summarizePackageArchive(
   // issues.addAll(forbidPreReleaseSdk(pubspec));
   issues.addAll(requireIosFolderOrFlutter2_20(pubspec, tar.fileNames));
   issues.addAll(requireNonEmptyLicense(licensePath, licenseContent));
+  issues.addAll(checkScreenshots(pubspec, tar.fileNames));
 
   return PackageSummary(
     issues: issues,
@@ -313,6 +331,55 @@ Iterable<ArchiveIssue> validatePackageVersion(Version? version) sync* {
 Iterable<ArchiveIssue> validatePublishTo(String? value) sync* {
   if (value != null) {
     yield ArchiveIssue('Invalid `publish_to` value: `$value`.');
+  }
+}
+
+final _descriptionsInKnownTemplates = {
+  // ex-stagehand templates, check latest versions in dart-lang/sdk's
+  // pkg/dartdev/lib/src/templates/ directory:
+  'a sample command-line application',
+  'a simple command-line application',
+  'a starting point for dart libraries or applications',
+  'a web server built using the shelf package',
+  'a web app that uses angulardart components',
+  'an absolute bare-bones web app',
+  'a simple stagexl web app',
+  // Flutter templates, check latest version in flutter/flutter's
+  // packages/flutter_tools/lib/src/commands/create.dart directory:
+  'a new flutter module project',
+  'a new flutter package project',
+  'a new flutter plugin project',
+  'a new flutter ffi plugin project',
+};
+
+/// Validates the `description` field in the `pubspec.yaml`.
+Iterable<ArchiveIssue> validateDescription(String? description) sync* {
+  if (description == null) {
+    yield ArchiveIssue('Missing `description`.');
+    return;
+  }
+  final trimmed = description.trim();
+  if (trimmed.isEmpty) {
+    yield ArchiveIssue('No content in `description`.');
+    return;
+  }
+  if (description.length > 512) {
+    yield ArchiveIssue(
+        '`description` is too long, maximum length allowed: 512 characters.');
+  }
+  if (description.split(' ').any((part) => part.length > 64)) {
+    yield ArchiveIssue(
+        '`description` uses too long phrases, maximum world length allowed: 64 characters.');
+  }
+  final lower = trimmed.toLowerCase();
+  for (final text in _descriptionsInKnownTemplates) {
+    if (lower.contains(text)) {
+      yield ArchiveIssue(
+          '`description` contains a generic text fragment coming from package templates (`$text`).\n'
+          'Please follow the guides to describe your package:\n'
+          'https://dart.dev/tools/pub/pubspec#description');
+      break;
+    }
   }
 }
 
@@ -625,5 +692,38 @@ Iterable<ArchiveIssue> requireNonEmptyLicense(
   if (content.toLowerCase().contains('todo: add your license here.')) {
     yield ArchiveIssue('LICENSE file `$path` contains generic TODO.');
     return;
+  }
+}
+
+Iterable<ArchiveIssue> checkScreenshots(
+    Pubspec pubspec, List<String> files) sync* {
+  if (pubspec.screenshots == null) return;
+  for (final s in pubspec.screenshots!) {
+    // check path
+    final normalizedPath = p.normalize(s.path);
+    if (normalizedPath != s.path) {
+      yield ArchiveIssue(
+          'Screenshot `${s.path}` is not normalized, should be `$normalizedPath`.');
+    }
+    if (!files.contains(normalizedPath)) {
+      yield ArchiveIssue('Screenshot `${s.path}` is missing from archive.');
+    }
+
+    // verify duplicate screenshots
+    if (pubspec.screenshots!.where((x) => x.path == s.path).length > 1) {
+      yield ArchiveIssue('Screenshot `${s.path}` must be present only once.');
+    }
+
+    // validate screenshot text
+    final textLength = s.description.trim().length;
+    if (textLength <= 10) {
+      yield ArchiveIssue(
+          'Screenshot description for `${s.path}` is too short. Should be at least 10 characters.');
+    }
+    if (textLength > 200) {
+      yield ArchiveIssue(
+          'Screenshot description for `${s.path}` is too long (over 200 characters).');
+    }
+    yield* validateZalgo('screenshot description', s.description);
   }
 }

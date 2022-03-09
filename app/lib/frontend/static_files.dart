@@ -164,6 +164,9 @@ class StaticFileCache {
     _files[file.requestPath] = file;
   }
 
+  @visibleForTesting
+  Iterable<String> get paths => _files.keys;
+
   bool hasFile(String requestPath) => _files.containsKey(requestPath);
 
   StaticFile? getFile(String requestPath) => _files[requestPath];
@@ -189,6 +192,8 @@ class StaticFile {
 
   late final String cacheableUrl =
       Uri(path: requestPath, queryParameters: {'hash': etag}).toString();
+
+  late final gzippedBytes = GZipCodec(level: 9).encode(bytes);
 }
 
 class StaticUrls {

@@ -18,7 +18,7 @@ Future<void> main(List<String> arguments) async {
   final pubMetaProvider =
       PubPackageMetaProvider(pubPackageMetaProvider, pubResourceProvider);
 
-  final config = await parseOptions(pubMetaProvider, arguments);
+  final config = parseOptions(pubMetaProvider, arguments);
   if (config == null) {
     throw ArgumentError();
   }
@@ -28,7 +28,7 @@ Future<void> main(List<String> arguments) async {
       PubPackageBuilder(config, pubMetaProvider, packageConfigProvider);
   final dartdoc = config.generateDocs
       ? await Dartdoc.fromContext(config, packageBuilder)
-      : await Dartdoc.withEmptyGenerator(config, packageBuilder);
+      : Dartdoc.withEmptyGenerator(config, packageBuilder);
   final results = await dartdoc.generateDocs();
 
   final pubDataGenerator =

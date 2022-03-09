@@ -226,6 +226,7 @@ class _ImportSource implements ImportSource {
     final pubspec = json.encode({
       'name': package,
       'version': version,
+      'description': '$package is awesome',
       'environment': {
         'sdk': '>=$minSdk <3.0.0',
       },

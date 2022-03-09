@@ -47,4 +47,25 @@ void main() {
           reason: '${file.path} contains DateTime.now()');
     }
   });
+
+  test('cache-control is set only in frontend/handlers/headers.dart', () async {
+    final exceptions = [
+      'lib/frontend/handlers/headers.dart',
+    ];
+    final files = Directory('lib')
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((f) => f.path.endsWith('.dart'));
+    for (final file in files) {
+      final content = await file.readAsString();
+      final lc = content.toLowerCase();
+      expect(
+        content.contains('cacheControlHeader') ||
+            (lc.contains('cache-control') &&
+                !lc.contains('`cache-control: private`')),
+        exceptions.contains(file.path),
+        reason: '${file.path} seems to contain cache-control header',
+      );
+    }
+  });
 }

@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_pub_shared/data/account_api.dart';
+import 'package:_pub_shared/data/admin_api.dart';
+import 'package:_pub_shared/data/package_api.dart';
+import 'package:_pub_shared/data/publisher_api.dart';
+import 'package:_pub_shared/data/task_api.dart';
 import 'package:api_builder/api_builder.dart';
-import 'package:client_data/account_api.dart';
-import 'package:client_data/admin_api.dart';
-import 'package:client_data/package_api.dart';
-import 'package:client_data/publisher_api.dart';
-import 'package:client_data/task_api.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
@@ -442,6 +442,13 @@ class PubApi {
   // **** Admin API
   // ****
 
+  @EndPoint.post('/api/admin/tools/<tool>/<args|[^]*>')
+  Future<Response> adminExecuteTool(
+      Request request, String tool, String args) async {
+    final parsedArgs = request.requestedUri.pathSegments.skip(4).toList();
+    return Response.ok(await adminBackend.executeTool(tool, parsedArgs));
+  }
+
   @EndPoint.get('/api/admin/users')
   Future<AdminListUsersResponse> adminListUsers(
     Request request, {
@@ -473,6 +480,13 @@ class PubApi {
       Request request, String package, String version) async {
     await adminBackend.removePackageVersion(package, version);
     return jsonResponse({'status': 'OK'});
+  }
+
+  @EndPoint.put('/api/admin/packages/<package>/versions/<version>/options')
+  Future<VersionOptions> adminUpdateVersionOptions(Request request,
+      String package, String version, VersionOptions options) async {
+    await adminBackend.updateVersionOptions(package, version, options);
+    return getVersionOptionsHandler(request, package, version);
   }
 
   @EndPoint.get('/api/admin/packages/<package>/assigned-tags')

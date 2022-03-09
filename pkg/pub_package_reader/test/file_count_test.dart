@@ -11,8 +11,10 @@ import '_tar_writer.dart';
 
 void main() {
   final minimalTextFiles = {
-    'pubspec.yaml':
-        'name: abc\nversion: 1.0.0\nenvironment:\n  sdk: \'>=2.10.0 <3.0.0\'\n',
+    'pubspec.yaml': 'name: abc\n'
+        'version: 1.0.0\n'
+        'description: abc is awesome\n'
+        'environment:\n  sdk: \'>=2.10.0 <3.0.0\'\n',
     'LICENSE': 'Copyright (c) 2021',
     'README.md': 'Example content',
     'CHANGELOG.md': 'Changes',

@@ -409,8 +409,8 @@ class Image {
   Image({
     required this.src,
     required this.alt,
-    this.width,
-    this.height,
+    required this.width,
+    required this.height,
   });
 }
 
@@ -519,6 +519,7 @@ Node link({
   String? type,
   String? title,
   String? href,
+  String? as,
 }) =>
     dom.element(
       'link',
@@ -529,6 +530,7 @@ Node link({
         if (type != null) 'type': type,
         if (title != null) 'title': title,
         if (href != null) 'href': href,
+        if (as != null) 'as': as,
         if (attributes != null) ...attributes,
       },
       children: _children(children, child, text),
