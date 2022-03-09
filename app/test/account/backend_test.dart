@@ -46,7 +46,8 @@ void main() {
 
     testWithProfile('Authenticate: token failure', fn: () async {
       await expectLater(
-          () => accountBackend.withBearerToken('', () async => null),
+          () => accountBackend.withBearerToken(
+              '', () => requireAuthenticatedUser()),
           throwsA(isA<AuthenticationException>()));
     });
 
