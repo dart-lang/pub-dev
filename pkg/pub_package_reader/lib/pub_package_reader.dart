@@ -8,6 +8,7 @@ import 'package:clock/clock.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
+import 'package:pub_package_reader/src/emoji_ranges.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:yaml/yaml.dart' show YamlException, loadYaml;
@@ -374,6 +375,10 @@ Iterable<ArchiveIssue> validateDescription(String? description) sync* {
   if (description.split(' ').any((part) => part.length > 64)) {
     yield ArchiveIssue(
         '`description` uses too long phrases, maximum world length allowed: 64 characters.');
+  }
+  if (hasEmojiCharacter(description)) {
+    yield ArchiveIssue(
+        '`description` is not allowed to have emoji characters.');
   }
   final lower = trimmed.toLowerCase();
   for (final text in _descriptionsInKnownTemplates) {
