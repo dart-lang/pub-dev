@@ -97,6 +97,11 @@ void main() {
       expect(validateDescription('a' * 100), isNotEmpty);
     });
 
+    test('emoji', () {
+      expect(validateDescription('A fancy description with emoji character 📁'),
+          isNotEmpty);
+    });
+
     test('known template', () {
       expect(validateDescription('A sample command-line application.'),
           isNotEmpty);
