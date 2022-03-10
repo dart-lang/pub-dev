@@ -58,7 +58,7 @@ class EnvConfig {
       Platform.environment['GAE_SERVICE'],
       Platform.environment['GAE_VERSION'],
       Platform.environment['GAE_INSTANCE'],
-      Platform.environment['GCLOUD_PROJECT'],
+      Platform.environment['GOOGLE_CLOUD_PROJECT'],
       Platform.environment['GCLOUD_KEY'],
       Platform.environment['TOOL_STABLE_DART_SDK'],
       Platform.environment['TOOL_STABLE_FLUTTER_SDK'],
