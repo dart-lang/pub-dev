@@ -23,7 +23,7 @@ class RequestException implements Exception {
       json.decode(bodyAsString()) as Map<String, dynamic>;
 
   @override
-  String toString() => 'RequestException(status = $status)';
+  String toString() => 'RequestException(status = $status)\n${bodyAsString()}';
 }
 
 class Client {

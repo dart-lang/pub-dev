@@ -235,20 +235,15 @@ shelf.Handler _sanitizeRequestWrapper(shelf.Handler handler) {
 shelf.Handler _userAuthWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
     final authorization = request.headers['authorization'];
+    String? accessToken;
     if (authorization != null) {
-      String? accessToken;
       final parts = authorization.split(' ');
       if (parts.length == 2 && parts.first.trim().toLowerCase() == 'bearer') {
         accessToken = parts.last.trim();
       }
-      if (accessToken == null) {
-        throw AuthenticationException.failed();
-      }
-      return await accountBackend.withBearerToken(
-          accessToken, () async => await handler(request));
-    } else {
-      return await handler(request);
     }
+    return await accountBackend.withBearerToken(
+        accessToken, () async => await handler(request));
   };
 }
 
