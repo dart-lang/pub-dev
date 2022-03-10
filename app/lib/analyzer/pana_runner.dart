@@ -5,11 +5,13 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' hide ReportStatus;
+import 'package:pub_dev/package/screenshots/backend.dart';
 
 import '../job/job.dart';
 import '../package/overrides.dart';
@@ -72,6 +74,7 @@ class _PanaRunner implements PanaRunner {
               PackageAnalyzer(toolEnv, urlChecker: _urlChecker);
           final isInternal = internalPackageNames.contains(package) ||
               packageStatus.isPublishedByDartDev;
+<<<<<<< HEAD
           return await analyzer.inspectPackage(
             package,
             version: version,
@@ -85,6 +88,26 @@ class _PanaRunner implements PanaRunner {
             ),
             logger: Logger.detached('pana/$package/$version'),
           );
+=======
+
+          Future<void> store(String fileName, Uint8List data) async {
+            final stream = () => Stream.value(data);
+            await imageStorage.upload(
+                package, version, stream, fileName, data.length);
+          }
+
+          return await analyzer.inspectPackage(package,
+              version: version,
+              options: InspectOptions(
+                isInternal: isInternal,
+                pubHostedUrl: activeConfiguration.primaryApiUri.toString(),
+                analysisOptionsYaml: packageStatus.usesFlutter
+                    ? null
+                    : await getDefaultAnalysisOptionsYaml(),
+              ),
+              logger: Logger.detached('pana/$package/$version'),
+              storeResource: store);
+>>>>>>> 1f35e5da (Pass image store function to pana)
         } catch (e, st) {
           _logger.severe(
               'Failed (v$packageVersion) - $package/$version', e, st);
@@ -199,5 +222,6 @@ PanaReport panaReportFromSummary(Summary? summary, {List<String>? flags}) {
     flags: flags,
     urlProblems: summary?.urlProblems,
     repository: summary?.repository,
+    screenshots: summary?.screenshots,
   );
 }

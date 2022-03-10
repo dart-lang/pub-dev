@@ -4,6 +4,7 @@
 
 import 'package:pub_dev/analyzer/pana_runner.dart';
 import 'package:pub_dev/fake/backend/fake_dartdoc_runner.dart';
+import 'package:pub_dev/package/screenshots/backend.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
@@ -51,6 +52,64 @@ void main() {
               'runtime:web',
               'is:null-safe',
             ]));
+      },
+      timeout: Timeout.factor(8),
+    );
+
+    testWithProfile(
+      'screenshot test',
+      testProfile: TestProfile(
+        packages: [
+          TestPackage(
+              name: '_dummy_pkg', versions: [TestVersion(version: '0.0.193')]),
+        ],
+        defaultUser: 'admin@pub.dev',
+      ),
+      fn: () async {
+        final package = '_dummy_pkg';
+        final packageVersion = '0.0.193';
+
+        await processJobsWithPanaRunner();
+        await processJobsWithFakeDartdocRunner();
+
+        final card =
+            await scoreCardBackend.getScoreCardData(package, packageVersion);
+        expect(card!.panaReport!.screenshots!.length, 1);
+
+        final processedScreenshot = card.panaReport!.screenshots!.first;
+        expect(
+            (await imageStorage.bucket
+                    .read([
+              package,
+              packageVersion,
+              processedScreenshot.webpImage
+            ].join('/'))
+                    .fold<List<int>>(
+                        <int>[], (buffer, data) => buffer..addAll(data)))
+                .length,
+            3352);
+        expect(
+            (await imageStorage.bucket
+                    .read([
+              package,
+              packageVersion,
+              processedScreenshot.webpThumbnail
+            ].join('/'))
+                    .fold<List<int>>(
+                        <int>[], (buffer, data) => buffer..addAll(data)))
+                .length,
+            574);
+        expect(
+            (await imageStorage.bucket
+                    .read([
+              package,
+              packageVersion,
+              processedScreenshot.pngThumbnail
+            ].join('/'))
+                    .fold<List<int>>(
+                        <int>[], (buffer, data) => buffer..addAll(data)))
+                .length,
+            2663);
       },
       timeout: Timeout.factor(8),
     );

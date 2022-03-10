@@ -6,7 +6,18 @@ import 'dart:io';
 
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
+<<<<<<< HEAD
 import 'package:pana/models.dart';
+=======
+import 'package:pana/models.dart'
+    show
+        LicenseFile,
+        PanaRuntimeInfo,
+        Report,
+        ReportSection,
+        UrlProblem,
+        ProcessedScreenshot;
+>>>>>>> 1f35e5da (Pass image store function to pana)
 import 'package:pub_semver/pub_semver.dart';
 
 import '../dartdoc/models.dart';
@@ -249,6 +260,8 @@ class PanaReport {
 
   final Report? report;
 
+  final List<ProcessedScreenshot>? screenshots;
+
   /// The flags for the package, version or analysis.
   /// Example values: entries from [PackageFlags].
   List<String>? flags = <String>[];
@@ -268,6 +281,7 @@ class PanaReport {
     required this.flags,
     required this.urlProblems,
     required this.repository,
+    required this.screenshots,
   });
 
   factory PanaReport.fromJson(Map<String, dynamic> json) =>
