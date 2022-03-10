@@ -47,12 +47,8 @@ void registerAccountBackend(AccountBackend backend) =>
 AccountBackend get accountBackend =>
     ss.lookup(#_accountBackend) as AccountBackend;
 
-/// Sets the active authenticated user.
-void registerAuthenticatedUser(User user) =>
-    ss.register(#_authenticated_user, user);
-
-/// The active authenticated user.
-User? get _authenticatedUser => ss.lookup(#_authenticated_user) as User?;
+void _registerBearerToken(String token) => ss.register(#_bearerToken, token);
+String? _getBearerToken() => ss.lookup(#_bearerToken) as String?;
 
 /// Sets the active user's session data object.
 void registerUserSessionData(UserSessionData value) =>
@@ -71,18 +67,44 @@ void registerUserSessionData(UserSessionData value) =>
 UserSessionData? get userSessionData =>
     ss.lookup(#_userSessionData) as UserSessionData?;
 
-/// Returns the current authenticated user.
+/// Verifies the current bearer in the request scope and returns the
+/// current authenticated user.
 ///
-/// If no user is currently authenticated, this will throw an
-/// `AuthenticationException` exception.
+/// When the token authentication fails, the method throws
+/// [AuthenticationException].
+///
+/// The token may be an oauth2 `access_token` or an openid-connect
+/// `id_token` (signed JWT).
+///
+/// When no associated User entry exists in Datastore, this method will create
+/// a new one. When the authenticated email of the user changes, the email
+/// field will be updated to the latest one.
 Future<User> requireAuthenticatedUser() async {
-  if (_authenticatedUser == null) {
+  final token = _getBearerToken();
+  if (token == null || token.isEmpty) {
     throw AuthenticationException.authenticationRequired();
   }
-  if (_authenticatedUser!.isBlocked) {
+  final auth = await authProvider.tryAuthenticate(token);
+  if (auth == null) {
+    throw AuthenticationException.failed();
+  }
+  final user = await accountBackend._lookupOrCreateUserByOauthUserId(auth);
+  if (user == null) {
+    throw AuthenticationException.failed();
+  }
+  if (user.isBlocked) {
     throw AuthorizationException.blocked();
   }
-  return _authenticatedUser!;
+  if (user.isDeleted) {
+    // This may only happen if we have a data inconsistency in the datastore.
+    _logger.severe(
+      'Login on deleted account: ${user.userId} / ${user.email}',
+      AuthorizationException.blocked(),
+      StackTrace.current,
+    );
+    throw AuthorizationException.blocked();
+  }
+  return user;
 }
 
 /// Represents the backend for the account handling and authentication.
@@ -259,42 +281,18 @@ class AccountBackend {
     }
   }
 
-  /// Authenticates with bearer [token] and populates [_authenticatedUser] with
-  /// it, running [fn] in a new scope.
-  ///
-  /// When the token authentication fails, the method throws
-  /// [AuthenticationException].
+  /// Stores the bearer [token] in a new scope.
   ///
   /// The method returns with the response of [fn].
-  ///
-  /// The [token] may be an oauth2 `access_token` or an openid-connect
-  /// `id_token` (signed JWT).
-  ///
-  /// When no associated User entry exists in Datastore, this method will create
-  /// a new one. When the authenticated email of the user changes, the email
-  /// field will be updated to the latest one.
   Future<R> withBearerToken<R>(String? token, Future<R> Function() fn) async {
-    if (token == null || token.isEmpty) {
-      throw AuthenticationException.authenticationRequired();
-    }
-    return await ss.fork(() async {
-      final auth = await authProvider.tryAuthenticate(token);
-      if (auth == null) {
-        throw AuthenticationException.failed();
-      }
-      final user = await _lookupOrCreateUserByOauthUserId(auth);
-      if (user == null) {
-        throw AuthenticationException.failed();
-      }
-      if (user.isDeleted) {
-        // This can only happen if we have a data inconsistency in the datastore.
-        _logger
-            .severe('Login on deleted account: ${user.userId} / ${user.email}');
-        throw StateError('Account had been deleted, login is not allowed.');
-      }
-      registerAuthenticatedUser(user);
+    if (token == null) {
       return await fn();
-    }) as R;
+    } else {
+      return await ss.fork(() async {
+        _registerBearerToken(token);
+        return await fn();
+      }) as R;
+    }
   }
 
   Future<User?> _lookupUserByOauthUserId(String oauthUserId) async {

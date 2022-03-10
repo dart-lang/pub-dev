@@ -11,16 +11,27 @@ import '_utils.dart';
 
 void main() {
   group('bad authorization header', () {
-    testWithProfile('bad format', fn: () async {
+    testWithProfile('no issue on public pages', fn: () async {
       await expectHtmlResponse(
         await issueGet(
           '/packages/oxygen',
           headers: {'authorization': 'bad value'},
         ),
-        status: 401,
-        present: ['Authentication failed.'],
-        absent: ['/packages/oxygen'],
+        status: 200,
+        absent: ['Authentication failed.'],
+        present: ['/packages/oxygen'],
       );
+    });
+
+    testWithProfile('401 on private pages', fn: () async {
+      final rs = await issueHttp(
+        'PUT',
+        '/api/packages/oxygen/options',
+        headers: {'authorization': 'bad value'},
+        body: '{}',
+      );
+      expect(rs.statusCode, 401);
+      expect(await rs.readAsString(), contains('MissingAuthentication'));
     });
   });
 
