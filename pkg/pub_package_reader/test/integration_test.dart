@@ -90,14 +90,8 @@ dependency_overrides:
       );
 
       expect(
-        summary.issues.map((e) => e.message).toList(),
-        [
-          'Version value `1.0,0` does not follow strict version pattern.',
-          'Version value `2.14,0` does not follow strict version pattern.',
-          'Version value `1-0-0` does not follow strict version pattern.',
-          'Version value `1:0-0` does not follow strict version pattern.',
-          'Version value `1:0:0` does not follow strict version pattern.',
-        ],
+        summary.issues.map((e) => e.message).first,
+        contains('Error parsing pubspec.yaml'),
       );
     });
   });
