@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:_pub_shared/data/package_api.dart';
+import 'package:_pub_shared/search/search_form.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../dartdoc/backend.dart';
@@ -16,7 +17,6 @@ import '../../package/name_tracker.dart';
 import '../../package/overrides.dart';
 import '../../scorecard/backend.dart';
 import '../../search/search_client.dart';
-import '../../search/search_form.dart';
 import '../../search/search_service.dart';
 import '../../shared/configuration.dart';
 import '../../shared/exceptions.dart';

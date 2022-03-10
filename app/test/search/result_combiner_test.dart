@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:_pub_shared/search/search_form.dart';
 import 'package:pub_dev/search/dart_sdk_mem_index.dart';
 import 'package:pub_dev/search/flutter_sdk_mem_index.dart';
 import 'package:pub_dev/search/mem_index.dart';

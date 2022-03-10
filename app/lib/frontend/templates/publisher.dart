@@ -4,12 +4,12 @@
 
 import 'package:_pub_shared/data/page_data.dart';
 import 'package:_pub_shared/data/publisher_api.dart' as api;
+import 'package:_pub_shared/search/search_form.dart' show SearchForm;
 
 import '../../audit/models.dart';
 import '../../frontend/templates/views/account/activity_log_table.dart';
 import '../../package/search_adapter.dart' show SearchResultPage;
 import '../../publisher/models.dart' show Publisher, PublisherSummary;
-import '../../search/search_form.dart' show SearchForm;
 import '../../shared/urls.dart' as urls;
 import '../dom/dom.dart' as d;
 import 'detail_page.dart';

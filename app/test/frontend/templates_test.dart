@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/validation/html/html_validation.dart';
 import 'package:clock/clock.dart';
 import 'package:html/parser.dart';
@@ -31,7 +32,6 @@ import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/scorecard/models.dart';
-import 'package:pub_dev/search/search_form.dart';
 import 'package:pub_dev/search/search_service.dart';
 import 'package:pub_dev/service/youtube/backend.dart';
 import 'package:pub_dev/shared/utils.dart' show formatXAgo, shortDateFormat;

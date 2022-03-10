@@ -4,6 +4,7 @@
 
 import 'dart:html';
 
+import 'package:_pub_shared/search/search_form.dart';
 import 'package:web_app/src/gtm_js.dart';
 
 import 'gtm_js.dart';
@@ -101,12 +102,13 @@ void _setEventsForSearchForm() {
         final tag = link.dataset['tag'];
         var actionPostfix = '-on';
         if (tag != null) {
-          // remove or add tag to query string
-          if (' $queryText '.contains(' $tag ')) {
-            queryText = ' $queryText '.replaceFirst(' $tag ', ' ').trim();
+          final parsedQuery = ParsedQueryText.parse(queryText);
+          final newQuery = parsedQuery.change(
+            tagsPredicate: parsedQuery.tagsPredicate.toggleRequired(tag),
+          );
+          queryText = newQuery.toString();
+          if (parsedQuery.tagsPredicate.hasTag(tag)) {
             actionPostfix = '-off';
-          } else {
-            queryText = '$queryText $tag'.trim();
           }
         }
         inputQElem.value = queryText;

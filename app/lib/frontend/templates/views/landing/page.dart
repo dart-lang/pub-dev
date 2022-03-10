@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_pub_shared/search/search_form.dart';
+
 import '../../../../package/models.dart';
-import '../../../../search/search_form.dart';
 import '../../../../service/youtube/backend.dart';
 import '../../../../shared/tags.dart';
 import '../../../../shared/urls.dart' as urls;

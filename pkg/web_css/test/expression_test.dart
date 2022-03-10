@@ -80,6 +80,11 @@ void main() {
             .where((f) => f is File)
             .cast<File>()
             .toList(),
+        ...await Directory('../_pub_shared/lib')
+            .list(recursive: true)
+            .where((f) => f is File)
+            .cast<File>()
+            .toList(),
         ...await Directory('../web_app/lib')
             .list(recursive: true)
             .where((f) => f is File)
