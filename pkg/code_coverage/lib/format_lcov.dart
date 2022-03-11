@@ -50,15 +50,15 @@ Future main() async {
             !e.key.startsWith('pkg/code_coverage/') &&
             !e.key.startsWith('pkg/fake_gcloud/') &&
             !e.key.startsWith('pkg/pub_integration/'))
-  ];
+  ].whereType<Entry>();
   final pubDevEntry = Entry('pub-dev')
     ..covered = libEntries.map((e) => e.covered).reduce((a, b) => a + b)
     ..total = libEntries.map((e) => e.total).reduce((a, b) => a + b);
   output.writeln([
     pubDevEntry.formatted('pub-dev'),
-    _tree['app/lib'].formatted('app'),
-    _tree['pkg/web_app/lib'].formatted('pkg/web_app'),
-    _tree['pkg/web_css/lib'].formatted('pkg/web_css'),
+    _tree['app/lib']?.formatted('app'),
+    _tree['pkg/web_app/lib']?.formatted('pkg/web_app'),
+    _tree['pkg/web_css/lib']?.formatted('pkg/web_css'),
   ].join(', '));
 
   final keys = _tree.keys.toList()..sort();

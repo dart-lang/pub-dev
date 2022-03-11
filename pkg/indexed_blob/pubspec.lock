@@ -65,7 +65,7 @@ packages:
     source: hosted
     version: "3.0.1"
   coverage:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: coverage
       url: "https://pub.dartlang.org"
