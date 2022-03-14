@@ -22,16 +22,7 @@ void main() {
     });
 
     test('Check if all expressions are referenced in source files.', () async {
-      final styles = parse(
-        await file.readAsString(),
-        options: PreprocessorOptions(
-          throwOnWarnings: true,
-          throwOnErrors: true,
-          checked: true,
-        ),
-      );
-      final visitor = _Visitor();
-      styles.visit(visitor);
+      final visitor = await _visitCssFile(file.path, checked: true);
 
       // Sanity checks
       expect(visitor.elements, isNotEmpty);
@@ -40,12 +31,7 @@ void main() {
       expect(visitor.classes, contains('unlisted'));
       expect(visitor.selectors, isNotEmpty);
 
-      final expressions = <String>{
-        ...visitor.elements,
-        ...visitor.ids,
-        ...visitor.classes,
-        ...visitor.selectors,
-      };
+      final expressions = visitor.expressions;
 
       // These expressions are extracted from the CSS file, but they won't be
       // referenced in the sources.
@@ -61,30 +47,25 @@ void main() {
       expressions.removeWhere((e) => e.startsWith('home-block-'));
       expressions.removeWhere(
           (e) => e.startsWith('detail-tab-') && e.endsWith('-content'));
-      // hljs
-      expressions.removeWhere((e) => e == 'hljs' || e.startsWith('hljs-'));
-      // github-markdown.css
-      expressions.removeAll([
-        'kbd',
-        'no-list',
-        'emoji',
-        'align-center',
-        'align-right',
-        'float-left',
-        'float-right',
-      ]);
+
+      // remove third-party css expressions
+      final thirdPartyCss = [
+        '../../third_party/css/github-markdown.css',
+        '../../third_party/highlight/github.css',
+      ];
+      for (final path in thirdPartyCss) {
+        expressions.removeAll((await _visitCssFile(path)).expressions);
+      }
 
       final files = <File>[
-        ...await Directory('../../app/lib')
+        ...await Directory('../../app/lib/frontend/templates')
             .list(recursive: true)
             .where((f) => f is File)
             .cast<File>()
             .toList(),
-        ...await Directory('../_pub_shared/lib')
-            .list(recursive: true)
-            .where((f) => f is File)
-            .cast<File>()
-            .toList(),
+        File('../../app/lib/frontend/dom/dom.dart'),
+        File('../../app/lib/frontend/dom/material.dart'),
+        File('../../app/lib/shared/markdown.dart'),
         ...await Directory('../web_app/lib')
             .list(recursive: true)
             .where((f) => f is File)
@@ -104,11 +85,36 @@ void main() {
   });
 }
 
+Future<_Visitor> _visitCssFile(
+  String path, {
+  bool checked = false,
+}) async {
+  final file = File(path);
+  final styles = parse(
+    await file.readAsString(),
+    options: PreprocessorOptions(
+      throwOnWarnings: checked,
+      throwOnErrors: checked,
+      checked: checked,
+    ),
+  );
+  final visitor = _Visitor();
+  styles.visit(visitor);
+  return visitor;
+}
+
 class _Visitor extends Visitor {
   final ids = <String>{};
   final elements = <String>{};
   final classes = <String>{};
   final selectors = <String>{};
+
+  Set<String> get expressions => <String>{
+        ...elements,
+        ...ids,
+        ...classes,
+        ...selectors,
+      };
 
   @override
   void visitSelector(Selector node) {
