@@ -9,9 +9,9 @@ import 'package:collection/collection.dart' show UnmodifiableSetView;
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as path;
+import 'package:pub_dev/frontend/static_files.dart';
 import 'package:yaml/yaml.dart';
-
-import 'env_config.dart';
 
 part 'configuration.g.dart';
 
@@ -21,7 +21,7 @@ final _configurationKey = #_active_configuration;
 Configuration get activeConfiguration {
   Configuration? config = ss.lookup(_configurationKey) as Configuration?;
   if (config == null) {
-    config = Configuration.fromEnv(envConfig);
+    config = Configuration.fromEnv();
     ss.register(_configurationKey, config);
   }
   return config;
@@ -32,10 +32,6 @@ void registerActiveConfiguration(Configuration configuration) {
   ss.register(_configurationKey, configuration);
 }
 
-/// The OAuth audience (`client_id`) that the `pub` client uses.
-const _pubClientAudience =
-    '818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.googleusercontent.com';
-
 /// Special value to indicate that the site is running in fake mode, and the
 /// client side authentication should use the fake authentication tokens.
 const _fakeSiteAudience = 'fake-site-audience';
@@ -45,6 +41,7 @@ const _fakeSiteAudience = 'fake-site-audience';
 /// The configuration define the location of the Datastore with the
 /// package metadata and the Cloud Storage bucket for the actual package
 /// tar files.
+@sealed
 @JsonSerializable(
   anyMap: true,
   explicitToJson: true,
@@ -155,123 +152,22 @@ class Configuration {
   /// The identifier of admins.
   final List<AdminId>? admins;
 
+  /// Load [Configuration] from YAML file at [path] substituting `{{ENV}}` for
+  /// the value of environment variable `ENV`.
   factory Configuration.fromYamlFile(final String path) {
-    final file = File(path);
-    final content = file.readAsStringSync();
-    final map =
-        json.decode(json.encode(loadYaml(content))) as Map<String, dynamic>;
-    return Configuration.fromJson(map);
-  }
-
-  /// Create a configuration for production deployment.
-  ///
-  /// This will use the Datastore from the cloud project and the Cloud Storage
-  /// bucket 'pub-packages'. The credentials for accessing the Cloud
-  /// Storage is retrieved from the Datastore.
-  @visibleForTesting
-  factory Configuration.prod() {
-    final projectId = 'dartlang-pub';
-    return Configuration(
-      projectId: projectId,
-      packageBucketName: 'pub-packages',
-      imageBucketName: '$projectId--pub-images',
-      dartdocStorageBucketName: '$projectId--dartdoc-storage',
-      popularityDumpBucketName: '$projectId--popularity',
-      searchSnapshotBucketName: '$projectId--search-snapshot',
-      taskResultBucketName: '$projectId--task-result',
-      searchServicePrefix: 'https://search-dot-$projectId.appspot.com',
-      defaultServiceBaseUrl:
-          'https://${envConfig.gaeVersion}-dot-$projectId.appspot.com',
-      storageBaseUrl: 'https://storage.googleapis.com/',
-      pubClientAudience: _pubClientAudience,
-      pubSiteAudience:
-          '818368855108-e8skaopm5ih5nbb82vhh66k7ft5o7dn3.apps.googleusercontent.com',
-      adminAudience: 'https://pub.dev',
-      gmailRelayServiceAccount:
-          'pub-gsuite-gmail-delegatee@dartlang-pub.iam.gserviceaccount.com',
-      gmailRelayImpersonatedGSuiteUser: 'noreply@pub.dev',
-      uploadSignerServiceAccount:
-          'package-uploader-signer@dartlang-pub.iam.gserviceaccount.com',
-      blockRobots: false,
-      productionHosts: const ['pub.dartlang.org', 'pub.dev', 'api.pub.dev'],
-      primaryApiUri: Uri.parse('https://pub.dartlang.org/'),
-      primarySiteUri: Uri.parse('https://pub.dev/'),
-      admins: [
-        AdminId(
-          email: 'assigned-tags-admin@dartlang-pub.iam.gserviceaccount.com',
-          oauthUserId: '106306194842560376600',
-          permissions: {AdminPermission.manageAssignedTags},
-        ),
-        AdminId(
-          email: 'pub-admin-service@dartlang-pub.iam.gserviceaccount.com',
-          oauthUserId: '114536496314409930448',
-          permissions: {
-            AdminPermission.listUsers,
-            AdminPermission.managePackageOwnership,
-            AdminPermission.removeUsers,
-          },
-        ),
-        AdminId(
-          email: 'pub-moderation-admin@dartlang-pub.iam.gserviceaccount.com',
-          oauthUserId: '108693445730271975989',
-          permissions: AdminPermission.values,
-        )
-      ],
-    );
-  }
-
-  /// Create a configuration for development/staging deployment.
-  @visibleForTesting
-  factory Configuration.staging() {
-    final projectId = 'dartlang-pub-dev';
-    return Configuration(
-      projectId: projectId,
-      packageBucketName: '$projectId--pub-packages',
-      imageBucketName: '$projectId--pub-images',
-      dartdocStorageBucketName: '$projectId--dartdoc-storage',
-      popularityDumpBucketName: '$projectId--popularity',
-      searchSnapshotBucketName: '$projectId--search-snapshot',
-      taskResultBucketName: '$projectId--task-result',
-      // TODO: Support finding search on localhost when envConfig.isRunningLocally
-      //       is true, this also requires running search on localhost.
-      searchServicePrefix: 'https://search-dot-$projectId.appspot.com',
-      defaultServiceBaseUrl: envConfig.isRunningLocally
-          ? 'http://localhost:8080'
-          : 'https://${envConfig.gaeVersion}-dot-$projectId.appspot.com',
-      storageBaseUrl: 'https://storage.googleapis.com/',
-      pubClientAudience: _pubClientAudience,
-      pubSiteAudience:
-          '621485135717-idb8t8nnguphtu2drfn2u4ig7r56rm6n.apps.googleusercontent.com',
-      adminAudience: 'https://pub.dev',
-      gmailRelayServiceAccount: null, // disable email sending
-      gmailRelayImpersonatedGSuiteUser: null, // disable email sending
-      uploadSignerServiceAccount:
-          'package-uploader-signer@dartlang-pub-dev.iam.gserviceaccount.com',
-      blockRobots: true,
-      productionHosts: envConfig.isRunningLocally
-          ? ['localhost']
-          : [
-              'dartlang-pub-dev.appspot.com',
-              '${envConfig.gaeService}-dot-dartlang-pub-dev.appspot.com',
-            ],
-      primaryApiUri: Uri.parse('https://dartlang-pub-dev.appspot.com'),
-      primarySiteUri: envConfig.isRunningLocally
-          ? Uri.parse('http://localhost:8080')
-          : Uri.parse(
-              'https://${envConfig.gaeVersion}-dot-dartlang-pub-dev.appspot.com',
-            ),
-      admins: [
-        AdminId(
-          oauthUserId: '111042304059633250784',
-          email: 'istvan.soos@gmail.com',
-          permissions: AdminPermission.values,
-        ),
-        AdminId(
-          oauthUserId: '117672289743137340098',
-          email: 'assigned-tags-admin@dartlang-pub-dev.iam.gserviceaccount.com',
-          permissions: {AdminPermission.manageAssignedTags},
-        )
-      ],
+    final content = File(path)
+        .readAsStringSync()
+        .replaceAllMapped(RegExp(r'\{\{([A-Z]+[A-Z0-9_]*)\}\}'), (match) {
+      final name = match.group(1);
+      if (name != null &&
+          Platform.environment.containsKey(name) &&
+          Platform.environment[name]!.isNotEmpty) {
+        return Platform.environment[name]!;
+      }
+      return match.group(0)!;
+    });
+    return Configuration.fromJson(
+      json.decode(json.encode(loadYaml(content))) as Map<String, dynamic>,
     );
   }
 
@@ -299,21 +195,25 @@ class Configuration {
     required this.defaultServiceBaseUrl,
   });
 
-  /// Create a configuration based on the environment variables.
-  factory Configuration.fromEnv(EnvConfig env) {
-    if (env.gcloudProject == 'dartlang-pub') {
-      return Configuration.prod();
-    } else if (env.gcloudProject == 'dartlang-pub-dev') {
-      return Configuration.staging();
-    } else if (env.configPath?.isEmpty ?? true) {
-      throw Exception(
-          'Unknown project id: ${env.gcloudProject}. Please setup env var GCLOUD_PROJECT or PUB_SERVER_CONFIG');
-    } else if (File(env.configPath!).existsSync()) {
-      return Configuration.fromYamlFile(env.configPath!);
-    } else {
-      throw Exception(
-          'File ${env.configPath} doesnt exist. Please ensure PUB_SERVER_CONFIG env is pointing to the existing config');
+  /// Load configuration from `app/config/<projectId>.yaml` where `projectId`
+  /// is the GCP Project ID (specified using `GOOGLE_CLOUD_PROJECT`).
+  factory Configuration.fromEnv() {
+    // The GOOGLE_CLOUD_PROJECT is the canonical manner to specify project ID.
+    // This is undocumented for appengine custom runtime, but documented for the
+    // other runtimes:
+    // https://cloud.google.com/appengine/docs/standard/nodejs/runtime
+    final projectId = Platform.environment['GOOGLE_CLOUD_PROJECT'];
+    if (projectId == null || projectId.isEmpty) {
+      throw StateError(
+        'Environment variable \$GOOGLE_CLOUD_PROJECT must be specified!',
+      );
     }
+
+    final configFile = path.join(resolveAppDir(), projectId + '.yaml');
+    if (!File(configFile).existsSync()) {
+      throw StateError('Could not find configuration file: "$configFile"');
+    }
+    return Configuration.fromYamlFile(configFile);
   }
 
   /// Configuration for pkg/fake_pub_server.

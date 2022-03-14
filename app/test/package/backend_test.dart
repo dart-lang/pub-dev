@@ -139,9 +139,10 @@ void main() {
         final user =
             await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
         await dbService.commit(inserts: [user..isBlocked = true]);
-        registerAuthenticatedUser(user);
-        final rs = packageBackend.addUploader('oxygen', 'a@b.com');
-        await expectLater(rs, throwsA(isA<AuthorizationException>()));
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          final rs = packageBackend.addUploader('oxygen', 'a@b.com');
+          await expectLater(rs, throwsA(isA<AuthorizationException>()));
+        });
       });
 
       testWithProfile('package does not exist', fn: () async {
@@ -214,10 +215,11 @@ void main() {
         final user =
             await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
         await dbService.commit(inserts: [user..isBlocked = true]);
-        registerAuthenticatedUser(user);
-        final rs = packageBackend.inviteUploader(
-            'oxygen', InviteUploaderRequest(email: 'a@b.com'));
-        await expectLater(rs, throwsA(isA<AuthorizationException>()));
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          final rs = packageBackend.inviteUploader(
+              'oxygen', InviteUploaderRequest(email: 'a@b.com'));
+          await expectLater(rs, throwsA(isA<AuthorizationException>()));
+        });
       });
 
       testWithProfile('package does not exist', fn: () async {

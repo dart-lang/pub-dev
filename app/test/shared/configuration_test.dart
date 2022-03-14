@@ -20,16 +20,4 @@ void main() {
     expect(config.admins![0].permissions.contains(AdminPermission.listUsers),
         isTrue);
   });
-
-  test('Prod config from yaml file', () async {
-    final config = Configuration.fromYamlFile('config/prod-config.yaml');
-    final expectedConfig = Configuration.prod();
-    expect(config.toJson(), expectedConfig.toJson());
-  });
-
-  test('Staging config from yaml file', () async {
-    final config = Configuration.fromYamlFile('config/staging-config.yaml');
-    final expectedConfig = Configuration.staging();
-    expect(config.toJson(), expectedConfig.toJson());
-  });
 }

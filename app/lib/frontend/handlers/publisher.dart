@@ -4,13 +4,13 @@
 
 import 'dart:async';
 
-import 'package:pub_dev/audit/backend.dart';
+import 'package:_pub_shared/search/search_form.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
+import '../../audit/backend.dart';
 import '../../package/search_adapter.dart';
 import '../../publisher/backend.dart';
-import '../../search/search_form.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../../shared/urls.dart' as urls;

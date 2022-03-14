@@ -5,9 +5,10 @@
 import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:_pub_shared/search/search_form.dart';
 import 'package:clock/clock.dart';
 import 'package:http/http.dart';
-import 'package:pub_dev/search/search_form.dart';
+import 'package:pub_dev/search/search_service.dart';
 import 'package:pub_dev/shared/tags.dart';
 
 final _client = Client();

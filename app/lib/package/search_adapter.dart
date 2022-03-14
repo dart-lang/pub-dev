@@ -5,13 +5,13 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:_pub_shared/search/search_form.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 
 import '../scorecard/backend.dart';
 import '../search/search_client.dart';
-import '../search/search_form.dart';
 import '../search/search_service.dart';
 
 import 'models.dart';
