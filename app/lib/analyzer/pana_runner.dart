@@ -74,7 +74,13 @@ class _PanaRunner implements PanaRunner {
               PackageAnalyzer(toolEnv, urlChecker: _urlChecker);
           final isInternal = internalPackageNames.contains(package) ||
               packageStatus.isPublishedByDartDev;
-<<<<<<< HEAD
+
+          Future<void> store(String fileName, Uint8List data) async {
+            final stream = () => Stream.value(data);
+            await imageStorage.upload(
+                package, version, stream, fileName, data.length);
+          }
+
           return await analyzer.inspectPackage(
             package,
             version: version,
@@ -84,30 +90,10 @@ class _PanaRunner implements PanaRunner {
               analysisOptionsYaml: packageStatus.usesFlutter
                   ? null
                   : await getDefaultAnalysisOptionsYaml(),
-              checkRemoteRepository: isInternal,
             ),
             logger: Logger.detached('pana/$package/$version'),
+            storeResource: store,
           );
-=======
-
-          Future<void> store(String fileName, Uint8List data) async {
-            final stream = () => Stream.value(data);
-            await imageStorage.upload(
-                package, version, stream, fileName, data.length);
-          }
-
-          return await analyzer.inspectPackage(package,
-              version: version,
-              options: InspectOptions(
-                isInternal: isInternal,
-                pubHostedUrl: activeConfiguration.primaryApiUri.toString(),
-                analysisOptionsYaml: packageStatus.usesFlutter
-                    ? null
-                    : await getDefaultAnalysisOptionsYaml(),
-              ),
-              logger: Logger.detached('pana/$package/$version'),
-              storeResource: store);
->>>>>>> 1f35e5da (Pass image store function to pana)
         } catch (e, st) {
           _logger.severe(
               'Failed (v$packageVersion) - $package/$version', e, st);

@@ -6,18 +6,7 @@ import 'dart:io';
 
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
-<<<<<<< HEAD
 import 'package:pana/models.dart';
-=======
-import 'package:pana/models.dart'
-    show
-        LicenseFile,
-        PanaRuntimeInfo,
-        Report,
-        ReportSection,
-        UrlProblem,
-        ProcessedScreenshot;
->>>>>>> 1f35e5da (Pass image store function to pana)
 import 'package:pub_semver/pub_semver.dart';
 
 import '../dartdoc/models.dart';
