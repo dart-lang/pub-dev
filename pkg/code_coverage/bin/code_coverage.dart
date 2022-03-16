@@ -50,7 +50,6 @@ Future<void> main() async {
     await Process.run(
       'dart',
       [
-        'pub',
         'run',
         'coverage:format_coverage',
         '--packages',
