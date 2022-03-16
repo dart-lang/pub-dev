@@ -238,7 +238,11 @@ class Configuration {
   }
 
   /// Configuration for tests.
-  factory Configuration.test({String? storageBaseUrl}) {
+  factory Configuration.test({
+    String? storageBaseUrl,
+    Uri? primaryApiUri,
+    Uri? primarySiteUri,
+  }) {
     return Configuration(
       projectId: 'dartlang-pub-test',
       packageBucketName: 'fake-bucket-pub',
@@ -256,8 +260,8 @@ class Configuration {
       uploadSignerServiceAccount: null,
       blockRobots: true,
       productionHosts: ['localhost'],
-      primaryApiUri: Uri.parse('https://pub.dartlang.org/'),
-      primarySiteUri: Uri.parse('https://pub.dev/'),
+      primaryApiUri: primaryApiUri ?? Uri.parse('https://pub.dartlang.org/'),
+      primarySiteUri: primarySiteUri ?? Uri.parse('https://pub.dev/'),
       admins: [
         AdminId(
           oauthUserId: 'admin-pub-dev',
