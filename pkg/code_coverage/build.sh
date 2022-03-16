@@ -19,6 +19,9 @@ mkdir -p "${OUTPUT_DIR}/raw"
 cd "${CODE_COVERAGE_DIR}"
 dart pub get
 
+## Run coverage in pkg/
+dart bin/code_coverage.dart
+
 ## Collect coverage for app tests.
 
 echo "Generate ${APP_ALL_TEST_PATH}..."
