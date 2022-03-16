@@ -121,6 +121,7 @@ Future<R> withFakeServices<R>({
   }
   datastore ??= MemDatastore();
   storage ??= MemStorage();
+  // TODO: update `package:gcloud` to have a typed fork.
   return await fork(() async {
     register(#appengine.context, FakeClientContext());
     registerDbService(RetryDatastoreDB(DatastoreDB(datastore!)));
@@ -144,6 +145,7 @@ Future<R> withFakeServices<R>({
         primarySiteUri: frontendServerUri,
       );
       serveRequests(frontendServer.server, (rq) async {
+        // TODO: find a way where we don't need to re-initialize all of the fake services.
         return await withFakeServices(
           fn: () async {
             return await (createAppHandler()(rq));
