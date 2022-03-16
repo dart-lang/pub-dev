@@ -5,8 +5,6 @@
 runtime: custom
 env: flex
 service: default
-env_variables:
-  FRONTEND_COUNT: '4'
 
 resources:
   cpu: 4

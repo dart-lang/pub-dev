@@ -24,7 +24,6 @@ import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
-import '../shared/env_config.dart';
 import '../shared/tool_env.dart';
 import '../shared/urls.dart';
 import '../shared/utils.dart' show createUuid;
@@ -140,8 +139,8 @@ class _DartdocRunner implements DartdocRunner {
       args.addAll(['--sdk-dir', toolEnv.dartSdkDir!]);
     }
     final flutterRoot = usesPreviewSdk
-        ? envConfig.previewFlutterSdkDir
-        : envConfig.stableFlutterSdkDir;
+        ? activeConfiguration.tools?.previewFlutterSdkPath
+        : activeConfiguration.tools?.stableFlutterSdkPath;
     final environment = <String, String>{
       'PUB_HOSTED_URL': activeConfiguration.primaryApiUri.toString(),
       if (flutterRoot != null) 'FLUTTER_ROOT': flutterRoot,

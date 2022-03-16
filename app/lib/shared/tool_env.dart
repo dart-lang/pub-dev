@@ -9,7 +9,7 @@ import 'package:logging/logging.dart';
 import 'package:pana/pana.dart';
 import 'package:pool/pool.dart';
 
-import 'env_config.dart';
+import '../shared/configuration.dart';
 
 final _logger = Logger('tool_env');
 
@@ -99,23 +99,23 @@ Future<_ToolEnvRef> _createToolEnvRef() async {
   final cacheDir = await _toolEnvTempDir.createTemp('pub-cache-dir');
   final resolvedDirName = await cacheDir.resolveSymbolicLinks();
   final stableToolEnv = await ToolEnvironment.create(
-    dartSdkDir: envConfig.stableDartSdkDir,
-    flutterSdkDir: envConfig.stableFlutterSdkDir,
+    dartSdkDir: activeConfiguration.tools?.stableDartSdkPath,
+    flutterSdkDir: activeConfiguration.tools?.stableFlutterSdkPath,
     pubCacheDir: resolvedDirName,
     environment: {
       'CI': 'true',
-      if (envConfig.stableFlutterSdkDir != null)
-        'FLUTTER_ROOT': envConfig.stableFlutterSdkDir!,
+      if (activeConfiguration.tools?.stableFlutterSdkPath != null)
+        'FLUTTER_ROOT': activeConfiguration.tools!.stableFlutterSdkPath!,
     },
   );
   final previewToolEnv = await ToolEnvironment.create(
-    dartSdkDir: envConfig.previewDartSdkDir,
-    flutterSdkDir: envConfig.previewFlutterSdkDir,
+    dartSdkDir: activeConfiguration.tools?.previewDartSdkPath,
+    flutterSdkDir: activeConfiguration.tools?.previewFlutterSdkPath,
     pubCacheDir: resolvedDirName,
     environment: {
       'CI': 'true',
-      if (envConfig.previewFlutterSdkDir != null)
-        'FLUTTER_ROOT': envConfig.previewFlutterSdkDir!,
+      if (activeConfiguration.tools?.previewFlutterSdkPath != null)
+        'FLUTTER_ROOT': activeConfiguration.tools!.previewFlutterSdkPath!,
     },
   );
 
@@ -126,8 +126,8 @@ Future<_ToolEnvRef> _createToolEnvRef() async {
   //
   // This should be removed once this PR reaches the stable branch:
   // https://github.com/flutter/flutter/pull/76107
-  await _gitGc(envConfig.stableFlutterSdkDir);
-  await _gitGc(envConfig.previewFlutterSdkDir);
+  await _gitGc(activeConfiguration.tools?.stableFlutterSdkPath);
+  await _gitGc(activeConfiguration.tools?.previewFlutterSdkPath);
   return _ToolEnvRef(cacheDir, stableToolEnv, previewToolEnv);
 }
 

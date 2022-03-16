@@ -34,3 +34,9 @@ admins:
   email: assigned-tags-admin@dartlang-pub-dev.iam.gserviceaccount.com
   permissions:
   - manageAssignedTags
+tools:
+  # Needs to be in sync with Dockerfile
+  stableDartSdkPath: '/tool/stable/dart-sdk'
+  stableFlutterSdkPath: '/tool/stable/flutter'
+  previewDartSdkPath: '/tool/preview/dart-sdk'
+  previewFlutterSdkPath: '/tool/preview/flutter'
