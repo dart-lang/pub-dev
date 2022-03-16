@@ -5,6 +5,7 @@
 import 'package:clock/clock.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/name_tracker.dart';
+import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/urls.dart' as urls;
 import 'package:test/test.dart';
@@ -34,10 +35,11 @@ void main() {
                   'dependencies': {}
                 },
                 'archive_url':
-                    'https://pub.dartlang.org/packages/oxygen/versions/1.2.0.tar.gz',
-                'package_url': 'https://pub.dartlang.org/api/packages/oxygen',
+                    '${activeConfiguration.primaryApiUri}/packages/oxygen/versions/1.2.0.tar.gz',
+                'package_url':
+                    '${activeConfiguration.primaryApiUri}/api/packages/oxygen',
                 'url':
-                    'https://pub.dartlang.org/api/packages/oxygen/versions/1.2.0'
+                    '${activeConfiguration.primaryApiUri}/api/packages/oxygen/versions/1.2.0'
               }
             },
             {
@@ -55,11 +57,11 @@ void main() {
                   }
                 },
                 'archive_url':
-                    'https://pub.dartlang.org/packages/flutter_titanium/versions/1.10.0.tar.gz',
+                    '${activeConfiguration.primaryApiUri}/packages/flutter_titanium/versions/1.10.0.tar.gz',
                 'package_url':
-                    'https://pub.dartlang.org/api/packages/flutter_titanium',
+                    '${activeConfiguration.primaryApiUri}/api/packages/flutter_titanium',
                 'url':
-                    'https://pub.dartlang.org/api/packages/flutter_titanium/versions/1.10.0'
+                    '${activeConfiguration.primaryApiUri}/api/packages/flutter_titanium/versions/1.10.0'
               }
             },
             {
@@ -75,10 +77,11 @@ void main() {
                   'dependencies': {}
                 },
                 'archive_url':
-                    'https://pub.dartlang.org/packages/neon/versions/1.0.0.tar.gz',
-                'package_url': 'https://pub.dartlang.org/api/packages/neon',
+                    '${activeConfiguration.primaryApiUri}/packages/neon/versions/1.0.0.tar.gz',
+                'package_url':
+                    '${activeConfiguration.primaryApiUri}/api/packages/neon',
                 'url':
-                    'https://pub.dartlang.org/api/packages/neon/versions/1.0.0'
+                    '${activeConfiguration.primaryApiUri}/api/packages/neon/versions/1.0.0'
               }
             }
           ]

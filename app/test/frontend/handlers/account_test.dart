@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pub_dev/frontend/static_files.dart';
+import 'package:pub_dev/shared/configuration.dart';
 import 'package:test/test.dart';
 
 import '../../shared/test_models.dart';
@@ -46,6 +47,7 @@ void main() {
         await issueGet(
           '/my-packages',
           headers: {'cookie': cookie},
+          host: activeConfiguration.primaryApiUri!.host,
         ),
         present: ['/packages/flutter_titanium'],
       );
@@ -57,6 +59,7 @@ void main() {
         await issueGet(
           '/my-packages?next=o',
           headers: {'cookie': cookie},
+          host: activeConfiguration.primaryApiUri!.host,
         ),
         present: ['/packages/oxygen'],
         absent: ['/packages/flutter_titanium'],

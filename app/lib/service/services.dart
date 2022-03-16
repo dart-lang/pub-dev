@@ -10,6 +10,7 @@ import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
+import 'package:shelf/shelf_io.dart';
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
@@ -24,6 +25,7 @@ import '../fake/backend/fake_upload_signer_service.dart';
 import '../fake/server/fake_client_context.dart';
 import '../fake/server/fake_storage_server.dart';
 import '../frontend/email_sender.dart';
+import '../frontend/handlers.dart';
 import '../job/backend.dart';
 import '../package/backend.dart';
 import '../package/name_tracker.dart';
@@ -105,14 +107,14 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
 }
 
 /// Run [fn] with services.
-Future<void> withFakeServices({
-  required FutureOr<void> Function() fn,
+Future<R> withFakeServices<R>({
+  required FutureOr<R> Function() fn,
   Configuration? configuration,
   MemDatastore? datastore,
   MemStorage? storage,
 }) async {
   if (Zone.current[_pubDevServicesInitializedKey] == true) {
-    return await fork(() async => await fn());
+    return await fork(() async => await fn()) as R;
   }
   if (!envConfig.isRunningLocally) {
     throw StateError("Mustn't use fake services inside AppEngine.");
@@ -123,15 +125,34 @@ Future<void> withFakeServices({
     register(#appengine.context, FakeClientContext());
     registerDbService(RetryDatastoreDB(DatastoreDB(datastore!)));
     registerStorageService(storage!);
+    IOServer? frontendServer;
     if (configuration == null) {
       // start storage server
       final storageServer = FakeStorageServer(storage);
       await storageServer.start();
       registerScopeExitCallback(storageServer.close);
 
+      frontendServer = await IOServer.bind('localhost', 0);
+      final frontendServerUri =
+          Uri.parse('http://localhost:${frontendServer.server.port}');
+      registerScopeExitCallback(frontendServer.close);
+
       // update configuration
       configuration = Configuration.test(
-          storageBaseUrl: 'http://localhost:${storageServer.port}');
+        storageBaseUrl: 'http://localhost:${storageServer.port}',
+        primaryApiUri: frontendServerUri,
+        primarySiteUri: frontendServerUri,
+      );
+      serveRequests(frontendServer.server, (rq) async {
+        return await withFakeServices(
+          fn: () async {
+            return await (createAppHandler()(rq));
+          },
+          configuration: configuration,
+          datastore: datastore,
+          storage: storage,
+        );
+      });
     }
     registerActiveConfiguration(configuration!);
 
@@ -145,12 +166,12 @@ Future<void> withFakeServices({
       await youtubeBackend.start();
       return await fn();
     });
-  });
+  }) as R;
 }
 
 /// Run [fn] with pub services that are shared between server instances, CLI
 /// tools and integration tests.
-Future<void> _withPubServices(FutureOr<void> Function() fn) async {
+Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
   return fork(() async {
     registerAccountBackend(AccountBackend(dbService));
     registerAdminBackend(AdminBackend(dbService));
@@ -216,5 +237,5 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
     return await fork(() => Zone.current.fork(zoneValues: {
           _pubDevServicesInitializedKey: true,
         }).run(() async => await fn()));
-  });
+  }) as R;
 }
