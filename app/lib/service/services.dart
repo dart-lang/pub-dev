@@ -144,17 +144,6 @@ Future<R> withFakeServices<R>({
         primaryApiUri: frontendServerUri,
         primarySiteUri: frontendServerUri,
       );
-      serveRequests(frontendServer.server, (rq) async {
-        // TODO: find a way where we don't need to re-initialize all of the fake services.
-        return await withFakeServices(
-          fn: () async {
-            return await (createAppHandler()(rq));
-          },
-          configuration: configuration,
-          datastore: datastore,
-          storage: storage,
-        );
-      });
     }
     registerActiveConfiguration(configuration!);
 
@@ -166,6 +155,11 @@ Future<R> withFakeServices<R>({
         FakeUploadSignerService(configuration!.storageBaseUrl!));
     return await _withPubServices(() async {
       await youtubeBackend.start();
+      if (frontendServer != null) {
+        final frontendServerSubscription = frontendServer.server
+            .listen((rq) => handleRequest(rq, createAppHandler()));
+        registerScopeExitCallback(frontendServerSubscription.cancel);
+      }
       return await fn();
     });
   }) as R;
