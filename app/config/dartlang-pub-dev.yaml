@@ -35,7 +35,7 @@ admins:
   permissions:
   - manageAssignedTags
 tools:
-  # Needs to be in sync with Dockerfile
+  # Needs to be in sync with Dockerfile, setup-dart.sh and setup-flutter.sh
   stableDartSdkPath: '/tool/stable/dart-sdk'
   stableFlutterSdkPath: '/tool/stable/flutter'
   previewDartSdkPath: '/tool/preview/dart-sdk'
