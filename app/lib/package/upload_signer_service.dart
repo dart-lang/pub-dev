@@ -36,7 +36,6 @@ Future<UploadSignerService> createUploadSigner(http.Client authClient) async {
     return _ServiceAccountBasedUploadSigner();
   } else {
     final email = activeConfiguration.uploadSignerServiceAccount;
-    // TODO: remove this fallback after upgrading to appengine 0.12.0
     if (email == null) {
       throw AssertionError(
           'Configuration.uploadSignerServiceAccount must be set.');
