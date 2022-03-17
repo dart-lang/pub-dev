@@ -33,13 +33,9 @@ Future<shelf.Response> webLandingHandler(shelf.Request request) async {
 
 /// Handles requests for /
 Future<shelf.Response> indexLandingHandler(shelf.Request request) async {
-  final String? queryText = request.requestedUri.queryParameters['q']?.trim();
+  final queryText = request.requestedUri.queryParameters['q']?.trim();
   if (queryText != null) {
-    final String path = request.requestedUri.path;
-    final String separator = path.endsWith('/') ? '' : '/';
-    final String newPath = '$path${separator}packages';
-    return redirectResponse(
-        request.requestedUri.replace(path: newPath).toString());
+    return redirectResponse(urls.searchUrl(q: queryText));
   }
 
   Future<String> _render() async {
@@ -48,8 +44,8 @@ Future<shelf.Response> indexLandingHandler(shelf.Request request) async {
       count: 4,
     );
 
-    final mostPopularPackages = await searchAdapter.topFeatured(
-        context: SearchContext.regular(), order: SearchOrder.popularity);
+    final mostPopularPackages =
+        await searchAdapter.topFeatured(order: SearchOrder.popularity);
 
     final topFlutterPackages =
         await searchAdapter.topFeatured(query: SdkTag.sdkFlutter);

@@ -324,7 +324,7 @@ class SearchForm {
     pageSize ??= resultsPerPage;
     final q = _stringToNull(query?.trim());
     return SearchForm._(
-      context: context ?? SearchContext.regular(),
+      context: context ?? SearchContext._(),
       query: q,
       order: order,
       currentPage: currentPage,
@@ -336,7 +336,9 @@ class SearchForm {
   /// the frontend. The parameters and the values may be different from the ones
   /// we use in the search service backend.
   factory SearchForm.parse(
-      SearchContext context, Map<String, String> queryParameters) {
+    Map<String, String> queryParameters, {
+    SearchContext? context,
+  }) {
     return SearchForm(
       context: context,
       query: queryParameters['q'] ?? '',
@@ -408,9 +410,6 @@ class SearchContext {
     String? publisherId,
     this.includeAll = false,
   }) : publisherId = _stringToNull(publisherId);
-
-  /// Regular search, not displaying discontinued, unlisted or legacy packages.
-  factory SearchContext.regular() => SearchContext._();
 
   /// All packages listed for a publisher.
   factory SearchContext.publisher(String publisherId) =>

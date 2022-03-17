@@ -40,9 +40,7 @@ void main() {
     });
 
     test('query with with a single sdk parameter', () {
-      final form = SearchForm.parse(SearchContext.regular(), {
-        'q': 'sdk:dart some framework',
-      });
+      final form = SearchForm.parse({'q': 'sdk:dart some framework'});
       // pages
       expect(form.toSearchLink(), '/packages?q=sdk%3Adart+some+framework');
       expect(form.toSearchLink(page: 1), form.toSearchLink());
@@ -59,10 +57,10 @@ void main() {
 
     test('non-standard sdk query parameters', () {
       expect(
-        SearchForm.parse(
-          SearchContext.regular(),
-          {'q': 'sdk:any'},
-        ).parsedQuery.tagsPredicate.toQueryParameters(),
+        SearchForm.parse({'q': 'sdk:any'})
+            .parsedQuery
+            .tagsPredicate
+            .toQueryParameters(),
         ['sdk:any'],
       );
     });
