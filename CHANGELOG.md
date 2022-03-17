@@ -4,6 +4,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Bumped runtimeVersion to `2022.03.17`.
  * Upgraded preview Dart analysis SDK to `2.17.0-182.1.beta`.
+ * Upgraded pana to `0.21.9`.
  * Upgraded dependencies, including `analyzer` and `pub_semver`.
 
 ## `20220310t134700-all`
