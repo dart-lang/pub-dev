@@ -66,8 +66,7 @@ Future<shelf.Response> webPackagesHandlerHtml(shelf.Request request) async {
 Future<shelf.Response> _packagesHandlerHtmlCore(shelf.Request request) async {
   final openSections =
       request.requestedUri.queryParameters['open-sections']?.split(' ').toSet();
-  final searchForm = SearchForm.parse(
-      SearchContext.regular(), request.requestedUri.queryParameters);
+  final searchForm = SearchForm.parse(request.requestedUri.queryParameters);
   final sw = Stopwatch()..start();
   final searchResult = await searchAdapter.search(searchForm);
   final int totalCount = searchResult.totalCount;
