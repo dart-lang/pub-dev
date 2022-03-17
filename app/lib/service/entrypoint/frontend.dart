@@ -48,6 +48,8 @@ class DefaultCommand extends Command {
       logger: _logger,
       frontendEntryPoint: _main,
       workerEntryPoint: envConfig.isRunningLocally ? null : _worker,
+      frontendCount: envConfig.isRunningInAppengine ? 4 : 1,
+      workerCount: 1,
     );
   }
 }

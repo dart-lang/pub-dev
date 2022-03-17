@@ -11,7 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:pana/pana.dart' show ToolEnvironment;
 import 'package:path/path.dart' as p;
 
-import '../../shared/env_config.dart';
+import '../../shared/configuration.dart';
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart';
 import 'models.dart';
@@ -29,9 +29,10 @@ Future<List<ResolvedVersion>> resolveVersions(
     await pubCacheDir.create();
 
     final toolEnv = await ToolEnvironment.create(
-      dartSdkDir: envConfig.previewDartSdkDir ?? envConfig.stableDartSdkDir,
-      flutterSdkDir:
-          envConfig.previewFlutterSdkDir ?? envConfig.stableFlutterSdkDir,
+      dartSdkDir: activeConfiguration.tools?.previewDartSdkPath ??
+          activeConfiguration.tools?.stableDartSdkPath,
+      flutterSdkDir: activeConfiguration.tools?.previewFlutterSdkPath ??
+          activeConfiguration.tools?.stableFlutterSdkPath,
       pubCacheDir: pubCacheDir.path,
     );
 

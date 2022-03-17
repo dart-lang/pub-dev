@@ -31,7 +31,8 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
             'productionHosts',
             'primaryApiUri',
             'primarySiteUri',
-            'admins'
+            'admins',
+            'tools'
           ],
         );
         final val = Configuration(
@@ -74,6 +75,12 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
                   ?.map((e) =>
                       AdminId.fromJson(Map<String, dynamic>.from(e as Map)))
                   .toList()),
+          tools: $checkedConvert(
+              'tools',
+              (v) => v == null
+                  ? null
+                  : ToolsConfiguration.fromJson(
+                      Map<String, dynamic>.from(v as Map))),
         );
         return val;
       },
@@ -101,6 +108,7 @@ Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
       'primaryApiUri': instance.primaryApiUri?.toString(),
       'primarySiteUri': instance.primarySiteUri.toString(),
       'admins': instance.admins?.map((e) => e.toJson()).toList(),
+      'tools': instance.tools?.toJson(),
     };
 
 AdminId _$AdminIdFromJson(Map json) => $checkedCreate(
@@ -139,3 +147,39 @@ const _$AdminPermissionEnumMap = {
   AdminPermission.removePackage: 'removePackage',
   AdminPermission.removeUsers: 'removeUsers',
 };
+
+ToolsConfiguration _$ToolsConfigurationFromJson(Map<String, dynamic> json) =>
+    $checkedCreate(
+      'ToolsConfiguration',
+      json,
+      ($checkedConvert) {
+        $checkKeys(
+          json,
+          allowedKeys: const [
+            'stableDartSdkPath',
+            'stableFlutterSdkPath',
+            'previewDartSdkPath',
+            'previewFlutterSdkPath'
+          ],
+        );
+        final val = ToolsConfiguration(
+          stableDartSdkPath:
+              $checkedConvert('stableDartSdkPath', (v) => v as String?),
+          stableFlutterSdkPath:
+              $checkedConvert('stableFlutterSdkPath', (v) => v as String?),
+          previewDartSdkPath:
+              $checkedConvert('previewDartSdkPath', (v) => v as String?),
+          previewFlutterSdkPath:
+              $checkedConvert('previewFlutterSdkPath', (v) => v as String?),
+        );
+        return val;
+      },
+    );
+
+Map<String, dynamic> _$ToolsConfigurationToJson(ToolsConfiguration instance) =>
+    <String, dynamic>{
+      'stableDartSdkPath': instance.stableDartSdkPath,
+      'stableFlutterSdkPath': instance.stableFlutterSdkPath,
+      'previewDartSdkPath': instance.previewDartSdkPath,
+      'previewFlutterSdkPath': instance.previewFlutterSdkPath,
+    };

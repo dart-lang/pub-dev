@@ -42,7 +42,12 @@ class SearchCommand extends Command {
       );
     }
 
-    await startIsolates(logger: _logger, frontendEntryPoint: _main);
+    await startIsolates(
+      logger: _logger,
+      frontendEntryPoint: _main,
+      frontendCount: 1,
+      workerCount: 0,
+    );
   }
 }
 

@@ -140,6 +140,9 @@ class Configuration {
   /// The identifier of admins.
   final List<AdminId>? admins;
 
+  /// The local command-line tools.
+  final ToolsConfiguration? tools;
+
   /// Load [Configuration] from YAML file at [path] substituting `{{ENV}}` for
   /// the value of environment variable `ENV`.
   factory Configuration.fromYamlFile(final String path) {
@@ -179,6 +182,7 @@ class Configuration {
     required this.primaryApiUri,
     required this.primarySiteUri,
     required this.admins,
+    required this.tools,
   });
 
   /// Load configuration from `app/config/<projectId>.yaml` where `projectId`
@@ -234,6 +238,7 @@ class Configuration {
           permissions: AdminPermission.values,
         ),
       ],
+      tools: null,
     );
   }
 
@@ -269,6 +274,7 @@ class Configuration {
           permissions: AdminPermission.values,
         ),
       ],
+      tools: null,
     );
   }
 
@@ -325,4 +331,29 @@ enum AdminPermission {
 
   /// Permission to remove a user account (granted to wipeout).
   removeUsers,
+}
+
+/// Configuration related to the local command-line tools (SDKs).
+@JsonSerializable(
+  explicitToJson: true,
+  checked: true,
+  disallowUnrecognizedKeys: true,
+)
+class ToolsConfiguration {
+  final String? stableDartSdkPath;
+  final String? stableFlutterSdkPath;
+  final String? previewDartSdkPath;
+  final String? previewFlutterSdkPath;
+
+  ToolsConfiguration({
+    required this.stableDartSdkPath,
+    required this.stableFlutterSdkPath,
+    required this.previewDartSdkPath,
+    required this.previewFlutterSdkPath,
+  });
+
+  factory ToolsConfiguration.fromJson(Map<String, dynamic> json) =>
+      _$ToolsConfigurationFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ToolsConfigurationToJson(this);
 }

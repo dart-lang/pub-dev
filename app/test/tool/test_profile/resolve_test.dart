@@ -3,10 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:http/http.dart';
+import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:pub_dev/tool/test_profile/normalizer.dart';
 import 'package:pub_dev/tool/test_profile/resolver.dart';
 import 'package:test/test.dart';
+
+import '../../shared/utils.dart';
 
 void main() {
   Future<List<ResolvedVersion>> _resolve(List<TestPackage> packages) async {
@@ -24,13 +27,15 @@ void main() {
   }
 
   group('resolver tests', () {
-    test('latest version', () async {
+    scopedTest('latest version', () async {
+      registerActiveConfiguration(Configuration.test());
       final pvs = await _resolve([TestPackage(name: 'retry')]);
       expect(pvs, hasLength(1));
       expect(pvs.first.package, 'retry');
     });
 
-    test('dependencies', () async {
+    scopedTest('dependencies', () async {
+      registerActiveConfiguration(Configuration.test());
       final pvs = await _resolve([
         TestPackage(
           name: 'safe_url_check',
