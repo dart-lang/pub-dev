@@ -27,7 +27,6 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
             (k, e) => MapEntry(k, e as String),
           ) ??
           const {},
-      publisherId: json['publisherId'] as String?,
       apiDocPages: (json['apiDocPages'] as List<dynamic>?)
               ?.map((e) => ApiDocPage.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -51,7 +50,6 @@ Map<String, dynamic> _$PackageDocumentToJson(PackageDocument instance) =>
       'grantedPoints': instance.grantedPoints,
       'maxPoints': instance.maxPoints,
       'dependencies': instance.dependencies,
-      'publisherId': instance.publisherId,
       'apiDocPages': instance.apiDocPages,
       'timestamp': instance.timestamp.toIso8601String(),
     };

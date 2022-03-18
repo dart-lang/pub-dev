@@ -87,9 +87,6 @@ class PackageDocument {
 
   final Map<String, String> dependencies;
 
-  /// The publisher id of the package
-  final String? publisherId;
-
   final List<ApiDocPage>? apiDocPages;
 
   /// The creation timestamp of this document.
@@ -108,7 +105,6 @@ class PackageDocument {
     this.grantedPoints = 0,
     this.maxPoints = 0,
     this.dependencies = const {},
-    this.publisherId,
     this.apiDocPages = const [],
     DateTime? timestamp,
   })  : tags = tags ?? const <String>[],
