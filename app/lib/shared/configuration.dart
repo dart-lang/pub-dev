@@ -199,7 +199,8 @@ class Configuration {
       );
     }
 
-    final configFile = path.join(resolveAppDir(), projectId + '.yaml');
+    final configFile =
+        path.join(resolveAppDir(), 'config', projectId + '.yaml');
     if (!File(configFile).existsSync()) {
       throw StateError('Could not find configuration file: "$configFile"');
     }
