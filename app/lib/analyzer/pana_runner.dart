@@ -81,6 +81,7 @@ class _PanaRunner implements PanaRunner {
               analysisOptionsYaml: packageStatus.usesFlutter
                   ? null
                   : await getDefaultAnalysisOptionsYaml(),
+              checkRemoteRepository: isInternal,
             ),
             logger: Logger.detached('pana/$package/$version'),
           );
