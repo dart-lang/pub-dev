@@ -378,6 +378,7 @@ void main() {
           report: Report(sections: <ReportSection>[]),
           flags: null,
           urlProblems: null,
+          repository: null,
         ),
       );
       final html = scoreTabNode(
