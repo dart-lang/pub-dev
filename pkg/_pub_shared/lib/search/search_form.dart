@@ -365,6 +365,19 @@ class SearchForm {
     );
   }
 
+  SearchForm addRequiredTagIfAbsent(String tag) {
+    if (parsedQuery.tagsPredicate.hasTag(tag)) {
+      return this;
+    } else {
+      return _change(
+        query: parsedQuery
+            .change(
+                tagsPredicate: parsedQuery.tagsPredicate.toggleRequired(tag))
+            .toString(),
+      );
+    }
+  }
+
   bool get hasQuery => query != null && query!.isNotEmpty;
 
   /// The zero-indexed offset for the search results.
@@ -379,6 +392,9 @@ class SearchForm {
   /// Whether any of the non-query settings are non-default
   /// (e.g. clicking on any platforms, SDKs, or advanced filters).
   bool get hasActiveNonQuery => parsedQuery.tagsPredicate.isNotEmpty;
+
+  /// Wether the form has anything other than pagination present.
+  bool get hasNonPagination => query != null || order != null;
 
   /// Converts the query to a user-facing link that (after frontend parsing) will
   /// re-create an identical search query object.
