@@ -11,6 +11,7 @@ const allowedTagPrefixes = [
   'is:',
   'license:',
   'platform:',
+  'publisher:',
   'runtime:',
   'sdk:',
   'show:',

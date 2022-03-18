@@ -141,7 +141,8 @@ void main() {
     test('only publisher', () {
       final query = SearchForm(query: 'publisher:example.com');
       expect(query.parsedQuery.text, isNull);
-      expect(query.parsedQuery.publisher, 'example.com');
+      expect(query.parsedQuery.tagsPredicate.toQueryParameters(),
+          ['publisher:example.com']);
     });
 
     test('known tag', () {
@@ -172,7 +173,8 @@ void main() {
       expect(query.parsedQuery.text, 'text');
       expect(query.parsedQuery.refDependencies, ['pkg1']);
       expect(query.parsedQuery.allDependencies, []);
-      expect(query.parsedQuery.publisher, 'example.com');
+      expect(query.parsedQuery.tagsPredicate.toQueryParameters(),
+          ['publisher:example.com']);
     });
   });
 

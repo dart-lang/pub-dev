@@ -162,15 +162,6 @@ class InMemoryPackageIndex implements PackageIndex {
       });
     }
 
-    // filter on publisher
-    if (query.publisherId != null || query.parsedQuery.publisher != null) {
-      final publisherId = query.publisherId ?? query.parsedQuery.publisher;
-      packages.removeWhere((package) {
-        final doc = _packages[package]!;
-        return doc.publisherId != publisherId;
-      });
-    }
-
     // filter on points
     if (query.minPoints != null && query.minPoints! > 0) {
       packages.removeWhere((package) {
