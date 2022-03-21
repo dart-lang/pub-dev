@@ -45,7 +45,7 @@ void main() {
     testWithProfile('publisher package with tag search', fn: () async {
       await expectRedirectResponse(
         await issueGet('/publishers/example.com/packages?q=sdk:dart'),
-        '/packages?q=publisher%3Aexample.com+sdk%3Adart+show%3Ahidden',
+        '/packages?q=sdk%3Adart+publisher%3Aexample.com+show%3Ahidden',
       );
     });
 
