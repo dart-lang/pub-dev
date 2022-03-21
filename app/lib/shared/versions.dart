@@ -22,7 +22,7 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 /// when the version switch happens.
 const acceptedRuntimeVersions = <String>[
   // The current [runtimeVersion].
-  '2022.03.18',
+  '2022.03.21',
   // Fallback runtime versions.
   '2022.03.08',
   '2022.02.25',
@@ -57,7 +57,7 @@ final String runtimeSdkVersion = '2.16.1';
 final String toolStableDartSdkVersion = '2.16.1';
 final String toolStableFlutterSdkVersion = '2.10.3';
 final String toolPreviewDartSdkVersion = '2.17.0-182.1.beta';
-final String toolPreviewFlutterSdkVersion = '2.11.0-0.1.pre';
+final String toolPreviewFlutterSdkVersion = '2.12.0-4.1.pre';
 
 final semanticToolStableDartSdkVersion =
     Version.parse(toolStableDartSdkVersion);
