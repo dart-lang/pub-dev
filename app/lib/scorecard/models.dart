@@ -6,8 +6,7 @@ import 'dart:io';
 
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pana/models.dart'
-    show LicenseFile, PanaRuntimeInfo, Report, ReportSection, UrlProblem;
+import 'package:pana/models.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../dartdoc/models.dart';
@@ -256,6 +255,8 @@ class PanaReport {
 
   final List<UrlProblem>? urlProblems;
 
+  final Repository? repository;
+
   PanaReport({
     required this.timestamp,
     required this.panaRuntimeInfo,
@@ -266,6 +267,7 @@ class PanaReport {
     required this.report,
     required this.flags,
     required this.urlProblems,
+    required this.repository,
   });
 
   factory PanaReport.fromJson(Map<String, dynamic> json) =>
