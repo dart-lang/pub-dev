@@ -27,13 +27,13 @@ void registerUploadSigner(UploadSignerService uploadSigner) =>
 
 /// Creates an upload signer based on the current environment.
 Future<UploadSignerService> createUploadSigner(http.Client authClient) async {
-    final email = activeConfiguration.uploadSignerServiceAccount;
-    if (email == null) {
-      throw AssertionError(
-          'Configuration.uploadSignerServiceAccount must be set.');
-    }
-    return _IamBasedUploadSigner(
-        activeConfiguration.projectId, email, authClient);
+  final email = activeConfiguration.uploadSignerServiceAccount;
+  if (email == null) {
+    throw AssertionError(
+        'Configuration.uploadSignerServiceAccount must be set.');
+  }
+  return _IamBasedUploadSigner(
+      activeConfiguration.projectId, email, authClient);
 }
 
 /// Signs Google Cloud Storage upload URLs.
