@@ -22,7 +22,6 @@ class EnvConfig {
   ///
   /// NOTE: use only for narrow debug flows.
   final String? gaeInstance;
-  final String? gcloudKey;
   final String? gcloudProject;
 
   // Config Path points to configuration file
@@ -33,7 +32,6 @@ class EnvConfig {
     this.gaeVersion,
     this.gaeInstance,
     this.gcloudProject,
-    this.gcloudKey,
     this.configPath,
   );
 
@@ -43,7 +41,6 @@ class EnvConfig {
       Platform.environment['GAE_VERSION'],
       Platform.environment['GAE_INSTANCE'],
       Platform.environment['GOOGLE_CLOUD_PROJECT'],
-      Platform.environment['GCLOUD_KEY'],
       Platform.environment['PUB_SERVER_CONFIG'],
     );
   }
