@@ -118,25 +118,7 @@ Future<_ToolEnvRef> _createToolEnvRef() async {
         'FLUTTER_ROOT': activeConfiguration.tools!.previewFlutterSdkPath!,
     },
   );
-
-  // Flutter fetches the latest git objects when checking for new version.
-  // git stores these pack files not efficiently, and GC is not triggered by
-  // any other git operations. Forcing GC here helps to bound the required
-  // space.
-  //
-  // This should be removed once this PR reaches the stable branch:
-  // https://github.com/flutter/flutter/pull/76107
-  await _gitGc(activeConfiguration.tools?.stableFlutterSdkPath);
-  await _gitGc(activeConfiguration.tools?.previewFlutterSdkPath);
   return _ToolEnvRef(cacheDir, stableToolEnv, previewToolEnv);
-}
-
-Future<void> _gitGc(String? path) async {
-  if (path != null &&
-      Directory(path).existsSync() &&
-      Directory('$path/.git').existsSync()) {
-    await runProc(['git', 'gc'], workingDirectory: path);
-  }
 }
 
 Future<int> _calcDirectorySize(Directory dir) async {
