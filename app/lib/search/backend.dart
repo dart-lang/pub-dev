@@ -155,7 +155,6 @@ class SearchBackend {
       grantedPoints: scoreCard?.grantedPubPoints,
       maxPoints: scoreCard?.maxPubPoints ?? 0,
       dependencies: _buildDependencies(pv.pubspec!, scoreCard),
-      publisherId: p.publisherId,
       apiDocPages: apiDocPages,
       timestamp: clock.now().toUtc(),
     );
@@ -197,7 +196,6 @@ class SearchBackend {
         likeCount: p.likes,
         grantedPoints: 0,
         maxPoints: 0,
-        publisherId: p.publisherId,
         timestamp: clock.now().toUtc(),
       );
     }

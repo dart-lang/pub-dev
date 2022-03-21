@@ -10,8 +10,6 @@ const int resultsPerPage = 10;
 final RegExp _whitespacesRegExp = RegExp(r'\s+');
 final RegExp _packageRegexp =
     RegExp('package:([_a-z0-9]+)', caseSensitive: false);
-final RegExp _publisherRegexp =
-    RegExp(r'publisher:([_a-z0-9\.]+)', caseSensitive: false);
 final RegExp _refDependencyRegExp =
     RegExp('dependency:([_a-z0-9]+)', caseSensitive: false);
 final RegExp _allDependencyRegExp =
@@ -188,9 +186,6 @@ class ParsedQueryText {
   /// Dependency match for all dependencies, including transitive ones.
   final List<String> allDependencies;
 
-  /// Match the publisher of the package.
-  final String? publisher;
-
   /// Detected tags in the user-provided query.
   TagsPredicate tagsPredicate;
 
@@ -199,7 +194,6 @@ class ParsedQueryText {
     this.packagePrefix,
     this.refDependencies,
     this.allDependencies,
-    this.publisher,
     this.tagsPredicate,
   );
 
@@ -228,8 +222,6 @@ class ParsedQueryText {
 
     final List<String> dependencies = extractRegExp(_refDependencyRegExp);
     final List<String> allDependencies = extractRegExp(_allDependencyRegExp);
-    final allPublishers = extractRegExp(_publisherRegexp);
-    final publisher = allPublishers.isEmpty ? null : allPublishers.first;
 
     final tagValues = extractRegExp(
       _tagRegExp,
@@ -247,7 +239,6 @@ class ParsedQueryText {
       packagePrefix,
       dependencies,
       allDependencies,
-      publisher,
       tagsPredicate,
     );
   }
@@ -260,7 +251,6 @@ class ParsedQueryText {
       packagePrefix,
       refDependencies,
       allDependencies,
-      publisher,
       tagsPredicate ?? this.tagsPredicate,
     );
   }
@@ -273,7 +263,6 @@ class ParsedQueryText {
       text!.isNotEmpty &&
       packagePrefix == null &&
       !hasAnyDependency &&
-      publisher == null &&
       tagsPredicate.isEmpty;
 
   @override
@@ -283,7 +272,6 @@ class ParsedQueryText {
       if (packagePrefix != null) 'package:$packagePrefix',
       ...refDependencies.map((d) => 'dependency:$d'),
       ...allDependencies.map((d) => 'dependency*:$d'),
-      if (publisher != null) 'publisher:$publisher',
       ...tagsPredicate.toQueryParameters(),
       if (text != null && text!.isNotEmpty) text!,
     ].join(' ');
