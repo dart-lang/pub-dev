@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
@@ -82,7 +81,7 @@ class _PanaRunner implements PanaRunner {
                 package, version, stream, fileName, data.length);
           }
 
-          final summary = await analyzer.inspectPackage(
+          return await analyzer.inspectPackage(
             package,
             version: version,
             options: InspectOptions(
@@ -91,14 +90,11 @@ class _PanaRunner implements PanaRunner {
               analysisOptionsYaml: packageStatus.usesFlutter
                   ? null
                   : await getDefaultAnalysisOptionsYaml(),
+              checkRemoteRepository: isInternal,
             ),
             logger: Logger.detached('pana/$package/$version'),
             storeResource: store,
           );
-          print('');
-          print(const JsonEncoder.withIndent(' ').convert(summary.toJson()));
-          print('');
-          return summary;
         } catch (e, st) {
           _logger.severe(
               'Failed (v$packageVersion) - $package/$version', e, st);
