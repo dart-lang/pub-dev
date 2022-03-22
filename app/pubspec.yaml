@@ -48,13 +48,13 @@ dependencies:
   watcher: ^1.0.0
   yaml: '^3.0.0'
   # pana version to be pinned
-  pana: '0.21.9'
+  pana: '0.21.10'
   # 3rd-party packages with pinned versions
   buffer: '1.1.1'
   mailer: '5.1.0'
   sanitize_html: ^2.0.0
   ulid: '2.0.0'
-  tar: '0.5.1'
+  tar: '0.5.4'
   http_retry: '0.2.0'
   api_builder:
     path: ../pkg/api_builder
