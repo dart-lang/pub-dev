@@ -16,9 +16,10 @@ gmailRelayImpersonatedGSuiteUser:
 uploadSignerServiceAccount: package-uploader-signer@dartlang-pub-dev.iam.gserviceaccount.com
 blockRobots: true
 productionHosts:
-- localhost
+- dartlang-pub-dev.appspot.com
+- {{GAE_SERVICE}}-dot-dartlang-pub-dev.appspot.com
 primaryApiUri: https://dartlang-pub-dev.appspot.com
-primarySiteUri: http://localhost:8080
+primarySiteUri: https://{{GAE_VERSION}}-dot-dartlang-pub-dev.appspot.com
 admins:
 - oauthUserId: '111042304059633250784'
   email: istvan.soos@gmail.com
