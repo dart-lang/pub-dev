@@ -5,7 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bumped runtimeVersion to `2022.03.21`.
  * Upgraded preview Dart analysis SDK to `2.17.0-182.1.beta`.
  * Upgraded preview Flutter analysis SDK to `2.12.0-4.1.pre`.
- * Upgraded pana to `0.21.9`.
+ * Upgraded pana to `0.21.10`.
  * Upgraded dependencies, including `analyzer` and `pub_semver`.
  * Note: stopped calling `git gc` in Flutter analysis SDK repositories.
 
