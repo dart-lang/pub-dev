@@ -172,7 +172,7 @@ String pkgDocUrl(
 
 String publisherUrl(String publisherId) => '/publishers/$publisherId';
 String publisherPackagesUrl(String publisherId) =>
-    SearchForm(context: SearchContext.publisher(publisherId)).toSearchLink();
+    SearchContext.publisher(publisherId).toSearchFormPath();
 
 String publisherAdminUrl(String publisherId) =>
     publisherUrl(publisherId) + '/admin';
@@ -181,15 +181,10 @@ String publisherActivityLogUrl(String publisherId) =>
     publisherUrl(publisherId) + '/activity-log';
 
 String searchUrl({
-  SearchContext? context,
   String? q,
   int? page,
 }) {
-  final query = SearchForm(
-    context: context,
-    query: q,
-  );
-  return query.toSearchLink(page: page);
+  return SearchForm(query: q).toSearchLink(page: page);
 }
 
 String listingByPopularity() =>

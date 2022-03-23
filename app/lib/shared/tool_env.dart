@@ -9,7 +9,7 @@ import 'package:logging/logging.dart';
 import 'package:pana/pana.dart';
 import 'package:pool/pool.dart';
 
-import 'env_config.dart';
+import '../shared/configuration.dart';
 
 final _logger = Logger('tool_env');
 
@@ -99,44 +99,26 @@ Future<_ToolEnvRef> _createToolEnvRef() async {
   final cacheDir = await _toolEnvTempDir.createTemp('pub-cache-dir');
   final resolvedDirName = await cacheDir.resolveSymbolicLinks();
   final stableToolEnv = await ToolEnvironment.create(
-    dartSdkDir: envConfig.stableDartSdkDir,
-    flutterSdkDir: envConfig.stableFlutterSdkDir,
+    dartSdkDir: activeConfiguration.tools?.stableDartSdkPath,
+    flutterSdkDir: activeConfiguration.tools?.stableFlutterSdkPath,
     pubCacheDir: resolvedDirName,
     environment: {
       'CI': 'true',
-      if (envConfig.stableFlutterSdkDir != null)
-        'FLUTTER_ROOT': envConfig.stableFlutterSdkDir!,
+      if (activeConfiguration.tools?.stableFlutterSdkPath != null)
+        'FLUTTER_ROOT': activeConfiguration.tools!.stableFlutterSdkPath!,
     },
   );
   final previewToolEnv = await ToolEnvironment.create(
-    dartSdkDir: envConfig.previewDartSdkDir,
-    flutterSdkDir: envConfig.previewFlutterSdkDir,
+    dartSdkDir: activeConfiguration.tools?.previewDartSdkPath,
+    flutterSdkDir: activeConfiguration.tools?.previewFlutterSdkPath,
     pubCacheDir: resolvedDirName,
     environment: {
       'CI': 'true',
-      if (envConfig.previewFlutterSdkDir != null)
-        'FLUTTER_ROOT': envConfig.previewFlutterSdkDir!,
+      if (activeConfiguration.tools?.previewFlutterSdkPath != null)
+        'FLUTTER_ROOT': activeConfiguration.tools!.previewFlutterSdkPath!,
     },
   );
-
-  // Flutter fetches the latest git objects when checking for new version.
-  // git stores these pack files not efficiently, and GC is not triggered by
-  // any other git operations. Forcing GC here helps to bound the required
-  // space.
-  //
-  // This should be removed once this PR reaches the stable branch:
-  // https://github.com/flutter/flutter/pull/76107
-  await _gitGc(envConfig.stableFlutterSdkDir);
-  await _gitGc(envConfig.previewFlutterSdkDir);
   return _ToolEnvRef(cacheDir, stableToolEnv, previewToolEnv);
-}
-
-Future<void> _gitGc(String? path) async {
-  if (path != null &&
-      Directory(path).existsSync() &&
-      Directory('$path/.git').existsSync()) {
-    await runProc(['git', 'gc'], workingDirectory: path);
-  }
 }
 
 Future<int> _calcDirectorySize(Directory dir) async {

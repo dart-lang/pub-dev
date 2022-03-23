@@ -20,4 +20,4 @@ git clone -b "$2" --single-branch https://github.com/flutter/flutter.git flutter
 
 # Downloads the Dart SDK and disables analytics tracking – which we always want.
 # This will add 400 MB.
-./flutter/bin/flutter config --no-analytics
+./flutter/bin/flutter --no-version-check config --no-analytics

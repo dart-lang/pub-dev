@@ -121,19 +121,16 @@ shelf.Response debugResponse([Map<String, dynamic>? data]) {
   return jsonResponse(map, indentJson: true);
 }
 
-bool isNotModified(
-    shelf.Request request, DateTime? lastModified, String? etag) {
+bool isNotModified(shelf.Request request, DateTime lastModified, String etag) {
   DateTime? ifModifiedSince;
   try {
+    // accessing the header may throw
     ifModifiedSince = request.ifModifiedSince;
   } on FormatException {
     _logger.info('invalid If-Modified-Since header');
     return false;
   }
-  // TODO: use only `ifModifiedSince` after the null-safety migration
-  if (request.ifModifiedSince != null &&
-      lastModified != null &&
-      !lastModified.isAfter(ifModifiedSince!)) {
+  if (ifModifiedSince != null && !lastModified.isAfter(ifModifiedSince)) {
     return true;
   }
 

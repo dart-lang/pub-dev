@@ -60,6 +60,8 @@ Future startIsolates({
   Future<void> Function(FrontendEntryMessage message)? frontendEntryPoint,
   Future<void> Function(WorkerEntryMessage message)? workerEntryPoint,
   Duration? deadWorkerTimeout,
+  required int frontendCount,
+  required int workerCount,
 }) async {
   await withServices(() async {
     if (!envConfig.isRunningLocally) {
@@ -250,12 +252,12 @@ Future startIsolates({
     try {
       await withServices(() async {
         if (frontendEntryPoint != null) {
-          for (int i = 0; i < envConfig.frontendCount; i++) {
+          for (int i = 0; i < frontendCount; i++) {
             await startFrontendIsolate();
           }
         }
         if (workerEntryPoint != null) {
-          for (int i = 0; i < envConfig.workerCount; i++) {
+          for (int i = 0; i < workerCount; i++) {
             await startWorkerIsolate();
           }
         }

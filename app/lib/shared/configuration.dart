@@ -152,6 +152,9 @@ class Configuration {
   /// The identifier of admins.
   final List<AdminId>? admins;
 
+  /// The local command-line tools.
+  final ToolsConfiguration? tools;
+
   /// Load [Configuration] from YAML file at [path] substituting `{{ENV}}` for
   /// the value of environment variable `ENV`.
   factory Configuration.fromYamlFile(final String path) {
@@ -193,6 +196,7 @@ class Configuration {
     required this.primarySiteUri,
     required this.admins,
     required this.defaultServiceBaseUrl,
+    required this.tools,
   });
 
   /// Load configuration from `app/config/<projectId>.yaml` where `projectId`
@@ -209,7 +213,8 @@ class Configuration {
       );
     }
 
-    final configFile = path.join(resolveAppDir(), projectId + '.yaml');
+    final configFile =
+        path.join(resolveAppDir(), 'config', projectId + '.yaml');
     if (!File(configFile).existsSync()) {
       throw StateError('Could not find configuration file: "$configFile"');
     }
@@ -250,11 +255,16 @@ class Configuration {
           permissions: AdminPermission.values,
         ),
       ],
+      tools: null,
     );
   }
 
   /// Configuration for tests.
-  factory Configuration.test({String? storageBaseUrl}) {
+  factory Configuration.test({
+    String? storageBaseUrl,
+    Uri? primaryApiUri,
+    Uri? primarySiteUri,
+  }) {
     return Configuration(
       projectId: 'dartlang-pub-test',
       packageBucketName: 'fake-bucket-pub',
@@ -274,8 +284,8 @@ class Configuration {
       uploadSignerServiceAccount: null,
       blockRobots: true,
       productionHosts: ['localhost'],
-      primaryApiUri: Uri.parse('https://pub.dartlang.org/'),
-      primarySiteUri: Uri.parse('https://pub.dev/'),
+      primaryApiUri: primaryApiUri ?? Uri.parse('https://pub.dartlang.org/'),
+      primarySiteUri: primarySiteUri ?? Uri.parse('https://pub.dev/'),
       admins: [
         AdminId(
           oauthUserId: 'admin-pub-dev',
@@ -283,6 +293,7 @@ class Configuration {
           permissions: AdminPermission.values,
         ),
       ],
+      tools: null,
     );
   }
 
@@ -339,4 +350,29 @@ enum AdminPermission {
 
   /// Permission to remove a user account (granted to wipeout).
   removeUsers,
+}
+
+/// Configuration related to the local command-line tools (SDKs).
+@JsonSerializable(
+  explicitToJson: true,
+  checked: true,
+  disallowUnrecognizedKeys: true,
+)
+class ToolsConfiguration {
+  final String? stableDartSdkPath;
+  final String? stableFlutterSdkPath;
+  final String? previewDartSdkPath;
+  final String? previewFlutterSdkPath;
+
+  ToolsConfiguration({
+    required this.stableDartSdkPath,
+    required this.stableFlutterSdkPath,
+    required this.previewDartSdkPath,
+    required this.previewFlutterSdkPath,
+  });
+
+  factory ToolsConfiguration.fromJson(Map<String, dynamic> json) =>
+      _$ToolsConfigurationFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ToolsConfigurationToJson(this);
 }

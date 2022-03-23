@@ -54,6 +54,7 @@ The delegating wrapper classes allow users to easily add functionality on top of
           created: DateTime.utc(2015, 04, 01),
           updated: DateTime.utc(2017, 05, 17),
           tags: [
+            'publisher:dart.dev',
             'sdk:dart',
             'sdk:flutter',
             'runtime:native-jit',
@@ -64,7 +65,6 @@ The delegating wrapper classes allow users to easily add functionality on top of
           grantedPoints: 10,
           maxPoints: 110,
           dependencies: {'test': 'dev'},
-          publisherId: 'dart.dev',
         ),
         PackageDocument(
           package: 'chrome_net',

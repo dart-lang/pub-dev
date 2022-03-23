@@ -13,6 +13,7 @@ import '../../package/search_adapter.dart';
 import '../../publisher/backend.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
+import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 import '../request_context.dart';
 import '../templates/listing.dart' show PageLinks;
@@ -55,15 +56,12 @@ Future<shelf.Response> publisherPageHandler(
 /// Handles requests for GET /publishers/<publisherId>/packages [?q=...]
 Future<shelf.Response> publisherPackagesPageHandler(
     shelf.Request request, String publisherId) async {
-  final searchForm = SearchForm.parse(
-    SearchContext.publisher(publisherId),
-    request.requestedUri.queryParameters,
-  );
   // Redirect in case of empty search query.
   if (request.requestedUri.query == 'q=') {
     return redirectResponse(request.requestedUri.path);
   }
 
+  // Reply with cached page if available.
   final isLanding = request.requestedUri.queryParameters.isEmpty;
   if (isLanding && requestContext.uiCacheEnabled) {
     final html = await cache.uiPublisherPackagesPage(publisherId).get();
@@ -79,7 +77,24 @@ Future<shelf.Response> publisherPackagesPageHandler(
     return formattedNotFoundHandler(request);
   }
 
-  final searchResult = await searchAdapter.search(searchForm);
+  final searchForm = SearchForm.parse(
+    request.requestedUri.queryParameters,
+    context: SearchContext.publisher(publisherId),
+  );
+  // redirect to proper search page if there is any non-pagination item present
+  if (searchForm.hasNonPagination) {
+    final redirectForm = SearchForm.parse(request.requestedUri.queryParameters)
+        .addRequiredTagIfAbsent(PackageTags.publisherTag(publisherId))
+        .addRequiredTagIfAbsent(PackageTags.showHidden);
+    return redirectResponse(redirectForm.toSearchLink());
+  }
+
+  final appliedSearchForm =
+      SearchForm.parse(request.requestedUri.queryParameters)
+          .toggleRequiredTag(PackageTags.publisherTag(publisherId))
+          .toggleRequiredTag(PackageTags.showHidden);
+
+  final searchResult = await searchAdapter.search(appliedSearchForm);
   final int totalCount = searchResult.totalCount;
   final links = PageLinks(searchForm, totalCount);
 

@@ -6,19 +6,14 @@ library pub_dartlang_org.upload_signer_service;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/iam/v1.dart' as iam;
-import 'package:googleapis_auth/auth_io.dart' as auth;
-// ignore: implementation_imports
-import 'package:googleapis_auth/src/crypto/rsa_sign.dart';
 import 'package:http/http.dart' as http;
 
 import '../shared/configuration.dart';
-import '../shared/env_config.dart';
 import '../shared/utils.dart' show jsonUtf8Encoder;
 
 /// The registered [UploadSignerService] object.
@@ -32,18 +27,13 @@ void registerUploadSigner(UploadSignerService uploadSigner) =>
 
 /// Creates an upload signer based on the current environment.
 Future<UploadSignerService> createUploadSigner(http.Client authClient) async {
-  if (envConfig.isRunningLocally) {
-    return _ServiceAccountBasedUploadSigner();
-  } else {
-    final email = activeConfiguration.uploadSignerServiceAccount;
-    // TODO: remove this fallback after upgrading to appengine 0.12.0
-    if (email == null) {
-      throw AssertionError(
-          'Configuration.uploadSignerServiceAccount must be set.');
-    }
-    return _IamBasedUploadSigner(
-        activeConfiguration.projectId, email, authClient);
+  final email = activeConfiguration.uploadSignerServiceAccount;
+  if (email == null) {
+    throw AssertionError(
+        'Configuration.uploadSignerServiceAccount must be set.');
   }
+  return _IamBasedUploadSigner(
+      activeConfiguration.projectId, email, authClient);
 }
 
 /// Signs Google Cloud Storage upload URLs.
@@ -108,34 +98,6 @@ abstract class UploadSignerService {
   }
 
   Future<SigningResult> sign(List<int> bytes);
-}
-
-/// Uses [auth.ServiceAccountCredentials] to sign Google Cloud Storage upload
-/// URLs. Connection parameters are inferred from the GCLOUD_PROJECT and the
-/// GCLOUD_KEY environment variables.
-///
-/// See [UploadSignerService] for more information.
-class _ServiceAccountBasedUploadSigner extends UploadSignerService {
-  final String googleAccessId;
-  final RS256Signer signer;
-
-  _ServiceAccountBasedUploadSigner._(this.googleAccessId, this.signer);
-
-  factory _ServiceAccountBasedUploadSigner() {
-    if (envConfig.gcloudKey == null) {
-      throw Exception('Missing GCLOUD_* environments for package:appengine');
-    }
-    final path = envConfig.gcloudKey!;
-    final content = File(path).readAsStringSync();
-    final account = auth.ServiceAccountCredentials.fromJson(content);
-    return _ServiceAccountBasedUploadSigner._(
-        account.email, RS256Signer(account.privateRSAKey));
-  }
-
-  @override
-  Future<SigningResult> sign(List<int> bytes) async {
-    return SigningResult(googleAccessId, signer.sign(bytes));
-  }
 }
 
 /// Uses the [iam.IamApi] to sign Google Cloud Storage upload URLs.

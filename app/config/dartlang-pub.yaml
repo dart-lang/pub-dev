@@ -46,3 +46,9 @@ admins:
   - manageRetraction
   - removePackage
   - removeUsers
+tools:
+  # Needs to be in sync with Dockerfile, setup-dart.sh and setup-flutter.sh
+  stableDartSdkPath: '/tool/stable/dart-sdk'
+  stableFlutterSdkPath: '/tool/stable/flutter'
+  previewDartSdkPath: '/tool/preview/dart-sdk'
+  previewFlutterSdkPath: '/tool/preview/flutter'

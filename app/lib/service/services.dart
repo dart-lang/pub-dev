@@ -16,6 +16,7 @@ import 'package:pub_dev/service/youtube/backend.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
 import 'package:pub_dev/task/cloudcompute/googlecloudcompute.dart';
+import 'package:shelf/shelf_io.dart';
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
@@ -30,6 +31,7 @@ import '../fake/backend/fake_upload_signer_service.dart';
 import '../fake/server/fake_client_context.dart';
 import '../fake/server/fake_storage_server.dart';
 import '../frontend/email_sender.dart';
+import '../frontend/handlers.dart';
 import '../job/backend.dart';
 import '../package/backend.dart';
 import '../package/name_tracker.dart';
@@ -123,33 +125,43 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
 }
 
 /// Run [fn] with services.
-Future<void> withFakeServices({
-  required FutureOr<void> Function() fn,
+Future<R> withFakeServices<R>({
+  required FutureOr<R> Function() fn,
   Configuration? configuration,
   MemDatastore? datastore,
   MemStorage? storage,
 }) async {
   if (Zone.current[_pubDevServicesInitializedKey] == true) {
-    return await fork(() async => await fn());
+    return await fork(() async => await fn()) as R;
   }
   if (!envConfig.isRunningLocally) {
     throw StateError("Mustn't use fake services inside AppEngine.");
   }
   datastore ??= MemDatastore();
   storage ??= MemStorage();
+  // TODO: update `package:gcloud` to have a typed fork.
   return await fork(() async {
     register(#appengine.context, FakeClientContext());
     registerDbService(RetryDatastoreDB(DatastoreDB(datastore!)));
     registerStorageService(storage!);
+    IOServer? frontendServer;
     if (configuration == null) {
       // start storage server
       final storageServer = FakeStorageServer(storage);
       await storageServer.start();
       registerScopeExitCallback(storageServer.close);
 
+      frontendServer = await IOServer.bind('localhost', 0);
+      final frontendServerUri =
+          Uri.parse('http://localhost:${frontendServer.server.port}');
+      registerScopeExitCallback(frontendServer.close);
+
       // update configuration
       configuration = Configuration.test(
-          storageBaseUrl: 'http://localhost:${storageServer.port}');
+        storageBaseUrl: 'http://localhost:${storageServer.port}',
+        primaryApiUri: frontendServerUri,
+        primarySiteUri: frontendServerUri,
+      );
     }
     registerActiveConfiguration(configuration!);
 
@@ -164,14 +176,19 @@ Future<void> withFakeServices({
 
     return await _withPubServices(() async {
       await youtubeBackend.start();
+      if (frontendServer != null) {
+        final frontendServerSubscription = frontendServer.server
+            .listen((rq) => handleRequest(rq, createAppHandler()));
+        registerScopeExitCallback(frontendServerSubscription.cancel);
+      }
       return await fn();
     });
-  });
+  }) as R;
 }
 
 /// Run [fn] with pub services that are shared between server instances, CLI
 /// tools and integration tests.
-Future<void> _withPubServices(FutureOr<void> Function() fn) async {
+Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
   return fork(() async {
     registerAccountBackend(AccountBackend(dbService));
     registerAdminBackend(AdminBackend(dbService));
@@ -248,5 +265,5 @@ Future<void> _withPubServices(FutureOr<void> Function() fn) async {
     return await fork(() => Zone.current.fork(zoneValues: {
           _pubDevServicesInitializedKey: true,
         }).run(() async => await fn()));
-  });
+  }) as R;
 }

@@ -109,17 +109,9 @@ d.Node _renderSearchBanner({
   } else {
     searchPlaceholder ??= getSdkDict(null).searchPackagesLabel;
   }
-  String searchFormUrl;
-  if (publisherId != null) {
-    searchFormUrl = SearchForm(context: SearchContext.publisher(publisherId))
-        .toSearchLink();
-  } else if (type == PageType.account) {
-    searchFormUrl = urls.myPackagesUrl();
-  } else if (searchForm != null) {
-    searchFormUrl = searchForm.context.toSearchFormPath();
-  } else {
-    searchFormUrl = SearchForm().context.toSearchFormPath();
-  }
+  final searchFormUrl = publisherId == null
+      ? urls.searchUrl()
+      : urls.publisherPackagesUrl(publisherId);
   final searchSort = searchForm?.order?.name;
   return searchBannerNode(
     // When search is active (query text has a non-empty value) users may expect

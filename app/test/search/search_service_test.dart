@@ -9,9 +9,7 @@ import 'package:test/test.dart';
 void main() {
   group('toServiceQuery', () {
     test('query with with a single sdk parameter', () {
-      final form = SearchForm.parse(SearchContext.regular(), {
-        'q': 'sdk:dart some framework',
-      });
+      final form = SearchForm.parse({'q': 'sdk:dart some framework'});
       expect(
         form.toServiceQuery().toUriQueryParameters(),
         {

@@ -11,6 +11,7 @@ import 'package:_pub_shared/validation/html/html_validation.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pub_dev/frontend/handlers.dart';
+import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/handler_helpers.dart';
 import 'package:pub_dev/shared/urls.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -42,11 +43,13 @@ Future<shelf.Response> issueGet(
 Future<shelf.Response> issueHttp(
   String method,
   String path, {
+  String? scheme,
   String? host,
   Map<String, String>? headers,
   dynamic body,
 }) async {
-  final uri = host == null ? '$siteRoot$path' : 'https://$host$path';
+  final uri =
+      host == null ? '$siteRoot$path' : '${scheme ?? 'https'}://$host$path';
   final request = shelf.Request(
     method,
     Uri.parse(uri),
@@ -70,6 +73,8 @@ Future<String> acquireSessionCookie(String token) async {
     body: json.encode({
       'accessToken': token,
     }),
+    scheme: activeConfiguration.primarySiteUri.scheme,
+    host: activeConfiguration.primarySiteUri.host,
   );
   expect(rs.statusCode, 200);
   final cookieHeader = rs.headers['set-cookie'];

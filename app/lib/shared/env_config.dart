@@ -22,14 +22,7 @@ class EnvConfig {
   ///
   /// NOTE: use only for narrow debug flows.
   final String? gaeInstance;
-  final String? gcloudKey;
   final String? gcloudProject;
-  final String? stableDartSdkDir;
-  final String? stableFlutterSdkDir;
-  final String? previewDartSdkDir;
-  final String? previewFlutterSdkDir;
-  final int frontendCount;
-  final int workerCount;
 
   // Config Path points to configuration file
   final String? configPath;
@@ -39,37 +32,22 @@ class EnvConfig {
     this.gaeVersion,
     this.gaeInstance,
     this.gcloudProject,
-    this.gcloudKey,
-    this.stableDartSdkDir,
-    this.stableFlutterSdkDir,
-    this.previewDartSdkDir,
-    this.previewFlutterSdkDir,
-    this.frontendCount,
-    this.workerCount,
     this.configPath,
   );
 
   factory EnvConfig._detect() {
-    final frontendCount =
-        int.tryParse(Platform.environment['FRONTEND_COUNT'] ?? '1') ?? 1;
-    final workerCount =
-        int.tryParse(Platform.environment['WORKER_COUNT'] ?? '1') ?? 1;
     return EnvConfig._(
       Platform.environment['GAE_SERVICE'],
       Platform.environment['GAE_VERSION'],
       Platform.environment['GAE_INSTANCE'],
       Platform.environment['GOOGLE_CLOUD_PROJECT'],
-      Platform.environment['GCLOUD_KEY'],
-      Platform.environment['TOOL_STABLE_DART_SDK'],
-      Platform.environment['TOOL_STABLE_FLUTTER_SDK'],
-      Platform.environment['TOOL_PREVIEW_DART_SDK'],
-      Platform.environment['TOOL_PREVIEW_FLUTTER_SDK'],
-      frontendCount,
-      workerCount,
       Platform.environment['PUB_SERVER_CONFIG'],
     );
   }
 
+  /// True, if running inside AppEngine.
+  bool get isRunningInAppengine => gaeService != null && gaeVersion != null;
+
   /// True, if running locally and not inside AppEngine.
-  bool get isRunningLocally => gaeService == null || gaeVersion == null;
+  bool get isRunningLocally => !isRunningInAppengine;
 }

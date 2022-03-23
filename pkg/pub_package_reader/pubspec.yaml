@@ -12,9 +12,10 @@ dependencies:
   pubspec_parse: '>=0.1.4 <2.0.0'
   yaml: ^3.0.0
   yaml_edit: ^2.0.1
-  tar: 0.5.1
+  tar: 0.5.4
   collection: ^1.15.0-nullsafety.4
 
 dev_dependencies:
+  coverage: any # test already depends on it
   http: ^0.13.0
   test: ^1.16.5
