@@ -53,10 +53,14 @@ abstract class UploadSignerService {
   static const int maxUploadSize = 100 * 1024 * 1024;
   static final Uri _uploadUrl = Uri.parse('https://storage.googleapis.com');
 
-  Future<UploadInfo> buildUpload(String bucket, String object,
-      Duration lifetime, String successRedirectUrl,
-      {String predefinedAcl = 'project-private',
-      int maxUploadSize = maxUploadSize}) async {
+  Future<UploadInfo> buildUpload(
+    String bucket,
+    String object,
+    Duration lifetime, {
+    String? successRedirectUrl,
+    String predefinedAcl = 'project-private',
+    int maxUploadSize = maxUploadSize,
+  }) async {
     final now = clock.now().toUtc();
     final expirationString = now.add(lifetime).toIso8601String();
 
@@ -65,7 +69,8 @@ abstract class UploadSignerService {
       {'key': object},
       {'acl': predefinedAcl},
       {'expires': expirationString},
-      {'success_action_redirect': successRedirectUrl},
+      if (successRedirectUrl != null)
+        {'success_action_redirect': successRedirectUrl},
       ['content-length-range', 0, maxUploadSize],
     ];
 
@@ -85,7 +90,8 @@ abstract class UploadSignerService {
       'GoogleAccessId': result.googleAccessId,
       'policy': policyString,
       'signature': signatureString,
-      'success_action_redirect': successRedirectUrl,
+      if (successRedirectUrl != null)
+        'success_action_redirect': successRedirectUrl,
     };
 
     return UploadInfo(url: _uploadUrl.toString(), fields: fields);
