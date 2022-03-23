@@ -49,7 +49,7 @@ void main() {
             expect(claim.expires.isAfter(clock.now().toUtc()), isTrue);
 
             final oldExpires = claim.expires;
-            await Future.delayed(Duration(seconds: 3));
+            await Future.delayed(Duration(seconds: 5));
             expect(running, equals(1));
             expect(claim.valid, isTrue);
             expect(claim.expires.isAfter(clock.now().toUtc()), isTrue);
