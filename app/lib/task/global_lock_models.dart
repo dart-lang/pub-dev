@@ -16,7 +16,7 @@ class GlobalLockState extends db.ExpandoModel<String> {
   /// Unique ULID identifying the claim currently holding the lock.
   ///
   /// Empty, if not currently locked.
-  @db.StringProperty(required: true)
+  @db.StringProperty(required: true, indexed: false)
   String? claimId;
 
   /// DateTime at which point the lock becomes free again.
