@@ -12,7 +12,8 @@ import 'package:retry/retry.dart';
 import 'exceptions.dart';
 import 'utils.dart';
 
-export 'package:gcloud/datastore.dart' show BlobValue, DatastoreError;
+export 'package:gcloud/datastore.dart'
+    show BlobValue, DatastoreError, TransactionAbortedError;
 export 'package:gcloud/db.dart';
 
 final Logger _logger = Logger('pub.datastore_helper');

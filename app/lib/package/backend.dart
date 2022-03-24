@@ -708,7 +708,12 @@ class PackageBackend {
 
     _logger
         .info('Redirecting pub client to google cloud storage (uuid: $guid)');
-    return uploadSigner.buildUpload(bucket, object, lifetime, '$url');
+    return uploadSigner.buildUpload(
+      bucket,
+      object,
+      lifetime,
+      successRedirectUrl: '$url',
+    );
   }
 
   /// Finishes the upload of a package.
@@ -1494,11 +1499,7 @@ class TarballStorageNamer {
 
 /// Verify that the [package] and the optional [version] parameter looks as acceptable input.
 void checkPackageVersionParams(String package, [String? version]) {
-  InvalidInputException.checkNotNull(package, 'package');
-  InvalidInputException.check(
-      package.trim() == package, 'Invalid package name.');
-  InvalidInputException.checkStringLength(package, 'package',
-      minimum: 1, maximum: 64);
+  InvalidInputException.checkPackageName(package);
   if (version != null) {
     InvalidInputException.check(version.trim() == version, 'Invalid version.');
     InvalidInputException.checkStringLength(version, 'version',

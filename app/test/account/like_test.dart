@@ -46,7 +46,7 @@ void main() {
 
     testWithProfile('Like non-existing package', fn: () async {
       final client = createPubApiClient(authToken: userAtPubDevAuthToken);
-      await expectApiException(client.likePackage('non-existing_package'),
+      await expectApiException(client.likePackage('non_existing_package'),
           status: 404);
     });
 
@@ -102,7 +102,7 @@ void main() {
 
     testWithProfile('Unlike non-existing package', fn: () async {
       final client = createPubApiClient(authToken: userAtPubDevAuthToken);
-      await expectApiException(client.unlikePackage('non-existing_package'),
+      await expectApiException(client.unlikePackage('non_existing_package'),
           status: 404);
     });
 
@@ -175,7 +175,7 @@ void main() {
     testWithProfile('Get number of likes for non-existing package.',
         fn: () async {
       final client = createPubApiClient(authToken: userAtPubDevAuthToken);
-      await expectApiException(client.getPackageLikes('non-existing_package'),
+      await expectApiException(client.getPackageLikes('non_existing_package'),
           status: 404);
     });
 

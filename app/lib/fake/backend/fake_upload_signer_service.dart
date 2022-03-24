@@ -15,8 +15,8 @@ class FakeUploadSignerService implements UploadSignerService {
   Future<UploadInfo> buildUpload(
     String bucket,
     String object,
-    Duration lifetime,
-    String successRedirectUrl, {
+    Duration lifetime, {
+    String? successRedirectUrl,
     String predefinedAcl = 'project-private',
     int maxUploadSize = UploadSignerService.maxUploadSize,
   }) async {
@@ -24,7 +24,8 @@ class FakeUploadSignerService implements UploadSignerService {
       url: Uri.parse('$_storagePrefix/$bucket/$object').toString(),
       fields: <String, String>{
         'key': '$bucket/$object',
-        'success_action_redirect': successRedirectUrl,
+        if (successRedirectUrl != null)
+          'success_action_redirect': successRedirectUrl,
       },
     );
   }

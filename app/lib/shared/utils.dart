@@ -85,7 +85,7 @@ String? canonicalizeVersion(String? version) {
   semver.Version v;
   try {
     v = semver.Version.parse(version);
-  } on FormatException catch (_) {
+  } on FormatException {
     return null;
   }
   final pre = v.preRelease.isNotEmpty ? v.preRelease.join('.') : null;
