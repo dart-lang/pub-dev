@@ -14,7 +14,7 @@
 library exceptions;
 
 import 'package:api_builder/api_builder.dart' show ApiResponseException;
-import 'package:pub_semver/pub_semver.dart';
+import 'package:pub_dev/shared/utils.dart';
 
 /// Base class for all exceptions that are intercepted by HTTP handler wrappers.
 abstract class ResponseException extends ApiResponseException {
@@ -157,14 +157,33 @@ class InvalidInputException extends ResponseException {
     _check(_ulidPattern.hasMatch(value), () => '"$name" is not a valid ulid.');
   }
 
-  static void checkSemanticVersion(String? version) {
+  /// Pattern for both new and existing package names.
+  ///
+  /// This allows upper-case characters in package names, because that exist in
+  /// some existing packages.
+  static final _packageNamePattern = RegExp(r'^[a-zA-Z_][a-zA-Z0-9_]*$');
+
+  /// Throw [InvalidInputException] if [package] is not an allowed package name.
+  static void checkPackageName(String? package) {
+    // TODO: Reuse logic from validatePackageName in pub_package_reader.dart
+    //       This is for new and existing packages! Not only new packages!
+    checkNotNull(package, 'package');
+    checkStringLength(package!, 'package', minimum: 1, maximum: 64);
+    checkMatchPattern(package, 'package', _packageNamePattern);
+  }
+
+  /// Throw [InvalidInputException] if [version] is not a valid semantic version
+  /// or if canonicalizing the version fails.
+  ///
+  /// Returns the canonicalized version.
+  static String checkSemanticVersion(String? version) {
     checkNotNull(version, 'version');
-    try {
-      Version.parse(version!);
-    } on FormatException catch (_) {
+    final canonicalVersion = canonicalizeVersion(version);
+    if (canonicalVersion == null) {
       throw InvalidInputException._(
           'Version string "$version" is not a valid semantic version.');
     }
+    return canonicalVersion;
   }
 }
 
