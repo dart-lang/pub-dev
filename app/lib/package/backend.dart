@@ -708,7 +708,12 @@ class PackageBackend {
 
     _logger
         .info('Redirecting pub client to google cloud storage (uuid: $guid)');
-    return uploadSigner.buildUpload(bucket, object, lifetime, '$url');
+    return uploadSigner.buildUpload(
+      bucket,
+      object,
+      lifetime,
+      successRedirectUrl: '$url',
+    );
   }
 
   /// Finishes the upload of a package.
