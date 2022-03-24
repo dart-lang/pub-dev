@@ -158,14 +158,19 @@ class InvalidInputException extends ResponseException {
     _check(_ulidPattern.hasMatch(value), () => '"$name" is not a valid ulid.');
   }
 
+  /// Pattern for both new and existing package names.
+  ///
+  /// This allows upper-case characters in package names, because that exist in
+  /// some existing packages.
+  static final _packageNamePattern = RegExp(r'^[a-zA-Z_][a-zA-Z0-9_]*$');
+
   /// Throw [InvalidInputException] if [package] is not an allowed package name.
   static void checkPackageName(String? package) {
     // TODO: Reuse logic from validatePackageName in pub_package_reader.dart
-    //       This is for new existing packages! Not only new packages!
+    //       This is for new and existing packages! Not only new packages!
     checkNotNull(package, 'package');
     checkStringLength(package!, 'package', minimum: 1, maximum: 64);
-    checkMatchPattern(package, 'package', RegExp(r'^[a-zA-Z0-9_]+$'));
-    checkMatchPattern(package, 'package', RegExp(r'^[a-zA-Z_]'));
+    checkMatchPattern(package, 'package', _packageNamePattern);
   }
 
   /// Throw [InvalidInputException] if [version] is not a valid semantic version
