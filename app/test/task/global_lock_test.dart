@@ -77,6 +77,7 @@ void main() {
     });
   },
       skip: Platform.environment['GOOGLE_CLOUD_PROJECT'] != null &&
+              Platform.environment['GOOGLE_CLOUD_PROJECT']!.isNotEmpty &&
               // Avoid running against production by accident
               Platform.environment['GOOGLE_CLOUD_PROJECT'] != 'dartlang-pub'
           ? false
