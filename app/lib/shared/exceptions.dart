@@ -15,7 +15,6 @@ library exceptions;
 
 import 'package:api_builder/api_builder.dart' show ApiResponseException;
 import 'package:pub_dev/shared/utils.dart';
-import 'package:pub_semver/pub_semver.dart';
 
 /// Base class for all exceptions that are intercepted by HTTP handler wrappers.
 abstract class ResponseException extends ApiResponseException {
