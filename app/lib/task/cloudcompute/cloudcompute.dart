@@ -30,7 +30,7 @@ abstract class CloudInstance {
 
 /// Simplified instance state.
 ///
-/// In practice we often don't care if an instance _provisioning_ or _staging_.
+/// In practice we often don't care if an instance is _provisioning_ or _staging_.
 /// If an instance is stuck in the [pending] state it's probably because it's
 /// not going to startup.
 ///
