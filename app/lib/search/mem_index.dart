@@ -21,7 +21,7 @@ final _textSearchTimeout = Duration(milliseconds: 500);
 
 class InMemoryPackageIndex implements PackageIndex {
   final Map<String, PackageDocument> _packages = <String, PackageDocument>{};
-  final _packageNameIndex = _PackageNameIndex();
+  final _packageNameIndex = PackageNameIndex();
   final TokenIndex _descrIndex = TokenIndex();
   final TokenIndex _readmeIndex = TokenIndex();
   final TokenIndex _apiSymbolIndex = TokenIndex();
@@ -479,12 +479,19 @@ class _TextResults {
 }
 
 /// A simple (non-inverted) index designed for package name lookup.
-class _PackageNameIndex {
+@visibleForTesting
+class PackageNameIndex {
   /// Maps package name to a reduced form of the name:
   /// the same character parts, but without `-`.
   final _namesWithoutGaps = <String, String>{};
 
   String _collapseName(String package) => package.replaceAll('_', '');
+
+  void addAll(Iterable<String> packages) {
+    for (final package in packages) {
+      add(package);
+    }
+  }
 
   /// Add a new [package] to the index.
   void add(String package) {
