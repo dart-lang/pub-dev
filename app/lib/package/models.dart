@@ -464,15 +464,6 @@ class PackageVersion extends db.ExpandoModel<String> {
     return '${description.substring(0, 200)} [...]';
   }
 
-  PackageLinks get packageLinks {
-    return PackageLinks.infer(
-      homepageUrl: pubspec!.homepage,
-      documentationUrl: pubspec!.documentation,
-      repositoryUrl: pubspec!.repository,
-      issueTrackerUrl: pubspec!.issueTracker,
-    );
-  }
-
   QualifiedVersionKey get qualifiedVersionKey {
     return QualifiedVersionKey(
       package: package,
@@ -878,14 +869,14 @@ class PackageLinks {
   final String? issueTrackerUrl;
 
   /// The inferred base URL that can be used to link files from.
-  final String? baseUrl;
+  final String? _baseUrl;
 
-  PackageLinks._({
+  PackageLinks._(
+    this._baseUrl, {
     this.homepageUrl,
     this.documentationUrl,
     this.repositoryUrl,
     this.issueTrackerUrl,
-    this.baseUrl,
   });
 
   factory PackageLinks.infer({
@@ -901,11 +892,11 @@ class PackageLinks {
       repositoryUrl: repositoryUrl,
     );
     return PackageLinks._(
+      baseUrl,
       homepageUrl: homepageUrl,
       documentationUrl: documentationUrl,
       repositoryUrl: repositoryUrl,
       issueTrackerUrl: issueTrackerUrl,
-      baseUrl: baseUrl,
     );
   }
 }
@@ -953,6 +944,23 @@ class PackagePageData {
   bool get hasPubspec => versionInfo!.assets.contains(AssetKind.pubspec);
 
   bool get isLatestStable => version!.version == package!.latestVersion;
+
+  // NOTE: These link are not verified.
+  // TODO: We should rather use full URL verification, possibly in pana
+  //       (to also include it in the report).
+  late final packageLinks = () {
+    final pubspec = version!.pubspec!;
+    return PackageLinks.infer(
+      homepageUrl: pubspec.homepage,
+      documentationUrl: pubspec.documentation,
+      repositoryUrl: pubspec.repository,
+      issueTrackerUrl: pubspec.issueTracker,
+    );
+  }();
+
+  /// The inferred base URL that can be used to link files from.
+  /// TODO: migrate to use pana's RepositoryUrl
+  late final repositoryBaseUrl = packageLinks._baseUrl;
 
   PackageView toPackageView() {
     return _view ??= PackageView.fromModel(
