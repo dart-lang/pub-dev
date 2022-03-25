@@ -224,7 +224,11 @@ class _GoogleCloudCompute extends CloudCompute {
     // Max argument string size on Linux is MAX_ARG_STRLEN = 131072
     // In addition the maximum meta-data size supported by GCE is 256KiB
     // We need a few extra bits, so we shall enforce a max size of 100KiB.
-    if (arguments.fold<int>(0, (a, b) => a + b.length) > 100 * 1024) {
+    final argumentsLengthInBytes = arguments
+        .map(utf8.encode)
+        .map((s) => s.length)
+        .fold<int>(0, (a, b) => a + b);
+    if (argumentsLengthInBytes > 100 * 1024) {
       throw ArgumentError.value(
         arguments,
         'arguments',
@@ -455,6 +459,10 @@ class _GoogleCloudCompute extends CloudCompute {
       created = DateTime.parse(instance.creationTimestamp ?? '');
     } on FormatException {
       // Print error and instance to log..
+      _log.severe(
+        'Failed to parse instance.creationTimestamp: '
+        '"${instance.creationTimestamp}"',
+      );
       // Fallback to year zero that way instances will be killed.
       created = DateTime(0);
     }
