@@ -42,7 +42,7 @@ void testWithProfile(
   bool processJobsWithFakeRunners = false,
 }) {
   scopedTest(name, () async {
-    _setupLogging();
+    setupLogging();
     await withFakeServices(
       fn: () async {
         registerSearchClient(SearchClient(
@@ -101,7 +101,7 @@ class _LoggerNamePattern {
 ///  * `DEBUG='* -neat_cache'`, will show output from all loggers, except 'neat_cache'.
 ///
 /// Multiple filters can be applied, the last matching filter will be applied.
-void _setupLogging() {
+void setupLogging() {
   if (_loggingDone) {
     return;
   }
