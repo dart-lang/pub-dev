@@ -5,12 +5,14 @@
 /// Interface describing an instance.
 abstract class CloudInstance {
   /// Unique instance name.
-  String get name;
+  String get instanceName;
 
   /// Zone this instance lives in.
   String get zone;
 
   /// [DateTime] of when the instance was created.
+  ///
+  /// This is "now" until a creation time is reflected in the cloud APIs.
   DateTime get created;
 
   /// State of the instance.
@@ -19,7 +21,7 @@ abstract class CloudInstance {
   /// Representation for debugging purposes.
   @override
   String toString() => 'CloudInstance(${[
-        'name: $name',
+        'name: $instanceName',
         'zone: $zone',
         'created: $created',
         'state: $state',
@@ -61,9 +63,10 @@ abstract class CloudCompute {
 
   /// Create an instance running [dockerImage] with given [arguments].
   ///
-  /// The instance will be running in the given [zone] under the given [name].
-  /// Notice that [name] must be unique and will have implementation specific
-  /// limitations, using [generateInstanceName] is adviced.
+  /// The instance will be running in the given [zone] under the given
+  /// [instanceName].
+  /// Notice that [instanceName] must be unique and will have implementation
+  /// specific limitations, using [generateInstanceName] is adviced.
   ///
   /// The _human readable_ [description] will attached to the instance in
   /// Cloud Console and intended to assist humans inspecting the system.
@@ -73,7 +76,7 @@ abstract class CloudCompute {
   /// reduce the request rate on the given zone [zone].
   Future<CloudInstance> createInstance({
     required String zone,
-    required String name,
+    required String instanceName,
     required String dockerImage,
     required List<String> arguments,
     required String description,
@@ -82,10 +85,10 @@ abstract class CloudCompute {
   /// List instances.
   Stream<CloudInstance> listInstances();
 
-  /// Delete the instance with [name] from [zone].
+  /// Delete the instance with [instanceName] from [zone].
   ///
   /// If this operation fails, it may throw an [Exception] or discard the error.
   /// Systems should assume deletion is best-effort and periodically list
   /// instances to delete instances that are no longer needed.
-  Future<void> delete(String zone, String name);
+  Future<void> delete(String zone, String instanceName);
 }

@@ -36,7 +36,7 @@ void main() {
       scheduleMicrotask(() async {
         print('creating instance');
         final instance = await gce.createInstance(
-          name: gce.generateInstanceName(),
+          instanceName: gce.generateInstanceName(),
           zone: gce.zones.first,
           dockerImage: 'busybox:1.31.1',
           arguments: [
@@ -46,7 +46,7 @@ void main() {
           ],
           description: 'test instance that terminates rather quickly',
         );
-        print('Created instance: ${instance.name}, $instance');
+        print('Created instance: ${instance.instanceName}, $instance');
       });
 
       // Wait until we have a terminated instance
@@ -55,14 +55,14 @@ void main() {
         instances = await gce.listInstances().toList();
         print('listInstances():');
         for (final inst in instances) {
-          print(' - ${inst.name}, state: ${inst.state}');
+          print(' - ${inst.instanceName}, state: ${inst.state}');
         }
         await Future.delayed(Duration(seconds: 1));
       }
       // Delete instances
       print('### Delete all instances');
       for (final inst in instances) {
-        await gce.delete(inst.zone, inst.name);
+        await gce.delete(inst.zone, inst.instanceName);
       }
 
       // Wait until instances are deleted from listing
@@ -71,7 +71,7 @@ void main() {
         instances = await gce.listInstances().toList();
         print('listInstances():');
         for (final inst in instances) {
-          print(' - ${inst.name}, state: ${inst.state}');
+          print(' - ${inst.instanceName}, state: ${inst.state}');
         }
         await Future.delayed(Duration(seconds: 1));
       }

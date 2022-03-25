@@ -24,7 +24,7 @@ class FakeCloudCompute extends CloudCompute {
   @override
   Future<FakeCloudInstance> createInstance({
     required String zone,
-    required String name,
+    required String instanceName,
     required String dockerImage,
     required List<String> arguments,
     required String description,
@@ -40,12 +40,12 @@ class FakeCloudCompute extends CloudCompute {
         'must be less than 100KiB',
       );
     }
-    if (_instances.any((i) => i.name == name)) {
-      throw StateError('instance "$name" have already been used once!');
+    if (_instances.any((i) => i.instanceName == instanceName)) {
+      throw StateError('instance "$instanceName" have already been used once!');
     }
 
     final instance = FakeCloudInstance._(
-      name: name,
+      instanceName: instanceName,
       zone: zone,
       created: clock.now().toUtc(),
       state: InstanceState.pending,
@@ -53,7 +53,7 @@ class FakeCloudCompute extends CloudCompute {
       arguments: arguments,
       description: description,
     );
-    _log.info('Creating instance "$name"');
+    _log.info('Creating instance "$instanceName"');
     _instances.add(instance);
     return instance;
   }
@@ -62,39 +62,46 @@ class FakeCloudCompute extends CloudCompute {
   Stream<FakeCloudInstance> listInstances() => Stream.fromIterable(_instances);
 
   @override
-  Future<void> delete(String zone, String name) async {
-    if (!_instances.any((i) => i.name == name && i.zone == zone)) {
+  Future<void> delete(String zone, String instanceName) async {
+    if (!_instances.any(
+      (i) => i.instanceName == instanceName && i.zone == zone,
+    )) {
       // This is not really a problem, GoogleCloudCompute should might throw
       // some exception about the instance not being found. Exact behavior of
       // the API is not specified.
-      throw Exception('instance "$name" does not exist');
+      throw Exception('instance "$instanceName" does not exist');
     }
 
     // Let's make the operation take a minute, and then remove the instance!
-    _log.info('Deleting instance "$name"');
+    _log.info('Deleting instance "$instanceName"');
     await Future.delayed(Duration(minutes: 1));
-    _instances.removeWhere((i) => i.name == name && i.zone == zone);
+    _instances
+        .removeWhere((i) => i.instanceName == instanceName && i.zone == zone);
   }
 
-  /// Change state of instance with [name] to [InstanceState.running].
-  void fakeStartInstance(String name) {
-    if (!_instances.any((i) => i.name == name)) {
-      throw StateError('instance "$name" does not exist');
+  /// Change state of instance with [instanceName] to [InstanceState.running].
+  void fakeStartInstance(String instanceName) {
+    if (!_instances.any((i) => i.instanceName == instanceName)) {
+      throw StateError('instance "$instanceName" does not exist');
     }
 
-    final instance = _instances.firstWhere((i) => i.name == name);
-    _instances.removeWhere((i) => i.name == name);
+    final instance = _instances.firstWhere(
+      (i) => i.instanceName == instanceName,
+    );
+    _instances.removeWhere((i) => i.instanceName == instanceName);
     _instances.add(instance._copyWith(state: InstanceState.running));
   }
 
-  /// Change state of instance with [name] to [InstanceState.terminated].
-  void fakeTerminateInstance(String name) {
-    if (!_instances.any((i) => i.name == name)) {
-      throw StateError('instance "$name" does not exist');
+  /// Change state of instance with [instanceName] to [InstanceState.terminated].
+  void fakeTerminateInstance(String instanceName) {
+    if (!_instances.any((i) => i.instanceName == instanceName)) {
+      throw StateError('instance "$instanceName" does not exist');
     }
 
-    final instance = _instances.firstWhere((i) => i.name == name);
-    _instances.removeWhere((i) => i.name == name);
+    final instance = _instances.firstWhere(
+      (i) => i.instanceName == instanceName,
+    );
+    _instances.removeWhere((i) => i.instanceName == instanceName);
     _instances.add(instance._copyWith(state: InstanceState.terminated));
   }
 }
@@ -102,7 +109,7 @@ class FakeCloudCompute extends CloudCompute {
 @sealed
 class FakeCloudInstance extends CloudInstance {
   @override
-  final String name;
+  final String instanceName;
 
   @override
   final String zone;
@@ -126,7 +133,7 @@ class FakeCloudInstance extends CloudInstance {
   final String description;
 
   FakeCloudInstance _copyWith({
-    String? name,
+    String? instanceName,
     String? zone,
     DateTime? created,
     InstanceState? state,
@@ -135,7 +142,7 @@ class FakeCloudInstance extends CloudInstance {
     String? description,
   }) =>
       FakeCloudInstance._(
-        name: name ?? this.name,
+        instanceName: instanceName ?? this.instanceName,
         zone: zone ?? this.zone,
         created: created ?? this.created,
         state: state ?? this.state,
@@ -145,7 +152,7 @@ class FakeCloudInstance extends CloudInstance {
       );
 
   FakeCloudInstance._({
-    required this.name,
+    required this.instanceName,
     required this.zone,
     required this.created,
     required this.state,
