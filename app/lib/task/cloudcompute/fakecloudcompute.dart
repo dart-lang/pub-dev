@@ -16,7 +16,7 @@ class FakeCloudCompute extends CloudCompute {
   final _instances = <FakeCloudInstance>{};
 
   @override
-  final List<String> zones =  const ['zone-a', 'zone-b'];
+  final List<String> zones = const ['zone-a', 'zone-b'];
 
   @override
   String generateInstanceName() => 'instance-${_nextInstanceId++}';
