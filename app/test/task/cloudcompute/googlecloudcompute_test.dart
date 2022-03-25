@@ -78,9 +78,9 @@ void main() {
     });
   },
       timeout: Timeout.parse('30m'),
-      skip: Platform.environment['GOOGLE_CLOUD_PROJECT'] != null &&
+      skip: Platform.environment['GOOGLE_CLOUD_PROJECT'] == null ||
               // Avoid running against production by accident
-              Platform.environment['GOOGLE_CLOUD_PROJECT'] != 'dartlang-pub'
-          ? false
-          : 'createGoogleCloudCompute testing requires GOOGLE_CLOUD_PROJECT');
+              Platform.environment['GOOGLE_CLOUD_PROJECT'] == 'dartlang-pub'
+          ? 'createGoogleCloudCompute testing requires GOOGLE_CLOUD_PROJECT'
+          : false);
 }

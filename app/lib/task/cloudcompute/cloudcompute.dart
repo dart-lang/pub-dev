@@ -1,4 +1,4 @@
-// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -36,8 +36,8 @@ abstract class CloudInstance {
 ///
 /// Similarly, we don't care if an instance is _booting_, _running_, or if the
 /// process running on the instance crashed without terminating the instance.
-/// In all these cases we want delete the instance if it gets stuck long
-/// enought to exhaust allowed execution time.
+/// In all these cases we want to delete the instance if it gets stuck long
+/// enough to exhaust the allowed execution time.
 ///
 /// We also don't care if the instance is _suspending_, _suspended_, _stopping_,
 /// _stopped_ or _terminated_. In these the cases the instance should be
@@ -68,10 +68,10 @@ abstract class CloudCompute {
   /// Notice that [instanceName] must be unique and will have implementation
   /// specific limitations, using [generateInstanceName] is adviced.
   ///
-  /// The _human readable_ [description] will attached to the instance in
+  /// The _human readable_ [description] will be attached to the instance in
   /// Cloud Console and intended to assist humans inspecting the system.
   ///
-  /// The future returned may take a long time to resolve (several minutes).
+  /// The [Future] returned may take a long time to resolve (several minutes).
   /// Any [Exception] thrown by this method should be considered a reason to
   /// reduce the request rate on the given zone [zone].
   Future<CloudInstance> createInstance({

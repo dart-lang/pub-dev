@@ -16,7 +16,7 @@ class FakeCloudCompute extends CloudCompute {
   final _instances = <FakeCloudInstance>{};
 
   @override
-  final List<String> zones = List.unmodifiable(['zone-a', 'zone-b']);
+  final List<String> zones =  const ['zone-a', 'zone-b'];
 
   @override
   String generateInstanceName() => 'instance-${_nextInstanceId++}';
@@ -66,7 +66,7 @@ class FakeCloudCompute extends CloudCompute {
     if (!_instances.any(
       (i) => i.instanceName == instanceName && i.zone == zone,
     )) {
-      // This is not really a problem, GoogleCloudCompute should might throw
+      // This is not really a problem, GoogleCloudCompute should throw
       // some exception about the instance not being found. Exact behavior of
       // the API is not specified.
       throw Exception('instance "$instanceName" does not exist');
