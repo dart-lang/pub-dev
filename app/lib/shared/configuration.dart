@@ -49,6 +49,22 @@ const _fakeSiteAudience = 'fake-site-audience';
   disallowUnrecognizedKeys: true,
 )
 class Configuration {
+  /// The name of the Cloud Storage bucket to use for storing the uploaded
+  /// package archives.
+  ///
+  /// The bucket content policy should be private.
+  final String? canonicalPackagesBucketName;
+
+  /// The name of the Cloud Storage bucket to use for public package archive downloads.
+  ///
+  /// The bucket content policy should be public.
+  final String? publicPackagesBucketName;
+
+  /// The name of the Cloud Storage bucket to use for incoming package archives.
+  ///
+  /// The bucket content policy should be public.
+  final String? incomingPackagesBucketName;
+
   /// The name of the Cloud Storage bucket to use for uploaded package content.
   final String? packageBucketName;
 
@@ -163,6 +179,9 @@ class Configuration {
   }
 
   Configuration({
+    required this.canonicalPackagesBucketName,
+    required this.publicPackagesBucketName,
+    required this.incomingPackagesBucketName,
     required this.projectId,
     required this.packageBucketName,
     required this.imageBucketName,
@@ -214,6 +233,9 @@ class Configuration {
     required String storageBaseUrl,
   }) {
     return Configuration(
+      canonicalPackagesBucketName: 'fake-canonical-packages',
+      publicPackagesBucketName: 'fake-public-packages',
+      incomingPackagesBucketName: 'fake-incoming-packages',
       projectId: 'dartlang-pub-fake',
       packageBucketName: 'fake-bucket-pub',
       imageBucketName: 'fake-bucket-image',
@@ -250,6 +272,9 @@ class Configuration {
     Uri? primarySiteUri,
   }) {
     return Configuration(
+      canonicalPackagesBucketName: 'fake-canonical-packages',
+      publicPackagesBucketName: 'fake-public-packages',
+      incomingPackagesBucketName: 'fake-incoming-packages',
       projectId: 'dartlang-pub-test',
       packageBucketName: 'fake-bucket-pub',
       imageBucketName: 'fake-bucket-image',
