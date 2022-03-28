@@ -54,12 +54,28 @@ void main() {
               query: 'flutter iap', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
-        'totalCount': 1,
+        'totalCount': 5,
         'sdkLibraryHits': [],
         'packageHits': [
           {
             'package': 'flutter_iap',
             'score': 1.0,
+          },
+          {
+            'package': 'flutter_blue',
+            'score': closeTo(0.74, 0.01),
+          },
+          {
+            'package': 'flutter_redux',
+            'score': 0.7,
+          },
+          {
+            'package': 'flutter_3d_obj',
+            'score': 0.7,
+          },
+          {
+            'package': 'flutter_web_view',
+            'score': closeTo(0.64, 0.01),
           },
         ],
       });
@@ -71,10 +87,21 @@ void main() {
               query: 'flutter_iap', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
-        'totalCount': 1,
+        'totalCount': 5,
         'highlightedHit': {'package': 'flutter_iap'},
         'sdkLibraryHits': [],
-        'packageHits': [],
+        'packageHits': [
+          {
+            'package': 'flutter_blue',
+            'score': closeTo(0.74, 0.01),
+          },
+          {'package': 'flutter_redux', 'score': 0.7},
+          {'package': 'flutter_3d_obj', 'score': 0.7},
+          {
+            'package': 'flutter_web_view',
+            'score': closeTo(0.64, 0.01),
+          },
+        ],
       });
     });
   });

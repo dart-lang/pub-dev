@@ -136,7 +136,7 @@ bool _isLower(String c) => c.toLowerCase() == c;
 Set<String> ngrams(String input, int minLength, int maxLength) {
   final ngrams = <String>{};
   for (int length = minLength; length <= maxLength; length++) {
-    if (input.length > length) {
+    if (input.length >= length) {
       for (int i = 0; i <= input.length - length; i++) {
         ngrams.add(input.substring(i, i + length));
       }

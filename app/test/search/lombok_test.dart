@@ -32,7 +32,7 @@ void main() {
         'packageHits': [
           {
             'package': 'lombok',
-            'score': closeTo(0.63, 0.01),
+            'score': closeTo(0.73, 0.01),
           },
         ],
       });

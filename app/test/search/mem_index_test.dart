@@ -150,7 +150,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'packageHits': [
           {
             'package': 'chrome_net',
-            'score': closeTo(0.29, 0.01),
+            'score': closeTo(0.32, 0.01),
           },
         ],
       });
@@ -230,11 +230,10 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           ServiceSearchQuery.parse(query: 't', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
-        'totalCount': 2,
+        'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'http', 'score': 0.5},
-          {'package': 'chrome_net', 'score': closeTo(0.11, 0.01)},
+          {'package': 'http', 'score': 0.6},
         ],
       });
     });
@@ -602,13 +601,13 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           ServiceSearchQuery.parse(query: 'app', order: SearchOrder.text));
       expect(match.allPackageHits.map((e) => e.toJson()), [
         {'package': 'app'},
-        {'package': 'appz', 'score': 0.75},
+        {'package': 'appz', 'score': closeTo(0.86, 0.01)},
       ]);
       final match2 = await index.search(
           ServiceSearchQuery.parse(query: 'appz', order: SearchOrder.text));
       expect(match2.allPackageHits.map((e) => e.toJson()), [
         {'package': 'appz'},
-        // would be nice if `app` would show up here
+        {'package': 'app', 'score': 0.8},
       ]);
     });
   });
