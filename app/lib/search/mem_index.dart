@@ -21,7 +21,7 @@ final _textSearchTimeout = Duration(milliseconds: 500);
 
 class InMemoryPackageIndex implements PackageIndex {
   final Map<String, PackageDocument> _packages = <String, PackageDocument>{};
-  final _packageNameIndex = _PackageNameIndex();
+  final _packageNameIndex = PackageNameIndex();
   final TokenIndex _descrIndex = TokenIndex();
   final TokenIndex _readmeIndex = TokenIndex();
   final TokenIndex _apiSymbolIndex = TokenIndex();
@@ -479,12 +479,19 @@ class _TextResults {
 }
 
 /// A simple (non-inverted) index designed for package name lookup.
-class _PackageNameIndex {
+@visibleForTesting
+class PackageNameIndex {
   /// Maps package name to a reduced form of the name:
   /// the same character parts, but without `-`.
   final _namesWithoutGaps = <String, String>{};
 
   String _collapseName(String package) => package.replaceAll('_', '');
+
+  void addAll(Iterable<String> packages) {
+    for (final package in packages) {
+      add(package);
+    }
+  }
 
   /// Add a new [package] to the index.
   void add(String package) {
@@ -511,7 +518,9 @@ class _PackageNameIndex {
       // would cause inconsistencies and empty value in the cache.
       final nameWithoutGaps = _namesWithoutGaps[pkg] ?? _collapseName(pkg);
       final matchedChars = List<bool>.filled(nameWithoutGaps.length, false);
-      var unmatchedNgrams = 0;
+      // Extra weight to compensate partial overlaps between a word and the package name.
+      var matchedExtraWeight = 0;
+      var unmatchedExtraWeight = 0;
 
       bool matchPattern(Pattern pattern) {
         var matched = false;
@@ -524,39 +533,40 @@ class _PackageNameIndex {
         return matched;
       }
 
-      // all words must be found inside the collapsed name
-      var matchesPkg = true;
       for (final word in words) {
-        // try singular/plural exact match.
-        var matchedWord = matchPattern(_pluralizePattern(word));
-
-        // try ngram matches
-        if (!matchedWord && word.length > 3) {
-          final parts = ngrams(word, 3, 3);
-          var matchedCount = 0;
-          for (final part in parts) {
-            if (matchPattern(part)) {
-              matchedCount++;
-            }
+        if (matchPattern(_pluralizePattern(word))) {
+          // shortcut calculations, this is a full-length prefix match
+          matchedExtraWeight += word.length;
+          continue;
+        }
+        final parts = word.length <= 3 ? [word] : ngrams(word, 3, 3).toList();
+        var firstUnmatchedIndex = parts.length;
+        var lastUnmatchedIndex = -1;
+        for (var i = 0; i < parts.length; i++) {
+          final part = parts[i];
+          if (!matchPattern(part)) {
+            // increase the unmatched weight
+            unmatchedExtraWeight++;
+            // mark the index for prefix and postfix match calculation
+            firstUnmatchedIndex = math.min(i, firstUnmatchedIndex);
+            lastUnmatchedIndex = i;
           }
-          unmatchedNgrams += parts.length - matchedCount;
-
-          // accept word match if more than half of the n-grams are matched
-          matchedWord = matchedCount > parts.length ~/ 2;
         }
-
-        // failed to match word
-        if (!matchedWord) {
-          matchesPkg = false;
-          break;
-        }
+        // Add the largest of prefix or postfix match as extra weight.
+        final prefixWeight = firstUnmatchedIndex;
+        final postfixWeight = lastUnmatchedIndex == -1
+            ? parts.length
+            : (parts.length - lastUnmatchedIndex - 1);
+        matchedExtraWeight += math.max(prefixWeight, postfixWeight);
       }
 
-      if (!matchesPkg) continue;
       final matchedCharCount = matchedChars.where((c) => c).length;
-      values[pkg] = matchedCharCount / (matchedChars.length + unmatchedNgrams);
+      final totalNgramCount = matchedExtraWeight + unmatchedExtraWeight;
+      final score = (matchedExtraWeight + matchedCharCount) /
+          (totalNgramCount + matchedChars.length);
+      values[pkg] = score;
     }
-    return Score(values);
+    return Score(values).removeLowValues(fraction: 0.5, minValue: 0.5);
   }
 
   Pattern _pluralizePattern(String word) {

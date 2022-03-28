@@ -409,7 +409,7 @@ MIT'''),
         'packageHits': [
           {
             'package': 'haversine',
-            'score': closeTo(0.64, 0.01),
+            'score': closeTo(0.75, 0.01),
           },
         ],
       });

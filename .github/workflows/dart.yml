@@ -324,7 +324,7 @@ jobs:
       - job_003
       - job_004
   job_007:
-    name: "unit_test; PKG: app; `dart test --run-skipped --total-shards 7 --shard-index 0`"
+    name: "unit_test; PKG: app; `dart test --total-shards 7 --shard-index 0`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -347,10 +347,10 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
         run: dart pub get
-      - name: "app; dart test --run-skipped --total-shards 7 --shard-index 0"
+      - name: "app; dart test --total-shards 7 --shard-index 0"
         if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
-        run: dart test --run-skipped --total-shards 7 --shard-index 0
+        run: dart test --total-shards 7 --shard-index 0
     needs:
       - job_001
       - job_002
@@ -359,7 +359,7 @@ jobs:
       - job_005
       - job_006
   job_008:
-    name: "unit_test; PKG: app; `dart test --run-skipped --total-shards 7 --shard-index 1`"
+    name: "unit_test; PKG: app; `dart test --total-shards 7 --shard-index 1`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -382,10 +382,10 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
         run: dart pub get
-      - name: "app; dart test --run-skipped --total-shards 7 --shard-index 1"
+      - name: "app; dart test --total-shards 7 --shard-index 1"
         if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
-        run: dart test --run-skipped --total-shards 7 --shard-index 1
+        run: dart test --total-shards 7 --shard-index 1
     needs:
       - job_001
       - job_002
@@ -394,7 +394,7 @@ jobs:
       - job_005
       - job_006
   job_009:
-    name: "unit_test; PKG: app; `dart test --run-skipped --total-shards 7 --shard-index 2`"
+    name: "unit_test; PKG: app; `dart test --total-shards 7 --shard-index 2`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -417,10 +417,10 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
         run: dart pub get
-      - name: "app; dart test --run-skipped --total-shards 7 --shard-index 2"
+      - name: "app; dart test --total-shards 7 --shard-index 2"
         if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
-        run: dart test --run-skipped --total-shards 7 --shard-index 2
+        run: dart test --total-shards 7 --shard-index 2
     needs:
       - job_001
       - job_002
@@ -429,7 +429,7 @@ jobs:
       - job_005
       - job_006
   job_010:
-    name: "unit_test; PKG: app; `dart test --run-skipped --total-shards 7 --shard-index 3`"
+    name: "unit_test; PKG: app; `dart test --total-shards 7 --shard-index 3`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -452,10 +452,10 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
         run: dart pub get
-      - name: "app; dart test --run-skipped --total-shards 7 --shard-index 3"
+      - name: "app; dart test --total-shards 7 --shard-index 3"
         if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
-        run: dart test --run-skipped --total-shards 7 --shard-index 3
+        run: dart test --total-shards 7 --shard-index 3
     needs:
       - job_001
       - job_002
@@ -464,7 +464,7 @@ jobs:
       - job_005
       - job_006
   job_011:
-    name: "unit_test; PKG: app; `dart test --run-skipped --total-shards 7 --shard-index 4`"
+    name: "unit_test; PKG: app; `dart test --total-shards 7 --shard-index 4`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -487,10 +487,10 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
         run: dart pub get
-      - name: "app; dart test --run-skipped --total-shards 7 --shard-index 4"
+      - name: "app; dart test --total-shards 7 --shard-index 4"
         if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
-        run: dart test --run-skipped --total-shards 7 --shard-index 4
+        run: dart test --total-shards 7 --shard-index 4
     needs:
       - job_001
       - job_002
@@ -499,7 +499,7 @@ jobs:
       - job_005
       - job_006
   job_012:
-    name: "unit_test; PKG: app; `dart test --run-skipped --total-shards 7 --shard-index 5`"
+    name: "unit_test; PKG: app; `dart test --total-shards 7 --shard-index 5`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -522,10 +522,10 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
         run: dart pub get
-      - name: "app; dart test --run-skipped --total-shards 7 --shard-index 5"
+      - name: "app; dart test --total-shards 7 --shard-index 5"
         if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
-        run: dart test --run-skipped --total-shards 7 --shard-index 5
+        run: dart test --total-shards 7 --shard-index 5
     needs:
       - job_001
       - job_002
@@ -534,7 +534,7 @@ jobs:
       - job_005
       - job_006
   job_013:
-    name: "unit_test; PKG: app; `dart test --run-skipped --total-shards 7 --shard-index 6`"
+    name: "unit_test; PKG: app; `dart test --total-shards 7 --shard-index 6`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -557,10 +557,10 @@ jobs:
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
         run: dart pub get
-      - name: "app; dart test --run-skipped --total-shards 7 --shard-index 6"
+      - name: "app; dart test --total-shards 7 --shard-index 6"
         if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
-        run: dart test --run-skipped --total-shards 7 --shard-index 6
+        run: dart test --total-shards 7 --shard-index 6
     needs:
       - job_001
       - job_002

@@ -1,3 +1,7 @@
+// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -82,7 +86,7 @@ class _GoogleCloudInstance extends CloudInstance {
   final String zone;
 
   @override
-  final String name;
+  final String instanceName;
 
   @override
   final DateTime created;
@@ -92,14 +96,14 @@ class _GoogleCloudInstance extends CloudInstance {
 
   _GoogleCloudInstance(
     this.zone,
-    this.name,
+    this.instanceName,
     this.created,
     this.state,
   );
 
   @override
   String toString() {
-    return 'GoogleCloudInstance($name, zone: $zone, created: $created, state: $state)';
+    return 'GoogleCloudInstance($instanceName, zone: $zone, created: $created, state: $state)';
   }
 }
 
@@ -109,7 +113,7 @@ class _PendingGoogleCloudInstance extends CloudInstance {
   final String zone;
 
   @override
-  final String name;
+  final String instanceName;
 
   @override
   DateTime get created => clock.now();
@@ -117,11 +121,11 @@ class _PendingGoogleCloudInstance extends CloudInstance {
   @override
   InstanceState get state => InstanceState.pending;
 
-  _PendingGoogleCloudInstance(this.zone, this.name);
+  _PendingGoogleCloudInstance(this.zone, this.instanceName);
 
   @override
   String toString() {
-    return 'GoogleCloudInstance($name, zone: $zone, created: $created, state: $state)';
+    return 'GoogleCloudInstance($instanceName, zone: $zone, created: $created, state: $state)';
   }
 }
 
@@ -197,7 +201,7 @@ class _GoogleCloudCompute extends CloudCompute {
   @override
   Future<CloudInstance> createInstance({
     required String zone,
-    required String name,
+    required String instanceName,
     required String dockerImage,
     required List<String> arguments,
     required String description,
@@ -209,18 +213,22 @@ class _GoogleCloudCompute extends CloudCompute {
         'must be one of CloudCompute.zones',
       );
     }
-    if (name.isEmpty || name.length > 63) {
+    if (instanceName.isEmpty || instanceName.length > 63) {
       throw ArgumentError.value(
-          name, 'name', 'must have a length between 1 and 63');
+          instanceName, 'instanceName', 'must have a length between 1 and 63');
     }
-    if (!_validInstanceNamePattern.hasMatch(name)) {
-      throw ArgumentError.value(
-          name, 'name', 'must match pattern: $_validInstanceNamePattern');
+    if (!_validInstanceNamePattern.hasMatch(instanceName)) {
+      throw ArgumentError.value(instanceName, 'instanceName',
+          'must match pattern: $_validInstanceNamePattern');
     }
     // Max argument string size on Linux is MAX_ARG_STRLEN = 131072
     // In addition the maximum meta-data size supported by GCE is 256KiB
     // We need a few extra bits, so we shall enforce a max size of 100KiB.
-    if (arguments.fold<int>(0, (a, b) => a + b.length) > 100 * 1024) {
+    final argumentsLengthInBytes = arguments
+        .map(utf8.encode)
+        .map((s) => s.length)
+        .fold<int>(0, (a, b) => a + b);
+    if (argumentsLengthInBytes > 100 * 1024) {
       throw ArgumentError.value(
         arguments,
         'arguments',
@@ -251,7 +259,7 @@ class _GoogleCloudCompute extends CloudCompute {
     ].join('\n');
 
     final instance = Instance()
-      ..name = name
+      ..name = instanceName
       ..description = description
       ..machineType = 'zones/$zone/machineTypes/$_machineType'
       ..scheduling = (Scheduling()..preemptible = true)
@@ -294,7 +302,8 @@ class _GoogleCloudCompute extends CloudCompute {
       ];
 
     _log.info('Creating instance: ${instance.name}');
-    final pendingInstancePlaceHolder = _PendingGoogleCloudInstance(zone, name);
+    final pendingInstancePlaceHolder =
+        _PendingGoogleCloudInstance(zone, instanceName);
     _pendingInstances.add(pendingInstancePlaceHolder);
     try {
       // https://cloud.google.com/container-optimized-os/docs/how-to/create-configure-instance#creating_an_instance
@@ -371,11 +380,11 @@ class _GoogleCloudCompute extends CloudCompute {
   }
 
   @override
-  Future<void> delete(String zone, String name) async {
+  Future<void> delete(String zone, String instanceName) async {
     await _retryWithRequestId((rId) => _api.instances.delete(
           _project,
           zone,
-          name,
+          instanceName,
           requestId: rId,
         ));
     // Note. that instances.delete() technically returns a custom long-running
@@ -411,7 +420,8 @@ class _GoogleCloudCompute extends CloudCompute {
 
           for (final instance in (response.items ?? []).map(wrap)) {
             c.add(instance);
-            pendingInZone.removeWhere((i) => i.name == instance.name);
+            pendingInZone
+                .removeWhere((i) => i.instanceName == instance.instanceName);
           }
 
           while ((response.nextPageToken ?? '').isNotEmpty) {
@@ -424,7 +434,8 @@ class _GoogleCloudCompute extends CloudCompute {
                 ));
             for (final instance in (response.items ?? []).map(wrap)) {
               c.add(instance);
-              pendingInZone.removeWhere((i) => i.name == instance.name);
+              pendingInZone
+                  .removeWhere((i) => i.instanceName == instance.instanceName);
             }
           }
 
@@ -448,6 +459,10 @@ class _GoogleCloudCompute extends CloudCompute {
       created = DateTime.parse(instance.creationTimestamp ?? '');
     } on FormatException {
       // Print error and instance to log..
+      _log.severe(
+        'Failed to parse instance.creationTimestamp: '
+        '"${instance.creationTimestamp}"',
+      );
       // Fallback to year zero that way instances will be killed.
       created = DateTime(0);
     }

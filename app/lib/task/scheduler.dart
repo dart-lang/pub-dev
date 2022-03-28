@@ -37,7 +37,7 @@ Future<void> schedule(
     for (final zone in compute.zones) zone: DateTime(0),
   };
 
-  // Set of `CloudInstance.name`s currently being deleted.
+  // Set of `CloudInstance.instanceName`s currently being deleted.
   // This to avoid deleting instances where the deletion process is still
   // running.
   final deletionInProgress = <String>{};
@@ -60,29 +60,31 @@ Future<void> schedule(
       final isTooOld = instance.created.isBefore(clock.agoBy(_maxInstanceAge));
       // Also check deletionInProgress to prevent multiple calls to delete the
       // same instance
-      if ((isTerminated || isTooOld) && deletionInProgress.add(instance.name)) {
+      final isBeingDeleted = deletionInProgress.contains(instance.instanceName);
+      if ((isTerminated || isTooOld) && !isBeingDeleted) {
         if (isTooOld) {
           // This indicates that something is wrong the with the instance,
           // ideally it should have detected its own deadline being violated
           // and terminated on its own. Ofcourse, this can fail for arbitrary
           // reasons in a distributed system.
-          _log.warning('terminating "${instance.name}" for being too old!');
+          _log.warning('terminating $instance for being too old!');
         } else if (isTerminated) {
-          _log.fine('deleting "${instance.name}" as it has terminated.');
+          _log.fine('deleting $instance as it has terminated.');
         }
 
+        deletionInProgress.add(instance.instanceName);
         scheduleMicrotask(() async {
           final deletionStart = clock.now();
           try {
-            await compute.delete(instance.zone, instance.name);
+            await compute.delete(instance.zone, instance.instanceName);
           } catch (e, st) {
-            _log.severe('Failed to delete instance "${instance.name}"', e, st);
+            _log.severe('Failed to delete $instance', e, st);
           } finally {
             // Wait at-least 5 minutes from start of deletion until we remove
             // it from [deletionInProgress] that way we give the API some time
             // reconcile state.
             await _sleep(Duration(minutes: 5), since: deletionStart);
-            deletionInProgress.remove(instance.name);
+            deletionInProgress.remove(instance.instanceName);
           }
         });
       }
@@ -197,7 +199,7 @@ Future<void> schedule(
           );
           await compute.createInstance(
             zone: zone,
-            name: instanceName,
+            instanceName: instanceName,
             dockerImage: 'gcr.io/${envConfig.gcloudProject}'
                 '/pub_worker:${envConfig.gaeVersion}',
             arguments: [payload!],

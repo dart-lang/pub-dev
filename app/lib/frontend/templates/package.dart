@@ -29,7 +29,7 @@ import 'views/pkg/title_content.dart';
 /// from pubspec.yaml).
 d.Node renderPkgInfoBox(PackagePageData data) {
   final package = data.package!;
-  final packageLinks = data.version!.packageLinks;
+  final packageLinks = data.packageLinks;
 
   String? documentationUrl = packageLinks.documentationUrl;
   if (urls.hideUserProvidedDocUrl(documentationUrl)) {
@@ -276,7 +276,7 @@ PageData pkgPageData(Package package, PackageVersion selectedVersion) {
 }
 
 Tab _readmeTab(PackagePageData data) {
-  final baseUrl = data.version!.packageLinks.baseUrl;
+  final baseUrl = data.repositoryBaseUrl;
   final content = data.hasReadme &&
           data.asset != null &&
           data.asset!.kind == AssetKind.readme
@@ -295,7 +295,7 @@ Tab? _changelogTab(PackagePageData data) {
   if (data.asset?.kind != AssetKind.changelog) return null;
   final content = renderFile(
     data.asset!,
-    baseUrl: data.version!.packageLinks.baseUrl,
+    baseUrl: data.repositoryBaseUrl,
     isChangelog: true,
   );
   return Tab.withContent(
@@ -309,7 +309,7 @@ Tab? _changelogTab(PackagePageData data) {
 Tab? _exampleTab(PackagePageData data) {
   if (!data.hasExample) return null;
   if (data.asset?.kind != AssetKind.example) return null;
-  final baseUrl = data.version!.packageLinks.baseUrl;
+  final baseUrl = data.repositoryBaseUrl;
 
   final exampleFilename = data.asset!.path;
   final renderedExample = renderFile(data.asset!, baseUrl: baseUrl);
@@ -356,7 +356,7 @@ Tab _licenseTab(PackagePageData data) {
   final license = data.hasLicense
       ? renderFile(
           data.asset!,
-          baseUrl: data.version!.packageLinks.baseUrl,
+          baseUrl: data.repositoryBaseUrl,
         )
       : d.text('No license file found.');
   return Tab.withContent(
@@ -374,7 +374,7 @@ Tab _pubspecTab(PackagePageData data) {
   final content = data.hasPubspec
       ? renderFile(
           data.asset!,
-          baseUrl: data.version!.packageLinks.baseUrl,
+          baseUrl: data.repositoryBaseUrl,
         )
       : d.text('No pubspec file found.');
   return Tab.withContent(

@@ -44,11 +44,14 @@ void main() {
               query: 'build_config', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
-        'totalCount': 1,
+        'totalCount': 2,
         'highlightedHit': {'package': 'build_config'},
         'sdkLibraryHits': [],
         'packageHits': [
-          // would be nice if `package:build` would show up here
+          {
+            'package': 'build',
+            'score': closeTo(0.71, 0.01),
+          },
         ],
       });
     });

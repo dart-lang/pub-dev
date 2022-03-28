@@ -1,9 +1,13 @@
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async';
 
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart' show Logger;
 import 'package:pub_dev/shared/datastore.dart';
-import 'package:pub_dev/task/models.dart' show GlobalLockState;
+import 'package:pub_dev/task/global_lock_models.dart';
 import 'package:ulid/ulid.dart' show Ulid;
 
 final _log = Logger('pub.global_lock');
@@ -40,14 +44,18 @@ class GlobalLock {
     try {
       scheduleMicrotask(() async {
         while (c.valid && !done) {
-          // Await for 50% of the time until expiration is gone
+          // Await for 50% of the time until expiration is gone, then we refresh
           var delay = c.expires
               .subtract(_expiration * 0.5)
               .difference(clock.now().toUtc());
-          // always sleep at-least 10% of expiration
+          // always sleep at-least 10% of expiration before refreshing
           if (delay < _expiration * 0.1) {
             delay = _expiration * 0.1;
           }
+          // This logic ensures that we try to refresh when 50% of expiration
+          // has passed, at this point we refresh every 10% of expiration. This
+          // ensures that if refreshing fails, then we have a few attempts to
+          // refresh, before it's truely expired.
           await Future.delayed(delay);
 
           // Try to refresh, if claim is still valid and we're not done.
@@ -185,6 +193,11 @@ class GlobalLockClaim {
   /// `true`, if this claim to the lock is still valid.
   ///
   /// A claim stops being valid when 75% of the expiration has passed.
+  /// This offers some safety from clock drift. In most cases the claim should
+  /// be refreshed long before we approach 75% of the expiration being passed.
+  ///
+  /// When a claim is refreshed 75% before expiration it allows allows us to use
+  /// [expires] as _deadline_ for other operations.
   bool get valid =>
       _released == null &&
       _entry.lockedUntil!
@@ -192,6 +205,9 @@ class GlobalLockClaim {
           .isAfter(clock.now().toUtc());
 
   /// Point in time at which this claim expires, if not [refresh]'ed.
+  ///
+  /// To protect against clock drift we consider the claim invalid when 75% of
+  /// the expiration time has passed.
   DateTime get expires => _entry.lockedUntil!;
 
   /// Refresh the claim, setting the expiration into the future.

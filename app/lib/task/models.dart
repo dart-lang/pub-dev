@@ -5,8 +5,8 @@
 import 'dart:convert' show json;
 
 import 'package:clock/clock.dart';
-import 'package:pub_dev/shared/datastore.dart' as db;
 import 'package:json_annotation/json_annotation.dart';
+import 'package:pub_dev/shared/datastore.dart' as db;
 
 part 'models.g.dart';
 
@@ -229,26 +229,6 @@ class PackageVersionState {
     this.zone,
     this.instance,
   });
-}
-
-/// [GlobalLockState] is used for locking in a distributed system.
-///
-///  * `id`, is the `lockId`.
-///  * `GlobalLockState` entities never has a parent.
-@db.Kind(name: 'GlobalLockState', idType: db.IdType.String)
-class GlobalLockState extends db.ExpandoModel<String> {
-  /// Get the lockId
-  String? get lockId => id;
-
-  /// Unique ULID identifying the claim currently holding the lock.
-  ///
-  /// Empty, if not currently locked.
-  @db.StringProperty(required: true)
-  String? claimId;
-
-  /// DateTime at which point the lock becomes free again.
-  @db.DateTimeProperty(required: true)
-  DateTime? lockedUntil;
 }
 
 /// A [db.Property] encoding a Map from version to [PackageVersionState] as JSON.

@@ -8,13 +8,13 @@ stages:
         - format
         - analyze: --fatal-infos  .
   - unit_test:
-    - test: --run-skipped --total-shards 7 --shard-index 0
-    - test: --run-skipped --total-shards 7 --shard-index 1
-    - test: --run-skipped --total-shards 7 --shard-index 2
-    - test: --run-skipped --total-shards 7 --shard-index 3
-    - test: --run-skipped --total-shards 7 --shard-index 4
-    - test: --run-skipped --total-shards 7 --shard-index 5
-    - test: --run-skipped --total-shards 7 --shard-index 6
+    - test: --total-shards 7 --shard-index 0
+    - test: --total-shards 7 --shard-index 1
+    - test: --total-shards 7 --shard-index 2
+    - test: --total-shards 7 --shard-index 3
+    - test: --total-shards 7 --shard-index 4
+    - test: --total-shards 7 --shard-index 5
+    - test: --total-shards 7 --shard-index 6
 
 cache:
   directories:
