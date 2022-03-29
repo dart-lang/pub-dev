@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:clock/clock.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
@@ -19,6 +17,7 @@ import 'package:pub_dev/search/handlers.dart';
 import 'package:pub_dev/search/search_client.dart';
 import 'package:pub_dev/search/updater.dart';
 import 'package:pub_dev/service/services.dart';
+import 'package:pub_dev/shared/env_config.dart';
 import 'package:pub_dev/shared/integrity.dart';
 import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/importer.dart';
@@ -106,7 +105,7 @@ void setupLogging() {
     return;
   }
   _loggingDone = true;
-  final debugEnv = (Platform.environment['DEBUG'] ?? '').trim();
+  final debugEnv = (envConfig.debug ?? '').trim();
   if (debugEnv.isEmpty) {
     return;
   }

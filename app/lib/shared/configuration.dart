@@ -11,6 +11,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_dev/frontend/static_files.dart';
+import 'package:pub_dev/shared/env_config.dart';
 import 'package:yaml/yaml.dart';
 
 part 'configuration.g.dart';
@@ -192,14 +193,14 @@ class Configuration {
     // This is undocumented for appengine custom runtime, but documented for the
     // other runtimes:
     // https://cloud.google.com/appengine/docs/standard/nodejs/runtime
-    final projectId = Platform.environment['GOOGLE_CLOUD_PROJECT'];
+    final projectId = envConfig.googleCloudProject;
     if (projectId == null || projectId.isEmpty) {
       throw StateError(
         'Environment variable \$GOOGLE_CLOUD_PROJECT must be specified!',
       );
     }
 
-    final configFile =
+    final configFile = envConfig.configPath ??
         path.join(resolveAppDir(), 'config', projectId + '.yaml');
     if (!File(configFile).existsSync()) {
       throw StateError('Could not find configuration file: "$configFile"');

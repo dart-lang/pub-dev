@@ -34,13 +34,7 @@ class DartdocCommand extends Command {
 
   @override
   Future<void> run() async {
-    // Ensure that we're running in the right environment, or is running locally
-    if (envConfig.gaeService != null && envConfig.gaeService != name) {
-      throw StateError(
-        'Cannot start "$name" in "${envConfig.gaeService}" environment',
-      );
-    }
-
+    envConfig.checkServiceEnvironment(name);
     await startIsolates(
       logger: logger,
       frontendEntryPoint: _frontendMain,

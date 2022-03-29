@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' show Platform;
-
 import 'package:appengine/appengine.dart';
 import 'package:clock/clock.dart';
+import 'package:pub_dev/shared/env_config.dart';
 import 'package:pub_dev/task/global_lock.dart' show GlobalLock;
 import 'package:test/test.dart';
 import 'package:ulid/ulid.dart' show Ulid;
@@ -76,10 +75,10 @@ void main() {
       ]);
     });
   },
-      skip: Platform.environment['GOOGLE_CLOUD_PROJECT'] != null &&
-              Platform.environment['GOOGLE_CLOUD_PROJECT']!.isNotEmpty &&
+      skip: envConfig.googleCloudProject != null &&
+              envConfig.googleCloudProject!.isNotEmpty &&
               // Avoid running against production by accident
-              Platform.environment['GOOGLE_CLOUD_PROJECT'] != 'dartlang-pub'
+              envConfig.googleCloudProject != 'dartlang-pub'
           ? false
           : 'GlobalLock testing requires GOOGLE_CLOUD_PROJECT');
 }

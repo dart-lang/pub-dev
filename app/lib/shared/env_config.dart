@@ -2,52 +2,70 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
-/// Configuration from the environment variables.
-final EnvConfig envConfig = EnvConfig._detect();
+import 'package:crypto/crypto.dart';
+import 'package:meta/meta.dart';
 
 /// Configuration from the environment variables.
-class EnvConfig {
+final envConfig = _EnvConfig();
+
+/// Configuration from the environment variables.
+class _EnvConfig {
   /// Service in AppEngine that this process is running in, `null` if running
   /// locally.
-  final String? gaeService;
+  late final _gaeService = Platform.environment['GAE_SERVICE'];
 
   /// Version of this service in AppEngine, `null` if running locally.
   ///
   /// Can be used to construct URLs for the given service.
-  final String? gaeVersion;
+  late final _gaeVersion = Platform.environment['GAE_VERSION'];
 
   /// Instance of this service in AppEngine, `null` if running locally.
   ///
   /// NOTE: use only for narrow debug flows.
-  final String? gaeInstance;
-  final String? gcloudProject;
+  late final _gaeInstance = Platform.environment['GAE_INSTANCE'];
 
-  // Config Path points to configuration file
-  final String? configPath;
+  late final googleCloudProject = Platform.environment['GOOGLE_CLOUD_PROJECT'];
 
-  EnvConfig._(
-    this.gaeService,
-    this.gaeVersion,
-    this.gaeInstance,
-    this.gcloudProject,
-    this.configPath,
-  );
+  /// Points to configuration file
+  late final configPath = Platform.environment['PUB_SERVER_CONFIG'];
 
-  factory EnvConfig._detect() {
-    return EnvConfig._(
-      Platform.environment['GAE_SERVICE'],
-      Platform.environment['GAE_VERSION'],
-      Platform.environment['GAE_INSTANCE'],
-      Platform.environment['GOOGLE_CLOUD_PROJECT'],
-      Platform.environment['PUB_SERVER_CONFIG'],
-    );
-  }
+  /// Youtube API key to use (skips Datastore secret).
+  late final youtubeApiKey = Platform.environment['YOUTUBE_API_KEY'];
+
+  /// Drives the logging environment in certain tests.
+  /// **Examples**:
+  ///  * `DEBUG='*'`, will show output from all loggers.
+  ///  * `DEBUG='pub.*'`, will show output from loggers with name prefixed 'pub.'.
+  ///  * `DEBUG='* -neat_cache'`, will show output from all loggers, except 'neat_cache'.
+  @visibleForTesting
+  late final debug = Platform.environment['DEBUG'];
 
   /// True, if running inside AppEngine.
-  bool get isRunningInAppengine => gaeService != null && gaeVersion != null;
+  bool get isRunningInAppengine => _gaeService != null && _gaeVersion != null;
 
   /// True, if running locally and not inside AppEngine.
   bool get isRunningLocally => !isRunningInAppengine;
+
+  /// Ensure that we're running in the right environment, or is running locally.
+  void checkServiceEnvironment(String name) {
+    if (_gaeService != null && _gaeService != name) {
+      throw StateError(
+        'Cannot start "$name" in "$_gaeService" environment.',
+      );
+    }
+  }
+
+  /// Environment variables that are exposed in the `/debug` endpoint.
+  Map<String, dynamic> debugMap({bool includeInstanceHash = false}) {
+    return {
+      'GAE_VERSION': _gaeVersion ?? '-',
+      'GAE_MEMORY_MB': Platform.environment['GAE_MEMORY_MB'],
+      if (includeInstanceHash)
+        'instanceHash':
+            sha256.convert(utf8.encode(_gaeInstance ?? '-')).toString(),
+    };
+  }
 }
