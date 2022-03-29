@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bumped runtimeVersion to `2022.03.29`.
  * Upgrade stable Dart analysis SDK to `2.16.2`.
  * Upgraded stable Flutter analysis SDK to `2.10.4`.
+ * NOTE: started to populate `Package.withheld` and `Package.withheldExpires`.
 
 ## `20220324t054900-all`
  * Bumped runtimeVersion to `2022.03.21`.
@@ -19,7 +20,6 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Flutter analysis SDK to `2.10.3`.
  * Upgraded pana to `0.21.8`.
  * NOTE: removed `ScoreCardData.reportTypes`
- * NOTE: started to populate `Package.withheld` and `Package.withheldExpires`.
 
 ## `20220302t144000-all`
  * Bumped runtimeVersion to `2022.02.25`.
