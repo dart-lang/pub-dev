@@ -60,6 +60,9 @@ TaskBackend get taskBackend => ss.lookup(#_taskBackend) as TaskBackend;
 // TODO: Handle case where worker has it doesn't have time to process remaining versions
 //       It probably just writes in log that it could do it within given time constraints
 //       and calls finish for each version signaling that the version needs not be retriggered!
+//       Or we decide that reporting a task finished without uploading files is the same
+//       as signaling that we ran out of time. That way we can also do testing without
+//       uploading files.
 // NOTE: Tracking all versions could be too much overhead in entity size.
 
 class TaskBackend {
@@ -663,7 +666,7 @@ class TaskBackend {
       );
 
       // Determine if something else was running on the instance
-      isInstanceDone = state.versions!.values.any(
+      isInstanceDone = state.versions!.values.none(
         (v) => v.instance == instance,
       );
 
@@ -692,6 +695,7 @@ class TaskBackend {
     // avoid doing this operation again if the transaction fails.
     if (isInstanceDone) {
       assert(zone != null && instance != null);
+      _log.fine('instance $instance is done, calling APIs to terminate it!');
       scheduleMicrotask(() async {
         try {
           await _cloudCompute.delete(zone!, instance!);

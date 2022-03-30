@@ -162,6 +162,20 @@ class PackageState extends db.ExpandoModel<String> {
         .map((e) => e.key)
         .toList();
   }
+
+  @override
+  String toString() =>
+      'PackageState(' +
+      [
+        'package: $package',
+        'runtimeVersion: $runtimeVersion',
+        'versions:',
+        ...(versions ?? {}).entries.map((e) => '    ${e.key}: ${e.value}'),
+        'pendingAt: $pendingAt',
+        'lastDependencyChanged: $lastDependencyChanged',
+        'dependencies: [' + (dependencies ?? []).join(', ') + ']',
+      ].join('\n  ') +
+      '\n)';
 }
 
 /// State of a given `version` within a [PackageState].
@@ -229,6 +243,18 @@ class PackageVersionState {
     this.zone,
     this.instance,
   });
+
+  @override
+  String toString() =>
+      'PackageVersionState(' +
+      [
+        'scheduled: $scheduled',
+        'attempts: $attempts',
+        'zone: $zone',
+        'instance: $instance',
+        'secretToken: $secretToken',
+      ].join(', ') +
+      ')';
 }
 
 /// A [db.Property] encoding a Map from version to [PackageVersionState] as JSON.

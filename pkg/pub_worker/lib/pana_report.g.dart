@@ -8,7 +8,9 @@ part of 'pana_report.dart';
 
 PanaReport _$PanaReportFromJson(Map<String, dynamic> json) => PanaReport(
       logId: json['logId'] as String,
-      summary: Summary.fromJson(json['summary'] as Map<String, dynamic>),
+      summary: json['summary'] == null
+          ? null
+          : Summary.fromJson(json['summary'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$PanaReportToJson(PanaReport instance) =>
