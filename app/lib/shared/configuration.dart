@@ -63,6 +63,9 @@ class Configuration {
 
   /// The name of the Cloud Storage bucket to use for incoming package archives.
   ///
+  /// When users are publishing packages using the `dart pub` client, they are given a signed-url
+  /// which allows the client to upload a file. That signed-url points to an object in this bucket.
+  /// Once the uploaded tarball have been verified, it can be copied to the canonical bucket.
   /// The bucket content policy should be public.
   final String? incomingPackagesBucketName;
 
