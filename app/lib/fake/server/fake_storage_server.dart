@@ -91,7 +91,11 @@ class FakeStorageServer {
         }
       }
 
-      return Response.seeOther(formData['success_action_redirect']!);
+      final redirectUrl = formData['success_action_redirect'];
+      if (redirectUrl == null) {
+        return Response.ok('success');
+      }
+      return Response.seeOther(redirectUrl);
     }
     return Response.notFound('404 Not Found');
   }
