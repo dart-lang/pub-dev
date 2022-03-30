@@ -108,7 +108,9 @@ void main() {
           .replaceAll('Pana <code>$panaVersion</code>,',
               'Pana <code>%%pana-version%%</code>,')
           .replaceAll('Dart <code>$toolStableDartSdkVersion</code>',
-              'Dart <code>%%stable-dart-version%%</code>');
+              'Dart <code>%%stable-dart-version%%</code>')
+          .replaceAll('/static/hash-${staticFileCache.etag}/',
+              '/static/hash-%%etag%%/');
 
       // Pretty printing output using XML parser and formatter.
       final xmlDoc = xml.XmlDocument.parse(

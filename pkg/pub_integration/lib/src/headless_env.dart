@@ -155,6 +155,16 @@ class HeadlessEnv {
           serverErrors.add('${rs.request.url} returned bad HTML: $e');
         }
       }
+
+      final uri = Uri.parse(rs.url);
+      if (uri.pathSegments.length > 1 && uri.pathSegments.first == 'static') {
+        final cacheHeader = rs.headers[HttpHeaders.cacheControlHeader];
+        if (cacheHeader == null ||
+            !cacheHeader.contains('public') ||
+            !cacheHeader.contains('max-age')) {
+          serverErrors.add('Static ${rs.url} is without public caching.');
+        }
+      }
     });
 
     // print console messages
