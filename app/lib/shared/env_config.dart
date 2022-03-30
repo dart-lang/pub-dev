@@ -12,6 +12,8 @@ import 'package:meta/meta.dart';
 final envConfig = _EnvConfig();
 
 /// Configuration from the environment variables.
+///
+/// TODO: consider migrating the values to be non-nullable
 class _EnvConfig {
   /// Service in AppEngine that this process is running in, `null` if running
   /// locally.
