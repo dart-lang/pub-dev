@@ -146,6 +146,14 @@ Future<R> withFakeServices<R>({
       );
     }
     registerActiveConfiguration(configuration!);
+    final bucketsToCreate = [
+      configuration!.canonicalPackagesBucketName!,
+      configuration!.publicPackagesBucketName!,
+      configuration!.incomingPackagesBucketName!,
+    ];
+    for (final bucketName in bucketsToCreate) {
+      await getOrCreateBucket(storage, bucketName);
+    }
 
     // register fake services that would have external dependencies
     registerAuthProvider(FakeAuthProvider());
