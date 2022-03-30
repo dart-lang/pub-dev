@@ -653,9 +653,9 @@ class PackageBackend {
     final canonicalVersion = canonicalizeVersion(version);
     InvalidInputException.checkSemanticVersion(canonicalVersion);
 
-    final packageKey = db.emptyKey.append(Package, id: package);
-    final packageVersionKey =
-        packageKey.append(PackageVersion, id: canonicalVersion);
+    final packageVersionKey = db.emptyKey
+        .append(Package, id: package)
+        .append(PackageVersion, id: canonicalVersion);
 
     if (!await isPackageVisible(package)) {
       throw NotFoundException.resource('package "$package"');
