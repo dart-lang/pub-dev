@@ -1,5 +1,7 @@
 # https://www.dartlang.org/guides/language/analysis-options
 analyzer:
+  exclude:
+    - pkg/pub_integration/test_data/
   strong-mode:
     implicit-casts: false
 
