@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:logging/logging.dart';
+import 'package:pub_dev/shared/env_config.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../frontend/request_context.dart';
@@ -80,10 +81,7 @@ shelf.Response rejectRobotsHandler(shelf.Request request) =>
 /// Combines a response for /debug requests
 shelf.Response debugResponse([Map<String, dynamic>? data]) {
   final map = <String, dynamic>{
-    'env': {
-      'GAE_VERSION': Platform.environment['GAE_VERSION'],
-      'GAE_MEMORY_MB': Platform.environment['GAE_MEMORY_MB'],
-    },
+    'env': envConfig.debugMap(),
     'vm': {
       'numberOfProcessors': Platform.numberOfProcessors,
       'currentRss': ProcessInfo.currentRss,

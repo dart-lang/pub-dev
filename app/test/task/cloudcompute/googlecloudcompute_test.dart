@@ -7,9 +7,9 @@
 // run this as part of normal testing.
 @Tags(['fragile'])
 import 'dart:async';
-import 'dart:io' show Platform;
 
 import 'package:appengine/appengine.dart';
+import 'package:pub_dev/shared/env_config.dart';
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:pub_dev/task/cloudcompute/googlecloudcompute.dart';
 import 'package:test/test.dart';
@@ -24,7 +24,7 @@ void main() {
       // Create CloudCompute instance
       final gce = createGoogleCloudCompute(
         client: authClientService,
-        project: Platform.environment['GOOGLE_CLOUD_PROJECT']!,
+        project: envConfig.googleCloudProject!,
         poolLabel: 'manual-testing',
       );
 
@@ -78,9 +78,9 @@ void main() {
     });
   },
       timeout: Timeout.parse('30m'),
-      skip: Platform.environment['GOOGLE_CLOUD_PROJECT'] == null ||
+      skip: envConfig.googleCloudProject == null ||
               // Avoid running against production by accident
-              Platform.environment['GOOGLE_CLOUD_PROJECT'] == 'dartlang-pub'
+              envConfig.googleCloudProject == 'dartlang-pub'
           ? 'createGoogleCloudCompute testing requires GOOGLE_CLOUD_PROJECT'
           : false);
 }

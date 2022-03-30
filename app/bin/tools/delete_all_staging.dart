@@ -29,7 +29,7 @@ final _argParser = ArgParser()
 
 /// Deletes every (used) entity on staging.
 Future main(List<String> args) async {
-  if (envConfig.gcloudProject != 'dartlang-pub-dev') {
+  if (envConfig.googleCloudProject != 'dartlang-pub-dev') {
     print('**ERROR**: The tool is meant to be used only on staging.');
     return;
   }
