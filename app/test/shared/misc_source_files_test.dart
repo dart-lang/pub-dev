@@ -48,6 +48,24 @@ void main() {
     }
   });
 
+  test('Platform.environment only in env_config.dart', () async {
+    final exceptions = [
+      './lib/shared/configuration.dart',
+      './lib/shared/env_config.dart',
+      './test/shared/misc_source_files_test.dart',
+    ];
+    final files = Directory('.')
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((f) => f.path.endsWith('.dart'));
+    for (final file in files) {
+      final content = await file.readAsString();
+      expect(content.contains('Platform.environment'),
+          exceptions.contains(file.path),
+          reason: '${file.path} contains Platform.environment');
+    }
+  });
+
   test('cache-control is set only in frontend/handlers/headers.dart', () async {
     final exceptions = [
       'lib/frontend/handlers/headers.dart',

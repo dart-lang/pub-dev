@@ -2,17 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
 import 'dart:math';
 
 import 'package:pub_dev/service/youtube/backend.dart';
+import 'package:pub_dev/shared/env_config.dart';
 import 'package:test/test.dart';
 
 import '../../shared/test_services.dart';
 
 void main() {
   testWithProfile('when a key is specified, it has items', fn: () async {
-    if (Platform.environment.containsKey('YOUTUBE_API_KEY')) {
+    if (envConfig.youtubeApiKey != null) {
       final videos = youtubeBackend.getTopPackageOfWeekVideos(count: 100);
       expect(videos, hasLength(greaterThan(5)));
       // Guard against bad pagination / duplicate ids.

@@ -11,6 +11,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_dev/frontend/static_files.dart';
+import 'package:pub_dev/shared/env_config.dart';
 import 'package:yaml/yaml.dart';
 
 part 'configuration.g.dart';
@@ -49,6 +50,26 @@ const _fakeSiteAudience = 'fake-site-audience';
   disallowUnrecognizedKeys: true,
 )
 class Configuration {
+  /// The name of the Cloud Storage bucket to use for storing the uploaded
+  /// package archives.
+  ///
+  /// The bucket content policy should be private.
+  final String? canonicalPackagesBucketName;
+
+  /// The name of the Cloud Storage bucket to use for public package archive downloads.
+  ///
+  /// This is the bucket which users are redirected to when they want to download package tarballs.
+  /// The bucket content policy should be public.
+  final String? publicPackagesBucketName;
+
+  /// The name of the Cloud Storage bucket to use for incoming package archives.
+  ///
+  /// When users are publishing packages using the `dart pub` client, they are given a signed-url
+  /// which allows the client to upload a file. That signed-url points to an object in this bucket.
+  /// Once the uploaded tarball have been verified, it can be copied to the canonical bucket.
+  /// The bucket content policy should be public.
+  final String? incomingPackagesBucketName;
+
   /// The name of the Cloud Storage bucket to use for uploaded package content.
   final String? packageBucketName;
 
@@ -175,6 +196,9 @@ class Configuration {
   }
 
   Configuration({
+    required this.canonicalPackagesBucketName,
+    required this.publicPackagesBucketName,
+    required this.incomingPackagesBucketName,
     required this.projectId,
     required this.packageBucketName,
     required this.imageBucketName,
@@ -206,14 +230,14 @@ class Configuration {
     // This is undocumented for appengine custom runtime, but documented for the
     // other runtimes:
     // https://cloud.google.com/appengine/docs/standard/nodejs/runtime
-    final projectId = Platform.environment['GOOGLE_CLOUD_PROJECT'];
+    final projectId = envConfig.googleCloudProject;
     if (projectId == null || projectId.isEmpty) {
       throw StateError(
         'Environment variable \$GOOGLE_CLOUD_PROJECT must be specified!',
       );
     }
 
-    final configFile =
+    final configFile = envConfig.configPath ??
         path.join(resolveAppDir(), 'config', projectId + '.yaml');
     if (!File(configFile).existsSync()) {
       throw StateError('Could not find configuration file: "$configFile"');
@@ -228,6 +252,9 @@ class Configuration {
     required String storageBaseUrl,
   }) {
     return Configuration(
+      canonicalPackagesBucketName: 'fake-canonical-packages',
+      publicPackagesBucketName: 'fake-public-packages',
+      incomingPackagesBucketName: 'fake-incoming-packages',
       projectId: 'dartlang-pub-fake',
       packageBucketName: 'fake-bucket-pub',
       imageBucketName: 'fake-bucket-image',
@@ -266,6 +293,9 @@ class Configuration {
     Uri? primarySiteUri,
   }) {
     return Configuration(
+      canonicalPackagesBucketName: 'fake-canonical-packages',
+      publicPackagesBucketName: 'fake-public-packages',
+      incomingPackagesBucketName: 'fake-incoming-packages',
       projectId: 'dartlang-pub-test',
       packageBucketName: 'fake-bucket-pub',
       imageBucketName: 'fake-bucket-image',

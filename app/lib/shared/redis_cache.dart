@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:_pub_shared/data/package_api.dart' show VersionScore;
@@ -14,6 +13,7 @@ import 'package:indexed_blob/indexed_blob.dart' show BlobIndex;
 import 'package:logging/logging.dart';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
+import 'package:pub_dev/shared/env_config.dart';
 import 'package:pub_worker/pana_report.dart' show PanaReport;
 
 import '../account/models.dart' show LikeData, UserSessionData;
@@ -331,7 +331,7 @@ void _registerDelayedCachePurgerKey(_DelayedCachePurger value) =>
 /// - otherwise, a local in-memory cache.
 Future<void> setupCache() async {
   // Use in-memory cache, if not running on AppEngine
-  if (Platform.environment.containsKey('GAE_VERSION')) {
+  if (envConfig.isRunningInAppengine) {
     await _registerRedisCache();
   } else {
     _log.warning('using in-memory cache instead of redis');

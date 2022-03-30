@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:clock/clock.dart';
@@ -11,9 +10,10 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/youtube/v3.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:meta/meta.dart';
-import 'package:pub_dev/shared/cached_value.dart';
 import 'package:retry/retry.dart';
 
+import '../../shared/cached_value.dart';
+import '../../shared/env_config.dart';
 import '../secret/backend.dart';
 
 /// The playlist ID for the Package of the Week channel.
@@ -107,7 +107,7 @@ class _PkgOfWeekVideoFetcher {
   }
 
   Future<List<PkgOfWeekVideo>> _fetchVideoList() async {
-    final apiKey = Platform.environment['YOUTUBE_API_KEY'] ??
+    final apiKey = envConfig.youtubeApiKey ??
         await secretBackend.lookup(SecretKey.youtubeApiKey);
     if (apiKey == null || apiKey.isEmpty) return <PkgOfWeekVideo>[];
 

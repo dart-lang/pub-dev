@@ -3,9 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_dev/search/dart_sdk_mem_index.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -84,12 +82,8 @@ Future<shelf.Response> _searchHandler(shelf.Request request) async {
 
   if (request.requestedUri.queryParameters['debug-drift'] == '1') {
     final info = await packageIndex.indexInfo();
-    final instance = envConfig.gaeInstance ?? '-';
     return jsonResponse({
-      'gae': {
-        'version': envConfig.gaeVersion ?? '-',
-        'instanceHash': sha256.convert(utf8.encode(instance)).toString(),
-      },
+      'gae': envConfig.debugMap(includeInstanceHash: true),
       'index': info.toJson(),
       ...result.toJson(),
     });

@@ -81,7 +81,10 @@ class IntegrityChecker {
     await for (User user in _db.query<User>().run()) {
       _userToOauth[user.userId] = user.oauthUserId;
       final email = user.email;
-      if (email == null || email.isEmpty || !looksLikeEmail(email)) {
+      if (email == null ||
+          email.isEmpty ||
+          !looksLikeEmail(email) ||
+          email.toLowerCase() != email) {
         yield 'User "${user.userId}" has invalid email: "${user.email}".';
         _invalidUsers.add(user.userId);
       }

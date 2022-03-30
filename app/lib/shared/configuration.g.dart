@@ -13,6 +13,9 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
         $checkKeys(
           json,
           allowedKeys: const [
+            'canonicalPackagesBucketName',
+            'publicPackagesBucketName',
+            'incomingPackagesBucketName',
             'packageBucketName',
             'imageBucketName',
             'projectId',
@@ -38,6 +41,12 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
           ],
         );
         final val = Configuration(
+          canonicalPackagesBucketName: $checkedConvert(
+              'canonicalPackagesBucketName', (v) => v as String?),
+          publicPackagesBucketName:
+              $checkedConvert('publicPackagesBucketName', (v) => v as String?),
+          incomingPackagesBucketName: $checkedConvert(
+              'incomingPackagesBucketName', (v) => v as String?),
           projectId: $checkedConvert('projectId', (v) => v as String),
           packageBucketName:
               $checkedConvert('packageBucketName', (v) => v as String?),
@@ -94,6 +103,9 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
 
 Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
     <String, dynamic>{
+      'canonicalPackagesBucketName': instance.canonicalPackagesBucketName,
+      'publicPackagesBucketName': instance.publicPackagesBucketName,
+      'incomingPackagesBucketName': instance.incomingPackagesBucketName,
       'packageBucketName': instance.packageBucketName,
       'imageBucketName': instance.imageBucketName,
       'projectId': instance.projectId,

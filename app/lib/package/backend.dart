@@ -655,7 +655,7 @@ class PackageBackend {
 
     final packageVersionKey = db.emptyKey
         .append(Package, id: package)
-        .append(PackageVersion, id: version);
+        .append(PackageVersion, id: canonicalVersion);
 
     if (!await isPackageVisible(package)) {
       throw NotFoundException.resource('package "$package"');
