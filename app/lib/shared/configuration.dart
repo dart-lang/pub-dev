@@ -57,6 +57,7 @@ class Configuration {
 
   /// The name of the Cloud Storage bucket to use for public package archive downloads.
   ///
+  /// This is the bucket which users are redirected to when they want to download package tarballs.
   /// The bucket content policy should be public.
   final String? publicPackagesBucketName;
 
