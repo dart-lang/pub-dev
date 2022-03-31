@@ -379,6 +379,7 @@ void main() {
           flags: null,
           urlProblems: null,
           repository: null,
+          screenshots: null,
         ),
       );
       final html = scoreTabNode(

@@ -249,6 +249,8 @@ class PanaReport {
 
   final Report? report;
 
+  final List<ProcessedScreenshot>? screenshots;
+
   /// The flags for the package, version or analysis.
   /// Example values: entries from [PackageFlags].
   List<String>? flags = <String>[];
@@ -268,6 +270,7 @@ class PanaReport {
     required this.flags,
     required this.urlProblems,
     required this.repository,
+    required this.screenshots,
   });
 
   factory PanaReport.fromJson(Map<String, dynamic> json) =>

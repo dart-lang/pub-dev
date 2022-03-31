@@ -32,7 +32,13 @@ void main() {
                   'description': 'oxygen is awesome',
                   'homepage': 'https://oxygen.example.dev/',
                   'environment': {'sdk': '>=2.6.0 <3.0.0'},
-                  'dependencies': {}
+                  'dependencies': {},
+                  'screenshots': [
+                    {
+                      'path': 'static.webp',
+                      'description': 'This is an awesome screenshot'
+                    }
+                  ]
                 },
                 'archive_url':
                     '${activeConfiguration.primaryApiUri}/packages/oxygen/versions/1.2.0.tar.gz',
@@ -54,7 +60,13 @@ void main() {
                   'environment': {'sdk': '>=2.6.0 <3.0.0'},
                   'dependencies': {
                     'flutter': {'sdk': 'flutter'}
-                  }
+                  },
+                  'screenshots': [
+                    {
+                      'path': 'static.webp',
+                      'description': 'This is an awesome screenshot'
+                    }
+                  ]
                 },
                 'archive_url':
                     '${activeConfiguration.primaryApiUri}/packages/flutter_titanium/versions/1.10.0.tar.gz',
@@ -74,7 +86,13 @@ void main() {
                   'description': 'neon is awesome',
                   'homepage': 'https://neon.example.dev/',
                   'environment': {'sdk': '>=2.6.0 <3.0.0'},
-                  'dependencies': {}
+                  'dependencies': {},
+                  'screenshots': [
+                    {
+                      'path': 'static.webp',
+                      'description': 'This is an awesome screenshot'
+                    }
+                  ]
                 },
                 'archive_url':
                     '${activeConfiguration.primaryApiUri}/packages/neon/versions/1.0.0.tar.gz',
