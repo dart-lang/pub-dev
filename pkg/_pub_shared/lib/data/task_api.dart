@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:meta/meta.dart';
 import 'package_api.dart' show UploadInfo;
 
 part 'task_api.g.dart';
