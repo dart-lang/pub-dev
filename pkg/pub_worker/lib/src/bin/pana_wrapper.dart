@@ -5,9 +5,9 @@
 import 'dart:convert' show json;
 import 'dart:io' show exit, File;
 
+import 'package:logging/logging.dart' show Logger, Level, LogRecord;
 import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
-import 'package:logging/logging.dart' show Logger, Level, LogRecord;
 
 final _log = Logger('pana_wrapper');
 
