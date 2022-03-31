@@ -1430,7 +1430,7 @@ class TarballStorage {
     // NOTE: We should maybe check for existence first?
     // return storage.bucket(bucket).info(object)
     //     .then((info) => info.downloadLink);
-    final object = tarballObjectName(package, version);
+    final object = tarballObjectName(package, Uri.encodeComponent(version));
     return Uri.parse(bucket.objectUrl(object));
   }
 
@@ -1446,7 +1446,7 @@ class TarballStorage {
 /// The GCS object name of a tarball object - excluding leading '/'.
 @visibleForTesting
 String tarballObjectName(String package, String version) =>
-    'packages/$package-${Uri.encodeComponent(version)}.tar.gz';
+    'packages/$package-$version.tar.gz';
 
 /// The GCS object name of an temporary object [guid] - excluding leading '/'.
 @visibleForTesting
