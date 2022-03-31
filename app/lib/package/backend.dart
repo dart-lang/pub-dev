@@ -681,7 +681,7 @@ class PackageBackend {
     await requireAuthenticatedUser();
     final guid = createUuid();
     _logger.info('Starting semi-async upload (uuid: $guid)');
-    final object = _storage.tempObjectName(guid);
+    final object = tmpObjectName(guid);
     await data.pipe(_storage.bucket.write(object));
     return await publishUploadedBlob(guid);
   }
@@ -700,7 +700,7 @@ class PackageBackend {
     _logger.info('User: ${user.email}.');
 
     final guid = createUuid();
-    final String object = _storage.tempObjectName(guid);
+    final String object = tmpObjectName(guid);
     final String bucket = _storage.bucket.bucketName;
     final Duration lifetime = const Duration(minutes: 10);
 
@@ -728,8 +728,7 @@ class PackageBackend {
 
     return await withTempDirectory((Directory dir) async {
       final filename = '${dir.absolute.path}/tarball.tar.gz';
-      final info =
-          await _storage.bucket.tryInfo(_storage.namer.tmpObjectName(guid));
+      final info = await _storage.bucket.tryInfo(tmpObjectName(guid));
       if (info?.length == null) {
         throw PackageRejectedException.archiveEmpty();
       }
@@ -1377,30 +1376,22 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
 /// Helper utility class for interfacing with Cloud Storage for storing
 /// tarballs.
 class TarballStorage {
-  final TarballStorageNamer namer;
   final Storage storage;
   final Bucket bucket;
 
-  TarballStorage(this.storage, Bucket bucket, String? namespace)
-      : bucket = bucket,
-        namer = TarballStorageNamer(
-            activeConfiguration.storageBaseUrl!, bucket.bucketName, namespace);
-
-  /// Generates a path to a temporary object on cloud storage.
-  String tempObjectName(String guid) => namer.tmpObjectName(guid);
+  TarballStorage(this.storage, Bucket bucket) : bucket = bucket;
 
   /// Reads the temporary object identified by [guid]
   Stream<List<int>> readTempObject(String guid) =>
-      bucket.read(namer.tmpObjectName(guid));
+      bucket.read(tmpObjectName(guid));
 
   /// Makes a temporary object a new tarball.
   Future<void> uploadViaTempObject(
       String guid, String package, String version) async {
-    final object = namer.tarballObjectName(package, version);
+    final object = tarballObjectName(package, version);
 
     // Copy the temporary object to it's destination place.
-    await storage.copyObject(
-        bucket.absoluteObjectName(namer.tmpObjectName(guid)),
+    await storage.copyObject(bucket.absoluteObjectName(tmpObjectName(guid)),
         bucket.absoluteObjectName(object));
 
     // Change the ACL to include a `public-read` entry.
@@ -1413,89 +1404,53 @@ class TarballStorage {
   /// Remove a previously generated temporary object.
   Future<void> removeTempObject(String? guid) async {
     if (guid == null) throw ArgumentError('No guid given.');
-    return bucket.delete(namer.tmpObjectName(guid));
+    return bucket.delete(tmpObjectName(guid));
   }
 
   /// Download the tarball of a [package] in the given [version].
   Stream<List<int>> download(String package, String version) {
-    final object = namer.tarballObjectName(package, version);
+    final object = tarballObjectName(package, version);
     return bucket.read(object);
   }
 
   /// Gets the file info of a [package] in the given [version].
   Future<ObjectInfo?> info(String package, String version) async {
-    final object = namer.tarballObjectName(package, version);
+    final object = tarballObjectName(package, version);
     return await bucket.tryInfo(object);
   }
 
   /// Deletes the tarball of a [package] in the given [version] permanently.
   Future<void> remove(String package, String version) async {
-    final object = namer.tarballObjectName(package, version);
+    final object = tarballObjectName(package, version);
     await deleteFromBucket(bucket, object);
   }
 
   /// Get the URL to the tarball of a [package] in the given [version].
-  Future<Uri> downloadUrl(String package, String version) {
+  Future<Uri> downloadUrl(String package, String version) async {
     // NOTE: We should maybe check for existence first?
     // return storage.bucket(bucket).info(object)
     //     .then((info) => info.downloadLink);
-    return Future.value(Uri.parse(namer.tarballObjectUrl(package, version)));
+    final object = tarballObjectName(package, version);
+    return Uri.parse(bucket.objectUrl(object));
   }
 
   /// Upload [tarball] of a [package] in the given [version].
   Future<void> upload(
       String package, String version, Stream<List<int>> tarball) {
-    final object = namer.tarballObjectName(package, version);
+    final object = tarballObjectName(package, version);
     return tarball
         .pipe(bucket.write(object, predefinedAcl: PredefinedAcl.publicRead));
   }
 }
 
-/// Class used for getting GCS object/bucket names and object URLs.
-///
-///
-/// The GCS bucket contains package tarballs in a temporary place and stored
-/// package tarballs which are used by clients. The latter can be stored either
-/// via an empty or non-empty namespace.
-///
-/// The layout of the GCS bucket is as follows:
-///   gs://<bucket-name>/tmp/<uuid>
-///   gs://<bucket-name>/packages/<package-name>-<version>.tar.gz
-///   gs://<bucket-name>/ns/<namespace>/packages/<package-name>-<version>.tar.gz
-class TarballStorageNamer {
-  /// The tarball object storage prefix
-  final String storageBaseUrl;
+/// The GCS object name of a tarball object - excluding leading '/'.
+@visibleForTesting
+String tarballObjectName(String package, String version) =>
+    'packages/$package-$version.tar.gz';
 
-  /// The GCS bucket used.
-  final String bucket;
-
-  /// The namespace used.
-  final String namespace;
-
-  /// The prefix of where packages are stored (i.e. '' or 'ns/<namespace>').
-  final String prefix;
-
-  TarballStorageNamer(String storageBaseUrl, this.bucket, String? namespace)
-      : storageBaseUrl = storageBaseUrl.endsWith('/')
-            ? storageBaseUrl.substring(0, storageBaseUrl.length - 1)
-            : storageBaseUrl,
-        namespace = namespace ?? '',
-        prefix =
-            (namespace == null || namespace.isEmpty) ? '' : 'ns/$namespace/';
-
-  /// The GCS object name of a tarball object - excluding leading '/'.
-  String tarballObjectName(String package, String version) =>
-      '${prefix}packages/$package-$version.tar.gz';
-
-  /// The GCS object name of an temporary object [guid] - excluding leading '/'.
-  String tmpObjectName(String guid) => 'tmp/$guid';
-
-  /// The http URL of a publicly accessable GCS object.
-  String tarballObjectUrl(String package, String version) {
-    final object = tarballObjectName(package, Uri.encodeComponent(version));
-    return '$storageBaseUrl/$bucket/$object';
-  }
-}
+/// The GCS object name of an temporary object [guid] - excluding leading '/'.
+@visibleForTesting
+String tmpObjectName(String guid) => 'tmp/$guid';
 
 /// Verify that the [package] and the optional [version] parameter looks as acceptable input.
 void checkPackageVersionParams(String package, [String? version]) {
