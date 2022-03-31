@@ -133,7 +133,7 @@ class _FakeTime extends FakeTime {
       _timerForFirstPendingTimer = timer._parent.createTimer(
         timer._zone,
         timer._duration,
-        this._triggerPendingTimers,
+        _triggerPendingTimers,
       );
     }
 
@@ -166,7 +166,7 @@ class _FakeTime extends FakeTime {
       _timerForFirstPendingTimer = timer._parent.createTimer(
         timer._zone,
         timer._duration,
-        this._triggerPendingTimers,
+        _triggerPendingTimers,
       );
     }
 
@@ -293,7 +293,7 @@ class _FakeTime extends FakeTime {
         _timerForFirstPendingTimer = nextTimer._parent.createTimer(
           nextTimer._zone,
           delay,
-          this._triggerPendingTimers,
+          _triggerPendingTimers,
         );
       }
 
