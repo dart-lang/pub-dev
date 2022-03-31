@@ -10,7 +10,6 @@ import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -22,7 +21,7 @@ import '../dartdoc/backend.dart';
 import '../job/model.dart';
 import '../package/backend.dart'
     show
-        TarballStorage,
+        tarballStorage,
         checkPackageVersionParams,
         packageBackend,
         purgePackageCache;
@@ -356,10 +355,9 @@ class AdminBackend {
 
     final pool = Pool(10);
     final futures = <Future>[];
-    final storage = TarballStorage(storageService,
-        storageService.bucket(activeConfiguration.packageBucketName!), '');
     versions.forEach((final v) {
-      futures.add(pool.withResource(() => storage.remove(packageName, v)));
+      futures
+          .add(pool.withResource(() => tarballStorage.remove(packageName, v)));
     });
     await Future.wait(futures);
     await pool.close();
@@ -483,11 +481,8 @@ class AdminBackend {
       tx.insert(package);
     });
 
-    final bucket =
-        storageService.bucket(activeConfiguration.packageBucketName!);
-    final storage = TarballStorage(storageService, bucket, '');
     print('Removing GCS objects ...');
-    await storage.remove(packageName, version);
+    await tarballStorage.remove(packageName, version);
 
     await dartdocBackend.removeAll(packageName, version: version);
 

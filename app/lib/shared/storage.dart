@@ -14,6 +14,7 @@ import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
+import 'package:pub_dev/shared/configuration.dart';
 import 'package:retry/retry.dart';
 
 import 'utils.dart' show contentType, jsonUtf8Encoder, retryAsync, DeleteCounts;
@@ -66,6 +67,11 @@ extension BucketExt on Bucket {
             e.status! >= 500;
       },
     );
+  }
+
+  /// The HTTP URL of a publicly accessable GCS object.
+  String objectUrl(String objectName) {
+    return '${activeConfiguration.storageBaseUrl}/$bucketName/$objectName';
   }
 }
 

@@ -214,8 +214,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
       TarballStorage(
           storageService,
           await getOrCreateBucket(
-              storageService, activeConfiguration.packageBucketName!),
-          null),
+              storageService, activeConfiguration.packageBucketName!)),
     );
 
     registerImageStorage(ImageStorage(await getOrCreateBucket(
