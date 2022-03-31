@@ -73,6 +73,7 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
       // retrying auth client for storage service
       final authClient = await auth
           .clientViaApplicationDefaultCredentials(scopes: [...Storage.SCOPES]);
+      registerScopeExitCallback(() async => authClient.close());
       final retryingAuthClient = httpRetryClient(innerClient: authClient);
       registerScopeExitCallback(() async => retryingAuthClient.close());
 
@@ -88,6 +89,7 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
           activeConfiguration.adminAudience!,
         ],
       ));
+      registerScopeExitCallback(authProvider.close);
       registerDomainVerifier(DomainVerifier());
       registerEmailSender(
         activeConfiguration.gmailRelayServiceAccount != null &&
@@ -157,6 +159,7 @@ Future<R> withFakeServices<R>({
 
     // register fake services that would have external dependencies
     registerAuthProvider(FakeAuthProvider());
+    registerScopeExitCallback(authProvider.close);
     registerDomainVerifier(FakeDomainVerifier());
     registerEmailSender(FakeEmailSender());
     registerUploadSigner(
@@ -229,7 +232,6 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerScopeExitCallback(() async => nameTracker.stopTracking());
     registerScopeExitCallback(snapshotStorage.close);
     registerScopeExitCallback(indexUpdater.close);
-    registerScopeExitCallback(authProvider.close);
     registerScopeExitCallback(dartSdkMemIndex.close);
     registerScopeExitCallback(flutterSdkMemIndex.close);
     registerScopeExitCallback(popularityStorage.close);
