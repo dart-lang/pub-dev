@@ -7,7 +7,7 @@ dependencies:
     path: ../pkg/_popularity
   _pub_shared:
     path: ../pkg/_pub_shared
-  appengine: '^0.13.0'
+  appengine: '^0.13.2'
   args: '^2.0.0'
   basics: ^0.6.0
   clock: ^1.1.0

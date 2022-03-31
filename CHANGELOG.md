@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bumped runtimeVersion to `2022.03.29`.
  * Upgrade stable Dart analysis SDK to `2.16.2`.
  * Upgraded stable Flutter analysis SDK to `2.10.4`.
+ * Upgraded `package:appengine` to `0.13.2`.
 
 ## `20220324t054900-all`
  * Bumped runtimeVersion to `2022.03.21`.
