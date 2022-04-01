@@ -20,11 +20,7 @@ import '../audit/models.dart';
 import '../dartdoc/backend.dart';
 import '../job/model.dart';
 import '../package/backend.dart'
-    show
-        tarballStorage,
-        checkPackageVersionParams,
-        packageBackend,
-        purgePackageCache;
+    show checkPackageVersionParams, packageBackend, purgePackageCache;
 import '../package/models.dart';
 import '../publisher/models.dart';
 import '../scorecard/models.dart';
@@ -356,8 +352,8 @@ class AdminBackend {
     final pool = Pool(10);
     final futures = <Future>[];
     versions.forEach((final v) {
-      futures
-          .add(pool.withResource(() => tarballStorage.remove(packageName, v)));
+      futures.add(pool.withResource(
+          () => packageBackend.removePackageTarball(packageName, v)));
     });
     await Future.wait(futures);
     await pool.close();
@@ -482,7 +478,7 @@ class AdminBackend {
     });
 
     print('Removing GCS objects ...');
-    await tarballStorage.remove(packageName, version);
+    await packageBackend.removePackageTarball(packageName, version);
 
     await dartdocBackend.removeAll(packageName, version: version);
 
