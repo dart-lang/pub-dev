@@ -399,3 +399,15 @@ Future<shelf.Response> listVersionsHandler(
     return createResponse(gzip.decode(body), isGzip: false);
   }
 }
+
+/// Handles requests for /packages/<package>/publisher
+Future<shelf.Response> packagePublisherHandler(
+    shelf.Request request, String package) async {
+  checkPackageVersionParams(package);
+  final info = await packageBackend.getPublisherInfo(package);
+  final publisherId = info.publisherId;
+  final redirectUrl = publisherId == null
+      ? urls.pkgPageUrl(package)
+      : urls.publisherUrl(publisherId);
+  return redirectResponse(redirectUrl);
+}
