@@ -151,5 +151,25 @@ void main() {
         }
       },
     );
+
+    testWithProfile(
+      'publisher redirect',
+      fn: () async {
+        await expectRedirectResponse(
+          await issueGet('/packages/neon/publisher'),
+          '/publishers/example.com',
+        );
+      },
+    );
+
+    testWithProfile(
+      'publisher redirect - no publisher',
+      fn: () async {
+        await expectRedirectResponse(
+          await issueGet('/packages/oxygen/publisher'),
+          '/packages/oxygen',
+        );
+      },
+    );
   });
 }

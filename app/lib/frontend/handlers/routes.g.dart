@@ -40,6 +40,7 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add('GET', r'/packages/<package>/example', service.packageExample);
   router.add('GET', r'/packages/<package>/install', service.packageInstall);
   router.add('GET', r'/packages/<package>/license', service.packageLicense);
+  router.add('GET', r'/packages/<package>/publisher', service.packagePublisher);
   router.add('GET', r'/packages/<package>/pubspec', service.packagePubspec);
   router.add('GET', r'/packages/<package>/score', service.packageScore);
   router.add('GET', r'/packages/<package>/versions', service.packageVersions);

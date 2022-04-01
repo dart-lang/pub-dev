@@ -139,6 +139,10 @@ class PubSiteService {
   Future<Response> packageLicense(Request request, String package) =>
       packageLicenseHandler(request, package);
 
+  @Route.get('/packages/<package>/publisher')
+  Future<Response> packagePublisher(Request request, String package) =>
+      packagePublisherHandler(request, package);
+
   @Route.get('/packages/<package>/pubspec')
   Future<Response> packagePubspec(Request request, String package) =>
       packagePubspecHandler(request, package);
