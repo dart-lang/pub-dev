@@ -12,14 +12,14 @@ import 'package:pub_dev/shared/datastore.dart';
 Future<String> executeRemovePublisherAndBlockAllMembers(
     List<String> args) async {
   if (args.isEmpty ||
-      args.length > 2 ||
-      (args.length == 2 && args[1] != 'delete')) {
+      args.length != 2 ||
+      (args[0] != 'delete' && args[0] != 'list')) {
     return 'Remove publisher and blocks all members.\n'
-        '  <tools-command> <publisherId> # list publisher data\n'
-        '  <tools-command> <publisherId> delete # remove publisher and block members\n';
+        '  <tools-command> list <publisherId> # list publisher data\n'
+        '  <tools-command> delete <publisherId> # remove publisher and block members\n';
   }
-  final publisherId = args.first;
-  final isDelete = args.length == 2 && args[1] == 'delete';
+  final command = args[0];
+  final publisherId = args[1];
 
   final publisher = (await publisherBackend.getPublisher(publisherId))!;
   final members = await publisherBackend.listPublisherMembers(publisherId);
@@ -35,19 +35,23 @@ Future<String> executeRemovePublisherAndBlockAllMembers(
     output.writeln(' - ${m.role} ${m.email}');
   }
 
-  if (!isDelete) return output.toString();
-
-  for (final m in members) {
-    await accountBackend.updateBlockedFlag(m.userId, true);
-  }
-
-  final publisherKey = dbService.emptyKey.append(Publisher, id: publisherId);
-  await withRetryTransaction(dbService, (tx) async {
-    tx.delete(publisherKey);
+  if (command == 'list') {
+    return output.toString();
+  } else if (command == 'delete') {
     for (final m in members) {
-      tx.delete(publisherKey.append(PublisherMember, id: m.userId));
+      await accountBackend.updateBlockedFlag(m.userId, true);
     }
-  });
-  output.writeln('Deleted.');
-  return output.toString();
+
+    final publisherKey = dbService.emptyKey.append(Publisher, id: publisherId);
+    await withRetryTransaction(dbService, (tx) async {
+      tx.delete(publisherKey);
+      for (final m in members) {
+        tx.delete(publisherKey.append(PublisherMember, id: m.userId));
+      }
+    });
+    output.writeln('Deleted.');
+    return output.toString();
+  } else {
+    return 'Unknown command: $command.';
+  }
 }
