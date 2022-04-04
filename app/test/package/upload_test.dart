@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:clock/clock.dart';
 import 'package:gcloud/db.dart';
+import 'package:gcloud/storage.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/audit/backend.dart';
@@ -16,6 +17,7 @@ import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/package/upload_signer_service.dart';
 import 'package:pub_dev/service/secret/backend.dart';
+import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
@@ -53,7 +55,10 @@ void main() {
       testWithProfile('uploaded zero-length file', fn: () async {
         await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
           // create empty file
-          await tarballStorage.bucket.write('tmp/$uploadId').close();
+          await storageService
+              .bucket(activeConfiguration.packageBucketName!)
+              .write('tmp/$uploadId')
+              .close();
 
           final rs = packageBackend.publishUploadedBlob(uploadId);
           await expectLater(
@@ -77,7 +82,10 @@ void main() {
           // Add one more byte than allowed.
           bigTarball.add([1]);
 
-          final sink = tarballStorage.bucket.write('tmp/$uploadId');
+          final bucket =
+              storageService.bucket(activeConfiguration.packageBucketName!);
+          // TODO: use the fake storage server HTTP port to upload
+          final sink = bucket.write('tmp/$uploadId');
           bigTarball.forEach(sink.add);
           await sink.close();
 
@@ -98,7 +106,10 @@ void main() {
               await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
           final dateBeforeTest = clock.now().toUtc();
           final pubspecContent = generatePubspecYaml('new_package', '1.2.3');
-          await tarballStorage.bucket.writeBytes('tmp/$uploadId',
+          final bucket =
+              storageService.bucket(activeConfiguration.packageBucketName!);
+          // TODO: use the fake storage server HTTP port to upload
+          await bucket.writeBytes('tmp/$uploadId',
               await packageArchiveBytes(pubspecContent: pubspecContent));
 
           final version = await packageBackend.publishUploadedBlob(uploadId);
@@ -175,7 +186,10 @@ void main() {
               await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
           final dateBeforeTest = clock.now().toUtc();
           final pubspecContent = generatePubspecYaml('neon', '7.0.0');
-          await tarballStorage.bucket.writeBytes('tmp/$uploadId',
+          final bucket =
+              storageService.bucket(activeConfiguration.packageBucketName!);
+          // TODO: use the fake storage server HTTP port to upload
+          await bucket.writeBytes('tmp/$uploadId',
               await packageArchiveBytes(pubspecContent: pubspecContent));
 
           final version = await packageBackend.publishUploadedBlob(uploadId);
@@ -512,11 +526,7 @@ void main() {
         ],
       ),
       fn: () async {
-        registerPackageBackend(PackageBackend(
-          dbService,
-          tarballStorage,
-          maxVersionsPerPackageOverride: 100,
-        ));
+        packageBackend.maxVersionsPerPackage = 100;
         await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
           final tarball = await packageArchiveBytes(
               pubspecContent: generatePubspecYaml('busy_pkg', '2.0.0'));

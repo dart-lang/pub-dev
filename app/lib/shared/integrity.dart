@@ -463,7 +463,8 @@ class IntegrityChecker {
       yield 'PackageVersion "${pv.qualifiedVersionKey}" is retracted, but `retracted` property is null.';
     }
     if (!envConfig.isRunningLocally) {
-      final info = await tarballStorage.info(pv.package, pv.version!);
+      final info =
+          await packageBackend.packageTarballinfo(pv.package, pv.version!);
       if (info == null) {
         yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching archive file.';
       }

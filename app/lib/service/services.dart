@@ -152,6 +152,7 @@ Future<R> withFakeServices<R>({
       configuration!.canonicalPackagesBucketName!,
       configuration!.publicPackagesBucketName!,
       configuration!.incomingPackagesBucketName!,
+      configuration!.packageBucketName!,
     ];
     for (final bucketName in bucketsToCreate) {
       await getOrCreateBucket(storage, bucketName);
@@ -210,20 +211,17 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerSecretBackend(SecretBackend(dbService));
     registerSnapshotStorage(SnapshotStorage(await getOrCreateBucket(
         storageService, activeConfiguration.searchSnapshotBucketName!)));
-    registerTarballStorage(
-      TarballStorage(
-          storageService,
-          await getOrCreateBucket(
-              storageService, activeConfiguration.packageBucketName!)),
-    );
-
     registerImageStorage(ImageStorage(await getOrCreateBucket(
         storageService, activeConfiguration.imageBucketName!)));
 
     registerYoutubeBackend(YoutubeBackend());
 
     // depends on previously registered services
-    registerPackageBackend(PackageBackend(dbService, tarballStorage));
+    registerPackageBackend(PackageBackend(
+      dbService,
+      storageService,
+      storageService.bucket(activeConfiguration.packageBucketName!),
+    ));
     await setupCache();
 
     registerScopeExitCallback(announcementBackend.close);
