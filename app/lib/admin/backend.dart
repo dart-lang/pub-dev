@@ -35,7 +35,9 @@ import '../shared/exceptions.dart';
 import '../shared/tags.dart';
 import '../tool/utils/dart_sdk_version.dart';
 import 'tools/list_package_withheld.dart';
+import 'tools/remove_publisher_and_block_all_members.dart';
 import 'tools/set_package_withheld.dart';
+import 'tools/set_user_blocked.dart';
 import 'tools/user_merger.dart';
 
 final _logger = Logger('pub.admin.backend');
@@ -79,8 +81,12 @@ class AdminBackend {
     switch (tool) {
       case 'list-package-withheld':
         return await executeListPackageWithheld(args);
+      case 'remove-publisher-and-delete-all-members':
+        return await executeRemovePublisherAndBlockAllMembers(args);
       case 'set-package-withheld':
         return await executeSetPackageWithheld(args);
+      case 'set-user-blocked':
+        return await executeSetUserBlocked(args);
       case 'user-merger':
         return await executeUserMergerTool(args);
     }
