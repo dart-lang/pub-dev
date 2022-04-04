@@ -111,7 +111,7 @@ class _File implements File {
   int get modificationStamp => _delegate.modificationStamp;
 
   @override
-  Folder get parent2 => _delegate.parent2;
+  Folder get parent2 => _delegate.parent;
 
   @override
   String get path => _delegate.path;
@@ -150,6 +150,9 @@ class _File implements File {
   void writeAsStringSync(String content) {
     writeAsBytesSync(utf8.encode(content));
   }
+
+  @override
+  Folder get parent => _delegate.parent;
 }
 
 /// Allows the override of [resourceProvider].

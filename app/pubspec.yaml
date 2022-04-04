@@ -27,7 +27,7 @@ dependencies:
   json_annotation: '^4.3.0'
   lints: ^1.0.0
   logging: '>=0.9.3 <2.0.0'
-  markdown: ^4.0.0
+  markdown: ^5.0.0
   meta: ^1.1.2
   mime: '>=0.9.3 <2.0.0'
   neat_cache: ^2.0.1
@@ -68,4 +68,7 @@ dev_dependencies:
   shelf_router_generator: ^1.0.0
   source_gen: '^1.0.0'
   test: ^1.16.5
-  xml: ^5.0.0
+  xml: ^6.0.0
+
+dependency_overrides:
+  markdown: ^5.0.0 # remove after pana is also depending on this
