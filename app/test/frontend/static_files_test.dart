@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Tags(['presubmit-only'])
+// @Tags(['presubmit-only'])
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:http/http.dart' as http;
 import 'package:pub_dev/frontend/static_files.dart';
@@ -13,6 +15,24 @@ import 'package:test/test.dart';
 
 void main() {
   setUpAll(() => updateLocalBuiltFilesIfNeeded());
+
+  group('ParsedStaticUrl', () {
+    test('normal URL', () {
+      final url =
+          ParsedStaticUrl.parse(Uri.parse('/static/css/main.css?hash=123'));
+      expect(url.urlHash, '123');
+      expect(url.pathHash, isNull);
+      expect(url.filePath, '/static/css/main.css');
+    });
+
+    test('hashed URL', () {
+      final url =
+          ParsedStaticUrl.parse(Uri.parse('/static/hash-abc1234/css/main.css'));
+      expect(url.urlHash, isNull);
+      expect(url.pathHash, 'abc1234');
+      expect(url.filePath, '/static/css/main.css');
+    });
+  });
 
   group('dartdoc assets', () {
     Future<void> checkAsset(String url, String path) async {
@@ -54,6 +74,23 @@ void main() {
     setUpAll(() async {
       await updateLocalBuiltFilesIfNeeded();
       cache = StaticFileCache.withDefaults();
+    });
+
+    test('has a short etag', () {
+      expect(cache.etag, hasLength(8));
+    });
+
+    test('etag changes', () {
+      final c = StaticFileCache();
+      c.addFile(StaticFile('/static/e1.txt', 'text/plain', utf8.encode('abc'),
+          clock.now(), 'etag1'));
+      final e1 = c.etag;
+      expect(e1, hasLength(8));
+      c.addFile(StaticFile('/static/e2.txt', 'text/plain', utf8.encode('abc2'),
+          clock.now(), 'etag2'));
+      final e2 = c.etag;
+      expect(e2, hasLength(8));
+      expect(e2, isNot(e1));
     });
 
     test('third-party files are copied', () {

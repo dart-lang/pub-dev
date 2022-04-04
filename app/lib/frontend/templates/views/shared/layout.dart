@@ -115,7 +115,8 @@ d.Node pageLayoutNode({
               defer: true,
             ),
             d.script(
-              src: staticUrls.getAssetUrl('/static/js/script.dart.js'),
+              src: staticUrls.getAssetUrl('/static/js/script.dart.js',
+                  usePathHash: true),
               defer: true,
             ),
             d.meta(
