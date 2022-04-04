@@ -84,6 +84,7 @@ void main() {
 
           final bucket =
               storageService.bucket(activeConfiguration.packageBucketName!);
+          // TODO: use the fake storage server HTTP port to upload
           final sink = bucket.write('tmp/$uploadId');
           bigTarball.forEach(sink.add);
           await sink.close();
@@ -107,6 +108,7 @@ void main() {
           final pubspecContent = generatePubspecYaml('new_package', '1.2.3');
           final bucket =
               storageService.bucket(activeConfiguration.packageBucketName!);
+          // TODO: use the fake storage server HTTP port to upload
           await bucket.writeBytes('tmp/$uploadId',
               await packageArchiveBytes(pubspecContent: pubspecContent));
 
@@ -186,6 +188,7 @@ void main() {
           final pubspecContent = generatePubspecYaml('neon', '7.0.0');
           final bucket =
               storageService.bucket(activeConfiguration.packageBucketName!);
+          // TODO: use the fake storage server HTTP port to upload
           await bucket.writeBytes('tmp/$uploadId',
               await packageArchiveBytes(pubspecContent: pubspecContent));
 

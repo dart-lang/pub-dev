@@ -62,6 +62,11 @@ PackageBackend get packageBackend =>
 /// Represents the backend for the pub site.
 class PackageBackend {
   final DatastoreDB db;
+
+  /// The Cloud Storage bucket to use for uploaded package content.
+  /// The following files are present:
+  /// - `packages/$package-$version.tar.gz` (package archive)
+  /// - `tmp/$guid` (incoming package archive that was uploaded, but not yet processed)
   final Bucket _bucket;
   final Storage _storage;
 
