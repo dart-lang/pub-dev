@@ -37,18 +37,21 @@ String renderAccountPackagesPage({
   required String? nextPackage,
 }) {
   String title = 'My packages';
-  if (startPackage != null && startPackage.isNotEmpty) {
+  final hasStartPackage = startPackage != null && startPackage.isNotEmpty;
+  if (hasStartPackage) {
     title += ' | starting with $startPackage';
   }
 
   final hasNoPackage = startPackage == null && packageHits.isEmpty;
 
+  final prefix = 'List of your packages without a verified publisher';
   final tabContent = d.fragment([
     if (hasNoPackage)
-      d.p(text: 'You have no package where you are an uploader.')
+      d.p(text: '$prefix: you have no package where you are an uploader.')
+    else if (hasStartPackage)
+      d.markdown('$prefix, starting with `$startPackage`:')
     else
-      d.markdown(
-          'List of your packages starting with `${startPackage ?? packageHits.first.name}`:'),
+      d.p(text: '$prefix:'),
     listOfPackagesNode(
       highlightedHit: null,
       sdkLibraryHits: [],
