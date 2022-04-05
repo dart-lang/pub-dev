@@ -73,7 +73,6 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
       // retrying auth client for storage service
       final authClient = await auth
           .clientViaApplicationDefaultCredentials(scopes: [...Storage.SCOPES]);
-      registerScopeExitCallback(() async => authClient.close());
       final retryingAuthClient = httpRetryClient(innerClient: authClient);
       registerScopeExitCallback(() async => retryingAuthClient.close());
 
