@@ -104,7 +104,7 @@ a {
 }
 
 main {
-  min-height: calc(100vh - 222px); // top nav (50) + footer with margin (80+92)
+  min-height: calc(100vh - 130px); // top nav (50) + footer (80)
 }
 
 /* Useful for synchronizing the alignment of different page blocks. */
