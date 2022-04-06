@@ -10,6 +10,7 @@ import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
+import 'package:logging/logging.dart';
 import 'package:shelf/shelf_io.dart';
 
 import '../account/backend.dart';
@@ -53,6 +54,7 @@ import '../tool/utils/http.dart';
 import 'announcement/backend.dart';
 import 'secret/backend.dart';
 
+final _logger = Logger('pub.services');
 final _pubDevServicesInitializedKey = '_pubDevServicesInitializedKey';
 
 /// Run [fn] with services;
@@ -236,8 +238,22 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerScopeExitCallback(youtubeBackend.close);
 
     // Create a zone-local flag to indicate that services setup has been completed.
-    return await fork(() => Zone.current.fork(zoneValues: {
-          _pubDevServicesInitializedKey: true,
-        }).run(() async => await fn()));
+    return await fork(
+      () => Zone.current.fork(zoneValues: {
+        _pubDevServicesInitializedKey: true,
+      }).run(
+        () async {
+          _logger.info('Starting services scope...');
+          try {
+            return await fn();
+          } catch (e, st) {
+            _logger.severe('Uncaught exception inside services scope.', e, st);
+            rethrow;
+          } finally {
+            _logger.info('Exiting services scope.');
+          }
+        },
+      ),
+    );
   }) as R;
 }
