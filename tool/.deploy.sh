@@ -1,6 +1,11 @@
-#!/bin/bash -e
+#!/bin/bash
 
 # This script is used by .deploy.yaml
+
+# Always exit on error
+set -e
+# Print an error message, if exiting non-zero
+trap 'if [ $? -ne 0 ]; then echo "Deployment failed!"; fi' EXIT
 
 # This only works with PROJECT_ID defined
 if [ -z "$PROJECT_ID" ]; then
