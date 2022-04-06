@@ -261,6 +261,9 @@ Future startIsolates({
             await startWorkerIsolate();
           }
         }
+        // TODO: catch appengine termination signal, exit isolates and current scope
+        // do not exit the scope
+        await Completer().future;
       });
     } catch (e, st) {
       logger.shout('Failed to start server.', e, st);

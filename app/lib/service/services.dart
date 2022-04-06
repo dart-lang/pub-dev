@@ -76,7 +76,8 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
       final authClient = await auth
           .clientViaApplicationDefaultCredentials(scopes: [...Storage.SCOPES]);
       final retryingAuthClient = httpRetryClient(innerClient: authClient);
-      registerScopeExitCallback(() async => retryingAuthClient.close());
+      // TODO: investigate why this is called twice
+      // registerScopeExitCallback(() async => retryingAuthClient.close());
 
       // override storageService with retrying http client
       registerStorageService(
