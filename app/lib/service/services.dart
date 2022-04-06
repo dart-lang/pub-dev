@@ -243,14 +243,14 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
         _pubDevServicesInitializedKey: true,
       }).run(
         () async {
-          _logger.info('Starting services scope...');
+          _logger.info('Started running inside services scope...');
           try {
             return await fn();
           } catch (e, st) {
             _logger.severe('Uncaught exception inside services scope.', e, st);
             rethrow;
           } finally {
-            _logger.info('Exiting services scope.');
+            _logger.warning('Exiting services scope.');
           }
         },
       ),
