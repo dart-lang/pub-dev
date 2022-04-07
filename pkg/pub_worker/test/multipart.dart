@@ -1,7 +1,8 @@
 import 'dart:io' show HttpHeaders;
-import 'package:shelf/shelf.dart';
-import 'package:mime/mime.dart';
+
 import 'package:http_parser/http_parser.dart';
+import 'package:mime/mime.dart';
+import 'package:shelf/shelf.dart';
 
 /// Auxiliary function to read multipart requests to shelf.
 Stream<MimeMultipart> readMultiparts(Request request) {
@@ -19,5 +20,5 @@ Stream<MimeMultipart> readMultiparts(Request request) {
   if (boundary == null) {
     throw StateError('request must be multipart');
   }
-  return request.read().transform(MimeMultipartTransformer(boundary));
+  return MimeMultipartTransformer(boundary).bind(request.read());
 }

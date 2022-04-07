@@ -121,10 +121,10 @@ Future<void> _analyzePackage(
     Summary? summary;
     if (hasPanaSummary) {
       try {
-        summary = Summary.fromJson(
-          json.decode(await panaSummaryFile.readAsString())
-              as Map<String, Object>,
-        );
+        final summaryJson = json.decode(await panaSummaryFile.readAsString());
+        if (summaryJson != null) {
+          summary = Summary.fromJson(summaryJson as Map<String, dynamic>);
+        }
       } on Exception catch (e) {
         log.writeln('ERROR: unable to load pana-summary.json, $e');
       }

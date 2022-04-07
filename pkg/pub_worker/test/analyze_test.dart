@@ -7,8 +7,8 @@ import 'dart:convert' show json, utf8;
 import 'dart:io' show HttpServer, gzip;
 import 'dart:typed_data';
 
-import 'package:client_data/package_api.dart';
-import 'package:client_data/task_api.dart';
+import 'package:_pub_shared/data/package_api.dart';
+import 'package:_pub_shared/data/task_api.dart';
 import 'package:indexed_blob/indexed_blob.dart';
 import 'package:logging/logging.dart' show Logger, Level, LogRecord;
 import 'package:pub_worker/pana_report.dart';
@@ -126,6 +126,10 @@ void main() {
         callback: 'http://localhost:${server.port}',
         versions: [
           VersionTokenPair(
+            version: '3.0.0',
+            token: 'secret-token',
+          ),
+          VersionTokenPair(
             version: '3.0.1',
             token: 'secret-token',
           ),
@@ -158,7 +162,7 @@ void main() {
         // Check that report contains the logId
         final report = PanaReport.fromJson(
           json.fuse(utf8).decode(files['retry/3.0.0/pana-report.json']!)
-              as Map<String, Object>,
+              as Map<String, dynamic>,
         );
         expect(report.logId, '42');
 

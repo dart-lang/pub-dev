@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
 import 'package:pub_worker/src/utils.dart';
+import 'package:test/test.dart';
 
 void main() {
   test('streamToBuffer', () async {
