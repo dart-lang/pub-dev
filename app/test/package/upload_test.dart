@@ -40,9 +40,9 @@ void main() {
         await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
           final info = await packageBackend.startUpload(redirectUri);
           expect(info.url, startsWith('http://localhost:'));
-          expect(info.url, contains('/fake-bucket-pub/tmp/'));
+          expect(info.url, contains('/fake-incoming-packages/tmp/'));
           expect(info.fields, {
-            'key': startsWith('fake-bucket-pub/tmp/'),
+            'key': startsWith('fake-incoming-packages/tmp/'),
             'success_action_redirect': startsWith('$redirectUri?upload_id='),
           });
         });

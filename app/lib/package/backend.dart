@@ -62,18 +62,23 @@ PackageBackend get packageBackend =>
 /// Represents the backend for the pub site.
 class PackageBackend {
   final DatastoreDB db;
+  final Storage _storage;
 
   /// The Cloud Storage bucket to use for uploaded package content.
   /// The following files are present:
   /// - `packages/$package-$version.tar.gz` (package archive)
   /// - `tmp/$guid` (incoming package archive that was uploaded, but not yet processed)
   final Bucket _bucket;
-  final Storage _storage;
+
+  /// The Cloud Storage bucket to use for incoming package archives.
+  /// The following files are present:
+  /// - `tmp/$guid` (incoming package archive that was uploaded, but not yet processed)
+  final Bucket _incomingBucket;
 
   @visibleForTesting
   int maxVersionsPerPackage = _defaultMaxVersionsPerPackage;
 
-  PackageBackend(this.db, this._storage, this._bucket);
+  PackageBackend(this.db, this._storage, this._bucket, this._incomingBucket);
 
   /// Whether the package exists and is not withheld or deleted.
   Future<bool> isPackageVisible(String package) async {
@@ -679,7 +684,7 @@ class PackageBackend {
     final guid = createUuid();
     _logger.info('Starting semi-async upload (uuid: $guid)');
     final object = tmpObjectName(guid);
-    await data.pipe(_bucket.write(object));
+    await data.pipe(_incomingBucket.write(object));
     return await publishUploadedBlob(guid);
   }
 
@@ -698,7 +703,7 @@ class PackageBackend {
 
     final guid = createUuid();
     final String object = tmpObjectName(guid);
-    final String bucket = _bucket.bucketName;
+    final String bucket = _incomingBucket.bucketName;
     final Duration lifetime = const Duration(minutes: 10);
 
     final url = redirectUrl.resolve('?upload_id=$guid');
@@ -725,7 +730,17 @@ class PackageBackend {
 
     return await withTempDirectory((Directory dir) async {
       final filename = '${dir.absolute.path}/tarball.tar.gz';
-      final info = await _bucket.tryInfo(tmpObjectName(guid));
+      var incomingBucket = _incomingBucket;
+      var info = await incomingBucket.tryInfo(tmpObjectName(guid));
+      if (info == null) {
+        // During version migration, there is a chance that the upload starts
+        // into the old bucket, while the finish operation hits a new instance.
+        // If there is no file in the incoming bucket, we will fall back
+        // to use the default bucket for now.
+        // TODO: remove this fallback after the release gets stable.
+        info = await _bucket.tryInfo(tmpObjectName(guid));
+        incomingBucket = _bucket;
+      }
       if (info?.length == null) {
         throw PackageRejectedException.archiveEmpty();
       }
@@ -733,7 +748,8 @@ class PackageBackend {
         throw PackageRejectedException.archiveTooLarge(
             UploadSignerService.maxUploadSize);
       }
-      await _saveTarballToFS(_bucket.read(tmpObjectName(guid)), filename);
+      await _saveTarballToFS(
+          incomingBucket.read(tmpObjectName(guid)), filename);
       _logger.info('Examining tarball content ($guid).');
       final sw = Stopwatch()..start();
       final archive = await summarizePackageArchive(
@@ -782,7 +798,8 @@ class PackageBackend {
       sw.reset();
       final version = await _performTarballUpload(
         user,
-        (package, version) => _uploadViaTempObject(guid, package, version),
+        (package, version) =>
+            _uploadViaTempObject(incomingBucket, guid, package, version),
         restriction,
         archive,
       );
@@ -790,7 +807,7 @@ class PackageBackend {
       _logger.info('Removing temporary object $guid.');
 
       sw.reset();
-      await _bucket.delete(tmpObjectName(guid));
+      await incomingBucket.delete(tmpObjectName(guid));
       _logger.info('Temporary object removed in ${sw.elapsed}.');
       return version;
     });
@@ -798,12 +815,16 @@ class PackageBackend {
 
   /// Makes a temporary object a new tarball.
   Future<void> _uploadViaTempObject(
-      String guid, String package, String version) async {
+    Bucket incomingBucket,
+    String guid,
+    String package,
+    String version,
+  ) async {
     final object = tarballObjectName(package, version);
 
     // Copy the temporary object to it's destination place.
     await _storage.copyObject(
-      _bucket.absoluteObjectName(tmpObjectName(guid)),
+      incomingBucket.absoluteObjectName(tmpObjectName(guid)),
       _bucket.absoluteObjectName(object),
     );
 
