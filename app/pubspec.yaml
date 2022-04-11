@@ -48,7 +48,7 @@ dependencies:
   watcher: ^1.0.0
   yaml: '^3.0.0'
   # pana version to be pinned
-  pana: '0.21.10'
+  pana: '0.21.11'
   # 3rd-party packages with pinned versions
   buffer: '1.1.1'
   mailer: '5.1.0'
@@ -69,6 +69,3 @@ dev_dependencies:
   source_gen: '^1.0.0'
   test: ^1.16.5
   xml: ^6.0.0
-
-dependency_overrides:
-  markdown: ^5.0.0 # remove after pana is also depending on this
