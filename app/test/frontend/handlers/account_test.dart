@@ -11,6 +11,8 @@ import '../../shared/test_services.dart';
 import '_utils.dart';
 
 void main() {
+  setUpAll(() => updateLocalBuiltFilesIfNeeded());
+
   group('bad authorization header', () {
     testWithProfile('no issue on public pages', fn: () async {
       await expectHtmlResponse(
