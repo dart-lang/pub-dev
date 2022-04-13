@@ -188,7 +188,7 @@ pre {
     right: 4px;
     width: 20px;
     height: 20px;
-    background: url("/static/img/content-copy-icon.svg?hash=fg6h81ph6ii0740g39jkvci8jiqi2j4p");
+    background: url("../img/content-copy-icon.svg");
     background-position: center;
     background-repeat: no-repeat;
     background-size: 16px 16px;
@@ -269,7 +269,7 @@ pre {
 
 ._banner-bg {
   background: $color-searchbar-dark-bg;
-  background-image: url("/static/img/hero-bg-static.svg?hash=pvblnkq8qgr4g10hr78tnibbr2qdpuqt");
+  background-image: url("../img/hero-bg-static.svg");
   background-size: cover;
   color: $color-searchbar-dark-fg;
   padding: 10px 0px;

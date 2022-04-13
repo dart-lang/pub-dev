@@ -158,6 +158,10 @@ class HeadlessEnv {
 
       final uri = Uri.parse(rs.url);
       if (uri.pathSegments.length > 1 && uri.pathSegments.first == 'static') {
+        if (!uri.pathSegments[1].startsWith('hash-')) {
+          serverErrors.add('Static ${rs.url} is without hash URL.');
+        }
+
         final cacheHeader = rs.headers[HttpHeaders.cacheControlHeader];
         if (cacheHeader == null ||
             !cacheHeader.contains('public') ||

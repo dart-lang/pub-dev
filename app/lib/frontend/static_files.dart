@@ -202,7 +202,7 @@ class StaticFile {
 
   String get contentAsString => utf8.decode(bytes);
 
-  late final String cacheableUrl =
+  late final String _cacheableUrl =
       Uri(path: requestPath, queryParameters: {'hash': etag}).toString();
 
   late final gzippedBytes = GZipCodec(level: 9).encode(bytes);
@@ -235,18 +235,15 @@ class StaticUrls {
   StaticUrls._();
 
   /// Returns the hashed URL of the static resource like:
-  /// `/static/img/logo.gif => /static/img/logo.gif?hash=etag_hash`
-  String getAssetUrl(
-    String requestPath, {
-    bool usePathHash = false,
-  }) {
+  /// `/static/img/logo.gif => /static/hash-<hash>/img/logo.gif`
+  String getAssetUrl(String requestPath) {
     final file = staticFileCache.getFile(requestPath);
     if (file == null) {
       throw Exception('Static resource not found: $requestPath');
-    } else if (usePathHash && requestPath.startsWith('/static/')) {
+    } else if (requestPath.startsWith('/static/')) {
       return '/static/hash-${staticFileCache.etag}/${requestPath.substring(8)}';
     } else {
-      return file.cacheableUrl;
+      return file._cacheableUrl;
     }
   }
 }
