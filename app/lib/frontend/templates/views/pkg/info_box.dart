@@ -34,13 +34,15 @@ d.Node packageInfoBoxNode({
   final version = data.version!;
   d.Node? license;
   if (data.versionInfo?.hasLicense ?? false) {
-    var licenseFile = data.scoreCard?.panaReport?.licenseFile;
-    if (licenseFile != null && data.scoreCard?.panaReport == null) {
-      licenseFile = LicenseFile('LICENSE', 'pending analysis');
+    final licenseFile = data.scoreCard?.panaReport?.licenseFile;
+    final licenses = data.scoreCard?.panaReport?.licenses ?? <License>[];
+    if (licenses.isEmpty) {
+      licenses.add(licenseFile == null
+          ? License(path: 'LICENSE', spdxIdentifier: 'unknown')
+          : License(path: licenseFile.path, spdxIdentifier: licenseFile.name));
     }
-    licenseFile ??= LicenseFile('LICENSE', 'unknown');
     license = _licenseNode(
-      licenseFile: licenseFile,
+      licenses: licenses,
       licenseUrl: urls.pkgLicenseUrl(
         data.package!.name!,
         version: data.isLatestStable ? null : data.version!.version,
@@ -140,12 +142,14 @@ d.Node _linkAndBr(InfoBoxLink link) {
 }
 
 d.Node? _licenseNode({
-  required LicenseFile licenseFile,
+  required List<License> licenses,
   required String licenseUrl,
 }) {
+  final paths = licenses.map((e) => e.path).toSet().toList();
+  final ids = licenses.map((e) => e.spdxIdentifier).toSet().toList();
   return d.fragment([
-    d.text('${licenseFile.shortFormatted} ('),
-    d.a(href: licenseUrl, text: licenseFile.path),
+    d.text('${ids.join(', ')} ('),
+    d.a(href: licenseUrl, text: paths.join(', ')),
     d.text(')'),
   ]);
 }
