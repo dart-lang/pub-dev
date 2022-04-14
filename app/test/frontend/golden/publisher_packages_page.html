@@ -6,17 +6,17 @@
     <meta charset="utf-8"/>
     <meta http-equiv="x-ua-compatible" content="ie=edge"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="robots" content="noindex"/>
     <meta name="twitter:card" content="summary"/>
     <meta name="twitter:site" content="@dart_lang"/>
     <meta name="twitter:description" content="Pub is the package manager for the Dart programming language, containing reusable libraries &amp; packages for Flutter, AngularDart, and general Dart programs."/>
     <meta name="twitter:image" content="https://pub.dev/static/hash-%%etag%%/img/pub-dev-icon-cover-image.png"/>
     <meta property="og:type" content="website"/>
     <meta property="og:site_name" content="Dart packages"/>
-    <meta property="og:title" content="Packages of publisher example.com"/>
+    <meta property="og:title" content="Publisher example.com"/>
     <meta property="og:description" content="Pub is the package manager for the Dart programming language, containing reusable libraries &amp; packages for Flutter, AngularDart, and general Dart programs."/>
     <meta property="og:image" content="https://pub.dev/static/hash-%%etag%%/img/pub-dev-icon-cover-image.png"/>
-    <meta property="og:url" content="https://pub.dev/publishers/example.com/packages"/>
-    <title>Packages of publisher example.com</title>
+    <title>Publisher example.com</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Google+Sans:300,400,500|Google+Sans+Display:400|Roboto:300,400,500,700|Roboto+Mono:300,400,700&amp;display=swap"/>
     <meta content="/static/hash-%%etag%%/img/pub-dev-icon-cover-image.png"/>
     <link rel="shortcut icon" href="/favicon.ico?hash=mocked_hash_985685822"/>
@@ -43,6 +43,11 @@
       </a>
       <div class="site-header-space"></div>
       <div class="site-header-mask"></div>
+      <div class="site-header-search">
+        <form action="/packages" method="GET">
+          <input class="site-header-search-input" name="q" placeholder="New search..." autocomplete="on"/>
+        </form>
+      </div>
       <div class="site-header-nav scroll-container">
         <div class="nav-login-container">
           <button id="-account-login" class="nav-main-button link">Sign in</button>
@@ -104,15 +109,7 @@
       </div>
     </div>
     <div id="banner-container"></div>
-    <div class="_banner-bg">
-      <div class="container">
-        <form class="search-bar banner-item" action="/publishers/example.com/packages">
-          <input class="input" name="q" placeholder="Search example.com packages" autocomplete="on" autofocus="autofocus"/>
-          <button class="icon" aria-label="search"></button>
-        </form>
-      </div>
-    </div>
-    <main class="-wide-header-detail-page">
+    <main class="container">
       <div class="detail-wrapper -active">
         <div class="detail-header">
           <div class="detail-container">
@@ -144,7 +141,7 @@
             <div class="detail-tabs-wide-header">
               <div class="detail-container">
                 <ul class="detail-tabs-header">
-                  <li class="detail-tab tab-button detail-tab-packages-title -active" role="button">Packages</li>
+                  <li class="detail-tab tab-button detail-tab-about-title -active" role="button">About</li>
                   <li class="detail-tab tab-link detail-tab-admin-title -private" role="button">
                     <a href="/publishers/example.com/admin">Admin</a>
                   </li>
@@ -156,179 +153,41 @@
             </div>
             <div class="detail-container detail-body-main">
               <div class="detail-tabs-content">
-                <section class="tab-content detail-tab-packages-content -active">
-                  <div class="listing-info">
-                    <div class="listing-info-count">
-                      <span class="info-identifier">Results</span>
-                      <span class="count">2</span>
-                      packages owned by
-                      <code>example.com</code>
-                    </div>
-                    <div class="sort-control hoverable">
-                      <div class="info-identifier" title="Packages are sorted by the combination of their overall score and their specificity to the selected platform.">
-                        Sort by
-                        <span class="sort-control-selected">listing relevance</span>
-                      </div>
-                      <div class="sort-control-popup">
-                        <div class="sort-control-option selected" data-value="listing_relevance">listing relevance</div>
-                        <div class="sort-control-option" data-value="top">overall score</div>
-                        <div class="sort-control-option" data-value="updated">recently updated</div>
-                        <div class="sort-control-option" data-value="created">newest package</div>
-                        <div class="sort-control-option" data-value="like">most likes</div>
-                        <div class="sort-control-option" data-value="points">most pub points</div>
-                        <div class="sort-control-option" data-value="popularity">popularity</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="packages">
-                    <div class="packages-item">
-                      <div class="packages-header">
-                        <h3 class="packages-title">
-                          <a href="/packages/neon">neon</a>
-                        </h3>
-                        <div class="packages-recent">
-                          <img class="packages-recent-icon" src="/static/hash-%%etag%%/img/schedule-icon.svg" alt="icon indicating recent time" width="10" height="10" title="new package"/>
-                          Added
-                          <b>%%x-ago%%</b>
+                <section class="tab-content detail-tab-about-content -active">
+                  <div class="home-block home-block-publisher">
+                    <div class="home-block-content">
+                      <h1 class="home-block-title">Popular packages</h1>
+                      <p class="home-block-context-info">Some of the most popular packages of this publisher.</p>
+                      <div class="mini-list">
+                        <div class="mini-list-item">
+                          <a class="mini-list-item-title" href="/packages/neon" data-ga-click-event="landing-publisher-packages-card-title">
+                            <h3>neon</h3>
+                          </a>
+                          <div class="mini-list-item-body">
+                            <p class="mini-list-item-description">neon is awesome</p>
+                          </div>
+                          <div class="mini-list-item-footer">
+                            <div class="mini-list-item-publisher">
+                              <img class="publisher-badge" src="/static/hash-%%etag%%/img/material-icon-verified.svg" alt="verified publisher icon" width="14" height="14" title="Published by a pub.dev verified publisher"/>
+                              <a class="publisher-link" href="/publishers/example.com" data-ga-click-event="landing-publisher-packages-card-publisher">example.com</a>
+                            </div>
+                          </div>
                         </div>
-                        <a class="packages-scores" href="/packages/neon/score">
-                          <div class="packages-score packages-score-like">
-                            <div class="packages-score-value -has-value">
-                              <span class="packages-score-value-number">0</span>
-                              <span class="packages-score-value-sign"></span>
-                            </div>
-                            <div class="packages-score-label">likes</div>
+                        <div class="mini-list-item">
+                          <a class="mini-list-item-title" href="/packages/flutter_titanium" data-ga-click-event="landing-publisher-packages-card-title">
+                            <h3>flutter_titanium</h3>
+                          </a>
+                          <div class="mini-list-item-body">
+                            <p class="mini-list-item-description">flutter_titanium is awesome</p>
                           </div>
-                          <div class="packages-score packages-score-health">
-                            <div class="packages-score-value -has-value">
-                              <span class="packages-score-value-number">43</span>
-                              <span class="packages-score-value-sign"></span>
-                            </div>
-                            <div class="packages-score-label">pub points</div>
-                          </div>
-                          <div class="packages-score packages-score-popularity">
-                            <div class="packages-score-value -has-value">
-                              <span class="packages-score-value-number">12</span>
-                              <span class="packages-score-value-sign">%</span>
-                            </div>
-                            <div class="packages-score-label">popularity</div>
-                          </div>
-                        </a>
-                      </div>
-                      <p class="packages-description">neon is awesome</p>
-                      <p class="packages-metadata">
-                        <span class="packages-metadata-block">
-                          v
-                          <a href="/packages/neon">1.0.0</a>
-                          (
-                          <span class="-x-ago" title="%%neon-created-date%%">%%x-ago%%</span>
-                          )
-                        </span>
-                        <span class="packages-metadata-block">
-                          <img class="package-vp-icon" src="/static/hash-%%etag%%/img/material-icon-verified.svg" alt="verified publisher icon" width="14" height="14" title="Published by a pub.dev verified publisher"/>
-                          <a href="/publishers/example.com">example.com</a>
-                        </span>
-                        <span class="packages-metadata-block">
-                          <img class="packages-metadata-license-icon" src="/static/hash-%%etag%%/img/material-icon-balance.svg" alt="Icon for licenses." width="16" height="16"/>
-                          unknown
-                        </span>
-                      </p>
-                      <div>
-                        <div class="-pub-tag-badge">
-                          <span class="tag-badge-main">SDK</span>
-                          <a class="tag-badge-sub" href="/packages?q=sdk%3Adart" title="Packages compatible with Dart SDK">Dart</a>
-                          <a class="tag-badge-sub" href="/packages?q=sdk%3Aflutter" title="Packages compatible with Flutter SDK">Flutter</a>
-                        </div>
-                        <div class="-pub-tag-badge">
-                          <span class="tag-badge-main">Platform</span>
-                          <a class="tag-badge-sub" href="/packages?q=platform%3Aandroid" title="Packages compatible with Android platform">Android</a>
-                          <a class="tag-badge-sub" href="/packages?q=platform%3Aios" title="Packages compatible with iOS platform">iOS</a>
-                          <a class="tag-badge-sub" href="/packages?q=platform%3Alinux" title="Packages compatible with Linux platform">Linux</a>
-                          <a class="tag-badge-sub" href="/packages?q=platform%3Amacos" title="Packages compatible with macOS platform">macOS</a>
-                          <a class="tag-badge-sub" href="/packages?q=platform%3Aweb" title="Packages compatible with Web platform">web</a>
-                          <a class="tag-badge-sub" href="/packages?q=platform%3Awindows" title="Packages compatible with Windows platform">Windows</a>
+                          <div class="mini-list-item-footer"></div>
                         </div>
                       </div>
-                    </div>
-                    <div class="packages-item">
-                      <div class="packages-header">
-                        <h3 class="packages-title">
-                          <a href="/packages/flutter_titanium">flutter_titanium</a>
-                        </h3>
-                        <div class="packages-recent">
-                          <img class="packages-recent-icon" src="/static/hash-%%etag%%/img/schedule-icon.svg" alt="icon indicating recent time" width="10" height="10" title="new package"/>
-                          Added
-                          <b>%%x-ago%%</b>
-                        </div>
-                        <a class="packages-scores" href="/packages/flutter_titanium/score">
-                          <div class="packages-score packages-score-like">
-                            <div class="packages-score-value -has-value">
-                              <span class="packages-score-value-number">0</span>
-                              <span class="packages-score-value-sign"></span>
-                            </div>
-                            <div class="packages-score-label">likes</div>
-                          </div>
-                          <div class="packages-score packages-score-health">
-                            <div class="packages-score-value -has-value">
-                              <span class="packages-score-value-number">24</span>
-                              <span class="packages-score-value-sign"></span>
-                            </div>
-                            <div class="packages-score-label">pub points</div>
-                          </div>
-                          <div class="packages-score packages-score-popularity">
-                            <div class="packages-score-value -has-value">
-                              <span class="packages-score-value-number">43</span>
-                              <span class="packages-score-value-sign">%</span>
-                            </div>
-                            <div class="packages-score-label">popularity</div>
-                          </div>
-                        </a>
-                      </div>
-                      <p class="packages-description">flutter_titanium is awesome</p>
-                      <p class="packages-metadata">
-                        <span class="packages-metadata-block">
-                          v
-                          <a href="/packages/flutter_titanium">1.10.0</a>
-                          (
-                          <span class="-x-ago" title="%%neon-created-date%%">%%x-ago%%</span>
-                          )
-                        </span>
-                        <span class="packages-metadata-block">
-                          <img class="packages-metadata-license-icon" src="/static/hash-%%etag%%/img/material-icon-balance.svg" alt="Icon for licenses." width="16" height="16"/>
-                          BSD-3-Clause
-                        </span>
-                      </p>
-                      <div>
-                        <div class="-pub-tag-badge">
-                          <span class="tag-badge-main">SDK</span>
-                          <a class="tag-badge-sub" href="/packages?q=sdk%3Adart" title="Packages compatible with Dart SDK">Dart</a>
-                          <a class="tag-badge-sub" href="/packages?q=sdk%3Aflutter" title="Packages compatible with Flutter SDK">Flutter</a>
-                        </div>
-                        <div class="-pub-tag-badge">
-                          <span class="tag-badge-main">Platform</span>
-                          <a class="tag-badge-sub" href="/packages?q=platform%3Aandroid" title="Packages compatible with Android platform">Android</a>
-                          <a class="tag-badge-sub" href="/packages?q=platform%3Amacos" title="Packages compatible with macOS platform">macOS</a>
-                        </div>
+                      <div class="home-block-view-all left">
+                        <a class="home-block-view-all-link" href="/packages?q=publisher%3Aexample.com" data-ga-click-event="view-all-event">Search the publisher's packages</a>
                       </div>
                     </div>
                   </div>
-                  <ul class="pagination">
-                    <li class="-disabled">
-                      <a rel="prev">
-                        <span>«</span>
-                      </a>
-                    </li>
-                    <li class="-active">
-                      <a>
-                        <span>1</span>
-                      </a>
-                    </li>
-                    <li class="-disabled">
-                      <a rel="next">
-                        <span>»</span>
-                      </a>
-                    </li>
-                  </ul>
                 </section>
               </div>
             </div>

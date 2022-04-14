@@ -43,6 +43,11 @@
       </a>
       <div class="site-header-space"></div>
       <div class="site-header-mask"></div>
+      <div class="site-header-search">
+        <form action="/packages" method="GET">
+          <input class="site-header-search-input" name="q" placeholder="New search..." autocomplete="on"/>
+        </form>
+      </div>
       <div class="site-header-nav scroll-container">
         <div class="nav-login-container">
           <button id="-account-login" class="nav-main-button link">Sign in</button>
@@ -104,15 +109,7 @@
       </div>
     </div>
     <div id="banner-container"></div>
-    <div class="_banner-bg">
-      <div class="container">
-        <form class="search-bar banner-item" action="/packages">
-          <input class="input" name="q" placeholder="Search packages" autocomplete="on" autofocus="autofocus"/>
-          <button class="icon" aria-label="search"></button>
-        </form>
-      </div>
-    </div>
-    <main class="-wide-header-detail-page">
+    <main class="container">
       <div class="detail-wrapper -active">
         <div class="detail-header">
           <div class="detail-container">
@@ -144,8 +141,8 @@
             <div class="detail-tabs-wide-header">
               <div class="detail-container">
                 <ul class="detail-tabs-header">
-                  <li class="detail-tab tab-link detail-tab-packages-title" role="button">
-                    <a href="/publishers/example.com/packages">Packages</a>
+                  <li class="detail-tab tab-link detail-tab-about-title" role="button">
+                    <a href="/publishers/example.com/packages">About</a>
                   </li>
                   <li class="detail-tab tab-button detail-tab-admin-title -active -private" role="button">Admin</li>
                   <li class="detail-tab tab-link detail-tab-activity-log-title -private" role="button">

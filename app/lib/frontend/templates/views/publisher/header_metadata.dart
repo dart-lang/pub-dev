@@ -14,8 +14,6 @@ d.Node publisherHeaderMetadataNode(Publisher publisher) {
   final websiteDisplayable = urls.displayableUrl(publisher.websiteUrl);
 
   return d.fragment([
-    if (publisher.hasDescription)
-      d.p(child: d.markdown(publisher.shortDescription)),
     d.p(children: [
       if (websiteUri != null)
         _ref(
@@ -67,14 +65,4 @@ d.Node _ref({
       text: label,
     ),
   ]);
-}
-
-extension on Publisher {
-  String get shortDescription {
-    if (!hasDescription) {
-      return '';
-    }
-    if (description!.length < 1010) return description!;
-    return '${description!.substring(0, 1000)} [...]';
-  }
 }

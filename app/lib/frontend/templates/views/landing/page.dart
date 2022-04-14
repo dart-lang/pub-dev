@@ -24,7 +24,7 @@ d.Node landingPageNode({
 }) {
   return d.fragment([
     if (_isNotEmptyList(ffPackages))
-      _block(
+      homePageBlockNode(
         shortId: 'ff',
         title: 'Flutter Favorites',
         info: _ffInfo,
@@ -34,7 +34,7 @@ d.Node landingPageNode({
         viewAllEvent: 'landing-flutter-favorites-view-all',
       ),
     if (_isNotEmptyList(mostPopularPackages))
-      _block(
+      homePageBlockNode(
         shortId: 'mp',
         image: d.Image(
           src: staticUrls.getAssetUrl('/static/img/landing-01.png'),
@@ -50,7 +50,7 @@ d.Node landingPageNode({
         viewAllEvent: 'landing-most-popular-view-all',
       ),
     if (_isNotEmptyList(topFlutterPackages))
-      _block(
+      homePageBlockNode(
         shortId: 'tf',
         image: d.Image(
           src: staticUrls.getAssetUrl('/static/img/landing-02.png'),
@@ -67,7 +67,7 @@ d.Node landingPageNode({
         viewAllEvent: 'landing-top-flutter-view-all',
       ),
     if (_isNotEmptyList(topDartPackages))
-      _block(
+      homePageBlockNode(
         shortId: 'td',
         image: d.Image(
           src: staticUrls.getAssetUrl('/static/img/landing-03.png'),
@@ -83,7 +83,7 @@ d.Node landingPageNode({
         viewAllEvent: 'landing-top-dart-view-all',
       ),
     if (_isNotEmptyList(topPoWVideos))
-      _block(
+      homePageBlockNode(
         shortId: 'pow',
         title: 'Package of the Week',
         info: d.text('Package of the Week is a series of quick, '
@@ -99,7 +99,7 @@ d.Node landingPageNode({
 
 bool _isNotEmptyList(List? l) => l != null && l.isNotEmpty;
 
-d.Node _block({
+d.Node homePageBlockNode({
   required String shortId,
   d.Image? image,
   bool imageGoesAfterContent = false,
@@ -109,6 +109,7 @@ d.Node _block({
   required String viewAllUrl,
   required String viewAllEvent,
   String viewAllLabel = 'View all',
+  String? viewAllExtraClass,
 }) {
   final isExternalUrl = !viewAllUrl.startsWith('/');
   return d.div(
@@ -128,7 +129,10 @@ d.Node _block({
           d.p(classes: ['home-block-context-info'], child: info),
           content,
           d.div(
-            classes: ['home-block-view-all'],
+            classes: [
+              'home-block-view-all',
+              if (viewAllExtraClass != null) viewAllExtraClass,
+            ],
             child: d.a(
               classes: ['home-block-view-all-link'],
               href: viewAllUrl,

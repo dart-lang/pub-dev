@@ -575,16 +575,9 @@ void main() {
             (await scoreCardBackend.getPackageView('flutter_titanium'))!;
         final html = renderPublisherPackagesPage(
           publisher: publisher,
-          searchResultPage: SearchResultPage(
-            searchForm,
-            2,
-            packageHits: [neon, titanium],
-          ),
-          totalCount: 2,
+          topPackages: [neon, titanium],
           searchForm: searchForm,
-          pageLinks: PageLinks(searchForm, 10),
           isAdmin: true,
-          messageFromBackend: null,
         );
         expectGoldenFile(html, 'publisher_packages_page.html', timestamps: {
           'neon-created': neon.created,

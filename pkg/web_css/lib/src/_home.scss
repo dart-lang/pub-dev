@@ -157,6 +157,10 @@
     text-align: right;
     padding-right: 8px;
 
+    &.left {
+      text-align: left;
+    }
+
     @media (min-width: $device-desktop-min-width) {
       margin-right: 16px;
     }

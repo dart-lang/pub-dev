@@ -34,6 +34,7 @@ enum PageType {
 bool showSearchBanner(PageType type) =>
     type != PageType.account &&
     type != PageType.package &&
+    type != PageType.publisher &&
     type != PageType.standalone;
 
 /// Renders the layout page template.

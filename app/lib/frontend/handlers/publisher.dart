@@ -16,7 +16,6 @@ import '../../shared/redis_cache.dart' show cache;
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 import '../request_context.dart';
-import '../templates/listing.dart' show PageLinks;
 import '../templates/misc.dart';
 import '../templates/publisher.dart';
 
@@ -81,32 +80,24 @@ Future<shelf.Response> publisherPackagesPageHandler(
     request.requestedUri.queryParameters,
     context: SearchContext.publisher(publisherId),
   );
-  // redirect to proper search page if there is any non-pagination item present
-  if (searchForm.hasNonPagination) {
+  // redirect to proper search page if there is any search query item present
+  // TODO: remove this after a few weeks this has been released
+  if (searchForm.hasNonPagination ||
+      (searchForm.currentPage != null && searchForm.currentPage! > 1)) {
     final redirectForm = SearchForm.parse(request.requestedUri.queryParameters)
-        .addRequiredTagIfAbsent(PackageTags.publisherTag(publisherId))
-        .addRequiredTagIfAbsent(PackageTags.showHidden);
-    return redirectResponse(redirectForm.toSearchLink());
+        .addRequiredTagIfAbsent(PackageTags.publisherTag(publisherId));
+    return redirectResponse(redirectForm.toSearchLink(page: 1));
   }
 
-  final appliedSearchForm =
-      SearchForm.parse(request.requestedUri.queryParameters)
-          .toggleRequiredTag(PackageTags.publisherTag(publisherId))
-          .toggleRequiredTag(PackageTags.showHidden);
-
-  final searchResult = await searchAdapter.search(appliedSearchForm);
-  final int totalCount = searchResult.totalCount;
-  final links = PageLinks(searchForm, totalCount);
+  final topPackages = await searchAdapter.topFeatured(
+      query: PackageTags.publisherTag(publisherId));
 
   final html = renderPublisherPackagesPage(
     publisher: publisher,
-    searchResultPage: searchResult,
-    pageLinks: links,
+    topPackages: topPackages,
     searchForm: searchForm,
-    totalCount: totalCount,
     isAdmin: await publisherBackend.isMemberAdmin(
         publisherId, userSessionData?.userId),
-    messageFromBackend: searchResult.message,
   );
   if (isLanding && requestContext.uiCacheEnabled) {
     await cache.uiPublisherPackagesPage(publisherId).set(html);

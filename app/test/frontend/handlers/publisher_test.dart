@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 
 import '../../shared/handlers_test_utils.dart';
@@ -38,14 +37,21 @@ void main() {
     testWithProfile('publisher package with text search', fn: () async {
       await expectRedirectResponse(
         await issueGet('/publishers/example.com/packages?q=n'),
-        '/packages?q=publisher%3Aexample.com+show%3Ahidden+n',
+        '/packages?q=publisher%3Aexample.com+n',
       );
     });
 
     testWithProfile('publisher package with tag search', fn: () async {
       await expectRedirectResponse(
         await issueGet('/publishers/example.com/packages?q=sdk:dart'),
-        '/packages?q=sdk%3Adart+publisher%3Aexample.com+show%3Ahidden',
+        '/packages?q=sdk%3Adart+publisher%3Aexample.com',
+      );
+    });
+
+    testWithProfile('publisher package with pagination', fn: () async {
+      await expectRedirectResponse(
+        await issueGet('/publishers/example.com/packages?page=2'),
+        '/packages?q=publisher%3Aexample.com',
       );
     });
 
@@ -56,34 +62,5 @@ void main() {
         absent: ['/packages/oxygen'],
       );
     });
-
-    testWithProfile(
-      'paginated publisher packages',
-      testProfile: TestProfile(
-        packages: [
-          TestPackage(name: 'non_publisher'),
-          ...List.generate(
-            11,
-            (i) => TestPackage(
-              name: 'pkg_$i',
-              publisher: 'example.com',
-            ),
-          ),
-        ],
-        defaultUser: 'admin@pub.dev',
-      ),
-      fn: () async {
-        await expectHtmlResponse(
-          await issueGet('/publishers/example.com/packages'),
-          present: ['"/publishers/example.com/packages?page=2"'],
-          absent: ['non_publisher'],
-        );
-        await expectHtmlResponse(
-          await issueGet('/publishers/example.com/packages?page=2'),
-          present: ['"/publishers/example.com/packages"'],
-          absent: ['non_publisher'],
-        );
-      },
-    );
   });
 }
