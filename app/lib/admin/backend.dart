@@ -32,6 +32,7 @@ import '../shared/tags.dart';
 import '../tool/utils/dart_sdk_version.dart';
 import 'tools/create_publisher.dart';
 import 'tools/list_package_withheld.dart';
+import 'tools/notify_service.dart';
 import 'tools/remove_publisher_and_block_all_members.dart';
 import 'tools/set_package_withheld.dart';
 import 'tools/set_secret.dart';
@@ -81,6 +82,8 @@ class AdminBackend {
         return await executeCreatePublisher(args);
       case 'list-package-withheld':
         return await executeListPackageWithheld(args);
+      case 'notify-service':
+        return await executeNotifyService(args);
       case 'remove-publisher-and-delete-all-members':
         return await executeRemovePublisherAndBlockAllMembers(args);
       case 'set-package-withheld':
