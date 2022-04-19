@@ -30,6 +30,7 @@ import '../shared/email.dart';
 import '../shared/exceptions.dart';
 import '../shared/tags.dart';
 import '../tool/utils/dart_sdk_version.dart';
+import 'tools/create_publisher.dart';
 import 'tools/list_package_withheld.dart';
 import 'tools/remove_publisher_and_block_all_members.dart';
 import 'tools/set_package_withheld.dart';
@@ -75,6 +76,8 @@ class AdminBackend {
   Future<String> executeTool(String tool, List<String> args) async {
     await _requireAdminPermission(AdminPermission.executeTool);
     switch (tool) {
+      case 'create-publisher':
+        return await executeCreatePublisher(args);
       case 'list-package-withheld':
         return await executeListPackageWithheld(args);
       case 'remove-publisher-and-delete-all-members':
