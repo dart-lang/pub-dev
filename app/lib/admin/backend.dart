@@ -12,7 +12,6 @@ import 'package:convert/convert.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
-import 'package:pub_dev/admin/tools/recent_uploaders.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../account/backend.dart';
@@ -34,6 +33,7 @@ import '../tool/utils/dart_sdk_version.dart';
 import 'tools/create_publisher.dart';
 import 'tools/list_package_withheld.dart';
 import 'tools/notify_service.dart';
+import 'tools/recent_uploaders.dart';
 import 'tools/remove_publisher_and_block_all_members.dart';
 import 'tools/set_package_withheld.dart';
 import 'tools/set_secret.dart';
