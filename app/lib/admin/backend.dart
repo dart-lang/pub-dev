@@ -34,6 +34,7 @@ import 'tools/create_publisher.dart';
 import 'tools/list_package_withheld.dart';
 import 'tools/remove_publisher_and_block_all_members.dart';
 import 'tools/set_package_withheld.dart';
+import 'tools/set_secret.dart';
 import 'tools/set_user_blocked.dart';
 import 'tools/user_merger.dart';
 
@@ -84,6 +85,8 @@ class AdminBackend {
         return await executeRemovePublisherAndBlockAllMembers(args);
       case 'set-package-withheld':
         return await executeSetPackageWithheld(args);
+      case 'set-secret':
+        return await executeSetSecret(args);
       case 'set-user-blocked':
         return await executeSetUserBlocked(args);
       case 'user-merger':
