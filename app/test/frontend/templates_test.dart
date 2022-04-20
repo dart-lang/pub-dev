@@ -377,6 +377,7 @@ void main() {
           derivedTags: null,
           allDependencies: null,
           licenseFile: null,
+          licenses: null,
           report: Report(sections: <ReportSection>[]),
           flags: null,
           urlProblems: null,

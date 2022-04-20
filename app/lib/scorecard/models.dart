@@ -245,7 +245,9 @@ class PanaReport {
   /// transitively.
   final List<String>? allDependencies;
 
+  // TODO: remove after the latest release with the new pana becomes stable
   final LicenseFile? licenseFile;
+  final List<License>? licenses;
 
   final Report? report;
 
@@ -266,6 +268,7 @@ class PanaReport {
     required this.derivedTags,
     required this.allDependencies,
     required this.licenseFile,
+    required this.licenses,
     required this.report,
     required this.flags,
     required this.urlProblems,

@@ -30,6 +30,7 @@ void main() {
             derivedTags: List.generate(10000, (i) => 'tag:value-$i'),
             allDependencies: List.generate(10000, (i) => 'p$i'),
             licenseFile: null,
+            licenses: null,
             report: pana.Report(sections: [
               pana.ReportSection(
                 id: 'id',
