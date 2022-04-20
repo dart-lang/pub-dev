@@ -2,9 +2,11 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bumped runtimeVersion to `2022.04.11`.
- * Upgrade stable Dart analysis SDK to `2.16.2`.
- * Upgraded stable Flutter analysis SDK to `2.10.4`.
+ * Bumped runtimeVersion to `2022.04.19`.
+ * Upgraded stable Dart analysis SDK to `2.16.2`.
+ * Upgraded stable Flutter analysis SDK to `2.10.5`.
+ * Upgraded preview Dart analysis SDK to `2.17.0-266.1.beta`.
+ * Upgraded preview Flutter analysis SDK to `2.13.0-0.1.pre`.
  * Upgraded pana to `0.21.11`.
  * Upgraded dependencies including `package:appengine` to `0.13.2`, `package:markdown` to `5.0.0`.
 
