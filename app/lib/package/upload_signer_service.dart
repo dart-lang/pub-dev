@@ -64,9 +64,9 @@ abstract class UploadSignerService {
     final now = clock.now().toUtc();
     final expirationString = now.add(lifetime).toIso8601String();
 
-    object = '$bucket/$object';
+    final key = '$bucket/$object';
     final conditions = [
-      {'key': object},
+      {'key': key},
       {'acl': predefinedAcl},
       {'expires': expirationString},
       if (successRedirectUrl != null)
@@ -84,7 +84,7 @@ abstract class UploadSignerService {
     final signatureString = base64.encode(result.bytes);
 
     final fields = {
-      'key': object,
+      'key': key,
       'acl': predefinedAcl,
       'Expires': expirationString,
       'GoogleAccessId': result.googleAccessId,
