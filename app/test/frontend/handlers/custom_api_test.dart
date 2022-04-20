@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:clock/clock.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/name_tracker.dart';
@@ -143,5 +145,24 @@ void main() {
         },
       );
     });
+  });
+
+  group('score API', () {
+    testWithProfile(
+      '/api/packages/<package>/score endpoint',
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final rs = await issueGet('/api/packages/oxygen/score');
+        final map = json.decode(await rs.readAsString());
+        expect(map, {
+          'grantedPoints': greaterThan(10),
+          'maxPoints': greaterThan(50),
+          'likeCount': 0,
+          'popularityScore': greaterThan(0),
+          'tags': contains('sdk:dart'),
+          'lastUpdated': isNotEmpty,
+        });
+      },
+    );
   });
 }

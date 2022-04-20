@@ -251,6 +251,7 @@ Future<VersionScore> packageVersionScoreHandler(
       maxPoints: card?.maxPubPoints,
       likeCount: pkg.likes,
       popularityScore: card?.popularityScore,
+      tags: card?.derivedTags,
       lastUpdated: updated,
     );
   }))!;
