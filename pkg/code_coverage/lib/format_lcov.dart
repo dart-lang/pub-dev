@@ -76,6 +76,15 @@ Future main() async {
   }
 
   await File('build/report.txt').writeAsString(output.toString());
+
+  final uncoveredRanges = _lineExecCounts.keys
+      .map((path) => _topUncoveredRange(path, _lineExecCounts[path]))
+      .where((u) => u != null && u.codeLineCount > 0)
+      .toList()
+    ..sort((a, b) => -a.codeLineCount.compareTo(b.codeLineCount));
+  await File('build/uncovered-ranges.txt').writeAsString(uncoveredRanges
+      .map((r) => '${r.path} ${r.startLine}-${r.endLine} (${r.codeLineCount})')
+      .join('\n'));
 }
 
 final _tree = <String, Entry>{};
@@ -107,4 +116,36 @@ class Entry {
   String formatted(String path) {
     return '$percentAsString% in ${path ?? key} ($covered/$total)';
   }
+}
+
+class _UncoveredRange {
+  final String path;
+  final int startLine;
+  final int endLine;
+  final int codeLineCount;
+
+  _UncoveredRange(this.path, this.startLine, this.endLine, this.codeLineCount);
+}
+
+_UncoveredRange _topUncoveredRange(String path, Map<int, int> counts) {
+  final lines = counts.keys.toList()..sort();
+  var uncovered = 0;
+  var maxUncovered = 0;
+  var maxEndIndex = -1;
+  for (var i = 0; i < lines.length; i++) {
+    final line = lines[i];
+    if (counts[line] == 0) {
+      uncovered++;
+      if (maxUncovered < uncovered) {
+        maxUncovered = uncovered;
+        maxEndIndex = i;
+      } else {
+        uncovered = 0;
+      }
+    }
+  }
+  if (maxEndIndex == -1) return null;
+  final maxStartIndex = maxEndIndex - maxUncovered + 1;
+  return _UncoveredRange(
+      path, lines[maxStartIndex], lines[maxEndIndex], maxUncovered);
 }
