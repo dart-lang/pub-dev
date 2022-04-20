@@ -18,7 +18,11 @@ const String goldenDir = 'test/dartdoc/golden';
 final _regenerateGoldens = false;
 
 void main() {
+  String dehashUrl(String c) => c.replaceAll(
+      '/static/hash-${staticFileCache.etag}/', '/static/hash-%%etag%%/');
+
   void expectGoldenFile(String content, String fileName) {
+    content = dehashUrl(content);
     if (fileName.endsWith('.html')) {
       // Making sure it is valid HTML
       final htmlParser = HtmlParser(content, strict: true);
@@ -29,7 +33,9 @@ void main() {
       // If this fails, update the hard-coded customization URL to match it.
       final logoElem = doc.documentElement!.getElementsByTagName('img').first;
       expect(
-          logoElem.attributes['src']!.endsWith(staticUrls.dartLogoSvg), isTrue);
+          logoElem.attributes['src']!
+              .endsWith(dehashUrl(staticUrls.dartLogoSvg)),
+          isTrue);
 
       // Pretty printing output using XML formatter.
       final xmlRoot = _toXml(doc.documentElement!);

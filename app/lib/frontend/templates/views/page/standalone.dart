@@ -11,7 +11,7 @@ d.Node standalonePageNode(
   d.Node content, {
   d.Image? sideImage,
 }) {
-  assert(sideImage == null || sideImage.src.contains('?hash='));
+  assert(sideImage == null || sideImage.src.contains('/static/hash-'));
   final hasSideImage = sideImage != null;
   return d.div(
     classes: ['standalone-wrapper', if (hasSideImage) '-has-side-image'],
