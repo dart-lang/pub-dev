@@ -231,27 +231,31 @@ Future<VersionScore> packageVersionScoreHandler(
     if (pkg == null) {
       throw NotFoundException.resource('package "$package"');
     }
-    var updated = pkg.updated;
-    final card = await scoreCardBackend.getScoreCardData(package, version);
-
-    // sanity check in case we have no card
-    if (card == null && version != null && version != 'latest') {
-      final pv = await packageBackend.lookupPackageVersion(package, version);
-      if (pv == null) {
-        throw NotFoundException.resource(
-            'package "$package" version "$version"');
-      }
+    final v =
+        (version == null || version == 'latest') ? pkg.latestVersion! : version;
+    final pv = await packageBackend.lookupPackageVersion(package, v);
+    if (pv == null) {
+      throw NotFoundException.resource('package "$package" version "$version"');
     }
 
+    var updated = pkg.updated;
+    final card = await scoreCardBackend.getScoreCardData(package, v);
     if (card != null && card.updated!.isAfter(updated!)) {
       updated = card.updated;
     }
+
+    final tags = [
+      ...pkg.getTags(),
+      ...pv.getTags(),
+      ...?card?.derivedTags,
+    ];
+
     return VersionScore(
       grantedPoints: card?.grantedPubPoints,
       maxPoints: card?.maxPubPoints,
       likeCount: pkg.likes,
       popularityScore: card?.popularityScore,
-      tags: card?.derivedTags,
+      tags: tags,
       lastUpdated: updated,
     );
   }))!;
