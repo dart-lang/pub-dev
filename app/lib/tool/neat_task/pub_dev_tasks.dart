@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:neat_periodic_task/neat_periodic_task.dart';
+import 'package:pub_dev/tool/maintenance/remove_orphaned_likes.dart';
 
 import '../../account/backend.dart';
 import '../../account/consent_backend.dart';
@@ -68,6 +69,13 @@ void _setupGenericPeriodicTasks() {
     name: 'delete-old-neat-task-statuses',
     isRuntimeVersioned: false,
     task: () => deleteOldNeatTaskStatuses(dbService),
+  );
+
+  // Deletes orphaned like entities that are missing a reference.
+  _weekly(
+    name: 'remove-orphaned-likes',
+    isRuntimeVersioned: false,
+    task: removeOrphanedLikes,
   );
 }
 
