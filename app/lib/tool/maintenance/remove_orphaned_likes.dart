@@ -4,24 +4,30 @@
 
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 
 import '../../account/backend.dart';
 import '../../account/models.dart';
 import '../../package/backend.dart';
 import '../../shared/datastore.dart';
+import '../../shared/utils.dart';
 
 final _logger = Logger('remove_orphaned_likes');
 final _minAgeThreshold = Duration(days: 1);
 
 /// Removes Like entities with non-existing Package or User.
 /// Only removes entities that are present for more than a day.
-Future<void> removeOrphanedLikes() async {
+Future<DeleteCounts> removeOrphanedLikes({
+  @visibleForTesting Duration? minAgeThreshold,
+}) async {
   _logger.info('Scanning for orphaned likes...');
   final existingUserIds = <String>{};
   final existingPackages = <String>{};
 
   Future<bool> isUserIdMissing(String userId) async {
-    if (existingUserIds.contains(userId)) return true;
+    if (existingUserIds.contains(userId)) {
+      return false;
+    }
     final user = await accountBackend.lookupUserById(userId);
     if (user != null) {
       existingUserIds.add(userId);
@@ -32,7 +38,9 @@ Future<void> removeOrphanedLikes() async {
   }
 
   Future<bool> isPackageMissing(String package) async {
-    if (existingPackages.contains(package)) return true;
+    if (existingPackages.contains(package)) {
+      return false;
+    }
     final p = await packageBackend.lookupPackage(package);
     if (p != null) {
       existingPackages.add(package);
@@ -46,7 +54,7 @@ Future<void> removeOrphanedLikes() async {
     dbService.query<Like>(),
     where: (like) async {
       final age = clock.now().difference(like.created!);
-      if (age < _minAgeThreshold) {
+      if (age < (minAgeThreshold ?? _minAgeThreshold)) {
         // Do not check likes that are younger than the threshold to prevent eventual consistency issues.
         return false;
       }
@@ -66,4 +74,5 @@ Future<void> removeOrphanedLikes() async {
     },
   );
   _logger.info('Removed ${counts.deleted} orhaned likes.');
+  return counts;
 }

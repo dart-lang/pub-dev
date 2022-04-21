@@ -39,6 +39,7 @@ void testWithProfile(
   required Future<void> Function() fn,
   Timeout? timeout,
   bool processJobsWithFakeRunners = false,
+  Pattern? integrityProblem,
 }) {
   scopedTest(name, () async {
     setupLogging();
@@ -68,9 +69,13 @@ void testWithProfile(
         // post-test integrity check
         final problems =
             await IntegrityChecker(dbService).findProblems().toList();
-        if (problems.isNotEmpty) {
+        if (problems.isNotEmpty &&
+            (integrityProblem == null ||
+                integrityProblem.matchAsPrefix(problems.first) == null)) {
           throw Exception(
               '${problems.length} integrity problems detected. First: ${problems.first}');
+        } else if (problems.isEmpty && integrityProblem != null) {
+          throw Exception('Integrity problem expected but not present.');
         }
       },
     );
