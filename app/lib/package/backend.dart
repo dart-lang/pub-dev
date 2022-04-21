@@ -671,14 +671,6 @@ class PackageBackend {
   }
 
   @visibleForTesting
-  Stream<List<int>> download(String package, String version) {
-    // TODO: Should we first test for existence?
-    // Maybe with a cache?
-    final cv = canonicalizeVersion(version);
-    return _bucket.read(tarballObjectName(package, cv!));
-  }
-
-  @visibleForTesting
   Future<PackageVersion> upload(Stream<List<int>> data) async {
     await requireAuthenticatedUser();
     final guid = createUuid();
