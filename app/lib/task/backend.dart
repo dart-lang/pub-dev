@@ -203,19 +203,18 @@ class TaskBackend {
     await for (final p in pq.run()) {
       packageNames.add(p.name!);
 
-      final r = await pool.request();
       scheduleMicrotask(() async {
-        try {
-          await _trackPackage(p.name!);
-        } catch (e, st) {
-          _log.severe('failed to track state for "${p.name}"', e, st);
-          if (error == null) {
-            error = e; // save [e] for later, if this is the first failure
-            stackTrace = st;
+        await pool.withResource(() async {
+          try {
+            await _trackPackage(p.name!);
+          } catch (e, st) {
+            _log.severe('failed to track state for "${p.name}"', e, st);
+            if (error == null) {
+              error = e; // save [e] for later, if this is the first failure
+              stackTrace = st;
+            }
           }
-        } finally {
-          r.release(); // always release to avoid deadlock
-        }
+        });
       });
     }
 
