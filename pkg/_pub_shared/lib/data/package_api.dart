@@ -186,6 +186,7 @@ class VersionScore {
   final int? maxPoints;
   final int? likeCount;
   final double? popularityScore;
+  final List<String>? tags;
   final DateTime? lastUpdated;
 
   VersionScore({
@@ -193,6 +194,7 @@ class VersionScore {
     required this.maxPoints,
     required this.likeCount,
     required this.popularityScore,
+    required this.tags,
     required this.lastUpdated,
   });
 
