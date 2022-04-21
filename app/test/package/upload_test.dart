@@ -20,6 +20,7 @@ import 'package:pub_dev/service/secret/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
+import 'package:pub_dev/tool/utils/pub_api_client.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -503,11 +504,10 @@ void main() {
           expect(lastPublished.package, 'oxygen');
           expect(lastPublished.latestVersion, '3.0.0');
 
-          final stream = packageBackend.download('oxygen', '3.0.0');
-          final chunks = await stream.toList();
-          final bytes = chunks.fold<List<int>>(
-              <int>[], (buffer, chunk) => buffer..addAll(chunk));
-          expect(bytes, tarball);
+          await withHttpPubApiClient(fn: (client) async {
+            final bytes = await client.fetchPackage('oxygen', '3.0.0');
+            expect(bytes, tarball);
+          });
         });
       });
     });
