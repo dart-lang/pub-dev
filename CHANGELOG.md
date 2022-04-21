@@ -9,7 +9,6 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded preview Flutter analysis SDK to `2.13.0-0.1.pre`.
  * Upgraded pana to `0.21.12`.
  * Upgraded dependencies including `package:appengine` to `0.13.2`, `package:markdown` to `5.0.0`.
- * NOTE: started to use the new incoming storage bucket for package uploads.
  * NOTE: started to use `/static/hash-<hash>/...` URLs.
 
 ## `20220324t054900-all`
