@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:collection/collection.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_dev/account/models.dart';
 
@@ -19,6 +20,11 @@ final _argParser = ArgParser()
     abbr: 'c',
     defaultsTo: '1',
     help: 'Number of concurrent processing.',
+  )
+  ..addOption(
+    'batch',
+    defaultsTo: '1',
+    help: 'Number of entities queried or updated at the same time.',
   )
   ..addOption(
     'input',
@@ -38,6 +44,7 @@ Future main(List<String> args) async {
   }
 
   final concurrency = int.parse(argv['concurrency'] as String);
+  final batchSize = int.parse(argv['batch'] as String);
   final inputPath = argv['input'] as String;
 
   print('running on: ${envConfig.googleCloudProject}');
@@ -47,42 +54,58 @@ Future main(List<String> args) async {
   // }
 
   final lines = await File(inputPath).readAsLines();
-  print('Processing ${lines.length} Likes.');
+  final batches =
+      lines.splitBeforeIndexed((index, _) => index % batchSize == 0).toList();
+  print('Processing ${lines.length} Likes in ${batches.length} batches.');
 
   var count = 0;
+  var batchCount = 0;
   var createdCount = 0;
   await withToolRuntime(() async {
     final pool = Pool(concurrency);
     final futures = <Future>[];
-    for (final line in lines) {
-      final parts = line.split(',');
-      if (parts.length != 3) {
-        throw ArgumentError('Unexpected input: `$line`');
-      }
-      final userId = parts[0].trim();
-      final packageName = parts[1].trim();
-      final created = DateTime.parse(parts[2].trim());
-      if (userId.isEmpty ||
-          packageName.isEmpty ||
-          created.year < 2010 ||
-          created.year > 2022) {
-        throw ArgumentError('Unexpected input: `$line`');
-      }
-      final f = pool.withResource(() async {
-        final userKey = dbService.emptyKey.append(User, id: userId);
-        final likeKey = userKey.append(Like, id: packageName);
-        final like = await dbService.lookupOrNull<Like>(likeKey);
-        if (like == null) {
-          final newLike = Like()
-            ..parentKey = userKey
-            ..id = packageName
-            ..created = created
-            ..packageName = packageName;
-          await dbService.commit(inserts: [newLike]);
-          createdCount++;
+    for (final batch in batches) {
+      final newLikes = batch.map((line) {
+        final parts = line.split(',');
+        if (parts.length != 3) {
+          throw ArgumentError('Unexpected input: `$line`');
         }
-        count++;
-        if (count % 5000 == 0) {
+        final userId = parts[0].trim();
+        final packageName = parts[1].trim();
+        final created = DateTime.parse(parts[2].trim());
+        if (userId.isEmpty ||
+            packageName.isEmpty ||
+            created.year < 2010 ||
+            created.year > 2022) {
+          throw ArgumentError('Unexpected input: `$line`');
+        }
+        return Like()
+          ..parentKey = dbService.emptyKey.append(User, id: userId)
+          ..id = packageName
+          ..created = created
+          ..packageName = packageName;
+      }).toList();
+
+      final f = pool.withResource(() async {
+        var insertCount = 0;
+        await withRetryTransaction(dbService, (tx) async {
+          insertCount = 0;
+          final oldLikes =
+              await tx.lookup<Like>(newLikes.map((l) => l.key).toList());
+          for (var i = 0; i < batch.length; i++) {
+            final oldLike = oldLikes[i];
+            if (oldLike != null) {
+              continue;
+            } else {
+              tx.insert(newLikes[i]);
+              insertCount++;
+            }
+          }
+        });
+        createdCount += insertCount;
+        batchCount++;
+        count += batch.length;
+        if (batchCount % 1000 == 0) {
           print('Queried: $count Likes, created: $createdCount.');
         }
       });

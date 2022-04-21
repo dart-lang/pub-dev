@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_dev/account/models.dart';
 
@@ -20,6 +21,11 @@ final _argParser = ArgParser()
     abbr: 'c',
     defaultsTo: '1',
     help: 'Number of concurrent processing.',
+  )
+  ..addOption(
+    'batch',
+    defaultsTo: '1',
+    help: 'Number of entities queried at the same time.',
   )
   ..addOption(
     'input',
@@ -46,6 +52,7 @@ Future main(List<String> args) async {
   }
 
   final concurrency = int.parse(argv['concurrency'] as String);
+  final batchSize = int.parse(argv['batch'] as String);
   final inputPath = argv['input'] as String;
   final outputPrefix = argv['output-prefix'] as String;
 
@@ -56,41 +63,50 @@ Future main(List<String> args) async {
   }
 
   final lines = await File(inputPath).readAsLines();
-  print('Processing ${lines.length} Likes.');
+  final batches =
+      lines.splitBeforeIndexed((index, _) => index % batchSize == 0).toList();
+  print('Processing ${lines.length} Likes in ${batches.length} batches.');
 
   final found = <String>[];
   final missing = <String>[];
 
-  var count = 0;
+  var likeCount = 0;
+  var batchCount = 0;
   await withToolRuntime(() async {
     final pool = Pool(concurrency);
     final futures = <Future>[];
-    for (final line in lines) {
-      final parts = line.split(',');
-      if (parts.length != 2) {
-        throw ArgumentError('Unexpected input: `$line`');
-      }
-      final userId = parts[0].trim();
-      final packageName = parts[1].trim();
-      if (userId.isEmpty || packageName.isEmpty) {
-        throw ArgumentError('Unexpected input: `$line`');
-      }
-      final f = pool.withResource(() async {
-        final likeKey = dbService.emptyKey
+    for (final batch in batches) {
+      final keys = batch.map((line) {
+        final parts = line.split(',');
+        if (parts.length != 2) {
+          throw ArgumentError('Unexpected input: `$line`');
+        }
+        final userId = parts[0].trim();
+        final packageName = parts[1].trim();
+        if (userId.isEmpty || packageName.isEmpty) {
+          throw ArgumentError('Unexpected input: `$line`');
+        }
+        return dbService.emptyKey
             .append(User, id: userId)
             .append(Like, id: packageName);
-        final like = await dbService.lookupOrNull<Like>(likeKey);
-        final created = like?.created ?? clock.now();
-        final newLine = '$line,${created.toUtc().toIso8601String()}';
-        if (like == null) {
-          missing.add(newLine);
-        } else {
-          found.add(newLine);
+      }).toList();
+      final f = pool.withResource(() async {
+        final likes = await dbService.lookup<Like>(keys);
+        for (var i = 0; i < batch.length; i++) {
+          final like = likes[i];
+          final created = like?.created ?? clock.now();
+          final newLine = '${batch[i]},${created.toUtc().toIso8601String()}';
+          if (like == null) {
+            missing.add(newLine);
+          } else {
+            found.add(newLine);
+          }
         }
-        count++;
-        if (count % 5000 == 0) {
+        batchCount++;
+        likeCount += batch.length;
+        if (batchCount % 1000 == 0) {
           print(
-              'Queried: $count Likes, found: ${found.length}, missing: ${missing.length}.');
+              'Queried: $likeCount Likes, found: ${found.length}, missing: ${missing.length}.');
         }
       });
       futures.add(f);
@@ -99,7 +115,7 @@ Future main(List<String> args) async {
     await pool.close();
   });
   print(
-      'Queried: $count Likes, found: ${found.length}, missing: ${missing.length}.');
+      'Queried: $likeCount Likes, found: ${found.length}, missing: ${missing.length}.');
 
   await File('$outputPrefix.found.csv').writeAsString(found.join('\n'));
   await File('$outputPrefix.missing.csv').writeAsString(missing.join('\n'));
