@@ -46,6 +46,7 @@ import '../service/youtube/backend.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
 import '../shared/env_config.dart';
+import '../shared/handler_helpers.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/redis_cache.dart' show setupCache;
 import '../shared/storage.dart';
@@ -169,8 +170,12 @@ Future<R> withFakeServices<R>({
     return await _withPubServices(() async {
       await youtubeBackend.start();
       if (frontendServer != null) {
-        final frontendServerSubscription = frontendServer.server
-            .listen((rq) => handleRequest(rq, createAppHandler()));
+        final handler =
+            wrapHandler(_logger, createAppHandler(), sanitize: true);
+        // Handle requests in the current zone, keeping the services context.
+        final currentZone = Zone.current;
+        final frontendServerSubscription = frontendServer.server.listen((rq) =>
+            currentZone.run(() => fork(() => handleRequest(rq, handler))));
         registerScopeExitCallback(frontendServerSubscription.cancel);
       }
       return await fn();

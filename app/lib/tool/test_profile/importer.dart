@@ -37,7 +37,7 @@ Future<void> importProfile({
   for (final p in profile.publishers) {
     final firstMemberEmail = p.members.first.email;
     final token = _fakeToken(firstMemberEmail);
-    await withPubApiClient(
+    await withHttpPubApiClient(
       bearerToken: token,
       pubHostedUrl: pubHostedUrl,
       fn: (client) async {
@@ -65,7 +65,7 @@ Future<void> importProfile({
     lastActiveUploaderEmails[rv.package] = uploaderEmail;
 
     final bytes = await source.getArchiveBytes(rv.package, rv.version);
-    await withPubApiClient(
+    await withHttpPubApiClient(
       bearerToken: _fakeToken(uploaderEmail),
       pubHostedUrl: pubHostedUrl,
       fn: (client) async {
@@ -92,7 +92,7 @@ Future<void> importProfile({
     final packageName = testPackage.name;
     final activeEmail = lastActiveUploaderEmails[packageName];
 
-    await withPubApiClient(
+    await withHttpPubApiClient(
       bearerToken: _fakeToken(activeEmail!),
       pubHostedUrl: pubHostedUrl,
       fn: (client) async {
@@ -123,7 +123,7 @@ Future<void> importProfile({
     );
 
     if (testPackage.isFlutterFavorite ?? false) {
-      await withPubApiClient(
+      await withHttpPubApiClient(
         bearerToken: _fakeToken(adminUserEmail ?? activeEmail),
         pubHostedUrl: pubHostedUrl,
         fn: (client) async {
@@ -140,7 +140,7 @@ Future<void> importProfile({
 
   // create likes
   for (final u in profile.users) {
-    await withPubApiClient(
+    await withHttpPubApiClient(
       bearerToken: _fakeToken(u.email),
       pubHostedUrl: pubHostedUrl,
       fn: (client) async {
