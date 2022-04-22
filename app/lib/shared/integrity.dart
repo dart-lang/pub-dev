@@ -35,6 +35,7 @@ class IntegrityChecker {
   final _deletedUsers = <String>{};
   final _invalidUsers = <String>{};
   final _packages = <String>{};
+  final _packageLikes = <String, int>{};
   final _moderatedPackages = <String>{};
   final _packageReplacedBys = <String, String>{};
   final _packagesWithVersion = <String>{};
@@ -266,6 +267,7 @@ class IntegrityChecker {
     if (p.likes < 0) {
       yield 'Package "${p.name}" has a `likes` property which is not a non-negative integer.';
     }
+    _packageLikes[p.name!] = p.likes;
     final uploaders = p.uploaders;
     if (uploaders != null) {
       for (final userId in uploaders) {
@@ -507,6 +509,7 @@ class IntegrityChecker {
   Stream<String> _checkLikes() async* {
     _logger.info('Scanning Likes...');
 
+    final counts = <String, int>{};
     await for (final like in _db.query<Like>().run()) {
       if (like.packageName == null) {
         yield 'Like entity for user "${like.userId}" and package "${like.package}" has a '
@@ -521,6 +524,36 @@ class IntegrityChecker {
       if (await _packageMissing(like.package)) {
         yield 'User "${like.userId}" likes missing package "${like.package}".';
       }
+
+      counts[like.package] = (counts[like.package] ?? 0) + 1;
+    }
+
+    final allPackages = <String>{
+      ..._packageLikes.keys,
+      ...counts.keys,
+    };
+    for (final package in allPackages) {
+      final counted = counts[package] ?? 0;
+      final originalStored = _packageLikes[package] ?? 0;
+      if (counted == originalStored) {
+        continue;
+      }
+
+      final p = await packageBackend.lookupPackage(package);
+      final updatedStored = p!.likes;
+      if (counted == updatedStored) {
+        continue;
+      }
+
+      final diff = counted - updatedStored;
+
+      // Allowing some difference to attribute for the likes created or removed
+      // between the package reads and the current counts.
+      if (diff.abs() <= 2) {
+        continue;
+      }
+
+      yield 'Package "$package" has like count difference: observed: $counted != stored: $updatedStored.';
     }
   }
 
