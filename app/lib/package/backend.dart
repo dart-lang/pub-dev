@@ -549,6 +549,9 @@ class PackageBackend {
     final rs = await withRetryTransaction(db, (tx) async {
       final package = await db.lookupValue<Package>(key);
       final fromPublisherId = package.publisherId;
+      if (fromPublisherId == request.publisherId) {
+        return _asPackagePublisherInfo(package);
+      }
       package.publisherId = request.publisherId;
       package.uploaders?.clear();
       package.updated = clock.now().toUtc();

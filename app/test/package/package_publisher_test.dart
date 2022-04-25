@@ -76,6 +76,13 @@ void main() {
       );
       expect(_json(rs.toJson()), {'publisherId': 'example.com'});
 
+      // also making sure it is idempotent
+      final rs2 = await client.setPackagePublisher(
+        'oxygen',
+        PackagePublisherInfo(publisherId: 'example.com'),
+      );
+      expect(_json(rs2.toJson()), {'publisherId': 'example.com'});
+
       final p = (await packageBackend.lookupPackage('oxygen'))!;
       expect(p.publisherId, 'example.com');
       expect(p.uploaders, []);
@@ -85,9 +92,13 @@ void main() {
 
       final auditLogs =
           await auditBackend.listRecordsForPublisher('example.com');
-      expect(
-          auditLogs.records.first.kind, AuditLogRecordKind.packageTransferred);
-      expect(auditLogs.records.first.summary,
+      final transferLogs = auditLogs.records
+          .where((r) =>
+              r.packages != null &&
+              r.packages!.contains('oxygen') &&
+              r.kind == AuditLogRecordKind.packageTransferred)
+          .toList();
+      expect(transferLogs.single.summary,
           'Package `oxygen` was transferred to publisher `example.com` by `admin@pub.dev`.');
     });
   });
