@@ -222,7 +222,8 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
       dbService,
       storageService,
       storageService.bucket(activeConfiguration.packageBucketName!),
-      storageService.bucket(activeConfiguration.incomingPackagesBucketName!),
+      // TODO: re-enable incomingPackagesBucketName again
+      storageService.bucket(activeConfiguration.packageBucketName!),
     ));
     await setupCache();
 
