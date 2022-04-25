@@ -36,6 +36,8 @@ void main() {
         expect(counts.found, 1);
         expect(counts.deleted, 1);
       },
+      // The deleted package is referenced from multiple places.
+      // This is the first integrity issue returned.
       integrityProblem: 'Package "oxygen" is missing.',
     );
 
@@ -53,7 +55,11 @@ void main() {
         expect(counts.found, 1);
         expect(counts.deleted, 1);
       },
-      integrityProblem: RegExp('^User ".*" is mapped from'),
+      // The test deleted a User entity is referenced from multiple places.
+      // The first integrity issue returned is about the mapping from the
+      // mathing OauthUserId entity, and we are only matching it via a pattern.
+      integrityProblem: RegExp(
+          '^User ".*" is mapped from OAuthUserID "user-pub-dev", but does not have it set.'),
     );
   });
 }
