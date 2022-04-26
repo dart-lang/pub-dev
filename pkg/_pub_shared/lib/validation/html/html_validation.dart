@@ -74,6 +74,20 @@ void validateHtml(Node root) {
     }
   }
 
+  // All <a href=""> links must be valid and have only single slashes.
+  for (final elem in links) {
+    final href = elem.attributes['href'];
+    if (href == null || href.isEmpty) continue;
+
+    final uri = Uri.tryParse(href);
+    if (uri == null) {
+      throw AssertionError('Unable to parse URL: "$href".');
+    }
+    if (uri.query.contains('//')) {
+      throw AssertionError('Double-slash URL detected: "$href".');
+    }
+  }
+
   // No inline script tag.
   for (Element elem in scripts) {
     if (elem.attributes['type'] == 'application/ld+json') {

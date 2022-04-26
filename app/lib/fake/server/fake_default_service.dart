@@ -51,6 +51,9 @@ class FakePubServer {
 
           final server = await IOServer.bind('localhost', port);
           serveRequests(server.server, (request) async {
+            if (request.requestedUri.path.contains('//')) {
+              return shelf.Response.badRequest();
+            }
             return (await ss.fork(() async {
               final rs = await extraHandler(request);
               if (rs.statusCode != 404) return rs;
