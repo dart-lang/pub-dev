@@ -42,7 +42,7 @@ class DefaultCommand extends Command {
     await startIsolates(
       logger: _logger,
       frontendEntryPoint: _main,
-      workerEntryPoint: envConfig.isRunningLocally ? null : _worker,
+      workerEntryPoint: _worker,
       frontendCount: envConfig.isRunningInAppengine ? 4 : 1,
       workerCount: 1,
     );
@@ -64,7 +64,6 @@ Future _main(FrontendEntryMessage message) async {
     nameTracker.startTracking();
     await announcementBackend.start();
     await youtubeBackend.start();
-    await taskBackend.start();
 
     await runHandler(_logger, appHandler, sanitize: true);
   });
@@ -104,20 +103,24 @@ Future _worker(WorkerEntryMessage message) async {
   message.protocolSendPort.send(WorkerProtocolMessage());
 
   await withServices(() async {
-    // Updates job entries for analyzer and dartdoc.
-    Future<void> triggerDependentAnalysis(
-        String package, String version, Set<String> affected) async {
-      await jobBackend.triggerAnalysis(package, version);
-      for (final p in affected) {
-        await jobBackend.triggerAnalysis(p, null);
-      }
-      // TODO: re-enable this after we have added some stop-gaps on the frequency
-      // await dartdocClient.triggerDartdoc(package, version,
-      //    dependentPackages: affected);
-    }
+    await taskBackend.start();
 
-    final pdb = await PackageDependencyBuilder.loadInitialGraphFromDb(
-        db.dbService, triggerDependentAnalysis);
-    await pdb.monitorInBackground(); // never returns
+    if (!envConfig.isRunningLocally) {
+      final pdb = await PackageDependencyBuilder.loadInitialGraphFromDb(
+        db.dbService,
+        // Updates job entries for analyzer and dartdoc.
+        (String package, String version, Set<String> affected) async {
+          await jobBackend.triggerAnalysis(package, version);
+          for (final p in affected) {
+            await jobBackend.triggerAnalysis(p, null);
+          }
+          // TODO: re-enable this after we have added some stop-gaps on the frequency
+          // await dartdocClient.triggerDartdoc(package, version,
+          //    dependentPackages: affected);
+        },
+      );
+
+      await pdb.monitorInBackground(); // never returns
+    }
   });
 }
