@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_pub_shared/search/search_form.dart';
 import 'package:clock/clock.dart';
 
 import '../../../../package/models.dart';
@@ -17,6 +18,7 @@ import '../../package_misc.dart';
 
 /// Renders the listing page (list of packages).
 d.Node listOfPackagesNode({
+  required SearchForm? searchForm,
   required PackageView? highlightedHit,
   required List<SdkLibraryHit> sdkLibraryHits,
   required List<PackageView> packageHits,
@@ -24,9 +26,10 @@ d.Node listOfPackagesNode({
   return d.div(
     classes: ['packages'],
     children: [
-      if (highlightedHit != null) _packageItem(highlightedHit),
+      if (highlightedHit != null)
+        _packageItem(highlightedHit, searchForm: searchForm),
       ...sdkLibraryHits.map(_sdkLibraryItem),
-      ...packageHits.map(_packageItem),
+      ...packageHits.map((hit) => _packageItem(hit, searchForm: searchForm)),
     ],
   );
 }
@@ -54,7 +57,10 @@ d.Node _sdkLibraryItem(SdkLibraryHit hit) {
   );
 }
 
-d.Node _packageItem(PackageView view) {
+d.Node _packageItem(
+  PackageView view, {
+  required SearchForm? searchForm,
+}) {
   final isFlutterFavorite = view.tags.contains(PackageTags.isFlutterFavorite);
   final isNullSafe = view.tags.contains(PackageVersionTags.isNullSafe);
 
@@ -121,7 +127,7 @@ d.Node _packageItem(PackageView view) {
     labeledScoresNode: labeledScoresNodeFromPackageView(view),
     description: view.ellipsizedDescription ?? '',
     metadataNode: metadataNode,
-    tagsNode: tagsNodeFromPackageView(package: view),
+    tagsNode: tagsNodeFromPackageView(searchForm: searchForm, package: view),
     apiPages: view.apiPages
         ?.map((page) => _ApiPageUrl(
               page.url ??

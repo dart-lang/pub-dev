@@ -53,6 +53,7 @@ String renderAccountPackagesPage({
     else
       d.p(text: '$prefix:'),
     listOfPackagesNode(
+      searchForm: null,
       highlightedHit: null,
       sdkLibraryHits: [],
       packageHits: packageHits,
