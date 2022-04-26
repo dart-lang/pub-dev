@@ -12,6 +12,7 @@ import 'package:pub_dev/shared/versions.dart' show runtimeVersion;
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:pub_dev/task/global_lock.dart';
 import 'package:pub_dev/task/models.dart';
+import 'package:pub_worker/payload.dart';
 
 final _log = Logger('pub.task.schedule');
 
@@ -169,16 +170,14 @@ Future<void> schedule(
         tx.insert(s);
 
         // Create payload
-        payload = json.encode({
-          'package': s.package,
-          'callback': activeConfiguration.defaultServiceBaseUrl,
-          'versions': pendingVersions
-              .map((v) => {
-                    'version': v,
-                    'token': s.versions![v]!.secretToken,
-                  })
-              .toList(),
-        });
+        payload = json.encode(Payload(
+          package: s.package,
+          callbackUrl: activeConfiguration.defaultServiceBaseUrl,
+          versions: pendingVersions.map((v) => VersionTokenPair(
+                version: v,
+                token: s.versions![v]!.secretToken!,
+              )),
+        ));
 
         // Create human readable description for GCP console.
         description =

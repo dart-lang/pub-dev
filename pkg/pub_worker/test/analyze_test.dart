@@ -123,7 +123,7 @@ void main() {
     await Future.wait([
       analyze(Payload(
         package: 'retry',
-        callback: 'http://localhost:${server.port}',
+        callbackUrl: 'http://localhost:${server.port}',
         versions: [
           VersionTokenPair(
             version: '3.0.0',

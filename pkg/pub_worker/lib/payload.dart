@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
+
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
@@ -18,13 +20,13 @@ class Payload {
   ///
   /// This property should not end in a slash.
   ///
-  /// The [callback] URL should work in the following requests:
-  ///  * `POST <callback>/api/tasks/<package>/<version>/upload`
-  ///  * `POST <callback>/api/tasks/<package>/<version>/finished`
+  /// The [callbackUrl] URL should work in the following requests:
+  ///  * `POST <callbackUrl>/api/tasks/<package>/<version>/upload`
+  ///  * `POST <callbackUrl>/api/tasks/<package>/<version>/finished`
   ///
   /// These requests must be authenticated with: `authorization: bearer <token>`.
   /// Using the `<token>` matching the `<version>` being reported.
-  final String callback;
+  final String callbackUrl;
 
   /// Lists of (`version`, `token`) for versions to process.
   final List<VersionTokenPair> versions;
@@ -32,9 +34,10 @@ class Payload {
   // json_serializable boiler-plate
   Payload({
     required this.package,
-    required this.callback,
-    required this.versions,
-  });
+    required this.callbackUrl,
+    required Iterable<VersionTokenPair> versions,
+  }) : versions = UnmodifiableListView(versions.toList(growable: false));
+
   factory Payload.fromJson(Map<String, dynamic> json) =>
       _$PayloadFromJson(json);
   Map<String, dynamic> toJson() => _$PayloadToJson(this);
