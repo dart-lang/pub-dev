@@ -39,6 +39,8 @@ final _log = Logger('pub.task.backend');
 
 /// Register a [CloudCompute] pool for task workers in the current
 /// service scope.
+///
+/// This is mainly used to inject a fake [CloudCompute] for testing.
 void registertaskWorkerCloudCompute(CloudCompute workerPool) =>
     ss.register(#_taskWorkerCloudCompute, workerPool);
 
