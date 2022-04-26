@@ -49,6 +49,7 @@ void main() {
   for (final user in validUserParts) {
     for (final domain in validDomainParts) {
       acceptedEmails.add('$user@$domain');
+      rejectedEmails.add('MAILTO:$user@$domain');
       rejectedEmails.add('$user@@$domain');
       rejectedEmails.add('$user$domain');
     }
@@ -95,7 +96,7 @@ void main() {
       }
 
       // verify that we have rejected emails
-      expect(rejectedEmails, hasLength(195));
+      expect(rejectedEmails, hasLength(215));
     });
   });
 
