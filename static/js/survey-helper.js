@@ -14,7 +14,7 @@
   });
   helpApi.requestSurvey({
     triggerId: data.triggerId,
-    enableTestingMode: data.testingMode === 'true',
+    enableTestingMode: data.testingMode === 'false',
     callback: function(rscp) {
       if (rscp.surveyData) {
         helpApi.presentSurvey({
