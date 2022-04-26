@@ -20,6 +20,7 @@ Future<shelf.Response> handleDartDoc(
 
   final mime = lookupMimeType(path, headerBytes: bytes);
   return shelf.Response.ok(bytes, headers: {
+    // TODO: Add cache headers
     'Content-Type': mime ?? 'application/octect',
   });
 }
