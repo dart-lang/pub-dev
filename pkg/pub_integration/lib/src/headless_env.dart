@@ -131,6 +131,11 @@ class HeadlessEnv {
         return;
       }
 
+      final uri = Uri.parse(rq.url);
+      if (uri.path.contains('//')) {
+        serverErrors.add('Double-slash URL detected: "${rq.url}".');
+      }
+
       await rq.continueRequest();
     });
 
