@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:fake_gcloud/mem_storage.dart';
@@ -13,6 +12,7 @@ import 'package:pub_dev/fake/backend/fake_popularity.dart';
 import 'package:pub_dev/frontend/handlers.dart';
 import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/service/entrypoint/frontend.dart';
+import 'package:pub_dev/service/entrypoint/tools.dart';
 import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/handler_helpers.dart';
@@ -59,7 +59,7 @@ class FakePubServer {
           });
           _logger.info('running on port $port');
 
-          await ProcessSignal.sigint.watch().first;
+          await waitForProcessSignalTermination();
 
           _logger.info('shutting down');
           await server.close();

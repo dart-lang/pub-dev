@@ -18,6 +18,7 @@ import '../../shared/scheduler_stats.dart';
 import '../../tool/utils/event_loop_tracker.dart';
 
 import '../services.dart';
+import 'tools.dart';
 
 final _random = Random.secure();
 
@@ -261,6 +262,7 @@ Future startIsolates({
             await startWorkerIsolate();
           }
         }
+        await waitForProcessSignalTermination();
       });
     } catch (e, st) {
       logger.shout('Failed to start server.', e, st);

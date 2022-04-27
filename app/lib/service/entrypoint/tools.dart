@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:logging/logging.dart';
 
@@ -23,4 +24,26 @@ Future<void> withToolRuntime(Future<void> Function() fn) async {
   } finally {
     await subs.cancel();
   }
+}
+
+/// Waits for any of the listed signals and returns the first that occurs.
+Future<ProcessSignal> waitForProcessSignalTermination() {
+  final subscriptions = <StreamSubscription>[];
+  final completer = Completer<ProcessSignal>();
+
+  void process(ProcessSignal event) {
+    while (subscriptions.isNotEmpty) {
+      subscriptions.removeLast().cancel();
+    }
+    if (!completer.isCompleted) {
+      completer.complete(event);
+    }
+  }
+
+  subscriptions.addAll([
+    ProcessSignal.sighup,
+    ProcessSignal.sigint,
+    ProcessSignal.sigterm,
+  ].map((s) => s.watch().listen(process)));
+  return completer.future;
 }
