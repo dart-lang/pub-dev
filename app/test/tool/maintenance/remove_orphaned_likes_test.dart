@@ -15,7 +15,7 @@ import '../../shared/test_services.dart';
 void main() {
   group('Remove orphaned likes', () {
     testWithProfile('finds the like but no need to delete it', fn: () async {
-      await withPubApiClient(
+      await withHttpPubApiClient(
           bearerToken: userAtPubDevAuthToken,
           fn: (client) => client.likePackage('oxygen'));
       final counts = await removeOrphanedLikes(minAgeThreshold: Duration.zero);
@@ -26,7 +26,7 @@ void main() {
     testWithProfile(
       'finds like without package',
       fn: () async {
-        await withPubApiClient(
+        await withHttpPubApiClient(
             bearerToken: userAtPubDevAuthToken,
             fn: (client) => client.likePackage('oxygen'));
         await dbService.commit(
@@ -44,7 +44,7 @@ void main() {
     testWithProfile(
       'finds like without userid',
       fn: () async {
-        await withPubApiClient(
+        await withHttpPubApiClient(
             bearerToken: userAtPubDevAuthToken,
             fn: (client) => client.likePackage('oxygen'));
         final user =
