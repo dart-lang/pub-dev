@@ -172,11 +172,10 @@ Future<R> withFakeServices<R>({
       if (frontendServer != null) {
         final handler =
             wrapHandler(_logger, createAppHandler(), sanitize: true);
-        // Handle requests in the current zone, keeping the services context.
-        final currentZone = Zone.current;
-        final frontendServerSubscription = frontendServer.server.listen((rq) =>
-            currentZone.run(() => fork(() => handleRequest(rq, handler))));
-        registerScopeExitCallback(frontendServerSubscription.cancel);
+        final fsSubscription = frontendServer.server.listen((rq) async {
+          await fork(() => handleRequest(rq, handler));
+        });
+        registerScopeExitCallback(fsSubscription.cancel);
       }
       return await fn();
     });
