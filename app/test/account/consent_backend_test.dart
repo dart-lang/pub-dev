@@ -47,7 +47,7 @@ void main() {
 
     testWithProfile('Uploader invite accepted', fn: () async {
       final consentId = await inviteUploader();
-      await withPubApiClient(
+      await withHttpPubApiClient(
           bearerToken: userAtPubDevAuthToken,
           fn: (client) async {
             final rs = await client.resolveConsent(
@@ -65,7 +65,7 @@ void main() {
     testWithProfile('Uploader invite rejected', fn: () async {
       final consentId = await inviteUploader();
 
-      await withPubApiClient(
+      await withHttpPubApiClient(
           bearerToken: userAtPubDevAuthToken,
           fn: (client) async {
             final rs = await client.resolveConsent(
@@ -123,7 +123,7 @@ void main() {
     testWithProfile('Publisher contact accepted', fn: () async {
       final consentId = await inviteContact();
 
-      await withPubApiClient(
+      await withHttpPubApiClient(
           bearerToken: userAtPubDevAuthToken,
           fn: (client) async {
             final rs = await client.resolveConsent(
@@ -141,7 +141,7 @@ void main() {
     testWithProfile('Publisher contact rejected', fn: () async {
       final consentId = await inviteContact();
 
-      await withPubApiClient(
+      await withHttpPubApiClient(
           bearerToken: userAtPubDevAuthToken,
           fn: (client) async {
             final rs = await client.resolveConsent(
@@ -201,7 +201,7 @@ void main() {
     testWithProfile('Publisher member accepted', fn: () async {
       final consentId = await inviteMember();
 
-      await withPubApiClient(
+      await withHttpPubApiClient(
           bearerToken: userAtPubDevAuthToken,
           fn: (client) async {
             final rs = await client.resolveConsent(
@@ -219,7 +219,7 @@ void main() {
     testWithProfile('Publisher member rejected', fn: () async {
       final consentId = await inviteMember();
 
-      await withPubApiClient(
+      await withHttpPubApiClient(
           bearerToken: userAtPubDevAuthToken,
           fn: (client) async {
             final rs = await client.resolveConsent(

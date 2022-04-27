@@ -2,44 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:gcloud/service_scope.dart';
+import 'package:meta/meta.dart';
+
 import '../../frontend/handlers/pubapi.client.dart';
 import '../../shared/configuration.dart';
 
 import 'http.dart';
-import 'http_client_to_shelf_handler.dart';
 
-/// Creates local, non-HTTP-based API client with [authToken].
-PubApiClient createLocalPubApiClient({String? authToken}) =>
-    PubApiClient('http://localhost:0/',
-        client: httpClientToShelfHandler(authToken: authToken));
-
-/// Creates a pub.dev API client and executes [fn], making sure that the HTTP
-/// resources are freed after the callback finishes.
+/// Creates an API client to the configured endpoint with [authToken].
+/// The client will be closed when the current scope is exited.
 ///
-/// If [bearerToken] is specified, the Authorization HTTP header will be sent
-/// with a Bearer token.
-///
-/// If [pubHostedUrl] is specified, the HTTP client will connect to this
-/// endpoint, otherwise only local API calls will be made.
-///
-/// TODO: Migrate callers to use [withHttpPubApiClient] instead.
-Future<R> withPubApiClient<R>({
-  String? bearerToken,
-  String? pubHostedUrl,
-  required Future<R> Function(PubApiClient client) fn,
-}) async {
-  final httpClient = pubHostedUrl == null
-      ? httpClientToShelfHandler(authToken: bearerToken)
-      : httpClientWithAuthorization(tokenProvider: () async => bearerToken);
-  try {
-    final apiClient = PubApiClient(
-      pubHostedUrl ?? 'http://localhost:0/',
-      client: httpClient,
-    );
-    return await fn(apiClient);
-  } finally {
-    httpClient.close();
-  }
+/// TODO: migrate callers to use [withHttpPubApiClient] instead.
+@visibleForTesting
+PubApiClient createLocalPubApiClient({String? authToken}) {
+  final httpClient =
+      httpClientWithAuthorization(tokenProvider: () async => authToken);
+  registerScopeExitCallback(() async => httpClient.close());
+  return PubApiClient(
+    activeConfiguration.primaryApiUri!.toString(),
+    client: httpClient,
+  );
 }
 
 /// Creates a pub.dev API client and executes [fn], making sure that the HTTP
