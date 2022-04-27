@@ -548,7 +548,11 @@ class PackageBackend {
     await requirePublisherAdmin(request.publisherId, user.userId);
     final rs = await withRetryTransaction(db, (tx) async {
       final package = await db.lookupValue<Package>(key);
-      final fromPublisherId = package.publisherId;
+      if (package.publisherId == request.publisherId) {
+        // If desired publisherId is already the current publisherId, then we're already done.
+        return _asPackagePublisherInfo(package);
+      }
+      final currentPublisherId = package.publisherId;
       package.publisherId = request.publisherId;
       package.uploaders?.clear();
       package.updated = clock.now().toUtc();
@@ -557,7 +561,7 @@ class PackageBackend {
       tx.insert(AuditLogRecord.packageTransferred(
         user: user,
         package: package.name!,
-        fromPublisherId: fromPublisherId,
+        fromPublisherId: currentPublisherId,
         toPublisherId: package.publisherId!,
       ));
 
