@@ -4,43 +4,29 @@
 
 library pub_dartlang_org.tarball_storage_namer_test;
 
+import 'package:gcloud/storage.dart';
 import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/shared/configuration.dart';
+import 'package:pub_dev/shared/storage.dart';
 import 'package:test/test.dart';
 
-void main() {
-  group('tarball_storage_namer', () {
-    final bucket = 'pub.dartlang.org';
+import '../shared/test_services.dart';
 
-    test('empty namespace', () {
-      for (var namespace in [null, '']) {
-        final namer = TarballStorageNamer(
-            'https://storage.googleapis.com', bucket, namespace);
-        expect(namer.bucket, equals(bucket));
-        expect(namer.namespace, equals(''));
-        expect(namer.prefix, equals(''));
-        expect(namer.tarballObjectName('foobar', '0.1.0'),
-            equals('packages/foobar-0.1.0.tar.gz'));
-        expect(namer.tmpObjectName('guid'), equals('tmp/guid'));
-        expect(
-            namer.tarballObjectUrl('foobar', '0.1.0'),
-            equals('https://storage.googleapis.com/'
-                '$bucket/packages/foobar-0.1.0.tar.gz'));
-      }
+void main() {
+  group('Object names', () {
+    testWithProfile('namer', fn: () async {
+      final bucket = await getOrCreateBucket(storageService, 'some-pub-bucket');
+      expect(bucket.objectUrl('path/file.txt'),
+          '${activeConfiguration.storageBaseUrl}/some-pub-bucket/path/file.txt');
+
+      expect((await packageBackend.downloadUrl('oxygen', '1.0.0')).toString(),
+          '${activeConfiguration.storageBaseUrl}/fake-bucket-pub/packages/oxygen-1.0.0.tar.gz');
     });
 
-    test('staging namespace', () {
-      final namer = TarballStorageNamer(
-          'https://storage.googleapis.com', bucket, 'staging');
-      expect(namer.bucket, equals(bucket));
-      expect(namer.namespace, equals('staging'));
-      expect(namer.prefix, equals('ns/staging/'));
-      expect(namer.tarballObjectName('foobar', '0.1.0'),
-          equals('ns/staging/packages/foobar-0.1.0.tar.gz'));
-      expect(namer.tmpObjectName('guid'), equals('tmp/guid'));
-      expect(
-          namer.tarballObjectUrl('foobar', '0.1.0'),
-          equals('https://storage.googleapis.com/'
-              '$bucket/ns/staging/packages/foobar-0.1.0.tar.gz'));
+    test('helper methods', () {
+      expect(tarballObjectName('foobar', '0.1.0'),
+          equals('packages/foobar-0.1.0.tar.gz'));
+      expect(tmpObjectName('guid'), equals('tmp/guid'));
     });
   });
 }

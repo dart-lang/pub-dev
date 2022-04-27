@@ -40,9 +40,11 @@ d.Node nullSafeBadgeNode({String? title}) {
 /// Renders the tags using the pkg/tags template.
 d.Node tagsNodeFromPackageView({
   required PackageView package,
+  SearchForm? searchForm,
   String? version,
   bool isRetracted = false,
 }) {
+  searchForm = searchForm?.clearContext() ?? SearchForm();
   final tags = package.tags;
   final sdkTags = tags.where((s) => s.startsWith('sdk:')).toSet().toList();
   final simpleTags = <SimpleTag>[];
@@ -66,7 +68,7 @@ d.Node tagsNodeFromPackageView({
     simpleTags.add(SimpleTag.legacy());
   }
   String tagUrl(String requiredTag) =>
-      SearchForm().toggleRequiredTag(requiredTag).toSearchLink();
+      searchForm!.addRequiredTagIfAbsent(requiredTag).toSearchLink();
 
   final sdkBadgeTag = BadgeTag(
     text: 'SDK',
@@ -140,7 +142,10 @@ d.Node tagsNodeFromPackageView({
     simpleTags.add(SimpleTag.unidentified(
         href: urls.pkgScoreUrl(package.name!, version: version)));
   }
-  return tagsNode(simpleTags: simpleTags, badgeTags: badgeTags);
+  return tagsNode(
+    simpleTags: simpleTags,
+    badgeTags: badgeTags,
+  );
 }
 
 /// Renders the labeled scores widget (the score values in a compact layout).

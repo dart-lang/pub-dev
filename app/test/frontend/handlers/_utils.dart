@@ -48,11 +48,15 @@ Future<shelf.Response> issueHttp(
   Map<String, String>? headers,
   dynamic body,
 }) async {
-  final uri =
+  final url =
       host == null ? '$siteRoot$path' : '${scheme ?? 'https'}://$host$path';
+  final uri = Uri.parse(url);
+  if (uri.path.contains('//')) {
+    throw ArgumentError('Double-slash URL detected: "$url".');
+  }
   final request = shelf.Request(
     method,
-    Uri.parse(uri),
+    uri,
     headers: headers,
     body: body,
   );

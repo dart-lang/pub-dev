@@ -249,6 +249,7 @@ class ScoreCardBackend {
             derivedTags: <String>[],
             allDependencies: <String>[],
             licenseFile: null,
+            licenses: null,
             report: pana.Report(
               sections: [
                 pana.ReportSection(
@@ -265,6 +266,7 @@ class ScoreCardBackend {
             flags: <String>[],
             urlProblems: <pana.UrlProblem>[],
             repository: null,
+            screenshots: null,
           ),
         );
       }

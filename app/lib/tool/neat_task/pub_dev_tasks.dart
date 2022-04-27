@@ -19,6 +19,8 @@ import '../../search/backend.dart';
 import '../../shared/datastore.dart';
 import '../../shared/integrity.dart';
 import '../../tool/backfill/backfill_new_fields.dart';
+import '../maintenance/remove_orphaned_likes.dart';
+import '../maintenance/update_package_likes.dart';
 
 import 'datastore_status_provider.dart';
 
@@ -68,6 +70,20 @@ void _setupGenericPeriodicTasks() {
     name: 'delete-old-neat-task-statuses',
     isRuntimeVersioned: false,
     task: () => deleteOldNeatTaskStatuses(dbService),
+  );
+
+  // Deletes orphaned like entities that are missing a reference.
+  _weekly(
+    name: 'remove-orphaned-likes',
+    isRuntimeVersioned: false,
+    task: removeOrphanedLikes,
+  );
+
+  // Updates Package.likes with the correct new value.
+  _weekly(
+    name: 'update-package-likes',
+    isRuntimeVersioned: false,
+    task: updatePackageLikes,
   );
 }
 

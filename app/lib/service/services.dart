@@ -10,12 +10,16 @@ import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
+<<<<<<< HEAD
 import 'package:pub_dev/fake/server/fake_storage_server.dart';
 import 'package:pub_dev/package/screenshots/backend.dart';
 import 'package:pub_dev/service/youtube/backend.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
 import 'package:pub_dev/task/cloudcompute/googlecloudcompute.dart';
+=======
+import 'package:logging/logging.dart';
+>>>>>>> 3ef4023040dcadb358c7a83e46c0a6992abd0385
 import 'package:shelf/shelf_io.dart';
 
 import '../account/backend.dart';
@@ -60,6 +64,7 @@ import '../tool/utils/http.dart';
 import 'announcement/backend.dart';
 import 'secret/backend.dart';
 
+final _logger = Logger('pub.services');
 final _pubDevServicesInitializedKey = '_pubDevServicesInitializedKey';
 
 /// Run [fn] with services;
@@ -95,6 +100,7 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
           activeConfiguration.adminAudience!,
         ],
       ));
+      registerScopeExitCallback(authProvider.close);
       registerDomainVerifier(DomainVerifier());
       registerEmailSender(
         activeConfiguration.gmailRelayServiceAccount != null &&
@@ -168,7 +174,11 @@ Future<R> withFakeServices<R>({
       configuration!.canonicalPackagesBucketName!,
       configuration!.publicPackagesBucketName!,
       configuration!.incomingPackagesBucketName!,
+<<<<<<< HEAD
       configuration!.taskResultBucketName!,
+=======
+      configuration!.packageBucketName!,
+>>>>>>> 3ef4023040dcadb358c7a83e46c0a6992abd0385
     ];
     for (final bucketName in bucketsToCreate) {
       await getOrCreateBucket(storage, bucketName);
@@ -176,6 +186,7 @@ Future<R> withFakeServices<R>({
 
     // register fake services that would have external dependencies
     registerAuthProvider(FakeAuthProvider());
+    registerScopeExitCallback(authProvider.close);
     registerDomainVerifier(FakeDomainVerifier());
     registerEmailSender(FakeEmailSender());
     registerUploadSigner(
@@ -229,22 +240,19 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerSecretBackend(SecretBackend(dbService));
     registerSnapshotStorage(SnapshotStorage(await getOrCreateBucket(
         storageService, activeConfiguration.searchSnapshotBucketName!)));
-    registerTarballStorage(
-      TarballStorage(
-          storageService,
-          await getOrCreateBucket(
-              storageService, activeConfiguration.packageBucketName!),
-          null),
-    );
-
     registerImageStorage(ImageStorage(await getOrCreateBucket(
         storageService, activeConfiguration.imageBucketName!)));
 
     registerYoutubeBackend(YoutubeBackend());
 
     // depends on previously registered services
-    registerPackageBackend(PackageBackend(dbService, tarballStorage));
-
+    registerPackageBackend(PackageBackend(
+      dbService,
+      storageService,
+      storageService.bucket(activeConfiguration.packageBucketName!),
+      // TODO: re-enable incomingPackagesBucketName again
+      storageService.bucket(activeConfiguration.packageBucketName!),
+    ));
     registerTaskBackend(TaskBackend(
       dbService,
       taskWorkerCloudCompute,
@@ -259,7 +267,6 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerScopeExitCallback(() async => nameTracker.stopTracking());
     registerScopeExitCallback(snapshotStorage.close);
     registerScopeExitCallback(indexUpdater.close);
-    registerScopeExitCallback(authProvider.close);
     registerScopeExitCallback(dartSdkMemIndex.close);
     registerScopeExitCallback(flutterSdkMemIndex.close);
     registerScopeExitCallback(popularityStorage.close);
@@ -268,8 +275,22 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerScopeExitCallback(youtubeBackend.close);
 
     // Create a zone-local flag to indicate that services setup has been completed.
-    return await fork(() => Zone.current.fork(zoneValues: {
-          _pubDevServicesInitializedKey: true,
-        }).run(() async => await fn()));
+    return await fork(
+      () => Zone.current.fork(zoneValues: {
+        _pubDevServicesInitializedKey: true,
+      }).run(
+        () async {
+          _logger.info('Started running inside services scope...');
+          try {
+            return await fn();
+          } catch (e, st) {
+            _logger.severe('Uncaught exception inside services scope.', e, st);
+            rethrow;
+          } finally {
+            _logger.warning('Exiting services scope.');
+          }
+        },
+      ),
+    );
   }) as R;
 }

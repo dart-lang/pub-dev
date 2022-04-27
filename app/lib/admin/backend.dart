@@ -10,7 +10,6 @@ import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -21,11 +20,7 @@ import '../audit/models.dart';
 import '../dartdoc/backend.dart';
 import '../job/model.dart';
 import '../package/backend.dart'
-    show
-        TarballStorage,
-        checkPackageVersionParams,
-        packageBackend,
-        purgePackageCache;
+    show checkPackageVersionParams, packageBackend, purgePackageCache;
 import '../package/models.dart';
 import '../publisher/models.dart';
 import '../scorecard/models.dart';
@@ -35,8 +30,14 @@ import '../shared/email.dart';
 import '../shared/exceptions.dart';
 import '../shared/tags.dart';
 import '../tool/utils/dart_sdk_version.dart';
+import 'tools/create_publisher.dart';
 import 'tools/list_package_withheld.dart';
+import 'tools/notify_service.dart';
+import 'tools/recent_uploaders.dart';
+import 'tools/remove_publisher_and_block_all_members.dart';
 import 'tools/set_package_withheld.dart';
+import 'tools/set_secret.dart';
+import 'tools/set_user_blocked.dart';
 import 'tools/user_merger.dart';
 
 final _logger = Logger('pub.admin.backend');
@@ -78,10 +79,22 @@ class AdminBackend {
   Future<String> executeTool(String tool, List<String> args) async {
     await _requireAdminPermission(AdminPermission.executeTool);
     switch (tool) {
+      case 'create-publisher':
+        return await executeCreatePublisher(args);
       case 'list-package-withheld':
         return await executeListPackageWithheld(args);
+      case 'notify-service':
+        return await executeNotifyService(args);
+      case 'recent-uploaders':
+        return await executeRecentUploaders(args);
+      case 'remove-publisher-and-delete-all-members':
+        return await executeRemovePublisherAndBlockAllMembers(args);
       case 'set-package-withheld':
         return await executeSetPackageWithheld(args);
+      case 'set-secret':
+        return await executeSetSecret(args);
+      case 'set-user-blocked':
+        return await executeSetUserBlocked(args);
       case 'user-merger':
         return await executeUserMergerTool(args);
     }
@@ -356,10 +369,9 @@ class AdminBackend {
 
     final pool = Pool(10);
     final futures = <Future>[];
-    final storage = TarballStorage(storageService,
-        storageService.bucket(activeConfiguration.packageBucketName!), '');
     versions.forEach((final v) {
-      futures.add(pool.withResource(() => storage.remove(packageName, v)));
+      futures.add(pool.withResource(
+          () => packageBackend.removePackageTarball(packageName, v)));
     });
     await Future.wait(futures);
     await pool.close();
@@ -483,11 +495,8 @@ class AdminBackend {
       tx.insert(package);
     });
 
-    final bucket =
-        storageService.bucket(activeConfiguration.packageBucketName!);
-    final storage = TarballStorage(storageService, bucket, '');
     print('Removing GCS objects ...');
-    await storage.remove(packageName, version);
+    await packageBackend.removePackageTarball(packageName, version);
 
     await dartdocBackend.removeAll(packageName, version: version);
 

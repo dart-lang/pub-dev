@@ -50,6 +50,12 @@ bool looksLikeEmail(String? email) {
   if (email == null) return false;
   if (email.length < 5) return false;
   if (email.contains('..')) return false;
+  final lc = email.toLowerCase();
+  if (lc.startsWith('mailto:') ||
+      lc.startsWith('http:') ||
+      lc.startsWith('https:')) {
+    return false;
+  }
   return _lenientEmailRegExp.hasMatch(email);
 }
 

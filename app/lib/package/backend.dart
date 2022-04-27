@@ -47,17 +47,9 @@ import 'upload_signer_service.dart';
 final maxAssetContentLength = 128 * 1024;
 
 /// The maximum number of versions a package is allowed to have.
-final maxVersionsPerPackage = 1000;
+final _defaultMaxVersionsPerPackage = 1000;
 
 final Logger _logger = Logger('pub.cloud_repository');
-
-/// Sets the active tarball storage.
-void registerTarballStorage(TarballStorage ts) =>
-    ss.register(#_tarball_storage, ts);
-
-/// The active tarball storage.
-TarballStorage get tarballStorage =>
-    ss.lookup(#_tarball_storage) as TarballStorage;
 
 /// Sets the package backend service.
 void registerPackageBackend(PackageBackend backend) =>
@@ -70,17 +62,23 @@ PackageBackend get packageBackend =>
 /// Represents the backend for the pub site.
 class PackageBackend {
   final DatastoreDB db;
-  final TarballStorage _storage;
-  final int _maxVersionsPerPackage;
+  final Storage _storage;
 
-  PackageBackend(
-    DatastoreDB db,
-    TarballStorage storage, {
-    int? maxVersionsPerPackageOverride,
-  })  : db = db,
-        _storage = storage,
-        _maxVersionsPerPackage =
-            maxVersionsPerPackageOverride ?? maxVersionsPerPackage;
+  /// The Cloud Storage bucket to use for uploaded package content.
+  /// The following files are present:
+  /// - `packages/$package-$version.tar.gz` (package archive)
+  /// - `tmp/$guid` (incoming package archive that was uploaded, but not yet processed)
+  final Bucket _bucket;
+
+  /// The Cloud Storage bucket to use for incoming package archives.
+  /// The following files are present:
+  /// - `tmp/$guid` (incoming package archive that was uploaded, but not yet processed)
+  final Bucket _incomingBucket;
+
+  @visibleForTesting
+  int maxVersionsPerPackage = _defaultMaxVersionsPerPackage;
+
+  PackageBackend(this.db, this._storage, this._bucket, this._incomingBucket);
 
   /// Whether the package exists and is not withheld or deleted.
   Future<bool> isPackageVisible(String package) async {
@@ -271,7 +269,11 @@ class PackageBackend {
   Future<Uri> downloadUrl(String package, String version) async {
     InvalidInputException.checkSemanticVersion(version);
     final cv = canonicalizeVersion(version);
-    return _storage.downloadUrl(package, cv!);
+    // NOTE: We should maybe check for existence first?
+    // return storage.bucket(bucket).info(object)
+    //     .then((info) => info.downloadLink);
+    final object = tarballObjectName(package, Uri.encodeComponent(cv!));
+    return Uri.parse(_bucket.objectUrl(object));
   }
 
   /// Updates the stable, prerelease and preview versions of [package].
@@ -546,7 +548,11 @@ class PackageBackend {
     await requirePublisherAdmin(request.publisherId, user.userId);
     final rs = await withRetryTransaction(db, (tx) async {
       final package = await db.lookupValue<Package>(key);
-      final fromPublisherId = package.publisherId;
+      if (package.publisherId == request.publisherId) {
+        // If desired publisherId is already the current publisherId, then we're already done.
+        return _asPackagePublisherInfo(package);
+      }
+      final currentPublisherId = package.publisherId;
       package.publisherId = request.publisherId;
       package.uploaders?.clear();
       package.updated = clock.now().toUtc();
@@ -555,7 +561,7 @@ class PackageBackend {
       tx.insert(AuditLogRecord.packageTransferred(
         user: user,
         package: package.name!,
-        fromPublisherId: fromPublisherId,
+        fromPublisherId: currentPublisherId,
         toPublisherId: package.publisherId!,
       ));
 
@@ -669,20 +675,12 @@ class PackageBackend {
   }
 
   @visibleForTesting
-  Stream<List<int>> download(String package, String version) {
-    // TODO: Should we first test for existence?
-    // Maybe with a cache?
-    final cv = canonicalizeVersion(version);
-    return _storage.download(package, cv!);
-  }
-
-  @visibleForTesting
   Future<PackageVersion> upload(Stream<List<int>> data) async {
     await requireAuthenticatedUser();
     final guid = createUuid();
     _logger.info('Starting semi-async upload (uuid: $guid)');
-    final object = _storage.tempObjectName(guid);
-    await data.pipe(_storage.bucket.write(object));
+    final object = tmpObjectName(guid);
+    await data.pipe(_incomingBucket.write(object));
     return await publishUploadedBlob(guid);
   }
 
@@ -700,8 +698,8 @@ class PackageBackend {
     _logger.info('User: ${user.email}.');
 
     final guid = createUuid();
-    final String object = _storage.tempObjectName(guid);
-    final String bucket = _storage.bucket.bucketName;
+    final String object = tmpObjectName(guid);
+    final String bucket = _incomingBucket.bucketName;
     final Duration lifetime = const Duration(minutes: 10);
 
     final url = redirectUrl.resolve('?upload_id=$guid');
@@ -728,8 +726,17 @@ class PackageBackend {
 
     return await withTempDirectory((Directory dir) async {
       final filename = '${dir.absolute.path}/tarball.tar.gz';
-      final info =
-          await _storage.bucket.tryInfo(_storage.namer.tmpObjectName(guid));
+      var incomingBucket = _incomingBucket;
+      var info = await incomingBucket.tryInfo(tmpObjectName(guid));
+      if (info == null) {
+        // During version migration, there is a chance that the upload starts
+        // into the old bucket, while the finish operation hits a new instance.
+        // If there is no file in the incoming bucket, we will fall back
+        // to use the default bucket for now.
+        // TODO: remove this fallback after the release gets stable.
+        info = await _bucket.tryInfo(tmpObjectName(guid));
+        incomingBucket = _bucket;
+      }
       if (info?.length == null) {
         throw PackageRejectedException.archiveEmpty();
       }
@@ -737,7 +744,8 @@ class PackageBackend {
         throw PackageRejectedException.archiveTooLarge(
             UploadSignerService.maxUploadSize);
       }
-      await _saveTarballToFS(_storage.readTempObject(guid), filename);
+      await _saveTarballToFS(
+          incomingBucket.read(tmpObjectName(guid)), filename);
       _logger.info('Examining tarball content ($guid).');
       final sw = Stopwatch()..start();
       final archive = await summarizePackageArchive(
@@ -787,7 +795,7 @@ class PackageBackend {
       final version = await _performTarballUpload(
         user,
         (package, version) =>
-            _storage.uploadViaTempObject(guid, package, version),
+            _uploadViaTempObject(incomingBucket, guid, package, version),
         restriction,
         archive,
       );
@@ -795,10 +803,32 @@ class PackageBackend {
       _logger.info('Removing temporary object $guid.');
 
       sw.reset();
-      await _storage.removeTempObject(guid);
+      await incomingBucket.delete(tmpObjectName(guid));
       _logger.info('Temporary object removed in ${sw.elapsed}.');
       return version;
     });
+  }
+
+  /// Makes a temporary object a new tarball.
+  Future<void> _uploadViaTempObject(
+    Bucket incomingBucket,
+    String guid,
+    String package,
+    String version,
+  ) async {
+    final object = tarballObjectName(package, version);
+
+    // Copy the temporary object to it's destination place.
+    await _storage.copyObject(
+      incomingBucket.absoluteObjectName(tmpObjectName(guid)),
+      _bucket.absoluteObjectName(object),
+    );
+
+    // Change the ACL to include a `public-read` entry.
+    final ObjectInfo info = await _bucket.info(object);
+    final publicRead = AclEntry(AllUsersScope(), AclPermission.READ);
+    final acl = Acl(List.from(info.metadata.acl!.entries)..add(publicRead));
+    await _bucket.updateMetadata(object, info.metadata.replace(acl: acl));
   }
 
   Future<PackageVersion> _performTarballUpload(
@@ -856,9 +886,9 @@ class PackageBackend {
             user.email!, package!.name!);
       }
 
-      if (package!.versionCount >= _maxVersionsPerPackage) {
+      if (package!.versionCount >= maxVersionsPerPackage) {
         throw PackageRejectedException.maxVersionCountReached(
-            newVersion.package, _maxVersionsPerPackage);
+            newVersion.package, maxVersionsPerPackage);
       }
 
       if (package!.isNotVisible) {
@@ -1138,6 +1168,17 @@ class PackageBackend {
     _logger.warning('Unknown upload restriction status: $value');
     return UploadRestrictionStatus.noRestriction;
   }
+
+  /// Deletes the tarball of a [package] in the given [version] permanently.
+  Future<void> removePackageTarball(String package, String version) async {
+    final object = tarballObjectName(package, version);
+    await deleteFromBucket(_bucket, object);
+  }
+
+  /// Gets the file info of a [package] in the given [version].
+  Future<ObjectInfo?> packageTarballinfo(String package, String version) async {
+    return await _bucket.tryInfo(tarballObjectName(package, version));
+  }
 }
 
 extension PackageVersionExt on PackageVersion {
@@ -1374,128 +1415,14 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
   return DerivedPackageVersionEntities(versionInfo, assets);
 }
 
-/// Helper utility class for interfacing with Cloud Storage for storing
-/// tarballs.
-class TarballStorage {
-  final TarballStorageNamer namer;
-  final Storage storage;
-  final Bucket bucket;
+/// The GCS object name of a tarball object - excluding leading '/'.
+@visibleForTesting
+String tarballObjectName(String package, String version) =>
+    'packages/$package-$version.tar.gz';
 
-  TarballStorage(this.storage, Bucket bucket, String? namespace)
-      : bucket = bucket,
-        namer = TarballStorageNamer(
-            activeConfiguration.storageBaseUrl!, bucket.bucketName, namespace);
-
-  /// Generates a path to a temporary object on cloud storage.
-  String tempObjectName(String guid) => namer.tmpObjectName(guid);
-
-  /// Reads the temporary object identified by [guid]
-  Stream<List<int>> readTempObject(String guid) =>
-      bucket.read(namer.tmpObjectName(guid));
-
-  /// Makes a temporary object a new tarball.
-  Future<void> uploadViaTempObject(
-      String guid, String package, String version) async {
-    final object = namer.tarballObjectName(package, version);
-
-    // Copy the temporary object to it's destination place.
-    await storage.copyObject(
-        bucket.absoluteObjectName(namer.tmpObjectName(guid)),
-        bucket.absoluteObjectName(object));
-
-    // Change the ACL to include a `public-read` entry.
-    final ObjectInfo info = await bucket.info(object);
-    final publicRead = AclEntry(AllUsersScope(), AclPermission.READ);
-    final acl = Acl(List.from(info.metadata.acl!.entries)..add(publicRead));
-    await bucket.updateMetadata(object, info.metadata.replace(acl: acl));
-  }
-
-  /// Remove a previously generated temporary object.
-  Future<void> removeTempObject(String? guid) async {
-    if (guid == null) throw ArgumentError('No guid given.');
-    return bucket.delete(namer.tmpObjectName(guid));
-  }
-
-  /// Download the tarball of a [package] in the given [version].
-  Stream<List<int>> download(String package, String version) {
-    final object = namer.tarballObjectName(package, version);
-    return bucket.read(object);
-  }
-
-  /// Gets the file info of a [package] in the given [version].
-  Future<ObjectInfo?> info(String package, String version) async {
-    final object = namer.tarballObjectName(package, version);
-    return await bucket.tryInfo(object);
-  }
-
-  /// Deletes the tarball of a [package] in the given [version] permanently.
-  Future<void> remove(String package, String version) async {
-    final object = namer.tarballObjectName(package, version);
-    await deleteFromBucket(bucket, object);
-  }
-
-  /// Get the URL to the tarball of a [package] in the given [version].
-  Future<Uri> downloadUrl(String package, String version) {
-    // NOTE: We should maybe check for existence first?
-    // return storage.bucket(bucket).info(object)
-    //     .then((info) => info.downloadLink);
-    return Future.value(Uri.parse(namer.tarballObjectUrl(package, version)));
-  }
-
-  /// Upload [tarball] of a [package] in the given [version].
-  Future<void> upload(
-      String package, String version, Stream<List<int>> tarball) {
-    final object = namer.tarballObjectName(package, version);
-    return tarball
-        .pipe(bucket.write(object, predefinedAcl: PredefinedAcl.publicRead));
-  }
-}
-
-/// Class used for getting GCS object/bucket names and object URLs.
-///
-///
-/// The GCS bucket contains package tarballs in a temporary place and stored
-/// package tarballs which are used by clients. The latter can be stored either
-/// via an empty or non-empty namespace.
-///
-/// The layout of the GCS bucket is as follows:
-///   gs://<bucket-name>/tmp/<uuid>
-///   gs://<bucket-name>/packages/<package-name>-<version>.tar.gz
-///   gs://<bucket-name>/ns/<namespace>/packages/<package-name>-<version>.tar.gz
-class TarballStorageNamer {
-  /// The tarball object storage prefix
-  final String storageBaseUrl;
-
-  /// The GCS bucket used.
-  final String bucket;
-
-  /// The namespace used.
-  final String namespace;
-
-  /// The prefix of where packages are stored (i.e. '' or 'ns/<namespace>').
-  final String prefix;
-
-  TarballStorageNamer(String storageBaseUrl, this.bucket, String? namespace)
-      : storageBaseUrl = storageBaseUrl.endsWith('/')
-            ? storageBaseUrl.substring(0, storageBaseUrl.length - 1)
-            : storageBaseUrl,
-        namespace = namespace ?? '',
-        prefix =
-            (namespace == null || namespace.isEmpty) ? '' : 'ns/$namespace/';
-
-  /// The GCS object name of a tarball object - excluding leading '/'.
-  String tarballObjectName(String package, String version) =>
-      '${prefix}packages/$package-$version.tar.gz';
-
-  /// The GCS object name of an temporary object [guid] - excluding leading '/'.
-  String tmpObjectName(String guid) => 'tmp/$guid';
-
-  /// The http URL of a publicly accessable GCS object.
-  String tarballObjectUrl(String package, String version) {
-    final object = tarballObjectName(package, Uri.encodeComponent(version));
-    return '$storageBaseUrl/$bucket/$object';
-  }
-}
+/// The GCS object name of an temporary object [guid] - excluding leading '/'.
+@visibleForTesting
+String tmpObjectName(String guid) => 'tmp/$guid';
 
 /// Verify that the [package] and the optional [version] parameter looks as acceptable input.
 void checkPackageVersionParams(String package, [String? version]) {

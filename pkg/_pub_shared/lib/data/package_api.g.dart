@@ -133,6 +133,7 @@ VersionScore _$VersionScoreFromJson(Map<String, dynamic> json) => VersionScore(
       maxPoints: json['maxPoints'] as int?,
       likeCount: json['likeCount'] as int?,
       popularityScore: (json['popularityScore'] as num?)?.toDouble(),
+      tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
       lastUpdated: json['lastUpdated'] == null
           ? null
           : DateTime.parse(json['lastUpdated'] as String),
@@ -151,6 +152,7 @@ Map<String, dynamic> _$VersionScoreToJson(VersionScore instance) {
   writeNotNull('maxPoints', instance.maxPoints);
   writeNotNull('likeCount', instance.likeCount);
   writeNotNull('popularityScore', instance.popularityScore);
+  writeNotNull('tags', instance.tags);
   writeNotNull('lastUpdated', instance.lastUpdated?.toIso8601String());
   return val;
 }

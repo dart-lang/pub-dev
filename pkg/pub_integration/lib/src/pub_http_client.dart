@@ -11,13 +11,9 @@ import 'package:http/http.dart';
 /// Simple pub client library.
 class PubHttpClient {
   final _http = _HtmlVerifierHttpClient(Client());
-  final String? pubHostedUrl;
+  final Uri _pubHostedUrl;
 
-  PubHttpClient(this.pubHostedUrl) {
-    if (pubHostedUrl == null) {
-      throw Exception('pubHostedUrl must be set');
-    }
-  }
+  PubHttpClient(String pubHostedUrl) : _pubHostedUrl = Uri.parse(pubHostedUrl);
 
   /// Forces the analyzer jobs to update and run.
   ///
@@ -25,8 +21,7 @@ class PubHttpClient {
   /// current implementation is blocking the analyzer instance, and we don't
   /// want to expose such functionality in production.
   Future<void> forceAnalyzerUpdate() async {
-    final url = '$pubHostedUrl/fake-update-analyzer';
-    final rs = await _http.post(Uri.parse(url));
+    final rs = await _http.post(_pubHostedUrl.resolve('/fake-update-analyzer'));
     if (rs.statusCode == 200) {
       return;
     }
@@ -40,8 +35,7 @@ class PubHttpClient {
   /// current implementation is blocking the dartdoc instance, and we don't
   /// want to expose such functionality in production.
   Future<void> forceDartdocUpdate() async {
-    final url = '$pubHostedUrl/fake-update-dartdoc';
-    final rs = await _http.post(Uri.parse(url));
+    final rs = await _http.post(_pubHostedUrl.resolve('/fake-update-dartdoc'));
     if (rs.statusCode == 200) {
       return;
     }
@@ -55,8 +49,7 @@ class PubHttpClient {
   /// current implementation is blocking the search instance, and we don't want
   /// to expose such functionality in production.
   Future<void> forceSearchUpdate() async {
-    final url = '$pubHostedUrl/fake-update-search';
-    final rs = await _http.post(Uri.parse(url));
+    final rs = await _http.post(_pubHostedUrl.resolve('/fake-update-search'));
     if (rs.statusCode == 200) {
       return;
     }
@@ -66,8 +59,7 @@ class PubHttpClient {
 
   /// Get the latest version name of a package.
   Future<String?> getLatestVersionName(String package) async {
-    final url = '$pubHostedUrl/api/packages/$package';
-    final rs = await _http.get(Uri.parse(url));
+    final rs = await _http.get(_pubHostedUrl.resolve('/api/packages/$package'));
     if (rs.statusCode == 404) {
       return null;
     } else if (rs.statusCode == 200) {
@@ -84,7 +76,7 @@ class PubHttpClient {
   Future<String?> getLatestVersionPage(String package, {String? tab}) async {
     final tabUrl = tab == null ? '' : '/$tab';
     final rs =
-        await _http.get(Uri.parse('$pubHostedUrl/packages/$package$tabUrl'));
+        await _http.get(_pubHostedUrl.resolve('/packages/$package$tabUrl'));
     if (rs.statusCode == 404) {
       return null;
     } else if (rs.statusCode == 200) {
@@ -96,7 +88,7 @@ class PubHttpClient {
 
   /// Get the content of the publisher list page.
   Future<String> getPublisherListPage() async {
-    final rs = await _http.get(Uri.parse('$pubHostedUrl/publishers'));
+    final rs = await _http.get(_pubHostedUrl.resolve('/publishers'));
     if (rs.statusCode == 200) {
       return rs.body;
     } else {
@@ -107,7 +99,7 @@ class PubHttpClient {
   /// Get the content of the publisher page or null if it does not exists.
   Future<String?> getPublisherPage(String publisherId) async {
     final rs =
-        await _http.get(Uri.parse('$pubHostedUrl/publishers/$publisherId'));
+        await _http.get(_pubHostedUrl.resolve('/publishers/$publisherId'));
     if (rs.statusCode == 404) {
       return null;
     } else if (rs.statusCode == 200) {
@@ -119,7 +111,7 @@ class PubHttpClient {
 
   /// Get the content text of a requested resource;
   Future<String> getContent(String path, {int expectedStatusCode = 200}) async {
-    final rs = await _http.get(Uri.parse('$pubHostedUrl$path'));
+    final rs = await _http.get(_pubHostedUrl.resolve(path));
     if (rs.statusCode != expectedStatusCode) {
       throw Exception('Unexpected status code: ${rs.statusCode}');
     }
@@ -137,7 +129,7 @@ class PubHttpClient {
     required String accessToken,
   }) async {
     final rs = await _http.post(
-      Uri.parse('$pubHostedUrl/api/publishers/$publisherId'),
+      _pubHostedUrl.resolve('/api/publishers/$publisherId'),
       headers: {
         HttpHeaders.authorizationHeader: 'Bearer $authToken',
       },
@@ -157,7 +149,7 @@ class PubHttpClient {
     required String publisherId,
   }) async {
     final rs = await _http.put(
-      Uri.parse('$pubHostedUrl/api/packages/$package/publisher'),
+      _pubHostedUrl.resolve('/api/packages/$package/publisher'),
       headers: {
         HttpHeaders.authorizationHeader: 'Bearer $authToken',
       },
@@ -177,7 +169,7 @@ class PubHttpClient {
     required String invitedEmail,
   }) async {
     final rs = await _http.post(
-      Uri.parse('$pubHostedUrl/api/publishers/$publisherId/invite-member'),
+      _pubHostedUrl.resolve('/api/publishers/$publisherId/invite-member'),
       headers: {
         HttpHeaders.authorizationHeader: 'Bearer $authToken',
       },
@@ -196,7 +188,7 @@ class PubHttpClient {
     required String publisherId,
   }) async {
     final rs = await _http.get(
-      Uri.parse('$pubHostedUrl/api/publishers/$publisherId/members'),
+      _pubHostedUrl.resolve('/api/publishers/$publisherId/members'),
       headers: {
         HttpHeaders.authorizationHeader: 'Bearer $authToken',
       },
@@ -212,7 +204,7 @@ class PubHttpClient {
 
   /// Returns the list of packages from `/api/package-names` endpoint.
   Future<List<String>> apiPackageNames() async {
-    final rs = await _http.get(Uri.parse('$pubHostedUrl/api/package-names'));
+    final rs = await _http.get(_pubHostedUrl.resolve('/api/package-names'));
     if (rs.statusCode != 200) {
       throw Exception('Unexpected status code: ${rs.statusCode}');
     }
@@ -227,7 +219,7 @@ class PubHttpClient {
   /// Returns the list of packages from `/api/package-name-completion-data` endpoint.
   Future<List<String>> apiPackageNameCompletionData() async {
     final rs = await _http
-        .get(Uri.parse('$pubHostedUrl/api/package-name-completion-data'));
+        .get(_pubHostedUrl.resolve('/api/package-name-completion-data'));
     if (rs.statusCode != 200) {
       throw Exception('Unexpected status code: ${rs.statusCode}');
     }

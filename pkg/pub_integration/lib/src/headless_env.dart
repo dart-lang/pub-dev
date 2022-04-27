@@ -131,6 +131,11 @@ class HeadlessEnv {
         return;
       }
 
+      final uri = Uri.parse(rq.url);
+      if (uri.path.contains('//')) {
+        serverErrors.add('Double-slash URL detected: "${rq.url}".');
+      }
+
       await rq.continueRequest();
     });
 
@@ -153,6 +158,20 @@ class HeadlessEnv {
           parseAndValidateHtml(await rs.text);
         } catch (e) {
           serverErrors.add('${rs.request.url} returned bad HTML: $e');
+        }
+      }
+
+      final uri = Uri.parse(rs.url);
+      if (uri.pathSegments.length > 1 && uri.pathSegments.first == 'static') {
+        if (!uri.pathSegments[1].startsWith('hash-')) {
+          serverErrors.add('Static ${rs.url} is without hash URL.');
+        }
+
+        final cacheHeader = rs.headers[HttpHeaders.cacheControlHeader];
+        if (cacheHeader == null ||
+            !cacheHeader.contains('public') ||
+            !cacheHeader.contains('max-age')) {
+          serverErrors.add('Static ${rs.url} is without public caching.');
         }
       }
     });

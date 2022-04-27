@@ -7,7 +7,7 @@ dependencies:
     path: ../pkg/_popularity
   _pub_shared:
     path: ../pkg/_pub_shared
-  appengine: '^0.13.0'
+  appengine: '^0.13.2'
   args: '^2.0.0'
   basics: ^0.6.0
   clock: ^1.1.0
@@ -27,7 +27,7 @@ dependencies:
   json_annotation: '^4.3.0'
   lints: ^1.0.0
   logging: '>=0.9.3 <2.0.0'
-  markdown: ^4.0.0
+  markdown: ^5.0.0
   meta: ^1.1.2
   mime: '>=0.9.3 <2.0.0'
   neat_cache: ^2.0.1
@@ -48,7 +48,7 @@ dependencies:
   watcher: ^1.0.0
   yaml: '^3.0.0'
   # pana version to be pinned
-  pana: '0.21.10'
+  pana: '0.21.12'
   # 3rd-party packages with pinned versions
   buffer: '1.1.1'
   mailer: '5.1.0'
@@ -72,4 +72,4 @@ dev_dependencies:
   shelf_router_generator: ^1.0.0
   source_gen: '^1.0.0'
   test: ^1.16.5
-  xml: ^5.0.0
+  xml: ^6.0.0

@@ -73,6 +73,9 @@ PanaReport _$PanaReportFromJson(Map<String, dynamic> json) => PanaReport(
       licenseFile: json['licenseFile'] == null
           ? null
           : LicenseFile.fromJson(json['licenseFile'] as Map<String, dynamic>),
+      licenses: (json['licenses'] as List<dynamic>?)
+          ?.map((e) => License.fromJson(e as Map<String, dynamic>))
+          .toList(),
       report: json['report'] == null
           ? null
           : Report.fromJson(json['report'] as Map<String, dynamic>),
@@ -84,6 +87,9 @@ PanaReport _$PanaReportFromJson(Map<String, dynamic> json) => PanaReport(
       repository: json['repository'] == null
           ? null
           : Repository.fromJson(json['repository'] as Map<String, dynamic>),
+      screenshots: (json['screenshots'] as List<dynamic>?)
+          ?.map((e) => ProcessedScreenshot.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$PanaReportToJson(PanaReport instance) {
@@ -101,7 +107,9 @@ Map<String, dynamic> _$PanaReportToJson(PanaReport instance) {
   writeNotNull('derivedTags', instance.derivedTags);
   writeNotNull('allDependencies', instance.allDependencies);
   writeNotNull('licenseFile', instance.licenseFile);
+  writeNotNull('licenses', instance.licenses);
   writeNotNull('report', instance.report);
+  writeNotNull('screenshots', instance.screenshots);
   writeNotNull('flags', instance.flags);
   writeNotNull('urlProblems', instance.urlProblems);
   writeNotNull('repository', instance.repository);

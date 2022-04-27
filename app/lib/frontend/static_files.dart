@@ -86,6 +86,7 @@ Directory _resolveDir(String relativePath) =>
 /// Stores static files in memory for fast http serving.
 class StaticFileCache {
   final _files = <String, StaticFile>{};
+  String? _etag;
 
   StaticFileCache();
 
@@ -162,6 +163,7 @@ class StaticFileCache {
   @visibleForTesting
   void addFile(StaticFile file) {
     _files[file.requestPath] = file;
+    _etag = null;
   }
 
   @visibleForTesting
@@ -170,6 +172,16 @@ class StaticFileCache {
   bool hasFile(String requestPath) => _files.containsKey(requestPath);
 
   StaticFile? getFile(String requestPath) => _files[requestPath];
+
+  String get etag => _etag ??= _calculateEtagOfEtags().substring(0, 8);
+
+  String _calculateEtagOfEtags() {
+    final files = List<StaticFile>.from(_files.values);
+    files.sort((a, b) => a.requestPath.compareTo(b.requestPath));
+    final concatenatedEtags = files.map((f) => f.etag).join(' ');
+    final digest = crypto.sha256.convert(utf8.encode(concatenatedEtags));
+    return digest.bytes.map((b) => (b & 31).toRadixString(32)).join();
+  }
 }
 
 /// Stores the content and metadata of a statically served file.
@@ -190,7 +202,7 @@ class StaticFile {
 
   String get contentAsString => utf8.decode(bytes);
 
-  late final String cacheableUrl =
+  late final String _cacheableUrl =
       Uri(path: requestPath, queryParameters: {'hash': etag}).toString();
 
   late final gzippedBytes = GZipCodec(level: 9).encode(bytes);
@@ -223,13 +235,15 @@ class StaticUrls {
   StaticUrls._();
 
   /// Returns the hashed URL of the static resource like:
-  /// `/static/img/logo.gif => /static/img/logo.gif?hash=etag_hash`
+  /// `/static/img/logo.gif => /static/hash-<hash>/img/logo.gif`
   String getAssetUrl(String requestPath) {
     final file = staticFileCache.getFile(requestPath);
     if (file == null) {
       throw Exception('Static resource not found: $requestPath');
+    } else if (requestPath.startsWith('/static/')) {
+      return '/static/hash-${staticFileCache.etag}/${requestPath.substring(8)}';
     } else {
-      return file.cacheableUrl;
+      return file._cacheableUrl;
     }
   }
 }
@@ -331,5 +345,40 @@ Future<void> updateWebCssBuild() async {
         'STDOUT:\n${pr.stdout}\n\n'
         'STDERR:\n${pr.stderr}';
     throw Exception(message);
+  }
+}
+
+/// Parses the static resource URL and returns the parsed hash values.
+/// It can parse the following formats:
+/// - /static/<url-hash>/path/to/resource
+/// - /static/path/to/resource?hash=<url-hash>
+///
+/// TODO: remove after we no longer use url-hash
+class ParsedStaticUrl {
+  final String? urlHash;
+  final String? pathHash;
+  final String filePath;
+
+  ParsedStaticUrl._({
+    required this.urlHash,
+    required this.pathHash,
+    required this.filePath,
+  });
+
+  factory ParsedStaticUrl.parse(Uri requestedUri) {
+    final normalizedRequestPath = path.normalize(requestedUri.path);
+    final pathSegments =
+        List<String>.from(Uri(path: normalizedRequestPath).pathSegments);
+    String? pathHash;
+    var filePath = normalizedRequestPath;
+    if (pathSegments.length > 2 && pathSegments[1].startsWith('hash-')) {
+      pathHash = pathSegments.removeAt(1).substring(5);
+      filePath = '/${Uri(pathSegments: pathSegments)}';
+    }
+    return ParsedStaticUrl._(
+      urlHash: requestedUri.queryParameters['hash'],
+      pathHash: pathHash,
+      filePath: filePath,
+    );
   }
 }

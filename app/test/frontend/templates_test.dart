@@ -108,7 +108,9 @@ void main() {
           .replaceAll('Pana <code>$panaVersion</code>,',
               'Pana <code>%%pana-version%%</code>,')
           .replaceAll('Dart <code>$toolStableDartSdkVersion</code>',
-              'Dart <code>%%stable-dart-version%%</code>');
+              'Dart <code>%%stable-dart-version%%</code>')
+          .replaceAll('/static/hash-${staticFileCache.etag}/',
+              '/static/hash-%%etag%%/');
 
       // Pretty printing output using XML parser and formatter.
       final xmlDoc = xml.XmlDocument.parse(
@@ -375,10 +377,12 @@ void main() {
           derivedTags: null,
           allDependencies: null,
           licenseFile: null,
+          licenses: null,
           report: Report(sections: <ReportSection>[]),
           flags: null,
           urlProblems: null,
           repository: null,
+          screenshots: null,
         ),
       );
       final html = scoreTabNode(

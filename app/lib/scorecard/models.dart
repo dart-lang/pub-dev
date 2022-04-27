@@ -245,9 +245,13 @@ class PanaReport {
   /// transitively.
   final List<String>? allDependencies;
 
+  // TODO: remove after the latest release with the new pana becomes stable
   final LicenseFile? licenseFile;
+  final List<License>? licenses;
 
   final Report? report;
+
+  final List<ProcessedScreenshot>? screenshots;
 
   /// The flags for the package, version or analysis.
   /// Example values: entries from [PackageFlags].
@@ -264,10 +268,12 @@ class PanaReport {
     required this.derivedTags,
     required this.allDependencies,
     required this.licenseFile,
+    required this.licenses,
     required this.report,
     required this.flags,
     required this.urlProblems,
     required this.repository,
+    required this.screenshots,
   });
 
   factory PanaReport.fromJson(Map<String, dynamic> json) =>

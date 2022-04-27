@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:http_parser/http_parser.dart';
-import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../package/backend.dart';
@@ -136,9 +135,9 @@ Future<shelf.Response> sitemapPublishersTxtHandler(
 
 /// Handles requests for /static/* content
 Future<shelf.Response> staticsHandler(shelf.Request request) async {
-  // Simplifies all of '.', '..', '//'!
-  final String normalized = path.normalize(request.requestedUri.path);
-  final StaticFile? staticFile = staticFileCache.getFile(normalized);
+  // Simplifies all of '.', '..', '//'! and extracts hash parameters.
+  final parsed = ParsedStaticUrl.parse(request.requestedUri);
+  final staticFile = staticFileCache.getFile(parsed.filePath);
   if (staticFile != null) {
     if (isNotModified(request, staticFile.lastModified, staticFile.etag)) {
       return shelf.Response.notModified();
@@ -146,14 +145,14 @@ Future<shelf.Response> staticsHandler(shelf.Request request) async {
     final acceptsGzipEncoding = request.acceptsGzipEncoding();
     final bytes =
         acceptsGzipEncoding ? staticFile.gzippedBytes : staticFile.bytes;
-    final String? hash = request.requestedUri.queryParameters['hash'];
     final headers = <String, String>{
       if (acceptsGzipEncoding) HttpHeaders.contentEncodingHeader: 'gzip',
       HttpHeaders.contentTypeHeader: staticFile.contentType,
       HttpHeaders.contentLengthHeader: bytes.length.toString(),
       HttpHeaders.lastModifiedHeader: formatHttpDate(staticFile.lastModified),
       HttpHeaders.etagHeader: staticFile.etag,
-      if (hash != null && hash.isNotEmpty && hash == staticFile.etag)
+      if (parsed.urlHash == staticFile.etag ||
+          parsed.pathHash == staticFileCache.etag)
         ...CacheHeaders.staticAsset(),
     };
     return shelf.Response.ok(bytes, headers: headers);

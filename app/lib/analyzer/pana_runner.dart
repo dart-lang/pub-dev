@@ -5,11 +5,13 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' hide ReportStatus;
+import 'package:pub_dev/package/screenshots/backend.dart';
 
 import '../job/job.dart';
 import '../package/overrides.dart';
@@ -72,6 +74,13 @@ class _PanaRunner implements PanaRunner {
               PackageAnalyzer(toolEnv, urlChecker: _urlChecker);
           final isInternal = internalPackageNames.contains(package) ||
               packageStatus.isPublishedByDartDev;
+
+          Future<void> store(String fileName, Uint8List data) async {
+            final stream = () => Stream.value(data);
+            await imageStorage.upload(
+                package, version, stream, fileName, data.length);
+          }
+
           return await analyzer.inspectPackage(
             package,
             version: version,
@@ -84,6 +93,7 @@ class _PanaRunner implements PanaRunner {
               checkRemoteRepository: isInternal,
             ),
             logger: Logger.detached('pana/$package/$version'),
+            storeResource: store,
           );
         } catch (e, st) {
           _logger.severe(
@@ -195,9 +205,11 @@ PanaReport panaReportFromSummary(Summary? summary, {List<String>? flags}) {
     derivedTags: summary?.tags,
     allDependencies: summary?.allDependencies,
     licenseFile: summary?.licenseFile,
+    licenses: summary?.licenses,
     report: summary?.report,
     flags: flags,
     urlProblems: summary?.urlProblems,
     repository: summary?.repository,
+    screenshots: summary?.screenshots,
   );
 }
