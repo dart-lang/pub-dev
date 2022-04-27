@@ -561,7 +561,7 @@ class PackageBackend {
       tx.insert(AuditLogRecord.packageTransferred(
         user: user,
         package: package.name!,
-        fromPublisherId: fromPublisherId,
+        fromPublisherId: currentPublisherId,
         toPublisherId: package.publisherId!,
       ));
 
