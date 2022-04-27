@@ -168,6 +168,7 @@ Future<R> withFakeServices<R>({
       configuration!.canonicalPackagesBucketName!,
       configuration!.publicPackagesBucketName!,
       configuration!.incomingPackagesBucketName!,
+      configuration!.taskResultBucketName!,
     ];
     for (final bucketName in bucketsToCreate) {
       await getOrCreateBucket(storage, bucketName);
@@ -247,10 +248,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerTaskBackend(TaskBackend(
       dbService,
       taskWorkerCloudCompute,
-      await getOrCreateBucket(
-        storageService,
-        activeConfiguration.taskResultBucketName!,
-      ),
+      storageService.bucket(activeConfiguration.taskResultBucketName!),
     ));
 
     await setupCache();
