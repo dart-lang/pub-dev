@@ -335,6 +335,9 @@ class SearchForm {
     );
   }
 
+  /// Removes the [SearchContext] and page number from from the form.
+  SearchForm clearContext() => SearchForm(query: query, order: order);
+
   SearchForm _change({String? query}) {
     return SearchForm._(
       context: context,

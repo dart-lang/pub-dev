@@ -299,6 +299,16 @@ void main() {
           expect(await page.propertyValue('input[name="q"]', 'value'), 'pkg');
         },
       );
+
+      // Clicking on a tag keeps the search context.
+      await headlessEnv.withPage(fn: (page) async {
+        await page.gotoOrigin('/packages?q=pkg+platform:android');
+        // clicking on the first package's first sub-tag, which is `sdk:dart`
+        await page.click('.tag-badge-sub');
+        await page.waitForNavigation(wait: Until.networkIdle);
+        expect(
+            page.url, '$origin/packages?q=platform%3Aandroid+sdk%3Adart+pkg');
+      });
     });
   }, timeout: Timeout.factor(testTimeoutFactor));
 }

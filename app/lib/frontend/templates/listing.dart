@@ -24,6 +24,7 @@ export 'views/shared/pagination.dart';
 /// Renders the list of packages template.
 d.Node packageList(SearchResultPage searchResultPage) {
   return listOfPackagesNode(
+    searchForm: searchResultPage.form,
     highlightedHit: searchResultPage.highlightedHit,
     sdkLibraryHits: searchResultPage.sdkLibraryHits,
     packageHits: searchResultPage.packageHits,
