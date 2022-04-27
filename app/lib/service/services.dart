@@ -174,11 +174,8 @@ Future<R> withFakeServices<R>({
       configuration!.canonicalPackagesBucketName!,
       configuration!.publicPackagesBucketName!,
       configuration!.incomingPackagesBucketName!,
-<<<<<<< HEAD
       configuration!.taskResultBucketName!,
-=======
       configuration!.packageBucketName!,
->>>>>>> 3ef4023040dcadb358c7a83e46c0a6992abd0385
     ];
     for (final bucketName in bucketsToCreate) {
       await getOrCreateBucket(storage, bucketName);
