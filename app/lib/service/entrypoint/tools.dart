@@ -31,9 +31,9 @@ Future<ProcessSignal> waitForProcessSignalTermination() {
   final subscriptions = <StreamSubscription>[];
   final completer = Completer<ProcessSignal>();
 
-  void process(ProcessSignal event) {
+  Future<void> process(ProcessSignal event) async {
     while (subscriptions.isNotEmpty) {
-      subscriptions.removeLast().cancel();
+      await subscriptions.removeLast().cancel();
     }
     if (!completer.isCompleted) {
       completer.complete(event);
