@@ -10,16 +10,13 @@ import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
-<<<<<<< HEAD
+import 'package:logging/logging.dart';
 import 'package:pub_dev/fake/server/fake_storage_server.dart';
 import 'package:pub_dev/package/screenshots/backend.dart';
 import 'package:pub_dev/service/youtube/backend.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
 import 'package:pub_dev/task/cloudcompute/googlecloudcompute.dart';
-=======
-import 'package:logging/logging.dart';
->>>>>>> 3ef4023040dcadb358c7a83e46c0a6992abd0385
 import 'package:shelf/shelf_io.dart';
 
 import '../account/backend.dart';
@@ -60,7 +57,6 @@ import '../shared/redis_cache.dart' show setupCache;
 import '../shared/storage.dart';
 import '../shared/versions.dart';
 import '../tool/utils/http.dart';
-
 import 'announcement/backend.dart';
 import 'secret/backend.dart';
 
