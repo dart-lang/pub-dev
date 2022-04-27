@@ -65,17 +65,20 @@ class IntegrityChecker {
   /// Runs integrity checks, and returns the list of problems.
   Stream<String> findProblems() async* {
     _httpClient = httpRetryClient();
-    yield* _checkUsers();
-    yield* _checkOAuthUserIDs();
-    yield* _checkPublishers();
-    yield* _checkPublisherMembers();
-    yield* _checkPackages();
-    yield* _checkVersions();
-    yield* _checkLikes();
-    yield* _checkModeratedPackages();
-    yield* _checkAuditLogs();
-    yield* _reportPubspecVersionIssues();
-    _httpClient.close();
+    try {
+      yield* _checkUsers();
+      yield* _checkOAuthUserIDs();
+      yield* _checkPublishers();
+      yield* _checkPublisherMembers();
+      yield* _checkPackages();
+      yield* _checkVersions();
+      yield* _checkLikes();
+      yield* _checkModeratedPackages();
+      yield* _checkAuditLogs();
+      yield* _reportPubspecVersionIssues();
+    } finally {
+      _httpClient.close();
+    }
   }
 
   Stream<String> _checkUsers() async* {
