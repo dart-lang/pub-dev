@@ -32,6 +32,24 @@ class FakePanaRunner implements PanaRunner {
     final hasSdkFlutter =
         random.nextInt(packageStatus.usesFlutter ? 20 : 10) > 0;
     final hasValidSdk = hasSdkDart || hasSdkFlutter;
+    final runtimeTags = hasSdkDart
+        ? <String>[
+            if (random.nextInt(5) > 0) 'runtime:native-aot',
+            if (random.nextInt(5) > 0) 'runtime:native-jit',
+            if (random.nextInt(5) > 0) 'runtime:web',
+          ]
+        : <String>[];
+    final platformTags = hasValidSdk
+        ? <String>[
+            if (random.nextInt(5) > 0) 'platform:android',
+            if (random.nextInt(5) > 0) 'platform:ios',
+            if (random.nextInt(5) > 0) 'platform:linux',
+            if (random.nextInt(5) > 0) 'platform:macos',
+            if (random.nextInt(5) > 0) 'platform:web',
+            if (random.nextInt(5) > 0) 'platform:windows',
+          ]
+        : <String>[];
+    final licenseSpdx = random.nextInt(5) == 0 ? 'unknown' : 'BSD-3-Clause';
     return Summary(
       packageName: package,
       packageVersion: Version.parse(version),
@@ -45,16 +63,12 @@ class FakePanaRunner implements PanaRunner {
       allDependencies: <String>[],
       tags: <String>[
         if (hasSdkDart) 'sdk:dart',
-        if (hasSdkDart && random.nextInt(5) > 0) 'runtime:native-aot',
-        if (hasSdkDart && random.nextInt(5) > 0) 'runtime:native-jit',
-        if (hasSdkDart && random.nextInt(5) > 0) 'runtime:web',
         if (hasSdkFlutter) 'sdk:flutter',
-        if (hasValidSdk && random.nextInt(5) > 0) 'platform:android',
-        if (hasValidSdk && random.nextInt(5) > 0) 'platform:ios',
-        if (hasValidSdk && random.nextInt(5) > 0) 'platform:linux',
-        if (hasValidSdk && random.nextInt(5) > 0) 'platform:macos',
-        if (hasValidSdk && random.nextInt(5) > 0) 'platform:web',
-        if (hasValidSdk && random.nextInt(5) > 0) 'platform:windows',
+        ...runtimeTags,
+        ...platformTags,
+        'license:${licenseSpdx.toLowerCase()}',
+        if (licenseSpdx != 'unknown') 'license:fsf-libre',
+        if (licenseSpdx != 'unknown') 'license:osi-approved',
       ],
       report: Report(
         sections: [
@@ -90,6 +104,9 @@ class FakePanaRunner implements PanaRunner {
         ],
       ),
       licenseFile: LicenseFile('LICENSE', 'BSD'),
+      licenses: [
+        License(path: 'LICENSE', spdxIdentifier: licenseSpdx),
+      ],
       errorMessage: null,
       pubspec: null, // will be ignored
     );
