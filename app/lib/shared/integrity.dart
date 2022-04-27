@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math' as math;
+
 import 'package:clock/clock.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
@@ -549,7 +551,7 @@ class IntegrityChecker {
 
       // Allowing some difference to attribute for the likes created or removed
       // between the package reads and the current counts.
-      if (diff.abs() <= 2) {
+      if (diff.abs() <= math.max(3, counted * 0.10)) {
         continue;
       }
 
