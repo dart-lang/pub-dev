@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:gcloud/service_scope.dart';
+import 'package:meta/meta.dart';
 
 import '../../frontend/handlers/pubapi.client.dart';
 import '../../shared/configuration.dart';
@@ -13,6 +14,7 @@ import 'http.dart';
 /// The client will be closed when the current scope is exited.
 ///
 /// TODO: migrate callers to use [withHttpPubApiClient] instead.
+@visibleForTesting
 PubApiClient createLocalPubApiClient({String? authToken}) {
   final httpClient =
       httpClientWithAuthorization(tokenProvider: () async => authToken);
