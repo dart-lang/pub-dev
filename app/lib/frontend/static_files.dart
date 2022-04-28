@@ -206,6 +206,14 @@ class StaticFile {
       Uri(path: requestPath, queryParameters: {'hash': etag}).toString();
 
   late final gzippedBytes = GZipCodec(level: 9).encode(bytes);
+
+  String pathHashedUrl(String pathHash) {
+    if (requestPath.startsWith('/static/')) {
+      return '/static/hash-$pathHash/${requestPath.substring(8)}';
+    } else {
+      return _cacheableUrl;
+    }
+  }
 }
 
 class StaticUrls {
@@ -240,10 +248,8 @@ class StaticUrls {
     final file = staticFileCache.getFile(requestPath);
     if (file == null) {
       throw Exception('Static resource not found: $requestPath');
-    } else if (requestPath.startsWith('/static/')) {
-      return '/static/hash-${staticFileCache.etag}/${requestPath.substring(8)}';
     } else {
-      return file._cacheableUrl;
+      return file.pathHashedUrl(staticFileCache.etag);
     }
   }
 }

@@ -139,6 +139,10 @@ Future<shelf.Response> staticsHandler(shelf.Request request) async {
   final parsed = ParsedStaticUrl.parse(request.requestedUri);
   final staticFile = staticFileCache.getFile(parsed.filePath);
   if (staticFile != null) {
+    final pathHash = parsed.pathHash;
+    if (pathHash != null && pathHash != staticFileCache.etag) {
+      return redirectResponse(staticFile.pathHashedUrl(staticFileCache.etag));
+    }
     if (isNotModified(request, staticFile.lastModified, staticFile.etag)) {
       return shelf.Response.notModified();
     }

@@ -121,4 +121,21 @@ void main() {
       );
     });
   });
+
+  group('static files', () {
+    testWithProfile('path hash redirect', fn: () async {
+      final rs = await issueGet('/static/hash-x/img/email-icon.svg');
+      expect(rs.statusCode, 303);
+      final location = rs.headers['location']!;
+      expect(location, startsWith('/static/hash-'));
+      expect(location, endsWith('/img/email-icon.svg'));
+      expect(location.contains('hash-x'), isFalse);
+
+      final rs2 = await issueGet(location);
+      expect(rs2.statusCode, 200);
+      expect(await rs2.readAsString(), contains('<svg'));
+      final cache = rs2.headers['cache-control']!;
+      expect(cache, 'public, max-age=604800');
+    });
+  });
 }

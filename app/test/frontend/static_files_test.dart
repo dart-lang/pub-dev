@@ -76,6 +76,12 @@ void main() {
       cache = StaticFileCache.withDefaults();
     });
 
+    test('file URL with path hash', () {
+      final f = StaticFile('/static/e1.txt', 'text/plain', utf8.encode('abc'),
+          clock.now(), 'etag1');
+      expect(f.pathHashedUrl('xyz'), '/static/hash-xyz/e1.txt');
+    });
+
     test('has a short etag', () {
       expect(cache.etag, hasLength(8));
     });
