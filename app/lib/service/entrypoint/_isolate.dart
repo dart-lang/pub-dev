@@ -79,22 +79,25 @@ Future startIsolates({
     }
     _setupServiceIsolate();
 
-    int frontendStarted = 0;
-
     /// The duration while errors won't cause frontend isolates to restart.
     var restartProtectionOffset = Duration.zero;
     var lastStarted = clock.now();
+    int frontendStarted = 0;
     int workerStarted = 0;
+
+    var closing = false;
+    final isolates = <Isolate>[];
     final statConsumerPorts = <SendPort>[];
 
     Future<void> startFrontendIsolate() async {
+      if (closing) return;
       frontendStarted++;
       final frontendIndex = frontendStarted;
       logger.info('About to start frontend isolate #$frontendIndex...');
       final errorReceivePort = ReceivePort();
       final exitReceivePort = ReceivePort();
       final protocolReceivePort = ReceivePort();
-      await Isolate.spawn(
+      final isolate = await Isolate.spawn(
         _wrapper,
         [
           frontendEntryPoint,
@@ -107,6 +110,7 @@ Future startIsolates({
         onExit: exitReceivePort.sendPort,
         errorsAreFatal: true,
       );
+      isolates.add(isolate);
       final protocolMessage = (await protocolReceivePort.take(1).toList())
           .single as FrontendProtocolMessage;
       if (protocolMessage.statsConsumerPort != null) {
@@ -127,6 +131,7 @@ Future startIsolates({
         errorReceivePort.close();
         exitReceivePort.close();
         protocolReceivePort.close();
+        isolates.remove(isolate);
       }
 
       Future<void> restart() async {
@@ -174,6 +179,7 @@ Future startIsolates({
     }
 
     Future<void> startWorkerIsolate() async {
+      if (closing) return;
       workerStarted++;
       final workerIndex = workerStarted;
       logger.info('About to start worker isolate #$workerIndex...');
@@ -196,6 +202,7 @@ Future startIsolates({
         onExit: errorReceivePort.sendPort,
         errorsAreFatal: true,
       );
+      isolates.add(isolate);
       // read WorkerProtocolMessage
       (await protocolReceivePort.take(1).toList()).single;
       final statsSubscription =
@@ -238,6 +245,7 @@ Future startIsolates({
         errorReceivePort.close();
         protocolReceivePort.close();
         statsReceivePort.close();
+        isolates.remove(isolate);
       }
 
       errorSubscription = errorReceivePort.listen((e) async {
@@ -248,6 +256,14 @@ Future startIsolates({
         await Future.delayed(Duration(minutes: 1));
         await startWorkerIsolate();
       });
+    }
+
+    Future<void> closeIsolates() async {
+      while (isolates.isNotEmpty) {
+        final i = isolates.removeLast();
+        // TODO: Implement graceful close.
+        i.kill();
+      }
     }
 
     try {
@@ -263,6 +279,12 @@ Future startIsolates({
           }
         }
         await waitForProcessSignalTermination();
+
+        closing = true;
+        await closeIsolates();
+        // A small wait to allow already pending isolates to be created.
+        await Future.delayed(Duration(seconds: 5));
+        await closeIsolates();
       });
     } catch (e, st) {
       logger.shout('Failed to start server.', e, st);
