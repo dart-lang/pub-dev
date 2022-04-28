@@ -22,6 +22,5 @@ BSD-style license that can be found in the LICENSE file.
     <Url type="text/html" template="https://pub.dev/packages">
         <Param name="q" value="{searchTerms}"/>
     </Url>
-    <Url type="application/opensearchdescription+xml" rel="self" template="https://pub.dev/static/osd.xml"/>
     <moz:SearchForm>https://pub.dev</moz:SearchForm>
 </OpenSearchDescription>
