@@ -124,18 +124,22 @@ for PKG in ${PKGS}; do
         dart test --total-shards 7 --shard-index 6 || EXIT_CODE=$?
         ;;
       test_07)
+        echo 'dart test -t presubmit-only --run-skipped'
+        dart test -t presubmit-only --run-skipped || EXIT_CODE=$?
+        ;;
+      test_08)
         echo 'dart test --run-skipped'
         dart test --run-skipped || EXIT_CODE=$?
         ;;
-      test_08)
+      test_09)
         echo 'dart test --run-skipped --total-shards 3 --shard-index 0'
         dart test --run-skipped --total-shards 3 --shard-index 0 || EXIT_CODE=$?
         ;;
-      test_09)
+      test_10)
         echo 'dart test --run-skipped --total-shards 3 --shard-index 1'
         dart test --run-skipped --total-shards 3 --shard-index 1 || EXIT_CODE=$?
         ;;
-      test_10)
+      test_11)
         echo 'dart test --run-skipped --total-shards 3 --shard-index 2'
         dart test --run-skipped --total-shards 3 --shard-index 2 || EXIT_CODE=$?
         ;;

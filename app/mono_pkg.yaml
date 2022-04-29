@@ -15,6 +15,7 @@ stages:
     - test: --total-shards 7 --shard-index 4
     - test: --total-shards 7 --shard-index 5
     - test: --total-shards 7 --shard-index 6
+    - test:  -t presubmit-only --run-skipped
 
 cache:
   directories:
