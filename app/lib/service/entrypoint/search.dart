@@ -20,8 +20,6 @@ import '../../shared/task_client.dart';
 import '../../shared/task_scheduler.dart';
 import '../../tool/neat_task/pub_dev_tasks.dart';
 
-import '../services.dart';
-
 import '_isolate.dart';
 
 final Logger _logger = Logger('pub.search');

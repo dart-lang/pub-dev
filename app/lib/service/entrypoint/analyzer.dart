@@ -19,8 +19,6 @@ import '../../shared/popularity_storage.dart';
 import '../../shared/scheduler_stats.dart';
 import '../../tool/neat_task/pub_dev_tasks.dart';
 
-import '../services.dart';
-
 import '_isolate.dart';
 
 final Logger logger = Logger('pub.analyzer');
