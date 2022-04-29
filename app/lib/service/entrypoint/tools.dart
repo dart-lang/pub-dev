@@ -32,11 +32,15 @@ Future<ProcessSignal> waitForProcessSignalTermination() {
   final completer = Completer<ProcessSignal>();
 
   Future<void> process(ProcessSignal event) async {
-    while (subscriptions.isNotEmpty) {
-      await subscriptions.removeLast().cancel();
-    }
-    if (!completer.isCompleted) {
-      completer.complete(event);
+    try {
+      // This should never throw, but it's nice to be defensive.
+      while (subscriptions.isNotEmpty) {
+        await subscriptions.removeLast().cancel();
+      }
+    } finally {
+      if (!completer.isCompleted) {
+        completer.complete(event);
+      }
     }
   }
 
