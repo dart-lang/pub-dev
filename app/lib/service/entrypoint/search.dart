@@ -52,28 +52,25 @@ Future _main(FrontendEntryMessage message) async {
     statsConsumerPort: statsConsumer.sendPort,
   ));
 
-  await withServices(() async {
-    setupSearchPeriodicTasks();
-    await popularityStorage.start();
+  setupSearchPeriodicTasks();
+  await popularityStorage.start();
 
-    final ReceivePort taskReceivePort = ReceivePort();
-    registerTaskSendPort(taskReceivePort.sendPort);
+  final ReceivePort taskReceivePort = ReceivePort();
+  registerTaskSendPort(taskReceivePort.sendPort);
 
-    // Don't block on init, we need to serve liveliness and readiness checks.
-    scheduleMicrotask(() async {
-      await dartSdkMemIndex.start();
-      await flutterSdkMemIndex.start();
-      try {
-        await indexUpdater.init();
-      } catch (e, st) {
-        _logger.shout('Error initializing search service.', e, st);
-        rethrow;
-      }
+  // Don't block on init, we need to serve liveliness and readiness checks.
+  scheduleMicrotask(() async {
+    await dartSdkMemIndex.start();
+    await flutterSdkMemIndex.start();
+    try {
+      await indexUpdater.init();
+    } catch (e, st) {
+      _logger.shout('Error initializing search service.', e, st);
+      rethrow;
+    }
 
-      indexUpdater.runScheduler(
-          manualTriggerTasks: taskReceivePort.cast<Task>());
-    });
-
-    await runHandler(_logger, searchServiceHandler);
+    indexUpdater.runScheduler(manualTriggerTasks: taskReceivePort.cast<Task>());
   });
+
+  await runHandler(_logger, searchServiceHandler);
 }

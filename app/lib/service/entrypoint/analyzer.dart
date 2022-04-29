@@ -52,26 +52,21 @@ Future _frontendMain(FrontendEntryMessage message) async {
   message.protocolSendPort.send(FrontendProtocolMessage(
     statsConsumerPort: statsConsumer.sendPort,
   ));
-
-  await withServices(() async {
-    await runHandler(logger, analyzerServiceHandler);
-  });
+  await runHandler(logger, analyzerServiceHandler);
 }
 
 Future _workerMain(WorkerEntryMessage message) async {
   message.protocolSendPort.send(WorkerProtocolMessage());
 
-  await withServices(() async {
-    setupAnalyzerPeriodicTasks();
-    await popularityStorage.start();
-    final jobProcessor = AnalyzerJobProcessor(
-        aliveCallback: () => message.aliveSendPort.send(null));
-    final jobMaintenance = JobMaintenance(db.dbService, jobProcessor);
+  setupAnalyzerPeriodicTasks();
+  await popularityStorage.start();
+  final jobProcessor = AnalyzerJobProcessor(
+      aliveCallback: () => message.aliveSendPort.send(null));
+  final jobMaintenance = JobMaintenance(db.dbService, jobProcessor);
 
-    Timer.periodic(const Duration(minutes: 15), (_) async {
-      message.statsSendPort.send(await jobBackend.stats(JobService.analyzer));
-    });
-
-    await jobMaintenance.run();
+  Timer.periodic(const Duration(minutes: 15), (_) async {
+    message.statsSendPort.send(await jobBackend.stats(JobService.analyzer));
   });
+
+  await jobMaintenance.run();
 }

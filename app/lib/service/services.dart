@@ -65,7 +65,7 @@ final _pubDevServicesInitializedKey = '_pubDevServicesInitializedKey';
 ///  * storage wrapped with retry.
 Future<void> withServices(FutureOr<void> Function() fn) async {
   if (Zone.current[_pubDevServicesInitializedKey] == true) {
-    return await fork(() async => await fn());
+    throw StateError('Already in withServices scope.');
   }
   return withAppEngineServices(() async {
     return await fork(() async {
