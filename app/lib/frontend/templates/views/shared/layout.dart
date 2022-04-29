@@ -86,7 +86,7 @@ d.Node pageLayoutNode({
               rel: 'search',
               type: 'application/opensearchdescription+xml',
               title: 'Dart packages',
-              href: staticUrls.getAssetUrl('/static/osd.xml'),
+              href: '/osd.xml',
             ),
             if (canonicalUrl != null)
               d.link(rel: 'canonical', href: canonicalUrl),
