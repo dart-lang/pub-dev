@@ -118,7 +118,7 @@ d.Node _block({
       if (image != null && !imageGoesAfterContent)
         d.div(
           classes: ['home-block-image'],
-          child: d.img(image: image),
+          child: d.img(image: image, lazy: true),
         ),
       // content
       d.div(
