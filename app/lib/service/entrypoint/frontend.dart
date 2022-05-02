@@ -22,7 +22,6 @@ import '../../shared/datastore.dart' as db;
 import '../../shared/env_config.dart';
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
-import '../services.dart';
 
 import '_isolate.dart';
 
@@ -53,19 +52,17 @@ Future _main(FrontendEntryMessage message) async {
       .send(FrontendProtocolMessage(statsConsumerPort: null));
 
   await updateLocalBuiltFilesIfNeeded();
-  await withServices(() async {
-    final appHandler = createAppHandler();
+  final appHandler = createAppHandler();
 
-    if (envConfig.isRunningLocally) {
-      await watchForResourceChanges();
-    }
-    await popularityStorage.start();
-    nameTracker.startTracking();
-    await announcementBackend.start();
-    await youtubeBackend.start();
+  if (envConfig.isRunningLocally) {
+    await watchForResourceChanges();
+  }
+  await popularityStorage.start();
+  nameTracker.startTracking();
+  await announcementBackend.start();
+  await youtubeBackend.start();
 
-    await runHandler(_logger, appHandler, sanitize: true);
-  });
+  await runHandler(_logger, appHandler, sanitize: true);
 }
 
 /// Setup local filesystem change notifications and force-reload resource files
@@ -101,21 +98,19 @@ Future<void> watchForResourceChanges() async {
 Future _worker(WorkerEntryMessage message) async {
   message.protocolSendPort.send(WorkerProtocolMessage());
 
-  await withServices(() async {
-    // Updates job entries for analyzer and dartdoc.
-    Future<void> triggerDependentAnalysis(
-        String package, String version, Set<String> affected) async {
-      await jobBackend.triggerAnalysis(package, version);
-      for (final p in affected) {
-        await jobBackend.triggerAnalysis(p, null);
-      }
-      // TODO: re-enable this after we have added some stop-gaps on the frequency
-      // await dartdocClient.triggerDartdoc(package, version,
-      //    dependentPackages: affected);
+  // Updates job entries for analyzer and dartdoc.
+  Future<void> triggerDependentAnalysis(
+      String package, String version, Set<String> affected) async {
+    await jobBackend.triggerAnalysis(package, version);
+    for (final p in affected) {
+      await jobBackend.triggerAnalysis(p, null);
     }
+    // TODO: re-enable this after we have added some stop-gaps on the frequency
+    // await dartdocClient.triggerDartdoc(package, version,
+    //    dependentPackages: affected);
+  }
 
-    final pdb = await PackageDependencyBuilder.loadInitialGraphFromDb(
-        db.dbService, triggerDependentAnalysis);
-    await pdb.monitorInBackground(); // never returns
-  });
+  final pdb = await PackageDependencyBuilder.loadInitialGraphFromDb(
+      db.dbService, triggerDependentAnalysis);
+  await pdb.monitorInBackground(); // never returns
 }

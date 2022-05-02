@@ -267,25 +267,23 @@ Future startIsolates({
     }
 
     try {
-      await withServices(() async {
-        if (frontendEntryPoint != null) {
-          for (int i = 0; i < frontendCount; i++) {
-            await startFrontendIsolate();
-          }
+      if (frontendEntryPoint != null) {
+        for (int i = 0; i < frontendCount; i++) {
+          await startFrontendIsolate();
         }
-        if (workerEntryPoint != null) {
-          for (int i = 0; i < workerCount; i++) {
-            await startWorkerIsolate();
-          }
+      }
+      if (workerEntryPoint != null) {
+        for (int i = 0; i < workerCount; i++) {
+          await startWorkerIsolate();
         }
-        await waitForProcessSignalTermination();
+      }
+      await waitForProcessSignalTermination();
 
-        closing = true;
-        await closeIsolates();
-        // A small wait to allow already pending isolates to be created.
-        await Future.delayed(Duration(seconds: 5));
-        await closeIsolates();
-      });
+      closing = true;
+      await closeIsolates();
+      // A small wait to allow already pending isolates to be created.
+      await Future.delayed(Duration(seconds: 5));
+      await closeIsolates();
     } catch (e, st) {
       logger.shout('Failed to start server.', e, st);
       rethrow;
