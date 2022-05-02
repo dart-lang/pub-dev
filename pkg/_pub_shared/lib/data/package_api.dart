@@ -204,6 +204,21 @@ class VersionScore {
   Map<String, dynamic> toJson() => _$VersionScoreToJson(this);
 }
 
+/// Request payload for removing an uploader from a package.
+@JsonSerializable()
+class RemoveUploaderRequest {
+  /// Email of the uploader to be removed.
+  ///
+  /// This must be the primary email associated with the users Google Account.
+  final String email;
+
+  RemoveUploaderRequest({required this.email});
+
+  factory RemoveUploaderRequest.fromJson(Map<String, dynamic> json) =>
+      _$RemoveUploaderRequestFromJson(json);
+  Map<String, dynamic> toJson() => _$RemoveUploaderRequestToJson(this);
+}
+
 /// Request payload for inviting a new user to become uploader of a package.
 @JsonSerializable()
 class InviteUploaderRequest {

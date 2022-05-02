@@ -165,6 +165,18 @@ class PubApi {
   ) async =>
       await packageBackend.removeUploader(package, email);
 
+  /// Remove an existing uploader.
+  ///
+  /// This is a different API endpoint than the pub CLI tool is using, because
+  /// we want to use a separate authentication mechanism going forward.
+  @EndPoint.post('/api/packages/<package>/remove-uploader')
+  Future<SuccessMessage> removeUploaderFromUI(
+    Request request,
+    String package,
+    RemoveUploaderRequest payload,
+  ) async =>
+      await packageBackend.removeUploader(package, payload.email);
+
   /// Returns a uploader's invitation status in a JSON form.
   @EndPoint.post('/api/packages/<package>/invite-uploader')
   Future<InviteStatus> invitePackageUploader(
