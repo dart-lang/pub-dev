@@ -104,6 +104,28 @@ d.Node _searchFormContainer({
             ],
           ),
           _filterSection(
+            sectionTag: 'license',
+            label: 'License',
+            isActive:
+                openSections.contains('license') || searchForm.hasActiveLicense,
+            children: [
+              _tagBasedCheckbox(
+                tagPrefix: 'license',
+                tagValue: 'osi-approved',
+                label: 'OSI Approved',
+                searchForm: searchForm,
+                title: 'Show only packages with OSI Approved License.',
+              ),
+              _tagBasedCheckbox(
+                tagPrefix: 'license',
+                tagValue: 'fsf-libre',
+                label: 'FSF Libre',
+                searchForm: searchForm,
+                title: 'Show only packages with FSF Libre License.',
+              ),
+            ],
+          ),
+          _filterSection(
             sectionTag: 'advanced',
             label: 'Advanced',
             isActive: openSections.contains('advanced') ||

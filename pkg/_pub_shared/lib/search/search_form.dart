@@ -374,6 +374,10 @@ class SearchForm {
   /// The zero-indexed offset for the search results.
   int get offset => (currentPage! - 1) * pageSize!;
 
+  /// Whether any of the license options may be active.
+  bool get hasActiveLicense =>
+      parsedQuery.tagsPredicate.hasTagPrefix('license:');
+
   /// Whether any of the advanced options is active.
   bool get hasActiveAdvanced =>
       parsedQuery.tagsPredicate.hasTag(PackageTags.isFlutterFavorite) ||
