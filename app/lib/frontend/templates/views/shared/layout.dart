@@ -38,7 +38,10 @@ d.Node pageLayoutNode({
               src: 'https://www.googletagmanager.com/gtm.js?id=GTM-MX6DBN9',
               async: true,
             ),
-            d.script(src: staticUrls.getAssetUrl('/static/js/gtm.js')),
+            d.script(
+              src: staticUrls.getAssetUrl('/static/js/gtm.js'),
+              async: true,
+            ),
             d.meta(charset: 'utf-8'),
             d.meta(httpEquiv: 'x-ua-compatible', content: 'ie=edge'),
             d.meta(

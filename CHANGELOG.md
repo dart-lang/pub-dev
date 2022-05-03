@@ -5,6 +5,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bumped runtimeVersion to `2022.05.02`.
  * Upgraded preview Dart analysis SDK to `2.17.0-266.7.beta`.
  * Upgraded preview Flutter analysis SDK to `2.13.0-0.3.pre`.
+ * NOTE: In-page click tracking is loaded asynchronously.
+   TODO: After deployment check if click tracking on copy-to-clipboard icon is working.
 
 ## `20220425t133600-all`
  * Bumped runtimeVersion to `2022.04.21`.
