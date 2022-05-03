@@ -26,7 +26,7 @@ void main() {
 
     testWithProfile('no need to change like counts #2', fn: () async {
       final p1 = await packageBackend.lookupPackage('oxygen');
-      await withPubApiClient(
+      await withHttpPubApiClient(
           bearerToken: userAtPubDevAuthToken,
           fn: (client) => client.likePackage('oxygen'));
       expect(await updatePackageLikes(), 0);

@@ -27,6 +27,7 @@ d.Node videoListNode(List<PkgOfWeekVideo> videos) {
                 width: 260,
                 height: 195,
               ),
+              lazy: true,
             ),
             d.div(
               classes: ['pow-video-overlay'],
@@ -40,6 +41,7 @@ d.Node videoListNode(List<PkgOfWeekVideo> videos) {
                     width: 76,
                     height: 53,
                   ),
+                  lazy: true,
                 ),
                 d.img(
                   classes: ['pow-video-overlay-img-inactive'],
@@ -50,6 +52,7 @@ d.Node videoListNode(List<PkgOfWeekVideo> videos) {
                     width: 76,
                     height: 53,
                   ),
+                  lazy: true,
                 ),
               ],
             ),

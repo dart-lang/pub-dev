@@ -105,13 +105,16 @@ a {
 
 main {
   min-height: calc(100vh - 130px); // top nav (50) + footer (80)
+  margin-bottom: 32px;
 }
 
 /* Useful for synchronizing the alignment of different page blocks. */
 .container,
 .-wide-header-detail-page .detail-container {
   max-width: $site-max-width;
-  margin: 0 auto;
+  /* The top and bottom margins are left on default to allow `main` to set it. */
+  margin-left: auto;
+  margin-right: auto;
   padding: 0 20px;
 }
 

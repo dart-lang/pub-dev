@@ -1,5 +1,5 @@
 #!/bin/bash
-# Created with package:mono_repo v6.1.0
+# Created with package:mono_repo v6.2.2
 
 # Support built in commands on windows out of the box.
 # When it is a flutter repo (check the pubspec.yaml for "sdk: flutter")
@@ -100,32 +100,32 @@ for PKG in ${PKGS}; do
         dart format --output=none --set-exit-if-changed . || EXIT_CODE=$?
         ;;
       test_00)
-        echo 'dart test --total-shards 7 --shard-index 0'
-        dart test --total-shards 7 --shard-index 0 || EXIT_CODE=$?
+        echo 'dart test -P presubmit --total-shards 7 --shard-index 0'
+        dart test -P presubmit --total-shards 7 --shard-index 0 || EXIT_CODE=$?
         ;;
       test_01)
-        echo 'dart test --total-shards 7 --shard-index 1'
-        dart test --total-shards 7 --shard-index 1 || EXIT_CODE=$?
+        echo 'dart test -P presubmit --total-shards 7 --shard-index 1'
+        dart test -P presubmit --total-shards 7 --shard-index 1 || EXIT_CODE=$?
         ;;
       test_02)
-        echo 'dart test --total-shards 7 --shard-index 2'
-        dart test --total-shards 7 --shard-index 2 || EXIT_CODE=$?
+        echo 'dart test -P presubmit --total-shards 7 --shard-index 2'
+        dart test -P presubmit --total-shards 7 --shard-index 2 || EXIT_CODE=$?
         ;;
       test_03)
-        echo 'dart test --total-shards 7 --shard-index 3'
-        dart test --total-shards 7 --shard-index 3 || EXIT_CODE=$?
+        echo 'dart test -P presubmit --total-shards 7 --shard-index 3'
+        dart test -P presubmit --total-shards 7 --shard-index 3 || EXIT_CODE=$?
         ;;
       test_04)
-        echo 'dart test --total-shards 7 --shard-index 4'
-        dart test --total-shards 7 --shard-index 4 || EXIT_CODE=$?
+        echo 'dart test -P presubmit --total-shards 7 --shard-index 4'
+        dart test -P presubmit --total-shards 7 --shard-index 4 || EXIT_CODE=$?
         ;;
       test_05)
-        echo 'dart test --total-shards 7 --shard-index 5'
-        dart test --total-shards 7 --shard-index 5 || EXIT_CODE=$?
+        echo 'dart test -P presubmit --total-shards 7 --shard-index 5'
+        dart test -P presubmit --total-shards 7 --shard-index 5 || EXIT_CODE=$?
         ;;
       test_06)
-        echo 'dart test --total-shards 7 --shard-index 6'
-        dart test --total-shards 7 --shard-index 6 || EXIT_CODE=$?
+        echo 'dart test -P presubmit --total-shards 7 --shard-index 6'
+        dart test -P presubmit --total-shards 7 --shard-index 6 || EXIT_CODE=$?
         ;;
       test_07)
         echo 'dart test --run-skipped'

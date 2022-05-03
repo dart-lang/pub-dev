@@ -42,7 +42,6 @@ final _defaultContentSecurityPolicyMap = <String, List<String>>{
     'https://apis.google.com/',
     'https://unpkg.com/',
     'https://www.gstatic.com/',
-    'https://apis.google.com/',
     'https://gstatic.com',
   ],
   'style-src': <String>[

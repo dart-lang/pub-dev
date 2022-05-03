@@ -38,7 +38,10 @@ d.Node pageLayoutNode({
               src: 'https://www.googletagmanager.com/gtm.js?id=GTM-MX6DBN9',
               async: true,
             ),
-            d.script(src: staticUrls.getAssetUrl('/static/js/gtm.js')),
+            d.script(
+              src: staticUrls.getAssetUrl('/static/js/gtm.js'),
+              async: true,
+            ),
             d.meta(charset: 'utf-8'),
             d.meta(httpEquiv: 'x-ua-compatible', content: 'ie=edge'),
             d.meta(
@@ -86,7 +89,7 @@ d.Node pageLayoutNode({
               rel: 'search',
               type: 'application/opensearchdescription+xml',
               title: 'Dart packages',
-              href: staticUrls.getAssetUrl('/static/osd.xml'),
+              href: '/osd.xml',
             ),
             if (canonicalUrl != null)
               d.link(rel: 'canonical', href: canonicalUrl),

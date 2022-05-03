@@ -52,6 +52,7 @@ import '../service/youtube/backend.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
 import '../shared/env_config.dart';
+import '../shared/handler_helpers.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/redis_cache.dart' show setupCache;
 import '../shared/storage.dart';
@@ -70,7 +71,7 @@ final _pubDevServicesInitializedKey = '_pubDevServicesInitializedKey';
 ///  * storage wrapped with retry.
 Future<void> withServices(FutureOr<void> Function() fn) async {
   if (Zone.current[_pubDevServicesInitializedKey] == true) {
-    return await fork(() async => await fn());
+    throw StateError('Already in withServices scope.');
   }
   return withAppEngineServices(() async {
     return await fork(() async {
@@ -190,9 +191,12 @@ Future<R> withFakeServices<R>({
     return await _withPubServices(() async {
       await youtubeBackend.start();
       if (frontendServer != null) {
-        final frontendServerSubscription = frontendServer.server
-            .listen((rq) => handleRequest(rq, createAppHandler()));
-        registerScopeExitCallback(frontendServerSubscription.cancel);
+        final handler =
+            wrapHandler(_logger, createAppHandler(), sanitize: true);
+        final fsSubscription = frontendServer.server.listen((rq) async {
+          await fork(() => handleRequest(rq, handler));
+        });
+        registerScopeExitCallback(fsSubscription.cancel);
       }
       return await fn();
     });

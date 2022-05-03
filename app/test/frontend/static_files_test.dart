@@ -13,6 +13,9 @@ import 'package:http/http.dart' as http;
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:test/test.dart';
 
+import '../shared/test_services.dart';
+import 'handlers/_utils.dart';
+
 void main() {
   setUpAll(() => updateLocalBuiltFilesIfNeeded());
 
@@ -110,20 +113,20 @@ void main() {
       }
     });
 
-    test('proper hash in css content', () async {
+    testWithProfile('proper hash in css content', fn: () async {
       final css = cache.getFile('/static/css/style.css')!;
       for (Match m
           in RegExp('url\\("(.*?)"\\);').allMatches(css.contentAsString)) {
         final matched = m.group(1)!;
         if (matched.contains('data:image')) continue;
         final uri = Uri.parse(matched);
-        final absPath =
-            Uri.parse('/static/css/style.css').resolve(uri.path).toString();
-        final hash = uri.queryParameters['hash'] ?? '_no_hash_';
-        final expectedHash = cache.getFile(absPath)!.etag;
-        if (hash != expectedHash) {
-          throw Exception('$absPath must use hash $expectedHash');
-        }
+        final absPath = Uri.parse('/static/hash-xyz/css/style.css')
+            .resolve(uri.path)
+            .toString();
+        expect(absPath, startsWith('/static/hash-xyz/'));
+        final rs = await issueGet(absPath);
+        expect(rs.statusCode, 200);
+        expect(await rs.read().toList(), isNotEmpty);
       }
     });
 
@@ -175,7 +178,8 @@ void main() {
           if (requestPaths.isEmpty) break;
           final content = await file.readAsString();
           for (final rp in requestPaths.toList()) {
-            if (content.contains(rp)) {
+            if (content.contains(rp) ||
+                content.contains(rp.replaceFirst('/static/', '../'))) {
               requestPaths.remove(rp);
             }
           }
@@ -203,6 +207,25 @@ void main() {
           .map((p) => cache.getFile(p)!.bytes.length)
           .reduce((a, b) => a + b);
       expect((partsSize / 1024).round(), closeTo(109, 1));
+    });
+  });
+
+  group('static files handler', () {
+    testWithProfile('bad path hash', fn: () async {
+      final rs = await issueGet('/static/hash-xyz/img/email-icon.svg');
+      expect(rs.statusCode, 200);
+      expect(await rs.readAsString(), contains('<svg'));
+      final cache = rs.headers['cache-control'];
+      expect(cache, isNull);
+    });
+
+    testWithProfile('good path hash', fn: () async {
+      final rs = await issueGet(
+          '/static/hash-${staticFileCache.etag}/img/email-icon.svg');
+      expect(rs.statusCode, 200);
+      expect(await rs.readAsString(), contains('<svg'));
+      final cache = rs.headers['cache-control']!;
+      expect(cache, 'public, max-age=604800');
     });
   });
 }

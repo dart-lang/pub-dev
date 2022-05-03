@@ -85,6 +85,15 @@ class PubApiClient {
     ));
   }
 
+  Future<_i3.SuccessMessage> removeUploaderFromUI(
+      String package, _i3.RemoveUploaderRequest payload) async {
+    return _i3.SuccessMessage.fromJson(await _client.requestJson(
+      verb: 'post',
+      path: '/api/packages/$package/remove-uploader',
+      body: payload.toJson(),
+    ));
+  }
+
   Future<_i4.InviteStatus> invitePackageUploader(
       String package, _i3.InviteUploaderRequest payload) async {
     return _i4.InviteStatus.fromJson(await _client.requestJson(

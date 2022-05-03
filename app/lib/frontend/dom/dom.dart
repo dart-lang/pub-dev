@@ -422,6 +422,7 @@ Node img({
   Iterable<Node>? children,
   required Image image,
   String? title,
+  bool lazy = false,
 }) {
   return dom.element(
     'img',
@@ -433,6 +434,7 @@ Node img({
       if (image.width != null) 'width': image.width.toString(),
       if (image.height != null) 'height': image.height.toString(),
       if (title != null) 'title': title,
+      if (lazy) 'loading': 'lazy',
       if (attributes != null) ...attributes,
     },
     children: children,

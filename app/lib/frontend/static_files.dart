@@ -14,7 +14,11 @@ import 'package:path/path.dart' as path;
 
 final _logger = Logger('pub.static_files');
 
-const _staticRootPaths = <String>['favicon.ico', 'robots.txt'];
+const _staticRootPaths = <String>[
+  'favicon.ico',
+  'osd.xml',
+  'robots.txt',
+];
 
 StaticFileCache? _cache;
 StaticUrls? _staticUrls;
