@@ -157,6 +157,18 @@ Map<String, dynamic> _$VersionScoreToJson(VersionScore instance) {
   return val;
 }
 
+RemoveUploaderRequest _$RemoveUploaderRequestFromJson(
+        Map<String, dynamic> json) =>
+    RemoveUploaderRequest(
+      email: json['email'] as String,
+    );
+
+Map<String, dynamic> _$RemoveUploaderRequestToJson(
+        RemoveUploaderRequest instance) =>
+    <String, dynamic>{
+      'email': instance.email,
+    };
+
 InviteUploaderRequest _$InviteUploaderRequestFromJson(
         Map<String, dynamic> json) =>
     InviteUploaderRequest(

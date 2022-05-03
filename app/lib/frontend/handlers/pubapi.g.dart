@@ -136,6 +136,22 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
+  router.add('POST', r'/api/packages/<package>/remove-uploader',
+      (Request request, String package) async {
+    try {
+      final _$result = await service.removeUploaderFromUI(
+        request,
+        package,
+        await $utilities.decodeJson<RemoveUploaderRequest>(
+            request, (o) => RemoveUploaderRequest.fromJson(o)),
+      );
+      return $utilities.jsonResponse(_$result.toJson());
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
   router.add('POST', r'/api/packages/<package>/invite-uploader',
       (Request request, String package) async {
     try {
