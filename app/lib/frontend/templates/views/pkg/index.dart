@@ -116,13 +116,6 @@ d.Node _searchFormContainer({
                 searchForm: searchForm,
                 title: 'Show only packages with OSI Approved License.',
               ),
-              _tagBasedCheckbox(
-                tagPrefix: 'license',
-                tagValue: 'fsf-libre',
-                label: 'FSF Libre',
-                searchForm: searchForm,
-                title: 'Show only packages with FSF Libre License.',
-              ),
             ],
           ),
           _filterSection(
