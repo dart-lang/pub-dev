@@ -112,9 +112,9 @@ d.Node _searchFormContainer({
               _tagBasedCheckbox(
                 tagPrefix: 'license',
                 tagValue: 'osi-approved',
-                label: 'OSI Approved',
+                label: 'OSI approved',
                 searchForm: searchForm,
-                title: 'Show only packages with OSI Approved License.',
+                title: 'Show only packages with OSI approved license.',
               ),
             ],
           ),
