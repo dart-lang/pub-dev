@@ -52,6 +52,9 @@ PackageView _$PackageViewFromJson(Map<String, dynamic> json) => PackageView(
       maxPubPoints: json['maxPubPoints'] as int?,
       popularity: json['popularity'] as int?,
       tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      spdxIdentifiers: (json['spdxIdentifiers'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
       apiPages: (json['apiPages'] as List<dynamic>?)
           ?.map((e) => ApiPageRef.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -78,6 +81,7 @@ Map<String, dynamic> _$PackageViewToJson(PackageView instance) {
   writeNotNull('maxPubPoints', instance.maxPubPoints);
   writeNotNull('popularity', instance.popularity);
   val['tags'] = instance.tags;
+  writeNotNull('spdxIdentifiers', instance.spdxIdentifiers);
   writeNotNull('apiPages', instance.apiPages);
   return val;
 }

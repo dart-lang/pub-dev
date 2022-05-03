@@ -82,6 +82,7 @@ d.Node _packageItem(
     ];
   }
 
+  final licenseNode = _license(view.spdxIdentifiers);
   final releases = view.releases!;
   final metadataNode = d.fragment([
     d.span(
@@ -116,6 +117,11 @@ d.Node _packageItem(
         ),
         d.a(href: urls.publisherUrl(view.publisherId!), text: view.publisherId),
       ]),
+    if (licenseNode != null)
+      d.span(
+        classes: ['packages-metadata-block'],
+        child: licenseNode,
+      ),
     if (isFlutterFavorite) flutterFavoriteBadgeNode,
     if (isNullSafe) nullSafeBadgeNode(),
   ]);
@@ -140,6 +146,31 @@ d.Node _packageItem(
             ))
         .toList(),
   );
+}
+
+/// Nicely formatted labels for common SPDX identifiers.
+const _spdxLabels = {
+  'AGPL-3.0': 'AGPL 3.0',
+  'Apache-2.0': 'Apache 2.0',
+  'BSD-2-Clause': 'BSD 2-clause',
+  'BSD-3-Clause': 'BSD 3-clause',
+  'GPL-3.0': 'GPL 3.0',
+  'MPL-2.0': 'MPL 2.0',
+  'LGPL-2.1': 'LGPL 2.1',
+  'LGPL-3.0': 'LGPL 3.0',
+};
+String _spdxLabel(String id) => _spdxLabels[id] ?? id;
+
+d.Node? _license(List<String>? spdxIdentifiers) {
+  if (spdxIdentifiers == null || spdxIdentifiers.isEmpty) {
+    return null;
+  }
+  if (spdxIdentifiers.length == 1) {
+    return d.text('${_spdxLabel(spdxIdentifiers.single)} license');
+  } else {
+    final more = spdxIdentifiers.length - 1;
+    return d.text('${_spdxLabel(spdxIdentifiers.first)} +$more licenses');
+  }
 }
 
 d.Node _item({
