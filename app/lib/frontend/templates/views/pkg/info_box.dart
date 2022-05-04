@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pana/pana.dart';
+import 'package:pub_dev/frontend/templates/views/pkg/license.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspek;
 
 import '../../../../package/models.dart';
@@ -146,9 +147,10 @@ d.Node? _licenseNode({
   required String licenseUrl,
 }) {
   final paths = licenses.map((e) => e.path).toSet().toList();
-  final ids = licenses.map((e) => e.spdxIdentifier).toSet().toList();
+  final labels =
+      licenses.map((e) => e.spdxIdentifier).toSet().map(spdxLabel).toList();
   return d.fragment([
-    d.text('${ids.join(', ')} ('),
+    d.text('${labels.join(', ')} ('),
     d.a(href: licenseUrl, text: paths.join(', ')),
     d.text(')'),
   ]);
