@@ -6,24 +6,11 @@ import 'package:pub_dev/frontend/static_files.dart';
 
 import '../../../dom/dom.dart' as d;
 
-/// Nicely formatted labels for common SPDX identifiers.
-const _spdxLabels = {
-  'AGPL-3.0': 'AGPL 3.0',
-  'Apache-2.0': 'Apache 2.0',
-  'BSD-2-Clause': 'BSD 2-clause',
-  'BSD-3-Clause': 'BSD 3-clause',
-  'GPL-3.0': 'GPL 3.0',
-  'MPL-2.0': 'MPL 2.0',
-  'LGPL-2.1': 'LGPL 2.1',
-  'LGPL-3.0': 'LGPL 3.0',
-};
-String spdxLabel(String id) => _spdxLabels[id] ?? id;
-
 d.Node? packageListMetadataLicense(List<String>? spdxIdentifiers) {
   if (spdxIdentifiers == null || spdxIdentifiers.isEmpty) {
     return null;
   }
-  final label = spdxIdentifiers.map(spdxLabel).join(', ');
+  final label = spdxIdentifiers.join(', ');
   return d.fragment(
     [
       d.img(
