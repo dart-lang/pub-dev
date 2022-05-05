@@ -29,8 +29,7 @@ d.Node? packageListMetadataLicense(List<String>? spdxIdentifiers) {
       d.img(
         classes: ['packages-metadata-license-icon'],
         image: d.Image(
-          src: staticUrls
-              .getAssetUrl('/static/img/material-icon-balance-48.svg'),
+          src: staticUrls.getAssetUrl('/static/img/material-icon-balance.svg'),
           alt: 'Icon for licenses.',
           width: 16,
           height: 16,
