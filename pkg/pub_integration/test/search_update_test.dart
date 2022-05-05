@@ -249,6 +249,25 @@ void main() {
         },
       );
 
+      // licenses
+      await headlessEnv.withPage(
+        fn: (page) async {
+          await page.gotoOrigin('/packages');
+
+          // OSI approved
+          await page.click('.search-form-section[data-section-tag="license"]');
+          await Future.delayed(Duration(seconds: 1));
+          await page.click('#search-form-checkbox-license-osi-approved');
+          await page.waitForNavigation(wait: Until.networkIdle);
+
+          expect(await page.propertyValue('input[name="q"]', 'value'),
+              'license:osi-approved');
+          final pageInfo = await listingPageInfo(page);
+          expect(pageInfo.totalCount, greaterThan(0));
+          expect(pageInfo.openSections, ['license']);
+        },
+      );
+
       // back button working with checkboxes
       await headlessEnv.withPage(
         fn: (page) async {

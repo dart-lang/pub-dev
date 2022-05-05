@@ -270,6 +270,31 @@
               </div>
             </div>
           </div>
+          <div class="search-form-section foldable" data-section-tag="license">
+            <h3 class="search-form-section-header foldable-button">
+              <span class="search-form-section-header-label">License</span>
+              <img class="foldable-icon" src="/static/hash-%%etag%%/img/search-form-foldable-icon.svg" alt="fold toggle icon (up/down arrow)" width="13" height="6"/>
+            </h3>
+            <div class="foldable-content">
+              <div class="search-form-linked-checkbox" title="Show only packages with OSI approved license.">
+                <div class="mdc-form-field">
+                  <div class="mdc-checkbox">
+                    <input id="search-form-checkbox-license-osi-approved" class="mdc-checkbox__native-control" type="checkbox"/>
+                    <div class="mdc-checkbox__background">
+                      <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                        <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                      </svg>
+                      <div class="mdc-checkbox__mixedmark"></div>
+                    </div>
+                    <div class="mdc-checkbox__ripple"></div>
+                  </div>
+                  <label for="search-form-checkbox-license-osi-approved">
+                    <a href="/packages?q=sdk%3Adart+license%3Aosi-approved" data-action="filter-license-osi-approved" data-tag="license:osi-approved">OSI approved</a>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
           <div class="search-form-section foldable" data-section-tag="advanced">
             <h3 class="search-form-section-header foldable-button">
               <span class="search-form-section-header-label">Advanced</span>
