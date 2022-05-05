@@ -15,6 +15,7 @@ import '../../../dom/dom.dart' as d;
 import '../../../static_files.dart' show staticUrls;
 import '../../_consts.dart';
 import '../../package_misc.dart';
+import '../shared/images.dart';
 
 /// Renders the listing page (list of packages).
 d.Node listOfPackagesNode({
@@ -105,13 +106,7 @@ d.Node _packageItem(
       ], children: [
         d.img(
           classes: ['package-vp-icon'],
-          image: d.Image(
-            src: staticUrls
-                .getAssetUrl('/static/img/verified-publisher-icon.svg'),
-            alt: 'shield icon for verified publishers',
-            width: 14,
-            height: 14,
-          ),
+          image: verifiedPublisherIconImage(),
           title: 'Published by a pub.dev verified publisher',
         ),
         d.a(href: urls.publisherUrl(view.publisherId!), text: view.publisherId),

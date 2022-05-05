@@ -5,8 +5,8 @@
 import '../../../../package/models.dart';
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
-import '../../../static_files.dart';
 import '../../package_misc.dart';
+import '../shared/images.dart';
 
 d.Node packageHeaderNode({
   required String packageName,
@@ -34,13 +34,7 @@ Iterable<d.Node> _publisher(String publisherId) {
         d.img(
           classes: ['-pub-publisher-shield'],
           title: 'Published by a pub.dev verified publisher',
-          image: d.Image(
-            src: staticUrls
-                .getAssetUrl('/static/img/verified-publisher-blue.svg'),
-            alt: 'shield icon for verified publishers',
-            width: 15,
-            height: 15,
-          ),
+          image: verifiedPublisherIconImage(),
         ),
         d.text(publisherId),
       ],
