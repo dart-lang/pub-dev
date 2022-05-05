@@ -5,7 +5,7 @@
 import '../../../../package/models.dart';
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
-import '../../../static_files.dart';
+import '../shared/images.dart';
 
 d.Node miniListNode(String sectionTag, List<PackageView> packages) {
   return d.div(
@@ -52,13 +52,7 @@ d.Node _footer(String sectionTag, PackageView p) {
           children: [
             d.img(
               classes: ['publisher-badge'],
-              image: d.Image(
-                src: staticUrls
-                    .getAssetUrl('/static/img/verified-publisher-gray.svg'),
-                alt: 'verified publisher badge',
-                width: 16,
-                height: 16,
-              ),
+              image: verifiedPublisherIconImage(),
               title: 'Published by a pub.dev verified publisher',
             ),
             d.a(
