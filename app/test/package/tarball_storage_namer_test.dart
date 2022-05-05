@@ -15,7 +15,8 @@ import '../shared/test_services.dart';
 void main() {
   group('Object names', () {
     testWithProfile('namer', fn: () async {
-      final bucket = await getOrCreateBucket(storageService, 'some-pub-bucket');
+      await storageService.createBucket('some-pub-bucket');
+      final bucket = storageService.bucket('some-pub-bucket');
       expect(bucket.objectUrl('path/file.txt'),
           '${activeConfiguration.storageBaseUrl}/some-pub-bucket/path/file.txt');
 

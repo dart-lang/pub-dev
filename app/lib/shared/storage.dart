@@ -14,9 +14,10 @@ import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
-import 'package:pub_dev/shared/configuration.dart';
+import 'package:pub_dev/shared/env_config.dart';
 import 'package:retry/retry.dart';
 
+import 'configuration.dart';
 import 'utils.dart' show contentType, jsonUtf8Encoder, retryAsync, DeleteCounts;
 import 'versions.dart' as versions;
 
@@ -24,6 +25,43 @@ final _gzip = GZipCodec();
 final _logger = Logger('shared.storage');
 
 const _retryStatusCodes = <int>{502, 503, 504};
+
+/// Additional methods on the storage service.
+extension StorageExt on Storage {
+  /// Verifies bucket existence and access.
+  ///
+  /// We don't want to block the startup of a production service when there is
+  /// a temporary issue with a bucket, especially if that bucket is not crucial
+  /// to the core services. Exception is thrown only when we are running in a
+  /// local environment.
+  Future<void> verifyBucketExistenceAndAccess(String bucketName) async {
+    // check bucket existence
+    if (!await bucketExists(bucketName)) {
+      final message = 'Bucket "$bucketName" does not exists!';
+      _logger.shout(message);
+      if (envConfig.isRunningLocally) {
+        throw StateError(message);
+      }
+      return;
+    }
+
+    // Reads file info of a (usually) non-existing file. This assumes that existing
+    // buckets without any access info will throw an exception with status of 400, 401 or 403.
+    try {
+      // ignoring any return value, as we expect a 404 response
+      await bucket(bucketName).tryInfo('__not_random_object_name.txt');
+    } catch (e, st) {
+      // catch-all for all network error or timeout issues
+      final message =
+          'Unable to access object information in "$bucketName" bucket!';
+      _logger.shout(message, e, st);
+      if (envConfig.isRunningLocally) {
+        throw StateError(message);
+      }
+      return;
+    }
+  }
+}
 
 /// Additional methods on buckets.
 extension BucketExt on Bucket {
@@ -78,13 +116,6 @@ extension BucketExt on Bucket {
 /// Returns a valid `gs://` URI for a given [bucket] + [path] combination.
 String bucketUri(Bucket bucket, String path) =>
     'gs://${bucket.bucketName}/$path';
-
-Future<Bucket> getOrCreateBucket(Storage storage, String name) async {
-  if (!await storage.bucketExists(name)) {
-    await storage.createBucket(name);
-  }
-  return storage.bucket(name);
-}
 
 /// Deletes a single object from the [bucket].
 ///
