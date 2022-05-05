@@ -14,10 +14,10 @@ import 'package:path/path.dart' as path;
 
 final _logger = Logger('pub.static_files');
 
-const _staticRootPaths = <String>[
+/// NOTE: also add annotation to routes.dart.
+const staticRootPaths = <String>[
   'favicon.ico',
   'osd.xml',
-  'robots.txt',
 ];
 
 StaticFileCache? _cache;
@@ -128,7 +128,7 @@ class StaticFileCache {
         }
         final bytes = file.readAsBytesSync();
         final lastModified = file.lastModifiedSync();
-        final isRoot = _staticRootPaths.contains(relativePath);
+        final isRoot = staticRootPaths.contains(relativePath);
         final prefix = isRoot ? '' : '/static';
         final requestPath = '$prefix/$relativePath';
         final digest = crypto.sha256.convert(bytes);
