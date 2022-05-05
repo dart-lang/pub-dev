@@ -74,6 +74,7 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add('GET', r'/sitemap.txt', service.sitemapTxt);
   router.add('GET', r'/sitemap-2.txt', service.sitemapPublishersTxt);
   router.add('GET', r'/favicon.ico', service.staticAsset);
+  router.add('GET', r'/osd.xml', service.staticAsset);
   router.add('GET', r'/static/<path|[^]*>', service.staticAsset);
   router.add('GET', r'/experimental', service.experimental);
   router.add('GET', r'/my-packages', service.accountPackagesPage);

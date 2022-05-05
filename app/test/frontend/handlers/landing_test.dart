@@ -68,4 +68,20 @@ void main() {
       ]);
     });
   });
+
+  group('static root paths', () {
+    for (final path in staticRootPaths) {
+      testWithProfile('/$path', fn: () async {
+        final rs = await issueGet('/$path');
+        expect(rs.statusCode, 200);
+        // Reading the content to faster close of the stream.
+        expect(await rs.read().toList(), isNotEmpty);
+      });
+    }
+    testWithProfile('/osd.xml content check', fn: () async {
+      final rs = await issueGet('/osd.xml');
+      expect(rs.statusCode, 200);
+      expect(await rs.readAsString(), contains('OpenSearchDescription'));
+    });
+  });
 }
