@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pana/pana.dart';
-import 'package:pub_dev/frontend/templates/views/pkg/license.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspek;
 
 import '../../../../package/models.dart';
