@@ -23,11 +23,7 @@ d.Node? packageListMetadataLicense(List<String>? spdxIdentifiers) {
   if (spdxIdentifiers == null || spdxIdentifiers.isEmpty) {
     return null;
   }
-  final more = spdxIdentifiers.length - 1;
-  final label = [
-    spdxLabel(spdxIdentifiers.first),
-    if (more > 0) '+$more',
-  ].join(' ');
+  final label = spdxIdentifiers.map(spdxLabel).join(', ');
   return d.fragment(
     [
       d.img(
