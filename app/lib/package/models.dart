@@ -757,6 +757,9 @@ class PackageView extends Object with FlagMixin {
   final int? popularity;
 
   final List<String> tags;
+
+  /// The recognized SPDX identifiers of the licenses for the package.
+  final List<String>? spdxIdentifiers;
   final List<ApiPageRef>? apiPages;
 
   PackageView({
@@ -772,6 +775,7 @@ class PackageView extends Object with FlagMixin {
     this.maxPubPoints,
     this.popularity,
     List<String>? tags,
+    this.spdxIdentifiers,
     this.apiPages,
   })  : isPending = isPending ?? false,
         tags = tags ?? <String>[];
@@ -814,6 +818,9 @@ class PackageView extends Object with FlagMixin {
         ...(version?.getTags() ?? <String>[]),
         ...(scoreCard?.derivedTags ?? <String>[]),
       ],
+      spdxIdentifiers: scoreCard?.panaReport?.licenses
+          ?.map((e) => e.spdxIdentifier)
+          .toList(),
       apiPages: apiPages,
     );
   }
@@ -832,6 +839,7 @@ class PackageView extends Object with FlagMixin {
       maxPubPoints: maxPubPoints,
       popularity: popularity,
       tags: tags,
+      spdxIdentifiers: spdxIdentifiers,
       apiPages: apiPages ?? this.apiPages,
     );
   }

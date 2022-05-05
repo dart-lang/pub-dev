@@ -140,9 +140,10 @@ d.Node? _licenseNode({
   required String licenseUrl,
 }) {
   final paths = licenses.map((e) => e.path).toSet().toList();
-  final ids = licenses.map((e) => e.spdxIdentifier).toSet().toList();
+  final labels = licenses.map((e) => e.spdxIdentifier).toSet().join(', ');
   return d.fragment([
-    d.text('${ids.join(', ')} ('),
+    d.text(labels),
+    d.text(' ('),
     d.a(href: licenseUrl, text: paths.join(', ')),
     d.text(')'),
   ]);

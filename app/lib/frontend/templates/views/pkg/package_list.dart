@@ -17,6 +17,8 @@ import '../../_consts.dart';
 import '../../package_misc.dart';
 import '../shared/images.dart';
 
+import 'license.dart';
+
 /// Renders the listing page (list of packages).
 d.Node listOfPackagesNode({
   required SearchForm? searchForm,
@@ -83,6 +85,7 @@ d.Node _packageItem(
     ];
   }
 
+  final licenseNode = packageListMetadataLicense(view.spdxIdentifiers);
   final releases = view.releases!;
   final metadataNode = d.fragment([
     d.span(
@@ -111,6 +114,11 @@ d.Node _packageItem(
         ),
         d.a(href: urls.publisherUrl(view.publisherId!), text: view.publisherId),
       ]),
+    if (licenseNode != null)
+      d.span(
+        classes: ['packages-metadata-block'],
+        child: licenseNode,
+      ),
     if (isFlutterFavorite) flutterFavoriteBadgeNode,
     if (isNullSafe) nullSafeBadgeNode(),
   ]);
