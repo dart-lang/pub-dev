@@ -148,9 +148,16 @@ d.Node? _licenseNode({
 }) {
   final paths = licenses.map((e) => e.path).toSet().toList();
   final labels =
-      licenses.map((e) => e.spdxIdentifier).toSet().map(spdxLabel).toList();
+      licenses.map((e) => e.spdxIdentifier).toSet().map(spdxLabel).join(', ');
   return d.fragment([
-    d.text('${labels.join(', ')} ('),
+    d.span(
+      text: labels,
+      attributes: {
+        if (labels != 'unknown')
+          'title': licenses.map((e) => e.spdxIdentifier).join(', '),
+      },
+    ),
+    d.text(' ('),
     d.a(href: licenseUrl, text: paths.join(', ')),
     d.text(')'),
   ]);
