@@ -96,9 +96,8 @@ class _FakeTime extends FakeTime {
   /// [_timerForFirstPendingTimer].
   final _pendingTimers = PriorityQueue<_TravelingTimer>(
     (t1, t2) =>
-        t1._elapsesAtInOriginalTime.isBefore(t2._elapsesAtInOriginalTime)
-            ? -1
-            : 1,
+        t1._elapsesAtInOriginalTime.microsecondsSinceEpoch -
+        t2._elapsesAtInOriginalTime.microsecondsSinceEpoch,
   );
 
   /// [Timer] created in [_TravelingTimer._parent] zone, for the first pending

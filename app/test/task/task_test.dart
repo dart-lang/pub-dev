@@ -14,19 +14,6 @@ import 'package:pub_worker/src/upload.dart' show upload;
 import 'package:test/test.dart';
 
 import '../shared/test_services.dart';
-import 'fake_time.dart';
-
-/// Execute [fn] with [FakeTime.run] inside [testWithProfile].
-void testWithFakeTime(
-  String name,
-  FutureOr<void> Function(FakeTime fakeTime) fn,
-) {
-  testWithProfile(name, fn: () async {
-    await FakeTime.run((fakeTime) async {
-      await fn(fakeTime);
-    });
-  });
-}
 
 Future<void> delay({
   int days = 0,

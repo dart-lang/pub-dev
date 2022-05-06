@@ -25,6 +25,7 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
             'popularityDumpBucketName',
             'searchSnapshotBucketName',
             'taskResultBucketName',
+            'taskWorkerImage',
             'storageBaseUrl',
             'pubClientAudience',
             'pubSiteAudience',
@@ -60,6 +61,8 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
               $checkedConvert('searchSnapshotBucketName', (v) => v as String?),
           taskResultBucketName:
               $checkedConvert('taskResultBucketName', (v) => v as String?),
+          taskWorkerImage:
+              $checkedConvert('taskWorkerImage', (v) => v as String?),
           searchServicePrefix:
               $checkedConvert('searchServicePrefix', (v) => v as String),
           storageBaseUrl:
@@ -115,6 +118,7 @@ Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
       'popularityDumpBucketName': instance.popularityDumpBucketName,
       'searchSnapshotBucketName': instance.searchSnapshotBucketName,
       'taskResultBucketName': instance.taskResultBucketName,
+      'taskWorkerImage': instance.taskWorkerImage,
       'storageBaseUrl': instance.storageBaseUrl,
       'pubClientAudience': instance.pubClientAudience,
       'pubSiteAudience': instance.pubSiteAudience,

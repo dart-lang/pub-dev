@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert' show json;
-import 'dart:io' show exit, File;
+import 'dart:io' show exit, File, Platform;
 
 import 'package:logging/logging.dart' show Logger, Level, LogRecord;
 import 'package:pana/pana.dart';
@@ -33,7 +33,10 @@ Future<void> main(List<String> args) async {
     }
   });
 
-  final toolEnv = await ToolEnvironment.create();
+  final toolEnv = await ToolEnvironment.create(
+    dartSdkDir: Platform.environment['DART_ANALYSIS_SDK'],
+    flutterSdkDir: Platform.environment['FLUTTER_ANALYSIS_SDK'],
+  );
   final pana = PackageAnalyzer(toolEnv);
   final summary = await pana.inspectPackage(
     package,

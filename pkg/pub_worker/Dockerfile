@@ -5,18 +5,27 @@ RUN apt-get update && \
   apt-get install -y unzip ca-certificates curl bash && \
   rm -rf /var/lib/apt/lists/*
 
-# Install Dart-SDK
-RUN cd /opt && \
-  curl -sS https://storage.googleapis.com/dart-archive/channels/dev/raw/2.12.0-51.0.dev/sdk/dartsdk-linux-x64-release.zip > /opt/dartsdk.zip && \
-  unzip -q /opt/dartsdk.zip && \
-  rm -f /opt/dartsdk.zip
-ENV PATH="/opt/dart-sdk/bin:${PATH}"
+ENV PUB_ENVIRONMENT="bot.pub_dev.pub_worker"
+ENV CI="true"
 
 # Install pub_worker
 COPY . /opt/pub_worker
 WORKDIR /opt/pub_worker
-ENV PUB_ENVIRONMENT="bot.pub_dev.docker"
-ENV CI="true"
-RUN pub get
+
+# Setup Dart SDK
+RUN tool/setup-dart.sh /opt/dart-sdk 2.16.2
+
+# Setup Flutter SDK
+RUN tool/setup-flutter.sh /opt/flutter 2.10.5
+
+# Use stable Dart-SDK in path
+ENV PATH="/opt/dart-sdk/bin:${PATH}"
+
+# Configure SDKs to be used for analysis
+ENV DART_ANALYSIS_SDK="/opt/dart-sdk"
+ENV FLUTTER_ANALYSIS_SDK="/opt/flutter"
+
+# Install dependencies for pub_worker
+RUN dart pub get
 
 ENTRYPOINT dart bin/pub_worker.dart

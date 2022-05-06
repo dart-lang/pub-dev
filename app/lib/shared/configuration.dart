@@ -104,6 +104,10 @@ class Configuration {
   /// generated dartdoc blobs, dartdoc index-files, pana-reports and task logs.
   final String? taskResultBucketName;
 
+  /// Docker image containing `../pkg/pub_worker` to be used for running
+  /// analysis.
+  final String? taskWorkerImage;
+
   // The scheme://host:port prefix for storage URLs.
   final String? storageBaseUrl;
 
@@ -206,6 +210,7 @@ class Configuration {
     required this.popularityDumpBucketName,
     required this.searchSnapshotBucketName,
     required this.taskResultBucketName,
+    required this.taskWorkerImage,
     required this.searchServicePrefix,
     required this.storageBaseUrl,
     required this.pubClientAudience,
@@ -262,6 +267,7 @@ class Configuration {
       popularityDumpBucketName: 'fake-bucket-popularity',
       searchSnapshotBucketName: 'fake-bucket-search',
       taskResultBucketName: 'fake-bucket-task-result',
+      taskWorkerImage: '-',
       searchServicePrefix: 'http://localhost:$searchPort',
       storageBaseUrl: storageBaseUrl,
       pubClientAudience: null,
@@ -303,6 +309,7 @@ class Configuration {
       popularityDumpBucketName: 'fake-bucket-popularity',
       searchSnapshotBucketName: 'fake-bucket-search',
       taskResultBucketName: 'fake-bucket-task-result',
+      taskWorkerImage: '-',
       searchServicePrefix: 'http://localhost:0',
       storageBaseUrl: storageBaseUrl ?? 'http://localhost:0',
       pubClientAudience: null,
