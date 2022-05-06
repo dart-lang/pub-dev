@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:gcloud/db.dart';
+import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/tool/test_profile/import_source.dart';
@@ -104,6 +106,41 @@ void main() {
 
         final members = await dbService.query<PublisherMember>().run().toList();
         expect(members, isEmpty);
+      },
+    );
+
+    testWithProfile(
+      'fill in likes',
+      testProfile: TestProfile(
+        packages: [
+          TestPackage(
+            name: 'sample',
+            likeCount: 10,
+          ),
+        ],
+        users: [
+          TestUser(
+            email: 'admin@pub.dev',
+            likes: ['sample'],
+          ),
+        ],
+        defaultUser: 'admin@pub.dev',
+      ),
+      fn: () async {
+        // Has 10 likes.
+        final p = await packageBackend.lookupPackage('sample');
+        expect(p!.likes, 10);
+
+        // Has 10 users.
+        final users = await dbService.query<User>().run().toList();
+        expect(users, hasLength(10));
+
+        // All of the is liking the package.
+        for (final user in users) {
+          final status =
+              await accountBackend.getPackageLikeStatus(user.userId, 'sample');
+          expect(status, isNotNull);
+        }
       },
     );
   });

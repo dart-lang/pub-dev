@@ -52,6 +52,7 @@ TestPackage _$TestPackageFromJson(Map<String, dynamic> json) => TestPackage(
       retractedVersions: (json['retractedVersions'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
+      likeCount: json['likeCount'] as int?,
     );
 
 Map<String, dynamic> _$TestPackageToJson(TestPackage instance) {
@@ -73,6 +74,7 @@ Map<String, dynamic> _$TestPackageToJson(TestPackage instance) {
   writeNotNull('isUnlisted', instance.isUnlisted);
   writeNotNull('isFlutterFavorite', instance.isFlutterFavorite);
   writeNotNull('retractedVersions', instance.retractedVersions);
+  writeNotNull('likeCount', instance.likeCount);
   return val;
 }
 
