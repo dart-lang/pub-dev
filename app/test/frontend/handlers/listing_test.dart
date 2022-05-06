@@ -111,11 +111,11 @@ void main() {
         await expectHtmlResponse(
           await issueGet('/packages?q=sdk%3Aflutter'),
           present: [
-            '/packages/package_1',
+            '/packages/package_0',
             '/packages/package_2',
           ],
           absent: [
-            '/packages/package_0',
+            '/packages/package_1',
           ],
         );
       },
@@ -135,7 +135,7 @@ void main() {
         defaultUser: 'admin@pub.dev',
       ),
       fn: () async {
-        final names = ['flutter_pkg2', 'flutter_pkg4', 'flutter_pkg10'];
+        final names = ['flutter_pkg2', 'flutter_pkg4'];
         await expectHtmlResponse(
           await issueGet('/packages?q=sdk%3Aflutter&page=2'),
           present: names.map((name) => '/packages/$name').toList(),
