@@ -175,3 +175,35 @@ With appreciation, the Dart package site admin
   return EmailMessage(
       _defaultFrom, [EmailAddress(null, invitedEmail)], subject, bodyText);
 }
+
+/// Creates the [EmailMessage] that we be sent on package transfer to a new publisher.
+EmailMessage createPackageTransferEmail({
+  required String packageName,
+  required String activeUserEmail,
+  required String? oldPublisherId,
+  required String newPublisherId,
+  required List<EmailAddress> authorizedAdmins,
+}) {
+  final url = pkgPageUrl(packageName, includeHost: true);
+  final subject = 'Package transferred: $packageName to $newPublisherId';
+  final actionLine = [
+    activeUserEmail,
+    'has transferred the $packageName package',
+    if (oldPublisherId != null) 'from the publisher $oldPublisherId',
+    'to the publisher $newPublisherId.',
+  ].join(' ');
+  final bodyText = '''Dear package maintainer,  
+
+$actionLine
+
+For details, go to $url
+
+If you have any concerns about this transfer, contact support@pub.dev
+
+Thanks for your contributions to the Dart community!
+
+With appreciation, the Dart package site admin
+''';
+
+  return EmailMessage(_defaultFrom, authorizedAdmins, subject, bodyText);
+}
