@@ -19,6 +19,14 @@ final _defaultFrom = EmailAddress(
   pubDartlangOrgEmail,
 );
 
+String _footer(String action) {
+  return '''If you have any concerns about this $action, contact support@pub.dev
+
+Thanks for your contributions to the Dart community!
+
+With appreciation, the Dart package site admin''';
+}
+
 /// Represents a parsed email address.
 class EmailAddress {
   final String? name;
@@ -139,11 +147,7 @@ $uploaderEmail has published a new version ($packageVersion) of the $packageName
 
 For details, go to $url
 
-If you have any concerns about this package, file an issue at https://github.com/dart-lang/pub-dev/issues
-
-Thanks for your contributions to the Dart community!
-
-With appreciation, the Dart package site admin
+${_footer('package')}
 ''';
 
   return EmailMessage(_defaultFrom, authorizedUploaders, subject, bodyText);
@@ -166,11 +170,7 @@ $consentUrl
 
 If you don’t want to accept it, simply ignore this email.
 
-If you have any concerns about this invitation, file an issue at https://github.com/dart-lang/pub-dev/issues
-
-Thanks for your contributions to the Dart community!
-
-With appreciation, the Dart package site admin
+${_footer('invitation')}
 ''';
   return EmailMessage(
       _defaultFrom, [EmailAddress(null, invitedEmail)], subject, bodyText);
@@ -198,11 +198,7 @@ $actionLine
 
 For details, go to $url
 
-If you have any concerns about this transfer, contact support@pub.dev
-
-Thanks for your contributions to the Dart community!
-
-With appreciation, the Dart package site admin
+${_footer('transfer')}
 ''';
 
   return EmailMessage(_defaultFrom, authorizedAdmins, subject, bodyText);
