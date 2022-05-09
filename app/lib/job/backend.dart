@@ -205,8 +205,7 @@ class JobBackend {
   }
 
   Future<Job?> lockAvailable(JobService service) async {
-    bool isApplicable(Job? job) {
-      if (job == null) return false;
+    bool isApplicable(Job job) {
       if (job.state != JobState.available) return false;
       if (job.runtimeVersion != versions.runtimeVersion) return false;
       return true;
@@ -226,17 +225,20 @@ class JobBackend {
     }
 
     while (pool.hasAvailable) {
-      final selectedId = pool.select().id;
+      final candidate = pool.select();
 
       final job = await db.withRetryTransaction(_db, (tx) async {
-        final selected = await tx
-            .lookupOrNull<Job>(_db.emptyKey.append(Job, id: selectedId));
-        if (!isApplicable(selected)) {
+        final selected = await tx.lookupOrNull<Job>(candidate.key);
+
+        if (selected == null ||
+            !isApplicable(selected) ||
+            selected.attemptCount != candidate.attemptCount ||
+            selected.processingKey != candidate.processingKey) {
           pool.markRace();
           return null;
         }
         final now = clock.now().toUtc();
-        selected!
+        selected
           ..state = JobState.processing
           ..attemptCount = (selected.attemptCount ?? 0) + 1
           ..processingKey = createUuid()
