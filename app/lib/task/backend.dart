@@ -69,7 +69,7 @@ TaskBackend get taskBackend => ss.lookup(#_taskBackend) as TaskBackend;
 
 // + Limit number of packages it analyzes to just: retry, pem, ...
 // + Limit the number of package verisons we analyze
-// - Handle case where worker can't process all versions its given!!!
+// - Handle case where worker can't process all versions it's given!!!
 // - Maybe, write more tests:
 //    - publish a package
 //    - trigger a dependency

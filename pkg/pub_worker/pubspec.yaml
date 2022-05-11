@@ -20,6 +20,7 @@ dependencies:
   logging: ^1.0.2
   indexed_blob:
     path: ../indexed_blob
+  clock: ^1.1.0
 
 dev_dependencies:
   test: ^1.19.3

@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert' show JsonUtf8Encoder, json;
+import 'dart:convert' show JsonUtf8Encoder, json, utf8;
 import 'dart:io' show Directory, File, Process, Platform, ProcessSignal;
 import 'dart:isolate' show Isolate;
 
+import 'package:clock/clock.dart' show clock;
 import 'package:http/http.dart' show Client;
 import 'package:indexed_blob/indexed_blob.dart';
 import 'package:logging/logging.dart' show Logger;
@@ -21,12 +22,18 @@ import 'package:pub_worker/src/utils.dart' show stripTrailingSlashes;
 
 final _log = Logger('pub_worker.process_payload');
 
+/// Gracefully shutdown and report versions as done without results, if
+/// processing takes more than 45 minutes.
+const _workerTimeout = Duration(minutes: 45);
+
+/// Stop analysis if it takes more than 15 minutes.
 const _analysisTimeout = Duration(minutes: 15);
 
 List<int> encodeJson(Object json) => JsonUtf8Encoder().convert(json);
 
 Future<void> analyze(Payload payload) async {
   _log.fine('Running analyze for payload with package:${payload.package}');
+  final workerDeadline = clock.now().add(_workerTimeout);
   final client = Client();
   try {
     for (final p in payload.versions) {
@@ -39,7 +46,22 @@ Future<void> analyze(Payload payload) async {
       );
 
       try {
-        await _analyzePackage(client, api, payload.package, p.version);
+        // Skip analysis, if we're past the worker deadline
+        if (clock.now().isBefore(workerDeadline)) {
+          await _analyzePackage(client, api, payload.package, p.version);
+        } else {
+          await _reportPackageSkipped(
+            client,
+            api,
+            payload.package,
+            p.version,
+            reason:
+                'Processing of package versions exceeded allocated duration.\n'
+                'This is because all versions are analyzed in a single batch,\n'
+                'the other versions of this package took too long time to '
+                'analyze.',
+          );
+        }
       } catch (e, st) {
         _log.shout(
           'failed to process ${payload.package} / ${p.version}',
@@ -65,6 +87,10 @@ Future<void> _analyzePackage(
   try {
     final logFile = File(p.join(tempDir.path, 'log.txt'));
     final log = logFile.openWrite();
+
+    log.writeln('## Running analysis for "$package" version "$version"');
+    log.writeln('date-time: ${clock.now().toUtc().toIso8601String()}');
+    log.writeln(''); // empty-line before the next headline
 
     // Run the analysis
     log.writeln('### Starting pana');
@@ -134,6 +160,7 @@ Future<void> _analyzePackage(
     }
 
     // Close the log
+    log.writeln(); // always end with a newline
     await log.close();
 
     // Upload results, if there is any
@@ -196,4 +223,53 @@ Future<void> _analyzePackage(
   } finally {
     await tempDir.delete(recursive: true);
   }
+}
+
+/// Report that analysis of [package] / [version] was skipped,
+/// because of [reason].
+///
+/// The [reason] will be printed to the log file, and empty results will be
+/// uploaded / omitted for the other files.
+Future<void> _reportPackageSkipped(
+  Client client,
+  PubApiClient api,
+  String package,
+  String version, {
+  required String reason,
+}) async {
+  _log.finest('Skipping analysis of "$package" version "$version"');
+
+  _log.finest('api.taskUploadResult("$package", "$version") - skipping');
+  final r = await api.taskUploadResult(package, version);
+
+  // Upload the log
+  await upload(
+    client,
+    r.panaLog,
+    utf8.encode([
+      '## Skipping analysis for "$package" version "$version"',
+      'date-time: ${clock.now().toUtc().toIso8601String()}',
+      '',
+      'reason:',
+      reason,
+      '', // always end with a newline
+    ].join('\n')),
+    filename: 'pana-log.txt',
+    contentType: 'text/plain',
+  );
+
+  await upload(
+    client,
+    r.panaReport,
+    encodeJson(PanaReport(
+      logId: r.panaLogId,
+      summary: null, // we have no summary to attach
+    )),
+    filename: 'pana-summary.json',
+    contentType: 'application/json',
+  );
+
+  // Report that we're done processing the package / version.
+  _log.finest('api.taskUploadFinished("$package", "$version") - skipped');
+  await api.taskUploadFinished(package, version);
 }
