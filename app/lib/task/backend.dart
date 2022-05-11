@@ -17,7 +17,6 @@ import 'package:indexed_blob/indexed_blob.dart' show BlobIndex;
 import 'package:logging/logging.dart' show Logger;
 import 'package:pana/models.dart' show Summary;
 import 'package:pool/pool.dart' show Pool;
-import 'package:pub_dev/package/backend.dart' show packageBackend;
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/upload_signer_service.dart';
 import 'package:pub_dev/shared/datastore.dart';
@@ -31,6 +30,7 @@ import 'package:pub_dev/task/global_lock.dart';
 import 'package:pub_dev/task/models.dart'
     show PackageState, PackageVersionState, maxTaskExecutionTime;
 import 'package:pub_dev/task/scheduler.dart';
+import 'package:pub_semver/pub_semver.dart' show Version;
 import 'package:pub_worker/pana_report.dart' show PanaReport;
 import 'package:retry/retry.dart' show retry;
 import 'package:shelf/shelf.dart' as shelf;
@@ -66,6 +66,31 @@ TaskBackend get taskBackend => ss.lookup(#_taskBackend) as TaskBackend;
 //       as signaling that we ran out of time. That way we can also do testing without
 //       uploading files.
 // NOTE: Tracking all versions could be too much overhead in entity size.
+
+// + Limit number of packages it analyzes to just: retry, pem, ...
+// + Limit the number of package verisons we analyze
+// - Handle case where worker can't process all versions its given!!!
+// - Maybe, write more tests:
+//    - publish a package
+//    - trigger a dependency
+//    - timeout of a worker, task being retried
+//    - worker unable to process all versions (running out of time)
+//    - availability zone out of action
+// - Expose HTTP end-points that can show logs/dartdoc and pana-report from workers
+
+/// Packages that are allow listed for initial testing of task backend.
+final _allowListedPackages = [
+  // Package names used in testing
+  'flutter_titanium',
+  'neon',
+  'oxygen',
+
+  // Few small packages
+  'retry',
+  'pem',
+  'http',
+  'collection',
+];
 
 class TaskBackend {
   final DatastoreDB _db;
@@ -208,7 +233,7 @@ class TaskBackend {
       scheduleMicrotask(() async {
         await pool.withResource(() async {
           try {
-            await _trackPackage(p.name!);
+            await trackPackage(p.name!, updateDependants: false);
           } catch (e, st) {
             _log.severe('failed to track state for "${p.name}"', e, st);
             if (error == null) {
@@ -300,7 +325,7 @@ class TaskBackend {
         seen[p.name!] = p.updated!;
 
         // Check the package
-        await _trackPackage(p.name!);
+        await trackPackage(p.name!, updateDependants: true);
       }
 
       // Cleanup the [seen] map for anything older than [since], as this won't
@@ -315,7 +340,17 @@ class TaskBackend {
     }
   }
 
-  Future<void> _trackPackage(String packageName) async {
+  Future<void> trackPackage(
+    String packageName, {
+    bool updateDependants = false,
+  }) async {
+    // Limit the number of packages we track during initial testing.
+    // TODO: Remove this before going into production
+    if (!_allowListedPackages.contains(packageName)) {
+      return;
+    }
+
+    var lastVersionCreated = DateTime(0);
     await withRetryTransaction(_db, (tx) async {
       final pkgKey = _db.emptyKey.append(Package, id: packageName);
 
@@ -323,13 +358,18 @@ class TaskBackend {
       // Lookup Package and PackageVersion in the same transaction.
       // Await results later to ensure concurrent lookups!
       final packageFuture = tx.lookupOrNull<Package>(pkgKey);
-      final versionsFuture = tx.query<PackageVersion>(pkgKey).run().toList();
+      final packageVersionsFuture =
+          tx.query<PackageVersion>(pkgKey).run().toList();
       final state = await tx.lookupOrNull<PackageState>(stateKey);
       final package = await packageFuture;
-      final versions = await versionsFuture;
+      final packageVersions = await packageVersionsFuture;
       if (package == null) {
         return; // assume package was deleted!
       }
+
+      // Update the timestamp for when the last version was published.
+      // This is used if we need to update dependants.
+      lastVersionCreated = packageVersions.map((pv) => pv.created!).max;
 
       // If package is not visible, we should remove it!
       if (package.isNotVisible) {
@@ -338,6 +378,11 @@ class TaskBackend {
         }
         return;
       }
+
+      // Determined the set of versions to track
+      final versions = _versionsToTrack(package, packageVersions).map(
+        (v) => v.canonicalizedVersion, // add extra sanity!
+      );
 
       // Ensure we have PackageState entity
       if (state == null) {
@@ -348,8 +393,8 @@ class TaskBackend {
             ..setId(runtimeVersion, packageName)
             ..runtimeVersion = runtimeVersion
             ..versions = {
-              for (final v in versions)
-                v.version!: PackageVersionState(
+              for (final version in versions)
+                version: PackageVersionState(
                   scheduled: DateTime(0),
                   attempts: 0,
                 ),
@@ -362,16 +407,15 @@ class TaskBackend {
       }
 
       // List versions that not tracked, but should be
-      final untrackedVersions = versions
-          .map((v) => v.version!)
-          .whereNot((v) => state.versions!.containsKey(v))
-          .toList();
+      final untrackedVersions = [
+        ...versions.whereNot(state.versions!.containsKey),
+      ];
 
       // List of versions that are tracked, but don't exist. These have
       // probably been deleted.
-      final deletedVersions = state.versions!.keys
-          .where((v) => versions.none((pv) => pv.version == v))
-          .toList();
+      final deletedVersions = [
+        ...state.versions!.keys.whereNot(versions.contains),
+      ];
 
       // There should never be an overlap between versions untracked and
       // versions that tracked by now missing / deleted.
@@ -400,6 +444,13 @@ class TaskBackend {
       _log.info('Update state tracking for $packageName');
       tx.insert(state);
     });
+
+    if (updateDependants && !lastVersionCreated.isAtSameMomentAs(DateTime(0))) {
+      await _updateLastDependencyChangedForDependents(
+        packageName,
+        lastVersionCreated,
+      );
+    }
   }
 
   /// Garbage collect [PackageState] and results from old runtimeVersions.
@@ -452,62 +503,6 @@ class TaskBackend {
     // Close the pool, and wait for all pending deletion request to complete.
     await pool.close();
     await pool.done;
-  }
-
-  /// Report [package] and [version] published and trigger analysis if required.
-  ///
-  /// It is always to safe to call [trackPackageVersion] for a [package] and
-  /// [version] that exists. This method simply ensures that the [package] and
-  /// [version] is tracked, and that all packages with dependency on [package]
-  /// is scheduled for new analysis.
-  Future<void> trackPackageVersion(String package, String version) async {
-    version = canonicalizeVersion(version)!;
-
-    final packageVersion = await packageBackend.lookupPackageVersion(
-      package,
-      version,
-    );
-    if (packageVersion == null) {
-      throw StateError(
-        'TaskBackend.trackPackageVersion($package, $version) was called before '
-        'PackageVersion entity is created',
-      );
-    }
-
-    // Ensure that `version` is present in [PackageState.versions]
-    await withRetryTransaction(_db, (tx) async {
-      final key = PackageState.createKey(_db, runtimeVersion, package);
-      var state = await tx.lookupOrNull<PackageState>(key);
-      // If state is present and contains `version` then we're done.
-      if (state != null && state.versions!.containsKey(version)) {
-        return;
-      }
-
-      // Ensure we have PackageState entity
-      state ??= PackageState()
-        ..setId(runtimeVersion, package)
-        ..runtimeVersion = runtimeVersion
-        ..versions = {}
-        ..dependencies = <String>[]
-        ..lastDependencyChanged = DateTime(0);
-
-      // Ensure the version is present
-      state.versions![version] ??= PackageVersionState(
-        scheduled: DateTime(0),
-        attempts: 0,
-      );
-
-      // Update pendingAt
-      state.derivePendingAt();
-
-      // Store state
-      tx.insert(state);
-    });
-
-    await _updateLastDependencyChangedForDependents(
-      package,
-      packageVersion.created!,
-    );
   }
 
   /// Update [PackageState.lastDependencyChanged] for all packages with
@@ -879,4 +874,46 @@ String? _extractBearerToken(shelf.Request request) {
     return null;
   }
   return parts.last.trim();
+}
+
+/// Given a list of versions return the list of versions that should be
+/// tracked for analysis.
+///
+/// We don't analyze all versions, instead we aim to only analyze:
+///  * Latest stable release;
+///  * Latest preview release (if newer than latest stable release);
+///  * Latest prerelease (if newer than latest preview release);
+///  * 5 latest major versions (if any).
+List<Version> _versionsToTrack(
+  Package package,
+  List<PackageVersion> packageVersions,
+) {
+  return {
+    // Always analyze latest stable version
+    package.latestSemanticVersion,
+
+    // Only consider prerelease and preview versions, if they are newer than
+    // the current stable release.
+    if (package.showPrereleaseVersion) package.latestPrereleaseSemanticVersion,
+    if (package.showPreviewVersion) package.latestPreviewSemanticVersion,
+
+    // Consider 5 latest major versions, if any:
+    ...packageVersions
+        // Ignore prereleases and retracted versions
+        .where((pv) => !pv.isRetracted && !pv.semanticVersion.isPreRelease)
+        .map((pv) => pv.semanticVersion)
+        // Create a map from major version to latest version in series.
+        .fold<Map<int, Version>>({}, (map, version) {
+          final key = version.major;
+          final existing = map[key];
+          return {
+            ...map,
+            if (existing == null || existing < version) key: version,
+          };
+        })
+        // Just take the latest version for each major version, sort and take 5
+        .values
+        .sorted(Comparable.compare)
+        .take(5)
+  }.whereNotNull().toList();
 }

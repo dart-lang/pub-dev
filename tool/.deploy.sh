@@ -58,10 +58,10 @@ APP_IMAGE="gcr.io/$PROJECT_ID/pub-dev-$APP_VERSION-app"
 WORKER_IMAGE="gcr.io/$PROJECT_ID/pub-dev-$APP_VERSION-worker"
 
 echo "### Building docker image for appengine: $APP_IMAGE"
-time -p gcloud --project "$PROJECT_ID" builds submit --timeout=1500 -t "$APP_IMAGE"
+time -p gcloud --project "$PROJECT_ID" builds submit --timeout=1500 --machine-type=e2-highcpu-8 -t "$APP_IMAGE"
 
 echo "### Building docker image for pub_worker: $WORKER_IMAGE"
-time -p gcloud --project "$PROJECT_ID" builds submit --timeout=1500 -t "$WORKER_IMAGE"
+time -p gcloud --project "$PROJECT_ID" builds submit --timeout=1500 --machine-type=e2-highcpu-8 -t "$WORKER_IMAGE" pkg/pub_worker
 
 echo "### Start deploying search.yaml (version: $APP_VERSION)"
 time -p gcloud --project "$PROJECT_ID" app deploy --no-promote -v "$APP_VERSION" --image-url "$APP_IMAGE" 'search.yaml' &
