@@ -19,6 +19,14 @@ final _defaultFrom = EmailAddress(
   pubDartlangOrgEmail,
 );
 
+String _footer(String action) {
+  return '''If you have any concerns about this $action, contact support@pub.dev
+
+Thanks for your contributions to the Dart community!
+
+With appreciation, the Dart package site admin''';
+}
+
 /// Represents a parsed email address.
 class EmailAddress {
   final String? name;
@@ -139,11 +147,7 @@ $uploaderEmail has published a new version ($packageVersion) of the $packageName
 
 For details, go to $url
 
-If you have any concerns about this package, file an issue at https://github.com/dart-lang/pub-dev/issues
-
-Thanks for your contributions to the Dart community!
-
-With appreciation, the Dart package site admin
+${_footer('package')}
 ''';
 
   return EmailMessage(_defaultFrom, authorizedUploaders, subject, bodyText);
@@ -166,12 +170,36 @@ $consentUrl
 
 If you don’t want to accept it, simply ignore this email.
 
-If you have any concerns about this invitation, file an issue at https://github.com/dart-lang/pub-dev/issues
-
-Thanks for your contributions to the Dart community!
-
-With appreciation, the Dart package site admin
+${_footer('invitation')}
 ''';
   return EmailMessage(
       _defaultFrom, [EmailAddress(null, invitedEmail)], subject, bodyText);
+}
+
+/// Creates the [EmailMessage] that we be sent on package transfer to a new publisher.
+EmailMessage createPackageTransferEmail({
+  required String packageName,
+  required String activeUserEmail,
+  required String? oldPublisherId,
+  required String newPublisherId,
+  required List<EmailAddress> authorizedAdmins,
+}) {
+  final url = pkgPageUrl(packageName, includeHost: true);
+  final subject = 'Package transferred: $packageName to $newPublisherId';
+  final actionLine = [
+    activeUserEmail,
+    'has transferred the $packageName package',
+    if (oldPublisherId != null) 'from the publisher $oldPublisherId',
+    'to the publisher $newPublisherId.',
+  ].join(' ');
+  final bodyText = '''Dear package maintainer,  
+
+$actionLine
+
+For details, go to $url
+
+${_footer('transfer')}
+''';
+
+  return EmailMessage(_defaultFrom, authorizedAdmins, subject, bodyText);
 }
