@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bumped runtimeVersion to `2022.05.14`.
  * Upgraded runtime Dart SDK to `2.17.0`.
  * Upgraded dependencies.
+ * NOTE: Started to use and backfill `Publisher.isBlocked`.
 
 ## `20220513t212800-all`
  * Bumped runtimeVersion to `2022.05.13`.

@@ -105,7 +105,7 @@ Future<shelf.Response> publisherPackagesPageHandler(
     searchForm: searchForm,
     totalCount: totalCount,
     isAdmin: await publisherBackend.isMemberAdmin(
-        publisherId, userSessionData?.userId),
+        publisher, userSessionData?.userId),
     messageFromBackend: searchResult.message,
   );
   if (isLanding && requestContext.uiCacheEnabled) {
@@ -128,7 +128,7 @@ Future<shelf.Response> publisherAdminPageHandler(
     return htmlResponse(renderUnauthenticatedPage());
   }
   final isAdmin = await publisherBackend.isMemberAdmin(
-    publisherId,
+    publisher,
     userSessionData!.userId,
   );
   if (!isAdmin) {
@@ -155,7 +155,7 @@ Future<shelf.Response> publisherActivityLogPageHandler(
     return htmlResponse(renderUnauthenticatedPage());
   }
   final isAdmin = await publisherBackend.isMemberAdmin(
-    publisherId,
+    publisher,
     userSessionData!.userId,
   );
   if (!isAdmin) {

@@ -25,6 +25,7 @@ import 'backend_test_utils.dart';
 void main() {
   group('Get publisher info', () {
     _testNoPackage((client) => client.getPackagePublisher('no_package'));
+    _testPublisherBlocked((client) => client.publisherInfo('example.com'));
 
     testWithProfile('traditional package, not authenticated user',
         fn: () async {
@@ -43,6 +44,11 @@ void main() {
     _testNoPublisher((client) => client.setPackagePublisher(
           'oxygen',
           PackagePublisherInfo(publisherId: 'no-domain.net'),
+        ));
+
+    _testPublisherBlocked((client) => client.setPackagePublisher(
+          'oxygen',
+          PackagePublisherInfo(publisherId: 'example.com'),
         ));
 
     _testUserNotMemberOfPublisher(
@@ -168,6 +174,26 @@ void main() {
       );
     });
 
+    _testPublisherBlocked(
+      (client) => client.setPackagePublisher(
+        'one',
+        PackagePublisherInfo(publisherId: 'example.com'),
+      ),
+      testProfile: _profile(),
+      publisherId: 'example.com',
+    );
+
+    _testPublisherBlocked(
+      (client) => client.setPackagePublisher(
+        'one',
+        PackagePublisherInfo(publisherId: 'example.com'),
+      ),
+      testProfile: _profile(),
+      publisherId: 'verified.com',
+      status: 403,
+      code: 'InsufficientPermissions',
+    );
+
     _testNoActiveUser((client) async {
       return client.setPackagePublisher(
         'one',
@@ -233,6 +259,12 @@ void main() {
 
     _testUserNotAdminOfPublisher(
       fn: (client) => client.removePackagePublisher('neon'),
+    );
+
+    _testPublisherBlocked(
+      (client) => client.removePackagePublisher('neon'),
+      status: 403,
+      code: 'InsufficientPermissions',
     );
 
     testWithProfile('successful', fn: () async {
@@ -321,4 +353,27 @@ void _testNoPublisher(Future Function(PubApiClient client) fn) {
     final rs = fn(client);
     await expectApiException(rs, status: 404, code: 'NotFound');
   });
+}
+
+void _testPublisherBlocked(
+  Future Function(PubApiClient client) fn, {
+  String publisherId = 'example.com',
+  TestProfile? testProfile,
+  int status = 404,
+  String code = 'NotFound',
+}) {
+  testWithProfile(
+    'Publisher $publisherId is blocked',
+    testProfile: testProfile,
+    fn: () async {
+      final p = await dbService.lookupValue<Publisher>(
+          dbService.emptyKey.append(Publisher, id: publisherId));
+      p.isBlocked = true;
+      await dbService.commit(inserts: [p]);
+
+      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final rs = fn(client);
+      await expectApiException(rs, status: status, code: code);
+    },
+  );
 }

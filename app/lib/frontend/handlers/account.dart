@@ -202,8 +202,12 @@ Future<AccountPublisherOptions> accountPublisherOptionsHandler(
     shelf.Request request, String publisherId) async {
   checkPublisherIdParam(publisherId);
   final user = await requireAuthenticatedUser();
+  final publisher = await publisherBackend.getPublisher(publisherId);
+  if (publisher == null) {
+    throw NotFoundException.resource('publisher "$publisherId"');
+  }
   final member =
-      await publisherBackend.getPublisherMember(publisherId, user.userId);
+      await publisherBackend.getPublisherMember(publisher, user.userId);
   final isAdmin = member != null && member.role == PublisherMemberRole.admin;
   return AccountPublisherOptions(isAdmin: isAdmin);
 }

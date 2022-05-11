@@ -172,7 +172,7 @@ class IntegrityChecker {
       _publishers.add(p.publisherId);
       final members =
           await _db.query<PublisherMember>(ancestorKey: p.key).run().toList();
-      if (p.isAbandoned!) {
+      if (p.isAbandoned) {
         _publishersAbandoned.add(p.publisherId);
         if (members.isNotEmpty) {
           yield 'Publisher "${p.publisherId}" is marked as abandoned, '
