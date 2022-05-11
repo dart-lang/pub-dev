@@ -42,8 +42,8 @@ void main() {
 
     testWithProfile('publisher - no publisher', fn: () async {
       final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
-      final rs = await client.accountPublisherOptions('no-domain.com');
-      expect(rs.isAdmin, isFalse);
+      final rs = client.accountPublisherOptions('no-domain.com');
+      await expectApiException(rs, status: 404);
     });
 
     testWithProfile('publisher - not admin', fn: () async {
