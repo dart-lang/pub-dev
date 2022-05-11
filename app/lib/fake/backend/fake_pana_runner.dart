@@ -26,19 +26,19 @@ class FakePanaRunner implements PanaRunner {
     required String version,
     required PackageStatus packageStatus,
   }) async {
-    final hashgen = _HashGenerator(package, version);
-    final layoutPoints = hashgen.hashOf('points/layout', 30);
-    final examplePoints = hashgen.hashOf('points/example', 30);
-    final hasSdkDart = hashgen.hashOf('sdk:dart', 10) > 0;
+    final hasher = createHasher([package, version].join('/'));
+    final layoutPoints = hasher('points/layout', max: 30);
+    final examplePoints = hasher('points/example', max: 30);
+    final hasSdkDart = hasher('sdk:dart', max: 10) > 0;
     final hasSdkFlutter =
-        hashgen.hashOf('sdk:flutter', packageStatus.usesFlutter ? 20 : 10) > 0;
+        hasher('sdk:flutter', max: packageStatus.usesFlutter ? 20 : 10) > 0;
     final hasValidSdk = hasSdkDart || hasSdkFlutter;
     final runtimeTags = hasSdkDart
         ? <String>[
             'runtime:native-aot',
             'runtime:native-jit',
             'runtime:web',
-          ].where((p) => hashgen.hashOf(p, 5) > 0).toList()
+          ].where((p) => hasher(p, max: 5) > 0).toList()
         : <String>[];
     final platformTags = hasValidSdk
         ? <String>[
@@ -48,10 +48,10 @@ class FakePanaRunner implements PanaRunner {
             'platform:macos',
             'platform:web',
             'platform:windows',
-          ].where((p) => hashgen.hashOf(p, 5) > 0).toList()
+          ].where((p) => hasher(p, max: 5) > 0).toList()
         : <String>[];
     final licenseSpdx =
-        hashgen.hashOf('license', 5) == 0 ? 'unknown' : 'BSD-3-Clause';
+        hasher('license', max: 5) == 0 ? 'unknown' : 'BSD-3-Clause';
     return Summary(
       packageName: package,
       packageVersion: Version.parse(version),
@@ -115,25 +115,23 @@ class FakePanaRunner implements PanaRunner {
   }
 }
 
-class _HashGenerator {
-  final String package;
-  final String version;
+/// Returns the hash of the [key]. When [max] is present, only
+/// ints between 0 and max (exclusive) will be returned.
+///
+/// Throws [StateError] if it is called more than once with teh same [key].
+typedef Hasher = int Function(String key, {int? max});
+
+/// Creates a [Hasher] using the provided [seed].
+Hasher createHasher(String seed) {
   final _keys = <String>{};
-
-  _HashGenerator(this.package, this.version);
-
-  /// Returns the hash of the [key]. When [max] is present, only
-  /// ints between 0 and max (exclusive) will be returned.
-  ///
-  /// Throws [StateError] if it is called more than once with teh same [key].
-  int hashOf(String key, [int? max]) {
+  return (key, {int? max}) {
     if (!_keys.add(key)) {
       throw StateError('Key "$key" already used.');
     }
-    final content = [package, version, key].join('/');
+    final content = [seed, key].join('/');
     final contentHash = sha256.convert(utf8.encode(content));
     final bytes = contentHash.bytes;
     final hash = (bytes[0] << 16) + (bytes[1] << 8) + bytes[2];
     return max == null ? hash : (hash % max);
-  }
+  };
 }
