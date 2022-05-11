@@ -241,7 +241,9 @@ class DartdocJobProcessor extends JobProcessor {
       if (currentCard?.dartdocReport == null) {
         // These package versions are worth investigating, but we don't need
         // alerts on them.
-        _logger.warning('Missing dartdoc report when error was present: $job.');
+        _logger.warning(
+            'Prior dartdoc run did not create report $job (last status: ${job.lastStatus}).');
+        // Store a temporary report, it should be replaced with the real after this run.
         await _storeScoreCard(
             job,
             _emptyReport(
