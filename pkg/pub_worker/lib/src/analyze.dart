@@ -4,7 +4,8 @@
 
 import 'dart:async';
 import 'dart:convert' show JsonUtf8Encoder, json, utf8;
-import 'dart:io' show Directory, File, Process, Platform, ProcessSignal;
+import 'dart:io'
+    show Directory, File, IOException, Platform, Process, ProcessSignal;
 import 'dart:isolate' show Isolate;
 
 import 'package:clock/clock.dart' show clock;
@@ -19,6 +20,7 @@ import 'package:pub_worker/src/http.dart';
 import 'package:pub_worker/src/pubapi.client.dart';
 import 'package:pub_worker/src/upload.dart';
 import 'package:pub_worker/src/utils.dart' show stripTrailingSlashes;
+import 'package:retry/retry.dart';
 
 final _log = Logger('pub_worker.process_payload');
 
@@ -30,6 +32,10 @@ const _workerTimeout = Duration(minutes: 45);
 const _analysisTimeout = Duration(minutes: 15);
 
 List<int> encodeJson(Object json) => JsonUtf8Encoder().convert(json);
+
+/// Retry request if it fails because of an [IOException] or status is 5xx.
+bool _retryIf(Exception e) =>
+    e is IOException || (e is RequestException && e.status >= 500);
 
 Future<void> analyze(Payload payload) async {
   _log.fine('Running analyze for payload with package:${payload.package}');
@@ -165,7 +171,10 @@ Future<void> _analyzePackage(
 
     // Upload results, if there is any
     _log.finest('api.taskUploadResult("$package", "$version")');
-    final r = await api.taskUploadResult(package, version);
+    final r = await retry(
+      () => api.taskUploadResult(package, version),
+      retryIf: _retryIf,
+    );
 
     await Future.wait([
       () async {
@@ -219,7 +228,10 @@ Future<void> _analyzePackage(
 
     // Report that we're done processing the package / version.
     _log.finest('api.taskUploadFinished("$package", "$version")');
-    await api.taskUploadFinished(package, version);
+    await retry(
+      () => api.taskUploadFinished(package, version),
+      retryIf: _retryIf,
+    );
   } finally {
     await tempDir.delete(recursive: true);
   }
@@ -240,7 +252,11 @@ Future<void> _reportPackageSkipped(
   _log.finest('Skipping analysis of "$package" version "$version"');
 
   _log.finest('api.taskUploadResult("$package", "$version") - skipping');
-  final r = await api.taskUploadResult(package, version);
+
+  final r = await retry(
+    () => api.taskUploadResult(package, version),
+    retryIf: _retryIf,
+  );
 
   // Upload the log
   await upload(
@@ -271,5 +287,8 @@ Future<void> _reportPackageSkipped(
 
   // Report that we're done processing the package / version.
   _log.finest('api.taskUploadFinished("$package", "$version") - skipped');
-  await api.taskUploadFinished(package, version);
+  await retry(
+    () => api.taskUploadFinished(package, version),
+    retryIf: _retryIf,
+  );
 }

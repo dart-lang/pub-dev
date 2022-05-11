@@ -28,4 +28,6 @@ ENV FLUTTER_ANALYSIS_SDK="/opt/flutter"
 # Install dependencies for pub_worker
 RUN dart pub get
 
+# This container image is launched by cloud-init, and clpud-init is responsible
+# for shutting down the VM when the container exits.
 ENTRYPOINT dart bin/pub_worker.dart

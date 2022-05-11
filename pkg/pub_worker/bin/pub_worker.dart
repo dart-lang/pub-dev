@@ -26,4 +26,9 @@ Future<void> main(List<String> args) async {
     exit(1);
   }
   await analyze(payload);
+
+  // NOTE: When deployed pub_worker is responsible for terminating it's own
+  // process, and this must terminate the container. It is the responsibility
+  // of the cloud-init configuration to launch the container and shutdown after
+  // the container exits.
 }
