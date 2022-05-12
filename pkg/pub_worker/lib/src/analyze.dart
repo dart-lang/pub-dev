@@ -95,7 +95,7 @@ Future<void> _analyzePackage(
     final log = logFile.openWrite();
 
     log.writeln('## Running analysis for "$package" version "$version"');
-    log.writeln('date-time: ${clock.now().toUtc().toIso8601String()}');
+    log.writeln('STARTED: ${clock.now().toUtc().toIso8601String()}');
     log.writeln(''); // empty-line before the next headline
 
     // Run the analysis
@@ -143,6 +143,7 @@ Future<void> _analyzePackage(
     final exitCode = await pana.exitCode;
 
     log.writeln('### Execution of pana exited $exitCode');
+    log.writeln('STOPPED: ${clock.now().toUtc().toIso8601String()}');
 
     // Check if we got any results
     final dartdocDir = Directory(p.join(tempDir.path, 'dartdoc'));

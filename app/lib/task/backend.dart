@@ -78,7 +78,8 @@ TaskBackend get taskBackend => ss.lookup(#_taskBackend) as TaskBackend;
 //    - timeout of a worker, task being retried
 //    - worker unable to process all versions (running out of time)
 //    - availability zone out of action
-// - Expose HTTP end-points that can show logs/dartdoc and pana-report from workers
+// + Stuff more metrics into the pana-log.txt
+// + Expose HTTP end-points that can show logs/dartdoc and pana-report from workers
 
 /// Packages that are allow listed for initial testing of task backend.
 final _allowListedPackages = [
