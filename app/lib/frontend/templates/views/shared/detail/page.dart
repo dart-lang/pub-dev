@@ -54,7 +54,7 @@ d.Node detailPageNode({
               d.element(
                 'aside',
                 classes: ['detail-info-box'],
-                child: infoBoxNode!,
+                child: infoBoxNode,
               ),
           ],
         ),
@@ -72,7 +72,7 @@ d.Node detailPageNode({
               d.text(' Metadata'),
             ],
           ),
-          d.div(classes: ['detail-info-box'], child: infoBoxNode!),
+          d.div(classes: ['detail-info-box'], child: infoBoxNode),
           d.p(
             classes: ['detail-lead-back'],
             child: d.a(

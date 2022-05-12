@@ -585,7 +585,7 @@ class _LikeScore {
   int likeCount = 0;
   double score = 0.0;
 
-  _LikeScore(this.package, {this.likeCount = 0, this.score = 0.0});
+  _LikeScore(this.package);
 }
 
 class _LikeTracker {

@@ -21,7 +21,7 @@ d.Node standalonePageNode(
           classes: ['standalone-side-image-block'],
           child: d.img(
             classes: ['standalone-side-image'],
-            image: sideImage!,
+            image: sideImage,
           ),
         ),
       d.div(classes: ['standalone-content'], child: content),
