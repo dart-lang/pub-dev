@@ -9,6 +9,7 @@ import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
+import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/publisher/models.dart';
@@ -66,6 +67,7 @@ void main() {
       );
       await expectApiException(rs,
           status: 403, code: 'InsufficientPermissions');
+      expect(fakeEmailSender.sentMessages, isEmpty);
     });
 
     testWithProfile('successful', fn: () async {
@@ -100,6 +102,13 @@ void main() {
           .toList();
       expect(transferLogs.single.summary,
           'Package `oxygen` was transferred to publisher `example.com` by `admin@pub.dev`.');
+      expect(fakeEmailSender.sentMessages, hasLength(1));
+      final email = fakeEmailSender.sentMessages.single;
+      expect(email.subject, contains('transferred'));
+      expect(email.subject, contains('example.com'));
+      expect(email.bodyText, contains('support@'));
+      expect(email.bodyText, contains('/packages/oxygen'));
+      expect(email.recipients.map((e) => e.email).toList(), ['admin@pub.dev']);
     });
   });
 
@@ -196,6 +205,16 @@ void main() {
 
       final info = await client.getPackagePublisher('one');
       expect(_json(info.toJson()), _json(rs.toJson()));
+
+      expect(fakeEmailSender.sentMessages, hasLength(1));
+      final email = fakeEmailSender.sentMessages.single;
+      expect(email.subject, contains('transferred'));
+      expect(email.subject, contains('example.com'));
+      expect(email.bodyText, contains('verified.com'));
+      expect(email.bodyText, contains('example.com'));
+      expect(email.bodyText, contains('support@'));
+      expect(email.bodyText, contains('/packages/one'));
+      expect(email.recipients.map((e) => e.email).toList(), ['admin@pub.dev']);
     });
   });
 

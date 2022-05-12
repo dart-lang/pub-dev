@@ -276,6 +276,7 @@ class PubSiteService {
 
   /// Renders static assets
   @Route.get('/favicon.ico')
+  @Route.get('/osd.xml')
   @Route.get('/static/<path|[^]*>')
   Future<Response> staticAsset(Request request) => staticsHandler(request);
 

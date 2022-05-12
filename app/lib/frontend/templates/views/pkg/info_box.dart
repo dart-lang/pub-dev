@@ -9,7 +9,7 @@ import '../../../../package/models.dart';
 import '../../../../package/overrides.dart' show redirectPackageUrls;
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
-import '../../../static_files.dart';
+import '../shared/images.dart';
 
 /// Links inside the package info box.
 class InfoBoxLink {
@@ -90,13 +90,7 @@ d.Node _publisher(String? publisherId) {
               d.img(
                 classes: ['-pub-publisher-shield'],
                 title: 'Published by a pub.dev verified publisher',
-                image: d.Image(
-                  src: staticUrls
-                      .getAssetUrl('/static/img/verified-publisher-blue.svg'),
-                  alt: 'shield icon for verified publishers',
-                  width: 15,
-                  height: 15,
-                ),
+                image: verifiedPublisherIconImage(),
               ),
               d.text(publisherId),
             ],
@@ -146,9 +140,10 @@ d.Node? _licenseNode({
   required String licenseUrl,
 }) {
   final paths = licenses.map((e) => e.path).toSet().toList();
-  final ids = licenses.map((e) => e.spdxIdentifier).toSet().toList();
+  final labels = licenses.map((e) => e.spdxIdentifier).toSet().join(', ');
   return d.fragment([
-    d.text('${ids.join(', ')} ('),
+    d.text(labels),
+    d.text(' ('),
     d.a(href: licenseUrl, text: paths.join(', ')),
     d.text(')'),
   ]);

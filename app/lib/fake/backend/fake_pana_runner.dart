@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:math';
+import 'dart:convert';
 
+import 'package:crypto/crypto.dart';
 import 'package:pana/pana.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -25,31 +26,32 @@ class FakePanaRunner implements PanaRunner {
     required String version,
     required PackageStatus packageStatus,
   }) async {
-    final random = Random('$package/$version'.hashCode);
-    final layoutPoints = random.nextInt(30);
-    final examplePoints = random.nextInt(30);
-    final hasSdkDart = random.nextInt(10) > 0;
+    final hasher = createHasher([package, version].join('/'));
+    final layoutPoints = hasher('points/layout', max: 30);
+    final examplePoints = hasher('points/example', max: 30);
+    final hasSdkDart = hasher('sdk:dart', max: 10) > 0;
     final hasSdkFlutter =
-        random.nextInt(packageStatus.usesFlutter ? 20 : 10) > 0;
+        hasher('sdk:flutter', max: packageStatus.usesFlutter ? 20 : 10) > 0;
     final hasValidSdk = hasSdkDart || hasSdkFlutter;
     final runtimeTags = hasSdkDart
         ? <String>[
-            if (random.nextInt(5) > 0) 'runtime:native-aot',
-            if (random.nextInt(5) > 0) 'runtime:native-jit',
-            if (random.nextInt(5) > 0) 'runtime:web',
-          ]
+            'runtime:native-aot',
+            'runtime:native-jit',
+            'runtime:web',
+          ].where((p) => hasher(p, max: 5) > 0).toList()
         : <String>[];
     final platformTags = hasValidSdk
         ? <String>[
-            if (random.nextInt(5) > 0) 'platform:android',
-            if (random.nextInt(5) > 0) 'platform:ios',
-            if (random.nextInt(5) > 0) 'platform:linux',
-            if (random.nextInt(5) > 0) 'platform:macos',
-            if (random.nextInt(5) > 0) 'platform:web',
-            if (random.nextInt(5) > 0) 'platform:windows',
-          ]
+            'platform:android',
+            'platform:ios',
+            'platform:linux',
+            'platform:macos',
+            'platform:web',
+            'platform:windows',
+          ].where((p) => hasher(p, max: 5) > 0).toList()
         : <String>[];
-    final licenseSpdx = random.nextInt(5) == 0 ? 'unknown' : 'BSD-3-Clause';
+    final licenseSpdx =
+        hasher('license', max: 5) == 0 ? 'unknown' : 'BSD-3-Clause';
     return Summary(
       packageName: package,
       packageVersion: Version.parse(version),
@@ -103,7 +105,7 @@ class FakePanaRunner implements PanaRunner {
           ),
         ],
       ),
-      licenseFile: LicenseFile('LICENSE', 'BSD'),
+      licenseFile: LicenseFile('LICENSE', licenseSpdx),
       licenses: [
         License(path: 'LICENSE', spdxIdentifier: licenseSpdx),
       ],
@@ -111,4 +113,25 @@ class FakePanaRunner implements PanaRunner {
       pubspec: null, // will be ignored
     );
   }
+}
+
+/// Returns the hash of the [key]. When [max] is present, only
+/// ints between 0 and max (exclusive) will be returned.
+///
+/// Throws [StateError] if it is called more than once with teh same [key].
+typedef Hasher = int Function(String key, {int? max});
+
+/// Creates a [Hasher] using the provided [seed].
+Hasher createHasher(String seed) {
+  final _keys = <String>{};
+  return (key, {int? max}) {
+    if (!_keys.add(key)) {
+      throw StateError('Key "$key" already used.');
+    }
+    final content = [seed, key].join('/');
+    final contentHash = sha256.convert(utf8.encode(content));
+    final bytes = contentHash.bytes;
+    final hash = (bytes[0] << 16) + (bytes[1] << 8) + bytes[2];
+    return max == null ? hash : (hash % max);
+  };
 }

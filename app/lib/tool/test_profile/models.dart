@@ -60,6 +60,7 @@ class TestPackage {
   final bool? isUnlisted;
   final bool? isFlutterFavorite;
   final List<String>? retractedVersions;
+  final int? likeCount;
 
   TestPackage({
     required this.name,
@@ -71,6 +72,7 @@ class TestPackage {
     this.isUnlisted,
     this.isFlutterFavorite,
     this.retractedVersions,
+    this.likeCount,
   });
 
   factory TestPackage.fromJson(Map<String, dynamic> json) {
@@ -100,6 +102,7 @@ class TestPackage {
       isUnlisted: isUnlisted,
       isFlutterFavorite: isFlutterFavorite,
       retractedVersions: retractedVersions,
+      likeCount: likeCount,
     );
   }
 }

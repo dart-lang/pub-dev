@@ -544,10 +544,27 @@ class PackageBackend {
     final user = await requireAuthenticatedUser();
 
     final key = db.emptyKey.append(Package, id: packageName);
-    await requirePackageAdmin(packageName, user.userId);
+    final preTxPackage = await requirePackageAdmin(packageName, user.userId);
     await requirePublisherAdmin(request.publisherId, user.userId);
+    if (preTxPackage.publisherId == request.publisherId) {
+      // If desired publisherId is already the current publisherId, then we're already done.
+      return _asPackagePublisherInfo(preTxPackage);
+    }
+
+    final preTxUploaderEmails = preTxPackage.publisherId == null
+        ? await accountBackend.getEmailsOfUserIds(preTxPackage.uploaders!)
+        : await publisherBackend
+            .getAdminMemberEmails(preTxPackage.publisherId!);
+    final newPublisherAdminEmails =
+        await publisherBackend.getAdminMemberEmails(request.publisherId!);
+    final allAdminEmails = <String>{
+      ...preTxUploaderEmails.whereType<String>(),
+      ...newPublisherAdminEmails.whereType<String>(),
+    };
+
+    EmailMessage? email;
     final rs = await withRetryTransaction(db, (tx) async {
-      final package = await db.lookupValue<Package>(key);
+      final package = await tx.lookupValue<Package>(key);
       if (package.publisherId == request.publisherId) {
         // If desired publisherId is already the current publisherId, then we're already done.
         return _asPackagePublisherInfo(package);
@@ -565,10 +582,23 @@ class PackageBackend {
         toPublisherId: package.publisherId!,
       ));
 
+      email = createPackageTransferEmail(
+        packageName: packageName,
+        activeUserEmail: user.email!,
+        oldPublisherId: currentPublisherId,
+        newPublisherId: package.publisherId!,
+        authorizedAdmins:
+            allAdminEmails.map((email) => EmailAddress(null, email)).toList(),
+      );
       return _asPackagePublisherInfo(package);
     });
     await purgePublisherCache(publisherId: request.publisherId);
     await purgePackageCache(packageName);
+
+    if (email != null) {
+      await emailSender.sendMessage(email!);
+    }
+
     return rs;
   }
 

@@ -337,6 +337,19 @@ class Configuration {
   factory Configuration.fromJson(Map<String, dynamic> json) =>
       _$ConfigurationFromJson(json);
   Map<String, dynamic> toJson() => _$ConfigurationToJson(this);
+
+  /// All the bucket names inside this configuration.
+  late final allBucketNames = List<String>.unmodifiable(<String>[
+    canonicalPackagesBucketName!,
+    dartdocStorageBucketName!,
+    imageBucketName!,
+    incomingPackagesBucketName!,
+    packageBucketName!,
+    popularityDumpBucketName!,
+    publicPackagesBucketName!,
+    searchSnapshotBucketName!,
+    taskResultBucketName!,
+  ]);
 }
 
 /// Data structure to describe an admin user.

@@ -138,22 +138,42 @@ Future<void> importProfile({
     }
   }
 
-  // create likes
+  final createLikeCounts = <String, int>{};
+  // create users
   for (final u in profile.users) {
     await withHttpPubApiClient(
       bearerToken: _fakeToken(u.email),
       pubHostedUrl: pubHostedUrl,
       fn: (client) async {
-        // creates user
+        // creates user (regardless of likes being specified)
         await client.listPackageLikes();
 
         if (u.likes.isNotEmpty) {
           for (final p in u.likes) {
             await client.likePackage(p);
+            createLikeCounts[p] = (createLikeCounts[p] ?? 0) + 1;
           }
         }
       },
     );
+  }
+  // fill in missing likes
+  for (final p in profile.packages) {
+    if (p.likeCount != null) {
+      final likesMissing = p.likeCount! - (createLikeCounts[p.name] ?? 0);
+      if (likesMissing <= 0) continue;
+
+      for (var i = 0; i < likesMissing; i++) {
+        final userEmail = 'like-$i@pub.dev';
+        await withHttpPubApiClient(
+          bearerToken: _fakeToken(userEmail),
+          pubHostedUrl: pubHostedUrl,
+          fn: (client) async {
+            await client.likePackage(p.name);
+          },
+        );
+      }
+    }
   }
 
   await source.close();

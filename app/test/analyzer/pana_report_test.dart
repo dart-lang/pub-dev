@@ -25,11 +25,11 @@ void main() {
       expect(report.derivedTags, [
         'sdk:dart',
         'sdk:flutter',
-        'runtime:native-aot',
         'runtime:native-jit',
         'runtime:web',
         'platform:android',
         'platform:ios',
+        'platform:linux',
         'platform:macos',
         'platform:web',
         'platform:windows',
@@ -37,7 +37,7 @@ void main() {
         'license:fsf-libre',
         'license:osi-approved',
       ]);
-      expect(report.report!.grantedPoints, 33);
+      expect(report.report!.grantedPoints, 44);
       expect(report.report!.maxPoints, 60);
       expect(report.report!.sections.first.summary,
           contains('8/30 points: Package layout'));

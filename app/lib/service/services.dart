@@ -167,15 +167,8 @@ Future<R> withFakeServices<R>({
       );
     }
     registerActiveConfiguration(configuration!);
-    final bucketsToCreate = [
-      configuration!.canonicalPackagesBucketName!,
-      configuration!.publicPackagesBucketName!,
-      configuration!.incomingPackagesBucketName!,
-      configuration!.taskResultBucketName!,
-      configuration!.packageBucketName!,
-    ];
-    for (final bucketName in bucketsToCreate) {
-      await getOrCreateBucket(storage, bucketName);
+    for (final bucketName in configuration!.allBucketNames) {
+      await storage.createBucket(bucketName);
     }
 
     // register fake services that would have external dependencies
@@ -207,6 +200,11 @@ Future<R> withFakeServices<R>({
 /// tools and integration tests.
 Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
   return fork(() async {
+    // verify the existence of all storage buckets
+    for (final bucketName in activeConfiguration.allBucketNames) {
+      await storageService.verifyBucketExistenceAndAccess(bucketName);
+    }
+
     registerAccountBackend(AccountBackend(dbService));
     registerAdminBackend(AdminBackend(dbService));
     registerAnnouncementBackend(AnnouncementBackend());
@@ -215,8 +213,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerDartdocBackend(
       DartdocBackend(
         dbService,
-        await getOrCreateBucket(
-            storageService, activeConfiguration.dartdocStorageBucketName!),
+        storageService.bucket(activeConfiguration.dartdocStorageBucketName!),
       ),
     );
     registerDartSdkMemIndex(DartSdkMemIndex());
@@ -226,8 +223,8 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerPackageIndex(InMemoryPackageIndex());
     registerIndexUpdater(IndexUpdater(dbService, packageIndex));
     registerPopularityStorage(
-      PopularityStorage(await getOrCreateBucket(
-          storageService, activeConfiguration.popularityDumpBucketName!)),
+      PopularityStorage(
+          storageService.bucket(activeConfiguration.popularityDumpBucketName!)),
     );
     registerPublisherBackend(PublisherBackend(dbService));
     registerScoreCardBackend(ScoreCardBackend(dbService));
@@ -235,10 +232,10 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerSearchClient(SearchClient());
     registerSearchAdapter(SearchAdapter());
     registerSecretBackend(SecretBackend(dbService));
-    registerSnapshotStorage(SnapshotStorage(await getOrCreateBucket(
-        storageService, activeConfiguration.searchSnapshotBucketName!)));
-    registerImageStorage(ImageStorage(await getOrCreateBucket(
-        storageService, activeConfiguration.imageBucketName!)));
+    registerSnapshotStorage(SnapshotStorage(
+        storageService.bucket(activeConfiguration.searchSnapshotBucketName!)));
+    registerImageStorage(ImageStorage(
+        storageService.bucket(activeConfiguration.imageBucketName!)));
 
     registerYoutubeBackend(YoutubeBackend());
 

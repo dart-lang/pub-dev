@@ -67,35 +67,30 @@ void main() {
           final i1 = await listingPageInfo(page);
           expect(i1.totalCount, 100);
           expect(i1.packageNames, [
-            'pkg_11',
-            'flutter_pkg_51',
             'pkg_13',
-            'pkg_62',
-            'pkg_34',
-            'pkg_28',
             'pkg_94',
-            'flutter_pkg_66',
-            'flutter_pkg_0',
-            'pkg_73',
+            'pkg_70',
+            'flutter_pkg_48',
+            'pkg_23',
+            'flutter_pkg_39',
+            'pkg_76',
+            'pkg_1',
+            'flutter_pkg_45',
+            'flutter_pkg_57',
           ]);
 
           // click Android
           await page.click('#search-form-checkbox-platform-android');
           await page.waitForNavigation(wait: Until.networkIdle);
           final i2 = await listingPageInfo(page);
-          expect(i2.totalCount, 78);
-          expect(i2.packageNames, [
-            'pkg_11',
-            'flutter_pkg_51',
-            'pkg_13',
-            'pkg_62',
-            'pkg_28',
-            'flutter_pkg_66',
-            'flutter_pkg_0',
-            'pkg_37',
-            'flutter_pkg_84',
-            'pkg_91',
-          ]);
+          expect(i2.totalCount, lessThan(80));
+          expect(i2.totalCount, greaterThan(70));
+          final both1And2 = i1.packageNames
+              .toSet()
+              .intersection(i2.packageNames.toSet())
+              .toList();
+          expect(both1And2, hasLength(lessThan(10)));
+          expect(both1And2, hasLength(greaterThan(5)));
           expect(i2.openSections, isEmpty);
           expect(page.url, '$origin/packages?q=platform%3Aandroid');
 
@@ -110,19 +105,14 @@ void main() {
           await flutterCB3.click();
           await page.waitForNavigation(wait: Until.networkIdle);
           final i3 = await listingPageInfo(page);
-          expect(i3.totalCount, 68);
-          expect(i3.packageNames, [
-            'flutter_pkg_51',
-            'pkg_13',
-            'pkg_62',
-            'flutter_pkg_0',
-            'pkg_37',
-            'flutter_pkg_84',
-            'pkg_91',
-            'pkg_53',
-            'flutter_pkg_36',
-            'pkg_2',
-          ]);
+          expect(i3.totalCount, lessThan(70));
+          expect(i3.totalCount, greaterThan(60));
+          final both2And3 = i2.packageNames
+              .toSet()
+              .intersection(i3.packageNames.toSet())
+              .toList();
+          expect(both2And3, hasLength(lessThan(10)));
+          expect(both2And3, hasLength(greaterThan(5)));
           expect(
               page.url, '$origin/packages?q=platform%3Aandroid+sdk%3Aflutter');
           expect(i3.openSections, ['sdks']);
@@ -146,18 +136,18 @@ void main() {
           await page.waitForNavigation(wait: Until.networkIdle);
           final i5 = await listingPageInfo(page);
           expect(i5.totalCount, i2.totalCount - i3.totalCount);
-          expect(i5.packageNames, [
-            'pkg_11',
-            'pkg_28',
-            'flutter_pkg_66',
-            'pkg_77',
-            'pkg_43',
-            'pkg_23',
-            'flutter_pkg_69',
-            'pkg_19',
-            'pkg_68',
-            'pkg_49',
-          ]);
+          final both2And5 = i2.packageNames
+              .toSet()
+              .intersection(i5.packageNames.toSet())
+              .toList();
+          expect(both2And5, hasLength(lessThan(10)));
+          expect(both2And5, hasLength(greaterThan(0)));
+          final both3And5 = i3.packageNames
+              .toSet()
+              .intersection(i5.packageNames.toSet())
+              .toList();
+          expect(both3And5, isEmpty);
+
           expect(i5.openSections, ['sdks']);
           expect(page.url,
               '$origin/packages?q=platform%3Aandroid+-sdk%3Aflutter+pkg');
@@ -246,6 +236,25 @@ void main() {
               ));
           expect(await page.propertyValue('input[name="q"]', 'value'),
               'platform:android platform:web platform:ios platform:windows pkg');
+        },
+      );
+
+      // licenses
+      await headlessEnv.withPage(
+        fn: (page) async {
+          await page.gotoOrigin('/packages');
+
+          // OSI approved
+          await page.click('.search-form-section[data-section-tag="license"]');
+          await Future.delayed(Duration(seconds: 1));
+          await page.click('#search-form-checkbox-license-osi-approved');
+          await page.waitForNavigation(wait: Until.networkIdle);
+
+          expect(await page.propertyValue('input[name="q"]', 'value'),
+              'license:osi-approved');
+          final pageInfo = await listingPageInfo(page);
+          expect(pageInfo.totalCount, greaterThan(0));
+          expect(pageInfo.openSections, ['license']);
         },
       );
 

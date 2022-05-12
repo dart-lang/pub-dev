@@ -79,10 +79,6 @@ d.Node pageLayoutNode({
               href:
                   'https://fonts.googleapis.com/css?family=Google+Sans:300,400,500|Google+Sans+Display:400|Roboto:300,400,500,700|Roboto+Mono:300,400,700&display=swap',
             ),
-            d.meta(
-              content: staticUrls
-                  .getAssetUrl('/static/img/pub-dev-icon-cover-image.png'),
-            ),
             d.link(rel: 'shortcut icon', href: faviconUrl),
 
             d.link(

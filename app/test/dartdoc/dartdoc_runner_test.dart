@@ -29,8 +29,8 @@ void main() {
         await processJobsWithDartdocRunner();
         final card = await scoreCardBackend.getScoreCardData('retry', '3.1.0');
 
-        expect(card!.grantedPubPoints, 22);
-        expect(card.maxPubPoints, 70);
+        expect(card!.grantedPubPoints, greaterThan(25));
+        expect(card.maxPubPoints, greaterThan(60));
         expect(card.dartdocReport!.documentationSection!.grantedPoints, 10);
         expect(card.dartdocReport!.documentationSection!.maxPoints, 10);
 

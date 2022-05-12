@@ -37,7 +37,7 @@ void main() {
         await processJobsWithFakeDartdocRunner();
         final card = await scoreCardBackend.getScoreCardData('retry', '3.1.0');
 
-        expect(card!.grantedPubPoints, greaterThan(125));
+        expect(card!.grantedPubPoints, greaterThan(120));
         expect(card.maxPubPoints, card.grantedPubPoints);
         expect(
             card.derivedTags?.toSet(),
@@ -54,6 +54,7 @@ void main() {
               'runtime:native-jit',
               'runtime:web',
               'is:null-safe',
+              'license:osi-approved',
             ]));
       },
       timeout: Timeout.factor(8),

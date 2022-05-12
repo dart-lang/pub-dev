@@ -33,12 +33,12 @@ WORKDIR /project/app
 RUN dart /project/tool/pub_get_offline.dart /project/app
 
 # Setup analysis Dart SDKs
-RUN /project/tool/setup-dart.sh /tool/stable 2.16.2
-RUN /project/tool/setup-dart.sh /tool/preview 2.17.0-266.7.beta
+RUN /project/tool/setup-dart.sh /tool/stable 2.17.0
+RUN /project/tool/setup-dart.sh /tool/preview 2.17.0
 
 # Setup analysis Flutter SDKs
 RUN /project/tool/setup-flutter.sh /tool/stable 2.10.5
-RUN /project/tool/setup-flutter.sh /tool/preview 2.13.0-0.3.pre
+RUN /project/tool/setup-flutter.sh /tool/preview 2.13.0-0.4.pre
 
 # Clear out any arguments the base images might have set
 CMD []
