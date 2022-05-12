@@ -63,6 +63,7 @@ void main() {
       await verifyPub(
         pubHostedUrl: 'http://localhost:${fakePubServerProcess.port}',
         credentialsFileContent: fakeCredentialsFileContent(),
+        mainAccessToken: 'user-at-example-dot-com',
         invitedEmail: 'dev@example.org',
         inviteCompleterFn: inviteCompleterFn,
         expectLiveSite: false,

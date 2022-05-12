@@ -21,6 +21,7 @@ typedef InviteCompleterFn = Future<void> Function();
 class PublishingScript {
   final String pubHostedUrl;
   final String credentialsFileContent;
+  final String mainAccessToken;
   final String invitedEmail;
   final InviteCompleterFn inviteCompleterFn;
   final bool expectLiveSite;
@@ -37,6 +38,7 @@ class PublishingScript {
   PublishingScript(
     this.pubHostedUrl,
     this.credentialsFileContent,
+    this.mainAccessToken,
     this.invitedEmail,
     this.inviteCompleterFn,
     this.expectLiveSite,
@@ -83,10 +85,18 @@ class PublishingScript {
       await dart.run(_dummyExampleDir.path, 'bin/main.dart');
 
       // add/remove uploader
-      await dart.addUploader(_dummyDir.path, invitedEmail);
+      await _pubHttpClient.inviteUploader(
+        packageName: '_dummy_pkg',
+        accessToken: mainAccessToken,
+        invitedEmail: invitedEmail,
+      );
       await inviteCompleterFn();
       await _verifyDummyPkg();
-      await dart.removeUploader(_dummyDir.path, invitedEmail);
+      await _pubHttpClient.removeUploader(
+        packageName: '_dummy_pkg',
+        accessToken: mainAccessToken,
+        uploaderEmail: invitedEmail,
+      );
       await _verifyDummyPkg();
 
       if (expectLiveSite) {
