@@ -53,7 +53,7 @@ bool shouldGCVersion(String version) =>
     version.compareTo(gcBeforeRuntimeVersion) < 0;
 
 // keep in-sync with SDK version in .mono_repo.yml and Dockerfile
-final String runtimeSdkVersion = '2.16.1';
+final String runtimeSdkVersion = '2.17.0';
 final String toolStableDartSdkVersion = '2.17.0';
 final String toolStableFlutterSdkVersion = '3.0.0';
 final String toolPreviewDartSdkVersion = '2.17.0';
