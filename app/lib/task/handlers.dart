@@ -1,3 +1,5 @@
+import 'dart:io' show gzip;
+
 import 'package:mime/mime.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/handlers.dart';
@@ -19,7 +21,8 @@ Future<shelf.Response> handleDartDoc(
   }
 
   final mime = lookupMimeType(path, headerBytes: bytes);
-  return shelf.Response.ok(bytes, headers: {
+  // TODO: Avoid gzip decoding when client accepts gzip.
+  return shelf.Response.ok(gzip.decode(bytes), headers: {
     // TODO: Add cache headers
     'Content-Type': mime ?? 'application/octect',
   });

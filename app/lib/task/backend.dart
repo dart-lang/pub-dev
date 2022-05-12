@@ -69,7 +69,9 @@ TaskBackend get taskBackend => ss.lookup(#_taskBackend) as TaskBackend;
 
 // + Limit number of packages it analyzes to just: retry, pem, ...
 // + Limit the number of package verisons we analyze
-// - Handle case where worker can't process all versions it's given!!!
+// + Handle case where worker can't process all versions it's given!!!
+//   + worker side!
+//   + in the backend
 // - Maybe, write more tests:
 //    - publish a package
 //    - trigger a dependency
@@ -822,6 +824,16 @@ class TaskBackend {
       });
 
   /// Return [Summary] from pana or `null` if not available.
+  ///
+  /// The summary can be unavailable for a number of reasons:
+  ///  * package is not tracked for analysis,
+  ///  * package/version is not tracked for analysis,
+  ///  * analysis is pending/running/failed
+  ///  * time allocated for analysis was exhausted.
+  ///
+  /// Even, if the [Summary] from pana is missing, it's possible that the
+  /// [panaLog] is present. This happens if the analysis failed gracefully or
+  /// allocated time was exhausted before the worker completed all versions.
   Future<Summary?> panaSummary(String package, String version) async {
     version = canonicalizeVersion(version)!;
 
@@ -832,6 +844,15 @@ class TaskBackend {
   /// Get log from pana run of [package] and [version].
   ///
   /// Returns `null`, if not available.
+  ///
+  /// If log is unavailable it's usually because:
+  ///  * package is not tracked for analysis,
+  ///  * package/version is not tracked for analysis,
+  ///  * analysis is pending/running, or,
+  ///  * worker/analysis failed non-gracefully.
+  ///
+  /// Generally, the worker will upload a log with error messages if analysis
+  /// fails or timeout are reached.
   Future<String?> panaLog(String package, String version) async {
     version = canonicalizeVersion(version)!;
 

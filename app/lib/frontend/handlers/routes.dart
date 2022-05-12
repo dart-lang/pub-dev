@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
+import 'package:pub_dev/task/backend.dart';
+import 'package:pub_dev/task/handlers.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
@@ -312,4 +316,33 @@ class PubSiteService {
   @Route.get('/consent')
   Future<Response> consentPage(Request request) =>
       consentPageHandler(request, request.requestedUri.queryParameters['id']);
+
+  // ****
+  // **** Experimental task end-points
+  // ****
+
+  @Route.get('/task-documentation/<package>/<version>/<path|[^]*>')
+  Future<Response> taskdocumentation(
+          Request request, String package, String version, String path) =>
+      handleDartDoc(request, package, version, path);
+
+  @Route.get('/task-log/<package>/<version>/')
+  Future<Response> taskLog(
+      Request request, String package, String version) async {
+    final log = await taskBackend.panaLog(package, version);
+    return Response.ok(
+      log ?? 'no log',
+      headers: {'content-type': 'plain/text'},
+    );
+  }
+
+  @Route.get('/task-summary/<package>/<version>/')
+  Future<Response> taskSummary(
+      Request request, String package, String version) async {
+    final summary = await taskBackend.panaSummary(package, version);
+    return Response.ok(
+      jsonEncode(summary?.toJson() ?? 'no summary'),
+      headers: {'content-type': 'plain/text'},
+    );
+  }
 }
