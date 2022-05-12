@@ -41,7 +41,8 @@ class FakePubServerProcess {
     final vmPort = port + 5;
     final coverageConfig = await _CoverageConfig.detect(vmPort);
 
-    final pr1 = await Process.run('pub', ['get'], workingDirectory: pkgDir);
+    final pr1 =
+        await Process.run('dart', ['pub', 'get'], workingDirectory: pkgDir);
     if (pr1.exitCode != 0) {
       throw Exception('dart pub get failed in app');
     }
@@ -163,8 +164,9 @@ class _CoverageConfig {
     await File(outputPath).parent.create(recursive: true);
     print('[collect-$outputPath] starting...');
     _process = await Process.start(
-      'pub',
+      'dart',
       [
+        'pub',
         'run',
         'coverage:collect_coverage',
         '--uri=http://localhost:$vmPort',
