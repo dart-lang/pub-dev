@@ -6,6 +6,7 @@ import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/shared/exceptions.dart';
+import 'package:pub_dev/shared/utils.dart';
 import 'package:test/test.dart';
 
 import '../shared/test_services.dart';
@@ -13,8 +14,14 @@ import '../shared/test_services.dart';
 void main() {
   group('AccountBackend', () {
     testWithProfile('No user', fn: () async {
-      final email = await accountBackend.getEmailOfUserId('no-user-id');
-      expect(email, isNull);
+      expect(await accountBackend.getEmailOfUserId(createUuid()), isNull);
+    });
+
+    testWithProfile('Invalid userId', fn: () async {
+      await expectLater(
+        accountBackend.getEmailOfUserId('bad-user-id'),
+        throwsA(isA<InvalidInputException>()),
+      );
     });
 
     testWithProfile('Successful lookup', fn: () async {
