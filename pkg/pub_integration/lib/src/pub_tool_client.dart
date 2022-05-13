@@ -176,20 +176,4 @@ class DartToolClient {
       expectedOutputContains: expectedOutputContains,
     );
   }
-
-  Future<void> addUploader(String pkgDir, String email) async {
-    await runDart(
-      ['pub', 'uploader', 'add', email],
-      workingDirectory: pkgDir,
-      expectedError: "We've sent an invitation email to $email.\n"
-          "They'll be added as an uploader after they accept the invitation.",
-    );
-  }
-
-  Future<void> removeUploader(String pkgDir, String email) async {
-    await runDart(
-      ['pub', 'uploader', 'remove', email],
-      workingDirectory: pkgDir,
-    );
-  }
 }

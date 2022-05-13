@@ -22,4 +22,3 @@ dev_dependencies:
   test: ^1.16.5
   build_verify: ^3.0.0
   build_runner: ^2.0.0
-  pedantic: ^1.11.0

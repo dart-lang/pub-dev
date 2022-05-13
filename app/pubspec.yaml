@@ -1,7 +1,7 @@
 name: pub_dev
 description: The pub.dartlang.org website.
 environment:
-  sdk: '>=2.14.0 <3.0.0'
+  sdk: '>=2.17.0 <3.0.0'
 dependencies:
   _popularity:
     path: ../pkg/_popularity
@@ -25,7 +25,7 @@ dependencies:
     path: ../pkg/indexed_blob
   intl: '^0.17.0'
   json_annotation: '^4.3.0'
-  lints: ^1.0.0
+  lints: ^2.0.0
   logging: '>=0.9.3 <2.0.0'
   markdown: ^5.0.0
   meta: ^1.1.2

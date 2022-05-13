@@ -1,5 +1,5 @@
 # Keep version in-sync with .mono_repo.yml and app/lib/shared/versions.dart
-FROM dart:2.16.1
+FROM dart:2.17.0
 
 # After install we remove the apt-index again to keep the docker image diff small.
 RUN apt-get update && \
@@ -37,8 +37,8 @@ RUN /project/tool/setup-dart.sh /tool/stable 2.17.0
 RUN /project/tool/setup-dart.sh /tool/preview 2.17.0
 
 # Setup analysis Flutter SDKs
-RUN /project/tool/setup-flutter.sh /tool/stable 2.10.5
-RUN /project/tool/setup-flutter.sh /tool/preview 2.13.0-0.4.pre
+RUN /project/tool/setup-flutter.sh /tool/stable 3.0.0
+RUN /project/tool/setup-flutter.sh /tool/preview 3.0.0
 
 # Clear out any arguments the base images might have set
 CMD []

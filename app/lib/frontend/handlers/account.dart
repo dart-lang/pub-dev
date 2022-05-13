@@ -96,7 +96,7 @@ Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
   // Invalidate the server-side sessionId, in case the user signed out because
   // the local cookie store was compromised.
   if (hasUserSession) {
-    await accountBackend.invalidateSession(sessionData!.sessionId);
+    await accountBackend.invalidateSession(sessionData.sessionId);
   }
   return jsonResponse(
     ClientSessionStatus(
