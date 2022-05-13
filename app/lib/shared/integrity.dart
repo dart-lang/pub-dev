@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 
+import '../account/agent.dart';
 import '../account/models.dart';
 import '../audit/models.dart';
 import '../package/backend.dart';
@@ -85,6 +86,10 @@ class IntegrityChecker {
     _logger.info('Scanning Users...');
     final gmailComEmails = <String>{};
     await for (User user in _db.query<User>().run()) {
+      if (!isValidUserId(user.userId)) {
+        yield 'User has invalid userId: "${user.userId}".';
+      }
+
       _userToOauth[user.userId] = user.oauthUserId;
       final email = user.email;
       if (email == null || email.isEmpty || !looksLikeEmail(email)) {
@@ -120,8 +125,11 @@ class IntegrityChecker {
     _logger.info('Scanning OAuthUserIDs...');
     await for (OAuthUserID mapping in _db.query<OAuthUserID>().run()) {
       if (mapping.userIdKey == null) {
-        yield 'OAuthUserID "${mapping.oauthUserId}" has invalid `userId`.';
+        yield 'OAuthUserID "${mapping.oauthUserId}" has no `userId`.';
       } else {
+        if (!isValidUserId(mapping.userId)) {
+          yield 'OAuthUserID "${mapping.oauthUserId}" has invalid `userId`: "${mapping.userId}".';
+        }
         _oauthToUser[mapping.oauthUserId] = mapping.userId;
       }
     }
@@ -456,7 +464,7 @@ class IntegrityChecker {
     if (pv.uploader == null) {
       yield 'PackageVersion "${pv.qualifiedVersionKey}" has no uploader.';
     } else {
-      yield* _checkUserValid(
+      yield* _checkAgentValid(
         pv.uploader!,
         entityType: 'PackageVersion',
         entityId: pv.qualifiedVersionKey.toString(),
@@ -603,6 +611,30 @@ class IntegrityChecker {
     }
   }
 
+  Stream<String> _checkAgentValid(
+    String agent, {
+    required String entityType,
+    String? entityId,
+
+    /// Set true for entries where we retain the record indefintely,
+    /// even if the [User] has been deleted or invalidated.
+    bool isRetainedRecord = false,
+  }) async* {
+    final label =
+        entityId == null ? '$entityType entity' : '$entityType "$entityId"';
+    if (!isValidUserIdOrRobotAgent(agent)) {
+      yield '$label references an invalid agent: "$agent".';
+    }
+    if (isValidUserId(agent)) {
+      yield* _checkUserValid(
+        agent,
+        entityType: entityType,
+        entityId: entityId,
+        isRetainedRecord: isRetainedRecord,
+      );
+    }
+  }
+
   Stream<String> _checkUserValid(
     String userId, {
     required String entityType,
@@ -614,6 +646,9 @@ class IntegrityChecker {
   }) async* {
     final label =
         entityId == null ? '$entityType entity' : '$entityType "$entityId"';
+    if (!isValidUserId(userId)) {
+      yield '$label references an invalid userId: "$userId".';
+    }
     if (!(await _userExists(userId))) {
       yield '$label references a nonexisting User: "$userId".';
     }

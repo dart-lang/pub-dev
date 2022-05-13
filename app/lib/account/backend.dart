@@ -10,6 +10,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:neat_cache/neat_cache.dart';
+import 'package:pub_dev/account/agent.dart';
 
 import '../package/models.dart';
 import '../shared/datastore.dart';
@@ -118,13 +119,17 @@ class AccountBackend {
 
   /// Returns the `User` entry for the [userId] or null if it does not exists.
   Future<User?> lookupUserById(String userId) async {
-    return (await lookupUsersById(<String>[userId])).single;
+    checkUserIdParam(userId);
+    return await _db.lookupOrNull<User>(_db.emptyKey.append(User, id: userId));
   }
 
   /// Returns the list of `User` entries for the corresponding id in [userIds].
   ///
   /// Returns null in the positions where a [User] entry was missing.
   Future<List<User?>> lookupUsersById(List<String> userIds) async {
+    for (final userId in userIds) {
+      checkUserIdParam(userId);
+    }
     final keys =
         userIds.map((id) => _db.emptyKey.append(User, id: id)).toList();
     return await _db.lookup<User>(keys);
@@ -134,6 +139,7 @@ class AccountBackend {
   ///
   /// Uses in-memory cache to store entries locally for up to 10 minutes.
   Future<String?> getEmailOfUserId(String userId) async {
+    checkUserIdParam(userId);
     final entry = _emailCache[userId];
     var email = await entry.get();
     if (email != null) {
