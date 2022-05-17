@@ -293,6 +293,15 @@ class PubApiClient {
     ));
   }
 
+  Future<_i3.CredentiallessPublishing> setCredentiallessPublishing(
+      String package, _i3.CredentiallessPublishing payload) async {
+    return _i3.CredentiallessPublishing.fromJson(await _client.requestJson(
+      verb: 'put',
+      path: '/api/packages/$package/credentialless-publishing',
+      body: payload.toJson(),
+    ));
+  }
+
   Future<_i3.VersionOptions> getVersionOptions(
       String package, String version) async {
     return _i3.VersionOptions.fromJson(await _client.requestJson(

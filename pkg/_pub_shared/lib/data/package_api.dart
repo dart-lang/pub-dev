@@ -48,6 +48,25 @@ class PkgOptions {
   Map<String, dynamic> toJson() => _$PkgOptionsToJson(this);
 }
 
+/// The configuration for a package's credential-less publishing.
+@JsonSerializable()
+class CredentiallessPublishing {
+  String? repository;
+
+  CredentiallessPublishing({
+    required this.repository,
+  });
+
+  CredentiallessPublishing.empty() : repository = null;
+
+  factory CredentiallessPublishing.fromJson(Map<String, dynamic> json) =>
+      _$CredentiallessPublishingFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CredentiallessPublishingToJson(this);
+
+  late final isEnabled = repository != null && repository!.isNotEmpty;
+}
+
 @JsonSerializable()
 class VersionOptions {
   final bool? isRetracted;

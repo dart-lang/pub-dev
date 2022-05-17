@@ -14,6 +14,8 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+// ignore: implementation_imports
+import 'package:pana/src/repository/repository_url.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_dev/job/backend.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
@@ -443,6 +445,51 @@ class PackageBackend {
       }
     });
     await purgePackageCache(package);
+  }
+
+  /// Verifies an update to the credential-less publishing settings and
+  /// updates the Datastore entity if everything is valid.
+  Future<api.CredentiallessPublishing> setCredentiallessPublishing(
+      String package, api.CredentiallessPublishing body) async {
+    final user = await requireAuthenticatedUser();
+    return await withRetryTransaction(db, (tx) async {
+      final p = await tx
+          .lookupOrNull<Package>(db.emptyKey.append(Package, id: package));
+      if (p == null) {
+        throw NotFoundException.resource(package);
+      }
+      // Check that the user is admin for this package.
+      await checkPackageAdmin(p, user.userId);
+
+      // verify repository URL
+      final repository = body.repository?.trim() ?? '';
+      if (repository.isEmpty) {
+        body.repository = null;
+      } else {
+        final parsed = RepositoryUrl.tryParse(repository);
+        if (parsed == null) {
+          InvalidInputException.check(
+              parsed != null, 'Unable to parse repository URL.');
+        }
+        InvalidInputException.check(
+            parsed!.provider == RepositoryProvider.github,
+            'Only GitHub is supported at this time.');
+        
+        // store repository URLs without branch or other object segments
+        body.repository = parsed.baseUrl;
+      }
+
+      // finalize changes
+      p.credentiallessPublishing = body;
+      p.updated = clock.now().toUtc();
+      tx.insert(p);
+      tx.insert(AuditLogRecord.packageOptionsUpdated(
+        package: p.name!,
+        user: user,
+        options: ['credentialless-publishing'],
+      ));
+      return p.credentiallessPublishing;
+    });
   }
 
   /// Updates the retracted status inside a transaction.

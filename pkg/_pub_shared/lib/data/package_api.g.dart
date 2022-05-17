@@ -32,6 +32,18 @@ Map<String, dynamic> _$PkgOptionsToJson(PkgOptions instance) =>
       'isUnlisted': instance.isUnlisted,
     };
 
+CredentiallessPublishing _$CredentiallessPublishingFromJson(
+        Map<String, dynamic> json) =>
+    CredentiallessPublishing(
+      repository: json['repository'] as String?,
+    );
+
+Map<String, dynamic> _$CredentiallessPublishingToJson(
+        CredentiallessPublishing instance) =>
+    <String, dynamic>{
+      'repository': instance.repository,
+    };
+
 VersionOptions _$VersionOptionsFromJson(Map<String, dynamic> json) =>
     VersionOptions(
       isRetracted: json['isRetracted'] as bool?,
