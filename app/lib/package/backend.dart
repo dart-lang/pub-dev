@@ -474,7 +474,7 @@ class PackageBackend {
         InvalidInputException.check(
             parsed!.provider == RepositoryProvider.github,
             'Only GitHub is supported at this time.');
-        
+
         // store repository URLs without branch or other object segments
         body.repository = parsed.baseUrl;
       }
