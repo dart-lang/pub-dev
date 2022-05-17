@@ -50,6 +50,8 @@ final maxAssetContentLength = 128 * 1024;
 final _defaultMaxVersionsPerPackage = 1000;
 
 final Logger _logger = Logger('pub.cloud_repository');
+final _validGithubUserOrRepoRegExp =
+    RegExp(r'^[a-z0-9\-\._]+$', caseSensitive: false);
 
 /// Sets the package backend service.
 void registerPackageBackend(PackageBackend backend) =>
@@ -443,6 +445,54 @@ class PackageBackend {
       }
     });
     await purgePackageCache(package);
+  }
+
+  /// Verifies an update to the credential-less publishing settings and
+  /// updates the Datastore entity if everything is valid.
+  Future<api.CredentiallessPublishing> setCredentiallessPublishing(
+      String package, api.CredentiallessPublishing body) async {
+    final user = await requireAuthenticatedUser();
+    return await withRetryTransaction(db, (tx) async {
+      final p = await tx
+          .lookupOrNull<Package>(db.emptyKey.append(Package, id: package));
+      if (p == null) {
+        throw NotFoundException.resource(package);
+      }
+      // Check that the user is admin for this package.
+      await checkPackageAdmin(p, user.userId);
+
+      final github = body.github;
+      if (github != null) {
+        final isEnabled = github.isEnabled ?? false;
+        // normalize input values
+        final projectPath = github.projectPath?.trim() ?? '';
+        github.projectPath = projectPath;
+
+        InvalidInputException.check(!isEnabled || projectPath.isNotEmpty,
+            'The `projectPath` field must not be empty when enabled.');
+
+        if (projectPath.isNotEmpty) {
+          final parts = projectPath.split('/');
+          InvalidInputException.check(parts.length == 2,
+              'The `projectPath` field must follow the `<user>/<repository>` pattern.');
+          InvalidInputException.check(
+              _validGithubUserOrRepoRegExp.hasMatch(parts[0]) &&
+                  _validGithubUserOrRepoRegExp.hasMatch(parts[1]),
+              'The `projectPath` field has invalid characters.');
+        }
+      }
+
+      // finalize changes
+      p.credentiallessPublishing = body;
+      p.updated = clock.now().toUtc();
+      tx.insert(p);
+      tx.insert(AuditLogRecord.packageOptionsUpdated(
+        package: p.name!,
+        user: user,
+        options: ['credentialless-publishing'],
+      ));
+      return p.credentiallessPublishing;
+    });
   }
 
   /// Updates the retracted status inside a transaction.

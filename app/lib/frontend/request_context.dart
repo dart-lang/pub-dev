@@ -33,4 +33,7 @@ class RequestContext {
     this.blockRobots = true,
     this.uiCacheEnabled = false,
   });
+
+  /// Whether to show the admin UI for credential-less publishing admin UI.
+  bool get showAdminUIForCredentiallessPublishing => isExperimental;
 }

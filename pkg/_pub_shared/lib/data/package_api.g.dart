@@ -32,6 +32,48 @@ Map<String, dynamic> _$PkgOptionsToJson(PkgOptions instance) =>
       'isUnlisted': instance.isUnlisted,
     };
 
+CredentiallessPublishing _$CredentiallessPublishingFromJson(
+        Map<String, dynamic> json) =>
+    CredentiallessPublishing(
+      github: json['github'] == null
+          ? null
+          : GithubPublishing.fromJson(json['github'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$CredentiallessPublishingToJson(
+    CredentiallessPublishing instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('github', instance.github?.toJson());
+  return val;
+}
+
+GithubPublishing _$GithubPublishingFromJson(Map<String, dynamic> json) =>
+    GithubPublishing(
+      isEnabled: json['isEnabled'] as bool?,
+      projectPath: json['projectPath'] as String?,
+    );
+
+Map<String, dynamic> _$GithubPublishingToJson(GithubPublishing instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('isEnabled', instance.isEnabled);
+  writeNotNull('projectPath', instance.projectPath);
+  return val;
+}
+
 VersionOptions _$VersionOptionsFromJson(Map<String, dynamic> json) =>
     VersionOptions(
       isRetracted: json['isRetracted'] as bool?,

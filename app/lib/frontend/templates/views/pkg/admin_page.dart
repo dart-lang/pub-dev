@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/frontend/request_context.dart';
+
 import '../../../../account/models.dart';
 import '../../../../package/models.dart';
 import '../../../../shared/urls.dart' as urls;
@@ -159,6 +161,35 @@ d.Node packageAdminPageNode({
         checked: package.isUnlisted,
       ),
     ],
+    if (requestContext.showAdminUIForCredentiallessPublishing)
+      d.fragment([
+        d.h2(text: 'Credential-less publishing'),
+        d.h3(text: 'GitHub'),
+        d.div(
+          classes: ['-pub-form-row'],
+          child: material.checkbox(
+            id: '-pkg-admin-credless-github-enabled',
+            label: 'Enable publishing from GitHub',
+            checked:
+                package.credentiallessPublishing.github?.isEnabled ?? false,
+          ),
+        ),
+        d.div(
+          classes: ['-pub-form-row'],
+          child: material.textField(
+            id: '-pkg-admin-credless-github-projectpath',
+            label: 'Project path',
+            value: package.credentiallessPublishing.github?.projectPath,
+          ),
+        ),
+        d.p(
+          child: material.button(
+            id: '-pkg-admin-credless-button',
+            label: 'Update',
+            raised: true,
+          ),
+        ),
+      ]),
     d.h2(text: 'Package Version Retraction'),
     d.div(children: [
       d.markdown(

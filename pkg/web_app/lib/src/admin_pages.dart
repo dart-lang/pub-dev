@@ -46,6 +46,7 @@ class _PkgAdminWidget {
 
   void init() {
     if (!pageData.isPackagePage) return;
+    _setupCredAuth();
     _setPublisherInput = document.getElementById('-admin-set-publisher-input');
     _setPublisherButton =
         document.getElementById('-admin-set-publisher-button');
@@ -86,6 +87,38 @@ class _PkgAdminWidget {
         in document.querySelectorAll('.-pub-remove-uploader-button')) {
       btn.onClick.listen((_) => _removeUploader(btn.dataset['email']!));
     }
+  }
+
+  void _setupCredAuth() {
+    final credlessGithubEnabledCheckbox = document
+        .getElementById('-pkg-admin-credless-github-enabled') as InputElement?;
+    final credlessGithubProjectpathInput =
+        document.getElementById('-pkg-admin-credless-github-projektpath')
+            as InputElement?;
+    final credlessUpdateButton =
+        document.getElementById('-pkg-admin-credless-button');
+    if (credlessUpdateButton == null ||
+        credlessGithubProjectpathInput == null) {
+      return;
+    }
+    credlessUpdateButton.onClick.listen((event) async {
+      await api_client.rpc<void>(
+        confirmQuestion: await markdown(
+            'Are you sure you want to update the credential-less publishing settings?'),
+        fn: () async {
+          await api_client.client.setCredentiallessPublishing(
+              pageData.pkgData!.package,
+              CredentiallessPublishing(
+                github: GithubPublishing(
+                  isEnabled: credlessGithubEnabledCheckbox!.checked,
+                  projectPath: credlessGithubProjectpathInput.value,
+                ),
+              ));
+        },
+        successMessage: text('Settings updated. The page will reload.'),
+        onSuccess: (_) => window.location.reload(),
+      );
+    });
   }
 
   Future<void> _inviteUploader() async {
