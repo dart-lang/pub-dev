@@ -438,6 +438,11 @@ class PackageVersion extends db.ExpandoModel<String> {
 
   // Metadata about the package version.
 
+  /// `User.userId` of the user or a known service agent, who uploaded the package.
+  ///
+  /// - For `User` accounts, this is a UUIDv4. If the user has been deleted,
+  ///   it is possible that this property may not match any `User` entity.
+  /// - For known service accounts this value starts with `service:` prefix.
   @db.StringProperty(required: true)
   String? uploader;
 
