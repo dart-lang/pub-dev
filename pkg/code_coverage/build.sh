@@ -61,7 +61,7 @@ rm ${APP_ALL_TEST_PATH}
 echo "Exporting to LCOV"
 cd "${APP_DIR}"
 dart pub run coverage:format_coverage \
-  --packages "${APP_DIR}/.packages" \
+  --packages "${APP_DIR}/.dart_tool/package_config.json" \
   -i "${OUTPUT_DIR}/raw/app_unit.json" \
   --base-directory "${PROJECT_DIR}" \
   --lcov \
