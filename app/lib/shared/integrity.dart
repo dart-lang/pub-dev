@@ -588,8 +588,25 @@ class IntegrityChecker {
   }
 
   Stream<String> _checkAuditLogRecord(AuditLogRecord r) async* {
-    if (r.users == null || r.users!.isEmpty) {
+    yield* _checkAgentValid(
+      r.agent!,
+      entityType: 'AuditLogRecord',
+      entityId: r.id,
+      isRetainedRecord: r.isNotExpired,
+    );
+
+    final users = r.users;
+    if (users == null || users.isEmpty) {
       yield 'AuditLogRecord "${r.id}" has no users.';
+    } else {
+      for (final u in users) {
+        yield* _checkUserValid(
+          u,
+          entityType: 'AuditLogRecord',
+          entityId: r.id,
+          isRetainedRecord: r.isNotExpired,
+        );
+      }
     }
 
     for (final p in r.packages ?? const <String>[]) {
