@@ -123,7 +123,7 @@ Future<void> _convertToLcov(
       'run',
       'coverage:format_coverage',
       '--packages',
-      '$packageDir/.packages',
+      '$packageDir/.dart_tool/package_config.json',
       '-i',
       inputFile,
       '--base-directory',
