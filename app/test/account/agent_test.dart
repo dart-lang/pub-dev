@@ -18,29 +18,29 @@ void main() {
     });
   });
 
-  group('robot agents', () {
+  group('service agents', () {
     test('valid agent', () {
-      expect(isValidRobotAgent('robot:github-actions'), isTrue);
+      expect(isKnownServiceAgent('service:github-actions'), isTrue);
     });
 
     test('invalid agent', () {
-      expect(isValidRobotAgent('robot:x'), isFalse);
-      expect(isValidRobotAgent('x'), isFalse);
-      expect(isValidRobotAgent(createUuid()), isFalse);
+      expect(isKnownServiceAgent('service:x'), isFalse);
+      expect(isKnownServiceAgent('x'), isFalse);
+      expect(isKnownServiceAgent(createUuid()), isFalse);
     });
   });
 
   group('agents', () {
     test('valid agents', () {
-      expect(isValidUserIdOrRobotAgent(createUuid()), isTrue);
-      expect(isValidUserIdOrRobotAgent('robot:github-actions'), isTrue);
+      expect(isValidUserIdOrServiceAgent(createUuid()), isTrue);
+      expect(isValidUserIdOrServiceAgent('service:github-actions'), isTrue);
     });
 
     test('invalid agents', () {
-      expect(
-          isValidUserIdOrRobotAgent(createUuid().replaceAll('-', '')), isFalse);
-      expect(isValidUserIdOrRobotAgent('robot:x'), isFalse);
-      expect(isValidUserIdOrRobotAgent('x'), isFalse);
+      expect(isValidUserIdOrServiceAgent(createUuid().replaceAll('-', '')),
+          isFalse);
+      expect(isValidUserIdOrServiceAgent('service:x'), isFalse);
+      expect(isValidUserIdOrServiceAgent('x'), isFalse);
     });
   });
 }

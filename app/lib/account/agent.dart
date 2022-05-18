@@ -7,7 +7,7 @@ import 'package:pub_dev/shared/exceptions.dart';
 final _uuidRegExp =
     RegExp(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$');
 final _knownAgents = {
-  'robot:github-actions',
+  'service:github-actions',
 };
 
 /// Whether the [userId] is valid-looking,
@@ -17,13 +17,13 @@ bool isValidUserId(String userId) {
 }
 
 /// Whether the [agent] is a valid-looking identifier.
-bool isValidRobotAgent(String agent) {
+bool isKnownServiceAgent(String agent) {
   return _knownAgents.contains(agent);
 }
 
 /// Whether the [agent] is a valid-looking actor.
-bool isValidUserIdOrRobotAgent(String agent) =>
-    isValidUserId(agent) || isValidRobotAgent(agent);
+bool isValidUserIdOrServiceAgent(String agent) =>
+    isValidUserId(agent) || isKnownServiceAgent(agent);
 
 void checkUserIdParam(String value) {
   InvalidInputException.check(isValidUserId(value), 'Invalid "userId".');
@@ -31,5 +31,5 @@ void checkUserIdParam(String value) {
 
 void checkAgentParam(String value) {
   InvalidInputException.check(
-      isValidUserIdOrRobotAgent(value), 'Invalid "agent".');
+      isValidUserIdOrServiceAgent(value), 'Invalid "agent".');
 }

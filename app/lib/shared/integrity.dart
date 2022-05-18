@@ -622,7 +622,7 @@ class IntegrityChecker {
   }) async* {
     final label =
         entityId == null ? '$entityType entity' : '$entityType "$entityId"';
-    if (!isValidUserIdOrRobotAgent(agent)) {
+    if (!isValidUserIdOrServiceAgent(agent)) {
       yield '$label references an invalid agent: "$agent".';
     }
     if (isValidUserId(agent)) {
