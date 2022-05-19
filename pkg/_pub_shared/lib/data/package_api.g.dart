@@ -32,6 +32,46 @@ Map<String, dynamic> _$PkgOptionsToJson(PkgOptions instance) =>
       'isUnlisted': instance.isUnlisted,
     };
 
+AutomatedPublishing _$AutomatedPublishingFromJson(Map<String, dynamic> json) =>
+    AutomatedPublishing(
+      github: json['github'] == null
+          ? null
+          : GithubPublishing.fromJson(json['github'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$AutomatedPublishingToJson(AutomatedPublishing instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('github', instance.github?.toJson());
+  return val;
+}
+
+GithubPublishing _$GithubPublishingFromJson(Map<String, dynamic> json) =>
+    GithubPublishing(
+      isEnabled: json['isEnabled'] as bool?,
+      repository: json['repository'] as String?,
+    );
+
+Map<String, dynamic> _$GithubPublishingToJson(GithubPublishing instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('isEnabled', instance.isEnabled);
+  writeNotNull('repository', instance.repository);
+  return val;
+}
+
 VersionOptions _$VersionOptionsFromJson(Map<String, dynamic> json) =>
     VersionOptions(
       isRetracted: json['isRetracted'] as bool?,

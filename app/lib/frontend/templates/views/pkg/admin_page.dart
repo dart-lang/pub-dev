@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/frontend/request_context.dart';
+
 import '../../../../account/models.dart';
 import '../../../../package/models.dart';
 import '../../../../shared/urls.dart' as urls;
@@ -159,6 +161,34 @@ d.Node packageAdminPageNode({
         checked: package.isUnlisted,
       ),
     ],
+    if (requestContext.showAdminUIForAutomatedPublishing)
+      d.fragment([
+        d.h2(text: 'Automated publishing'),
+        d.h3(text: 'Publishing from GitHub Actions'),
+        d.div(
+          classes: ['-pub-form-row'],
+          child: material.checkbox(
+            id: '-pkg-admin-automated-github-enabled',
+            label: 'Enable publishing from GitHub Actions',
+            checked: package.automatedPublishing.github?.isEnabled ?? false,
+          ),
+        ),
+        d.div(
+          classes: ['-pub-form-row'],
+          child: material.textField(
+            id: '-pkg-admin-automated-github-repository',
+            label: 'Repository',
+            value: package.automatedPublishing.github?.repository,
+          ),
+        ),
+        d.p(
+          child: material.button(
+            id: '-pkg-admin-automated-button',
+            label: 'Update',
+            raised: true,
+          ),
+        ),
+      ]),
     d.h2(text: 'Package Version Retraction'),
     d.div(children: [
       d.markdown(

@@ -524,6 +524,22 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
+  router.add('PUT', r'/api/packages/<package>/automated-publishing',
+      (Request request, String package) async {
+    try {
+      final _$result = await service.setAutomatedPublishing(
+        request,
+        package,
+        await $utilities.decodeJson<AutomatedPublishing>(
+            request, (o) => AutomatedPublishing.fromJson(o)),
+      );
+      return $utilities.jsonResponse(_$result.toJson());
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
   router.add('GET', r'/api/packages/<package>/versions/<version>/options',
       (Request request, String package, String version) async {
     try {

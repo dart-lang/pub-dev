@@ -6,6 +6,7 @@ library pub_dartlang_org.appengine_repository.models;
 
 import 'dart:convert';
 
+import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -140,6 +141,10 @@ class Package extends db.ExpandoModel<String> {
   /// List of versions that have been deleted and must not be re-uploaded again.
   @db.StringListProperty()
   List<String>? deletedVersions;
+
+  /// The JSON-serialized format of the [AutomatedPublishing].
+  @db.StringProperty(indexed: false)
+  String? automatedPublishingJson;
 
   Package();
 
@@ -368,6 +373,22 @@ class Package extends db.ExpandoModel<String> {
             )
           : null,
     );
+  }
+
+  AutomatedPublishing get automatedPublishing {
+    if (automatedPublishingJson == null) {
+      return AutomatedPublishing();
+    }
+    return AutomatedPublishing.fromJson(
+        json.decode(automatedPublishingJson!) as Map<String, dynamic>);
+  }
+
+  set automatedPublishing(AutomatedPublishing? value) {
+    if (value == null) {
+      automatedPublishingJson = null;
+    } else {
+      automatedPublishingJson = json.encode(value.toJson());
+    }
   }
 }
 

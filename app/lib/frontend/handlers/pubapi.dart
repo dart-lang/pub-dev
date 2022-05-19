@@ -358,6 +358,11 @@ class PubApi {
           Request request, String package, PkgOptions body) =>
       putPackageOptionsHandler(request, package, body);
 
+  @EndPoint.put('/api/packages/<package>/automated-publishing')
+  Future<AutomatedPublishing> setAutomatedPublishing(
+          Request request, String package, AutomatedPublishing body) =>
+      packageBackend.setAutomatedPublishing(package, body);
+
   @EndPoint.get('/api/packages/<package>/versions/<version>/options')
   Future<VersionOptions> getVersionOptions(
           Request request, String package, String version) =>

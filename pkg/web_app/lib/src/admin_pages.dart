@@ -46,6 +46,7 @@ class _PkgAdminWidget {
 
   void init() {
     if (!pageData.isPackagePage) return;
+    _setupCredAuth();
     _setPublisherInput = document.getElementById('-admin-set-publisher-input');
     _setPublisherButton =
         document.getElementById('-admin-set-publisher-button');
@@ -86,6 +87,36 @@ class _PkgAdminWidget {
         in document.querySelectorAll('.-pub-remove-uploader-button')) {
       btn.onClick.listen((_) => _removeUploader(btn.dataset['email']!));
     }
+  }
+
+  void _setupCredAuth() {
+    final githubEnabledCheckbox = document
+        .getElementById('-pkg-admin-automated-github-enabled') as InputElement?;
+    final githubRepositoryInput =
+        document.getElementById('-pkg-admin-automated-github-repository')
+            as InputElement?;
+    final updateButton = document.getElementById('-pkg-admin-automated-button');
+    if (updateButton == null || githubRepositoryInput == null) {
+      return;
+    }
+    updateButton.onClick.listen((event) async {
+      await api_client.rpc<void>(
+        confirmQuestion: await markdown(
+            'Are you sure you want to update the automated publishing config?'),
+        fn: () async {
+          await api_client.client.setAutomatedPublishing(
+              pageData.pkgData!.package,
+              AutomatedPublishing(
+                github: GithubPublishing(
+                  isEnabled: githubEnabledCheckbox!.checked,
+                  repository: githubRepositoryInput.value,
+                ),
+              ));
+        },
+        successMessage: text('Config updated. The page will reload.'),
+        onSuccess: (_) => window.location.reload(),
+      );
+    });
   }
 
   Future<void> _inviteUploader() async {
