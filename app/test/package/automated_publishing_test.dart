@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_pub_shared/data/package_api.dart';
+import 'package:pub_dev/audit/backend.dart';
+import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:test/test.dart';
 
@@ -55,6 +57,13 @@ void main() {
       });
       final p = await packageBackend.lookupPackage('oxygen');
       expect(p!.automatedPublishing.toJson(), rs.toJson());
+      final audits = await auditBackend.listRecordsForPackage('oxygen');
+      // check audit log record exists
+      final record = audits.records.firstWhere((e) =>
+          e.kind == AuditLogRecordKind.packagePublicationAutomationUpdated);
+      expect(record.created, isNotNull);
+      expect(record.summary,
+          '`admin@pub.dev` updated the publication automation config of package `oxygen`');
     });
 
     testWithProfile('bad project path', fn: () async {

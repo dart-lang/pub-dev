@@ -486,10 +486,9 @@ class PackageBackend {
       p.automatedPublishing = body;
       p.updated = clock.now().toUtc();
       tx.insert(p);
-      tx.insert(AuditLogRecord.packageOptionsUpdated(
+      tx.insert(AuditLogRecord.packagePublicationAutomationUpdated(
         package: p.name!,
         user: user,
-        options: ['credentialless-publishing'],
       ));
       return p.automatedPublishing;
     });

@@ -157,6 +157,25 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..publishers = [];
   }
 
+  factory AuditLogRecord.packagePublicationAutomationUpdated({
+    required String package,
+    required User user,
+  }) {
+    return AuditLogRecord._init()
+      ..kind = AuditLogRecordKind.packagePublicationAutomationUpdated
+      ..agent = user.userId
+      ..summary =
+          '`${user.email}` updated the publication automation config of package `$package`.'
+      ..data = {
+        'package': package,
+        'user': user.email,
+      }
+      ..users = [user.userId]
+      ..packages = [package]
+      ..packageVersions = []
+      ..publishers = [];
+  }
+
   factory AuditLogRecord.packageVersionOptionsUpdated({
     required String package,
     required String version,
@@ -624,6 +643,10 @@ class AuditLogRecord extends db.ExpandoModel<String> {
 abstract class AuditLogRecordKind {
   /// Event that a package was updated with new options
   static const packageOptionsUpdated = 'package-options-updated';
+
+  /// Event that a package was updated with new automated publishing config.
+  static const packagePublicationAutomationUpdated =
+      'package-publication-automation-updated';
 
   /// Event that a package version was updated with new options
   static const packageVersionOptionsUpdated = 'package-version-options-updated';
