@@ -7,6 +7,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Flutter analysis SDK to `3.0.1`.
  * Upgraded preview Dart analysis SDK to `2.18.0-109.0.dev`.
  * Upgraded preview Flutter analysis SDK to `3.0.1`.
+ * NOTE: Started to use the dedicated bucket for incoming package uploads.
 
 ## `20220519t133400-all`
 
