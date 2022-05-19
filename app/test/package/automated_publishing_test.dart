@@ -63,7 +63,7 @@ void main() {
           e.kind == AuditLogRecordKind.packagePublicationAutomationUpdated);
       expect(record.created, isNotNull);
       expect(record.summary,
-          '`admin@pub.dev` updated the publication automation config of package `oxygen`');
+          '`admin@pub.dev` updated the publication automation config of package `oxygen`.');
     });
 
     testWithProfile('bad project path', fn: () async {
