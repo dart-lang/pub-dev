@@ -449,8 +449,8 @@ class PackageBackend {
 
   /// Verifies an update to the credential-less publishing settings and
   /// updates the Datastore entity if everything is valid.
-  Future<api.CredentiallessPublishing> setCredentiallessPublishing(
-      String package, api.CredentiallessPublishing body) async {
+  Future<api.AutomatedPublishing> setAutomatedPublishing(
+      String package, api.AutomatedPublishing body) async {
     final user = await requireAuthenticatedUser();
     return await withRetryTransaction(db, (tx) async {
       final p = await tx
@@ -465,25 +465,25 @@ class PackageBackend {
       if (github != null) {
         final isEnabled = github.isEnabled ?? false;
         // normalize input values
-        final projectPath = github.projectPath?.trim() ?? '';
-        github.projectPath = projectPath;
+        final repository = github.repository?.trim() ?? '';
+        github.repository = repository;
 
-        InvalidInputException.check(!isEnabled || projectPath.isNotEmpty,
-            'The `projectPath` field must not be empty when enabled.');
+        InvalidInputException.check(!isEnabled || repository.isNotEmpty,
+            'The `repository` field must not be empty when enabled.');
 
-        if (projectPath.isNotEmpty) {
-          final parts = projectPath.split('/');
+        if (repository.isNotEmpty) {
+          final parts = repository.split('/');
           InvalidInputException.check(parts.length == 2,
-              'The `projectPath` field must follow the `<user>/<repository>` pattern.');
+              'The `repository` field must follow the `<owner>/<repository>` pattern.');
           InvalidInputException.check(
               _validGithubUserOrRepoRegExp.hasMatch(parts[0]) &&
                   _validGithubUserOrRepoRegExp.hasMatch(parts[1]),
-              'The `projectPath` field has invalid characters.');
+              'The `repository` field has invalid characters.');
         }
       }
 
       // finalize changes
-      p.credentiallessPublishing = body;
+      p.automatedPublishing = body;
       p.updated = clock.now().toUtc();
       tx.insert(p);
       tx.insert(AuditLogRecord.packageOptionsUpdated(
@@ -491,7 +491,7 @@ class PackageBackend {
         user: user,
         options: ['credentialless-publishing'],
       ));
-      return p.credentiallessPublishing;
+      return p.automatedPublishing;
     });
   }
 

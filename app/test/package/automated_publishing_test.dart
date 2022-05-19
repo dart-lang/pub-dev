@@ -13,15 +13,14 @@ import '../shared/test_services.dart';
 void main() {
   group('Update value through API', () {
     setupTestsWithCallerAuthorizationIssues(
-      (client) => client.setCredentiallessPublishing(
-          'oxygen', CredentiallessPublishing()),
+      (client) =>
+          client.setAutomatedPublishing('oxygen', AutomatedPublishing()),
     );
 
     testWithProfile('no package', fn: () async {
       final client = createPubApiClient(authToken: userAtPubDevAuthToken);
       await expectApiException(
-        client.setCredentiallessPublishing(
-            'no_such_package', CredentiallessPublishing()),
+        client.setAutomatedPublishing('no_such_package', AutomatedPublishing()),
         status: 404,
         code: 'NotFound',
       );
@@ -30,8 +29,7 @@ void main() {
     testWithProfile('not admin', fn: () async {
       final client = createPubApiClient(authToken: userAtPubDevAuthToken);
       await expectApiException(
-        client.setCredentiallessPublishing(
-            'oxygen', CredentiallessPublishing()),
+        client.setAutomatedPublishing('oxygen', AutomatedPublishing()),
         status: 403,
         code: 'InsufficientPermissions',
         message:
@@ -41,22 +39,22 @@ void main() {
 
     testWithProfile('successful update', fn: () async {
       final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
-      final rs = await client.setCredentiallessPublishing(
+      final rs = await client.setAutomatedPublishing(
           'oxygen',
-          CredentiallessPublishing(
+          AutomatedPublishing(
             github: GithubPublishing(
               isEnabled: true,
-              projectPath: 'dart-lang/pub-dev',
+              repository: 'dart-lang/pub-dev',
             ),
           ));
       expect(rs.toJson(), {
         'github': {
           'isEnabled': true,
-          'projectPath': 'dart-lang/pub-dev',
+          'repository': 'dart-lang/pub-dev',
         },
       });
       final p = await packageBackend.lookupPackage('oxygen');
-      expect(p!.credentiallessPublishing.toJson(), rs.toJson());
+      expect(p!.automatedPublishing.toJson(), rs.toJson());
     });
 
     testWithProfile('bad project path', fn: () async {
@@ -70,13 +68,13 @@ void main() {
         'a /b',
         '(/b',
       ];
-      for (final projectPath in badPaths) {
-        final rs = client.setCredentiallessPublishing(
+      for (final repository in badPaths) {
+        final rs = client.setAutomatedPublishing(
             'oxygen',
-            CredentiallessPublishing(
+            AutomatedPublishing(
               github: GithubPublishing(
                 isEnabled: false,
-                projectPath: projectPath,
+                repository: repository,
               ),
             ));
         await expectApiException(

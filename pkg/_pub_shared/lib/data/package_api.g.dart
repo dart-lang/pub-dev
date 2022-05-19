@@ -32,16 +32,14 @@ Map<String, dynamic> _$PkgOptionsToJson(PkgOptions instance) =>
       'isUnlisted': instance.isUnlisted,
     };
 
-CredentiallessPublishing _$CredentiallessPublishingFromJson(
-        Map<String, dynamic> json) =>
-    CredentiallessPublishing(
+AutomatedPublishing _$AutomatedPublishingFromJson(Map<String, dynamic> json) =>
+    AutomatedPublishing(
       github: json['github'] == null
           ? null
           : GithubPublishing.fromJson(json['github'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$CredentiallessPublishingToJson(
-    CredentiallessPublishing instance) {
+Map<String, dynamic> _$AutomatedPublishingToJson(AutomatedPublishing instance) {
   final val = <String, dynamic>{};
 
   void writeNotNull(String key, dynamic value) {
@@ -57,7 +55,7 @@ Map<String, dynamic> _$CredentiallessPublishingToJson(
 GithubPublishing _$GithubPublishingFromJson(Map<String, dynamic> json) =>
     GithubPublishing(
       isEnabled: json['isEnabled'] as bool?,
-      projectPath: json['projectPath'] as String?,
+      repository: json['repository'] as String?,
     );
 
 Map<String, dynamic> _$GithubPublishingToJson(GithubPublishing instance) {
@@ -70,7 +68,7 @@ Map<String, dynamic> _$GithubPublishingToJson(GithubPublishing instance) {
   }
 
   writeNotNull('isEnabled', instance.isEnabled);
-  writeNotNull('projectPath', instance.projectPath);
+  writeNotNull('repository', instance.repository);
   return val;
 }
 

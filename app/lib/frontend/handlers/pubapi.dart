@@ -358,10 +358,10 @@ class PubApi {
           Request request, String package, PkgOptions body) =>
       putPackageOptionsHandler(request, package, body);
 
-  @EndPoint.put('/api/packages/<package>/credentialless-publishing')
-  Future<CredentiallessPublishing> setCredentiallessPublishing(
-          Request request, String package, CredentiallessPublishing body) =>
-      packageBackend.setCredentiallessPublishing(package, body);
+  @EndPoint.put('/api/packages/<package>/automated-publishing')
+  Future<AutomatedPublishing> setAutomatedPublishing(
+          Request request, String package, AutomatedPublishing body) =>
+      packageBackend.setAutomatedPublishing(package, body);
 
   @EndPoint.get('/api/packages/<package>/versions/<version>/options')
   Future<VersionOptions> getVersionOptions(

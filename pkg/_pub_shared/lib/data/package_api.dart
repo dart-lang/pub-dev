@@ -50,29 +50,29 @@ class PkgOptions {
 
 /// The configuration for a package's credential-less publishing.
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
-class CredentiallessPublishing {
+class AutomatedPublishing {
   final GithubPublishing? github;
 
-  CredentiallessPublishing({
+  AutomatedPublishing({
     this.github,
   });
 
-  factory CredentiallessPublishing.fromJson(Map<String, dynamic> json) =>
-      _$CredentiallessPublishingFromJson(json);
+  factory AutomatedPublishing.fromJson(Map<String, dynamic> json) =>
+      _$AutomatedPublishingFromJson(json);
 
-  Map<String, dynamic> toJson() => _$CredentiallessPublishingToJson(this);
+  Map<String, dynamic> toJson() => _$AutomatedPublishingToJson(this);
 }
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class GithubPublishing {
   final bool? isEnabled;
 
-  /// The `user/repository` path of the project on github.com.
-  String? projectPath;
+  /// The `owner/repository` path of the project on github.com.
+  String? repository;
 
   GithubPublishing({
     this.isEnabled,
-    this.projectPath,
+    this.repository,
   });
 
   factory GithubPublishing.fromJson(Map<String, dynamic> json) =>

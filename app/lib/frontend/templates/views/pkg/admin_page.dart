@@ -161,30 +161,29 @@ d.Node packageAdminPageNode({
         checked: package.isUnlisted,
       ),
     ],
-    if (requestContext.showAdminUIForCredentiallessPublishing)
+    if (requestContext.showAdminUIForAutomatedPublishing)
       d.fragment([
-        d.h2(text: 'Credential-less publishing'),
-        d.h3(text: 'GitHub'),
+        d.h2(text: 'Automated publishing'),
+        d.h3(text: 'Publishing from GitHub Actions'),
         d.div(
           classes: ['-pub-form-row'],
           child: material.checkbox(
-            id: '-pkg-admin-credless-github-enabled',
-            label: 'Enable publishing from GitHub',
-            checked:
-                package.credentiallessPublishing.github?.isEnabled ?? false,
+            id: '-pkg-admin-automated-github-enabled',
+            label: 'Enable publishing from GitHub Actions',
+            checked: package.automatedPublishing.github?.isEnabled ?? false,
           ),
         ),
         d.div(
           classes: ['-pub-form-row'],
           child: material.textField(
-            id: '-pkg-admin-credless-github-projectpath',
-            label: 'Project path',
-            value: package.credentiallessPublishing.github?.projectPath,
+            id: '-pkg-admin-automated-github-repository',
+            label: 'Repository',
+            value: package.automatedPublishing.github?.repository,
           ),
         ),
         d.p(
           child: material.button(
-            id: '-pkg-admin-credless-button',
+            id: '-pkg-admin-automated-button',
             label: 'Update',
             raised: true,
           ),

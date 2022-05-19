@@ -34,6 +34,6 @@ class RequestContext {
     this.uiCacheEnabled = false,
   });
 
-  /// Whether to show the admin UI for credential-less publishing admin UI.
-  bool get showAdminUIForCredentiallessPublishing => isExperimental;
+  /// Whether to show the admin UI for automated publishing admin UI.
+  bool get showAdminUIForAutomatedPublishing => isExperimental;
 }

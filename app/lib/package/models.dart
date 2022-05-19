@@ -142,9 +142,9 @@ class Package extends db.ExpandoModel<String> {
   @db.StringListProperty()
   List<String>? deletedVersions;
 
-  /// The JSON-serialized format of the [CredentiallessPublishing].
+  /// The JSON-serialized format of the [AutomatedPublishing].
   @db.StringProperty(indexed: false)
-  String? credentiallessPublishingJson;
+  String? automatedPublishingJson;
 
   Package();
 
@@ -375,19 +375,19 @@ class Package extends db.ExpandoModel<String> {
     );
   }
 
-  CredentiallessPublishing get credentiallessPublishing {
-    if (credentiallessPublishingJson == null) {
-      return CredentiallessPublishing();
+  AutomatedPublishing get automatedPublishing {
+    if (automatedPublishingJson == null) {
+      return AutomatedPublishing();
     }
-    return CredentiallessPublishing.fromJson(
-        json.decode(credentiallessPublishingJson!) as Map<String, dynamic>);
+    return AutomatedPublishing.fromJson(
+        json.decode(automatedPublishingJson!) as Map<String, dynamic>);
   }
 
-  set credentiallessPublishing(CredentiallessPublishing? value) {
+  set automatedPublishing(AutomatedPublishing? value) {
     if (value == null) {
-      credentiallessPublishingJson = null;
+      automatedPublishingJson = null;
     } else {
-      credentiallessPublishingJson = json.encode(value.toJson());
+      automatedPublishingJson = json.encode(value.toJson());
     }
   }
 }

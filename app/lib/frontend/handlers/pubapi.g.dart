@@ -524,14 +524,14 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
-  router.add('PUT', r'/api/packages/<package>/credentialless-publishing',
+  router.add('PUT', r'/api/packages/<package>/automated-publishing',
       (Request request, String package) async {
     try {
-      final _$result = await service.setCredentiallessPublishing(
+      final _$result = await service.setAutomatedPublishing(
         request,
         package,
-        await $utilities.decodeJson<CredentiallessPublishing>(
-            request, (o) => CredentiallessPublishing.fromJson(o)),
+        await $utilities.decodeJson<AutomatedPublishing>(
+            request, (o) => AutomatedPublishing.fromJson(o)),
       );
       return $utilities.jsonResponse(_$result.toJson());
     } on ApiResponseException catch (e) {

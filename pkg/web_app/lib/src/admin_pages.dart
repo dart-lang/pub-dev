@@ -90,32 +90,30 @@ class _PkgAdminWidget {
   }
 
   void _setupCredAuth() {
-    final credlessGithubEnabledCheckbox = document
-        .getElementById('-pkg-admin-credless-github-enabled') as InputElement?;
-    final credlessGithubProjectpathInput =
-        document.getElementById('-pkg-admin-credless-github-projektpath')
+    final githubEnabledCheckbox = document
+        .getElementById('-pkg-admin-automated-github-enabled') as InputElement?;
+    final githubRepositoryInput =
+        document.getElementById('-pkg-admin-automated-github-repository')
             as InputElement?;
-    final credlessUpdateButton =
-        document.getElementById('-pkg-admin-credless-button');
-    if (credlessUpdateButton == null ||
-        credlessGithubProjectpathInput == null) {
+    final updateButton = document.getElementById('-pkg-admin-automated-button');
+    if (updateButton == null || githubRepositoryInput == null) {
       return;
     }
-    credlessUpdateButton.onClick.listen((event) async {
+    updateButton.onClick.listen((event) async {
       await api_client.rpc<void>(
         confirmQuestion: await markdown(
-            'Are you sure you want to update the credential-less publishing settings?'),
+            'Are you sure you want to update the automated publishing config?'),
         fn: () async {
-          await api_client.client.setCredentiallessPublishing(
+          await api_client.client.setAutomatedPublishing(
               pageData.pkgData!.package,
-              CredentiallessPublishing(
+              AutomatedPublishing(
                 github: GithubPublishing(
-                  isEnabled: credlessGithubEnabledCheckbox!.checked,
-                  projectPath: credlessGithubProjectpathInput.value,
+                  isEnabled: githubEnabledCheckbox!.checked,
+                  repository: githubRepositoryInput.value,
                 ),
               ));
         },
-        successMessage: text('Settings updated. The page will reload.'),
+        successMessage: text('Config updated. The page will reload.'),
         onSuccess: (_) => window.location.reload(),
       );
     });
