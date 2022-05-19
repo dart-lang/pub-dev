@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../shared/datastore.dart' as db;
@@ -45,13 +46,54 @@ class Publisher extends db.ExpandoModel<String> {
   /// (A) who uploaded a package, and,
   /// (B) who granted the permissions that allowed said package to be uploaded.
   @db.BoolProperty(required: true)
-  bool? isAbandoned;
+  bool isAbandoned = false;
+
+  /// [isBlocked] is set when a [Publisher] is blocked by an administrative action.
+  /// When this happens:
+  /// - The publisher page should not be visible, nor listed anywhere.
+  /// - Administrator roles of the publisher must not be able to change any setting,
+  ///   membership information, or invite new members.
+  /// - Administrator roles of the publisher must not be able to publisher a new version
+  ///   for packages of the publisher, or change any of the existing package's properties.
+  /// TODO: set to required: true after the release gets stable.
+  @db.BoolProperty(required: false)
+  bool? isBlocked = false;
+
+  Publisher();
+
+  Publisher.init({
+    required db.Key parentKey,
+    required String publisherId,
+    required this.contactEmail,
+  }) {
+    final now = clock.now().toUtc();
+    this.parentKey = parentKey;
+    id = publisherId;
+    created = now;
+    updated = now;
+    description = '';
+    websiteUrl = defaultPublisherWebsite(publisherId);
+    isAbandoned = false;
+    isBlocked = false;
+  }
+
+  /// Clears most properties on the entity and sets the [isBlocked] flag.
+  void markForBlocked() {
+    isBlocked = true;
+    isAbandoned = true;
+    contactEmail = null;
+    description = '';
+    updated = clock.now().toUtc();
+  }
 
   /// Whether the publisher has a displayable description.
   bool get hasDescription => description != null && description!.isNotEmpty;
 
   /// Whether the publisher has a displayable contact email.
   bool get hasContactEmail => contactEmail != null && contactEmail!.isNotEmpty;
+
+  bool get isNotVisible => isBlocked ?? false;
+  bool get isVisible => !isNotVisible;
 }
 
 /// Derived publisher data.
@@ -150,3 +192,5 @@ class PublisherSummary {
       _$PublisherSummaryFromJson(json);
   Map<String, dynamic> toJson() => _$PublisherSummaryToJson(this);
 }
+
+String defaultPublisherWebsite(String domain) => 'https://$domain/';

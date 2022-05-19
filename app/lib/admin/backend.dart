@@ -30,11 +30,11 @@ import '../shared/email.dart';
 import '../shared/exceptions.dart';
 import '../shared/tags.dart';
 import '../tool/utils/dart_sdk_version.dart';
+import 'tools/block_publisher_and_all_members.dart';
 import 'tools/create_publisher.dart';
 import 'tools/list_package_withheld.dart';
 import 'tools/notify_service.dart';
 import 'tools/recent_uploaders.dart';
-import 'tools/remove_publisher_and_block_all_members.dart';
 import 'tools/set_package_withheld.dart';
 import 'tools/set_secret.dart';
 import 'tools/set_user_blocked.dart';
@@ -87,8 +87,8 @@ class AdminBackend {
         return await executeNotifyService(args);
       case 'recent-uploaders':
         return await executeRecentUploaders(args);
-      case 'remove-publisher-and-delete-all-members':
-        return await executeRemovePublisherAndBlockAllMembers(args);
+      case 'block-publisher-and-all-members':
+        return await executeBlockPublisherAndAllMembers(args);
       case 'set-package-withheld':
         return await executeSetPackageWithheld(args);
       case 'set-secret':

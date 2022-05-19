@@ -60,7 +60,7 @@ Future<String> executeCreatePublisher(List<String> args) async {
           p.updated!.isBefore(now.subtract(Duration(minutes: 10))) ||
           p.contactEmail != user.email ||
           p.description != '' ||
-          p.websiteUrl != _publisherWebsite(publisherId)) {
+          p.websiteUrl != defaultPublisherWebsite(publisherId)) {
         throw ConflictException.publisherAlreadyExists(publisherId);
       }
       // Avoid creating the same publisher again, this end-point is idempotent
@@ -70,15 +70,11 @@ Future<String> executeCreatePublisher(List<String> args) async {
 
     // Create publisher
     tx.queueMutations(inserts: [
-      Publisher()
-        ..parentKey = dbService.emptyKey
-        ..id = publisherId
-        ..created = now
-        ..description = ''
-        ..contactEmail = user.email
-        ..updated = now
-        ..websiteUrl = _publisherWebsite(publisherId)
-        ..isAbandoned = false,
+      Publisher.init(
+        parentKey: dbService.emptyKey,
+        publisherId: publisherId,
+        contactEmail: user.email,
+      ),
       PublisherMember()
         ..parentKey = dbService.emptyKey.append(Publisher, id: publisherId)
         ..id = user.userId
@@ -94,5 +90,3 @@ Future<String> executeCreatePublisher(List<String> args) async {
     return 'Publisher created.';
   });
 }
-
-String _publisherWebsite(String domain) => 'https://$domain/';

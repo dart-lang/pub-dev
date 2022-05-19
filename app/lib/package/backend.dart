@@ -25,7 +25,6 @@ import '../account/models.dart' show User;
 import '../audit/models.dart';
 import '../frontend/email_sender.dart';
 import '../publisher/backend.dart';
-import '../publisher/models.dart';
 import '../service/secret/backend.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
@@ -539,12 +538,12 @@ class PackageBackend {
     if (p.publisherId == null) {
       return p.containsUploader(userId);
     } else {
-      final memberKey = db.emptyKey
-          .append(Publisher, id: p.publisherId)
-          .append(PublisherMember, id: userId);
-      final list = await db.lookup<PublisherMember>([memberKey]);
-      final member = list.single;
-      return member?.role == PublisherMemberRole.admin;
+      final publisherId = p.publisherId!;
+      final publisher = await publisherBackend.getPublisher(publisherId);
+      if (publisher == null) {
+        return false;
+      }
+      return await publisherBackend.isMemberAdmin(publisher, userId);
     }
   }
 

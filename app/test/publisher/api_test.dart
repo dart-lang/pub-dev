@@ -769,6 +769,17 @@ void _testAdminAuthIssues(Future Function(PubApiClient client) fn) {
     final rs = fn(client);
     await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
   });
+
+  testWithProfile('Publisher is blocked / not visible', fn: () async {
+    final p = await dbService.lookupValue<Publisher>(
+        dbService.emptyKey.append(Publisher, id: 'example.com'));
+    p.isBlocked = true;
+    await dbService.commit(inserts: [p]);
+
+    final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+    final rs = fn(client);
+    await expectApiException(rs, status: 404, code: 'NotFound');
+  });
 }
 
 void _testNoPublisher(Future Function(PubApiClient client) fn) {
