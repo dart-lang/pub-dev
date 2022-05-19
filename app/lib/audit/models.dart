@@ -42,10 +42,11 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)
   String? kind;
 
-  /// [User.userId] of the user who initiated / authorized the recorded action.
+  /// [User.userId] of the user or a known service agent who initiated / authorized the recorded action.
   ///
-  /// This is a UUIDv4. If the user has been deleted, it is possible that this
-  /// property may not match any [User] entity.
+  /// - For [User] accounts, this is a UUIDv4. If the user has been deleted,
+  ///   it is possible that this property may not match any [User] entity.
+  /// - For known service accounts this value starts with `service:` prefix.
   @db.StringProperty(required: true)
   String? agent;
 
