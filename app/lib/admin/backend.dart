@@ -87,7 +87,7 @@ class AdminBackend {
         return await executeNotifyService(args);
       case 'recent-uploaders':
         return await executeRecentUploaders(args);
-      case 'block-publisher-and-delete-all-members':
+      case 'block-publisher-and-all-members':
         return await executeBlockPublisherAndAllMembers(args);
       case 'set-package-withheld':
         return await executeSetPackageWithheld(args);

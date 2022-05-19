@@ -46,9 +46,6 @@ Future<String> executeBlockPublisherAndAllMembers(List<String> args) async {
       final p = await tx.lookupValue<Publisher>(publisherKey);
       p.markForBlocked();
       tx.insert(p);
-      for (final m in members) {
-        tx.delete(publisherKey.append(PublisherMember, id: m.userId));
-      }
     });
     output.writeln('Blocked.');
     return output.toString();
