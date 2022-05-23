@@ -60,7 +60,7 @@ class AdminBackend {
   Future<User> _requireAdminPermission(AdminPermission permission) async {
     ArgumentError.checkNotNull(permission, 'permission');
 
-    final user = await requireAuthenticatedUser();
+    final user = await requireAuthenticatedUser(source: AuthSource.admin);
     final admin = activeConfiguration.admins!.firstWhereOrNull(
         (a) => a.oauthUserId == user.oauthUserId && a.email == user.email);
     if (admin == null || !admin.permissions.contains(permission)) {

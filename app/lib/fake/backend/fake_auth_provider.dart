@@ -20,7 +20,8 @@ class FakeAuthProvider implements AuthProvider {
   Future<void> close() async {}
 
   @override
-  Future<AuthResult?> tryAuthenticate(String accessToken) async {
+  Future<AuthResult?> tryAuthenticate(
+      AuthSource source, String accessToken) async {
     if (!accessToken.contains('-at-')) {
       return null;
     }
@@ -28,7 +29,13 @@ class FakeAuthProvider implements AuthProvider {
     if (uri == null) {
       return null;
     }
-    final email = uri.host.replaceAll('-at-', '@').replaceAll('-dot-', '.');
+    final sourceValue = uri.queryParameters['source'];
+    // TODO: reject null values after all of tests are migrated.
+    if (sourceValue != null && sourceValue != source.name) {
+      return null;
+    }
+
+    final email = uri.path.replaceAll('-at-', '@').replaceAll('-dot-', '.');
     final id = email.replaceAll('@', '-').replaceAll('.', '-');
     return AuthResult(id, email);
   }

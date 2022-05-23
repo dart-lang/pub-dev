@@ -772,7 +772,7 @@ class PackageBackend {
     // user is authenticated. But we're not validating anything at this point
     // because we don't even know which package or version is going to be
     // uploaded.
-    final user = await requireAuthenticatedUser();
+    final user = await requireAuthenticatedUser(source: AuthSource.client);
     _logger.info('User: ${user.email}.');
 
     final guid = createUuid();
@@ -798,7 +798,7 @@ class PackageBackend {
     if (restriction == UploadRestrictionStatus.noUploads) {
       throw PackageRejectedException.uploadRestricted();
     }
-    final user = await requireAuthenticatedUser();
+    final user = await requireAuthenticatedUser(source: AuthSource.client);
     _logger.info('Finishing async upload (uuid: $guid)');
     _logger.info('Reading tarball from cloud storage.');
 
@@ -1070,10 +1070,14 @@ class PackageBackend {
   // Uploaders support.
 
   Future<account_api.InviteStatus> inviteUploader(
-      String packageName, api.InviteUploaderRequest invite) async {
+    String packageName,
+    api.InviteUploaderRequest invite, {
+    AuthSource? source,
+  }) async {
     InvalidInputException.checkNotNull(invite.email, 'email');
     final uploaderEmail = invite.email.toLowerCase();
-    final user = await requireAuthenticatedUser();
+    final user =
+        await requireAuthenticatedUser(source: source ?? AuthSource.website);
     final packageKey = db.emptyKey.append(Package, id: packageName);
     final package = await db.lookupOrNull<Package>(packageKey);
 
@@ -1109,7 +1113,10 @@ class PackageBackend {
       String packageName, String uploaderEmail) async {
     try {
       final rs = await inviteUploader(
-          packageName, api.InviteUploaderRequest(email: uploaderEmail));
+        packageName,
+        api.InviteUploaderRequest(email: uploaderEmail),
+        source: AuthSource.client,
+      );
       if (!rs.emailSent) {
         throw OperationForbiddenException.inviteActive(rs.nextNotification);
       }
@@ -1171,7 +1178,7 @@ class PackageBackend {
   Future<api.SuccessMessage> removeUploader(
       String packageName, String uploaderEmail) async {
     uploaderEmail = uploaderEmail.toLowerCase();
-    final user = await requireAuthenticatedUser();
+    final user = await requireAuthenticatedUser(source: AuthSource.client);
     await withRetryTransaction(db, (tx) async {
       final packageKey = db.emptyKey.append(Package, id: packageName);
       final package = await tx.lookupOrNull<Package>(packageKey);
