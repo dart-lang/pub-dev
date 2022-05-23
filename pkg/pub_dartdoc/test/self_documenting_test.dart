@@ -49,10 +49,10 @@ void main() {
       final memUse = int.parse(memUseStr);
 
       // Last 3 measurements:
-      // 1529630720
-      // 1530777600
-      // 1531613184
-      final maxMemUse = 1.55;
+      // 1038073856
+      // 1041264640
+      // 1039941632
+      final maxMemUse = 1.04;
       expect(memUse, lessThan(maxMemUse * 1024 * 1024 * 1024));
 
       // Sanity check for the test.
@@ -80,12 +80,13 @@ void main() {
         'pub_data_generator/PubDataGenerator/toString.html',
         'pub_data_generator/fileName-constant.html',
         'pub_data_generator/pub_data_generator-library.html',
+        'static-assets/docs.dart.js',
+        'static-assets/docs.dart.js.map',
         'static-assets/favicon.png',
         'static-assets/github.css',
         'static-assets/highlight.pack.js',
         'static-assets/play_button.svg',
         'static-assets/readme.md',
-        'static-assets/script.js',
         'static-assets/styles.css',
       ]);
     });
