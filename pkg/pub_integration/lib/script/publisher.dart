@@ -30,6 +30,8 @@ class PublisherScript {
     required this.inviteCompleterFn,
   }) : _pubHttpClient = PubHttpClient(pubHostedUrl);
 
+  final userWebsiteToken = 'user-at-example-dot-com?source=website';
+
   /// Verify all integration steps.
   Future<void> verify() async {
     assert(_pubToolClient == null);
@@ -45,12 +47,12 @@ class PublisherScript {
           version: '1.0.0', uploaderEmail: 'user@example.com');
 
       await _pubHttpClient.createPublisher(
-        authToken: 'user-at-example-dot-com',
+        authToken: userWebsiteToken,
         publisherId: 'example.com',
-        accessToken: 'user-at-example-dot-com',
+        accessToken: userWebsiteToken,
       );
       await _pubHttpClient.setPackagePublisher(
-        authToken: 'user-at-example-dot-com',
+        authToken: userWebsiteToken,
         package: '_dummy_pkg',
         publisherId: 'example.com',
       );
@@ -73,19 +75,19 @@ class PublisherScript {
 
       // member invite
       final members1 = await _pubHttpClient.listMembers(
-        authToken: 'user-at-example-dot-com',
+        authToken: userWebsiteToken,
         publisherId: 'example.com',
       );
       _verifyMap({'user@example.com': 'admin'}, members1);
 
       await _pubHttpClient.inviteMember(
-        authToken: 'user-at-example-dot-com',
+        authToken: userWebsiteToken,
         publisherId: 'example.com',
         invitedEmail: invitedEmail,
       );
       await inviteCompleterFn();
       final members2 = await _pubHttpClient.listMembers(
-        authToken: 'user-at-example-dot-com',
+        authToken: userWebsiteToken,
         publisherId: 'example.com',
       );
       _verifyMap({

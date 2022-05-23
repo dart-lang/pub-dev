@@ -11,6 +11,7 @@ import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
+import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dev/publisher/models.dart';
@@ -497,8 +498,8 @@ void main() {
             .where((c) => c.email == 'newaccount@pub.dev')
             .toList();
         final consentId = consents.single.consentId;
-        final client2 =
-            createPubApiClient(authToken: 'newaccount-at-pub-dot-dev');
+        final client2 = createPubApiClient(
+            authToken: createFakeAuthTokenForEmail('newaccount@pub.dev'));
         final rs2 = await client2.resolveConsent(
             consentId, account_api.ConsentResult(granted: true));
         expect(rs2.granted, isTrue);

@@ -754,7 +754,7 @@ class PackageBackend {
 
   @visibleForTesting
   Future<PackageVersion> upload(Stream<List<int>> data) async {
-    await requireAuthenticatedUser();
+    await requireAuthenticatedUser(source: AuthSource.client);
     final guid = createUuid();
     _logger.info('Starting semi-async upload (uuid: $guid)');
     final object = tmpObjectName(guid);
@@ -1072,12 +1072,12 @@ class PackageBackend {
   Future<account_api.InviteStatus> inviteUploader(
     String packageName,
     api.InviteUploaderRequest invite, {
-    AuthSource? source,
+    AuthSource? authSource,
   }) async {
+    authSource ??= AuthSource.website;
     InvalidInputException.checkNotNull(invite.email, 'email');
     final uploaderEmail = invite.email.toLowerCase();
-    final user =
-        await requireAuthenticatedUser(source: source ?? AuthSource.website);
+    final user = await requireAuthenticatedUser(source: authSource);
     final packageKey = db.emptyKey.append(Package, id: packageName);
     final package = await db.lookupOrNull<Package>(packageKey);
 
@@ -1099,6 +1099,7 @@ class PackageBackend {
         isNotUploaderYet, '`$uploaderEmail` is already an uploader.');
 
     final status = await consentBackend.invitePackageUploader(
+      authSource: authSource,
       packageName: packageName,
       uploaderEmail: uploaderEmail,
     );
@@ -1115,7 +1116,7 @@ class PackageBackend {
       final rs = await inviteUploader(
         packageName,
         api.InviteUploaderRequest(email: uploaderEmail),
-        source: AuthSource.client,
+        authSource: AuthSource.client,
       );
       if (!rs.emailSent) {
         throw OperationForbiddenException.inviteActive(rs.nextNotification);
@@ -1176,9 +1177,13 @@ class PackageBackend {
   }
 
   Future<api.SuccessMessage> removeUploader(
-      String packageName, String uploaderEmail) async {
+    String packageName,
+    String uploaderEmail, {
+    AuthSource? authSource,
+  }) async {
+    authSource ??= AuthSource.client;
     uploaderEmail = uploaderEmail.toLowerCase();
-    final user = await requireAuthenticatedUser(source: AuthSource.client);
+    final user = await requireAuthenticatedUser(source: authSource);
     await withRetryTransaction(db, (tx) async {
       final packageKey = db.emptyKey.append(Package, id: packageName);
       final package = await tx.lookupOrNull<Package>(packageKey);

@@ -9,6 +9,7 @@ import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
+import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dev/package/backend.dart';
@@ -125,7 +126,7 @@ void main() {
         'oxygen',
         PackagePublisherInfo(publisherId: 'example.com'),
       );
-      await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
+      await accountBackend.withBearerToken(userClientToken, () async {
         final tarball = await packageArchiveBytes(
             pubspecContent: generatePubspecYaml('oxygen', '3.0.0'));
         final rs = packageBackend.upload(Stream.fromIterable([tarball]));
@@ -142,7 +143,7 @@ void main() {
         'oxygen',
         PackagePublisherInfo(publisherId: 'example.com'),
       );
-      await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+      await accountBackend.withBearerToken(adminClientToken, () async {
         final tarball = await packageArchiveBytes(
             pubspecContent: generatePubspecYaml('oxygen', '3.0.0'));
         final pv = await packageBackend.upload(Stream.fromIterable([tarball]));
@@ -291,9 +292,10 @@ dynamic _json(value) => json.decode(json.encode(value));
 
 void _testUserNotMemberOfPublisher({
   required Future<void> Function(PubApiClient client) fn,
-  String authToken = 'other-at-pub-dot-dev',
+  String? authToken,
   TestProfile? testProfile,
 }) {
+  authToken ??= createFakeAuthTokenForEmail('other@pub.dev');
   testWithProfile('Active user is not a member of publisher',
       testProfile: testProfile, fn: () async {
     final client = createPubApiClient(authToken: authToken);
@@ -304,9 +306,10 @@ void _testUserNotMemberOfPublisher({
 
 void _testUserNotAdminOfPublisher({
   required Future<void> Function(PubApiClient client) fn,
-  String authToken = adminAtPubDevAuthToken,
+  String? authToken,
   TestProfile? testProfile,
 }) {
+  authToken ??= adminAtPubDevAuthToken;
   testWithProfile('Active user is not admin of publisher',
       testProfile: testProfile, fn: () async {
     await accountBackend.withBearerToken(authToken, () async {

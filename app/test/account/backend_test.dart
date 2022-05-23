@@ -5,6 +5,7 @@
 import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:test/test.dart';
@@ -67,7 +68,8 @@ void main() {
       expect(ids1, {'admin-pub-dev', 'user-pub-dev'});
 
       String? userId;
-      await accountBackend.withBearerToken('a-at-example-dot-com', () async {
+      await accountBackend.withBearerToken(
+          createFakeAuthTokenForEmail('a@example.com'), () async {
         final u1 = await requireAuthenticatedUser();
         expect(u1.userId, hasLength(36));
         expect(u1.email, 'a@example.com');
@@ -94,7 +96,8 @@ void main() {
           .toSet();
       expect(ids1, {'admin-pub-dev', 'user-pub-dev'});
 
-      await accountBackend.withBearerToken('c-at-example-dot-com', () async {
+      await accountBackend.withBearerToken(
+          createFakeAuthTokenForEmail('c@example.com'), () async {
         final u1 = await requireAuthenticatedUser();
         expect(u1.userId, hasLength(36));
         expect(u1.email, 'c@example.com');

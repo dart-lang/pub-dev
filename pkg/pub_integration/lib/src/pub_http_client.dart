@@ -254,6 +254,7 @@ class PubHttpClient {
     required String accessToken,
     required String uploaderEmail,
   }) async {
+    print(accessToken);
     final rs = await _http.post(
       _pubHostedUrl.resolve('/api/packages/$packageName/remove-uploader'),
       headers: {

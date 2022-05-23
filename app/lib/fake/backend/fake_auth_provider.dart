@@ -30,8 +30,7 @@ class FakeAuthProvider implements AuthProvider {
       return null;
     }
     final sourceValue = uri.queryParameters['source'];
-    // TODO: reject null values after all of tests are migrated.
-    if (sourceValue != null && sourceValue != source.name) {
+    if (sourceValue == null || sourceValue != source.name) {
       return null;
     }
 
@@ -58,4 +57,14 @@ class FakeAuthProvider implements AuthProvider {
       imageUrl: imageUrl,
     );
   }
+}
+
+String createFakeAuthTokenForEmail(
+  String email, {
+  AuthSource? source,
+}) {
+  source ??= AuthSource.website;
+  return Uri(
+      path: email.replaceAll('.', '-dot-').replaceAll('@', '-at-'),
+      queryParameters: {'source': source.name}).toString();
 }

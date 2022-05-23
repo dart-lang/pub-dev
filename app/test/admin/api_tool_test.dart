@@ -16,10 +16,12 @@ void main() {
   group('Admin API: tool', () {
     group('bad tool', () {
       setupTestsWithCallerAuthorizationIssues(
-          (client) => client.adminExecuteTool('no-such-tool', ''));
+        (client) => client.adminExecuteTool('no-such-tool', ''),
+        authSource: AuthSource.admin,
+      );
 
       testWithProfile('auth with bad tool', fn: () async {
-        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+        final client = createPubApiClient(authToken: siteAdminToken);
         final rs = client.adminExecuteTool('no-such-tool', '');
         await expectApiException(rs, status: 406, code: 'NotAcceptable');
       });
@@ -27,17 +29,19 @@ void main() {
 
     group('user merger', () {
       setupTestsWithCallerAuthorizationIssues(
-          (client) => client.adminExecuteTool('user-merger', ''));
+        (client) => client.adminExecuteTool('user-merger', ''),
+        authSource: AuthSource.admin,
+      );
 
       testWithProfile('help', fn: () async {
-        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+        final client = createPubApiClient(authToken: siteAdminToken);
         final rs = await client.adminExecuteTool('user-merger', '--help');
         final bodyText = utf8.decode(rs);
         expect(bodyText, contains('Usage:'));
       });
 
       testWithProfile('merge all, but no problems detected', fn: () async {
-        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+        final client = createPubApiClient(authToken: siteAdminToken);
         final rs = await client.adminExecuteTool('user-merger', '');
         final bodyText = utf8.decode(rs);
         expect(bodyText, 'Fixed 0 `User` entities.');
@@ -48,7 +52,7 @@ void main() {
             await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
         final user =
             await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
-        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+        final client = createPubApiClient(authToken: siteAdminToken);
         final rs = await client.adminExecuteTool(
             'user-merger',
             Uri(pathSegments: [
