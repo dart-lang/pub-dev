@@ -185,21 +185,38 @@ class GoogleOauth2AuthProvider extends AuthProvider {
   }
 
   bool _shouldRejectAudience(AuthSource source, String? value) {
-    final expected = _getExpectedAudienceValue(source);
-    if (value == null || expected.isEmpty) {
+    if (value == null || value.isEmpty) {
       return true;
     }
-    return value != expected;
+    final expected = _getExpectedAudienceValue(source);
+    if (expected == null || expected.isEmpty) {
+      _logger.shout('Audience for $source was not configured.', expected,
+          StackTrace.current);
+      // TODO: switch to `return true` after the release gets stable.
+      return false;
+    }
+    if (value == expected) {
+      return false;
+    }
+    _logger.shout(
+        'Possible $source audience missmatch.', value, StackTrace.current);
+    // TODO: switch to `return true` after the release gets stable.
+    final matchesAny = [
+      activeConfiguration.pubClientAudience,
+      activeConfiguration.pubSiteAudience,
+      activeConfiguration.adminAudience,
+    ].contains(value);
+    return !matchesAny;
   }
 
-  String _getExpectedAudienceValue(AuthSource source) {
+  String? _getExpectedAudienceValue(AuthSource source) {
     switch (source) {
       case AuthSource.client:
-        return activeConfiguration.pubClientAudience!;
+        return activeConfiguration.pubClientAudience;
       case AuthSource.website:
-        return activeConfiguration.pubSiteAudience!;
+        return activeConfiguration.pubSiteAudience;
       case AuthSource.admin:
-        return activeConfiguration.adminAudience!;
+        return activeConfiguration.adminAudience;
     }
   }
 
