@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class AuthResult {
-  final String? oauthUserId;
-  final String? email;
+  final String oauthUserId;
+  final String email;
 
   AuthResult(this.oauthUserId, this.email);
 }
@@ -25,7 +25,7 @@ abstract class AuthProvider {
   ///
   /// Returns null on any error, or if the token is expired, or the user is not
   /// verified.
-  Future<AuthResult?> tryAuthenticate(String? token);
+  Future<AuthResult?> tryAuthenticate(String token);
 
   /// Returns the profile information of a given access token.
   Future<AccountProfile?> getAccountProfile(String? accessToken);

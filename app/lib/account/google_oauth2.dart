@@ -94,7 +94,7 @@ class GoogleOauth2AuthProvider extends AuthProvider {
         return null;
       }
 
-      return AuthResult(info.userId, info.email!.toLowerCase());
+      return AuthResult(info.userId!, info.email!.toLowerCase());
     } on oauth2_v2.ApiRequestError catch (e) {
       _logger.info('Access denied for OAuth2 access token.', e);
     } catch (e, st) {
