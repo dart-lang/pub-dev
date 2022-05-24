@@ -120,7 +120,6 @@ void main() {
             'score': closeTo(0.98, 0.01),
             'apiPages': [
               {
-                'title': null,
                 'path': 'dart-core/String/substring.html',
                 'url':
                     'https://api.dart.dev/stable/2.0.0/dart-core/String/substring.html'
@@ -151,7 +150,6 @@ void main() {
             'score': closeTo(0.98, 0.01),
             'apiPages': [
               {
-                'title': null,
                 'path': 'dart-core/String/stringutils.html',
                 'url':
                     'https://api.dart.dev/stable/2.0.0/dart-core/String/stringutils.html'

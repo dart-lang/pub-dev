@@ -40,7 +40,7 @@ void main() {
         'packageHits': [
           {
             'package': 'angular_ui',
-            'score': closeTo(0.88, 0.01),
+            'score': closeTo(0.95, 0.01),
           },
         ],
       });

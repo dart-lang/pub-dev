@@ -150,7 +150,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'packageHits': [
           {
             'package': 'chrome_net',
-            'score': closeTo(0.27, 0.01),
+            'score': closeTo(0.25, 0.01),
           },
         ],
       });
@@ -233,7 +233,10 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'http', 'score': 0.6},
+          {
+            'package': 'http',
+            'score': closeTo(0.78, 0.01),
+          },
         ],
       });
     });
@@ -601,13 +604,13 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           ServiceSearchQuery.parse(query: 'app', order: SearchOrder.text));
       expect(match.allPackageHits.map((e) => e.toJson()), [
         {'package': 'app'},
-        {'package': 'appz', 'score': closeTo(0.86, 0.01)},
+        {'package': 'appz', 'score': closeTo(0.95, 0.01)},
       ]);
       final match2 = await index.search(
           ServiceSearchQuery.parse(query: 'appz', order: SearchOrder.text));
       expect(match2.allPackageHits.map((e) => e.toJson()), [
         {'package': 'appz'},
-        {'package': 'app', 'score': 0.8},
+        {'package': 'app', 'score': closeTo(0.62, 0.01)},
       ]);
     });
   });
@@ -635,7 +638,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           'sdkLibraryHits': [],
           'packageHits': [
             {'package': 'serveme', 'score': closeTo(0.87, 0.01)},
-            {'package': 'flutter_modular', 'score': closeTo(0.67, 0.01)},
+            {'package': 'flutter_modular', 'score': closeTo(0.86, 0.01)},
           ]
         },
       );

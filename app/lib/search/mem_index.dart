@@ -562,8 +562,14 @@ class PackageNameIndex {
 
       final matchedCharCount = matchedChars.where((c) => c).length;
       final totalNgramCount = matchedExtraWeight + unmatchedExtraWeight;
-      final score = (matchedExtraWeight + matchedCharCount) /
-          (totalNgramCount + matchedChars.length);
+      // The composite score combines:
+      // - matched ngrams (for increasing the positive match score)
+      // - (un)matched character counts (for decresing the score on missed characters)
+      // As the first part is more important, the missed char weight is greatly reduced.
+      const matchCharWeight = 0.2;
+      final score =
+          (matchedExtraWeight + (matchCharWeight * matchedCharCount)) /
+              (totalNgramCount + (matchCharWeight * matchedChars.length));
       values[pkg] = score;
     }
     return Score(values).removeLowValues(fraction: 0.5, minValue: 0.5);

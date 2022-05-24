@@ -52,14 +52,17 @@ Recent versions (0.3.x and 0.4.x) of this plugin require [extensible codec funct
           ServiceSearchQuery.parse(query: 'rest api', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
-        'totalCount': 1,
+        'totalCount': 2,
         'sdkLibraryHits': [],
         'packageHits': [
           {
             'package': 'currency_cloud',
             'score': closeTo(0.79, 0.01),
           },
-          // cloud_firestore should not show up
+          {
+            'package': 'cloud_firestore', // finds `rest` in name
+            'score': closeTo(0.62, 0.01),
+          },
         ],
       });
     });
