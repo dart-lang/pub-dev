@@ -611,4 +611,34 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       ]);
     });
   });
+
+  group('package name weight', () {
+    test('modular', () async {
+      final index = InMemoryPackageIndex(alwaysUpdateLikeScores: true);
+      await index.addPackage(PackageDocument(
+        package: 'serveme',
+        description:
+            'Backend server framework designed for a quick development of modular WebSocket based server applications with MongoDB integration.',
+      ));
+      await index.addPackage(PackageDocument(
+        package: 'flutter_modular',
+        description:
+            'Smart project structure with dependency injection and route management',
+      ));
+      final rs = await index.search(
+          ServiceSearchQuery.parse(query: 'modular', order: SearchOrder.text));
+      expect(
+        rs.toJson(),
+        {
+          'timestamp': isNotEmpty,
+          'totalCount': 2,
+          'sdkLibraryHits': [],
+          'packageHits': [
+            {'package': 'serveme', 'score': closeTo(0.87, 0.01)},
+            {'package': 'flutter_modular', 'score': closeTo(0.67, 0.01)},
+          ]
+        },
+      );
+    });
+  });
 }
