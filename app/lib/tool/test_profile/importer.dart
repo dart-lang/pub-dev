@@ -7,6 +7,8 @@ import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/data/publisher_api.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
+import 'package:pub_dev/account/auth_provider.dart';
+import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 
 import '../../shared/tags.dart';
 import '../utils/pub_api_client.dart';
@@ -36,7 +38,7 @@ Future<void> importProfile({
   // create publishers
   for (final p in profile.publishers) {
     final firstMemberEmail = p.members.first.email;
-    final token = _fakeToken(firstMemberEmail);
+    final token = createFakeAuthTokenForEmail(firstMemberEmail);
     await withHttpPubApiClient(
       bearerToken: token,
       pubHostedUrl: pubHostedUrl,
@@ -66,7 +68,8 @@ Future<void> importProfile({
 
     final bytes = await source.getArchiveBytes(rv.package, rv.version);
     await withHttpPubApiClient(
-      bearerToken: _fakeToken(uploaderEmail),
+      bearerToken:
+          createFakeAuthTokenForEmail(uploaderEmail, source: AuthSource.client),
       pubHostedUrl: pubHostedUrl,
       fn: (client) async {
         final uploadInfo = await client.getPackageUploadUrl();
@@ -93,7 +96,7 @@ Future<void> importProfile({
     final activeEmail = lastActiveUploaderEmails[packageName];
 
     await withHttpPubApiClient(
-      bearerToken: _fakeToken(activeEmail!),
+      bearerToken: createFakeAuthTokenForEmail(activeEmail!),
       pubHostedUrl: pubHostedUrl,
       fn: (client) async {
         // update publisher
@@ -124,7 +127,8 @@ Future<void> importProfile({
 
     if (testPackage.isFlutterFavorite ?? false) {
       await withHttpPubApiClient(
-        bearerToken: _fakeToken(adminUserEmail ?? activeEmail),
+        bearerToken: createFakeAuthTokenForEmail(adminUserEmail ?? activeEmail,
+            source: AuthSource.admin),
         pubHostedUrl: pubHostedUrl,
         fn: (client) async {
           await client.adminPostAssignedTags(
@@ -142,7 +146,7 @@ Future<void> importProfile({
   // create users
   for (final u in profile.users) {
     await withHttpPubApiClient(
-      bearerToken: _fakeToken(u.email),
+      bearerToken: createFakeAuthTokenForEmail(u.email),
       pubHostedUrl: pubHostedUrl,
       fn: (client) async {
         // creates user (regardless of likes being specified)
@@ -166,7 +170,7 @@ Future<void> importProfile({
       for (var i = 0; i < likesMissing; i++) {
         final userEmail = 'like-$i@pub.dev';
         await withHttpPubApiClient(
-          bearerToken: _fakeToken(userEmail),
+          bearerToken: createFakeAuthTokenForEmail(userEmail),
           pubHostedUrl: pubHostedUrl,
           fn: (client) async {
             await client.likePackage(p.name);
@@ -191,6 +195,3 @@ List<String> _potentialActiveEmails(TestProfile profile, String packageName) {
       .members;
   return members.map((m) => m.email).toList();
 }
-
-String _fakeToken(String email) =>
-    email.replaceAll('@', '-at-').replaceAll('.', '-dot-');

@@ -102,9 +102,10 @@ class ConsentBackend {
     required String kind,
     required List<String> args,
     required AuditLogRecord auditLogRecord,
+    AuthSource? authSource,
   }) async {
     return retry(() async {
-      final activeUser = await requireAuthenticatedUser();
+      final activeUser = await requireAuthenticatedUser(source: authSource);
       // First check for existing consents with identical dedupId.
       final dedupId = consentDedupId(
         fromUserId: activeUser.userId,
@@ -144,10 +145,11 @@ class ConsentBackend {
 
   /// Invites a new uploader to the package.
   Future<api.InviteStatus> invitePackageUploader({
+    required AuthSource authSource,
     required String packageName,
     required String uploaderEmail,
   }) async {
-    final user = await requireAuthenticatedUser();
+    final user = await requireAuthenticatedUser(source: authSource);
     return await _invite(
       email: uploaderEmail,
       kind: ConsentKind.packageUploader,
@@ -157,6 +159,7 @@ class ConsentBackend {
         package: packageName,
         uploaderEmail: uploaderEmail,
       ),
+      authSource: authSource,
     );
   }
 

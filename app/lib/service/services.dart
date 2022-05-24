@@ -84,13 +84,7 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
           Storage(retryingAuthClient, activeConfiguration.projectId));
 
       // register services with external dependencies
-      registerAuthProvider(GoogleOauth2AuthProvider(
-        <String>[
-          activeConfiguration.pubClientAudience!,
-          activeConfiguration.pubSiteAudience!,
-          activeConfiguration.adminAudience!,
-        ],
-      ));
+      registerAuthProvider(GoogleOauth2AuthProvider());
       registerScopeExitCallback(authProvider.close);
       registerDomainVerifier(DomainVerifier());
       registerEmailSender(

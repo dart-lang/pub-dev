@@ -22,6 +22,8 @@ import 'auth_provider.dart';
 import 'models.dart';
 import 'session_cookie.dart' as session_cookie;
 
+export 'auth_provider.dart' show AuthSource;
+
 /// The name of the session cookie.
 ///
 /// Cookies prefixed '__Host-' must:
@@ -80,12 +82,13 @@ UserSessionData? get userSessionData =>
 /// When no associated User entry exists in Datastore, this method will create
 /// a new one. When the authenticated email of the user changes, the email
 /// field will be updated to the latest one.
-Future<User> requireAuthenticatedUser() async {
+Future<User> requireAuthenticatedUser({AuthSource? source}) async {
   final token = _getBearerToken();
   if (token == null || token.isEmpty) {
     throw AuthenticationException.authenticationRequired();
   }
-  final auth = await authProvider.tryAuthenticate(token);
+  final auth =
+      await authProvider.tryAuthenticate(source ?? AuthSource.website, token);
   if (auth == null) {
     throw AuthenticationException.failed();
   }
@@ -277,8 +280,8 @@ class AccountBackend {
   /// Throws [AuthenticationException] if token cannot be authenticated or the
   /// OAuth userId differs from [owner].
   Future<void> verifyAccessTokenOwnership(
-      String accessToken, User owner) async {
-    final auth = await authProvider.tryAuthenticate(accessToken);
+      AuthSource source, String accessToken, User owner) async {
+    final auth = await authProvider.tryAuthenticate(source, accessToken);
     if (auth == null) {
       throw AuthenticationException.accessTokenInvalid();
     }
@@ -331,21 +334,14 @@ class AccountBackend {
 
   Future<User?> _lookupOrCreateUserByOauthUserId(AuthResult auth) async {
     ArgumentError.checkNotNull(auth, 'auth');
-    if (auth.oauthUserId == null) {
-      throw StateError('Authenticated user ${auth.email} without userId.');
-    }
-
     final emptyKey = _db.emptyKey;
 
     // Attempt to lookup the user, the common case is that the user exists.
     // If the user exists, it's always cheaper to lookup the user outside a
     // transaction.
-    final user = await _lookupUserByOauthUserId(auth.oauthUserId!);
-    if (user != null &&
-        user.email != auth.email &&
-        auth.email != null &&
-        auth.email!.isNotEmpty) {
-      return await _updateUserEmail(user, auth.email!);
+    final user = await _lookupUserByOauthUserId(auth.oauthUserId);
+    if (user != null && user.email != auth.email && auth.email.isNotEmpty) {
+      return await _updateUserEmail(user, auth.email);
     }
     if (user != null) {
       return user;
