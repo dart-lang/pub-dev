@@ -291,7 +291,7 @@ class QueryValidity {
   bool get isRejected => rejectReason != null;
 }
 
-@JsonSerializable(includeIfNull: false)
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
 class PackageSearchResult {
   final DateTime? timestamp;
   final int totalCount;
@@ -337,7 +337,7 @@ class PackageSearchResult {
       highlightedHit == null && packageHits.isEmpty && sdkLibraryHits.isEmpty;
 }
 
-@JsonSerializable(includeIfNull: false)
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
 class SdkLibraryHit {
   final String? sdk;
   final String? version;
@@ -363,7 +363,7 @@ class SdkLibraryHit {
   Map<String, dynamic> toJson() => _$SdkLibraryHitToJson(this);
 }
 
-@JsonSerializable(includeIfNull: false)
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
 class PackageHit {
   final String package;
   final double? score;
@@ -389,7 +389,7 @@ class PackageHit {
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
 class ApiPageRef {
   final String? title;
   final String? path;

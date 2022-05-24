@@ -63,19 +63,19 @@ void main() {
           },
           {
             'package': 'flutter_blue',
-            'score': closeTo(0.74, 0.01),
+            'score': closeTo(0.82, 0.01),
           },
           {
             'package': 'flutter_redux',
-            'score': 0.7,
+            'score': closeTo(0.81, 0.01),
           },
           {
             'package': 'flutter_3d_obj',
-            'score': 0.7,
+            'score': closeTo(0.81, 0.01),
           },
           {
             'package': 'flutter_web_view',
-            'score': closeTo(0.64, 0.01),
+            'score': closeTo(0.78, 0.01),
           },
         ],
       });
@@ -93,13 +93,19 @@ void main() {
         'packageHits': [
           {
             'package': 'flutter_blue',
-            'score': closeTo(0.74, 0.01),
+            'score': closeTo(0.82, 0.01),
           },
-          {'package': 'flutter_redux', 'score': 0.7},
-          {'package': 'flutter_3d_obj', 'score': 0.7},
+          {
+            'package': 'flutter_redux',
+            'score': closeTo(0.81, 0.01),
+          },
+          {
+            'package': 'flutter_3d_obj',
+            'score': closeTo(0.81, 0.01),
+          },
           {
             'package': 'flutter_web_view',
-            'score': closeTo(0.64, 0.01),
+            'score': closeTo(0.78, 0.01),
           },
         ],
       });

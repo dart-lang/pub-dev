@@ -129,19 +129,16 @@ void main() {
           'score': closeTo(0.98, 0.01),
           'apiPages': [
             {
-              'title': null,
               'path': 'widgets/StatelessWidget-class.html',
               'url':
                   'https://api.flutter.dev/flutter/widgets/StatelessWidget-class.html'
             },
             {
-              'title': null,
               'path': 'widgets/StatelessWidget/StatelessWidget.html',
               'url':
                   'https://api.flutter.dev/flutter/widgets/StatelessWidget/StatelessWidget.html'
             },
             {
-              'title': null,
               'path': 'widgets/StatelessWidget/build.html',
               'url':
                   'https://api.flutter.dev/flutter/widgets/StatelessWidget/build.html'
