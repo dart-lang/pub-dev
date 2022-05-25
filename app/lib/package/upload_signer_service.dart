@@ -58,7 +58,6 @@ abstract class UploadSignerService {
     String object,
     Duration lifetime, {
     String? successRedirectUrl,
-    String predefinedAcl = 'project-private',
     int maxUploadSize = maxUploadSize,
   }) async {
     final now = clock.now().toUtc();
@@ -67,7 +66,6 @@ abstract class UploadSignerService {
     final key = '$bucket/$object';
     final conditions = [
       {'key': key},
-      {'acl': predefinedAcl},
       {'expires': expirationString},
       if (successRedirectUrl != null)
         {'success_action_redirect': successRedirectUrl},
@@ -85,7 +83,6 @@ abstract class UploadSignerService {
 
     final fields = {
       'key': key,
-      'acl': predefinedAcl,
       'Expires': expirationString,
       'GoogleAccessId': result.googleAccessId,
       'policy': policyString,
