@@ -133,8 +133,8 @@ d.Node pageLayoutNode({
               ),
               d.link(
                 rel: 'preload',
-                href:
-                    staticUrls.getAssetUrl('/static/img/square-bg-full-2x.png'),
+                href: staticUrls
+                    .getAssetUrl('/static/img/square-bg-full-2x.webp'),
                 as: 'image',
               ),
             ],
