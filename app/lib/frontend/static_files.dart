@@ -221,7 +221,7 @@ class StaticUrls {
   late final defaultProfilePng = getAssetUrl(
       '/static/img/material-icon-twotone-account-circle-white-24dp.png');
   late final githubMarkdownCss = getAssetUrl('/static/css/github-markdown.css');
-  late final packagesSideImage = getAssetUrl('/static/img/packages-side.png');
+  late final packagesSideImage = getAssetUrl('/static/img/packages-side.webp');
   late final reportMissingIconRed =
       getAssetUrl('/static/img/report-missing-icon-red.svg');
   late final reportMissingIconYellow =
