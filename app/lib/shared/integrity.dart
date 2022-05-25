@@ -369,12 +369,24 @@ class IntegrityChecker {
       ..filter('package =', p.name);
     final pviKeys = <QualifiedVersionKey>{};
     final referencedAssetIds = <String>[];
+
+    Stream<String> checkPackageVersionKey(
+        String entityType, QualifiedVersionKey key) async* {
+      if (!qualifiedVersionKeys.contains(key)) {
+        final pv = await packageBackend.lookupPackageVersion(
+            key.package!, key.version!);
+        if (pv == null) {
+          yield '$entityType "$key" has no PackageVersion.';
+        } else {
+          qualifiedVersionKeys.add(key);
+        }
+      }
+    }
+
     await for (PackageVersionInfo pvi in pviQuery.run()) {
       final key = pvi.qualifiedVersionKey;
       pviKeys.add(key);
-      if (!qualifiedVersionKeys.contains(key)) {
-        yield 'PackageVersionInfo "$key" has no PackageVersion.';
-      }
+      yield* checkPackageVersionKey('PackageVersionInfo', key);
       if (pvi.versionCreated == null) {
         yield 'PackageVersionInfo "$key" has a `versionCreated` property which is null.';
       }
@@ -405,9 +417,7 @@ class IntegrityChecker {
         yield 'PackageVersionAsset "${pva.id}" uses old id format.';
         continue;
       }
-      if (!qualifiedVersionKeys.contains(key)) {
-        yield 'PackageVersionAsset "${pva.id}" has no PackageVersion.';
-      }
+      yield* checkPackageVersionKey('PackageVersionAsset', key);
       foundAssetIds.add(pva.assetId);
       // check if PackageVersionAsset is referenced in PackageVersionInfo
       if (!referencedAssetIds.contains(pva.assetId)) {
