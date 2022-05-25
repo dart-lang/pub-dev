@@ -18,17 +18,17 @@ class Publisher extends db.ExpandoModel<String> {
   /// Markdown formatted description of the publisher.
   ///
   /// Limited to 64 KB in length.
-  @db.StringProperty()
+  @db.StringProperty(indexed: false)
   String? description;
 
-  @db.StringProperty()
+  @db.StringProperty(indexed: false)
   String? websiteUrl;
 
   /// The email address which other users can use to contact the publisher.
   ///
   /// This may be `null` if the publisher [isAbandoned] and the [Publisher]
   /// entity is retained for audit purposes.
-  @db.StringProperty()
+  @db.StringProperty(indexed: false)
   String? contactEmail;
 
   @db.DateTimeProperty(required: true)

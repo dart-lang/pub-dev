@@ -230,12 +230,26 @@ class PublisherBackend {
   Future<api.PublisherInfo> updatePublisher(
       String publisherId, api.UpdatePublisherRequest update) async {
     checkPublisherIdParam(publisherId);
+    // limit length, if not null
     if (update.description != null) {
-      // limit length, if not null
       InvalidInputException.checkStringLength(
         update.description,
         'description',
         maximum: 4096,
+      );
+    }
+    if (update.websiteUrl != null) {
+      InvalidInputException.checkStringLength(
+        update.websiteUrl,
+        'websiteUrl',
+        maximum: 256,
+      );
+    }
+    if (update.contactEmail != null) {
+      InvalidInputException.checkStringLength(
+        update.contactEmail,
+        'contactEmail',
+        maximum: 256,
       );
     }
     final user = await requireAuthenticatedUser();
