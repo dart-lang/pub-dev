@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_pub_shared/search/search_form.dart'
-    show SearchContext, SearchForm, SearchOrder;
+    show SearchForm, SearchOrder;
 import 'package:path/path.dart' as p;
 
 const primaryHost = 'pub.dev';
@@ -172,7 +172,7 @@ String pkgDocUrl(
 
 String publisherUrl(String publisherId) => '/publishers/$publisherId';
 String publisherPackagesUrl(String publisherId) =>
-    SearchContext.publisher(publisherId).toSearchFormPath();
+    '/publishers/$publisherId/packages';
 
 String publisherAdminUrl(String publisherId) =>
     publisherUrl(publisherId) + '/admin';

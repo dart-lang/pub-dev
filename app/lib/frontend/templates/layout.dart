@@ -47,7 +47,6 @@ String renderLayoutPage(
   /// The canonical content link that will be put in the header.
   /// https://support.google.com/webmasters/answer/139066?hl=en
   String? canonicalUrl,
-  String? publisherId,
   SearchForm? searchForm,
   bool noIndex = false,
   PageData? pageData,
@@ -84,7 +83,6 @@ String renderLayoutPage(
     searchBanner: showSearchBanner(type)
         ? _renderSearchBanner(
             type: type,
-            publisherId: publisherId,
             searchForm: searchForm,
           )
         : null,
@@ -99,19 +97,10 @@ String renderLayoutPage(
 
 d.Node _renderSearchBanner({
   required PageType type,
-  required String? publisherId,
   required SearchForm? searchForm,
 }) {
   final queryText = searchForm?.query;
-  String? searchPlaceholder;
-  if (publisherId != null) {
-    searchPlaceholder ??= 'Search $publisherId packages';
-  } else {
-    searchPlaceholder ??= getSdkDict(null).searchPackagesLabel;
-  }
-  final searchFormUrl = publisherId == null
-      ? urls.searchUrl()
-      : urls.publisherPackagesUrl(publisherId);
+  final searchPlaceholder = getSdkDict(null).searchPackagesLabel;
   final searchSort = searchForm?.order?.name;
   return searchBannerNode(
     // When search is active (query text has a non-empty value) users may expect
@@ -119,7 +108,7 @@ d.Node _renderSearchBanner({
     // search field when there is no active search.
     autofocus: queryText == null,
     showSearchFiltersButton: type == PageType.listing,
-    formUrl: searchFormUrl,
+    formUrl: urls.searchUrl(),
     placeholder: searchPlaceholder,
     queryText: queryText,
     sortParam: searchSort,

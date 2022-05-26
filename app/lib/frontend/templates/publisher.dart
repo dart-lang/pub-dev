@@ -92,9 +92,8 @@ String renderPublisherPackagesPage({
         publisherId: publisher.publisherId,
       ),
     ),
-    publisherId: publisher.publisherId,
     searchForm: searchForm,
-    canonicalUrl: searchForm.toSearchLink(),
+    canonicalUrl: urls.publisherPackagesUrl(publisher.publisherId),
     // index only the first page, if it has packages displayed without search query
     noIndex:
         searchResultPage.hasNoHit || isSearch || pageLinks.currentPage! > 1,
