@@ -204,7 +204,6 @@ PanaReport panaReportFromSummary(Summary? summary, {List<String>? flags}) {
     reportStatus: reportStatus,
     derivedTags: summary?.tags,
     allDependencies: summary?.allDependencies,
-    licenseFile: summary?.licenseFile,
     licenses: summary?.licenses,
     report: summary?.report,
     flags: flags,

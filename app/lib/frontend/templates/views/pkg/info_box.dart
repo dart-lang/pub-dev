@@ -34,12 +34,9 @@ d.Node packageInfoBoxNode({
   final version = data.version!;
   d.Node? license;
   if (data.versionInfo?.hasLicense ?? false) {
-    final licenseFile = data.scoreCard?.panaReport?.licenseFile;
     final licenses = data.scoreCard?.panaReport?.licenses ?? <License>[];
     if (licenses.isEmpty) {
-      licenses.add(licenseFile == null
-          ? License(path: 'LICENSE', spdxIdentifier: 'unknown')
-          : License(path: licenseFile.path, spdxIdentifier: licenseFile.name));
+      licenses.add(License(path: 'LICENSE', spdxIdentifier: 'unknown'));
     }
     license = _licenseNode(
       licenses: licenses,
@@ -142,6 +139,10 @@ d.Node? _licenseNode({
   final paths = licenses.map((e) => e.path).toSet().toList();
   final labels = licenses.map((e) => e.spdxIdentifier).toSet().join(', ');
   return d.fragment([
+    d.img(
+      classes: ['inline-icon-img'],
+      image: licenseIconImage(),
+    ),
     d.text(labels),
     d.text(' ('),
     d.a(href: licenseUrl, text: paths.join(', ')),
