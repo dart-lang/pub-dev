@@ -20,6 +20,7 @@ import '../package/models.dart' show PackageView;
 import '../publisher/models.dart' show PublisherPage;
 import '../scorecard/models.dart' show ScoreCardData;
 import '../search/search_service.dart' show PackageSearchResult;
+import '../service/openid/jwks.dart' show JsonWebKeyList;
 import '../service/secret/backend.dart';
 import 'convert.dart';
 import 'versions.dart';
@@ -274,6 +275,17 @@ class CachePatterns {
         encode: (bool value) => value,
         decode: (d) => d as bool,
       ))['$service/$package'];
+
+  /// Stores the Github OpenID JSON Web Key list.
+  Entry<JsonWebKeyList> githubOpenIdWebKeyList() => _cache
+      .withPrefix('github-openid-web-key-list/')
+      .withTTL(Duration(minutes: 15))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(wrapAsCodec(
+        encode: (JsonWebKeyList v) => v.toJson(),
+        decode: (v) => JsonWebKeyList.fromJson(v as Map<String, dynamic>),
+      ))['/'];
 }
 
 /// The active cache.
