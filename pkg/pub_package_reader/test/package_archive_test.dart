@@ -102,16 +102,6 @@ void main() {
           isNotEmpty);
     });
 
-    test('known template', () {
-      expect(validateDescription('A sample command-line application.'),
-          isNotEmpty);
-    });
-
-    test('known template with some extra text', () {
-      expect(validateDescription('A sample command-line application by xyz.'),
-          isNotEmpty);
-    });
-
     test('valid text', () {
       expect(
           validateDescription(
