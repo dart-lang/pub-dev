@@ -25,9 +25,9 @@ JsonWebKey _$JsonWebKeyFromJson(Map<String, dynamic> json) => JsonWebKey(
       kty: json['kty'] as String?,
       x5c: (json['x5c'] as List<dynamic>?)?.map((e) => e as String).toList(),
       x5t: json['x5t'] as String?,
-      n: const NullableUint8ListBase64Converter()
+      n: const NullableUint8ListUnpaddedBase64UrlConverter()
           .fromJson(json['n'] as String?),
-      e: const NullableUint8ListBase64Converter()
+      e: const NullableUint8ListUnpaddedBase64UrlConverter()
           .fromJson(json['e'] as String?),
     );
 
@@ -47,9 +47,9 @@ Map<String, dynamic> _$JsonWebKeyToJson(JsonWebKey instance) {
   writeNotNull('kty', instance.kty);
   writeNotNull('x5c', instance.x5c);
   writeNotNull('x5t', instance.x5t);
-  writeNotNull(
-      'n', const NullableUint8ListBase64Converter().toJson(instance.n));
-  writeNotNull(
-      'e', const NullableUint8ListBase64Converter().toJson(instance.e));
+  writeNotNull('n',
+      const NullableUint8ListUnpaddedBase64UrlConverter().toJson(instance.n));
+  writeNotNull('e',
+      const NullableUint8ListUnpaddedBase64UrlConverter().toJson(instance.e));
   return val;
 }

@@ -46,11 +46,11 @@ class JsonWebKey {
   final String? x5t;
 
   /// The modulus for the RSA public key.
-  @NullableUint8ListBase64Converter()
+  @NullableUint8ListUnpaddedBase64UrlConverter()
   final Uint8List? n;
 
   /// The exponent for the RSA public key.
-  @NullableUint8ListBase64Converter()
+  @NullableUint8ListUnpaddedBase64UrlConverter()
   final Uint8List? e;
 
   JsonWebKey({
@@ -70,10 +70,10 @@ class JsonWebKey {
   Map<String, dynamic> toJson() => _$JsonWebKeyToJson(this);
 }
 
-/// Converts bytes to BASE64-encoded String (nullable values).
-class NullableUint8ListBase64Converter
+/// Converts bytes to unpadded, URL-safe BASE64-encoded String (nullable values).
+class NullableUint8ListUnpaddedBase64UrlConverter
     implements JsonConverter<Uint8List?, String?> {
-  const NullableUint8ListBase64Converter();
+  const NullableUint8ListUnpaddedBase64UrlConverter();
 
   @override
   Uint8List? fromJson(String? json) {
@@ -90,7 +90,8 @@ class NullableUint8ListBase64Converter
   @override
   String? toJson(Uint8List? object) {
     if (object != null) {
-      return base64.encode(object);
+      final value = base64.encode(object);
+      return value.endsWith('=') ? value.split('=').first : value;
     }
     return null;
   }
