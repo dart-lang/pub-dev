@@ -36,9 +36,12 @@ Iterable<ArchiveIssue> validateKnownTemplateDescription(
     String description) sync* {
   final lower = description.toLowerCase();
   for (final text in _knownTemplateDescriptions) {
-    if (lower.contains(text)) {
+    final firstIndex = lower.indexOf(text);
+    if (firstIndex >= 0) {
+      final origText =
+          description.substring(firstIndex, firstIndex + text.length);
       yield ArchiveIssue(
-          '`description` contains a generic text fragment coming from package templates (`$text`).\n'
+          '`description` contains a generic text fragment coming from package templates (`$origText`).\n'
           'Please follow the guides to describe your package:\n'
           'https://dart.dev/tools/pub/pubspec#description');
       break;
@@ -53,9 +56,11 @@ Iterable<ArchiveIssue> validateKnownTemplateReadme(
   }
   final lower = content.toLowerCase();
   for (final text in _knownTemplateReadmes) {
-    if (lower.contains(text)) {
+    final firstIndex = lower.indexOf(text);
+    if (firstIndex >= 0) {
+      final origText = content.substring(firstIndex, firstIndex + text.length);
       yield ArchiveIssue(
-          '`$path` contains a generic text fragment coming from package templates (`$text`).\n'
+          '`$path` contains a generic text fragment coming from package templates (`$origText`).\n'
           'Please follow the guides to write great package pages:\n'
           'https://dart.dev/guides/libraries/writing-package-pages');
       break;
