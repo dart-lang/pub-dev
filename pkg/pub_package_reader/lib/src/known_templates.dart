@@ -46,6 +46,8 @@ Iterable<ArchiveIssue> validateKnownTemplateDescription(
   }
 }
 
+/// Validates that `README.md` at [path] inside the package archive with [content] does
+/// not contain a `TODO` instruction from a known template.
 Iterable<ArchiveIssue> validateKnownTemplateReadme(
     String? path, String? content) sync* {
   if (path == null || content == null) {
