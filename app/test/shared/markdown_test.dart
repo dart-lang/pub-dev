@@ -367,5 +367,45 @@ void main() {
         '<h2 class="changelog-version hash-header" id="100-2">1.0.0 <a href="#100" class="hash-link">#</a></h2>',
       ]);
     });
+
+    test('extra text after version', () {
+      final output = markdownToHtml(
+          '# Changelog\n\n'
+          '## 1.0.0 (retracted)\n'
+          '\n'
+          '- change1',
+          isChangelog: true);
+      final lines = output!
+          .split('\n')
+          .where((l) => l.contains('changelog-version'))
+          .toList();
+      expect(
+        lines.single,
+        '<h2 class="changelog-version hash-header" id="100-retracted">'
+        '1.0.0 (retracted) '
+        '<a href="#100-retracted" class="hash-link">#</a>'
+        '</h2>',
+      );
+    });
+
+    test('fancy format', () {
+      final output = markdownToHtml(
+          '# Changelog\n\n'
+          '## [1.0.0] - 2022-05-30\n'
+          '\n'
+          '- change1',
+          isChangelog: true);
+      final lines = output!
+          .split('\n')
+          .where((l) => l.contains('changelog-version'))
+          .toList();
+      expect(
+        lines.single,
+        '<h2 class="changelog-version hash-header" id="100---2022-05-30">'
+        '[1.0.0] - 2022-05-30 '
+        '<a href="#100---2022-05-30" class="hash-link">#</a>'
+        '</h2>',
+      );
+    });
   });
 }
