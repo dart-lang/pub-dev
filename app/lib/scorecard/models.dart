@@ -64,23 +64,9 @@ class ScoreCard extends db.ExpandoModel<String> {
   @db.DateTimeProperty(required: true, indexed: false)
   DateTime? packageVersionCreated;
 
-  /// Granted score from pana and dartdoc analysis.
-  @db.IntProperty(indexed: false)
-  int? grantedPubPoints;
-
-  /// Max score from pana and dartdoc analysis.
-  /// `null` if report is not ready yet.
-  /// `0` if analysis was not running
-  @db.IntProperty(indexed: false)
-  int? maxPubPoints;
-
   /// Score for package popularity (0.0 - 1.0).
   @db.DoubleProperty(indexed: false)
   double? popularityScore;
-
-  /// List of tags computed by `pana` or other analyzer.
-  @db.StringListProperty(indexed: false)
-  List<String> derivedTags = <String>[];
 
   /// The flags for the package, version or analysis.
   /// Example values: entries from [PackageFlags].
@@ -117,10 +103,7 @@ class ScoreCard extends db.ExpandoModel<String> {
         updated: updated!,
         packageCreated: packageCreated!,
         packageVersionCreated: packageVersionCreated!,
-        grantedPubPoints: grantedPubPoints,
-        maxPubPoints: maxPubPoints,
         popularityScore: popularityScore,
-        derivedTags: derivedTags,
         flags: flags,
         dartdocReport: DartdocReport.fromBytes(dartdocReportJsonGz),
         panaReport: PanaReport.fromBytes(panaReportJsonGz),
@@ -133,25 +116,20 @@ class ScoreCard extends db.ExpandoModel<String> {
     DartdocReport? dartdocReport,
   }) {
     if (panaReport != null) {
-      panaReportJsonGz = panaReport.toBytes();
+      panaReportJsonGz = panaReport.asBytes;
     } else if (panaReportJsonGz != null && panaReportJsonGz!.isNotEmpty) {
       panaReport = PanaReport.fromBytes(panaReportJsonGz);
     }
     if (dartdocReport != null) {
-      dartdocReportJsonGz = dartdocReport.toBytes();
+      dartdocReportJsonGz = dartdocReport.asBytes;
     } else if (dartdocReportJsonGz != null && dartdocReportJsonGz!.isNotEmpty) {
       dartdocReport = DartdocReport.fromBytes(dartdocReportJsonGz);
     }
 
-    derivedTags = panaReport?.derivedTags ?? derivedTags;
     flags = {
       ...flags,
       ...?panaReport?.flags,
     }.toList();
-    final report =
-        joinReport(panaReport: panaReport, dartdocReport: dartdocReport);
-    grantedPubPoints = report?.grantedPoints ?? 0;
-    maxPubPoints = report?.maxPoints ?? 0;
   }
 }
 
@@ -178,19 +156,8 @@ class ScoreCardData extends Object with FlagMixin {
   final DateTime? packageCreated;
   final DateTime? packageVersionCreated;
 
-  /// Granted score from pana and dartdoc analysis.
-  final int? grantedPubPoints;
-
-  /// Max score from pana and dartdoc analysis.
-  /// `null` if report is not ready yet.
-  /// `0` if analysis was not running
-  final int? maxPubPoints;
-
   /// Score for package popularity (0.0 - 1.0).
   final double? popularityScore;
-
-  /// List of tags computed by `pana` or other analyzer.
-  final List<String>? derivedTags;
 
   /// The flags for the package, version or analysis.
   @override
@@ -206,10 +173,7 @@ class ScoreCardData extends Object with FlagMixin {
     this.updated,
     this.packageCreated,
     this.packageVersionCreated,
-    this.grantedPubPoints,
-    this.maxPubPoints,
     this.popularityScore,
-    this.derivedTags,
     this.flags,
     this.dartdocReport,
     this.panaReport,
@@ -217,6 +181,17 @@ class ScoreCardData extends Object with FlagMixin {
 
   factory ScoreCardData.fromJson(Map<String, dynamic> json) =>
       _$ScoreCardDataFromJson(json);
+
+  /// Granted score from pana and dartdoc analysis.
+  int get grantedPubPoints => report?.grantedPoints ?? 0;
+
+  /// Max score from pana and dartdoc analysis.
+  /// `null` if report is not ready yet.
+  /// `0` if analysis was not running
+  int get maxPubPoints => report?.maxPoints ?? 0;
+
+  /// List of tags computed by `pana` or other analyzer.
+  List<String>? get derivedTags => panaReport?.derivedTags;
 
   bool get isNew => clock.now().difference(packageCreated!).inDays <= 30;
   bool get isCurrent => runtimeVersion == versions.runtimeVersion;
@@ -226,7 +201,7 @@ class ScoreCardData extends Object with FlagMixin {
 
   Map<String, dynamic> toJson() => _$ScoreCardDataToJson(this);
 
-  Report? getJoinedReport() =>
+  late final report =
       joinReport(panaReport: panaReport, dartdocReport: dartdocReport);
 }
 
@@ -288,7 +263,7 @@ class PanaReport {
 
   Map<String, dynamic> toJson() => _$PanaReportToJson(this);
 
-  List<int> toBytes() => _gzipCodec.encode(jsonUtf8Encoder.convert(toJson()));
+  late final asBytes = _gzipCodec.encode(jsonUtf8Encoder.convert(toJson()));
 }
 
 @JsonSerializable()
@@ -321,7 +296,7 @@ class DartdocReport {
 
   Map<String, dynamic> toJson() => _$DartdocReportToJson(this);
 
-  List<int> toBytes() => _gzipCodec.encode(jsonUtf8Encoder.convert(toJson()));
+  late final asBytes = _gzipCodec.encode(jsonUtf8Encoder.convert(toJson()));
 }
 
 Report? joinReport({PanaReport? panaReport, DartdocReport? dartdocReport}) {

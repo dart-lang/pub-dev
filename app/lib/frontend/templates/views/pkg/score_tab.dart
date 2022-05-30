@@ -20,7 +20,7 @@ d.Node scoreTabNode({
     return d.i(text: 'Awaiting analysis to complete.');
   }
 
-  final report = card.getJoinedReport();
+  final report = card.report;
   final showPending = !card.isSkipped && report == null;
   final showReport = !card.isSkipped && report != null;
 

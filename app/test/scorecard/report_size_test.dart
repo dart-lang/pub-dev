@@ -56,10 +56,7 @@ void main() {
           'updated': isNotNull,
           'packageCreated': isNotNull,
           'packageVersionCreated': isNotNull,
-          'grantedPubPoints': 20,
-          'maxPubPoints': 20,
           'popularityScore': isNotNull,
-          'derivedTags': isEmpty,
           'flags': [],
           'dartdocReport': isNotNull,
           'panaReport': {

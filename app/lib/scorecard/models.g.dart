@@ -20,12 +20,7 @@ ScoreCardData _$ScoreCardDataFromJson(Map<String, dynamic> json) =>
       packageVersionCreated: json['packageVersionCreated'] == null
           ? null
           : DateTime.parse(json['packageVersionCreated'] as String),
-      grantedPubPoints: json['grantedPubPoints'] as int?,
-      maxPubPoints: json['maxPubPoints'] as int?,
       popularityScore: (json['popularityScore'] as num?)?.toDouble(),
-      derivedTags: (json['derivedTags'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
       flags:
           (json['flags'] as List<dynamic>?)?.map((e) => e as String).toList(),
       dartdocReport: json['dartdocReport'] == null
@@ -46,10 +41,7 @@ Map<String, dynamic> _$ScoreCardDataToJson(ScoreCardData instance) =>
       'packageCreated': instance.packageCreated?.toIso8601String(),
       'packageVersionCreated':
           instance.packageVersionCreated?.toIso8601String(),
-      'grantedPubPoints': instance.grantedPubPoints,
-      'maxPubPoints': instance.maxPubPoints,
       'popularityScore': instance.popularityScore,
-      'derivedTags': instance.derivedTags,
       'flags': instance.flags,
       'dartdocReport': instance.dartdocReport,
       'panaReport': instance.panaReport,
