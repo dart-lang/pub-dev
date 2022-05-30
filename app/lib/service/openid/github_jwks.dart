@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:pub_dev/tool/utils/http.dart';
 
-import 'jwks.dart';
+import 'openid_models.dart';
 
 /// Fetches the OpenID configuration and then the JSON Web Key list from GitHub.
 Future<JsonWebKeyList> fetchGithubOpenIdWebKeyList() async {

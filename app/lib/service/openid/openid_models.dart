@@ -7,7 +7,7 @@ import 'dart:typed_data';
 
 import 'package:json_annotation/json_annotation.dart';
 
-part 'jwks.g.dart';
+part 'openid_models.g.dart';
 
 /// The list of JSON Web Key records.
 @JsonSerializable(includeIfNull: false, explicitToJson: true)

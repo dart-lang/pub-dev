@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'jwks.dart';
+part of 'openid_models.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator

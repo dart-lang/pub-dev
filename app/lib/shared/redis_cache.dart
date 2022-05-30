@@ -20,7 +20,7 @@ import '../package/models.dart' show PackageView;
 import '../publisher/models.dart' show PublisherPage;
 import '../scorecard/models.dart' show ScoreCardData;
 import '../search/search_service.dart' show PackageSearchResult;
-import '../service/openid/jwks.dart' show JsonWebKeyList;
+import '../service/openid/openid_models.dart' show JsonWebKeyList;
 import '../service/secret/backend.dart';
 import 'convert.dart';
 import 'versions.dart';
