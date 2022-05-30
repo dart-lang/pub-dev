@@ -276,7 +276,13 @@ class CachePatterns {
         decode: (d) => d as bool,
       ))['$service/$package'];
 
-  /// Stores the Github OpenID JSON Web Key list.
+  /// Stores the GitHub OpenID JSON Web Key list.
+  /// 
+  /// GitHub does not provide `Cache-Control` header for their
+  /// OpenId config or their keys. It is assumed that key rotation
+  /// (e.g. including a new key but not yet using it) should take
+  /// more than a day, we don't have any clear guidance on it.
+  /// Caching for 15 minutes seems to be a safe choice.
   Entry<JsonWebKeyList> githubOpenIdWebKeyList() => _cache
       .withPrefix('github-openid-web-key-list/')
       .withTTL(Duration(minutes: 15))

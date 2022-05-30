@@ -25,6 +25,10 @@ class JsonWebKeyList {
 }
 
 /// The JSON Web Key record.
+/// 
+/// See the specification for more details about the content:
+/// https://datatracker.ietf.org/doc/html/rfc7517
+/// https://www.iana.org/assignments/jose/jose.xhtml#web-key-parameters
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class JsonWebKey {
   /// The specific cryptographic algorithm used with the key.
@@ -39,7 +43,9 @@ class JsonWebKey {
   /// The family of cryptographic algorithms used with the key.
   final String? kty;
 
-  /// The x.509 certificate chain. The first entry in the array is the certificate to use for token verification; the other certificates can be used to verify this first certificate.
+  /// The x.509 certificate chain containing BASE64-encoded PKIX certificates.
+  /// The first entry in the array is the certificate to use for token verification; the other certificates can be used to verify this first certificate.
+  /// https://datatracker.ietf.org/doc/html/rfc7517#section-4.7
   final List<String>? x5c;
 
   /// The thumbprint of the x.509 cert (SHA-1 thumbprint).
