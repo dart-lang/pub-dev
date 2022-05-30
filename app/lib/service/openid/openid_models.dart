@@ -9,6 +9,51 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'openid_models.g.dart';
 
+/// The combined data from the OpenID provider, including their signing keys.
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
+class OpenIdData {
+  final OpenIdProvider provider;
+  final JsonWebKeyList jwks;
+
+  OpenIdData({
+    required this.provider,
+    required this.jwks,
+  });
+
+  factory OpenIdData.fromJson(Map<String, dynamic> json) =>
+      _$OpenIdDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$OpenIdDataToJson(this);
+}
+
+/// The (partial) data structure of the `.well-known/openid-configuration` endpoint.
+///
+/// https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
+///
+/// TODO: add all fields required for token verification, as described in:
+///       https://github.com/dart-lang/pub-dev/pull/5795#discussion_r884877050
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
+class OpenIdProvider {
+  /// The identifier of the provider.
+  /// This also MUST be identical to the iss Claim value in ID Tokens issued from this Issuer.
+  final String issuer;
+
+  /// URL of the provider's JSON Web Key Set `JWK` document.
+  /// This contains the signing key(s) the RP uses to validate signatures from the OP.
+  @JsonKey(name: 'jwks_uri')
+  final String jwksUri;
+
+  OpenIdProvider({
+    required this.issuer,
+    required this.jwksUri,
+  });
+
+  factory OpenIdProvider.fromJson(Map<String, dynamic> json) =>
+      _$OpenIdProviderFromJson(json);
+
+  Map<String, dynamic> toJson() => _$OpenIdProviderToJson(this);
+}
+
 /// The list of JSON Web Key records.
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class JsonWebKeyList {
@@ -25,7 +70,7 @@ class JsonWebKeyList {
 }
 
 /// The JSON Web Key record.
-/// 
+///
 /// See the specification for more details about the content:
 /// https://datatracker.ietf.org/doc/html/rfc7517
 /// https://www.iana.org/assignments/jose/jose.xhtml#web-key-parameters

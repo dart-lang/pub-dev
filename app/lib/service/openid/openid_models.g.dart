@@ -6,6 +6,30 @@ part of 'openid_models.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+OpenIdData _$OpenIdDataFromJson(Map<String, dynamic> json) => OpenIdData(
+      provider:
+          OpenIdProvider.fromJson(json['provider'] as Map<String, dynamic>),
+      jwks: JsonWebKeyList.fromJson(json['jwks'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$OpenIdDataToJson(OpenIdData instance) =>
+    <String, dynamic>{
+      'provider': instance.provider.toJson(),
+      'jwks': instance.jwks.toJson(),
+    };
+
+OpenIdProvider _$OpenIdProviderFromJson(Map<String, dynamic> json) =>
+    OpenIdProvider(
+      issuer: json['issuer'] as String,
+      jwksUri: json['jwks_uri'] as String,
+    );
+
+Map<String, dynamic> _$OpenIdProviderToJson(OpenIdProvider instance) =>
+    <String, dynamic>{
+      'issuer': instance.issuer,
+      'jwks_uri': instance.jwksUri,
+    };
+
 JsonWebKeyList _$JsonWebKeyListFromJson(Map<String, dynamic> json) =>
     JsonWebKeyList(
       keys: (json['keys'] as List<dynamic>)
