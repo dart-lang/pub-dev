@@ -54,7 +54,7 @@ void main() {
         await localDartTool.publish(
           pkgDir,
           expectedError:
-              '`description` contains a generic text fragment coming from package templates (`a sample command-line application`).\n'
+              '`description` contains a generic text fragment coming from package templates (`A sample command-line application`).\n'
               'Please follow the guides to describe your package:\n'
               'https://dart.dev/tools/pub/pubspec#description',
         );
