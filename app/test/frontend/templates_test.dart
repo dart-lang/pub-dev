@@ -567,8 +567,7 @@ void main() {
       'publisher packages page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        final searchForm =
-            SearchForm(context: SearchContext.publisher('example.com'));
+        final searchForm = SearchForm();
         final publisher = (await publisherBackend.getPublisher('example.com'))!;
         final neon = (await scoreCardBackend.getPackageView('neon'))!;
         final titanium =

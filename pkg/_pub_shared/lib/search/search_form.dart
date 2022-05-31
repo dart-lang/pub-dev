@@ -280,7 +280,6 @@ class ParsedQueryText {
 
 /// The <form> data from the app frontend.
 class SearchForm {
-  final SearchContext context;
   final String? query;
   late final parsedQuery = ParsedQueryText.parse(query);
 
@@ -294,7 +293,6 @@ class SearchForm {
   final int? pageSize;
 
   SearchForm._({
-    required this.context,
     this.query,
     this.order,
     this.currentPage,
@@ -302,7 +300,6 @@ class SearchForm {
   });
 
   factory SearchForm({
-    SearchContext? context,
     String? query,
     SearchOrder? order,
     int? currentPage,
@@ -312,7 +309,6 @@ class SearchForm {
     pageSize ??= resultsPerPage;
     final q = _stringToNull(query?.trim());
     return SearchForm._(
-      context: context ?? SearchContext._(),
       query: q,
       order: order,
       currentPage: currentPage,
@@ -323,24 +319,16 @@ class SearchForm {
   /// Parses the search query URL queryParameters for the parameters we expose on
   /// the frontend. The parameters and the values may be different from the ones
   /// we use in the search service backend.
-  factory SearchForm.parse(
-    Map<String, String> queryParameters, {
-    SearchContext? context,
-  }) {
+  factory SearchForm.parse(Map<String, String> queryParameters) {
     return SearchForm(
-      context: context,
       query: queryParameters['q'] ?? '',
       order: parseSearchOrder(queryParameters['sort']),
       currentPage: extractPageFromUrlParameters(queryParameters),
     );
   }
 
-  /// Removes the [SearchContext] and page number from from the form.
-  SearchForm clearContext() => SearchForm(query: query, order: order);
-
   SearchForm _change({String? query}) {
     return SearchForm._(
-      context: context,
       query: query ?? this.query,
       order: order,
       currentPage: currentPage,
@@ -388,8 +376,9 @@ class SearchForm {
   /// (e.g. clicking on any platforms, SDKs, or advanced filters).
   bool get hasActiveNonQuery => parsedQuery.tagsPredicate.isNotEmpty;
 
-  /// Wether the form has anything other than pagination present.
-  bool get hasNonPagination => query != null || order != null;
+  /// Wether the form has anything other than default values.
+  bool get isNotEmpty =>
+      hasQuery || order != null || (currentPage != null && currentPage != 1);
 
   /// Converts the query to a user-facing link that (after frontend parsing) will
   /// re-create an identical search query object.
@@ -401,38 +390,9 @@ class SearchForm {
       if (page != null && page > 1) 'page': page.toString(),
     };
     return Uri(
-      path: context.toSearchFormPath(),
+      path: '/packages',
       queryParameters: params.isEmpty ? null : params,
     ).toString();
-  }
-}
-
-/// The context of the search, e.g. (all | publisher | my-) packages.
-class SearchContext {
-  final String? publisherId;
-
-  /// True, if all packages should be part of the results, including:
-  /// - discontinued
-  /// - unlisted
-  /// - legacy
-  final bool includeAll;
-
-  SearchContext._({
-    String? publisherId,
-    this.includeAll = false,
-  }) : publisherId = _stringToNull(publisherId);
-
-  /// All packages listed for a publisher.
-  factory SearchContext.publisher(String publisherId) =>
-      SearchContext._(publisherId: publisherId, includeAll: true);
-
-  /// Converts the query to a user-facing link that the search form can use as
-  /// the base path of its `action` parameter.
-  String toSearchFormPath() {
-    if (publisherId != null && publisherId!.isNotEmpty) {
-      return '/publishers/$publisherId/packages';
-    }
-    return '/packages';
   }
 }
 
