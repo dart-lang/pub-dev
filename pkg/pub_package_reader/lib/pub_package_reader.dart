@@ -8,14 +8,15 @@ import 'package:clock/clock.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
-import 'package:pub_package_reader/src/emoji_ranges.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:yaml/yaml.dart' show YamlException, loadYaml;
 
 import 'src/archive_surface.dart';
 import 'src/check_platforms.dart';
+import 'src/emoji_ranges.dart';
 import 'src/file_names.dart';
+import 'src/known_templates.dart';
 import 'src/names.dart';
 import 'src/pubspec_content_override.dart';
 import 'src/tar_utils.dart';
@@ -268,6 +269,7 @@ Future<PackageSummary> summarizePackageArchive(
   issues.addAll(requireIosFolderOrFlutter2_20(pubspec, tar.fileNames));
   issues.addAll(requireNonEmptyLicense(licensePath, licenseContent));
   issues.addAll(checkScreenshots(pubspec, tar.fileNames));
+  issues.addAll(validateKnownTemplateReadme(readmePath, readmeContent));
 
   return PackageSummary(
     issues: issues,
@@ -339,24 +341,6 @@ Iterable<ArchiveIssue> validatePublishTo(String? value) sync* {
   }
 }
 
-final _descriptionsInKnownTemplates = {
-  // ex-stagehand templates, check latest versions in dart-lang/sdk's
-  // pkg/dartdev/lib/src/templates/ directory:
-  'a sample command-line application',
-  'a simple command-line application',
-  'a starting point for dart libraries or applications',
-  'a web server built using the shelf package',
-  'a web app that uses angulardart components',
-  'an absolute bare-bones web app',
-  'a simple stagexl web app',
-  // Flutter templates, check latest version in flutter/flutter's
-  // packages/flutter_tools/lib/src/commands/create.dart directory:
-  'a new flutter module project',
-  'a new flutter package project',
-  'a new flutter plugin project',
-  'a new flutter ffi plugin project',
-};
-
 /// Validates the `description` field in the `pubspec.yaml`.
 Iterable<ArchiveIssue> validateDescription(String? description) sync* {
   if (description == null) {
@@ -380,16 +364,7 @@ Iterable<ArchiveIssue> validateDescription(String? description) sync* {
     yield ArchiveIssue(
         '`description` is not allowed to have emoji characters.');
   }
-  final lower = trimmed.toLowerCase();
-  for (final text in _descriptionsInKnownTemplates) {
-    if (lower.contains(text)) {
-      yield ArchiveIssue(
-          '`description` contains a generic text fragment coming from package templates (`$text`).\n'
-          'Please follow the guides to describe your package:\n'
-          'https://dart.dev/tools/pub/pubspec#description');
-      break;
-    }
-  }
+  yield* validateKnownTemplateDescription(description);
 }
 
 /// Checks if the [text] has any weird characters like in
