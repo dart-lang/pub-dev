@@ -234,8 +234,6 @@ class PanaReport {
 
   final List<UrlProblem>? urlProblems;
 
-  final Repository? repository;
-
   PanaReport({
     required this.timestamp,
     required this.panaRuntimeInfo,
@@ -247,7 +245,6 @@ class PanaReport {
     required this.report,
     required this.flags,
     required this.urlProblems,
-    required this.repository,
     required this.screenshots,
   });
 

@@ -43,7 +43,6 @@ void main() {
             ]),
             flags: [],
             urlProblems: [],
-            repository: null,
             screenshots: null,
           ),
         );
