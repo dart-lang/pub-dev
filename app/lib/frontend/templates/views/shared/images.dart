@@ -14,3 +14,13 @@ d.Image verifiedPublisherIconImage() {
     height: 14,
   );
 }
+
+/// Returns the image object for license icon.
+d.Image licenseIconImage() {
+  return d.Image(
+    src: staticUrls.getAssetUrl('/static/img/material-icon-balance.svg'),
+    alt: 'Icon for licenses.',
+    width: 14,
+    height: 14,
+  );
+}

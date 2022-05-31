@@ -402,3 +402,11 @@ span.-x-ago {
     text-decoration: underline dotted #ccc;
   }
 }
+
+.inline-icon-img {
+  display: inline-block;
+  position: relative;
+  top: 3px;
+  opacity: 0.75;
+  margin-right: 3px;
+}

@@ -242,7 +242,6 @@ class ScoreCardBackend {
           reportStatus: ReportStatus.aborted,
           derivedTags: <String>[],
           allDependencies: <String>[],
-          licenseFile: null,
           licenses: null,
           report: pana.Report(
             sections: [

@@ -376,7 +376,6 @@ void main() {
           reportStatus: ReportStatus.aborted,
           derivedTags: null,
           allDependencies: null,
-          licenseFile: null,
           licenses: null,
           report: Report(sections: <ReportSection>[]),
           flags: null,
