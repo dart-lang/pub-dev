@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bumped runtimeVersion to `2022.06.13`.
  * Upgraded stable Flutter analysis SDK to `3.0.2`.
  * Upgraded preview Dart analysis SDK to `2.18.0-165.1.beta`.
+ * NOTE: Started to strictly match the OAuth token's audience for the scope of the current operation.
  * NOTE: Updated integrity checks before finalizing migration of `Package.isBlocked`.
 
 ## `20220608t083800-all`
