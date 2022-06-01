@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:retry/retry.dart' show retry;
 
+import '../service/openid/jwt.dart';
 import '../shared/configuration.dart';
 import '../shared/email.dart' show looksLikeEmail;
 import '../tool/utils/http.dart' show httpRetryClient;
@@ -251,10 +252,6 @@ class GoogleOauth2AuthProvider extends AuthProvider {
   }
 }
 
-/// Pattern for a valid JWT, these must 3 base64 segments separated by dots.
-final _jwtPattern = RegExp(
-    r'^[a-zA-Z0-9+/=_-]{4,}\.[a-zA-Z0-9+/=_-]{4,}\.[a-zA-Z0-9+/=_-]{4,}$');
-
 /// Return `true` if [token] is an `access_token`, and `false` if [token] is a
 /// JWT.
 ///
@@ -270,7 +267,7 @@ bool _isLikelyAccessToken(String token) {
     return true;
   }
   // If it looks like a JWT, then it's probably not an access_token.
-  if (_jwtPattern.hasMatch(token)) {
+  if (looksLikeJWT(token)) {
     return false;
   }
   return true; // anything goes
