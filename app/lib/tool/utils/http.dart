@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:http/http.dart' as http;
-import 'package:http_retry/http_retry.dart';
+import 'package:http/retry.dart';
 
 final _transientStatusCodes = {
   // See: https://cloud.google.com/storage/docs/xml-api/reference-status
