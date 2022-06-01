@@ -18,7 +18,7 @@ const taskRetriggerInterval = Duration(days: 31);
 /// Time before an anlysis/dartdoc task for a given package/version is will
 /// piggyback on the sandbox used for analysis of another version of the same
 /// package.
-const minTaskRetriggerInterval = Duration(days: 24);
+const minTaskRetriggerInterval = Duration(days: 21);
 
 /// Minimum time before a dependency change can trigger a new analysis/dartdoc
 /// for a given package/version.
@@ -141,7 +141,6 @@ class PackageState extends db.ExpandoModel<String> {
   List<String> pendingVersions({DateTime? at}) {
     final at_ = at ?? clock.now();
     Duration timeSince(DateTime past) => at_.difference(past);
-    Duration delay(int attempts) => Duration(hours: 3) * (attempts * attempts);
 
     return versions!.entries
         .where(
@@ -150,14 +149,15 @@ class PackageState extends db.ExpandoModel<String> {
               // If scheduled more than 21 days ago
               timeSince(e.value.scheduled) > minTaskRetriggerInterval ||
               // If a dependency has changed since it was last scheduled
-              lastDependencyChanged!.isBefore(e.value.scheduled) ||
+              lastDependencyChanged!.isAfter(e.value.scheduled) ||
               // If:
               //  - attempts > 0 (analysis is not done, and has been started)
               //  - no more than 3 attempts have been done,
               //  - now - scheduled > 3 hours * attempts^2
-              (0 > e.value.attempts &&
-                  e.value.attempts < 3 &&
-                  timeSince(e.value.scheduled) > delay(e.value.attempts)),
+              (e.value.attempts > 0 &&
+                  e.value.attempts < taskRetryLimit &&
+                  timeSince(e.value.scheduled) >
+                      taskRetryDelay(e.value.attempts)),
         )
         .map((e) => e.key)
         .toList();

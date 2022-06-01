@@ -28,7 +28,7 @@ abstract class FakeTime {
     int milliseconds = 0,
     int microseconds = 0,
   }) =>
-      elapseDuration(Duration(
+      elapseTime(Duration(
         days: days,
         hours: hours,
         minutes: minutes,
@@ -45,7 +45,7 @@ abstract class FakeTime {
     int milliseconds = 0,
     int microseconds = 0,
   }) =>
-      elapseDurationSync(Duration(
+      elapseTimeSync(Duration(
         days: days,
         hours: hours,
         minutes: minutes,
@@ -54,10 +54,20 @@ abstract class FakeTime {
         microseconds: microseconds,
       ));
 
-  Future<void> elapseDuration(Duration duration);
-  Future<void> elapseUntil(DateTime futureTime);
-  void elapseDurationSync(Duration duration);
-  void elapseUntilSync(DateTime futureTime);
+  Future<void> elapseTime(Duration duration);
+  Future<void> elapseTo(DateTime futureTime);
+  void elapseTimeSync(Duration duration);
+  void elapseToSync(DateTime futureTime);
+
+  /// Elapse fake time until [condition] returns `true`.
+  ///
+  /// Throws [TimeoutException], if [condition] is not satisfied with-in
+  /// [timeout],
+  Future<void> elapseUntil(
+    FutureOr<bool> Function() condition, {
+    Duration timeout,
+    Duration minimumStep,
+  });
 
   static Future<T> run<T>(
     FutureOr<T> Function(FakeTime fakeTime) fn, {
@@ -310,7 +320,7 @@ class _FakeTime extends FakeTime {
   }
 
   @override
-  Future<void> elapseDuration(Duration duration) {
+  Future<void> elapseTime(Duration duration) {
     if (duration.isNegative) {
       throw ArgumentError.value(
         duration,
@@ -318,26 +328,78 @@ class _FakeTime extends FakeTime {
         'FakeTime.elapseTime can only move forward in time',
       );
     }
-    return _elapseUntil(_fakeTime().add(duration));
+    return _elapseTo(_fakeTime().add(duration));
   }
 
   @override
-  Future<void> elapseUntil(DateTime futureTime) {
+  Future<void> elapseTo(DateTime futureTime) {
     if (_fakeTime().isAfter(futureTime)) {
       throw StateError(
-        'FakeTime.elapseUntil(futureTime) cannot travel backwards in time, '
+        'FakeTime.elapseTo(futureTime) cannot travel backwards in time, '
         'futureTime > now cannot be allowed',
       );
     }
-    return _elapseUntil(futureTime);
+    return _elapseTo(futureTime);
+  }
+
+  @override
+  Future<void> elapseUntil(
+    FutureOr<bool> Function() condition, {
+    Duration? timeout,
+    Duration? minimumStep,
+  }) async {
+    final deadline = timeout != null ? clock.fromNowBy(timeout) : null;
+    while (_pendingTimers.isNotEmpty &&
+        (deadline == null ||
+            _pendingTimers.first._elapsesAtInFakeTime.isBefore(deadline))) {
+      if (await condition()) {
+        return;
+      }
+
+      // Wait for all microtasks to run
+      await _waitForMicroTasks();
+
+      // Jump into the future, until the point in time that the next timer is
+      // pending.
+      final nextTimerElapsesAt = _pendingTimers.first._elapsesAtInFakeTime;
+      _offset += nextTimerElapsesAt.difference(_fakeTime());
+
+      // Trigger all timers that are pending, this cancels any actual timer
+      // and creates a new pending timer.
+      _triggerPendingTimers();
+    }
+
+    await _waitForMicroTasks();
+
+    if (await condition()) {
+      return;
+    }
+
+    if (deadline != null) {
+      // Jump into the desired future point in time.
+      _offset += deadline.difference(_fakeTime());
+
+      // Ensure that we cancel the current actual timer, trigger any pending
+      // timers, and create a new actual timer.
+      _triggerPendingTimers();
+
+      await _waitForMicroTasks();
+    }
+
+    if (!await condition()) {
+      throw TimeoutException(
+        'Condition given to FakeTime.elapseUntil was not satisfied'
+        ' before timeout: $timeout',
+      );
+    }
   }
 
   /// Elapse time until [futureTime].
   ///
-  /// This is an implementation of [elapseUntil] without checks that we are not
-  /// moving backwards in time. That allows [elapseDuration] to be called with
+  /// This is an implementation of [elapseTo] without checks that we are not
+  /// moving backwards in time. That allows [elapseTime] to be called with
   /// a zero duration.
-  Future<void> _elapseUntil(DateTime futureTime) async {
+  Future<void> _elapseTo(DateTime futureTime) async {
     while (_pendingTimers.isNotEmpty &&
         _pendingTimers.first._elapsesAtInFakeTime.isBefore(futureTime)) {
       // Wait for all microtasks to run
@@ -363,12 +425,12 @@ class _FakeTime extends FakeTime {
   }
 
   @override
-  void elapseDurationSync(Duration duration) {
+  void elapseTimeSync(Duration duration) {
     if (duration.isNegative) {
       throw ArgumentError.value(
         duration,
         'duration',
-        'FakeTime.elapseTime can only move forward in time',
+        'FakeTime.elapseTimeSync can only move forward in time',
       );
     }
     _offset += duration;
@@ -378,10 +440,10 @@ class _FakeTime extends FakeTime {
   }
 
   @override
-  void elapseUntilSync(DateTime futureTime) {
+  void elapseToSync(DateTime futureTime) {
     if (_fakeTime().isAfter(futureTime)) {
       throw StateError(
-        'FakeTime.elapseUntilSync(futureTime) cannot travel backwards in '
+        'FakeTime.elapseToSync(futureTime) cannot travel backwards in '
         'time, futureTime > now cannot be allowed',
       );
     }

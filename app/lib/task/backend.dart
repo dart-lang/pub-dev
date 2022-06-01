@@ -73,11 +73,12 @@ TaskBackend get taskBackend => ss.lookup(#_taskBackend) as TaskBackend;
 //   + worker side!
 //   + in the backend
 // - Maybe, write more tests:
-//    - publish a package
-//    - trigger a dependency
-//    - timeout of a worker, task being retried
+//    + continued scanning picks up new versions
+//    + trigger a dependency
+//    + delay before a dependency is retriggered
+//    + timeout of a worker, task being retried
+//    + Limited number of versions are analyzed
 //    - worker unable to process all versions (running out of time)
-//    - availability zone out of action
 // + Stuff more metrics into the pana-log.txt
 // + Expose HTTP end-points that can show logs/dartdoc and pana-report from workers
 
@@ -443,6 +444,7 @@ class TaskBackend {
               attempts: 0,
             ),
         });
+      state.derivePendingAt();
 
       _log.info('Update state tracking for $packageName');
       tx.insert(state);
@@ -684,6 +686,10 @@ class TaskBackend {
           }.sorted();
         }
       }
+
+      // Ensure that we update [state.pendingAt], otherwise it might be
+      // re-scheduled way too soon.
+      state.derivePendingAt();
 
       tx.insert(state);
     });
