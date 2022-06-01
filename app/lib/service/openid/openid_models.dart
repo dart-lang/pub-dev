@@ -129,11 +129,7 @@ class NullableUint8ListUnpaddedBase64UrlConverter
   @override
   Uint8List? fromJson(String? json) {
     if (json != null) {
-      final missingPadding = json.length % 4;
-      if (missingPadding != 0) {
-        json = '$json${'=' * missingPadding}';
-      }
-      return base64.decode(json);
+      return base64Url.decode(base64Url.normalize(json));
     }
     return null;
   }
@@ -141,7 +137,7 @@ class NullableUint8ListUnpaddedBase64UrlConverter
   @override
   String? toJson(Uint8List? object) {
     if (object != null) {
-      final value = base64.encode(object);
+      final value = base64Url.encode(object);
       return value.endsWith('=') ? value.split('=').first : value;
     }
     return null;
