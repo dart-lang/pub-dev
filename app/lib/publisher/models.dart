@@ -55,9 +55,8 @@ class Publisher extends db.ExpandoModel<String> {
   ///   membership information, or invite new members.
   /// - Administrator roles of the publisher must not be able to publisher a new version
   ///   for packages of the publisher, or change any of the existing package's properties.
-  /// TODO: set to required: true after the release gets stable.
-  @db.BoolProperty(required: false)
-  bool? isBlocked = false;
+  @db.BoolProperty(required: true)
+  bool isBlocked = false;
 
   Publisher();
 
@@ -92,7 +91,7 @@ class Publisher extends db.ExpandoModel<String> {
   /// Whether the publisher has a displayable contact email.
   bool get hasContactEmail => contactEmail != null && contactEmail!.isNotEmpty;
 
-  bool get isNotVisible => isBlocked ?? false;
+  bool get isNotVisible => isBlocked;
   bool get isVisible => !isNotVisible;
 }
 
