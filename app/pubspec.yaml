@@ -55,7 +55,6 @@ dependencies:
   sanitize_html: ^2.0.0
   ulid: '2.0.0'
   tar: '0.5.4'
-  http_retry: '0.2.0'
   api_builder:
     path: ../pkg/api_builder
   collection: ^1.15.0-nullsafety.4
