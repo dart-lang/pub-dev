@@ -145,18 +145,9 @@ class AdminBackend {
     final newContinuationToken = users.length < limit
         ? null
         : _continuationCodec.encode(users.last.userId);
-    users.removeWhere((u) => u.isDeleted);
 
     return api.AdminListUsersResponse(
-      users: users
-          .map(
-            (u) => api.AdminUserEntry(
-              userId: u.userId,
-              email: u.email,
-              oauthUserId: u.oauthUserId,
-            ),
-          )
-          .toList(),
+      users: _convertUsers(users),
       continuationToken: newContinuationToken,
     );
   }
@@ -598,12 +589,24 @@ class AdminBackend {
     InvalidInputException.check(
         package.publisherId == null, 'Package must not be under a publisher.');
 
-    final uploaders = <api.AdminUserEntry>[];
-    for (final userId in package.uploaders!) {
-      final email = await accountBackend.getEmailOfUserId(userId);
-      uploaders.add(api.AdminUserEntry(userId: userId, email: email));
-    }
-    return api.PackageUploaders(uploaders: uploaders);
+    final users = await accountBackend.lookupUsersById(package.uploaders!);
+    return api.PackageUploaders(
+      uploaders: _convertUsers(users),
+    );
+  }
+
+  List<api.AdminUserEntry> _convertUsers(Iterable<User?> users) {
+    return users
+        .whereType<User>()
+        .where((u) => !u.isDeleted)
+        .map(
+          (u) => api.AdminUserEntry(
+            userId: u.userId,
+            oauthUserId: u.oauthUserId,
+            email: u.email,
+          ),
+        )
+        .toList();
   }
 
   /// Handles PUT '/api/admin/packages/<package>/uploaders/<email>'
