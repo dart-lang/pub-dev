@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:args/args.dart';
-import 'package:clock/clock.dart';
 
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/package/backend.dart';

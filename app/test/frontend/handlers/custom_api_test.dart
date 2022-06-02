@@ -4,7 +4,6 @@
 
 import 'dart:convert';
 
-import 'package:clock/clock.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/shared/configuration.dart';
