@@ -155,9 +155,10 @@ class _PkgAdminWidget {
       confirmQuestion: await markdown(
           'Are you sure you want to remove uploader `$email` from this package?'),
       fn: () async {
-        // TODO: use removeUploaderFromUI after the release gets stable
-        await api_client.client
-            .removeUploader(pageData.pkgData!.package, email);
+        await api_client.client.removeUploaderFromUI(
+          pageData.pkgData!.package,
+          RemoveUploaderRequest(email: email),
+        );
       },
       successMessage: await markdown(
           'Uploader `$email` removed from this package. The page will reload.'),
