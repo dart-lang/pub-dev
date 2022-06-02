@@ -487,7 +487,7 @@ void main() {
           final rs = await client.adminGetPackageUploaders('oxygen');
           expect(rs.uploaders.single.toJson(), {
             'userId': isNotNull,
-            'oauthUserId': null,
+            'oauthUserId': isNotNull,
             'email': 'admin@pub.dev',
           });
         });
@@ -508,7 +508,7 @@ void main() {
               await client.adminAddPackageUploader('oxygen', 'admin@pub.dev');
           expect(rs.uploaders.single.toJson(), {
             'userId': isNotNull,
-            'oauthUserId': null,
+            'oauthUserId': isNotNull,
             'email': 'admin@pub.dev',
           });
         });
@@ -552,7 +552,7 @@ void main() {
               await client.adminRemovePackageUploader('oxygen', 'user@pub.dev');
           expect(rs.uploaders.single.toJson(), {
             'userId': isNotNull,
-            'oauthUserId': null,
+            'oauthUserId': isNotNull,
             'email': 'admin@pub.dev',
           });
         });
