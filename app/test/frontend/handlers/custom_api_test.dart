@@ -131,6 +131,7 @@ void main() {
       );
       final p = await packageBackend.lookupPackage('neon');
       p!.updateIsBlocked(isBlocked: true, reason: 'spam');
+      expect(p.isVisible, isFalse);
       await dbService.commit(inserts: [p]);
       await nameTracker.scanDatastore();
       await expectJsonResponse(

@@ -415,6 +415,7 @@ class Package extends db.ExpandoModel<String> {
     withheldReason = reason;
     blockedReason = reason;
     blocked = isBlocked ? clock.now().toUtc() : null;
+    updated = clock.now().toUtc();
   }
 }
 
