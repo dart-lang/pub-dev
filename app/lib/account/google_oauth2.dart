@@ -267,7 +267,7 @@ bool _isLikelyAccessToken(String token) {
     return true;
   }
   // If it looks like a JWT, then it's probably not an access_token.
-  if (looksLikeJWT(token)) {
+  if (JsonWebToken.looksLikeJWT(token)) {
     return false;
   }
   return true; // anything goes

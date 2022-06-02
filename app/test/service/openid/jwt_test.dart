@@ -8,14 +8,14 @@ import 'package:test/test.dart';
 void main() {
   group('JWT parse', () {
     test('invalid format', () {
-      expect(JWT.tryParse(''), isNull);
-      expect(JWT.tryParse('.....'), isNull);
-      expect(JWT.tryParse('ab.c1.23'), isNull);
+      expect(JsonWebToken.tryParse(''), isNull);
+      expect(JsonWebToken.tryParse('.....'), isNull);
+      expect(JsonWebToken.tryParse('ab.c1.23'), isNull);
     });
 
     test('successful', () {
       // token generated on jwt.io
-      final parsed = JWT.parse(
+      final parsed = JsonWebToken.parse(
           'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIi'
           'wibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyM'
           'n0.NHVaYe26MbtOYhSKkoKYdFVomg4i8ZJd8_-RU8VNbftc4TSMb4bXP3l3YlNW'
@@ -28,16 +28,16 @@ void main() {
         'alg': 'RS256',
         'typ': 'JWT',
       });
-      expect(parsed.algorithm, 'RS256');
-      expect(parsed.type, 'JWT');
+      expect(parsed.alg, 'RS256');
+      expect(parsed.typ, 'JWT');
       expect(parsed.payload, {
         'sub': '1234567890',
         'name': 'John Doe',
         'admin': true,
         'iat': 1516239022,
       });
-      expect(parsed.issuedAt!.year, 2018);
-      expect(parsed.expires, isNull);
+      expect(parsed.iat!.year, 2018);
+      expect(parsed.exp, isNull);
       expect(parsed.signature, hasLength(256));
     });
   });
