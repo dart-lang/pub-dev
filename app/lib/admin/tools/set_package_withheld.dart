@@ -93,9 +93,7 @@ Future<String> _updateStatus(Package pkg, bool status, String? reason) async {
   }
   await withRetryTransaction(dbService, (tx) async {
     final p = await tx.lookupValue<Package>(pkg.key);
-    p.isWithheld = status;
-    p.withheldReason = reason;
-    p.updated = clock.now().toUtc();
+    p.updateIsBlocked(isBlocked: status, reason: reason);
     tx.insert(p);
   });
   await purgePackageCache(pkg.name!);

@@ -127,8 +127,22 @@ class Package extends db.ExpandoModel<String> {
   bool isWithheld = false;
 
   /// The reason why the package was withheld.
-  @db.StringProperty()
+  @db.StringProperty(indexed: false)
   String? withheldReason;
+
+  /// Set to `true` if package should not be displayed anywhere, because of
+  /// pending moderation or deletion.
+  /// TODO: set to true after the rename migration is done
+  @db.BoolProperty(required: false)
+  bool? isBlocked;
+
+  /// The reason why the package was blocked.
+  @db.StringProperty(indexed: false)
+  String? blockedReason;
+
+  /// The timestamp when the package was blocked.
+  @db.DateTimeProperty()
+  DateTime? blocked;
 
   /// Tags that are assigned to this package.
   ///
@@ -170,13 +184,14 @@ class Package extends db.ExpandoModel<String> {
       ..isDiscontinued = false
       ..isUnlisted = false
       ..isWithheld = false
+      ..isBlocked = false
       ..assignedTags = []
       ..deletedVersions = [];
   }
 
   // Convenience Fields:
 
-  bool get isVisible => !isWithheld;
+  bool get isVisible => !isWithheld && !(isBlocked ?? false);
   bool get isNotVisible => !isVisible;
 
   bool get isIncludedInRobots {
@@ -389,6 +404,17 @@ class Package extends db.ExpandoModel<String> {
     } else {
       automatedPublishingJson = json.encode(value.toJson());
     }
+  }
+
+  void updateIsBlocked({
+    required bool isBlocked,
+    String? reason,
+  }) {
+    this.isBlocked = isBlocked;
+    isWithheld = isBlocked;
+    withheldReason = reason;
+    blockedReason = reason;
+    blocked = isBlocked ? clock.now().toUtc() : null;
   }
 }
 

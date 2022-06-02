@@ -131,10 +131,7 @@ void main() {
         },
       );
       final p = await packageBackend.lookupPackage('neon');
-      p!
-        ..isWithheld = true
-        ..withheldReason = 'spam'
-        ..updated = clock.now();
+      p!.updateIsBlocked(isBlocked: true, reason: 'spam');
       await dbService.commit(inserts: [p]);
       await nameTracker.scanDatastore();
       await expectJsonResponse(

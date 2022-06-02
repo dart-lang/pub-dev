@@ -33,7 +33,7 @@ void main() {
     testWithProfile('withheld package - not found', fn: () async {
       final pkg = await dbService.lookupValue<Package>(
           dbService.emptyKey.append(Package, id: 'oxygen'));
-      await dbService.commit(inserts: [pkg..isWithheld = true]);
+      await dbService.commit(inserts: [pkg..updateIsBlocked(isBlocked: true)]);
       await expectNotFoundResponse(await issueGet('/packages/oxygen'));
       await expectNotFoundResponse(await issueGet('/packages/oxygen/score'));
       await expectNotFoundResponse(await issueGet('/packages/oxygen/versions'));
