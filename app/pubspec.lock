@@ -344,13 +344,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.0.0"
-  http_retry:
-    dependency: "direct main"
-    description:
-      name: http_retry
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.2.0"
   indexed_blob:
     dependency: "direct main"
     description:
