@@ -164,30 +164,43 @@ void setupTestsWithCallerAuthorizationIssues(
   AuthSource? authSource,
 }) {
   testWithProfile('No active user', fn: () async {
-    final client = createPubApiClient();
-    final rs = fn(client);
-    await expectApiException(rs, status: 401, code: 'MissingAuthentication');
+    await withHttpPubApiClient(
+      fn: (client) async {
+        final rs = fn(client);
+        await expectApiException(rs,
+            status: 401, code: 'MissingAuthentication');
+      },
+    );
   });
 
   testWithProfile('Active user is not authorized', fn: () async {
-    final client = createPubApiClient(
-        authToken: createFakeAuthTokenForEmail('unauthorized@pub.dev',
-            source: authSource));
-    final rs = fn(client);
-    await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
+    final token =
+        createFakeAuthTokenForEmail('unauthorized@pub.dev', source: authSource);
+    await withHttpPubApiClient(
+      bearerToken: token,
+      fn: (client) async {
+        final rs = fn(client);
+        await expectApiException(rs,
+            status: 403, code: 'InsufficientPermissions');
+      },
+    );
   });
 
   testWithProfile('Active user is blocked', fn: () async {
     final users = await dbService.query<User>().run().toList();
     final user = users.firstWhere((u) => u.email == 'admin@pub.dev');
     await dbService.commit(inserts: [user..isBlocked = true]);
-    final client = createPubApiClient(
-        authToken:
-            createFakeAuthTokenForEmail('admin@pub.dev', source: authSource));
-    final rs = fn(client);
-    await expectApiException(rs,
-        status: 403,
-        code: 'InsufficientPermissions',
-        message: 'User is blocked.');
+    final token =
+        createFakeAuthTokenForEmail('admin@pub.dev', source: authSource);
+    await withHttpPubApiClient(
+      bearerToken: token,
+      fn: (client) async {
+        final rs = fn(client);
+        await expectApiException(rs,
+            status: 403,
+            code: 'InsufficientPermissions',
+            message: 'User is blocked.');
+      },
+    );
   });
 }
