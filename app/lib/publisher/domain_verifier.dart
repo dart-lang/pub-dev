@@ -6,11 +6,13 @@ import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/searchconsole/v1.dart' as wmx;
 import 'package:googleapis_auth/googleapis_auth.dart' as auth;
-
 import 'package:http/http.dart' as http;
+import 'package:logging/logging.dart';
 import 'package:retry/retry.dart' show retry;
 
 import '../shared/exceptions.dart' show AuthorizationException;
+
+final _logger = Logger('domain_verifier');
 
 /// Sets the [DomainVerifier] service.
 void registerDomainVerifier(DomainVerifier domainVerifier) =>
@@ -51,17 +53,22 @@ class DomainVerifier {
         maxDelay: Duration(milliseconds: 500),
         retryIf: (e) => e is! auth.AccessDeniedException,
       );
+      _logger.info(
+          'Received valid response with ${sites.siteEntry?.length} entries.');
       if (sites.siteEntry == null) {
         return false;
       }
       // Determine if the user is in fact owner of the domain in question.
       // Note. domains are prefixed 'sc-domain:' and 'siteOwner' is the only
       //       permission that ensures the user actually did DNS verification.
-      return sites.siteEntry!.any(
-        (s) =>
-            s.siteUrl != null &&
-            s.siteUrl!.toLowerCase() == 'sc-domain:$domain' &&
-            s.permissionLevel == 'siteOwner', // must be 'siteOwner'!
+      final matchedDomains = sites.siteEntry!
+          .where((s) =>
+              s.siteUrl != null &&
+              s.siteUrl!.toLowerCase() == 'sc-domain:$domain')
+          .toList();
+      _logger.info('${matchedDomains.length} matching domain entries.');
+      return matchedDomains.any(
+        (s) => s.permissionLevel == 'siteOwner', // must be 'siteOwner'!
       );
     } on auth.AccessDeniedException {
       throw AuthorizationException.missingSearchConsoleReadAccess();
