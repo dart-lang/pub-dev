@@ -1,4 +1,4 @@
-Important changes to data-models, configuration and migrations between each
+Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
@@ -36,7 +36,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded preview Dart analysis SDK to `2.17.0-266.7.beta`.
  * Upgraded preview Flutter analysis SDK to `2.13.0-0.3.pre`.
  * NOTE: In-page click tracking is loaded asynchronously.
-   TODO: After deployment check if click tracking on copy-to-clipboard icon is working.
+   TODO: After deployment check if click tracking on the copy-to-clipboard icon is working.
 
 ## `20220425t133600-all`
  * Bumped runtimeVersion to `2022.04.21`.
@@ -127,7 +127,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## `20211202t154700-all`
  * Bumped runtimeVersion to `2021.11.28`.
- * NOTE: correcting published timestamps as part of the backfill.
+ * NOTE: Corrected published timestamps as part of the backfill.
 
 ## `20211125t125900-all`
  * Bumped runtimeVersion to `2021.11.22`.
@@ -161,10 +161,10 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded dartdoc to `4.1.0`.
  * NOTE: Started to use cached package list from NameTracker instead of Datastore queries with offset.
  * NOTE: `/api/packages/<package>` calls only use `gzip` cache, which may increase
-         CPU utilization if there are many clients that do no accept the `gzip` content-encoding.
- * NOTE: Started to use cached package list for all use case where a list of package versions is required.
+         CPU utilization if there are many clients that do not accept the `gzip` content-encoding.
+ * NOTE: Started to use cached package list for all use cases where a list of package versions is required.
  * NOTE: started to populate and use `Package.versionCount`.
-         TODO(deferred): add integrity check in next release.
+         TODO(deferred): add an integrity check in the next release.
 
 ## `20211013t105500-all`
  * Bumped runtimeVersion to `2021.10.12`.
@@ -242,7 +242,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded dependencies.
  * NOTE: enabled activity log UI without experimental flag.
  * NOTE: added `PackageVersion.isRetracted`.
-         TODO(deferred): make it required, add to integrity checks.
+         TODO(deferred): make it required, and add it to integrity checks.
  * NOTE: added weekly (versioned) periodic task: `backfill-new-fields`.
  * Limit `pkg/pub_dartdoc` output to 2 GiB and 10M files.
 
@@ -449,7 +449,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * NOTE: `downloads` property in `Package` and `PackageVersion` is no longer populated.
    TODO(deferred): schedule cleanup after this release.
  * NOTE: `PackageVersionPubspec` is no longer used or added.
-   TODO(deferred): schedule remove script after this release. 
+   TODO(deferred): schedule remove the script after this release.
 
 ## `20201222t135400-all`
  * Bumped runtimeVersion to `2020.12.21`.
@@ -458,7 +458,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Run `app/bin/tools/backfill_package_fields.dart`.
  * NOTE: `PackageVersionPubspec` is no longer used in dependency graph calculation.
          The next release may remove the use of the entity.
- * NOTE: `PanaReport.pkgDependencies` removed (was deprecated in previous release).
+ * NOTE: `PanaReport.pkgDependencies` removed (was deprecated in the previous release).
 
 ## `20201210t173100-all`
  * Bumped runtimeVersion to `2020.12.09`.
@@ -544,7 +544,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bumped runtimeVersion to `2020.09.16`.
  * Upgraded Flutter to `1.20.4`.
  * Upgraded dartdoc to `0.34.0`.
- * Deferred: 14 days after the release, remove the `UserSession.userIdKey` property. 
+ * Deferred: 14 days after the release, remove the `UserSession.userIdKey` property.
  * Using new email sending flow, configuration should be tested before switching traffic.
 
 ## `20200910t113209-all`
@@ -626,7 +626,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * `search` service:
    * uses `Package.likes` as part of the default ranking.
    * index skips updates when task timestamp predates index document.
-   * Reduced frequency and concurrency of search snapshot writes to storage bucket.
+   * Reduced frequency and concurrency of search snapshot write to storage bucket.
    * Spaced scheduled updates in search index: package update frequency decreases
      after two years (from daily to weekly after 14 years).
 
@@ -678,7 +678,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## `20200324t171808-all`
  * Bumped runtimeVersion to `2020.03.24`.
  * New atom feed ID scheduled to go live at 2020-04-04. Change this hardcoded
-   date if release does not go live before 2020-04-02.
+   date if the release does not go live before 2020-04-02.
  * Updated pana tot `0.13.6`.
 
 ## `20200309t104246-all`
@@ -746,7 +746,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
    `Package.assignedTags`.
 
 ## `20191127t111711-all`
- * Added 'my liked packages' page behind experimental flag.
+ * Added 'my liked packages' page behind an experimental flag.
 
 ## `20191120t113136-all`
  * Bumped runtimeVersion to `2019.11.12`.
@@ -799,15 +799,15 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Minor NPE fixes in dartdoc process.
 
 ## `20191008t123347-all`
- * Minor fixes of JS when experimental flag is not on.
+ * Minor fixes of JS when the experimental flag is not on.
 
 ## `20191007t110314-all`
 
  * Upgraded to Dart `2.5.0`.
  * Upgraded `package:markdown` to `2.1.0`.
  * Search index contains `publisherId` and `owners` fields, the first startup
-   needs to have a 1-2 hours before all the packages get re-indexed with them.
-   After that they will be part of the index snapshot, and will be available
+   needs to have 1-2 hours before all the packages get re-indexed with them.
+   After that, they will be part of the index snapshot and will be available
    as other parts of the index.
  * Upgraded Flutter SDK to `1.9.1+hotfix.4`.
  * Bumped runtimeVersion to `2019.10.07`.
@@ -868,7 +868,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
  * `search` service is using custom liveness and readiness checks.
  * Search results (top packages, listing pages) use local fallbacks.
- * Upgraded `pana` (`0.12.18`), runtime and analysis Dart SDK (`2.3.2`).
+ * Upgraded `pana` (`0.12.18`), runtime, and analysis Dart SDK (`2.3.2`).
  * Bumped runtimeVersion to `2019.06.17`.
 
 ## `20190529t163905-all`
@@ -880,12 +880,12 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
  * Removed support for legacy auth tokens (without `user_id`).
    Users with legacy tokens will be requested to login again.
- * Upgraded `pana` (`0.12.16`), Dart SDK (`2.3.1`) and downgraded Flutter SDK (`1.5.4-hotfix.2`).
+ * Upgraded `pana` (`0.12.16`), Dart SDK (`2.3.1`), and downgraded Flutter SDK (`1.5.4-hotfix.2`).
  * Bumped runtimeVersion to `2019.05.22`.
 
 ## `20190508t114341-all`
 
- * Upgraded `pana` (`0.12.15`), Dart SDK (`2.3.0`) and Flutter SDK (`1.5.8`).
+ * Upgraded `pana` (`0.12.15`), Dart SDK (`2.3.0`), and Flutter SDK (`1.5.8`).
  * Bumped runtimeVersion to `2019.05.07`.
 
 ## `20190503t145023-all`
@@ -896,13 +896,13 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## `20190503t132754-all`
 
- * Fixed the bug in dynamic oauth `redirect_uri` calculation.
+ * Fixed the bug in dynamic OAuth `redirect_uri` calculation.
 
 ## `20190502t154607-all`
 
  * Enabled new design on `pub.dev` (redirects still missing).
  * Dependency graph monitoring in a separate isolate of the `frontend` service.
- * `/feed.atom` changes random seed to generate `uuid` for feed entry.
+ * `/feed.atom` changes random seed to generate `UUID` for feed entry.
 
 ## `20190416t133139-all`
 
@@ -925,10 +925,11 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
  * Behaviour changes:
 
-   * OAuth: accept only validated e-mails that look like e-mails (have @, . and e-mail-like structure).
+   * OAuth: accept only validated e-mails that look like e-mails (have @, and e-mail-like structure).
 
 ## `20190306t115839-all`
  
  * Run `app/bin/tools/backfill_packageversions.dart` to backfill `PubSpec`
    entities in datastore (these entitites are not in use yet).
  * Bumped runtimeVersion to `2019.03.05`.
+
