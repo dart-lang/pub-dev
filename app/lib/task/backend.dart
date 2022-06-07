@@ -55,33 +55,6 @@ void registerTaskBackend(TaskBackend backend) =>
 /// The active task backend service.
 TaskBackend get taskBackend => ss.lookup(#_taskBackend) as TaskBackend;
 
-// TODO: Reduce number of versions we want to track with some heuristics
-//       latest stable/preview/prerelease.
-//       5 latest major versions.
-//
-// TODO: Handle case where worker has it doesn't have time to process remaining versions
-//       It probably just writes in log that it could do it within given time constraints
-//       and calls finish for each version signaling that the version needs not be retriggered!
-//       Or we decide that reporting a task finished without uploading files is the same
-//       as signaling that we ran out of time. That way we can also do testing without
-//       uploading files.
-// NOTE: Tracking all versions could be too much overhead in entity size.
-
-// + Limit number of packages it analyzes to just: retry, pem, ...
-// + Limit the number of package verisons we analyze
-// + Handle case where worker can't process all versions it's given!!!
-//   + worker side!
-//   + in the backend
-// - Maybe, write more tests:
-//    + continued scanning picks up new versions
-//    + trigger a dependency
-//    + delay before a dependency is retriggered
-//    + timeout of a worker, task being retried
-//    + Limited number of versions are analyzed
-//    - worker unable to process all versions (running out of time)
-// + Stuff more metrics into the pana-log.txt
-// + Expose HTTP end-points that can show logs/dartdoc and pana-report from workers
-
 /// Packages that are allow listed for initial testing of task backend.
 final _allowListedPackages = [
   // Package names used in testing
@@ -674,16 +647,18 @@ class TaskBackend {
       // Update dependencies, if pana summary has dependencies
       final summary = await panaSummary(package, version);
       if (summary != null && summary.allDependencies != null) {
-        // TODO: Limit size of dependencies!!
-
-        final dependencies = {...state.dependencies ?? []};
+        final updatedDependencies = _updatedDependencies(
+          state.dependencies,
+          summary.allDependencies,
+          // for logging only
+          package: package,
+          version: version,
+        );
         // Only update if new dependencies have been discovered.
         // This avoids unnecessary churn on datastore when there is no changes.
-        if (!dependencies.containsAll(summary.allDependencies ?? [])) {
-          state.dependencies = {
-            ...dependencies,
-            ...summary.allDependencies ?? [],
-          }.sorted();
+        if (state.dependencies != updatedDependencies &&
+            !{...state.dependencies ?? []}.containsAll(updatedDependencies)) {
+          state.dependencies = updatedDependencies;
         }
       }
 
@@ -944,4 +919,51 @@ List<Version> _versionsToTrack(
         .sorted(Comparable.compare)
         .take(5)
   }.whereNotNull().toList();
+}
+
+List<String> _updatedDependencies(
+  List<String>? dependencies,
+  List<String>? discoveredDependencies, {
+  required String package,
+  required String version,
+}) {
+  dependencies ??= [];
+  discoveredDependencies ??= [];
+
+  // If discoveredDependencies is in dependencies, then we're done.
+  if (dependencies.toSet().containsAll(discoveredDependencies)) {
+    return dependencies;
+  }
+
+  // Check if any of the dependencies returned have invalid names, if this is
+  // the case, then we should ignore the entire result!
+  final hasBadDependencies = discoveredDependencies.any((dep) {
+    try {
+      // TODO: These sanity checks should probably split out, into a general
+      //       extension method on [Summary]. The idea here is to protect
+      //       against invalid data from the sandbox. We should consider all
+      //       the output we get from the sandbox as suspect :D
+      InvalidInputException.checkPackageName(dep);
+      return false;
+    } on ResponseException {
+      _log.shout(
+        'pub_worker responses with summary.allDependencies containing "$dep"'
+        ' in package "$package" version "$version"',
+      );
+      return true;
+    }
+  });
+  if (hasBadDependencies) {
+    return dependencies; // no changes!
+  }
+
+  // An indexed property cannot be larger than 1500 bytes, strings counts as
+  // length + 1, so we prefer newly [discoveredDependencies] and then choose
+  // [dependencies], after which we just pick the dependencies we can get while
+  // staying below 1500 bytes.
+  var size = 0;
+  return discoveredDependencies
+      .followedBy(dependencies.whereNot(discoveredDependencies.contains))
+      .takeWhile((p) => (size += p.length + 1) < 1500)
+      .sorted();
 }
