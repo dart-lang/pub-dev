@@ -73,9 +73,6 @@ PanaReport _$PanaReportFromJson(Map<String, dynamic> json) => PanaReport(
       urlProblems: (json['urlProblems'] as List<dynamic>?)
           ?.map((e) => UrlProblem.fromJson(e as Map<String, dynamic>))
           .toList(),
-      repository: json['repository'] == null
-          ? null
-          : Repository.fromJson(json['repository'] as Map<String, dynamic>),
       screenshots: (json['screenshots'] as List<dynamic>?)
           ?.map((e) => ProcessedScreenshot.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -100,7 +97,6 @@ Map<String, dynamic> _$PanaReportToJson(PanaReport instance) {
   writeNotNull('screenshots', instance.screenshots);
   writeNotNull('flags', instance.flags);
   writeNotNull('urlProblems', instance.urlProblems);
-  writeNotNull('repository', instance.repository);
   return val;
 }
 

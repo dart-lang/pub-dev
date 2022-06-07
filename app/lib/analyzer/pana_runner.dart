@@ -208,7 +208,6 @@ PanaReport panaReportFromSummary(Summary? summary, {List<String>? flags}) {
     report: summary?.report,
     flags: flags,
     urlProblems: summary?.urlProblems,
-    repository: summary?.repository,
     screenshots: summary?.screenshots,
   );
 }

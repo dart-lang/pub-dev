@@ -258,7 +258,6 @@ class ScoreCardBackend {
           ),
           flags: <String>[],
           urlProblems: <pana.UrlProblem>[],
-          repository: null,
           screenshots: null,
         );
       }
