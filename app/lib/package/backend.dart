@@ -872,6 +872,13 @@ class PackageBackend {
     });
   }
 
+  /// Verify the package name defined in the newly uploaded archive file,
+  /// and throw [PackageRejectedException] if it is not accepted.
+  /// Some reasons to reject a name:
+  /// - it is closely related to another package name,
+  /// - it is already being blocked,
+  /// - it is reserved for future internal use, but the current user is
+  ///   not authorized to claim such package names.
   Future<void> _verifyPackageName({
     required String name,
     required User user,
