@@ -20,6 +20,7 @@ import '../package/models.dart' show PackageView;
 import '../publisher/models.dart' show PublisherPage;
 import '../scorecard/models.dart' show ScoreCardData;
 import '../search/search_service.dart' show PackageSearchResult;
+import '../service/openid/openid_models.dart' show OpenIdData;
 import '../service/secret/backend.dart';
 import 'convert.dart';
 import 'versions.dart';
@@ -274,6 +275,27 @@ class CachePatterns {
         encode: (bool value) => value,
         decode: (d) => d as bool,
       ))['$service/$package'];
+
+  /// Stores the OpenID Data (including the JSON Web Key list).
+  ///
+  /// GitHub does not provide `Cache-Control` header for their
+  /// OpenId config or their keys. It is assumed that key rotation
+  /// (e.g. including a new key but not yet using it) should take
+  /// more than a day, we don't have any clear guidance on it.
+  /// Caching for 15 minutes seems to be a safe choice.
+  Entry<OpenIdData> openIdData({
+    required String configurationUrl,
+    Duration? ttl,
+  }) =>
+      _cache
+          .withPrefix('openid-data/')
+          .withTTL(ttl ?? Duration(minutes: 15))
+          .withCodec(utf8)
+          .withCodec(json)
+          .withCodec(wrapAsCodec(
+            encode: (OpenIdData v) => v.toJson(),
+            decode: (v) => OpenIdData.fromJson(v as Map<String, dynamic>),
+          ))[configurationUrl];
 }
 
 /// The active cache.
