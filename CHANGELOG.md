@@ -6,6 +6,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Dart analysis SDK to `2.17.3`.
  * Upgraded preview Flutter analysis SDK to `3.1.0`.
  * NOTE: Started to use and backfill `Package.isBlocked`.
+ * NOTE: Only using the dedicated bucket for incoming package uploads.
 
 ## `20220530t115600-all`
  * Bumped runtimeVersion to `2022.05.23`.
