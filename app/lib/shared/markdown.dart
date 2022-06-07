@@ -355,15 +355,16 @@ Iterable<m.Node> _groupChangelogNodes(List<m.Node> nodes) sync* {
         _structuralHeaderTags.contains(nodeTag);
     final matchesFirstHeaderTag =
         firstHeaderTag != null && nodeTag == firstHeaderTag;
-    final version = (node is m.Element &&
-            (isNewHeaderTag || matchesFirstHeaderTag) &&
-            node.children!.isNotEmpty &&
-            node.children!.first is m.Text)
-        ? _extractVersion(node.children!.first.textContent)
-        : null;
+    final mayBeVersion = node is m.Element &&
+        (isNewHeaderTag || matchesFirstHeaderTag) &&
+        node.children!.isNotEmpty &&
+        node.children!.first is m.Text;
+    final versionText =
+        mayBeVersion ? node.children!.first.textContent.trim() : null;
+    final version = mayBeVersion ? _extractVersion(versionText) : null;
     if (version != null) {
       firstHeaderTag ??= nodeTag;
-      final titleElem = m.Element('h2', [m.Text(version.toString())])
+      final titleElem = m.Element('h2', [m.Text(versionText!)])
         ..attributes['class'] = 'changelog-version'
         ..generatedId = (node as m.Element).generatedId;
 
@@ -386,7 +387,10 @@ Iterable<m.Node> _groupChangelogNodes(List<m.Node> nodes) sync* {
 /// Returns the extracted version (if it is a specific version, not `any` or empty).
 Version? _extractVersion(String? text) {
   if (text == null || text.isEmpty) return null;
-  text = text.trim();
+  text = text.trim().split(' ').first;
+  if (text.startsWith('[') && text.endsWith(']')) {
+    text = text.substring(1, text.length - 1).trim();
+  }
   if (text.startsWith('v')) {
     text = text.substring(1).trim();
   }

@@ -80,6 +80,7 @@ void main() {
       expect(
         content.contains('cacheControlHeader') ||
             (lc.contains('cache-control') &&
+                !lc.contains('`cache-control`') && // allow in documentation
                 !lc.contains('`cache-control: private`')),
         exceptions.contains(file.path),
         reason: '${file.path} seems to contain cache-control header',

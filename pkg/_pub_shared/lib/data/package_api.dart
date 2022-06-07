@@ -48,6 +48,39 @@ class PkgOptions {
   Map<String, dynamic> toJson() => _$PkgOptionsToJson(this);
 }
 
+/// The configuration for a package's credential-less publishing.
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
+class AutomatedPublishing {
+  final GithubPublishing? github;
+
+  AutomatedPublishing({
+    this.github,
+  });
+
+  factory AutomatedPublishing.fromJson(Map<String, dynamic> json) =>
+      _$AutomatedPublishingFromJson(json);
+
+  Map<String, dynamic> toJson() => _$AutomatedPublishingToJson(this);
+}
+
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
+class GithubPublishing {
+  final bool? isEnabled;
+
+  /// The `owner/repository` path of the project on github.com.
+  String? repository;
+
+  GithubPublishing({
+    this.isEnabled,
+    this.repository,
+  });
+
+  factory GithubPublishing.fromJson(Map<String, dynamic> json) =>
+      _$GithubPublishingFromJson(json);
+
+  Map<String, dynamic> toJson() => _$GithubPublishingToJson(this);
+}
+
 @JsonSerializable()
 class VersionOptions {
   final bool? isRetracted;

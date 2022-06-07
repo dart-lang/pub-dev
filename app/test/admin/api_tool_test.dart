@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/tool/utils/pub_api_client.dart';
 import 'package:test/test.dart';
 
 import '../shared/handlers_test_utils.dart';
@@ -16,31 +17,47 @@ void main() {
   group('Admin API: tool', () {
     group('bad tool', () {
       setupTestsWithCallerAuthorizationIssues(
-          (client) => client.adminExecuteTool('no-such-tool', ''));
+        (client) => client.adminExecuteTool('no-such-tool', ''),
+        authSource: AuthSource.admin,
+      );
 
       testWithProfile('auth with bad tool', fn: () async {
-        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
-        final rs = client.adminExecuteTool('no-such-tool', '');
-        await expectApiException(rs, status: 406, code: 'NotAcceptable');
+        await withHttpPubApiClient(
+          bearerToken: siteAdminToken,
+          fn: (client) async {
+            final rs = client.adminExecuteTool('no-such-tool', '');
+            await expectApiException(rs, status: 406, code: 'NotAcceptable');
+          },
+        );
       });
     });
 
     group('user merger', () {
       setupTestsWithCallerAuthorizationIssues(
-          (client) => client.adminExecuteTool('user-merger', ''));
+        (client) => client.adminExecuteTool('user-merger', ''),
+        authSource: AuthSource.admin,
+      );
 
       testWithProfile('help', fn: () async {
-        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
-        final rs = await client.adminExecuteTool('user-merger', '--help');
-        final bodyText = utf8.decode(rs);
-        expect(bodyText, contains('Usage:'));
+        await withHttpPubApiClient(
+          bearerToken: siteAdminToken,
+          fn: (client) async {
+            final rs = await client.adminExecuteTool('user-merger', '--help');
+            final bodyText = utf8.decode(rs);
+            expect(bodyText, contains('Usage:'));
+          },
+        );
       });
 
       testWithProfile('merge all, but no problems detected', fn: () async {
-        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
-        final rs = await client.adminExecuteTool('user-merger', '');
-        final bodyText = utf8.decode(rs);
-        expect(bodyText, 'Fixed 0 `User` entities.');
+        await withHttpPubApiClient(
+          bearerToken: siteAdminToken,
+          fn: (client) async {
+            final rs = await client.adminExecuteTool('user-merger', '');
+            final bodyText = utf8.decode(rs);
+            expect(bodyText, 'Fixed 0 `User` entities.');
+          },
+        );
       });
 
       testWithProfile('merge two user ids', fn: () async {
@@ -48,20 +65,24 @@ void main() {
             await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
         final user =
             await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
-        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
-        final rs = await client.adminExecuteTool(
-            'user-merger',
-            Uri(pathSegments: [
-              '--from-user-id',
-              admin.userId,
-              '--to-user-id',
-              user.userId,
-            ]).toString());
-        final bodyText = utf8.decode(rs);
-        expect(bodyText, 'Merged `${admin.userId}` into `${user.userId}`.');
+        await withHttpPubApiClient(
+          bearerToken: siteAdminToken,
+          fn: (client) async {
+            final rs = await client.adminExecuteTool(
+                'user-merger',
+                Uri(pathSegments: [
+                  '--from-user-id',
+                  admin.userId,
+                  '--to-user-id',
+                  user.userId,
+                ]).toString());
+            final bodyText = utf8.decode(rs);
+            expect(bodyText, 'Merged `${admin.userId}` into `${user.userId}`.');
 
-        final p = await packageBackend.lookupPackage('oxygen');
-        expect(p!.uploaders, [user.userId]);
+            final p = await packageBackend.lookupPackage('oxygen');
+            expect(p!.uploaders, [user.userId]);
+          },
+        );
       });
     });
   });

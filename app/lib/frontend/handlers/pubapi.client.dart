@@ -294,6 +294,15 @@ class PubApiClient {
     ));
   }
 
+  Future<_i3.AutomatedPublishing> setAutomatedPublishing(
+      String package, _i3.AutomatedPublishing payload) async {
+    return _i3.AutomatedPublishing.fromJson(await _client.requestJson(
+      verb: 'put',
+      path: '/api/packages/$package/automated-publishing',
+      body: payload.toJson(),
+    ));
+  }
+
   Future<_i3.VersionOptions> getVersionOptions(
       String package, String version) async {
     return _i3.VersionOptions.fromJson(await _client.requestJson(

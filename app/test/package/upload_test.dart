@@ -38,12 +38,12 @@ void main() {
 
       testWithProfile('successful', fn: () async {
         final redirectUri = Uri.parse('http://blobstore.com/upload');
-        await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
+        await accountBackend.withBearerToken(userClientToken, () async {
           final info = await packageBackend.startUpload(redirectUri);
           expect(info.url, startsWith('http://localhost:'));
-          expect(info.url, contains('/fake-bucket-pub/tmp/'));
+          expect(info.url, contains('/fake-incoming-packages/tmp/'));
           expect(info.fields, {
-            'key': startsWith('fake-bucket-pub/tmp/'),
+            'key': startsWith('fake-incoming-packages/tmp/'),
             'success_action_redirect': startsWith('$redirectUri?upload_id='),
           });
         });
@@ -54,7 +54,7 @@ void main() {
       final uploadId = 'my-uuid';
 
       testWithProfile('uploaded zero-length file', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await accountBackend.withBearerToken(adminClientToken, () async {
           // create empty file
           await storageService
               .bucket(activeConfiguration.packageBucketName!)
@@ -73,7 +73,7 @@ void main() {
       });
 
       testWithProfile('upload-too-big', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await accountBackend.withBearerToken(adminClientToken, () async {
           final chunk = List.filled(1024 * 1024, 42);
           final chunkCount = UploadSignerService.maxUploadSize ~/ chunk.length;
           final bigTarball = <List<int>>[];
@@ -83,8 +83,8 @@ void main() {
           // Add one more byte than allowed.
           bigTarball.add([1]);
 
-          final bucket =
-              storageService.bucket(activeConfiguration.packageBucketName!);
+          final bucket = storageService
+              .bucket(activeConfiguration.incomingPackagesBucketName!);
           // TODO: use the fake storage server HTTP port to upload
           final sink = bucket.write('tmp/$uploadId');
           bigTarball.forEach(sink.add);
@@ -102,13 +102,13 @@ void main() {
       });
 
       testWithProfile('successful new package', fn: () async {
-        await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
+        await accountBackend.withBearerToken(userClientToken, () async {
           final user =
               await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
           final dateBeforeTest = clock.now().toUtc();
           final pubspecContent = generatePubspecYaml('new_package', '1.2.3');
-          final bucket =
-              storageService.bucket(activeConfiguration.packageBucketName!);
+          final bucket = storageService
+              .bucket(activeConfiguration.incomingPackagesBucketName!);
           // TODO: use the fake storage server HTTP port to upload
           await bucket.writeBytes('tmp/$uploadId',
               await packageArchiveBytes(pubspecContent: pubspecContent));
@@ -182,13 +182,13 @@ void main() {
       });
 
       testWithProfile('package under publisher', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await accountBackend.withBearerToken(adminClientToken, () async {
           final user =
               await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
           final dateBeforeTest = clock.now().toUtc();
           final pubspecContent = generatePubspecYaml('neon', '7.0.0');
-          final bucket =
-              storageService.bucket(activeConfiguration.packageBucketName!);
+          final bucket = storageService
+              .bucket(activeConfiguration.incomingPackagesBucketName!);
           // TODO: use the fake storage server HTTP port to upload
           await bucket.writeBytes('tmp/$uploadId',
               await packageArchiveBytes(pubspecContent: pubspecContent));
@@ -256,7 +256,7 @@ void main() {
       });
 
       testWithProfile('not authorized', fn: () async {
-        await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
+        await accountBackend.withBearerToken(userClientToken, () async {
           final p1 = await packageBackend.lookupPackage('oxygen');
           expect(p1!.versionCount, 3);
           final tarball = await packageArchiveBytes(
@@ -272,7 +272,7 @@ void main() {
         final user =
             await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
         await dbService.commit(inserts: [user..isBlocked = true]);
-        await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
+        await accountBackend.withBearerToken(userClientToken, () async {
           final tarball = await packageArchiveBytes(
               pubspecContent: generatePubspecYaml('pkg', '1.2.3'));
           final rs = packageBackend.upload(Stream.fromIterable([tarball]));
@@ -282,7 +282,7 @@ void main() {
 
       testWithProfile('upload restriction - no uploads', fn: () async {
         await secretBackend.update(SecretKey.uploadRestriction, 'no-uploads');
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await accountBackend.withBearerToken(adminClientToken, () async {
           final tarball = await packageArchiveBytes(
               pubspecContent: generatePubspecYaml('oxygen', '2.3.0'));
           final rs = packageBackend.upload(Stream.fromIterable([tarball]));
@@ -298,7 +298,7 @@ void main() {
 
       testWithProfile('upload restriction - no new packages', fn: () async {
         await secretBackend.update(SecretKey.uploadRestriction, 'only-updates');
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await accountBackend.withBearerToken(adminClientToken, () async {
           final tarball = await packageArchiveBytes(
               pubspecContent: generatePubspecYaml('some_new_package', '1.2.3'));
           final rs = packageBackend.upload(Stream.fromIterable([tarball]));
@@ -314,7 +314,7 @@ void main() {
 
       testWithProfile('upload restriction - update is accepted', fn: () async {
         await secretBackend.update(SecretKey.uploadRestriction, 'only-updates');
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await accountBackend.withBearerToken(adminClientToken, () async {
           final tarball = await packageArchiveBytes(
               pubspecContent: generatePubspecYaml('oxygen', '3.4.5'));
           final rs =
@@ -324,7 +324,7 @@ void main() {
       });
 
       testWithProfile('versions already exist', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await accountBackend.withBearerToken(adminClientToken, () async {
           final tarball = await packageArchiveBytes(
               pubspecContent: generatePubspecYaml('neon', '1.0.0'));
           final rs = packageBackend.upload(Stream.fromIterable([tarball]));
@@ -339,8 +339,10 @@ void main() {
       });
 
       testWithProfile('versions has been deleted', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await accountBackend.withBearerToken(siteAdminToken, () async {
           await adminBackend.removePackageVersion('oxygen', '1.0.0');
+        });
+        await accountBackend.withBearerToken(adminClientToken, () async {
           final tarball = await packageArchiveBytes(
               pubspecContent: generatePubspecYaml('oxygen', '1.0.0'));
           final rs = packageBackend.upload(Stream.fromIterable([tarball]));
@@ -371,7 +373,7 @@ void main() {
 
       testWithProfile('bad package names are rejected', fn: () async {
         await nameTracker.scanDatastore();
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await accountBackend.withBearerToken(adminClientToken, () async {
           expect(await fn('with'),
               'PackageRejected(400): Package name must not be a reserved word in Dart.');
           expect(await fn('123test'),
@@ -384,7 +386,7 @@ void main() {
       });
 
       testWithProfile('similar package names are rejected', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await accountBackend.withBearerToken(adminClientToken, () async {
           expect(await fn('ox_ygen'),
               'PackageRejected(400): Package name `ox_ygen` is too similar to another active package: `oxygen` (https://pub.dev/packages/oxygen).');
 
@@ -394,8 +396,10 @@ void main() {
       });
 
       testWithProfile('moderated package names are rejected', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await accountBackend.withBearerToken(siteAdminToken, () async {
           await adminBackend.removePackage('neon');
+        });
+        await accountBackend.withBearerToken(adminClientToken, () async {
           await nameTracker.scanDatastore();
 
           expect(await fn('neon'),
@@ -407,7 +411,7 @@ void main() {
       });
 
       testWithProfile('bad yaml file: duplicate key', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await accountBackend.withBearerToken(adminClientToken, () async {
           final tarball = await packageArchiveBytes(
               pubspecContent:
                   'name: xyz\n' + generatePubspecYaml('xyz', '1.0.0'));
@@ -423,7 +427,7 @@ void main() {
       });
 
       testWithProfile('bad pubspec content: bad version', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await accountBackend.withBearerToken(adminClientToken, () async {
           final tarball = await packageArchiveBytes(
               pubspecContent: generatePubspecYaml('xyz', 'not-a-version'));
           final rs = packageBackend.upload(Stream.fromIterable([tarball]));
@@ -439,7 +443,7 @@ void main() {
       });
 
       testWithProfile('has git dependency', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await accountBackend.withBearerToken(adminClientToken, () async {
           final tarball = await packageArchiveBytes(
               pubspecContent: generatePubspecYaml('xyz', '1.0.0') +
                   '  abcd:\n'
@@ -458,7 +462,7 @@ void main() {
       });
 
       testWithProfile('upload-too-big', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await accountBackend.withBearerToken(adminClientToken, () async {
           final oneKB = List.filled(1024, 42);
           final List<List<int>> bigTarball = [];
           for (int i = 0; i < UploadSignerService.maxUploadSize ~/ 1024; i++) {
@@ -479,7 +483,7 @@ void main() {
       });
 
       testWithProfile('successful update + download', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await accountBackend.withBearerToken(adminClientToken, () async {
           final p1 = await packageBackend.lookupPackage('oxygen');
           expect(p1!.versionCount, 3);
           final tarball = await packageArchiveBytes(
@@ -527,7 +531,7 @@ void main() {
       ),
       fn: () async {
         packageBackend.maxVersionsPerPackage = 100;
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await accountBackend.withBearerToken(adminClientToken, () async {
           final tarball = await packageArchiveBytes(
               pubspecContent: generatePubspecYaml('busy_pkg', '2.0.0'));
           final rs = packageBackend.upload(Stream.fromIterable([tarball]));

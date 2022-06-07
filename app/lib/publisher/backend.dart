@@ -46,11 +46,15 @@ class PublisherBackend {
 
   PublisherBackend(this._db);
 
-  /// Loads a publisher (or returns null if it does not exists).
+  /// Loads a publisher. Returns `null` if it does not exists, or is blocked (not visible).
   Future<Publisher?> getPublisher(String publisherId) async {
     checkPublisherIdParam(publisherId);
     final pKey = _db.emptyKey.append(Publisher, id: publisherId);
-    return await _db.lookupOrNull<Publisher>(pKey);
+    final p = await _db.lookupOrNull<Publisher>(pKey);
+    if (p != null && p.isNotVisible) {
+      return null;
+    }
+    return p;
   }
 
   /// List publishers (in no specific order, it will be listed by their
@@ -61,6 +65,7 @@ class PublisherBackend {
       final query = _db.query<Publisher>();
       final publishers = await query
           .run()
+          .where((p) => p.isVisible)
           .map((p) => PublisherSummary(
                 publisherId: p.publisherId,
                 created: p.created!,
@@ -92,12 +97,15 @@ class PublisherBackend {
         // - search using this for query parameters
         _logger.shout('A user has more than 100 publishers.');
       }
-      final publishers = await _db.lookup<Publisher>(publisherKeys);
-      publishers.sort((a, b) => a!.publisherId.compareTo(b!.publisherId));
+      final publishers = (await _db.lookup<Publisher>(publisherKeys))
+          .whereType<Publisher>()
+          .toList();
+      publishers.sort((a, b) => a.publisherId.compareTo(b.publisherId));
       return PublisherPage(
         publishers: publishers
+            .where((p) => p.isVisible)
             .map((p) => PublisherSummary(
-                  publisherId: p!.publisherId,
+                  publisherId: p.publisherId,
                   created: p.created!,
                 ))
             .toList(),
@@ -107,20 +115,17 @@ class PublisherBackend {
 
   /// Loads the [PublisherMember] instance for [userId] (or returns null if it does not exists).
   Future<PublisherMember?> getPublisherMember(
-      String publisherId, String userId) async {
-    checkPublisherIdParam(publisherId);
+      Publisher publisher, String userId) async {
     ArgumentError.checkNotNull(userId, 'userId');
-    final mKey = _db.emptyKey
-        .append(Publisher, id: publisherId)
-        .append(PublisherMember, id: userId);
+    final mKey = publisher.key.append(PublisherMember, id: userId);
     return await _db.lookupOrNull<PublisherMember>(mKey);
   }
 
   /// Whether the User [userId] has admin permissions on the publisher.
-  Future<bool> isMemberAdmin(String publisherId, String? userId) async {
-    checkPublisherIdParam(publisherId);
+  Future<bool> isMemberAdmin(Publisher publisher, String? userId) async {
+    if (publisher.isNotVisible) return false;
     if (userId == null) return false;
-    final member = await getPublisherMember(publisherId, userId);
+    final member = await getPublisherMember(publisher, userId);
     if (member == null) return false;
     return member.role == PublisherMemberRole.admin;
   }
@@ -149,7 +154,8 @@ class PublisherBackend {
       minimum: 1,
       maximum: 4096,
     );
-    await accountBackend.verifyAccessTokenOwnership(body.accessToken, user);
+    await accountBackend.verifyAccessTokenOwnership(
+        AuthSource.website, body.accessToken, user);
 
     // Verify ownership of domain.
     final isOwner = await domainVerifier.verifyDomainOwnership(
@@ -181,15 +187,11 @@ class PublisherBackend {
 
       // Create publisher
       tx.queueMutations(inserts: [
-        Publisher()
-          ..parentKey = _db.emptyKey
-          ..id = publisherId
-          ..created = now
-          ..description = ''
-          ..contactEmail = user.email
-          ..updated = now
-          ..websiteUrl = _publisherWebsite(publisherId)
-          ..isAbandoned = false,
+        Publisher.init(
+          parentKey: _db.emptyKey,
+          publisherId: publisherId,
+          contactEmail: user.email,
+        ),
         PublisherMember()
           ..parentKey = _db.emptyKey.append(Publisher, id: publisherId)
           ..id = user.userId
@@ -228,12 +230,26 @@ class PublisherBackend {
   Future<api.PublisherInfo> updatePublisher(
       String publisherId, api.UpdatePublisherRequest update) async {
     checkPublisherIdParam(publisherId);
+    // limit length, if not null
     if (update.description != null) {
-      // limit length, if not null
       InvalidInputException.checkStringLength(
         update.description,
         'description',
         maximum: 4096,
+      );
+    }
+    if (update.websiteUrl != null) {
+      InvalidInputException.checkStringLength(
+        update.websiteUrl,
+        'websiteUrl',
+        maximum: 256,
+      );
+    }
+    if (update.contactEmail != null) {
+      InvalidInputException.checkStringLength(
+        update.contactEmail,
+        'contactEmail',
+        maximum: 256,
       );
     }
     final user = await requireAuthenticatedUser();
@@ -269,7 +285,7 @@ class PublisherBackend {
             await accountBackend.lookupUsersByEmail(update.contactEmail!);
         if (usersByEmail.isNotEmpty) {
           for (final user in usersByEmail) {
-            if (await isMemberAdmin(publisherId, user.userId)) {
+            if (await isMemberAdmin(p, user.userId)) {
               contactEmailMatchedAdmin = true;
               p.contactEmail = update.contactEmail;
               break;

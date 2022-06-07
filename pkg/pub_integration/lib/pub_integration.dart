@@ -9,6 +9,7 @@ import 'script/publishing.dart';
 Future verifyPub({
   required String pubHostedUrl,
   required String credentialsFileContent,
+  required String mainAccessToken,
   required String invitedEmail,
   required InviteCompleterFn inviteCompleterFn,
   bool expectLiveSite = true,
@@ -16,6 +17,7 @@ Future verifyPub({
   final pubToolScript = PublishingScript(
     pubHostedUrl,
     credentialsFileContent,
+    mainAccessToken,
     invitedEmail,
     inviteCompleterFn,
     expectLiveSite,

@@ -22,7 +22,7 @@ void main() {
         index.search('fluent').getValues(),
         {
           'fluent': 1.0,
-          'fluent_ui': closeTo(0.85, 0.01),
+          'fluent_ui': closeTo(0.95, 0.01),
         },
       );
     });
@@ -32,7 +32,7 @@ void main() {
         index.search('get').getValues(),
         {
           'get': 1.0,
-          'get_it': closeTo(0.75, 0.01),
+          'get_it': closeTo(0.90, 0.01),
         },
       );
     });
@@ -42,7 +42,7 @@ void main() {
         index.search('modular').getValues(),
         {
           'modular': 1.0,
-          'modular_flutter': closeTo(0.67, 0.01),
+          'modular_flutter': closeTo(0.86, 0.01),
         },
       );
     });
@@ -51,8 +51,8 @@ void main() {
       expect(
         index.search('fluent it').getValues(),
         {
-          'fluent': closeTo(0.92, 0.01),
-          'fluent_ui': closeTo(0.80, 0.01),
+          'fluent': closeTo(0.88, 0.01),
+          'fluent_ui': closeTo(0.84, 0.01),
         },
       );
     });
@@ -61,9 +61,9 @@ void main() {
       expect(
         index.search('fluent flutter').getValues(),
         {
-          'fluent': closeTo(0.76, 0.01),
-          'fluent_ui': closeTo(0.68, 0.01),
-          'modular_flutter': closeTo(0.60, 0.01),
+          'fluent': closeTo(0.67, 0.01),
+          'fluent_ui': closeTo(0.65, 0.01),
+          'modular_flutter': closeTo(0.68, 0.01),
         },
       );
     });
@@ -71,7 +71,9 @@ void main() {
     test('prefix: f', () {
       expect(
         index.search('f').getValues(),
-        {},
+        {
+          'fluent': closeTo(0.55, 0.01),
+        },
       );
     });
 
@@ -79,7 +81,8 @@ void main() {
       expect(
         index.search('fl').getValues(),
         {
-          'fluent': 0.5,
+          'fluent': closeTo(0.75, 0.01),
+          'fluent_ui': closeTo(0.67, 0.01),
         },
       );
     });
@@ -88,8 +91,9 @@ void main() {
       expect(
         index.search('flu').getValues(),
         {
-          'fluent': closeTo(0.67, 0.01),
-          'fluent_ui': closeTo(0.55, 0.01),
+          'fluent': closeTo(0.86, 0.01),
+          'fluent_ui': closeTo(0.78, 0.01),
+          'modular_flutter': closeTo(0.62, 0.01),
         },
       );
     });

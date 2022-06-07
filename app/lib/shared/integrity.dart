@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 
+import '../account/agent.dart';
 import '../account/models.dart';
 import '../audit/models.dart';
 import '../package/backend.dart';
@@ -85,6 +86,10 @@ class IntegrityChecker {
     _logger.info('Scanning Users...');
     final gmailComEmails = <String>{};
     await for (User user in _db.query<User>().run()) {
+      if (!isValidUserId(user.userId)) {
+        yield 'User has invalid userId: "${user.userId}".';
+      }
+
       _userToOauth[user.userId] = user.oauthUserId;
       final email = user.email;
       if (email == null || email.isEmpty || !looksLikeEmail(email)) {
@@ -120,8 +125,11 @@ class IntegrityChecker {
     _logger.info('Scanning OAuthUserIDs...');
     await for (OAuthUserID mapping in _db.query<OAuthUserID>().run()) {
       if (mapping.userIdKey == null) {
-        yield 'OAuthUserID "${mapping.oauthUserId}" has invalid `userId`.';
+        yield 'OAuthUserID "${mapping.oauthUserId}" has no `userId`.';
       } else {
+        if (!isValidUserId(mapping.userId)) {
+          yield 'OAuthUserID "${mapping.oauthUserId}" has invalid `userId`: "${mapping.userId}".';
+        }
         _oauthToUser[mapping.oauthUserId] = mapping.userId;
       }
     }
@@ -164,7 +172,7 @@ class IntegrityChecker {
       _publishers.add(p.publisherId);
       final members =
           await _db.query<PublisherMember>(ancestorKey: p.key).run().toList();
-      if (p.isAbandoned!) {
+      if (p.isAbandoned) {
         _publishersAbandoned.add(p.publisherId);
         if (members.isNotEmpty) {
           yield 'Publisher "${p.publisherId}" is marked as abandoned, '
@@ -361,12 +369,24 @@ class IntegrityChecker {
       ..filter('package =', p.name);
     final pviKeys = <QualifiedVersionKey>{};
     final referencedAssetIds = <String>[];
+
+    Stream<String> checkPackageVersionKey(
+        String entityType, QualifiedVersionKey key) async* {
+      if (!qualifiedVersionKeys.contains(key)) {
+        final pv = await packageBackend.lookupPackageVersion(
+            key.package!, key.version!);
+        if (pv == null) {
+          yield '$entityType "$key" has no PackageVersion.';
+        } else {
+          qualifiedVersionKeys.add(key);
+        }
+      }
+    }
+
     await for (PackageVersionInfo pvi in pviQuery.run()) {
       final key = pvi.qualifiedVersionKey;
       pviKeys.add(key);
-      if (!qualifiedVersionKeys.contains(key)) {
-        yield 'PackageVersionInfo "$key" has no PackageVersion.';
-      }
+      yield* checkPackageVersionKey('PackageVersionInfo', key);
       if (pvi.versionCreated == null) {
         yield 'PackageVersionInfo "$key" has a `versionCreated` property which is null.';
       }
@@ -397,9 +417,7 @@ class IntegrityChecker {
         yield 'PackageVersionAsset "${pva.id}" uses old id format.';
         continue;
       }
-      if (!qualifiedVersionKeys.contains(key)) {
-        yield 'PackageVersionAsset "${pva.id}" has no PackageVersion.';
-      }
+      yield* checkPackageVersionKey('PackageVersionAsset', key);
       foundAssetIds.add(pva.assetId);
       // check if PackageVersionAsset is referenced in PackageVersionInfo
       if (!referencedAssetIds.contains(pva.assetId)) {
@@ -456,7 +474,7 @@ class IntegrityChecker {
     if (pv.uploader == null) {
       yield 'PackageVersion "${pv.qualifiedVersionKey}" has no uploader.';
     } else {
-      yield* _checkUserValid(
+      yield* _checkAgentValid(
         pv.uploader!,
         entityType: 'PackageVersion',
         entityId: pv.qualifiedVersionKey.toString(),
@@ -580,8 +598,25 @@ class IntegrityChecker {
   }
 
   Stream<String> _checkAuditLogRecord(AuditLogRecord r) async* {
-    if (r.users == null || r.users!.isEmpty) {
+    yield* _checkAgentValid(
+      r.agent!,
+      entityType: 'AuditLogRecord',
+      entityId: r.id,
+      isRetainedRecord: r.isNotExpired,
+    );
+
+    final users = r.users;
+    if (users == null || users.isEmpty) {
       yield 'AuditLogRecord "${r.id}" has no users.';
+    } else {
+      for (final u in users) {
+        yield* _checkUserValid(
+          u,
+          entityType: 'AuditLogRecord',
+          entityId: r.id,
+          isRetainedRecord: r.isNotExpired,
+        );
+      }
     }
 
     for (final p in r.packages ?? const <String>[]) {
@@ -603,6 +638,30 @@ class IntegrityChecker {
     }
   }
 
+  Stream<String> _checkAgentValid(
+    String agent, {
+    required String entityType,
+    String? entityId,
+
+    /// Set true for entries where we retain the record indefintely,
+    /// even if the [User] has been deleted or invalidated.
+    bool isRetainedRecord = false,
+  }) async* {
+    final label =
+        entityId == null ? '$entityType entity' : '$entityType "$entityId"';
+    if (!isValidUserIdOrServiceAgent(agent)) {
+      yield '$label references an invalid agent: "$agent".';
+    }
+    if (isValidUserId(agent)) {
+      yield* _checkUserValid(
+        agent,
+        entityType: entityType,
+        entityId: entityId,
+        isRetainedRecord: isRetainedRecord,
+      );
+    }
+  }
+
   Stream<String> _checkUserValid(
     String userId, {
     required String entityType,
@@ -614,6 +673,9 @@ class IntegrityChecker {
   }) async* {
     final label =
         entityId == null ? '$entityType entity' : '$entityType "$entityId"';
+    if (!isValidUserId(userId)) {
+      yield '$label references an invalid userId: "$userId".';
+    }
     if (!(await _userExists(userId))) {
       yield '$label references a nonexisting User: "$userId".';
     }

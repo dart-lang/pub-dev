@@ -72,18 +72,15 @@ void main() {
             'score': closeTo(0.98, 0.01),
             'apiPages': [
               {
-                'title': null,
                 'path': 'dart-async/AsyncError-class.html',
                 'url': 'https://api.dart.dev/x/dart-async/AsyncError-class.html'
               },
               {
-                'title': null,
                 'path': 'dart-async/AsyncError/AsyncError.html',
                 'url':
                     'https://api.dart.dev/x/dart-async/AsyncError/AsyncError.html'
               },
               {
-                'title': null,
                 'path': 'dart-async/AsyncError/defaultStackTrace.html',
                 'url':
                     'https://api.dart.dev/x/dart-async/AsyncError/defaultStackTrace.html'
@@ -108,7 +105,6 @@ void main() {
             'score': closeTo(0.28, 0.01),
             'apiPages': [
               {
-                'title': null,
                 'path': 'dart-async/AsyncError/defaultStackTrace.html',
                 'url':
                     'https://api.dart.dev/x/dart-async/AsyncError/defaultStackTrace.html'
@@ -133,7 +129,6 @@ void main() {
             'score': closeTo(0.98, 0.01),
             'apiPages': [
               {
-                'title': null,
                 'path': 'dart-async/AsyncError/defaultStackTrace.html',
                 'url':
                     'https://api.dart.dev/x/dart-async/AsyncError/defaultStackTrace.html'

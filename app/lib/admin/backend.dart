@@ -30,11 +30,11 @@ import '../shared/email.dart';
 import '../shared/exceptions.dart';
 import '../shared/tags.dart';
 import '../tool/utils/dart_sdk_version.dart';
+import 'tools/block_publisher_and_all_members.dart';
 import 'tools/create_publisher.dart';
 import 'tools/list_package_withheld.dart';
 import 'tools/notify_service.dart';
 import 'tools/recent_uploaders.dart';
-import 'tools/remove_publisher_and_block_all_members.dart';
 import 'tools/set_package_withheld.dart';
 import 'tools/set_secret.dart';
 import 'tools/set_user_blocked.dart';
@@ -60,7 +60,7 @@ class AdminBackend {
   Future<User> _requireAdminPermission(AdminPermission permission) async {
     ArgumentError.checkNotNull(permission, 'permission');
 
-    final user = await requireAuthenticatedUser();
+    final user = await requireAuthenticatedUser(source: AuthSource.admin);
     final admin = activeConfiguration.admins!.firstWhereOrNull(
         (a) => a.oauthUserId == user.oauthUserId && a.email == user.email);
     if (admin == null || !admin.permissions.contains(permission)) {
@@ -87,8 +87,8 @@ class AdminBackend {
         return await executeNotifyService(args);
       case 'recent-uploaders':
         return await executeRecentUploaders(args);
-      case 'remove-publisher-and-delete-all-members':
-        return await executeRemovePublisherAndBlockAllMembers(args);
+      case 'block-publisher-and-all-members':
+        return await executeBlockPublisherAndAllMembers(args);
       case 'set-package-withheld':
         return await executeSetPackageWithheld(args);
       case 'set-secret':
@@ -145,18 +145,9 @@ class AdminBackend {
     final newContinuationToken = users.length < limit
         ? null
         : _continuationCodec.encode(users.last.userId);
-    users.removeWhere((u) => u.isDeleted);
 
     return api.AdminListUsersResponse(
-      users: users
-          .map(
-            (u) => api.AdminUserEntry(
-              userId: u.userId,
-              email: u.email,
-              oauthUserId: u.oauthUserId,
-            ),
-          )
-          .toList(),
+      users: _convertUsers(users),
       continuationToken: newContinuationToken,
     );
   }
@@ -598,12 +589,24 @@ class AdminBackend {
     InvalidInputException.check(
         package.publisherId == null, 'Package must not be under a publisher.');
 
-    final uploaders = <api.AdminUserEntry>[];
-    for (final userId in package.uploaders!) {
-      final email = await accountBackend.getEmailOfUserId(userId);
-      uploaders.add(api.AdminUserEntry(userId: userId, email: email));
-    }
-    return api.PackageUploaders(uploaders: uploaders);
+    final users = await accountBackend.lookupUsersById(package.uploaders!);
+    return api.PackageUploaders(
+      uploaders: _convertUsers(users),
+    );
+  }
+
+  List<api.AdminUserEntry> _convertUsers(Iterable<User?> users) {
+    return users
+        .whereType<User>()
+        .where((u) => !u.isDeleted)
+        .map(
+          (u) => api.AdminUserEntry(
+            userId: u.userId,
+            oauthUserId: u.oauthUserId,
+            email: u.email,
+          ),
+        )
+        .toList();
   }
 
   /// Handles PUT '/api/admin/packages/<package>/uploaders/<email>'

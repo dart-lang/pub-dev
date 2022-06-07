@@ -29,7 +29,7 @@ d.Node installTabNode({
   final useAsLibrary = !hasExecutables || importExamples.isNotEmpty;
 
   return d.fragment([
-    if (hasExecutables) _useAsExecutable(version.package, executables!),
+    if (hasExecutables) _useAsExecutable(version.package, executables),
     if (useAsLibrary) _useAsLibrary(version, tags, isDevDependency),
     if (importExamples.isNotEmpty) _useAsImport(importExamples),
   ]);

@@ -16,7 +16,9 @@ Future main(List<String> args) async {
     ..addOption('pub-hosted-url', help: 'The PUB_HOSTED_URL to use.')
     ..addOption('invited-email', help: 'The e-mail of the invited account.')
     ..addOption('credentials-json',
-        help: 'The credentials.json to use for uploads and other actions.');
+        help: 'The credentials.json to use for uploads and other actions.')
+    ..addOption('main-access-token',
+        help: 'The access token of the main users.');
   final argv = _argParser.parse(args);
   if (argv['help'] as bool) {
     print(_argParser.usage);
@@ -66,6 +68,18 @@ Future main(List<String> args) async {
   }
   final credentialsFileContent = await File(credentialsFile).readAsString();
 
+  final mainAccessToken = argv['main-access-token'] as String?;
+  if (mainAccessToken == null) {
+    print([
+      '--main-access-token must be set',
+      '',
+      'If you are signed in on pub.dev, open the developer console, and type',
+      'the following to get an access token that is valid for the next hour:',
+      'gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().id_token',
+    ].join('\n'));
+    exit(1);
+  }
+
   print('');
   print('PUB_HOSTED_URL:   $pubHostedUrl');
   print('invited e-mail:   $invitedEmail');
@@ -81,6 +95,7 @@ Future main(List<String> args) async {
   await verifyPub(
     pubHostedUrl: pubHostedUrl,
     credentialsFileContent: credentialsFileContent,
+    mainAccessToken: mainAccessToken,
     invitedEmail: invitedEmail,
     inviteCompleterFn: () async {
       print('******');

@@ -20,9 +20,21 @@ class FakeAuthProvider implements AuthProvider {
   Future<void> close() async {}
 
   @override
-  Future<AuthResult?> tryAuthenticate(String? accessToken) async {
-    if (accessToken == null || !accessToken.contains('-at-')) return null;
-    final email = accessToken.replaceAll('-at-', '@').replaceAll('-dot-', '.');
+  Future<AuthResult?> tryAuthenticate(
+      AuthSource source, String accessToken) async {
+    if (!accessToken.contains('-at-')) {
+      return null;
+    }
+    final uri = Uri.tryParse(accessToken);
+    if (uri == null) {
+      return null;
+    }
+    final sourceValue = uri.queryParameters['source'];
+    if (sourceValue == null || sourceValue != source.name) {
+      return null;
+    }
+
+    final email = uri.path.replaceAll('-at-', '@').replaceAll('-dot-', '.');
     final id = email.replaceAll('@', '-').replaceAll('.', '-');
     return AuthResult(id, email);
   }
@@ -45,4 +57,14 @@ class FakeAuthProvider implements AuthProvider {
       imageUrl: imageUrl,
     );
   }
+}
+
+String createFakeAuthTokenForEmail(
+  String email, {
+  AuthSource? source,
+}) {
+  source ??= AuthSource.website;
+  return Uri(
+      path: email.replaceAll('.', '-dot-').replaceAll('@', '-at-'),
+      queryParameters: {'source': source.name}).toString();
 }

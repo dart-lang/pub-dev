@@ -20,7 +20,7 @@ d.Node scoreTabNode({
     return d.i(text: 'Awaiting analysis to complete.');
   }
 
-  final report = card.getJoinedReport();
+  final report = card.report;
   final showPending = !card.isSkipped && report == null;
   final showReport = !card.isSkipped && report != null;
 
@@ -73,8 +73,8 @@ d.Node scoreTabNode({
           if (card.panaReport?.timestamp != null)
             d.xAgoTimestamp(card.panaReport!.timestamp!, datePrefix: 'on'),
           d.text(', '
-              'and awarded it ${report?.grantedPoints ?? 0} '
-              'pub points (of a possible ${report?.maxPoints ?? 0}):'),
+              'and awarded it ${report.grantedPoints} '
+              'pub points (of a possible ${report.maxPoints}):'),
         ],
       ),
     if (report != null) _reportNode(report),

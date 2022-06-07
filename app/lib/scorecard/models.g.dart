@@ -20,12 +20,7 @@ ScoreCardData _$ScoreCardDataFromJson(Map<String, dynamic> json) =>
       packageVersionCreated: json['packageVersionCreated'] == null
           ? null
           : DateTime.parse(json['packageVersionCreated'] as String),
-      grantedPubPoints: json['grantedPubPoints'] as int?,
-      maxPubPoints: json['maxPubPoints'] as int?,
       popularityScore: (json['popularityScore'] as num?)?.toDouble(),
-      derivedTags: (json['derivedTags'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
       flags:
           (json['flags'] as List<dynamic>?)?.map((e) => e as String).toList(),
       dartdocReport: json['dartdocReport'] == null
@@ -46,10 +41,7 @@ Map<String, dynamic> _$ScoreCardDataToJson(ScoreCardData instance) =>
       'packageCreated': instance.packageCreated?.toIso8601String(),
       'packageVersionCreated':
           instance.packageVersionCreated?.toIso8601String(),
-      'grantedPubPoints': instance.grantedPubPoints,
-      'maxPubPoints': instance.maxPubPoints,
       'popularityScore': instance.popularityScore,
-      'derivedTags': instance.derivedTags,
       'flags': instance.flags,
       'dartdocReport': instance.dartdocReport,
       'panaReport': instance.panaReport,
@@ -70,9 +62,6 @@ PanaReport _$PanaReportFromJson(Map<String, dynamic> json) => PanaReport(
       allDependencies: (json['allDependencies'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
-      licenseFile: json['licenseFile'] == null
-          ? null
-          : LicenseFile.fromJson(json['licenseFile'] as Map<String, dynamic>),
       licenses: (json['licenses'] as List<dynamic>?)
           ?.map((e) => License.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -84,9 +73,6 @@ PanaReport _$PanaReportFromJson(Map<String, dynamic> json) => PanaReport(
       urlProblems: (json['urlProblems'] as List<dynamic>?)
           ?.map((e) => UrlProblem.fromJson(e as Map<String, dynamic>))
           .toList(),
-      repository: json['repository'] == null
-          ? null
-          : Repository.fromJson(json['repository'] as Map<String, dynamic>),
       screenshots: (json['screenshots'] as List<dynamic>?)
           ?.map((e) => ProcessedScreenshot.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -106,13 +92,11 @@ Map<String, dynamic> _$PanaReportToJson(PanaReport instance) {
   writeNotNull('reportStatus', instance.reportStatus);
   writeNotNull('derivedTags', instance.derivedTags);
   writeNotNull('allDependencies', instance.allDependencies);
-  writeNotNull('licenseFile', instance.licenseFile);
   writeNotNull('licenses', instance.licenses);
   writeNotNull('report', instance.report);
   writeNotNull('screenshots', instance.screenshots);
   writeNotNull('flags', instance.flags);
   writeNotNull('urlProblems', instance.urlProblems);
-  writeNotNull('repository', instance.repository);
   return val;
 }
 

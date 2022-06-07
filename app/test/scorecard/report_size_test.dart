@@ -29,7 +29,6 @@ void main() {
             reportStatus: ReportStatus.success,
             derivedTags: List.generate(10000, (i) => 'tag:value-$i'),
             allDependencies: List.generate(10000, (i) => 'p$i'),
-            licenseFile: null,
             licenses: null,
             report: pana.Report(sections: [
               pana.ReportSection(
@@ -43,7 +42,6 @@ void main() {
             ]),
             flags: [],
             urlProblems: [],
-            repository: null,
             screenshots: null,
           ),
         );
@@ -56,10 +54,7 @@ void main() {
           'updated': isNotNull,
           'packageCreated': isNotNull,
           'packageVersionCreated': isNotNull,
-          'grantedPubPoints': 20,
-          'maxPubPoints': 20,
           'popularityScore': isNotNull,
-          'derivedTags': isEmpty,
           'flags': [],
           'dartdocReport': isNotNull,
           'panaReport': {

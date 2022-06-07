@@ -291,7 +291,7 @@ class QueryValidity {
   bool get isRejected => rejectReason != null;
 }
 
-@JsonSerializable(includeIfNull: false)
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
 class PackageSearchResult {
   final DateTime? timestamp;
   final int totalCount;
@@ -337,7 +337,7 @@ class PackageSearchResult {
       highlightedHit == null && packageHits.isEmpty && sdkLibraryHits.isEmpty;
 }
 
-@JsonSerializable(includeIfNull: false)
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
 class SdkLibraryHit {
   final String? sdk;
   final String? version;
@@ -363,7 +363,7 @@ class SdkLibraryHit {
   Map<String, dynamic> toJson() => _$SdkLibraryHitToJson(this);
 }
 
-@JsonSerializable(includeIfNull: false)
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
 class PackageHit {
   final String package;
   final double? score;
@@ -389,7 +389,7 @@ class PackageHit {
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
 class ApiPageRef {
   final String? title;
   final String? path;
@@ -421,21 +421,18 @@ abstract class DependencyTypes {
 
 extension SearchFormExt on SearchForm {
   ServiceSearchQuery toServiceQuery() {
-    final prohibitLegacy = !context.includeAll &&
-        !parsedQuery.tagsPredicate.anyTag((tag) =>
-            tag == PackageVersionTags.isLegacy ||
-            tag == PackageVersionTags.showLegacy ||
-            tag == PackageTags.showHidden);
-    final prohibitDiscontinued = !context.includeAll &&
-        !parsedQuery.tagsPredicate.anyTag((tag) =>
-            tag == PackageTags.isDiscontinued ||
-            tag == PackageTags.showDiscontinued ||
-            tag == PackageTags.showHidden);
-    final prohibitUnlisted = !context.includeAll &&
-        !parsedQuery.tagsPredicate.anyTag((tag) =>
-            tag == PackageTags.isUnlisted ||
-            tag == PackageTags.showUnlisted ||
-            tag == PackageTags.showHidden);
+    final prohibitLegacy = !parsedQuery.tagsPredicate.anyTag((tag) =>
+        tag == PackageVersionTags.isLegacy ||
+        tag == PackageVersionTags.showLegacy ||
+        tag == PackageTags.showHidden);
+    final prohibitDiscontinued = !parsedQuery.tagsPredicate.anyTag((tag) =>
+        tag == PackageTags.isDiscontinued ||
+        tag == PackageTags.showDiscontinued ||
+        tag == PackageTags.showHidden);
+    final prohibitUnlisted = !parsedQuery.tagsPredicate.anyTag((tag) =>
+        tag == PackageTags.isUnlisted ||
+        tag == PackageTags.showUnlisted ||
+        tag == PackageTags.showHidden);
     final tagsPredicate = TagsPredicate(
       prohibitedTags: [
         if (prohibitDiscontinued) PackageTags.isDiscontinued,
@@ -446,7 +443,6 @@ extension SearchFormExt on SearchForm {
     return ServiceSearchQuery.parse(
       query: query,
       tagsPredicate: tagsPredicate,
-      publisherId: context.publisherId,
       offset: offset,
       limit: pageSize,
       order: order,

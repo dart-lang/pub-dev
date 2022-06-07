@@ -4,7 +4,6 @@
 
 import 'dart:convert';
 
-import 'package:clock/clock.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/shared/configuration.dart';
@@ -131,10 +130,8 @@ void main() {
         },
       );
       final p = await packageBackend.lookupPackage('neon');
-      p!
-        ..isWithheld = true
-        ..withheldReason = 'spam'
-        ..updated = clock.now();
+      p!.updateIsBlocked(isBlocked: true, reason: 'spam');
+      expect(p.isVisible, isFalse);
       await dbService.commit(inserts: [p]);
       await nameTracker.scanDatastore();
       await expectJsonResponse(

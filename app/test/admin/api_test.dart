@@ -28,10 +28,12 @@ void main() {
   group('Admin API', () {
     group('List users', () {
       setupTestsWithCallerAuthorizationIssues(
-          (client) => client.adminListUsers());
+        (client) => client.adminListUsers(),
+        authSource: AuthSource.admin,
+      );
 
       testWithProfile('OK', fn: () async {
-        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+        final client = createPubApiClient(authToken: siteAdminToken);
         final rs = await client.adminListUsers();
         expect(
           _json(rs.toJson()),
@@ -58,7 +60,7 @@ void main() {
       });
 
       testWithProfile('pagination', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await accountBackend.withBearerToken(siteAdminToken, () async {
           final page1 = await adminBackend.listUsers(limit: 1);
           expect(
             _json(page1.toJson()),
@@ -89,7 +91,7 @@ void main() {
       });
 
       testWithProfile('lookup by email - not found', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await accountBackend.withBearerToken(siteAdminToken, () async {
           final page = await adminBackend.listUsers(email: 'no@such.email');
           expect(_json(page.toJson()), {
             'users': [],
@@ -99,7 +101,7 @@ void main() {
       });
 
       testWithProfile('lookup by email - found', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await accountBackend.withBearerToken(siteAdminToken, () async {
           final page = await adminBackend.listUsers(email: 'user@pub.dev');
           expect(_json(page.toJson()), {
             'users': [
@@ -115,7 +117,7 @@ void main() {
       });
 
       testWithProfile('lookup by oauthUserId - not found', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await accountBackend.withBearerToken(siteAdminToken, () async {
           final page = await adminBackend.listUsers(oauthUserId: 'no-such-id');
           expect(_json(page.toJson()), {
             'users': [],
@@ -125,7 +127,7 @@ void main() {
       });
 
       testWithProfile('lookup by oauthUserId - found', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await accountBackend.withBearerToken(siteAdminToken, () async {
           final page =
               await adminBackend.listUsers(oauthUserId: 'admin-pub-dev');
           expect(_json(page.toJson()), {
@@ -142,7 +144,7 @@ void main() {
       });
 
       testWithProfile('lookup by multiple attribute', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await accountBackend.withBearerToken(siteAdminToken, () async {
           final rs =
               adminBackend.listUsers(email: 'x', oauthUserId: 'no-such-id');
           await expectLater(rs, throwsA(isA<InvalidInputException>()));
@@ -152,10 +154,12 @@ void main() {
 
     group('Delete package', () {
       setupTestsWithCallerAuthorizationIssues(
-          (client) => client.adminRemovePackage('oxygen'));
+        (client) => client.adminRemovePackage('oxygen'),
+        authSource: AuthSource.admin,
+      );
 
       testWithProfile('OK', fn: () async {
-        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+        final client = createPubApiClient(authToken: siteAdminToken);
 
         final pkgKey = dbService.emptyKey.append(Package, id: 'oxygen');
         final package = await dbService.lookupValue<Package>(pkgKey);
@@ -212,10 +216,12 @@ void main() {
 
     group('Delete package version', () {
       setupTestsWithCallerAuthorizationIssues(
-          (client) => client.adminRemovePackageVersion('oxygen', '1.2.0'));
+        (client) => client.adminRemovePackageVersion('oxygen', '1.2.0'),
+        authSource: AuthSource.admin,
+      );
 
       testWithProfile('OK', fn: () async {
-        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+        final client = createPubApiClient(authToken: siteAdminToken);
         final removeVersion = '1.2.0';
 
         final pkgKey = dbService.emptyKey.append(Package, id: 'oxygen');
@@ -305,17 +311,20 @@ void main() {
     });
 
     group('Delete user', () {
-      setupTestsWithCallerAuthorizationIssues((client) async {
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
-        await client.adminRemoveUser(user.userId);
-      });
+      setupTestsWithCallerAuthorizationIssues(
+        (client) async {
+          final user =
+              await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+          await client.adminRemoveUser(user.userId);
+        },
+        authSource: AuthSource.admin,
+      );
 
       testWithProfile(
         'OK',
         testProfile: defaultTestProfile.changeDefaultUser('user@pub.dev'),
         fn: () async {
-          final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+          final client = createPubApiClient(authToken: siteAdminToken);
           final user =
               await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
 
@@ -340,7 +349,7 @@ void main() {
       );
 
       testWithProfile('Likes are cleaned up on user deletion', fn: () async {
-        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+        final client = createPubApiClient(authToken: siteAdminToken);
 
         final user =
             await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
@@ -373,10 +382,12 @@ void main() {
 
     group('get assignedTags', () {
       setupTestsWithCallerAuthorizationIssues(
-          (client) => client.adminGetAssignedTags('oxygen'));
+        (client) => client.adminGetAssignedTags('oxygen'),
+        authSource: AuthSource.admin,
+      );
 
       testWithProfile('get assignedTags', fn: () async {
-        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+        final client = createPubApiClient(authToken: siteAdminToken);
         final result = await client.adminGetAssignedTags('oxygen');
         expect(result.assignedTags, isNot(contains('is:featured')));
       });
@@ -384,13 +395,15 @@ void main() {
 
     group('set assignedTags', () {
       setupTestsWithCallerAuthorizationIssues(
-          (client) => client.adminPostAssignedTags(
-                'oxygen',
-                PatchAssignedTags(assignedTagsAdded: ['is:featured']),
-              ));
+        (client) => client.adminPostAssignedTags(
+          'oxygen',
+          PatchAssignedTags(assignedTagsAdded: ['is:featured']),
+        ),
+        authSource: AuthSource.admin,
+      );
 
       testWithProfile('set assignedTags', fn: () async {
-        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+        final client = createPubApiClient(authToken: siteAdminToken);
 
         // Is initially not featured
         final r1 = await client.adminGetAssignedTags('oxygen');
@@ -443,7 +456,7 @@ void main() {
         Future Function(PubApiClient client, String package) fn,
       ) {
         testWithProfile('missing package', fn: () async {
-          final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+          final client = createPubApiClient(authToken: siteAdminToken);
           final rs = fn(client, 'missing_package');
           await expectLater(
               rs,
@@ -452,7 +465,7 @@ void main() {
         });
 
         testWithProfile('invalid package with publisher', fn: () async {
-          final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+          final client = createPubApiClient(authToken: siteAdminToken);
           final rs = fn(client, 'neon');
           await expectLater(
               rs,
@@ -463,40 +476,45 @@ void main() {
 
       group('get', () {
         setupTestsWithCallerAuthorizationIssues(
-            (client) => client.adminGetPackageUploaders('oxygen'));
+          (client) => client.adminGetPackageUploaders('oxygen'),
+          authSource: AuthSource.admin,
+        );
         setupTestsWithPackageFailures(
             (client, package) => client.adminGetPackageUploaders(package));
 
         testWithProfile('reading uploaders', fn: () async {
-          final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+          final client = createPubApiClient(authToken: siteAdminToken);
           final rs = await client.adminGetPackageUploaders('oxygen');
           expect(rs.uploaders.single.toJson(), {
             'userId': isNotNull,
-            'oauthUserId': null,
+            'oauthUserId': isNotNull,
             'email': 'admin@pub.dev',
           });
         });
       });
 
       group('add', () {
-        setupTestsWithCallerAuthorizationIssues((client) =>
-            client.adminAddPackageUploader('oxygen', 'someuser@pub.dev'));
+        setupTestsWithCallerAuthorizationIssues(
+          (client) =>
+              client.adminAddPackageUploader('oxygen', 'someuser@pub.dev'),
+          authSource: AuthSource.admin,
+        );
         setupTestsWithPackageFailures((client, package) =>
             client.adminAddPackageUploader(package, 'someuser@pub.dev'));
 
         testWithProfile('adding existing uploader', fn: () async {
-          final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+          final client = createPubApiClient(authToken: siteAdminToken);
           final rs =
               await client.adminAddPackageUploader('oxygen', 'admin@pub.dev');
           expect(rs.uploaders.single.toJson(), {
             'userId': isNotNull,
-            'oauthUserId': null,
+            'oauthUserId': isNotNull,
             'email': 'admin@pub.dev',
           });
         });
 
         testWithProfile('adding new uploader', fn: () async {
-          final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+          final client = createPubApiClient(authToken: siteAdminToken);
           final rs = await client.adminAddPackageUploader(
               'oxygen', 'someuser@pub.dev');
           expect(rs.uploaders.map((u) => u.email).toSet(), {
@@ -507,13 +525,17 @@ void main() {
       });
 
       group('remove', () {
-        setupTestsWithCallerAuthorizationIssues((client) =>
-            client.adminRemovePackageUploader('oxygen', 'admin@pub.dev'));
+        setupTestsWithCallerAuthorizationIssues(
+          (client) =>
+              client.adminRemovePackageUploader('oxygen', 'admin@pub.dev'),
+          authSource: AuthSource.admin,
+        );
+
         setupTestsWithPackageFailures((client, package) =>
             client.adminRemovePackageUploader(package, 'admin@pub.dev'));
 
         testWithProfile('removing non-existing user', fn: () async {
-          final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+          final client = createPubApiClient(authToken: siteAdminToken);
           final rs =
               client.adminRemovePackageUploader('oxygen', 'someuser@pub.dev');
           await expectLater(
@@ -525,18 +547,18 @@ void main() {
         });
 
         testWithProfile('removing non-uploader user', fn: () async {
-          final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+          final client = createPubApiClient(authToken: siteAdminToken);
           final rs =
               await client.adminRemovePackageUploader('oxygen', 'user@pub.dev');
           expect(rs.uploaders.single.toJson(), {
             'userId': isNotNull,
-            'oauthUserId': null,
+            'oauthUserId': isNotNull,
             'email': 'admin@pub.dev',
           });
         });
 
         testWithProfile('removing an uploader', fn: () async {
-          final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+          final client = createPubApiClient(authToken: siteAdminToken);
           final rs = await client.adminAddPackageUploader(
               'oxygen', 'someuser@pub.dev');
           expect(rs.uploaders.map((u) => u.email).toSet(), {
@@ -549,7 +571,7 @@ void main() {
         });
 
         testWithProfile('removing last uploader', fn: () async {
-          final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+          final client = createPubApiClient(authToken: siteAdminToken);
           final rs = await client.adminRemovePackageUploader(
               'oxygen', 'admin@pub.dev');
           expect(rs.uploaders, isEmpty);
@@ -559,11 +581,13 @@ void main() {
 
     group('retraction', () {
       setupTestsWithCallerAuthorizationIssues(
-          (client) => client.adminUpdateVersionOptions(
-                'oxygen',
-                '1.2.0',
-                VersionOptions(isRetracted: true),
-              ));
+        (client) => client.adminUpdateVersionOptions(
+          'oxygen',
+          '1.2.0',
+          VersionOptions(isRetracted: true),
+        ),
+        authSource: AuthSource.admin,
+      );
 
       testWithProfile('bad retraction value', fn: () async {
         final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
@@ -579,7 +603,7 @@ void main() {
       });
 
       testWithProfile('missing package', fn: () async {
-        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+        final client = createPubApiClient(authToken: siteAdminToken);
         await expectApiException(
           client.adminUpdateVersionOptions(
             'no_such_package',
@@ -592,7 +616,7 @@ void main() {
       });
 
       testWithProfile('missing version', fn: () async {
-        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+        final client = createPubApiClient(authToken: siteAdminToken);
         await expectApiException(
           client.adminUpdateVersionOptions(
             'oxygen',
@@ -608,7 +632,7 @@ void main() {
         final v1 = await packageBackend.lookupPackageVersion('oxygen', '1.0.0');
         expect(v1!.isRetracted, false);
         expect(v1.retracted, null);
-        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+        final client = createPubApiClient(authToken: siteAdminToken);
         final rs = await client.adminUpdateVersionOptions(
           'oxygen',
           '1.0.0',
@@ -624,7 +648,7 @@ void main() {
         final v1 = await packageBackend.lookupPackageVersion('oxygen', '1.0.0');
         expect(v1!.isRetracted, false);
         expect(v1.retracted, null);
-        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+        final client = createPubApiClient(authToken: siteAdminToken);
 
         // retract
         final rs1 = await client.adminUpdateVersionOptions(

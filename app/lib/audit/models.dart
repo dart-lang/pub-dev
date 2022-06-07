@@ -42,10 +42,11 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)
   String? kind;
 
-  /// [User.userId] of the user who initiated / authorized the recorded action.
+  /// [User.userId] of the user or a known service agent who initiated / authorized the recorded action.
   ///
-  /// This is a UUIDv4. If the user has been deleted, it is possible that this
-  /// property may not match any [User] entity.
+  /// - For [User] accounts, this is a UUIDv4. If the user has been deleted,
+  ///   it is possible that this property may not match any [User] entity.
+  /// - For known service accounts this value starts with `service:` prefix.
   @db.StringProperty(required: true)
   String? agent;
 
@@ -150,6 +151,25 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'package': package,
         'user': user.email,
         'options': options,
+      }
+      ..users = [user.userId]
+      ..packages = [package]
+      ..packageVersions = []
+      ..publishers = [];
+  }
+
+  factory AuditLogRecord.packagePublicationAutomationUpdated({
+    required String package,
+    required User user,
+  }) {
+    return AuditLogRecord._init()
+      ..kind = AuditLogRecordKind.packagePublicationAutomationUpdated
+      ..agent = user.userId
+      ..summary =
+          '`${user.email}` updated the publication automation config of package `$package`.'
+      ..data = {
+        'package': package,
+        'user': user.email,
       }
       ..users = [user.userId]
       ..packages = [package]
@@ -624,6 +644,10 @@ class AuditLogRecord extends db.ExpandoModel<String> {
 abstract class AuditLogRecordKind {
   /// Event that a package was updated with new options
   static const packageOptionsUpdated = 'package-options-updated';
+
+  /// Event that a package was updated with new automated publishing config.
+  static const packagePublicationAutomationUpdated =
+      'package-publication-automation-updated';
 
   /// Event that a package version was updated with new options
   static const packageVersionOptionsUpdated = 'package-version-options-updated';

@@ -7,7 +7,9 @@ import 'package:clock/clock.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
+import 'package:pub_dev/account/auth_provider.dart';
 import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_dartdoc_runner.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/fake/backend/fake_pana_runner.dart';
@@ -205,29 +207,47 @@ void setupLogging() {
 }
 
 void setupTestsWithCallerAuthorizationIssues(
-  Future Function(PubApiClient client) fn,
-) {
+  Future Function(PubApiClient client) fn, {
+  AuthSource? authSource,
+}) {
   testWithProfile('No active user', fn: () async {
-    final client = createPubApiClient();
-    final rs = fn(client);
-    await expectApiException(rs, status: 401, code: 'MissingAuthentication');
+    await withHttpPubApiClient(
+      fn: (client) async {
+        final rs = fn(client);
+        await expectApiException(rs,
+            status: 401, code: 'MissingAuthentication');
+      },
+    );
   });
 
   testWithProfile('Active user is not authorized', fn: () async {
-    final client = createPubApiClient(authToken: unauthorizedAtPubDevAuthToken);
-    final rs = fn(client);
-    await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
+    final token =
+        createFakeAuthTokenForEmail('unauthorized@pub.dev', source: authSource);
+    await withHttpPubApiClient(
+      bearerToken: token,
+      fn: (client) async {
+        final rs = fn(client);
+        await expectApiException(rs,
+            status: 403, code: 'InsufficientPermissions');
+      },
+    );
   });
 
   testWithProfile('Active user is blocked', fn: () async {
     final users = await dbService.query<User>().run().toList();
     final user = users.firstWhere((u) => u.email == 'admin@pub.dev');
     await dbService.commit(inserts: [user..isBlocked = true]);
-    final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
-    final rs = fn(client);
-    await expectApiException(rs,
-        status: 403,
-        code: 'InsufficientPermissions',
-        message: 'User is blocked.');
+    final token =
+        createFakeAuthTokenForEmail('admin@pub.dev', source: authSource);
+    await withHttpPubApiClient(
+      bearerToken: token,
+      fn: (client) async {
+        final rs = fn(client);
+        await expectApiException(rs,
+            status: 403,
+            code: 'InsufficientPermissions',
+            message: 'User is blocked.');
+      },
+    );
   });
 }

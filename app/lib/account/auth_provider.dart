@@ -2,9 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+enum AuthSource {
+  /// `pub` command-line client
+  client,
+
+  /// `pub.dev` user on the web UI
+  website,
+
+  /// administrator account
+  admin,
+}
+
 class AuthResult {
-  final String? oauthUserId;
-  final String? email;
+  final String oauthUserId;
+  final String email;
 
   AuthResult(this.oauthUserId, this.email);
 }
@@ -25,7 +36,7 @@ abstract class AuthProvider {
   ///
   /// Returns null on any error, or if the token is expired, or the user is not
   /// verified.
-  Future<AuthResult?> tryAuthenticate(String? token);
+  Future<AuthResult?> tryAuthenticate(AuthSource source, String token);
 
   /// Returns the profile information of a given access token.
   Future<AccountProfile?> getAccountProfile(String? accessToken);

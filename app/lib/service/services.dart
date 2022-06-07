@@ -90,13 +90,7 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
           Storage(retryingAuthClient, activeConfiguration.projectId));
 
       // register services with external dependencies
-      registerAuthProvider(GoogleOauth2AuthProvider(
-        <String>[
-          activeConfiguration.pubClientAudience!,
-          activeConfiguration.pubSiteAudience!,
-          activeConfiguration.adminAudience!,
-        ],
-      ));
+      registerAuthProvider(GoogleOauth2AuthProvider());
       registerScopeExitCallback(authProvider.close);
       registerDomainVerifier(DomainVerifier());
       registerEmailSender(
@@ -244,8 +238,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
       dbService,
       storageService,
       storageService.bucket(activeConfiguration.packageBucketName!),
-      // TODO: re-enable incomingPackagesBucketName again
-      storageService.bucket(activeConfiguration.packageBucketName!),
+      storageService.bucket(activeConfiguration.incomingPackagesBucketName!),
     ));
     registerTaskBackend(TaskBackend(
       dbService,

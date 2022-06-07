@@ -228,6 +228,47 @@ class PubHttpClient {
     return packages;
   }
 
+  /// Invites a new uploader to the package.
+  Future<void> inviteUploader({
+    required String packageName,
+    required String accessToken,
+    required String invitedEmail,
+  }) async {
+    final rs = await _http.post(
+      _pubHostedUrl.resolve('/api/packages/$packageName/invite-uploader'),
+      headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $accessToken',
+      },
+      body: json.encode({
+        'email': invitedEmail,
+      }),
+    );
+    if (rs.statusCode != 200) {
+      throw Exception('Unexpected status code: ${rs.statusCode}');
+    }
+  }
+
+  /// Invites a new uploader to the package.
+  Future<void> removeUploader({
+    required String packageName,
+    required String accessToken,
+    required String uploaderEmail,
+  }) async {
+    print(accessToken);
+    final rs = await _http.post(
+      _pubHostedUrl.resolve('/api/packages/$packageName/remove-uploader'),
+      headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $accessToken',
+      },
+      body: json.encode({
+        'email': uploaderEmail,
+      }),
+    );
+    if (rs.statusCode != 200) {
+      throw Exception('Unexpected status code: ${rs.statusCode}');
+    }
+  }
+
   /// Free resources.
   Future<void> close() async {
     _http.close();

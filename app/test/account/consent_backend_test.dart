@@ -18,8 +18,9 @@ import '../shared/test_services.dart';
 void main() {
   group('Uploader invite', () {
     Future<String?> inviteUploader() async {
-      await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+      await accountBackend.withBearerToken(adminClientToken, () async {
         final status = await consentBackend.invitePackageUploader(
+          authSource: AuthSource.client,
           uploaderEmail: 'user@pub.dev',
           packageName: 'oxygen',
         );

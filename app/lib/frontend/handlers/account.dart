@@ -37,7 +37,8 @@ Future<shelf.Response> updateSessionHandler(
   final user = await requireAuthenticatedUser();
 
   InvalidInputException.checkNotNull(body.accessToken, 'accessToken');
-  await accountBackend.verifyAccessTokenOwnership(body.accessToken!, user);
+  await accountBackend.verifyAccessTokenOwnership(
+      AuthSource.website, body.accessToken!, user);
   final t1 = sw.elapsed;
 
   // Only allow creation of sessions on the primary site host.
@@ -96,7 +97,7 @@ Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
   // Invalidate the server-side sessionId, in case the user signed out because
   // the local cookie store was compromised.
   if (hasUserSession) {
-    await accountBackend.invalidateSession(sessionData!.sessionId);
+    await accountBackend.invalidateSession(sessionData.sessionId);
   }
   return jsonResponse(
     ClientSessionStatus(
@@ -202,8 +203,12 @@ Future<AccountPublisherOptions> accountPublisherOptionsHandler(
     shelf.Request request, String publisherId) async {
   checkPublisherIdParam(publisherId);
   final user = await requireAuthenticatedUser();
+  final publisher = await publisherBackend.getPublisher(publisherId);
+  if (publisher == null) {
+    throw NotFoundException.resource('publisher "$publisherId"');
+  }
   final member =
-      await publisherBackend.getPublisherMember(publisherId, user.userId);
+      await publisherBackend.getPublisherMember(publisher, user.userId);
   final isAdmin = member != null && member.role == PublisherMemberRole.admin;
   return AccountPublisherOptions(isAdmin: isAdmin);
 }

@@ -9,14 +9,13 @@ import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 
-Future<String> executeRemovePublisherAndBlockAllMembers(
-    List<String> args) async {
+Future<String> executeBlockPublisherAndAllMembers(List<String> args) async {
   if (args.isEmpty ||
       args.length != 2 ||
       (args[0] != 'delete' && args[0] != 'list')) {
     return 'Remove publisher and blocks all members.\n'
         '  <tools-command> list <publisherId> # list publisher data\n'
-        '  <tools-command> delete <publisherId> # remove publisher and block members\n';
+        '  <tools-command> block <publisherId> # block publisher and all members\n';
   }
   final command = args[0];
   final publisherId = args[1];
@@ -37,19 +36,18 @@ Future<String> executeRemovePublisherAndBlockAllMembers(
 
   if (command == 'list') {
     return output.toString();
-  } else if (command == 'delete') {
+  } else if (command == 'block') {
     for (final m in members) {
       await accountBackend.updateBlockedFlag(m.userId, true);
     }
 
     final publisherKey = dbService.emptyKey.append(Publisher, id: publisherId);
     await withRetryTransaction(dbService, (tx) async {
-      tx.delete(publisherKey);
-      for (final m in members) {
-        tx.delete(publisherKey.append(PublisherMember, id: m.userId));
-      }
+      final p = await tx.lookupValue<Publisher>(publisherKey);
+      p.markForBlocked();
+      tx.insert(p);
     });
-    output.writeln('Deleted.');
+    output.writeln('Blocked.');
     return output.toString();
   } else {
     return 'Unknown command: $command.';

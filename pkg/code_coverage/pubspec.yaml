@@ -6,7 +6,7 @@ environment:
 
 dependencies:
   args: ^2.0.0
-  coverage: ^1.0.1
+  coverage: ^1.3.2
   lcov: ^6.0.0
   path: ^1.8.0
   source_maps: ^0.10.10

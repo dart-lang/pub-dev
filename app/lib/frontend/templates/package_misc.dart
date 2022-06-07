@@ -44,7 +44,7 @@ d.Node tagsNodeFromPackageView({
   String? version,
   bool isRetracted = false,
 }) {
-  searchForm = searchForm?.clearContext() ?? SearchForm();
+  searchForm ??= SearchForm();
   final tags = package.tags;
   final sdkTags = tags.where((s) => s.startsWith('sdk:')).toSet().toList();
   final simpleTags = <SimpleTag>[];

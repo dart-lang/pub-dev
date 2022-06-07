@@ -6,6 +6,7 @@ library pub_dartlang_org.appengine_repository.models;
 
 import 'dart:convert';
 
+import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -126,8 +127,22 @@ class Package extends db.ExpandoModel<String> {
   bool isWithheld = false;
 
   /// The reason why the package was withheld.
-  @db.StringProperty()
+  @db.StringProperty(indexed: false)
   String? withheldReason;
+
+  /// Set to `true` if package should not be displayed anywhere, because of
+  /// pending moderation or deletion.
+  /// TODO: set to true after the rename migration is done
+  @db.BoolProperty(required: false)
+  bool? isBlocked;
+
+  /// The reason why the package was blocked.
+  @db.StringProperty(indexed: false)
+  String? blockedReason;
+
+  /// The timestamp when the package was blocked.
+  @db.DateTimeProperty()
+  DateTime? blocked;
 
   /// Tags that are assigned to this package.
   ///
@@ -140,6 +155,10 @@ class Package extends db.ExpandoModel<String> {
   /// List of versions that have been deleted and must not be re-uploaded again.
   @db.StringListProperty()
   List<String>? deletedVersions;
+
+  /// The JSON-serialized format of the [AutomatedPublishing].
+  @db.StringProperty(indexed: false)
+  String? automatedPublishingJson;
 
   Package();
 
@@ -165,13 +184,14 @@ class Package extends db.ExpandoModel<String> {
       ..isDiscontinued = false
       ..isUnlisted = false
       ..isWithheld = false
+      ..isBlocked = false
       ..assignedTags = []
       ..deletedVersions = [];
   }
 
   // Convenience Fields:
 
-  bool get isVisible => !isWithheld;
+  bool get isVisible => !isWithheld && !(isBlocked ?? false);
   bool get isNotVisible => !isVisible;
 
   bool get isIncludedInRobots {
@@ -369,6 +389,34 @@ class Package extends db.ExpandoModel<String> {
           : null,
     );
   }
+
+  AutomatedPublishing get automatedPublishing {
+    if (automatedPublishingJson == null) {
+      return AutomatedPublishing();
+    }
+    return AutomatedPublishing.fromJson(
+        json.decode(automatedPublishingJson!) as Map<String, dynamic>);
+  }
+
+  set automatedPublishing(AutomatedPublishing? value) {
+    if (value == null) {
+      automatedPublishingJson = null;
+    } else {
+      automatedPublishingJson = json.encode(value.toJson());
+    }
+  }
+
+  void updateIsBlocked({
+    required bool isBlocked,
+    String? reason,
+  }) {
+    this.isBlocked = isBlocked;
+    isWithheld = isBlocked;
+    withheldReason = reason;
+    blockedReason = reason;
+    blocked = isBlocked ? clock.now().toUtc() : null;
+    updated = clock.now().toUtc();
+  }
 }
 
 /// Describes the various categories of latest releases.
@@ -438,6 +486,11 @@ class PackageVersion extends db.ExpandoModel<String> {
 
   // Metadata about the package version.
 
+  /// `User.userId` of the user or a known service agent, who uploaded the package.
+  ///
+  /// - For `User` accounts, this is a UUIDv4. If the user has been deleted,
+  ///   it is possible that this property may not match any `User` entity.
+  /// - For known service accounts this value starts with `service:` prefix.
   @db.StringProperty(required: true)
   String? uploader;
 

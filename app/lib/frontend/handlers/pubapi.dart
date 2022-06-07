@@ -11,6 +11,7 @@ import 'package:api_builder/api_builder.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
+import '../../account/auth_provider.dart';
 import '../../account/consent_backend.dart';
 import '../../admin/backend.dart';
 import '../../package/backend.dart' hide InviteStatus;
@@ -165,7 +166,8 @@ class PubApi {
     String package,
     String email,
   ) async =>
-      await packageBackend.removeUploader(package, email);
+      await packageBackend.removeUploader(package, email,
+          authSource: AuthSource.client);
 
   /// Remove an existing uploader.
   ///
@@ -177,7 +179,8 @@ class PubApi {
     String package,
     RemoveUploaderRequest payload,
   ) async =>
-      await packageBackend.removeUploader(package, payload.email);
+      await packageBackend.removeUploader(package, payload.email,
+          authSource: AuthSource.website);
 
   /// Returns a uploader's invitation status in a JSON form.
   @EndPoint.post('/api/packages/<package>/invite-uploader')
@@ -359,6 +362,11 @@ class PubApi {
   Future<PkgOptions> setPackageOptions(
           Request request, String package, PkgOptions body) =>
       putPackageOptionsHandler(request, package, body);
+
+  @EndPoint.put('/api/packages/<package>/automated-publishing')
+  Future<AutomatedPublishing> setAutomatedPublishing(
+          Request request, String package, AutomatedPublishing body) =>
+      packageBackend.setAutomatedPublishing(package, body);
 
   @EndPoint.get('/api/packages/<package>/versions/<version>/options')
   Future<VersionOptions> getVersionOptions(

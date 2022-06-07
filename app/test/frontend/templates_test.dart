@@ -376,12 +376,10 @@ void main() {
           reportStatus: ReportStatus.aborted,
           derivedTags: null,
           allDependencies: null,
-          licenseFile: null,
           licenses: null,
           report: Report(sections: <ReportSection>[]),
           flags: null,
           urlProblems: null,
-          repository: null,
           screenshots: null,
         ),
       );
@@ -567,8 +565,7 @@ void main() {
       'publisher packages page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        final searchForm =
-            SearchForm(context: SearchContext.publisher('example.com'));
+        final searchForm = SearchForm();
         final publisher = (await publisherBackend.getPublisher('example.com'))!;
         final neon = (await scoreCardBackend.getPackageView('neon'))!;
         final titanium =

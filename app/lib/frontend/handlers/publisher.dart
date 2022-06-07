@@ -77,35 +77,32 @@ Future<shelf.Response> publisherPackagesPageHandler(
     return formattedNotFoundHandler(request);
   }
 
-  final searchForm = SearchForm.parse(
-    request.requestedUri.queryParameters,
-    context: SearchContext.publisher(publisherId),
-  );
-  // redirect to proper search page if there is any non-pagination item present
-  if (searchForm.hasNonPagination) {
+  final searchForm = SearchForm.parse(request.requestedUri.queryParameters);
+  // redirect to the search page when any search or pagination is present
+  if (searchForm.isNotEmpty) {
     final redirectForm = SearchForm.parse(request.requestedUri.queryParameters)
         .addRequiredTagIfAbsent(PackageTags.publisherTag(publisherId))
         .addRequiredTagIfAbsent(PackageTags.showHidden);
-    return redirectResponse(redirectForm.toSearchLink());
+    return redirectResponse(
+        redirectForm.toSearchLink(page: searchForm.currentPage));
   }
 
-  final appliedSearchForm =
-      SearchForm.parse(request.requestedUri.queryParameters)
-          .toggleRequiredTag(PackageTags.publisherTag(publisherId))
-          .toggleRequiredTag(PackageTags.showHidden);
+  final appliedSearchForm = SearchForm()
+      .toggleRequiredTag(PackageTags.publisherTag(publisherId))
+      .toggleRequiredTag(PackageTags.showHidden);
 
   final searchResult = await searchAdapter.search(appliedSearchForm);
   final int totalCount = searchResult.totalCount;
-  final links = PageLinks(searchForm, totalCount);
+  final links = PageLinks(appliedSearchForm, totalCount);
 
   final html = renderPublisherPackagesPage(
     publisher: publisher,
     searchResultPage: searchResult,
     pageLinks: links,
-    searchForm: searchForm,
+    searchForm: appliedSearchForm,
     totalCount: totalCount,
     isAdmin: await publisherBackend.isMemberAdmin(
-        publisherId, userSessionData?.userId),
+        publisher, userSessionData?.userId),
     messageFromBackend: searchResult.message,
   );
   if (isLanding && requestContext.uiCacheEnabled) {
@@ -128,7 +125,7 @@ Future<shelf.Response> publisherAdminPageHandler(
     return htmlResponse(renderUnauthenticatedPage());
   }
   final isAdmin = await publisherBackend.isMemberAdmin(
-    publisherId,
+    publisher,
     userSessionData!.userId,
   );
   if (!isAdmin) {
@@ -155,7 +152,7 @@ Future<shelf.Response> publisherActivityLogPageHandler(
     return htmlResponse(renderUnauthenticatedPage());
   }
   final isAdmin = await publisherBackend.isMemberAdmin(
-    publisherId,
+    publisher,
     userSessionData!.userId,
   );
   if (!isAdmin) {

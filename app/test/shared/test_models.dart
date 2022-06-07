@@ -4,6 +4,8 @@
 
 import 'package:gcloud/db.dart';
 
+import 'package:pub_dev/account/auth_provider.dart';
+import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 
@@ -43,9 +45,16 @@ final defaultTestProfile = TestProfile(
   ],
 );
 
-const adminAtPubDevAuthToken = 'admin-at-pub-dot-dev';
-const userAtPubDevAuthToken = 'user-at-pub-dot-dev';
-const unauthorizedAtPubDevAuthToken = 'unauthorized-at-pub-dot-dev';
+final adminAtPubDevAuthToken = createFakeAuthTokenForEmail('admin@pub.dev');
+final userAtPubDevAuthToken = createFakeAuthTokenForEmail('user@pub.dev');
+final unauthorizedAtPubDevAuthToken =
+    createFakeAuthTokenForEmail('unauthorized@pub.dev');
+final adminClientToken =
+    createFakeAuthTokenForEmail('admin@pub.dev', source: AuthSource.client);
+final siteAdminToken =
+    createFakeAuthTokenForEmail('admin@pub.dev', source: AuthSource.admin);
+final userClientToken =
+    createFakeAuthTokenForEmail('user@pub.dev', source: AuthSource.client);
 
 final String foobarReadmeContent = '''
 Test Package

@@ -50,7 +50,7 @@ void main() {
         'packageHits': [
           {
             'package': 'build',
-            'score': closeTo(0.71, 0.01),
+            'score': closeTo(0.60, 0.01),
           },
         ],
       });

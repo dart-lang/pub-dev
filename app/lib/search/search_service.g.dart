@@ -99,9 +99,10 @@ Map<String, dynamic> _$PackageSearchResultToJson(PackageSearchResult instance) {
 
   writeNotNull('timestamp', instance.timestamp?.toIso8601String());
   val['totalCount'] = instance.totalCount;
-  writeNotNull('highlightedHit', instance.highlightedHit);
-  val['sdkLibraryHits'] = instance.sdkLibraryHits;
-  val['packageHits'] = instance.packageHits;
+  writeNotNull('highlightedHit', instance.highlightedHit?.toJson());
+  val['sdkLibraryHits'] =
+      instance.sdkLibraryHits.map((e) => e.toJson()).toList();
+  val['packageHits'] = instance.packageHits.map((e) => e.toJson()).toList();
   writeNotNull('message', instance.message);
   return val;
 }
@@ -134,7 +135,7 @@ Map<String, dynamic> _$SdkLibraryHitToJson(SdkLibraryHit instance) {
   writeNotNull('description', instance.description);
   writeNotNull('url', instance.url);
   val['score'] = instance.score;
-  writeNotNull('apiPages', instance.apiPages);
+  writeNotNull('apiPages', instance.apiPages?.map((e) => e.toJson()).toList());
   return val;
 }
 
@@ -158,7 +159,7 @@ Map<String, dynamic> _$PackageHitToJson(PackageHit instance) {
   }
 
   writeNotNull('score', instance.score);
-  writeNotNull('apiPages', instance.apiPages);
+  writeNotNull('apiPages', instance.apiPages?.map((e) => e.toJson()).toList());
   return val;
 }
 
@@ -169,10 +170,7 @@ ApiPageRef _$ApiPageRefFromJson(Map<String, dynamic> json) => ApiPageRef(
     );
 
 Map<String, dynamic> _$ApiPageRefToJson(ApiPageRef instance) {
-  final val = <String, dynamic>{
-    'title': instance.title,
-    'path': instance.path,
-  };
+  final val = <String, dynamic>{};
 
   void writeNotNull(String key, dynamic value) {
     if (value != null) {
@@ -180,6 +178,8 @@ Map<String, dynamic> _$ApiPageRefToJson(ApiPageRef instance) {
     }
   }
 
+  writeNotNull('title', instance.title);
+  writeNotNull('path', instance.path);
   writeNotNull('url', instance.url);
   return val;
 }

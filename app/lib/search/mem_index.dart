@@ -300,7 +300,7 @@ class InMemoryPackageIndex implements PackageIndex {
       final points = (doc.grantedPoints ?? 0) / math.max(1, doc.maxPoints ?? 0);
       final overall = popularity * 0.5 + points * 0.5;
       // don't multiply with zero.
-      return 0.5 + 0.5 * overall;
+      return 0.4 + 0.6 * overall;
     });
     return Score(values);
   }
@@ -562,8 +562,14 @@ class PackageNameIndex {
 
       final matchedCharCount = matchedChars.where((c) => c).length;
       final totalNgramCount = matchedExtraWeight + unmatchedExtraWeight;
-      final score = (matchedExtraWeight + matchedCharCount) /
-          (totalNgramCount + matchedChars.length);
+      // The composite score combines:
+      // - matched ngrams (for increasing the positive match score)
+      // - (un)matched character counts (for decresing the score on missed characters)
+      // As the first part is more important, the missed char weight is greatly reduced.
+      const matchCharWeight = 0.2;
+      final score =
+          (matchedExtraWeight + (matchCharWeight * matchedCharCount)) /
+              (totalNgramCount + (matchCharWeight * matchedChars.length));
       values[pkg] = score;
     }
     return Score(values).removeLowValues(fraction: 0.5, minValue: 0.5);
@@ -585,7 +591,7 @@ class _LikeScore {
   int likeCount = 0;
   double score = 0.0;
 
-  _LikeScore(this.package, {this.likeCount = 0, this.score = 0.0});
+  _LikeScore(this.package);
 }
 
 class _LikeTracker {

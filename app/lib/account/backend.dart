@@ -10,6 +10,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:neat_cache/neat_cache.dart';
+import 'package:pub_dev/account/agent.dart';
 
 import '../package/models.dart';
 import '../shared/datastore.dart';
@@ -20,6 +21,8 @@ import '../shared/utils.dart';
 import 'auth_provider.dart';
 import 'models.dart';
 import 'session_cookie.dart' as session_cookie;
+
+export 'auth_provider.dart' show AuthSource;
 
 /// The name of the session cookie.
 ///
@@ -79,12 +82,13 @@ UserSessionData? get userSessionData =>
 /// When no associated User entry exists in Datastore, this method will create
 /// a new one. When the authenticated email of the user changes, the email
 /// field will be updated to the latest one.
-Future<User> requireAuthenticatedUser() async {
+Future<User> requireAuthenticatedUser({AuthSource? source}) async {
   final token = _getBearerToken();
   if (token == null || token.isEmpty) {
     throw AuthenticationException.authenticationRequired();
   }
-  final auth = await authProvider.tryAuthenticate(token);
+  final auth =
+      await authProvider.tryAuthenticate(source ?? AuthSource.website, token);
   if (auth == null) {
     throw AuthenticationException.failed();
   }
@@ -118,13 +122,17 @@ class AccountBackend {
 
   /// Returns the `User` entry for the [userId] or null if it does not exists.
   Future<User?> lookupUserById(String userId) async {
-    return (await lookupUsersById(<String>[userId])).single;
+    checkUserIdParam(userId);
+    return await _db.lookupOrNull<User>(_db.emptyKey.append(User, id: userId));
   }
 
   /// Returns the list of `User` entries for the corresponding id in [userIds].
   ///
   /// Returns null in the positions where a [User] entry was missing.
   Future<List<User?>> lookupUsersById(List<String> userIds) async {
+    for (final userId in userIds) {
+      checkUserIdParam(userId);
+    }
     final keys =
         userIds.map((id) => _db.emptyKey.append(User, id: id)).toList();
     return await _db.lookup<User>(keys);
@@ -134,6 +142,7 @@ class AccountBackend {
   ///
   /// Uses in-memory cache to store entries locally for up to 10 minutes.
   Future<String?> getEmailOfUserId(String userId) async {
+    checkUserIdParam(userId);
     final entry = _emailCache[userId];
     var email = await entry.get();
     if (email != null) {
@@ -271,8 +280,8 @@ class AccountBackend {
   /// Throws [AuthenticationException] if token cannot be authenticated or the
   /// OAuth userId differs from [owner].
   Future<void> verifyAccessTokenOwnership(
-      String accessToken, User owner) async {
-    final auth = await authProvider.tryAuthenticate(accessToken);
+      AuthSource source, String accessToken, User owner) async {
+    final auth = await authProvider.tryAuthenticate(source, accessToken);
     if (auth == null) {
       throw AuthenticationException.accessTokenInvalid();
     }
@@ -325,21 +334,14 @@ class AccountBackend {
 
   Future<User?> _lookupOrCreateUserByOauthUserId(AuthResult auth) async {
     ArgumentError.checkNotNull(auth, 'auth');
-    if (auth.oauthUserId == null) {
-      throw StateError('Authenticated user ${auth.email} without userId.');
-    }
-
     final emptyKey = _db.emptyKey;
 
     // Attempt to lookup the user, the common case is that the user exists.
     // If the user exists, it's always cheaper to lookup the user outside a
     // transaction.
-    final user = await _lookupUserByOauthUserId(auth.oauthUserId!);
-    if (user != null &&
-        user.email != auth.email &&
-        auth.email != null &&
-        auth.email!.isNotEmpty) {
-      return await _updateUserEmail(user, auth.email!);
+    final user = await _lookupUserByOauthUserId(auth.oauthUserId);
+    if (user != null && user.email != auth.email && auth.email.isNotEmpty) {
+      return await _updateUserEmail(user, auth.email);
     }
     if (user != null) {
       return user;

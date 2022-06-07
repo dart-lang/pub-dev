@@ -220,11 +220,6 @@ class ScoreCardBackend {
 
       scoreCard.popularityScore = popularityStorage.lookup(packageName);
 
-      scoreCard.updateReports(
-        panaReport: panaReport,
-        dartdocReport: dartdocReport,
-      );
-
       bool reportIsTooBig(String reportType, List<int>? bytes) {
         if (bytes == null || bytes.isEmpty) return false;
         final size = bytes.length;
@@ -240,56 +235,55 @@ class ScoreCardBackend {
       }
 
       if (panaReport != null &&
-          reportIsTooBig(ReportType.pana, scoreCard.panaReportJsonGz)) {
-        scoreCard.updateReports(
-          panaReport: PanaReport(
-            timestamp: clock.now().toUtc(),
-            panaRuntimeInfo: null,
-            reportStatus: ReportStatus.aborted,
-            derivedTags: <String>[],
-            allDependencies: <String>[],
-            licenseFile: null,
-            licenses: null,
-            report: pana.Report(
-              sections: [
-                pana.ReportSection(
-                  id: 'error',
-                  title: 'Report exceeded size limit.',
-                  grantedPoints: panaReport.report?.grantedPoints ?? 0,
-                  maxPoints: panaReport.report?.maxPoints ?? 1,
-                  status: pana.ReportStatus.partial,
-                  summary: 'The `pana` report exceeded size limit. '
-                      'A log about the issue has been filed, the site admins will address it soon.',
-                ),
-              ],
-            ),
-            flags: <String>[],
-            urlProblems: <pana.UrlProblem>[],
-            repository: null,
-            screenshots: null,
+          reportIsTooBig(ReportType.pana, panaReport!.asBytes)) {
+        panaReport = PanaReport(
+          timestamp: clock.now().toUtc(),
+          panaRuntimeInfo: null,
+          reportStatus: ReportStatus.aborted,
+          derivedTags: <String>[],
+          allDependencies: <String>[],
+          licenses: null,
+          report: pana.Report(
+            sections: [
+              pana.ReportSection(
+                id: 'error',
+                title: 'Report exceeded size limit.',
+                grantedPoints: panaReport!.report?.grantedPoints ?? 0,
+                maxPoints: panaReport!.report?.maxPoints ?? 1,
+                status: pana.ReportStatus.partial,
+                summary: 'The `pana` report exceeded size limit. '
+                    'A log about the issue has been filed, the site admins will address it soon.',
+              ),
+            ],
           ),
+          flags: <String>[],
+          urlProblems: <pana.UrlProblem>[],
+          screenshots: null,
         );
       }
       if (dartdocReport != null &&
-          reportIsTooBig(ReportType.dartdoc, scoreCard.dartdocReportJsonGz)) {
-        scoreCard.updateReports(
-          dartdocReport: DartdocReport(
-            timestamp: dartdocReport.timestamp,
-            reportStatus: ReportStatus.aborted,
-            dartdocEntry: null,
-            documentationSection: pana.ReportSection(
-              id: pana.ReportSectionId.documentation,
-              title: pana.documentationSectionTitle,
-              grantedPoints:
-                  dartdocReport.documentationSection?.grantedPoints ?? 0,
-              maxPoints: dartdocReport.documentationSection?.maxPoints ?? 10,
-              status: pana.ReportStatus.partial,
-              summary: 'The `dartdoc` report exceeded size limit. '
-                  'A log about the issue has been filed, the site admins will address it soon.',
-            ),
+          reportIsTooBig(ReportType.dartdoc, dartdocReport!.asBytes)) {
+        dartdocReport = DartdocReport(
+          timestamp: dartdocReport!.timestamp,
+          reportStatus: ReportStatus.aborted,
+          dartdocEntry: null,
+          documentationSection: pana.ReportSection(
+            id: pana.ReportSectionId.documentation,
+            title: pana.documentationSectionTitle,
+            grantedPoints:
+                dartdocReport!.documentationSection?.grantedPoints ?? 0,
+            maxPoints: dartdocReport!.documentationSection?.maxPoints ?? 10,
+            status: pana.ReportStatus.partial,
+            summary: 'The `dartdoc` report exceeded size limit. '
+                'A log about the issue has been filed, the site admins will address it soon.',
           ),
         );
       }
+
+      scoreCard.updateReports(
+        panaReport: panaReport,
+        dartdocReport: dartdocReport,
+      );
 
       tx.insert(scoreCard);
     });

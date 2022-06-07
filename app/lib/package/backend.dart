@@ -25,7 +25,6 @@ import '../account/models.dart' show User;
 import '../audit/models.dart';
 import '../frontend/email_sender.dart';
 import '../publisher/backend.dart';
-import '../publisher/models.dart';
 import '../service/secret/backend.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
@@ -50,6 +49,8 @@ final maxAssetContentLength = 128 * 1024;
 final _defaultMaxVersionsPerPackage = 1000;
 
 final Logger _logger = Logger('pub.cloud_repository');
+final _validGithubUserOrRepoRegExp =
+    RegExp(r'^[a-z0-9\-\._]+$', caseSensitive: false);
 
 /// Sets the package backend service.
 void registerPackageBackend(PackageBackend backend) =>
@@ -445,6 +446,53 @@ class PackageBackend {
     await purgePackageCache(package);
   }
 
+  /// Verifies an update to the credential-less publishing settings and
+  /// updates the Datastore entity if everything is valid.
+  Future<api.AutomatedPublishing> setAutomatedPublishing(
+      String package, api.AutomatedPublishing body) async {
+    final user = await requireAuthenticatedUser();
+    return await withRetryTransaction(db, (tx) async {
+      final p = await tx
+          .lookupOrNull<Package>(db.emptyKey.append(Package, id: package));
+      if (p == null) {
+        throw NotFoundException.resource(package);
+      }
+      // Check that the user is admin for this package.
+      await checkPackageAdmin(p, user.userId);
+
+      final github = body.github;
+      if (github != null) {
+        final isEnabled = github.isEnabled ?? false;
+        // normalize input values
+        final repository = github.repository?.trim() ?? '';
+        github.repository = repository;
+
+        InvalidInputException.check(!isEnabled || repository.isNotEmpty,
+            'The `repository` field must not be empty when enabled.');
+
+        if (repository.isNotEmpty) {
+          final parts = repository.split('/');
+          InvalidInputException.check(parts.length == 2,
+              'The `repository` field must follow the `<owner>/<repository>` pattern.');
+          InvalidInputException.check(
+              _validGithubUserOrRepoRegExp.hasMatch(parts[0]) &&
+                  _validGithubUserOrRepoRegExp.hasMatch(parts[1]),
+              'The `repository` field has invalid characters.');
+        }
+      }
+
+      // finalize changes
+      p.automatedPublishing = body;
+      p.updated = clock.now().toUtc();
+      tx.insert(p);
+      tx.insert(AuditLogRecord.packagePublicationAutomationUpdated(
+        package: p.name!,
+        user: user,
+      ));
+      return p.automatedPublishing;
+    });
+  }
+
   /// Updates the retracted status inside a transaction.
   ///
   /// This is a helper method, and should be used only after appropriate
@@ -490,12 +538,12 @@ class PackageBackend {
     if (p.publisherId == null) {
       return p.containsUploader(userId);
     } else {
-      final memberKey = db.emptyKey
-          .append(Publisher, id: p.publisherId)
-          .append(PublisherMember, id: userId);
-      final list = await db.lookup<PublisherMember>([memberKey]);
-      final member = list.single;
-      return member?.role == PublisherMemberRole.admin;
+      final publisherId = p.publisherId!;
+      final publisher = await publisherBackend.getPublisher(publisherId);
+      if (publisher == null) {
+        return false;
+      }
+      return await publisherBackend.isMemberAdmin(publisher, userId);
     }
   }
 
@@ -706,7 +754,7 @@ class PackageBackend {
 
   @visibleForTesting
   Future<PackageVersion> upload(Stream<List<int>> data) async {
-    await requireAuthenticatedUser();
+    await requireAuthenticatedUser(source: AuthSource.client);
     final guid = createUuid();
     _logger.info('Starting semi-async upload (uuid: $guid)');
     final object = tmpObjectName(guid);
@@ -724,7 +772,7 @@ class PackageBackend {
     // user is authenticated. But we're not validating anything at this point
     // because we don't even know which package or version is going to be
     // uploaded.
-    final user = await requireAuthenticatedUser();
+    final user = await requireAuthenticatedUser(source: AuthSource.client);
     _logger.info('User: ${user.email}.');
 
     final guid = createUuid();
@@ -750,23 +798,13 @@ class PackageBackend {
     if (restriction == UploadRestrictionStatus.noUploads) {
       throw PackageRejectedException.uploadRestricted();
     }
-    final user = await requireAuthenticatedUser();
+    final user = await requireAuthenticatedUser(source: AuthSource.client);
     _logger.info('Finishing async upload (uuid: $guid)');
     _logger.info('Reading tarball from cloud storage.');
 
     return await withTempDirectory((Directory dir) async {
       final filename = '${dir.absolute.path}/tarball.tar.gz';
-      var incomingBucket = _incomingBucket;
-      var info = await incomingBucket.tryInfo(tmpObjectName(guid));
-      if (info == null) {
-        // During version migration, there is a chance that the upload starts
-        // into the old bucket, while the finish operation hits a new instance.
-        // If there is no file in the incoming bucket, we will fall back
-        // to use the default bucket for now.
-        // TODO: remove this fallback after the release gets stable.
-        info = await _bucket.tryInfo(tmpObjectName(guid));
-        incomingBucket = _bucket;
-      }
+      final info = await _incomingBucket.tryInfo(tmpObjectName(guid));
       if (info?.length == null) {
         throw PackageRejectedException.archiveEmpty();
       }
@@ -775,7 +813,7 @@ class PackageBackend {
             UploadSignerService.maxUploadSize);
       }
       await _saveTarballToFS(
-          incomingBucket.read(tmpObjectName(guid)), filename);
+          _incomingBucket.read(tmpObjectName(guid)), filename);
       _logger.info('Examining tarball content ($guid).');
       final sw = Stopwatch()..start();
       final archive = await summarizePackageArchive(
@@ -790,29 +828,15 @@ class PackageBackend {
       }
 
       final pubspec = Pubspec.fromYaml(archive.pubspecContent!);
-      final conflictingName = await nameTracker.accept(pubspec.name);
-      if (conflictingName != null) {
-        final visible = await isPackageVisible(conflictingName);
-        if (visible) {
-          throw PackageRejectedException.similarToActive(
-              pubspec.name,
-              conflictingName,
-              urls.pkgPageUrl(conflictingName, includeHost: true));
-        } else {
-          throw PackageRejectedException.similarToModerated(
-              pubspec.name, conflictingName);
-        }
-      }
-      PackageRejectedException.check(conflictingName == null,
-          'Package name is too similar to another active or moderated package: `$conflictingName`.');
+      await _verifyPackageName(
+        name: pubspec.name,
+        user: user,
+      );
 
-      // Apply name verification for new packages.
-      final isCurrentlyVisible = await isPackageVisible(pubspec.name);
-      if (!isCurrentlyVisible) {
-        final newNameIssues = validateNewPackageName(pubspec.name).toList();
-        if (newNameIssues.isNotEmpty) {
-          throw PackageRejectedException(newNameIssues.first.message);
-        }
+      //
+      if (restriction == UploadRestrictionStatus.onlyUpdates &&
+          !(await isPackageVisible(pubspec.name))) {
+        throw PackageRejectedException.uploadRestricted();
       }
 
       final versionString = canonicalizeVersion(pubspec.nonCanonicalVersion);
@@ -823,25 +847,63 @@ class PackageBackend {
 
       sw.reset();
       final version = await _performTarballUpload(
-        user,
-        (package, version) =>
-            _uploadViaTempObject(incomingBucket, guid, package, version),
-        restriction,
-        archive,
+        user: user,
+        archive: archive,
+        guid: guid,
       );
       _logger.info('Tarball uploaded in ${sw.elapsed}.');
       _logger.info('Removing temporary object $guid.');
 
       sw.reset();
-      await incomingBucket.delete(tmpObjectName(guid));
+      await _incomingBucket.delete(tmpObjectName(guid));
       _logger.info('Temporary object removed in ${sw.elapsed}.');
       return version;
     });
   }
 
+  /// Verify the package name defined in the newly uploaded archive file,
+  /// and throw [PackageRejectedException] if it is not accepted.
+  /// Some reasons to reject a name:
+  /// - it is closely related to another package name,
+  /// - it is already being blocked,
+  /// - it is reserved for future internal use, but the current user is
+  ///   not authorized to claim such package names.
+  Future<void> _verifyPackageName({
+    required String name,
+    required User user,
+  }) async {
+    final conflictingName = await nameTracker.accept(name);
+    if (conflictingName != null) {
+      final visible = await isPackageVisible(conflictingName);
+      if (visible) {
+        throw PackageRejectedException.similarToActive(name, conflictingName,
+            urls.pkgPageUrl(conflictingName, includeHost: true));
+      } else {
+        throw PackageRejectedException.similarToModerated(
+            name, conflictingName);
+      }
+    }
+    PackageRejectedException.check(conflictingName == null,
+        'Package name is too similar to another active or moderated package: `$conflictingName`.');
+
+    // Apply name verification for new packages.
+    final isCurrentlyVisible = await isPackageVisible(name);
+    if (!isCurrentlyVisible) {
+      final newNameIssues = validateNewPackageName(name).toList();
+      if (newNameIssues.isNotEmpty) {
+        throw PackageRejectedException(newNameIssues.first.message);
+      }
+
+      // reserved package names for the Dart team
+      if (matchesReservedPackageName(name) &&
+          !user.email!.endsWith('@google.com')) {
+        throw PackageRejectedException.nameReserved(name);
+      }
+    }
+  }
+
   /// Makes a temporary object a new tarball.
   Future<void> _uploadViaTempObject(
-    Bucket incomingBucket,
     String guid,
     String package,
     String version,
@@ -850,7 +912,7 @@ class PackageBackend {
 
     // Copy the temporary object to it's destination place.
     await _storage.copyObject(
-      incomingBucket.absoluteObjectName(tmpObjectName(guid)),
+      _incomingBucket.absoluteObjectName(tmpObjectName(guid)),
       _bucket.absoluteObjectName(object),
     );
 
@@ -861,12 +923,11 @@ class PackageBackend {
     await _bucket.updateMetadata(object, info.metadata.replace(acl: acl));
   }
 
-  Future<PackageVersion> _performTarballUpload(
-    User user,
-    Future<void> Function(String name, String version) tarballUpload,
-    UploadRestrictionStatus restriction,
-    PackageSummary archive,
-  ) async {
+  Future<PackageVersion> _performTarballUpload({
+    required User user,
+    required PackageSummary archive,
+    required String guid,
+  }) async {
     final sw = Stopwatch()..start();
     final entities = await _createUploadEntities(db, user, archive);
     final newVersion = entities.packageVersion;
@@ -884,6 +945,8 @@ class PackageBackend {
       final tuple = (await tx.lookup([newVersion.key, newVersion.packageKey!]));
       final version = tuple[0] as PackageVersion?;
       package = tuple[1] as Package?;
+      prevLatestStableVersion = package?.latestVersion;
+      prevLatestPrereleaseVersion = package?.latestPrereleaseVersion;
 
       // If the version already exists, we fail.
       if (version != null) {
@@ -893,21 +956,9 @@ class PackageBackend {
             version.package, version.version!);
       }
 
-      // reserved package names for the Dart team
-      if (package == null &&
-          matchesReservedPackageName(newVersion.package) &&
-          !user.email!.endsWith('@google.com')) {
-        throw PackageRejectedException.nameReserved(newVersion.package);
-      }
-
       // If the package does not exist, then we create a new package.
-      prevLatestStableVersion = package?.latestVersion;
-      prevLatestPrereleaseVersion = package?.latestPrereleaseVersion;
       if (package == null) {
         _logger.info('New package uploaded. [new-package-uploaded]');
-        if (restriction == UploadRestrictionStatus.onlyUpdates) {
-          throw PackageRejectedException.uploadRestricted();
-        }
         package = Package.fromVersion(newVersion);
       } else if (!await packageBackend.isPackageAdmin(package!, user.userId)) {
         _logger.info('User ${user.userId} (${user.email}) is not an uploader '
@@ -916,13 +967,13 @@ class PackageBackend {
             user.email!, package!.name!);
       }
 
+      if (package!.isNotVisible) {
+        throw PackageRejectedException.isWithheld();
+      }
+
       if (package!.versionCount >= maxVersionsPerPackage) {
         throw PackageRejectedException.maxVersionCountReached(
             newVersion.package, maxVersionsPerPackage);
-      }
-
-      if (package!.isNotVisible) {
-        throw PackageRejectedException.isWithheld();
       }
 
       if (package!.deletedVersions != null &&
@@ -943,8 +994,7 @@ class PackageBackend {
       _logger.info(
         'Trying to upload tarball for ${package!.name} version ${newVersion.version} to cloud storage.',
       );
-      // Apply update: Push to cloud storage
-      await tarballUpload(package!.name!, newVersion.version!);
+      await _uploadViaTempObject(guid, package!.name!, newVersion.version!);
 
       final inserts = <Model>[
         package!,
@@ -1022,10 +1072,14 @@ class PackageBackend {
   // Uploaders support.
 
   Future<account_api.InviteStatus> inviteUploader(
-      String packageName, api.InviteUploaderRequest invite) async {
+    String packageName,
+    api.InviteUploaderRequest invite, {
+    AuthSource? authSource,
+  }) async {
+    authSource ??= AuthSource.website;
     InvalidInputException.checkNotNull(invite.email, 'email');
     final uploaderEmail = invite.email.toLowerCase();
-    final user = await requireAuthenticatedUser();
+    final user = await requireAuthenticatedUser(source: authSource);
     final packageKey = db.emptyKey.append(Package, id: packageName);
     final package = await db.lookupOrNull<Package>(packageKey);
 
@@ -1047,6 +1101,7 @@ class PackageBackend {
         isNotUploaderYet, '`$uploaderEmail` is already an uploader.');
 
     final status = await consentBackend.invitePackageUploader(
+      authSource: authSource,
       packageName: packageName,
       uploaderEmail: uploaderEmail,
     );
@@ -1061,7 +1116,10 @@ class PackageBackend {
       String packageName, String uploaderEmail) async {
     try {
       final rs = await inviteUploader(
-          packageName, api.InviteUploaderRequest(email: uploaderEmail));
+        packageName,
+        api.InviteUploaderRequest(email: uploaderEmail),
+        authSource: AuthSource.client,
+      );
       if (!rs.emailSent) {
         throw OperationForbiddenException.inviteActive(rs.nextNotification);
       }
@@ -1121,9 +1179,13 @@ class PackageBackend {
   }
 
   Future<api.SuccessMessage> removeUploader(
-      String packageName, String uploaderEmail) async {
+    String packageName,
+    String uploaderEmail, {
+    AuthSource? authSource,
+  }) async {
+    authSource ??= AuthSource.client;
     uploaderEmail = uploaderEmail.toLowerCase();
-    final user = await requireAuthenticatedUser();
+    final user = await requireAuthenticatedUser(source: authSource);
     await withRetryTransaction(db, (tx) async {
       final packageKey = db.emptyKey.append(Package, id: packageName);
       final package = await tx.lookupOrNull<Package>(packageKey);

@@ -9,6 +9,7 @@ import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
+import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dev/package/backend.dart';
@@ -25,6 +26,7 @@ import 'backend_test_utils.dart';
 void main() {
   group('Get publisher info', () {
     _testNoPackage((client) => client.getPackagePublisher('no_package'));
+    _testPublisherBlocked((client) => client.publisherInfo('example.com'));
 
     testWithProfile('traditional package, not authenticated user',
         fn: () async {
@@ -43,6 +45,11 @@ void main() {
     _testNoPublisher((client) => client.setPackagePublisher(
           'oxygen',
           PackagePublisherInfo(publisherId: 'no-domain.net'),
+        ));
+
+    _testPublisherBlocked((client) => client.setPackagePublisher(
+          'oxygen',
+          PackagePublisherInfo(publisherId: 'example.com'),
         ));
 
     _testUserNotMemberOfPublisher(
@@ -119,7 +126,7 @@ void main() {
         'oxygen',
         PackagePublisherInfo(publisherId: 'example.com'),
       );
-      await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
+      await accountBackend.withBearerToken(userClientToken, () async {
         final tarball = await packageArchiveBytes(
             pubspecContent: generatePubspecYaml('oxygen', '3.0.0'));
         final rs = packageBackend.upload(Stream.fromIterable([tarball]));
@@ -136,7 +143,7 @@ void main() {
         'oxygen',
         PackagePublisherInfo(publisherId: 'example.com'),
       );
-      await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+      await accountBackend.withBearerToken(adminClientToken, () async {
         final tarball = await packageArchiveBytes(
             pubspecContent: generatePubspecYaml('oxygen', '3.0.0'));
         final pv = await packageBackend.upload(Stream.fromIterable([tarball]));
@@ -167,6 +174,26 @@ void main() {
         PackagePublisherInfo(publisherId: 'no-domain.net'),
       );
     });
+
+    _testPublisherBlocked(
+      (client) => client.setPackagePublisher(
+        'one',
+        PackagePublisherInfo(publisherId: 'example.com'),
+      ),
+      testProfile: _profile(),
+      publisherId: 'example.com',
+    );
+
+    _testPublisherBlocked(
+      (client) => client.setPackagePublisher(
+        'one',
+        PackagePublisherInfo(publisherId: 'example.com'),
+      ),
+      testProfile: _profile(),
+      publisherId: 'verified.com',
+      status: 403,
+      code: 'InsufficientPermissions',
+    );
 
     _testNoActiveUser((client) async {
       return client.setPackagePublisher(
@@ -235,6 +262,12 @@ void main() {
       fn: (client) => client.removePackagePublisher('neon'),
     );
 
+    _testPublisherBlocked(
+      (client) => client.removePackagePublisher('neon'),
+      status: 403,
+      code: 'InsufficientPermissions',
+    );
+
     testWithProfile('successful', fn: () async {
       final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
       final rs = client.removePackagePublisher('neon');
@@ -259,9 +292,10 @@ dynamic _json(value) => json.decode(json.encode(value));
 
 void _testUserNotMemberOfPublisher({
   required Future<void> Function(PubApiClient client) fn,
-  String authToken = 'other-at-pub-dot-dev',
+  String? authToken,
   TestProfile? testProfile,
 }) {
+  authToken ??= createFakeAuthTokenForEmail('other@pub.dev');
   testWithProfile('Active user is not a member of publisher',
       testProfile: testProfile, fn: () async {
     final client = createPubApiClient(authToken: authToken);
@@ -272,9 +306,10 @@ void _testUserNotMemberOfPublisher({
 
 void _testUserNotAdminOfPublisher({
   required Future<void> Function(PubApiClient client) fn,
-  String authToken = adminAtPubDevAuthToken,
+  String? authToken,
   TestProfile? testProfile,
 }) {
+  authToken ??= adminAtPubDevAuthToken;
   testWithProfile('Active user is not admin of publisher',
       testProfile: testProfile, fn: () async {
     await accountBackend.withBearerToken(authToken, () async {
@@ -321,4 +356,27 @@ void _testNoPublisher(Future Function(PubApiClient client) fn) {
     final rs = fn(client);
     await expectApiException(rs, status: 404, code: 'NotFound');
   });
+}
+
+void _testPublisherBlocked(
+  Future Function(PubApiClient client) fn, {
+  String publisherId = 'example.com',
+  TestProfile? testProfile,
+  int status = 404,
+  String code = 'NotFound',
+}) {
+  testWithProfile(
+    'Publisher $publisherId is blocked',
+    testProfile: testProfile,
+    fn: () async {
+      final p = await dbService.lookupValue<Publisher>(
+          dbService.emptyKey.append(Publisher, id: publisherId));
+      p.isBlocked = true;
+      await dbService.commit(inserts: [p]);
+
+      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final rs = fn(client);
+      await expectApiException(rs, status: status, code: code);
+    },
+  );
 }

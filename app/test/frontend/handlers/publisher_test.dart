@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pub_dev/tool/test_profile/models.dart';
+import 'package:pub_dev/publisher/models.dart';
+import 'package:pub_dev/shared/datastore.dart';
 import 'package:test/test.dart';
 
 import '../../shared/handlers_test_utils.dart';
@@ -35,6 +36,21 @@ void main() {
       );
     });
 
+    testWithProfile('publisher is blocked', fn: () async {
+      final p = await dbService.lookupValue<Publisher>(
+          dbService.emptyKey.append(Publisher, id: 'example.com'));
+      p.isBlocked = true;
+      await dbService.commit(inserts: [p]);
+      await expectHtmlResponse(
+        await issueGet('/publishers/example.com/packages'),
+        status: 404,
+      );
+      await expectHtmlResponse(
+        await issueGet('/publishers'),
+        absent: ['example.com'],
+      );
+    });
+
     testWithProfile('publisher package with text search', fn: () async {
       await expectRedirectResponse(
         await issueGet('/publishers/example.com/packages?q=n'),
@@ -49,6 +65,26 @@ void main() {
       );
     });
 
+    testWithProfile(
+      'publisher packages with pagination',
+      fn: () async {
+        await expectRedirectResponse(
+          await issueGet('/publishers/example.com/packages?page=2'),
+          '/packages?q=publisher%3Aexample.com+show%3Ahidden&page=2',
+        );
+      },
+    );
+
+    testWithProfile(
+      'publisher packages with sort order',
+      fn: () async {
+        await expectRedirectResponse(
+          await issueGet('/publishers/example.com/packages?sort=updated'),
+          '/packages?q=publisher%3Aexample.com+show%3Ahidden&sort=updated',
+        );
+      },
+    );
+
     testWithProfile('simple publisher packages', fn: () async {
       await expectHtmlResponse(
         await issueGet('/publishers/example.com/packages'),
@@ -56,34 +92,5 @@ void main() {
         absent: ['/packages/oxygen'],
       );
     });
-
-    testWithProfile(
-      'paginated publisher packages',
-      testProfile: TestProfile(
-        packages: [
-          TestPackage(name: 'non_publisher'),
-          ...List.generate(
-            11,
-            (i) => TestPackage(
-              name: 'pkg_$i',
-              publisher: 'example.com',
-            ),
-          ),
-        ],
-        defaultUser: 'admin@pub.dev',
-      ),
-      fn: () async {
-        await expectHtmlResponse(
-          await issueGet('/publishers/example.com/packages'),
-          present: ['"/publishers/example.com/packages?page=2"'],
-          absent: ['non_publisher'],
-        );
-        await expectHtmlResponse(
-          await issueGet('/publishers/example.com/packages?page=2'),
-          present: ['"/publishers/example.com/packages"'],
-          absent: ['non_publisher'],
-        );
-      },
-    );
   });
 }
