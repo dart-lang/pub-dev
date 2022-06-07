@@ -838,29 +838,15 @@ class PackageBackend {
       }
 
       final pubspec = Pubspec.fromYaml(archive.pubspecContent!);
-      final conflictingName = await nameTracker.accept(pubspec.name);
-      if (conflictingName != null) {
-        final visible = await isPackageVisible(conflictingName);
-        if (visible) {
-          throw PackageRejectedException.similarToActive(
-              pubspec.name,
-              conflictingName,
-              urls.pkgPageUrl(conflictingName, includeHost: true));
-        } else {
-          throw PackageRejectedException.similarToModerated(
-              pubspec.name, conflictingName);
-        }
-      }
-      PackageRejectedException.check(conflictingName == null,
-          'Package name is too similar to another active or moderated package: `$conflictingName`.');
+      await _verifyPackageName(
+        name: pubspec.name,
+        user: user,
+      );
 
-      // Apply name verification for new packages.
-      final isCurrentlyVisible = await isPackageVisible(pubspec.name);
-      if (!isCurrentlyVisible) {
-        final newNameIssues = validateNewPackageName(pubspec.name).toList();
-        if (newNameIssues.isNotEmpty) {
-          throw PackageRejectedException(newNameIssues.first.message);
-        }
+      //
+      if (restriction == UploadRestrictionStatus.onlyUpdates &&
+          !(await isPackageVisible(pubspec.name))) {
+        throw PackageRejectedException.uploadRestricted();
       }
 
       final versionString = canonicalizeVersion(pubspec.nonCanonicalVersion);
@@ -871,11 +857,10 @@ class PackageBackend {
 
       sw.reset();
       final version = await _performTarballUpload(
-        user,
-        (package, version) =>
-            _uploadViaTempObject(incomingBucket, guid, package, version),
-        restriction,
-        archive,
+        user: user,
+        archive: archive,
+        incomingBucket: incomingBucket,
+        guid: guid,
       );
       _logger.info('Tarball uploaded in ${sw.elapsed}.');
       _logger.info('Removing temporary object $guid.');
@@ -885,6 +870,47 @@ class PackageBackend {
       _logger.info('Temporary object removed in ${sw.elapsed}.');
       return version;
     });
+  }
+
+  /// Verify the package name defined in the newly uploaded archive file,
+  /// and throw [PackageRejectedException] if it is not accepted.
+  /// Some reasons to reject a name:
+  /// - it is closely related to another package name,
+  /// - it is already being blocked,
+  /// - it is reserved for future internal use, but the current user is
+  ///   not authorized to claim such package names.
+  Future<void> _verifyPackageName({
+    required String name,
+    required User user,
+  }) async {
+    final conflictingName = await nameTracker.accept(name);
+    if (conflictingName != null) {
+      final visible = await isPackageVisible(conflictingName);
+      if (visible) {
+        throw PackageRejectedException.similarToActive(name, conflictingName,
+            urls.pkgPageUrl(conflictingName, includeHost: true));
+      } else {
+        throw PackageRejectedException.similarToModerated(
+            name, conflictingName);
+      }
+    }
+    PackageRejectedException.check(conflictingName == null,
+        'Package name is too similar to another active or moderated package: `$conflictingName`.');
+
+    // Apply name verification for new packages.
+    final isCurrentlyVisible = await isPackageVisible(name);
+    if (!isCurrentlyVisible) {
+      final newNameIssues = validateNewPackageName(name).toList();
+      if (newNameIssues.isNotEmpty) {
+        throw PackageRejectedException(newNameIssues.first.message);
+      }
+
+      // reserved package names for the Dart team
+      if (matchesReservedPackageName(name) &&
+          !user.email!.endsWith('@google.com')) {
+        throw PackageRejectedException.nameReserved(name);
+      }
+    }
   }
 
   /// Makes a temporary object a new tarball.
@@ -909,12 +935,12 @@ class PackageBackend {
     await _bucket.updateMetadata(object, info.metadata.replace(acl: acl));
   }
 
-  Future<PackageVersion> _performTarballUpload(
-    User user,
-    Future<void> Function(String name, String version) tarballUpload,
-    UploadRestrictionStatus restriction,
-    PackageSummary archive,
-  ) async {
+  Future<PackageVersion> _performTarballUpload({
+    required User user,
+    required PackageSummary archive,
+    required Bucket incomingBucket,
+    required String guid,
+  }) async {
     final sw = Stopwatch()..start();
     final entities = await _createUploadEntities(db, user, archive);
     final newVersion = entities.packageVersion;
@@ -932,6 +958,8 @@ class PackageBackend {
       final tuple = (await tx.lookup([newVersion.key, newVersion.packageKey!]));
       final version = tuple[0] as PackageVersion?;
       package = tuple[1] as Package?;
+      prevLatestStableVersion = package?.latestVersion;
+      prevLatestPrereleaseVersion = package?.latestPrereleaseVersion;
 
       // If the version already exists, we fail.
       if (version != null) {
@@ -941,21 +969,9 @@ class PackageBackend {
             version.package, version.version!);
       }
 
-      // reserved package names for the Dart team
-      if (package == null &&
-          matchesReservedPackageName(newVersion.package) &&
-          !user.email!.endsWith('@google.com')) {
-        throw PackageRejectedException.nameReserved(newVersion.package);
-      }
-
       // If the package does not exist, then we create a new package.
-      prevLatestStableVersion = package?.latestVersion;
-      prevLatestPrereleaseVersion = package?.latestPrereleaseVersion;
       if (package == null) {
         _logger.info('New package uploaded. [new-package-uploaded]');
-        if (restriction == UploadRestrictionStatus.onlyUpdates) {
-          throw PackageRejectedException.uploadRestricted();
-        }
         package = Package.fromVersion(newVersion);
       } else if (!await packageBackend.isPackageAdmin(package!, user.userId)) {
         _logger.info('User ${user.userId} (${user.email}) is not an uploader '
@@ -964,13 +980,13 @@ class PackageBackend {
             user.email!, package!.name!);
       }
 
+      if (package!.isNotVisible) {
+        throw PackageRejectedException.isWithheld();
+      }
+
       if (package!.versionCount >= maxVersionsPerPackage) {
         throw PackageRejectedException.maxVersionCountReached(
             newVersion.package, maxVersionsPerPackage);
-      }
-
-      if (package!.isNotVisible) {
-        throw PackageRejectedException.isWithheld();
       }
 
       if (package!.deletedVersions != null &&
@@ -991,8 +1007,8 @@ class PackageBackend {
       _logger.info(
         'Trying to upload tarball for ${package!.name} version ${newVersion.version} to cloud storage.',
       );
-      // Apply update: Push to cloud storage
-      await tarballUpload(package!.name!, newVersion.version!);
+      await _uploadViaTempObject(
+          incomingBucket, guid, package!.name!, newVersion.version!);
 
       final inserts = <Model>[
         package!,
