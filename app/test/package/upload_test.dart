@@ -83,8 +83,8 @@ void main() {
           // Add one more byte than allowed.
           bigTarball.add([1]);
 
-          final bucket =
-              storageService.bucket(activeConfiguration.packageBucketName!);
+          final bucket = storageService
+              .bucket(activeConfiguration.incomingPackagesBucketName!);
           // TODO: use the fake storage server HTTP port to upload
           final sink = bucket.write('tmp/$uploadId');
           bigTarball.forEach(sink.add);
@@ -107,8 +107,8 @@ void main() {
               await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
           final dateBeforeTest = clock.now().toUtc();
           final pubspecContent = generatePubspecYaml('new_package', '1.2.3');
-          final bucket =
-              storageService.bucket(activeConfiguration.packageBucketName!);
+          final bucket = storageService
+              .bucket(activeConfiguration.incomingPackagesBucketName!);
           // TODO: use the fake storage server HTTP port to upload
           await bucket.writeBytes('tmp/$uploadId',
               await packageArchiveBytes(pubspecContent: pubspecContent));
@@ -187,8 +187,8 @@ void main() {
               await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
           final dateBeforeTest = clock.now().toUtc();
           final pubspecContent = generatePubspecYaml('neon', '7.0.0');
-          final bucket =
-              storageService.bucket(activeConfiguration.packageBucketName!);
+          final bucket = storageService
+              .bucket(activeConfiguration.incomingPackagesBucketName!);
           // TODO: use the fake storage server HTTP port to upload
           await bucket.writeBytes('tmp/$uploadId',
               await packageArchiveBytes(pubspecContent: pubspecContent));

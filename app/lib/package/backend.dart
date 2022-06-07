@@ -804,17 +804,7 @@ class PackageBackend {
 
     return await withTempDirectory((Directory dir) async {
       final filename = '${dir.absolute.path}/tarball.tar.gz';
-      var incomingBucket = _incomingBucket;
-      var info = await incomingBucket.tryInfo(tmpObjectName(guid));
-      if (info == null) {
-        // During version migration, there is a chance that the upload starts
-        // into the old bucket, while the finish operation hits a new instance.
-        // If there is no file in the incoming bucket, we will fall back
-        // to use the default bucket for now.
-        // TODO: remove this fallback after the release gets stable.
-        info = await _bucket.tryInfo(tmpObjectName(guid));
-        incomingBucket = _bucket;
-      }
+      final info = await _incomingBucket.tryInfo(tmpObjectName(guid));
       if (info?.length == null) {
         throw PackageRejectedException.archiveEmpty();
       }
@@ -823,7 +813,7 @@ class PackageBackend {
             UploadSignerService.maxUploadSize);
       }
       await _saveTarballToFS(
-          incomingBucket.read(tmpObjectName(guid)), filename);
+          _incomingBucket.read(tmpObjectName(guid)), filename);
       _logger.info('Examining tarball content ($guid).');
       final sw = Stopwatch()..start();
       final archive = await summarizePackageArchive(
@@ -859,14 +849,13 @@ class PackageBackend {
       final version = await _performTarballUpload(
         user: user,
         archive: archive,
-        incomingBucket: incomingBucket,
         guid: guid,
       );
       _logger.info('Tarball uploaded in ${sw.elapsed}.');
       _logger.info('Removing temporary object $guid.');
 
       sw.reset();
-      await incomingBucket.delete(tmpObjectName(guid));
+      await _incomingBucket.delete(tmpObjectName(guid));
       _logger.info('Temporary object removed in ${sw.elapsed}.');
       return version;
     });
@@ -915,7 +904,6 @@ class PackageBackend {
 
   /// Makes a temporary object a new tarball.
   Future<void> _uploadViaTempObject(
-    Bucket incomingBucket,
     String guid,
     String package,
     String version,
@@ -924,7 +912,7 @@ class PackageBackend {
 
     // Copy the temporary object to it's destination place.
     await _storage.copyObject(
-      incomingBucket.absoluteObjectName(tmpObjectName(guid)),
+      _incomingBucket.absoluteObjectName(tmpObjectName(guid)),
       _bucket.absoluteObjectName(object),
     );
 
@@ -938,7 +926,6 @@ class PackageBackend {
   Future<PackageVersion> _performTarballUpload({
     required User user,
     required PackageSummary archive,
-    required Bucket incomingBucket,
     required String guid,
   }) async {
     final sw = Stopwatch()..start();
@@ -1007,8 +994,7 @@ class PackageBackend {
       _logger.info(
         'Trying to upload tarball for ${package!.name} version ${newVersion.version} to cloud storage.',
       );
-      await _uploadViaTempObject(
-          incomingBucket, guid, package!.name!, newVersion.version!);
+      await _uploadViaTempObject(guid, package!.name!, newVersion.version!);
 
       final inserts = <Model>[
         package!,
