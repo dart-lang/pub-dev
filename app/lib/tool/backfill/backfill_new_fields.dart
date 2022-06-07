@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:logging/logging.dart';
-import '../../publisher/models.dart';
-import '../../shared/datastore.dart';
 
 final _logger = Logger('backfill_new_fields');
 
@@ -14,17 +12,5 @@ final _logger = Logger('backfill_new_fields');
 /// CHANGELOG.md must be updated with the new fields, and the next
 /// release could remove the backfill from here.
 Future<void> backfillNewFields() async {
-  _logger.info('Backfilling Publishers...');
-  await for (final p in dbService.query<Publisher>().run()) {
-    await _backfillPublisher(p);
-  }
-}
-
-Future<void> _backfillPublisher(Publisher publisher) async {
-  if (publisher.isBlocked != null) return;
-  await withRetryTransaction(dbService, (tx) async {
-    final p = await tx.lookupValue<Publisher>(publisher.key);
-    p.isBlocked ??= false;
-    tx.insert(p);
-  });
+  _logger.info('Nothing to do.');
 }
