@@ -33,7 +33,8 @@ void main() {
     expect(urls, contains('/packages/<package>'));
     expect(urls, contains('/packages/<package>/versions/<version>'));
     expect(urls, contains('/api/packages/<package>'));
-    expect(urls, hasLength(39));
+    // this a naive assertion that fails, if new end-points are introduced!
+    expect(urls, hasLength(41), reason: 'check if new end-points was added');
   });
 
   testWithProfile(

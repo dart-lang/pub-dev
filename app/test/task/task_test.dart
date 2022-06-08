@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:indexed_blob/indexed_blob.dart';
 import 'package:pana/pana.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
@@ -53,6 +54,18 @@ void main() {
     await taskBackend.start();
     await fakeTime.elapse(minutes: 5);
 
+    // Check that the log is missing.
+    final log1 = await taskBackend.panaLog('oxygen', '1.2.0');
+    expect(log1, isNull);
+
+    // Check that the dartdoc is missing
+    final dartdoc1 = await taskBackend.dartdocPage(
+      'oxygen',
+      '1.2.0',
+      'index.html',
+    );
+    expect(dartdoc1, isNull);
+
     // 5 minutes after start of scheduling we expect there to be 3 instances
     final instances = await cloud.listInstances().toList();
     expect(instances, hasLength(3));
@@ -67,6 +80,14 @@ void main() {
       final payload = instance.payload;
 
       for (final v in payload.versions) {
+        // Note: We might change this assertion if we decide to analyse more
+        //       versions of a package.
+        expect(
+          payload.package != 'oxygen' || v.version != '1.0.0',
+          isTrue,
+          reason: 'oxygen 1.0.0 should not be analyzed when 1.2.0 exists',
+        );
+
         // Use token to get the upload information
         final api = createPubApiClient(authToken: v.token);
         final uploadInfo = await api.taskUploadResult(
@@ -77,6 +98,32 @@ void main() {
         // Upload the minimum result, log file and empty pana-report
         final c = http.Client();
         try {
+          // Create a fake dartdoc result
+          final blobId = uploadInfo.dartdocBlobId;
+          final dartdoc = await BlobIndexPair.build(blobId, (addFile) async {
+            await addFile(
+              'index.html',
+              Stream.value(
+                '<h1>dartdoc for ${payload.package} version ${v.version}</h1>',
+              ).transform(utf8.encoder),
+            );
+          });
+
+          // Upload dartdoc results
+          await upload(
+            c,
+            uploadInfo.dartdocBlob,
+            dartdoc.blob,
+            filename: 'dartdoc-data.blob',
+          );
+          await upload(
+            c,
+            uploadInfo.dartdocIndex,
+            dartdoc.index.asBytes(),
+            filename: 'dartdoc-index.json',
+            contentType: 'application/json',
+          );
+
           await upload(
             c,
             uploadInfo.panaLog,
@@ -104,6 +151,22 @@ void main() {
     }
 
     await fakeTime.elapse(minutes: 5);
+
+    // Check that we can get the log file
+    final log2 = await taskBackend.panaLog('oxygen', '1.2.0');
+    expect(log2, contains('This is a pana log file'));
+
+    // Check that we can get the generated dartdoc
+    final dartdoc2 = await taskBackend.dartdocPage(
+      'oxygen',
+      '1.2.0',
+      'index.html',
+    );
+    expect(dartdoc2, isNotNull);
+    expect(
+      utf8.decode(dartdoc2!),
+      contains('dartdoc for oxygen version 1.2.0'),
+    );
 
     // All instances should be terminated, api.taskUploadFinished terminate
     // when all versions for the instance is done. And fake instances take 1

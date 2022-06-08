@@ -37,6 +37,32 @@ class BlobIndexPair {
 
     return BlobIndexPair._(await blobF, await indexF);
   }
+
+  static Future<BlobIndexPair> build(
+    String blobId,
+    Future<void> Function(
+      Future<void> Function(String path, Stream<List<int>> content) addFile,
+    )
+        builder,
+  ) async {
+    final c = StreamController<List<int>>();
+
+    final b = IndexedBlobBuilder(c);
+
+    try {
+      final blobF = collectBytes(c.stream);
+
+      await builder((path, content) async {
+        await b.addFile(path, content);
+      });
+
+      final indexF = b.buildIndex(blobId);
+      await Future.wait([blobF, indexF]);
+      return BlobIndexPair._(await blobF, await indexF);
+    } finally {
+      await c.close();
+    }
+  }
 }
 
 Future<BlobIndex> _folderToIndexedBlob(

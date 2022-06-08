@@ -13,7 +13,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart' show Bucket;
 import 'package:googleapis/storage/v1.dart'
     show DetailedApiRequestError, ApiRequestError;
-import 'package:indexed_blob/indexed_blob.dart' show BlobIndex;
+import 'package:indexed_blob/indexed_blob.dart' show BlobIndex, FileRange;
 import 'package:logging/logging.dart' show Logger;
 import 'package:pana/models.dart' show Summary;
 import 'package:pool/pool.dart' show Pool;
@@ -703,7 +703,7 @@ class TaskBackend {
             return await readChunkedStream(
               _bucket.read(path, offset: offset, length: length),
               maxSize: 10 * 1024 * 1024, // sanity limit
-            );
+            ).timeout(Duration(seconds: 30));
           } on MaximumSizeExceeded catch (e, st) {
             _log.shout(
               'max size exceeded path: $path',
@@ -715,6 +715,9 @@ class TaskBackend {
         },
         maxAttempts: 3,
         retryIf: (e) {
+          if (e is TimeoutException) {
+            return true; // Timeouts we can retry
+          }
           if (e is IOException) {
             return true; // I/O issues are worth retrying
           }
@@ -740,7 +743,7 @@ class TaskBackend {
   /// Fetch and cache dartdoc-index.json for [package] and [version].
   Future<BlobIndex?> _dartdocIndex(String package, String version) async =>
       await cache.dartdocIndex(package, version).get(() async {
-        final path = '$runtimeVersion/$package/$version/pana-report.json';
+        final path = '$runtimeVersion/$package/$version/dartdoc-index.json';
         final bytes = await _readFromBucket(path);
         if (bytes == null) {
           return null;
@@ -761,12 +764,18 @@ class TaskBackend {
       return null;
     }
 
-    final range = index.lookup(path);
-    if (range == null) {
+    FileRange range;
+    try {
+      final r = index.lookup(path);
+      if (r == null) {
+        return null;
+      }
+      range = r;
+    } on FormatException {
       return null;
     }
 
-    if (_dartdocBlobIdPattern.hasMatch(range.blobId)) {
+    if (!_dartdocBlobIdPattern.hasMatch(range.blobId)) {
       _log.warning(
           'invalid blobId: "${range.blobId}" in dartdoc-index for $package / $version');
       return null;
@@ -840,7 +849,7 @@ class TaskBackend {
       return null;
     }
     // Basic sanity check
-    if (_panaLogIdPattern.hasMatch(report.logId)) {
+    if (!_panaLogIdPattern.hasMatch(report.logId)) {
       _log.shout(
         'Invalid PanaReport.logId: "${report.logId}" for $package/$version',
         Exception('Invalid logId'),

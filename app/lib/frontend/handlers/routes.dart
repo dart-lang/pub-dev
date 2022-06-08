@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/handlers.dart';
 import 'package:shelf/shelf.dart';
@@ -330,6 +331,9 @@ class PubSiteService {
   @Route.get('/task-log/<package>/<version>/')
   Future<Response> taskLog(
       Request request, String package, String version) async {
+    InvalidInputException.checkPackageName(package);
+    version = InvalidInputException.checkSemanticVersion(version);
+
     final log = await taskBackend.panaLog(package, version);
     return Response.ok(
       log ?? 'no log',
