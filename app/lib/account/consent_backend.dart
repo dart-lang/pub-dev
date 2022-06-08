@@ -235,7 +235,8 @@ class ConsentBackend {
     }
     final action = _actions[c.kind]!;
     if (!action.permitConfirmationWithOtherEmail && c.email != null) {
-      InvalidInputException.check(c.email == user.email,
+      InvalidInputException.check(
+          c.email?.toLowerCase() == user.email?.toLowerCase(),
           'This invitation is not for the user account currently logged in.');
     }
     return c;
