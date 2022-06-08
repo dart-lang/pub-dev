@@ -16,7 +16,15 @@ void main() {
     late DateTime lastPackageUpdated;
 
     setUpAll(() async {
-      index = InMemoryPackageIndex(alwaysUpdateLikeScores: true);
+      index = InMemoryPackageIndex(
+        alwaysUpdateLikeScores: true,
+        popularityValueFn: (p) =>
+            const <String, double>{
+              'http': 0.7,
+              'async': 0.8,
+            }[p] ??
+            0.0,
+      );
       final docs = [
         PackageDocument(
           package: 'http',
@@ -34,7 +42,6 @@ void main() {
             'runtime:native-jit',
             'runtime:web'
           ],
-          popularity: 0.7,
           likeCount: 10,
           grantedPoints: 110,
           maxPoints: 110,
@@ -60,7 +67,6 @@ The delegating wrapper classes allow users to easily add functionality on top of
             'runtime:native-jit',
             'runtime:web'
           ],
-          popularity: 0.8,
           likeCount: 1,
           grantedPoints: 10,
           maxPoints: 110,
@@ -76,7 +82,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           created: DateTime.utc(2014, 04, 01),
           updated: DateTime.utc(2014, 09, 17),
           tags: ['sdk:dart', 'runtime:web'],
-          popularity: 0.0,
           dependencies: {'foo': 'direct'},
           grantedPoints: 0,
           maxPoints: 110,

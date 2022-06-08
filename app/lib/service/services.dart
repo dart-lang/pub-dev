@@ -194,7 +194,9 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerFlutterSdkMemIndex(FlutterSdkMemIndex());
     registerJobBackend(JobBackend(dbService));
     registerNameTracker(NameTracker(dbService));
-    registerPackageIndex(InMemoryPackageIndex());
+    registerPackageIndex(InMemoryPackageIndex(
+      popularityValueFn: (p) => popularityStorage.lookup(p),
+    ));
     registerIndexUpdater(IndexUpdater(dbService, packageIndex));
     registerPopularityStorage(
       PopularityStorage(

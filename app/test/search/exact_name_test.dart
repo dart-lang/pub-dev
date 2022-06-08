@@ -15,14 +15,20 @@ void main() {
     late InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = InMemoryPackageIndex();
+      index = InMemoryPackageIndex(
+        popularityValueFn: (p) =>
+            const <String, double>{
+              'build_config': 0.1,
+              'build': 1.0,
+            }[p] ??
+            0.0,
+      );
       await index.addPackage(PackageDocument(
         package: 'build_config',
         version: '0.0.1',
         description: compactDescription(
             'Support for parsing `build.yaml` configuration.'),
         readme: compactReadme('blah'),
-        popularity: 0.1,
         grantedPoints: 10,
         maxPoints: 110,
       ));
@@ -31,7 +37,6 @@ void main() {
         version: '0.0.1',
         description: compactDescription('A build system for Dart.'),
         readme: compactReadme('build and configure'),
-        popularity: 1.0,
         grantedPoints: 110,
         maxPoints: 110,
       ));

@@ -64,10 +64,6 @@ abstract class PackageIndex {
 }
 
 /// A summary information about a package that goes into the search index.
-///
-/// It is also part of the data structure returned by a search query, except for
-/// the [readme] and [popularity] fields, which are excluded when returning the
-/// results.
 @JsonSerializable()
 class PackageDocument {
   final String package;
@@ -79,7 +75,6 @@ class PackageDocument {
 
   final List<String> tags;
 
-  final double? popularity;
   final int? likeCount;
 
   final int? grantedPoints;
@@ -100,7 +95,6 @@ class PackageDocument {
     this.updated,
     this.readme = '',
     List<String>? tags,
-    this.popularity = 0,
     this.likeCount = 0,
     this.grantedPoints = 0,
     this.maxPoints = 0,

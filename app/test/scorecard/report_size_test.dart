@@ -54,7 +54,6 @@ void main() {
           'updated': isNotNull,
           'packageCreated': isNotNull,
           'packageVersionCreated': isNotNull,
-          'popularityScore': isNotNull,
           'flags': [],
           'dartdocReport': isNotNull,
           'panaReport': {
