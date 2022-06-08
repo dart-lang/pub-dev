@@ -12,6 +12,8 @@ import 'package:convert/convert.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
+import 'package:pub_dev/admin/tools/package_discontinued.dart';
+import 'package:pub_dev/admin/tools/package_publisher.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../account/backend.dart';
@@ -85,6 +87,10 @@ class AdminBackend {
         return await executeListPackageWithheld(args);
       case 'notify-service':
         return await executeNotifyService(args);
+      case 'package-discontinued':
+        return await executeSetPackageDiscontinued(args);
+      case 'package-publisher':
+        return await executeSetPackagePublisher(args);
       case 'recent-uploaders':
         return await executeRecentUploaders(args);
       case 'block-publisher-and-all-members':
