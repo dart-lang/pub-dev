@@ -20,6 +20,7 @@ import 'package:pool/pool.dart' show Pool;
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/upload_signer_service.dart';
 import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/shared/env_config.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/redis_cache.dart' show cache;
 import 'package:pub_dev/shared/utils.dart' show canonicalizeVersion;
@@ -57,11 +58,6 @@ TaskBackend get taskBackend => ss.lookup(#_taskBackend) as TaskBackend;
 
 /// Packages that are allow listed for initial testing of task backend.
 final _allowListedPackages = [
-  // Package names used in testing
-  'flutter_titanium',
-  'neon',
-  'oxygen',
-
   // Few small packages
   'retry',
   'pem',
@@ -323,7 +319,8 @@ class TaskBackend {
   }) async {
     // Limit the number of packages we track during initial testing.
     // TODO: Remove this before going into production
-    if (!_allowListedPackages.contains(packageName)) {
+    if (envConfig.isRunningInAppengine &&
+        !_allowListedPackages.contains(packageName)) {
       return;
     }
 
