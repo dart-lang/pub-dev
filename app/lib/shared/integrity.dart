@@ -5,6 +5,7 @@
 import 'dart:math' as math;
 
 import 'package:clock/clock.dart';
+import 'package:gcloud/storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
@@ -22,6 +23,7 @@ import 'configuration.dart';
 import 'datastore.dart';
 import 'email.dart' show looksLikeEmail;
 import 'env_config.dart';
+import 'storage.dart';
 import 'tags.dart' show allowedTagPrefixes;
 import 'urls.dart' as urls;
 import 'utils.dart' show canonicalizeVersion;
@@ -500,14 +502,31 @@ class IntegrityChecker {
       if (info == null) {
         yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching archive file.';
       }
-      // Also issue a HTTP request.
-      if (!envConfig.isRunningLocally) {
-        final rs = await _httpClient.head(Uri.parse(urls.pkgArchiveDownloadUrl(
-            pv.package, pv.version!,
-            baseUri: activeConfiguration.primaryApiUri)));
-        if (rs.statusCode != 200) {
-          yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching archive file (HTTP status ${rs.statusCode}).';
+      final canonicalInfo = await storageService
+          .bucket(activeConfiguration.canonicalPackagesBucketName!)
+          // ignore: invalid_use_of_visible_for_testing_member
+          .tryInfo(tarballObjectName(pv.package, pv.version!));
+
+      if (canonicalInfo != null) {
+        if (!canonicalInfo.hasSameSignatureAs(info)) {
+          yield 'Canonical archive for PackageVersion "${pv.qualifiedVersionKey}" differs in old bucket.';
         }
+
+        final publicInfo = await storageService
+            .bucket(activeConfiguration.publicPackagesBucketName!)
+            // ignore: invalid_use_of_visible_for_testing_member
+            .tryInfo(tarballObjectName(pv.package, pv.version!));
+        if (!canonicalInfo.hasSameSignatureAs(publicInfo)) {
+          yield 'Canonical archive for PackageVersion "${pv.qualifiedVersionKey}" differs in the public bucket.';
+        }
+      }
+
+      // Also issue a HTTP request.
+      final rs = await _httpClient.head(Uri.parse(urls.pkgArchiveDownloadUrl(
+          pv.package, pv.version!,
+          baseUri: activeConfiguration.primaryApiUri)));
+      if (rs.statusCode != 200) {
+        yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching archive file (HTTP status ${rs.statusCode}).';
       }
     }
 

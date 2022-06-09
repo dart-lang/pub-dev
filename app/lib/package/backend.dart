@@ -76,10 +76,27 @@ class PackageBackend {
   /// - `tmp/$guid` (incoming package archive that was uploaded, but not yet processed)
   final Bucket _incomingBucket;
 
+  /// The Cloud Storage bucket to use for canonical package archives.
+  /// The following files are present:
+  /// - `packages/$package-$version.tar.gz` (package archive)
+  final Bucket _canonicalBucket;
+
+  /// The Cloud Storage bucket to use for public package archives.
+  /// The following files are present:
+  /// - `packages/$package-$version.tar.gz` (package archive)
+  final Bucket _publicBucket;
+
   @visibleForTesting
   int maxVersionsPerPackage = _defaultMaxVersionsPerPackage;
 
-  PackageBackend(this.db, this._storage, this._bucket, this._incomingBucket);
+  PackageBackend(
+    this.db,
+    this._storage,
+    this._bucket,
+    this._incomingBucket,
+    this._canonicalBucket,
+    this._publicBucket,
+  );
 
   /// Whether the package exists and is not withheld or deleted.
   Future<bool> isPackageVisible(String package) async {
@@ -832,21 +849,39 @@ class PackageBackend {
       }
 
       final pubspec = Pubspec.fromYaml(archive.pubspecContent!);
-      await _verifyPackageName(
-        name: pubspec.name,
-        user: user,
-      );
+      await _verifyPackageName(name: pubspec.name, user: user);
 
-      //
+      // Check if new packages are allowed to be uploaded.
       if (restriction == UploadRestrictionStatus.onlyUpdates &&
           !(await isPackageVisible(pubspec.name))) {
         throw PackageRejectedException.uploadRestricted();
       }
 
+      // Check version format.
       final versionString = canonicalizeVersion(pubspec.nonCanonicalVersion);
       if (versionString == null) {
         throw InvalidInputException.canonicalizeVersionError(
             pubspec.nonCanonicalVersion);
+      }
+
+      // Check canonical archive.
+      final canonicalArchivePath =
+          tarballObjectName(pubspec.name, versionString);
+      final canonicalArchiveInfo =
+          await _canonicalBucket.tryInfo(canonicalArchivePath);
+      if (canonicalArchiveInfo != null) {
+        final file = File(filename);
+        if (canonicalArchiveInfo.length != await file.length()) {
+          throw PackageRejectedException.versionExists(
+              pubspec.name, versionString);
+        }
+        final objectBytes =
+            await _canonicalBucket.readAsBytes(canonicalArchivePath);
+        final fileBytes = await file.readAsBytes();
+        if (!fileBytes.byteToByteEquals(objectBytes)) {
+          throw PackageRejectedException.versionExists(
+              pubspec.name, versionString);
+        }
       }
 
       sw.reset();
@@ -854,6 +889,7 @@ class PackageBackend {
         user: user,
         archive: archive,
         guid: guid,
+        hasCanonicalArchiveObject: canonicalArchiveInfo != null,
       );
       _logger.info('Tarball uploaded in ${sw.elapsed}.');
       _logger.info('Removing temporary object $guid.');
@@ -931,6 +967,7 @@ class PackageBackend {
     required User user,
     required PackageSummary archive,
     required String guid,
+    required bool hasCanonicalArchiveObject,
   }) async {
     final sw = Stopwatch()..start();
     final entities = await _createUploadEntities(db, user, archive);
@@ -998,7 +1035,20 @@ class PackageBackend {
       _logger.info(
         'Trying to upload tarball for ${package!.name} version ${newVersion.version} to cloud storage.',
       );
+      if (!hasCanonicalArchiveObject) {
+        // Copy archive to canonical bucket.
+        await _storage.copyObject(
+          _incomingBucket.absoluteObjectName(tmpObjectName(guid)),
+          _canonicalBucket.absoluteObjectName(
+              tarballObjectName(newVersion.package, newVersion.version!)),
+        );
+      }
       await _uploadViaTempObject(guid, package!.name!, newVersion.version!);
+      await _storage.copyObject(
+        _incomingBucket.absoluteObjectName(tmpObjectName(guid)),
+        _publicBucket.absoluteObjectName(
+            tarballObjectName(newVersion.package, newVersion.version!)),
+      );
 
       final inserts = <Model>[
         package!,
@@ -1244,6 +1294,8 @@ class PackageBackend {
   Future<void> removePackageTarball(String package, String version) async {
     final object = tarballObjectName(package, version);
     await deleteFromBucket(_bucket, object);
+    await deleteFromBucket(_publicBucket, object);
+    await deleteFromBucket(_canonicalBucket, object);
   }
 
   /// Gets the file info of a [package] in the given [version].
