@@ -19,7 +19,12 @@ import 'token_index.dart';
 final _logger = Logger('search.mem_index');
 final _textSearchTimeout = Duration(milliseconds: 500);
 
+/// Returns the popularity score (0.0 - 1.0) of a package.
+typedef PopularityValueFn = double Function(String packageName);
+double _noPopularityScoreFn(String packageName) => 0.0;
+
 class InMemoryPackageIndex implements PackageIndex {
+  final PopularityValueFn _popularityValueFn;
   final Map<String, PackageDocument> _packages = <String, PackageDocument>{};
   final _packageNameIndex = PackageNameIndex();
   final TokenIndex _descrIndex = TokenIndex();
@@ -33,9 +38,11 @@ class InMemoryPackageIndex implements PackageIndex {
   bool _isReady = false;
 
   InMemoryPackageIndex({
+    PopularityValueFn popularityValueFn = _noPopularityScoreFn,
     math.Random? random,
     @visibleForTesting bool alwaysUpdateLikeScores = false,
-  }) : _alwaysUpdateLikeScores = alwaysUpdateLikeScores;
+  })  : _popularityValueFn = popularityValueFn,
+        _alwaysUpdateLikeScores = alwaysUpdateLikeScores;
 
   @override
   Future<IndexInfo> indexInfo() async {
@@ -268,10 +275,8 @@ class InMemoryPackageIndex implements PackageIndex {
 
   @visibleForTesting
   Map<String, double> getPopularityScore(Iterable<String> packages) {
-    return Map.fromIterable(
-      packages,
-      value: (package) => _packages[package]?.popularity ?? 0.0,
-    );
+    return Map.fromEntries(packages
+        .map((p) => MapEntry<String, double>(p, _popularityValueFn(p))));
   }
 
   @visibleForTesting
@@ -292,16 +297,16 @@ class InMemoryPackageIndex implements PackageIndex {
   }
 
   Score _getOverallScore(Iterable<String> packages) {
-    final values = Map<String, double>.fromIterable(packages, value: (package) {
+    final values = Map<String, double>.fromEntries(packages.map((package) {
       final doc = _packages[package]!;
-      final downloadScore = doc.popularity ?? 0.0;
+      final downloadScore = _popularityValueFn(package);
       final likeScore = _likeTracker.getLikeScore(doc.package);
       final popularity = (downloadScore + likeScore) / 2;
       final points = (doc.grantedPoints ?? 0) / math.max(1, doc.maxPoints ?? 0);
       final overall = popularity * 0.5 + points * 0.5;
       // don't multiply with zero.
-      return 0.4 + 0.6 * overall;
-    });
+      return MapEntry(package, 0.4 + 0.6 * overall);
+    }));
     return Score(values);
   }
 

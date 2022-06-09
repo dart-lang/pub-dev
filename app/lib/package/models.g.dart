@@ -50,7 +50,6 @@ PackageView _$PackageViewFromJson(Map<String, dynamic> json) => PackageView(
       likes: json['likes'] as int?,
       grantedPubPoints: json['grantedPubPoints'] as int?,
       maxPubPoints: json['maxPubPoints'] as int?,
-      popularity: json['popularity'] as int?,
       tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
       spdxIdentifiers: (json['spdxIdentifiers'] as List<dynamic>?)
           ?.map((e) => e as String)
@@ -79,7 +78,6 @@ Map<String, dynamic> _$PackageViewToJson(PackageView instance) {
   writeNotNull('likes', instance.likes);
   writeNotNull('grantedPubPoints', instance.grantedPubPoints);
   writeNotNull('maxPubPoints', instance.maxPubPoints);
-  writeNotNull('popularity', instance.popularity);
   val['tags'] = instance.tags;
   writeNotNull('spdxIdentifiers', instance.spdxIdentifiers);
   writeNotNull('apiPages', instance.apiPages);

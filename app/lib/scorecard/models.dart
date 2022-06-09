@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pana/models.dart';
+import 'package:pub_dev/shared/popularity_storage.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../dartdoc/models.dart';
@@ -64,10 +65,6 @@ class ScoreCard extends db.ExpandoModel<String> {
   @db.DateTimeProperty(required: true, indexed: false)
   DateTime? packageVersionCreated;
 
-  /// Score for package popularity (0.0 - 1.0).
-  @db.DoubleProperty(indexed: false)
-  double? popularityScore;
-
   /// The flags for the package, version or analysis.
   /// Example values: entries from [PackageFlags].
   @CompatibleStringListProperty(indexed: false)
@@ -103,7 +100,6 @@ class ScoreCard extends db.ExpandoModel<String> {
         updated: updated!,
         packageCreated: packageCreated!,
         packageVersionCreated: packageVersionCreated!,
-        popularityScore: popularityScore,
         flags: flags,
         dartdocReport: DartdocReport.fromBytes(dartdocReportJsonGz),
         panaReport: PanaReport.fromBytes(panaReportJsonGz),
@@ -156,9 +152,6 @@ class ScoreCardData extends Object with FlagMixin {
   final DateTime? packageCreated;
   final DateTime? packageVersionCreated;
 
-  /// Score for package popularity (0.0 - 1.0).
-  final double? popularityScore;
-
   /// The flags for the package, version or analysis.
   @override
   final List<String>? flags;
@@ -173,7 +166,6 @@ class ScoreCardData extends Object with FlagMixin {
     this.updated,
     this.packageCreated,
     this.packageVersionCreated,
-    this.popularityScore,
     this.flags,
     this.dartdocReport,
     this.panaReport,
@@ -203,6 +195,9 @@ class ScoreCardData extends Object with FlagMixin {
 
   late final report =
       joinReport(panaReport: panaReport, dartdocReport: dartdocReport);
+
+  // TODO: refactor code to use popularityStorage directly.
+  double get popularityScore => popularityStorage.lookup(packageName!);
 }
 
 @JsonSerializable(includeIfNull: false)

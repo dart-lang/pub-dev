@@ -15,7 +15,6 @@ import '../package/backend.dart';
 import '../package/models.dart' show Package, PackageVersion, PackageView;
 import '../package/overrides.dart';
 import '../shared/datastore.dart' as db;
-import '../shared/popularity_storage.dart';
 import '../shared/redis_cache.dart' show cache;
 import '../shared/utils.dart';
 import '../shared/versions.dart' as versions;
@@ -217,8 +216,6 @@ class ScoreCardBackend {
         if (status.isObsolete) PackageFlags.isObsolete,
         if (version.pubspec!.usesFlutter) PackageFlags.usesFlutter,
       ];
-
-      scoreCard.popularityScore = popularityStorage.lookup(packageName);
 
       bool reportIsTooBig(String reportType, List<int>? bytes) {
         if (bytes == null || bytes.isEmpty) return false;

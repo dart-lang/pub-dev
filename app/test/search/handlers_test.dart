@@ -63,7 +63,7 @@ void main() {
           'packageHits': [
             {
               'package': 'pkg_foo',
-              'score': closeTo(0.37, 0.01),
+              'score': closeTo(0.35, 0.01),
             },
           ],
         });
@@ -79,7 +79,7 @@ void main() {
               'packageHits': [
                 {
                   'package': 'pkg_foo',
-                  'score': closeTo(0.37, 0.01),
+                  'score': closeTo(0.35, 0.01),
                 },
               ],
             });
@@ -94,7 +94,7 @@ void main() {
           'packageHits': [
             {
               'package': 'pkg_foo',
-              'score': closeTo(0.42, 0.01),
+              'score': closeTo(0.40, 0.01),
             },
           ],
         });
@@ -129,7 +129,6 @@ class MockSearchBackend implements SearchBackend {
       tags: ['sdk:dart'],
       description: 'Foo package about nothing really. Maybe JSON.',
       readme: 'Some JSON to XML mapping.',
-      popularity: 0.1,
     );
   }
 

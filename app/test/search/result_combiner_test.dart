@@ -15,7 +15,10 @@ import 'package:test/test.dart';
 
 void main() {
   group('ResultCombiner', () {
-    final primaryIndex = InMemoryPackageIndex();
+    final primaryIndex = InMemoryPackageIndex(
+      popularityValueFn: (p) =>
+          const <String, double>{'stringutils': 0.4}[p] ?? 0.0,
+    );
     final dartSdkMemIndex = DartSdkMemIndex();
     final flutterSdkMemIndex = FlutterSdkMemIndex();
     final combiner = SearchResultCombiner(
@@ -30,7 +33,6 @@ void main() {
         version: '1.0.0',
         description: 'many utils utils',
         readme: 'Many useful string methods like substring.',
-        popularity: 0.4,
         grantedPoints: 110,
         maxPoints: 110,
       ));
