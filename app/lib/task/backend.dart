@@ -29,7 +29,11 @@ import 'package:pub_dev/shared/versions.dart'
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:pub_dev/task/global_lock.dart';
 import 'package:pub_dev/task/models.dart'
-    show PackageState, PackageVersionState, maxTaskExecutionTime;
+    show
+        PackageState,
+        PackageVersionState,
+        maxTaskExecutionTime,
+        initialTimestamp;
 import 'package:pub_dev/task/scheduler.dart';
 import 'package:pub_semver/pub_semver.dart' show Version;
 import 'package:pub_worker/pana_report.dart' show PanaReport;
@@ -334,7 +338,7 @@ class TaskBackend {
       return;
     }
 
-    var lastVersionCreated = DateTime(0);
+    var lastVersionCreated = initialTimestamp;
     await withRetryTransaction(_db, (tx) async {
       final pkgKey = _db.emptyKey.append(Package, id: packageName);
 
@@ -379,12 +383,12 @@ class TaskBackend {
             ..versions = {
               for (final version in versions)
                 version: PackageVersionState(
-                  scheduled: DateTime(0),
+                  scheduled: initialTimestamp,
                   attempts: 0,
                 ),
             }
             ..dependencies = <String>[]
-            ..lastDependencyChanged = DateTime(0)
+            ..lastDependencyChanged = initialTimestamp
             ..derivePendingAt(),
         );
         return; // no more work for this package, state is sync'ed
@@ -420,7 +424,7 @@ class TaskBackend {
         ..addAll({
           for (final v in untrackedVersions)
             v: PackageVersionState(
-              scheduled: DateTime(0),
+              scheduled: initialTimestamp,
               attempts: 0,
             ),
         });
@@ -430,7 +434,8 @@ class TaskBackend {
       tx.insert(state);
     });
 
-    if (updateDependants && !lastVersionCreated.isAtSameMomentAs(DateTime(0))) {
+    if (updateDependants &&
+        !lastVersionCreated.isAtSameMomentAs(initialTimestamp)) {
       await _updateLastDependencyChangedForDependents(
         packageName,
         lastVersionCreated,
@@ -567,7 +572,7 @@ class TaskBackend {
     if (!versionState.isAuthorized(_extractBearerToken(request))) {
       throw AuthenticationException.authenticationRequired();
     }
-    assert(versionState.scheduled != DateTime(0));
+    assert(versionState.scheduled != initialTimestamp);
     assert(versionState.instance != null);
     assert(versionState.zone != null);
 
@@ -630,7 +635,7 @@ class TaskBackend {
       if (!versionState.isAuthorized(_extractBearerToken(request))) {
         throw AuthenticationException.authenticationRequired();
       }
-      assert(versionState.scheduled != DateTime(0));
+      assert(versionState.scheduled != initialTimestamp);
       assert(versionState.instance != null);
       assert(versionState.zone != null);
 

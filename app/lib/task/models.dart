@@ -45,6 +45,17 @@ const taskRetryLimit = 3;
 ///  * If `secretToken` used for authorization has expired.
 const maxTaskExecutionTime = Duration(hours: 3);
 
+/// Cloud Datastore does support `DateTime(0)`.
+///
+/// This is undocumented, but Cloud Datastore does not support timestamps
+/// earlier than "0001-01-01T00:00:00Z". This limitation is given for protobuf,
+/// so one can guess that this limitation applied to GRPC based APIs, see:
+/// https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#google.protobuf.Timestamp
+///
+/// For this reason we'll not use `DateTime(0)` and instead use
+/// [initialTimestamp] to indicate that something has never happened before.
+final initialTimestamp = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+
 /// Delay before scheduling a fail analysis/dartdoc task again.
 ///
 /// Failures can happen due to bugs in our code, or pre-emption of GCE VMs.
@@ -183,7 +194,7 @@ class PackageState extends db.ExpandoModel<String> {
 class PackageVersionState {
   /// [DateTime] this version of the package was last scheduled for analysis.
   ///
-  /// This is `DateTime(0)` if never scheduled.
+  /// This is [initialTimestamp] if never scheduled.
   final DateTime scheduled;
 
   /// Number of attempts to schedule the package version for analysis.
