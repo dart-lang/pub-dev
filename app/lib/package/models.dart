@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:pub_dev/shared/popularity_storage.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../package/model_properties.dart';
@@ -805,10 +806,6 @@ class PackageView extends Object with FlagMixin {
   /// May be `null` if the analysis is not available yet.
   final int? maxPubPoints;
 
-  /// The package's popularity score value (on the scale of 0-100).
-  /// May be `null` if the score is not available yet.
-  final int? popularity;
-
   final List<String> tags;
 
   /// The recognized SPDX identifiers of the licenses for the package.
@@ -826,7 +823,6 @@ class PackageView extends Object with FlagMixin {
     this.likes,
     this.grantedPubPoints,
     this.maxPubPoints,
-    this.popularity,
     List<String>? tags,
     this.spdxIdentifiers,
     this.apiPages,
@@ -863,9 +859,6 @@ class PackageView extends Object with FlagMixin {
       likes: package.likes,
       grantedPubPoints: scoreCard?.grantedPubPoints,
       maxPubPoints: scoreCard?.maxPubPoints,
-      popularity: scoreCard?.popularityScore == null
-          ? null
-          : (100.0 * scoreCard!.popularityScore!).round(),
       tags: <String>[
         ...(package.getTags()),
         ...(version?.getTags() ?? <String>[]),
@@ -890,7 +883,6 @@ class PackageView extends Object with FlagMixin {
       likes: likes,
       grantedPubPoints: grantedPubPoints,
       maxPubPoints: maxPubPoints,
-      popularity: popularity,
       tags: tags,
       spdxIdentifiers: spdxIdentifiers,
       apiPages: apiPages ?? this.apiPages,
@@ -898,6 +890,9 @@ class PackageView extends Object with FlagMixin {
   }
 
   Map<String, dynamic> toJson() => _$PackageViewToJson(this);
+
+  // TODO: refactor code to use popularityStorage directly.
+  int get popularity => popularityStorage.lookupAsScore(name!);
 }
 
 /// Sorts [versions] according to the semantic versioning specification.
@@ -1005,6 +1000,7 @@ class PackagePageData {
   bool get hasPubspec => versionInfo!.assets.contains(AssetKind.pubspec);
 
   bool get isLatestStable => version!.version == package!.latestVersion;
+  int get popularity => popularityStorage.lookupAsScore(package!.name!);
 
   // NOTE: These link are not verified.
   // TODO: We should rather use full URL verification, possibly in pana

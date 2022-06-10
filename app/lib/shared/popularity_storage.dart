@@ -28,15 +28,16 @@ PopularityStorage get popularityStorage =>
     ss.lookup(#_popularityStorage) as PopularityStorage;
 
 class PopularityStorage {
-  final Bucket bucket;
   late CachedValue<_PopularityData> _popularity;
+  late final _PopularityLoader _loader;
 
-  PopularityStorage(this.bucket) {
+  PopularityStorage(Bucket bucket) {
+    _loader = _PopularityLoader(bucket);
     _popularity = CachedValue<_PopularityData>(
       name: 'popularity',
-      interval: Duration(hours: 4),
+      interval: Duration(hours: 1),
       maxAge: Duration(days: 14),
-      updateFn: () async => _PopularityLoader(bucket).fetch(),
+      updateFn: () async => _loader.fetch(),
     );
   }
 
@@ -46,6 +47,8 @@ class PopularityStorage {
 
   double lookup(String package) =>
       _popularity.isAvailable ? _popularity.value!.values[package] ?? 0.0 : 0.0;
+
+  int lookupAsScore(String package) => (lookup(package) * 100).round();
 
   Future<void> start() async {
     await _popularity.start();
@@ -66,11 +69,22 @@ class PopularityStorage {
 
 class _PopularityLoader {
   final Bucket bucket;
+  DateTime? _fileLastUpdated;
+  _PopularityData? _lastFetched;
+
   _PopularityLoader(this.bucket);
 
   String get _latestPath => PackagePopularity.popularityFileName;
 
   Future<_PopularityData> fetch() async {
+    _logger.info(
+        'Checking popularity data info: ${bucketUri(bucket, _latestPath)}');
+    final info = await bucket.info(_latestPath);
+    if (_fileLastUpdated != null &&
+        _lastFetched != null &&
+        info.updated.isAfter(_fileLastUpdated!)) {
+      return _lastFetched!;
+    }
     _logger.info('Loading popularity data: ${bucketUri(bucket, _latestPath)}');
     final latest = (await bucket
         .read(_latestPath)
@@ -80,6 +94,8 @@ class _PopularityLoader {
         .single) as Map<String, dynamic>;
     final data = _processJson(latest);
     _logger.info('Popularity updated for ${data.values.length} packages.');
+    _fileLastUpdated = info.updated;
+    _lastFetched = data;
     return data;
   }
 

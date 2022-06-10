@@ -23,7 +23,6 @@ import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
 import '../shared/datastore.dart';
 import '../shared/exceptions.dart';
-import '../shared/popularity_storage.dart';
 import '../shared/storage.dart';
 import '../shared/tags.dart';
 import '../shared/versions.dart';
@@ -140,8 +139,6 @@ class SearchBackend {
       _logger.severe('Parsing pub-data.json failed.', e, st);
     }
 
-    final popularity = popularityStorage.lookup(packageName);
-
     return PackageDocument(
       package: pv.package,
       version: pv.version!,
@@ -150,7 +147,6 @@ class SearchBackend {
       created: p.created,
       updated: p.lastVersionPublished,
       readme: compactReadme(readmeAsset?.textContent),
-      popularity: popularity,
       likeCount: p.likes,
       grantedPoints: scoreCard?.grantedPubPoints,
       maxPoints: scoreCard?.maxPubPoints ?? 0,
@@ -185,14 +181,12 @@ class SearchBackend {
     final query = _db.query<Package>();
     await for (final p in query.run()) {
       final releases = await packageBackend.latestReleases(p);
-      final popularity = popularityStorage.lookup(p.name!);
       yield PackageDocument(
         package: p.name!,
         version: releases.stable.version,
         tags: p.getTags(),
         created: p.created,
         updated: p.lastVersionPublished,
-        popularity: popularity,
         likeCount: p.likes,
         grantedPoints: 0,
         maxPoints: 0,

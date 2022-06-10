@@ -367,9 +367,10 @@ void main() {
           '<i>Awaiting analysis to complete.</i>');
     });
 
-    scopedTest('aborted analysis tab', () async {
+    testWithProfile('aborted analysis tab', fn: () async {
       final timestamp = DateTime(2017, 12, 18, 14, 26, 00);
       final card = ScoreCardData(
+        packageName: 'pkg',
         panaReport: PanaReport(
           timestamp: timestamp,
           panaRuntimeInfo: _panaRuntimeInfo,
@@ -397,7 +398,7 @@ void main() {
       );
     });
 
-    scopedTest('outdated analysis tab', () async {
+    testWithProfile('outdated analysis tab', fn: () async {
       final card = ScoreCardData(
         packageName: 'pkg_foo',
         flags: [PackageFlags.isObsolete],

@@ -611,13 +611,14 @@ class PackageBackend {
     };
 
     EmailMessage? email;
+    String? currentPublisherId;
     final rs = await withRetryTransaction(db, (tx) async {
       final package = await tx.lookupValue<Package>(key);
       if (package.publisherId == request.publisherId) {
         // If desired publisherId is already the current publisherId, then we're already done.
         return _asPackagePublisherInfo(package);
       }
-      final currentPublisherId = package.publisherId;
+      currentPublisherId = package.publisherId;
       package.publisherId = request.publisherId;
       package.uploaders?.clear();
       package.updated = clock.now().toUtc();
@@ -645,6 +646,9 @@ class PackageBackend {
 
     if (email != null) {
       await emailSender.sendMessage(email!);
+    }
+    if (currentPublisherId != null) {
+      await purgePublisherCache(publisherId: currentPublisherId);
     }
 
     return rs;
