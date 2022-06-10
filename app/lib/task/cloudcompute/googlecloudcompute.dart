@@ -77,7 +77,7 @@ CloudCompute createGoogleCloudCompute({
       'must be < 63 characters long',
     );
   }
-  if (!RegExp(r'^[a-z0-9_-]$').hasMatch(poolLabel)) {
+  if (!RegExp(r'^[a-z0-9_-]+$').hasMatch(poolLabel)) {
     throw ArgumentError.value(
       poolLabel,
       'poolLabel',
