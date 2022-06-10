@@ -10,7 +10,7 @@ ENV CI="true"
 
 # Install pub-dev
 COPY . /opt/pub-dev
-WORKDIR /opt/pub-dev/pkg/pub_worker
+WORKDIR /opt/pub-dev
 
 # Setup Dart SDK
 RUN tool/setup-dart.sh /opt 2.16.2
@@ -26,6 +26,7 @@ ENV DART_ANALYSIS_SDK="/opt/dart-sdk"
 ENV FLUTTER_ANALYSIS_SDK="/opt/flutter"
 
 # Install dependencies for pub_worker
+WORKDIR /opt/pub-dev/pkg/pub_worker
 RUN dart pub get
 
 # This container image is launched by cloud-init, and cloud-init is responsible
