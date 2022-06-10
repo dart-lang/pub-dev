@@ -199,8 +199,7 @@ Future<void> schedule(
           await compute.createInstance(
             zone: zone,
             instanceName: instanceName,
-            dockerImage: 'gcr.io/${envConfig.googleCloudProject}'
-                '/pub_worker:TODO',
+            dockerImage: activeConfiguration.taskWorkerImage!,
             arguments: [payload!],
             description: description!,
           );
