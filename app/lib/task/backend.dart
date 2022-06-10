@@ -138,9 +138,19 @@ class TaskBackend {
         while (!aborted.isCompleted) {
           // Acquire the global lock and create VMs for pending packages, and
           // kill overdue VMs.
-          await lock.withClaim((claim) async {
-            await schedule(claim, _cloudCompute, _db, abort: aborted);
-          }, abort: aborted);
+          try {
+            await lock.withClaim((claim) async {
+              await schedule(claim, _cloudCompute, _db, abort: aborted);
+            }, abort: aborted);
+          } catch (e, st) {
+            // Log this as very bad, and then move on. Nothing good can come
+            // from straight up stopping.
+            _log.shout(
+              'scheduling iteration failed (will retry when lock becomes free)',
+              e,
+              st,
+            );
+          }
         }
       } catch (e, st) {
         _log.severe('scheduling loop crashed', e, st);
