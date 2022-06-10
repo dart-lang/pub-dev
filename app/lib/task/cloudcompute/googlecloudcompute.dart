@@ -54,7 +54,7 @@ const googleCloudComputeScope = ComputeApi.cloudPlatformScope;
 /// Similarly, all instances created by this abstraction will be labelled with
 /// `owner` as `'pub-dev'` and `pool` as [poolLabel]. This allows for multiple
 /// pools of machines that don't interfere with eachother. By using a
-/// [poolLabel] such as `'<runtimeVersion>/pana'` we can ensure that the
+/// [poolLabel] such as `'<runtimeVersion>_worker'` we can ensure that the
 /// [CloudCompute] object for pana-tasks doesn't interfere with the other
 /// _runtime versions_ in production.
 ///
@@ -69,6 +69,20 @@ CloudCompute createGoogleCloudCompute({
 }) {
   if (poolLabel.isEmpty) {
     throw ArgumentError.value(poolLabel, 'poolLabel', 'must not be empty');
+  }
+  if (poolLabel.length > 63) {
+    throw ArgumentError.value(
+      poolLabel,
+      'poolLabel',
+      'must be < 63 characters long',
+    );
+  }
+  if (!RegExp(r'^[a-z0-9_-]$').hasMatch(poolLabel)) {
+    throw ArgumentError.value(
+      poolLabel,
+      'poolLabel',
+      'must only contain [a-z0-9_-]',
+    );
   }
 
   return _GoogleCloudCompute(
