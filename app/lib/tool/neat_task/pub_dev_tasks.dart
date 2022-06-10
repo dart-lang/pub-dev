@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:neat_periodic_task/neat_periodic_task.dart';
+import 'package:pub_dev/task/backend.dart';
 
 import '../../account/backend.dart';
 import '../../account/consent_backend.dart';
@@ -84,6 +85,13 @@ void _setupGenericPeriodicTasks() {
     name: 'update-package-likes',
     isRuntimeVersioned: false,
     task: updatePackageLikes,
+  );
+
+  // Updates PackageState in taskBackend
+  _weekly(
+    name: 'backfill-task-tracking-state',
+    isRuntimeVersioned: true,
+    task: taskBackend.backfillTrackingState,
   );
 }
 
