@@ -9,7 +9,6 @@ import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/tool/utils/pub_api_client.dart';
 import 'package:test/test.dart';
 
-import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
 
@@ -25,8 +24,9 @@ void main() {
         await withHttpPubApiClient(
           bearerToken: siteAdminToken,
           fn: (client) async {
-            final rs = client.adminExecuteTool('no-such-tool', '');
-            await expectApiException(rs, status: 406, code: 'NotAcceptable');
+            final rs = await client.adminExecuteTool('no-such-tool', '');
+            final bodyText = utf8.decode(rs);
+            expect(bodyText, contains('Available admin tools:'));
           },
         );
       });
