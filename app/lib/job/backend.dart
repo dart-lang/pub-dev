@@ -445,8 +445,12 @@ class _AvailablePool {
 
   /// Select one [Job] randomly, with preference to the beginning of the list.
   Job select() {
-    final r1 = _random.nextInt(_jobs.length);
-    final r2 = _random.nextInt(_jobs.length);
+    // prioritize latest stables vs everything else
+    final latestStables = _jobs.where((j) => j.isLatestStable).toList();
+    final candidates = latestStables.isNotEmpty ? latestStables : _jobs;
+
+    final r1 = _random.nextInt(candidates.length);
+    final r2 = _random.nextInt(candidates.length);
     return _jobs.removeAt(math.min(r1, r2));
   }
 
