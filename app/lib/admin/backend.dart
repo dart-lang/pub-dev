@@ -100,7 +100,6 @@ class AdminBackend {
     await _requireAdminPermission(AdminPermission.executeTool);
     final toolFunction = availableTools[tool] ?? executeListTools;
     return await toolFunction(args);
-    throw NotAcceptableException('Invalid tool `$tool`.');
   }
 
   /// List users.
