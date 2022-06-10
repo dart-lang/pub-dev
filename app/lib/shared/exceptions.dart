@@ -36,6 +36,16 @@ class NotFoundException extends ResponseException {
 class NotAcceptableException extends ResponseException {
   NotAcceptableException(String message)
       : super._(406, 'NotAcceptable', message);
+
+  /// Thrown on API calls from the `pub` client using `uploaders add` or `uploaders remove`.
+  factory NotAcceptableException.pubToolUploaderNotSupported({
+    required String adminPageUrl,
+  }) {
+    return NotAcceptableException(
+        'pub.dev site no longer supports adding/removing uploaders through the `pub` tool.\n'
+        'Use the package admin page to manage uploaders:\n'
+        '$adminPageUrl');
+  }
 }
 
 /// Thrown when request input is invalid, bad payload, wrong querystring, etc.
@@ -283,15 +293,6 @@ class OperationForbiddenException extends ResponseException {
             'OperationForbidden',
             'Previous invite is still active, next notification can be sent '
                 'on ${nextNotification.toIso8601String()}.');
-
-  /// The uploader has been invited, but the operation can't complete until they
-  /// accept it.
-  OperationForbiddenException.uploaderInviteSent(String email)
-      : super._(
-            403,
-            'OperationForbidden',
-            "We've sent an invitation email to $email.\n"
-                "They'll be added as an uploader after they accept the invitation.");
 
   /// The user tried to remove themselves from the list of uploaders and we
   /// don't allow that.

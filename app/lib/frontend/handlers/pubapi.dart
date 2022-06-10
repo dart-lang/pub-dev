@@ -10,7 +10,6 @@ import 'package:api_builder/api_builder.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
-import '../../account/auth_provider.dart';
 import '../../account/consent_backend.dart';
 import '../../admin/backend.dart';
 import '../../package/backend.dart' hide InviteStatus;
@@ -140,14 +139,8 @@ class PubApi {
   ///     [400 Client Error]
   @EndPoint.post('/api/packages/<package>/uploaders')
   Future<SuccessMessage> addUploader(Request request, String package) async {
-    String? email;
-    try {
-      final body = await request.readAsString();
-      final params = Uri.splitQueryString(body);
-      email = params['email'];
-    } on FormatException catch (_) {}
-    InvalidInputException.checkNotNull(email, 'email');
-    return await packageBackend.addUploader(package, email!);
+    throw NotAcceptableException.pubToolUploaderNotSupported(
+        adminPageUrl: urls.pkgAdminUrl(package, includeHost: true));
   }
 
   /// Removing an existing uploader.
@@ -163,9 +156,10 @@ class PubApi {
     Request request,
     String package,
     String email,
-  ) async =>
-      await packageBackend.removeUploader(package, email,
-          authSource: AuthSource.client);
+  ) async {
+    throw NotAcceptableException.pubToolUploaderNotSupported(
+        adminPageUrl: urls.pkgAdminUrl(package, includeHost: true));
+  }
 
   /// Remove an existing uploader.
   ///
@@ -177,8 +171,7 @@ class PubApi {
     String package,
     RemoveUploaderRequest payload,
   ) async =>
-      await packageBackend.removeUploader(package, payload.email,
-          authSource: AuthSource.website);
+      await packageBackend.removeUploader(package, payload.email);
 
   /// Returns a uploader's invitation status in a JSON form.
   @EndPoint.post('/api/packages/<package>/invite-uploader')
