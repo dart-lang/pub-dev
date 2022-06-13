@@ -108,6 +108,24 @@ class Configuration {
   /// analysis.
   final String? taskWorkerImage;
 
+  /// Container-Optimized OS image for running analysis tasks.
+  ///
+  /// See:
+  /// https://cloud.google.com/container-optimized-os/docs/concepts/versioning
+  final String? cosImage;
+
+  /// Service account to be assigned task VMs.
+  ///
+  /// This service account need the following roles:
+  ///  * Logs Writer (`roles/logging.logWriter`),
+  ///  * Storage Object Viewer (`roles/storage.objectViewer`) on the container
+  ///    registery buckets.
+  ///
+  /// The container registery buckets are usually:
+  ///  * artifacts.PROJECT-ID.appspot.com
+  ///  * STORAGE-REGION.artifacts.PROJECT-ID.appspot.com
+  final String? taskWorkerServiceAccount;
+
   // The scheme://host:port prefix for storage URLs.
   final String? storageBaseUrl;
 
@@ -211,6 +229,8 @@ class Configuration {
     required this.searchSnapshotBucketName,
     required this.taskResultBucketName,
     required this.taskWorkerImage,
+    required this.cosImage,
+    required this.taskWorkerServiceAccount,
     required this.searchServicePrefix,
     required this.storageBaseUrl,
     required this.pubClientAudience,
@@ -268,6 +288,8 @@ class Configuration {
       searchSnapshotBucketName: 'fake-bucket-search',
       taskResultBucketName: 'fake-bucket-task-result',
       taskWorkerImage: '-',
+      cosImage: 'projects/cos-cloud/global/images/family/cos-stable',
+      taskWorkerServiceAccount: '-',
       searchServicePrefix: 'http://localhost:$searchPort',
       storageBaseUrl: storageBaseUrl,
       pubClientAudience: null,
@@ -310,6 +332,8 @@ class Configuration {
       searchSnapshotBucketName: 'fake-bucket-search',
       taskResultBucketName: 'fake-bucket-task-result',
       taskWorkerImage: '-',
+      cosImage: 'projects/cos-cloud/global/images/family/cos-stable',
+      taskWorkerServiceAccount: '-',
       searchServicePrefix: 'http://localhost:0',
       storageBaseUrl: storageBaseUrl ?? 'http://localhost:0',
       pubClientAudience: null,

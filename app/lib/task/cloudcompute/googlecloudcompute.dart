@@ -11,6 +11,7 @@ import 'package:googleapis/compute/v1.dart' hide Duration;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart' show Logger;
 import 'package:meta/meta.dart';
+import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/utils.dart' show createUuid;
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:retry/retry.dart';
@@ -261,16 +262,16 @@ class _GoogleCloudCompute extends CloudCompute {
       dockerImage,
       ...arguments
     ];
-    final cloudConfig = [
-      '#cloud-config',
-      'users:',
-      '- name: worker',
-      '  uid: 2000',
-      'runcmd:',
-      '- ${json.encode(cmd)}',
-      '- [\'/sbin/shutdown\', \'now\']',
-      '',
-    ].join('\n');
+    final cloudConfig = '''
+#cloud-config
+users:
+- name: worker
+  uid: 2000
+runcmd:
+- ['docker-credential-gcr', 'configure-docker']
+- ${json.encode(cmd)}
+- ['/sbin/shutdown', 'now']
+''';
 
     final instance = Instance()
       ..name = instanceName
@@ -287,8 +288,15 @@ class _GoogleCloudCompute extends CloudCompute {
           MetadataItems()
             ..key = 'user-data'
             ..value = cloudConfig,
+          MetadataItems()
+            ..key = 'google-logging-enabled'
+            ..value = 'true',
         ])
-      ..serviceAccounts = []
+      ..serviceAccounts = [
+        ServiceAccount()
+          ..email = activeConfiguration.taskWorkerServiceAccount
+          ..scopes = [ComputeApi.cloudPlatformScope]
+      ]
       ..networkInterfaces = [
         NetworkInterface()
           ..network = 'global/networks/default'
@@ -311,8 +319,7 @@ class _GoogleCloudCompute extends CloudCompute {
               'owner': 'pub-dev',
               'pool': _poolLabel,
             }
-            ..sourceImage =
-                'projects/cos-cloud/global/images/family/cos-stable'),
+            ..sourceImage = activeConfiguration.cosImage),
       ];
 
     _log.info('Creating instance: ${instance.name}');
