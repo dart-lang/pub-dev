@@ -175,6 +175,11 @@ class Configuration {
   /// Authorization requires the following IAM permission on the package bucket:
   /// - iam.serviceAccounts.signBlob
   ///
+  /// This service account must be "Storage Object Creator" in the following
+  /// buckets:
+  ///  * [incomingPackagesBucketName]
+  ///  * [taskResultBucketName]
+  ///
   /// https://cloud.google.com/iam/docs/reference/credentials/rest/v1/projects.serviceAccounts/signBlob
   final String? uploadSignerServiceAccount;
 
