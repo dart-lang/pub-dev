@@ -254,6 +254,27 @@ class _GoogleCloudCompute extends CloudCompute {
       );
     }
 
+    // The following cloud-init starts the docker image with [arguments] after
+    // gcr-online, docker and stackdriver-logging is available.
+    //
+    // We need GCR and docker socket to be available, but we don't need logging,
+    // thus, logging is not **wanted** by this unit. But if loaded, we would
+    // like to start after logging.
+    //
+    // We tweak the environment to have `HOME=/home/worker` because credentials
+    // for docker is configured using a dot-file in `$HOME`. And on `/root` is
+    // not writable on Container-Optimized OS, see:
+    // https://cloud.google.com/container-optimized-os/docs/concepts/disks-and-filesystem
+    //
+    // Once the `worker.service` is done, the `ExecStartPost` command is
+    // configured to terminate the instance. This should terminate regardless of
+    // the exit-code.
+    //
+    // As `/etc` is stateless we need to reproduce any changes we make to it in
+    // cloud-init configuration. Hence, why we do `systemctl start..` rather
+    // than `systemctl enable..`.
+    //
+    // See: https://cloudinit.readthedocs.io/en/latest/
     final cloudConfig = '''
 #cloud-config
 users:
@@ -276,8 +297,10 @@ write_files:
     Type=oneshot
     Environment="HOME=/home/worker"
     ExecStartPre=/usr/bin/docker-credential-gcr configure-docker
-    ExecStart=/usr/bin/docker run --rm -u 2000 --name=worker $dockerImage ${arguments.map(_shellSingleQuote).join(' ')}
+    ExecStart=/usr/bin/docker run --rm -u worker:2000 --name=worker $dockerImage ${arguments.map(_shellSingleQuote).join(' ')}
     ExecStartPost=/sbin/shutdown now
+    StandardOutput=journal+console
+    StandardError=journal+console
 runcmd:
 - systemctl daemon-reload
 - systemctl start worker.service
