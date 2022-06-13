@@ -172,6 +172,9 @@ Future<T> _retry<T>(Future<T> Function() fn) async {
 /// Pattern for valid GCE instance names.
 final _validInstanceNamePattern = RegExp(r'^[a-z]([-a-z0-9]*[a-z0-9])?$');
 
+String _shellSingleQuote(String string) =>
+    "'${string.replaceAll("'", "'\\''")}'";
+
 @sealed
 class _GoogleCloudCompute extends CloudCompute {
   final ComputeApi _api;
@@ -251,26 +254,33 @@ class _GoogleCloudCompute extends CloudCompute {
       );
     }
 
-    final cmd = [
-      '/usr/bin/docker',
-      'run',
-      '--rm',
-      '-u',
-      '2000',
-      '--name',
-      'task',
-      dockerImage,
-      ...arguments
-    ];
     final cloudConfig = '''
 #cloud-config
 users:
 - name: worker
   uid: 2000
+write_files:
+- path: /etc/systemd/system/worker.service
+  permissions: 0644
+  owner: root
+  content: |
+    [Unit]
+    Description=Start worker
+    Wants=gcr-online.target
+    Wants=docker.socket
+    After=gcr-online.target
+    After=docker.socket
+    After=stackdriver-logging.service
+
+    [Service]
+    Type=oneshot
+    Environment="HOME=/home/worker"
+    ExecStartPre=/usr/bin/docker-credential-gcr configure-docker
+    ExecStart=/usr/bin/docker run --rm -u 2000 --name=worker $dockerImage ${arguments.map(_shellSingleQuote).join(' ')}
+    ExecStartPost=/sbin/shutdown now
 runcmd:
-- ['docker-credential-gcr', 'configure-docker']
-- ${json.encode(cmd)}
-- ['/sbin/shutdown', 'now']
+- systemctl daemon-reload
+- systemctl start worker.service
 ''';
 
     final instance = Instance()
@@ -288,9 +298,17 @@ runcmd:
           MetadataItems()
             ..key = 'user-data'
             ..value = cloudConfig,
+          // Enable logging with Google Cloud Logging, see:
+          // https://cloud.google.com/container-optimized-os/docs/how-to/logging
           MetadataItems()
             ..key = 'google-logging-enabled'
             ..value = 'true',
+          // These VMs are intended to be short-lived, we should update the
+          // image, hence, automatic updates shouldn't be necessary.
+          // https://cloud.google.com/container-optimized-os/docs/concepts/auto-update#disabling_automatic_updates
+          MetadataItems()
+            ..key = 'cos-update-strategy'
+            ..value = 'update_disabled',
         ])
       ..serviceAccounts = [
         ServiceAccount()

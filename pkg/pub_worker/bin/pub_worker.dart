@@ -19,7 +19,7 @@ Future<void> main(List<String> args) async {
   Payload payload;
   try {
     payload = Payload.fromJson(
-      json.decode(args.first) as Map<String, Object>,
+      json.decode(args.first) as Map<String, dynamic>,
     );
   } on FormatException {
     _printUsage();
