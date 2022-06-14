@@ -131,8 +131,8 @@ void main() {
           final rs = client.addUploader('oxygen');
           await expectApiException(
             rs,
-            status: 406,
-            code: 'NotAcceptable',
+            status: 403,
+            code: 'OperationForbidden',
             message: 'https://pub.dev/packages/oxygen/admin',
           );
         });
@@ -143,8 +143,8 @@ void main() {
           final rs = client.removeUploader('oxygen', 'admin@pub.dev');
           await expectApiException(
             rs,
-            status: 406,
-            code: 'NotAcceptable',
+            status: 403,
+            code: 'OperationForbidden',
             message: 'https://pub.dev/packages/oxygen/admin',
           );
         });

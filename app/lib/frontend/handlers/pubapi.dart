@@ -139,7 +139,7 @@ class PubApi {
   ///     [400 Client Error]
   @EndPoint.post('/api/packages/<package>/uploaders')
   Future<SuccessMessage> addUploader(Request request, String package) async {
-    throw NotAcceptableException.pubToolUploaderNotSupported(
+    throw OperationForbiddenException.pubToolUploaderNotSupported(
         adminPageUrl: urls.pkgAdminUrl(package, includeHost: true));
   }
 
@@ -157,7 +157,7 @@ class PubApi {
     String package,
     String email,
   ) async {
-    throw NotAcceptableException.pubToolUploaderNotSupported(
+    throw OperationForbiddenException.pubToolUploaderNotSupported(
         adminPageUrl: urls.pkgAdminUrl(package, includeHost: true));
   }
 

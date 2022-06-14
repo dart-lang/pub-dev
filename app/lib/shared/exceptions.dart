@@ -36,16 +36,6 @@ class NotFoundException extends ResponseException {
 class NotAcceptableException extends ResponseException {
   NotAcceptableException(String message)
       : super._(406, 'NotAcceptable', message);
-
-  /// Thrown on API calls from the `pub` client using `uploaders add` or `uploaders remove`.
-  factory NotAcceptableException.pubToolUploaderNotSupported({
-    required String adminPageUrl,
-  }) {
-    return NotAcceptableException(
-        'pub.dev site no longer supports adding/removing uploaders through the `pub` tool.\n'
-        'Use the package admin page to manage uploaders:\n'
-        '$adminPageUrl');
-  }
 }
 
 /// Thrown when request input is invalid, bad payload, wrong querystring, etc.
@@ -305,6 +295,17 @@ class OperationForbiddenException extends ResponseException {
   OperationForbiddenException.lastUploaderRemoveError()
       : super._(403, 'OperationForbidden',
             'Cannot remove last uploader of a package.');
+
+  /// Thrown on API calls from the `pub` client using `uploaders add` or `uploaders remove`.
+  OperationForbiddenException.pubToolUploaderNotSupported({
+    required String adminPageUrl,
+  }) : super._(
+          403,
+          'OperationForbidden',
+          'pub.dev site no longer supports adding/removing uploaders through the `pub` tool.\n'
+              'Use the package admin page to manage uploaders:\n'
+              '$adminPageUrl',
+        );
 }
 
 /// Thrown when authentication failed, credentials is missing or invalid.
