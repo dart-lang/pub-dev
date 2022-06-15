@@ -15,9 +15,9 @@ void main() {
       final counts1 = await backfillNewArchiveBuckets();
       expect(counts1, {
         'canonical-checked': 6,
-        'canonical-copied': 6,
+        'canonical-unchanged': 6,
         'public-checked': 6,
-        'public-copied': 6,
+        'public-unchanged': 6,
       });
 
       final bucket =
