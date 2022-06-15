@@ -6,6 +6,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Flutter analysis SDK to `3.0.2`.
  * Upgraded preview Dart analysis SDK to `2.18.0-165.1.beta`.
  * NOTE: Updated integrity checks before finalizing migration of `Package.isBlocked`.
+ * NOTE: Blocking uploader API endpoints used by `pub` client tool.
 
 ## `20220608t083800-all`
  * Bumped runtimeVersion to `2022.06.02`.

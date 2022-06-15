@@ -284,15 +284,6 @@ class OperationForbiddenException extends ResponseException {
             'Previous invite is still active, next notification can be sent '
                 'on ${nextNotification.toIso8601String()}.');
 
-  /// The uploader has been invited, but the operation can't complete until they
-  /// accept it.
-  OperationForbiddenException.uploaderInviteSent(String email)
-      : super._(
-            403,
-            'OperationForbidden',
-            "We've sent an invitation email to $email.\n"
-                "They'll be added as an uploader after they accept the invitation.");
-
   /// The user tried to remove themselves from the list of uploaders and we
   /// don't allow that.
   OperationForbiddenException.selfRemovalNotAllowed()
@@ -304,6 +295,17 @@ class OperationForbiddenException extends ResponseException {
   OperationForbiddenException.lastUploaderRemoveError()
       : super._(403, 'OperationForbidden',
             'Cannot remove last uploader of a package.');
+
+  /// Thrown on API calls from the `pub` client using `uploaders add` or `uploaders remove`.
+  OperationForbiddenException.pubToolUploaderNotSupported({
+    required String adminPageUrl,
+  }) : super._(
+          403,
+          'OperationForbidden',
+          'pub.dev site no longer supports adding/removing uploaders through the `pub` tool.\n'
+              'Use the package admin page to manage uploaders:\n'
+              '$adminPageUrl',
+        );
 }
 
 /// Thrown when authentication failed, credentials is missing or invalid.

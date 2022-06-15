@@ -1116,29 +1116,6 @@ class PackageBackend {
     );
   }
 
-  Future<api.SuccessMessage> addUploader(
-      String packageName, String uploaderEmail) async {
-    try {
-      final rs = await inviteUploader(
-        packageName,
-        api.InviteUploaderRequest(email: uploaderEmail),
-        authSource: AuthSource.client,
-      );
-      if (!rs.emailSent) {
-        throw OperationForbiddenException.inviteActive(rs.nextNotification);
-      }
-    } on InvalidInputException catch (ex) {
-      // pub client expects this case as a successful operation.
-      if (ex.message.endsWith('is already an uploader.')) {
-        return api.SuccessMessage(
-            success: api.Message(
-                message: '`$uploaderEmail` is already an uploader.'));
-      }
-      rethrow;
-    }
-    throw OperationForbiddenException.uploaderInviteSent(uploaderEmail);
-  }
-
   Future<void> confirmUploader(String? fromUserId, String fromUserEmail,
       String packageName, User uploader) async {
     if (fromUserId == null) {
@@ -1184,12 +1161,10 @@ class PackageBackend {
 
   Future<api.SuccessMessage> removeUploader(
     String packageName,
-    String uploaderEmail, {
-    AuthSource? authSource,
-  }) async {
-    authSource ??= AuthSource.client;
+    String uploaderEmail,
+  ) async {
     uploaderEmail = uploaderEmail.toLowerCase();
-    final user = await requireAuthenticatedUser(source: authSource);
+    final user = await requireAuthenticatedUser();
     await withRetryTransaction(db, (tx) async {
       final packageKey = db.emptyKey.append(Package, id: packageName);
       final package = await tx.lookupOrNull<Package>(packageKey);
