@@ -382,3 +382,21 @@ class DeleteCounts {
   @override
   String toString() => '$deleted/$found';
 }
+
+extension ByteArrayEqualsExt on List<int> {
+  /// Returns `true` only if the two arrays are identical.
+  bool byteToByteEquals(List<int>? other) {
+    if (other == null) {
+      return false;
+    }
+    if (length != other.length) {
+      return false;
+    }
+    for (var i = 0; i < length; i++) {
+      if (this[i] != other[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+}
