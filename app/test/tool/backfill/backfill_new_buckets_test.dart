@@ -12,20 +12,23 @@ import '../../shared/test_services.dart';
 void main() {
   group('backfillNewArchiveBuckets', () {
     testWithProfile('no update', fn: () async {
-      final counts1 = await backfillNewArchiveBuckets();
-      expect(counts1, {
+      final counts = await backfillNewArchiveBuckets();
+      expect(counts, {
         'canonical-checked': 6,
-        'canonical-copied': 6,
+        'canonical-unchanged': 6,
         'public-checked': 6,
-        'public-copied': 6,
+        'public-unchanged': 6,
       });
+    });
 
+    testWithProfile('single update', fn: () async {
+      await backfillNewArchiveBuckets();
       final bucket =
           storageService.bucket(activeConfiguration.publicPackagesBucketName!);
       await bucket.delete('packages/oxygen-1.0.0.tar.gz');
 
-      final counts2 = await backfillNewArchiveBuckets();
-      expect(counts2, {
+      final counts = await backfillNewArchiveBuckets();
+      expect(counts, {
         'canonical-checked': 6,
         'canonical-unchanged': 6,
         'public-checked': 6,

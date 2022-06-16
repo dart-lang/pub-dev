@@ -178,6 +178,21 @@ void main() {
               assets.firstWhere((pva) => pva.kind == AssetKind.changelog);
           expect(changelog.path, 'CHANGELOG.md');
           expect(changelog.textContent, foobarChangelogContent);
+
+          final canonicalInfo = await storageService
+              .bucket(activeConfiguration.canonicalPackagesBucketName!)
+              .info('packages/new_package-1.2.3.tar.gz');
+          expect(canonicalInfo.length, greaterThan(200));
+
+          final publicInfo = await storageService
+              .bucket(activeConfiguration.publicPackagesBucketName!)
+              .info('packages/new_package-1.2.3.tar.gz');
+          expect(publicInfo.length, canonicalInfo.length);
+
+          final oldInfo = await storageService
+              .bucket(activeConfiguration.packageBucketName!)
+              .info('packages/new_package-1.2.3.tar.gz');
+          expect(oldInfo.length, canonicalInfo.length);
         });
       });
 
@@ -335,6 +350,64 @@ void main() {
                 'text',
                 contains('Version 1.0.0 of package neon already exists'),
               )));
+        });
+      });
+
+      testWithProfile('same canonical archive already exist', fn: () async {
+        await accountBackend.withBearerToken(adminClientToken, () async {
+          final version =
+              await packageBackend.lookupPackageVersion('neon', '1.0.1');
+          expect(version, isNull);
+
+          final tarball = await packageArchiveBytes(
+              pubspecContent: generatePubspecYaml('neon', '1.0.1'));
+
+          final canonicalBucket = storageService
+              .bucket(activeConfiguration.canonicalPackagesBucketName!);
+          await canonicalBucket.writeBytes(
+              'packages/neon-1.0.1.tar.gz', tarball);
+
+          final incomingBucket = storageService
+              .bucket(activeConfiguration.incomingPackagesBucketName!);
+          // TODO: use the fake storage server HTTP port to upload
+          final uploadId = 'my-uuid';
+          await incomingBucket.writeBytes('tmp/$uploadId', tarball);
+
+          final rs = await packageBackend.publishUploadedBlob(uploadId);
+          expect(rs.package, 'neon');
+          expect(rs.version, '1.0.1');
+        });
+      });
+
+      testWithProfile('different canonical archive already exist',
+          fn: () async {
+        await accountBackend.withBearerToken(adminClientToken, () async {
+          final version =
+              await packageBackend.lookupPackageVersion('neon', '1.0.1');
+          expect(version, isNull);
+
+          final tarball = await packageArchiveBytes(
+              pubspecContent: generatePubspecYaml('neon', '1.0.1'));
+
+          final canonicalBucket = storageService
+              .bucket(activeConfiguration.canonicalPackagesBucketName!);
+          await canonicalBucket
+              .writeBytes('packages/neon-1.0.1.tar.gz', [...tarball, 1, 2, 3]);
+
+          final incomingBucket = storageService
+              .bucket(activeConfiguration.incomingPackagesBucketName!);
+          // TODO: use the fake storage server HTTP port to upload
+          final uploadId = 'my-uuid';
+          await incomingBucket.writeBytes('tmp/$uploadId', tarball);
+
+          final rs = packageBackend.publishUploadedBlob(uploadId);
+          await expectLater(
+            rs,
+            throwsA(
+              isA<PackageRejectedException>().having((e) => '$e', 'text',
+                  contains('Version 1.0.1 of package neon already exists.')),
+            ),
+          );
         });
       });
 
