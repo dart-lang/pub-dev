@@ -870,15 +870,10 @@ class PackageBackend {
       final canonicalArchiveInfo =
           await _canonicalBucket.tryInfo(canonicalArchivePath);
       if (canonicalArchiveInfo != null) {
-        final file = File(filename);
-        // Quick and cheap test in case the file is obviously different than the canonical archive.
-        if (canonicalArchiveInfo.length != await file.length()) {
-          throw PackageRejectedException.versionExists(
-              pubspec.name, versionString);
-        }
         // Actually fetch the archive bytes and do full comparison.
         final objectBytes =
             await _canonicalBucket.readAsBytes(canonicalArchivePath);
+        final file = File(filename);
         final fileBytes = await file.readAsBytes();
         if (!fileBytes.byteToByteEquals(objectBytes)) {
           throw PackageRejectedException.versionExists(
