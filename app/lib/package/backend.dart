@@ -1163,18 +1163,13 @@ class PackageBackend {
     );
   }
 
-  Future<void> confirmUploader(String? fromUserId, String fromUserEmail,
+  Future<void> confirmUploader(String fromUserId, String fromUserEmail,
       String packageName, User uploader) async {
-    if (fromUserId == null) {
-      final user =
-          await accountBackend.lookupOrCreateUserByEmail(fromUserEmail);
-      fromUserId = user.userId;
-    }
     await withRetryTransaction(db, (tx) async {
       final packageKey = db.emptyKey.append(Package, id: packageName);
       final package = (await tx.lookup([packageKey])).first as Package;
 
-      await _validatePackageUploader(packageName, package, fromUserId!);
+      await _validatePackageUploader(packageName, package, fromUserId);
       if (package.containsUploader(uploader.userId)) {
         // The requested uploaderEmail is already part of the uploaders.
         return;
