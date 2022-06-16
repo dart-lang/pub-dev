@@ -193,21 +193,14 @@ class GoogleOauth2AuthProvider extends AuthProvider {
     if (expected == null || expected.isEmpty) {
       _logger.shout('Audience for $source was not configured.', expected,
           StackTrace.current);
-      // TODO: switch to `return true` after the release gets stable.
-      return false;
+      return true;
     }
     if (value == expected) {
       return false;
     }
-    _logger.shout(
+    _logger.info(
         'Possible $source audience missmatch.', value, StackTrace.current);
-    // TODO: switch to `return true` after the release gets stable.
-    final matchesAny = [
-      activeConfiguration.pubClientAudience,
-      activeConfiguration.pubSiteAudience,
-      activeConfiguration.adminAudience,
-    ].contains(value);
-    return !matchesAny;
+    return true;
   }
 
   String? _getExpectedAudienceValue(AuthSource source) {
