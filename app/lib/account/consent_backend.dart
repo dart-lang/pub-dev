@@ -306,8 +306,7 @@ class _PackageUploaderAction extends ConsentAction {
   Future<void> onAccept(Consent consent) async {
     final packageName = consent.args![0];
     final fromUserId = consent.fromUserId!;
-    final fromUserEmail =
-        (await accountBackend.getEmailOfUserId(fromUserId))!;
+    final fromUserEmail = (await accountBackend.getEmailOfUserId(fromUserId))!;
     final currentUser = await requireAuthenticatedUser();
     if (currentUser.email != consent.email) {
       throw NotAcceptableException(
