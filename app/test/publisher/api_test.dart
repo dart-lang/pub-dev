@@ -272,8 +272,10 @@ void main() {
       });
 
       testWithProfile('User is not admin', fn: () async {
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('other@pub.dev');
+        final user = await accountBackend.withBearerToken(
+          createFakeAuthTokenForEmail('other@pub.dev'),
+          () => requireAuthenticatedUser(),
+        );
         await dbService.commit(inserts: [
           publisherMember(user.userId, 'example.com', 'not-admin'),
         ]);
@@ -281,8 +283,10 @@ void main() {
       });
 
       testWithProfile('OK', fn: () async {
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('other@pub.dev');
+        final user = await accountBackend.withBearerToken(
+          createFakeAuthTokenForEmail('other@pub.dev'),
+          () => requireAuthenticatedUser(),
+        );
         await dbService.commit(inserts: [
           publisherMember(user.userId, 'example.com', 'admin'),
         ]);
@@ -304,8 +308,10 @@ void main() {
 
     group('Update all publisher detail', () {
       testWithProfile('OK', fn: () async {
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('other@pub.dev');
+        final user = await accountBackend.withBearerToken(
+          createFakeAuthTokenForEmail('other@pub.dev'),
+          () => requireAuthenticatedUser(),
+        );
         await dbService.commit(inserts: [
           publisherMember(user.userId, 'example.com', 'admin'),
         ]);
@@ -361,8 +367,10 @@ void main() {
       });
 
       testWithProfile('User is already a member', fn: () async {
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('other@pub.dev');
+        final user = await accountBackend.withBearerToken(
+          createFakeAuthTokenForEmail('other@pub.dev'),
+          () => requireAuthenticatedUser(),
+        );
         await dbService.commit(inserts: [
           publisherMember(
               user.userId, 'example.com', PublisherMemberRole.admin),
@@ -378,9 +386,11 @@ void main() {
 
       testWithProfile('Pending with Consent, sending new e-mail', fn: () async {
         final adminUser =
-            await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
-        final otherUser =
-            await accountBackend.lookupOrCreateUserByEmail('other@pub.dev');
+            await accountBackend.lookupUserByEmail('admin@pub.dev');
+        final otherUser = await accountBackend.withBearerToken(
+          createFakeAuthTokenForEmail('other@pub.dev'),
+          () => requireAuthenticatedUser(),
+        );
         final consent = Consent.init(
           fromUserId: adminUser.userId,
           email: 'other@pub.dev',
@@ -413,8 +423,7 @@ void main() {
       });
 
       testWithProfile('Invite new account', fn: () async {
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
+        final user = await accountBackend.lookupUserByEmail('admin@pub.dev');
         final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = await client.invitePublisherMember(
             'example.com', InviteMemberRequest(email: 'newuser@example.com'));
@@ -436,8 +445,7 @@ void main() {
       });
 
       testWithProfile('Invite existing account', fn: () async {
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
+        final user = await accountBackend.lookupUserByEmail('admin@pub.dev');
         final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = await client.invitePublisherMember(
             'example.com', InviteMemberRequest(email: 'user@pub.dev'));
@@ -465,8 +473,7 @@ void main() {
       });
 
       testWithProfile('Accept invite with existing user', fn: () async {
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+        final user = await accountBackend.lookupUserByEmail('user@pub.dev');
         final client1 = createPubApiClient(authToken: adminAtPubDevAuthToken);
         await client1.invitePublisherMember(
             'example.com', InviteMemberRequest(email: 'user@pub.dev'));
@@ -513,8 +520,7 @@ void main() {
       });
 
       testWithProfile('Decline invite', fn: () async {
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+        final user = await accountBackend.lookupUserByEmail('user@pub.dev');
         final client1 = createPubApiClient(authToken: adminAtPubDevAuthToken);
         await client1.invitePublisherMember(
             'example.com', InviteMemberRequest(email: 'user@pub.dev'));
@@ -567,16 +573,14 @@ void main() {
     group('Get member detail', () {
       _testAdminAuthIssues(
         (client) async {
-          final user =
-              await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
+          final user = await accountBackend.lookupUserByEmail('admin@pub.dev');
           return await client.publisherMemberInfo('example.com', user.userId);
         },
       );
 
       _testNoPublisher(
         (client) async {
-          final user =
-              await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
+          final user = await accountBackend.lookupUserByEmail('admin@pub.dev');
           return await client.publisherMemberInfo('no-domain.net', user.userId);
         },
       );
@@ -588,8 +592,7 @@ void main() {
       });
 
       testWithProfile('OK', fn: () async {
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
+        final user = await accountBackend.lookupUserByEmail('admin@pub.dev');
         final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = await client.publisherMemberInfo('example.com', user.userId);
         expect(rs.toJson(), {
@@ -603,8 +606,7 @@ void main() {
     group('Update member detail', () {
       _testAdminAuthIssues(
         (client) async {
-          final user =
-              await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+          final user = await accountBackend.lookupUserByEmail('user@pub.dev');
           return await client.updatePublisherMember(
             'example.com',
             user.userId,
@@ -615,8 +617,7 @@ void main() {
 
       _testNoPublisher(
         (client) async {
-          final user =
-              await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+          final user = await accountBackend.lookupUserByEmail('user@pub.dev');
           return await client.updatePublisherMember(
             'no-domain.net',
             user.userId,
@@ -626,8 +627,7 @@ void main() {
       );
 
       testWithProfile('Modification of self is blocked', fn: () async {
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
+        final user = await accountBackend.lookupUserByEmail('admin@pub.dev');
         final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = client.updatePublisherMember(
             'example.com',
@@ -641,16 +641,17 @@ void main() {
       testWithProfile('Modification of unrelated user is blocked',
           fn: () async {
         final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+        final user = await accountBackend.lookupUserByEmail('user@pub.dev');
         final rs = client.updatePublisherMember(
             'example.com', user.userId, UpdatePublisherMemberRequest());
         await expectApiException(rs, status: 404, code: 'NotFound');
       });
 
       testWithProfile('Role value is not allowed', fn: () async {
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('other@pub.dev');
+        final user = await accountBackend.withBearerToken(
+          createFakeAuthTokenForEmail('other@pub.dev'),
+          () => requireAuthenticatedUser(),
+        );
         await dbService.commit(inserts: [
           publisherMember(
               user.userId, 'example.com', PublisherMemberRole.admin),
@@ -666,8 +667,10 @@ void main() {
       });
 
       testWithProfile('OK', fn: () async {
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('other@pub.dev');
+        final user = await accountBackend.withBearerToken(
+          createFakeAuthTokenForEmail('other@pub.dev'),
+          () => requireAuthenticatedUser(),
+        );
         await dbService.commit(inserts: [
           publisherMember(user.userId, 'example.com', 'someotherrole'),
         ]);
@@ -693,32 +696,28 @@ void main() {
     group('Delete member', () {
       _testAdminAuthIssues(
         (client) async {
-          final user =
-              await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+          final user = await accountBackend.lookupUserByEmail('user@pub.dev');
           return await client.removePublisherMember('example.com', user.userId);
         },
       );
 
       _testNoPublisher(
         (client) async {
-          final user =
-              await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+          final user = await accountBackend.lookupUserByEmail('user@pub.dev');
           return await client.removePublisherMember(
               'no-domain.net', user.userId);
         },
       );
 
       testWithProfile('Modification of self is blocked', fn: () async {
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
+        final user = await accountBackend.lookupUserByEmail('admin@pub.dev');
         final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = client.removePublisherMember('example.com', user.userId);
         await expectApiException(rs, status: 409, code: 'RequestConflict');
       });
 
       testWithProfile('Remove of non-member is idempotent', fn: () async {
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+        final user = await accountBackend.lookupUserByEmail('user@pub.dev');
         final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs =
             await client.removePublisherMember('example.com', user.userId);
@@ -726,8 +725,10 @@ void main() {
       });
 
       testWithProfile('OK', fn: () async {
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('other@pub.dev');
+        final user = await accountBackend.withBearerToken(
+          createFakeAuthTokenForEmail('other@pub.dev'),
+          () => requireAuthenticatedUser(),
+        );
         await dbService.commit(inserts: [
           publisherMember(
               user.userId, 'example.com', PublisherMemberRole.admin),
@@ -762,7 +763,7 @@ void _testAdminAuthIssues(Future Function(PubApiClient client) fn) {
   });
 
   testWithProfile('Active user is not an admin yet', fn: () async {
-    final user = await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+    final user = await accountBackend.lookupUserByEmail('user@pub.dev');
     await dbService.commit(inserts: [
       publisherMember(user.userId, 'example.com', 'non-admin'),
     ]);

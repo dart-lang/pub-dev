@@ -61,10 +61,8 @@ void main() {
       });
 
       testWithProfile('merge two user ids', fn: () async {
-        final admin =
-            await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+        final admin = await accountBackend.lookupUserByEmail('admin@pub.dev');
+        final user = await accountBackend.lookupUserByEmail('user@pub.dev');
         await withHttpPubApiClient(
           bearerToken: siteAdminToken,
           fn: (client) async {

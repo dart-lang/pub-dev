@@ -49,8 +49,7 @@ void main() {
 
     testWithProfile('extra like', fn: () async {
       final p1 = await packageBackend.lookupPackage('oxygen');
-      final user =
-          await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+      final user = await accountBackend.lookupUserByEmail('user@pub.dev');
       await dbService.commit(inserts: [
         Like()
           ..parentKey = user.key

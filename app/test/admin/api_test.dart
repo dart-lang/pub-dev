@@ -313,8 +313,7 @@ void main() {
     group('Delete user', () {
       setupTestsWithCallerAuthorizationIssues(
         (client) async {
-          final user =
-              await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+          final user = await accountBackend.lookupUserByEmail('user@pub.dev');
           await client.adminRemoveUser(user.userId);
         },
         authSource: AuthSource.admin,
@@ -325,8 +324,7 @@ void main() {
         testProfile: defaultTestProfile.changeDefaultUser('user@pub.dev'),
         fn: () async {
           final client = createPubApiClient(authToken: siteAdminToken);
-          final user =
-              await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+          final user = await accountBackend.lookupUserByEmail('user@pub.dev');
 
           final rs = await client.adminRemoveUser(user.userId);
           expect(utf8.decode(rs), '{"status":"OK"}');
@@ -351,8 +349,7 @@ void main() {
       testWithProfile('Likes are cleaned up on user deletion', fn: () async {
         final client = createPubApiClient(authToken: siteAdminToken);
 
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+        final user = await accountBackend.lookupUserByEmail('user@pub.dev');
         final userClient = createPubApiClient(authToken: userAtPubDevAuthToken);
         await userClient.likePackage('oxygen');
 

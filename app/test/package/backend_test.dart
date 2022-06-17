@@ -168,8 +168,7 @@ void main() {
       });
 
       testWithProfile('blocked user', fn: () async {
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
+        final user = await accountBackend.lookupUserByEmail('admin@pub.dev');
         await dbService.commit(inserts: [user..isBlocked = true]);
         await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
           final rs = packageBackend.inviteUploader(
@@ -275,8 +274,7 @@ void main() {
       testWithProfile('cannot remove self', fn: () async {
         // adding extra uploader for the scope of this test
         final pkg = (await packageBackend.lookupPackage('oxygen'))!;
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+        final user = await accountBackend.lookupUserByEmail('user@pub.dev');
         pkg.addUploader(user.userId);
         await dbService.commit(inserts: [pkg]);
 
@@ -292,8 +290,7 @@ void main() {
       testWithProfile('successfull', fn: () async {
         // adding extra uploader for the scope of this test
         final pkg = (await packageBackend.lookupPackage('oxygen'))!;
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+        final user = await accountBackend.lookupUserByEmail('user@pub.dev');
         pkg.addUploader(user.userId);
         await dbService.commit(inserts: [pkg]);
 

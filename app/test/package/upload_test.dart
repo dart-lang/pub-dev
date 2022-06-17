@@ -103,8 +103,7 @@ void main() {
 
       testWithProfile('successful new package', fn: () async {
         await accountBackend.withBearerToken(userClientToken, () async {
-          final user =
-              await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+          final user = await accountBackend.lookupUserByEmail('user@pub.dev');
           final dateBeforeTest = clock.now().toUtc();
           final pubspecContent = generatePubspecYaml('new_package', '1.2.3');
           final bucket = storageService
@@ -198,8 +197,7 @@ void main() {
 
       testWithProfile('package under publisher', fn: () async {
         await accountBackend.withBearerToken(adminClientToken, () async {
-          final user =
-              await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
+          final user = await accountBackend.lookupUserByEmail('admin@pub.dev');
           final dateBeforeTest = clock.now().toUtc();
           final pubspecContent = generatePubspecYaml('neon', '7.0.0');
           final bucket = storageService
@@ -284,8 +282,7 @@ void main() {
       });
 
       testWithProfile('user is blocked', fn: () async {
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+        final user = await accountBackend.lookupUserByEmail('user@pub.dev');
         await dbService.commit(inserts: [user..isBlocked = true]);
         await accountBackend.withBearerToken(userClientToken, () async {
           final tarball = await packageArchiveBytes(
