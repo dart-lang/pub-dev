@@ -308,7 +308,7 @@ class _PackageUploaderAction extends ConsentAction {
     final fromUserEmail =
         (await accountBackend.getEmailOfUserId(consent.fromUserId!))!;
     final currentUser = await requireAuthenticatedUser();
-    if (currentUser.email != consent.email) {
+    if (currentUser.email?.toLowerCase() != consent.email?.toLowerCase()) {
       throw NotAcceptableException(
           'Current user and consent user does not match.');
     }
