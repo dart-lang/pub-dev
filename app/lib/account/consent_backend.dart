@@ -305,8 +305,8 @@ class _PackageUploaderAction extends ConsentAction {
   @override
   Future<void> onAccept(Consent consent) async {
     final packageName = consent.args![0];
-    final fromUserEmail =
-        (await accountBackend.getEmailOfUserId(consent.fromUserId!))!;
+    final fromUserId = consent.fromUserId!;
+    final fromUserEmail = (await accountBackend.getEmailOfUserId(fromUserId))!;
     final currentUser = await requireAuthenticatedUser();
     if (currentUser.email?.toLowerCase() != consent.email?.toLowerCase()) {
       throw NotAcceptableException(
@@ -314,7 +314,7 @@ class _PackageUploaderAction extends ConsentAction {
     }
 
     await packageBackend.confirmUploader(
-        consent.fromUserId, fromUserEmail, packageName, currentUser);
+        fromUserId, fromUserEmail, packageName, currentUser);
   }
 
   @override
