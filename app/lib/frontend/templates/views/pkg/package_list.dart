@@ -5,18 +5,18 @@
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
+import 'package:pana/pana.dart';
 
 import '../../../../package/models.dart';
+import '../../../../package/screenshots/backend.dart';
 import '../../../../search/search_service.dart';
 import '../../../../shared/urls.dart' as urls;
 import '../../../../shared/utils.dart' show formatXAgo;
-
 import '../../../dom/dom.dart' as d;
 import '../../../static_files.dart' show staticUrls;
 import '../../_consts.dart';
 import '../../package_misc.dart';
 import '../shared/images.dart';
-
 import 'license.dart';
 
 /// Renders the listing page (list of packages).
@@ -45,8 +45,10 @@ d.Node _sdkLibraryItem(SdkLibraryHit hit) {
   ].join(' • ');
 
   return _item(
+    screenshots: [],
     url: hit.url!,
     name: hit.library!,
+    version: hit.version,
     newTimestamp: null,
     labeledScoresNode: null,
     description: hit.description ?? '',
@@ -124,8 +126,10 @@ d.Node _packageItem(
   ]);
 
   return _item(
+    screenshots: view.screenshots,
     url: urls.pkgPageUrl(view.name!),
     name: view.name!,
+    version: releases.stable.version,
     newTimestamp: view.created,
     labeledScoresNode: labeledScoresNodeFromPackageView(view),
     description: view.ellipsizedDescription ?? '',
@@ -146,8 +150,10 @@ d.Node _packageItem(
 }
 
 d.Node _item({
+  required List<ProcessedScreenshot>? screenshots,
   required String url,
   required String name,
+  required String? version,
   required DateTime? newTimestamp,
   required d.Node? labeledScoresNode,
   required String description,
@@ -155,6 +161,14 @@ d.Node _item({
   required d.Node? tagsNode,
   required List<_ApiPageUrl>? apiPages,
 }) {
+  final bool hasScreenshots = screenshots != null && screenshots.isNotEmpty;
+  String? screenshotURL;
+  if (hasScreenshots) {
+    screenshotURL = imageStorage.getImageURL(
+        name, version!, screenshots.first.pngThumbnail);
+  }
+  final collectionsIconWhite =
+      staticUrls.getAssetUrl('/static/img/collections_white_24dp.svg');
   final age =
       newTimestamp == null ? null : clock.now().difference(newTimestamp);
   return d.div(
@@ -189,12 +203,38 @@ d.Node _item({
           if (labeledScoresNode != null) labeledScoresNode,
         ],
       ), // end of packages-header
-
-      d.p(classes: ['packages-description'], text: description),
-      d.p(classes: ['packages-metadata'], child: metadataNode),
-      if (tagsNode != null) d.div(child: tagsNode),
-      if (apiPages != null && apiPages.isNotEmpty)
-        d.div(classes: ['packages-api'], child: _apiPages(apiPages)),
+      d.div(classes: [
+        'packages-container'
+      ], children: [
+        d.div(
+          classes: ['packages-body'],
+          children: [
+            d.div(classes: ['packages-description'], text: description),
+            d.p(classes: ['packages-metadata'], child: metadataNode),
+            if (tagsNode != null) d.div(child: tagsNode),
+            if (apiPages != null && apiPages.isNotEmpty)
+              d.div(classes: ['packages-api'], child: _apiPages(apiPages)),
+          ],
+        ),
+        if (hasScreenshots)
+          d.div(classes: [
+            'screenshot-thumbnail'
+          ], children: [
+            d.img(
+                image: d.Image(
+                    alt: 'screenshot',
+                    width: null,
+                    height: null,
+                    src: screenshotURL!)),
+            d.img(
+                classes: ['collections-icon'],
+                image: d.Image(
+                    height: null, // We handle sizing in css
+                    width: null, // We handle sizing in css
+                    alt: 'image',
+                    src: collectionsIconWhite))
+          ])
+      ]),
     ],
   );
 }
