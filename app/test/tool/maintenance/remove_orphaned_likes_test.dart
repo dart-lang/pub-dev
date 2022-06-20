@@ -47,8 +47,7 @@ void main() {
         await withHttpPubApiClient(
             bearerToken: userAtPubDevAuthToken,
             fn: (client) => client.likePackage('oxygen'));
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+        final user = await accountBackend.lookupUserByEmail('user@pub.dev');
         await dbService.commit(deletes: [user.key]);
         final counts =
             await removeOrphanedLikes(minAgeThreshold: Duration.zero);

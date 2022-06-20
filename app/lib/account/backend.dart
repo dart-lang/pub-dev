@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:neat_cache/neat_cache.dart';
 import 'package:pub_dev/account/agent.dart';
@@ -174,6 +175,13 @@ class AccountBackend {
     email = email.toLowerCase();
     final query = _db.query<User>()..filter('email =', email);
     return await query.run().toList();
+  }
+
+  /// Returns the single `User` entity for the [email].
+  @visibleForTesting
+  Future<User> lookupUserByEmail(String email) async {
+    final users = await lookupUsersByEmail(email);
+    return users.single;
   }
 
   /// Returns the `User` entry for the [email] or creates a new one if it does

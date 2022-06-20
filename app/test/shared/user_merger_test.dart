@@ -7,6 +7,7 @@ import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
+import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/shared/user_merger.dart';
@@ -17,9 +18,8 @@ import 'test_services.dart';
 
 void main() {
   Future<void> _corruptAndFix() async {
-    final admin =
-        await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
-    final user = await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+    final admin = await accountBackend.lookupUserByEmail('admin@pub.dev');
+    final user = await accountBackend.lookupUserByEmail('user@pub.dev');
     await dbService.withTransaction((tx) async {
       final oauth = await tx.lookupValue<OAuthUserID>(
           dbService.emptyKey.append(OAuthUserID, id: admin.oauthUserId));
@@ -37,9 +37,8 @@ void main() {
   }
 
   testWithProfile('packages and versions', fn: () async {
-    final admin =
-        await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
-    final user = await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+    final admin = await accountBackend.lookupUserByEmail('admin@pub.dev');
+    final user = await accountBackend.lookupUserByEmail('user@pub.dev');
     final pkg1 = (await packageBackend.lookupPackage('oxygen'))!;
     expect(pkg1.uploaders, [admin.userId]);
 
@@ -54,11 +53,12 @@ void main() {
   });
 
   testWithProfile('session', fn: () async {
-    final admin =
-        await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
-    final user = await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
-    final control =
-        await accountBackend.lookupOrCreateUserByEmail('control@pub.dev');
+    final admin = await accountBackend.lookupUserByEmail('admin@pub.dev');
+    final user = await accountBackend.lookupUserByEmail('user@pub.dev');
+    final control = await accountBackend.withBearerToken(
+      createFakeAuthTokenForEmail('control@pub.dev'),
+      () => requireAuthenticatedUser(),
+    );
     await dbService.commit(inserts: [
       UserSession()
         ..id = 'target'
@@ -85,11 +85,12 @@ void main() {
   });
 
   testWithProfile('new consent', fn: () async {
-    final admin =
-        await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
-    final user = await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
-    final control =
-        await accountBackend.lookupOrCreateUserByEmail('control@pub.dev');
+    final admin = await accountBackend.lookupUserByEmail('admin@pub.dev');
+    final user = await accountBackend.lookupUserByEmail('user@pub.dev');
+    final control = await accountBackend.withBearerToken(
+      createFakeAuthTokenForEmail('control@pub.dev'),
+      () => requireAuthenticatedUser(),
+    );
 
     final target1 = Consent.init(
         email: admin.email, kind: 'k1', args: ['1'], fromUserId: user.userId);
@@ -136,9 +137,8 @@ void main() {
   });
 
   testWithProfile('like', fn: () async {
-    final user = await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
-    final admin =
-        await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
+    final user = await accountBackend.lookupUserByEmail('user@pub.dev');
+    final admin = await accountBackend.lookupUserByEmail('admin@pub.dev');
     await accountBackend.likePackage(admin, 'oxygen');
     expect(
         (await accountBackend.listPackageLikes(admin))
@@ -158,9 +158,8 @@ void main() {
   });
 
   testWithProfile('audit log record', fn: () async {
-    final user = await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
-    final admin =
-        await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
+    final user = await accountBackend.lookupUserByEmail('user@pub.dev');
+    final admin = await accountBackend.lookupUserByEmail('admin@pub.dev');
     await _corruptAndFix();
     final adminRecords = await auditBackend.listRecordsForUserId(admin.userId);
     expect(adminRecords.records, isEmpty);

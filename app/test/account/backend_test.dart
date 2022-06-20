@@ -26,8 +26,7 @@ void main() {
     });
 
     testWithProfile('Successful lookup', fn: () async {
-      final user =
-          await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+      final user = await accountBackend.lookupUserByEmail('user@pub.dev');
       final email = await accountBackend.getEmailOfUserId(user.userId);
       expect(email, 'user@pub.dev');
       final u = await accountBackend.lookupUserById(user.userId);
@@ -40,10 +39,12 @@ void main() {
       final oldIds =
           await dbService.query<User>().run().map((u) => u.userId).toList();
 
-      final u =
-          await accountBackend.lookupOrCreateUserByEmail('new-user@pub.dev');
+      final u = await accountBackend.withBearerToken(
+        createFakeAuthTokenForEmail('new-user@pub.dev'),
+        () => requireAuthenticatedUser(),
+      );
       expect(u.userId, hasLength(36));
-      expect(u.oauthUserId, isNull);
+      expect(u.oauthUserId, isNotNull);
       expect(u.email, 'new-user@pub.dev');
 
       final ids =
