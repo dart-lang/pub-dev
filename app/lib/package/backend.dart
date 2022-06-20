@@ -22,6 +22,7 @@ import 'package:pub_semver/pub_semver.dart';
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
 import '../account/models.dart' show User;
+import '../admin/backend.dart';
 import '../audit/models.dart';
 import '../frontend/email_sender.dart';
 import '../publisher/backend.dart';
@@ -1152,7 +1153,7 @@ class PackageBackend {
         isNotUploaderYet, '`$uploaderEmail` is already an uploader.');
 
     final status = await consentBackend.invitePackageUploader(
-      authSource: authSource,
+      activeUser: user,
       packageName: packageName,
       uploaderEmail: uploaderEmail,
     );
@@ -1163,13 +1164,23 @@ class PackageBackend {
     );
   }
 
-  Future<void> confirmUploader(String fromUserId, String fromUserEmail,
-      String packageName, User uploader) async {
+  Future<void> confirmUploader(
+    String fromUserId,
+    String fromUserEmail,
+    String packageName,
+    User uploader, {
+    required bool isFromAdminUser,
+  }) async {
     await withRetryTransaction(db, (tx) async {
       final packageKey = db.emptyKey.append(Package, id: packageName);
       final package = (await tx.lookup([packageKey])).first as Package;
 
-      await _validatePackageUploader(packageName, package, fromUserId);
+      await _validatePackageUploader(
+        packageName,
+        package,
+        fromUserId,
+        isFromAdminUser: isFromAdminUser,
+      );
       if (package.containsUploader(uploader.userId)) {
         // The requested uploaderEmail is already part of the uploaders.
         return;
@@ -1189,10 +1200,29 @@ class PackageBackend {
   }
 
   Future<void> _validatePackageUploader(
-      String packageName, Package? package, String userId) async {
+    String packageName,
+    Package? package,
+    String userId, {
+    bool isFromAdminUser = false,
+  }) async {
     // Fail if package doesn't exist.
     if (package == null) {
       throw NotFoundException.resource(packageName);
+    }
+
+    if (isFromAdminUser) {
+      // Fail if calling user doesn't have admin permissions anymore.
+      final user = await accountBackend.lookupUserById(userId);
+      if (user == null) {
+        throw AuthorizationException.userCannotChangeUploaders(package.name!);
+      }
+      final isAuthorizedAdmin = await adminBackend.verifyAdminPermission(
+          user, AdminPermission.managePackageOwnership);
+      if (isAuthorizedAdmin) {
+        return;
+      } else {
+        throw AuthorizationException.userCannotChangeUploaders(package.name!);
+      }
     }
 
     // Fail if calling user doesn't have permission to change uploaders.

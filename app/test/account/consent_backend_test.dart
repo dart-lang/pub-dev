@@ -20,7 +20,7 @@ void main() {
     Future<String?> inviteUploader() async {
       await accountBackend.withBearerToken(adminClientToken, () async {
         final status = await consentBackend.invitePackageUploader(
-          authSource: AuthSource.client,
+          activeUser: await requireAuthenticatedUser(source: AuthSource.client),
           uploaderEmail: 'user@pub.dev',
           packageName: 'oxygen',
         );

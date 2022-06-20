@@ -12,6 +12,7 @@ import 'package:convert/convert.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
+import 'package:pub_dev/account/consent_backend.dart';
 import 'package:pub_dev/admin/tools/package_discontinued.dart';
 import 'package:pub_dev/admin/tools/package_publisher.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -77,18 +78,26 @@ class AdminBackend {
 
   /// Require that the incoming request is authorized by an administrator with
   /// the given [permission].
+  ///
+  /// Throws [AuthorizationException] if it doesn't have the permission.
   Future<User> _requireAdminPermission(AdminPermission permission) async {
     ArgumentError.checkNotNull(permission, 'permission');
 
     final user = await requireAuthenticatedUser(source: AuthSource.admin);
-    final admin = activeConfiguration.admins!.firstWhereOrNull(
-        (a) => a.oauthUserId == user.oauthUserId && a.email == user.email);
-    if (admin == null || !admin.permissions.contains(permission)) {
+    if (!await verifyAdminPermission(user, permission)) {
       _logger.warning(
           'User (${user.userId} / ${user.email}) is trying to access unauthorized admin APIs.');
       throw AuthorizationException.userIsNotAdminForPubSite();
     }
     return user;
+  }
+
+  /// Returns `true` if the [user] is authorized by an administrator with the given [permission].
+  Future<bool> verifyAdminPermission(
+      User user, AdminPermission permission) async {
+    final admin = activeConfiguration.admins!.firstWhereOrNull(
+        (a) => a.oauthUserId == user.oauthUserId && a.email == user.email);
+    return admin != null && admin.permissions.contains(permission);
   }
 
   /// Executes a [tool] with the [args].
@@ -626,26 +635,13 @@ class AdminBackend {
     final uploaderEmail = email.toLowerCase();
     InvalidInputException.check(
         isValidEmail(uploaderEmail), 'Not a valid email: `$uploaderEmail`.');
-    final uploaderUser =
-        await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
 
-    await withRetryTransaction(_db, (tx) async {
-      final p = await tx.lookupValue<Package>(package.key);
-      InvalidInputException.check(
-          p.publisherId == null, 'Package must not be under a publisher.');
-      if (p.uploaders!.contains(uploaderUser.userId)) {
-        // do not throw if email is already added
-        return;
-      } else {
-        p.uploaders!.add(uploaderUser.userId);
-      }
-      tx.insert(p);
-      tx.insert(AuditLogRecord.uploaderAdded(
-        activeUser: adminUser,
-        package: packageName,
-        uploaderUser: uploaderUser,
-      ));
-    });
+    await consentBackend.invitePackageUploader(
+      activeUser: adminUser,
+      packageName: packageName,
+      uploaderEmail: uploaderEmail,
+      isFromAdminUser: true,
+    );
     return await handleGetPackageUploaders(packageName);
   }
 
