@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:clock/clock.dart';
+import 'package:pub_dev/account/backend.dart';
 
 import '../account/models.dart';
 import '../shared/datastore.dart' as db;
@@ -202,7 +203,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   }
 
   factory AuditLogRecord.packagePublished({
-    required User uploader,
+    required AuthenticatedAgent uploader,
     required String package,
     required String version,
     required DateTime created,
@@ -211,22 +212,22 @@ class AuditLogRecord extends db.ExpandoModel<String> {
     final summary = [
       'Package `$package` version `$version`',
       if (publisherId != null) ' owned by publisher `$publisherId`',
-      ' was published by `${uploader.email}`.',
+      ' was published by `${uploader.emailOrLabel}`.',
     ].join();
     return AuditLogRecord()
       ..id = createUuid()
       ..created = created
       ..expires = _expiresInFarFuture
       ..kind = AuditLogRecordKind.packagePublished
-      ..agent = uploader.userId
+      ..agent = uploader.agentId
       ..summary = summary
       ..data = {
         'package': package,
         'version': version,
-        'email': uploader.email,
+        if (uploader is AuthenticatedUser) 'email': uploader.user.email,
         if (publisherId != null) 'publisherId': publisherId,
       }
-      ..users = [uploader.userId]
+      ..users = [if (uploader is AuthenticatedUser) uploader.user.userId]
       ..packages = [package]
       ..packageVersions = ['$package/$version']
       ..publishers = [if (publisherId != null) publisherId];

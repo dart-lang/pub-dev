@@ -12,6 +12,7 @@ import 'package:meta/meta.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:neat_cache/neat_cache.dart';
 import 'package:pub_dev/account/agent.dart';
+import 'package:pub_dev/service/openid/jwt.dart';
 
 import '../package/models.dart';
 import '../shared/datastore.dart';
@@ -110,6 +111,61 @@ Future<User> requireAuthenticatedUser({AuthSource? source}) async {
     throw AuthorizationException.blocked();
   }
   return user;
+}
+
+/// Holds the authenticated agent information.
+abstract class AuthenticatedAgent {
+  String get emailOrLabel;
+  String get agentId;
+}
+
+/// Holds the authenticated Github Action information.
+class AuthenticatedGithubAction implements AuthenticatedAgent {
+  final String label;
+  final JsonWebToken jwt;
+
+  AuthenticatedGithubAction({
+    required this.label,
+    required this.jwt,
+  });
+
+  @override
+  String get agentId => KnownAgents.githubActions;
+
+  @override
+  String get emailOrLabel => label;
+}
+
+/// Holds the authenticated user information.
+class AuthenticatedUser implements AuthenticatedAgent {
+  final User user;
+
+  AuthenticatedUser(this.user);
+
+  @override
+  String get agentId => user.userId;
+
+  @override
+  String get emailOrLabel => user.email!;
+}
+
+/// Verifies the current bearer token in the request scope and returns the
+/// current authenticated user or a service agent with the available data.
+Future<AuthenticatedAgent> requireAuthenticatedAgent(
+    {AuthSource? source}) async {
+  final token = _getBearerToken();
+  if (token == null || token.isEmpty) {
+    throw AuthenticationException.authenticationRequired();
+  }
+  if (JsonWebToken.looksLikeJWT(token)) {
+    final jwt = JsonWebToken.tryParse(token);
+    if (jwt != null) {
+      // TODO: skip JWT processing if it is not a recognized service agent
+      // TODO: check signature from JWKS
+      // TODO: when everything is verified, return the JWT token.
+    }
+  }
+  return AuthenticatedUser(await requireAuthenticatedUser(source: source));
 }
 
 /// Represents the backend for the account handling and authentication.
