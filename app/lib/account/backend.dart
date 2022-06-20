@@ -113,9 +113,22 @@ Future<User> requireAuthenticatedUser({AuthSource? source}) async {
   return user;
 }
 
-/// Holds the authenticated agent information.
+/// An [AuthenticatedAgent] represents an _agent_ (a user or automated service)
+/// that has been authenticated and which may be allowed to operate on specific
+/// resources on pub.dev
+///
+/// Examples:
+///  * A user using the `pub` client.
+///  * A user using the `pub.dev` UI.
+///  * A GCP service account may authenticate using an OIDC `id_token`,
+///  * A Github Action may authenticate using an OIDC `id_token`.
 abstract class AuthenticatedAgent {
+  /// The formatted identfier of the agent, which will be used in logs and audit records.
   String get emailOrLabel;
+
+  /// The unique identifier of the agent.
+  ///
+  /// Must pass the [isValidUserIdOrServiceAgent] check.
   String get agentId;
 }
 
@@ -127,6 +140,10 @@ class AuthenticatedGithubAction implements AuthenticatedAgent {
   ///
   /// The [agentId] of an [AuthenticatedAgent] have always been authenticated using the [idToken].
   /// Hence, claims on the [idToken] may be used to determine authorization of a request.
+  ///
+  /// The audience, expiration and signature must be verified by the
+  /// auth flow, but backend code can use the content to verify the
+  /// pub-specific scope of the token.
   final JsonWebToken idToken;
 
   AuthenticatedGithubAction({
@@ -163,8 +180,9 @@ Future<AuthenticatedAgent> requireAuthenticatedAgent(
     throw AuthenticationException.authenticationRequired();
   }
   if (JsonWebToken.looksLikeJWT(token)) {
-    final jwt = JsonWebToken.tryParse(token);
-    if (jwt != null) {
+    final idToken = JsonWebToken.tryParse(token);
+    if (idToken != null) {
+      // TODO: check the audience and expiration
       // TODO: skip JWT processing if it is not a recognized service agent
       // TODO: check signature from JWKS
       // TODO: when everything is verified, return the JWT token.
