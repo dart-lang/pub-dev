@@ -122,11 +122,16 @@ abstract class AuthenticatedAgent {
 /// Holds the authenticated Github Action information.
 class AuthenticatedGithubAction implements AuthenticatedAgent {
   final String label;
-  final JsonWebToken jwt;
+
+  /// OIDC `id_token` the request was authenticated with.
+  ///
+  /// The [agentId] of an [AuthenticatedAgent] have always been authenticated using the [idToken].
+  /// Hence, claims on the [idToken] may be used to determine authorization of a request.
+  final JsonWebToken idToken;
 
   AuthenticatedGithubAction({
     required this.label,
-    required this.jwt,
+    required this.idToken,
   });
 
   @override
