@@ -184,29 +184,6 @@ class AccountBackend {
     return users.single;
   }
 
-  /// Returns the `User` entry for the [email] or creates a new one if it does
-  /// not exists.
-  ///
-  /// Throws Exception if more then one `User` entry exists.
-  Future<User> lookupOrCreateUserByEmail(String email) async {
-    email = email.toLowerCase();
-    final users = await lookupUsersByEmail(email);
-    if (users.length > 1) {
-      throw Exception('More than one User exists for email: $email');
-    }
-    if (users.isNotEmpty) return users.single;
-    final user = User()
-      ..parentKey = _db.emptyKey
-      ..id = createUuid()
-      ..email = email
-      ..created = clock.now().toUtc()
-      ..isBlocked = false
-      ..isDeleted = false;
-
-    await _db.commit(inserts: [user]);
-    return user;
-  }
-
   /// Returns [Like] if [userId] likes [package], otherwise returns `null`.
   Future<Like?> getPackageLikeStatus(String userId, String package) async {
     final key = _db.emptyKey.append(User, id: userId).append(Like, id: package);

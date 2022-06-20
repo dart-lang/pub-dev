@@ -120,6 +120,12 @@ class IntegrityChecker {
           yield 'User "${user.userId}" is deleted, but `created` time is still set.';
         }
       }
+
+      if (user.oauthUserId == null &&
+          user.created != null &&
+          user.created!.isAfter(DateTime(2022, 1, 1))) {
+        yield 'User "${user.userId}" is recently created, but has no `oauthUserId`.';
+      }
     }
   }
 
