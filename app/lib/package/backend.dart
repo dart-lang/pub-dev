@@ -555,9 +555,12 @@ class PackageBackend {
     String? userId, {
     AuthenticatedAgent? agent,
   }) async {
-    if (agent != null) {
+    if (agent is AuthenticatedGithubAction) {
       // TODO: check if the JWT token matches the automated publishing settings on the package.
       return false;
+    }
+    if (agent is AuthenticatedUser) {
+      userId ??= agent.user.userId;
     }
     if (userId == null) {
       return false;
