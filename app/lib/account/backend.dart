@@ -123,18 +123,28 @@ Future<User> requireAuthenticatedUser({AuthSource? source}) async {
 ///  * A GCP service account may authenticate using an OIDC `id_token`,
 ///  * A Github Action may authenticate using an OIDC `id_token`.
 abstract class AuthenticatedAgent {
-  /// The formatted identfier of the agent, which will be used in logs and audit records.
-  String get emailOrLabel;
-
   /// The unique identifier of the agent.
-  ///
   /// Must pass the [isValidUserIdOrServiceAgent] check.
+  ///
+  /// Examples:
+  ///  * For a regular user we use `User.userId`.
+  ///  * For automated publishing we use [KnownAgents] identifiers.
   String get agentId;
+
+  /// The formatted identfier of the agent, which may be publicly visible
+  /// in logs and audit records.
+  ///
+  /// Examples:
+  ///  * For a regular user we display their `email`.
+  ///  * For a service account we display a description.
+  ///  * For automated publishing we display the service and the origin trigger.
+  String get formattedId;
 }
 
 /// Holds the authenticated Github Action information.
 class AuthenticatedGithubAction implements AuthenticatedAgent {
-  final String label;
+  @override
+  final String formattedId;
 
   /// OIDC `id_token` the request was authenticated with.
   ///
@@ -147,15 +157,12 @@ class AuthenticatedGithubAction implements AuthenticatedAgent {
   final JsonWebToken idToken;
 
   AuthenticatedGithubAction({
-    required this.label,
+    required this.formattedId,
     required this.idToken,
   });
 
   @override
   String get agentId => KnownAgents.githubActions;
-
-  @override
-  String get emailOrLabel => label;
 }
 
 /// Holds the authenticated user information.
@@ -168,7 +175,7 @@ class AuthenticatedUser implements AuthenticatedAgent {
   String get agentId => user.userId;
 
   @override
-  String get emailOrLabel => user.email!;
+  String get formattedId => user.email!;
 }
 
 /// Verifies the current bearer token in the request scope and returns the
