@@ -372,16 +372,6 @@ class IntegrityChecker {
       yield 'Package "${p.name}" has missing `latestPreviewVersionKey`: "${p.latestPreviewVersionKey!.id}".';
     }
 
-    if (p.isBlocked == null) {
-      yield 'Package "${p.name}" has a `isBlocked` property which is null.';
-    }
-    if (p.isBlocked != p.isWithheld) {
-      yield 'Package "${p.name}" has a `isBlocked` property which is not the same as `isWithheld`.';
-    }
-    if (p.blockedReason != p.withheldReason) {
-      yield 'Package "${p.name}" has a `blockedReason` property which is not the same as `withheldReason`.';
-    }
-
     // Checking if PackageVersionInfo is referenced by a PackageVersion entity.
     final pviQuery = _db.query<PackageVersionInfo>()
       ..filter('package =', p.name);
