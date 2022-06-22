@@ -123,19 +123,9 @@ class Package extends db.ExpandoModel<String> {
   bool isUnlisted = false;
 
   /// Set to `true` if package should not be displayed anywhere, because of
-  /// pending review or deletion.
-  @db.BoolProperty(required: true)
-  bool isWithheld = false;
-
-  /// The reason why the package was withheld.
-  @db.StringProperty(indexed: false)
-  String? withheldReason;
-
-  /// Set to `true` if package should not be displayed anywhere, because of
   /// pending moderation or deletion.
-  /// TODO: set to true after the rename migration is done
-  @db.BoolProperty(required: false)
-  bool? isBlocked;
+  @db.BoolProperty(required: true)
+  bool isBlocked = false;
 
   /// The reason why the package was blocked.
   @db.StringProperty(indexed: false)
@@ -184,7 +174,6 @@ class Package extends db.ExpandoModel<String> {
       ..likes = 0
       ..isDiscontinued = false
       ..isUnlisted = false
-      ..isWithheld = false
       ..isBlocked = false
       ..assignedTags = []
       ..deletedVersions = [];
@@ -192,7 +181,7 @@ class Package extends db.ExpandoModel<String> {
 
   // Convenience Fields:
 
-  bool get isVisible => !isWithheld && !(isBlocked ?? false);
+  bool get isVisible => !isBlocked;
   bool get isNotVisible => !isVisible;
 
   bool get isIncludedInRobots {
@@ -412,8 +401,6 @@ class Package extends db.ExpandoModel<String> {
     String? reason,
   }) {
     this.isBlocked = isBlocked;
-    isWithheld = isBlocked;
-    withheldReason = reason;
     blockedReason = reason;
     blocked = isBlocked ? clock.now().toUtc() : null;
     updated = clock.now().toUtc();

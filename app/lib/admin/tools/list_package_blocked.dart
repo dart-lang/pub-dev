@@ -10,15 +10,15 @@ import '../../shared/datastore.dart';
 final _argParser = ArgParser()
   ..addFlag('help', abbr: 'h', defaultsTo: false, help: 'Show help.');
 
-Future<String> executeListPackageWithheld(List<String> args) async {
+Future<String> executeListPackageBlocked(List<String> args) async {
   final argv = _argParser.parse(args);
 
   if (argv['help'] as bool) {
-    return 'List packages that are with-held.\n'
+    return 'List packages that are blocked.\n'
         '${_argParser.usage}';
   }
 
-  final query = dbService.query<Package>()..filter('isWithheld =', true);
+  final query = dbService.query<Package>()..filter('isBlocked =', true);
   final output = StringBuffer();
   await for (final p in query.run()) {
     output.writeln(p.name!);

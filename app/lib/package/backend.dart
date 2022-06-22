@@ -99,7 +99,7 @@ class PackageBackend {
     this._publicBucket,
   );
 
-  /// Whether the package exists and is not withheld or deleted.
+  /// Whether the package exists and is not blocked or deleted.
   Future<bool> isPackageVisible(String package) async {
     return (await cache.packageVisible(package).get(() async {
       final p = await db
@@ -1007,7 +1007,7 @@ class PackageBackend {
       }
 
       if (package!.isNotVisible) {
-        throw PackageRejectedException.isWithheld();
+        throw PackageRejectedException.isBlocked();
       }
 
       if (package!.versionCount >= maxVersionsPerPackage) {

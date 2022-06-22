@@ -35,11 +35,11 @@ import '../shared/tags.dart';
 import '../tool/utils/dart_sdk_version.dart';
 import 'tools/block_publisher_and_all_members.dart';
 import 'tools/create_publisher.dart';
-import 'tools/list_package_withheld.dart';
+import 'tools/list_package_blocked.dart';
 import 'tools/list_tools.dart';
 import 'tools/notify_service.dart';
 import 'tools/recent_uploaders.dart';
-import 'tools/set_package_withheld.dart';
+import 'tools/set_package_blocked.dart';
 import 'tools/set_secret.dart';
 import 'tools/set_user_blocked.dart';
 import 'tools/user_merger.dart';
@@ -58,13 +58,13 @@ typedef Tool = Future<String> Function(List<String> args);
 
 final Map<String, Tool> availableTools = {
   'create-publisher': executeCreatePublisher,
-  'list-package-withheld': executeListPackageWithheld,
+  'list-package-blocked': executeListPackageBlocked,
   'notify-service': executeNotifyService,
   'package-discontinued': executeSetPackageDiscontinued,
   'package-publisher': executeSetPackagePublisher,
   'recent-uploaders': executeRecentUploaders,
   'block-publisher-and-all-members': executeBlockPublisherAndAllMembers,
-  'set-package-withheld': executeSetPackageWithheld,
+  'set-package-blocked': executeSetPackageBlocked,
   'set-secret': executeSetSecret,
   'set-user-blocked': executeSetUserBlocked,
   'user-merger': executeUserMergerTool,
