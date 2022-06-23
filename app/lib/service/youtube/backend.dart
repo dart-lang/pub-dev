@@ -145,7 +145,7 @@ class _PkgOfWeekVideoFetcher {
               );
             } catch (e, st) {
               // this item will be skipped, the rest of the list may be displayed
-              _logger.pubNoticeWarning(
+              _logger.pubNoticeShout(
                   'youtube', 'Processing Youtube PlaylistItem failed.', e, st);
             }
             return null;
