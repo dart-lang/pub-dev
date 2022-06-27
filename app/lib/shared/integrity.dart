@@ -11,6 +11,7 @@ import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 
 import '../account/agent.dart';
+import '../account/backend.dart';
 import '../account/models.dart';
 import '../audit/models.dart';
 import '../package/backend.dart';
@@ -182,9 +183,13 @@ class IntegrityChecker {
           await _db.query<PublisherMember>(ancestorKey: p.key).run().toList();
       if (p.isAbandoned) {
         _publishersAbandoned.add(p.publisherId);
-        if (members.isNotEmpty) {
-          yield 'Publisher "${p.publisherId}" is marked as abandoned, '
-              'but has members (first: "${members.first.userId}").';
+        // all members must be blocked
+        for (final member in members) {
+          final user = await accountBackend.lookupUserById(member.userId!);
+          if (user != null && !user.isBlocked) {
+            yield 'Publisher "${p.publisherId}" is marked as abandoned, '
+                'but has non-blocked member ("${member.userId}" - "${user.email}").';
+          }
         }
         if (members.isEmpty && p.contactEmail != null) {
           yield 'Publisher "${p.publisherId}" is marked as abandoned, has no members, '
