@@ -379,6 +379,7 @@ void main() {
           allDependencies: null,
           licenses: null,
           report: Report(sections: <ReportSection>[]),
+          result: null,
           flags: null,
           urlProblems: null,
           screenshots: null,

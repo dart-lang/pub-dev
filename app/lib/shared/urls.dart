@@ -6,6 +6,8 @@ import 'package:_pub_shared/search/search_form.dart'
     show SearchForm, SearchOrder;
 import 'package:path/path.dart' as p;
 
+export 'package:pana/src/repository/repository_url.dart';
+
 const primaryHost = 'pub.dev';
 const legacyHost = 'pub.dartlang.org';
 const fullSiteUrl = 'https://$primaryHost/';
