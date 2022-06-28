@@ -5,6 +5,8 @@
 import 'package:pub_dev/service/openid/openssl_commands.dart';
 import 'package:test/test.dart';
 
+import 'openssl_utils.dart';
+
 void main() {
   group('openssl commands', () {
     test('sign and verify', () async {
