@@ -218,6 +218,7 @@ class PanaReport {
   final List<License>? licenses;
 
   final Report? report;
+  final AnalysisResult? result;
 
   final List<ProcessedScreenshot>? screenshots;
 
@@ -235,6 +236,7 @@ class PanaReport {
     required this.allDependencies,
     required this.licenses,
     required this.report,
+    required this.result,
     required this.flags,
     required this.urlProblems,
     required this.screenshots,

@@ -989,10 +989,24 @@ class PackagePageData {
   bool get isLatestStable => version!.version == package!.latestVersion;
   int get popularity => popularityStorage.lookupAsScore(package!.name!);
 
-  // NOTE: These link are not verified.
-  // TODO: We should rather use full URL verification, possibly in pana
-  //       (to also include it in the report).
   late final packageLinks = () {
+    // Trying to use verfied URLs
+    final result = scoreCard?.panaReport?.result;
+    if (result != null) {
+      final baseUrl = urls.inferBaseUrl(
+        homepageUrl: result.homepageUrl,
+        repositoryUrl: result.repositoryUrl,
+      );
+      return PackageLinks._(
+        baseUrl,
+        homepageUrl: result.homepageUrl,
+        repositoryUrl: result.repositoryUrl,
+        issueTrackerUrl: result.issueTrackerUrl,
+        documentationUrl: result.documentationUrl,
+      );
+    }
+    // Falling back to use URLs from pubspec.yaml.
+    // TODO: Remove this and return `null` after this release gets stable.
     final pubspec = version!.pubspec!;
     return PackageLinks.infer(
       homepageUrl: pubspec.homepage,
@@ -1002,9 +1016,31 @@ class PackagePageData {
     );
   }();
 
+  /// The verified repository URL that can be used to resolve relative links.
+  /// TODO: migrate users of [repositoryBaseUrl] to use this instead.
+  late final _repositoryUrl = () {
+    final verifiedRepo = scoreCard?.panaReport?.result?.repository;
+    if (verifiedRepo != null) {
+      return urls.RepositoryUrl(
+        baseUrl: verifiedRepo.baseUrl,
+        branch: verifiedRepo.branch ?? 'master',
+        path: verifiedRepo.packagePath ?? '',
+      );
+    }
+    return null;
+  }();
+
   /// The inferred base URL that can be used to link files from.
-  /// TODO: migrate to use pana's RepositoryUrl
-  late final repositoryBaseUrl = packageLinks._baseUrl;
+  late final repositoryBaseUrl = () {
+    // Trying to use verfied repository first.
+    if (_repositoryUrl != null) {
+      return _repositoryUrl!.resolve('').toUrl();
+    }
+
+    // Falling back to use URLs from pubspec.yaml.
+    // TODO: Remove this and return `null` after repository verification is enabled for all packages.
+    return packageLinks._baseUrl;
+  }();
 
   PackageView toPackageView() {
     return _view ??= PackageView.fromModel(
