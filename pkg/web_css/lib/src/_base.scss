@@ -397,9 +397,10 @@ pre {
 
 span.-x-ago {
   cursor: pointer;
+  text-decoration: underline dotted #ccc;
 
   &:hover {
-    text-decoration: underline dotted #ccc;
+    text-decoration: underline #aaa;
   }
 }
 
