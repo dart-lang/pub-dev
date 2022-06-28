@@ -119,9 +119,10 @@ void _setEventForPreCodeCopyToClipboard() {
 void _setEventForXAgo() {
   document.querySelectorAll('span.-x-ago').forEach((e) {
     e.onClick.listen((_) {
-      final text = e.text;
+      final text = e.text!;
       e.text = e.getAttribute('title');
-      e.setAttribute('title', text!);
+      e.setAttribute('title', text);
+      e.setAttribute('aria-label', text);
     });
   });
 }

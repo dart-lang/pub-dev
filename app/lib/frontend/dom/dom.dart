@@ -97,7 +97,10 @@ Node xAgoTimestamp(DateTime timestamp, {String? datePrefix}) {
   ].join(' ');
   return span(
     classes: ['-x-ago'],
-    attributes: {'title': title},
+    attributes: {
+      'title': title,
+      'aria-label': title,
+    },
     text: formatXAgo(clock.now().difference(timestamp)),
   );
 }
