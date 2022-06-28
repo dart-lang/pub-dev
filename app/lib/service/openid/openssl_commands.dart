@@ -107,6 +107,11 @@ Future<Uint8List> signTextWithRsa({
 }
 
 /// Verifies if [signature] is valid for [input], using the RSA public key.
+///
+/// The [publicKey] is expected to be in DER-encoded ASN.1 binary format, following
+/// - https://datatracker.ietf.org/doc/html/rfc3447#appendix-A
+/// - https://datatracker.ietf.org/doc/html/rfc7468#section-4
+/// - https://datatracker.ietf.org/doc/html/rfc5280#section-4.1.2.7
 Future<bool> verifyTextWithRsaSignature({
   required String input,
   required List<int> signature,
