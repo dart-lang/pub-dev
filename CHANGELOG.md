@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bumped runtimeVersion to `2022.06.27`.
  * NOTE: Relaxed processing of Youtube Playlist API response.
  * NOTE: Store and use verified URL and repository results from pana.
+ * NOTE: Started to populate `PackageVersion.sha256` and serve it in API response.
 
 ## `20220623t124000-all`
  * Bumped runtimeVersion to `2022.06.23`.

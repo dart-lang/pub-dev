@@ -466,6 +466,10 @@ class PackageVersion extends db.ExpandoModel<String> {
 
   // Extracted data from the uploaded package.
 
+  /// The SHA-256 hash of the canonical archive file.
+  @db.BlobProperty(required: false)
+  List<int>? sha256;
+
   @PubspecProperty(required: true)
   Pubspec? pubspec;
 

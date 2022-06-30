@@ -196,6 +196,10 @@ class VersionInfo {
   @JsonKey(name: 'archive_url')
   final String? archiveUrl;
 
+  /// The SHA-256 hash of the canonical archive.
+  @JsonKey(name: 'archive_sha256')
+  final String? archiveSha256;
+
   /// This is an optional field of the API response, it may be `null` or omitted.
   final DateTime? published;
 
@@ -204,6 +208,7 @@ class VersionInfo {
     required this.retracted,
     required this.pubspec,
     required this.archiveUrl,
+    required this.archiveSha256,
     required this.published,
   });
 

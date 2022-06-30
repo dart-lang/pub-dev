@@ -10,6 +10,8 @@ import 'dart:io';
 import 'package:_pub_shared/data/account_api.dart' as account_api;
 import 'package:_pub_shared/data/package_api.dart' as api;
 import 'package:clock/clock.dart';
+import 'package:convert/convert.dart';
+import 'package:crypto/crypto.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
@@ -838,6 +840,9 @@ class PackageBackend {
           _incomingBucket.read(tmpObjectName(guid)), filename);
       _logger.info('Examining tarball content ($guid).');
       final sw = Stopwatch()..start();
+      final file = File(filename);
+      final fileBytes = await file.readAsBytes();
+      final sha256Hash = sha256.convert(fileBytes).bytes;
       final archive = await summarizePackageArchive(
         filename,
         maxContentLength: maxAssetContentLength,
@@ -874,8 +879,6 @@ class PackageBackend {
         // Actually fetch the archive bytes and do full comparison.
         final objectBytes =
             await _canonicalBucket.readAsBytes(canonicalArchivePath);
-        final file = File(filename);
-        final fileBytes = await file.readAsBytes();
         if (!fileBytes.byteToByteEquals(objectBytes)) {
           throw PackageRejectedException.versionExists(
               pubspec.name, versionString);
@@ -883,9 +886,11 @@ class PackageBackend {
       }
 
       sw.reset();
+      final entities = await _createUploadEntities(db, user, archive,
+          sha256Hash: sha256Hash);
       final version = await _performTarballUpload(
         user: user,
-        archive: archive,
+        entities: entities,
         guid: guid,
         hasCanonicalArchiveObject: canonicalArchiveInfo != null,
       );
@@ -963,12 +968,11 @@ class PackageBackend {
 
   Future<PackageVersion> _performTarballUpload({
     required User user,
-    required PackageSummary archive,
+    required _UploadEntities entities,
     required String guid,
     required bool hasCanonicalArchiveObject,
   }) async {
     final sw = Stopwatch()..start();
-    final entities = await _createUploadEntities(db, user, archive);
     final newVersion = entities.packageVersion;
     final currentDartSdk = await getDartSdkVersion();
 
@@ -1119,6 +1123,12 @@ class PackageBackend {
     }
     _logger.info('Post-upload tasks completed in ${sw.elapsed}.');
     return pv;
+  }
+
+  /// Read the archive bytes from the canonical bucket.
+  Future<List<int>> readArchiveBytes(String package, String version) async {
+    final objectName = tarballObjectName(package, version);
+    return await _canonicalBucket.readAsBytes(objectName);
   }
 
   // Uploaders support.
@@ -1328,6 +1338,8 @@ class PackageBackend {
 
 extension PackageVersionExt on PackageVersion {
   api.VersionInfo toApiVersionInfo() {
+    final hasSha256 = this.sha256 != null && this.sha256!.isNotEmpty;
+    final archiveSha256 = hasSha256 ? hex.encode(this.sha256!) : null;
     return api.VersionInfo(
       version: version!,
       retracted: isRetracted ? true : null,
@@ -1341,6 +1353,7 @@ extension PackageVersionExt on PackageVersion {
         /// content with the proper cached URLs.
         baseUri: activeConfiguration.primaryApiUri,
       ),
+      archiveSha256: archiveSha256,
       published: created,
     );
   }
@@ -1461,7 +1474,11 @@ class DerivedPackageVersionEntities {
 
 /// Creates entities from [archive] summary.
 Future<_UploadEntities> _createUploadEntities(
-    DatastoreDB db, User user, PackageSummary archive) async {
+  DatastoreDB db,
+  User user,
+  PackageSummary archive, {
+  required List<int> sha256Hash,
+}) async {
   final pubspec = Pubspec.fromYaml(archive.pubspecContent!);
   final packageKey = db.emptyKey.append(Package, id: pubspec.name);
   final versionString = canonicalizeVersion(pubspec.nonCanonicalVersion);
@@ -1475,6 +1492,7 @@ Future<_UploadEntities> _createUploadEntities(
     ..pubspec = pubspec
     ..libraries = archive.libraries
     ..uploader = user.userId
+    ..sha256 = sha256Hash
     ..isRetracted = false;
 
   final derived = derivePackageVersionEntities(
