@@ -122,6 +122,11 @@ class Package extends db.ExpandoModel<String> {
   @db.BoolProperty(required: true)
   bool isUnlisted = false;
 
+  /// Obsolete property that is not used anymore.
+  /// TODO: remove it after it no longer causes issues in package:gcloud deserialization
+  @db.BoolProperty(required: false)
+  bool? isWithheld = false;
+
   /// Set to `true` if package should not be displayed anywhere, because of
   /// pending moderation or deletion.
   @db.BoolProperty(required: true)
