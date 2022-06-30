@@ -23,7 +23,7 @@ List<int> encodeLength(int length) {
       length = length >> 8;
     }
     return <int>[
-      0x80 + bytesReversed.length,
+      0x80 & bytesReversed.length,
       ...bytesReversed.reversed,
     ];
   }
