@@ -227,7 +227,8 @@ class _NameTrackerUpdater {
       try {
         await _scan();
       } catch (e, st) {
-        _logger.severe(e, st);
+        _logger.severe('Failed to scan package names.', e, st);
+        await Future.delayed(Duration(minutes: 1));
         continue;
       }
       break;
@@ -244,7 +245,8 @@ class _NameTrackerUpdater {
       try {
         await _scan();
       } catch (e, st) {
-        _logger.severe(e, st);
+        _logger.severe('Failed to scan package names.', e, st);
+        await Future.delayed(Duration(minutes: 5));
       }
     }
 
