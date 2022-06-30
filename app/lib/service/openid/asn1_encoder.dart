@@ -64,6 +64,7 @@ List<int> encodeSequence(Iterable<List<int>> parts) {
   ];
 }
 
+/// A constant value that identifies the data structure as RSA public key.
 const _objectIdentifierRsa = <int>[
   0x06,
   0x09,
@@ -78,6 +79,7 @@ const _objectIdentifierRsa = <int>[
   0x01,
 ];
 
+/// A constant value used for `null` values.
 const _nullObject = <int>[0x05, 0x00];
 
 /// Encodes the RSA public key components.
