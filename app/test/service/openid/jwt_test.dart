@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pem/pem.dart';
+import 'package:convert/convert.dart';
 import 'package:pub_dev/service/openid/jwt.dart';
 import 'package:pub_dev/service/openid/openssl_commands.dart';
 import 'package:test/test.dart';
@@ -63,10 +63,28 @@ void main() {
       final isValid = await verifyTextWithRsaSignature(
         input: headerAndPayloadEncoded,
         signature: parsed.signature,
-        publicKey:
-            decodePemBlocks(PemLabel.publicKey, jwtIoPublicKeyPem).single,
+        publicKey: Asn1RsaPublicKey.parsePemString(jwtIoPublicKeyPem),
       );
       expect(isValid, isTrue);
+    });
+  });
+
+  group('ASN encoding', () {
+    test('known PEM encoding', () {
+      final reference = Asn1RsaPublicKey.parsePemString(jwtIoPublicKeyPem);
+      final n = hex.decode(
+          'bb5494d4b7d52cf1c2a333311f6328e2580e11e3f3366d2d46078b7b357a7df0'
+          '2dd20ba75532f0ee89cb467aead3f2335bbc9647b424ae604bee34ca127e6efa'
+          'a2a16f029f06cb48b3e6cc636664a75f209d3c4a2f1a12dad15ccc690f2cf822'
+          'cec92e7a63208519e259aa0b7327a191ddeaa86125bd6fd50cbe406964e0d272'
+          'd5923468f73fb8d11433b95684f00900166c59ce8c37c7e54960a763ca4909d2'
+          '24fdc024b40d14d7bb6ebd576eb855fff78efade75988a46483094bf71340c31'
+          '5c5834c7f5c5c34d3951655122476070a5938e904fd9d3f0559e16582fbd6865'
+          '5df86ca7d68d022de95fe2b1231a85db00012002a786531adc2256e35df6dc9b');
+      final e = hex.decode('010001');
+      final publicKey = Asn1RsaPublicKey(modulus: n, exponent: e);
+      expect(hex.encode(publicKey.asDerEncodedBytes),
+          hex.encode(reference.asDerEncodedBytes));
     });
   });
 }

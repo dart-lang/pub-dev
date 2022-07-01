@@ -3,11 +3,41 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
 import 'package:pem/pem.dart';
-import 'package:pub_dev/shared/utils.dart';
+
+import '../../shared/utils.dart';
+import 'asn1_encoder.dart' as asn1;
+
+/// Holds the DER-encoded bytes of an RSA public key.
+class Asn1RsaPublicKey {
+  final Uint8List asDerEncodedBytes;
+
+  Asn1RsaPublicKey.fromDerEncodedBytes(List<int> bytes)
+      : asDerEncodedBytes = Uint8List.fromList(bytes);
+
+  factory Asn1RsaPublicKey({
+    required List<int> modulus,
+    required List<int> exponent,
+  }) {
+    final bytes = asn1.encodeRsaPublicKey(modulus: modulus, exponent: exponent);
+    return Asn1RsaPublicKey.fromDerEncodedBytes(bytes);
+  }
+
+  /// Parses the PEM-encoded [input] (assuming it contains on a single key)
+  /// and returns the parsed public key.
+  factory Asn1RsaPublicKey.parsePemString(String input) {
+    return Asn1RsaPublicKey.fromDerEncodedBytes(
+        decodePemBlocks(PemLabel.publicKey, input).single);
+  }
+
+  /// The PEM-encoded textual format of the public key.
+  late final asPemString =
+      encodePemBlock(PemLabel.publicKey, asDerEncodedBytes);
+}
 
 /// Verifies if [signature] is valid for [input], using the RSA public key.
 ///
@@ -18,7 +48,7 @@ import 'package:pub_dev/shared/utils.dart';
 Future<bool> verifyTextWithRsaSignature({
   required String input,
   required List<int> signature,
-  required List<int> publicKey,
+  required Asn1RsaPublicKey publicKey,
 }) async {
   return await withTempDirectory((dir) async {
     final inputFile = File(p.join(dir.path, 'input.txt'));
@@ -26,8 +56,7 @@ Future<bool> verifyTextWithRsaSignature({
     final signatureFile = File(p.join(dir.path, 'input.sign'));
     await signatureFile.writeAsBytes(signature);
     final publicKeyFile = File(p.join(dir.path, 'public.pem'));
-    final publicPemContent = encodePemBlock(PemLabel.publicKey, publicKey);
-    await publicKeyFile.writeAsString(publicPemContent);
+    await publicKeyFile.writeAsString(publicKey.asPemString);
     final pr = await runProc(
       [
         'openssl',

@@ -10,12 +10,13 @@ import 'dart:typed_data';
 import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
 import 'package:pem/pem.dart';
+import 'package:pub_dev/service/openid/openssl_commands.dart';
 import 'package:pub_dev/shared/utils.dart';
 
 /// Randomly generated private and public RSA keypair.
 class RsaKeyPair {
   final Uint8List privateKey;
-  final Uint8List publicKey;
+  final Asn1RsaPublicKey publicKey;
 
   RsaKeyPair(this.privateKey, this.publicKey);
 }
@@ -65,7 +66,7 @@ Future<RsaKeyPair> generateRsaKeyPair({
         decodePemBlocks(PemLabel.publicKey, publicContent).single;
     return RsaKeyPair(
       Uint8List.fromList(privateKeyBytes),
-      Uint8List.fromList(publicKeyBytes),
+      Asn1RsaPublicKey.fromDerEncodedBytes(publicKeyBytes),
     );
   });
 }
