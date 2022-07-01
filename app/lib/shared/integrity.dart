@@ -5,6 +5,7 @@
 import 'dart:math' as math;
 
 import 'package:clock/clock.dart';
+import 'package:crypto/crypto.dart';
 import 'package:gcloud/storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
@@ -27,9 +28,10 @@ import 'env_config.dart';
 import 'storage.dart';
 import 'tags.dart' show allowedTagPrefixes;
 import 'urls.dart' as urls;
-import 'utils.dart' show canonicalizeVersion;
+import 'utils.dart' show canonicalizeVersion, ByteArrayEqualsExt;
 
 final _logger = Logger('integrity.check');
+final _random = math.Random.secure();
 
 /// Checks the integrity of the datastore.
 class IntegrityChecker {
@@ -482,6 +484,9 @@ class IntegrityChecker {
   }
 
   Stream<String> _checkPackageVersion(PackageVersion pv) async* {
+    final archiveDownloadUri = Uri.parse(urls.pkgArchiveDownloadUrl(
+        pv.package, pv.version!,
+        baseUri: activeConfiguration.primaryApiUri));
     _packagesWithVersion.add(pv.package);
 
     if (pv.uploader == null) {
@@ -523,11 +528,25 @@ class IntegrityChecker {
       }
 
       // Also issue a HTTP request.
-      final rs = await _httpClient.head(Uri.parse(urls.pkgArchiveDownloadUrl(
-          pv.package, pv.version!,
-          baseUri: activeConfiguration.primaryApiUri)));
+      final rs = await _httpClient.head(archiveDownloadUri);
       if (rs.statusCode != 200) {
         yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching archive file (HTTP status ${rs.statusCode}).';
+      }
+    }
+
+    // TODO: remove null check after the backfill should have filled the property.
+    final sha256Hash = pv.sha256;
+    if (sha256Hash != null && sha256Hash.isNotEmpty) {
+      if (sha256Hash.length != 32) {
+        yield 'PackageVersion "${pv.qualifiedVersionKey}" has invalid sha256.';
+      }
+      // Do not check every archive all the time, but select a few of the archives randomly.
+      if (_random.nextInt(1000) == 0) {
+        final bytes = (await _httpClient.get(archiveDownloadUri)).bodyBytes;
+        final hash = sha256.convert(bytes).bytes;
+        if (!hash.byteToByteEquals(sha256Hash)) {
+          yield 'PackageVersion "${pv.qualifiedVersionKey}" has sha256 hash missmatch.';
+        }
       }
     }
 

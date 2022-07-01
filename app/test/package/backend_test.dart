@@ -68,6 +68,9 @@ void main() {
         expect(pv, isNotNull);
         expect(pv.package, 'oxygen');
         expect(pv.version, p.latestVersion);
+        expect(pv.sha256, hasLength(32));
+        // making sure that we have at least one non-zero value in it
+        expect(pv.sha256, anyElement(greaterThan(0)));
       });
 
       testWithProfile('package does not exists', fn: () async {

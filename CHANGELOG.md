@@ -6,6 +6,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Dart analysis SDK to `2.17.5`.
  * NOTE: Relaxed processing of Youtube Playlist API response.
  * NOTE: Store and use verified URL and repository results from pana.
+ * NOTE: Started to populate `PackageVersion.sha256`.
 
 ## `20220623t124000-all`
  * Bumped runtimeVersion to `2022.06.23`.
