@@ -1016,29 +1016,9 @@ class PackagePageData {
     );
   }();
 
-  /// The verified repository URL that can be used to resolve relative links.
-  /// TODO: migrate users of [repositoryBaseUrl] to use this instead.
-  late final _repositoryUrl = () {
-    final verifiedRepo = scoreCard?.panaReport?.result?.repository;
-    if (verifiedRepo != null) {
-      return urls.RepositoryUrl(
-        baseUrl: verifiedRepo.baseUrl,
-        branch: verifiedRepo.branch ?? 'master',
-        path: verifiedRepo.packagePath ?? '',
-      );
-    }
-    return null;
-  }();
-
   /// The inferred base URL that can be used to link files from.
   late final repositoryBaseUrl = () {
-    // Trying to use verfied repository first.
-    if (_repositoryUrl != null) {
-      return _repositoryUrl!.resolve('').toUrl();
-    }
-
-    // Falling back to use URLs from pubspec.yaml.
-    // TODO: Remove this and return `null` after repository verification is enabled for all packages.
+    // TODO: use pana's verified repository instead
     return packageLinks._baseUrl;
   }();
 
