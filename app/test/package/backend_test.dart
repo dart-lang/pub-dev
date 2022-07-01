@@ -68,6 +68,9 @@ void main() {
         expect(pv, isNotNull);
         expect(pv.package, 'oxygen');
         expect(pv.version, p.latestVersion);
+        expect(pv.sha256, hasLength(32));
+        // making sure that we have at least one non-zero value in it
+        expect(pv.sha256, anyElement(greaterThan(0)));
       });
 
       testWithProfile('package does not exists', fn: () async {
@@ -330,7 +333,6 @@ void main() {
         final version = await packageBackend.lookupVersion('oxygen', '1.0.0');
         expect(version, isNotNull);
         expect(version.version, '1.0.0');
-        expect(version.archiveSha256, isNotEmpty);
       });
     });
 
@@ -350,12 +352,6 @@ void main() {
             pd.versions.map((v) => v.version), ['1.0.0', '1.2.0', '2.0.0-dev']);
         expect(pd.descendingVersions.map((v) => v.version),
             ['2.0.0-dev', '1.2.0', '1.0.0']);
-        // check hash differs
-        final hashes = pd.versions.map((e) => e.archiveSha256).toSet();
-        expect(hashes, hasLength(pd.versions.length));
-        for (final hash in hashes) {
-          expect(hash, hasLength(64));
-        }
       });
 
       testWithProfile('isDiscontinued', fn: () async {
