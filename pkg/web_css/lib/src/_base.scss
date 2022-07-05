@@ -395,13 +395,9 @@ pre {
   text-align: center;
 }
 
-span.-x-ago {
-  cursor: pointer;
+a.-x-ago {
+  color: $site-font-color;
   text-decoration: underline dotted #ccc;
-
-  &:hover {
-    text-decoration: underline #aaa;
-  }
 }
 
 .inline-icon-img {
