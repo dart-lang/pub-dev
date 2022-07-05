@@ -97,8 +97,9 @@ Node xAgoTimestamp(DateTime timestamp, {String? datePrefix}) {
   ].join(' ');
   return a(
     classes: ['-x-ago'],
+    href: '',
+    title: title,
     attributes: {
-      'title': title,
       'aria-label': 'Switch between date and elapsed time.',
       'aria-role': 'button',
     },
