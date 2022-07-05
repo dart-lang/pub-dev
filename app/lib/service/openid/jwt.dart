@@ -5,6 +5,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'openid_models.dart';
+
 final _jsonUtf8Base64 = json.fuse(utf8).fuse(base64Url);
 
 /// Pattern for a valid JWT, these must 3 base64 segments separated by dots.
@@ -31,11 +33,19 @@ final _jwtPattern = RegExp(
 ///
 /// [1]: https://datatracker.ietf.org/doc/html/rfc7519
 class JsonWebToken {
+  final String _originalHeaderPart;
   final Map<String, dynamic> header;
+  final String _originalPayloadPart;
   final Map<String, dynamic> payload;
   final Uint8List signature;
 
-  JsonWebToken(this.header, this.payload, this.signature);
+  JsonWebToken._(
+    this._originalHeaderPart,
+    this.header,
+    this._originalPayloadPart,
+    this.payload,
+    this.signature,
+  );
 
   /// Parses [token] and returns [JsonWebToken].
   ///
@@ -48,10 +58,16 @@ class JsonWebToken {
     if (parts.length != 3) {
       throw FormatException('Token does not looks like a JWT.');
     }
-    final header = _decodePart(parts[0]);
-    final payload = _decodePart(parts[1]);
+    final headerPart = parts[0];
+    final payloadPart = parts[1];
     final signature = base64.decode(base64.normalize(parts[2]));
-    return JsonWebToken(header, payload, signature);
+    return JsonWebToken._(
+      headerPart,
+      _decodePart(headerPart),
+      payloadPart,
+      _decodePart(payloadPart),
+      signature,
+    );
   }
 
   static JsonWebToken? tryParse(String token) {
@@ -67,17 +83,39 @@ class JsonWebToken {
     return _jwtPattern.hasMatch(token);
   }
 
+  /// Returns the concatenated parts that will be used for the signature check.
+  late final inputForSignature = '$_originalHeaderPart.$_originalPayloadPart';
+
   /// algorithm
   late final alg = header['alg'] as String?;
 
   /// type
   late final typ = header['typ'] as String?;
 
+  /// key identifier
+  late final kid = header['kid'] as String?;
+
   /// issued at
   late final iat = _tryParseFromSeconds(payload['iat'] as int?);
 
   /// expires
   late final exp = _tryParseFromSeconds(payload['exp'] as int?);
+
+  /// Verifies the token with the provided JSON Web Keys and
+  /// returns `true` if the signature is valid.
+  Future<bool> verifySignature(JsonWebKeyList jwks) async {
+    final candidates = jwks.selectKeyForSignature(kid: kid, alg: alg);
+    for (final key in candidates) {
+      final isValid = await key.verifySignature(
+        input: inputForSignature,
+        signature: signature,
+      );
+      if (isValid) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
 
 Map<String, dynamic> _decodePart(String part) {
