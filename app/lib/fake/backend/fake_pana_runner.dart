@@ -12,7 +12,6 @@ import 'package:pub_semver/pub_semver.dart';
 import '../../analyzer/pana_runner.dart';
 import '../../package/backend.dart';
 import '../../scorecard/backend.dart' show PackageStatus;
-import '../../shared/urls.dart' as urls;
 import '../../shared/versions.dart';
 
 /// Runs package analysis for all packages with fake pana runner.
@@ -70,7 +69,7 @@ class FakePanaRunner implements PanaRunner {
     final documentationUrl =
         fakeUrlCheck('pubspec.documentation', pubspec.documentation);
     final verifiedUrl =
-        urls.RepositoryUrl.tryParse(repositoryUrl ?? homepageUrl ?? '');
+        Repository.tryParseUrl(repositoryUrl ?? homepageUrl ?? '');
     final hasVerifiedRepository =
         verifiedUrl != null && hasher('verifiedRepository', max: 20) > 0;
     Repository? repository;
@@ -78,9 +77,11 @@ class FakePanaRunner implements PanaRunner {
       final verifiedRepositoryBranch = verifiedUrl.branch ??
           (hasher('verifiedRepository.branch', max: 5) > 0 ? 'main' : null);
       repository = Repository(
-        baseUrl: verifiedUrl.baseUrl,
+        provider: verifiedUrl.provider,
+        host: verifiedUrl.host,
+        repository: verifiedUrl.repository,
         branch: verifiedRepositoryBranch,
-        packagePath: verifiedUrl.path,
+        path: verifiedUrl.path,
       );
     }
 

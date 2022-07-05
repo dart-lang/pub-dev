@@ -2,9 +2,10 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bumped runtimeVersion to `2022.07.04`.
+ * Bumped runtimeVersion to `2022.07.05`.
  * Upgraded stable Dart analysis SDK to `2.17.5`.
  * Upgraded stable Flutter analysis SDK to `3.0.4`.
+ * Upgraded pana to `0.21.14`.
  * NOTE: Relaxed processing of Youtube Playlist API response.
  * NOTE: Store and use verified URL and repository results from pana.
  * NOTE: Started to populate `PackageVersion.sha256`.
