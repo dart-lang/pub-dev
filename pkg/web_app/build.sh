@@ -17,7 +17,7 @@ then
     rm "${STATIC_DIR}"/js/script.dart.js*
 fi
 
-dart2js \
+dart compile js \
   --csp \
   --dump-info \
   --minify \
