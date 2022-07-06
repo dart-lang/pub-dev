@@ -33,7 +33,7 @@ Future<void> _backfillPackageVersionSha256() async {
     final hash = sha256.convert(bytes).bytes;
     await withRetryTransaction(dbService, (tx) async {
       final v = await tx.lookupValue<PackageVersion>(pv.key);
-      if (v.sha256 != null && pv.sha256!.isNotEmpty) {
+      if (v.sha256 != null && v.sha256!.isNotEmpty) {
         skipped++;
         return;
       }
