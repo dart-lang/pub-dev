@@ -261,6 +261,7 @@ Future<PackageSummary> summarizePackageArchive(
   issues.addAll(syntaxCheckUrl(pubspec.documentation, 'documentation'));
   issues
       .addAll(syntaxCheckUrl(pubspec.issueTracker?.toString(), 'issueTracker'));
+  issues.addAll(validateEnvironmentKeys(pubspec));
   issues.addAll(validateDependencies(pubspec));
   issues.addAll(forbidGitDependencies(pubspec));
   // TODO: re-enable or remove after version pinning gets resolved
@@ -494,6 +495,28 @@ Iterable<ArchiveIssue> syntaxCheckUrl(String? url, String name) sync* {
       invalidHostNames.contains(uri.host)) {
     final titleCaseName = name[0].toUpperCase() + name.substring(1);
     yield ArchiveIssue('$titleCaseName URL has no valid host: $url');
+  }
+}
+
+const _knownEnvironmentKeys = <String>{
+  'sdk', // the Dart SDK
+  'flutter',
+  'fuchsia'
+};
+
+/// Validates that keys referenced in the `environment` section are
+/// known and valid, otherwise `pub` won't be able to use the package.
+Iterable<ArchiveIssue> validateEnvironmentKeys(Pubspec pubspec) sync* {
+  final keys = pubspec.environment?.keys;
+  if (keys == null) {
+    return;
+  }
+  for (final key in keys) {
+    if (_knownEnvironmentKeys.contains(key)) {
+      continue;
+    }
+    yield ArchiveIssue('Unknown `environment` key in `pubspec.yaml`: `$key`.\n'
+        'Please check https://dart.dev/tools/pub/pubspec#sdk-constraints');
   }
 }
 

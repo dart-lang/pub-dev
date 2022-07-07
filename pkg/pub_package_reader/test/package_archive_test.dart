@@ -205,6 +205,31 @@ void main() {
     });
   });
 
+  group('environment keys', () {
+    test('no keys', () {
+      final pubspec = Pubspec.parse('name: pkg');
+      expect(validateEnvironmentKeys(pubspec), isEmpty);
+    });
+
+    test('valid keys', () {
+      final pubspec = Pubspec.parse('''name: pkg
+environment:
+  sdk:
+  flutter:
+  fuchsia:
+''');
+      expect(validateEnvironmentKeys(pubspec), isEmpty);
+    });
+
+    test('unknown key', () {
+      final pubspec = Pubspec.parse('''name: pkg
+environment:
+  flutter_sdk:
+''');
+      expect(validateEnvironmentKeys(pubspec), isNotEmpty);
+    });
+  });
+
   group('author vs. authors', () {
     test('author is allowed', () {
       expect(checkAuthors('author: x'), isEmpty);
