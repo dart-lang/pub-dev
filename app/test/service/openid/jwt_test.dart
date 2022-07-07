@@ -164,7 +164,7 @@ void main() {
       expect(await token.verifySignature(jwks), isTrue);
     });
 
-    test('verifiction fail with bad signature', () async {
+    test('verification fail with bad signature', () async {
       final jwks = JsonWebKeyList.fromJson(jwksData);
       final token = JsonWebToken.parse(tokenData);
       token.signature[0] = 1;
