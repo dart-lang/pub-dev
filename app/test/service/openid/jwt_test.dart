@@ -4,6 +4,7 @@
 
 import 'package:convert/convert.dart';
 import 'package:pub_dev/service/openid/jwt.dart';
+import 'package:pub_dev/service/openid/openid_models.dart';
 import 'package:pub_dev/service/openid/openssl_commands.dart';
 import 'package:test/test.dart';
 
@@ -85,6 +86,95 @@ void main() {
       final publicKey = Asn1RsaPublicKey(modulus: n, exponent: e);
       expect(hex.encode(publicKey.asDerEncodedBytes),
           hex.encode(reference.asDerEncodedBytes));
+    });
+  });
+
+  group('JWK + JWT verification test', () {
+    // JWKS and JWT data is coming form the following article:
+    // https://medium.com/trabe/validate-jwt-tokens-using-jwks-in-java-214f7014b5cf
+    final jwksData = {
+      'keys': [
+        {
+          'use': 'sig',
+          'kty': 'RSA',
+          'kid': 'public:c424b67b-fe28-45d7-b015-f79da50b5b21',
+          'alg': 'RS256',
+          'n': 'sttddbg-_yjXzcFpbMJB1fIFam9lQBeXWbTqzJwbuFbspHMsRowa8FaPw44l2C'
+              '9Q42J3AdQD8CcNj2z7byCTSC5gaDAY30xvZoi5WDWkSjHblMPBUT2cDtw9bIZ6F'
+              'ocRp46KaKzeoVDv3a0EBg5cdAdrefawfZoruPZCLmyLqXZmBM8RbpYLChb-UFO2'
+              '5i7e4AoRJ2hNFYg0qM-hRZNwLliDfkafjnOgSu7_w0WDInNzbUuy26rb_yDNGEI'
+              'ylXHlt0BKcMoeO3sJEwS5EDAkXkvz_7zQ6lgDQ4OLihC4QDwkp7dV2iQxvd7D-X'
+              'EaSIahiqdHlqR8cUYOJANDVRIufAzzkyK8Shu_MXhVUW7hH3hNjlEh198bCWANH'
+              'csZWF2_V78Rl-UzCjsAFWtttf6FYpR9Kt-8ILM3aAYTAk3OwsvzSeqTtWLHp96Q'
+              'E8Bcm1AmZfPWzsd3PpLuSM_wfx4oxDWhdaKQ-HK1hCYLNv2Vity2uNC_tbGxOD9'
+              'syRujWKS6wFf2b3jFEudV0NUXQ_1Beu8Ir0jHzuA_0D22wgiaSJ9svfpJ7XyoD6'
+              'fxyHSyhpMsXIDLmnwOPKmD67MFQ7Bv_9H91KZmr34oeh6PVWEwb4wUAkDaCebo6'
+              'h0gdMoDfZTq9Gn5S-Aq0-_-fIfyN9qrrQ0E1Q_QDhvqXx8eQ1r9smM',
+          'e': 'AQAB',
+        },
+        {
+          'use': 'sig',
+          'kty': 'RSA',
+          'kid': 'public:9b9d0b47-b9ed-4ba6-9180-52fc5b161a3a',
+          'alg': 'RS256',
+          'n': '6f4qEUPMmYAyAQnGQOIx1UkIEVPPt1BnhDH70w3Gq6uYpm4hUyRFiM1oZ4_xB2'
+              '8gTmpR_SJZL31E_yZTLKPwKKsCDyF6YGhFtcyifhsLJc45GW4G4poX8Y34EIYlT'
+              '63G9vutwNwzistWZZqBm52e-bdUQ7zjmWUGpgkq1GQJZyPz2lvA2bThRqqj94w1'
+              'hqHSCXuAc90cN-Th0Ss1QhKesud7dIgaJQngjWWXdlPBqNYe1oCI04E3gcWdYRF'
+              'hKey1lkO0WG4VtQxcMADgCrhFVgicpdYyNVqim7Tf31Is_bcQcbFdmumwxWewT-'
+              'dC6ur3UAv1A97L567QCwlGDP5DAvH35NmL3w291tUd4q5Vlwz6gsRKqDhUSonIS'
+              'boWvvY2x_ndH1oE2hXYin4WL3SyCyp-De8d59C5UhC8KPTvA-3h_UfcPvz6DRDd'
+              'NrKyRdKmn9vQQpTP9jMtK7Tks8qKxK4D4pesUmjiNMsVCo8AwJ-9hMd7TXamE9C'
+              'ErfDR7jCQONUMetLnitiM7nazCPXkO5tAhJKzQm1o0HvCVptwaa7MksfViK5YPM'
+              'cCYc9bD1Uujo-782MXqAzdncu0nGKaJXnIsYB0-tFNiNXjuYFQ8KV5k5-Wnn0kg'
+              'a4CkCHlMU2umR19zFsFwFBdVngOYkCEG46KAgdGDqtj8t4d0GY8tcM',
+          'e': 'AQAB',
+        },
+      ],
+    };
+    final tokenData = 'eyJhbGciOiJSUzI1NiIsImtpZCI6InB1YmxpYzpjNDI0YjY3Yi1mZTI'
+        '4LTQ1ZDctYjAxNS1mNzlkYTUwYjViMjEiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOltdLCJjb'
+        'GllbnRfaWQiOiJteS1jbGllbnQiLCJleHAiOjE1Nzg1MTU3MzYsImV4dCI6e30sImlhdC'
+        'I6MTU3ODUxMjEzNiwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo0NDQ0LyIsImp0aSI6IjQ'
+        '1NzM4MmQyLTg0NGMtNDM4OS05YWI4LWRmOWRmMjM4ZTdmOSIsIm5iZiI6MTU3ODUxMjEz'
+        'Niwic2NwIjpbXSwic3ViIjoibXktY2xpZW50In0.pOkdoCm0dVRg6UECdzpaeTdFyia_n'
+        'mJVT1dTNcwVZx0FOFGBQK4EwUV7Ho-UJY3X-UZANSVYtqtjdBxj10AQfqNl3fGD7c4Zo6'
+        'A5g0ah0YsWXocLZ7EWgXP2yzgsqT1KhLpffVSFOBfSqRRSov5jjIBor4vMZQqcL00bFbK'
+        'VNqnaiWRA5_8vM-pbzBBkB8Ajkzec6Gvexc78CFVCvINlybKakM9GdMtQbI-ejz1PkE2J'
+        'H7PYEWdkOhkzjFgFnDLBMi0_Nqwm25qMT6ugGSix7gg4dYIaVsAzD2fgGrAvLRMhM2L7j'
+        'q8UN8vmUOd18s8X-cKRQSjgcVBDjPtQyregr_DpW_4LADORN7xGg6LGhnu2jK8CdTOC2Q'
+        '_QbDtrABRADSt_qpSRQrCjqWCS8NKx_QMJHMv33jDlLhG-gMJ_lsjOIQJks0zD6xuAbzk'
+        'yvr01UhhJ-iiL9kO1nk84-TSIV4PEQItBqDhZYigHeP3J_mnWlWCVj-kcPxQsa3OA8BQV'
+        'AZYMA6z-XEdUo1heOrYQJNzQlEo0Je3umDPfiKJdyfCIEwfHRS83XXp-827qYii3rBg1Q'
+        'fWEaJfdeHWKYbQ5QT1QGBNlFPfXNStXbr7ikRzYE3zfleuyTPcuG7jMkbai6DcAHdO1ya'
+        'Lpwe_UTY-wWF5Z-N9EXcisOVjUf8jqRuI';
+
+    test('verification success with good signature', () async {
+      final jwks = JsonWebKeyList.fromJson(jwksData);
+      final token = JsonWebToken.parse(tokenData);
+
+      // sanity checks
+      expect(token.header, {
+        'alg': 'RS256',
+        'kid': 'public:c424b67b-fe28-45d7-b015-f79da50b5b21',
+        'typ': 'JWT'
+      });
+      expect(jwks.keys.first.kid, token.header['kid']);
+      // actual verification
+      expect(await token.verifySignature(jwks), isTrue);
+    });
+
+    test('verification fail with bad signature', () async {
+      final jwks = JsonWebKeyList.fromJson(jwksData);
+      final token = JsonWebToken.parse(tokenData);
+      token.signature[0] = 1;
+      expect(await token.verifySignature(jwks), isFalse);
+    });
+
+    test('verification fail with bad key', () async {
+      final jwks = JsonWebKeyList(keys: []);
+      final token = JsonWebToken.parse(tokenData);
+      expect(await token.verifySignature(jwks), isFalse);
     });
   });
 }
