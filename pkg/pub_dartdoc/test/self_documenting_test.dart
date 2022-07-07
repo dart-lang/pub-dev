@@ -11,10 +11,10 @@ import 'package:test/test.dart';
 final _regenerateGoldens = false;
 
 void main() {
-  Directory tempDir;
+  Directory? tempDir;
 
   group('generate documentation on self', () {
-    ProcessResult pr;
+    ProcessResult? pr;
 
     setUpAll(() async {
       tempDir = await Directory.systemTemp.createTemp();
@@ -25,23 +25,23 @@ void main() {
         '--input',
         Directory.current.absolute.path,
         '--output',
-        tempDir.absolute.path,
+        tempDir!.absolute.path,
         '--sanitize-html',
       ]);
     });
 
     tearDownAll(() async {
       if (tempDir != null) {
-        await tempDir.delete(recursive: true);
+        await tempDir!.delete(recursive: true);
       }
     });
 
     test('successfull process', () {
-      expect(pr.exitCode, 0);
+      expect(pr!.exitCode, 0);
     });
 
     test('process uses reasonable memory', () {
-      final lines = pr.stdout.toString().split('\n');
+      final lines = pr!.stdout.toString().split('\n');
       final memUseStr = lines.reversed
           .firstWhere((line) => line.contains('Max memory use:'))
           .split(':')
@@ -61,11 +61,11 @@ void main() {
     });
 
     test('has content', () async {
-      final files = await tempDir
+      final files = await tempDir!
           .list(recursive: true)
           .where((fse) => fse is File)
           .cast<File>()
-          .map((file) => p.relative(file.path, from: tempDir.path))
+          .map((file) => p.relative(file.path, from: tempDir!.path))
           .toList();
       files.sort();
       expect(files, [
@@ -95,7 +95,7 @@ void main() {
       'document pub_dartdoc project',
       () async {
         final goldenFile = File('test/self-pub-data.json');
-        final dataFile = File('${tempDir.path}/pub-data.json');
+        final dataFile = File('${tempDir!.path}/pub-data.json');
         final fileContent = await dataFile.readAsString();
         final actualMap = json.decode(fileContent);
 
