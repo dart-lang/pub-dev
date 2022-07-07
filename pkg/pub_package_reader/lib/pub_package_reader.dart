@@ -515,7 +515,8 @@ Iterable<ArchiveIssue> validateEnvironmentKeys(Pubspec pubspec) sync* {
     if (_knownEnvironmentKeys.contains(key)) {
       continue;
     }
-    yield ArchiveIssue('Unknown `environment` key in `pubspec.yaml`: `$key`.');
+    yield ArchiveIssue('Unknown `environment` key in `pubspec.yaml`: `$key`.\n'
+        'Please check https://dart.dev/tools/pub/pubspec#sdk-constraints');
   }
 }
 
