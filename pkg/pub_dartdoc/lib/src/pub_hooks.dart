@@ -42,8 +42,8 @@ class PubResourceProvider implements ResourceProvider {
 
   PubResourceProvider(
     this._defaultProvider, {
-    int maxFileCount,
-    int maxTotalLengthBytes,
+    int? maxFileCount,
+    int? maxTotalLengthBytes,
   })  : _maxFileCount = maxFileCount ?? _defaultMaxFileCount,
         _maxTotalLengthBytes =
             maxTotalLengthBytes ?? _defaultMaxTotalLengthBytes;
@@ -73,7 +73,7 @@ class PubResourceProvider implements ResourceProvider {
   Resource getResource(String path) => _defaultProvider.getResource(path);
 
   @override
-  Folder getStateLocation(String pluginId) {
+  Folder? getStateLocation(String pluginId) {
     return _defaultProvider.getStateLocation(pluginId);
   }
 
@@ -93,7 +93,7 @@ class _File implements File {
   File copyTo(Folder parentFolder) => _delegate.copyTo(parentFolder);
 
   @override
-  Source createSource([Uri uri]) => _delegate.createSource(uri);
+  Source createSource([Uri? uri]) => _delegate.createSource(uri);
 
   @override
   void delete() => _delegate.delete();
@@ -163,20 +163,20 @@ class PubPackageMetaProvider implements PackageMetaProvider {
   PubPackageMetaProvider(this._delegate, this._resourceProvider);
 
   @override
-  DartSdk get defaultSdk => _delegate.defaultSdk;
+  DartSdk? get defaultSdk => _delegate.defaultSdk;
 
   @override
   Folder get defaultSdkDir => _delegate.defaultSdkDir;
 
   @override
-  PackageMeta fromDir(Folder dir) => _delegate.fromDir(dir);
+  PackageMeta? fromDir(Folder dir) => _delegate.fromDir(dir);
 
   @override
-  PackageMeta fromElement(LibraryElement library, String s) =>
+  PackageMeta? fromElement(LibraryElement library, String s) =>
       _delegate.fromElement(library, s);
 
   @override
-  PackageMeta fromFilename(String s) => _delegate.fromFilename(s);
+  PackageMeta? fromFilename(String s) => _delegate.fromFilename(s);
 
   @override
   ResourceProvider get resourceProvider => _resourceProvider;

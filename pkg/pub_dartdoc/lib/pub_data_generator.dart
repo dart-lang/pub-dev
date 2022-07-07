@@ -70,7 +70,12 @@ class PubDataGenerator {
     apiElements.sort((a, b) {
       if (a.parent == null && b.parent != null) return -1;
       if (a.parent != null && b.parent == null) return 1;
-      if (a.parent != b.parent) return a.parent.compareTo(b.parent);
+      if (a.parent != b.parent) {
+        // At this point neither parent can be null.
+        assert(a.parent != null);
+        assert(b.parent != null);
+        return a.parent!.compareTo(b.parent!);
+      }
       return a.name.compareTo(b.name);
     });
 
@@ -95,10 +100,10 @@ class PubDataGenerator {
 
   // Inherited member, should not show up in pub-data.json
   @override
-  String toString() => null;
+  String toString() => '';
 }
 
-String _trimToNull(String text) {
+String? _trimToNull(String? text) {
   text = text?.trim();
   return (text != null && text.isEmpty) ? null : text;
 }
@@ -110,8 +115,8 @@ Coverage _calculateCoverage(List<ApiElement> apiElements) {
   final documented = apiElements
       .where((elem) =>
           elem.documentation != null &&
-          elem.documentation.isNotEmpty &&
-          elem.documentation.trim().length >= 5)
+          elem.documentation!.isNotEmpty &&
+          elem.documentation!.trim().length >= 5)
       .length;
 
   return Coverage(total: total, documented: documented);
