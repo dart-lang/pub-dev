@@ -33,16 +33,21 @@ final _jwtPattern = RegExp(
 ///
 /// [1]: https://datatracker.ietf.org/doc/html/rfc7519
 class JsonWebToken {
-  final String _originalHeaderPart;
+  /// The concatenated parts that will be used for the signature check.
+  final String headerAndPayloadEncoded;
+
+  /// The decoded header Map.
   final Map<String, dynamic> header;
-  final String _originalPayloadPart;
+
+  /// The decoded payload Map.
   final Map<String, dynamic> payload;
+
+  /// The bytes of the signature hash.
   final Uint8List signature;
 
   JsonWebToken._(
-    this._originalHeaderPart,
+    this.headerAndPayloadEncoded,
     this.header,
-    this._originalPayloadPart,
     this.payload,
     this.signature,
   );
@@ -62,9 +67,8 @@ class JsonWebToken {
     final payloadPart = parts[1];
     final signature = base64.decode(base64.normalize(parts[2]));
     return JsonWebToken._(
-      headerPart,
+      '$headerPart.$payloadPart',
       _decodePart(headerPart),
-      payloadPart,
       _decodePart(payloadPart),
       signature,
     );
@@ -82,9 +86,6 @@ class JsonWebToken {
   static bool looksLikeJWT(String token) {
     return _jwtPattern.hasMatch(token);
   }
-
-  /// Returns the concatenated parts that will be used for the signature check.
-  late final inputForSignature = '$_originalHeaderPart.$_originalPayloadPart';
 
   /// algorithm
   late final alg = header['alg'] as String?;
@@ -107,7 +108,7 @@ class JsonWebToken {
     final candidates = jwks.selectKeyForSignature(kid: kid, alg: alg);
     for (final key in candidates) {
       final isValid = await key.verifySignature(
-        input: inputForSignature,
+        input: headerAndPayloadEncoded,
         signature: signature,
       );
       if (isValid) {
