@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:typed_data';
+
+import 'package:clock/clock.dart';
 
 import 'openid_models.dart';
 
@@ -37,10 +40,10 @@ class JsonWebToken {
   final String headerAndPayloadEncoded;
 
   /// The decoded header Map.
-  final Map<String, dynamic> header;
+  final JwtHeader header;
 
   /// The decoded payload Map.
-  final Map<String, dynamic> payload;
+  final JwtPayload payload;
 
   /// The bytes of the signature hash.
   final Uint8List signature;
@@ -68,8 +71,8 @@ class JsonWebToken {
     final signature = base64.decode(base64.normalize(parts[2]));
     return JsonWebToken._(
       '$headerPart.$payloadPart',
-      _decodePart(headerPart),
-      _decodePart(payloadPart),
+      JwtHeader(_decodePart(headerPart)),
+      JwtPayload(_decodePart(payloadPart)),
       signature,
     );
   }
@@ -87,25 +90,13 @@ class JsonWebToken {
     return _jwtPattern.hasMatch(token);
   }
 
-  /// algorithm
-  late final alg = header['alg'] as String?;
-
-  /// type
-  late final typ = header['typ'] as String?;
-
-  /// key identifier
-  late final kid = header['kid'] as String?;
-
-  /// issued at
-  late final iat = _tryParseFromSeconds(payload['iat'] as int?);
-
-  /// expires
-  late final exp = _tryParseFromSeconds(payload['exp'] as int?);
-
   /// Verifies the token with the provided JSON Web Keys and
   /// returns `true` if the signature is valid.
   Future<bool> verifySignature(JsonWebKeyList jwks) async {
-    final candidates = jwks.selectKeyForSignature(kid: kid, alg: alg);
+    final candidates = jwks.selectKeyForSignature(
+      kid: header.kid,
+      alg: header.alg,
+    );
     for (final key in candidates) {
       final isValid = await key.verifySignature(
         input: headerAndPayloadEncoded,
@@ -123,7 +114,179 @@ Map<String, dynamic> _decodePart(String part) {
   return _jsonUtf8Base64.decode(base64.normalize(part)) as Map<String, dynamic>;
 }
 
-DateTime? _tryParseFromSeconds(int? value) {
+DateTime? _parseSecondsIfNotNull(int? value) {
   if (value == null) return null;
-  return DateTime.fromMillisecondsSinceEpoch(value * 1000);
+  return DateTime.fromMillisecondsSinceEpoch(value * 1000, isUtc: true);
+}
+
+/// The parsed JWT header.
+class JwtHeader extends UnmodifiableMapView<String, dynamic> {
+  /// algorithm
+  final String? alg;
+
+  /// type
+  final String? typ;
+
+  /// key identifier
+  final String? kid;
+
+  JwtHeader._(super.map)
+      : alg = map['alg'] as String?,
+        typ = map['typ'] as String?,
+        kid = map['kid'] as String?;
+
+  factory JwtHeader(Map<String, dynamic> values) {
+    try {
+      return JwtHeader._(values);
+    } on FormatException {
+      rethrow;
+    } catch (_) {
+      throw FormatException('Unexpected value in JWT header.');
+    }
+  }
+}
+
+/// The parsed JWT payload.
+class JwtPayload extends UnmodifiableMapView<String, dynamic> {
+  /// timestamp when token was issued
+  final DateTime? iat;
+
+  /// timestamp before which the token is not valid
+  final DateTime? nbf;
+
+  /// timestamp at which the token expires
+  final DateTime? exp;
+
+  JwtPayload._(super.map)
+      : iat = _parseSecondsIfNotNull(map['iat'] as int?),
+        nbf = _parseSecondsIfNotNull(map['nbf'] as int?),
+        exp = _parseSecondsIfNotNull(map['exp'] as int?);
+
+  factory JwtPayload(Map<String, dynamic> map) {
+    try {
+      return JwtPayload._(map);
+    } on FormatException {
+      rethrow;
+    } catch (_) {
+      throw FormatException('Unexpected value in JWT payload.');
+    }
+  }
+
+  /// Returns the first key from [keys] which is missing or has `null` value.
+  ///
+  /// Returns `null` if all the [keys] are present with non-null values.
+  String? firstMissingKey(Iterable<String> keys) {
+    for (final key in keys) {
+      final value = this[key];
+      if (value == null) {
+        return key;
+      }
+    }
+    return null;
+  }
+
+  /// Verifies the timestamps with to the provided [now]:
+  /// - [iat] <= [now]
+  /// - [nbf] <= [now]
+  /// - [now] <= [exp]
+  bool verifyTimestamps([DateTime? now]) {
+    now ??= clock.now();
+    if (iat != null && iat!.isAfter(now)) {
+      return false;
+    }
+    if (nbf != null && nbf!.isAfter(now)) {
+      return false;
+    }
+    if (exp != null && exp!.isBefore(now)) {
+      return false;
+    }
+    return true;
+  }
+}
+
+/// Parsed payload with the payload values GitHub sends with the token.
+class GitHubJwtPayload extends JwtPayload {
+  /// timestamp when token was issued
+  @override
+  DateTime get iat => super.iat!;
+
+  /// timestamp before which the token is not valid
+  @override
+  DateTime get nbf => super.nbf!;
+
+  /// timestamp at which the token expires
+  @override
+  DateTime get exp => super.exp!;
+
+  /// user controllable URL identifying the intended audience
+  final String aud;
+
+  /// repository for which the action is running
+  final String repository;
+
+  /// owner of the repository
+  final String repositoryOwner;
+
+  /// name of the event that triggered the workflow
+  final String eventName;
+
+  /// git reference (e.g. branch name or tag name)
+  final String ref;
+
+  /// the kind of git reference given (e.g. "branch")
+  final String refType;
+
+  /// name of the environment used by the job
+  final String environment;
+
+  static const _keys = <String>[
+    'iat',
+    'nbf',
+    'exp',
+    'aud',
+    'repository',
+    'repository_owner',
+    'event_name',
+    'ref',
+    'ref_type',
+    'environment',
+  ];
+
+  GitHubJwtPayload._(Map<String, dynamic> map)
+      : aud = map['aud'] as String,
+        repository = map['repository'] as String,
+        repositoryOwner = map['repository_owner'] as String,
+        eventName = map['event_name'] as String,
+        ref = map['ref'] as String,
+        refType = map['ref_type'] as String,
+        environment = map['environment'] as String,
+        super._(map);
+
+  factory GitHubJwtPayload(JwtPayload payload) {
+    final missing = payload.firstMissingKey(_keys);
+    if (missing != null) {
+      throw FormatException('Missing key: `$missing`.');
+    }
+    return GitHubJwtPayload._(payload);
+  }
+
+  static GitHubJwtPayload? tryParse(JwtPayload payload) {
+    final missing = payload.firstMissingKey(_keys);
+    if (missing != null) {
+      return null;
+    }
+    try {
+      return GitHubJwtPayload(payload);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Verifies the GitHub token
+  bool verify() {
+    if (!verifyTimestamps()) {
+      return false;
+    }
+    return true;
+  }
 }
