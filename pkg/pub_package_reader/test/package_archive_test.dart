@@ -366,38 +366,6 @@ $dependencies
     });
   });
 
-  group('pre-release SDK dependency', () {
-    test('depends on a pre-release Dart SDK from a pre-release', () {
-      final pubspec = Pubspec.parse('''
-      name: test_pkg
-      version: 1.0.0-dev.1
-      environment:
-        sdk: ">=1.8.0-dev.1 <2.0.0"
-      ''');
-      expect(forbidPreReleaseSdk(pubspec).toList(), isEmpty);
-    });
-
-    test('depends on a pre-release sdk from a non-pre-release', () {
-      final pubspec = Pubspec.parse('''
-      name: test_pkg
-      version: 1.0.0
-      environment:
-        sdk: ">=1.8.0-dev.1 <2.0.0"
-      ''');
-      expect(forbidPreReleaseSdk(pubspec).toList(), isNotEmpty);
-    });
-
-    test('no lower bound, should not throw exception', () {
-      final pubspec = Pubspec.parse('''
-      name: test_pkg
-      version: 1.0.0-dev.1
-      environment:
-        sdk: "<2.0.0"
-      ''');
-      expect(forbidPreReleaseSdk(pubspec).toList(), isEmpty);
-    });
-  });
-
   group('real-world pubspec files', () {
     test('package:provider', () {
       final pubspec = Pubspec.parse('''

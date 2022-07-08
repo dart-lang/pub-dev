@@ -264,9 +264,6 @@ Future<PackageSummary> summarizePackageArchive(
   issues.addAll(validateEnvironmentKeys(pubspec));
   issues.addAll(validateDependencies(pubspec));
   issues.addAll(forbidGitDependencies(pubspec));
-  // TODO: re-enable or remove after version pinning gets resolved
-  //       https://github.com/dart-lang/pub/issues/2557
-  // issues.addAll(forbidPreReleaseSdk(pubspec));
   issues.addAll(requireIosFolderOrFlutter2_20(pubspec, tar.fileNames));
   issues.addAll(requireNonEmptyLicense(licensePath, licenseContent));
   issues.addAll(checkScreenshots(pubspec, tar.fileNames));
@@ -585,20 +582,6 @@ Iterable<ArchiveIssue> checkValidJson(String pubspecContent) sync* {
         'pubspec.yaml contains values that can\'t be converted to JSON.');
   } on Exception catch (e, st) {
     _logger.warning('Error while converting pubspec.yaml to JSON', e, st);
-  }
-}
-
-/// Validate that the package does not have a lower dependency on a pre-release
-/// Dart SDK, which is only allowed if the package itself is a pre-release.
-Iterable<ArchiveIssue> forbidPreReleaseSdk(Pubspec pubspec) sync* {
-  if (pubspec.version!.isPreRelease) return;
-  final sdkConstraint = pubspec.environment!['sdk'];
-  if (sdkConstraint is VersionRange) {
-    if (sdkConstraint.min != null && sdkConstraint.min!.isPreRelease) {
-      yield ArchiveIssue(
-          'Packages with an SDK constraint on a pre-release of the Dart SDK '
-          'should themselves be published as a pre-release version. ');
-    }
   }
 }
 
