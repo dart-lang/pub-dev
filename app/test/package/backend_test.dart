@@ -17,7 +17,6 @@ import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/exceptions.dart';
-import 'package:pub_dev/tool/utils/pub_api_client.dart';
 import 'package:test/test.dart';
 
 import '../shared/handlers_test_utils.dart';
@@ -130,27 +129,24 @@ void main() {
   group('backend.repository', () {
     group('api no longer supported', () {
       testWithProfile('uploader add', fn: () async {
-        await withHttpPubApiClient(fn: (client) async {
-          final rs = client.addUploader('oxygen');
-          await expectApiException(
-            rs,
-            status: 403,
-            code: 'OperationForbidden',
-            message: 'https://pub.dev/packages/oxygen/admin',
-          );
-        });
+        final rs = createPubApiClient().addUploader('oxygen');
+        await expectApiException(
+          rs,
+          status: 403,
+          code: 'OperationForbidden',
+          message: 'https://pub.dev/packages/oxygen/admin',
+        );
       });
 
       testWithProfile('uploader remove', fn: () async {
-        await withHttpPubApiClient(fn: (client) async {
-          final rs = client.removeUploader('oxygen', 'admin@pub.dev');
-          await expectApiException(
-            rs,
-            status: 403,
-            code: 'OperationForbidden',
-            message: 'https://pub.dev/packages/oxygen/admin',
-          );
-        });
+        final rs =
+            createPubApiClient().removeUploader('oxygen', 'admin@pub.dev');
+        await expectApiException(
+          rs,
+          status: 403,
+          code: 'OperationForbidden',
+          message: 'https://pub.dev/packages/oxygen/admin',
+        );
       });
     });
 

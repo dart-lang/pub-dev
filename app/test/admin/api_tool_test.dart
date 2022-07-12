@@ -6,7 +6,6 @@ import 'dart:convert';
 
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/package/backend.dart';
-import 'package:pub_dev/tool/utils/pub_api_client.dart';
 import 'package:test/test.dart';
 
 import '../shared/test_models.dart';
@@ -21,14 +20,10 @@ void main() {
       );
 
       testWithProfile('auth with bad tool', fn: () async {
-        await withHttpPubApiClient(
-          bearerToken: siteAdminToken,
-          fn: (client) async {
-            final rs = await client.adminExecuteTool('no-such-tool', '');
-            final bodyText = utf8.decode(rs);
-            expect(bodyText, contains('Available admin tools:'));
-          },
-        );
+        final rs = await createPubApiClient(authToken: siteAdminToken)
+            .adminExecuteTool('no-such-tool', '');
+        final bodyText = utf8.decode(rs);
+        expect(bodyText, contains('Available admin tools:'));
       });
     });
 
@@ -39,34 +34,24 @@ void main() {
       );
 
       testWithProfile('help', fn: () async {
-        await withHttpPubApiClient(
-          bearerToken: siteAdminToken,
-          fn: (client) async {
-            final rs = await client.adminExecuteTool('user-merger', '--help');
-            final bodyText = utf8.decode(rs);
-            expect(bodyText, contains('Usage:'));
-          },
-        );
+        final rs = await createPubApiClient(authToken: siteAdminToken)
+            .adminExecuteTool('user-merger', '--help');
+        final bodyText = utf8.decode(rs);
+        expect(bodyText, contains('Usage:'));
       });
 
       testWithProfile('merge all, but no problems detected', fn: () async {
-        await withHttpPubApiClient(
-          bearerToken: siteAdminToken,
-          fn: (client) async {
-            final rs = await client.adminExecuteTool('user-merger', '');
-            final bodyText = utf8.decode(rs);
-            expect(bodyText, 'Fixed 0 `User` entities.');
-          },
-        );
+        final rs = await createPubApiClient(authToken: siteAdminToken)
+            .adminExecuteTool('user-merger', '');
+        final bodyText = utf8.decode(rs);
+        expect(bodyText, 'Fixed 0 `User` entities.');
       });
 
       testWithProfile('merge two user ids', fn: () async {
         final admin = await accountBackend.lookupUserByEmail('admin@pub.dev');
         final user = await accountBackend.lookupUserByEmail('user@pub.dev');
-        await withHttpPubApiClient(
-          bearerToken: siteAdminToken,
-          fn: (client) async {
-            final rs = await client.adminExecuteTool(
+        final rs = await createPubApiClient(authToken: siteAdminToken)
+            .adminExecuteTool(
                 'user-merger',
                 Uri(pathSegments: [
                   '--from-user-id',
@@ -74,13 +59,11 @@ void main() {
                   '--to-user-id',
                   user.userId,
                 ]).toString());
-            final bodyText = utf8.decode(rs);
-            expect(bodyText, 'Merged `${admin.userId}` into `${user.userId}`.');
+        final bodyText = utf8.decode(rs);
+        expect(bodyText, 'Merged `${admin.userId}` into `${user.userId}`.');
 
-            final p = await packageBackend.lookupPackage('oxygen');
-            expect(p!.uploaders, [user.userId]);
-          },
-        );
+        final p = await packageBackend.lookupPackage('oxygen');
+        expect(p!.uploaders, [user.userId]);
       });
     });
   });

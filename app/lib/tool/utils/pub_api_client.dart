@@ -10,12 +10,11 @@ import '../../shared/configuration.dart';
 
 import 'http.dart';
 
-/// Creates an API client to the configured endpoint with [authToken].
-/// The client will be closed when the current scope is exited.
+/// Creates an API client with [authToken] that uses the configured HTTP endpoints.
 ///
-/// TODO: migrate callers to use [withHttpPubApiClient] instead.
+/// Services scopes are used to automatically close the client once we exit the current scope.
 @visibleForTesting
-PubApiClient createLocalPubApiClient({String? authToken}) {
+PubApiClient createPubApiClient({String? authToken}) {
   final httpClient =
       httpClientWithAuthorization(tokenProvider: () async => authToken);
   registerScopeExitCallback(() async => httpClient.close());

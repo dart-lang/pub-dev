@@ -21,7 +21,6 @@ import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/shared/exceptions.dart';
-import 'package:pub_dev/tool/utils/pub_api_client.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
@@ -528,12 +527,12 @@ void main() {
           final consentRow = await dbService.query<Consent>().run().single;
           expect(consentRow.args, ['oxygen', 'is-from-admin-user']);
 
-          await withHttpPubApiClient(
-              bearerToken: createFakeAuthTokenForEmail('someuser@pub.dev'),
-              fn: (c) async {
-                await c.resolveConsent(consentRow.consentId,
-                    account_api.ConsentResult(granted: true));
-              });
+          await createPubApiClient(
+            authToken: createFakeAuthTokenForEmail('someuser@pub.dev'),
+          ).resolveConsent(
+            consentRow.consentId,
+            account_api.ConsentResult(granted: true),
+          );
 
           final records2 = await auditBackend.listRecordsForPackage('oxygen');
           final acceptedAuditRecord = records2.records.firstWhere(

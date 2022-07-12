@@ -9,7 +9,6 @@ import 'package:pub_dev/account/consent_backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
-import 'package:pub_dev/tool/utils/pub_api_client.dart';
 import 'package:test/test.dart';
 
 import '../shared/test_models.dart';
@@ -48,13 +47,10 @@ void main() {
 
     testWithProfile('Uploader invite accepted', fn: () async {
       final consentId = await inviteUploader();
-      await withHttpPubApiClient(
-          bearerToken: userAtPubDevAuthToken,
-          fn: (client) async {
-            final rs = await client.resolveConsent(
-                consentId!, account_api.ConsentResult(granted: true));
-            expect(rs.granted, true);
-          });
+      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+      final rs = await client.resolveConsent(
+          consentId!, account_api.ConsentResult(granted: true));
+      expect(rs.granted, true);
 
       final page = await auditBackend.listRecordsForPackage('oxygen');
       final r = page.records.firstWhere(
@@ -65,14 +61,10 @@ void main() {
 
     testWithProfile('Uploader invite rejected', fn: () async {
       final consentId = await inviteUploader();
-
-      await withHttpPubApiClient(
-          bearerToken: userAtPubDevAuthToken,
-          fn: (client) async {
-            final rs = await client.resolveConsent(
-                consentId!, account_api.ConsentResult(granted: false));
-            expect(rs.granted, false);
-          });
+      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+      final rs = await client.resolveConsent(
+          consentId!, account_api.ConsentResult(granted: false));
+      expect(rs.granted, false);
 
       final page = await auditBackend.listRecordsForPackage('oxygen');
       final r = page.records.firstWhere(
@@ -124,13 +116,10 @@ void main() {
     testWithProfile('Publisher contact accepted', fn: () async {
       final consentId = await inviteContact();
 
-      await withHttpPubApiClient(
-          bearerToken: userAtPubDevAuthToken,
-          fn: (client) async {
-            final rs = await client.resolveConsent(
-                consentId!, account_api.ConsentResult(granted: true));
-            expect(rs.granted, true);
-          });
+      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+      final rs = await client.resolveConsent(
+          consentId!, account_api.ConsentResult(granted: true));
+      expect(rs.granted, true);
 
       final page = await auditBackend.listRecordsForPublisher('example.com');
       final r = page.records.firstWhere(
@@ -142,13 +131,10 @@ void main() {
     testWithProfile('Publisher contact rejected', fn: () async {
       final consentId = await inviteContact();
 
-      await withHttpPubApiClient(
-          bearerToken: userAtPubDevAuthToken,
-          fn: (client) async {
-            final rs = await client.resolveConsent(
-                consentId!, account_api.ConsentResult(granted: false));
-            expect(rs.granted, false);
-          });
+      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+      final rs = await client.resolveConsent(
+          consentId!, account_api.ConsentResult(granted: false));
+      expect(rs.granted, false);
 
       final page = await auditBackend.listRecordsForPublisher('example.com');
       final r = page.records.firstWhere(
@@ -202,13 +188,10 @@ void main() {
     testWithProfile('Publisher member accepted', fn: () async {
       final consentId = await inviteMember();
 
-      await withHttpPubApiClient(
-          bearerToken: userAtPubDevAuthToken,
-          fn: (client) async {
-            final rs = await client.resolveConsent(
-                consentId!, account_api.ConsentResult(granted: true));
-            expect(rs.granted, true);
-          });
+      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+      final rs = await client.resolveConsent(
+          consentId!, account_api.ConsentResult(granted: true));
+      expect(rs.granted, true);
 
       final page = await auditBackend.listRecordsForPublisher('example.com');
       final r = page.records.firstWhere(
@@ -220,13 +203,10 @@ void main() {
     testWithProfile('Publisher member rejected', fn: () async {
       final consentId = await inviteMember();
 
-      await withHttpPubApiClient(
-          bearerToken: userAtPubDevAuthToken,
-          fn: (client) async {
-            final rs = await client.resolveConsent(
-                consentId!, account_api.ConsentResult(granted: false));
-            expect(rs.granted, false);
-          });
+      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+      final rs = await client.resolveConsent(
+          consentId!, account_api.ConsentResult(granted: false));
+      expect(rs.granted, false);
 
       final page = await auditBackend.listRecordsForPublisher('example.com');
       final r = page.records.firstWhere(
