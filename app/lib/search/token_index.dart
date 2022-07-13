@@ -13,7 +13,7 @@ class Score {
   final Map<String, double> _values;
 
   Score(this._values);
-  Score.empty() : _values = <String, double>{};
+  Score.empty() : _values = const <String, double>{};
 
   late final bool isEmpty = _values.isEmpty;
   late final bool isNotEmpty = !isEmpty;
@@ -28,24 +28,30 @@ class Score {
   double operator [](String key) => _values[key] ?? 0.0;
 
   /// Calculates the intersection of the [scores], by multiplying the values.
-  static Score multiply(Iterable<Score> scores) {
-    var values = <String, double>{};
-    var index = 0;
-    for (final score in scores) {
-      if (index > 0 && values.isEmpty) {
-        return Score(values);
+  static Score multiply(List<Score> scores) {
+    if (scores.isEmpty) {
+      return Score.empty();
+    }
+    if (scores.any((score) => score.isEmpty)) {
+      return Score.empty();
+    }
+    if (scores.length == 1) {
+      return scores.single;
+    }
+    var keys = scores.first.getValues().keys.toSet();
+    for (var i = 1; i < scores.length; i++) {
+      keys = keys.intersection(scores[i].getValues().keys.toSet());
+    }
+    if (keys.isEmpty) {
+      return Score.empty();
+    }
+    final values = <String, double>{};
+    for (final key in keys) {
+      var value = scores.first.getValues()[key]!;
+      for (var i = 1; i < scores.length; i++) {
+        value *= scores[i].getValues()[key]!;
       }
-      if (index == 0) {
-        values = score.getValues();
-      } else {
-        final keys = score.getKeys().intersection(values.keys.toSet());
-        if (keys.isEmpty) {
-          return Score.empty();
-        }
-        values = Map.fromIterable(keys,
-            value: (key) => values[key]! * score.getValues()[key]!);
-      }
-      index++;
+      values[key] = value;
     }
     return Score(values);
   }
@@ -53,11 +59,26 @@ class Score {
   /// Calculates the union of the [scores], by using the maximum values from
   /// the sets.
   static Score max(List<Score> scores) {
+    // remove empty scores
+    scores.removeWhere((s) => s.isEmpty);
+
+    if (scores.isEmpty) {
+      return Score.empty();
+    }
+    if (scores.length == 1) {
+      return scores.single;
+    }
+    final keys = scores.expand((e) => e.getValues().keys).toSet();
     final result = <String, double>{};
-    for (Score score in scores) {
-      for (String key in score.getKeys()) {
-        result[key] = math.max(result[key] ?? 0.0, score[key]);
+    for (final key in keys) {
+      var value = 0.0;
+      for (var i = 0; i < scores.length; i++) {
+        final v = scores[i].getValues()[key];
+        if (v != null) {
+          value = math.max(value, v);
+        }
       }
+      result[key] = value;
     }
     return Score(result);
   }
@@ -280,6 +301,6 @@ class TokenIndex {
         limitToIds: limitToIds,
       );
       return Score(values);
-    }));
+    }).toList());
   }
 }

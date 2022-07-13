@@ -34,6 +34,11 @@ class InMemoryPackageIndex implements PackageIndex {
   final _likeTracker = _LikeTracker();
   final _updatedPackages = ListQueue<String>();
   final bool _alwaysUpdateLikeScores;
+  late final _createdOrderedHitCache = _OrderedHitCache(
+      () => _rankWithComparator(_packages.keys.toSet(), _compareCreated));
+  late final _updatedOrderedHitCache = _OrderedHitCache(
+      () => _rankWithComparator(_packages.keys.toSet(), _compareUpdated));
+
   DateTime? _lastUpdated;
   bool _isReady = false;
 
@@ -105,6 +110,7 @@ class InMemoryPackageIndex implements PackageIndex {
     await Future.delayed(Duration.zero);
     _lastUpdated = clock.now().toUtc();
     _trackUpdated(doc.package);
+    _invalidateHitCaches();
   }
 
   @override
@@ -130,6 +136,7 @@ class InMemoryPackageIndex implements PackageIndex {
     _likeTracker.removePackage(doc.package);
     _lastUpdated = clock.now().toUtc();
     _trackUpdated('-$package');
+    _invalidateHitCaches();
   }
 
   @override
@@ -234,10 +241,10 @@ class InMemoryPackageIndex implements PackageIndex {
         packageHits = _rankWithValues(score.getValues());
         break;
       case SearchOrder.created:
-        packageHits = _rankWithComparator(packages, _compareCreated);
+        packageHits = _createdOrderedHitCache.whereInSet(packages);
         break;
       case SearchOrder.updated:
-        packageHits = _rankWithComparator(packages, _compareUpdated);
+        packageHits = _updatedOrderedHitCache.whereInSet(packages);
         break;
       case SearchOrder.popularity:
         packageHits = _rankWithValues(getPopularityScore(packages));
@@ -474,6 +481,11 @@ class InMemoryPackageIndex implements PackageIndex {
   String _apiDocPath(String id) {
     return id.split('::').last;
   }
+
+  void _invalidateHitCaches() {
+    _createdOrderedHitCache.invalide();
+    _updatedOrderedHitCache.invalide();
+  }
 }
 
 class _TextResults {
@@ -658,5 +670,37 @@ class _LikeTracker {
     _changed = false;
     _lastUpdated = clock.now();
     _logger.info('Updated like scores in ${sw.elapsed} (${entries.length})');
+  }
+}
+
+class _OrderedHitCache {
+  final List<PackageHit> Function() _updater;
+  bool _expired = true;
+  DateTime _lastUpdated = clock.now();
+  List<PackageHit>? _values;
+
+  _OrderedHitCache(this._updater);
+
+  void invalide() {
+    _expired = true;
+  }
+
+  List<PackageHit> getOrUpdate() {
+    if (_expired ||
+        _values == null ||
+        clock.now().difference(_lastUpdated) > const Duration(hours: 1)) {
+      _expired = false;
+      _lastUpdated = clock.now();
+      _values = _updater();
+    }
+    return _values!;
+  }
+
+  List<PackageHit> where(bool Function(PackageHit hit) fn) {
+    return getOrUpdate().where(fn).toList();
+  }
+
+  List<PackageHit> whereInSet(Set<String> packages) {
+    return where((hit) => packages.contains(hit.package));
   }
 }
