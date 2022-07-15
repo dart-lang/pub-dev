@@ -58,8 +58,6 @@ void main() {
       });
       expect(parsed.payload.iat!.year, 2018);
       expect(parsed.payload.exp, isNull);
-      expect(parsed.payload.firstMissingKey(['sub', 'name']), isNull);
-      expect(parsed.payload.firstMissingKey(['iat', 'exp', 'x']), 'exp');
       expect(parsed.payload.verifyTimestamps(clock.now()), isTrue);
       expect(parsed.payload.verifyTimestamps(DateTime(2017)), isFalse);
       expect(parsed.signature, hasLength(256));

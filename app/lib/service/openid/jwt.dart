@@ -172,19 +172,6 @@ class JwtPayload extends UnmodifiableMapView<String, dynamic> {
     }
   }
 
-  /// Returns the first key from [keys] which is missing or has `null` value.
-  ///
-  /// Returns `null` if all the [keys] are present with non-null values.
-  String? firstMissingKey(Iterable<String> keys) {
-    for (final key in keys) {
-      final value = this[key];
-      if (value == null) {
-        return key;
-      }
-    }
-    return null;
-  }
-
   /// Verifies the timestamps with to the provided [now]:
   /// - [iat] <= [now]
   /// - [nbf] <= [now]
@@ -272,10 +259,6 @@ class GitHubJwtPayload extends JwtPayload {
   }
 
   static GitHubJwtPayload? tryParse(JwtPayload payload) {
-    final missing = payload.firstMissingKey(_requiredClaims);
-    if (missing != null) {
-      return null;
-    }
     try {
       return GitHubJwtPayload(payload);
     } catch (_) {
