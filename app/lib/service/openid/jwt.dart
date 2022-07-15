@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 
 import 'openid_models.dart';
 
@@ -239,7 +239,7 @@ class GitHubJwtPayload extends JwtPayload {
   /// name of the environment used by the job
   final String environment;
 
-  static const _keys = <String>[
+  static const _requiredClaims = <String>{
     'iat',
     'nbf',
     'exp',
@@ -250,7 +250,7 @@ class GitHubJwtPayload extends JwtPayload {
     'ref',
     'ref_type',
     'environment',
-  ];
+  };
 
   GitHubJwtPayload._(Map<String, dynamic> map)
       : aud = map['aud'] as String,
@@ -263,7 +263,7 @@ class GitHubJwtPayload extends JwtPayload {
         super._(map);
 
   factory GitHubJwtPayload(JwtPayload payload) {
-    final missing = _keys.difference({...payload.keys}).sorted();
+    final missing = _requiredClaims.difference(payload.keys.toSet()).sorted();
     if (missing.isNotEmpty) {
       throw FormatException(
           'JWT from Github is missing following claims: ${missing.map((k) => '`$k`').join(', ')}.');
@@ -272,7 +272,7 @@ class GitHubJwtPayload extends JwtPayload {
   }
 
   static GitHubJwtPayload? tryParse(JwtPayload payload) {
-    final missing = payload.firstMissingKey(_keys);
+    final missing = payload.firstMissingKey(_requiredClaims);
     if (missing != null) {
       return null;
     }
