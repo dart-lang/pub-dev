@@ -265,7 +265,8 @@ class GitHubJwtPayload extends JwtPayload {
   factory GitHubJwtPayload(JwtPayload payload) {
     final missing = _keys.difference({...payload.keys}).sorted();
     if (missing.isNotEmpty) {
-      throw FormatException('JWT from Github is missing following claims: ${missing.map((k) => '`$k`').join(', ')}.');
+      throw FormatException(
+          'JWT from Github is missing following claims: ${missing.map((k) => '`$k`').join(', ')}.');
     }
     return GitHubJwtPayload._(payload);
   }
