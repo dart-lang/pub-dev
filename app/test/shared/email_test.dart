@@ -168,7 +168,7 @@ void main() {
       final message = createPackageUploadedEmail(
         packageName: 'pkg_foo',
         packageVersion: '1.0.0',
-        uploaderEmail: 'uploader@example.com',
+        formattedId: 'uploader@example.com',
         authorizedUploaders: [
           EmailAddress('Joe', 'joe@example.com'),
           EmailAddress(null, 'uploader@example.com')

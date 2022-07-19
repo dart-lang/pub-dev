@@ -135,7 +135,7 @@ String reflowBodyText(String input, {int lineLength = 72}) {
 EmailMessage createPackageUploadedEmail({
   required String packageName,
   required String packageVersion,
-  required String uploaderEmail,
+  required String formattedId,
   required List<EmailAddress> authorizedUploaders,
 }) {
   final url =
@@ -143,7 +143,7 @@ EmailMessage createPackageUploadedEmail({
   final subject = 'Package uploaded: $packageName $packageVersion';
   final bodyText = '''Dear package maintainer,  
 
-$uploaderEmail has published a new version ($packageVersion) of the $packageName package to the Dart package site ($primaryHost).
+$formattedId has published a new version ($packageVersion) of the $packageName package to the Dart package site ($primaryHost).
 
 For details, go to $url
 

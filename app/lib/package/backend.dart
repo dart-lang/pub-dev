@@ -550,7 +550,18 @@ class PackageBackend {
   /// publisher admin).
   ///
   /// Returns false if the user is not an admin.
-  Future<bool> isPackageAdmin(Package p, String? userId) async {
+  Future<bool> isPackageAdmin(
+    Package p,
+    String? userId, {
+    AuthenticatedAgent? agent,
+  }) async {
+    if (agent is AuthenticatedGithubAction) {
+      // TODO: check if the JWT token matches the automated publishing settings on the package.
+      return false;
+    }
+    if (agent is AuthenticatedUser) {
+      userId ??= agent.user.userId;
+    }
     if (userId == null) {
       return false;
     }
@@ -821,7 +832,7 @@ class PackageBackend {
     if (restriction == UploadRestrictionStatus.noUploads) {
       throw PackageRejectedException.uploadRestricted();
     }
-    final user = await requireAuthenticatedUser(source: AuthSource.client);
+    final agent = await requireAuthenticatedAgent(source: AuthSource.client);
     _logger.info('Finishing async upload (uuid: $guid)');
     _logger.info('Reading tarball from cloud storage.');
 
@@ -854,7 +865,10 @@ class PackageBackend {
       }
 
       final pubspec = Pubspec.fromYaml(archive.pubspecContent!);
-      await _verifyPackageName(name: pubspec.name, user: user);
+      await _verifyPackageName(
+        name: pubspec.name,
+        agent: agent,
+      );
 
       // Check if new packages are allowed to be uploaded.
       if (restriction == UploadRestrictionStatus.onlyUpdates &&
@@ -885,11 +899,12 @@ class PackageBackend {
       }
 
       sw.reset();
-      final entities = await _createUploadEntities(db, user, archive,
+      final entities = await _createUploadEntities(db, agent, archive,
           sha256Hash: sha256Hash);
       final version = await _performTarballUpload(
-        user: user,
         entities: entities,
+        agent: agent,
+        archive: archive,
         guid: guid,
         hasCanonicalArchiveObject: canonicalArchiveInfo != null,
       );
@@ -912,7 +927,7 @@ class PackageBackend {
   ///   not authorized to claim such package names.
   Future<void> _verifyPackageName({
     required String name,
-    required User user,
+    required AuthenticatedAgent agent,
   }) async {
     final conflictingName = await nameTracker.accept(name);
     if (conflictingName != null) {
@@ -937,9 +952,11 @@ class PackageBackend {
       }
 
       // reserved package names for the Dart team
-      if (matchesReservedPackageName(name) &&
-          !user.email!.endsWith('@google.com')) {
-        throw PackageRejectedException.nameReserved(name);
+      if (matchesReservedPackageName(name)) {
+        if (agent is! AuthenticatedUser ||
+            !agent.user.email!.endsWith('@google.com')) {
+          throw PackageRejectedException.nameReserved(name);
+        }
       }
     }
   }
@@ -966,8 +983,9 @@ class PackageBackend {
   }
 
   Future<PackageVersion> _performTarballUpload({
-    required User user,
     required _UploadEntities entities,
+    required AuthenticatedAgent agent,
+    required PackageSummary archive,
     required String guid,
     required bool hasCanonicalArchiveObject,
   }) async {
@@ -1002,11 +1020,18 @@ class PackageBackend {
       if (package == null) {
         _logger.info('New package uploaded. [new-package-uploaded]');
         package = Package.fromVersion(newVersion);
-      } else if (!await packageBackend.isPackageAdmin(package!, user.userId)) {
-        _logger.info('User ${user.userId} (${user.email}) is not an uploader '
-            'for package ${package!.name}, rolling transaction back.');
-        throw AuthorizationException.userCannotUploadNewVersion(
-            user.email!, package!.name!);
+      } else {
+        final isAdmin = await packageBackend.isPackageAdmin(
+          package!,
+          agent is AuthenticatedUser ? agent.user.userId : null,
+          agent: agent,
+        );
+        if (!isAdmin) {
+          _logger.info('User ${agent.agentId} (${agent.formattedId}) '
+              'is not an uploader for package ${package!.name}, rolling transaction back.');
+          throw AuthorizationException.userCannotUploadNewVersion(
+              agent.formattedId, package!.name!);
+        }
       }
 
       if (package!.isNotVisible) {
@@ -1057,7 +1082,7 @@ class PackageBackend {
         entities.packageVersionInfo,
         ...entities.assets,
         AuditLogRecord.packagePublished(
-          uploader: user,
+          uploader: agent,
           package: newVersion.package,
           version: newVersion.version!,
           created: newVersion.created!,
@@ -1085,7 +1110,7 @@ class PackageBackend {
       final email = emailSender.sendMessage(createPackageUploadedEmail(
         packageName: newVersion.package,
         packageVersion: newVersion.version!,
-        uploaderEmail: user.email!,
+        formattedId: agent.formattedId,
         authorizedUploaders:
             uploaderEmails.map((email) => EmailAddress(null, email)).toList(),
       ));
@@ -1471,7 +1496,7 @@ class DerivedPackageVersionEntities {
 /// Creates entities from [archive] summary.
 Future<_UploadEntities> _createUploadEntities(
   DatastoreDB db,
-  User user,
+  AuthenticatedAgent agent,
   PackageSummary archive, {
   required List<int> sha256Hash,
 }) async {
@@ -1487,7 +1512,7 @@ Future<_UploadEntities> _createUploadEntities(
     ..created = clock.now().toUtc()
     ..pubspec = pubspec
     ..libraries = archive.libraries
-    ..uploader = user.userId
+    ..uploader = agent.agentId
     ..sha256 = sha256Hash
     ..isRetracted = false;
 
