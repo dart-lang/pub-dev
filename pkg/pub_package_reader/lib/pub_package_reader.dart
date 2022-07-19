@@ -127,7 +127,7 @@ Future<PackageSummary> summarizePackageArchive(
   }
 
   // processing pubspec.yaml
-  final pubspecPath = tar.firstFileNameOrNull(['pubspec.yaml']);
+  final pubspecPath = tar.firstMatchingFileNameOrNull(['pubspec.yaml']);
   if (pubspecPath == null) {
     issues.add(ArchiveIssue('pubspec.yaml is missing.'));
     return PackageSummary(issues: issues);
@@ -199,11 +199,11 @@ Future<PackageSummary> summarizePackageArchive(
     return PackageSummary(issues: issues);
   }
 
-  String? readmePath = tar.firstFileNameOrNull(readmeFileNames);
-  String? changelogPath = tar.firstFileNameOrNull(changelogFileNames);
+  String? readmePath = tar.firstMatchingFileNameOrNull(readmeFileNames);
+  String? changelogPath = tar.firstMatchingFileNameOrNull(changelogFileNames);
   String? examplePath =
-      tar.firstFileNameOrNull(exampleFileCandidates(pubspec.name));
-  String? licensePath = tar.firstFileNameOrNull(licenseFileNames);
+      tar.firstMatchingFileNameOrNull(exampleFileCandidates(pubspec.name));
+  String? licensePath = tar.firstMatchingFileNameOrNull(['LICENSE']);
 
   final contentBytes = await tar.scanAndReadFiles(
     [readmePath, changelogPath, examplePath, licensePath]
@@ -240,6 +240,7 @@ Future<PackageSummary> summarizePackageArchive(
     examplePath = null;
   }
   final licenseContent = tryParseContentBytes(licensePath);
+  issues.addAll(requireNonEmptyLicense(licensePath, licenseContent));
   if (licenseContent == null) {
     licensePath = null;
   }
@@ -265,7 +266,6 @@ Future<PackageSummary> summarizePackageArchive(
   issues.addAll(validateDependencies(pubspec));
   issues.addAll(forbidGitDependencies(pubspec));
   issues.addAll(requireIosFolderOrFlutter2_20(pubspec, tar.fileNames));
-  issues.addAll(requireNonEmptyLicense(licensePath, licenseContent));
   issues.addAll(checkScreenshots(pubspec, tar.fileNames));
   issues.addAll(validateKnownTemplateReadme(readmePath, readmeContent));
 
@@ -671,16 +671,17 @@ Iterable<ArchiveIssue> requireIosFolderOrFlutter2_20(
 
 Iterable<ArchiveIssue> requireNonEmptyLicense(
     String? path, String? content) sync* {
-  if (path == null) {
-    yield ArchiveIssue('LICENSE file not found.');
+  if (path == null || path != 'LICENSE') {
+    yield ArchiveIssue(
+        '`LICENSE` file not found. All packages on pub.dev must contain a `LICENSE` file.');
     return;
   }
   if (content == null || content.trim().isEmpty) {
-    yield ArchiveIssue('LICENSE file `$path` has no content.');
+    yield ArchiveIssue('`LICENSE` file has no content.');
     return;
   }
   if (content.toLowerCase().contains('todo: add your license here.')) {
-    yield ArchiveIssue('LICENSE file `$path` contains generic TODO.');
+    yield ArchiveIssue('`LICENSE` file contains generic TODO.');
     return;
   }
 }

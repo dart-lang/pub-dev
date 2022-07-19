@@ -32,9 +32,3 @@ List<String> exampleFileCandidates(String package) {
     ...textFileNameCandidates('example/readme'),
   ];
 }
-
-final licenseFileNames = <String>[
-  ...textFileNameCandidates('LICENSE'),
-  ...textFileNameCandidates('COPYING'),
-  ...textFileNameCandidates('UNLICENSE'),
-];

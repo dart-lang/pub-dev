@@ -589,6 +589,10 @@ $dependencies
       expect(requireNonEmptyLicense(null, null), isNotEmpty);
     });
 
+    test('non-default license', () {
+      expect(requireNonEmptyLicense('LICENSE.txt', 'BSD license'), isNotEmpty);
+    });
+
     test('empty file', () {
       expect(requireNonEmptyLicense('LICENSE', ''), isNotEmpty);
       expect(requireNonEmptyLicense('LICENSE', '\n  \n'), isNotEmpty);
