@@ -114,9 +114,33 @@ Map<String, dynamic> _decodePart(String part) {
   return _jsonUtf8Base64.decode(base64.normalize(part)) as Map<String, dynamic>;
 }
 
-DateTime? _parseSecondsIfNotNull(int? value) {
+DateTime? _parseIntAsSecondsOrNull(Map<String, dynamic> map, String key) {
+  final value = map[key];
   if (value == null) return null;
-  return DateTime.fromMillisecondsSinceEpoch(value * 1000, isUtc: true);
+  if (value is int) {
+    return DateTime.fromMillisecondsSinceEpoch(value * 1000, isUtc: true);
+  }
+  throw FormatException('Unexpected value for `$key`: `$value`.');
+}
+
+String? _parseAsStringOrNull(Map<String, dynamic> map, String key) {
+  final value = map[key];
+  if (value == null) {
+    return null;
+  }
+  if (value is String) {
+    return value;
+  }
+  throw FormatException('Unexpected value for `$key`: `$value`.');
+}
+
+String _parseAsString(Map<String, dynamic> map, String key) {
+  final value = _parseAsStringOrNull(map, key);
+  if (value == null) {
+    throw FormatException('Missing value for `$key`.');
+  } else {
+    return value;
+  }
 }
 
 /// The parsed JWT header.
@@ -131,9 +155,9 @@ class JwtHeader extends UnmodifiableMapView<String, dynamic> {
   final String? kid;
 
   JwtHeader._(super.map)
-      : alg = map['alg'] as String?,
-        typ = map['typ'] as String?,
-        kid = map['kid'] as String?;
+      : alg = _parseAsStringOrNull(map, 'alg'),
+        typ = _parseAsStringOrNull(map, 'typ'),
+        kid = _parseAsStringOrNull(map, 'kid');
 
   factory JwtHeader(Map<String, dynamic> values) {
     try {
@@ -161,10 +185,10 @@ class JwtPayload extends UnmodifiableMapView<String, dynamic> {
   final String? iss;
 
   JwtPayload._(super.map)
-      : iat = _parseSecondsIfNotNull(map['iat'] as int?),
-        nbf = _parseSecondsIfNotNull(map['nbf'] as int?),
-        exp = _parseSecondsIfNotNull(map['exp'] as int?),
-        iss = map['iss'] as String?;
+      : iat = _parseIntAsSecondsOrNull(map, 'iat'),
+        nbf = _parseIntAsSecondsOrNull(map, 'nbf'),
+        exp = _parseIntAsSecondsOrNull(map, 'exp'),
+        iss = _parseAsStringOrNull(map, 'iss');
 
   factory JwtPayload(Map<String, dynamic> map) {
     try {
@@ -242,13 +266,13 @@ class GitHubJwtPayload {
   };
 
   GitHubJwtPayload._(Map<String, dynamic> map)
-      : aud = map['aud'] as String,
-        repository = map['repository'] as String,
-        repositoryOwner = map['repository_owner'] as String,
-        eventName = map['event_name'] as String,
-        ref = map['ref'] as String,
-        refType = map['ref_type'] as String,
-        environment = map['environment'] as String;
+      : aud = _parseAsString(map, 'aud'),
+        repository = _parseAsString(map, 'repository'),
+        repositoryOwner = _parseAsString(map, 'repository_owner'),
+        eventName = _parseAsString(map, 'event_name'),
+        ref = _parseAsString(map, 'ref'),
+        refType = _parseAsString(map, 'ref_type'),
+        environment = _parseAsString(map, 'environment');
 
   factory GitHubJwtPayload(JwtPayload payload) {
     final missing = _requiredClaims.difference(payload.keys.toSet()).sorted();
