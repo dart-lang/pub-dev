@@ -138,13 +138,13 @@ abstract class AuthenticatedAgent {
   ///  * For a regular user we display their `email`.
   ///  * For a service account we display a description.
   ///  * For automated publishing we display the service and the origin trigger.
-  String get formattedId;
+  String get visibleId;
 }
 
 /// Holds the authenticated Github Action information.
 class AuthenticatedGithubAction implements AuthenticatedAgent {
   @override
-  final String formattedId;
+  final String visibleId;
 
   /// OIDC `id_token` the request was authenticated with.
   ///
@@ -157,7 +157,7 @@ class AuthenticatedGithubAction implements AuthenticatedAgent {
   final JsonWebToken idToken;
 
   AuthenticatedGithubAction({
-    required this.formattedId,
+    required this.visibleId,
     required this.idToken,
   });
 
@@ -175,7 +175,7 @@ class AuthenticatedUser implements AuthenticatedAgent {
   String get agentId => user.userId;
 
   @override
-  String get formattedId => user.email!;
+  String get visibleId => user.email!;
 }
 
 /// Verifies the current bearer token in the request scope and returns the
