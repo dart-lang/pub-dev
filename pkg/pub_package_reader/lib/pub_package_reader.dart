@@ -672,7 +672,8 @@ Iterable<ArchiveIssue> requireIosFolderOrFlutter2_20(
 Iterable<ArchiveIssue> requireNonEmptyLicense(
     String? path, String? content) sync* {
   if (path == null || path != 'LICENSE') {
-    yield ArchiveIssue('`LICENSE` file not found. All packages on pub.dev must contain a `LICENSE` file.');
+    yield ArchiveIssue(
+        '`LICENSE` file not found. All packages on pub.dev must contain a `LICENSE` file.');
     return;
   }
   if (content == null || content.trim().isEmpty) {
