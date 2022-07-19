@@ -127,7 +127,7 @@ Future<PackageSummary> summarizePackageArchive(
   }
 
   // processing pubspec.yaml
-  final pubspecPath = tar.firstFileNameOrNull(['pubspec.yaml']);
+  final pubspecPath = tar.firstMatchingFileNameOrNull(['pubspec.yaml']);
   if (pubspecPath == null) {
     issues.add(ArchiveIssue('pubspec.yaml is missing.'));
     return PackageSummary(issues: issues);
@@ -199,11 +199,13 @@ Future<PackageSummary> summarizePackageArchive(
     return PackageSummary(issues: issues);
   }
 
-  String? readmePath = tar.firstFileNameOrNull(readmeFileNames);
-  String? changelogPath = tar.firstFileNameOrNull(changelogFileNames);
+  String? readmePath = tar.firstMatchingFileNameOrNull(readmeFileNames);
+  String? changelogPath = tar.firstMatchingFileNameOrNull(changelogFileNames);
   String? examplePath =
-      tar.firstFileNameOrNull(exampleFileCandidates(pubspec.name));
-  String? licensePath = tar.firstFileNameOrNull(licenseFileNames);
+      tar.firstMatchingFileNameOrNull(exampleFileCandidates(pubspec.name));
+  final licensePaths = tar.listmatchingFileNames(licenseFileNames);
+  issues.addAll(requireSingleLicenseFile(licensePaths));
+  String? licensePath = licensePaths.isEmpty ? null : licensePaths.first;
 
   final contentBytes = await tar.scanAndReadFiles(
     [readmePath, changelogPath, examplePath, licensePath]
@@ -666,6 +668,15 @@ Iterable<ArchiveIssue> requireIosFolderOrFlutter2_20(
         'not support having no `ios/` folder.\n'
         'Please consider increasing the Flutter SDK requirement to '
         '^1.20.0 or higher (environment.sdk.flutter) or create an `ios/` folder.\n\nSee $_pluginDocsUrl');
+  }
+}
+
+Iterable<ArchiveIssue> requireSingleLicenseFile(List<String> fileNames) sync* {
+  if (fileNames.isEmpty) {
+    yield ArchiveIssue('LICENSE file not found.');
+  } else if (fileNames.length > 1) {
+    yield ArchiveIssue(
+        'More than one LICENSE files present: ${fileNames.map((e) => '`$e`').join(', ')}.');
   }
 }
 

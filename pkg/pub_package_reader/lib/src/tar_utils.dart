@@ -38,6 +38,9 @@ class TarArchive {
               MapEntry<String, String>(_normalize(key), _normalize(value))),
         );
 
+  late final _lowerCaseFileNames = Map<String, String>.fromEntries(
+      fileNames.map((e) => MapEntry(e.toLowerCase(), e)));
+
   /// Scans the tar archive and reads the content of the files identified by [names].
   ///
   /// For each file, if [maxLength] is reached, the content is returned up-to the
@@ -90,20 +93,25 @@ class TarArchive {
     return content;
   }
 
-  // Searches in scanned files for a file name [name] and compare in a
-  // case-insensitive manner.
-  //
-  // Returns `null` if not found otherwise the correct filename.
-  String? firstFileNameOrNull(Iterable<String> names) {
-    for (String name in names) {
-      final String nameLowercase = name.toLowerCase();
-      for (final filename in fileNames) {
-        if (filename.toLowerCase() == nameLowercase) {
-          return filename;
-        }
+  /// Returns the first matching file name from [names], ignoring the case.
+  ///
+  /// Returns `null` if there was no matching file.
+  String? firstMatchingFileNameOrNull(Iterable<String> names) {
+    for (final name in names) {
+      final originalName = _lowerCaseFileNames[name.toLowerCase()];
+      if (originalName != null) {
+        return originalName;
       }
     }
     return null;
+  }
+
+  /// List all matching file names, ignoring the case.
+  List<String> listmatchingFileNames(Iterable<String> names) {
+    return names
+        .map((name)=> _lowerCaseFileNames[name.toLowerCase()])
+        .whereType<String>()
+        .toList();
   }
 
   /// Returns the brokens links (that point outside, or to a non-existent file).

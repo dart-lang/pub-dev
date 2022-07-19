@@ -585,6 +585,16 @@ $dependencies
   });
 
   group('require license content', () {
+    test('no license file listed', () {
+      expect(requireSingleLicenseFile([]), isNotEmpty);
+    });
+
+    test('multiple license file listed', () {
+      expect(requireSingleLicenseFile(['LICENSE', 'UNLICENSE']), isNotEmpty);
+      expect(
+          requireSingleLicenseFile(['LICENSE.md', 'LICENSE.txt']), isNotEmpty);
+    });
+
     test('no license file', () {
       expect(requireNonEmptyLicense(null, null), isNotEmpty);
     });
