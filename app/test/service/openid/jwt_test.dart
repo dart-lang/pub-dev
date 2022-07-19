@@ -229,15 +229,17 @@ void main() {
         signature: [1, 2, 3, 4], // fake signature
       ));
 
+      final pl = token.payload;
+      expect(pl.verifyTimestamps(clock.now()), isFalse);
+      expect(pl.verifyTimestamps(DateTime.utc(2021, 9, 24, 14, 16, 00)), false);
+      expect(pl.verifyTimestamps(DateTime.utc(2021, 9, 24, 14, 16, 08)), false);
+      expect(pl.verifyTimestamps(DateTime.utc(2021, 9, 24, 14, 26, 00)), false);
+      expect(pl.verifyTimestamps(DateTime.utc(2021, 9, 24, 14, 26, 08)), true);
+      expect(pl.verifyTimestamps(DateTime.utc(2021, 9, 24, 14, 31, 00)), true);
+      expect(pl.verifyTimestamps(DateTime.utc(2021, 9, 24, 14, 31, 08)), false);
+
       final p = GitHubJwtPayload(token.payload);
       expect(p.eventName, 'workflow_dispatch');
-      expect(p.verifyTimestamps(clock.now()), isFalse);
-      expect(p.verifyTimestamps(DateTime.utc(2021, 9, 24, 14, 16, 00)), false);
-      expect(p.verifyTimestamps(DateTime.utc(2021, 9, 24, 14, 16, 08)), false);
-      expect(p.verifyTimestamps(DateTime.utc(2021, 9, 24, 14, 26, 00)), false);
-      expect(p.verifyTimestamps(DateTime.utc(2021, 9, 24, 14, 26, 08)), true);
-      expect(p.verifyTimestamps(DateTime.utc(2021, 9, 24, 14, 31, 00)), true);
-      expect(p.verifyTimestamps(DateTime.utc(2021, 9, 24, 14, 31, 08)), false);
     });
   });
 }

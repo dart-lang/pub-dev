@@ -157,10 +157,14 @@ class JwtPayload extends UnmodifiableMapView<String, dynamic> {
   /// timestamp at which the token expires
   final DateTime? exp;
 
+  /// The "iss" (issuer) claim identifies the principal that issued the JWT.
+  final String? iss;
+
   JwtPayload._(super.map)
       : iat = _parseSecondsIfNotNull(map['iat'] as int?),
         nbf = _parseSecondsIfNotNull(map['nbf'] as int?),
-        exp = _parseSecondsIfNotNull(map['exp'] as int?);
+        exp = _parseSecondsIfNotNull(map['exp'] as int?),
+        iss = map['iss'] as String?;
 
   factory JwtPayload(Map<String, dynamic> map) {
     try {
@@ -176,6 +180,10 @@ class JwtPayload extends UnmodifiableMapView<String, dynamic> {
   /// - [iat] <= [now]
   /// - [nbf] <= [now]
   /// - [now] <= [exp]
+  ///
+  /// Returns `false` if the current timestamp is outside of the allowed range.
+  /// If the timestamp is missing, we treat it as if it would allow the current
+  /// time.
   bool verifyTimestamps([DateTime? now]) {
     now ??= clock.now();
     if (iat != null && iat!.isAfter(now)) {
@@ -192,19 +200,7 @@ class JwtPayload extends UnmodifiableMapView<String, dynamic> {
 }
 
 /// Parsed payload with the payload values GitHub sends with the token.
-class GitHubJwtPayload extends JwtPayload {
-  /// timestamp when token was issued
-  @override
-  DateTime get iat => super.iat!;
-
-  /// timestamp before which the token is not valid
-  @override
-  DateTime get nbf => super.nbf!;
-
-  /// timestamp at which the token expires
-  @override
-  DateTime get exp => super.exp!;
-
+class GitHubJwtPayload {
   /// user controllable URL identifying the intended audience
   final String aud;
 
@@ -226,10 +222,16 @@ class GitHubJwtPayload extends JwtPayload {
   /// name of the environment used by the job
   final String environment;
 
+  /// The URL used as the `iss` property of JWT payloads.
+  static const _githubIssuerUrl = 'https://token.actions.githubusercontent.com';
+
   static const _requiredClaims = <String>{
+    // generic claims
     'iat',
     'nbf',
     'exp',
+    'iss',
+    // github-specific claims
     'aud',
     'repository',
     'repository_owner',
@@ -246,14 +248,17 @@ class GitHubJwtPayload extends JwtPayload {
         eventName = map['event_name'] as String,
         ref = map['ref'] as String,
         refType = map['ref_type'] as String,
-        environment = map['environment'] as String,
-        super._(map);
+        environment = map['environment'] as String;
 
   factory GitHubJwtPayload(JwtPayload payload) {
     final missing = _requiredClaims.difference(payload.keys.toSet()).sorted();
     if (missing.isNotEmpty) {
       throw FormatException(
           'JWT from Github is missing following claims: ${missing.map((k) => '`$k`').join(', ')}.');
+    }
+    if (payload.iss != _githubIssuerUrl) {
+      throw FormatException(
+          'Unexpected value in payload: `iss`: `${payload.iss}`.');
     }
     return GitHubJwtPayload._(payload);
   }
@@ -264,13 +269,5 @@ class GitHubJwtPayload extends JwtPayload {
     } catch (_) {
       return null;
     }
-  }
-
-  /// Verifies the GitHub token
-  bool verify() {
-    if (!verifyTimestamps()) {
-      return false;
-    }
-    return true;
   }
 }

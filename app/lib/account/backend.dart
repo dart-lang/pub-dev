@@ -144,6 +144,9 @@ abstract class AuthenticatedAgent {
 /// Holds the authenticated Github Action information.
 class AuthenticatedGithubAction implements AuthenticatedAgent {
   @override
+  String get agentId => KnownAgents.githubActions;
+
+  @override
   final String visibleId;
 
   /// OIDC `id_token` the request was authenticated with.
@@ -156,13 +159,14 @@ class AuthenticatedGithubAction implements AuthenticatedAgent {
   /// pub-specific scope of the token.
   final JsonWebToken idToken;
 
+  /// The parsed, GitHub-specific JWT payload.
+  final GitHubJwtPayload payload;
+
   AuthenticatedGithubAction({
     required this.visibleId,
     required this.idToken,
+    required this.payload,
   });
-
-  @override
-  String get agentId => KnownAgents.githubActions;
 }
 
 /// Holds the authenticated user information.
@@ -186,16 +190,33 @@ Future<AuthenticatedAgent> requireAuthenticatedAgent(
   if (token == null || token.isEmpty) {
     throw AuthenticationException.authenticationRequired();
   }
-  if (JsonWebToken.looksLikeJWT(token)) {
-    final idToken = JsonWebToken.tryParse(token);
-    if (idToken != null) {
-      // TODO: check the audience and expiration
-      // TODO: skip JWT processing if it is not a recognized service agent
-      // TODO: check signature from JWKS
-      // TODO: when everything is verified, return the JWT token.
-    }
+  final authenticatedService = _tryAuthenticateGithubAction(token);
+  if (authenticatedService != null) {
+    return authenticatedService;
+  } else {
+    return AuthenticatedUser(await requireAuthenticatedUser(source: source));
   }
-  return AuthenticatedUser(await requireAuthenticatedUser(source: source));
+}
+
+AuthenticatedGithubAction? _tryAuthenticateGithubAction(String token) {
+  if (!JsonWebToken.looksLikeJWT(token)) {
+    return null;
+  }
+  final idToken = JsonWebToken.tryParse(token);
+  if (idToken == null) {
+    return null;
+  }
+  if (!idToken.payload.verifyTimestamps()) {
+    return null;
+  }
+  final payload = GitHubJwtPayload.tryParse(idToken.payload);
+  if (payload == null) {
+    return null;
+  }
+  // TODO: check the audience
+  // TODO: check signature from JWKS
+  // TODO: when everything is verified, return the JWT token.
+  return null;
 }
 
 /// Represents the backend for the account handling and authentication.
