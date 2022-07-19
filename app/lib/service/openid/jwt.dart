@@ -7,9 +7,11 @@ import 'dart:typed_data';
 
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
+import 'package:logging/logging.dart';
 
 import 'openid_models.dart';
 
+final _logger = Logger('jwt');
 final _jsonUtf8Base64 = json.fuse(utf8).fuse(base64Url);
 
 /// Pattern for a valid JWT, these must 3 base64 segments separated by dots.
@@ -80,7 +82,10 @@ class JsonWebToken {
   static JsonWebToken? tryParse(String token) {
     try {
       return JsonWebToken.parse(token);
-    } on FormatException catch (_) {
+    } on FormatException {
+      return null;
+    } catch (e, st) {
+      _logger.warning('Unexpected JWT parser exception.', e, st);
       return null;
     }
   }
@@ -164,7 +169,8 @@ class JwtHeader extends UnmodifiableMapView<String, dynamic> {
       return JwtHeader._(values);
     } on FormatException {
       rethrow;
-    } catch (_) {
+    } catch (e, st) {
+      _logger.warning('Unexpected JWT parser exception.', e, st);
       throw FormatException('Unexpected value in JWT header.');
     }
   }
@@ -195,7 +201,8 @@ class JwtPayload extends UnmodifiableMapView<String, dynamic> {
       return JwtPayload._(map);
     } on FormatException {
       rethrow;
-    } catch (_) {
+    } catch (e, st) {
+      _logger.warning('Unexpected JWT parser exception.', e, st);
       throw FormatException('Unexpected value in JWT payload.');
     }
   }
@@ -290,7 +297,10 @@ class GitHubJwtPayload {
   static GitHubJwtPayload? tryParse(JwtPayload payload) {
     try {
       return GitHubJwtPayload(payload);
-    } catch (_) {
+    } on FormatException {
+      rethrow;
+    } catch (e, st) {
+      _logger.warning('Unexpected JWT parser exception.', e, st);
       return null;
     }
   }
