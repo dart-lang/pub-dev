@@ -75,8 +75,8 @@ class SimpleTag {
   factory SimpleTag.unidentified({String? href}) {
     return SimpleTag(
       status: 'unidentified',
-      text: '[unidentified]',
-      title: 'Check the scores tab for further details.',
+      text: '[unknown platforms]',
+      title: 'Check the Platforms section of the scores tab for details.',
       href: href,
     );
   }
