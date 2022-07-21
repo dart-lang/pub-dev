@@ -124,7 +124,7 @@ class TaskBackend {
       } catch (e, st) {
         _log.severe('scanning loop crashed', e, st);
       } finally {
-        _log.fine('scanning loop stopped');
+        _log.info('scanning loop stopped');
         _doneScanning.complete();
       }
     });
@@ -159,7 +159,7 @@ class TaskBackend {
       } catch (e, st) {
         _log.severe('scheduling loop crashed', e, st);
       } finally {
-        _log.fine('scheduling loop stopped');
+        _log.info('scheduling loop stopped');
         _doneScheduling.complete();
       }
     });
@@ -687,7 +687,7 @@ class TaskBackend {
     // avoid doing this operation again if the transaction fails.
     if (isInstanceDone) {
       assert(zone != null && instance != null);
-      _log.fine('instance $instance is done, calling APIs to terminate it!');
+      _log.info('instance $instance is done, calling APIs to terminate it!');
       scheduleMicrotask(() async {
         try {
           await _cloudCompute.delete(zone!, instance!);

@@ -48,7 +48,7 @@ Future<void> main(List<String> args) async {
     ),
   );
 
-  _log.fine('Writing pana-summary.json');
+  _log.info('Writing pana-summary.json');
   await File(
     p.join(outputFolder, 'pana-summary.json'),
   ).writeAsString(json.encode(summary));

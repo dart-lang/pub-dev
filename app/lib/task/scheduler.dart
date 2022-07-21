@@ -70,7 +70,7 @@ Future<void> schedule(
           // reasons in a distributed system.
           _log.warning('terminating $instance for being too old!');
         } else if (isTerminated) {
-          _log.fine('deleting $instance as it has terminated.');
+          _log.info('deleting $instance as it has terminated.');
         }
 
         deletionInProgress.add(instance.instanceName);

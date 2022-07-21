@@ -38,7 +38,7 @@ bool _retryIf(Exception e) =>
     e is IOException || (e is RequestException && e.status >= 500);
 
 Future<void> analyze(Payload payload) async {
-  _log.fine('Running analyze for payload with package:${payload.package}');
+  _log.info('Running analyze for payload with package:${payload.package}');
   final workerDeadline = clock.now().add(_workerTimeout);
   final client = Client();
   try {
@@ -87,7 +87,7 @@ Future<void> _analyzePackage(
   String package,
   String version,
 ) async {
-  _log.fine('Running analyze for $package / $version');
+  _log.info('Running analyze for $package / $version');
 
   final tempDir = await Directory.systemTemp.createTemp('pub_worker-');
   try {
@@ -171,7 +171,7 @@ Future<void> _analyzePackage(
     await log.close();
 
     // Upload results, if there is any
-    _log.finest('api.taskUploadResult("$package", "$version")');
+    _log.info('api.taskUploadResult("$package", "$version")');
     final r = await retry(
       () => api.taskUploadResult(package, version),
       retryIf: _retryIf,
@@ -228,7 +228,7 @@ Future<void> _analyzePackage(
     ]);
 
     // Report that we're done processing the package / version.
-    _log.finest('api.taskUploadFinished("$package", "$version")');
+    _log.info('api.taskUploadFinished("$package", "$version")');
     await retry(
       () => api.taskUploadFinished(package, version),
       retryIf: _retryIf,
@@ -250,9 +250,9 @@ Future<void> _reportPackageSkipped(
   String version, {
   required String reason,
 }) async {
-  _log.finest('Skipping analysis of "$package" version "$version"');
+  _log.info('Skipping analysis of "$package" version "$version"');
 
-  _log.finest('api.taskUploadResult("$package", "$version") - skipping');
+  _log.info('api.taskUploadResult("$package", "$version") - skipping');
 
   final r = await retry(
     () => api.taskUploadResult(package, version),
@@ -287,7 +287,7 @@ Future<void> _reportPackageSkipped(
   );
 
   // Report that we're done processing the package / version.
-  _log.finest('api.taskUploadFinished("$package", "$version") - skipped');
+  _log.info('api.taskUploadFinished("$package", "$version") - skipped');
   await retry(
     () => api.taskUploadFinished(package, version),
     retryIf: _retryIf,
