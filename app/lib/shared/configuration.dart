@@ -108,6 +108,9 @@ class Configuration {
   /// analysis.
   final String? taskWorkerImage;
 
+  /// GCP project within which the `pub_worker` VMs are created.
+  final String? taskWorkerProject;
+
   /// Container-Optimized OS image for running analysis tasks.
   ///
   /// See:
@@ -234,6 +237,7 @@ class Configuration {
     required this.searchSnapshotBucketName,
     required this.taskResultBucketName,
     required this.taskWorkerImage,
+    required this.taskWorkerProject,
     required this.cosImage,
     required this.taskWorkerServiceAccount,
     required this.searchServicePrefix,

@@ -26,6 +26,7 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
             'searchSnapshotBucketName',
             'taskResultBucketName',
             'taskWorkerImage',
+            'taskWorkerProject',
             'cosImage',
             'taskWorkerServiceAccount',
             'storageBaseUrl',
@@ -65,6 +66,8 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
               $checkedConvert('taskResultBucketName', (v) => v as String?),
           taskWorkerImage:
               $checkedConvert('taskWorkerImage', (v) => v as String?),
+          taskWorkerProject:
+              $checkedConvert('taskWorkerProject', (v) => v as String?),
           cosImage: $checkedConvert('cosImage', (v) => v as String?),
           taskWorkerServiceAccount:
               $checkedConvert('taskWorkerServiceAccount', (v) => v as String?),
@@ -124,6 +127,7 @@ Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
       'searchSnapshotBucketName': instance.searchSnapshotBucketName,
       'taskResultBucketName': instance.taskResultBucketName,
       'taskWorkerImage': instance.taskWorkerImage,
+      'taskWorkerProject': instance.taskWorkerProject,
       'cosImage': instance.cosImage,
       'taskWorkerServiceAccount': instance.taskWorkerServiceAccount,
       'storageBaseUrl': instance.storageBaseUrl,
