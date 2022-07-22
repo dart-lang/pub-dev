@@ -22,12 +22,22 @@ OpenIdProvider _$OpenIdProviderFromJson(Map<String, dynamic> json) =>
     OpenIdProvider(
       issuer: json['issuer'] as String,
       jwksUri: json['jwks_uri'] as String,
+      claimsSupported: (json['claims_supported'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
+      idTokenSigningAlgValuesSupported:
+          (json['id_token_signing_alg_values_supported'] as List<dynamic>)
+              .map((e) => e as String)
+              .toList(),
     );
 
 Map<String, dynamic> _$OpenIdProviderToJson(OpenIdProvider instance) =>
     <String, dynamic>{
       'issuer': instance.issuer,
       'jwks_uri': instance.jwksUri,
+      'claims_supported': instance.claimsSupported,
+      'id_token_signing_alg_values_supported':
+          instance.idTokenSigningAlgValuesSupported,
     };
 
 JsonWebKeyList _$JsonWebKeyListFromJson(Map<String, dynamic> json) =>

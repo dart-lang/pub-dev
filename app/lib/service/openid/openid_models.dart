@@ -45,9 +45,23 @@ class OpenIdProvider {
   @JsonKey(name: 'jwks_uri')
   final String jwksUri;
 
+  /// JSON array containing a list of the Claim Names of the Claims that the
+  /// OpenID Provider MAY be able to supply values for. Note that for privacy
+  /// or other reasons, this might not be an exhaustive list.
+  @JsonKey(name: 'claims_supported')
+  final List<String> claimsSupported;
+
+  /// JSON array containing a list of the JWS signing algorithms (alg values)
+  /// supported by the OP for the ID Token to encode the Claims in a JWT. The
+  /// algorithm RS256 MUST be included.
+  @JsonKey(name: 'id_token_signing_alg_values_supported')
+  final List<String> idTokenSigningAlgValuesSupported;
+
   OpenIdProvider({
     required this.issuer,
     required this.jwksUri,
+    required this.claimsSupported,
+    required this.idTokenSigningAlgValuesSupported,
   });
 
   factory OpenIdProvider.fromJson(Map<String, dynamic> json) =>
