@@ -6,7 +6,6 @@ import 'package:_pub_shared/data/admin_api.dart';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/data/publisher_api.dart';
 import 'package:_pub_shared/search/tags.dart';
-import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:pub_dev/account/auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
@@ -71,24 +70,8 @@ Future<void> importProfile({
       bearerToken:
           createFakeAuthTokenForEmail(uploaderEmail, source: AuthSource.client),
       pubHostedUrl: pubHostedUrl,
-      fn: (client) async {
-        final uploadInfo = await client.getPackageUploadUrl();
-
-        final request = http.MultipartRequest('POST', Uri.parse(uploadInfo.url))
-          ..fields.addAll(uploadInfo.fields!)
-          ..files.add(http.MultipartFile.fromBytes('file', bytes))
-          ..followRedirects = false;
-        final uploadRs = await request.send();
-        if (uploadRs.statusCode != 303) {
-          throw AssertionError(
-              'Expected HTTP redirect, got ${uploadRs.statusCode}.');
-        }
-
-        final callbackUri =
-            Uri.parse(uploadInfo.fields!['success_action_redirect']!);
-        await client
-            .finishPackageUpload(callbackUri.queryParameters['upload_id']!);
-      },
+      // ignore: invalid_use_of_visible_for_testing_member
+      fn: (client) => client.uploadPackageBytes(bytes),
     );
   }
   for (final testPackage in profile.packages) {

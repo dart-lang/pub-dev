@@ -32,7 +32,7 @@ import '../shared/utils.dart';
 import 'handlers_test_utils.dart';
 import 'test_models.dart';
 
-export 'package:pub_dev/tool/utils/pub_api_client.dart' show createPubApiClient;
+export 'package:pub_dev/tool/utils/pub_api_client.dart';
 
 /// Registers test with [name] and runs it in pkg/fake_gcloud's scope, populated
 /// with [testProfile] data.

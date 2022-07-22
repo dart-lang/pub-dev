@@ -14,7 +14,6 @@ import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/publisher/models.dart';
-import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 
@@ -126,15 +125,12 @@ void main() {
         'oxygen',
         PackagePublisherInfo(publisherId: 'example.com'),
       );
-      await accountBackend.withBearerToken(userClientToken, () async {
-        final tarball = await packageArchiveBytes(
-            pubspecContent: generatePubspecYaml('oxygen', '3.0.0'));
-        final rs = packageBackend.upload(Stream.fromIterable([tarball]));
-        await expectLater(
-            rs,
-            throwsA(isA<AuthorizationException>()
-                .having((a) => a.code, 'code', 'InsufficientPermissions')));
-      });
+      final tarball = await packageArchiveBytes(
+          pubspecContent: generatePubspecYaml('oxygen', '3.0.0'));
+      final rs = createPubApiClient(authToken: userClientToken)
+          .uploadPackageBytes(tarball);
+      await expectApiException(rs,
+          status: 403, code: 'InsufficientPermissions');
     });
 
     testWithProfile('successful', fn: () async {
@@ -143,12 +139,12 @@ void main() {
         'oxygen',
         PackagePublisherInfo(publisherId: 'example.com'),
       );
-      await accountBackend.withBearerToken(adminClientToken, () async {
-        final tarball = await packageArchiveBytes(
-            pubspecContent: generatePubspecYaml('oxygen', '3.0.0'));
-        final pv = await packageBackend.upload(Stream.fromIterable([tarball]));
-        expect(pv.version.toString(), '3.0.0');
-      });
+      final tarball = await packageArchiveBytes(
+          pubspecContent: generatePubspecYaml('oxygen', '3.0.0'));
+      final message = await createPubApiClient(authToken: adminClientToken)
+          .uploadPackageBytes(tarball);
+      expect(message.success.message, contains('Successfully uploaded'));
+      expect(message.success.message, contains('3.0.0'));
     });
   });
 

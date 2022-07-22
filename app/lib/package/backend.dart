@@ -786,16 +786,6 @@ class PackageBackend {
     return pv.toApiVersionInfo();
   }
 
-  @visibleForTesting
-  Future<PackageVersion> upload(Stream<List<int>> data) async {
-    await requireAuthenticatedUser(source: AuthSource.client);
-    final guid = createUuid();
-    _logger.info('Starting semi-async upload (uuid: $guid)');
-    final object = tmpObjectName(guid);
-    await data.pipe(_incomingBucket.write(object));
-    return await publishUploadedBlob(guid);
-  }
-
   Future<api.UploadInfo> startUpload(Uri redirectUrl) async {
     final restriction = await getUploadRestrictionStatus();
     if (restriction == UploadRestrictionStatus.noUploads) {
