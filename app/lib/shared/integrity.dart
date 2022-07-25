@@ -536,17 +536,14 @@ class IntegrityChecker {
 
     // TODO: remove null check after the backfill should have filled the property.
     final sha256Hash = pv.sha256;
-    if (sha256Hash != null && sha256Hash.isNotEmpty) {
-      if (sha256Hash.length != 32) {
-        yield 'PackageVersion "${pv.qualifiedVersionKey}" has invalid sha256.';
-      }
+    if (sha256Hash == null || sha256Hash.length != 32) {
+      yield 'PackageVersion "${pv.qualifiedVersionKey}" has invalid sha256.';
+    } else if (_random.nextInt(1000) == 0) {
       // Do not check every archive all the time, but select a few of the archives randomly.
-      if (_random.nextInt(1000) == 0) {
-        final bytes = (await _httpClient.get(archiveDownloadUri)).bodyBytes;
-        final hash = sha256.convert(bytes).bytes;
-        if (!hash.byteToByteEquals(sha256Hash)) {
-          yield 'PackageVersion "${pv.qualifiedVersionKey}" has sha256 hash missmatch.';
-        }
+      final bytes = (await _httpClient.get(archiveDownloadUri)).bodyBytes;
+      final hash = sha256.convert(bytes).bytes;
+      if (!hash.byteToByteEquals(sha256Hash)) {
+        yield 'PackageVersion "${pv.qualifiedVersionKey}" has sha256 hash missmatch.';
       }
     }
 
