@@ -4,7 +4,8 @@
 
 import 'dart:async';
 
-import '../shared/tags.dart';
+import 'package:_pub_shared/search/tags.dart';
+
 import 'dart_sdk_mem_index.dart';
 import 'flutter_sdk_mem_index.dart';
 import 'search_service.dart';

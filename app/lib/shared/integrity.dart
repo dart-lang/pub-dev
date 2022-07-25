@@ -4,6 +4,7 @@
 
 import 'dart:math' as math;
 
+import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:crypto/crypto.dart';
 import 'package:gcloud/storage.dart';
@@ -26,7 +27,6 @@ import 'datastore.dart';
 import 'email.dart' show looksLikeEmail;
 import 'env_config.dart';
 import 'storage.dart';
-import 'tags.dart' show allowedTagPrefixes;
 import 'urls.dart' as urls;
 import 'utils.dart' show canonicalizeVersion, ByteArrayEqualsExt;
 

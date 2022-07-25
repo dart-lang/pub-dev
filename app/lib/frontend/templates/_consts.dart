@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../shared/tags.dart' show SdkTagValue;
+import 'package:_pub_shared/search/tags.dart';
+
 import '../dom/dom.dart' as d;
 
 const myPublishersTabTitle = 'Publishers';

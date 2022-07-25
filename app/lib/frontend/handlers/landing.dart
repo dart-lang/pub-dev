@@ -5,13 +5,13 @@
 import 'dart:async';
 
 import 'package:_pub_shared/search/search_form.dart';
+import 'package:_pub_shared/search/tags.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../package/search_adapter.dart';
 import '../../service/youtube/backend.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
-import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
 import '../request_context.dart';

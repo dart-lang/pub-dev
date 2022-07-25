@@ -5,12 +5,12 @@
 import 'package:_pub_shared/data/admin_api.dart';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/data/publisher_api.dart';
+import 'package:_pub_shared/search/tags.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:pub_dev/account/auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 
-import '../../shared/tags.dart';
 import '../utils/pub_api_client.dart';
 import 'import_source.dart';
 import 'models.dart';

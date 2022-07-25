@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_pub_shared/data/page_data.dart';
+import 'package:_pub_shared/search/tags.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 
 import '../../package/models.dart';
 import '../../package/overrides.dart' show devDependencyPackages;
 import '../../shared/handlers.dart';
-import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
 import '../dom/dom.dart' as d;

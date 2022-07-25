@@ -7,6 +7,7 @@ library pub_dartlang_org.appengine_repository.models;
 import 'dart:convert';
 
 import 'package:_pub_shared/data/package_api.dart';
+import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pub_dev/shared/popularity_storage.dart';
@@ -18,7 +19,6 @@ import '../search/search_service.dart' show ApiPageRef;
 import '../shared/datastore.dart' as db;
 import '../shared/exceptions.dart';
 import '../shared/model_properties.dart';
-import '../shared/tags.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 

@@ -5,12 +5,12 @@
 import 'dart:async';
 
 import 'package:_pub_shared/search/search_form.dart';
+import 'package:_pub_shared/search/tags.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../package/name_tracker.dart';
 import '../../package/search_adapter.dart';
 import '../../shared/handlers.dart';
-import '../../shared/tags.dart';
 import '../../shared/utils.dart' show DurationTracker;
 
 import '../templates/listing.dart';

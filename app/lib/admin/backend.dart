@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:_pub_shared/data/admin_api.dart' as api;
 import 'package:_pub_shared/data/package_api.dart';
+import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
@@ -31,7 +32,6 @@ import '../shared/configuration.dart';
 import '../shared/datastore.dart';
 import '../shared/email.dart';
 import '../shared/exceptions.dart';
-import '../shared/tags.dart';
 import '../tool/utils/dart_sdk_version.dart';
 import 'tools/block_publisher_and_all_members.dart';
 import 'tools/create_publisher.dart';
