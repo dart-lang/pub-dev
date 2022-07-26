@@ -368,13 +368,13 @@ class _PublisherAdminWidget {
     if (!pageData.isPublisherPage) return;
     _updateButton = document.getElementById('-publisher-update-button');
     _descriptionTextArea =
-        document.getElementById('-publisher-description') as TextAreaElement;
+        document.getElementById('-publisher-description') as TextAreaElement?;
     _websiteUrlInput =
-        document.getElementById('-publisher-website-url') as InputElement;
+        document.getElementById('-publisher-website-url') as InputElement?;
     _contactEmailInput =
-        document.getElementById('-publisher-contact-email') as InputElement;
+        document.getElementById('-publisher-contact-email') as InputElement?;
     _inviteMemberInput =
-        document.getElementById('-admin-invite-member-input') as InputElement;
+        document.getElementById('-admin-invite-member-input') as InputElement?;
     _addMemberButton = document.getElementById('-admin-add-member-button');
     _addMemberContent = document.getElementById('-admin-add-member-content');
     _originalContactEmail = _contactEmailInput?.value;
