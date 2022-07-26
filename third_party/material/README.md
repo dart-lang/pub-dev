@@ -1,7 +1,13 @@
 Material
 ========
 
-To update the material-components resources, update the `package.json` and run:
+To upgrade the material-components resources, run the init script:
+
+```bash
+./initialize.sh
+```
+
+To build the bundle:
 
 ```bash
 npm install
