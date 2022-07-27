@@ -112,7 +112,7 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
       registerScopeExitCallback(gceClient.close);
       registertaskWorkerCloudCompute(createGoogleCloudCompute(
         client: gceClient,
-        project: activeConfiguration.projectId,
+        project: activeConfiguration.taskWorkerProject!,
         poolLabel: '${runtimeVersion.replaceAll('.', '-')}_worker',
       ));
 
