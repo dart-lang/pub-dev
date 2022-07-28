@@ -17,11 +17,11 @@ import 'package:pub_worker/payload.dart';
 final _log = Logger('pub.task.schedule');
 
 /// Maximum number of instances that may be used concurrently.
-const _concurrentInstanceLimit = 30; // Later consider something like: 500;
+const _concurrentInstanceLimit = 200; // Later consider something like: 500;
 
 const _maxInstanceAge = Duration(hours: 2);
 
-const _maxInstancesPerIteration = 10; // Later consider something like: 50;
+const _maxInstancesPerIteration = 50; // Later consider something like: 50;
 
 /// Schedule tasks from [PackageState] while [claim] is valid, and [abort] have
 /// not been resolved.
