@@ -339,13 +339,12 @@ runcmd:
           ..scopes = [ComputeApi.cloudPlatformScope]
       ]
       ..networkInterfaces = [
-        NetworkInterface()
-          ..network = 'global/networks/default'
-          ..accessConfigs = [
+        NetworkInterface()..network = 'global/networks/default'
+        /*..accessConfigs = [
             AccessConfig()
               ..type = 'ONE_TO_ONE_NAT'
               ..name = 'External NAT',
-          ],
+          ],*/
       ]
       ..disks = [
         AttachedDisk()
