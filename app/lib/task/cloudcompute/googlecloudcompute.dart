@@ -443,17 +443,27 @@ runcmd:
 
   @override
   Future<void> delete(String zone, String instanceName) async {
-    await _retryWithRequestId((rId) => _api.instances.delete(
-          _project,
-          zone,
-          instanceName,
-          requestId: rId,
-        ));
-    // Note. that instances.delete() technically returns a custom long-running
-    // operation, we have no reasonable action to take if deletion fails.
-    // Presumably, the instance would show up in listings again and eventually
-    // be deleted once more (with a new operation, with a new requestId).
-    // TODO: Await the delete operation...
+    try {
+      await _retryWithRequestId((rId) => _api.instances.delete(
+            _project,
+            zone,
+            instanceName,
+            requestId: rId,
+          ));
+      // Note. that instances.delete() technically returns a custom long-running
+      // operation, we have no reasonable action to take if deletion fails.
+      // Presumably, the instance would show up in listings again and eventually
+      // be deleted once more (with a new operation, with a new requestId).
+      // TODO: Await the delete operation...
+    } on DetailedApiRequestError catch (e) {
+      if (e.status == 404) {
+        // If we get a 404, then we shall assume that instance has been deleted.
+        // Worst case the instance will eventually show up in listings again and
+        // then be deleted once more.
+        return;
+      }
+      rethrow;
+    }
   }
 
   @override
