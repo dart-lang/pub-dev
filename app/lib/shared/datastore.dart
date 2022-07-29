@@ -56,6 +56,10 @@ class TransactionWrapper {
   /// Insert [entity] in this transaction.
   void insert(Model entity) => queueMutations(inserts: [entity]);
 
+  /// Insert all [entities] in this transaction.
+  void insertAll(Iterable<Model> entities) =>
+      queueMutations(inserts: entities.toList());
+
   /// Delete entity at [key] in this transaction.
   void delete(Key key) => queueMutations(deletes: [key]);
 

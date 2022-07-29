@@ -16,6 +16,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * NOTE: Increasing instance counts for `default` and `search` services.
  * NOTE: Landing page uses `CachedValue` to track top-* packages.
  * NOTE: Stopped using old bucket for package archives.
+ * NOTE: Started to use `OutgoingEmail` entities to track pending emails.
 
 ## `20220908t135900-all`
  * Bumped runtimeVersion to `2022.09.08`.

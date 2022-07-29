@@ -58,7 +58,9 @@ class _LoggingEmailSender implements EmailSender {
 final loggingEmailSender = _LoggingEmailSender();
 
 Message _toMessage(EmailMessage input) {
+  input.verifyUuid();
   return Message()
+    ..headers = {'Message-ID': '<${input.uuid}@pub.dev>'}
     ..from = _toAddress(input.from)
     ..recipients = input.recipients.map(_toAddress).toList()
     ..subject = input.subject
@@ -66,7 +68,7 @@ Message _toMessage(EmailMessage input) {
 }
 
 Address? _toAddress(EmailAddress? input) =>
-    input == null ? null : Address(input.email!, input.name);
+    input == null ? null : Address(input.email, input.name);
 
 /// Send emails through the gmail SMTP relay.
 ///
