@@ -17,7 +17,7 @@ import 'package:pub_worker/payload.dart';
 final _log = Logger('pub.task.schedule');
 
 /// Maximum number of instances that may be used concurrently.
-const _concurrentInstanceLimit = 1000; // Later consider something like: 500;
+const _concurrentInstanceLimit = 750; // Later consider something like: 500;
 
 const _maxInstanceAge = Duration(hours: 2);
 
