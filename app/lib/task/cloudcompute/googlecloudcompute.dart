@@ -349,19 +349,11 @@ runcmd:
           ..scopes = [ComputeApi.cloudPlatformScope]
       ]
       ..networkInterfaces = [
+        // This attaches the VM to the given network, but doesn't assign any
+        // public IP address. So the ability to make outbound connections depend
+        // on Cloud Nat configuration for the network.
         NetworkInterface()
           ..network = 'projects/$_project/global/networks/$_network',
-        // "subnetwork": "projects/dartlang-pub-dev/regions/us-central1/subnetworks/pub-workers"
-
-        /*
-        NetworkInterface()
-          ..network = 'global/networks/default'
-          ..accessConfigs = [
-            AccessConfig()
-              ..type = 'ONE_TO_ONE_NAT'
-              ..name = 'External NAT',
-          ],
-          */
       ]
       ..disks = [
         AttachedDisk()
