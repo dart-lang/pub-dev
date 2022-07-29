@@ -333,10 +333,10 @@ class TaskBackend {
   }) async {
     // Limit the number of packages we track during initial testing.
     // TODO: Remove this before going into production
-    /*if (envConfig.isRunningInAppengine &&
+    if (envConfig.isRunningInAppengine &&
         !_allowListedPackages.contains(packageName)) {
       return;
-    }*/
+    }
 
     var lastVersionCreated = initialTimestamp;
     await withRetryTransaction(_db, (tx) async {
