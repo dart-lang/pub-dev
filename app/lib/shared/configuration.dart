@@ -111,6 +111,11 @@ class Configuration {
   /// GCP project within which the `pub_worker` VMs are created.
   final String? taskWorkerProject;
 
+  /// Name of the VPC within which `pub_worker` VMs should be created.
+  ///
+  /// This VPC should have Cloud Nat enabled.
+  final String? taskWorkerNetwork;
+
   /// Container-Optimized OS image for running analysis tasks.
   ///
   /// See:
@@ -238,6 +243,7 @@ class Configuration {
     required this.taskResultBucketName,
     required this.taskWorkerImage,
     required this.taskWorkerProject,
+    required this.taskWorkerNetwork,
     required this.cosImage,
     required this.taskWorkerServiceAccount,
     required this.searchServicePrefix,
@@ -298,6 +304,7 @@ class Configuration {
       taskResultBucketName: 'fake-bucket-task-result',
       taskWorkerImage: '-',
       taskWorkerProject: '-',
+      taskWorkerNetwork: '-',
       cosImage: 'projects/cos-cloud/global/images/family/cos-stable',
       taskWorkerServiceAccount: '-',
       searchServicePrefix: 'http://localhost:$searchPort',
@@ -343,6 +350,7 @@ class Configuration {
       taskResultBucketName: 'fake-bucket-task-result',
       taskWorkerImage: '-',
       taskWorkerProject: '-',
+      taskWorkerNetwork: '-',
       cosImage: 'projects/cos-cloud/global/images/family/cos-stable',
       taskWorkerServiceAccount: '-',
       searchServicePrefix: 'http://localhost:0',

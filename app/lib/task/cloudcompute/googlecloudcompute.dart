@@ -59,13 +59,18 @@ const googleCloudComputeScope = ComputeApi.cloudPlatformScope;
 /// [CloudCompute] object for pana-tasks doesn't interfere with the other
 /// _runtime versions_ in production.
 ///
-/// Instances will use [Container-Optimized OS][c-o-s] to the docker-image
+/// Instances will allocated a private IP address in the VPC specified using
+/// [network]. This VPC should have [Cloud Nat] enabled.
+///
+/// Instances will use [Container-Optimized OS][c-o-s] to run the docker-image
 /// specified at instance creation.
 ///
 /// [c-o-s]: https://cloud.google.com/container-optimized-os/docs
+/// [Cloud Nat]: https://cloud.google.com/nat
 CloudCompute createGoogleCloudCompute({
   required http.Client client,
   required String project,
+  required String network,
   required String poolLabel,
 }) {
   if (poolLabel.isEmpty) {
@@ -89,6 +94,7 @@ CloudCompute createGoogleCloudCompute({
   return _GoogleCloudCompute(
     ComputeApi(client),
     project,
+    network,
     _googleCloudZones,
     _googleCloudMachineType,
     poolLabel,
@@ -179,8 +185,11 @@ String _shellSingleQuote(String string) =>
 class _GoogleCloudCompute extends CloudCompute {
   final ComputeApi _api;
 
-  /// GCP project this isntance is managing VMs inside.
+  /// GCP project this instance is managing VMs inside.
   final String _project;
+
+  /// VPC network instances should be attached to.
+  final String _network;
 
   /// GCP zones this instance is managing VMs inside.
   final List<String> _zones;
@@ -205,6 +214,7 @@ class _GoogleCloudCompute extends CloudCompute {
   _GoogleCloudCompute(
     this._api,
     this._project,
+    this._network,
     this._zones,
     this._machineType,
     this._poolLabel,
@@ -339,12 +349,19 @@ runcmd:
           ..scopes = [ComputeApi.cloudPlatformScope]
       ]
       ..networkInterfaces = [
-        NetworkInterface()..network = 'global/networks/default'
-        /*..accessConfigs = [
+        NetworkInterface()
+          ..network = 'projects/$_project/global/networks/$_network',
+        // "subnetwork": "projects/dartlang-pub-dev/regions/us-central1/subnetworks/pub-workers"
+
+        /*
+        NetworkInterface()
+          ..network = 'global/networks/default'
+          ..accessConfigs = [
             AccessConfig()
               ..type = 'ONE_TO_ONE_NAT'
               ..name = 'External NAT',
-          ],*/
+          ],
+          */
       ]
       ..disks = [
         AttachedDisk()
