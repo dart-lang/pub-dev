@@ -869,20 +869,21 @@ class PackageView extends Object with FlagMixin {
 
   PackageView change({List<ApiPageRef>? apiPages}) {
     return PackageView(
-        name: name,
-        releases: releases,
-        ellipsizedDescription: ellipsizedDescription,
-        created: created,
-        flags: flags,
-        publisherId: publisherId,
-        isPending: isPending,
-        likes: likes,
-        grantedPubPoints: grantedPubPoints,
-        maxPubPoints: maxPubPoints,
-        tags: tags,
-        spdxIdentifiers: spdxIdentifiers,
-        apiPages: apiPages ?? this.apiPages,
-        screenshots: screenshots);
+      name: name,
+      releases: releases,
+      ellipsizedDescription: ellipsizedDescription,
+      created: created,
+      flags: flags,
+      publisherId: publisherId,
+      isPending: isPending,
+      likes: likes,
+      grantedPubPoints: grantedPubPoints,
+      maxPubPoints: maxPubPoints,
+      tags: tags,
+      spdxIdentifiers: spdxIdentifiers,
+      apiPages: apiPages ?? this.apiPages,
+      screenshots: screenshots,
+    );
   }
 
   Map<String, dynamic> toJson() => _$PackageViewToJson(this);

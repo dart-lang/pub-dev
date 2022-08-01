@@ -161,11 +161,12 @@ d.Node _item({
   required d.Node? tagsNode,
   required List<_ApiPageUrl>? apiPages,
 }) {
-  final bool hasScreenshots = screenshots != null && screenshots.isNotEmpty;
+  final bool hasScreenshots =
+      screenshots != null && screenshots.isNotEmpty && version != null;
   String? screenshotURL;
   if (hasScreenshots) {
-    screenshotURL = imageStorage.getImageURL(
-        name, version!, screenshots.first.pngThumbnail);
+    screenshotURL =
+        imageStorage.getImageURL(name, version, screenshots.first.pngThumbnail);
   }
   final collectionsIconWhite =
       staticUrls.getAssetUrl('/static/img/collections_white_24dp.svg');
