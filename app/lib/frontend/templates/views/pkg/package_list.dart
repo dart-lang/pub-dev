@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_pub_shared/search/search_form.dart';
+import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 
 import '../../../../package/models.dart';
 import '../../../../search/search_service.dart';
-import '../../../../shared/tags.dart';
 import '../../../../shared/urls.dart' as urls;
 import '../../../../shared/utils.dart' show formatXAgo;
 

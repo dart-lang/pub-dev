@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:_pub_shared/search/search_form.dart';
+import 'package:_pub_shared/search/tags.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
@@ -13,7 +14,6 @@ import '../../package/search_adapter.dart';
 import '../../publisher/backend.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
-import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 import '../request_context.dart';
 import '../templates/listing.dart' show PageLinks;
