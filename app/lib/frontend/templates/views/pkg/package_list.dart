@@ -5,7 +5,6 @@
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
-import 'package:pana/pana.dart';
 
 import '../../../../frontend/request_context.dart';
 import '../../../../package/models.dart';
@@ -46,10 +45,8 @@ d.Node _sdkLibraryItem(SdkLibraryHit hit) {
   ].join(' • ');
 
   return _item(
-    screenshots: [],
     url: hit.url!,
     name: hit.library!,
-    version: hit.version,
     newTimestamp: null,
     labeledScoresNode: null,
     description: hit.description ?? '',
@@ -126,11 +123,17 @@ d.Node _packageItem(
     if (isNullSafe) nullSafeBadgeNode(),
   ]);
 
+  final screenshots = view.screenshots;
+  final bool hasScreenshots = screenshots != null && screenshots.isNotEmpty;
+  String? thumbnailUrl;
+  if (hasScreenshots) {
+    thumbnailUrl = imageStorage.getImageURL(
+        view.name!, releases.stable.version, screenshots.first.pngThumbnail);
+  }
   return _item(
-    screenshots: view.screenshots,
+    thumbnailUrl: thumbnailUrl,
     url: urls.pkgPageUrl(view.name!),
     name: view.name!,
-    version: releases.stable.version,
     newTimestamp: view.created,
     labeledScoresNode: labeledScoresNodeFromPackageView(view),
     description: view.ellipsizedDescription ?? '',
@@ -151,10 +154,9 @@ d.Node _packageItem(
 }
 
 d.Node _item({
-  required List<ProcessedScreenshot>? screenshots,
+  String? thumbnailUrl,
   required String url,
   required String name,
-  required String? version,
   required DateTime? newTimestamp,
   required d.Node? labeledScoresNode,
   required String description,
@@ -162,13 +164,6 @@ d.Node _item({
   required d.Node? tagsNode,
   required List<_ApiPageUrl>? apiPages,
 }) {
-  final bool hasScreenshots =
-      screenshots != null && screenshots.isNotEmpty && version != null;
-  String? screenshotURL;
-  if (hasScreenshots) {
-    screenshotURL =
-        imageStorage.getImageURL(name, version, screenshots.first.pngThumbnail);
-  }
   final collectionsIconWhite =
       staticUrls.getAssetUrl('/static/img/collections_white_24dp.svg');
   final age =
@@ -218,7 +213,7 @@ d.Node _item({
               d.div(classes: ['packages-api'], child: _apiPages(apiPages)),
           ],
         ),
-        if (hasScreenshots && requestContext.isExperimental)
+        if (thumbnailUrl != null && requestContext.isExperimental)
           d.div(classes: [
             'screenshot-thumbnail'
           ], children: [
@@ -227,7 +222,7 @@ d.Node _item({
                     alt: 'screenshot',
                     width: null,
                     height: null,
-                    src: screenshotURL!)),
+                    src: thumbnailUrl)),
             d.img(
                 classes: ['collections-icon'],
                 image: d.Image(
@@ -240,7 +235,7 @@ d.Node _item({
     ],
   );
 }
-
+c
 class _ApiPageUrl {
   final String href;
   final String label;
