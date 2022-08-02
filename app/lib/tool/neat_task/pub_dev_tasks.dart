@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:neat_periodic_task/neat_periodic_task.dart';
-import 'package:pub_dev/tool/backfill/backfill_new_buckets.dart';
 import 'package:pub_dev/tool/maintenance/update_public_bucket.dart';
 
 import '../../account/backend.dart';
@@ -30,13 +29,6 @@ final _logger = Logger('pub_dev_tasks');
 
 /// Periodic task that are not tied to a specific service.
 void _setupGenericPeriodicTasks() {
-  // Backfills package archives into new buckets.
-  _daily(
-    name: 'backfill-new-archive-buckets',
-    isRuntimeVersioned: true,
-    task: backfillNewArchiveBuckets,
-  );
-
   // Backfills the fields that are new to the current release.
   _daily(
     name: 'backfill-new-fields',
