@@ -293,7 +293,7 @@ class PackageBackend {
     // return storage.bucket(bucket).info(object)
     //     .then((info) => info.downloadLink);
     final object = tarballObjectName(package, Uri.encodeComponent(cv!));
-    return Uri.parse(_bucket.objectUrl(object));
+    return Uri.parse(_publicBucket.objectUrl(object));
   }
 
   /// Updates the stable, prerelease and preview versions of [package].
@@ -1356,7 +1356,7 @@ class PackageBackend {
 
   /// Gets the file info of a [package] in the given [version].
   Future<ObjectInfo?> packageTarballinfo(String package, String version) async {
-    return await _bucket.tryInfo(tarballObjectName(package, version));
+    return await _publicBucket.tryInfo(tarballObjectName(package, version));
   }
 }
 

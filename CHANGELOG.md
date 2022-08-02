@@ -7,6 +7,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Dart analysis SDK to `2.17.6`.
  * Upgraded stable Flutter analysis SDK to `3.0.5`.
  * NOTE: `LICENSE` is a required file in the new versions.
+ * NOTE: Started serving package archives from the new public bucket.
 
 ## `20220705t102600-all`
  * Bumped runtimeVersion to `2022.07.05`.
