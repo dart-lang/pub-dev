@@ -543,7 +543,7 @@ class IntegrityChecker {
       final bytes = (await _httpClient.get(archiveDownloadUri)).bodyBytes;
       final hash = sha256.convert(bytes).bytes;
       if (!hash.byteToByteEquals(sha256Hash)) {
-        yield 'PackageVersion "${pv.qualifiedVersionKey}" has sha256 hash missmatch.';
+        yield 'PackageVersion "${pv.qualifiedVersionKey}" has sha256 hash mismatch.';
       }
     }
 
