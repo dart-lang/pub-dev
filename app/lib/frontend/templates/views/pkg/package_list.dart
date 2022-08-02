@@ -7,6 +7,7 @@ import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:pana/pana.dart';
 
+import '../../../../frontend/request_context.dart';
 import '../../../../package/models.dart';
 import '../../../../package/screenshots/backend.dart';
 import '../../../../search/search_service.dart';
@@ -217,7 +218,7 @@ d.Node _item({
               d.div(classes: ['packages-api'], child: _apiPages(apiPages)),
           ],
         ),
-        if (hasScreenshots)
+        if (hasScreenshots && requestContext.isExperimental)
           d.div(classes: [
             'screenshot-thumbnail'
           ], children: [
