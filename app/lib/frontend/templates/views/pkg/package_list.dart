@@ -235,7 +235,7 @@ d.Node _item({
     ],
   );
 }
-c
+
 class _ApiPageUrl {
   final String href;
   final String label;
