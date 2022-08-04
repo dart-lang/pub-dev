@@ -127,7 +127,7 @@ d.Node _packageItem(
   final bool hasScreenshots = screenshots != null && screenshots.isNotEmpty;
   String? thumbnailUrl;
   if (hasScreenshots) {
-    thumbnailUrl = imageStorage.getImageURL(
+    thumbnailUrl = imageStorage.getImageUrl(
         view.name!, releases.stable.version, screenshots.first.pngThumbnail);
   }
   return _item(
@@ -220,14 +220,14 @@ d.Node _item({
             d.img(
                 image: d.Image(
                     alt: 'screenshot',
-                    width: null,
-                    height: null,
+                    width: 98,
+                    height: 98,
                     src: thumbnailUrl)),
             d.img(
                 classes: ['collections-icon'],
                 image: d.Image(
-                    height: null, // We handle sizing in css
-                    width: null, // We handle sizing in css
+                    height: 30,
+                    width: 30,
                     alt: 'image',
                     src: collectionsIconWhite))
           ])
