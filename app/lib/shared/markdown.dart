@@ -10,6 +10,13 @@ import 'package:sanitize_html/sanitize_html.dart';
 
 import 'urls.dart' show getRepositoryUrl, UriExt;
 
+/// Resolves [reference] relative to a repository URL.
+typedef UrlResolverFn = String Function(
+  String reference, {
+  String? relativeFrom,
+  bool? isEmbeddedObject,
+});
+
 final Logger _logger = Logger('pub.markdown');
 
 /// Element tags that are treated as structural headers.
@@ -38,6 +45,7 @@ const _whitelistedClassNames = <String>[
 /// formatting.
 String? markdownToHtml(
   String? text, {
+  UrlResolverFn? urlResolverFn,
   String? baseUrl,
   String? baseDir,
   bool isChangelog = false,
@@ -47,7 +55,12 @@ String? markdownToHtml(
   if (text == null) return null;
   text = text.replaceAll('\r\n', '\n');
   var nodes = _parseMarkdownSource(text, inlineOnly);
-  nodes = _rewriteRelativeUrls(nodes, baseUrl: baseUrl, baseDir: baseDir);
+  nodes = _rewriteRelativeUrls(
+    nodes,
+    urlResolverFn: urlResolverFn,
+    baseUrl: baseUrl,
+    baseDir: baseDir,
+  );
   if (isChangelog) {
     nodes = _groupChangelogNodes(nodes).toList();
   }
@@ -70,11 +83,13 @@ List<m.Node> _parseMarkdownSource(String source, bool inlineOnly) {
 /// Rewrites relative URLs, re-basing them on [baseUrl].
 List<m.Node> _rewriteRelativeUrls(
   List<m.Node> nodes, {
-  String? baseUrl,
-  String? baseDir,
+  required UrlResolverFn? urlResolverFn,
+  required String? baseUrl,
+  required String? baseDir,
 }) {
   final sanitizedBaseUrl = _pruneBaseUrl(baseUrl);
-  final urlRewriter = _RelativeUrlRewriter(sanitizedBaseUrl, baseDir);
+  final urlRewriter =
+      _RelativeUrlRewriter(urlResolverFn, sanitizedBaseUrl, baseDir);
   nodes.forEach((node) => node.accept(urlRewriter));
   return nodes;
 }
@@ -204,10 +219,11 @@ class _UnsafeUrlFilter implements m.NodeVisitor {
 
 /// Rewrites relative URLs with the provided [baseUrl]
 class _RelativeUrlRewriter implements m.NodeVisitor {
+  final UrlResolverFn? urlResolverFn;
   final String? baseUrl;
   final String? baseDir;
   final _elementsToRemove = <m.Element>{};
-  _RelativeUrlRewriter(this.baseUrl, this.baseDir);
+  _RelativeUrlRewriter(this.urlResolverFn, this.baseUrl, this.baseDir);
 
   @override
   void visitText(m.Text text) {}
@@ -258,6 +274,14 @@ class _RelativeUrlRewriter implements m.NodeVisitor {
       return null;
     }
     try {
+      if (urlResolverFn != null) {
+        return urlResolverFn!(
+          url,
+          relativeFrom: baseDir,
+          isEmbeddedObject: raw,
+        );
+      }
+      // TODO: remove the rest of the rewrites after repository verification is launched
       String newUrl = url;
       if (baseUrl != null && !_isAbsolute(newUrl)) {
         newUrl = _rewriteRelativeUrl(newUrl);

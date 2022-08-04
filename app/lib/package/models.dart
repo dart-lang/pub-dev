@@ -10,6 +10,7 @@ import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:pana/models.dart';
 import 'package:pub_dev/shared/popularity_storage.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -1025,6 +1026,10 @@ class PackagePageData {
     // TODO: use pana's verified repository instead
     return packageLinks._baseUrl;
   }();
+
+  /// The verified repository (or homepage).
+  late final urlResolverFn =
+      scoreCard?.panaReport?.result?.repository?.resolveUrl;
 
   PackageView toPackageView() {
     return _view ??= PackageView.fromModel(
