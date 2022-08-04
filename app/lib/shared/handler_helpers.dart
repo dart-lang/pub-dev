@@ -9,6 +9,7 @@ import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_dev/frontend/handlers/headers.dart';
+import 'package:pub_dev/shared/env_config.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:stack_trace/stack_trace.dart';
@@ -129,11 +130,18 @@ shelf.Handler _requestContextWrapper(shelf.Handler handler) {
             !hasExperimentalCookie && // don't cache if experimental cookie is enabled
             userSessionData == null; // don't cache if a user session is active
 
+    // The use of the new Google Identity Services library is restricted to
+    // staging or running locally, and it is also behind the experimental flag.
+    final useGisSignIn = isExperimental &&
+        (envConfig.isRunningLocally ||
+            activeConfiguration.projectId == 'dartlang-pub-dev');
+
     registerRequestContext(RequestContext(
       indentJson: indentJson,
       isExperimental: isExperimental,
       blockRobots: !enableRobots,
       uiCacheEnabled: uiCacheEnabled,
+      useGisSignIn: useGisSignIn,
     ));
     return await handler(request);
   };

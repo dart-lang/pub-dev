@@ -46,6 +46,9 @@ final _defaultContentSecurityPolicyMap = <String, List<String>>{
     'https://unpkg.com/',
     'https://www.gstatic.com/',
     'https://gstatic.com',
+    // required by Google Identity Services library
+    // https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid#content_security_policy
+    'https://accounts.google.com/gsi/client',
   ],
   'style-src': <String>[
     "'self'",
@@ -56,6 +59,9 @@ final _defaultContentSecurityPolicyMap = <String, List<String>>{
     'https://gstatic.com',
     'https://www.gstatic.com/',
     'https://tagmanager.google.com',
+    // required by Google Identity Services library
+    // https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid#content_security_policy
+    'https://accounts.google.com/gsi/style',
   ],
 };
 

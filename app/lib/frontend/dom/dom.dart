@@ -644,6 +644,7 @@ Node script({
   String? src,
   bool async = false,
   bool defer = false,
+  String? onload,
 }) =>
     dom.element(
       'script',
@@ -654,6 +655,7 @@ Node script({
         if (src != null) 'src': src,
         if (async) 'async': 'async',
         if (defer) 'defer': 'defer',
+        if (onload != null) 'onload': onload,
         if (attributes != null) ...attributes,
       },
       children: _children(children, child, text),

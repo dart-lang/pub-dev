@@ -44,6 +44,18 @@ void setupAccount() {
       );
     }));
   };
+
+  // Initialization hook that will run after the Google Identity Service library
+  // is loaded and initialized. Method name is passed in as an attribute in the DOM.
+  context['pubGsiClientInit'] = () {
+    window.console.log('GIS client loaded.');
+    // TODO: implement initialization
+    // Some resources:
+    // - https://developers.googleblog.com/2022/03/gis-jsweb-authz-migration.html
+    // - https://developers.google.com/identity/gsi/web/guides/overview
+    // - https://developers.google.com/identity/gsi/web/guides/migration#object_migration_reference_for_user_sign-in
+    // - https://developers.google.com/identity/gsi/web/reference/js-reference
+  };
 }
 
 void _initFailed() {
