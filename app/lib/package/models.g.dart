@@ -35,6 +35,9 @@ Map<String, dynamic> _$ReleaseToJson(Release instance) => <String, dynamic>{
     };
 
 PackageView _$PackageViewFromJson(Map<String, dynamic> json) => PackageView(
+      screenshots: (json['screenshots'] as List<dynamic>?)
+          ?.map((e) => ProcessedScreenshot.fromJson(e as Map<String, dynamic>))
+          .toList(),
       name: json['name'] as String?,
       releases: json['releases'] == null
           ? null
@@ -81,5 +84,6 @@ Map<String, dynamic> _$PackageViewToJson(PackageView instance) {
   val['tags'] = instance.tags;
   writeNotNull('spdxIdentifiers', instance.spdxIdentifiers);
   writeNotNull('apiPages', instance.apiPages);
+  writeNotNull('screenshots', instance.screenshots);
   return val;
 }

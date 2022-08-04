@@ -803,8 +803,10 @@ class PackageView extends Object with FlagMixin {
   /// The recognized SPDX identifiers of the licenses for the package.
   final List<String>? spdxIdentifiers;
   final List<ApiPageRef>? apiPages;
+  final List<ProcessedScreenshot>? screenshots;
 
   PackageView({
+    this.screenshots,
     this.name,
     this.releases,
     this.ellipsizedDescription,
@@ -840,6 +842,7 @@ class PackageView extends Object with FlagMixin {
             (scoreCard.isDiscontinued && !package.isDiscontinued) ||
             // No blocker for analysis, but no results yet.
             (!scoreCard.isSkipped && !hasPanaReport);
+
     return PackageView(
       name: version?.package ?? package.name,
       releases: releases,
@@ -860,6 +863,7 @@ class PackageView extends Object with FlagMixin {
           ?.map((e) => e.spdxIdentifier)
           .toList(),
       apiPages: apiPages,
+      screenshots: scoreCard?.panaReport?.screenshots,
     );
   }
 
@@ -878,6 +882,7 @@ class PackageView extends Object with FlagMixin {
       tags: tags,
       spdxIdentifiers: spdxIdentifiers,
       apiPages: apiPages ?? this.apiPages,
+      screenshots: screenshots,
     );
   }
 

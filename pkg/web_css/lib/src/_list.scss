@@ -98,6 +98,41 @@
     min-height: 40px;
   }
 
+  .packages-container {
+    display: flex;
+    flex-flow: row nowrap;
+    gap: 5px;
+    justify-content: space-between;
+  }
+
+  .packages-body {
+    display: flex;
+    flex-flow: column nowrap;
+  }
+
+  .screenshot-thumbnail {
+    display: flex;
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: 100px;
+    height: 100px;
+    margin-top: 10px;
+    border: solid 1px #aeaeae;
+  }
+
+  .collections-icon {
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: 30px;
+    width: 30px;
+    align-self: flex-end;
+    margin-left: -30px;
+    opacity: 70%;
+    background-color: #aeaeae;
+  }
+
+
+
   .packages-title {
     flex-grow: 1;
     font-size: 22px;
