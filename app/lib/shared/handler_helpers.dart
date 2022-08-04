@@ -132,9 +132,9 @@ shelf.Handler _requestContextWrapper(shelf.Handler handler) {
 
     // The use of the new Google Identity Services library is restricted to
     // staging or running locally, and it is also behind the experimental flag.
-    final useGisSignIn = isExperimental &&
-        (envConfig.isRunningLocally ||
-            activeConfiguration.projectId == 'dartlang-pub-dev');
+    final isStaging = activeConfiguration.projectId == 'dartlang-pub-dev';
+    final useGisSignIn =
+        isExperimental && (envConfig.isRunningLocally || isStaging);
 
     registerRequestContext(RequestContext(
       indentJson: indentJson,
