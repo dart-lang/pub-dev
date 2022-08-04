@@ -9,7 +9,6 @@ import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_dev/frontend/handlers/headers.dart';
-import 'package:pub_dev/shared/env_config.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:stack_trace/stack_trace.dart';
@@ -132,9 +131,7 @@ shelf.Handler _requestContextWrapper(shelf.Handler handler) {
 
     // The use of the new Google Identity Services library is restricted to
     // staging or running locally, and it is also behind the experimental flag.
-    final isStaging = activeConfiguration.projectId == 'dartlang-pub-dev';
-    final useGisSignIn =
-        isExperimental && (envConfig.isRunningLocally || isStaging);
+    final useGisSignIn = isExperimental && activeConfiguration.isNotProduction;
 
     registerRequestContext(RequestContext(
       indentJson: indentJson,
