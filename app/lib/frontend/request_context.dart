@@ -27,11 +27,15 @@ class RequestContext {
   /// pollution by visually changing the site).
   final bool uiCacheEnabled;
 
+  /// Whether to use the new Google Identity Services library.
+  final bool useGisSignIn;
+
   const RequestContext({
     this.indentJson = false,
     this.isExperimental = false,
     this.blockRobots = true,
     this.uiCacheEnabled = false,
+    this.useGisSignIn = false,
   });
 
   /// Whether to show the admin UI for automated publishing admin UI.
