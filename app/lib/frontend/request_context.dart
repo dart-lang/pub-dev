@@ -40,4 +40,7 @@ class RequestContext {
 
   /// Whether to show the admin UI for automated publishing admin UI.
   bool get showAdminUIForAutomatedPublishing => isExperimental;
+
+  /// Whether to show package screenshots in search listings.
+  bool get showScreenshots => isExperimental;
 }
