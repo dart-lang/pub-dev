@@ -121,14 +121,7 @@ d.Node pageLayoutNode({
             ),
             d.meta(
                 name: 'google-signin-client_id', content: oauthClientId ?? ''),
-            if (requestContext.experimentalFlags.useGisSignIn)
-              d.script(
-                src: 'https://accounts.google.com/gsi/client',
-                async: true,
-                defer: true,
-                onload: 'pubGsiClientInit()',
-              )
-            else
+            if (!requestContext.experimentalFlags.useGisSignIn)
               d.script(
                 src:
                     'https://apis.google.com/js/platform.js?onload=pubAuthInit',
