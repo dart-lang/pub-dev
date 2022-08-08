@@ -14,5 +14,5 @@ Future<String> executePublisherMember(List<String> args) async {
   final publisherId = args.single;
 
   final members = await publisherBackend.listPublisherMembers(publisherId);
-  return members.map((e) => '${e.userId} ${e.role} ${e.role}\n').join();
+  return members.map((e) => '${e.userId} ${e.email} ${e.role}\n').join();
 }
