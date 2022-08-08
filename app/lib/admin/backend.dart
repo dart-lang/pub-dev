@@ -13,12 +13,10 @@ import 'package:convert/convert.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
-import 'package:pub_dev/account/consent_backend.dart';
-import 'package:pub_dev/admin/tools/package_discontinued.dart';
-import 'package:pub_dev/admin/tools/package_publisher.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../account/backend.dart';
+import '../account/consent_backend.dart';
 import '../account/models.dart';
 import '../audit/models.dart';
 import '../dartdoc/backend.dart';
@@ -38,6 +36,9 @@ import 'tools/create_publisher.dart';
 import 'tools/list_package_blocked.dart';
 import 'tools/list_tools.dart';
 import 'tools/notify_service.dart';
+import 'tools/package_discontinued.dart';
+import 'tools/package_publisher.dart';
+import 'tools/publisher_member.dart';
 import 'tools/recent_uploaders.dart';
 import 'tools/set_package_blocked.dart';
 import 'tools/set_secret.dart';
@@ -64,6 +65,7 @@ final Map<String, Tool> availableTools = {
   'package-publisher': executeSetPackagePublisher,
   'recent-uploaders': executeRecentUploaders,
   'block-publisher-and-all-members': executeBlockPublisherAndAllMembers,
+  'publisher-member': executePublisherMember,
   'set-package-blocked': executeSetPackageBlocked,
   'set-secret': executeSetSecret,
   'set-user-blocked': executeSetUserBlocked,
