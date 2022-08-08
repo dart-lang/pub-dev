@@ -107,7 +107,7 @@ class PubApi {
   ///     [200 OK]
   ///     {
   ///       "success" : {
-  ///         "message": "Successfully uploaded package.",
+  ///         "message": "Successfully uploaded [package] version [version].",
   ///       },
   ///     }
   @EndPoint.get('/api/packages/versions/newUploadFinish')
@@ -124,7 +124,7 @@ class PubApi {
     return SuccessMessage(
         success: Message(
             message:
-                'Successfully uploaded ${urls.pkgPageUrl(pv.package, includeHost: true)} "${pv.version}".'));
+                'Successfully uploaded ${urls.pkgPageUrl(pv.package, includeHost: true)} version ${pv.version}.'));
   }
 
   /// Adding a new uploader
