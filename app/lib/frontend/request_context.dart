@@ -43,5 +43,4 @@ class RequestContext {
 
   /// Whether to show package screenshots in search listings.
   bool get showScreenshots => isExperimental;
-
 }
