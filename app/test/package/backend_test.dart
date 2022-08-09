@@ -329,6 +329,7 @@ void main() {
         final version = await packageBackend.lookupVersion('oxygen', '1.0.0');
         expect(version, isNotNull);
         expect(version.version, '1.0.0');
+        expect(version.archiveSha256, isNotEmpty);
       });
     });
 
@@ -348,6 +349,12 @@ void main() {
             pd.versions.map((v) => v.version), ['1.0.0', '1.2.0', '2.0.0-dev']);
         expect(pd.descendingVersions.map((v) => v.version),
             ['2.0.0-dev', '1.2.0', '1.0.0']);
+        // check hash differs
+        final hashes = pd.versions.map((e) => e.archiveSha256).toSet();
+        expect(hashes, hasLength(pd.versions.length));
+        for (final hash in hashes) {
+          expect(hash, hasLength(64));
+        }
       });
 
       testWithProfile('isDiscontinued', fn: () async {

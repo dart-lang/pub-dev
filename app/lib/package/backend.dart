@@ -10,6 +10,7 @@ import 'dart:io';
 import 'package:_pub_shared/data/account_api.dart' as account_api;
 import 'package:_pub_shared/data/package_api.dart' as api;
 import 'package:clock/clock.dart';
+import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
@@ -1352,6 +1353,8 @@ class PackageBackend {
 
 extension PackageVersionExt on PackageVersion {
   api.VersionInfo toApiVersionInfo() {
+    final hasSha256 = this.sha256 != null && this.sha256!.isNotEmpty;
+    final archiveSha256 = hasSha256 ? hex.encode(this.sha256!) : null;
     return api.VersionInfo(
       version: version!,
       retracted: isRetracted ? true : null,
@@ -1365,6 +1368,7 @@ extension PackageVersionExt on PackageVersion {
         /// content with the proper cached URLs.
         baseUri: activeConfiguration.primaryApiUri,
       ),
+      archiveSha256: archiveSha256,
       published: created,
     );
   }
