@@ -266,12 +266,13 @@ class IntegrityChecker {
     // empty uploaders
     if (p.uploaders == null || p.uploaders!.isEmpty) {
       // no publisher
-      if (p.publisherId == null && !p.isDiscontinued) {
+      if (p.publisherId == null && !p.isBlocked && !p.isDiscontinued) {
         yield 'Package "${p.name}" has no uploaders, must be marked discontinued.';
       }
 
       if (p.publisherId != null &&
           _publishersAbandoned.contains(p.publisherId) &&
+          !p.isBlocked &&
           !p.isDiscontinued) {
         yield 'Package "${p.name}" has an abandoned publisher, must be marked discontinued.';
       }
