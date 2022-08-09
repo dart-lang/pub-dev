@@ -735,8 +735,10 @@ class PackageBackend {
       name: package,
       isDiscontinued: pkg.isDiscontinued ? true : null,
       replacedBy: pkg.replacedBy,
-      latest: latest.toApiVersionInfo(),
-      versions: packageVersions.map((pv) => pv.toApiVersionInfo()).toList(),
+      latest: latest.toApiVersionInfo(reducedPubspec: true),
+      versions: packageVersions
+          .map((pv) => pv.toApiVersionInfo(reducedPubspec: true))
+          .toList(),
     );
   }
 
@@ -783,7 +785,7 @@ class PackageBackend {
       throw NotFoundException.resource('version "$version"');
     }
 
-    return pv.toApiVersionInfo();
+    return pv.toApiVersionInfo(reducedPubspec: false);
   }
 
   Future<api.UploadInfo> startUpload(Uri redirectUrl) async {
@@ -1351,11 +1353,11 @@ class PackageBackend {
 }
 
 extension PackageVersionExt on PackageVersion {
-  api.VersionInfo toApiVersionInfo() {
+  api.VersionInfo toApiVersionInfo({required bool reducedPubspec}) {
     return api.VersionInfo(
       version: version!,
       retracted: isRetracted ? true : null,
-      pubspec: pubspec!.asJson,
+      pubspec: pubspec!.toJson(reduced: reducedPubspec),
       archiveUrl: urls.pkgArchiveDownloadUrl(
         package,
         version!,

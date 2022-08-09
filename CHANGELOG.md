@@ -2,6 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * NOTE: Serve only reduced pubspec content on client API endpoints.
 
 ## `20220804t094500-all`
  * Bumped runtimeVersion to `2022.08.02`.

@@ -18,6 +18,16 @@ import '../shared/datastore.dart';
 import '../shared/utils.dart' show canonicalizeVersion;
 import '../shared/versions.dart' as versions;
 
+/// The top-level pubspec that will be served on client API endpoints.
+const _reducedPubspecKeys = <String>{
+  'name',
+  'version',
+  'environment',
+  'dependencies',
+  'dev_dependencies',
+  'dependency_overrides',
+};
+
 Map<String, dynamic> _loadYaml(String yamlString) {
   final map = loadYaml(yamlString) as Map;
   // TODO: remove this part after yaml returns a proper map
@@ -45,10 +55,16 @@ class Pubspec {
   factory Pubspec.fromJson(Map<String, dynamic> map) =>
       Pubspec._(pubspek.Pubspec.fromJson(map, lenient: true), json.encode(map));
 
-  Map<String, dynamic> get asJson {
+  Map<String, dynamic> get _asJson {
     _load();
     return _json!;
   }
+
+  late final _reducedJson = {..._asJson}
+    ..removeWhere((key, _) => !_reducedPubspecKeys.contains(key));
+
+  Map<String, dynamic> toJson({required bool reduced}) =>
+      reduced ? _reducedJson : _asJson;
 
   String get name => _inner.name;
 

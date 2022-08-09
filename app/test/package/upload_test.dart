@@ -113,7 +113,7 @@ void main() {
         final pv = (await dbService.lookup<PackageVersion>([pvKey!])).single!;
         expect(pv.packageKey, package.key);
         expect(pv.created!.compareTo(dateBeforeTest) >= 0, isTrue);
-        expect(pv.pubspec!.asJson, loadYaml(pubspecContent));
+        expect(pv.pubspec!.toJson(reduced: false), loadYaml(pubspecContent));
         expect(pv.libraries, ['test_library.dart']);
         expect(pv.uploader, user.userId);
         expect(pv.publisherId, isNull);
@@ -198,7 +198,7 @@ void main() {
         final pv = (await dbService.lookup<PackageVersion>([pvKey!])).single!;
         expect(pv.packageKey, package.key);
         expect(pv.created!.compareTo(dateBeforeTest) >= 0, isTrue);
-        expect(pv.pubspec!.asJson, loadYaml(pubspecContent));
+        expect(pv.pubspec!.toJson(reduced: false), loadYaml(pubspecContent));
         expect(pv.libraries, ['test_library.dart']);
         expect(pv.uploader, user.userId);
         expect(pv.publisherId, 'example.com');

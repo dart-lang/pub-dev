@@ -162,7 +162,7 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
         'name': version.package,
         'latest': {
           'version': version.version,
-          'pubspec': version.pubspec!.asJson,
+          'pubspec': version.pubspec!.toJson(reduced: true),
 
           // TODO: We should get rid of these:
           'archive_url': apiArchiveUrl,
