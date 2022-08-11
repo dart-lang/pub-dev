@@ -11,7 +11,7 @@ dev_dependencies:
 screenshots:
   - description: 'this is an awesome screenshot.'
     path: static.webp
-    description: 'pub package picture'
+  - description: 'pub package picture'
     path: pub_package.png
-    description: 'sunshine'
+  - description: 'sunshine'
     path: sun.png
