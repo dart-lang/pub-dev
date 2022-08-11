@@ -13,5 +13,5 @@ screenshots:
     path: static.webp
   - description: 'pub package picture'
     path: pub_package.png
-  - description: 'sunshine'
+  - description: 'sun is shining'
     path: sun.png
