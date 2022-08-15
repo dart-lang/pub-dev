@@ -106,13 +106,20 @@ class NameTracker {
 
   void addReservedName(String name) {
     _reservedNames.add(name);
-    _addConflictingName(name);
+    _addConflictingName(name, skipAlternatives: true);
     _names.remove(name);
   }
 
-  void _addConflictingName(String name) {
-    for (final generated in _generateConflictingNames(name)) {
-      _conflictingNames.putIfAbsent(generated, () => name);
+  void _addConflictingName(
+    String name, {
+    bool? skipAlternatives,
+  }) {
+    final names = _generateConflictingNames(
+      name,
+      skipAlternatives: skipAlternatives,
+    );
+    for (final cn in names) {
+      _conflictingNames.putIfAbsent(cn, () => name);
     }
   }
 
@@ -303,10 +310,16 @@ class _NameTrackerUpdater {
 /// Generates the names that will be used to determine name conflicts:
 /// - For each package name, this will generate a String that doesn't contain `_`.
 /// - For names that are long enough, this will also try to generate the singular or plural form of the name.
-Iterable<String> _generateConflictingNames(String name) sync* {
+Iterable<String> _generateConflictingNames(
+  String name, {
+  bool? skipAlternatives,
+}) sync* {
   // name without underscores
   final reduced = reducePackageName(name);
   yield reduced;
+  if (skipAlternatives ?? false) {
+    return;
+  }
   // singular/plural form parsing
   // This could be improved with some a dictionary or a grammar parser.
   if (!reduced.endsWith('s') && reduced.length >= 3) {
