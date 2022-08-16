@@ -38,7 +38,7 @@ RUN /project/tool/setup-dart.sh /tool/preview 2.18.0-271.4.beta
 
 # Setup analysis Flutter SDKs
 RUN /project/tool/setup-flutter.sh /tool/stable 3.0.5
-RUN /project/tool/setup-flutter.sh /tool/preview 3.3.0-0.1.pre
+RUN /project/tool/setup-flutter.sh /tool/preview 3.3.0-0.3.pre
 
 # Clear out any arguments the base images might have set
 CMD []
