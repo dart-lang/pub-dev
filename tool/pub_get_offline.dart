@@ -101,7 +101,7 @@ Future<void> _downloadInto(
   }
   targetDir.createSync(recursive: true);
   final rq = await _client.getUrl(Uri.parse(
-      'https://storage.googleapis.com/pub-packages/packages/${Uri.encodeComponent(package)}-${Uri.encodeComponent(version)}.tar.gz'));
+      'https://storage.googleapis.com/dartlang-pub-public-packages/packages/${Uri.encodeComponent(package)}-${Uri.encodeComponent(version)}.tar.gz'));
   final rs = await rq.close();
   if (rs.statusCode != 200) {
     throw Exception('Unable to access archive of $package-$version.');
