@@ -55,6 +55,7 @@ d.Node button({
 }
 
 /// Renders a material floating action button (FAB) element.
+// ignore: non_constant_identifier_names
 d.Node FAB({
   String? id,
   Iterable<String>? classes,
