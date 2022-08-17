@@ -146,8 +146,9 @@ AdminId _$AdminIdFromJson(Map json) => $checkedCreate(
 Map<String, dynamic> _$AdminIdToJson(AdminId instance) => <String, dynamic>{
       'oauthUserId': instance.oauthUserId,
       'email': instance.email,
-      'permissions':
-          instance.permissions.map((e) => _$AdminPermissionEnumMap[e]).toList(),
+      'permissions': instance.permissions
+          .map((e) => _$AdminPermissionEnumMap[e]!)
+          .toList(),
     };
 
 const _$AdminPermissionEnumMap = {

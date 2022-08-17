@@ -2,8 +2,9 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bumped runtimeVersion to `2022.08.16`.
+ * Bumped runtimeVersion to `2022.08.17`.
  * Upgraded preview Flutter analysis SDK to `3.3.0-0.3.pre`.
+ * Upgraded pana to `0.21.16`.
  * Upgraded dartdoc to `6.0.1`.
  * NOTE: Started to use new public bucket for pub-dev deployment.
  * NOTE: Started serving `archive_sha256` on client API endpoints.
