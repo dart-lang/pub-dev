@@ -6,6 +6,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded preview Flutter analysis SDK to `3.3.0-0.3.pre`.
  * Upgraded dartdoc to `6.0.1`.
  * NOTE: Started to use new public bucket for pub-dev deployment.
+ * NOTE: Started serving `archive_sha256` on client API endpoints.
 
 ## `20220804t094500-all`
  * Bumped runtimeVersion to `2022.08.02`.

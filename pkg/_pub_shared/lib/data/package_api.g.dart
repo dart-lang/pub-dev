@@ -145,6 +145,7 @@ VersionInfo _$VersionInfoFromJson(Map<String, dynamic> json) => VersionInfo(
       retracted: json['retracted'] as bool?,
       pubspec: json['pubspec'] as Map<String, dynamic>,
       archiveUrl: json['archive_url'] as String?,
+      archiveSha256: json['archive_sha256'] as String?,
       published: json['published'] == null
           ? null
           : DateTime.parse(json['published'] as String),
@@ -164,6 +165,7 @@ Map<String, dynamic> _$VersionInfoToJson(VersionInfo instance) {
   writeNotNull('retracted', instance.retracted);
   val['pubspec'] = instance.pubspec;
   writeNotNull('archive_url', instance.archiveUrl);
+  writeNotNull('archive_sha256', instance.archiveSha256);
   writeNotNull('published', instance.published?.toIso8601String());
   return val;
 }
