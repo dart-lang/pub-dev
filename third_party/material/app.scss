@@ -9,3 +9,5 @@
 @use '@material/ripple/mdc-ripple';
 @use '@material/select/mdc-select';
 @use '@material/textfield/mdc-text-field';
+@use "@material/fab";
+@include fab.core-styles;

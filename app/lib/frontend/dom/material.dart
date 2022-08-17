@@ -54,6 +54,40 @@ d.Node button({
   );
 }
 
+/// Renders a material floating action button (FAB) element.
+d.Node FAB({
+  String? id,
+  Iterable<String>? classes,
+  bool fabMini = false,
+  Map<String, String>? attributes,
+  d.Image? icon,
+}) {
+  return d.element(
+    'fab',
+    id: id,
+    classes: [
+      'mdc-fab',
+      if (fabMini) 'mdc-fab--mini',
+      if (classes != null) ...classes,
+    ],
+    attributes: {
+      'data-mdc-auto-init': 'MDCRipple',
+      if (attributes != null) ...attributes,
+    },
+    children: [
+      d.div(classes: ['mdc-fab__ripple']),
+      if (icon != null)
+        d.img(
+          classes: [
+            'mdc-fab__icon',
+          ],
+          image: icon,
+          attributes: {'aria-hidden': 'true'},
+        ),
+    ],
+  );
+}
+
 /// Renders a material raised button.
 d.Node raisedButton({
   String? id,
