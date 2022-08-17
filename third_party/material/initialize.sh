@@ -14,6 +14,7 @@ EOF
 
 npm install "@material/auto-init@${VERSION}"
 npm install "@material/button@${VERSION}"
+npm install "@material/fab@${VERSION}"
 npm install "@material/checkbox@${VERSION}"
 npm install "@material/data-table@${VERSION}"
 npm install "@material/dialog@${VERSION}"
