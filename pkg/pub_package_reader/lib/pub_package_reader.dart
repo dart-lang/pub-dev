@@ -268,6 +268,7 @@ Future<PackageSummary> summarizePackageArchive(
   issues.addAll(requireIosFolderOrFlutter2_20(pubspec, tar.fileNames));
   issues.addAll(checkScreenshots(pubspec, tar.fileNames));
   issues.addAll(validateKnownTemplateReadme(readmePath, readmeContent));
+  issues.addAll(checkFunding(pubspecContent));
 
   return PackageSummary(
     issues: issues,
@@ -716,5 +717,31 @@ Iterable<ArchiveIssue> checkScreenshots(
           'Screenshot description for `${s.path}` is too long (over 200 characters).');
     }
     yield* validateZalgo('screenshot description', s.description);
+  }
+}
+
+Iterable<ArchiveIssue> checkFunding(String pubspecContent) sync* {
+  final map = loadYaml(pubspecContent) as Map;
+  if (!map.containsKey('funding')) {
+    return;
+  }
+  final funding = map['funding'];
+  if (funding == null || funding is! List || funding.isEmpty) {
+    yield ArchiveIssue(
+        '`pubspec.yaml` has invalid `funding`: only a list of URLs are allowed.');
+    return;
+  }
+  for (final item in funding) {
+    if (item is! String || item.trim().isEmpty) {
+      yield ArchiveIssue(
+          'Invalid `funding` value (`$item`): only URLs are allowed.');
+      continue;
+    }
+    final uri = Uri.tryParse(item.trim());
+    if (uri == null || uri.scheme != 'https') {
+      yield ArchiveIssue(
+          'Invalid `funding` value (`$item`): only `https` URLs are allowed.');
+      continue;
+    }
   }
 }

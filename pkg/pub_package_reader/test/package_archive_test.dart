@@ -747,4 +747,27 @@ $dependencies
       );
     });
   });
+
+  group('funding', () {
+    test('bad top-level value', () {
+      expect(checkFunding('funding: null'), isNotEmpty);
+      expect(checkFunding('funding: 1'), isNotEmpty);
+      expect(checkFunding('funding: {}'), isNotEmpty);
+      expect(checkFunding('funding: true'), isNotEmpty);
+      expect(checkFunding('funding: []'), isNotEmpty);
+      expect(checkFunding('funding: https://example.com/fund-me'), isNotEmpty);
+    });
+
+    test('bad url value', () {
+      expect(checkFunding('funding: [1]'), isNotEmpty);
+      expect(checkFunding('funding: [" "]'), isNotEmpty);
+      expect(
+          checkFunding('funding: ["http://example.com/fund-me"]'), isNotEmpty);
+    });
+
+    test('OK', () {
+      expect(checkFunding('funding: ["https://example.com/fund-me"]'), isEmpty);
+      expect(checkFunding('funding:\n - https://example.com/fund-me'), isEmpty);
+    });
+  });
 }
