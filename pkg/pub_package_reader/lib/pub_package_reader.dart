@@ -743,5 +743,9 @@ Iterable<ArchiveIssue> checkFunding(String pubspecContent) sync* {
           'Invalid `funding` value (`$item`): only `https` URLs are allowed.');
       continue;
     }
+    if (item.length > 255) {
+      yield ArchiveIssue(
+          'Invalid `funding` value (`$item`): maximum URL length is 255 characters.');
+    }
   }
 }

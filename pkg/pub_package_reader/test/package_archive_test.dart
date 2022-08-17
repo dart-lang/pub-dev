@@ -765,6 +765,12 @@ $dependencies
           checkFunding('funding: ["http://example.com/fund-me"]'), isNotEmpty);
     });
 
+    test('too long url value', () {
+      final url = 'https://github.com/${'a' * 255}';
+      expect(checkFunding('funding: ["${url.substring(0, 255)}"]'), isEmpty);
+      expect(checkFunding('funding: ["${url.substring(0, 256)}"]'), isNotEmpty);
+    });
+
     test('OK', () {
       expect(checkFunding('funding: ["https://example.com/fund-me"]'), isEmpty);
       expect(checkFunding('funding:\n - https://example.com/fund-me'), isEmpty);
