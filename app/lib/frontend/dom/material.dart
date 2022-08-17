@@ -57,9 +57,7 @@ d.Node button({
 /// Renders a material floating action button (FAB) element.
 /// The FAB is 48x48px by default. If [fabMini] is `true` the FAB will be
 /// 40x40px.
-//
-// ignore: non_constant_identifier_names
-d.Node FAB({
+d.Node floatingActionButton({
   String? id,
   Iterable<String>? classes,
   bool fabMini = false,
