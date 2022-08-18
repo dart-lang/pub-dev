@@ -6,6 +6,7 @@ library pub_dartlang_org.model_properties;
 
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:pana/pana.dart' show SdkConstraintStatus;
 import 'package:pub_package_reader/pub_package_reader.dart'
     show checkStrictVersions;
@@ -173,6 +174,21 @@ class Pubspec {
     }
     return obj;
   }
+
+  late final List<Uri> funding = () {
+    _load();
+    final list = _json!['funding'];
+    if (list is! List) {
+      return <Uri>[];
+    }
+    return list
+        .map((e) {
+          if (e is! String) return null;
+          return Uri.tryParse(e);
+        })
+        .whereNotNull()
+        .toList();
+  }();
 }
 
 class MinSdkVersion {

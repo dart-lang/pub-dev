@@ -39,7 +39,8 @@ void main() {
                       'path': 'static.webp',
                       'description': 'This is an awesome screenshot'
                     }
-                  ]
+                  ],
+                  'funding': isNotEmpty,
                 },
                 'archive_url':
                     '${activeConfiguration.primaryApiUri}/packages/oxygen/versions/1.2.0.tar.gz',
@@ -67,7 +68,8 @@ void main() {
                       'path': 'static.webp',
                       'description': 'This is an awesome screenshot'
                     }
-                  ]
+                  ],
+                  'funding': isNotEmpty,
                 },
                 'archive_url':
                     '${activeConfiguration.primaryApiUri}/packages/flutter_titanium/versions/1.10.0.tar.gz',
@@ -93,7 +95,8 @@ void main() {
                       'path': 'static.webp',
                       'description': 'This is an awesome screenshot'
                     }
-                  ]
+                  ],
+                  'funding': isNotEmpty,
                 },
                 'archive_url':
                     '${activeConfiguration.primaryApiUri}/packages/neon/versions/1.0.0.tar.gz',
