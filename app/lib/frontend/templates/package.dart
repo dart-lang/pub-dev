@@ -88,10 +88,15 @@ d.Node renderPkgInfoBox(PackagePageData data) {
     addLink(dartdocsUrl, 'API reference', documentation: true);
   }
 
+  final fundingLinks = data.version!.pubspec!.funding.map((uri) {
+    // TODO: use `rel="nofollow noopener ugc"` if link verification failed
+    return InfoBoxLink(uri.toString(), uri.host, rel: 'ugc');
+  }).toList();
   return packageInfoBoxNode(
     data: data,
     metaLinks: metaLinks,
     docLinks: docLinks,
+    fundingLinks: fundingLinks,
     labeledScores: labeledScoresNodeFromPackageView(
       data.toPackageView(),
       version: data.isLatestStable ? null : data.version!.version,

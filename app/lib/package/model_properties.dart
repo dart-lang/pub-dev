@@ -173,6 +173,21 @@ class Pubspec {
     }
     return obj;
   }
+
+  late final List<Uri> funding = () {
+    _load();
+    final list = _json!['funding'];
+    if (list is! List) {
+      return <Uri>[];
+    }
+    return list
+        .map((e) {
+          if (e is! String) return null;
+          return Uri.tryParse(e);
+        })
+        .whereType<Uri>()
+        .toList();
+  }();
 }
 
 class MinSdkVersion {
