@@ -1027,10 +1027,10 @@ class PackageBackend {
           agent: agent,
         );
         if (!isAdmin) {
-          _logger.info('User ${agent.agentId} (${agent.visibleId}) '
+          _logger.info('User ${agent.agentId} (${agent.displayId}) '
               'is not an uploader for package ${package!.name}, rolling transaction back.');
           throw AuthorizationException.userCannotUploadNewVersion(
-              agent.visibleId, package!.name!);
+              agent.displayId, package!.name!);
         }
       }
 
@@ -1110,7 +1110,7 @@ class PackageBackend {
       final email = emailSender.sendMessage(createPackageUploadedEmail(
         packageName: newVersion.package,
         packageVersion: newVersion.version!,
-        formattedId: agent.visibleId,
+        displayId: agent.displayId,
         authorizedUploaders:
             uploaderEmails.map((email) => EmailAddress(null, email)).toList(),
       ));
