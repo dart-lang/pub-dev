@@ -298,7 +298,7 @@ class GitHubJwtPayload {
     try {
       return GitHubJwtPayload(payload);
     } on FormatException {
-      rethrow;
+      return null;
     } catch (e, st) {
       _logger.warning('Unexpected JWT parser exception.', e, st);
       return null;
