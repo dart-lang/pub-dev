@@ -9,9 +9,13 @@ dev_dependencies:
   lints: ^1.0.0
 
 screenshots:
-  - description: 'this is an awesome screenshot.'
-    path: static.webp
   - description: 'pub package picture'
     path: pub_package.png
+  - description: 'this is an awesome screenshot.'
+    path: static.webp
   - description: 'sun is shining'
     path: sun.png
+  - description: 'a very wide image'
+    path: horizontal.png
+  - description: 'a very tall image'
+    path: vertical.png
