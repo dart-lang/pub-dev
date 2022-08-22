@@ -5,8 +5,13 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
+import 'package:logging/logging.dart';
+
 import 'openid_models.dart';
 
+final _logger = Logger('jwt');
 final _jsonUtf8Base64 = json.fuse(utf8).fuse(base64Url);
 
 /// Pattern for a valid JWT, these must 3 base64 segments separated by dots.
@@ -37,10 +42,10 @@ class JsonWebToken {
   final String headerAndPayloadEncoded;
 
   /// The decoded header Map.
-  final Map<String, dynamic> header;
+  final JwtHeader header;
 
   /// The decoded payload Map.
-  final Map<String, dynamic> payload;
+  final JwtPayload payload;
 
   /// The bytes of the signature hash.
   final Uint8List signature;
@@ -68,8 +73,8 @@ class JsonWebToken {
     final signature = base64.decode(base64.normalize(parts[2]));
     return JsonWebToken._(
       '$headerPart.$payloadPart',
-      _decodePart(headerPart),
-      _decodePart(payloadPart),
+      JwtHeader(_decodePart(headerPart)),
+      JwtPayload(_decodePart(payloadPart)),
       signature,
     );
   }
@@ -77,7 +82,10 @@ class JsonWebToken {
   static JsonWebToken? tryParse(String token) {
     try {
       return JsonWebToken.parse(token);
-    } on FormatException catch (_) {
+    } on FormatException {
+      return null;
+    } catch (e, st) {
+      _logger.warning('Unexpected JWT parser exception.', e, st);
       return null;
     }
   }
@@ -87,25 +95,13 @@ class JsonWebToken {
     return _jwtPattern.hasMatch(token);
   }
 
-  /// algorithm
-  late final alg = header['alg'] as String?;
-
-  /// type
-  late final typ = header['typ'] as String?;
-
-  /// key identifier
-  late final kid = header['kid'] as String?;
-
-  /// issued at
-  late final iat = _tryParseFromSeconds(payload['iat'] as int?);
-
-  /// expires
-  late final exp = _tryParseFromSeconds(payload['exp'] as int?);
-
   /// Verifies the token with the provided JSON Web Keys and
   /// returns `true` if the signature is valid.
   Future<bool> verifySignature(JsonWebKeyList jwks) async {
-    final candidates = jwks.selectKeyForSignature(kid: kid, alg: alg);
+    final candidates = jwks.selectKeyForSignature(
+      kid: header.kid,
+      alg: header.alg,
+    );
     for (final key in candidates) {
       final isValid = await key.verifySignature(
         input: headerAndPayloadEncoded,
@@ -123,7 +119,190 @@ Map<String, dynamic> _decodePart(String part) {
   return _jsonUtf8Base64.decode(base64.normalize(part)) as Map<String, dynamic>;
 }
 
-DateTime? _tryParseFromSeconds(int? value) {
+DateTime? _parseIntAsSecondsOrNull(Map<String, dynamic> map, String key) {
+  final value = map[key];
   if (value == null) return null;
-  return DateTime.fromMillisecondsSinceEpoch(value * 1000);
+  if (value is int) {
+    return DateTime.fromMillisecondsSinceEpoch(value * 1000, isUtc: true);
+  }
+  throw FormatException('Unexpected value for `$key`: `$value`.');
+}
+
+String? _parseAsStringOrNull(Map<String, dynamic> map, String key) {
+  final value = map[key];
+  if (value == null) {
+    return null;
+  }
+  if (value is String) {
+    return value;
+  }
+  throw FormatException('Unexpected value for `$key`: `$value`.');
+}
+
+String _parseAsString(Map<String, dynamic> map, String key) {
+  final value = _parseAsStringOrNull(map, key);
+  if (value == null) {
+    throw FormatException('Missing value for `$key`.');
+  } else {
+    return value;
+  }
+}
+
+/// The parsed JWT header.
+class JwtHeader extends UnmodifiableMapView<String, dynamic> {
+  /// algorithm
+  final String? alg;
+
+  /// type
+  final String? typ;
+
+  /// key identifier
+  final String? kid;
+
+  JwtHeader._(super.map)
+      : alg = _parseAsStringOrNull(map, 'alg'),
+        typ = _parseAsStringOrNull(map, 'typ'),
+        kid = _parseAsStringOrNull(map, 'kid');
+
+  factory JwtHeader(Map<String, dynamic> values) {
+    try {
+      return JwtHeader._(values);
+    } on FormatException {
+      rethrow;
+    } catch (e, st) {
+      _logger.warning('Unexpected JWT parser exception.', e, st);
+      throw FormatException('Unexpected value in JWT header.');
+    }
+  }
+}
+
+/// The parsed JWT payload.
+class JwtPayload extends UnmodifiableMapView<String, dynamic> {
+  /// timestamp when token was issued
+  final DateTime? iat;
+
+  /// timestamp before which the token is not valid
+  final DateTime? nbf;
+
+  /// timestamp at which the token expires
+  final DateTime? exp;
+
+  /// The "iss" (issuer) claim identifies the principal that issued the JWT.
+  final String? iss;
+
+  JwtPayload._(super.map)
+      : iat = _parseIntAsSecondsOrNull(map, 'iat'),
+        nbf = _parseIntAsSecondsOrNull(map, 'nbf'),
+        exp = _parseIntAsSecondsOrNull(map, 'exp'),
+        iss = _parseAsStringOrNull(map, 'iss');
+
+  factory JwtPayload(Map<String, dynamic> map) {
+    try {
+      return JwtPayload._(map);
+    } on FormatException {
+      rethrow;
+    } catch (e, st) {
+      _logger.warning('Unexpected JWT parser exception.', e, st);
+      throw FormatException('Unexpected value in JWT payload.');
+    }
+  }
+
+  /// Verifies the timestamps with to the provided [now]:
+  /// - [iat] <= [now]
+  /// - [nbf] <= [now]
+  /// - [now] <= [exp]
+  ///
+  /// Returns `false` if the current timestamp is outside of the allowed range.
+  /// If the timestamp is missing, we treat it as if it would allow the current
+  /// time.
+  bool verifyTimestamps([DateTime? now]) {
+    now ??= clock.now();
+    if (iat != null && iat!.isAfter(now)) {
+      return false;
+    }
+    if (nbf != null && nbf!.isAfter(now)) {
+      return false;
+    }
+    if (exp != null && exp!.isBefore(now)) {
+      return false;
+    }
+    return true;
+  }
+}
+
+/// Parsed payload with the payload values GitHub sends with the token.
+/// TODO: group GitHub-specific data classes into a single location
+class GitHubJwtPayload {
+  /// user controllable URL identifying the intended audience
+  final String aud;
+
+  /// repository for which the action is running
+  final String repository;
+
+  /// owner of the repository
+  final String repositoryOwner;
+
+  /// name of the event that triggered the workflow
+  final String eventName;
+
+  /// git reference (e.g. branch name or tag name)
+  final String ref;
+
+  /// the kind of git reference given (e.g. "branch")
+  final String refType;
+
+  /// name of the environment used by the job
+  final String environment;
+
+  /// The URL used as the `iss` property of JWT payloads.
+  static const _githubIssuerUrl = 'https://token.actions.githubusercontent.com';
+
+  static const _requiredClaims = <String>{
+    // generic claims
+    'iat',
+    'nbf',
+    'exp',
+    'iss',
+    // github-specific claims
+    'aud',
+    'repository',
+    'repository_owner',
+    'event_name',
+    'ref',
+    'ref_type',
+    'environment',
+  };
+
+  GitHubJwtPayload._(Map<String, dynamic> map)
+      : aud = _parseAsString(map, 'aud'),
+        repository = _parseAsString(map, 'repository'),
+        repositoryOwner = _parseAsString(map, 'repository_owner'),
+        eventName = _parseAsString(map, 'event_name'),
+        ref = _parseAsString(map, 'ref'),
+        refType = _parseAsString(map, 'ref_type'),
+        environment = _parseAsString(map, 'environment');
+
+  factory GitHubJwtPayload(JwtPayload payload) {
+    final missing = _requiredClaims.difference(payload.keys.toSet()).sorted();
+    if (missing.isNotEmpty) {
+      throw FormatException(
+          'JWT from Github is missing following claims: ${missing.map((k) => '`$k`').join(', ')}.');
+    }
+    if (payload.iss != _githubIssuerUrl) {
+      throw FormatException(
+          'Unexpected value in payload: `iss`: `${payload.iss}`.');
+    }
+    return GitHubJwtPayload._(payload);
+  }
+
+  static GitHubJwtPayload? tryParse(JwtPayload payload) {
+    try {
+      return GitHubJwtPayload(payload);
+    } on FormatException {
+      return null;
+    } catch (e, st) {
+      _logger.warning('Unexpected JWT parser exception.', e, st);
+      return null;
+    }
+  }
 }

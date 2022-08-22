@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
+import 'package:clock/clock.dart';
 import 'package:convert/convert.dart';
 import 'package:pub_dev/service/openid/jwt.dart';
 import 'package:pub_dev/service/openid/openid_models.dart';
@@ -45,16 +48,18 @@ void main() {
         'alg': 'RS256',
         'typ': 'JWT',
       });
-      expect(parsed.alg, 'RS256');
-      expect(parsed.typ, 'JWT');
+      expect(parsed.header.alg, 'RS256');
+      expect(parsed.header.typ, 'JWT');
       expect(parsed.payload, {
         'sub': '1234567890',
         'name': 'John Doe',
         'admin': true,
         'iat': 1516239022,
       });
-      expect(parsed.iat!.year, 2018);
-      expect(parsed.exp, isNull);
+      expect(parsed.payload.iat!.year, 2018);
+      expect(parsed.payload.exp, isNull);
+      expect(parsed.payload.verifyTimestamps(clock.now()), isTrue);
+      expect(parsed.payload.verifyTimestamps(DateTime(2017)), isFalse);
       expect(parsed.signature, hasLength(256));
     });
 
@@ -177,4 +182,76 @@ void main() {
       expect(await token.verifySignature(jwks), isFalse);
     });
   });
+
+  group('GitHub payload', () {
+    test('not a GitHub payload', () {
+      final token = JsonWebToken.parse(jwtIoToken);
+      expect(() => GitHubJwtPayload(token.payload),
+          throwsA(isA<FormatException>()));
+    });
+
+    test('parses GitHub example token', () {
+      final token = JsonWebToken.parse(_buildToken(
+        header: {
+          'typ': 'JWT',
+          'alg': 'RS256',
+          'x5t': 'example-thumbprint',
+          'kid': 'example-key-id'
+        },
+        payload: {
+          'jti': 'example-id',
+          'sub': 'repo:octo-org/octo-repo:environment:prod',
+          'environment': 'prod',
+          'aud': 'https://github.com/octo-org',
+          'ref': 'refs/heads/main',
+          'sha': 'example-sha',
+          'repository': 'octo-org/octo-repo',
+          'repository_owner': 'octo-org',
+          'actor_id': '12',
+          'repository_id': '74',
+          'repository_owner_id': '65',
+          'run_id': 'example-run-id',
+          'run_number': '10',
+          'run_attempt': '2',
+          'actor': 'octocat',
+          'workflow': 'example-workflow',
+          'head_ref': '',
+          'base_ref': '',
+          'event_name': 'workflow_dispatch',
+          'ref_type': 'branch',
+          'job_workflow_ref':
+              'octo-org/octo-automation/.github/workflows/oidc.yml@refs/heads/main',
+          'iss': 'https://token.actions.githubusercontent.com',
+          'nbf': 1632492967, // Friday, September 24, 2021 2:16:07 PM
+          'exp': 1632493867, // Friday, September 24, 2021 2:31:07 PM
+          'iat': 1632493567, // Friday, September 24, 2021 2:26:07 PM
+        },
+        signature: [1, 2, 3, 4], // fake signature
+      ));
+
+      final pl = token.payload;
+      expect(pl.verifyTimestamps(clock.now()), isFalse);
+      expect(pl.verifyTimestamps(DateTime.utc(2021, 9, 24, 14, 16, 00)), false);
+      expect(pl.verifyTimestamps(DateTime.utc(2021, 9, 24, 14, 16, 08)), false);
+      expect(pl.verifyTimestamps(DateTime.utc(2021, 9, 24, 14, 26, 00)), false);
+      expect(pl.verifyTimestamps(DateTime.utc(2021, 9, 24, 14, 26, 08)), true);
+      expect(pl.verifyTimestamps(DateTime.utc(2021, 9, 24, 14, 31, 00)), true);
+      expect(pl.verifyTimestamps(DateTime.utc(2021, 9, 24, 14, 31, 08)), false);
+
+      final p = GitHubJwtPayload(token.payload);
+      expect(p.eventName, 'workflow_dispatch');
+    });
+  });
+}
+
+String _buildToken({
+  required Map<String, dynamic> header,
+  required Map<String, dynamic> payload,
+  required List<int> signature,
+}) {
+  return [
+    base64Url.encode(utf8.encode(json.encode(header))).replaceAll('=', ''),
+    base64Url.encode(utf8.encode(json.encode(payload))).replaceAll('=', ''),
+    base64Url.encode(signature).replaceAll('=', ''),
+  ].join('.');
 }
