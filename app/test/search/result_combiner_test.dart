@@ -134,33 +134,5 @@ void main() {
         ],
       });
     });
-
-    test('exact name match: stringutils', () async {
-      final results =
-          await combiner.search(ServiceSearchQuery.parse(query: 'stringutils'));
-      expect(json.decode(json.encode(results.toJson())), {
-        'timestamp': isNotNull,
-        'totalCount': 1,
-        'highlightedHit': {'package': 'stringutils'},
-        'sdkLibraryHits': [
-          {
-            'sdk': 'dart',
-            'version': '2.0.0',
-            'library': 'dart:core',
-            'url':
-                'https://api.dart.dev/stable/2.0.0/dart-core/dart-core-library.html',
-            'score': closeTo(0.98, 0.01),
-            'apiPages': [
-              {
-                'path': 'dart-core/String/stringutils.html',
-                'url':
-                    'https://api.dart.dev/stable/2.0.0/dart-core/String/stringutils.html'
-              }
-            ]
-          },
-        ],
-        'packageHits': [],
-      });
-    });
   });
 }

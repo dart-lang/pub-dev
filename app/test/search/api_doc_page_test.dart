@@ -56,9 +56,9 @@ void main() {
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 2,
-        'highlightedHit': {'package': 'foo'}, // finds package name
         'sdkLibraryHits': [],
         'packageHits': [
+          {'package': 'foo', 'score': 1.0}, // finds package name
           {
             'package': 'other_with_api',
             'score': closeTo(0.695, 0.001), // finds foo method

@@ -88,9 +88,9 @@ void main() {
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 5,
-        'highlightedHit': {'package': 'flutter_iap'},
         'sdkLibraryHits': [],
         'packageHits': [
+          {'package': 'flutter_iap', 'score': 1.0},
           {
             'package': 'flutter_blue',
             'score': closeTo(0.82, 0.01),

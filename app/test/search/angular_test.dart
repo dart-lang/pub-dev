@@ -35,9 +35,9 @@ void main() {
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 2,
-        'highlightedHit': {'package': 'angular'},
         'sdkLibraryHits': [],
         'packageHits': [
+          {'package': 'angular', 'score': 1.0},
           {
             'package': 'angular_ui',
             'score': closeTo(0.95, 0.01),

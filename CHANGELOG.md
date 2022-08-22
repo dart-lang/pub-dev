@@ -2,6 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * NOTE: `search` stopped populating `highlightedHit` field.
 
 ## `20220822t072200-all`
  * Downgraded `package:markdown` to `5.0.0`.
