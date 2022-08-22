@@ -231,6 +231,7 @@ class JwtPayload extends UnmodifiableMapView<String, dynamic> {
 }
 
 /// Parsed payload with the payload values GitHub sends with the token.
+/// TODO: group GitHub-specific data classes into a single location
 class GitHubJwtPayload {
   /// user controllable URL identifying the intended audience
   final String aud;
