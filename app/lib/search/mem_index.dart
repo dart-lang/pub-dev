@@ -196,29 +196,8 @@ class InMemoryPackageIndex implements PackageIndex {
       });
     }
 
-    PackageHit? highlightedHit;
-    if (query.considerHighlightedHit) {
-      final queryText = query.parsedQuery.text;
-      final matchingPackage =
-          _packages[queryText] ?? _packages[queryText!.toLowerCase()];
-
-      if (matchingPackage != null) {
-        // Remove higlighted package from the final packages set.
-        packages.remove(matchingPackage.package);
-
-        // higlight only if we are on the first page
-        if (query.includeHighlightedHit) {
-          highlightedHit = PackageHit(package: matchingPackage.package);
-        }
-      }
-    }
-
     // do text matching
-    final textResults = _searchText(
-      packages,
-      query.parsedQuery.text,
-      hasHighlightedHit: highlightedHit != null,
-    );
+    final textResults = _searchText(packages, query.parsedQuery.text);
 
     // filter packages that doesn't match text query
     if (textResults != null) {
@@ -258,7 +237,7 @@ class InMemoryPackageIndex implements PackageIndex {
     }
 
     // bound by offset and limit (or randomize items)
-    final totalCount = packageHits.length + (highlightedHit == null ? 0 : 1);
+    final totalCount = packageHits.length;
     packageHits =
         boundedList(packageHits, offset: query.offset, limit: query.limit);
 
@@ -275,7 +254,6 @@ class InMemoryPackageIndex implements PackageIndex {
     return PackageSearchResult(
       timestamp: clock.now().toUtc(),
       totalCount: totalCount,
-      highlightedHit: highlightedHit,
       packageHits: packageHits,
     );
   }
@@ -317,11 +295,7 @@ class InMemoryPackageIndex implements PackageIndex {
     return Score(values);
   }
 
-  _TextResults? _searchText(
-    Set<String> packages,
-    String? text, {
-    required bool hasHighlightedHit,
-  }) {
+  _TextResults? _searchText(Set<String> packages, String? text) {
     final sw = Stopwatch()..start();
     if (text != null && text.isNotEmpty) {
       final words = splitForQuery(text);
@@ -358,9 +332,8 @@ class InMemoryPackageIndex implements PackageIndex {
       // Do documentation text search only when there was no reasonable core result
       // and no reasonable API symbol result.
       var dartdocPages = Score.empty();
-      final shouldSearchApiText = !hasHighlightedHit &&
-          core.maxValue < 0.4 &&
-          symbolPages.maxValue < 0.3;
+      final shouldSearchApiText =
+          core.maxValue < 0.4 && symbolPages.maxValue < 0.3;
       if (!checkAborted() && shouldSearchApiText) {
         final sw = Stopwatch()..start();
         dartdocPages = _apiDartdocIndex.searchWords(words, weight: 0.40);
@@ -371,18 +344,17 @@ class InMemoryPackageIndex implements PackageIndex {
             'elapsed: ${sw.elapsed}');
       } else {
         _logger.info('[pub-search-query-without-api-dartdoc-index] '
-            'hasHighlightedHit: $hasHighlightedHit '
             'core: ${core.length}/${core.maxValue} '
             'symbols: ${symbolPages.length}/${symbolPages.maxValue}');
       }
       final logTags = [
         if (symbolPages.isNotEmpty) '[pub-search-query-api-symbols-found]',
         if (dartdocPages.isNotEmpty) '[pub-search-query-api-dartdoc-found]',
-        if (!hasHighlightedHit && symbolPages.maxValue > core.maxValue)
+        if (symbolPages.maxValue > core.maxValue)
           '[pub-search-query-api-symbols-better-than-core]',
-        if (!hasHighlightedHit && dartdocPages.maxValue > core.maxValue)
+        if (dartdocPages.maxValue > core.maxValue)
           '[pub-search-query-api-dartdoc-better-than-core]',
-        if (!hasHighlightedHit && symbolPages.maxValue > dartdocPages.maxValue)
+        if (symbolPages.maxValue > dartdocPages.maxValue)
           '[pub-search-query-api-dartdoc-better-than-symbols]',
       ];
       if (logTags.isNotEmpty) {

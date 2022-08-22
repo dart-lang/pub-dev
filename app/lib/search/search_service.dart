@@ -288,6 +288,7 @@ class QueryValidity {
 class PackageSearchResult {
   final DateTime? timestamp;
   final int totalCount;
+  // TODO: remove if we are no longer displaying it
   final PackageHit? highlightedHit;
   final List<SdkLibraryHit> sdkLibraryHits;
   final List<PackageHit> packageHits;
