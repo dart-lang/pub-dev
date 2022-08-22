@@ -71,4 +71,5 @@ dev_dependencies:
   xml: ^6.0.0
 
 dependency_overrides:
+  # TODO: remove after https://github.com/dart-lang/markdown/issues/445 gets fixed
   markdown: ^5.0.0
