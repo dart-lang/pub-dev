@@ -5,6 +5,7 @@
 library pub_dartlang_org.backend;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:_pub_shared/data/account_api.dart' as account_api;
@@ -551,18 +552,7 @@ class PackageBackend {
   /// publisher admin).
   ///
   /// Returns false if the user is not an admin.
-  Future<bool> isPackageAdmin(
-    Package p,
-    String? userId, {
-    AuthenticatedAgent? agent,
-  }) async {
-    if (agent is AuthenticatedGithubAction) {
-      // TODO: check if the JWT token matches the automated publishing settings on the package.
-      return false;
-    }
-    if (agent is AuthenticatedUser) {
-      userId ??= agent.user.userId;
-    }
+  Future<bool> isPackageAdmin(Package p, String? userId) async {
     if (userId == null) {
       return false;
     }
@@ -1007,22 +997,15 @@ class PackageBackend {
             version.package, version.version!);
       }
 
+      // If the package exists, check for authorization
+      if (package != null) {
+        await _checkUploadAuthorization(package!, agent);
+      }
+
       // If the package does not exist, then we create a new package.
       if (package == null) {
         _logger.info('New package uploaded. [new-package-uploaded]');
         package = Package.fromVersion(newVersion);
-      } else {
-        final isAdmin = await packageBackend.isPackageAdmin(
-          package!,
-          agent is AuthenticatedUser ? agent.user.userId : null,
-          agent: agent,
-        );
-        if (!isAdmin) {
-          _logger.info('User ${agent.agentId} (${agent.displayId}) '
-              'is not an uploader for package ${package!.name}, rolling transaction back.');
-          throw AuthorizationException.userCannotUploadNewVersion(
-              agent.displayId, package!.name!);
-        }
       }
 
       if (package!.isNotVisible) {
@@ -1138,6 +1121,50 @@ class PackageBackend {
     }
     _logger.info('Post-upload tasks completed in ${sw.elapsed}.');
     return pv;
+  }
+
+  Future<void> _checkUploadAuthorization(
+      Package package, AuthenticatedAgent agent) async {
+    if (agent is AuthenticatedUser &&
+        await packageBackend.isPackageAdmin(package, agent.user.userId)) {
+      return;
+    }
+    if (agent is AuthenticatedGithubAction &&
+        await _isGithubActionAllowed(package, agent)) {
+      return;
+    }
+    _logger.info('User ${agent.agentId} (${agent.displayId}) '
+        'is not an uploader for package ${package.name}, rolling transaction back.');
+    throw AuthorizationException.userCannotUploadNewVersion(
+        agent.displayId, package.name!);
+  }
+
+  Future<bool> _isGithubActionAllowed(
+      Package package, AuthenticatedGithubAction agent) async {
+    final githubPublishing = package.automatedPublishing.github;
+    if (githubPublishing == null) {
+      return false;
+    }
+    final isEnabled = githubPublishing.isEnabled ?? false;
+    if (!isEnabled) {
+      return false;
+    }
+    final repository = githubPublishing.repository;
+    final repositoryMatches = repository != null &&
+        repository.isNotEmpty &&
+        agent.payload.repository == repository;
+    if (!repositoryMatches) {
+      return false;
+    }
+
+    // TODO: return `true` once we are happy with the current checks
+    // NOTE: we log and also return the payload map to verify the token info GitHub sends
+    final debugInfo = json.encode(agent.idToken.payload);
+    _logger.info('Recognized GitHub action: $debugInfo');
+    throw PackageRejectedException(
+      'GitHub Action recognized successful, but publishing is not enabled yet.'
+      ' $debugInfo',
+    );
   }
 
   /// Read the archive bytes from the canonical bucket.
