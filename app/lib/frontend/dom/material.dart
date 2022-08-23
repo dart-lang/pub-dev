@@ -54,6 +54,42 @@ d.Node button({
   );
 }
 
+/// Renders a material floating action button (FAB) element.
+/// The FAB is 48x48px by default. If [fabMini] is `true` the FAB will be
+/// 40x40px.
+d.Node floatingActionButton({
+  String? id,
+  Iterable<String>? classes,
+  bool fabMini = false,
+  Map<String, String>? attributes,
+  d.Image? icon,
+}) {
+  return d.element(
+    'fab',
+    id: id,
+    classes: [
+      'mdc-fab',
+      if (fabMini) 'mdc-fab--mini',
+      if (classes != null) ...classes,
+    ],
+    attributes: {
+      'data-mdc-auto-init': 'MDCRipple',
+      if (attributes != null) ...attributes,
+    },
+    children: [
+      d.div(classes: ['mdc-fab__ripple']),
+      if (icon != null)
+        d.img(
+          classes: [
+            'mdc-fab__icon',
+          ],
+          image: icon,
+          attributes: {'aria-hidden': 'true'},
+        ),
+    ],
+  );
+}
+
 /// Renders a material raised button.
 d.Node raisedButton({
   String? id,
@@ -103,28 +139,31 @@ d.Node textField({
   required String? label,
   String? value,
 }) {
-  return d.fragment([
-    if (label != null) d.label(attributes: {'for': id}, text: label),
-    d.div(
-      classes: ['mdc-text-field', 'mdc-text-field--outlined'],
-      attributes: {'data-mdc-auto-init': 'MDCTextField'},
-      children: [
-        d.input(
-          type: 'text',
-          id: id,
-          classes: ['mdc-text-field__input'],
-          value: value,
-        ),
-        d.div(
-          classes: ['mdc-notched-outline'],
-          children: [
-            d.div(classes: ['mdc-notched-outline__leading'], text: ''),
-            d.div(classes: ['mdc-notched-outline__trailing'], text: ''),
-          ],
-        ),
-      ],
-    ),
-  ]);
+  return d.div(
+    classes: ['mdc-form-field'],
+    children: [
+      if (label != null) d.label(attributes: {'for': id}, text: label),
+      d.div(
+        classes: ['mdc-text-field', 'mdc-text-field--outlined'],
+        attributes: {'data-mdc-auto-init': 'MDCTextField'},
+        children: [
+          d.input(
+            type: 'text',
+            id: id,
+            classes: ['mdc-text-field__input'],
+            value: value,
+          ),
+          d.div(
+            classes: ['mdc-notched-outline'],
+            children: [
+              d.div(classes: ['mdc-notched-outline__leading'], text: ''),
+              d.div(classes: ['mdc-notched-outline__trailing'], text: ''),
+            ],
+          ),
+        ],
+      ),
+    ],
+  );
 }
 
 /// Renders a material text area.

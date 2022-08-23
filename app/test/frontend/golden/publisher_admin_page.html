@@ -23,9 +23,9 @@
     <link rel="canonical" href="https://pub.dev/publishers/example.com/admin"/>
     <meta name="description" content="Pub is the package manager for the Dart programming language, containing reusable libraries &amp; packages for Flutter, AngularDart, and general Dart programs."/>
     <link rel="alternate" type="application/atom+xml" title="Updated Packages Feed for Pub" href="/feed.atom"/>
-    <link rel="stylesheet" type="text/css" href="/static/hash-%%etag%%/material/material-components-web.min.css"/>
+    <link rel="stylesheet" type="text/css" href="/static/hash-%%etag%%/material/bundle/styles.css"/>
     <link rel="stylesheet" type="text/css" href="/static/hash-%%etag%%/css/style.css"/>
-    <script src="/static/hash-%%etag%%/material/material-components-web.min.js" defer="defer"></script>
+    <script src="/static/hash-%%etag%%/material/bundle/script.min.js" defer="defer"></script>
     <script src="/static/hash-%%etag%%/js/script.dart.js" defer="defer"></script>
     <meta name="google-signin-client_id" content=""/>
     <script src="https://apis.google.com/js/platform.js?onload=pubAuthInit" defer="defer"></script>
@@ -131,7 +131,7 @@
                   </p>
                   <p>
                     Publisher registered
-                    <span class="-x-ago" title="on %%publisher-created-date%%">%%x-ago%%</span>
+                    <a class="-x-ago" href="" title="on %%publisher-created-date%%" aria-label="Switch between date and elapsed time." aria-role="button">%%x-ago%%</a>
                   </p>
                 </div>
               </div>
@@ -157,7 +157,7 @@
               <div class="detail-tabs-content">
                 <section class="tab-content detail-tab-admin-content -active">
                   <h2>Publisher information</h2>
-                  <div class="-pub-form-row">
+                  <div class="-pub-form-textfield-row">
                     <label for="-publisher-description">Description</label>
                     <div class="mdc-text-field mdc-text-field--textarea" data-mdc-auto-init="MDCTextField">
                       <div class="mdc-text-field-character-counter">0 / 4096</div>
@@ -168,23 +168,27 @@
                       </div>
                     </div>
                   </div>
-                  <div class="-pub-form-row">
-                    <label for="-publisher-website-url">Website</label>
-                    <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
-                      <input id="-publisher-website-url" class="mdc-text-field__input" type="text" value="https://example.com/"/>
-                      <div class="mdc-notched-outline">
-                        <div class="mdc-notched-outline__leading"></div>
-                        <div class="mdc-notched-outline__trailing"></div>
+                  <div class="-pub-form-textfield-row">
+                    <div class="mdc-form-field">
+                      <label for="-publisher-website-url">Website</label>
+                      <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+                        <input id="-publisher-website-url" class="mdc-text-field__input" type="text" value="https://example.com/"/>
+                        <div class="mdc-notched-outline">
+                          <div class="mdc-notched-outline__leading"></div>
+                          <div class="mdc-notched-outline__trailing"></div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div class="-pub-form-row">
-                    <label for="-publisher-contact-email">Contact email</label>
-                    <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
-                      <input id="-publisher-contact-email" class="mdc-text-field__input" type="text" value="admin@pub.dev"/>
-                      <div class="mdc-notched-outline">
-                        <div class="mdc-notched-outline__leading"></div>
-                        <div class="mdc-notched-outline__trailing"></div>
+                  <div class="-pub-form-textfield-row">
+                    <div class="mdc-form-field">
+                      <label for="-publisher-contact-email">Contact email</label>
+                      <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+                        <input id="-publisher-contact-email" class="mdc-text-field__input" type="text" value="admin@pub.dev"/>
+                        <div class="mdc-notched-outline">
+                          <div class="mdc-notched-outline__leading"></div>
+                          <div class="mdc-notched-outline__trailing"></div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -222,13 +226,15 @@
                       <li>Upload new versions of packages owned by this publisher</li>
                       <li>Add and remove members of this publisher</li>
                     </ul>
-                    <div class="-pub-form-row">
-                      <label for="-admin-invite-member-input">Email address</label>
-                      <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
-                        <input id="-admin-invite-member-input" class="mdc-text-field__input" type="text"/>
-                        <div class="mdc-notched-outline">
-                          <div class="mdc-notched-outline__leading"></div>
-                          <div class="mdc-notched-outline__trailing"></div>
+                    <div class="-pub-form-textfield-row">
+                      <div class="mdc-form-field">
+                        <label for="-admin-invite-member-input">Email address</label>
+                        <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+                          <input id="-admin-invite-member-input" class="mdc-text-field__input" type="text"/>
+                          <div class="mdc-notched-outline">
+                            <div class="mdc-notched-outline__leading"></div>
+                            <div class="mdc-notched-outline__trailing"></div>
+                          </div>
                         </div>
                       </div>
                     </div>

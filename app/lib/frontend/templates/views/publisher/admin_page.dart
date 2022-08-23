@@ -16,7 +16,7 @@ d.Node publisherAdminPageNode({
   return d.fragment([
     d.h2(text: 'Publisher information'),
     d.div(
-      classes: ['-pub-form-row'],
+      classes: ['-pub-form-textfield-row'],
       child: material.textArea(
         id: '-publisher-description',
         label: 'Description',
@@ -26,7 +26,7 @@ d.Node publisherAdminPageNode({
       ),
     ),
     d.div(
-      classes: ['-pub-form-row'],
+      classes: ['-pub-form-textfield-row'],
       child: material.textField(
         id: '-publisher-website-url',
         label: 'Website',
@@ -34,7 +34,7 @@ d.Node publisherAdminPageNode({
       ),
     ),
     d.div(
-      classes: ['-pub-form-row'],
+      classes: ['-pub-form-textfield-row'],
       child: material.textField(
         id: '-publisher-contact-email',
         label: 'Contact email',
@@ -106,7 +106,7 @@ d.Node publisherAdminPageNode({
           ],
         ),
         d.div(
-          classes: ['-pub-form-row'],
+          classes: ['-pub-form-textfield-row'],
           child: material.textField(
             id: '-admin-invite-member-input',
             label: 'Email address',

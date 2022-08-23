@@ -21,7 +21,7 @@ void main() {
           '${activeConfiguration.storageBaseUrl}/some-pub-bucket/path/file.txt');
 
       expect((await packageBackend.downloadUrl('oxygen', '1.0.0')).toString(),
-          '${activeConfiguration.storageBaseUrl}/fake-bucket-pub/packages/oxygen-1.0.0.tar.gz');
+          '${activeConfiguration.storageBaseUrl}/fake-public-packages/packages/oxygen-1.0.0.tar.gz');
     });
 
     test('helper methods', () {

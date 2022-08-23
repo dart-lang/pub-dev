@@ -9,7 +9,6 @@ import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/tool/maintenance/update_package_likes.dart';
-import 'package:pub_dev/tool/utils/pub_api_client.dart';
 import 'package:test/test.dart';
 
 import '../../shared/test_models.dart';
@@ -26,9 +25,9 @@ void main() {
 
     testWithProfile('no need to change like counts #2', fn: () async {
       final p1 = await packageBackend.lookupPackage('oxygen');
-      await withHttpPubApiClient(
-          bearerToken: userAtPubDevAuthToken,
-          fn: (client) => client.likePackage('oxygen'));
+      await createPubApiClient(
+        authToken: userAtPubDevAuthToken,
+      ).likePackage('oxygen');
       expect(await updatePackageLikes(), 0);
       final p2 = await packageBackend.lookupPackage('oxygen');
       expect(p2!.likes, p1!.likes + 1);
@@ -49,8 +48,7 @@ void main() {
 
     testWithProfile('extra like', fn: () async {
       final p1 = await packageBackend.lookupPackage('oxygen');
-      final user =
-          await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+      final user = await accountBackend.lookupUserByEmail('user@pub.dev');
       await dbService.commit(inserts: [
         Like()
           ..parentKey = user.key

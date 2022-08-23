@@ -173,6 +173,8 @@ class Pubspec {
     }
     return obj;
   }
+
+  late final List<Uri> funding = _inner.funding ?? const <Uri>[];
 }
 
 class MinSdkVersion {

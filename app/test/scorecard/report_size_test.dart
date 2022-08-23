@@ -40,6 +40,7 @@ void main() {
                 summary: 'abcd 1234' * 10000,
               ),
             ]),
+            result: null,
             flags: [],
             urlProblems: [],
             screenshots: null,

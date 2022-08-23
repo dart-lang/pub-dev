@@ -19,6 +19,7 @@ import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:test/test.dart';
 
+import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
 
@@ -66,6 +67,9 @@ void main() {
         expect(pv, isNotNull);
         expect(pv.package, 'oxygen');
         expect(pv.version, p.latestVersion);
+        expect(pv.sha256, hasLength(32));
+        // making sure that we have at least one non-zero value in it
+        expect(pv.sha256, anyElement(greaterThan(0)));
       });
 
       testWithProfile('package does not exists', fn: () async {
@@ -111,91 +115,38 @@ void main() {
       testWithProfile('no escape needed', fn: () async {
         final url = await packageBackend.downloadUrl('oxygen', '2.0.8');
         expect(url.toString(),
-            contains('/fake-bucket-pub/packages/oxygen-2.0.8.tar.gz'));
+            contains('/fake-public-packages/packages/oxygen-2.0.8.tar.gz'));
       });
 
       testWithProfile('version escape needed', fn: () async {
         final url = await packageBackend.downloadUrl('oxygen', '2.0.8+5');
         expect(url.toString(),
-            contains('/fake-bucket-pub/packages/oxygen-2.0.8%2B5.tar.gz'));
+            contains('/fake-public-packages/packages/oxygen-2.0.8%2B5.tar.gz'));
       });
     });
   });
 
   group('backend.repository', () {
-    group('add uploader', () {
-      testWithProfile('not logged in', fn: () async {
-        final rs = packageBackend.addUploader('oxygen', 'a@b.com');
-        await expectLater(rs, throwsA(isA<AuthenticationException>()));
+    group('api no longer supported', () {
+      testWithProfile('uploader add', fn: () async {
+        final rs = createPubApiClient().addUploader('oxygen');
+        await expectApiException(
+          rs,
+          status: 403,
+          code: 'OperationForbidden',
+          message: 'https://pub.dev/packages/oxygen/admin',
+        );
       });
 
-      testWithProfile('not authorized', fn: () async {
-        final token = createFakeAuthTokenForEmail('foo@bar.com',
-            source: AuthSource.client);
-        await accountBackend.withBearerToken(token, () async {
-          final rs = packageBackend.addUploader('oxygen', 'a@b.com');
-          await expectLater(rs, throwsA(isA<AuthorizationException>()));
-        });
-      });
-
-      testWithProfile('blocked user', fn: () async {
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
-        await dbService.commit(inserts: [user..isBlocked = true]);
-        await accountBackend.withBearerToken(adminClientToken, () async {
-          final rs = packageBackend.addUploader('oxygen', 'a@b.com');
-          await expectLater(rs, throwsA(isA<AuthorizationException>()));
-        });
-      });
-
-      testWithProfile('package does not exist', fn: () async {
-        await accountBackend.withBearerToken(adminClientToken, () async {
-          final rs = packageBackend.addUploader('no_package', 'a@b.com');
-          await expectLater(rs, throwsA(isA<NotFoundException>()));
-        });
-      });
-
-      testWithProfile('already exists', fn: () async {
-        await accountBackend.withBearerToken(adminClientToken, () async {
-          Future<void> verify(String email) async {
-            await packageBackend.addUploader('oxygen', email);
-            final p = (await packageBackend.lookupPackage('oxygen'))!;
-            final emails =
-                await accountBackend.getEmailsOfUserIds(p.uploaders!);
-            expect(emails.toSet(), {'admin@pub.dev'});
-          }
-
-          await verify('admin@pub.dev');
-          await verify('Admin@Pub.Dev');
-        });
-      });
-
-      testWithProfile('successful', fn: () async {
-        await accountBackend.withBearerToken(adminClientToken, () async {
-          final newUploader = 'somebody@example.com';
-          final rs = packageBackend.addUploader('oxygen', newUploader);
-          await expectLater(
-              rs,
-              throwsA(isException.having(
-                  (e) => '$e',
-                  'text',
-                  "OperationForbidden(403): We've sent an invitation email to $newUploader.\n"
-                      "They'll be added as an uploader after they accept the invitation.")));
-
-          // uploaders do not change yet
-          final p = (await packageBackend.lookupPackage('oxygen'))!;
-          expect(p.uploaders, hasLength(1));
-
-          expect(fakeEmailSender.sentMessages, hasLength(1));
-          final email = fakeEmailSender.sentMessages.single;
-          expect(email.recipients.single.email, 'somebody@example.com');
-          expect(
-              email.subject, 'You have a new invitation to confirm on pub.dev');
-          expect(
-              email.bodyText,
-              contains(
-                  'admin@pub.dev has invited you to be an uploader of the package oxygen.\n'));
-        });
+      testWithProfile('uploader remove', fn: () async {
+        final rs =
+            createPubApiClient().removeUploader('oxygen', 'admin@pub.dev');
+        await expectApiException(
+          rs,
+          status: 403,
+          code: 'OperationForbidden',
+          message: 'https://pub.dev/packages/oxygen/admin',
+        );
       });
     });
 
@@ -216,8 +167,7 @@ void main() {
       });
 
       testWithProfile('blocked user', fn: () async {
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('admin@pub.dev');
+        final user = await accountBackend.lookupUserByEmail('admin@pub.dev');
         await dbService.commit(inserts: [user..isBlocked = true]);
         await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
           final rs = packageBackend.inviteUploader(
@@ -285,8 +235,7 @@ void main() {
       });
 
       testWithProfile('not authorized', fn: () async {
-        final token = createFakeAuthTokenForEmail('foo@bar.com',
-            source: AuthSource.client);
+        final token = createFakeAuthTokenForEmail('foo@bar.com');
         await accountBackend.withBearerToken(token, () async {
           final rs = packageBackend.removeUploader('oxygen', 'admin@pub.dev');
           await expectLater(rs, throwsA(isA<AuthorizationException>()));
@@ -294,7 +243,7 @@ void main() {
       });
 
       testWithProfile('package does not exist', fn: () async {
-        await accountBackend.withBearerToken(adminClientToken, () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
           final rs =
               packageBackend.removeUploader('non_hydrogen', 'user@pub.dev');
           await expectLater(rs, throwsA(isA<NotFoundException>()));
@@ -302,7 +251,7 @@ void main() {
       });
 
       testWithProfile('cannot remove last uploader', fn: () async {
-        await accountBackend.withBearerToken(adminClientToken, () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
           final rs = packageBackend.removeUploader('oxygen', 'admin@pub.dev');
           await expectLater(
               rs,
@@ -312,7 +261,7 @@ void main() {
       });
 
       testWithProfile('cannot remove non-existent uploader', fn: () async {
-        await accountBackend.withBearerToken(adminClientToken, () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
           final rs = packageBackend.removeUploader('oxygen', 'foo2@bar.com');
           await expectLater(
               rs,
@@ -324,12 +273,11 @@ void main() {
       testWithProfile('cannot remove self', fn: () async {
         // adding extra uploader for the scope of this test
         final pkg = (await packageBackend.lookupPackage('oxygen'))!;
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+        final user = await accountBackend.lookupUserByEmail('user@pub.dev');
         pkg.addUploader(user.userId);
         await dbService.commit(inserts: [pkg]);
 
-        await accountBackend.withBearerToken(adminClientToken, () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
           final rs = packageBackend.removeUploader('oxygen', 'admin@pub.dev');
           await expectLater(
               rs,
@@ -338,11 +286,10 @@ void main() {
         });
       });
 
-      testWithProfile('successful1', fn: () async {
+      testWithProfile('successfull', fn: () async {
         // adding extra uploader for the scope of this test
         final pkg = (await packageBackend.lookupPackage('oxygen'))!;
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+        final user = await accountBackend.lookupUserByEmail('user@pub.dev');
         pkg.addUploader(user.userId);
         await dbService.commit(inserts: [pkg]);
 
@@ -350,7 +297,7 @@ void main() {
         final pkg2 = (await packageBackend.lookupPackage('oxygen'))!;
         expect(pkg2.uploaders, contains(user.userId));
 
-        await accountBackend.withBearerToken(adminClientToken, () async {
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
           await packageBackend.removeUploader('oxygen', 'user@pub.dev');
         });
 
@@ -382,6 +329,7 @@ void main() {
         final version = await packageBackend.lookupVersion('oxygen', '1.0.0');
         expect(version, isNotNull);
         expect(version.version, '1.0.0');
+        expect(version.archiveSha256, isNotEmpty);
       });
     });
 
@@ -401,6 +349,12 @@ void main() {
             pd.versions.map((v) => v.version), ['1.0.0', '1.2.0', '2.0.0-dev']);
         expect(pd.descendingVersions.map((v) => v.version),
             ['2.0.0-dev', '1.2.0', '1.0.0']);
+        // check hash differs
+        final hashes = pd.versions.map((e) => e.archiveSha256).toSet();
+        expect(hashes, hasLength(pd.versions.length));
+        for (final hash in hashes) {
+          expect(hash, hasLength(64));
+        }
       });
 
       testWithProfile('isDiscontinued', fn: () async {

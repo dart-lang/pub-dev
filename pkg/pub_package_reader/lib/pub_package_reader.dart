@@ -127,7 +127,7 @@ Future<PackageSummary> summarizePackageArchive(
   }
 
   // processing pubspec.yaml
-  final pubspecPath = tar.firstFileNameOrNull(['pubspec.yaml']);
+  final pubspecPath = tar.firstMatchingFileNameOrNull(['pubspec.yaml']);
   if (pubspecPath == null) {
     issues.add(ArchiveIssue('pubspec.yaml is missing.'));
     return PackageSummary(issues: issues);
@@ -199,11 +199,11 @@ Future<PackageSummary> summarizePackageArchive(
     return PackageSummary(issues: issues);
   }
 
-  String? readmePath = tar.firstFileNameOrNull(readmeFileNames);
-  String? changelogPath = tar.firstFileNameOrNull(changelogFileNames);
+  String? readmePath = tar.firstMatchingFileNameOrNull(readmeFileNames);
+  String? changelogPath = tar.firstMatchingFileNameOrNull(changelogFileNames);
   String? examplePath =
-      tar.firstFileNameOrNull(exampleFileCandidates(pubspec.name));
-  String? licensePath = tar.firstFileNameOrNull(licenseFileNames);
+      tar.firstMatchingFileNameOrNull(exampleFileCandidates(pubspec.name));
+  String? licensePath = tar.firstMatchingFileNameOrNull(['LICENSE']);
 
   final contentBytes = await tar.scanAndReadFiles(
     [readmePath, changelogPath, examplePath, licensePath]
@@ -240,6 +240,7 @@ Future<PackageSummary> summarizePackageArchive(
     examplePath = null;
   }
   final licenseContent = tryParseContentBytes(licensePath);
+  issues.addAll(requireNonEmptyLicense(licensePath, licenseContent));
   if (licenseContent == null) {
     licensePath = null;
   }
@@ -261,15 +262,13 @@ Future<PackageSummary> summarizePackageArchive(
   issues.addAll(syntaxCheckUrl(pubspec.documentation, 'documentation'));
   issues
       .addAll(syntaxCheckUrl(pubspec.issueTracker?.toString(), 'issueTracker'));
+  issues.addAll(validateEnvironmentKeys(pubspec));
   issues.addAll(validateDependencies(pubspec));
   issues.addAll(forbidGitDependencies(pubspec));
-  // TODO: re-enable or remove after version pinning gets resolved
-  //       https://github.com/dart-lang/pub/issues/2557
-  // issues.addAll(forbidPreReleaseSdk(pubspec));
   issues.addAll(requireIosFolderOrFlutter2_20(pubspec, tar.fileNames));
-  issues.addAll(requireNonEmptyLicense(licensePath, licenseContent));
   issues.addAll(checkScreenshots(pubspec, tar.fileNames));
   issues.addAll(validateKnownTemplateReadme(readmePath, readmeContent));
+  issues.addAll(checkFunding(pubspecContent));
 
   return PackageSummary(
     issues: issues,
@@ -497,6 +496,28 @@ Iterable<ArchiveIssue> syntaxCheckUrl(String? url, String name) sync* {
   }
 }
 
+const _knownEnvironmentKeys = <String>{
+  'sdk', // the Dart SDK
+  'flutter',
+  'fuchsia'
+};
+
+/// Validates that keys referenced in the `environment` section are
+/// known and valid, otherwise `pub` won't be able to use the package.
+Iterable<ArchiveIssue> validateEnvironmentKeys(Pubspec pubspec) sync* {
+  final keys = pubspec.environment?.keys;
+  if (keys == null) {
+    return;
+  }
+  for (final key in keys) {
+    if (_knownEnvironmentKeys.contains(key)) {
+      continue;
+    }
+    yield ArchiveIssue('Unknown `environment` key in `pubspec.yaml`: `$key`.\n'
+        'Please check https://dart.dev/tools/pub/pubspec#sdk-constraints');
+  }
+}
+
 /// Validate that the package does not have too many dependencies.
 ///
 /// It ignores `dev_dependencies` as these are for development only.
@@ -562,20 +583,6 @@ Iterable<ArchiveIssue> checkValidJson(String pubspecContent) sync* {
         'pubspec.yaml contains values that can\'t be converted to JSON.');
   } on Exception catch (e, st) {
     _logger.warning('Error while converting pubspec.yaml to JSON', e, st);
-  }
-}
-
-/// Validate that the package does not have a lower dependency on a pre-release
-/// Dart SDK, which is only allowed if the package itself is a pre-release.
-Iterable<ArchiveIssue> forbidPreReleaseSdk(Pubspec pubspec) sync* {
-  if (pubspec.version!.isPreRelease) return;
-  final sdkConstraint = pubspec.environment!['sdk'];
-  if (sdkConstraint is VersionRange) {
-    if (sdkConstraint.min != null && sdkConstraint.min!.isPreRelease) {
-      yield ArchiveIssue(
-          'Packages with an SDK constraint on a pre-release of the Dart SDK '
-          'should themselves be published as a pre-release version. ');
-    }
   }
 }
 
@@ -665,16 +672,17 @@ Iterable<ArchiveIssue> requireIosFolderOrFlutter2_20(
 
 Iterable<ArchiveIssue> requireNonEmptyLicense(
     String? path, String? content) sync* {
-  if (path == null) {
-    yield ArchiveIssue('LICENSE file not found.');
+  if (path == null || path != 'LICENSE') {
+    yield ArchiveIssue(
+        '`LICENSE` file not found. All packages on pub.dev must contain a `LICENSE` file.');
     return;
   }
   if (content == null || content.trim().isEmpty) {
-    yield ArchiveIssue('LICENSE file `$path` has no content.');
+    yield ArchiveIssue('`LICENSE` file has no content.');
     return;
   }
   if (content.toLowerCase().contains('todo: add your license here.')) {
-    yield ArchiveIssue('LICENSE file `$path` contains generic TODO.');
+    yield ArchiveIssue('`LICENSE` file contains generic TODO.');
     return;
   }
 }
@@ -709,5 +717,35 @@ Iterable<ArchiveIssue> checkScreenshots(
           'Screenshot description for `${s.path}` is too long (over 200 characters).');
     }
     yield* validateZalgo('screenshot description', s.description);
+  }
+}
+
+Iterable<ArchiveIssue> checkFunding(String pubspecContent) sync* {
+  final map = loadYaml(pubspecContent) as Map;
+  if (!map.containsKey('funding')) {
+    return;
+  }
+  final funding = map['funding'];
+  if (funding == null || funding is! List || funding.isEmpty) {
+    yield ArchiveIssue(
+        '`pubspec.yaml` has invalid `funding`: only a list of URLs are allowed.');
+    return;
+  }
+  for (final item in funding) {
+    if (item is! String || item.trim().isEmpty) {
+      yield ArchiveIssue(
+          'Invalid `funding` value (`$item`): only URLs are allowed.');
+      continue;
+    }
+    final uri = Uri.tryParse(item.trim());
+    if (uri == null || uri.scheme != 'https') {
+      yield ArchiveIssue(
+          'Invalid `funding` value (`$item`): only `https` URLs are allowed.');
+      continue;
+    }
+    if (item.length > 255) {
+      yield ArchiveIssue(
+          'Invalid `funding` value (`$item`): maximum URL length is 255 characters.');
+    }
   }
 }

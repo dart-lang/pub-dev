@@ -3,6 +3,53 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Deploy new index with `gcloud app deploy index.yaml`.
+ * NOTE: `search` stopped populating `highlightedHit` field.
+
+## `20220822t072200-all`
+ * Downgraded `package:markdown` to `5.0.0`.
+
+## `20220818t125400-all`
+ * Bumped runtimeVersion to `2022.08.17`.
+ * Upgraded preview Flutter analysis SDK to `3.3.0-0.3.pre`.
+ * Upgraded pana to `0.21.16`.
+ * Upgraded dartdoc to `6.0.1`.
+ * NOTE: Started to use new public bucket for pub-dev deployment.
+ * NOTE: Started serving `archive_sha256` on client API endpoints.
+
+## `20220804t094500-all`
+ * Bumped runtimeVersion to `2022.08.02`.
+ * Upgraded stable Dart analysis SDK to `2.17.6`.
+ * Upgraded stable Flutter analysis SDK to `3.0.5`.
+ * Upgraded preview Dart analysis SDK to `2.18.0-271.4.beta`.
+ * Upgraded preview Flutter analysis SDK to `3.3.0-0.1.pre`.
+ * Upgraded pana to `0.21.15`.
+ * Upgraded dartdoc to `6.0.0`.
+ * NOTE: `LICENSE` is a required file in the new versions.
+ * NOTE: Started serving package archives from the new public bucket.
+
+## `20220705t102600-all`
+ * Bumped runtimeVersion to `2022.07.05`.
+ * Upgraded stable Dart analysis SDK to `2.17.5`.
+ * Upgraded stable Flutter analysis SDK to `3.0.4`.
+ * Upgraded pana to `0.21.14`.
+ * NOTE: Relaxed processing of Youtube Playlist API response.
+ * NOTE: Store and use verified URL and repository results from pana.
+ * NOTE: Started to populate `PackageVersion.sha256`.
+
+## `20220623t124000-all`
+ * Bumped runtimeVersion to `2022.06.23`.
+ * Upgraded stable Flutter analysis SDK to `3.0.3`.
+ * Upgraded preview Flutter analysis SDK to `3.1.0-9.0.pre`.
+ * Upgraded pana to `0.21.13`.
+ * NOTE: Removing `Package.isWithheld`.
+
+## `20220620t083300-all`
+ * Bumped runtimeVersion to `2022.06.13`.
+ * Upgraded stable Flutter analysis SDK to `3.0.2`.
+ * Upgraded preview Dart analysis SDK to `2.18.0-165.1.beta`.
+ * NOTE: Started to strictly match the OAuth token's audience for the scope of the current operation.
+ * NOTE: Updated integrity checks before finalizing migration of `Package.isBlocked`.
+ * NOTE: Blocking uploader API endpoints used by `pub` client tool.
 
 ## `20220608t083800-all`
  * Bumped runtimeVersion to `2022.06.02`.

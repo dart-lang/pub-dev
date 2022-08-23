@@ -383,9 +383,9 @@ MIT'''),
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 3,
-        'highlightedHit': {'package': 'haversine'},
         'sdkLibraryHits': [],
         'packageHits': [
+          {'package': 'haversine', 'score': 1.0},
           {
             'package': 'great_circle_distance',
             'score': closeTo(0.72, 0.01),

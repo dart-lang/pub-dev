@@ -7,6 +7,8 @@ import 'dart:typed_data';
 
 import 'package:json_annotation/json_annotation.dart';
 
+import 'openssl_commands.dart';
+
 part 'openid_models.g.dart';
 
 /// The combined data from the OpenID provider, including their signing keys.
@@ -43,9 +45,23 @@ class OpenIdProvider {
   @JsonKey(name: 'jwks_uri')
   final String jwksUri;
 
+  /// JSON array containing a list of the Claim Names of the Claims that the
+  /// OpenID Provider MAY be able to supply values for. Note that for privacy
+  /// or other reasons, this might not be an exhaustive list.
+  @JsonKey(name: 'claims_supported')
+  final List<String> claimsSupported;
+
+  /// JSON array containing a list of the JWS signing algorithms (alg values)
+  /// supported by the OP for the ID Token to encode the Claims in a JWT. The
+  /// algorithm RS256 MUST be included.
+  @JsonKey(name: 'id_token_signing_alg_values_supported')
+  final List<String> idTokenSigningAlgValuesSupported;
+
   OpenIdProvider({
     required this.issuer,
     required this.jwksUri,
+    required this.claimsSupported,
+    required this.idTokenSigningAlgValuesSupported,
   });
 
   factory OpenIdProvider.fromJson(Map<String, dynamic> json) =>
@@ -67,6 +83,19 @@ class JsonWebKeyList {
       _$JsonWebKeyListFromJson(json);
 
   Map<String, dynamic> toJson() => _$JsonWebKeyListToJson(this);
+
+  /// Selects the keys that match the provided parameters and can
+  /// be used for signature verification.
+  List<JsonWebKey> selectKeyForSignature({
+    String? kid,
+    String? alg,
+  }) {
+    return keys
+        .where((k) => k.use == null || k.use == 'sig')
+        .where((k) => kid == null || k.kid == kid)
+        .where((k) => alg == null || k.alg == alg)
+        .toList();
+  }
 }
 
 /// The JSON Web Key record.
@@ -79,7 +108,7 @@ class JsonWebKey {
   /// The specific cryptographic algorithm used with the key.
   final String alg;
 
-  /// How the key was meant to be used; sig represents the signature.
+  /// How the key was meant to be used; `sig` represents the signature.
   final String? use;
 
   // The unique identifier for the key.
@@ -119,6 +148,35 @@ class JsonWebKey {
       _$JsonWebKeyFromJson(json);
 
   Map<String, dynamic> toJson() => _$JsonWebKeyToJson(this);
+
+  /// Returns `true` if [input] and [signature] matches.
+  Future<bool> verifySignature({
+    required String input,
+    required Uint8List signature,
+  }) async {
+    switch (kty ?? '') {
+      case 'RSA':
+        return await _verifyRsaSignature(input, signature);
+      default:
+        return false;
+    }
+  }
+
+  Future<bool> _verifyRsaSignature(String input, Uint8List signature) async {
+    final modulus = n;
+    final exponent = e;
+    if (modulus == null ||
+        modulus.isEmpty ||
+        exponent == null ||
+        exponent.isEmpty) {
+      return false;
+    }
+    return await verifyTextWithRsaSignature(
+      input: input,
+      signature: signature,
+      publicKey: Asn1RsaPublicKey(modulus: modulus, exponent: exponent),
+    );
+  }
 }
 
 /// Converts bytes to unpadded, URL-safe BASE64-encoded String (nullable values).

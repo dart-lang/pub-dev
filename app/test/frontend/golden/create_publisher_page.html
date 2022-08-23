@@ -22,9 +22,9 @@
     <link rel="search" type="application/opensearchdescription+xml" title="Dart packages" href="/osd.xml"/>
     <meta name="description" content="Pub is the package manager for the Dart programming language, containing reusable libraries &amp; packages for Flutter, AngularDart, and general Dart programs."/>
     <link rel="alternate" type="application/atom+xml" title="Updated Packages Feed for Pub" href="/feed.atom"/>
-    <link rel="stylesheet" type="text/css" href="/static/hash-%%etag%%/material/material-components-web.min.css"/>
+    <link rel="stylesheet" type="text/css" href="/static/hash-%%etag%%/material/bundle/styles.css"/>
     <link rel="stylesheet" type="text/css" href="/static/hash-%%etag%%/css/style.css"/>
-    <script src="/static/hash-%%etag%%/material/material-components-web.min.js" defer="defer"></script>
+    <script src="/static/hash-%%etag%%/material/bundle/script.min.js" defer="defer"></script>
     <script src="/static/hash-%%etag%%/js/script.dart.js" defer="defer"></script>
     <meta name="google-signin-client_id" content=""/>
     <script src="https://apis.google.com/js/platform.js?onload=pubAuthInit" defer="defer"></script>
@@ -163,13 +163,15 @@
           </ul>
         </li>
       </ul>
-      <div class="-pub-form-row">
-        <label for="-publisher-id">Domain Name</label>
-        <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
-          <input id="-publisher-id" class="mdc-text-field__input" type="text"/>
-          <div class="mdc-notched-outline">
-            <div class="mdc-notched-outline__leading"></div>
-            <div class="mdc-notched-outline__trailing"></div>
+      <div class="-pub-form-textfield-row">
+        <div class="mdc-form-field">
+          <label for="-publisher-id">Domain Name</label>
+          <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+            <input id="-publisher-id" class="mdc-text-field__input" type="text"/>
+            <div class="mdc-notched-outline">
+              <div class="mdc-notched-outline__leading"></div>
+              <div class="mdc-notched-outline__trailing"></div>
+            </div>
           </div>
         </div>
         <button id="-admin-create-publisher" class="mdc-button mdc-button--raised" data-mdc-auto-init="MDCRipple">Create publisher</button>

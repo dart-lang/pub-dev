@@ -50,6 +50,7 @@ void main() {
 
   test('Platform.environment only in env_config.dart', () async {
     final exceptions = [
+      './bin/tools/public_package_page_checker.dart',
       './lib/shared/configuration.dart',
       './lib/shared/env_config.dart',
       './test/shared/misc_source_files_test.dart',

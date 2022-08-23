@@ -19,9 +19,19 @@
   margin-right: 16px;
 }
 
-.-pub-form-row {
+.-pub-form-checkbox-row,
+.-pub-form-textfield-row {
   margin-top: 20px;
+}
 
+.-pub-form-checkbox-row {
+  label {
+    display: inline-block;
+    margin-bottom: 6px;
+  }
+}
+
+.-pub-form-textfield-row {
   label {
     display: block;
     margin-bottom: 8px;

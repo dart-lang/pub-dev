@@ -34,6 +34,11 @@ class InMemoryPackageIndex implements PackageIndex {
   final _likeTracker = _LikeTracker();
   final _updatedPackages = ListQueue<String>();
   final bool _alwaysUpdateLikeScores;
+  late final _createdOrderedHitCache = _OrderedHitCache(
+      () => _rankWithComparator(_packages.keys.toSet(), _compareCreated));
+  late final _updatedOrderedHitCache = _OrderedHitCache(
+      () => _rankWithComparator(_packages.keys.toSet(), _compareUpdated));
+
   DateTime? _lastUpdated;
   bool _isReady = false;
 
@@ -105,6 +110,7 @@ class InMemoryPackageIndex implements PackageIndex {
     await Future.delayed(Duration.zero);
     _lastUpdated = clock.now().toUtc();
     _trackUpdated(doc.package);
+    _invalidateHitCaches();
   }
 
   @override
@@ -130,6 +136,7 @@ class InMemoryPackageIndex implements PackageIndex {
     _likeTracker.removePackage(doc.package);
     _lastUpdated = clock.now().toUtc();
     _trackUpdated('-$package');
+    _invalidateHitCaches();
   }
 
   @override
@@ -189,29 +196,8 @@ class InMemoryPackageIndex implements PackageIndex {
       });
     }
 
-    PackageHit? highlightedHit;
-    if (query.considerHighlightedHit) {
-      final queryText = query.parsedQuery.text;
-      final matchingPackage =
-          _packages[queryText] ?? _packages[queryText!.toLowerCase()];
-
-      if (matchingPackage != null) {
-        // Remove higlighted package from the final packages set.
-        packages.remove(matchingPackage.package);
-
-        // higlight only if we are on the first page
-        if (query.includeHighlightedHit) {
-          highlightedHit = PackageHit(package: matchingPackage.package);
-        }
-      }
-    }
-
     // do text matching
-    final textResults = _searchText(
-      packages,
-      query.parsedQuery.text,
-      hasHighlightedHit: highlightedHit != null,
-    );
+    final textResults = _searchText(packages, query.parsedQuery.text);
 
     // filter packages that doesn't match text query
     if (textResults != null) {
@@ -234,10 +220,10 @@ class InMemoryPackageIndex implements PackageIndex {
         packageHits = _rankWithValues(score.getValues());
         break;
       case SearchOrder.created:
-        packageHits = _rankWithComparator(packages, _compareCreated);
+        packageHits = _createdOrderedHitCache.whereInSet(packages);
         break;
       case SearchOrder.updated:
-        packageHits = _rankWithComparator(packages, _compareUpdated);
+        packageHits = _updatedOrderedHitCache.whereInSet(packages);
         break;
       case SearchOrder.popularity:
         packageHits = _rankWithValues(getPopularityScore(packages));
@@ -251,7 +237,7 @@ class InMemoryPackageIndex implements PackageIndex {
     }
 
     // bound by offset and limit (or randomize items)
-    final totalCount = packageHits.length + (highlightedHit == null ? 0 : 1);
+    final totalCount = packageHits.length;
     packageHits =
         boundedList(packageHits, offset: query.offset, limit: query.limit);
 
@@ -268,7 +254,6 @@ class InMemoryPackageIndex implements PackageIndex {
     return PackageSearchResult(
       timestamp: clock.now().toUtc(),
       totalCount: totalCount,
-      highlightedHit: highlightedHit,
       packageHits: packageHits,
     );
   }
@@ -310,11 +295,7 @@ class InMemoryPackageIndex implements PackageIndex {
     return Score(values);
   }
 
-  _TextResults? _searchText(
-    Set<String> packages,
-    String? text, {
-    required bool hasHighlightedHit,
-  }) {
+  _TextResults? _searchText(Set<String> packages, String? text) {
     final sw = Stopwatch()..start();
     if (text != null && text.isNotEmpty) {
       final words = splitForQuery(text);
@@ -351,9 +332,8 @@ class InMemoryPackageIndex implements PackageIndex {
       // Do documentation text search only when there was no reasonable core result
       // and no reasonable API symbol result.
       var dartdocPages = Score.empty();
-      final shouldSearchApiText = !hasHighlightedHit &&
-          core.maxValue < 0.4 &&
-          symbolPages.maxValue < 0.3;
+      final shouldSearchApiText =
+          core.maxValue < 0.4 && symbolPages.maxValue < 0.3;
       if (!checkAborted() && shouldSearchApiText) {
         final sw = Stopwatch()..start();
         dartdocPages = _apiDartdocIndex.searchWords(words, weight: 0.40);
@@ -364,18 +344,17 @@ class InMemoryPackageIndex implements PackageIndex {
             'elapsed: ${sw.elapsed}');
       } else {
         _logger.info('[pub-search-query-without-api-dartdoc-index] '
-            'hasHighlightedHit: $hasHighlightedHit '
             'core: ${core.length}/${core.maxValue} '
             'symbols: ${symbolPages.length}/${symbolPages.maxValue}');
       }
       final logTags = [
         if (symbolPages.isNotEmpty) '[pub-search-query-api-symbols-found]',
         if (dartdocPages.isNotEmpty) '[pub-search-query-api-dartdoc-found]',
-        if (!hasHighlightedHit && symbolPages.maxValue > core.maxValue)
+        if (symbolPages.maxValue > core.maxValue)
           '[pub-search-query-api-symbols-better-than-core]',
-        if (!hasHighlightedHit && dartdocPages.maxValue > core.maxValue)
+        if (dartdocPages.maxValue > core.maxValue)
           '[pub-search-query-api-dartdoc-better-than-core]',
-        if (!hasHighlightedHit && symbolPages.maxValue > dartdocPages.maxValue)
+        if (symbolPages.maxValue > dartdocPages.maxValue)
           '[pub-search-query-api-dartdoc-better-than-symbols]',
       ];
       if (logTags.isNotEmpty) {
@@ -473,6 +452,11 @@ class InMemoryPackageIndex implements PackageIndex {
 
   String _apiDocPath(String id) {
     return id.split('::').last;
+  }
+
+  void _invalidateHitCaches() {
+    _createdOrderedHitCache.invalide();
+    _updatedOrderedHitCache.invalide();
   }
 }
 
@@ -658,5 +642,37 @@ class _LikeTracker {
     _changed = false;
     _lastUpdated = clock.now();
     _logger.info('Updated like scores in ${sw.elapsed} (${entries.length})');
+  }
+}
+
+class _OrderedHitCache {
+  final List<PackageHit> Function() _updater;
+  bool _expired = true;
+  DateTime _lastUpdated = clock.now();
+  List<PackageHit>? _values;
+
+  _OrderedHitCache(this._updater);
+
+  void invalide() {
+    _expired = true;
+  }
+
+  List<PackageHit> getOrUpdate() {
+    if (_expired ||
+        _values == null ||
+        clock.now().difference(_lastUpdated) > const Duration(hours: 1)) {
+      _expired = false;
+      _lastUpdated = clock.now();
+      _values = _updater();
+    }
+    return _values!;
+  }
+
+  List<PackageHit> where(bool Function(PackageHit hit) fn) {
+    return getOrUpdate().where(fn).toList();
+  }
+
+  List<PackageHit> whereInSet(Set<String> packages) {
+    return where((hit) => packages.contains(hit.package));
   }
 }

@@ -102,8 +102,8 @@ void main() {
         '/static/highlight/github.css',
         '/static/highlight/highlight.pack.js',
         '/static/highlight/init.js',
-        '/static/material/material-components-web.min.css',
-        '/static/material/material-components-web.min.js',
+        '/static/material/bundle/styles.css',
+        '/static/material/bundle/script.min.js',
       ];
 
       for (String file in files) {
@@ -140,7 +140,10 @@ void main() {
           '/static/js/script.dart.js.deps',
           '/static/js/script.dart.js.info.json',
           '/static/js/script.dart.js.map',
-          '/static/material/material-components-web.min.css.map',
+          '/static/material/bundle/script.min.js.map',
+          '/static/material/bundle/styles.css.map',
+          '/static/material/bundle/script.min.js.LICENSE.txt',
+          '/static/material/bundle/styles.min.js',
         ])
         // script parts are served, but not referenced
         ..removeWhere(
@@ -206,7 +209,7 @@ void main() {
       final partsSize = parts
           .map((p) => cache.getFile(p)!.bytes.length)
           .reduce((a, b) => a + b);
-      expect((partsSize / 1024).round(), closeTo(111, 1));
+      expect((partsSize / 1024).round(), closeTo(113, 1));
     });
   });
 

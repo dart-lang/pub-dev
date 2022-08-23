@@ -18,7 +18,13 @@ import 'package:pub_dev/shared/env_config.dart';
 import 'package:retry/retry.dart';
 
 import 'configuration.dart';
-import 'utils.dart' show contentType, jsonUtf8Encoder, retryAsync, DeleteCounts;
+import 'utils.dart'
+    show
+        contentType,
+        jsonUtf8Encoder,
+        retryAsync,
+        ByteArrayEqualsExt,
+        DeleteCounts;
 import 'versions.dart' as versions;
 
 final _gzip = GZipCodec();
@@ -335,5 +341,23 @@ class VersionedJsonStorage {
   void close() {
     _oldGcTimer?.cancel();
     _oldGcTimer = null;
+  }
+}
+
+extension ObjectInfoExt on ObjectInfo {
+  bool hasSameSignatureAs(ObjectInfo? other) {
+    if (other == null) {
+      return false;
+    }
+    if (length != other.length) {
+      return false;
+    }
+    if (crc32CChecksum != other.crc32CChecksum) {
+      return false;
+    }
+    if (!md5Hash.byteToByteEquals(other.md5Hash)) {
+      return false;
+    }
+    return true;
   }
 }

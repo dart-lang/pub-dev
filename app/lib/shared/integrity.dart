@@ -4,12 +4,16 @@
 
 import 'dart:math' as math;
 
+import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
+import 'package:crypto/crypto.dart';
+import 'package:gcloud/storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 
 import '../account/agent.dart';
+import '../account/backend.dart';
 import '../account/models.dart';
 import '../audit/models.dart';
 import '../package/backend.dart';
@@ -22,11 +26,12 @@ import 'configuration.dart';
 import 'datastore.dart';
 import 'email.dart' show looksLikeEmail;
 import 'env_config.dart';
-import 'tags.dart' show allowedTagPrefixes;
+import 'storage.dart';
 import 'urls.dart' as urls;
-import 'utils.dart' show canonicalizeVersion;
+import 'utils.dart' show canonicalizeVersion, ByteArrayEqualsExt;
 
 final _logger = Logger('integrity.check');
+final _random = math.Random.secure();
 
 /// Checks the integrity of the datastore.
 class IntegrityChecker {
@@ -118,6 +123,12 @@ class IntegrityChecker {
           yield 'User "${user.userId}" is deleted, but `created` time is still set.';
         }
       }
+
+      if (user.oauthUserId == null &&
+          user.created != null &&
+          user.created!.isAfter(DateTime(2022, 1, 1))) {
+        yield 'User "${user.userId}" is recently created, but has no `oauthUserId`.';
+      }
     }
   }
 
@@ -174,9 +185,13 @@ class IntegrityChecker {
           await _db.query<PublisherMember>(ancestorKey: p.key).run().toList();
       if (p.isAbandoned) {
         _publishersAbandoned.add(p.publisherId);
-        if (members.isNotEmpty) {
-          yield 'Publisher "${p.publisherId}" is marked as abandoned, '
-              'but has members (first: "${members.first.userId}").';
+        // all members must be blocked
+        for (final member in members) {
+          final user = await accountBackend.lookupUserById(member.userId!);
+          if (user != null && !user.isBlocked) {
+            yield 'Publisher "${p.publisherId}" is marked as abandoned, '
+                'but has non-blocked member ("${member.userId}" - "${user.email}").';
+          }
         }
         if (members.isEmpty && p.contactEmail != null) {
           yield 'Publisher "${p.publisherId}" is marked as abandoned, has no members, '
@@ -251,12 +266,13 @@ class IntegrityChecker {
     // empty uploaders
     if (p.uploaders == null || p.uploaders!.isEmpty) {
       // no publisher
-      if (p.publisherId == null && !p.isDiscontinued) {
+      if (p.publisherId == null && !p.isBlocked && !p.isDiscontinued) {
         yield 'Package "${p.name}" has no uploaders, must be marked discontinued.';
       }
 
       if (p.publisherId != null &&
           _publishersAbandoned.contains(p.publisherId) &&
+          !p.isBlocked &&
           !p.isDiscontinued) {
         yield 'Package "${p.name}" has an abandoned publisher, must be marked discontinued.';
       }
@@ -469,6 +485,9 @@ class IntegrityChecker {
   }
 
   Stream<String> _checkPackageVersion(PackageVersion pv) async* {
+    final archiveDownloadUri = Uri.parse(urls.pkgArchiveDownloadUrl(
+        pv.package, pv.version!,
+        baseUri: activeConfiguration.primaryApiUri));
     _packagesWithVersion.add(pv.package);
 
     if (pv.uploader == null) {
@@ -490,14 +509,42 @@ class IntegrityChecker {
       if (info == null) {
         yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching archive file.';
       }
-      // Also issue a HTTP request.
-      if (!envConfig.isRunningLocally) {
-        final rs = await _httpClient.head(Uri.parse(urls.pkgArchiveDownloadUrl(
-            pv.package, pv.version!,
-            baseUri: activeConfiguration.primaryApiUri)));
-        if (rs.statusCode != 200) {
-          yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching archive file (HTTP status ${rs.statusCode}).';
+      final canonicalInfo = await storageService
+          .bucket(activeConfiguration.canonicalPackagesBucketName!)
+          // ignore: invalid_use_of_visible_for_testing_member
+          .tryInfo(tarballObjectName(pv.package, pv.version!));
+
+      if (canonicalInfo != null) {
+        if (!canonicalInfo.hasSameSignatureAs(info)) {
+          yield 'Canonical archive for PackageVersion "${pv.qualifiedVersionKey}" differs in old bucket.';
         }
+
+        final publicInfo = await storageService
+            .bucket(activeConfiguration.publicPackagesBucketName!)
+            // ignore: invalid_use_of_visible_for_testing_member
+            .tryInfo(tarballObjectName(pv.package, pv.version!));
+        if (!canonicalInfo.hasSameSignatureAs(publicInfo)) {
+          yield 'Canonical archive for PackageVersion "${pv.qualifiedVersionKey}" differs in the public bucket.';
+        }
+      }
+
+      // Also issue a HTTP request.
+      final rs = await _httpClient.head(archiveDownloadUri);
+      if (rs.statusCode != 200) {
+        yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching archive file (HTTP status ${rs.statusCode}).';
+      }
+    }
+
+    // TODO: remove null check after the backfill should have filled the property.
+    final sha256Hash = pv.sha256;
+    if (sha256Hash == null || sha256Hash.length != 32) {
+      yield 'PackageVersion "${pv.qualifiedVersionKey}" has invalid sha256.';
+    } else if (_random.nextInt(1000) == 0) {
+      // Do not check every archive all the time, but select a few of the archives randomly.
+      final bytes = (await _httpClient.get(archiveDownloadUri)).bodyBytes;
+      final hash = sha256.convert(bytes).bytes;
+      if (!hash.byteToByteEquals(sha256Hash)) {
+        yield 'PackageVersion "${pv.qualifiedVersionKey}" has sha256 hash mismatch.';
       }
     }
 

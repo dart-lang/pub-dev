@@ -12,7 +12,7 @@ import 'package:pub_dev/shared/datastore.dart';
 Future<String> executeBlockPublisherAndAllMembers(List<String> args) async {
   if (args.isEmpty ||
       args.length != 2 ||
-      (args[0] != 'delete' && args[0] != 'list')) {
+      (args[0] != 'block' && args[0] != 'list')) {
     return 'Remove publisher and blocks all members.\n'
         '  <tools-command> list <publisherId> # list publisher data\n'
         '  <tools-command> block <publisherId> # block publisher and all members\n';

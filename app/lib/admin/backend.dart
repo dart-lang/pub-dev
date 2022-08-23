@@ -6,17 +6,17 @@ import 'dart:convert';
 
 import 'package:_pub_shared/data/admin_api.dart' as api;
 import 'package:_pub_shared/data/package_api.dart';
+import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
-import 'package:pub_dev/admin/tools/package_discontinued.dart';
-import 'package:pub_dev/admin/tools/package_publisher.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../account/backend.dart';
+import '../account/consent_backend.dart';
 import '../account/models.dart';
 import '../audit/models.dart';
 import '../dartdoc/backend.dart';
@@ -30,14 +30,17 @@ import '../shared/configuration.dart';
 import '../shared/datastore.dart';
 import '../shared/email.dart';
 import '../shared/exceptions.dart';
-import '../shared/tags.dart';
 import '../tool/utils/dart_sdk_version.dart';
 import 'tools/block_publisher_and_all_members.dart';
 import 'tools/create_publisher.dart';
-import 'tools/list_package_withheld.dart';
+import 'tools/list_package_blocked.dart';
+import 'tools/list_tools.dart';
 import 'tools/notify_service.dart';
+import 'tools/package_discontinued.dart';
+import 'tools/package_publisher.dart';
+import 'tools/publisher_member.dart';
 import 'tools/recent_uploaders.dart';
-import 'tools/set_package_withheld.dart';
+import 'tools/set_package_blocked.dart';
 import 'tools/set_secret.dart';
 import 'tools/set_user_blocked.dart';
 import 'tools/user_merger.dart';
@@ -52,6 +55,24 @@ void registerAdminBackend(AdminBackend backend) =>
 /// The active admin backend service.
 AdminBackend get adminBackend => ss.lookup(#_adminBackend) as AdminBackend;
 
+typedef Tool = Future<String> Function(List<String> args);
+
+final Map<String, Tool> availableTools = {
+  'create-publisher': executeCreatePublisher,
+  'list-package-blocked': executeListPackageBlocked,
+  'notify-service': executeNotifyService,
+  'package-discontinued': executeSetPackageDiscontinued,
+  'package-publisher': executeSetPackagePublisher,
+  'recent-uploaders': executeRecentUploaders,
+  'block-publisher-and-all-members': executeBlockPublisherAndAllMembers,
+  'publisher-member': executePublisherMember,
+  'set-package-blocked': executeSetPackageBlocked,
+  'set-secret': executeSetSecret,
+  'set-user-blocked': executeSetUserBlocked,
+  'user-merger': executeUserMergerTool,
+  'list-tools': executeListTools,
+};
+
 /// Represents the backend for the admin handling and authentication.
 class AdminBackend {
   final DatastoreDB _db;
@@ -59,18 +80,26 @@ class AdminBackend {
 
   /// Require that the incoming request is authorized by an administrator with
   /// the given [permission].
+  ///
+  /// Throws [AuthorizationException] if it doesn't have the permission.
   Future<User> _requireAdminPermission(AdminPermission permission) async {
     ArgumentError.checkNotNull(permission, 'permission');
 
     final user = await requireAuthenticatedUser(source: AuthSource.admin);
-    final admin = activeConfiguration.admins!.firstWhereOrNull(
-        (a) => a.oauthUserId == user.oauthUserId && a.email == user.email);
-    if (admin == null || !admin.permissions.contains(permission)) {
+    if (!await verifyAdminPermission(user, permission)) {
       _logger.warning(
           'User (${user.userId} / ${user.email}) is trying to access unauthorized admin APIs.');
       throw AuthorizationException.userIsNotAdminForPubSite();
     }
     return user;
+  }
+
+  /// Returns `true` if the [user] is authorized by an administrator with the given [permission].
+  Future<bool> verifyAdminPermission(
+      User user, AdminPermission permission) async {
+    final admin = activeConfiguration.admins!.firstWhereOrNull(
+        (a) => a.oauthUserId == user.oauthUserId && a.email == user.email);
+    return admin != null && admin.permissions.contains(permission);
   }
 
   /// Executes a [tool] with the [args].
@@ -80,31 +109,8 @@ class AdminBackend {
   /// Tools should be either removed or migrated to proper top-level API endpoints.
   Future<String> executeTool(String tool, List<String> args) async {
     await _requireAdminPermission(AdminPermission.executeTool);
-    switch (tool) {
-      case 'create-publisher':
-        return await executeCreatePublisher(args);
-      case 'list-package-withheld':
-        return await executeListPackageWithheld(args);
-      case 'notify-service':
-        return await executeNotifyService(args);
-      case 'package-discontinued':
-        return await executeSetPackageDiscontinued(args);
-      case 'package-publisher':
-        return await executeSetPackagePublisher(args);
-      case 'recent-uploaders':
-        return await executeRecentUploaders(args);
-      case 'block-publisher-and-all-members':
-        return await executeBlockPublisherAndAllMembers(args);
-      case 'set-package-withheld':
-        return await executeSetPackageWithheld(args);
-      case 'set-secret':
-        return await executeSetSecret(args);
-      case 'set-user-blocked':
-        return await executeSetUserBlocked(args);
-      case 'user-merger':
-        return await executeUserMergerTool(args);
-    }
-    throw NotAcceptableException('Invalid tool `$tool`.');
+    final toolFunction = availableTools[tool] ?? executeListTools;
+    return await toolFunction(args);
   }
 
   /// List users.
@@ -631,26 +637,13 @@ class AdminBackend {
     final uploaderEmail = email.toLowerCase();
     InvalidInputException.check(
         isValidEmail(uploaderEmail), 'Not a valid email: `$uploaderEmail`.');
-    final uploaderUser =
-        await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
 
-    await withRetryTransaction(_db, (tx) async {
-      final p = await tx.lookupValue<Package>(package.key);
-      InvalidInputException.check(
-          p.publisherId == null, 'Package must not be under a publisher.');
-      if (p.uploaders!.contains(uploaderUser.userId)) {
-        // do not throw if email is already added
-        return;
-      } else {
-        p.uploaders!.add(uploaderUser.userId);
-      }
-      tx.insert(p);
-      tx.insert(AuditLogRecord.uploaderAdded(
-        activeUser: adminUser,
-        package: packageName,
-        uploaderUser: uploaderUser,
-      ));
-    });
+    await consentBackend.invitePackageUploader(
+      activeUser: adminUser,
+      packageName: packageName,
+      uploaderEmail: uploaderEmail,
+      isFromAdminUser: true,
+    );
     return await handleGetPackageUploaders(packageName);
   }
 

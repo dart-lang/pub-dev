@@ -6,9 +6,11 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:pana/pana.dart';
+import 'package:pub_dev/package/backend.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../../analyzer/pana_runner.dart';
+import '../../package/backend.dart';
 import '../../scorecard/backend.dart' show PackageStatus;
 import '../../shared/versions.dart';
 
@@ -26,6 +28,8 @@ class FakePanaRunner implements PanaRunner {
     required String version,
     required PackageStatus packageStatus,
   }) async {
+    final pv = await packageBackend.lookupPackageVersion(package, version);
+    final pubspec = pv!.pubspec!;
     final hasher = createHasher([package, version].join('/'));
     final layoutPoints = hasher('points/layout', max: 30);
     final examplePoints = hasher('points/example', max: 30);
@@ -52,6 +56,42 @@ class FakePanaRunner implements PanaRunner {
         : <String>[];
     final licenseSpdx =
         hasher('license', max: 5) == 0 ? 'unknown' : 'BSD-3-Clause';
+
+    String? fakeUrlCheck(String key, String? url) {
+      return hasher(key, max: 20) > 0 ? url : null;
+    }
+
+    final homepageUrl = fakeUrlCheck('pubspec.homepage', pubspec.homepage);
+    final repositoryUrl =
+        fakeUrlCheck('pubspec.repository', pubspec.repository);
+    final issueTrackerUrl =
+        fakeUrlCheck('pubspec.issueTracker', pubspec.issueTracker);
+    final documentationUrl =
+        fakeUrlCheck('pubspec.documentation', pubspec.documentation);
+    final verifiedUrl =
+        Repository.tryParseUrl(repositoryUrl ?? homepageUrl ?? '');
+    final hasVerifiedRepository =
+        verifiedUrl != null && hasher('verifiedRepository', max: 20) > 0;
+    Repository? repository;
+    if (hasVerifiedRepository) {
+      final verifiedRepositoryBranch = verifiedUrl.branch ??
+          (hasher('verifiedRepository.branch', max: 5) > 0 ? 'main' : null);
+      repository = Repository(
+        provider: verifiedUrl.provider,
+        host: verifiedUrl.host,
+        repository: verifiedUrl.repository,
+        branch: verifiedRepositoryBranch,
+        path: verifiedUrl.path,
+      );
+    }
+
+    final result = AnalysisResult(
+      homepageUrl: homepageUrl,
+      repositoryUrl: repositoryUrl,
+      issueTrackerUrl: issueTrackerUrl,
+      documentationUrl: documentationUrl,
+      repository: repository,
+    );
     return Summary(
       packageName: package,
       packageVersion: Version.parse(version),
@@ -105,6 +145,7 @@ class FakePanaRunner implements PanaRunner {
           ),
         ],
       ),
+      result: result,
       licenseFile: LicenseFile('LICENSE', licenseSpdx),
       licenses: [
         License(path: 'LICENSE', spdxIdentifier: licenseSpdx),

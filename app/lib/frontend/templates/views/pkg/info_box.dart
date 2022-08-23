@@ -28,6 +28,7 @@ d.Node packageInfoBoxNode({
   required PackagePageData data,
   required List<InfoBoxLink> metaLinks,
   required List<InfoBoxLink> docLinks,
+  required List<InfoBoxLink> fundingLinks,
   required d.Node labeledScores,
 }) {
   final package = data.package!;
@@ -58,6 +59,18 @@ d.Node packageInfoBoxNode({
     ),
     if (docLinks.isNotEmpty)
       _block('Documentation', d.fragment(docLinks.map(_linkAndBr))),
+    if (fundingLinks.isNotEmpty)
+      _block(
+        'Funding',
+        d.fragment(
+          [
+            d.text('Consider supporting this project:'),
+            d.br(),
+            d.br(),
+            ...fundingLinks.map(_linkAndBr),
+          ],
+        ),
+      ),
     if (license != null) _block('License', license),
     if (dependencies != null) _block('Dependencies', dependencies),
     _more(package.name!),

@@ -7,8 +7,10 @@ library pub_dartlang_org.appengine_repository.models;
 import 'dart:convert';
 
 import 'package:_pub_shared/data/package_api.dart';
+import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:pana/models.dart';
 import 'package:pub_dev/shared/popularity_storage.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -18,7 +20,6 @@ import '../search/search_service.dart' show ApiPageRef;
 import '../shared/datastore.dart' as db;
 import '../shared/exceptions.dart';
 import '../shared/model_properties.dart';
-import '../shared/tags.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 
@@ -123,19 +124,9 @@ class Package extends db.ExpandoModel<String> {
   bool isUnlisted = false;
 
   /// Set to `true` if package should not be displayed anywhere, because of
-  /// pending review or deletion.
-  @db.BoolProperty(required: true)
-  bool isWithheld = false;
-
-  /// The reason why the package was withheld.
-  @db.StringProperty(indexed: false)
-  String? withheldReason;
-
-  /// Set to `true` if package should not be displayed anywhere, because of
   /// pending moderation or deletion.
-  /// TODO: set to true after the rename migration is done
-  @db.BoolProperty(required: false)
-  bool? isBlocked;
+  @db.BoolProperty(required: true)
+  bool isBlocked = false;
 
   /// The reason why the package was blocked.
   @db.StringProperty(indexed: false)
@@ -184,7 +175,6 @@ class Package extends db.ExpandoModel<String> {
       ..likes = 0
       ..isDiscontinued = false
       ..isUnlisted = false
-      ..isWithheld = false
       ..isBlocked = false
       ..assignedTags = []
       ..deletedVersions = [];
@@ -192,7 +182,7 @@ class Package extends db.ExpandoModel<String> {
 
   // Convenience Fields:
 
-  bool get isVisible => !isWithheld && !(isBlocked ?? false);
+  bool get isVisible => !isBlocked;
   bool get isNotVisible => !isVisible;
 
   bool get isIncludedInRobots {
@@ -412,8 +402,6 @@ class Package extends db.ExpandoModel<String> {
     String? reason,
   }) {
     this.isBlocked = isBlocked;
-    isWithheld = isBlocked;
-    withheldReason = reason;
     blockedReason = reason;
     blocked = isBlocked ? clock.now().toUtc() : null;
     updated = clock.now().toUtc();
@@ -478,6 +466,10 @@ class PackageVersion extends db.ExpandoModel<String> {
   DateTime? created;
 
   // Extracted data from the uploaded package.
+
+  /// The SHA-256 hash of the canonical archive file.
+  @db.BlobProperty(required: false)
+  List<int>? sha256;
 
   @PubspecProperty(required: true)
   Pubspec? pubspec;
@@ -811,8 +803,10 @@ class PackageView extends Object with FlagMixin {
   /// The recognized SPDX identifiers of the licenses for the package.
   final List<String>? spdxIdentifiers;
   final List<ApiPageRef>? apiPages;
+  final List<ProcessedScreenshot>? screenshots;
 
   PackageView({
+    this.screenshots,
     this.name,
     this.releases,
     this.ellipsizedDescription,
@@ -848,6 +842,7 @@ class PackageView extends Object with FlagMixin {
             (scoreCard.isDiscontinued && !package.isDiscontinued) ||
             // No blocker for analysis, but no results yet.
             (!scoreCard.isSkipped && !hasPanaReport);
+
     return PackageView(
       name: version?.package ?? package.name,
       releases: releases,
@@ -868,6 +863,7 @@ class PackageView extends Object with FlagMixin {
           ?.map((e) => e.spdxIdentifier)
           .toList(),
       apiPages: apiPages,
+      screenshots: scoreCard?.panaReport?.screenshots,
     );
   }
 
@@ -886,6 +882,7 @@ class PackageView extends Object with FlagMixin {
       tags: tags,
       spdxIdentifiers: spdxIdentifiers,
       apiPages: apiPages ?? this.apiPages,
+      screenshots: screenshots,
     );
   }
 
@@ -1002,10 +999,24 @@ class PackagePageData {
   bool get isLatestStable => version!.version == package!.latestVersion;
   int get popularity => popularityStorage.lookupAsScore(package!.name!);
 
-  // NOTE: These link are not verified.
-  // TODO: We should rather use full URL verification, possibly in pana
-  //       (to also include it in the report).
   late final packageLinks = () {
+    // Trying to use verfied URLs
+    final result = scoreCard?.panaReport?.result;
+    if (result != null) {
+      final baseUrl = urls.inferBaseUrl(
+        homepageUrl: result.homepageUrl,
+        repositoryUrl: result.repositoryUrl,
+      );
+      return PackageLinks._(
+        baseUrl,
+        homepageUrl: result.homepageUrl,
+        repositoryUrl: result.repositoryUrl,
+        issueTrackerUrl: result.issueTrackerUrl,
+        documentationUrl: result.documentationUrl,
+      );
+    }
+    // Falling back to use URLs from pubspec.yaml.
+    // TODO: Remove this and return `null` after this release gets stable.
     final pubspec = version!.pubspec!;
     return PackageLinks.infer(
       homepageUrl: pubspec.homepage,
@@ -1016,8 +1027,14 @@ class PackagePageData {
   }();
 
   /// The inferred base URL that can be used to link files from.
-  /// TODO: migrate to use pana's RepositoryUrl
-  late final repositoryBaseUrl = packageLinks._baseUrl;
+  late final repositoryBaseUrl = () {
+    // TODO: use pana's verified repository instead
+    return packageLinks._baseUrl;
+  }();
+
+  /// The verified repository (or homepage).
+  late final urlResolverFn =
+      scoreCard?.panaReport?.result?.repository?.resolveUrl;
 
   PackageView toPackageView() {
     return _view ??= PackageView.fromModel(

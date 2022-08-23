@@ -123,9 +123,10 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
-        'highlightedHit': {'package': 'async'},
         'sdkLibraryHits': [],
-        'packageHits': [],
+        'packageHits': [
+          {'package': 'async', 'score': closeTo(0.65, 0.01)},
+        ],
       });
     });
 
@@ -282,9 +283,9 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 2,
-        'highlightedHit': {'package': 'http'},
         'sdkLibraryHits': [],
         'packageHits': [
+          {'package': 'http'},
           {'package': 'chrome_net'},
         ],
       });
@@ -586,14 +587,14 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final match = await index.search(
           ServiceSearchQuery.parse(query: 'app', order: SearchOrder.text));
       expect(match.allPackageHits.map((e) => e.toJson()), [
-        {'package': 'app'},
+        {'package': 'app', 'score': 1.0},
         {'package': 'apps', 'score': 1.0},
       ]);
       final match2 = await index.search(
           ServiceSearchQuery.parse(query: 'apps', order: SearchOrder.text));
       expect(match2.allPackageHits.map((e) => e.toJson()), [
-        {'package': 'apps'},
         {'package': 'app', 'score': 1.0},
+        {'package': 'apps', 'score': 1.0},
       ]);
     });
 
@@ -608,13 +609,13 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final match = await index.search(
           ServiceSearchQuery.parse(query: 'app', order: SearchOrder.text));
       expect(match.allPackageHits.map((e) => e.toJson()), [
-        {'package': 'app'},
+        {'package': 'app', 'score': 1.0},
         {'package': 'appz', 'score': closeTo(0.95, 0.01)},
       ]);
       final match2 = await index.search(
           ServiceSearchQuery.parse(query: 'appz', order: SearchOrder.text));
       expect(match2.allPackageHits.map((e) => e.toJson()), [
-        {'package': 'appz'},
+        {'package': 'appz', 'score': 1.0},
         {'package': 'app', 'score': closeTo(0.62, 0.01)},
       ]);
     });

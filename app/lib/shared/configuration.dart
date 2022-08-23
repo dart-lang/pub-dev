@@ -393,6 +393,9 @@ class Configuration {
     searchSnapshotBucketName!,
     taskResultBucketName!,
   ]);
+
+  late final isProduction = projectId == 'dartlang-pub';
+  late final isNotProduction = !isProduction;
 }
 
 /// Data structure to describe an admin user.

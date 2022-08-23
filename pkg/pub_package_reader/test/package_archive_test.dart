@@ -205,6 +205,31 @@ void main() {
     });
   });
 
+  group('environment keys', () {
+    test('no keys', () {
+      final pubspec = Pubspec.parse('name: pkg');
+      expect(validateEnvironmentKeys(pubspec), isEmpty);
+    });
+
+    test('valid keys', () {
+      final pubspec = Pubspec.parse('''name: pkg
+environment:
+  sdk:
+  flutter:
+  fuchsia:
+''');
+      expect(validateEnvironmentKeys(pubspec), isEmpty);
+    });
+
+    test('unknown key', () {
+      final pubspec = Pubspec.parse('''name: pkg
+environment:
+  flutter_sdk:
+''');
+      expect(validateEnvironmentKeys(pubspec), isNotEmpty);
+    });
+  });
+
   group('author vs. authors', () {
     test('author is allowed', () {
       expect(checkAuthors('author: x'), isEmpty);
@@ -338,38 +363,6 @@ $dependencies
           git: git://github.com/munificent/kittens.git
       ''');
       expect(forbidGitDependencies(pubspec).toList(), isEmpty);
-    });
-  });
-
-  group('pre-release SDK dependency', () {
-    test('depends on a pre-release Dart SDK from a pre-release', () {
-      final pubspec = Pubspec.parse('''
-      name: test_pkg
-      version: 1.0.0-dev.1
-      environment:
-        sdk: ">=1.8.0-dev.1 <2.0.0"
-      ''');
-      expect(forbidPreReleaseSdk(pubspec).toList(), isEmpty);
-    });
-
-    test('depends on a pre-release sdk from a non-pre-release', () {
-      final pubspec = Pubspec.parse('''
-      name: test_pkg
-      version: 1.0.0
-      environment:
-        sdk: ">=1.8.0-dev.1 <2.0.0"
-      ''');
-      expect(forbidPreReleaseSdk(pubspec).toList(), isNotEmpty);
-    });
-
-    test('no lower bound, should not throw exception', () {
-      final pubspec = Pubspec.parse('''
-      name: test_pkg
-      version: 1.0.0-dev.1
-      environment:
-        sdk: "<2.0.0"
-      ''');
-      expect(forbidPreReleaseSdk(pubspec).toList(), isEmpty);
     });
   });
 
@@ -596,6 +589,10 @@ $dependencies
       expect(requireNonEmptyLicense(null, null), isNotEmpty);
     });
 
+    test('non-default license', () {
+      expect(requireNonEmptyLicense('LICENSE.txt', 'BSD license'), isNotEmpty);
+    });
+
     test('empty file', () {
       expect(requireNonEmptyLicense('LICENSE', ''), isNotEmpty);
       expect(requireNonEmptyLicense('LICENSE', '\n  \n'), isNotEmpty);
@@ -748,6 +745,35 @@ $dependencies
         checkScreenshots(pubspec, ['b.jpg']),
         isEmpty,
       );
+    });
+  });
+
+  group('funding', () {
+    test('bad top-level value', () {
+      expect(checkFunding('funding: null'), isNotEmpty);
+      expect(checkFunding('funding: 1'), isNotEmpty);
+      expect(checkFunding('funding: {}'), isNotEmpty);
+      expect(checkFunding('funding: true'), isNotEmpty);
+      expect(checkFunding('funding: []'), isNotEmpty);
+      expect(checkFunding('funding: https://example.com/fund-me'), isNotEmpty);
+    });
+
+    test('bad url value', () {
+      expect(checkFunding('funding: [1]'), isNotEmpty);
+      expect(checkFunding('funding: [" "]'), isNotEmpty);
+      expect(
+          checkFunding('funding: ["http://example.com/fund-me"]'), isNotEmpty);
+    });
+
+    test('too long url value', () {
+      final url = 'https://github.com/${'a' * 255}';
+      expect(checkFunding('funding: ["${url.substring(0, 255)}"]'), isEmpty);
+      expect(checkFunding('funding: ["${url.substring(0, 256)}"]'), isNotEmpty);
+    });
+
+    test('OK', () {
+      expect(checkFunding('funding: ["https://example.com/fund-me"]'), isEmpty);
+      expect(checkFunding('funding:\n - https://example.com/fund-me'), isEmpty);
     });
   });
 }

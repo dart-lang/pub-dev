@@ -22,9 +22,9 @@
     <link rel="search" type="application/opensearchdescription+xml" title="Dart packages" href="/osd.xml"/>
     <meta name="description" content="Pub is the package manager for the Dart programming language, containing reusable libraries &amp; packages for Flutter, AngularDart, and general Dart programs."/>
     <link rel="alternate" type="application/atom+xml" title="Updated Packages Feed for Pub" href="/feed.atom"/>
-    <link rel="stylesheet" type="text/css" href="/static/hash-%%etag%%/material/material-components-web.min.css"/>
+    <link rel="stylesheet" type="text/css" href="/static/hash-%%etag%%/material/bundle/styles.css"/>
     <link rel="stylesheet" type="text/css" href="/static/hash-%%etag%%/css/style.css"/>
-    <script src="/static/hash-%%etag%%/material/material-components-web.min.js" defer="defer"></script>
+    <script src="/static/hash-%%etag%%/material/bundle/script.min.js" defer="defer"></script>
     <script src="/static/hash-%%etag%%/js/script.dart.js" defer="defer"></script>
     <meta name="google-signin-client_id" content=""/>
     <script src="https://apis.google.com/js/platform.js?onload=pubAuthInit" defer="defer"></script>
@@ -124,7 +124,7 @@
                 </div>
               </div>
               <div class="nav-separator"></div>
-              <a id="-account-logout" class="nav-link">Sign out</a>
+              <a id="-account-logout" class="nav-link" href="" aria-role="button">Sign out</a>
             </div>
           </div>
         </div>
@@ -145,7 +145,7 @@
                   <p>user@pub.dev</p>
                   <p>
                     Joined
-                    <span class="-x-ago" title="on %%oxygen-created-date%%">%%x-ago%%</span>
+                    <a class="-x-ago" href="" title="on %%oxygen-created-date%%" aria-label="Switch between date and elapsed time." aria-role="button">%%x-ago%%</a>
                   </p>
                 </div>
               </div>
@@ -213,38 +213,42 @@
                           </div>
                         </a>
                       </div>
-                      <p class="packages-description">oxygen is awesome</p>
-                      <p class="packages-metadata">
-                        <span class="packages-metadata-block">
-                          v
-                          <a href="/packages/oxygen">1.2.0</a>
-                          (
-                          <span class="-x-ago" title="%%oxygen-created-date%%">%%x-ago%%</span>
-                          ) /
-                          <a href="/packages/oxygen/versions/2.0.0-dev">2.0.0-dev</a>
-                          (
-                          <span class="-x-ago" title="%%oxygen-created-date%%">%%x-ago%%</span>
-                          )
-                        </span>
-                        <span class="packages-metadata-block">
-                          <img class="inline-icon-img" src="/static/hash-%%etag%%/img/material-icon-balance.svg" alt="Icon for licenses." width="14" height="14"/>
-                          BSD-3-Clause
-                        </span>
-                      </p>
-                      <div>
-                        <div class="-pub-tag-badge">
-                          <span class="tag-badge-main">SDK</span>
-                          <a class="tag-badge-sub" href="/packages?q=sdk%3Adart" title="Packages compatible with Dart SDK">Dart</a>
-                          <a class="tag-badge-sub" href="/packages?q=sdk%3Aflutter" title="Packages compatible with Flutter SDK">Flutter</a>
-                        </div>
-                        <div class="-pub-tag-badge">
-                          <span class="tag-badge-main">Platform</span>
-                          <a class="tag-badge-sub" href="/packages?q=platform%3Aandroid" title="Packages compatible with Android platform">Android</a>
-                          <a class="tag-badge-sub" href="/packages?q=platform%3Aios" title="Packages compatible with iOS platform">iOS</a>
-                          <a class="tag-badge-sub" href="/packages?q=platform%3Alinux" title="Packages compatible with Linux platform">Linux</a>
-                          <a class="tag-badge-sub" href="/packages?q=platform%3Amacos" title="Packages compatible with macOS platform">macOS</a>
-                          <a class="tag-badge-sub" href="/packages?q=platform%3Aweb" title="Packages compatible with Web platform">web</a>
-                          <a class="tag-badge-sub" href="/packages?q=platform%3Awindows" title="Packages compatible with Windows platform">Windows</a>
+                      <div class="packages-container">
+                        <div class="packages-body">
+                          <div class="packages-description">oxygen is awesome</div>
+                          <p class="packages-metadata">
+                            <span class="packages-metadata-block">
+                              v
+                              <a href="/packages/oxygen">1.2.0</a>
+                              (
+                              <a class="-x-ago" href="" title="%%oxygen-created-date%%" aria-label="Switch between date and elapsed time." aria-role="button">%%x-ago%%</a>
+                              ) /
+                              <a href="/packages/oxygen/versions/2.0.0-dev">2.0.0-dev</a>
+                              (
+                              <a class="-x-ago" href="" title="%%oxygen-created-date%%" aria-label="Switch between date and elapsed time." aria-role="button">%%x-ago%%</a>
+                              )
+                            </span>
+                            <span class="packages-metadata-block">
+                              <img class="inline-icon-img" src="/static/hash-%%etag%%/img/material-icon-balance.svg" alt="Icon for licenses." width="14" height="14"/>
+                              BSD-3-Clause
+                            </span>
+                          </p>
+                          <div>
+                            <div class="-pub-tag-badge">
+                              <span class="tag-badge-main">SDK</span>
+                              <a class="tag-badge-sub" href="/packages?q=sdk%3Adart" title="Packages compatible with Dart SDK">Dart</a>
+                              <a class="tag-badge-sub" href="/packages?q=sdk%3Aflutter" title="Packages compatible with Flutter SDK">Flutter</a>
+                            </div>
+                            <div class="-pub-tag-badge">
+                              <span class="tag-badge-main">Platform</span>
+                              <a class="tag-badge-sub" href="/packages?q=platform%3Aandroid" title="Packages compatible with Android platform">Android</a>
+                              <a class="tag-badge-sub" href="/packages?q=platform%3Aios" title="Packages compatible with iOS platform">iOS</a>
+                              <a class="tag-badge-sub" href="/packages?q=platform%3Alinux" title="Packages compatible with Linux platform">Linux</a>
+                              <a class="tag-badge-sub" href="/packages?q=platform%3Amacos" title="Packages compatible with macOS platform">macOS</a>
+                              <a class="tag-badge-sub" href="/packages?q=platform%3Aweb" title="Packages compatible with Web platform">web</a>
+                              <a class="tag-badge-sub" href="/packages?q=platform%3Awindows" title="Packages compatible with Windows platform">Windows</a>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -282,36 +286,40 @@
                           </div>
                         </a>
                       </div>
-                      <p class="packages-description">neon is awesome</p>
-                      <p class="packages-metadata">
-                        <span class="packages-metadata-block">
-                          v
-                          <a href="/packages/neon">1.0.0</a>
-                          (
-                          <span class="-x-ago" title="%%oxygen-created-date%%">%%x-ago%%</span>
-                          )
-                        </span>
-                        <span class="packages-metadata-block">
-                          <img class="package-vp-icon" src="/static/hash-%%etag%%/img/material-icon-verified.svg" alt="verified publisher icon" width="14" height="14" title="Published by a pub.dev verified publisher"/>
-                          <a href="/publishers/example.com">example.com</a>
-                        </span>
-                        <span class="packages-metadata-block">
-                          <img class="inline-icon-img" src="/static/hash-%%etag%%/img/material-icon-balance.svg" alt="Icon for licenses." width="14" height="14"/>
-                          BSD-3-Clause
-                        </span>
-                      </p>
-                      <div>
-                        <div class="-pub-tag-badge">
-                          <span class="tag-badge-main">SDK</span>
-                          <a class="tag-badge-sub" href="/packages?q=sdk%3Adart" title="Packages compatible with Dart SDK">Dart</a>
-                        </div>
-                        <div class="-pub-tag-badge">
-                          <span class="tag-badge-main">Platform</span>
-                          <a class="tag-badge-sub" href="/packages?q=platform%3Aandroid" title="Packages compatible with Android platform">Android</a>
-                          <a class="tag-badge-sub" href="/packages?q=platform%3Aios" title="Packages compatible with iOS platform">iOS</a>
-                          <a class="tag-badge-sub" href="/packages?q=platform%3Amacos" title="Packages compatible with macOS platform">macOS</a>
-                          <a class="tag-badge-sub" href="/packages?q=platform%3Aweb" title="Packages compatible with Web platform">web</a>
-                          <a class="tag-badge-sub" href="/packages?q=platform%3Awindows" title="Packages compatible with Windows platform">Windows</a>
+                      <div class="packages-container">
+                        <div class="packages-body">
+                          <div class="packages-description">neon is awesome</div>
+                          <p class="packages-metadata">
+                            <span class="packages-metadata-block">
+                              v
+                              <a href="/packages/neon">1.0.0</a>
+                              (
+                              <a class="-x-ago" href="" title="%%oxygen-created-date%%" aria-label="Switch between date and elapsed time." aria-role="button">%%x-ago%%</a>
+                              )
+                            </span>
+                            <span class="packages-metadata-block">
+                              <img class="package-vp-icon" src="/static/hash-%%etag%%/img/material-icon-verified.svg" alt="verified publisher icon" width="14" height="14" title="Published by a pub.dev verified publisher"/>
+                              <a href="/publishers/example.com">example.com</a>
+                            </span>
+                            <span class="packages-metadata-block">
+                              <img class="inline-icon-img" src="/static/hash-%%etag%%/img/material-icon-balance.svg" alt="Icon for licenses." width="14" height="14"/>
+                              BSD-3-Clause
+                            </span>
+                          </p>
+                          <div>
+                            <div class="-pub-tag-badge">
+                              <span class="tag-badge-main">SDK</span>
+                              <a class="tag-badge-sub" href="/packages?q=sdk%3Adart" title="Packages compatible with Dart SDK">Dart</a>
+                            </div>
+                            <div class="-pub-tag-badge">
+                              <span class="tag-badge-main">Platform</span>
+                              <a class="tag-badge-sub" href="/packages?q=platform%3Aandroid" title="Packages compatible with Android platform">Android</a>
+                              <a class="tag-badge-sub" href="/packages?q=platform%3Aios" title="Packages compatible with iOS platform">iOS</a>
+                              <a class="tag-badge-sub" href="/packages?q=platform%3Amacos" title="Packages compatible with macOS platform">macOS</a>
+                              <a class="tag-badge-sub" href="/packages?q=platform%3Aweb" title="Packages compatible with Web platform">web</a>
+                              <a class="tag-badge-sub" href="/packages?q=platform%3Awindows" title="Packages compatible with Windows platform">Windows</a>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>

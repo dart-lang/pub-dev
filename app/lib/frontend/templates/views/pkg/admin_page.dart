@@ -104,7 +104,7 @@ d.Node packageAdminPageNode({
               d.li(text: 'Invite and remove uploaders of this package'),
             ]),
             d.div(
-              classes: ['-pub-form-row'],
+              classes: ['-pub-form-textfield-row'],
               child: material.textField(
                 id: '-pkg-admin-invite-uploader-input',
                 label: 'Email address',
@@ -121,10 +121,13 @@ d.Node packageAdminPageNode({
         'to inform users that the package is no longer maintained. '
         '*Discontinued packages* remain available to package users, but they don\'t appear '
         'in search results on pub.dev unless the user specifies advanced search options.'),
-    material.checkbox(
-      id: '-admin-is-discontinued-checkbox',
-      label: 'Mark "discontinued"',
-      checked: package.isDiscontinued,
+    d.div(
+      classes: ['-pub-form-checkbox-row'],
+      child: material.checkbox(
+        id: '-admin-is-discontinued-checkbox',
+        label: 'Mark "discontinued"',
+        checked: package.isDiscontinued,
+      ),
     ),
     if (package.isDiscontinued) ...[
       d.h3(text: 'Suggested replacement'),
@@ -135,7 +138,7 @@ d.Node packageAdminPageNode({
           text: 'Designating a replacement package is optional, '
               'and only serves to guide existing package users.'),
       d.div(
-        classes: ['-pub-form-row'],
+        classes: ['-pub-form-textfield-row'],
         children: [
           material.textField(
             id: '-package-replaced-by',
@@ -155,10 +158,13 @@ d.Node packageAdminPageNode({
       d.markdown(
           'A package that\'s marked as *unlisted* doesn\'t normally appear in search results on pub.dev. '
           'Unlisted packages remain publicly available, and users can search for them using advanced search options.'),
-      material.checkbox(
-        id: '-admin-is-unlisted-checkbox',
-        label: 'Mark "unlisted"',
-        checked: package.isUnlisted,
+      d.div(
+        classes: ['-pub-form-checkbox-row'],
+        child: material.checkbox(
+          id: '-admin-is-unlisted-checkbox',
+          label: 'Mark "unlisted"',
+          checked: package.isUnlisted,
+        ),
       ),
     ],
     if (requestContext.showAdminUIForAutomatedPublishing)
@@ -166,7 +172,7 @@ d.Node packageAdminPageNode({
         d.h2(text: 'Automated publishing'),
         d.h3(text: 'Publishing from GitHub Actions'),
         d.div(
-          classes: ['-pub-form-row'],
+          classes: ['-pub-form-checkbox-row'],
           child: material.checkbox(
             id: '-pkg-admin-automated-github-enabled',
             label: 'Enable publishing from GitHub Actions',
@@ -174,7 +180,7 @@ d.Node packageAdminPageNode({
           ),
         ),
         d.div(
-          classes: ['-pub-form-row'],
+          classes: ['-pub-form-textfield-row'],
           child: material.textField(
             id: '-pkg-admin-automated-github-repository',
             label: 'Repository',

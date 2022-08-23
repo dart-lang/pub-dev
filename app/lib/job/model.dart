@@ -124,12 +124,10 @@ class Job extends ExpandoModel<String> {
     final age = now.difference(packageVersionUpdated!).abs();
     priority += age.inDays;
 
-    // popular packages first - except fresh uploads which are not pushed back
-    // based on their popularity.
-    if (age.inHours >= 8) {
-      popularity = math.max(0.0, math.min(1.0, popularity));
-      priority += ((1 - popularity) * 2000).round();
-    }
+    // popular packages first, with a compensation for age
+    final ageCompensation = math.min(age.inDays, 60) / 60;
+    final normalizedPopularity = math.max(0.0, math.min(1.0, popularity));
+    priority += ((1 - normalizedPopularity) * 2000 * ageCompensation).round();
 
     // non-latest versions get pushed back in the queue
     if (!isLatest) {

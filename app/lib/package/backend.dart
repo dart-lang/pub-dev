@@ -10,6 +10,8 @@ import 'dart:io';
 import 'package:_pub_shared/data/account_api.dart' as account_api;
 import 'package:_pub_shared/data/package_api.dart' as api;
 import 'package:clock/clock.dart';
+import 'package:convert/convert.dart';
+import 'package:crypto/crypto.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
@@ -22,6 +24,7 @@ import 'package:pub_semver/pub_semver.dart';
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
 import '../account/models.dart' show User;
+import '../admin/backend.dart';
 import '../audit/models.dart';
 import '../frontend/email_sender.dart';
 import '../publisher/backend.dart';
@@ -76,12 +79,29 @@ class PackageBackend {
   /// - `tmp/$guid` (incoming package archive that was uploaded, but not yet processed)
   final Bucket _incomingBucket;
 
+  /// The Cloud Storage bucket to use for canonical package archives.
+  /// The following files are present:
+  /// - `packages/$package-$version.tar.gz` (package archive)
+  final Bucket _canonicalBucket;
+
+  /// The Cloud Storage bucket to use for public package archives.
+  /// The following files are present:
+  /// - `packages/$package-$version.tar.gz` (package archive)
+  final Bucket _publicBucket;
+
   @visibleForTesting
   int maxVersionsPerPackage = _defaultMaxVersionsPerPackage;
 
-  PackageBackend(this.db, this._storage, this._bucket, this._incomingBucket);
+  PackageBackend(
+    this.db,
+    this._storage,
+    this._bucket,
+    this._incomingBucket,
+    this._canonicalBucket,
+    this._publicBucket,
+  );
 
-  /// Whether the package exists and is not withheld or deleted.
+  /// Whether the package exists and is not blocked or deleted.
   Future<bool> isPackageVisible(String package) async {
     return (await cache.packageVisible(package).get(() async {
       final p = await db
@@ -274,7 +294,7 @@ class PackageBackend {
     // return storage.bucket(bucket).info(object)
     //     .then((info) => info.downloadLink);
     final object = tarballObjectName(package, Uri.encodeComponent(cv!));
-    return Uri.parse(_bucket.objectUrl(object));
+    return Uri.parse(_publicBucket.objectUrl(object));
   }
 
   /// Updates the stable, prerelease and preview versions of [package].
@@ -531,7 +551,18 @@ class PackageBackend {
   /// publisher admin).
   ///
   /// Returns false if the user is not an admin.
-  Future<bool> isPackageAdmin(Package p, String? userId) async {
+  Future<bool> isPackageAdmin(
+    Package p,
+    String? userId, {
+    AuthenticatedAgent? agent,
+  }) async {
+    if (agent is AuthenticatedGithubAction) {
+      // TODO: check if the JWT token matches the automated publishing settings on the package.
+      return false;
+    }
+    if (agent is AuthenticatedUser) {
+      userId ??= agent.user.userId;
+    }
     if (userId == null) {
       return false;
     }
@@ -756,16 +787,6 @@ class PackageBackend {
     return pv.toApiVersionInfo();
   }
 
-  @visibleForTesting
-  Future<PackageVersion> upload(Stream<List<int>> data) async {
-    await requireAuthenticatedUser(source: AuthSource.client);
-    final guid = createUuid();
-    _logger.info('Starting semi-async upload (uuid: $guid)');
-    final object = tmpObjectName(guid);
-    await data.pipe(_incomingBucket.write(object));
-    return await publishUploadedBlob(guid);
-  }
-
   Future<api.UploadInfo> startUpload(Uri redirectUrl) async {
     final restriction = await getUploadRestrictionStatus();
     if (restriction == UploadRestrictionStatus.noUploads) {
@@ -802,7 +823,7 @@ class PackageBackend {
     if (restriction == UploadRestrictionStatus.noUploads) {
       throw PackageRejectedException.uploadRestricted();
     }
-    final user = await requireAuthenticatedUser(source: AuthSource.client);
+    final agent = await requireAuthenticatedAgent(source: AuthSource.client);
     _logger.info('Finishing async upload (uuid: $guid)');
     _logger.info('Reading tarball from cloud storage.');
 
@@ -820,6 +841,9 @@ class PackageBackend {
           _incomingBucket.read(tmpObjectName(guid)), filename);
       _logger.info('Examining tarball content ($guid).');
       final sw = Stopwatch()..start();
+      final file = File(filename);
+      final fileBytes = await file.readAsBytes();
+      final sha256Hash = sha256.convert(fileBytes).bytes;
       final archive = await summarizePackageArchive(
         filename,
         maxContentLength: maxAssetContentLength,
@@ -834,26 +858,46 @@ class PackageBackend {
       final pubspec = Pubspec.fromYaml(archive.pubspecContent!);
       await _verifyPackageName(
         name: pubspec.name,
-        user: user,
+        agent: agent,
       );
 
-      //
+      // Check if new packages are allowed to be uploaded.
       if (restriction == UploadRestrictionStatus.onlyUpdates &&
           !(await isPackageVisible(pubspec.name))) {
         throw PackageRejectedException.uploadRestricted();
       }
 
+      // Check version format.
       final versionString = canonicalizeVersion(pubspec.nonCanonicalVersion);
       if (versionString == null) {
         throw InvalidInputException.canonicalizeVersionError(
             pubspec.nonCanonicalVersion);
       }
 
+      // Check canonical archive.
+      final canonicalArchivePath =
+          tarballObjectName(pubspec.name, versionString);
+      final canonicalArchiveInfo =
+          await _canonicalBucket.tryInfo(canonicalArchivePath);
+      if (canonicalArchiveInfo != null) {
+        // Actually fetch the archive bytes and do full comparison.
+        final objectBytes =
+            await _canonicalBucket.readAsBytes(canonicalArchivePath);
+        if (!fileBytes.byteToByteEquals(objectBytes)) {
+          throw PackageRejectedException.versionExists(
+              pubspec.name, versionString);
+        }
+      }
+
       sw.reset();
+      final entities = await _createUploadEntities(db, agent, archive,
+          sha256Hash: sha256Hash);
       final version = await _performTarballUpload(
-        user: user,
+        entities: entities,
+        agent: agent,
         archive: archive,
         guid: guid,
+        hasCanonicalArchiveObject: canonicalArchiveInfo != null,
       );
       _logger.info('Tarball uploaded in ${sw.elapsed}.');
       _logger.info('Removing temporary object $guid.');
@@ -874,7 +918,7 @@ class PackageBackend {
   ///   not authorized to claim such package names.
   Future<void> _verifyPackageName({
     required String name,
-    required User user,
+    required AuthenticatedAgent agent,
   }) async {
     final conflictingName = await nameTracker.accept(name);
     if (conflictingName != null) {
@@ -899,9 +943,11 @@ class PackageBackend {
       }
 
       // reserved package names for the Dart team
-      if (matchesReservedPackageName(name) &&
-          !user.email!.endsWith('@google.com')) {
-        throw PackageRejectedException.nameReserved(name);
+      if (matchesReservedPackageName(name)) {
+        if (agent is! AuthenticatedUser ||
+            !agent.user.email!.endsWith('@google.com')) {
+          throw PackageRejectedException.nameReserved(name);
+        }
       }
     }
   }
@@ -928,12 +974,13 @@ class PackageBackend {
   }
 
   Future<PackageVersion> _performTarballUpload({
-    required User user,
+    required _UploadEntities entities,
+    required AuthenticatedAgent agent,
     required PackageSummary archive,
     required String guid,
+    required bool hasCanonicalArchiveObject,
   }) async {
     final sw = Stopwatch()..start();
-    final entities = await _createUploadEntities(db, user, archive);
     final newVersion = entities.packageVersion;
     final currentDartSdk = await getDartSdkVersion();
 
@@ -964,15 +1011,22 @@ class PackageBackend {
       if (package == null) {
         _logger.info('New package uploaded. [new-package-uploaded]');
         package = Package.fromVersion(newVersion);
-      } else if (!await packageBackend.isPackageAdmin(package!, user.userId)) {
-        _logger.info('User ${user.userId} (${user.email}) is not an uploader '
-            'for package ${package!.name}, rolling transaction back.');
-        throw AuthorizationException.userCannotUploadNewVersion(
-            user.email!, package!.name!);
+      } else {
+        final isAdmin = await packageBackend.isPackageAdmin(
+          package!,
+          agent is AuthenticatedUser ? agent.user.userId : null,
+          agent: agent,
+        );
+        if (!isAdmin) {
+          _logger.info('User ${agent.agentId} (${agent.displayId}) '
+              'is not an uploader for package ${package!.name}, rolling transaction back.');
+          throw AuthorizationException.userCannotUploadNewVersion(
+              agent.displayId, package!.name!);
+        }
       }
 
       if (package!.isNotVisible) {
-        throw PackageRejectedException.isWithheld();
+        throw PackageRejectedException.isBlocked();
       }
 
       if (package!.versionCount >= maxVersionsPerPackage) {
@@ -998,7 +1052,20 @@ class PackageBackend {
       _logger.info(
         'Trying to upload tarball for ${package!.name} version ${newVersion.version} to cloud storage.',
       );
+      if (!hasCanonicalArchiveObject) {
+        // Copy archive to canonical bucket.
+        await _storage.copyObject(
+          _incomingBucket.absoluteObjectName(tmpObjectName(guid)),
+          _canonicalBucket.absoluteObjectName(
+              tarballObjectName(newVersion.package, newVersion.version!)),
+        );
+      }
       await _uploadViaTempObject(guid, package!.name!, newVersion.version!);
+      await _storage.copyObject(
+        _incomingBucket.absoluteObjectName(tmpObjectName(guid)),
+        _publicBucket.absoluteObjectName(
+            tarballObjectName(newVersion.package, newVersion.version!)),
+      );
 
       final inserts = <Model>[
         package!,
@@ -1006,7 +1073,7 @@ class PackageBackend {
         entities.packageVersionInfo,
         ...entities.assets,
         AuditLogRecord.packagePublished(
-          uploader: user,
+          uploader: agent,
           package: newVersion.package,
           version: newVersion.version!,
           created: newVersion.created!,
@@ -1034,7 +1101,7 @@ class PackageBackend {
       final email = emailSender.sendMessage(createPackageUploadedEmail(
         packageName: newVersion.package,
         packageVersion: newVersion.version!,
-        uploaderEmail: user.email!,
+        displayId: agent.displayId,
         authorizedUploaders:
             uploaderEmails.map((email) => EmailAddress(null, email)).toList(),
       ));
@@ -1073,6 +1140,12 @@ class PackageBackend {
     return pv;
   }
 
+  /// Read the archive bytes from the canonical bucket.
+  Future<List<int>> readArchiveBytes(String package, String version) async {
+    final objectName = tarballObjectName(package, version);
+    return await _canonicalBucket.readAsBytes(objectName);
+  }
+
   // Uploaders support.
 
   Future<account_api.InviteStatus> inviteUploader(
@@ -1105,7 +1178,7 @@ class PackageBackend {
         isNotUploaderYet, '`$uploaderEmail` is already an uploader.');
 
     final status = await consentBackend.invitePackageUploader(
-      authSource: authSource,
+      activeUser: user,
       packageName: packageName,
       uploaderEmail: uploaderEmail,
     );
@@ -1116,41 +1189,23 @@ class PackageBackend {
     );
   }
 
-  Future<api.SuccessMessage> addUploader(
-      String packageName, String uploaderEmail) async {
-    try {
-      final rs = await inviteUploader(
-        packageName,
-        api.InviteUploaderRequest(email: uploaderEmail),
-        authSource: AuthSource.client,
-      );
-      if (!rs.emailSent) {
-        throw OperationForbiddenException.inviteActive(rs.nextNotification);
-      }
-    } on InvalidInputException catch (ex) {
-      // pub client expects this case as a successful operation.
-      if (ex.message.endsWith('is already an uploader.')) {
-        return api.SuccessMessage(
-            success: api.Message(
-                message: '`$uploaderEmail` is already an uploader.'));
-      }
-      rethrow;
-    }
-    throw OperationForbiddenException.uploaderInviteSent(uploaderEmail);
-  }
-
-  Future<void> confirmUploader(String? fromUserId, String fromUserEmail,
-      String packageName, User uploader) async {
-    if (fromUserId == null) {
-      final user =
-          await accountBackend.lookupOrCreateUserByEmail(fromUserEmail);
-      fromUserId = user.userId;
-    }
+  Future<void> confirmUploader(
+    String fromUserId,
+    String fromUserEmail,
+    String packageName,
+    User uploader, {
+    required bool isFromAdminUser,
+  }) async {
     await withRetryTransaction(db, (tx) async {
       final packageKey = db.emptyKey.append(Package, id: packageName);
       final package = (await tx.lookup([packageKey])).first as Package;
 
-      await _validatePackageUploader(packageName, package, fromUserId!);
+      await _validatePackageUploader(
+        packageName,
+        package,
+        fromUserId,
+        isFromAdminUser: isFromAdminUser,
+      );
       if (package.containsUploader(uploader.userId)) {
         // The requested uploaderEmail is already part of the uploaders.
         return;
@@ -1170,10 +1225,29 @@ class PackageBackend {
   }
 
   Future<void> _validatePackageUploader(
-      String packageName, Package? package, String userId) async {
+    String packageName,
+    Package? package,
+    String userId, {
+    bool isFromAdminUser = false,
+  }) async {
     // Fail if package doesn't exist.
     if (package == null) {
       throw NotFoundException.resource(packageName);
+    }
+
+    if (isFromAdminUser) {
+      // Fail if calling user doesn't have admin permissions anymore.
+      final user = await accountBackend.lookupUserById(userId);
+      if (user == null) {
+        throw AuthorizationException.userCannotChangeUploaders(package.name!);
+      }
+      final isAuthorizedAdmin = await adminBackend.verifyAdminPermission(
+          user, AdminPermission.managePackageOwnership);
+      if (isAuthorizedAdmin) {
+        return;
+      } else {
+        throw AuthorizationException.userCannotChangeUploaders(package.name!);
+      }
     }
 
     // Fail if calling user doesn't have permission to change uploaders.
@@ -1184,12 +1258,10 @@ class PackageBackend {
 
   Future<api.SuccessMessage> removeUploader(
     String packageName,
-    String uploaderEmail, {
-    AuthSource? authSource,
-  }) async {
-    authSource ??= AuthSource.client;
+    String uploaderEmail,
+  ) async {
     uploaderEmail = uploaderEmail.toLowerCase();
-    final user = await requireAuthenticatedUser(source: authSource);
+    final user = await requireAuthenticatedUser();
     await withRetryTransaction(db, (tx) async {
       final packageKey = db.emptyKey.append(Package, id: packageName);
       final package = await tx.lookupOrNull<Package>(packageKey);
@@ -1269,16 +1341,20 @@ class PackageBackend {
   Future<void> removePackageTarball(String package, String version) async {
     final object = tarballObjectName(package, version);
     await deleteFromBucket(_bucket, object);
+    await deleteFromBucket(_publicBucket, object);
+    await deleteFromBucket(_canonicalBucket, object);
   }
 
   /// Gets the file info of a [package] in the given [version].
   Future<ObjectInfo?> packageTarballinfo(String package, String version) async {
-    return await _bucket.tryInfo(tarballObjectName(package, version));
+    return await _publicBucket.tryInfo(tarballObjectName(package, version));
   }
 }
 
 extension PackageVersionExt on PackageVersion {
   api.VersionInfo toApiVersionInfo() {
+    final hasSha256 = this.sha256 != null && this.sha256!.isNotEmpty;
+    final archiveSha256 = hasSha256 ? hex.encode(this.sha256!) : null;
     return api.VersionInfo(
       version: version!,
       retracted: isRetracted ? true : null,
@@ -1292,6 +1368,7 @@ extension PackageVersionExt on PackageVersion {
         /// content with the proper cached URLs.
         baseUri: activeConfiguration.primaryApiUri,
       ),
+      archiveSha256: archiveSha256,
       published: created,
     );
   }
@@ -1412,7 +1489,11 @@ class DerivedPackageVersionEntities {
 
 /// Creates entities from [archive] summary.
 Future<_UploadEntities> _createUploadEntities(
-    DatastoreDB db, User user, PackageSummary archive) async {
+  DatastoreDB db,
+  AuthenticatedAgent agent,
+  PackageSummary archive, {
+  required List<int> sha256Hash,
+}) async {
   final pubspec = Pubspec.fromYaml(archive.pubspecContent!);
   final packageKey = db.emptyKey.append(Package, id: pubspec.name);
   final versionString = canonicalizeVersion(pubspec.nonCanonicalVersion);
@@ -1425,7 +1506,8 @@ Future<_UploadEntities> _createUploadEntities(
     ..created = clock.now().toUtc()
     ..pubspec = pubspec
     ..libraries = archive.libraries
-    ..uploader = user.userId
+    ..uploader = agent.agentId
+    ..sha256 = sha256Hash
     ..isRetracted = false;
 
   final derived = derivePackageVersionEntities(

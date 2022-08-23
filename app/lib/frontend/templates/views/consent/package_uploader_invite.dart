@@ -27,22 +27,6 @@ d.Node packageUploaderInviteNode({
     d.ul(
       children: [
         d.li(children: [
-          d.text('your email '),
-          if (currentUserEmail != null) ...[
-            d.text('('),
-            d.code(text: currentUserEmail),
-            d.text(') ')
-          ],
-          d.text('will be publicly listed on the '),
-          d.a(
-            href: urls.pkgPageUrl(packageName),
-            target: '_blank',
-            rel: 'noopener noreferrer',
-            text: 'package page',
-          ),
-          d.text(','),
-        ]),
-        d.li(children: [
           d.text('you will be able to publish new versions of package '),
           d.code(text: packageName),
           d.text(', and,'),

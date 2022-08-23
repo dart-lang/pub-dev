@@ -6,9 +6,14 @@ import 'package:pub_dev/shared/exceptions.dart';
 
 final _uuidRegExp =
     RegExp(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$');
-final _knownAgents = {
-  'service:github-actions',
-};
+
+abstract class KnownAgents {
+  static const githubActions = 'service:github-actions';
+
+  static const _values = <String>{
+    githubActions,
+  };
+}
 
 /// Whether the [userId] is valid-looking,
 /// without namespace or other special value.
@@ -18,7 +23,7 @@ bool isValidUserId(String userId) {
 
 /// Whether the [agent] is a valid-looking identifier.
 bool isKnownServiceAgent(String agent) {
-  return _knownAgents.contains(agent);
+  return KnownAgents._values.contains(agent);
 }
 
 /// Whether the [agent] is a valid-looking actor.

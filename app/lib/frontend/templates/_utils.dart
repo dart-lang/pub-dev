@@ -11,6 +11,7 @@ import '../dom/dom.dart' as d;
 /// Renders a file content (e.g. markdown, dart source file) into HTML.
 d.Node renderFile(
   PackageVersionAsset asset, {
+  UrlResolverFn? urlResolverFn,
   String? baseUrl,
   bool isChangelog = false,
 }) {
@@ -20,6 +21,7 @@ d.Node renderFile(
     return d.unsafeRawHtml(
       markdownToHtml(
         content,
+        urlResolverFn: urlResolverFn,
         baseUrl: baseUrl,
         baseDir: p.dirname(filename),
         isChangelog: isChangelog,

@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
@@ -24,7 +25,6 @@ import '../scorecard/models.dart';
 import '../shared/datastore.dart';
 import '../shared/exceptions.dart';
 import '../shared/storage.dart';
-import '../shared/tags.dart';
 import '../shared/versions.dart';
 import '../tool/utils/http.dart';
 

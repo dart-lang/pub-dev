@@ -13,21 +13,21 @@ import 'package:pub_dev/shared/exceptions.dart';
 final _argParser = ArgParser()
   ..addOption('lookup', allowed: ['package', 'publisher', 'userid', 'email'])
   ..addOption('update', allowed: ['true', 'false'])
-  ..addOption('reason', help: 'The reason of withheld status.')
+  ..addOption('reason', help: 'The reason of blocked status.')
   ..addFlag('help', abbr: 'h', defaultsTo: false, help: 'Show help.');
 
-Future<String> executeSetPackageWithheld(List<String> args) async {
+Future<String> executeSetPackageBlocked(List<String> args) async {
   final argv = _argParser.parse(args);
-  final withheldStatus = _parseValue(argv['update'] as String?);
-  final withheldReason = argv['reason'] as String?;
+  final blockedStatus = _parseValue(argv['update'] as String?);
+  final blockedReason = argv['reason'] as String?;
   final lookupKey = argv['lookup'] as String?;
 
   if (argv['help'] as bool || lookupKey == null) {
-    return 'Usage: dart set_package_withheld.dart --lookup package [pkg1] [pkg2] -- list status of packages\n'
-        'Usage: dart set_package_withheld.dart --lookup publisher [publisher1] [publisher2] -- list status of packages from publishers\n'
-        'Usage: dart set_package_withheld.dart --lookup userid [user1] [user2] -- list status of packages from uploaders\n'
-        'Usage: dart set_package_withheld.dart --lookup email [email1] [email2] -- list status of packages from uploaders\n'
-        'Usage: dart set_package_withheld.dart --update true --lookup email [email1] [email2] -- update status of packages from uploaders\n'
+    return 'Usage: <tool> --lookup package [pkg1] [pkg2] -- list status of packages\n'
+        'Usage: <tool> --lookup publisher [publisher1] [publisher2] -- list status of packages from publishers\n'
+        'Usage: <tool> --lookup userid [user1] [user2] -- list status of packages from uploaders\n'
+        'Usage: <tool> --lookup email [email1] [email2] -- list status of packages from uploaders\n'
+        'Usage: <tool> --update true --lookup email [email1] [email2] -- update status of packages from uploaders\n'
         '${_argParser.usage}';
   }
 
@@ -71,13 +71,13 @@ Future<String> executeSetPackageWithheld(List<String> args) async {
   final orderedNames = packages.keys.toList()..sort();
   for (final name in orderedNames) {
     final p = packages[name]!;
-    output.writeln('${p.name!.padRight(40)} - ${p.isWithheld}');
+    output.writeln('${p.name!.padRight(40)} - ${p.isBlocked}');
   }
 
-  if (withheldStatus != null) {
+  if (blockedStatus != null) {
     for (final name in orderedNames) {
       final p = packages[name]!;
-      final out = await _updateStatus(p, withheldStatus, withheldReason);
+      final out = await _updateStatus(p, blockedStatus, blockedReason);
       if (out.isNotEmpty) {
         output.writeln(out);
       }
@@ -87,7 +87,7 @@ Future<String> executeSetPackageWithheld(List<String> args) async {
 }
 
 Future<String> _updateStatus(Package pkg, bool status, String? reason) async {
-  if (pkg.isWithheld == status) {
+  if (pkg.isBlocked == status) {
     return '';
   }
   await withRetryTransaction(dbService, (tx) async {
@@ -96,7 +96,7 @@ Future<String> _updateStatus(Package pkg, bool status, String? reason) async {
     tx.insert(p);
   });
   await purgePackageCache(pkg.name!);
-  return ('Updating ${pkg.name!.padRight(40)} - ${pkg.isWithheld} -> $status');
+  return ('Updating ${pkg.name!.padRight(40)} - ${pkg.isBlocked} -> $status');
 }
 
 bool? _parseValue(String? value) {

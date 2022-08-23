@@ -48,9 +48,10 @@ void main() {
         await expectJsonResponse(await issueGet('/search?q=pkg_foo'), body: {
           'timestamp': isNotNull,
           'totalCount': 1,
-          'highlightedHit': {'package': 'pkg_foo'},
           'sdkLibraryHits': [],
-          'packageHits': [],
+          'packageHits': [
+            {'package': 'pkg_foo', 'score': 0.4}
+          ],
         });
       });
 

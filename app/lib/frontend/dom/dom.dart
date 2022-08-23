@@ -95,9 +95,14 @@ Node xAgoTimestamp(DateTime timestamp, {String? datePrefix}) {
     if (datePrefix != null) datePrefix,
     shortDateFormat.format(timestamp),
   ].join(' ');
-  return span(
+  return a(
     classes: ['-x-ago'],
-    attributes: {'title': title},
+    href: '',
+    title: title,
+    attributes: {
+      'aria-label': 'Switch between date and elapsed time.',
+      'aria-role': 'button',
+    },
     text: formatXAgo(clock.now().difference(timestamp)),
   );
 }
@@ -639,6 +644,7 @@ Node script({
   String? src,
   bool async = false,
   bool defer = false,
+  String? onload,
 }) =>
     dom.element(
       'script',
@@ -649,6 +655,7 @@ Node script({
         if (src != null) 'src': src,
         if (async) 'async': 'async',
         if (defer) 'defer': 'defer',
+        if (onload != null) 'onload': onload,
         if (attributes != null) ...attributes,
       },
       children: _children(children, child, text),

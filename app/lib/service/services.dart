@@ -242,6 +242,8 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
       storageService,
       storageService.bucket(activeConfiguration.packageBucketName!),
       storageService.bucket(activeConfiguration.incomingPackagesBucketName!),
+      storageService.bucket(activeConfiguration.canonicalPackagesBucketName!),
+      storageService.bucket(activeConfiguration.publicPackagesBucketName!),
     ));
     registerTaskBackend(TaskBackend(
       dbService,

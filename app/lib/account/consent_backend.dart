@@ -98,14 +98,13 @@ class ConsentBackend {
   /// - if it already exists, re-send the notification, or
   /// - if it was sent recently, do nothing.
   Future<api.InviteStatus> _invite({
+    required User activeUser,
     required String email,
     required String kind,
     required List<String> args,
     required AuditLogRecord auditLogRecord,
-    AuthSource? authSource,
   }) async {
     return retry(() async {
-      final activeUser = await requireAuthenticatedUser(source: authSource);
       // First check for existing consents with identical dedupId.
       final dedupId = consentDedupId(
         fromUserId: activeUser.userId,
@@ -145,21 +144,24 @@ class ConsentBackend {
 
   /// Invites a new uploader to the package.
   Future<api.InviteStatus> invitePackageUploader({
-    required AuthSource authSource,
+    required User activeUser,
     required String packageName,
     required String uploaderEmail,
+    bool isFromAdminUser = false,
   }) async {
-    final user = await requireAuthenticatedUser(source: authSource);
     return await _invite(
+      activeUser: activeUser,
       email: uploaderEmail,
       kind: ConsentKind.packageUploader,
-      args: [packageName],
+      args: [
+        packageName,
+        if (isFromAdminUser) 'is-from-admin-user',
+      ],
       auditLogRecord: AuditLogRecord.uploaderInvited(
-        user: user,
+        user: activeUser,
         package: packageName,
         uploaderEmail: uploaderEmail,
       ),
-      authSource: authSource,
     );
   }
 
@@ -170,6 +172,7 @@ class ConsentBackend {
   }) async {
     final user = await requireAuthenticatedUser();
     return await _invite(
+        activeUser: user,
         email: contactEmail,
         kind: ConsentKind.publisherContact,
         args: [publisherId, contactEmail],
@@ -184,6 +187,7 @@ class ConsentBackend {
   }) async {
     final user = await requireAuthenticatedUser();
     return await _invite(
+      activeUser: user,
       email: invitedUserEmail,
       kind: ConsentKind.publisherMember,
       args: [publisherId],
@@ -305,16 +309,23 @@ class _PackageUploaderAction extends ConsentAction {
   @override
   Future<void> onAccept(Consent consent) async {
     final packageName = consent.args![0];
-    final fromUserEmail =
-        (await accountBackend.getEmailOfUserId(consent.fromUserId!))!;
+    final isFromAdminUser =
+        consent.args!.skip(1).contains('is-from-admin-user');
+    final fromUserId = consent.fromUserId!;
+    final fromUserEmail = (await accountBackend.getEmailOfUserId(fromUserId))!;
     final currentUser = await requireAuthenticatedUser();
-    if (currentUser.email != consent.email) {
+    if (currentUser.email?.toLowerCase() != consent.email?.toLowerCase()) {
       throw NotAcceptableException(
           'Current user and consent user does not match.');
     }
 
     await packageBackend.confirmUploader(
-        consent.fromUserId, fromUserEmail, packageName, currentUser);
+      fromUserId,
+      fromUserEmail,
+      packageName,
+      currentUser,
+      isFromAdminUser: isFromAdminUser,
+    );
   }
 
   @override

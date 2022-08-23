@@ -69,33 +69,33 @@ class PopularityStorage {
 
 class _PopularityLoader {
   final Bucket bucket;
-  DateTime? _fileLastUpdated;
-  _PopularityData? _lastFetched;
+  ObjectInfo? _lastObjectInfo;
+  _PopularityData? _lastFetchedData;
 
   _PopularityLoader(this.bucket);
 
-  String get _latestPath => PackagePopularity.popularityFileName;
-
   Future<_PopularityData> fetch() async {
+    final objectName = PackagePopularity.popularityFileName;
     _logger.info(
-        'Checking popularity data info: ${bucketUri(bucket, _latestPath)}');
-    final info = await bucket.info(_latestPath);
-    if (_fileLastUpdated != null &&
-        _lastFetched != null &&
-        info.updated.isAfter(_fileLastUpdated!)) {
-      return _lastFetched!;
+        'Checking popularity data info: ${bucketUri(bucket, objectName)}');
+    final info = await bucket.info(objectName);
+    if (_lastFetchedData != null &&
+        _lastObjectInfo != null &&
+        _lastObjectInfo!.hasSameSignatureAs(info)) {
+      // Object didn't change since last fetch, returning the cached version.
+      return _lastFetchedData!;
     }
-    _logger.info('Loading popularity data: ${bucketUri(bucket, _latestPath)}');
+    _logger.info('Loading popularity data: ${bucketUri(bucket, objectName)}');
     final latest = (await bucket
-        .read(_latestPath)
+        .read(objectName)
         .transform(_gzip.decoder)
         .transform(utf8.decoder)
         .transform(json.decoder)
         .single) as Map<String, dynamic>;
     final data = _processJson(latest);
     _logger.info('Popularity updated for ${data.values.length} packages.');
-    _fileLastUpdated = info.updated;
-    _lastFetched = data;
+    _lastObjectInfo = info;
+    _lastFetchedData = data;
     return data;
   }
 

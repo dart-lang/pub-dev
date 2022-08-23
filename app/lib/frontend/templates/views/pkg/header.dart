@@ -18,6 +18,7 @@ d.Node packageHeaderNode({
   return d.fragment([
     d.text('Published '),
     d.span(child: d.xAgoTimestamp(published)),
+    d.text(' '),
     if (publisherId != null) ..._publisher(publisherId),
     if (isNullSafe) nullSafeBadgeNode(),
     if (releases != null) ..._releases(packageName, releases),

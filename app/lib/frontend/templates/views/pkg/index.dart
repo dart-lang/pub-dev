@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_pub_shared/search/search_form.dart';
+import 'package:_pub_shared/search/tags.dart';
 
-import '../../../../shared/tags.dart';
 import '../../../dom/dom.dart' as d;
 import '../../../dom/material.dart' as material;
 import '../../../static_files.dart';

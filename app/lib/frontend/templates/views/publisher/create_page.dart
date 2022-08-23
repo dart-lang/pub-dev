@@ -90,7 +90,7 @@ final createPublisherPageNode = d.fragment([
     ]),
   ]),
   d.div(
-    classes: ['-pub-form-row'],
+    classes: ['-pub-form-textfield-row'],
     children: [
       material.textField(
         id: '-publisher-id',

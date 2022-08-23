@@ -58,7 +58,9 @@ class FakeStorageServer {
       if (exists == null) {
         return Response.notFound('404 Not Found');
       }
-      return Response.ok(bucket.read(objectName));
+      final contentType = lookupMimeType(objectName);
+      return Response.ok(bucket.read(objectName),
+          headers: {if (contentType != null) 'Content-Type': contentType});
     } else if (request.method == 'POST') {
       _logger.info('Uploading: ${request.requestedUri.path}');
       final contentHeader = _parse(request.headers['content-type']);

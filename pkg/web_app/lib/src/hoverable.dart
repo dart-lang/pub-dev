@@ -117,8 +117,10 @@ void _setEventForPreCodeCopyToClipboard() {
 }
 
 void _setEventForXAgo() {
-  document.querySelectorAll('span.-x-ago').forEach((e) {
-    e.onClick.listen((_) {
+  document.querySelectorAll('a.-x-ago').forEach((e) {
+    e.onClick.listen((event) {
+      event.preventDefault();
+      event.stopPropagation();
       final text = e.text;
       e.text = e.getAttribute('title');
       e.setAttribute('title', text!);

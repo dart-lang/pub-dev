@@ -34,6 +34,8 @@ import '../task/fake_time.dart';
 import 'handlers_test_utils.dart';
 import 'test_models.dart';
 
+export 'package:pub_dev/tool/utils/pub_api_client.dart';
+
 /// Registers test with [name] and runs it in pkg/fake_gcloud's scope, populated
 /// with [testProfile] data.
 void testWithProfile(
@@ -131,10 +133,6 @@ void testWithFakeTime(
   });
 }
 
-/// Creates local, non-HTTP-based API client with [authToken].
-PubApiClient createPubApiClient({String? authToken}) =>
-    createLocalPubApiClient(authToken: authToken);
-
 bool _loggingDone = false;
 
 class _LoggerNamePattern {
@@ -211,26 +209,15 @@ void setupTestsWithCallerAuthorizationIssues(
   AuthSource? authSource,
 }) {
   testWithProfile('No active user', fn: () async {
-    await withHttpPubApiClient(
-      fn: (client) async {
-        final rs = fn(client);
-        await expectApiException(rs,
-            status: 401, code: 'MissingAuthentication');
-      },
-    );
+    final rs = fn(createPubApiClient());
+    await expectApiException(rs, status: 401, code: 'MissingAuthentication');
   });
 
   testWithProfile('Active user is not authorized', fn: () async {
     final token =
         createFakeAuthTokenForEmail('unauthorized@pub.dev', source: authSource);
-    await withHttpPubApiClient(
-      bearerToken: token,
-      fn: (client) async {
-        final rs = fn(client);
-        await expectApiException(rs,
-            status: 403, code: 'InsufficientPermissions');
-      },
-    );
+    final rs = fn(createPubApiClient(authToken: token));
+    await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
   });
 
   testWithProfile('Active user is blocked', fn: () async {
@@ -239,15 +226,10 @@ void setupTestsWithCallerAuthorizationIssues(
     await dbService.commit(inserts: [user..isBlocked = true]);
     final token =
         createFakeAuthTokenForEmail('admin@pub.dev', source: authSource);
-    await withHttpPubApiClient(
-      bearerToken: token,
-      fn: (client) async {
-        final rs = fn(client);
-        await expectApiException(rs,
-            status: 403,
-            code: 'InsufficientPermissions',
-            message: 'User is blocked.');
-      },
-    );
+    final rs = fn(createPubApiClient(authToken: token));
+    await expectApiException(rs,
+        status: 403,
+        code: 'InsufficientPermissions',
+        message: 'User is blocked.');
   });
 }

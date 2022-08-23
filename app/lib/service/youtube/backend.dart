@@ -9,11 +9,13 @@ import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/youtube/v3.dart';
 import 'package:googleapis_auth/auth_io.dart';
+import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
 import '../../shared/cached_value.dart';
 import '../../shared/env_config.dart';
+import '../../shared/monitoring.dart';
 import '../secret/backend.dart';
 
 /// The playlist ID for the Package of the Week channel.
@@ -26,6 +28,8 @@ void registerYoutubeBackend(YoutubeBackend backend) =>
 /// The active Youtube backend service.
 YoutubeBackend get youtubeBackend =>
     ss.lookup(#_youtubeBackend) as YoutubeBackend;
+
+final _logger = Logger('youtube_backend');
 
 /// Represents the backend for the Youtube handling and related utilities.
 class YoutubeBackend {
@@ -124,14 +128,29 @@ class _PkgOfWeekVideoFetcher {
           pageToken: nextPageToken,
         );
         videos.addAll(rs.items!.map(
-          (i) => PkgOfWeekVideo(
-            videoId: i.contentDetails!.videoId!,
-            title: i.snippet!.title!,
-            description:
-                (i.snippet?.description ?? '').trim().split('\n').first,
-            thumbnailUrl: i.snippet!.thumbnails!.high!.url!,
-          ),
-        ));
+          (i) {
+            try {
+              final thumbnails = i.snippet!.thumbnails!;
+              final thumbnail = thumbnails.high ??
+                  thumbnails.default_ ??
+                  thumbnails.maxres ??
+                  thumbnails.standard ??
+                  thumbnails.medium;
+              return PkgOfWeekVideo(
+                videoId: i.contentDetails!.videoId!,
+                title: i.snippet?.title ?? '',
+                description:
+                    (i.snippet?.description ?? '').trim().split('\n').first,
+                thumbnailUrl: thumbnail!.url!,
+              );
+            } catch (e, st) {
+              // this item will be skipped, the rest of the list may be displayed
+              _logger.pubNoticeShout(
+                  'youtube', 'Processing Youtube PlaylistItem failed.', e, st);
+            }
+            return null;
+          },
+        ).whereType<PkgOfWeekVideo>());
         // next page
         nextPageToken = rs.nextPageToken;
         check = nextPageToken != null && nextPageToken.isNotEmpty;

@@ -22,9 +22,9 @@
     <link rel="search" type="application/opensearchdescription+xml" title="Dart packages" href="/osd.xml"/>
     <meta name="description" content="Pub is the package manager for the Dart programming language, containing reusable libraries &amp; packages for Flutter, AngularDart, and general Dart programs."/>
     <link rel="alternate" type="application/atom+xml" title="Updated Packages Feed for Pub" href="/feed.atom"/>
-    <link rel="stylesheet" type="text/css" href="/static/hash-%%etag%%/material/material-components-web.min.css"/>
+    <link rel="stylesheet" type="text/css" href="/static/hash-%%etag%%/material/bundle/styles.css"/>
     <link rel="stylesheet" type="text/css" href="/static/hash-%%etag%%/css/style.css"/>
-    <script src="/static/hash-%%etag%%/material/material-components-web.min.js" defer="defer"></script>
+    <script src="/static/hash-%%etag%%/material/bundle/script.min.js" defer="defer"></script>
     <script src="/static/hash-%%etag%%/js/script.dart.js" defer="defer"></script>
     <meta name="google-signin-client_id" content=""/>
     <script src="https://apis.google.com/js/platform.js?onload=pubAuthInit" defer="defer"></script>
@@ -127,7 +127,7 @@
                 <div class="metadata">
                   Published
                   <span>
-                    <span class="-x-ago" title="%%published-date%%">%%x-ago%%</span>
+                    <a class="-x-ago" href="" title="%%published-date%%" aria-label="Switch between date and elapsed time." aria-role="button">%%x-ago%%</a>
                   </span>
                   • Latest:
                   <span>
@@ -280,13 +280,15 @@
                         <li>Upload new versions of this package</li>
                         <li>Invite and remove uploaders of this package</li>
                       </ul>
-                      <div class="-pub-form-row">
-                        <label for="-pkg-admin-invite-uploader-input">Email address</label>
-                        <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
-                          <input id="-pkg-admin-invite-uploader-input" class="mdc-text-field__input" type="text"/>
-                          <div class="mdc-notched-outline">
-                            <div class="mdc-notched-outline__leading"></div>
-                            <div class="mdc-notched-outline__trailing"></div>
+                      <div class="-pub-form-textfield-row">
+                        <div class="mdc-form-field">
+                          <label for="-pkg-admin-invite-uploader-input">Email address</label>
+                          <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+                            <input id="-pkg-admin-invite-uploader-input" class="mdc-text-field__input" type="text"/>
+                            <div class="mdc-notched-outline">
+                              <div class="mdc-notched-outline__leading"></div>
+                              <div class="mdc-notched-outline__trailing"></div>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -301,18 +303,20 @@
                     <em>Discontinued packages</em>
                     remain available to package users, but they don't appear in search results on pub.dev unless the user specifies advanced search options.
                   </p>
-                  <div class="mdc-form-field">
-                    <div class="mdc-checkbox">
-                      <input id="-admin-is-discontinued-checkbox" class="mdc-checkbox__native-control" type="checkbox"/>
-                      <div class="mdc-checkbox__background">
-                        <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
-                          <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
-                        </svg>
-                        <div class="mdc-checkbox__mixedmark"></div>
+                  <div class="-pub-form-checkbox-row">
+                    <div class="mdc-form-field">
+                      <div class="mdc-checkbox">
+                        <input id="-admin-is-discontinued-checkbox" class="mdc-checkbox__native-control" type="checkbox"/>
+                        <div class="mdc-checkbox__background">
+                          <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                            <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                          </svg>
+                          <div class="mdc-checkbox__mixedmark"></div>
+                        </div>
+                        <div class="mdc-checkbox__ripple"></div>
                       </div>
-                      <div class="mdc-checkbox__ripple"></div>
+                      <label for="-admin-is-discontinued-checkbox">Mark "discontinued"</label>
                     </div>
-                    <label for="-admin-is-discontinued-checkbox">Mark "discontinued"</label>
                   </div>
                   <h3>Unlisted</h3>
                   <p>
@@ -320,18 +324,20 @@
                     <em>unlisted</em>
                     doesn't normally appear in search results on pub.dev. Unlisted packages remain publicly available, and users can search for them using advanced search options.
                   </p>
-                  <div class="mdc-form-field">
-                    <div class="mdc-checkbox">
-                      <input id="-admin-is-unlisted-checkbox" class="mdc-checkbox__native-control" type="checkbox"/>
-                      <div class="mdc-checkbox__background">
-                        <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
-                          <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
-                        </svg>
-                        <div class="mdc-checkbox__mixedmark"></div>
+                  <div class="-pub-form-checkbox-row">
+                    <div class="mdc-form-field">
+                      <div class="mdc-checkbox">
+                        <input id="-admin-is-unlisted-checkbox" class="mdc-checkbox__native-control" type="checkbox"/>
+                        <div class="mdc-checkbox__background">
+                          <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                            <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                          </svg>
+                          <div class="mdc-checkbox__mixedmark"></div>
+                        </div>
+                        <div class="mdc-checkbox__ripple"></div>
                       </div>
-                      <div class="mdc-checkbox__ripple"></div>
+                      <label for="-admin-is-unlisted-checkbox">Mark "unlisted"</label>
                     </div>
-                    <label for="-admin-is-unlisted-checkbox">Mark "unlisted"</label>
                   </div>
                   <h2>Package Version Retraction</h2>
                   <div>
@@ -440,6 +446,14 @@
               <a class="link" href="/documentation/oxygen/latest/">API reference</a>
               <br/>
             </p>
+            <h3 class="title">Funding</h3>
+            <p>
+              Consider supporting this project:
+              <br/>
+              <br/>
+              <a class="link" href="https://patreon.com/oxygen" rel="ugc">patreon.com</a>
+              <br/>
+            </p>
             <h3 class="title">License</h3>
             <p>
               <img class="inline-icon-img" src="/static/hash-%%etag%%/img/material-icon-balance.svg" alt="Icon for licenses." width="14" height="14"/>
@@ -496,6 +510,14 @@
           <h3 class="title">Documentation</h3>
           <p>
             <a class="link" href="/documentation/oxygen/latest/">API reference</a>
+            <br/>
+          </p>
+          <h3 class="title">Funding</h3>
+          <p>
+            Consider supporting this project:
+            <br/>
+            <br/>
+            <a class="link" href="https://patreon.com/oxygen" rel="ugc">patreon.com</a>
             <br/>
           </p>
           <h3 class="title">License</h3>

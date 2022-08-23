@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../../shared/env_config.dart';
+
 final _none = <String>["'none'"];
 
 /// Content Security Policy (CSP) is an added layer of security that helps to
@@ -26,6 +28,7 @@ final _defaultContentSecurityPolicyMap = <String, List<String>>{
     "'self'",
     'https:',
     'data:',
+    if (envConfig.isRunningLocally) 'http://localhost:8081',
   ],
   'manifest-src': _none,
   'object-src': _none,
@@ -43,6 +46,9 @@ final _defaultContentSecurityPolicyMap = <String, List<String>>{
     'https://unpkg.com/',
     'https://www.gstatic.com/',
     'https://gstatic.com',
+    // required by Google Identity Services library
+    // https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid#content_security_policy
+    'https://accounts.google.com/gsi/client',
   ],
   'style-src': <String>[
     "'self'",
@@ -53,6 +59,9 @@ final _defaultContentSecurityPolicyMap = <String, List<String>>{
     'https://gstatic.com',
     'https://www.gstatic.com/',
     'https://tagmanager.google.com',
+    // required by Google Identity Services library
+    // https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid#content_security_policy
+    'https://accounts.google.com/gsi/style',
   ],
 };
 

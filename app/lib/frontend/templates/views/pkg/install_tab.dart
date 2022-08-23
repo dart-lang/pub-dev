@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_pub_shared/search/tags.dart';
+
 import '../../../../package/models.dart';
-import '../../../../shared/tags.dart';
 import '../../../dom/dom.dart' as d;
 
 d.Node installTabNode({

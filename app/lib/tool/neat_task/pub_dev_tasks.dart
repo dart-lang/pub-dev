@@ -8,6 +8,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:neat_periodic_task/neat_periodic_task.dart';
 import 'package:pub_dev/task/backend.dart';
+import 'package:pub_dev/tool/maintenance/update_public_bucket.dart';
 
 import '../../account/backend.dart';
 import '../../account/consent_backend.dart';
@@ -63,6 +64,14 @@ void _setupGenericPeriodicTasks() {
     name: 'update-package-versions',
     isRuntimeVersioned: false,
     task: () async => await packageBackend.updateAllPackageVersions(),
+  );
+
+  // Updates the public archive bucket from the canonical bucket, for the
+  // unlikely case where an archive may be missing.
+  _daily(
+    name: 'update-public-archive-bucket',
+    isRuntimeVersioned: false,
+    task: updatePublicArchiveBucket,
   );
 
   // Deletes task status entities where the status hasn't been updated

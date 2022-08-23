@@ -122,8 +122,16 @@ String pkgVersionsUrl(String package) =>
 String pkgScoreUrl(String package, {String? version}) =>
     pkgPageUrl(package, version: version, pkgPageTab: PkgPageTab.score);
 
-String pkgAdminUrl(String package) =>
-    pkgPageUrl(package, pkgPageTab: PkgPageTab.admin);
+String pkgAdminUrl(
+  String package, {
+  bool? includeHost,
+}) =>
+    pkgPageUrl(
+      package,
+      pkgPageTab: PkgPageTab.admin,
+      includeHost: includeHost ?? false,
+    );
+
 String pkgActivityLogUrl(String package) =>
     pkgPageUrl(package, pkgPageTab: PkgPageTab.activityLog);
 

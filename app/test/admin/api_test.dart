@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:_pub_shared/data/account_api.dart' as account_api;
 import 'package:_pub_shared/data/admin_api.dart';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
@@ -11,6 +12,9 @@ import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/admin/backend.dart';
+import 'package:pub_dev/audit/backend.dart';
+import 'package:pub_dev/audit/models.dart';
+import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
@@ -313,8 +317,7 @@ void main() {
     group('Delete user', () {
       setupTestsWithCallerAuthorizationIssues(
         (client) async {
-          final user =
-              await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+          final user = await accountBackend.lookupUserByEmail('user@pub.dev');
           await client.adminRemoveUser(user.userId);
         },
         authSource: AuthSource.admin,
@@ -325,8 +328,7 @@ void main() {
         testProfile: defaultTestProfile.changeDefaultUser('user@pub.dev'),
         fn: () async {
           final client = createPubApiClient(authToken: siteAdminToken);
-          final user =
-              await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+          final user = await accountBackend.lookupUserByEmail('user@pub.dev');
 
           final rs = await client.adminRemoveUser(user.userId);
           expect(utf8.decode(rs), '{"status":"OK"}');
@@ -351,8 +353,7 @@ void main() {
       testWithProfile('Likes are cleaned up on user deletion', fn: () async {
         final client = createPubApiClient(authToken: siteAdminToken);
 
-        final user =
-            await accountBackend.lookupOrCreateUserByEmail('user@pub.dev');
+        final user = await accountBackend.lookupUserByEmail('user@pub.dev');
         final userClient = createPubApiClient(authToken: userAtPubDevAuthToken);
         await userClient.likePackage('oxygen');
 
@@ -515,9 +516,32 @@ void main() {
 
         testWithProfile('adding new uploader', fn: () async {
           final client = createPubApiClient(authToken: siteAdminToken);
-          final rs = await client.adminAddPackageUploader(
-              'oxygen', 'someuser@pub.dev');
-          expect(rs.uploaders.map((u) => u.email).toSet(), {
+          await client.adminAddPackageUploader('oxygen', 'someuser@pub.dev');
+
+          final records1 = await auditBackend.listRecordsForPackage('oxygen');
+          final inviteAuditRecord = records1.records
+              .firstWhere((e) => e.kind == AuditLogRecordKind.uploaderInvited);
+          expect(inviteAuditRecord.summary,
+              '`admin@pub.dev` invited `someuser@pub.dev` to be an uploader for package `oxygen`.');
+
+          final consentRow = await dbService.query<Consent>().run().single;
+          expect(consentRow.args, ['oxygen', 'is-from-admin-user']);
+
+          await createPubApiClient(
+            authToken: createFakeAuthTokenForEmail('someuser@pub.dev'),
+          ).resolveConsent(
+            consentRow.consentId,
+            account_api.ConsentResult(granted: true),
+          );
+
+          final records2 = await auditBackend.listRecordsForPackage('oxygen');
+          final acceptedAuditRecord = records2.records.firstWhere(
+              (e) => e.kind == AuditLogRecordKind.uploaderInviteAccepted);
+          expect(acceptedAuditRecord.summary,
+              '`someuser@pub.dev` accepted uploader invite for package `oxygen`.');
+
+          final uploaders = await client.adminGetPackageUploaders('oxygen');
+          expect(uploaders.uploaders.map((u) => u.email).toSet(), {
             'admin@pub.dev',
             'someuser@pub.dev',
           });
@@ -558,16 +582,21 @@ void main() {
         });
 
         testWithProfile('removing an uploader', fn: () async {
+          final userAtPubDev =
+              (await accountBackend.lookupUsersByEmail('user@pub.dev')).single;
+          final someUser = await accountBackend.withBearerToken(
+            createFakeAuthTokenForEmail('someuser@pub.dev'),
+            () => requireAuthenticatedUser(),
+          );
+
+          final pkg = await packageBackend.lookupPackage('oxygen');
+          pkg!.uploaders = [userAtPubDev.userId, someUser.userId];
+          await dbService.commit(inserts: [pkg]);
+
           final client = createPubApiClient(authToken: siteAdminToken);
-          final rs = await client.adminAddPackageUploader(
+          final rs = await client.adminRemovePackageUploader(
               'oxygen', 'someuser@pub.dev');
-          expect(rs.uploaders.map((u) => u.email).toSet(), {
-            'admin@pub.dev',
-            'someuser@pub.dev',
-          });
-          final rs2 = await client.adminRemovePackageUploader(
-              'oxygen', 'someuser@pub.dev');
-          expect(rs2.uploaders.single.email, 'admin@pub.dev');
+          expect(rs.uploaders.single.email, 'user@pub.dev');
         });
 
         testWithProfile('removing last uploader', fn: () async {
