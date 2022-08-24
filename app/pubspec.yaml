@@ -16,7 +16,7 @@ dependencies:
   fake_gcloud:
     path: ../pkg/fake_gcloud
   gcloud: '^0.8.1'
-  googleapis: ^7.0.0
+  googleapis: ^9.0.0
   googleapis_auth: ^1.1.0
   html: ^0.15.0
   http: ^0.13.0
