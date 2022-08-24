@@ -72,7 +72,12 @@ Future<bool> verifyTextWithRsaSignature({
     );
     final output = pr.stdout.toString().trim();
     if (pr.exitCode != 0) {
+      // OpenSSL 1.1
       if (output == 'Verification Failure') {
+        return false;
+      }
+      // OpenSSL 3.0
+      if (output.split('\n').first.trim() == 'Verification failure') {
         return false;
       }
       throw Exception('Unable to run openssl:\n${pr.asJoinedOutput}');
