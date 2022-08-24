@@ -1,3 +1,7 @@
+## 1.3.0
+
+- Crop pub_package.png
+
 ## 1.2.0
 
 - Added extra screenshots
