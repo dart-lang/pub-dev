@@ -4,6 +4,7 @@
 // ClientLibraryGenerator
 // **************************************************************************
 
+// ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:_pub_shared/data/account_api.dart' as _i4;
 import 'package:_pub_shared/data/admin_api.dart' as _i7;
 import 'package:_pub_shared/data/package_api.dart' as _i3;
