@@ -102,6 +102,13 @@ void _setupGenericPeriodicTasks() {
     isRuntimeVersioned: true,
     task: taskBackend.backfillTrackingState,
   );
+
+  // Deletes task results for old runtime versions
+  _weekly(
+    name: 'garbage-collect-task-results',
+    isRuntimeVersioned: false,
+    task: taskBackend.garbageCollect,
+  );
 }
 
 /// Setup the tasks that we are running in the analyzer service.

@@ -320,7 +320,10 @@ runcmd:
       ..name = instanceName
       ..description = description
       ..machineType = 'zones/$zone/machineTypes/$_machineType'
-      ..scheduling = (Scheduling()..preemptible = true)
+      ..scheduling = (Scheduling()
+        ..preemptible = true
+        ..automaticRestart = false
+        ..onHostMaintenance = 'TERMINATE')
       ..labels = {
         // Labels that allows us to filter instances when listing instances.
         'owner': 'pub-dev',
