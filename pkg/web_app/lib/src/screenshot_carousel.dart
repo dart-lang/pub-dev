@@ -62,18 +62,6 @@ void _setEventForScreenshot() {
     });
   }
 
-  prev.onClick.listen((event) {
-    showImage(--screenshotIndex, event);
-  });
-
-  next.onClick.listen((event) {
-    showImage(++screenshotIndex, event);
-  });
-
-  imageElement.onClick.listen((event) {
-    event.stopPropagation();
-  });
-
   void closeCarousel(UIEvent event) {
     event.stopPropagation;
     hideElement(carousel);
@@ -82,9 +70,13 @@ void _setEventForScreenshot() {
     screenshotIndex = 0;
   }
 
-  carousel.onClick.listen((event) {
-    closeCarousel(event);
-  });
+  prev.onClick.listen((event) => showImage(--screenshotIndex, event));
+
+  next.onClick.listen((event) => showImage(++screenshotIndex, event));
+
+  imageElement.onClick.listen((event) => event.stopPropagation());
+
+  carousel.onClick.listen((event) => closeCarousel(event));
 
   document.onKeyDown.listen((event) {
     if (carousel.style.display == 'none') {
