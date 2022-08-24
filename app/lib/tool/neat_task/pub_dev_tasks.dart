@@ -7,7 +7,9 @@ import 'dart:io';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:neat_periodic_task/neat_periodic_task.dart';
+import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/task/backend.dart';
+import 'package:pub_dev/task/cloudcompute/googlecloudcompute.dart';
 import 'package:pub_dev/tool/maintenance/update_public_bucket.dart';
 
 import '../../account/backend.dart';
@@ -108,6 +110,15 @@ void _setupGenericPeriodicTasks() {
     name: 'garbage-collect-task-results',
     isRuntimeVersioned: false,
     task: taskBackend.garbageCollect,
+  );
+
+  // Delete very old instances that have been abandoned
+  _daily(
+    name: 'garbage-collect-old-instances',
+    isRuntimeVersioned: false,
+    task: () async => await deleteAbandonedInstances(
+      project: activeConfiguration.taskWorkerProject!,
+    ),
   );
 }
 

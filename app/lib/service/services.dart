@@ -106,12 +106,15 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
       registerUploadSigner(await createUploadSigner(retryingAuthClient));
 
       // Confiugure a CloudCompute pool for later use in TaskBackend
+      //
+      // This should not be wrapped with [httpRetryClient] because entire
+      // requests are retried by our GCE logic.
       final gceClient = await auth.clientViaApplicationDefaultCredentials(
         scopes: [googleCloudComputeScope],
       );
+      registerCloudComputeClient(gceClient);
       registerScopeExitCallback(gceClient.close);
       registertaskWorkerCloudCompute(createGoogleCloudCompute(
-        client: gceClient,
         project: activeConfiguration.taskWorkerProject!,
         network: activeConfiguration.taskWorkerNetwork!,
         poolLabel: '${runtimeVersion.replaceAll('.', '-')}_worker',

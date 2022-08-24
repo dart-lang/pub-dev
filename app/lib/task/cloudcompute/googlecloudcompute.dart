@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:clock/clock.dart';
+import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/compute/v1.dart' hide Duration;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart' show Logger;
@@ -18,6 +19,19 @@ import 'package:retry/retry.dart';
 import 'package:ulid/ulid.dart';
 
 final _log = Logger('pub.googlecloudcompute');
+
+/// Register an [http.Client] for talking to GCE.
+///
+/// This should be a client not wrapped in a `RetryClient`.
+void registerCloudComputeClient(http.Client client) =>
+    ss.register(#_cloudComputeClient, client);
+
+/// Get the active [http.Client] for talking to GCE.
+///
+/// This client does NOT do retries. Retries of requests should be managed by
+/// the caller invoking the GCE APIs.
+http.Client get cloudComputeClient =>
+    ss.lookup(#_cloudComputeClient) as http.Client;
 
 /// Hardcoded list of GCE zones to consider for provisioning.
 ///
@@ -68,7 +82,6 @@ const googleCloudComputeScope = ComputeApi.cloudPlatformScope;
 /// [c-o-s]: https://cloud.google.com/container-optimized-os/docs
 /// [Cloud Nat]: https://cloud.google.com/nat
 CloudCompute createGoogleCloudCompute({
-  required http.Client client,
   required String project,
   required String network,
   required String poolLabel,
@@ -92,13 +105,86 @@ CloudCompute createGoogleCloudCompute({
   }
 
   return _GoogleCloudCompute(
-    ComputeApi(client),
+    ComputeApi(cloudComputeClient),
     project,
     network,
     _googleCloudZones,
     _googleCloudMachineType,
     poolLabel,
   );
+}
+
+/// Delete instances created by a [CloudCompute] instance return from
+/// [createGoogleCloudCompute], when the instance has been created more than
+/// 72 hours ago.
+///
+/// This ignores the `poolLabel` and deletes all instances that has labels
+/// indicating they were part of such a pool. This should cleanup any old
+/// instances that were left behind by an old pool.
+Future<void> deleteAbandonedInstances({
+  required String project,
+}) async {
+  final api = ComputeApi(cloudComputeClient);
+
+  // Beware filters documented in the GCE API reference are not necessarily
+  // supported, nor can filtering be combined with ordering of results.
+  //
+  // This filters to instances that have specified "owner" label and has some
+  // "pool" label.
+  final filter = [
+    'labels.owner = "pub-dev"',
+    'labels.pool : *',
+  ].join(' AND ');
+
+  // Remark: We could have more concurrency here, but listing all instances
+  //         shouldn't take too long, and very few of the instances should be
+  //         so old that we need to delete them.
+  for (final zone in _googleCloudZones) {
+    String? nextPageToken;
+    do {
+      final response = await _retry(() => api.instances.list(
+            project,
+            zone,
+            maxResults: 500,
+            filter: filter,
+            pageToken: nextPageToken,
+          ));
+      nextPageToken = response.nextPageToken;
+
+      // For each instance, delete it if it's older than 3 days
+      for (final instance in response.items ?? <Instance>[]) {
+        final created = _parseInstanceCreationTimestamp(
+          instance.creationTimestamp,
+        );
+        if (created.isAfter(clock.now().subtract(Duration(days: 3)))) {
+          continue;
+        }
+        try {
+          _log.warning('Deleting abandoned instance: ${instance.name} '
+              'created at ${instance.creationTimestamp}.');
+          await _retryWithRequestId((rId) => api.instances.delete(
+                project,
+                zone,
+                instance.name!,
+                requestId: rId,
+              ));
+          // Note. that instances.delete() technically returns a custom long-running
+          // operation, we have no reasonable action to take if deletion fails.
+          // Presumably, the instance would show up in listings again and eventually
+          // be deleted once more (with a new operation, with a new requestId).
+          // TODO: Await the delete operation...
+        } on DetailedApiRequestError catch (e) {
+          if (e.status == 404) {
+            // If we get a 404, then we shall assume that instance has been deleted.
+            // Worst case the instance will eventually show up in listings again and
+            // then be deleted once more.
+            return;
+          }
+          rethrow;
+        }
+      }
+    } while (nextPageToken != null);
+  }
 }
 
 class _GoogleCloudInstance extends CloudInstance {
@@ -323,7 +409,9 @@ runcmd:
       ..scheduling = (Scheduling()
         ..preemptible = true
         ..automaticRestart = false
-        ..onHostMaintenance = 'TERMINATE')
+        ..onHostMaintenance = 'TERMINATE'
+        ..instanceTerminationAction = 'DELETE'
+        ..provisioningModel = 'SPOT')
       ..labels = {
         // Labels that allows us to filter instances when listing instances.
         'owner': 'pub-dev',
@@ -364,6 +452,7 @@ runcmd:
           ..boot = true
           ..autoDelete = true
           ..initializeParams = (AttachedDiskInitializeParams()
+            ..diskSizeGb = '10'
             ..labels = {
               // Labels allows to track disks, in practice they should always
               // be auto-deleted with instance, but if this fails it's nice to
@@ -537,18 +626,7 @@ runcmd:
   }
 
   CloudInstance _wrapInstance(Instance instance, String zone) {
-    DateTime created;
-    try {
-      created = DateTime.parse(instance.creationTimestamp ?? '');
-    } on FormatException {
-      // Print error and instance to log..
-      _log.severe(
-        'Failed to parse instance.creationTimestamp: '
-        '"${instance.creationTimestamp}"',
-      );
-      // Fallback to year zero that way instances will be killed.
-      created = DateTime(0);
-    }
+    final created = _parseInstanceCreationTimestamp(instance.creationTimestamp);
 
     InstanceState state;
     switch (instance.status) {
@@ -593,4 +671,23 @@ runcmd:
         created,
         state,
       );
+}
+
+/// Utility method for parsing `instance.creationTimestamp`.
+///
+/// This creates a particularly serious log message if it fails, because the
+/// creation timestamp is used for cleaning up instances. So ability to parse
+/// it correctly is rather important.
+DateTime _parseInstanceCreationTimestamp(String? timestamp) {
+  try {
+    return DateTime.parse(timestamp ?? '');
+  } on FormatException {
+    // Print error and instance to log..
+    _log.severe(
+      'Failed to parse instance.creationTimestamp: '
+      '"$timestamp"',
+    );
+    // Fallback to year zero that way instances will be killed.
+    return DateTime(0);
+  }
 }
