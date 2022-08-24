@@ -66,13 +66,11 @@ d.Node _imageCarousel() {
       classes: ['carousel-prev', 'carousel-nav'],
       attributes: {'title': 'Previous'});
 
-  final modal = d.div(
+  return d.div(
     id: '-screenshot-carousel',
-    classes: ['modal-carousel'],
+    classes: ['carousel'],
     children: [prev, imageContainer, next],
   );
-
-  return modal;
 }
 
 d.Node _sdkLibraryItem(SdkLibraryHit hit) {
