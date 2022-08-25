@@ -4,6 +4,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * NOTE: `search` stopped populating `highlightedHit` field.
  * Upgraded dependencies.
+ * NOTE: Limit `/api/documentation/<package>` endpoint to the latest versions.
 
 ## `20220822t072200-all`
  * Downgraded `package:markdown` to `5.0.0`.
