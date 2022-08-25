@@ -5,6 +5,7 @@
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
+import 'package:pana/pana.dart';
 
 import '../../../../frontend/request_context.dart';
 import '../../../../package/models.dart';
@@ -13,6 +14,8 @@ import '../../../../search/search_service.dart';
 import '../../../../shared/urls.dart' as urls;
 import '../../../../shared/utils.dart' show formatXAgo;
 import '../../../dom/dom.dart' as d;
+
+import '../../../dom/material.dart' as material;
 import '../../../static_files.dart' show staticUrls;
 import '../../_consts.dart';
 import '../../package_misc.dart';
@@ -33,7 +36,40 @@ d.Node listOfPackagesNode({
         _packageItem(highlightedHit, searchForm: searchForm),
       ...sdkLibraryHits.map(_sdkLibraryItem),
       ...packageHits.map((hit) => _packageItem(hit, searchForm: searchForm)),
+      _imageCarousel(),
     ],
+  );
+}
+
+d.Node _imageCarousel() {
+  final imageContainer = d.div(
+    classes: ['image-container'],
+    id: '-image-container',
+  );
+  final next = material.floatingActionButton(
+      id: '-carousel-next',
+      icon: d.Image(
+          src: staticUrls.getAssetUrl('/static/img/keyboard_arrow_right.svg'),
+          height: 24,
+          width: 24,
+          alt: 'next'),
+      classes: ['carousel-next', 'carousel-nav'],
+      attributes: {'title': 'Next'});
+
+  final prev = material.floatingActionButton(
+      id: '-carousel-prev',
+      icon: d.Image(
+          src: staticUrls.getAssetUrl('/static/img/keyboard_arrow_left.svg'),
+          height: 24,
+          width: 24,
+          alt: 'previous'),
+      classes: ['carousel-prev', 'carousel-nav'],
+      attributes: {'title': 'Previous'});
+
+  return d.div(
+    id: '-screenshot-carousel',
+    classes: ['carousel'],
+    children: [prev, imageContainer, next],
   );
 }
 
@@ -126,12 +162,20 @@ d.Node _packageItem(
   final screenshots = view.screenshots;
   final bool hasScreenshots = screenshots != null && screenshots.isNotEmpty;
   String? thumbnailUrl;
+  final screenshotUrls = <String>[];
   if (hasScreenshots) {
     thumbnailUrl = imageStorage.getImageUrl(
         view.name!, releases.stable.version, screenshots.first.pngThumbnail);
+
+    for (ProcessedScreenshot s in screenshots) {
+      screenshotUrls.add(imageStorage.getImageUrl(
+          view.name!, releases.stable.version, s.webpImage));
+    }
   }
+
   return _item(
     thumbnailUrl: thumbnailUrl,
+    screenshotUrls: screenshotUrls,
     url: urls.pkgPageUrl(view.name!),
     name: view.name!,
     newTimestamp: view.created,
@@ -155,6 +199,7 @@ d.Node _packageItem(
 
 d.Node _item({
   String? thumbnailUrl,
+  List<String>? screenshotUrls,
   required String url,
   required String name,
   required DateTime? newTimestamp,
@@ -214,7 +259,9 @@ d.Node _item({
           ],
         ),
         if (thumbnailUrl != null && requestContext.showScreenshots)
-          d.div(classes: [
+          d.div(attributes: {
+            'data': screenshotUrls!.reduce((a, b) => '$a,$b'),
+          }, classes: [
             'screenshot-thumbnail'
           ], children: [
             d.img(
