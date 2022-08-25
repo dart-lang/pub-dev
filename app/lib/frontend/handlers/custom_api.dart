@@ -48,7 +48,7 @@ Future<shelf.Response> apiDocumentationHandler(
   // Limit versions to the latest few (sorted semantically).
   final versionsToQuery = <String>{
     versions.latest.version,
-    ...versions.versions.map((e) => e.version).toList().reversed.take(10),
+    ...versions.versions.map((e) => e.version).toList().reversed.take(30),
   };
 
   final dartdocEntries = await dartdocBackend.getEntriesForVersions(
