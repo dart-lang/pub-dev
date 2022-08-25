@@ -12,6 +12,8 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' hide Pubspec, ReportStatus;
 import 'package:pana/pana.dart' as pana show ReportStatus;
+// ignore: implementation_imports
+import 'package:pana/src/logging.dart' show withLogger;
 import 'package:path/path.dart' as p;
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
@@ -52,6 +54,8 @@ abstract class DartdocRunner {
 
   Future<ProcessResult> runPubUpgrade({
     required ToolEnvironment toolEnv,
+    required String package,
+    required String version,
     required String pkgPath,
     required bool usesFlutter,
   });
@@ -107,10 +111,14 @@ class _DartdocRunner implements DartdocRunner {
   @override
   Future<ProcessResult> runPubUpgrade({
     required ToolEnvironment toolEnv,
+    required String package,
+    required String version,
     required String pkgPath,
     required bool usesFlutter,
   }) async {
-    return await toolEnv.runUpgrade(pkgPath, usesFlutter);
+    return await withLogger(() async {
+      return await toolEnv.runUpgrade(pkgPath, usesFlutter);
+    }, logger: Logger.detached('dartdoc/$package/$version'));
   }
 
   @override
@@ -442,7 +450,11 @@ class DartdocJobProcessor extends JobProcessor {
       StringBuffer logFileOutput) async {
     logFileOutput.write('Running pub upgrade:\n');
     final pr = await _runner.runPubUpgrade(
-        toolEnv: toolEnv, pkgPath: pkgPath, usesFlutter: usesFlutter);
+        toolEnv: toolEnv,
+        package: job.packageName!,
+        version: job.packageVersion!,
+        pkgPath: pkgPath,
+        usesFlutter: usesFlutter);
     _appendLog(logFileOutput, pr);
     if (pr.exitCode != 0) {
       final message = pr.stderr.toString();
