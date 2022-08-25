@@ -162,7 +162,7 @@ d.Node _packageItem(
   final screenshots = view.screenshots;
   final bool hasScreenshots = screenshots != null && screenshots.isNotEmpty;
   String? thumbnailUrl;
-  final List<String> screenshotUrls = [];
+  final screenshotUrls = <String>[];
   if (hasScreenshots) {
     thumbnailUrl = imageStorage.getImageUrl(
         view.name!, releases.stable.version, screenshots.first.pngThumbnail);
