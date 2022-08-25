@@ -32,6 +32,8 @@ class FakeDartdocRunner implements DartdocRunner {
   @override
   Future<ProcessResult> runPubUpgrade({
     required ToolEnvironment toolEnv,
+    required String package,
+    required String version,
     required String pkgPath,
     required bool usesFlutter,
   }) async {
