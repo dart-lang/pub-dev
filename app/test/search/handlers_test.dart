@@ -4,6 +4,8 @@
 
 import 'dart:async';
 
+import 'package:collection/collection.dart';
+import 'package:html/parser.dart' as html_parser;
 import 'package:pub_dev/search/backend.dart';
 import 'package:pub_dev/search/dart_sdk_mem_index.dart';
 import 'package:pub_dev/search/flutter_sdk_mem_index.dart';
@@ -12,7 +14,9 @@ import 'package:pub_dev/search/search_service.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:test/test.dart';
 
+import '../frontend/handlers/_utils.dart' as _utils;
 import '../shared/handlers_test_utils.dart';
+import '../shared/test_services.dart';
 import '../shared/utils.dart';
 import 'handlers_test_utils.dart';
 
@@ -112,6 +116,41 @@ void main() {
             });
       });
     });
+  });
+
+  group('sort', () {
+    Future<List<String>> queryPackageOrder(String url) async {
+      final rs = await _utils.issueGet(url);
+      return html_parser
+          .parse(await rs.readAsString())
+          .body!
+          .querySelectorAll('a')
+          .map((e) => e.attributes['href'])
+          .whereNotNull()
+          .where((p) => p.startsWith('/packages/'))
+          .where((p) => p.endsWith('/score'))
+          .map((p) => p.split('/')[2])
+          .toList();
+    }
+
+    testWithProfile(
+      'input text predicate overrides URL parameter',
+      fn: () async {
+        expect(
+          await queryPackageOrder('/packages?sort=points'),
+          ['oxygen', 'neon', 'flutter_titanium'],
+        );
+        expect(
+          await queryPackageOrder('/packages?sort=popularity'),
+          ['flutter_titanium', 'neon', 'oxygen'],
+        );
+        expect(
+          await queryPackageOrder('/packages?sort=popularity&q=sort:points'),
+          ['oxygen', 'neon', 'flutter_titanium'],
+        );
+      },
+      processJobsWithFakeRunners: true,
+    );
   });
 }
 

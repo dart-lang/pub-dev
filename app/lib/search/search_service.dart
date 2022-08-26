@@ -244,10 +244,13 @@ class ServiceSearchQuery {
     return map;
   }
 
+  late final effectiveOrder = parsedQuery.order ?? order;
   bool get _hasQuery => query != null && query!.isNotEmpty;
   bool get _hasOnlyFreeText => _hasQuery && parsedQuery.hasOnlyFreeText;
   bool get _isNaturalOrder =>
-      order == null || order == SearchOrder.top || order == SearchOrder.text;
+      effectiveOrder == null ||
+      effectiveOrder == SearchOrder.top ||
+      effectiveOrder == SearchOrder.text;
   bool get _hasNoOwnershipScope => publisherId == null;
   bool get _isFlutterFavorite =>
       tagsPredicate.hasTag(PackageTags.isFlutterFavorite);

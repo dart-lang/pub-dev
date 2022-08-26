@@ -206,7 +206,7 @@ class InMemoryPackageIndex implements PackageIndex {
     }
 
     late List<PackageHit> packageHits;
-    switch (query.order ?? SearchOrder.top) {
+    switch (query.effectiveOrder ?? SearchOrder.top) {
       case SearchOrder.top:
         final List<Score> scores = [
           _getOverallScore(packages),
