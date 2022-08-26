@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20220825t132100-all`
  * NOTE: `search` stopped populating `highlightedHit` field.
  * Upgraded dependencies.
  * NOTE: Limit `/api/documentation/<package>` endpoint to the latest versions.
