@@ -3,6 +3,7 @@ imageBucketName: foo
 dartdocStorageBucketName: foo
 popularityDumpBucketName: foo
 searchSnapshotBucketName: foo
+canonicalPackagesBucketName: foo
 searchServicePrefix: 'https://search-dot-dartlang-pub-dev.appspot.com'
 defaultServiceBaseUrl: http://localhost:8080
 storageBaseUrl: 'https://storage.googleapis.com/'
