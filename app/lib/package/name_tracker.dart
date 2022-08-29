@@ -86,7 +86,7 @@ class NameTracker {
   List<TrackedPackage>? _packagesOrderedByLastPublishedDesc;
 
   /// Names that are reserved due to moderated packages having these names.
-  final _reservedNames = <String>{};
+  final _moderatedNames = <String>{};
   final _conflictingNames = <String, String>{};
   final _firstScanCompleter = Completer();
   _NameTrackerUpdater? _updater;
@@ -104,20 +104,16 @@ class NameTracker {
     }
   }
 
-  void addReservedName(String name) {
-    _reservedNames.add(name);
-    _addConflictingName(name, skipAlternatives: true);
-    _names.remove(name);
+  void addModeratedName(String name) {
+    _moderatedNames.add(name);
+    final existed = _names.remove(name);
+    if (existed) {
+      // TODO: reset conflicting names
+    }
   }
 
-  void _addConflictingName(
-    String name, {
-    bool? skipAlternatives,
-  }) {
-    final names = _generateConflictingNames(
-      name,
-      skipAlternatives: skipAlternatives,
-    );
+  void _addConflictingName(String name) {
+    final names = _generateConflictingNames(name);
     for (final cn in names) {
       _conflictingNames.putIfAbsent(cn, () => name);
     }
@@ -151,7 +147,9 @@ class NameTracker {
     await _updater?._scan();
     // normal checks:
     if (_hasPackage(name)) return null;
-    if (_reservedNames.contains(name)) return name;
+    if (_moderatedNames.contains(name)) {
+      return name;
+    }
     for (final generated in _generateConflictingNames(name)) {
       final original = _conflictingNames[generated];
       if (original != null) return original;
@@ -191,7 +189,7 @@ class NameTracker {
     }
 
     await for (ModeratedPackage p in _db!.query<ModeratedPackage>().run()) {
-      addReservedName(p.name!);
+      addModeratedName(p.name!);
     }
     if (!_firstScanCompleter.isCompleted) {
       _firstScanCompleter.complete();
@@ -292,7 +290,7 @@ class _NameTrackerUpdater {
 
     await for (ModeratedPackage p in moderatedPkgQuery.run()) {
       if (_stopped) return;
-      nameTracker.addReservedName(p.name!);
+      nameTracker.addModeratedName(p.name!);
     }
 
     _lastTs = now.subtract(const Duration(hours: 1));
@@ -310,16 +308,10 @@ class _NameTrackerUpdater {
 /// Generates the names that will be used to determine name conflicts:
 /// - For each package name, this will generate a String that doesn't contain `_`.
 /// - For names that are long enough, this will also try to generate the singular or plural form of the name.
-Iterable<String> _generateConflictingNames(
-  String name, {
-  bool? skipAlternatives,
-}) sync* {
+Iterable<String> _generateConflictingNames(String name) sync* {
   // name without underscores
   final reduced = reducePackageName(name);
   yield reduced;
-  if (skipAlternatives ?? false) {
-    return;
-  }
   // singular/plural form parsing
   // This could be improved with some a dictionary or a grammar parser.
   if (!reduced.endsWith('s') && reduced.length >= 3) {
