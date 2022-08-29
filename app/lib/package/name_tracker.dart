@@ -108,7 +108,11 @@ class NameTracker {
     _moderatedNames.add(name);
     final existed = _names.remove(name);
     if (existed) {
-      // TODO: reset conflicting names
+      // reset conflicting names
+      _conflictingNames.removeWhere((key, value) => value == name);
+      for (final name in _names) {
+        _addConflictingName(name);
+      }
     }
   }
 

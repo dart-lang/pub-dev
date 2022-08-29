@@ -149,16 +149,25 @@ void main() {
 
   group('moderated package names', () {
     testWithProfile(
-      'aaa_bbb deleted, aaa_bbbs plurlar',
+      'aaa_bbb deleted, aaa_bbbs plural',
       testProfile: TestProfile(
         packages: [TestPackage(name: 'aaa_bbb')],
         defaultUser: 'user@pub.dev',
       ),
       fn: () async {
-        await accountBackend.withBearerToken(
-            siteAdminToken, () => adminBackend.removePackage('aaa_bbb'));
         final tracker = NameTracker(dbService);
         await tracker.scanDatastore();
+        // new version is accepted
+        expect(await tracker.accept('aaa_bbb'), isNull);
+        // plural and alternatives are rejected
+        expect(await tracker.accept('aaa_bbbs'), 'aaa_bbb');
+        expect(await tracker.accept('aaabbb'), 'aaa_bbb');
+        expect(await tracker.accept('aa_ab_bb'), 'aaa_bbb');
+
+        await accountBackend.withBearerToken(
+            siteAdminToken, () => adminBackend.removePackage('aaa_bbb'));
+        await tracker.scanDatastore();
+
         // same package name is rejected
         expect(await tracker.accept('aaa_bbb'), 'aaa_bbb');
         // plural form is accepted
