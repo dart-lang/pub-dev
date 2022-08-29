@@ -16,7 +16,6 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
             'canonicalPackagesBucketName',
             'publicPackagesBucketName',
             'incomingPackagesBucketName',
-            'packageBucketName',
             'imageBucketName',
             'projectId',
             'searchServicePrefix',
@@ -53,8 +52,6 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
           incomingPackagesBucketName: $checkedConvert(
               'incomingPackagesBucketName', (v) => v as String?),
           projectId: $checkedConvert('projectId', (v) => v as String),
-          packageBucketName:
-              $checkedConvert('packageBucketName', (v) => v as String?),
           imageBucketName:
               $checkedConvert('imageBucketName', (v) => v as String?),
           dartdocStorageBucketName:
@@ -120,7 +117,6 @@ Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
       'canonicalPackagesBucketName': instance.canonicalPackagesBucketName,
       'publicPackagesBucketName': instance.publicPackagesBucketName,
       'incomingPackagesBucketName': instance.incomingPackagesBucketName,
-      'packageBucketName': instance.packageBucketName,
       'imageBucketName': instance.imageBucketName,
       'projectId': instance.projectId,
       'searchServicePrefix': instance.searchServicePrefix,

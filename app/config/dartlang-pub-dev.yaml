@@ -4,7 +4,6 @@ canonicalPackagesBucketName: dartlang-pub-dev-canonical-packages
 publicPackagesBucketName: dartlang-pub-dev-public-packages
 incomingPackagesBucketName: dartlang-pub-dev-incoming-packages
 projectId: dartlang-pub-dev
-packageBucketName: dartlang-pub-dev--pub-packages
 searchServicePrefix: https://search-dot-dartlang-pub-dev.appspot.com
 defaultServiceBaseUrl: https://{{GAE_VERSION}}-dot-{{GOOGLE_CLOUD_PROJECT}}.appspot.com
 dartdocStorageBucketName: dartlang-pub-dev--dartdoc-storage

@@ -68,12 +68,6 @@ class PackageBackend {
   final DatastoreDB db;
   final Storage _storage;
 
-  /// The Cloud Storage bucket to use for uploaded package content.
-  /// The following files are present:
-  /// - `packages/$package-$version.tar.gz` (package archive)
-  /// - `tmp/$guid` (incoming package archive that was uploaded, but not yet processed)
-  final Bucket _bucket;
-
   /// The Cloud Storage bucket to use for incoming package archives.
   /// The following files are present:
   /// - `tmp/$guid` (incoming package archive that was uploaded, but not yet processed)
@@ -95,7 +89,6 @@ class PackageBackend {
   PackageBackend(
     this.db,
     this._storage,
-    this._bucket,
     this._incomingBucket,
     this._canonicalBucket,
     this._publicBucket,
@@ -952,27 +945,6 @@ class PackageBackend {
     }
   }
 
-  /// Makes a temporary object a new tarball.
-  Future<void> _uploadViaTempObject(
-    String guid,
-    String package,
-    String version,
-  ) async {
-    final object = tarballObjectName(package, version);
-
-    // Copy the temporary object to it's destination place.
-    await _storage.copyObject(
-      _incomingBucket.absoluteObjectName(tmpObjectName(guid)),
-      _bucket.absoluteObjectName(object),
-    );
-
-    // Change the ACL to include a `public-read` entry.
-    final ObjectInfo info = await _bucket.info(object);
-    final publicRead = AclEntry(AllUsersScope(), AclPermission.READ);
-    final acl = Acl(List.from(info.metadata.acl!.entries)..add(publicRead));
-    await _bucket.updateMetadata(object, info.metadata.replace(acl: acl));
-  }
-
   Future<PackageVersion> _performTarballUpload({
     required _UploadEntities entities,
     required AuthenticatedAgent agent,
@@ -1060,7 +1032,6 @@ class PackageBackend {
               tarballObjectName(newVersion.package, newVersion.version!)),
         );
       }
-      await _uploadViaTempObject(guid, package!.name!, newVersion.version!);
       await _storage.copyObject(
         _incomingBucket.absoluteObjectName(tmpObjectName(guid)),
         _publicBucket.absoluteObjectName(
@@ -1340,7 +1311,6 @@ class PackageBackend {
   /// Deletes the tarball of a [package] in the given [version] permanently.
   Future<void> removePackageTarball(String package, String version) async {
     final object = tarballObjectName(package, version);
-    await deleteFromBucket(_bucket, object);
     await deleteFromBucket(_publicBucket, object);
     await deleteFromBucket(_canonicalBucket, object);
   }

@@ -166,11 +166,6 @@ void main() {
             .bucket(activeConfiguration.publicPackagesBucketName!)
             .info('packages/new_package-1.2.3.tar.gz');
         expect(publicInfo.length, canonicalInfo.length);
-
-        final oldInfo = await storageService
-            .bucket(activeConfiguration.packageBucketName!)
-            .info('packages/new_package-1.2.3.tar.gz');
-        expect(oldInfo.length, canonicalInfo.length);
       });
 
       testWithProfile('package under publisher', fn: () async {

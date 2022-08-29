@@ -70,9 +70,6 @@ class Configuration {
   /// The bucket content policy should be public.
   final String? incomingPackagesBucketName;
 
-  /// The name of the Cloud Storage bucket to use for uploaded package content.
-  final String? packageBucketName;
-
   /// The name of the Cloud Storage bucket to use for uploaded images.
   final String? imageBucketName;
 
@@ -235,7 +232,6 @@ class Configuration {
     required this.publicPackagesBucketName,
     required this.incomingPackagesBucketName,
     required this.projectId,
-    required this.packageBucketName,
     required this.imageBucketName,
     required this.dartdocStorageBucketName,
     required this.popularityDumpBucketName,
@@ -296,7 +292,6 @@ class Configuration {
       publicPackagesBucketName: 'fake-public-packages',
       incomingPackagesBucketName: 'fake-incoming-packages',
       projectId: 'dartlang-pub-fake',
-      packageBucketName: 'fake-bucket-pub',
       imageBucketName: 'fake-bucket-image',
       dartdocStorageBucketName: 'fake-bucket-dartdoc',
       popularityDumpBucketName: 'fake-bucket-popularity',
@@ -342,7 +337,6 @@ class Configuration {
       publicPackagesBucketName: 'fake-public-packages',
       incomingPackagesBucketName: 'fake-incoming-packages',
       projectId: 'dartlang-pub-test',
-      packageBucketName: 'fake-bucket-pub',
       imageBucketName: 'fake-bucket-image',
       dartdocStorageBucketName: 'fake-bucket-dartdoc',
       popularityDumpBucketName: 'fake-bucket-popularity',
@@ -387,7 +381,6 @@ class Configuration {
     dartdocStorageBucketName!,
     imageBucketName!,
     incomingPackagesBucketName!,
-    packageBucketName!,
     popularityDumpBucketName!,
     publicPackagesBucketName!,
     searchSnapshotBucketName!,

@@ -11,7 +11,7 @@ void main() {
         Configuration.fromYamlFile('test/shared/test_data/foo_config.yaml');
     final expectedValue = 'foo';
     expect(config.projectId, expectedValue);
-    expect(config.packageBucketName, expectedValue);
+    expect(config.canonicalPackagesBucketName, expectedValue);
     expect(config.imageBucketName, expectedValue);
     expect(config.dartdocStorageBucketName, expectedValue);
     expect(config.popularityDumpBucketName, expectedValue);
