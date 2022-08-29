@@ -424,8 +424,8 @@ void main() {
           expect(await fn('neon'),
               'PackageRejected(400): Package name `neon` is too similar to a moderated package: `neon`.');
 
-          expect(await fn('ne_on'),
-              'PackageRejected(400): Package name `ne_on` is too similar to a moderated package: `neon`.');
+          // similar names are accepted
+          expect(await fn('ne_on'), isNull);
         });
       });
 
