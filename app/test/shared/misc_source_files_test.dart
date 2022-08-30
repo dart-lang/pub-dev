@@ -53,6 +53,7 @@ void main() {
       './bin/tools/public_package_page_checker.dart',
       './lib/shared/configuration.dart',
       './lib/shared/env_config.dart',
+      './test/service/openid/github_actions_id_token_test.dart',
       './test/shared/misc_source_files_test.dart',
     ];
     final files = Directory('.')
