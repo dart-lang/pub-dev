@@ -9,6 +9,7 @@ import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/urls.dart' as urls;
+import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 
 import '../../shared/handlers_test_utils.dart';
@@ -162,6 +163,30 @@ void main() {
           'tags': contains('sdk:dart'),
           'lastUpdated': isNotEmpty,
         });
+      },
+    );
+  });
+
+  group('documentation', () {
+    testWithProfile(
+      'many versions',
+      testProfile: TestProfile(
+        packages: [
+          TestPackage(
+            name: 'pkg',
+            versions: List.generate(
+              99,
+              (index) => TestVersion(version: '1.$index.0'),
+            ),
+          ),
+        ],
+        defaultUser: 'user@pub.dev',
+      ),
+      fn: () async {
+        final rs = await issueGet('/api/documentation/pkg');
+        expect(rs.statusCode, 200);
+        final body = await rs.readAsString();
+        expect(body, contains('1.96.0'));
       },
     );
   });

@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/search/search_form.dart';
+import 'package:pub_dev/dartdoc/models.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../dartdoc/backend.dart';
@@ -53,15 +54,21 @@ Future<shelf.Response> apiDocumentationHandler(
 
   final dartdocEntries = await dartdocBackend.getEntriesForVersions(
       package, versionsToQuery.toList());
+  final dartdocEntriesMap = <String, DartdocEntry>{};
+  for (final entry in dartdocEntries) {
+    if (entry == null) continue;
+    dartdocEntriesMap[entry.packageVersion] = entry;
+  }
 
   final versionsData = [];
   for (int i = 0; i < versions.versions.length; i++) {
-    final entry = dartdocEntries[i];
+    final version = versions.versions[i].version;
+    final entry = dartdocEntriesMap[version];
     final hasDocumentation = entry != null && entry.hasContent;
     final status =
         entry == null ? 'pending' : (entry.hasContent ? 'success' : 'failed');
     versionsData.add({
-      'version': versions.versions[i].version,
+      'version': version,
       'status': status,
       'hasDocumentation': hasDocumentation,
     });
