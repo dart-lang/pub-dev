@@ -87,7 +87,7 @@ class NameTracker {
 
   /// Names that are reserved due to moderated packages having these names.
   final _moderatedNames = <String>{};
-  final _conflictingNames = <String, String>{};
+  final _conflictingNames = <String, List<String>>{};
   final _firstScanCompleter = Completer();
   _NameTrackerUpdater? _updater;
 
@@ -108,10 +108,15 @@ class NameTracker {
     _moderatedNames.add(name);
     final existed = _names.remove(name);
     if (existed) {
-      // reset conflicting names
-      _conflictingNames.removeWhere((key, value) => value == name);
-      for (final name in _names) {
-        _addConflictingName(name);
+      // remove conflicting name entries for this package
+      final names = _generateConflictingNames(name);
+      for (final cn in names) {
+        final list = _conflictingNames[cn];
+        if (list == null) continue;
+        list.remove(name);
+        if (list.isEmpty) {
+          _conflictingNames.remove(cn);
+        }
       }
     }
   }
@@ -119,7 +124,7 @@ class NameTracker {
   void _addConflictingName(String name) {
     final names = _generateConflictingNames(name);
     for (final cn in names) {
-      _conflictingNames.putIfAbsent(cn, () => name);
+      _conflictingNames.putIfAbsent(cn, () => <String>[]).add(name);
     }
   }
 
@@ -156,7 +161,7 @@ class NameTracker {
     }
     for (final generated in _generateConflictingNames(name)) {
       final original = _conflictingNames[generated];
-      if (original != null) return original;
+      if (original != null) return original.first;
     }
     return null;
   }
