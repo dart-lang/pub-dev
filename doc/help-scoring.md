@@ -99,7 +99,7 @@ And the two SDKs:
 * Dart
 
 The platform support will be detected by analyzing the transitive import graph
-of the top-level libraries, and finding what core libraries are used. (eg. a
+of the top-level libraries, and finding what core libraries are used. (e.g. a
 package importing `dart:html` does not support the 'windows' platform).
 
 If you need to import different libraries for specific platforms (e.g. on the
@@ -116,7 +116,7 @@ declaration in the `pubspec.yaml` file:
    key](https://flutter.dev/docs/development/packages-and-plugins/developing-packages#plugin-platforms).
 
 * Packages using FFI or otherwise being platform-specific can declare their
-  platform support using a top-level ['platforms'] declaration:
+  platform support using a top-level [`platforms`] declaration:
 
   ```yaml
   # This package works only on Windows and Linux.
@@ -168,10 +168,10 @@ running `pana` locally:
   1. When run `pana` will make modifications to the package, so start by making
      a copy of the directory holding your package: `cp ~/dev/mypkg ~/tmp/mypkg`
 
-  1. Make sure you have the latest pana tool: `pub global activate pana` (`pana`
+  1. Make sure you have the latest pana tool: `dart pub global activate pana` (`pana`
      changes frequently, so run this again frequently to update the pana tool)
 
-  1. Run pana on the copy we made earlier: `pub global run pana ~/tmp/mypkg`
+  1. Run pana on the copy we made earlier: `dart pub global run pana ~/tmp/mypkg`
 
 
 [analysis-options]: https://dart.dev/guides/language/analysis-options
