@@ -90,7 +90,8 @@ void validateHtml(Node root) {
     if (uri.path == '/packages' && uri.queryParameters.containsKey('q')) {
       final rel = elem.attributes['rel'] ?? '';
       if (!rel.split(' ').contains('nofollow')) {
-        throw AssertionError('Package search URL must use nofollow: "${elem.outerHtml}".');
+        throw AssertionError(
+            'Package search URL must use nofollow: "${elem.outerHtml}".');
       }
     }
   }
