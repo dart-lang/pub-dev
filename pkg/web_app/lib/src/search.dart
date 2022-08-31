@@ -78,78 +78,24 @@ void adjustQueryTextAfterPageShow() {
 }
 
 void _setEventsForSearchForm() {
-  // Shared state for concurrent click events.
-  Uri? lastTargetUri;
-
   // When a search form checkbox has a linked search label,
   //checking the checkbox will trigger a click on the link.
   document.querySelectorAll('.search-form-linked-checkbox').forEach((e) {
     final checkbox = e.querySelector('input');
     final link = e.querySelector('a');
     if (checkbox != null && link != null) {
-      final originalHrefUri = Uri.parse(link.getAttribute('href')!);
+      final tag = link.dataset['tag'];
+      final action = link.dataset['action'];
+
       Future<void> handleClick(Event event) async {
-        event.preventDefault();
-        event.stopPropagation();
-
-        // create new URL based on the window state
-        final windowUri = Uri.parse(window.location.href);
-        final inputQElem =
-            document.body!.querySelector('input[name="q"]') as InputElement;
-        var queryText =
-            inputQElem.value ?? originalHrefUri.queryParameters['q'] ?? '';
-        queryText = queryText.trim();
-        final tag = link.dataset['tag'];
-        var actionPostfix = '-on';
         if (tag != null) {
-          final parsedQuery = ParsedQueryText.parse(queryText);
-          final newQuery = parsedQuery.change(
-            tagsPredicate: parsedQuery.tagsPredicate.toggleRequired(tag),
-          );
-          queryText = newQuery.toString();
-          if (parsedQuery.tagsPredicate.hasTag(tag)) {
-            actionPostfix = '-off';
-          }
-        }
-        inputQElem.value = queryText;
-
-        final newVisibleUri = originalHrefUri.replace(
-          queryParameters: {
-            ...originalHrefUri.queryParameters,
-            'q': queryText,
-          },
-        );
-
-        final openSections = document
-            .querySelectorAll('.search-form-section')
-            .where((e) =>
-                e.dataset.containsKey('section-tag') &&
-                e.classes.contains('-active'))
-            .map((e) => e.dataset['section-tag'])
-            .whereType<String>()
-            .join(' ');
-
-        final requestUri = newVisibleUri.replace(
-          path: newVisibleUri.path,
-          queryParameters: {
-            ...newVisibleUri.queryParameters,
-            'open-sections': openSections,
-          },
-        );
-        lastTargetUri = newVisibleUri;
-
-        await updateBodyWithHttpGet(
-          requestUri: requestUri,
-          navigationUrl: windowUri.resolveUri(newVisibleUri).toString(),
-          preupdateCheck: () => lastTargetUri == newVisibleUri,
-        );
-
-        // notify GTM on the click
-        final action = link.dataset['action'];
-        if (action != null && action.isNotEmpty) {
-          gtmCustomEvent(
-            category: 'click',
-            action: '$action-$actionPostfix',
+          await _handleInputFieldUpdate(
+            event,
+            newQueryFn: (parsedQuery) => parsedQuery.change(
+              tagsPredicate: parsedQuery.tagsPredicate.toggleRequired(tag),
+            ),
+            gtmActionFn: (o, n) =>
+                o.tagsPredicate.hasTag(tag) ? '$action-off' : '$action-on',
           );
         }
       }
@@ -159,6 +105,67 @@ void _setEventsForSearchForm() {
       e.onClick.listen(handleClick);
     }
   });
+}
+
+// Shared state for concurrent click events.
+Uri? _lastTargetUri;
+
+Future<void> _handleInputFieldUpdate(
+  Event event, {
+  required ParsedQueryText Function(ParsedQueryText query) newQueryFn,
+  required String? Function(ParsedQueryText oldQuery, ParsedQueryText newQuery)
+      gtmActionFn,
+}) async {
+  event.preventDefault();
+  event.stopPropagation();
+
+  // create new URL based on the window state
+  final windowUri = Uri.parse(window.location.href);
+  final inputQElem =
+      document.body!.querySelector('input[name="q"]') as InputElement;
+  var queryText = inputQElem.value ?? windowUri.queryParameters['q'] ?? '';
+  queryText = queryText.trim();
+  final parsedQuery = ParsedQueryText.parse(queryText);
+  final newQuery = newQueryFn(parsedQuery);
+  queryText = newQuery.toString();
+  inputQElem.value = queryText;
+
+  // removes `page` to start the new search on page 1
+  final newRequestParams = {
+    ...windowUri.queryParameters,
+    'q': queryText,
+    'open-sections': _openSectionParams(),
+  }..remove('page');
+  final newRequestUri = windowUri.replace(queryParameters: newRequestParams);
+  // removes `open-sections` as it is not intended to be linked to or bookmarked
+  final newVisibleParams = {...newRequestParams}..remove('open-sections');
+  final newVisibleUri = windowUri.replace(queryParameters: newVisibleParams);
+
+  _lastTargetUri = newVisibleUri;
+  await updateBodyWithHttpGet(
+    requestUri: newRequestUri,
+    navigationUrl: newVisibleUri.toString(),
+    preupdateCheck: () => _lastTargetUri == newVisibleUri,
+  );
+
+  // notify GTM on the click
+  final action = gtmActionFn(parsedQuery, newQuery);
+  if (action != null && action.isNotEmpty) {
+    gtmCustomEvent(
+      category: 'click',
+      action: action,
+    );
+  }
+}
+
+String _openSectionParams() {
+  return document
+      .querySelectorAll('.search-form-section')
+      .where((e) =>
+          e.dataset.containsKey('section-tag') && e.classes.contains('-active'))
+      .map((e) => e.dataset['section-tag'])
+      .whereType<String>()
+      .join(' ');
 }
 
 void _setEventForFiltersToggle() {
