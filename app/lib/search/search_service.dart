@@ -140,6 +140,7 @@ class ServiceSearchQuery {
   final int? minPoints;
   final int? updatedInDays;
 
+  /// The value of the `sort` URL query parameter.
   final SearchOrder? order;
   final int? offset;
   final int? limit;
@@ -244,10 +245,18 @@ class ServiceSearchQuery {
     return map;
   }
 
+  /// The effective sort order to use:
+  /// - input text query's order takes precedence
+  /// - URL query sort [order] is used as a fallback.
+  ///
+  /// TODO: remove this field when [order] is removed.
+  late final effectiveOrder = parsedQuery.order ?? order;
   bool get _hasQuery => query != null && query!.isNotEmpty;
   bool get _hasOnlyFreeText => _hasQuery && parsedQuery.hasOnlyFreeText;
   bool get _isNaturalOrder =>
-      order == null || order == SearchOrder.top || order == SearchOrder.text;
+      effectiveOrder == null ||
+      effectiveOrder == SearchOrder.top ||
+      effectiveOrder == SearchOrder.text;
   bool get _hasNoOwnershipScope => publisherId == null;
   bool get _isFlutterFavorite =>
       tagsPredicate.hasTag(PackageTags.isFlutterFavorite);
