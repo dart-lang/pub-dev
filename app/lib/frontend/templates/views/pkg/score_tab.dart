@@ -191,7 +191,8 @@ String _updatedSummary(String summary) {
 d.Node? _renderToolEnvInfoNode(PanaRuntimeInfo? info, bool usesFlutter) {
   if (info == null) return null;
   final flutterVersion = usesFlutter ? info.flutterVersion : null;
-  final flutterDartVersion = info.flutterInternalDartSdkVersion;
+  final flutterDartVersion =
+      usesFlutter ? info.flutterInternalDartSdkVersion : null;
   return _toolEnvInfoNode([
     _ToolVersionInfo('Pana', info.panaVersion),
     if (flutterVersion != null)
