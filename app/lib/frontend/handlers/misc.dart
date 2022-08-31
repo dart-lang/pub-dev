@@ -78,6 +78,7 @@ Future<shelf.Response> robotsTxtHandler(shelf.Request request) async {
         'User-agent: *',
         'Sitemap: $sitemapUri',
         'Sitemap: $sitemap2Uri',
+        'Disallow: /packages?q=',
       ].join('\n'));
 }
 

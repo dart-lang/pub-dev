@@ -125,6 +125,7 @@ d.Node tagsNode({
               title: t.title,
               href: t.href,
               text: t.text,
+              rel: 'nofollow',
             ),
           ...t.subTags.map(
             (s) => d.a(
@@ -132,6 +133,7 @@ d.Node tagsNode({
               title: s.title,
               href: s.href,
               text: s.text,
+              rel: 'nofollow',
             ),
           ),
         ],
@@ -144,6 +146,7 @@ d.Node tagsNode({
               href: t.href!,
               title: t.title,
               text: t.text,
+              rel: 'nofollow',
             )
           : d.span(
               classes: ['package-tag', t.status],

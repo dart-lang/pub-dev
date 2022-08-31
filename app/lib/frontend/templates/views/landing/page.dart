@@ -133,7 +133,7 @@ d.Node _block({
               classes: ['home-block-view-all-link'],
               href: viewAllUrl,
               target: isExternalUrl ? '_blank' : null,
-              rel: isExternalUrl ? 'noopener' : null,
+              rel: isExternalUrl ? 'noopener nofollow' : 'nofollow',
               text: viewAllLabel,
               attributes: {'data-ga-click-event': viewAllEvent},
             ),
