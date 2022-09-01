@@ -5,7 +5,6 @@
 import 'dart:html';
 
 import 'package:_pub_shared/search/search_form.dart';
-import 'package:web_app/src/gtm_js.dart';
 
 import 'gtm_js.dart';
 import 'page_updater.dart';

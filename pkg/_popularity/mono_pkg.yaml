@@ -1,6 +1,6 @@
 # See https://github.com/dart-lang/mono_repo for details
 sdk:
-  - 2.17.0
+  - 2.18.0
 
 stages:
   - smoke_test:
