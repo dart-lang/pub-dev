@@ -15,7 +15,12 @@ Future scoped(Function() func) {
   });
 }
 
-void scopedTest(String name, Function() func, {Timeout? timeout}) {
+void scopedTest(
+  String name,
+  Function() func, {
+  Timeout? timeout,
+  dynamic skip,
+}) {
   test(name, () {
     return fork(() async {
       // double fork to allow further override
@@ -23,5 +28,5 @@ void scopedTest(String name, Function() func, {Timeout? timeout}) {
       registerAnnouncementBackend(AnnouncementBackend());
       return await fork(() async => func());
     });
-  }, timeout: timeout);
+  }, timeout: timeout, skip: skip);
 }
