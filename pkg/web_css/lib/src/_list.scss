@@ -310,7 +310,7 @@
   }
 }
 
-.search-form-container.experimental {
+.search-form-container {
   display: flex;
 
   @media (max-width: $device-mobile-max-width) {
@@ -351,6 +351,11 @@
     .search-form-section-header-label {
       flex-grow: 1;
     }
+
+    .foldable-icon {
+      position: relative;
+      top: 7px;
+    }
   }
 
   .search-form-section {
@@ -378,6 +383,11 @@
 
     a {
       color: $site-font-color;
+    }
+
+    label {
+      position: relative;
+      top: -6px;
     }
   }
 }

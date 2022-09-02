@@ -41,7 +41,6 @@ d.Node _searchFormContainer({
     classes: [
       'container',
       'search-form-container',
-      'experimental',
       if (openSections.isNotEmpty || searchForm.hasActiveNonQuery)
         '-active-on-mobile',
     ],
