@@ -58,7 +58,7 @@ Future _main(FrontendEntryMessage message) async {
     await watchForResourceChanges();
   }
   await popularityStorage.start();
-  nameTracker.startTracking();
+  await nameTracker.startTracking();
   await announcementBackend.start();
   await youtubeBackend.start();
 

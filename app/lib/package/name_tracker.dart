@@ -14,7 +14,12 @@ import '../shared/datastore.dart';
 import 'models.dart';
 
 final _logger = Logger('pub.name_tracker');
+
+/// The interval to update recent package name list.
 const _pollingInterval = Duration(minutes: 15);
+
+/// The interval to reload the full package name list from scratch.
+const _reloadInterval = Duration(days: 1);
 
 /// Minimal package information tracked by [NameTracker].
 class TrackedPackage {
@@ -77,63 +82,15 @@ NameTracker get nameTracker => ss.lookup(#_name_tracker) as NameTracker;
 ///
 /// It also provides a quick access to list all of the package names without
 /// iterating over Datastore entries.
-/// TODO: support remove and re-scan package names every day or so.
 class NameTracker {
   final DatastoreDB? _db;
-  final Set<String> _names = <String>{};
+  var _data = _Data();
 
-  final _packages = <String, TrackedPackage>{};
-  List<TrackedPackage>? _packagesOrderedByLastPublishedDesc;
-
-  /// Names that are reserved due to moderated packages having these names.
-  final _reservedNames = <String>{};
-  final _conflictingNames = <String, String>{};
   final _firstScanCompleter = Completer();
-  _NameTrackerUpdater? _updater;
+  Timer? _pollingTimer;
+  Timer? _reloadTimer;
 
   NameTracker(this._db);
-
-  /// Add a package name to the tracker.
-  void add(TrackedPackage pkg) {
-    _names.add(pkg.package);
-    _addConflictingName(pkg.package);
-    final current = _packages[pkg.package];
-    if (current == null || current.updated.isBefore(pkg.updated)) {
-      _packages[pkg.package] = pkg;
-      _packagesOrderedByLastPublishedDesc = null;
-    }
-  }
-
-  void addReservedName(String name) {
-    _reservedNames.add(name);
-    _addConflictingName(name, skipAlternatives: true);
-    _names.remove(name);
-  }
-
-  void _addConflictingName(
-    String name, {
-    bool? skipAlternatives,
-  }) {
-    final names = _generateConflictingNames(
-      name,
-      skipAlternatives: skipAlternatives,
-    );
-    for (final cn in names) {
-      _conflictingNames.putIfAbsent(cn, () => name);
-    }
-  }
-
-  /// Returns the cached list of packages ordered by descending last published date.
-  /// Only the visible packages are present.
-  List<TrackedPackage> get visiblePackagesOrderedByLastPublished {
-    return _packagesOrderedByLastPublishedDesc ??= _packages.values
-        .where((p) => p.isVisible)
-        .toList()
-      ..sort((a, b) => -a.lastPublished.compareTo(b.lastPublished));
-  }
-
-  /// Whether the package was already added to the tracker.
-  bool _hasPackage(String name) => _names.contains(name);
 
   /// Whether to accept the upload attempt of a given package [name].
   ///
@@ -145,21 +102,16 @@ class NameTracker {
   /// Returns the package name that caused rejection or null if it is accepted.
   Future<String?> accept(String name) async {
     // fast track:
-    if (_hasPackage(name)) return null;
+    if (_data._hasPackage(name)) {
+      return null;
+    }
     // Trigger a new scan (if updater is active) to get the packages that may
     // have been uploaded recently.
-    await _updater?._scan();
-    // normal checks:
-    if (_hasPackage(name)) return null;
-    if (_reservedNames.contains(name)) return name;
-    for (final generated in _generateConflictingNames(name)) {
-      final original = _conflictingNames[generated];
-      if (original != null) return original;
+    if (_db != null) {
+      await _scanRecentPackages();
     }
-    return null;
+    return _data.accept(name);
   }
-
-  int get _length => _names.length;
 
   /// Whether the first scan was already completed.
   bool get isReady => _firstScanCompleter.isCompleted;
@@ -176,150 +128,184 @@ class NameTracker {
     if (!_firstScanCompleter.isCompleted) {
       await _firstScanCompleter.future;
     }
-    return _packages.values
+    return _data.visiblePackageNames;
+  }
+
+  @visibleForTesting
+  void add(TrackedPackage pkg) {
+    _data.add(pkg);
+  }
+
+  List<TrackedPackage> get visiblePackagesOrderedByLastPublished =>
+      _data.visiblePackagesOrderedByLastPublished;
+
+  /// Scans the Datastore and populates the tracker.
+  @visibleForTesting
+  Future<void> reloadFromDatastore() async {
+    final sw = Stopwatch()..start();
+    _logger.info('Scanning packages...');
+    final data = _Data();
+    await for (final p in _db!.query<Package>().run()) {
+      data.add(TrackedPackage.fromPackage(p));
+    }
+    await for (final p in _db!.query<ModeratedPackage>().run()) {
+      data.addModeratedName(p.name!);
+    }
+    _data = data;
+    if (!_firstScanCompleter.isCompleted) {
+      _firstScanCompleter.complete();
+    }
+    _logger.info('Packages scanned in ${sw.elapsed}.');
+  }
+
+  Future<void> _scanRecentPackages() async {
+    _logger.info('Scanning recent packages...');
+    final start = clock.now().toUtc();
+    final ts = _data._lastStartedTs.subtract(Duration(hours: 1));
+
+    final query = _db!.query<Package>()
+      ..order('-lastVersionPublished')
+      ..filter('lastVersionPublished >', ts);
+    await for (final p in query.run()) {
+      _data.add(TrackedPackage.fromPackage(p));
+    }
+
+    final moderatedPkgQuery = _db!.query<ModeratedPackage>()
+      ..order('moderated')
+      ..filter('moderated >', ts);
+
+    await for (final p in moderatedPkgQuery.run()) {
+      _data.addModeratedName(p.name!);
+    }
+
+    _data._lastStartedTs = start;
+    _logger
+        .info('Recent packages scanned in ${clock.now().difference(start)}.');
+  }
+
+  /// Updates this [NameTracker] by polling the Datastore periodically.
+  Future<void> startTracking() async {
+    await reloadFromDatastore();
+    _pollingTimer ??= Timer.periodic(_pollingInterval, (_) {
+      _scanRecentPackages();
+    });
+    _reloadTimer ??= Timer.periodic(_reloadInterval, (_) {
+      reloadFromDatastore();
+    });
+  }
+
+  /// Stops tracking the datastore.
+  void stopTracking() {
+    _pollingTimer?.cancel();
+    _pollingTimer = null;
+    _reloadTimer?.cancel();
+    _reloadTimer = null;
+  }
+}
+
+class _Data {
+  var _lastStartedTs = clock.now().toUtc();
+
+  final _names = <String>{};
+  final _packages = <String, TrackedPackage>{};
+
+  /// Names that are reserved due to moderated packages having these names.
+  final _moderatedNames = <String>{};
+  final _conflictingNames = <String, List<String>>{};
+
+  List<TrackedPackage>? _packagesOrderedByLastPublishedDesc;
+  List<String>? _visiblePackageNames;
+
+  /// Add a package name to the tracker.
+  void add(TrackedPackage pkg) {
+    _names.add(pkg.package);
+    _addConflictingName(pkg.package);
+    final current = _packages[pkg.package];
+    if (current == null || current.updated.isBefore(pkg.updated)) {
+      _packages[pkg.package] = pkg;
+      _resetCache();
+    }
+  }
+
+  void addModeratedName(String name) {
+    _moderatedNames.add(name);
+    final existed = _names.remove(name);
+    if (existed) {
+      _resetCache();
+      // remove conflicting name entries for this package
+      final names = _generateConflictingNames(name);
+      for (final cn in names) {
+        final list = _conflictingNames[cn];
+        if (list == null) continue;
+        list.remove(name);
+        if (list.isEmpty) {
+          _conflictingNames.remove(cn);
+        }
+      }
+    }
+  }
+
+  void _resetCache() {
+    _packagesOrderedByLastPublishedDesc = null;
+    _visiblePackageNames = null;
+  }
+
+  void _addConflictingName(String name) {
+    final names = _generateConflictingNames(name);
+    for (final cn in names) {
+      _conflictingNames.putIfAbsent(cn, () => <String>[]).add(name);
+    }
+  }
+
+  /// Returns the cached list of packages ordered by descending last published date.
+  /// Only the visible packages are present.
+  List<TrackedPackage> get visiblePackagesOrderedByLastPublished {
+    return _packagesOrderedByLastPublishedDesc ??= _packages.values
+        .where((p) => p.isVisible)
+        .toList()
+      ..sort((a, b) => -a.lastPublished.compareTo(b.lastPublished));
+  }
+
+  List<String> get visiblePackageNames {
+    return _visiblePackageNames ??= _packages.values
         .where((t) => t.isVisible)
         .map((t) => t.package)
         .toList()
       ..sort();
   }
 
-  /// Scans the Datastore and populates the tracker.
-  @visibleForTesting
-  Future<void> scanDatastore() async {
-    await for (final p in _db!.query<Package>().run()) {
-      add(TrackedPackage.fromPackage(p));
+  /// Whether the package was already added to the tracker.
+  bool _hasPackage(String name) => _names.contains(name);
+
+  /// Whether to accept the upload attempt of a given package [name].
+  ///
+  /// Either the package [name] should exists, or it should be different enough
+  /// from already existing active or moderated package names. An example for
+  /// the rejection: `long_name` will be rejected, if package `longname` or
+  /// `lon_gname` exists.
+  ///
+  /// Returns the package name that caused rejection or null if it is accepted.
+  String? accept(String name) {
+    // normal checks:
+    if (_hasPackage(name)) return null;
+    if (_moderatedNames.contains(name)) {
+      return name;
     }
-
-    await for (ModeratedPackage p in _db!.query<ModeratedPackage>().run()) {
-      addReservedName(p.name!);
+    for (final generated in _generateConflictingNames(name)) {
+      final original = _conflictingNames[generated];
+      if (original != null) return original.first;
     }
-    if (!_firstScanCompleter.isCompleted) {
-      _firstScanCompleter.complete();
-    }
-  }
-
-  /// Updates this [NameTracker] by polling the Datastore periodically.
-  /// The returned future completes after the `stopTracking` method is called.
-  void startTracking() {
-    if (_updater != null) {
-      throw StateError('Already tracking datastore.');
-    }
-    _updater = _NameTrackerUpdater(_db!);
-    _updater!.startNameTrackerUpdates();
-  }
-
-  /// Stops tracking the datastore.
-  void stopTracking() {
-    _updater?.stop();
-    _updater = null;
-  }
-}
-
-/// Updates [nameTracker] by polling the Datastore periodically.
-class _NameTrackerUpdater {
-  final DatastoreDB _db;
-  DateTime? _lastTs;
-  Completer? _sleepCompleter;
-  Timer? _sleepTimer;
-  bool _stopped = false;
-
-  _NameTrackerUpdater(this._db);
-
-  /// The returned future completes after the `stop` method is called.
-  Future<void> startNameTrackerUpdates() async {
-    final sw = Stopwatch()..start();
-    _logger.info('Scanning existing package names');
-    for (;;) {
-      if (_stopped) return;
-      try {
-        await _scan();
-      } catch (e, st) {
-        _logger.severe('Failed to scan package names.', e, st);
-        await Future.delayed(Duration(minutes: 1));
-        continue;
-      }
-      break;
-    }
-    nameTracker._firstScanCompleter.complete();
-    _logger.info(
-        'Scanned initial package names (${nameTracker._length}) in ${sw.elapsed}.');
-
-    _logger.info('Monitoring new package creation....');
-
-    for (; !_stopped;) {
-      await _sleep();
-      if (_stopped) break;
-      try {
-        await _scan();
-      } catch (e, st) {
-        _logger.severe('Failed to scan package names.', e, st);
-        await Future.delayed(Duration(minutes: 5));
-      }
-    }
-
-    _logger.info('Monitoring ended.');
-  }
-
-  Future<void> _sleep() async {
-    if (_stopped) return;
-    _sleepCompleter = Completer();
-    _sleepTimer = Timer(_pollingInterval, () {
-      if (_sleepCompleter != null && !_sleepCompleter!.isCompleted) {
-        _sleepCompleter!.complete();
-      }
-    });
-    await _sleepCompleter!.future;
-    _sleepTimer?.cancel();
-    _sleepCompleter = null;
-    _sleepTimer = null;
-  }
-
-  Future<void> _scan() async {
-    final now = clock.now().toUtc();
-    final query = _db.query<Package>()..order('-lastVersionPublished');
-    if (_lastTs != null) {
-      query.filter('lastVersionPublished >', _lastTs);
-    }
-    await for (Package p in query.run()) {
-      if (_stopped) return;
-      nameTracker.add(TrackedPackage.fromPackage(p));
-    }
-
-    final moderatedPkgQuery = _db.query<ModeratedPackage>()..order('moderated');
-    if (_lastTs != null) {
-      moderatedPkgQuery.filter('moderated >', _lastTs);
-    }
-
-    await for (ModeratedPackage p in moderatedPkgQuery.run()) {
-      if (_stopped) return;
-      nameTracker.addReservedName(p.name!);
-    }
-
-    _lastTs = now.subtract(const Duration(hours: 1));
-  }
-
-  void stop() {
-    _stopped = true;
-    if (_sleepCompleter != null && !_sleepCompleter!.isCompleted) {
-      _sleepCompleter!.complete();
-    }
-    _sleepTimer?.cancel();
+    return null;
   }
 }
 
 /// Generates the names that will be used to determine name conflicts:
 /// - For each package name, this will generate a String that doesn't contain `_`.
 /// - For names that are long enough, this will also try to generate the singular or plural form of the name.
-Iterable<String> _generateConflictingNames(
-  String name, {
-  bool? skipAlternatives,
-}) sync* {
+Iterable<String> _generateConflictingNames(String name) sync* {
   // name without underscores
   final reduced = reducePackageName(name);
   yield reduced;
-  if (skipAlternatives ?? false) {
-    return;
-  }
   // singular/plural form parsing
   // This could be improved with some a dictionary or a grammar parser.
   if (!reduced.endsWith('s') && reduced.length >= 3) {
