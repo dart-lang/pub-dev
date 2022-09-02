@@ -184,7 +184,7 @@ class SearchBackend {
       yield PackageDocument(
         package: p.name!,
         version: releases.stable.version,
-        tags: p.getTags(),
+        tags: p.getTags().toList(),
         created: p.created,
         updated: p.lastVersionPublished,
         likeCount: p.likes,

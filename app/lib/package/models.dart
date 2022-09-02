@@ -350,14 +350,17 @@ class Package extends db.ExpandoModel<String> {
   bool isNewPackage() => created!.difference(clock.now()).abs().inDays <= 30;
 
   /// List of tags from the flags on the current [Package] entity.
-  List<String> getTags() {
-    return <String>[
+  Iterable<String> getTags() {
+    return <String>{
       ...?assignedTags,
-      if (isDiscontinued) PackageTags.isDiscontinued,
       if (isNewPackage()) PackageTags.isRecent,
+      if (isDiscontinued) ...[
+        PackageTags.isDiscontinued,
+        PackageTags.isUnlisted,
+      ],
       if (isUnlisted) PackageTags.isUnlisted,
       if (publisherId != null) PackageTags.publisherTag(publisherId!),
-    ];
+    };
   }
 
   LatestReleases get latestReleases {
@@ -535,10 +538,13 @@ class PackageVersion extends db.ExpandoModel<String> {
   }
 
   /// List of tags from the flags on the current [PackageVersion] entity.
-  List<String> getTags() {
-    return <String>[
-      if (pubspec!.supportsOnlyLegacySdk) PackageVersionTags.isLegacy,
-    ];
+  Iterable<String> getTags() {
+    return <String>{
+      if (pubspec!.supportsOnlyLegacySdk) ...[
+        PackageVersionTags.isLegacy,
+        PackageTags.isUnlisted,
+      ],
+    };
   }
 
   bool get canBeRetracted =>
@@ -843,6 +849,11 @@ class PackageView extends Object with FlagMixin {
             // No blocker for analysis, but no results yet.
             (!scoreCard.isSkipped && !hasPanaReport);
 
+    final tags = <String>{
+      ...package.getTags(),
+      ...?version?.getTags(),
+      ...?scoreCard?.derivedTags,
+    };
     return PackageView(
       name: version?.package ?? package.name,
       releases: releases,
@@ -854,11 +865,7 @@ class PackageView extends Object with FlagMixin {
       likes: package.likes,
       grantedPubPoints: scoreCard?.grantedPubPoints,
       maxPubPoints: scoreCard?.maxPubPoints,
-      tags: <String>[
-        ...(package.getTags()),
-        ...(version?.getTags() ?? <String>[]),
-        ...(scoreCard?.derivedTags ?? <String>[]),
-      ],
+      tags: tags.toList(),
       spdxIdentifiers: scoreCard?.panaReport?.licenses
           ?.map((e) => e.spdxIdentifier)
           .toList(),

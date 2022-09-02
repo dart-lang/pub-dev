@@ -257,18 +257,18 @@ Future<VersionScore> packageVersionScoreHandler(
       updated = card.updated;
     }
 
-    final tags = [
+    final tags = <String>{
       ...pkg.getTags(),
       ...pv.getTags(),
       ...?card?.derivedTags,
-    ];
+    };
 
     return VersionScore(
       grantedPoints: card?.grantedPubPoints,
       maxPoints: card?.maxPubPoints,
       likeCount: pkg.likes,
       popularityScore: card?.popularityScore,
-      tags: tags,
+      tags: tags.toList(),
       lastUpdated: updated,
     );
   }))!;
