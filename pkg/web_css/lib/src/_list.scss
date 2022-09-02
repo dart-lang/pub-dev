@@ -128,6 +128,17 @@
   }
 }
 
+.collections-icon {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30px;
+  width: 30px;
+  align-self: flex-end;
+  margin-left: -30px;
+  opacity: 70%;
+  background-color: #aeaeae;
+}
+
 .packages {
   .packages-item {
     margin: 0px -30px 6px -30px;
@@ -158,7 +169,7 @@
     flex-flow: column nowrap;
   }
 
-  .screenshot-thumbnail {
+  .screenshot-thumbnail-container {
     display: flex;
     flex-grow: 0;
     flex-shrink: 0;
@@ -167,19 +178,6 @@
     margin-top: 10px;
     border: solid 1px #aeaeae;
   }
-
-  .collections-icon {
-    flex-grow: 0;
-    flex-shrink: 0;
-    flex-basis: 30px;
-    width: 30px;
-    align-self: flex-end;
-    margin-left: -30px;
-    opacity: 70%;
-    background-color: #aeaeae;
-  }
-
-
 
   .packages-title {
     flex-grow: 1;
