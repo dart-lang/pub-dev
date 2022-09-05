@@ -3,13 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pana/pana.dart';
+import 'package:pub_dev/frontend/request_context.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspek;
 
 import '../../../../package/models.dart';
 import '../../../../package/overrides.dart' show redirectPackageUrls;
+import '../../../../package/screenshots/backend.dart';
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
 import '../shared/images.dart';
+import 'screenshots.dart';
 
 /// Links inside the package info box.
 class InfoBoxLink {
@@ -49,8 +52,24 @@ d.Node packageInfoBoxNode({
   }
   final dependencies = _dependencyListNode(version.pubspec?.dependencies);
 
+  final screenshots = data.scoreCard?.panaReport?.screenshots;
+  String? thumbnailUrl;
+  final screenshotUrls = <String>[];
+  if (screenshots != null && screenshots.isNotEmpty) {
+    thumbnailUrl = imageStorage.getImageUrl(
+        package.name!, version.version!, screenshots.first.pngThumbnail);
+    for (ProcessedScreenshot s in screenshots) {
+      screenshotUrls.add(imageStorage.getImageUrl(
+          package.name!, version.version!, s.webpImage));
+    }
+  }
   return d.fragment([
+    imageCarousel(),
     labeledScores,
+    if (thumbnailUrl != null && requestContext.showScreenshots)
+      d.div(
+          classes: ['screenshot-thumbnail-container'],
+          child: screenshotThumbnailNode(thumbnailUrl, screenshotUrls)),
     if (package.replacedBy != null) _replacedBy(package.replacedBy!),
     _publisher(package.publisherId),
     _metadata(

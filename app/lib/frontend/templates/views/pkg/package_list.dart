@@ -15,12 +15,12 @@ import '../../../../shared/urls.dart' as urls;
 import '../../../../shared/utils.dart' show formatXAgo;
 import '../../../dom/dom.dart' as d;
 
-import '../../../dom/material.dart' as material;
 import '../../../static_files.dart' show staticUrls;
 import '../../_consts.dart';
 import '../../package_misc.dart';
 import '../shared/images.dart';
 import 'license.dart';
+import 'screenshots.dart';
 
 /// Renders the listing page (list of packages).
 d.Node listOfPackagesNode({
@@ -36,40 +36,8 @@ d.Node listOfPackagesNode({
         _packageItem(highlightedHit, searchForm: searchForm),
       ...sdkLibraryHits.map(_sdkLibraryItem),
       ...packageHits.map((hit) => _packageItem(hit, searchForm: searchForm)),
-      _imageCarousel(),
+      imageCarousel(),
     ],
-  );
-}
-
-d.Node _imageCarousel() {
-  final imageContainer = d.div(
-    classes: ['image-container'],
-    id: '-image-container',
-  );
-  final next = material.floatingActionButton(
-      id: '-carousel-next',
-      icon: d.Image(
-          src: staticUrls.getAssetUrl('/static/img/keyboard_arrow_right.svg'),
-          height: 24,
-          width: 24,
-          alt: 'next'),
-      classes: ['carousel-next', 'carousel-nav'],
-      attributes: {'title': 'Next'});
-
-  final prev = material.floatingActionButton(
-      id: '-carousel-prev',
-      icon: d.Image(
-          src: staticUrls.getAssetUrl('/static/img/keyboard_arrow_left.svg'),
-          height: 24,
-          width: 24,
-          alt: 'previous'),
-      classes: ['carousel-prev', 'carousel-nav'],
-      attributes: {'title': 'Previous'});
-
-  return d.div(
-    id: '-screenshot-carousel',
-    classes: ['carousel'],
-    children: [prev, imageContainer, next],
   );
 }
 
@@ -209,8 +177,6 @@ d.Node _item({
   required d.Node? tagsNode,
   required List<_ApiPageUrl>? apiPages,
 }) {
-  final collectionsIconWhite =
-      staticUrls.getAssetUrl('/static/img/collections_white_24dp.svg');
   final age =
       newTimestamp == null ? null : clock.now().difference(newTimestamp);
   return d.div(
@@ -259,25 +225,9 @@ d.Node _item({
           ],
         ),
         if (thumbnailUrl != null && requestContext.showScreenshots)
-          d.div(attributes: {
-            'data': screenshotUrls!.reduce((a, b) => '$a,$b'),
-          }, classes: [
-            'screenshot-thumbnail'
-          ], children: [
-            d.img(
-                image: d.Image(
-                    alt: 'screenshot',
-                    width: 98,
-                    height: 98,
-                    src: thumbnailUrl)),
-            d.img(
-                classes: ['collections-icon'],
-                image: d.Image(
-                    height: 30,
-                    width: 30,
-                    alt: 'image',
-                    src: collectionsIconWhite))
-          ])
+          d.div(
+              classes: ['screenshot-thumbnail-container'],
+              child: screenshotThumbnailNode(thumbnailUrl, screenshotUrls)),
       ]),
     ],
   );
