@@ -270,7 +270,6 @@ class GitHubJwtPayload {
     'event_name',
     'ref',
     'ref_type',
-    'environment',
   };
 
   GitHubJwtPayload._(Map<String, dynamic> map)
