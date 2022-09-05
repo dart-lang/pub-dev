@@ -16,6 +16,8 @@ env:
 
 jobs:
   token-test:
+    # This test creates a id-token, not for talking to an external service, but
+    # for testing that we are able to verify and validate the token.
     permissions:
       id-token: write
     runs-on: ubuntu-latest
