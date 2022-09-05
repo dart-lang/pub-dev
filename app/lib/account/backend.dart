@@ -215,7 +215,7 @@ Future<AuthenticatedGithubAction?> _tryAuthenticateGithubAction(
   if (payload == null) {
     return null;
   }
-  if (payload.aud != 'https://pub.dev/') {
+  if (payload.aud != 'https://pub.dev') {
     return null;
   }
   final githubData = await fetchGithubOpenIdData();
