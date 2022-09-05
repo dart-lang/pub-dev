@@ -18,6 +18,11 @@ void main() {
       Platform.environment['ACTIONS_ID_TOKEN_REQUEST_URL'] ?? '';
   final actionsIdTokenRequestToken =
       Platform.environment['ACTIONS_ID_TOKEN_REQUEST_TOKEN'] ?? '';
+
+  // This test only works when running on Github Actions with `id-token: write` permissions.
+  //
+  // This test creates a id-token, not for talking to an external service,but for testing that we
+  // are able to verify and validate the token.
   testWithProfile(
     'id-token test',
     skip: actionsIdTokenRequestUrl.isEmpty,
