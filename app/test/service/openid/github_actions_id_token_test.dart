@@ -35,7 +35,7 @@ void main() {
         uri.replace(
           queryParameters: {
             ...uri.queryParameters,
-            'audience': 'https://pub.dev',
+            'audience': 'https://example.com',
           },
         ),
         headers: {
@@ -69,7 +69,7 @@ void main() {
       print(token.payload);
       expect(token.payload.verifyTimestamps(), isTrue);
       final payload = GitHubJwtPayload(token.payload);
-      expect(payload.aud, 'https://pub.dev');
+      expect(payload.aud, 'https://example.com');
       expect(payload.repository, 'dart-lang/pub-dev');
       expect(payload.eventName, anyOf(['pull_request']));
       expect(payload.refType, anyOf(['branch']));
