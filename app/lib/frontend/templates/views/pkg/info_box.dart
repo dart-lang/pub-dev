@@ -68,7 +68,7 @@ d.Node packageInfoBoxNode({
     labeledScores,
     if (thumbnailUrl != null && requestContext.showScreenshots)
       d.div(
-          classes: ['thumbnail-container'],
+          classes: ['screenshot-thumbnail-container'],
           child: screenshotThumbnailNode(thumbnailUrl, screenshotUrls)),
     if (package.replacedBy != null) _replacedBy(package.replacedBy!),
     _publisher(package.publisherId),

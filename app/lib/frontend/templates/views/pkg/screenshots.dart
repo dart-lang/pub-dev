@@ -43,7 +43,7 @@ d.Node screenshotThumbnailNode(
   final collectionsIconWhite =
       staticUrls.getAssetUrl('/static/img/collections_white_24dp.svg');
   return d.div(attributes: {
-    'thumbnail-data': screenshotUrls!.reduce((a, b) => '$a,$b'),
+    'data-thumbnail': screenshotUrls!.join(','),
   }, children: [
     d.img(
         image: d.Image(

@@ -13,7 +13,7 @@ void _setEventForScreenshot() {
   if (carousel == null) {
     return;
   }
-  final thumbnails = document.querySelectorAll('div[thumbnail-data]');
+  final thumbnails = document.querySelectorAll('div[data-thumbnail]');
   final imageContainer = document.getElementById('-image-container')!;
   final prev = document.getElementById('-carousel-prev')!;
   final next = document.getElementById('-carousel-next')!;
@@ -57,7 +57,7 @@ void _setEventForScreenshot() {
   for (final thumbnail in thumbnails) {
     thumbnail.onClick.listen((event) {
       showElement(carousel);
-      images = thumbnail.attributes['thumbnail-data']!.split(',');
+      images = thumbnail.dataset['thumbnail']!.split(',');
       showImage(screenshotIndex, event);
     });
   }
