@@ -4,6 +4,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Bumped runtimeVersion to `2022.09.01`.
  * Upgraded runtime Dart SDK to `2.18.0`.
+ * NOTE: Started to populate search index with `is:unlisted` tag for `discontinued` and `legacy` packages.
 
 ## `20220831t123000-all`
 

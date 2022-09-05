@@ -54,13 +54,13 @@ void main() {
         SearchForm(query: 'is:unlisted')
             .toServiceQuery()
             .toUriQueryParameters()['tags'],
-        ['-is:discontinued', '-is:legacy'],
+        [],
       );
       expect(
         SearchForm(query: 'show:unlisted')
             .toServiceQuery()
             .toUriQueryParameters()['tags'],
-        ['-is:discontinued', '-is:legacy'],
+        [],
       );
     });
 

@@ -56,8 +56,9 @@ d.Node tagsNodeFromPackageView({
     simpleTags.add(SimpleTag.retracted());
   }
 
-  // Display unlisted tag only for packages that are not discontinued.
+  // Display unlisted tag only for packages that are not discontinued or legacy.
   if (!package.isDiscontinued &&
+      !package.isLegacy &&
       package.tags.contains(PackageTags.isUnlisted)) {
     simpleTags.add(SimpleTag.unlisted());
   }

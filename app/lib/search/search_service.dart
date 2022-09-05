@@ -427,10 +427,14 @@ extension SearchFormExt on SearchForm {
     final prohibitLegacy = !parsedQuery.tagsPredicate.anyTag((tag) =>
         tag == PackageVersionTags.isLegacy ||
         tag == PackageVersionTags.showLegacy ||
+        tag == PackageTags.isUnlisted ||
+        tag == PackageTags.showUnlisted ||
         tag == PackageTags.showHidden);
     final prohibitDiscontinued = !parsedQuery.tagsPredicate.anyTag((tag) =>
         tag == PackageTags.isDiscontinued ||
         tag == PackageTags.showDiscontinued ||
+        tag == PackageTags.isUnlisted ||
+        tag == PackageTags.showUnlisted ||
         tag == PackageTags.showHidden);
     final prohibitUnlisted = !parsedQuery.tagsPredicate.anyTag((tag) =>
         tag == PackageTags.isUnlisted ||
