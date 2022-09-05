@@ -231,6 +231,7 @@ d.Node _formLinkedCheckbox({
           if (action != null) 'data-action': action,
           if (tag != null) 'data-tag': tag,
         },
+        rel: 'nofollow',
       ),
       checked: isChecked,
       indeterminate: isIndeterminate,

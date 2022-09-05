@@ -20,7 +20,7 @@ d.Node paginationNode(PageLinks links) {
           href: hasPrevious
               ? links.searchForm.toSearchLink(page: links.currentPage! - 1)
               : null,
-          rel: 'prev',
+          rel: 'prev nofollow',
           child: d.span(text: '«'),
         ),
       ),
@@ -31,9 +31,11 @@ d.Node paginationNode(PageLinks links) {
         final bool isCurrent = page == links.currentPage;
         String? rel;
         if (links.currentPage == page + 1) {
-          rel = 'prev';
+          rel = 'prev nofollow';
         } else if (links.currentPage == page - 1) {
-          rel = 'next';
+          rel = 'next nofollow';
+        } else {
+          rel = 'nofollow';
         }
         return d.li(
           classes: [if (isCurrent) '-active'],
@@ -52,7 +54,7 @@ d.Node paginationNode(PageLinks links) {
           href: hasNext
               ? links.searchForm.toSearchLink(page: links.currentPage! + 1)
               : null,
-          rel: 'next',
+          rel: 'next nofollow',
           child: d.span(text: '»'),
         ),
       ),

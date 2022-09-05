@@ -24,7 +24,8 @@ void parseAndValidateHtml(String html) {
 /// Validates the parsed HTML content and throws AssertionError if any of the
 /// following issues are present:
 /// - Inline JavaScript actions are present (e.g. `onclick`).
-/// - Links with `<a target="_blank">` do not have `rel="repooner"`.
+/// - Links with `<a target="_blank">` do not have `rel="noopener"`.
+/// - Links with `href="/packages?q=*"` do have `rel="nofollow"`.
 /// - `<script> tags have no `src` attribute or have content (except `ld+json`
 ///   meta content).
 void validateHtml(Node root) {
@@ -85,6 +86,13 @@ void validateHtml(Node root) {
     }
     if (uri.query.contains('//')) {
       throw AssertionError('Double-slash URL detected: "$href".');
+    }
+    if (uri.path == '/packages' && uri.queryParameters.containsKey('q')) {
+      final rel = elem.attributes['rel'] ?? '';
+      if (!rel.split(' ').contains('nofollow')) {
+        throw AssertionError(
+            'Package search URL must use nofollow: "${elem.outerHtml}".');
+      }
     }
   }
 
