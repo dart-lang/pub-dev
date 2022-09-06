@@ -54,7 +54,8 @@ void main() {
           final rs = await issueGet(u);
           statusCodes.add(rs.statusCode);
           expect(rs.statusCode, lessThan(500), reason: '$u ${rs.statusCode}');
-          expect(expectedCodes, contains(rs.statusCode),
+          expect(rs.statusCode,
+              anyOf(expectedCodes.map((c) => equals(c)).toList()),
               reason: '$kind $u ${rs.statusCode}');
         }
         expect(statusCodes, expectedCodes, reason: kind);

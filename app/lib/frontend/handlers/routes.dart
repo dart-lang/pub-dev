@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/handlers.dart';
@@ -331,8 +332,15 @@ class PubSiteService {
   @Route.get('/experimental/task-log/<package>/<version>/')
   Future<Response> taskLog(
       Request request, String package, String version) async {
+    checkPackageVersionParams(package, version);
+
     InvalidInputException.checkPackageName(package);
     version = InvalidInputException.checkSemanticVersion(version);
+
+    if (!await packageBackend.isPackageVisible(package) ||
+        (await packageBackend.lookupPackageVersion(package, version)) == null) {
+      return Response.notFound('no such package');
+    }
 
     final log = await taskBackend.panaLog(package, version);
     return Response.ok(
@@ -344,9 +352,28 @@ class PubSiteService {
   @Route.get('/experimental/task-summary/<package>/<version>/')
   Future<Response> taskSummary(
       Request request, String package, String version) async {
+    checkPackageVersionParams(package, version);
+
+    InvalidInputException.checkPackageName(package);
+    version = InvalidInputException.checkSemanticVersion(version);
+
+    if (!await packageBackend.isPackageVisible(package) ||
+        (await packageBackend.lookupPackageVersion(package, version)) == null) {
+      return Response.notFound('no such package');
+    }
+
     final summary = await taskBackend.panaSummary(package, version);
+
+    /*if (summary == null) {
+      return Response.notFound(
+        'no summary',
+        headers: {'content-type': 'plain/text'},
+      );
+    }*/
     return Response.ok(
-      jsonEncode(summary?.toJson() ?? 'no summary'),
+      summary != null
+          ? JsonEncoder.withIndent('  ').convert(summary.toJson())
+          : 'no summary',
       headers: {'content-type': 'plain/text'},
     );
   }
