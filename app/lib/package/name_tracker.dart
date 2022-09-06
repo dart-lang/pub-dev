@@ -21,6 +21,12 @@ const _pollingInterval = Duration(minutes: 15);
 /// The interval to reload the full package name list from scratch.
 const _reloadInterval = Duration(days: 1);
 
+/// The timeout for full Datastore scans.
+const _reloadTimeout = Duration(minutes: 5);
+
+/// The timeout for recent update scans.
+const _pollingTimeout = Duration(seconds: 20);
+
 /// Minimal package information tracked by [NameTracker].
 class TrackedPackage {
   final String package;
@@ -108,7 +114,7 @@ class NameTracker {
     // Trigger a new scan (if updater is active) to get the packages that may
     // have been uploaded recently.
     if (_db != null) {
-      await _scanRecentPackages();
+      await _scanRecentPackages().timeout(_pollingTimeout);
     }
     return _data.accept(name);
   }
@@ -185,12 +191,20 @@ class NameTracker {
 
   /// Updates this [NameTracker] by polling the Datastore periodically.
   Future<void> startTracking() async {
-    await reloadFromDatastore();
-    _pollingTimer ??= Timer.periodic(_pollingInterval, (_) {
-      _scanRecentPackages();
+    await reloadFromDatastore().timeout(_reloadTimeout);
+    _pollingTimer ??= Timer.periodic(_pollingInterval, (_) async {
+      try {
+        await _scanRecentPackages().timeout(_pollingTimeout);
+      } catch (e, st) {
+        _logger.warning('Failed to update name tracker.', e, st);
+      }
     });
-    _reloadTimer ??= Timer.periodic(_reloadInterval, (_) {
-      reloadFromDatastore();
+    _reloadTimer ??= Timer.periodic(_reloadInterval, (_) async {
+      try {
+        await reloadFromDatastore().timeout(_reloadTimeout);
+      } catch (e, st) {
+        _logger.warning('Failed to rescan name tracker.', e, st);
+      }
     });
   }
 
