@@ -41,7 +41,6 @@ d.Node _searchFormContainer({
     classes: [
       'container',
       'search-form-container',
-      'experimental',
       if (openSections.isNotEmpty || searchForm.hasActiveNonQuery)
         '-active-on-mobile',
     ],
@@ -232,6 +231,7 @@ d.Node _formLinkedCheckbox({
           if (action != null) 'data-action': action,
           if (tag != null) 'data-tag': tag,
         },
+        rel: 'nofollow',
       ),
       checked: isChecked,
       indeterminate: isIndeterminate,

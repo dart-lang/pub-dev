@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/search/search_form.dart';
+import 'package:pub_dev/dartdoc/models.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../dartdoc/backend.dart';
@@ -45,17 +46,29 @@ Future<shelf.Response> apiDocumentationHandler(
     return jsonResponse({}, status: 404);
   }
 
+  // Limit versions to the latest few (sorted semantically).
+  final versionsToQuery = <String>{
+    versions.latest.version,
+    ...versions.versions.map((e) => e.version).toList().reversed.take(30),
+  };
+
   final dartdocEntries = await dartdocBackend.getEntriesForVersions(
-      package, versions.versions.map((pv) => pv.version).toList());
+      package, versionsToQuery.toList());
+  final dartdocEntriesMap = <String, DartdocEntry>{};
+  for (final entry in dartdocEntries) {
+    if (entry == null) continue;
+    dartdocEntriesMap[entry.packageVersion] = entry;
+  }
 
   final versionsData = [];
   for (int i = 0; i < versions.versions.length; i++) {
-    final entry = dartdocEntries[i];
+    final version = versions.versions[i].version;
+    final entry = dartdocEntriesMap[version];
     final hasDocumentation = entry != null && entry.hasContent;
     final status =
         entry == null ? 'pending' : (entry.hasContent ? 'success' : 'failed');
     versionsData.add({
-      'version': versions.versions[i].version,
+      'version': version,
       'status': status,
       'hasDocumentation': hasDocumentation,
     });
@@ -244,18 +257,18 @@ Future<VersionScore> packageVersionScoreHandler(
       updated = card.updated;
     }
 
-    final tags = [
+    final tags = <String>{
       ...pkg.getTags(),
       ...pv.getTags(),
       ...?card?.derivedTags,
-    ];
+    };
 
     return VersionScore(
       grantedPoints: card?.grantedPubPoints,
       maxPoints: card?.maxPubPoints,
       likeCount: pkg.likes,
       popularityScore: card?.popularityScore,
-      tags: tags,
+      tags: tags.toList(),
       lastUpdated: updated,
     );
   }))!;

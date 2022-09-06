@@ -3,8 +3,29 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Deploy new index with `gcloud app deploy index.yaml`.
+ * Bumped runtimeVersion to `2022.09.01`.
+ * Upgraded runtime Dart SDK to `2.18.0`.
+ * NOTE: Started to populate search index with `is:unlisted` tag for `discontinued` and `legacy` packages.
+
+## `20220831t123000-all`
+
+## `20220831t114300-all`
+ * Bumped runtimeVersion to `2022.08.31`.
+ * Upgraded stable Flutter analysis SDK to `3.3.0`.
+ * Upgraded preview Flutter analysis SDK to `3.3.0`.
+
+## `20220830t132400-all`
+ * Fixed `/api/documentation/<package>` endpoint bug.
+
+## `20220829t082800-all`
+ * Bumped runtimeVersion to `2022.08.26`.
+ * Upgraded stable Dart analysis SDK to `2.18.0`.
+ * Upgraded preview Dart analysis SDK to `2.18.0`.
+
+## `20220825t132100-all`
  * NOTE: `search` stopped populating `highlightedHit` field.
  * Upgraded dependencies.
+ * NOTE: Limit `/api/documentation/<package>` endpoint to the latest versions.
 
 ## `20220822t072200-all`
  * Downgraded `package:markdown` to `5.0.0`.

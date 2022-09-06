@@ -5,6 +5,7 @@
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
+import 'package:pana/pana.dart';
 
 import '../../../../frontend/request_context.dart';
 import '../../../../package/models.dart';
@@ -13,11 +14,13 @@ import '../../../../search/search_service.dart';
 import '../../../../shared/urls.dart' as urls;
 import '../../../../shared/utils.dart' show formatXAgo;
 import '../../../dom/dom.dart' as d;
+
 import '../../../static_files.dart' show staticUrls;
 import '../../_consts.dart';
 import '../../package_misc.dart';
 import '../shared/images.dart';
 import 'license.dart';
+import 'screenshots.dart';
 
 /// Renders the listing page (list of packages).
 d.Node listOfPackagesNode({
@@ -33,6 +36,7 @@ d.Node listOfPackagesNode({
         _packageItem(highlightedHit, searchForm: searchForm),
       ...sdkLibraryHits.map(_sdkLibraryItem),
       ...packageHits.map((hit) => _packageItem(hit, searchForm: searchForm)),
+      imageCarousel(),
     ],
   );
 }
@@ -126,12 +130,20 @@ d.Node _packageItem(
   final screenshots = view.screenshots;
   final bool hasScreenshots = screenshots != null && screenshots.isNotEmpty;
   String? thumbnailUrl;
+  final screenshotUrls = <String>[];
   if (hasScreenshots) {
     thumbnailUrl = imageStorage.getImageUrl(
         view.name!, releases.stable.version, screenshots.first.pngThumbnail);
+
+    for (ProcessedScreenshot s in screenshots) {
+      screenshotUrls.add(imageStorage.getImageUrl(
+          view.name!, releases.stable.version, s.webpImage));
+    }
   }
+
   return _item(
     thumbnailUrl: thumbnailUrl,
+    screenshotUrls: screenshotUrls,
     url: urls.pkgPageUrl(view.name!),
     name: view.name!,
     newTimestamp: view.created,
@@ -155,6 +167,7 @@ d.Node _packageItem(
 
 d.Node _item({
   String? thumbnailUrl,
+  List<String>? screenshotUrls,
   required String url,
   required String name,
   required DateTime? newTimestamp,
@@ -164,8 +177,6 @@ d.Node _item({
   required d.Node? tagsNode,
   required List<_ApiPageUrl>? apiPages,
 }) {
-  final collectionsIconWhite =
-      staticUrls.getAssetUrl('/static/img/collections_white_24dp.svg');
   final age =
       newTimestamp == null ? null : clock.now().difference(newTimestamp);
   return d.div(
@@ -214,23 +225,9 @@ d.Node _item({
           ],
         ),
         if (thumbnailUrl != null && requestContext.showScreenshots)
-          d.div(classes: [
-            'screenshot-thumbnail'
-          ], children: [
-            d.img(
-                image: d.Image(
-                    alt: 'screenshot',
-                    width: 98,
-                    height: 98,
-                    src: thumbnailUrl)),
-            d.img(
-                classes: ['collections-icon'],
-                image: d.Image(
-                    height: 30,
-                    width: 30,
-                    alt: 'image',
-                    src: collectionsIconWhite))
-          ])
+          d.div(
+              classes: ['screenshot-thumbnail-container'],
+              child: screenshotThumbnailNode(thumbnailUrl, screenshotUrls)),
       ]),
     ],
   );

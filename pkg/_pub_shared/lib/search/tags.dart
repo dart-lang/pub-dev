@@ -19,9 +19,6 @@ const allowedTagPrefixes = [
 
 /// Collection of package-related tags.
 abstract class PackageTags {
-  /// Package is marked discontinued | unlisted | legacy.
-  static const String isHidden = 'is:hidden';
-
   /// Package is shown, regardless of its hidden status.
   static const String showHidden = 'show:hidden';
 
@@ -31,7 +28,7 @@ abstract class PackageTags {
   /// Package is shown, regardless of its discontinued status.
   static const String showDiscontinued = 'show:discontinued';
 
-  /// Package is marked unlisted.
+  /// Package is marked unlisted, discontinued, or is a legacy package.
   static const String isUnlisted = 'is:unlisted';
 
   /// Package is shown, regardless of its unlisted status.

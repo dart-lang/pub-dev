@@ -12,6 +12,7 @@ import 'src/issues.dart';
 import 'src/likes.dart';
 import 'src/mobile_nav.dart';
 import 'src/page_updater.dart';
+import 'src/screenshot_carousel.dart';
 import 'src/scroll.dart';
 import 'src/search.dart';
 
@@ -38,4 +39,5 @@ void _setupAllEvents() {
   updateDartdocStatus();
   setupLikes();
   setupLikesList();
+  setupScreenshotCarousel();
 }

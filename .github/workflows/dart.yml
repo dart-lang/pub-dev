@@ -77,15 +77,15 @@ jobs:
         uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:app-pkg/_popularity-pkg/_pub_shared-pkg/api_builder-pkg/fake_gcloud-pkg/pub_dartdoc-pkg/pub_dartdoc_data-pkg/pub_package_reader-pkg/web_app-pkg/web_css;commands:format-analyze_0"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:app-pkg/_popularity-pkg/_pub_shared-pkg/api_builder-pkg/fake_gcloud-pkg/pub_dartdoc-pkg/pub_dartdoc_data-pkg/pub_package_reader-pkg/web_app-pkg/web_css;commands:format-analyze_0"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:app-pkg/_popularity-pkg/_pub_shared-pkg/api_builder-pkg/fake_gcloud-pkg/pub_dartdoc-pkg/pub_dartdoc_data-pkg/pub_package_reader-pkg/web_app-pkg/web_css
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:app-pkg/_popularity-pkg/_pub_shared-pkg/api_builder-pkg/fake_gcloud-pkg/pub_dartdoc-pkg/pub_dartdoc_data-pkg/pub_package_reader-pkg/web_app-pkg/web_css
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
-          sdk: "2.17.0"
+          sdk: "2.18.0"
       - id: checkout
         uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: app_pub_get
@@ -226,15 +226,15 @@ jobs:
         uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/indexed_blob;commands:format-analyze_1"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/indexed_blob;commands:format-analyze_1"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/indexed_blob
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/indexed_blob
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
-          sdk: "2.17.0"
+          sdk: "2.18.0"
       - id: checkout
         uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: pkg_indexed_blob_pub_get
@@ -258,15 +258,15 @@ jobs:
         uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/pub_integration;commands:format-analyze_2-analyze_3-analyze_4"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/pub_integration;commands:format-analyze_2-analyze_3-analyze_4"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/pub_integration
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/pub_integration
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
-          sdk: "2.17.0"
+          sdk: "2.18.0"
       - id: checkout
         uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: pkg_pub_integration_pub_get
@@ -298,15 +298,15 @@ jobs:
         uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/web_app;commands:command"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/web_app;commands:command"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/web_app
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/web_app
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
-          sdk: "2.17.0"
+          sdk: "2.18.0"
       - id: checkout
         uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: pkg_web_app_pub_get
@@ -332,15 +332,15 @@ jobs:
         uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/web_css;commands:command"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/web_css;commands:command"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/web_css
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/web_css
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
-          sdk: "2.17.0"
+          sdk: "2.18.0"
       - id: checkout
         uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: pkg_web_css_pub_get
@@ -474,15 +474,15 @@ jobs:
         uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:app;commands:test_00"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:app;commands:test_00"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:app
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
-          sdk: "2.17.0"
+          sdk: "2.18.0"
       - id: checkout
         uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: app_pub_get
@@ -510,15 +510,15 @@ jobs:
         uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:app;commands:test_01"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:app;commands:test_01"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:app
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
-          sdk: "2.17.0"
+          sdk: "2.18.0"
       - id: checkout
         uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: app_pub_get
@@ -546,15 +546,15 @@ jobs:
         uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:app;commands:test_02"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:app;commands:test_02"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:app
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
-          sdk: "2.17.0"
+          sdk: "2.18.0"
       - id: checkout
         uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: app_pub_get
@@ -582,15 +582,15 @@ jobs:
         uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:app;commands:test_03"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:app;commands:test_03"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:app
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
-          sdk: "2.17.0"
+          sdk: "2.18.0"
       - id: checkout
         uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: app_pub_get
@@ -618,15 +618,15 @@ jobs:
         uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:app;commands:test_04"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:app;commands:test_04"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:app
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
-          sdk: "2.17.0"
+          sdk: "2.18.0"
       - id: checkout
         uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: app_pub_get
@@ -654,15 +654,15 @@ jobs:
         uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:app;commands:test_05"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:app;commands:test_05"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:app
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
-          sdk: "2.17.0"
+          sdk: "2.18.0"
       - id: checkout
         uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: app_pub_get
@@ -690,15 +690,15 @@ jobs:
         uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:app;commands:test_06"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:app;commands:test_06"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:app
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
-          sdk: "2.17.0"
+          sdk: "2.18.0"
       - id: checkout
         uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: app_pub_get
@@ -726,15 +726,15 @@ jobs:
         uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/_popularity;commands:test_07"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/_popularity;commands:test_07"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/_popularity
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/_popularity
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
-          sdk: "2.17.0"
+          sdk: "2.18.0"
       - id: checkout
         uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: pkg__popularity_pub_get
@@ -762,15 +762,15 @@ jobs:
         uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/_pub_shared;commands:test_07"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/_pub_shared;commands:test_07"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/_pub_shared
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/_pub_shared
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
-          sdk: "2.17.0"
+          sdk: "2.18.0"
       - id: checkout
         uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: pkg__pub_shared_pub_get
@@ -798,15 +798,15 @@ jobs:
         uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/fake_gcloud;commands:test_07"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/fake_gcloud;commands:test_07"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/fake_gcloud
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/fake_gcloud
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
-          sdk: "2.17.0"
+          sdk: "2.18.0"
       - id: checkout
         uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: pkg_fake_gcloud_pub_get
@@ -834,15 +834,15 @@ jobs:
         uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/indexed_blob;commands:test_07"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/indexed_blob;commands:test_07"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/indexed_blob
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/indexed_blob
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
-          sdk: "2.17.0"
+          sdk: "2.18.0"
       - id: checkout
         uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: pkg_indexed_blob_pub_get
@@ -870,15 +870,15 @@ jobs:
         uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/pub_dartdoc;commands:test_07"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/pub_dartdoc;commands:test_07"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/pub_dartdoc
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/pub_dartdoc
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
-          sdk: "2.17.0"
+          sdk: "2.18.0"
       - id: checkout
         uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: pkg_pub_dartdoc_pub_get
@@ -906,15 +906,15 @@ jobs:
         uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/pub_dartdoc_data;commands:test_07"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/pub_dartdoc_data;commands:test_07"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/pub_dartdoc_data
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/pub_dartdoc_data
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
-          sdk: "2.17.0"
+          sdk: "2.18.0"
       - id: checkout
         uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: pkg_pub_dartdoc_data_pub_get
@@ -942,15 +942,15 @@ jobs:
         uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/pub_package_reader;commands:test_07"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/pub_package_reader;commands:test_07"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/pub_package_reader
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/pub_package_reader
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
-          sdk: "2.17.0"
+          sdk: "2.18.0"
       - id: checkout
         uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: pkg_pub_package_reader_pub_get
@@ -978,15 +978,15 @@ jobs:
         uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/web_app;commands:test_07"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/web_app;commands:test_07"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/web_app
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/web_app
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
-          sdk: "2.17.0"
+          sdk: "2.18.0"
       - id: checkout
         uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: pkg_web_app_pub_get
@@ -1014,15 +1014,15 @@ jobs:
         uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/web_css;commands:test_07"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/web_css;commands:test_07"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/web_css
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/web_css
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
-          sdk: "2.17.0"
+          sdk: "2.18.0"
       - id: checkout
         uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: pkg_web_css_pub_get
@@ -1050,15 +1050,15 @@ jobs:
         uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/pub_integration;commands:test_08"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/pub_integration;commands:test_08"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/pub_integration
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/pub_integration
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
-          sdk: "2.17.0"
+          sdk: "2.18.0"
       - id: checkout
         uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: pkg_pub_integration_pub_get
@@ -1086,15 +1086,15 @@ jobs:
         uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/pub_integration;commands:test_09"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/pub_integration;commands:test_09"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/pub_integration
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/pub_integration
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
-          sdk: "2.17.0"
+          sdk: "2.18.0"
       - id: checkout
         uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: pkg_pub_integration_pub_get
@@ -1122,15 +1122,15 @@ jobs:
         uses: actions/cache@4504faf7e9bcf8f3ed0bc863c4e1d21499ab8ef8
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/pub_integration;commands:test_10"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/pub_integration;commands:test_10"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkg/pub_integration
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkg/pub_integration
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
-          sdk: "2.17.0"
+          sdk: "2.18.0"
       - id: checkout
         uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
       - id: pkg_pub_integration_pub_get

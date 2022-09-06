@@ -109,7 +109,7 @@ class PubApi {
   ///     [200 OK]
   ///     {
   ///       "success" : {
-  ///         "message": "Successfully uploaded [package] version [version].",
+  ///         "message": "Successfully uploaded `package` version `version`.",
   ///       },
   ///     }
   @EndPoint.get('/api/packages/versions/newUploadFinish')

@@ -14,6 +14,7 @@ final RegExp _refDependencyRegExp =
     RegExp('dependency:([_a-z0-9]+)', caseSensitive: false);
 final RegExp _allDependencyRegExp =
     RegExp(r'dependency\*:([_a-z0-9]+)', caseSensitive: false);
+final _sortRegExp = RegExp('sort:([a-z]+)');
 final _tagRegExp =
     RegExp(r'([\+|\-]?[a-z0-9]+:[a-z0-9\-_\.]+)', caseSensitive: false);
 
@@ -189,12 +190,15 @@ class ParsedQueryText {
   /// Detected tags in the user-provided query.
   TagsPredicate tagsPredicate;
 
+  final SearchOrder? order;
+
   ParsedQueryText._(
     this.text,
     this.packagePrefix,
     this.refDependencies,
     this.allDependencies,
     this.tagsPredicate,
+    this.order,
   );
 
   factory ParsedQueryText.parse(String? q) {
@@ -222,6 +226,9 @@ class ParsedQueryText {
 
     final List<String> dependencies = extractRegExp(_refDependencyRegExp);
     final List<String> allDependencies = extractRegExp(_allDependencyRegExp);
+    final orderValues = extractRegExp(_sortRegExp);
+    final order =
+        orderValues.isEmpty ? null : parseSearchOrder(orderValues.last);
 
     final tagValues = extractRegExp(
       _tagRegExp,
@@ -240,6 +247,7 @@ class ParsedQueryText {
       dependencies,
       allDependencies,
       tagsPredicate,
+      order,
     );
   }
 
@@ -252,6 +260,7 @@ class ParsedQueryText {
       refDependencies,
       allDependencies,
       tagsPredicate ?? this.tagsPredicate,
+      order,
     );
   }
 
@@ -273,6 +282,7 @@ class ParsedQueryText {
       ...refDependencies.map((d) => 'dependency:$d'),
       ...allDependencies.map((d) => 'dependency*:$d'),
       ...tagsPredicate.toQueryParameters(),
+      if (order != null) 'sort:${order!.name}',
       if (text != null && text!.isNotEmpty) text!,
     ].join(' ');
   }

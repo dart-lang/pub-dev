@@ -6,7 +6,6 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:pana/pana.dart';
-import 'package:pub_dev/package/backend.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../../analyzer/pana_runner.dart';

@@ -211,6 +211,14 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   }
 }
 
+.screenshot-thumbnail-container {
+  height: 100px;
+  width: 100px;
+  border: solid 1px #aeaeae;
+  margin-top: 10px;
+  margin-left: 45px;
+}
+
 @media (min-width: $device-desktop-min-width) {
   .detail-body {
 

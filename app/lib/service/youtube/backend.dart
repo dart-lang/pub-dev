@@ -130,18 +130,29 @@ class _PkgOfWeekVideoFetcher {
         videos.addAll(rs.items!.map(
           (i) {
             try {
-              final thumbnails = i.snippet!.thumbnails!;
+              final videoId = i.contentDetails?.videoId;
+              if (videoId == null) {
+                return null;
+              }
+              final thumbnails = i.snippet?.thumbnails;
+              if (thumbnails == null) {
+                return null;
+              }
               final thumbnail = thumbnails.high ??
                   thumbnails.default_ ??
                   thumbnails.maxres ??
                   thumbnails.standard ??
                   thumbnails.medium;
+              final thumbnailUrl = thumbnail?.url;
+              if (thumbnailUrl == null || thumbnailUrl.isEmpty) {
+                return null;
+              }
               return PkgOfWeekVideo(
-                videoId: i.contentDetails!.videoId!,
+                videoId: videoId,
                 title: i.snippet?.title ?? '',
                 description:
                     (i.snippet?.description ?? '').trim().split('\n').first,
-                thumbnailUrl: thumbnail!.url!,
+                thumbnailUrl: thumbnailUrl,
               );
             } catch (e, st) {
               // this item will be skipped, the rest of the list may be displayed

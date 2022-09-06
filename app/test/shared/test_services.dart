@@ -46,6 +46,7 @@ void testWithProfile(
   Timeout? timeout,
   bool processJobsWithFakeRunners = false,
   Pattern? integrityProblem,
+  dynamic skip,
 }) {
   scopedTest(name, () async {
     setupLogging();
@@ -84,7 +85,7 @@ void testWithProfile(
         }
       },
     );
-  }, timeout: timeout);
+  }, timeout: timeout, skip: skip);
 }
 
 /// Execute [fn] with [FakeTime.run] inside [testWithProfile].
