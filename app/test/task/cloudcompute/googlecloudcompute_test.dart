@@ -21,9 +21,10 @@ void main() {
     setupLogging();
 
     await withAppEngineServices(() async {
+      registerCloudComputeClient(authClientService);
+
       // Create CloudCompute instance
       final gce = createGoogleCloudCompute(
-        client: authClientService,
         project: envConfig.googleCloudProject!,
         network: 'default',
         poolLabel: 'manual-testing',
