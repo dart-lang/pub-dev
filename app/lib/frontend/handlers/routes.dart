@@ -323,12 +323,12 @@ class PubSiteService {
   // **** Experimental task end-points
   // ****
 
-  @Route.get('/task-documentation/<package>/<version>/<path|[^]*>')
+  @Route.get('/experimental/task-documentation/<package>/<version>/<path|[^]*>')
   Future<Response> taskdocumentation(
           Request request, String package, String version, String path) =>
       handleDartDoc(request, package, version, path);
 
-  @Route.get('/task-log/<package>/<version>/')
+  @Route.get('/experimental/task-log/<package>/<version>/')
   Future<Response> taskLog(
       Request request, String package, String version) async {
     InvalidInputException.checkPackageName(package);
@@ -341,7 +341,7 @@ class PubSiteService {
     );
   }
 
-  @Route.get('/task-summary/<package>/<version>/')
+  @Route.get('/experimental/task-summary/<package>/<version>/')
   Future<Response> taskSummary(
       Request request, String package, String version) async {
     final summary = await taskBackend.panaSummary(package, version);

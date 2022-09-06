@@ -156,7 +156,7 @@ void main() {
     });
   });
 
-  test('Periodic Timer.isActive is call multiple times', () async {
+  test('Periodic Timer.isActive is called multiple times', () async {
     var count = 0;
     await FakeTime.run((tm) async {
       final timer = Timer.periodic(Duration(milliseconds: 1), (_) {
@@ -172,9 +172,9 @@ void main() {
       expect(timer.tick, greaterThan(0));
 
       await Future.delayed(Duration(milliseconds: 5));
-      expect(count, lessThan(15));
+      expect(count, lessThan(50));
       expect(count, greaterThan(2));
-      expect(timer.tick, lessThan(15));
+      expect(timer.tick, lessThan(50));
       expect(timer.tick, greaterThan(2));
 
       final currentCount = count;

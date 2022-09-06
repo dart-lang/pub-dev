@@ -83,9 +83,13 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add('GET', r'/my-activity-log', service.accountMyActivityLogPage);
   router.add('GET', r'/authorized', service.authorizationConfirmed);
   router.add('GET', r'/consent', service.consentPage);
-  router.add('GET', r'/task-documentation/<package>/<version>/<path|[^]*>',
+  router.add(
+      'GET',
+      r'/experimental/task-documentation/<package>/<version>/<path|[^]*>',
       service.taskdocumentation);
-  router.add('GET', r'/task-log/<package>/<version>/', service.taskLog);
-  router.add('GET', r'/task-summary/<package>/<version>/', service.taskSummary);
+  router.add(
+      'GET', r'/experimental/task-log/<package>/<version>/', service.taskLog);
+  router.add('GET', r'/experimental/task-summary/<package>/<version>/',
+      service.taskSummary);
   return router;
 }
