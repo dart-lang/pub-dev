@@ -263,14 +263,13 @@ class GitHubJwtPayload {
     'nbf',
     'exp',
     'iss',
-    // github-specific claims
     'aud',
+    // github-specific claims
     'repository',
     'repository_owner',
     'event_name',
     'ref',
     'ref_type',
-    'environment',
   };
 
   GitHubJwtPayload._(Map<String, dynamic> map)

@@ -129,16 +129,12 @@ shelf.Handler _requestContextWrapper(shelf.Handler handler) {
             !hasExperimentalCookie && // don't cache if experimental cookie is enabled
             userSessionData == null; // don't cache if a user session is active
 
-    // The use of the new Google Identity Services library is restricted to
-    // staging or running locally, and it is also behind the experimental flag.
-    final useGisSignIn = isExperimental && activeConfiguration.isNotProduction;
-
     registerRequestContext(RequestContext(
       indentJson: indentJson,
       isExperimental: isExperimental,
       blockRobots: !enableRobots,
       uiCacheEnabled: uiCacheEnabled,
-      useGisSignIn: useGisSignIn,
+      useGisSignIn: false,
     ));
     return await handler(request);
   };

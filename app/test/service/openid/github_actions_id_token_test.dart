@@ -70,16 +70,18 @@ void main() {
       expect(token.payload.verifyTimestamps(), isTrue);
       final payload = GitHubJwtPayload(token.payload);
       expect(payload.aud, 'https://example.com');
-      expect(payload.repository, 'dart-lang/pub-dev');
-      expect(payload.eventName, anyOf(['pull_request']));
+      // repository check assumes that clones keep the `pub-dev` name:
+      expect(payload.repository, endsWith('/pub-dev'));
+      expect(payload.eventName, anyOf(['pull_request', 'push']));
       expect(payload.refType, anyOf(['branch']));
       // example `ref`: `refs/pull/38/merge`
+      // example `ref`: `refs/head/master`
       expect(payload.ref, startsWith('refs/'));
-      expect(payload.ref, anyOf(contains('/pull/')));
 
       // TODO: decide if we need to run checks on these values
       // example `sub`: `repo:dart-lang/pub-dev:pull_request`
-      expect(token.payload['sub'], startsWith('repo:dart-lang/pub-dev:'));
+      // example `sub`: `repo:isoos/pub-dev:ref:refs/heads/master`
+      expect(token.payload['sub'], startsWith('repo:'));
       expect(token.payload['repository_visibility'], 'public');
       expect(token.payload['actor'], isNotEmpty);
     },

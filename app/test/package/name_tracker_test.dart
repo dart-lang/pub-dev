@@ -2,8 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/package/name_tracker.dart';
+import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
+
+import '../shared/test_models.dart';
+import '../shared/test_services.dart';
 
 void main() {
   group('json', () {
@@ -138,5 +145,37 @@ void main() {
         ['a/3.0.0', 'b/2.0.0'],
       );
     });
+  });
+
+  group('moderated package names', () {
+    testWithProfile(
+      'aaa_bbb deleted, aaa_bbbs plural',
+      testProfile: TestProfile(
+        packages: [TestPackage(name: 'aaa_bbb')],
+        defaultUser: 'user@pub.dev',
+      ),
+      fn: () async {
+        final tracker = NameTracker(dbService);
+        await tracker.reloadFromDatastore();
+        // new version is accepted
+        expect(await tracker.accept('aaa_bbb'), isNull);
+        // plural and alternatives are rejected
+        expect(await tracker.accept('aaa_bbbs'), 'aaa_bbb');
+        expect(await tracker.accept('aaabbb'), 'aaa_bbb');
+        expect(await tracker.accept('aa_ab_bb'), 'aaa_bbb');
+
+        await accountBackend.withBearerToken(
+            siteAdminToken, () => adminBackend.removePackage('aaa_bbb'));
+        await tracker.reloadFromDatastore();
+
+        // same package name is rejected
+        expect(await tracker.accept('aaa_bbb'), 'aaa_bbb');
+        // plural form is accepted
+        expect(await tracker.accept('aaa_bbbs'), isNull);
+        // alternative forms are accepted
+        expect(await tracker.accept('aaabbb'), isNull);
+        expect(await tracker.accept('aa_ab_bb'), isNull);
+      },
+    );
   });
 }

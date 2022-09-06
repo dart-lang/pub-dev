@@ -137,7 +137,7 @@ void main() {
       p!.updateIsBlocked(isBlocked: true, reason: 'spam');
       expect(p.isVisible, isFalse);
       await dbService.commit(inserts: [p]);
-      await nameTracker.scanDatastore();
+      await nameTracker.reloadFromDatastore();
       await expectJsonResponse(
         await issueGet('/api/package-names'),
         body: {
