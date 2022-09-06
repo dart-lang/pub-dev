@@ -44,7 +44,7 @@ class FakePubServer {
           }
 
           await generateFakePopularityValues();
-          nameTracker.startTracking();
+          await nameTracker.startTracking();
 
           final appHandler = createAppHandler();
           final handler = wrapHandler(_logger, appHandler, sanitize: true);

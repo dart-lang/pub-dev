@@ -78,7 +78,7 @@ void main() {
     testWithProfile('/packages?q=oxyge without working search', fn: () async {
       registerSearchClient(
           SearchClient(MockClient((_) async => throw Exception())));
-      await nameTracker.scanDatastore();
+      await nameTracker.reloadFromDatastore();
       final content =
           await expectHtmlResponse(await issueGet('/packages?q=oxyge'));
       expect(content, contains('oxygen is awesome'));

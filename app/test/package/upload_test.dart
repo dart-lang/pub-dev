@@ -391,7 +391,7 @@ void main() {
       }
 
       testWithProfile('bad package names are rejected', fn: () async {
-        await nameTracker.scanDatastore();
+        await nameTracker.reloadFromDatastore();
         await accountBackend.withBearerToken(adminClientToken, () async {
           expect(await fn('with'),
               'PackageRejected(400): Package name must not be a reserved word in Dart.');
@@ -419,13 +419,13 @@ void main() {
           await adminBackend.removePackage('neon');
         });
         await accountBackend.withBearerToken(adminClientToken, () async {
-          await nameTracker.scanDatastore();
+          await nameTracker.reloadFromDatastore();
 
           expect(await fn('neon'),
               'PackageRejected(400): Package name `neon` is too similar to a moderated package: `neon`.');
 
-          expect(await fn('ne_on'),
-              'PackageRejected(400): Package name `ne_on` is too similar to a moderated package: `neon`.');
+          // similar names are accepted
+          expect(await fn('ne_on'), isNull);
         });
       });
 
@@ -495,7 +495,7 @@ void main() {
         expect(email.bodyText,
             contains('https://pub.dev/packages/oxygen/versions/3.0.0\n'));
 
-        await nameTracker.scanDatastore();
+        await nameTracker.reloadFromDatastore();
         final lastPublished =
             nameTracker.visiblePackagesOrderedByLastPublished.first;
         expect(lastPublished.package, 'oxygen');
