@@ -133,7 +133,7 @@ d.Node _packageItem(
   final screenshotUrls = <String>[];
   if (hasScreenshots) {
     thumbnailUrl = imageStorage.getImageUrl(
-        view.name!, releases.stable.version, screenshots.first.pngThumbnail);
+        view.name!, releases.stable.version, screenshots.first.webpThumbnail);
 
     for (ProcessedScreenshot s in screenshots) {
       screenshotUrls.add(imageStorage.getImageUrl(

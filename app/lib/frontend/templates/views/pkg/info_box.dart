@@ -57,7 +57,7 @@ d.Node packageInfoBoxNode({
   final screenshotUrls = <String>[];
   if (screenshots != null && screenshots.isNotEmpty) {
     thumbnailUrl = imageStorage.getImageUrl(
-        package.name!, version.version!, screenshots.first.pngThumbnail);
+        package.name!, version.version!, screenshots.first.webpThumbnail);
     for (ProcessedScreenshot s in screenshots) {
       screenshotUrls.add(imageStorage.getImageUrl(
           package.name!, version.version!, s.webpImage));
