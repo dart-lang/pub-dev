@@ -9,9 +9,16 @@ incomingPackagesBucketName: dartlang-pub-incoming-packages
 packageBucketName: pub-packages
 projectId: dartlang-pub
 searchServicePrefix: https://search-dot-dartlang-pub.appspot.com
+defaultServiceBaseUrl: https://{{GAE_VERSION}}-dot-{{GOOGLE_CLOUD_PROJECT}}.appspot.com
 dartdocStorageBucketName: dartlang-pub--dartdoc-storage
 popularityDumpBucketName: dartlang-pub--popularity
 searchSnapshotBucketName: dartlang-pub--search-snapshot
+taskResultBucketName: dartlang-pub-task-output
+taskWorkerImage: gcr.io/dartlang-pub-tasks/{{GOOGLE_CLOUD_PROJECT}}-{{GAE_VERSION}}-worker
+taskWorkerProject: dartlang-pub-tasks
+taskWorkerNetwork: pub-workers
+cosImage: projects/cos-cloud/global/images/family/cos-97-lts
+taskWorkerServiceAccount: task-worker@dartlang-pub-tasks.iam.gserviceaccount.com
 imageBucketName: dartlang-pub--pub-images
 storageBaseUrl: https://storage.googleapis.com
 pubClientAudience: 818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.googleusercontent.com

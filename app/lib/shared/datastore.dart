@@ -134,7 +134,10 @@ Future<T> _withTransaction<T>(
       }
     });
   } catch (e, st) {
-    _logger.info('Transaction failed.', e, st);
+    // Don't log a [ResponseException], these are perfectly normal.
+    if (e is! ResponseException) {
+      _logger.info('Transaction failed.', e, st);
+    }
     rethrow;
   }
 }

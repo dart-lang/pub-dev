@@ -9,6 +9,7 @@ import 'package:_pub_shared/search/tags.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_dev/account/auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
+import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
 
 import '../utils/pub_api_client.dart';
 import 'import_source.dart';
@@ -42,8 +43,15 @@ Future<void> importProfile({
       bearerToken: token,
       pubHostedUrl: pubHostedUrl,
       fn: (client) async {
-        await client.createPublisher(
-            p.name, CreatePublisherRequest(accessToken: token));
+        try {
+          await client.createPublisher(
+              p.name, CreatePublisherRequest(accessToken: token));
+        } on RequestException catch (e) {
+          // Ignore 409s, that's probably just because it's been created before.
+          if (e.status != 409) {
+            rethrow;
+          }
+        }
 
         for (final _ in p.members.skip(1)) {
           // TODO: explore implementation options how to add this

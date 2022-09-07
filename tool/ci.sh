@@ -1,5 +1,5 @@
 #!/bin/bash
-# Created with package:mono_repo v6.3.0
+# Created with package:mono_repo v6.4.0
 
 # Support built in commands on windows out of the box.
 # When it is a flutter repo (check the pubspec.yaml for "sdk: flutter")
@@ -87,6 +87,10 @@ for PKG in ${PKGS}; do
         echo 'dart analyze --fatal-infos test/'
         dart analyze --fatal-infos test/ || EXIT_CODE=$?
         ;;
+      analyze_5)
+        echo 'dart analyze --fatal-infos --fatal-warnings bin/ lib/'
+        dart analyze --fatal-infos --fatal-warnings bin/ lib/ || EXIT_CODE=$?
+        ;;
       command)
         echo './build.sh'
         ./build.sh || EXIT_CODE=$?
@@ -138,6 +142,18 @@ for PKG in ${PKGS}; do
       test_10)
         echo 'dart test --run-skipped --total-shards 3 --shard-index 2'
         dart test --run-skipped --total-shards 3 --shard-index 2 || EXIT_CODE=$?
+        ;;
+      test_11)
+        echo 'dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '0~3p'`'
+        dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '0~3p'` || EXIT_CODE=$?
+        ;;
+      test_12)
+        echo 'dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '1~3p'`'
+        dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '1~3p'` || EXIT_CODE=$?
+        ;;
+      test_13)
+        echo 'dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '2~3p'`'
+        dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '2~3p'` || EXIT_CODE=$?
         ;;
       *)
         echo -e "\033[31mUnknown TASK '${TASK}' - TERMINATING JOB\033[0m"

@@ -9,6 +9,7 @@ import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_dev/service/youtube/backend.dart';
+import 'package:pub_dev/task/backend.dart';
 import 'package:stream_transform/stream_transform.dart' show RateLimit;
 import 'package:watcher/watcher.dart';
 
@@ -40,7 +41,7 @@ class DefaultCommand extends Command {
     await startIsolates(
       logger: _logger,
       frontendEntryPoint: _main,
-      workerEntryPoint: envConfig.isRunningLocally ? null : _worker,
+      workerEntryPoint: _worker,
       frontendCount: envConfig.isRunningInAppengine ? 4 : 1,
       workerCount: 1,
     );
@@ -97,6 +98,8 @@ Future<void> watchForResourceChanges() async {
 
 Future _worker(WorkerEntryMessage message) async {
   message.protocolSendPort.send(WorkerProtocolMessage());
+
+  await taskBackend.start();
 
   // Updates job entries for analyzer and dartdoc.
   Future<void> triggerDependentAnalysis(

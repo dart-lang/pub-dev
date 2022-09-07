@@ -14,7 +14,7 @@ packages:
       name: _fe_analyzer_shared
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "38.0.0"
+    version: "36.0.0"
   _popularity:
     dependency: "direct main"
     description:
@@ -35,7 +35,7 @@ packages:
       name: analyzer
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.4.1"
+    version: "3.3.1"
   api_builder:
     dependency: "direct main"
     description:
@@ -70,7 +70,7 @@ packages:
       name: async
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.9.0"
+    version: "2.8.2"
   basics:
     dependency: "direct main"
     description:
@@ -119,7 +119,7 @@ packages:
       name: build_resolvers
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.9"
+    version: "2.0.6"
   build_runner:
     dependency: "direct dev"
     description:
@@ -169,6 +169,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.1"
+  chunked_stream:
+    dependency: "direct main"
+    description:
+      name: chunked_stream
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.4.1"
   cli_util:
     dependency: transitive
     description:
@@ -232,6 +239,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.2.3"
+  fake_async:
+    dependency: "direct main"
+    description:
+      name: fake_async
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.3.0"
   fake_gcloud:
     dependency: "direct main"
     description:
@@ -540,6 +554,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.1"
+  pub_worker:
+    dependency: "direct main"
+    description:
+      path: "../pkg/pub_worker"
+      relative: true
+    source: path
+    version: "0.0.0"
   pubspec_parse:
     dependency: "direct main"
     description:

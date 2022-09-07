@@ -1,0 +1,41 @@
+FROM gcr.io/google-containers/debian-base-amd64:v2.0.0
+
+RUN apt-get update && \
+  apt-get upgrade -y && \
+  apt-get install -y unzip ca-certificates curl bash git && \
+  rm -rf /var/lib/apt/lists/*
+
+ENV PUB_ENVIRONMENT="bot.pub_dev.pub_worker"
+ENV CI="true"
+
+# Configure a 'worker' user, to avoid running processes as root when this is not
+# necessary (this is just docker hardening).
+RUN groupadd -r worker -g 2000 && useradd --no-log-init -r -m -g worker worker
+USER worker:2000
+
+# Install pub-dev
+COPY --chown=worker:worker . /home/worker/pub-dev
+WORKDIR /home/worker/pub-dev
+
+# Setup Dart SDK
+RUN tool/setup-dart.sh /home/worker 2.16.2
+
+# Setup Flutter SDK
+RUN tool/setup-flutter.sh /home/worker 2.10.5
+
+# Use stable Dart-SDK in path
+ENV PATH="/home/worker/dart-sdk/bin:${PATH}"
+
+# Configure SDKs to be used for analysis
+ENV DART_ANALYSIS_SDK="/home/worker/dart-sdk"
+ENV FLUTTER_ANALYSIS_SDK="/home/worker/flutter"
+
+ENV FLUTTER_ROOT="/home/worker/flutter"
+
+# Install dependencies for pub_worker
+WORKDIR /home/worker/pub-dev/pkg/pub_worker
+RUN dart pub get
+
+# This container image is launched by cloud-init, and cloud-init is responsible
+# for shutting down the VM when the container exits.
+ENTRYPOINT ["dart", "bin/pub_worker.dart"]

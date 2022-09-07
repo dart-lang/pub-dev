@@ -7,16 +7,31 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:clock/clock.dart';
+import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/compute/v1.dart' hide Duration;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart' show Logger;
 import 'package:meta/meta.dart';
+import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/utils.dart' show createUuid;
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:retry/retry.dart';
 import 'package:ulid/ulid.dart';
 
 final _log = Logger('pub.googlecloudcompute');
+
+/// Register an [http.Client] for talking to GCE.
+///
+/// This should be a client not wrapped in a `RetryClient`.
+void registerCloudComputeClient(http.Client client) =>
+    ss.register(#_cloudComputeClient, client);
+
+/// Get the active [http.Client] for talking to GCE.
+///
+/// This client does NOT do retries. Retries of requests should be managed by
+/// the caller invoking the GCE APIs.
+http.Client get cloudComputeClient =>
+    ss.lookup(#_cloudComputeClient) as http.Client;
 
 /// Hardcoded list of GCE zones to consider for provisioning.
 ///
@@ -54,30 +69,122 @@ const googleCloudComputeScope = ComputeApi.cloudPlatformScope;
 /// Similarly, all instances created by this abstraction will be labelled with
 /// `owner` as `'pub-dev'` and `pool` as [poolLabel]. This allows for multiple
 /// pools of machines that don't interfere with eachother. By using a
-/// [poolLabel] such as `'<runtimeVersion>/pana'` we can ensure that the
+/// [poolLabel] such as `'<runtimeVersion>_worker'` we can ensure that the
 /// [CloudCompute] object for pana-tasks doesn't interfere with the other
 /// _runtime versions_ in production.
 ///
-/// Instances will use [Container-Optimized OS][c-o-s] to the docker-image
+/// Instances will allocated a private IP address in the VPC specified using
+/// [network]. This VPC should have [Cloud Nat] enabled.
+///
+/// Instances will use [Container-Optimized OS][c-o-s] to run the docker-image
 /// specified at instance creation.
 ///
 /// [c-o-s]: https://cloud.google.com/container-optimized-os/docs
+/// [Cloud Nat]: https://cloud.google.com/nat
 CloudCompute createGoogleCloudCompute({
-  required http.Client client,
   required String project,
+  required String network,
   required String poolLabel,
 }) {
   if (poolLabel.isEmpty) {
     throw ArgumentError.value(poolLabel, 'poolLabel', 'must not be empty');
   }
+  if (poolLabel.length > 63) {
+    throw ArgumentError.value(
+      poolLabel,
+      'poolLabel',
+      'must be < 63 characters long',
+    );
+  }
+  if (!RegExp(r'^[a-z0-9_-]+$').hasMatch(poolLabel)) {
+    throw ArgumentError.value(
+      poolLabel,
+      'poolLabel',
+      'must only contain [a-z0-9_-]',
+    );
+  }
 
   return _GoogleCloudCompute(
-    ComputeApi(client),
+    ComputeApi(cloudComputeClient),
     project,
+    network,
     _googleCloudZones,
     _googleCloudMachineType,
     poolLabel,
   );
+}
+
+/// Delete instances created by a [CloudCompute] instance return from
+/// [createGoogleCloudCompute], when the instance has been created more than
+/// 72 hours ago.
+///
+/// This ignores the `poolLabel` and deletes all instances that has labels
+/// indicating they were part of such a pool. This should cleanup any old
+/// instances that were left behind by an old pool.
+Future<void> deleteAbandonedInstances({
+  required String project,
+}) async {
+  final api = ComputeApi(cloudComputeClient);
+
+  // Beware filters documented in the GCE API reference are not necessarily
+  // supported, nor can filtering be combined with ordering of results.
+  //
+  // This filters to instances that have specified "owner" label and has some
+  // "pool" label.
+  final filter = [
+    'labels.owner = "pub-dev"',
+    'labels.pool : *',
+  ].join(' AND ');
+
+  // Remark: We could have more concurrency here, but listing all instances
+  //         shouldn't take too long, and very few of the instances should be
+  //         so old that we need to delete them.
+  for (final zone in _googleCloudZones) {
+    String? nextPageToken;
+    do {
+      final response = await _retry(() => api.instances.list(
+            project,
+            zone,
+            maxResults: 500,
+            filter: filter,
+            pageToken: nextPageToken,
+          ));
+      nextPageToken = response.nextPageToken;
+
+      // For each instance, delete it if it's older than 3 days
+      for (final instance in response.items ?? <Instance>[]) {
+        final created = _parseInstanceCreationTimestamp(
+          instance.creationTimestamp,
+        );
+        if (created.isAfter(clock.now().subtract(Duration(days: 3)))) {
+          continue;
+        }
+        try {
+          _log.warning('Deleting abandoned instance: ${instance.name} '
+              'created at ${instance.creationTimestamp}.');
+          await _retryWithRequestId((rId) => api.instances.delete(
+                project,
+                zone,
+                instance.name!,
+                requestId: rId,
+              ));
+          // Note. that instances.delete() technically returns a custom long-running
+          // operation, we have no reasonable action to take if deletion fails.
+          // Presumably, the instance would show up in listings again and eventually
+          // be deleted once more (with a new operation, with a new requestId).
+          // TODO: Await the delete operation...
+        } on DetailedApiRequestError catch (e) {
+          if (e.status == 404) {
+            // If we get a 404, then we shall assume that instance has been deleted.
+            // Worst case the instance will eventually show up in listings again and
+            // then be deleted once more.
+            return;
+          }
+          rethrow;
+        }
+      }
+    } while (nextPageToken != null);
+  }
 }
 
 class _GoogleCloudInstance extends CloudInstance {
@@ -157,12 +264,18 @@ Future<T> _retry<T>(Future<T> Function() fn) async {
 /// Pattern for valid GCE instance names.
 final _validInstanceNamePattern = RegExp(r'^[a-z]([-a-z0-9]*[a-z0-9])?$');
 
+String _shellSingleQuote(String string) =>
+    "'${string.replaceAll("'", "'\\''")}'";
+
 @sealed
 class _GoogleCloudCompute extends CloudCompute {
   final ComputeApi _api;
 
-  /// GCP project this isntance is managing VMs inside.
+  /// GCP project this instance is managing VMs inside.
   final String _project;
+
+  /// VPC network instances should be attached to.
+  final String _network;
 
   /// GCP zones this instance is managing VMs inside.
   final List<String> _zones;
@@ -187,6 +300,7 @@ class _GoogleCloudCompute extends CloudCompute {
   _GoogleCloudCompute(
     this._api,
     this._project,
+    this._network,
     this._zones,
     this._machineType,
     this._poolLabel,
@@ -236,33 +350,68 @@ class _GoogleCloudCompute extends CloudCompute {
       );
     }
 
-    final cmd = [
-      '/usr/bin/docker',
-      'run',
-      '--rm',
-      '-u',
-      '2000',
-      '--name',
-      'task',
-      dockerImage,
-      ...arguments
-    ];
-    final cloudConfig = [
-      '#cloud-config',
-      'users:',
-      '- name: worker',
-      '  uid: 2000',
-      'runcmd:',
-      '- ${json.encode(cmd)}',
-      '- [\'/sbin/shutdown\', \'now\']',
-      '',
-    ].join('\n');
+    // The following cloud-init starts the docker image with [arguments] after
+    // gcr-online, docker and stackdriver-logging is available.
+    //
+    // We need GCR and docker socket to be available, but we don't need logging,
+    // thus, logging is not **wanted** by this unit. But if loaded, we would
+    // like to start after logging.
+    //
+    // We tweak the environment to have `HOME=/home/worker` because credentials
+    // for docker is configured using a dot-file in `$HOME`. And on `/root` is
+    // not writable on Container-Optimized OS, see:
+    // https://cloud.google.com/container-optimized-os/docs/concepts/disks-and-filesystem
+    //
+    // Once the `worker.service` is done, the `ExecStartPost` command is
+    // configured to terminate the instance. This should terminate regardless of
+    // the exit-code.
+    //
+    // As `/etc` is stateless we need to reproduce any changes we make to it in
+    // cloud-init configuration. Hence, why we do `systemctl start..` rather
+    // than `systemctl enable..`.
+    //
+    // See: https://cloudinit.readthedocs.io/en/latest/
+    final cloudConfig = '''
+#cloud-config
+users:
+- name: worker
+  uid: 2000
+write_files:
+- path: /etc/systemd/system/worker.service
+  permissions: 0644
+  owner: root
+  content: |
+    [Unit]
+    Description=Start worker
+    Wants=gcr-online.target
+    Wants=docker.socket
+    After=gcr-online.target
+    After=docker.socket
+    After=stackdriver-logging.service
+
+    [Service]
+    Type=oneshot
+    Environment="HOME=/home/worker"
+    ExecStartPre=/usr/bin/docker-credential-gcr configure-docker
+    ExecStart=/usr/bin/docker run --rm -u worker:2000 --name=worker $dockerImage ${arguments.map(_shellSingleQuote).join(' ')}
+    ExecStartPost=/sbin/shutdown now
+    StandardOutput=journal+console
+    StandardError=journal+console
+runcmd:
+- systemctl daemon-reload
+- systemctl start worker.service
+''';
 
     final instance = Instance()
       ..name = instanceName
       ..description = description
       ..machineType = 'zones/$zone/machineTypes/$_machineType'
-      ..scheduling = (Scheduling()..preemptible = true)
+      ..scheduling = (Scheduling()
+        ..preemptible = true
+        ..automaticRestart = false
+        ..onHostMaintenance = 'TERMINATE'
+        ..instanceTerminationAction = 'DELETE'
+        ..provisioningModel = 'SPOT')
       ..labels = {
         // Labels that allows us to filter instances when listing instances.
         'owner': 'pub-dev',
@@ -273,16 +422,29 @@ class _GoogleCloudCompute extends CloudCompute {
           MetadataItems()
             ..key = 'user-data'
             ..value = cloudConfig,
+          // Enable logging with Google Cloud Logging, see:
+          // https://cloud.google.com/container-optimized-os/docs/how-to/logging
+          MetadataItems()
+            ..key = 'google-logging-enabled'
+            ..value = 'true',
+          // These VMs are intended to be short-lived, we should update the
+          // image, hence, automatic updates shouldn't be necessary.
+          // https://cloud.google.com/container-optimized-os/docs/concepts/auto-update#disabling_automatic_updates
+          MetadataItems()
+            ..key = 'cos-update-strategy'
+            ..value = 'update_disabled',
         ])
-      ..serviceAccounts = []
+      ..serviceAccounts = [
+        ServiceAccount()
+          ..email = activeConfiguration.taskWorkerServiceAccount
+          ..scopes = [ComputeApi.cloudPlatformScope]
+      ]
       ..networkInterfaces = [
+        // This attaches the VM to the given network, but doesn't assign any
+        // public IP address. So the ability to make outbound connections depend
+        // on Cloud Nat configuration for the network.
         NetworkInterface()
-          ..network = 'global/networks/default'
-          ..accessConfigs = [
-            AccessConfig()
-              ..type = 'ONE_TO_ONE_NAT'
-              ..name = 'External NAT',
-          ],
+          ..network = 'projects/$_project/global/networks/$_network',
       ]
       ..disks = [
         AttachedDisk()
@@ -290,6 +452,7 @@ class _GoogleCloudCompute extends CloudCompute {
           ..boot = true
           ..autoDelete = true
           ..initializeParams = (AttachedDiskInitializeParams()
+            ..diskSizeGb = '10'
             ..labels = {
               // Labels allows to track disks, in practice they should always
               // be auto-deleted with instance, but if this fails it's nice to
@@ -297,8 +460,7 @@ class _GoogleCloudCompute extends CloudCompute {
               'owner': 'pub-dev',
               'pool': _poolLabel,
             }
-            ..sourceImage =
-                'projects/cos-cloud/global/images/family/cos-stable'),
+            ..sourceImage = activeConfiguration.cosImage),
       ];
 
     _log.info('Creating instance: ${instance.name}');
@@ -381,17 +543,27 @@ class _GoogleCloudCompute extends CloudCompute {
 
   @override
   Future<void> delete(String zone, String instanceName) async {
-    await _retryWithRequestId((rId) => _api.instances.delete(
-          _project,
-          zone,
-          instanceName,
-          requestId: rId,
-        ));
-    // Note. that instances.delete() technically returns a custom long-running
-    // operation, we have no reasonable action to take if deletion fails.
-    // Presumably, the instance would show up in listings again and eventually
-    // be deleted once more (with a new operation, with a new requestId).
-    // TODO: Await the delete operation...
+    try {
+      await _retryWithRequestId((rId) => _api.instances.delete(
+            _project,
+            zone,
+            instanceName,
+            requestId: rId,
+          ));
+      // Note. that instances.delete() technically returns a custom long-running
+      // operation, we have no reasonable action to take if deletion fails.
+      // Presumably, the instance would show up in listings again and eventually
+      // be deleted once more (with a new operation, with a new requestId).
+      // TODO: Await the delete operation...
+    } on DetailedApiRequestError catch (e) {
+      if (e.status == 404) {
+        // If we get a 404, then we shall assume that instance has been deleted.
+        // Worst case the instance will eventually show up in listings again and
+        // then be deleted once more.
+        return;
+      }
+      rethrow;
+    }
   }
 
   @override
@@ -454,18 +626,7 @@ class _GoogleCloudCompute extends CloudCompute {
   }
 
   CloudInstance _wrapInstance(Instance instance, String zone) {
-    DateTime created;
-    try {
-      created = DateTime.parse(instance.creationTimestamp ?? '');
-    } on FormatException {
-      // Print error and instance to log..
-      _log.severe(
-        'Failed to parse instance.creationTimestamp: '
-        '"${instance.creationTimestamp}"',
-      );
-      // Fallback to year zero that way instances will be killed.
-      created = DateTime(0);
-    }
+    final created = _parseInstanceCreationTimestamp(instance.creationTimestamp);
 
     InstanceState state;
     switch (instance.status) {
@@ -510,4 +671,23 @@ class _GoogleCloudCompute extends CloudCompute {
         created,
         state,
       );
+}
+
+/// Utility method for parsing `instance.creationTimestamp`.
+///
+/// This creates a particularly serious log message if it fails, because the
+/// creation timestamp is used for cleaning up instances. So ability to parse
+/// it correctly is rather important.
+DateTime _parseInstanceCreationTimestamp(String? timestamp) {
+  try {
+    return DateTime.parse(timestamp ?? '');
+  } on FormatException {
+    // Print error and instance to log..
+    _log.severe(
+      'Failed to parse instance.creationTimestamp: '
+      '"$timestamp"',
+    );
+    // Fallback to year zero that way instances will be killed.
+    return DateTime(0);
+  }
 }

@@ -70,7 +70,7 @@ void main() {
   });
 
   test('runtime sdk version should match CI and dockerfile', () async {
-    final String docker = await File('../Dockerfile').readAsString();
+    final String docker = await File('../Dockerfile.app').readAsString();
     expect(docker.contains('\nFROM dart:$runtimeSdkVersion\n'), isTrue);
     final String monoPkg = await File('mono_pkg.yaml').readAsString();
     expect(monoPkg.contains('$runtimeSdkVersion'), isTrue);
@@ -79,7 +79,7 @@ void main() {
   });
 
   test('Dart SDK versions should match dockerfile', () async {
-    final dockerfileContent = await File('../Dockerfile').readAsString();
+    final dockerfileContent = await File('../Dockerfile.app').readAsString();
     expect(
         dockerfileContent,
         contains(
@@ -91,7 +91,7 @@ void main() {
   });
 
   test('Flutter SDK versions should match dockerfile', () async {
-    final String docker = await File('../Dockerfile').readAsString();
+    final String docker = await File('../Dockerfile.app').readAsString();
     expect(docker.contains('stable $toolStableFlutterSdkVersion'), isTrue);
     expect(docker.contains('preview $toolPreviewFlutterSdkVersion'), isTrue);
   });

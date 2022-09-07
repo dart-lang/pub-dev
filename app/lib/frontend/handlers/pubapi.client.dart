@@ -6,9 +6,10 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:_pub_shared/data/account_api.dart' as _i4;
-import 'package:_pub_shared/data/admin_api.dart' as _i6;
+import 'package:_pub_shared/data/admin_api.dart' as _i7;
 import 'package:_pub_shared/data/package_api.dart' as _i3;
 import 'package:_pub_shared/data/publisher_api.dart' as _i5;
+import 'package:_pub_shared/data/task_api.dart' as _i6;
 import 'package:api_builder/_client_utils.dart' as _i2;
 import 'package:http/http.dart' as _i1;
 
@@ -394,6 +395,21 @@ class PubApiClient {
     );
   }
 
+  Future<_i6.UploadTaskResultResponse> taskUploadResult(
+      String package, String version) async {
+    return _i6.UploadTaskResultResponse.fromJson(await _client.requestJson(
+      verb: 'post',
+      path: '/api/tasks/$package/$version/upload',
+    ));
+  }
+
+  Future<List<int>> taskUploadFinished(String package, String version) async {
+    return await _client.requestBytes(
+      verb: 'post',
+      path: '/api/tasks/$package/$version/finished',
+    );
+  }
+
   Future<List<int>> adminExecuteTool(String tool, String args) async {
     return await _client.requestBytes(
       verb: 'post',
@@ -401,9 +417,9 @@ class PubApiClient {
     );
   }
 
-  Future<_i6.AdminListUsersResponse> adminListUsers(
+  Future<_i7.AdminListUsersResponse> adminListUsers(
       {String? email, String? ouid, String? ct}) async {
-    return _i6.AdminListUsersResponse.fromJson(await _client.requestJson(
+    return _i7.AdminListUsersResponse.fromJson(await _client.requestJson(
       verb: 'get',
       path: '/api/admin/users',
       query: email != null || ouid != null || ct != null
@@ -447,40 +463,40 @@ class PubApiClient {
     ));
   }
 
-  Future<_i6.AssignedTags> adminGetAssignedTags(String package) async {
-    return _i6.AssignedTags.fromJson(await _client.requestJson(
+  Future<_i7.AssignedTags> adminGetAssignedTags(String package) async {
+    return _i7.AssignedTags.fromJson(await _client.requestJson(
       verb: 'get',
       path: '/api/admin/packages/$package/assigned-tags',
     ));
   }
 
-  Future<_i6.AssignedTags> adminPostAssignedTags(
-      String package, _i6.PatchAssignedTags payload) async {
-    return _i6.AssignedTags.fromJson(await _client.requestJson(
+  Future<_i7.AssignedTags> adminPostAssignedTags(
+      String package, _i7.PatchAssignedTags payload) async {
+    return _i7.AssignedTags.fromJson(await _client.requestJson(
       verb: 'post',
       path: '/api/admin/packages/$package/assigned-tags',
       body: payload.toJson(),
     ));
   }
 
-  Future<_i6.PackageUploaders> adminGetPackageUploaders(String package) async {
-    return _i6.PackageUploaders.fromJson(await _client.requestJson(
+  Future<_i7.PackageUploaders> adminGetPackageUploaders(String package) async {
+    return _i7.PackageUploaders.fromJson(await _client.requestJson(
       verb: 'get',
       path: '/api/admin/packages/$package/uploaders',
     ));
   }
 
-  Future<_i6.PackageUploaders> adminAddPackageUploader(
+  Future<_i7.PackageUploaders> adminAddPackageUploader(
       String package, String email) async {
-    return _i6.PackageUploaders.fromJson(await _client.requestJson(
+    return _i7.PackageUploaders.fromJson(await _client.requestJson(
       verb: 'put',
       path: '/api/admin/packages/$package/uploaders/$email',
     ));
   }
 
-  Future<_i6.PackageUploaders> adminRemovePackageUploader(
+  Future<_i7.PackageUploaders> adminRemovePackageUploader(
       String package, String email) async {
-    return _i6.PackageUploaders.fromJson(await _client.requestJson(
+    return _i7.PackageUploaders.fromJson(await _client.requestJson(
       verb: 'delete',
       path: '/api/admin/packages/$package/uploaders/$email',
     ));

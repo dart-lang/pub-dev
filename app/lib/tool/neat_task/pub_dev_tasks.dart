@@ -7,6 +7,9 @@ import 'dart:io';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:neat_periodic_task/neat_periodic_task.dart';
+import 'package:pub_dev/shared/configuration.dart';
+import 'package:pub_dev/task/backend.dart';
+import 'package:pub_dev/task/cloudcompute/googlecloudcompute.dart';
 import 'package:pub_dev/tool/maintenance/update_public_bucket.dart';
 
 import '../../account/backend.dart';
@@ -93,6 +96,29 @@ void _setupGenericPeriodicTasks() {
     name: 'update-package-likes',
     isRuntimeVersioned: false,
     task: updatePackageLikes,
+  );
+
+  // Updates PackageState in taskBackend
+  _weekly(
+    name: 'backfill-task-tracking-state',
+    isRuntimeVersioned: true,
+    task: taskBackend.backfillTrackingState,
+  );
+
+  // Deletes task results for old runtime versions
+  _weekly(
+    name: 'garbage-collect-task-results',
+    isRuntimeVersioned: false,
+    task: taskBackend.garbageCollect,
+  );
+
+  // Delete very old instances that have been abandoned
+  _daily(
+    name: 'garbage-collect-old-instances',
+    isRuntimeVersioned: false,
+    task: () async => await deleteAbandonedInstances(
+      project: activeConfiguration.taskWorkerProject!,
+    ),
   );
 }
 

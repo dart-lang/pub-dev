@@ -6,9 +6,16 @@ incomingPackagesBucketName: dartlang-pub-dev-incoming-packages
 projectId: dartlang-pub-dev
 packageBucketName: dartlang-pub-dev--pub-packages
 searchServicePrefix: https://search-dot-dartlang-pub-dev.appspot.com
+defaultServiceBaseUrl: https://{{GAE_VERSION}}-dot-{{GOOGLE_CLOUD_PROJECT}}.appspot.com
 dartdocStorageBucketName: dartlang-pub-dev--dartdoc-storage
 popularityDumpBucketName: dartlang-pub-dev--popularity
 searchSnapshotBucketName: dartlang-pub-dev--search-snapshot
+taskResultBucketName: dartlang-pub-dev-task-output
+taskWorkerImage: gcr.io/dartlang-pub-tasks/{{GOOGLE_CLOUD_PROJECT}}-{{GAE_VERSION}}-worker
+taskWorkerProject: dartlang-pub-tasks
+taskWorkerNetwork: pub-workers
+cosImage: projects/cos-cloud/global/images/family/cos-97-lts
+taskWorkerServiceAccount: task-worker-dev@dartlang-pub-tasks.iam.gserviceaccount.com
 imageBucketName: dartlang-pub-dev--pub-images
 storageBaseUrl: https://storage.googleapis.com
 pubClientAudience: 818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.googleusercontent.com
@@ -20,7 +27,7 @@ uploadSignerServiceAccount: package-uploader-signer@dartlang-pub-dev.iam.gservic
 blockRobots: true
 productionHosts:
 - dartlang-pub-dev.appspot.com
-- {{GAE_SERVICE}}-dot-dartlang-pub-dev.appspot.com
+- '{{GAE_SERVICE}}-dot-dartlang-pub-dev.appspot.com'
 primaryApiUri: https://dartlang-pub-dev.appspot.com
 primarySiteUri: https://{{GAE_VERSION}}-dot-dartlang-pub-dev.appspot.com
 admins:

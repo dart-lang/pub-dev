@@ -239,7 +239,10 @@ class _Bucket implements Bucket {
     _validateObjectName(objectName);
     _logger.info('read request for $objectName');
     final file = _files[objectName];
-    final bytes = file!.content;
+    if (file == null) {
+      throw DetailedApiRequestError(404, '$objectName does not exists');
+    }
+    final bytes = file.content;
     if (offset != null) {
       yield bytes.sublist(offset, offset + length!);
     } else {

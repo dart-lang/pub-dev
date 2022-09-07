@@ -11,6 +11,12 @@ import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
+import 'package:pub_dev/fake/server/fake_storage_server.dart';
+import 'package:pub_dev/package/screenshots/backend.dart';
+import 'package:pub_dev/service/youtube/backend.dart';
+import 'package:pub_dev/task/backend.dart';
+import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
+import 'package:pub_dev/task/cloudcompute/googlecloudcompute.dart';
 import 'package:shelf/shelf_io.dart';
 
 import '../account/backend.dart';
@@ -24,13 +30,11 @@ import '../fake/backend/fake_domain_verifier.dart';
 import '../fake/backend/fake_email_sender.dart';
 import '../fake/backend/fake_upload_signer_service.dart';
 import '../fake/server/fake_client_context.dart';
-import '../fake/server/fake_storage_server.dart';
 import '../frontend/email_sender.dart';
 import '../frontend/handlers.dart';
 import '../job/backend.dart';
 import '../package/backend.dart';
 import '../package/name_tracker.dart';
-import '../package/screenshots/backend.dart';
 import '../package/search_adapter.dart';
 import '../package/upload_signer_service.dart';
 import '../publisher/backend.dart';
@@ -42,7 +46,6 @@ import '../search/flutter_sdk_mem_index.dart';
 import '../search/mem_index.dart';
 import '../search/search_client.dart';
 import '../search/updater.dart';
-import '../service/youtube/backend.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
 import '../shared/env_config.dart';
@@ -50,8 +53,8 @@ import '../shared/handler_helpers.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/redis_cache.dart' show setupCache;
 import '../shared/storage.dart';
+import '../shared/versions.dart';
 import '../tool/utils/http.dart';
-
 import 'announcement/backend.dart';
 import 'secret/backend.dart';
 
@@ -98,6 +101,21 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
             : loggingEmailSender,
       );
       registerUploadSigner(await createUploadSigner(retryingAuthClient));
+
+      // Confiugure a CloudCompute pool for later use in TaskBackend
+      //
+      // This should not be wrapped with [httpRetryClient] because entire
+      // requests are retried by our GCE logic.
+      final gceClient = await auth.clientViaApplicationDefaultCredentials(
+        scopes: [googleCloudComputeScope],
+      );
+      registerCloudComputeClient(gceClient);
+      registerScopeExitCallback(gceClient.close);
+      registertaskWorkerCloudCompute(createGoogleCloudCompute(
+        project: activeConfiguration.taskWorkerProject!,
+        network: activeConfiguration.taskWorkerNetwork!,
+        poolLabel: '${runtimeVersion.replaceAll('.', '-')}_worker',
+      ));
 
       return await _withPubServices(fn);
     });
@@ -155,6 +173,9 @@ Future<R> withFakeServices<R>({
     registerEmailSender(FakeEmailSender());
     registerUploadSigner(
         FakeUploadSignerService(configuration!.storageBaseUrl!));
+
+    registertaskWorkerCloudCompute(FakeCloudCompute());
+
     return await _withPubServices(() async {
       await youtubeBackend.start();
       if (frontendServer != null) {
@@ -224,8 +245,15 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
       storageService.bucket(activeConfiguration.canonicalPackagesBucketName!),
       storageService.bucket(activeConfiguration.publicPackagesBucketName!),
     ));
+    registerTaskBackend(TaskBackend(
+      dbService,
+      taskWorkerCloudCompute,
+      storageService.bucket(activeConfiguration.taskResultBucketName!),
+    ));
+
     await setupCache();
 
+    registerScopeExitCallback(taskBackend.stop);
     registerScopeExitCallback(announcementBackend.close);
     registerScopeExitCallback(searchBackend.close);
     registerScopeExitCallback(() async => nameTracker.stopTracking());

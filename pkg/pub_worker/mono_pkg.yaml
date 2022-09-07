@@ -1,0 +1,13 @@
+# See https://pub.dev/packages/mono_repo for details on this file
+sdk:
+  - 2.16.1
+
+stages:
+  - smoke_test:
+      - group:
+          - format
+          - analyze: --fatal-infos --fatal-warnings bin/ lib/
+  - unit_test:
+      - test: --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '0~3p'`
+      - test: --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '1~3p'`
+      - test: --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '2~3p'`

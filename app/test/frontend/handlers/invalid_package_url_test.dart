@@ -33,7 +33,8 @@ void main() {
     expect(urls, contains('/packages/<package>'));
     expect(urls, contains('/packages/<package>/versions/<version>'));
     expect(urls, contains('/api/packages/<package>'));
-    expect(urls, hasLength(39));
+    // this a naive assertion that fails, if new end-points are introduced!
+    expect(urls, hasLength(41), reason: 'check if new end-points was added');
   });
 
   testWithProfile(
@@ -53,7 +54,8 @@ void main() {
           final rs = await issueGet(u);
           statusCodes.add(rs.statusCode);
           expect(rs.statusCode, lessThan(500), reason: '$u ${rs.statusCode}');
-          expect(expectedCodes, contains(rs.statusCode),
+          expect(rs.statusCode,
+              anyOf(expectedCodes.map((c) => equals(c)).toList()),
               reason: '$kind $u ${rs.statusCode}');
         }
         expect(statusCodes, expectedCodes, reason: kind);

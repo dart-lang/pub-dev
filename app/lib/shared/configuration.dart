@@ -83,6 +83,14 @@ class Configuration {
   /// The scheme://host:port prefix for the search service.
   final String searchServicePrefix;
 
+  /// The `scheme://host:port baseUrl for the default service with same
+  /// AppEngine version as this instance.
+  ///
+  /// Useful, if you wish to call a default service with same `runtimeVersion`
+  /// as this instance. Using this URL from services other than _default_ is not
+  /// safe, as services may be deployed independently.
+  final String defaultServiceBaseUrl;
+
   /// The name of the Cloud Storage bucket to use for dartdoc generated output.
   final String? dartdocStorageBucketName;
 
@@ -91,6 +99,40 @@ class Configuration {
 
   /// The name of the Cloud Storage bucket to use for search snapshots.
   final String? searchSnapshotBucketName;
+
+  /// The name of the Cloud Storage bucket to use for task results, such as
+  /// generated dartdoc blobs, dartdoc index-files, pana-reports and task logs.
+  final String? taskResultBucketName;
+
+  /// Docker image containing `../pkg/pub_worker` to be used for running
+  /// analysis.
+  final String? taskWorkerImage;
+
+  /// GCP project within which the `pub_worker` VMs are created.
+  final String? taskWorkerProject;
+
+  /// Name of the VPC within which `pub_worker` VMs should be created.
+  ///
+  /// This VPC should have Cloud Nat enabled.
+  final String? taskWorkerNetwork;
+
+  /// Container-Optimized OS image for running analysis tasks.
+  ///
+  /// See:
+  /// https://cloud.google.com/container-optimized-os/docs/concepts/versioning
+  final String? cosImage;
+
+  /// Service account to be assigned task VMs.
+  ///
+  /// This service account need the following roles:
+  ///  * Logs Writer (`roles/logging.logWriter`),
+  ///  * Storage Object Viewer (`roles/storage.objectViewer`) on the container
+  ///    registery buckets.
+  ///
+  /// The container registery buckets are usually:
+  ///  * artifacts.PROJECT-ID.appspot.com
+  ///  * STORAGE-REGION.artifacts.PROJECT-ID.appspot.com
+  final String? taskWorkerServiceAccount;
 
   // The scheme://host:port prefix for storage URLs.
   final String? storageBaseUrl;
@@ -140,6 +182,11 @@ class Configuration {
   ///
   /// Authorization requires the following IAM permission on the package bucket:
   /// - iam.serviceAccounts.signBlob
+  ///
+  /// This service account must be "Storage Object Creator" in the following
+  /// buckets:
+  ///  * [incomingPackagesBucketName]
+  ///  * [taskResultBucketName]
   ///
   /// https://cloud.google.com/iam/docs/reference/credentials/rest/v1/projects.serviceAccounts/signBlob
   final String? uploadSignerServiceAccount;
@@ -193,6 +240,12 @@ class Configuration {
     required this.dartdocStorageBucketName,
     required this.popularityDumpBucketName,
     required this.searchSnapshotBucketName,
+    required this.taskResultBucketName,
+    required this.taskWorkerImage,
+    required this.taskWorkerProject,
+    required this.taskWorkerNetwork,
+    required this.cosImage,
+    required this.taskWorkerServiceAccount,
     required this.searchServicePrefix,
     required this.storageBaseUrl,
     required this.pubClientAudience,
@@ -206,6 +259,7 @@ class Configuration {
     required this.primaryApiUri,
     required this.primarySiteUri,
     required this.admins,
+    required this.defaultServiceBaseUrl,
     required this.tools,
   });
 
@@ -247,11 +301,18 @@ class Configuration {
       dartdocStorageBucketName: 'fake-bucket-dartdoc',
       popularityDumpBucketName: 'fake-bucket-popularity',
       searchSnapshotBucketName: 'fake-bucket-search',
+      taskResultBucketName: 'fake-bucket-task-result',
+      taskWorkerImage: '-',
+      taskWorkerProject: '-',
+      taskWorkerNetwork: '-',
+      cosImage: 'projects/cos-cloud/global/images/family/cos-stable',
+      taskWorkerServiceAccount: '-',
       searchServicePrefix: 'http://localhost:$searchPort',
       storageBaseUrl: storageBaseUrl,
       pubClientAudience: null,
       pubSiteAudience: _fakeSiteAudience,
       adminAudience: null,
+      defaultServiceBaseUrl: 'http://localhost:$frontendPort/',
       gmailRelayServiceAccount: null, // disable email sending
       gmailRelayImpersonatedGSuiteUser: null, // disable email sending
       uploadSignerServiceAccount: null,
@@ -286,11 +347,18 @@ class Configuration {
       dartdocStorageBucketName: 'fake-bucket-dartdoc',
       popularityDumpBucketName: 'fake-bucket-popularity',
       searchSnapshotBucketName: 'fake-bucket-search',
+      taskResultBucketName: 'fake-bucket-task-result',
+      taskWorkerImage: '-',
+      taskWorkerProject: '-',
+      taskWorkerNetwork: '-',
+      cosImage: 'projects/cos-cloud/global/images/family/cos-stable',
+      taskWorkerServiceAccount: '-',
       searchServicePrefix: 'http://localhost:0',
       storageBaseUrl: storageBaseUrl ?? 'http://localhost:0',
       pubClientAudience: null,
       pubSiteAudience: null,
       adminAudience: null,
+      defaultServiceBaseUrl: 'http://localhost:0/',
       gmailRelayServiceAccount: null, // disable email sending
       gmailRelayImpersonatedGSuiteUser: null, // disable email sending
       uploadSignerServiceAccount: null,
@@ -323,6 +391,7 @@ class Configuration {
     popularityDumpBucketName!,
     publicPackagesBucketName!,
     searchSnapshotBucketName!,
+    taskResultBucketName!,
   ]);
 
   late final isProduction = projectId == 'dartlang-pub';

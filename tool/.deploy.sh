@@ -53,26 +53,32 @@ export CLOUDSDK_CORE_DISABLE_PROMPTS=1
 echo "### Deploying index.yaml"
 time -p gcloud --project "$PROJECT_ID" app deploy index.yaml
 
-# This script will build image:
-IMAGE="gcr.io/$PROJECT_ID/pub-dev-$APP_VERSION-image"
+# This script will build images:
+APP_IMAGE="gcr.io/$PROJECT_ID/pub-dev-$APP_VERSION-app"
+WORKER_IMAGE="gcr.io/dartlang-pub-tasks/$PROJECT_ID-$APP_VERSION-worker"
 
-echo "### Building docker image: $IMAGE"
-time -p gcloud --project "$PROJECT_ID" builds submit --timeout=1500 -t "$IMAGE"
+echo "### Building docker image for appengine: $APP_IMAGE"
+cp Dockerfile.app Dockerfile
+time -p gcloud --project "$PROJECT_ID" builds submit --timeout=1500 --machine-type=e2-highcpu-8 -t "$APP_IMAGE"
+
+echo "### Building docker image for pub_worker: $WORKER_IMAGE"
+cp Dockerfile.worker Dockerfile
+time -p gcloud --project "$PROJECT_ID" builds submit --timeout=1500 --machine-type=e2-highcpu-8 -t "$WORKER_IMAGE"
 
 echo "### Start deploying search.yaml (version: $APP_VERSION)"
-time -p gcloud --project "$PROJECT_ID" app deploy --no-promote -v "$APP_VERSION" --image-url "$IMAGE" 'search.yaml' &
+time -p gcloud --project "$PROJECT_ID" app deploy --no-promote -v "$APP_VERSION" --image-url "$APP_IMAGE" 'search.yaml' &
 SEARCH_PID=$!
 
 echo "### Start deploying dartdoc.yaml (version: $APP_VERSION)"
-time -p gcloud --project "$PROJECT_ID" app deploy --no-promote -v "$APP_VERSION" --image-url "$IMAGE" 'dartdoc.yaml' &
+time -p gcloud --project "$PROJECT_ID" app deploy --no-promote -v "$APP_VERSION" --image-url "$APP_IMAGE" 'dartdoc.yaml' &
 DARTDOC_PID=$!
 
 echo "### Start deploying analyzer.yaml (version: $APP_VERSION)"
-time -p gcloud --project "$PROJECT_ID" app deploy --no-promote -v "$APP_VERSION" --image-url "$IMAGE" 'analyzer.yaml' &
+time -p gcloud --project "$PROJECT_ID" app deploy --no-promote -v "$APP_VERSION" --image-url "$APP_IMAGE" 'analyzer.yaml' &
 ANALYZER_PID=$!
 
 echo "### Start deploying app.yaml (version: $APP_VERSION)"
-time -p gcloud --project "$PROJECT_ID" app deploy --no-promote -v "$APP_VERSION" --image-url "$IMAGE" 'app.yaml'
+time -p gcloud --project "$PROJECT_ID" app deploy --no-promote -v "$APP_VERSION" --image-url "$APP_IMAGE" 'app.yaml'
 echo "### app.yaml deployed"
 
 wait $SEARCH_PID

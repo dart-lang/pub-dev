@@ -10,3 +10,4 @@ targets:
       - 'lib/data/package_api.dart'
       - 'lib/data/page_data.dart'
       - 'lib/data/publisher_api.dart'
+      - 'lib/data/task_api.dart'

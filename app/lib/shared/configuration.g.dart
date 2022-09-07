@@ -20,9 +20,16 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
             'imageBucketName',
             'projectId',
             'searchServicePrefix',
+            'defaultServiceBaseUrl',
             'dartdocStorageBucketName',
             'popularityDumpBucketName',
             'searchSnapshotBucketName',
+            'taskResultBucketName',
+            'taskWorkerImage',
+            'taskWorkerProject',
+            'taskWorkerNetwork',
+            'cosImage',
+            'taskWorkerServiceAccount',
             'storageBaseUrl',
             'pubClientAudience',
             'pubSiteAudience',
@@ -56,6 +63,17 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
               $checkedConvert('popularityDumpBucketName', (v) => v as String?),
           searchSnapshotBucketName:
               $checkedConvert('searchSnapshotBucketName', (v) => v as String?),
+          taskResultBucketName:
+              $checkedConvert('taskResultBucketName', (v) => v as String?),
+          taskWorkerImage:
+              $checkedConvert('taskWorkerImage', (v) => v as String?),
+          taskWorkerProject:
+              $checkedConvert('taskWorkerProject', (v) => v as String?),
+          taskWorkerNetwork:
+              $checkedConvert('taskWorkerNetwork', (v) => v as String?),
+          cosImage: $checkedConvert('cosImage', (v) => v as String?),
+          taskWorkerServiceAccount:
+              $checkedConvert('taskWorkerServiceAccount', (v) => v as String?),
           searchServicePrefix:
               $checkedConvert('searchServicePrefix', (v) => v as String),
           storageBaseUrl:
@@ -84,6 +102,8 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
                   ?.map((e) =>
                       AdminId.fromJson(Map<String, dynamic>.from(e as Map)))
                   .toList()),
+          defaultServiceBaseUrl:
+              $checkedConvert('defaultServiceBaseUrl', (v) => v as String),
           tools: $checkedConvert(
               'tools',
               (v) => v == null
@@ -104,9 +124,16 @@ Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
       'imageBucketName': instance.imageBucketName,
       'projectId': instance.projectId,
       'searchServicePrefix': instance.searchServicePrefix,
+      'defaultServiceBaseUrl': instance.defaultServiceBaseUrl,
       'dartdocStorageBucketName': instance.dartdocStorageBucketName,
       'popularityDumpBucketName': instance.popularityDumpBucketName,
       'searchSnapshotBucketName': instance.searchSnapshotBucketName,
+      'taskResultBucketName': instance.taskResultBucketName,
+      'taskWorkerImage': instance.taskWorkerImage,
+      'taskWorkerProject': instance.taskWorkerProject,
+      'taskWorkerNetwork': instance.taskWorkerNetwork,
+      'cosImage': instance.cosImage,
+      'taskWorkerServiceAccount': instance.taskWorkerServiceAccount,
       'storageBaseUrl': instance.storageBaseUrl,
       'pubClientAudience': instance.pubClientAudience,
       'pubSiteAudience': instance.pubSiteAudience,

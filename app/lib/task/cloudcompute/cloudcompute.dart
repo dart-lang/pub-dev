@@ -53,7 +53,7 @@ enum InstanceState {
   terminated,
 }
 
-/// Interface for controlling a cloud compute region.
+/// Interface for controlling a pool of cloud compute instances.
 abstract class CloudCompute {
   /// List of zones available.
   List<String> get zones;

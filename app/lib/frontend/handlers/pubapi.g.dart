@@ -709,6 +709,36 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
+  router.add('POST', r'/api/tasks/<package>/<version>/upload',
+      (Request request, String package, String version) async {
+    try {
+      final _$result = await service.taskUploadResult(
+        request,
+        package,
+        version,
+      );
+      return $utilities.jsonResponse(_$result.toJson());
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
+  router.add('POST', r'/api/tasks/<package>/<version>/finished',
+      (Request request, String package, String version) async {
+    try {
+      final _$result = await service.taskUploadFinished(
+        request,
+        package,
+        version,
+      );
+      return _$result;
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
   router.add('POST', r'/api/admin/tools/<tool>/<args|[^]*>',
       (Request request, String tool, String args) async {
     try {
