@@ -74,9 +74,6 @@ PackageSearchResult _$PackageSearchResultFromJson(Map<String, dynamic> json) =>
           ? null
           : DateTime.parse(json['timestamp'] as String),
       totalCount: json['totalCount'] as int,
-      highlightedHit: json['highlightedHit'] == null
-          ? null
-          : PackageHit.fromJson(json['highlightedHit'] as Map<String, dynamic>),
       sdkLibraryHits: (json['sdkLibraryHits'] as List<dynamic>?)
           ?.map((e) => SdkLibraryHit.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -97,7 +94,6 @@ Map<String, dynamic> _$PackageSearchResultToJson(PackageSearchResult instance) {
 
   writeNotNull('timestamp', instance.timestamp?.toIso8601String());
   val['totalCount'] = instance.totalCount;
-  writeNotNull('highlightedHit', instance.highlightedHit?.toJson());
   val['sdkLibraryHits'] =
       instance.sdkLibraryHits.map((e) => e.toJson()).toList();
   val['packageHits'] = instance.packageHits.map((e) => e.toJson()).toList();

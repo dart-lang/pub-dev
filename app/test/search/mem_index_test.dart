@@ -370,7 +370,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       // do not highlight package if otherwise exact match is in the query
       final rs2 = await index
           .search(ServiceSearchQuery.parse(query: 'http dependency:test'));
-      expect(rs2.highlightedHit, isNull);
       expect(rs2.totalCount, 1);
     });
 
@@ -403,7 +402,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       // do not highlight package if otherwise exact match is in the query
       final rs2 = await index
           .search(ServiceSearchQuery.parse(query: 'http dependency*:foo'));
-      expect(rs2.highlightedHit, isNull);
       expect(rs2.totalCount, 2);
     });
 
@@ -459,7 +457,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       // do not highlight package if otherwise exact match is in the query
       final rs2 = await index
           .search(ServiceSearchQuery.parse(query: 'async publisher:dart.dev'));
-      expect(rs2.highlightedHit, isNull);
       expect(rs2.totalCount, 1);
     });
 
@@ -586,13 +583,13 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       ));
       final match = await index.search(
           ServiceSearchQuery.parse(query: 'app', order: SearchOrder.text));
-      expect(match.allPackageHits.map((e) => e.toJson()), [
+      expect(match.packageHits.map((e) => e.toJson()), [
         {'package': 'app', 'score': 1.0},
         {'package': 'apps', 'score': 1.0},
       ]);
       final match2 = await index.search(
           ServiceSearchQuery.parse(query: 'apps', order: SearchOrder.text));
-      expect(match2.allPackageHits.map((e) => e.toJson()), [
+      expect(match2.packageHits.map((e) => e.toJson()), [
         {'package': 'app', 'score': 1.0},
         {'package': 'apps', 'score': 1.0},
       ]);
@@ -608,13 +605,13 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       ));
       final match = await index.search(
           ServiceSearchQuery.parse(query: 'app', order: SearchOrder.text));
-      expect(match.allPackageHits.map((e) => e.toJson()), [
+      expect(match.packageHits.map((e) => e.toJson()), [
         {'package': 'app', 'score': 1.0},
         {'package': 'appz', 'score': closeTo(0.95, 0.01)},
       ]);
       final match2 = await index.search(
           ServiceSearchQuery.parse(query: 'appz', order: SearchOrder.text));
-      expect(match2.allPackageHits.map((e) => e.toJson()), [
+      expect(match2.packageHits.map((e) => e.toJson()), [
         {'package': 'appz', 'score': 1.0},
         {'package': 'app', 'score': closeTo(0.62, 0.01)},
       ]);

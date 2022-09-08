@@ -54,7 +54,7 @@ class SearchAdapter {
       return <PackageView>[];
     }
     final availablePackages =
-        searchResults.allPackageHits.map((ps) => ps.package).toList();
+        searchResults.packageHits.map((ps) => ps.package).toList();
     final packages = <String>[];
     for (var i = 0; i < count && availablePackages.isNotEmpty; i++) {
       // The first item should come from the top results.
@@ -77,16 +77,12 @@ class SearchAdapter {
     final result = await _searchOrFallback(form, true);
     final views = await _getPackageViewsFromHits(
       [
-        if (result?.highlightedHit != null) result!.highlightedHit!,
         if (result?.packageHits != null) ...result!.packageHits,
       ],
     );
     return SearchResultPage(
       form,
       result!.totalCount,
-      highlightedHit: result.highlightedHit == null
-          ? null
-          : views[result.highlightedHit!.package],
       sdkLibraryHits: result.sdkLibraryHits,
       packageHits: result.packageHits
           .map((h) => views[h.package])
@@ -174,8 +170,6 @@ class SearchResultPage {
   /// The total number of results available for the search.
   final int totalCount;
 
-  final PackageView? highlightedHit;
-
   final List<SdkLibraryHit> sdkLibraryHits;
 
   /// The current list of packages on the page.
@@ -188,7 +182,6 @@ class SearchResultPage {
   SearchResultPage(
     this.form,
     this.totalCount, {
-    this.highlightedHit,
     List<SdkLibraryHit>? sdkLibraryHits,
     List<PackageView>? packageHits,
     this.message,
@@ -197,11 +190,9 @@ class SearchResultPage {
 
   SearchResultPage.empty(this.form, {this.message})
       : totalCount = 0,
-        highlightedHit = null,
         sdkLibraryHits = <SdkLibraryHit>[],
         packageHits = [];
 
-  bool get hasNoHit =>
-      highlightedHit == null && sdkLibraryHits.isEmpty && packageHits.isEmpty;
+  bool get hasNoHit => sdkLibraryHits.isEmpty && packageHits.isEmpty;
   bool get hasHit => !hasNoHit;
 }

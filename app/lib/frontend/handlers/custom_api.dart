@@ -120,7 +120,7 @@ Future<shelf.Response> apiPackageNameCompletionDataHandler(
     );
 
     return gzip.encode(jsonUtf8Encoder.convert({
-      'packages': rs.allPackageHits.map((p) => p.package).toList(),
+      'packages': rs.packageHits.map((p) => p.package).toList(),
     }));
   });
 
@@ -278,8 +278,7 @@ Future<VersionScore> packageVersionScoreHandler(
 Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
   final searchForm = SearchForm.parse(request.requestedUri.queryParameters);
   final sr = await searchClient.search(searchForm.toServiceQuery());
-  final packages =
-      sr.allPackageHits.map((ps) => {'package': ps.package}).toList();
+  final packages = sr.packageHits.map((ps) => {'package': ps.package}).toList();
   final hasNextPage = sr.totalCount > searchForm.pageSize! + searchForm.offset;
   final result = <String, dynamic>{
     'packages': packages,

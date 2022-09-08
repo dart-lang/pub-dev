@@ -297,8 +297,6 @@ class QueryValidity {
 class PackageSearchResult {
   final DateTime? timestamp;
   final int totalCount;
-  // TODO: remove if we are no longer displaying it
-  final PackageHit? highlightedHit;
   final List<SdkLibraryHit> sdkLibraryHits;
   final List<PackageHit> packageHits;
 
@@ -309,7 +307,6 @@ class PackageSearchResult {
   PackageSearchResult({
     required this.timestamp,
     required this.totalCount,
-    this.highlightedHit,
     List<SdkLibraryHit>? sdkLibraryHits,
     List<PackageHit>? packageHits,
     this.message,
@@ -319,7 +316,6 @@ class PackageSearchResult {
   PackageSearchResult.empty({this.message})
       : timestamp = clock.now().toUtc(),
         totalCount = 0,
-        highlightedHit = null,
         sdkLibraryHits = <SdkLibraryHit>[],
         packageHits = <PackageHit>[];
 
@@ -330,14 +326,7 @@ class PackageSearchResult {
 
   Map<String, dynamic> toJson() => _$PackageSearchResultToJson(this);
 
-  /// Lists all package hits, including the highlighted hit (if there is any).
-  Iterable<PackageHit> get allPackageHits sync* {
-    if (highlightedHit != null) yield highlightedHit!;
-    if (packageHits.isNotEmpty) yield* packageHits;
-  }
-
-  bool get isEmpty =>
-      highlightedHit == null && packageHits.isEmpty && sdkLibraryHits.isEmpty;
+  bool get isEmpty => packageHits.isEmpty && sdkLibraryHits.isEmpty;
 }
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
