@@ -5,6 +5,7 @@
 import 'package:http/testing.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/search/search_client.dart';
+import 'package:pub_dev/search/top_packages.dart';
 import 'package:test/test.dart';
 
 import '../../shared/handlers_test_utils.dart';
@@ -14,8 +15,9 @@ import '_utils.dart';
 void main() {
   setUpAll(() => updateLocalBuiltFilesIfNeeded());
 
-  group('ui', () {
-    testWithProfile('/', fn: () async {
+  group('landing page', () {
+    testWithProfile('without proper data', fn: () async {
+      await topPackages.update();
       final rs = await issueGet('/');
       await expectHtmlResponse(
         rs,
@@ -23,6 +25,27 @@ void main() {
           '/packages/oxygen',
           '/packages/neon',
           'oxygen is awesome',
+        ],
+        absent: [
+          'home-block-tf', // sdk:flutter is not populated
+          '/packages/http',
+          '/packages/event_bus',
+          'lightweight library for parsing',
+        ],
+      );
+    });
+
+    testWithProfile('with proper data', processJobsWithFakeRunners: true,
+        fn: () async {
+      await topPackages.update();
+      final rs = await issueGet('/');
+      await expectHtmlResponse(
+        rs,
+        present: [
+          '/packages/oxygen',
+          '/packages/neon',
+          'oxygen is awesome',
+          'home-block-tf', // sdk:flutter is populated
         ],
         absent: [
           '/packages/http',

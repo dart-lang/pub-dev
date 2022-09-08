@@ -8,8 +8,6 @@ import 'package:args/command_runner.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
-import 'package:pub_dev/service/youtube/backend.dart';
-import 'package:pub_dev/task/backend.dart';
 import 'package:stream_transform/stream_transform.dart' show RateLimit;
 import 'package:watcher/watcher.dart';
 
@@ -18,11 +16,14 @@ import '../../frontend/static_files.dart';
 import '../../job/backend.dart';
 import '../../package/deps_graph.dart';
 import '../../package/name_tracker.dart';
+import '../../search/top_packages.dart';
 import '../../service/announcement/backend.dart';
+import '../../service/youtube/backend.dart';
 import '../../shared/datastore.dart' as db;
 import '../../shared/env_config.dart';
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
+import '../../task/backend.dart';
 
 import '_isolate.dart';
 
@@ -61,6 +62,7 @@ Future _main(FrontendEntryMessage message) async {
   await popularityStorage.start();
   await nameTracker.startTracking();
   await announcementBackend.start();
+  await topPackages.start();
   await youtubeBackend.start();
 
   await runHandler(_logger, appHandler, sanitize: true);

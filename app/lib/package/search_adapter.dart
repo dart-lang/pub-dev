@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:math';
 
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:clock/clock.dart';
@@ -18,7 +17,6 @@ import 'models.dart';
 import 'name_tracker.dart';
 
 final _logger = Logger('frontend.search_adapter');
-final _random = Random.secure();
 
 /// The `SearchAdapter` registered in the current service scope.
 SearchAdapter get searchAdapter => ss.lookup(#_search) as SearchAdapter;
@@ -30,44 +28,6 @@ void registerSearchAdapter(SearchAdapter s) => ss.register(#_search, s);
 /// processes its results, extending the search results with up-to-date package
 /// data.
 class SearchAdapter {
-  /// Lookup the top featured packages with the specific tags and sorting.
-  ///
-  /// Uses long-term caching and local randomized selection.
-  /// Returns empty list when search is not available or doesn't yield results.
-  Future<List<PackageView>> topFeatured({
-    String? query,
-    int count = 6,
-    SearchOrder? order,
-  }) async {
-    final form = SearchForm(
-      query: query,
-      pageSize: 100,
-      order: order,
-    );
-    final searchResults = await _searchOrFallback(
-      form,
-      false,
-      ttl: Duration(hours: 6),
-      updateCacheAfter: Duration(hours: 1),
-    );
-    if (searchResults == null || searchResults.isEmpty) {
-      return <PackageView>[];
-    }
-    final availablePackages =
-        searchResults.packageHits.map((ps) => ps.package).toList();
-    final packages = <String>[];
-    for (var i = 0; i < count && availablePackages.isNotEmpty; i++) {
-      // The first item should come from the top results.
-      final index = i == 0 && availablePackages.length > 20
-          ? _random.nextInt(20)
-          : _random.nextInt(availablePackages.length);
-      packages.add(availablePackages.removeAt(index));
-    }
-    return (await scoreCardBackend.getPackageViews(packages))
-        .whereType<PackageView>()
-        .toList();
-  }
-
   /// Performs search using the `search` service and lookup package info and
   /// score from DatastoreDB.
   ///

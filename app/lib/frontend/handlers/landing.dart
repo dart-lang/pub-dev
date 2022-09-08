@@ -4,11 +4,10 @@
 
 import 'dart:async';
 
-import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
+import 'package:pub_dev/search/top_packages.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
-import '../../package/search_adapter.dart';
 import '../../service/youtube/backend.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
@@ -39,28 +38,12 @@ Future<shelf.Response> indexLandingHandler(shelf.Request request) async {
   }
 
   Future<String> _render() async {
-    final ffPackages = await searchAdapter.topFeatured(
-      query: PackageTags.isFlutterFavorite,
-      count: 4,
-    );
-
-    final mostPopularPackages =
-        await searchAdapter.topFeatured(order: SearchOrder.popularity);
-
-    final topFlutterPackages =
-        await searchAdapter.topFeatured(query: SdkTag.sdkFlutter);
-
-    final topDartPackages =
-        await searchAdapter.topFeatured(query: SdkTag.sdkDart);
-
-    final topPoWVideos = youtubeBackend.getTopPackageOfWeekVideos(count: 4);
-
     return renderLandingPage(
-      ffPackages: ffPackages,
-      mostPopularPackages: mostPopularPackages,
-      topFlutterPackages: topFlutterPackages,
-      topDartPackages: topDartPackages,
-      topPoWVideos: topPoWVideos,
+      ffPackages: topPackages.flutterFavorites(),
+      mostPopularPackages: topPackages.mostPopular(),
+      topFlutterPackages: topPackages.topFlutter(),
+      topDartPackages: topPackages.topDart(),
+      topPoWVideos: youtubeBackend.getTopPackageOfWeekVideos(count: 4),
     );
   }
 
