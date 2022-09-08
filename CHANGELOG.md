@@ -10,6 +10,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded preview Flutter analysis SDK to `3.3.1`.
  * NOTE: Deploy new index with `gcloud app deploy index.yaml`.
  * NOTE: Started to populate search index with `is:unlisted` tag for `discontinued` and `legacy` packages.
+ * NOTE: Landing page uses `CachedValue` to track top-* packages.
 
 ## `20220831t123000-all`
 
