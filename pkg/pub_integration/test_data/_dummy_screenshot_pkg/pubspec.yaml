@@ -1,6 +1,6 @@
 name: _dummy_screenshot_pkg
 description: A dummy package published for testing purposes.
-version: 1.3.0
+version: 1.4.0
 
 environment:
   sdk: '>=2.16.1 <3.0.0'
@@ -19,3 +19,5 @@ screenshots:
     path: horizontal.png
   - description: 'a very tall image'
     path: vertical.png
+  - description: 'video player gif'
+    path: demo_ipod.gif
