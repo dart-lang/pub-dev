@@ -217,16 +217,26 @@ class JwtPayload extends UnmodifiableMapView<String, dynamic> {
   /// time.
   bool verifyTimestamps([DateTime? now]) {
     now ??= clock.now();
-    if (iat != null && iat!.isAfter(now)) {
+
+    bool isNullOrAIsBeforeB(String name, DateTime? a, DateTime? b) {
+      if (a == null || b == null) {
+        return true;
+      }
+      if (a.isBefore(b) || a == b) {
+        return true;
+      }
+      // TODO: remove debug message after the appropriate difference threshold is selected.
+      print('$name has a time difference of ${a.difference(b)}.');
       return false;
     }
-    if (nbf != null && nbf!.isAfter(now)) {
-      return false;
-    }
-    if (exp != null && exp!.isBefore(now)) {
-      return false;
-    }
-    return true;
+
+    // NOTE: The list ensures that each timestamp is evaluated, all differences will be printed.
+    // TODO: switch to a simple `&&` after the appropriate difference threshold is selected.
+    return [
+      isNullOrAIsBeforeB('iat', iat, now),
+      isNullOrAIsBeforeB('nbf', nbf, now),
+      isNullOrAIsBeforeB('exp', now, exp),
+    ].every((b) => b);
   }
 }
 
