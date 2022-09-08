@@ -2,9 +2,11 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Deploy new index with `gcloud app deploy index.yaml`.
- * Bumped runtimeVersion to `2022.09.01`.
+ * Bumped runtimeVersion to `2022.09.08`.
  * Upgraded runtime Dart SDK to `2.18.0`.
+ * Upgraded stable Flutter analysis SDK to `3.3.1`.
+ * Upgraded preview Flutter analysis SDK to `3.3.1`.
+ * NOTE: Deploy new index with `gcloud app deploy index.yaml`.
  * NOTE: Started to populate search index with `is:unlisted` tag for `discontinued` and `legacy` packages.
 
 ## `20220831t123000-all`
