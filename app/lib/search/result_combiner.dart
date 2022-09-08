@@ -41,7 +41,6 @@ class SearchResultCombiner {
     return PackageSearchResult(
       timestamp: primaryResult.timestamp,
       totalCount: primaryResult.totalCount,
-      highlightedHit: primaryResult.highlightedHit,
       packageHits: primaryResult.packageHits,
       sdkLibraryHits: sdkLibraryHits.take(3).toList(),
     );

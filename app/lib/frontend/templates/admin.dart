@@ -54,7 +54,6 @@ String renderAccountPackagesPage({
       d.p(text: '$prefix:'),
     listOfPackagesNode(
       searchForm: null,
-      highlightedHit: null,
       sdkLibraryHits: [],
       packageHits: packageHits,
     ),

@@ -25,15 +25,12 @@ import 'screenshots.dart';
 /// Renders the listing page (list of packages).
 d.Node listOfPackagesNode({
   required SearchForm? searchForm,
-  required PackageView? highlightedHit,
   required List<SdkLibraryHit> sdkLibraryHits,
   required List<PackageView> packageHits,
 }) {
   return d.div(
     classes: ['packages'],
     children: [
-      if (highlightedHit != null)
-        _packageItem(highlightedHit, searchForm: searchForm),
       ...sdkLibraryHits.map(_sdkLibraryItem),
       ...packageHits.map((hit) => _packageItem(hit, searchForm: searchForm)),
       imageCarousel(),
