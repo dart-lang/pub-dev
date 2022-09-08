@@ -45,6 +45,7 @@ import '../search/dart_sdk_mem_index.dart';
 import '../search/flutter_sdk_mem_index.dart';
 import '../search/mem_index.dart';
 import '../search/search_client.dart';
+import '../search/top_packages.dart';
 import '../search/updater.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
@@ -177,6 +178,7 @@ Future<R> withFakeServices<R>({
     registertaskWorkerCloudCompute(FakeCloudCompute());
 
     return await _withPubServices(() async {
+      await topPackages.start();
       await youtubeBackend.start();
       if (frontendServer != null) {
         final handler =
@@ -233,7 +235,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
         storageService.bucket(activeConfiguration.searchSnapshotBucketName!)));
     registerImageStorage(ImageStorage(
         storageService.bucket(activeConfiguration.imageBucketName!)));
-
+    registerTopPackages(TopPackages());
     registerYoutubeBackend(YoutubeBackend());
 
     // depends on previously registered services
@@ -264,6 +266,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerScopeExitCallback(popularityStorage.close);
     registerScopeExitCallback(scoreCardBackend.close);
     registerScopeExitCallback(searchClient.close);
+    registerScopeExitCallback(topPackages.close);
     registerScopeExitCallback(youtubeBackend.close);
 
     // Create a zone-local flag to indicate that services setup has been completed.

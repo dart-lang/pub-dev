@@ -354,8 +354,16 @@ String createUuid([List<int>? bytes]) {
 ///
 /// Returns `null` otherwise.
 Map<String, String>? cloudTraceHeaders() {
-  if (context.traceId == null) return null;
-  return {_cloudTraceContextHeader: context.traceId!};
+  // [context] is defined as non-nullable in package:appengine, but in practice
+  // it may be missing if the current processing is outside of a regular request
+  // (e.g. triggered by a Timer).
+  // TODO: remove try-catch after [context] gets fixed in package:appengine.
+  try {
+    if (context.traceId == null) return null;
+    return {_cloudTraceContextHeader: context.traceId!};
+  } catch (_) {
+    return null;
+  }
 }
 
 extension LoggerExt on Logger {
