@@ -58,7 +58,7 @@ void main() {
       });
       expect(parsed.payload.iat!.year, 2018);
       expect(parsed.payload.exp, isNull);
-      expect(parsed.payload.verifyTimestamps(clock.now()), isTrue);
+      expect(parsed.payload.verifyTimestamps(clock.now()), isFalse);
       expect(parsed.payload.verifyTimestamps(DateTime(2017)), isFalse);
       expect(parsed.signature, hasLength(256));
     });
