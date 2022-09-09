@@ -82,14 +82,14 @@ Future<shelf.Response> publisherPackagesPageHandler(
   if (searchForm.isNotEmpty) {
     final redirectForm = SearchForm.parse(request.requestedUri.queryParameters)
         .addRequiredTagIfAbsent(PackageTags.publisherTag(publisherId))
-        .addRequiredTagIfAbsent(PackageTags.showHidden);
+        .addRequiredTagIfAbsent(PackageTags.showUnlisted);
     return redirectResponse(
         redirectForm.toSearchLink(page: searchForm.currentPage));
   }
 
   final appliedSearchForm = SearchForm()
       .toggleRequiredTag(PackageTags.publisherTag(publisherId))
-      .toggleRequiredTag(PackageTags.showHidden);
+      .toggleRequiredTag(PackageTags.showUnlisted);
 
   final searchResult = await searchAdapter.search(appliedSearchForm);
   final int totalCount = searchResult.totalCount;

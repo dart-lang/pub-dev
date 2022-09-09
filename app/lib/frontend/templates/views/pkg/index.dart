@@ -132,11 +132,11 @@ d.Node _searchFormContainer({
               ),
               _tagBasedCheckbox(
                 tagPrefix: 'show',
-                tagValue: 'hidden',
-                label: 'Include hidden',
+                tagValue: 'unlisted',
+                label: 'Include unlisted',
                 searchForm: searchForm,
                 title:
-                    'Show discontinued, unlisted and legacy Dart 1.x packages.',
+                    'Show unlisted, discontinued and legacy Dart 1.x packages.',
               ),
               _tagBasedCheckbox(
                 tagPrefix: 'is',
