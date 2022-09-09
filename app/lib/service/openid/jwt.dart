@@ -213,20 +213,31 @@ class JwtPayload extends UnmodifiableMapView<String, dynamic> {
   /// - [now] <= [exp]
   ///
   /// Returns `false` if the current timestamp is outside of the allowed range.
-  /// If the timestamp is missing, we treat it as if it would allow the current
-  /// time.
+  /// If the timestamp is missing, we treat it as if it were expired/invalid.
   bool verifyTimestamps([DateTime? now]) {
     now ??= clock.now();
-    if (iat != null && iat!.isAfter(now)) {
+
+    bool isABeforeB(String name, DateTime? a, DateTime? b) {
+      if (a == null || b == null) {
+        // TODO: remove debug message after the appropriate difference threshold is selected.
+        print('$name is missing.');
+        return false;
+      }
+      if (a.isBefore(b) || a == b) {
+        return true;
+      }
+      // TODO: remove debug message after the appropriate difference threshold is selected.
+      print('$name has a time difference of ${a.difference(b)}.');
       return false;
     }
-    if (nbf != null && nbf!.isAfter(now)) {
-      return false;
-    }
-    if (exp != null && exp!.isBefore(now)) {
-      return false;
-    }
-    return true;
+
+    // NOTE: The list ensures that each timestamp is evaluated, all differences will be printed.
+    // TODO: switch to a simple `&&` after the appropriate difference threshold is selected.
+    return [
+      isABeforeB('iat', iat, now),
+      isABeforeB('nbf', nbf, now),
+      isABeforeB('exp', now, exp),
+    ].every((b) => b);
   }
 }
 
