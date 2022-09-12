@@ -3,6 +3,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * NOTE: Landing page uses `CachedValue` to track top-* packages.
+ * NOTE: Stopped using old bucket for package archives.
 
 ## `20220908t135900-all`
  * Bumped runtimeVersion to `2022.09.08`.
