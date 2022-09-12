@@ -252,6 +252,11 @@ class _FakeTime extends FakeTime {
 
     // Trigger the callback for the pending timer.
     for (final triggeredTimer in triggeredTimers) {
+      // Skip running periodic timers if they have been cancelled.
+      // TODO: review/refactor trigger sequence so that this doesn't happen
+      if (triggeredTimer._isPeriodic && !triggeredTimer.isActive) {
+        continue;
+      }
       try {
         triggeredTimer._parent.runUnary(
           triggeredTimer._zone,
