@@ -1,3 +1,6 @@
+## 1.4.1
+
+- Swap screenshot order in pubspec to ensure the animated screenshot is processed.
 ## 1.4.0
 
 - Add animated screenshot
