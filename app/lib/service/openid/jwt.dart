@@ -222,12 +222,7 @@ class JwtPayload extends UnmodifiableMapView<String, dynamic> {
         _logger.info('JWT does not have "$name" field.');
         return false;
       }
-      if (a.isBefore(b) || a == b) {
-        return true;
-      }
-      final diff = a.difference(b);
-      _logger.info('$name has a time difference of $diff.');
-      return diff < threshold;
+      return a.isBefore(b.add(threshold)) || a == b;
     }
 
     return isABeforeB('iat', iat, now) &&
