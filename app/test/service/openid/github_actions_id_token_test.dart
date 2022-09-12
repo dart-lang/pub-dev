@@ -67,12 +67,12 @@ void main() {
 
       // verify payload
       print(token.payload);
-      expect(token.payload.verifyTimestamps(), isTrue);
+      expect(token.payload.isTimely(threshold: Duration(minutes: 1)), isTrue);
       final payload = GitHubJwtPayload(token.payload);
       expect(payload.aud, 'https://example.com');
       // repository check assumes that clones keep the `pub-dev` name:
       expect(payload.repository, endsWith('/pub-dev'));
-      expect(payload.eventName, anyOf(['pull_request', 'push']));
+      expect(payload.eventName, anyOf(['pull_request', 'push', 'schedule']));
       expect(payload.refType, anyOf(['branch']));
       // example `ref`: `refs/pull/38/merge`
       // example `ref`: `refs/head/master`
