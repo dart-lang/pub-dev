@@ -214,9 +214,8 @@ class JwtPayload extends UnmodifiableMapView<String, dynamic> {
   ///
   /// Returns `false` if the current timestamp is outside of the allowed range.
   /// If the timestamp is missing, we treat it as if it were expired/invalid.
-  bool isTimely({DateTime? now, Duration? threshold}) {
+  bool isTimely({DateTime? now, Duration threshold = Duration.zero}) {
     now ??= clock.now();
-    threshold ??= Duration.zero;
 
     bool isABeforeB(String name, DateTime? a, DateTime? b) {
       if (a == null || b == null) {
@@ -228,7 +227,7 @@ class JwtPayload extends UnmodifiableMapView<String, dynamic> {
       }
       final diff = a.difference(b);
       _logger.info('$name has a time difference of $diff.');
-      return diff < threshold!;
+      return diff < threshold;
     }
 
     return isABeforeB('iat', iat, now) &&
