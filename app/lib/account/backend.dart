@@ -206,7 +206,7 @@ AuthenticatedGithubAction? _tryAuthenticateGithubAction(String token) {
   if (idToken == null) {
     return null;
   }
-  if (!idToken.payload.verifyTimestamps()) {
+  if (!idToken.payload.isTimely(threshold: Duration(minutes: 2))) {
     return null;
   }
   final payload = GitHubJwtPayload.tryParse(idToken.payload);

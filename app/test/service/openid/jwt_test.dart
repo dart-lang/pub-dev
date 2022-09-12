@@ -4,7 +4,6 @@
 
 import 'dart:convert';
 
-import 'package:clock/clock.dart';
 import 'package:convert/convert.dart';
 import 'package:pub_dev/service/openid/jwt.dart';
 import 'package:pub_dev/service/openid/openid_models.dart';
@@ -58,8 +57,8 @@ void main() {
       });
       expect(parsed.payload.iat!.year, 2018);
       expect(parsed.payload.exp, isNull);
-      expect(parsed.payload.verifyTimestamps(clock.now()), isFalse);
-      expect(parsed.payload.verifyTimestamps(DateTime(2017)), isFalse);
+      expect(parsed.payload.isTimely(), isFalse);
+      expect(parsed.payload.isTimely(now: DateTime(2017)), isFalse);
       expect(parsed.signature, hasLength(256));
     });
 
@@ -230,13 +229,27 @@ void main() {
       ));
 
       final pl = token.payload;
-      expect(pl.verifyTimestamps(clock.now()), isFalse);
-      expect(pl.verifyTimestamps(DateTime.utc(2021, 9, 24, 14, 16, 00)), false);
-      expect(pl.verifyTimestamps(DateTime.utc(2021, 9, 24, 14, 16, 08)), false);
-      expect(pl.verifyTimestamps(DateTime.utc(2021, 9, 24, 14, 26, 00)), false);
-      expect(pl.verifyTimestamps(DateTime.utc(2021, 9, 24, 14, 26, 08)), true);
-      expect(pl.verifyTimestamps(DateTime.utc(2021, 9, 24, 14, 31, 00)), true);
-      expect(pl.verifyTimestamps(DateTime.utc(2021, 9, 24, 14, 31, 08)), false);
+      expect(pl.isTimely(), isFalse);
+
+      // before and after the nbf, exp, and iat timestamps
+      expect(pl.isTimely(now: DateTime.utc(2021, 9, 24, 14, 16, 00)), false);
+      expect(pl.isTimely(now: DateTime.utc(2021, 9, 24, 14, 16, 08)), false);
+      expect(pl.isTimely(now: DateTime.utc(2021, 9, 24, 14, 26, 00)), false);
+      expect(pl.isTimely(now: DateTime.utc(2021, 9, 24, 14, 26, 08)), true);
+      expect(pl.isTimely(now: DateTime.utc(2021, 9, 24, 14, 31, 00)), true);
+      expect(pl.isTimely(now: DateTime.utc(2021, 9, 24, 14, 31, 08)), false);
+
+      // slightly off of the nbf-exp range, but accepted with the threshold
+      expect(
+          pl.isTimely(
+              now: DateTime.utc(2021, 9, 24, 14, 26, 00),
+              threshold: Duration(seconds: 10)),
+          true);
+      expect(
+          pl.isTimely(
+              now: DateTime.utc(2021, 9, 24, 14, 31, 08),
+              threshold: Duration(seconds: 10)),
+          true);
 
       final p = GitHubJwtPayload(token.payload);
       expect(p.eventName, 'workflow_dispatch');
