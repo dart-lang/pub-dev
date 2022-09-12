@@ -34,6 +34,15 @@ void main() {
       );
     });
 
+    test('query-based show:unlisted', () {
+      expect(
+        SearchForm(query: 'show:unlisted')
+            .toServiceQuery()
+            .toUriQueryParameters()['tags'],
+        [],
+      );
+    });
+
     test('query-based discontinued', () {
       expect(
         SearchForm(query: 'is:discontinued')

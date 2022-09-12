@@ -54,14 +54,14 @@ void main() {
     testWithProfile('publisher package with text search', fn: () async {
       await expectRedirectResponse(
         await issueGet('/publishers/example.com/packages?q=n'),
-        '/packages?q=publisher%3Aexample.com+show%3Ahidden+n',
+        '/packages?q=publisher%3Aexample.com+show%3Aunlisted+n',
       );
     });
 
     testWithProfile('publisher package with tag search', fn: () async {
       await expectRedirectResponse(
         await issueGet('/publishers/example.com/packages?q=sdk:dart'),
-        '/packages?q=sdk%3Adart+publisher%3Aexample.com+show%3Ahidden',
+        '/packages?q=sdk%3Adart+publisher%3Aexample.com+show%3Aunlisted',
       );
     });
 
@@ -70,7 +70,7 @@ void main() {
       fn: () async {
         await expectRedirectResponse(
           await issueGet('/publishers/example.com/packages?page=2'),
-          '/packages?q=publisher%3Aexample.com+show%3Ahidden&page=2',
+          '/packages?q=publisher%3Aexample.com+show%3Aunlisted&page=2',
         );
       },
     );
@@ -80,7 +80,7 @@ void main() {
       fn: () async {
         await expectRedirectResponse(
           await issueGet('/publishers/example.com/packages?sort=updated'),
-          '/packages?q=publisher%3Aexample.com+show%3Ahidden&sort=updated',
+          '/packages?q=publisher%3Aexample.com+show%3Aunlisted&sort=updated',
         );
       },
     );

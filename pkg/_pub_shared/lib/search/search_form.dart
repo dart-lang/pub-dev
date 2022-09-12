@@ -379,7 +379,7 @@ class SearchForm {
   /// Whether any of the advanced options is active.
   bool get hasActiveAdvanced =>
       parsedQuery.tagsPredicate.hasTag(PackageTags.isFlutterFavorite) ||
-      parsedQuery.tagsPredicate.hasTag(PackageTags.showHidden) ||
+      parsedQuery.tagsPredicate.hasTag(PackageTags.showUnlisted) ||
       parsedQuery.tagsPredicate.hasTag(PackageVersionTags.isNullSafe);
 
   /// Whether any of the non-query settings are non-default
