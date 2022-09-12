@@ -560,7 +560,14 @@ void main() {
           ),
         ],
       );
-      expectGoldenFile(html, 'publisher_list_page.html');
+      expectGoldenFile(
+        html,
+        'publisher_list_page.html',
+        timestamps: {
+          'example-created': DateTime(2019, 09, 13),
+          'other-created': DateTime(2019, 09, 19),
+        },
+      );
     });
 
     testWithProfile(
