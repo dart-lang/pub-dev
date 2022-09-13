@@ -9,6 +9,7 @@ defaultServiceBaseUrl: https://{{GAE_VERSION}}-dot-{{GOOGLE_CLOUD_PROJECT}}.apps
 dartdocStorageBucketName: dartlang-pub-dev--dartdoc-storage
 popularityDumpBucketName: dartlang-pub-dev--popularity
 searchSnapshotBucketName: dartlang-pub-dev--search-snapshot
+maxTaskInstances: 50
 taskResultBucketName: dartlang-pub-dev-task-output
 taskWorkerImage: gcr.io/dartlang-pub-tasks/{{GOOGLE_CLOUD_PROJECT}}-{{GAE_VERSION}}-worker
 taskWorkerProject: dartlang-pub-tasks

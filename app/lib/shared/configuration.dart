@@ -97,6 +97,10 @@ class Configuration {
   /// The name of the Cloud Storage bucket to use for search snapshots.
   final String? searchSnapshotBucketName;
 
+  /// Maximum number of concurrent VM instances the task backend is allowed to
+  /// created.
+  final int maxTaskInstances;
+
   /// The name of the Cloud Storage bucket to use for task results, such as
   /// generated dartdoc blobs, dartdoc index-files, pana-reports and task logs.
   final String? taskResultBucketName;
@@ -244,6 +248,7 @@ class Configuration {
     required this.dartdocStorageBucketName,
     required this.popularityDumpBucketName,
     required this.searchSnapshotBucketName,
+    required this.maxTaskInstances,
     required this.taskResultBucketName,
     required this.taskWorkerImage,
     required this.taskWorkerProject,
@@ -304,6 +309,7 @@ class Configuration {
       dartdocStorageBucketName: 'fake-bucket-dartdoc',
       popularityDumpBucketName: 'fake-bucket-popularity',
       searchSnapshotBucketName: 'fake-bucket-search',
+      maxTaskInstances: 10,
       taskResultBucketName: 'fake-bucket-task-result',
       taskWorkerImage: '-',
       taskWorkerProject: '-',
@@ -350,6 +356,7 @@ class Configuration {
       popularityDumpBucketName: 'fake-bucket-popularity',
       searchSnapshotBucketName: 'fake-bucket-search',
       taskResultBucketName: 'fake-bucket-task-result',
+      maxTaskInstances: 10,
       taskWorkerImage: '-',
       taskWorkerProject: '-',
       taskWorkerNetwork: '-',

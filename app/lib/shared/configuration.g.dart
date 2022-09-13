@@ -23,6 +23,7 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
             'dartdocStorageBucketName',
             'popularityDumpBucketName',
             'searchSnapshotBucketName',
+            'maxTaskInstances',
             'taskResultBucketName',
             'taskWorkerImage',
             'taskWorkerProject',
@@ -60,6 +61,8 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
               $checkedConvert('popularityDumpBucketName', (v) => v as String?),
           searchSnapshotBucketName:
               $checkedConvert('searchSnapshotBucketName', (v) => v as String?),
+          maxTaskInstances:
+              $checkedConvert('maxTaskInstances', (v) => v as int),
           taskResultBucketName:
               $checkedConvert('taskResultBucketName', (v) => v as String?),
           taskWorkerImage:
@@ -124,6 +127,7 @@ Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
       'dartdocStorageBucketName': instance.dartdocStorageBucketName,
       'popularityDumpBucketName': instance.popularityDumpBucketName,
       'searchSnapshotBucketName': instance.searchSnapshotBucketName,
+      'maxTaskInstances': instance.maxTaskInstances,
       'taskResultBucketName': instance.taskResultBucketName,
       'taskWorkerImage': instance.taskWorkerImage,
       'taskWorkerProject': instance.taskWorkerProject,

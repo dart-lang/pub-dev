@@ -15,12 +15,9 @@ import 'package:pub_worker/payload.dart';
 
 final _log = Logger('pub.task.schedule');
 
-/// Maximum number of instances that may be used concurrently.
-const _concurrentInstanceLimit = 50; // Later consider something like: 500;
-
 const _maxInstanceAge = Duration(hours: 2);
 
-const _maxInstancesPerIteration = 5; // Later consider something like: 50;
+const _maxInstancesPerIteration = 50; // Later consider something like: 50;
 
 /// Schedule tasks from [PackageState] while [claim] is valid, and [abort] have
 /// not been resolved.
@@ -92,7 +89,7 @@ Future<void> schedule(
     _log.info('Found $instances instances');
 
     // If we are not allowed to create new instances within the allowed quota,
-    if (_concurrentInstanceLimit <= instances) {
+    if (activeConfiguration.maxTaskInstances <= instances) {
       _log.info('Reached instance limit, trying again in 30s');
       // Wait 30 seconds then list instances again, so that we can count them
       await Future.any([
@@ -129,7 +126,7 @@ Future<void> schedule(
           ..order('pendingAt')
           ..limit(min(
             _maxInstancesPerIteration,
-            max(0, _concurrentInstanceLimit - instances),
+            max(0, activeConfiguration.maxTaskInstances - instances),
           )))
         .run()
         .map<Future<void>>((state) async {
@@ -246,7 +243,7 @@ Future<void> schedule(
 
     // If more tasks is available and quota wasn't used up, we only sleep 10s
     if (pendingPackagesReviewed >= _maxInstancesPerIteration &&
-        _concurrentInstanceLimit > instances) {
+        activeConfiguration.maxTaskInstances > instances) {
       await Future.any([
         _sleep(Duration(seconds: 10), since: iterationStart),
         abort.future,
