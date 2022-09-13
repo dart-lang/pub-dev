@@ -2,8 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:test/test.dart';
+import 'package:yaml/yaml.dart' as yaml;
 
 void main() {
   test('Foo config from yaml file', () async {
@@ -19,5 +23,39 @@ void main() {
     expect(config.admins![0].oauthUserId, '42');
     expect(config.admins![0].permissions.contains(AdminPermission.listUsers),
         isTrue);
+  });
+
+  test('content replacement success', () {
+    expect(Configuration.replaceEnvVariables('a{{B}}c{{B}}d', {'B': 'bb'}),
+        'abbcbbd');
+  });
+
+  test('content replacement failed', () {
+    expect(() => Configuration.replaceEnvVariables('a{{B}}c', {'C': 'bb'}),
+        throwsA(isArgumentError));
+  });
+
+  test('configuration files serialized', () async {
+    final files = Directory('config')
+        .listSync()
+        .whereType<File>()
+        .where((f) => f.path.endsWith('.yaml'))
+        .toList();
+    expect(files, hasLength(2));
+
+    for (final f in files) {
+      final fileContent = f.readAsStringSync();
+      final replacedContent = Configuration.replaceEnvVariables(fileContent, {
+        'GOOGLE_CLOUD_PROJECT': 'test',
+        'GAE_SERVICE': 'service',
+        'GAE_VERSION': '1234',
+      });
+      final jsonContent =
+          json.decode(json.encode(yaml.loadYaml(replacedContent)));
+      final config =
+          Configuration.fromJson(jsonContent as Map<String, dynamic>);
+      final serialized = json.decode(json.encode(config.toJson()));
+      expect(serialized, jsonContent);
+    }
   });
 }

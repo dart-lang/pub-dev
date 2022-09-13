@@ -211,20 +211,28 @@ class Configuration {
   /// Load [Configuration] from YAML file at [path] substituting `{{ENV}}` for
   /// the value of environment variable `ENV`.
   factory Configuration.fromYamlFile(final String path) {
-    final content = File(path)
-        .readAsStringSync()
-        .replaceAllMapped(RegExp(r'\{\{([A-Z]+[A-Z0-9_]*)\}\}'), (match) {
-      final name = match.group(1);
-      if (name != null &&
-          Platform.environment.containsKey(name) &&
-          Platform.environment[name]!.isNotEmpty) {
-        return Platform.environment[name]!;
-      }
-      return match.group(0)!;
-    });
+    final content = replaceEnvVariables(
+        File(path).readAsStringSync(), Platform.environment);
     return Configuration.fromJson(
       json.decode(json.encode(loadYaml(content))) as Map<String, dynamic>,
     );
+  }
+
+  @visibleForTesting
+  static String replaceEnvVariables(
+      String content, Map<String, String> environment) {
+    return content.replaceAllMapped(RegExp(r'\{\{([A-Z]+[A-Z0-9_]*)\}\}'),
+        (match) {
+      final name = match.group(1);
+      if (name != null &&
+          environment.containsKey(name) &&
+          environment[name]!.isNotEmpty) {
+        return environment[name]!;
+      } else {
+        throw ArgumentError(
+            'Configuration file requires "$name" environment variable, but it is not present.');
+      }
+    });
   }
 
   Configuration({
