@@ -115,7 +115,8 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
       registertaskWorkerCloudCompute(createGoogleCloudCompute(
         project: activeConfiguration.taskWorkerProject!,
         network: activeConfiguration.taskWorkerNetwork!,
-        poolLabel: '${runtimeVersion.replaceAll('.', '-')}_worker',
+        poolLabel:
+            '${activeConfiguration.projectId}_${runtimeVersion.replaceAll('.', '-')}_worker',
       ));
 
       return await _withPubServices(fn);
