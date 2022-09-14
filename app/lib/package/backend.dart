@@ -1145,8 +1145,7 @@ class PackageBackend {
     if (githubPublishing == null) {
       return false;
     }
-    final isEnabled = githubPublishing.isEnabled ?? false;
-    if (!isEnabled) {
+    if (githubPublishing == null || githubPublishing.isEnabled ?? false) {
       return false;
     }
     final repository = githubPublishing.repository;
