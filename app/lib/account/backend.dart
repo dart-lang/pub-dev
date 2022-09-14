@@ -11,15 +11,16 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:neat_cache/neat_cache.dart';
-import 'package:pub_dev/account/agent.dart';
-import 'package:pub_dev/service/openid/jwt.dart';
 
 import '../package/models.dart';
+import '../service/openid/github_openid.dart';
+import '../service/openid/jwt.dart';
 import '../shared/datastore.dart';
 import '../shared/exceptions.dart';
 import '../shared/redis_cache.dart' show cache, EntryPurgeExt;
 import '../shared/utils.dart';
 
+import 'agent.dart';
 import 'auth_provider.dart';
 import 'models.dart';
 import 'session_cookie.dart' as session_cookie;
@@ -190,7 +191,7 @@ Future<AuthenticatedAgent> requireAuthenticatedAgent(
   if (token == null || token.isEmpty) {
     throw AuthenticationException.authenticationRequired();
   }
-  final authenticatedService = _tryAuthenticateGithubAction(token);
+  final authenticatedService = await _tryAuthenticateGithubAction(token);
   if (authenticatedService != null) {
     return authenticatedService;
   } else {
@@ -198,7 +199,8 @@ Future<AuthenticatedAgent> requireAuthenticatedAgent(
   }
 }
 
-AuthenticatedGithubAction? _tryAuthenticateGithubAction(String token) {
+Future<AuthenticatedGithubAction?> _tryAuthenticateGithubAction(
+    String token) async {
   if (!JsonWebToken.looksLikeJWT(token)) {
     return null;
   }
@@ -213,10 +215,19 @@ AuthenticatedGithubAction? _tryAuthenticateGithubAction(String token) {
   if (payload == null) {
     return null;
   }
-  // TODO: check the audience
-  // TODO: check signature from JWKS
-  // TODO: when everything is verified, return the JWT token.
-  return null;
+  if (payload.aud != 'https://pub.dev') {
+    return null;
+  }
+  final githubData = await fetchGithubOpenIdData();
+  final signatureMatches = await idToken.verifySignature(githubData.jwks);
+  if (!signatureMatches) {
+    return null;
+  }
+  return AuthenticatedGithubAction(
+    displayId: KnownAgents.githubActions,
+    idToken: idToken,
+    payload: payload,
+  );
 }
 
 /// Represents the backend for the account handling and authentication.
