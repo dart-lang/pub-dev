@@ -1142,10 +1142,7 @@ class PackageBackend {
   Future<bool> _isGithubActionAllowed(
       Package package, AuthenticatedGithubAction agent) async {
     final githubPublishing = package.automatedPublishing.github;
-    if (githubPublishing == null) {
-      return false;
-    }
-    if (githubPublishing == null || githubPublishing.isEnabled ?? false) {
+    if (githubPublishing == null || (githubPublishing.isEnabled ?? false)) {
       return false;
     }
     final repository = githubPublishing.repository;
