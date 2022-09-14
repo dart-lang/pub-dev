@@ -211,6 +211,9 @@ Future<AuthenticatedGithubAction?> _tryAuthenticateGithubAction(
   if (!idToken.payload.isTimely(threshold: Duration(minutes: 2))) {
     return null;
   }
+  if (idToken.payload.iss != GitHubJwtPayload.githubIssuerUrl) {
+    return null;
+  }
   final payload = GitHubJwtPayload.tryParse(idToken.payload);
   if (payload == null) {
     return null;

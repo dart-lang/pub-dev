@@ -139,15 +139,6 @@ String? _parseAsStringOrNull(Map<String, dynamic> map, String key) {
   throw FormatException('Unexpected value for `$key`: `$value`.');
 }
 
-String _parseAsString(Map<String, dynamic> map, String key) {
-  final value = _parseAsStringOrNull(map, key);
-  if (value == null) {
-    throw FormatException('Missing value for `$key`.');
-  } else {
-    return value;
-  }
-}
-
 /// The parsed JWT header.
 class JwtHeader extends UnmodifiableMapView<String, dynamic> {
   /// algorithm
@@ -228,77 +219,5 @@ class JwtPayload extends UnmodifiableMapView<String, dynamic> {
     return isABeforeB('iat', iat, now) &&
         isABeforeB('nbf', nbf, now) &&
         isABeforeB('exp', now, exp);
-  }
-}
-
-/// Parsed payload with the payload values GitHub sends with the token.
-/// TODO: group GitHub-specific data classes into a single location
-class GitHubJwtPayload {
-  /// user controllable URL identifying the intended audience
-  final String aud;
-
-  /// repository for which the action is running
-  final String repository;
-
-  /// owner of the repository
-  final String repositoryOwner;
-
-  /// name of the event that triggered the workflow
-  final String eventName;
-
-  /// git reference (e.g. branch name or tag name)
-  final String ref;
-
-  /// the kind of git reference given (e.g. "branch")
-  final String refType;
-
-  /// The URL used as the `iss` property of JWT payloads.
-  static const _githubIssuerUrl = 'https://token.actions.githubusercontent.com';
-
-  static const _requiredClaims = <String>{
-    // generic claims
-    'iat',
-    'nbf',
-    'exp',
-    'iss',
-    'aud',
-    // github-specific claims
-    'repository',
-    'repository_owner',
-    'event_name',
-    'ref',
-    'ref_type',
-  };
-
-  GitHubJwtPayload._(Map<String, dynamic> map)
-      : aud = _parseAsString(map, 'aud'),
-        repository = _parseAsString(map, 'repository'),
-        repositoryOwner = _parseAsString(map, 'repository_owner'),
-        eventName = _parseAsString(map, 'event_name'),
-        ref = _parseAsString(map, 'ref'),
-        refType = _parseAsString(map, 'ref_type');
-
-  factory GitHubJwtPayload(JwtPayload payload) {
-    final missing = _requiredClaims.difference(payload.keys.toSet()).sorted();
-    if (missing.isNotEmpty) {
-      throw FormatException(
-          'JWT from Github is missing following claims: ${missing.map((k) => '`$k`').join(', ')}.');
-    }
-    if (payload.iss != _githubIssuerUrl) {
-      throw FormatException(
-          'Unexpected value in payload: `iss`: `${payload.iss}`.');
-    }
-    return GitHubJwtPayload._(payload);
-  }
-
-  static GitHubJwtPayload? tryParse(JwtPayload payload) {
-    try {
-      return GitHubJwtPayload(payload);
-    } on FormatException {
-      return null;
-    } catch (e, st) {
-      _logger.warning('Unexpected JWT parser exception.', e, st);
-      return null;
-    }
   }
 }
