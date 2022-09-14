@@ -55,9 +55,9 @@ bool shouldGCVersion(String version) =>
 // keep in-sync with SDK version in .mono_repo.yml and Dockerfile
 final String runtimeSdkVersion = '2.18.0';
 final String toolStableDartSdkVersion = '2.18.0';
-final String toolStableFlutterSdkVersion = '3.3.1';
+final String toolStableFlutterSdkVersion = '3.3.2';
 final String toolPreviewDartSdkVersion = '2.18.0';
-final String toolPreviewFlutterSdkVersion = '3.3.1';
+final String toolPreviewFlutterSdkVersion = '3.3.2';
 
 final semanticToolStableDartSdkVersion =
     Version.parse(toolStableDartSdkVersion);
