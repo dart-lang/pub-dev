@@ -11,7 +11,6 @@ import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/data/task_api.dart';
 import 'package:indexed_blob/indexed_blob.dart';
 import 'package:logging/logging.dart' show Logger, Level, LogRecord;
-import 'package:pub_worker/pana_report.dart';
 import 'package:pub_worker/payload.dart';
 import 'package:pub_worker/src/analyze.dart' show analyze;
 import 'package:pub_worker/src/utils.dart' show streamToBuffer;
@@ -53,22 +52,13 @@ void main() {
     ) {
       final baseUrl = 'http://localhost:${server.port}';
       return Response.ok(json.encode(UploadTaskResultResponse(
-        panaLogId: '42',
-        dartdocBlobId: '35',
-        dartdocBlob: UploadInfo(
-          url: '$baseUrl/upload/$package/$version/dartdoc-data-35.blob',
+        blobId: '42',
+        blob: UploadInfo(
+          url: '$baseUrl/upload/$package/$version/42.blob',
           fields: {},
         ),
-        dartdocIndex: UploadInfo(
-          url: '$baseUrl/upload/$package/$version/dartdoc-index.json',
-          fields: {},
-        ),
-        panaLog: UploadInfo(
-          url: '$baseUrl/upload/$package/$version/pana-log-42.txt',
-          fields: {},
-        ),
-        panaReport: UploadInfo(
-          url: '$baseUrl/upload/$package/$version/pana-report.json',
+        index: UploadInfo(
+          url: '$baseUrl/upload/$package/$version/index.json',
           fields: {},
         ),
       )));
@@ -138,44 +128,50 @@ void main() {
       () async {
         await waitFor('retry', '3.0.0');
 
-        expect(files, contains('retry/3.0.0/pana-log-42.txt'));
-        expect(files, contains('retry/3.0.0/pana-report.json'));
-        expect(files, contains('retry/3.0.0/dartdoc-data-35.blob'));
-        expect(files, contains('retry/3.0.0/dartdoc-index.json'));
+        expect(files, contains('retry/3.0.0/42.blob'));
+        expect(files, contains('retry/3.0.0/index.json'));
 
         // Check that index contains blobId
         final index = BlobIndex.fromBytes(
-          files['retry/3.0.0/dartdoc-index.json']!,
+          files['retry/3.0.0/index.json']!,
         );
-        expect(index.blobId, '35');
+        expect(index.blobId, '42');
 
         // Check that blob can be read using index using categories.json which
         // should be an empty list for retry 3.0.0
-        final blob = files['retry/3.0.0/dartdoc-data-35.blob'];
-        final range = index.lookup('categories.json');
-        final categories = json.fuse(utf8).fuse(gzip).decode(blob!.sublist(
-              range!.start,
-              range.end,
+        final blob = files['retry/3.0.0/42.blob']!;
+        {
+          final logRange = index.lookup('log.txt')!;
+          final log = utf8.fuse(gzip).decode(blob.sublist(
+                logRange.start,
+                logRange.end,
+              ));
+          print(log);
+        }
+        print(utf8.decode(index.asBytes()));
+        final categoriesRange = index.lookup('doc/categories.json')!;
+        final categories = json.fuse(utf8).fuse(gzip).decode(blob.sublist(
+              categoriesRange.start,
+              categoriesRange.end,
             ));
         expect(categories, equals([]));
 
-        // Check that report contains the logId
-        final report = PanaReport.fromJson(
-          json.fuse(utf8).decode(files['retry/3.0.0/pana-report.json']!)
-              as Map<String, dynamic>,
-        );
-        expect(report.logId, '42');
-
+        // Check that blob contains log.txt
+        final logRange = index.lookup('log.txt')!;
+        final log = utf8.fuse(gzip).decode(blob.sublist(
+              logRange.start,
+              logRange.end,
+            ));
         // Check that log contains "exited 0"
-        expect(utf8.decode(files['retry/3.0.0/pana-log-42.txt']!),
-            contains('exited 0'));
+        expect(log, contains('exited 0'));
+
+        // Check that there is a summary.json
+        expect(index.lookup('summary.json'), isNotNull);
 
         await waitFor('retry', '3.0.1');
 
-        expect(files, contains('retry/3.0.1/pana-log-42.txt'));
-        expect(files, contains('retry/3.0.1/pana-report.json'));
-        expect(files, contains('retry/3.0.1/dartdoc-data-35.blob'));
-        expect(files, contains('retry/3.0.1/dartdoc-index.json'));
+        expect(files, contains('retry/3.0.1/42.blob'));
+        expect(files, contains('retry/3.0.1/index.json'));
       }(),
     ]);
   }, timeout: Timeout(Duration(minutes: 5)));

@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:convert' show JsonUtf8Encoder, json, utf8;
 import 'dart:io'
-    show Directory, File, IOException, Platform, Process, ProcessSignal;
+    show Directory, File, IOException, Platform, Process, ProcessSignal, gzip;
 import 'dart:isolate' show Isolate;
 
 import 'package:clock/clock.dart' show clock;
@@ -90,8 +90,10 @@ Future<void> _analyzePackage(
   _log.info('Running analyze for $package / $version');
 
   final tempDir = await Directory.systemTemp.createTemp('pub_worker-');
+
+  final outDir = await Directory(p.join(tempDir.path, 'out')).create();
   try {
-    final logFile = File(p.join(tempDir.path, 'log.txt'));
+    final logFile = File(p.join(outDir.path, 'log.txt'));
     final log = logFile.openWrite();
 
     log.writeln('## Running analysis for "$package" version "$version"');
@@ -107,11 +109,11 @@ Future<void> _analyzePackage(
       Platform.resolvedExecutable,
       [
         panaWrapper!.toFilePath(),
-        tempDir.path,
+        outDir.path,
         package,
         version,
       ],
-      workingDirectory: tempDir.path,
+      workingDirectory: outDir.path,
       includeParentEnvironment: true,
     );
     await pana.stdin.close();
@@ -145,31 +147,6 @@ Future<void> _analyzePackage(
     log.writeln('### Execution of pana exited $exitCode');
     log.writeln('STOPPED: ${clock.now().toUtc().toIso8601String()}');
 
-    // Check if we got any results
-    final dartdocDir = Directory(p.join(tempDir.path, 'dartdoc'));
-    final panaSummaryFile = File(p.join(tempDir.path, 'pana-summary.json'));
-    final hasPanaSummary = await panaSummaryFile.exists();
-    final hasDartDoc = await dartdocDir.exists();
-
-    log.writeln('has dartdoc: $hasDartDoc');
-    log.writeln('has pana summary: $hasPanaSummary');
-
-    Summary? summary;
-    if (hasPanaSummary) {
-      try {
-        final summaryJson = json.decode(await panaSummaryFile.readAsString());
-        if (summaryJson != null) {
-          summary = Summary.fromJson(summaryJson as Map<String, dynamic>);
-        }
-      } on Exception catch (e) {
-        log.writeln('ERROR: unable to load pana-summary.json, $e');
-      }
-    }
-
-    // Close the log
-    log.writeln(); // always end with a newline
-    await log.close();
-
     // Upload results, if there is any
     _log.info('api.taskUploadResult("$package", "$version")');
     final r = await retry(
@@ -177,55 +154,59 @@ Future<void> _analyzePackage(
       retryIf: _retryIf,
     );
 
-    await Future.wait([
-      () async {
-        if (!hasDartDoc) {
-          return;
+    // Create a file to store the blob, and add everything to it.
+    final blobFile = File(p.join(tempDir.path, 'files.blob'));
+    final builder = IndexedBlobBuilder(blobFile.openWrite());
+
+    await for (final f in outDir.list(recursive: true, followLinks: false)) {
+      if (f is File) {
+        final path = p.relative(f.path, from: outDir.path);
+        if (path == 'log.txt') {
+          continue; // We'll add this at the very end!
         }
+        try {
+          await builder.addFile(path, f.openRead().transform(gzip.encoder));
+        } on IOException {
+          log.writeln('ERROR: Failed to read output file at "$path"');
+        }
+      }
+    }
 
-        // Upload dartdoc results
-        final dartdoc = await BlobIndexPair.folderToIndexedBlob(
-          r.dartdocBlobId,
-          dartdocDir.path,
-        );
+    // Close the log
+    log.writeln(); // always end with a newline
+    await log.flush();
+    await log.close();
 
-        await upload(
-          client,
-          r.dartdocBlob,
-          dartdoc.blob,
-          filename: 'dartdoc-data.blob',
-        );
+    // Add the log file to the blob, this allows us to write any errors we found
+    // along the way to the log file which is nice.
+    await builder.addFile(
+      'log.txt',
+      logFile.openRead().transform(gzip.encoder),
+    );
 
-        await upload(
-          client,
-          r.dartdocIndex,
-          dartdoc.index.asBytes(),
-          filename: 'dartdoc-index.json',
-          contentType: 'application/json',
-        );
-      }(),
-      () async {
-        // Upload the log
-        await upload(
-          client,
-          r.panaLog,
-          await logFile.readAsBytes(),
-          filename: 'pana-log.txt',
-          contentType: 'text/plain',
-        );
+    // Create BlobIndex
+    final index = await builder.buildIndex(r.blobId);
 
-        await upload(
-          client,
-          r.panaReport,
-          encodeJson(PanaReport(
-            logId: r.panaLogId,
-            summary: summary,
-          )),
-          filename: 'pana-summary.json',
-          contentType: 'application/json',
-        );
-      }(),
-    ]);
+    // Upload blob and index
+    await upload(
+      client,
+      r.blob,
+      () => blobFile.openRead(),
+      blobFile.statSync().size,
+      filename: r.blobId,
+      contentType: 'application/octet-stream',
+    );
+    // Always upload the index last, this references the blobId, and when we
+    // upload this we will overwrite the previous value. So we have atomicity
+    // even though we're uploading two files.
+    await upload(
+      client,
+      r.index,
+      () => Stream.value(index.asBytes()),
+      index.asBytes().length,
+      filename: 'index.json',
+      contentType: 'application/json',
+    );
 
     // Report that we're done processing the package / version.
     _log.info('api.taskUploadFinished("$package", "$version")');
@@ -234,7 +215,7 @@ Future<void> _analyzePackage(
       retryIf: _retryIf,
     );
   } finally {
-    await tempDir.delete(recursive: true);
+    await outDir.delete(recursive: true);
   }
 }
 
@@ -259,30 +240,35 @@ Future<void> _reportPackageSkipped(
     retryIf: _retryIf,
   );
 
-  // Upload the log
-  await upload(
-    client,
-    r.panaLog,
-    utf8.encode([
-      '## Skipping analysis for "$package" version "$version"',
-      'date-time: ${clock.now().toUtc().toIso8601String()}',
-      '',
-      'reason:',
-      reason,
-      '', // always end with a newline
-    ].join('\n')),
-    filename: 'pana-log.txt',
-    contentType: 'text/plain',
-  );
+  final output = await BlobIndexPair.build(r.blobId, (addFile) async {
+    await addFile(
+      'log.txt',
+      Stream.value(utf8.encode([
+        '## Skipping analysis for "$package" version "$version"',
+        'date-time: ${clock.now().toUtc().toIso8601String()}',
+        '',
+        'reason:',
+        reason,
+        '', // always end with a newline
+      ].join('\n'))),
+    );
+  });
 
+  // Upload blob and index
   await upload(
     client,
-    r.panaReport,
-    encodeJson(PanaReport(
-      logId: r.panaLogId,
-      summary: null, // we have no summary to attach
-    )),
-    filename: 'pana-summary.json',
+    r.blob,
+    () => Stream.value(output.blob),
+    output.blob.length,
+    filename: r.blobId,
+    contentType: 'application/octet-stream',
+  );
+  await upload(
+    client,
+    r.index,
+    () => Stream.value(output.index.asBytes()),
+    output.index.asBytes().length,
+    filename: 'index.json',
     contentType: 'application/json',
   );
 
