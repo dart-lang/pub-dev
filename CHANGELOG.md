@@ -6,6 +6,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Flutter analysis SDK to `3.3.2`.
  * Upgraded preview Flutter analysis SDK to `3.3.2`.
  * Upgraded pana to `0.21.17`.
+ * NOTE: Increasing instance counts for `default` and `search` services.
  * NOTE: Landing page uses `CachedValue` to track top-* packages.
  * NOTE: Stopped using old bucket for package archives.
 
