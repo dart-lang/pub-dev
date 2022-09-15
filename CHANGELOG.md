@@ -2,6 +2,10 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bumped runtimeVersion to `2022.09.14`.
+ * Upgraded stable Flutter analysis SDK to `3.3.2`.
+ * Upgraded preview Flutter analysis SDK to `3.3.2`.
+ * Upgraded pana to `0.21.17`.
  * NOTE: Landing page uses `CachedValue` to track top-* packages.
  * NOTE: Stopped using old bucket for package archives.
 

@@ -2,38 +2,36 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:convert/convert.dart';
 import 'package:pub_dev/service/openid/jwt.dart';
 import 'package:pub_dev/service/openid/openid_models.dart';
 import 'package:pub_dev/service/openid/openssl_commands.dart';
 import 'package:test/test.dart';
 
-void main() {
-  // token generated on jwt.io
-  final jwtIoToken =
-      'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIi'
-      'wibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyM'
-      'n0.NHVaYe26MbtOYhSKkoKYdFVomg4i8ZJd8_-RU8VNbftc4TSMb4bXP3l3YlNW'
-      'ACwyXPGffz5aXHc6lty1Y2t4SWRqGteragsVdZufDn5BlnJl9pdR_kdVFUsra2r'
-      'WKEofkZeIC4yWytE58sMIihvo9H1ScmmVwBcQP6XETqYd0aSHp1gOa9RdUPDvoX'
-      'Q5oqygTqVtxaDr6wUFKrKItgBMzWIdNZ6y7O9E0DhEPTbE9rfBo6KTFsHAZnMg4'
-      'k68CDp2woYIaXbmYTWcvbzIuHO7_37GT79XdIwkm95QJ7hYC9RiwrV7mesbY4PA'
-      'ahERJawntho0my942XheVLmGwLMBkQ';
-  // public key to verify the token
-  final jwtIoPublicKeyPem = [
-    '-----BEGIN PUBLIC KEY-----',
-    'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu1SU1LfVLPHCozMxH2Mo',
-    '4lgOEePzNm0tRgeLezV6ffAt0gunVTLw7onLRnrq0/IzW7yWR7QkrmBL7jTKEn5u',
-    '+qKhbwKfBstIs+bMY2Zkp18gnTxKLxoS2tFczGkPLPgizskuemMghRniWaoLcyeh',
-    'kd3qqGElvW/VDL5AaWTg0nLVkjRo9z+40RQzuVaE8AkAFmxZzow3x+VJYKdjykkJ',
-    '0iT9wCS0DRTXu269V264Vf/3jvredZiKRkgwlL9xNAwxXFg0x/XFw005UWVRIkdg',
-    'cKWTjpBP2dPwVZ4WWC+9aGVd+Gyn1o0CLelf4rEjGoXbAAEgAqeGUxrcIlbjXfbc',
-    'mwIDAQAB',
-    '-----END PUBLIC KEY-----',
-  ].join('\n');
+// token generated on jwt.io
+final jwtIoToken =
+    'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIi'
+    'wibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyM'
+    'n0.NHVaYe26MbtOYhSKkoKYdFVomg4i8ZJd8_-RU8VNbftc4TSMb4bXP3l3YlNW'
+    'ACwyXPGffz5aXHc6lty1Y2t4SWRqGteragsVdZufDn5BlnJl9pdR_kdVFUsra2r'
+    'WKEofkZeIC4yWytE58sMIihvo9H1ScmmVwBcQP6XETqYd0aSHp1gOa9RdUPDvoX'
+    'Q5oqygTqVtxaDr6wUFKrKItgBMzWIdNZ6y7O9E0DhEPTbE9rfBo6KTFsHAZnMg4'
+    'k68CDp2woYIaXbmYTWcvbzIuHO7_37GT79XdIwkm95QJ7hYC9RiwrV7mesbY4PA'
+    'ahERJawntho0my942XheVLmGwLMBkQ';
+// public key to verify the token
+final jwtIoPublicKeyPem = [
+  '-----BEGIN PUBLIC KEY-----',
+  'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu1SU1LfVLPHCozMxH2Mo',
+  '4lgOEePzNm0tRgeLezV6ffAt0gunVTLw7onLRnrq0/IzW7yWR7QkrmBL7jTKEn5u',
+  '+qKhbwKfBstIs+bMY2Zkp18gnTxKLxoS2tFczGkPLPgizskuemMghRniWaoLcyeh',
+  'kd3qqGElvW/VDL5AaWTg0nLVkjRo9z+40RQzuVaE8AkAFmxZzow3x+VJYKdjykkJ',
+  '0iT9wCS0DRTXu269V264Vf/3jvredZiKRkgwlL9xNAwxXFg0x/XFw005UWVRIkdg',
+  'cKWTjpBP2dPwVZ4WWC+9aGVd+Gyn1o0CLelf4rEjGoXbAAEgAqeGUxrcIlbjXfbc',
+  'mwIDAQAB',
+  '-----END PUBLIC KEY-----',
+].join('\n');
 
+void main() {
   group('JWT parse', () {
     test('invalid format', () {
       expect(JsonWebToken.tryParse(''), isNull);
@@ -181,90 +179,4 @@ void main() {
       expect(await token.verifySignature(jwks), isFalse);
     });
   });
-
-  group('GitHub payload', () {
-    test('not a GitHub payload', () {
-      final token = JsonWebToken.parse(jwtIoToken);
-      expect(() => GitHubJwtPayload(token.payload),
-          throwsA(isA<FormatException>()));
-    });
-
-    test('parses GitHub example token', () {
-      final token = JsonWebToken.parse(_buildToken(
-        header: {
-          'typ': 'JWT',
-          'alg': 'RS256',
-          'x5t': 'example-thumbprint',
-          'kid': 'example-key-id'
-        },
-        payload: {
-          'jti': 'example-id',
-          'sub': 'repo:octo-org/octo-repo:environment:prod',
-          'environment': 'prod',
-          'aud': 'https://github.com/octo-org',
-          'ref': 'refs/heads/main',
-          'sha': 'example-sha',
-          'repository': 'octo-org/octo-repo',
-          'repository_owner': 'octo-org',
-          'actor_id': '12',
-          'repository_id': '74',
-          'repository_owner_id': '65',
-          'run_id': 'example-run-id',
-          'run_number': '10',
-          'run_attempt': '2',
-          'actor': 'octocat',
-          'workflow': 'example-workflow',
-          'head_ref': '',
-          'base_ref': '',
-          'event_name': 'workflow_dispatch',
-          'ref_type': 'branch',
-          'job_workflow_ref':
-              'octo-org/octo-automation/.github/workflows/oidc.yml@refs/heads/main',
-          'iss': 'https://token.actions.githubusercontent.com',
-          'nbf': 1632492967, // Friday, September 24, 2021 2:16:07 PM
-          'exp': 1632493867, // Friday, September 24, 2021 2:31:07 PM
-          'iat': 1632493567, // Friday, September 24, 2021 2:26:07 PM
-        },
-        signature: [1, 2, 3, 4], // fake signature
-      ));
-
-      final pl = token.payload;
-      expect(pl.isTimely(), isFalse);
-
-      // before and after the nbf, exp, and iat timestamps
-      expect(pl.isTimely(now: DateTime.utc(2021, 9, 24, 14, 16, 00)), false);
-      expect(pl.isTimely(now: DateTime.utc(2021, 9, 24, 14, 16, 08)), false);
-      expect(pl.isTimely(now: DateTime.utc(2021, 9, 24, 14, 26, 00)), false);
-      expect(pl.isTimely(now: DateTime.utc(2021, 9, 24, 14, 26, 08)), true);
-      expect(pl.isTimely(now: DateTime.utc(2021, 9, 24, 14, 31, 00)), true);
-      expect(pl.isTimely(now: DateTime.utc(2021, 9, 24, 14, 31, 08)), false);
-
-      // slightly off of the nbf-exp range, but accepted with the threshold
-      expect(
-          pl.isTimely(
-              now: DateTime.utc(2021, 9, 24, 14, 26, 00),
-              threshold: Duration(seconds: 10)),
-          true);
-      expect(
-          pl.isTimely(
-              now: DateTime.utc(2021, 9, 24, 14, 31, 08),
-              threshold: Duration(seconds: 10)),
-          true);
-
-      final p = GitHubJwtPayload(token.payload);
-      expect(p.eventName, 'workflow_dispatch');
-    });
-  });
-}
-
-String _buildToken({
-  required Map<String, dynamic> header,
-  required Map<String, dynamic> payload,
-  required List<int> signature,
-}) {
-  return [
-    base64Url.encode(utf8.encode(json.encode(header))).replaceAll('=', ''),
-    base64Url.encode(utf8.encode(json.encode(payload))).replaceAll('=', ''),
-    base64Url.encode(signature).replaceAll('=', ''),
-  ].join('.');
 }
