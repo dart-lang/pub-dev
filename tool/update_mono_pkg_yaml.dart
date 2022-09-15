@@ -45,8 +45,9 @@ List<String> _detectPackagePaths(String baseDir) {
 void _updatePackage(String path, String sdkVersion) {
   final monoPkg = File('$path/mono_pkg.yaml');
   if (monoPkg.existsSync()) {
+    print('updating: ${monoPkg.path}');
     final lines = monoPkg.readAsLinesSync();
-    final index = lines.indexOf('dart:');
+    final index = lines.indexOf('sdk:');
     if (index >= 0 &&
         index + 2 < lines.length &&
         lines[index + 1].startsWith('  - ') &&
