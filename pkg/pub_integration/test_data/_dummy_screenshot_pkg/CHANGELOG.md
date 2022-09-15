@@ -1,3 +1,7 @@
+## 1.4.2
+
+- Change type of animated screenshot to webp.
+
 ## 1.4.1
 
 - Swap screenshot order in pubspec to ensure the animated screenshot is processed.
