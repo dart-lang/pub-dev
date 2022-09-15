@@ -400,26 +400,29 @@ class TaskBackend {
       ];
 
       // List of versions that are tracked, but don't exist. These have
-      // probably been deleted.
-      final deletedVersions = [
+      // probably been deselected by _versionsToTrack.
+      final deselectedVersions = [
         ...state.versions!.keys.whereNot(versions.contains),
       ];
 
       // There should never be an overlap between versions untracked and
-      // versions that tracked by now missing / deleted.
+      // versions that tracked by now deselected.
       assert(
-        untrackedVersions.toSet().intersection(deletedVersions.toSet()).isEmpty,
+        untrackedVersions
+            .toSet()
+            .intersection(deselectedVersions.toSet())
+            .isEmpty,
       );
 
       // Stop transaction, if there is no changes to be made!
-      if (untrackedVersions.isEmpty && deletedVersions.isEmpty) {
+      if (untrackedVersions.isEmpty && deselectedVersions.isEmpty) {
         return;
       }
 
       // Make changes!
       state.versions!
-        // Remove versions that have been deleted
-        ..removeWhere((v, _) => deletedVersions.contains(v))
+        // Remove versions that have been deselected
+        ..removeWhere((v, _) => deselectedVersions.contains(v))
         // Add versions we should be tracking
         ..addAll({
           for (final v in untrackedVersions)
