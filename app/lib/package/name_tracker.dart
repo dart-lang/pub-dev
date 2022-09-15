@@ -16,7 +16,7 @@ import 'models.dart';
 final _logger = Logger('pub.name_tracker');
 
 /// The interval to update recent package name list.
-const _pollingInterval = Duration(minutes: 15);
+const _recentScanInterval = Duration(minutes: 15);
 
 /// The interval to reload the full package name list from scratch.
 const _reloadInterval = Duration(days: 1);
@@ -93,7 +93,8 @@ class NameTracker {
   var _data = _Data();
 
   final _firstScanCompleter = Completer();
-  Timer? _pollingTimer;
+  Completer? _ongoingRecentScan;
+  Timer? _recentScanTimer;
   Timer? _reloadTimer;
 
   NameTracker(this._db);
@@ -165,38 +166,51 @@ class NameTracker {
   }
 
   Future<void> _scanRecentPackages() async {
-    _logger.info('Scanning recent packages...');
+    if (_ongoingRecentScan != null) {
+      await _ongoingRecentScan!.future;
+      return;
+    }
+    _ongoingRecentScan ??= Completer();
     final start = clock.now().toUtc();
-    final ts = _data._lastStartedTs.subtract(Duration(hours: 1));
+    final ts = _data._lastStartedTs.subtract(const Duration(hours: 1));
+    _logger.info('Scanning recent packages starting from "$ts"...');
+    try {
+      final query = _db!.query<Package>()
+        ..order('-lastVersionPublished')
+        ..filter('lastVersionPublished >', ts);
+      await for (final p in query.run()) {
+        _data.add(TrackedPackage.fromPackage(p));
+      }
 
-    final query = _db!.query<Package>()
-      ..order('-lastVersionPublished')
-      ..filter('lastVersionPublished >', ts);
-    await for (final p in query.run()) {
-      _data.add(TrackedPackage.fromPackage(p));
+      final moderatedPkgQuery = _db!.query<ModeratedPackage>()
+        ..order('moderated')
+        ..filter('moderated >', ts);
+
+      await for (final p in moderatedPkgQuery.run()) {
+        _data.addModeratedName(p.name!);
+      }
+
+      _data._lastStartedTs = start;
+      _logger
+          .info('Recent packages scanned in ${clock.now().difference(start)}.');
+    } finally {
+      final c = _ongoingRecentScan;
+      if (c != null && !c.isCompleted) {
+        _ongoingRecentScan = null;
+        c.complete();
+      }
     }
-
-    final moderatedPkgQuery = _db!.query<ModeratedPackage>()
-      ..order('moderated')
-      ..filter('moderated >', ts);
-
-    await for (final p in moderatedPkgQuery.run()) {
-      _data.addModeratedName(p.name!);
-    }
-
-    _data._lastStartedTs = start;
-    _logger
-        .info('Recent packages scanned in ${clock.now().difference(start)}.');
   }
 
   /// Updates this [NameTracker] by polling the Datastore periodically.
   Future<void> startTracking() async {
     await reloadFromDatastore().timeout(_reloadTimeout);
-    _pollingTimer ??= Timer.periodic(_pollingInterval, (_) async {
+    _recentScanTimer ??= Timer.periodic(_recentScanInterval, (_) async {
       try {
-        await _scanRecentPackages().timeout(_pollingTimeout);
+        await _scanRecentPackages();
       } catch (e, st) {
-        _logger.warning('Failed to update name tracker.', e, st);
+        _logger.warning(
+            'Failed to update name tracker with recent packages.', e, st);
       }
     });
     _reloadTimer ??= Timer.periodic(_reloadInterval, (_) async {
@@ -210,8 +224,8 @@ class NameTracker {
 
   /// Stops tracking the datastore.
   void stopTracking() {
-    _pollingTimer?.cancel();
-    _pollingTimer = null;
+    _recentScanTimer?.cancel();
+    _recentScanTimer = null;
     _reloadTimer?.cancel();
     _reloadTimer = null;
   }
