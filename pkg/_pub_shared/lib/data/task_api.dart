@@ -9,14 +9,14 @@ part 'task_api.g.dart';
 
 /// Response with signed URLs for uploading task results.
 ///
-/// It is important that files are uploaded in the order specified in
-/// documentation. The big files [dartdocBlob] and [panaLog] will be uploaded
-/// to unique filenames containing a unique identifier. This identifier should
-/// be embedded in the [dartdocIndex] and [panaReport] files, these files are
-/// much smaller and uploaded to well-known locations.
-///
-/// This gives us some atomicity when uploading results, until the dartdoc index
-/// file is uploaded, we will keep using the old dartdoc blob file.
+/// It is important that the [blob] is uploaded before the [index], and that the
+/// contents of the index references the given [blobId]. The filename of [index]
+/// is static, while the filename of the [blob] is the randomized [blobId].
+/// This ensures that if two workers uploading results of the same package, then
+/// both will be able to upload the [blob] file, but when they upload the
+/// [index] file, one will overwrite the other. Thus, by encoding the [blobId]
+/// in [index] we ensure consistency. Using the mismatching [index]/[blob] when
+/// reading data is bound to yield garbage.
 @JsonSerializable()
 class UploadTaskResultResponse {
   /// Identifier for the [blob] file which should be written into the
