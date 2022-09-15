@@ -36,7 +36,6 @@ import 'package:pub_dev/task/models.dart'
         initialTimestamp;
 import 'package:pub_dev/task/scheduler.dart';
 import 'package:pub_semver/pub_semver.dart' show Version;
-import 'package:pub_worker/pana_report.dart' show PanaReport;
 import 'package:retry/retry.dart' show retry;
 import 'package:shelf/shelf.dart' as shelf;
 
@@ -583,15 +582,13 @@ class TaskBackend {
         Duration(minutes: 5);
 
     // Use sha256 truncated to 32 bytes as identifier
-    final id = hex
+    final blobId = hex
         .encode(sha256.convert(utf8.encode(versionState.instance!)).bytes)
         .substring(0, 32);
 
     final uploadInfos = await Future.wait([
-      'run-$id-dartdoc.blob',
-      'run-$id-log.txt',
-      'dartdoc-index.json',
-      'pana-report.json',
+      '$blobId.blob',
+      'index.json',
     ].map(
       (name) => uploadSigner.buildUpload(
         _bucket.bucketName,
@@ -599,15 +596,12 @@ class TaskBackend {
         expiration,
       ),
     ));
-    assert(uploadInfos.length == 4);
+    assert(uploadInfos.length == 2);
 
     return api.UploadTaskResultResponse(
-      dartdocBlobId: 'run-$id-dartdoc.blob',
-      panaLogId: 'run-$id-log.txt',
-      dartdocBlob: uploadInfos[0],
-      panaLog: uploadInfos[1],
-      dartdocIndex: uploadInfos[2],
-      panaReport: uploadInfos[3],
+      blobId: '$blobId.blob',
+      blob: uploadInfos[0],
+      index: uploadInfos[1],
     );
   }
 
@@ -656,6 +650,9 @@ class TaskBackend {
         (v) => v.instance == instance,
       );
 
+      // Clear cache entries for package / version
+      await _purgeCache(package, version);
+
       // Update dependencies, if pana summary has dependencies
       final summary = await panaSummary(package, version);
       if (summary != null && summary.allDependencies != null) {
@@ -701,9 +698,6 @@ class TaskBackend {
       });
     }
 
-    // Clear cache entries for package / version
-    await _purgeCache(package, version);
-
     return shelf.Response.ok('');
   }
 
@@ -747,18 +741,17 @@ class TaskBackend {
         test: (e) => e is DetailedApiRequestError && e.status == 404,
       );
 
-  /// Purge cache entries used to serve dartdoc and pana report for given
+  /// Purge cache entries used to serve [gzippedTaskResult] for given
   /// [package] and [version].
   Future<void> _purgeCache(String package, String version) async =>
       await Future.wait([
-        cache.dartdocIndex(package, version).purge(),
-        cache.panaReport(package, version).purge(),
+        cache.taskResultIndex(package, version).purge(),
       ]);
 
-  /// Fetch and cache dartdoc-index.json for [package] and [version].
-  Future<BlobIndex?> _dartdocIndex(String package, String version) async =>
-      await cache.dartdocIndex(package, version).get(() async {
-        final path = '$runtimeVersion/$package/$version/dartdoc-index.json';
+  /// Fetch and cache `index.json` for [package] and [version].
+  Future<BlobIndex?> _taskResultIndex(String package, String version) async =>
+      await cache.taskResultIndex(package, version).get(() async {
+        final path = '$runtimeVersion/$package/$version/index.json';
         final bytes = await _readFromBucket(path);
         if (bytes == null) {
           return null;
@@ -766,15 +759,16 @@ class TaskBackend {
         return BlobIndex.fromBytes(bytes);
       });
 
-  /// Return gzipped dartdoc page or `null`.
-  Future<List<int>?> dartdocPage(
+  /// Return gzipped result from task for the given [package]/[version] or
+  /// `null`.
+  Future<List<int>?> gzippedTaskResult(
     String package,
     String version,
     String path,
   ) async {
     version = canonicalizeVersion(version)!;
 
-    final index = await _dartdocIndex(package, version);
+    final index = await _taskResultIndex(package, version);
     if (index == null) {
       return null;
     }
@@ -790,14 +784,18 @@ class TaskBackend {
       return null;
     }
 
-    if (!_dartdocBlobIdPattern.hasMatch(range.blobId)) {
+    if (!_blobIdPattern.hasMatch(range.blobId)) {
       _log.warning(
-          'invalid blobId: "${range.blobId}" in dartdoc-index for $package / $version');
+          'invalid blobId: "${range.blobId}" in index for $package / $version');
       return null;
     }
 
+    // Notice that by using the [range.blobId] in the cache key we ensure that
+    // if we purge `taskResultIndex` for the given [package]/[version] then
+    // we'll not need to purge the cache for `gzippedTaskResult`, and we get the
+    // new files.
     return await cache
-        .dartdocPage(package, version, range.blobId, path)
+        .gzippedTaskResult(package, version, range.blobId, path)
         .get(() => _readFromBucket(
               '$runtimeVersion/$package/$version/${range.blobId}',
               offset: range.start,
@@ -805,26 +803,13 @@ class TaskBackend {
             ));
   }
 
-  /// Fetch and cache [PanaReport] for [package] and [version].
-  ///
-  /// This will not cache malformed reports or missing reports, but instead
-  /// return `null` for such cases.
-  Future<PanaReport?> _panaReport(String package, String version) async =>
-      await cache.panaReport(package, version).get(() async {
-        final path = '$runtimeVersion/$package/$version/pana-report.json';
-        final data = await _readFromBucket(path);
-        if (data == null) {
-          return null;
-        }
-        try {
-          return PanaReport.fromJson(
-            json.fuse(utf8).decode(data) as Map<String, dynamic>,
-          );
-        } on FormatException catch (e, st) {
-          _log.shout('PanaReport at $path is malformed', e, st);
-          return null;
-        }
-      });
+  /// Return gzipped dartdoc page or `null`.
+  Future<List<int>?> dartdocPage(
+    String package,
+    String version,
+    String path,
+  ) async =>
+      await gzippedTaskResult(package, version, 'doc/$path');
 
   /// Return [Summary] from pana or `null` if not available.
   ///
@@ -835,16 +820,24 @@ class TaskBackend {
   ///  * time allocated for analysis was exhausted.
   ///
   /// Even, if the [Summary] from pana is missing, it's possible that the
-  /// [panaLog] is present. This happens if the analysis failed gracefully or
+  /// [taskLog] is present. This happens if the analysis failed gracefully or
   /// allocated time was exhausted before the worker completed all versions.
   Future<Summary?> panaSummary(String package, String version) async {
-    version = canonicalizeVersion(version)!;
-
-    final report = await _panaReport(package, version);
-    return report?.summary;
+    final data = await gzippedTaskResult(package, version, 'summary.json');
+    if (data == null) {
+      return null;
+    }
+    try {
+      return Summary.fromJson(
+        json.fuse(utf8).fuse(gzip).decode(data) as Map<String, dynamic>,
+      );
+    } on FormatException catch (e, st) {
+      _log.shout('Summary for $package/$version is malformed', e, st);
+      return null;
+    }
   }
 
-  /// Get log from pana run of [package] and [version].
+  /// Get log from task run of [package] and [version].
   ///
   /// Returns `null`, if not available.
   ///
@@ -856,35 +849,21 @@ class TaskBackend {
   ///
   /// Generally, the worker will upload a log with error messages if analysis
   /// fails or timeout are reached.
-  Future<String?> panaLog(String package, String version) async {
-    version = canonicalizeVersion(version)!;
-
-    final report = await _panaReport(package, version);
-    if (report == null) {
+  Future<String?> taskLog(String package, String version) async {
+    final data = await gzippedTaskResult(package, version, 'log.txt');
+    if (data == null) {
       return null;
     }
-    // Basic sanity check
-    if (!_panaLogIdPattern.hasMatch(report.logId)) {
-      _log.shout(
-        'Invalid PanaReport.logId: "${report.logId}" for $package/$version',
-        Exception('Invalid logId'),
-      );
+    try {
+      return utf8.decode(gzip.decode(data), allowMalformed: true);
+    } on FormatException catch (e, st) {
+      _log.shout('Task log for $package/$version is malformed', e, st);
       return null;
     }
-
-    return await cache.panaLog(package, version, report.logId).get(() async {
-      final path = '$runtimeVersion/$package/$version/${report.logId}';
-      final data = await _readFromBucket(path);
-      if (data == null) {
-        return null;
-      }
-      return utf8.decode(data, allowMalformed: true);
-    });
   }
 }
 
-final _panaLogIdPattern = RegExp(r'^run-[0-9a-fA-F]+-log\.txt$');
-final _dartdocBlobIdPattern = RegExp(r'^run-[0-9a-fA-F]+-dartdoc\.blob$');
+final _blobIdPattern = RegExp(r'^[0-9a-fA-F]+\.blob$');
 
 /// Extract `<token>` from `Authorization: Bearer <token>`.
 String? _extractBearerToken(shelf.Request request) {

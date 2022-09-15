@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:indexed_blob/indexed_blob.dart';
@@ -14,7 +15,6 @@ import 'package:pub_dev/task/models.dart';
 import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/importer.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
-import 'package:pub_worker/pana_report.dart';
 import 'package:pub_worker/payload.dart';
 import 'package:pub_worker/src/upload.dart' show upload;
 import 'package:test/test.dart';
@@ -55,7 +55,7 @@ void main() {
     await fakeTime.elapse(minutes: 5);
 
     // Check that the log is missing.
-    final log1 = await taskBackend.panaLog('oxygen', '1.2.0');
+    final log1 = await taskBackend.taskLog('oxygen', '1.2.0');
     expect(log1, isNull);
 
     // Check that the dartdoc is missing
@@ -95,50 +95,40 @@ void main() {
           v.version,
         );
 
-        // Upload the minimum result, log file and empty pana-report
+        // Upload the minimum result, log file
         final c = http.Client();
         try {
-          // Create a fake dartdoc result
-          final blobId = uploadInfo.dartdocBlobId;
-          final dartdoc = await BlobIndexPair.build(blobId, (addFile) async {
+          // Create a fake output
+          final blobId = uploadInfo.blobId;
+          final output = await BlobIndexPair.build(blobId, (addFile) async {
             await addFile(
-              'index.html',
+              'doc/index.html',
               Stream.value(
                 '<h1>dartdoc for ${payload.package} version ${v.version}</h1>',
-              ).transform(utf8.encoder),
+              ).transform(utf8.fuse(gzip).encoder),
+            );
+            await addFile(
+              'log.txt',
+              Stream.value(
+                'This is a pana log file',
+              ).transform(utf8.fuse(gzip).encoder),
             );
           });
 
           // Upload dartdoc results
           await upload(
             c,
-            uploadInfo.dartdocBlob,
-            dartdoc.blob,
-            filename: 'dartdoc-data.blob',
+            uploadInfo.blob,
+            () => Stream.value(output.blob),
+            output.blob.length,
+            filename: uploadInfo.blobId,
           );
           await upload(
             c,
-            uploadInfo.dartdocIndex,
-            dartdoc.index.asBytes(),
-            filename: 'dartdoc-index.json',
-            contentType: 'application/json',
-          );
-
-          await upload(
-            c,
-            uploadInfo.panaLog,
-            utf8.encode('This is a pana log file'),
-            filename: 'pana-log.txt',
-            contentType: 'text/plain',
-          );
-          await upload(
-            c,
-            uploadInfo.panaReport,
-            utf8.encode(json.encode(PanaReport(
-              logId: uploadInfo.panaLogId,
-              summary: null,
-            ))),
-            filename: 'pana-summary.json',
+            uploadInfo.index,
+            () => Stream.value(output.index.asBytes()),
+            output.index.asBytes().length,
+            filename: 'index.json',
             contentType: 'application/json',
           );
         } finally {
@@ -153,7 +143,7 @@ void main() {
     await fakeTime.elapse(minutes: 5);
 
     // Check that we can get the log file
-    final log2 = await taskBackend.panaLog('oxygen', '1.2.0');
+    final log2 = await taskBackend.taskLog('oxygen', '1.2.0');
     expect(log2, contains('This is a pana log file'));
 
     // Check that we can get the generated dartdoc
@@ -164,7 +154,7 @@ void main() {
     );
     expect(dartdoc2, isNotNull);
     expect(
-      utf8.decode(dartdoc2!),
+      utf8.decode(gzip.decode(dartdoc2!)),
       contains('dartdoc for oxygen version 1.2.0'),
     );
 
@@ -332,24 +322,34 @@ void main() {
       v.version,
     );
 
-    // Upload the minimum result, log file and empty pana-report
+    // Upload the minimum result, log file
     final c = http.Client();
     try {
+      // Create a fake output
+      final blobId = uploadInfo.blobId;
+      final output = await BlobIndexPair.build(blobId, (addFile) async {
+        await addFile(
+          'log.txt',
+          Stream.value(
+            'This is a pana log file',
+          ).transform(utf8.fuse(gzip).encoder),
+        );
+      });
+
+      // Upload dartdoc results
       await upload(
         c,
-        uploadInfo.panaLog,
-        utf8.encode('This is a pana log file'),
-        filename: 'pana-log.txt',
-        contentType: 'text/plain',
+        uploadInfo.blob,
+        () => Stream.value(output.blob),
+        output.blob.length,
+        filename: uploadInfo.blobId,
       );
       await upload(
         c,
-        uploadInfo.panaReport,
-        utf8.encode(json.encode(PanaReport(
-          logId: uploadInfo.panaLogId,
-          summary: null,
-        ))),
-        filename: 'pana-summary.json',
+        uploadInfo.index,
+        () => Stream.value(output.index.asBytes()),
+        output.index.asBytes().length,
+        filename: 'index.json',
         contentType: 'application/json',
       );
     } finally {
@@ -412,21 +412,31 @@ void main() {
       // Upload the minimum result, log file and empty pana-report
       final c = http.Client();
       try {
+        // Create a fake output
+        final blobId = uploadInfo.blobId;
+        final output = await BlobIndexPair.build(blobId, (addFile) async {
+          await addFile(
+            'log.txt',
+            Stream.value(
+              'This is a pana log file',
+            ).transform(utf8.fuse(gzip).encoder),
+          );
+        });
+
+        // Upload dartdoc results
         await upload(
           c,
-          uploadInfo.panaLog,
-          utf8.encode('This is a pana log file'),
-          filename: 'pana-log.txt',
-          contentType: 'text/plain',
+          uploadInfo.blob,
+          () => Stream.value(output.blob),
+          output.blob.length,
+          filename: uploadInfo.blobId,
         );
         await upload(
           c,
-          uploadInfo.panaReport,
-          utf8.encode(json.encode(PanaReport(
-            logId: uploadInfo.panaLogId,
-            summary: null,
-          ))),
-          filename: 'pana-summary.json',
+          uploadInfo.index,
+          () => Stream.value(output.index.asBytes()),
+          output.index.asBytes().length,
+          filename: 'index.json',
           contentType: 'application/json',
         );
       } finally {
@@ -519,22 +529,21 @@ void main() {
         v.version,
       );
 
-      // Upload the minimum result, log file and empty pana-report
+      // Upload the minimum result, log file and non-empty pana-report
       final c = http.Client();
       try {
-        await upload(
-          c,
-          uploadInfo.panaLog,
-          utf8.encode('This is a pana log file'),
-          filename: 'pana-log.txt',
-          contentType: 'text/plain',
-        );
-        await upload(
-          c,
-          uploadInfo.panaReport,
-          utf8.encode(json.encode(PanaReport(
-            logId: uploadInfo.panaLogId,
-            summary: Summary(
+        // Create a fake output
+        final blobId = uploadInfo.blobId;
+        final output = await BlobIndexPair.build(blobId, (addFile) async {
+          await addFile(
+            'log.txt',
+            Stream.value(
+              'This is a pana log file',
+            ).transform(utf8.fuse(gzip).encoder),
+          );
+          await addFile(
+            'summary.json',
+            Stream.value(json.encode(Summary(
               runtimeInfo: PanaRuntimeInfo(
                 panaVersion: '0.0.0',
                 sdkVersion: '0.0.0',
@@ -543,9 +552,24 @@ void main() {
                 // oxygen has a dependency on neon!
                 if (payload.package == 'oxygen') 'neon',
               ],
-            ),
-          ))),
-          filename: 'pana-summary.json',
+            ))).transform(utf8.fuse(gzip).encoder),
+          );
+        });
+
+        // Upload dartdoc results
+        await upload(
+          c,
+          uploadInfo.blob,
+          () => Stream.value(output.blob),
+          output.blob.length,
+          filename: uploadInfo.blobId,
+        );
+        await upload(
+          c,
+          uploadInfo.index,
+          () => Stream.value(output.index.asBytes()),
+          output.index.asBytes().length,
+          filename: 'index.json',
           contentType: 'application/json',
         );
       } finally {

@@ -342,7 +342,7 @@ class PubSiteService {
       return Response.notFound('no such package');
     }
 
-    final log = await taskBackend.panaLog(package, version);
+    final log = await taskBackend.taskLog(package, version);
     return Response.ok(
       log ?? 'no log',
       headers: {'content-type': 'plain/text'},
@@ -364,12 +364,6 @@ class PubSiteService {
 
     final summary = await taskBackend.panaSummary(package, version);
 
-    /*if (summary == null) {
-      return Response.notFound(
-        'no summary',
-        headers: {'content-type': 'plain/text'},
-      );
-    }*/
     return Response.ok(
       summary != null
           ? JsonEncoder.withIndent('  ').convert(summary.toJson())

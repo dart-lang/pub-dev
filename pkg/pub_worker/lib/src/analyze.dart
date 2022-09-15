@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert' show JsonUtf8Encoder, json, utf8;
+import 'dart:convert' show JsonUtf8Encoder, utf8;
 import 'dart:io'
     show Directory, File, IOException, Platform, Process, ProcessSignal, gzip;
 import 'dart:isolate' show Isolate;
@@ -12,9 +12,7 @@ import 'package:clock/clock.dart' show clock;
 import 'package:http/http.dart' show Client;
 import 'package:indexed_blob/indexed_blob.dart';
 import 'package:logging/logging.dart' show Logger;
-import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
-import 'package:pub_worker/pana_report.dart' show PanaReport;
 import 'package:pub_worker/payload.dart';
 import 'package:pub_worker/src/http.dart';
 import 'package:pub_worker/src/pubapi.client.dart';
@@ -243,14 +241,15 @@ Future<void> _reportPackageSkipped(
   final output = await BlobIndexPair.build(r.blobId, (addFile) async {
     await addFile(
       'log.txt',
-      Stream.value(utf8.encode([
+      Stream.value([
         '## Skipping analysis for "$package" version "$version"',
         'date-time: ${clock.now().toUtc().toIso8601String()}',
         '',
         'reason:',
         reason,
         '', // always end with a newline
-      ].join('\n'))),
+      ].join('\n'))
+          .transform(utf8.fuse(gzip).encoder),
     );
   });
 
