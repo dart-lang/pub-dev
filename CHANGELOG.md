@@ -7,6 +7,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded preview Dart analysis SDK to `2.19.0-146.2.beta`.
  * Upgraded preview Flutter analysis SDK to `3.4.0-17.2.pre`.
  * Upgraded dependencies in `app`, including `package:analyzer` to `4.7.0`.
+ * NOTE: Started to use `OutgoingEmail` entities to track pending emails.
 
 ## `20220915t093500-all`
  * Bumped runtimeVersion to `2022.09.14`.
@@ -16,7 +17,6 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * NOTE: Increasing instance counts for `default` and `search` services.
  * NOTE: Landing page uses `CachedValue` to track top-* packages.
  * NOTE: Stopped using old bucket for package archives.
- * NOTE: Started to use `OutgoingEmail` entities to track pending emails.
 
 ## `20220908t135900-all`
  * Bumped runtimeVersion to `2022.09.08`.
