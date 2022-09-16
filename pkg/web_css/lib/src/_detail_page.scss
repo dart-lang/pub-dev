@@ -217,7 +217,17 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   border: solid 1px #aeaeae;
   margin-top: 10px;
   margin-left: 45px;
+  cursor: pointer;
 }
+
+.screenshot-thumbnail-container {
+  transition: 200ms filter;
+}
+
+.screenshot-thumbnail-container:hover {
+  filter: brightness(50%);
+}
+
 
 @media (min-width: $device-desktop-min-width) {
   .detail-body {
