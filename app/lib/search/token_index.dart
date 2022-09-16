@@ -292,7 +292,8 @@ class TokenIndex {
     if (limitToIds != null && limitToIds.isEmpty) {
       return Score.empty();
     }
-    return Score.multiply(words.map((w) {
+    final scores = <Score>[];
+    for (final w in words) {
       final tokens = lookupTokens(w);
       final values = _scoreDocs(
         tokens,
@@ -300,7 +301,11 @@ class TokenIndex {
         wordCount: words.length,
         limitToIds: limitToIds,
       );
-      return Score(values);
-    }).toList());
+      if (values.isEmpty) {
+        return Score.empty();
+      }
+      scores.add(Score(values));
+    }
+    return Score.multiply(scores);
   }
 }
