@@ -19,10 +19,10 @@
 library indexed_blob;
 
 import 'dart:async';
-import 'dart:convert' show utf8, json;
+import 'dart:convert' show utf8;
 import 'dart:typed_data';
 import 'package:jsontool/jsontool.dart'
-    show JsonReader, jsonStringWriter, JsonSink, JsonSinkProcessor;
+    show JsonReader, jsonStringWriter, JsonSink;
 import 'package:meta/meta.dart';
 
 export 'src/blobindexpair.dart' show BlobIndexPair;
