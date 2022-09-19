@@ -749,6 +749,10 @@ class TaskBackend {
       ]);
 
   /// Fetch and cache `index.json` for [package] and [version].
+  ///
+  /// The returned [BlobIndex] will carry a [BlobIndex.blobId] that is the
+  /// path for the blob being reference, this path will include runtime-version,
+  /// package name, version and randomized blobId.
   Future<BlobIndex?> _taskResultIndex(String package, String version) async =>
       await cache.taskResultIndex(package, version).get(() async {
         final path = '$runtimeVersion/$package/$version/index.json';
@@ -756,7 +760,23 @@ class TaskBackend {
         if (bytes == null) {
           return null;
         }
-        return BlobIndex.fromBytes(bytes);
+        final index = BlobIndex.fromBytes(bytes);
+        final blobId = index.blobId;
+        if (!_blobIdPattern.hasMatch(blobId)) {
+          _log.warning('invalid blobId: "$blobId" in index in "$path"');
+          return null;
+        }
+        // We change the [blobId] when we store in the cache, because this frees
+        // us from having to cache the selected [runtimeVersion] next to the
+        // [BlobIndex].
+        // We don't store the full path of the blob as blobId, when creating the
+        // initial [BlobIndex], because it is created by `pub_worker` inside the
+        // untrusted sandboxed environment. And we do want to allow the worker
+        // to point at other files, than what is under:
+        //  `$runtimeVersion/$package/$version/`
+        return index.update(
+          blobId: '$runtimeVersion/$package/$version/$blobId',
+        );
       });
 
   /// Return gzipped result from task for the given [package]/[version] or
@@ -784,20 +804,16 @@ class TaskBackend {
       return null;
     }
 
-    if (!_blobIdPattern.hasMatch(range.blobId)) {
-      _log.warning(
-          'invalid blobId: "${range.blobId}" in index for $package / $version');
-      return null;
-    }
-
     // Notice that by using the [range.blobId] in the cache key we ensure that
     // if we purge `taskResultIndex` for the given [package]/[version] then
     // we'll not need to purge the cache for `gzippedTaskResult`, and we get the
     // new files.
+    // Keep in mind that the [IndexBlob] return from [_taskResultIndex] has a
+    // blobId that is the path to the blob within the task-result bucket.
     return await cache
-        .gzippedTaskResult(package, version, range.blobId, path)
+        .gzippedTaskResult(range.blobId, path)
         .get(() => _readFromBucket(
-              '$runtimeVersion/$package/$version/${range.blobId}',
+              range.blobId,
               offset: range.start,
               length: range.end - range.start,
             ));

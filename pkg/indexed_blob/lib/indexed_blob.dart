@@ -19,10 +19,10 @@
 library indexed_blob;
 
 import 'dart:async';
-import 'dart:convert' show utf8;
+import 'dart:convert' show utf8, json;
 import 'dart:typed_data';
 import 'package:jsontool/jsontool.dart'
-    show JsonReader, jsonStringWriter, JsonSink;
+    show JsonReader, jsonStringWriter, JsonSink, JsonSinkProcessor;
 import 'package:meta/meta.dart';
 
 export 'src/blobindexpair.dart' show BlobIndexPair;
@@ -297,6 +297,65 @@ class BlobIndex {
   }
 
   Uint8List asBytes() => _indexFile;
+
+  /// Create a new [BlobIndex] updated with a new [blobId].
+  BlobIndex update({
+    String? blobId,
+  }) {
+    final r = JsonReader.fromUtf8(_indexFile);
+    r.expectObject();
+
+    // Expect a version key
+    if (!_skipUntilKey(r, 'version')) {
+      throw const FormatException('expected "version" key');
+    }
+    if (r.expectInt() != 1) {
+      throw const FormatException('future index format not supported');
+    }
+
+    // Expect a blobId key
+    if (!_skipUntilKey(r, 'blobId')) {
+      throw const FormatException('expected "blobId" key');
+    }
+    final originalBlobId = r.expectString();
+
+    // Expect a index key
+    if (!_skipUntilKey(r, 'index')) {
+      throw const FormatException('expected "index" key');
+    }
+    if (!r.checkObject()) {
+      throw const FormatException('expected "index" object');
+    }
+
+    // Create a writer for the new output
+    final out = StringBuffer();
+    final w = jsonStringWriter(out);
+    w.startObject();
+
+    // Note. it's a bit of a hack, but keys are expected to be order as follows:
+    // - version
+    // - blobId
+    // - index
+
+    // Write version number
+    w.addKey('version');
+    w.addNumber(1);
+
+    // Write blobId
+    w.addKey('blobId');
+    w.addString(blobId ?? originalBlobId);
+
+    // Add index
+    w.addKey('index');
+    w.addSourceValue(utf8.decode(r.expectAnyValueSource()));
+
+    w.endObject();
+
+    print(out.toString());
+    final bytes = utf8.encoder.convert(out.toString());
+
+    return BlobIndex.fromBytes(bytes);
+  }
 }
 
 /// Range of a file in an indexed-blob.

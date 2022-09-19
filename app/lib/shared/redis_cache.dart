@@ -288,14 +288,12 @@ class CachePatterns {
 
   /// Cache for gzipped task-result files used by TaskBackend.
   Entry<List<int>> gzippedTaskResult(
-    String package,
-    String version,
     String blobId,
     String path,
   ) =>
       _cache
           .withPrefix('task-result/')
-          .withTTL(Duration(hours: 6))['$package-$version/$blobId/$path'];
+          .withTTL(Duration(hours: 6))['$blobId/$path'];
 
   /// Stores the OpenID Data (including the JSON Web Key list).
   ///
