@@ -474,6 +474,10 @@ void main() {
 
     {
       final instances = await cloud.listInstances().toList();
+      // Arbitrary async delay in order to prevent flaky test timeouts.
+      // TODO: remove once we find the root cause
+      await Future.delayed(Duration.zero);
+
       // There is only one package, so we should only get one instance
       expect(instances, hasLength(1));
 
