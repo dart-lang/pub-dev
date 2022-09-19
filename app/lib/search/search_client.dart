@@ -42,7 +42,6 @@ class SearchClient {
   /// search service and update the cached value.
   Future<PackageSearchResult> search(
     ServiceSearchQuery query, {
-    Duration? ttl,
     Duration? updateCacheAfter,
     bool skipCache = false,
   }) async {
@@ -83,7 +82,7 @@ class SearchClient {
     if (skipCache) {
       result = await searchFn();
     } else {
-      final cacheEntry = cache.packageSearchResult(serviceUrl, ttl: ttl);
+      final cacheEntry = cache.packageSearchResult(serviceUrl);
       result = await cacheEntry.get(searchFn);
 
       if (updateCacheAfter != null &&

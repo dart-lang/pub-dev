@@ -196,11 +196,10 @@ class CachePatterns {
         decode: (obj) => obj as Map<String, dynamic>,
       ))['$page'];
 
-  Entry<PackageSearchResult> packageSearchResult(String url, {Duration? ttl}) {
-    ttl ??= const Duration(minutes: 1);
+  Entry<PackageSearchResult> packageSearchResult(String url) {
     return _cache
         .withPrefix('search-result/')
-        .withTTL(ttl)
+        .withTTL(const Duration(minutes: 5))
         .withCodec(utf8)
         .withCodec(json)
         .withCodec(wrapAsCodec(

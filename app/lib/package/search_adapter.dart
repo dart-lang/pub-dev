@@ -56,13 +56,12 @@ class SearchAdapter {
   Future<PackageSearchResult?> _searchOrFallback(
     SearchForm searchForm,
     bool fallbackToNames, {
-    Duration? ttl,
     Duration? updateCacheAfter,
   }) async {
     PackageSearchResult? result;
     try {
       result = await searchClient.search(searchForm.toServiceQuery(),
-          ttl: ttl, updateCacheAfter: updateCacheAfter);
+          updateCacheAfter: updateCacheAfter);
     } catch (e, st) {
       _logger.severe('Unable to search packages', e, st);
     }
