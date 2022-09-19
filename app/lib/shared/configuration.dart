@@ -101,8 +101,7 @@ class Configuration {
   /// created.
   final int maxTaskInstances;
 
-  /// The name of the Cloud Storage bucket to use for task results, such as
-  /// generated dartdoc blobs, dartdoc index-files, pana-reports and task logs.
+  /// The name of the Cloud Storage bucket to use for task results.
   final String? taskResultBucketName;
 
   /// Docker image containing `../pkg/pub_worker` to be used for running

@@ -20,7 +20,8 @@ final _log = Logger('pub_worker.upload');
 Future<void> upload(
   Client client,
   UploadInfo destination,
-  List<int> content, {
+  Stream<List<int>> Function() content,
+  int length, {
   required String filename,
   String contentType = 'application/octet-stream',
 }) async =>
@@ -30,9 +31,10 @@ Future<void> upload(
       final req = MultipartRequest('POST', Uri.parse(destination.url))
         ..fields.addAll(destination.fields ?? {})
         ..followRedirects = false
-        ..files.add(MultipartFile.fromBytes(
+        ..files.add(MultipartFile(
           'file',
-          content,
+          content(),
+          length,
           filename: filename,
           contentType: MediaType.parse(contentType),
         ));

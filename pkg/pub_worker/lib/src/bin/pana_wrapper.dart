@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert' show json;
-import 'dart:io' show exit, File, Platform;
+import 'dart:io' show exit, File, Platform, Directory;
 
 import 'package:logging/logging.dart' show Logger, Level, LogRecord;
 import 'package:pana/pana.dart';
@@ -37,19 +37,22 @@ Future<void> main(List<String> args) async {
     dartSdkDir: Platform.environment['DART_ANALYSIS_SDK'],
     flutterSdkDir: Platform.environment['FLUTTER_ANALYSIS_SDK'],
   );
+
+  final dartdocOutputDir =
+      await Directory(p.join(outputFolder, 'doc')).create();
   final pana = PackageAnalyzer(toolEnv);
   final summary = await pana.inspectPackage(
     package,
     version: version,
     options: InspectOptions(
-      dartdocOutputDir: p.join(outputFolder, 'dartdoc'),
+      dartdocOutputDir: dartdocOutputDir.path,
       dartdocRetry: 2,
       dartdocTimeout: Duration(minutes: 15),
     ),
   );
 
-  _log.info('Writing pana-summary.json');
+  _log.info('Writing summary.json');
   await File(
-    p.join(outputFolder, 'pana-summary.json'),
+    p.join(outputFolder, 'summary.json'),
   ).writeAsString(json.encode(summary));
 }
