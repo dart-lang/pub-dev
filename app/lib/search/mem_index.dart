@@ -501,7 +501,17 @@ class PackageNameIndex {
   Score searchWords(List<String> words, {Set<String>? packages}) {
     final pkgNamesToCheck = packages ?? _namesWithoutGaps.keys;
     final values = <String, double>{};
+    // Prefilter package names based on the total length of the search query.
+    // The threshold sets the minimum package name length at (query length ~/ 4),
+    // filtering out most of the impossible matches before going into the N-GRAM
+    // matching calculations.
+    final wordsTotalLength =
+        words.map((e) => e.length).fold<int>(0, (a, b) => a + b);
+    final minimumLength = wordsTotalLength ~/ 4;
     for (final pkg in pkgNamesToCheck) {
+      if (pkg.length < minimumLength) {
+        continue;
+      }
       // Calculate the collapsed format of the package name based on the cache.
       // Fallback value is used in cases where concurrent updates of the index
       // would cause inconsistencies and empty value in the cache.
