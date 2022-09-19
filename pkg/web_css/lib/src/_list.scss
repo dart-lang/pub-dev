@@ -177,6 +177,15 @@
     height: 100px;
     margin-top: 10px;
     border: solid 1px #aeaeae;
+    cursor: pointer;
+  }
+
+  .screenshot-thumbnail-container {
+    transition: 200ms filter;
+  }
+
+  .screenshot-thumbnail-container:hover {
+    filter: brightness(50%);
   }
 
   .packages-title {
