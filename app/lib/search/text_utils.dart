@@ -106,10 +106,11 @@ Map<String, double>? tokenize(String? originalText, {bool isSplit = false}) {
     tokens[normalizedWord] = 1.0;
 
     // Scan for CamelCase phrases and extract Camel and Case separately.
+    final wordCodeUnits = word.codeUnits;
     final changeIndex = <int>[0];
-    bool prevLower = _isLower(word[0]);
+    bool prevLower = _isLower(wordCodeUnits[0]);
     for (int i = 1; i < word.length; i++) {
-      final bool lower = _isLower(word[i]);
+      final lower = _isLower(wordCodeUnits[i]);
       if (!lower && prevLower) {
         changeIndex.add(i);
       }
@@ -128,7 +129,9 @@ Map<String, double>? tokenize(String? originalText, {bool isSplit = false}) {
   return tokens;
 }
 
-bool _isLower(String c) => c.toLowerCase() == c;
+final _upperA = 'A'.codeUnits.single;
+final _upperZ = 'Z'.codeUnits.single;
+bool _isLower(int c) => c < _upperA || _upperZ < c;
 
 /// Generates the N-grams of [input], which are continuous character strings of
 /// length between [minLength] and [maxLength] (both inclusive).
@@ -143,44 +146,4 @@ Set<String> ngrams(String input, int minLength, int maxLength) {
     }
   }
   return ngrams;
-}
-
-/// Generates lookup candidates that are, either:
-/// - derived by deleting one character from [token]
-///   (if total length is less than 7 characters),
-/// - are the prefix part of [token] (4-7 characters)
-/// - are the suffix part of [token] (4-7 characters)
-Set<String> deriveLookupCandidates(String token) {
-  final set = <String>{};
-  if (token.length <= 3) {
-    return set;
-  }
-  for (int i = 0; i < token.length; i++) {
-    final prefix = i == 0 ? '' : token.substring(0, i);
-    final suffix = i == token.length - 1 ? '' : token.substring(i + 1);
-    if (3 < prefix.length && prefix.length < 8) {
-      set.add(prefix);
-    }
-    if (3 < suffix.length && suffix.length < 8) {
-      set.add(suffix);
-    }
-    if (token.length < 8) {
-      set.add(prefix + suffix);
-    }
-  }
-  return set;
-}
-
-/// Returns true if the provided words could be singular-plural pairs.
-bool couldBeSingularAndPlural(
-  String singular,
-  String plural, {
-
-  /// Set to `true` if `singular` is a known prefix of `plural`.
-  bool isKnownPrefix = false,
-}) {
-  if (!isKnownPrefix && !plural.startsWith(singular)) {
-    return false;
-  }
-  return (singular.length == plural.length - 1) && plural.endsWith('s');
 }

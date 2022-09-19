@@ -268,6 +268,9 @@ List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
   bool isTopLevel(String? kind) => kind == 'library' || kind == 'class';
 
   void update(String key, String symbol, String? documentation) {
+    if (isCommonApiSymbol(symbol)) {
+      return;
+    }
     final set = symbolMap.putIfAbsent(key, () => <String>{});
     set.add(symbol);
 
@@ -283,10 +286,7 @@ List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
       pathMap[apiElement.qualifiedName] = apiElement.href;
       update(
           apiElement.qualifiedName, apiElement.name, apiElement.documentation);
-    }
-
-    if (!isTopLevel(apiElement.kind) &&
-        apiElement.parent != null &&
+    } else if (apiElement.parent != null &&
         isTopLevel(nameToKindMap[apiElement.parent])) {
       update(apiElement.parent!, apiElement.name, apiElement.documentation);
     }
