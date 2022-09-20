@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bumped runtimeVersion to `2022.09.20`.
+ * Upgraded dependencies in `app`, including `package:analyzer` to `4.7.0`.
 
 ## `20220915t093500-all`
  * Bumped runtimeVersion to `2022.09.14`.
