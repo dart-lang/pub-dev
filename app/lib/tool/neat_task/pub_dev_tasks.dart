@@ -2,15 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:neat_periodic_task/neat_periodic_task.dart';
-import 'package:pub_dev/shared/configuration.dart';
-import 'package:pub_dev/task/backend.dart';
-import 'package:pub_dev/task/cloudcompute/googlecloudcompute.dart';
-import 'package:pub_dev/tool/maintenance/update_public_bucket.dart';
 
 import '../../account/backend.dart';
 import '../../account/consent_backend.dart';
@@ -20,11 +17,17 @@ import '../../job/backend.dart';
 import '../../package/backend.dart';
 import '../../scorecard/backend.dart';
 import '../../search/backend.dart';
+import '../../service/email/backend.dart';
+import '../../shared/configuration.dart';
 import '../../shared/datastore.dart';
 import '../../shared/integrity.dart';
+import '../../task/backend.dart';
+import '../../task/cloudcompute/googlecloudcompute.dart';
+import '../../task/global_lock.dart';
 import '../../tool/backfill/backfill_new_fields.dart';
 import '../maintenance/remove_orphaned_likes.dart';
 import '../maintenance/update_package_likes.dart';
+import '../maintenance/update_public_bucket.dart';
 
 import 'datastore_status_provider.dart';
 
@@ -32,6 +35,39 @@ final _logger = Logger('pub_dev_tasks');
 
 /// Periodic task that are not tied to a specific service.
 void _setupGenericPeriodicTasks() {
+  // Tries to send pending outgoing emails.
+  _15mins(
+    name: 'send-outgoing-emails',
+    isRuntimeVersioned: false,
+    task: () async {
+      final aquireAbort = Completer();
+      final aquireTimer = Timer(Duration(minutes: 2), () {
+        aquireAbort.complete();
+      });
+
+      final lock = GlobalLock.create(
+        'send-outgoing-emails',
+        expiration: Duration(minutes: 20),
+      );
+      await lock.withClaim(
+        (claim) async {
+          await emailBackend.trySendAllOutgoingEmails(
+            stopAfter: Duration(minutes: 10),
+          );
+        },
+        abort: aquireAbort,
+      );
+      aquireTimer.cancel();
+    },
+  );
+
+  // Deletes outgoing email entries that had failed to deliver.
+  _daily(
+    name: 'delete-outgoing-emails',
+    isRuntimeVersioned: false,
+    task: emailBackend.deleteDeadOutgoingEmails,
+  );
+
   // Backfills the fields that are new to the current release.
   _daily(
     name: 'backfill-new-fields',
@@ -190,6 +226,25 @@ void _setupJobCleanupPeriodicTasks() {
     isRuntimeVersioned: true,
     task: () async => await scoreCardBackend.deleteOldEntries(),
   );
+}
+
+// ignore: non_constant_identifier_names
+void _15mins({
+  required String name,
+  required bool isRuntimeVersioned,
+  required NeatPeriodicTask task,
+}) {
+  final scheduler = NeatPeriodicTaskScheduler(
+    name: name,
+    interval: Duration(minutes: 15),
+    timeout: Duration(minutes: 10),
+    status: DatastoreStatusProvider.create(dbService, name,
+        isRuntimeVersioned: isRuntimeVersioned),
+    task: _wrapMemoryLogging(name, task),
+  );
+
+  ss.registerScopeExitCallback(() => scheduler.stop());
+  scheduler.start();
 }
 
 void _daily({

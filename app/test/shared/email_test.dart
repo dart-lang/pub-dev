@@ -101,21 +101,13 @@ void main() {
   });
 
   group('EmailAddress format', () {
-    test('empty', () {
-      expect(EmailAddress(null, null).toString(), '');
-    });
-
-    test('name only', () {
-      expect(EmailAddress('John Doe', null).toString(), 'John Doe');
-    });
-
     test('email only', () {
-      expect(EmailAddress(null, 'john.doe@example.com').toString(),
+      expect(EmailAddress('john.doe@example.com').toString(),
           'john.doe@example.com');
     });
 
     test('composite', () {
-      expect(EmailAddress('John Doe', 'john.doe@example.com').toString(),
+      expect(EmailAddress('john.doe@example.com', name: 'John Doe').toString(),
           'John Doe <john.doe@example.com>');
     });
   });
@@ -170,8 +162,8 @@ void main() {
         packageVersion: '1.0.0',
         displayId: 'uploader@example.com',
         authorizedUploaders: [
-          EmailAddress('Joe', 'joe@example.com'),
-          EmailAddress(null, 'uploader@example.com')
+          EmailAddress(name: 'Joe', 'joe@example.com'),
+          EmailAddress('uploader@example.com')
         ],
       );
       expect(message.from.toString(), contains('<noreply@pub.dev>'));

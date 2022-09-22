@@ -18,7 +18,7 @@ import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
-import 'package:pub_dev/job/backend.dart';
+import 'package:pub_dev/service/email/models.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -27,8 +27,9 @@ import '../account/consent_backend.dart';
 import '../account/models.dart' show User;
 import '../admin/backend.dart';
 import '../audit/models.dart';
-import '../frontend/email_sender.dart';
+import '../job/backend.dart';
 import '../publisher/backend.dart';
+import '../service/email/backend.dart';
 import '../service/secret/backend.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
@@ -613,7 +614,9 @@ class PackageBackend {
       return _asPackagePublisherInfo(preTxPackage);
     }
 
-    final preTxUploaderEmails = preTxPackage.publisherId == null
+    final preTxUploaderEmails = await _listAdminNotificationEmailsForPackage(
+        preTxPackage.name!, AuthenticatedUser(user));
+    preTxPackage.publisherId == null
         ? await accountBackend.getEmailsOfUserIds(preTxPackage.uploaders!)
         : await publisherBackend
             .getAdminMemberEmails(preTxPackage.publisherId!);
@@ -624,7 +627,7 @@ class PackageBackend {
       ...newPublisherAdminEmails.whereType<String>(),
     };
 
-    EmailMessage? email;
+    List<OutgoingEmail>? emails;
     String? currentPublisherId;
     final rs = await withRetryTransaction(db, (tx) async {
       final package = await tx.lookupValue<Package>(key);
@@ -645,21 +648,23 @@ class PackageBackend {
         toPublisherId: package.publisherId!,
       ));
 
-      email = createPackageTransferEmail(
+      final email = createPackageTransferEmail(
         packageName: packageName,
         activeUserEmail: user.email!,
         oldPublisherId: currentPublisherId,
         newPublisherId: package.publisherId!,
         authorizedAdmins:
-            allAdminEmails.map((email) => EmailAddress(null, email)).toList(),
+            allAdminEmails.map((email) => EmailAddress(email)).toList(),
       );
+      emails = emailBackend.prepareEntities(email);
+      tx.insertAll(emails!);
       return _asPackagePublisherInfo(package);
     });
     await purgePublisherCache(publisherId: request.publisherId);
     await purgePackageCache(packageName);
 
-    if (email != null) {
-      await emailSender.sendMessage(email!);
+    if (emails != null) {
+      await emailBackend.trySendOutgoingEmails(emails!);
     }
     if (currentPublisherId != null) {
       await purgePublisherCache(publisherId: currentPublisherId);
@@ -946,6 +951,18 @@ class PackageBackend {
     final newVersion = entities.packageVersion;
     final currentDartSdk = await getDartSdkVersion();
 
+    // query admin notification emails before the transaction starts
+    final uploaderEmails =
+        await _listAdminNotificationEmailsForPackage(newVersion.package, agent);
+    final email = createPackageUploadedEmail(
+      packageName: newVersion.package,
+      packageVersion: newVersion.version!,
+      displayId: agent.displayId,
+      authorizedUploaders:
+          uploaderEmails.map((email) => EmailAddress(email)).toList(),
+    );
+    final emailEntitiesToStore = emailBackend.prepareEntities(email);
+
     Package? package;
     String? prevLatestStableVersion;
     String? prevLatestPrereleaseVersion;
@@ -1026,6 +1043,7 @@ class PackageBackend {
         newVersion,
         entities.packageVersionInfo,
         ...entities.assets,
+        ...emailEntitiesToStore,
         AuditLogRecord.packagePublished(
           uploader: agent,
           package: newVersion.package,
@@ -1047,18 +1065,8 @@ class PackageBackend {
     await purgePackageCache(newVersion.package);
 
     try {
-      final uploaderEmails = package!.publisherId == null
-          ? await accountBackend.getEmailsOfUserIds(package!.uploaders!)
-          : await publisherBackend.getAdminMemberEmails(package!.publisherId!);
-
-      // Notify uploaders via email that a new version has been published.
-      final email = emailSender.sendMessage(createPackageUploadedEmail(
-        packageName: newVersion.package,
-        packageVersion: newVersion.version!,
-        displayId: agent.displayId,
-        authorizedUploaders:
-            uploaderEmails.map((email) => EmailAddress(null, email)).toList(),
-      ));
+      final emailFuture =
+          emailBackend.trySendOutgoingEmails(emailEntitiesToStore);
 
       final latestVersionChanged = prevLatestStableVersion != null &&
           package!.latestVersion != prevLatestStableVersion;
@@ -1069,7 +1077,7 @@ class PackageBackend {
       // underlying operations still go ahead, but the `Future.wait` call below
       // is not blocked on it.
       await Future.wait([
-        email,
+        emailFuture,
         // Trigger analysis and dartdoc generation. Dependent packages can be left
         // out here, because the dependency graph's background polling will pick up
         // the new upload, and will trigger analysis for the dependent packages.
@@ -1132,6 +1140,40 @@ class PackageBackend {
       'GitHub Action recognized successful, but publishing is not enabled yet.'
       ' $debugInfo',
     );
+  }
+
+  /// List the admin emails that need to be notified when a [package] has a
+  /// significant event (e.g. new version is uploaded).
+  ///
+  /// - Returns either the uploader emails of the publisher's admin member emails.
+  ///   Throws exception if the list is empty, we should be able to notify somebody.
+  ///
+  /// - Throws exception if the [package] is blocked.
+  ///
+  /// - If the [package] does not exists yet, and [agent] is [AuthenticatedUser],
+  ///   it will return the email of that user. For other type of agents, it will
+  ///   throw an exception for non-existing packages.
+  Future<List<String>> _listAdminNotificationEmailsForPackage(
+      String package, AuthenticatedAgent agent) async {
+    final p = await lookupPackage(package);
+    if (p == null && agent is AuthenticatedUser) {
+      return <String>[agent.user.email!];
+    }
+    if (p == null) {
+      throw AuthorizationException.userIsNotAdminForPackage(package);
+    }
+    if (p.isBlocked) {
+      throw PackageRejectedException.isBlocked();
+    }
+    final emails = p.publisherId == null
+        ? await accountBackend.getEmailsOfUserIds(p.uploaders!)
+        : await publisherBackend.getAdminMemberEmails(p.publisherId!);
+    final existingEmails = emails.whereType<String>().toList();
+    if (existingEmails.isEmpty) {
+      _logger.shout('Package "$package" has no admin email to notify.');
+      throw AuthorizationException.userIsNotAdminForPackage(package);
+    }
+    return existingEmails;
   }
 
   /// Read the archive bytes from the canonical bucket.

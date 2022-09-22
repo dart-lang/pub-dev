@@ -6,10 +6,10 @@ import 'package:_pub_shared/data/account_api.dart' as api;
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:pub_dev/service/email/backend.dart';
 import 'package:retry/retry.dart';
 
 import '../audit/models.dart';
-import '../frontend/email_sender.dart';
 import '../frontend/templates/consent.dart';
 import '../package/backend.dart';
 import '../publisher/backend.dart';
@@ -200,20 +200,23 @@ class ConsentBackend {
       String activeUserEmail, Consent consent) async {
     final invitedEmail = consent.email!;
     final action = _actions[consent.kind]!;
-    await emailSender.sendMessage(createInviteEmail(
+    final emails = emailBackend.prepareEntities(createInviteEmail(
       invitedEmail: invitedEmail,
       subject: action.renderEmailSubject(consent.args!),
       inviteText: action.renderInviteText(activeUserEmail, consent.args!),
       consentUrl: consentUrl(consent.consentId),
     ));
-    return await withRetryTransaction(_db, (tx) async {
+    final status = await withRetryTransaction(_db, (tx) async {
       final c = await tx.lookupValue<Consent>(consent.key);
       c.notificationCount++;
       c.lastNotified = clock.now().toUtc();
       tx.insert(c);
+      tx.insertAll(emails);
       return api.InviteStatus(
           emailSent: true, nextNotification: c.nextNotification);
     });
+    await emailBackend.trySendOutgoingEmails(emails);
+    return status;
   }
 
   /// Removes obsolete/expired [Consent] entries from Datastore.

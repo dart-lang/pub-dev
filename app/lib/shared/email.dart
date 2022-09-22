@@ -15,8 +15,8 @@ final _strictEmailRegExp = RegExp(
     r'''[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$''');
 
 final _defaultFrom = EmailAddress(
-  'Dart package site admin',
   pubDartlangOrgEmail,
+  name: 'Dart package site admin',
 );
 
 String _footer(String action) {
@@ -29,19 +29,14 @@ With appreciation, the Dart package site admin''';
 
 /// Represents a parsed email address.
 class EmailAddress {
+  final String email;
   final String? name;
-  final String? email;
 
-  EmailAddress(this.name, this.email);
-
-  bool get isEmpty => name == null && email == null;
+  EmailAddress(this.email, {this.name});
 
   @override
   String toString() {
-    if (isEmpty) return '';
-    if (email == null) return name ?? '';
-    if (name == null) return email ?? '';
-    return '$name <$email>';
+    return name == null ? email : '$name <$email>';
   }
 }
 
@@ -93,13 +88,34 @@ bool isValidEmail(String email) {
 
 /// Represents an email message the site will send.
 class EmailMessage {
+  /// The local part of the `Message-ID` SMTP header.
+  ///
+  /// [uuid] is not required while in the message construction phase,
+  /// but a must have when sending out the actual email. `EmailSender`
+  /// implementation must call [verifyUuid] before accepting the email
+  /// for delivery.
+  final String? uuid;
   final EmailAddress from;
   final List<EmailAddress> recipients;
   final String subject;
   final String bodyText;
 
-  EmailMessage(this.from, this.recipients, this.subject, String bodyText)
-      : bodyText = reflowBodyText(bodyText);
+  EmailMessage(
+    this.from,
+    this.recipients,
+    this.subject,
+    String bodyText, {
+    this.uuid,
+  }) : bodyText = reflowBodyText(bodyText);
+
+  /// Throws [ArgumentError] if the [uuid] field doesn't look like
+  /// UUID or ULID.
+  void verifyUuid() {
+    final uuid = this.uuid;
+    if (uuid == null || uuid.length < 25 || uuid.length > 36) {
+      throw ArgumentError('Invalid uuid: `$uuid`');
+    }
+  }
 }
 
 /// Parses the body text and splits the [input] paragraphs to [lineLength]
@@ -173,7 +189,7 @@ If you don’t want to accept it, simply ignore this email.
 ${_footer('invitation')}
 ''';
   return EmailMessage(
-      _defaultFrom, [EmailAddress(null, invitedEmail)], subject, bodyText);
+      _defaultFrom, [EmailAddress(invitedEmail)], subject, bodyText);
 }
 
 /// Creates the [EmailMessage] that we be sent on package transfer to a new publisher.

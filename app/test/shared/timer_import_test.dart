@@ -35,6 +35,9 @@ void main() {
     // Uses timer to send stats periodically to the frontend isolate.
     'lib/service/entrypoint/dartdoc.dart',
 
+    // Uses timer to timeout GlobalLock claim aquisition.
+    'lib/tool/neat_task/pub_dev_tasks.dart',
+
     // Uses timer to track event loop latencies.
     'lib/tool/utils/event_loop_tracker.dart',
   };
