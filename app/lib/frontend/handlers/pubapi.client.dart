@@ -23,8 +23,13 @@ export 'package:api_builder/_client_utils.dart' show RequestException;
 /// structure result in a method that returns the response body
 /// as bytes
 class PubApiClient {
-  PubApiClient(String baseUrl, {_i1.Client? client})
-      : _client = _i2.Client(baseUrl, client: client);
+  PubApiClient(
+    String baseUrl, {
+    _i1.Client? client,
+  }) : _client = _i2.Client(
+          baseUrl,
+          client: client,
+        );
 
   final _i2.Client _client;
 
@@ -36,14 +41,19 @@ class PubApiClient {
   }
 
   Future<_i3.VersionInfo> packageVersionInfo(
-      String package, String version) async {
+    String package,
+    String version,
+  ) async {
     return _i3.VersionInfo.fromJson(await _client.requestJson(
       verb: 'get',
       path: '/api/packages/$package/versions/$version',
     ));
   }
 
-  Future<List<int>> fetchPackage(String package, String version) async {
+  Future<List<int>> fetchPackage(
+    String package,
+    String version,
+  ) async {
     return await _client.requestBytes(
       verb: 'get',
       path: '/api/packages/$package/versions/$version/archive.tar.gz',
@@ -79,7 +89,9 @@ class PubApiClient {
   }
 
   Future<_i3.SuccessMessage> removeUploader(
-      String package, String email) async {
+    String package,
+    String email,
+  ) async {
     return _i3.SuccessMessage.fromJson(await _client.requestJson(
       verb: 'delete',
       path: '/api/packages/$package/uploaders/$email',
@@ -87,7 +99,9 @@ class PubApiClient {
   }
 
   Future<_i3.SuccessMessage> removeUploaderFromUI(
-      String package, _i3.RemoveUploaderRequest payload) async {
+    String package,
+    _i3.RemoveUploaderRequest payload,
+  ) async {
     return _i3.SuccessMessage.fromJson(await _client.requestJson(
       verb: 'post',
       path: '/api/packages/$package/remove-uploader',
@@ -96,7 +110,9 @@ class PubApiClient {
   }
 
   Future<_i4.InviteStatus> invitePackageUploader(
-      String package, _i3.InviteUploaderRequest payload) async {
+    String package,
+    _i3.InviteUploaderRequest payload,
+  ) async {
     return _i4.InviteStatus.fromJson(await _client.requestJson(
       verb: 'post',
       path: '/api/packages/$package/invite-uploader',
@@ -105,7 +121,9 @@ class PubApiClient {
   }
 
   Future<_i5.PublisherInfo> createPublisher(
-      String publisherId, _i5.CreatePublisherRequest payload) async {
+    String publisherId,
+    _i5.CreatePublisherRequest payload,
+  ) async {
     return _i5.PublisherInfo.fromJson(await _client.requestJson(
       verb: 'post',
       path: '/api/publishers/$publisherId',
@@ -121,7 +139,9 @@ class PubApiClient {
   }
 
   Future<_i5.PublisherInfo> updatePublisher(
-      String publisherId, _i5.UpdatePublisherRequest payload) async {
+    String publisherId,
+    _i5.UpdatePublisherRequest payload,
+  ) async {
     return _i5.PublisherInfo.fromJson(await _client.requestJson(
       verb: 'put',
       path: '/api/publishers/$publisherId',
@@ -130,7 +150,9 @@ class PubApiClient {
   }
 
   Future<_i4.InviteStatus> invitePublisherMember(
-      String publisherId, _i5.InviteMemberRequest payload) async {
+    String publisherId,
+    _i5.InviteMemberRequest payload,
+  ) async {
     return _i4.InviteStatus.fromJson(await _client.requestJson(
       verb: 'post',
       path: '/api/publishers/$publisherId/invite-member',
@@ -146,15 +168,20 @@ class PubApiClient {
   }
 
   Future<_i5.PublisherMember> publisherMemberInfo(
-      String publisherId, String userId) async {
+    String publisherId,
+    String userId,
+  ) async {
     return _i5.PublisherMember.fromJson(await _client.requestJson(
       verb: 'get',
       path: '/api/publishers/$publisherId/members/$userId',
     ));
   }
 
-  Future<_i5.PublisherMember> updatePublisherMember(String publisherId,
-      String userId, _i5.UpdatePublisherMemberRequest payload) async {
+  Future<_i5.PublisherMember> updatePublisherMember(
+    String publisherId,
+    String userId,
+    _i5.UpdatePublisherMemberRequest payload,
+  ) async {
     return _i5.PublisherMember.fromJson(await _client.requestJson(
       verb: 'put',
       path: '/api/publishers/$publisherId/members/$userId',
@@ -163,7 +190,9 @@ class PubApiClient {
   }
 
   Future<List<int>> removePublisherMember(
-      String publisherId, String userId) async {
+    String publisherId,
+    String userId,
+  ) async {
     return await _client.requestBytes(
       verb: 'delete',
       path: '/api/publishers/$publisherId/members/$userId',
@@ -178,7 +207,9 @@ class PubApiClient {
   }
 
   Future<_i4.ConsentResult> resolveConsent(
-      String consentId, _i4.ConsentResult payload) async {
+    String consentId,
+    _i4.ConsentResult payload,
+  ) async {
     return _i4.ConsentResult.fromJson(await _client.requestJson(
       verb: 'put',
       path: '/api/account/consent/$consentId',
@@ -287,7 +318,9 @@ class PubApiClient {
   }
 
   Future<_i3.PkgOptions> setPackageOptions(
-      String package, _i3.PkgOptions payload) async {
+    String package,
+    _i3.PkgOptions payload,
+  ) async {
     return _i3.PkgOptions.fromJson(await _client.requestJson(
       verb: 'put',
       path: '/api/packages/$package/options',
@@ -296,7 +329,9 @@ class PubApiClient {
   }
 
   Future<_i3.AutomatedPublishing> setAutomatedPublishing(
-      String package, _i3.AutomatedPublishing payload) async {
+    String package,
+    _i3.AutomatedPublishing payload,
+  ) async {
     return _i3.AutomatedPublishing.fromJson(await _client.requestJson(
       verb: 'put',
       path: '/api/packages/$package/automated-publishing',
@@ -305,7 +340,9 @@ class PubApiClient {
   }
 
   Future<_i3.VersionOptions> getVersionOptions(
-      String package, String version) async {
+    String package,
+    String version,
+  ) async {
     return _i3.VersionOptions.fromJson(await _client.requestJson(
       verb: 'get',
       path: '/api/packages/$package/versions/$version/options',
@@ -313,7 +350,10 @@ class PubApiClient {
   }
 
   Future<_i3.VersionOptions> setVersionOptions(
-      String package, String version, _i3.VersionOptions payload) async {
+    String package,
+    String version,
+    _i3.VersionOptions payload,
+  ) async {
     return _i3.VersionOptions.fromJson(await _client.requestJson(
       verb: 'put',
       path: '/api/packages/$package/versions/$version/options',
@@ -336,7 +376,9 @@ class PubApiClient {
   }
 
   Future<_i3.PackagePublisherInfo> setPackagePublisher(
-      String package, _i3.PackagePublisherInfo payload) async {
+    String package,
+    _i3.PackagePublisherInfo payload,
+  ) async {
     return _i3.PackagePublisherInfo.fromJson(await _client.requestJson(
       verb: 'put',
       path: '/api/packages/$package/publisher',
@@ -360,7 +402,9 @@ class PubApiClient {
   }
 
   Future<_i3.VersionScore> packageVersionScore(
-      String package, String version) async {
+    String package,
+    String version,
+  ) async {
     return _i3.VersionScore.fromJson(await _client.requestJson(
       verb: 'get',
       path: '/api/packages/$package/versions/$version/score',
@@ -396,29 +440,40 @@ class PubApiClient {
   }
 
   Future<_i6.UploadTaskResultResponse> taskUploadResult(
-      String package, String version) async {
+    String package,
+    String version,
+  ) async {
     return _i6.UploadTaskResultResponse.fromJson(await _client.requestJson(
       verb: 'post',
       path: '/api/tasks/$package/$version/upload',
     ));
   }
 
-  Future<List<int>> taskUploadFinished(String package, String version) async {
+  Future<List<int>> taskUploadFinished(
+    String package,
+    String version,
+  ) async {
     return await _client.requestBytes(
       verb: 'post',
       path: '/api/tasks/$package/$version/finished',
     );
   }
 
-  Future<List<int>> adminExecuteTool(String tool, String args) async {
+  Future<List<int>> adminExecuteTool(
+    String tool,
+    String args,
+  ) async {
     return await _client.requestBytes(
       verb: 'post',
       path: '/api/admin/tools/$tool/$args',
     );
   }
 
-  Future<_i7.AdminListUsersResponse> adminListUsers(
-      {String? email, String? ouid, String? ct}) async {
+  Future<_i7.AdminListUsersResponse> adminListUsers({
+    String? email,
+    String? ouid,
+    String? ct,
+  }) async {
     return _i7.AdminListUsersResponse.fromJson(await _client.requestJson(
       verb: 'get',
       path: '/api/admin/users',
@@ -447,7 +502,9 @@ class PubApiClient {
   }
 
   Future<List<int>> adminRemovePackageVersion(
-      String package, String version) async {
+    String package,
+    String version,
+  ) async {
     return await _client.requestBytes(
       verb: 'delete',
       path: '/api/admin/packages/$package/versions/$version',
@@ -455,7 +512,10 @@ class PubApiClient {
   }
 
   Future<_i3.VersionOptions> adminUpdateVersionOptions(
-      String package, String version, _i3.VersionOptions payload) async {
+    String package,
+    String version,
+    _i3.VersionOptions payload,
+  ) async {
     return _i3.VersionOptions.fromJson(await _client.requestJson(
       verb: 'put',
       path: '/api/admin/packages/$package/versions/$version/options',
@@ -471,7 +531,9 @@ class PubApiClient {
   }
 
   Future<_i7.AssignedTags> adminPostAssignedTags(
-      String package, _i7.PatchAssignedTags payload) async {
+    String package,
+    _i7.PatchAssignedTags payload,
+  ) async {
     return _i7.AssignedTags.fromJson(await _client.requestJson(
       verb: 'post',
       path: '/api/admin/packages/$package/assigned-tags',
@@ -487,7 +549,9 @@ class PubApiClient {
   }
 
   Future<_i7.PackageUploaders> adminAddPackageUploader(
-      String package, String email) async {
+    String package,
+    String email,
+  ) async {
     return _i7.PackageUploaders.fromJson(await _client.requestJson(
       verb: 'put',
       path: '/api/admin/packages/$package/uploaders/$email',
@@ -495,7 +559,9 @@ class PubApiClient {
   }
 
   Future<_i7.PackageUploaders> adminRemovePackageUploader(
-      String package, String email) async {
+    String package,
+    String email,
+  ) async {
     return _i7.PackageUploaders.fromJson(await _client.requestJson(
       verb: 'delete',
       path: '/api/admin/packages/$package/uploaders/$email',
