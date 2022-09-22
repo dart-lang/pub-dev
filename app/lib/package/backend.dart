@@ -482,7 +482,7 @@ class PackageBackend {
         final isEnabled = github.isEnabled ?? false;
         // normalize input values
         final repository = github.repository?.trim() ?? '';
-        github.repository = repository;
+        github.repository = repository.isEmpty ? null : repository;
         final requireEnvironment = github.requireEnvironment ?? false;
         github.requireEnvironment = requireEnvironment ? true : null;
         final environment = github.environment?.trim() ?? '';
