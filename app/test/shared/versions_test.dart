@@ -78,7 +78,7 @@ void main() {
     expect(ci.contains('sdk:$runtimeSdkVersion'), isTrue);
   });
 
-  test('Dart SDK versions should match dockerfile', () async {
+  test('Dart SDK versions should match Dockerfile.app', () async {
     final dockerfileContent = await File('../Dockerfile.app').readAsString();
     expect(
         dockerfileContent,
@@ -90,10 +90,26 @@ void main() {
             'RUN /project/tool/setup-dart.sh /tool/preview $toolPreviewDartSdkVersion'));
   });
 
-  test('Flutter SDK versions should match dockerfile', () async {
+  test('Dart SDK versions should match Dockerfile.worker', () async {
+    final dockerfileContent = await File('../Dockerfile.worker').readAsString();
+    expect(
+        dockerfileContent,
+        contains(
+            'RUN tool/setup-dart.sh /home/worker $toolStableDartSdkVersion'));
+  });
+
+  test('Flutter SDK versions should match Dockerfile.app', () async {
     final String docker = await File('../Dockerfile.app').readAsString();
     expect(docker.contains('stable $toolStableFlutterSdkVersion'), isTrue);
     expect(docker.contains('preview $toolPreviewFlutterSdkVersion'), isTrue);
+  });
+
+  test('Flutter SDK versions should match Dockerfile.worker', () async {
+    final dockerfileContent = await File('../Dockerfile.worker').readAsString();
+    expect(
+        dockerfileContent,
+        contains(
+            'RUN tool/setup-flutter.sh /home/worker $toolStableFlutterSdkVersion'));
   });
 
   test('analyzer version should match resolved pana version', () async {
