@@ -70,9 +70,17 @@ class GithubPublishing {
   /// The `owner/repository` path of the project on github.com.
   String? repository;
 
+  /// Whether to require the action from a specific environment.
+  bool? requireEnvironment;
+
+  /// The GitHub environment where the publishing is required from.
+  String? environment;
+
   GithubPublishing({
     this.isEnabled,
     this.repository,
+    this.requireEnvironment,
+    this.environment,
   });
 
   factory GithubPublishing.fromJson(Map<String, dynamic> json) =>
