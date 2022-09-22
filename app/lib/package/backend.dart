@@ -484,8 +484,9 @@ class PackageBackend {
         final repository = github.repository?.trim() ?? '';
         github.repository = repository;
         final requireEnvironment = github.requireEnvironment ?? false;
+        github.requireEnvironment = requireEnvironment ? true : null;
         final environment = github.environment?.trim() ?? '';
-        github.environment = environment;
+        github.environment = environment.isEmpty ? null : environment;
 
         InvalidInputException.check(!isEnabled || repository.isNotEmpty,
             'The `repository` field must not be empty when enabled.');
