@@ -128,15 +128,26 @@
   }
 }
 
+.thumbnail-image {
+  border: solid 1px #d5d4d4;
+}
+
 .collections-icon {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 30px;
+  height: 30px;
   width: 30px;
-  align-self: flex-end;
-  margin-left: -30px;
   opacity: 70%;
   background-color: #aeaeae;
+  margin-top: auto;
+  margin-left: -30px;
+}
+
+.thumbnail-container {
+  display: flex;
+  width: inherit;
+  height: inherit;
+  justify-content: center;
+  align-items: center;
+  background: white;
 }
 
 .packages {
@@ -169,22 +180,19 @@
     flex-flow: column nowrap;
   }
 
-  .screenshot-thumbnail-container {
+  .packages-screenshot-thumbnail {
     display: flex;
-    flex-grow: 0;
-    flex-shrink: 0;
-    flex-basis: 100px;
-    height: 100px;
+    width: 102px;
+    height: 102px;
     margin-top: 10px;
-    border: solid 1px #aeaeae;
     cursor: pointer;
   }
 
-  .screenshot-thumbnail-container {
+  .packages-screenshot-thumbnail {
     transition: 200ms filter;
   }
 
-  .screenshot-thumbnail-container:hover {
+  .packages-screenshot-thumbnail:hover {
     filter: brightness(50%);
   }
 

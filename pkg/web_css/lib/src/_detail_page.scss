@@ -211,23 +211,21 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   }
 }
 
-.screenshot-thumbnail-container {
-  height: 100px;
-  width: 100px;
-  border: solid 1px #aeaeae;
+.detail-screenshot-thumbnail {
+  display: flex;
+  height: 190px;
+  width: 190px;
   margin-top: 10px;
-  margin-left: 45px;
   cursor: pointer;
 }
 
-.screenshot-thumbnail-container {
+.detail-screenshot-thumbnail {
   transition: 200ms filter;
 }
 
-.screenshot-thumbnail-container:hover {
+.detail-screenshot-thumbnail:hover {
   filter: brightness(50%);
 }
-
 
 @media (min-width: $device-desktop-min-width) {
   .detail-body {

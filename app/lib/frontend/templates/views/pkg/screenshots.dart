@@ -38,19 +38,25 @@ d.Node imageCarousel() {
   );
 }
 
-d.Node screenshotThumbnailNode(
-    String thumbnailUrl, List<String>? screenshotUrls) {
+d.Node collectionsIcon() {
   final collectionsIconWhite =
       staticUrls.getAssetUrl('/static/img/collections_white_24dp.svg');
-  return d.div(attributes: {
+  return d.img(
+      classes: ['collections-icon'],
+      image: d.Image(
+          height: 30, width: 30, alt: 'image', src: collectionsIconWhite));
+}
+
+d.Node screenshotThumbnailNode(
+    String thumbnailUrl, List<String>? screenshotUrls) {
+  return d.div(classes: [
+    'thumbnail-container'
+  ], attributes: {
     'data-thumbnail': screenshotUrls!.join(','),
   }, children: [
     d.img(
+        classes: ['thumbnail-image'],
         image: d.Image(
-            alt: 'screenshot', width: 98, height: 98, src: thumbnailUrl)),
-    d.img(
-        classes: ['collections-icon'],
-        image: d.Image(
-            height: 30, width: 30, alt: 'image', src: collectionsIconWhite))
+            alt: 'screenshot', width: null, height: null, src: thumbnailUrl)),
   ]);
 }
