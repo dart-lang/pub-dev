@@ -222,9 +222,12 @@ d.Node _item({
           ],
         ),
         if (thumbnailUrl != null && requestContext.showScreenshots)
-          d.div(
-              classes: ['screenshot-thumbnail-container'],
-              child: screenshotThumbnailNode(thumbnailUrl, screenshotUrls)),
+          d.div(classes: [
+            'packages-screenshot-thumbnail'
+          ], children: [
+            screenshotThumbnailNode(thumbnailUrl, screenshotUrls),
+            collectionsIcon()
+          ])
       ]),
     ],
   );
