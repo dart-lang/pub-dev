@@ -119,7 +119,7 @@ void main() {
                     .read([
               package,
               packageVersion,
-              processedScreenshot.webpThumbnail
+              processedScreenshot.webp100Thumbnail
             ].join('/'))
                     .fold<List<int>>(
                         <int>[], (buffer, data) => buffer..addAll(data)))
@@ -131,7 +131,7 @@ void main() {
                     .read([
               package,
               packageVersion,
-              processedScreenshot.pngThumbnail
+              processedScreenshot.png100Thumbnail
             ].join('/'))
                     .fold<List<int>>(
                         <int>[], (buffer, data) => buffer..addAll(data)))

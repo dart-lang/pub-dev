@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Upgraded pana to `0.21.18`.
+ * Bumped runtimeVersion to `2022.09.26`.
 
 ## `20220922t114500-all`
  * Bumped runtimeVersion to `2022.09.22`.
@@ -1030,4 +1032,3 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Run `app/bin/tools/backfill_packageversions.dart` to backfill `PubSpec`
    entities in datastore (these entitites are not in use yet).
  * Bumped runtimeVersion to `2019.03.05`.
-
