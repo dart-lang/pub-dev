@@ -36,13 +36,13 @@ void main() {
 
         // size checks
         final entry = card.dartdocReport!.dartdocEntry!;
-        expect(entry.archiveSize, greaterThan(140000));
-        expect(entry.archiveSize, lessThan(150000));
-        expect(entry.totalSize, greaterThan(490000));
-        expect(entry.totalSize, lessThan(530000));
+        expect(entry.archiveSize, greaterThan(155000));
+        expect(entry.archiveSize, lessThan(165000));
+        expect(entry.totalSize, greaterThan(545000));
+        expect(entry.totalSize, lessThan(565000));
         expect(entry.hasBlob, isTrue);
-        expect(entry.blobSize, greaterThan(155000));
-        expect(entry.blobSize, lessThan(175000));
+        expect(entry.blobSize, greaterThan(160000));
+        expect(entry.blobSize, lessThan(180000));
         expect(entry.blobIndexSize, greaterThan(750));
         expect(entry.blobIndexSize, lessThan(1000));
 

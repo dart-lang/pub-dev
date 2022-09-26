@@ -80,6 +80,7 @@ void main() {
         'pub_data_generator/PubDataGenerator/toString.html',
         'pub_data_generator/fileName-constant.html',
         'pub_data_generator/pub_data_generator-library.html',
+        'search.html',
         'static-assets/docs.dart.js',
         'static-assets/docs.dart.js.map',
         'static-assets/favicon.png',
@@ -87,6 +88,7 @@ void main() {
         'static-assets/highlight.pack.js',
         'static-assets/play_button.svg',
         'static-assets/readme.md',
+        'static-assets/search.png',
         'static-assets/styles.css',
       ]);
     });
