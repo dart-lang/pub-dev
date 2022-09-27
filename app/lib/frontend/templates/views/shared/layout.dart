@@ -217,7 +217,7 @@ d.Node pageLayoutNode({
                         d.img(
                           image: d.Image(
                             src: staticUrls.getAssetUrl(
-                                '/static/img/supported-by-google.png'),
+                                '/static/img/supported-by-google-2x.png'),
                             alt: 'Supported by Google',
                             width: 218,
                             height: 36,
