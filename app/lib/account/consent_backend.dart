@@ -200,7 +200,7 @@ class ConsentBackend {
       String activeUserEmail, Consent consent) async {
     final invitedEmail = consent.email!;
     final action = _actions[consent.kind]!;
-    final emails = emailBackend.prepareEntities(createInviteEmail(
+    final email = emailBackend.prepareEntity(createInviteEmail(
       invitedEmail: invitedEmail,
       subject: action.renderEmailSubject(consent.args!),
       inviteText: action.renderInviteText(activeUserEmail, consent.args!),
@@ -211,11 +211,11 @@ class ConsentBackend {
       c.notificationCount++;
       c.lastNotified = clock.now().toUtc();
       tx.insert(c);
-      tx.insertAll(emails);
+      tx.insert(email);
       return api.InviteStatus(
           emailSent: true, nextNotification: c.nextNotification);
     });
-    await emailBackend.trySendOutgoingEmails(emails);
+    await emailBackend.trySendOutgoingEmail(email);
     return status;
   }
 

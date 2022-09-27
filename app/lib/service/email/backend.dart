@@ -7,6 +7,7 @@ import 'dart:math';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:pub_dev/shared/utils.dart';
 
 import '../../frontend/email_sender.dart';
 import '../../shared/datastore.dart';
@@ -29,18 +30,15 @@ class EmailBackend {
 
   EmailBackend(this._db);
 
-  /// Creates [OutgoingEmail] entities that can be stored alongside a transaction.
-  List<OutgoingEmail> prepareEntities(EmailMessage msg) {
-    return msg.recipients
-        .map(
-          (recipient) => OutgoingEmail.init(
-            fromEmail: msg.from.email,
-            recipientEmail: recipient.email,
-            subject: msg.subject,
-            bodyText: msg.bodyText,
-          ),
-        )
-        .toList();
+  /// Creates [OutgoingEmail] entity that can be stored alongside a transaction.
+  OutgoingEmail prepareEntity(EmailMessage msg) {
+    final recipientEmails = msg.recipients.map((e) => e.email).toList();
+    return OutgoingEmail.init(
+      fromEmail: msg.from.email,
+      recipientEmails: recipientEmails,
+      subject: msg.subject,
+      bodyText: msg.bodyText,
+    );
   }
 
   /// Queries all [OutgoingEmail] objects and tries to send out the email,
@@ -62,36 +60,33 @@ class EmailBackend {
       if (stopAfter != null && sw.elapsed > stopAfter) break;
       if (m.isNotAlive) continue;
       if (!m.mayAttemptNow) continue;
-      final wasSent = await _trySendOutgoingEmail(m.uuid);
-      if (wasSent) {
-        successful++;
-      }
+      final count = await _trySendOutgoingEmail(m.uuid);
+      successful += count;
     }
     return successful;
   }
 
-  /// Tries to send [emails]. The [OutgoingEmail] entry will be deleted after
+  /// Tries to send [email]. The [OutgoingEmail] entry will be deleted after
   /// the email was sent successfully.
   ///
   /// This method should be called right after the entries
   /// are saved in the Datastore.
-  Future<void> trySendOutgoingEmails(Iterable<OutgoingEmail> emails) async {
-    for (final id in emails.map((e) => e.uuid)) {
-      await _trySendOutgoingEmail(id);
-    }
+  Future<void> trySendOutgoingEmail(OutgoingEmail email) async {
+    await _trySendOutgoingEmail(email.uuid);
   }
 
   /// Tries to send email with the given [id]. The
   /// [OutgoingEmail] entry will be deleted after the
   /// email was sent successfully.
   ///
-  /// Returns true if the email was sent successfully.
-  Future<bool> _trySendOutgoingEmail(String id) async {
+  /// Returns the number of emails that were sent successfully.
+  Future<int> _trySendOutgoingEmail(String id) async {
     final key = _db.emptyKey.append(OutgoingEmail, id: id);
     final now = clock.now().toUtc();
+    final claimId = createUuid();
     final entry = await withRetryTransaction(_db, (tx) async {
       final o = await tx.lookupOrNull<OutgoingEmail>(key);
-      if (o == null || o.isNotAlive) {
+      if (o == null || o.isNotAlive || o.claimId != null) {
         return null;
       }
       o.attempts++;
@@ -99,47 +94,47 @@ class EmailBackend {
       // retry after a random delay in the next 2-6 hours
       o.pendingAt =
           now.add(Duration(hours: 2, minutes: _random.nextInt(4 * 60)));
+      o.claimId = claimId;
       tx.insert(o);
-
       return o;
     });
     if (entry == null) {
-      return false;
+      return 0;
     }
 
-    try {
-      await emailSender.sendMessage(EmailMessage(
-        uuid: entry.uuid,
-        EmailAddress(entry.fromEmail!),
-        [EmailAddress(entry.recipientEmail!)],
-        entry.subject!,
-        entry.bodyText!,
-      ));
+    final recipientEmails = entry.recipientEmails ?? const <String>[];
+    final sent = <String>[];
+    for (final recipientEmail in recipientEmails) {
+      try {
+        await emailSender.sendMessage(EmailMessage(
+          uuid: entry.uuid,
+          EmailAddress(entry.fromEmail!),
+          [EmailAddress(recipientEmail)],
+          entry.subject!,
+          entry.bodyText!,
+        ));
+        sent.add(recipientEmail);
+      } catch (e, st) {
+        _logger.warning('Email sending failed (claimId="$claimId").', e, st);
+      }
+    }
 
-      await withRetryTransaction(_db, (tx) async {
-        final o = await tx.lookupOrNull<OutgoingEmail>(key);
-        if (o != null) {
-          tx.delete(key);
-        }
-      });
-
-      // successful send, deleting entry
-      return true;
-    } catch (e, st) {
-      _logger.warning('Email sending failed.', e, st);
-      await withRetryTransaction(_db, (tx) async {
-        final o = await tx.lookupOrNull<OutgoingEmail>(key);
-        if (o == null) {
-          return;
-        }
-        o.lastError = e.toString();
+    await withRetryTransaction(_db, (tx) async {
+      final o = await tx.lookupOrNull<OutgoingEmail>(key);
+      if (o == null || o.claimId != claimId) {
+        return;
+      }
+      for (final email in sent) {
+        o.recipientEmails?.remove(email);
+      }
+      if (o.recipientEmails?.isEmpty ?? false) {
+        tx.delete(key);
+      } else {
+        o.claimId = null;
         tx.insert(o);
-      });
-
-      // TODO: track recipient email failure to rate limit attempts
-      // TODO: track service errors to rate limit attempts
-      return false;
-    }
+      }
+    });
+    return sent.length;
   }
 
   /// Deletes entries that exceeded the maximum attempt count.
@@ -148,11 +143,11 @@ class EmailBackend {
   Future<int> deleteDeadOutgoingEmails() async {
     final stats = await _db.deleteWithQuery<OutgoingEmail>(
       _db.query<OutgoingEmail>(),
-      where: (m) => m.isNotAlive,
+      where: (m) => m.isNotAlive || m.hasExpiredClaim,
       beforeDelete: (list) {
         for (final m in list) {
           _logger.warning('Removing dead outgoing email: ${m.id} to '
-              '${m.recipientEmail} with last error: ${m.lastError}.');
+              '${m.recipientEmails?.join(', ')}. (claimId="${m.claimId}")');
         }
       },
     );

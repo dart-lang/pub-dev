@@ -23,21 +23,23 @@ class OutgoingEmail extends db.Model {
   @db.DateTimeProperty()
   DateTime? lastAttempted;
 
+  /// A random identifier to mark that the message is under processing.
+  /// After a successful attempt, the [claimId] will be `null`, however,
+  /// if the sending process is aborted (e.g. the instance dies), the
+  /// [claimId] will be kept.
+  @db.StringProperty()
+  String? claimId;
+
   /// The timestamp of the next attempt.
   @db.DateTimeProperty(required: true)
   DateTime? pendingAt;
-
-  /// The error message of the last failure.
-  @db.StringProperty(indexed: false)
-  String? lastError;
 
   /// The email address of the sender.
   @db.StringProperty(required: true)
   String? fromEmail;
 
-  /// The email address of the recipient.
-  @db.StringProperty(required: true)
-  String? recipientEmail;
+  @db.StringListProperty()
+  List<String>? recipientEmails;
 
   /// The subject of the email.
   @db.StringProperty(required: true, indexed: false)
@@ -50,7 +52,7 @@ class OutgoingEmail extends db.Model {
   OutgoingEmail();
   OutgoingEmail.init({
     required this.fromEmail,
-    required this.recipientEmail,
+    required this.recipientEmails,
     required this.subject,
     required this.bodyText,
   }) {
@@ -66,4 +68,8 @@ class OutgoingEmail extends db.Model {
   /// Whether we consider the outgoing email alive and try sending.
   bool get isAlive => attempts < 2;
   bool get isNotAlive => !isAlive;
+
+  bool get hasExpiredClaim =>
+      claimId != null &&
+      clock.now().difference((lastAttempted ?? created)!) > Duration(hours: 8);
 }
