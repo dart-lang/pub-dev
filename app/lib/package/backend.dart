@@ -1136,7 +1136,7 @@ class PackageBackend {
       Package package, AuthenticatedGithubAction agent) async {
     final githubPublishing = package.automatedPublishing.github;
     if (githubPublishing == null || (githubPublishing.isEnabled ?? false)) {
-      throw AuthorizationException.githubTokenIssue(
+      throw AuthorizationException.githubActionIssue(
           'publishing from github is not enabled');
     }
 
@@ -1145,14 +1145,14 @@ class PackageBackend {
     if (repository == null ||
         repository.isEmpty ||
         repository != agent.payload.repository) {
-      throw AuthorizationException.githubTokenIssue(
+      throw AuthorizationException.githubActionIssue(
           'publishing is not enabled for the "${agent.payload.repository}" repository, it may be enabled for another repository.');
     }
 
     // TODO: consider allowing other events from
     //       https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows
     if (agent.payload.eventName != 'push') {
-      throw AuthorizationException.githubTokenIssue(
+      throw AuthorizationException.githubActionIssue(
           'publishing is only allowed from "push" events, this token originates from a "${agent.payload.eventName}" event');
     }
 
@@ -1162,7 +1162,7 @@ class PackageBackend {
       if (environment == null ||
           environment.isEmpty ||
           environment != agent.payload.environment) {
-        throw AuthorizationException.githubTokenIssue(
+        throw AuthorizationException.githubActionIssue(
             'publishing is configured to only be allowed from actions with an environment, this token originates from an action running in environment "${agent.payload.environment}" for which publishing is not allowed.');
       }
     }
