@@ -123,7 +123,14 @@ class EmailBackend {
 
     await withRetryTransaction(_db, (tx) async {
       final o = await tx.lookupOrNull<OutgoingEmail>(key);
-      if (o == null || o.claimId != claimId) {
+      if (o == null) {
+        _logger.shout(
+            'OutgoingEmail was removed while sending emails (claimId="$claimId").');
+        return;
+      }
+      if (o.claimId != claimId) {
+        _logger.shout(
+            'OutgoingEmail `claimId` changed while sending emails (claimId="$claimId").');
         return;
       }
       for (final email in sent) {
