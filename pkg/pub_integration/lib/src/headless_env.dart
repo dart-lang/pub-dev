@@ -136,7 +136,7 @@ class HeadlessEnv {
         serverErrors.add('Double-slash URL detected: "${rq.url}".');
       }
 
-      await rq.continueRequest();
+      await rq.continueRequest(headers: rq.headers);
     });
 
     page.onResponse.listen((rs) async {

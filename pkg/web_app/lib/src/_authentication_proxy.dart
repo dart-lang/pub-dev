@@ -161,6 +161,7 @@ class _FakeAuthenticationProxy implements AuthenticationProxy {
   @override
   Future<bool> trySignIn() async {
     final input = InputElement()
+      ..id = '-pub-custom-token-input'
       ..placeholder = 'Enter token here'
       ..style.width = '100%';
     final ok = await modalWindow(

@@ -39,3 +39,21 @@ Future<ListingPageInfo> listingPageInfo(Page page) async {
     openSections: openSections,
   );
 }
+
+extension PageExt on Page {
+  Future<void> focusAndType(String selector, String text) async {
+    await focus(selector);
+    await keyboard.sendCharacter(text);
+  }
+
+  Future<void> clickOnButtonWithLabel(String label) async {
+    final buttons = await $$('button');
+    for (final button in buttons) {
+      final text = (await button.textContent()).trim();
+      if (text.toLowerCase() == label.toLowerCase()) {
+        await button.click();
+        break;
+      }
+    }
+  }
+}
