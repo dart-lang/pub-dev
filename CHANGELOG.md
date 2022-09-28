@@ -6,6 +6,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded pana to `0.21.18`.
  * Upgraded dartdoc to `6.1.1`.
  * Upgraded dependencies, including `markdown` to `6.0.1`.
+ * NOTE: Fixed `OutgoingEmail`: all recipients in one entry.
 
 ## `20220922t114500-all`
  * Bumped runtimeVersion to `2022.09.22`.

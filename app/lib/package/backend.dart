@@ -643,7 +643,7 @@ class PackageBackend {
       ...newPublisherAdminEmails.whereType<String>(),
     };
 
-    List<OutgoingEmail>? emails;
+    OutgoingEmail? email;
     String? currentPublisherId;
     final rs = await withRetryTransaction(db, (tx) async {
       final package = await tx.lookupValue<Package>(key);
@@ -664,23 +664,22 @@ class PackageBackend {
         toPublisherId: package.publisherId!,
       ));
 
-      final email = createPackageTransferEmail(
+      email = emailBackend.prepareEntity(createPackageTransferEmail(
         packageName: packageName,
         activeUserEmail: user.email!,
         oldPublisherId: currentPublisherId,
         newPublisherId: package.publisherId!,
         authorizedAdmins:
             allAdminEmails.map((email) => EmailAddress(email)).toList(),
-      );
-      emails = emailBackend.prepareEntities(email);
-      tx.insertAll(emails!);
+      ));
+      tx.insert(email!);
       return _asPackagePublisherInfo(package);
     });
     await purgePublisherCache(publisherId: request.publisherId);
     await purgePackageCache(packageName);
 
-    if (emails != null) {
-      await emailBackend.trySendOutgoingEmails(emails!);
+    if (email != null) {
+      await emailBackend.trySendOutgoingEmail(email!);
     }
     if (currentPublisherId != null) {
       await purgePublisherCache(publisherId: currentPublisherId);
@@ -977,7 +976,7 @@ class PackageBackend {
       authorizedUploaders:
           uploaderEmails.map((email) => EmailAddress(email)).toList(),
     );
-    final emailEntitiesToStore = emailBackend.prepareEntities(email);
+    final emailEntityToStore = emailBackend.prepareEntity(email);
 
     Package? package;
     String? prevLatestStableVersion;
@@ -1059,7 +1058,7 @@ class PackageBackend {
         newVersion,
         entities.packageVersionInfo,
         ...entities.assets,
-        ...emailEntitiesToStore,
+        emailEntityToStore,
         AuditLogRecord.packagePublished(
           uploader: agent,
           package: newVersion.package,
@@ -1081,8 +1080,7 @@ class PackageBackend {
     await purgePackageCache(newVersion.package);
 
     try {
-      final emailFuture =
-          emailBackend.trySendOutgoingEmails(emailEntitiesToStore);
+      final emailFuture = emailBackend.trySendOutgoingEmail(emailEntityToStore);
 
       final latestVersionChanged = prevLatestStableVersion != null &&
           package!.latestVersion != prevLatestStableVersion;
