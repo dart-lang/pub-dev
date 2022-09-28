@@ -221,8 +221,7 @@ Future<AuthenticatedGithubAction?> _tryAuthenticateGithubAction(
 Future<AuthenticatedGithubAction> _authenticateGithubAction(
     JsonWebToken idToken) async {
   if (!idToken.payload.isTimely(threshold: Duration(minutes: 2))) {
-    throw AuthenticationException.githubTokenInvalid(
-        'invalid timestamps');
+    throw AuthenticationException.githubTokenInvalid('invalid timestamps');
   }
   final payload = GitHubJwtPayload.tryParse(idToken.payload);
   if (payload == null) {
@@ -235,8 +234,7 @@ Future<AuthenticatedGithubAction> _authenticateGithubAction(
   final githubData = await fetchGithubOpenIdData();
   final signatureMatches = await idToken.verifySignature(githubData.jwks);
   if (!signatureMatches) {
-    throw AuthenticationException.githubTokenInvalid(
-        'invalid signature');
+    throw AuthenticationException.githubTokenInvalid('invalid signature');
   }
   return AuthenticatedGithubAction(
     displayId: KnownAgents.githubActions,

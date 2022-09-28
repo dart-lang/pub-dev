@@ -431,7 +431,8 @@ class AuthorizationException extends ResponseException {
   /// Signaling that the GitHub JWT token could not
   /// be authorized with the current configuration.
   factory AuthorizationException.githubActionIssue(String reason) =>
-      AuthorizationException._('The calling GitHub Action is not allowed to publish, because: $reason.\nSee https://dart.dev/go/publishing-from-github');
+      AuthorizationException._(
+          'The calling GitHub Action is not allowed to publish, because: $reason.\nSee https://dart.dev/go/publishing-from-github');
 
   @override
   String toString() => '$code: $message'; // used by package:pub_server
