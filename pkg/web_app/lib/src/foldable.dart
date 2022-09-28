@@ -7,6 +7,7 @@ import 'dart:math' show min, max;
 
 void setupFoldable() {
   _setEventForFoldable();
+  _setEventForCheckboxToggle();
 }
 
 /// Elements with the `foldable` class provide a folding content:
@@ -98,4 +99,19 @@ Element? _parentWithClass(Element? elem, String className) {
     elem = elem.parent;
   }
   return elem;
+}
+
+/// Setup events for forms where a checkbox shows/hides the next block based on its state.
+void _setEventForCheckboxToggle() {
+  final toggleRoots = document.body!
+      .querySelectorAll('.-pub-form-checkbox-toggle-next-sibling');
+  for (final elem in toggleRoots) {
+    final input = elem.querySelector('input') as InputElement?;
+    if (input == null) continue;
+    final sibling = elem.nextElementSibling;
+    if (sibling == null) continue;
+    input.onChange.listen((event) {
+      sibling.classes.toggle('-pub-form-block-hidden');
+    });
+  }
 }

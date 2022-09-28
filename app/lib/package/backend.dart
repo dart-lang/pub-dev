@@ -56,6 +56,8 @@ final _defaultMaxVersionsPerPackage = 1000;
 final Logger _logger = Logger('pub.cloud_repository');
 final _validGithubUserOrRepoRegExp =
     RegExp(r'^[a-z0-9\-\._]+$', caseSensitive: false);
+final _validGithubEnvironment =
+    RegExp(r'^[a-z0-9\-\._]+$', caseSensitive: false);
 
 /// Sets the package backend service.
 void registerPackageBackend(PackageBackend backend) =>
@@ -480,7 +482,11 @@ class PackageBackend {
         final isEnabled = github.isEnabled ?? false;
         // normalize input values
         final repository = github.repository?.trim() ?? '';
-        github.repository = repository;
+        github.repository = repository.isEmpty ? null : repository;
+        final requireEnvironment = github.requireEnvironment ?? false;
+        github.requireEnvironment = requireEnvironment ? true : null;
+        final environment = github.environment?.trim() ?? '';
+        github.environment = environment.isEmpty ? null : environment;
 
         InvalidInputException.check(!isEnabled || repository.isNotEmpty,
             'The `repository` field must not be empty when enabled.');
@@ -493,6 +499,16 @@ class PackageBackend {
               _validGithubUserOrRepoRegExp.hasMatch(parts[0]) &&
                   _validGithubUserOrRepoRegExp.hasMatch(parts[1]),
               'The `repository` field has invalid characters.');
+        }
+
+        InvalidInputException.check(
+            !requireEnvironment || environment.isNotEmpty,
+            'The `environment` field must not be empty when enabled.');
+
+        if (environment.isNotEmpty) {
+          InvalidInputException.check(
+              _validGithubEnvironment.hasMatch(environment),
+              'The `environment` field has invalid characters.');
         }
       }
 
@@ -1124,12 +1140,29 @@ class PackageBackend {
     if (githubPublishing == null || (githubPublishing.isEnabled ?? false)) {
       return false;
     }
+
+    // Repository must be set and matching the action's repository.
     final repository = githubPublishing.repository;
-    final repositoryMatches = repository != null &&
-        repository.isNotEmpty &&
-        agent.payload.repository == repository;
-    if (!repositoryMatches) {
+    if (repository == null ||
+        repository.isEmpty ||
+        repository != agent.payload.repository) {
       return false;
+    }
+
+    // TODO: consider allowing other events from
+    //       https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows
+    if (agent.payload.eventName != 'push') {
+      return false;
+    }
+
+    // When environment is configured, it must match the action's environment.
+    if (githubPublishing.requireEnvironment ?? false) {
+      final environment = githubPublishing.environment;
+      if (environment == null ||
+          environment.isEmpty ||
+          environment != agent.payload.environment) {
+        return false;
+      }
     }
 
     // TODO: return `true` once we are happy with the current checks

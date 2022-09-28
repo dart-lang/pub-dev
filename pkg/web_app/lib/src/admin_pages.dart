@@ -46,7 +46,7 @@ class _PkgAdminWidget {
 
   void init() {
     if (!pageData.isPackagePage) return;
-    _setupCredAuth();
+    _setupAutomatedPublishing();
     _setPublisherInput = document.getElementById('-admin-set-publisher-input');
     _setPublisherButton =
         document.getElementById('-admin-set-publisher-button');
@@ -89,11 +89,17 @@ class _PkgAdminWidget {
     }
   }
 
-  void _setupCredAuth() {
+  void _setupAutomatedPublishing() {
     final githubEnabledCheckbox = document
         .getElementById('-pkg-admin-automated-github-enabled') as InputElement?;
     final githubRepositoryInput =
         document.getElementById('-pkg-admin-automated-github-repository')
+            as InputElement?;
+    final githubRequireEnvironmentCheckbox =
+        document.getElementById('-pkg-admin-automated-github-requireenv')
+            as InputElement?;
+    final githubEnvironmentInput =
+        document.getElementById('-pkg-admin-automated-github-environment')
             as InputElement?;
     final updateButton = document.getElementById('-pkg-admin-automated-button');
     if (updateButton == null || githubRepositoryInput == null) {
@@ -110,6 +116,8 @@ class _PkgAdminWidget {
                 github: GithubPublishing(
                   isEnabled: githubEnabledCheckbox!.checked,
                   repository: githubRepositoryInput.value,
+                  requireEnvironment: githubRequireEnvironmentCheckbox!.checked,
+                  environment: githubEnvironmentInput!.value,
                 ),
               ));
         },

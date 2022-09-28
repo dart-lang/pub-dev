@@ -168,33 +168,7 @@ d.Node packageAdminPageNode({
       ),
     ],
     if (requestContext.showAdminUIForAutomatedPublishing)
-      d.fragment([
-        d.h2(text: 'Automated publishing'),
-        d.h3(text: 'Publishing from GitHub Actions'),
-        d.div(
-          classes: ['-pub-form-checkbox-row'],
-          child: material.checkbox(
-            id: '-pkg-admin-automated-github-enabled',
-            label: 'Enable publishing from GitHub Actions',
-            checked: package.automatedPublishing.github?.isEnabled ?? false,
-          ),
-        ),
-        d.div(
-          classes: ['-pub-form-textfield-row'],
-          child: material.textField(
-            id: '-pkg-admin-automated-github-repository',
-            label: 'Repository',
-            value: package.automatedPublishing.github?.repository,
-          ),
-        ),
-        d.p(
-          child: material.button(
-            id: '-pkg-admin-automated-button',
-            label: 'Update',
-            raised: true,
-          ),
-        ),
-      ]),
+      _automatedPublishing(package),
     d.h2(text: 'Package Version Retraction'),
     d.div(children: [
       d.markdown(
@@ -254,5 +228,71 @@ d.Node packageAdminPageNode({
         d.markdown(
             'This package has no retracted versions that can be restored.'),
     ]),
+  ]);
+}
+
+d.Node _automatedPublishing(Package package) {
+  final github = package.automatedPublishing.github;
+  return d.fragment([
+    d.h2(text: 'Automated publishing'),
+    d.h3(text: 'Publishing from GitHub Actions'),
+    d.div(
+      classes: [
+        '-pub-form-checkbox-row',
+        '-pub-form-checkbox-toggle-next-sibling',
+      ],
+      child: material.checkbox(
+        id: '-pkg-admin-automated-github-enabled',
+        label: 'Enable publishing from GitHub Actions',
+        checked: github?.isEnabled ?? false,
+      ),
+    ),
+    d.div(
+      classes: [
+        '-pub-form-checkbox-indent',
+        if (!(github?.isEnabled ?? false)) '-pub-form-block-hidden',
+      ],
+      children: [
+        d.div(
+          classes: ['-pub-form-textfield-row'],
+          child: material.textField(
+            id: '-pkg-admin-automated-github-repository',
+            label: 'Repository',
+            value: github?.repository,
+          ),
+        ),
+        d.div(
+          classes: [
+            '-pub-form-checkbox-row',
+            '-pub-form-checkbox-toggle-next-sibling',
+          ],
+          child: material.checkbox(
+            id: '-pkg-admin-automated-github-requireenv',
+            label: 'Require GitHub Actions environment',
+            checked: github?.requireEnvironment ?? false,
+          ),
+        ),
+        d.div(
+          classes: [
+            '-pub-form-checkbox-indent',
+            '-pub-form-textfield-row',
+            if (!(github?.requireEnvironment ?? false))
+              '-pub-form-block-hidden',
+          ],
+          child: material.textField(
+            id: '-pkg-admin-automated-github-environment',
+            label: 'Environment',
+            value: github?.environment,
+          ),
+        ),
+      ],
+    ),
+    d.p(
+      child: material.button(
+        id: '-pkg-admin-automated-button',
+        label: 'Update',
+        raised: true,
+      ),
+    ),
   ]);
 }
