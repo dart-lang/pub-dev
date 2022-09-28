@@ -208,23 +208,35 @@ Future<AuthenticatedGithubAction?> _tryAuthenticateGithubAction(
   if (idToken == null) {
     return null;
   }
-  if (!idToken.payload.isTimely(threshold: Duration(minutes: 2))) {
-    return null;
-  }
   if (idToken.payload.iss != GitHubJwtPayload.githubIssuerUrl) {
     return null;
   }
+
+  // At this point we have confirmed that the token is a JWT token
+  // issued by GitHub. If there is an issue with the token, the
+  // authentication should fail without any fallback.
+  return await _authenticateGithubAction(idToken);
+}
+
+Future<AuthenticatedGithubAction> _authenticateGithubAction(
+    JsonWebToken idToken) async {
+  if (!idToken.payload.isTimely(threshold: Duration(minutes: 2))) {
+    throw AuthenticationException.githubTokenInvalid(
+        'timestamps expired or in the future');
+  }
   final payload = GitHubJwtPayload.tryParse(idToken.payload);
   if (payload == null) {
-    return null;
+    throw AuthenticationException.githubTokenInvalid('unable to parse payload');
   }
   if (payload.aud != 'https://pub.dev') {
-    return null;
+    throw AuthenticationException.githubTokenInvalid(
+        'audience does not match ("${payload.aud}" != "https://pub.dev")');
   }
   final githubData = await fetchGithubOpenIdData();
   final signatureMatches = await idToken.verifySignature(githubData.jwks);
   if (!signatureMatches) {
-    return null;
+    throw AuthenticationException.githubTokenInvalid(
+        'unable to verify signature');
   }
   return AuthenticatedGithubAction(
     displayId: KnownAgents.githubActions,

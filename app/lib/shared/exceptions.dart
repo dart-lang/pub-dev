@@ -322,6 +322,10 @@ class AuthenticationException extends ResponseException {
   factory AuthenticationException.accessTokenInvalid() =>
       AuthenticationException._('Invalid `accessToken`.');
 
+  /// Signaling that the GitHub JWT token was missing a field or could not be authenticated.
+  factory AuthenticationException.githubTokenInvalid(String message) =>
+      AuthenticationException._('Invalid GitHub token: $message.');
+
   /// Signaling that `accessToken` resolved to a different OAuth `userId`.
   factory AuthenticationException.accessTokenMissmatch() =>
       AuthenticationException._(
@@ -423,6 +427,11 @@ class AuthorizationException extends ResponseException {
         'Read-only access to Search Console data was not granted, preventing',
         '`pub.dev` from verifying that you own the domain.',
       ].join('\n'));
+
+  /// Signaling that the GitHub JWT token was missing a field or could not
+  /// be authorized with the current configuration.
+  factory AuthorizationException.githubTokenIssue(String message) =>
+      AuthorizationException._('GitHub token issue: $message.');
 
   @override
   String toString() => '$code: $message'; // used by package:pub_server
