@@ -91,7 +91,9 @@ class EmailBackend {
       }
       o.attempts++;
       o.lastAttempted = now;
-      // retry after a random delay in the next 2-6 hours
+      // retry after a random delay in the next 2-6 hours, if and only if,
+      // o.claimId has been cleared. We never retry sending emails if we don't know
+      // if the email was sent or not (because we don't want to send it multiple times)
       o.pendingAt =
           now.add(Duration(hours: 2, minutes: _random.nextInt(4 * 60)));
       o.claimId = claimId;
