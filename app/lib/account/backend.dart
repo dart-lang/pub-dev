@@ -222,7 +222,7 @@ Future<AuthenticatedGithubAction> _authenticateGithubAction(
     JsonWebToken idToken) async {
   if (!idToken.payload.isTimely(threshold: Duration(minutes: 2))) {
     throw AuthenticationException.githubTokenInvalid(
-        'timestamps expired or in the future');
+        'invalid timestamps');
   }
   final payload = GitHubJwtPayload.tryParse(idToken.payload);
   if (payload == null) {
@@ -230,13 +230,13 @@ Future<AuthenticatedGithubAction> _authenticateGithubAction(
   }
   if (payload.aud != 'https://pub.dev') {
     throw AuthenticationException.githubTokenInvalid(
-        'audience does not match ("${payload.aud}" != "https://pub.dev")');
+        'audience "${payload.aud}" does not match "https://pub.dev"');
   }
   final githubData = await fetchGithubOpenIdData();
   final signatureMatches = await idToken.verifySignature(githubData.jwks);
   if (!signatureMatches) {
     throw AuthenticationException.githubTokenInvalid(
-        'unable to verify signature');
+        'invalid signature');
   }
   return AuthenticatedGithubAction(
     displayId: KnownAgents.githubActions,

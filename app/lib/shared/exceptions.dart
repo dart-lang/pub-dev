@@ -428,10 +428,10 @@ class AuthorizationException extends ResponseException {
         '`pub.dev` from verifying that you own the domain.',
       ].join('\n'));
 
-  /// Signaling that the GitHub JWT token was missing a field or could not
+  /// Signaling that the GitHub JWT token could not
   /// be authorized with the current configuration.
-  factory AuthorizationException.githubTokenIssue(String message) =>
-      AuthorizationException._('GitHub token issue: $message.');
+  factory AuthorizationException.githubActionIssue(String reason) =>
+      AuthorizationException._('The calling GitHub Action is not allowed to publish, because: $reason.\nSee https://dart.dev/go/publishing-from-github');
 
   @override
   String toString() => '$code: $message'; // used by package:pub_server
