@@ -102,12 +102,12 @@ class _FakeTime extends FakeTime {
   /// [PriorityQueue] of pending timers.
   ///
   /// **Invariant**, if the [_pendingTimers] is non-empty then a [Timer] for
-  /// the [_TravelingTimer._elapsesAtInOriginalTime] is scheduled and held in
+  /// the [_TravelingTimer._elapsesAtInFakeTime] is scheduled and held in
   /// [_timerForFirstPendingTimer].
   final _pendingTimers = PriorityQueue<_TravelingTimer>(
     (t1, t2) =>
-        t1._elapsesAtInOriginalTime.microsecondsSinceEpoch -
-        t2._elapsesAtInOriginalTime.microsecondsSinceEpoch,
+        t1._elapsesAtInFakeTime.microsecondsSinceEpoch -
+        t2._elapsesAtInFakeTime.microsecondsSinceEpoch,
   );
 
   /// [Timer] created in [_TravelingTimer._parent] zone, for the first pending
@@ -125,7 +125,6 @@ class _FakeTime extends FakeTime {
   ) {
     final timer = _TravelingTimer(
       owner: this,
-      createdInOriginalTime: _originalTime(),
       createdInFakeTime: _fakeTime(),
       parent: parent,
       zone: zone,
@@ -158,7 +157,6 @@ class _FakeTime extends FakeTime {
   ) {
     final timer = _TravelingTimer.periodic(
       owner: this,
-      createdInOriginalTime: _originalTime(),
       createdInFakeTime: _fakeTime(),
       parent: parent,
       zone: zone,
@@ -496,10 +494,6 @@ class _TravelingTimer implements Timer {
   final _FakeTime _owner;
 
   /// [DateTime] when this [_TravelingTimer] was created in
-  /// [_FakeTime._originalTime].
-  final DateTime _createdInOriginalTime;
-
-  /// [DateTime] when this [_TravelingTimer] was created in
   /// [_FakeTime._fakeTime].
   final DateTime _createdInFakeTime;
 
@@ -526,25 +520,18 @@ class _TravelingTimer implements Timer {
   int _tick = 0;
 
   /// [DateTime] when this [_TravelingTimer] is supposed to be triggered,
-  /// measured in [_FakeTime._originalTime].
-  DateTime get _elapsesAtInOriginalTime =>
-      _createdInOriginalTime.add(_duration * (1 + tick));
-
-  /// [DateTime] when this [_TravelingTimer] is supposed to be triggered,
   /// measured in [_FakeTime._fakeTime].
   DateTime get _elapsesAtInFakeTime =>
       _createdInFakeTime.add(_duration * (1 + tick));
 
   _TravelingTimer({
     required _FakeTime owner,
-    required DateTime createdInOriginalTime,
     required DateTime createdInFakeTime,
     required ZoneDelegate parent,
     required Zone zone,
     required Duration duration,
     required void Function() trigger,
   })  : _owner = owner,
-        _createdInOriginalTime = createdInOriginalTime,
         _createdInFakeTime = createdInFakeTime,
         _parent = parent,
         _zone = zone,
@@ -554,14 +541,12 @@ class _TravelingTimer implements Timer {
 
   _TravelingTimer.periodic({
     required _FakeTime owner,
-    required DateTime createdInOriginalTime,
     required DateTime createdInFakeTime,
     required ZoneDelegate parent,
     required Zone zone,
     required Duration duration,
     required void Function(Timer timer) trigger,
   })  : _owner = owner,
-        _createdInOriginalTime = createdInOriginalTime,
         _createdInFakeTime = createdInFakeTime,
         _parent = parent,
         _zone = zone,
