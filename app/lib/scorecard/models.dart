@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:logging/logging.dart';
 import 'package:pana/models.dart';
 import 'package:pub_dev/shared/popularity_storage.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -21,6 +22,7 @@ import 'helpers.dart';
 part 'models.g.dart';
 
 final _gzipCodec = GZipCodec();
+final _logger = Logger('scorecard.model');
 
 abstract class PackageFlags {
   static const String isDiscontinued = 'discontinued';
@@ -93,7 +95,24 @@ class ScoreCard extends db.ExpandoModel<String> {
     updated = clock.now().toUtc();
   }
 
-  ScoreCardData toData() => ScoreCardData(
+  /// Tries to decode and return the data stored on the [ScoreCard].
+  ///
+  /// May return `null` when the stored data from an older runtime
+  /// is not compatible with the current runtime.
+  ScoreCardData? tryDecodeData() {
+    try {
+      return _toData();
+    } catch (e, st) {
+      if (runtimeVersion == versions.runtimeVersion) {
+        _logger.shout('Unable to decode current ScoreCard data.', e, st);
+        rethrow;
+      }
+      _logger.info('Unable to decode old ScoreCard data.', e, st);
+    }
+    return null;
+  }
+
+  ScoreCardData _toData() => ScoreCardData(
         packageName: packageName!,
         packageVersion: packageVersion!,
         runtimeVersion: runtimeVersion!,

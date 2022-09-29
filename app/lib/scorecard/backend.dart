@@ -130,7 +130,7 @@ class ScoreCardBackend {
     }
 
     final key = scoreCardKey(packageName, packageVersion!);
-    final current = (await _db.lookupOrNull<ScoreCard>(key))?.toData();
+    final current = (await _db.lookupOrNull<ScoreCard>(key))?.tryDecodeData();
     if (current != null) {
       // only full cards will be stored in cache
       if (current.isCurrent && current.hasAllReports) {
@@ -149,8 +149,11 @@ class ScoreCardBackend {
             scoreCardKey(packageName, packageVersion!, runtimeVersion: v))
         .toList();
     final fallbackCards = await _db.lookup<ScoreCard>(fallbackKeys);
-    final fallbackCardData =
-        fallbackCards.where((c) => c != null).map((c) => c!.toData()).toList();
+    final fallbackCardData = fallbackCards
+        .whereNotNull()
+        .map((c) => c.tryDecodeData())
+        .whereNotNull()
+        .toList();
 
     if (fallbackCardData.isEmpty) return null;
 
@@ -313,7 +316,7 @@ class ScoreCardBackend {
           .toList();
       final f = _scoreCardDataPool.withResource(() async {
         final items = await _db.lookup<ScoreCard>(keys);
-        return items.map((item) => item?.toData()).toList();
+        return items.map((item) => item?.tryDecodeData()).toList();
       });
       futures.add(f);
     }
@@ -398,7 +401,10 @@ class ScoreCardBackend {
       return age > ageThreshold;
     }
 
-    final data = card.toData();
+    final data = card.tryDecodeData();
+    if (data == null) {
+      return true;
+    }
     if (reportType == ReportType.pana) {
       return checkUpdatedAndStatus(
           data.panaReport?.timestamp, data.panaReport?.reportStatus);
