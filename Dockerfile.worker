@@ -18,10 +18,10 @@ COPY --chown=worker:worker . /home/worker/pub-dev
 WORKDIR /home/worker/pub-dev
 
 # Setup Dart SDK
-RUN tool/setup-dart.sh /home/worker 2.18.1
+RUN tool/setup-dart.sh /home/worker 2.18.2
 
 # Setup Flutter SDK
-RUN tool/setup-flutter.sh /home/worker 3.3.2
+RUN tool/setup-flutter.sh /home/worker 3.3.3
 
 # Use stable Dart-SDK in path
 ENV PATH="/home/worker/dart-sdk/bin:${PATH}"
