@@ -1122,8 +1122,8 @@ class PackageBackend {
         await packageBackend.isPackageAdmin(package, agent.user.userId)) {
       return;
     }
-    if (agent is AuthenticatedGithubAction &&
-        await _isGithubActionAllowed(package, agent)) {
+    if (agent is AuthenticatedGithubAction) {
+      await _checkGithubActionAllowed(package, agent);
       return;
     }
     _logger.info('User ${agent.agentId} (${agent.displayId}) '
@@ -1132,11 +1132,12 @@ class PackageBackend {
         agent.displayId, package.name!);
   }
 
-  Future<bool> _isGithubActionAllowed(
+  Future<void> _checkGithubActionAllowed(
       Package package, AuthenticatedGithubAction agent) async {
     final githubPublishing = package.automatedPublishing.github;
     if (githubPublishing == null || (githubPublishing.isEnabled ?? false)) {
-      return false;
+      throw AuthorizationException.githubActionIssue(
+          'publishing from github is not enabled');
     }
 
     // Repository must be set and matching the action's repository.
@@ -1144,13 +1145,15 @@ class PackageBackend {
     if (repository == null ||
         repository.isEmpty ||
         repository != agent.payload.repository) {
-      return false;
+      throw AuthorizationException.githubActionIssue(
+          'publishing is not enabled for the "${agent.payload.repository}" repository, it may be enabled for another repository.');
     }
 
     // TODO: consider allowing other events from
     //       https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows
     if (agent.payload.eventName != 'push') {
-      return false;
+      throw AuthorizationException.githubActionIssue(
+          'publishing is only allowed from "push" events, this token originates from a "${agent.payload.eventName}" event');
     }
 
     // When environment is configured, it must match the action's environment.
@@ -1159,7 +1162,8 @@ class PackageBackend {
       if (environment == null ||
           environment.isEmpty ||
           environment != agent.payload.environment) {
-        return false;
+        throw AuthorizationException.githubActionIssue(
+            'publishing is configured to only be allowed from actions with an environment, this token originates from an action running in environment "${agent.payload.environment}" for which publishing is not allowed.');
       }
     }
 
