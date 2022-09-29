@@ -104,7 +104,9 @@ class ScoreCard extends db.ExpandoModel<String> {
       return _toData();
     } catch (e, st) {
       if (runtimeVersion == versions.runtimeVersion) {
-        _logger.shout('Unable to decode current ScoreCard data.', e, st);
+        final msg =
+            'Unable to decode current ScoreCard data ($packageName/$packageVersion).';
+        _logger.shout(msg, e, st);
         rethrow;
       }
       _logger.info('Unable to decode old ScoreCard data.', e, st);
