@@ -56,6 +56,7 @@ GithubPublishing _$GithubPublishingFromJson(Map<String, dynamic> json) =>
     GithubPublishing(
       isEnabled: json['isEnabled'] as bool?,
       repository: json['repository'] as String?,
+      tagPattern: json['tagPattern'] as String?,
       requireEnvironment: json['requireEnvironment'] as bool?,
       environment: json['environment'] as String?,
     );
@@ -71,6 +72,7 @@ Map<String, dynamic> _$GithubPublishingToJson(GithubPublishing instance) {
 
   writeNotNull('isEnabled', instance.isEnabled);
   writeNotNull('repository', instance.repository);
+  writeNotNull('tagPattern', instance.tagPattern);
   writeNotNull('requireEnvironment', instance.requireEnvironment);
   writeNotNull('environment', instance.environment);
   return val;

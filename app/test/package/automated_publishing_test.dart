@@ -47,12 +47,14 @@ void main() {
             github: GithubPublishing(
               isEnabled: true,
               repository: 'dart-lang/pub-dev',
+              tagPattern: '{{version}}',
             ),
           ));
       expect(rs.toJson(), {
         'github': {
           'isEnabled': true,
           'repository': 'dart-lang/pub-dev',
+          'tagPattern': '{{version}}',
         },
       });
       final p = await packageBackend.lookupPackage('oxygen');
@@ -84,12 +86,68 @@ void main() {
               github: GithubPublishing(
                 isEnabled: false,
                 repository: repository,
+                tagPattern: '{{version}}',
               ),
             ));
         await expectApiException(
           rs,
           status: 400,
           code: 'InvalidInput',
+          message: 'repository',
+        );
+      }
+    });
+
+    testWithProfile('bad tag pattern', fn: () async {
+      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final badPatterns = [
+        '',
+        'v',
+        'v {{version}}',
+        '{{version}}{{version}}',
+      ];
+      for (final pattern in badPatterns) {
+        final rs = client.setAutomatedPublishing(
+            'oxygen',
+            AutomatedPublishing(
+              github: GithubPublishing(
+                isEnabled: false,
+                repository: 'abcd/efgh',
+                tagPattern: pattern,
+              ),
+            ));
+        await expectApiException(
+          rs,
+          status: 400,
+          code: 'InvalidInput',
+          message: 'tag',
+        );
+      }
+    });
+
+    testWithProfile('bad environment pattern', fn: () async {
+      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final badPatterns = [
+        '',
+        'e nvironment',
+      ];
+      for (final pattern in badPatterns) {
+        final rs = client.setAutomatedPublishing(
+            'oxygen',
+            AutomatedPublishing(
+              github: GithubPublishing(
+                isEnabled: false,
+                repository: 'abcd/efgh',
+                tagPattern: '{{version}}',
+                requireEnvironment: true,
+                environment: pattern,
+              ),
+            ));
+        await expectApiException(
+          rs,
+          status: 400,
+          code: 'InvalidInput',
+          message: 'environment',
         );
       }
     });

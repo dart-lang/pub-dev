@@ -70,6 +70,18 @@ class GithubPublishing {
   /// The `owner/repository` path of the project on github.com.
   String? repository;
 
+  /// The tag pattern that is required for the publishing.
+  ///
+  /// This pattern must have a single `{{version}}` field somewhere
+  /// in it, otherwise it is a character-to-character match, with no
+  /// regular expressions or other templating substitutes.
+  ///
+  /// Some of the expected values:
+  /// - `{{version}}`
+  /// - `v{{version}}`
+  /// - `subproject-v{{version}}`
+  String? tagPattern;
+
   /// Whether to require the action from a specific environment.
   bool? requireEnvironment;
 
@@ -79,6 +91,7 @@ class GithubPublishing {
   GithubPublishing({
     this.isEnabled,
     this.repository,
+    this.tagPattern,
     this.requireEnvironment,
     this.environment,
   });

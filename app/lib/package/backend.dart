@@ -56,6 +56,8 @@ final _defaultMaxVersionsPerPackage = 1000;
 final Logger _logger = Logger('pub.cloud_repository');
 final _validGithubUserOrRepoRegExp =
     RegExp(r'^[a-z0-9\-\._]+$', caseSensitive: false);
+final _validGithubVersionPattern =
+    RegExp(r'^[a-z0-9\-\._]+$', caseSensitive: false);
 final _validGithubEnvironment =
     RegExp(r'^[a-z0-9\-\._]+$', caseSensitive: false);
 
@@ -483,6 +485,8 @@ class PackageBackend {
         // normalize input values
         final repository = github.repository?.trim() ?? '';
         github.repository = repository.isEmpty ? null : repository;
+        final tagPattern = github.tagPattern?.trim() ?? '';
+        github.tagPattern = tagPattern.isEmpty ? null : tagPattern;
         final requireEnvironment = github.requireEnvironment ?? false;
         github.requireEnvironment = requireEnvironment ? true : null;
         final environment = github.environment?.trim() ?? '';
@@ -500,6 +504,15 @@ class PackageBackend {
                   _validGithubUserOrRepoRegExp.hasMatch(parts[1]),
               'The `repository` field has invalid characters.');
         }
+
+        final tagPatternParts = tagPattern.split('{{version}}');
+        InvalidInputException.check(tagPatternParts.length == 2,
+            'The `tagPattern` field must contain a single `{{version}}` part.');
+        InvalidInputException.check(
+            tagPatternParts
+                .where((e) => e.isNotEmpty)
+                .every(_validGithubVersionPattern.hasMatch),
+            'The `tagPattern` field has invalid characters.');
 
         InvalidInputException.check(
             !requireEnvironment || environment.isNotEmpty,
@@ -1003,7 +1016,7 @@ class PackageBackend {
 
       // If the package exists, check for authorization
       if (package != null) {
-        await _checkUploadAuthorization(package!, agent);
+        await _checkUploadAuthorization(agent, package!, newVersion.version!);
       }
 
       // If the package does not exist, then we create a new package.
@@ -1117,13 +1130,13 @@ class PackageBackend {
   }
 
   Future<void> _checkUploadAuthorization(
-      Package package, AuthenticatedAgent agent) async {
+      AuthenticatedAgent agent, Package package, String newVersion) async {
     if (agent is AuthenticatedUser &&
         await packageBackend.isPackageAdmin(package, agent.user.userId)) {
       return;
     }
     if (agent is AuthenticatedGithubAction) {
-      await _checkGithubActionAllowed(package, agent);
+      await _checkGithubActionAllowed(agent, package, newVersion);
       return;
     }
     _logger.info('User ${agent.agentId} (${agent.displayId}) '
@@ -1132,8 +1145,8 @@ class PackageBackend {
         agent.displayId, package.name!);
   }
 
-  Future<void> _checkGithubActionAllowed(
-      Package package, AuthenticatedGithubAction agent) async {
+  Future<void> _checkGithubActionAllowed(AuthenticatedGithubAction agent,
+      Package package, String newVersion) async {
     final githubPublishing = package.automatedPublishing.github;
     if (githubPublishing == null || (githubPublishing.isEnabled ?? false)) {
       throw AuthorizationException.githubActionIssue(
@@ -1156,6 +1169,28 @@ class PackageBackend {
           'publishing is only allowed from "push" events, this token originates from a "${agent.payload.eventName}" event');
     }
 
+    if (agent.payload.refType != 'tag') {
+      throw AuthorizationException.githubActionIssue(
+          'publishing is only allowed from "tag" refType, this token has "${agent.payload.refType}" refType');
+    }
+    final expectedRefStart = 'refs/tags/';
+    if (!agent.payload.ref.startsWith(expectedRefStart)) {
+      throw AuthorizationException.githubActionIssue(
+          'publishing is only allowed from "refs/tags/*" ref, this token has "${agent.payload.ref}" ref');
+    }
+    final tagPattern = githubPublishing.tagPattern ?? '{{version}}';
+    if (!tagPattern.contains('{{version}}')) {
+      throw AuthorizationException.githubActionIssue(
+          'configured tag pattern does not include `{{version}}`');
+    }
+    final expectedTagValue = tagPattern.replaceFirst('{{version}}', newVersion);
+    if (agent.payload.ref.substring(expectedRefStart.length) !=
+        expectedTagValue) {
+      throw AuthorizationException.githubActionIssue(
+          'publishing is configured to only be allowed from actions with a version pattern, '
+          'this token has "${agent.payload.ref}" ref for which publishing is not allowed');
+    }
+
     // When environment is configured, it must match the action's environment.
     if (githubPublishing.requireEnvironment ?? false) {
       final environment = githubPublishing.environment;
@@ -1163,7 +1198,9 @@ class PackageBackend {
           environment.isEmpty ||
           environment != agent.payload.environment) {
         throw AuthorizationException.githubActionIssue(
-            'publishing is configured to only be allowed from actions with an environment, this token originates from an action running in environment "${agent.payload.environment}" for which publishing is not allowed.');
+            'publishing is configured to only be allowed from actions with an environment, '
+            'this token originates from an action running in environment "${agent.payload.environment}" '
+            'for which publishing is not allowed');
       }
     }
 
