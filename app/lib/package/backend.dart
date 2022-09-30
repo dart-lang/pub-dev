@@ -57,7 +57,7 @@ final Logger _logger = Logger('pub.cloud_repository');
 final _validGithubUserOrRepoRegExp =
     RegExp(r'^[a-z0-9\-\._]+$', caseSensitive: false);
 final _validGithubVersionPattern =
-    RegExp(r'^[a-z0-9\-\._]+$', caseSensitive: false);
+    RegExp(r'^[a-z0-9\-._]+$', caseSensitive: false);
 final _validGithubEnvironment =
     RegExp(r'^[a-z0-9\-\._]+$', caseSensitive: false);
 
