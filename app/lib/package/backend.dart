@@ -976,7 +976,7 @@ class PackageBackend {
       authorizedUploaders:
           uploaderEmails.map((email) => EmailAddress(email)).toList(),
     );
-    final emailEntityToStore = emailBackend.prepareEntity(email);
+    final outgoingEmail = emailBackend.prepareEntity(email);
 
     Package? package;
     String? prevLatestStableVersion;
@@ -1058,7 +1058,7 @@ class PackageBackend {
         newVersion,
         entities.packageVersionInfo,
         ...entities.assets,
-        emailEntityToStore,
+        outgoingEmail,
         AuditLogRecord.packagePublished(
           uploader: agent,
           package: newVersion.package,
@@ -1079,41 +1079,58 @@ class PackageBackend {
     _logger.info('Invalidating cache for package ${newVersion.package}.');
     await purgePackageCache(newVersion.package);
 
-    try {
-      final emailFuture = emailBackend.trySendOutgoingEmail(emailEntityToStore);
+    // Let's not block the upload response on these post-upload tasks.
+    // The operations should either be non-critical, or should be retried
+    // automatically.
+    Timer.run(() async {
+      try {
+        await _postUploadTasks(
+          package,
+          newVersion,
+          outgoingEmail,
+          prevLatestStableVersion: prevLatestStableVersion,
+          prevLatestPrereleaseVersion: prevLatestPrereleaseVersion,
+        );
+      } catch (e, st) {
+        final v = newVersion.qualifiedVersionKey;
+        _logger.severe('Error post-processing package upload $v', e, st);
+      }
+    });
 
-      final latestVersionChanged = prevLatestStableVersion != null &&
-          package!.latestVersion != prevLatestStableVersion;
-      final latestPrereleaseVersionChanged =
-          prevLatestPrereleaseVersion != null &&
-              package!.latestPrereleaseVersion != prevLatestPrereleaseVersion;
-      // Let's not block the upload response on these. In case of a timeout, the
-      // underlying operations still go ahead, but the `Future.wait` call below
-      // is not blocked on it.
-      await Future.wait([
-        emailFuture,
-        // Trigger analysis and dartdoc generation. Dependent packages can be left
-        // out here, because the dependency graph's background polling will pick up
-        // the new upload, and will trigger analysis for the dependent packages.
-        jobBackend.triggerAnalysis(newVersion.package, newVersion.version),
-        jobBackend.triggerDartdoc(newVersion.package, newVersion.version),
-        // Trigger a new doc generation for the previous latest stable version
-        // in order to update the dartdoc entry and the canonical-urls.
-        if (latestVersionChanged)
-          jobBackend.triggerDartdoc(newVersion.package, prevLatestStableVersion,
-              shouldProcess: true),
-        // Reset the priority of the previous pre-release version.
-        if (latestPrereleaseVersionChanged)
-          jobBackend.triggerDartdoc(
-              newVersion.package, prevLatestPrereleaseVersion,
-              shouldProcess: false),
-      ]).timeout(Duration(seconds: 10));
-    } catch (e, st) {
-      final v = newVersion.qualifiedVersionKey;
-      _logger.severe('Error post-processing package upload $v', e, st);
-    }
     _logger.info('Post-upload tasks completed in ${sw.elapsed}.');
     return pv;
+  }
+
+  Future<void> _postUploadTasks(
+    Package? package,
+    PackageVersion newVersion,
+    OutgoingEmail outgoingEmail, {
+    String? prevLatestStableVersion,
+    String? prevLatestPrereleaseVersion,
+  }) async {
+    final latestVersionChanged = prevLatestStableVersion != null &&
+        package!.latestVersion != prevLatestStableVersion;
+    final latestPrereleaseVersionChanged =
+        prevLatestPrereleaseVersion != null &&
+            package!.latestPrereleaseVersion != prevLatestPrereleaseVersion;
+    await Future.wait([
+      emailBackend.trySendOutgoingEmail(outgoingEmail),
+      // Trigger analysis and dartdoc generation. Dependent packages can be left
+      // out here, because the dependency graph's background polling will pick up
+      // the new upload, and will trigger analysis for the dependent packages.
+      jobBackend.triggerAnalysis(newVersion.package, newVersion.version),
+      jobBackend.triggerDartdoc(newVersion.package, newVersion.version),
+      // Trigger a new doc generation for the previous latest stable version
+      // in order to update the dartdoc entry and the canonical-urls.
+      if (latestVersionChanged)
+        jobBackend.triggerDartdoc(newVersion.package, prevLatestStableVersion,
+            shouldProcess: true),
+      // Reset the priority of the previous pre-release version.
+      if (latestPrereleaseVersionChanged)
+        jobBackend.triggerDartdoc(
+            newVersion.package, prevLatestPrereleaseVersion,
+            shouldProcess: false),
+    ]);
   }
 
   Future<void> _checkUploadAuthorization(
