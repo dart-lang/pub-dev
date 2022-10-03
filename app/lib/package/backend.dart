@@ -1180,8 +1180,8 @@ class PackageBackend {
     }
     final tagPattern = githubPublishing.tagPattern ?? '{{version}}';
     if (!tagPattern.contains('{{version}}')) {
-      throw AuthorizationException.githubActionIssue(
-          'configured tag pattern does not include `{{version}}`');
+      throw ArgumentError(
+          'Configured tag pattern does not include `{{version}}`');
     }
     final expectedTagValue = tagPattern.replaceFirst('{{version}}', newVersion);
     if (agent.payload.ref.substring(expectedRefStart.length) !=
