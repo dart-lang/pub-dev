@@ -21,10 +21,12 @@ class Payload {
   /// This property should not end in a slash.
   ///
   /// The [callbackUrl] URL should work in the following requests:
-  ///  * `POST <callbackUrl>/api/tasks/<package>/<version>/upload`
-  ///  * `POST <callbackUrl>/api/tasks/<package>/<version>/finished`
+  ///  * `GET  <callbackUrl>/api/packages/<packages>`,
+  ///  * `POST <callbackUrl>/api/tasks/<package>/<version>/upload`, and,
+  ///  * `POST <callbackUrl>/api/tasks/<package>/<version>/finished`.
   ///
-  /// These requests must be authenticated with: `authorization: bearer <token>`.
+  /// The POST requests must be authenticated with:
+  ///         authorization: bearer <token>
   /// Using the `<token>` matching the `<version>` being reported.
   final String callbackUrl;
 
