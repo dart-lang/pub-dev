@@ -17,20 +17,24 @@ USER worker:2000
 COPY --chown=worker:worker . /home/worker/pub-dev
 WORKDIR /home/worker/pub-dev
 
-# Setup Dart SDK
-RUN tool/setup-dart.sh /home/worker 2.18.2
+# Setup Dart SDK into /home/worker/dart/{stable,preview}/
+RUN tool/setup-dart.sh /home/worker/dart 2.18.2
+RUN mv /home/worker/dart/dart-sdk /home/worker/dart/stable
+RUN tool/setup-dart.sh /home/worker/dart 2.19.0-146.2.beta
+RUN mv /home/worker/dart/dart-sdk /home/worker/dart/preview
 
-# Setup Flutter SDK
-RUN tool/setup-flutter.sh /home/worker 3.3.3
-
-# Use stable Dart-SDK in path
-ENV PATH="/home/worker/dart-sdk/bin:${PATH}"
+# Setup Flutter SDK into /home/worker/flutter/{stable,preview}/
+RUN tool/setup-flutter.sh /home/worker/flutter 3.3.3
+RUN mv /home/worker/flutter/flutter /home/worker/flutter/stable
+RUN tool/setup-flutter.sh /home/worker/flutter 3.4.0-17.2.pre
+RUN mv /home/worker/flutter/flutter /home/worker/flutter/preview
 
 # Configure SDKs to be used for analysis
-ENV DART_ANALYSIS_SDK="/home/worker/dart-sdk"
-ENV FLUTTER_ANALYSIS_SDK="/home/worker/flutter"
+ENV DART_SDK="/home/worker/dart/stable"
+ENV FLUTTER_ROOT="/home/worker/flutter/stable"
 
-ENV FLUTTER_ROOT="/home/worker/flutter"
+# Use stable Dart-SDK in PATH
+ENV PATH="/home/worker/stable/dart-sdk/bin:${PATH}"
 
 # Install dependencies for pub_worker
 WORKDIR /home/worker/pub-dev/pkg/pub_worker
