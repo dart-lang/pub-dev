@@ -20,7 +20,7 @@ class Payload {
   ///
   /// This property should not end in a slash.
   ///
-  /// The [callbackUrl] URL should work in the following requests:
+  /// The [pubHostedUrl] URL should work in the following requests:
   ///  * `GET  <callbackUrl>/api/packages/<packages>`,
   ///  * `POST <callbackUrl>/api/tasks/<package>/<version>/upload`, and,
   ///  * `POST <callbackUrl>/api/tasks/<package>/<version>/finished`.
