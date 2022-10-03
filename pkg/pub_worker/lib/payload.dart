@@ -28,7 +28,7 @@ class Payload {
   /// The POST requests must be authenticated with:
   ///         authorization: bearer <token>
   /// Using the `<token>` matching the `<version>` being reported.
-  final String callbackUrl;
+  final String pubHostedUrl;
 
   /// Lists of (`version`, `token`) for versions to process.
   final List<VersionTokenPair> versions;
@@ -36,7 +36,7 @@ class Payload {
   // json_serializable boiler-plate
   Payload({
     required this.package,
-    required this.callbackUrl,
+    required this.pubHostedUrl,
     required Iterable<VersionTokenPair> versions,
   }) : versions = UnmodifiableListView(versions.toList(growable: false));
 

@@ -168,7 +168,7 @@ Future<void> schedule(
         // Create payload
         payload = json.encode(Payload(
           package: s.package,
-          callbackUrl: activeConfiguration.defaultServiceBaseUrl,
+          pubHostedUrl: activeConfiguration.defaultServiceBaseUrl,
           versions: pendingVersions.map((v) => VersionTokenPair(
                 version: v,
                 token: s.versions![v]!.secretToken!,

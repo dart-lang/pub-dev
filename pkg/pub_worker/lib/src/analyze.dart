@@ -47,10 +47,10 @@ Future<void> analyze(Payload payload) async {
   try {
     for (final p in payload.versions) {
       final api = PubApiClient(
-        // Documentation says [payload.callbackUrl] should not end with a slash,
+        // Documentation says [payload.pubHostedUrl] should not end with a slash,
         // but server has no out-going validation. So let's just be defensive
         // and strip trailing slashes for good measure.
-        stripTrailingSlashes(payload.callbackUrl),
+        stripTrailingSlashes(payload.pubHostedUrl),
         client: client.withAuthorization(() => p.token),
       );
 
@@ -62,7 +62,7 @@ Future<void> analyze(Payload payload) async {
             api,
             package: payload.package,
             version: p.version,
-            pubHostedUrl: payload.callbackUrl,
+            pubHostedUrl: payload.pubHostedUrl,
             pubCache: pubCacheDir.path,
           );
         } else {
