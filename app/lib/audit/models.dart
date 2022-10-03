@@ -209,10 +209,14 @@ class AuditLogRecord extends db.ExpandoModel<String> {
     required DateTime created,
     String? publisherId,
   }) {
+    final uploaderFields = uploader.fields;
+    final formattedFields = uploaderFields == null
+        ? ''
+        : ' (${uploaderFields.entries.map((e) => '${e.key}: `${e.value}`').join(', ')})';
     final summary = [
       'Package `$package` version `$version`',
       if (publisherId != null) ' owned by publisher `$publisherId`',
-      ' was published by `${uploader.displayId}`.',
+      ' was published by `${uploader.displayId}`$formattedFields.',
     ].join();
     return AuditLogRecord()
       ..id = createUuid()
@@ -226,6 +230,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'version': version,
         if (uploader is AuthenticatedUser) 'email': uploader.user.email,
         if (publisherId != null) 'publisherId': publisherId,
+        if (uploaderFields != null) 'fields': uploaderFields,
       }
       ..users = [if (uploader is AuthenticatedUser) uploader.user.userId]
       ..packages = [package]

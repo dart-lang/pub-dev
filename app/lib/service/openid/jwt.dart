@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 
 import 'openid_models.dart';
 
@@ -56,6 +57,20 @@ class JsonWebToken {
     this.payload,
     this.signature,
   );
+
+  @visibleForTesting
+  factory JsonWebToken({
+    required Map<String, dynamic> header,
+    required Map<String, dynamic> payload,
+    required List<int> signature,
+  }) {
+    return JsonWebToken._(
+      '${_jsonUtf8Base64.encode(header)}.${_jsonUtf8Base64.encode(payload)}',
+      JwtHeader(header),
+      JwtPayload(payload),
+      Uint8List.fromList(signature),
+    );
+  }
 
   /// Parses [token] and returns [JsonWebToken].
   ///
