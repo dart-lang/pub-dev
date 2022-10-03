@@ -1187,7 +1187,7 @@ class PackageBackend {
     if (agent.payload.ref.substring(expectedRefStart.length) !=
         expectedTagValue) {
       throw AuthorizationException.githubActionIssue(
-          'publishing is configured to only be allowed from actions with a version pattern, '
+          'publishing is configured to only be allowed from actions with specific ref pattern, '
           'this token has "${agent.payload.ref}" ref for which publishing is not allowed');
     }
 
