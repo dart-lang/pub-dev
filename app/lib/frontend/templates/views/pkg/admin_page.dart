@@ -269,7 +269,7 @@ d.Node _automatedPublishing(Package package) {
               label: 'Tag pattern',
               value: github?.tagPattern ?? '{{version}}',
             ),
-            d.markdown('`{{version}}` is the version number of the package. '
+            d.markdown('`{{version}}` will be substituted for the version number of the package. '
                 'For example, for tags like `v1.2.3` use `v{{version}}`, '
                 'and for `mypackage-1.2.3` use `mypackage-{{version}}`.'),
           ],
