@@ -37,6 +37,13 @@ void main() {
       );
     });
 
+    test('get_it', () {
+      expect(index.search('get_it').getValues(), {
+        'get': closeTo(0.78, 0.01),
+        'get_it': 1.0,
+      });
+    });
+
     test('modular vs modular_flutter', () {
       expect(
         index.search('modular').getValues(),
