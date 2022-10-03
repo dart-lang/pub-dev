@@ -262,6 +262,20 @@ d.Node _automatedPublishing(Package package) {
           ),
         ),
         d.div(
+          classes: ['-pub-form-textfield-row'],
+          children: [
+            material.textField(
+              id: '-pkg-admin-automated-github-tagpattern',
+              label: 'Tag pattern',
+              value: github?.tagPattern ?? '{{version}}',
+            ),
+            d.markdown(
+                '`{{version}}` will be substituted for the version number of the package. '
+                'For example, for tags like `v1.2.3` use `v{{version}}`, '
+                'and for `mypackage-1.2.3` use `mypackage-{{version}}`.'),
+          ],
+        ),
+        d.div(
           classes: [
             '-pub-form-checkbox-row',
             '-pub-form-checkbox-toggle-next-sibling',

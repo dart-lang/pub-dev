@@ -95,6 +95,9 @@ class _PkgAdminWidget {
     final githubRepositoryInput =
         document.getElementById('-pkg-admin-automated-github-repository')
             as InputElement?;
+    final githubTagPatternInput =
+        document.getElementById('-pkg-admin-automated-github-tagpattern')
+            as InputElement?;
     final githubRequireEnvironmentCheckbox =
         document.getElementById('-pkg-admin-automated-github-requireenv')
             as InputElement?;
@@ -116,6 +119,7 @@ class _PkgAdminWidget {
                 github: GithubPublishing(
                   isEnabled: githubEnabledCheckbox!.checked,
                   repository: githubRepositoryInput.value,
+                  tagPattern: githubTagPatternInput!.value,
                   requireEnvironment: githubRequireEnvironmentCheckbox!.checked,
                   environment: githubEnvironmentInput!.value,
                 ),
