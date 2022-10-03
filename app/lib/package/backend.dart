@@ -1101,6 +1101,10 @@ class PackageBackend {
     return pv;
   }
 
+  /// The post-upload tasks are not critical and could fail without any impact on
+  /// the uploaded package version. Important operations (e.g. email sending) are
+  /// retried periodically, others (e.g. triggering re-analysis of dependent
+  /// packages) are only nice to have.
   Future<void> _postUploadTasks(
     Package? package,
     PackageVersion newVersion,
