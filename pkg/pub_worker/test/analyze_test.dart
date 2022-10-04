@@ -17,6 +17,7 @@ import 'package:pub_worker/src/utils.dart' show streamToBuffer;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_router/shelf_router.dart';
+import 'package:tar/tar.dart';
 import 'package:test/test.dart';
 
 import 'multipart.dart' show readMultiparts;
@@ -34,6 +35,8 @@ void main() {
       .future;
 
   late HttpServer server;
+  late String baseUrl;
+
   setUpAll(() async {
     Logger.root.level = Level.ALL;
     Logger.root.onRecord.listen((LogRecord rec) {
@@ -43,14 +46,114 @@ void main() {
       }
     });
 
+    Map<String, dynamic> packageVersion(
+      String package,
+      String version,
+      Map<String, dynamic> dependencies,
+    ) =>
+        {
+          'version': '$version',
+          'archive_url': '$baseUrl/packages/$package/versions/$version.tar.gz',
+          'pubspec': {
+            'name': '$package',
+            'version': '$version',
+            'dependencies': dependencies,
+            'environment': {'sdk': '>=2.12.0-0 <3.0.0'},
+          },
+        };
+
     final app = Router();
+
+    app.get('/api/packages/retry', (Request request) {
+      return Response.ok(json.encode({
+        'name': 'retry',
+        'latest': packageVersion('retry', '3.0.1', {'meta': '^1.0.0'}),
+        'versions': [
+          packageVersion('retry', '3.0.1', {'meta': '^1.0.0'}),
+          packageVersion('retry', '3.0.0', {'meta': '^1.0.0'}),
+        ],
+      }));
+    });
+
+    app.get('/api/packages/meta', (Request request) {
+      return Response.ok(json.encode({
+        'name': 'meta',
+        'latest': packageVersion('meta', '1.0.0', {}),
+        'versions': [packageVersion('meta', '1.0.0', {})],
+      }));
+    });
+
+    app.get('/packages/retry/versions/3.0.0.tar.gz', (request) {
+      return Response.ok(Stream<TarEntry>.fromIterable([
+        TarEntry.data(
+          TarHeader(name: 'pubspec.yaml'),
+          json.fuse(utf8).encode({
+            'name': 'retry',
+            'version': '3.0.0',
+            'dependencies': {
+              'meta': '^1.0.0',
+            },
+            'environment': {'sdk': '>=2.12.0-0 <3.0.0'},
+          }),
+        ),
+        TarEntry.data(
+          TarHeader(name: 'lib/retry.dart'),
+          utf8.encode('''
+            void retry(void Function() fn) { for (var i = 0; i < 5; i++) fn();}
+          '''),
+        ),
+      ]).transform(tarWriter).transform(gzip.encoder));
+    });
+
+    app.get('/packages/retry/versions/3.0.1.tar.gz', (request) {
+      return Response.ok(Stream<TarEntry>.fromIterable([
+        TarEntry.data(
+          TarHeader(name: 'pubspec.yaml'),
+          json.fuse(utf8).encode({
+            'name': 'retry',
+            'version': '3.0.1',
+            'dependencies': {
+              'meta': '^1.0.0',
+            },
+            'environment': {'sdk': '>=2.12.0-0 <3.0.0'},
+          }),
+        ),
+        TarEntry.data(
+          TarHeader(name: 'lib/retry.dart'),
+          utf8.encode('''
+            import 'package:meta/meta.dart';
+            @Sealed()
+            void retry(void Function() fn) { for (var i = 0; i < 5; i++) fn();}
+          '''),
+        ),
+      ]).transform(tarWriter).transform(gzip.encoder));
+    });
+
+    app.get('/packages/meta/versions/1.0.0.tar.gz', (request) {
+      return Response.ok(Stream<TarEntry>.fromIterable([
+        TarEntry.data(
+          TarHeader(name: 'pubspec.yaml'),
+          json.fuse(utf8).encode({
+            'name': 'meta',
+            'version': '1.0.0',
+            'dependencies': {},
+            'environment': {'sdk': '>=2.12.0-0 <3.0.0'},
+          }),
+        ),
+        TarEntry.data(
+          TarHeader(name: 'lib/meta.dart'),
+          utf8.encode('''
+            class Sealed {}
+          '''),
+        ),
+      ]).transform(tarWriter).transform(gzip.encoder));
+    });
 
     app.post('/api/tasks/<package>/<version>/upload', (
       Request request,
       String package,
       String version,
     ) {
-      final baseUrl = 'http://localhost:${server.port}';
       return Response.ok(json.encode(UploadTaskResultResponse(
         blobId: '42',
         blob: UploadInfo(
@@ -103,6 +206,7 @@ void main() {
     });
 
     server = await io.serve(app, 'localhost', 0);
+    baseUrl = 'http://localhost:${server.port}';
   });
 
   tearDownAll(() async {
@@ -113,7 +217,7 @@ void main() {
     await Future.wait([
       analyze(Payload(
         package: 'retry',
-        callbackUrl: 'http://localhost:${server.port}',
+        pubHostedUrl: baseUrl,
         versions: [
           VersionTokenPair(
             version: '3.0.0',

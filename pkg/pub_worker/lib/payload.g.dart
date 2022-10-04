@@ -8,14 +8,14 @@ part of 'payload.dart';
 
 Payload _$PayloadFromJson(Map<String, dynamic> json) => Payload(
       package: json['package'] as String,
-      callbackUrl: json['callbackUrl'] as String,
+      pubHostedUrl: json['pubHostedUrl'] as String,
       versions: (json['versions'] as List<dynamic>)
           .map((e) => VersionTokenPair.fromJson(e as Map<String, dynamic>)),
     );
 
 Map<String, dynamic> _$PayloadToJson(Payload instance) => <String, dynamic>{
       'package': instance.package,
-      'callbackUrl': instance.callbackUrl,
+      'pubHostedUrl': instance.pubHostedUrl,
       'versions': instance.versions,
     };
 

@@ -37,22 +37,34 @@ bool _retryIf(Exception e) =>
 
 Future<void> analyze(Payload payload) async {
   _log.info('Running analyze for payload with package:${payload.package}');
+
+  // Create a single PUB_CACHE that can be reused for analysis of each package
+  // version. Re-using the same PUB_CACHE avoids downloading packages again.
+  final pubCacheDir = await Directory.systemTemp.createTemp('pub-cache');
+
   final workerDeadline = clock.now().add(_workerTimeout);
   final client = Client();
   try {
     for (final p in payload.versions) {
       final api = PubApiClient(
-        // Documentation says [payload.callbackUrl] should not end with a slash,
+        // Documentation says [payload.pubHostedUrl] should not end with a slash,
         // but server has no out-going validation. So let's just be defensive
         // and strip trailing slashes for good measure.
-        stripTrailingSlashes(payload.callbackUrl),
+        stripTrailingSlashes(payload.pubHostedUrl),
         client: client.withAuthorization(() => p.token),
       );
 
       try {
         // Skip analysis, if we're past the worker deadline
         if (clock.now().isBefore(workerDeadline)) {
-          await _analyzePackage(client, api, payload.package, p.version);
+          await _analyzePackage(
+            client,
+            api,
+            package: payload.package,
+            version: p.version,
+            pubHostedUrl: payload.pubHostedUrl,
+            pubCache: pubCacheDir.path,
+          );
         } else {
           await _reportPackageSkipped(
             client,
@@ -76,15 +88,18 @@ Future<void> analyze(Payload payload) async {
     }
   } finally {
     client.close();
+    await pubCacheDir.delete(recursive: true);
   }
 }
 
 Future<void> _analyzePackage(
   Client client,
-  PubApiClient api,
-  String package,
-  String version,
-) async {
+  PubApiClient api, {
+  required String package,
+  required String version,
+  required String pubHostedUrl,
+  required String pubCache,
+}) async {
   _log.info('Running analyze for $package / $version');
 
   final tempDir = await Directory.systemTemp.createTemp('pub_worker-');
@@ -113,6 +128,11 @@ Future<void> _analyzePackage(
       ],
       workingDirectory: outDir.path,
       includeParentEnvironment: true,
+      environment: {
+        'CI': 'true',
+        'PUB_HOSTED_URL': pubHostedUrl,
+        'PUB_CACHE': pubCache,
+      },
     );
     await pana.stdin.close();
 
@@ -213,7 +233,7 @@ Future<void> _analyzePackage(
       retryIf: _retryIf,
     );
   } finally {
-    await outDir.delete(recursive: true);
+    await tempDir.delete(recursive: true);
   }
 }
 
