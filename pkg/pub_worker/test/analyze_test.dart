@@ -217,7 +217,7 @@ void main() {
     await Future.wait([
       analyze(Payload(
         package: 'retry',
-        callbackUrl: baseUrl,
+        pubHostedUrl: baseUrl,
         versions: [
           VersionTokenPair(
             version: '3.0.0',
