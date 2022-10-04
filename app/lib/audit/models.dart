@@ -213,13 +213,13 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       'Package `$package` version `$version`',
       if (publisherId != null) ' owned by publisher `$publisherId`',
     ];
-    Map<String, dynamic>? fields;
+    var fields = const <String, dynamic>{};
     late String summary;
     if (uploader is AuthenticatedGithubAction) {
       final repository = uploader.payload.repository;
       final actor = uploader.payload.actor;
       final sha = uploader.payload.sha;
-      fields = {
+      fields = <String, dynamic>{
         'repository': repository,
         if (actor != null) 'actor': actor,
         if (sha != null) 'sha': sha,
@@ -252,7 +252,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'version': version,
         if (uploader is AuthenticatedUser) 'email': uploader.user.email,
         if (publisherId != null) 'publisherId': publisherId,
-        ...?fields,
+        ...fields,
       }
       ..users = [if (uploader is AuthenticatedUser) uploader.user.userId]
       ..packages = [package]
