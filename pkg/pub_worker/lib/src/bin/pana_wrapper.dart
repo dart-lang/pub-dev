@@ -136,10 +136,12 @@ class InstalledSdk {
       if (d is! Directory) {
         continue;
       }
-      final v = await File(p.join(d.path, 'version')).readAsString();
       try {
+        final v = await File(p.join(d.path, 'version')).readAsString();
         sdks.add(InstalledSdk(kind, d.path, Version.parse(v)));
       } on FormatException {
+        continue;
+      } on IOException {
         continue;
       }
     }
