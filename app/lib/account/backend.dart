@@ -140,10 +140,6 @@ abstract class AuthenticatedAgent {
   ///  * For a service account we display a description.
   ///  * For automated publishing we display the service and the origin trigger.
   String get displayId;
-
-  /// Further context-specific fields that have details about the action.
-  /// The values may be publicly visible in logs and audit records.
-  Map<String, String>? get fields;
 }
 
 /// Holds the authenticated Github Action information.
@@ -171,13 +167,6 @@ class AuthenticatedGithubAction implements AuthenticatedAgent {
     required this.idToken,
     required this.payload,
   });
-
-  @override
-  Map<String, String>? get fields => {
-        if (payload.actor != null) 'actor': payload.actor!,
-        'repository': payload.repository,
-        if (payload.sha != null) 'sha': payload.sha!,
-      };
 }
 
 /// Holds the authenticated user information.
@@ -191,9 +180,6 @@ class AuthenticatedUser implements AuthenticatedAgent {
 
   @override
   String get displayId => user.email!;
-
-  @override
-  Map<String, String>? get fields => null;
 }
 
 /// Verifies the current bearer token in the request scope and returns the

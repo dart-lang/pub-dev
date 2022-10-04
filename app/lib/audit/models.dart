@@ -209,15 +209,37 @@ class AuditLogRecord extends db.ExpandoModel<String> {
     required DateTime created,
     String? publisherId,
   }) {
-    final uploaderFields = uploader.fields;
-    final formattedFields = uploaderFields == null
-        ? ''
-        : ' (${uploaderFields.entries.map((e) => '${e.key}: `${e.value}`').join(', ')})';
-    final summary = [
+    final summaryParts = <String>[
       'Package `$package` version `$version`',
       if (publisherId != null) ' owned by publisher `$publisherId`',
-      ' was published by `${uploader.displayId}`$formattedFields.',
-    ].join();
+    ];
+    Map<String, dynamic>? fields;
+    late String summary;
+    if (uploader is AuthenticatedGithubAction) {
+      final repository = uploader.payload.repository;
+      final actor = uploader.payload.actor;
+      final sha = uploader.payload.sha;
+      fields = {
+        'repository': repository,
+        if (actor != null) 'actor': actor,
+        if (sha != null) 'sha': sha,
+      };
+      summary = [
+        ...summaryParts,
+        ' was published from GitHub Actions',
+        if (actor != null)
+          ' triggered by `$actor` on GitHub who pushed'
+        else
+          ' triggered by pushing',
+        if (sha != null) ' revision `$sha`',
+        ' to the `$repository` repository.',
+      ].join();
+    } else {
+      summary = [
+        ...summaryParts,
+        ' was published by `${uploader.displayId}`.',
+      ].join();
+    }
     return AuditLogRecord()
       ..id = createUuid()
       ..created = created
@@ -230,7 +252,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'version': version,
         if (uploader is AuthenticatedUser) 'email': uploader.user.email,
         if (publisherId != null) 'publisherId': publisherId,
-        if (uploaderFields != null) 'fields': uploaderFields,
+        ...?fields,
       }
       ..users = [if (uploader is AuthenticatedUser) uploader.user.userId]
       ..packages = [package]

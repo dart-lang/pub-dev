@@ -85,16 +85,15 @@ void main() {
       );
       expect(
           r.summary,
-          'Package `pkg` version `1.2.0` was published by `service:github-actions` '
-          '(actor: `abcd`, repository: `abcd/efgh`, sha: `some-hash-value`).');
+          'Package `pkg` version `1.2.0` was published from GitHub Actions '
+          'triggered by `abcd` on GitHub who pushed revision `some-hash-value` '
+          'to the `abcd/efgh` repository.');
       expect(r.data, {
         'package': 'pkg',
         'version': '1.2.0',
-        'fields': {
-          'actor': 'abcd',
-          'repository': 'abcd/efgh',
-          'sha': 'some-hash-value'
-        },
+        'repository': 'abcd/efgh',
+        'actor': 'abcd',
+        'sha': 'some-hash-value',
       });
     });
   });
