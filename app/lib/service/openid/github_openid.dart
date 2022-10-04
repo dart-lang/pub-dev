@@ -74,8 +74,14 @@ class GitHubJwtPayload {
   /// the kind of git reference given (e.g. "branch")
   final String refType;
 
+  /// actor/initiator of the GitHub action
+  final String? actor;
+
   /// name of the environment used by the job
   final String? environment;
+
+  /// the commit hash
+  final String? sha;
 
   /// The URL used as the `iss` property of JWT payloads.
   static const githubIssuerUrl = 'https://token.actions.githubusercontent.com';
@@ -102,7 +108,9 @@ class GitHubJwtPayload {
         eventName = _parseAsString(map, 'event_name'),
         ref = _parseAsString(map, 'ref'),
         refType = _parseAsString(map, 'ref_type'),
-        environment = _parseAsStringOrNull(map, 'environment');
+        actor = _parseAsStringOrNull(map, 'actor'),
+        environment = _parseAsStringOrNull(map, 'environment'),
+        sha = _parseAsStringOrNull(map, 'sha');
 
   factory GitHubJwtPayload(JwtPayload payload) {
     final missing = _requiredClaims.difference(payload.keys.toSet()).sorted();

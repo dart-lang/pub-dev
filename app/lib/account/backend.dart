@@ -148,7 +148,7 @@ class AuthenticatedGithubAction implements AuthenticatedAgent {
   String get agentId => KnownAgents.githubActions;
 
   @override
-  final String displayId;
+  String get displayId => KnownAgents.githubActions;
 
   /// OIDC `id_token` the request was authenticated with.
   ///
@@ -164,7 +164,6 @@ class AuthenticatedGithubAction implements AuthenticatedAgent {
   final GitHubJwtPayload payload;
 
   AuthenticatedGithubAction({
-    required this.displayId,
     required this.idToken,
     required this.payload,
   });
@@ -237,7 +236,6 @@ Future<AuthenticatedGithubAction> _authenticateGithubAction(
     throw AuthenticationException.githubTokenInvalid('invalid signature');
   }
   return AuthenticatedGithubAction(
-    displayId: KnownAgents.githubActions,
     idToken: idToken,
     payload: payload,
   );
