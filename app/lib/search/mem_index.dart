@@ -213,7 +213,13 @@ class InMemoryPackageIndex implements PackageIndex {
           if (textResults != null) textResults.pkgScore,
         ];
         final overallScore = Score.multiply(scores);
-        packageHits = _rankWithValues(overallScore.getValues());
+        // If the search hits have an exact name match, we move it to the front of the result list.
+        final priorityPackageName =
+            query.considerHighlightedHit ? query.parsedQuery.text : null;
+        packageHits = _rankWithValues(
+          overallScore.getValues(),
+          priorityPackageName: priorityPackageName,
+        );
         break;
       case SearchOrder.text:
         final score = textResults?.pkgScore ?? Score.empty();
@@ -408,11 +414,16 @@ class InMemoryPackageIndex implements PackageIndex {
     return null;
   }
 
-  List<PackageHit> _rankWithValues(Map<String, double> values) {
+  List<PackageHit> _rankWithValues(
+    Map<String, double> values, {
+    String? priorityPackageName,
+  }) {
     final list = values.entries
         .map((e) => PackageHit(package: e.key, score: e.value))
         .toList();
     list.sort((a, b) {
+      if (a.package == priorityPackageName) return -1;
+      if (b.package == priorityPackageName) return 1;
       final int scoreCompare = -a.score!.compareTo(b.score!);
       if (scoreCompare != 0) return scoreCompare;
       // if two packages got the same score, order by last updated

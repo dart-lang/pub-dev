@@ -616,6 +616,54 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         {'package': 'app', 'score': closeTo(0.62, 0.01)},
       ]);
     });
+
+    group('exact name match', () {
+      test('exact match vs description', () async {
+        final index = InMemoryPackageIndex();
+        await index.addPackages([
+          PackageDocument(
+            package: 'abc',
+            description: 'def xyz',
+            maxPoints: 100,
+            grantedPoints: 0,
+          ),
+          PackageDocument(
+            package: 'def',
+            description: 'abc xyz',
+            maxPoints: 100,
+            grantedPoints: 100,
+          ),
+        ]);
+
+        // default order
+        expect(
+          (await index.search(ServiceSearchQuery.parse(query: 'xyz'))).toJson(),
+          {
+            'timestamp': isNotEmpty,
+            'totalCount': 2,
+            'sdkLibraryHits': [],
+            'packageHits': [
+              {'package': 'def', 'score': closeTo(0.69, 0.01)},
+              {'package': 'abc', 'score': closeTo(0.42, 0.01)},
+            ]
+          },
+        );
+        // exact name match
+        expect(
+            (await index.search(ServiceSearchQuery.parse(query: 'abc')))
+                .toJson(),
+            {
+              'timestamp': isNotEmpty,
+              'totalCount': 2,
+              'sdkLibraryHits': [],
+              'packageHits': [
+                // `abc` is first, despite its lower score
+                {'package': 'abc', 'score': closeTo(0.48, 0.01)},
+                {'package': 'def', 'score': closeTo(0.69, 0.01)},
+              ]
+            });
+      });
+    });
   });
 
   group('package name weight', () {
