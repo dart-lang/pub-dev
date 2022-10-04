@@ -544,6 +544,7 @@ class PackageVersion extends db.ExpandoModel<String> {
         PackageVersionTags.isLegacy,
         PackageTags.isUnlisted,
       ],
+      if (pubspec!.funding.isNotEmpty) PackageVersionTags.hasFundingLink,
     };
   }
 

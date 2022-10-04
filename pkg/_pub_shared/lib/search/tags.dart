@@ -15,6 +15,7 @@ const allowedTagPrefixes = [
   'runtime:',
   'sdk:',
   'show:',
+  'has:',
 ];
 
 /// Collection of package-related tags.
@@ -57,6 +58,9 @@ abstract class PackageVersionTags {
   /// See definition at `_NullSafetyViolationFinder` in
   /// https://github.com/dart-lang/pana/blob/master/lib/src/tag_detection.dart
   static const String isNullSafe = 'is:null-safe';
+
+  /// The `pubspec.yaml` has one or more `funding` link.
+  static const String hasFundingLink = 'has:funding-link';
 }
 
 /// Collection of SDK tags (with prefix and value).
