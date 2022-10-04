@@ -78,10 +78,8 @@ Future<void> main(List<String> args) async {
   final toolEnv = await ToolEnvironment.create(
     dartSdkDir: dartSdk?.path,
     flutterSdkDir: flutterSdk?.path,
-    environment: {
-      'CI': 'true',
-      'PUB_CACHE': pubCache,
-    },
+    pubCacheDir: pubCache,
+    environment: {'CI': 'true'},
     useGlobalDartdoc: false,
   );
 
