@@ -233,6 +233,7 @@ d.Node packageAdminPageNode({
 
 d.Node _automatedPublishing(Package package) {
   final github = package.automatedPublishing.github;
+  final googleCloud = package.automatedPublishing.googleCloud;
   return d.fragment([
     d.h2(text: 'Automated publishing'),
     d.h3(text: 'Publishing from GitHub Actions'),
@@ -297,6 +298,34 @@ d.Node _automatedPublishing(Package package) {
             id: '-pkg-admin-automated-github-environment',
             label: 'Environment',
             value: github?.environment,
+          ),
+        ),
+      ],
+    ),
+    d.h3(text: 'Publishing with Google Cloud Service account'),
+    d.div(
+      classes: [
+        '-pub-form-checkbox-row',
+        '-pub-form-checkbox-toggle-next-sibling',
+      ],
+      child: material.checkbox(
+        id: '-pkg-admin-automated-googlecloud-enabled',
+        label: 'Enable publishing with Google Cloud Service account',
+        checked: googleCloud?.isEnabled ?? false,
+      ),
+    ),
+    d.div(
+      classes: [
+        '-pub-form-checkbox-indent',
+        if (!(googleCloud?.isEnabled ?? false)) '-pub-form-block-hidden',
+      ],
+      children: [
+        d.div(
+          classes: ['-pub-form-textfield-row'],
+          child: material.textField(
+            id: '-pkg-admin-automated-googlecloud-serviceaccountemail',
+            label: 'Service account email',
+            value: googleCloud?.serviceAccountEmail,
           ),
         ),
       ],

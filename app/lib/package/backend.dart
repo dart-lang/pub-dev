@@ -480,6 +480,7 @@ class PackageBackend {
       await checkPackageAdmin(p, user.userId);
 
       final github = body.github;
+      final googleCloud = body.googleCloud;
       if (github != null) {
         final isEnabled = github.isEnabled ?? false;
         // normalize input values
@@ -522,6 +523,22 @@ class PackageBackend {
           InvalidInputException.check(
               _validGithubEnvironment.hasMatch(environment),
               'The `environment` field has invalid characters.');
+        }
+      }
+      if (googleCloud != null) {
+        final isEnabled = googleCloud.isEnabled ?? false;
+        // normalize input values
+        final serviceAccountEmail =
+            googleCloud.serviceAccountEmail?.trim() ?? '';
+        googleCloud.serviceAccountEmail = serviceAccountEmail;
+
+        InvalidInputException.check(
+            !isEnabled || serviceAccountEmail.isNotEmpty,
+            'The service account email field must not be empty when enabled.');
+
+        if (serviceAccountEmail.isNotEmpty) {
+          InvalidInputException.check(isValidEmail(serviceAccountEmail),
+              'The service account email is not valid: `$serviceAccountEmail`.');
         }
       }
 

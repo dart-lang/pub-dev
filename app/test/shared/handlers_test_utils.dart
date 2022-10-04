@@ -9,25 +9,32 @@ import 'package:api_builder/_client_utils.dart' show RequestException;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
-Future expectApiException(Future future,
-    {int? status, String? code, String? message}) async {
+Future expectApiException(
+  Future future, {
+  int? status,
+  String? code,
+  String? message,
+  String? reason,
+}) async {
   await expectLater(
-      future,
-      throwsA(isA<RequestException>()
-          .having((e) => e.status, 'status', status)
-          .having(
-        (e) => e.bodyAsJson(),
-        'bodyAsJson',
-        {
-          'error': {
-            'code': code ?? isNotNull,
-            'message': message == null ? isNotNull : contains(message),
-          },
-          // TODO: remove after the above gets deployed live
+    future,
+    throwsA(isA<RequestException>()
+        .having((e) => e.status, 'status', status)
+        .having(
+      (e) => e.bodyAsJson(),
+      'bodyAsJson',
+      {
+        'error': {
           'code': code ?? isNotNull,
           'message': message == null ? isNotNull : contains(message),
         },
-      )));
+        // TODO: remove after the above gets deployed live
+        'code': code ?? isNotNull,
+        'message': message == null ? isNotNull : contains(message),
+      },
+    )),
+    reason: reason,
+  );
 }
 
 Future expectJsonResponse(shelf.Response response, {status = 200, body}) async {
