@@ -37,6 +37,10 @@ void registerActiveConfiguration(Configuration configuration) {
 /// client side authentication should use the fake authentication tokens.
 const _fakeSiteAudience = 'fake-site-audience';
 
+/// The default audience value we expect when the package is published
+/// via an automatically aquired token.
+const _defaultAutomatedPublishingAudience = 'https://pub.dev';
+
 /// Class describing the configuration of running the pub site.
 ///
 /// The configuration define the location of the Datastore with the
@@ -145,6 +149,9 @@ class Configuration {
 
   /// The OAuth audience (`client_id`) that admin accounts use.
   final String? adminAudience;
+
+  /// The OAuth audience that client workflows with automated publishing use.
+  final String? automatedPublishingAudience;
 
   /// Email of the service account which has domain-wide delegation for the
   /// GSuite account used to send emails.
@@ -259,6 +266,7 @@ class Configuration {
     required this.pubClientAudience,
     required this.pubSiteAudience,
     required this.adminAudience,
+    required this.automatedPublishingAudience,
     required this.gmailRelayServiceAccount,
     required this.gmailRelayImpersonatedGSuiteUser,
     required this.uploadSignerServiceAccount,
@@ -320,6 +328,7 @@ class Configuration {
       pubClientAudience: null,
       pubSiteAudience: _fakeSiteAudience,
       adminAudience: null,
+      automatedPublishingAudience: _defaultAutomatedPublishingAudience,
       defaultServiceBaseUrl: 'http://localhost:$frontendPort/',
       gmailRelayServiceAccount: null, // disable email sending
       gmailRelayImpersonatedGSuiteUser: null, // disable email sending
@@ -366,6 +375,7 @@ class Configuration {
       pubClientAudience: null,
       pubSiteAudience: null,
       adminAudience: null,
+      automatedPublishingAudience: _defaultAutomatedPublishingAudience,
       defaultServiceBaseUrl: 'http://localhost:0/',
       gmailRelayServiceAccount: null, // disable email sending
       gmailRelayImpersonatedGSuiteUser: null, // disable email sending
