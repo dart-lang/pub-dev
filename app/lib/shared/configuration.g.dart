@@ -34,6 +34,7 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
             'pubClientAudience',
             'pubSiteAudience',
             'adminAudience',
+            'automatedPublishingAudience',
             'gmailRelayServiceAccount',
             'gmailRelayImpersonatedGSuiteUser',
             'uploadSignerServiceAccount',
@@ -83,6 +84,8 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
           pubSiteAudience:
               $checkedConvert('pubSiteAudience', (v) => v as String?),
           adminAudience: $checkedConvert('adminAudience', (v) => v as String?),
+          automatedPublishingAudience: $checkedConvert(
+              'automatedPublishingAudience', (v) => v as String?),
           gmailRelayServiceAccount:
               $checkedConvert('gmailRelayServiceAccount', (v) => v as String?),
           gmailRelayImpersonatedGSuiteUser: $checkedConvert(
@@ -138,6 +141,7 @@ Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
       'pubClientAudience': instance.pubClientAudience,
       'pubSiteAudience': instance.pubSiteAudience,
       'adminAudience': instance.adminAudience,
+      'automatedPublishingAudience': instance.automatedPublishingAudience,
       'gmailRelayServiceAccount': instance.gmailRelayServiceAccount,
       'gmailRelayImpersonatedGSuiteUser':
           instance.gmailRelayImpersonatedGSuiteUser,

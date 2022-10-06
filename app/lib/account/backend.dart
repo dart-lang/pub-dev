@@ -11,6 +11,7 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:neat_cache/neat_cache.dart';
+import 'package:pub_dev/shared/configuration.dart';
 
 import '../package/models.dart';
 import '../service/openid/github_openid.dart';
@@ -226,9 +227,9 @@ Future<AuthenticatedGithubAction> _authenticateGithubAction(
   if (payload == null) {
     throw AuthenticationException.githubTokenInvalid('unable to parse payload');
   }
-  if (payload.aud != 'https://pub.dev') {
+  if (payload.aud != activeConfiguration.automatedPublishingAudience) {
     throw AuthenticationException.githubTokenInvalid(
-        'audience "${payload.aud}" does not match "https://pub.dev"');
+        'audience "${payload.aud}" does not match "${activeConfiguration.automatedPublishingAudience}"');
   }
   final githubData = await fetchGithubOpenIdData();
   final signatureMatches = await idToken.verifySignature(githubData.jwks);
