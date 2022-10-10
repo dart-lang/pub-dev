@@ -9,6 +9,7 @@ import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/service/openid/github_openid.dart';
+import 'package:pub_dev/service/openid/google_cloud_openid.dart';
 import 'package:pub_dev/service/openid/jwt.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:test/test.dart';
@@ -94,6 +95,39 @@ void main() {
         'repository': 'abcd/efgh',
         'actor': 'abcd',
         'sha': 'some-hash-value',
+      });
+    });
+
+    test('Google Cloud Service account uploads a package', () {
+      final token = JsonWebToken(
+        header: {},
+        payload: {
+          'aud': 'https://pub.dev',
+          'exp': 0,
+          'iat': 0,
+          'iss': 'google',
+          'nbf': 0,
+          'email': 'account@example.com',
+        },
+        signature: [],
+      );
+      final r = AuditLogRecord.packagePublished(
+        created: clock.now(),
+        package: 'pkg',
+        version: '1.2.0',
+        uploader: AuthenticatedGoogleCloudServiceAccount(
+          idToken: token,
+          payload: GoogleCloudServiceAccountJwtPayload(token.payload),
+        ),
+      );
+      expect(
+          r.summary,
+          'Package `pkg` version `1.2.0` was published by '
+          'Google Cloud Service account `account@example.com`.');
+      expect(r.data, {
+        'package': 'pkg',
+        'version': '1.2.0',
+        'email': 'account@example.com',
       });
     });
   });

@@ -15,7 +15,9 @@ import 'package:pub_dev/shared/configuration.dart';
 
 import '../package/models.dart';
 import '../service/openid/github_openid.dart';
+import '../service/openid/google_cloud_openid.dart';
 import '../service/openid/jwt.dart';
+import '../service/openid/openid_models.dart';
 import '../shared/datastore.dart';
 import '../shared/exceptions.dart';
 import '../shared/redis_cache.dart' show cache, EntryPurgeExt;
@@ -170,6 +172,33 @@ class AuthenticatedGithubAction implements AuthenticatedAgent {
   });
 }
 
+/// Holds the authenticated Google Cloud Service account information.
+class AuthenticatedGoogleCloudServiceAccount implements AuthenticatedAgent {
+  @override
+  String get agentId => KnownAgents.googleCloudServiceAccount;
+
+  @override
+  String get displayId => payload.email;
+
+  /// OIDC `id_token` the request was authenticated with.
+  ///
+  /// The [agentId] of an [AuthenticatedAgent] have always been authenticated using the [idToken].
+  /// Hence, claims on the [idToken] may be used to determine authorization of a request.
+  ///
+  /// The audience, expiration and signature must be verified by the
+  /// auth flow, but backend code can use the content to verify the
+  /// pub-specific scope of the token.
+  final JsonWebToken idToken;
+
+  /// The parsed, Google Cloud-specific JWT payload.
+  final GoogleCloudServiceAccountJwtPayload payload;
+
+  AuthenticatedGoogleCloudServiceAccount({
+    required this.idToken,
+    required this.payload,
+  });
+}
+
 /// Holds the authenticated user information.
 class AuthenticatedUser implements AuthenticatedAgent {
   final User user;
@@ -191,16 +220,20 @@ Future<AuthenticatedAgent> requireAuthenticatedAgent(
   if (token == null || token.isEmpty) {
     throw AuthenticationException.authenticationRequired();
   }
-  final authenticatedService = await _tryAuthenticateGithubAction(token);
-  if (authenticatedService != null) {
-    return authenticatedService;
+  final authenticatedServiceAgent =
+      await _tryAuthenticateServiceAgent(token, source: source);
+
+  if (authenticatedServiceAgent != null) {
+    return authenticatedServiceAgent;
   } else {
     return AuthenticatedUser(await requireAuthenticatedUser(source: source));
   }
 }
 
-Future<AuthenticatedGithubAction?> _tryAuthenticateGithubAction(
-    String token) async {
+Future<AuthenticatedAgent?> _tryAuthenticateServiceAgent(
+  String token, {
+  AuthSource? source,
+}) async {
   if (!JsonWebToken.looksLikeJWT(token)) {
     return null;
   }
@@ -208,38 +241,72 @@ Future<AuthenticatedGithubAction?> _tryAuthenticateGithubAction(
   if (idToken == null) {
     return null;
   }
-  if (idToken.payload.iss != GitHubJwtPayload.githubIssuerUrl) {
-    return null;
+
+  if (idToken.payload.iss == GitHubJwtPayload.issuerUrl) {
+    // At this point we have confirmed that the token is a JWT token
+    // issued by GitHub. If there is an issue with the token, the
+    // authentication should fail without any fallback.
+    final payload = await _verifyAndParseToken(
+      idToken,
+      openIdDataFetch: fetchGithubOpenIdData,
+      payloadTryParse: GitHubJwtPayload.tryParse,
+    );
+
+    return AuthenticatedGithubAction(
+      idToken: idToken,
+      payload: payload,
+    );
   }
 
-  // At this point we have confirmed that the token is a JWT token
-  // issued by GitHub. If there is an issue with the token, the
-  // authentication should fail without any fallback.
-  return await _authenticateGithubAction(idToken);
+  if (idToken.payload.iss == GoogleCloudServiceAccountJwtPayload.issuerUrl &&
+      source == AuthSource.client &&
+      idToken.payload.aud.length == 1 &&
+      idToken.payload.aud.single ==
+          activeConfiguration.automatedPublishingAudience) {
+    // As the uploader token's audience and the admin token's issuer and also
+    // their audience is the same, we only parse it as a non-user token, when
+    // the authentication source is from the pub client app (e.g. uploading a
+    // new package).
+    // At this point we don't fall back to authenticating the token as a user.
+    final payload = await _verifyAndParseToken(
+      idToken,
+      openIdDataFetch: fetchGoogleCloudOpenIdData,
+      payloadTryParse: GoogleCloudServiceAccountJwtPayload.tryParse,
+    );
+
+    return AuthenticatedGoogleCloudServiceAccount(
+      idToken: idToken,
+      payload: payload,
+    );
+  }
+
+  return null;
 }
 
-Future<AuthenticatedGithubAction> _authenticateGithubAction(
-    JsonWebToken idToken) async {
+Future<A> _verifyAndParseToken<A>(
+  JsonWebToken idToken, {
+  required Future<OpenIdData> Function() openIdDataFetch,
+  required A? Function(JwtPayload payload) payloadTryParse,
+}) async {
   if (!idToken.payload.isTimely(threshold: Duration(minutes: 2))) {
-    throw AuthenticationException.githubTokenInvalid('invalid timestamps');
+    throw AuthenticationException.tokenInvalid('invalid timestamps');
   }
-  final payload = GitHubJwtPayload.tryParse(idToken.payload);
+  final aud =
+      idToken.payload.aud.length == 1 ? idToken.payload.aud.single : null;
+  if (aud != activeConfiguration.automatedPublishingAudience) {
+    throw AuthenticationException.tokenInvalid(
+        'audience "${idToken.payload.aud}" does not match "${activeConfiguration.automatedPublishingAudience}"');
+  }
+  final payload = payloadTryParse(idToken.payload);
   if (payload == null) {
-    throw AuthenticationException.githubTokenInvalid('unable to parse payload');
+    throw AuthenticationException.tokenInvalid('unable to parse payload');
   }
-  if (payload.aud != activeConfiguration.automatedPublishingAudience) {
-    throw AuthenticationException.githubTokenInvalid(
-        'audience "${payload.aud}" does not match "${activeConfiguration.automatedPublishingAudience}"');
-  }
-  final githubData = await fetchGithubOpenIdData();
-  final signatureMatches = await idToken.verifySignature(githubData.jwks);
+  final openIdData = await openIdDataFetch();
+  final signatureMatches = await idToken.verifySignature(openIdData.jwks);
   if (!signatureMatches) {
-    throw AuthenticationException.githubTokenInvalid('invalid signature');
+    throw AuthenticationException.tokenInvalid('invalid signature');
   }
-  return AuthenticatedGithubAction(
-    idToken: idToken,
-    payload: payload,
-  );
+  return payload;
 }
 
 /// Represents the backend for the account handling and authentication.
