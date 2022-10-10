@@ -609,7 +609,7 @@ class PackageBackend {
   Future<api.PackagePublisherInfo> getPublisherInfo(String packageName) async {
     checkPackageVersionParams(packageName);
     final key = db.emptyKey.append(Package, id: packageName);
-    final package = (await db.lookup<Package>([key])).single;
+    final package = await db.lookupOrNull<Package>(key);
     if (package == null) {
       throw NotFoundException.resource('package "$packageName"');
     }
