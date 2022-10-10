@@ -837,8 +837,7 @@ class PackageBackend {
     // user is authenticated. But we're not validating anything at this point
     // because we don't even know which package or version is going to be
     // uploaded.
-    final user = await requireAuthenticatedUser(source: AuthSource.client);
-    _logger.info('User: ${user.email}.');
+    await requireAuthenticatedAgent(source: AuthSource.client);
 
     final guid = createUuid();
     final String object = tmpObjectName(guid);
