@@ -57,7 +57,13 @@ d.Node _sdkLibraryItem(SdkLibraryHit hit) {
       nullSafeBadgeNode(),
     ]),
     tagsNode: null,
-    apiPages: null,
+    apiPages: hit.apiPages
+        ?.where((page) => page.url != null)
+        .map((page) => _ApiPageUrl(
+              page.url!,
+              page.title ?? page.path ?? page.url!,
+            ))
+        .toList(),
   );
 }
 

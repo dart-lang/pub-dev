@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:_pub_shared/search/tags.dart';
 
@@ -36,7 +37,17 @@ class SearchResultCombiner {
       if (queryFlutterSdk)
         ...await flutterSdkMemIndex.search(query.query!, limit: 2),
     ];
-    sdkLibraryHits.sort((a, b) => -a.score.compareTo(b.score));
+    if (sdkLibraryHits.isNotEmpty) {
+      // Do not display low SDK scores if all the first page package hits are more relevant.
+      final primaryHitsMinimumScore = primaryResult.packageHits
+          .map((a) => a.score ?? 0.0)
+          .fold<double>(0.0, math.min);
+      if (primaryHitsMinimumScore > 0) {
+        sdkLibraryHits
+            .removeWhere((hit) => hit.score < primaryHitsMinimumScore);
+      }
+      sdkLibraryHits.sort((a, b) => -a.score.compareTo(b.score));
+    }
 
     return PackageSearchResult(
       timestamp: primaryResult.timestamp,
