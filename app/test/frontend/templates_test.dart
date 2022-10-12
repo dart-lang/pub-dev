@@ -581,6 +581,7 @@ void main() {
             (await scoreCardBackend.getPackageView('flutter_titanium'))!;
         final html = renderPublisherPackagesPage(
           publisher: publisher,
+          kind: PublisherPackagesPageKind.listed,
           searchResultPage: SearchResultPage(
             searchForm,
             2,

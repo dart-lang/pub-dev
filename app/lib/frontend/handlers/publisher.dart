@@ -12,6 +12,7 @@ import '../../account/backend.dart';
 import '../../audit/backend.dart';
 import '../../package/search_adapter.dart';
 import '../../publisher/backend.dart';
+import '../../publisher/models.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../../shared/urls.dart' as urls;
@@ -55,14 +56,18 @@ Future<shelf.Response> publisherPageHandler(
 
 /// Handles requests for GET /publishers/<publisherId>/packages [?q=...]
 Future<shelf.Response> publisherPackagesPageHandler(
-    shelf.Request request, String publisherId) async {
+  shelf.Request request,
+  String publisherId, {
+  required PublisherPackagesPageKind kind,
+}) async {
   // Redirect in case of empty search query.
   if (request.requestedUri.query == 'q=') {
     return redirectResponse(request.requestedUri.path);
   }
 
   // Reply with cached page if available.
-  final isLanding = request.requestedUri.queryParameters.isEmpty;
+  final isLanding = kind == PublisherPackagesPageKind.listed &&
+      request.requestedUri.queryParameters.isEmpty;
   if (isLanding && requestContext.uiCacheEnabled) {
     final html = await cache.uiPublisherPackagesPage(publisherId).get();
     if (html != null) {
@@ -80,16 +85,24 @@ Future<shelf.Response> publisherPackagesPageHandler(
   final searchForm = SearchForm.parse(request.requestedUri.queryParameters);
   // redirect to the search page when any search or pagination is present
   if (searchForm.isNotEmpty) {
-    final redirectForm = SearchForm.parse(request.requestedUri.queryParameters)
-        .addRequiredTagIfAbsent(PackageTags.publisherTag(publisherId))
-        .addRequiredTagIfAbsent(PackageTags.showUnlisted);
+    final redirectForm = searchForm
+        .addRequiredTagIfAbsent(PackageTags.publisherTag(publisherId));
     return redirectResponse(
         redirectForm.toSearchLink(page: searchForm.currentPage));
   }
 
-  final appliedSearchForm = SearchForm()
-      .toggleRequiredTag(PackageTags.publisherTag(publisherId))
-      .toggleRequiredTag(PackageTags.showUnlisted);
+  SearchForm appliedSearchForm;
+  switch (kind) {
+    case PublisherPackagesPageKind.listed:
+      appliedSearchForm =
+          SearchForm().toggleRequiredTag(PackageTags.publisherTag(publisherId));
+      break;
+    case PublisherPackagesPageKind.unlisted:
+      appliedSearchForm = SearchForm()
+          .toggleRequiredTag(PackageTags.publisherTag(publisherId))
+          .toggleRequiredTag(PackageTags.isUnlisted);
+      break;
+  }
 
   final searchResult = await searchAdapter.search(appliedSearchForm);
   final int totalCount = searchResult.totalCount;
@@ -97,6 +110,7 @@ Future<shelf.Response> publisherPackagesPageHandler(
 
   final html = renderPublisherPackagesPage(
     publisher: publisher,
+    kind: kind,
     searchResultPage: searchResult,
     pageLinks: links,
     searchForm: appliedSearchForm,

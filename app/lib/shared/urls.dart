@@ -181,6 +181,8 @@ String pkgDocUrl(
 String publisherUrl(String publisherId) => '/publishers/$publisherId';
 String publisherPackagesUrl(String publisherId) =>
     '/publishers/$publisherId/packages';
+String publisherUnlistedPackagesUrl(String publisherId) =>
+    '/publishers/$publisherId/unlisted-packages';
 
 String publisherAdminUrl(String publisherId) =>
     publisherUrl(publisherId) + '/admin';
