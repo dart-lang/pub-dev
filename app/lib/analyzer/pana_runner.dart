@@ -7,6 +7,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -140,20 +141,20 @@ class AnalyzerJobProcessor extends JobProcessor {
     // We know that pana will fail on this package, no reason to run it.
     if (packageStatus.isLegacy) {
       _logger.info('Package is on legacy SDK: $job.');
-      await _storeScoreCard(job, null);
+      await _storeScoreCard(job, null, packageStatus: packageStatus);
       return JobStatus.skipped;
     }
 
     if (packageStatus.isDiscontinued) {
       _logger.info('Package is discontinued: $job.');
-      await _storeScoreCard(job, null);
+      await _storeScoreCard(job, null, packageStatus: packageStatus);
       return JobStatus.skipped;
     }
 
     if (packageStatus.isObsolete) {
       _logger
           .info('Package is older than two years and has newer release: $job.');
-      await _storeScoreCard(job, null);
+      await _storeScoreCard(job, null, packageStatus: packageStatus);
       return JobStatus.skipped;
     }
 
@@ -176,7 +177,8 @@ class AnalyzerJobProcessor extends JobProcessor {
 
     final scoreCardFlags =
         packageStatus.isLegacy ? [PackageFlags.isLegacy] : null;
-    await _storeScoreCard(job, summary, flags: scoreCardFlags);
+    await _storeScoreCard(job, summary,
+        flags: scoreCardFlags, packageStatus: packageStatus);
 
     if (packageStatus.isLatestStable && status != JobStatus.success) {
       reportIssueWithLatest(job, '$status');
@@ -185,24 +187,38 @@ class AnalyzerJobProcessor extends JobProcessor {
     return status;
   }
 
-  Future<void> _storeScoreCard(Job job, Summary? summary,
-      {List<String>? flags}) async {
+  Future<void> _storeScoreCard(
+    Job job,
+    Summary? summary, {
+    List<String>? flags,
+    required PackageStatus packageStatus,
+  }) async {
     await scoreCardBackend.updateReportOnCard(
       job.packageName!,
       job.packageVersion!,
-      panaReport: panaReportFromSummary(summary, flags: flags),
+      panaReport: _panaReportFromSummary(summary,
+          flags: flags, packageStatus: packageStatus),
     );
   }
 }
 
-PanaReport panaReportFromSummary(Summary? summary, {List<String>? flags}) {
+PanaReport _panaReportFromSummary(
+  Summary? summary, {
+  List<String>? flags,
+  required PackageStatus packageStatus,
+}) {
   final reportStatus =
       summary == null ? ReportStatus.aborted : ReportStatus.success;
   return PanaReport(
     timestamp: clock.now().toUtc(),
     panaRuntimeInfo: summary?.runtimeInfo,
     reportStatus: reportStatus,
-    derivedTags: summary?.tags,
+    derivedTags: <String>{
+      ...?summary?.tags,
+      if (packageStatus.isLegacy) PackageVersionTags.isLegacy,
+      if (packageStatus.isObsolete) PackageVersionTags.isObsolete,
+      if (packageStatus.isDiscontinued) PackageTags.isDiscontinued,
+    }.toList(),
     allDependencies: summary?.allDependencies,
     licenses: summary?.licenses,
     report: summary?.report,

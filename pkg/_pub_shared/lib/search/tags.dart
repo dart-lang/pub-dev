@@ -53,6 +53,9 @@ abstract class PackageVersionTags {
   /// Package is shown, regardless of its legacy status.
   static const String showLegacy = 'show:legacy';
 
+  /// PackageVersion is older than 2 years old and Package has a newer version.
+  static const String isObsolete = 'is:obsolete';
+
   /// The PackageVersion is null-safe.
   ///
   /// See definition at `_NullSafetyViolationFinder` in
