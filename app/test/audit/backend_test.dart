@@ -106,6 +106,7 @@ void main() {
           'exp': 0,
           'iat': 0,
           'iss': 'google',
+          'sub': 'sub-value',
           'nbf': 0,
           'email': 'account@example.com',
         },
