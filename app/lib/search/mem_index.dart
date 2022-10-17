@@ -341,30 +341,7 @@ class InMemoryPackageIndex implements PackageIndex {
       final shouldSearchApiText =
           core.maxValue < 0.4 && symbolPages.maxValue < 0.3;
       if (!checkAborted() && shouldSearchApiText) {
-        final sw = Stopwatch()..start();
         dartdocPages = _apiDartdocIndex.searchWords(words, weight: 0.40);
-        _logger.info('[pub-search-query-with-api-dartdoc-index] '
-            'core: ${core.length}/${core.maxValue} '
-            'symbols: ${symbolPages.length}/${symbolPages.maxValue} '
-            'documentation: ${dartdocPages.length}/${dartdocPages.maxValue} '
-            'elapsed: ${sw.elapsed}');
-      } else {
-        _logger.info('[pub-search-query-without-api-dartdoc-index] '
-            'core: ${core.length}/${core.maxValue} '
-            'symbols: ${symbolPages.length}/${symbolPages.maxValue}');
-      }
-      final logTags = [
-        if (symbolPages.isNotEmpty) '[pub-search-query-api-symbols-found]',
-        if (dartdocPages.isNotEmpty) '[pub-search-query-api-dartdoc-found]',
-        if (symbolPages.maxValue > core.maxValue)
-          '[pub-search-query-api-symbols-better-than-core]',
-        if (dartdocPages.maxValue > core.maxValue)
-          '[pub-search-query-api-dartdoc-better-than-core]',
-        if (symbolPages.maxValue > dartdocPages.maxValue)
-          '[pub-search-query-api-dartdoc-better-than-symbols]',
-      ];
-      if (logTags.isNotEmpty) {
-        _logger.info('[pub-search-query-api-improved] ${logTags.join(' ')}');
       }
 
       final apiDocScore = Score.max([symbolPages, dartdocPages]);
