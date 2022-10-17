@@ -299,7 +299,7 @@ class AdminBackend {
       if (user.oauthUserId != null) {
         final mappingKey =
             _db.emptyKey.append(OAuthUserID, id: user.oauthUserId);
-        final mapping = (await tx.lookup<OAuthUserID>([mappingKey])).single;
+        final mapping = await tx.lookupOrNull<OAuthUserID>(mappingKey);
         if (mapping != null) {
           deleteKeys.add(mappingKey);
         }
