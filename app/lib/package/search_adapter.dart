@@ -8,6 +8,7 @@ import 'package:_pub_shared/search/search_form.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:pub_dev/shared/env_config.dart';
 
 import '../scorecard/backend.dart';
 import '../search/search_client.dart';
@@ -63,7 +64,14 @@ class SearchAdapter {
       result = await searchClient.search(searchForm.toServiceQuery(),
           updateCacheAfter: updateCacheAfter);
     } catch (e, st) {
-      _logger.severe('Unable to search packages', e, st);
+      if (envConfig.isRunningLocally) {
+        // The fake server will start up the different instances with a slight
+        // delay, and cached values like the top packages will trigger a few
+        // search failures (which will be retried and successfull shortly).
+        _logger.info('Unable to search packages.', e);
+      } else {
+        _logger.severe('Unable to search packages.', e, st);
+      }
     }
     if (result == null && fallbackToNames) {
       result = await _fallbackSearch(searchForm);
