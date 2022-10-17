@@ -70,7 +70,7 @@ class IntegrityChecker {
 
   /// Runs integrity checks, and returns the list of problems.
   Stream<String> findProblems() async* {
-    _httpClient = httpRetryClient();
+    _httpClient = httpRetryClient(lenient: true);
     try {
       yield* _checkUsers();
       yield* _checkOAuthUserIDs();
