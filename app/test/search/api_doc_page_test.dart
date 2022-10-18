@@ -27,9 +27,6 @@ void main() {
               'generateWebPage',
               'WebPageGenerator',
             ],
-            textBlocks: [
-              'Some fancy goal is described here.',
-            ],
           ),
         ],
       ));
@@ -129,26 +126,6 @@ void main() {
           },
           // should contain 'other_with_api' finding `serveWebPages`
           // should not contain `other_without_api`
-        ],
-      });
-    });
-
-    test('text block', () async {
-      final PackageSearchResult result = await index.search(
-          ServiceSearchQuery.parse(
-              query: 'goal fancy', order: SearchOrder.text));
-      expect(json.decode(json.encode(result)), {
-        'timestamp': isNotNull,
-        'totalCount': 1,
-        'sdkLibraryHits': [],
-        'packageHits': [
-          {
-            'package': 'foo',
-            'score': closeTo(0.157, 0.001),
-            'apiPages': [
-              {'path': 'generator.html'},
-            ],
-          },
         ],
       });
     });
