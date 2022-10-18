@@ -625,12 +625,13 @@ void main() {
           isAdmin: true,
           messageFromBackend: null,
         );
-        expectGoldenFile(html, 'publisher_unlisted_packages_page.html', timestamps: {
-          'neon-created': neon.created,
-          'titanium-created': titanium.created,
-          'publisher-created': publisher.created,
-          'publisher-updated': publisher.updated,
-        });
+        expectGoldenFile(html, 'publisher_unlisted_packages_page.html',
+            timestamps: {
+              'neon-created': neon.created,
+              'titanium-created': titanium.created,
+              'publisher-created': publisher.created,
+              'publisher-updated': publisher.updated,
+            });
       },
     );
 
