@@ -61,6 +61,11 @@ String renderPublisherPackagesPage({
       ownedBy: publisher.publisherId,
       messageFromBackend: messageFromBackend,
     ),
+    if (kind == PublisherPackagesPageKind.unlisted)
+      d.markdown(
+          '**Remark:** Unlisted packages are not included in search results by default, '
+          'however, unlisted packages are still publicly available. Unlisted packages '
+          'can also be discovered through search using the `show:unlisted` term.'),
     if (searchResultPage.hasHit) packageList(searchResultPage),
     paginationNode(pageLinks),
   ]);
