@@ -9,8 +9,7 @@ final _uuidRegExp =
 
 abstract class KnownAgents {
   static const githubActions = 'service:github-actions';
-  static const googleCloudServiceAccount =
-      'service:gcp-service-account';
+  static const googleCloudServiceAccount = 'service:gcp-service-account';
 
   static const _values = <String>{
     githubActions,

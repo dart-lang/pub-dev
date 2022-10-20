@@ -98,7 +98,7 @@ void main() {
       });
     });
 
-    test('Google Cloud Service account uploads a package', () {
+    test('Google Cloud service account uploads a package', () {
       final token = JsonWebToken(
         header: {},
         payload: {
@@ -124,7 +124,7 @@ void main() {
       expect(
           r.summary,
           'Package `pkg` version `1.2.0` was published by '
-          'Google Cloud Service account `account@example.com`.');
+          'Google Cloud service account: `account@example.com`.');
       expect(r.data, {
         'package': 'pkg',
         'version': '1.2.0',
