@@ -240,7 +240,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       };
       summary = [
         ...summaryParts,
-        ' was published by Google Cloud Service account `${uploader.payload.email}`.'
+        ' was published by Google Cloud service account: `${uploader.payload.email}`.'
       ].join();
     } else {
       summary = [
