@@ -214,8 +214,9 @@ class InMemoryPackageIndex implements PackageIndex {
         ];
         final overallScore = Score.multiply(scores);
         // If the search hits have an exact name match, we move it to the front of the result list.
+        final parsedQueryText = query.parsedQuery.text;
         final priorityPackageName =
-            query.considerHighlightedHit ? query.parsedQuery.text : null;
+            packages.contains(parsedQueryText ?? '') ? parsedQueryText : null;
         packageHits = _rankWithValues(
           overallScore.getValues(),
           priorityPackageName: priorityPackageName,
