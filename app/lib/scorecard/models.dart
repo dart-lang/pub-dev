@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:logging/logging.dart';
@@ -151,15 +152,20 @@ class ScoreCard extends db.ExpandoModel<String> {
 }
 
 abstract class FlagMixin {
+  List<String>? get tags;
   List<String>? get flags;
 
   bool get isDiscontinued =>
-      flags != null && flags!.contains(PackageFlags.isDiscontinued);
+      tags?.contains(PackageTags.isDiscontinued) ??
+      (flags != null && flags!.contains(PackageFlags.isDiscontinued));
 
-  bool get isLegacy => flags != null && flags!.contains(PackageFlags.isLegacy);
+  bool get isLegacy =>
+      tags?.contains(PackageVersionTags.isLegacy) ??
+      (flags != null && flags!.contains(PackageFlags.isLegacy));
 
   bool get isObsolete =>
-      flags != null && flags!.contains(PackageFlags.isObsolete);
+      tags?.contains(PackageVersionTags.isObsolete) ??
+      (flags != null && flags!.contains(PackageFlags.isObsolete));
 
   bool get isSkipped => isDiscontinued || isLegacy || isObsolete;
 }
@@ -216,6 +222,9 @@ class ScoreCardData extends Object with FlagMixin {
 
   late final report =
       joinReport(panaReport: panaReport, dartdocReport: dartdocReport);
+
+  @override
+  List<String>? get tags => panaReport?.derivedTags;
 
   // TODO: refactor code to use popularityStorage directly.
   double get popularityScore => popularityStorage.lookup(packageName!);

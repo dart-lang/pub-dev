@@ -8,6 +8,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded preview Dart analysis SDK to `2.19.0-255.2.beta`.
  * Upgraded preview Flutter analysis SDK to `3.4.0-34.1.pre`.
  * NOTE: Removed dartdoc documentation text from search index.
+ * NOTE: `FlagMixin` uses `tags`, next release may remove `flags`.
 
 ## `20221004t093700-all`
 

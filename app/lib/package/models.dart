@@ -805,6 +805,7 @@ class PackageView extends Object with FlagMixin {
   /// May be `null` if the analysis is not available yet.
   final int? maxPubPoints;
 
+  @override
   final List<String> tags;
 
   /// The recognized SPDX identifiers of the licenses for the package.
