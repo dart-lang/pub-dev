@@ -9,6 +9,12 @@ import '../shared/datastore.dart' as db;
 
 part 'models.g.dart';
 
+/// The type of the package lists of a publisher.
+enum PublisherPackagesPageKind {
+  listed,
+  unlisted,
+}
+
 /// Canonical publisher data.
 @db.Kind(name: 'Publisher', idType: db.IdType.String)
 class Publisher extends db.ExpandoModel<String> {

@@ -581,6 +581,7 @@ void main() {
             (await scoreCardBackend.getPackageView('flutter_titanium'))!;
         final html = renderPublisherPackagesPage(
           publisher: publisher,
+          kind: PublisherPackagesPageKind.listed,
           searchResultPage: SearchResultPage(
             searchForm,
             2,
@@ -598,6 +599,39 @@ void main() {
           'publisher-created': publisher.created,
           'publisher-updated': publisher.updated,
         });
+      },
+    );
+
+    testWithProfile(
+      'publisher unlisted packages page',
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final searchForm = SearchForm();
+        final publisher = (await publisherBackend.getPublisher('example.com'))!;
+        final neon = (await scoreCardBackend.getPackageView('neon'))!;
+        final titanium =
+            (await scoreCardBackend.getPackageView('flutter_titanium'))!;
+        final html = renderPublisherPackagesPage(
+          publisher: publisher,
+          kind: PublisherPackagesPageKind.unlisted,
+          searchResultPage: SearchResultPage(
+            searchForm,
+            2,
+            packageHits: [neon, titanium],
+          ),
+          totalCount: 2,
+          searchForm: searchForm,
+          pageLinks: PageLinks(searchForm, 10),
+          isAdmin: true,
+          messageFromBackend: null,
+        );
+        expectGoldenFile(html, 'publisher_unlisted_packages_page.html',
+            timestamps: {
+              'neon-created': neon.created,
+              'titanium-created': titanium.created,
+              'publisher-created': publisher.created,
+              'publisher-updated': publisher.updated,
+            });
       },
     );
 
