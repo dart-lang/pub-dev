@@ -539,6 +539,13 @@ class PackageBackend {
         if (serviceAccountEmail.isNotEmpty) {
           InvalidInputException.check(isValidEmail(serviceAccountEmail),
               'The service account email is not valid: `$serviceAccountEmail`.');
+
+          InvalidInputException.check(
+            serviceAccountEmail.endsWith('.gserviceaccount.com'),
+            'The service account email must end with `gserviceaccount.com`. '
+            'If you have a different service account email, please create an issue at '
+            'https://github.com/dart-lang/pub-dev',
+          );
         }
       }
 

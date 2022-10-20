@@ -208,5 +208,25 @@ void main() {
         );
       }
     });
+
+    testWithProfile('Google Cloud: email outside .gserviceaccount.com',
+        fn: () async {
+      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final rs = client.setAutomatedPublishing(
+        'oxygen',
+        AutomatedPublishing(
+          googleCloud: GoogleCloudPublishing(
+            isEnabled: true,
+            serviceAccountEmail: 'user@pub.dev',
+          ),
+        ),
+      );
+      await expectApiException(
+        rs,
+        status: 400,
+        code: 'InvalidInput',
+        message: 'email must end with',
+      );
+    });
   });
 }
