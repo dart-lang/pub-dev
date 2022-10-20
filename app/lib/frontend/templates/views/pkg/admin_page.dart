@@ -304,10 +304,10 @@ d.Node _automatedPublishing(Package package) {
     ),
     d.h3(text: 'Publishing with Google Cloud Service account'),
     d.markdown(
-      'When publishing with a GCP _service account_ is enabled, the service account configured here'
-      'will be able to create temporary tokens that allows publishing of this package.'
-      'To learn more about publishing using a _service account_, see [dart.dev/go/automated-publishing](https://dart.dev/go/automated-publishing)'
-    )
+        'When publishing with a GCP _service account_ is enabled, the service account configured here '
+        'will be able to create temporary tokens that allows publishing of this package. '
+        'To learn more about publishing using a _service account_, see '
+        '[dart.dev/go/automated-publishing](https://dart.dev/go/automated-publishing)'),
     d.div(
       classes: [
         '-pub-form-checkbox-row',
