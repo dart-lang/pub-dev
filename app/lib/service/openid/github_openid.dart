@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
-import 'package:pub_dev/tool/utils/http.dart';
 
 import 'jwt.dart';
 import 'openid_models.dart';
+import 'openid_utils.dart';
 
 final _logger = Logger('github_openid');
 
@@ -20,45 +18,12 @@ Future<OpenIdData> fetchGithubOpenIdData() async {
       'https://token.actions.githubusercontent.com/.well-known/openid-configuration';
   final list = await cache
       .openIdData(configurationUrl: githubUrl)
-      .get(() => _fetchOpenIdData(configurationUrl: githubUrl));
+      .get(() => fetchOpenIdData(configurationUrl: githubUrl));
   return list!;
 }
 
-/// Fetches the OpenID configuration and then the JSON Web Key list from the given endpoint.
-Future<OpenIdData> _fetchOpenIdData({
-  required String configurationUrl,
-}) async {
-  final client = httpRetryClient();
-  try {
-    final configUri = Uri.parse(configurationUrl);
-    final providerRs = await client.get(configUri);
-    if (providerRs.statusCode != 200) {
-      throw Exception(
-          'Unexpected status code ${providerRs.statusCode} while fetching $configUri');
-    }
-    final providerData = json.decode(providerRs.body) as Map<String, dynamic>;
-    final provider = OpenIdProvider.fromJson(providerData);
-    final jwksUri = Uri.parse(provider.jwksUri);
-    final jwksRs = await client.get(jwksUri);
-    if (jwksRs.statusCode != 200) {
-      throw Exception(
-          'Unexpected status code ${jwksRs.statusCode} while fetching $jwksUri');
-    }
-    final jwksData = json.decode(jwksRs.body) as Map<String, dynamic>;
-    return OpenIdData(
-      provider: provider,
-      jwks: JsonWebKeyList.fromJson(jwksData),
-    );
-  } finally {
-    client.close();
-  }
-}
-
-/// Parsed payload with the payload values GitHub sends with the token.
+/// Parsed payload values GitHub sends with the token.
 class GitHubJwtPayload {
-  /// user controllable URL identifying the intended audience
-  final String aud;
-
   /// repository for which the action is running
   final String repository;
 
@@ -84,7 +49,7 @@ class GitHubJwtPayload {
   final String? sha;
 
   /// The URL used as the `iss` property of JWT payloads.
-  static const githubIssuerUrl = 'https://token.actions.githubusercontent.com';
+  static const issuerUrl = 'https://token.actions.githubusercontent.com';
 
   static const _requiredClaims = <String>{
     // generic claims
@@ -102,15 +67,14 @@ class GitHubJwtPayload {
   };
 
   GitHubJwtPayload._(Map<String, dynamic> map)
-      : aud = _parseAsString(map, 'aud'),
-        repository = _parseAsString(map, 'repository'),
-        repositoryOwner = _parseAsString(map, 'repository_owner'),
-        eventName = _parseAsString(map, 'event_name'),
-        ref = _parseAsString(map, 'ref'),
-        refType = _parseAsString(map, 'ref_type'),
-        actor = _parseAsStringOrNull(map, 'actor'),
-        environment = _parseAsStringOrNull(map, 'environment'),
-        sha = _parseAsStringOrNull(map, 'sha');
+      : repository = parseAsString(map, 'repository'),
+        repositoryOwner = parseAsString(map, 'repository_owner'),
+        eventName = parseAsString(map, 'event_name'),
+        ref = parseAsString(map, 'ref'),
+        refType = parseAsString(map, 'ref_type'),
+        actor = parseAsStringOrNull(map, 'actor'),
+        environment = parseAsStringOrNull(map, 'environment'),
+        sha = parseAsStringOrNull(map, 'sha');
 
   factory GitHubJwtPayload(JwtPayload payload) {
     final missing = _requiredClaims.difference(payload.keys.toSet()).sorted();
@@ -131,24 +95,4 @@ class GitHubJwtPayload {
       return null;
     }
   }
-}
-
-String _parseAsString(Map<String, dynamic> map, String key) {
-  final value = _parseAsStringOrNull(map, key);
-  if (value == null) {
-    throw FormatException('Missing value for `$key`.');
-  } else {
-    return value;
-  }
-}
-
-String? _parseAsStringOrNull(Map<String, dynamic> map, String key) {
-  final value = map[key];
-  if (value == null) {
-    return null;
-  }
-  if (value is String) {
-    return value;
-  }
-  throw FormatException('Unexpected value for `$key`: `$value`.');
 }

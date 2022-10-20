@@ -837,8 +837,7 @@ class PackageBackend {
     // user is authenticated. But we're not validating anything at this point
     // because we don't even know which package or version is going to be
     // uploaded.
-    final user = await requireAuthenticatedUser(source: AuthSource.client);
-    _logger.info('User: ${user.email}.');
+    await requireAuthenticatedAgent(source: AuthSource.client);
 
     final guid = createUuid();
     final String object = tmpObjectName(guid);
@@ -1184,6 +1183,10 @@ class PackageBackend {
       await _checkGithubActionAllowed(agent, package, newVersion);
       return;
     }
+    if (agent is AuthenticatedGoogleCloudServiceAccount) {
+      await _checkServiceAccountAllowed(agent, package, newVersion);
+      return;
+    }
     _logger.info('User ${agent.agentId} (${agent.displayId}) '
         'is not an uploader for package ${package.name}, rolling transaction back.');
     throw AuthorizationException.userCannotUploadNewVersion(
@@ -1249,12 +1252,43 @@ class PackageBackend {
       }
     }
 
-    // TODO: return `true` once we are happy with the current checks
+    // TODO: remove once we are happy with the current checks
     // NOTE: we log and also return the payload map to verify the token info GitHub sends
     final debugInfo = json.encode(agent.idToken.payload);
     _logger.info('Recognized GitHub action: $debugInfo');
     throw PackageRejectedException(
       'GitHub Action recognized successful, but publishing is not enabled yet.'
+      ' $debugInfo',
+    );
+  }
+
+  Future<void> _checkServiceAccountAllowed(
+    AuthenticatedGoogleCloudServiceAccount agent,
+    Package package,
+    String newVersion,
+  ) async {
+    final googleCloudPublishing = package.automatedPublishing.googleCloud;
+    if (googleCloudPublishing == null ||
+        (googleCloudPublishing.isEnabled ?? false)) {
+      throw AuthorizationException.serviceAccountPublishingIssue(
+          'publishing with service account is not enabled');
+    }
+
+    // the service account email must be set and matching the agent's email.
+    final serviceAccountEmail = googleCloudPublishing.serviceAccountEmail;
+    if (serviceAccountEmail == null ||
+        serviceAccountEmail.isEmpty ||
+        serviceAccountEmail != agent.payload.email) {
+      throw AuthorizationException.serviceAccountPublishingIssue(
+          'publishing is not enabled for the "${agent.payload.email}" service account, it may be enabled for another email.');
+    }
+
+    // TODO: remove once we are happy with the current checks
+    // NOTE: we log and also return the payload map to verify the token info Google Cloud sends
+    final debugInfo = json.encode(agent.idToken.payload);
+    _logger.info('Recognized Google Cloud service account: $debugInfo');
+    throw PackageRejectedException(
+      'Google Cloud Service account recognized successful, but publishing is not enabled yet.'
       ' $debugInfo',
     );
   }

@@ -69,7 +69,7 @@ void main() {
       print(token.payload);
       expect(token.payload.isTimely(threshold: Duration(minutes: 1)), isTrue);
       final payload = GitHubJwtPayload(token.payload);
-      expect(payload.aud, 'https://example.com');
+      expect(token.payload.aud, ['https://example.com']);
       // repository check assumes that clones keep the `pub-dev` name:
       expect(payload.repository, endsWith('/pub-dev'));
       expect(payload.eventName, anyOf(['pull_request', 'push', 'schedule']));

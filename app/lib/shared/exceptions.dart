@@ -322,9 +322,9 @@ class AuthenticationException extends ResponseException {
   factory AuthenticationException.accessTokenInvalid() =>
       AuthenticationException._('Invalid `accessToken`.');
 
-  /// Signaling that the GitHub JWT token was missing a field or could not be authenticated.
-  factory AuthenticationException.githubTokenInvalid(String message) =>
-      AuthenticationException._('Invalid GitHub token: $message.');
+  /// Signaling that the JWT token was missing a field or could not be authenticated.
+  factory AuthenticationException.tokenInvalid(String message) =>
+      AuthenticationException._('Invalid JWT token: $message.');
 
   /// Signaling that `accessToken` resolved to a different OAuth `userId`.
   factory AuthenticationException.accessTokenMissmatch() =>
@@ -433,6 +433,12 @@ class AuthorizationException extends ResponseException {
   factory AuthorizationException.githubActionIssue(String reason) =>
       AuthorizationException._(
           'The calling GitHub Action is not allowed to publish, because: $reason.\nSee https://dart.dev/go/publishing-from-github');
+
+  /// Signaling that the Google Cloud Service account JWT token could not
+  /// be authorized with the current configuration.
+  factory AuthorizationException.serviceAccountPublishingIssue(String reason) =>
+      AuthorizationException._(
+          'The calling service account is not allowed to publish, because: $reason.\nSee https://dart.dev/go/publishing-with-service-account');
 
   @override
   String toString() => '$code: $message'; // used by package:pub_server

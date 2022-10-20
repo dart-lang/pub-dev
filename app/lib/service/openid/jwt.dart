@@ -11,6 +11,7 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
 import 'openid_models.dart';
+import 'openid_utils.dart';
 
 final _logger = Logger('jwt');
 final _jsonUtf8Base64 = json.fuse(utf8).fuse(base64Url);
@@ -143,17 +144,6 @@ DateTime? _parseIntAsSecondsOrNull(Map<String, dynamic> map, String key) {
   throw FormatException('Unexpected value for `$key`: `$value`.');
 }
 
-String? _parseAsStringOrNull(Map<String, dynamic> map, String key) {
-  final value = map[key];
-  if (value == null) {
-    return null;
-  }
-  if (value is String) {
-    return value;
-  }
-  throw FormatException('Unexpected value for `$key`: `$value`.');
-}
-
 /// The parsed JWT header.
 class JwtHeader extends UnmodifiableMapView<String, dynamic> {
   /// algorithm
@@ -166,9 +156,9 @@ class JwtHeader extends UnmodifiableMapView<String, dynamic> {
   final String? kid;
 
   JwtHeader._(super.map)
-      : alg = _parseAsStringOrNull(map, 'alg'),
-        typ = _parseAsStringOrNull(map, 'typ'),
-        kid = _parseAsStringOrNull(map, 'kid');
+      : alg = parseAsStringOrNull(map, 'alg'),
+        typ = parseAsStringOrNull(map, 'typ'),
+        kid = parseAsStringOrNull(map, 'kid');
 
   factory JwtHeader(Map<String, dynamic> values) {
     try {
@@ -196,11 +186,15 @@ class JwtPayload extends UnmodifiableMapView<String, dynamic> {
   /// The "iss" (issuer) claim identifies the principal that issued the JWT.
   final String? iss;
 
+  /// user controllable URL identifying the intended audience
+  final List<String> aud;
+
   JwtPayload._(super.map)
       : iat = _parseIntAsSecondsOrNull(map, 'iat'),
         nbf = _parseIntAsSecondsOrNull(map, 'nbf'),
         exp = _parseIntAsSecondsOrNull(map, 'exp'),
-        iss = _parseAsStringOrNull(map, 'iss');
+        iss = parseAsStringOrNull(map, 'iss'),
+        aud = parseAsStringListOrNull(map, 'aud') ?? const <String>[];
 
   factory JwtPayload(Map<String, dynamic> map) {
     try {
