@@ -39,7 +39,7 @@ void main() {
       );
     });
 
-    testWithProfile('successful update', fn: () async {
+    testWithProfile('successful update with GitHub', fn: () async {
       final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
       final rs = await client.setAutomatedPublishing(
           'oxygen',
@@ -68,9 +68,38 @@ void main() {
           '`admin@pub.dev` updated the publication automation config of package `oxygen`.');
     });
 
-    testWithProfile('bad project path', fn: () async {
+    testWithProfile('successful update with Google Cloud Service account',
+        fn: () async {
+      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final rs = await client.setAutomatedPublishing(
+          'oxygen',
+          AutomatedPublishing(
+            googleCloud: GoogleCloudPublishing(
+              isEnabled: true,
+              serviceAccountEmail: 'project-id@cloudbuild.gserviceaccount.com',
+            ),
+          ));
+      expect(rs.toJson(), {
+        'googleCloud': {
+          'isEnabled': true,
+          'serviceAccountEmail': 'project-id@cloudbuild.gserviceaccount.com',
+        },
+      });
+      final p = await packageBackend.lookupPackage('oxygen');
+      expect(p!.automatedPublishing.toJson(), rs.toJson());
+      final audits = await auditBackend.listRecordsForPackage('oxygen');
+      // check audit log record exists
+      final record = audits.records.firstWhere((e) =>
+          e.kind == AuditLogRecordKind.packagePublicationAutomationUpdated);
+      expect(record.created, isNotNull);
+      expect(record.summary,
+          '`admin@pub.dev` updated the publication automation config of package `oxygen`.');
+    });
+
+    testWithProfile('GitHub Actions: bad project path', fn: () async {
       final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
       final badPaths = [
+        '',
         '/',
         'a/',
         '/b',
@@ -84,7 +113,7 @@ void main() {
             'oxygen',
             AutomatedPublishing(
               github: GithubPublishing(
-                isEnabled: false,
+                isEnabled: repository.isEmpty,
                 repository: repository,
                 tagPattern: '{{version}}',
               ),
@@ -98,7 +127,7 @@ void main() {
       }
     });
 
-    testWithProfile('bad tag pattern', fn: () async {
+    testWithProfile('GitHub Actions: bad tag pattern', fn: () async {
       final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
       final badPatterns = [
         '',
@@ -125,7 +154,7 @@ void main() {
       }
     });
 
-    testWithProfile('bad environment pattern', fn: () async {
+    testWithProfile('GitHub Actions: bad environment pattern', fn: () async {
       final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
       final badPatterns = [
         '',
@@ -150,6 +179,54 @@ void main() {
           message: 'environment',
         );
       }
+    });
+
+    testWithProfile('Google Cloud: bad service account email', fn: () async {
+      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final badValues = [
+        '',
+        'not.an.email',
+        'mailto:user@example.com',
+        '@example.com',
+      ];
+      for (final value in badValues) {
+        final rs = client.setAutomatedPublishing(
+          'oxygen',
+          AutomatedPublishing(
+            googleCloud: GoogleCloudPublishing(
+              isEnabled: value.isEmpty,
+              serviceAccountEmail: value,
+            ),
+          ),
+        );
+        await expectApiException(
+          rs,
+          status: 400,
+          code: 'InvalidInput',
+          message: 'service account email',
+          reason: value,
+        );
+      }
+    });
+
+    testWithProfile('Google Cloud: email outside .gserviceaccount.com',
+        fn: () async {
+      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final rs = client.setAutomatedPublishing(
+        'oxygen',
+        AutomatedPublishing(
+          googleCloud: GoogleCloudPublishing(
+            isEnabled: true,
+            serviceAccountEmail: 'user@pub.dev',
+          ),
+        ),
+      );
+      await expectApiException(
+        rs,
+        status: 400,
+        code: 'InvalidInput',
+        message: 'email must end with',
+      );
     });
   });
 }

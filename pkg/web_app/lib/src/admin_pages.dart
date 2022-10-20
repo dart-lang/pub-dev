@@ -104,6 +104,14 @@ class _PkgAdminWidget {
     final githubEnvironmentInput =
         document.getElementById('-pkg-admin-automated-github-environment')
             as InputElement?;
+
+    final googleCloudEnabledCheckbox =
+        document.getElementById('-pkg-admin-automated-googlecloud-enabled')
+            as InputElement?;
+    final googleCloudServiceAccountEmailInput = document.getElementById(
+            '-pkg-admin-automated-googlecloud-serviceaccountemail')
+        as InputElement?;
+
     final updateButton = document.getElementById('-pkg-admin-automated-button');
     if (updateButton == null || githubRepositoryInput == null) {
       return;
@@ -114,16 +122,21 @@ class _PkgAdminWidget {
             'Are you sure you want to update the automated publishing config?'),
         fn: () async {
           await api_client.client.setAutomatedPublishing(
-              pageData.pkgData!.package,
-              AutomatedPublishing(
-                github: GithubPublishing(
-                  isEnabled: githubEnabledCheckbox!.checked,
-                  repository: githubRepositoryInput.value,
-                  tagPattern: githubTagPatternInput!.value,
-                  requireEnvironment: githubRequireEnvironmentCheckbox!.checked,
-                  environment: githubEnvironmentInput!.value,
-                ),
-              ));
+            pageData.pkgData!.package,
+            AutomatedPublishing(
+              github: GithubPublishing(
+                isEnabled: githubEnabledCheckbox!.checked,
+                repository: githubRepositoryInput.value,
+                tagPattern: githubTagPatternInput!.value,
+                requireEnvironment: githubRequireEnvironmentCheckbox!.checked,
+                environment: githubEnvironmentInput!.value,
+              ),
+              googleCloud: GoogleCloudPublishing(
+                isEnabled: googleCloudEnabledCheckbox!.checked,
+                serviceAccountEmail: googleCloudServiceAccountEmailInput!.value,
+              ),
+            ),
+          );
         },
         successMessage: text('Config updated. The page will reload.'),
         onSuccess: (_) => window.location.reload(),
