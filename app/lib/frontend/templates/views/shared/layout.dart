@@ -160,7 +160,10 @@ d.Node pageLayoutNode({
         ),
         d.element(
           'body',
-          classes: bodyClasses,
+          classes: [
+            ...?bodyClasses,
+            'light-theme',
+          ],
           children: [
             // <!-- Google Tag Manager (noscript) -->
             d.element(
