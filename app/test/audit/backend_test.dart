@@ -8,8 +8,8 @@ import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
+import 'package:pub_dev/service/openid/gcp_openid.dart';
 import 'package:pub_dev/service/openid/github_openid.dart';
-import 'package:pub_dev/service/openid/google_cloud_openid.dart';
 import 'package:pub_dev/service/openid/jwt.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:test/test.dart';
@@ -116,9 +116,9 @@ void main() {
         created: clock.now(),
         package: 'pkg',
         version: '1.2.0',
-        uploader: AuthenticatedGoogleCloudServiceAccount(
+        uploader: AuthenticatedGcpServiceAccount(
           idToken: token,
-          payload: GoogleCloudServiceAccountJwtPayload(token.payload),
+          payload: GcpServiceAccountJwtPayload(token.payload),
         ),
       );
       expect(

@@ -23,7 +23,7 @@ Future<OpenIdData> fetchGoogleCloudOpenIdData() async {
 }
 
 /// Parsed payload values Google Cloud Service account sends with the token.
-class GoogleCloudServiceAccountJwtPayload {
+class GcpServiceAccountJwtPayload {
   /// email of the service account (i.e. <GCP_PROJECT_ID>@cloudbuild.gserviceaccount.com)
   final String email;
 
@@ -45,22 +45,22 @@ class GoogleCloudServiceAccountJwtPayload {
     'sub',
   };
 
-  GoogleCloudServiceAccountJwtPayload._(Map<String, dynamic> map)
+  GcpServiceAccountJwtPayload._(Map<String, dynamic> map)
       : email = parseAsString(map, 'email'),
         sub = parseAsString(map, 'sub');
 
-  factory GoogleCloudServiceAccountJwtPayload(JwtPayload payload) {
+  factory GcpServiceAccountJwtPayload(JwtPayload payload) {
     final missing = _requiredClaims.difference(payload.keys.toSet()).sorted();
     if (missing.isNotEmpty) {
       throw FormatException(
           'JWT from Google Cloud is missing following claims: ${missing.map((k) => '`$k`').join(', ')}.');
     }
-    return GoogleCloudServiceAccountJwtPayload._(payload);
+    return GcpServiceAccountJwtPayload._(payload);
   }
 
-  static GoogleCloudServiceAccountJwtPayload? tryParse(JwtPayload payload) {
+  static GcpServiceAccountJwtPayload? tryParse(JwtPayload payload) {
     try {
-      return GoogleCloudServiceAccountJwtPayload(payload);
+      return GcpServiceAccountJwtPayload(payload);
     } on FormatException {
       return null;
     } catch (e, st) {

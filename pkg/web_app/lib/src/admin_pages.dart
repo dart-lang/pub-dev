@@ -105,12 +105,11 @@ class _PkgAdminWidget {
         document.getElementById('-pkg-admin-automated-github-environment')
             as InputElement?;
 
-    final googleCloudEnabledCheckbox =
-        document.getElementById('-pkg-admin-automated-googlecloud-enabled')
+    final gcpEnabledCheckbox = document
+        .getElementById('-pkg-admin-automated-gcp-enabled') as InputElement?;
+    final gcpServiceAccountEmailInput =
+        document.getElementById('-pkg-admin-automated-gcp-serviceaccountemail')
             as InputElement?;
-    final googleCloudServiceAccountEmailInput = document.getElementById(
-            '-pkg-admin-automated-googlecloud-serviceaccountemail')
-        as InputElement?;
 
     final updateButton = document.getElementById('-pkg-admin-automated-button');
     if (updateButton == null || githubRepositoryInput == null) {
@@ -131,9 +130,9 @@ class _PkgAdminWidget {
                 requireEnvironment: githubRequireEnvironmentCheckbox!.checked,
                 environment: githubEnvironmentInput!.value,
               ),
-              googleCloud: GoogleCloudPublishing(
-                isEnabled: googleCloudEnabledCheckbox!.checked,
-                serviceAccountEmail: googleCloudServiceAccountEmailInput!.value,
+              gcp: GcpPublishing(
+                isEnabled: gcpEnabledCheckbox!.checked,
+                serviceAccountEmail: gcpServiceAccountEmailInput!.value,
               ),
             ),
           );

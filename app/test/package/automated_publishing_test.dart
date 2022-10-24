@@ -74,13 +74,13 @@ void main() {
       final rs = await client.setAutomatedPublishing(
           'oxygen',
           AutomatedPublishing(
-            googleCloud: GoogleCloudPublishing(
+            gcp: GcpPublishing(
               isEnabled: true,
               serviceAccountEmail: 'project-id@cloudbuild.gserviceaccount.com',
             ),
           ));
       expect(rs.toJson(), {
-        'googleCloud': {
+        'gcp': {
           'isEnabled': true,
           'serviceAccountEmail': 'project-id@cloudbuild.gserviceaccount.com',
         },
@@ -193,7 +193,7 @@ void main() {
         final rs = client.setAutomatedPublishing(
           'oxygen',
           AutomatedPublishing(
-            googleCloud: GoogleCloudPublishing(
+            gcp: GcpPublishing(
               isEnabled: value.isEmpty,
               serviceAccountEmail: value,
             ),
@@ -215,7 +215,7 @@ void main() {
       final rs = client.setAutomatedPublishing(
         'oxygen',
         AutomatedPublishing(
-          googleCloud: GoogleCloudPublishing(
+          gcp: GcpPublishing(
             isEnabled: true,
             serviceAccountEmail: 'user@pub.dev',
           ),

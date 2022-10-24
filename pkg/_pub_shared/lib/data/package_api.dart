@@ -52,11 +52,11 @@ class PkgOptions {
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class AutomatedPublishing {
   final GithubPublishing? github;
-  final GoogleCloudPublishing? googleCloud;
+  final GcpPublishing? gcp;
 
   AutomatedPublishing({
     this.github,
-    this.googleCloud,
+    this.gcp,
   });
 
   factory AutomatedPublishing.fromJson(Map<String, dynamic> json) =>
@@ -105,19 +105,19 @@ class GithubPublishing {
 }
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
-class GoogleCloudPublishing {
+class GcpPublishing {
   final bool? isEnabled;
   String? serviceAccountEmail;
 
-  GoogleCloudPublishing({
+  GcpPublishing({
     this.isEnabled,
     this.serviceAccountEmail,
   });
 
-  factory GoogleCloudPublishing.fromJson(Map<String, dynamic> json) =>
-      _$GoogleCloudPublishingFromJson(json);
+  factory GcpPublishing.fromJson(Map<String, dynamic> json) =>
+      _$GcpPublishingFromJson(json);
 
-  Map<String, dynamic> toJson() => _$GoogleCloudPublishingToJson(this);
+  Map<String, dynamic> toJson() => _$GcpPublishingToJson(this);
 }
 
 @JsonSerializable()

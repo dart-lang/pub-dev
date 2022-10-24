@@ -480,7 +480,7 @@ class PackageBackend {
       await checkPackageAdmin(p, user.userId);
 
       final github = body.github;
-      final googleCloud = body.googleCloud;
+      final googleCloud = body.gcp;
       if (github != null) {
         final isEnabled = github.isEnabled ?? false;
         // normalize input values
@@ -1183,7 +1183,7 @@ class PackageBackend {
       await _checkGithubActionAllowed(agent, package, newVersion);
       return;
     }
-    if (agent is AuthenticatedGoogleCloudServiceAccount) {
+    if (agent is AuthenticatedGcpServiceAccount) {
       await _checkServiceAccountAllowed(agent, package, newVersion);
       return;
     }
@@ -1263,11 +1263,11 @@ class PackageBackend {
   }
 
   Future<void> _checkServiceAccountAllowed(
-    AuthenticatedGoogleCloudServiceAccount agent,
+    AuthenticatedGcpServiceAccount agent,
     Package package,
     String newVersion,
   ) async {
-    final googleCloudPublishing = package.automatedPublishing.googleCloud;
+    final googleCloudPublishing = package.automatedPublishing.gcp;
     if (googleCloudPublishing == null ||
         (googleCloudPublishing.isEnabled ?? false)) {
       throw AuthorizationException.serviceAccountPublishingIssue(
