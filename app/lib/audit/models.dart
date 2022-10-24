@@ -234,7 +234,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         if (sha != null) ' revision `$sha`',
         ' to the `$repository` repository.',
       ].join();
-    } else if (uploader is AuthenticatedGoogleCloudServiceAccount) {
+    } else if (uploader is AuthenticatedGcpServiceAccount) {
       fields = {
         'email': uploader.payload.email,
       };

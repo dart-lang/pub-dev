@@ -14,8 +14,8 @@ import 'package:neat_cache/neat_cache.dart';
 import 'package:pub_dev/shared/configuration.dart';
 
 import '../package/models.dart';
+import '../service/openid/gcp_openid.dart';
 import '../service/openid/github_openid.dart';
-import '../service/openid/google_cloud_openid.dart';
 import '../service/openid/jwt.dart';
 import '../service/openid/openid_models.dart';
 import '../shared/datastore.dart';
@@ -173,9 +173,9 @@ class AuthenticatedGithubAction implements AuthenticatedAgent {
 }
 
 /// Holds the authenticated Google Cloud Service account information.
-class AuthenticatedGoogleCloudServiceAccount implements AuthenticatedAgent {
+class AuthenticatedGcpServiceAccount implements AuthenticatedAgent {
   @override
-  String get agentId => KnownAgents.googleCloudServiceAccount;
+  String get agentId => KnownAgents.gcpServiceAccount;
 
   @override
   String get displayId => payload.email;
@@ -191,9 +191,9 @@ class AuthenticatedGoogleCloudServiceAccount implements AuthenticatedAgent {
   final JsonWebToken idToken;
 
   /// The parsed, Google Cloud-specific JWT payload.
-  final GoogleCloudServiceAccountJwtPayload payload;
+  final GcpServiceAccountJwtPayload payload;
 
-  AuthenticatedGoogleCloudServiceAccount({
+  AuthenticatedGcpServiceAccount({
     required this.idToken,
     required this.payload,
   });
@@ -258,7 +258,7 @@ Future<AuthenticatedAgent?> _tryAuthenticateServiceAgent(
     );
   }
 
-  if (idToken.payload.iss == GoogleCloudServiceAccountJwtPayload.issuerUrl &&
+  if (idToken.payload.iss == GcpServiceAccountJwtPayload.issuerUrl &&
       source == AuthSource.client &&
       idToken.payload.aud.length == 1 &&
       idToken.payload.aud.single ==
@@ -271,10 +271,10 @@ Future<AuthenticatedAgent?> _tryAuthenticateServiceAgent(
     final payload = await _verifyAndParseToken(
       idToken,
       openIdDataFetch: fetchGoogleCloudOpenIdData,
-      payloadTryParse: GoogleCloudServiceAccountJwtPayload.tryParse,
+      payloadTryParse: GcpServiceAccountJwtPayload.tryParse,
     );
 
-    return AuthenticatedGoogleCloudServiceAccount(
+    return AuthenticatedGcpServiceAccount(
       idToken: idToken,
       payload: payload,
     );
