@@ -212,12 +212,14 @@
   border: 1px solid #dfe2e5;
 }
 
-.markdown-body table tr {
+/* Note: light-theme was added to prevent non-visible table text in dartdoc's dark mode. */
+.light-theme .markdown-body table tr {
   background-color: #fff;
   border-top: 1px solid #c6cbd1;
 }
 
-.markdown-body table tr:nth-child(2n) {
+/* Note: light-theme was added to prevent non-visible table text in dartdoc's dark mode. */
+.light-theme .markdown-body table tr:nth-child(2n) {
   background-color: #f6f8fa;
 }
 
