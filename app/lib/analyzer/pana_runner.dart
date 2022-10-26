@@ -86,7 +86,6 @@ class _PanaRunner implements PanaRunner {
             package,
             version: version,
             options: InspectOptions(
-              isInternal: isInternal,
               pubHostedUrl: activeConfiguration.primaryApiUri.toString(),
               analysisOptionsYaml: packageStatus.usesFlutter
                   ? null

@@ -92,7 +92,6 @@ Future<void> main(List<String> args) async {
     package,
     version: version,
     options: InspectOptions(
-      isInternal: true,
       //TODO: Add analysisOptionsYaml, or move the logic into pana
       pubHostedUrl: Platform.environment['PUB_HOSTED_URL']!,
       dartdocOutputDir: dartdocOutputDir.path,
