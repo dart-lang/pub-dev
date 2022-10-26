@@ -34,7 +34,7 @@ ENV DART_SDK="/home/worker/dart/stable"
 ENV FLUTTER_ROOT="/home/worker/flutter/stable"
 
 # Use stable Dart-SDK in PATH
-ENV PATH="/home/worker/stable/dart-sdk/bin:${PATH}"
+ENV PATH="/home/worker/dart/stable/bin:${PATH}"
 
 # Install dependencies for pub_worker
 WORKDIR /home/worker/pub-dev/pkg/pub_worker
