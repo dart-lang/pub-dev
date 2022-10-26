@@ -90,6 +90,10 @@ class FakePanaRunner implements PanaRunner {
       issueTrackerUrl: issueTrackerUrl,
       documentationUrl: documentationUrl,
       repository: repository,
+      // TODO: add funding URLs
+      fundingUrls: null,
+      // TODO: add contributing URL
+      contributingUrl: null,
     );
     return Summary(
       packageName: package,
