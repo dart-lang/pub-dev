@@ -77,12 +77,13 @@ The API returns all package names on `pub.dev`. The package names are
 paginated, clients should call `"nextUrl"` for the next page if it is
 present in the response.
 
+The response is always a gzip-ed JSON content, and should be cached
+on the client side  for at least 2 hours between requests (as indicated
+by the `cache-control` header).
+
 Notes:
  * The order of the packages, the number of packages on a response page,
    or the URL structure of `"nextUrl"` may change without notice.
- * Clients should always use `gzip` content encoding, as it will be mandatory
-   for this API in the near future.
-
 
 ## FAQ
 
