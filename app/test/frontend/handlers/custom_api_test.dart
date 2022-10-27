@@ -4,12 +4,15 @@
 
 import 'dart:convert';
 
+import 'package:http/http.dart' as http;
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:pub_dev/shared/urls.dart' as urls;
 import 'package:pub_dev/tool/test_profile/models.dart';
+import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
 import '../../shared/handlers_test_utils.dart';
@@ -113,8 +116,10 @@ void main() {
     });
 
     testWithProfile('/api/package-names', fn: () async {
+      final rs = await http.get(activeConfiguration.primaryApiUri!
+          .replace(path: '/api/package-names'));
       await expectJsonResponse(
-        await issueGet('/api/package-names'),
+        shelf.Response(rs.statusCode, body: rs.body, headers: rs.headers),
         body: {
           'packages': containsAll([
             'neon',
@@ -126,8 +131,10 @@ void main() {
     });
 
     testWithProfile('/api/package-names - only valid packages', fn: () async {
+      final rs1 = await http.get(activeConfiguration.primaryApiUri!
+          .replace(path: '/api/package-names'));
       await expectJsonResponse(
-        await issueGet('/api/package-names'),
+        shelf.Response(rs1.statusCode, body: rs1.body, headers: rs1.headers),
         body: {
           'packages': contains('neon'),
           'nextUrl': null,
@@ -138,8 +145,11 @@ void main() {
       expect(p.isVisible, isFalse);
       await dbService.commit(inserts: [p]);
       await nameTracker.reloadFromDatastore();
+      await cache.packageNamesDataJsonGz().purge();
+      final rs2 = await http.get(activeConfiguration.primaryApiUri!
+          .replace(path: '/api/package-names'));
       await expectJsonResponse(
-        await issueGet('/api/package-names'),
+        shelf.Response(rs2.statusCode, body: rs2.body, headers: rs2.headers),
         body: {
           'packages': isNot(contains('neon')),
           'nextUrl': null,
