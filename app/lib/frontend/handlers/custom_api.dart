@@ -90,12 +90,26 @@ Future<shelf.Response> apiPackagesCompactListHandler(shelf.Request request) =>
 /// Handles requests for
 /// - /api/package-names
 Future<shelf.Response> apiPackageNamesHandler(shelf.Request request) async {
-  final packageNames = await nameTracker.getVisiblePackageNames();
-  packageNames.removeWhere(isSoftRemoved);
-  return jsonResponse({
-    'packages': packageNames,
-    // pagination is off for now
-    'nextUrl': null,
+  // only accept requests which allow gzip content encoding
+  if (!request.acceptsGzipEncoding()) {
+    throw NotAcceptableException('Client must accept gzip content.');
+  }
+
+  final bytes = await cache.packageNamesDataJsonGz().get(() async {
+    final packageNames = await nameTracker.getVisiblePackageNames();
+    packageNames.removeWhere(isSoftRemoved);
+
+    return gzip.encode(jsonUtf8Encoder.convert({
+      'packages': packageNames,
+      // pagination is off for now
+      'nextUrl': null,
+    }));
+  });
+
+  return shelf.Response(200, body: bytes, headers: {
+    ...jsonResponseHeaders,
+    'Content-Encoding': 'gzip',
+    ...CacheHeaders.packageNames(),
   });
 }
 

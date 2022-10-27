@@ -240,6 +240,10 @@ class CachePatterns {
       .withTTL(Duration(hours: 12))
       .withCodec(utf8)[requestedUri];
 
+  Entry<List<int>> packageNamesDataJsonGz() => _cache
+      .withPrefix('api-package-names-data-json-gz/')
+      .withTTL(Duration(hours: 2))['-'];
+
   Entry<List<int>> packageNameCompletitionDataJsonGz() => _cache
       .withPrefix('api-package-name-completition-data-json-gz/')
       .withTTL(Duration(hours: 8))['-'];
