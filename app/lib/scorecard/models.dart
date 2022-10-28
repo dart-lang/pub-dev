@@ -137,11 +137,9 @@ abstract class FlagMixin {
   bool get isDiscontinued =>
       tags?.contains(PackageTags.isDiscontinued) ?? false;
 
-  bool get isLegacy =>
-      tags?.contains(PackageVersionTags.isLegacy) ?? false;
+  bool get isLegacy => tags?.contains(PackageVersionTags.isLegacy) ?? false;
 
-  bool get isObsolete =>
-      tags?.contains(PackageVersionTags.isObsolete) ?? false;
+  bool get isObsolete => tags?.contains(PackageVersionTags.isObsolete) ?? false;
 
   bool get isSkipped => isDiscontinued || isLegacy || isObsolete;
 }
