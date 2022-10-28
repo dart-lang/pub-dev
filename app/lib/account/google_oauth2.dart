@@ -198,6 +198,12 @@ class GoogleOauth2AuthProvider extends AuthProvider {
     if (value == expected) {
       return false;
     }
+    // Admin audience is migrated from `https://pub.dev` to `https://pub.dev/api/admin`.
+    // This fallback allows the admin tools gradual migration.
+    // TODO: remove when the admin tools are migrated.
+    if (source == AuthSource.admin && value == 'https://pub.dev') {
+      return false;
+    }
     _logger.info(
         'Possible $source audience missmatch.', value, StackTrace.current);
     return true;
