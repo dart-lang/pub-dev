@@ -174,10 +174,7 @@ class AnalyzerJobProcessor extends JobProcessor {
       status = JobStatus.success;
     }
 
-    final scoreCardFlags =
-        packageStatus.isLegacy ? [PackageFlags.isLegacy] : null;
-    await _storeScoreCard(job, summary,
-        flags: scoreCardFlags, packageStatus: packageStatus);
+    await _storeScoreCard(job, summary, packageStatus: packageStatus);
 
     if (packageStatus.isLatestStable && status != JobStatus.success) {
       reportIssueWithLatest(job, '$status');
@@ -189,21 +186,18 @@ class AnalyzerJobProcessor extends JobProcessor {
   Future<void> _storeScoreCard(
     Job job,
     Summary? summary, {
-    List<String>? flags,
     required PackageStatus packageStatus,
   }) async {
     await scoreCardBackend.updateReportOnCard(
       job.packageName!,
       job.packageVersion!,
-      panaReport: _panaReportFromSummary(summary,
-          flags: flags, packageStatus: packageStatus),
+      panaReport: _panaReportFromSummary(summary, packageStatus: packageStatus),
     );
   }
 }
 
 PanaReport _panaReportFromSummary(
   Summary? summary, {
-  List<String>? flags,
   required PackageStatus packageStatus,
 }) {
   final reportStatus =
@@ -222,7 +216,6 @@ PanaReport _panaReportFromSummary(
     licenses: summary?.licenses,
     report: summary?.report,
     result: summary?.result,
-    flags: flags,
     urlProblems: summary?.urlProblems,
     screenshots: summary?.screenshots,
   );

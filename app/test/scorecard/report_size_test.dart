@@ -41,7 +41,6 @@ void main() {
               ),
             ]),
             result: null,
-            flags: [],
             urlProblems: [],
             screenshots: null,
           ),
@@ -55,7 +54,6 @@ void main() {
           'updated': isNotNull,
           'packageCreated': isNotNull,
           'packageVersionCreated': isNotNull,
-          'flags': [],
           'dartdocReport': isNotNull,
           'panaReport': {
             'timestamp': isNotEmpty,
@@ -75,7 +73,6 @@ void main() {
                 },
               ],
             },
-            'flags': [],
             'urlProblems': []
           },
         });
