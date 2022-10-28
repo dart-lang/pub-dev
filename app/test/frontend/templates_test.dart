@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:_pub_shared/search/search_form.dart';
+import 'package:_pub_shared/search/tags.dart';
 import 'package:_pub_shared/validation/html/html_validation.dart';
 import 'package:clock/clock.dart';
 import 'package:html/parser.dart';
@@ -380,7 +381,6 @@ void main() {
           licenses: null,
           report: Report(sections: <ReportSection>[]),
           result: null,
-          flags: null,
           urlProblems: null,
           screenshots: null,
         ),
@@ -400,10 +400,22 @@ void main() {
     });
 
     testWithProfile('outdated analysis tab', fn: () async {
+      final timestamp = DateTime(2017, 12, 18, 14, 26, 00);
       final card = ScoreCardData(
         packageName: 'pkg_foo',
-        flags: [PackageFlags.isObsolete],
-        updated: DateTime(2017, 12, 18, 14, 26, 00),
+        updated: timestamp,
+        panaReport: PanaReport(
+          timestamp: timestamp,
+          panaRuntimeInfo: _panaRuntimeInfo,
+          reportStatus: ReportStatus.success,
+          derivedTags: [PackageVersionTags.isObsolete],
+          allDependencies: null,
+          licenses: null,
+          report: Report(sections: <ReportSection>[]),
+          result: null,
+          urlProblems: null,
+          screenshots: null,
+        ),
       );
       final String html = scoreTabNode(
         card: card,

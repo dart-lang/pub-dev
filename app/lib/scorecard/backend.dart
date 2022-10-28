@@ -194,8 +194,6 @@ class ScoreCardBackend {
       throw Exception('Unable to lookup $packageName $packageVersion.');
     }
 
-    final status = PackageStatus.fromModels(package, version);
-
     await db.withRetryTransaction(_db, (tx) async {
       var scoreCard = await tx.lookupOrNull<ScoreCard>(key);
 
@@ -211,14 +209,6 @@ class ScoreCardBackend {
         _logger.info('Updating ScoreCard $packageName $packageVersion.');
         scoreCard.updated = clock.now().toUtc();
       }
-
-      scoreCard.flags = [
-        if (package.isDiscontinued) PackageFlags.isDiscontinued,
-        if (status.isLatestStable) PackageFlags.isLatestStable,
-        if (status.isLegacy) PackageFlags.isLegacy,
-        if (status.isObsolete) PackageFlags.isObsolete,
-        if (version.pubspec!.usesFlutter) PackageFlags.usesFlutter,
-      ];
 
       bool reportIsTooBig(String reportType, List<int>? bytes) {
         if (bytes == null || bytes.isEmpty) return false;
@@ -257,7 +247,6 @@ class ScoreCardBackend {
             ],
           ),
           result: null,
-          flags: <String>[],
           urlProblems: <pana.UrlProblem>[],
           screenshots: null,
         );

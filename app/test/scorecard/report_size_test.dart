@@ -41,7 +41,6 @@ void main() {
               ),
             ]),
             result: null,
-            flags: [],
             urlProblems: [],
             screenshots: null,
           ),

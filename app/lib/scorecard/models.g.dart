@@ -20,8 +20,6 @@ ScoreCardData _$ScoreCardDataFromJson(Map<String, dynamic> json) =>
       packageVersionCreated: json['packageVersionCreated'] == null
           ? null
           : DateTime.parse(json['packageVersionCreated'] as String),
-      flags:
-          (json['flags'] as List<dynamic>?)?.map((e) => e as String).toList(),
       dartdocReport: json['dartdocReport'] == null
           ? null
           : DartdocReport.fromJson(
@@ -40,7 +38,6 @@ Map<String, dynamic> _$ScoreCardDataToJson(ScoreCardData instance) =>
       'packageCreated': instance.packageCreated?.toIso8601String(),
       'packageVersionCreated':
           instance.packageVersionCreated?.toIso8601String(),
-      'flags': instance.flags,
       'dartdocReport': instance.dartdocReport,
       'panaReport': instance.panaReport,
     };
@@ -69,8 +66,6 @@ PanaReport _$PanaReportFromJson(Map<String, dynamic> json) => PanaReport(
       result: json['result'] == null
           ? null
           : AnalysisResult.fromJson(json['result'] as Map<String, dynamic>),
-      flags:
-          (json['flags'] as List<dynamic>?)?.map((e) => e as String).toList(),
       urlProblems: (json['urlProblems'] as List<dynamic>?)
           ?.map((e) => UrlProblem.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -97,7 +92,6 @@ Map<String, dynamic> _$PanaReportToJson(PanaReport instance) {
   writeNotNull('report', instance.report);
   writeNotNull('result', instance.result);
   writeNotNull('screenshots', instance.screenshots);
-  writeNotNull('flags', instance.flags);
   writeNotNull('urlProblems', instance.urlProblems);
   return val;
 }
