@@ -39,7 +39,10 @@ class RequestContext {
   });
 
   /// Whether to show the admin UI for automated publishing admin UI.
-  bool get showAdminUIForAutomatedPublishing => isExperimental;
+  // TODO(zarah): Set this getter to `isExperimental` again once the screenshots
+  // feature is officially launched. Right now we need screenshots to be the
+  // only active experimental feature.
+  bool get showAdminUIForAutomatedPublishing => false; // isExperimental;
 
   /// Whether to show package screenshots in search listings.
   bool get showScreenshots => isExperimental;
