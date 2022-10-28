@@ -48,6 +48,9 @@ class GitHubJwtPayload {
   /// the commit hash
   final String? sha;
 
+  /// RunId of the Github Action that this token comes from.
+  final String? runId;
+
   /// The URL used as the `iss` property of JWT payloads.
   static const issuerUrl = 'https://token.actions.githubusercontent.com';
 
@@ -64,6 +67,7 @@ class GitHubJwtPayload {
     'event_name',
     'ref',
     'ref_type',
+    'run_id',
   };
 
   GitHubJwtPayload._(Map<String, dynamic> map)
@@ -74,7 +78,8 @@ class GitHubJwtPayload {
         refType = parseAsString(map, 'ref_type'),
         actor = parseAsStringOrNull(map, 'actor'),
         environment = parseAsStringOrNull(map, 'environment'),
-        sha = parseAsStringOrNull(map, 'sha');
+        sha = parseAsStringOrNull(map, 'sha'),
+        runId = parseAsStringOrNull(map, 'run_id');
 
   factory GitHubJwtPayload(JwtPayload payload) {
     final missing = _requiredClaims.difference(payload.keys.toSet()).sorted();
