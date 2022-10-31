@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_dev/frontend/handlers/experimental.dart';
 import 'package:pub_dev/frontend/handlers/headers.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
@@ -119,22 +120,22 @@ shelf.Handler _requestContextWrapper(shelf.Handler handler) {
 
     final cookies =
         parseCookieHeader(request.headers[HttpHeaders.cookieHeader]);
-    final hasExperimentalCookie = cookies['experimental'] == '1';
-    final isExperimental = hasExperimentalCookie;
+    final experimentalFlags =
+        ExperimentalFlags.parseFromCookie(cookies['experimental']);
 
-    final enableRobots = hasExperimentalCookie ||
+    final enableRobots = !experimentalFlags.isEmpty ||
         (!activeConfiguration.blockRobots && isPrimaryHost);
     final uiCacheEnabled = //
         isPrimaryHost && // don't cache on non-primary domains
-            !hasExperimentalCookie && // don't cache if experimental cookie is enabled
+            experimentalFlags
+                .isEmpty && // don't cache if experimental cookie is enabled
             userSessionData == null; // don't cache if a user session is active
 
     registerRequestContext(RequestContext(
       indentJson: indentJson,
-      isExperimental: isExperimental,
       blockRobots: !enableRobots,
       uiCacheEnabled: uiCacheEnabled,
-      useGisSignIn: false,
+      experimentalFlags: experimentalFlags,
     ));
     return await handler(request);
   };

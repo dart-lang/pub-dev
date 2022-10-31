@@ -66,7 +66,8 @@ d.Node packageInfoBoxNode({
   return d.fragment([
     imageCarousel(),
     labeledScores,
-    if (thumbnailUrl != null && requestContext.showScreenshots)
+    if (thumbnailUrl != null &&
+        requestContext.experimentalFlags.showScreenshots)
       d.div(classes: [
         'detail-screenshot-thumbnail'
       ], children: [

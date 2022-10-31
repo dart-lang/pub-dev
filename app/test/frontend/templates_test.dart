@@ -14,6 +14,7 @@ import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
+import 'package:pub_dev/frontend/handlers/experimental.dart';
 import 'package:pub_dev/frontend/handlers/package.dart'
     show loadPackagePageData;
 import 'package:pub_dev/frontend/request_context.dart';
@@ -481,7 +482,8 @@ void main() {
       'package index page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        registerRequestContext(RequestContext(isExperimental: true));
+        registerRequestContext(
+            RequestContext(experimentalFlags: ExperimentalFlags.all()));
         final searchForm = SearchForm(query: 'sdk:dart');
         final oxygen = (await scoreCardBackend.getPackageView('oxygen'))!;
         final titanium =
