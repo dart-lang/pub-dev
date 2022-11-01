@@ -64,10 +64,13 @@ void main() {
           await Future.delayed(Duration(seconds: 2));
 
           await page.gotoOrigin('/packages/test_pkg/admin');
+          await Future.delayed(Duration(seconds: 1));
 
           await page.click('#-pkg-admin-automated-github-enabled');
+          await Future.delayed(Duration(seconds: 1));
           await page.focusAndType(
               '#-pkg-admin-automated-github-repository', 'dart-lang/pub-dev');
+          await Future.delayed(Duration(seconds: 1));
           await page.click('#-pkg-admin-automated-button');
           await Future.delayed(Duration(seconds: 1));
 
