@@ -72,7 +72,9 @@ void main() {
           await Future.delayed(Duration(seconds: 1));
 
           await page.clickOnButtonWithLabel('ok');
+          await Future.delayed(Duration(seconds: 1));
           await page.reload();
+          await Future.delayed(Duration(seconds: 1));
           final value =
               await (await page.$('#-pkg-admin-automated-github-repository'))
                   .propertyValue('value');
