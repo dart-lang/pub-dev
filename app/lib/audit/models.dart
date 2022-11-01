@@ -217,20 +217,19 @@ class AuditLogRecord extends db.ExpandoModel<String> {
     late String summary;
     if (uploader is AuthenticatedGithubAction) {
       final repository = uploader.payload.repository;
-      final actor = uploader.payload.actor;
+      final runId = uploader.payload.runId;
       final sha = uploader.payload.sha;
       fields = <String, dynamic>{
         'repository': repository,
-        if (actor != null) 'actor': actor,
+        if (runId != null) 'run_id': runId,
         if (sha != null) 'sha': sha,
       };
       summary = [
         ...summaryParts,
         ' was published from GitHub Actions',
-        if (actor != null)
-          ' triggered by `$actor` on GitHub who pushed'
-        else
-          ' triggered by pushing',
+        if (runId != null)
+          ' (`run_id`: [`$runId`](https://github.com/$repository/actions/runs/$runId))',
+        ' triggered by pushing',
         if (sha != null) ' revision `$sha`',
         ' to the `$repository` repository.',
       ].join();

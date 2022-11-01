@@ -72,6 +72,7 @@ void main() {
           'repository_owner': 'abcd',
           'actor': 'abcd',
           'sha': 'some-hash-value',
+          'run_id': 'example-run-id',
         },
         signature: [],
       );
@@ -85,15 +86,16 @@ void main() {
         ),
       );
       expect(
-          r.summary,
-          'Package `pkg` version `1.2.0` was published from GitHub Actions '
-          'triggered by `abcd` on GitHub who pushed revision `some-hash-value` '
-          'to the `abcd/efgh` repository.');
+        r.summary,
+        'Package `pkg` version `1.2.0` was published from GitHub Actions '
+        '(`run_id`: [`example-run-id`](https://github.com/abcd/efgh/actions/runs/example-run-id)) '
+        'triggered by pushing revision `some-hash-value` to the `abcd/efgh` repository.',
+      );
       expect(r.data, {
         'package': 'pkg',
         'version': '1.2.0',
         'repository': 'abcd/efgh',
-        'actor': 'abcd',
+        'run_id': 'example-run-id',
         'sha': 'some-hash-value',
       });
     });
