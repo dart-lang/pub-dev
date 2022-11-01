@@ -65,6 +65,7 @@ const reservedWords = <String>{
   'typedef',
   'var',
   'void',
+  // 'when', // reserved, but allowed because package:when already exists.
   'while',
   'with',
   'yield',
