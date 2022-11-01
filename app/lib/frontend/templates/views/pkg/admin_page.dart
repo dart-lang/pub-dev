@@ -167,7 +167,7 @@ d.Node packageAdminPageNode({
         ),
       ),
     ],
-    if (requestContext.showAdminUIForAutomatedPublishing)
+    if (requestContext.experimentalFlags.showAdminUIForAutomatedPublishing)
       _automatedPublishing(package),
     d.h2(text: 'Package Version Retraction'),
     d.div(children: [

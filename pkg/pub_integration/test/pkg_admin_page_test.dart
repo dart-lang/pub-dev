@@ -50,7 +50,8 @@ void main() {
 
         // github publishing
         await headlessEnv.withPage(fn: (page) async {
-          await page.gotoOrigin('/experimental?enabled=1');
+          await page.gotoOrigin('/experimental?publishing=1');
+          await Future.delayed(Duration(seconds: 2));
           await page.gotoOrigin('/');
           await page.click('#-account-login');
           await page.waitForSelector('#-pub-custom-token-input',
@@ -63,15 +64,20 @@ void main() {
           await Future.delayed(Duration(seconds: 2));
 
           await page.gotoOrigin('/packages/test_pkg/admin');
+          await Future.delayed(Duration(seconds: 1));
 
           await page.click('#-pkg-admin-automated-github-enabled');
+          await Future.delayed(Duration(seconds: 1));
           await page.focusAndType(
               '#-pkg-admin-automated-github-repository', 'dart-lang/pub-dev');
+          await Future.delayed(Duration(seconds: 1));
           await page.click('#-pkg-admin-automated-button');
           await Future.delayed(Duration(seconds: 1));
 
           await page.clickOnButtonWithLabel('ok');
+          await Future.delayed(Duration(seconds: 1));
           await page.reload();
+          await Future.delayed(Duration(seconds: 1));
           final value =
               await (await page.$('#-pkg-admin-automated-github-repository'))
                   .propertyValue('value');
