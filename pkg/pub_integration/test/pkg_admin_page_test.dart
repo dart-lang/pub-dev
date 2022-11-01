@@ -51,6 +51,7 @@ void main() {
         // github publishing
         await headlessEnv.withPage(fn: (page) async {
           await page.gotoOrigin('/experimental?publishing=1');
+          await Future.delayed(Duration(seconds: 2));
           await page.gotoOrigin('/');
           await page.click('#-account-login');
           await page.waitForSelector('#-pub-custom-token-input',
