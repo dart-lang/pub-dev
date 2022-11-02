@@ -7,9 +7,9 @@ import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/data/publisher_api.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:meta/meta.dart';
-import 'package:pub_dev/account/auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
+import 'package:pub_dev/shared/configuration.dart';
 
 import '../utils/pub_api_client.dart';
 import 'import_source.dart';
@@ -75,8 +75,8 @@ Future<void> importProfile({
 
     final bytes = await source.getArchiveBytes(rv.package, rv.version);
     await withHttpPubApiClient(
-      bearerToken:
-          createFakeAuthTokenForEmail(uploaderEmail, source: AuthSource.client),
+      bearerToken: createFakeAuthTokenForEmail(uploaderEmail,
+          audience: activeConfiguration.pubClientAudience),
       pubHostedUrl: pubHostedUrl,
       // ignore: invalid_use_of_visible_for_testing_member
       fn: (client) => client.uploadPackageBytes(bytes),
@@ -119,7 +119,7 @@ Future<void> importProfile({
     if (testPackage.isFlutterFavorite ?? false) {
       await withHttpPubApiClient(
         bearerToken: createFakeAuthTokenForEmail(adminUserEmail ?? activeEmail,
-            source: AuthSource.admin),
+            audience: activeConfiguration.adminAudience),
         pubHostedUrl: pubHostedUrl,
         fn: (client) async {
           await client.adminPostAssignedTags(

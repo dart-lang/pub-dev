@@ -33,9 +33,15 @@ void registerActiveConfiguration(Configuration configuration) {
   ss.register(_configurationKey, configuration);
 }
 
+/// Special value to indicate that the client is running in fake mode.
+const _fakeClientAudience = 'fake-client-audience';
+
 /// Special value to indicate that the site is running in fake mode, and the
 /// client side authentication should use the fake authentication tokens.
 const _fakeSiteAudience = 'fake-site-audience';
+
+/// Special value to indicate that the admin client is running in fake mode.
+const _fakeAdminAudience = 'fake-admin-audience';
 
 /// The default audience value we expect when the package is published
 /// via an automatically aquired token.
@@ -325,9 +331,9 @@ class Configuration {
       taskWorkerServiceAccount: '-',
       searchServicePrefix: 'http://localhost:$searchPort',
       storageBaseUrl: storageBaseUrl,
-      pubClientAudience: null,
+      pubClientAudience: _fakeClientAudience,
       pubSiteAudience: _fakeSiteAudience,
-      adminAudience: null,
+      adminAudience: _fakeAdminAudience,
       automatedPublishingAudience: _defaultAutomatedPublishingAudience,
       defaultServiceBaseUrl: 'http://localhost:$frontendPort/',
       gmailRelayServiceAccount: null, // disable email sending
@@ -372,9 +378,9 @@ class Configuration {
       taskWorkerServiceAccount: '-',
       searchServicePrefix: 'http://localhost:0',
       storageBaseUrl: storageBaseUrl ?? 'http://localhost:0',
-      pubClientAudience: null,
-      pubSiteAudience: null,
-      adminAudience: null,
+      pubClientAudience: _fakeClientAudience,
+      pubSiteAudience: _fakeSiteAudience,
+      adminAudience: _fakeAdminAudience,
       automatedPublishingAudience: _defaultAutomatedPublishingAudience,
       defaultServiceBaseUrl: 'http://localhost:0/',
       gmailRelayServiceAccount: null, // disable email sending

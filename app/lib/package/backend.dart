@@ -837,7 +837,7 @@ class PackageBackend {
     // user is authenticated. But we're not validating anything at this point
     // because we don't even know which package or version is going to be
     // uploaded.
-    await requireAuthenticatedAgent(source: AuthSource.client);
+    await requireAuthenticatedClient();
 
     final guid = createUuid();
     final String object = tmpObjectName(guid);
@@ -862,7 +862,7 @@ class PackageBackend {
     if (restriction == UploadRestrictionStatus.noUploads) {
       throw PackageRejectedException.uploadRestricted();
     }
-    final agent = await requireAuthenticatedAgent(source: AuthSource.client);
+    final agent = await requireAuthenticatedClient();
     _logger.info('Finishing async upload (uuid: $guid)');
     _logger.info('Reading tarball from cloud storage.');
 
@@ -1336,14 +1336,10 @@ class PackageBackend {
   // Uploaders support.
 
   Future<account_api.InviteStatus> inviteUploader(
-    String packageName,
-    api.InviteUploaderRequest invite, {
-    AuthSource? authSource,
-  }) async {
-    authSource ??= AuthSource.website;
+      String packageName, api.InviteUploaderRequest invite) async {
     InvalidInputException.checkNotNull(invite.email, 'email');
     final uploaderEmail = invite.email.toLowerCase();
-    final user = await requireAuthenticatedUser(source: authSource);
+    final user = await requireAuthenticatedUser();
     final packageKey = db.emptyKey.append(Package, id: packageName);
     final package = await db.lookupOrNull<Package>(packageKey);
 

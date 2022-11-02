@@ -7,7 +7,6 @@ import 'package:clock/clock.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
-import 'package:pub_dev/account/auth_provider.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_dartdoc_runner.dart';
@@ -207,7 +206,7 @@ void setupLogging() {
 
 void setupTestsWithCallerAuthorizationIssues(
   Future Function(PubApiClient client) fn, {
-  AuthSource? authSource,
+  String? audience,
 }) {
   testWithProfile('No active user', fn: () async {
     final rs = fn(createPubApiClient());
@@ -216,7 +215,7 @@ void setupTestsWithCallerAuthorizationIssues(
 
   testWithProfile('Active user is not authorized', fn: () async {
     final token =
-        createFakeAuthTokenForEmail('unauthorized@pub.dev', source: authSource);
+        createFakeAuthTokenForEmail('unauthorized@pub.dev', audience: audience);
     final rs = fn(createPubApiClient(authToken: token));
     await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
   });
@@ -226,7 +225,7 @@ void setupTestsWithCallerAuthorizationIssues(
     final user = users.firstWhere((u) => u.email == 'admin@pub.dev');
     await dbService.commit(inserts: [user..isBlocked = true]);
     final token =
-        createFakeAuthTokenForEmail('admin@pub.dev', source: authSource);
+        createFakeAuthTokenForEmail('admin@pub.dev', audience: audience);
     final rs = fn(createPubApiClient(authToken: token));
     await expectApiException(rs,
         status: 403,

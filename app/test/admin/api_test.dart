@@ -33,7 +33,7 @@ void main() {
     group('List users', () {
       setupTestsWithCallerAuthorizationIssues(
         (client) => client.adminListUsers(),
-        authSource: AuthSource.admin,
+        audience: 'fake-admin-audience',
       );
 
       testWithProfile('OK', fn: () async {
@@ -159,7 +159,7 @@ void main() {
     group('Delete package', () {
       setupTestsWithCallerAuthorizationIssues(
         (client) => client.adminRemovePackage('oxygen'),
-        authSource: AuthSource.admin,
+        audience: 'fake-admin-audience',
       );
 
       testWithProfile('OK', fn: () async {
@@ -221,7 +221,7 @@ void main() {
     group('Delete package version', () {
       setupTestsWithCallerAuthorizationIssues(
         (client) => client.adminRemovePackageVersion('oxygen', '1.2.0'),
-        authSource: AuthSource.admin,
+        audience: 'fake-admin-audience',
       );
 
       testWithProfile('OK', fn: () async {
@@ -320,7 +320,7 @@ void main() {
           final user = await accountBackend.lookupUserByEmail('user@pub.dev');
           await client.adminRemoveUser(user.userId);
         },
-        authSource: AuthSource.admin,
+        audience: 'fake-admin-audience',
       );
 
       testWithProfile(
@@ -384,7 +384,7 @@ void main() {
     group('get assignedTags', () {
       setupTestsWithCallerAuthorizationIssues(
         (client) => client.adminGetAssignedTags('oxygen'),
-        authSource: AuthSource.admin,
+        audience: 'fake-admin-audience',
       );
 
       testWithProfile('get assignedTags', fn: () async {
@@ -400,7 +400,7 @@ void main() {
           'oxygen',
           PatchAssignedTags(assignedTagsAdded: ['is:featured']),
         ),
-        authSource: AuthSource.admin,
+        audience: 'fake-admin-audience',
       );
 
       testWithProfile('set assignedTags', fn: () async {
@@ -478,7 +478,7 @@ void main() {
       group('get', () {
         setupTestsWithCallerAuthorizationIssues(
           (client) => client.adminGetPackageUploaders('oxygen'),
-          authSource: AuthSource.admin,
+          audience: 'fake-admin-audience',
         );
         setupTestsWithPackageFailures(
             (client, package) => client.adminGetPackageUploaders(package));
@@ -498,7 +498,7 @@ void main() {
         setupTestsWithCallerAuthorizationIssues(
           (client) =>
               client.adminAddPackageUploader('oxygen', 'someuser@pub.dev'),
-          authSource: AuthSource.admin,
+          audience: 'fake-admin-audience',
         );
         setupTestsWithPackageFailures((client, package) =>
             client.adminAddPackageUploader(package, 'someuser@pub.dev'));
@@ -552,7 +552,7 @@ void main() {
         setupTestsWithCallerAuthorizationIssues(
           (client) =>
               client.adminRemovePackageUploader('oxygen', 'admin@pub.dev'),
-          authSource: AuthSource.admin,
+          audience: 'fake-admin-audience',
         );
 
         setupTestsWithPackageFailures((client, package) =>
@@ -615,7 +615,7 @@ void main() {
           '1.2.0',
           VersionOptions(isRetracted: true),
         ),
-        authSource: AuthSource.admin,
+        audience: 'fake-admin-audience',
       );
 
       testWithProfile('bad retraction value', fn: () async {
