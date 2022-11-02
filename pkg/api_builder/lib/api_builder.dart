@@ -84,11 +84,15 @@ abstract class $utilities {
     shelf.Request request,
     T Function(Map<String, dynamic>) fromJson,
   ) async {
-    // TODO: Consider enforcing that requests should have 'Content-Type' set to
-    // 'application/json'. Notice that we should be careful as the CLI client,
-    // might be sending a different Content-Type.
-    final data = await request.readAsString();
     try {
+      // TODO: Consider enforcing that requests should have 'Content-Type' set to
+      // 'application/json'. Notice that we should be careful as the CLI client,
+      // might be sending a different Content-Type.
+      if (request.mimeType != 'application/json') {
+        _log.info('Unexpected MIME type: ${request.mimeType}',
+            request.mimeType, StackTrace.current);
+      }
+      final data = await request.readAsString();
       final value = json.decode(data);
       if (value is Map<String, dynamic>) {
         try {
