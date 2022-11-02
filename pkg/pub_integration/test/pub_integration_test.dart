@@ -39,7 +39,7 @@ void main() {
               'http://localhost:${fakePubServerProcess.port}/api/account/consent/$consentId'),
           headers: {
             'Authorization':
-                'Bearer somebodyelse-at-example-dot-org?source=website',
+                'Bearer somebodyelse-at-example-dot-org?aud=fake-site-audience',
           },
           body: json.encode({'granted': true}),
         );
@@ -52,7 +52,8 @@ void main() {
           Uri.parse(
               'http://localhost:${fakePubServerProcess.port}/api/account/consent/$consentId'),
           headers: {
-            'Authorization': 'Bearer dev-at-example-dot-org?source=website',
+            'Authorization':
+                'Bearer dev-at-example-dot-org?aud=fake-site-audience',
           },
           body: json.encode({'granted': true}),
         );
@@ -64,7 +65,7 @@ void main() {
       await verifyPub(
         pubHostedUrl: 'http://localhost:${fakePubServerProcess.port}',
         credentialsFileContent: fakeCredentialsFileContent(),
-        mainAccessToken: 'user-at-example-dot-com?source=website',
+        mainAccessToken: 'user-at-example-dot-com?aud=fake-site-audience',
         invitedEmail: 'dev@example.org',
         inviteCompleterFn: inviteCompleterFn,
         expectLiveSite: false,

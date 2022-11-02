@@ -40,7 +40,7 @@ void main() {
               'http://localhost:${fakePubServerProcess.port}/api/account/consent/$consentId'),
           headers: {
             'Authorization':
-                'Bearer somebodyelse-at-example-dot-org?source=website',
+                'Bearer somebodyelse-at-example-dot-org?aud=fake-site-audience',
           },
           body: json.encode({'granted': true}),
         );
@@ -53,7 +53,8 @@ void main() {
           Uri.parse(
               'http://localhost:${fakePubServerProcess.port}/api/account/consent/$consentId'),
           headers: {
-            'Authorization': 'Bearer dev-at-example-dot-org?source=website',
+            'Authorization':
+                'Bearer dev-at-example-dot-org?aud=fake-site-audience',
           },
           body: json.encode({'granted': true}),
         );
