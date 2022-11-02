@@ -89,8 +89,8 @@ abstract class $utilities {
       // 'application/json'. Notice that we should be careful as the CLI client,
       // might be sending a different Content-Type.
       if (request.mimeType != 'application/json') {
-        _log.info('Unexpected MIME type: ${request.mimeType}',
-            request.mimeType, StackTrace.current);
+        _log.info('Unexpected MIME type: ${request.mimeType}', request.mimeType,
+            StackTrace.current);
       }
       final data = await request.readAsString();
       final value = json.decode(data);
