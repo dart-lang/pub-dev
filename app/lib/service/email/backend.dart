@@ -7,6 +7,7 @@ import 'dart:math';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/utils.dart';
 
 import '../../frontend/email_sender.dart';
@@ -121,12 +122,15 @@ class EmailBackend {
           entry.bodyText!,
         ));
         sent.add(recipientEmail);
-      } catch (e, st) {
+      } on EmailSenderException catch (e, st) {
         _logger.warning('Email sending failed (claimId="$claimId").', e, st);
-        if (emailSender.shouldBackoff) {
+        // Resetting attempt count when the failure seems to be infrastructure-related.
+        if (e.status >= 500) {
           resetAttempt = true;
           break;
         }
+      } catch (e, st) {
+        _logger.warning('Email sending failed (claimId="$claimId").', e, st);
       }
     }
 
