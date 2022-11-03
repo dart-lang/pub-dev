@@ -77,6 +77,11 @@ class ApiResponseException implements Exception {
           });
 }
 
+const _expectedMimeTypes = <String>{
+  'application/json',
+  'application/vnd.pub.v2+json',
+};
+
 /// Utility methods exported for use in generated code.
 abstract class $utilities {
   /// Utility method exported for use in generated code.
@@ -88,7 +93,7 @@ abstract class $utilities {
       // TODO: Consider enforcing that requests should have 'Content-Type' set to
       // 'application/json'. Notice that we should be careful as the CLI client,
       // might be sending a different Content-Type.
-      if (request.mimeType != 'application/json') {
+      if (!_expectedMimeTypes.contains(request.mimeType)) {
         _log.info('Unexpected MIME type: ${request.mimeType}', request.mimeType,
             StackTrace.current);
       }
