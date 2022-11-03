@@ -140,8 +140,12 @@ d.Node tagsNodeFromPackageView({
     simpleTags.add(SimpleTag.pending());
   }
   if (simpleTags.isEmpty && badgeTags.isEmpty) {
-    simpleTags.add(SimpleTag.unidentified(
-        href: urls.pkgScoreUrl(package.name!, version: version)));
+    final scorePageUrl = urls.pkgScoreUrl(package.name!, version: version);
+    if (package.tags.contains(PackageVersionTags.hasError)) {
+      simpleTags.add(SimpleTag.analysisIssue(scorePageUrl: scorePageUrl));
+    } else {
+      simpleTags.add(SimpleTag.unknownPlatforms(scorePageUrl: scorePageUrl));
+    }
   }
   return tagsNode(
     simpleTags: simpleTags,
