@@ -60,6 +60,7 @@ class EmailBackend {
       if (stopAfter != null && sw.elapsed > stopAfter) break;
       if (m.isNotAlive) continue;
       if (!m.mayAttemptNow) continue;
+      if (emailSender.shouldBackoff) break;
       final count = await _trySendOutgoingEmail(m.uuid);
       successful += count;
     }
@@ -81,6 +82,9 @@ class EmailBackend {
   ///
   /// Returns the number of emails that were sent successfully.
   Future<int> _trySendOutgoingEmail(String id) async {
+    if (emailSender.shouldBackoff) {
+      return 0;
+    }
     final key = _db.emptyKey.append(OutgoingEmail, id: id);
     final now = clock.now().toUtc();
     final claimId = createUuid();
@@ -106,6 +110,7 @@ class EmailBackend {
 
     final recipientEmails = entry.recipientEmails ?? const <String>[];
     final sent = <String>[];
+    bool resetAttempt = false;
     for (final recipientEmail in recipientEmails) {
       try {
         await emailSender.sendMessage(EmailMessage(
@@ -118,6 +123,10 @@ class EmailBackend {
         sent.add(recipientEmail);
       } catch (e, st) {
         _logger.warning('Email sending failed (claimId="$claimId").', e, st);
+        if (emailSender.shouldBackoff) {
+          resetAttempt = true;
+          break;
+        }
       }
     }
 
@@ -140,6 +149,11 @@ class EmailBackend {
         tx.delete(key);
       } else {
         o.claimId = null;
+        // Another instance may try the delivery in the next batch.
+        if (resetAttempt) {
+          o.attempts--;
+          o.pendingAt = now;
+        }
         tx.insert(o);
       }
     });
