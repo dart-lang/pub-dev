@@ -133,7 +133,15 @@
                 </div>
                 <div class="detail-tags-and-like">
                   <div class="detail-tags">
-                    <span class="package-tag discontinued" title="Package was discontinued.">discontinued</span>
+                    <div class="-pub-tag-discontinued">
+                      <span class="-discontinued-main">discontinued</span>
+                      <span class="-discontinued-replacedby">
+                        replaced by:
+                        <b>
+                          <a href="/packages/other" title="This package is discontinued, but author has suggested package:other as a replacement">other</a>
+                        </b>
+                      </span>
+                    </div>
                   </div>
                   <div class="detail-like">
                     <button id="-pub-like-icon-button" class="mdc-icon-button" aria-label="Like this package" data-ga-click-event="toggle-like" aria-pressed="false">
@@ -144,12 +152,6 @@
                       <span id="likes-count">0</span>
                     </span>
                   </div>
-                </div>
-                <div class="comment">
-                  Suggested replacement:
-                  <b>
-                    <a href="/packages/other" title="This package is discontinued, but author has suggested package:other as a replacement">other</a>
-                  </b>
                 </div>
               </div>
             </div>

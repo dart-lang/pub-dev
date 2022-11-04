@@ -226,11 +226,6 @@ d.Node _item({
             d.div(classes: ['packages-description'], text: description),
             d.p(classes: ['packages-metadata'], child: metadataNode),
             if (tagsNode != null) d.div(child: tagsNode),
-            if (replacedBy != null)
-              d.div(children: [
-                d.text('Suggested replacement: '),
-                replacedByLink(replacedBy),
-              ]),
             if (apiPages != null && apiPages.isNotEmpty)
               d.div(classes: ['packages-api'], child: _apiPages(apiPages)),
           ],

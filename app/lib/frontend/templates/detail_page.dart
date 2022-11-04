@@ -24,9 +24,6 @@ d.Node renderDetailHeader({
 
   /// Set true for more whitespace in the header.
   bool isLoose = false,
-
-  /// The last part of the header
-  d.Node? commentNode,
 }) {
   if ((title == null && titleNode == null) ||
       (title != null && titleNode != null)) {
@@ -43,7 +40,6 @@ d.Node renderDetailHeader({
     isLiked: isLiked == true,
     likeCount: packageLikes,
     isFlutterFavorite: isFlutterFavorite,
-    commentNode: commentNode,
   );
 }
 

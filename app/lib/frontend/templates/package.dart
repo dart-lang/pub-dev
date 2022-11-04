@@ -138,12 +138,6 @@ d.Node renderPkgHeader(PackagePageData data) {
       version: data.isLatestStable ? null : data.version!.version,
       isRetracted: data.version!.isRetracted,
     ),
-    commentNode: pkgView.replacedBy == null
-        ? null
-        : d.fragment([
-            d.text('Suggested replacement: '),
-            d.b(child: replacedByLink(pkgView.replacedBy!)),
-          ]),
     isLoose: true,
   );
 }
