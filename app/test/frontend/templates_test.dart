@@ -256,10 +256,12 @@ void main() {
     testWithProfile('package show page with discontinued version',
         testProfile: TestProfile(
           packages: [
+            TestPackage(name: 'other'),
             TestPackage(
               name: 'pkg',
               versions: [TestVersion(version: '1.0.0')],
               isDiscontinued: true,
+              replacedBy: 'other',
             ),
           ],
           defaultUser: 'admin@pub.dev',
