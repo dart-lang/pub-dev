@@ -64,6 +64,9 @@ abstract class PackageVersionTags {
 
   /// The `pubspec.yaml` has one or more `funding` link.
   static const String hasFundingLink = 'has:funding-link';
+
+  /// pana encountered errors during analysis.
+  static const String hasError = 'has:error';
 }
 
 /// Collection of SDK tags (with prefix and value).

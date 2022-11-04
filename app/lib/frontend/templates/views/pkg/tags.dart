@@ -72,12 +72,25 @@ class SimpleTag {
     );
   }
 
-  factory SimpleTag.unidentified({String? href}) {
+  factory SimpleTag.analysisIssue({
+    required String scorePageUrl,
+  }) {
+    return SimpleTag(
+      status: 'unidentified',
+      text: '[analysis issue]',
+      title: 'Check the scores tab for details.',
+      href: scorePageUrl,
+    );
+  }
+
+  factory SimpleTag.unknownPlatforms({
+    required String scorePageUrl,
+  }) {
     return SimpleTag(
       status: 'unidentified',
       text: '[unknown platforms]',
       title: 'Check the Platforms section of the scores tab for details.',
-      href: href,
+      href: scorePageUrl,
     );
   }
 }
