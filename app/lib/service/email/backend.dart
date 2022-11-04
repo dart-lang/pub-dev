@@ -111,7 +111,6 @@ class EmailBackend {
 
     final recipientEmails = entry.recipientEmails ?? const <String>[];
     final sent = <String>[];
-    bool resetAttempt = false;
     for (final recipientEmail in recipientEmails) {
       try {
         await emailSender.sendMessage(EmailMessage(
@@ -124,11 +123,6 @@ class EmailBackend {
         sent.add(recipientEmail);
       } on EmailSenderException catch (e, st) {
         _logger.warning('Email sending failed (claimId="$claimId").', e, st);
-        // Resetting attempt count when the failure seems to be infrastructure-related.
-        if (e.status >= 500) {
-          resetAttempt = true;
-          break;
-        }
       } catch (e, st) {
         _logger.warning('Email sending failed (claimId="$claimId").', e, st);
       }
@@ -153,11 +147,6 @@ class EmailBackend {
         tx.delete(key);
       } else {
         o.claimId = null;
-        // Another instance may try the delivery in the next batch.
-        if (resetAttempt) {
-          o.attempts--;
-          o.pendingAt = now;
-        }
         tx.insert(o);
       }
     });
