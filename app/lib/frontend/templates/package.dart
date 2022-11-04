@@ -113,8 +113,8 @@ d.Node renderPkgHeader(PackagePageData data) {
   final bool showReleases =
       !data.isLatestStable || showPrereleaseVersion || showPreviewVersion;
 
-  final isNullSafe =
-      data.toPackageView().tags.contains(PackageVersionTags.isNullSafe);
+  final pkgView = data.toPackageView();
+  final isNullSafe = pkgView.tags.contains(PackageVersionTags.isNullSafe);
   final metadataNode = packageHeaderNode(
     packageName: package.name!,
     publisherId: package.publisherId,
@@ -123,7 +123,6 @@ d.Node renderPkgHeader(PackagePageData data) {
     releases: showReleases ? data.latestReleases : null,
   );
 
-  final pkgView = data.toPackageView();
   return renderDetailHeader(
     titleNode: titleContentNode(
       package: package.name!,
@@ -139,6 +138,12 @@ d.Node renderPkgHeader(PackagePageData data) {
       version: data.isLatestStable ? null : data.version!.version,
       isRetracted: data.version!.isRetracted,
     ),
+    commentNode: pkgView.replacedBy == null
+        ? null
+        : d.fragment([
+            d.text('Suggested replacement: '),
+            d.b(child: replacedByLink(pkgView.replacedBy!)),
+          ]),
     isLoose: true,
   );
 }

@@ -153,6 +153,15 @@ d.Node tagsNodeFromPackageView({
   );
 }
 
+d.Node replacedByLink(String replacedBy) {
+  return d.a(
+    href: urls.pkgPageUrl(replacedBy),
+    title:
+        'This package is discontinued, but author has suggested package:$replacedBy as a replacement',
+    text: replacedBy,
+  );
+}
+
 /// Renders the labeled scores widget (the score values in a compact layout).
 d.Node labeledScoresNodeFromPackageView(PackageView view, {String? version}) {
   return labeledScoresNode(

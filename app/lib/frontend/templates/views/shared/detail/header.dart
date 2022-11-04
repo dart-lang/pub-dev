@@ -19,6 +19,9 @@ d.Node detailHeaderNode({
 
   /// Set true for more whitespace in the header.
   required bool isLoose,
+
+  /// The last part of the header
+  d.Node? commentNode,
 }) {
   final hasBanners = isFlutterFavorite;
   return d.fragment([
@@ -128,6 +131,8 @@ d.Node detailHeaderNode({
                         ),
                     ],
                   ),
+                if (commentNode != null)
+                  d.div(classes: ['comment'], child: commentNode),
               ],
             ),
           ],
