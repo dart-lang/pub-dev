@@ -12,7 +12,6 @@ import 'package:logging/logging.dart';
 import 'package:retry/retry.dart' show retry;
 
 import '../service/openid/jwt.dart';
-import '../shared/configuration.dart';
 import '../shared/email.dart' show looksLikeEmail;
 import '../tool/utils/http.dart' show httpRetryClient;
 import 'auth_provider.dart';
@@ -34,7 +33,7 @@ class GoogleOauth2AuthProvider extends AuthProvider {
 
   /// Authenticate [token] as `access_token` or `id_token`.
   @override
-  Future<AuthResult?> tryAuthenticate(AuthSource source, String token) async {
+  Future<AuthResult?> tryAuthenticate(String token) async {
     if (token.isEmpty) {
       return null;
     }
@@ -51,26 +50,25 @@ class GoogleOauth2AuthProvider extends AuthProvider {
     //       assuming we rarely receive invalid access_tokens or id_tokens.
     if (_isLikelyAccessToken(token)) {
       // If this is most likely an access_token, we try access_token first
-      result = await _tryAuthenticateAccessToken(source, token);
+      result = await _tryAuthenticateAccessToken(token);
       if (result != null) {
         return result;
       }
       // If not a valid access_token we try it as a JWT
-      return await _tryAuthenticateJwt(source, token);
+      return await _tryAuthenticateJwt(token);
     } else {
       // If this is not likely to be an access_token, we try JWT first
-      result = await _tryAuthenticateJwt(source, token);
+      result = await _tryAuthenticateJwt(token);
       if (result != null) {
         return result;
       }
       // If not valid JWT we try it as access_token
-      return await _tryAuthenticateAccessToken(source, token);
+      return await _tryAuthenticateAccessToken(token);
     }
   }
 
   /// Authenticate with oauth2 [accessToken].
-  Future<AuthResult?> _tryAuthenticateAccessToken(
-      AuthSource source, String accessToken) async {
+  Future<AuthResult?> _tryAuthenticateAccessToken(String accessToken) async {
     oauth2_v2.Tokeninfo info;
     try {
       info = await _oauthApi.tokeninfo(accessToken: accessToken);
@@ -78,7 +76,8 @@ class GoogleOauth2AuthProvider extends AuthProvider {
         return null;
       }
 
-      if (_shouldRejectAudience(source, info.audience)) {
+      final audience = info.audience;
+      if (audience == null) {
         _logger.warning('OAuth2 access attempted with invalid audience, '
             'for email: "${info.email}", audience: "${info.audience}"');
         return null;
@@ -96,7 +95,11 @@ class GoogleOauth2AuthProvider extends AuthProvider {
         return null;
       }
 
-      return AuthResult(info.userId!, info.email!.toLowerCase());
+      return AuthResult(
+        oauthUserId: info.userId!,
+        email: info.email!.toLowerCase(),
+        audience: audience,
+      );
     } on oauth2_v2.ApiRequestError catch (e) {
       _logger.info('Access denied for OAuth2 access token.', e);
     } catch (e, st) {
@@ -106,7 +109,7 @@ class GoogleOauth2AuthProvider extends AuthProvider {
   }
 
   /// Authenticate with openid-connect `id_token`.
-  Future<AuthResult?> _tryAuthenticateJwt(AuthSource source, String jwt) async {
+  Future<AuthResult?> _tryAuthenticateJwt(String jwt) async {
     // Hit the token-info end-point documented at:
     // https://developers.google.com/identity/sign-in/web/backend-auth
     // Note: ideally, we would verify these JWTs locally, but unfortunately
@@ -161,10 +164,6 @@ class GoogleOauth2AuthProvider extends AuthProvider {
       _logger.warning('JWT rejected, aud missing');
       return null; // missing audience
     }
-    if (_shouldRejectAudience(source, aud)) {
-      _logger.warning('JWT rejected, aud = "$aud"');
-      return null; // Not trusted audience
-    }
     // Validate subject is present
     final sub = r['sub'];
     if (sub is! String) {
@@ -182,36 +181,11 @@ class GoogleOauth2AuthProvider extends AuthProvider {
       _logger.warning('JWT rejected, email_verified = "$emailVerified"');
       return null; // missing email (probably missing 'email' scope)
     }
-    return AuthResult(sub, email);
-  }
-
-  bool _shouldRejectAudience(AuthSource source, String? value) {
-    if (value == null || value.isEmpty) {
-      return true;
-    }
-    final expected = _getExpectedAudienceValue(source);
-    if (expected == null || expected.isEmpty) {
-      _logger.shout('Audience for $source was not configured.', expected,
-          StackTrace.current);
-      return true;
-    }
-    if (value == expected) {
-      return false;
-    }
-    _logger.info(
-        'Possible $source audience missmatch.', value, StackTrace.current);
-    return true;
-  }
-
-  String? _getExpectedAudienceValue(AuthSource source) {
-    switch (source) {
-      case AuthSource.client:
-        return activeConfiguration.pubClientAudience;
-      case AuthSource.website:
-        return activeConfiguration.pubSiteAudience;
-      case AuthSource.admin:
-        return activeConfiguration.adminAudience;
-    }
+    return AuthResult(
+      oauthUserId: sub,
+      email: email,
+      audience: aud,
+    );
   }
 
   @override

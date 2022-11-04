@@ -9,6 +9,7 @@ import 'package:pub_dev/account/consent_backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
+import 'package:pub_dev/shared/configuration.dart';
 import 'package:test/test.dart';
 
 import '../shared/test_models.dart';
@@ -19,7 +20,8 @@ void main() {
     Future<String?> inviteUploader() async {
       await accountBackend.withBearerToken(adminClientToken, () async {
         final status = await consentBackend.invitePackageUploader(
-          activeUser: await requireAuthenticatedUser(source: AuthSource.client),
+          activeUser: await requireAuthenticatedUser(
+              expectedAudience: activeConfiguration.pubClientAudience),
           uploaderEmail: 'user@pub.dev',
           packageName: 'oxygen',
         );

@@ -28,8 +28,6 @@ import 'auth_provider.dart';
 import 'models.dart';
 import 'session_cookie.dart' as session_cookie;
 
-export 'auth_provider.dart' show AuthSource;
-
 /// The name of the session cookie.
 ///
 /// Cookies prefixed '__Host-' must:
@@ -88,16 +86,27 @@ UserSessionData? get userSessionData =>
 /// When no associated User entry exists in Datastore, this method will create
 /// a new one. When the authenticated email of the user changes, the email
 /// field will be updated to the latest one.
-Future<User> requireAuthenticatedUser({AuthSource? source}) async {
+Future<User> requireAuthenticatedUser({String? expectedAudience}) async {
   final token = _getBearerToken();
   if (token == null || token.isEmpty) {
     throw AuthenticationException.authenticationRequired();
   }
-  final auth =
-      await authProvider.tryAuthenticate(source ?? AuthSource.website, token);
+  final auth = await authProvider.tryAuthenticate(token);
   if (auth == null) {
     throw AuthenticationException.failed();
   }
+  expectedAudience ??= activeConfiguration.pubSiteAudience;
+  if (expectedAudience == null || expectedAudience.isEmpty) {
+    _logger.shout(
+        'Audience was not configured.', expectedAudience, StackTrace.current);
+    throw AuthenticationException.tokenInvalid(
+        'token audience is not configured');
+  }
+  if (auth.audience != expectedAudience) {
+    throw AuthenticationException.tokenInvalid(
+        'token audience "${auth.audience}" does not match expected value');
+  }
+
   final user = await accountBackend._lookupOrCreateUserByOauthUserId(auth);
   if (user == null) {
     throw AuthenticationException.failed();
@@ -214,26 +223,22 @@ class AuthenticatedUser implements AuthenticatedAgent {
 
 /// Verifies the current bearer token in the request scope and returns the
 /// current authenticated user or a service agent with the available data.
-Future<AuthenticatedAgent> requireAuthenticatedAgent(
-    {AuthSource? source}) async {
+Future<AuthenticatedAgent> requireAuthenticatedClient() async {
   final token = _getBearerToken();
   if (token == null || token.isEmpty) {
     throw AuthenticationException.authenticationRequired();
   }
-  final authenticatedServiceAgent =
-      await _tryAuthenticateServiceAgent(token, source: source);
+  final authenticatedServiceAgent = await _tryAuthenticateServiceAgent(token);
 
   if (authenticatedServiceAgent != null) {
     return authenticatedServiceAgent;
   } else {
-    return AuthenticatedUser(await requireAuthenticatedUser(source: source));
+    return AuthenticatedUser(await requireAuthenticatedUser(
+        expectedAudience: activeConfiguration.pubClientAudience));
   }
 }
 
-Future<AuthenticatedAgent?> _tryAuthenticateServiceAgent(
-  String token, {
-  AuthSource? source,
-}) async {
+Future<AuthenticatedAgent?> _tryAuthenticateServiceAgent(String token) async {
   if (!JsonWebToken.looksLikeJWT(token)) {
     return null;
   }
@@ -259,7 +264,6 @@ Future<AuthenticatedAgent?> _tryAuthenticateServiceAgent(
   }
 
   if (idToken.payload.iss == GcpServiceAccountJwtPayload.issuerUrl &&
-      source == AuthSource.client &&
       idToken.payload.aud.length == 1 &&
       idToken.payload.aud.single ==
           activeConfiguration.automatedPublishingAudience) {
@@ -462,12 +466,15 @@ class AccountBackend {
   /// Throws [AuthenticationException] if token cannot be authenticated or the
   /// OAuth userId differs from [owner].
   Future<void> verifyAccessTokenOwnership(
-      AuthSource source, String accessToken, User owner) async {
-    final auth = await authProvider.tryAuthenticate(source, accessToken);
+      String accessToken, User owner) async {
+    final auth = await authProvider.tryAuthenticate(accessToken);
     if (auth == null) {
       throw AuthenticationException.accessTokenInvalid();
     }
     if (owner.oauthUserId != auth.oauthUserId) {
+      throw AuthenticationException.accessTokenMissmatch();
+    }
+    if (auth.audience != activeConfiguration.pubSiteAudience) {
       throw AuthenticationException.accessTokenMissmatch();
     }
   }

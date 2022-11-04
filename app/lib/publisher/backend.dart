@@ -154,8 +154,7 @@ class PublisherBackend {
       minimum: 1,
       maximum: 4096,
     );
-    await accountBackend.verifyAccessTokenOwnership(
-        AuthSource.website, body.accessToken, user);
+    await accountBackend.verifyAccessTokenOwnership(body.accessToken, user);
 
     // Verify ownership of domain.
     final isOwner = await domainVerifier.verifyDomainOwnership(

@@ -57,7 +57,7 @@ void main() {
           await page.waitForSelector('#-pub-custom-token-input',
               timeout: Duration(seconds: 2));
           await page.focusAndType('#-pub-custom-token-input',
-              'admin-at-pub-dot-dev?source=website');
+              'admin-at-pub-dot-dev?aud=fake-site-audience');
 
           await page.clickOnButtonWithLabel('ok');
           await page.waitForNavigation(timeout: Duration(seconds: 5));

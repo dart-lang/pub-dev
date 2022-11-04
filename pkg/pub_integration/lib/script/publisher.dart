@@ -30,7 +30,7 @@ class PublisherScript {
     required this.inviteCompleterFn,
   }) : _pubHttpClient = PubHttpClient(pubHostedUrl);
 
-  final userWebsiteToken = 'user-at-example-dot-com?source=website';
+  final userWebsiteToken = 'user-at-example-dot-com?aud=fake-site-audience';
 
   /// Verify all integration steps.
   Future<void> verify() async {
