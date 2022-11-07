@@ -806,6 +806,10 @@ class PackageView extends Object with FlagMixin {
   @override
   final List<String> tags;
 
+  /// The package that should be used instead of the current package.
+  /// May have a value only if the package is discontinued.
+  final String? replacedBy;
+
   /// The recognized SPDX identifiers of the licenses for the package.
   final List<String>? spdxIdentifiers;
   final List<ApiPageRef>? apiPages;
@@ -823,6 +827,7 @@ class PackageView extends Object with FlagMixin {
     this.grantedPubPoints,
     this.maxPubPoints,
     List<String>? tags,
+    this.replacedBy,
     this.spdxIdentifiers,
     this.apiPages,
   })  : isPending = isPending ?? false,
@@ -864,6 +869,7 @@ class PackageView extends Object with FlagMixin {
       grantedPubPoints: scoreCard?.grantedPubPoints,
       maxPubPoints: scoreCard?.maxPubPoints,
       tags: tags.toList(),
+      replacedBy: package.replacedBy,
       spdxIdentifiers: scoreCard?.panaReport?.licenses
           ?.map((e) => e.spdxIdentifier)
           .toList(),
@@ -884,6 +890,7 @@ class PackageView extends Object with FlagMixin {
       grantedPubPoints: grantedPubPoints,
       maxPubPoints: maxPubPoints,
       tags: tags,
+      replacedBy: replacedBy,
       spdxIdentifiers: spdxIdentifiers,
       apiPages: apiPages ?? this.apiPages,
       screenshots: screenshots,

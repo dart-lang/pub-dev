@@ -49,8 +49,22 @@ d.Node tagsNodeFromPackageView({
   final sdkTags = tags.where((s) => s.startsWith('sdk:')).toSet().toList();
   final simpleTags = <SimpleTag>[];
   final badgeTags = <BadgeTag>[];
+  d.Node? discontinuedNode;
   if (package.isDiscontinued) {
-    simpleTags.add(SimpleTag.discontinued());
+    discontinuedNode = d.div(
+      classes: ['-pub-tag-discontinued'],
+      children: [
+        d.span(classes: ['-discontinued-main'], text: 'discontinued'),
+        if (package.replacedBy != null)
+          d.span(
+            classes: ['-discontinued-replacedby'],
+            children: [
+              d.text('replaced by: '),
+              d.b(child: replacedByLink(package.replacedBy!)),
+            ],
+          ),
+      ],
+    );
   }
   if (isRetracted) {
     simpleTags.add(SimpleTag.retracted());
@@ -139,7 +153,7 @@ d.Node tagsNodeFromPackageView({
   if (badgeTags.isEmpty && package.isPending) {
     simpleTags.add(SimpleTag.pending());
   }
-  if (simpleTags.isEmpty && badgeTags.isEmpty) {
+  if (simpleTags.isEmpty && badgeTags.isEmpty && discontinuedNode == null) {
     final scorePageUrl = urls.pkgScoreUrl(package.name!, version: version);
     if (package.tags.contains(PackageVersionTags.hasError)) {
       simpleTags.add(SimpleTag.analysisIssue(scorePageUrl: scorePageUrl));
@@ -147,9 +161,20 @@ d.Node tagsNodeFromPackageView({
       simpleTags.add(SimpleTag.unknownPlatforms(scorePageUrl: scorePageUrl));
     }
   }
-  return tagsNode(
-    simpleTags: simpleTags,
-    badgeTags: badgeTags,
+
+  return d.fragment([
+    if (discontinuedNode != null) discontinuedNode,
+    ...badgeTags.map(badgeTagNode),
+    ...simpleTags.map(simpleTagNode),
+  ]);
+}
+
+d.Node replacedByLink(String replacedBy) {
+  return d.a(
+    href: urls.pkgPageUrl(replacedBy),
+    title:
+        'This package is discontinued, but author has suggested package:$replacedBy as a replacement',
+    text: replacedBy,
   );
 }
 

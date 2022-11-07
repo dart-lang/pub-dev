@@ -57,6 +57,7 @@ d.Node _sdkLibraryItem(SdkLibraryHit hit) {
       nullSafeBadgeNode(),
     ]),
     tagsNode: null,
+    replacedBy: null,
     apiPages: hit.apiPages
         ?.where((page) => page.url != null)
         .map((page) => _ApiPageUrl(
@@ -154,6 +155,7 @@ d.Node _packageItem(
     description: view.ellipsizedDescription ?? '',
     metadataNode: metadataNode,
     tagsNode: tagsNodeFromPackageView(searchForm: searchForm, package: view),
+    replacedBy: view.replacedBy,
     apiPages: view.apiPages
         ?.map((page) => _ApiPageUrl(
               page.url ??
@@ -178,6 +180,7 @@ d.Node _item({
   required String description,
   required d.Node metadataNode,
   required d.Node? tagsNode,
+  required String? replacedBy,
   required List<_ApiPageUrl>? apiPages,
 }) {
   final age =

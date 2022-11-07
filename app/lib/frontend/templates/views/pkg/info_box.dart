@@ -74,7 +74,6 @@ d.Node packageInfoBoxNode({
         screenshotThumbnailNode(thumbnailUrl, screenshotUrls),
         collectionsIcon(),
       ]),
-    if (package.replacedBy != null) _replacedBy(package.replacedBy!),
     _publisher(package.publisherId),
     _metadata(
       description: version.pubspec!.description,
@@ -98,18 +97,6 @@ d.Node packageInfoBoxNode({
     if (dependencies != null) _block('Dependencies', dependencies),
     _more(package.name!),
   ]);
-}
-
-d.Node _replacedBy(String replacedBy) {
-  return _block(
-    'Suggested replacement',
-    d.a(
-      href: urls.pkgPageUrl(replacedBy),
-      title:
-          'This package is discontinued, but author has suggested package:$replacedBy as a replacement',
-      text: replacedBy,
-    ),
-  );
 }
 
 d.Node _publisher(String? publisherId) {

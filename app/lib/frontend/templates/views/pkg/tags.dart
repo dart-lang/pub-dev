@@ -19,14 +19,6 @@ class SimpleTag {
     this.href,
   });
 
-  factory SimpleTag.discontinued() {
-    return SimpleTag(
-      status: 'discontinued',
-      text: 'discontinued',
-      title: 'Package was discontinued.',
-    );
-  }
-
   factory SimpleTag.retracted() {
     return SimpleTag(
       status: 'retracted',
@@ -121,51 +113,45 @@ class BadgeSubTag {
   });
 }
 
-d.Node tagsNode({
-  required List<SimpleTag> simpleTags,
-  required List<BadgeTag> badgeTags,
-}) {
-  return d.fragment([
-    ...badgeTags.map(
-      (t) => d.div(
-        classes: ['-pub-tag-badge'],
-        children: [
-          if (t.href == null)
-            d.span(classes: ['tag-badge-main'], text: t.text)
-          else
-            d.a(
-              classes: ['tag-badge-main'],
-              title: t.title,
-              href: t.href,
-              text: t.text,
-              rel: 'nofollow',
-            ),
-          ...t.subTags.map(
-            (s) => d.a(
-              classes: ['tag-badge-sub'],
-              title: s.title,
-              href: s.href,
-              text: s.text,
-              rel: 'nofollow',
-            ),
-          ),
-        ],
+d.Node badgeTagNode(BadgeTag t) {
+  return d.div(
+    classes: ['-pub-tag-badge'],
+    children: [
+      if (t.href == null)
+        d.span(classes: ['tag-badge-main'], text: t.text)
+      else
+        d.a(
+          classes: ['tag-badge-main'],
+          title: t.title,
+          href: t.href,
+          text: t.text,
+          rel: 'nofollow',
+        ),
+      ...t.subTags.map(
+        (s) => d.a(
+          classes: ['tag-badge-sub'],
+          title: s.title,
+          href: s.href,
+          text: s.text,
+          rel: 'nofollow',
+        ),
       ),
-    ),
-    ...simpleTags.map(
-      (t) => t.hasHref
-          ? d.a(
-              classes: ['package-tag', t.status],
-              href: t.href!,
-              title: t.title,
-              text: t.text,
-              rel: 'nofollow',
-            )
-          : d.span(
-              classes: ['package-tag', t.status],
-              attributes: {'title': t.title},
-              text: t.text,
-            ),
-    ),
-  ]);
+    ],
+  );
+}
+
+d.Node simpleTagNode(SimpleTag t) {
+  return t.hasHref
+      ? d.a(
+          classes: ['package-tag', t.status],
+          href: t.href!,
+          title: t.title,
+          text: t.text,
+          rel: 'nofollow',
+        )
+      : d.span(
+          classes: ['package-tag', t.status],
+          attributes: {'title': t.title},
+          text: t.text,
+        );
 }
