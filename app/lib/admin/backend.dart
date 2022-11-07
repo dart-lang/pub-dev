@@ -17,6 +17,7 @@ import 'package:pub_semver/pub_semver.dart';
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
+import '../account/like_backend.dart';
 import '../account/models.dart';
 import '../audit/models.dart';
 import '../dartdoc/backend.dart';
@@ -209,9 +210,9 @@ class AdminBackend {
   Future<void> _removeAndDecrementLikes(User user) async {
     final pool = Pool(5);
     final futures = <Future>[];
-    for (final like in await accountBackend.listPackageLikes(user)) {
-      final f = pool.withResource(
-          () => accountBackend.unlikePackage(user, like.package!));
+    for (final like in await likeBackend.listPackageLikes(user)) {
+      final f = pool
+          .withResource(() => likeBackend.unlikePackage(user, like.package!));
       futures.add(f);
     }
     await Future.wait(futures);
