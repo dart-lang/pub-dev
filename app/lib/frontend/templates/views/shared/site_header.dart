@@ -180,15 +180,15 @@ final _pubDevLinks = [
 ];
 
 final _flutterLinks = [
-  _navNewPage('https://flutter.io/using-packages/', 'Using packages'),
-  _navNewPage('https://flutter.io/developing-packages/',
+  _navNewPage('https://flutter.dev/using-packages/', 'Using packages'),
+  _navNewPage('https://flutter.dev/developing-packages/',
       'Developing packages and plugins'),
   _navNewPage(
       '${urls.dartSiteRoot}/tools/pub/publishing', 'Publishing a package'),
 ];
 
 final _dartLinks = [
-  _navNewPage('${urls.dartSiteRoot}/tools/pub/get-started', 'Using packages'),
+  _navNewPage('${urls.dartSiteRoot}/guides/packages', 'Using packages'),
   _navNewPage(
       '${urls.dartSiteRoot}/tools/pub/publishing', 'Publishing a package'),
 ];
