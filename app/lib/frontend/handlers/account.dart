@@ -10,6 +10,7 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
 import '../../account/consent_backend.dart';
+import '../../account/like_backend.dart';
 import '../../account/session_cookie.dart' as session_cookie;
 import '../../audit/backend.dart';
 import '../../package/backend.dart';
@@ -155,7 +156,7 @@ Future<AccountPkgOptions> accountPkgOptionsHandler(
 Future<LikedPackagesRepsonse> listPackageLikesHandler(
     shelf.Request request) async {
   final user = await requireAuthenticatedUser();
-  final packages = await accountBackend.listPackageLikes(user);
+  final packages = await likeBackend.listPackageLikes(user);
   final List<PackageLikeResponse> packageLikes = List.from(packages.map(
       (like) => PackageLikeResponse(
           liked: true, package: like.package, created: like.created)));
@@ -172,7 +173,7 @@ Future<PackageLikeResponse> getLikePackageHandler(
     throw NotFoundException.resource(package);
   }
 
-  final like = await accountBackend.getPackageLikeStatus(user.userId, package);
+  final like = await likeBackend.getPackageLikeStatus(user.userId, package);
   return PackageLikeResponse(
     liked: like != null,
     package: package,
@@ -184,7 +185,7 @@ Future<PackageLikeResponse> getLikePackageHandler(
 Future<PackageLikeResponse> likePackageHandler(
     shelf.Request request, String package) async {
   final user = await requireAuthenticatedUser();
-  final l = await accountBackend.likePackage(user, package);
+  final l = await likeBackend.likePackage(user, package);
   return PackageLikeResponse(liked: true, package: package, created: l.created);
 }
 
@@ -193,7 +194,7 @@ Future<shelf.Response> unlikePackageHandler(
     shelf.Request request, String package) async {
   final user = await requireAuthenticatedUser();
 
-  await accountBackend.unlikePackage(user, package);
+  await likeBackend.unlikePackage(user, package);
   return shelf.Response(204);
 }
 
@@ -246,7 +247,7 @@ Future<shelf.Response> accountMyLikedPackagesPageHandler(
   }
 
   final user = (await accountBackend.lookupUserById(userSessionData!.userId!))!;
-  final likes = await accountBackend.listPackageLikes(user);
+  final likes = await likeBackend.listPackageLikes(user);
   final html = renderMyLikedPackagesPage(
     user: user,
     userSessionData: userSessionData!,

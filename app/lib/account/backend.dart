@@ -13,7 +13,6 @@ import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:pub_dev/shared/configuration.dart';
 
-import '../package/models.dart';
 import '../service/openid/gcp_openid.dart';
 import '../service/openid/github_openid.dart';
 import '../service/openid/jwt.dart';
@@ -383,82 +382,6 @@ class AccountBackend {
   Future<User> lookupUserByEmail(String email) async {
     final users = await lookupUsersByEmail(email);
     return users.single;
-  }
-
-  /// Returns [Like] if [userId] likes [package], otherwise returns `null`.
-  Future<Like?> getPackageLikeStatus(String userId, String package) async {
-    final key = _db.emptyKey.append(User, id: userId).append(Like, id: package);
-
-    return await _db.lookupOrNull<Like>(key);
-  }
-
-  /// Returns a list with [LikeData] of all the packages that the given
-  ///  [user] likes.
-  Future<List<LikeData>> listPackageLikes(User user) async {
-    return (await cache.userPackageLikes(user.userId).get(() async {
-      // TODO(zarah): Introduce pagination and/or migrate this to search.
-      final query = _db.query<Like>(ancestorKey: user.key)
-        ..order('-created')
-        ..limit(1000);
-      final likes = await query.run().toList();
-      return likes.map((Like l) => LikeData.fromModel(l)).toList();
-    }))!;
-  }
-
-  /// Creates and returns a package like entry for the given [user] and
-  /// [package], and increments the 'likes' property on [package].
-  Future<Like> likePackage(User user, String package) async {
-    final res = await withRetryTransaction<Like>(_db, (tx) async {
-      final packageKey = _db.emptyKey.append(Package, id: package);
-      final p = await tx.lookupOrNull<Package>(packageKey);
-      if (p == null) {
-        throw NotFoundException.resource(package);
-      }
-
-      final key =
-          _db.emptyKey.append(User, id: user.id).append(Like, id: package);
-      final oldLike = await tx.lookupOrNull<Like>(key);
-
-      if (oldLike != null) {
-        return oldLike;
-      }
-
-      p.likes++;
-      final newLike = Like()
-        ..parentKey = user.key
-        ..id = p.id
-        ..created = clock.now().toUtc()
-        ..packageName = p.name;
-
-      tx.queueMutations(inserts: [p, newLike]);
-      return newLike;
-    });
-    await purgeAccountCache(userId: user.userId);
-    return res;
-  }
-
-  /// Delete a package like entry for the given [user] and [package] if it
-  /// exists, and decrements the 'likes' property on [package].
-  Future<void> unlikePackage(User user, String package) async {
-    await withRetryTransaction<void>(_db, (tx) async {
-      final packageKey = _db.emptyKey.append(Package, id: package);
-      final p = await tx.lookupOrNull<Package>(packageKey);
-      if (p == null) {
-        throw NotFoundException.resource(package);
-      }
-
-      final likeKey =
-          _db.emptyKey.append(User, id: user.id).append(Like, id: package);
-      final like = await tx.lookupOrNull<Like>(likeKey);
-
-      if (like == null) {
-        return;
-      }
-
-      p.likes--;
-      tx.queueMutations(inserts: [p], deletes: [likeKey]);
-    });
-    await cache.userPackageLikes(user.userId).purge();
   }
 
   /// Verifies that the access token belongs to the [owner].
