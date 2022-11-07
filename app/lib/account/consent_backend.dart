@@ -73,15 +73,16 @@ class ConsentBackend {
 
   /// Returns the consent details for API calls.
   Future<api.Consent> handleGetConsent(String consentId) async {
-    final user = await requireAuthenticatedUser();
-    return getConsent(consentId, user);
+    final authenticatedUser = await requireAuthenticatedUser();
+    return getConsent(consentId, authenticatedUser.user);
   }
 
   /// Resolves the consent.
   Future<api.ConsentResult> resolveConsent(
       String consentId, api.ConsentResult result) async {
     InvalidInputException.checkUlid(consentId, 'consentId');
-    final user = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedUser();
+    final user = authenticatedUser.user;
 
     final c = await _lookupAndCheck(consentId, user);
     InvalidInputException.checkNotNull(result.granted, 'granted');
@@ -170,7 +171,8 @@ class ConsentBackend {
     required String publisherId,
     required String contactEmail,
   }) async {
-    final user = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedUser();
+    final user = authenticatedUser.user;
     return await _invite(
         activeUser: user,
         email: contactEmail,
@@ -185,7 +187,8 @@ class ConsentBackend {
     required String publisherId,
     required String invitedUserEmail,
   }) async {
-    final user = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedUser();
+    final user = authenticatedUser.user;
     return await _invite(
       activeUser: user,
       email: invitedUserEmail,
@@ -326,7 +329,7 @@ class _PackageUploaderAction extends ConsentAction {
       fromUserId,
       fromUserEmail,
       packageName,
-      currentUser,
+      currentUser.user,
       isFromAdminUser: isFromAdminUser,
     );
   }

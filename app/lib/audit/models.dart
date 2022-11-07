@@ -5,7 +5,7 @@
 import 'dart:convert';
 
 import 'package:clock/clock.dart';
-import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/account/agent.dart';
 
 import '../account/models.dart';
 import '../shared/datastore.dart' as db;

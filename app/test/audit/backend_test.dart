@@ -4,7 +4,7 @@
 
 import 'package:clock/clock.dart';
 import 'package:fake_gcloud/mem_datastore.dart';
-import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/account/agent.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
@@ -43,9 +43,12 @@ void main() {
         created: clock.now(),
         package: 'pkg',
         version: '1.0.0',
-        uploader: AuthenticatedUser(User()
-          ..id = 'user-id'
-          ..email = 'user@pub.dev'),
+        uploader: AuthenticatedUser(
+          User()
+            ..id = 'user-id'
+            ..email = 'user@pub.dev',
+          audience: 'fake-client-audience',
+        ),
       );
       expect(r.summary,
           'Package `pkg` version `1.0.0` was published by `user@pub.dev`.');

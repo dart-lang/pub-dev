@@ -86,9 +86,10 @@ class AdminBackend {
   Future<User> _requireAdminPermission(AdminPermission permission) async {
     ArgumentError.checkNotNull(permission, 'permission');
 
-    final user = await requireAuthenticatedUser(
+    final authenticatedUser = await requireAuthenticatedUser(
         expectedAudience: activeConfiguration.adminAudience);
-    if (!await verifyAdminPermission(user, permission)) {
+    final user = authenticatedUser.user;
+    if (!await verifyAdminPermission(authenticatedUser.user, permission)) {
       _logger.warning(
           'User (${user.userId} / ${user.email}) is trying to access unauthorized admin APIs.');
       throw AuthorizationException.userIsNotAdminForPubSite();

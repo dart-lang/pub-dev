@@ -2,7 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pub_dev/shared/exceptions.dart';
+import '../service/openid/gcp_openid.dart';
+import '../service/openid/github_openid.dart';
+import '../service/openid/jwt.dart';
+import '../shared/exceptions.dart';
+
+import 'models.dart';
 
 final _uuidRegExp =
     RegExp(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$');
@@ -39,4 +44,107 @@ void checkUserIdParam(String value) {
 void checkAgentParam(String value) {
   InvalidInputException.check(
       isValidUserIdOrServiceAgent(value), 'Invalid "agent".');
+}
+
+/// An [AuthenticatedAgent] represents an _agent_ (a user or automated service)
+/// that has been authenticated and which may be allowed to operate on specific
+/// resources on pub.dev
+///
+/// Examples:
+///  * A user using the `pub` client.
+///  * A user using the `pub.dev` UI.
+///  * A GCP service account may authenticate using an OIDC `id_token`,
+///  * A Github Action may authenticate using an OIDC `id_token`.
+abstract class AuthenticatedAgent {
+  /// The unique identifier of the agent.
+  /// Must pass the [isValidUserIdOrServiceAgent] check.
+  ///
+  /// Examples:
+  ///  * For a regular user we use `User.userId`.
+  ///  * For automated publishing we use [KnownAgents] identifiers.
+  String get agentId;
+
+  /// The formatted identfier of the agent, which may be publicly visible
+  /// in logs and audit records.
+  ///
+  /// Examples:
+  ///  * For a regular user we display their `email`.
+  ///  * For a service account we display a description.
+  ///  * For automated publishing we display the service and the origin trigger.
+  String get displayId;
+}
+
+/// Holds the authenticated Github Action information.
+class AuthenticatedGithubAction implements AuthenticatedAgent {
+  @override
+  String get agentId => KnownAgents.githubActions;
+
+  @override
+  String get displayId => KnownAgents.githubActions;
+
+  /// OIDC `id_token` the request was authenticated with.
+  ///
+  /// The [agentId] of an [AuthenticatedAgent] have always been authenticated using the [idToken].
+  /// Hence, claims on the [idToken] may be used to determine authorization of a request.
+  ///
+  /// The audience, expiration and signature must be verified by the
+  /// auth flow, but backend code can use the content to verify the
+  /// pub-specific scope of the token.
+  final JsonWebToken idToken;
+
+  /// The parsed, GitHub-specific JWT payload.
+  final GitHubJwtPayload payload;
+
+  AuthenticatedGithubAction({
+    required this.idToken,
+    required this.payload,
+  });
+}
+
+/// Holds the authenticated Google Cloud Service account information.
+class AuthenticatedGcpServiceAccount implements AuthenticatedAgent {
+  @override
+  String get agentId => KnownAgents.gcpServiceAccount;
+
+  @override
+  String get displayId => payload.email;
+
+  /// OIDC `id_token` the request was authenticated with.
+  ///
+  /// The [agentId] of an [AuthenticatedAgent] have always been authenticated using the [idToken].
+  /// Hence, claims on the [idToken] may be used to determine authorization of a request.
+  ///
+  /// The audience, expiration and signature must be verified by the
+  /// auth flow, but backend code can use the content to verify the
+  /// pub-specific scope of the token.
+  final JsonWebToken idToken;
+
+  /// The parsed, Google Cloud-specific JWT payload.
+  final GcpServiceAccountJwtPayload payload;
+
+  AuthenticatedGcpServiceAccount({
+    required this.idToken,
+    required this.payload,
+  });
+}
+
+/// Holds the authenticated user information.
+class AuthenticatedUser implements AuthenticatedAgent {
+  final User user;
+  final String audience;
+
+  AuthenticatedUser(
+    this.user, {
+    required this.audience,
+  });
+
+  @override
+  String get agentId => user.userId;
+
+  @override
+  String get displayId => user.email!;
+
+  String get userId => user.userId;
+  String? get email => user.email;
+  String? get oauthUserId => user.oauthUserId;
 }
