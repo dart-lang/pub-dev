@@ -27,8 +27,11 @@ void registerEmailSender(EmailSender value) =>
 /// The active [EmailSender].
 EmailSender get emailSender => ss.lookup(#_email_sender) as EmailSender;
 
-// ignore: one_member_abstracts
 abstract class EmailSender {
+  /// Indicates if a previous send failed with a service-related transient issue,
+  /// and we should wait a bit until the next try.
+  bool get shouldBackoff;
+
   Future<void> sendMessage(EmailMessage message);
 }
 
@@ -44,6 +47,9 @@ EmailSender createGmailRelaySender(
     );
 
 class _LoggingEmailSender implements EmailSender {
+  @override
+  bool get shouldBackoff => false;
+
   @override
   Future<void> sendMessage(EmailMessage message) async {
     final debugHeader = '(${message.subject}) '
@@ -110,6 +116,7 @@ class _GmailSmtpRelay implements EmailSender {
   final http.Client _authClient;
 
   DateTime _accessTokenRefreshed = DateTime(0);
+  DateTime _backoffUntil = DateTime(0);
   Future<String>? _accessToken;
 
   _GmailSmtpRelay(
@@ -117,6 +124,9 @@ class _GmailSmtpRelay implements EmailSender {
     this._impersonatedGSuiteUser,
     this._authClient,
   );
+
+  @override
+  bool get shouldBackoff => clock.now().isBefore(_backoffUntil);
 
   @override
   Future<void> sendMessage(EmailMessage message) async {
@@ -143,6 +153,8 @@ class _GmailSmtpRelay implements EmailSender {
       throw EmailSenderException.invalid();
     } on SmtpClientAuthenticationException catch (e, st) {
       _logger.shout('Sending email failed due to invalid auth: $e', e, st);
+      _backoffUntil = clock.now().add(Duration(minutes: 2));
+      _accessToken = null;
       throw EmailSenderException.failed();
     } on MailerException catch (e, st) {
       _logger.severe('Sending email failed: $debugHeader.', e, st);
@@ -151,7 +163,7 @@ class _GmailSmtpRelay implements EmailSender {
   }
 
   Future<SmtpServer> _getSmtpServer() async {
-    final maxAge = clock.now().subtract(Duration(minutes: 15));
+    final maxAge = clock.now().subtract(Duration(minutes: 20));
     if (_accessToken == null || _accessTokenRefreshed.isBefore(maxAge)) {
       _accessToken = _createAccessToken();
       _accessTokenRefreshed = clock.now();
