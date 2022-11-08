@@ -56,7 +56,7 @@ String renderPkgIndexPage(
 
   String pageTitle = topPackages;
   if (isSearch) {
-    pageTitle = 'Search results for ${searchForm.query}.';
+    pageTitle = 'Search results for ${searchForm.query}';
   } else {
     if (links.rightmostPage > 1) {
       pageTitle = 'Page ${links.currentPage} | $pageTitle';
