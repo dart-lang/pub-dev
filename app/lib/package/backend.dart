@@ -1202,6 +1202,11 @@ class PackageBackend {
       Package package, String newVersion) async {
     final githubPublishing = package.automatedPublishing.github;
     if (githubPublishing == null || (githubPublishing.isEnabled ?? false)) {
+      // TODO: remove log statement after the feature has been released.
+      _logger.info(
+        'GitHub publishing is not enabled for "${package.name}".',
+        json.encode(githubPublishing?.toJson()),
+      );
       throw AuthorizationException.githubActionIssue(
           'publishing from github is not enabled');
     }
@@ -1211,6 +1216,11 @@ class PackageBackend {
     if (repository == null ||
         repository.isEmpty ||
         repository != agent.payload.repository) {
+      // TODO: remove log statement after the feature has been released.
+      _logger.info(
+        'GitHub repository is not enabled for "${package.name}".',
+        json.encode(githubPublishing.toJson()),
+      );
       throw AuthorizationException.githubActionIssue(
           'publishing is not enabled for the "${agent.payload.repository}" repository, it may be enabled for another repository.');
     }
@@ -1218,16 +1228,31 @@ class PackageBackend {
     // TODO: consider allowing other events from
     //       https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows
     if (agent.payload.eventName != 'push') {
+      // TODO: remove log statement after the feature has been released.
+      _logger.info(
+        'GitHub event is not push',
+        json.encode(agent.idToken.payload),
+      );
       throw AuthorizationException.githubActionIssue(
           'publishing is only allowed from "push" events, this token originates from a "${agent.payload.eventName}" event');
     }
 
     if (agent.payload.refType != 'tag') {
+      // TODO: remove log statement after the feature has been released.
+      _logger.info(
+        'GitHub ref type is not tag',
+        json.encode(agent.idToken.payload),
+      );
       throw AuthorizationException.githubActionIssue(
           'publishing is only allowed from "tag" refType, this token has "${agent.payload.refType}" refType');
     }
     final expectedRefStart = 'refs/tags/';
     if (!agent.payload.ref.startsWith(expectedRefStart)) {
+      // TODO: remove log statement after the feature has been released.
+      _logger.info(
+        'GitHub ref type is not refs/tags/*',
+        json.encode(agent.idToken.payload),
+      );
       throw AuthorizationException.githubActionIssue(
           'publishing is only allowed from "refs/tags/*" ref, this token has "${agent.payload.ref}" ref');
     }
@@ -1239,6 +1264,11 @@ class PackageBackend {
     final expectedTagValue = tagPattern.replaceFirst('{{version}}', newVersion);
     if (agent.payload.ref.substring(expectedRefStart.length) !=
         expectedTagValue) {
+      // TODO: remove log statement after the feature has been released.
+      _logger.info(
+        'GitHub ref does not match version pattern.',
+        json.encode([expectedTagValue, agent.idToken.payload]),
+      );
       throw AuthorizationException.githubActionIssue(
           'publishing is configured to only be allowed from actions with specific ref pattern, '
           'this token has "${agent.payload.ref}" ref for which publishing is not allowed');
@@ -1250,6 +1280,11 @@ class PackageBackend {
       if (environment == null ||
           environment.isEmpty ||
           environment != agent.payload.environment) {
+        // TODO: remove log statement after the feature has been released.
+        _logger.info(
+          'GitHub environment does not match.',
+          json.encode([environment, agent.idToken.payload]),
+        );
         throw AuthorizationException.githubActionIssue(
             'publishing is configured to only be allowed from actions with an environment, '
             'this token originates from an action running in environment "${agent.payload.environment}" '
