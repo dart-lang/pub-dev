@@ -700,7 +700,8 @@ void main() {
         final oxygen = await scoreCardBackend.getPackageView('oxygen');
         final neon = await scoreCardBackend.getPackageView('neon');
         await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
-          final user = await requireAuthenticatedUser();
+          final authenticatedUser = await requireAuthenticatedUser();
+          final user = authenticatedUser.user;
           final session = await accountBackend.createNewSession(
             name: 'Pub User',
             imageUrl: 'pub.dev/user-img-url.png',
@@ -723,7 +724,8 @@ void main() {
 
     testWithProfile('/my-liked-packages page', fn: () async {
       await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
-        final user = await requireAuthenticatedUser();
+        final authenticatedUser = await requireAuthenticatedUser();
+        final user = authenticatedUser.user;
         final session = await accountBackend.createNewSession(
           name: 'Pub User',
           imageUrl: 'pub.dev/user-img-url.png',
@@ -749,7 +751,8 @@ void main() {
 
     testWithProfile('/my-publishers page', fn: () async {
       await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
-        final user = await requireAuthenticatedUser();
+        final authenticatedUser = await requireAuthenticatedUser();
+        final user = authenticatedUser.user;
         final session = await accountBackend.createNewSession(
           name: 'Pub User',
           imageUrl: 'pub.dev/user-img-url.png',
@@ -775,7 +778,8 @@ void main() {
 
     testWithProfile('/my-activity-log page', fn: () async {
       await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
-        final user = await requireAuthenticatedUser();
+        final authenticatedUser = await requireAuthenticatedUser();
+        final user = authenticatedUser.user;
         final session = await accountBackend.createNewSession(
           name: 'Pub User',
           imageUrl: 'pub.dev/user-img-url.png',

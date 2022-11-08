@@ -18,10 +18,10 @@ import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
-import 'package:pub_dev/service/email/models.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import '../account/agent.dart';
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
 import '../account/models.dart' show User;
@@ -30,6 +30,7 @@ import '../audit/models.dart';
 import '../job/backend.dart';
 import '../publisher/backend.dart';
 import '../service/email/backend.dart';
+import '../service/email/models.dart';
 import '../service/secret/backend.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
@@ -359,7 +360,8 @@ class PackageBackend {
 
   /// Updates [options] on [package].
   Future<void> updateOptions(String package, api.PkgOptions options) async {
-    final user = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedUser();
+    final user = authenticatedUser.user;
     // Validate replacedBy parameter
     final replacedBy = options.replacedBy?.trim() ?? '';
     InvalidInputException.check(package != replacedBy,
@@ -433,7 +435,8 @@ class PackageBackend {
     String version,
     api.VersionOptions options,
   ) async {
-    final user = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedUser();
+    final user = authenticatedUser.user;
 
     final pkgKey = db.emptyKey.append(Package, id: package);
     final versionKey = pkgKey.append(PackageVersion, id: version);
@@ -469,7 +472,8 @@ class PackageBackend {
   /// updates the Datastore entity if everything is valid.
   Future<api.AutomatedPublishing> setAutomatedPublishing(
       String package, api.AutomatedPublishing body) async {
-    final user = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedUser();
+    final user = authenticatedUser.user;
     return await withRetryTransaction(db, (tx) async {
       final p = await tx
           .lookupOrNull<Package>(db.emptyKey.append(Package, id: package));
@@ -657,7 +661,8 @@ class PackageBackend {
   Future<api.PackagePublisherInfo> setPublisher(
       String packageName, api.PackagePublisherInfo request) async {
     InvalidInputException.checkNotNull(request.publisherId, 'publisherId');
-    final user = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedUser();
+    final user = authenticatedUser.user;
 
     final key = db.emptyKey.append(Package, id: packageName);
     final preTxPackage = await requirePackageAdmin(packageName, user.userId);
@@ -668,7 +673,7 @@ class PackageBackend {
     }
 
     final preTxUploaderEmails = await _listAdminNotificationEmailsForPackage(
-        preTxPackage.name!, AuthenticatedUser(user));
+        preTxPackage.name!, authenticatedUser);
     preTxPackage.publisherId == null
         ? await accountBackend.getEmailsOfUserIds(preTxPackage.uploaders!)
         : await publisherBackend
@@ -1339,7 +1344,8 @@ class PackageBackend {
       String packageName, api.InviteUploaderRequest invite) async {
     InvalidInputException.checkNotNull(invite.email, 'email');
     final uploaderEmail = invite.email.toLowerCase();
-    final user = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedUser();
+    final user = authenticatedUser.user;
     final packageKey = db.emptyKey.append(Package, id: packageName);
     final package = await db.lookupOrNull<Package>(packageKey);
 
@@ -1444,7 +1450,8 @@ class PackageBackend {
     String uploaderEmail,
   ) async {
     uploaderEmail = uploaderEmail.toLowerCase();
-    final user = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedUser();
+    final user = authenticatedUser.user;
     await withRetryTransaction(db, (tx) async {
       final packageKey = db.emptyKey.append(Package, id: packageName);
       final package = await tx.lookupOrNull<Package>(packageKey);

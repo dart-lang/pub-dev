@@ -136,7 +136,8 @@ class PublisherBackend {
     api.CreatePublisherRequest body,
   ) async {
     checkPublisherIdParam(publisherId);
-    final user = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedUser();
+    final user = authenticatedUser.user;
     InvalidInputException.checkMatchPattern(
       publisherId,
       'publisherId',
@@ -251,7 +252,8 @@ class PublisherBackend {
         maximum: 256,
       );
     }
-    final user = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedUser();
+    final user = authenticatedUser.user;
     await requirePublisherAdmin(publisherId, user.userId);
     final p = await withRetryTransaction(_db, (tx) async {
       final key = _db.emptyKey.append(Publisher, id: publisherId);
@@ -320,7 +322,8 @@ class PublisherBackend {
   Future updateContactWithVerifiedEmail(
       String publisherId, String contactEmail) async {
     checkPublisherIdParam(publisherId);
-    final activeUser = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedUser();
+    final user = authenticatedUser.user;
     InvalidInputException.check(
         isValidEmail(contactEmail), 'Invalid email: `$contactEmail`');
 
@@ -331,7 +334,7 @@ class PublisherBackend {
       p.updated = clock.now().toUtc();
       tx.insert(p);
       tx.insert(AuditLogRecord.publisherContactInviteAccepted(
-        user: activeUser,
+        user: user,
         publisherId: publisherId,
         contactEmail: contactEmail,
       ));
@@ -461,7 +464,8 @@ class PublisherBackend {
   /// Deletes a publisher's member.
   Future<void> deletePublisherMember(String publisherId, String userId) async {
     checkPublisherIdParam(publisherId);
-    final user = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedUser();
+    final user = authenticatedUser.user;
     final p = await requirePublisherAdmin(publisherId, user.userId);
     if (userId == user.userId) {
       throw ConflictException.cantUpdateSelf();
