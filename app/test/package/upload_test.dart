@@ -232,8 +232,14 @@ void main() {
       testWithProfile('not logged in', fn: () async {
         final tarball = await packageArchiveBytes(pubspecContent: '');
         final rs = createPubApiClient().uploadPackageBytes(tarball);
-        await expectApiException(rs,
-            status: 401, code: 'MissingAuthentication');
+        await expectApiException(
+          rs,
+          status: 401,
+          code: 'MissingAuthentication',
+          headers: {
+            'www-authenticate': contains('Bearer realm="pub", message="'),
+          },
+        );
       });
 
       testWithProfile('not authorized', fn: () async {
@@ -243,8 +249,14 @@ void main() {
             pubspecContent: generatePubspecYaml('oxygen', '2.2.0'));
         final rs = createPubApiClient(authToken: userClientToken)
             .uploadPackageBytes(tarball);
-        await expectApiException(rs,
-            status: 403, code: 'InsufficientPermissions');
+        await expectApiException(
+          rs,
+          status: 403,
+          code: 'InsufficientPermissions',
+          headers: {
+            'www-authenticate': contains('Bearer realm="pub", message="'),
+          },
+        );
         final p2 = await packageBackend.lookupPackage('oxygen');
         expect(p2!.versionCount, 3);
       });

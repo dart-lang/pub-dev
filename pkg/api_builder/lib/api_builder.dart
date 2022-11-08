@@ -54,27 +54,34 @@ class ApiResponseException implements Exception {
   final int status;
   final String code;
   final String message;
+  final Map<String, String>? headers;
 
   ApiResponseException({
     required this.status,
     required this.code,
     required this.message,
+    this.headers,
   });
 
-  shelf.Response asApiResponse() => shelf.Response(status,
-          body: json.fuse(utf8).encode({
-            'error': {
-              'code': code,
-              'message': message,
-            },
-            // TODO: remove after the above gets deployed live
-            'code': code,
-            'message': message,
-          }),
-          headers: {
-            'content-type': 'application/json; charset="utf-8"',
-            'x-content-type-options': 'nosniff',
-          });
+  shelf.Response asApiResponse() {
+    return shelf.Response(
+      status,
+      body: json.fuse(utf8).encode({
+        'error': {
+          'code': code,
+          'message': message,
+        },
+        // TODO: remove after the above gets deployed live
+        'code': code,
+        'message': message,
+      }),
+      headers: {
+        'content-type': 'application/json; charset="utf-8"',
+        'x-content-type-options': 'nosniff',
+        ...?headers,
+      },
+    );
+  }
 }
 
 const _expectedJsonMimeTypes = <String>{
