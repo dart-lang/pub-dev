@@ -39,6 +39,7 @@ void main() {
       'event_name',
       'ref_type',
       'environment',
+      'environment_node_id',
       'job_workflow_ref',
       'repository_visibility',
     ]);
