@@ -1201,7 +1201,7 @@ class PackageBackend {
   Future<void> _checkGithubActionAllowed(AuthenticatedGithubAction agent,
       Package package, String newVersion) async {
     final githubPublishing = package.automatedPublishing.github;
-    if (githubPublishing == null || (githubPublishing.isEnabled ?? false)) {
+    if (githubPublishing == null || !(githubPublishing.isEnabled ?? false)) {
       throw AuthorizationException.githubActionIssue(
           'publishing from github is not enabled');
     }
@@ -1274,7 +1274,7 @@ class PackageBackend {
   ) async {
     final googleCloudPublishing = package.automatedPublishing.gcp;
     if (googleCloudPublishing == null ||
-        (googleCloudPublishing.isEnabled ?? false)) {
+        !(googleCloudPublishing.isEnabled ?? false)) {
       throw AuthorizationException.serviceAccountPublishingIssue(
           'publishing with service account is not enabled');
     }
