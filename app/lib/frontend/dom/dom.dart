@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:clock/clock.dart';
-import 'package:sanitize_html/sanitize_html.dart';
 
 import '../../shared/markdown.dart';
 import '../../shared/utils.dart' show formatXAgo, shortDateFormat;

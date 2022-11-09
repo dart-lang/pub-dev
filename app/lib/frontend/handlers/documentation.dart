@@ -7,9 +7,7 @@ import 'dart:io';
 
 import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as p;
-import 'package:pub_dev/dartdoc/dartdoc_page.dart';
 import 'package:pub_dev/package/backend.dart';
-import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/handlers.dart';
 // ignore: implementation_imports
 import 'package:pub_package_reader/src/names.dart';
