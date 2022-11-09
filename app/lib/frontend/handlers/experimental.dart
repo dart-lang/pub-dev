@@ -12,6 +12,7 @@ const _allFlags = <String>{
   ..._publicFlags,
   'publishing',
   'signin',
+  'sandbox',
 };
 
 /// Holds the enabled experimental flags.
@@ -47,6 +48,9 @@ class ExperimentalFlags {
 
   /// Whether to show package screenshots in search listings.
   bool get showScreenshots => _enabled.contains('screenshots');
+
+  /// Whether to return dartdoc from sandboxing output.
+  bool get showSandboxedOutput => _enabled.contains('sandbox');
 
   /// Whether to use the new Google Identity Services library.
   bool get useGisSignIn => _enabled.contains('signin');
