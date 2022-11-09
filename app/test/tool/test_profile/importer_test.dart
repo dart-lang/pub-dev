@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:gcloud/db.dart';
-import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/account/like_backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
@@ -138,7 +138,7 @@ void main() {
         // All of the is liking the package.
         for (final user in users) {
           final status =
-              await accountBackend.getPackageLikeStatus(user.userId, 'sample');
+              await likeBackend.getPackageLikeStatus(user.userId, 'sample');
           expect(status, isNotNull);
         }
       },

@@ -7,6 +7,7 @@ import 'dart:math';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/utils.dart';
 
 import '../../frontend/email_sender.dart';
@@ -60,6 +61,7 @@ class EmailBackend {
       if (stopAfter != null && sw.elapsed > stopAfter) break;
       if (m.isNotAlive) continue;
       if (!m.mayAttemptNow) continue;
+      if (emailSender.shouldBackoff) break;
       final count = await _trySendOutgoingEmail(m.uuid);
       successful += count;
     }
@@ -81,6 +83,9 @@ class EmailBackend {
   ///
   /// Returns the number of emails that were sent successfully.
   Future<int> _trySendOutgoingEmail(String id) async {
+    if (emailSender.shouldBackoff) {
+      return 0;
+    }
     final key = _db.emptyKey.append(OutgoingEmail, id: id);
     final now = clock.now().toUtc();
     final claimId = createUuid();
@@ -116,6 +121,8 @@ class EmailBackend {
           entry.bodyText!,
         ));
         sent.add(recipientEmail);
+      } on EmailSenderException catch (e, st) {
+        _logger.warning('Email sending failed (claimId="$claimId").', e, st);
       } catch (e, st) {
         _logger.warning('Email sending failed (claimId="$claimId").', e, st);
       }

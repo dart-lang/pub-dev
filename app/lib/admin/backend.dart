@@ -17,6 +17,7 @@ import 'package:pub_semver/pub_semver.dart';
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
+import '../account/like_backend.dart';
 import '../account/models.dart';
 import '../audit/models.dart';
 import '../dartdoc/backend.dart';
@@ -85,8 +86,10 @@ class AdminBackend {
   Future<User> _requireAdminPermission(AdminPermission permission) async {
     ArgumentError.checkNotNull(permission, 'permission');
 
-    final user = await requireAuthenticatedUser(source: AuthSource.admin);
-    if (!await verifyAdminPermission(user, permission)) {
+    final authenticatedUser = await requireAuthenticatedUser(
+        expectedAudience: activeConfiguration.adminAudience);
+    final user = authenticatedUser.user;
+    if (!await verifyAdminPermission(authenticatedUser.user, permission)) {
       _logger.warning(
           'User (${user.userId} / ${user.email}) is trying to access unauthorized admin APIs.');
       throw AuthorizationException.userIsNotAdminForPubSite();
@@ -208,9 +211,9 @@ class AdminBackend {
   Future<void> _removeAndDecrementLikes(User user) async {
     final pool = Pool(5);
     final futures = <Future>[];
-    for (final like in await accountBackend.listPackageLikes(user)) {
-      final f = pool.withResource(
-          () => accountBackend.unlikePackage(user, like.package!));
+    for (final like in await likeBackend.listPackageLikes(user)) {
+      final f = pool
+          .withResource(() => likeBackend.unlikePackage(user, like.package!));
       futures.add(f);
     }
     await Future.wait(futures);
@@ -299,7 +302,7 @@ class AdminBackend {
       if (user.oauthUserId != null) {
         final mappingKey =
             _db.emptyKey.append(OAuthUserID, id: user.oauthUserId);
-        final mapping = (await tx.lookup<OAuthUserID>([mappingKey])).single;
+        final mapping = await tx.lookupOrNull<OAuthUserID>(mappingKey);
         if (mapping != null) {
           deleteKeys.add(mappingKey);
         }

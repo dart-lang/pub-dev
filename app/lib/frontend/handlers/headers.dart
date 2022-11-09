@@ -43,9 +43,12 @@ class CacheHeaders {
   /// Everything under the /documentation/ endpoint.
   static final dartdocAsset = CacheHeaders._(Duration(minutes: 15));
 
-  /// The package name completition API endpoint serves the cache names
+  /// The package name completition API endpoint serves the cached names
   /// of top packages.
   static final packageNameCompletion = CacheHeaders._(Duration(hours: 8));
+
+  /// The package names API endpoint serves the cached names of all packages.
+  static final packageNames = CacheHeaders._(Duration(hours: 2));
 
   /// Everything under the /static/ endpoint.
   static final staticAsset = CacheHeaders._(

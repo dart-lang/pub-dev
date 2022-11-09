@@ -18,10 +18,10 @@ import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
-import 'package:pub_dev/service/email/models.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import '../account/agent.dart';
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
 import '../account/models.dart' show User;
@@ -30,6 +30,7 @@ import '../audit/models.dart';
 import '../job/backend.dart';
 import '../publisher/backend.dart';
 import '../service/email/backend.dart';
+import '../service/email/models.dart';
 import '../service/secret/backend.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
@@ -359,7 +360,8 @@ class PackageBackend {
 
   /// Updates [options] on [package].
   Future<void> updateOptions(String package, api.PkgOptions options) async {
-    final user = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedUser();
+    final user = authenticatedUser.user;
     // Validate replacedBy parameter
     final replacedBy = options.replacedBy?.trim() ?? '';
     InvalidInputException.check(package != replacedBy,
@@ -433,7 +435,8 @@ class PackageBackend {
     String version,
     api.VersionOptions options,
   ) async {
-    final user = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedUser();
+    final user = authenticatedUser.user;
 
     final pkgKey = db.emptyKey.append(Package, id: package);
     final versionKey = pkgKey.append(PackageVersion, id: version);
@@ -469,7 +472,8 @@ class PackageBackend {
   /// updates the Datastore entity if everything is valid.
   Future<api.AutomatedPublishing> setAutomatedPublishing(
       String package, api.AutomatedPublishing body) async {
-    final user = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedUser();
+    final user = authenticatedUser.user;
     return await withRetryTransaction(db, (tx) async {
       final p = await tx
           .lookupOrNull<Package>(db.emptyKey.append(Package, id: package));
@@ -480,6 +484,7 @@ class PackageBackend {
       await checkPackageAdmin(p, user.userId);
 
       final github = body.github;
+      final googleCloud = body.gcp;
       if (github != null) {
         final isEnabled = github.isEnabled ?? false;
         // normalize input values
@@ -522,6 +527,29 @@ class PackageBackend {
           InvalidInputException.check(
               _validGithubEnvironment.hasMatch(environment),
               'The `environment` field has invalid characters.');
+        }
+      }
+      if (googleCloud != null) {
+        final isEnabled = googleCloud.isEnabled ?? false;
+        // normalize input values
+        final serviceAccountEmail =
+            googleCloud.serviceAccountEmail?.trim() ?? '';
+        googleCloud.serviceAccountEmail = serviceAccountEmail;
+
+        InvalidInputException.check(
+            !isEnabled || serviceAccountEmail.isNotEmpty,
+            'The service account email field must not be empty when enabled.');
+
+        if (serviceAccountEmail.isNotEmpty) {
+          InvalidInputException.check(isValidEmail(serviceAccountEmail),
+              'The service account email is not valid: `$serviceAccountEmail`.');
+
+          InvalidInputException.check(
+            serviceAccountEmail.endsWith('.gserviceaccount.com'),
+            'The service account email must end with `gserviceaccount.com`. '
+            'If you have a different service account email, please create an issue at '
+            'https://github.com/dart-lang/pub-dev',
+          );
         }
       }
 
@@ -609,7 +637,7 @@ class PackageBackend {
   Future<api.PackagePublisherInfo> getPublisherInfo(String packageName) async {
     checkPackageVersionParams(packageName);
     final key = db.emptyKey.append(Package, id: packageName);
-    final package = (await db.lookup<Package>([key])).single;
+    final package = await db.lookupOrNull<Package>(key);
     if (package == null) {
       throw NotFoundException.resource('package "$packageName"');
     }
@@ -633,7 +661,8 @@ class PackageBackend {
   Future<api.PackagePublisherInfo> setPublisher(
       String packageName, api.PackagePublisherInfo request) async {
     InvalidInputException.checkNotNull(request.publisherId, 'publisherId');
-    final user = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedUser();
+    final user = authenticatedUser.user;
 
     final key = db.emptyKey.append(Package, id: packageName);
     final preTxPackage = await requirePackageAdmin(packageName, user.userId);
@@ -644,7 +673,7 @@ class PackageBackend {
     }
 
     final preTxUploaderEmails = await _listAdminNotificationEmailsForPackage(
-        preTxPackage.name!, AuthenticatedUser(user));
+        preTxPackage.name!, authenticatedUser);
     preTxPackage.publisherId == null
         ? await accountBackend.getEmailsOfUserIds(preTxPackage.uploaders!)
         : await publisherBackend
@@ -813,8 +842,7 @@ class PackageBackend {
     // user is authenticated. But we're not validating anything at this point
     // because we don't even know which package or version is going to be
     // uploaded.
-    final user = await requireAuthenticatedUser(source: AuthSource.client);
-    _logger.info('User: ${user.email}.');
+    await requireAuthenticatedClient();
 
     final guid = createUuid();
     final String object = tmpObjectName(guid);
@@ -839,7 +867,7 @@ class PackageBackend {
     if (restriction == UploadRestrictionStatus.noUploads) {
       throw PackageRejectedException.uploadRestricted();
     }
-    final agent = await requireAuthenticatedAgent(source: AuthSource.client);
+    final agent = await requireAuthenticatedClient();
     _logger.info('Finishing async upload (uuid: $guid)');
     _logger.info('Reading tarball from cloud storage.');
 
@@ -1160,6 +1188,10 @@ class PackageBackend {
       await _checkGithubActionAllowed(agent, package, newVersion);
       return;
     }
+    if (agent is AuthenticatedGcpServiceAccount) {
+      await _checkServiceAccountAllowed(agent, package, newVersion);
+      return;
+    }
     _logger.info('User ${agent.agentId} (${agent.displayId}) '
         'is not an uploader for package ${package.name}, rolling transaction back.');
     throw AuthorizationException.userCannotUploadNewVersion(
@@ -1169,13 +1201,13 @@ class PackageBackend {
   Future<void> _checkGithubActionAllowed(AuthenticatedGithubAction agent,
       Package package, String newVersion) async {
     final githubPublishing = package.automatedPublishing.github;
-    if (githubPublishing == null || (githubPublishing.isEnabled ?? false)) {
+    if (githubPublishing?.isEnabled != true) {
       throw AuthorizationException.githubActionIssue(
           'publishing from github is not enabled');
     }
 
     // Repository must be set and matching the action's repository.
-    final repository = githubPublishing.repository;
+    final repository = githubPublishing!.repository;
     if (repository == null ||
         repository.isEmpty ||
         repository != agent.payload.repository) {
@@ -1225,12 +1257,42 @@ class PackageBackend {
       }
     }
 
-    // TODO: return `true` once we are happy with the current checks
+    // TODO: remove once we are happy with the current checks
     // NOTE: we log and also return the payload map to verify the token info GitHub sends
     final debugInfo = json.encode(agent.idToken.payload);
     _logger.info('Recognized GitHub action: $debugInfo');
     throw PackageRejectedException(
       'GitHub Action recognized successful, but publishing is not enabled yet.'
+      ' $debugInfo',
+    );
+  }
+
+  Future<void> _checkServiceAccountAllowed(
+    AuthenticatedGcpServiceAccount agent,
+    Package package,
+    String newVersion,
+  ) async {
+    final googleCloudPublishing = package.automatedPublishing.gcp;
+    if (googleCloudPublishing?.isEnabled != true) {
+      throw AuthorizationException.serviceAccountPublishingIssue(
+          'publishing with service account is not enabled');
+    }
+
+    // the service account email must be set and matching the agent's email.
+    final serviceAccountEmail = googleCloudPublishing!.serviceAccountEmail;
+    if (serviceAccountEmail == null ||
+        serviceAccountEmail.isEmpty ||
+        serviceAccountEmail != agent.payload.email) {
+      throw AuthorizationException.serviceAccountPublishingIssue(
+          'publishing is not enabled for the "${agent.payload.email}" service account, it may be enabled for another email.');
+    }
+
+    // TODO: remove once we are happy with the current checks
+    // NOTE: we log and also return the payload map to verify the token info Google Cloud sends
+    final debugInfo = json.encode(agent.idToken.payload);
+    _logger.info('Recognized Google Cloud service account: $debugInfo');
+    throw PackageRejectedException(
+      'Google Cloud Service account recognized successful, but publishing is not enabled yet.'
       ' $debugInfo',
     );
   }
@@ -1278,14 +1340,11 @@ class PackageBackend {
   // Uploaders support.
 
   Future<account_api.InviteStatus> inviteUploader(
-    String packageName,
-    api.InviteUploaderRequest invite, {
-    AuthSource? authSource,
-  }) async {
-    authSource ??= AuthSource.website;
+      String packageName, api.InviteUploaderRequest invite) async {
     InvalidInputException.checkNotNull(invite.email, 'email');
     final uploaderEmail = invite.email.toLowerCase();
-    final user = await requireAuthenticatedUser(source: authSource);
+    final authenticatedUser = await requireAuthenticatedUser();
+    final user = authenticatedUser.user;
     final packageKey = db.emptyKey.append(Package, id: packageName);
     final package = await db.lookupOrNull<Package>(packageKey);
 
@@ -1390,7 +1449,8 @@ class PackageBackend {
     String uploaderEmail,
   ) async {
     uploaderEmail = uploaderEmail.toLowerCase();
-    final user = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedUser();
+    final user = authenticatedUser.user;
     await withRetryTransaction(db, (tx) async {
       final packageKey = db.emptyKey.append(Package, id: packageName);
       final package = await tx.lookupOrNull<Package>(packageKey);

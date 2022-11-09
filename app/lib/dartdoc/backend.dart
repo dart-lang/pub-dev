@@ -138,9 +138,6 @@ class DartdocBackend {
       await uploadWithRetry(
           _storage, objectName, file.lengthSync(), () => file.openRead());
       count++;
-      if (count % 100 == 0) {
-        _logger.info('Upload completed: $objectName (item #$count)');
-      }
     }
 
     final sw = Stopwatch()..start();

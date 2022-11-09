@@ -166,7 +166,6 @@ $detail-tabs-tablet-width: calc(100% - 240px);
 
   .detail-tags-and-like {
     display: flex;
-    align-items: center;
   }
 
   .detail-tags {
@@ -183,7 +182,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
 
     .likes-count {
       display: inline-block;
-      padding-top: 6px;
+      padding-top: 4px;
     }
   }
 }
@@ -389,10 +388,5 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   width: 26px;
   height: 26px;
   padding: 4px;
-  margin: 2px 6px 0 0;
-
-  > img {
-    position: relative;
-    top: -2px;
-  }
+  margin: 0 6px 0 0;
 }

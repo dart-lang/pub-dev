@@ -2,15 +2,20 @@
    for details. All rights reserved. Use of this source code is governed by a
    BSD-style license that can be found in the LICENSE file. */
 
-/* Tag style used on listing pages. */
+.package-tag,
+.-pub-tag-badge,
+.-pub-tag-discontinued {
+  font-size: 12px;
+  margin: 0px 15px 4px 0px;
+  display: inline-block;
+}
+
+/* Tags that are simple labels. */
 .package-tag {
   background: #eef9fe;
   text-transform: uppercase;
-  display: inline-block;
-  font-size: 12px;
-  margin: 0px 0 4px 4px;
   color: #2465df;
-  padding: 7px 10px;
+  padding: 4px 8px;
 
   &.missing {
     background: #f0f0f0;
@@ -24,18 +29,14 @@
   }
 
   &.legacy,
-  &.discontinued,
   &.retracted {
     background: #c0392b;
     color: #f8f8f8;
   }
 }
 
-/* Tag style used on package detail page for Dart/Flutter extended badges. */
+/* Tag that are combinations of two components e.g. Dart/Flutter extended badges. */
 .-pub-tag-badge {
-  font-size: 12px;
-  display: inline-block;
-  margin-right: 15px;
   background: #e7f8ff;
 
   > .tag-badge-main,
@@ -50,5 +51,25 @@
     color: #1967d2;
     border-right: 1px solid rgba(25, 103, 210, 0.5); // #1967d2 + 0.5 opacity
     font-weight: 500;
+  }
+}
+
+/* Tag for discontinued packages. */
+.-pub-tag-discontinued {
+  background: #c0392b;
+  color: #f8f8f8;
+  padding: 2px;
+
+  >.-discontinued-main {
+    display: inline-block;
+    padding: 2px 6px;
+    text-transform: uppercase;
+  }
+
+  >.-discontinued-replacedby {
+    display: inline-block;
+    padding: 2px 6px;
+    background: #fff;
+    color: $site-font-color;
   }
 }

@@ -121,7 +121,7 @@ d.Node pageLayoutNode({
             ),
             d.meta(
                 name: 'google-signin-client_id', content: oauthClientId ?? ''),
-            if (requestContext.useGisSignIn)
+            if (requestContext.experimentalFlags.useGisSignIn)
               d.script(
                 src: 'https://accounts.google.com/gsi/client',
                 async: true,
@@ -160,7 +160,10 @@ d.Node pageLayoutNode({
         ),
         d.element(
           'body',
-          classes: bodyClasses,
+          classes: [
+            ...?bodyClasses,
+            'light-theme',
+          ],
           children: [
             // <!-- Google Tag Manager (noscript) -->
             d.element(

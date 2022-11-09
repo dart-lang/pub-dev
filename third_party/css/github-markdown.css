@@ -212,12 +212,14 @@
   border: 1px solid #dfe2e5;
 }
 
-.markdown-body table tr {
+/* Note: light-theme was added to prevent non-visible table text in dartdoc's dark mode. */
+.light-theme .markdown-body table tr {
   background-color: #fff;
   border-top: 1px solid #c6cbd1;
 }
 
-.markdown-body table tr:nth-child(2n) {
+/* Note: light-theme was added to prevent non-visible table text in dartdoc's dark mode. */
+.light-theme .markdown-body table tr:nth-child(2n) {
   background-color: #f6f8fa;
 }
 
@@ -338,8 +340,13 @@
   padding: 0.2em 0.4em;
   margin: 0;
   font-size: 85%;
-  background-color: rgba(27,31,35,0.05);
   border-radius: 3px;
+}
+
+/* Note: light-theme was added to prevent non-visible table text in dartdoc's dark mode. */
+.light-theme .markdown-body code,
+.light-theme .markdown-body tt {
+  background-color: rgba(27,31,35,0.05);
 }
 
 .markdown-body code br,
@@ -380,8 +387,17 @@
   overflow: auto;
   font-size: 85%;
   line-height: 1.45;
-  background-color: #f6f8fa;
   border-radius: 3px;
+}
+
+/* Note: light-theme was added to prevent non-visible table text in dartdoc's dark mode. */
+.light-theme .markdown-body .highlight pre,
+.light-theme .markdown-body pre {
+  background-color: #f6f8fa;
+}
+.dark-theme .markdown-body pre {
+  /* TODO: Investigate if this should be fixed in dartdoc's styles.css: the `pre` rule has precendece over the dark theme there. */
+  background-color: inherit;
 }
 
 .markdown-body pre code,

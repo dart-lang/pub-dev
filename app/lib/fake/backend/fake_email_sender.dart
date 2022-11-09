@@ -14,6 +14,9 @@ class FakeEmailSender implements EmailSender {
   int failNextMessageCount = 0;
 
   @override
+  bool get shouldBackoff => false;
+
+  @override
   Future<void> sendMessage(EmailMessage message) async {
     message.verifyUuid();
     if (failNextMessageCount > 0) {

@@ -55,7 +55,7 @@ void _setEventForScreenshot() {
 
   int screenshotIndex = 0;
   for (final thumbnail in thumbnails) {
-    thumbnail.onClick.listen((event) {
+    thumbnail.parent!.onClick.listen((event) {
       showElement(carousel);
       images = thumbnail.dataset['thumbnail']!.split(',');
       showImage(screenshotIndex, event);

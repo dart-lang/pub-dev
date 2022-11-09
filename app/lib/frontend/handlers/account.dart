@@ -10,6 +10,7 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
 import '../../account/consent_backend.dart';
+import '../../account/like_backend.dart';
 import '../../account/session_cookie.dart' as session_cookie;
 import '../../audit/backend.dart';
 import '../../package/backend.dart';
@@ -34,11 +35,11 @@ shelf.Response authorizedHandler(_) => htmlResponse(renderAuthorizedPage());
 Future<shelf.Response> updateSessionHandler(
     shelf.Request request, ClientSessionRequest body) async {
   final sw = Stopwatch()..start();
-  final user = await requireAuthenticatedUser();
+  final authenticatedUser = await requireAuthenticatedUser();
+  final user = authenticatedUser.user;
 
   InvalidInputException.checkNotNull(body.accessToken, 'accessToken');
-  await accountBackend.verifyAccessTokenOwnership(
-      AuthSource.website, body.accessToken!, user);
+  await accountBackend.verifyAccessTokenOwnership(body.accessToken!, user);
   final t1 = sw.elapsed;
 
   // Only allow creation of sessions on the primary site host.
@@ -155,8 +156,9 @@ Future<AccountPkgOptions> accountPkgOptionsHandler(
 /// Handles GET /api/account/likes
 Future<LikedPackagesRepsonse> listPackageLikesHandler(
     shelf.Request request) async {
-  final user = await requireAuthenticatedUser();
-  final packages = await accountBackend.listPackageLikes(user);
+  final authenticatedUser = await requireAuthenticatedUser();
+  final user = authenticatedUser.user;
+  final packages = await likeBackend.listPackageLikes(user);
   final List<PackageLikeResponse> packageLikes = List.from(packages.map(
       (like) => PackageLikeResponse(
           liked: true, package: like.package, created: like.created)));
@@ -173,7 +175,7 @@ Future<PackageLikeResponse> getLikePackageHandler(
     throw NotFoundException.resource(package);
   }
 
-  final like = await accountBackend.getPackageLikeStatus(user.userId, package);
+  final like = await likeBackend.getPackageLikeStatus(user.userId, package);
   return PackageLikeResponse(
     liked: like != null,
     package: package,
@@ -184,17 +186,18 @@ Future<PackageLikeResponse> getLikePackageHandler(
 /// Handles PUT /api/account/likes/<package>
 Future<PackageLikeResponse> likePackageHandler(
     shelf.Request request, String package) async {
-  final user = await requireAuthenticatedUser();
-  final l = await accountBackend.likePackage(user, package);
+  final authenticatedUser = await requireAuthenticatedUser();
+  final user = authenticatedUser.user;
+  final l = await likeBackend.likePackage(user, package);
   return PackageLikeResponse(liked: true, package: package, created: l.created);
 }
 
 /// Handles DELETE /api/account/likes/<package>
 Future<shelf.Response> unlikePackageHandler(
     shelf.Request request, String package) async {
-  final user = await requireAuthenticatedUser();
-
-  await accountBackend.unlikePackage(user, package);
+  final authenticatedUser = await requireAuthenticatedUser();
+  final user = authenticatedUser.user;
+  await likeBackend.unlikePackage(user, package);
   return shelf.Response(204);
 }
 
@@ -247,7 +250,7 @@ Future<shelf.Response> accountMyLikedPackagesPageHandler(
   }
 
   final user = (await accountBackend.lookupUserById(userSessionData!.userId!))!;
-  final likes = await accountBackend.listPackageLikes(user);
+  final likes = await likeBackend.listPackageLikes(user);
   final html = renderMyLikedPackagesPage(
     user: user,
     userSessionData: userSessionData!,

@@ -11,6 +11,7 @@ import 'package:pub_dev/task/handlers.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
+import '../../publisher/models.dart';
 import '../../shared/handlers.dart';
 
 import 'account.dart';
@@ -210,7 +211,15 @@ class PubSiteService {
   /// Renders the publisher's packages page.
   @Route.get('/publishers/<publisherId>/packages')
   Future<Response> publisherPackagesPage(Request request, String publisherId) =>
-      publisherPackagesPageHandler(request, publisherId);
+      publisherPackagesPageHandler(request, publisherId,
+          kind: PublisherPackagesPageKind.listed);
+
+  /// Renders the publisher's packages page.
+  @Route.get('/publishers/<publisherId>/unlisted-packages')
+  Future<Response> publisherUnlistedPackagesPage(
+          Request request, String publisherId) =>
+      publisherPackagesPageHandler(request, publisherId,
+          kind: PublisherPackagesPageKind.unlisted);
 
   /// Renders the publisher's admin page.
   @Route.get('/publishers/<publisherId>/admin')

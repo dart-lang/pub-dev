@@ -626,12 +626,14 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             description: 'def xyz',
             maxPoints: 100,
             grantedPoints: 0,
+            tags: ['sdk:dart'],
           ),
           PackageDocument(
             package: 'def',
             description: 'abc xyz',
             maxPoints: 100,
             grantedPoints: 100,
+            tags: ['sdk:dart'],
           ),
         ]);
 
@@ -648,9 +650,24 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             ]
           },
         );
-        // exact name match
+        // exact name match without tags
         expect(
             (await index.search(ServiceSearchQuery.parse(query: 'abc')))
+                .toJson(),
+            {
+              'timestamp': isNotEmpty,
+              'totalCount': 2,
+              'sdkLibraryHits': [],
+              'packageHits': [
+                // `abc` is first, despite its lower score
+                {'package': 'abc', 'score': closeTo(0.48, 0.01)},
+                {'package': 'def', 'score': closeTo(0.69, 0.01)},
+              ]
+            });
+        // exact name match with tags
+        expect(
+            (await index
+                    .search(ServiceSearchQuery.parse(query: 'abc sdk:dart')))
                 .toJson(),
             {
               'timestamp': isNotEmpty,

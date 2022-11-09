@@ -114,12 +114,10 @@ class PackageDocument {
 class ApiDocPage {
   final String relativePath;
   final List<String>? symbols;
-  final List<String>? textBlocks;
 
   ApiDocPage({
     required this.relativePath,
     this.symbols,
-    this.textBlocks,
   });
 
   factory ApiDocPage.fromJson(Map<String, dynamic> json) =>

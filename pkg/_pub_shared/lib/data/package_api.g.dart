@@ -37,6 +37,9 @@ AutomatedPublishing _$AutomatedPublishingFromJson(Map<String, dynamic> json) =>
       github: json['github'] == null
           ? null
           : GithubPublishing.fromJson(json['github'] as Map<String, dynamic>),
+      gcp: json['gcp'] == null
+          ? null
+          : GcpPublishing.fromJson(json['gcp'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$AutomatedPublishingToJson(AutomatedPublishing instance) {
@@ -49,6 +52,7 @@ Map<String, dynamic> _$AutomatedPublishingToJson(AutomatedPublishing instance) {
   }
 
   writeNotNull('github', instance.github?.toJson());
+  writeNotNull('gcp', instance.gcp?.toJson());
   return val;
 }
 
@@ -75,6 +79,26 @@ Map<String, dynamic> _$GithubPublishingToJson(GithubPublishing instance) {
   writeNotNull('tagPattern', instance.tagPattern);
   writeNotNull('requireEnvironment', instance.requireEnvironment);
   writeNotNull('environment', instance.environment);
+  return val;
+}
+
+GcpPublishing _$GcpPublishingFromJson(Map<String, dynamic> json) =>
+    GcpPublishing(
+      isEnabled: json['isEnabled'] as bool?,
+      serviceAccountEmail: json['serviceAccountEmail'] as String?,
+    );
+
+Map<String, dynamic> _$GcpPublishingToJson(GcpPublishing instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('isEnabled', instance.isEnabled);
+  writeNotNull('serviceAccountEmail', instance.serviceAccountEmail);
   return val;
 }
 

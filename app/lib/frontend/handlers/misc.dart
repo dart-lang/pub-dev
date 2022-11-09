@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:http_parser/http_parser.dart';
+import 'package:pub_dev/frontend/handlers/experimental.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../package/backend.dart';
@@ -163,25 +164,39 @@ Future<shelf.Response> staticsHandler(shelf.Request request) async {
 
 /// Handles requests for /experimental
 Future<shelf.Response> experimentalHandler(shelf.Request request) async {
-  final param = request.requestedUri.queryParameters['enabled'];
-  final enabled = param == null ? requestContext.isExperimental : param == '1';
-  final cookie = Cookie('experimental', enabled ? '1' : '0')
-    ..httpOnly = true
-    ..path = '/'
-    ..maxAge = enabled ? 7 * 24 * 60 * 60 : 0; // cookie lives for one week
+  final flags = requestContext.experimentalFlags
+      .combineWithQueryParams(request.requestedUri.queryParameters);
+
+  final cookie =
+      Cookie('experimental', flags.isEmpty ? '' : flags.encodedAsCookie())
+        ..httpOnly = true
+        ..path = '/'
+        ..maxAge =
+            flags.isEmpty ? 0 : 7 * 24 * 60 * 60; // cookie lives for one week
+
+  final clearUri = Uri(
+      path: '/experimental', queryParameters: flags.urlParametersForToggle());
+  final clearLink = flags.isEmpty ? '' : '(<a href="$clearUri">clear</a>).';
+  final publicBlock = ExperimentalFlags.publicFlags.map((f) {
+    final change = flags.isEnabled(f) ? '0' : '1';
+    final uri = Uri(path: '/experimental', queryParameters: {f: change});
+    return '<a href="$uri">toggle: <b>$f</b></a><br />';
+  }).join();
   return htmlResponse('''
 <!doctype html>
 <html>
 <head>
-  <meta http-equiv="refresh" content="5; url=/">
+  <meta http-equiv="refresh" content="15; url=/">
   <meta name="robots" content="noindex" />
 </head>
 <body>
   <center>
     <p>
-      <br><br><br>
-      Experimental cookie enabled: <b>$enabled</b> (<a href="/experimental?enabled=${enabled ? '0' : '1'}">toggle</a>).<br>
-      (redirecting to <a href="/">pub.dev</a> in 5 seconds).
+      Experiments enabled: <b>$flags</b><br>$clearLink
+    </p>
+    <p>$publicBlock</p>
+    <p>
+      (redirecting to <a href="/">pub.dev</a> in 15 seconds).
     </p>
   </center>
 </body>

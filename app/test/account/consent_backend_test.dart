@@ -9,6 +9,7 @@ import 'package:pub_dev/account/consent_backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
+import 'package:pub_dev/shared/configuration.dart';
 import 'package:test/test.dart';
 
 import '../shared/test_models.dart';
@@ -18,8 +19,10 @@ void main() {
   group('Uploader invite', () {
     Future<String?> inviteUploader() async {
       await accountBackend.withBearerToken(adminClientToken, () async {
+        final authenticatedUser = await requireAuthenticatedUser(
+            expectedAudience: activeConfiguration.pubClientAudience);
         final status = await consentBackend.invitePackageUploader(
-          activeUser: await requireAuthenticatedUser(source: AuthSource.client),
+          activeUser: authenticatedUser.user,
           uploaderEmail: 'user@pub.dev',
           packageName: 'oxygen',
         );
@@ -28,9 +31,11 @@ void main() {
 
       String? consentId;
       await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
+        final authenticatedUser = await requireAuthenticatedUser();
+        final user = authenticatedUser.user;
         final consentRow = await dbService.query<Consent>().run().single;
-        final consent = await consentBackend.getConsent(
-            consentRow.consentId, await requireAuthenticatedUser());
+        final consent =
+            await consentBackend.getConsent(consentRow.consentId, user);
         expect(consent.descriptionHtml, contains('/packages/oxygen'));
         expect(consent.descriptionHtml, contains('publish new versions'));
         consentId = consentRow.consentId;
@@ -97,9 +102,11 @@ void main() {
 
       String? consentId;
       await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
+        final authenticatedUser = await requireAuthenticatedUser();
+        final user = authenticatedUser.user;
         final consentRow = await dbService.query<Consent>().run().single;
-        final consent = await consentBackend.getConsent(
-            consentRow.consentId, await requireAuthenticatedUser());
+        final consent =
+            await consentBackend.getConsent(consentRow.consentId, user);
         expect(consent.descriptionHtml, contains('/publishers/example.com'));
         expect(consent.descriptionHtml, contains('contact email means'));
         consentId = consentRow.consentId;
@@ -167,9 +174,11 @@ void main() {
 
       String? consentId;
       await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
+        final authenticatedUser = await requireAuthenticatedUser();
+        final user = authenticatedUser.user;
         final consentRow = await dbService.query<Consent>().run().single;
-        final consent = await consentBackend.getConsent(
-            consentRow.consentId, await requireAuthenticatedUser());
+        final consent =
+            await consentBackend.getConsent(consentRow.consentId, user);
         expect(consent.descriptionHtml, contains('/publishers/example.com'));
         expect(consent.descriptionHtml,
             contains('perform administrative actions'));

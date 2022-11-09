@@ -200,6 +200,11 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   );
   router.add(
     'GET',
+    r'/publishers/<publisherId>/unlisted-packages',
+    service.publisherUnlistedPackagesPage,
+  );
+  router.add(
+    'GET',
     r'/publishers/<publisherId>/admin',
     service.publisherAdminPage,
   );

@@ -537,7 +537,7 @@ class PackageVersion extends db.ExpandoModel<String> {
     return changed;
   }
 
-  /// List of tags from the flags on the current [PackageVersion] entity.
+  /// List of tags from the properties on the current [PackageVersion] entity.
   Iterable<String> getTags() {
     return <String>{
       if (pubspec!.supportsOnlyLegacySdk) ...[
@@ -790,8 +790,6 @@ class PackageView extends Object with FlagMixin {
 
   /// The date when the package was first published.
   final DateTime? created;
-  @override
-  final List<String>? flags;
   final String? publisherId;
   final bool isPending;
 
@@ -805,7 +803,12 @@ class PackageView extends Object with FlagMixin {
   /// May be `null` if the analysis is not available yet.
   final int? maxPubPoints;
 
+  @override
   final List<String> tags;
+
+  /// The package that should be used instead of the current package.
+  /// May have a value only if the package is discontinued.
+  final String? replacedBy;
 
   /// The recognized SPDX identifiers of the licenses for the package.
   final List<String>? spdxIdentifiers;
@@ -818,13 +821,13 @@ class PackageView extends Object with FlagMixin {
     this.releases,
     this.ellipsizedDescription,
     this.created,
-    this.flags,
     this.publisherId,
     bool? isPending,
     this.likes,
     this.grantedPubPoints,
     this.maxPubPoints,
     List<String>? tags,
+    this.replacedBy,
     this.spdxIdentifiers,
     this.apiPages,
   })  : isPending = isPending ?? false,
@@ -860,13 +863,13 @@ class PackageView extends Object with FlagMixin {
       releases: releases,
       ellipsizedDescription: version?.ellipsizedDescription,
       created: package.created,
-      flags: scoreCard?.flags,
       publisherId: package.publisherId,
       isPending: isPending,
       likes: package.likes,
       grantedPubPoints: scoreCard?.grantedPubPoints,
       maxPubPoints: scoreCard?.maxPubPoints,
       tags: tags.toList(),
+      replacedBy: package.replacedBy,
       spdxIdentifiers: scoreCard?.panaReport?.licenses
           ?.map((e) => e.spdxIdentifier)
           .toList(),
@@ -881,13 +884,13 @@ class PackageView extends Object with FlagMixin {
       releases: releases,
       ellipsizedDescription: ellipsizedDescription,
       created: created,
-      flags: flags,
       publisherId: publisherId,
       isPending: isPending,
       likes: likes,
       grantedPubPoints: grantedPubPoints,
       maxPubPoints: maxPubPoints,
       tags: tags,
+      replacedBy: replacedBy,
       spdxIdentifiers: spdxIdentifiers,
       apiPages: apiPages ?? this.apiPages,
       screenshots: screenshots,

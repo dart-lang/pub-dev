@@ -11,10 +11,12 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:neat_cache/neat_cache.dart';
+import 'package:pub_dev/shared/configuration.dart';
 
-import '../package/models.dart';
+import '../service/openid/gcp_openid.dart';
 import '../service/openid/github_openid.dart';
 import '../service/openid/jwt.dart';
+import '../service/openid/openid_models.dart';
 import '../shared/datastore.dart';
 import '../shared/exceptions.dart';
 import '../shared/redis_cache.dart' show cache, EntryPurgeExt;
@@ -24,8 +26,6 @@ import 'agent.dart';
 import 'auth_provider.dart';
 import 'models.dart';
 import 'session_cookie.dart' as session_cookie;
-
-export 'auth_provider.dart' show AuthSource;
 
 /// The name of the session cookie.
 ///
@@ -85,16 +85,28 @@ UserSessionData? get userSessionData =>
 /// When no associated User entry exists in Datastore, this method will create
 /// a new one. When the authenticated email of the user changes, the email
 /// field will be updated to the latest one.
-Future<User> requireAuthenticatedUser({AuthSource? source}) async {
+Future<AuthenticatedUser> requireAuthenticatedUser(
+    {String? expectedAudience}) async {
   final token = _getBearerToken();
   if (token == null || token.isEmpty) {
     throw AuthenticationException.authenticationRequired();
   }
-  final auth =
-      await authProvider.tryAuthenticate(source ?? AuthSource.website, token);
+  final auth = await authProvider.tryAuthenticate(token);
   if (auth == null) {
     throw AuthenticationException.failed();
   }
+  expectedAudience ??= activeConfiguration.pubSiteAudience;
+  if (expectedAudience == null || expectedAudience.isEmpty) {
+    _logger.shout(
+        'Audience was not configured.', expectedAudience, StackTrace.current);
+    throw AuthenticationException.tokenInvalid(
+        'token audience is not configured');
+  }
+  if (auth.audience != expectedAudience) {
+    throw AuthenticationException.tokenInvalid(
+        'token audience "${auth.audience}" does not match expected value');
+  }
+
   final user = await accountBackend._lookupOrCreateUserByOauthUserId(auth);
   if (user == null) {
     throw AuthenticationException.failed();
@@ -111,96 +123,27 @@ Future<User> requireAuthenticatedUser({AuthSource? source}) async {
     );
     throw AuthorizationException.blocked();
   }
-  return user;
-}
-
-/// An [AuthenticatedAgent] represents an _agent_ (a user or automated service)
-/// that has been authenticated and which may be allowed to operate on specific
-/// resources on pub.dev
-///
-/// Examples:
-///  * A user using the `pub` client.
-///  * A user using the `pub.dev` UI.
-///  * A GCP service account may authenticate using an OIDC `id_token`,
-///  * A Github Action may authenticate using an OIDC `id_token`.
-abstract class AuthenticatedAgent {
-  /// The unique identifier of the agent.
-  /// Must pass the [isValidUserIdOrServiceAgent] check.
-  ///
-  /// Examples:
-  ///  * For a regular user we use `User.userId`.
-  ///  * For automated publishing we use [KnownAgents] identifiers.
-  String get agentId;
-
-  /// The formatted identfier of the agent, which may be publicly visible
-  /// in logs and audit records.
-  ///
-  /// Examples:
-  ///  * For a regular user we display their `email`.
-  ///  * For a service account we display a description.
-  ///  * For automated publishing we display the service and the origin trigger.
-  String get displayId;
-}
-
-/// Holds the authenticated Github Action information.
-class AuthenticatedGithubAction implements AuthenticatedAgent {
-  @override
-  String get agentId => KnownAgents.githubActions;
-
-  @override
-  final String displayId;
-
-  /// OIDC `id_token` the request was authenticated with.
-  ///
-  /// The [agentId] of an [AuthenticatedAgent] have always been authenticated using the [idToken].
-  /// Hence, claims on the [idToken] may be used to determine authorization of a request.
-  ///
-  /// The audience, expiration and signature must be verified by the
-  /// auth flow, but backend code can use the content to verify the
-  /// pub-specific scope of the token.
-  final JsonWebToken idToken;
-
-  /// The parsed, GitHub-specific JWT payload.
-  final GitHubJwtPayload payload;
-
-  AuthenticatedGithubAction({
-    required this.displayId,
-    required this.idToken,
-    required this.payload,
-  });
-}
-
-/// Holds the authenticated user information.
-class AuthenticatedUser implements AuthenticatedAgent {
-  final User user;
-
-  AuthenticatedUser(this.user);
-
-  @override
-  String get agentId => user.userId;
-
-  @override
-  String get displayId => user.email!;
+  return AuthenticatedUser(user, audience: auth.audience);
 }
 
 /// Verifies the current bearer token in the request scope and returns the
 /// current authenticated user or a service agent with the available data.
-Future<AuthenticatedAgent> requireAuthenticatedAgent(
-    {AuthSource? source}) async {
+Future<AuthenticatedAgent> requireAuthenticatedClient() async {
   final token = _getBearerToken();
   if (token == null || token.isEmpty) {
     throw AuthenticationException.authenticationRequired();
   }
-  final authenticatedService = await _tryAuthenticateGithubAction(token);
-  if (authenticatedService != null) {
-    return authenticatedService;
+  final authenticatedServiceAgent = await _tryAuthenticateServiceAgent(token);
+
+  if (authenticatedServiceAgent != null) {
+    return authenticatedServiceAgent;
   } else {
-    return AuthenticatedUser(await requireAuthenticatedUser(source: source));
+    return await requireAuthenticatedUser(
+        expectedAudience: activeConfiguration.pubClientAudience);
   }
 }
 
-Future<AuthenticatedGithubAction?> _tryAuthenticateGithubAction(
-    String token) async {
+Future<AuthenticatedAgent?> _tryAuthenticateServiceAgent(String token) async {
   if (!JsonWebToken.looksLikeJWT(token)) {
     return null;
   }
@@ -208,39 +151,71 @@ Future<AuthenticatedGithubAction?> _tryAuthenticateGithubAction(
   if (idToken == null) {
     return null;
   }
-  if (idToken.payload.iss != GitHubJwtPayload.githubIssuerUrl) {
-    return null;
+
+  if (idToken.payload.iss == GitHubJwtPayload.issuerUrl) {
+    // At this point we have confirmed that the token is a JWT token
+    // issued by GitHub. If there is an issue with the token, the
+    // authentication should fail without any fallback.
+    final payload = await _verifyAndParseToken(
+      idToken,
+      openIdDataFetch: fetchGithubOpenIdData,
+      payloadTryParse: GitHubJwtPayload.tryParse,
+    );
+
+    return AuthenticatedGithubAction(
+      idToken: idToken,
+      payload: payload,
+    );
   }
 
-  // At this point we have confirmed that the token is a JWT token
-  // issued by GitHub. If there is an issue with the token, the
-  // authentication should fail without any fallback.
-  return await _authenticateGithubAction(idToken);
+  if (idToken.payload.iss == GcpServiceAccountJwtPayload.issuerUrl &&
+      idToken.payload.aud.length == 1 &&
+      idToken.payload.aud.single ==
+          activeConfiguration.automatedPublishingAudience) {
+    // As the uploader token's audience and the admin token's issuer and also
+    // their audience is the same, we only parse it as a non-user token, when
+    // the authentication source is from the pub client app (e.g. uploading a
+    // new package).
+    // At this point we don't fall back to authenticating the token as a user.
+    final payload = await _verifyAndParseToken(
+      idToken,
+      openIdDataFetch: fetchGoogleCloudOpenIdData,
+      payloadTryParse: GcpServiceAccountJwtPayload.tryParse,
+    );
+
+    return AuthenticatedGcpServiceAccount(
+      idToken: idToken,
+      payload: payload,
+    );
+  }
+
+  return null;
 }
 
-Future<AuthenticatedGithubAction> _authenticateGithubAction(
-    JsonWebToken idToken) async {
+Future<A> _verifyAndParseToken<A>(
+  JsonWebToken idToken, {
+  required Future<OpenIdData> Function() openIdDataFetch,
+  required A? Function(JwtPayload payload) payloadTryParse,
+}) async {
   if (!idToken.payload.isTimely(threshold: Duration(minutes: 2))) {
-    throw AuthenticationException.githubTokenInvalid('invalid timestamps');
+    throw AuthenticationException.tokenInvalid('invalid timestamps');
   }
-  final payload = GitHubJwtPayload.tryParse(idToken.payload);
+  final aud =
+      idToken.payload.aud.length == 1 ? idToken.payload.aud.single : null;
+  if (aud != activeConfiguration.automatedPublishingAudience) {
+    throw AuthenticationException.tokenInvalid(
+        'audience "${idToken.payload.aud}" does not match "${activeConfiguration.automatedPublishingAudience}"');
+  }
+  final payload = payloadTryParse(idToken.payload);
   if (payload == null) {
-    throw AuthenticationException.githubTokenInvalid('unable to parse payload');
+    throw AuthenticationException.tokenInvalid('unable to parse payload');
   }
-  if (payload.aud != 'https://pub.dev') {
-    throw AuthenticationException.githubTokenInvalid(
-        'audience "${payload.aud}" does not match "https://pub.dev"');
-  }
-  final githubData = await fetchGithubOpenIdData();
-  final signatureMatches = await idToken.verifySignature(githubData.jwks);
+  final openIdData = await openIdDataFetch();
+  final signatureMatches = await idToken.verifySignature(openIdData.jwks);
   if (!signatureMatches) {
-    throw AuthenticationException.githubTokenInvalid('invalid signature');
+    throw AuthenticationException.tokenInvalid('invalid signature');
   }
-  return AuthenticatedGithubAction(
-    displayId: KnownAgents.githubActions,
-    idToken: idToken,
-    payload: payload,
-  );
+  return payload;
 }
 
 /// Represents the backend for the account handling and authentication.
@@ -315,93 +290,20 @@ class AccountBackend {
     return users.single;
   }
 
-  /// Returns [Like] if [userId] likes [package], otherwise returns `null`.
-  Future<Like?> getPackageLikeStatus(String userId, String package) async {
-    final key = _db.emptyKey.append(User, id: userId).append(Like, id: package);
-
-    return await _db.lookupOrNull<Like>(key);
-  }
-
-  /// Returns a list with [LikeData] of all the packages that the given
-  ///  [user] likes.
-  Future<List<LikeData>> listPackageLikes(User user) async {
-    return (await cache.userPackageLikes(user.userId).get(() async {
-      // TODO(zarah): Introduce pagination and/or migrate this to search.
-      final query = _db.query<Like>(ancestorKey: user.key)
-        ..order('-created')
-        ..limit(1000);
-      final likes = await query.run().toList();
-      return likes.map((Like l) => LikeData.fromModel(l)).toList();
-    }))!;
-  }
-
-  /// Creates and returns a package like entry for the given [user] and
-  /// [package], and increments the 'likes' property on [package].
-  Future<Like> likePackage(User user, String package) async {
-    final res = await withRetryTransaction<Like>(_db, (tx) async {
-      final packageKey = _db.emptyKey.append(Package, id: package);
-      final p = await tx.lookupOrNull<Package>(packageKey);
-      if (p == null) {
-        throw NotFoundException.resource(package);
-      }
-
-      final key =
-          _db.emptyKey.append(User, id: user.id).append(Like, id: package);
-      final oldLike = await tx.lookupOrNull<Like>(key);
-
-      if (oldLike != null) {
-        return oldLike;
-      }
-
-      p.likes++;
-      final newLike = Like()
-        ..parentKey = user.key
-        ..id = p.id
-        ..created = clock.now().toUtc()
-        ..packageName = p.name;
-
-      tx.queueMutations(inserts: [p, newLike]);
-      return newLike;
-    });
-    await purgeAccountCache(userId: user.userId);
-    return res;
-  }
-
-  /// Delete a package like entry for the given [user] and [package] if it
-  /// exists, and decrements the 'likes' property on [package].
-  Future<void> unlikePackage(User user, String package) async {
-    await withRetryTransaction<void>(_db, (tx) async {
-      final packageKey = _db.emptyKey.append(Package, id: package);
-      final p = await tx.lookupOrNull<Package>(packageKey);
-      if (p == null) {
-        throw NotFoundException.resource(package);
-      }
-
-      final likeKey =
-          _db.emptyKey.append(User, id: user.id).append(Like, id: package);
-      final like = await tx.lookupOrNull<Like>(likeKey);
-
-      if (like == null) {
-        return;
-      }
-
-      p.likes--;
-      tx.queueMutations(inserts: [p], deletes: [likeKey]);
-    });
-    await cache.userPackageLikes(user.userId).purge();
-  }
-
   /// Verifies that the access token belongs to the [owner].
   ///
   /// Throws [AuthenticationException] if token cannot be authenticated or the
   /// OAuth userId differs from [owner].
   Future<void> verifyAccessTokenOwnership(
-      AuthSource source, String accessToken, User owner) async {
-    final auth = await authProvider.tryAuthenticate(source, accessToken);
+      String accessToken, User owner) async {
+    final auth = await authProvider.tryAuthenticate(accessToken);
     if (auth == null) {
       throw AuthenticationException.accessTokenInvalid();
     }
     if (owner.oauthUserId != auth.oauthUserId) {
+      throw AuthenticationException.accessTokenMissmatch();
+    }
+    if (auth.audience != activeConfiguration.pubSiteAudience) {
       throw AuthenticationException.accessTokenMissmatch();
     }
   }

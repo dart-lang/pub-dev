@@ -263,7 +263,6 @@ List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
 
   final pathMap = <String, String?>{};
   final symbolMap = <String, Set<String>>{};
-  final docMap = <String, List<String>>{};
 
   bool isTopLevel(String? kind) => kind == 'library' || kind == 'class';
 
@@ -273,12 +272,6 @@ List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
     }
     final set = symbolMap.putIfAbsent(key, () => <String>{});
     set.add(symbol);
-
-    documentation = documentation?.trim();
-    if (documentation != null && documentation.isNotEmpty) {
-      final list = docMap.putIfAbsent(key, () => []);
-      list.add(compactReadme(documentation));
-    }
   }
 
   pubData.apiElements!.forEach((apiElement) {
@@ -298,7 +291,6 @@ List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
     return ApiDocPage(
       relativePath: path,
       symbols: symbols,
-      textBlocks: docMap[key],
     );
   }).toList();
   results.sort((a, b) => a.relativePath.compareTo(b.relativePath));

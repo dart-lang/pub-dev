@@ -30,7 +30,7 @@ void main() {
   test('URLs are extracted', () {
     expect(urls, contains('/publishers/<publisherId>'));
     expect(urls, contains('/api/publishers/<publisherId>'));
-    expect(urls, hasLength(7));
+    expect(urls, hasLength(8));
   });
 
   testWithProfile(

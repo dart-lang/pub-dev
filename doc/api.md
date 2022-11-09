@@ -47,7 +47,43 @@ by the `cache-control` header).
 
 Notes:
  * Not all package names are included in this response.
+ * The order of the packages reflects their overall ranking on `pub.dev`.
  * The inclusion criteria used by `pub.dev` may change without notice.
+
+### Package names for archiving and mirrors
+
+**GET** `https://pub.dev/api/package-names`
+
+**Headers:**
+* `accept-encoding: gzip`
+
+**Response**
+* `cache-control: public, max-age=28800`
+* `content-encoding: gzip`
+* `content-type: application/json; charset="utf-8"`
+
+```js
+{
+  "packages": [
+    "http",
+    "provider",
+    /* further package names */
+  ],
+  "nextUrl": null /* a client should call this full URL for the next page */
+}
+```
+
+The API returns all package names on `pub.dev`. The package names are
+paginated, clients should call `"nextUrl"` for the next page if it is
+present in the response.
+
+The response is always a gzip-ed JSON content, and should be cached
+on the client side  for at least 2 hours between requests (as indicated
+by the `cache-control` header).
+
+Notes:
+ * The order of the packages, the number of packages on a response page,
+   or the URL structure of `"nextUrl"` may change without notice.
 
 ## FAQ
 

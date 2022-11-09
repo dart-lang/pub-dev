@@ -10,6 +10,7 @@ import 'package:neat_cache/neat_cache.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
+import '../../account/like_backend.dart';
 import '../../audit/backend.dart';
 import '../../package/backend.dart';
 import '../../package/models.dart';
@@ -329,7 +330,7 @@ Future<PackagePageData> loadPackagePageData(
 
   final bool isLiked = (userSessionData == null)
       ? false
-      : await accountBackend.getPackageLikeStatus(
+      : await likeBackend.getPackageLikeStatus(
               userSessionData!.userId!, package.name!) !=
           null;
 

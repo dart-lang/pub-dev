@@ -5,6 +5,7 @@
 import 'package:clock/clock.dart';
 import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/account/like_backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
@@ -139,19 +140,19 @@ void main() {
   testWithProfile('like', fn: () async {
     final user = await accountBackend.lookupUserByEmail('user@pub.dev');
     final admin = await accountBackend.lookupUserByEmail('admin@pub.dev');
-    await accountBackend.likePackage(admin, 'oxygen');
+    await likeBackend.likePackage(admin, 'oxygen');
     expect(
-        (await accountBackend.listPackageLikes(admin))
+        (await likeBackend.listPackageLikes(admin))
             .map((e) => e.package)
             .toList(),
         ['oxygen']);
-    expect(await accountBackend.listPackageLikes(user), isEmpty);
+    expect(await likeBackend.listPackageLikes(user), isEmpty);
 
     await _corruptAndFix();
 
-    expect(await accountBackend.listPackageLikes(admin), isEmpty);
+    expect(await likeBackend.listPackageLikes(admin), isEmpty);
     expect(
-        (await accountBackend.listPackageLikes(user))
+        (await likeBackend.listPackageLikes(user))
             .map((e) => e.package)
             .toList(),
         ['oxygen']);

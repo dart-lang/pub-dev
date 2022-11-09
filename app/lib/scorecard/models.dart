@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:logging/logging.dart';
@@ -13,7 +14,6 @@ import 'package:pub_semver/pub_semver.dart';
 
 import '../dartdoc/models.dart';
 import '../shared/datastore.dart' as db;
-import '../shared/model_properties.dart';
 import '../shared/utils.dart' show jsonUtf8Encoder, utf8JsonDecoder;
 import '../shared/versions.dart' as versions;
 
@@ -23,14 +23,6 @@ part 'models.g.dart';
 
 final _gzipCodec = GZipCodec();
 final _logger = Logger('scorecard.model');
-
-abstract class PackageFlags {
-  static const String isDiscontinued = 'discontinued';
-  static const String isLatestStable = 'latest-stable';
-  static const String isLegacy = 'legacy';
-  static const String isObsolete = 'obsolete';
-  static const String usesFlutter = 'uses-flutter';
-}
 
 abstract class ReportType {
   static const String pana = 'pana';
@@ -66,11 +58,6 @@ class ScoreCard extends db.ExpandoModel<String> {
 
   @db.DateTimeProperty(required: true, indexed: false)
   DateTime? packageVersionCreated;
-
-  /// The flags for the package, version or analysis.
-  /// Example values: entries from [PackageFlags].
-  @CompatibleStringListProperty(indexed: false)
-  List<String> flags = <String>[];
 
   /// Compressed, json-encoded content of [PanaReport].
   @db.BlobProperty()
@@ -121,7 +108,6 @@ class ScoreCard extends db.ExpandoModel<String> {
         updated: updated!,
         packageCreated: packageCreated!,
         packageVersionCreated: packageVersionCreated!,
-        flags: flags,
         dartdocReport: DartdocReport.fromBytes(dartdocReportJsonGz),
         panaReport: PanaReport.fromBytes(panaReportJsonGz),
       );
@@ -142,24 +128,18 @@ class ScoreCard extends db.ExpandoModel<String> {
     } else if (dartdocReportJsonGz != null && dartdocReportJsonGz!.isNotEmpty) {
       dartdocReport = DartdocReport.fromBytes(dartdocReportJsonGz);
     }
-
-    flags = {
-      ...flags,
-      ...?panaReport?.flags,
-    }.toList();
   }
 }
 
 abstract class FlagMixin {
-  List<String>? get flags;
+  List<String>? get tags;
 
   bool get isDiscontinued =>
-      flags != null && flags!.contains(PackageFlags.isDiscontinued);
+      tags?.contains(PackageTags.isDiscontinued) ?? false;
 
-  bool get isLegacy => flags != null && flags!.contains(PackageFlags.isLegacy);
+  bool get isLegacy => tags?.contains(PackageVersionTags.isLegacy) ?? false;
 
-  bool get isObsolete =>
-      flags != null && flags!.contains(PackageFlags.isObsolete);
+  bool get isObsolete => tags?.contains(PackageVersionTags.isObsolete) ?? false;
 
   bool get isSkipped => isDiscontinued || isLegacy || isObsolete;
 }
@@ -172,11 +152,6 @@ class ScoreCardData extends Object with FlagMixin {
   final DateTime? updated;
   final DateTime? packageCreated;
   final DateTime? packageVersionCreated;
-
-  /// The flags for the package, version or analysis.
-  @override
-  final List<String>? flags;
-
   final DartdocReport? dartdocReport;
   final PanaReport? panaReport;
 
@@ -187,7 +162,6 @@ class ScoreCardData extends Object with FlagMixin {
     this.updated,
     this.packageCreated,
     this.packageVersionCreated,
-    this.flags,
     this.dartdocReport,
     this.panaReport,
   });
@@ -217,6 +191,9 @@ class ScoreCardData extends Object with FlagMixin {
   late final report =
       joinReport(panaReport: panaReport, dartdocReport: dartdocReport);
 
+  @override
+  List<String>? get tags => panaReport?.derivedTags;
+
   // TODO: refactor code to use popularityStorage directly.
   double get popularityScore => popularityStorage.lookup(packageName!);
 }
@@ -243,10 +220,6 @@ class PanaReport {
 
   final List<ProcessedScreenshot>? screenshots;
 
-  /// The flags for the package, version or analysis.
-  /// Example values: entries from [PackageFlags].
-  List<String>? flags = <String>[];
-
   final List<UrlProblem>? urlProblems;
 
   PanaReport({
@@ -258,7 +231,6 @@ class PanaReport {
     required this.licenses,
     required this.report,
     required this.result,
-    required this.flags,
     required this.urlProblems,
     required this.screenshots,
   });

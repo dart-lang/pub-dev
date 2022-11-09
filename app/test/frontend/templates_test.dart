@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:_pub_shared/search/search_form.dart';
+import 'package:_pub_shared/search/tags.dart';
 import 'package:_pub_shared/validation/html/html_validation.dart';
 import 'package:clock/clock.dart';
 import 'package:html/parser.dart';
@@ -15,7 +16,6 @@ import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/frontend/handlers/package.dart'
     show loadPackagePageData;
-import 'package:pub_dev/frontend/request_context.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/frontend/templates/admin.dart';
 import 'package:pub_dev/frontend/templates/consent.dart';
@@ -256,10 +256,12 @@ void main() {
     testWithProfile('package show page with discontinued version',
         testProfile: TestProfile(
           packages: [
+            TestPackage(name: 'other'),
             TestPackage(
               name: 'pkg',
               versions: [TestVersion(version: '1.0.0')],
               isDiscontinued: true,
+              replacedBy: 'other',
             ),
           ],
           defaultUser: 'admin@pub.dev',
@@ -380,7 +382,6 @@ void main() {
           licenses: null,
           report: Report(sections: <ReportSection>[]),
           result: null,
-          flags: null,
           urlProblems: null,
           screenshots: null,
         ),
@@ -400,10 +401,22 @@ void main() {
     });
 
     testWithProfile('outdated analysis tab', fn: () async {
+      final timestamp = DateTime(2017, 12, 18, 14, 26, 00);
       final card = ScoreCardData(
         packageName: 'pkg_foo',
-        flags: [PackageFlags.isObsolete],
-        updated: DateTime(2017, 12, 18, 14, 26, 00),
+        updated: timestamp,
+        panaReport: PanaReport(
+          timestamp: timestamp,
+          panaRuntimeInfo: _panaRuntimeInfo,
+          reportStatus: ReportStatus.success,
+          derivedTags: [PackageVersionTags.isObsolete],
+          allDependencies: null,
+          licenses: null,
+          report: Report(sections: <ReportSection>[]),
+          result: null,
+          urlProblems: null,
+          screenshots: null,
+        ),
       );
       final String html = scoreTabNode(
         card: card,
@@ -469,7 +482,6 @@ void main() {
       'package index page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        registerRequestContext(RequestContext(isExperimental: true));
         final searchForm = SearchForm(query: 'sdk:dart');
         final oxygen = (await scoreCardBackend.getPackageView('oxygen'))!;
         final titanium =
@@ -581,6 +593,7 @@ void main() {
             (await scoreCardBackend.getPackageView('flutter_titanium'))!;
         final html = renderPublisherPackagesPage(
           publisher: publisher,
+          kind: PublisherPackagesPageKind.listed,
           searchResultPage: SearchResultPage(
             searchForm,
             2,
@@ -598,6 +611,39 @@ void main() {
           'publisher-created': publisher.created,
           'publisher-updated': publisher.updated,
         });
+      },
+    );
+
+    testWithProfile(
+      'publisher unlisted packages page',
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final searchForm = SearchForm();
+        final publisher = (await publisherBackend.getPublisher('example.com'))!;
+        final neon = (await scoreCardBackend.getPackageView('neon'))!;
+        final titanium =
+            (await scoreCardBackend.getPackageView('flutter_titanium'))!;
+        final html = renderPublisherPackagesPage(
+          publisher: publisher,
+          kind: PublisherPackagesPageKind.unlisted,
+          searchResultPage: SearchResultPage(
+            searchForm,
+            2,
+            packageHits: [neon, titanium],
+          ),
+          totalCount: 2,
+          searchForm: searchForm,
+          pageLinks: PageLinks(searchForm, 10),
+          isAdmin: true,
+          messageFromBackend: null,
+        );
+        expectGoldenFile(html, 'publisher_unlisted_packages_page.html',
+            timestamps: {
+              'neon-created': neon.created,
+              'titanium-created': titanium.created,
+              'publisher-created': publisher.created,
+              'publisher-updated': publisher.updated,
+            });
       },
     );
 
@@ -654,7 +700,8 @@ void main() {
         final oxygen = await scoreCardBackend.getPackageView('oxygen');
         final neon = await scoreCardBackend.getPackageView('neon');
         await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
-          final user = await requireAuthenticatedUser();
+          final authenticatedUser = await requireAuthenticatedUser();
+          final user = authenticatedUser.user;
           final session = await accountBackend.createNewSession(
             name: 'Pub User',
             imageUrl: 'pub.dev/user-img-url.png',
@@ -677,7 +724,8 @@ void main() {
 
     testWithProfile('/my-liked-packages page', fn: () async {
       await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
-        final user = await requireAuthenticatedUser();
+        final authenticatedUser = await requireAuthenticatedUser();
+        final user = authenticatedUser.user;
         final session = await accountBackend.createNewSession(
           name: 'Pub User',
           imageUrl: 'pub.dev/user-img-url.png',
@@ -703,7 +751,8 @@ void main() {
 
     testWithProfile('/my-publishers page', fn: () async {
       await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
-        final user = await requireAuthenticatedUser();
+        final authenticatedUser = await requireAuthenticatedUser();
+        final user = authenticatedUser.user;
         final session = await accountBackend.createNewSession(
           name: 'Pub User',
           imageUrl: 'pub.dev/user-img-url.png',
@@ -729,7 +778,8 @@ void main() {
 
     testWithProfile('/my-activity-log page', fn: () async {
       await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
-        final user = await requireAuthenticatedUser();
+        final authenticatedUser = await requireAuthenticatedUser();
+        final user = authenticatedUser.user;
         final session = await accountBackend.createNewSession(
           name: 'Pub User',
           imageUrl: 'pub.dev/user-img-url.png',

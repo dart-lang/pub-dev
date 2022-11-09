@@ -5,7 +5,7 @@
 import 'dart:convert';
 
 import 'package:clock/clock.dart';
-import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/account/agent.dart';
 
 import '../account/models.dart';
 import '../shared/datastore.dart' as db;
@@ -209,11 +209,44 @@ class AuditLogRecord extends db.ExpandoModel<String> {
     required DateTime created,
     String? publisherId,
   }) {
-    final summary = [
+    final summaryParts = <String>[
       'Package `$package` version `$version`',
       if (publisherId != null) ' owned by publisher `$publisherId`',
-      ' was published by `${uploader.displayId}`.',
-    ].join();
+    ];
+    var fields = const <String, dynamic>{};
+    late String summary;
+    if (uploader is AuthenticatedGithubAction) {
+      final repository = uploader.payload.repository;
+      final runId = uploader.payload.runId;
+      final sha = uploader.payload.sha;
+      fields = <String, dynamic>{
+        'repository': repository,
+        if (runId != null) 'run_id': runId,
+        if (sha != null) 'sha': sha,
+      };
+      summary = [
+        ...summaryParts,
+        ' was published from GitHub Actions',
+        if (runId != null)
+          ' (`run_id`: [`$runId`](https://github.com/$repository/actions/runs/$runId))',
+        ' triggered by pushing',
+        if (sha != null) ' revision `$sha`',
+        ' to the `$repository` repository.',
+      ].join();
+    } else if (uploader is AuthenticatedGcpServiceAccount) {
+      fields = {
+        'email': uploader.payload.email,
+      };
+      summary = [
+        ...summaryParts,
+        ' was published by Google Cloud service account: `${uploader.payload.email}`.'
+      ].join();
+    } else {
+      summary = [
+        ...summaryParts,
+        ' was published by `${uploader.displayId}`.',
+      ].join();
+    }
     return AuditLogRecord()
       ..id = createUuid()
       ..created = created
@@ -226,6 +259,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'version': version,
         if (uploader is AuthenticatedUser) 'email': uploader.user.email,
         if (publisherId != null) 'publisherId': publisherId,
+        ...fields,
       }
       ..users = [if (uploader is AuthenticatedUser) uploader.user.userId]
       ..packages = [package]

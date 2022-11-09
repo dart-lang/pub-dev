@@ -9,7 +9,7 @@ import 'package:_pub_shared/search/search_form.dart' show SearchForm;
 import '../../audit/models.dart';
 import '../../frontend/templates/views/account/activity_log_table.dart';
 import '../../package/search_adapter.dart' show SearchResultPage;
-import '../../publisher/models.dart' show Publisher, PublisherSummary;
+import '../../publisher/models.dart';
 import '../../shared/urls.dart' as urls;
 import '../dom/dom.dart' as d;
 import 'detail_page.dart';
@@ -44,6 +44,7 @@ String renderPublisherListPage(List<PublisherSummary> publishers) {
 /// Renders the search results on the publisher's packages page.
 String renderPublisherPackagesPage({
   required Publisher publisher,
+  required PublisherPackagesPageKind kind,
   required SearchResultPage searchResultPage,
   required String? messageFromBackend,
   required PageLinks pageLinks,
@@ -51,11 +52,7 @@ String renderPublisherPackagesPage({
   required int totalCount,
   required bool isAdmin,
 }) {
-  final isSearch = searchForm.hasQuery;
-  String title = 'Packages of publisher ${publisher.publisherId}';
-  if (isSearch && pageLinks.currentPage! > 1) {
-    title += ' | Page ${pageLinks.currentPage}';
-  }
+  final title = 'Packages of publisher ${publisher.publisherId}';
 
   final tabContent = d.fragment([
     listingInfo(
@@ -64,16 +61,44 @@ String renderPublisherPackagesPage({
       ownedBy: publisher.publisherId,
       messageFromBackend: messageFromBackend,
     ),
+    if (kind == PublisherPackagesPageKind.unlisted)
+      d.markdown(
+          '**Remark:** Unlisted packages are not included in search results by default, '
+          'however, unlisted packages are still publicly available. Unlisted packages '
+          'can also be discovered through search using the `show:unlisted` term.'),
     if (searchResultPage.hasHit) packageList(searchResultPage),
     paginationNode(pageLinks),
   ]);
 
+  String canonicalUrl;
+  List<Tab> packagesTabs;
+  switch (kind) {
+    case PublisherPackagesPageKind.listed:
+      canonicalUrl = urls.publisherPackagesUrl(publisher.publisherId);
+      packagesTabs = <Tab>[
+        Tab.withContent(
+          id: 'packages',
+          title: 'Packages',
+          contentNode: tabContent,
+        ),
+        if (isAdmin) _unlistedPackagesLinkTab(publisher.publisherId),
+      ];
+      break;
+    case PublisherPackagesPageKind.unlisted:
+      canonicalUrl = urls.publisherUnlistedPackagesUrl(publisher.publisherId);
+      packagesTabs = <Tab>[
+        _packagesLinkTab(publisher.publisherId),
+        Tab.withContent(
+          id: 'unlisted-packages',
+          title: 'Unlisted packages',
+          contentNode: tabContent,
+        ),
+      ];
+      break;
+  }
+
   final tabs = <Tab>[
-    Tab.withContent(
-      id: 'packages',
-      title: 'Packages',
-      contentNode: tabContent,
-    ),
+    ...packagesTabs,
     if (isAdmin) _adminLinkTab(publisher.publisherId),
     if (isAdmin) _activityLogLinkTab(publisher.publisherId),
   ];
@@ -93,10 +118,11 @@ String renderPublisherPackagesPage({
       ),
     ),
     searchForm: searchForm,
-    canonicalUrl: urls.publisherPackagesUrl(publisher.publisherId),
-    // index only the first page, if it has packages displayed without search query
-    noIndex:
-        searchResultPage.hasNoHit || isSearch || pageLinks.currentPage! > 1,
+    canonicalUrl: canonicalUrl,
+    // index only the first listed page, if it has packages displayed without search query
+    noIndex: kind == PublisherPackagesPageKind.unlisted ||
+        searchResultPage.hasNoHit ||
+        pageLinks.currentPage! > 1,
     mainClasses: [wideHeaderDetailPageClassName],
   );
 }
@@ -191,6 +217,12 @@ Tab _packagesLinkTab(String publisherId) => Tab.withLink(
       id: 'packages',
       title: 'Packages',
       href: urls.publisherPackagesUrl(publisherId),
+    );
+
+Tab _unlistedPackagesLinkTab(String publisherId) => Tab.withLink(
+      id: 'unlisted-packages',
+      title: 'Unlisted packages',
+      href: urls.publisherUnlistedPackagesUrl(publisherId),
     );
 
 Tab _adminLinkTab(String publisherId) => Tab.withLink(

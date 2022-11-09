@@ -16,6 +16,7 @@ import 'package:shelf/shelf_io.dart';
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
 import '../account/google_oauth2.dart';
+import '../account/like_backend.dart';
 import '../admin/backend.dart';
 import '../audit/backend.dart';
 import '../dartdoc/backend.dart';
@@ -220,6 +221,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerEmailBackend(EmailBackend(dbService));
     registerFlutterSdkMemIndex(FlutterSdkMemIndex());
     registerJobBackend(JobBackend(dbService));
+    registerLikeBackend(LikeBackend(dbService));
     registerNameTracker(NameTracker(dbService));
     registerPackageIndex(InMemoryPackageIndex(
       popularityValueFn: (p) => popularityStorage.lookup(p),

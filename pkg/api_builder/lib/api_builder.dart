@@ -54,28 +54,40 @@ class ApiResponseException implements Exception {
   final int status;
   final String code;
   final String message;
+  final Map<String, String>? headers;
 
   ApiResponseException({
     required this.status,
     required this.code,
     required this.message,
+    this.headers,
   });
 
-  shelf.Response asApiResponse() => shelf.Response(status,
-          body: json.fuse(utf8).encode({
-            'error': {
-              'code': code,
-              'message': message,
-            },
-            // TODO: remove after the above gets deployed live
-            'code': code,
-            'message': message,
-          }),
-          headers: {
-            'content-type': 'application/json; charset="utf-8"',
-            'x-content-type-options': 'nosniff',
-          });
+  shelf.Response asApiResponse() {
+    return shelf.Response(
+      status,
+      body: json.fuse(utf8).encode({
+        'error': {
+          'code': code,
+          'message': message,
+        },
+        // TODO: remove after the above gets deployed live
+        'code': code,
+        'message': message,
+      }),
+      headers: {
+        'content-type': 'application/json; charset="utf-8"',
+        'x-content-type-options': 'nosniff',
+        ...?headers,
+      },
+    );
+  }
 }
+
+const _expectedJsonMimeTypes = <String>{
+  'application/json',
+  'application/vnd.pub.v2+json',
+};
 
 /// Utility methods exported for use in generated code.
 abstract class $utilities {
@@ -84,11 +96,15 @@ abstract class $utilities {
     shelf.Request request,
     T Function(Map<String, dynamic>) fromJson,
   ) async {
-    // TODO: Consider enforcing that requests should have 'Content-Type' set to
-    // 'application/json'. Notice that we should be careful as the CLI client,
-    // might be sending a different Content-Type.
-    final data = await request.readAsString();
     try {
+      // TODO: Consider enforcing that requests should have 'Content-Type' set to
+      // 'application/json'. Notice that we should be careful as the CLI client,
+      // might be sending a different Content-Type.
+      if (!_expectedJsonMimeTypes.contains(request.mimeType)) {
+        _log.info('Unexpected MIME type: ${request.mimeType}', request.mimeType,
+            StackTrace.current);
+      }
+      final data = await request.readAsString();
       final value = json.decode(data);
       if (value is Map<String, dynamic>) {
         try {

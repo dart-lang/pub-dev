@@ -30,7 +30,6 @@ class InMemoryPackageIndex implements PackageIndex {
   final TokenIndex _descrIndex = TokenIndex();
   final TokenIndex _readmeIndex = TokenIndex();
   final TokenIndex _apiSymbolIndex = TokenIndex();
-  final TokenIndex _apiDartdocIndex = TokenIndex();
   final _likeTracker = _LikeTracker();
   final _updatedPackages = ListQueue<String>();
   final bool _alwaysUpdateLikeScores;
@@ -93,10 +92,6 @@ class InMemoryPackageIndex implements PackageIndex {
         await Future.delayed(Duration.zero);
         _apiSymbolIndex.add(pageId, page.symbols!.join(' '));
       }
-      if (page.textBlocks != null && page.textBlocks!.isNotEmpty) {
-        await Future.delayed(Duration.zero);
-        _apiDartdocIndex.add(pageId, page.textBlocks!.join(' '));
-      }
     }
 
     await Future.delayed(Duration.zero);
@@ -131,7 +126,6 @@ class InMemoryPackageIndex implements PackageIndex {
     for (ApiDocPage page in doc.apiDocPages ?? const []) {
       final pageId = _apiDocPageId(doc.package, page);
       _apiSymbolIndex.remove(pageId);
-      _apiDartdocIndex.remove(pageId);
     }
     _likeTracker.removePackage(doc.package);
     _lastUpdated = clock.now().toUtc();
@@ -214,8 +208,9 @@ class InMemoryPackageIndex implements PackageIndex {
         ];
         final overallScore = Score.multiply(scores);
         // If the search hits have an exact name match, we move it to the front of the result list.
+        final parsedQueryText = query.parsedQuery.text;
         final priorityPackageName =
-            query.considerHighlightedHit ? query.parsedQuery.text : null;
+            packages.contains(parsedQueryText ?? '') ? parsedQueryText : null;
         packageHits = _rankWithValues(
           overallScore.getValues(),
           priorityPackageName: priorityPackageName,
@@ -335,44 +330,11 @@ class InMemoryPackageIndex implements PackageIndex {
         symbolPages = _apiSymbolIndex.searchWords(words, weight: 0.70);
       }
 
-      // Do documentation text search only when there was no reasonable core result
-      // and no reasonable API symbol result.
-      var dartdocPages = Score.empty();
-      final shouldSearchApiText =
-          core.maxValue < 0.4 && symbolPages.maxValue < 0.3;
-      if (!checkAborted() && shouldSearchApiText) {
-        final sw = Stopwatch()..start();
-        dartdocPages = _apiDartdocIndex.searchWords(words, weight: 0.40);
-        _logger.info('[pub-search-query-with-api-dartdoc-index] '
-            'core: ${core.length}/${core.maxValue} '
-            'symbols: ${symbolPages.length}/${symbolPages.maxValue} '
-            'documentation: ${dartdocPages.length}/${dartdocPages.maxValue} '
-            'elapsed: ${sw.elapsed}');
-      } else {
-        _logger.info('[pub-search-query-without-api-dartdoc-index] '
-            'core: ${core.length}/${core.maxValue} '
-            'symbols: ${symbolPages.length}/${symbolPages.maxValue}');
-      }
-      final logTags = [
-        if (symbolPages.isNotEmpty) '[pub-search-query-api-symbols-found]',
-        if (dartdocPages.isNotEmpty) '[pub-search-query-api-dartdoc-found]',
-        if (symbolPages.maxValue > core.maxValue)
-          '[pub-search-query-api-symbols-better-than-core]',
-        if (dartdocPages.maxValue > core.maxValue)
-          '[pub-search-query-api-dartdoc-better-than-core]',
-        if (symbolPages.maxValue > dartdocPages.maxValue)
-          '[pub-search-query-api-dartdoc-better-than-symbols]',
-      ];
-      if (logTags.isNotEmpty) {
-        _logger.info('[pub-search-query-api-improved] ${logTags.join(' ')}');
-      }
-
-      final apiDocScore = Score.max([symbolPages, dartdocPages]);
       final apiPackages = <String, double>{};
-      for (String key in apiDocScore.getKeys()) {
+      for (String key in symbolPages.getKeys()) {
         final pkg = _apiDocPkg(key);
         if (!packages.contains(pkg)) continue;
-        final value = apiDocScore[key];
+        final value = symbolPages[key];
         apiPackages[pkg] = math.max(value, apiPackages[pkg] ?? 0.0);
       }
       final apiPkgScore = Score(apiPackages);
@@ -397,8 +359,8 @@ class InMemoryPackageIndex implements PackageIndex {
         score = Score(matched);
       }
 
-      final apiDocKeys = apiDocScore.getKeys().toList()
-        ..sort((a, b) => -apiDocScore[a].compareTo(apiDocScore[b]));
+      final apiDocKeys = symbolPages.getKeys().toList()
+        ..sort((a, b) => -symbolPages[a].compareTo(symbolPages[b]));
       final topApiPages = <String, List<String>>{};
       for (String key in apiDocKeys) {
         final pkg = _apiDocPkg(key);

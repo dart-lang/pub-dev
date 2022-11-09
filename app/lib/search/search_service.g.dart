@@ -56,16 +56,12 @@ ApiDocPage _$ApiDocPageFromJson(Map<String, dynamic> json) => ApiDocPage(
       relativePath: json['relativePath'] as String,
       symbols:
           (json['symbols'] as List<dynamic>?)?.map((e) => e as String).toList(),
-      textBlocks: (json['textBlocks'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
     );
 
 Map<String, dynamic> _$ApiDocPageToJson(ApiDocPage instance) =>
     <String, dynamic>{
       'relativePath': instance.relativePath,
       'symbols': instance.symbols,
-      'textBlocks': instance.textBlocks,
     };
 
 PackageSearchResult _$PackageSearchResultFromJson(Map<String, dynamic> json) =>

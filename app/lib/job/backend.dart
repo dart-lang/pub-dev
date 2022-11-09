@@ -402,19 +402,7 @@ class JobBackend {
   Future<void> deleteOldEntries() async {
     final query = _db.query<Job>()
       ..filter('runtimeVersion <', versions.gcBeforeRuntimeVersion);
-    final deleteKeys = <db.Key>[];
-    await for (Job job in query.run()) {
-      deleteKeys.add(job.key);
-      if (deleteKeys.length >= 20) {
-        _logger.info('Deleting ${deleteKeys.length} old Job entries.');
-        await _db.commit(deletes: deleteKeys);
-        deleteKeys.clear();
-      }
-    }
-    if (deleteKeys.isNotEmpty) {
-      _logger.info('Deleting ${deleteKeys.length} old Job entries.');
-      await _db.commit(deletes: deleteKeys);
-    }
+    await _db.deleteWithQuery<Job>(query);
   }
 }
 

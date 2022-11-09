@@ -4,6 +4,7 @@
 
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 
 import '../../shared/handlers_test_utils.dart';
@@ -54,14 +55,14 @@ void main() {
     testWithProfile('publisher package with text search', fn: () async {
       await expectRedirectResponse(
         await issueGet('/publishers/example.com/packages?q=n'),
-        '/packages?q=publisher%3Aexample.com+show%3Aunlisted+n',
+        '/packages?q=publisher%3Aexample.com+n',
       );
     });
 
     testWithProfile('publisher package with tag search', fn: () async {
       await expectRedirectResponse(
         await issueGet('/publishers/example.com/packages?q=sdk:dart'),
-        '/packages?q=sdk%3Adart+publisher%3Aexample.com+show%3Aunlisted',
+        '/packages?q=sdk%3Adart+publisher%3Aexample.com',
       );
     });
 
@@ -70,7 +71,7 @@ void main() {
       fn: () async {
         await expectRedirectResponse(
           await issueGet('/publishers/example.com/packages?page=2'),
-          '/packages?q=publisher%3Aexample.com+show%3Aunlisted&page=2',
+          '/packages?q=publisher%3Aexample.com&page=2',
         );
       },
     );
@@ -80,7 +81,7 @@ void main() {
       fn: () async {
         await expectRedirectResponse(
           await issueGet('/publishers/example.com/packages?sort=updated'),
-          '/packages?q=publisher%3Aexample.com+show%3Aunlisted&sort=updated',
+          '/packages?q=publisher%3Aexample.com&sort=updated',
         );
       },
     );
@@ -92,5 +93,33 @@ void main() {
         absent: ['/packages/oxygen'],
       );
     });
+
+    testWithProfile(
+      'unlisted packages',
+      testProfile: TestProfile(
+        packages: [
+          TestPackage(name: 'pkg_a', publisher: 'example.com'),
+          TestPackage(
+            name: 'pkg_b',
+            publisher: 'example.com',
+            isUnlisted: true,
+          ),
+        ],
+        defaultUser: 'admin@pub.dev',
+      ),
+      fn: () async {
+        await expectHtmlResponse(
+          await issueGet('/publishers/example.com/packages'),
+          present: ['/packages/pkg_a'],
+          absent: ['/packages/pkg_b'],
+        );
+
+        await expectHtmlResponse(
+          await issueGet('/publishers/example.com/unlisted-packages'),
+          present: ['/packages/pkg_b'],
+          absent: ['/packages/pkg_a'],
+        );
+      },
+    );
   });
 }

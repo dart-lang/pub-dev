@@ -9,13 +9,18 @@ import 'package:api_builder/_client_utils.dart' show RequestException;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
-Future expectApiException(Future future,
-    {int? status, String? code, String? message}) async {
+Future expectApiException(
+  Future future, {
+  int? status,
+  String? code,
+  String? message,
+  String? reason,
+  Map<String, dynamic>? headers,
+}) async {
   await expectLater(
-      future,
-      throwsA(isA<RequestException>()
-          .having((e) => e.status, 'status', status)
-          .having(
+    future,
+    throwsA(
+      isA<RequestException>().having((e) => e.status, 'status', status).having(
         (e) => e.bodyAsJson(),
         'bodyAsJson',
         {
@@ -27,7 +32,19 @@ Future expectApiException(Future future,
           'code': code ?? isNotNull,
           'message': message == null ? isNotNull : contains(message),
         },
-      )));
+      ).having(
+        (e) {
+          return headers == null
+              ? null
+              : Map.fromEntries(
+                  e.headers.entries.where((e) => headers.containsKey(e.key)));
+        },
+        'headers',
+        headers,
+      ),
+    ),
+    reason: reason,
+  );
 }
 
 Future expectJsonResponse(shelf.Response response, {status = 200, body}) async {
