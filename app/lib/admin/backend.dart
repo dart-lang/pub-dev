@@ -8,7 +8,6 @@ import 'package:_pub_shared/data/admin_api.dart' as api;
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
-import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
@@ -79,39 +78,13 @@ class AdminBackend {
   final DatastoreDB _db;
   AdminBackend(this._db);
 
-  /// Require that the incoming request is authorized by an administrator with
-  /// the given [permission].
-  ///
-  /// Throws [AuthorizationException] if it doesn't have the permission.
-  Future<User> _requireAdminPermission(AdminPermission permission) async {
-    ArgumentError.checkNotNull(permission, 'permission');
-
-    final authenticatedUser = await requireAuthenticatedUser(
-        expectedAudience: activeConfiguration.adminAudience);
-    final user = authenticatedUser.user;
-    if (!await verifyAdminPermission(authenticatedUser.user, permission)) {
-      _logger.warning(
-          'User (${user.userId} / ${user.email}) is trying to access unauthorized admin APIs.');
-      throw AuthorizationException.userIsNotAdminForPubSite();
-    }
-    return user;
-  }
-
-  /// Returns `true` if the [user] is authorized by an administrator with the given [permission].
-  Future<bool> verifyAdminPermission(
-      User user, AdminPermission permission) async {
-    final admin = activeConfiguration.admins!.firstWhereOrNull(
-        (a) => a.oauthUserId == user.oauthUserId && a.email == user.email);
-    return admin != null && admin.permissions.contains(permission);
-  }
-
   /// Executes a [tool] with the [args].
   ///
   /// NOTE: This method allows old command-line tools to be used via the
   /// admin API, but it should only be used as a temporary measure.
   /// Tools should be either removed or migrated to proper top-level API endpoints.
   Future<String> executeTool(String tool, List<String> args) async {
-    await _requireAdminPermission(AdminPermission.executeTool);
+    await requireAuthenticatedAdmin(AdminPermission.executeTool);
     final toolFunction = availableTools[tool] ?? executeListTools;
     return await toolFunction(args);
   }
@@ -124,7 +97,7 @@ class AdminBackend {
     int limit = 1000,
   }) async {
     InvalidInputException.checkRange(limit, 'limit', minimum: 1, maximum: 1000);
-    await _requireAdminPermission(AdminPermission.listUsers);
+    await requireAuthenticatedAdmin(AdminPermission.listUsers);
 
     final query = _db.query<User>()..limit(limit);
 
@@ -170,7 +143,7 @@ class AdminBackend {
   /// Removes user from the Datastore and updates the packages and other
   /// entities they may have controlled.
   Future<void> removeUser(String userId) async {
-    final caller = await _requireAdminPermission(AdminPermission.removeUsers);
+    final caller = await requireAuthenticatedAdmin(AdminPermission.removeUsers);
     final user = await accountBackend.lookupUserById(userId);
     if (user == null) return;
     if (user.isDeleted) return;
@@ -324,7 +297,8 @@ class AdminBackend {
   /// Datastore representing the removed package. No new package with the same
   /// name can be published.
   Future<void> removePackage(String packageName) async {
-    final caller = await _requireAdminPermission(AdminPermission.removePackage);
+    final caller =
+        await requireAuthenticatedAdmin(AdminPermission.removePackage);
 
     _logger.info('${caller.userId} (${caller.email}) initiated the delete '
         'of package $packageName');
@@ -424,7 +398,7 @@ class AdminBackend {
     InvalidInputException.check(options.isRetracted != null,
         'Only updating "isRetracted" is implemented.');
     final caller =
-        await _requireAdminPermission(AdminPermission.manageRetraction);
+        await requireAuthenticatedAdmin(AdminPermission.manageRetraction);
 
     if (options.isRetracted != null) {
       final isRetracted = options.isRetracted!;
@@ -446,7 +420,7 @@ class AdminBackend {
 
         if (pv.isRetracted != isRetracted) {
           await packageBackend.doUpdateRetractedStatus(
-              caller, tx, p, pv, isRetracted);
+              caller.user, tx, p, pv, isRetracted);
         }
       });
       await purgePackageCache(packageName);
@@ -457,7 +431,8 @@ class AdminBackend {
   /// related entities. It is safe to call [removePackageVersion] on an already
   /// removed version, as the call is idempotent.
   Future<void> removePackageVersion(String packageName, String version) async {
-    final caller = await _requireAdminPermission(AdminPermission.removePackage);
+    final caller =
+        await requireAuthenticatedAdmin(AdminPermission.removePackage);
 
     _logger.info('${caller.userId} (${caller.email}) initiated the delete '
         'of package $packageName $version');
@@ -533,7 +508,7 @@ class AdminBackend {
     String packageName,
   ) async {
     checkPackageVersionParams(packageName);
-    await _requireAdminPermission(AdminPermission.manageAssignedTags);
+    await requireAuthenticatedAdmin(AdminPermission.manageAssignedTags);
     final package = await packageBackend.lookupPackage(packageName);
     if (package == null) {
       throw NotFoundException.resource(packageName);
@@ -549,7 +524,7 @@ class AdminBackend {
     String packageName,
     api.PatchAssignedTags body,
   ) async {
-    await _requireAdminPermission(AdminPermission.manageAssignedTags);
+    await requireAuthenticatedAdmin(AdminPermission.manageAssignedTags);
 
     InvalidInputException.check(
       body.assignedTagsAdded
@@ -596,7 +571,7 @@ class AdminBackend {
     String packageName,
   ) async {
     checkPackageVersionParams(packageName);
-    await _requireAdminPermission(AdminPermission.managePackageOwnership);
+    await requireAuthenticatedAdmin(AdminPermission.managePackageOwnership);
     final package = await packageBackend.lookupPackage(packageName);
     if (package == null) {
       throw NotFoundException.resource(packageName);
@@ -630,8 +605,8 @@ class AdminBackend {
   Future<api.PackageUploaders> handleAddPackageUploader(
       String packageName, String email) async {
     checkPackageVersionParams(packageName);
-    final adminUser =
-        await _requireAdminPermission(AdminPermission.managePackageOwnership);
+    final authenticatedUser =
+        await requireAuthenticatedAdmin(AdminPermission.managePackageOwnership);
     final package = await packageBackend.lookupPackage(packageName);
     if (package == null) {
       throw NotFoundException.resource(packageName);
@@ -642,7 +617,7 @@ class AdminBackend {
         isValidEmail(uploaderEmail), 'Not a valid email: `$uploaderEmail`.');
 
     await consentBackend.invitePackageUploader(
-      activeUser: adminUser,
+      activeUser: authenticatedUser.user,
       packageName: packageName,
       uploaderEmail: uploaderEmail,
       isFromAdminUser: true,
@@ -656,8 +631,8 @@ class AdminBackend {
   Future<api.PackageUploaders> handleRemovePackageUploader(
       String packageName, String email) async {
     checkPackageVersionParams(packageName);
-    final adminUser =
-        await _requireAdminPermission(AdminPermission.managePackageOwnership);
+    final authenticatedUser =
+        await requireAuthenticatedAdmin(AdminPermission.managePackageOwnership);
     final package = await packageBackend.lookupPackage(packageName);
     if (package == null) {
       throw NotFoundException.resource(packageName);
@@ -681,7 +656,7 @@ class AdminBackend {
         if (r) {
           removed = true;
           tx.insert(AuditLogRecord.uploaderRemoved(
-            activeUser: adminUser,
+            activeUser: authenticatedUser.user,
             package: packageName,
             uploaderUser: uploaderUser,
           ));
@@ -692,7 +667,7 @@ class AdminBackend {
           p.isDiscontinued = true;
           tx.insert(AuditLogRecord.packageOptionsUpdated(
             package: packageName,
-            user: adminUser,
+            user: authenticatedUser.user,
             options: ['discontinued'],
           ));
         }
