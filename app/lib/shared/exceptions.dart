@@ -13,13 +13,19 @@
 /// consumption.
 library exceptions;
 
+import 'dart:io';
+
 import 'package:api_builder/api_builder.dart' show ApiResponseException;
 import 'package:pub_dev/shared/utils.dart';
 
 /// Base class for all exceptions that are intercepted by HTTP handler wrappers.
 abstract class ResponseException extends ApiResponseException {
-  ResponseException._(int status, String code, String message)
-      : super(status: status, code: code, message: message);
+  ResponseException._(
+    int status,
+    String code,
+    String message, {
+    Map<String, String>? headers,
+  }) : super(status: status, code: code, message: message, headers: headers);
 
   @override
   String toString() => '$code($status): $message'; // implemented for debugging
@@ -311,7 +317,12 @@ class OperationForbiddenException extends ResponseException {
 /// Thrown when authentication failed, credentials is missing or invalid.
 class AuthenticationException extends ResponseException {
   AuthenticationException._(String message)
-      : super._(401, 'MissingAuthentication', message);
+      : super._(
+          401,
+          'MissingAuthentication',
+          message,
+          headers: _wwwAuthenticateHeaders(message),
+        );
 
   /// Signaling that `authorization` header was missing.
   factory AuthenticationException.authenticationRequired() =>
@@ -354,7 +365,12 @@ class AuthenticationException extends ResponseException {
 ///  * Creating a publisher without domain validation.
 class AuthorizationException extends ResponseException {
   AuthorizationException._(String message)
-      : super._(403, 'InsufficientPermissions', message);
+      : super._(
+          403,
+          'InsufficientPermissions',
+          message,
+          headers: _wwwAuthenticateHeaders(message),
+        );
 
   /// Signaling that the user is blocked.
   factory AuthorizationException.blocked() =>
@@ -497,4 +513,24 @@ class EmailSenderException extends ResponseException {
   EmailSenderException.failed()
       : super._(500, 'EmailSenderFailed',
             'Failed to send email, please retry later.');
+}
+
+final _whitespaces = RegExp(r'\s+');
+
+Map<String, String> _wwwAuthenticateHeaders(String message) {
+  // Escaping HTTP header as follows:
+  // - replace double quote with single quote
+  // - replace whitespaces with space
+  // - only allow printable ASCII, and replace everything with whitespace
+  // - at-most 1024 characters
+  final escaped = String.fromCharCodes(message
+          .replaceAll('"', "'")
+          .runes
+          .map((r) => 32 <= r && r <= 127 ? r : 32)
+          .take(1024))
+      .replaceAll(_whitespaces, ' ');
+
+  return {
+    HttpHeaders.wwwAuthenticateHeader: 'Bearer realm="pub", message="$escaped"',
+  };
 }

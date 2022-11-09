@@ -15,24 +15,34 @@ Future expectApiException(
   String? code,
   String? message,
   String? reason,
+  Map<String, dynamic>? headers,
 }) async {
   await expectLater(
     future,
-    throwsA(isA<RequestException>()
-        .having((e) => e.status, 'status', status)
-        .having(
-      (e) => e.bodyAsJson(),
-      'bodyAsJson',
-      {
-        'error': {
+    throwsA(
+      isA<RequestException>().having((e) => e.status, 'status', status).having(
+        (e) => e.bodyAsJson(),
+        'bodyAsJson',
+        {
+          'error': {
+            'code': code ?? isNotNull,
+            'message': message == null ? isNotNull : contains(message),
+          },
+          // TODO: remove after the above gets deployed live
           'code': code ?? isNotNull,
           'message': message == null ? isNotNull : contains(message),
         },
-        // TODO: remove after the above gets deployed live
-        'code': code ?? isNotNull,
-        'message': message == null ? isNotNull : contains(message),
-      },
-    )),
+      ).having(
+        (e) {
+          return headers == null
+              ? null
+              : Map.fromEntries(
+                  e.headers.entries.where((e) => headers.containsKey(e.key)));
+        },
+        'headers',
+        headers,
+      ),
+    ),
     reason: reason,
   );
 }
