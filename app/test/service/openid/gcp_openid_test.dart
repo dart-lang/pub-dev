@@ -11,20 +11,8 @@ void main() {
   testWithProfile('Google Cloud key list', fn: () async {
     final data = await fetchGoogleCloudOpenIdData();
     expect(data.provider.issuer, 'https://accounts.google.com');
-    expect(data.provider.claimsSupported, [
-      'aud',
-      'email',
-      'email_verified',
-      'exp',
-      'family_name',
-      'given_name',
-      'iat',
-      'iss',
-      'locale',
-      'name',
-      'picture',
-      'sub',
-    ]);
+    expect(data.provider.claimsSupported,
+        containsAll(GcpServiceAccountJwtPayload.requiredClaims));
     expect(data.provider.idTokenSigningAlgValuesSupported, [
       'RS256',
     ]);
