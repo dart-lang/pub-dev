@@ -7,6 +7,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## `20221110t093400-all`
  * Bumped runtimeVersion to `2022.11.04`.
+ * Upgraded dependencies.
  * NOTE: `api_builder` logs unexpected mime types.
 
 ## `20221103t103200-all`
