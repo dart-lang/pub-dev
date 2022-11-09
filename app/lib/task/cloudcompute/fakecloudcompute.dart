@@ -2,9 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+import 'dart:io';
+
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as p;
+import 'package:pub_dev/frontend/static_files.dart';
 
 import 'cloudcompute.dart';
 
@@ -55,6 +61,10 @@ class FakeCloudCompute extends CloudCompute {
     );
     _log.info('Creating instance "$instanceName"');
     _instances.add(instance);
+
+    // Start running the next instance
+    scheduleMicrotask(() async => await _keepExecutionLoopAlive());
+
     return instance;
   }
 
@@ -80,6 +90,9 @@ class FakeCloudCompute extends CloudCompute {
   }
 
   /// Change state of instance with [instanceName] to [InstanceState.running].
+  ///
+  /// This does not start any subprocess or run any code. Just changes the state
+  /// of the instance as known.
   void fakeStartInstance(String instanceName) {
     if (!_instances.any((i) => i.instanceName == instanceName)) {
       throw StateError('instance "$instanceName" does not exist');
@@ -103,6 +116,68 @@ class FakeCloudCompute extends CloudCompute {
     );
     _instances.removeWhere((i) => i.instanceName == instanceName);
     _instances.add(instance._copyWith(state: InstanceState.terminated));
+  }
+
+  var _running = false;
+  Completer<void> _done = Completer()..complete();
+
+  /// Start execution of instances.
+  void startInstanceExecution() {
+    if (_running) {
+      throw StateError(
+        'FakeCloudCompute.startInstanceExecution() have already been called!',
+      );
+    }
+    _running = true;
+    scheduleMicrotask(() async => await _keepExecutionLoopAlive());
+  }
+
+  Future<void> _keepExecutionLoopAlive() async {
+    final instance = _instances.firstWhereOrNull(
+      (i) => i.state == InstanceState.pending,
+    );
+    // If not running, there are no pending instance, or an instance is already
+    // running, then we're done.
+    if (!_running || instance == null || !_done.isCompleted) {
+      return;
+    }
+
+    fakeStartInstance(instance.instanceName);
+    _done = Completer();
+
+    scheduleMicrotask(() async {
+      _log.info('Starting to run ${instance.instanceName}');
+      try {
+        final proc = await Process.start(
+          Platform.resolvedExecutable,
+          ['run', 'bin/pub_worker.dart', ...instance.arguments],
+          workingDirectory: p.join(resolveAppDir(), '..', 'pkg', 'pub_worker'),
+          mode: ProcessStartMode.inheritStdio,
+        );
+        final exitCode = await proc.exitCode;
+        _log.info('pub_worker exit code: $exitCode');
+      } finally {
+        // Don't terminate the instance if it's already deleted.
+        if (_instances.any((i) => i.instanceName == instance.instanceName)) {
+          fakeTerminateInstance(instance.instanceName);
+        }
+        _done.complete();
+
+        // Start running the next instance
+        scheduleMicrotask(() async => await _keepExecutionLoopAlive());
+      }
+    });
+  }
+
+  /// Stop execution of instances.
+  Future<void> stopInstanceExecution() async {
+    if (!_running) {
+      throw StateError(
+        'FakeCloudCompute.startInstanceExecution() have not been called!',
+      );
+    }
+    _running = false;
+    await _done.future;
   }
 }
 
@@ -160,4 +235,15 @@ class FakeCloudInstance extends CloudInstance {
     required this.arguments,
     required this.description,
   });
+
+  @override
+  String toString() => 'FakeCloudInstance(${[
+        'name: $instanceName',
+        'zone: $zone',
+        'created: $created',
+        'state: $state',
+        'image: $dockerImage',
+        'arguments: ${arguments.join(' ')}',
+        'description: $description',
+      ].join(',')})';
 }

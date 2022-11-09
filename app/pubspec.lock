@@ -232,6 +232,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.2.4"
+  dartdoc:
+    dependency: transitive
+    description:
+      name: dartdoc
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "6.1.1"
   fake_async:
     dependency: "direct main"
     description:
@@ -526,6 +533,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.0"
+  pub_dartdoc:
+    dependency: transitive
+    description:
+      path: "../pkg/pub_dartdoc"
+      relative: true
+    source: path
+    version: "0.0.0"
   pub_dartdoc_data:
     dependency: "direct main"
     description:

@@ -43,4 +43,7 @@ class RequestContext {
 
   /// Whether to show package screenshots in search listings.
   bool get showScreenshots => isExperimental;
+
+  /// Whether to return dartdoc from sandboxing output.
+  bool get showSandboxedDartDoc => isExperimental;
 }

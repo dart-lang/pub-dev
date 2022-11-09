@@ -99,6 +99,8 @@ class StaticFileCache {
     final thirdPartyDir = _resolveDir('third_party');
     _addDirectory(_resolveDir('third_party/highlight'), baseDir: thirdPartyDir);
     _addDirectory(_resolveDir('third_party/css'), baseDir: thirdPartyDir);
+    _addDirectory(_resolveDir('third_party/dartdoc/resources'),
+        baseDir: thirdPartyDir);
     _addDirectory(_resolveDir('third_party/material/bundle'),
         baseDir: thirdPartyDir);
     _joinFiles(
@@ -222,6 +224,14 @@ class StaticUrls {
   late final defaultProfilePng = getAssetUrl(
       '/static/img/material-icon-twotone-account-circle-white-24dp.png');
   late final githubMarkdownCss = getAssetUrl('/static/css/github-markdown.css');
+  late final dartdocGithubCss =
+      getAssetUrl('/static/dartdoc/resources/github.css');
+  late final dartdocStylesCss =
+      getAssetUrl('/static/dartdoc/resources/styles.css');
+  late final dartdocScriptJs =
+      getAssetUrl('/static/dartdoc/resources/docs.dart.js');
+  late final dartdochighlightJs =
+      getAssetUrl('/static/dartdoc/resources/highlight.pack.js');
   late final packagesSideImage = getAssetUrl('/static/img/packages-side.webp');
   late final reportMissingIconRed =
       getAssetUrl('/static/img/report-missing-icon-red.svg');

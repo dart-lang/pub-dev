@@ -176,6 +176,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.2.4"
+  dartdoc:
+    dependency: transitive
+    description:
+      name: dartdoc
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "6.1.1"
   file:
     dependency: transitive
     description:
@@ -358,6 +365,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.5.1"
+  pub_dartdoc:
+    dependency: "direct main"
+    description:
+      path: "../pub_dartdoc"
+      relative: true
+    source: path
+    version: "0.0.0"
+  pub_dartdoc_data:
+    dependency: transitive
+    description:
+      path: "../pub_dartdoc_data"
+      relative: true
+    source: path
+    version: "0.0.0"
   pub_semver:
     dependency: transitive
     description:
@@ -485,7 +506,7 @@ packages:
     source: hosted
     version: "1.1.1"
   tar:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: tar
       url: "https://pub.dartlang.org"

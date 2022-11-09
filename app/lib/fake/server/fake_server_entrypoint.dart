@@ -17,6 +17,7 @@ import 'package:pub_dev/fake/server/fake_storage_server.dart';
 import 'package:pub_dev/fake/server/local_server_state.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/shared/configuration.dart';
+import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
 import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/importer.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
@@ -82,11 +83,22 @@ class FakeServerCommand extends Command {
     final storage = state.storage;
     final datastore = state.datastore;
 
+    final cloudCompute = FakeCloudCompute();
+
     final storageServer = FakeStorageServer(storage);
-    final pubServer = FakePubServer(datastore, storage, watch: watch);
-    final searchService = FakeSearchService(datastore, storage);
-    final analyzerService = FakeAnalyzerService(datastore, storage);
-    final dartdocService = FakeDartdocService(datastore, storage);
+    final pubServer = FakePubServer(
+      datastore,
+      storage,
+      cloudCompute,
+      watch: watch,
+    );
+    final searchService = FakeSearchService(datastore, storage, cloudCompute);
+    final analyzerService = FakeAnalyzerService(
+      datastore,
+      storage,
+      cloudCompute,
+    );
+    final dartdocService = FakeDartdocService(datastore, storage, cloudCompute);
 
     final configuration = Configuration.fakePubServer(
       frontendPort: port,
