@@ -1201,13 +1201,13 @@ class PackageBackend {
   Future<void> _checkGithubActionAllowed(AuthenticatedGithubAction agent,
       Package package, String newVersion) async {
     final githubPublishing = package.automatedPublishing.github;
-    if (githubPublishing == null || (githubPublishing.isEnabled ?? false)) {
+    if (githubPublishing?.isEnabled != true) {
       throw AuthorizationException.githubActionIssue(
           'publishing from github is not enabled');
     }
 
     // Repository must be set and matching the action's repository.
-    final repository = githubPublishing.repository;
+    final repository = githubPublishing!.repository;
     if (repository == null ||
         repository.isEmpty ||
         repository != agent.payload.repository) {
@@ -1273,14 +1273,13 @@ class PackageBackend {
     String newVersion,
   ) async {
     final googleCloudPublishing = package.automatedPublishing.gcp;
-    if (googleCloudPublishing == null ||
-        (googleCloudPublishing.isEnabled ?? false)) {
+    if (googleCloudPublishing?.isEnabled != true) {
       throw AuthorizationException.serviceAccountPublishingIssue(
           'publishing with service account is not enabled');
     }
 
     // the service account email must be set and matching the agent's email.
-    final serviceAccountEmail = googleCloudPublishing.serviceAccountEmail;
+    final serviceAccountEmail = googleCloudPublishing!.serviceAccountEmail;
     if (serviceAccountEmail == null ||
         serviceAccountEmail.isEmpty ||
         serviceAccountEmail != agent.payload.email) {
