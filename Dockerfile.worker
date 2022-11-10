@@ -24,7 +24,7 @@ RUN tool/setup-dart.sh /home/worker/dart 2.19.0-255.2.beta
 RUN mv /home/worker/dart/dart-sdk /home/worker/dart/preview
 
 # Setup Flutter SDK into /home/worker/flutter/{stable,preview}/
-RUN tool/setup-flutter.sh /home/worker/flutter 3.3.7
+RUN tool/setup-flutter.sh /home/worker/flutter 3.3.8
 RUN mv /home/worker/flutter/flutter /home/worker/flutter/stable
 RUN tool/setup-flutter.sh /home/worker/flutter 3.4.0-34.1.pre
 RUN mv /home/worker/flutter/flutter /home/worker/flutter/preview
