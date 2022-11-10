@@ -12,6 +12,7 @@ import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
+import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
 
@@ -280,6 +281,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
       taskWorkerCloudCompute,
       storageService.bucket(activeConfiguration.taskResultBucketName!),
     ));
+    registerSecurityAdvisoryBackend(SecurityAdvisoryBackend(dbService));
 
     await setupCache();
 
