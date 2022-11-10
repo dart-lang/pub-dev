@@ -6,9 +6,9 @@ import 'dart:async';
 import 'dart:convert' show json;
 import 'dart:io' show exit;
 
+import 'package:_pub_shared/data/task_payload.dart';
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
-import 'package:pub_worker/payload.dart';
 import 'package:pub_worker/src/analyze.dart' show analyze;
 
 void _printUsage() => print('Usage: pub_worker.dart <JSON_PAYLOAD>');

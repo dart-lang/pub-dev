@@ -7,7 +7,7 @@ import 'dart:collection';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
-part 'payload.g.dart';
+part 'task_payload.g.dart';
 
 /// JSON payload given as single argument to the `pub_worker.dart` command.
 @sealed

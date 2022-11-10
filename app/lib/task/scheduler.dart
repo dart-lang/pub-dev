@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:_pub_shared/data/task_payload.dart';
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart' show Logger;
 import 'package:pub_dev/shared/configuration.dart';
@@ -11,7 +12,6 @@ import 'package:pub_dev/shared/versions.dart' show runtimeVersion;
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:pub_dev/task/global_lock.dart';
 import 'package:pub_dev/task/models.dart';
-import 'package:pub_worker/payload.dart';
 
 final _log = Logger('pub.task.schedule');
 

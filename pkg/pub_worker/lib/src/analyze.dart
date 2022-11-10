@@ -8,12 +8,12 @@ import 'dart:io'
     show Directory, File, IOException, Platform, Process, ProcessSignal, gzip;
 import 'dart:isolate' show Isolate;
 
+import 'package:_pub_shared/data/task_payload.dart';
 import 'package:clock/clock.dart' show clock;
 import 'package:http/http.dart' show Client;
 import 'package:indexed_blob/indexed_blob.dart';
 import 'package:logging/logging.dart' show Logger;
 import 'package:path/path.dart' as p;
-import 'package:pub_worker/payload.dart';
 import 'package:pub_worker/src/http.dart';
 import 'package:pub_worker/src/pubapi.client.dart';
 import 'package:pub_worker/src/upload.dart';
