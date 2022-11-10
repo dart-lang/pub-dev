@@ -62,6 +62,8 @@ class FakeCloudCompute extends CloudCompute {
     _log.info('Creating instance "$instanceName"');
     _instances.add(instance);
 
+    scheduleMicrotask(() => _onCreatedController.add(instance));
+
     // Start running the next instance
     scheduleMicrotask(() async => await _keepExecutionLoopAlive());
 
@@ -82,11 +84,18 @@ class FakeCloudCompute extends CloudCompute {
       throw Exception('instance "$instanceName" does not exist');
     }
 
-    // Let's make the operation take a minute, and then remove the instance!
+    // Let's make the operation take a second, and then remove the instance!
     _log.info('Deleting instance "$instanceName"');
-    await Future.delayed(Duration(minutes: 1));
+    await Future.delayed(Duration(seconds: 1));
+    final removed = _instances
+        .where((i) => i.instanceName == instanceName && i.zone == zone)
+        .toList();
     _instances
         .removeWhere((i) => i.instanceName == instanceName && i.zone == zone);
+
+    for (final i in removed) {
+      scheduleMicrotask(() => _onDeletedController.add(i));
+    }
   }
 
   /// Change state of instance with [instanceName] to [InstanceState.running].
@@ -119,7 +128,7 @@ class FakeCloudCompute extends CloudCompute {
   }
 
   var _running = false;
-  Completer<void> _done = Completer()..complete();
+  Completer<void> _doneRunningInstance = Completer()..complete();
 
   /// Start execution of instances.
   void startInstanceExecution() {
@@ -138,12 +147,12 @@ class FakeCloudCompute extends CloudCompute {
     );
     // If not running, there are no pending instance, or an instance is already
     // running, then we're done.
-    if (!_running || instance == null || !_done.isCompleted) {
+    if (!_running || instance == null || !_doneRunningInstance.isCompleted) {
       return;
     }
 
     fakeStartInstance(instance.instanceName);
-    _done = Completer();
+    _doneRunningInstance = Completer();
 
     scheduleMicrotask(() async {
       _log.info('Starting to run ${instance.instanceName}');
@@ -161,13 +170,24 @@ class FakeCloudCompute extends CloudCompute {
         if (_instances.any((i) => i.instanceName == instance.instanceName)) {
           fakeTerminateInstance(instance.instanceName);
         }
-        _done.complete();
+        _doneRunningInstance.complete();
 
         // Start running the next instance
         scheduleMicrotask(() async => await _keepExecutionLoopAlive());
       }
     });
   }
+
+  // ignore: close_sinks
+  final _onCreatedController = StreamController<FakeCloudInstance>.broadcast();
+  // ignore: close_sinks
+  final _onDeletedController = StreamController<FakeCloudInstance>.broadcast();
+
+  /// Events for when an instance is created.
+  Stream<FakeCloudInstance> get onCreated => _onCreatedController.stream;
+
+  /// Events for when an instance is deleted.
+  Stream<FakeCloudInstance> get onDeleted => _onDeletedController.stream;
 
   /// Stop execution of instances.
   Future<void> stopInstanceExecution() async {
@@ -177,7 +197,7 @@ class FakeCloudCompute extends CloudCompute {
       );
     }
     _running = false;
-    await _done.future;
+    await _doneRunningInstance.future;
   }
 }
 

@@ -38,8 +38,18 @@ class DartDocPageOptions {
       p = p.substring(0, p.length - 'index.html'.length);
     }
     return isLatestStable
-        ? pkgDocUrl(package, isLatest: true, relativePath: p)
-        : pkgDocUrl(package, version: version, relativePath: p);
+        ? pkgDocUrl(
+            package,
+            includeHost: true,
+            isLatest: true,
+            relativePath: p,
+          )
+        : pkgDocUrl(
+            package,
+            includeHost: true,
+            version: version,
+            relativePath: p,
+          );
   }
 }
 
@@ -193,7 +203,7 @@ class DartDocPage {
         d.meta(name: 'description', content: description),
         d.element('title', text: title),
         // HACK: Inject a customized canonical url
-        d.meta(rel: 'canonical', href: options.canonicalUrl),
+        d.link(rel: 'canonical', href: options.canonicalUrl),
         // HACK: Inject alternate link, if not is latest stable version
         if (!options.isLatestStable)
           d.meta(rel: 'alternate', href: options.latestStableDocumentationUrl),

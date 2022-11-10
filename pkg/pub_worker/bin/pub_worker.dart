@@ -20,6 +20,7 @@ Future<void> main(List<String> args) async {
     _printUsage();
     exit(1);
   }
+  print(args.first);
   Payload payload;
   try {
     payload = Payload.fromJson(

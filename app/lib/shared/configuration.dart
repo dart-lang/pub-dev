@@ -382,7 +382,7 @@ class Configuration {
       pubSiteAudience: _fakeSiteAudience,
       adminAudience: _fakeAdminAudience,
       automatedPublishingAudience: _defaultAutomatedPublishingAudience,
-      defaultServiceBaseUrl: 'http://localhost:0/',
+      defaultServiceBaseUrl: primaryApiUri?.toString() ?? 'http://localhost:0/',
       gmailRelayServiceAccount: null, // disable email sending
       gmailRelayImpersonatedGSuiteUser: null, // disable email sending
       uploadSignerServiceAccount: null,
