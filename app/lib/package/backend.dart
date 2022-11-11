@@ -25,7 +25,6 @@ import '../account/agent.dart';
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
 import '../account/models.dart' show User;
-import '../admin/backend.dart';
 import '../audit/models.dart';
 import '../job/backend.dart';
 import '../publisher/backend.dart';
@@ -1429,8 +1428,11 @@ class PackageBackend {
       if (user == null) {
         throw AuthorizationException.userCannotChangeUploaders(package.name!);
       }
-      final isAuthorizedAdmin = await adminBackend.verifyAdminPermission(
-          user, AdminPermission.managePackageOwnership);
+      final isAuthorizedAdmin = await accountBackend.hasAdminPermission(
+        oauthUserId: user.oauthUserId,
+        email: user.email,
+        permission: AdminPermission.managePackageOwnership,
+      );
       if (isAuthorizedAdmin) {
         return;
       } else {

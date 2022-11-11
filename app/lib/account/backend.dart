@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -126,6 +127,28 @@ Future<AuthenticatedUser> requireAuthenticatedUser(
   return AuthenticatedUser(user, audience: auth.audience);
 }
 
+/// Require that the incoming request is authorized by an administrator with
+/// the given [permission].
+///
+/// Throws [AuthorizationException] if it doesn't have the permission.
+Future<AuthenticatedUser> requireAuthenticatedAdmin(
+    AdminPermission permission) async {
+  final authenticatedUser = await requireAuthenticatedUser(
+      expectedAudience: activeConfiguration.adminAudience);
+  final user = authenticatedUser.user;
+  final isAdmin = await accountBackend.hasAdminPermission(
+    oauthUserId: authenticatedUser.oauthUserId,
+    email: authenticatedUser.email,
+    permission: permission,
+  );
+  if (!isAdmin) {
+    _logger.warning(
+        'User (${user.userId} / ${user.email}) is trying to access unauthorized admin APIs.');
+    throw AuthorizationException.userIsNotAdminForPubSite();
+  }
+  return authenticatedUser;
+}
+
 /// Verifies the current bearer token in the request scope and returns the
 /// current authenticated user or a service agent with the available data.
 Future<AuthenticatedAgent> requireAuthenticatedClient() async {
@@ -226,6 +249,20 @@ class AccountBackend {
       .withCodec(utf8);
 
   AccountBackend(this._db);
+
+  /// Returns `true` if the user is authorized by an administrator with the given [permission].
+  Future<bool> hasAdminPermission({
+    required String? oauthUserId,
+    required String? email,
+    required AdminPermission permission,
+  }) async {
+    if (oauthUserId == null || email == null) {
+      return false;
+    }
+    final admin = activeConfiguration.admins!.firstWhereOrNull(
+        (a) => a.oauthUserId == oauthUserId && a.email == email);
+    return admin != null && admin.permissions.contains(permission);
+  }
 
   /// Returns the `User` entry for the [userId] or null if it does not exists.
   Future<User?> lookupUserById(String userId) async {
