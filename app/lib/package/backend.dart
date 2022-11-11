@@ -359,7 +359,7 @@ class PackageBackend {
 
   /// Updates [options] on [package].
   Future<void> updateOptions(String package, api.PkgOptions options) async {
-    final authenticatedUser = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
     // Validate replacedBy parameter
     final replacedBy = options.replacedBy?.trim() ?? '';
@@ -434,7 +434,7 @@ class PackageBackend {
     String version,
     api.VersionOptions options,
   ) async {
-    final authenticatedUser = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
 
     final pkgKey = db.emptyKey.append(Package, id: package);
@@ -471,7 +471,7 @@ class PackageBackend {
   /// updates the Datastore entity if everything is valid.
   Future<api.AutomatedPublishing> setAutomatedPublishing(
       String package, api.AutomatedPublishing body) async {
-    final authenticatedUser = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
     return await withRetryTransaction(db, (tx) async {
       final p = await tx
@@ -660,7 +660,7 @@ class PackageBackend {
   Future<api.PackagePublisherInfo> setPublisher(
       String packageName, api.PackagePublisherInfo request) async {
     InvalidInputException.checkNotNull(request.publisherId, 'publisherId');
-    final authenticatedUser = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
 
     final key = db.emptyKey.append(Package, id: packageName);
@@ -731,7 +731,7 @@ class PackageBackend {
 
   /// Moves the package out of its current publisher.
   Future<api.PackagePublisherInfo> removePublisher(String packageName) async {
-    final user = await requireAuthenticatedUser();
+    final user = await requireAuthenticatedWebUser();
     final package = await requirePackageAdmin(packageName, user.userId);
     if (package.publisherId == null) {
       return _asPackagePublisherInfo(package);
@@ -1342,7 +1342,7 @@ class PackageBackend {
       String packageName, api.InviteUploaderRequest invite) async {
     InvalidInputException.checkNotNull(invite.email, 'email');
     final uploaderEmail = invite.email.toLowerCase();
-    final authenticatedUser = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
     final packageKey = db.emptyKey.append(Package, id: packageName);
     final package = await db.lookupOrNull<Package>(packageKey);
@@ -1451,7 +1451,7 @@ class PackageBackend {
     String uploaderEmail,
   ) async {
     uploaderEmail = uploaderEmail.toLowerCase();
-    final authenticatedUser = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
     await withRetryTransaction(db, (tx) async {
       final packageKey = db.emptyKey.append(Package, id: packageName);

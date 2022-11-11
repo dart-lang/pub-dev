@@ -73,7 +73,7 @@ class ConsentBackend {
 
   /// Returns the consent details for API calls.
   Future<api.Consent> handleGetConsent(String consentId) async {
-    final authenticatedUser = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedWebUser();
     return getConsent(consentId, authenticatedUser.user);
   }
 
@@ -81,7 +81,7 @@ class ConsentBackend {
   Future<api.ConsentResult> resolveConsent(
       String consentId, api.ConsentResult result) async {
     InvalidInputException.checkUlid(consentId, 'consentId');
-    final authenticatedUser = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
 
     final c = await _lookupAndCheck(consentId, user);
@@ -171,7 +171,7 @@ class ConsentBackend {
     required String publisherId,
     required String contactEmail,
   }) async {
-    final authenticatedUser = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
     return await _invite(
         activeUser: user,
@@ -187,7 +187,7 @@ class ConsentBackend {
     required String publisherId,
     required String invitedUserEmail,
   }) async {
-    final authenticatedUser = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
     return await _invite(
       activeUser: user,
@@ -319,7 +319,7 @@ class _PackageUploaderAction extends ConsentAction {
         consent.args!.skip(1).contains('is-from-admin-user');
     final fromUserId = consent.fromUserId!;
     final fromUserEmail = (await accountBackend.getEmailOfUserId(fromUserId))!;
-    final currentUser = await requireAuthenticatedUser();
+    final currentUser = await requireAuthenticatedWebUser();
     if (currentUser.email?.toLowerCase() != consent.email?.toLowerCase()) {
       throw NotAcceptableException(
           'Current user and consent user does not match.');
@@ -464,7 +464,7 @@ class _PublisherMemberAction extends ConsentAction {
   @override
   Future<void> onAccept(Consent consent) async {
     final publisherId = consent.args![0];
-    final currentUser = await requireAuthenticatedUser();
+    final currentUser = await requireAuthenticatedWebUser();
     if (consent.email != currentUser.email) {
       throw NotAcceptableException('Consent is not for the current user.');
     }

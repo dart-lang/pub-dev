@@ -434,7 +434,7 @@ void main() {
           adminAtPubDevAuthToken,
           () async {
             // update session as package data loading checks that
-            final user = await requireAuthenticatedUser();
+            final user = await requireAuthenticatedWebUser();
             registerUserSessionData(UserSessionData(
               userId: user.userId,
               created: clock.now(),
@@ -700,7 +700,7 @@ void main() {
         final oxygen = await scoreCardBackend.getPackageView('oxygen');
         final neon = await scoreCardBackend.getPackageView('neon');
         await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
-          final authenticatedUser = await requireAuthenticatedUser();
+          final authenticatedUser = await requireAuthenticatedWebUser();
           final user = authenticatedUser.user;
           final session = await accountBackend.createNewSession(
             name: 'Pub User',
@@ -724,7 +724,7 @@ void main() {
 
     testWithProfile('/my-liked-packages page', fn: () async {
       await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
-        final authenticatedUser = await requireAuthenticatedUser();
+        final authenticatedUser = await requireAuthenticatedWebUser();
         final user = authenticatedUser.user;
         final session = await accountBackend.createNewSession(
           name: 'Pub User',
@@ -751,7 +751,7 @@ void main() {
 
     testWithProfile('/my-publishers page', fn: () async {
       await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
-        final authenticatedUser = await requireAuthenticatedUser();
+        final authenticatedUser = await requireAuthenticatedWebUser();
         final user = authenticatedUser.user;
         final session = await accountBackend.createNewSession(
           name: 'Pub User',
@@ -778,7 +778,7 @@ void main() {
 
     testWithProfile('/my-activity-log page', fn: () async {
       await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
-        final authenticatedUser = await requireAuthenticatedUser();
+        final authenticatedUser = await requireAuthenticatedWebUser();
         final user = authenticatedUser.user;
         final session = await accountBackend.createNewSession(
           name: 'Pub User',

@@ -86,7 +86,12 @@ UserSessionData? get userSessionData =>
 /// When no associated User entry exists in Datastore, this method will create
 /// a new one. When the authenticated email of the user changes, the email
 /// field will be updated to the latest one.
-Future<AuthenticatedUser> requireAuthenticatedUser(
+Future<AuthenticatedUser> requireAuthenticatedWebUser() async {
+  return await _requireAuthenticatedUser(
+      expectedAudience: activeConfiguration.pubSiteAudience);
+}
+
+Future<AuthenticatedUser> _requireAuthenticatedUser(
     {String? expectedAudience}) async {
   final token = _getBearerToken();
   if (token == null || token.isEmpty) {
@@ -96,7 +101,6 @@ Future<AuthenticatedUser> requireAuthenticatedUser(
   if (auth == null) {
     throw AuthenticationException.failed();
   }
-  expectedAudience ??= activeConfiguration.pubSiteAudience;
   if (expectedAudience == null || expectedAudience.isEmpty) {
     _logger.shout(
         'Audience was not configured.', expectedAudience, StackTrace.current);
@@ -133,7 +137,7 @@ Future<AuthenticatedUser> requireAuthenticatedUser(
 /// Throws [AuthorizationException] if it doesn't have the permission.
 Future<AuthenticatedUser> requireAuthenticatedAdmin(
     AdminPermission permission) async {
-  final authenticatedUser = await requireAuthenticatedUser(
+  final authenticatedUser = await _requireAuthenticatedUser(
       expectedAudience: activeConfiguration.adminAudience);
   final user = authenticatedUser.user;
   final isAdmin = await accountBackend.hasAdminPermission(
@@ -161,7 +165,7 @@ Future<AuthenticatedAgent> requireAuthenticatedClient() async {
   if (authenticatedServiceAgent != null) {
     return authenticatedServiceAgent;
   } else {
-    return await requireAuthenticatedUser(
+    return await _requireAuthenticatedUser(
         expectedAudience: activeConfiguration.pubClientAudience);
   }
 }
@@ -494,7 +498,7 @@ class AccountBackend {
     required String name,
     required String imageUrl,
   }) async {
-    final user = await requireAuthenticatedUser();
+    final user = await requireAuthenticatedWebUser();
     final now = clock.now().toUtc();
     final session = UserSession()
       ..id = createUuid()

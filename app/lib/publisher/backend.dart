@@ -136,7 +136,7 @@ class PublisherBackend {
     api.CreatePublisherRequest body,
   ) async {
     checkPublisherIdParam(publisherId);
-    final authenticatedUser = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
     InvalidInputException.checkMatchPattern(
       publisherId,
@@ -252,7 +252,7 @@ class PublisherBackend {
         maximum: 256,
       );
     }
-    final authenticatedUser = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
     await requirePublisherAdmin(publisherId, user.userId);
     final p = await withRetryTransaction(_db, (tx) async {
@@ -322,7 +322,7 @@ class PublisherBackend {
   Future updateContactWithVerifiedEmail(
       String publisherId, String contactEmail) async {
     checkPublisherIdParam(publisherId);
-    final authenticatedUser = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
     InvalidInputException.check(
         isValidEmail(contactEmail), 'Invalid email: `$contactEmail`');
@@ -345,7 +345,7 @@ class PublisherBackend {
   Future<account_api.InviteStatus> invitePublisherMember(
       String publisherId, api.InviteMemberRequest invite) async {
     checkPublisherIdParam(publisherId);
-    final activeUser = await requireAuthenticatedUser();
+    final activeUser = await requireAuthenticatedWebUser();
     final p = await requirePublisherAdmin(publisherId, activeUser.userId);
     InvalidInputException.checkNotNull(invite.email, 'email');
     InvalidInputException.checkStringLength(invite.email, 'email',
@@ -394,7 +394,7 @@ class PublisherBackend {
     String publisherId,
   ) async {
     checkPublisherIdParam(publisherId);
-    final user = await requireAuthenticatedUser();
+    final user = await requireAuthenticatedWebUser();
     await requirePublisherAdmin(publisherId, user.userId);
     return api.PublisherMembers(
       members: await listPublisherMembers(publisherId),
@@ -415,7 +415,7 @@ class PublisherBackend {
   Future<api.PublisherMember> publisherMemberInfo(
       String publisherId, String userId) async {
     checkPublisherIdParam(publisherId);
-    final user = await requireAuthenticatedUser();
+    final user = await requireAuthenticatedWebUser();
     final p = await requirePublisherAdmin(publisherId, user.userId);
     final key = p.key.append(PublisherMember, id: userId);
     final pm = await _db.lookupOrNull<PublisherMember>(key);
@@ -432,7 +432,7 @@ class PublisherBackend {
     api.UpdatePublisherMemberRequest update,
   ) async {
     checkPublisherIdParam(publisherId);
-    final user = await requireAuthenticatedUser();
+    final user = await requireAuthenticatedWebUser();
     final p = await requirePublisherAdmin(publisherId, user.userId);
     final key = p.key.append(PublisherMember, id: userId);
     final pm = await _db.lookupOrNull<PublisherMember>(key);
@@ -464,7 +464,7 @@ class PublisherBackend {
   /// Deletes a publisher's member.
   Future<void> deletePublisherMember(String publisherId, String userId) async {
     checkPublisherIdParam(publisherId);
-    final authenticatedUser = await requireAuthenticatedUser();
+    final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
     final p = await requirePublisherAdmin(publisherId, user.userId);
     if (userId == user.userId) {
