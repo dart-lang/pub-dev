@@ -179,7 +179,7 @@ void main() {
 
         late Key likeKey;
         await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
-          final user = await requireAuthenticatedUser();
+          final user = await requireAuthenticatedWebUser();
           likeKey = dbService.emptyKey
               .append(User, id: user.userId)
               .append(Like, id: 'oxygen');
@@ -243,7 +243,7 @@ void main() {
 
         late Key likeKey;
         await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
-          final user = await requireAuthenticatedUser();
+          final user = await requireAuthenticatedWebUser();
           likeKey = dbService.emptyKey
               .append(User, id: user.userId)
               .append(Like, id: 'oxygen');
@@ -586,7 +586,7 @@ void main() {
               (await accountBackend.lookupUsersByEmail('user@pub.dev')).single;
           final someUser = await accountBackend.withBearerToken(
             createFakeAuthTokenForEmail('someuser@pub.dev'),
-            () => requireAuthenticatedUser(),
+            () => requireAuthenticatedWebUser(),
           );
 
           final pkg = await packageBackend.lookupPackage('oxygen');

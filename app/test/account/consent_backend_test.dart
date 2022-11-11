@@ -28,7 +28,7 @@ void main() {
 
       String? consentId;
       await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
-        final authenticatedUser = await requireAuthenticatedUser();
+        final authenticatedUser = await requireAuthenticatedWebUser();
         final user = authenticatedUser.user;
         final consentRow = await dbService.query<Consent>().run().single;
         final consent =
@@ -99,7 +99,7 @@ void main() {
 
       String? consentId;
       await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
-        final authenticatedUser = await requireAuthenticatedUser();
+        final authenticatedUser = await requireAuthenticatedWebUser();
         final user = authenticatedUser.user;
         final consentRow = await dbService.query<Consent>().run().single;
         final consent =
@@ -171,7 +171,7 @@ void main() {
 
       String? consentId;
       await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
-        final authenticatedUser = await requireAuthenticatedUser();
+        final authenticatedUser = await requireAuthenticatedWebUser();
         final user = authenticatedUser.user;
         final consentRow = await dbService.query<Consent>().run().single;
         final consent =

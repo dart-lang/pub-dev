@@ -86,7 +86,7 @@ UserSessionData? get userSessionData =>
 /// When no associated User entry exists in Datastore, this method will create
 /// a new one. When the authenticated email of the user changes, the email
 /// field will be updated to the latest one.
-Future<AuthenticatedUser> requireAuthenticatedUser() async {
+Future<AuthenticatedUser> requireAuthenticatedWebUser() async {
   return await _requireAuthenticatedUser(
       expectedAudience: activeConfiguration.pubSiteAudience);
 }
@@ -498,7 +498,7 @@ class AccountBackend {
     required String name,
     required String imageUrl,
   }) async {
-    final user = await requireAuthenticatedUser();
+    final user = await requireAuthenticatedWebUser();
     final now = clock.now().toUtc();
     final session = UserSession()
       ..id = createUuid()
