@@ -15,34 +15,8 @@ void main() {
   testWithProfile('GitHub key list', fn: () async {
     final data = await fetchGithubOpenIdData();
     expect(data.provider.issuer, 'https://token.actions.githubusercontent.com');
-    expect(data.provider.claimsSupported, [
-      'sub',
-      'aud',
-      'exp',
-      'iat',
-      'iss',
-      'jti',
-      'nbf',
-      'ref',
-      'repository',
-      'repository_id',
-      'repository_owner',
-      'repository_owner_id',
-      'run_id',
-      'run_number',
-      'run_attempt',
-      'actor',
-      'actor_id',
-      'workflow',
-      'head_ref',
-      'base_ref',
-      'event_name',
-      'ref_type',
-      'environment',
-      'environment_node_id',
-      'job_workflow_ref',
-      'repository_visibility',
-    ]);
+    expect(data.provider.claimsSupported,
+        containsAll(GitHubJwtPayload.requiredClaims));
     expect(data.provider.idTokenSigningAlgValuesSupported, [
       'RS256',
     ]);
