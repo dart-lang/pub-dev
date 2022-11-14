@@ -159,7 +159,7 @@ class FakeCloudCompute extends CloudCompute {
       try {
         final proc = await Process.start(
           Platform.resolvedExecutable,
-          ['run', 'bin/pub_worker.dart', ...instance.arguments],
+          ['run', 'pub_worker', ...instance.arguments],
           workingDirectory: p.join(resolveAppDir(), '..', 'pkg', 'pub_worker'),
           mode: ProcessStartMode.inheritStdio,
         );

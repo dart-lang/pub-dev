@@ -45,7 +45,7 @@ final _dartdocTestProfile = TestProfile(
 );
 
 void main() {
-  testWithProfile('dartdoc for meta', testProfile: _dartdocTestProfile,
+  testWithProfile('dartdoc for oxygen', testProfile: _dartdocTestProfile,
       fn: () async {
     // Backfill tracking state
     await taskBackend.backfillTrackingState();
