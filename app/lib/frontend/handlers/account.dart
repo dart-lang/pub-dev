@@ -35,7 +35,7 @@ shelf.Response authorizedHandler(_) => htmlResponse(renderAuthorizedPage());
 Future<shelf.Response> updateSessionHandler(
     shelf.Request request, ClientSessionRequest body) async {
   final sw = Stopwatch()..start();
-  final authenticatedUser = await requireAuthenticatedUser();
+  final authenticatedUser = await requireAuthenticatedWebUser();
   final user = authenticatedUser.user;
 
   InvalidInputException.checkNotNull(body.accessToken, 'accessToken');
@@ -144,7 +144,7 @@ Future<shelf.Response> consentPageHandler(
 Future<AccountPkgOptions> accountPkgOptionsHandler(
     shelf.Request request, String package) async {
   checkPackageVersionParams(package);
-  final user = await requireAuthenticatedUser();
+  final user = await requireAuthenticatedWebUser();
   final p = await packageBackend.lookupPackage(package);
   if (p == null) {
     throw NotFoundException.resource(package);
@@ -156,7 +156,7 @@ Future<AccountPkgOptions> accountPkgOptionsHandler(
 /// Handles GET /api/account/likes
 Future<LikedPackagesRepsonse> listPackageLikesHandler(
     shelf.Request request) async {
-  final authenticatedUser = await requireAuthenticatedUser();
+  final authenticatedUser = await requireAuthenticatedWebUser();
   final user = authenticatedUser.user;
   final packages = await likeBackend.listPackageLikes(user);
   final List<PackageLikeResponse> packageLikes = List.from(packages.map(
@@ -169,7 +169,7 @@ Future<LikedPackagesRepsonse> listPackageLikesHandler(
 Future<PackageLikeResponse> getLikePackageHandler(
     shelf.Request request, String package) async {
   checkPackageVersionParams(package);
-  final user = await requireAuthenticatedUser();
+  final user = await requireAuthenticatedWebUser();
   final p = await packageBackend.lookupPackage(package);
   if (p == null) {
     throw NotFoundException.resource(package);
@@ -186,7 +186,7 @@ Future<PackageLikeResponse> getLikePackageHandler(
 /// Handles PUT /api/account/likes/<package>
 Future<PackageLikeResponse> likePackageHandler(
     shelf.Request request, String package) async {
-  final authenticatedUser = await requireAuthenticatedUser();
+  final authenticatedUser = await requireAuthenticatedWebUser();
   final user = authenticatedUser.user;
   final l = await likeBackend.likePackage(user, package);
   return PackageLikeResponse(liked: true, package: package, created: l.created);
@@ -195,7 +195,7 @@ Future<PackageLikeResponse> likePackageHandler(
 /// Handles DELETE /api/account/likes/<package>
 Future<shelf.Response> unlikePackageHandler(
     shelf.Request request, String package) async {
-  final authenticatedUser = await requireAuthenticatedUser();
+  final authenticatedUser = await requireAuthenticatedWebUser();
   final user = authenticatedUser.user;
   await likeBackend.unlikePackage(user, package);
   return shelf.Response(204);
@@ -205,7 +205,7 @@ Future<shelf.Response> unlikePackageHandler(
 Future<AccountPublisherOptions> accountPublisherOptionsHandler(
     shelf.Request request, String publisherId) async {
   checkPublisherIdParam(publisherId);
-  final user = await requireAuthenticatedUser();
+  final user = await requireAuthenticatedWebUser();
   final publisher = await publisherBackend.getPublisher(publisherId);
   if (publisher == null) {
     throw NotFoundException.resource('publisher "$publisherId"');

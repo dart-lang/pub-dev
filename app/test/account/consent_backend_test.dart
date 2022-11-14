@@ -18,20 +18,17 @@ import '../shared/test_services.dart';
 void main() {
   group('Uploader invite', () {
     Future<String?> inviteUploader() async {
-      await accountBackend.withBearerToken(adminClientToken, () async {
-        final authenticatedUser = await requireAuthenticatedUser(
-            expectedAudience: activeConfiguration.pubClientAudience);
-        final status = await consentBackend.invitePackageUploader(
-          activeUser: authenticatedUser.user,
-          uploaderEmail: 'user@pub.dev',
-          packageName: 'oxygen',
-        );
-        expect(status.emailSent, isTrue);
-      });
+      await withHttpPubApiClient(
+        bearerToken: siteAdminToken,
+        pubHostedUrl: activeConfiguration.primarySiteUri.toString(),
+        fn: (client) async {
+          await client.adminAddPackageUploader('oxygen', 'user@pub.dev');
+        },
+      );
 
       String? consentId;
       await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
-        final authenticatedUser = await requireAuthenticatedUser();
+        final authenticatedUser = await requireAuthenticatedWebUser();
         final user = authenticatedUser.user;
         final consentRow = await dbService.query<Consent>().run().single;
         final consent =
@@ -102,7 +99,7 @@ void main() {
 
       String? consentId;
       await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
-        final authenticatedUser = await requireAuthenticatedUser();
+        final authenticatedUser = await requireAuthenticatedWebUser();
         final user = authenticatedUser.user;
         final consentRow = await dbService.query<Consent>().run().single;
         final consent =
@@ -174,7 +171,7 @@ void main() {
 
       String? consentId;
       await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
-        final authenticatedUser = await requireAuthenticatedUser();
+        final authenticatedUser = await requireAuthenticatedWebUser();
         final user = authenticatedUser.user;
         final consentRow = await dbService.query<Consent>().run().single;
         final consent =

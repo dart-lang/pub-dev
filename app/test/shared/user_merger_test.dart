@@ -58,7 +58,7 @@ void main() {
     final user = await accountBackend.lookupUserByEmail('user@pub.dev');
     final control = await accountBackend.withBearerToken(
       createFakeAuthTokenForEmail('control@pub.dev'),
-      () => requireAuthenticatedUser(),
+      () => requireAuthenticatedWebUser(),
     );
     await dbService.commit(inserts: [
       UserSession()
@@ -90,7 +90,7 @@ void main() {
     final user = await accountBackend.lookupUserByEmail('user@pub.dev');
     final control = await accountBackend.withBearerToken(
       createFakeAuthTokenForEmail('control@pub.dev'),
-      () => requireAuthenticatedUser(),
+      () => requireAuthenticatedWebUser(),
     );
 
     final target1 = Consent.init(
