@@ -6,7 +6,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:_pub_shared/data/package_api.dart' show UploadInfo;
+import 'package:_pub_shared/data/task_payload.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart' show MediaType;
 import 'package:indexed_blob/indexed_blob.dart';
 import 'package:pana/pana.dart';
 import 'package:pub_dev/task/backend.dart';
@@ -15,8 +18,6 @@ import 'package:pub_dev/task/models.dart';
 import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/importer.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
-import 'package:pub_worker/payload.dart';
-import 'package:pub_worker/src/upload.dart' show upload;
 import 'package:test/test.dart';
 
 import '../shared/test_services.dart';
@@ -672,4 +673,44 @@ extension on FakeTime {
       return;
     }
   }
+}
+
+Future<void> upload(
+  http.Client client,
+  UploadInfo destination,
+  Stream<List<int>> Function() content,
+  int length, {
+  required String filename,
+  String contentType = 'application/octet-stream',
+}) async {
+  final req = http.MultipartRequest('POST', Uri.parse(destination.url))
+    ..fields.addAll(destination.fields ?? {})
+    ..followRedirects = false
+    ..files.add(http.MultipartFile(
+      'file',
+      content(),
+      length,
+      filename: filename,
+      contentType: MediaType.parse(contentType),
+    ));
+  final res = await http.Response.fromStream(await client.send(req));
+
+  if (400 <= res.statusCode && res.statusCode < 500) {
+    fail(
+      'HTTP error, status = ${res.statusCode}, body: ${res.body}',
+    );
+  }
+  if (500 <= res.statusCode && res.statusCode < 600) {
+    fail(
+      'HTTP intermittent error, status = ${res.statusCode}, body: ${res.body}',
+    );
+  }
+  if (200 <= res.statusCode && res.statusCode < 300) {
+    return;
+  }
+
+  // Unhandled response code -> retry
+  fail(
+    'Unhandled HTTP status = ${res.statusCode}, body: ${res.body}',
+  );
 }
