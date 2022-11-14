@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -85,7 +86,12 @@ UserSessionData? get userSessionData =>
 /// When no associated User entry exists in Datastore, this method will create
 /// a new one. When the authenticated email of the user changes, the email
 /// field will be updated to the latest one.
-Future<AuthenticatedUser> requireAuthenticatedUser(
+Future<AuthenticatedUser> requireAuthenticatedWebUser() async {
+  return await _requireAuthenticatedUser(
+      expectedAudience: activeConfiguration.pubSiteAudience);
+}
+
+Future<AuthenticatedUser> _requireAuthenticatedUser(
     {String? expectedAudience}) async {
   final token = _getBearerToken();
   if (token == null || token.isEmpty) {
@@ -95,7 +101,6 @@ Future<AuthenticatedUser> requireAuthenticatedUser(
   if (auth == null) {
     throw AuthenticationException.failed();
   }
-  expectedAudience ??= activeConfiguration.pubSiteAudience;
   if (expectedAudience == null || expectedAudience.isEmpty) {
     _logger.shout(
         'Audience was not configured.', expectedAudience, StackTrace.current);
@@ -126,6 +131,28 @@ Future<AuthenticatedUser> requireAuthenticatedUser(
   return AuthenticatedUser(user, audience: auth.audience);
 }
 
+/// Require that the incoming request is authorized by an administrator with
+/// the given [permission].
+///
+/// Throws [AuthorizationException] if it doesn't have the permission.
+Future<AuthenticatedUser> requireAuthenticatedAdmin(
+    AdminPermission permission) async {
+  final authenticatedUser = await _requireAuthenticatedUser(
+      expectedAudience: activeConfiguration.adminAudience);
+  final user = authenticatedUser.user;
+  final isAdmin = await accountBackend.hasAdminPermission(
+    oauthUserId: authenticatedUser.oauthUserId,
+    email: authenticatedUser.email,
+    permission: permission,
+  );
+  if (!isAdmin) {
+    _logger.warning(
+        'User (${user.userId} / ${user.email}) is trying to access unauthorized admin APIs.');
+    throw AuthorizationException.userIsNotAdminForPubSite();
+  }
+  return authenticatedUser;
+}
+
 /// Verifies the current bearer token in the request scope and returns the
 /// current authenticated user or a service agent with the available data.
 Future<AuthenticatedAgent> requireAuthenticatedClient() async {
@@ -138,7 +165,7 @@ Future<AuthenticatedAgent> requireAuthenticatedClient() async {
   if (authenticatedServiceAgent != null) {
     return authenticatedServiceAgent;
   } else {
-    return await requireAuthenticatedUser(
+    return await _requireAuthenticatedUser(
         expectedAudience: activeConfiguration.pubClientAudience);
   }
 }
@@ -226,6 +253,20 @@ class AccountBackend {
       .withCodec(utf8);
 
   AccountBackend(this._db);
+
+  /// Returns `true` if the user is authorized by an administrator with the given [permission].
+  Future<bool> hasAdminPermission({
+    required String? oauthUserId,
+    required String? email,
+    required AdminPermission permission,
+  }) async {
+    if (oauthUserId == null || email == null) {
+      return false;
+    }
+    final admin = activeConfiguration.admins!.firstWhereOrNull(
+        (a) => a.oauthUserId == oauthUserId && a.email == email);
+    return admin != null && admin.permissions.contains(permission);
+  }
 
   /// Returns the `User` entry for the [userId] or null if it does not exists.
   Future<User?> lookupUserById(String userId) async {
@@ -457,7 +498,7 @@ class AccountBackend {
     required String name,
     required String imageUrl,
   }) async {
-    final user = await requireAuthenticatedUser();
+    final user = await requireAuthenticatedWebUser();
     final now = clock.now().toUtc();
     final session = UserSession()
       ..id = createUuid()

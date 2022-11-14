@@ -309,7 +309,7 @@ void _testUserNotAdminOfPublisher({
   testWithProfile('Active user is not admin of publisher',
       testProfile: testProfile, fn: () async {
     await accountBackend.withBearerToken(authToken, () async {
-      final user = await requireAuthenticatedUser();
+      final user = await requireAuthenticatedWebUser();
       final members = await dbService
           .query<PublisherMember>()
           .run()

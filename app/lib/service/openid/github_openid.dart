@@ -4,6 +4,7 @@
 
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
 
 import 'jwt.dart';
@@ -54,7 +55,8 @@ class GitHubJwtPayload {
   /// The URL used as the `iss` property of JWT payloads.
   static const issuerUrl = 'https://token.actions.githubusercontent.com';
 
-  static const _requiredClaims = <String>{
+  @visibleForTesting
+  static const requiredClaims = <String>{
     // generic claims
     'iat',
     'nbf',
@@ -82,7 +84,7 @@ class GitHubJwtPayload {
         runId = parseAsStringOrNull(map, 'run_id');
 
   factory GitHubJwtPayload(JwtPayload payload) {
-    final missing = _requiredClaims.difference(payload.keys.toSet()).sorted();
+    final missing = requiredClaims.difference(payload.keys.toSet()).sorted();
     if (missing.isNotEmpty) {
       throw FormatException(
           'JWT from Github is missing following claims: ${missing.map((k) => '`$k`').join(', ')}.');

@@ -274,7 +274,7 @@ void main() {
       testWithProfile('User is not admin', fn: () async {
         final user = await accountBackend.withBearerToken(
           createFakeAuthTokenForEmail('other@pub.dev'),
-          () => requireAuthenticatedUser(),
+          () => requireAuthenticatedWebUser(),
         );
         await dbService.commit(inserts: [
           publisherMember(user.userId, 'example.com', 'not-admin'),
@@ -285,7 +285,7 @@ void main() {
       testWithProfile('OK', fn: () async {
         final user = await accountBackend.withBearerToken(
           createFakeAuthTokenForEmail('other@pub.dev'),
-          () => requireAuthenticatedUser(),
+          () => requireAuthenticatedWebUser(),
         );
         await dbService.commit(inserts: [
           publisherMember(user.userId, 'example.com', 'admin'),
@@ -310,7 +310,7 @@ void main() {
       testWithProfile('OK', fn: () async {
         final user = await accountBackend.withBearerToken(
           createFakeAuthTokenForEmail('other@pub.dev'),
-          () => requireAuthenticatedUser(),
+          () => requireAuthenticatedWebUser(),
         );
         await dbService.commit(inserts: [
           publisherMember(user.userId, 'example.com', 'admin'),
@@ -369,7 +369,7 @@ void main() {
       testWithProfile('User is already a member', fn: () async {
         final user = await accountBackend.withBearerToken(
           createFakeAuthTokenForEmail('other@pub.dev'),
-          () => requireAuthenticatedUser(),
+          () => requireAuthenticatedWebUser(),
         );
         await dbService.commit(inserts: [
           publisherMember(
@@ -389,7 +389,7 @@ void main() {
             await accountBackend.lookupUserByEmail('admin@pub.dev');
         final otherUser = await accountBackend.withBearerToken(
           createFakeAuthTokenForEmail('other@pub.dev'),
-          () => requireAuthenticatedUser(),
+          () => requireAuthenticatedWebUser(),
         );
         final consent = Consent.init(
           fromUserId: adminUser.userId,
@@ -650,7 +650,7 @@ void main() {
       testWithProfile('Role value is not allowed', fn: () async {
         final user = await accountBackend.withBearerToken(
           createFakeAuthTokenForEmail('other@pub.dev'),
-          () => requireAuthenticatedUser(),
+          () => requireAuthenticatedWebUser(),
         );
         await dbService.commit(inserts: [
           publisherMember(
@@ -669,7 +669,7 @@ void main() {
       testWithProfile('OK', fn: () async {
         final user = await accountBackend.withBearerToken(
           createFakeAuthTokenForEmail('other@pub.dev'),
-          () => requireAuthenticatedUser(),
+          () => requireAuthenticatedWebUser(),
         );
         await dbService.commit(inserts: [
           publisherMember(user.userId, 'example.com', 'someotherrole'),
@@ -727,7 +727,7 @@ void main() {
       testWithProfile('OK', fn: () async {
         final user = await accountBackend.withBearerToken(
           createFakeAuthTokenForEmail('other@pub.dev'),
-          () => requireAuthenticatedUser(),
+          () => requireAuthenticatedWebUser(),
         );
         await dbService.commit(inserts: [
           publisherMember(
