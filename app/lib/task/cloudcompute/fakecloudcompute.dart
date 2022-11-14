@@ -170,6 +170,7 @@ class FakeCloudCompute extends CloudCompute {
         if (_instances.any((i) => i.instanceName == instance.instanceName)) {
           fakeTerminateInstance(instance.instanceName);
         }
+        // Must happen before we start the next instance.
         _doneRunningInstance.complete();
 
         // Start running the next instance
