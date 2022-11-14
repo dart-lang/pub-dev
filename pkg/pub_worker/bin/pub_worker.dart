@@ -6,9 +6,9 @@ import 'dart:async';
 import 'dart:convert' show json;
 import 'dart:io' show exit;
 
+import 'package:_pub_shared/data/task_payload.dart';
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
-import 'package:pub_worker/payload.dart';
 import 'package:pub_worker/src/analyze.dart' show analyze;
 
 void _printUsage() => print('Usage: pub_worker.dart <JSON_PAYLOAD>');
@@ -20,6 +20,7 @@ Future<void> main(List<String> args) async {
     _printUsage();
     exit(1);
   }
+  print(args.first);
   Payload payload;
   try {
     payload = Payload.fromJson(
@@ -29,12 +30,16 @@ Future<void> main(List<String> args) async {
     _printUsage();
     exit(1);
   }
-  await analyze(payload);
 
-  // NOTE: When deployed pub_worker is responsible for terminating it's own
-  // process, and this must terminate the container. It is the responsibility
-  // of the cloud-init configuration to launch the container and shutdown after
-  // the container exits.
+  try {
+    await analyze(payload);
+  } finally {
+    // NOTE: When deployed pub_worker is responsible for terminating it's own
+    // process, and this must terminate the container. It is the responsibility
+    // of the cloud-init configuration to launch the container and shutdown
+    // after the container exits.
+    exit(0); // forcibly exit, so there is no risk the process hangs.
+  }
 }
 
 /// Setup logging to stdout

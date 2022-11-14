@@ -2,17 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert' show json;
-import 'dart:io' show Directory, File, IOException, Platform, exit;
+import 'dart:io' show Directory, File, Platform, exit;
 
-import 'package:collection/collection.dart';
-import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart' show Logger, Level, LogRecord;
-import 'package:meta/meta.dart';
 import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
-import 'package:pub_semver/pub_semver.dart' show Version, VersionConstraint;
-import 'package:retry/retry.dart';
+import 'package:pub_worker/src/fetch_pubspec.dart';
+import 'package:pub_worker/src/sdks.dart';
 
 final _log = Logger('pana');
 
@@ -44,7 +42,7 @@ Future<void> main(List<String> args) async {
   // Fetch the pubspec so we detect which SDK to use for analysis
   // TODO: Download the package, extract and load the pubspec.yaml, that way
   //       we won't have to list versions again later.
-  final pubspec = await _fetchPubspec(
+  final pubspec = await fetchPubspec(
     package: package,
     version: version,
     pubHostedUrl: pubHostedUrl,
@@ -83,8 +81,8 @@ Future<void> main(List<String> args) async {
     useGlobalDartdoc: false,
   );
 
-  final dartdocOutputDir =
-      await Directory(p.join(outputFolder, 'doc')).create();
+  //final dartdocOutputDir =
+  //    await Directory(p.join(outputFolder, 'doc')).create();
   final resourcesOutputDir =
       await Directory(p.join(outputFolder, 'resources')).create();
   final pana = PackageAnalyzer(toolEnv);
@@ -94,9 +92,7 @@ Future<void> main(List<String> args) async {
     options: InspectOptions(
       //TODO: Add analysisOptionsYaml, or move the logic into pana
       pubHostedUrl: Platform.environment['PUB_HOSTED_URL']!,
-      dartdocOutputDir: dartdocOutputDir.path,
-      dartdocRetry: 2,
-      dartdocTimeout: Duration(minutes: 15),
+      //TODO: Run dartdoc as part of pana
       checkRemoteRepository: true,
     ),
     logger: _log,
@@ -111,106 +107,4 @@ Future<void> main(List<String> args) async {
   await File(
     p.join(outputFolder, 'summary.json'),
   ).writeAsString(json.encode(summary));
-}
-
-@sealed
-class InstalledSdk {
-  final String path;
-  final Version version;
-  final String kind;
-  InstalledSdk(this.kind, this.path, this.version);
-
-  /// List SDKs installed into [path].
-  ///
-  /// This looks for sub-folders containing `version` files.
-  static Future<List<InstalledSdk>> fromDirectory({
-    required String kind,
-    required Directory path,
-  }) async {
-    final sdks = <InstalledSdk>[];
-    if (!await path.exists()) {
-      return sdks;
-    }
-    await for (final d in path.list()) {
-      if (d is! Directory) {
-        continue;
-      }
-      try {
-        final v = await File(p.join(d.path, 'version')).readAsString();
-        sdks.add(InstalledSdk(kind, d.path, Version.parse(v)));
-      } on FormatException {
-        continue;
-      } on IOException {
-        continue;
-      }
-    }
-    sdks.sortByCompare((s) => s.version, Version.prioritize);
-    return sdks;
-  }
-
-  static InstalledSdk? prioritizedSdk(
-    List<InstalledSdk> sdks,
-    VersionConstraint? constraint,
-  ) {
-    constraint ??= VersionConstraint.any;
-    sdks = [...sdks]..sortByCompare((s) => s.version, Version.prioritize);
-    return sdks.where((s) => constraint!.allows(s.version)).firstOrNull ??
-        maxBy(sdks, (s) => s.version);
-  }
-}
-
-/// Fetch pubspec for the given version
-Future<Pubspec> _fetchPubspec({
-  required String package,
-  required String version,
-  required String pubHostedUrl,
-}) async {
-  final c = http.Client();
-  try {
-    final result = await retry(
-      () async {
-        // TODO: Make some reusable HTTP request logic
-        final u = Uri.parse(_urlJoin(pubHostedUrl, 'api/packages/$package'));
-        final r = await c.get(u);
-        if (r.statusCode >= 500) {
-          throw _IntermittentHttpException._(
-            'Failed to list versions, got ${r.statusCode} from "$u"',
-          );
-        }
-        if (r.statusCode != 200) {
-          throw Exception(
-            'Failed to list versions, got ${r.statusCode} from "$u"',
-          );
-        }
-        return json.decode(r.body);
-      },
-      retryIf: (e) =>
-          e is _IntermittentHttpException ||
-          e is FormatException ||
-          e is IOException,
-    );
-
-    final versions = result['versions'] as List? ?? [];
-
-    final v = Version.parse(version);
-    return versions.map((e) => Pubspec(e['pubspec'] as Map)).firstWhere(
-        (p) => p.version == v,
-        orElse: () => throw Exception('could not find $version'));
-  } finally {
-    c.close();
-  }
-}
-
-String _urlJoin(String url, String suffix) {
-  if (!url.endsWith('/')) {
-    url += '/';
-  }
-  return url + suffix;
-}
-
-class _IntermittentHttpException implements Exception {
-  final String _message;
-  _IntermittentHttpException._(this._message);
-  @override
-  String toString() => _message;
 }
