@@ -50,8 +50,8 @@ final unauthorizedAtPubDevAuthToken =
     createFakeAuthTokenForEmail('unauthorized@pub.dev');
 final adminClientToken = createFakeAuthTokenForEmail('admin@pub.dev',
     audience: 'fake-client-audience');
-final siteAdminToken = createFakeAuthTokenForEmail('admin@pub.dev',
-    audience: 'fake-admin-audience');
+final siteAdminToken =
+    createFakeAuthTokenForEmail('admin@pub.dev', audience: 'https://pub.dev');
 final userClientToken = createFakeAuthTokenForEmail('user@pub.dev',
     audience: 'fake-client-audience');
 

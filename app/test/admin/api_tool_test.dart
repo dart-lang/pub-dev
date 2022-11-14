@@ -16,7 +16,7 @@ void main() {
     group('bad tool', () {
       setupTestsWithCallerAuthorizationIssues(
         (client) => client.adminExecuteTool('no-such-tool', ''),
-        audience: 'fake-admin-audience',
+        audience: 'https://pub.dev',
       );
 
       testWithProfile('auth with bad tool', fn: () async {
@@ -30,7 +30,7 @@ void main() {
     group('user merger', () {
       setupTestsWithCallerAuthorizationIssues(
         (client) => client.adminExecuteTool('user-merger', ''),
-        audience: 'fake-admin-audience',
+        audience: 'https://pub.dev',
       );
 
       testWithProfile('help', fn: () async {
