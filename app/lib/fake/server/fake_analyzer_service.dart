@@ -9,6 +9,7 @@ import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_dev/analyzer/handlers.dart';
 import 'package:pub_dev/analyzer/pana_runner.dart';
@@ -64,10 +65,9 @@ class FakeAnalyzerService {
           (taskWorkerCloudCompute as FakeCloudCompute).startInstanceExecution();
           await taskBackend.backfillTrackingState();
           await taskBackend.start();
+          registerScopeExitCallback(taskBackend.stop);
 
           await ProcessSignal.sigint.watch().first;
-
-          await taskBackend.stop();
 
           _logger.info('shutting down');
           await server.close();
