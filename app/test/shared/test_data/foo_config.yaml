@@ -10,7 +10,7 @@ defaultServiceBaseUrl: http://localhost:8080
 storageBaseUrl: 'https://storage.googleapis.com/'
 pubClientAudience: _pubClientAudience
 pubSiteAudience: 'foo-foo.apps.googleusercontent.com'
-adminAudience: 'https://pub.dev'
+externalServiceAudience: 'https://pub.dev'
 gmailRelayServiceAccount:
 gmailRelayImpersonatedGSuiteUser:
 uploadSignerServiceAccount: 'foo@dartlang-pub-dev.iam.gserviceaccount.com'

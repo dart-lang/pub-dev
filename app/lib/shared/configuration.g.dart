@@ -33,8 +33,7 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
             'storageBaseUrl',
             'pubClientAudience',
             'pubSiteAudience',
-            'adminAudience',
-            'automatedPublishingAudience',
+            'externalServiceAudience',
             'gmailRelayServiceAccount',
             'gmailRelayImpersonatedGSuiteUser',
             'uploadSignerServiceAccount',
@@ -83,9 +82,8 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
               $checkedConvert('pubClientAudience', (v) => v as String?),
           pubSiteAudience:
               $checkedConvert('pubSiteAudience', (v) => v as String?),
-          adminAudience: $checkedConvert('adminAudience', (v) => v as String?),
-          automatedPublishingAudience: $checkedConvert(
-              'automatedPublishingAudience', (v) => v as String?),
+          externalServiceAudience:
+              $checkedConvert('externalServiceAudience', (v) => v as String?),
           gmailRelayServiceAccount:
               $checkedConvert('gmailRelayServiceAccount', (v) => v as String?),
           gmailRelayImpersonatedGSuiteUser: $checkedConvert(
@@ -140,8 +138,7 @@ Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
       'storageBaseUrl': instance.storageBaseUrl,
       'pubClientAudience': instance.pubClientAudience,
       'pubSiteAudience': instance.pubSiteAudience,
-      'adminAudience': instance.adminAudience,
-      'automatedPublishingAudience': instance.automatedPublishingAudience,
+      'externalServiceAudience': instance.externalServiceAudience,
       'gmailRelayServiceAccount': instance.gmailRelayServiceAccount,
       'gmailRelayImpersonatedGSuiteUser':
           instance.gmailRelayImpersonatedGSuiteUser,

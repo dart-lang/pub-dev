@@ -40,12 +40,8 @@ const _fakeClientAudience = 'fake-client-audience';
 /// client side authentication should use the fake authentication tokens.
 const _fakeSiteAudience = 'fake-site-audience';
 
-/// Special value to indicate that the admin client is running in fake mode.
-const _fakeAdminAudience = 'fake-admin-audience';
-
-/// The default audience value we expect when the package is published
-/// via an automatically aquired token.
-const _defaultAutomatedPublishingAudience = 'https://pub.dev';
+/// Special value to indicate that the external client is running in fake mode.
+const _fakeExternalAudience = 'https://pub.dev';
 
 /// Class describing the configuration of running the pub site.
 ///
@@ -153,11 +149,11 @@ class Configuration {
   /// The OAuth audience (`client_id`) that the pub site uses.
   final String? pubSiteAudience;
 
-  /// The OAuth audience (`client_id`) that admin accounts use.
-  final String? adminAudience;
-
-  /// The OAuth audience that client workflows with automated publishing use.
-  final String? automatedPublishingAudience;
+  /// The OAuth audience that external services should use when addressing `pub.dev`.
+  /// Examples of such uses:
+  /// - admin accounts
+  /// - automated publishing clients
+  final String? externalServiceAudience;
 
   /// Email of the service account which has domain-wide delegation for the
   /// GSuite account used to send emails.
@@ -271,8 +267,7 @@ class Configuration {
     required this.storageBaseUrl,
     required this.pubClientAudience,
     required this.pubSiteAudience,
-    required this.adminAudience,
-    required this.automatedPublishingAudience,
+    required this.externalServiceAudience,
     required this.gmailRelayServiceAccount,
     required this.gmailRelayImpersonatedGSuiteUser,
     required this.uploadSignerServiceAccount,
@@ -333,8 +328,7 @@ class Configuration {
       storageBaseUrl: storageBaseUrl,
       pubClientAudience: _fakeClientAudience,
       pubSiteAudience: _fakeSiteAudience,
-      adminAudience: _fakeAdminAudience,
-      automatedPublishingAudience: _defaultAutomatedPublishingAudience,
+      externalServiceAudience: _fakeExternalAudience,
       defaultServiceBaseUrl: 'http://localhost:$frontendPort/',
       gmailRelayServiceAccount: null, // disable email sending
       gmailRelayImpersonatedGSuiteUser: null, // disable email sending
@@ -380,8 +374,7 @@ class Configuration {
       storageBaseUrl: storageBaseUrl ?? 'http://localhost:0',
       pubClientAudience: _fakeClientAudience,
       pubSiteAudience: _fakeSiteAudience,
-      adminAudience: _fakeAdminAudience,
-      automatedPublishingAudience: _defaultAutomatedPublishingAudience,
+      externalServiceAudience: _fakeExternalAudience,
       defaultServiceBaseUrl: primaryApiUri?.toString() ?? 'http://localhost:0/',
       gmailRelayServiceAccount: null, // disable email sending
       gmailRelayImpersonatedGSuiteUser: null, // disable email sending
