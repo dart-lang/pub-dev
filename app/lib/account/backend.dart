@@ -138,7 +138,7 @@ Future<AuthenticatedUser> _requireAuthenticatedUser(
 Future<AuthenticatedUser> requireAuthenticatedAdmin(
     AdminPermission permission) async {
   final authenticatedUser = await _requireAuthenticatedUser(
-      expectedAudience: activeConfiguration.adminAudience);
+      expectedAudience: activeConfiguration.externalServiceAudience);
   final user = authenticatedUser.user;
   final isAdmin = await accountBackend.hasAdminPermission(
     oauthUserId: authenticatedUser.oauthUserId,
@@ -198,7 +198,7 @@ Future<AuthenticatedAgent?> _tryAuthenticateServiceAgent(String token) async {
   if (idToken.payload.iss == GcpServiceAccountJwtPayload.issuerUrl &&
       idToken.payload.aud.length == 1 &&
       idToken.payload.aud.single ==
-          activeConfiguration.automatedPublishingAudience) {
+          activeConfiguration.externalServiceAudience) {
     // As the uploader token's audience and the admin token's issuer and also
     // their audience is the same, we only parse it as a non-user token, when
     // the authentication source is from the pub client app (e.g. uploading a
@@ -229,9 +229,9 @@ Future<A> _verifyAndParseToken<A>(
   }
   final aud =
       idToken.payload.aud.length == 1 ? idToken.payload.aud.single : null;
-  if (aud != activeConfiguration.automatedPublishingAudience) {
+  if (aud != activeConfiguration.externalServiceAudience) {
     throw AuthenticationException.tokenInvalid(
-        'audience "${idToken.payload.aud}" does not match "${activeConfiguration.automatedPublishingAudience}"');
+        'audience "${idToken.payload.aud}" does not match "${activeConfiguration.externalServiceAudience}"');
   }
   final payload = payloadTryParse(idToken.payload);
   if (payload == null) {

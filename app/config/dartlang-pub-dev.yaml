@@ -20,8 +20,7 @@ imageBucketName: dartlang-pub-dev--pub-images
 storageBaseUrl: https://storage.googleapis.com
 pubClientAudience: 818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.googleusercontent.com
 pubSiteAudience: 621485135717-idb8t8nnguphtu2drfn2u4ig7r56rm6n.apps.googleusercontent.com
-adminAudience: https://pub.dev
-automatedPublishingAudience: https://pub.dev
+externalServiceAudience: https://pub.dev
 gmailRelayServiceAccount:
 gmailRelayImpersonatedGSuiteUser:
 uploadSignerServiceAccount: package-uploader-signer@dartlang-pub-dev.iam.gserviceaccount.com
