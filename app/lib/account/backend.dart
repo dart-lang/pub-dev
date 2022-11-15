@@ -12,13 +12,14 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:neat_cache/neat_cache.dart';
-import 'package:pub_dev/shared/configuration.dart';
 
 import '../service/openid/gcp_openid.dart';
 import '../service/openid/github_openid.dart';
 import '../service/openid/jwt.dart';
 import '../service/openid/openid_models.dart';
+import '../shared/configuration.dart';
 import '../shared/datastore.dart';
+import '../shared/env_config.dart';
 import '../shared/exceptions.dart';
 import '../shared/redis_cache.dart' show cache, EntryPurgeExt;
 import '../shared/utils.dart';
@@ -45,6 +46,23 @@ void registerAuthProvider(AuthProvider authProvider) =>
 
 /// The active auth provider service.
 AuthProvider get authProvider => ss.lookup(#_authProvider) as AuthProvider;
+
+/// Parses [token] and returns an authenticated service agent - if the token was valid.
+typedef ServiceAgentAuthenticator = Future<AuthenticatedAgent?> Function(
+    String token);
+
+/// Sets the service agent authenticator (for fake services only).
+void registerServiceAgentAuthenticator(ServiceAgentAuthenticator value) {
+  if (envConfig.isRunningInAppengine) {
+    throw StateError('ServiceAgentAuthenticator must not be set in Appengine.');
+  }
+  ss.register(#_serviceAgentAuthenticator, value);
+}
+
+/// Gets the service agent authenticator.
+ServiceAgentAuthenticator get serviceAgentAuthenticator =>
+    (ss.lookup(#_serviceAgentAuthenticator) as ServiceAgentAuthenticator?) ??
+    _tryAuthenticateServiceAgent;
 
 /// Sets the account backend service.
 void registerAccountBackend(AccountBackend backend) =>
@@ -112,7 +130,7 @@ Future<AuthenticatedUser> _requireAuthenticatedUser(
         'token audience "${auth.audience}" does not match expected value');
   }
 
-  final user = await accountBackend._lookupOrCreateUserByOauthUserId(auth);
+  final user = await accountBackend.lookupOrCreateUserByOauthUserId(auth);
   if (user == null) {
     throw AuthenticationException.failed();
   }
@@ -135,22 +153,31 @@ Future<AuthenticatedUser> _requireAuthenticatedUser(
 /// the given [permission].
 ///
 /// Throws [AuthorizationException] if it doesn't have the permission.
-Future<AuthenticatedUser> requireAuthenticatedAdmin(
+Future<AuthenticatedGcpServiceAccount> requireAuthenticatedAdmin(
     AdminPermission permission) async {
-  final authenticatedUser = await _requireAuthenticatedUser(
-      expectedAudience: activeConfiguration.externalServiceAudience);
-  final user = authenticatedUser.user;
-  final isAdmin = await accountBackend.hasAdminPermission(
-    oauthUserId: authenticatedUser.oauthUserId,
-    email: authenticatedUser.email,
-    permission: permission,
-  );
-  if (!isAdmin) {
-    _logger.warning(
-        'User (${user.userId} / ${user.email}) is trying to access unauthorized admin APIs.');
-    throw AuthorizationException.userIsNotAdminForPubSite();
+  final token = _getBearerToken();
+  if (token == null || token.isEmpty) {
+    throw AuthenticationException.authenticationRequired();
   }
-  return authenticatedUser;
+  final agent = await serviceAgentAuthenticator(token);
+  if (agent == null) {
+    throw AuthenticationException.accessTokenInvalid();
+  }
+  if (agent is AuthenticatedGcpServiceAccount) {
+    final isAdmin = await accountBackend.hasAdminPermission(
+      oauthUserId: agent.oauthUserId,
+      email: agent.email,
+      permission: permission,
+    );
+    if (!isAdmin) {
+      _logger.warning(
+          'Authenticated user (${agent.oauthUserId} / ${agent.email}) is trying to access unauthorized admin APIs.');
+      throw AuthorizationException.userIsNotAdminForPubSite();
+    }
+    return agent;
+  } else {
+    throw AuthenticationException.tokenInvalid('not a GCP service account');
+  }
 }
 
 /// Verifies the current bearer token in the request scope and returns the
@@ -160,7 +187,7 @@ Future<AuthenticatedAgent> requireAuthenticatedClient() async {
   if (token == null || token.isEmpty) {
     throw AuthenticationException.authenticationRequired();
   }
-  final authenticatedServiceAgent = await _tryAuthenticateServiceAgent(token);
+  final authenticatedServiceAgent = await serviceAgentAuthenticator(token);
 
   if (authenticatedServiceAgent != null) {
     return authenticatedServiceAgent;
@@ -391,7 +418,16 @@ class AccountBackend {
     });
   }
 
-  Future<User?> _lookupOrCreateUserByOauthUserId(AuthResult auth) async {
+  /// Returns a [User] entity that matches the [auth] results:
+  /// - If there is an entity with the OauthUserID, it will be returned.
+  /// - If there is an entity with the email but not OAuthUserID (old account
+  ///   that hasn't been used for a while), we will fill the User.oauthUserId
+  ///   field and return the entity.
+  /// Otherwise (e.g. multiple entities with the same email, or data inconsistency)
+  /// the method will return `null`.
+  ///
+  /// TODO: make this private once the consent backend rewrite is done.
+  Future<User?> lookupOrCreateUserByOauthUserId(AuthResult auth) async {
     ArgumentError.checkNotNull(auth, 'auth');
     final emptyKey = _db.emptyKey;
 

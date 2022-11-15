@@ -19,6 +19,7 @@ import 'package:pub_dev/search/handlers.dart';
 import 'package:pub_dev/search/search_client.dart';
 import 'package:pub_dev/search/updater.dart';
 import 'package:pub_dev/service/services.dart';
+import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/env_config.dart';
 import 'package:pub_dev/shared/integrity.dart';
 import 'package:pub_dev/tool/test_profile/import_source.dart';
@@ -205,17 +206,14 @@ void setupLogging() {
 }
 
 void setupTestsWithCallerAuthorizationIssues(
-  Future Function(PubApiClient client) fn, {
-  String? audience,
-}) {
+    Future Function(PubApiClient client) fn) {
   testWithProfile('No active user', fn: () async {
     final rs = fn(createPubApiClient());
     await expectApiException(rs, status: 401, code: 'MissingAuthentication');
   });
 
   testWithProfile('Active user is not authorized', fn: () async {
-    final token =
-        createFakeAuthTokenForEmail('unauthorized@pub.dev', audience: audience);
+    final token = createFakeAuthTokenForEmail('unauthorized@pub.dev');
     final rs = fn(createPubApiClient(authToken: token));
     await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
   });
@@ -224,12 +222,52 @@ void setupTestsWithCallerAuthorizationIssues(
     final users = await dbService.query<User>().run().toList();
     final user = users.firstWhere((u) => u.email == 'admin@pub.dev');
     await dbService.commit(inserts: [user..isBlocked = true]);
-    final token =
-        createFakeAuthTokenForEmail('admin@pub.dev', audience: audience);
+    final token = createFakeAuthTokenForEmail('admin@pub.dev');
     final rs = fn(createPubApiClient(authToken: token));
     await expectApiException(rs,
         status: 403,
         code: 'InsufficientPermissions',
         message: 'User is blocked.');
+  });
+}
+
+void setupTestsWithAdminTokenIssues(Future Function(PubApiClient client) fn) {
+  testWithProfile('No active user', fn: () async {
+    final rs = fn(createPubApiClient());
+    await expectApiException(rs, status: 401, code: 'MissingAuthentication');
+  });
+
+  testWithProfile('Regular user token from the client.', fn: () async {
+    final token = createFakeAuthTokenForEmail(
+      'unauthorized@pub.dev',
+      audience: activeConfiguration.pubClientAudience,
+    );
+    final rs = fn(createPubApiClient(authToken: token));
+    await expectApiException(rs, status: 401, code: 'MissingAuthentication');
+  });
+
+  testWithProfile('Regular user token from the website.', fn: () async {
+    final token = createFakeAuthTokenForEmail(
+      'unauthorized@pub.dev',
+      audience: activeConfiguration.pubSiteAudience,
+    );
+    final rs = fn(createPubApiClient(authToken: token));
+    await expectApiException(rs, status: 401, code: 'MissingAuthentication');
+  });
+
+  testWithProfile('Regular user token with external audience.', fn: () async {
+    final token = createFakeAuthTokenForEmail(
+      'unauthorized@pub.dev',
+      audience: activeConfiguration.externalServiceAudience,
+    );
+    final rs = fn(createPubApiClient(authToken: token));
+    await expectApiException(rs, status: 401, code: 'MissingAuthentication');
+  });
+
+  testWithProfile('Non-admin service agent token', fn: () async {
+    final token =
+        'gcp-service-account?email=unauthorized@pub.dev&aud=https://pub.dev';
+    final rs = fn(createPubApiClient(authToken: token));
+    await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
   });
 }

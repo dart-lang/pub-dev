@@ -139,21 +139,24 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   }
 
   factory AuditLogRecord.packageOptionsUpdated({
+    required AuthenticatedAgent agent,
     required String package,
-    required User user,
     required List<String> options,
   }) {
     final optionsStr = options.map((o) => '`$o`').join(', ');
     return AuditLogRecord._init()
       ..kind = AuditLogRecordKind.packageOptionsUpdated
-      ..agent = user.userId
-      ..summary = '`${user.email}` updated $optionsStr of package `$package`.'
+      ..agent = agent.agentId
+      ..summary =
+          '`${agent.displayId}` updated $optionsStr of package `$package`.'
       ..data = {
         'package': package,
-        'user': user.email,
+        if (agent.email != null) 'email': agent.email,
         'options': options,
       }
-      ..users = [user.userId]
+      ..users = [
+        if (agent is AuthenticatedUser) agent.userId,
+      ]
       ..packages = [package]
       ..packageVersions = []
       ..publishers = [];
@@ -179,24 +182,26 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   }
 
   factory AuditLogRecord.packageVersionOptionsUpdated({
+    required AuthenticatedAgent agent,
     required String package,
     required String version,
-    required User user,
     required List<String> options,
   }) {
     final optionsStr = options.map((o) => '`$o`').join(', ');
     return AuditLogRecord._init()
       ..kind = AuditLogRecordKind.packageVersionOptionsUpdated
-      ..agent = user.userId
-      ..summary = '`${user.email}` updated $optionsStr of '
+      ..agent = agent.agentId
+      ..summary = '`${agent.displayId}` updated $optionsStr of '
           'package `$package` version `$version`.'
       ..data = {
         'package': package,
         'version': version,
-        'user': user.email,
+        if (agent.email != null) 'email': agent.email,
         'options': options,
       }
-      ..users = [user.userId]
+      ..users = [
+        if (agent is AuthenticatedUser) agent.userId,
+      ]
       ..packages = [package]
       ..packageVersions = ['$package/$version']
       ..publishers = [];
@@ -234,9 +239,6 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         ' to the `$repository` repository.',
       ].join();
     } else if (uploader is AuthenticatedGcpServiceAccount) {
-      fields = {
-        'email': uploader.payload.email,
-      };
       summary = [
         ...summaryParts,
         ' was published by Google Cloud service account: `${uploader.payload.email}`.'
@@ -257,7 +259,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..data = {
         'package': package,
         'version': version,
-        if (uploader is AuthenticatedUser) 'email': uploader.user.email,
+        if (uploader.email != null) 'email': uploader.email,
         if (publisherId != null) 'publisherId': publisherId,
         ...fields,
       }
@@ -653,23 +655,26 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   }
 
   factory AuditLogRecord.uploaderRemoved({
-    required User activeUser,
+    required AuthenticatedAgent agent,
     required String package,
     required User uploaderUser,
   }) {
     return AuditLogRecord._init()
       ..kind = AuditLogRecordKind.uploaderRemoved
-      ..agent = activeUser.userId
+      ..agent = agent.agentId
       ..summary = [
-        '`${activeUser.email}` removed `${uploaderUser.email}` ',
+        '`${agent.displayId}` removed `${uploaderUser.email}` ',
         'from the uploaders of package `$package`.',
       ].join()
       ..data = {
         'package': package,
         'uploaderEmail': uploaderUser.email,
-        'user': activeUser.email,
+        if (agent.email != null) 'email': agent.email,
       }
-      ..users = [activeUser.userId, uploaderUser.userId]
+      ..users = [
+        if (agent is AuthenticatedUser) agent.userId,
+        uploaderUser.userId,
+      ]
       ..packages = [package]
       ..packageVersions = []
       ..publishers = [];

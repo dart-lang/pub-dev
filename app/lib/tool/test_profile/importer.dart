@@ -118,8 +118,8 @@ Future<void> importProfile({
 
     if (testPackage.isFlutterFavorite ?? false) {
       await withHttpPubApiClient(
-        bearerToken: createFakeAuthTokenForEmail(adminUserEmail ?? activeEmail,
-            audience: activeConfiguration.externalServiceAudience),
+        bearerToken:
+            createFakeServiceAccountToken(email: adminUserEmail ?? activeEmail),
         pubHostedUrl: pubHostedUrl,
         fn: (client) async {
           await client.adminPostAssignedTags(

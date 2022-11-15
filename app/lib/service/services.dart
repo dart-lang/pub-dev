@@ -175,6 +175,7 @@ Future<R> withFakeServices<R>({
     registerScopeExitCallback(authProvider.close);
     registerDomainVerifier(FakeDomainVerifier());
     registerEmailSender(FakeEmailSender());
+    registerServiceAgentAuthenticator(fakeServiceAgentAuthenticator);
     registerUploadSigner(
         FakeUploadSignerService(configuration!.storageBaseUrl!));
 

@@ -31,10 +31,7 @@ import '../shared/test_services.dart';
 void main() {
   group('Admin API', () {
     group('List users', () {
-      setupTestsWithCallerAuthorizationIssues(
-        (client) => client.adminListUsers(),
-        audience: 'https://pub.dev',
-      );
+      setupTestsWithAdminTokenIssues((client) => client.adminListUsers());
 
       testWithProfile('OK', fn: () async {
         final client = createPubApiClient(authToken: siteAdminToken);
@@ -157,10 +154,8 @@ void main() {
     });
 
     group('Delete package', () {
-      setupTestsWithCallerAuthorizationIssues(
-        (client) => client.adminRemovePackage('oxygen'),
-        audience: 'https://pub.dev',
-      );
+      setupTestsWithAdminTokenIssues(
+          (client) => client.adminRemovePackage('oxygen'));
 
       testWithProfile('OK', fn: () async {
         final client = createPubApiClient(authToken: siteAdminToken);
@@ -219,10 +214,8 @@ void main() {
     });
 
     group('Delete package version', () {
-      setupTestsWithCallerAuthorizationIssues(
-        (client) => client.adminRemovePackageVersion('oxygen', '1.2.0'),
-        audience: 'https://pub.dev',
-      );
+      setupTestsWithAdminTokenIssues(
+          (client) => client.adminRemovePackageVersion('oxygen', '1.2.0'));
 
       testWithProfile('OK', fn: () async {
         final client = createPubApiClient(authToken: siteAdminToken);
@@ -315,12 +308,11 @@ void main() {
     });
 
     group('Delete user', () {
-      setupTestsWithCallerAuthorizationIssues(
+      setupTestsWithAdminTokenIssues(
         (client) async {
           final user = await accountBackend.lookupUserByEmail('user@pub.dev');
           await client.adminRemoveUser(user.userId);
         },
-        audience: 'https://pub.dev',
       );
 
       testWithProfile(
@@ -382,10 +374,8 @@ void main() {
     });
 
     group('get assignedTags', () {
-      setupTestsWithCallerAuthorizationIssues(
-        (client) => client.adminGetAssignedTags('oxygen'),
-        audience: 'https://pub.dev',
-      );
+      setupTestsWithAdminTokenIssues(
+          (client) => client.adminGetAssignedTags('oxygen'));
 
       testWithProfile('get assignedTags', fn: () async {
         final client = createPubApiClient(authToken: siteAdminToken);
@@ -395,12 +385,11 @@ void main() {
     });
 
     group('set assignedTags', () {
-      setupTestsWithCallerAuthorizationIssues(
+      setupTestsWithAdminTokenIssues(
         (client) => client.adminPostAssignedTags(
           'oxygen',
           PatchAssignedTags(assignedTagsAdded: ['is:featured']),
         ),
-        audience: 'https://pub.dev',
       );
 
       testWithProfile('set assignedTags', fn: () async {
@@ -476,10 +465,8 @@ void main() {
       }
 
       group('get', () {
-        setupTestsWithCallerAuthorizationIssues(
-          (client) => client.adminGetPackageUploaders('oxygen'),
-          audience: 'https://pub.dev',
-        );
+        setupTestsWithAdminTokenIssues(
+            (client) => client.adminGetPackageUploaders('oxygen'));
         setupTestsWithPackageFailures(
             (client, package) => client.adminGetPackageUploaders(package));
 
@@ -495,11 +482,8 @@ void main() {
       });
 
       group('add', () {
-        setupTestsWithCallerAuthorizationIssues(
-          (client) =>
-              client.adminAddPackageUploader('oxygen', 'someuser@pub.dev'),
-          audience: 'https://pub.dev',
-        );
+        setupTestsWithAdminTokenIssues((client) =>
+            client.adminAddPackageUploader('oxygen', 'someuser@pub.dev'));
         setupTestsWithPackageFailures((client, package) =>
             client.adminAddPackageUploader(package, 'someuser@pub.dev'));
 
@@ -549,11 +533,8 @@ void main() {
       });
 
       group('remove', () {
-        setupTestsWithCallerAuthorizationIssues(
-          (client) =>
-              client.adminRemovePackageUploader('oxygen', 'admin@pub.dev'),
-          audience: 'https://pub.dev',
-        );
+        setupTestsWithAdminTokenIssues((client) =>
+            client.adminRemovePackageUploader('oxygen', 'admin@pub.dev'));
 
         setupTestsWithPackageFailures((client, package) =>
             client.adminRemovePackageUploader(package, 'admin@pub.dev'));
@@ -609,13 +590,12 @@ void main() {
     });
 
     group('retraction', () {
-      setupTestsWithCallerAuthorizationIssues(
+      setupTestsWithAdminTokenIssues(
         (client) => client.adminUpdateVersionOptions(
           'oxygen',
           '1.2.0',
           VersionOptions(isRetracted: true),
         ),
-        audience: 'https://pub.dev',
       );
 
       testWithProfile('bad retraction value', fn: () async {

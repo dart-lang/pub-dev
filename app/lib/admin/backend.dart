@@ -14,6 +14,7 @@ import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import '../account/auth_provider.dart';
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
 import '../account/like_backend.dart';
@@ -148,7 +149,7 @@ class AdminBackend {
     if (user == null) return;
     if (user.isDeleted) return;
 
-    _logger.info('${caller.userId} (${caller.email}) initiated the delete '
+    _logger.info('${caller.oauthUserId} (${caller.email}) initiated the delete '
         'of ${user.userId} (${user.email})');
 
     // Package.uploaders
@@ -300,7 +301,7 @@ class AdminBackend {
     final caller =
         await requireAuthenticatedAdmin(AdminPermission.removePackage);
 
-    _logger.info('${caller.userId} (${caller.email}) initiated the delete '
+    _logger.info('${caller.oauthUserId} (${caller.email}) initiated the delete '
         'of package $packageName');
 
     final packageKey = _db.emptyKey.append(Package, id: packageName);
@@ -403,7 +404,7 @@ class AdminBackend {
     if (options.isRetracted != null) {
       final isRetracted = options.isRetracted!;
       _logger.info(
-          '${caller.userId} (${caller.email}) initiated the isRetracted status '
+          '${caller.oauthUserId} (${caller.email}) initiated the isRetracted status '
           'of package $packageName $version to be $isRetracted.');
 
       await withRetryTransaction(_db, (tx) async {
@@ -420,7 +421,7 @@ class AdminBackend {
 
         if (pv.isRetracted != isRetracted) {
           await packageBackend.doUpdateRetractedStatus(
-              caller.user, tx, p, pv, isRetracted);
+              caller, tx, p, pv, isRetracted);
         }
       });
       await purgePackageCache(packageName);
@@ -434,7 +435,7 @@ class AdminBackend {
     final caller =
         await requireAuthenticatedAdmin(AdminPermission.removePackage);
 
-    _logger.info('${caller.userId} (${caller.email}) initiated the delete '
+    _logger.info('${caller.oauthUserId} (${caller.email}) initiated the delete '
         'of package $packageName $version');
 
     final currentDartSdk = await getDartSdkVersion();
@@ -616,8 +617,18 @@ class AdminBackend {
     InvalidInputException.check(
         isValidEmail(uploaderEmail), 'Not a valid email: `$uploaderEmail`.');
 
+    // TODO: refactor consent backend to accept non-User agents
+    final user =
+        await accountBackend.lookupOrCreateUserByOauthUserId(AuthResult(
+      oauthUserId: authenticatedUser.oauthUserId,
+      email: authenticatedUser.email,
+      audience: authenticatedUser.audience,
+    ));
+    if (user == null) {
+      throw AuthenticationException.failed();
+    }
     await consentBackend.invitePackageUploader(
-      activeUser: authenticatedUser.user,
+      activeUser: user,
       packageName: packageName,
       uploaderEmail: uploaderEmail,
       isFromAdminUser: true,
@@ -656,7 +667,7 @@ class AdminBackend {
         if (r) {
           removed = true;
           tx.insert(AuditLogRecord.uploaderRemoved(
-            activeUser: authenticatedUser.user,
+            agent: authenticatedUser,
             package: packageName,
             uploaderUser: uploaderUser,
           ));
@@ -666,8 +677,8 @@ class AdminBackend {
         if (p.uploaders!.isEmpty) {
           p.isDiscontinued = true;
           tx.insert(AuditLogRecord.packageOptionsUpdated(
+            agent: authenticatedUser,
             package: packageName,
-            user: authenticatedUser.user,
             options: ['discontinued'],
           ));
         }

@@ -6,7 +6,11 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 
+import '../../account/agent.dart';
 import '../../account/auth_provider.dart';
+import '../../service/openid/gcp_openid.dart';
+import '../../service/openid/jwt.dart';
+import '../../shared/configuration.dart';
 
 /// A fake auth provider where user resolution is done via the provided access
 /// token.
@@ -30,9 +34,9 @@ class FakeAuthProvider implements AuthProvider {
     }
 
     final email = uri.path.replaceAll('-at-', '@').replaceAll('-dot-', '.');
-    final id = email.replaceAll('@', '-').replaceAll('.', '-');
+    final oauthUserId = _oauthUserIdFromEmail(email);
     return AuthResult(
-      oauthUserId: id,
+      oauthUserId: oauthUserId,
       email: email,
       audience: uri.queryParameters['aud'] ?? '',
     );
@@ -65,4 +69,51 @@ String createFakeAuthTokenForEmail(
   return Uri(
       path: email.replaceAll('.', '-dot-').replaceAll('@', '-at-'),
       queryParameters: {'aud': audience ?? 'fake-site-audience'}).toString();
+}
+
+String createFakeServiceAccountToken(
+    {required String email, String? audience}) {
+  return Uri(path: 'gcp-service-account', queryParameters: {
+    'email': email,
+    'aud': audience ?? 'https://pub.dev',
+  }).toString();
+}
+
+String _oauthUserIdFromEmail(String email) =>
+    email.replaceAll('@', '-').replaceAll('.', '-');
+
+Future<AuthenticatedAgent?> fakeServiceAgentAuthenticator(String token) async {
+  final uri = Uri.tryParse(token);
+  if (uri == null) {
+    return null;
+  }
+  if (uri.path == 'gcp-service-account') {
+    final audience = uri.queryParameters['aud'];
+    if (audience != activeConfiguration.externalServiceAudience) {
+      return null;
+    }
+
+    final email = uri.queryParameters['email']!;
+    // ignore: invalid_use_of_visible_for_testing_member
+    final idToken = JsonWebToken(
+      header: {},
+      payload: {
+        'email': email,
+        'sub': _oauthUserIdFromEmail(email),
+        'aud': audience,
+        'iat': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        'exp':
+            DateTime.now().add(Duration(minutes: 1)).millisecondsSinceEpoch ~/
+                1000,
+        'iss': GcpServiceAccountJwtPayload.issuerUrl,
+      },
+      signature: [],
+    );
+    return AuthenticatedGcpServiceAccount(
+      idToken: idToken,
+      payload: GcpServiceAccountJwtPayload(idToken.payload),
+    );
+  }
+
+  return null;
 }
