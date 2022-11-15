@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bumped runtimeVersion to `2022.11.10`.
  * Upgraded stable Flutter analysis SDK to `3.3.8`.
  * Upgraded dependencies.
+ * NOTE: `api_builder` rejects requests with unexpected mime types.
 
 ## `20221110t093400-all`
  * Bumped runtimeVersion to `2022.11.04`.
