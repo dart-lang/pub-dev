@@ -654,7 +654,11 @@ class IntegrityChecker {
 
     final users = r.users;
     if (users == null || users.isEmpty) {
-      yield 'AuditLogRecord "${r.id}" has no users.';
+      if (isKnownServiceAgent(r.agent!)) {
+        // agent-initiated log records may not have users
+      } else {
+        yield 'AuditLogRecord "${r.id}" has no users.';
+      }
     } else {
       for (final u in users) {
         yield* _checkUserValid(
