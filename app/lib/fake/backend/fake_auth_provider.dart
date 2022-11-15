@@ -95,8 +95,8 @@ Future<AuthenticatedAgent?> fakeServiceAgentAuthenticator(String token) async {
     }
 
     final email = uri.queryParameters['email']!;
-    // ignore: invalid_use_of_visible_for_testing_member
     final now = clock.now();
+    // ignore: invalid_use_of_visible_for_testing_member
     final idToken = JsonWebToken(
       header: {},
       payload: {
