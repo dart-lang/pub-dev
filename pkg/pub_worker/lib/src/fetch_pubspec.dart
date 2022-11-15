@@ -38,7 +38,7 @@ Future<Pubspec> fetchPubspec({
       },
       retryIf: (e) =>
           e is _IntermittentHttpException ||
-          e is FormatException ||
+          e is FormatException || // should never happen assume transmission bug
           e is IOException ||
           e is TimeoutException,
     );
