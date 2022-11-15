@@ -97,12 +97,13 @@ abstract class $utilities {
     T Function(Map<String, dynamic>) fromJson,
   ) async {
     try {
-      // TODO: Consider enforcing that requests should have 'Content-Type' set to
-      // 'application/json'. Notice that we should be careful as the CLI client,
-      // might be sending a different Content-Type.
-      if (!_expectedJsonMimeTypes.contains(request.mimeType)) {
-        _log.info('Unexpected MIME type: ${request.mimeType}', request.mimeType,
-            StackTrace.current);
+      final mimeType = request.mimeType;
+      if (mimeType != null && !_expectedJsonMimeTypes.contains(mimeType)) {
+        throw ApiResponseException(
+          status: 400,
+          code: 'InvalidInput',
+          message: 'Unexpected `Content-Type` header: "$mimeType".',
+        );
       }
       final data = await request.readAsString();
       final value = json.decode(data);
