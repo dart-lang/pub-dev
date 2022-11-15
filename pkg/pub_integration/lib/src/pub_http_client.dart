@@ -8,6 +8,10 @@ import 'dart:io';
 import 'package:_pub_shared/validation/html/html_validation.dart';
 import 'package:http/http.dart';
 
+const _jsonRequestHeaders = <String, String>{
+  'content-type': 'application/json; charset="utf-8"',
+};
+
 /// Simple pub client library.
 class PubHttpClient {
   final _http = _HtmlVerifierHttpClient(Client());
@@ -131,6 +135,7 @@ class PubHttpClient {
     final rs = await _http.post(
       _pubHostedUrl.resolve('/api/publishers/$publisherId'),
       headers: {
+        ..._jsonRequestHeaders,
         HttpHeaders.authorizationHeader: 'Bearer $authToken',
       },
       body: json.encode({
@@ -151,6 +156,7 @@ class PubHttpClient {
     final rs = await _http.put(
       _pubHostedUrl.resolve('/api/packages/$package/publisher'),
       headers: {
+        ..._jsonRequestHeaders,
         HttpHeaders.authorizationHeader: 'Bearer $authToken',
       },
       body: json.encode({
@@ -171,6 +177,7 @@ class PubHttpClient {
     final rs = await _http.post(
       _pubHostedUrl.resolve('/api/publishers/$publisherId/invite-member'),
       headers: {
+        ..._jsonRequestHeaders,
         HttpHeaders.authorizationHeader: 'Bearer $authToken',
       },
       body: json.encode({
@@ -190,6 +197,7 @@ class PubHttpClient {
     final rs = await _http.get(
       _pubHostedUrl.resolve('/api/publishers/$publisherId/members'),
       headers: {
+        ..._jsonRequestHeaders,
         HttpHeaders.authorizationHeader: 'Bearer $authToken',
       },
     );
@@ -237,6 +245,7 @@ class PubHttpClient {
     final rs = await _http.post(
       _pubHostedUrl.resolve('/api/packages/$packageName/invite-uploader'),
       headers: {
+        ..._jsonRequestHeaders,
         HttpHeaders.authorizationHeader: 'Bearer $accessToken',
       },
       body: json.encode({
@@ -258,6 +267,7 @@ class PubHttpClient {
     final rs = await _http.post(
       _pubHostedUrl.resolve('/api/packages/$packageName/remove-uploader'),
       headers: {
+        ..._jsonRequestHeaders,
         HttpHeaders.authorizationHeader: 'Bearer $accessToken',
       },
       body: json.encode({
