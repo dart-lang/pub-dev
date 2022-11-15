@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:crypto/crypto.dart';
 
 import '../../account/agent.dart';
@@ -95,16 +96,15 @@ Future<AuthenticatedAgent?> fakeServiceAgentAuthenticator(String token) async {
 
     final email = uri.queryParameters['email']!;
     // ignore: invalid_use_of_visible_for_testing_member
+    final now = clock.now();
     final idToken = JsonWebToken(
       header: {},
       payload: {
         'email': email,
         'sub': _oauthUserIdFromEmail(email),
         'aud': audience,
-        'iat': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-        'exp':
-            DateTime.now().add(Duration(minutes: 1)).millisecondsSinceEpoch ~/
-                1000,
+        'iat': now.millisecondsSinceEpoch ~/ 1000,
+        'exp': now.add(Duration(minutes: 1)).millisecondsSinceEpoch ~/ 1000,
         'iss': GcpServiceAccountJwtPayload.issuerUrl,
       },
       signature: [],
