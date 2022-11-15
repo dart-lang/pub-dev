@@ -105,27 +105,73 @@ UserSessionData? get userSessionData =>
 /// a new one. When the authenticated email of the user changes, the email
 /// field will be updated to the latest one.
 Future<AuthenticatedUser> requireAuthenticatedWebUser() async {
-  return await _requireAuthenticatedUser(
-      expectedAudience: activeConfiguration.pubSiteAudience);
+  final agent = await _requireAuthenticatedAgent(
+      expectedUserAudience: activeConfiguration.pubSiteAudience);
+  if (agent is AuthenticatedUser) {
+    return agent;
+  }
+  throw AuthenticationException.failed();
 }
 
-Future<AuthenticatedUser> _requireAuthenticatedUser(
-    {String? expectedAudience}) async {
+/// Require that the incoming request is authorized by an administrator with
+/// the given [permission].
+///
+/// Throws [AuthorizationException] if it doesn't have the permission.
+Future<AuthenticatedGcpServiceAccount> requireAuthenticatedAdmin(
+    AdminPermission permission) async {
+  final agent = await _requireAuthenticatedAgent(expectedUserAudience: null);
+  if (agent is AuthenticatedGcpServiceAccount) {
+    final isAdmin = await accountBackend.hasAdminPermission(
+      oauthUserId: agent.oauthUserId,
+      email: agent.email,
+      permission: permission,
+    );
+    if (!isAdmin) {
+      _logger.warning(
+          'Authenticated user (${agent.displayId}) is trying to access unauthorized admin APIs.');
+      throw AuthorizationException.userIsNotAdminForPubSite();
+    }
+    return agent;
+  } else {
+    throw AuthenticationException.tokenInvalid('not a GCP service account');
+  }
+}
+
+/// Verifies the current bearer token in the request scope and returns the
+/// current authenticated user or a service agent with the available data.
+Future<AuthenticatedAgent> requireAuthenticatedClient() async {
+  return await _requireAuthenticatedAgent(
+      expectedUserAudience: activeConfiguration.pubClientAudience);
+}
+
+Future<AuthenticatedAgent> _requireAuthenticatedAgent({
+  /// If the authentication result is an [AuthenticatedUser], expect
+  /// its audience to be this value. Other agents may have different
+  /// audience values (eg. automatic publishing tokens).
+  ///
+  /// User authentication will be rejected if [expectedUserAudience] is `null`.
+  required String? expectedUserAudience,
+}) async {
   final token = _getBearerToken();
   if (token == null || token.isEmpty) {
     throw AuthenticationException.authenticationRequired();
   }
+
+  final authenticatedServiceAgent = await serviceAgentAuthenticator(token);
+  if (authenticatedServiceAgent != null) {
+    return authenticatedServiceAgent;
+  }
+
+  // We only authenticate a user when there is an expectation on the audience value.
+  if (expectedUserAudience == null || expectedUserAudience.isEmpty) {
+    throw AuthenticationException.failed();
+  }
+
   final auth = await authProvider.tryAuthenticate(token);
   if (auth == null) {
     throw AuthenticationException.failed();
   }
-  if (expectedAudience == null || expectedAudience.isEmpty) {
-    _logger.shout(
-        'Audience was not configured.', expectedAudience, StackTrace.current);
-    throw AuthenticationException.tokenInvalid(
-        'token audience is not configured');
-  }
-  if (auth.audience != expectedAudience) {
+  if (auth.audience != expectedUserAudience) {
     throw AuthenticationException.tokenInvalid(
         'token audience "${auth.audience}" does not match expected value');
   }
@@ -147,54 +193,6 @@ Future<AuthenticatedUser> _requireAuthenticatedUser(
     throw AuthorizationException.blocked();
   }
   return AuthenticatedUser(user, audience: auth.audience);
-}
-
-/// Require that the incoming request is authorized by an administrator with
-/// the given [permission].
-///
-/// Throws [AuthorizationException] if it doesn't have the permission.
-Future<AuthenticatedGcpServiceAccount> requireAuthenticatedAdmin(
-    AdminPermission permission) async {
-  final token = _getBearerToken();
-  if (token == null || token.isEmpty) {
-    throw AuthenticationException.authenticationRequired();
-  }
-  final agent = await serviceAgentAuthenticator(token);
-  if (agent == null) {
-    throw AuthenticationException.accessTokenInvalid();
-  }
-  if (agent is AuthenticatedGcpServiceAccount) {
-    final isAdmin = await accountBackend.hasAdminPermission(
-      oauthUserId: agent.oauthUserId,
-      email: agent.email,
-      permission: permission,
-    );
-    if (!isAdmin) {
-      _logger.warning(
-          'Authenticated user (${agent.displayId}) is trying to access unauthorized admin APIs.');
-      throw AuthorizationException.userIsNotAdminForPubSite();
-    }
-    return agent;
-  } else {
-    throw AuthenticationException.tokenInvalid('not a GCP service account');
-  }
-}
-
-/// Verifies the current bearer token in the request scope and returns the
-/// current authenticated user or a service agent with the available data.
-Future<AuthenticatedAgent> requireAuthenticatedClient() async {
-  final token = _getBearerToken();
-  if (token == null || token.isEmpty) {
-    throw AuthenticationException.authenticationRequired();
-  }
-  final authenticatedServiceAgent = await serviceAgentAuthenticator(token);
-
-  if (authenticatedServiceAgent != null) {
-    return authenticatedServiceAgent;
-  } else {
-    return await _requireAuthenticatedUser(
-        expectedAudience: activeConfiguration.pubClientAudience);
-  }
 }
 
 Future<AuthenticatedAgent?> _tryAuthenticateServiceAgent(String token) async {
