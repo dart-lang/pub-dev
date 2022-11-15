@@ -231,6 +231,8 @@ void setupTestsWithCallerAuthorizationIssues(
   });
 }
 
+/// Creates generic test cases for admin API operations with failure expectations
+/// (e.g. missing or wrong authentication).
 void setupTestsWithAdminTokenIssues(Future Function(PubApiClient client) fn) {
   testWithProfile('No active user', fn: () async {
     final rs = fn(createPubApiClient());
