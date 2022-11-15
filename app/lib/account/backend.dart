@@ -105,9 +105,13 @@ UserSessionData? get userSessionData =>
 /// a new one. When the authenticated email of the user changes, the email
 /// field will be updated to the latest one.
 Future<AuthenticatedUser> requireAuthenticatedWebUser() async {
-  final agent = await _requireAuthenticatedAgent(
-      expectedUserAudience: activeConfiguration.pubSiteAudience);
+  final agent = await _requireAuthenticatedAgent();
   if (agent is AuthenticatedUser) {
+    if (agent.audience != activeConfiguration.pubSiteAudience) {
+      throw AuthenticationException.tokenInvalid(
+          'token audience "${agent.audience}" does not match expected value');
+    }
+
     return agent;
   }
   throw AuthenticationException.failed();
@@ -119,7 +123,7 @@ Future<AuthenticatedUser> requireAuthenticatedWebUser() async {
 /// Throws [AuthorizationException] if it doesn't have the permission.
 Future<AuthenticatedGcpServiceAccount> requireAuthenticatedAdmin(
     AdminPermission permission) async {
-  final agent = await _requireAuthenticatedAgent(expectedUserAudience: null);
+  final agent = await _requireAuthenticatedAgent();
   if (agent is AuthenticatedGcpServiceAccount) {
     final isAdmin = await accountBackend.hasAdminPermission(
       oauthUserId: agent.oauthUserId,
@@ -140,18 +144,16 @@ Future<AuthenticatedGcpServiceAccount> requireAuthenticatedAdmin(
 /// Verifies the current bearer token in the request scope and returns the
 /// current authenticated user or a service agent with the available data.
 Future<AuthenticatedAgent> requireAuthenticatedClient() async {
-  return await _requireAuthenticatedAgent(
-      expectedUserAudience: activeConfiguration.pubClientAudience);
+  final agent = await _requireAuthenticatedAgent();
+  if (agent is AuthenticatedUser &&
+      agent.audience != activeConfiguration.pubClientAudience) {
+    throw AuthenticationException.tokenInvalid(
+        'token audience "${agent.audience}" does not match expected value');
+  }
+  return agent;
 }
 
-Future<AuthenticatedAgent> _requireAuthenticatedAgent({
-  /// If the authentication result is an [AuthenticatedUser], expect
-  /// its audience to be this value. Other agents may have different
-  /// audience values (eg. automatic publishing tokens).
-  ///
-  /// User authentication will be rejected if [expectedUserAudience] is `null`.
-  required String? expectedUserAudience,
-}) async {
+Future<AuthenticatedAgent> _requireAuthenticatedAgent() async {
   final token = _getBearerToken();
   if (token == null || token.isEmpty) {
     throw AuthenticationException.authenticationRequired();
@@ -162,18 +164,9 @@ Future<AuthenticatedAgent> _requireAuthenticatedAgent({
     return authenticatedServiceAgent;
   }
 
-  // We only authenticate a user when there is an expectation on the audience value.
-  if (expectedUserAudience == null || expectedUserAudience.isEmpty) {
-    throw AuthenticationException.failed();
-  }
-
   final auth = await authProvider.tryAuthenticate(token);
   if (auth == null) {
     throw AuthenticationException.failed();
-  }
-  if (auth.audience != expectedUserAudience) {
-    throw AuthenticationException.tokenInvalid(
-        'token audience "${auth.audience}" does not match expected value');
   }
 
   final user = await accountBackend.lookupOrCreateUserByOauthUserId(auth);
