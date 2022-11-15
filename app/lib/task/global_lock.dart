@@ -40,10 +40,10 @@ class GlobalLock {
     final c = await claim(abort: abort);
     final claimId = c._entry.claimId;
     var refreshed = Future.value(true);
-    var done = false;
+    final done = Completer<void>();
     try {
       scheduleMicrotask(() async {
-        while (c.valid && !done) {
+        while (c.valid && !done.isCompleted) {
           // Await for 50% of the time until expiration is gone, then we refresh
           var delay = c.expires
               .subtract(_expiration * 0.5)
@@ -56,10 +56,12 @@ class GlobalLock {
           // has passed, at this point we refresh every 10% of expiration. This
           // ensures that if refreshing fails, then we have a few attempts to
           // refresh, before it's truely expired.
-          await Future.delayed(delay);
+
+          // Wait for done or delay
+          await done.future.timeout(delay, onTimeout: () => null);
 
           // Try to refresh, if claim is still valid and we're not done.
-          if (c.valid && !done) {
+          if (c.valid && !done.isCompleted) {
             refreshed = c.refresh();
             try {
               if (!await refreshed) {
@@ -78,7 +80,7 @@ class GlobalLock {
       });
       return await fn(c);
     } finally {
-      done = true;
+      done.complete();
       try {
         await refreshed; // wait to any ongoing refreshing attempt is done
       } on Exception {
@@ -155,10 +157,8 @@ class GlobalLock {
         if (delay < _expiration * 0.1) {
           delay = _expiration * 0.1;
         }
-        await Future.any([
-          Future.delayed(delay),
-          abort.future,
-        ]);
+        // Wait for delay or abort
+        await abort.future.timeout(delay, onTimeout: () => null);
       }
       e = await _tryClaimOrGet(claimId);
     }
