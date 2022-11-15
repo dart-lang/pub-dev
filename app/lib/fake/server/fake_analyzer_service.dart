@@ -65,7 +65,6 @@ class FakeAnalyzerService {
           (taskWorkerCloudCompute as FakeCloudCompute).startInstanceExecution();
           await taskBackend.backfillTrackingState();
           await taskBackend.start();
-          registerScopeExitCallback(taskBackend.stop);
 
           await ProcessSignal.sigint.watch().first;
 
