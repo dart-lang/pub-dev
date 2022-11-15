@@ -149,7 +149,7 @@ class AdminBackend {
     if (user == null) return;
     if (user.isDeleted) return;
 
-    _logger.info('${caller.oauthUserId} (${caller.email}) initiated the delete '
+    _logger.info('${caller.displayId}) initiated the delete '
         'of ${user.userId} (${user.email})');
 
     // Package.uploaders
@@ -301,7 +301,7 @@ class AdminBackend {
     final caller =
         await requireAuthenticatedAdmin(AdminPermission.removePackage);
 
-    _logger.info('${caller.oauthUserId} (${caller.email}) initiated the delete '
+    _logger.info('${caller.displayId}) initiated the delete '
         'of package $packageName');
 
     final packageKey = _db.emptyKey.append(Package, id: packageName);
@@ -403,8 +403,7 @@ class AdminBackend {
 
     if (options.isRetracted != null) {
       final isRetracted = options.isRetracted!;
-      _logger.info(
-          '${caller.oauthUserId} (${caller.email}) initiated the isRetracted status '
+      _logger.info('${caller.displayId}) initiated the isRetracted status '
           'of package $packageName $version to be $isRetracted.');
 
       await withRetryTransaction(_db, (tx) async {
@@ -435,7 +434,7 @@ class AdminBackend {
     final caller =
         await requireAuthenticatedAdmin(AdminPermission.removePackage);
 
-    _logger.info('${caller.oauthUserId} (${caller.email}) initiated the delete '
+    _logger.info('${caller.displayId}) initiated the delete '
         'of package $packageName $version');
 
     final currentDartSdk = await getDartSdkVersion();

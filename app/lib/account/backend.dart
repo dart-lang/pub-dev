@@ -171,7 +171,7 @@ Future<AuthenticatedGcpServiceAccount> requireAuthenticatedAdmin(
     );
     if (!isAdmin) {
       _logger.warning(
-          'Authenticated user (${agent.oauthUserId} / ${agent.email}) is trying to access unauthorized admin APIs.');
+          'Authenticated user (${agent.displayId}) is trying to access unauthorized admin APIs.');
       throw AuthorizationException.userIsNotAdminForPubSite();
     }
     return agent;
