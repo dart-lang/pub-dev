@@ -11,11 +11,11 @@ const _knownTemplateDescriptions = <String>{
   'a sample command-line application',
   'a simple command-line application',
   'a starting point for dart libraries or applications',
-  'a package containing shared Dart libraries',
+  'a package containing shared dart libraries',
   'a web server built using the shelf package',
   'a server app using package:shelf',
   'a web app that uses angulardart components',
-  'a web app that uses only core Dart libraries',
+  'a web app that uses only core dart libraries',
   'an absolute bare-bones web app',
   'a simple stagexl web app',
   // Flutter templates, check latest version in flutter/flutter's
