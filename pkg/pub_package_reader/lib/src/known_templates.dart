@@ -7,11 +7,15 @@ import 'package:pub_package_reader/pub_package_reader.dart';
 const _knownTemplateDescriptions = <String>{
   // ex-stagehand templates, check latest versions in dart-lang/sdk's
   // pkg/dartdev/lib/src/templates/ directory:
+  'a command-line application',
   'a sample command-line application',
   'a simple command-line application',
   'a starting point for dart libraries or applications',
+  'a package containing shared Dart libraries',
   'a web server built using the shelf package',
+  'a server app using package:shelf',
   'a web app that uses angulardart components',
+  'a web app that uses only core Dart libraries',
   'an absolute bare-bones web app',
   'a simple stagexl web app',
   // Flutter templates, check latest version in flutter/flutter's
