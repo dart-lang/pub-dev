@@ -7,6 +7,7 @@ import 'package:_pub_shared/search/tags.dart';
 
 import '../../../dom/dom.dart' as d;
 import '../../../dom/material.dart' as material;
+import '../../../request_context.dart';
 import '../../../static_files.dart';
 
 /// Renders the package listing.
@@ -145,6 +146,16 @@ d.Node _searchFormContainer({
                 searchForm: searchForm,
                 title: 'Show only null-safe packages.',
               ),
+              if (requestContext.experimentalFlags.showScreenshots ||
+                  searchForm.parsedQuery.tagsPredicate
+                      .hasTag(PackageVersionTags.hasScreenshot))
+                _tagBasedCheckbox(
+                  tagPrefix: 'has',
+                  tagValue: 'screenshot',
+                  label: 'Has screenshot',
+                  searchForm: searchForm,
+                  title: 'Show only packages with screenshots.',
+                ),
             ],
           ),
         ],
