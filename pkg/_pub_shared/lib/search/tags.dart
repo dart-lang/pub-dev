@@ -70,7 +70,6 @@ abstract class PackageVersionTags {
 
   /// Package version has a screenshot that we can display.
   static const String hasScreenshot = 'has:screenshot';
-
 }
 
 /// Collection of SDK tags (with prefix and value).
