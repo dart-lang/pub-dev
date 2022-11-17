@@ -105,48 +105,16 @@ UserSessionData? get userSessionData =>
 /// a new one. When the authenticated email of the user changes, the email
 /// field will be updated to the latest one.
 Future<AuthenticatedUser> requireAuthenticatedWebUser() async {
-  return await _requireAuthenticatedUser(
-      expectedAudience: activeConfiguration.pubSiteAudience);
-}
+  final agent = await _requireAuthenticatedAgent();
+  if (agent is AuthenticatedUser) {
+    if (agent.audience != activeConfiguration.pubSiteAudience) {
+      throw AuthenticationException.tokenInvalid(
+          'token audience "${agent.audience}" does not match expected value');
+    }
 
-Future<AuthenticatedUser> _requireAuthenticatedUser(
-    {String? expectedAudience}) async {
-  final token = _getBearerToken();
-  if (token == null || token.isEmpty) {
-    throw AuthenticationException.authenticationRequired();
+    return agent;
   }
-  final auth = await authProvider.tryAuthenticate(token);
-  if (auth == null) {
-    throw AuthenticationException.failed();
-  }
-  if (expectedAudience == null || expectedAudience.isEmpty) {
-    _logger.shout(
-        'Audience was not configured.', expectedAudience, StackTrace.current);
-    throw AuthenticationException.tokenInvalid(
-        'token audience is not configured');
-  }
-  if (auth.audience != expectedAudience) {
-    throw AuthenticationException.tokenInvalid(
-        'token audience "${auth.audience}" does not match expected value');
-  }
-
-  final user = await accountBackend.lookupOrCreateUserByOauthUserId(auth);
-  if (user == null) {
-    throw AuthenticationException.failed();
-  }
-  if (user.isBlocked) {
-    throw AuthorizationException.blocked();
-  }
-  if (user.isDeleted) {
-    // This may only happen if we have a data inconsistency in the datastore.
-    _logger.severe(
-      'Login on deleted account: ${user.userId} / ${user.email}',
-      AuthorizationException.blocked(),
-      StackTrace.current,
-    );
-    throw AuthorizationException.blocked();
-  }
-  return AuthenticatedUser(user, audience: auth.audience);
+  throw AuthenticationException.failed();
 }
 
 /// Require that the incoming request is authorized by an administrator with
@@ -155,14 +123,7 @@ Future<AuthenticatedUser> _requireAuthenticatedUser(
 /// Throws [AuthorizationException] if it doesn't have the permission.
 Future<AuthenticatedGcpServiceAccount> requireAuthenticatedAdmin(
     AdminPermission permission) async {
-  final token = _getBearerToken();
-  if (token == null || token.isEmpty) {
-    throw AuthenticationException.authenticationRequired();
-  }
-  final agent = await serviceAgentAuthenticator(token);
-  if (agent == null) {
-    throw AuthenticationException.accessTokenInvalid();
-  }
+  final agent = await _requireAuthenticatedAgent();
   if (agent is AuthenticatedGcpServiceAccount) {
     final isAdmin = await accountBackend.hasAdminPermission(
       oauthUserId: agent.oauthUserId,
@@ -183,18 +144,48 @@ Future<AuthenticatedGcpServiceAccount> requireAuthenticatedAdmin(
 /// Verifies the current bearer token in the request scope and returns the
 /// current authenticated user or a service agent with the available data.
 Future<AuthenticatedAgent> requireAuthenticatedClient() async {
+  final agent = await _requireAuthenticatedAgent();
+  if (agent is AuthenticatedUser &&
+      agent.audience != activeConfiguration.pubClientAudience) {
+    throw AuthenticationException.tokenInvalid(
+        'token audience "${agent.audience}" does not match expected value');
+  }
+  return agent;
+}
+
+Future<AuthenticatedAgent> _requireAuthenticatedAgent() async {
   final token = _getBearerToken();
   if (token == null || token.isEmpty) {
     throw AuthenticationException.authenticationRequired();
   }
-  final authenticatedServiceAgent = await serviceAgentAuthenticator(token);
 
+  final authenticatedServiceAgent = await serviceAgentAuthenticator(token);
   if (authenticatedServiceAgent != null) {
     return authenticatedServiceAgent;
-  } else {
-    return await _requireAuthenticatedUser(
-        expectedAudience: activeConfiguration.pubClientAudience);
   }
+
+  final auth = await authProvider.tryAuthenticate(token);
+  if (auth == null) {
+    throw AuthenticationException.failed();
+  }
+
+  final user = await accountBackend.lookupOrCreateUserByOauthUserId(auth);
+  if (user == null) {
+    throw AuthenticationException.failed();
+  }
+  if (user.isBlocked) {
+    throw AuthorizationException.blocked();
+  }
+  if (user.isDeleted) {
+    // This may only happen if we have a data inconsistency in the datastore.
+    _logger.severe(
+      'Login on deleted account: ${user.userId} / ${user.email}',
+      AuthorizationException.blocked(),
+      StackTrace.current,
+    );
+    throw AuthorizationException.blocked();
+  }
+  return AuthenticatedUser(user, audience: auth.audience);
 }
 
 Future<AuthenticatedAgent?> _tryAuthenticateServiceAgent(String token) async {
