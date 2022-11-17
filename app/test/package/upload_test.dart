@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
@@ -11,6 +12,7 @@ import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
+import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dev/package/backend.dart';
@@ -225,6 +227,105 @@ void main() {
             assets.firstWhere((pva) => pva.kind == AssetKind.changelog);
         expect(changelog.path, 'CHANGELOG.md');
         expect(changelog.textContent, foobarChangelogContent);
+      });
+    });
+
+    group('Uploading with service account', () {
+      testWithProfile('service account cannot upload new package',
+          fn: () async {
+        final token =
+            createFakeServiceAccountToken(email: 'admin-action@pub.dev');
+        final pubspecContent = generatePubspecYaml('new_package', '1.2.3');
+        final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
+        final rs =
+            createPubApiClient(authToken: token).uploadPackageBytes(bytes);
+        // TODO: refactor upload to return better error message
+        await expectApiException(
+          rs,
+          status: 403,
+          code: 'InsufficientPermissions',
+          message:
+              'Insufficient permissions to perform administrative actions on package `new_package`.',
+        );
+      });
+
+      testWithProfile(
+          'service account cannot upload new version to existing package',
+          fn: () async {
+        final token =
+            createFakeServiceAccountToken(email: 'admin-action@pub.dev');
+        final pubspecContent = generatePubspecYaml('oxygen', '2.2.0');
+        final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
+        final rs =
+            createPubApiClient(authToken: token).uploadPackageBytes(bytes);
+        await expectApiException(
+          rs,
+          status: 403,
+          code: 'InsufficientPermissions',
+          message: 'publishing with service account is not enabled',
+        );
+      });
+
+      testWithProfile(
+          'service account cannot upload because email not matching',
+          fn: () async {
+        await withHttpPubApiClient(
+          bearerToken: adminAtPubDevAuthToken,
+          fn: (client) async {
+            await client.setAutomatedPublishing(
+              'oxygen',
+              AutomatedPublishing(
+                gcp: GcpPublishing(
+                  isEnabled: true,
+                  serviceAccountEmail: 'admin@x.gserviceaccount.com',
+                ),
+              ),
+            );
+          },
+        );
+        final token =
+            createFakeServiceAccountToken(email: 'admin-action@pub.dev');
+        final pubspecContent = generatePubspecYaml('oxygen', '2.2.0');
+        final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
+        final rs =
+            createPubApiClient(authToken: token).uploadPackageBytes(bytes);
+        await expectApiException(
+          rs,
+          status: 403,
+          code: 'InsufficientPermissions',
+          message:
+              'publishing is not enabled for the "admin-action@pub.dev" service account, it may be enabled for another email',
+        );
+      });
+
+      testWithProfile('successful upload with service account', fn: () async {
+        await withHttpPubApiClient(
+          bearerToken: adminAtPubDevAuthToken,
+          fn: (client) async {
+            await client.setAutomatedPublishing(
+              'oxygen',
+              AutomatedPublishing(
+                gcp: GcpPublishing(
+                  isEnabled: true,
+                  serviceAccountEmail: 'admin@x.gserviceaccount.com',
+                ),
+              ),
+            );
+          },
+        );
+        final token =
+            createFakeServiceAccountToken(email: 'admin@x.gserviceaccount.com');
+        final pubspecContent = generatePubspecYaml('oxygen', '2.2.0');
+        final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
+        final rs =
+            createPubApiClient(authToken: token).uploadPackageBytes(bytes);
+        await expectApiException(
+          rs,
+          status: 400,
+          code: 'PackageRejected',
+          message:
+              'Google Cloud Service account recognized successful, but publishing is not enabled yet',
+        );
       });
     });
 

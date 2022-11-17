@@ -546,7 +546,7 @@ class PackageBackend {
 
           InvalidInputException.check(
             serviceAccountEmail.endsWith('.gserviceaccount.com'),
-            'The service account email must end with `gserviceaccount.com`. '
+            'The service account email must end with `.gserviceaccount.com`. '
             'If you have a different service account email, please create an issue at '
             'https://github.com/dart-lang/pub-dev',
           );
@@ -1288,7 +1288,7 @@ class PackageBackend {
         serviceAccountEmail.isEmpty ||
         serviceAccountEmail != agent.payload.email) {
       throw AuthorizationException.serviceAccountPublishingIssue(
-          'publishing is not enabled for the "${agent.payload.email}" service account, it may be enabled for another email.');
+          'publishing is not enabled for the "${agent.payload.email}" service account, it may be enabled for another email');
     }
 
     // TODO: remove once we are happy with the current checks
