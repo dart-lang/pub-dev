@@ -1288,7 +1288,7 @@ class PackageBackend {
         serviceAccountEmail.isEmpty ||
         serviceAccountEmail != agent.payload.email) {
       throw AuthorizationException.serviceAccountPublishingIssue(
-          'publishing is not enabled for the "${agent.payload.email}" service account, it may be enabled for another email');
+          'publishing is not enabled for the "${agent.payload.email}" service account');
     }
 
     // TODO: remove once we are happy with the current checks
