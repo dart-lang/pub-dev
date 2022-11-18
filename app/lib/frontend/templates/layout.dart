@@ -118,7 +118,7 @@ d.Node _renderSearchBanner({
 
 final String _defaultPageDescription =
     'Pub is the package manager for the Dart programming language, containing reusable '
-    'libraries & packages for Flutter, AngularDart, and general Dart programs.';
+    'libraries & packages for Flutter and general Dart programs.';
 
 const _schemaOrgSearchAction = {
   '@context': 'http://schema.org',
