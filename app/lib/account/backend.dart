@@ -16,10 +16,8 @@ import 'package:neat_cache/neat_cache.dart';
 import '../service/openid/gcp_openid.dart';
 import '../service/openid/github_openid.dart';
 import '../service/openid/jwt.dart';
-import '../service/openid/openid_models.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
-import '../shared/env_config.dart';
 import '../shared/exceptions.dart';
 import '../shared/redis_cache.dart' show cache, EntryPurgeExt;
 import '../shared/utils.dart';
@@ -46,23 +44,6 @@ void registerAuthProvider(AuthProvider authProvider) =>
 
 /// The active auth provider service.
 AuthProvider get authProvider => ss.lookup(#_authProvider) as AuthProvider;
-
-/// Parses [token] and returns an authenticated service agent - if the token was valid.
-typedef ServiceAgentAuthenticator = Future<AuthenticatedAgent?> Function(
-    String token);
-
-/// Sets the service agent authenticator (for fake services only).
-void registerServiceAgentAuthenticator(ServiceAgentAuthenticator value) {
-  if (envConfig.isRunningInAppengine) {
-    throw StateError('ServiceAgentAuthenticator must not be set in Appengine.');
-  }
-  ss.register(#_serviceAgentAuthenticator, value);
-}
-
-/// Gets the service agent authenticator.
-ServiceAgentAuthenticator get serviceAgentAuthenticator =>
-    (ss.lookup(#_serviceAgentAuthenticator) as ServiceAgentAuthenticator?) ??
-    _tryAuthenticateServiceAgent;
 
 /// Sets the account backend service.
 void registerAccountBackend(AccountBackend backend) =>
@@ -159,12 +140,12 @@ Future<AuthenticatedAgent> _requireAuthenticatedAgent() async {
     throw AuthenticationException.authenticationRequired();
   }
 
-  final authenticatedServiceAgent = await serviceAgentAuthenticator(token);
+  final authenticatedServiceAgent = await _tryAuthenticateServiceAgent(token);
   if (authenticatedServiceAgent != null) {
     return authenticatedServiceAgent;
   }
 
-  final auth = await authProvider.tryAuthenticate(token);
+  final auth = await authProvider.tryAuthenticateAsUser(token);
   if (auth == null) {
     throw AuthenticationException.failed();
   }
@@ -189,27 +170,25 @@ Future<AuthenticatedAgent> _requireAuthenticatedAgent() async {
 }
 
 Future<AuthenticatedAgent?> _tryAuthenticateServiceAgent(String token) async {
-  if (!JsonWebToken.looksLikeJWT(token)) {
-    return null;
-  }
-  final idToken = JsonWebToken.tryParse(token);
+  final idToken = await authProvider.tryAuthenticateAsServiceToken(token);
   if (idToken == null) {
     return null;
   }
 
-  if (idToken.payload.iss == GitHubJwtPayload.issuerUrl) {
-    // At this point we have confirmed that the token is a JWT token
-    // issued by GitHub. If there is an issue with the token, the
-    // authentication should fail without any fallback.
-    final payload = await _verifyAndParseToken(
-      idToken,
-      openIdDataFetch: fetchGithubOpenIdData,
-      payloadTryParse: GitHubJwtPayload.tryParse,
-    );
+  Future<A> parseTokenPayload<A>(
+    A? Function(JwtPayload payload) payloadTryParse,
+  ) async {
+    final payload = payloadTryParse(idToken.payload);
+    if (payload == null) {
+      throw AuthenticationException.tokenInvalid('unable to parse payload');
+    }
+    return payload;
+  }
 
+  if (idToken.payload.iss == GitHubJwtPayload.issuerUrl) {
     return AuthenticatedGithubAction(
       idToken: idToken,
-      payload: payload,
+      payload: await parseTokenPayload(GitHubJwtPayload.tryParse),
     );
   }
 
@@ -217,50 +196,13 @@ Future<AuthenticatedAgent?> _tryAuthenticateServiceAgent(String token) async {
       idToken.payload.aud.length == 1 &&
       idToken.payload.aud.single ==
           activeConfiguration.externalServiceAudience) {
-    // As the uploader token's audience and the admin token's issuer and also
-    // their audience is the same, we only parse it as a non-user token, when
-    // the authentication source is from the pub client app (e.g. uploading a
-    // new package).
-    // At this point we don't fall back to authenticating the token as a user.
-    final payload = await _verifyAndParseToken(
-      idToken,
-      openIdDataFetch: fetchGoogleCloudOpenIdData,
-      payloadTryParse: GcpServiceAccountJwtPayload.tryParse,
-    );
-
     return AuthenticatedGcpServiceAccount(
       idToken: idToken,
-      payload: payload,
+      payload: await parseTokenPayload(GcpServiceAccountJwtPayload.tryParse),
     );
   }
 
   return null;
-}
-
-Future<A> _verifyAndParseToken<A>(
-  JsonWebToken idToken, {
-  required Future<OpenIdData> Function() openIdDataFetch,
-  required A? Function(JwtPayload payload) payloadTryParse,
-}) async {
-  if (!idToken.payload.isTimely(threshold: Duration(minutes: 2))) {
-    throw AuthenticationException.tokenInvalid('invalid timestamps');
-  }
-  final aud =
-      idToken.payload.aud.length == 1 ? idToken.payload.aud.single : null;
-  if (aud != activeConfiguration.externalServiceAudience) {
-    throw AuthenticationException.tokenInvalid(
-        'audience "${idToken.payload.aud}" does not match "${activeConfiguration.externalServiceAudience}"');
-  }
-  final payload = payloadTryParse(idToken.payload);
-  if (payload == null) {
-    throw AuthenticationException.tokenInvalid('unable to parse payload');
-  }
-  final openIdData = await openIdDataFetch();
-  final signatureMatches = await idToken.verifySignature(openIdData.jwks);
-  if (!signatureMatches) {
-    throw AuthenticationException.tokenInvalid('invalid signature');
-  }
-  return payload;
 }
 
 /// Represents the backend for the account handling and authentication.
@@ -355,7 +297,7 @@ class AccountBackend {
   /// OAuth userId differs from [owner].
   Future<void> verifyAccessTokenOwnership(
       String accessToken, User owner) async {
-    final auth = await authProvider.tryAuthenticate(accessToken);
+    final auth = await authProvider.tryAuthenticateAsUser(accessToken);
     if (auth == null) {
       throw AuthenticationException.accessTokenInvalid();
     }
