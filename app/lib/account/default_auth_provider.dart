@@ -249,29 +249,24 @@ class DefaultAuthProvider extends AuthProvider {
   @override
   Future<AccountProfile?> getAccountProfile(String? accessToken) async {
     if (accessToken == null) return null;
-    final client = httpRetryClient(retries: 2);
-    try {
-      final authClient = auth.authenticatedClient(
-          client,
-          auth.AccessCredentials(
-            auth.AccessToken(
-              'Bearer',
-              accessToken,
-              clock.now().toUtc().add(Duration(minutes: 20)), // avoid refresh
-            ),
-            null,
-            [],
-          ));
+    final authClient = auth.authenticatedClient(
+        _httpClient,
+        auth.AccessCredentials(
+          auth.AccessToken(
+            'Bearer',
+            accessToken,
+            clock.now().toUtc().add(Duration(minutes: 20)), // avoid refresh
+          ),
+          null,
+          [],
+        ));
 
-      final oauth2 = oauth2_v2.Oauth2Api(authClient);
-      final info = await oauth2.userinfo.get();
-      return AccountProfile(
-        name: info.name ?? info.givenName,
-        imageUrl: info.picture,
-      );
-    } finally {
-      client.close();
-    }
+    final oauth2 = oauth2_v2.Oauth2Api(authClient);
+    final info = await oauth2.userinfo.get();
+    return AccountProfile(
+      name: info.name ?? info.givenName,
+      imageUrl: info.picture,
+    );
   }
 
   @override
