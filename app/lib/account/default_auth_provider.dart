@@ -9,7 +9,6 @@ import 'package:googleapis/oauth2/v2.dart' as oauth2_v2;
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
-import 'package:retry/retry.dart' show retry;
 
 import '../service/openid/gcp_openid.dart';
 import '../service/openid/github_openid.dart';
