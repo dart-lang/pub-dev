@@ -90,7 +90,7 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
           Storage(retryingAuthClient, activeConfiguration.projectId));
 
       // register services with external dependencies
-      registerAuthProvider(GoogleOauth2AuthProvider());
+      registerAuthProvider(DefaultAuthProvider());
       registerScopeExitCallback(authProvider.close);
       registerDomainVerifier(DomainVerifier());
       registerEmailSender(
@@ -175,7 +175,6 @@ Future<R> withFakeServices<R>({
     registerScopeExitCallback(authProvider.close);
     registerDomainVerifier(FakeDomainVerifier());
     registerEmailSender(FakeEmailSender());
-    registerServiceAgentAuthenticator(fakeServiceAgentAuthenticator);
     registerUploadSigner(
         FakeUploadSignerService(configuration!.storageBaseUrl!));
 
