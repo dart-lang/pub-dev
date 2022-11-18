@@ -176,7 +176,8 @@ Future<AuthenticatedAgent?> _tryAuthenticateServiceAgent(String token) async {
   }
 
   Future<A> parseTokenPayload<A>(
-      A? Function(JwtPayload payload) payloadTryParse,) async {
+    A? Function(JwtPayload payload) payloadTryParse,
+  ) async {
     final payload = payloadTryParse(idToken.payload);
     if (payload == null) {
       throw AuthenticationException.tokenInvalid('unable to parse payload');
