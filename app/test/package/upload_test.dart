@@ -294,7 +294,7 @@ void main() {
           status: 403,
           code: 'InsufficientPermissions',
           message:
-              'publishing is not enabled for the "admin-action@pub.dev" service account, it may be enabled for another email',
+              'publishing is not enabled for the "admin-action@pub.dev" service account',
         );
       });
 
