@@ -67,6 +67,9 @@ abstract class PackageVersionTags {
 
   /// pana encountered errors during analysis.
   static const String hasError = 'has:error';
+
+  /// Package version has a screenshot that we can display.
+  static const String hasScreenshot = 'has:screenshot';
 }
 
 /// Collection of SDK tags (with prefix and value).
