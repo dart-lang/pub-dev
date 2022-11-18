@@ -32,7 +32,7 @@ class DefaultAuthProvider extends AuthProvider {
   late oauth2_v2.Oauth2Api _oauthApi;
 
   DefaultAuthProvider() {
-    _httpClient = http.Client();
+    _httpClient = httpRetryClient(retries: 2);
     _oauthApi = oauth2_v2.Oauth2Api(_httpClient);
   }
 
