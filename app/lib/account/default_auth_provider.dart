@@ -173,10 +173,8 @@ class DefaultAuthProvider extends AuthProvider {
     // Note: ideally, we would verify these JWTs locally, but unfortunately
     //       we don't have a solid RSA implementation available in Dart.
     final u = _tokenInfoEndPoint.replace(queryParameters: {'id_token': jwt});
-    final response = await retry(
-      () => _httpClient.get(u, headers: {'accept': 'application/json'}),
-      maxAttempts: 2, // two attempts is enough, we don't want delays here
-    );
+    final response =
+        await _httpClient.get(u, headers: {'accept': 'application/json'});
     // Expect a 200 response
     if (response.statusCode != 200) {
       return null;
