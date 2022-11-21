@@ -113,11 +113,11 @@ class FakePubServerProcess {
   }
 
   Future<void> kill() async {
-    // First try SIGINT, and after 5 seconds do SIGTERM.
+    // First try SIGINT, and after 10 seconds do SIGTERM.
     print('Sending INT signal to ${_process.pid}...');
     _process.kill(ProcessSignal.sigint);
     await _coverageConfig?.waitForCollect();
-    final timer = Timer(Duration(seconds: 5), () {
+    final timer = Timer(Duration(seconds: 10), () {
       print('Sending TERM signal to ${_process.pid}...');
       _process.kill();
     });
@@ -127,6 +127,9 @@ class FakePubServerProcess {
     await _stdoutListener?.cancel();
     await _stderrListener?.cancel();
     _startupTimeoutTimer?.cancel();
+    if (exitCode != 0) {
+      throw AssertionError('non-graceful termination, exit code: $exitCode');
+    }
   }
 }
 
