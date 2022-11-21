@@ -74,6 +74,8 @@ void main() {
         'index.html',
         'index.json',
         'pub-data.json',
+        'pub_dartdoc/pubDartDoc.html',
+        'pub_dartdoc/pub_dartdoc-library.html',
         'pub_data_generator/PubDataGenerator-class.html',
         'pub_data_generator/PubDataGenerator/PubDataGenerator.html',
         'pub_data_generator/PubDataGenerator/generate.html',

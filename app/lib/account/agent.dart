@@ -72,6 +72,9 @@ abstract class AuthenticatedAgent {
   ///  * For a service account we display a description.
   ///  * For automated publishing we display the service and the origin trigger.
   String get displayId;
+
+  /// The email address of the agent (if there is any).
+  String? get email;
 }
 
 /// Holds the authenticated Github Action information.
@@ -99,6 +102,9 @@ class AuthenticatedGithubAction implements AuthenticatedAgent {
     required this.idToken,
     required this.payload,
   });
+
+  @override
+  String? get email => null;
 }
 
 /// Holds the authenticated Google Cloud Service account information.
@@ -107,7 +113,7 @@ class AuthenticatedGcpServiceAccount implements AuthenticatedAgent {
   String get agentId => KnownAgents.gcpServiceAccount;
 
   @override
-  String get displayId => payload.email;
+  String get displayId => email;
 
   /// OIDC `id_token` the request was authenticated with.
   ///
@@ -126,6 +132,12 @@ class AuthenticatedGcpServiceAccount implements AuthenticatedAgent {
     required this.idToken,
     required this.payload,
   });
+
+  @override
+  String get email => payload.email;
+  // TODO: remove from the interface after the consent backend has been migrated
+  String get oauthUserId => payload.sub;
+  String get audience => idToken.payload.aud.single;
 }
 
 /// Holds the authenticated user information.
@@ -145,6 +157,7 @@ class AuthenticatedUser implements AuthenticatedAgent {
   String get displayId => user.email!;
 
   String get userId => user.userId;
+  @override
   String? get email => user.email;
   String? get oauthUserId => user.oauthUserId;
 }

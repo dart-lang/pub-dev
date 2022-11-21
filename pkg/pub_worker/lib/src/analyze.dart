@@ -8,12 +8,12 @@ import 'dart:io'
     show Directory, File, IOException, Platform, Process, ProcessSignal, gzip;
 import 'dart:isolate' show Isolate;
 
+import 'package:_pub_shared/data/task_payload.dart';
 import 'package:clock/clock.dart' show clock;
 import 'package:http/http.dart' show Client;
 import 'package:indexed_blob/indexed_blob.dart';
 import 'package:logging/logging.dart' show Logger;
 import 'package:path/path.dart' as p;
-import 'package:pub_worker/payload.dart';
 import 'package:pub_worker/src/http.dart';
 import 'package:pub_worker/src/pubapi.client.dart';
 import 'package:pub_worker/src/upload.dart';
@@ -90,6 +90,7 @@ Future<void> analyze(Payload payload) async {
     client.close();
     await pubCacheDir.delete(recursive: true);
   }
+  _log.info('Finished analysis of package:${payload.package}');
 }
 
 Future<void> _analyzePackage(
@@ -114,56 +115,78 @@ Future<void> _analyzePackage(
     log.writeln(''); // empty-line before the next headline
 
     // Run the analysis
-    log.writeln('### Starting pana');
-    final panaWrapper = await Isolate.resolvePackageUri(Uri.parse(
-      'package:pub_worker/src/bin/pana_wrapper.dart',
-    ));
-    final pana = await Process.start(
-      Platform.resolvedExecutable,
-      [
-        panaWrapper!.toFilePath(),
-        outDir.path,
-        package,
-        version,
-      ],
-      workingDirectory: outDir.path,
-      includeParentEnvironment: true,
-      environment: {
-        'CI': 'true',
-        'PUB_HOSTED_URL': pubHostedUrl,
-        'PUB_CACHE': pubCache,
-      },
-    );
-    await pana.stdin.close();
+    {
+      log.writeln('### Starting pana');
+      final panaWrapper = await Isolate.resolvePackageUri(Uri.parse(
+        'package:pub_worker/src/bin/pana_wrapper.dart',
+      ));
+      final pana = await Process.start(
+        Platform.resolvedExecutable,
+        [
+          panaWrapper!.toFilePath(),
+          outDir.path,
+          package,
+          version,
+        ],
+        workingDirectory: outDir.path,
+        includeParentEnvironment: true,
+        environment: {
+          'CI': 'true',
+          'PUB_HOSTED_URL': pubHostedUrl,
+          'PUB_CACHE': pubCache,
+        },
+      );
+      await pana.stdin.close();
 
-    var done = false;
-    scheduleMicrotask(() async {
-      await Future.delayed(_analysisTimeout);
-      if (done) {
-        return;
-      }
-      log.writeln('TIMEOUT: Sending SIGTERM to pana');
-      pana.kill(ProcessSignal.sigterm);
+      await Future.wait([
+        pana.stderr.forEach(log.add),
+        pana.stdout.forEach(log.add),
+        pana.exitOrTimeout(_analysisTimeout, () {
+          log.writeln('TIMEOUT: pana sending SIGTERM/SIGKILL');
+        }),
+      ]).catchError((e) {/* ignore */});
+      final exitCode = await pana.exitCode;
 
-      // Give 30 seconds for graceful termination
-      await Future.delayed(Duration(seconds: 30));
-      // ignore: invariant_booleans
-      if (done) {
-        return;
-      }
-      log.writeln('TIMEOUT: Sending SIGKILL to pana');
-      pana.kill(ProcessSignal.sigkill);
-    });
-    await Future.wait([
-      pana.stderr.forEach(log.add),
-      pana.stdout.forEach(log.add),
-      pana.exitCode,
-    ]).catchError((e) {/* ignore */});
-    done = true;
-    final exitCode = await pana.exitCode;
+      log.writeln('### Execution of pana exited $exitCode');
+      log.writeln('STOPPED: ${clock.now().toUtc().toIso8601String()}');
+    }
 
-    log.writeln('### Execution of pana exited $exitCode');
-    log.writeln('STOPPED: ${clock.now().toUtc().toIso8601String()}');
+    // Run dartdoc
+    {
+      log.writeln('### Starting dartdoc');
+      final dartdocWrapper = await Isolate.resolvePackageUri(Uri.parse(
+        'package:pub_worker/src/bin/dartdoc_wrapper.dart',
+      ));
+      final proc = await Process.start(
+        Platform.resolvedExecutable,
+        [
+          dartdocWrapper!.toFilePath(),
+          outDir.path,
+          package,
+          version,
+        ],
+        workingDirectory: outDir.path,
+        includeParentEnvironment: true,
+        environment: {
+          'CI': 'true',
+          'PUB_HOSTED_URL': pubHostedUrl,
+          'PUB_CACHE': pubCache,
+        },
+      );
+      await proc.stdin.close();
+
+      await Future.wait([
+        proc.stderr.forEach(log.add),
+        proc.stdout.forEach(log.add),
+        proc.exitOrTimeout(_analysisTimeout, () {
+          log.writeln('TIMEOUT: dartdoc sending SIGTERM/SIGKILL');
+        }),
+      ]).catchError((e) {/* ignore */});
+      final exitCode = await proc.exitCode;
+
+      log.writeln('### Execution of dartdoc exited $exitCode');
+      log.writeln('STOPPED: ${clock.now().toUtc().toIso8601String()}');
+    }
 
     // Upload results, if there is any
     _log.info('api.taskUploadResult("$package", "$version")');
@@ -297,4 +320,32 @@ Future<void> _reportPackageSkipped(
     () => api.taskUploadFinished(package, version),
     retryIf: _retryIf,
   );
+}
+
+extension on Process {
+  /// Return [exitCode] or send SIGTERM after [timeout].
+  ///
+  /// After SIGTERM, this method will wait 30s before sending SIGKILL.
+  ///
+  /// Returns [exitCode].
+  Future<int> exitOrTimeout(
+    Duration timeout, [
+    void Function()? onTimeout,
+  ]) async =>
+      exitCode.timeout(timeout, onTimeout: () async {
+        if (onTimeout != null) {
+          onTimeout();
+        }
+        // Send SIGTERM
+        kill(ProcessSignal.sigterm);
+
+        // Wait 30s and then SIGKILL
+        return await exitCode.timeout(
+          Duration(seconds: 30),
+          onTimeout: () async {
+            kill(ProcessSignal.sigkill);
+            return exitCode;
+          },
+        );
+      });
 }

@@ -9,10 +9,14 @@ import 'package:googleapis/oauth2/v2.dart' as oauth2_v2;
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
-import 'package:retry/retry.dart' show retry;
 
+import '../service/openid/gcp_openid.dart';
+import '../service/openid/github_openid.dart';
 import '../service/openid/jwt.dart';
+import '../service/openid/openid_models.dart';
+import '../shared/configuration.dart';
 import '../shared/email.dart' show looksLikeEmail;
+import '../shared/exceptions.dart';
 import '../tool/utils/http.dart' show httpRetryClient;
 import 'auth_provider.dart';
 
@@ -21,19 +25,72 @@ final _logger = Logger('pub.account.google_auth2');
 /// The token-info end-point.
 final _tokenInfoEndPoint = Uri.parse('https://oauth2.googleapis.com/tokeninfo');
 
-/// Provides OAuth2-based authentication through Google accounts.
-class GoogleOauth2AuthProvider extends AuthProvider {
+/// Provides OAuth2-based authentication through JWKS and Google account APIs.
+class DefaultAuthProvider extends AuthProvider {
   late http.Client _httpClient;
   late oauth2_v2.Oauth2Api _oauthApi;
 
-  GoogleOauth2AuthProvider() {
-    _httpClient = http.Client();
+  DefaultAuthProvider() {
+    _httpClient = httpRetryClient(retries: 2);
     _oauthApi = oauth2_v2.Oauth2Api(_httpClient);
+  }
+
+  @override
+  Future<JsonWebToken?> tryAuthenticateAsServiceToken(String token) async {
+    if (!JsonWebToken.looksLikeJWT(token)) {
+      return null;
+    }
+    final idToken = JsonWebToken.tryParse(token);
+    if (idToken == null) {
+      return null;
+    }
+
+    if (idToken.payload.iss == GitHubJwtPayload.issuerUrl) {
+      // At this point we have confirmed that the token is a JWT token
+      // issued by GitHub. If there is an issue with the token, the
+      // authentication should fail without any fallback.
+      await _verifyToken(idToken, openIdDataFetch: fetchGithubOpenIdData);
+    }
+
+    if (idToken.payload.iss == GcpServiceAccountJwtPayload.issuerUrl &&
+        idToken.payload.aud.length == 1 &&
+        idToken.payload.aud.single ==
+            activeConfiguration.externalServiceAudience) {
+      // As the uploader token's audience and the admin token's issuer and also
+      // their audience is the same, we only parse it as a non-user token, when
+      // the authentication source is from the pub client app (e.g. uploading a
+      // new package).
+      // At this point we don't fall back to authenticating the token as a user.
+
+      // TODO: use the tokeninfo endpoint instead
+      await _verifyToken(idToken, openIdDataFetch: fetchGoogleCloudOpenIdData);
+    }
+    return null;
+  }
+
+  Future<void> _verifyToken(
+    JsonWebToken idToken, {
+    required Future<OpenIdData> Function() openIdDataFetch,
+  }) async {
+    if (!idToken.payload.isTimely(threshold: Duration(minutes: 2))) {
+      throw AuthenticationException.tokenInvalid('invalid timestamps');
+    }
+    final aud =
+        idToken.payload.aud.length == 1 ? idToken.payload.aud.single : null;
+    if (aud != activeConfiguration.externalServiceAudience) {
+      throw AuthenticationException.tokenInvalid(
+          'audience "${idToken.payload.aud}" does not match "${activeConfiguration.externalServiceAudience}"');
+    }
+    final openIdData = await openIdDataFetch();
+    final signatureMatches = await idToken.verifySignature(openIdData.jwks);
+    if (!signatureMatches) {
+      throw AuthenticationException.tokenInvalid('invalid signature');
+    }
   }
 
   /// Authenticate [token] as `access_token` or `id_token`.
   @override
-  Future<AuthResult?> tryAuthenticate(String token) async {
+  Future<AuthResult?> tryAuthenticateAsUser(String token) async {
     if (token.isEmpty) {
       return null;
     }
@@ -115,10 +172,8 @@ class GoogleOauth2AuthProvider extends AuthProvider {
     // Note: ideally, we would verify these JWTs locally, but unfortunately
     //       we don't have a solid RSA implementation available in Dart.
     final u = _tokenInfoEndPoint.replace(queryParameters: {'id_token': jwt});
-    final response = await retry(
-      () => _httpClient.get(u, headers: {'accept': 'application/json'}),
-      maxAttempts: 2, // two attempts is enough, we don't want delays here
-    );
+    final response =
+        await _httpClient.get(u, headers: {'accept': 'application/json'});
     // Expect a 200 response
     if (response.statusCode != 200) {
       return null;
@@ -191,9 +246,8 @@ class GoogleOauth2AuthProvider extends AuthProvider {
   @override
   Future<AccountProfile?> getAccountProfile(String? accessToken) async {
     if (accessToken == null) return null;
-    final client = httpRetryClient(innerClient: http.Client());
     final authClient = auth.authenticatedClient(
-        client,
+        _httpClient,
         auth.AccessCredentials(
           auth.AccessToken(
             'Bearer',
@@ -206,7 +260,6 @@ class GoogleOauth2AuthProvider extends AuthProvider {
 
     final oauth2 = oauth2_v2.Oauth2Api(authClient);
     final info = await oauth2.userinfo.get();
-    client.close();
     return AccountProfile(
       name: info.name ?? info.givenName,
       imageUrl: info.picture,

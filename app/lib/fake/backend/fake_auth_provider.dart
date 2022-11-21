@@ -4,9 +4,13 @@
 
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:crypto/crypto.dart';
 
 import '../../account/auth_provider.dart';
+import '../../service/openid/gcp_openid.dart';
+import '../../service/openid/jwt.dart';
+import '../../shared/configuration.dart';
 
 /// A fake auth provider where user resolution is done via the provided access
 /// token.
@@ -20,7 +24,40 @@ class FakeAuthProvider implements AuthProvider {
   Future<void> close() async {}
 
   @override
-  Future<AuthResult?> tryAuthenticate(String accessToken) async {
+  Future<JsonWebToken?> tryAuthenticateAsServiceToken(String token) async {
+    final uri = Uri.tryParse(token);
+    if (uri == null) {
+      return null;
+    }
+    if (uri.path == 'gcp-service-account') {
+      final audience = uri.queryParameters['aud'];
+      if (audience != activeConfiguration.externalServiceAudience) {
+        return null;
+      }
+
+      final email = uri.queryParameters['email']!;
+      final now = clock.now();
+      // ignore: invalid_use_of_visible_for_testing_member
+      final idToken = JsonWebToken(
+        header: {},
+        payload: {
+          'email': email,
+          'sub': _oauthUserIdFromEmail(email),
+          'aud': audience,
+          'iat': now.millisecondsSinceEpoch ~/ 1000,
+          'exp': now.add(Duration(minutes: 1)).millisecondsSinceEpoch ~/ 1000,
+          'iss': GcpServiceAccountJwtPayload.issuerUrl,
+        },
+        signature: [],
+      );
+      return idToken;
+    }
+
+    return null;
+  }
+
+  @override
+  Future<AuthResult?> tryAuthenticateAsUser(String accessToken) async {
     if (!accessToken.contains('-at-')) {
       return null;
     }
@@ -30,9 +67,9 @@ class FakeAuthProvider implements AuthProvider {
     }
 
     final email = uri.path.replaceAll('-at-', '@').replaceAll('-dot-', '.');
-    final id = email.replaceAll('@', '-').replaceAll('.', '-');
+    final oauthUserId = _oauthUserIdFromEmail(email);
     return AuthResult(
-      oauthUserId: id,
+      oauthUserId: oauthUserId,
       email: email,
       audience: uri.queryParameters['aud'] ?? '',
     );
@@ -66,3 +103,14 @@ String createFakeAuthTokenForEmail(
       path: email.replaceAll('.', '-dot-').replaceAll('@', '-at-'),
       queryParameters: {'aud': audience ?? 'fake-site-audience'}).toString();
 }
+
+String createFakeServiceAccountToken(
+    {required String email, String? audience}) {
+  return Uri(path: 'gcp-service-account', queryParameters: {
+    'email': email,
+    'aud': audience ?? 'https://pub.dev',
+  }).toString();
+}
+
+String _oauthUserIdFromEmail(String email) =>
+    email.replaceAll('@', '-').replaceAll('.', '-');

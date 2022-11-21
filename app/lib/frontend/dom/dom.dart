@@ -556,6 +556,8 @@ Node meta({
   String? property,
   String? charset,
   String? content,
+  String? rel,
+  String? href,
 }) =>
     dom.element(
       'meta',
@@ -567,6 +569,8 @@ Node meta({
         if (property != null) 'property': property,
         if (charset != null) 'charset': charset,
         if (content != null) 'content': content,
+        if (rel != null) 'rel': rel,
+        if (href != null) 'href': href,
         if (attributes != null) ...attributes,
       },
       children: _children(children, child, text),

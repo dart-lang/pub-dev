@@ -12,12 +12,11 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:neat_cache/neat_cache.dart';
-import 'package:pub_dev/shared/configuration.dart';
 
 import '../service/openid/gcp_openid.dart';
 import '../service/openid/github_openid.dart';
 import '../service/openid/jwt.dart';
-import '../service/openid/openid_models.dart';
+import '../shared/configuration.dart';
 import '../shared/datastore.dart';
 import '../shared/exceptions.dart';
 import '../shared/redis_cache.dart' show cache, EntryPurgeExt;
@@ -87,32 +86,71 @@ UserSessionData? get userSessionData =>
 /// a new one. When the authenticated email of the user changes, the email
 /// field will be updated to the latest one.
 Future<AuthenticatedUser> requireAuthenticatedWebUser() async {
-  return await _requireAuthenticatedUser(
-      expectedAudience: activeConfiguration.pubSiteAudience);
+  final agent = await _requireAuthenticatedAgent();
+  if (agent is AuthenticatedUser) {
+    if (agent.audience != activeConfiguration.pubSiteAudience) {
+      throw AuthenticationException.tokenInvalid(
+          'token audience "${agent.audience}" does not match expected value');
+    }
+
+    return agent;
+  }
+  throw AuthenticationException.failed();
 }
 
-Future<AuthenticatedUser> _requireAuthenticatedUser(
-    {String? expectedAudience}) async {
+/// Require that the incoming request is authorized by an administrator with
+/// the given [permission].
+///
+/// Throws [AuthorizationException] if it doesn't have the permission.
+Future<AuthenticatedGcpServiceAccount> requireAuthenticatedAdmin(
+    AdminPermission permission) async {
+  final agent = await _requireAuthenticatedAgent();
+  if (agent is AuthenticatedGcpServiceAccount) {
+    final isAdmin = await accountBackend.hasAdminPermission(
+      oauthUserId: agent.oauthUserId,
+      email: agent.email,
+      permission: permission,
+    );
+    if (!isAdmin) {
+      _logger.warning(
+          'Authenticated user (${agent.displayId}) is trying to access unauthorized admin APIs.');
+      throw AuthorizationException.userIsNotAdminForPubSite();
+    }
+    return agent;
+  } else {
+    throw AuthenticationException.tokenInvalid('not a GCP service account');
+  }
+}
+
+/// Verifies the current bearer token in the request scope and returns the
+/// current authenticated user or a service agent with the available data.
+Future<AuthenticatedAgent> requireAuthenticatedClient() async {
+  final agent = await _requireAuthenticatedAgent();
+  if (agent is AuthenticatedUser &&
+      agent.audience != activeConfiguration.pubClientAudience) {
+    throw AuthenticationException.tokenInvalid(
+        'token audience "${agent.audience}" does not match expected value');
+  }
+  return agent;
+}
+
+Future<AuthenticatedAgent> _requireAuthenticatedAgent() async {
   final token = _getBearerToken();
   if (token == null || token.isEmpty) {
     throw AuthenticationException.authenticationRequired();
   }
-  final auth = await authProvider.tryAuthenticate(token);
+
+  final authenticatedServiceAgent = await _tryAuthenticateServiceAgent(token);
+  if (authenticatedServiceAgent != null) {
+    return authenticatedServiceAgent;
+  }
+
+  final auth = await authProvider.tryAuthenticateAsUser(token);
   if (auth == null) {
     throw AuthenticationException.failed();
   }
-  if (expectedAudience == null || expectedAudience.isEmpty) {
-    _logger.shout(
-        'Audience was not configured.', expectedAudience, StackTrace.current);
-    throw AuthenticationException.tokenInvalid(
-        'token audience is not configured');
-  }
-  if (auth.audience != expectedAudience) {
-    throw AuthenticationException.tokenInvalid(
-        'token audience "${auth.audience}" does not match expected value');
-  }
 
-  final user = await accountBackend._lookupOrCreateUserByOauthUserId(auth);
+  final user = await accountBackend.lookupOrCreateUserByOauthUserId(auth);
   if (user == null) {
     throw AuthenticationException.failed();
   }
@@ -131,67 +169,26 @@ Future<AuthenticatedUser> _requireAuthenticatedUser(
   return AuthenticatedUser(user, audience: auth.audience);
 }
 
-/// Require that the incoming request is authorized by an administrator with
-/// the given [permission].
-///
-/// Throws [AuthorizationException] if it doesn't have the permission.
-Future<AuthenticatedUser> requireAuthenticatedAdmin(
-    AdminPermission permission) async {
-  final authenticatedUser = await _requireAuthenticatedUser(
-      expectedAudience: activeConfiguration.externalServiceAudience);
-  final user = authenticatedUser.user;
-  final isAdmin = await accountBackend.hasAdminPermission(
-    oauthUserId: authenticatedUser.oauthUserId,
-    email: authenticatedUser.email,
-    permission: permission,
-  );
-  if (!isAdmin) {
-    _logger.warning(
-        'User (${user.userId} / ${user.email}) is trying to access unauthorized admin APIs.');
-    throw AuthorizationException.userIsNotAdminForPubSite();
-  }
-  return authenticatedUser;
-}
-
-/// Verifies the current bearer token in the request scope and returns the
-/// current authenticated user or a service agent with the available data.
-Future<AuthenticatedAgent> requireAuthenticatedClient() async {
-  final token = _getBearerToken();
-  if (token == null || token.isEmpty) {
-    throw AuthenticationException.authenticationRequired();
-  }
-  final authenticatedServiceAgent = await _tryAuthenticateServiceAgent(token);
-
-  if (authenticatedServiceAgent != null) {
-    return authenticatedServiceAgent;
-  } else {
-    return await _requireAuthenticatedUser(
-        expectedAudience: activeConfiguration.pubClientAudience);
-  }
-}
-
 Future<AuthenticatedAgent?> _tryAuthenticateServiceAgent(String token) async {
-  if (!JsonWebToken.looksLikeJWT(token)) {
-    return null;
-  }
-  final idToken = JsonWebToken.tryParse(token);
+  final idToken = await authProvider.tryAuthenticateAsServiceToken(token);
   if (idToken == null) {
     return null;
   }
 
-  if (idToken.payload.iss == GitHubJwtPayload.issuerUrl) {
-    // At this point we have confirmed that the token is a JWT token
-    // issued by GitHub. If there is an issue with the token, the
-    // authentication should fail without any fallback.
-    final payload = await _verifyAndParseToken(
-      idToken,
-      openIdDataFetch: fetchGithubOpenIdData,
-      payloadTryParse: GitHubJwtPayload.tryParse,
-    );
+  Future<A> parseTokenPayload<A>(
+    A? Function(JwtPayload payload) payloadTryParse,
+  ) async {
+    final payload = payloadTryParse(idToken.payload);
+    if (payload == null) {
+      throw AuthenticationException.tokenInvalid('unable to parse payload');
+    }
+    return payload;
+  }
 
+  if (idToken.payload.iss == GitHubJwtPayload.issuerUrl) {
     return AuthenticatedGithubAction(
       idToken: idToken,
-      payload: payload,
+      payload: await parseTokenPayload(GitHubJwtPayload.tryParse),
     );
   }
 
@@ -199,50 +196,13 @@ Future<AuthenticatedAgent?> _tryAuthenticateServiceAgent(String token) async {
       idToken.payload.aud.length == 1 &&
       idToken.payload.aud.single ==
           activeConfiguration.externalServiceAudience) {
-    // As the uploader token's audience and the admin token's issuer and also
-    // their audience is the same, we only parse it as a non-user token, when
-    // the authentication source is from the pub client app (e.g. uploading a
-    // new package).
-    // At this point we don't fall back to authenticating the token as a user.
-    final payload = await _verifyAndParseToken(
-      idToken,
-      openIdDataFetch: fetchGoogleCloudOpenIdData,
-      payloadTryParse: GcpServiceAccountJwtPayload.tryParse,
-    );
-
     return AuthenticatedGcpServiceAccount(
       idToken: idToken,
-      payload: payload,
+      payload: await parseTokenPayload(GcpServiceAccountJwtPayload.tryParse),
     );
   }
 
   return null;
-}
-
-Future<A> _verifyAndParseToken<A>(
-  JsonWebToken idToken, {
-  required Future<OpenIdData> Function() openIdDataFetch,
-  required A? Function(JwtPayload payload) payloadTryParse,
-}) async {
-  if (!idToken.payload.isTimely(threshold: Duration(minutes: 2))) {
-    throw AuthenticationException.tokenInvalid('invalid timestamps');
-  }
-  final aud =
-      idToken.payload.aud.length == 1 ? idToken.payload.aud.single : null;
-  if (aud != activeConfiguration.externalServiceAudience) {
-    throw AuthenticationException.tokenInvalid(
-        'audience "${idToken.payload.aud}" does not match "${activeConfiguration.externalServiceAudience}"');
-  }
-  final payload = payloadTryParse(idToken.payload);
-  if (payload == null) {
-    throw AuthenticationException.tokenInvalid('unable to parse payload');
-  }
-  final openIdData = await openIdDataFetch();
-  final signatureMatches = await idToken.verifySignature(openIdData.jwks);
-  if (!signatureMatches) {
-    throw AuthenticationException.tokenInvalid('invalid signature');
-  }
-  return payload;
 }
 
 /// Represents the backend for the account handling and authentication.
@@ -337,7 +297,7 @@ class AccountBackend {
   /// OAuth userId differs from [owner].
   Future<void> verifyAccessTokenOwnership(
       String accessToken, User owner) async {
-    final auth = await authProvider.tryAuthenticate(accessToken);
+    final auth = await authProvider.tryAuthenticateAsUser(accessToken);
     if (auth == null) {
       throw AuthenticationException.accessTokenInvalid();
     }
@@ -391,7 +351,16 @@ class AccountBackend {
     });
   }
 
-  Future<User?> _lookupOrCreateUserByOauthUserId(AuthResult auth) async {
+  /// Returns a [User] entity that matches the [auth] results:
+  /// - If there is an entity with the OauthUserID, it will be returned.
+  /// - If there is an entity with the email but not OAuthUserID (old account
+  ///   that hasn't been used for a while), we will fill the User.oauthUserId
+  ///   field and return the entity.
+  /// Otherwise (e.g. multiple entities with the same email, or data inconsistency)
+  /// the method will return `null`.
+  ///
+  /// TODO: make this private once the consent backend rewrite is done.
+  Future<User?> lookupOrCreateUserByOauthUserId(AuthResult auth) async {
     ArgumentError.checkNotNull(auth, 'auth');
     final emptyKey = _db.emptyKey;
 

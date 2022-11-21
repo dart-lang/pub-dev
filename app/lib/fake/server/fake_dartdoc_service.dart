@@ -17,6 +17,7 @@ import 'package:pub_dev/job/job.dart';
 import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/handler_helpers.dart';
+import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
 
@@ -25,8 +26,9 @@ final _logger = Logger('fake_dartdoc_service');
 class FakeDartdocService {
   final MemDatastore _datastore;
   final MemStorage _storage;
+  final FakeCloudCompute _cloudCompute;
 
-  FakeDartdocService(this._datastore, this._storage);
+  FakeDartdocService(this._datastore, this._storage, this._cloudCompute);
 
   Future<void> run({
     int port = 8084,
@@ -36,6 +38,7 @@ class FakeDartdocService {
         configuration: configuration,
         datastore: _datastore,
         storage: _storage,
+        cloudCompute: _cloudCompute,
         fn: () async {
           await generateFakePopularityValues();
           final jobProcessor = DartdocJobProcessor(aliveCallback: null);

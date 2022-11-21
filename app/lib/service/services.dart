@@ -15,7 +15,7 @@ import 'package:shelf/shelf_io.dart';
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
-import '../account/google_oauth2.dart';
+import '../account/default_auth_provider.dart';
 import '../account/like_backend.dart';
 import '../admin/backend.dart';
 import '../audit/backend.dart';
@@ -90,7 +90,7 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
           Storage(retryingAuthClient, activeConfiguration.projectId));
 
       // register services with external dependencies
-      registerAuthProvider(GoogleOauth2AuthProvider());
+      registerAuthProvider(DefaultAuthProvider());
       registerScopeExitCallback(authProvider.close);
       registerDomainVerifier(DomainVerifier());
       registerEmailSender(
@@ -132,6 +132,7 @@ Future<R> withFakeServices<R>({
   Configuration? configuration,
   MemDatastore? datastore,
   MemStorage? storage,
+  FakeCloudCompute? cloudCompute,
 }) async {
   if (Zone.current[_pubDevServicesInitializedKey] == true) {
     return await fork(() async => await fn()) as R;
@@ -178,7 +179,7 @@ Future<R> withFakeServices<R>({
     registerUploadSigner(
         FakeUploadSignerService(configuration!.storageBaseUrl!));
 
-    registertaskWorkerCloudCompute(FakeCloudCompute());
+    registertaskWorkerCloudCompute(cloudCompute ?? FakeCloudCompute());
 
     return await _withPubServices(() async {
       await topPackages.start();

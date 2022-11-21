@@ -17,6 +17,8 @@ import 'package:pub_dev/job/job.dart';
 import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/handler_helpers.dart';
+import 'package:pub_dev/task/backend.dart';
+import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
 
@@ -25,8 +27,9 @@ final _logger = Logger('fake_analyzer_service');
 class FakeAnalyzerService {
   final MemDatastore _datastore;
   final MemStorage _storage;
+  final FakeCloudCompute _cloudCompute;
 
-  FakeAnalyzerService(this._datastore, this._storage);
+  FakeAnalyzerService(this._datastore, this._storage, this._cloudCompute);
 
   Future<void> run({
     int port = 8083,
@@ -36,6 +39,7 @@ class FakeAnalyzerService {
         configuration: configuration,
         datastore: _datastore,
         storage: _storage,
+        cloudCompute: _cloudCompute,
         fn: () async {
           await generateFakePopularityValues();
           final jobProcessor = AnalyzerJobProcessor(aliveCallback: null);
@@ -56,6 +60,10 @@ class FakeAnalyzerService {
             }) as shelf.Response?)!;
           });
           _logger.info('running on port $port');
+
+          (taskWorkerCloudCompute as FakeCloudCompute).startInstanceExecution();
+          await taskBackend.backfillTrackingState();
+          await taskBackend.start();
 
           await ProcessSignal.sigint.watch().first;
 

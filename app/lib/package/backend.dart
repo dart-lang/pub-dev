@@ -417,8 +417,8 @@ class PackageBackend {
           'isUnlisted: ${p.isUnlisted}');
       tx.insert(p);
       tx.insert(AuditLogRecord.packageOptionsUpdated(
+        agent: authenticatedUser,
         package: p.name!,
-        user: user,
         options: optionsChanges,
       ));
     });
@@ -461,7 +461,8 @@ class PackageBackend {
           InvalidInputException.check(pv.canUndoRetracted,
               'Can\'t undo retraction of package "$package" version "$version".');
         }
-        await doUpdateRetractedStatus(user, tx, p, pv, options.isRetracted!);
+        await doUpdateRetractedStatus(
+            authenticatedUser, tx, p, pv, options.isRetracted!);
       }
     });
     await purgePackageCache(package);
@@ -545,7 +546,7 @@ class PackageBackend {
 
           InvalidInputException.check(
             serviceAccountEmail.endsWith('.gserviceaccount.com'),
-            'The service account email must end with `gserviceaccount.com`. '
+            'The service account email must end with `.gserviceaccount.com`. '
             'If you have a different service account email, please create an issue at '
             'https://github.com/dart-lang/pub-dev',
           );
@@ -568,8 +569,12 @@ class PackageBackend {
   ///
   /// This is a helper method, and should be used only after appropriate
   /// input validation.
-  Future<void> doUpdateRetractedStatus(User user, TransactionWrapper tx,
-      Package p, PackageVersion pv, bool isRetracted) async {
+  Future<void> doUpdateRetractedStatus(
+      AuthenticatedAgent agent,
+      TransactionWrapper tx,
+      Package p,
+      PackageVersion pv,
+      bool isRetracted) async {
     pv.isRetracted = isRetracted;
     pv.retracted = isRetracted ? clock.now() : null;
 
@@ -591,9 +596,9 @@ class PackageBackend {
     tx.insert(p);
     tx.insert(pv);
     tx.insert(AuditLogRecord.packageVersionOptionsUpdated(
+      agent: agent,
       package: p.name!,
       version: pv.version!,
-      user: user,
       options: ['retracted'],
     ));
   }
@@ -1283,7 +1288,7 @@ class PackageBackend {
         serviceAccountEmail.isEmpty ||
         serviceAccountEmail != agent.payload.email) {
       throw AuthorizationException.serviceAccountPublishingIssue(
-          'publishing is not enabled for the "${agent.payload.email}" service account, it may be enabled for another email.');
+          'publishing is not enabled for the "${agent.payload.email}" service account');
     }
 
     // TODO: remove once we are happy with the current checks
@@ -1498,7 +1503,7 @@ class PackageBackend {
 
       tx.insert(package);
       tx.insert(AuditLogRecord.uploaderRemoved(
-        activeUser: user,
+        agent: authenticatedUser,
         package: packageName,
         uploaderUser: uploader,
       ));

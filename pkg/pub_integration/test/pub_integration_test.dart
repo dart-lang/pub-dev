@@ -40,6 +40,7 @@ void main() {
           headers: {
             'Authorization':
                 'Bearer somebodyelse-at-example-dot-org?aud=fake-site-audience',
+            'content-type': 'application/json; charset="utf-8"',
           },
           body: json.encode({'granted': true}),
         );
@@ -54,6 +55,7 @@ void main() {
           headers: {
             'Authorization':
                 'Bearer dev-at-example-dot-org?aud=fake-site-audience',
+            'content-type': 'application/json; charset="utf-8"',
           },
           body: json.encode({'granted': true}),
         );

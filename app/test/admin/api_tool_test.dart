@@ -14,10 +14,8 @@ import '../shared/test_services.dart';
 void main() {
   group('Admin API: tool', () {
     group('bad tool', () {
-      setupTestsWithCallerAuthorizationIssues(
-        (client) => client.adminExecuteTool('no-such-tool', ''),
-        audience: 'https://pub.dev',
-      );
+      setupTestsWithAdminTokenIssues(
+          (client) => client.adminExecuteTool('no-such-tool', ''));
 
       testWithProfile('auth with bad tool', fn: () async {
         final rs = await createPubApiClient(authToken: siteAdminToken)
@@ -28,10 +26,8 @@ void main() {
     });
 
     group('user merger', () {
-      setupTestsWithCallerAuthorizationIssues(
-        (client) => client.adminExecuteTool('user-merger', ''),
-        audience: 'https://pub.dev',
-      );
+      setupTestsWithAdminTokenIssues(
+          (client) => client.adminExecuteTool('user-merger', ''));
 
       testWithProfile('help', fn: () async {
         final rs = await createPubApiClient(authToken: siteAdminToken)

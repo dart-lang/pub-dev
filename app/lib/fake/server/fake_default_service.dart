@@ -16,6 +16,7 @@ import 'package:pub_dev/service/entrypoint/tools.dart';
 import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/handler_helpers.dart';
+import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
 
@@ -25,8 +26,10 @@ class FakePubServer {
   final MemDatastore _datastore;
   final MemStorage _storage;
   final bool _watch;
+  final FakeCloudCompute _cloudCompute;
 
-  FakePubServer(this._datastore, this._storage, {bool? watch})
+  FakePubServer(this._datastore, this._storage, this._cloudCompute,
+      {bool? watch})
       : _watch = watch ?? false;
 
   Future<void> run({
@@ -38,6 +41,7 @@ class FakePubServer {
         configuration: configuration,
         datastore: _datastore,
         storage: _storage,
+        cloudCompute: _cloudCompute,
         fn: () async {
           if (_watch) {
             await watchForResourceChanges();

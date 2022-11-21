@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:_pub_shared/data/task_payload.dart';
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart' show Logger;
 import 'package:pub_dev/shared/configuration.dart';
@@ -11,7 +12,6 @@ import 'package:pub_dev/shared/versions.dart' show runtimeVersion;
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:pub_dev/task/global_lock.dart';
 import 'package:pub_dev/task/models.dart';
-import 'package:pub_worker/payload.dart';
 
 final _log = Logger('pub.task.schedule');
 
@@ -25,9 +25,22 @@ Future<void> schedule(
   GlobalLockClaim claim,
   CloudCompute compute,
   DatastoreDB db, {
-  Completer<void>? abort,
+  required Completer<void> abort,
 }) async {
-  abort ??= Completer();
+  /// Sleep [delay] time [since] timestamp, or now if not given.
+  Future<void> sleepOrAborted(Duration delay, {DateTime? since}) async {
+    ArgumentError.checkNotNull(delay, 'delay');
+    final now = clock.now();
+    since ??= now;
+
+    delay = delay - now.difference(since);
+    if (delay.isNegative) {
+      // Await a micro task to ensure consistent behavior
+      await Future.microtask(() {});
+    } else {
+      await abort.future.timeout(delay, onTimeout: () => null);
+    }
+  }
 
   // Map from zone to DateTime when zone is allowed again
   final zoneBannedUntil = <String, DateTime>{
@@ -80,7 +93,7 @@ Future<void> schedule(
             // Wait at-least 5 minutes from start of deletion until we remove
             // it from [deletionInProgress] that way we give the API some time
             // reconcile state.
-            await _sleep(Duration(minutes: 5), since: deletionStart);
+            await sleepOrAborted(Duration(minutes: 5), since: deletionStart);
             deletionInProgress.remove(instance.instanceName);
           }
         });
@@ -92,10 +105,7 @@ Future<void> schedule(
     if (activeConfiguration.maxTaskInstances <= instances) {
       _log.info('Reached instance limit, trying again in 30s');
       // Wait 30 seconds then list instances again, so that we can count them
-      await Future.any([
-        _sleep(Duration(seconds: 30), since: iterationStart),
-        abort.future,
-      ]);
+      await sleepOrAborted(Duration(seconds: 30), since: iterationStart);
       continue; // skip the rest of the iteration
     }
 
@@ -111,10 +121,7 @@ Future<void> schedule(
     // If no zones are available, we sleep and try again later.
     if (allowedZones.isEmpty) {
       _log.info('All compute-engine zones are banned, trying again in 30s');
-      await Future.any([
-        _sleep(Duration(seconds: 30), since: iterationStart),
-        abort.future,
-      ]);
+      await sleepOrAborted(Duration(seconds: 30), since: iterationStart);
       continue;
     }
 
@@ -234,42 +241,18 @@ Future<void> schedule(
     // If there was no pending packages reviewed, and no instances currently
     // running, then we can easily sleep 5 minutes before we poll again.
     if (instances == 0 && pendingPackagesReviewed == 0) {
-      await Future.any([
-        _sleep(Duration(minutes: 5)),
-        abort.future,
-      ]);
+      await sleepOrAborted(Duration(minutes: 5));
       continue;
     }
 
     // If more tasks is available and quota wasn't used up, we only sleep 10s
     if (pendingPackagesReviewed >= _maxInstancesPerIteration &&
         activeConfiguration.maxTaskInstances > instances) {
-      await Future.any([
-        _sleep(Duration(seconds: 10), since: iterationStart),
-        abort.future,
-      ]);
+      await sleepOrAborted(Duration(seconds: 10), since: iterationStart);
       continue;
     }
 
     // If we are waiting for quota, then we sleep a minute before checking again
-    await Future.any([
-      _sleep(Duration(minutes: 1), since: iterationStart),
-      abort.future,
-    ]);
-  }
-}
-
-/// Sleep [delay] time [since] timestamp, or now if not given.
-Future<void> _sleep(Duration delay, {DateTime? since}) async {
-  ArgumentError.checkNotNull(delay, 'delay');
-  final now = clock.now();
-  since ??= now;
-
-  delay = delay - now.difference(since);
-  if (delay.isNegative) {
-    // Await a micro task to ensure consistent behavior
-    await Future.microtask(() {});
-  } else {
-    await Future.delayed(delay);
+    await sleepOrAborted(Duration(minutes: 1), since: iterationStart);
   }
 }
