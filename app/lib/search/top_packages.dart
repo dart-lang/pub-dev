@@ -41,8 +41,20 @@ class TopPackages {
     _topFlutter,
   ];
 
+  bool _running = false;
+  bool _closing = false;
+
   /// Starts the initial and schedules the periodic updates.
   Future<void> start() async {
+    if (_running) {
+      return;
+    }
+    if (_closing) {
+      throw StateError(
+        'TopPackages.start() cannot be called after TopPackages.close()',
+      );
+    }
+    _running = true;
     for (final v in _values) {
       await v.start();
     }
@@ -58,9 +70,9 @@ class TopPackages {
 
   /// Cancels periodic updates.
   Future<void> close() async {
-    for (final v in _values) {
-      await v.close();
-    }
+    _closing = true;
+    _running = false;
+    await Future.wait(_values.map((v) => v.close()));
   }
 
   List<PackageView> flutterFavorites() {
