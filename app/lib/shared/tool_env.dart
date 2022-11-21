@@ -108,6 +108,8 @@ Future<_ToolEnvRef> _createToolEnvRef() async {
         'FLUTTER_ROOT': activeConfiguration.tools!.stableFlutterSdkPath!,
       'PUB_HOSTED_URL': 'https://pub.dartlang.org',
     },
+    futureDartSdkDir: activeConfiguration.tools?.futureDartSdkPath,
+    futureFlutterSdkDir: activeConfiguration.tools?.futureFlutterSdkPath,
   );
   final previewToolEnv = await ToolEnvironment.create(
     dartSdkDir: activeConfiguration.tools?.previewDartSdkPath,
@@ -119,6 +121,8 @@ Future<_ToolEnvRef> _createToolEnvRef() async {
         'FLUTTER_ROOT': activeConfiguration.tools!.previewFlutterSdkPath!,
       'PUB_HOSTED_URL': 'https://pub.dartlang.org',
     },
+    futureDartSdkDir: activeConfiguration.tools?.futureDartSdkPath,
+    futureFlutterSdkDir: activeConfiguration.tools?.futureFlutterSdkPath,
   );
   return _ToolEnvRef(cacheDir, stableToolEnv, previewToolEnv);
 }
