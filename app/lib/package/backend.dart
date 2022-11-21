@@ -1216,7 +1216,7 @@ class PackageBackend {
         repository.isEmpty ||
         repository != agent.payload.repository) {
       throw AuthorizationException.githubActionIssue(
-          'publishing is not enabled for the "${agent.payload.repository}" repository, it may be enabled for another repository.');
+          'publishing is not enabled for the "${agent.payload.repository}" repository, it may be enabled for another repository');
     }
 
     // TODO: consider allowing other events from

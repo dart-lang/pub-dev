@@ -129,6 +129,10 @@ class JsonWebToken {
     }
     return false;
   }
+
+  @visibleForTesting
+  String asEncodedString() =>
+      '$headerAndPayloadEncoded.${base64Url.encode(signature)}';
 }
 
 Map<String, dynamic> _decodePart(String part) {

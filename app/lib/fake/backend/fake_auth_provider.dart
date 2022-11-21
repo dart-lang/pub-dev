@@ -2,13 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: invalid_use_of_visible_for_testing_member
+
 import 'dart:convert';
 
 import 'package:clock/clock.dart';
 import 'package:crypto/crypto.dart';
+import 'package:meta/meta.dart';
 
 import '../../account/auth_provider.dart';
 import '../../service/openid/gcp_openid.dart';
+import '../../service/openid/github_openid.dart';
 import '../../service/openid/jwt.dart';
 import '../../shared/configuration.dart';
 
@@ -25,6 +29,19 @@ class FakeAuthProvider implements AuthProvider {
 
   @override
   Future<JsonWebToken?> tryAuthenticateAsServiceToken(String token) async {
+    if (JsonWebToken.looksLikeJWT(token)) {
+      final parsed = JsonWebToken.tryParse(token);
+      if (parsed == null) {
+        return null;
+      }
+      // reject if signature is not 'valid'.
+      if (base64.encode(parsed.signature) !=
+          base64.encode(utf8.encode('valid'))) {
+        return null;
+      }
+      return parsed;
+    }
+
     final uri = Uri.tryParse(token);
     if (uri == null) {
       return null;
@@ -36,17 +53,14 @@ class FakeAuthProvider implements AuthProvider {
       }
 
       final email = uri.queryParameters['email']!;
-      final now = clock.now();
-      // ignore: invalid_use_of_visible_for_testing_member
       final idToken = JsonWebToken(
         header: {},
         payload: {
           'email': email,
           'sub': _oauthUserIdFromEmail(email),
           'aud': audience,
-          'iat': now.millisecondsSinceEpoch ~/ 1000,
-          'exp': now.add(Duration(minutes: 1)).millisecondsSinceEpoch ~/ 1000,
           'iss': GcpServiceAccountJwtPayload.issuerUrl,
+          ..._jwtPayloadTimestamps(),
         },
         signature: [],
       );
@@ -95,6 +109,7 @@ class FakeAuthProvider implements AuthProvider {
   }
 }
 
+@visibleForTesting
 String createFakeAuthTokenForEmail(
   String email, {
   String? audience,
@@ -104,13 +119,67 @@ String createFakeAuthTokenForEmail(
       queryParameters: {'aud': audience ?? 'fake-site-audience'}).toString();
 }
 
-String createFakeServiceAccountToken(
-    {required String email, String? audience}) {
+@visibleForTesting
+String createFakeServiceAccountToken({
+  required String email,
+  // `https://pub.dev` unless specified otherwise
+  String? audience,
+}) {
   return Uri(path: 'gcp-service-account', queryParameters: {
     'email': email,
     'aud': audience ?? 'https://pub.dev',
   }).toString();
 }
 
+@visibleForTesting
+String createFakeGithubActionToken({
+  required String repository,
+  required String ref,
+  // `https://pub.dev` unless specified otherwise
+  String? audience,
+
+  // 'push' unless specified otherwise
+  String? eventName,
+  String? sha,
+  String? actor,
+  String? environment,
+  // utf8-encoded `valid` unless specified otherwise
+  List<int>? signature,
+  String? runId,
+}) {
+  var refType = ref.split('/')[1];
+  if (refType.endsWith('s')) {
+    refType = refType.substring(0, refType.length - 1);
+  }
+  final token = JsonWebToken(
+    header: {},
+    payload: {
+      'aud': audience ?? 'https://pub.dev',
+      'repository': repository,
+      'repository_owner': repository.split('/').first,
+      'event_name': eventName ?? 'push',
+      'ref': ref,
+      'ref_type': refType,
+      'iss': GitHubJwtPayload.issuerUrl,
+      'run_id': runId ?? clock.now().millisecondsSinceEpoch.toString(),
+      if (sha != null) 'sha': sha,
+      if (actor != null) 'actor': actor,
+      if (environment != null) 'environment': environment,
+      ..._jwtPayloadTimestamps(),
+    },
+    signature: signature ?? utf8.encode('valid'),
+  );
+  return token.asEncodedString();
+}
+
 String _oauthUserIdFromEmail(String email) =>
     email.replaceAll('@', '-').replaceAll('.', '-');
+
+Map<String, dynamic> _jwtPayloadTimestamps() {
+  final now = clock.now();
+  return <String, dynamic>{
+    'iat': now.millisecondsSinceEpoch ~/ 1000,
+    'nbf': now.millisecondsSinceEpoch ~/ 1000,
+    'exp': now.add(Duration(minutes: 1)).millisecondsSinceEpoch ~/ 1000,
+  };
+}
