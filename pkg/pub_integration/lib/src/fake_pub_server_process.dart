@@ -113,11 +113,11 @@ class FakePubServerProcess {
   }
 
   Future<void> kill() async {
-    // First try SIGINT, and after 10 minutes do SIGTERM.
+    // First try SIGINT, and after 5 seconds do SIGTERM.
     print('Sending INT signal to ${_process.pid}...');
     _process.kill(ProcessSignal.sigint);
     await _coverageConfig?.waitForCollect();
-    final timer = Timer(Duration(minutes: 10), () {
+    final timer = Timer(Duration(seconds: 5), () {
       print('Sending TERM signal to ${_process.pid}...');
       _process.kill();
     });
